@@ -100,11 +100,11 @@ avm_cef_set_adm_switch(
   NOTES         : CLI needs to lookup entity paths using an HISv API.
 *****************************************************************************/
 static uns32 avsv_cli_hisv_init() {
-   uns32		rc = NCSCC_RC_SUCCESS;
-   SaEvtHandleT 	gl_evt_hdl = 0;
-   SaEvtCallbacksT 	reg_callback_set;
-   NCS_LIB_CREATE 	hisv_create_info;
-   SaVersionT 		ver;
+   uns32            rc = NCSCC_RC_SUCCESS;
+   SaEvtHandleT     gl_evt_hdl = 0;
+   SaEvtCallbacksT  reg_callback_set;
+   NCS_LIB_CREATE   hisv_create_info;
+   SaVersionT       ver;
 
    /* Initialize the event subsystem for communication with HISv */
    ver.releaseCode = 'B';
@@ -434,7 +434,7 @@ avm_parse_inp(NCSCLI_ARG_VAL *arg,
           }
        }
        
-       if(loc == 0)
+       if((loc == 0)&&((*count)!=1))
        {
           return NCSCC_RC_FAILURE;
        }else
@@ -486,24 +486,36 @@ avm_constr_ep(
        if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
        {
 #ifdef HAVE_HPI_A01
-       len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
-       /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
-       rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
-       if (rc == NCSCC_RC_SUCCESS) {
-          if (strlen(ep) == 0) {
-             printf("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
-             /* A zero length entity path means that HISv is working - but could not find the entity path */
-             rc = NCSCC_RC_FAILURE;
+          /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
+          rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
+          if (rc == NCSCC_RC_SUCCESS) 
+          {
+             if (strlen(ep) == 0) 
+             {
+                printf("Error: hpl_entity_path_lookup() did not find the requested entity path\n");
+                /* A zero length entity path means that HISv is working - but could not find the entity path */
+                rc = NCSCC_RC_FAILURE;
+             }
           }
-       }
-       else {
-          /* HISv is not running - so create the entity path using the original hardcoded values */
-          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
-          rc = NCSCC_RC_SUCCESS;
-       }
+          else 
+          {
+             /* HISv is not running - so create the entity path using the original hardcoded values */
+             len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+             rc = NCSCC_RC_SUCCESS;
+          }
 #endif
-        }
+       } /* AMC SubSlot Case */
+       else
+       {
+#ifdef HAVE_HPI_A01
+          rc = NCSCC_RC_FAILURE; /* Subslot not supported for HPI-A */
+#else
+          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d},{%d,%d}}", AMC_SUB_SLOT_TYPE, ent_inst[2], SAHPI_ENT_PHYSICAL_SLOT,
+                                 ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+#endif
+       }
     }
     return rc;
 } 
@@ -568,8 +580,9 @@ avm_cef_set_ent_adm_req(
        return NCSCC_RC_FAILURE;
     }
 
-    /* If subslot has been specified as 0 then it's same as when it's not specified */
-    if((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && (entity_instance[2] == 0))
+    /* If subslot has been specified as 0 (or) 15 then it's same as when it's not specified */
+    if((AVM_EXT_HIERARCHY_LVL == ent_inst_cnt) && 
+       ((entity_instance[2] == 0) || (entity_instance[2] == 15)))
     {
        if(ent_type_cnt == ent_inst_cnt)
           ent_type_cnt = AVM_DEFAULT_HIERARCHY_LVL;
@@ -609,8 +622,8 @@ avm_cef_set_ent_adm_req(
         }else if(!strcmp(value->cmd.strval, "lock"))
         {
            avsv_cli_display(cli_hdl, "\nWARNING: Lock operation is an abrupt operation. It may result into, node not coming up even after performing unlock operation. The shutdown operation is rather a recommended choice, as it performs the same operation gracefully.\n");
-
-           avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it");
+      
+           avsv_cli_display(cli_hdl, "Do you really want to continue with lock operation? - enter Y or y to confirm it or any other character to cancel it");
            ans = getchar(); 
            if((ans=='Y') || (ans=='y'))
               sprintf(set_val, "%d", 2);
@@ -718,15 +731,6 @@ avm_cef_set_adm_switch(
     return rc;
 }
 
-/*****************************************************************************
-  PROCEDURE NAME: avsv_cli_done
-  DESCRIPTION   : AVSv CLI done.
-  ARGUMENTS     :
-                  cli_hdl : CLI handle.
-                  str     : string to be printed.
-  RETURNS       : SUCCESS or FAILURE
-  NOTES:
-*****************************************************************************/
 /*****************************************************************************
   PROCEDURE NAME: avsv_cli_done
   DESCRIPTION   : AVSv CLI done.
@@ -882,7 +886,7 @@ avsv_cli_build_and_generate_mibsets(NCSMIB_TBL_ID table_id, uns32 param_id,
 {
    NCSMIB_ARG  mib_arg;
    uns8        space[1024];
-   NCSMEM_AID   mem_aid;
+   NCSMEM_AID  mem_aid;
    uns32       status = NCSCC_RC_SUCCESS;
    char        *cli_req_timeout_env = NULL;
    uns32       cli_req_timeout;

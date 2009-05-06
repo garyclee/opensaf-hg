@@ -1403,9 +1403,13 @@ get_resourceid (uns8 *epath_str, uns32 epath_len, SaHpiResourceIdT *resourceid)
    uns32    rc = NCSCC_RC_FAILURE;
    int      get_res_id_retry_count = 0;
 
+   char *arch_type = NULL;
+
 #ifndef HAVE_HPI_A01
    uns32 i;
 #endif
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* m_LOG_HISV_GEN_STR("get_resourceid: given entity-path", epath_str, NCSFL_SEV_INFO); */
 
@@ -1511,51 +1515,58 @@ GET_RES_ID:
              
        }
        else
-        {
+       {
 
-      /* Allow for the case where blades are ATCA or non-ATCA.                        */
-      if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
+          /* Allow for the case where blades are ATCA or non-ATCA.                        */
+          if (!((entry.ResourceEntity.Entry[1].EntityLocation > 0) &&
             (entry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS) &&
-            ((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
-             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)) &&
+            (((entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT) &&
+              (entry.ResourceEntity.Entry[1].EntityLocation == epath.Entry[0].EntityLocation)) ||
+             (entry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS)) &&
             (
 #if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
 #endif
              (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)))) 
-            
-                 {
-                      /* Entity location didn't Matches*/
-                      continue;
-                 } 
-                 /* A controller or a payload blade */
-                 /* clean entity path */
+          {
+              /* Entity location didn't Matches*/
+              continue;
+          } 
+          /* A controller or a payload blade */
+          /* clean entity path */
 
-                 for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) 
-                 {
-                    if ( entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT )
-                    {
-                        if (i == (SAHPI_MAX_ENTITY_PATH - 1))
-                        break;
+          for (i = 0; i < SAHPI_MAX_ENTITY_PATH; i++) 
+          {
+             if ( entry.ResourceEntity.Entry[i].EntityType == SAHPI_ENT_ROOT )
+             {
+                if (i == (SAHPI_MAX_ENTITY_PATH - 1))
+                   break;
 
-            /* found root entry, zero out rest of Entry array */
-            memset(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
-            break;
-         }
-      }
+                 /* found root entry, zero out rest of Entry array */
+                 memset(&entry.ResourceEntity.Entry[i+1], 0, (SAHPI_MAX_ENTITY_PATH - i - 1) * sizeof(SaHpiEntityT));
+                    break;
+             }
+          }
 
-              /* Allow for the case where blades are ATCA or non-ATCA.  */
-              if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
+          if (strcmp(arch_type,"ATCA") == 0)
+          { 
+             /* Arch type check is needed because SAHPI_ENT_SWITCH_BLADE 
+              * is valid for ATCA blades too  
+              */
+             if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
+                continue;
+          }
+          else
+          {
+             /* Allow for the case where blades are non-ATCA.  */
+             if ((entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
                   (entry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
                  if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[0], len) != 0)
                     continue;
               }
-              else if (memcmp(&epath, (int8 *)&entry.ResourceEntity.Entry[1], len) != 0)
-                 continue;
-        }
-            
+          }
+       }
 #endif
 
       /** got the resource-id of resource with given entity-path

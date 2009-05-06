@@ -2389,7 +2389,7 @@ avm_conv_phy_info_to_ent_path(NCS_CHASSIS_ID chassis_id, NCS_PHY_SLOT_ID phy_slo
 extern NCS_BOOL
 avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
 {
-   uns8 ent_path1_lev, ent_path2_lev;
+   uns8 ent_path1_lev=0, ent_path2_lev=0;
    NCS_CHASSIS_ID chassis_id1, chassis_id2;
    NCS_PHY_SLOT_ID phy_slot1, phy_slot2;
    NCS_SUB_SLOT_ID subslot1, subslot2;
