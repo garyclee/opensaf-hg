@@ -569,8 +569,23 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    }
    else
    {
+#ifdef HAVE_HPI_A01
       printf("Current Hotswap state of board in physical slot %d is: ",board_num);
       m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+#else
+      if(type == AMC_SUB_SLOT_TYPE)
+      {  
+         /* Amc case */
+         printf("Current Hotswap state of board in AMC SUB-SLOT %d is: ",board_num);
+         m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+      }
+      else
+      {
+         /* Normal slot case */
+         printf("Current Hotswap state of board in PHYSICAL SLOT %d is: ",board_num);
+         m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+      }
+#endif
    }
    switch (cur_state)
    {
@@ -616,8 +631,23 @@ print_hotswap (SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_nu
    }
    else
    {
+#ifdef HAVE_HPI_A01
       printf("Previous Hotswap state of board in physical slot %d is: ",board_num);
-      m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_PREV_STATE, board_num);
+      m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+#else
+      if(type == AMC_SUB_SLOT_TYPE)
+      {  
+         /* Amc case */
+         printf("Previous Hotswap state of board in AMC SUB-SLOT %d is: ",board_num);
+         m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+      }
+      else
+      {
+         /* Normal slot case */
+         printf("Previous Hotswap state of board in PHYSICAL SLOT %d is: ",board_num);
+         m_LOG_HISV_DEBUG_VAL(HCD_HOTSWAP_CURR_STATE, board_num);
+      }
+#endif
    }
    switch (prev_state)
    {

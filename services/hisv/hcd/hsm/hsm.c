@@ -78,6 +78,7 @@ uns32 hcd_hsm()
    HSM_EVT_TYPE evt_type = HSM_FAULT_EVT;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
+   char *arch_type = NULL;
 #ifndef HAVE_HPI_A01
    uns32 slot_ind;
 #endif
@@ -99,6 +100,8 @@ uns32 hcd_hsm()
       m_LOG_HISV_DTS_CONS("hcd_hsm: Error getting HCD CB handle\n");
       goto error;
    }
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = &hsm_cb->args->domain_id;
@@ -258,15 +261,7 @@ uns32 hcd_hsm()
       else
           {  
               if(!((RptEntry.ResourceEntity.Entry[1].EntityLocation > 0) &&
-              (RptEntry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS)  &&
-              ((RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_SYSTEM_CHASSIS) ||
-              (RptEntry.ResourceEntity.Entry[1].EntityType == SAHPI_ENT_PHYSICAL_SLOT)) &&
-              (
-#if defined (HAVE_HPI_B02) || defined (HAVE_HPI_B03)
-           (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_PICMG_FRONT_BLADE) ||
-           (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-#endif
-              (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE))))
+              (RptEntry.ResourceEntity.Entry[1].EntityLocation <= MAX_NUM_SLOTS)))  
               {
                 /* publish this event and continue */
                 m_LOG_HISV_DTS_CONS("hcd_hsm: Publishing Event, not from Controller or Payload\n");
@@ -560,24 +555,33 @@ uns32 hcd_hsm()
               }
             }
         }
+      else
+      {
+        /* For loop has been brought into the else case as it was overwriting the
+         * epath for the case of AMC.
+         */
+          if (strcmp(arch_type, "ATCA") == 0)
+          {
+             /* ATCA: Strip off leaf entry. */
+             slot_ind = 1; /* SAHPI_ENT_SWITCH_BLADE is applicable for ATCA also */
+          }
+          else
+          {
+             /* NON-ATCA: Do not strip off leaf entry. */
+             slot_ind = 0;
+          }
         
-      else if ((RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-          (RptEntry.ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-         /* NON-ATCA: Do not strip off leaf entry. */
-         slot_ind = 0;
-      }
-      else {
-         /* ATCA: Strip off leaf entry. */
-         slot_ind = 1;
-      }
-      for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
-         epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
-
-         /* Stop copying when we see SAHPI_ENT_ROOT */ 
-         if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT)
-            /* don't need to copy anymore */
-            break;
-      }
+          for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ )
+          {
+             epath.Entry[i] = RptEntry.ResourceEntity.Entry[slot_ind + i];
+             /* Stop copying when we see SAHPI_ENT_ROOT */
+             if (RptEntry.ResourceEntity.Entry[slot_ind + i].EntityType == SAHPI_ENT_ROOT) 
+             {
+                /* don't need to copy anymore */
+                break;
+             }
+          } /*End for */
+      } /* End else */
 #endif
 
       memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
@@ -786,11 +790,7 @@ dispatch_hotswap(HSM_CB *hsm_cb)
              }
           }
 
-#ifdef HAVE_HPI_A01
         hotswap_err = saHpiHotSwapControlRequest(session_id, entry.ResourceId);
-#else
-        hotswap_err = saHpiHotSwapPolicyCancel(session_id, entry.ResourceId);
-#endif
 
          if (hotswap_err != SA_OK)
          {
@@ -968,9 +968,12 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
+   char *arch_type = NULL;
 #ifndef HAVE_HPI_A01
    uns32 slot_ind = 0;
 #endif
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
@@ -1020,15 +1023,30 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
                   RptEntry->ResourceEntity.Entry[2].EntityInstance,
                   RptEntry->ResourceEntity.Entry[2].EntityType);
 #else
-   for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      /* Allow for the case where blades are ATCA or non-ATCA.                        */
-      if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
-          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-         slot_ind = i;
-         break;
+   if (strcmp(arch_type,"ATCA") == 0)
+   {
+      /* Arch check is needed because SAHPI_ENT_SWITCH_BLADE is residing
+       * ahead of SAHPI_ENT_PHYSICAL_SLOT in Entry[] array.
+       */
+      for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+         if (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT){
+            slot_ind = i;
+            break;
+         }
       }
    }
+   else
+   {
+      for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+         /* Allow for the case where blades are non-ATCA.                        */
+         if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+             (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+            slot_ind = i;
+            break;
+         }
+      }
+   }
+
 
    memset(&epath, 0, epath_len);
 
@@ -1063,10 +1081,21 @@ publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
       }
    }
    memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
-   print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+   if (strcmp(arch_type,"ATCA") == 0)
+   {
+      print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+                  event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
+                  RptEntry->ResourceEntity.Entry[1].EntityLocation,
+                  RptEntry->ResourceEntity.Entry[1].EntityType);
+   }
+   else
+   {
+      /* Allow for the Non ATCA cases */
+      print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                   RptEntry->ResourceEntity.Entry[slot_ind].EntityLocation,
                   RptEntry->ResourceEntity.Entry[slot_ind].EntityType);
+   }
 #endif
 
    /* Publish the consolidate event message */
@@ -1113,9 +1142,14 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
    uns8 *event_data;
    uns32 evt_len = sizeof(SaHpiEventT), epath_len = sizeof(SaHpiEntityPathT);
    uns32 i, rc, min_evt_len = HISV_MIN_EVT_LEN; /* minimum message length does not include inventory data */
+   char *arch_type = NULL;
+
 #ifndef HAVE_HPI_A01
    uns32 slot_ind = 0;
 #endif
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+
    /* collect the domain-id and session-id of HPI session */
    domain_id = hsm_cb->args->domain_id;
    session_id = hsm_cb->args->session_id;
@@ -1158,13 +1192,27 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
                   RptEntry->ResourceEntity.Entry[2].EntityInstance,
                   RptEntry->ResourceEntity.Entry[2].EntityType);
 #else
-   for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
-      /* Allow for the case where blades are ATCA or non-ATCA.                        */
-      if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT) ||
-          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
-          (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-         slot_ind = i;
-         break;
+   if (strcmp(arch_type,"ATCA") == 0)
+   {
+      /* Arch check is needed because SAHPI_ENT_SWITCH_BLADE is residing
+       * ahead of SAHPI_ENT_PHYSICAL_SLOT in Entry[] array.
+       */
+      for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+         if (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT){
+            slot_ind = i;
+            break;
+         }
+      }
+   }
+   else
+   {
+      for ( i=0; i<SAHPI_MAX_ENTITY_PATH; i++ ) {
+         /* Allow for the case where blades are non-ATCA.                        */
+         if ((RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SYSTEM_BLADE)  ||
+             (RptEntry->ResourceEntity.Entry[i].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
+            slot_ind = i;
+            break;
+         }
       }
    }
 
@@ -1186,12 +1234,7 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
         }
      }
    else
-   {  
-      if ((RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SYSTEM_BLADE) ||
-          (RptEntry->ResourceEntity.Entry[0].EntityType == SAHPI_ENT_SWITCH_BLADE)) {
-         /* NON-ATCA: Do not strip off leaf entry. */
-         slot_ind = 0;
-      }
+   {
       for ( i=0; (slot_ind + i)<SAHPI_MAX_ENTITY_PATH; i++ ) {
          epath.Entry[i] = RptEntry->ResourceEntity.Entry[slot_ind + i];
 
@@ -1203,10 +1246,22 @@ publish_active_healty(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry)
 
    memcpy(event_data+evt_len, (uns8 *)&epath, epath_len);
 
-   print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+   if (strcmp(arch_type,"ATCA") == 0)
+   {
+      print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
+                  event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
+                  RptEntry->ResourceEntity.Entry[1].EntityLocation,
+                  RptEntry->ResourceEntity.Entry[1].EntityType);
+   }
+   else
+   {
+      /* Allow for NON ATCA cases */
+      print_hotswap (event.EventDataUnion.HotSwapEvent.HotSwapState,
                   event.EventDataUnion.HotSwapEvent.PreviousHotSwapState,
                   RptEntry->ResourceEntity.Entry[slot_ind].EntityLocation,
                   RptEntry->ResourceEntity.Entry[slot_ind].EntityType);
+   }
+
 #endif
 
    /* Publish the consolidate event message */
