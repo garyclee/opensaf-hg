@@ -14,33 +14,35 @@
              FROM SNMPv2-TC                     
 
 	
-	 eccgNcsModules, avm
-	     FROM ECC-SMI
+	 openSafModules, avm
+	     FROM OPENSAF-SMI
          ;
-
 
      ncsAvmMIB MODULE-IDENTITY
          LAST-UPDATED "200501301609Z"  -- January 31, 2005
 
-         ORGANIZATION "Netplane Core Services"
+         ORGANIZATION "OpenSAF Foundation"
          CONTACT-INFO
-		"Motorola Inc
-		 Embedded Communications Computing
-		 http://www.motorola.com/computers/
-
-		 Author:  Pallavi Samanu
-		 e-mail:  pallavi@motorola.com
-		 Address: Motorola India Pvt Ltd, 
-			  Auriga Block, Ascendas IT Park,
-			  Madhapur, Hyderabad, AP
-			  INDIA
-		 Tel:	  +91-40-55727000
-		 Fax:	  +91-40-55727001"
+		"www.opensaf.org"
 
          DESCRIPTION
              "This MIB contains the definitions of NCS Hardware Deployment
-        configuration managed objects."
-         ::= { eccgNcsModules 10}
+              configuration managed objects.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 10}
 
      --****************************************************************
      ncsAvmObjects                  OBJECT IDENTIFIER ::= { avm 1 }

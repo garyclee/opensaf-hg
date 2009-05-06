@@ -10,22 +10,35 @@ NCS-IFSV-BIND-MIB DEFINITIONS ::= BEGIN
                 FROM SNMPv2-TC
          IANAifType               FROM IANAifType-MIB
          InterfaceIndex, ifNumber, ifEntry FROM IF-MIB
-         eccgNcsModules, ifsv
-             FROM ECC-SMI;
+         openSafModules, ifsv
+             FROM OPENSAF-SMI;
          
 
 
      ncsIfsvBindMIB MODULE-IDENTITY
          LAST-UPDATED "200411281730Z"
-         ORGANIZATION "Advanced Foundation Services"
+         ORGANIZATION "OpenSAF Foundation"
          CONTACT-INFO
-             " Sudhakar Reddy
-               sudhakarr@motorola.com"
+             "www.opensaf.org"
          DESCRIPTION
              "This MIB contains managed object definitions for the
-             'Interface Service for Advanced Foundation 
-              Services."
-         ::= { eccgNcsModules 4 }
+              Interface Service for Netplane Core Services
+              Services.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 4 }
 
      --****************************************************************
 

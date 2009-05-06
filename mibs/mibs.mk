@@ -1,5 +1,5 @@
 mibs_files = \
-   mibs/ECC-SMI \
+   mibs/OPENSAF-SMI \
    mibs/ESMI-IFMIB \
    mibs/ESMI-NCS-AVM-MIB \
    mibs/ESMI-NCS-AVSV-MIB \
