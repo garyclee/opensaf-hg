@@ -82,8 +82,7 @@ AVD_AVND  * avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt,
 
    if (cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
    {
-      /* log error that a cluster is admin down */
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->cluster_admin_state);
+      avd_log(NCSFL_SEV_ERROR, "cluster admin state down");
       return avnd;
    }
    
@@ -92,29 +91,26 @@ AVD_AVND  * avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt,
       /* Don't initialise the AvND when the AVD is not
        * completely initialised with the saved information
        */
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+      avd_log(NCSFL_SEV_WARNING, "invalid init state (%u)", cb->init_state);
       return avnd;
    }
 
    if (evt->info.avnd_msg->msg_type != msg_typ)
    {
-      /* log error that a message type is wrong */
-      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.avnd_msg->msg_type);
+      avd_log(NCSFL_SEV_ERROR, "wrong message type (%u)", 
+          evt->info.avnd_msg->msg_type);
       return avnd;
    }
 
-   if ((avnd = avd_avnd_struc_find_nodeid(cb,node_id)
-      ) == AVD_AVND_NULL)
+   if ((avnd = avd_avnd_struc_find_nodeid(cb,node_id)) == AVD_AVND_NULL)
    {
-      /* log error that the node id is invalid */
-      m_AVD_LOG_INVALID_VAL_ERROR(node_id);
+      avd_log(NCSFL_SEV_ERROR, "invalid node ID (%x)", node_id);
       return avnd;
    }
 
    if (avnd->row_status != NCS_ROW_ACTIVE)
    {
-      /* log error that the node is not valid */
-      m_AVD_LOG_INVALID_VAL_ERROR(node_id);
+      avd_log(NCSFL_SEV_ERROR, "node not active (%x)", node_id);
       return AVD_AVND_NULL;
    }
 

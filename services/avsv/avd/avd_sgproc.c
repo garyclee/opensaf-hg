@@ -1933,6 +1933,8 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
             /* Dont go ahead as a SG that is undergoing transition is
              * there related to this node.
              */
+            avd_log(NCSFL_SEV_ERROR, "invalid sg state %u for unlock",
+                i_su->sg_of_su->sg_fsm_state);
             return NCSCC_RC_FAILURE;
          }
          
@@ -2009,7 +2011,8 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
                  (i_su_node_ptr == i_su_sg_node_ptr) &&
                  (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL))
               {
-                return NCSCC_RC_FAILURE;
+                 avd_log(NCSFL_SEV_ERROR, "two SUs on same node");
+                 return NCSCC_RC_FAILURE;
               }
                   
               i_su_sg = i_su_sg->sg_list_su_next;
@@ -2025,6 +2028,8 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
                   (avnd->su_admin_state != NCS_ADMIN_STATE_SHUTDOWN) || 
                   (new_admin_state != NCS_ADMIN_STATE_LOCK))
                {
+                  avd_log(NCSFL_SEV_ERROR, "invalid sg state %u for lock/shutdown",
+                      i_su->sg_of_su->sg_fsm_state);
                   return NCSCC_RC_FAILURE;
                }
             }/*if (i_su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE)*/
@@ -2097,7 +2102,7 @@ uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd,
       
       break; /* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
    default:
-      /* log fatal error */
+      avd_log(NCSFL_SEV_ERROR, "fatal error");
       return NCSCC_RC_FAILURE;
       break;
    }    
