@@ -726,16 +726,12 @@ static int extractCommonField(char *dest, size_t dest_size,
 
         case C_TIME_STAMP_YEAR_LETTER:
             stringSize = 3 * sizeof(char);
-            characters = snprintf(dest, dest_size, 
-                                  "%02d", 
-                                  timeStampData->tm_year);
+            characters = strftime(dest, dest_size, "%y", timeStampData);
             break;
 
         case C_TIME_STAMP_FULL_YEAR_LETTER:
             stringSize = 5 * sizeof (char);
-            characters = snprintf(dest, dest_size, 
-                                  "%d", 
-                                  (timeStampData->tm_year + START_YEAR));
+            characters = strftime(dest, dest_size, "%Y", timeStampData);
             break;
 
         case C_NOTIFICATION_CLASS_ID_LETTER:
