@@ -1839,7 +1839,7 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
         }
         
         if((*i)->mDying) {
-            LOG_NO("Removing zombie Admin Owner %u %s", ownerId,
+            LOG_IN("Removing zombie Admin Owner %u %s", ownerId,
                 (*i)->mAdminOwnerName.c_str());
         } else {
             TRACE_5("Delete admin owner %u '%s'", ownerId,
@@ -5067,7 +5067,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
     ImplementerInfo* info = findImplementer(implHandle);
     if(info) {
         if(reallyDiscard) {
-            LOG_NO("DISCARDING IMPLEMENTER %u <%u, %x> (%s)", 
+            LOG_IN("DISCARDING IMPLEMENTER %u <%u, %x> (%s)", 
                 info->mId, info->mConn, info->mNodeId,
                 info->mImplementerName.c_str());
             info->mId = 0;
@@ -5086,7 +5086,7 @@ ImmModel::discardImplementer(unsigned int implHandle, bool reallyDiscard)
             //actually remove it. 
         } else {
             if(!info->mDying) {
-                LOG_NO("Implementer %u disconnected. Marking it as doomed "
+                LOG_IN("Implementer %u disconnected. Marking it as doomed "
                     "<Conn:%u, Node:%x>", info->mId, info->mConn, 
                     info->mNodeId);
                 info->mDying = true;
@@ -5337,7 +5337,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     info->mDying = false;
     
     
-    LOG_NO("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
+    LOG_IN("Create implementer:<name:%s, id:%u, conn:%u, node:%x dead:%u>",
         info->mImplementerName.c_str(), info->mId, info->mConn, info->mNodeId,
         info->mDying);
     
@@ -6350,7 +6350,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             delete object; 
             goto rtObjectCreateExit;
         }
-        LOG_NO("Create runtime object '%s' by Impl id: %u", objectName.c_str(),
+        LOG_IN("Create runtime object '%s' by Impl id: %u", objectName.c_str(),
             info->mId);
         
         sObjectMap[objectName] = object;
@@ -6839,7 +6839,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         object->mImplementer = 0;
         object->mFlags = 0;
         
-        LOG_NO("DELETE runtime object '%s' by Impl-id: %u", 
+        LOG_IN("DELETE runtime object '%s' by Impl-id: %u", 
             oi->first.c_str(), info->mId);
         
         AdminOwnerVector::iterator i2;
@@ -7263,7 +7263,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             req->classes = ioci;
         }
         
-        LOG_NO("finalizeSync message contains %u class meta-info records", 
+        LOG_IN("finalizeSync message contains %u class meta-info records", 
             (unsigned int) sClassMap.size());
     } else {
         //SyncFinalize received by all cluster members, old and new-joining.
