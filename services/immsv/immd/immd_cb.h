@@ -85,7 +85,6 @@ typedef struct immd_cb_tag
     NCS_BOOL             is_quiesced_set; /* ABT new csi_set */
     MDS_DEST             loc_immnd_dest;  
     MDS_DEST             rem_immnd_dest;  /*ABT used if local immnd crashes ?*/
-    MDS_DEST             immnd_dests[NCS_MAX_SLOTS];
 
     NCS_PATRICIA_TREE    immnd_tree;      /*ABT <- message count in each node?*/
     NCS_BOOL             is_immnd_tree_up; /* if TRUE immnd_tree is UP */

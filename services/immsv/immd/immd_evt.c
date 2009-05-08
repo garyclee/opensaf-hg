@@ -1871,8 +1871,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
                 break;
 
         case NCSMDS_UP:
-            TRACE_5("PROCESS MDS EVT: NCSMDS_UP, my PID:%u",
-                    getpid());
+            TRACE_5("PROCESS MDS EVT: NCSMDS_UP, my PID:%u", getpid());
             if (mds_info->svc_id == NCSMDS_SVC_ID_IMMD)
             {
                 TRACE_5("unhandled UP case ? NCSMDS_UP for IMMD");
@@ -1882,64 +1881,64 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
             if (mds_info->svc_id == NCSMDS_SVC_ID_IMMND)
             {
                 phy_slot_sub_slot = immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest);
-                cb->immnd_dests[phy_slot_sub_slot] = mds_info->dest;
                 immd_immnd_info_node_find_add(&cb->immnd_tree, &mds_info->dest,
                     &node_info, &add_flag);
-            }
 
-            if (m_IMMND_IS_ON_SCXB(cb->immd_self_id,
-                 immd_get_slot_and_subslot_id_from_mds_dest(cb->immnd_dests[phy_slot_sub_slot])))
-            {
-                TRACE_5("NCSMDS_UP for IMMND local");       
-                cb->is_loc_immnd_up = TRUE;   
-                cb->loc_immnd_dest = cb->immnd_dests[phy_slot_sub_slot];
+                if(m_IMMND_IS_ON_SCXB(cb->immd_self_id, 
+                       immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest)))
+                {
+                    TRACE_5("NCSMDS_UP for IMMND local");
+                    cb->is_loc_immnd_up = TRUE;   
+                    cb->loc_immnd_dest = mds_info->dest;
+                    if (cb->ha_state == SA_AMF_HA_ACTIVE)
+                    {
+                        TRACE_5("NCSMDS_UP IMMND THIS IMMD is ACTIVE");
+                    }
+                }
+
+
+                /* When IMMND ON STANDBY COMES UP */
+                if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
+                        immd_get_slot_and_subslot_id_from_mds_dest(mds_info->dest)))
+                {
+                    TRACE_5("REMOTE IMMND UP - node:%x",mds_info->node_id);
+                    cb->is_rem_immnd_up = TRUE; //ABT BUGFIX 080811
+                    cb->rem_immnd_dest = mds_info->dest;
+                    if (cb->ha_state == SA_AMF_HA_ACTIVE)
+                    {
+                        TRACE_5("NCSMDS_UP for REMOTE IMMND, THIS IMMD is ACTIVE");
+                    }
+                }
+
                 if (cb->ha_state == SA_AMF_HA_ACTIVE)
                 {
-                    TRACE_5("NCSMDS_UP IMMND THIS IMMD is ACTIVE");
+                    immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest,
+                        &node_info);
+                    if (!node_info)
+                    {
+                        TRACE_5("ABT WE SHOULD NEVER GET HERE");
+                        /*ABT NOT SURE WHAT THIS BRANCH MEANS, CHECK Ckpt code */
+                        goto done;
+                    }
+                    else
+                    {
+                        TRACE_5("NCSMDS_UP and THIS IMMD is ACTIVE: up_proc");
+                    }
                 }
-            }
 
-            /* When IMMND ON STANDBY COMES UP */
-            if (m_IMMND_IS_ON_SCXB(cb->immd_remote_id,
-                immd_get_slot_and_subslot_id_from_mds_dest(cb->immnd_dests[phy_slot_sub_slot])))
-            {
-                TRACE_5("REMOTE IMMND UP - node:%x",mds_info->node_id);
-                cb->is_rem_immnd_up = TRUE; /*ABT BUGFIX 080811*/
-                cb->rem_immnd_dest = cb->immnd_dests[phy_slot_sub_slot]; /*??*/
-                if (cb->ha_state == SA_AMF_HA_ACTIVE)
+                if (cb->ha_state == SA_AMF_HA_STANDBY)
                 {
-                    TRACE_5("NCSMDS_UP for REMOTE IMMND, THIS IMMD is ACTIVE");
-                }
-            }
-
-            if (cb->ha_state == SA_AMF_HA_ACTIVE)
-            {
-                immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest,
-                    &node_info);
-                if (!node_info)
-                {
-                    TRACE_5("NCSMDS_UP and THIS IMMD is ACTIVE");
-                    /*ABT NOT SURE WHAT THIS BRANCH MEANS, CHECK Ckpt code */
-                    goto done;
-                }
-                else
-                {
-                    TRACE_5("NCSMDS_UP and THIS IMMD is ACTIVE: up_proc");
-                }
-            }
-
-            if (cb->ha_state == SA_AMF_HA_STANDBY)
-            {
-                immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest,
-                    &node_info);
-                if (!node_info)
-                {
-                    TRACE_5("ABT NCSMDS_UP and THIS IMMD is SBY");
-                    goto done;
-                }
-                else
-                {
-                    TRACE_5("NCSMDS_UP and THIS IMMD is SBY");
+                    immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest,
+                        &node_info);
+                    if (!node_info)
+                    {
+                        TRACE_5("ABT WE SHOULD NEVER GET HERE. NCSMDS_UP and THIS IMMD is SBY");
+                        goto done;
+                    }
+                    else
+                    {
+                        TRACE_5("NCSMDS_UP and THIS IMMD is SBY");
+                    }
                 }
             }
 
@@ -1982,6 +1981,7 @@ static uns32 immd_evt_proc_mds_evt (IMMD_CB *cb, IMMD_EVT *evt)
                     immd_process_immnd_down(cb, node_info, TRUE);
                 }
             }
+
             if (cb->ha_state == SA_AMF_HA_STANDBY)
             {
                 immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest,
