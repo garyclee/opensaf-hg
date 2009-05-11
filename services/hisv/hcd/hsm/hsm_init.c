@@ -503,9 +503,9 @@ hsm_encode_hisv_evt (HPI_HISV_EVT_T *evt_data, uns8 **evt_publish, uns32 version
    ncs_encode_32bit(&p8, evt_data->hpi_event.EventType);
    ncs_enc_claim_space(&uba, 4);
 
-   p8 = ncs_enc_reserve_space(&uba, 4);
-   ncs_encode_32bit(&p8, evt_data->hpi_event.Timestamp);
-   ncs_enc_claim_space(&uba, 4);
+   p8 = ncs_enc_reserve_space(&uba, 8);
+   ncs_encode_64bit(&p8, evt_data->hpi_event.Timestamp);
+   ncs_enc_claim_space(&uba, 8);
 
    p8 = ncs_enc_reserve_space(&uba, 4);
    ncs_encode_32bit(&p8, evt_data->hpi_event.Severity);
