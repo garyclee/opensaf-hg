@@ -1325,7 +1325,7 @@ hpl_decode_hisv_evt (HPI_HISV_EVT_T *evt_struct, uns8 *evt_data, uns32 data_len,
    /* decode the event */
    evt_struct->hpi_event.Source = ncs_decode_32bit(&p8);
    evt_struct->hpi_event.EventType = ncs_decode_32bit(&p8);
-   evt_struct->hpi_event.Timestamp = ncs_decode_32bit(&p8);
+   evt_struct->hpi_event.Timestamp = ncs_decode_64bit(&p8);
    evt_struct->hpi_event.Severity = ncs_decode_32bit(&p8);
 
    memcpy((uns8 *)&evt_struct->hpi_event.EventDataUnion, p8, (int32)sizeof(SaHpiEventUnionT));
