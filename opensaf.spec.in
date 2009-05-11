@@ -19,12 +19,6 @@
 %define __global_cflags	-O2 -g -pipe -Wall
 %endif
 
-# SUSE uses optflags, and EDS crashes with -O2, use -O0 for now
-# See Ticket #303
-%if %is_suse
-%define optflags -O0 -g -pipe -Wall
-%endif
-
 Summary: OpenSAF is an open source implementation of the SAF AIS specification
 Name: opensaf
 Version: @OPENSAF_RELEASE@
