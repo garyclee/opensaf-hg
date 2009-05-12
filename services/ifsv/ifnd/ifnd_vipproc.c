@@ -87,7 +87,7 @@ uns32 ifnd_create_mark_vip_entry_stale_evt(IFSV_CB *cb, uns8 * applName,uns32 hd
    }
    memset(ifsv_evt,0,sizeof(IFSV_EVT));
    ifsv_evt->type = IFND_VIP_MARK_VIPD_STALE;
-   strcpy(ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName,applName);
+   strncpy(ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.vipApplName,applName,m_NCS_IFSV_VIP_APPL_NAME-1);
    ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.poolHdl = hdl;
 /*   ifsv_evt->info.vip_evt.info.vipCommonEvt.handle.ipPoolType =  type; */
 
@@ -353,7 +353,9 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
                                                                                                                          
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-                                                                                                                             
+   if (ipxs_cb == NULL)
+      return NCSCC_RC_FAILURE;
+
    memset(&sendEvt,0,sizeof(IPXS_EVT));
    memset(&ifIpInfo,0,sizeof(IPXS_IFIP_IP_INFO));
 
@@ -383,7 +385,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
 
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
-         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strncpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName, m_NCS_IFSV_VIP_INTF_NAME-1);
          m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
                              IFSV_VIP_SENDING_IPXS_ADD_IP_REQ);
 
@@ -393,7 +395,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          NCS_IPXS_IPAM_VIP_SET(sendEvt.info.nd.atond_upd.ip_info.ip_attr);
          sendEvt.info.nd.atond_upd.ip_info.delip_cnt =  1;
          sendEvt.info.nd.atond_upd.ip_info.delip_list = ipInfo;
-         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strncpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName, m_NCS_IFSV_VIP_INTF_NAME-1);
          m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFND,
                              IFSV_VIP_SENDING_IPXS_DEL_IP_REQ );
          break;
@@ -404,7 +406,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          ifIpInfo.ipaddr.ipaddr.type = ipInfo->ipaddr.type;
          ifIpInfo.ipaddr.mask_len = ipInfo->mask_len;
          ifIpInfo.ipaddr.ipaddr.info.v4 = ipInfo->ipaddr.info.v4;
-         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strncpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName, m_NCS_IFSV_VIP_INTF_NAME-1);
          ifIpInfo.refCnt = 0;
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
@@ -418,7 +420,7 @@ uns32    ifsv_vip_send_ipxs_evt(IFSV_CB *cb,uns32 type,NCS_IFSV_IFINDEX index,
          ifIpInfo.ipaddr.ipaddr.type = ipInfo->ipaddr.type;
          ifIpInfo.ipaddr.mask_len = ipInfo->mask_len;
          ifIpInfo.ipaddr.ipaddr.info.v4 = ipInfo->ipaddr.info.v4;
-         strcpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName);
+         strncpy(&sendEvt.info.nd.atond_upd.ip_info.intfName,intfName,m_NCS_IFSV_VIP_INTF_NAME-1);
          ifIpInfo.refCnt = 1;
          sendEvt.info.nd.atond_upd.ip_info.addip_cnt   =  1;
          sendEvt.info.nd.atond_upd.ip_info.addip_list = &ifIpInfo;
@@ -460,6 +462,9 @@ ncs_vip_check_ip_exists(IFSV_CB *cb, uns32 hdl,uns32 ipaddr,uns8 *intf)
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
+
+   if (ipxs_cb == NULL)
+      return NCSCC_RC_FAILURE;
 
    /* Get the starting node from the tree */
    ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
@@ -572,6 +577,8 @@ ncs_ifsv_vip_del_ip(IFSV_CB *cb,uns32 hdl,NCS_IPPFX *ipAddr)
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
 
+   if (ipxs_cb == NULL)
+      return NCSCC_RC_FAILURE;
    ifip_node = (IPXS_IFIP_NODE*)ncs_patricia_tree_getnext
                                   (&ipxs_cb->ifip_tbl, (uns8*)0);
 

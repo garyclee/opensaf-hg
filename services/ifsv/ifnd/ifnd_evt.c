@@ -1062,7 +1062,7 @@ ifnd_process_evt (IFSV_EVT* evt)
    if ((cb = (IFSV_CB *) ncshm_take_hdl(NCS_SERVICE_ID_IFND, ifsv_hdl))
             != IFSV_CB_NULL)
    {  
-      if(evt->type < IFSV_EVT_MAX)
+      if(evt->type < IFND_EVT_MAX)
       {
             ifsv_evt_hdl = 
                ifnd_evt_dispatch_tbl[evt->type - IFND_EVT_BASE];
@@ -1142,7 +1142,7 @@ ifnd_mds_msg_send (NCSCONTEXT msg, IFSV_EVT_TYPE msg_type, IFSV_CB *ifsv_cb)
    {
    case IFD_EVT_IFINDEX_CLEANUP:
       memcpy(&evt->info.ifd_evt.info.spt_map, msg, 
-         sizeof(IFSV_EVT_SPT_MAP_INFO));
+         sizeof(NCS_IFSV_SPT_MAP));
 
       m_IFND_LOG_EVT_IFINDEX(IFSV_LOG_IFND_EVT_IFINDEX_CLEANUP_SND,\
       ((IFSV_EVT_SPT_MAP_INFO*)msg)->spt_map.if_index);
@@ -1271,7 +1271,7 @@ ifnd_idim_evt_send (NCSCONTEXT msg, IFSV_IDIM_EVT_TYPE msg_type,
    switch (msg_type)
    {
    case IFSV_IDIM_EVT_HEALTH_CHK:
-      memcpy(&evt->info.health_chk, msg, sizeof(NCS_IFSV_HW_INFO));
+      memcpy(&evt->info.health_chk, msg, sizeof(IFSV_IDIM_EVT_HEALTH_CHK_INFO));
       priority = NCS_IPC_PRIORITY_HIGH;
 
       m_IFND_LOG_EVT_L(IFSV_LOG_IFND_EVT_IDIM_HEALTH_CHK_SND,"None",evt->evt_type);

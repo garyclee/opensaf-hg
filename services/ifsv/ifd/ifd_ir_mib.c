@@ -42,6 +42,8 @@ uns32  ncsifsvbindifentry_get(NCSCONTEXT cb,
     IFSV_INTF_DATA *intf_data;
     NCS_IFSV_IFINDEX bind_ifindex;   
 
+    if ((p_get_req == NULL) || (data == NULL))
+       return NCSCC_RC_FAILURE;
 
     bind_portnum = p_get_req->i_idx.i_inst_ids[0];
 
@@ -75,8 +77,7 @@ uns32  ncsifsvbindifentry_get(NCSCONTEXT cb,
            default:
               return NCSCC_RC_INV_VAL;
      }
-     if( data == NULL )
-           return NCSCC_RC_FAILURE;
+
     return NCSCC_RC_SUCCESS;
 }
 
@@ -153,8 +154,10 @@ uns32 ncsifsvbindifentry_next(NCSCONTEXT cb,
     int32 bind_portnum;   
     uns32 next_index;
    
-  
-   printf("\n ncsifsvbindifentry_next:  Received SNMP NEXT request\n");
+    printf("\n ncsifsvbindifentry_next:  Received SNMP NEXT request\n");
+
+    if ( (p_next_req == NULL) || (data == NULL))
+        return NCSCC_RC_FAILURE;
 
     if(( p_next_req->i_idx.i_inst_ids == NULL)&&( p_next_req->i_idx.i_inst_len == 0 ))
        bind_portnum = 0;
@@ -185,10 +188,7 @@ uns32 ncsifsvbindifentry_next(NCSCONTEXT cb,
         default:
                  printf("Invalid parm\n");
                  return NCSCC_RC_INV_VAL;
-     }
-
-     if( data == NULL )
-        return NCSCC_RC_FAILURE;
+    }
 
    o_next_inst_id[0] = next_index;
    *o_next_inst_id_len = 1;
@@ -647,7 +647,7 @@ uns32 ifsv_ifd_bind_rec_create(IFSV_CB *cb, IFSV_BIND_NODE *ifsv_bind_node)
    uns32 slave_ifindex = ifsv_bind_node->bind_info.slave_ifindex;
    uns32 rc;
 
-  if(master_ifindex < 0)
+  if(master_ifindex <= 0)
   {
      ncshm_give_hdl(cb->cb_hdl);
      return NCSCC_RC_FAILURE;

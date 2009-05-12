@@ -312,7 +312,9 @@ uns32 ifnd_ipxs_evt_process(IFSV_CB *cb, IFSV_EVT *evt)
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-
+   if (ipxs_cb == IFSV_NULL)
+      return NCSCC_RC_FAILURE; 
+ 
    switch(ipxs_evt->type)
    {
    case IPXS_EVT_DTOND_IFIP_INFO: /* From D */
@@ -368,9 +370,8 @@ ipxs_ifnd_update_new_socket(IPXS_CB  *ipxs_cb,NCS_SEL_OBJ_SET *readfds,
     ipxs_cb->netlink_fd = m_NCS_TS_SOCK_SOCKET(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
     if(ipxs_cb->netlink_fd < 0)
     {
-        rc = NCSCC_RC_FAILURE;
         printf("Socket create failed \n");
-/*      goto ipxs_netlink_socket_create_fail; */
+        return NCSCC_RC_FAILURE;
     }
     memset(local, '\0', sizeof(struct sockaddr_nl));
     local->nl_family = AF_NETLINK;
@@ -503,7 +504,9 @@ static void ifnd_netlink_process(NCSCONTEXT info)
 
                ipxs_hdl = m_IPXS_CB_HDL_GET( );
                ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFND, ipxs_hdl);
-/******************/
+               if (ipxs_cb == IFSV_NULL)
+                  return; 
+               /******************/
                printf("Updating socket when received event from mailbox \n");
 
                ipxs_ifnd_update_new_socket(ipxs_cb,&readfds,&netlink_fd,
@@ -738,7 +741,7 @@ static IPXS_NETLINK_RETVAL ipxs_post_netlink_evt_to_ifnd(struct sockaddr_nl *who
 
       memset(&lcl_ifname, '\0', sizeof(lcl_ifname));
       /* memcpy(&lcl_ifname, RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ); */
-      strcpy(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]));
+      strncpy(&lcl_ifname, (char*)RTA_DATA(rta_tb[IFLA_IFNAME]), IFNAMSIZ-1);
 
       if(ifnd_ipxs_get_ifndx_for_interface_number(ifsv_cb, ipxs_cb, ifi->ifi_index,
             &lcl_ifindex, (char*)&lcl_ifname) != NCSCC_RC_SUCCESS)
@@ -1552,6 +1555,7 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
    else
    {
       o_ipxs_evt = o_evt->info.ipxs_evt;
+
       if(o_ipxs_evt->error == NCS_IFSV_NO_ERROR)
       {
         /* If no error, then no problem, the sync resp will be sent at the end*/
@@ -1565,17 +1569,12 @@ uns32 ifnd_ipxs_proc_ifip_upd(IPXS_CB *cb, IPXS_EVT *ipxs_evt,
          rc = NCSCC_RC_FAILURE;
       }
 
-         if( o_ipxs_evt != NULL )
-         {
-            m_MMGR_FREE_IPXS_EVT(o_ipxs_evt);
-            o_ipxs_evt = NULL;
-         }
-          /**************FREEING o_evt after sync Call *****/
-         if( o_evt != NULL )
-         {
-            m_MMGR_FREE_IFSV_EVT(o_evt);
-            o_evt = NULL;
-         }
+      m_MMGR_FREE_IPXS_EVT(o_ipxs_evt);
+      o_ipxs_evt = NULL;
+
+      /**************FREEING o_evt after sync Call *****/
+      m_MMGR_FREE_IFSV_EVT(o_evt);
+      o_evt = NULL;
    }
 
    memset(&evt, 0, sizeof(IFSV_EVT));

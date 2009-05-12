@@ -230,16 +230,16 @@ get_tbl_entry(IFSV_CB  *vip_ifsv_cb, NCSMIB_ARG  *arg,
     memset(&vip_handle, 0, sizeof(NCS_IFSV_VIP_INT_HDL));
     memset(&ip_intf_data, 0, sizeof(VIP_IP_INTF_DATA));
 
-    if((arg->i_idx.i_inst_len < NCSMIB_TBL_VIP_TBLONE_MIN_INST_LEN) || 
-            (arg->i_idx.i_inst_len > NCSMIB_TBL_VIP_TBLONE_MAX_INST_LEN))
-    {
-        m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_GET_INVALID_INDEX_RECEIVED);
-        return NCSCC_RC_NO_INSTANCE;
-    }
-   
     if(arg->i_idx.i_inst_ids == NULL)
     {
         m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_GET_NULL_INDEX_RECEIVED);
+        return NCSCC_RC_NO_INSTANCE;
+    }
+
+    if((arg->i_idx.i_inst_len <= NCSMIB_TBL_VIP_TBLONE_MIN_INST_LEN) || 
+            (arg->i_idx.i_inst_len > NCSMIB_TBL_VIP_TBLONE_MAX_INST_LEN))
+    {
+        m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_GET_INVALID_INDEX_RECEIVED);
         return NCSCC_RC_NO_INSTANCE;
     }
 
@@ -351,7 +351,7 @@ uns32 get_next_tbl_entry(IFSV_CB *cb,
    }
    else
    { 
-      if((arg->i_idx.i_inst_len < NCSMIB_TBL_VIP_TBLONE_MIN_INST_LEN) ||
+      if((arg->i_idx.i_inst_len <= NCSMIB_TBL_VIP_TBLONE_MIN_INST_LEN) ||
          (arg->i_idx.i_inst_len > NCSMIB_TBL_VIP_TBLONE_MAX_INST_LEN))
       {
          m_IFSV_VIP_LOG_MESG(NCS_SERVICE_ID_IFD, IFSV_VIP_GET_NEXT_INVALID_INDEX_RECEIVED);
@@ -578,6 +578,9 @@ uns32  ncsvipentry_get(NCSCONTEXT cb,
     VIP_IP_INTF_DATA ip_intf_data;
     NCS_IPPFX ipAddr;
 
+    if ((p_get_req == NULL) || (data == NULL))
+        return NCSCC_RC_FAILURE;
+
     memset(&vip_handle,0, sizeof(NCS_IFSV_VIP_INT_HDL));
     memset(&ip_intf_data,0, sizeof(VIP_IP_INTF_DATA));
     printf("\nncsTestTableOneEntry:  Received SNMP GET request\n");
@@ -649,8 +652,6 @@ uns32  ncsvipentry_get(NCSCONTEXT cb,
            default:
               return NCSCC_RC_INV_VAL;
         }
-        if( data == NULL )
-           return NCSCC_RC_FAILURE;
     }
     return ret_code;
 }

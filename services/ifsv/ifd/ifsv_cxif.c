@@ -106,6 +106,8 @@ uns32 ncsifsvifxentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
 
    /* Get the CB pointer from the CB handle */
    cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, arg->i_mib_key);
+   if (cb == NULL)
+      return NCSCC_RC_FAILURE;
 
    if(arg->i_idx.i_inst_len)
    {

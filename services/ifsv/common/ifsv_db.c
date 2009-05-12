@@ -469,6 +469,8 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
                  {
                    IFSV_INTF_DATA *bond_intf_data;
                    bond_intf_data = ifsv_intf_rec_find (bonding_ifindex, cb);
+                   if(bond_intf_data == NULL)
+                      return NCSCC_RC_FAILURE;
                    bond_intf_data->if_info.oper_state = NCS_STATUS_UP;
                  }
 #endif
@@ -488,6 +490,8 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
                 NCS_IFSV_IFINDEX temp_ifindex;
                  /* Get the intf record of the ifindex */
                 bond_intf_data = ifsv_intf_rec_find (bonding_ifindex, cb);
+                if(bond_intf_data == NULL)
+                   return NCSCC_RC_FAILURE;
                 if(bond_intf_data->if_info.bind_slave_ifindex !=0)
                 {
 #if(NCS_IFSV_IPXS == 1)
@@ -649,6 +653,8 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
            {
                 IFSV_INTF_DATA *bond_intf_data;
                 bond_intf_data = ifsv_intf_rec_find (bonding_ifindex, cb);
+                if(bond_intf_data == NULL)
+                   return NCSCC_RC_FAILURE;
                 bond_intf_data->if_info.oper_state = NCS_STATUS_UP;
            }
 #endif
@@ -665,6 +671,8 @@ ifsv_intf_rec_modify (IFSV_INTF_DATA *actual_data,
                 NCS_IFSV_IFINDEX temp_ifindex;
                  /* Get the intf record of the ifindex */
                 bond_intf_data = ifsv_intf_rec_find (bonding_ifindex, cb);
+                if(bond_intf_data == NULL)
+                   return NCSCC_RC_FAILURE;
                 if(bond_intf_data->if_info.bind_slave_ifindex !=0)
                 {
 #if(NCS_IFSV_IPXS == 1)
@@ -866,9 +874,6 @@ ifsv_intf_rec_marked_del (IFSV_INTF_DATA *actual_data,
    *attr = (*attr | NCS_IFSV_IAM_LAST_CHNG);
    m_GET_TIME_STAMP(actual_data->if_info.last_change);
 
-   if(rc != NCSCC_RC_SUCCESS)
-     return NCSCC_RC_FAILURE;
-   
    return (rc);
 } /* End of function ifsv_intf_rec_marked_del() */
 
@@ -1586,7 +1591,7 @@ ifsv_bonding_assign_bonding_ifindex_to_master(IFSV_CB *ifsv_cb,NCS_IFSV_IFINDEX 
     master_intf_data->if_info.bind_master_ifindex = bondingifindex;
     master_intf_data->if_info.bind_slave_ifindex = 0;
     bond_intf_data->if_info.bind_master_info.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(master_intf_data->originator_mds_destination);
-    strncpy(bond_intf_data->if_info.bind_master_info.if_name,master_intf_data->if_info.if_name,20);
+    strncpy(bond_intf_data->if_info.bind_master_info.if_name,master_intf_data->if_info.if_name,19);
 
     bond_intf_data->if_info.oper_state = master_intf_data->if_info.oper_state;
     strncpy(bond_intf_data->if_info.if_name,master_intf_data->if_info.if_name,IFSV_IF_NAME_SIZE);
