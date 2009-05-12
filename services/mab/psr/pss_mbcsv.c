@@ -999,7 +999,7 @@ uns32 pss_ckpt_encode_async_update(NCS_MBCSV_CB_ARG *cbk_arg)
  
    if (NULL == (pwe_cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_PSS,cbk_arg->i_client_hdl)))
    {
-      m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_PWE_CB_TAKE_HANDLE_IN_MBCSVCB_FAILED, pwe_cb->pwe_id);
+      m_LOG_PSS_HDLN_I(NCSFL_SEV_ERROR, PSS_PWE_CB_TAKE_HANDLE_IN_MBCSVCB_FAILED, 0);
       return NCSCC_RC_FAILURE;
    }
 
@@ -3775,13 +3775,13 @@ uns32 pss_re_update_pend_wbreq_info(PSS_PWE_CB *pwe_cb,
 uns32 pss_encode_str(NCS_UBAID *uba, char *str_ptr)
 {
     uns8*    data;
-    uns16    len = strlen(str_ptr);
+    uns16    len;
 
     if(str_ptr == NULL)
     {
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
-
+    len = strlen(str_ptr);
     data = ncs_enc_reserve_space(uba, 2);
     if(data == NULL)
     {
@@ -3855,14 +3855,14 @@ uns32 pss_decode_str(NCS_UBAID *uba, char *p_str)
 uns32 pss_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
     uns8*    data;
-    uns16    len = strlen(pcn);
+    uns16    len;
 
     if(pcn == NULL)
     {
        m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_MBCSV_ENC_PCN_FAIL);
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
-
+    len = strlen(pcn);
     data = ncs_enc_reserve_space(uba, 2);
     if(data == NULL)
     {

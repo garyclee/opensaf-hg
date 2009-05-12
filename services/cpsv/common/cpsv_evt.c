@@ -341,7 +341,7 @@ uns32 cpsv_data_access_rsp_encode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp , NCS_UBAI
 uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
 {
    uns32     size;
-   
+   uns32     rc = NCSCC_RC_SUCCESS;
    size = sizeof(CPSV_EVT);
    
    /* Encode the Top level evt envolop */
@@ -402,8 +402,12 @@ uns32 cpsv_evt_enc_flat(EDU_HDL *edu_hdl, CPSV_EVT *i_evt, NCS_UBAID *o_ub)
       {
          CPSV_CKPT_DATA *data = i_evt->info.cpa.info.arr_msg.ckpt_data;
          EDU_ERR   ederror = 0;
-         m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
+         rc = m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
                    o_ub, EDP_OP_TYPE_ENC, data, &ederror);
+         if( rc != NCSCC_RC_SUCCESS)
+         {
+            return rc;
+         } 
       }
 
       else if(i_evt->info.cpa.type == CPA_EVT_ND2A_SEC_CREATE_RSP)
@@ -605,6 +609,11 @@ cpsv_evt_dec_sec_id(NCS_UBAID *i_ub,uns32 svc_id)
 
    size = sizeof(SaCkptSectionIdT);
    sec_id = (SaCkptSectionIdT *) m_MMGR_ALLOC_CPSV_SaCkptSectionIdT(svc_id);
+
+   if(sec_id == NULL)
+   {
+     return NULL;
+   }
 
    if (sec_id)
       ncs_decode_n_octets_from_uba(i_ub,(uns8 *)sec_id,size);
@@ -824,7 +833,7 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID
           data_rsp->info.write_err_index = m_MMGR_ALLOC_CPSV_SaUint32T(data_rsp->size, NCS_SERVICE_ID_CPA);
           if(!data_rsp->info.write_err_index)
           {
-              rc =NCSCC_RC_FAILURE;
+              return NCSCC_RC_FAILURE;
            }
            write_err_index = data_rsp->info.write_err_index;
            memset(write_err_index , 0 , size);
@@ -845,8 +854,9 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID
            data_rsp->info.read_data = m_MMGR_ALLOC_CPSV_ND2A_READ_DATA(data_rsp->size , NCS_SERVICE_ID_CPA);
            if(!data_rsp->info.read_data)
            {
-               rc = NCSCC_RC_FAILURE;
-           }
+               return NCSCC_RC_FAILURE;
+          
+	       }
            memset(data_rsp->info.read_data , 0 , data_rsp->size*sizeof(CPSV_ND2A_READ_DATA));
 
            for(i = 0; i< data_rsp->size; i++)
@@ -883,7 +893,7 @@ uns32 cpsv_data_access_rsp_decode(CPSV_ND2A_DATA_ACCESS_RSP *data_rsp ,NCS_UBAID
 uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
 {
    uns32     size=0;
-   
+   uns32     rc = NCSCC_RC_SUCCESS;
    size = sizeof(CPSV_EVT);
    
    /* Decode the Top level evt envolop */
@@ -965,8 +975,12 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
          
            data = NULL;   /* Explicity set it to NULL */
 
-           m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
+           rc = m_NCS_EDU_EXEC(edu_hdl, FUNC_NAME(CPSV_CKPT_DATA), 
                    i_ub, EDP_OP_TYPE_DEC, &data , &ederror);
+           if (rc != NCSCC_RC_SUCCESS)
+           {
+	           return rc;
+           }
            o_evt->info.cpa.info.arr_msg.ckpt_data = data;
         break; 
        }
@@ -1062,6 +1076,10 @@ uns32 cpsv_evt_dec_flat(EDU_HDL *edu_hdl, NCS_UBAID *i_ub, CPSV_EVT *o_evt)
          {
             create->sec_attri.sectionId=cpsv_evt_dec_sec_id(i_ub, \
                   NCS_SERVICE_ID_CPND);
+         }
+         if(create->sec_attri.sectionId == NULL)
+         {
+           return NCSCC_RC_FAILURE;
          }
 
          if (create->init_size) {

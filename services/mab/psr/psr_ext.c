@@ -111,7 +111,7 @@ uns32 pss_process_tbl_bind(MAB_MSG * msg)
         tbl_list = bind_evt->pcn_list.tbl_list;
         while(tbl_list != NULL)
         {
-            if((tbl_list->tbl_id <= MIB_UD_TBL_ID_END) &&
+            if((tbl_list->tbl_id < MIB_UD_TBL_ID_END) &&
                (pwe_cb->p_pss_cb->mib_tbl_desc[tbl_list->tbl_id] != NULL))
             { 
                /* Only MIBS whose definitions are available with PSS */
@@ -3689,7 +3689,6 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
        {
            /* Switch to the diff_queue now */
            queue = diff_queue;
-           is_add = FALSE; 
            elem = (PSS_QELEM *) ncs_dequeue(queue);
            if(elem != NULL)
            {
@@ -3698,7 +3697,7 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
               else
                  --diff_cnt;
            }
-
+           is_add = FALSE; 
        }
     }   /* while(elem != NULL) */
 
@@ -4292,6 +4291,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    {
        m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
+       fclose(fh);
        return NCSCC_RC_FAILURE;
    }
    str_len = ncs_decode_16bit(&buff_ptr);
@@ -4301,6 +4301,7 @@ uns32 pss_process_display_mib_entries(PSS_CB * inst, NCSMIB_ARG * arg)
    {
        m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_MMGR_BUFFER_ALLOC_FAIL,
            "pss_process_display_mib_entries()");
+       fclose(fh);
        return NCSCC_RC_FAILURE;
    }
    /* The character array "pcn_name" is already populated, when this macro returns. */

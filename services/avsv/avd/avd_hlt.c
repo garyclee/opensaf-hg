@@ -947,6 +947,7 @@ void avd_hlt_ack_msg(AVD_CL_CB *cb,AVD_DND_MSG *ack_msg)
 
       m_AVD_LOG_INVALID_VAL_FATAL(ack_msg->msg_info.n2d_reg_hlt.error);
       avnd =  avd_hlt_node_find(ack_msg->msg_info.n2d_reg_hlt.hltchk_name.comp_name_net, cb);
+      if(avnd == AVD_AVND_NULL) return;
       avd_hlt_node_del_hlt_from_list(hlt, avnd);
       hlt->row_status = NCS_ROW_NOT_IN_SERVICE;
       m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, hlt, AVSV_CKPT_AVD_HLT_CONFIG);

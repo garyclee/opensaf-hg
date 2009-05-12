@@ -199,8 +199,8 @@ ifd_lib_init (IFSV_CREATE_PWE *pwe_param)
          printf("saAmfComponentNameGet failed\n");
          goto ifd_mds_fail;
       }
-      strcpy(ifsv_cb->comp_name, sname.value);         
-      strcpy(m_IFD_COMP_NAME, sname.value);         
+      strncpy(ifsv_cb->comp_name, sname.value, IFSV_MAX_COMP_NAME-1);         
+      strncpy(m_IFD_COMP_NAME, sname.value, 127);
 
 
       if ((res = ifd_mds_init(ifsv_cb)) != NCSCC_RC_SUCCESS)

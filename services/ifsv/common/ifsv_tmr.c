@@ -52,10 +52,11 @@ ifsv_timer_expiry (NCSCONTEXT uarg)
    NCS_IPC_PRIORITY priority = NCS_IPC_PRIORITY_HIGH;
    IFSV_CB  *cb;
    IFSV_EVT *evt;
-   uns32    ifsv_hdl = tmr->uarg;
+   uns32    ifsv_hdl = 0;
 
    if (tmr != NULL)
    {
+      ifsv_hdl = tmr->uarg;
       /* post a message to the corresponding component */
       if ((cb = (NCSCONTEXT) ncshm_take_hdl(tmr->svc_id, ifsv_hdl))
             != IFSV_CB_NULL)

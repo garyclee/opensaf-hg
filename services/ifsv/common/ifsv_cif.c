@@ -175,6 +175,9 @@ uns32 ifentry_next(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    (cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, arg->i_mib_key)) == 0 ? (cb = 
       ncshm_take_hdl(NCS_SERVICE_ID_IFND, arg->i_mib_key)):(cb = cb);
 
+   if(cb == NULL)
+      return NCSCC_RC_FAILURE;
+
    if(arg->i_idx.i_inst_len)
    {
       /* Validate instance ID and get Key from Inst ID */

@@ -188,12 +188,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
       i_trap_varbind->i_idx.i_inst_ids = inst_ids;
 
       /* Add to the trap */
-      if (trap_id == ncsAvmUpgradeFailure_ID)
-         temp_trap_varbind->next_trap_varbind = i_trap_varbind;
-      else
-      {
-         snmptm_avm_trap.i_trap_vb = i_trap_varbind;
-      }
+      snmptm_avm_trap.i_trap_vb = i_trap_varbind;
    }
    else if ((trap_id == ncsAvmSwFwUpgradeFailure_ID) ||
             (trap_id == ncsAvmUpgradeProgress_ID))
@@ -299,7 +294,7 @@ uns32 avm_send_boot_upgd_trap(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 
                          tlv_size, EDP_OP_TYPE_ENC, &snmptm_avm_trap, &o_err);
    if (status != NCSCC_RC_SUCCESS)
    {
-      sprintf(logstr , "%s %d", "\nTLV-EXEC failed,  error-value=", o_err);
+      snprintf(logstr , sizeof(logstr)-1, "%s %d", "\nTLV-EXEC failed,  error-value=", o_err);
       m_AVM_LOG_DEBUG(logstr,NCSFL_SEV_ERROR);
       /* Probably need to call a function that free's the trap var bind list */
       goto done;

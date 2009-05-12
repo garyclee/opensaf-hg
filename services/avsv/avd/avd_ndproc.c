@@ -764,8 +764,8 @@ void avd_data_update_req_func(AVD_CL_CB *cb,AVD_EVT *evt)
             l_val = n2d_msg->msg_info.n2d_data_req.param_info.value_len;
             comp->proxy_comp_name_net.length = m_NCS_OS_HTONS(l_val);
             
-            strcpy(comp->proxy_comp_name_net.value,
-                                             n2d_msg->msg_info.n2d_data_req.param_info.value);
+            strncpy(comp->proxy_comp_name_net.value,
+                                             n2d_msg->msg_info.n2d_data_req.param_info.value, SA_MAX_NAME_LENGTH-1);
          }else
          {
             /* log error that a the  value len is invalid */

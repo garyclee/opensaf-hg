@@ -1277,6 +1277,7 @@ static uns32 mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd,NCS_MBCSV_CB_ARG *arg)
    {
       rc = NCSCC_RC_FAILURE;
       m_LOG_MQSV_D(MQD_MEMORY_ALLOC_FAIL,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+      return rc;
    }
 
    memset(mbcsv_info, 0,sizeof(MQD_A2S_QUEUE_INFO)); 

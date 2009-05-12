@@ -254,6 +254,7 @@ typedef enum MAB_hdln_flex
     MAB_HDLN_IGNORING_NON_PRIMARY_MDS_SVC_EVT,
     MAB_HDLN_OAC_LOG_MDS_ENC_FAILURE,
     MAB_HDLN_OAC_LOG_MDS_DEC_FAILURE,
+    MAB_HDLN_MAS_ANCHR_FLTR_PAIR,
 
     MAB_HDLN_MAX
   } MAB_HDLN_FLEX;
@@ -709,6 +710,6 @@ EXTERN_C uns32
 mab_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 /* DTSv versioning support */
-#define MASV_LOG_VERSION 3
+#define MASV_LOG_VERSION 4 
 
 #endif /* MAB_LOG_CONST_H */

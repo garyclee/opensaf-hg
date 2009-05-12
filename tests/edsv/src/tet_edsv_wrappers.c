@@ -694,8 +694,8 @@ uns32 tet_create_task(NCS_OS_CB task_startup)
 void var_initialize()
 {
   gl_version.releaseCode='B';
-  gl_version.majorVersion=gl_major_version;
-  gl_version.minorVersion=gl_minor_version;
+  gl_version.majorVersion=1; 
+  gl_version.minorVersion=1;
   gl_evtCallbacks.saEvtChannelOpenCallback=EvtOpenCallback;
   gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback; 
   gl_timeout=100000000000.0; 

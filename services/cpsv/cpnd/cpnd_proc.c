@@ -1228,6 +1228,7 @@ void  cpnd_proc_gen_mapping(CPND_CKPT_NODE *cp_node,CPSV_CKPT_ACCESS *ckpt_read,
        m_LOG_CPND_CL(CPND_CPSV_ND2A_READ_MAP_ALLOC_FAIL,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
        evt->info.cpa.info.sec_data_rsp.num_of_elmts=-1;
        evt->info.cpa.info.sec_data_rsp.error=SA_AIS_ERR_NO_MEMORY;
+       return ;
    }
 
    memset(evt->info.cpa.info.sec_data_rsp.info.read_mapping,'\0', \

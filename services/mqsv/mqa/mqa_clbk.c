@@ -531,14 +531,14 @@ static uns32 mqa_notify_clients(ASAPi_MSG_INFO *asapi_msg)
    }
    while((client_info = 
          (MQA_CLIENT_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, 
-                                              (const uns8 *const)temp_hdl_ptr)))
+                                              (uns8 *const)temp_hdl_ptr)))
    {
       temp_hdl = client_info->msgHandle;
       temp_hdl_ptr = &temp_hdl;
       /* scan the entire group track db & delete each record */
      while((track_info = 
         (MQA_TRACK_INFO *)ncs_patricia_tree_getnext(&client_info->mqa_track_tree, 
-                                          (const uns8 *const)temp_name_ptr)))
+                                          (uns8 *const)temp_name_ptr)))
       {
          /* delete the track info */
          temp_name = track_info->queueGroupName;

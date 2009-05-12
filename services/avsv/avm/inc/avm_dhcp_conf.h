@@ -47,14 +47,19 @@
 #define AVM_DHCPD_SCRIPT        "/etc/init.d/dhcp"
 #define AVM_DHCPD_CONF          "/etc/dhcpd.conf"
 #define AVM_DHCPD_SW_VER_FILE   "version"
+#define AVM_DHCPD_SW_VER_FILE_LEN strlen(AVM_DHCPD_SW_VER_FILE)
 #define AVM_DHCP_SCRIPT_ARG     " stop"
 #define AVM_SCRIPT_BUF_LEN      2048
 #define AVM_IP_ADDR_STR_LEN     18
 #define AVM_DHCP_CONF_CHANGE    3
 #define AVM_DHCPD_SW_PXE_FILE             "/pxelinux.0"
+#define AVM_DHCPD_SW_PXE_FILE_LEN         strlen(AVM_DHCPD_SW_PXE_FILE)
 #define AVM_DHCPD_SW_IPMC_PLD_BLD_FILE    "/atca-7221-ipmc.fri"
+#define AVM_DHCPD_SW_IPMC_PLD_BLD_FILE_LEN strlen(AVM_DHCPD_SW_IPMC_PLD_BLD_FILE)
 #define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1   "/artm-7221-fc.fri"
+#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1_LEN strlen(AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1)
 #define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2   "/artm-7221-scsi.fri"
+#define AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2_LEN strlen(AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2)
 #define CONF_FILE_PATH "/repl/ssuHelper.conf"
 
 #define AVM_DHCONF_MEMCMP_LEN(str1, str2, len1, len2)   (!(((len1) == (len2)) && \
@@ -285,13 +290,13 @@ struct slot_info
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_INT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            snprintf(push_logbuf,sizeof(push_logbuf)-1,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            snprintf(push_logbuf,sizeof(push_logbuf)-1,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \
@@ -309,13 +314,13 @@ struct slot_info
          if (avm_send_dynamic_data(avm_cb, ent_info, push_obj, \
                                  NCSMIB_FMAT_OCT, &avm_pssv) != NCSCC_RC_SUCCESS) \
          { \
-            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
+            snprintf(push_logbuf,sizeof(push_logbuf)-1,"AVM-SSU: Payload blade %s: Push Failed at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_ERROR); \
          } \
          else \
          { \
-            sprintf(push_logbuf,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
+            snprintf(push_logbuf,sizeof(push_logbuf)-1,"AVM-SSU: Payload blade %s: Push Success at line: %d in file: %s",ent_info->ep_str.name, \
                                                                                      __LINE__, __FILE__); \
             m_AVM_LOG_DEBUG(push_logbuf,NCSFL_SEV_NOTICE); \
          } \

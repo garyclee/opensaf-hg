@@ -1015,8 +1015,6 @@ ifnd_same_dst_intf_rec_del (MDS_DEST *dest, IFSV_CB *ifsv_cb)
 
 #endif
 
-
-
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
    if_node = ncs_patricia_tree_getnext(&ifsv_cb->if_tbl,
       (uns8*)&ifindex);
@@ -1865,7 +1863,7 @@ ifnd_sync_send_to_ifd (IFSV_INTF_DATA *intf_data, IFSV_INTF_REC_EVT rec_evt,
      evt->type = IFD_EVT_INTF_CREATE;
 
      memcpy(&evt->info.ifd_evt.info.intf_create.intf_data,
-                  intf_data, sizeof(IFSV_INTF_CREATE_INFO));
+                  intf_data, sizeof(IFSV_INTF_DATA));
      /* Here while sending the record to IFD, it will keep IfND's
       * destination address in the record info, so that IfD will
       * delete all the records created by the node, when the node

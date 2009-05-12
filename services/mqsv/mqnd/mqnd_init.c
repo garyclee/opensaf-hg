@@ -383,7 +383,7 @@ static uns32 mqnd_lib_init (MQSV_CREATE_INFO *info)
    }
    else
    {
-      strcpy(healthy.key,health_key);
+      strncpy(healthy.key,health_key,SA_AMF_HEALTHCHECK_KEY_MAX-1);
    }
    healthy.keyLen=strlen(healthy.key);
    

@@ -1297,7 +1297,10 @@ mas_red_warm_sync_resp_dec(MAS_TBL *inst, NCS_MBCSV_CB_DEC  *dec)
     mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
     mbcsv_arg.i_mbcsv_hdl = gl_mas_amf_attribs.mbcsv_attribs.mbcsv_hdl;
     mbcsv_arg.info.send_data_req.i_ckpt_hdl = inst->red.ckpt_hdl;
-    ncs_enc_init_space(&mbcsv_arg.info.send_data_req.i_uba);
+    if(ncs_enc_init_space(&mbcsv_arg.info.send_data_req.i_uba) != NCSCC_RC_SUCCESS )
+    {
+        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+    }
     data_uba = &mbcsv_arg.info.send_data_req.i_uba;
 
     /* reserve the space for number of buckets */
@@ -2106,9 +2109,8 @@ void mas_dictionary_dump()
     m_GET_ASCII_DATE_TIME_STAMP(tod, asc_tod); 
 
     /* get the final name to be used */ 
-    strcpy(tmp_file, "/tmp/MAS_DUMP_"); 
-    strcat(tmp_file, asc_tod); 
-    
+    strncpy(tmp_file, "/tmp/MAS_DUMP_",sizeof(tmp_file)-1);
+    strncat(tmp_file, asc_tod,(sizeof(tmp_file)-strlen(tmp_file))-1); 
     /* open the file in /tmp directory */ 
     fp = fopen(tmp_file, "w"); 
     if (fp == NULL)
@@ -2121,12 +2123,12 @@ void mas_dictionary_dump()
         fprintf(fp,"\n\t\tPWE-ID: %d", this_pwe->csi_info.env_id); 
         fprintf(fp,"\n\t\tCSI Name: %s", this_pwe->csi_info.work_desc.value); 
         fprintf(fp,"\n\t\tCSI State: %d", this_pwe->csi_info.ha_state); 
-        fprintf(fp,"\n\t\tRED State: %d", this_pwe->inst->red.ha_state);
-        fprintf(fp,"\n\t\tCold Sync Done : %d", this_pwe->inst->red.cold_sync_done);
-        fprintf(fp,"\n\t\tWarm Sync In Progress : %d", this_pwe->inst->red.warm_sync_in_progress);
-        fprintf(fp,"\n======================================================================"); 
         if (this_pwe->inst)
         {
+           fprintf(fp,"\n\t\tRED State: %d", this_pwe->inst->red.ha_state);
+           fprintf(fp,"\n\t\tCold Sync Done : %d", this_pwe->inst->red.cold_sync_done);
+           fprintf(fp,"\n\t\tWarm Sync In Progress : %d", this_pwe->inst->red.warm_sync_in_progress);
+           fprintf(fp,"\n======================================================================"); 
             /* for each bucket in this table */ 
             for (bucket=0; bucket<MAB_MIB_ID_HASH_TBL_SIZE; bucket++)
             {

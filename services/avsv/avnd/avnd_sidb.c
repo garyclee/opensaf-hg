@@ -100,7 +100,6 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
 {
    AVND_SU_SI_REC      *si_rec = 0;
    AVND_COMP_CSI_PARAM *csi_param = 0;
-   AVND_COMP_CSI_REC   *csi_rec = NULL;
 
    *rc = NCSCC_RC_SUCCESS;
 
@@ -161,7 +160,7 @@ AVND_SU_SI_REC *avnd_su_si_rec_add (AVND_CB          *cb,
    csi_param = param->list;
    while ( 0 != csi_param )
    {
-      csi_rec = avnd_su_si_csi_rec_add(cb, su, si_rec, csi_param, rc);
+      avnd_su_si_csi_rec_add(cb, su, si_rec, csi_param, rc);
       if ( NCSCC_RC_SUCCESS != *rc ) goto err;
       csi_param = csi_param->next;
    }

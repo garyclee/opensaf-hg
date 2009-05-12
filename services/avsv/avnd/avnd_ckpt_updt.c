@@ -934,6 +934,11 @@ uns32  avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt,
    tmp_hc_rec.req_hdl = hlt->req_hdl;
    /* determine if this healthcheck is already active */
    comp = m_AVND_COMPDB_REC_GET(cb->compdb,hlt->comp_name_net);
+   if ( comp == NULL )
+   {
+      m_AVND_LOG_INVALID_VAL_FATAL(comp);
+      return NCSCC_RC_FAILURE;
+   }
    hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
    
    m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_hlt_rec, Comp, Dec action, comp, hc_rec",

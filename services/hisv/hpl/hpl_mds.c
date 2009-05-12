@@ -581,7 +581,6 @@ static uns32 hpl_mds_cb_rcv (struct ncsmds_callback_info *mds_cb_info)
 static uns32 hpl_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
 {
    uns32 hpl_mds_hdl;
-   HPL_CB *hpl_cb;
 
    /* Retrieve the HPL_CB hdl */
    hpl_mds_hdl = (uns32) mds_cb_info->i_yr_svc_hdl;
@@ -590,9 +589,10 @@ static uns32 hpl_mds_svc_event (struct ncsmds_callback_info *mds_cb_info)
                      /* mds_cb_info->info.svc_evt.i_svc_id; */
 
    /* Take the HPL hdl */
-   if((hpl_cb = (HPL_CB*)ncshm_take_hdl(NCS_SERVICE_ID_HPL, hpl_mds_hdl)) == NULL)
+   if( ( NULL == (HPL_CB*)ncshm_take_hdl(NCS_SERVICE_ID_HPL, hpl_mds_hdl)) )
    {
       /* HISV_ADD_LOG_HERE- MDS Callback error */
+      m_LOG_HISV_DEBUG("HPL_CB Null\n");
       return NCSCC_RC_SUCCESS;
    }
 

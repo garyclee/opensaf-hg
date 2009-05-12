@@ -69,7 +69,7 @@ SaAisErrorT saClmInitialize (SaClmHandleT *o_hdl,
    CLA_HDL_REC  *hdl_rec = 0;
    SaAisErrorT     rc = SA_AIS_OK;
    int argc = 0;
-   char **argv;
+   char **argv = NULL;
 
    if( (!o_hdl) || (!ver) )
    {
@@ -130,9 +130,6 @@ SaAisErrorT saClmInitialize (SaClmHandleT *o_hdl,
       *o_hdl = hdl_rec->hdl;
 
 done:
-   /* free the hdl rec if there's some error */
-   if (hdl_rec && SA_AIS_OK != rc)
-      cla_hdl_rec_del (cb, hdl_db, hdl_rec);
 
    /* release cb write lock */
    if(cb) m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);

@@ -30,4 +30,4 @@ libmab_logstr_la_CPPFLAGS = \
 libmab_logstr_la_SOURCES = \
 	mab_logstr.c
 
-libmab_logstr_la_LDFLAGS = -version-number 3
+libmab_logstr_la_LDFLAGS = -version-number 4 

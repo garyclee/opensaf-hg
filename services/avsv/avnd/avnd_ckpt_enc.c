@@ -882,7 +882,7 @@ uns32  avnd_encode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
    uns8           logbuff[SA_MAX_NAME_LENGTH];
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"avnd_encode_warm_sync_rsp \n UPDATE CNTS AT ACTIVE(WarmSink) : hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
+   snprintf(logbuff,SA_MAX_NAME_LENGTH-1, "avnd_encode_warm_sync_rsp \n UPDATE CNTS AT ACTIVE(WarmSink) : hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
            cb->avnd_async_updt_cnt.hlth_config_updt, cb->avnd_async_updt_cnt.su_updt, cb->avnd_async_updt_cnt.comp_updt, cb->avnd_async_updt_cnt.su_si_updt,
            cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt, cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 

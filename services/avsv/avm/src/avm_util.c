@@ -1694,7 +1694,7 @@ avm_add_root(AVM_CB_T *cb)
 
    m_AVM_LOG_FUNC_ENTRY("avm_add_root");
    memset(ep_str.name, '\0', AVM_MAX_INDEX_LEN); 
-   sprintf(ep_str.name, "{{%d,0}}", SAHPI_ENT_ROOT);
+   snprintf(ep_str.name, AVM_MAX_INDEX_LEN-1, "{{%d,0}}", SAHPI_ENT_ROOT);
    ep_str.length = strlen(ep_str.name);
    
    memset(ep.Entry, '\0', sizeof(SaHpiEntityPathT));
@@ -2076,6 +2076,11 @@ uns32 avm_standby_boot_succ_tmr_handler(AVM_CB_T *avm_cb,AVM_EVT_T *hpi_evt,AVM_
       && (fsm_evt_type == AVM_EVT_INSERTION_PENDING))
    {
       arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+      if(arch_type == NULL)
+      {     
+         /* Log it */
+         return NCSCC_RC_FAILURE;
+      }
       /* Start up the boot timer only if the target system architecture is not   */
       /* HP_CCLASS and not HP_PROLIANT.                                          */
       if ((strcmp(arch_type, "HP_CCLASS") != 0) &&
@@ -2395,6 +2400,13 @@ avm_compare_ent_paths(SaHpiEntityPathT ent_path1, SaHpiEntityPathT ent_path2)
    NCS_SUB_SLOT_ID subslot1, subslot2;
    uns8 i=0;
    char *arch_type = NULL;
+
+   memset(&phy_slot1,0,sizeof(NCS_PHY_SLOT_ID));
+   memset(&phy_slot2,0,sizeof(NCS_PHY_SLOT_ID));
+   memset(&chassis_id1,0,sizeof(NCS_CHASSIS_ID));
+   memset(&chassis_id2,0,sizeof(NCS_CHASSIS_ID));
+   memset(&subslot1,0,sizeof(NCS_SUB_SLOT_ID));
+   memset(&subslot2,0,sizeof(NCS_SUB_SLOT_ID));
  
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 

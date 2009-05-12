@@ -188,7 +188,7 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
    SaAmfHealthcheckKeyT  Healthy;
    SaNameT  SaCompName;
    char *phlth_ptr;
-   char hlth_str[256];
+   char hlth_str[32];
 
    cb->init_done = evt->info.ifd_evt.info.init_done.init_done;
    /** start the AMF health check **/   
@@ -204,9 +204,9 @@ ifd_intf_init_done (IFSV_EVT* evt, IFSV_CB *cb)
       strcpy(hlth_str,"123");
    } else
    {
-      strcpy(hlth_str,phlth_ptr);
+      strncpy(hlth_str,phlth_ptr, SA_AMF_HEALTHCHECK_KEY_MAX-1);
    }
-   strcpy(Healthy.key,hlth_str);
+   strncpy(Healthy.key,hlth_str, SA_AMF_HEALTHCHECK_KEY_MAX-1);
    Healthy.keyLen=strlen(Healthy.key);
   
    error = saAmfHealthcheckStart(cb->amf_hdl,&SaCompName,&Healthy,
@@ -327,6 +327,10 @@ ifd_intf_ifindex_cleanup (IFSV_EVT* evt, IFSV_CB *cb)
    if(rec_data != NULL)
    {
       rec = ifsv_intf_rec_del (spt_map->spt_map.if_index, cb);
+
+      if (rec == IFSV_NULL)
+         return NCSCC_RC_FAILURE;
+
       /* Send the trigger point to Standby IfD. */
       res1 = ifd_a2s_async_update(cb, IFD_A2S_DATA_DELETE_MSG,
                                          (uns8 *)(&rec->intf_data));
@@ -654,6 +658,11 @@ ifd_intf_rec_send_no_ret_tmr (MDS_DEST mds_dest, IFSV_CB *cb)
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, ipxs_hdl);
+   if (ipxs_cb == IFSV_NULL)
+   {
+      ifsv_evt_destroy(evt); 
+      return NCSCC_RC_FAILURE;
+   }
 #endif
 
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
@@ -789,6 +798,11 @@ ifd_intf_rec_send_ret_tmr_running (MDS_DEST mds_dest, IFSV_CB *cb)
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, ipxs_hdl);
+   if (ipxs_cb == IFSV_NULL)
+   {
+      ifsv_evt_destroy(evt);
+      return NCSCC_RC_FAILURE;
+   }
 #endif
 
    m_NCS_LOCK(intf_rec_lock, NCS_LOCK_WRITE);
@@ -1147,7 +1161,8 @@ ifd_process_evt (IFSV_EVT* evt)
          }
       }else
       {
-         if(evt->type < IFSV_EVT_MAX)
+         if(evt->type < IFD_EVT_MAX)
+
          {
             ifsv_evt_hdl = ifd_evt_dispatch_tbl[evt->type - IFD_EVT_BASE];
             if (ifsv_evt_hdl != IFSV_NULL)

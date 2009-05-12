@@ -525,7 +525,7 @@ static void mqa_client_tree_cleanup(MQA_CB *mqa_cb)
    /* scan the entire handle db & delete each record */
    while((client_info = (MQA_CLIENT_INFO *)
              ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, 
-                                       (const uns8 *const)temp_ptr)))
+                                       (uns8 *const)temp_ptr)))
    {      
       /* delete the client info */
       temp_hdl = client_info->msgHandle;
@@ -560,7 +560,7 @@ NCS_BOOL mqa_is_track_enabled(MQA_CB *mqa_cb, SaNameT *queueGroupName)
    /* scan the entire handle db & delete each record */
    while((client_info = (MQA_CLIENT_INFO *)
                ncs_patricia_tree_getnext(&mqa_cb->mqa_client_tree, 
-                                         (const uns8 *const)temp_ptr)))
+                                         (uns8 *const)temp_ptr)))
    {      
        track_info = mqa_track_tree_find_and_add(client_info,
                                                 queueGroupName,FALSE);
@@ -878,7 +878,7 @@ static void mqa_queue_tree_cleanup(MQA_CB *mqa_cb)
    /* scan the entire handle db & delete each record */
    while((queue_info = (MQA_QUEUE_INFO *)
                 ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, 
-                                          (const uns8 *const)temp_ptr)))
+                                          (uns8 *const)temp_ptr)))
    {      
          temp_hdl = queue_info->queueHandle;
          temp_ptr = &temp_hdl;

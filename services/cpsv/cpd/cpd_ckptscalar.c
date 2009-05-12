@@ -90,6 +90,11 @@ uns32 safckptscalarobject_extract(NCSMIB_PARAM_VAL* param,
 
    uns32 rc = NCSCC_RC_SUCCESS;
    CPD_CB *cb = (CPD_CB *)data;
+   
+   if(var_info == NULL)
+   {
+     return NCSCC_RC_FAILURE;
+   }
 
    if(var_info->param_id == safSpecVersion_ID)
    {

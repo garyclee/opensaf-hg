@@ -244,6 +244,7 @@ void cpd_a2s_ckpt_dest_add(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *de
 void cpd_a2s_ckpt_dest_down(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *dest)
 {
    CPD_MBCSV_MSG cpd_msg;
+   uns32 rc = SA_AIS_OK;
 
    memset(&cpd_msg , '\0' , sizeof(CPD_MBCSV_MSG));
    cpd_msg.type             = CPD_A2S_MSG_CKPT_DEST_DOWN;
@@ -252,7 +253,11 @@ void cpd_a2s_ckpt_dest_down(CPD_CB *cb,CPD_CKPT_INFO_NODE *ckpt_node,MDS_DEST *d
  
    printf("CPND 1 IS IN RESTART NOW \n");
  
-   cpd_mbcsv_async_update(cb,&cpd_msg);
+   rc = cpd_mbcsv_async_update(cb,&cpd_msg);
+   if (rc != SA_AIS_OK)
+     m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_FAILED,CPD_FC_MBCSV,NCSFL_SEV_ERROR,cpd_msg.info.dest_down.ckpt_id,*dest,__FILE__,__LINE__);     
+   else
+     m_LOG_CPD_FFCL(CPD_A2S_CKPT_DESTDEL_ASYNC_SUCCESS,CPD_FC_MBCSV,NCSFL_SEV_INFO,cpd_msg.info.dest_down.ckpt_id,*dest,__FILE__,__LINE__); 
 }
 
 

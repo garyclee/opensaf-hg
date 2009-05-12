@@ -264,7 +264,6 @@ uns32 ncspssvprofiletableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
 {
     /* Get Request will be used only for profile description */
     PSS_CB *inst = NULL;
-    uns32 retval = NCSCC_RC_SUCCESS;
     uns8  profile_name[NCS_PSS_MAX_PROFILE_NAME];
 
     inst = (PSS_CB*)cb;
@@ -284,10 +283,6 @@ uns32 ncspssvprofiletableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
         /* m_NCS_PSSTS_GET_NEXT_PROFILE(inst->pssts_api, inst->pssts_hdl, retval,
                                     NULL, sizeof(profile_name), profile_name); */
         return NCSCC_RC_INV_VAL;
-    }
-    if (retval != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_NO_INSTANCE;
     }
 
     memset(&inst->profile_extract, '\0', sizeof(inst->profile_extract));
