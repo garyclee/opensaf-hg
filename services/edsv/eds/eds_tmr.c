@@ -111,11 +111,16 @@ uns32 eds_start_tmr (EDS_CB         *cb,
 void eds_stop_tmr (EDS_TMR *tmr)
 {
    /* If timer type is invalid just return */
-   if (tmr!=NULL && EDS_TMR_MAX <= tmr->type)
-   {  
-      m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,tmr->type,__FILE__,__LINE__,0);
+   if (tmr == NULL)
+   {
+      m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,tmr,__FILE__,__LINE__,0);
       return;
    }
+   else if (EDS_TMR_MAX <= tmr->type)
+   {
+      m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,tmr->type,__FILE__,__LINE__,0);
+      return;
+   }         
 
    /* Stop the timer if it is active... */
    if (tmr->is_active == TRUE)

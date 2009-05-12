@@ -208,7 +208,7 @@ void tet_saEvtInitializeCases(int iOption)
       gl_evtCallbacks.saEvtEventDeliverCallback=EvtDeliverCallback;
 
       gl_rc=saEvtInitialize(&gl_evtHandle,&gl_evtCallbacks,&gl_version);
-      result("saEvtInitialize() with minor version set to 0",SA_AIS_ERR_VERSION);
+      result("saEvtInitialize() with minor version set to 0",SA_AIS_OK);
       printf("\nVersion Delivered : %c %d %d",gl_version.releaseCode,
              gl_version.majorVersion, gl_version.minorVersion);
       tet_printf("Version Delivered : %c %d %d",gl_version.releaseCode,
@@ -228,7 +228,7 @@ void tet_saEvtInitializeCases(int iOption)
 
       gl_rc=saEvtInitialize(&gl_evtHandle,&gl_evtCallbacks,&gl_version);
       result("saEvtInitialize() with major version set to 3",
-             SA_AIS_ERR_VERSION);
+             SA_AIS_OK);
 
 #if 0
       tet_saEvtFinalize(&gl_evtHandle);

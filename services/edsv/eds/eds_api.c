@@ -110,14 +110,13 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
 
    /* Generate the pidfilename. Also assert for string buffer overflow */
-   assert(sprintf(pidfilename, "%s", EDS_PID_FILE)
-            < sizeof(pidfilename));
-
+   snprintf(pidfilename, EDS_PID_FILE_NAME_LEN-1, "%s", EDS_PID_FILE);
+   
    /*Open pidfile for writing the process id */
    fp = fopen(pidfilename, "w");
    if(fp == NULL)
    {
-      m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
+      m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,1,__FILE__,__LINE__,0);
       printf("eds_se_lib_init : " PIDPATH "eds.pid OPEN FOR WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
       ncshm_destroy_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl);
@@ -129,7 +128,6 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
 
    if(fprintf(fp, "%d", getpid()) < 1)
    {
-      fclose(fp);
       m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)fp,__FILE__,__LINE__,0);
       printf("eds_se_lib_init : " PIDPATH "eds.pid FILE WRITE FAILED......\n");
       /* Destroy the hdl for this CB */
@@ -137,6 +135,7 @@ eds_se_lib_init (NCS_LIB_REQ_INFO *req_info)
       gl_eds_hdl = 0;
       /* clean up the CB */
       m_MMGR_FREE_EDS_CB(eds_cb);
+      fclose(fp);
       return NCSCC_RC_FAILURE; 
    }
    fclose(fp);
