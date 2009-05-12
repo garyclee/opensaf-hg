@@ -1773,7 +1773,7 @@ eds_store_retained_event(EDS_CB         *cb,
    /* Copy the publisher name */
    memcpy(retained_evt->publisherName.value,
                 publish_param->publisher_name.value,
-                sizeof(SaNameT));
+                SA_MAX_NAME_LENGTH);
 
    retained_evt->publisherName.length = 
       publish_param->publisher_name.length;

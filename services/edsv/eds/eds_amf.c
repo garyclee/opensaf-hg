@@ -454,14 +454,14 @@ eds_healthcheck_start(EDS_CB *eds_cb)
    /** start the AMF health check **/
    memset(&Healthy,0,sizeof(Healthy));
    health_key = getenv("EDSV_ENV_HEALTHCHECK_KEY");
-   if(health_key == NULL)
+   if(health_key == NULL || strlen(health_key) > SA_AMF_HEALTHCHECK_KEY_MAX)
    {
       strcpy(Healthy.key,"E5F6");
       /* Log it */
    }
    else
    {
-      strcpy(Healthy.key,health_key);
+      strncpy(Healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX);
    }
    Healthy.keyLen=strlen(Healthy.key);
 
@@ -505,7 +505,7 @@ eds_amf_init(EDS_CB *eds_cb)
 
 
    /* Read the component name file now, AMF should have populated it by now */
-   assert(sprintf(compfilename, "%s", m_EDS_COMP_NAME_FILE) < sizeof(compfilename));
+   snprintf(compfilename, EDS_COMP_FILE_NAME_LEN-1, "%s", m_EDS_COMP_NAME_FILE);
 
    fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_eds_comp_name */
    if(fp == NULL)

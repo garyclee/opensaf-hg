@@ -34,12 +34,10 @@
 /* Macro to validate the EVT version */
 #define m_EDA_VER_IS_VALID(ver)   \
        (ver->releaseCode  == EDSV_RELEASE_CODE) && \
-       (((ver->majorVersion == EDSV_MAJOR_VERSION) && \
-         (ver->minorVersion == EDSV_MINOR_VERSION)) || \
-        ((ver->majorVersion == EDSV_BASE_MAJOR_VERSION) && \
-         (ver->minorVersion == EDSV_BASE_MINOR_VERSION))) \
+       ((ver->majorVersion == EDSV_MAJOR_VERSION) || \
+        (ver->majorVersion == EDSV_BASE_MAJOR_VERSION))
 
-#define m_IS_B03_CLIENT(ver)  \
+#define m_IS_B03_CLIENT(version)  \
    (version->releaseCode == 'B') && (version->majorVersion >= 0x03)
     
 #define m_EDA_FILL_VERSION(ver) \
