@@ -340,6 +340,13 @@ static uns32 cpnd_lib_init (CPND_CREATE_INFO *info)
    }
    else
    {
+    if(strlen(health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX)
+    {
+         rc= NCSCC_RC_FAILURE;
+         m_LOG_CPND_CL(CPND_INIT_FAIL,CPND_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+         return rc;
+    }
+    else
       strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);

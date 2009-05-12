@@ -334,7 +334,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
    CLIENT_HDR cli_hdr;
    CKPT_INFO cp_info,tmp_cp_info;
    SaCkptHandleT client_hdl;  
-   uns8 *buf,size=0,total_length,*buffer;
+   uns8 *buf = NULL,size=0,total_length,*buffer;
    GBL_SHM_PTR   gbl_shm_addr;
    memset(&cp_info,'\0',sizeof(CKPT_INFO));
    NCS_OS_POSIX_SHM_REQ_INFO ckpt_rep_open;
@@ -537,7 +537,7 @@ void *  cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req,CPND_CB
                           {
                              /* this should not have happened , quit */
                              /*  assert(0); */
-                             printf("RESTART: CLIENT HDL DOES NOT EXIST %d\n",client_hdl);
+                             printf("RESTART: CLIENT HDL DOES NOT EXIST %lld\n",client_hdl);
                              m_LOG_CPND_FCL(CPND_CLIENT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
                              client_hdl,__FILE__,__LINE__);
                              continue;
