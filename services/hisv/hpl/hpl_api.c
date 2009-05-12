@@ -169,7 +169,7 @@ uns32 hpl_resource_power_set(uns32 chassis_id, uns8 *entity_path, uns32 power_st
    }
 
    /* validate the requested power state */
-   if ((power_state < HISV_RES_POWER_OFF) || (power_state > HISV_RES_POWER_CYCLE))
+   if ( power_state > HISV_RES_POWER_CYCLE )
    {
       /* invalid power state */
       m_LOG_HISV_DEBUG("bad power state requested\n");
@@ -313,7 +313,7 @@ uns32 hpl_config_hotswap(uns32 chassis_id, HISV_API_CMD hs_config_cmd, uns64 *ar
    HPL_TLV  *hpl_tlv;
 
    if ((hs_config_cmd != HS_AUTO_INSERT_TIMEOUT_SET)
-        && (hs_config_cmd != HS_INDICATOR_STATE_SET))
+        || (hs_config_cmd != HS_INDICATOR_STATE_SET))
    {
       printf("Invalid hotswap config command %d\n", hs_config_cmd);
       m_LOG_HISV_DEBUG("Invalid hotswap config command \n");

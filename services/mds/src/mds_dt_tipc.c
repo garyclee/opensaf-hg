@@ -246,7 +246,12 @@ uns32 mdtm_tipc_init(NODE_ID nodeid,  uns32 *mds_tipc_ref)
    /* REASSEMBLY TREE */
    memset(&pat_tree_params, 0, sizeof(pat_tree_params));
    pat_tree_params.key_size = sizeof(MDTM_REASSEMBLY_KEY);
-   ncs_patricia_tree_init(&mdtm_reassembly_list,&pat_tree_params); 
+   if ( NCSCC_RC_SUCCESS !=  ncs_patricia_tree_init(&mdtm_reassembly_list,&pat_tree_params) )
+   {
+       syslog(LOG_ERR,"MDS:MDTM: ncs_patricia_tree_init failed MDTM_INIT\n");
+       return NCSCC_RC_FAILURE;
+   }
+
    
    /* Create the sockets required for Binding, Send, receive and Discovery */
 
