@@ -514,6 +514,12 @@ static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 
    close = &evt->msg.mqp_req.info.closeReq;
 
+   if (close == NULL)
+   {
+       err = SA_AIS_ERR_BAD_HANDLE;
+       goto send_rsp;
+   }
+
    if(cb->is_restart_done)
       err = SA_AIS_OK;
    else
@@ -525,9 +531,8 @@ static uns32 mqnd_evt_proc_mqp_qclose(MQND_CB *cb, MQSV_EVT *evt)
 
    mqnd_queue_node_get(cb, close->queueHandle, &qnode);
 
-
    /* If queue not found */
-   if(!qnode || !close)
+   if(!qnode)
    {
       err = SA_AIS_ERR_BAD_HANDLE;
       m_LOG_MQSV_ND(MQND_GET_QNODE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,err,__FILE__,__LINE__);
@@ -1197,8 +1202,8 @@ static uns32 mqnd_evt_proc_send_msg(MQND_CB *cb, MQSV_DSEND_EVT *evt)
 send_resp:
    /* If the error happens in SendReceive case while sending the message then return the 
       response from here and don't wait for the reply message to come */
-   if( (!snd_msg->messageInfo.sendReceive) || 
-       ((snd_msg->messageInfo.sendReceive) && (rc != NCSCC_RC_SUCCESS))) {
+   if(snd_msg && ((!snd_msg->messageInfo.sendReceive) || 
+       ((snd_msg->messageInfo.sendReceive) && (rc != NCSCC_RC_SUCCESS)))) {
 
       if(((snd_msg->ackFlags & SA_MSG_MESSAGE_DELIVERED_ACK) == SA_MSG_MESSAGE_DELIVERED_ACK) || 
          ((snd_msg->messageInfo.sendReceive) && (rc != NCSCC_RC_SUCCESS))) {

@@ -189,12 +189,10 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
    }
    else
    {
-            /* Implimentation is supporting the required release code */
-           version->releaseCode = MQA_RELEASE_CODE;
-           version->majorVersion = MQA_MAJOR_VERSION;
-           version->minorVersion = MQA_MINOR_VERSION;
-
-
+      /* Implimentation is supporting the required release code */
+      version->releaseCode = MQA_RELEASE_CODE;
+      version->majorVersion = MQA_MAJOR_VERSION;
+      version->minorVersion = MQA_MINOR_VERSION;
    }
 
    /* retrieve MQA CB */
@@ -225,7 +223,6 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
    initialize_evt.msg.mqp_req.type = MQP_EVT_INIT_REQ;
    initialize_evt.msg.mqp_req.info.initReq.version = *version;
    initialize_evt.msg.mqp_req.agent_mds_dest = mqa_cb->mqa_mds_dest;  
-
 
    /* send the request to the MQND */
    mds_rc = mqa_mds_msg_sync_send(mqa_cb->mqa_mds_hdl, &mqa_cb->mqnd_mds_dest, 
@@ -267,9 +264,9 @@ saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgCallbacks,
       }
     
       /* Update version passed in initialize */
-      client_info->version.releaseCode = client_version.releaseCode;
-      client_info->version.majorVersion = client_version.majorVersion;
-      client_info->version.minorVersion = client_version.minorVersion;
+      client_info->version.releaseCode = version->releaseCode;
+      client_info->version.majorVersion = version->majorVersion;
+      client_info->version.minorVersion = version->minorVersion;
 
       if (mqsv_mqa_callback_queue_init(client_info) != NCSCC_RC_SUCCESS)
       {
@@ -607,7 +604,7 @@ saMsgFinalize(SaMsgHandleT msgHandle)
    /* scan the entire handle db & close queue opening by this client*/
    while((queue_info = 
           (MQA_QUEUE_INFO *)ncs_patricia_tree_getnext(&mqa_cb->mqa_queue_tree, 
-                                                    (const uns8 *const) temp_ptr)))
+                                                    (uns8 *const) temp_ptr)))
    {  
       temp_hdl = queue_info->queueHandle;
       temp_ptr = &temp_hdl;
@@ -2161,10 +2158,12 @@ uns32 mqa_send_to_group(MQA_CB *mqa_cb, ASAPi_OPR_INFO    *asapi_or, MQSV_DSEND_
             
             if(num_queues > 0) {
                qsend_evt_copy = (MQSV_DSEND_EVT *)mds_alloc_direct_buff(length);
-               memset(qsend_evt_copy, 0, length);
-
-               if (!qsend_evt_copy) 
+               if (!qsend_evt_copy)
+               {
+                  mds_free_direct_buff((MDS_DIRECT_BUFF)qsend_evt_buffer); 
                   return  SA_AIS_ERR_NO_MEMORY;
+               }
+               memset(qsend_evt_copy, 0, length);
 
                qsend_evt = qsend_evt_copy;
                memcpy(qsend_evt, qsend_evt_buffer, length);   
@@ -2216,7 +2215,7 @@ SaAisErrorT mqa_send_message (SaMsgHandleT msgHandle,
    MDS_DEST          destination_mqnd;
    SaNameT           sender;
    NCS_BOOL          lock_taken = FALSE;
-   uns32             length,o_msg_fmt_ver,to_dest_ver;
+   uns32             length,o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION,to_dest_ver;
 
    sender.length = 0;
    sender.value[0] = '\0';
@@ -2717,9 +2716,9 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
    MQA_SENDERID_INFO    *sender_info=NULL;
    static int           first=1;
    MQSV_DSEND_EVT       *stats = NULL, *statsrsp = NULL;
-   uns32                mds_rc,to_dest_ver,o_msg_fmt_ver;
-   tmr_t                tmr_id;
-   MQP_CANCEL_REQ       *timer_arg;
+   uns32                mds_rc,to_dest_ver,o_msg_fmt_ver = MQA_PVT_SUBPART_VERSION;
+   tmr_t                tmr_id = NULL;
+   MQP_CANCEL_REQ       *timer_arg = NULL;
    NCS_BOOL             is_timer_present = FALSE;
    NCS_BOOL             posix_mq_get_failure;
    NCS_BOOL             stats_update_failure = FALSE;
@@ -2817,7 +2816,7 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
 
       m_NCS_TMR_CREATE(tmr_id, timeout, msgget_timer_expired, (void *)&timer_arg);
 
-      if (tmr_id == 0) {
+      if (tmr_id == NULL) {
          rc = SA_AIS_ERR_NO_RESOURCES;
          m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
          goto done;      
@@ -2831,7 +2830,7 @@ SaAisErrorT mqa_receive_message (SaMsgQueueHandleT queueHandle,
          m_LOG_MQSV_A(MQA_CANCEL_REQ_ALLOC_FAILED,NCSFL_LC_MQSV_SEND_RCV,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
          goto done;
       }      
-
+      memset(timer_arg,0, sizeof(MQP_CANCEL_REQ));
       timer_arg->queueHandle = queueHandle;
       timer_arg->timerId = tmr_id;
 
@@ -4154,9 +4153,9 @@ SaAisErrorT mqa_reply_message (SaMsgHandleT msgHandle,
      printf("mqa_reply_message:INVALID MSG FORMAT %d\n",o_msg_fmt_ver);
      goto done;
     }
- 
-   reply_info.sendReceive = SA_FALSE;  
 
+   memset(&reply_info,0,sizeof(QUEUE_MESSAGE_INFO)); 
+   reply_info.sendReceive = SA_FALSE;  
    m_NCS_OS_GET_TIME_STAMP(tmp_time);
    reply_info.sendTime = (SaTimeT)tmp_time;
 
@@ -4735,13 +4734,6 @@ saMsgQueueGroupDelete(SaMsgHandleT msgHandle,
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   if (!client_info)
-   {
-      rc = SA_AIS_ERR_INIT; 
-      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
-      goto done;
-   }
-
    asapi_or.type = ASAPi_OPR_MSG;
    asapi_or.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -4899,13 +4891,6 @@ saMsgQueueGroupInsert(SaMsgHandleT msgHandle,
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   if (!client_info)
-   {
-      rc = SA_AIS_ERR_INIT; 
-      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
-      goto done;
-   }
-     
    asapi_or.type = ASAPi_OPR_MSG;
    asapi_or.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -5059,13 +5044,6 @@ saMsgQueueGroupRemove(SaMsgHandleT msgHandle,
 
    m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   if (!client_info)
-   {
-      rc = SA_AIS_ERR_INIT; 
-      m_LOG_MQSV_A(MQA_CLIENT_TREE_FIND_FAILED,NCSFL_LC_MQSV_QGRP_MGMT,NCSFL_SEV_ERROR,SA_AIS_ERR_BAD_HANDLE,__FILE__,__LINE__);
-      goto done;
-   }
-     
    asapi_or.type = ASAPi_OPR_MSG;
    asapi_or.info.msg.opr = ASAPi_MSG_SEND;
 
@@ -5483,8 +5461,8 @@ saMsgQueueGroupTrackStop(SaMsgHandleT msgHandle,
 {
    ASAPi_OPR_INFO    asapi_or;
    MQA_CB            *mqa_cb;
-   MQA_CLIENT_INFO   *client_info;
-   MQA_TRACK_INFO   *track_info;
+   MQA_CLIENT_INFO   *client_info = NULL;
+   MQA_TRACK_INFO   *track_info = NULL;
    SaAisErrorT          rc;
 
 
