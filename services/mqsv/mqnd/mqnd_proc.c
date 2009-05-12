@@ -451,7 +451,7 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
    MQSV_EVT transfer_req;
    MQND_QTRANSFER_EVT_NODE *qevt_node=NULL;
    uns32 rc = NCSCC_RC_SUCCESS;
-   MQP_OPEN_REQ      *open;
+   MQP_OPEN_REQ      *open = NULL;
    SaTimeT  timeout;
 
    /* Build and send transfer ownership request to remote MQND */
@@ -496,13 +496,14 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
    }
 
    qevt_node = m_MMGR_ALLOC_MQND_QTRANSFER_EVT_NODE;
+   if (!qevt_node)
+   {
+      m_LOG_MQSV_ND(MQND_ALLOC_QTRANS_EVT_NODE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,old_hdl,__FILE__,__LINE__);
+      goto free_mem;
+   }
+
    memset(qevt_node, 0, sizeof(MQND_QTRANSFER_EVT_NODE));
   
-   if(!qevt_node)
-    {
-     m_LOG_MQSV_ND(MQND_ALLOC_QTRANS_EVT_NODE_FAILED,NCSFL_LC_MQSV_Q_MGMT,NCSFL_SEV_ERROR,old_hdl,__FILE__,__LINE__);
-     goto free_mem;
-    }
    qevt_node->addr = *old_owner; 
    qevt_node->tmr.type = MQND_TMR_TYPE_NODE1_QTRANSFER;    
    qevt_node->tmr.qhdl = old_hdl;
@@ -541,14 +542,18 @@ uns32 mqnd_evt_proc_mqp_qtransfer_response(MQND_CB *cb, MQSV_EVT *evt)
    MQSV_EVT transfer_complete;
    MQP_TRANSFERQ_RSP *transfer_rsp = NULL;
    MQND_QTRANSFER_EVT_NODE *qevt_node=NULL;
-   SaMsgQueueHandleT qhdl;
+   SaMsgQueueHandleT qhdl = 0;
    uns32 rc = NCSCC_RC_SUCCESS;
    SaAisErrorT err = SA_AIS_OK;
    MQP_REQ_MSG mqp_req;
 
    transfer_rsp = &evt->msg.mqp_rsp.info.transferRsp;
-
-
+   if(transfer_rsp == NULL)
+   {
+     err = SA_AIS_ERR_BAD_HANDLE; 
+     rc = NCSCC_RC_FAILURE;
+     goto done;
+   }
    /*Received Transfer Req Response so in case of Async open req remove the event node,stop the timer and free the memory*/
    mqnd_qevt_node_get(cb, transfer_rsp->old_queueHandle, &qevt_node);
    if(!qevt_node )
@@ -778,9 +783,9 @@ uns32 mqnd_proc_queue_open (MQND_CB *cb, MQP_REQ_MSG *mqp_req, MQSV_SEND_INFO *s
 {
    uns32             rc;
    SaMsgQueueCreationAttributesT cre_attr;
-   SaMsgQueueHandleT qhdl;
+   SaMsgQueueHandleT qhdl = 0;
    NCS_BOOL          is_qexists = TRUE;
-   MQP_OPEN_REQ      *open;
+   MQP_OPEN_REQ      *open = NULL;
    MQND_QUEUE_NODE   *qnode = NULL;
    uns32 existing_msg_count = 0;
    SaAisErrorT        err = SA_AIS_OK;
@@ -964,6 +969,11 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
    SaMsgQueueHandleT    listenerHandle;
    MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 
+   if (qnode == NULL)
+   {
+      *err = SA_AIS_ERR_NO_RESOURCES;
+      return NCSCC_RC_FAILURE;
+   }
    timeout = m_NCS_CONVERT_SATIME_TO_TEN_MILLI_SEC(qnode->qinfo.queueStatus.retentionTime);
    
    if((qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE) ||
