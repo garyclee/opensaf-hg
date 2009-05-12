@@ -1102,6 +1102,14 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb,NCS_MBCSV_CB_ARG *cbk_arg)
         /* freed in NtfNotification destructor */
         ntfsv_send_not_req_t *notification_rec = 
         calloc(1, sizeof(ntfsv_send_not_req_t));
+
+        if (notification_rec == NULL)
+        {
+            TRACE("calloc FAILED");
+            rc = NCSCC_RC_FAILURE;
+            goto done;
+        }
+     
         num_bytes = ntfsv_dec_not_msg(&cbk_arg->info.decode.i_uba,
                                       notification_rec);
         if (num_bytes == 0)
