@@ -16,20 +16,32 @@
 #
 
 GENERAL
+This directory (services/ntfsv) contains an implementation of the SAF 
+Notification Service version A.01.01.
+
+Application programmers intending to interface with ntfsv should primarily read
+the document "OpenSAF NTF Service Release 3 Programmer's Reference" and of
+course the NTF standard (SAI-AIS-NTF-A.01.01).
+
+This document provides an overview of the design and internals of the ntfsv. 
+It is intended for maintainers or trouble-shooters of the ntfsv in OpenSAF.
+Familiarity with the NTF standard is obviously also helpful in understanding
+this document. 
+
 The NTF service is implemented as a server process executing on the controllers
 using a 2N redundancy model. Message based check pointing is used to synchronize
-the two server instances.
-
+the two server instances. The NTF service follows the OpenSAF Service server 
+concept (see OpenSAF Overview User's Guide). Process structure:
+     * NTF Server (ntfs)
+     * The application processes linked with the NTF library (ntfa)
+               
 The NTF service was originally cloned from the lgsv service. The server part 
-consists of one c++ part that has been ported from an earlier implementation.
-In this preliminary version debug printout for the server is on. Library trace is 
-handled in the same way as for the saflog implementation 
-(see services/logsv/README file).
+consists of one c++ part that has been ported from an earlier implementation. 
+Parts of the library implementations and the base for the 'ntfsend' and 
+'ntfsubscribe' commands are also taken from an earlier implementation.
 
-SERVER
-The encoding/decoding, mbscsv and amf are implemented in c. All the logic and 
-data storage is handled in the c++ part. All actions is handled via the NtfAdmin
-class. The interface between the c and c++ part is defined in NtfCom.h.
+Only a limited version of the Reader API is implemented which reads from a 
+cache of 100 notification. Filter is not implemented.
 
 DEPENDENCIES
 ntfsv depends of the following other OpenSAF services:
@@ -37,9 +49,9 @@ ntfsv depends of the following other OpenSAF services:
 - MDS
 - LEAP
 - logtrace
-
+  
 DIRECTORY STRUCTURE
-services/ntfsv/inc	Common header files used by both a and ntfs
+services/ntfsv/inc	Common header files used by both ntfa and ntfs
 services/ntfsv/ntfa	ntf library implementation
 services/ntfsv/ntfs	ntf server
 services/ntfsv/common	implementation used by both server and library.
@@ -47,24 +59,124 @@ services/ntfsv/utils	ntfsend, ntfsubscribe commands
 lib/lib_SaNtf		NTF library staging
 tests/ntfsv/src		Test suite
 
+MAIN FILES
+ntfs:
+-NtfCom.h    defines the interface between NtfAdmin part and the C communication
+              layer (encode/decode, mbcsv, mds)
+-NtfAdmin.hh main object in the c++ structure.
+
+ntfa:
+-ntfa_api.c - implementation of interface saNtf.h
+
+DATA STRUCTURES
+NTFS uses the following data structures:
+-Control block. Statically allocated, one instance. Access through a global
+pointer variable.
+
+-NtfAdmin
+The Admin part is responsible for handling information about clients, 
+subscriptions, filters and notifications. For redundancy reasons all information
+are sent to the standby node by mbcsv. The information is organized to objects 
+in a tree and each object has an identifier.
+
+The identifiers:
+* clientId is a node-wide unique id that is assigned by NTF
+* subscriptionId is a client-wide unique id that is assigned by the NTFa
+* notificationId is a cluster-wide unique id that is assigned by NTF
+* filterType - is an id based on the notificationType
+
+Each object in the NtfAdmin tree holds information about its underlying object
+in a map. Maps are STL (Standard Template Library) containers that contain 
+unique key/value pairs, the key is always an identifier, and the value is always
+a pointer to the object.
+This means that the Admin object has a nodeMap where each entry contains
+a nodeId and a pointer to the appropriate node object.
+
+The maps are:
+* clientMap is located in the Node object and holds information about
+  all clients on a certain node
+* readerMap is located in the Client object. For each reader initialize a new 
+  NtfReader object is created with a copy of the cached notifications
+* subscriptionMap is located in the Client object and holds information
+  about all subscriptions that the certain client has
+* filterMap is located in the Subscription object and holds information
+  about all filters that belongs to the certain subscription
+* notificationMap is located in the Admin object and holds information
+  about all active notifications. Active notification in this context 
+  means a notification that was not yet delivered to all matching subscriptions
+
+Other objects handled by NtfAdmin:
+* logger - Admin holds a NtfLogger object which logs incoming notifications and 
+  saves a cache of the 100 latest alarm notification in a STL deque container
+
+NTFA uses the following data structures:
+- Control block. Statically allocated, one instance per library. Access
+through a global variable. The control block contains the head of a linked
+list with client descriptors.
+
+- Client descriptor. Dynamically allocated. One instance per call to
+saNtfInitialize(). Contains callback pointers, handles and the head of a
+linked list with descriptors for notifications, filters and readers.
+- subscriberNoList struct mapping subscription Id to client handle to be able
+to send unsubscribe to server. 
+
+CONFIGURATION
+Only for debug see DEBUG.
+
 COMMAND LINE INTERFACE
 The 'ntfsend'/'ntfsubscribe' commands can be used to send/receive notifications.
 Please see the on line help for more information.
 
+DEBUG
+
+Ntf server traces are by default disabled. To enable/disable ntf server traces 
+in a running system, send signal USR1 to the ntfd process. Every time the 
+trace state is toggled. Example:
+
+$  pkill -USR1 opensaf_ntfd
+
+Traces are written to the file:
+
+LOCALSTATEDIR/stdouts/opensaf_ntfd.log
+
+To enable traces from the very start of the ntf server, uncomment the line:
+
+        #export NTFSV_TRACE_CATEGORIES=ALL
+
+in ntf.conf (see CONFIGURATION above) and restart the cluster.
+
+For fatal errors syslog is used.
+
+To dump the internal ntf server data base, send signal USR2 to the ntfd
+process, example:
+
+$ pkill -USR2 ntfd
+
+The dump is done to the trace file no matter if trace is enabled or not.
+
+To enable traces in the NTF library, export the variable NTFSV_TRACE_PATHNAME
+with a valid pathname before starting the application using the NTF library.
+
+For example:
+
+$ export NTFSV_TRACE_PATHNAME=/tmp/ntf.trace
+$ ntfsend
+$ cat /tmp/ntf.trace
+
+
+TEST
+
+Currently a simple unit test can be found in 'tests/ntfsv/src'. The test suite
+is built by the main make system and is either install by 'make install' or by
+installing the tools rpm.
+
+
 ITEMS TO BE DONE:
 -----------------
-NTF integrated with opensSAF
-============================
-Discarded notification API
-
 Cleanup:
 -remove trace
 -review/remove TODO statements in code
 -restructure lib (ntfa_api.c)
-
-Test:
--update unit test:
--improve extension tests
 
 Make NTF to fully A.01.01 compliant 
 ===================================
@@ -73,7 +185,6 @@ Filter:
   saNtfObjectCreateDelete  
   saNtfAttributeChange 
   saNtfStateChange 
-  saNtfAlarm 
   saNtfSecurityAlarm 
 -saNtfNotificationFilterFree
 
@@ -83,7 +194,7 @@ Internationalization
 
 Reader API from SAFLog records
 
-Support all params in structs:
+Support all params in structs: 
 -SaNtfNotificationHeaderT
  numCorrelatedNotifications
  numAdditionalInfo
@@ -106,64 +217,18 @@ Support all params in structs:
  SA_NTF_VALUE_IPADDRESS
  SA_NTF_VALUE_BINARY
  SA_NTF_VALUE_ARRAY
- corresponding helpfunctions:
+ corresponding help functions:
   saNtfPtrValGet 
   saNtfArrayValGet
   saNtfPtrValAllocate
   saNtfArrayValAllocate
 
-Compliant to SAI-AIS-NTF-A.02.01:
-=================================
-Use CLM, only provide service for cluster members
-Suppression mechanism
-Changed StateChangeNotificationFilter
-
-New functions:
-saNtfVariableDataSizeGet
-SaNtfStaticSuppressionFilterSetCallcackT
-
-Changed functions:
- saNtfInitialize_2 *
- saNtfNotificationUnsubscribe_2
- saNtfStateChangeNotificationFilter_2
- saNtfStateChangeNotificationAllocateFilter_2
- saNtfLocalizedMessageFree_2
- saNtfNotificationUnsubscribe_2
- saNtfNotificationReadInitialize_2 *
- saNtfCallbacksT_2 *
- * = changed in A.03.01  
-
-Admin API - IMM integration 
-Notifications 
-
-Compliant to SAI-AIS-NTF-A.03.01:
-=================================
-Suppression extended to use EventTypeBitMap
-New miscellaneous notification type
-New way of handling correlation identifier
-Management if MIB removed
-Changes leads to 8 types and 5 functions are changed and renamed
-
-New functions:
- saNtfMiscellaneousNotificationAllocate
- saNtfMiscellaneousNotificationFilterAllocate
- satNtfIdentifierAllocate
- saNtfNotificationSendWithId
-  
-Changed functions:
- saNtfInitialize_3
- saNtfStaticSuppressionFilterSetCallcackT_3
- saNtfNotificationSubscribe_3
- saNtfNotificationReadInitialize_3
- saNtfStateChangeNotificationAllocate_3
- SaNtfNotificationCallbackT_3
- saNtfNotificationReadNext_3
-
+Discarded notification API
+-problem to make test case for this functionality because not consumed callbacks
+will be stored in a queue in library.
 
 CONTRIBUTORS/MAINTAINERS
 Kenneth Andersson <kenneth.k.andersson@ericsson.com>
-Gábor Balla
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>
 Hans Feldt
-Niklas Nilsson
 
