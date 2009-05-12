@@ -206,7 +206,7 @@ cli_check_ipv6prefix(int8 *i_str)
 
    memset(buffer, 0, sizeof(buffer));
 
-   strcpy(buffer, i_str);
+   strncpy(buffer, i_str,sizeof(buffer)-1);
 
    /* Look for the '/' in the string*/
    while(i<str_len) {
@@ -270,7 +270,7 @@ cli_check_macaddr(int8 *i_str)
 
    memset(buffer, 0, sizeof(buffer));
 
-   strcpy(buffer, i_str);
+   strncpy(buffer, i_str,sizeof(buffer)-1);
    token = strtok(buffer, delimiter);      
    
    while(token) {
@@ -308,7 +308,7 @@ cli_check_community(int8 *i_str)
          ret = CLI_NO_MATCH;
       
    memset(buffer, 0, sizeof(buffer));
-   strcpy(buffer, i_str);
+   strncpy(buffer, i_str,sizeof(buffer)-1);
    token = strtok(buffer, delimiter);
    if(token) {
       /* Get firt part of community */ 
@@ -517,7 +517,8 @@ uns32 cli_ipv4_to_int(int8 *i_string)
    int8     *token, str_addr[16];
    uns32    ipaddress = 0;   
    
-   strcpy(str_addr, i_string);
+   memset(str_addr,0,sizeof(str_addr));
+   strncpy(str_addr, i_string,sizeof(str_addr)-1);
    
    token = strtok( str_addr, seps );
    ipaddress |= atoi(token);
@@ -594,7 +595,7 @@ cli_matchtoken(int8 *i_str1, int8 *i_str2, CLI_CMD_ERROR *o_cli_cmd_error)
     if(pos > o_cli_cmd_error->errorpos) o_cli_cmd_error->errorpos = pos;
 
     /* both strings are not equal, copy error string */
-    strcpy(o_cli_cmd_error->errstring,i_str2);
+    strncpy(o_cli_cmd_error->errstring,i_str2,sizeof(o_cli_cmd_error->errstring)-1);
     return CLI_NO_MATCH;
 }
 
@@ -722,7 +723,7 @@ uns32 cli_set_arg(int8 * i_arg, NCSCLI_ARG_SET *o_cmd_tokens, CLI_CB *pCli) /* F
           pCli->outOfBoundaryToken = m_MMGR_ALLOC_OUTOFBOUNDARY_TOKEN(strlen(i_arg) + 1);
           if(!pCli->outOfBoundaryToken) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
           /*m_NCS_OS_MEMALLOC(strlen(i_arg),pCli->outOfBoundaryToken);*/
-           strcpy(pCli->outOfBoundaryToken,i_arg);
+           strncpy(pCli->outOfBoundaryToken,i_arg,strlen(i_arg));
       }
    }
    else {
@@ -823,7 +824,8 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
    int8    passwdbuf[CLI_ARG_LEN], ipmask[32], *iptoken;
    CLI_CMD_NODE    *trvmarker=0;
    int8 seps[]   = "/\0";
-   
+  
+   memset(ipmask,0,sizeof(ipmask)); 
    /* check token type, if dummy node then do nothing */   
    if(NCSCLI_OPTIONAL == pCli->ctree_cb.cmdElement->tokType) {
       ret = CLI_NO_MATCH;
@@ -895,7 +897,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
       }
       else {
          /* Arg variable is an invalid number, so update error struct */
-         strcpy(o_cli_cmd_error->errstring, i_argval->cmd.strval);
+         strncpy(o_cli_cmd_error->errstring, i_argval->cmd.strval,sizeof(o_cli_cmd_error->errstring)-1);
          ret = CLI_NO_MATCH;
       }      
    }
@@ -909,7 +911,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
          if(NCSCLI_NUMBER == i_argval->i_arg_type)
             sprintf(o_cli_cmd_error->errstring, "%d", i_argval->cmd.intval);
          else
-            strcpy(o_cli_cmd_error->errstring, i_argval->cmd.strval);
+            strncpy(o_cli_cmd_error->errstring, i_argval->cmd.strval,sizeof(o_cli_cmd_error->errstring)-1);
          ret = CLI_NO_MATCH;
       }
    }
@@ -919,7 +921,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
       }
       else {
          /* Arg variable is an invalid number, so update error struct */
-         strcpy(o_cli_cmd_error->errstring, i_argval->cmd.strval);
+         strncpy(o_cli_cmd_error->errstring, i_argval->cmd.strval,sizeof(o_cli_cmd_error->errstring)-1);
          ret = CLI_NO_MATCH;
       }
    }
@@ -947,7 +949,7 @@ cli_check_token(CLI_CB *pCli, NCSCLI_ARG_VAL *i_argval, CLI_CMD_ERROR *o_cli_cmd
             structure. 
          */
          if(NCSCLI_CIDRv4 == i_argval->i_arg_type) {
-            strcpy(ipmask, (int8 *)i_argval->cmd.strval);                 
+           strncpy(ipmask, (int8 *)i_argval->cmd.strval,sizeof(ipmask)-1);
             
             iptoken = strtok(ipmask, seps);
             if(iptoken != 0) {
@@ -1058,7 +1060,8 @@ CLI_CMD_NODE *cli_node_change(CLI_CB *pCli)
    NCSCLI_NOTIFY_INFO_TAG info_tag;
    
    /* Copy new nodepath info */
-   strcpy(nodePath, pCli->ctree_cb.cmdElement->nodePath);
+   memset(nodePath,0,sizeof(nodePath));
+   strncpy(nodePath, pCli->ctree_cb.cmdElement->nodePath,sizeof(nodePath)-1);
    token = strtok(nodePath, CLI_TOK_SEPARATOR);
    
    /* Set tmpnode to root node */
@@ -1993,6 +1996,7 @@ uns32 cli_execute_command(CLI_CB            *pCli,
     pCli->semUsgCnt = 0;
     pCli->cefTmrFlag = FALSE;
 
+    memset(&cli_cmd_error,0,sizeof(CLI_CMD_ERROR));    
     /* Parse the cmdbuf into tokens. returns cmdtokens struct */
     memset(&ctok, 0, sizeof(NCSCLI_ARG_SET));
     memset(&cdata, 0, sizeof(cdata));
@@ -2323,6 +2327,7 @@ cli_get_helpstr(CLI_CB             *pCli,
       check syntax. If syntax is partial-match or sucessfull match then
       get pointer to 'cmd-element' struct. Display the next level token.
    */   
+   memset(&cli_cmd_error,0,sizeof(CLI_CMD_ERROR));
    bit_pos = io_cmd_tokens->i_pos_value;
    memset(&io_param->o_hotkey.hlpstr, '\0', sizeof(io_param->o_hotkey.hlpstr));
    
@@ -2330,7 +2335,7 @@ cli_get_helpstr(CLI_CB             *pCli,
    m_CLI_GET_LAST_TOKEN(bit_pos);
    
    
-   strcpy(tmpbuf, io_cmd_tokens->i_arg_record[count].cmd.strval);
+   strncpy(tmpbuf, io_cmd_tokens->i_arg_record[count].cmd.strval,sizeof(tmpbuf)-1);
    token = tmpbuf;
    str_len = strlen(tmpbuf);
    if(CLI_CONS_HELP == io_cmd_tokens->i_arg_record[count].cmd.strval[0]) {        
@@ -2382,7 +2387,7 @@ cli_get_helpstr(CLI_CB             *pCli,
       io_cmd_tokens->i_arg_record[0].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
       if(!io_cmd_tokens->i_arg_record[0].cmd.strval) return;
       memset(io_cmd_tokens->i_arg_record[0].cmd.strval, '\0', len);
-      strcpy(io_cmd_tokens->i_arg_record[0].cmd.strval, tmpbuf);
+      strncpy(io_cmd_tokens->i_arg_record[0].cmd.strval, tmpbuf,len-1);
    }
    
    cli_get_help_desc(pCli, io_cmd_tokens, io_param, &cli_cmd_error);
@@ -2532,7 +2537,7 @@ static void convert_to_macaddr(NCSCLI_ARG_VAL *arg_val, int8* str)
    uns32 val = 0;
    
    memset(buffer, 0, sizeof(buffer));
-   strcpy(buffer, str);
+   strncpy(buffer, str,sizeof(buffer)-1);
    token = strtok(buffer, delimiter);      
    
    m_MMGR_FREE_CLI_DEFAULT_VAL(str);
@@ -2559,11 +2564,11 @@ static void convert_to_community(NCSCLI_ARG_VAL *arg_val, int8* str)
    memset(buffer, 0, sizeof(buffer));
    memset(ipbuff, 0, sizeof(ipbuff));
    
-   strcpy(buffer, str);
+   strncpy(buffer, str,sizeof(buffer)-1);
    token = strtok(buffer, delimiter);
    if(token) {
       /* Get firt part of community */      
-      strcpy(ipbuff, token);
+      strncpy(ipbuff, token,sizeof(ipbuff)-1);
       if(CLI_SUCCESSFULL_MATCH == (ret = cli_check_ipv4addr(ipbuff))) {
          m_MMGR_FREE_CLI_DEFAULT_VAL(str);
          arg_val->cmd.community.type = NCSCLI_COMM_TYPE_IPADDR; 
@@ -2632,20 +2637,22 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
    
    if(!io_param->o_tokprocs) return;
    
-   strcpy(buffer, io_param->i_cmdbuf); 
+   strncpy(buffer, io_param->i_cmdbuf,sizeof(buffer)-1);
    
    /* Tok the process part of the input */
    token = strtok(buffer, delimiter);
-   cnt--;
-   pos += strlen(token)+1;
-   
+   if(token)
+   {
+      cnt--;
+      pos += strlen(token)+1;
+   } 
    while((0 != token) && cnt) {
       token = strtok(0, delimiter);
       cnt--;
       pos += strlen(token)+1;
    }   
    
-   strcpy(wldcbuff, io_param->i_cmdbuf+pos);   
+   strncpy(wldcbuff, io_param->i_cmdbuf+pos,sizeof(wldcbuff)-1);
    while(cmd_pos & 1) {
       cmd_pos = cmd_pos >> 1;           
       
@@ -2665,7 +2672,7 @@ void cli_update_cmd_arg(NCSCLI_ARG_SET *ctok, CLI_EXECUTE_PARAM *io_param)
          ctok->i_arg_record[i].cmd.strval = m_MMGR_ALLOC_CLI_DEFAULT_VAL(len);
          if(!ctok->i_arg_record[i].cmd.strval) return;
          memset(ctok->i_arg_record[i].cmd.strval, '\0', len);   
-         strcpy(ctok->i_arg_record[i].cmd.strval, wldcbuff);
+         strncpy(ctok->i_arg_record[i].cmd.strval, wldcbuff,len-1);
       }
       
       /* Reset the BIT position */
@@ -2720,16 +2727,16 @@ static void cli_help_str_fill(CLI_CB *pCli, CLI_CMD_HELP *buf)
       lvalue = *(uns32 *)pCli->ctree_cb.cmdElement->range->lLimit;
       hvalue = *(uns32 *)pCli->ctree_cb.cmdElement->range->uLimit;
       if(!lvalue && !hvalue)
-         strcpy(buf->cmdstring, pCli->ctree_cb.cmdElement->tokName);
+        strncpy(buf->cmdstring, pCli->ctree_cb.cmdElement->tokName,sizeof(buf->cmdstring)-1); 
       else {
          sprintf(str, "<%u-%u>", lvalue, hvalue);      
-         strcpy(buf->cmdstring, str);
+         strncpy(buf->cmdstring, str,sizeof(buf->cmdstring)-1);
       }
    }
-   else strcpy(buf->cmdstring, pCli->ctree_cb.cmdElement->tokName);
+   else strncpy(buf->cmdstring, pCli->ctree_cb.cmdElement->tokName,sizeof(buf->cmdstring)-1); 
 
    if(pCli->ctree_cb.cmdElement->helpStr)
-      strcpy(buf->helpstr, pCli->ctree_cb.cmdElement->helpStr);
+      strncpy(buf->helpstr, pCli->ctree_cb.cmdElement->helpStr,sizeof(buf->helpstr)-1);
 }
 #else
 extern int dummy;
