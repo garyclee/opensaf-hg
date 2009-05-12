@@ -1,0 +1,55 @@
+#! /bin/sh
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#
+#
+
+# start/stop snmp daemon.
+
+SNMPD=/usr/sbin/snmpd
+SNMPTRAPD=/usr/sbin/snmptrapd
+SNMPDOPTS='-x tcp:localhost:705 -I -interfaces -Lsd -p /var/run/snmpd.pid'
+TRAPDOPTS=' -x tcp:localhost:705 -I -interfaces -Lsd -p /var/run/snmpd.pid'
+
+test -x /usr/sbin/snmpd || exit 0
+test -x /usr/sbin/snmptrapd || exit 0
+test -f /etc/snmp/snmpd.conf || exit 0
+test -f /etc/snmp/snmptrapd.conf || exit 0
+
+cd /
+
+case "$1" in
+  start)
+    echo -n "Starting network management services:"
+	$SNMPD $SNMPDOPTS; echo " snmpd"
+#	$SNMPTRAPD $TRAPDOPTS; echo -n " snmptrapd"
+    ;;
+  stop)
+    echo -n "Stopping network management services:"
+	killall -q $SNMPD; echo " snmpd"
+#	killall -q $SNMPTRAPD; echo -n " snmptrapd"
+    ;;
+  restart)
+	$0 stop
+	$0 start
+    ;;
+  *)
+    echo "Usage: /etc/init.d/snmpd {start|stop|restart}"
+    exit 1
+esac
+
+exit 0

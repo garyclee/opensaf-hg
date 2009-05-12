@@ -1,0 +1,59 @@
+#! /bin/ash
+
+#      -*- OpenSAF  -*-
+#
+#  Copyright (c) 2007, Ericsson AB
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  This
+# file and program are licensed under High-Availability Operating 
+# Environment Software License Version 1.4.
+# Complete License can be accesseble from below location.
+# http://www.opensaf.org/license 
+# See the Copying file included with the OpenSAF distribution for
+# full licensing terms.
+#
+# Author(s):
+#   
+#
+
+pidfile="/var/run/${SA_AMF_COMPONENT_NAME}".pid
+approot=/opt/aishello/
+log=/var/log/cstart.log
+die=/tmp/die/${SA_AMF_COMPONENT_NAME}
+
+mkdir -p /tmp/die
+
+errquit() {
+    echo "ERROR: $*" >> $log
+    exit 1
+}
+
+echo "`date`: [cstart $*]" >> $log
+test -n "$1" || errquit "No command"
+cmd=$1
+test -n $2 || errquit "No Application argument"
+app=$2
+
+case "$cmd" in
+    instantiate)
+        logger -t hello "Instantiate $SA_AMF_COMPONENT_NAME"
+        if test -f $die; then
+            rm -f $die
+            logger -t hello "Sorry, will die..."
+            exit 1
+        fi
+        application=$approot/bin/$app
+        test -x $application || errquit "Application not executable [$application]"
+        $application >> $log 2>&1 &
+        ;;
+    cleanup)
+        logger -t hello "Cleanup $SA_AMF_COMPONENT_NAME"
+        kill -9 `cat $pidfile` >> $log 2>&1 &
+        ;;
+    *)
+        logger -t hello "Invalid command [$cmd]"
+esac
+
+exit 0

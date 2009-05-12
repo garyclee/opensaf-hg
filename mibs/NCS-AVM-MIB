@@ -1,0 +1,846 @@
+
+   NCS-AVM-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+         OBJECT-TYPE, MODULE-IDENTITY, NOTIFICATION-TYPE,
+         Integer32, Counter32, Unsigned32, Counter64, IpAddress 
+             FROM SNMPv2-SMI
+
+         MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+             FROM SNMPv2-CONF
+
+         RowStatus, TimeInterval, TruthValue,
+         TimeStamp, StorageType, DisplayString, DateAndTime, TEXTUAL-CONVENTION
+             FROM SNMPv2-TC                     
+
+	
+	 openSafModules, avm
+	     FROM OPENSAF-SMI
+         ;
+
+     ncsAvmMIB MODULE-IDENTITY
+         LAST-UPDATED "200501301609Z"  -- January 31, 2005
+
+         ORGANIZATION "OpenSAF Foundation"
+         CONTACT-INFO
+		"www.opensaf.org"
+
+         DESCRIPTION
+             "This MIB contains the definitions of NCS Hardware Deployment
+              configuration managed objects.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+         ::= { openSafModules 10}
+
+     --****************************************************************
+     ncsAvmObjects                  OBJECT IDENTIFIER ::= { avm 1 }
+
+     ncsAvmScalars            OBJECT IDENTIFIER ::= { ncsAvmObjects 1 }
+     ncsAvmTables             OBJECT IDENTIFIER ::= { ncsAvmObjects 2 }
+     ncsAvmNotifications      OBJECT IDENTIFIER ::= { ncsAvmObjects 3 }
+     ncsAvmTrapControl        OBJECT IDENTIFIER ::= { ncsAvmObjects 4 }
+
+     
+     --****************************************************************
+     -- AvM specified conventions
+     --****************************************************************     
+
+     --****************************************************************
+     -- AvM Scalar Objects
+     --****************************************************************
+
+     ncsAvmAdmSwitch OBJECT-TYPE
+          SYNTAX     INTEGER{ stable(0), switchover(1) }
+          MAX-ACCESS read-write
+          STATUS     current
+          DESCRIPTION
+              "Its a flip object which can be set for 
+               SCXB graceful switchover. Setting the value
+               triigers switchover."
+         DEFVAL {stable}
+          ::={ ncsAvmScalars 1 }  
+
+     ncsAvmSwitchStatus OBJECT-TYPE
+         SYNTAX INTEGER{ success(1), failure(2) }
+         MAX-ACCESS accessible-for-notify 
+         STATUS     current
+         DESCRIPTION
+             "This tells whether Switchover is successful or not"
+         ::={ ncsAvmScalars 2 }
+     
+
+    ncsAvmSwitchTime OBJECT-TYPE
+         SYNTAX          DateAndTime 
+         MAX-ACCESS      accessible-for-notify
+         STATUS          current
+         DESCRIPTION
+             "Along with the AdmSwitchStatus, this tells administrator 
+              the time of the Switchover result with respect to 
+              Active System Manager Host"
+         ::={ ncsAvmScalars 4 } 
+        
+
+     --****************************************************************
+     -- AvM Entity Deployment Table
+     --****************************************************************
+          
+     ncsAvmEntDeployTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsAvmEntDeployTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The table is used for configuration of the
+        NCS HPI entity containment hierarchy for the
+        current deployment."
+              
+         ::= { ncsAvmTables 1 }
+
+     ncsAvmEntDeployTableEntry OBJECT-TYPE
+         SYNTAX      NcsAvmEntDeployTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "An entry in this table represents an
+        entity in the system."
+         INDEX       {  ncsAvmEntPath  }   
+         ::= { ncsAvmEntDeployTable 1 }
+
+     NcsAvmEntDeployTableEntry ::= SEQUENCE {
+         ncsAvmEntPath                       OCTET STRING,
+         ncsAvmEntIsNode                     TruthValue,
+         ncsAvmEntNodeName                   OCTET STRING,
+         ncsAvmEntDescName                   OCTET STRING,
+         ncsAvmEntParentDescName             OCTET STRING,
+         ncsAvmEntIsFru                      TruthValue,
+         ncsAvmEntProductName                OCTET STRING,
+         ncsAvmEntProductVer                 OCTET STRING,
+         ncsAvmEntDependsOn                  OCTET STRING,
+         ncsAvmEntAdmReset                   INTEGER,
+         ncsAvmEntAdmReq                     INTEGER,
+         ncsAvmEntIsActSrcNcs                INTEGER, 
+         ncsAvmEntHWState                    INTEGER,
+         ncsAvmEntNetBoot                    TruthValue,
+         ncsAvmEntDHCPConfTFTPServerIp       IpAddress,
+         ncsAvmEntDHCPConfCurrActiveLabel    OCTET STRING,
+         ncsAvmEntDHCPConfLabel1Name         OCTET STRING,
+         ncsAvmEntDHCPConfFileNameLabel1     OCTET STRING,
+         ncsAvmEntDHCPConfLabel1Status       INTEGER,
+         ncsAvmEntDHCPConfInstallTimeLabel1  DateAndTime,
+         ncsAvmEntDHCPConfLabel1SwVersion    OCTET STRING,
+         ncsAvmEntDHCPConfLabel2Name         OCTET STRING,
+         ncsAvmEntDHCPConfFileNameLabel2     OCTET STRING,
+         ncsAvmEntDHCPConfLabel2Status       INTEGER,
+         ncsAvmEntDHCPConfInstallTimeLabel2  DateAndTime,
+         ncsAvmEntDHCPConfLabel2SwVersion    OCTET STRING,
+         ncsAvmEntDHCPConfPrefLabel          OCTET STRING,
+         ncsAvmEntAdminOperCommit            INTEGER,
+         ncsAvmBootProgressStatus            Unsigned32,
+         ncsAvmEntRowStatus                  RowStatus
+     }
+
+     ncsAvmEntPath   OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  accessible-for-notify
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies an entity
+              in the system"                    
+         ::= { ncsAvmEntDeployTableEntry 1 }
+
+
+     ncsAvmEntIsNode OBJECT-TYPE 
+         SYNTAX      TruthValue
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object is used to tell whether an entity is a node or not
+              The default value is false.
+          Writable only when
+              ncsAvmEntRowStatus is not active"
+         DEFVAL {false}
+
+         ::= { ncsAvmEntDeployTableEntry 2 }
+
+
+     ncsAvmEntNodeName OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "A name that uniquely identifies the
+              node in the system.  
+              Default Value is NULL octet 
+              is TRUE Writable only when
+              ncsAvmEntRowStatus is not active"
+
+         ::= { ncsAvmEntDeployTableEntry 3 }
+
+    ncsAvmEntDescName OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..128))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object is used to map an entity in Deployment MIBs
+                to its descriptor defined in Validation Data.
+                Writable only when
+              ncsAvmEntRowStatus is not active  "
+
+         ::= { ncsAvmEntDeployTableEntry 4 }
+
+    ncsAvmEntParentDescName OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..128))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object is used to identify an entities
+              parent entity descriptior name defined in Validation Data.
+     	      Writable only when 
+              ncsAvmEntRowStatus is not active  "
+
+         ::= { ncsAvmEntDeployTableEntry 5 }
+
+    ncsAvmEntIsFru OBJECT-TYPE 
+         SYNTAX        TruthValue 
+         MAX-ACCESS    read-create
+         STATUS        current
+         DESCRIPTION
+             "This object is used
+              for configuring if the entity 
+              is a FRU or Not.
+              The default value is false.
+              Writable only when
+              ncsAvmEntRowStatus is not active"
+
+         DEFVAL {false} 
+         ::= { ncsAvmEntDeployTableEntry 6 }
+
+    ncsAvmEntProductName OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Product name of the FRU
+              is non-writable"                    
+
+         ::= { ncsAvmEntDeployTableEntry 7 }
+
+    ncsAvmEntProductVer OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Product Version of the FRU
+              is non-wirteable"                  
+
+         ::= { ncsAvmEntDeployTableEntry 8 }
+
+   ncsAvmEntDependsOn OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             " This states that an entity is dependent on another
+               entity for activation. Entity Path of the corresponding
+               entity is mentioned here.
+       	      Writable only when
+               ncsAvmEntRowStatus is not active"                    
+
+         ::= { ncsAvmEntDeployTableEntry 9 }
+
+    ncsAvmEntAdmReset OBJECT-TYPE 
+         SYNTAX      INTEGER{ stable(0), soft(1), hard(2) }
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             " This is used to perform reset on an
+               entity. Supports both soft and hard resets.
+               Writable only when
+               ncsAvmEntRowStatus is active"                    
+         DEFVAL {stable}
+         ::= { ncsAvmEntDeployTableEntry 10 }
+
+    ncsAvmEntAdmReq OBJECT-TYPE 
+         SYNTAX      INTEGER{ shutdown(1), lock(2), unlock(3)}
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             " This is used to perform admin-operations on entity.
+               Supports Shutting down, Locking and Unlocking of
+               an entity."
+         DEFVAL {unlock}
+         ::= { ncsAvmEntDeployTableEntry 11 }
+
+    ncsAvmEntIsActSrcNcs OBJECT-TYPE 
+         SYNTAX      INTEGER{ shelfActivation(1), systemValidationActivation(2), systemActivation(3)}
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             " This states whether AvM has to activate the entity or not.
+               When AvM activates, it has an option to pre-validate blade or not.
+               Its writable only when the row status is not active. "
+         ::= { ncsAvmEntDeployTableEntry 12 }
+
+    ncsAvmEntHWState OBJECT-TYPE 
+         SYNTAX      INTEGER{ notPresent(0), inactive(1), active(2), faulty(3), extractPending(4)}
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "This states the current hotswap state of the blade
+              it is read-only"
+         DEFVAL {notPresent}
+         ::= { ncsAvmEntDeployTableEntry 13 }
+
+    ncsAvmEntNetBoot OBJECT-TYPE 
+         SYNTAX      TruthValue 
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object states whether entity requires net booting. Default value 
+              is FALSE and only when it is TRUE, dhcp configuration supervisor will 
+              able to configure the DHCP configuration (dhcpd.conf) for this host with 
+              the host specific boot parameters."
+         ::= { ncsAvmEntDeployTableEntry 14 }
+    ncsAvmEntDHCPConfTFTPServerIp OBJECT-TYPE 
+         SYNTAX      IpAddress
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This states the IP address to be used for TFTP server 
+             (next server) in the DHCP configuration (dhcpd.conf)"
+         ::= { ncsAvmEntDeployTableEntry 15 }
+
+     ncsAvmEntDHCPConfCurrActiveLabel OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Software with label currently running in the blade."
+         ::= { ncsAvmEntDeployTableEntry 16 }
+
+     ncsAvmEntDHCPConfLabel1Name OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "User configurred lable 1 name."
+         ::= { ncsAvmEntDeployTableEntry 17 }
+
+     ncsAvmEntDHCPConfFileNameLabel1 OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Label 1 File name to be used for DHCP configuration."
+         ::= { ncsAvmEntDeployTableEntry 18 }
+
+    ncsAvmEntDHCPConfLabel1Status OBJECT-TYPE 
+         SYNTAX      INTEGER{ noConfig(0), installed(1), commitPending(2), committed(3), upgradeFailed(4), validated(5)}
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "This states the current label 1 software status."
+         ::= { ncsAvmEntDeployTableEntry 19 }
+
+     ncsAvmEntDHCPConfInstallTimeLabel1 OBJECT-TYPE 
+         SYNTAX      DateAndTime
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Label 1 software installation time."
+         ::= { ncsAvmEntDeployTableEntry 20 }
+
+     ncsAvmEntDHCPConfLabel1SwVersion OBJECT-TYPE
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Label 1 Software version DHCP configuration."
+         ::= { ncsAvmEntDeployTableEntry 21 }
+
+     ncsAvmEntDHCPConfLabel2Name OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "User configurred lable 2 name."
+         ::= { ncsAvmEntDeployTableEntry 22 }
+
+     ncsAvmEntDHCPConfFileNameLabel2 OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Label 2 File name to be used for DHCP configuration."
+         ::= { ncsAvmEntDeployTableEntry 23 }
+
+    ncsAvmEntDHCPConfLabel2Status OBJECT-TYPE 
+         SYNTAX      INTEGER{ noConfig(0), installed(1), commitPending(2), committed(3), upgradeFailed(4), validated(5)}
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "This states the current label 2 software status."
+         ::= { ncsAvmEntDeployTableEntry 24 }
+
+     ncsAvmEntDHCPConfInstallTimeLabel2 OBJECT-TYPE 
+         SYNTAX      DateAndTime
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Label 2 software installation time."
+         ::= { ncsAvmEntDeployTableEntry 25 }
+
+     ncsAvmEntDHCPConfLabel2SwVersion OBJECT-TYPE
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-only
+         STATUS      current
+         DESCRIPTION
+             "Label 2 Software version DHCP configuration."
+         ::= { ncsAvmEntDeployTableEntry 26 }
+
+     ncsAvmEntDHCPConfPrefLabel OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Preferred Label to be used by the DHCP server
+              configuration supervisor on next reboot to set
+              DHCP conf."
+         ::= { ncsAvmEntDeployTableEntry 27 }
+
+    ncsAvmEntAdminOperCommit OBJECT-TYPE 
+         SYNTAX      INTEGER{ commit(0)}
+         MAX-ACCESS  read-create
+         STATUS      obsolete 
+         DESCRIPTION
+             "This opbject is for administative operations commit. On setting
+             this object commit pending label state will be committed."
+         ::= { ncsAvmEntDeployTableEntry 28 }
+
+    ncsAvmBootProgressStatus OBJECT-TYPE
+        SYNTAX       Unsigned32(0..4294967295)
+        MAX-ACCESS   accessible-for-notify
+        STATUS       current
+        DESCRIPTION
+           "This object contains the current status of the boot-progress."
+        ::= { ncsAvmEntDeployTableEntry 29 }
+
+
+     ncsAvmEntRowStatus OBJECT-TYPE 
+         SYNTAX      RowStatus
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "
+              Row Status of the mib,
+              If ncsAvmEntIsNode is set to TRUE, ncsAvmEntNodeName is NULL, 
+              Row status will not be made active. 
+
+              If ncsAvmEntIsActSrcNcs is set to 2 or 3, ncsAvmEntDescName and 
+              ncsAvmParentEntDescName dont have associated Data in Validation 
+              Information, row status will not be made active.
+
+
+              If ncsAvmEntIsActSrcNcs is set to 2 or 3, ncsAvmEntDescName and 
+              ncsAvmParentEntDescName are valid and present in Validation Information,  
+              for row status to be made active, Location Information for the entity 
+              should fall with in the range mentioned in Validation Information . 
+              
+              If ncsAvmEntIsActSrcNcs is set to 1, row status will me made 
+              active irrespective of location information and ncsAvmEntDescName, 
+              ncsAvmParentEntDescName.
+              
+              Row status can be changed from NCS_ROW_ACTIVE to any other only when
+              entity is not in chassis i.e entity is in notPresent state. 
+              
+              Row can be deleted only when the row status is not NCS_ROW_ACTIVE. 
+              Row can be deleted only when entity represented by it doesnot have
+              children entities whose row status is NCS_ROW_ACTIVE.
+              "
+         ::= { ncsAvmEntDeployTableEntry 30 }
+
+
+
+    --****************************************************************
+     -- AvM Entity Fault-Domain Table
+     --****************************************************************
+          
+     ncsAvmEntFaultDomainTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsAvmEntFaultDomainTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The table is used for configuration of the
+        fault domain of an entity."
+              
+         ::= { ncsAvmTables 2 }
+
+     ncsAvmEntFaultDomainTableEntry OBJECT-TYPE 
+         SYNTAX      NcsAvmEntFaultDomainTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "An entry in this table represents a
+              fault domain entry for the entity."
+         INDEX       {  ncsAvmEntEP, ncsAvmEntFaultDomainEP  }   
+         ::= { ncsAvmEntFaultDomainTable 1 }
+
+     NcsAvmEntFaultDomainTableEntry::= SEQUENCE {
+         ncsAvmEntEP                    OCTET STRING,
+         ncsAvmEntFaultDomainEP         OCTET STRING,
+         ncsAvmEntFaultDomainRowStatus  RowStatus
+     }
+
+     ncsAvmEntEP OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "Entity Path of the entity whose fault domain will be
+        mentioned in this row "                    
+         ::= { ncsAvmEntFaultDomainTableEntry 1 }
+
+   ncsAvmEntFaultDomainEP OBJECT-TYPE 
+         SYNTAX      OCTET STRING(SIZE(1..255))
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "Entity Path of the effected entity i.e fault domain"                    
+         ::= { ncsAvmEntFaultDomainTableEntry 2 }
+
+   ncsAvmEntFaultDomainRowStatus OBJECT-TYPE 
+         SYNTAX      RowStatus
+         MAX-ACCESS  read-write
+         STATUS      current
+         DESCRIPTION
+             "Row Status"
+         ::= { ncsAvmEntFaultDomainTableEntry 3 }
+
+--   ncsAvmSupportTable OBJECT-TYPE
+--         SYNTAX      SEQUENCE OF NcsAvmSupportTableEntry
+--         MAX-ACCESS  not-accessible
+--        STATUS      current
+--         DESCRIPTION
+--             "This table is used for trap support objects." 
+--         ::= { ncsAvmTables 3 }
+
+--   ncsAvmSupportTableEntry  OBJECT-TYPE
+--         SYNTAX      NcsAvmEntSupportTableEntry
+--         MAX-ACCESS  not-accessible
+--        STATUS      current
+--         DESCRIPTION
+--             "TBD"
+--         ::= { ncsAvmSupportTable 1 }
+
+--   NcsAvmEntSupportTableEntry ::= SEQUENCE {
+--        ncsAvmUpgradeErrorType      INTEGER,
+--        ncsAvmUpgradeModule         INTEGER,    
+--        ncsAvmUpgradeProgressEvent  INTEGER
+--   }
+
+--   ncsAvmUpgradeErrorType  OBJECT-TYPE
+--         SYNTAX      INTEGER {
+--                                gen-error(1),
+--                                time-out(2),
+--                                fcu-query-not-supported(3),
+--                                fcu-query-invalid-value(4),
+--                                fcu-query-device-not-found(5),
+--                                fcu-write-not-supported(6),
+--                                fcu-write-invalid-value(7),
+--                                fcu-write-device-not-found(8),
+--                                fcu-write-failure(9),
+--                                fcu-verify-failure(10),  
+--                                fcu-mark-not-supported(11),
+--                                fcu-mark-invalid-value(12),
+--                               fcu-mark-failure(13),
+--                                fcu-mark-device-not-found(14),
+--                                fund-fcu-busy(15),
+--                                fund-tftp-error(16), 
+--                                unknown-rtm-type(17), 
+--                                unknown-error(18) 
+--                             }
+--         MAX-ACCESS  accessible-for-notify 
+--         STATUS      current
+--         DESCRIPTION 
+--             "upgrade error type will be sent along with the  
+--              ncsAvmUpgradeFailure trap while upgrade is in progress"
+--         ::= { ncsAvmSupportTableEntry 1 }
+
+--   ncsAvmUpgradeModule   OBJECT-TYPE
+--         SYNTAX      INTEGER {
+--                                noModule(1),
+--                                ipmc-payload-bld(2),
+--                                ipmc-payload-rtm(3), 
+--                                allModule(4)
+--                             }
+--         MAX-ACCESS  accessible-for-notify 
+--         STATUS      current
+--         DESCRIPTION
+--             "This object shows, which module is under upgrade. It 
+--              is sent with the ncsAvmUpgradeFailure trap and 
+--              ncsAvmUpgradeProgress  trap"
+--         ::= { ncsAvmSupportTableEntry 2 }
+--
+--   ncsAvmUpgradeProgressEvent OBJECT-TYPE
+--         SYNTAX      INTEGER {
+--                                upgradeSuccess(1),
+--                                rollbackTriggered(2)
+--                             }
+--         MAX-ACCESS  accessible-for-notify 
+--         STATUS      current
+--         DESCRIPTION 
+--             "This object shows the upgrade progress event while 
+--              upgrading the payload blade. It is sent along with the 
+--              ncsAvmUpgradeProgress trap."
+--         ::= { ncsAvmSupportTableEntry 3 }           
+ 
+     ncsAvmEntUpgradeTable OBJECT-TYPE
+         SYNTAX      SEQUENCE OF NcsAvmEntUpgradeTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "The table is used for configuration of the
+        NCS HPI entity containment hierarchy for the
+        current deployment."
+              
+         ::= { ncsAvmTables 4 }
+
+     ncsAvmEntUpgradeTableEntry OBJECT-TYPE
+         SYNTAX      NcsAvmEntUpgradeTableEntry
+         MAX-ACCESS  not-accessible
+         STATUS      current
+         DESCRIPTION
+             "An entry in this table represents an
+        entity in the system."
+          AUGMENTS       { ncsAvmEntDeployTableEntry }   
+         ::= {  ncsAvmEntUpgradeTable 1 }
+
+     NcsAvmEntUpgradeTableEntry ::= SEQUENCE {
+         ncsAvmEntHelperPayload              OCTET STRING,
+         ncsAvmEntUpgradeType                INTEGER,
+         ncsAvmEntAdminOper                  INTEGER 
+     }                                  
+     ncsAvmEntHelperPayload OBJECT-TYPE   
+         SYNTAX      OCTET STRING(SIZE(0..255))
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "Helper blade is used for upgrading IPMC, during integrated upgrade.
+              Helper blade parameter should be set to some valid blade entity path."
+         ::= { ncsAvmEntUpgradeTableEntry 1 }
+ 
+     ncsAvmEntUpgradeType OBJECT-TYPE
+         SYNTAX      INTEGER { sw-bios(0), integ(1), ipmc(2) }
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object is to specify the upgrade type. If it is set to SW-BIOS,
+         it upgrades only BIOS and software. If it is set to INTEG, it does the 
+	 Integrated upgrade(BIOS, IPMC & Software). If it is set to IPMC, it does 
+         only the IPMC upgrade."
+      
+         DEFVAL {sw-bios}
+         ::= { ncsAvmEntUpgradeTableEntry 2 }
+     
+     ncsAvmEntAdminOper OBJECT-TYPE
+         SYNTAX      INTEGER { commit(0), upgrade(1) }
+         MAX-ACCESS  read-create
+         STATUS      current
+         DESCRIPTION
+             "This object is to trigger the commit or upgrade operations "             
+
+         DEFVAL {commit}
+         ::= { ncsAvmEntUpgradeTableEntry 3 }
+
+-- *****************************************************************************
+--   Notifications : This section enumerates the Traps that the AMF implementation 
+--                   is expected to support.
+--   Traps         : Actual Traps specified in this MIB
+-- ******************************************************************************
+ncsAvmTraps       OBJECT IDENTIFIER ::= { ncsAvmNotifications 1 }
+
+
+-- ***************************************************************************
+--   AVM Traps 
+-- ***************************************************************************
+ncsAvmUpgradeSuccess NOTIFICATION-TYPE
+        OBJECTS {
+                   ncsAvmEntDHCPConfCurrActiveLabel
+                }
+        STATUS             current
+        DESCRIPTION
+           "Software Upgrade Success for a node identified using entity path."
+        ::= { ncsAvmTraps 1 }
+
+ncsAvmUpgradeFailure NOTIFICATION-TYPE
+        OBJECTS {
+                  ncsAvmEntDHCPConfCurrActiveLabel,
+                  ncsAvmBootProgressStatus
+                }
+        STATUS             obsolete 
+        DESCRIPTION
+           "This trap notifies the system administrator that the upgrade for the
+            node is failed. Along with this trap entity path of the node on which 
+            upgrade is in progress and the upgrade failure reason is sent."
+       ::= { ncsAvmTraps 2 }
+
+ncsAvmBootProgress NOTIFICATION-TYPE
+        OBJECTS {
+                  ncsAvmBootProgressStatus
+                }
+        STATUS             current
+        DESCRIPTION
+           "This trap notifies the system administrator about the boot progress.
+            Along with this trap entity path of the node on which 
+            upgrade is in progress and the boot progress status is sent."
+       ::= {   ncsAvmTraps 3   }
+
+ncsAvmBootFailure NOTIFICATION-TYPE
+       OBJECTS {
+                  ncsAvmEntNodeName
+               }
+       STATUS             current
+       DESCRIPTION
+           "This trap notifies the system administrator about the boot failure.
+            Along with this trap name of the node on wbich 
+            boot failure happened  is sent."
+       ::= { ncsAvmTraps 4 }    
+
+ncsAvmSwitch NOTIFICATION-TYPE
+       OBJECTS {
+                  ncsAvmSwitchStatus,
+                  ncsAvmSwitchTime
+               }
+       STATUS     current
+       DESCRIPTION
+          "This trap notifies the systen administrator about the switchover status
+           irrespective of the source of the Switchover"
+      ::=  {   ncsAvmTraps 5 }
+  
+ncsAvmCurrActiveLabelChange NOTIFICATION-TYPE
+      OBJECTS {
+                  ncsAvmEntDHCPConfCurrActiveLabel
+              }
+      STATUS     current
+      DESCRIPTION
+         "This trap notifies the system administrator about the change of current active label"
+      ::= { ncsAvmTraps 6 }      
+
+ncsAvmSwFwUpgradeFailure NOTIFICATION-TYPE
+      OBJECTS { 
+                  ncsAvmEntDHCPConfCurrActiveLabel,
+                  ncsAvmUpgradeModule, 
+                  ncsAvmUpgradeErrorType
+              }
+      STATUS     current
+      DESCRIPTION
+         "This trap notifies the failure of the software firmware upgrade. 
+          It also contains the module name and the error type." 
+      ::= { ncsAvmTraps 7 }
+
+ncsAvmUpgradeProgress   NOTIFICATION-TYPE
+       OBJECTS {
+                  ncsAvmEntDHCPConfCurrActiveLabel,
+                  ncsAvmUpgradeModule,
+                  ncsAvmUpgradeProgressEvent
+               }
+       STATUS     current 
+       DESCRIPTION  
+           "This trap notifies the progress of the upograde, while the upgrade
+            is under progress. It carries the module name and the type of event
+            which is under upgrade progress."
+      ::= { ncsAvmTraps 8 }     
+
+ncsAvmEntityLocked NOTIFICATION-TYPE
+      OBJECTS {
+                  ncsAvmEntPath
+              }
+      STATUS     current
+      DESCRIPTION
+         "This trap notifies the system administrator that the specified entity has been locked."
+      ::= { ncsAvmTraps 9 }
+
+ncsAvmEntityStateIsNowInactiveButHISVreturnedError NOTIFICATION-TYPE
+      OBJECTS {
+                  ncsAvmEntPath
+              }
+      STATUS     current
+      DESCRIPTION
+          "This trap notifies the system administrator that entity state has been set 
+           to inactive in AVM but HISV returned error for the same."
+      ::= { ncsAvmTraps 10 }
+
+ncsAvmTrapSupport       OBJECT IDENTIFIER ::= { ncsAvmTrapControl 1 } 
+
+ncsAvmUpgradeErrorType  OBJECT-TYPE
+         SYNTAX      INTEGER {
+                                gen-error(1),
+                                time-out(2),
+                                fcu-query-not-supported(3),
+                                fcu-query-invalid-value(4),
+                                fcu-query-device-not-found(5),
+                                fcu-write-not-supported(6),
+                                fcu-write-invalid-value(7),
+                                fcu-write-device-not-found(8),
+                                fcu-write-failure(9),
+                                fcu-verify-failure(10),
+                                fund-fcu-busy(11),
+                                fund-tftp-error(12),
+                                unknown-rtm-type(13),
+                                unknown-error(14)
+                             }
+         MAX-ACCESS  accessible-for-notify
+         STATUS      current
+         DESCRIPTION
+             "upgrade error type will be sent along with the
+              ncsAvmUpgradeFailure trap while upgrade is in progress"
+         ::= { ncsAvmTrapSupport 1 }
+
+ncsAvmUpgradeModule   OBJECT-TYPE
+       SYNTAX      INTEGER {
+                               ipmc-payload(1),
+                               ipmc-payload-bld(2),
+                               ipmc-payload-rtm(3), 
+                               sw-bios(4),
+                               sw-bios-ipmc(5)
+                            }
+       MAX-ACCESS  accessible-for-notify 
+       STATUS      current
+       DESCRIPTION
+            "This object shows, which module is under upgrade.
+             ipmc-payload(1)- Payload IPMC and RTM 
+             ipmc-payload-bld(2)- Payload IPMC 
+             ipmc-payload-rtm(3)- Payload RTM 
+             sw-bios(4)- Payload software and bios 
+             sw-bios-ipmc(5)- Payload software, bios and ipmc 
+             It is sent with the ncsAvmUpgradeFailure trap and 
+             ncsAvmUpgradeProgress  trap"
+       ::= { ncsAvmTrapSupport 2 }
+
+ncsAvmUpgradeProgressEvent OBJECT-TYPE
+       SYNTAX      INTEGER {
+                              upgradeSuccess(1),
+                              sameVersion(2),
+                              rollbackTriggered(3),
+                              rollbackSuccess(4)
+                           }
+       MAX-ACCESS  accessible-for-notify 
+       STATUS      current
+       DESCRIPTION 
+            "This object shows the upgrade progress event while 
+             upgrading the payload blade. It is sent along with the 
+             ncsAvmUpgradeProgress trap."
+       ::= { ncsAvmTrapSupport 3 }           
+
+END

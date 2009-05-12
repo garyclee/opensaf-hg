@@ -1,0 +1,955 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+
+/*****************************************************************************
+  FILE NAME: RDEAMF.C
+
+  DESCRIPTION: rde SAF callback routines.
+
+  FUNCTIONS INCLUDED in this module:
+  rde_amf_get_cb.............................. rde AMF create control block
+  rde_saf_CSI_set_callback.................... rde SAF HA state callback.
+  rde_saf_health_chk_callback................. rde SAF Health Check callback.  
+  rde_saf_CSI_rem_callback   ................. rde SAF CSI remove callback.  
+  rde_saf_comp_terminate_callback............. rde SAF Terminate comp callback.  
+  rde_amf_init................................ rde AMF initialization method.
+  rde_amf_register............................ rde AMF registration method.
+  rde_amf_unregister.......................... rde AMF unregistration method
+  rde_fla_log_bind............................ rde FLA bind method
+  rde_fla_log_unbind.......................... rde FLA unbind method
+  rde_agents_startup.......................... rde startup core agents method
+  rde_agents_shutdown......................... rde shutdown core agents method
+  rde_amf_healthcheck_start................... rde AMF health check start method
+  rde_amf_lib_init............................ rde NCS lib init method
+  rde_amf_lib_destroy......................... rde NCS lib destroy method
+  rde_pipe_open............................... rde named pipe open method
+  rde_pipe_close.............................. rde named pipe close method
+  rde_amf_open................................ rde named pipe open method
+  rde_amf_close............................... rde named pipe close method
+  rde_amf_pipe_process_msg.................... rde pipe process method 
+  rde_amf_process_msg......................... rde amf process message method
+
+******************************************************************************/
+
+#include "rde.h"
+#include "rde_cb.h"
+#include "rde_log.h"
+#include "dta_papi.h"
+#include "dts_papi.h"
+
+static uns32 rde_amf_lib_destroy(RDE_AMF_CB *rde_amf_cb);
+
+/**************************************************************************\
+
+       L O C A L      D A T A    S T R U C T U R E S 
+
+\**************************************************************************/
+
+/****************************************************************************
+ * Name          : rde_amf_get_cb
+ *
+ * Description   : Get the poiter to RDE AMF control block.
+ *
+ * Arguments     : None.
+ *
+ * Return Values : RDE_AMF_CB control block pointer.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+RDE_AMF_CB* rde_amf_get_cb(void)
+{
+   RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
+   return &rde_cb->rde_amf_cb;
+}
+
+/****************************************************************************
+ * Name          : rde_saf_CSI_set_callback
+ *
+ * Description   : This function SAF callback function which will be called 
+ *                 when there is any change in the HA state.
+ *
+ * Arguments     : invocation     - This parameter designated a particular 
+ *                                  invocation of this callback function. The 
+ *                                  invoke process return invocation when it 
+ *                                  responds to the Avilability Management 
+ *                                  FrameWork using the saAmfResponse() 
+ *                                  function.
+ *                 compName       - A pointer to the name of the component 
+ *                                  whose readiness stae the Availability 
+ *                                  Management Framework is setting.
+ *                 haState        - The new HA state to be assumeb by the 
+ *                                  component service instance identified by 
+ *                                  csiName. 
+ *                 TODO transitionDesc - This will indicate whether or not the 
+ *                                  component service instance for 
+ *                                  ativeCompName went through quiescing.
+ *
+ * Return Values : None.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+void rde_saf_CSI_set_callback(SaInvocationT invocation,
+                         const SaNameT *compName,
+                         SaAmfHAStateT haState,
+                         SaAmfCSIDescriptorT csiDescriptor)
+{
+   RDE_AMF_CB *rde_amf_cb;
+   SaAisErrorT error = SA_AIS_OK;
+
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_INVOKED,
+       (char *) compName->value);
+   printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_set_callback invoked %s\n",
+       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+   rde_amf_cb = rde_amf_get_cb();
+   if (rde_amf_cb != NULL)   
+   {
+      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
+      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_RSP_SENT,
+          (char *) rde_amf_cb->comp_name);
+      printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_set_callback response sent: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, error);
+      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
+          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+   }  
+}
+
+
+/****************************************************************************
+ * Name          : rde_saf_health_chk_callback
+ *
+ * Description   : This function SAF callback function which will be called 
+ *                 when the AMF framework needs to health for the component.
+ *
+ * Arguments     : invocation     - This parameter designated a particular 
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it 
+ *                                  responds to the Avilability Management 
+ *                                  FrameWork using the saAmfResponse() 
+ *                                  function.
+ *                 compName       - A pointer to the name of the component 
+ *                                  whose readiness stae the Availability 
+ *                                  Management Framework is setting.
+ *                 checkType      - The type of healthcheck to be executed. 
+ *
+ * Return Values : None
+ *
+ * Notes         : None
+ *****************************************************************************/
+void rde_saf_health_chk_callback(SaInvocationT invocation,
+                             const SaNameT *compName,
+                             SaAmfHealthcheckKeyT *checkType)
+{
+   RDE_AMF_CB *rde_amf_cb;
+   SaAisErrorT error = SA_AIS_OK;
+
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_INVOKED,
+       (char *) compName->value);
+   printf(m_RDE_DBG_FILE_LINE"rde_saf_health_chk_callback invoked %s\n",
+       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+   rde_amf_cb = rde_amf_get_cb();
+   if (rde_amf_cb != NULL)
+   {
+      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
+      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_RSP_SENT,
+          (char *) rde_amf_cb->comp_name);
+      printf(m_RDE_DBG_FILE_LINE"rde_saf_health_chk_callback response sent: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, error);
+      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
+          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+   }
+}
+
+/****************************************************************************
+ * Name          : rde_saf_CSI_rem_callback
+ *
+ * Description   : This function SAF callback function which will be called 
+ *                 when the AMF framework needs remove the CSI assignment.
+ *
+ * Arguments     : invocation     - This parameter designated a particular 
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it 
+ *                                  responds to the Avilability Management 
+ *                                  FrameWork using the saAmfResponse() 
+ *                                  function.
+ *                 compName       - A pointer to the name of the component 
+ *                                  whose readiness stae the Availability 
+ *                                  Management Framework is setting.
+ *                 csiName        - A pointer to the name of the new component
+ *                                  service instance to be supported by the 
+ *                                  component or of an alreadt supported 
+ *                                  component service instance whose HA state 
+ *                                  is to be changed.
+ *                 csiFlags       - A value of the choiceflag type which 
+ *                                  indicates whether the HA state change must
+ *                                  be applied to a new component service 
+ *                                  instance or to all component service 
+ *                                  instance currently supported by the 
+ *                                  component.
+ *
+ * Return Values : None
+ *
+ * Notes         : This is not completed - TBD.
+ *****************************************************************************/
+void rde_saf_CSI_rem_callback(SaInvocationT invocation,
+                               const SaNameT *compName,
+                               const SaNameT *csiName,
+                               const SaAmfCSIFlagsT csiFlags)
+{
+   RDE_AMF_CB *rde_amf_cb;
+   SaAisErrorT error = SA_AIS_OK;
+
+   printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_rem_callback invoked %s\n",
+       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+
+   rde_amf_cb = rde_amf_get_cb();
+   if (rde_amf_cb != NULL)   
+   {
+      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
+      printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_rem_callback response sent: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, error);
+      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
+          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+   }  
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_REMOVE_INVOKED,
+       (char *) rde_amf_cb->comp_name);
+}
+
+/****************************************************************************
+ * Name          : rde_saf_comp_terminate_callback
+ *
+ * Description   : This function SAF callback function which will be called 
+ *                 when the AMF needs to terminate the component.
+ *
+ * Arguments     : invocation     - This parameter designated a particular 
+ *                                  invocation of this callback function. The
+ *                                  invoke process return invocation when it 
+ *                                  responds to the Avilability Management 
+ *                                  FrameWork using the saAmfResponse() 
+ *                                  function.
+ *                 compName       - A pointer to the name of the component 
+ *                                  whose readiness stae the Availability 
+ *                                  Management Framework is setting.
+ *
+ * Return Values : None
+ *
+ * Notes         : This is not completed - TBD.
+ *****************************************************************************/
+void rde_saf_comp_terminate_callback(SaInvocationT invocation,
+                                      const SaNameT *compName)
+{
+   RDE_AMF_CB *rde_amf_cb;
+   SaAisErrorT error = SA_AIS_OK;
+
+   printf(m_RDE_DBG_FILE_LINE"rde_saf_comp_terminate_callback invoked %s\n",
+       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+   rde_amf_cb = rde_amf_get_cb();
+   if (rde_amf_cb != NULL)   
+   {
+      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
+      printf(m_RDE_DBG_FILE_LINE"rde_saf_comp_terminate_callback response sent: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, error);
+      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
+          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+   }  
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_COMP_TERMINATE_INVOKED,
+       (char *) rde_amf_cb->comp_name);
+   return;
+
+}
+
+/****************************************************************************
+ * Name          : rde_amf_init
+ *
+ * Description   : RDE initializes AMF for involking process and registers 
+ *                 the various callback functions.
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb)
+{
+   SaAmfCallbacksT amfCallbacks;
+   SaVersionT      amf_version;   
+   SaAisErrorT     amf_error;
+
+   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+
+   amfCallbacks.saAmfHealthcheckCallback        = rde_saf_health_chk_callback;
+   amfCallbacks.saAmfCSISetCallback             = rde_saf_CSI_set_callback;
+   amfCallbacks.saAmfCSIRemoveCallback          = rde_saf_CSI_rem_callback;
+   amfCallbacks.saAmfComponentTerminateCallback = rde_saf_comp_terminate_callback;
+
+   m_RDE_GET_AMF_VER(amf_version);
+
+   amf_error = saAmfInitialize(&rde_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
+   if (amf_error != SA_AIS_OK)
+   {         
+         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_INIT_FAILED, amf_error);
+         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_INIT_FAILED: amf_rc %d\n",
+             m_RDE_DBG_FILE_LINE_ARG, amf_error);
+         return NCSCC_RC_FAILURE;
+   }
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_INIT_DONE,
+       (char *) rde_amf_cb->comp_name);
+   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_INIT_DONE\n",
+       m_RDE_DBG_FILE_LINE_ARG);
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : rde_amf_register
+ *
+ * Description   : RDE registers with AMF to tell AMF that it is ready 
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_register(RDE_AMF_CB *rde_amf_cb)
+{
+   SaAisErrorT    amf_error;
+   uns32          res = NCSCC_RC_SUCCESS;
+   SaNameT        sname;
+   
+   sname.length = strlen(rde_amf_cb->comp_name);
+   strcpy(sname.value,rde_amf_cb->comp_name);
+
+   /* 
+    * register RDE component with AvSv 
+    */
+   amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
+   if (amf_error != SA_AIS_OK)
+   {            
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_REG_FAILED, amf_error);
+      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_REG_FAILED: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, amf_error);
+      return NCSCC_RC_FAILURE;
+   }
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_REG_DONE,
+       (char *) rde_amf_cb->comp_name);
+   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_REG_DONE\n",
+       m_RDE_DBG_FILE_LINE_ARG);
+   return (res);
+}
+
+/****************************************************************************
+ * Name          : rde_amf_unregister
+ *
+ * Description   : RDE unregisters with AMF to tell AMF that it is not ready 
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_unregister(RDE_AMF_CB *rde_amf_cb)
+{
+   SaAisErrorT    amf_error;
+   uns32          res = NCSCC_RC_SUCCESS;
+   SaNameT        sname;
+   
+   sname.length = strlen(rde_amf_cb->comp_name);
+   strcpy(sname.value, rde_amf_cb->comp_name);
+
+   /* 
+    * Unregister RDE component with AvSv 
+    */
+   amf_error = saAmfComponentUnregister(rde_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
+   if (amf_error != SA_AIS_OK)
+   {    
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_UNREG_FAILED, amf_error);        
+      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_UNREG_FAILED: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, amf_error);
+      return NCSCC_RC_FAILURE;
+   }
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_UNREG_DONE,
+       (char *) rde_amf_cb->comp_name);   
+   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_UNREG_DONE\n",
+       m_RDE_DBG_FILE_LINE_ARG);
+   return (res);
+}
+
+/****************************************************************************
+ * Name          : rde_fla_log_bind
+ *
+ * Description   : This function is binds with fla.
+ *
+ * Arguments     : None.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_fla_log_bind(void)
+{
+   NCS_DTSV_RQ            reg;
+
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
+   reg.i_op                = NCS_DTSV_OP_BIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
+   /* fill version no. */
+   reg.info.bind_svc.version = NCS_RDE_VERSION;
+   /* fill svc_name */
+   strcpy(reg.info.bind_svc.svc_name, "RDE");
+
+   return(ncs_dtsv_su_req(&reg));   
+}
+
+/****************************************************************************
+ * Name          : rde_fla_log_unbind
+ *
+ * Description   : This function is unbinds with fla.
+ *
+ * Arguments     : None.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_fla_log_unbind(void)
+{
+   NCS_DTSV_RQ            reg;
+
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
+   reg.i_op                 = NCS_DTSV_OP_UNBIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
+   return(ncs_dtsv_su_req(&reg));   
+}
+
+/****************************************************************************
+ * Name          : rde_agents_startup
+ *
+ * Description   : RDE starts the core agents 
+ *
+ * Arguments     : None.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 rde_agents_startup(void)
+{
+   uns32   rc = NCSCC_RC_SUCCESS;
+   int     argc;
+   char*   argv[64] = {NULL};
+
+   argc = 0;
+
+   /* Start agents */
+   rc = ncs_agents_startup(argc, argv);
+   if (rc != NCSCC_RC_SUCCESS)
+   {
+      printf("rde ncs_agents_startup call failed\n ");
+      m_RDE_LOG_COND_L(RDE_SEV_INFO, RDE_COND_CORE_AGENTS_START_FAILED, rc);
+   }
+
+   printf("rde ncs_agents_startup success\n ");
+   /* bind with flex loging Agent */
+   rde_fla_log_bind();
+
+   printf("rde_fla_log_bind success\n ");
+
+   return (rc);
+}
+
+/****************************************************************************
+ * Name          : rde_agents_shutdown
+ *
+ * Description   : RDE shutsdown the core agents. 
+ *
+ * Arguments     : None.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 rde_agents_shutdown(void)
+{
+   rde_fla_log_unbind();
+
+   /* 
+    * Shutdown agents 
+    */
+   ncs_agents_shutdown(0, 0);
+   return (NCSCC_RC_SUCCESS);
+}
+
+
+/****************************************************************************
+ * Name          : rde_amf_healthcheck_start
+ *
+ * Description   : RDE informs AMF to stat healthcheck 
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
+{
+   SaAisErrorT          amf_error;
+   SaAmfHealthcheckKeyT Healthy;
+   SaNameT              SaCompName;
+   char                 *phlth_ptr;
+   char                 hlth_str[256];
+
+   /*
+   ** Start the AMF health check 
+   */   
+   memset(&SaCompName,0,sizeof(SaCompName));
+   strcpy(SaCompName.value, rde_amf_cb->comp_name);
+   SaCompName.length = strlen(rde_amf_cb->comp_name);
+
+   memset(&Healthy, 0, sizeof(Healthy));
+   phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
+   if (phlth_ptr == NULL)
+   {
+      /*
+      ** default health check key 
+      */
+      strcpy(hlth_str, "BAD10");
+   } 
+   else
+   {
+      strcpy(hlth_str, phlth_ptr);
+   }
+   strcpy(Healthy.key, hlth_str);
+   Healthy.keyLen = strlen(Healthy.key);
+
+   printf("Healthcheck key: %s\n", Healthy.key);
+  
+   amf_error = saAmfHealthcheckStart(rde_amf_cb->amf_hdl,&SaCompName,&Healthy,
+      SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);
+   if (amf_error != SA_AIS_OK)
+   {
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_HEALTH_CHK_START_FAIL, amf_error);
+      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_HEALTH_CHK_START_FAIL: amf_rc %d\n",
+          m_RDE_DBG_FILE_LINE_ARG, amf_error);
+       
+   } 
+   else
+   {
+      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_HEALTH_CHK_START_DONE,
+          (char *) rde_amf_cb->comp_name);
+      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_HEALTH_CHK_START_DONE\n",
+          m_RDE_DBG_FILE_LINE_ARG);
+   }
+   return (NCSCC_RC_SUCCESS);
+}
+
+/****************************************************************************
+ * Name          : rde_amf_lib_init
+ *
+ * Description   : This is the function which initalize the agents and AMF.
+ *
+ * Arguments     : rde_amf_cb - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_lib_init(RDE_AMF_CB *rde_amf_cb)
+{
+   uns32             rc = NCSCC_RC_SUCCESS;
+   SaAisErrorT       amf_error = SA_AIS_OK;
+   SaNameT           sname;
+   
+   do
+   {
+      /* 
+      ** Initialize all the AvSv callback 
+      */
+      rc = rde_amf_init(rde_amf_cb);
+      if (rc != NCSCC_RC_SUCCESS)         
+         break;
+         
+      /* 
+      ** Get the component name 
+      */
+      memset(&sname, 0, sizeof(sname));
+      amf_error = saAmfComponentNameGet(rde_amf_cb->amf_hdl, &sname);
+      if (amf_error != SA_AIS_OK)
+      {
+         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_NAME_FAILED, amf_error);
+         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_GET_NAME_FAILED: amf_rc %d\n",
+             m_RDE_DBG_FILE_LINE_ARG, amf_error);
+         rc = NCSCC_RC_FAILURE;
+         break;
+      }  
+      strcpy(rde_amf_cb->comp_name, sname.value);
+
+      /* 
+      ** Get the AMF selection object 
+      */
+      amf_error = saAmfSelectionObjectGet(rde_amf_cb->amf_hdl, &rde_amf_cb->amf_fd);
+      if (amf_error != SA_AIS_OK)
+      {     
+         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_OBJ_FAILED, amf_error);
+         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n",
+             m_RDE_DBG_FILE_LINE_ARG, amf_error);
+         break;
+      }
+
+      /* 
+      ** Register RDE with AMF 
+      */
+      rc = rde_amf_register(rde_amf_cb);
+      if (rc != NCSCC_RC_SUCCESS)
+          break;
+
+      /* 
+      ** Start component healthcheck 
+      */
+      rc = rde_amf_healthcheck_start(rde_amf_cb);
+      if (rc != NCSCC_RC_SUCCESS)
+          break;
+     
+   }while (0);
+
+   if (rc != NCSCC_RC_SUCCESS)
+   {
+      /* 
+      ** Destroy the lib 
+      */
+      rde_amf_lib_destroy(rde_amf_cb);
+   }
+   
+   return (rc);
+}
+
+/****************************************************************************
+ * Name          : rde_amf_lib_destroy
+ *
+ * Description   : This is the function which destroy the agents and 
+ *                 finalize the AMF.
+ *
+ * Arguments     : rde_amf_cb - RDE control block ponier.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_amf_lib_destroy(RDE_AMF_CB * rde_amf_cb)
+{ 
+   /* 
+   ** Unregister RDE with AMF 
+   */
+   rde_amf_unregister(rde_amf_cb);
+
+   /* 
+   ** Unintialize RDE with AMF 
+   */
+   saAmfFinalize(rde_amf_cb->amf_hdl);
+    
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_DESTROY_DONE,
+       (char *) rde_amf_cb->comp_name);
+   
+   return (NCSCC_RC_SUCCESS);
+     
+}
+
+/****************************************************************************
+ * Name          : rde_pipe_open
+ *
+ * Description   : Opens a named pipe to recieve msg from INSTANTIATE scipt 
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_pipe_open(RDE_AMF_CB *rde_amf_cb)
+{
+   int            result;
+
+   /* 
+   ** AMF fd and PIPE fd are opened on mutually exclusive basis 
+   */
+   rde_amf_cb->is_amf_up = FALSE;
+      
+   /* 
+   ** Open the named pipe 
+   */
+   rde_amf_cb-> pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
+   if (rde_amf_cb-> pipe_fd == -1)
+   {
+      /* Create the pipe since RDE comes up before NCS starts it */ 
+      result = mkfifo(RDE_HA_COMP_NAMED_PIPE, S_IWUSR | S_IRUSR | S_IRGRP);
+      if (result != 0 && result != EEXIST)
+      {
+         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_CREATE_FAILED, errno);
+         return NCSCC_RC_FAILURE;
+      }
+      
+      /* Try to open the pipe now */
+      rde_amf_cb-> pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
+      if (rde_amf_cb-> pipe_fd == -1)
+      {
+        /* Unable to open the pipe */ 
+        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_OPEN_FAILED, errno);
+        return NCSCC_RC_FAILURE;
+      } 
+   }
+
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_OPEN_DONE, RDE_HA_COMP_NAMED_PIPE);
+
+   return (NCSCC_RC_SUCCESS);
+}
+
+/****************************************************************************
+ * Name          : rde_pipe_close
+ *
+ * Description   : Closes an opened pipe and unliks it.
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 rde_pipe_close(RDE_AMF_CB *rde_amf_cb)
+{
+   int            result;
+
+   if (rde_amf_cb-> pipe_fd == -1)
+       return NCSCC_RC_SUCCESS ;
+
+   /* 
+   ** Close the named pipe 
+   */
+   close(rde_amf_cb-> pipe_fd);
+   rde_amf_cb-> pipe_fd = -1;
+       
+   /* 
+   ** Remove the named pipe 
+   */
+   result = unlink (RDE_HA_COMP_NAMED_PIPE);
+   if (result != 0)
+   { 
+       return NCSCC_RC_FAILURE;
+   }
+
+   return NCSCC_RC_SUCCESS ;
+}
+
+/****************************************************************************
+ * Name          : rde_amf_open
+ *
+ * Description   : Opens AMF 
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 rde_amf_open(RDE_AMF_CB *rde_amf_cb)
+{
+   if (rde_pipe_open(rde_amf_cb) != NCSCC_RC_SUCCESS)
+   {
+      return NCSCC_RC_FAILURE;
+   }
+
+   /* 
+   ** AMF fd and PIPE fd are opened on mutually exclusive basis
+   */
+   rde_amf_cb->is_amf_up = FALSE;
+
+   return NCSCC_RC_SUCCESS ;
+}
+
+/****************************************************************************
+ * Name          : rde_amf_close
+ *
+ * Description   : Closes AMF.
+ *
+ * Arguments     : rde_amf_cb  - RDE control block pointer.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+uns32 rde_amf_close(RDE_AMF_CB *rde_amf_cb)
+{
+   uns32 rc;
+   if (rde_amf_cb->is_amf_up)
+   {
+       rc = rde_amf_lib_destroy(rde_amf_cb);
+   }
+   else
+   {
+       rc = rde_pipe_close(rde_amf_cb);
+
+   }
+
+   return rc;
+}
+
+/*****************************************************************************
+
+  PROCEDURE NAME:       rde_amf_pipe_process_msg
+
+  DESCRIPTION:          Read and Process a message received on the pipe
+                     
+  ARGUMENTS:
+
+  RETURNS:
+
+  NOTES:
+
+*****************************************************************************/
+
+uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_amf_cb)
+{
+   uns32    rc             = NCSCC_RC_SUCCESS;
+   int      msg_size       =  0;
+   char     comp_name[256] = {0};
+   char     *pc            = NULL;
+
+   /***************************************************************\
+    *                                                               *
+    *         Read from pipe into input buffer                      *
+    *                                                               *
+   \***************************************************************/
+   msg_size = read(rde_amf_cb-> pipe_fd, comp_name, sizeof(comp_name));
+   
+   if (msg_size < 0)
+   {
+      if (errno != EINTR && errno != EWOULDBLOCK)
+          /* log Non-benign error */
+         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_READ_FAILED, errno);
+      
+      return NCSCC_RC_FAILURE;
+   }
+
+   /*
+   ** Remove the | that separates comp name and healthcheck key 
+   */
+   pc = strchr(comp_name, '|');
+   if (pc != NULL)
+      *pc = '\0';
+
+   /*
+   ** Check if component name is empty
+   */
+   if (strlen(comp_name) == 0)
+   {
+       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_COMP_NAME, "<No component name>");
+       return NCSCC_RC_FAILURE;
+   }
+
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_COMP_NAME, comp_name);
+
+   pc++;
+
+   /*
+   ** Check if health check key is empty
+   */
+   if (strlen(pc) == 0)
+   {
+       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_HC_KEY, "<No health check key>");
+       return NCSCC_RC_FAILURE;
+
+   }
+
+   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_HC_KEY, pc);
+
+   /*
+   ** Set SA_AMF_COMPONENT_NAME env variable 
+   */
+   if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
+   {
+       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_COMP_NAME_FAIL, errno);
+       return NCSCC_RC_FAILURE;
+   }
+
+   /*
+   ** Set RDE_HA_ENV_HEALTHCHECK_KEY env variable 
+   */
+   if (setenv("RDE_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
+   {
+       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_HC_KEYE_FAIL, errno);
+       return NCSCC_RC_FAILURE;
+   }
+      
+   /* 
+   ** We recieved a signal on the pipe, init lib 
+   */
+   rc = rde_amf_lib_init(rde_amf_cb);
+   if (rc != NCSCC_RC_SUCCESS)
+   {
+      /* Go back to initial state */
+      rde_amf_cb->is_amf_up = FALSE;
+      return rc;
+   }       
+   
+   /* 
+   ** Close the pipe 
+   */
+   rde_pipe_close(rde_amf_cb);
+
+   /* 
+   ** AMF is up 
+   */
+   rde_amf_cb->is_amf_up = TRUE;
+
+   return rc; 
+}
+/*****************************************************************************
+
+  PROCEDURE NAME:       rde_amf_process_msg
+
+  DESCRIPTION:          Process a message received from AMF
+                     
+  ARGUMENTS:
+
+  RETURNS:
+
+  NOTES:
+
+*****************************************************************************/
+
+uns32 rde_amf_process_msg(RDE_AMF_CB *rde_amf_cb)
+{
+   SaAisErrorT amf_error = SA_AIS_OK;
+
+   /* 
+   ** Dispatch all the AMF pending function 
+   */
+   amf_error = saAmfDispatch(rde_amf_cb->amf_hdl, SA_DISPATCH_ALL);
+   if (amf_error != SA_AIS_OK)
+   {
+      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_DISPATCH_FAIL, amf_error);
+      return NCSCC_RC_FAILURE;
+   }
+   
+   return NCSCC_RC_SUCCESS ;
+}
+
+/**************************************************/
+
+

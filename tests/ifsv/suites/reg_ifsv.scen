@@ -1,0 +1,7 @@
+all
+	/reg_ifsv_vip.exe
+        :parallel:
+           /reg_ifsv.exe
+           /reg_ifsv_driver.exe
+        :endparallel:
+        

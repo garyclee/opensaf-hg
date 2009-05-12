@@ -1,0 +1,148 @@
+#!/bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+
+echo "`date`: $0 $*"
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+XTERM=""
+#XTERM="xterm -T OpenSAF-DTS -e "
+
+#XTERM="xterm -T OpenSAF-DTS -e /usr/bin/gdb "
+# Set this if debugging required.
+
+DAEMON=ncs_dts
+PIDFILE=ncs_dts.pid
+COMPNAMEFILE="$LOCALSTATEDIR/ncs_dts_comp_name"
+NID_SVC_NAME=DTSV
+MAX_ARCHIVES=${DTSV_MAX_ARCHIVES:-0}
+FILES_FROM=/tmp/opensaf_dtsv_files
+
+archives_rotate()
+{
+    local archives_dir=${NCS_LOG_PATH}/archives
+
+    mkdir -p $archives_dir
+
+    # Remove oldest archive
+    oldest_arch=`ls ${archives_dir}/dtsv_*.tgz.$MAX_ARCHIVES 2> /dev/null`
+    if [ $? -eq 0 ]; then
+        echo "  removing oldest archive `basename $oldest_arch`"
+        rm -f $oldest_arch
+    fi
+
+    # Rename inbetween archives
+    cnt=$MAX_ARCHIVES
+    while [ $cnt -gt 1 ]; do
+        old=$cnt
+        let cnt-=1
+        curr_file=`ls ${archives_dir}/dtsv_*.tgz.$cnt 2> /dev/null`
+        if [ $? -eq 0 ]; then
+            old_file=${curr_file%%tgz.$cnt}tgz.$old
+            echo "  renaming `basename $curr_file` to `basename $old_file`"
+            mv $curr_file $old_file
+        fi
+    done
+
+    # Create new archive in background
+    filename=${archives_dir}/dtsv_`date +%G%m%d_%H%M%S`.tgz.1
+    echo "  archiving current files into `basename $filename`"
+    ionice -c3 tar -C ${NCS_LOG_PATH} -czf ${filename} --files-from=$FILES_FROM --remove-files &
+}
+
+#Function to start/spawn a service.
+start()
+{
+
+    echo "Starting DTSv..."
+    #Check if daemon is installed.
+    if [ ! -x "$LIBPATH/$DAEMON" ]; then
+       echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
+       exit 1
+    fi
+    killall ncs_dts
+
+    if [ "$1" == "ROLE=1" ] && [ ${MAX_ARCHIVES} -gt 0 ]; then
+        # Take a snapshot of the current set of files and store away for later use
+        (cd ${NCS_LOG_PATH};find -name "*.log" -amin +1) > $FILES_FROM
+    fi
+
+    rm -f $PIDPATH/$PIDFILE
+    $XTERM "$LIBPATH/ncs_dts" "$*" >"$NCS_STDOUTS_PATH/ncs_dts.log" 2>&1 &
+    echo "Starting $DESC: $LIBPATH/$DAEMON";
+
+    if [ $? -ne 0 ] ; then
+	echo -n -e "Failed to start $DAEMON.    \n"
+	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
+	exit 0
+     else
+         echo "Started $DESC: $LIBPATH/$DAEMON";
+     fi
+
+    if [ "$1" == "ROLE=1" ] && [ ${MAX_ARCHIVES} -gt 0 ]; then
+        archives_rotate
+    fi
+
+} # End start()
+
+
+case "$1" in
+   start)
+   shift
+   start $*
+        ;;
+   "")
+   # AMF would call with no arguments
+	echo $SA_AMF_COMPONENT_NAME
+
+	#remove the existing $COMPNAMEFILE
+	rm -f $COMPNAMEFILE
+
+	#echo the component name into a temporary text file
+	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
+
+	# check for the PID availability
+	if test -f $PIDPATH/$PIDFILE
+	then
+	   l_pid=`cat $PIDPATH/$PIDFILE`
+	fi
+      
+	if [ "$l_pid" ]
+   	then
+	   echo "Sending the SIGUSR1 to ncs_dts ..."
+	   `kill -USR1 $l_pid`
+	else
+            echo "Re-Starting DTSv"
+		start ;
+		sleep 10s
+		#Check if the process is running and send a signal
+		if test -f "$PIDPATH/$PIDFILE"
+		then
+			l_pid=`cat "$PIDPATH/$PIDFILE"`
+		fi
+
+		echo $l_pid
+		if [ "$l_pid" ]
+		then `kill -USR1 $l_pid`
+        	fi
+	fi
+     exit 0 # Report to AMF.
+     ;;
+esac;
+

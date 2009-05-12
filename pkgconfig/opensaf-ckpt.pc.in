@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: OpenSAF CKPT
+Description: Implementation of SA Forum AIS Checkpoint Service
+Version: @VERSION@
+Requires: 
+Libs: -L${libdir} -lSaCkpt
+Cflags: -I${includedir}

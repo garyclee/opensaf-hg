@@ -1,0 +1,836 @@
+--This is a TEST MIB and will be used for the following. 
+-- 1. SMIDUMP tool for code generation
+-- 2. This MIB will be instrimented as MAB compliant application
+--    to test the correctness/functionality of the OpenSAF SNMP SubAgent.
+
+MCG-NCS-TEST-MIB DEFINITIONS ::= BEGIN 
+IMPORTS 
+            MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE,  mib-2,
+            Counter32, Gauge32, Integer32, IpAddress, 
+            Unsigned32, TimeTicks, Opaque, Counter64
+                    FROM SNMPv2-SMI 
+
+            TEXTUAL-CONVENTION, TruthValue, StorageType, RowStatus, 
+            DisplayString, PhysAddress, MacAddress, TestAndIncr, 
+            AutonomousType, VariablePointer, RowPointer, TimeStamp, 
+            TimeInterval, DateAndTime, StorageType, TDomain, TAddress
+                    FROM SNMPv2-TC 
+
+            ifIndex FROM RFC1213-MIB
+            
+            MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
+                    FROM SNMPv2-CONF
+
+	    eccgNcsModules, ncsSa
+		    FROM OPENSAF-SMI;
+
+ncsTestMibModule MODULE-IDENTITY
+	LAST-UPDATED "200311281730Z"
+	ORGANIZATION "OpenSAF Foundation"
+	CONTACT-INFO
+		"www.opensaf.org"
+
+	DESCRIPTION
+  	     "This MIB is designed to demo the OpenSAF Management Framework.
+
+              (C) Copyright 2008 The OpenSAF Foundation
+
+              This program is distributed in the hope that it will be useful, but
+              WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+              or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+              under the GNU Lesser General Public License Version 2.1, February 1999.
+              The complete license can be accessed from the following location:
+              http://opensource.org/licenses/lgpl-license.php
+              See the Copying file included with the OpenSAF distribution for full
+              licensing terms.
+
+              Author(s): Emerson Network Power"
+
+    ::= { eccgNcsModules 9}
+
+ncsTestMibObjects   	OBJECT IDENTIFIER  ::= {ncsSa 10}
+ncsTestMibConformance	OBJECT IDENTIFIER  ::= {ncsTestMibModule 2}
+
+ncsTestScalars	    	OBJECT IDENTIFIER  ::= {ncsTestMibObjects 1}
+ncsTestTables	    	OBJECT IDENTIFIER  ::= {ncsTestMibObjects 2}
+ncsTestNotifications	OBJECT IDENTIFIER  ::= {ncsTestMibObjects 3}
+
+--
+--Describe the SCALAR objects
+--
+
+-- Need to check in testing with all its derived types like, Gauge, Gauge32, Counter32,
+-- TimeTicks, TimeStamp etc. Also check with range, enum's, negative values etc..
+ncsTestScalarsUnsigned32 OBJECT-TYPE
+   SYNTAX        Unsigned32 
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "An unsigned32 Scalar Object."
+   ::= { ncsTestScalars 1}
+
+
+-- Need to check in testing with all its derived types like, INTEGER, RowStatus,
+-- TimeInterval, StorageType etc. Also check with range, enum's, negative values etc..
+ncsTestScalarsInteger32 OBJECT-TYPE
+   SYNTAX        Integer32
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "An Integer32 Scalar Object, with a distinct range of values."
+   ::= { ncsTestScalars 2}
+
+
+-- Need to check in testing with all its derived types like, OCTETE STRING, NetworkAddress,
+-- Opaque, BITS, DateAndTime, TAddress etc. Also check with range, enum's  values etc..
+ncsTestScalarsIpAddress OBJECT-TYPE
+   SYNTAX        IpAddress
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "IpAddress Scalar Object."
+   ::= { ncsTestScalars 3}
+
+-- OBSOLETE object
+ncsTestScalarsObsolete OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-only
+   STATUS        obsolete
+   DESCRIPTION
+       "An unsigned32 Scalar obsolete Object."
+   ::= { ncsTestScalars 4}
+
+-- ACCESS-FOR-NOTIFY object
+ncsTestScalarsForNotify OBJECT-TYPE
+   SYNTAX        Opaque(SIZE(8))
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "An Opaque Scalar Object, accessible for Notifications only."
+   ::= { ncsTestScalars 5}
+
+-- DEPRICATED object
+ncsTestScalarsDepricated OBJECT-TYPE
+   SYNTAX        TimeTicks
+   MAX-ACCESS    read-only
+   STATUS        deprecated
+   DESCRIPTION
+       "A TimeTicks Scalar Depricated Object"
+   ::= { ncsTestScalars 6}
+
+-- NOT-ACCESSIBLE object.
+ncsTestScalarsNotAccessible OBJECT-TYPE
+   SYNTAX        TimeTicks
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "An unsigned32 Scalar Object, accessible for Notifications only"
+   ::= { ncsTestScalars 7}
+
+-- TRAP Object
+ncsTestNotificationScalarsObjs NOTIFICATION-TYPE
+   OBJECTS     { ncsTestScalarsUnsigned32, ncsTestScalarsIpAddress,
+	             ncsTestScalarsInteger32 }
+   STATUS      current
+   DESCRIPTION
+       "Notification with Scalars"
+   ::= { ncsTestScalars 8 }
+
+--
+-- Test TABLE_1
+--
+ncsTestTableOne OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableOneEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Test Table with Name 'One'. "
+   ::= { ncsTestTables 1 }
+
+ncsTestTableOneEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableOneEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableOneIpAddress }
+   ::= { ncsTestTableOne 1 }
+
+NcsTestTableOneEntry ::= SEQUENCE {
+  ncsTestTableOneDisplayString		DisplayString, 
+  ncsTestTableOnePhysAddress		PhysAddress,
+  ncsTestTableOneMacAddress	        MacAddress,
+  ncsTestTableOneTestAndIncr		TestAndIncr,
+  ncsTestTableOneIpAddress	    	IpAddress,
+  ncsTestTableOneGauge32Obsolete	Gauge32, 
+  ncsTestTableOneCounter32	    	Counter32, 
+  ncsTestTableOneDiscrete 	    	INTEGER,
+  ncsTestTableOneRowStatus	    	RowStatus,
+  ncsTestTableOneCounter64	    	Counter64,
+  ncsTestTableOneGauge32Discrete    Gauge32,
+  ncsTestTableOneOctetStringFixedLen	OCTET STRING,
+  ncsTestTableOneOctetStringVarLen	OCTET STRING,
+  ncsTestTableOneOctetStringDiscrete	OCTET STRING,
+  ncsTestTableOneObjectIdentifier	OBJECT IDENTIFIER
+}
+
+ncsTestTableOneDisplayString OBJECT-TYPE
+   SYNTAX        DisplayString
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "DisplayString Object"
+   ::= { ncsTestTableOneEntry 1}
+
+ncsTestTableOnePhysAddress OBJECT-TYPE
+   SYNTAX        PhysAddress
+   MAX-ACCESS    read-create
+   STATUS        obsolete
+   DESCRIPTION
+       "PhysAddress Object"
+   ::= { ncsTestTableOneEntry 2}
+
+ncsTestTableOneMacAddress OBJECT-TYPE
+   SYNTAX        MacAddress
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "MacAddress Object"
+   ::= { ncsTestTableOneEntry 3}
+
+ncsTestTableOneTestAndIncr OBJECT-TYPE
+   SYNTAX        TestAndIncr
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "TestAndIncr Object"
+   ::= { ncsTestTableOneEntry 4}
+
+ncsTestTableOneIpAddress OBJECT-TYPE
+   SYNTAX        IpAddress
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "IpAddr Object"
+   ::= { ncsTestTableOneEntry 5 }
+
+ncsTestTableOneGauge32Obsolete OBJECT-TYPE
+   SYNTAX        Gauge32
+   MAX-ACCESS    read-only
+   STATUS        obsolete
+   DESCRIPTION
+       "Gauge32 Object"
+   ::= { ncsTestTableOneEntry 6 }
+
+ncsTestTableOneCounter32 OBJECT-TYPE
+   SYNTAX        Counter32
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Counter32 Object"
+   ::= { ncsTestTableOneEntry 7 }
+
+ncsTestTableOneDiscrete OBJECT-TYPE
+   SYNTAX        INTEGER (50..500) 
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Discrete Object"
+   ::= { ncsTestTableOneEntry 8 }
+
+ncsTestTableOneRowStatus OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "RowStatus Object"
+   ::= { ncsTestTableOneEntry 9 }
+
+ncsTestTableOneCounter64 OBJECT-TYPE
+   SYNTAX        Counter64
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Counter64 Object"
+   ::= { ncsTestTableOneEntry 10 }
+
+ncsTestTableOneGauge32Discrete OBJECT-TYPE
+   SYNTAX        Gauge32 (101..200)
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Gauge32 Discrete Object"
+   ::= { ncsTestTableOneEntry 11 }
+
+ncsTestTableOneOctetStringFixedLen OBJECT-TYPE
+   SYNTAX        OCTET STRING (SIZE(10))
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "OctetString Object of Fixed Length"
+  ::= { ncsTestTableOneEntry 12 }
+
+ncsTestTableOneOctetStringVarLen OBJECT-TYPE
+   SYNTAX        OCTET STRING (SIZE(1..100))
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "OctetString Object of Variable Length"
+   ::= { ncsTestTableOneEntry 13 }
+
+ncsTestTableOneOctetStringDiscrete OBJECT-TYPE
+   SYNTAX        OCTET STRING (SIZE(1..10 | 25 | 51..100))
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "OctetString Object having Discrete values"
+   ::= { ncsTestTableOneEntry 14 }
+
+ncsTestTableOneObjectIdentifier  OBJECT-TYPE
+   SYNTAX        OBJECT IDENTIFIER
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Object Identifier type of object"
+   ::= { ncsTestTableOneEntry 15 }
+   
+
+--
+-- Test TABLE_2
+--
+ncsTestTableTwo  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableTwoEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Test Table with Name 'Two'."
+   ::= { ncsTestTables 2 }
+
+ncsTestTableTwoEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableTwoEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableTwoObjId }
+   ::= { ncsTestTableTwo 1 }
+
+NcsTestTableTwoEntry ::= SEQUENCE {
+  ncsTestTableTwoUnsigned   	Unsigned32,
+  ncsTestTableTwoRowStatus    	RowStatus,
+  ncsTestTableTwoCounter64    	Counter64,
+  ncsTestTableTwoObjId          OBJECT IDENTIFIER 
+}
+
+ncsTestTableTwoUnsigned OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "Unsigned Object"
+   ::= { ncsTestTableTwoEntry 1}
+
+ncsTestTableTwoRowStatus OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "Integer Object"
+   ::= { ncsTestTableTwoEntry 2}
+
+ncsTestTableTwoCounter64 OBJECT-TYPE
+   SYNTAX        Counter64
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Counter-64 Object"
+   ::= { ncsTestTableTwoEntry 3}
+
+ncsTestTableTwoObjId OBJECT-TYPE
+   SYNTAX        OBJECT IDENTIFIER 
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "OBJECT IDENTIFIER Object, should be uniquely Identified"
+   ::= { ncsTestTableTwoEntry 4}
+
+
+--
+-- Test TABLE_3
+-- To demo thepurpose of SAMEAS filter of the MAS
+--
+ncsTestTableThree  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableThreeEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Test Table with Name 'Three'. Main purpose of this table is to
+       let the MASv users to know about the use of the
+       NCSMAB_FLTR_SAME_AS filter."
+   ::= { ncsTestTables 3 }
+
+ncsTestTableThreeEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableThreeEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableThreeIpAddress }
+   ::= { ncsTestTableThree 1 }
+
+NcsTestTableThreeEntry ::= SEQUENCE {
+  ncsTestTableThreeIpAddress    IpAddress,
+  ncsTestTableThreeRowStatus    RowStatus
+}
+
+ncsTestTableThreeIpAddress OBJECT-TYPE
+   SYNTAX        IpAddress
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "IpAddress to demo the same-as filter of MASv"
+   ::= { ncsTestTableThreeEntry 1 }
+
+ncsTestTableThreeRowStatus OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "RowStatus Object"
+   ::= { ncsTestTableThreeEntry 2 }
+   
+--
+-- Test TABLE_4
+-- To demo the purpose of DEFAULT filter of MASv  
+--
+ncsTestTableFour  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableFourEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Main purpose of this table is to
+       let the MASv users to know about the use of the
+       NCSMAB_FLTR_DEFAULT filter."
+   ::= { ncsTestTables 4 }
+
+ncsTestTableFourEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableFourEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableFourIndex }
+  ::= { ncsTestTableFour 1 }
+
+NcsTestTableFourEntry ::= SEQUENCE {
+  ncsTestTableFourIndex    Unsigned32,
+  ncsTestTableFourUInteger Unsigned32,  
+  ncsTestTableFourRowStatus RowStatus  
+}
+
+ncsTestTableFourIndex OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Integer index"
+   ::= { ncsTestTableFourEntry 1 }
+
+ncsTestTableFourUInteger OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "unsigned object"
+   ::= { ncsTestTableFourEntry 2 }
+
+ncsTestTableFourRowStatus OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "RowStatus Object"
+   ::= { ncsTestTableFourEntry 3}
+   
+--
+-- Test TABLE_5
+-- To demo the purpose of RANGE  filter of MASv  
+--
+ncsTestTableFive  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableFiveEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Main purpose of this table is to let the MASv
+        users to know about the use of the NCSMAB_FLTR_RANGE 
+        filter.  Application should create the table indices
+        from 1 to 5 only.  No other rows should be created."
+   ::= { ncsTestTables 5 }
+
+ncsTestTableFiveEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableFiveEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableFiveIpAddress }
+   ::= { ncsTestTableFive 1 }
+
+NcsTestTableFiveEntry ::= SEQUENCE {
+  ncsTestTableFiveIpAddress  IpAddress,
+  ncsTestTableFiveRowStatus  RowStatus
+}
+
+ncsTestTableFiveIpAddress OBJECT-TYPE
+   SYNTAX        IpAddress
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Integer index"
+   ::= { ncsTestTableFiveEntry 1 }
+
+ncsTestTableFiveRowStatus OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "RowStatus Object"
+   ::= { ncsTestTableFiveEntry 2 }
+
+--
+-- Test TABLE_6
+-- To demo the persistency of SP-MIB(System provisioned) data
+-- i.e., MIB without RowStatus MIB object
+--
+ncsTestTableSix  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableSixEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Main purpose of this table is to let the MASv
+        users to know how to make this MIB persistent."
+   ::= { ncsTestTables 6 }
+
+ncsTestTableSixEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableSixEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableSixCount}
+   ::= { ncsTestTableSix 1 }
+
+NcsTestTableSixEntry ::= SEQUENCE {
+  ncsTestTableSixCount       Unsigned32,
+  ncsTestTableSixData        Unsigned32,
+  ncsTestTableSixName        OCTET STRING
+}
+
+ncsTestTableSixCount   OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Integer index"
+   ::= { ncsTestTableSixEntry 1 }
+
+ncsTestTableSixData    OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-write
+   STATUS        current
+   DESCRIPTION
+       "Integer Data"
+   ::= { ncsTestTableSixEntry 2 }
+
+ncsTestTableSixName    OBJECT-TYPE
+   SYNTAX        OCTET STRING(SIZE(8..12))
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "Row Name"
+   ::= { ncsTestTableSixEntry 3 }
+
+
+--
+-- Test TABLE_7
+-- To demo the EXACT filter of MAS                           
+-- This table is indexed on a variable length octet string
+--
+ncsTestTableSeven  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableSevenEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "To demo the purpose of the EXACT fileter of MAS and
+        to demo the MOVEROW operation. 
+        SNMPTM DEMO instance 1 will be the staging area for 
+        this table.  When a row is created, it will be moved
+        to the SNMPTM DEMO instance 2.
+        
+        As as far as the SNMP Manager is concerned, who is owning
+        a row may not be of much interest as long as it is getting
+        serviced."
+   ::= { ncsTestTables 7 }
+
+ncsTestTableSevenEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableSevenEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableSevenStringOne, ncsTestTableSevenStringTwo }
+   ::= { ncsTestTableSeven 1 }
+
+NcsTestTableSevenEntry ::= SEQUENCE {
+  ncsTestTableSevenStringOne           OCTET STRING,
+  ncsTestTableSevenStringTwo           OCTET STRING,
+  ncsTestTableSevenStringLength     Unsigned32
+}
+
+ncsTestTableSevenStringOne   OBJECT-TYPE
+   SYNTAX        OCTET STRING (SIZE (1..64)) 
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Variable length octet string index"
+   ::= { ncsTestTableSevenEntry 1 }
+
+ncsTestTableSevenStringTwo   OBJECT-TYPE
+   SYNTAX        OCTET STRING (SIZE (1..64)) 
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Variable length octet string index"
+   ::= { ncsTestTableSevenEntry 2 }
+
+ncsTestTableSevenStringLength    OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "Length of the string index"
+   ::= { ncsTestTableSevenEntry 3 }
+
+--
+-- Test TABLE_8
+-- To demo the support of index imported from another mib                          
+--
+ncsTestTableEight  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableEightEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "To demo the support of index imported from another mib."
+        
+   ::= { ncsTestTables 8 }
+
+ncsTestTableEightEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableEightEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ifIndex, ncsTestTableEightUnsigned32, ncsTestTableFourIndex }
+   ::= { ncsTestTableEight 1 }
+
+NcsTestTableEightEntry ::= SEQUENCE {
+  ncsTestTableEightUnsigned32   Unsigned32,
+  ncsTestTableEightRowStatus    RowStatus
+}
+
+ncsTestTableEightUnsigned32   OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Unsigned32 index"
+   ::= { ncsTestTableEightEntry 1 }
+
+ncsTestTableEightRowStatus    OBJECT-TYPE
+   SYNTAX        RowStatus
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+        "Create the Row in this table"
+   ::= { ncsTestTableEightEntry 2 }
+
+--
+-- Test TABLE_9
+-- To demo the support of AUGMENTS clause (Augmented table).                         
+--
+ncsTestTableNine  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableNineEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "To demo the support of augmented table."
+        
+   ::= { ncsTestTables 9 }
+
+ncsTestTableNineEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableNineEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   AUGMENTS { ncsTestTableEightEntry }
+   ::= { ncsTestTableNine 1 }
+
+NcsTestTableNineEntry ::= SEQUENCE {
+  ncsTestTableNineUnsigned32   Unsigned32
+}
+
+ncsTestTableNineUnsigned32   OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    read-create
+   STATUS        current
+   DESCRIPTION
+       "Unsigned32 object"
+   ::= { ncsTestTableNineEntry 1 }
+
+--
+-- Test TABLE_10
+-- To demo the support of persistency of read-only index elements of a table.                         
+--
+ncsTestTableTen  OBJECT-TYPE
+   SYNTAX        SEQUENCE OF NcsTestTableTenEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "To demo the support of persistency of read-only index elements of a table."
+        
+   ::= { ncsTestTables 10 }
+
+ncsTestTableTenEntry OBJECT-TYPE
+   SYNTAX        NcsTestTableTenEntry
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Fooo FOOO Fooo"
+   INDEX       { ncsTestTableTenUnsigned32, ncsTestTableTenInt }
+   ::= { ncsTestTableTen 1 }
+
+NcsTestTableTenEntry ::= SEQUENCE {
+  ncsTestTableTenUnsigned32   Unsigned32,
+  ncsTestTableTenInt          INTEGER
+}
+
+ncsTestTableTenUnsigned32   OBJECT-TYPE
+   SYNTAX        Unsigned32
+   MAX-ACCESS    not-accessible
+   STATUS        current
+   DESCRIPTION
+       "Unsigned32 object"
+   ::= { ncsTestTableTenEntry 1 }
+
+ncsTestTableTenInt          OBJECT-TYPE
+   SYNTAX        INTEGER
+   MAX-ACCESS    read-only
+   STATUS        current
+   DESCRIPTION
+       "Integer object"
+   ::= { ncsTestTableTenEntry 2 }
+
+
+--
+--
+--
+--
+--
+-- Describe the Events/notifications/traps/informs
+--
+ncsTestNotificationTableObjs NOTIFICATION-TYPE
+   OBJECTS     { ncsTestTableOneDisplayString, ncsTestTableOneRowStatus,  
+	         ncsTestTableOneCounter32, ncsTestScalarsUnsigned32, ncsTestTableOneObjectIdentifier }
+   STATUS      current
+   DESCRIPTION
+       "Trap with tabular objects "
+   ::= { ncsTestNotifications 1 }
+
+ncsTestNotificationCombo NOTIFICATION-TYPE
+   OBJECTS     { ncsTestScalarsUnsigned32, ncsTestScalarsIpAddress,
+	         ncsTestTableOneDisplayString,  ncsTestTableOneCounter32}
+   STATUS      current
+   DESCRIPTION
+       "A trap with both Scalars and Tabular objects "
+   ::= { ncsTestNotifications 2 }
+
+ncsTestNotificationObsolete NOTIFICATION-TYPE
+   OBJECTS     { ncsTestScalarsUnsigned32, ncsTestScalarsIpAddress}
+   STATUS      obsolete
+   DESCRIPTION
+       " obsolete trap definition"
+   ::= { ncsTestNotifications 3 }
+
+
+ncsTestGroups		OBJECT IDENTIFIER ::= {ncsTestMibConformance 1}
+ncsTestCompliances	OBJECT IDENTIFIER ::= {ncsTestMibConformance 2}
+
+
+--
+-- compliance statements
+--
+ncsTestMibCompliance  MODULE-COMPLIANCE
+	STATUS	current
+	DESCRIPTION
+	"This section shall describe the following
+	 - Define the implementation requirements specification for 
+	   Agents.  
+	 - A requirement specification may reference items defined in the
+	   containing MIB module and/or in other MIB modules.
+	 - A requirements specification names groups of object types and/or
+	   events to be implemented.  The term 'implemented' for a group 
+	   means that all of the items in the group are implemented. 
+	 - The groups can be specified as unconditionally required, or as 
+	   conditionally required, and if so, the conditions that cause
+	   each group to be required must be specified in a textual description 
+	   clause."
+	MODULE
+		MANDATORY-GROUPS {ncsTestScalarsGroup,  ncsTestTableOneGroup, 
+			          ncsTestNotificationGroup}
+	::= {ncsTestCompliances 1}
+--
+-- units of conformance
+-- describe the OBJECT-GROUP and NOTIFICATION-GROUPs here. 
+--
+ncsTestScalarsGroup OBJECT-GROUP
+      OBJECTS {ncsTestScalarsUnsigned32, ncsTestScalarsInteger32, 
+	ncsTestScalarsIpAddress, ncsTestScalarsForNotify
+              }
+      STATUS  current
+      DESCRIPTION
+             "Objects required for Testing the Scalars Instrumentation."
+   ::= { ncsTestGroups 1}
+
+ncsTestTableOneGroup OBJECT-GROUP
+      OBJECTS { ncsTestTableOneDisplayString,  ncsTestTableOnePhysAddress,
+    	        ncsTestTableOneMacAddress,     ncsTestTableOneCounter32,
+                ncsTestTableOneRowStatus,      ncsTestTableOneDiscrete
+              }
+      STATUS  current
+      DESCRIPTION
+             "Objects required for Testing the Table One."
+   ::= { ncsTestGroups 2}
+
+
+ncsTestTableTwoGroup OBJECT-GROUP
+      OBJECTS { ncsTestTableTwoUnsigned, ncsTestTableTwoObjId 
+              }
+      STATUS  current
+      DESCRIPTION
+             "Objects required for Testing the Table Two."
+   ::= { ncsTestGroups 3}
+
+
+ncsTestNotificationGroup NOTIFICATION-GROUP
+      NOTIFICATIONS { ncsTestNotificationScalarsObjs, ncsTestNotificationTableObjs,
+		ncsTestNotificationCombo
+	              }
+      STATUS  current
+      DESCRIPTION
+             "Group of Notifications"
+   ::= { ncsTestGroups 4}
+
+END
+
+

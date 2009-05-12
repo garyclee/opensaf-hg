@@ -1,0 +1,183 @@
+################################################################################
+#  File: libstate
+#  Description: Library routine to determine system state
+#                 
+#  routines:
+#             DetermineState   -- Decides what state the system is in.
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):
+#           Hewlett-Packard Company
+#
+#
+################################################################################
+
+if {![info exists __LIBSTATE_SOURCED] || !$__LIBSTATE_SOURCED } {
+   set __LIBSTATE_SOURCED 1
+} \
+else {
+   return 0
+}
+#******************* Globals and Defaults *********************
+source $basepath/defaults
+
+#*************************** Library subroutines **********************
+source $basepath/libsm
+
+#*********************** Determine State **********************
+# Inputs:  sendStimulus    - Flag whether or not to send a carriage
+#                            return as a stimulus
+#          endl            - regexp to match until the end of line
+#
+# Output: state
+#
+# Possible states are
+#   OTL         -> off, or not responding
+#   LOGIN       -> At linux login prompt
+#   LINUX       -> At linux login or user prompt
+#   ILO         -> At iLO prompt
+#   OA          -> At OA prompt
+#   BOOTING     -> In the process of booting
+#   SHUTDOWN    -> In the process of shutting down
+#
+# Notes:
+#  -  Must be connected to a system console or ssh session before
+#     calling this routine.
+#  -  If sendStimulus is set to 1, this routine sends a carriage
+#     return as a stimulus to get a response, otherwise it just
+#     waits for input from a spawned process.
+#
+#***********************************************************
+proc DetermineState { sendStimulus } {
+    global VERBOSE DRYRUN
+    global timeout_setting
+    global endl
+    global send_slow  tetExit
+    global login_prompt
+    global ilo_prompt oa_prompt
+    global root_prompt user_prompt
+
+    set endl2 "\[^\r]*\n+\r"
+
+    if {$VERBOSE} {
+        send_user "\[SM] Determine State\n"
+		send_user "\ttimeout_setting = $timeout_setting\n"
+    }
+
+    if {$DRYRUN} {
+        # If running dryrun, and DryrunState is set in the caller,
+        #   return that state.
+       upvar DryrunState DryrunState
+       if [info exists DryrunState ] {
+          return $DryrunState
+       }
+        # Otherwise, just return
+       return
+    }
+    # Clear out junk that we had in the buffer from any previous
+    # calls.
+    expect *
+
+    # Send a stimulus to get a response
+    if {$sendStimulus} {send "\r"}
+
+    # Look for the patterns that indicate a state
+    expect {
+        timeout {
+            send_user "\n\[SM] ERROR: timed out after waiting $timeout_setting sec. for a response to <CR>\n"
+            return OTL
+        }
+
+          # Rats!, someone else has grabbed the system console.
+		-re "already in use" {
+            ErrorMessage "Console is already in use by another user\n" $tetExit(NORESULT)
+        }
+
+         # Ah hah! booted to Linux
+        -re "$login_prompt" {
+            return LOGIN
+        }
+
+        -re "\[Pp]assword:" {
+            return LOGIN
+        }
+
+        -re "$root_prompt" {
+            return LINUX
+        }
+
+        -re "$user_prompt" {
+            return LINUX
+        }
+
+         # Somewhere in a firmware prompt
+        -re "$ilo_prompt" {
+            return ILO
+        }
+
+        -re "$oa_prompt" {
+            return OA
+        }
+
+         # Shutting down
+        -re "Stopping" {
+            return SHUTDOWN
+        }
+
+        -re "Shutting down" {
+            return SHUTDOWN
+        }
+
+         # Booting up
+        -re "ProLiant System BIOS" {
+            return BOOTING
+        }
+
+        -re "Press any key to continue" {
+            send "\r"
+            exp_continue
+        }
+
+        -re "highlighted entry will be booted" {
+            return BOOTING
+        }
+ 
+        -re "Starting" {
+            return BOOTING
+        }
+ 
+        -re "Bringing up" {
+            return BOOTING
+        }
+ 
+        -re "$endl" {
+            exp_continue
+        }
+
+        -re "$endl2" {
+            exp_continue
+        }
+
+    }
+
+    send_user "\n\[SM] {DetermineState}: This should not have happened. State Machine is broken.\n"
+    Done 1
+}   ;# end DetermineState
+
+
+##
+# vim: tabstop=4
+# -*- tab-width:4 -*-
+##

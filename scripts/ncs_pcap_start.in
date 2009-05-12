@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Emerson Network Power
+#
+
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
+XTERM=""
+
+#XTERM="xterm -T OpenSAF-PCAP -e "
+#XTERM="xterm -T OpenSAF-PCAP -e /usr/bin/gdb "
+# Set this if debugging required. If you start in gdb,
+# NOTE: Ensure you pass $2 -> ROLE & $3 -> NID_SVC_NAME as cmd. line arguments,
+# which NID passes to this (ncs_pcap_start) script.
+# i.e. from gdb Typically, the cmd would be  "run ROLE=1\2 NID_SVC_NAME=21"
+
+DAEMON=ncs_pcap
+
+
+echo "Executing PCAP init-script..."
+
+echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
+
+#Function to start/spawn a service.
+start()
+{
+
+    echo "Starting PCAP..."
+    #Check if daemon is installed.
+    if [ ! -x "$LIBPATH/$DAEMON" ]; then
+       echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
+       exit 1
+    fi
+    killall ncs_pcap
+    $XTERM "$LIBPATH/ncs_pcap" "$*" >"$NCS_STDOUTS_PATH/ncs_pcap.log" 2>&1 &
+    echo "Starting $DESC: $LIBPATH/$DAEMON";
+
+    if [ $? -ne 0 ] ; then
+	echo -n -e "Failed to start $DAEMON.    \n"
+	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
+	exit 0
+     else
+         echo "Started $DESC: $LIBPATH/$DAEMON";
+     fi
+
+} # End start()
+
+
+case "$1" in
+   start)
+   shift
+   start $*
+   # Don't Report Status to NID. PCAP will notify NID.
+	echo "."
+        ;;
+esac;
+
+exit 0;
