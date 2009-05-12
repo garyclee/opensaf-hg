@@ -70,11 +70,14 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
 
    if(!tmp)
       return NCSCC_RC_FAILURE;
-   
-   strcpy(d_su_dn->value, tmp);
 
-   /* Fill the length and return the pointer */
-   d_su_dn->length = strlen(d_su_dn->value);
+   if(strlen(tmp) < SA_MAX_NAME_LENGTH){ 
+      strcpy(d_su_dn->value, tmp);
+
+      /* Fill the length and return the pointer */
+      d_su_dn->length = strlen(d_su_dn->value);
+   }else
+      return NCSCC_RC_FAILURE;
 
    return NCSCC_RC_SUCCESS;
 }
@@ -109,10 +112,13 @@ uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn,
    if(!tmp)
       return NCSCC_RC_FAILURE;
 
-   strcpy(d_node_dn->value, tmp);
+   if(strlen(tmp) < SA_MAX_NAME_LENGTH){
+      strcpy(d_node_dn->value, tmp);
    
-   /* Fill the length and return the pointer */
-   d_node_dn->length = strlen(d_node_dn->value);
+      /* Fill the length and return the pointer */
+      d_node_dn->length = strlen(d_node_dn->value);
+   }else
+      return NCSCC_RC_FAILURE; 
 
    return NCSCC_RC_SUCCESS;
 }
@@ -170,10 +176,13 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn,
    if(!tmp)
       return NCSCC_RC_FAILURE;
 
-   strcpy(d_si_dn->value, tmp);
+   if(strlen(tmp) < SA_MAX_NAME_LENGTH){
+      strcpy(d_si_dn->value, tmp);
    
-   /* Fill the length and return the pointer */
-   d_si_dn->length = strlen(d_si_dn->value);
+      /* Fill the length and return the pointer */
+      d_si_dn->length = strlen(d_si_dn->value);
+   }else
+      return NCSCC_RC_FAILURE;
 
    return NCSCC_RC_SUCCESS;
 }

@@ -323,13 +323,13 @@ saAmfParseNcsScalars(DOMNode *node)
       }
    }
    /* this is temp fix.. change this later */
-   for(uns8 x=0; x < strlen(tmpSndHb); x++)
+   for(uns8 x=0; x < (tmpSndHb ? strlen(tmpSndHb) : 0); x++)
    {
       char c = tmpSndHb[x];
       sndVal = (sndVal * 10) + atoi(&c);
    }
 
-   for(uns8 x=0; x < strlen(tmpRcvHb); x++)
+   for(uns8 x=0; x < (tmpRcvHb ? strlen(tmpRcvHb) : 0); x++)
    {
       char c = tmpRcvHb[x];
       rcvVal = (rcvVal * 10) + atoi(&c);
@@ -451,7 +451,7 @@ saAmfParseHealthCheck(DOMNode *tmp, char *index)
    NCSMIB_TBL_ID        table_id;
    uns32                param_id;
    NCSMIB_FMAT_ID       format;
-   NCSMIB_IDX           mib_idx;
+   NCSMIB_IDX           mib_idx = {0};
    char                 *tag, *val;
    char                 rowStatus[4];
 
@@ -795,7 +795,7 @@ saAmfParseComponentAttributes(DOMNode *compNode, char *protoName,
 static SaAisErrorT
 saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BOOL ext_su_flag)
 {
-   char        genName[BAM_MAX_INDEX_LEN];
+   char        genName[BAM_MAX_INDEX_LEN] = {0};
    DOMNode     *compPrototype;
    NCSMIB_IDX           mib_idx;
    SaAisErrorT          rc = SA_AIS_OK;
@@ -811,7 +811,7 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
       return SA_AIS_ERR_NOT_EXIST;
    }
    
-   strcpy(genName, index); /* for instances */
+   strncpy(genName, index, BAM_MAX_INDEX_LEN-1); /* for instances */
 
    /* Check to see if the finalPrototype attribute is set to true */
    DOMNamedNodeMap *attributesNodes = compPrototype->getAttributes();
@@ -834,9 +834,9 @@ saAmfParseCompPrototype(char *protoName, char *index, bool fromPrototype, NCS_BO
                * just the suName.
                */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
-               strcpy(genName, protoName);
-               strcat(genName, ",");
-               strcat(genName, index);
+               strncpy(genName, protoName, BAM_MAX_INDEX_LEN-1);
+               strncat(genName, ",", BAM_MAX_INDEX_LEN-strlen(genName)-1);
+               strncat(genName, index, BAM_MAX_INDEX_LEN-strlen(genName)-1);
             }
             /* we dont care about the other attributes... break */
             XMLString::release(&tag);
@@ -955,7 +955,7 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
       return SA_AIS_ERR_NOT_EXIST;
    }
    
-   strcpy(genName, index); /* for instances */
+   strncpy(genName, index, BAM_MAX_INDEX_LEN-1); /* for instances */
 
    /* Check to see if the finalPrototype attribute is set to true */
    DOMNamedNodeMap *attributesNodes = suPrototype->getAttributes();
@@ -986,9 +986,9 @@ saAmfParseSUPrototype(char *suName, char *index, bool fromPrototype,
             * just the suName.
             */
                memset(genName, 0, BAM_MAX_INDEX_LEN);
-               strcpy(genName, suName);
-               strcat(genName, ",");
-               strcat(genName, index);
+               strncpy(genName, suName, BAM_MAX_INDEX_LEN-1);
+               strncat(genName, ",", BAM_MAX_INDEX_LEN-strlen(genName)-1);
+               strncat(genName, index, BAM_MAX_INDEX_LEN-strlen(genName)-1);
             }
             /* we dont care about the other attributes... break */
             XMLString::release(&tag);
@@ -1219,7 +1219,8 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
       {
          char *tmpString = XMLString::transcode(tmpNode->getNodeName());
 
-         strcpy(commandString, tmpString); 
+         memset(commandString, 0, BAM_MAX_INDEX_LEN-1);
+         strncpy(commandString, tmpString, BAM_MAX_INDEX_LEN-1); 
                                       /* This string could be one of the 
                                        * a. instantiateCommand
                                        * b. terminateCommand
@@ -1255,7 +1256,7 @@ saAmfParseCompClcCommands(DOMNode *node, char *index)
                   {
                      char *c_ptr = strstr(commandString, "Command");
                      strncpy(c_ptr, "\0", 1);
-                     strcat(commandString, tag);
+                     strncat(commandString, tag, BAM_MAX_INDEX_LEN-strlen(commandString)-1);
                      lookup = commandString;
                      rc = ncs_bam_search_table_for_oid(gl_amfConfig_table, 
                             gl_amfConfig_table_size,
@@ -1582,9 +1583,9 @@ saAmfParseComponentInstance(DOMNode *node, char *suName, NCS_BOOL ext_su_flag)
       compName = XMLString::transcode(attributesNodes->item(0)->getNodeValue());
 
       memset(genName, 0, BAM_MAX_INDEX_LEN);
-      strcpy(genName, compName);
-      strcat(genName, ",");
-      strcat(genName, suName);
+      strncpy(genName, compName, BAM_MAX_INDEX_LEN-1);
+      strncat(genName, ",", BAM_MAX_INDEX_LEN-strlen(genName)-1);
+      strncat(genName, suName, BAM_MAX_INDEX_LEN-strlen(genName)-1);
 
       XMLString::release(&compName);
       XMLString::release(&tag);
@@ -1750,12 +1751,12 @@ saAmfParseSUInstance(DOMNode *node, char *parentNodeName, NCS_BOOL ext_su_flag)
          {
             suName = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
             memset(genName, 0, BAM_MAX_INDEX_LEN);
-            strcpy(genName, suName);
+            strncpy(genName, suName, BAM_MAX_INDEX_LEN-1);
             if(ext_su_flag == FALSE)
             {
               /* For external component, there is no node name. */
-              strcat(genName, ",");
-              strcat(genName, parentNodeName);
+              strncat(genName, ",", BAM_MAX_INDEX_LEN-strlen(genName)-1);
+              strncat(genName, parentNodeName, BAM_MAX_INDEX_LEN-strlen(genName)-1);
             }
             XMLString::release(&suName);
          }
@@ -2018,14 +2019,14 @@ saAmfParseNodeInstance(DOMNode *node, BAM_PARSE_SUB_TREE sub_tree)
 
          if(strcmp(tag, "nodeID") == 0)
          {
-            strcpy(nodeId, val);
+            strncpy(nodeId, val, BAM_MAX_INDEX_LEN-1);
             XMLString::release(&tag);
             XMLString::release(&val);
             continue;
          }
          else if(strcmp(tag, "name") == 0)
          {
-            strcpy(nodeName, val);
+            strncpy(nodeName, val, BAM_MAX_INDEX_LEN-1);
          }
       }
    }

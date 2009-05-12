@@ -625,7 +625,7 @@ typedef struct avnd_comp_tag {
    strcpy(str, st); \
    ac = 0; \
    if ( NULL != (tok = strtok(str, " ")) ) { \
-      strcpy(sc, tok); \
+      strncpy(sc, tok, SAAMF_CLC_LEN-1); \
       av[ac] = sc; \
    } \
    ac++; \

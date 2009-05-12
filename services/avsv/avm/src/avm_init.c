@@ -146,6 +146,8 @@ avm_init_db()
    NCS_PATRICIA_PARAMS  patricia_params;
 
    m_AVM_LOG_FUNC_ENTRY("avm_init_db");
+  
+   memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
    if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl)))
    {    
@@ -295,7 +297,7 @@ avm_init_proc(uns32 *avm_init_hdl)
    if(cb->ha_state == SA_AMF_HA_ACTIVE)
    {
       /* Initialise the configuration file. except dhcp_initialise, other parameters are dummy  */
-      sprintf(script_buf, "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d",
+      snprintf(script_buf, AVM_SCRIPT_BUF_LEN-1, "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d",
               AVM_SSU_DHCONF_SCRIPT, "host1" , "host2", 1, 
               1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
               "filename", "tftpserver", dhcp_initialise);

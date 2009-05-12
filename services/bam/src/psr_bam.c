@@ -107,10 +107,11 @@ uns32 pss_bam_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
   
   pm = m_MMGR_ALLOC_PSS_BAM_MSG;
-  memset(pm, '\0', sizeof(PSS_BAM_MSG));
 
   if(pm == NULL)
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+
+  memset(pm, '\0', sizeof(PSS_BAM_MSG));
 
   *msg = pm;
 
@@ -178,11 +179,12 @@ uns32 pss_bam_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
 uns32 pss_bam_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
    uns8*    data;
-   uns16    len = strlen(pcn);
+   uns16    len = 0;
 
    if(pcn == NULL)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-  
+
+   len = strlen(pcn);
    data = ncs_enc_reserve_space(uba, 2);
    if(data == NULL)
       return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);

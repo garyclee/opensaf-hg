@@ -742,7 +742,6 @@ static AVD_SU *avd_sg_npm_su_chose_asgn(AVD_CL_CB *cb,AVD_SG *sg)
 
 uns32 avd_sg_npm_si_func(AVD_CL_CB *cb,AVD_SI *si)
 {
-   AVD_SU *l_su;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_si_func");
    m_AVD_LOG_RCVD_VAL(((long)si));
@@ -762,7 +761,7 @@ uns32 avd_sg_npm_si_func(AVD_CL_CB *cb,AVD_SI *si)
       return NCSCC_RC_SUCCESS;
    }
    
-   if ((l_su = avd_sg_npm_su_chose_asgn(cb,si->sg_of_si)) == AVD_SU_NULL)
+   if (avd_sg_npm_su_chose_asgn(cb,si->sg_of_si) == AVD_SU_NULL)
    {
       /* all the assignments have already been done in the SG. */
       return NCSCC_RC_SUCCESS;
@@ -1469,8 +1468,6 @@ uns32 avd_sg_npm_su_fault_func(AVD_CL_CB *cb,AVD_SU *su)
 uns32 avd_sg_npm_su_insvc_func(AVD_CL_CB *cb,AVD_SU *su)
 {
 
-   AVD_SU *l_su;   
-   
    m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_su_insvc_func");
    m_AVD_LOG_RCVD_VAL(((long)su));
    
@@ -1496,7 +1493,7 @@ uns32 avd_sg_npm_su_insvc_func(AVD_CL_CB *cb,AVD_SU *su)
       return NCSCC_RC_SUCCESS;
    }
    
-   if ((l_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+   if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
    {
       avd_sg_app_su_inst_func(cb,su->sg_of_su);
 
@@ -1535,7 +1532,6 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                                 AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
    AVD_SU_SI_REL *i_susi, *o_susi;
-   AVD_SU *o_su;
    NCS_BOOL flag;
    AVD_SU_SI_STATE old_fsm_state;
    AVD_AVND *su_node_ptr = NULL;
@@ -1741,7 +1737,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
              * can be done. If yes stay in the same state. If no 
              * new assignments change state to stable.
              */
-            if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+            if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
             {
                /* all the assignments have already been done in the SG. */
                m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -1805,7 +1801,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                    * can be done. If yes stay in the same state. If no 
                    * new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -1834,7 +1830,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
              * can be done. If yes stay in the same state. If no 
              * new assignments change state to stable.
              */
-            if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+            if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
             {
                /* all the assignments have already been done in the SG. */
                m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -1915,7 +1911,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                       * can be done. If yes stay in the same state. If no 
                       * new assignments change state to stable.
                       */
-                     if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                     if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                      {
                         /* all the assignments have already been done in the SG. */
                         m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -1943,7 +1939,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                    * can be done. If yes stay in the same state. If no 
                    * new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -1978,7 +1974,7 @@ static uns32 avd_sg_npm_susi_sucss_sg_reln(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                 * can be done. If yes stay in the same state. If no 
                 * new assignments change state to stable.
                 */
-               if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+               if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                {
                   /* all the assignments have already been done in the SG. */
                   m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -2068,7 +2064,6 @@ static uns32 avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
                                 AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
    AVD_SU_SI_REL *i_susi;
-   AVD_SU *o_su;
    AVD_SU_SI_REL *o_susi;
    NCS_BOOL flag;
    AVD_AVND *su_node_ptr = NULL;
@@ -2199,7 +2194,7 @@ static uns32 avd_sg_npm_susi_sucss_su_oper(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_RE
           * can be done. If yes stay in the same state. If no 
           * new assignments change state to stable.
           */
-         if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+         if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
          {
             /* all the assignments have already been done in the SG. */
             m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -2644,7 +2639,7 @@ uns32 avd_sg_npm_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
 uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
                                 AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
-   AVD_SU_SI_REL *o_susi, *a_susi;
+   AVD_SU_SI_REL *o_susi;
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL flag;
    AVD_AVND *su_node_ptr = NULL;
@@ -2773,7 +2768,7 @@ uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
       else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
          (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
          && (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-((a_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE))
+(avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE)
       != AVD_SU_SI_REL_NULL) && (su->readiness_state == NCS_IN_SERVICE))
       {
          /* Message with modified quiesced all and an SI is in the admin 
@@ -2805,7 +2800,7 @@ uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
       } /* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
          (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
          && (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-((a_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE))
+(avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE)
       != AVD_SU_SI_REL_NULL) && (su->readiness_state == NCS_IN_SERVICE)) */
       else 
       {
@@ -2918,7 +2913,6 @@ uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
 
 uns32 avd_sg_npm_realign_func(AVD_CL_CB *cb,AVD_SG *sg)
 {
-   AVD_SU *l_su;
    
    m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_realign_func");
    m_AVD_LOG_RCVD_VAL(((long)sg));
@@ -2939,7 +2933,7 @@ uns32 avd_sg_npm_realign_func(AVD_CL_CB *cb,AVD_SG *sg)
       return NCSCC_RC_SUCCESS;
    }
    
-   if ((l_su = avd_sg_npm_su_chose_asgn(cb,sg)) == AVD_SU_NULL)
+   if (avd_sg_npm_su_chose_asgn(cb,sg) == AVD_SU_NULL)
    {
       /* all the assignments have already been done in the SG. */
       m_AVD_SET_SG_ADJUST(cb,sg,AVSV_SG_STABLE);
@@ -2977,7 +2971,6 @@ uns32 avd_sg_npm_realign_func(AVD_CL_CB *cb,AVD_SG *sg)
 static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
 {
    AVD_SU_SI_REL *l_susi, *o_susi, *ot_susi;
-   AVD_SU *o_su;
    NCS_BOOL l_flag=FALSE;
    NCS_BOOL flag;
    AVD_AVND *su_node_ptr = NULL;
@@ -3112,7 +3105,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
                    * new assignments can be done. If yes stay in the same state.
                    * If no new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3147,7 +3140,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
                    * new assignments can be done. If yes stay in the same state.
                    * If no new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3205,7 +3198,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
                    * new assignments can be done. If yes stay in the same state.
                    * If no new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3258,7 +3251,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
                    * new assignments can be done. If yes stay in the same state.
                    * If no new assignments change state to stable.
                    */
-                  if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+                  if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                   {
                      /* all the assignments have already been done in the SG. */
                      m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3358,7 +3351,7 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
              * new assignments can be done. If yes stay in the same state.
              * If no new assignments change state to stable.
              */
-            if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+            if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
             {
                /* all the assignments have already been done in the SG. */
                m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3420,7 +3413,6 @@ static void avd_sg_npm_node_fail_sg_relgn(AVD_CL_CB *cb,AVD_SU *su)
 
 static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb,AVD_SU *su)
 {
-   AVD_SU *o_su;
    AVD_SU_SI_REL *o_susi;
    NCS_BOOL flag;
    AVD_AVND *su_node_ptr = NULL;
@@ -3476,7 +3468,7 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb,AVD_SU *su)
           * new assignments can be done. If yes change state to SG realign.
           * If no new assignments change state to stable.
           */
-         if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+         if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
          {
             /* all the assignments have already been done in the SG. */
             m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3550,7 +3542,6 @@ static void avd_sg_npm_node_fail_su_oper(AVD_CL_CB *cb,AVD_SU *su)
 static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb,AVD_SU *su)
 {
    AVD_SU_SI_REL *l_susi, *o_susi, *ot_susi;
-   AVD_SU *o_su;
 
    l_susi = o_susi =  AVD_SU_SI_REL_NULL;
    
@@ -3646,7 +3637,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb,AVD_SU *su)
                 * new assignments can be done. If yes stay in the same state.
                 * If no new assignments change state to stable.
                 */
-               if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+               if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                {
                   /* all the assignments have already been done in the SG. */
                   m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3691,7 +3682,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb,AVD_SU *su)
                 * new assignments can be done. If yes stay in the same state.
                 * If no new assignments change state to stable.
                 */
-               if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+               if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                {
                   /* all the assignments have already been done in the SG. */
                   m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3753,7 +3744,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb,AVD_SU *su)
                 * new assignments can be done. If yes stay in the same state.
                 * If no new assignments change state to stable.
                 */
-               if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+               if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                {
                   /* all the assignments have already been done in the SG. */
                   m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);
@@ -3815,7 +3806,7 @@ static void avd_sg_npm_node_fail_si_oper(AVD_CL_CB *cb,AVD_SU *su)
                 * new assignments can be done. If yes stay in the same state.
                 * If no new assignments change state to stable.
                 */
-               if ((o_su = avd_sg_npm_su_chose_asgn(cb,su->sg_of_su)) == AVD_SU_NULL)
+               if (avd_sg_npm_su_chose_asgn(cb,su->sg_of_su) == AVD_SU_NULL)
                {
                   /* all the assignments have already been done in the SG. */
                   m_AVD_SET_SG_FSM(cb,(su->sg_of_su),AVD_SG_FSM_STABLE);

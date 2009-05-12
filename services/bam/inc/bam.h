@@ -214,6 +214,7 @@ typedef enum
 
 #define m_BAM_CB_LOCK_INIT(bam_cb)  m_NCS_LOCK_INIT(&bam_cb->lock)
 
+#define BAM_MAX_LEN 128
 
 typedef enum {
    BAM_INIT,
@@ -223,9 +224,9 @@ typedef enum {
 
 typedef struct bam_si_dep_node
 {
-   char  si_name[128];
-   char  si_dep_name[128];
-   char  tol_time[128];
+   char  si_name[BAM_MAX_LEN];
+   char  si_dep_name[BAM_MAX_LEN];
+   char  tol_time[BAM_MAX_LEN];
    struct bam_si_dep_node *next;
 } BAM_SI_DEP_NODE;
 

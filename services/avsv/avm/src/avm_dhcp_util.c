@@ -126,7 +126,7 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
 {
    AVM_DHCP_CONF_NAME_TYPE file;
    char    *tmp_str, ver_str[AVM_NAME_STR_LENGTH];
-   char file_name[AVM_NAME_STR_LENGTH + 11];
+   char file_name[AVM_NAME_STR_LENGTH + AVM_DHCPD_SW_IPMC_PLD_BLD_FILE_LEN];
    FILE *fp;
    struct stat fileStat;
    char  time_str[30];
@@ -143,7 +143,7 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    m_AVM_SET_NAME(file, param_val);
 
    memset(file_name, '\0', sizeof(file_name));
-   sprintf(file_name, "/%s", file.name);
+   snprintf(file_name, AVM_NAME_STR_LENGTH-1,"/%s", file.name);
 
    /* Check whether file exist */
    if (-1 == access(file_name, F_OK))
@@ -153,7 +153,11 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    }
 
    memset(&fileStat, '\0', sizeof(struct stat));
-   stat(file_name, &fileStat);
+   if(-1 == stat(file_name, &fileStat))
+   {
+     perror(file_name);
+     return NCSCC_RC_FAILURE;
+   }
 
    /* Check if the file is of DIRECTORY type */
 
@@ -165,8 +169,12 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
 
    /* Check for pxelinux.0 */
    memset(&fileStat, '\0', sizeof(struct stat));
-   strcat(file_name,AVM_DHCPD_SW_PXE_FILE);
-   stat(file_name, &fileStat);
+   strncat(file_name,AVM_DHCPD_SW_PXE_FILE,AVM_DHCPD_SW_PXE_FILE_LEN);
+   if(-1 == stat(file_name, &fileStat))
+   {
+     perror(file_name);
+     return NCSCC_RC_FAILURE;
+   }
 
    if(!(fileStat.st_mode & S_IFREG))
    {
@@ -190,7 +198,7 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    *(++tmp_str) = '\0';
 
    /* read version file */
-   strcat(file_name, AVM_DHCPD_SW_VER_FILE);
+   strncat(file_name, AVM_DHCPD_SW_VER_FILE, AVM_DHCPD_SW_VER_FILE_LEN);
    if (NULL == (fp = sysf_fopen(file_name, "r")))
    {
       m_AVM_LOG_DEBUG("Version file might not be present, unable to open version file", NCSFL_SEV_ERROR);
@@ -214,10 +222,10 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    *(++tmp_str) = '\0';
   
    /* Check for AVM_DHCPD_SW_IPMC_PLD_BLD_FILE */ 
-   strcat(file_name, AVM_DHCPD_SW_IPMC_PLD_BLD_FILE);
+   strncat(file_name, AVM_DHCPD_SW_IPMC_PLD_BLD_FILE,AVM_DHCPD_SW_IPMC_PLD_BLD_FILE_LEN);
    if (-1 == access(file_name, F_OK))
    {
-      sprintf(str,"AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_BLD_FILE is missing in the file path",ent_info->ep_str.name);
+      snprintf(str,sizeof(str)-1, "AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_BLD_FILE is missing in the file path",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_WARNING);
    }
 
@@ -225,10 +233,10 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    *(++tmp_str) = '\0';
   
    /* Check for AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1 */ 
-   strcat(file_name, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1);
+   strncat(file_name, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1_LEN);
    if (-1 == access(file_name, F_OK))
    {
-      sprintf(str,"AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1 is missing in the file path",ent_info->ep_str.name);
+      snprintf(str,sizeof(str)-1,"AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_RTM_FILE1 is missing in the file path",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_WARNING);
    }
 
@@ -236,10 +244,10 @@ avm_dhcp_file_validation(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info,
    *(++tmp_str) = '\0';
   
    /* Check for AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2 */ 
-   strcat(file_name, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2);
+   strncat(file_name, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2, AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2_LEN);
    if (-1 == access(file_name, F_OK))
    {
-      sprintf(str,"AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2 is missing in the file path",ent_info->ep_str.name);
+      snprintf(str,sizeof(str)-1,"AVM-SSU: Payload blade %s:AVM_DHCPD_SW_IPMC_PLD_RTM_FILE2 is missing in the file path",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_WARNING);
    }
 
@@ -443,7 +451,7 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
    uns8 script_buf[AVM_SCRIPT_BUF_LEN], log_str[AVM_SCRIPT_BUF_LEN + 30];
    uns8 *host1, *host2, *mac1, *mac2, *filename;
    uns32 rc;
-   char pxe_file_name[AVM_NAME_STR_LENGTH + 11];
+   char pxe_file_name[AVM_NAME_STR_LENGTH + AVM_DHCPD_SW_PXE_FILE_LEN];
    char *pStrstr = NULL;
 
    /* check the validity of arguments */
@@ -468,7 +476,7 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
 
    /* Get the configured Filename in local var */
    memset(pxe_file_name, '\0', sizeof(pxe_file_name));
-   sprintf(pxe_file_name, "%s", dhcp_label->file_name.name);
+   snprintf(pxe_file_name, AVM_NAME_STR_LENGTH-1, "%s", dhcp_label->file_name.name);
 
    /* Check for pxelinux.0 */
    pStrstr = strstr(pxe_file_name, AVM_DHCPD_SW_PXE_FILE);
@@ -477,23 +485,23 @@ avm_ssu_dhconf_set(AVM_CB_T *avm_cb, AVM_ENT_DHCP_CONF  *dhcp_conf, AVM_PER_LABE
    /* concatenate the pxelinux.0 */
    if (pStrstr == NULL)
    {
-      strcat(pxe_file_name,AVM_DHCPD_SW_PXE_FILE); 
+      strncat(pxe_file_name,AVM_DHCPD_SW_PXE_FILE,AVM_DHCPD_SW_PXE_FILE_LEN); 
    }
 
    filename = pxe_file_name;
 
-   sprintf(tftpserver, "%d.%d.%d.%d", dhcp_conf->tftp_serve_ip[0] & 0xff,
+   snprintf(tftpserver, AVM_IP_ADDR_STR_LEN-1, "%d.%d.%d.%d", dhcp_conf->tftp_serve_ip[0] & 0xff,
                                       dhcp_conf->tftp_serve_ip[1] & 0xff,
                                       dhcp_conf->tftp_serve_ip[2] & 0xff,
                                       dhcp_conf->tftp_serve_ip[3] & 0xff);
 
-   sprintf(script_buf, "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d ",
+   snprintf(script_buf, AVM_SCRIPT_BUF_LEN-1, "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d ",
            AVM_SSU_DHCONF_SCRIPT, host1, host2, dhcp_conf->net_boot,
            mac1[0], mac1[1], mac1[2], mac1[3], mac1[4], mac1[5],
            mac2[0], mac2[1], mac2[2], mac2[3], mac2[4], mac2[5],
            filename, tftpserver, dhcp_restart);
 
-   sprintf(log_str, "AVM-SSU: %s %s %s ", "DHCP script buffer = ",script_buf,"\n");
+   snprintf(log_str, sizeof(log_str)-1,"AVM-SSU: %s %s %s ", "DHCP script buffer = ",script_buf,"\n");
 
    m_AVM_LOG_DEBUG(log_str,NCSFL_SEV_NOTICE);
    /* Invoke script to reconfigure the DHCP server */
@@ -577,7 +585,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
     ********************************************************************************************/
     if((dhcp_conf->upgrade_type != INTEG) && (dhcp_conf->ipmc_upgd_state == IPMC_UPGD_DONE))
     {
-       sprintf(logbuf, "AVM-SSU: Payload blade %s : dhconf set is skipped, as the IPMC upgrade is in progress",ent_info->ep_str.name);
+       snprintf(logbuf,sizeof(logbuf)-1,"AVM-SSU: Payload blade %s : dhconf set is skipped, as the IPMC upgrade is in progress",ent_info->ep_str.name);
        m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
        /* reset the ipmc_upgd_state */
        dhcp_conf->ipmc_upgd_state = 0;
@@ -673,7 +681,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                dhcp_conf->curr_act_label = dhcp_conf->default_label;
                dhcp_conf->cur_act_label_num = dhcp_conf->def_label_num;
                avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmCurrActiveLabelChange_ID);
-               sprintf(logbuf, "AVM-SSU: Payload blade %s : CurrActiveLabel SET to:%s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
+               snprintf(logbuf, sizeof(logbuf)-1,"AVM-SSU: Payload blade %s : CurrActiveLabel SET to:%s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                /* Push the current active label into pssv */
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->curr_act_label->name.name, ncsAvmEntDHCPConfCurrActiveLabel_ID, ent_info, dhcp_conf->curr_act_label->name.length);
@@ -709,7 +717,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->pref_label.name, ncsAvmEntDHCPConfPrefLabel_ID, ent_info, dhcp_conf->pref_label.length);
                dhcp_conf->default_chg = TRUE;
                avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmCurrActiveLabelChange_ID);
-               sprintf(logbuf, "AVM-SSU: Payload blade %s : CurrActiveLabel SET to : %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
+               snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : CurrActiveLabel SET to : %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                /* Push the current active label into pssv */
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->curr_act_label->name.name, ncsAvmEntDHCPConfCurrActiveLabel_ID, ent_info, dhcp_conf->curr_act_label->name.length);
@@ -730,7 +738,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                dhcp_conf->curr_act_label = dhcp_conf->default_label;
                dhcp_conf->cur_act_label_num = dhcp_conf->def_label_num;
                avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmCurrActiveLabelChange_ID);
-               sprintf(logbuf, "AVM-SSU: Payload blade %s:CurrActiveLabel SET to: %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
+               snprintf(logbuf,sizeof(logbuf)-1,"AVM-SSU: Payload blade %s:CurrActiveLabel SET to: %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                /* Push the current active label into pssv */
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->curr_act_label->name.name, ncsAvmEntDHCPConfCurrActiveLabel_ID, ent_info, dhcp_conf->curr_act_label->name.length);
@@ -748,7 +756,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                   dhcp_conf->curr_act_label = dhcp_conf->default_label;
                   dhcp_conf->cur_act_label_num = dhcp_conf->def_label_num;
                   avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmCurrActiveLabelChange_ID);
-                  sprintf(logbuf, "AVM-SSU: Payload blade %s: CurrActiveLabel SET to: %s",ent_info->ep_str.name, dhcp_conf->curr_act_label->name.name);
+                  snprintf(logbuf,sizeof(logbuf)-1,"AVM-SSU: Payload blade %s: CurrActiveLabel SET to: %s",ent_info->ep_str.name, dhcp_conf->curr_act_label->name.name);
                   m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                   /* Push the current active label into pssv */
                   m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->curr_act_label->name.name, ncsAvmEntDHCPConfCurrActiveLabel_ID, ent_info, dhcp_conf->curr_act_label->name.length);
@@ -761,7 +769,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
                dhcp_conf->curr_act_label = dhcp_conf->default_label;
                dhcp_conf->cur_act_label_num = dhcp_conf->def_label_num;
                avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmCurrActiveLabelChange_ID);
-               sprintf(logbuf, "AVM-SSU: Payload blade %s : CurrActiveLabel SET to: %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
+               snprintf(logbuf,sizeof(logbuf)-1,"AVM-SSU: Payload blade %s : CurrActiveLabel SET to: %s",ent_info->ep_str.name,dhcp_conf->curr_act_label->name.name);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
                /* Push the current active label into pssv */
                m_AVM_SSU_PSSV_PUSH_STR(avm_cb, dhcp_conf->curr_act_label->name.name, ncsAvmEntDHCPConfCurrActiveLabel_ID, ent_info, dhcp_conf->curr_act_label->name.length);
@@ -816,7 +824,7 @@ avm_ssu_dhconf(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt, uns8 d
    }
    else
    {
-      sprintf(logbuf, "AVM-SSU: DHCP CONF file updation FAILED, rc =%d, dhcp_conf->default_chg =%d, dhcp_conf->default_label->conf_chg =%d \n", rc, dhcp_conf->default_chg, dhcp_conf->default_label->conf_chg);
+      snprintf(logbuf,sizeof(logbuf)-1, "AVM-SSU: DHCP CONF file updation FAILED, rc =%d, dhcp_conf->default_chg =%d, dhcp_conf->default_label->conf_chg =%d \n", rc, dhcp_conf->default_chg, dhcp_conf->default_label->conf_chg);
       m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
    }
    /* async update for both configuration and state changes */
@@ -967,14 +975,14 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    {
       avm_cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
       avm_cb->upgrade_module = NCS_BIOS_IPMC;
-      sprintf(str,"AVM-SSU: Payload blade %s: INTEG: Rollback triggered ",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: INTEG: Rollback triggered ",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmUpgradeProgress_ID);
 
       if((dhcp_conf->pld_bld_ipmc_status) || (dhcp_conf->pld_rtm_ipmc_status))
       {
          /* Rollback the IPMC */
-         sprintf(str,"AVM-SSU: Payload blade %s: INTEG: IPMC Rollback triggered ",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: INTEG: IPMC Rollback triggered ",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
          avm_upgrade_ipmc_trigger(avm_cb,ent_info);
       }
@@ -984,7 +992,7 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
 
          /* Would go for hard-reset strategy             */
          /* If that fails, admin would need to interfere */
-         sprintf(str,"AVM-SSU: Payload blade %s: INTEG: SW And BIOS Rollback triggered ",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: INTEG: SW And BIOS Rollback triggered ",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
          fsm_evt.fsm_evt_type = AVM_EVT_ADM_HARD_RESET_REQ;
          fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;
@@ -1000,7 +1008,7 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    else if(dhcp_conf->upgrade_type == IPMC)
    {
      /* This is the wrong place. Log a CRITICAL ERROR */
-     sprintf(str,"AVM-SSU: Payload blade %s: IPMC Rollback triggered ",ent_info->ep_str.name);
+     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC Rollback triggered ",ent_info->ep_str.name);
      m_AVM_LOG_DEBUG(str, NCSFL_SEV_ERROR);
 
    }
@@ -1008,7 +1016,7 @@ avm_ssu_dhcp_integ_rollback (AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    {
       avm_cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
       avm_cb->upgrade_module = NCS_BIOS;
-      sprintf(str,"AVM-SSU: Payload blade %s: SW_BIOS Rollback triggered ",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: SW_BIOS Rollback triggered ",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmUpgradeProgress_ID);
    }
@@ -1260,7 +1268,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
        }
        else
        {
-           sprintf(str,"AVM-SSU: Payload blade %s : Unknown physical slot number ",ent_info->ep_str.name);
+           snprintf(str,sizeof(str)-1,"AVM-SSU: Payload blade %s : Unknown physical slot number ",ent_info->ep_str.name);
            m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR); 
            return NCSCC_RC_FAILURE;
        }
@@ -1271,7 +1279,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
    }  
    else
    {
-       sprintf(str,"AVM-SSU: Payload blade %s : Unknown physical slot number ",ent_info->ep_str.name);
+       snprintf(str,sizeof(str)-1,"AVM-SSU: Payload blade %s : Unknown physical slot number ",ent_info->ep_str.name);
        m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR); 
        return NCSCC_RC_FAILURE;
    }
@@ -1289,7 +1297,7 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
           ent_info->dhcp_serv_conf.ipmb_addr = 132 + 4 * (physical_slot_id - 8);
        else
        {
-          sprintf(str,"AVM-SSU: Blade %s : is not a payload blade",ent_info->ep_str.name);
+          snprintf(str,sizeof(str)-1,"AVM-SSU: Blade %s : is not a payload blade",ent_info->ep_str.name);
           m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR); 
           return NCSCC_RC_FAILURE;
        }
@@ -1304,14 +1312,14 @@ avm_compute_ipmb_address (AVM_ENT_INFO_T *ent_info)
           ent_info->dhcp_serv_conf.ipmb_addr = 132;
        else
        {
-          sprintf(str,"AVM-SSU: Blade %s : is not a payload blade",ent_info->ep_str.name);
+          snprintf(str,sizeof(str)-1,"AVM-SSU: Blade %s : is not a payload blade",ent_info->ep_str.name);
           m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR); 
           return NCSCC_RC_FAILURE;
        }
    }
    else
    {
-       sprintf(str,"AVM-SSU: Payload blade %s : Unknown chassis type ",ent_info->ep_str.name);
+       snprintf(str,sizeof(str)-1,"AVM-SSU: Payload blade %s : Unknown chassis type ",ent_info->ep_str.name);
        m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR); 
        return NCSCC_RC_FAILURE;
    }
@@ -1336,14 +1344,14 @@ avm_upgrade_ipmc_trigger(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    {
       /* Entity's state is not good for triggering upgrade */
       flag_upgrade_sanity = NCSCC_RC_FAILURE;
-      sprintf(str,"AVM-SSU: Payload blade %s :Target Payload State Not Good. IPMC upgrade failed",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s :Target Payload State Not Good. IPMC upgrade failed",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
    }
    else if (FALSE == avm_is_the_helper_payload_present(avm_cb,ent_info->dhcp_serv_conf.ipmc_helper_ent_path))
    {
       /* Helper Payload not present */
       flag_upgrade_sanity = NCSCC_RC_FAILURE;
-      sprintf(str,"AVM-SSU: Payload blade %s : Helper blade not present. IPMC upgrade failed",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Helper blade not present. IPMC upgrade failed",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
    } 
    /* Sanity test failed */
@@ -1353,7 +1361,7 @@ avm_upgrade_ipmc_trigger(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       avm_cb->upgrade_module = IPMC_PLD_BLD;
       avm_cb->upgrade_error_type = GEN_ERROR;
       avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmSwFwUpgradeFailure_ID);
-      sprintf(str,"AVM-SSU: Payload blade %s : IPMC upgrade sanity check failed",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : IPMC upgrade sanity check failed",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;
    }
@@ -1361,14 +1369,14 @@ avm_upgrade_ipmc_trigger(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    if ((ent_info->adm_lock == AVM_ADM_LOCK) && (ent_info->current_state == AVM_ENT_INACTIVE))
    {
       /* Entity is already in required state */
-      sprintf(str,"AVM-SSU: Payload blade %s : Blade Already In Lock State",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Blade Already In Lock State",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
       avm_upgrade_ipmc(avm_cb,ent_info);
    }
    else
    {
       /* Set the flag. Wait till the target blade goes to INACTIVE state. */
-      sprintf(str,"AVM-SSU: Payload blade %s : Lock the blade",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Lock the blade",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_BLD_LOCKED;
       m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
@@ -1407,7 +1415,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       { 
          /* IPMC of both payload blade and payload RTM should be rolled back */
          /* reset the pld_bld_ipmc_status and pld_rtm_ipmc_status*/
-         sprintf(str,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD AND RTM requires ROLLBACK",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD AND RTM requires ROLLBACK",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
 
          ent_info->dhcp_serv_conf.pld_bld_ipmc_status = 0;
@@ -1422,7 +1430,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       {
          /* it is in rollback process. IPMC of payload blade should be rolled back */
          /* reset the pld_bld_ipmc_status */
-         sprintf(str,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD requires ROLLBACK",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD requires ROLLBACK",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
 
          ent_info->dhcp_serv_conf.pld_bld_ipmc_status = 0;
@@ -1436,7 +1444,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       {      
          /* it is in rollback process. IPMC of payload RTM should be rolled back */
          /* reset the pld_rtm_ipmc_status */
-         sprintf(str,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD RTM requires ROLLBACK",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : INTEG : IPMC for PAYLOAD RTM requires ROLLBACK",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
 
          ent_info->dhcp_serv_conf.pld_rtm_ipmc_status = 0;
@@ -1448,7 +1456,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
       }
       else
       {
-         sprintf(str,"AVM-SSU: Payload blade %s : INTEG : IPMC Upgrade In Prg",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : INTEG : IPMC Upgrade In Prg",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
  
          ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_IN_PRG;
@@ -1463,7 +1471,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
             /* Upgrade Failure Case            */
             /* We would rollback the labels     */
 
-            sprintf(str,"AVM-SSU: Payload blade %s : INTEG : IPMC Upgrade FUND Mib Set Failed ",ent_info->ep_str.name);
+            snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : INTEG : IPMC Upgrade FUND Mib Set Failed ",ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(str, NCSFL_SEV_ERROR);
 
             AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
@@ -1508,7 +1516,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
    }
    else
    {
-      sprintf(str,"AVM-SSU: Payload blade %s : PAYLOAD IPMC Upgrade In PRG",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : PAYLOAD IPMC Upgrade In PRG",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str, NCSFL_SEV_DEBUG);
 
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_IN_PRG;
@@ -1518,7 +1526,7 @@ avm_upgrade_ipmc(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info)
                                           ent_info->dhcp_serv_conf.curr_act_label->other_label->file_name.name);
       if (rc != NCSCC_RC_SUCCESS)
       {
-        sprintf(str,"AVM-SSU: Payload blade %s : IPMC Upgrade FUND Mib Set Failed ",ent_info->ep_str.name);
+        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : IPMC Upgrade FUND Mib Set Failed ",ent_info->ep_str.name);
         m_AVM_LOG_DEBUG(str, NCSFL_SEV_ERROR);
 
          ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -1557,25 +1565,25 @@ avm_validate_state_for_dhcp_conf_change(AVM_ENT_INFO_T *ent_info, AVM_PER_LABEL_
 
    if (self_label == ent_info->dhcp_serv_conf.curr_act_label)
    {
-      sprintf(str,"AVM-SSU: Payload blade %s : DHCP Configuration can't be changed for the current active label",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : DHCP Configuration can't be changed for the current active label",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
       return FALSE;
    }  
    else if (other_label->status == SSU_COMMIT_PENDING)
    {
-      sprintf(str,"AVM-SSU: Payload blade %s : DHCP Configuration can't be changed, when the other label is in COMMIT PENDING state",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : DHCP Configuration can't be changed, when the other label is in COMMIT PENDING state",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
       return FALSE;
    }
    else if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
    {
-      sprintf(str,"AVM-SSU: Payload blade %s : Upgrade is in progress, DHCP Configuration can't be changed",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Upgrade is in progress, DHCP Configuration can't be changed",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
       return FALSE;
    } 
    else if (ent_info->dhcp_serv_conf.ipmc_upgd_state) 
    {
-      sprintf(str,"AVM-SSU: Payload blade %s : IPMC Upgrade is in progress, DHCP Configuration can't be changed",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : IPMC Upgrade is in progress, DHCP Configuration can't be changed",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
       return FALSE;
    }
@@ -1604,7 +1612,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
       memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
       if (ent_info->dhcp_serv_conf.upgd_prgs == TRUE)
       {
-         sprintf(logbuf, "StandbyToActive: Payload blade %s : Upgrade Timer Start ", ent_info->ep_str.name);
+         snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : Upgrade Timer Start ", ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
          m_AVM_SSU_UPGR_TMR_START(avm_cb, ent_info);
@@ -1616,7 +1624,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
          {
             case IPMC_UPGD_TRIGGERED:
             {
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_TRIGGERED", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_TRIGGERED", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                /* Trigger the IPMC Upgrade */
@@ -1625,7 +1633,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                {
                   if(IPMC == ent_info->dhcp_serv_conf.upgrade_type)
                   {
-                     sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC IPMC_UPGD_TRIGGERED Failed", ent_info->ep_str.name);
+                     snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC IPMC_UPGD_TRIGGERED Failed", ent_info->ep_str.name);
                      m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                      ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -1633,7 +1641,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                   }
                   else if (INTEG == ent_info->dhcp_serv_conf.upgrade_type)
                   {
-                     sprintf(logbuf, "StandbyToActive: Payload blade %s : INTEG IPMC_UPGD_TRIGGERED Failed", ent_info->ep_str.name);
+                     snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : INTEG IPMC_UPGD_TRIGGERED Failed", ent_info->ep_str.name);
                      m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                      AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
@@ -1672,13 +1680,13 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                AVM_EVT_T          fsm_evt;
                uns32              rc;
 
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_BLD_LOCKED", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_BLD_LOCKED", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                if ((ent_info->adm_lock == AVM_ADM_LOCK) && (ent_info->current_state == AVM_ENT_INACTIVE))
                {
                   /* Entity is already in required state */
-                  sprintf(logbuf, "StandbyToActive: Payload blade %s : Blade Already Locked", ent_info->ep_str.name);
+                  snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : Blade Already Locked", ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                   rc = avm_upgrade_ipmc(avm_cb,ent_info);
@@ -1686,7 +1694,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                else
                {
                   /* Lock the blade again - just safe side. Wait till the target blade goes to INACTIVE state. */
-                  sprintf(logbuf, "StandbyToActive: Payload blade %s : Blade Lock Invoked", ent_info->ep_str.name);
+                  snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : Blade Lock Invoked", ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
                   fsm_evt.evt.mib_req  = &ssu_dummy_mib_obj;  
                   fsm_evt.fsm_evt_type = AVM_ADM_LOCK + AVM_EVT_ADM_OP_BASE -1;
@@ -1713,7 +1721,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                  FUND to get freed. 
                *************************************************************************/
 
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_IN_PRG", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_IN_PRG", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                m_AVM_ROLE_CHG_WAIT_TMR_START(avm_cb, ent_info, AVM_UPGD_IPMC_PLD_TMR_INTVL);
@@ -1723,7 +1731,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
             case IPMC_ROLLBACK_IN_PRG:
             {
                /* Same as IPMC_UPGD_IN_PRG case, instead of upgrade, roleback is in progress */ 
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_ROLLBACK_IN_PRG", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_ROLLBACK_IN_PRG", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                m_AVM_ROLE_CHG_WAIT_TMR_START(avm_cb, ent_info, AVM_UPGD_IPMC_PLD_TMR_INTVL);
@@ -1733,7 +1741,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
             case IPMC_PLD_BLD_ROLLBACK_IN_PRG:
             {
                /* Same as IPMC_UPGD_IN_PRG case, instead of upgrade, roleback of payload blade is in progress */
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_PLD_BLD_ROLLBACK_IN_PRG", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_PLD_BLD_ROLLBACK_IN_PRG", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                m_AVM_ROLE_CHG_WAIT_TMR_START(avm_cb, ent_info, AVM_UPGD_IPMC_PLD_MOD_TMR_INTVL); 
@@ -1743,7 +1751,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
             case IPMC_PLD_RTM_ROLLBACK_IN_PRG:
             {
                /* Same as IPMC_UPGD_IN_PRG case, instead of upgrade, roleback of payload RTM is in progress */
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_PLD_RTM_ROLLBACK_IN_PRG", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_PLD_RTM_ROLLBACK_IN_PRG", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                m_AVM_ROLE_CHG_WAIT_TMR_START(avm_cb, ent_info, AVM_UPGD_IPMC_PLD_MOD_TMR_INTVL); 
@@ -1755,7 +1763,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
                AVM_EVT_T          fsm_evt;
                uns32              rc;
 
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_DONE", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : IPMC State=IPMC_UPGD_DONE", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                /* unlock the target payload blade, after upgrading the IPMC */
@@ -1790,7 +1798,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
          {
             case BIOS_TMR_STARTED: 
             {
-               sprintf(logbuf, "StandbyToActive: Payload blade %s : BIOS State=BIOS_TMR_STARTED", ent_info->ep_str.name);
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive: Payload blade %s : BIOS State=BIOS_TMR_STARTED", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(logbuf, NCSFL_SEV_DEBUG);
 
                m_AVM_SSU_BIOS_UPGRADE_TMR_START(avm_cb, ent_info);   
@@ -1802,7 +1810,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
             case BIOS_EXP_BANK_0:
             case BIOS_EXP_BANK_1:
             {
-               sprintf(logbuf, "StandbyToActive:: Payload blade %s : BIOS State = :%d",
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive:: Payload blade %s : BIOS State = :%d",
                                         ent_info->ep_str.name,ent_info->dhcp_serv_conf.bios_upgd_state);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_DEBUG);
 
@@ -1812,7 +1820,7 @@ avm_role_change_check_pld_upgd_prg(AVM_CB_T *avm_cb)
 
             default:
             {
-               sprintf(logbuf, "StandbyToActive:: Payload blade %s : Invalid bios_upgd_state:%d",
+               snprintf(logbuf,AVM_LOG_STR_MAX_LEN-1, "StandbyToActive:: Payload blade %s : Invalid bios_upgd_state:%d",
                                         ent_info->ep_str.name,ent_info->dhcp_serv_conf.bios_upgd_state);
                m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
             }

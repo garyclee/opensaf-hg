@@ -136,10 +136,9 @@ get_entity_type_from_text(char *str)
 void
 ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
 {
-   NCS_BAM_CB *bam_cb = NULL;
    char        tmpStr[6];
 
-   if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
+   if((NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl) == NULL)
    {
       m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
       return ;
@@ -152,39 +151,40 @@ ent_path_from_type_location(BAM_ENT_DEPLOY_DESC *ent, char *ent_path)
       return ;
    }
 
-   strcpy(ent->ent_path, "{");
+   memset(ent->ent_path, 0, SAHPI_MAX_TEXT_BUFFER_LENGTH);
+   strncpy(ent->ent_path, "{", SAHPI_MAX_TEXT_BUFFER_LENGTH-1);
 
    /* put the type and location */
 
    sprintf(tmpStr, "%d", ent->ent_type);
-   strcat(ent->ent_path, tmpStr);
+   strncat(ent->ent_path, tmpStr, SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
-   strcat(ent->ent_path, ",");
+   strncat(ent->ent_path, ",", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
    sprintf(tmpStr, "%d", ent->location);
-   strcat(ent->ent_path, tmpStr);
+   strncat(ent->ent_path, tmpStr, SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
-   strcat(ent->ent_path, "}");
+   strncat(ent->ent_path, "}", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
    
    /* now pile the parent path */
    if( (ent_path != NULL) && (strlen(ent_path)) )
    {
-      strcat(ent->ent_path, ",");
-      strcat(ent->ent_path, ent_path);
+      strncat(ent->ent_path, ",", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
+      strncat(ent->ent_path, ent_path, SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
    }
    else
    { 
       /* Add root elem towards the end */
       sprintf(tmpStr, "%d", SAHPI_ENT_ROOT);
-      strcat(ent->ent_path, ",{");
-      strcat(ent->ent_path, tmpStr);
+      strncat(ent->ent_path, ",{", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
+      strncat(ent->ent_path, tmpStr, SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
-      strcat(ent->ent_path, ",");
+      strncat(ent->ent_path, ",", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
       sprintf(tmpStr, "%d", 0);
-      strcat(ent->ent_path, tmpStr);
+      strncat(ent->ent_path, tmpStr, SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
 
-      strcat(ent->ent_path, "}");
+      strncat(ent->ent_path, "}", SAHPI_MAX_TEXT_BUFFER_LENGTH-strlen(ent->ent_path)-1);
    }
 
    return ;

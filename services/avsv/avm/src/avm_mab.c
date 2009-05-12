@@ -585,6 +585,7 @@ avm_send_dynamic_data(AVM_CB_T *cb, AVM_ENT_INFO_T *ent_info, NCSMIB_PARAM_ID pa
    param_val.i_param_id = param_id;
    param_val.i_fmat_id =  fmt_id;
  
+   memset(&param_val,0,sizeof(NCSMIB_PARAM_VAL));
    memset(&mab_arg,'\0',sizeof(mab_arg));
    ncsmib_init(&local_mibarg);
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;

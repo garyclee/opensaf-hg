@@ -138,6 +138,8 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
    NCS_SEL_OBJ     mbcsv_ncs_sel_obj;
 
    m_AVD_LOG_FUNC_ENTRY("avd_init_proc");
+ 
+   memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
    
    /* check if the value of g_avd_hdl matches the avd_hdl passed  */
    if (avd_hdl_ptr == NULL)

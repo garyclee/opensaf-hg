@@ -735,7 +735,7 @@ uns32  avm_encode_warm_sync_rsp(AVM_CB_T *cb, NCS_MBCSV_CB_ENC *enc)
 
    memset(sprbuf, '\0', sizeof(sprbuf));   
 
-   sprintf(sprbuf, " ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d \n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt);
+   snprintf(sprbuf, sizeof(sprbuf)-1, " ent_updt = %d ent_cfg_updt = %d adm_op_updt = %d evt_id_updt = %d \n", cb->async_updt_cnt.ent_updt, cb->async_updt_cnt.ent_cfg_updt, cb->async_updt_cnt.ent_adm_op_updt, cb->async_updt_cnt.evt_id_updt);
 
    m_AVM_LOG_GEN_EP_STR("Async Update Counts", sprbuf, NCSFL_SEV_INFO);
 

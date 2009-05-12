@@ -617,7 +617,7 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB     *cb,
                   m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
                   m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(susi->su->name_net.value, susi->su->name_net.length);
                   m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(susi->si->name_net.value, susi->si->name_net.length);
-                  curr_susi->fsm = old_fsm_state;
+                  susi->fsm = old_fsm_state;
                   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SU_SI_REL);
                   return rc;
                }

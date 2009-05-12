@@ -227,11 +227,11 @@ saAmfParseSURankList(DOMNode *node, char *sgName)
                   if(strcmp(tag, "SUName") == 0)
                   {
                      memset(suName, 0, BAM_MAX_INDEX_LEN);
-                     strcpy(suName, val);
+                     strncpy(suName, val, BAM_MAX_INDEX_LEN-1);
                   }
                   else if(strcmp(tag, "rank") == 0)
                   {
-                     strcpy(suRank, val);
+                     strncpy(suRank, val, sizeof(suRank)-1);
                   }
 
                   XMLString::release(&tag);
@@ -518,12 +518,12 @@ saAmfParseCSIAttributes(DOMNode *node, char *csiName, char *siName)
                   if(strcmp(tag, "name") == 0)
                   {
                      memset(nvName, 0, BAM_MAX_INDEX_LEN);
-                     strcpy(nvName, val);
+                     strncpy(nvName, val, BAM_MAX_INDEX_LEN-1);
                   }
                   else if(strcmp(tag, "value") == 0)
                   {
                      memset(nvValue, 0, BAM_MAX_INDEX_LEN);
-                     strcpy(nvValue, val);
+                     strncpy(nvValue, val, BAM_MAX_INDEX_LEN-1);
                   }
                   XMLString::release(&tag);
                   XMLString::release(&val);
@@ -582,9 +582,10 @@ saAmfParseCSIPrototype(char *csiName, char*siName)
    }
 
    /* Add the prototype name */
-   strcpy(csiDName, csiName);
-   strcat(csiDName, ",");
-   strcat(csiDName, siName);
+   memset(csiDName, 0, BAM_MAX_INDEX_LEN);
+   strncpy(csiDName, csiName, BAM_MAX_INDEX_LEN-1);
+   strncat(csiDName, ",", BAM_MAX_INDEX_LEN-strlen(csiDName)-1);
+   strncat(csiDName, siName, BAM_MAX_INDEX_LEN-strlen(csiDName)-1);
 
    ncs_bam_build_mib_idx(&mib_idx, csiDName, NCSMIB_FMAT_OCT);
 
@@ -647,9 +648,9 @@ saAmfParseCSIInstance(DOMNode *node, char *siName)
          if(strcmp(tag, "name") == 0)
          {
             memset(csiName, 0, BAM_MAX_INDEX_LEN);
-            strcpy(csiName, val);
-            strcat(csiName, ",");
-            strcat(csiName, siName);
+            strncpy(csiName, val, BAM_MAX_INDEX_LEN-1);
+            strncat(csiName, ",", BAM_MAX_INDEX_LEN-strlen(csiName)-1);
+            strncat(csiName, siName, BAM_MAX_INDEX_LEN-strlen(csiName)-1);
          }
          else /*if(strcmp(tag, "rank") == 0) */
          {
@@ -860,8 +861,8 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
    SaAisErrorT    rc = SA_AIS_OK;
    DOMNode        *tmpNode = NULL;
    DOMNodeList    *children = NULL;
-   char           siDepName[BAM_MAX_INDEX_LEN];
-   char           tolTime[BAM_MAX_INDEX_LEN];
+   char           siDepName[BAM_MAX_INDEX_LEN] = {0};
+   char           tolTime[BAM_MAX_INDEX_LEN] = {0};
    char           *tag, *val;
    
    if(!node)
@@ -906,12 +907,12 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
              if(strcmp(tag, "name") == 0)
              {
                 memset(siDepName, 0, BAM_MAX_INDEX_LEN);
-                strcpy(siDepName, val);
+                strncpy(siDepName, val, BAM_MAX_INDEX_LEN-1);
              }
              else if(strcmp(tag, "tolTime") == 0)
              {
                 memset(tolTime, 0, BAM_MAX_INDEX_LEN);
-                strcpy(tolTime, val);
+                strncpy(tolTime, val, BAM_MAX_INDEX_LEN-1);
              }
 
              XMLString::release(&tag);
@@ -935,8 +936,6 @@ saAmfParseSIDepList (DOMNode *node, char *siName)
       }
 
       XMLString::release(&tmpString);
-      if(rc != SA_AIS_OK)
-        return rc;
    }
 
    return SA_AIS_OK;
@@ -1139,7 +1138,7 @@ saAmfParseSIList(DOMNode *node, char *parentSg)
                char *val = XMLString::transcode(attributesNodes->item(x)->getNodeValue());
                if(strcmp(tag, "rank") == 0)
                {
-                  strcpy(rank, val);
+                  strncpy(rank, val, sizeof(rank)-1);
                }
                XMLString::release(&tag);
                XMLString::release(&val);
@@ -1198,7 +1197,7 @@ saAmfParseSGInstance(DOMNode *node)
          if(strcmp(tag, "name") == 0)
          {
             /* this is name which is the index into the SG table */
-            strcpy(index, val);
+            strncpy(index, val, BAM_MAX_INDEX_LEN-1);
 
             XMLString::release(&tag);
             XMLString::release(&val);
@@ -1370,12 +1369,12 @@ saAmfParseSISURankList(DOMNode *node, char *siName)
                if(strcmp(tag, "SUName") == 0)
                {
                   memset(suName, 0, BAM_MAX_INDEX_LEN);
-                  strcpy(suName, val);
+                  strncpy(suName, val, BAM_MAX_INDEX_LEN-1);
                }
                else if(strcmp(tag, "rank") == 0)
                {
                   memset(rank, 0, 4);
-                  strcpy(rank, val);
+                  strncpy(rank, val, sizeof(rank)-1);
                }
                XMLString::release(&tag);
                XMLString::release(&val);
@@ -1482,7 +1481,7 @@ saAmfParseCSIParamNameList(DOMNode *node, char *csiName)
             if(strcmp(tag, "name") == 0)
             {
                memset(param, 0, BAM_MAX_INDEX_LEN);
-               strcpy(param, val);
+               strncpy(param, val, BAM_MAX_INDEX_LEN-1);
             }
             XMLString::release(&tag);
             XMLString::release(&val);

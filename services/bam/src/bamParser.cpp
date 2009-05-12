@@ -384,7 +384,6 @@ static uns32
 parse_ncs_config(DOMNode *ncsNode, BAM_PARSE_SUB_TREE sub_tree)
 {
    DOMNodeList *children;
-   NCS_BAM_CB  *bam_cb = NULL;
    uns32    rc=0;
 
    children = ncsNode->getChildNodes();
@@ -403,7 +402,7 @@ parse_ncs_config(DOMNode *ncsNode, BAM_PARSE_SUB_TREE sub_tree)
       }
    }
 
-   if( (bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
+   if((NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl) == NULL)
    {
       m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
       return NCSCC_RC_FAILURE;

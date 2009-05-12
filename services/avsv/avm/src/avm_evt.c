@@ -522,7 +522,7 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
 
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
@@ -530,12 +530,17 @@ avm_ins_pend(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
 
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if(arch_type == NULL)
+   {
+      /* Log it */
+      return NCSCC_RC_FAILURE;
+   }
 
    /* Start up the boot timer only if the target system architecture is not   */
    /* HP_CCLASS and not HP_PROLIANT.                                          */
@@ -1123,6 +1128,11 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    m_AVM_LOG_GEN_EP_STR("Unlock issued in INACTIVE state for", ent_info->ep_str.name, NCSFL_SEV_INFO);
    
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if(arch_type == NULL)
+   {
+      /* Log it */
+      return NCSCC_RC_FAILURE;
+   }
 
    /*****************************************************************
        While IPMC upgrade is going on, this event is not supposed
@@ -1133,14 +1143,14 @@ avm_inactive_adm_unlock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-       sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+       snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
@@ -1214,7 +1224,7 @@ avm_inactive_active(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
   
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
@@ -1222,7 +1232,7 @@ avm_inactive_active(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
@@ -1325,7 +1335,7 @@ avm_inactive_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
                   (ent_info->dhcp_serv_conf.ipmc_upgd_state == 0))))
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
 
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
@@ -1333,7 +1343,7 @@ avm_inactive_extracted(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
@@ -1367,14 +1377,14 @@ avm_inactive_resource_fail(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm
    if(ent_info->ipmc_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
    else if(ent_info->ipmc_mod_tmr.status == AVM_TMR_RUNNING)
    {
       avm_stop_tmr(avm_cb, &ent_info->ipmc_mod_tmr);
-      sprintf(str,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Unexpected Event received, while upgrading IPMC",
                      ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
    }
@@ -1451,6 +1461,11 @@ avm_active_adm_shutdown(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_ev
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_shutdown_req"); 
 
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if(arch_type == NULL)
+   {
+      /* Log it */
+      return NCSCC_RC_FAILURE;
+   }
 
    if((AVM_ADM_LOCK != ent_info->adm_lock)  && (!ent_info->adm_shutdown))
    {
@@ -1518,6 +1533,11 @@ avm_active_adm_lock(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *fsm_evt)
    m_AVM_LOG_FUNC_ENTRY("avm_active_adm_lock"); 
 
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+   if(arch_type == NULL)
+   {
+      /* Log it */
+      return NCSCC_RC_FAILURE;
+   }
 
    if(ent_info->adm_shutdown)
    {
@@ -3448,7 +3468,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
          if (NULL != ent_info->dhcp_serv_conf.curr_act_label->name.name)
          { 
             logbuf[0] = '\0'; 
-            sprintf(logbuf, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
+            snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : Came up with %s",ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          }
 
@@ -3458,7 +3478,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             avm_stop_tmr(avm_cb, &ent_info->upgd_succ_tmr);
             avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmUpgradeSuccess_ID);
             ent_info->dhcp_serv_conf.upgd_prgs = FALSE;
-            sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
+            snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : Upgraded successfully with %s",
                          ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          } 
@@ -3471,7 +3491,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 
         if(avm_check_config(ent_info->ep_str.name,&flag)==NCSCC_RC_FAILURE)
         {
-          sprintf(logbuf, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
+          snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: ssuHepler.conf file open has failed %s ","ssuHelper.conf" );
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           return NCSCC_RC_FAILURE;
         }
@@ -3481,12 +3501,12 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
           {
             /* flag=1 suggest that present blade is not 7221 its 7150 which has */
             /*has ipmc support of bios rollback if upgraded bios is currupted*/
-          sprintf(logbuf, "AVM-SSU: present blade is 7150  %s ", " ");
+          snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: present blade is 7150  %s ", " ");
           m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
           }
           else
           {
-            sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
+            snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : Bios Upgraded successfully", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
             m_AVM_SSU_BIOS_UPGRADE_TMR_START(avm_cb, ent_info);
             ent_info->dhcp_serv_conf.bios_upgd_state = BIOS_TMR_STARTED;
@@ -3500,7 +3520,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
       /* timer                                                   */
       else if (evt_type == HPI_FWPROG_SYS_BOOT)
       {
-         sprintf(logbuf, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
+         snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : Bios Boot Success", ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
          avm_stop_tmr(avm_cb, &ent_info->bios_upgrade_tmr);
@@ -3536,13 +3556,13 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
 /* functional                                                         */
 
             /* async update */
-            sprintf(logbuf, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
+            snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload %s : Upgrade Failed : BIOS UPGRADE TIMER RUNNING ", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
 
             m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
             return rc;
          } 
-         sprintf(logbuf, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
+         snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload blade %s : Upgrade Failed with %s, BootProgressStatus=%x",
                     ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name,ent_info->boot_prg_status);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
         avm_cb->upgrade_error_type = GEN_ERROR;
@@ -3550,7 +3570,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
         avm_send_boot_upgd_trap(avm_cb, ent_info, ncsAvmSwFwUpgradeFailure_ID);
 
          avm_ssu_dhcp_rollback(avm_cb, ent_info);
-         sprintf(logbuf, "AVM-SSU: Payloadblade %s : Rolling back to %s",
+         snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payloadblade %s : Rolling back to %s",
                                ent_info->ep_str.name,ent_info->dhcp_serv_conf.curr_act_label->name.name);
          m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_NOTICE);
          
@@ -3564,7 +3584,7 @@ avm_handle_fw_progress_event(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, void *f
             ent_info->dhcp_serv_conf.bios_upgd_state = 0;
             m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
             logbuf[0] = '\0';
-            sprintf(logbuf, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
+            snprintf(logbuf, sizeof(logbuf)-1, "AVM-SSU: Payload %s : BIOS UPGRADE TIMER RUNNING : Rollback Failed", ent_info->ep_str.name);
             m_AVM_LOG_DEBUG(logbuf,NCSFL_SEV_CRITICAL);
             return NCSCC_RC_FAILURE;
          } 
