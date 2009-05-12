@@ -248,7 +248,8 @@ const NCSFL_STR mab_hdln_set[] =
     { MAB_HDLN_IGNORING_NON_PRIMARY_MDS_SVC_EVT, "OAA ignoring Non-Primary MDS SVC event"},
     { MAB_HDLN_OAC_LOG_MDS_ENC_FAILURE, "OAC MDS Encoded MSG Failure"},
     { MAB_HDLN_OAC_LOG_MDS_DEC_FAILURE, "OAC MDS Decoded MSG Failure"},
-
+    { MAB_HDLN_MAS_ANCHR_FLTR_PAIR, "MAS Anchor Filter Pair" },
+   
     { 0,0 }
   };
 

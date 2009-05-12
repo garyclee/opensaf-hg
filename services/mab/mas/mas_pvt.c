@@ -274,9 +274,9 @@ uns32 mas_get_crd_role(MDS_HDL  mds_hdl, MDS_DEST dest, MAB_ANCHOR anc, V_DEST_R
             
             /* convert the MDS_DEST into a string */
             if (m_NCS_NODE_ID_FROM_MDS_DEST(dest) == 0)
-               sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(dest));
+               snprintf(addr_str,sizeof(addr_str)-1, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(dest));
             else
-               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
+               snprintf(addr_str,sizeof(addr_str)-1, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(dest), 0, (long)(dest));
 
             /* now log the message */
@@ -1004,10 +1004,10 @@ uns32 mas_flush_fltrs(MAS_TBL* inst,MDS_DEST vcard,MAB_ANCHOR anc,uns32 ss_id)
 
     /* convert the MDS_DEST into a string */
     if (m_NCS_NODE_ID_FROM_MDS_DEST(vcard) == 0)
-       sprintf(addr_str, "VDEST:%d", 
+       snprintf(addr_str,sizeof(addr_str)-1, "VDEST:%d", 
                m_MDS_GET_VDEST_ID_FROM_MDS_DEST(vcard));
     else
-       sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
+       snprintf(addr_str,sizeof(addr_str)-1, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                 m_NCS_NODE_ID_FROM_MDS_DEST(vcard), 0, 
                 (long)(vcard));
 
@@ -1309,9 +1309,12 @@ uns32 mas_info_request(MAB_MSG* msg)
             m_MAS_UNLK(&inst->lock);
             m_LOG_MAB_LOCK(MAB_LK_MAS_UNLOCKED,&inst->lock);
             ncshm_give_hdl(NCS_PTR_TO_INT32_CAST(msg->yr_hdl));
-
-            mas_relay_msg_to_mac(msg,inst,TRUE); 
-
+            
+            if (mas_relay_msg_to_mac(msg,inst,TRUE)!= NCSCC_RC_SUCCESS)
+            {
+                m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_MAS_ERR_MOVEROW_MAC_SND_FAILED,
+                                      mib_req->i_tbl_id);
+            }
             m_LOG_MAB_HEADLINE(NCSFL_SEV_ERROR, MAB_HDLN_MAS_PUSH_FISE_FAILED);
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
         }
@@ -1597,9 +1600,9 @@ uns32 mas_info_request(MAB_MSG* msg)
             
             /* convert the MDS_DEST into a string */
             if (m_NCS_NODE_ID_FROM_MDS_DEST(match_fltr->vcard) == 0)
-               sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(match_fltr->vcard));
+               snprintf(addr_str,sizeof(addr_str)-1, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(match_fltr->vcard));
             else
-               sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
+               snprintf(addr_str,sizeof(addr_str)-1, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(match_fltr->vcard), 0, (long)(match_fltr->vcard));
 
             /* now log the message */
@@ -1754,20 +1757,23 @@ uns32 mas_info_response(MAB_MSG* msg)
                 mib_rsp->rsp.i_status = NCSCC_RC_FAILURE;
             }
 
-            if(match_fltr->fltr.is_move_row_fltr != TRUE)
+            else 
             {
-                MAB_LM_EVT        mle;
-                MAB_LM_FLTR_NULL  fn;
-                fn.i_fltr_id    = 0;
-                memset(&fn.i_vcard, 0, sizeof(fn.i_vcard));
-                mle.i_args      = (NCSCONTEXT)&fn;
-                mle.i_event     = MAS_FLTR_MRRSP_NO_FLTR;
-                mle.i_usr_key   = inst->hm_hdl;
-                mle.i_vrid      = inst->vrid;
-                mle.i_which_mab = NCSMAB_MAS;
-                m_LOG_MAB_EVT(NCSFL_SEV_ERROR,MAB_EV_LM_MAS_FLTR_MRRSP_NO_FLTR);
-                inst->lm_cbfnc(&mle);
-                mib_rsp->rsp.i_status = NCSCC_RC_FAILURE;
+               if(match_fltr->fltr.is_move_row_fltr != TRUE)
+               {
+                   MAB_LM_EVT        mle;
+                   MAB_LM_FLTR_NULL  fn;
+                   fn.i_fltr_id    = 0;
+                   memset(&fn.i_vcard, 0, sizeof(fn.i_vcard));
+                   mle.i_args      = (NCSCONTEXT)&fn;
+                   mle.i_event     = MAS_FLTR_MRRSP_NO_FLTR;
+                   mle.i_usr_key   = inst->hm_hdl;
+                   mle.i_vrid      = inst->vrid;
+                   mle.i_which_mab = NCSMAB_MAS;
+                   m_LOG_MAB_EVT(NCSFL_SEV_ERROR,MAB_EV_LM_MAS_FLTR_MRRSP_NO_FLTR);
+                   inst->lm_cbfnc(&mle);
+                   mib_rsp->rsp.i_status = NCSCC_RC_FAILURE;
+               }
             }
         } /* if (failed == FALSE) */
 
@@ -2401,13 +2407,13 @@ uns32 mas_info_register(MAB_MSG* msg)
 
             /* log the failure*/
             m_LOG_MAB_EVT(NCSFL_SEV_NOTICE,MAB_EV_LM_MAS_FLTR_REG_EXIST);
-            sprintf(addr_str, " For Env-Id: %d, Table-Id :%d, ", inst->vrid, tbl_rec->tbl_id);
+            snprintf(addr_str,sizeof(addr_str)-1," For Env-Id: %d, Table-Id :%d, ", inst->vrid, tbl_rec->tbl_id);
             str_ptr = str_ptr + strlen(addr_str);
             if (m_NCS_NODE_ID_FROM_MDS_DEST(tbl_rec->dfltr.vcard) == 0)
-                sprintf(str_ptr, "Existing VDEST:%d, ",
+                snprintf(str_ptr,sizeof(addr_str)-1, "Existing VDEST:%d, ",
                         m_MDS_GET_VDEST_ID_FROM_MDS_DEST(tbl_rec->dfltr.vcard));
             else
-                    sprintf(str_ptr, "Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
+                    snprintf(str_ptr,sizeof(addr_str)-1, "Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                             m_NCS_NODE_ID_FROM_MDS_DEST(tbl_rec->dfltr.vcard), 0,
                             (long)(tbl_rec->dfltr.vcard));
             
@@ -2415,10 +2421,10 @@ uns32 mas_info_register(MAB_MSG* msg)
             str_ptr = str_ptr + strlen(addr_str);
 
             if (m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card) == 0)
-                sprintf(str_ptr, "Request From VDEST:%d, ",
+                snprintf(str_ptr,sizeof(addr_str)-1, "Request From VDEST:%d, ",
                         m_MDS_GET_VDEST_ID_FROM_MDS_DEST(msg->fr_card));
             else
-                sprintf(str_ptr, "Request From ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
+                snprintf(str_ptr,sizeof(addr_str)-1, "Request From ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%lu",
                         m_NCS_NODE_ID_FROM_MDS_DEST(msg->fr_card), 0,
                         (long)(msg->fr_card));
 

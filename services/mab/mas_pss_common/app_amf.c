@@ -130,7 +130,7 @@ ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS            *attribs,
     attribs->recommendedRecovery = recovery; 
     
     /* Fill in the Health check key */
-    strcpy(attribs->healthCheckKey.key,health_key);
+    strncpy(attribs->healthCheckKey.key,health_key,sizeof(attribs->healthCheckKey.key)-1);
     attribs->healthCheckKey.keyLen=strlen(attribs->healthCheckKey.key);
     attribs->invocationType = hc_inv_type; 
 
