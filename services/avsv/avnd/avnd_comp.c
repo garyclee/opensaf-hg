@@ -2114,6 +2114,11 @@ uns32 avnd_comp_cbk_send (AVND_CB           *cb,
       {
          curr_csi = (csi_rec) ? csi_rec : 
               m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&comp->csi_list));
+         if(!curr_csi)
+         {
+             rc = NCSCC_RC_FAILURE;
+             goto done;
+         }
 
          /* 
           * Populate the csi-desc structure.
@@ -2416,7 +2421,7 @@ if(TRUE == mib_upd_needed)
    param.obj_id = saAmfCompCurrProxyName_ID;
    param.name_net = comp->name_net;
    param.act = AVSV_OBJ_OPR_MOD;
-   strcpy(param.value,comp->pxy_comp->name_net.value);
+   strncpy(param.value,comp->pxy_comp->name_net.value, AVSV_MISC_STR_MAX_SIZE-1);
    param.value_len = strlen(comp->pxy_comp->name_net.value);
 
    rc = avnd_di_mib_upd_send(cb, &param);

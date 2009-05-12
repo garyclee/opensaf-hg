@@ -168,7 +168,8 @@ void avnd_srm_callback(NCS_SRMSV_RSRC_CBK_INFO *rsrc_cbk_info)
 
 done:
    /* unlock and give the handle*/
-   m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE); 
+   if(cb != 0)
+       m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE); 
    ncshm_give_hdl(gl_avnd_hdl);
    m_AVND_LOG_SRM(AVSV_LOG_SRM_CALLBACK, AVSV_LOG_SRM_FAILURE, NCSFL_SEV_WARNING);
    return;

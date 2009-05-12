@@ -216,9 +216,11 @@ done:
 ******************************************************************************/
 void avnd_evt_destroy (AVND_EVT *evt)
 {
-   uns32 type = evt->type;
+   uns32 type = 0;
 
    if (!evt) return;
+
+   type = evt->type;
 
    switch (type)
    {

@@ -2922,7 +2922,7 @@ uns32  avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
     */
    dec->i_action = NCS_MBCSV_ACT_ADD;
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff, "\n\nReceived reotype = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
+   snprintf(logbuff, SA_MAX_NAME_LENGTH-1, "\n\nReceived reotype = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
 
    if (dec->i_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG)
@@ -3615,7 +3615,7 @@ uns32  avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
    }
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
+   snprintf(logbuff,SA_MAX_NAME_LENGTH-1, "\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
            updt_cnt->cb_updt, updt_cnt->avnd_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt, updt_cnt->sg_su_oprlist_updt,
           updt_cnt->sg_admin_si_updt, updt_cnt->su_si_rel_updt, updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->csi_parm_list_updt,
           updt_cnt->hlt_updt, updt_cnt->sus_per_si_rank_updt, updt_cnt->comp_cs_type_sup_updt, updt_cnt->cs_type_param_updt);
@@ -3623,7 +3623,7 @@ uns32  avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d sus=%d, ccstype=%d, cspar=%d \n",
+   snprintf(logbuff,SA_MAX_NAME_LENGTH-1, "\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d sus=%d, ccstype=%d, cspar=%d \n",
            cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.avnd_updt, cb->async_updt_cnt.sg_updt, cb->async_updt_cnt.su_updt,
            cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt, cb->async_updt_cnt.sg_admin_si_updt,
            cb->async_updt_cnt.su_si_rel_updt, cb->async_updt_cnt.comp_updt, cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.csi_parm_list_updt,
@@ -3700,7 +3700,7 @@ uns32  avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
    ncs_dec_skip_space(&dec->i_uba, sizeof(uns32));
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"\n\nReceived reotype  data sync = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
+   snprintf(logbuff, SA_MAX_NAME_LENGTH-1, "\n\nReceived reotype  data sync = %d num obj = %d --------------------\n", dec->i_reo_type,num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
    /* 
     * Decode data received in the message.

@@ -1740,7 +1740,7 @@ static uns32 avd_sg_2n_susi_sucss_su_oper(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL
    {
       /* quiesced all and SU is in the operation list */         
 
-      a_susi = avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
+      avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
       
       if ((s_susi != AVD_SU_SI_REL_NULL) && (s_susi->su->readiness_state == NCS_IN_SERVICE))
       {
@@ -2369,7 +2369,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
                                 AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
 
-   AVD_SU_SI_REL *s_susi, *a_susi;
+   AVD_SU_SI_REL *s_susi;
    AVD_SU *i_su, *a_su;
 
    m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_susi_sucss_func");
@@ -2474,7 +2474,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
              * for the SU. Send a D2N-INFO_SU_SI_ASSIGN with remove all for
              * this SU.
              */
-            a_susi = avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
+            avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
             if (avd_sg_su_si_del_snd(cb,su) == NCSCC_RC_FAILURE)
             {
                /* log fatal error */           
@@ -2556,7 +2556,7 @@ uns32 avd_sg_2n_susi_sucss_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
 uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
                                 AVSV_SUSI_ACT act, SaAmfHAStateT state)
 {
-   AVD_SU_SI_REL *s_susi, *o_susi, *a_susi;
+   AVD_SU_SI_REL *s_susi, *o_susi;
    AVD_SU *a_su;
    AVD_SU_SI_STATE old_fsm_state;
    NCS_BOOL flag;
@@ -2796,7 +2796,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
       else if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
          (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
          && (su->sg_of_su->admin_si->si_switch == AVSV_SI_TOGGLE_SWITCH) &&
-((a_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE))
+(avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE)
       != AVD_SU_SI_REL_NULL))
       {
          /* Message with modified quiesced all and an SI is in the admin 
@@ -2827,7 +2827,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
       } /* if ((susi == AVD_SU_SI_REL_NULL) && (act == AVSV_SUSI_ACT_MOD) &&
          (state == SA_AMF_HA_QUIESCED) && (su->sg_of_su->admin_si != AVD_SI_NULL)
          && (su->sg_of_su->admin_si == AVSV_SI_TOGGLE_SWITCH) &&
-((a_susi = avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE))
+(avd_su_susi_struc_find(cb,su,su->sg_of_su->admin_si->name_net,FALSE)
       != AVD_SU_SI_REL_NULL)) */
       else 
       {
@@ -2871,7 +2871,7 @@ uns32 avd_sg_2n_susi_fail_func(AVD_CL_CB *cb,AVD_SU *su,AVD_SU_SI_REL *susi,
           * send D2N-INFO_SU_SI_ASSIGN remove all for the SU. 
           * Send a D2N-INFO_SU_SI_ASSIGN with remove all for this SU.
           */
-         a_susi = avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
+         avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
          
          if (avd_sg_su_si_del_snd(cb,su) == NCSCC_RC_FAILURE)
          {
@@ -3534,7 +3534,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb,AVD_SU *su)
           * the stable state.
           */
          
-         a_susi = avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
+         avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);
          
          if (s_susi != AVD_SU_SI_REL_NULL)
          {
@@ -3739,7 +3739,7 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb,AVD_SU *su)
              * for the SU. If no standby, change state to stable. Free all the 
              * SI assignments to this SU.
              */
-            a_susi = avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);            
+            avd_sg_2n_act_susi(cb,su->sg_of_su,&s_susi);            
             if (s_susi != AVD_SU_SI_REL_NULL)
             {   
                avd_sg_su_si_del_snd(cb,s_susi->su);

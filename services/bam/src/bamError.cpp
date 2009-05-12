@@ -54,7 +54,7 @@ bool DOMBamErrorHandler::handleError(const DOMError& domError)
 
     char *str1 = XMLString::transcode(domError.getLocation()->getURI());
     char *str2 = XMLString::transcode(domError.getMessage());
-    sprintf(location, "%s%ld, %s%ld", "line: ", 
+    snprintf(location, sizeof(location)-1, "%s%ld, %s%ld", "line: ", 
             domError.getLocation()->getLineNumber(),
             "char: ", domError.getLocation()->getColumnNumber()); 
 

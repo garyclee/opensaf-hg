@@ -387,7 +387,7 @@ static void
 ncs_bam_init_proc(uns32 *bam_hdl) 
 {
    NCS_BAM_CB *bam_cb = NULL ;
-   NCS_PATRICIA_PARAMS  patricia_params;
+   NCS_PATRICIA_PARAMS  patricia_params = {0};
    uns32       rc=0;
 
    /* Sanitise the value of the global pointer  */
@@ -549,11 +549,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      strcpy(filename, OSAF_SYSCONFDIR "NCSSystemBOM.xml");
+      strncpy(filename, OSAF_SYSCONFDIR "NCSSystemBOM.xml", BAM_MAX_INDEX_LEN-1);
    }
 
    /* Now set the NCS filename inthe CB */
-   strcpy(cb->ncs_filename, filename);
+   strncpy(cb->ncs_filename, filename, BAM_MAX_INDEX_LEN-1);
 
    /* repeat the above for APP XML file */
    if(ncs_bam_extract_app_filename(req_info->info.create.argc, 
@@ -562,11 +562,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      strcpy(filename, OSAF_SYSCONFDIR "AppConfig.xml");
+      strncpy(filename, OSAF_SYSCONFDIR "AppConfig.xml", BAM_MAX_INDEX_LEN-1);
    }
 
    /* Now set the filename inthe CB */
-   strcpy(cb->app_filename, filename);
+   strncpy(cb->app_filename, filename, BAM_MAX_INDEX_LEN-1);
 
    /*
    ** Fill in the control block with the path and filename of XML file
@@ -579,11 +579,11 @@ uns32 ncs_bam_initialize(NCS_LIB_REQ_INFO *req_info)
 /*      m_LOG_BAM_HEADLINE(BAM_FILE_ARG_IGNORED, NCSFL_SEV_ERROR); */
 
       /* set the default */
-      strcpy(filename, OSAF_SYSCONFDIR "ValidationConfig.xml");
+      strncpy(filename, OSAF_SYSCONFDIR "ValidationConfig.xml", BAM_MAX_INDEX_LEN-1);
    }
 
    /* Now set the filename inthe CB */
-   strcpy(cb->hw_filename, filename);
+   strncpy(cb->hw_filename, filename, BAM_MAX_INDEX_LEN-1);
 
 
    /* create and start the BAM thread with the cb handle argument */

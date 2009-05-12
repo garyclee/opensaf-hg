@@ -789,6 +789,10 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
          goto error;
       }
    }
+   else{
+      rc = NCSCC_RC_FAILURE;
+      goto error;
+   }
    memset(notify, 0, num * sizeof(SaClmClusterNotificationT));
    
    /* Fill the notify buffer with the node info */

@@ -412,6 +412,9 @@ uns32 ava_mds_rcv (AVA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    AVSV_NDA_AVA_MSG *msg = (AVSV_NDA_AVA_MSG *)rcv_info->i_msg;
    uns32            rc = NCSCC_RC_SUCCESS;
 
+   if(!msg)
+       return NCSCC_RC_FAILURE;
+
    /* process the message */
    rc = ava_avnd_msg_prc(cb, msg);
 

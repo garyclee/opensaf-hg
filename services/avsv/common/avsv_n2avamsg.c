@@ -221,10 +221,7 @@ uns32 avsv_amf_cbk_copy (AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
    uns32 rc = NCSCC_RC_SUCCESS;
 
    if (!o_dcbk || !scbk)
-   {
-      rc = NCSCC_RC_FAILURE;
-      goto done;
-   }
+      return  NCSCC_RC_FAILURE;
 
    /* allocate the dest cbk-info */
    *o_dcbk = m_MMGR_ALLOC_AVSV_AMF_CBK_INFO;

@@ -74,7 +74,7 @@ bam_fill_dependant_ent_name(DOMNode *node,  BAM_ENT_DEPLOY_DESC *deploy_ent)
 
          if(strcmp(tag, "EntityDeploymentInstanceName") == 0)
          {
-            strcpy(deploy_ent->depends_on_for_act, val);
+            strncpy(deploy_ent->depends_on_for_act, val, NCS_MAX_INDEX_LEN-1);
          }
          XMLString::release(&tag);
          XMLString::release(&val);
@@ -193,7 +193,7 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
 
             if(strcmp(tag, "EntityTypeInstanceName") == 0)
             {
-               strcpy(deploy_ent->ent_name, val);
+               strncpy(deploy_ent->ent_name, val, NCS_MAX_INDEX_LEN-1);
             }
             else if(strcmp(tag, "EntityLocation") == 0)
             {
@@ -201,11 +201,11 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
             }
             else if(strcmp(tag, "NodeName") == 0)
             {
-               strcpy(deploy_ent->ncs_node_name, val);
+               strncpy(deploy_ent->ncs_node_name, val, NCS_MAX_INDEX_LEN-1);
             }
             else if(strcmp(tag, "Name") == 0)
             {
-               strcpy(deploy_ent->desc_name, val);
+               strncpy(deploy_ent->desc_name, val, NCS_MAX_INDEX_LEN-1);
             }
             else if(strcmp(tag, "HPIEntityType") == 0)
             {
@@ -243,7 +243,7 @@ parseDeploymentInstance(DOMNode *node, char *ent_path, char *parent_ent)
    
    if(parent_ent)
    {
-      strcpy(deploy_ent->parent_ent_name, parent_ent);
+      strncpy(deploy_ent->parent_ent_name, parent_ent, NCS_MAX_INDEX_LEN-1);
    }
      
    if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
@@ -317,27 +317,27 @@ parse_net_boot_childs(DOMNode *node, BAM_ENT_DEPLOY_DESC *deploy_ent)
             memcpy(ptr, (char *)&int_val, sizeof(uns32));
             ptr[4] = '\0';
             
-            strcpy(deploy_ent->tftpServIp, ptr);
+            strncpy(deploy_ent->tftpServIp, ptr, NCS_MAX_INDEX_LEN-1);
          }
          else if(strcmp(tag, "label1Name") == 0)
          {
-            strcpy(deploy_ent->label1Name, val);
+            strncpy(deploy_ent->label1Name, val, NCS_MAX_INDEX_LEN-1);
          }
          else if(strcmp(tag, "label1FileName") == 0)
          {
-            strcpy(deploy_ent->label1FileName, val);
+            strncpy(deploy_ent->label1FileName, val, NCS_MAX_INDEX_LEN-1);
          }
          else if(strcmp(tag, "label2Name") == 0)
          {
-            strcpy(deploy_ent->label2Name, val);
+            strncpy(deploy_ent->label2Name, val, NCS_MAX_INDEX_LEN-1);
          }
          else if(strcmp(tag, "label2FileName") == 0)
          {
-             strcpy(deploy_ent->label2FileName, val);
+             strncpy(deploy_ent->label2FileName, val, NCS_MAX_INDEX_LEN-1);
          }
          else if(strcmp(tag, "preferredLabel") == 0)
          {
-            strcpy(deploy_ent->preferredLabel, val);
+            strncpy(deploy_ent->preferredLabel, val, NCS_MAX_INDEX_LEN-1);
          }
  
       }
@@ -448,9 +448,10 @@ bam_send_hw_deployment_mibs(void)
       if(ent != NULL)
       {
          /* send the related MIBS */
-          strcpy(ent_path, "{");
-          strcat(ent_path, ent->ent_path);
-          strcat(ent_path, "}");
+          memset(ent_path, 0, BAM_MAX_INDEX_LEN);
+          strncpy(ent_path, "{", BAM_MAX_INDEX_LEN-1);
+          strncat(ent_path, ent->ent_path, BAM_MAX_INDEX_LEN-strlen(ent_path)-1);
+          strncat(ent_path, "}", BAM_MAX_INDEX_LEN-strlen(ent_path)-1);
 
 	       ncs_bam_build_mib_idx(&mib_idx, ent_path, NCSMIB_FMAT_OCT);	
 
@@ -545,28 +546,22 @@ bam_send_hw_deployment_mibs(void)
                   ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
                                  ent->label1FileName, format);
 
-               if(ent->label2Name != NULL)
-               {
-                  rc = ncs_bam_search_table_for_oid(gl_hwDeploymentEnt,
-                              gl_hwDeploymentEnt_size,
-                              "hwDeployment",
-                              "label2Name", &table_id, &param_id, &format);
+               rc = ncs_bam_search_table_for_oid(gl_hwDeploymentEnt,
+                           gl_hwDeploymentEnt_size,
+                           "hwDeployment",
+                           "label2Name", &table_id, &param_id, &format);
 
-                  if(rc == SA_AIS_OK)
-                     ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
+               if(rc == SA_AIS_OK)
+                  ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
                                  ent->label2Name, format);
-               }
-               if(ent->label2FileName != NULL)
-               {
-                  rc = ncs_bam_search_table_for_oid(gl_hwDeploymentEnt,
-                              gl_hwDeploymentEnt_size,
-                              "hwDeployment",
-                              "label2FileName", &table_id, &param_id, &format);
+               rc = ncs_bam_search_table_for_oid(gl_hwDeploymentEnt,
+                           gl_hwDeploymentEnt_size,
+                           "hwDeployment",
+                           "label2FileName", &table_id, &param_id, &format);
 
-                  if(rc == SA_AIS_OK)
-                      ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
-                                 ent->label2FileName, format);
-               }
+               if(rc == SA_AIS_OK)
+                   ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
+                              ent->label2FileName, format);
 
                rc = ncs_bam_search_table_for_oid(gl_hwDeploymentEnt,
                               gl_hwDeploymentEnt_size,
@@ -576,8 +571,6 @@ bam_send_hw_deployment_mibs(void)
                if(rc == SA_AIS_OK)
                   ncs_bam_build_and_generate_mibsets(table_id, param_id, &mib_idx,
                                  ent->preferredLabel, format);
-
-
             }
          }
 
@@ -594,9 +587,10 @@ bam_send_hw_deployment_mibs(void)
                                               (uns8 *)ent->depends_on_for_act);
             if(dep_ent != NULL)
             {
-                strcpy(dep_ent_path, "{");
-                strcat(dep_ent_path, dep_ent->ent_path);
-                strcat(dep_ent_path, "}");
+                memset(dep_ent_path, 0, BAM_MAX_INDEX_LEN);
+                strncpy(dep_ent_path, "{", BAM_MAX_INDEX_LEN-1);
+                strncat(dep_ent_path, dep_ent->ent_path, BAM_MAX_INDEX_LEN-strlen(dep_ent_path)-1);
+                strncat(dep_ent_path, "}", BAM_MAX_INDEX_LEN-strlen(dep_ent_path)-1);
 
                if(strlen(dep_ent_path))
                {
@@ -622,9 +616,10 @@ bam_send_hw_deployment_mibs(void)
    {
       ent = list_node->node;
 
-      strcpy(ent_path, "{");
-      strcat(ent_path, ent->ent_path);
-      strcat(ent_path, "}");
+      memset(ent_path, 0, BAM_MAX_INDEX_LEN);
+      strncpy(ent_path, "{", BAM_MAX_INDEX_LEN-1);
+      strncat(ent_path, ent->ent_path, BAM_MAX_INDEX_LEN-strlen(ent_path)-1);
+      strncat(ent_path, "}", BAM_MAX_INDEX_LEN-strlen(ent_path)-1);
 
       ncs_bam_build_mib_idx(&mib_idx, ent_path, NCSMIB_FMAT_OCT);	
       

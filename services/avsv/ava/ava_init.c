@@ -146,10 +146,15 @@ uns32 ava_create (NCS_LIB_CREATE *create_info)
    /* fetch the comp name from the env variable */
    if ( getenv("SA_AMF_COMPONENT_NAME") )
    {
-      strcpy(cb->comp_name_net.value, 
-                   getenv("SA_AMF_COMPONENT_NAME"));
-      cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
-      m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
+      if(strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
+          strcpy(cb->comp_name_net.value, 
+                       getenv("SA_AMF_COMPONENT_NAME"));
+          cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
+          m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
+      }else {
+          rc = NCSCC_RC_FAILURE;
+          goto error;
+      }
    }
 
    /* assign the AvA pool-id (used by hdl-mngr) */

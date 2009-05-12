@@ -136,7 +136,7 @@ struct avm_cb
 
    /*The MAB handle returned after the initialization*/
    uns32                    mab_hdl;
-   uns32                    mab_row_hdls[(NCSMIB_TBL_AVM_END - NCSMIB_TBL_AVM_BASE)+1];
+   uns32                    mab_row_hdls[(NCSMIB_TBL_AVM_END - NCSMIB_TBL_AVM_BASE)+2];
    NCS_LOCK                 lock;
 
    AVM_TMR_T                eda_init_tmr;

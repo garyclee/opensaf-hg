@@ -128,11 +128,12 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
       return;
    }
 
+   spons_si_node = dep_si->spons_si_list;
+
    /* Check if the sponsor is the first node of the list */
    if (m_CMP_NORDER_SANAMET(dep_si->spons_si_list->si->name_net, 
                             si_dep_rec->indx_mib.si_name_prim) == 0)
    {
-      spons_si_node = dep_si->spons_si_list;
       dep_si->spons_si_list = spons_si_node->next;
       m_MMGR_FREE_AVD_SPONS_SI_LIST(spons_si_node); 
    }
@@ -456,6 +457,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
   
       /* Since the SI Dep. is been removed, adjust the dependent SI dep state accordingly */
       si = avd_si_struc_find(cb, rec->indx.si_name_prim, FALSE);
+      if (si == AVD_SI_NULL) return;
 
       if (rec->si_dep_timer.is_active == TRUE)
       {

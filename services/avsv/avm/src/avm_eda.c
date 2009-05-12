@@ -328,7 +328,7 @@ avm_evt_callback(
    pattern_size = AVM_MAX_PATTERN_SIZE;
 
    rc = avm_alloc_pattern_array(&pattern_array, num_patterns, pattern_size);
-   if(NCSCC_RC_SUCCESS != rc)
+   if((NCSCC_RC_SUCCESS != rc) || (pattern_array == NULL))
    {
       m_AVM_LOG_INVALID_VAL_ERROR(rc);
 
