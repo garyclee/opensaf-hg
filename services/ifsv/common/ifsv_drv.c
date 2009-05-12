@@ -347,8 +347,11 @@ ifsv_register_hw_driver (NCS_IFSV_PORT_REG *reg_msg)
    NCS_IFSV_PORT_TYPE        port_type;
    IFSV_DRV_CB               *drv_cb;
    uns32                     drv_hdl = m_IFSV_DRV_GET_HDL;   
-  
-   if(reg_msg->hw_get_set_cb == NULL)
+ 
+   if (reg_msg == NULL)
+      return res;
+ 
+   if (reg_msg->hw_get_set_cb == NULL)
      return res;
 
    if(((reg_msg->port_info.if_am & NCS_IFSV_IAM_MTU) == NCS_IFSV_IAM_MTU ) ||

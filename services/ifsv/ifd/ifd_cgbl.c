@@ -143,8 +143,10 @@ static uns32 ifsv_gbl_object_set(NCSCONTEXT hdl, NCSMIB_ARG *arg,
    (cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, arg->i_mib_key)) == 0 ? (cb = 
       ncshm_take_hdl(NCS_SERVICE_ID_IFND, arg->i_mib_key)):(cb = cb);
 
-   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+   if (cb == NULL)
+      return NCSCC_RC_FAILURE; 
 
+   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
    /* Set the object */
    if(test_flag != TRUE)

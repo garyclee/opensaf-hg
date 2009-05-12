@@ -933,6 +933,8 @@ uns32 ifd_ipxs_evt_process(IFSV_CB *cb, IFSV_EVT *evt)
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, ipxs_hdl);
+   if (ipxs_cb == IFSV_NULL)
+      return NCSCC_RC_FAILURE;
 
    switch(ipxs_evt->type)
    {

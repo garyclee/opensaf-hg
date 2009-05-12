@@ -351,7 +351,7 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
 
    p_vip_mode_data = (NCS_CLI_MODE_DATA *)
                      m_MMGR_ALLOC_NCSCLI_OPAQUE(sizeof(NCS_CLI_MODE_DATA));
-   strcpy(p_vip_mode_data->vipApplName, arg_list->i_arg_record[2].cmd.strval);
+   strncpy(p_vip_mode_data->vipApplName, arg_list->i_arg_record[2].cmd.strval,m_NCS_IFSV_VIP_APPL_NAME-1);
    p_vip_mode_data->poolHdl = arg_list->i_arg_record[4].cmd.intval;
 
 

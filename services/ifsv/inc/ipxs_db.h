@@ -106,7 +106,7 @@ typedef struct ipxs_cb
    
    uns32                oac_hdl;     /* OAC Handle */
    uns8                 hm_pid;     /* Handle Manager Pool ID */
-   uns32                netlink_fd; /* Netlink socket fd */
+   int32                netlink_fd; /* Netlink socket fd */
    SYSF_MBX             mbx;
    NCS_BOOL             netlink_updated;
    NETLINK_ADDR_INFO    nl_addr_info;

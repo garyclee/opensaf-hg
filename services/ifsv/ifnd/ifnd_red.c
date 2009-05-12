@@ -374,10 +374,6 @@ ifnd_data_retrival_from_ifd (IFSV_CB *ifsv_cb,
        * with the IFA */
          ifsv_ifa_app_if_info_indicate(&create_intf->intf_data,
                    IFSV_INTF_REC_ADD, create_intf->if_attr, ifsv_cb);
-         if(res != NCSCC_RC_SUCCESS)
-         {
-           goto end;
-         }
     }
     else
     {
@@ -387,16 +383,20 @@ ifnd_data_retrival_from_ifd (IFSV_CB *ifsv_cb,
          create_intf->intf_data.if_info.oper_state = NCS_STATUS_DOWN;
 
          res = ifsv_intf_rec_add(&create_intf->intf_data, ifsv_cb);
-
-         /* Send an MDS message for delete */
-         ifnd_sync_send_to_ifd(&create_intf->intf_data, IFSV_INTF_REC_DEL, 0,
-                               ifsv_cb, &msg_rcvd);
-
-
          if(res != NCSCC_RC_SUCCESS)
          {
            m_IFND_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
             "ifnd_data_retrival_from_ifd :  Same Node :No Rec : ifsv_intf_rec_add failed, Index = ",create_intf->intf_data.if_index);
+           goto end;
+         }
+
+         /* Send an MDS message for delete */
+         res = ifnd_sync_send_to_ifd(&create_intf->intf_data, IFSV_INTF_REC_DEL, 0,
+                               ifsv_cb, &msg_rcvd);
+         if(res != NCSCC_RC_SUCCESS)
+         {
+           m_IFND_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
+            "ifnd_data_retrival_from_ifd :  Same Node :No Rec : ifnd_sync_send_to_ifnd failed , Index = ",create_intf->intf_data.if_index);
            goto end;
          }
 

@@ -1884,7 +1884,7 @@ vip_change_mode_vip_CEF(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *p_cef_data)
 
    p_vip_mode_data = (NCS_CLI_MODE_DATA *)
                      m_MMGR_ALLOC_NCSCLI_OPAQUE(sizeof(NCS_CLI_MODE_DATA));
-   strcpy(p_vip_mode_data->vipApplName, arg_list->i_arg_record[2].cmd.strval);
+   strncpy(p_vip_mode_data->vipApplName, arg_list->i_arg_record[2].cmd.strval,m_NCS_IFSV_VIP_APPL_NAME-1);
    p_vip_mode_data->poolHdl = arg_list->i_arg_record[4].cmd.intval;
 
 
@@ -2303,7 +2303,7 @@ vip_cli_display_all(NCSCLI_CEF_DATA *p_cef_data,
    NCS_IPPFX               nworder_dest;   /* an IP Address and IPMask  */
    uns8 ip_addr_str[60]={'\0'};
    uns8 hdl_str[20]={'\0'};
-   uns8 app_name[150]={'\0'};
+   uns8 app_name[270]={'\0'};
    uns8 app_handle[60]={'\0'};
    uns8 ip_pool_type[60]={'\0'};
    uns8 installed_intf[128]={'\0'};
@@ -2325,10 +2325,10 @@ vip_cli_display_all(NCSCLI_CEF_DATA *p_cef_data,
    strcat(ip_addr_str, "IpAddress/Masklen   :  ");
    strcat(ip_addr_str,ip_net_str);
 
-      strcat(app_name, "Application         :  ");
-   strcat(app_name,vip_data_display.p_service_name);
+   strcat(app_name, "Application         :  ");
+   strncat(app_name, vip_data_display.p_service_name, sizeof(app_name)-24);
  
-      strcat(app_handle, "Handle              :  ");
+   strcat(app_handle, "Handle              :  ");
    sprintf(hdl_str, "%d", vip_data_display.handle);
    strcat(app_handle, hdl_str);
 

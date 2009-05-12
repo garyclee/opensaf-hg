@@ -79,7 +79,11 @@ ifd_binding_mib_send_evt (IFSV_CB *cb, uns8 portnum, NCS_IFSV_IFINDEX masterIfin
       evt->info.ifd_evt.info.intf_create.intf_data.spt_info.subscr_scope = NCS_IFSV_SUBSCR_INT;
 
       temp_intf_data = ifsv_intf_rec_find (masterIfindex, cb);
-
+      if (temp_intf_data == IFSV_NULL)
+      {
+         ifsv_evt_destroy(evt);  
+         return NCSCC_RC_FAILURE;
+      }
       evt->info.ifd_evt.info.intf_create.intf_data.if_info   = temp_intf_data->if_info;
       evt->info.ifd_evt.info.intf_create.intf_data.if_info.bind_master_ifindex =
                                                                                        masterIfindex;
