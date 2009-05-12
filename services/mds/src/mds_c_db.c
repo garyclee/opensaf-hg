@@ -1237,53 +1237,63 @@ uns32 mds_subtn_tbl_change_explicit (MDS_SVC_HDL svc_hdl, MDS_SVC_ID subscr_svc_
                     {/* Await Active Timer is running */
                         
                         /* so just give Await Active to user no matter vdest policy*/
-                        mds_mcm_user_event_callback(svc_hdl, 
+                        if ( NCSCC_RC_SUCCESS != mds_mcm_user_event_callback(svc_hdl, 
                                                     m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                     subscr_svc_id,
                                                     V_DEST_RL_ACTIVE,
                                                     temp_subtn_result_info->key.vdest_id,
                                                     0, 
-                                                    NCSMDS_NO_ACTIVE, temp_subtn_result_info->rem_svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED); 
-
+                                                    NCSMDS_NO_ACTIVE, temp_subtn_result_info->rem_svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED) ) 
+                        {
+                           m_MDS_LOG_ERR("MCM_DB :mds_mcm_user_event_callback: Await Active Entry: F, svc_id=%d, subscribed_svc=%d",m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),subscr_svc_id);
+                        }
                     }
                     else
                     {/* Active entry exist */
     
                         /* Call user callback UP for first active*/
-                        mds_mcm_user_event_callback(svc_hdl, 
+                        if ( NCSCC_RC_SUCCESS != mds_mcm_user_event_callback(svc_hdl, 
                                                     m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                     subscr_svc_id,
                                                     V_DEST_RL_ACTIVE,
                                                     temp_subtn_result_info->key.vdest_id,
                                                     temp_subtn_result_info->info.active_vdest.active_route_info->next_active_in_turn->key.adest, 
-                                                    NCSMDS_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word);
-                        
+                                                    NCSMDS_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word))
+                        {
+                           m_MDS_LOG_ERR("MCM_DB :mds_mcm_user_event_callback: Active Entry: F, svc_id=%d, subscribed_svc=%d",m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),subscr_svc_id);
+                        }
                     }
                 }
                 else if (temp_subtn_result_info->key.vdest_id == m_VDEST_ID_FOR_ADEST_ENTRY)
                 {/* This is ADEST entry */
 
                     /* so just give UP to user */
-                    mds_mcm_user_event_callback(svc_hdl, 
+                    if ( NCSCC_RC_SUCCESS != mds_mcm_user_event_callback(svc_hdl, 
                                                 m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                 subscr_svc_id,
                                                 V_DEST_RL_ACTIVE,
                                                 m_VDEST_ID_FOR_ADEST_ENTRY,
                                                 temp_subtn_result_info->key.adest, 
-                                                NCSMDS_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word);
+                                                NCSMDS_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word) )
+                    {
+                       m_MDS_LOG_ERR("MCM_DB :mds_mcm_user_event_callback: ADEST Entry: F, svc_id=%d, subscribed_svc=%d",m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),subscr_svc_id);
+                    }
                 }
                 else
                 {/* This is VDEST entry, it can be active or standby */
                     if (temp_subtn_info->view == MDS_VIEW_RED)
                     {
                         /* Call user callback RED_UP for all instances*/
-                        mds_mcm_user_event_callback(svc_hdl, 
+                        if ( NCSCC_RC_SUCCESS != mds_mcm_user_event_callback(svc_hdl, 
                                                 m_MDS_GET_PWE_ID_FROM_SVC_HDL(svc_hdl),
                                                 subscr_svc_id,
                                                 V_DEST_RL_ACTIVE,
                                                 temp_subtn_result_info->key.vdest_id,
                                                 temp_subtn_result_info->key.adest, 
-                                                NCSMDS_RED_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word);
+                                                NCSMDS_RED_UP, temp_subtn_result_info->rem_svc_sub_part_ver, temp_subtn_result_info->rem_svc_arch_word) )
+                        {
+                           m_MDS_LOG_ERR("MCM_DB :mds_mcm_user_event_callback: RED_VIEW: F, svc_id=%d, subscribed_svc=%d",m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),subscr_svc_id);
+                        }
                     }
                 }
 

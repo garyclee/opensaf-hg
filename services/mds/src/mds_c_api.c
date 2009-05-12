@@ -1036,7 +1036,15 @@ if (PEER_SVC_ID_LIST != NULL)
 
 /* STEP 3: mdtm_svc_uninstall(vdest-id, pwe_id, svc_id, svc_hdl) */
 
-    mds_svc_tbl_get((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, (NCSCONTEXT) &svc_cb);
+    if( NCSCC_RC_SUCCESS != mds_svc_tbl_get((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, (NCSCONTEXT) &svc_cb))
+    {
+        /* Service Doesn't exist */
+        m_MDS_LOG_ERR("MCM_API : svc_uninstall : SVC id = %d on VDEST id = %d FAILED : SVC Doesn't Exist",
+                        info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+        m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_svc_uninstall");
+        return NCSCC_RC_FAILURE;
+    }
+
     vdest_id = m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl);
     mds_vdest_tbl_get_role (vdest_id, &vdest_role);
     mds_vdest_tbl_get_policy (vdest_id,&vdest_policy);
@@ -3072,9 +3080,14 @@ uns32 mds_mcm_user_event_callback(MDS_SVC_HDL local_svc_hdl, PW_ENV_ID pwe_id, M
     m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_user_event_callback");
 
     /* Get Service info cb */
-    mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl), 
-                    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl), (NCSCONTEXT) &local_svc_info);
-    
+    if ( NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+                    m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl), (NCSCONTEXT) &local_svc_info))
+    {
+        /* Service Doesn't exist */
+        m_MDS_LOG_ERR("MDS_SND_RCV: SVC doesnt exists, returning from mds_mcm_user_event_callback=%d\n",svc_id);
+        return NCSCC_RC_FAILURE;
+    }
+
     /* Get Subtn info */
     mds_subtn_tbl_get(local_svc_hdl,svc_id, &local_subtn_info);
     /* FIXME : If this function returns failure, then its invalid state. Handling required */
@@ -3236,16 +3249,12 @@ uns32 mds_mcm_quiesced_tmr_expiry(MDS_VDEST_ID vdest_id)
     uns32 status = NCSCC_RC_SUCCESS;
     NCSMDS_CALLBACK_INFO    *cbinfo;
     MDS_SVC_INFO *local_svc_info = NULL;
-    MDS_VDEST_INFO *vdest_info = NULL;  
     MDS_MCM_MSG_ELEM *event_msg = NULL;
 
     m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_quiesced_tmr_expiry");
 
     m_MDS_LOG_INFO("MCM_API : quieseced_tmr expired for VDEST id = %d", vdest_id);
     
-
-    vdest_info = (MDS_VDEST_INFO *)ncs_patricia_tree_get(&gl_mds_mcm_cb->vdest_list,(uns8 *)&vdest_id);
-
     /* Update vdest role to Standby */
     mds_vdest_tbl_update_role (vdest_id, V_DEST_RL_STANDBY, FALSE);
     /* Turn off timer done in update_role */
@@ -3599,18 +3608,48 @@ uns32 mds_mcm_init (void)
 
     /* STEP 1: Initialize MCM-CB. */      
     gl_mds_mcm_cb = m_MMGR_ALLOC_MCM_CB;
+    
 
     /* VDEST TREE */
+    memset(&pat_tree_params,0,sizeof(NCS_PATRICIA_PARAMS));
     pat_tree_params.key_size = sizeof(MDS_VDEST_ID);
-    ncs_patricia_tree_init(&gl_mds_mcm_cb->vdest_list,&pat_tree_params); 
+    if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->vdest_list,&pat_tree_params))
+    {
+       m_MDS_LOG_ERR("MCM_API : patricia_tree_init: vdest :failure, L mds_mcm_init");
+       return NCSCC_RC_FAILURE;
+    }
+
     
     /* SERVICE TREE */
+    memset(&pat_tree_params,0,sizeof(NCS_PATRICIA_PARAMS));
     pat_tree_params.key_size = sizeof(MDS_SVC_HDL);
-    ncs_patricia_tree_init(&gl_mds_mcm_cb->svc_list,&pat_tree_params); 
+    if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->svc_list,&pat_tree_params))
+    {
+       m_MDS_LOG_ERR("MCM_API : patricia_tree_init:service :failure, L mds_mcm_init");
+       if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list))
+       {
+          m_MDS_LOG_ERR("MCM_API : patricia_tree_destroy: service :failure, L mds_mcm_init");
+       }
+       return NCSCC_RC_FAILURE;
+    }
+
     
     /* SUBSCRIPTION RESULT TREE */
+    memset(&pat_tree_params,0,sizeof(NCS_PATRICIA_PARAMS));
     pat_tree_params.key_size = sizeof(MDS_SUBSCRIPTION_RESULTS_KEY);
-    ncs_patricia_tree_init(&gl_mds_mcm_cb->subtn_results,&pat_tree_params); 
+    if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&gl_mds_mcm_cb->subtn_results,&pat_tree_params))
+    {
+       m_MDS_LOG_ERR("MCM_API : patricia_tree_init: subscription: failure, L mds_mcm_init");
+       if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->svc_list))
+       {
+          m_MDS_LOG_ERR("MCM_API : patricia_tree_destroy: service :failure, L mds_mcm_init");
+       }
+       if ( NCSCC_RC_SUCCESS != ncs_patricia_tree_destroy(&gl_mds_mcm_cb->vdest_list))
+       {
+          m_MDS_LOG_ERR("MCM_API : patricia_tree_destroy: vdest :failure, L mds_mcm_init");
+       }
+       return NCSCC_RC_FAILURE;
+    }
 
     /* Add VDEST for ADEST entry in tree */
     vdest_for_adest_node = m_MMGR_ALLOC_VDEST_INFO;

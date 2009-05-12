@@ -3072,7 +3072,7 @@ static uns32 mcm_pvt_process_sndrack_common(MDS_HDL env_hdl,   MDS_SVC_ID fr_svc
 {
     uns32 xch_id=0,status=0;
     MDS_DEST dest=0;
-    uns8 *data;
+    uns8 *data = NULL;
     uns8 to;
     MDS_VDEST_ID dest_vdest_id=0;
 
@@ -6254,10 +6254,6 @@ uns32 mds_retrieve( NCSMDS_INFO * info)
     {
         while((msgelem = (MDS_MCM_MSG_ELEM*)m_NCS_IPC_NON_BLK_RECEIVE(&local_mbx, NULL))!=NULL)
         {
-           if(msgelem==NULL)
-           {
-              return NCSCC_RC_FAILURE;
-           }
            /* IR Fix 82530 */
            if(mds_mailbox_proc(msgelem, svc_cb)==NCSCC_RC_NO_OBJECT)
            {
