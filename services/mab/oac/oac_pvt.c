@@ -1091,27 +1091,29 @@ uns32 oac_move_row_fltr_delete(OAC_TBL* inst, NCSMIB_ARG* arg)
     }
   if(fltr->fltr.is_move_row_fltr == TRUE)
     {
-    if(memcmp((arg->i_idx.i_inst_ids + fltr->fltr.fltr.range.i_bgn_idx),
-      (fltr->fltr.fltr.range.i_min_idx_fltr),
-      (fltr->fltr.fltr.range.i_idx_len) * sizeof(uns32)) == 0)
-      {
-      tbl_rec->fltr_list = fltr->next;
+       if(fltr->fltr.fltr.range.i_min_idx_fltr != NULL)
+         {
+            if(memcmp((arg->i_idx.i_inst_ids + fltr->fltr.fltr.range.i_bgn_idx),
+                      (fltr->fltr.fltr.range.i_min_idx_fltr),
+                      (fltr->fltr.fltr.range.i_idx_len) * sizeof(uns32)) == 0)
+              {
+                  tbl_rec->fltr_list = fltr->next;
 
-      if(fltr->fltr.type == NCSMAB_FLTR_RANGE)
-        {
-        if(fltr->fltr.fltr.range.i_min_idx_fltr != NULL)
-          m_MMGR_FREE_MIB_INST_IDS(fltr->fltr.fltr.range.i_min_idx_fltr);
-        if(fltr->fltr.fltr.range.i_max_idx_fltr != NULL)
-          m_MMGR_FREE_MIB_INST_IDS(fltr->fltr.fltr.range.i_max_idx_fltr);
-        }
+                  if(fltr->fltr.type == NCSMAB_FLTR_RANGE)
+                    {
+                       if(fltr->fltr.fltr.range.i_min_idx_fltr != NULL)
+                           m_MMGR_FREE_MIB_INST_IDS(fltr->fltr.fltr.range.i_min_idx_fltr);
+                       if(fltr->fltr.fltr.range.i_max_idx_fltr != NULL)
+                           m_MMGR_FREE_MIB_INST_IDS(fltr->fltr.fltr.range.i_max_idx_fltr);
+                    }
 
-      m_MMGR_FREE_OAC_FLTR(fltr);
+                   m_MMGR_FREE_OAC_FLTR(fltr);
 
-      m_MAB_DBG_TRACE("\noac_move_row_fltr_delete():left.");
-      return NCSCC_RC_SUCCESS;
-      }
-    }
-
+                   m_MAB_DBG_TRACE("\noac_move_row_fltr_delete():left.");
+                   return NCSCC_RC_SUCCESS;
+              }
+         } /* end if <if(fltr->fltr.fltr.range.i_min_idx_fltr != NULL)> */
+     }
 
   for(; fltr->next != NULL; fltr = fltr->next)
     {

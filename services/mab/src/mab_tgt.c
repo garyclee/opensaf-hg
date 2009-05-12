@@ -189,7 +189,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the pwe directory */
-    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2)-1, "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -200,7 +200,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the n_pcn directory */
-    snprintf((char *)buf2, sizeof(buf2), "%s", n_pcn);
+    snprintf((char *)buf2, sizeof(buf2)-1, "%s", n_pcn);
     file.info.dir_path.i_main_dir = path2;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path1);
@@ -211,7 +211,7 @@ static uns32 get_full_path_of_file(uns8 * root, uns8 * profile, char *n_pcn,
         return NCSCC_RC_FAILURE;
 
     /* Get the path of the table file */
-    snprintf((char *)buf2, sizeof(buf2), "%d", tbl);
+    snprintf((char *)buf2, sizeof(buf2)-1, "%d", tbl);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = buf_len;
@@ -262,7 +262,7 @@ static uns32 create_directories(uns8 * root, uns8 * profile, char *n_pcn, uns16 
     /* Get the full path for pwe directory */
     memset((char*)&buf2, '\0', sizeof(buf2));
     memset((char*)&path2, '\0', sizeof(path2));
-    snprintf((char *)buf2, sizeof(buf2), "%d", pwe);
+    snprintf((char *)buf2, sizeof(buf2)-1, "%d", pwe);
     file.info.dir_path.i_main_dir = path1;
     file.info.dir_path.i_sub_dir  = buf2;
     file.info.dir_path.i_buf_size = sizeof(path2);
@@ -671,6 +671,8 @@ static uns32 pssts_get_profile_desc (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_DESC
 
     /* Read the data and then close the file */
     retval = m_NCS_FILE_OP (&file, NCS_OS_FILE_READ);
+    if (retval != NCSCC_RC_SUCCESS)
+        return NCSCC_RC_FAILURE;
 
     file.info.close.i_file_handle = file_handle;
     m_NCS_FILE_OP (&file, NCS_OS_FILE_CLOSE);
@@ -743,6 +745,8 @@ static uns32 pssts_set_profile_desc (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_SET_DESC
 
     /* Write the data and then close the file */
     retval = m_NCS_FILE_OP (&file, NCS_OS_FILE_WRITE);
+    if (retval != NCSCC_RC_SUCCESS)
+        return NCSCC_RC_FAILURE;
 
     file.info.close.i_file_handle = file_handle;
     m_NCS_FILE_OP (&file, NCS_OS_FILE_CLOSE);
@@ -768,8 +772,7 @@ static uns32 pssts_set_config (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_SET_CONFIG * s
     uns32      retval;
     uns8       buf[NCS_PSSTS_MAX_PATH_LEN];
 
-    strcpy(inst->current_profile, set_config->i_current_profile_name);
-
+    strncpy(inst->current_profile, set_config->i_current_profile_name,sizeof(inst->current_profile)-1);
     /* Now create the Root directory */
     file.info.dir_exists.i_dir_name = inst->root_dir;
     retval = m_NCS_FILE_OP (&file,NCS_OS_FILE_DIR_EXISTS);
@@ -920,7 +923,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
        }
        memset(node, '\0', sizeof(NCS_PSSTS_SORT_NODE));
        node->key.len = strlen(file.info.get_list.o_namelist[i]);
-       strcpy((char*)&node->key.name, file.info.get_list.o_namelist[i]);
+       strncpy((char*)&node->key.name, file.info.get_list.o_namelist[i],sizeof(node->key.name)-1);
        m_NCS_OS_MEMFREE(file.info.get_list.o_namelist[i], NULL);
 
        pNode = (NCS_PATRICIA_NODE *)node;
@@ -946,7 +949,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
        len = strlen(get_next->i_profile_name);
        if(len != 0)
        {
-          strcpy(&key.name, get_next->i_profile_name);
+          strncpy(&key.name, get_next->i_profile_name,sizeof(key.name)-1);
        }
     }
     if(len == 0)
@@ -965,7 +968,7 @@ static uns32 pssts_get_next_profile (NCS_PSSTS_CB * inst,
     }
 
     /* Got the required node. Now, copy the data to the returnable-location. */
-    strcpy(get_next->io_buffer, ((NCS_PSSTS_SORT_NODE*)pNode)->key.name);
+    strncpy(get_next->io_buffer, ((NCS_PSSTS_SORT_NODE*)pNode)->key.name,get_next->i_buf_length -1);
 
     /* Cleanup the temporary sort database */
     pssts_destroy_temp_sort_db(&lcl_db.tree);
@@ -1030,7 +1033,7 @@ static uns32 pssts_pwe_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    snprintf((char *)buf3, sizeof(buf3), "%d", pwe_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3)-1, "%d", pwe_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1066,7 +1069,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    snprintf((char *)buf3, sizeof(buf3), "%d", pcn_exists->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3)-1, "%d", pcn_exists->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1075,7 +1078,7 @@ static uns32 pssts_pcn_exists (NCS_PSSTS_CB * inst,
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    snprintf((char *)buf3, strlen(buf3), "%s", pcn_exists->i_pcn);
+    snprintf((char *)buf3, sizeof(buf3)-1, "%s", pcn_exists->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf);
@@ -1130,7 +1133,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    snprintf((char *)buf3, sizeof(buf3), "%d", delete_pcn->i_pwe);
+    snprintf((char *)buf3, sizeof(buf3)-1, "%d", delete_pcn->i_pwe);
     file.info.dir_path.i_main_dir = buf;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf2);
@@ -1139,7 +1142,7 @@ static uns32 pssts_delete_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_DELETE_PCN *del
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    snprintf((char *)buf3, sizeof(buf3), "%s", delete_pcn->i_pcn);
+    snprintf((char *)buf3, sizeof(buf3)-1, "%s", delete_pcn->i_pcn);
     file.info.dir_path.i_main_dir = buf2;
     file.info.dir_path.i_sub_dir = buf3;
     file.info.dir_path.i_buf_size = sizeof(buf4);
@@ -1201,7 +1204,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
           (strcmp((char *)&next_pwe, "..") == 0) ||
           (strcmp((char *)&next_pwe, "ProDesc.txt") == 0))
        {
-          strcpy((char *)&cur_pwe, (char *)&next_pwe);
+          strncpy((char *)&cur_pwe, (char *)&next_pwe,sizeof(cur_pwe)-1);
           file.info.get_next.i_dir_name = (char*)&prof_path;
           file.info.get_next.i_file_name  = (char*)&cur_pwe;
           file.info.get_next.i_buf_size   = 64;
@@ -1211,7 +1214,10 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
        }
        if(enc_pwe_cnt_loc == NULL)
        {
-           ncs_enc_init_space(&uba);
+           if ( ncs_enc_init_space(&uba) != NCSCC_RC_SUCCESS )
+           {
+               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+           }
            enc_pwe_cnt_loc = ncs_enc_reserve_space(&uba, 2);
            if(enc_pwe_cnt_loc == NULL)
            {
@@ -1221,8 +1227,8 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
            ncs_enc_claim_space(&uba, 2);
            get_clients->o_usrbuf = uba.start;
        }
-       strcpy((char *)&cur_pwe, (char *)&next_pwe);
-       /* encode "cur_pwe" into o_uba */
+      strncpy((char *)&cur_pwe, (char *)&next_pwe,sizeof(cur_pwe)-1); 
+      /* encode "cur_pwe" into o_uba */
        p8 = ncs_enc_reserve_space(&uba, 2);
        if(p8 == NULL)
        {
@@ -1258,7 +1264,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
           if((strcmp((char *)&next_pcn, ".") == 0) ||
              (strcmp((char *)&next_pcn, "..") == 0))
           {
-             strcpy((char *)&cur_pcn, (char *)&next_pcn);
+             strncpy((char *)&cur_pcn, (char *)&next_pcn,sizeof(cur_pcn)-1);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
              file.info.get_next.i_file_name  = (char*)&cur_pcn;
              file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1276,7 +1282,7 @@ static uns32 pssts_get_clients(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_CLIENTS *g
              }
              ncs_enc_claim_space(&uba, 2);
           }
-          strcpy((char *)&cur_pcn, (char *)&next_pcn);
+          strncpy((char *)&cur_pcn, (char *)&next_pcn,sizeof(cur_pcn)-1);
           ++pcn_cnt;
           /* encode "cur_pcn" into o_uba */
           len = strlen((char*)&cur_pcn) + 1;
@@ -1368,7 +1374,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           (strcmp((char *)&next_pwe, "..") == 0) ||
           (strcmp((char *)&next_pwe, "ProDesc.txt") == 0))
        {
-          strcpy((char *)&cur_pwe, (char *)&next_pwe);
+          strncpy((char *)&cur_pwe, (char *)&next_pwe,sizeof(cur_pwe)-1);
           file.info.get_next.i_dir_name = (char*)&prof_path;
           file.info.get_next.i_file_name  = (char*)&cur_pwe;
           file.info.get_next.i_buf_size   = 64;
@@ -1378,7 +1384,10 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
        }
        if(enc_pwe_cnt_loc == NULL)
        {
-           ncs_enc_init_space(&uba);
+           if ( ncs_enc_init_space(&uba) != NCSCC_RC_SUCCESS )
+           {
+               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+           }
            enc_pwe_cnt_loc = ncs_enc_reserve_space(&uba, 2);
            if(enc_pwe_cnt_loc == NULL)
            {
@@ -1390,8 +1399,8 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
            get_mlist->o_usrbuf = uba.start;
            ncs_enc_claim_space(&uba, 2);
        }
-       strcpy((char *)&cur_pwe, (char *)&next_pwe);
 
+       strncpy((char *)&cur_pwe, (char *)&next_pwe,sizeof(cur_pwe)-1); 
        sscanf((char*)&cur_pwe, "%d", (int*)&pwe_id);
        enc_pwe_id_loc = NULL;
 
@@ -1416,7 +1425,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           if((strcmp((char *)&next_pcn, ".") == 0) ||
              (strcmp((char *)&next_pcn, "..") == 0))
           {
-             strcpy((char *)&cur_pcn, (char *)&next_pcn);
+             strncpy((char *)&cur_pcn, (char *)&next_pcn,sizeof(cur_pcn)-1);
              file.info.get_next.i_dir_name = (char*)&pwe_path;
              file.info.get_next.i_file_name  = (char*)&cur_pcn;
              file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1427,7 +1436,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
           else if(strcmp((char*)&next_pcn, get_mlist->i_pcn) == 0)
           {
              /* Now, get the table-list */
-             strcpy((char *)&cur_pcn, (char *)&next_pcn);
+             strncpy((char *)&cur_pcn, (char *)&next_pcn,sizeof(cur_pcn)-1);
              file.info.dir_path.i_main_dir   = (char*)&pwe_path;
              file.info.dir_path.i_sub_dir    = (char*)&cur_pcn;
              file.info.dir_path.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1456,7 +1465,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
                 {
                    valid_tbl_id = FALSE;
                 }
-                strcpy((char *)&cur_tbl, (char *)&next_tbl);
+                strncpy((char *)&cur_tbl, (char *)&next_tbl,sizeof(cur_tbl)-1);
 
                 for(i = 0; next_tbl[i] != '\0'; i++)
                 {
@@ -1472,7 +1481,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
 
                 if(FALSE == valid_tbl_id)
                 {
-                   strcpy((char *)&cur_tbl, (char *)&next_tbl);
+                   strncpy((char *)&cur_tbl, (char *)&next_tbl,sizeof(cur_tbl)-1);
                    file.info.get_next.i_dir_name = (char*)&pcn_path;
                    file.info.get_next.i_file_name  = (char*)&cur_tbl;
                    file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1540,7 +1549,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
                 ncs_enc_claim_space(&uba, 4);
                 ++ tbl_cnt; /* Increment the count */
 
-                strcpy((char *)&cur_tbl, (char *)&next_tbl);
+                strncpy((char *)&cur_tbl, (char *)&next_tbl,sizeof(cur_tbl)-1);
                 file.info.get_next.i_dir_name = (char*)&pcn_path;
                 file.info.get_next.i_file_name  = (char*)&cur_tbl;
                 file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1559,7 +1568,7 @@ static uns32 pssts_get_mib_list_per_pcn(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_GET_M
              }
              break; /* Go to the next PWE for the same PCN */
           }
-          strcpy((char *)&cur_pcn, (char *)&next_pcn);
+          strncpy((char *)&cur_pcn, (char *)&next_pcn,sizeof(cur_pcn)-1);
           file.info.get_next.i_dir_name = (char*)&pwe_path;
           file.info.get_next.i_file_name  = (char*)&cur_pcn;
           file.info.get_next.i_buf_size   = NCS_PSSTS_MAX_PATH_LEN;
@@ -1635,8 +1644,7 @@ static uns32 pssts_move_tbl_details_file(NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_MOVE
     if (retval != NCSCC_RC_SUCCESS)
         return NCSCC_RC_FAILURE;
 
-    strcat(buf2, "_tbl_details");
-
+    strncat(buf2, "_tbl_details",(sizeof(buf2)-strlen(buf2))-1);
     printf("\nTemp file path: %s", buf);
     printf("\nfull_path: %s", buf2);
 
@@ -1665,9 +1673,8 @@ static uns32 pssts_delete_tbl_details_file (NCS_PSSTS_CB * inst, NCS_PSSTS_ARG_D
                    buf, sizeof(buf));
     if (retval != NCSCC_RC_SUCCESS)
          return NCSCC_RC_FAILURE;
-
-    strcat(buf, "_tbl_details");
-
+   
+    strncat(buf, "_tbl_details",(sizeof(buf)-strlen(buf))-1);
     printf("\nTable details file path: %s", buf);
 
     file.info.remove.i_file_name = (char*)&buf;
@@ -1810,7 +1817,8 @@ static uns32 ncspssts_lm_create(NCS_PSSTS_LM_CREATE * create)
     if (inst == NULL)
         return NCSCC_RC_FAILURE;
 
-    strcpy(inst->root_dir, (char *)create->i_root_dir);
+    memset(inst->root_dir,0,sizeof(inst->root_dir));
+    strncpy(inst->root_dir, (char *)create->i_root_dir,sizeof(inst->root_dir)-1 );
     strcpy(inst->current_profile, NCS_PSSTS_DEFAULT_PROFILE);
     inst->my_key = create->i_usr_key;
 

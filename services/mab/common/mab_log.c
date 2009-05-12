@@ -69,7 +69,7 @@ uns32 mab_log_bind()
         /* fill version no. */
         reg.info.bind_svc.version = MASV_LOG_VERSION;
         /* fill svc_name */
-        strcpy(reg.info.bind_svc.svc_name, "MAB");
+        strncpy(reg.info.bind_svc.svc_name, "MAB",sizeof(reg.info.bind_svc.svc_name)-1);
 
         if (ncs_dtsv_su_req(&reg) == NCSCC_RC_FAILURE)
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
@@ -112,9 +112,9 @@ uns32 log_mab_svc_prvdr_evt(uns8 sev, uns32 id, uns32 svc_id,
     
     /* convert the MDS_DEST into a string */ 
     if (m_NCS_NODE_ID_FROM_MDS_DEST(addr) == 0)
-        sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
+        snprintf(addr_str,sizeof(addr_str)-1, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
     else
-        sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+        snprintf(addr_str,sizeof(addr_str)-1, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
                 m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (addr)); 
 
     /* now log the message */ 
@@ -130,9 +130,9 @@ uns32 log_mab_svc_prvdr_msg(uns8 sev, uns32 id, uns32 svc_id,
     
     /* convert the MDS_DEST into a string */ 
     if (m_NCS_NODE_ID_FROM_MDS_DEST(addr) == 0)
-        sprintf(addr_str, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
+       snprintf(addr_str,sizeof(addr_str)-1, "VDEST:%d",m_MDS_GET_VDEST_ID_FROM_MDS_DEST(addr));
     else
-        sprintf(addr_str, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
+        snprintf(addr_str,sizeof(addr_str)-1, "ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
                 m_NCS_NODE_ID_FROM_MDS_DEST(addr), 0, (addr)); 
 
     /* now log the message */ 
@@ -221,41 +221,56 @@ log_mab_oaa_and_fltr_data(uns8      sev,
                         uns8        exist,
                         MAS_FLTR    *fltr) 
 {
-    int8    addr_str[128]= {0}; 
-    int8    addr_str1[1024]= {0}; /* to log other filter-id , anchor value mappings */ 
-    int8    *ancfid = addr_str1;
-    
-    /* log the existing filter, and from whom it has been received */ 
+    int8    addr_str[128]= {0};
+    int8    addr_str1[128]= {0}; /* to log other filter-id , anchor value mappings */
+    int8    fltr_anchr[128]={0};
+
+    /* log the existing filter, and from whom it has been received */
     if (m_NCS_NODE_ID_FROM_MDS_DEST(fltr->vcard) == 0)
-       sprintf(addr_str, exist == 1?"Existing VDEST: %d":"New VDEST: %d", 
+       snprintf(addr_str,sizeof(addr_str)-1,exist == 1?"Existing VDEST: %d":"New VDEST: %d",
                m_MDS_GET_VDEST_ID_FROM_MDS_DEST(fltr->vcard));
     else
-       sprintf(addr_str, exist == 1?"Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu"
+       snprintf(addr_str,sizeof(addr_str)-1, exist == 1?"Existing ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu"
                                    :"New ADEST:node_id:%d, v1.pad16:%d, v1.vcard:%llu",
-                m_NCS_NODE_ID_FROM_MDS_DEST(fltr->vcard), 0, 
+                m_NCS_NODE_ID_FROM_MDS_DEST(fltr->vcard), 0,
                 (fltr->vcard));
-       
+
     ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
                NCSFL_LC_HEADLINE, sev,
                NCSFL_TYPE_TIC, MAB_HDLN_MAS_OAA_ADDR, addr_str);
 
-    /* log the filter data */ 
-    log_mab_fltr_data(sev, env_id, table_id,  
-                      (fltr->fltr_ids.active_fltr != NULL)?fltr->fltr_ids.active_fltr->fltr_id:0,  
-                      &fltr->fltr); 
-    ancfid += sprintf(ancfid,"Other Filter-Id Anchor Mapping list:  "); 
-    if (!fltr->fltr_ids.fltr_id_list) sprintf(ancfid,"Empty");
-    while(fltr->fltr_ids.fltr_id_list)
+    /* log the filter data */
+    log_mab_fltr_data(sev, env_id, table_id,
+                      (fltr->fltr_ids.active_fltr != NULL)?fltr->fltr_ids.active_fltr->fltr_id:0,
+                      &fltr->fltr);
+
+    if (!fltr->fltr_ids.fltr_id_list)
     {
-        ancfid += sprintf(ancfid,"%llu:%u ",
-                          fltr->fltr_ids.fltr_id_list->anchor,
-                          fltr->fltr_ids.fltr_id_list->fltr_id);
-        fltr->fltr_ids.fltr_id_list = fltr->fltr_ids.fltr_id_list->next;
+       snprintf(addr_str1,sizeof(addr_str1)-1,"Other Filter-Id Anchor Mapping list: Empty");
+       ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
+                NCSFL_LC_HEADLINE, sev,
+               NCSFL_TYPE_TIC, MAB_HDLN_MAS_OAA_ADDR, addr_str1);
     }
-    ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
+    else
+    {
+       snprintf(addr_str1,sizeof(addr_str1)-1,"Other Filter-Id Anchor Mapping list Follows:  ");
+       ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
                NCSFL_LC_HEADLINE, sev,
                NCSFL_TYPE_TIC, MAB_HDLN_MAS_OAA_ADDR, addr_str1);
+       while(fltr->fltr_ids.fltr_id_list)
+       {
+          snprintf(fltr_anchr,sizeof(fltr_anchr)-1,"%llu:%u ",
+                          fltr->fltr_ids.fltr_id_list->anchor,
+                          fltr->fltr_ids.fltr_id_list->fltr_id);
 
+          ncs_logmsg(NCS_SERVICE_ID_MAB,  MAB_LID_NO_CB, MAB_FC_HDLN,
+               NCSFL_LC_HEADLINE, sev,
+               NCSFL_TYPE_TIC, MAB_HDLN_MAS_ANCHR_FLTR_PAIR, fltr_anchr);
+
+          fltr->fltr_ids.fltr_id_list = fltr->fltr_ids.fltr_id_list->next;
+          memset(&fltr_anchr,0,sizeof(fltr_anchr));
+       }
+    }
     return NCSCC_RC_SUCCESS; 
 }
 

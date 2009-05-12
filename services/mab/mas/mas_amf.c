@@ -2095,9 +2095,9 @@ mas_amf_csi_attrib_decode(SaAmfCSIAttributeListT csiAttr)
 
     /* good amount of input validation, now get to the work */ 
     /* log the received attribute and value pair */ 
-    sprintf(attrName, "%s:%s\n", "mas_amf_csi_attrib_decode():attribute name", 
+    snprintf(attrName,sizeof(attrName)-1, "%s:%s\n", "mas_amf_csi_attrib_decode():attribute name", 
             csiAttr.attr->attrName); 
-    sprintf(attrValue, "%s:%s\n", "mas_amf_csi_attrib_decode():attribute value", 
+    snprintf(attrValue,sizeof(attrValue)-1, "%s:%s\n", "mas_amf_csi_attrib_decode():attribute value", 
             csiAttr.attr->attrValue); 
     m_LOG_MAB_NO_CB(attrName); 
     m_LOG_MAB_NO_CB(attrValue); 

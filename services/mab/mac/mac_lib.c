@@ -408,6 +408,8 @@ maclib_mac_instantiate(NCS_LIB_REQ_INFO  *req_info)
     req_info->info.inst.o_inst_hdl = arg.info.create.o_mac_hdl; 
 
     MAC_INST* inst = (MAC_INST*)ncshm_take_hdl(NCS_SERVICE_ID_MAB, (uns32)req_info->info.inst.o_inst_hdl);
+    if (inst == NULL)
+        return NCSCC_RC_FAILURE;
     
     /* waiting for the mas sync */
     if(inst->mas_here == FALSE)
