@@ -165,7 +165,7 @@ pss_mbx_amf_process(SYSF_MBX   *pss_mbx)
 #endif
 
     int            ps_cnt = 0;
-    uns32          ps_format_version, tmp_ps0, tmp_ps1;
+    uns32          ps_format_version, tmp_ps0=0, tmp_ps1=0;
     struct dirent  **ps_list;
     /* Function pointer for filter routine that need to be passed in scandir */
     int (*filter) (const struct dirent *);
@@ -2283,7 +2283,7 @@ uns32 pss_amf_initialize(NCS_APP_AMF_ATTRIBS* amf_attribs, SaAisErrorT *o_saf_st
     /* initialize the interface with AMF */ 
    saf_status = ncs_app_amf_initialize(amf_attribs); 
 
-   if(!o_saf_status)
+   if(o_saf_status)
       *o_saf_status = saf_status;
 
    if (saf_status != SA_AIS_OK)

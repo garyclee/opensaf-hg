@@ -535,6 +535,11 @@ uns32 pss_process_snmp_request(MAB_MSG * msg)
     if(inst->mem_in_store > NCS_PSS_MAX_IN_STORE_MEM_SIZE)
     {
        pss_save_current_configuration(inst);
+       if (NCSCC_RC_SUCCESS != pss_save_current_configuration(inst))
+       {
+          m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_REQUEST_PROCESS_ERR);
+          return NCSCC_RC_FAILURE;
+       }
     }
     return retval;
 }
@@ -1185,7 +1190,7 @@ uns32 pss_process_setrow_request(MAB_MSG * msg, NCS_BOOL is_move_row)
     PSS_CLIENT_ENTRY * client_node;
     PSS_MIB_TBL_DATA * tbl_data = NULL;
     NCSMIB_ARG        * arg;
-    uns16     pwe_id = pwe_cb->pwe_id;
+    uns16     pwe_id;
     char      *p_pcn = NULL;
     uns32     tbl_id;
     uns32     retval;
@@ -1195,6 +1200,8 @@ uns32 pss_process_setrow_request(MAB_MSG * msg, NCS_BOOL is_move_row)
         m_LOG_PSS_HEADLINE(NCSFL_SEV_ERROR, PSS_HDLN_INVALID_PWE_HDL);
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
+
+    pwe_id = pwe_cb->pwe_id;
     arg = msg->data.data.snmp;
     tbl_id = arg->i_tbl_id;
 
@@ -1911,7 +1918,7 @@ PSS_CLIENT_ENTRY * pss_find_client_entry(PSS_PWE_CB *pwe_cb, char *p_pcn,
     uns32              retval;
 
     memset(&client_key, '\0', sizeof(client_key));
-    strcpy(&client_key.pcn, p_pcn);
+    strncpy(&client_key.pcn, p_pcn, NCSMIB_PCN_LENGTH_MAX-1);
 
     pat_node = ncs_patricia_tree_get(&pwe_cb->client_table, (uns8 *)&client_key);
     if(pat_node != NULL)
@@ -1975,7 +1982,7 @@ PSS_TBL_REC * pss_find_table_tree(PSS_PWE_CB *pwe_cb, PSS_CLIENT_ENTRY *client_n
     uns32 retval;
     PSS_TBL_REC *temp = NULL, *prev=NULL;
 
-    if((tbl_id > MIB_UD_TBL_ID_END) || 
+    if((tbl_id >= MIB_UD_TBL_ID_END) || 
        (pwe_cb->p_pss_cb->mib_tbl_desc[tbl_id] == NULL))
     {
         if(o_prc != NULL)
@@ -2894,13 +2901,15 @@ uns32 pss_read_from_store(PSS_PWE_CB *pwe_cb, uns8 * profile_name,
 
     /* Now allocate space for the index ids and data buffer */
     pkey = m_MMGR_ALLOC_PSS_OCT(tbl_info->max_key_length);
-    memset(pkey, '\0', tbl_info->max_key_length);
+
     if (pkey == NULL)
     {
         m_LOG_PSS_MEMFAIL(NCSFL_SEV_CRITICAL, PSS_MF_OCT_ALLOC_FAIL,
             "pss_read_from_store()");
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
     }
+
+    memset(pkey, '\0', tbl_info->max_key_length);
 
     /* Open the file for reading */
     m_NCS_PSSTS_FILE_OPEN(pwe_cb->p_pss_cb->pssts_api, 
