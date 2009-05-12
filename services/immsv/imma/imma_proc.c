@@ -1674,17 +1674,12 @@ static void imma_process_callback_info (IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
                         attr[i]->attrName=0;
                         if (attr[i]->attrValuesNumber)
                         {
-                            if ((attr[i]->attrValueType == SA_IMM_ATTR_SANAMET) ||
-                                (attr[i]->attrValueType == SA_IMM_ATTR_SAANYT) ||
-                                (attr[i]->attrValueType == SA_IMM_ATTR_SASTRINGT))
+                            int j;
+                            for (j=0;j<attr[i]->attrValuesNumber;++j)
                             {
-                                int j;
-                                for (j=0;j<attr[i]->attrValuesNumber;++j)
-                                {
-                                    imma_freeAttrValue3(attr[i]->attrValues[j],
-                                                        attr[i]->attrValueType); /*free-5*/
-                                    attr[i]->attrValues[j] = 0;
-                                }
+                                imma_freeAttrValue3(attr[i]->attrValues[j],
+                                    attr[i]->attrValueType); /*free-5*/
+                                attr[i]->attrValues[j] = 0;
                             }
                             free(attr[i]->attrValues); /*4*/
                             //SaImmAttrValueT[] array-of-void*
