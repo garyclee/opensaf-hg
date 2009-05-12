@@ -453,6 +453,7 @@ send_cb_evt:
       m_LOG_CPA_CCLLFFF(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, 
             "async_open_rsp", __FILE__ ,__LINE__, rc, lc_node->cl_hdl, 
                    evt->info.openRsp.lcl_ckpt_hdl, lc_node->gbl_ckpt_hdl);
+      goto done; 
    }
    
    if(callback)
@@ -474,6 +475,7 @@ send_cb_evt:
             "async_open_rsp", __FILE__ ,__LINE__, proc_rc, lc_node->cl_hdl,
                    evt->info.openRsp.lcl_ckpt_hdl, lc_node->gbl_ckpt_hdl);
    }
+done:
 
    /* Release The Lock */
    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);

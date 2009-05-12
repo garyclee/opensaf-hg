@@ -246,7 +246,11 @@ cpnd_amf_comp_terminate_callback(SaInvocationT invocation,
    SaAisErrorT    saErr = SA_AIS_OK;
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
-
+   if (cb == NULL)
+   {
+      m_LOG_CPND_CL(CPND_AMF_TERM_CB_INVOKED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      return ;
+   }
    saAmfResponse(cb->amf_hdl, invocation, saErr);
    ncshm_give_hdl(gl_cpnd_cb_hdl);
    m_LOG_CPND_CL(CPND_AMF_TERM_CB_INVOKED,CPND_FC_GENERIC,NCSFL_SEV_NOTICE,__FILE__,__LINE__);
@@ -276,7 +280,11 @@ cpnd_amf_csi_rmv_callback(SaInvocationT invocation,
    SaAisErrorT    saErr = SA_AIS_OK;
 
    cb = ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl);
-
+   if (cb == NULL )
+   {
+       m_LOG_CPND_CL(CPND_CSI_RMV_CB_INVOKED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+       return ;
+   }
    saAmfResponse(cb->amf_hdl, invocation, saErr);
    ncshm_give_hdl(gl_cpnd_cb_hdl);
 

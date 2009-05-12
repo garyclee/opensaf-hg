@@ -2201,9 +2201,10 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
 
   if ( (initialData == NULL) && (initialDataSize > 0))
   {
-      return SA_AIS_ERR_INVALID_PARAM;
+      rc = SA_AIS_ERR_INVALID_PARAM;
       m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "SectCreate", __FILE__ ,__LINE__, rc , checkpointHandle);
+      goto done;
   }
    
    /* retrieve CPA CB */
@@ -4798,7 +4799,6 @@ ncsCkptRegisterCkptArrivalCallback( SaCkptHandleT               ckptHandle,
 {
    SaAisErrorT  rc = SA_AIS_OK;
    CPSV_EVT     evt;
-   CPSV_EVT     *out_evt=NULL;
    uns32        proc_rc = NCSCC_RC_SUCCESS;
    CPA_CLIENT_NODE *cl_node=NULL;
    CPA_CB         *cb=NULL;
@@ -4900,12 +4900,8 @@ ncsCkptRegisterCkptArrivalCallback( SaCkptHandleT               ckptHandle,
                              "CkptArrivalCallback:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
            goto proc_fail;
    }
-   
-   if(out_evt)
-   {
-      rc = out_evt->info.cpa.info.closeRsp.error;
-      m_MMGR_FREE_CPSV_EVT(out_evt, NCS_SERVICE_ID_CPA);
-   }
+
+      rc = evt.info.cpa.info.closeRsp.error;
    
 proc_fail:
    if(is_locked)

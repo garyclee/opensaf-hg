@@ -730,6 +730,13 @@ static uns32 cpnd_evt_proc_ckpt_open(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INFO 
       goto agent_rsp;
    }
 
+   if(out_evt == NULL)
+   {
+       rc = NCSCC_RC_FAILURE;
+       m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+       send_evt.info.cpa.info.openRsp.error = SA_AIS_ERR_NO_MEMORY;
+       goto agent_rsp;
+   }
    if (out_evt && out_evt->info.cpnd.info.ckpt_info.error != SA_AIS_OK) {
       send_evt.info.cpa.info.openRsp.error=out_evt->info.cpnd.info.ckpt_info.error;
       goto agent_rsp;
@@ -1587,7 +1594,7 @@ agent_rsp:
 static uns32 cpnd_evt_proc_ckpt_status_get(CPND_CB *cb, 
                                     CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
-   CPSV_EVT                send_evt, *out_evt=NULL;
+   CPSV_EVT                send_evt;
    CPND_CKPT_NODE          *cp_node=NULL;
    uns32 rc=NCSCC_RC_SUCCESS;
 
@@ -1643,8 +1650,6 @@ static uns32 cpnd_evt_proc_ckpt_status_get(CPND_CB *cb,
 
 agent_rsp:
 
-   if(out_evt)
-     cpnd_evt_destroy(out_evt);
 
    send_evt.type=CPSV_EVT_TYPE_CPA;
    send_evt.info.cpa.type=CPA_EVT_ND2A_CKPT_STATUS;
@@ -2227,7 +2232,12 @@ evt->info.sec_creatReq.sec_attri.expirationTime,0);
                ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
                if(ckpt_data == NULL)
                {
+                  rc = NCSCC_RC_FAILURE;
                   m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+                  send_evt.type=CPSV_EVT_TYPE_CPA;
+                  send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_CREATE_RSP;
+                  send_evt.info.cpa.info.sec_creat_rsp.error=SA_AIS_ERR_NO_SPACE;
+                  goto agent_rsp; 
                }
 
                memset(ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
@@ -2444,6 +2454,17 @@ static uns32 cpnd_evt_proc_ckpt_sect_delete(CPND_CB *cb,
          
           sec_info=cpnd_ckpt_sec_del(cp_node,&evt->info.sec_delReq.sec_id);
           /* resetting lcl_sec_id mapping */
+          if(sec_info == NULL)
+          {
+             rc = NCSCC_RC_FAILURE;
+             m_LOG_CPND_CFCL(CPND_CKPT_SECT_DEL_FAILED,CPND_FC_API,NCSFL_SEV_ERROR, \
+                             evt->info.sec_delete_req.sec_id.id,evt->info.sec_delete_req.ckpt_id, \
+                             __FILE__,__LINE__);
+             send_evt.type=CPSV_EVT_TYPE_CPA;
+             send_evt.info.cpa.type=CPA_EVT_ND2A_SEC_DELETE_RSP;
+             send_evt.info.cpa.info.sec_delete_rsp.error=SA_AIS_ERR_INVALID_PARAM;
+             goto agent_rsp;
+          }
           cp_node->replica_info.shm_sec_mapping[sec_info->lcl_sec_id]=1;
 
           /* Send the arrival callback */
@@ -2635,7 +2656,12 @@ cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
              ckpt_data = m_MMGR_ALLOC_CPSV_CKPT_DATA;
              if (ckpt_data == NULL)
              {
+                rc = NCSCC_RC_FAILURE;
                 m_LOG_CPND_CL(CPND_CKPT_DATA_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+                send_evt.type=CPSV_EVT_TYPE_CPND;
+                send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
+                send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_ERR_NO_SPACE;
+                goto nd_rsp;
              }
              
              memset(ckpt_data,'\0',sizeof(CPSV_CKPT_DATA));
@@ -2662,13 +2688,10 @@ cpnd_evt_proc_nd2nd_ckpt_sect_create(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO *
         send_evt.type=CPSV_EVT_TYPE_CPND;
         send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
         send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_OK;
-        goto nd_rsp;
-    send_evt.type = CPSV_EVT_TYPE_CPND;
-    send_evt.info.cpnd.type=CPSV_EVT_ND2ND_CKPT_SECT_ACTIVE_CREATE_RSP;
-    send_evt.info.cpnd.info.active_sec_creat_rsp.sec_id=sec_info->sec_id;
-    send_evt.info.cpnd.info.active_sec_creat_rsp.ckpt_id= \
-            evt->info.active_sec_creat.ckpt_id;
-    send_evt.info.cpnd.info.active_sec_creat_rsp.error=SA_AIS_OK;
+        send_evt.info.cpnd.info.active_sec_creat_rsp.sec_id=sec_info->sec_id;
+        send_evt.info.cpnd.info.active_sec_creat_rsp.ckpt_id= \
+        evt->info.active_sec_creat.ckpt_id;
+    
 
 nd_rsp:
    rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
@@ -2897,7 +2920,7 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
 {
    uns32 rc=NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE *cp_node=NULL;
-   CPSV_EVT send_evt,*out_evt=NULL;
+   CPSV_EVT send_evt;
    uns32 err_flag=0;
 
    memset(&send_evt,'\0', sizeof(CPSV_EVT));
@@ -3021,9 +3044,6 @@ static uns32 cpnd_evt_proc_ckpt_write(CPND_CB *cb,CPND_EVT *evt, CPSV_SEND_INFO 
 agent_rsp:
    rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
 
-   if(out_evt)
-     cpnd_evt_destroy(out_evt);
-  
 
    return rc;
 }
@@ -3143,6 +3163,7 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
    CPND_CKPT_NODE *cp_node=NULL;
    CPSV_CPND_ALL_REPL_EVT_NODE *evt_node=NULL;
    CPSV_EVT rsp_evt;
+   SaAisErrorT error=SA_AIS_OK;
 
    cpnd_ckpt_node_get(cb,evt->info.ckpt_nd2nd_data_rsp.ckpt_id,&cp_node);
    cpnd_evt_node_get(cb,evt->info.ckpt_nd2nd_data_rsp.from_svc,&evt_node); 
@@ -3160,7 +3181,14 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
         {
          /*Set the response flag of the dest in dest list from where the response has come*/
          CPSV_CPND_UPDATE_DEST *cpnd_mdest_trav = evt_node->cpnd_update_dest_list;
-
+          
+         if(cpnd_mdest_trav == NULL )
+         {
+             rc = NCSCC_RC_FAILURE;
+             m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+             goto error; 
+         }
+         
          while(cpnd_mdest_trav)
           {
            if(m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_mdest_trav->dest) == m_NCS_NODE_ID_FROM_MDS_DEST(sinfo->dest))
@@ -3203,14 +3231,40 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
    else
     {
      /*Send the try again response to CPA*/
+     rc = NCSCC_RC_FAILURE;
+	 error=SA_AIS_ERR_TRY_AGAIN;
+     goto error;
     }
    }
    else
     {
      /*Ckpt ids are not matching */
-     /*  Send error response to CPA */
+      rc = NCSCC_RC_FAILURE;
+	  error=SA_AIS_ERR_NOT_EXIST;
+      goto error; 
     } 
+  return rc;
+error:
+         /*Send Error response to CPA*/
+         switch(evt->info.ckpt_write.type)
+         {
+           case CPSV_DATA_ACCESS_WRITE_RSP:
+                rsp_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_WRITE_RSP;
+                rsp_evt.info.cpa.info.sec_data_rsp.error = error;
+           break;
 
+           case CPSV_DATA_ACCESS_OVWRITE_RSP:
+                rsp_evt.info.cpa.info.sec_data_rsp.type=CPSV_DATA_ACCESS_OVWRITE_RSP;
+                rsp_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error=error;
+           break;
+         }
+          rc = cpnd_mds_send_rsp(cb,&evt_node->sinfo, &rsp_evt);
+
+          /*Remove the all repl event node*/
+          rc = cpnd_evt_node_del(cb,evt_node);
+          /*Free the memory*/
+          if(evt_node)
+           cpnd_allrepl_write_evt_node_free(evt_node);
    
    return rc;
 }
@@ -4068,7 +4122,7 @@ cpnd_evt_proc_ckpt_iter_getnext(CPND_CB *cb, \
 
    uns32             rc=NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE    *cp_node=NULL;
-   CPSV_EVT          send_evt,*out_evt=NULL;
+   CPSV_EVT          send_evt;
    SaCkptSectionDescriptorT  sect_desc;
    uns32             num_secs_trav=0;
 
@@ -4130,9 +4184,6 @@ agent_rsp:
    
 
    rc = cpnd_mds_send_rsp(cb, sinfo, &send_evt);
-
-   if(out_evt)
-     cpnd_evt_destroy(out_evt); 
 
    return rc;
 
@@ -4490,6 +4541,14 @@ static uns32 cpnd_transfer_replica(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaCkptC
    send_evt.info.cpnd.info.ckpt_nd2nd_sync.ckpt_sync = sync;
 
    tmp_sec_info=cp_node->replica_info.section_info;
+   if (tmp_sec_info == NULL )
+    {
+      rc = NCSCC_RC_FAILURE;
+      m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED,CPND_FC_MEMFAIL,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      send_evt.info.cpnd.info.ckpt_nd2nd_sync.data = sec_data;
+      cpnd_proc_free_cpsv_ckpt_data(send_evt.info.cpnd.info.ckpt_nd2nd_sync.data);
+      return rc;
+    } 
 
    while(1) {
 

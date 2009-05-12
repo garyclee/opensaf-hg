@@ -138,6 +138,11 @@ uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node)
    
    /* In case if the internal pointers present, delete them 
    The while loop is executed in case of cleanup, at the time of destroy */
+   if(ckpt_node == NULL )
+   {
+      rc = NCSCC_RC_FAILURE;
+      return rc;
+   }   
    nref_info = ckpt_node->node_list; 
    while(nref_info)
    {
@@ -842,6 +847,11 @@ uns32 cpd_cpnd_info_node_delete(CPD_CB *cb, CPD_CPND_INFO_NODE *cpnd_info_node)
    
    /* Remove the internal linked list, if exists, The while loop will be executed
       only in case of clean up */
+   if(cpnd_info_node == NULL)
+   {
+      m_LOG_CPD_CL(CPD_CPND_INFO_NODE_DELETE_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+      return NCSCC_RC_FAILURE;
+   }
    cref_info = cpnd_info_node->ckpt_ref_list;
    while(cref_info)
    {
