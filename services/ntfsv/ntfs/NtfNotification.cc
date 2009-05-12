@@ -170,8 +170,9 @@ void NtfNotification::storeMatchingSubscription(unsigned int clientId, SaNtfSubs
     uniqueSubscriptionId.subscriptionId = subscriptionId;
 
     subscriptionList.push_back(uniqueSubscriptionId);
-    TRACE_1("Subscription %u added to list in notification %llu client %u, subscriptionList size is %d",
-            subscriptionId, notificationId_, clientId, subscriptionList.size());
+    TRACE_1("Subscription %u added to list in notification %llu client %u"
+            ", subscriptionList size is %u",
+            subscriptionId, notificationId_, clientId, (unsigned int)subscriptionList.size());
 }
 
 /**
@@ -209,9 +210,9 @@ void NtfNotification::notificationSentConfirmed(unsigned int clientId,
         (void)subscriptionList.erase(pos);
         TRACE_1("Removing subscription %u"
                 " client %u from notification %llu,"
-                " subscriptionList size is %d",
+                " subscriptionList size is %u",
                 subscriptionId, clientId,
-                notificationId_, subscriptionList.size());
+                notificationId_, (unsigned int)subscriptionList.size());
     }
     else
     {
@@ -296,7 +297,8 @@ void NtfNotification::removeSubscription(unsigned int clientId)
             TRACE_1("Removing subscription %u for client %u in notification %llu",
                     pos->subscriptionId, clientId, notificationId_);
             pos = subscriptionList.erase(pos);
-            TRACE_1("New subscriptionList size is %d", subscriptionList.size());
+            TRACE_1("New subscriptionList size is %u",
+                    (unsigned int)subscriptionList.size());
         }
         else
         {
@@ -329,7 +331,8 @@ void NtfNotification::removeSubscription(unsigned int clientId,
             TRACE_1("Removing subscription %u for client %u in notification %llu",
                     subscriptionId, clientId, notificationId_);
             pos = subscriptionList.erase(pos);
-            TRACE_1("New subscriptionList size is %d", subscriptionList.size());
+            TRACE_1("New subscriptionList size is %u",
+                    (unsigned int)subscriptionList.size());
             break;
         }
         else
@@ -383,7 +386,7 @@ void NtfNotification::printInfo()
     TRACE("  notificationId:        %llu", notificationId_);
     TRACE("  notificationType:      %d", (int)notificationType_);
     TRACE("  logged:             %d", (int)logged);
-    TRACE("  subscriptionList size  %d", subscriptionList.size());
+    TRACE("  subscriptionList size  %u", (unsigned int)subscriptionList.size());
     SubscriptionList::iterator pos = subscriptionList.begin();
     // scan until the end of the list
     while (pos != subscriptionList.end())

@@ -38,8 +38,8 @@ NtfSubscription::NtfSubscription(SaNtfSubscriptionIdT subscriptionId,
     subscriptionId_ = subscriptionId;
     TRACE_1("Subscription %u created", subscriptionId_);
     filterMap[filter->type()] = filter;
-    TRACE_1("Filter %d added to subscription %u, filterMap size is %d",
-            filter->type(), subscriptionId_, filterMap.size());
+    TRACE_1("Filter %d added to subscription %u, filterMap size is %u",
+            filter->type(), subscriptionId_, (unsigned int)filterMap.size());
 }
 
 /**
