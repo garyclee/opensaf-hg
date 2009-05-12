@@ -291,7 +291,7 @@ uns32 pss_ss_tbl_reg(PSS_CB *inst, NCSPSS_TBL_ARG_INFO *tbl_arg_info)
         var_info[i].var_info  = tbl_owned->var_info[i];
 
         var_info[i].var_info.mib_obj_name = NULL;
-        strcpy((char*)&var_info[i].var_name, (char*)tbl_owned->var_info[i].mib_obj_name);
+        strncpy((char*)&var_info[i].var_name, (char*)tbl_owned->var_info[i].mib_obj_name,PSS_VAR_NAME_LEN_MAX-1);
 
         /* Need allocate memory for mib_obj_name from NCSMIB_VAR_INFO. */ 
         var_info[i].offset     = row_length;
@@ -730,7 +730,7 @@ uns32 pss_svc_create(NCSPSS_CREATE* create)
 
 
     /* copy the default current profile name */ 
-    strcpy((char *)inst->current_profile, pssts_arg.info.pss_config.current_profile_name);
+    strncpy((char *)inst->current_profile, pssts_arg.info.pss_config.current_profile_name, NCS_PSS_MAX_PROFILE_NAME-1);
 
     /* get the OAA handle with the help of SPRR */ 
     memset(&spir_info, 0, sizeof(NCS_SPIR_REQ_INFO));
