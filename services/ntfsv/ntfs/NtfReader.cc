@@ -59,7 +59,7 @@ coll_(ntfLogger.coll_),
 ffIter(coll_.begin()),
 readerId_(readerId)
 {
-    TRACE_3("ntfLogger.coll_.size: %u", ntfLogger.coll_.size());
+    TRACE_3("ntfLogger.coll_.size: %u", (unsigned int)ntfLogger.coll_.size());
 }
 
 

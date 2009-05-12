@@ -353,7 +353,7 @@ void logEvent ()
 void NtfLogger::printInfo()
 {
     TRACE("Logger Information:");
-    TRACE(" logQueueList size:  %d", queuedNotificationList.size());
-    TRACE(" reader cache size:  %d", coll_.size());
+    TRACE(" logQueueList size:  %u", (unsigned int)queuedNotificationList.size());
+    TRACE(" reader cache size:  %u", (unsigned int)coll_.size());
 }
 

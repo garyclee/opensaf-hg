@@ -122,10 +122,10 @@ void NtfClient::subscriptionAdded(NtfSubscription* subscription,
         // store new subscription in subscriptionMap
         subscriptionMap[subscription->getSubscriptionId()] = subscription;
         TRACE_3("NtfClient::subscriptionAdded subscription %u added,"
-                " client %u, subscriptionMap size is %d",
+                " client %u, subscriptionMap size is %u",
                 subscription->getSubscriptionId(),
                 clientId_,
-                subscriptionMap.size());
+                (unsigned int)subscriptionMap.size());
 
         if (activeController())
         {
@@ -316,8 +316,8 @@ void NtfClient::sendNotification(NtfNotification* notification)
             discardedNotificationIdList.push_back(
                                                  notification->getNotificationId());
             TRACE_3("NtfClient::sendNotification send_notification_lib"
-                    " failed, new discardedNotificationIdList size is %d",
-                    discardedNotificationIdList.size());
+                    " failed, new discardedNotificationIdList size is %u",
+                    (unsigned int)discardedNotificationIdList.size());
         }
     }
     else
@@ -348,8 +348,8 @@ void NtfClient::sendNotification(NtfNotification* notification)
             discardedNotificationIdList.clear();
             TRACE_3("NtfClient::sendNotification "
                     "send_discard_notification_lib succeeded, "
-                    "new discardedNotificationIdList size is %d",
-                    discardedNotificationIdList.size());
+                    "new discardedNotificationIdList size is %u",
+                    (unsigned int)discardedNotificationIdList.size());
             // try to send the new notification
             TRACE_3("NtfClient::sendNotification send_notification_lib"
                     " called, client %u, notification %llu",
@@ -367,15 +367,16 @@ void NtfClient::sendNotification(NtfNotification* notification)
                                                          notification->getNotificationId());
                     TRACE_2("NtfClient::sendNotification "
                             "send_notification_lib failed, "
-                            "new discardedNotificationIdList size is %d",
-                            discardedNotificationIdList.size());
+                            "new discardedNotificationIdList size is %u",
+                            (unsigned int)discardedNotificationIdList.size());
                 }
                 else
                 {
                     TRACE_2("NtfClient::sendNotification "
                             "send_notification_lib failed, "
                             "discardedNotificationIdList full, "
-                            "size is %d", discardedNotificationIdList.size());
+                            "size is %u",
+                            (unsigned int)discardedNotificationIdList.size());
                 }
             }
         }
@@ -391,15 +392,15 @@ void NtfClient::sendNotification(NtfNotification* notification)
                 push_back(notification->getNotificationId());
                 TRACE_2("NtfClient::sendNotification "
                         "send_discard_notification_lib failed, "
-                        "new discardedNotificationIdList size is %d",
-                        discardedNotificationIdList.size());
+                        "new discardedNotificationIdList size is %u",
+                        (unsigned int)discardedNotificationIdList.size());
             }
             else
             {
                 TRACE_2("NtfClient::sendNotification "
                         "send_discard_notification_lib failed, "
-                        "discardedNotificationIdList full, size is %d",
-                        discardedNotificationIdList.size());
+                        "discardedNotificationIdList full, size is %u",
+                        (unsigned int)discardedNotificationIdList.size());
             }
         }
     }

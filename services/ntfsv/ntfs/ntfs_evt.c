@@ -289,7 +289,7 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
     char time_str[24];
 
     /* Event type */
-    TRACE_1("eventType = %d", (int)notificationHeader->eventType);  
+    TRACE_1("eventType = %d", (int)*notificationHeader->eventType);  
 
     /* Notification Object */
     TRACE_1("notificationObject.length = %u\n", 
@@ -317,8 +317,8 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
     TRACE_1("eventTime = %lld = %s\n", (SaTimeT) ntfTime, time_str);
 
     /* Notification ID */
-    TRACE_1("notificationID = %d\n",
-            (int)notificationHeader->notificationId);
+    TRACE_1("notificationID = %llu\n",
+            *notificationHeader->notificationId);
 
     /* Length of Additional text */
     TRACE_1("lengthadditionalText = %d\n",

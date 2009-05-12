@@ -102,8 +102,8 @@ void NtfAdmin::clientAdded(unsigned int clientId,
     {
         // store new client in clientMap
         clientMap[client->getClientId()] = client;
-        TRACE_1("NtfAdmin::clientAdded client %u added, clientMap size is %d",
-                client->getClientId(), clientMap.size());
+        TRACE_1("NtfAdmin::clientAdded client %u added, clientMap size is %u",
+                client->getClientId(), (unsigned int)clientMap.size());
 
     }
     if (NULL != mdsCtxt)
@@ -216,10 +216,10 @@ void NtfAdmin::processNotification(unsigned int clientId,
                                                         sendNotInfo);
     // store notification in a map for tracking purposes
     notificationMap[notificationId] = notification;
-    TRACE_2("notification %u with type %d added, notificationMap size is %d",
-            (unsigned int)notificationId,
+    TRACE_2("notification %llu with type %d added, notificationMap size is %u",
+            notificationId,
             notificationType,
-            notificationMap.size());
+            (unsigned int)notificationMap.size());
 
     // log the notification. Callback from SAF log will confirm later.
     logger.log(*notification, activeController());
@@ -245,9 +245,9 @@ void NtfAdmin::processNotification(unsigned int clientId,
             TRACE_2("NtfAdmin::notificationReceived no subscription found"
                     " for notification %llu", notificationId);
             notificationMap.erase(notificationMap.find(notificationId));
-            TRACE_2("NtfAdmin::notificationReceived notification %u removed,"
-                    " notificationMap size is %d",
-                    (unsigned int)notificationId, notificationMap.size());
+            TRACE_2("NtfAdmin::notificationReceived notification %llu removed,"
+                    " notificationMap size is %u",
+                    notificationId, (unsigned int)notificationMap.size());
             delete notification;
         }
     }
@@ -372,9 +372,10 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
                             sendNotInfo);
         // store notification in a map for tracking purposes
         notificationMap[notificationId] = notification;
-        TRACE_2("notification %u with type %d"
-                " added, notificationMap size is %d",
-                (unsigned int)notificationId, notificationType, notificationMap.size());
+        TRACE_2("notification %llu with type %d"
+                " added, notificationMap size is %u",
+                notificationId, notificationType,
+                (unsigned int)notificationMap.size());
     }
     TRACE_LEAVE();
 }
@@ -615,7 +616,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba)
     }
 
     // send notifications 
-    TRACE_2("sendNoOfNotifications mapsize=%u", notificationMap.size());
+    TRACE_2("sendNoOfNotifications mapsize=%u", (unsigned int)notificationMap.size());
     sendNoOfNotifications(notificationMap.size(),uba);
     NotificationMap::iterator posNot;
     for (posNot = notificationMap.begin();
@@ -649,8 +650,9 @@ void NtfAdmin::deleteConfirmedNotification(NtfNotification* notification,
     {
         // notification sent to all nodes in the cluster, it can be deleted
         notificationMap.erase(pos);
-        TRACE_2("Notification %llu removed, notificationMap size is %d",
-                notification->getNotificationId(), notificationMap.size());
+        TRACE_2("Notification %llu removed, notificationMap size is %u",
+                notification->getNotificationId(),
+                (unsigned int)notificationMap.size());
         delete notification;
     }
 }

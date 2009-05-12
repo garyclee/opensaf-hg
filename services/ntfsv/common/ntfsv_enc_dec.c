@@ -496,7 +496,7 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
         ncs_encode_16bit(&p8, param->notification.objectCreateDelete.numAttributes);
         ncs_encode_16bit(&p8, *param->notification.objectCreateDelete.sourceIndicator);
         TRACE_2("sourceIndicator %d",
-                (int)param->notification.objectCreateDelete.sourceIndicator);
+                (int)*param->notification.objectCreateDelete.sourceIndicator);
         ncs_enc_claim_space(uba, 4);
         total_bytes += 4;
         ntfsv_print_object_attributes(param->notification. \
@@ -771,7 +771,7 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
             *param->notification.objectCreateDelete.sourceIndicator = 
                 ncs_decode_16bit(&p8);
             TRACE_2("sourceIndicator %d",
-                    (int)param->notification.objectCreateDelete.sourceIndicator);
+                    (int)*param->notification.objectCreateDelete.sourceIndicator);
             ncs_dec_skip_space(uba, 4);
             total_bytes += 4;
 
