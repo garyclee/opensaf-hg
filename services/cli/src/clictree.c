@@ -364,8 +364,9 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
    int8 cmd_path[CLI_BUFFER_SIZE];
    
    /* Copy the path string into an array */
-   strcpy(cmd_path, pList->i_node);    
-   
+   memset(cmd_path,0,sizeof(cmd_path));
+   strncpy(cmd_path, pList->i_node,sizeof(cmd_path)-1);
+    
    /* extract the root node from the path */   
    token = strtok(cmd_path, CLI_TOK_SEPARATOR);
    
@@ -374,7 +375,7 @@ uns32 cli_parse_node(CLI_CB *pCli, NCSCLI_CMD_LIST *pList, NCS_BOOL cookie)
       if(!pCli->ctree_cb.rootMrkr) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
       
       memset(pCli->ctree_cb.rootMrkr, 0, sizeof(CLI_CMD_NODE));
-      strcpy(pCli->ctree_cb.rootMrkr->name, token);            
+      strncpy(pCli->ctree_cb.rootMrkr->name, token,sizeof(pCli->ctree_cb.rootMrkr->name)-1);
    }
    
    /* Set the context pointer to the start of the tree*/
@@ -429,8 +430,8 @@ void cli_set_cmd_to_parse(CLI_CB *pCli, int8 *src, CLI_BUFFER_TYPE buffType)
    /* Copy contents into command buffer if buffer type is CLI_CMD_BUFFER */
    case CLI_CMD_BUFFER:
       if(src) {                
-         strcpy(pCli->par_cb.ipbuffer, src);
-         strcat(pCli->par_cb.ipbuffer, CLI_TOK_EOC);
+        strncpy(pCli->par_cb.ipbuffer, src,sizeof(pCli->par_cb.ipbuffer)-1); 
+        strncat(pCli->par_cb.ipbuffer, CLI_TOK_EOC,sizeof(pCli->par_cb.ipbuffer)-strlen(pCli->par_cb.ipbuffer)-1); 
       }
       else m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_INVALID_PTR);      
       
@@ -518,7 +519,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
          if(!cookie) return;  /* Do not create the node */
          
          memset(pCli->ctree_cb.ctxtMrkr->pSibling, 0, sizeof(CLI_CMD_NODE)); 
-         strcpy(pCli->ctree_cb.ctxtMrkr->pSibling->name, tok);
+         strncpy(pCli->ctree_cb.ctxtMrkr->pSibling->name, tok,sizeof(pCli->ctree_cb.ctxtMrkr->pSibling->name)-1);
          pCli->ctree_cb.ctxtMrkr->pSibling->pParent = pCli->ctree_cb.ctxtMrkr;
          pCli->ctree_cb.ctxtMrkr = pCli->ctree_cb.ctxtMrkr->pSibling;
       } 
@@ -528,7 +529,7 @@ void cli_find_add_node(CLI_CB *pCli, int8 *tok, NCS_BOOL cookie)
       pCli->ctree_cb.ctxtMrkr->pChild = m_MMGR_ALLOC_CLI_CMD_NODE;        
       if(!pCli->ctree_cb.ctxtMrkr->pChild) return;
       memset(pCli->ctree_cb.ctxtMrkr->pChild, 0, sizeof(CLI_CMD_NODE));    
-      strcpy(pCli->ctree_cb.ctxtMrkr->pChild->name, tok);
+      strncpy(pCli->ctree_cb.ctxtMrkr->pChild->name, tok,sizeof(pCli->ctree_cb.ctxtMrkr->pChild->name)-1);
       
       /* Reset the context marker */
       pCli->ctree_cb.ctxtMrkr->pChild->pParent = pCli->ctree_cb.ctxtMrkr;

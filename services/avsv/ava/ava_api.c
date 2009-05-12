@@ -128,7 +128,7 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    AVA_HDL_REC  *hdl_rec = 0;
    SaAisErrorT  rc = SA_AIS_OK;
    int argc = 0;
-   char **argv;
+   char **argv = NULL;
    
    if ( !o_hdl || !io_ver )
    {
@@ -158,10 +158,15 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    {
       if ( getenv("SA_AMF_COMPONENT_NAME") )
       {
-         strcpy(cb->comp_name_net.value, 
-            getenv("SA_AMF_COMPONENT_NAME"));
-         cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
-         m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
+         if(strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
+             strcpy(cb->comp_name_net.value, 
+                getenv("SA_AMF_COMPONENT_NAME"));
+             cb->comp_name_net.length = m_NCS_OS_HTONS((uns16)strlen(cb->comp_name_net.value));
+             m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
+         }else {
+             rc = SA_AIS_ERR_INVALID_PARAM;
+             goto done;
+         }
       }
       else
       {

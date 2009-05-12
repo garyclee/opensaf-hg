@@ -159,13 +159,13 @@ char *bam_concatenate_twin_string (char *string1,char *string2, char *o_str)
 {
     if(string1)
     {
-        strcpy(o_str,string1);
-        strcat(o_str,",");
+        strncpy(o_str,string1, 255);
+        strncat(o_str,",", 255-strlen(o_str));
     }
 
     if(string2) 
     {
-        strcat(o_str,string2);
+        strncat(o_str,string2, 255-strlen(o_str));
     }
    
     return (o_str);
@@ -218,7 +218,7 @@ bam_flx_log_reg(void)
    /* fill version no. */
    reg.info.bind_svc.version = BAM_LOG_VERSION;
    /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "BAM");
+   strncpy(reg.info.bind_svc.svc_name, "BAM", sizeof(reg.info.bind_svc.svc_name)-1);
 
    ncs_dtsv_su_req(&reg);
    return;

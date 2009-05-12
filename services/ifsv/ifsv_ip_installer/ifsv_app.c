@@ -664,7 +664,7 @@ uns32 IfsvDtTestAppAddIntf(uns32 app_num, char *if_name, uns32 port_num,
       svc_req.info.i_ifadd.if_info.admin_state =  TRUE;
       svc_req.info.i_ifadd.if_info.if_am       = (NCS_IFSV_IAM_MTU|NCS_IFSV_IAM_IFSPEED|NCS_IFSV_IAM_PHYADDR|NCS_IFSV_IAM_ADMSTATE|NCS_IFSV_IAM_OPRSTATE);
       strcpy(svc_req.info.i_ifadd.if_info.if_descr,"haha dummy intf");
-      strcpy(svc_req.info.i_ifadd.if_info.if_name,if_name);
+      strncpy(svc_req.info.i_ifadd.if_info.if_name,if_name,IFSV_IF_NAME_SIZE-1);
       svc_req.info.i_ifadd.if_info.if_speed = speed;
       svc_req.info.i_ifadd.if_info.mtu      = MTU;
       svc_req.info.i_ifadd.if_info.oper_state = oper_state;
@@ -1007,10 +1007,10 @@ uns32 IfsvDtTestAppModIntfName(uns32 app_num, uns32 port_num, uns32 port_type,
       svc_req.info.i_ifadd.spt_info.shelf = app_cb->shelf_no;
       svc_req.info.i_ifadd.spt_info.slot  = app_cb->slot_no;
       /* embedding subslot changes */
-       svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
+      svc_req.info.i_ifadd.spt_info.subslot  = app_cb->subslot_no;
       svc_req.info.i_ifadd.spt_info.type  = port_type;      
       svc_req.info.i_ifadd.if_info.if_am  = NCS_IFSV_IAM_NAME;                  
-      strcpy(svc_req.info.i_ifadd.if_info.if_name,temp_name);
+      strncpy(svc_req.info.i_ifadd.if_info.if_name,temp_name,IFSV_IF_NAME_SIZE-1);
       if (ncs_ifsv_svc_req(&svc_req) != NCSCC_RC_SUCCESS)
       {
          printf("IfA could not able to Modify physical address\n");

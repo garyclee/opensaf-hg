@@ -1262,9 +1262,8 @@ eds_proc_eda_api_msg (EDSV_EDS_EVT  *evt)
 {
    EDS_CB *cb;
 
-   if  ((evt) &&
-       ((evt->info.msg.info.api_info.type >= EDSV_API_BASE_MSG) &&
-        (evt->info.msg.info.api_info.type <  EDSV_API_MAX)))
+   if  ((evt->info.msg.info.api_info.type >= EDSV_API_BASE_MSG) &&
+       (evt->info.msg.info.api_info.type <  EDSV_API_MAX))
    {
       /* Retrieve the cb handle */
       if(NULL == (cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl)))
@@ -1290,7 +1289,7 @@ eds_proc_eda_api_msg (EDSV_EDS_EVT  *evt)
       ncshm_give_hdl(evt->cb_hdl);
 
    }
-   else
+   else 
    {
       m_LOG_EDSV_SF(EDS_EVT_UNKNOWN,NCSFL_LC_EDSV_CONTROL,NCSFL_SEV_ERROR,evt->evt_type,__FILE__,__LINE__,0,evt->fr_dest);
    }
@@ -1555,7 +1554,7 @@ eds_publish_log_event(EDS_WORKLIST *wp,
    uns32  x;
    uns32  is_ascii;
    int8   *ptr;
-   int8   str[524];
+   int8   str[524] = {0};
 
 
    /* See if the channel name is a printable string.
@@ -1575,9 +1574,9 @@ eds_publish_log_event(EDS_WORKLIST *wp,
    }
 
    if (is_ascii)
-      sprintf(str, "Channel:%s, ", wp->cname);
+      snprintf(str, sizeof(str)-1, "Channel:%s, ", wp->cname);
    else
-      sprintf(str, "Channel:<BINARY VALUE Length:%d>, ", wp->cname_len);
+      snprintf(str, sizeof(str)-1, "Channel:<BINARY VALUE Length:%d>, ", wp->cname_len);
 
 
    /*
@@ -1606,9 +1605,9 @@ eds_publish_log_event(EDS_WORKLIST *wp,
 
    ptr = &str[strlen(str)];   /* Get to end of previous string */
    if (is_ascii)
-      sprintf(ptr, "Publisher:%s", publish_param->publisher_name.value);
+      snprintf(ptr, sizeof(str)-strlen(str)-1, "Publisher:%s", publish_param->publisher_name.value);
    else
-      sprintf(ptr, "Publisher:<BINARY VALUE Length:%d>, ",
+      snprintf(ptr, sizeof(str)-strlen(str)-1, "Publisher:<BINARY VALUE Length:%d>, ",
               publish_param->publisher_name.length);
 
 

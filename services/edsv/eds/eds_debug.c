@@ -215,7 +215,7 @@ eds_dump_reglist()
          {
             num_subscriptions++;
             /* Loop, appending subscription IDs to string */
-            sprintf(bp," %9u ", s->subsc_rec->subscript_id);
+            snprintf(bp,sizeof(buff)-1, " %9u ", s->subsc_rec->subscript_id);
             bp = buff + (strlen(buff));
 
             /* Close to end of buffer? */
@@ -227,7 +227,7 @@ eds_dump_reglist()
                bp = buff;
 
                /* Space over the continuation line */
-               sprintf(bp, "%24s", " ");
+               snprintf(bp, sizeof(buff)-1, "%24s", " ");
                bp = buff + (strlen(buff));
             }                    
             s = s->next;
@@ -297,8 +297,8 @@ eds_dump_worklist()
    {
       num_events++;
       if (wp->chan_attrib & CHANNEL_UNLINKED) /* Flag if channel is UnLinked */
-         sprintf(buff, "u");
-      else sprintf(buff, " ");
+         snprintf(buff, BUFF_SIZE_80-1, "u");
+      else snprintf(buff, BUFF_SIZE_80-1, " ");
       printf("\n%s%6u %s", buff, wp->chan_id, wp->cname);
       
       printf("         ");
@@ -322,14 +322,14 @@ eds_dump_worklist()
                                                       (uns8*)0);
       while(co)  /* While there are channelOpen entries... */
       {
-         sprintf(bp, "%10d:%-6d", co->chan_open_id, co->reg_id);
+         snprintf(bp, BUFF_SIZE_80-1, "%10d:%-6d", co->chan_open_id, co->reg_id);
          bp = buff + (strlen(buff));
          s = co->subsc_rec_head;
          while(s)   /* While there are subscription entries... */
          {
             num_subscriptions++;
             /* Loop, appending subscription IDs to string */
-            sprintf(bp," %12u", s->subscript_id);
+            snprintf(bp,BUFF_SIZE_80-1, " %12u", s->subscript_id);
             bp = buff + (strlen(buff));
 
             /* Close to end of buffer? */
@@ -341,7 +341,7 @@ eds_dump_worklist()
                bp = buff;
 
                /* Space over the continuation line */
-               sprintf(bp, "%25s", " ");
+               snprintf(bp,BUFF_SIZE_80-1, "%25s", " ");
                bp = buff + (strlen(buff));
             }                    
             s = s->next;

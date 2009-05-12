@@ -327,7 +327,7 @@ ifsv_demo_reg_port_info (uns32 port_num, uns32 port_type, uns8 *i_phy,
    m_IFSV_ALL_ATTR_SET(port_reg.port_info.if_am);
    port_reg.hw_get_set_cb = ifsv_drv_set_get_info;
    port_reg.port_info.mtu         = MTU;
-   strcpy(port_reg.port_info.if_name, if_name);
+   strncpy(port_reg.port_info.if_name, if_name,IFSV_IF_NAME_SIZE-1);
    memcpy(port_reg.port_info.phy_addr,i_phy,6);
    port_reg.port_info.mtu         = MTU;
    port_reg.port_info.oper_state  = oper_state;
@@ -446,7 +446,7 @@ extract_port_status(FILE **fp, INTF_INFO *o_info)
     if((fd = socket(PF_INET,SOCK_DGRAM,0)) < 0)
        return -1;
     ifr.ifr_ifindex = 0;
-    strcpy(ifr.ifr_name,prev_word);
+    strncpy(ifr.ifr_name,prev_word,IFNAMSIZ-1);
     if (ioctl(fd,SIOCGIFINDEX,&ifr) < 0)
     {
         printf ("error in ioctl \n");
@@ -708,7 +708,7 @@ ifsv_get_linux_stats(STATS_INFO *o_info, uns32 port_num)
    FILE *fp;
    uns32 temp_var;
    char pres_word[64];
-   char temp_word[64];
+   char temp_word[16];
    struct ifreq ifr;
    int sock;
    uns32 res =  NCSCC_RC_FAILURE;
@@ -742,8 +742,8 @@ try_again:
        /** check whether the given name is a valid interface **/
        printf("the interface name is %s\n",temp_word);
        memset(&ifr, '\0', sizeof ifr);
-       strcpy(ifr.ifr_name,temp_word);
-            
+       strncpy(ifr.ifr_name, temp_word, IFNAMSIZ-1);
+
        if (ioctl(sock, SIOCGIFINDEX, &ifr) < 0)
        {
           printf ("wrong IOCTL index \n");

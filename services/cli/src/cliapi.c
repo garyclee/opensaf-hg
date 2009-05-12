@@ -700,7 +700,7 @@ uns32 cli_register_cmds(CLI_CB *pCli, NCSCLI_OP_REGISTER *info)
    }
    
    /* Set the mode */
-   strcpy(pCli->ctree_cb.ctxtMrkr->mode, info->i_cmdlist->i_command_mode);   
+   strncpy(pCli->ctree_cb.ctxtMrkr->mode, info->i_cmdlist->i_command_mode,sizeof(pCli->ctree_cb.ctxtMrkr->mode)-1);
    
    if(!info->i_bindery || (0 == (pBindery = m_MMGR_ALLOC_NCSCLI_BINDERY))) {
       cli_cb_main_unlock(pCli);
@@ -889,6 +889,9 @@ cli_apps_cefs_load(uns8 *file_name, uns32 what_to_do)
                      file_name); 
     
     pCli = (CLI_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLI, gl_cli_hdl);
+    if (pCli == NULL )
+       return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+
     /* continue till the you reach the end of the file */
     while (((nargs=fscanf(fp,"%s %s",arg1, arg2))==2) && 
           (nargs != EOF))

@@ -2760,7 +2760,7 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
         m_IFD_LOG_STR_NORMAL(IFSV_LOG_FUNC_RET_FAIL,"Decode Failure, Data Rsp :ifsv_edp_vip_chk_pt_full_rec:ifd_mbcsv_dec_vip_data_resp,rc:",rc);
         m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Failure, Data Rsp",0);
         printf("Decode Failure, Data Rsp:ifsv_edp_vip_chk_pt_full_rec:ifd_mbcsv_dec_vip_data_resp\n");
-        m_MMGR_FREE_INFTDATA(ckpt_data_vip);
+        m_MMGR_FREE_IFSV_VIP_REDUNDANCY_REC(ckpt_data_vip);
         return rc;
       }
       /*
@@ -2800,9 +2800,8 @@ static uns32  ifd_mbcsv_dec_vip_data_resp(void *ifsv_cb, NCS_MBCSV_CB_ARG *arg)
       }
    }
 
-    ckpt_data_vip = m_MMGR_ALLOC_IFSV_VIP_REDUNDANCY_REC;
-
-    m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Success, Data Rsp",0);
+   m_MMGR_FREE_IFSV_VIP_REDUNDANCY_REC(ckpt_data_vip);
+   m_IFD_LOG_EVT_L(IFSV_LOG_MBCSV_MSG,"Decode Success, Data Rsp",0);
 
    return rc;
 

@@ -205,8 +205,8 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
              "Amf Component Get Name Failed :ifnd_lib_init "," ");
          goto ifnd_mds_fail;
       }
-      strcpy(ifsv_cb->comp_name, sname.value);
-      strcpy(m_IFND_COMP_NAME, sname.value);
+      strncpy(ifsv_cb->comp_name, sname.value,IFSV_MAX_COMP_NAME-1);
+      strncpy(m_IFND_COMP_NAME, sname.value,sizeof(m_IFND_COMP_NAME)-1);
       if ((res = ifnd_mds_init(ifsv_cb)) != NCSCC_RC_SUCCESS)
       {
          m_IFND_LOG_STR_2_NORMAL(IFSV_LOG_FUNC_RET_FAIL,
@@ -301,7 +301,7 @@ ifnd_lib_init (IFSV_CREATE_PWE *pwe_param)
       }
       else
       {
-         strcpy(healthy.key,health_key);
+         strncpy(healthy.key,health_key, SA_AMF_HEALTHCHECK_KEY_MAX -1);
       }
       healthy.keyLen=strlen(healthy.key);
 

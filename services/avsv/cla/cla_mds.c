@@ -417,6 +417,9 @@ uns32 cla_mds_rcv (CLA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
    AVSV_NDA_CLA_MSG *msg = (AVSV_NDA_CLA_MSG *)rcv_info->i_msg;
    uns32            rc = NCSCC_RC_SUCCESS;
 
+   if(!msg)
+       return NCSCC_RC_FAILURE;
+
    /* process the message */
    rc = cla_avnd_msg_prc(cb, msg);
 

@@ -2174,13 +2174,14 @@ SaAisErrorT saNtfNotificationReadInitialize(
     /**                 Lock ntfa_CB                 **/
     pthread_mutex_lock(&ntfa_cb.cb_lock);
     reader_hdl_rec = ntfa_reader_hdl_rec_add(&client_hdl_rec);
-    TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
     if (reader_hdl_rec == NULL)
     {
         pthread_mutex_unlock(&ntfa_cb.cb_lock);
         rc = SA_AIS_ERR_NO_MEMORY;
         goto done_give_client_hdl;
     }
+    
+    TRACE_1("reader_hdl_rec = %u", reader_hdl_rec->reader_hdl);
     *readHandle = (SaNtfReadHandleT)reader_hdl_rec->reader_hdl;
     reader_hdl_rec->ntfHandle = filter_hdl_rec->ntfHandle;
     /* Store the readerId returned from server */

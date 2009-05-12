@@ -260,7 +260,6 @@ ifd_intf_create (IFSV_CB *ifsv_cb, IFSV_INTF_CREATE_INFO *create_intf,
          {
           ifd_bcast_to_ifnds(&create_intf->intf_data,IFSV_INTF_REC_ADD, 0, ifsv_cb);
 #if(NCS_IFSV_BOND_INTF == 1)
-          if(create_intf->intf_data.if_info.if_name != IFSV_NULL)
           ifd_check_if_master_slave(create_intf->intf_data.if_index,ifsv_cb);
 #endif
          }
@@ -976,7 +975,7 @@ ifsv_ifd_ifindex_alloc (NCS_IFSV_SPT_MAP *spt_map, IFSV_CB *ifsv_cb)
         m_IFD_LOG_FUNC_ENTRY_CRITICAL_INFO(IFSV_LOG_IFD_MSG, "Error :Intf Index for Shelf, Slot, Port, Type, Scope has already been allocated.",spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,0);
         m_IFD_LOG_FUNC_ENTRY_CRITICAL_INFO(IFSV_LOG_IFD_MSG, "Error : Previously Intf Index had been allocated to Shelf, Slot, Port, Type, Scope.",spt_map->if_index,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,0);
 
-         printf("Error :Intf Index %d for Shelf %d, Slot %d, Port %d, Type %d Scope %d has already been allocated to Shelf %d, Slot %d, Port %d, Type %d Scope %d, originator %d, originator_mds_destination %d, current_owner %d, current_owner_mds_destination %d, marked_del %d\n", spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,rec_data->originator,rec_data->originator_mds_destination,rec_data->current_owner,rec_data->current_owner_mds_destination,rec_data->marked_del);
+         printf("Error :Intf Index %d for Shelf %d, Slot %d, Port %d, Type %d Scope %d has already been allocated to Shelf %d, Slot %d, Port %d, Type %d Scope %d, originator %d, originator_mds_destination 0x%x, current_owner %d, current_owner_mds_destination 0x%x, marked_del %d\n", spt_map->if_index,spt_map->spt.shelf,spt_map->spt.slot,spt_map->spt.port,spt_map->spt.type,spt_map->spt.subscr_scope,rec_data->spt_info.shelf,rec_data->spt_info.slot,rec_data->spt_info.port,rec_data->spt_info.type,rec_data->spt_info.subscr_scope,rec_data->originator,rec_data->originator_mds_destination,rec_data->current_owner,rec_data->current_owner_mds_destination,rec_data->marked_del);
         return NCSCC_RC_FAILURE;
       }
  

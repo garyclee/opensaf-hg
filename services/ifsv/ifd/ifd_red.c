@@ -510,6 +510,9 @@ ifd_a2s_ipxs_intf_info_handler (IFD_A2S_IPXS_INTF_INFO_EVT *info, IFSV_CB *cb)
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, ipxs_hdl);
 
+   if (ipxs_cb == IFSV_NULL)
+      return res;
+
    ipxs_evt.info.d.ndtod_upd = info->info;
 
    res = ifd_ipxs_proc_data_ifip_info(ipxs_cb, &ipxs_evt, &if_index);
@@ -1143,7 +1146,8 @@ ifd_a2s_sync_resp (IFSV_CB *cb, uns8 *intf_msg
    /* Get the IPXS CB */
    ipxs_hdl = m_IPXS_CB_HDL_GET( );
    ipxs_cb = ncshm_take_hdl(NCS_SERVICE_ID_IFD, ipxs_hdl);
-
+   if (ipxs_cb == IFSV_NULL)
+      return NCSCC_RC_FAILURE; 
 #endif  
 
   m_IFD_LOG_EVT_L(IFSV_LOG_IFD_EVT_A2S_SYNC_RESP_RCV,"If data and ipxs data.",0);

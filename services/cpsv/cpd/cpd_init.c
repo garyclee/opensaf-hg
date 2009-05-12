@@ -331,6 +331,13 @@ static uns32 cpd_lib_init (CPD_CREATE_INFO *info)
    }
    else
    {
+     if(strlen(health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX)
+       {
+         rc = NCSCC_RC_FAILURE;
+         m_LOG_CPD_CL(CPD_HEALTHCHECK_START_FAIL,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
+         goto cpd_mab_fail;
+       }
+     else
       strcpy(healthy.key,health_key);
    }
    healthy.keyLen=strlen(healthy.key);

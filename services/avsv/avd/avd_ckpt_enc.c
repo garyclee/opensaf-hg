@@ -2545,7 +2545,7 @@ static uns32 avd_entire_data_update(AVD_CL_CB *cb,
    }
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"avd_entire_data_update\n\nSent reotype = %d num_obj = %d -------------\n", enc->io_reo_type, num_of_obj);
+   snprintf(logbuff,SA_MAX_NAME_LENGTH-1,"avd_entire_data_update\n\nSent reotype = %d num_obj = %d -------------\n", enc->io_reo_type, num_of_obj);
    m_AVD_LOG_FUNC_ENTRY(logbuff);
    
    /* Now encode the number of objects actually in the UBA.*/
@@ -3300,7 +3300,7 @@ uns32  avsv_encode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
    uns8           logbuff[SA_MAX_NAME_LENGTH];
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"avsv_encode_warm_sync_rsp \n UPDATE CNTS AT ACTIVE(WarmSink) : cb=%d,avnd=%d,sg=%d,su=%d,si=%d,ol=%d,\nas=%d,rel=%d,co=%d,cs=%d,pl=%d,hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
+   snprintf(logbuff,SA_MAX_NAME_LENGTH-1,"avsv_encode_warm_sync_rsp \n UPDATE CNTS AT ACTIVE(WarmSink) : cb=%d,avnd=%d,sg=%d,su=%d,si=%d,ol=%d,\nas=%d,rel=%d,co=%d,cs=%d,pl=%d,hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
            cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.avnd_updt, cb->async_updt_cnt.sg_updt, cb->async_updt_cnt.su_updt,
            cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt, cb->async_updt_cnt.sg_admin_si_updt,
            cb->async_updt_cnt.su_si_rel_updt, cb->async_updt_cnt.comp_updt, cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.csi_parm_list_updt,

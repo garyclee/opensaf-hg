@@ -476,17 +476,17 @@ avm_constr_ep(
     {
        if(AVM_DEFAULT_HIERARCHY_LVL == ent_type_cnt)
        {
-          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", ent_type[1], ent_inst[1], ent_type[0], ent_inst[0], SAHPI_ENT_ROOT, 0);
+          len = snprintf(ep, EPATH_STRING_SIZE-1, "{{%d,%d},{%d,%d},{%d,%d}}", ent_type[1], ent_inst[1], ent_type[0], ent_inst[0], SAHPI_ENT_ROOT, 0);
        }else
        {
-          len = sprintf(ep, "{{%d,%d}{%d,%d},{%d,%d},{%d,%d}}", ent_type[2], ent_inst[2], ent_type[1], ent_inst[1], ent_type[0], ent_inst[0], SAHPI_ENT_ROOT, 0);
+          len = snprintf(ep, EPATH_STRING_SIZE-1, "{{%d,%d}{%d,%d},{%d,%d},{%d,%d}}", ent_type[2], ent_inst[2], ent_type[1], ent_inst[1], ent_type[0], ent_inst[0], SAHPI_ENT_ROOT, 0);
        }
     }else
     {
        if(AVM_DEFAULT_HIERARCHY_LVL == ent_inst_cnt)
        {
 #ifdef HAVE_HPI_A01
-          len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+          len = snprintf(ep, EPATH_STRING_SIZE-1, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_SYSTEM_BOARD, ent_inst[1], SAHPI_ENT_SYSTEM_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
 #else
           /* Try to find the correct entity path using the HISv lookup fn - if HISv is available */
           rc = hpl_entity_path_lookup(ep_flag, ent_inst[0], ent_inst[1], ep, EPATH_STRING_SIZE);
@@ -502,7 +502,7 @@ avm_constr_ep(
           else 
           {
              /* HISv is not running - so create the entity path using the original hardcoded values */
-             len = sprintf(ep, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
+             len = snprintf(ep, EPATH_STRING_SIZE-1, "{{%d,%d},{%d,%d},{%d,%d}}", SAHPI_ENT_PHYSICAL_SLOT, ent_inst[1], SAHPI_ENT_ADVANCEDTCA_CHASSIS, ent_inst[0], SAHPI_ENT_ROOT, 0);
              rc = NCSCC_RC_SUCCESS;
           }
 #endif
@@ -554,7 +554,7 @@ avm_cef_set_ent_adm_req(
     uns32              rc      = NCSCC_RC_SUCCESS;
     uns32              cli_hdl = cef_data->i_bindery->i_cli_hdl;
     int8               set_val[sizeof(uns32)];
-    int8               ans;
+    int32               ans;
     
 
     memset(entity_instance, '\0',sizeof(uns32) * SAHPI_MAX_ENTITY_PATH);

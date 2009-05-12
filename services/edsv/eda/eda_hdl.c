@@ -635,9 +635,16 @@ EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
 
    /** Initialize and attach the IPC/Priority queue
     **/
-    m_NCS_IPC_CREATE(&rec->mbx);
-    m_NCS_IPC_ATTACH(&rec->mbx);
-
+    if(m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+       m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+       goto error;
+    }
+    if(m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
+    {
+       m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+       goto error;
+    }
    /** Add this to the Link List of 
     ** CLIENT_HDL_RECORDS for this EDA_CB 
     **/
@@ -781,7 +788,6 @@ eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
 {
    EDA_CHANNEL_HDL_REC *chan_hdl_rec =NULL;
    EDA_EVENT_HDL_REC     *evt_hdl_rec = NULL;
-   EDA_SUBSC_REC         *sub_rec =NULL;
    EDSV_EDA_EVT_DELIVER_CBK_PARAM *evt_dlv_param =&cbk_msg->info.cbk_info.param.evt_deliver_cbk;
    SaEvtEventHandleT eventHandle =  evt_dlv_param->event_hdl; 
    /** Lookup the hdl rec 
@@ -801,8 +807,8 @@ eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
             if (NULL != (chan_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(
                                  NCS_SERVICE_ID_EDA, evt_hdl_rec->parent_chan->channel_hdl)))
             {
-               if (NULL != (sub_rec = eda_find_subsc_by_subsc_id(chan_hdl_rec,
-                                             evt_dlv_param->sub_id)))
+               if (NULL != eda_find_subsc_by_subsc_id(chan_hdl_rec,
+                                             evt_dlv_param->sub_id))
                {
                    ncshm_give_hdl(eventHandle);
                    ncshm_give_hdl(chan_hdl_rec->channel_hdl);

@@ -803,14 +803,14 @@ uns32  avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
    }
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"\n UPDATE CNTS RCVD(Active -> Standby): hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
+   snprintf(logbuff, SA_MAX_NAME_LENGTH-1, "\n UPDATE CNTS RCVD(Active -> Standby): hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
            updt_cnt->hlth_config_updt, updt_cnt->su_updt, updt_cnt->comp_updt, updt_cnt->su_si_updt,
            updt_cnt->siq_updt, updt_cnt->csi_updt, updt_cnt->comp_hlth_rec_updt, updt_cnt->comp_cbk_rec_updt);
 
    m_AVND_AVND_ENTRY_LOG((uns8 *)&logbuff,NULL,0,0,0,0);
 
    memset(logbuff,'\0',SA_MAX_NAME_LENGTH);
-   sprintf(logbuff,"\n UPDATE CNTS AT STANDBY: hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
+   snprintf(logbuff, SA_MAX_NAME_LENGTH-1, "\n UPDATE CNTS AT STANDBY: hc=%d,su=%d,comp=%d,su_si=%d,siq=%d,csi=%d,\ncomp_hc=%d,comp_cbk=%d\n",
            cb->avnd_async_updt_cnt.hlth_config_updt, cb->avnd_async_updt_cnt.su_updt, cb->avnd_async_updt_cnt.comp_updt, cb->avnd_async_updt_cnt.su_si_updt,
            cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt, cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 

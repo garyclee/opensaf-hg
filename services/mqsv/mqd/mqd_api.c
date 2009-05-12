@@ -301,7 +301,7 @@ static uns32 mqd_lib_init(void)
    m_LOG_MQSV_D(MQD_ASAPi_BIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
 
    /*   start the AMF Health Check  */
-   memset(&healthy,0,sizeof(healthy));
+   memset(&healthy,0,sizeof(SaAmfHealthcheckKeyT));
    health_key =  getenv("MQSV_ENV_HEALTHCHECK_KEY");
    if(health_key == NULL)
    {
@@ -309,7 +309,7 @@ static uns32 mqd_lib_init(void)
    }
    else
    {
-       strcpy(healthy.key,health_key);
+       strncpy(healthy.key,health_key,SA_AMF_HEALTHCHECK_KEY_MAX-1);
    }
    healthy.keyLen=strlen(healthy.key);
 

@@ -102,7 +102,7 @@ uns32 cli_stricmp(int8 *i_str1, int8 *i_str2)
 #define m_CLI_REDISPLAY_CMD(pCli, str)\
 {\
    if(0 != pCli->ctree_cb.htryMrkr.cmd_node)\
-      strcpy(str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);\
+      strncpy(str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr,sizeof(str)-1);\
 }
 
 
@@ -142,7 +142,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
 
       pCli->ctree_cb.cmdHtry->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(i_cmdstr)+1);
       if(!pCli->ctree_cb.cmdHtry->pCmdStr) return;
-      strcpy(pCli->ctree_cb.cmdHtry->pCmdStr, i_cmdstr);      
+      strncpy(pCli->ctree_cb.cmdHtry->pCmdStr, i_cmdstr,strlen(i_cmdstr));      
       
       pCli->ctree_cb.htryMrkr.cmd_node = pCli->ctree_cb.cmdHtry;
       pCli->ctree_cb.htryMrkr.cmd_count++;
@@ -179,7 +179,7 @@ void cli_set_cmd_into_history(CLI_CB *pCli, int8 *i_cmdstr)
       memset(pCurr, 0, sizeof(CLI_CMD_HISTORY));      
       pCurr->pCmdStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(i_cmdstr)+1);
       if(!pCurr->pCmdStr) return;
-      strcpy(pCurr->pCmdStr, i_cmdstr);
+      strncpy(pCurr->pCmdStr, i_cmdstr,strlen(i_cmdstr));
       
       pCurr->prev = pPrev;                
       pCli->ctree_cb.htryMrkr.cmd_node = pCurr;
@@ -202,7 +202,7 @@ void cli_get_cmd_from_history(CLI_CB *pCli, int8 *i_str, uns32 i_direction)
    if(!pCli->ctree_cb.htryMrkr.cmd_node) return;
 
    if(CLI_HIS_BWD_MVMT == i_direction) {               
-      strcpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
+      strncpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr,CLI_BUFFER_SIZE-1);
       
       if(0 != pCli->ctree_cb.htryMrkr.cmd_node->prev) {
          pCli->ctree_cb.htryMrkr.cmd_node = 
@@ -212,7 +212,7 @@ void cli_get_cmd_from_history(CLI_CB *pCli, int8 *i_str, uns32 i_direction)
    else if(CLI_HIS_FWD_MVMT == i_direction) {        
       if(0 != pCli->ctree_cb.htryMrkr.cmd_node->next) {
          pCli->ctree_cb.htryMrkr.cmd_node = pCli->ctree_cb.htryMrkr.cmd_node->next;                
-         strcpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr);
+         strncpy(i_str, pCli->ctree_cb.htryMrkr.cmd_node->pCmdStr,CLI_BUFFER_SIZE-1);
       }
    }   
 }

@@ -856,6 +856,12 @@ uns32  avsv_update_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID   *uba,
    }
 
    si_ptr_up = avd_si_struc_find(cb, si->name_net, FALSE);
+   if(si_ptr_up == AVD_SI_NULL)
+   {
+      /* log information error */
+      m_AVD_LOG_INVALID_VAL_FATAL(si_ptr_up);
+      return NCSCC_RC_FAILURE;
+   }
 
    switch(action)
    {

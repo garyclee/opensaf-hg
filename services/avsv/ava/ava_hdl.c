@@ -61,6 +61,8 @@ uns32 ava_hdl_init (AVA_HDL_DB *hdl_db)
    NCS_PATRICIA_PARAMS param;
    uns32               rc = NCSCC_RC_SUCCESS;
 
+   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+
    /* init the hdl db tree */
    param.key_size = sizeof(uns32);
    param.info_size = 0;

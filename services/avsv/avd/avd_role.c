@@ -218,7 +218,7 @@ done:
    if(NCSCC_RC_SUCCESS != status)
    {
       cb->role_switch = SA_FALSE;
-      avd_avm_role_rsp(cb, status, msg->role);
+      if(msg) avd_avm_role_rsp(cb, status, msg->role);
       m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_FAILURE, NCSFL_SEV_NOTICE, 0);
    }
 

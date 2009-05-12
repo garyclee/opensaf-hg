@@ -53,17 +53,23 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
 
     out_usr_buf.cmd_parm.cmd_id = htons(cmd_id);
     /* send the ipmb address in char format */
-    sprintf(out_usr_buf.cmd_parm.payload_ipaddr, "%x", ent_info->dhcp_serv_conf.ipmb_addr);
-    strcpy(out_usr_buf.cmd_parm.filename,filename);
+    snprintf(out_usr_buf.cmd_parm.payload_ipaddr, sizeof(out_usr_buf.cmd_parm.payload_ipaddr)-1, "%x", ent_info->dhcp_serv_conf.ipmb_addr);
+    strncpy(out_usr_buf.cmd_parm.filename,filename,sizeof(out_usr_buf.cmd_parm.filename));
     
     buff = m_MMGR_ALLOC_BUFR(sizeof(USRBUF));
+    if(buff == NULL)
+    {
+       snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: USRBUF memory allocation failed",ent_info->ep_str.name);
+       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
+       return NCSCC_RC_FAILURE;
+    }
 
     m_BUFR_STUFF_OWNER(buff);
     
     buff_ptr = m_MMGR_RESERVE_AT_END(&buff, sizeof(AVM_FUND_USR_BUF), uns8*);
     if(buff_ptr == NULL)
     {
-       sprintf(str,"AVM-SSU: Payload blade %s: USRBUF reserve at end failed",ent_info->ep_str.name);
+       snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: USRBUF reserve at end failed",ent_info->ep_str.name);
        m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
        return NCSCC_RC_FAILURE;
     }
@@ -85,7 +91,7 @@ avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info,uns32 cmd_id,uns
     arg.req.info.cli_req.i_wild_card = FALSE;
     if ((avm_fund_send_mib_req(ent_info,&arg)) == NCSCC_RC_FAILURE)
     {
-       sprintf(str,"AVM-SSU: Payload blade %s: avm_fund_send_mib_req failed",ent_info->ep_str.name);
+       snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: avm_fund_send_mib_req failed",ent_info->ep_str.name);
        m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
        return NCSCC_RC_FAILURE;
     }
@@ -191,14 +197,6 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
    char    local_buf[10];
    uns8  pld_bld_status =0, pld_rtm_status =0; 
 
-   uns32   ut_flag = 1;
-   /* vivek_ut                   */
-   /* Flag is added to enable ut */
-   /* Needs to be removed        */
-   if (ut_flag == 0)
-      return NCSCC_RC_SUCCESS;
-
-   
    resp = fund_resp->evt.mib_req; /* should I free it?? - TBD - JPL */
    /* Get the ent info */
    if(NULL == (ent_info =
@@ -227,7 +225,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                if(buff_len <= 0 || buff_len > 2)
                {
                   /* IPMC UPGRADE Command failed. Log it. Send the trap */
-                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: Unknown resp length",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: Unknown resp length",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                   cb->upgrade_error_type = UNKNOWN_ERROR;
                   cb->upgrade_module = IPMC_PLD;  
@@ -243,7 +241,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                                local_buf)) == (uns8 *)0)
                   {
                      /* Log Error */
-                     sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
 
                      ncshm_give_hdl(resp->i_usr_key);
@@ -267,7 +265,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                            cb->upgrade_error_type = UNKNOWN_ERROR;  
                            rollback = IPMC_PLD_BLD;
                      }
-                     sprintf(str,"AVM-SSU: Payload %s: Payload IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type); 
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: Payload IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type); 
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                      cb->upgrade_module = IPMC_PLD_BLD;
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
@@ -291,7 +289,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                            ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status;
                         }
                         cb->upgrade_module = IPMC_PLD_BLD;
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD Upgrade Success: Progress Tpye=%d ",ent_info->ep_str.name,cb->upgrade_prg_evt); 
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD Upgrade Success: Progress Tpye=%d ",ent_info->ep_str.name,cb->upgrade_prg_evt); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                         avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                         unlock = 1;
@@ -299,7 +297,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                      else
                      {
                         /* AVM is not aware, what happened at the FUND. Rollback PLD BLD to be safe side */
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD Unknown Upgrade Status: ",ent_info->ep_str.name); 
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD Unknown Upgrade Status: ",ent_info->ep_str.name); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                         cb->upgrade_error_type = UNKNOWN_ERROR;
                         cb->upgrade_module = IPMC_PLD_BLD;
@@ -312,7 +310,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                      {
                         cb->upgrade_error_type =  pld_rtm_status;
                         cb->upgrade_module = IPMC_PLD_RTM;
-                        sprintf(str,"AVM-SSU: Payload  %s: Payload RTM IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type);
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload  %s: Payload RTM IPMC upgrade failed: ErrorType=%d ",ent_info->ep_str.name,cb->upgrade_error_type);
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                         avm_send_boot_upgd_trap(cb,ent_info, ncsAvmSwFwUpgradeFailure_ID) ; 
                         failure = 1;
@@ -346,7 +344,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                            cb->upgrade_module = IPMC_PLD_RTM;
                            avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                         }
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM Upgrade Success: Progress Tpye=%d ",
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM Upgrade Success: Progress Tpye=%d ",
                                     ent_info->ep_str.name,cb->upgrade_prg_evt); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
 
@@ -356,7 +354,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                      else
                      {
                         /* AVM is not aware, what happened at the FUND. Rollback PLD BLD & RTM to be safe side */
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM Unknown Upgrade Status: ",ent_info->ep_str.name); 
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM Unknown Upgrade Status: ",ent_info->ep_str.name); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
                         cb->upgrade_error_type = UNKNOWN_ERROR; 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
@@ -370,7 +368,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
             }
             if( failure)
             { 
-              sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Handle Failure",ent_info->ep_str.name);
+              snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_UPGD_CMD: Handle Failure",ent_info->ep_str.name);
               m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
                /* Check the type of upgrade */
@@ -400,7 +398,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                      dhcp_conf->default_chg = FALSE;      /* TBD - JPL */
   
-                     sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
                                            ent_info->ep_str.name,dhcp_conf->pref_label.name);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
 
@@ -415,7 +413,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, ent_info, AVM_CKPT_ENT_UPGD_STATE_CHG);
                   cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
                   cb->upgrade_module = IPMC_PLD_BLD;
-                  sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD - Rollback triggered ",ent_info->ep_str.name); 
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD - Rollback triggered ",ent_info->ep_str.name); 
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                   m_AVM_UPGD_IPMC_PLD_MOD_TMR_START(cb,ent_info);
@@ -434,7 +432,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
                   cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
                   cb->upgrade_module = IPMC_PLD;
-                  sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD - Rollback triggered ",ent_info->ep_str.name); 
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD - Rollback triggered ",ent_info->ep_str.name); 
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                   avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
                   m_AVM_UPGD_IPMC_PLD_TMR_START(cb,ent_info);
@@ -464,7 +462,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                if(buff_len <= 0 || buff_len > 1)
                {
                   /* IPMC Payload blade downgrade Command failed. Log it. Send the trap */
-                  sprintf(str,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_BLD_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_BLD_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   cb->upgrade_error_type = GEN_ERROR;
                   cb->upgrade_module = IPMC_PLD_BLD;  
@@ -481,7 +479,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
-                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -496,7 +494,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                {
                    cb->upgrade_error_type =  pld_bld_status;
 
-                   sprintf(str,"AVM-SSU: Payload blade %s: Payload blade IPMC downgrade failed: ErrorType=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload blade IPMC downgrade failed: ErrorType=%d ",
                                 ent_info->ep_str.name,cb->upgrade_error_type); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                    cb->upgrade_module = IPMC_PLD_BLD;
@@ -511,7 +509,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                    /* ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status;  - TBD - JPL */
                    cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
                    cb->upgrade_module = IPMC_PLD_BLD;
-                   sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD Downgrade Success: Progress Tpye=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD Downgrade Success: Progress Tpye=%d ",
                                 ent_info->ep_str.name,cb->upgrade_prg_evt); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                    avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID); /* sending trap TBD - JPL */
@@ -520,7 +518,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                else if(pld_bld_status == IPMC_SAME_VERSION)
                {
                    /* shouldn't fall into this case - TBD - JPL */
-                   sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD - SAME VERSION: Rollback not required: Progress Type=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD - SAME VERSION: Rollback not required: Progress Type=%d ",
                                 ent_info->ep_str.name,pld_bld_status); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                    unlock = 1;
@@ -529,7 +527,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                {
                    /* AVM doesn't know, what happened at FUND */ 
                    cb->upgrade_error_type = UNKNOWN_ERROR; 
-                   sprintf(str,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
                                 ent_info->ep_str.name,cb->upgrade_error_type); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                    cb->upgrade_module = IPMC_PLD_BLD;
@@ -556,7 +554,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                if(buff_len <= 0 || buff_len > 1)
                {
                   /* IPMC Payload rtm downgrade Command failed. Log it. Send the trap */
-                  sprintf(str,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_RTM_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_RTM_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   cb->upgrade_error_type = GEN_ERROR;
                   cb->upgrade_module = IPMC_PLD_RTM;  
@@ -573,7 +571,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
-                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -587,7 +585,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                {
                   cb->upgrade_error_type =  pld_rtm_status;
                   cb->upgrade_module = IPMC_PLD_RTM;
-                  sprintf(str,"AVM-SSU: Payload blade %s: Payload RTM IPMC downgrade failed: ErrorType=%d ",
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload RTM IPMC downgrade failed: ErrorType=%d ",
                               ent_info->ep_str.name,cb->upgrade_error_type);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   avm_send_boot_upgd_trap(cb,ent_info, ncsAvmSwFwUpgradeFailure_ID); 
@@ -602,7 +600,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                    /* ent_info->dhcp_serv_conf.pld_bld_ipmc_status = pld_bld_status;  - TBD - JPL */
                    cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
                    cb->upgrade_module = IPMC_PLD_RTM;
-                   sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM Downgrade Success: Progress Tpye=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM Downgrade Success: Progress Tpye=%d ",
                                 ent_info->ep_str.name,cb->upgrade_prg_evt); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                    avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID); /* sending trap TBD - JPL */
@@ -611,7 +609,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                else if ((pld_rtm_status >= IPMC_SAME_VERSION) && (pld_rtm_status  <= PAYLOAD_RTM_NOT_PRESENT))
                {
                    /* shouldn't fall into this case - TBD - JPL */
-                   sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM - Rollback not required ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM - Rollback not required ",
                                 ent_info->ep_str.name); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                    unlock = 1;
@@ -620,7 +618,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                {
                    /* AVM doesn't know, what happened at FUND */ 
                    cb->upgrade_error_type = UNKNOWN_ERROR; 
-                   sprintf(str,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
+                   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
                                 ent_info->ep_str.name,cb->upgrade_error_type); 
                    m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                    cb->upgrade_module = IPMC_PLD_RTM;
@@ -648,7 +646,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                if(buff_len <= 0 || buff_len > 2)
                {
                   /* IPMC DOWNGRADE Command failed. Log it. Send the trap */
-                  sprintf(str,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD failed - unknown resp length",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   cb->upgrade_error_type = GEN_ERROR;
                   cb->upgrade_module = IPMC_PLD;  
@@ -663,7 +661,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                                                          local_buf)) == (uns8 *)0)
                {
                   /* Error handling TBD - JPL */
-                  sprintf(str,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: AVM_FUND_PLD_BLD_AND_RTM_IPMC_DNGD_CMD: Failed: BUFF Data Extract",ent_info->ep_str.name);
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
 
                   ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -681,7 +679,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   else
                       cb->upgrade_error_type = UNKNOWN_ERROR;  
 
-                  sprintf(str,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
+                  snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
                               ent_info->ep_str.name,cb->upgrade_error_type); 
                   m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                   cb->upgrade_module = IPMC_PLD_BLD;
@@ -703,7 +701,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                          cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
 
                      cb->upgrade_module = IPMC_PLD_BLD;
-                     sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD BLD Rollback Success: Progress Type=%d ",
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD BLD Rollback Success: Progress Type=%d ",
                                  ent_info->ep_str.name,cb->upgrade_prg_evt); 
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
@@ -717,7 +715,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                         cb->upgrade_error_type = UNKNOWN_ERROR;  
 
                      cb->upgrade_module = IPMC_PLD_BLD;
-                     sprintf(str,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload blade IPMC Rollback failed: ErrorType=%d ",
                                  ent_info->ep_str.name,cb->upgrade_error_type); 
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID);
@@ -728,7 +726,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   {
                      cb->upgrade_error_type =  pld_rtm_status;
                      cb->upgrade_module = IPMC_PLD_RTM;
-                     sprintf(str,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
                                  ent_info->ep_str.name,cb->upgrade_error_type);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info,ncsAvmSwFwUpgradeFailure_ID); 
@@ -740,7 +738,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                      { 
                         cb->upgrade_prg_evt = AVM_UPGRADE_SUCCESS;
                         cb->upgrade_module = IPMC_PLD_RTM;
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM Rollback Success:Progress Type=%d",
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM Rollback Success:Progress Type=%d",
                                     ent_info->ep_str.name,cb->upgrade_prg_evt); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                         avm_send_boot_upgd_trap(cb,ent_info,ncsAvmUpgradeProgress_ID);
@@ -748,7 +746,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                      else
                      {
                         /* it shouldn't fall into this case */   
-                        sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD RTM Rollback Success:Progress Type=%d",
+                        snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD RTM Rollback Success:Progress Type=%d",
                                     ent_info->ep_str.name,cb->upgrade_prg_evt); 
                         m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
                      } 
@@ -758,7 +756,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
                   {
                      cb->upgrade_error_type =  UNKNOWN_ERROR;
                      cb->upgrade_module = IPMC_PLD_RTM;
-                     sprintf(str,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
+                     snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload RTM IPMC Rollback failed: ErrorType=%d ",
                                  ent_info->ep_str.name,cb->upgrade_error_type);
                      m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                      avm_send_boot_upgd_trap(cb,ent_info, ncsAvmSwFwUpgradeFailure_ID); 
@@ -776,7 +774,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
 
             default:
                /* Invalid Command ID. Hence Log/Send Trap */
-               sprintf(str,"AVM-SSU: Payload blade %s: IPMC Invalid CMD :%d",
+               snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC Invalid CMD :%d",
                           ent_info->ep_str.name,resp->rsp.info.cli_rsp.i_cmnd_id);
                m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
                cb->upgrade_error_type = GEN_ERROR;
@@ -791,7 +789,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       {
          /* FUND always sends SUCCESS. Hence Log/Send Trap. Something
             unknown happened                                           */
-         sprintf(str,"AVM-SSU: Payload blade %s: IPMC CMD :%d failed",
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC CMD :%d failed",
                      ent_info->ep_str.name,resp->rsp.info.cli_rsp.i_cmnd_id);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
          cb->upgrade_error_type = GEN_ERROR;
@@ -810,7 +808,7 @@ uns32 avm_proc_fund(AVM_EVT_T *fund_resp, AVM_CB_T  *cb)
       uns32              rc;
       /* unlock the target payload blade, after upgrading the IPMC */
 
-      sprintf(str,"AVM-SSU: Payload  %s Unlocked : IPMC CMD :%d", ent_info->ep_str.name,resp->rsp.info.cli_rsp.i_cmnd_id);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload  %s Unlocked : IPMC CMD :%d", ent_info->ep_str.name,resp->rsp.info.cli_rsp.i_cmnd_id);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
       ent_info->dhcp_serv_conf.ipmc_upgd_state = IPMC_UPGD_DONE;
@@ -868,7 +866,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       /* Log it as CRITICAL error and send the trap */
       avm_cb->upgrade_error_type =  TIME_OUT;
       avm_cb->upgrade_module = IPMC_PLD;
-      sprintf(str,"AVM-SSU: Payload blade %s: Payload IPMC Rollback Timedout",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Payload IPMC Rollback Timedout",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmSwFwUpgradeFailure_ID); 
    }
@@ -882,7 +880,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       /*        - Trigger the rollback of IPMC                         */
       /*****************************************************************/
 
-      sprintf(str,"AVM-SSU: Payload blade %s: IPMC Upgrade Timedout",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC Upgrade Timedout",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
 
       avm_cb->upgrade_error_type = TIME_OUT;
@@ -916,7 +914,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
             dhcp_conf->default_chg = FALSE; 
             m_AVM_SEND_CKPT_UPDT_ASYNC_UPDT(avm_cb, ent_info, AVM_CKPT_ENT_DHCP_STATE_CHG);
    
-            sprintf(str,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
+            snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s : Preferred label set back to current active label: %s",
                                                             ent_info->ep_str.name,dhcp_conf->pref_label.name);
             m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
          }
@@ -924,7 +922,7 @@ avm_proc_ipmc_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
       avm_cb->upgrade_prg_evt = AVM_ROLLBACK_TRIGGERED;
       avm_cb->upgrade_module = IPMC_PLD;
-      sprintf(str,"AVM-SSU: Payload blade %s: IPMC PLD - Rollback triggered ",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC PLD - Rollback triggered ",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_NOTICE);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmUpgradeProgress_ID);
 
@@ -973,7 +971,7 @@ avm_proc_ipmc_mod_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       /* Log it as CRITICAL error and send the trap */
       avm_cb->upgrade_error_type =  TIME_OUT;
       avm_cb->upgrade_module = IPMC_PLD_BLD;
-      sprintf(str,"AVM-SSU: Payload blade %s: IPMC_PLD_BLD Rollback Timedout",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC_PLD_BLD Rollback Timedout",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmSwFwUpgradeFailure_ID); 
    }
@@ -983,7 +981,7 @@ avm_proc_ipmc_mod_upgd_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
       /* Log it as CRITICAL error and send the trap */
       avm_cb->upgrade_error_type =  TIME_OUT;
       avm_cb->upgrade_module = IPMC_PLD_RTM;
-      sprintf(str,"AVM-SSU: Payload blade %s: IPMC_PLD_RTM Rollback Timedout",ent_info->ep_str.name);
+      snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: IPMC_PLD_RTM Rollback Timedout",ent_info->ep_str.name);
       m_AVM_LOG_DEBUG(str,NCSFL_SEV_CRITICAL);
       avm_send_boot_upgd_trap(avm_cb,ent_info,ncsAvmSwFwUpgradeFailure_ID); 
    }
@@ -1020,7 +1018,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
    avm_stop_tmr(avm_cb, &ent_info->role_chg_wait_tmr);
 
-   sprintf(str,"AVM-SSU: Payload blade %s: Role change timer expired: Ipmc state: %d", ent_info->ep_str.name, ent_info->dhcp_serv_conf.ipmc_upgd_state);
+   snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: Role change timer expired: Ipmc state: %d", ent_info->ep_str.name, ent_info->dhcp_serv_conf.ipmc_upgd_state);
    m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
 
@@ -1037,7 +1035,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
             if(INTEG == ent_info->dhcp_serv_conf.upgrade_type)
             {
 
-               sprintf(str,"AVM-SSU: Payload %s: Role change timer expired: INTEG Failure ", ent_info->ep_str.name);
+               snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: Role change timer expired: INTEG Failure ", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
                AVM_ENT_DHCP_CONF *dhcp_conf = &ent_info->dhcp_serv_conf;
@@ -1070,7 +1068,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
             }
             else if (IPMC == ent_info->dhcp_serv_conf.upgrade_type)
             {
-               sprintf(str,"AVM-SSU: Payload %s: Role change timer expired: IPMC Failure ", ent_info->ep_str.name);
+               snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload %s: Role change timer expired: IPMC Failure ", ent_info->ep_str.name);
                m_AVM_LOG_DEBUG(str,NCSFL_SEV_DEBUG);
 
                ent_info->dhcp_serv_conf.ipmc_upgd_state = 0;
@@ -1111,7 +1109,7 @@ avm_proc_role_chg_wait_tmr_exp(AVM_EVT_T *my_evt, AVM_CB_T  *avm_cb)
 
       default:
       {
-         sprintf(str,"AVM-SSU: Payload blade %s: role change timer expired at wrong ipmc state - DEBUG it ",ent_info->ep_str.name);
+         snprintf(str,AVM_LOG_STR_MAX_LEN-1,"AVM-SSU: Payload blade %s: role change timer expired at wrong ipmc state - DEBUG it ",ent_info->ep_str.name);
          m_AVM_LOG_DEBUG(str,NCSFL_SEV_ERROR);
          ncshm_give_hdl(my_evt->evt.tmr.ent_hdl);
          return NCSCC_RC_FAILURE;

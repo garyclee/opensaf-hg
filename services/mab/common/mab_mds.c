@@ -319,10 +319,10 @@ uns32 mab_mds_dec(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT* msg,
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
   
   mm = m_MMGR_ALLOC_MAB_MSG;
-  memset(mm, '\0', sizeof(MAB_MSG));
-
   if(mm == NULL)
     return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+
+  memset(mm, '\0', sizeof(MAB_MSG));
 
   *msg = mm;
 
@@ -621,30 +621,30 @@ uns32 mab_mds_cpy(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT msg,
       NCSMAB_RANGE* src_mr = &((MAB_MSG*)msg)->data.data.idx_free.idx_free_data.range_idx_free;
       NCSMAB_RANGE* dst_mr = &mm->data.data.idx_free.idx_free_data.range_idx_free;
       
-      if(src_mr->i_min_idx_fltr != NULL)
-        {
-        dst_mr->i_min_idx_fltr = m_MMGR_ALLOC_MIB_INST_IDS(dst_mr->i_idx_len);
-        if(dst_mr->i_min_idx_fltr == NULL)
-          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-        }
-      
-      if(src_mr->i_max_idx_fltr != NULL)
-        {
-        dst_mr->i_max_idx_fltr = m_MMGR_ALLOC_MIB_INST_IDS(dst_mr->i_idx_len);
-        if(dst_mr->i_max_idx_fltr == NULL)
-          {
-          m_MMGR_FREE_MIB_INST_IDS(dst_mr->i_min_idx_fltr);
-          return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-          }
-        }
-      
-      memcpy((void*)dst_mr->i_min_idx_fltr,
-        (void*)src_mr->i_min_idx_fltr,
-        dst_mr->i_idx_len * sizeof(uns32));
-      
-      memcpy((void*)dst_mr->i_max_idx_fltr,
-        (void*)src_mr->i_max_idx_fltr,
-        dst_mr->i_idx_len * sizeof(uns32));
+         if(src_mr->i_min_idx_fltr != NULL)
+           {
+              dst_mr->i_min_idx_fltr = m_MMGR_ALLOC_MIB_INST_IDS(dst_mr->i_idx_len);
+              if(dst_mr->i_min_idx_fltr == NULL)
+                 return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+
+              memcpy((void*)dst_mr->i_min_idx_fltr,
+                   (void*)src_mr->i_min_idx_fltr,
+                   dst_mr->i_idx_len * sizeof(uns32));
+           }
+ 
+         if(src_mr->i_max_idx_fltr != NULL)
+           {
+              dst_mr->i_max_idx_fltr = m_MMGR_ALLOC_MIB_INST_IDS(dst_mr->i_idx_len);
+              if(dst_mr->i_max_idx_fltr == NULL)
+                {
+                   if (dst_mr->i_min_idx_fltr != NULL)
+                       m_MMGR_FREE_MIB_INST_IDS(dst_mr->i_min_idx_fltr);
+                   return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
+                }
+               memcpy((void*)dst_mr->i_max_idx_fltr,
+                     (void*)src_mr->i_max_idx_fltr,
+                      dst_mr->i_idx_len * sizeof(uns32));
+           }
       }
       else if (((MAB_MSG*)msg)->data.data.idx_free.fltr_type == NCSMAB_FLTR_EXACT)
       {
@@ -1253,11 +1253,12 @@ uns32 oac_fir_msg_decode(NCSMAB_IDX_FREE* ifree, NCS_UBAID* uba)
 uns32 mab_encode_pcn(NCS_UBAID *uba, char *pcn)
 {
     uns8*    data;
-    uns16    len = strlen(pcn);
+    uns16    len ; 
 
     if(pcn == NULL)
        return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
-
+    
+    len = strlen(pcn);
     data = ncs_enc_reserve_space(uba, 2);
     if(data == NULL)
         return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);

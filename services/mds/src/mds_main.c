@@ -81,7 +81,7 @@ uns32 MDTM_CACHED_EVENTS_TMR_VAL = 24000;
 uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 {
     char *p_field = NULL;
-    uns32 node_id, cluster_id, mds_tipc_ref=0; /* this mds tipc ref is random num part of the TIPC id */
+    uns32 node_id = 0, cluster_id, mds_tipc_ref=0; /* this mds tipc ref is random num part of the TIPC id */
     uns32 status = NCSCC_RC_SUCCESS;
     uns32        destroy_ack_tmout;
     NCS_SEL_OBJ  destroy_ack_obj;
