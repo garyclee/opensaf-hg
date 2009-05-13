@@ -576,8 +576,7 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
  */
 void NtfAdmin::syncRequest(NCS_UBAID *uba)
 {
-    LOG_IN("NtfAdmin::syncRequest SYNC STARTED");
-
+    TRACE_ENTER();
     sendNoOfClients(clientMap.size(),uba);
     // send syncRequest to all clients
     ClientMap::iterator pos;
@@ -626,6 +625,7 @@ void NtfAdmin::syncRequest(NCS_UBAID *uba)
         NtfNotification* notification = posNot->second;
         notification->syncRequest( uba);
     }
+    TRACE_LEAVE();
 }
 
 /**
