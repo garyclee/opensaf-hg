@@ -117,10 +117,6 @@ done:
    
    if (SA_AIS_OK != rc)
    {
-      /** free the hdl rec if there's some error **/
-      if (hdl_rec)
-         fma_hdl_rec_del (cb, hdl_db, hdl_rec);
-
       /* Destroy library connection before returning. */
       memset(&lib_create, 0, sizeof(lib_create));
       lib_create.i_op = NCS_LIB_REQ_DESTROY;

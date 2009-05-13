@@ -328,7 +328,7 @@ static uns32 fm_amf_register (FM_AMF_CB *fm_amf_cb)
    SaNameT        sname;
    
    sname.length = strlen(fm_amf_cb->comp_name);
-   strcpy(sname.value,fm_amf_cb->comp_name);
+   strcpy((char*)sname.value, fm_amf_cb->comp_name);
 
    /* 
     * register FM component with AvSv 
@@ -361,7 +361,7 @@ static uns32 fm_amf_unregister (FM_AMF_CB *fm_amf_cb)
    SaNameT        sname;
    
    sname.length = strlen(fm_amf_cb->comp_name);
-   strcpy(sname.value, fm_amf_cb->comp_name);
+   strcpy((char*)sname.value, fm_amf_cb->comp_name);
 
    /* 
     * Unregister FM component with AvSv 
@@ -400,7 +400,7 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    ** Start the AMF health check 
    */   
    memset(&SaCompName,0,sizeof(SaCompName));
-   strcpy(SaCompName.value, fm_amf_cb->comp_name);
+   strcpy((char*)SaCompName.value, fm_amf_cb->comp_name);
    SaCompName.length = strlen(fm_amf_cb->comp_name);
 
    memset(&Healthy, 0, sizeof(Healthy));
@@ -416,8 +416,8 @@ static uns32 fm_amf_healthcheck_start (FM_AMF_CB *fm_amf_cb)
    {
       strcpy(hlth_str, phlth_ptr);
    }
-   strcpy(Healthy.key, hlth_str);
-   Healthy.keyLen = strlen(Healthy.key);
+   strcpy((char*)Healthy.key, hlth_str);
+   Healthy.keyLen = strlen((char*)Healthy.key);
 
   
    amf_error = saAmfHealthcheckStart(fm_amf_cb->amf_hdl,&SaCompName,&Healthy,
@@ -470,7 +470,7 @@ static uns32 fm_amf_lib_init (FM_AMF_CB *fm_amf_cb)
          rc = NCSCC_RC_FAILURE;
          break;
       }  
-      strcpy(fm_amf_cb->comp_name, sname.value);
+      strcpy(fm_amf_cb->comp_name, (char*)sname.value);
 
       /* 
       ** Get the AMF selection object 
@@ -701,6 +701,7 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    {
       if (errno != EINTR && errno != EWOULDBLOCK)
           /* log Non-benign error */     
+         syslog(LOG_ERR, "read failed: errno %d\n",  errno);
       return NCSCC_RC_FAILURE;
    }
 
@@ -710,6 +711,8 @@ uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb)
    pc = strchr (comp_name, '|');
    if (pc != NULL)
       *pc = '\0';
+   else
+      return NCSCC_RC_FAILURE;
 
    /*
    ** Check if component name is empty

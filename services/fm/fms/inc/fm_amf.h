@@ -18,7 +18,6 @@
 #ifndef FM_AMF_H
 #define FM_AMF_H
 
-#include "fm.h"
 
 /*
  * Macro used to get the AMF version used
@@ -32,7 +31,7 @@
  */
 typedef struct fm_amf_cb
 {
-   uns8                 comp_name [256];
+   char                 comp_name [256];
    SaAmfHandleT         amf_hdl;       /* AMF handle */
    SaSelectionObjectT   amf_fd;        /* AMF selection fd */
    NCS_BOOL             is_amf_up;     /* For amf_fd and pipe_fd */

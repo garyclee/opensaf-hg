@@ -400,11 +400,15 @@ static uns32 fm_get_args(FM_CB *fm_cb)
    char    *token = NULL;
    char    *substr = NULL;
    char    *fms_conf_path = NULL;
-   uns32   temp_slot_1, temp_slot_2;
-   uns32   temp_sub_slot_1, temp_sub_slot_2;
+   uns32   temp_slot_1 = 0, temp_slot_2 = 0;
+   uns32   temp_sub_slot_1 = 0, temp_sub_slot_2 = 0;
    NCS_NODE_ID     node_id;
 
    fms_conf_path = getenv("FMS_CONF_PATH");
+
+   if (NULL == fms_conf_path)
+      return NCSCC_RC_FAILURE;
+
    fp = fopen(fms_conf_path, "r");
    if (NULL == fp)
       return NCSCC_RC_FAILURE;
@@ -823,6 +827,10 @@ static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *o_ent_path, uns8 shelf,
 {
    char *arch_type = NULL;
    arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
+
+   if(NULL == arch_type)
+      return NCSCC_RC_FAILURE;
+
    if ((sub_slot == 0) || (sub_slot == 15))
    {
 #ifdef HAVE_HPI_A01
