@@ -154,6 +154,9 @@ void fm_rda_callback(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE 
    /* Take handle */
    fm_cb = ncshm_take_hdl(NCS_SERVICE_ID_GFM, cb_hdl);
 
+   if(NULL == fm_cb)
+       return;
+
    if(cb_info->cb_type == PCS_RDA_ROLE_CHG_IND)
    {
       syslog(LOG_INFO,
@@ -200,13 +203,13 @@ uns32 fm_rda_set_role(FM_CB *fm_cb, PCS_RDA_ROLE role)
    if (rc != PCSRDA_RC_SUCCESS)
    {
       syslog(LOG_INFO,
-            "fm_rda_set_role() Failed: CurrentState: %d, AskedState: %d\n", 
+            "fm_rda_set_role() Failed: CurrentState: %s, AskedState: %s\n", 
             role_string[fm_cb->role], role_string[role]);
       return NCSCC_RC_FAILURE;
    }
 
    syslog(LOG_INFO,
-            "fm_rda_set_role() Success: CurrentState: %d, AskedState: %d\n", 
+            "fm_rda_set_role() Success: CurrentState: %s, AskedState: %s\n", 
             role_string[fm_cb->role], role_string[role]);
 
    return NCSCC_RC_SUCCESS;

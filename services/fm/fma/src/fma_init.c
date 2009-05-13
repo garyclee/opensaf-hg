@@ -431,7 +431,7 @@ static uns32 fma_create (NCS_LIB_CREATE *create_info)
    FMA_CB *cb = 0;
    uns32 rc = NCSCC_RC_SUCCESS;
    int argc = 0;
-   char **argv;
+   char **argv = NULL;
  
    m_FMA_LOG_FUNC_ENTRY("fma_create");
 

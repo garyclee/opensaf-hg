@@ -258,6 +258,7 @@ uns32 fma_hdl_db_init (FMA_HDL_DB *hdl_db)
    m_FMA_LOG_FUNC_ENTRY("fma_hdl_db_init");   
    param.key_size = sizeof(uns32);
    param.info_size = 0;
+   param.node_size = 0;
    
    rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
    if (rc == NCSCC_RC_SUCCESS)
