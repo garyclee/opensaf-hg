@@ -458,7 +458,7 @@ SaAisErrorT saNtfFinalize(SaNtfHandleT ntfHandle)
 {
     ntfa_client_hdl_rec_t *hdl_rec;
     ntfsv_msg_t msg, *o_msg = NULL;
-    SaAisErrorT rc;
+    SaAisErrorT rc = SA_AIS_OK;
     uns32 mds_rc;
 
     TRACE_ENTER();
@@ -2166,7 +2166,7 @@ SaAisErrorT saNtfNotificationReadInitialize(
 
     if (o_msg->info.api_resp_info.type != NTFSV_READER_INITIALIZE_RSP)
     {
-        TRACE("msg type (%d) failed", (int)&o_msg->info.api_resp_info.type);
+        TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
         rc = SA_AIS_ERR_LIBRARY;
         goto done_give_client_hdl;
     }
@@ -2271,7 +2271,7 @@ SaAisErrorT saNtfNotificationReadFinalize(
 
     if (o_msg->info.api_resp_info.type != NTFSV_READER_FINALIZE_RSP)
     {
-        TRACE("msg type (%d) failed", (int)&o_msg->info.api_resp_info.type);
+        TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
         rc = SA_AIS_ERR_LIBRARY;
         goto done_give_hdls;
     }
@@ -2372,7 +2372,7 @@ SaAisErrorT saNtfNotificationReadNext(
     }
     if (o_msg->info.api_resp_info.type != NTFSV_READ_NEXT_RSP)
     {
-        TRACE("msg type (%d) failed", (int)&o_msg->info.api_resp_info.type);
+        TRACE("msg type (%d) failed", (int)o_msg->info.api_resp_info.type);
         rc = SA_AIS_ERR_LIBRARY;
         goto done_give_hdls;
     }
