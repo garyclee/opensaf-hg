@@ -85,8 +85,8 @@ char *pcsrda_role_str[] =
 #define PCS_RDA_SYM_SET_ROLE           "pcs_rda_set_role"
 #define PCS_RDA_SYM_GET_ROLE           "pcs_rda_get_role"
 
-typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, uns32*);
-typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (uns32);
+typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, void**);
+typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (void*);
 typedef int (*PCS_RDA_PTR_SET_ROLE)       (PCS_RDA_ROLE);
 typedef int (*PCS_RDA_PTR_GET_ROLE)       (PCS_RDA_ROLE*);
 
@@ -94,7 +94,7 @@ typedef int (*PCS_RDA_PTR_GET_ROLE)       (PCS_RDA_ROLE*);
 ** Global data
 */
 static void * pcs_rda_lib_handle    = NULL;
-static uns32  pcs_rda_callback_cb   = 0;
+static void *pcs_rda_callback_cb   = NULL;
 
 
 /*
@@ -250,7 +250,7 @@ static int pcs_rda_lib_reg_callback (uns32 callback_handle, PCS_RDA_CB_PTR cb_pt
     /*
     ** Is the callback already registered?
     */
-    if (pcs_rda_callback_cb != 0)
+    if (pcs_rda_callback_cb != NULL)
     {
             /* Yes */
             return PCSRDA_RC_CALLBACK_ALREADY_REGD;

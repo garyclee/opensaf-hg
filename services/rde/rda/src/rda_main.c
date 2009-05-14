@@ -179,7 +179,7 @@ static uns32 rda_callback_task(RDA_CALLBACK_CB *rda_callback_cb)
  * Notes         : None
  *****************************************************************************/
 int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr,
-    long *task_cb)
+    void **task_cb)
 {
     uns32  rc = PCSRDA_RC_SUCCESS;
     int              sockfd          = -1;
@@ -260,7 +260,7 @@ int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr,
         }
 
         is_task_spawned = TRUE;
-        *task_cb = (long) rda_callback_cb;
+        *task_cb = rda_callback_cb;
 
     }while (0);
 
@@ -292,7 +292,7 @@ int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr,
  *
  * Notes         : None
  *****************************************************************************/
-int pcs_rda_unreg_callback(long task_cb)
+int pcs_rda_unreg_callback(void *task_cb)
 {   
     uns32            rc              = PCSRDA_RC_SUCCESS;
     RDA_CALLBACK_CB *rda_callback_cb = NULL;
