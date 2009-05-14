@@ -28,7 +28,9 @@
 ******************************************************************************
 */
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #ifndef __AVM_DHCP_CONF_H__
 #define __AVM_DHCP_CONF_H__

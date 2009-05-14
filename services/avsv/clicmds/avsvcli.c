@@ -33,7 +33,9 @@
    dtsv_cef_set_logging_level.........CEF for setting DTSV logging level
 ***************************************************************************/
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include "avsv.h"
 #include "mac_papi.h"

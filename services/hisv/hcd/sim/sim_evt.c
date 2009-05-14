@@ -29,9 +29,11 @@
 *                                                                            *
 *****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
-#include <SaHpi.h>
+#endif
 
+#include <SaHpi.h>
 #include "hcd.h"
 
 /* local function declarations */
