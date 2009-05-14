@@ -3250,8 +3250,10 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
         }            
 
     }
-   else
+    else
     {
+      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
+          evt->info.ckpt_nd2nd_data.ckpt_id,__FILE__,__LINE__);
      /*Send the try again response to CPA*/
      rc = NCSCC_RC_FAILURE;
 	 error=SA_AIS_ERR_TRY_AGAIN;
@@ -3259,12 +3261,14 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
     }
    }
    else
-    {
+   {
+      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
+          evt->info.ckpt_nd2nd_data.ckpt_id,__FILE__,__LINE__);
      /*Ckpt ids are not matching */
       rc = NCSCC_RC_FAILURE;
 	  error=SA_AIS_ERR_NOT_EXIST;
       goto error; 
-    } 
+   } 
   return rc;
 error:
          /*Send Error response to CPA*/
