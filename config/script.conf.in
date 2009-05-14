@@ -29,13 +29,6 @@ TIPC_MANAGE="YES"
 export SNMPCONFPATH="/usr/share/snmp"
 export MIBDIRS="@MIBDIRS@"
 
-# Check for environment variable for slot number.
-if [ "$SLOT_NUMBER" = "" ] ; then
-  export SLOT_NUMBER=$(< "$SYSCONFDIR/slot_id")
-fi
-
-export NODE_TYPE=$(< "$SYSCONFDIR/node_type")
-
 # The following environment variables are useful
 # when running in simulation mode, where multiple
 # nodes are simulated on the same Linux desktop
@@ -57,9 +50,17 @@ SPCAPFIFO="$NIDFIFO"
 CHASSIS_ID_FILE="$SYSCONFDIR/chassis_id"
 SLOT_ID_FILE="$SYSCONFDIR/slot_id"
 SUBSLOT_ID_FILE="$SYSCONFDIR/subslot_id"
+NODE_TYPE_FILE="$SYSCONFDIR/node_type"
 NISPIPE="$TMPDIR/nisfifo"
 RDE_HA_COMP_NAMED_PIPE="$TMPDIR/rde_ha_comp_named_pipe"
 FMS_HA_COMP_NAMED_PIPE="$TMPDIR/fms_ha_comp_named_pipe"
+
+# Check for environment variable for slot number.
+if [ "$SLOT_NUMBER" = "" ] ; then
+  export SLOT_NUMBER=$(< "$SLOT_ID_FILE")
+fi
+
+export NODE_TYPE=$(< "$NODE_TYPE_FILE")
 
 #########################################
 # KEYS
