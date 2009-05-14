@@ -1500,6 +1500,42 @@ uns32 cpnd_proc_rt_expiry(CPND_CB *cb,SaCkptCheckpointHandleT ckpt_id)
 }
 
 /****************************************************************************
+ * Name          : cpnd_proc_non_colloc_rt_expiry
+ * Description   : Function to process ckpt retentionDuration timer for non-colloc
+ * Arguments     : CPND_CB *cb - CPND CB pointer
+ *                 SaCkptCheckpointHandleT -- Ckpt handle
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ * Notes         : None.
+ *****************************************************************************/
+uns32 cpnd_proc_non_colloc_rt_expiry(CPND_CB *cb,SaCkptCheckpointHandleT ckpt_id)
+{
+   uns32 rc=NCSCC_RC_SUCCESS;
+   CPND_CKPT_NODE *cp_node=NULL;
+   SaAisErrorT  error;
+
+   cpnd_ckpt_node_get(cb,ckpt_id,&cp_node);
+
+   if (cp_node == NULL) {
+      m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_ERROR,\
+       ckpt_id,__FILE__,__LINE__);
+      return NCSCC_RC_FAILURE;
+   }
+
+   rc = cpnd_ckpt_replica_destroy(cb,cp_node,&error);
+   if (rc == NCSCC_RC_FAILURE) {
+      m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
+                           __FILE__,__LINE__);
+      return NCSCC_RC_FAILURE;
+   }
+
+   cpnd_restart_shm_ckpt_free(cb,cp_node); 
+   cpnd_ckpt_node_destroy(cb, cp_node);
+
+   return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
  * Name          : cpnd_proc_sec_expiry
  *
  * Description   : Function to process section expriry timer
@@ -2353,6 +2389,59 @@ uns32 cpnd_ckpt_replica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT 
                return NCSCC_RC_SUCCESS;
             }
          }
+         rc = cpnd_ckpt_replica_destroy(cb,cp_node,error);
+         if (rc == NCSCC_RC_FAILURE) {
+            m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,cp_node->ckpt_id,\
+                           __FILE__,__LINE__);
+            return NCSCC_RC_FAILURE;
+         }
+         m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_SUCCESS,CPND_FC_GENERIC,NCSFL_SEV_INFO,cp_node->ckpt_id,\
+                        __FILE__, __LINE__);
+      
+         cpnd_restart_shm_ckpt_free(cb,cp_node);
+         cpnd_ckpt_node_destroy(cb,cp_node);
+     }
+   }
+
+   return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************************
+ * Name          : cpnd_ckpt_non_collocated_rplica_close
+ *
+ * Description   : This is the function close the non_collocated Ckpt Replica
+ * Arguments     : cb       - CPND Control Block pointer
+ *                 cp_node  - pointer to checkpoint node
+ * 
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *****************************************************************************************/
+
+uns32 cpnd_ckpt_non_collocated_rplica_close(CPND_CB *cb, CPND_CKPT_NODE *cp_node, SaAisErrorT *error)
+{
+   SaTimeT     presentTime;
+   uns32       rc = NCSCC_RC_SUCCESS;
+
+    if(cp_node->ckpt_lcl_ref_cnt == 0) {
+
+       cp_node->is_close=TRUE;
+       cpnd_restart_set_close_flag(cb,cp_node);
+ 
+       if(cp_node->is_unlink !=  TRUE  && 
+           (m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(cp_node->create_attrib.retentionDuration) != 0)) {
+          m_GET_TIME_STAMP(presentTime);
+          cpnd_restart_update_timer(cb,cp_node,presentTime);
+                    
+          cp_node->ret_tmr.type=CPND_TMR_TYPE_NON_COLLOC_RETENTION;
+          cp_node->ret_tmr.uarg=cb->cpnd_cb_hdl_id;
+          cp_node->ret_tmr.ckpt_id=cp_node->ckpt_id;
+          cpnd_tmr_start(&cp_node->ret_tmr,
+          m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(cp_node->create_attrib.retentionDuration));
+
+         m_LOG_CPND_FCL(CPND_CKPT_RET_TMR_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO ,\
+                         cp_node->ckpt_id, __FILE__,__LINE__);
+      }
+      else {
+        
          rc = cpnd_ckpt_replica_destroy(cb,cp_node,error);
          if (rc == NCSCC_RC_FAILURE) {
             m_LOG_CPND_FCL(CPND_CKPT_REPLICA_DESTROY_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,cp_node->ckpt_id,\

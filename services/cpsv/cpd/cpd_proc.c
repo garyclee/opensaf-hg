@@ -778,15 +778,75 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                 ckpt_node->ckpt_on_scxb2 = 0;
              }
 
+                    if(m_NCS_MDS_DEST_NODEID_EQUAL(m_NCS_NODE_ID_FROM_MDS_DEST(ckpt_node->active_dest),m_NCS_NODE_ID_FROM_MDS_DEST( *cpnd_dest)))
+                    {
+                       ckpt_node->is_active_exists = FALSE;
+                       memset(&ckpt_node->active_dest, 0, sizeof(MDS_DEST));
+                    }
+                           
+                    if(ckpt_node->is_active_exists == FALSE)
+                    {
+                 
+                      CPD_NODE_REF_INFO *nref_info2;
+                      nref_info2 = ckpt_node->node_list;
+                      
+                      /* If it is non-collocated then select the scxb dest as active */
+                      if(!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)){                     
+                         while(nref_info2){
+                            if((m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(nref_info2->dest)))||
+                                  (m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(nref_info2->dest)))){
+                               ckpt_node->is_active_exists = TRUE;
+                               ckpt_node->active_dest = nref_info2->dest; 
+                               break;
+                            }  
+                            nref_info2 = nref_info2->next;
+                         }   
+                      }        
+               
+                    
+                      /* Remove the active dest , broadcast to all CPNDs */
+                       memset(&send_evt, 0, sizeof(CPSV_EVT));
+                       send_evt.type = CPSV_EVT_TYPE_CPND;
+                       send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_ACTIVE_SET;
+                       send_evt.info.cpnd.info.active_set.ckpt_id = ckpt_node->ckpt_id;
+                       send_evt.info.cpnd.info.active_set.mds_dest = ckpt_node->active_dest;
+
+                       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
+                       m_LOG_CPD_FFCL(CPD_CKPT_ACTIVE_CHANGE_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,ckpt_node->ckpt_id,\
+                                    ckpt_node->active_dest,__FILE__,__LINE__);
+                       memset(&send_evt, 0, sizeof(CPSV_EVT));
+                       send_evt.type = CPSV_EVT_TYPE_CPA;
+                       send_evt.info.cpa.type = CPA_EVT_D2A_ACT_CKPT_INFO_BCAST_SEND;
+                       send_evt.info.cpa.info.ackpt_info.ckpt_id = ckpt_node->ckpt_id;
+                       send_evt.info.cpa.info.ackpt_info.mds_dest = ckpt_node->active_dest;
+                       proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPA);
+                   
+              }   /* if(ckpt_node->is_active_exists == FALSE) */
+
              if((ckpt_node->ckpt_on_scxb1 == 0)&&(ckpt_node->ckpt_on_scxb2 == 0))
              {
-               if(!cpd_is_noncollocated_replica_present_on_payload(cb , ckpt_node))
-               {
-                  cpd_noncolloc_ckpt_rep_delete(cb, ckpt_node, map_info);
-               }
-             }
+                  if(!cpd_is_noncollocated_replica_present_on_payload(cb , ckpt_node))
+                  {
+                        
+                              
+                      /* Zero Clients for  non-collocated Ckpt , Start ret timer , 
+                      broadcast to all CPNDs */
+                      memset(&send_evt, 0, sizeof(CPSV_EVT));
+                      send_evt.type = CPSV_EVT_TYPE_CPND;
+                      send_evt.info.cpnd.type = CPND_EVT_D2ND_CKPT_RDSET;
+                      send_evt.info.cpnd.info.rdset.ckpt_id = ckpt_node->ckpt_id;
+                      send_evt.info.cpnd.info.rdset.type= CPSV_CKPT_RDSET_START;
+                      proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
 
-         }
+                      m_LOG_CPD_FFCL(CPD_CKPT_RDSET_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_INFO,ckpt_node->ckpt_id,\
+                                                     ckpt_node->active_dest,__FILE__,__LINE__);
+                 
+                  }
+            }
+            m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
+                cref_info = cpnd_info->ckpt_ref_list;
+            continue;
+           }
 
          /* Before delete ckpt_node, update send_evt */
          memset(&send_evt, 0, sizeof(CPSV_EVT));
@@ -828,19 +888,6 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                  CPD_NODE_REF_INFO *nref_info2;
                  nref_info2 = ckpt_node->node_list;
                  
-                 /* If it is non-collocated then select the scxb dest as active */
-                 if(!m_IS_SA_CKPT_CHECKPOINT_COLLOCATED(&ckpt_node->attributes)){                     
-                    while(nref_info2){
-                       if((m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(nref_info2->dest)))||
-                             (m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(nref_info2->dest)))){
-                          ckpt_node->is_active_exists = TRUE;
-                          ckpt_node->active_dest = nref_info2->dest; 
-                          break;
-                       }  
-                       nref_info2 = nref_info2->next;
-                    }   
-                 }        
-                 else{                         
                        if(!m_IS_ASYNC_UPDATE_OPTION(&ckpt_node->attributes))
                        {
                           /* The policy is to select the next replica as the active
@@ -859,7 +906,6 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
                            ckpt_node->active_dest = nref_info2->dest;
                           }
                        }
-                     }
                
                 /* Chosen the active dest, broadcast to all CPNDs */
                 memset(&send_evt, 0, sizeof(CPSV_EVT));

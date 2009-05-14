@@ -617,6 +617,15 @@ typedef enum cpsv_ckpt_sec_info_type
 }CPSV_CKPT_SEC_INFO_TYPE;
 
 
+typedef enum cpsv_ckpt_rdset_type
+{
+   CPSV_CKPT_RDSET_INFO=1,
+   CPSV_CKPT_RDSET_START = 2,
+   CPSV_CKPT_RDSET_STOP = 3,
+   CPSV_CKPT_RDSET_MAX
+}CPSV_CKPT_RDSET_TYPE;
+
+
 typedef struct cpsv_nd2d_ckpt_create
 {
    SaNameT                             ckpt_name;
@@ -652,6 +661,7 @@ typedef struct cpsv_nd2d_ckpt_unlink
 typedef struct cpsv_ckpt_rdset {
    SaCkptCheckpointHandleT             ckpt_id;
    SaTimeT                             reten_time;
+   uns32                               type;  
 }CPSV_CKPT_RDSET;
 
 typedef struct cpsv_nd2d_ckpt_name

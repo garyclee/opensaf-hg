@@ -81,7 +81,10 @@ cpnd_timer_expiry (NCSCONTEXT uarg)
                 evt->info.cpnd.info.tmr_info.type=CPND_TMR_TYPE_RETENTION;
                 evt->info.cpnd.info.tmr_info.ckpt_id=tmr->ckpt_id;
                 break;
-  
+            case CPND_TMR_TYPE_NON_COLLOC_RETENTION:
+                evt->info.cpnd.info.tmr_info.type=CPND_TMR_TYPE_NON_COLLOC_RETENTION;
+                evt->info.cpnd.info.tmr_info.ckpt_id=tmr->ckpt_id;
+                break;
             case CPND_TMR_TYPE_SEC_EXPI:
                evt->info.cpnd.info.tmr_info.type=CPND_TMR_TYPE_SEC_EXPI;
                evt->info.cpnd.info.tmr_info.lcl_sec_id=tmr->lcl_sec_id;
