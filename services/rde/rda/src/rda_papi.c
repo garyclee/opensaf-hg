@@ -287,7 +287,7 @@ static int pcs_rda_lib_unreg_callback ()
     /*
     ** Need to unregiter the callback
     */
-    if (pcs_rda_callback_cb != 0)
+    if (pcs_rda_callback_cb != NULL)
     {
         PCS_RDA_PTR_UNREG_CALLBACK pcs_rda_ptr_unreg_callback;
         pcs_rda_ptr_unreg_callback = (PCS_RDA_PTR_UNREG_CALLBACK) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_UNREG_CALLBACK);
@@ -298,7 +298,7 @@ static int pcs_rda_lib_unreg_callback ()
         }
 
         (*pcs_rda_ptr_unreg_callback) (pcs_rda_callback_cb);
-        pcs_rda_callback_cb = 0;
+        pcs_rda_callback_cb = NULL;
 
     }
 
