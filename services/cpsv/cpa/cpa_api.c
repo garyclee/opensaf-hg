@@ -4901,7 +4901,6 @@ ncsCkptRegisterCkptArrivalCallback( SaCkptHandleT               ckptHandle,
            goto proc_fail;
    }
 
-      rc = evt.info.cpa.info.closeRsp.error;
    
 proc_fail:
    if(is_locked)
