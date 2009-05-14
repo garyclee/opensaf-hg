@@ -29,8 +29,9 @@
 *  The code is commented while linking with actual Open HPI implementation.  *
 *                                                                            *
 *****************************************************************************/
-
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include "hcd.h"
 

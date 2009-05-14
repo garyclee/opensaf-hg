@@ -24,7 +24,9 @@
   FUNCTIONS INCLUDED in this module:
 ******************************************************************************/
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include "hcd.h"
 #include "hcd_amf.h"

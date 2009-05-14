@@ -30,7 +30,9 @@
 *                                                                            *
 *****************************************************************************/
 
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 
 #include "hcd.h"
 #include "hpl_msg.h"

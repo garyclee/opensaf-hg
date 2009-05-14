@@ -14,7 +14,10 @@
  * Author(s): Emerson Network Power
  *
  */
+
+#ifdef HAVE_CONFIG_H
 #include <config.h>
+#endif
 #include "fma.h"
 
 /** Global: CB handle returned by hdl manager **/
