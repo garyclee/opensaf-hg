@@ -400,7 +400,7 @@ uns32 rde_rde_close (RDE_RDE_CB *rde_rde_cb)
      if (errno != EINTR && errno != EWOULDBLOCK)
          /* Non-benign error */
     /* Do the processing that is done when the client connection is lost here */
-     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno); 
+     m_RDE_LOG_COND_L(RDE_LOG_WARNING, RDE_RDE_SOCK_WRITE_FAIL, errno); 
      return RDE_RDE_MSG_WRT_FAILURE;
    }
    return rc;
@@ -430,7 +430,7 @@ uns32 rde_rde_read_msg (int fd, char *msg, int size)
    msg_size = read (fd, msg, size);
    if (msg_size < 0)
    {
-       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_READ_FAIL, errno);  
+       m_RDE_LOG_COND_L(RDE_LOG_WARNING, RDE_RDE_SOCK_READ_FAIL, errno);  
        return RDE_RDE_RC_FAILURE;
    }
 /* If the client connection is lost then need not maintain the fd and wait for fresh connection. */
@@ -488,7 +488,7 @@ uns32 rde_rde_client_process_msg(RDE_RDE_CB  * rde_rde_cb)
     /* Return value not set, ok to lose the connection*/
         if (rc != RDE_RDE_RC_SUCCESS)
         {
-              m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
+              m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_WRITE_FAIL, errno);
               return RDE_RDE_RC_FAILURE; 
         }
         else
@@ -501,7 +501,7 @@ uns32 rde_rde_client_process_msg(RDE_RDE_CB  * rde_rde_cb)
         rc = rde_rde_process_send_slot_number();
         if (rc != RDE_RDE_RC_SUCCESS)
         {
-              m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
+              m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_WRITE_FAIL, errno);
               return RDE_RDE_RC_FAILURE; 
         }
         else
@@ -771,7 +771,7 @@ uns32 rde_rde_clCheckConnect(RDE_RDE_CB *rde_rde_cb)
                     /* Do the processing that is done when the client connection is lost here */
                     if (errno != EINTR && errno != EWOULDBLOCK)
                     /* Non-benign error */
-                     m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
+                     m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_WRITE_FAIL, errno);
                  
                      status = close(rde_rde_cb->clientfd);
                         if ( status < 0 )
@@ -838,7 +838,7 @@ uns32 rde_rde_client_read_role ()
    msg_size = read (rde_cb->rde_rde_cb.clientfd, msg, sizeof(msg));
    if (msg_size < 0)
    {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_READ_FAIL, errno);
+      m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_READ_FAIL, errno);
       status = close(rde_cb->rde_rde_cb.clientfd);
       rde_cb->rde_rde_cb.retry = TRUE;
       rde_cb->rde_rde_cb.clientConnected = FALSE;
@@ -857,7 +857,7 @@ uns32 rde_rde_client_read_role ()
 
    if (msg_size == 0)
    {
-        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_READ_FAIL, errno);
+        m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_READ_FAIL, errno);
         status = close(rde_cb->rde_rde_cb.clientfd);
     /* Check for the return status of close and log message as required */
         if(status < 0)
@@ -1177,7 +1177,7 @@ uns32 rde_rde_connect(RDE_RDE_CB * rde_rde_cb)
         if (rc == -1)
         {
             sprintf(log, "rde_rde_connect: select failed %d", errno);
-            m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_INFO,log); 
+            m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO,log); 
             goto connect_failure;
         }
 
@@ -1195,12 +1195,12 @@ uns32 rde_rde_connect(RDE_RDE_CB * rde_rde_cb)
             goto connect_success;
 
         sprintf(log, "rde_rde_connect: connect failed %d", optval);
-        m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_INFO,log);
+        m_RDE_LOG_COND_C(RDE_SEV_WARNING, RDE_RDE_INFO,log);
     }
     else
     {
         sprintf(log, "rde_rde_connect: connect failed %d", errno);
-        m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_RDE_INFO,log);
+        m_RDE_LOG_COND_C(RDE_SEV_WARNING, RDE_RDE_INFO,log);
     }
 
 connect_failure:
@@ -1254,7 +1254,7 @@ static uns32 rde_rde_exchange_slot_number(RDE_CONTROL_BLOCK * rde_cb)
    {
     /* Do the processing that is done when the client connection is lost here */
     if (errno != EINTR && errno != EWOULDBLOCK)
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_RDE_SOCK_WRITE_FAIL, errno);
+      m_RDE_LOG_COND_L(RDE_SEV_WARNING, RDE_RDE_SOCK_WRITE_FAIL, errno);
 
       status = close(rde_rde_cb->clientfd);
       if ( status < 0 )
