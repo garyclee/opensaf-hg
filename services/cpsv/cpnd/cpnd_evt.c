@@ -1720,6 +1720,7 @@ static uns32 cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb,
                                     CPND_EVT *evt, CPSV_SEND_INFO *sinfo)
 {
    CPND_CKPT_NODE          *cp_node=NULL;
+   SaAisErrorT error =SA_AIS_OK;
     
    /* get cp_node from ckpt_info_db */
    cpnd_ckpt_node_get(cb,evt->info.rdset.ckpt_id,&cp_node);
@@ -1728,8 +1729,29 @@ static uns32 cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb,
       m_LOG_CPND_FCL(CPND_CKPT_NODE_GET_FAILED,CPND_FC_API,NCSFL_SEV_INFO,evt->info.rdset.ckpt_id,\
                      __FILE__,__LINE__);
       return NCSCC_RC_FAILURE;
-      
    }
+
+    if( evt->info.rdset.type ==  CPSV_CKPT_RDSET_STOP){
+      if(!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)){
+
+           if (cp_node->ret_tmr.is_active)
+                cpnd_tmr_stop(&cp_node->ret_tmr);
+           
+      }
+	 return NCSCC_RC_SUCCESS;
+    }
+
+
+    if( evt->info.rdset.type ==  CPSV_CKPT_RDSET_START){
+      if(!m_CPND_IS_COLLOCATED_ATTR_SET(cp_node->create_attrib.creationFlags)){
+          if (cpnd_ckpt_non_collocated_rplica_close(cb, cp_node, &error) == NCSCC_RC_FAILURE) {
+           m_LOG_CPND_FFCL(CPND_CKPT_REPLICA_CLOSE_FAILED,CPND_FC_GENERIC,NCSFL_SEV_ERROR,evt->info.closeReq.client_hdl,\
+                              cp_node->ckpt_id, __FILE__ , __LINE__); 
+         
+          }
+         return NCSCC_RC_SUCCESS;
+      }
+    }
    
    /* if timer already started on one of the node then what to do!!! 
       not doing any thing just updating the value */
@@ -3664,7 +3686,14 @@ static uns32 cpnd_evt_proc_timer_expiry (CPND_CB *cb,CPND_EVT *evt)
             rc,__FILE__,__LINE__);
          }
          break;
-         
+       case CPND_TMR_TYPE_NON_COLLOC_RETENTION:
+         rc=cpnd_proc_non_colloc_rt_expiry(cb,evt->info.tmr_info.ckpt_id);
+         if(rc != NCSCC_RC_SUCCESS)
+         {
+            m_LOG_CPND_LCL(CPND_PROC_RT_EXPIRY_FAILED,CPND_FC_API,NCSFL_SEV_ERROR, \
+            rc,__FILE__,__LINE__);
+         }
+         break;
        case CPND_TMR_TYPE_SEC_EXPI:
           rc=cpnd_proc_sec_expiry(cb,&evt->info.tmr_info);
           if(rc != NCSCC_RC_SUCCESS)
@@ -3935,6 +3964,7 @@ static uns32 cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
    uns32                   rc = NCSCC_RC_SUCCESS;
    CPND_CKPT_NODE          *cp_node=NULL;
    SaCkptHandleT           client_hdl = 0;
+   CPSV_EVT                send_evt, *out_evt=NULL;
 
    /* Check if this ckpt is created by someone on this node */
    cpnd_ckpt_node_get(cb,evt->info.ckpt_create.ckpt_info.ckpt_id,&cp_node);
@@ -4043,7 +4073,38 @@ static uns32 cpnd_evt_proc_ckpt_create(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_INF
       }
    } 
 
+
 end:
+
+
+             memset(&send_evt,'\0',sizeof(CPSV_EVT));
+
+             send_evt.type=CPSV_EVT_TYPE_CPND;
+             send_evt.info.cpnd.type=CPND_EVT_ND2ND_CKPT_SYNC_REQ;
+             send_evt.info.cpnd.info.sync_req.ckpt_id = cp_node->ckpt_id;
+        
+
+             rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt,
+                                                                                 &out_evt, CPSV_WAIT_TIME);
+
+             if (rc != NCSCC_RC_SUCCESS) {
+                if (rc == NCSCC_RC_REQ_TIMOUT) {
+                               m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
+                                     0,cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,__FILE__,__LINE__);
+
+                }
+                else
+                {
+             
+                   m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
+                                     0,cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,__FILE__,__LINE__);
+
+                }
+               goto ckpt_replica_create_failed;
+             }
+
+  
+
    m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
                      cp_node->ckpt_id ,__FILE__ , __LINE__);
    return rc;

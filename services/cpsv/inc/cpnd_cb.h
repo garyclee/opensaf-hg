@@ -82,7 +82,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 #define m_CPND_IS_ON_SCXB(m,n) ((m==n)?1:0)
 
 /*30B Versioning Changes */
-#define CPND_MDS_PVT_SUBPART_VERSION 2
+#define CPND_MDS_PVT_SUBPART_VERSION 3
 
 /*CPND - CPA communication */
 #define CPND_WRT_CPA_SUBPART_VER_MIN 1
@@ -102,7 +102,7 @@ EXTERN_C CPNDDLL_API uns32      gl_cpnd_cb_hdl;
 
 /*CPND - CPD communication */
 #define CPND_WRT_CPD_SUBPART_VER_MIN 1
-#define CPND_WRT_CPD_SUBPART_VER_MAX 2
+#define CPND_WRT_CPD_SUBPART_VER_MAX 3
 
 #define CPND_WRT_CPD_SUBPART_VER_RANGE \
         (CPND_WRT_CPD_SUBPART_VER_MAX - \

@@ -185,7 +185,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle,
        default:
            m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                               "CkptInit:MDS", __FILE__ ,__LINE__, proc_rc, cb->cpa_mds_dest);
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            goto mds_fail;
    }
 
@@ -594,7 +594,7 @@ SaAisErrorT saCkptFinalize(SaCkptHandleT ckptHandle)
        default:
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, 
                                                 "CkptFin:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            goto mds_send_fail;
    }
 
@@ -842,7 +842,7 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle,
                                                 "CkptOpen:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
            goto mds_send_fail;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                                 "CkptOpen:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
            goto mds_send_fail;
@@ -1344,7 +1344,7 @@ SaAisErrorT  saCkptCheckpointClose(SaCkptCheckpointHandleT checkpointHandle)
                               "CkptClose:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto mds_send_fail;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                               "CkptClose:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto mds_send_fail;
@@ -1551,7 +1551,7 @@ SaAisErrorT  saCkptCheckpointUnlink(SaCkptHandleT ckptHandle,
                             "CkptUnlink:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                             "CkptUnlink:MDS", __FILE__ ,__LINE__, proc_rc , ckptHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -1711,7 +1711,7 @@ SaAisErrorT  saCkptCheckpointRetentionDurationSet(SaCkptCheckpointHandleT checkp
                              "RetDurSet:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "RetDurSet:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -1893,7 +1893,7 @@ SaAisErrorT saCkptActiveReplicaSet(SaCkptCheckpointHandleT checkpointHandle)
                                  "ActiveRepSet:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                  "ActiveRepSet:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -2116,7 +2116,7 @@ SaAisErrorT saCkptCheckpointStatusGet(SaCkptCheckpointHandleT checkpointHandle,
            rc = SA_AIS_ERR_TIMEOUT;
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                  "StatusGet:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -2373,7 +2373,7 @@ SaAisErrorT saCkptSectionCreate(SaCkptCheckpointHandleT checkpointHandle,
                                  "SectCreate:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                  "SectCreate:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -2709,7 +2709,7 @@ SaAisErrorT saCkptSectionDelete(SaCkptCheckpointHandleT checkpointHandle,
                       "SectDelete:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                       "SectDelete:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -2891,7 +2891,7 @@ SaAisErrorT saCkptSectionExpirationTimeSet(SaCkptCheckpointHandleT checkpointHan
                                  "MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                  "MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -3358,7 +3358,7 @@ SaAisErrorT saCkptSectionIterationNext(SaCkptSectionIterationHandleT sectionIter
                         "SectIterNext:MDS", __FILE__ ,__LINE__, proc_rc , sectionIterationHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                          "SectIterNext:MDS", __FILE__ ,__LINE__, proc_rc , sectionIterationHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -3755,7 +3755,7 @@ SaAisErrorT  saCkptCheckpointWrite(SaCkptCheckpointHandleT checkpointHandle,
                                     "CkptWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                     "CkptWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -3982,7 +3982,7 @@ SaAisErrorT saCkptSectionOverwrite(SaCkptCheckpointHandleT checkpointHandle,
                                   "CkptOverWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                   "CkptOverWrite:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
@@ -4234,7 +4234,7 @@ SaAisErrorT  saCkptCheckpointRead(SaCkptCheckpointHandleT checkpointHandle,
                                     "CkptRead:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
          goto fail1;
       default:
-         rc = SA_AIS_ERR_NO_RESOURCES;
+         rc = SA_AIS_ERR_TRY_AGAIN;
          m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                                     "CkptRead:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
          goto fail1;
@@ -4528,7 +4528,7 @@ SaAisErrorT  saCkptCheckpointSynchronize(SaCkptCheckpointHandleT checkpointHandl
                              "CkptSynchronize:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;
        default:
-           rc = SA_AIS_ERR_NO_RESOURCES;
+           rc = SA_AIS_ERR_TRY_AGAIN;
            m_LOG_CPA_CCLLFF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
                              "CkptSynchronize:MDS", __FILE__ ,__LINE__, proc_rc , checkpointHandle, cb->cpnd_mds_dest);
            goto fail1;

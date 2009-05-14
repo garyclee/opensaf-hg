@@ -54,7 +54,7 @@ MDS_CLIENT_MSG_FORMAT_VER cpnd_cpnd_msg_fmt_table[CPND_WRT_CPND_SUBPART_VER_RANG
 
 MDS_CLIENT_MSG_FORMAT_VER cpnd_cpd_msg_fmt_table[CPND_WRT_CPD_SUBPART_VER_RANGE] =
                  {
-                    1,2
+                    1,2,3
                  };
 
 /****************************************************************************
@@ -521,9 +521,10 @@ static uns32 cpnd_mds_dec(CPND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
          } 
      }
       /* For all other Events otherthan Write/Read Call EDU */
-       rc = m_NCS_EDU_EXEC(&cb->cpnd_edu_hdl, FUNC_NAME(CPSV_EVT), 
+	  rc = m_NCS_EDU_VER_EXEC(&cb->cpnd_edu_hdl, FUNC_NAME(CPSV_EVT), 
                     dec_info->io_uba, EDP_OP_TYPE_DEC, 
-                    (CPSV_EVT**)&dec_info->o_msg, &ederror);
+                    (CPSV_EVT**)&dec_info->o_msg, &ederror,dec_info->i_msg_fmt_ver);
+	  
 
 free:if(rc != NCSCC_RC_SUCCESS)
      {

@@ -45,7 +45,7 @@ static uns32 cpd_mds_quiesced_ack_process(CPD_CB *cb);
 
 MDS_CLIENT_MSG_FORMAT_VER cpd_cpnd_msg_fmt_table[CPD_WRT_CPND_SUBPART_VER_RANGE] =
                  {
-                    1,2
+                    1,2,3
                  };
 
 MDS_CLIENT_MSG_FORMAT_VER cpd_cpa_msg_fmt_table[CPD_WRT_CPA_SUBPART_VER_RANGE] =
@@ -342,8 +342,9 @@ static uns32 cpd_mds_enc(CPD_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
  
       msg_ptr = (CPSV_EVT*)enc_info->i_msg;
    
-      return (m_NCS_EDU_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT), 
-         enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror));
+      
+       return (m_NCS_EDU_VER_EXEC(&cb->edu_hdl, FUNC_NAME(CPSV_EVT), 
+               enc_info->io_uba, EDP_OP_TYPE_ENC, msg_ptr, &ederror, enc_info->i_rem_svc_pvt_ver));
    }
    else
     return  m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,"INVALID MSG FORMAT IN ENC FULL\n"); /* Drop The Message,Format Version Invalid*/

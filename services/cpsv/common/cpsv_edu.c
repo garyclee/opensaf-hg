@@ -758,12 +758,17 @@ FUNC_DECLARATION(DS)
 #define DS  CPSV_CKPT_RDSET
 FUNC_DECLARATION(DS)
 {
+    uns16 ver_compare = 0;
+    ver_compare = 3 ; /* CPD_MDS_PVT_SUBPART_VERSION/CPND_MDS_PVT_SUBPART_VERSION */
     NCS_ENC_DEC_DECLARATION(DS);
     NCS_ENC_DEC_ARRAY(DS) {
 
       {EDU_START,FUNC_NAME(CPSV_CKPT_RDSET), 0, 0, 0, sizeof(DS), 0, NULL},
       {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->ckpt_id, 0, NULL},
       {EDU_EXEC,ncs_edp_uns64 , 0, 0, 0, (long)&((DS*)0)->reten_time, 0, NULL},
+      {EDU_VER_GE, NULL, 0, 0, 2, 0, 0, (EDU_EXEC_RTINE)((uns16 *)(&(ver_compare)))},
+      {EDU_EXEC,ncs_edp_uns32, 0, 0, 0, (long)&((DS*)0)->type, 0, NULL},
+      
       {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 
     };
