@@ -293,7 +293,7 @@ static uns32 rde_rda_read_msg(int fd, char *msg, int size)
       ** Yes! disconnect client
       */
       sprintf (msg, "%d", RDE_RDA_DISCONNECT_REQ);
-      m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_SOCK_RECV_FAIL, "Connection closed by client (orderly shutdown)");
+      m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_COND_SOCK_RECV_FAIL, "Connection closed by client (orderly shutdown)");
       return NCSCC_RC_SUCCESS;
    }
 
