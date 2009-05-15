@@ -1617,13 +1617,6 @@ uns32 pss_process_bam_conf_done(MAB_MSG *msg)
     /* Only modify persistent store file system if we are active. */
     if (gl_pss_amf_attribs.ha_state == NCS_APP_AMF_HA_STATE_ACTIVE)
     {
-        m_NCS_PSSTS_PCN_DELETE(pwe_cb->p_pss_cb->pssts_api,
-            pwe_cb->p_pss_cb->pssts_hdl, retval, pwe_cb->p_pss_cb->current_profile, 
-            pwe_cb->pwe_id, msg->data.data.bam_conf_done.pcn_list.pcn);
-
-        if (retval == NCSCC_RC_FAILURE)
-            syslog(LOG_ERR, "m_NCS_PSSTS_PCN_DELETE failed");
-
         if (pwe_cb->p_pss_cb->bam_req_cnt == 0)
         {
             pwe_cb->p_pss_cb->save_type = PSS_SAVE_TYPE_IMMEDIATE;
