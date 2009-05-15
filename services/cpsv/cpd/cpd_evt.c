@@ -1198,13 +1198,32 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
 
     case NCSMDS_RED_UP:
        /* get the peer mds_red_up */
-       /* from the phy slot get the mds_dest of remote CPND */
-       if(cb->node_id != mds_info->node_id)
-       {
-          phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(mds_info->node_id);
-          cb->cpd_remote_id = phy_slot_sub_slot;
-          cb->is_rem_cpnd_up = TRUE;
-          cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot_sub_slot-1];
+       /* get the mds_dest of remote CPND */
+        if(cb->node_id != mds_info->node_id)
+        {
+           MDS_DEST tmpDest = 0LL;
+           phy_slot_sub_slot =  cpd_get_slot_sub_slot_id_from_node_id(mds_info->node_id);
+           cb->cpd_remote_id = phy_slot_sub_slot;
+
+           if(cb->is_rem_cpnd_up == FALSE)
+           {
+               cpd_cpnd_info_node_getnext(&cb->cpnd_tree,
+               &tmpDest,
+               &node_info);
+               while (node_info)
+               { /* while-1*/
+                   if (mds_info->node_id == node_info->cpnd_key)
+                   {
+                       cb->is_rem_cpnd_up = TRUE;
+                       cb->rem_cpnd_dest  = node_info->cpnd_dest;
+                       /* Break out of while-1. We found*/
+                       break;
+                   }
+                   tmpDest = node_info->cpnd_dest;
+                   cpd_cpnd_info_node_getnext(&cb->cpnd_tree, &tmpDest,
+                       &node_info);
+               }
+           }
        }
        else 
        {          
@@ -1226,15 +1245,14 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
        {
             /* Save MDS address for this CPND */
          phy_slot_sub_slot  = cpd_get_slot_sub_id_from_mds_dest(mds_info->dest);
-         cb->cpnd_dests[phy_slot_sub_slot-1] = mds_info->dest;
-         if(cb->cpd_remote_id == phy_slot_sub_slot)
-         cb->rem_cpnd_dest  = cb->cpnd_dests[phy_slot_sub_slot-1];
+         if(cb->cpd_remote_id == phy_slot_sub_slot) 
+         {cb->rem_cpnd_dest  = mds_info->dest;}
 
       
-       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(cb->cpnd_dests[phy_slot_sub_slot-1])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_self_id,cpd_get_slot_sub_id_from_mds_dest(mds_info->dest)))
        {
           cb->is_loc_cpnd_up = TRUE;   
-          cb->loc_cpnd_dest = cb->cpnd_dests[phy_slot_sub_slot-1];
+          cb->loc_cpnd_dest = mds_info->dest;
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
           { 
@@ -1268,10 +1286,10 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
           }
        }
        /* When CPND ON STANDBY COMES UP */
-       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(cb->cpnd_dests[phy_slot_sub_slot-1])))
+       if(m_CPND_IS_ON_SCXB(cb->cpd_remote_id,cpd_get_slot_sub_id_from_mds_dest(mds_info->dest)))
        {
           cb->is_rem_cpnd_up = TRUE;
-          cb->rem_cpnd_dest = cb->cpnd_dests[phy_slot_sub_slot-1];
+          cb->rem_cpnd_dest = mds_info->dest;
     
 
           if(cb->ha_state == SA_AMF_HA_ACTIVE)
@@ -1368,7 +1386,6 @@ static uns32 cpd_evt_proc_mds_evt (CPD_CB *cb, CPD_EVT *evt)
            
         /* MDS address for this CPND is no longer valid */
             phy_slot_sub_slot = cpd_get_slot_sub_id_from_mds_dest(mds_info->dest);
-            cb->cpnd_dests[phy_slot_sub_slot-1] = 0;
     
     
         if(cb->ha_state == SA_AMF_HA_ACTIVE)

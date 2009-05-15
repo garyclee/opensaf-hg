@@ -195,7 +195,7 @@ typedef struct cpd_cb_tag{
    NCS_BOOL             is_quiesced_set;
    MDS_DEST             loc_cpnd_dest;  
    MDS_DEST             rem_cpnd_dest;     
-   MDS_DEST             cpnd_dests[NCS_MAX_SLOTS];
+    /*MDS_DEST             cpnd_dests[NCS_MAX_SLOTS];*/
  
    NCS_PATRICIA_TREE    cpnd_tree;      
 
