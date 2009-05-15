@@ -1381,9 +1381,8 @@ saEvtEventFree(SaEvtEventHandleT eventHandle )
    m_NCS_LOCK(&eda_cb->cb_lock, NCS_LOCK_WRITE);
 
    /** Delete this evt record from the
-    ** list of events and give the handle before free
+    ** list of events
     **/
-   ncshm_give_hdl(eventHandle);
 
    if (NCSCC_RC_SUCCESS != 
          eda_event_hdl_rec_del(&chan_hdl_rec->chan_event_anchor, evt_hdl_rec))
