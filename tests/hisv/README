@@ -253,6 +253,16 @@ Known Test Failures
              in OpenHPI as of the 2.12.0 release.  It is fixed in
              OpenHPI revision 2.13.3 and newer.
 
+    Bug 317 (related): Some power-off tests will fail with
+             "wrong reset applied".  After a system is powered
+             off, it should miss a heartbeat, causing OpenSAF to
+             apply a reset to bring it back to life.  However,
+             the reset applied by OpenSAF is the non-existent
+             HISV_RES_GRACEFUL_REBOOT, which generates an HPI
+             error and a warning that OpenSAF will try a cold
+             reset of the system (which will fail, since the
+             system is powered OFF).
+
   power_cli_error_handling failures:
   ----------------------------------
     Bug 323: The CLI will report success in setting the admin state
