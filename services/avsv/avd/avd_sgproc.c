@@ -1202,7 +1202,9 @@ void avd_su_si_assign_func(AVD_CL_CB *cb,AVD_EVT *evt)
                   su->si_curr_standby = su->si_curr_active;
                   su->si_curr_active = 0;
                }
-               
+
+               m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
+
                /* set the  assigned or quiesced state in the SUSIs. */
                avd_sg_su_asgn_del_util(cb,su,FALSE,qsc_flag);
             }
