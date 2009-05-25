@@ -2769,11 +2769,22 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 goto ccbObjectCreateExit;	  
             }
             if(parent->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                TRACE_7("Parent object '%s' is a runtime object."
-                    "Will not allow create of config sub-object.",
-                    parentName.c_str());
-                err = SA_AIS_ERR_NOT_EXIST;
-                goto ccbObjectCreateExit;	  
+                if(classInfo->mCategory == SA_IMM_CLASS_CONFIG) {
+                    TRACE_7("Parent object '%s' is a runtime object."
+                        "Will not allow create of config sub-object.",
+                        parentName.c_str());
+                    err = SA_AIS_ERR_NOT_EXIST;
+                    goto ccbObjectCreateExit;	  
+                } else {
+                    assert(isLoading); 
+                    /* See check above, only loader allowed to create 
+                       (persistent) rtos this way. Should really check
+                       that parent and child are persistent. Since 
+                       we know we are loading, we assume we are 
+                       loading a dump that only contains persistent
+                       runtime objects.
+                    */
+                }
             }
         }
     }
