@@ -3270,27 +3270,30 @@ cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb,CPND_EVT *evt, CPSV_
       goto error; 
    } 
   return rc;
-error:
-         /*Send Error response to CPA*/
-         switch(evt->info.ckpt_write.type)
-         {
+
+ error:
+   if (evt_node != NULL)
+   {
+       /*Send Error response to CPA*/
+       switch(evt->info.ckpt_write.type)
+       {
            case CPSV_DATA_ACCESS_WRITE_RSP:
-                rsp_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_WRITE_RSP;
-                rsp_evt.info.cpa.info.sec_data_rsp.error = error;
-           break;
-
+               rsp_evt.info.cpa.info.sec_data_rsp.type = CPSV_DATA_ACCESS_WRITE_RSP;
+               rsp_evt.info.cpa.info.sec_data_rsp.error = error;
+               break;
+               
            case CPSV_DATA_ACCESS_OVWRITE_RSP:
-                rsp_evt.info.cpa.info.sec_data_rsp.type=CPSV_DATA_ACCESS_OVWRITE_RSP;
-                rsp_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error=error;
-           break;
-         }
-          rc = cpnd_mds_send_rsp(cb,&evt_node->sinfo, &rsp_evt);
-
-          /*Remove the all repl event node*/
-          rc = cpnd_evt_node_del(cb,evt_node);
-          /*Free the memory*/
-          if(evt_node)
-           cpnd_allrepl_write_evt_node_free(evt_node);
+               rsp_evt.info.cpa.info.sec_data_rsp.type=CPSV_DATA_ACCESS_OVWRITE_RSP;
+               rsp_evt.info.cpa.info.sec_data_rsp.info.ovwrite_error.error=error;
+               break;
+       }
+       rc = cpnd_mds_send_rsp(cb,&evt_node->sinfo, &rsp_evt);
+       
+       /*Remove the all repl event node*/
+       rc = cpnd_evt_node_del(cb,evt_node);
+       /*Free the memory*/
+       cpnd_allrepl_write_evt_node_free(evt_node);
+   }
    
    return rc;
 }
@@ -4091,25 +4094,17 @@ end:
              rc = cpnd_mds_msg_sync_send(cb, NCSMDS_SVC_ID_CPND, cp_node->active_mds_dest, &send_evt,
                                                                                  &out_evt, CPSV_WAIT_TIME);
 
-             if (rc != NCSCC_RC_SUCCESS) {
-                if (rc == NCSCC_RC_REQ_TIMOUT) {
-                               m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                                     0,cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,__FILE__,__LINE__);
-
-                }
-                else
-                {
-             
-                   m_LOG_CPND_CFFFCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,\
-                                     0,cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,__FILE__,__LINE__);
-
-                }
-               goto ckpt_replica_create_failed;
+             if (rc != NCSCC_RC_SUCCESS)
+             {
+                 m_LOG_CPND_FFFLCL(CPND_REMOTE_TO_ACTIVE_MDS_SEND_FAIL,CPND_FC_MDSFAIL,NCSFL_SEV_ERROR,
+                     cb->cpnd_mdest_id,cp_node->active_mds_dest,cp_node->ckpt_id,rc,__FILE__,__LINE__);
+                 
+                 goto ckpt_replica_create_failed;
              }
 
   
 
-   m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,\
+   m_LOG_CPND_FCL(CPND_NON_COLLOC_CKPT_REPLICA_CREATE_SUCCESS,CPND_FC_CKPTINFO,NCSFL_SEV_INFO,
                      cp_node->ckpt_id ,__FILE__ , __LINE__);
    return rc;
                
