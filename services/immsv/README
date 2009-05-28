@@ -432,13 +432,13 @@ Errors, warnings and notice level messages are logged to the syslog.
 
 
 To enable traces in the IMM library, export the variable IMMSV_TRACE_PATHNAME
-with a valid pathname before starting the application using the LOG library.
+with a valid pathname before starting the application using the IMM library.
 
 For example:
 
 $ export IMMSV_TRACE_PATHNAME=/tmp/imm.trace
 $ ./immomtest
-$ cat /tmp/log.trace
+$ cat /tmp/imm.trace
 
 
 TEST
