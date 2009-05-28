@@ -21,7 +21,7 @@ IMPORTS
             MODULE-COMPLIANCE, OBJECT-GROUP, NOTIFICATION-GROUP
                     FROM SNMPv2-CONF
 
-	    eccgNcsModules, ncsSa
+	    openSafModules, ncsSa
 		    FROM OPENSAF-SMI;
 
 ncsTestMibModule MODULE-IDENTITY
@@ -46,7 +46,7 @@ ncsTestMibModule MODULE-IDENTITY
 
               Author(s): Emerson Network Power"
 
-    ::= { eccgNcsModules 9}
+    ::= { openSafModules 9}
 
 ncsTestMibObjects   	OBJECT IDENTIFIER  ::= {ncsSa 10}
 ncsTestMibConformance	OBJECT IDENTIFIER  ::= {ncsTestMibModule 2}
