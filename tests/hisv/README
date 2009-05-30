@@ -271,6 +271,17 @@ Known Test Failures
     Bug 417: The CLI will report a cold reset was applied to a system
              with a non-existent chassis ID and blade ID.
 
+    Sometimes, a test will fail because the system cannot be put
+    into the correct power state (usually OFF), because the power
+    state can't be set via the system's iLO or from the OA.  Some
+    light testing shows that iLO firmware version 1.77 (from
+    http://support.hp.com) fixes this issue.
+
+    Also, the test can be rerun after turning the failing system
+    off using the "/sbin/poweroff" command in linux.  (This command
+    always works.)
+
+
   reset_cli failures:
   -------------------
     Bug 317 (related): OpenSAF defines HISV_RES_GRACEFUL_REBOOT, which
