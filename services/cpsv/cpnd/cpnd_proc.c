@@ -1063,10 +1063,10 @@ uns32 cpnd_ckpt_read_replica(CPND_CB *cb,CPND_CKPT_NODE *cp_node ,\
    
        if(!read_size) 
         { 
-         if(ptr_read_data[j].data != NULL)
-           m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[j].data);
-         ptr_read_data[j].data=NULL;
-         ptr_read_data[j].read_size=0;
+         if(ptr_read_data[i].data != NULL)
+           m_MMGR_FREE_CPND_DEFAULT(ptr_read_data[i].data);
+         ptr_read_data[i].data=NULL;
+         ptr_read_data[i].read_size=0;
          continue;
         }
   
