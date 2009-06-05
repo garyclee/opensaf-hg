@@ -70,8 +70,6 @@ EXTERN_C void imma_callback_ipc_destroy (IMMA_CLIENT_NODE  *client_info);
 
 EXTERN_C uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 
-EXTERN_C void imma_cb_dump(void );
-
 EXTERN_C void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE* clnd);
 
 
