@@ -341,8 +341,9 @@ cnode_alloc_fail:
 
 lock_fail:
 
-    if (out_evt)
+    if (out_evt) {
         free(out_evt);
+    }
 
     if (rc == SA_AIS_OK)
     {
@@ -731,7 +732,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
     if (proc_rc != NCSCC_RC_SUCCESS)
     {
         rc = SA_AIS_ERR_LIBRARY;
-        TRACE_1("Failed to add node tothe admin owner tree");
+        TRACE_1("Failed to add node to the admin owner tree");
         goto ao_node_add_fail;
     }
 
@@ -787,6 +788,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
         {
             rc = SA_AIS_ERR_LIBRARY;
             TRACE_1("Lock failed");
+            free(out_evt);
             goto lock_fail1;
         }
 
@@ -801,7 +803,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
         }
     }
 
-
+    /* TODO: to be really safe we should look up the ao_node again. */
     *adminOwnerHandle = ao_node->admin_owner_hdl;
 
     if (isLoaderName)
@@ -823,9 +825,23 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
     return rc;
 
  mds_send_fail:
+    if(!locked) 
+    {
+        /* Take the CB lock */
+        if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+        {
+            rc = SA_AIS_ERR_LIBRARY;
+            TRACE_1("Lock failed");
+        } else {
+            locked = TRUE;
+        }
+    }
+
  admin_owner_node_free:
-    imma_admin_owner_node_delete(cb, ao_node); 
-    ao_node = NULL; 
+    if(locked) {
+        imma_admin_owner_node_delete(cb, ao_node); 
+        ao_node = NULL; 
+    }
 
  ao_node_add_fail:
     if (ao_node != NULL)
@@ -864,6 +880,8 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb,
     IMMSV_EVT             *out_evt=NULL;
 
     assert(locked && *locked);
+    assert(ccb_node->mTerminated);
+    ccb_node->mCcbId = 0;
 
     /* Populate & Send the Open Event to IMMND */
     memset(&evt, 0, sizeof(IMMSV_EVT));
@@ -915,12 +933,13 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb,
         {
             rc = SA_AIS_ERR_LIBRARY;
             TRACE_1("Lock failed");
+            free(out_evt);
             goto lock_fail;
         }
 
         *locked = TRUE;
 
-        if (rc == SA_AIS_OK)
+        if (rc == SA_AIS_OK) /* TODO: should really look up ccb_node again. */
         {
             ccb_node->mCcbId = out_evt->info.imma.info.ccbInitRsp.ccbId;
         }
@@ -935,11 +954,6 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb,
     {
         ccb_node->mTerminated = SA_FALSE;
         TRACE("CcbId:%u\n",  ccb_node->mCcbId);
-    }
-    else
-    {
-        ccb_node->mCcbId = 0;
-        ccb_node->mTerminated = SA_TRUE;
     }
 
     return rc;
@@ -1373,19 +1387,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                TRACE_LEAVE();
-                return rc; /* NOTE: This error case leaks memory */
-            }
-            locked = TRUE;
-        }
+        /* We dont need the lock here */
 
         /* Free the out event */
         /*Will free the root event only, not any pointer structures.*/
@@ -1665,19 +1667,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                TRACE_LEAVE();
-                return rc; /* NOTE: This leaks memory, leaving ccb intact..?*/
-            }
-            locked = TRUE;
-        }
+        /* We dont need the lock here */
 
         free(out_evt);
     }
@@ -1875,18 +1865,7 @@ SaAisErrorT saImmOmCcbObjectDelete (SaImmCcbHandleT         ccbHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /* NOTE: This error case leaks memory */
-            }
-            locked = TRUE;
-        }
+        /* We dont need the lock here */
 
         free(out_evt);
     }
@@ -2020,21 +1999,8 @@ SaAisErrorT saImmOmCcbApply (SaImmCcbHandleT ccbHandle)
         rc = out_evt->info.imma.info.errRsp.error;
 
 
-        /* Take the CB lock (do we really need the lock here ..?) */
+        /* We dont need the lock here */
 
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; 
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -2123,7 +2089,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
     }
 
     /*Overwrite any old/uninitialized value.*/
-    *operationReturnValue = SA_AIS_OK; 
+    *operationReturnValue = SA_AIS_ERR_NO_SECTIONS; /* Set to bad value to prevent user mistakes. */
 
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
@@ -2276,21 +2242,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
             *operationReturnValue = out_evt->info.imma.info.admOpRsp.result;
         }
 
-        /* Take the CB lock (do we need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc;
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* Will free the root event only, not any pointer structures.*/
+        /* We dont need the lock here */
         free(out_evt);
     }
 
@@ -2507,12 +2459,12 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 
     /*alloc-1*/
     evt.info.immnd.info.admOpReq.objectName.buf =
-        malloc(evt.info.immnd.info.admOpReq.objectName.size); 
+        calloc(1, evt.info.immnd.info.admOpReq.objectName.size); 
 
     strncpy(evt.info.immnd.info.admOpReq.objectName.buf,
             (char *) objectName->value, 
             evt.info.immnd.info.admOpReq.objectName.size);
-    evt.info.immnd.info.admOpReq.objectName.buf[objectName->length] = '\0';
+    //evt.info.immnd.info.admOpReq.objectName.buf[objectName->length] = '\0';
 
     assert(evt.info.immnd.info.admOpReq.params == NULL);
 
@@ -2842,7 +2794,9 @@ SaAisErrorT saImmOmClassCreate_2 (
             TRACE("Unknown type not allowed for attr:%s class%s",
                 p->d.attrName.buf, 
                 evt.info.immnd.info.classDescr.className.buf);
-            free(p);
+            free(p->d.attrName.buf); /* free-3*/
+            p->d.attrName.buf = NULL;
+            free(p); /* free-2 */
             goto mds_send_fail;
         }
         p->d.attrFlags = attr->attrFlags;
@@ -2906,7 +2860,7 @@ SaAisErrorT saImmOmClassCreate_2 (
         memset(sysattr, 0, sizeof(IMMSV_ATTR_DEF_LIST)); 
 
         sysattr->d.attrName.size = strlen(sysaAdmName)+1;
-        sysattr->d.attrName.buf = malloc(sysattr->d.attrName.size);
+        sysattr->d.attrName.buf = malloc(sysattr->d.attrName.size); /*alloc-3*/
         strncpy(sysattr->d.attrName.buf, sysaAdmName,
                 sysattr->d.attrName.size);
         sysattr->d.attrValueType = SA_IMM_ATTR_SASTRINGT;
@@ -2979,21 +2933,8 @@ SaAisErrorT saImmOmClassCreate_2 (
         rc = out_evt->info.imma.info.errRsp.error;
         TRACE("Return code:%u", rc);
 
-        /* Take the CB lock (do we need the lock here ..?) */
+        /* We dont need the lock here */
 
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /*Error case will leak meamory.*/
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -3351,21 +3292,8 @@ SaAisErrorT saImmOmClassDescriptionGet_2 (
           But ClassDescriptionGet is not expected to be invoked often.
         */
 
-        /* Take the CB lock (do we really need the lock here ??) */
+        /* We dont need the lock here */
 
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /*Error case will leak meamory.*/
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }/*if(out_evt)*/
 
@@ -3630,21 +3558,8 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
         rc = out_evt->info.imma.info.errRsp.error;
         TRACE("Return code:%u", rc);
 
-        /* Take the CB lock (do we need the lock here ..?) */
+        /* We dont need the lock here */
 
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /*Error case will leak meamory.*/
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -3891,7 +3806,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT          accessorHandle,
            search handle and deallocate the search_node.
         */
 
-        /* NOTE: Should Send a ImmOmSearchFinalize message to IMMND !! 
+        /* NOTE/TODO: Should Send a ImmOmSearchFinalize message to IMMND !! 
          This to discard the search on the server side. See searchFinalize. */
         search_node->mSearchId=0;
     }
@@ -4083,21 +3998,8 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?) */
+        /* We dont need the lock here */
 
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /* leaks memory, but only for the error case */
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /* will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -4242,7 +4144,6 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
             TRACE_1("Returned error: %u", rc);
         }
 
-        /* Free the out event */
         free(out_evt);
     }
 
@@ -4509,8 +4410,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
             goto mds_send_fail;
     }
 
-
-
     if (out_evt)
     {
         /*search_node->mLastResult = 0;  -- already zeroed*/
@@ -4559,8 +4458,6 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
                 }
             }
         }
-        /* Free the out event */ 
-        /* Will free the root event only, not any pointer structures. */
         free(out_evt);
     }
 
@@ -4749,6 +4646,8 @@ SaAisErrorT saImmOmSearchNext_2(
         {
             error = out_evt->info.imma.info.errRsp.error;
             assert(error && (error != SA_AIS_OK));
+            free(out_evt); /*BUGFIX (leak) 090506*/
+            out_evt=NULL;
             goto release_cb;
         }
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHNEXT_RSP);
@@ -4830,7 +4729,7 @@ SaAisErrorT saImmOmSearchNext_2(
         }
         attr[noOfAttributes] = NULL;
         *attributes = attr;
-        search_node->mLastAttributes = attr;    
+        search_node->mLastAttributes = attr;  /* TODO: Should really look up searh_node again. */
     }
 
 
@@ -4853,13 +4752,12 @@ SaAisErrorT saImmOmSearchNext_2(
         free(out_evt);
     }
 
-    release_lock:
+ release_cb:
+ release_lock:
     if (locked)
     {
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
     }
-
-    release_cb:
 
     return error; 
 }
@@ -4998,8 +4896,9 @@ SaAisErrorT saImmOmSearchFinalize (SaImmSearchHandleT searchHandle)
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         error = out_evt->info.imma.info.errRsp.error;
-
         free(out_evt);
+
+        /* Should lock here. */
         proc_rc = imma_search_node_delete(cb, search_node);
         assert(proc_rc == NCSCC_RC_SUCCESS);
     }
@@ -5136,23 +5035,10 @@ SaAisErrorT saImmOmAdminOwnerSet (SaImmAdminOwnerHandleT adminOwnerHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?)*/
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock error");
-                goto lock_fail1;
-            }
-            locked = TRUE;
-        }
-
+        /* We dont need the lock here */
         free(out_evt);
     }
 
- lock_fail1:   
  mds_send_fail:   
  stale_handle:
  client_not_found:
@@ -5289,23 +5175,10 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                goto lock_fail1;
-            }
-            locked = TRUE;
-        }
-
+        /* We dont need the lock here */
         free(out_evt);
     }
 
- lock_fail1:   
  mds_send_fail:   
  stale_handle:
  client_not_found:
@@ -5424,23 +5297,10 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
 
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                goto lock_fail1;
-            }
-            locked = TRUE;
-        }
-
+        /* We dont need the lock here  */
         free(out_evt);
     }
 
- lock_fail1:   
  mds_send_fail:   
  stale_handle:
  client_not_found:
