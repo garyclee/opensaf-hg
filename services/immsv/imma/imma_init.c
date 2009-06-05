@@ -117,7 +117,15 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
         goto db_init_fail;
     }
 
-    assert(cb->sv_id == 0);
+    if(cb->sv_id != 0)
+    {
+        /*The assert below seems to occurr sometimes on some systems.*/
+        LOG_ER("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x",
+            cb->sv_id, sv_id);
+
+        assert(cb->sv_id == 0);
+    }
+
     cb->sv_id = sv_id;
 
     /* register with MDS */

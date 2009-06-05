@@ -57,6 +57,14 @@ SaAisErrorT saImmOiInitialize(SaImmOiHandleT *immOiHandle,
                               SaVersionT *version)
 
 {
+    if((version->releaseCode != 'A') ||
+        (version->majorVersion != 0x01)) {
+        TRACE("THIS SHOULD BE A VERSION A.1.x implementer but claims to be"
+            "%c %u %u", version->releaseCode, version->majorVersion,
+            version->minorVersion);
+        return SA_AIS_ERR_VERSION;
+    }
+
     return saImmOiInitialize_2(immOiHandle, 
                                (const SaImmOiCallbacksT_2 *) immOiCallbacks,
                                version);
@@ -319,8 +327,9 @@ version_fail:
 
     if (locked)
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    if (out_evt)
+    if (out_evt) {
         free(out_evt);
+    }
 
 lock_fail:
     if (rc != SA_AIS_OK)
@@ -853,19 +862,10 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle,
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMPLSET_RSP);
         rc = out_evt->info.imma.info.implSetRsp.error;
 
-        /* Take the CB lock */
-        if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-        {
-            rc = SA_AIS_ERR_LIBRARY;
-            TRACE_1("Lock failed");
-            goto mds_send_fail;
-        }
-
-        locked = TRUE;
-
         if (rc == SA_AIS_OK)
         {
-            cl_node->mImplementerId = out_evt->info.imma.info.implSetRsp.implId;
+            cl_node->mImplementerId = 
+                out_evt->info.imma.info.implSetRsp.implId;
         }
         free(out_evt);
     }
@@ -959,16 +959,6 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-        /* Take the CB lock */
-        if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-        {
-            rc = SA_AIS_ERR_LIBRARY;
-            TRACE_1("Lock failed");
-            goto mds_send_fail;
-        }
-
-        locked = TRUE;
 
         if (rc == SA_AIS_OK)
         {
@@ -1088,23 +1078,6 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-#if 0 /* Dont need to lock here! In fact it just adds an error case. */
-        if (!locked)
-        {
-            /* Take the CB lock */
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                /*NOTE - should undo the class implementer towards server.*/
-                goto mds_send_fail;
-            }
-        }
-
-        locked = TRUE;
-#endif
-
         free(out_evt);
     }
 
@@ -1212,23 +1185,6 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-#if 0 /* Dont need to lock here! In fact it just adds an error case. */
-        if (!locked)
-        {
-            /* Take the CB lock */
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                /*NOTE - should undo the class implementer towards server.*/
-                goto mds_send_fail;
-            }
-        }
-
-        locked = TRUE;
-#endif
-
         free(out_evt);
     }
 
@@ -1355,23 +1311,6 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-#if 0 /* Dont need to lock here! In fact it just adds an error case. */
-        if (!locked)
-        {
-            /* Take the CB lock */
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                /*NOTE - should undo the object implementer towards server.*/
-                goto mds_send_fail;
-            }
-        }
-
-        locked = TRUE;
-#endif
-
         free(out_evt);
     }
 
@@ -1490,23 +1429,6 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-#if 0 /* Dont need to lock here! In fact it just adds an error case. */
-        if (!locked)
-        {
-            /* Take the CB lock */
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                /*NOTE - should undo the object implementer towards server.*/
-                goto mds_send_fail;
-            }
-        }
-
-        locked = TRUE;
-#endif
-
         free(out_evt);
     }
 
@@ -1720,23 +1642,6 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                TRACE_LEAVE();
-                return rc; /* NOTE: Leaking memory for this error case */
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /*Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -1998,23 +1903,6 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                TRACE_LEAVE();
-                return rc; /* NOTE: Leaking memory for this error case */
-            }
-            locked = TRUE;
-        }
-
-        /* Free the out event */
-        /*Will free the root event only, not any pointer structures.*/
         free(out_evt);
     }
 
@@ -2167,19 +2055,6 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
         assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
         assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
         rc = out_evt->info.imma.info.errRsp.error;
-
-        /* Take the CB lock (do we really need the lock here ..?) */
-
-        if (!locked)
-        {
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                rc = SA_AIS_ERR_LIBRARY;
-                TRACE_1("Lock failed");
-                return rc; /* NOTE leaking memory */
-            }
-            locked = TRUE;
-        }
         free(out_evt); 
     }
 
