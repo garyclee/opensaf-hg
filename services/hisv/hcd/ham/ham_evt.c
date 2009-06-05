@@ -234,9 +234,12 @@ ham_resource_reset(HISV_EVT *evt)
    SaHpiResourceIdT   resourceid;
    uns32    reset_type;
    uns32    rc = NCSCC_RC_FAILURE;
+   char *arch_type = NULL;
 
    m_LOG_HISV_DTS_CONS("ham_resource_reset: Invoked\n");
    set_hisv_msg (&hisv_msg);
+
+   arch_type = getenv("OPENSAF_TARGET_SYSTEM_ARCH");
 
    /** retrieve HAM CB
     **/
@@ -262,6 +265,15 @@ ham_resource_reset(HISV_EVT *evt)
    }
    /* get the type of 'reset' requested */
    reset_type = (SaHpiResetActionT)msg->info.api_info.arg;
+
+   if (((strcmp(arch_type,"HP_CCLASS") == 0) ||
+        (strcmp(arch_type,"HP_PROLIANT") == 0)) &&
+       (reset_type == HISV_RES_GRACEFUL_REBOOT))
+   {
+      /* These HP platforms do not support HISV_RES_GRACEFUL_REBOOT */
+      /* Set the reset_type to WARM_RESET instead.                  */
+      reset_type = HISV_RES_WARM_RESET;
+   }
    printf("ham_resource_reset: reset type = %d\n", reset_type);
 
    /** got the resource-id of resource with given entity-path
@@ -296,17 +308,31 @@ ham_resource_reset(HISV_EVT *evt)
       rc = NCSCC_RC_SUCCESS;
    else
    {
-      m_LOG_HISV_DTS_CONS("ham_resource_reset: error in saHpiResourceResetStateSet; Attempting cold reset\n");
-      printf ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
-      err =  saHpiResourceResetStateSet(ham_cb->args->session_id, resourceid,
-                                        (SaHpiResetActionT)SAHPI_COLD_RESET);
-      if (SA_OK == err)
-         rc = NCSCC_RC_SUCCESS;
+      if (((strcmp(arch_type,"HP_CCLASS") == 0) ||
+           (strcmp(arch_type,"HP_PROLIANT") == 0)) &&
+          (err == SA_ERR_HPI_INVALID_REQUEST))
+      {
+         /* The HP platform is powered-off.                            */
+         /* Performing a cold reset will only generate another error.  */
+         /* Therefore, just return the current error.                  */
+         m_LOG_HISV_DTS_CONS("ham_resource_reset: saHpiResourceResetStateSet, Cannot perform reset action\n");
+         m_LOG_HISV_DTS_CONS("ham_resource_reset: saHpiResourceResetStateSet, Server is powered off\n");
+         rc = NCSCC_RC_FAILURE;
+      }
       else
       {
-         printf("ham_resource_reset: cold reset attempt failed in saHpiResourceResetStateSet\n");
+         m_LOG_HISV_DTS_CONS("ham_resource_reset: error in saHpiResourceResetStateSet; Attempting cold reset\n");
          printf ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
-         rc = NCSCC_RC_FAILURE;
+         err =  saHpiResourceResetStateSet(ham_cb->args->session_id, resourceid,
+                                           (SaHpiResetActionT)SAHPI_COLD_RESET);
+         if (SA_OK == err)
+            rc = NCSCC_RC_SUCCESS;
+         else
+         {
+            printf("ham_resource_reset: cold reset attempt failed in saHpiResourceResetStateSet\n");
+            printf ("ham_resource_reset: saHpiResourceResetStateSet, HPI error code = %d\n", err);
+            rc = NCSCC_RC_FAILURE;
+         }
       }
    }
    /** populate the mds message with return value, to send across to the HPL
