@@ -19,6 +19,11 @@
 
 void saImmOmInitialize_01(void)
 {
+    immOmHandle = 0LL;
+    rc = saImmOmFinalize(immOmHandle);
+    safassert(rc, SA_AIS_ERR_BAD_HANDLE);
+
+
     rc = saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion);
     test_validate(rc, SA_AIS_OK);
     if (rc == SA_AIS_OK)

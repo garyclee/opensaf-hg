@@ -383,6 +383,12 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle,
     if (!selectionObject)
         return SA_AIS_ERR_INVALID_PARAM;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     *selectionObject = (-1); /* Ensure non valid descriptor in case of failure. */
 
 
@@ -453,6 +459,12 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle,
     SaAisErrorT    rc = SA_AIS_OK;
     IMMA_CB      *cb = &imma_cb;
     IMMA_CLIENT_NODE   *cl_node=0;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -527,6 +539,12 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
     IMMA_CLIENT_NODE      *cl_node=0;
     uns32                proc_rc = NCSCC_RC_SUCCESS;
     NCS_BOOL             locked = TRUE;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     TRACE_ENTER();
 
@@ -665,6 +683,11 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
     SaBoolT               isLoaderName=SA_FALSE;
     SaUint32T             nameLen = 0;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((adminOwnerHandle == NULL) || (adminOwnerName == NULL) || 
         (nameLen = strlen(adminOwnerName)) == 0)
@@ -989,6 +1012,12 @@ SaAisErrorT saImmOmCcbInitialize (SaImmAdminOwnerHandleT adminOwnerHandle,
     IMMA_CCB_NODE         *ccb_node = NULL;
     SaBoolT               locked = SA_FALSE;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if ((ccbHandle==NULL) || (ccbFlags && (ccbFlags != SA_IMM_CCB_REGISTERED_OI)))
     {
         return SA_AIS_ERR_INVALID_PARAM;
@@ -1142,6 +1171,13 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
     IMMA_CLIENT_NODE      *cl_node = NULL;
     IMMA_CCB_NODE      *ccb_node = NULL;
     NCS_BOOL       locked = FALSE;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     TRACE_ENTER();
 
     if (className == NULL)
@@ -1494,6 +1530,12 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
     NCS_BOOL       locked = FALSE;
     TRACE_ENTER();
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (objectName == NULL)
     {
         TRACE_2("objectName is NULL");
@@ -1752,6 +1794,12 @@ SaAisErrorT saImmOmCcbObjectDelete (SaImmCcbHandleT         ccbHandle,
     IMMA_CCB_NODE      *ccb_node = NULL;
     NCS_BOOL       locked = FALSE;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (!objectName || (objectName->length == 0))
     {
         TRACE_2("Empty object-name");
@@ -1919,6 +1967,12 @@ SaAisErrorT saImmOmCcbApply (SaImmCcbHandleT ccbHandle)
     IMMA_CCB_NODE      *ccb_node = NULL;
     NCS_BOOL       locked = FALSE;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -2073,6 +2127,12 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
     NCS_BOOL       locked = TRUE;
 
     TRACE_ENTER();
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((objectName == NULL) || (operationReturnValue == NULL)||
         (objectName->length == 0) || (objectName->length >= SA_MAX_NAME_LENGTH)
@@ -2367,6 +2427,12 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
     IMMA_CLIENT_NODE      *cl_node = NULL;
     NCS_BOOL        locked = TRUE;
     TRACE_ENTER();
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((objectName == NULL) || (objectName->length == 0) || 
         (objectName->length >= SA_MAX_NAME_LENGTH) || (params == NULL))
@@ -2695,6 +2761,12 @@ SaAisErrorT saImmOmClassCreate_2 (
     IMMA_CLIENT_NODE      *cl_node = NULL;
     SaTimeT timeout = IMMSV_WAIT_TIME;
     IMMSV_ATTR_DEF_LIST* sysattr = NULL;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((className == NULL) || (attrDefinitions == NULL))
     {
@@ -3028,6 +3100,12 @@ SaAisErrorT saImmOmClassDescriptionGet_2 (
     IMMSV_EVT        evt;
     IMMSV_EVT        *out_evt=NULL;
     IMMA_CLIENT_NODE      *cl_node = NULL;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((className == NULL) || (classCategory == NULL) || (attrDefinition==NULL))
     {
@@ -3412,6 +3490,12 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2 (
     TRACE_ENTER();
     /* ABT The code from here.. */
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -3502,6 +3586,12 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
     IMMA_CLIENT_NODE      *cl_node = NULL;
     SaTimeT timeout = IMMSV_WAIT_TIME;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (className == NULL)
     {
         return SA_AIS_ERR_INVALID_PARAM;
@@ -3589,6 +3679,12 @@ SaAisErrorT saImmOmAccessorInitialize (SaImmHandleT                immHandle,
     IMMA_CLIENT_NODE *cl_node = NULL;
     IMMA_SEARCH_NODE *search_node = NULL;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (accessorHandle == NULL)
     {
         return SA_AIS_ERR_INVALID_PARAM;
@@ -3664,6 +3760,12 @@ SaAisErrorT saImmOmAccessorFinalize (SaImmAccessorHandleT accessorHandle)
 
     TRACE_ENTER();
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -3736,6 +3838,12 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT          accessorHandle,
     IMMA_CB         *cb = &imma_cb;
     IMMA_SEARCH_NODE *search_node = NULL;
     SaNameT redundantName;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((objectName == NULL) || (objectName->length == 0) || 
         (objectName->length >= SA_MAX_NAME_LENGTH))
@@ -3854,6 +3962,12 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
     IMMSV_EVT        *out_evt=NULL;
     IMMA_CLIENT_NODE      *cl_node = NULL;
     NCS_BOOL       locked = FALSE;
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if ((className == NULL) || (objectName == NULL))
     {
@@ -4069,6 +4183,12 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
     NCS_BOOL              locked = TRUE;
     TRACE_ENTER();
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
         TRACE_1("Lock failed");
@@ -4211,6 +4331,12 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
     IMMA_CLIENT_NODE *cl_node = NULL;
     IMMA_SEARCH_NODE *search_node = NULL;
     TRACE_ENTER();
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if (searchHandle == NULL)
     {
@@ -4533,6 +4659,12 @@ SaAisErrorT saImmOmSearchNext_2(
     IMMA_CLIENT_NODE *cl_node = NULL;
     IMMA_SEARCH_NODE *search_node = NULL;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (!objectName)
     {
         TRACE_2("Invalid parameter: objectName");
@@ -4802,6 +4934,12 @@ SaAisErrorT saImmOmSearchFinalize (SaImmSearchHandleT searchHandle)
     IMMA_CLIENT_NODE *cl_node = NULL;
     IMMA_SEARCH_NODE *search_node = NULL;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -4928,6 +5066,12 @@ SaAisErrorT saImmOmAdminOwnerSet (SaImmAdminOwnerHandleT adminOwnerHandle,
     const SaNameT         *objectName;
     NCS_BOOL              locked = TRUE;
     TRACE_ENTER();
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     if(!objectNames || (objectNames[0] == 0)) {
         return SA_AIS_ERR_INVALID_PARAM;
@@ -5068,6 +5212,12 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
     NCS_BOOL              locked = TRUE;
     TRACE_ENTER();
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if(!objectNames || (objectNames[0] == 0)) {
         return SA_AIS_ERR_INVALID_PARAM;
     }
@@ -5207,6 +5357,12 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle,
     NCS_BOOL              locked = TRUE;
     TRACE_ENTER();
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if(!objectNames || (objectNames[0] == 0)) {
         return SA_AIS_ERR_INVALID_PARAM;
     }
@@ -5325,6 +5481,12 @@ SaAisErrorT saImmOmAdminOwnerFinalize (SaImmAdminOwnerHandleT adminOwnerHandle)
     IMMA_ADMIN_OWNER_NODE *ao_node = NULL;
     NCS_BOOL              locked = TRUE;
 
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
+
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
         TRACE_1("Lock failed");
@@ -5437,6 +5599,12 @@ SaAisErrorT saImmOmCcbFinalize (SaImmCcbHandleT ccbHandle)
     IMMA_CCB_NODE      *ccb_node = NULL;
     NCS_BOOL       locked = FALSE;
     TRACE_ENTER();
+
+    if(cb->sv_id == 0)
+    {
+        TRACE_2("No initialized handle exists!");
+        return SA_AIS_ERR_BAD_HANDLE;
+    }
 
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)

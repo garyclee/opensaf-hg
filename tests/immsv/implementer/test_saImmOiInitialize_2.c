@@ -19,6 +19,9 @@
 
 void saImmOiInitialize_2_01(void)
 {
+    immOiHandle=4711;
+    safassert(saImmOiFinalize(immOiHandle), SA_AIS_ERR_BAD_HANDLE);
+
     if ((rc = saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion)) != SA_AIS_OK)
         goto done;
 
@@ -27,6 +30,9 @@ void saImmOiInitialize_2_01(void)
         goto done;
 
     safassert(saImmOiFinalize(immOiHandle), SA_AIS_OK);
+
+    immOiHandle=4711;
+    safassert(saImmOiFinalize(immOiHandle), SA_AIS_ERR_BAD_HANDLE);
 
 done:
     test_validate(rc, SA_AIS_OK);

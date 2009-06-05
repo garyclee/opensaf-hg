@@ -111,13 +111,10 @@ typedef struct imma_cb
     */
     
     NCS_PATRICIA_TREE    admin_owner_tree;  /* IMMA_ADMIN_OWNER_NODE  - node */
-    NCS_BOOL             is_admin_owner_tree_up;
     
     NCS_PATRICIA_TREE    ccb_tree;  /* IMMA_CCB_NODE  - node */
-    NCS_BOOL             is_ccb_tree_up;
     
     NCS_PATRICIA_TREE    search_tree;  /* IMMA_CCB_NODE  - node */
-    NCS_BOOL             is_search_tree_up;
     
     /*Used for matching async reply to saImmOmAdminOperationInvokeAsync*/
     IMMA_CONTINUATION_RECORD* imma_continuations; 

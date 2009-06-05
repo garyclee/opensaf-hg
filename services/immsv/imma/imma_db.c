@@ -330,23 +330,17 @@ void imma_admin_owner_tree_cleanup(IMMA_CB *cb)
     SaImmAdminOwnerHandleT  prev_adm_owner_id=0;
     IMMA_ADMIN_OWNER_NODE *adm_node;
 
-    /* Print the Admin Owner Details */
-    if (cb->is_admin_owner_tree_up)
+    /* Get the First Node */
+    adm_node = (IMMA_ADMIN_OWNER_NODE *)
+        ncs_patricia_tree_getnext(&cb->admin_owner_tree, 
+            (uns8*)&prev_adm_owner_id);
+    while (adm_node)
     {
-        /* Get the First Node */
+        prev_adm_owner_id = adm_node->admin_owner_hdl;
+        imma_admin_owner_node_delete(cb, adm_node);
         adm_node = (IMMA_ADMIN_OWNER_NODE *)
-                   ncs_patricia_tree_getnext(&cb->admin_owner_tree, 
-                                             (uns8*)&prev_adm_owner_id);
-        while (adm_node)
-        {
-            prev_adm_owner_id = adm_node->admin_owner_hdl;
-
-            imma_admin_owner_node_delete(cb, adm_node);
-
-            adm_node = (IMMA_ADMIN_OWNER_NODE *)
-                       ncs_patricia_tree_getnext(&cb->admin_owner_tree,
-                                                 (uns8*)&prev_adm_owner_id);            
-        }
+            ncs_patricia_tree_getnext(&cb->admin_owner_tree,
+                (uns8*)&prev_adm_owner_id);            
     }
     return;
 }
@@ -504,23 +498,17 @@ void imma_ccb_tree_cleanup(IMMA_CB *cb)
     SaImmCcbHandleT  prev_ccb_id=0;
     IMMA_CCB_NODE *ccb_node;
 
-    /* Print the Ccb Details */
-    if (cb->is_ccb_tree_up)
+    /* Get the First Node */
+    ccb_node = (IMMA_CCB_NODE *)
+        ncs_patricia_tree_getnext(&cb->ccb_tree, 
+            (uns8*)&prev_ccb_id);
+    while (ccb_node)
     {
-        /* Get the First Node */
+        prev_ccb_id = ccb_node->ccb_hdl;
+        imma_ccb_node_delete(cb, ccb_node);
         ccb_node = (IMMA_CCB_NODE *)
-                   ncs_patricia_tree_getnext(&cb->ccb_tree, 
-                                             (uns8*)&prev_ccb_id);
-        while (ccb_node)
-        {
-            prev_ccb_id = ccb_node->ccb_hdl;
-
-            imma_ccb_node_delete(cb, ccb_node);
-
-            ccb_node = (IMMA_CCB_NODE *)
-                       ncs_patricia_tree_getnext(&cb->ccb_tree,
-                                                 (uns8*)&prev_ccb_id);            
-        }
+            ncs_patricia_tree_getnext(&cb->ccb_tree,
+                (uns8*)&prev_ccb_id);            
     }
     return;
 }
@@ -676,22 +664,18 @@ void imma_search_tree_cleanup(IMMA_CB *cb)
     SaImmSearchHandleT  prev_search_id=0;
     IMMA_SEARCH_NODE *search_node;
 
-    if (cb->is_search_tree_up)
+    /* Get the First Node */
+    search_node = (IMMA_SEARCH_NODE *)
+        ncs_patricia_tree_getnext(&cb->search_tree, 
+            (uns8*)&prev_search_id);
+
+    while (search_node)
     {
-        /* Get the First Node */
+        prev_search_id = search_node->search_hdl;
+        imma_search_node_delete(cb, search_node);
         search_node = (IMMA_SEARCH_NODE *)
-                      ncs_patricia_tree_getnext(&cb->search_tree, 
-                                                (uns8*)&prev_search_id);
-        while (search_node)
-        {
-            prev_search_id = search_node->search_hdl;
-
-            imma_search_node_delete(cb, search_node);
-
-            search_node = (IMMA_SEARCH_NODE *)
-                          ncs_patricia_tree_getnext(&cb->search_tree,
-                                                    (uns8*)&prev_search_id);            
-        }
+            ncs_patricia_tree_getnext(&cb->search_tree,
+                (uns8*)&prev_search_id);            
     }
     return;
 }
