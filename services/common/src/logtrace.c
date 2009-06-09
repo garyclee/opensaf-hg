@@ -73,8 +73,9 @@ void _logtrace_log(const char* file, unsigned int line, int priority,
     const char *format, ...)
 {
     va_list ap;
-
+    va_list ap2;
     va_start(ap, format);
+    va_copy(ap2,ap);
 
     /* Uncondionally send to syslog */
     vsyslog(priority, format, ap);
@@ -83,7 +84,7 @@ void _logtrace_log(const char* file, unsigned int line, int priority,
     if (!(category_mask & (1 << CAT_LOG)))
         return;
 
-    output(file, line, priority, CAT_LOG, format, ap);
+    output(file, line, priority, CAT_LOG, format, ap2);
     va_end(ap);
 }
 
