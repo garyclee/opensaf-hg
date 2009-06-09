@@ -551,7 +551,8 @@ uns32 cpd_mbcsv_enc_msg_resp(CPD_CB *cb,NCS_MBCSV_CB_ARG *arg)
       ckpt_create.num_sections = ckpt_node->num_sections;
       ckpt_create.active_dest = ckpt_node->active_dest;
       ckpt_create.dest_cnt = ckpt_node->dest_cnt;
-      
+      ckpt_create.dest_list = NULL;
+
       if(ckpt_node->dest_cnt)
       {
          ckpt_create.dest_list = m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(ckpt_node->dest_cnt);
