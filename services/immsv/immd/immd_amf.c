@@ -263,7 +263,7 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
         if (new_haState == SA_AMF_HA_ACTIVE)
         {
             /* Change of role to active => We may need to elect new coord */
-            immd_proc_elect_coord(cb);
+            immd_proc_elect_coord(cb, TRUE);
             immd_db_purge_fevs(cb);
         }
     }

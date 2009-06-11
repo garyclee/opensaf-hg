@@ -45,7 +45,7 @@ void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
     TRACE_LEAVE();
 }
 
-int immd_proc_elect_coord(IMMD_CB *cb)
+int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 {
     IMMSV_EVT       send_evt;
     IMMD_MBCSV_MSG  mbcp_msg;
@@ -78,6 +78,18 @@ int immd_proc_elect_coord(IMMD_CB *cb)
                 immd_proc_immd_reset(cb, TRUE);
                 TRACE_LEAVE();
                 return -1; //avoid assert?
+            }
+
+            if(new_active)
+            {
+                /*When new_active is true, this immd has just been 
+                 appointed active. In this case re-elect the local coord
+                 to bypass the problem of the old IMMD having elected the
+                 same coord, but only managed to send the mbcp message and
+                 not the new-coord message to the IMMND. */
+
+                immnd_info_node->isCoord = FALSE;
+                immnd_info_node = NULL;
             }
             break; //out of while
         }
@@ -146,7 +158,7 @@ int immd_proc_elect_coord(IMMD_CB *cb)
             return(-1);
         }
 
-        TRACE_5("New coord elected, resides at %x", 
+        LOG_NO("New coord (re?)elected, resides at %x", 
             immnd_info_node->immnd_key);
         cb->immnd_coord = immnd_info_node->immnd_key;
         if (!cb->is_rem_immnd_up)
@@ -236,7 +248,7 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info,
             immnd_info->isCoord = 0;
             immnd_info->isOnController = 0;
             cb->immnd_coord = 0;
-            res = immd_proc_elect_coord(cb);
+            res = immd_proc_elect_coord(cb, FALSE);
         }
     } else {
           /* Check if it was the IMMND on the active controller that went down.*/
