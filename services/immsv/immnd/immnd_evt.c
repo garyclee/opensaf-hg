@@ -4726,6 +4726,9 @@ static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb,
     } else { /*This node was introduced to the IMM cluster*/
         cb->mIntroduced = TRUE;
         cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
+        if(evt->info.ctrl.isCoord && cb->mIsCoord) {
+            LOG_NO("This IMMND re-elected coord redundantly, failover ?");
+        }
         cb->mIsCoord = evt->info.ctrl.isCoord;
         assert(!cb->mIsCoord || cb->mCanBeCoord);
         cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
