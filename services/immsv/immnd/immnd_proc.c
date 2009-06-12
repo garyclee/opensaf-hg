@@ -738,7 +738,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
         return SA_TRUE;
     }
 
-    if(step == 50) { //Preemtively abort non critical Ccbs. 
+    if(!(step % 50)) { //Preemtively abort non critical Ccbs. 
         IMMSV_EVT send_evt;      //One try should be enough.
         SaUint32T* ccbIdArr = NULL;
         SaUint32T ccbIdArrSize=0;
@@ -1126,8 +1126,11 @@ uns32 immnd_proc_server(uns32 *timeout)
         case IMM_SERVER_SYNC_SERVER:
             if(!immnd_ccbsTerminated(cb, cb->mTimer)) {
                 /*Phase 1*/
-                LOG_IN("Sync Phase-1, waiting for existing "
-                    "Ccbs to terminate, seconds waited: %u", cb->mTimer);
+                if(!(cb->mTimer % 10)) {
+                    LOG_IN("Sync Phase-1, waiting for existing "
+                        "Ccbs to terminate, seconds waited: %u", 
+                        cb->mTimer/10);
+                }
                 if(cb->mTimer > 200) {
                     LOG_IN("Still waiting for existing Ccbs to terminate "
                         "after %u seconds. Aborting this sync attempt", 

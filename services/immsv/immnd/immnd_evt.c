@@ -4549,6 +4549,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt,
     if(cb->mState == IMM_SERVER_SYNC_PENDING) {
         /*This node wants to be synced.*/
         assert(!cb->mAccepted);
+        immModel_recognizedIsolated(cb); /*Reply to req sync not arrived ?*/
         cb->mSync = TRUE;
         cb->mMyEpoch = cb->mRulingEpoch - 1; 
         TRACE_2("Adjust fevs count:%llu %llu %llu", cb->highestReceived, 

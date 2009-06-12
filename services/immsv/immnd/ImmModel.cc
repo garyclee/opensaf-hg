@@ -1145,7 +1145,7 @@ ImmModel::recognizedIsolated()
             break;
             
         case IMM_NODE_ISOLATED: 
-            LOG_WA("Redundant sync request, when IMM_NODE_ISOLATED");
+            LOG_IN("Redundant sync request, when IMM_NODE_ISOLATED");
             break;
         case IMM_NODE_W_AVAILABLE: 
             LOG_WA("Redundant sync request, when IMM_NODE_W_AVAILABLE");
@@ -1183,6 +1183,7 @@ ImmModel::prepareForSync(bool isJoining)
             LOG_IN("Node is not ready to participate in sync, "
                 "will wait and be synced later.");    
             break;
+
         case IMM_NODE_LOADING:
         case IMM_NODE_W_AVAILABLE:
         case IMM_NODE_R_AVAILABLE:
