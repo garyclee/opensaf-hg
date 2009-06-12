@@ -5036,7 +5036,18 @@ SaAisErrorT saImmOmSearchFinalize (SaImmSearchHandleT searchHandle)
         error = out_evt->info.imma.info.errRsp.error;
         free(out_evt);
 
-        /* Should lock here. */
+        /* Take the CB lock */
+        if (!locked)
+        {
+            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+            {
+                error = SA_AIS_ERR_LIBRARY;
+                TRACE_1("Lock error");
+                return error;
+            }
+            locked = TRUE;
+        }
+
         proc_rc = imma_search_node_delete(cb, search_node);
         assert(proc_rc == NCSCC_RC_SUCCESS);
     }
