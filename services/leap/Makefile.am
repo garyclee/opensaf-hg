@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
@@ -69,9 +71,8 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libleap.la
 
 libleap_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@  \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/leap/inc
 
 libleap_la_SOURCES = \
 	src/ncsdlib.c \

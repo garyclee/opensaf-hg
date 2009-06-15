@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-include $(top_srcdir)/include.mk
+include $(top_srcdir)/Makefile.common
 
 #BUILT_SOURCES = build-javadoc
 

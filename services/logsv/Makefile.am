@@ -15,6 +15,8 @@
 #            Ericsson AB
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = lgs

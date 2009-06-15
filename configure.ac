@@ -261,60 +261,6 @@ AC_SUBST([localstatedir])
 
 
 #############################################
-# Get input for debug/nondebug build
-#############################################
-#FIXME: At present enable debug is hard coded.
-DEBUG_FLAG="-DNCS_DEBUG=1"
-DEBUG_VAL="1"
-
-#AC_ARG_ENABLE(debug, [--enable-debug Enable Debug level for compilation],
-#        [DEBUG_FLAG="-DNCS_DEBUG=1" DEBUG_VAL="1"],
-#        [DEBUG_FLAG="-DNDEBUG" DEBUG_VAL="0"])
-
-
-#############################################
-# Define a common string for core CPP defines
-#############################################
-AC_SUBST([NCS_CORE_CPP_DEFINES],
-        "-DNCS_NID=1 \
-        -DNCS_MTREE_PAT_STYLE_SUPPORTED=1 \
-        -DNCS_MMGR_DEBUG=$DEBUG_VAL \
-        -DENABLE_LEAP_DBG=$DEBUG_VAL \
-        -DNCSMDS_DEBUG=$DEBUG_VAL \
-        -DNCS_IPV6=0 \
-        -DNCS_IFSV_IPXS=1 \
-        -DNCS_IFSV_USE_NETLINK=1 \
-        -DNCS_TMR_DBG_ENABLE=$DEBUG_VAL \
-        -DNCS_VIP=1 \
-        -DVIP_HALS_SUPPORT=1 \
-        -DNCS_IFSV_BOND_INTF=1 \
-        -DFUND_DEBUG_TEST=0 \
-        -DNCS_MONC_CPSV_USE=0 \
-        -DNCS_SAF=1 \
-        -DNCS_RMS=0 \
-        -DNCS_MAB=1 \
-        -DNCS_MDS=1 \
-        -DNCSMDS_LOG=1 \
-        -DDTS_SIM_TEST_ENV=1 \
-        -D__JSE_LINUX__ \
-        -D__JSE_UNIX__ \
-        -DHJ_LINUX=1 \
-        -DUSE_READLINE \
-        -DDTA_FLOW=1 \
-        $DEBUG_FLAG")
-
-#
-# FIXME: Remove -Werror until we fix all the warnings
-#
-#CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
-#CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
-AM_CFLAGS="-fPIC -Wall"
-AM_CXXFLAGS="-fPIC -Wall"
-AC_SUBST([AM_CFLAGS])
-AC_SUBST([AM_CXXFLAGS])
-
-
-#############################################
 # Checks for programs.
 #############################################
 AC_PROG_AWK

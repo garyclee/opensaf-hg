@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 if ENABLE_HPI
@@ -54,16 +56,15 @@ pkglib_PROGRAMS = ncs_hisv
 endif
 
 ncs_hisv_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_HISV=1 -DNCS_HISV_LOG=1 \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_hisv_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = mqd logstr
@@ -68,15 +70,14 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_mqd ncs_mqnd
 
 ncs_mqd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MQD=1 \
-	-I $(top_srcdir)/services/mqsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mqsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_mqd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -92,15 +93,14 @@ ncs_mqd_LDADD = \
 
 
 ncs_mqnd_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MQND=1 \
-	-I $(top_srcdir)/services/mqsv/inc/ \
-	-I $(top_srcdir)/services/leap/inc/ \
-	-I $(top_srcdir)/services/mds/inc/ \
-	-I $(top_srcdir)/services/vds/inc/ \
-	-I $(top_srcdir)/services/common/inc/ \
-	-I $(top_srcdir)/services/mab/inc/ \
-	-I $(top_srcdir)/include/
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mqsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_mqnd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

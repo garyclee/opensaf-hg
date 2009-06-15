@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 lib_LTLIBRARIES = libglsv_common.la
@@ -24,16 +26,15 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libglsv_common_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_GLSV_LOG=1 \
-	-I $(top_srcdir)/services/glsv/inc \
-	-I $(top_builddir)/services/glsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/glsv/inc \
+	-I$(top_srcdir)/services/glsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/cpsv/inc
 
 libglsv_common_la_SOURCES = \
 	glsv_edu.c

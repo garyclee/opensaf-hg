@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libavsv_subagt.la
@@ -29,12 +31,11 @@ SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/avsv/snmp_integ/saf_cluster_mib_agt_stub.h
 
 libavsv_subagt_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DNCS_EDA=1 -DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc
 
 nodist_libavsv_subagt_la_SOURCES = $(SUBAGT_GENERATED_FILES)
 

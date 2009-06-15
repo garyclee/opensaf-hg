@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libpssv_subagt.la
@@ -25,12 +27,11 @@ SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/mab/psr/snmp_integ/psr_subagt_init.h
 
 libpssv_subagt_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MAC=1 -DMAB_LOG=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc
 
 nodist_libpssv_subagt_la_SOURCES = $(SUBAGT_GENERATED_FILES)
 

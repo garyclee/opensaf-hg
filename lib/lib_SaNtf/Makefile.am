@@ -14,6 +14,8 @@
 # Author(s): Ericsson AB
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION=0:0:0
@@ -29,7 +31,7 @@ libSaNtf_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
 libSaNtf_la_LDFLAGS = -Wl,-version-script=$(top_srcdir)/lib/lib_SaNtf/libSaNtf.version \
-                      -version-info $(LIB_VERSION)
+	-version-info $(LIB_VERSION)
 
 libSaNtf_la_LIBADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

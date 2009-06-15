@@ -19,7 +19,7 @@ MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.h.in config.sub \
                        Makefile.in
 
 
-include $(top_srcdir)/include.mk
+include $(top_srcdir)/Makefile.common
 include $(top_srcdir)/samples/samples.mk
 include $(top_srcdir)/mibs/mibs.mk
 

@@ -14,9 +14,11 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
-noinst_HEADERS= \
+noinst_HEADERS = \
 	inc/mds_adm.h \
 	inc/mds_core.h \
 	inc/mds_dl_api.h \
@@ -29,17 +31,16 @@ noinst_HEADERS= \
 noinst_LTLIBRARIES = libmds.la
 
 libmds_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	@MDS_WORD_ARCH_FLAGS@ \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 libmds_la_LDFLAGS = -static
 
-libmds_la_SOURCES =	\
+libmds_la_SOURCES = \
 	src/mds_dt_tipc.c \
 	src/mds_c_db.c \
 	src/mds_main.c \

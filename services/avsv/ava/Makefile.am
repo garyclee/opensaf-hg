@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libava.la
@@ -24,16 +26,15 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libava_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/inc/avsv_snmp_inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libava_la_LDFLAGS = -static
 

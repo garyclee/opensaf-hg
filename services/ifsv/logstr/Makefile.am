@@ -19,13 +19,14 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_LTLIBRARIES = libifsv_logstr.la
 
 libifsv_logstr_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@  \
-	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 -DDTS_DEBUG=1 -DMAB_LOG=1 -DPSR_LOG=1 \
-	-I $(top_srcdir)/services/ifsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 -DDTS_DEBUG=1 -DMAB_LOG=1 \
+	-DPSR_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ifsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/include
 
 libifsv_logstr_la_SOURCES = \
 	ifsv_logstr.c

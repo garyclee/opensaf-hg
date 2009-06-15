@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = logstr
@@ -25,14 +27,12 @@ MIBLIB_GENERATED_FILES = \
 	$(top_builddir)/services/mab/psr/pss_miblib_gen/ncspssvscalars_mib.c
 
 libpsr_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PSR=1 -DNCS_MAB=1 -DMAB_LOG=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/bam/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/bam/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libpsr_la_LDFLAGS = -static -Wl,--export-dynamic
 

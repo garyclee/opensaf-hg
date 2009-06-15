@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libavm_pssv.la
@@ -31,18 +33,17 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libavm_pssv_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 \
-	-I $(top_srcdir)/services/fm/fma/inc \
-	-I $(top_srcdir)/services/avsv/avm/inc \
-	-I $(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/platform \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
+	-I$(top_srcdir)/services/fm/fma/inc \
+	-I$(top_srcdir)/services/avsv/avm/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/platform
 
 libavm_pssv_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

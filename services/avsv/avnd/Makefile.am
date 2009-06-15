@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libavnd_ctrl.la libavnd_pld.la
@@ -62,15 +64,14 @@ COMMON_SRC = \
 	avnd_proxydb.c 
 
 COMMON_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_AVND=1 -DNCS_AVSV_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/inc/avsv_snmp_inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libavnd_ctrl_la_CPPFLAGS = \
 	$(COMMON_CPPFLAGS) \
@@ -90,7 +91,7 @@ nodist_libavnd_ctrl_la_SOURCES = $(MIBLIB_GENERATED_FILES)
 
 # For payload 
 
-libavnd_pld_la_CPPFLAGS = $(COMMON_CPPFLAGS) 
+libavnd_pld_la_CPPFLAGS = $(COMMON_CPPFLAGS)
 
 libavnd_pld_la_LDFLAGS = -static
 

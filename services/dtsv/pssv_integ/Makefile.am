@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libdts_pssv.la
@@ -27,14 +29,14 @@ PSSV_GENERATED_FILES = \
 	$(top_builddir)/services/dtsv/pssv_integ/ncsdtsvservicelogpolicyentry_pssv_mib.c
 
 libdts_pssv_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 -DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 -DNCS_MBCSV=1 \
+	-DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 nodist_libdts_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
 

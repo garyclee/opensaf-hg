@@ -13,7 +13,8 @@
 #
 # Author(s): Ericsson AB
 #
-#
+
+include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -27,40 +28,37 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libimmaOm.la libimmaOi.la
 
 libimmaOm_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DIMMA_OM \
-	-I ../inc/ \
-	-I $(top_srcdir)/services/leap/inc/ \
-	-I $(top_srcdir)/services/mds/inc/ \
-	-I $(top_srcdir)/services/mab/inc/ \
-	-I $(top_srcdir)/services/common/inc/ \
-	-I $(top_srcdir)/include/ 
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/immsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libimmaOm_la_LDFLAGS = -static
 
 libimmaOm_la_SOURCES = \
-	./imma_om_api.c \
-	./imma_db.c \
-	./imma_init.c \
-	./imma_mds.c \
-	./imma_proc.c
+	imma_om_api.c \
+	imma_db.c \
+	imma_init.c \
+	imma_mds.c \
+	imma_proc.c
 
 libimmaOi_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DIMMA_OI \
-	-I ../inc/ \
-	-I $(top_srcdir)/services/leap/inc/ \
-	-I $(top_srcdir)/services/mds/inc/ \
-	-I $(top_srcdir)/services/mab/inc/ \
-	-I $(top_srcdir)/services/common/inc/ \
-	-I $(top_srcdir)/include/ 
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/immsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libimmaOi_la_LDFLAGS = -static
 
 libimmaOi_la_SOURCES = \
-	./imma_oi_api.c \
-	./imma_db.c \
-	./imma_init.c \
-	./imma_mds.c \
-	./imma_proc.c
-
+	imma_oi_api.c \
+	imma_db.c \
+	imma_init.c \
+	imma_mds.c \
+	imma_proc.c

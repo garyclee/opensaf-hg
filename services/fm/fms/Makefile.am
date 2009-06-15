@@ -14,6 +14,8 @@
 # Author(s): Emerson Network Power 
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_PROGRAMS = opensaf_fmsd
@@ -28,12 +30,11 @@ noinst_HEADERS = \
 	$(top_srcdir)/services/fm/common/inc/fma_fm_intf.h
 
 opensaf_fmsd_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
-	-I $(top_srcdir)/services/fm/fms/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/fm/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/fm/fms/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/fm/common/inc
 
 opensaf_fmsd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

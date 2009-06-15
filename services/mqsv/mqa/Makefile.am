@@ -14,23 +14,24 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libmqa.la
 
-libmqa_la_CPPFLAGS =	\
-	@NCS_CORE_CPP_DEFINES@ \
+libmqa_la_CPPFLAGS = \
 	-DNCS_MQA=1 -DNCS_DTA=1 -DNCS_MQSV_LOG=1 \
-	-I $(top_srcdir)/services/mqsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mqsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libmqa_la_LDFLAGS = -static
 
-libmqa_la_SOURCES = 	\
+libmqa_la_SOURCES = \
 	mqa_api.c \
 	mqa_log.c \
 	mqa_mds.c \

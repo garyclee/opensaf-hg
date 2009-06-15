@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = src logstr
@@ -33,15 +35,14 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_pdrbd
 
 ncs_pdrbd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PDRBD=1 -DPDRBD_LOG=1 \
-	-I $(top_srcdir)/tools/pdrbd/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/tools/pdrbd/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_pdrbd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

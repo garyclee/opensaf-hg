@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = cpd logstr
@@ -58,15 +60,14 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_cpd ncs_cpnd
 
 ncs_cpd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_CPD=1 \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/cpsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_cpd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -79,17 +80,15 @@ ncs_cpd_LDADD = \
 	$(top_builddir)/services/cpsv/cpd/libcpd.la \
 	$(top_builddir)/services/cpsv/common/libcpsv_common.la
 
-
 ncs_cpnd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_CPND=1 \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/cpsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_cpnd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = mas psr psrcli logstr
@@ -54,19 +56,20 @@ noinst_HEADERS = \
 	inc/psr_version.h \
 	inc/pss_mbcsv.h
 
-bin_PROGRAMS = ncs_cli_maa 
+bin_PROGRAMS = ncs_cli_maa
+
 pkglib_PROGRAMS = ncs_mas ncs_psr
 
 ncs_mas_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAS=1 -DNCS_MAB=1 -DMAB_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DNCS_MAS_RED=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/include
+	-DNCS_MAS=1 -DNCS_MAB=1 -DMAB_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
+	-DNCS_MAS_RED=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc
 
 ncs_mas_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -79,17 +82,17 @@ ncs_mas_LDADD = \
 	$(top_builddir)/services/mab/mas/libmas.la
 
 ncs_psr_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAC=1 -DNCS_PSR=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/mbcsv/inc \
-	-I $(top_srcdir)/services/bam/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	-DNCS_MAC=1 -DNCS_PSR=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DPSR_LOG=1 \
+	-DNCS_PSS_RED=1 -DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/mbcsv/inc \
+	-I$(top_srcdir)/services/bam/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc
 
 ncs_psr_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -104,15 +107,15 @@ ncs_psr_LDADD = \
 	$(top_builddir)/services/mab/psr/libpsr.la
 
 ncs_cli_maa_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_MAC=1 -DNCS_CLI_MAA -DNCS_CLI=1 -DNCSCLI_DEBUG=1 -DNCSCLI_FILE=1 -DNCSCLI_LOG=1 -DMAB_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	-DNCS_MAC=1 -DNCS_CLI_MAA -DNCS_CLI=1 -DNCSCLI_DEBUG=1 -DNCSCLI_FILE=1 \
+	-DNCSCLI_LOG=1 -DMAB_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc
 
 ncs_cli_maa_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

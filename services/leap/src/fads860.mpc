@@ -1,9 +1,0 @@
-reset :h                 # hard reset
-rms memc br0 00000001    # BR0 puts FLASH at 0
-rms memc or0 00000d34    # OR0 puts FLAST everywhere
-rms der 2002000f         # BDM handles breakpoint,
-                         # trace and checkstop
-go 100                   # start PPCboot like hard reset
-#loadf ppcboot-FADS860T.srec 0x02800000
-#loadf ppcboot-FADS860T.srec 0x0
-#quit

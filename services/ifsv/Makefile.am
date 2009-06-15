@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = clicmds ifd logstr
@@ -77,15 +79,15 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_ifd ncs_ifnd
 
 ncs_ifd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_IFD=1 -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DNCS_IFSV_LOG=1 \
-	-I $(top_srcdir)/services/ifsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_IFD=1 -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 \
+	-DNCS_IFSV_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ifsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_ifd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -98,15 +100,15 @@ ncs_ifd_LDADD = \
 	$(top_builddir)/services/ifsv/common/libifsv_common.la
 
 ncs_ifnd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_IFND=1 -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DNCS_IFSV_LOG=1 \
-	-I $(top_srcdir)/services/ifsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_IFND=1 -DNCS_VIP=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 \
+	-DNCS_IFSV_LOG=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ifsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_ifnd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

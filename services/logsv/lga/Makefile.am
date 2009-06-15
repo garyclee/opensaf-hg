@@ -15,6 +15,8 @@
 #            Ericsson AB
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
@@ -23,14 +25,13 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = liblga.la
 
 liblga_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-I $(top_srcdir)/services/logsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/logsv/lga/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/logsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/logsv/lga/inc
 
 liblga_la_SOURCES = \
 	lga_api.c \

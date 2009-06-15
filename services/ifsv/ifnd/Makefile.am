@@ -14,20 +14,22 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libifnd.la
 
 libifnd_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_IFND=1 -DNCS_IFSV_LOG=1 -DNCS_VIP=1 -DNCS_MAB=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 -DNCS_IFSV_IPXS=1 \
-	-I $(top_srcdir)/services/ifsv/inc \
-	-I $(top_builddir)/services/ifsv/inc/ifsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	-DNCS_IFND=1 -DNCS_IFSV_LOG=1 -DNCS_VIP=1 -DNCS_MAB=1 -DVIP_HALS_SUPPORT=1 \
+	-DNCS_IFSV_BOND_INTF=1 -DNCS_IFSV_IPXS=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/ifsv/inc/ifsv_snmp_inc \
+	-I$(top_srcdir)/services/ifsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libifnd_la_LDFLAGS = -static
 
