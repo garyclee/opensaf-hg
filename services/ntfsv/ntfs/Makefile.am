@@ -13,7 +13,8 @@
 #
 # Author(s): Ericsson AB
 #
-#
+
+include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -34,16 +35,15 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = opensaf_ntfd
 
 opensaf_ntfd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MAIN_EXTERNAL \
-	-I $(top_srcdir)/services/ntfsv/inc/ \
-	-I $(top_srcdir)/services/leap/inc/ \
-	-I $(top_srcdir)/services/mds/inc/ \
-	-I $(top_srcdir)/services/mab/inc/ \
-	-I $(top_srcdir)/services/vds/inc/ \
-	-I $(top_srcdir)/services/common/inc/ \
-	-I $(top_srcdir)/include/ \
-	-I $(top_srcdir)/services/ntfsv/ntfs/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ntfsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/ntfsv/ntfs/inc
 
 opensaf_ntfd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c \

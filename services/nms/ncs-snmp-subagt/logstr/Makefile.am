@@ -19,14 +19,14 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_LTLIBRARIES = libsubagt_logstr.la
 
 libsubagt_logstr_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 \
-	-I $(top_srcdir)/services/nms/ncs-snmp-subagt/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/nms/ncs-snmp-subagt/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/include
 								
 libsubagt_logstr_la_SOURCES = \
 	subagt_logstr.c

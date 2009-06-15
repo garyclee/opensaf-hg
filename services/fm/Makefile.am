@@ -14,6 +14,8 @@
 # Author(s): Emerson Network Power
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = fms

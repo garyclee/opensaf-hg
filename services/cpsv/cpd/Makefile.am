@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libcpd.la
@@ -24,15 +26,14 @@ MIBLIB_GENERATED_FILES = \
 	$(top_builddir)/services/cpsv/cpd/miblib_gen/sackptnodereplicalocentry_mib.c
 
 libcpd_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_CPD=1 -DNCS_CPSV_LOG=1 \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_builddir)/services/cpsv/inc/snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/cpsv/inc/snmp_inc \
+	-I$(top_srcdir)/services/cpsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libcpd_la_LDFLAGS = -static
 

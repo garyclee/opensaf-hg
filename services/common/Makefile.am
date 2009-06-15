@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 lib_LTLIBRARIES = libsaf_common.la 
@@ -36,20 +38,19 @@ noinst_HEADERS = \
 	inc/nid_start_util.h
 
 libncs_common_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_DTA=1 \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_srcdir)/services/bam/inc \
-	-I $(top_srcdir)/services/srmsv/inc \
-	-I $(top_srcdir)/services/avsv/avm/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/bam/inc \
+	-I$(top_srcdir)/services/srmsv/inc \
+	-I$(top_srcdir)/services/avsv/avm/inc
 
 libncs_common_la_LDFLAGS = -static
 
@@ -60,12 +61,11 @@ libncs_common_la_SOURCES = \
 	src/nid_start_util.c
 
 libsaf_common_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libsaf_common_la_SOURCES = \
 	src/avm_avd_mem.c \

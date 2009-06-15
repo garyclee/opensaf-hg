@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libdtsv_subagt.la
@@ -25,14 +27,14 @@ SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/dtsv/snmp_integ/ncs_dtsv_mib_agt_stub.h
 
 libdtsv_subagt_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DNCS_EDA=1 \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
+	-DNCS_EDA=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 nodist_libdtsv_subagt_la_SOURCES = $(SUBAGT_GENERATED_FILES)
 

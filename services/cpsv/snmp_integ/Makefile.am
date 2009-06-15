@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libcpsv_subagt.la 
@@ -24,13 +26,12 @@ SUBAGT_GENERATED_FILES = \
 	$(top_builddir)/services/cpsv/snmp_integ/saf_ckpt_mib_agt_stub.c \
 	$(top_builddir)/services/cpsv/snmp_integ/saf_ckpt_mib_agt_stub.h
 
-libcpsv_subagt_la_CPPFLAGS = 	\
-	@NCS_CORE_CPP_DEFINES@ \
+libcpsv_subagt_la_CPPFLAGS = \
 	-DBBS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=0 \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-  	-I $(top_srcdir)/services/mds/inc \
-  	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/cpsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+  	-I$(top_srcdir)/services/mds/inc
 
 nodist_libcpsv_subagt_la_SOURCES = $(SUBAGT_GENERATED_FILES)
 

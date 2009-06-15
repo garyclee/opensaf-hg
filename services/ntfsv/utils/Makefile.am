@@ -14,7 +14,8 @@
 # Author(s): Wind River Systems
 #            Ericsson AB
 #
-#
+
+include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -24,11 +25,10 @@ noinst_HEADERS = \
 	inc/ntfclient.h
 
 ntfsend_CPPFLAGS = \
-	-I $(top_srcdir)/services/ntfsv/utils/inc \
-	-I $(top_srcdir)/services/ntfsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
-
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ntfsv/utils/inc \
+	-I$(top_srcdir)/services/ntfsv/inc \
+	-I$(top_srcdir)/services/common/inc
 
 ntfsend_SOURCES = \
 	ntfsend.c
@@ -36,11 +36,11 @@ ntfsend_SOURCES = \
 ntfsend_LDADD = $(top_builddir)/lib/lib_SaNtf/libSaNtf.la
 
 ntfsubscribe_CPPFLAGS = \
-	-I $(top_srcdir)/services/ntfsv/utils/inc \
-	-I $(top_srcdir)/services/ntfsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
-
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ntfsv/utils/inc \
+	-I$(top_srcdir)/services/ntfsv/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/include
 
 ntfsubscribe_SOURCES = \
 	ntfsubscribe.c

@@ -15,15 +15,17 @@
 # Author(s): Ericsson AB
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = ntftest
 
 ntftest_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/tests/immsv/common \
-	-I $(top_srcdir)/tests/unit_test_fw/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/tests/immsv/common \
+	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 ntftest_SOURCES = \
 	$(top_srcdir)/services/common/src/logtrace.c \

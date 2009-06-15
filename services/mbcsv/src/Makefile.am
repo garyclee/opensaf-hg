@@ -14,21 +14,22 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 lib_LTLIBRARIES = libmbca.la
 
 libmbca_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
-	-I $(top_srcdir)/services/mbcsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/mbcsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
-libmbca_la_SOURCES =	\
+libmbca_la_SOURCES = \
 	mbcsv_act.c \
 	mbcsv_api.c \
 	mbcsv_dbg.c \

@@ -14,19 +14,20 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libeda.la
 
 libeda_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_EDA=1 -DNCS_DTA=1 \
-	-I $(top_srcdir)/services/edsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/edsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libeda_la_LDFLAGS = -static
 

@@ -13,7 +13,8 @@
 #
 # Author(s): Ericsson AB
 #
-#
+
+include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -24,30 +25,30 @@ bin_PROGRAMS = immdump immadm immfind immlist immcfg
 noinst_HEADERS = \
 	saf_error.h
 
-immload_CXXFLAGS = @XML2_CFLAGS@
+immload_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 immload_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/immsv/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/immsv/inc
 
 immload_SOURCES = \
-	./imm_loader.cc
+	imm_loader.cc
 
 immload_LDFLAGS = @XML2_LIBS@
 
 immload_LDADD = \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOm.la
 
-immdump_CXXFLAGS = @XML2_CFLAGS@
+immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 immdump_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/immsv/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/immsv/inc
 
 immdump_SOURCES = \
-	./imm_dumper.cc
+	imm_dumper.cc
 
 immdump_LDFLAGS = @XML2_LIBS@
 
@@ -55,8 +56,8 @@ immdump_LDADD = \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOm.la
 
 immadm_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/immsv/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/immsv/inc
 
 immadm_SOURCES = \
 	imm_admin.c \
@@ -67,25 +68,27 @@ immadm_LDADD = \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOm.la \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOi.la
 
-immfind_CPPFLAGS = -I $(top_srcdir)/include
+immfind_CPPFLAGS = \
+	$(AM_CPPFLAGS)
 
 immfind_SOURCES = \
-	./imm_find.c \
-	./saf_error.c
+	imm_find.c \
+	saf_error.c
 
 immfind_LDADD = $(top_srcdir)/lib/lib_SaImm/libSaImmOm.la
 
-immlist_CPPFLAGS = -I $(top_srcdir)/include
+immlist_CPPFLAGS = \
+	$(AM_CPPFLAGS)
 
 immlist_SOURCES = \
-	./imm_list.c \
-	./saf_error.c
+	imm_list.c \
+	saf_error.c
 
 immlist_LDADD = $(top_srcdir)/lib/lib_SaImm/libSaImmOm.la
 
 immcfg_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/immsv/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/immsv/inc
 
 immcfg_SOURCES = \
 	imm_cfg.c \
@@ -95,5 +98,3 @@ immcfg_SOURCES = \
 immcfg_LDADD = \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOm.la \
 	$(top_srcdir)/lib/lib_SaImm/libSaImmOi.la
-
-

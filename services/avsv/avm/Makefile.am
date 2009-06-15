@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = logstr pssv_integ snmp_integ
@@ -50,19 +52,18 @@ MIBLIB_GENERATED_FILES = \
 	$(top_builddir)/services/avsv/avm/src/avm_miblib_gen/ncsavmscalars_mib.c
 
 libavm_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_AVM=1 -DNCS_AVM_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/avsv/avm/inc \
-	-I $(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/fm/fma/inc \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/inc/avsv_snmp_inc \
+	-I$(top_builddir)/services/avsv/avm/inc/avm_snmp_inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/avsv/avm/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/fm/fma/inc \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libavm_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

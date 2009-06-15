@@ -14,6 +14,8 @@
 # Author(s): Emerson Network Power
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = logstr
@@ -30,14 +32,13 @@ noinst_HEADERS = \
 	$(top_srcdir)/services/fm/common/inc/fma_fm_intf.h
 
 libfma_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-I $(top_srcdir)/services/fm/fma/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/fm/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/hisv/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/fm/fma/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/fm/common/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/hisv/inc
 
 libfma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

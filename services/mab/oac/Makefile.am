@@ -14,20 +14,20 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = liboaa.la
 
 liboaa_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DMAB_LOG=1 \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/bam/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/bam/inc
 
 liboaa_la_LDFLAGS = -static
 

@@ -14,20 +14,21 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libhisv_logstr.la
 
 libhisv_logstr_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_HISV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libhisv_logstr_la_SOURCES = \
 	hcd_logstr.c

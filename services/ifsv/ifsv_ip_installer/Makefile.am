@@ -14,13 +14,15 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_PROGRAMS = ncs_ifsv_ip_installer
 
 ncs_ifsv_ip_installer_CPPFLAGS = \
 	-DNCS_SAF=1 -DNCS_IFSV_BOND_INTF=1 \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS)
 
 ncs_ifsv_ip_installer_SOURCES = \
 	ifsv_app.h \

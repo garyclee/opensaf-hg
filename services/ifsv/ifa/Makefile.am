@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 lib_LTLIBRARIES = libifa.la
@@ -24,15 +26,15 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libifa_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_IFA=1 -DNCS_IFSV_LOG=1 -DNCS_VIP=1 -DNCS_IFSV_IPXS=1 -DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 \
-	-I $(top_srcdir)/services/ifsv/inc \
-	-I $(top_builddir)/services/ifsv/inc/ifsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	-DNCS_IFA=1 -DNCS_IFSV_LOG=1 -DNCS_VIP=1 -DNCS_IFSV_IPXS=1 \
+	-DVIP_HALS_SUPPORT=1 -DNCS_IFSV_BOND_INTF=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/ifsv/inc/ifsv_snmp_inc \
+	-I$(top_srcdir)/services/ifsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 libifa_la_SOURCES = \
 	ifa_proc.c \

@@ -14,13 +14,15 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION = 1:0:1
 
 lib_LTLIBRARIES = libSaEvt.la
 
-libSaEvt_la_SOURCES = 
+libSaEvt_la_SOURCES =
 
 libSaEvt_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

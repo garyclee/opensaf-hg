@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION = 0:1:0
@@ -26,7 +28,7 @@ libncs_core_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@
 
 libncs_core_la_LDFLAGS = -lpthread -lc -ldl -lm -lrt \
-                         -version-info $(LIB_VERSION)
+	-version-info $(LIB_VERSION)
 
 libncs_core_la_LIBADD = \
 	$(top_builddir)/services/leap/libleap.la \

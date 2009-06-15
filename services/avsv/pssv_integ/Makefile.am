@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libavsv_pssv.la
@@ -46,15 +48,14 @@ PSSV_GENERATED_FILES = \
 	$(top_builddir)/services/avsv/pssv_integ/safclmscalarobject_pssv_mib.c
 
 libavsv_pssv_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PSR=1 -DPSR_LOG=1 -DNCS_PSS_RED=1 -DNCS_PSS_DEBUG=0 -DNCS_MBCSV=1 -DMBCSV_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/inc/avsv_snmp_inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 nodist_libavsv_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
 

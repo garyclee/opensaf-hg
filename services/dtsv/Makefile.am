@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = clicmds dts logstr pssv_integ
@@ -52,15 +54,14 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_dts
 
 ncs_dts_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_DTS=1 -DDTA_FLOW=1 -DNCS_DTA=1 \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/mab/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 ncs_dts_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

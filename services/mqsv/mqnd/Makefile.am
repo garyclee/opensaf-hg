@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libmqnd.la
@@ -28,19 +30,18 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libmqnd_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_MQND=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
-	-I $(top_srcdir)/services/mqsv/inc \
-	-I $(top_builddir)/services/mqsv/inc/snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/mqsv/inc/snmp_inc \
+	-I$(top_srcdir)/services/mqsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
-libmqnd_la_LDFLAGS =	-static
+libmqnd_la_LDFLAGS = -static
 
-libmqnd_la_SOURCES =	\
+libmqnd_la_SOURCES = \
 	mqnd_qentry.c \
 	mqnd_proc.c \
 	mqnd_util.c \

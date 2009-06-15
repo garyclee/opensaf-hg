@@ -42,7 +42,7 @@ noinst_HEADERS = \
 	tracer.h
 
 libjava_ais_api_native_la_CPPFLAGS = \
-	-I $(top_srcdir)/include \
+	-I$(top_srcdir)/include \
 	-I $(JAVA_HOME)/include \
 	-I $(JAVA_HOME)/include/linux
 

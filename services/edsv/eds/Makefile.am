@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libeds.la
@@ -28,16 +30,14 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libeds_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
-	-I $(top_srcdir)/services/edsv/inc \
-	-I $(top_builddir)/services/edsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/edsv/inc \
+	-I$(top_srcdir)/services/edsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libeds_la_LDFLAGS = -static 
 

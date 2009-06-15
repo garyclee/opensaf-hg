@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = gld logstr
@@ -63,15 +65,14 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = ncs_gld ncs_glnd
 
 ncs_gld_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_GLD=1 \
-	-I $(top_srcdir)/services/glsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/glsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc
 
 ncs_gld_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c
@@ -85,15 +86,14 @@ ncs_gld_LDADD =  \
 	$(top_builddir)/services/glsv/common/libglsv_common.la
 
 ncs_glnd_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_GLND=1 \
-	-I $(top_srcdir)/services/glsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/glsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc
 
 ncs_glnd_SOURCES = \
 	$(top_srcdir)/services/common/src/ncs_main_pvt.c

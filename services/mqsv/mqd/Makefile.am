@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libmqd.la
@@ -23,16 +25,15 @@ MIBLIB_GENERATED_FILES = \
 	$(top_builddir)/services/mqsv/mqd/miblib_gen/samsgqueuegroupmembersentry_mib.c \
 	$(top_builddir)/services/mqsv/mqd/miblib_gen/samsgqueuegroupentry_mib.c
 
-libmqd_la_CPPFLAGS =	\
-	@NCS_CORE_CPP_DEFINES@ \
+libmqd_la_CPPFLAGS = \
 	-DNCS_MQD=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
-	-I $(top_srcdir)/services/mqsv/inc \
-	-I $(top_builddir)/services/mqsv/inc/snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/mqsv/inc/snmp_inc \
+	-I$(top_srcdir)/services/mqsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libmqd_la_LDFLAGS = -static
 

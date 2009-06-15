@@ -15,6 +15,8 @@
 #            Ericsson AB
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = saflogger
@@ -23,8 +25,8 @@ noinst_HEADERS = \
 	inc/saf_error.h
 
 saflogger_CPPFLAGS = \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/logsv/utils/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/logsv/utils/inc
 
 saflogger_SOURCES = \
 	saf_logger.c \

@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libavd.la
@@ -44,15 +46,14 @@ MIBLIB_GENERATED_FILES = \
 	$(top_builddir)/services/avsv/avd/avd_miblib_gen/safclmscalarobject_mib.c
 
 libavd_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_AVD=1 -DNCS_AVSV_LOG=1 \
-	-I $(top_srcdir)/services/avsv/inc \
-	-I $(top_builddir)/services/avsv/inc/avsv_snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/inc/avsv_snmp_inc \
+	-I$(top_srcdir)/services/avsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libavd_la_LDFLAGS = -static
 

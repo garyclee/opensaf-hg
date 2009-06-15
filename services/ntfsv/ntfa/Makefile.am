@@ -14,7 +14,8 @@
 # Author(s): Wind River Systems
 #            Ericsson AB
 #
-#
+
+include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
@@ -24,14 +25,13 @@ noinst_HEADERS = \
 noinst_LTLIBRARIES = libntfa.la
 
 libntfa_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-I $(top_srcdir)/services/ntfsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/ntfsv/ntfa/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/ntfsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/ntfsv/ntfa/inc
 
 libntfa_la_SOURCES = \
 	ntfa_api.c \

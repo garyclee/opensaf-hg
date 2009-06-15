@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_LTLIBRARIES = libcpnd.la
@@ -24,15 +26,14 @@ MAPI_GENERATED_FILES = \
 BUILT_SOURCES = $(MAPI_GENERATED_FILES)
 
 libcpnd_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_CPND=1 -DNCS_CPSV_LOG=1 \
-	-I $(top_srcdir)/services/cpsv/inc \
-	-I $(top_builddir)/services/cpsv/inc/snmp_inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/cpsv/inc/snmp_inc \
+	-I$(top_srcdir)/services/cpsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libcpnd_la_LDFLAGS = -static
 

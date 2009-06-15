@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION = 0:0:0
@@ -27,7 +29,7 @@ libSaAmf_la_CPPFLAGS = \
 	-DNCS_AVA=1 -DNCS_AVSV_LOG=1
 
 libSaAmf_la_LDFLAGS = -lpthread -ldl -lrt \
-                      -version-info $(LIB_VERSION)
+	-version-info $(LIB_VERSION)
 
 libSaAmf_la_LIBADD  = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

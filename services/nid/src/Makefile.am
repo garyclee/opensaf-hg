@@ -14,18 +14,19 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_PROGRAMS = ncs_nid
 
-ncs_nid_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
+ncs_nid_CPPFLAGS = \
 	-DNID_LINUX_PC -DNCS_SAF=1 \
-	-I $(top_srcdir)/services/nid/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/rde/common/inc
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/nid/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/rde/common/inc
 
 ncs_nid_SOURCES = \
 	nodeinit.c

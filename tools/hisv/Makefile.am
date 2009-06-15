@@ -14,23 +14,23 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = hisv_events_demo hisv_power_set_util
 
 hisv_events_demo_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_SAF=1 \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
-hisv_events_demo_CFLAGS = @HPI_CFLAGS@
+hisv_events_demo_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 noinst_HEADERS = \
 	hisv_events_demo_app.h 
@@ -50,18 +50,16 @@ hisv_events_demo_LDADD = \
 
 
 hisv_power_set_util_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_SAF=1 \
-	-I $(top_srcdir)/services/hisv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/vds/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/hisv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/vds/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mab/inc
 
-hisv_power_set_util_CFLAGS = @HPI_CFLAGS@
+hisv_power_set_util_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 hisv_power_set_util_SOURCES = \
 	hisv_power_set_util.c
@@ -74,4 +72,3 @@ hisv_power_set_util_LDADD = \
 	$(top_builddir)/services/edsv/common/libedsv_common.la \
 	$(top_builddir)/services/hisv/hcd/libhcd.la \
 	$(top_builddir)/services/hisv/hpl/libhpl.la
-

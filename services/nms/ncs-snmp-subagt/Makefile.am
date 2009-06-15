@@ -14,6 +14,8 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 CONTROLLER_SUBDIRS = logstr
@@ -36,20 +38,20 @@ noinst_HEADERS = \
 pkglib_LTLIBRARIES = libncs_snmp_subagt.la
 
 libncs_snmp_subagt_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
-	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 -DNCS_EDA=1 \
-	-I $(top_srcdir)/services/nms/ncs-snmp-subagt/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_builddir)/services/avsv/snmp_integ \
-	-I $(top_builddir)/services/ifsv/snmp_integ \
-	-I $(top_builddir)/services/ifsv/ipxs_snmp_integ \
-	-I $(top_builddir)/services/ifsv/entp_snmp_integ \
-	-I $(top_builddir)/services/dtsv/snmp_integ \
-	-I $(top_builddir)/services/avsv/avm/snmp_integ
+	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
+	-DNCS_EDA=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_builddir)/services/avsv/snmp_integ \
+	-I$(top_builddir)/services/ifsv/snmp_integ \
+	-I$(top_builddir)/services/ifsv/ipxs_snmp_integ \
+	-I$(top_builddir)/services/ifsv/entp_snmp_integ \
+	-I$(top_builddir)/services/dtsv/snmp_integ \
+	-I$(top_builddir)/services/avsv/avm/snmp_integ \
+	-I$(top_srcdir)/services/nms/ncs-snmp-subagt/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
 libncs_snmp_subagt_la_CFLAGS = $(AM_CFLAGS) @NETSNMP_CFLAGS@
 

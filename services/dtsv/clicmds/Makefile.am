@@ -14,21 +14,22 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libdts_clicef.la
 
-libdts_clicef_la_CPPFLAGS= \
-	@NCS_CORE_CPP_DEFINES@ \
+libdts_clicef_la_CPPFLAGS = \
 	-DNCS_CLI=1 -DNCSCLI_DEBUG=1 -DNCSCLI_FILE=1 -DNCSCLI_LOG=1 \
-	-I $(top_srcdir)/services/dtsv/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/dtsv/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc \
+	-I$(top_srcdir)/services/common/inc
 
-libdts_clicef_la_SOURCES =	\
+libdts_clicef_la_SOURCES = \
 	dtsvcli.c
 
 libdts_clicef_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

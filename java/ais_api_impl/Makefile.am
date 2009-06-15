@@ -16,7 +16,7 @@
 
 MAINTAINERCLEANFILES = Makefile.in
 
-include $(top_srcdir)/include.mk
+include $(top_srcdir)/Makefile.common
 
 nodist_java_DATA = bin/opensaf_ais_api.jar
 

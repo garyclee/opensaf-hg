@@ -14,19 +14,20 @@
 # Author(s): Wind River Systems
 #
 
+include $(top_srcdir)/Makefile.common
+
 MAINTAINERCLEANFILES = Makefile.in
 
 pkglib_LTLIBRARIES = libpdrbd_logstr.la
 
 libpdrbd_logstr_la_CPPFLAGS = \
-	@NCS_CORE_CPP_DEFINES@ \
 	-DNCS_PDRBD=1 -DPDRBD_LOG=1 \
-	-I $(top_srcdir)/tools/pdrbd/inc \
-	-I $(top_srcdir)/services/leap/inc \
-	-I $(top_srcdir)/services/common/inc \
-	-I $(top_srcdir)/services/mds/inc \
-	-I $(top_srcdir)/services/mab/inc \
-	-I $(top_srcdir)/include
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/tools/pdrbd/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/mds/inc \
+	-I$(top_srcdir)/services/mab/inc
 
 libpdrbd_logstr_la_SOURCES = \
 	pdrbd_logstr.c
