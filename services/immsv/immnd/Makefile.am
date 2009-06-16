@@ -40,7 +40,7 @@ opensaf_immnd_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 opensaf_immnd_SOURCES =	\
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c \
+	$(top_srcdir)/services/common/ncs_main_pvt.c \
 	immnd_amf.c \
 	immnd_db.c \
 	immnd_evt.c \

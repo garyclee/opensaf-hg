@@ -41,11 +41,11 @@ libmds_la_CPPFLAGS = \
 libmds_la_LDFLAGS = -static
 
 libmds_la_SOURCES = \
-	src/mds_dt_tipc.c \
-	src/mds_c_db.c \
-	src/mds_main.c \
-	src/mds_papi.c \
-	src/mds_c_sndrcv.c \
-	src/mds_dt.c \
-	src/mds_c_api.c \
-	src/mds_log.c
+	mds_dt_tipc.c \
+	mds_c_db.c \
+	mds_main.c \
+	mds_papi.c \
+	mds_c_sndrcv.c \
+	mds_dt.c \
+	mds_c_api.c \
+	mds_log.c

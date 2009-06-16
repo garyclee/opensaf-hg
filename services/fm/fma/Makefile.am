@@ -43,11 +43,11 @@ libfma_la_CPPFLAGS = \
 libfma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libfma_la_SOURCES = \
-	$(top_srcdir)/services/fm/common/src/fma_fm_intf.c \
-	src/fma_api.c \
-	src/fma_hdl.c \
-	src/fma_init.c \
-	src/fma_log.c \
-	src/fma_mds.c
+	$(top_srcdir)/services/fm/common/fma_fm_intf.c \
+	fma_api.c \
+	fma_hdl.c \
+	fma_init.c \
+	fma_log.c \
+	fma_mds.c
 
 libfma_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

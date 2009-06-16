@@ -35,7 +35,7 @@ ncs_snmp_subagt_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_snmp_subagt_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_snmp_subagt_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

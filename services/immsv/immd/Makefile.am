@@ -39,7 +39,7 @@ opensaf_immd_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 opensaf_immd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c \
+	$(top_srcdir)/services/common/ncs_main_pvt.c \
 	immd_amf.c \
 	immd_db.c \
 	immd_evt.c \
@@ -53,6 +53,6 @@ opensaf_immd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaClm/libSaClm.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/immsv/common/libimmsv_common.la \
 	$(top_builddir)/services/rde/rda/librda.la

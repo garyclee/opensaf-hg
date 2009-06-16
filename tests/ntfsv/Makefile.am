@@ -28,7 +28,7 @@ ntftest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 ntftest_SOURCES = \
-	$(top_srcdir)/services/common/src/logtrace.c \
+	$(top_srcdir)/services/common/logtrace.c \
 	$(top_srcdir)/tests/ntfsv/src/tet_ntf_main.c \
 	$(top_srcdir)/tests/ntfsv/src/sa_error.c \
 	$(top_srcdir)/tests/ntfsv/src/tet_ntf_common.c \

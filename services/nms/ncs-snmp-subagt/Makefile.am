@@ -56,17 +56,17 @@ libncs_snmp_subagt_la_CPPFLAGS = \
 libncs_snmp_subagt_la_CFLAGS = $(AM_CFLAGS) @NETSNMP_CFLAGS@
 
 libncs_snmp_subagt_la_SOURCES = \
-	src/subagt_oid_db.c \
-	src/subagt_agt.c \
-	src/subagt_amf.c \
-	src/subagt_eda.c \
-	src/subagt_edu.c \
-	src/subagt_mab.c \
-	src/subagt_mac.c \
-	src/subagt_mbx.c \
-	src/subagt_log.c \
-	src/subagt_dlapi.c \
-	src/subagt_cb.c
+	subagt_oid_db.c \
+	subagt_agt.c \
+	subagt_amf.c \
+	subagt_eda.c \
+	subagt_edu.c \
+	subagt_mab.c \
+	subagt_mac.c \
+	subagt_mbx.c \
+	subagt_log.c \
+	subagt_dlapi.c \
+	subagt_cb.c
 
 libncs_snmp_subagt_la_LDFLAGS = \
 	@NETSNMP_LIBS@ \

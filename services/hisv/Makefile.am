@@ -67,7 +67,7 @@ ncs_hisv_CPPFLAGS= \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_hisv_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_hisv_LDADD = \
 	@HPI_LIBS@ \

@@ -46,13 +46,13 @@ opensaf_ntfd_CPPFLAGS = \
 	-I$(top_srcdir)/services/ntfsv/ntfs/inc
 
 opensaf_ntfd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c \
+	$(top_srcdir)/services/common/ncs_main_pvt.c \
+	$(top_srcdir)/services/ntfsv/common/ntfsv_enc_dec.c \
+	$(top_srcdir)/services/ntfsv/common/ntfsv_mem.c \
 	ntfs_amf.c \
 	ntfs_evt.c \
 	ntfs_mbcsv.c \
 	ntfs_main.c \
-	$(top_srcdir)/services/ntfsv/common/ntfsv_enc_dec.c \
-	$(top_srcdir)/services/ntfsv/common/ntfsv_mem.c \
 	ntfs_mds.c \
 	ntfs_com.c \
 	NtfNotification.cc \
@@ -67,4 +67,4 @@ opensaf_ntfd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaLog/libSaLog.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la
+	$(top_builddir)/services/mbcsv/libmbca.la

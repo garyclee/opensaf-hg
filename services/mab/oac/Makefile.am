@@ -34,8 +34,8 @@ liboaa_la_LDFLAGS = -static
 liboaa_la_SOURCES = \
 	$(top_srcdir)/services/mab/common/mab_log.c \
 	$(top_srcdir)/services/mab/common/mab_mds.c \
-	$(top_srcdir)/services/mab/src/mab_def.c \
-	$(top_srcdir)/services/mab/src/mab_tgt.c \
+	$(top_srcdir)/services/mab/mab_def.c \
+	$(top_srcdir)/services/mab/mab_tgt.c \
 	oac_api.c \
 	oac_lib.c \
 	oac_mds.c \

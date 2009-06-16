@@ -31,6 +31,7 @@ libavsv_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 libavsv_common_la_SOURCES = \
+	$(top_srcdir)/services/common/saf_edu.c \
 	avsv_d2nedu.c \
 	avsv_nd2ndedu.c \
 	avsv_d2nmsg.c \
@@ -39,7 +40,6 @@ libavsv_common_la_SOURCES = \
 	avsv_n2avaedu.c \
 	avsv_n2claedu.c \
 	avsv_util.c \
-	avsv_eduutil.c \
-	$(top_srcdir)/services/common/src/saf_edu.c
+	avsv_eduutil.c
 
 libavsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

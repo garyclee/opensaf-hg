@@ -48,19 +48,19 @@ libbam_la_CXXFLAGS = $(AM_CXXFLAGS) @HPI_CFLAGS@
 libbam_la_LDFLAGS = -static
 
 libbam_la_SOURCES = \
-	src/amfConfig.cpp \
-	src/bam_avd.c \
-	src/bam_avm.c \
-	src/bamError.cpp \
-	src/bam_hw_deploy.cpp \
-	src/bam_hw_util.c \
-	src/bam_hw_vld.cpp \
-	src/bam_init.cpp \
-	src/bam_log.c \
-	src/bam_mds.c \
-	src/bam_mibs.cpp \
-	src/bamParser.cpp \
-	src/bam_psr.c \
-	src/bam_rda.c \
-	src/bam_sgs.cpp \
-	src/psr_bam.c
+	amfConfig.cpp \
+	bam_avd.c \
+	bam_avm.c \
+	bamError.cpp \
+	bam_hw_deploy.cpp \
+	bam_hw_util.c \
+	bam_hw_vld.cpp \
+	bam_init.cpp \
+	bam_log.c \
+	bam_mds.c \
+	bam_mibs.cpp \
+	bamParser.cpp \
+	bam_psr.c \
+	bam_rda.c \
+	bam_sgs.cpp \
+	psr_bam.c

@@ -32,12 +32,12 @@ libmas_la_CPPFLAGS = \
 libmas_la_LDFLAGS = -static
 
 libmas_la_SOURCES = \
+	$(top_srcdir)/services/mab/mas_pss_common/app_amf.c \
 	mas_amf.c \
 	mas_api.c \
 	mas_lib.c \
 	mas_mbcsv.c \
 	mas_mds.c \
-	mas_pvt.c \
-	$(top_srcdir)/services/mab/mas_pss_common/app_amf.c
+	mas_pvt.c
 
 libmas_la_LIBADD = $(top_builddir)/services/rde/rda/librda.la

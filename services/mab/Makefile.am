@@ -72,12 +72,12 @@ ncs_mas_CPPFLAGS = \
 	-I$(top_srcdir)/services/vds/inc
 
 ncs_mas_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_mas_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/common/libsaf_common.la \
 	$(top_builddir)/services/mab/mas/libmas.la
 
@@ -95,14 +95,14 @@ ncs_psr_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_psr_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_psr_LDFLAGS = -Wl,--export-dynamic 
 
 ncs_psr_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/mab/mac/libmaa.la \
 	$(top_builddir)/services/mab/psr/libpsr.la
 
@@ -118,7 +118,7 @@ ncs_cli_maa_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_cli_maa_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_cli_maa_LDFLAGS = -Wl,--export-dynamic
 

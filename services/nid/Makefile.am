@@ -18,7 +18,22 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = src
-
 noinst_HEADERS = \
 	inc/node_init.h
+
+pkglib_PROGRAMS = ncs_nid
+
+ncs_nid_CPPFLAGS = \
+	-DNID_LINUX_PC -DNCS_SAF=1 \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/nid/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/rde/common/inc
+
+ncs_nid_SOURCES = \
+	nodeinit.c
+
+ncs_nid_LDADD = \
+	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
+	$(top_builddir)/services/rde/rda/librda.la
