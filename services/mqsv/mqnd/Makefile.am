@@ -95,4 +95,5 @@ CLEANFILES = \
 	TEMP_ESMI_DUMP.MIB
 
 clean-local:
-	rm -rf $(top_builddir)/services/mqsv/mqnd/miblib_gen
+	-rm -rf $(top_builddir)/services/mqsv/mqnd/miblib_gen
+	-rm -rf $(top_builddir)/services/mqsv/inc/snmp_inc

@@ -63,3 +63,6 @@ mapi:
 CLEANFILES = \
 	$(MAPI_GENERATED_FILES) \
 	TEMP_ESMI_DUMP.MIB
+
+clean-local:
+	-rm -rf $(top_builddir)/services/avsv/inc/avsv_snmp_inc
