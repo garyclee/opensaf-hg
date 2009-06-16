@@ -16,12 +16,15 @@
 
 MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.h.in config.sub \
                        configure depcomp install-sh ltmain.sh missing \
-                       Makefile.in
+                       Makefile.in m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 \
+		       m4/ltversion.m4 m4/lt~obsolete.m4
 
 
 include $(top_srcdir)/Makefile.common
 include $(top_srcdir)/samples/samples.mk
 include $(top_srcdir)/mibs/mibs.mk
+
+ACLOCAL_AMFLAGS = -I m4
 
 # Retrieve values of the variables through 'configure' followed by
 # 'make', not directly through 'configure', so that a user who
