@@ -733,7 +733,6 @@ AC_CONFIG_FILES([
         services/mab/psrcli/Makefile
         services/mbcsv/Makefile
         services/mbcsv/logstr/Makefile
-        services/mbcsv/src/Makefile
         services/mds/Makefile
         services/mqsv/Makefile
         services/mqsv/common/Makefile
@@ -746,7 +745,6 @@ AC_CONFIG_FILES([
         services/nms/ncs-snmp-subagt/Makefile
         services/nms/ncs-snmp-subagt/logstr/Makefile
         services/nid/Makefile
-        services/nid/src/Makefile
         services/srmsv/Makefile
         services/srmsv/logstr/Makefile
         services/srmsv/srma/Makefile
@@ -754,7 +752,6 @@ AC_CONFIG_FILES([
         services/rde/rda/Makefile
         services/rde/Makefile
         services/rde/logstr/Makefile
-        services/rde/src/Makefile
         services/vds/Makefile
         services/vds/logstr/Makefile
         services/vds/vda/Makefile
@@ -765,8 +762,7 @@ AC_CONFIG_FILES([
         tests/ntfsv/Makefile
         tools/hisv/Makefile
         tools/pdrbd/Makefile
-        tools/pdrbd/logstr/Makefile
-        tools/pdrbd/src/Makefile])
+        tools/pdrbd/logstr/Makefile])
 
 AC_OUTPUT
 

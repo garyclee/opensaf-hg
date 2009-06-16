@@ -59,12 +59,12 @@ ncs_eds_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_eds_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_eds_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaClm/libSaClm.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/edsv/common/libedsv_common.la \
 	$(top_builddir)/services/edsv/eds/libeds.la

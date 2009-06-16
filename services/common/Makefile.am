@@ -55,10 +55,10 @@ libncs_common_la_CPPFLAGS = \
 libncs_common_la_LDFLAGS = -static
 
 libncs_common_la_SOURCES = \
-	src/ncs_main_pub.c \
-	src/ncs_sprr.c \
-	src/logtrace.c \
-	src/nid_start_util.c
+	ncs_main_pub.c \
+	ncs_sprr.c \
+	logtrace.c \
+	nid_start_util.c
 
 libsaf_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -68,7 +68,7 @@ libsaf_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 libsaf_common_la_SOURCES = \
-	src/avm_avd_mem.c \
-	src/saf_edu.c
+	avm_avd_mem.c \
+	saf_edu.c
 
 libsaf_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@

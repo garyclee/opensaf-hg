@@ -70,13 +70,13 @@ ncs_cpd_CPPFLAGS = \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_cpd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_cpd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaClm/libSaClm.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/cpsv/cpd/libcpd.la \
 	$(top_builddir)/services/cpsv/common/libcpsv_common.la
 
@@ -91,7 +91,7 @@ ncs_cpnd_CPPFLAGS = \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_cpnd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_cpnd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

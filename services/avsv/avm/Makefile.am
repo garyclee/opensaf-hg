@@ -46,10 +46,10 @@ noinst_HEADERS = \
 	inc/avm_tmr.h
 
 MIBLIB_GENERATED_FILES = \
-	$(top_builddir)/services/avsv/avm/src/avm_miblib_gen/ncsavmentdeploytableentry_mib.c \
-	$(top_builddir)/services/avsv/avm/src/avm_miblib_gen/ncsavmentfaultdomaintableentry_mib.c \
-	$(top_builddir)/services/avsv/avm/src/avm_miblib_gen/ncsavmentupgradetableentry_mib.c \
-	$(top_builddir)/services/avsv/avm/src/avm_miblib_gen/ncsavmscalars_mib.c
+	$(top_builddir)/services/avsv/avm/avm_miblib_gen/ncsavmentdeploytableentry_mib.c \
+	$(top_builddir)/services/avsv/avm/avm_miblib_gen/ncsavmentfaultdomaintableentry_mib.c \
+	$(top_builddir)/services/avsv/avm/avm_miblib_gen/ncsavmentupgradetableentry_mib.c \
+	$(top_builddir)/services/avsv/avm/avm_miblib_gen/ncsavmscalars_mib.c
 
 libavm_la_CPPFLAGS = \
 	-DNCS_AVM=1 -DNCS_AVM_LOG=1 \
@@ -74,33 +74,33 @@ libavm_la_LIBADD = \
 	$(top_srcdir)/services/fm/fma/libfma.la
 
 libavm_la_SOURCES = \
-	src/avm_avd.c \
-	src/avm_chkop.c \
-	src/avm_ckpt_dec.c \
-	src/avm_ckpt_edu.c \
-	src/avm_ckpt_enc.c \
-	src/avm_ckpt_updt.c \
-	src/avm_db.c \
-	src/avm_dblog.c \
-	src/avm_dhcp_util.c \
-	src/avm_eda.c \
-	src/avm_ent.c \
-	src/avm_evt.c \
-	src/avm_fsm.c \
-	src/avm_fund.c \
-	src/avm_hpi_util.c \
-	src/avm_init.c \
-	src/avm_mab.c \
-	src/avm_mds.c \
-	src/avm_proc.c \
-	src/avm_rda.c \
-	src/avm_fma.c \
-	src/avm_role_evt.c \
-	src/avm_scalar.c \
-	src/avm_tmr.c \
-	src/avm_traps.c \
-	src/avm_upgd_traps.c \
-	src/avm_util.c
+	avm_avd.c \
+	avm_chkop.c \
+	avm_ckpt_dec.c \
+	avm_ckpt_edu.c \
+	avm_ckpt_enc.c \
+	avm_ckpt_updt.c \
+	avm_db.c \
+	avm_dblog.c \
+	avm_dhcp_util.c \
+	avm_eda.c \
+	avm_ent.c \
+	avm_evt.c \
+	avm_fsm.c \
+	avm_fund.c \
+	avm_hpi_util.c \
+	avm_init.c \
+	avm_mab.c \
+	avm_mds.c \
+	avm_proc.c \
+	avm_rda.c \
+	avm_fma.c \
+	avm_role_evt.c \
+	avm_scalar.c \
+	avm_tmr.c \
+	avm_traps.c \
+	avm_upgd_traps.c \
+	avm_util.c
 
 nodist_libavm_la_SOURCES = $(MIBLIB_GENERATED_FILES)
 
@@ -124,4 +124,4 @@ CLEANFILES = \
 	TEMP_ESMI_DUMP.MIB
 
 clean-local:
-	-rm -rf $(top_builddir)/services/avsv/avm/src/avm_miblib_gen
+	-rm -rf $(top_builddir)/services/avsv/avm/avm_miblib_gen

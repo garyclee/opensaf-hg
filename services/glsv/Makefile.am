@@ -75,13 +75,13 @@ ncs_gld_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_gld_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_gld_LDADD =  \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaClm/libSaClm.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/glsv/gld/libgld.la \
 	$(top_builddir)/services/glsv/common/libglsv_common.la
 
@@ -96,7 +96,7 @@ ncs_glnd_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_glnd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_glnd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

@@ -48,13 +48,13 @@ libcli_la_CPPFLAGS = \
 
 libcli_la_LDFLAGS = -static 
 
-libcli_la_SOURCES =	\
-	src/cliapi.c \
-	src/cli.c \
-	src/clictree.c \
-	src/cliio.c \
-	src/clilog.c \
-	src/clitrav.c \
-	src/sysfcli.c \
-	src/prulegen/clilex.c \
-	src/prulegen/clipar.c
+libcli_la_SOURCES = \
+	prulegen/clilex.c \
+	prulegen/clipar.c \
+	cliapi.c \
+	cli.c \
+	clictree.c \
+	cliio.c \
+	clilog.c \
+	clitrav.c \
+	sysfcli.c

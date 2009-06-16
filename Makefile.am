@@ -236,7 +236,7 @@ BASE_SUBDIRS = \
 	services/mqsv/mqa \
 	lib/lib_SaMsg \
 	services/mab/mac \
-	services/mbcsv/src \
+	services/mbcsv \
 	services/srmsv/srma \
 	services/ifsv/ifa \
 	services/ifsv/common

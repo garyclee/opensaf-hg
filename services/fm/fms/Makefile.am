@@ -39,11 +39,11 @@ opensaf_fmsd_CPPFLAGS= \
 opensaf_fmsd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 opensaf_fmsd_SOURCES = \
-	$(top_srcdir)/services/fm/common/src/fma_fm_intf.c \
-	src/fm_main.c \
-	src/fm_mds.c \
-	src/fm_rda.c \
-	src/fm_amf.c
+	$(top_srcdir)/services/fm/common/fma_fm_intf.c \
+	fm_main.c \
+	fm_mds.c \
+	fm_rda.c \
+	fm_amf.c
 
 opensaf_fmsd_LDADD = \
 	$(top_srcdir)/lib/lib_ncs_core/libncs_core.la \

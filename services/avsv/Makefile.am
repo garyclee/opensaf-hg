@@ -139,7 +139,7 @@ ncs_scap_CPPFLAGS = \
 ncs_scap_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 ncs_scap_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_scap_LDFLAGS = @XERCESC_LIB@
 
@@ -150,7 +150,7 @@ ncs_scap_LDADD = \
 	$(top_builddir)/services/avsv/common/libavsv_common.la \
 	$(top_builddir)/services/mab/mac/libmaa.la \
 	$(top_builddir)/services/srmsv/srma/libsrma.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/hisv/hpl/libhpl.la \
 	$(top_builddir)/services/avsv/avd/libavd.la \
 	$(top_builddir)/services/avsv/avnd/libavnd_ctrl.la \
@@ -169,7 +169,7 @@ ncs_pcap_CPPFLAGS = \
 	-I$(top_srcdir)/services/srmsv/inc
 
 ncs_pcap_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_pcap_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

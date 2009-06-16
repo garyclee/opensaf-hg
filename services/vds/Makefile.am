@@ -49,7 +49,7 @@ ncs_vds_CPPFLAGS = \
 	-I$(top_srcdir)/services/common/inc
 
 ncs_vds_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_vds_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

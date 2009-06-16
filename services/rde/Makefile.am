@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-CONTROLLER_SUBDIRS = logstr src
+CONTROLLER_SUBDIRS = logstr
 
 SUBDIRS = $(CONTROLLER_SUBDIRS)
 
@@ -31,3 +31,23 @@ noinst_HEADERS = \
 	inc/rde_rda.h \
 	inc/rde_rde.h \
 	common/inc/rde_rda_common.h
+
+pkglib_PROGRAMS = ncs_rde
+
+ncs_rde_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/services/rde/inc \
+	-I$(top_srcdir)/services/leap/inc \
+	-I$(top_srcdir)/services/common/inc \
+	-I$(top_srcdir)/services/rde/common/inc
+
+ncs_rde_SOURCES = \
+	rde_amf.c \
+	rde_init.c \
+	rde_log.c \
+	rde_main.c \
+	rde_rda.c \
+	rde_rde.c
+
+ncs_rde_LDADD = \
+	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la

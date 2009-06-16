@@ -6,7 +6,7 @@ ESMI-TABLE-DETAILS ncsAvmScalars
 {
    ESMI-TABLE-ID                 NCSMIB_TBL_AVM_SCALAR
    ESMI-TABLE-HDR-FILE            `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH    `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH    `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-CAPABILITY         NCSMIB_CAPABILITY_SET
    
 }
@@ -35,7 +35,7 @@ ESMI-TABLE-DETAILS ncsAvmEntDeployTableEntry
 {
    ESMI-TABLE-ID   NCSMIB_TBL_AVM_ENT_DEPLOYMENT
    ESMI-TABLE-HDR-FILE   `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-IS-PERSISTENT 1
    ESMI-TABLE-RANK          AVM_TBL_RANK_ENT_DEPLOY
    ESMI-TABLE-CAPABILITY    NCSMIB_CAPABILITY_SET   
@@ -206,7 +206,7 @@ ESMI-TABLE-DETAILS ncsAvmEntFaultDomainTableEntry
 {
    ESMI-TABLE-ID  NCSMIB_TBL_AVM_ENT_FAULT_DOMAIN
    ESMI-TABLE-HDR-FILE  `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-IS-PERSISTENT 0
 }
 
@@ -230,7 +230,7 @@ ESMI-TABLE-DETAILS ncsAvmTrapSupport
 {
    ESMI-TABLE-ID NCSMIB_TBL_AVM_SUPP
    ESMI-TABLE-HDR-FILE  `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-IS-PERSISTENT 0
 }
 
@@ -256,7 +256,7 @@ ESMI-TABLE-DETAILS ncsAvmEntUpgradeTableEntry
 {
    ESMI-TABLE-ID NCSMIB_TBL_AVM_UPGRADE
    ESMI-TABLE-HDR-FILE  `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-IS-PERSISTENT 1
    ESMI-TABLE-CAPABILITY    NCSMIB_CAPABILITY_SET
 }
@@ -282,6 +282,6 @@ ESMI-TABLE-DETAILS ncsAvmTraps
 {
    ESMI-TABLE-ID  NCSMIB_TBL_AVM_TRAPS
    ESMI-TABLE-HDR-FILE  `avm.h`
-   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/src/avm_miblib_gen/`
+   ESMI-TABLE-MIBLIB-DIR-PATH `/avsv/avm/avm_miblib_gen/`
    ESMI-TABLE-IS-PERSISTENT 0
 }

@@ -90,12 +90,12 @@ ncs_ifd_CPPFLAGS = \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_ifd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_ifd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/mbcsv/libmbca.la \
 	$(top_builddir)/services/ifsv/ifd/libifd.la \
 	$(top_builddir)/services/ifsv/common/libifsv_common.la
 
@@ -111,7 +111,7 @@ ncs_ifnd_CPPFLAGS = \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_ifnd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c
 
 ncs_ifnd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \

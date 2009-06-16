@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-CONTROLLER_SUBDIRS = src logstr
+CONTROLLER_SUBDIRS = logstr
 
 SUBDIRS = $(CONTROLLER_SUBDIRS)
 
@@ -45,9 +45,14 @@ ncs_pdrbd_CPPFLAGS = \
 	-I$(top_srcdir)/services/mab/inc
 
 ncs_pdrbd_SOURCES = \
-	$(top_srcdir)/services/common/src/ncs_main_pvt.c
+	$(top_srcdir)/services/common/ncs_main_pvt.c \
+	pdrbd_amf.c \
+	pdrbd_log.c \
+	pdrbd_mds.c \
+	pdrbd_proc.c \
+	pdrbd_proxied_amf.c \
+	pdrbd_util.c
 
 ncs_pdrbd_LDADD = \
 	$(top_builddir)/lib/lib_ncs_core/libncs_core.la \
-	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/tools/pdrbd/src/libpdrbd.la
+	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la
