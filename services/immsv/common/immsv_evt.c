@@ -487,7 +487,7 @@ immsv_free_attrmods(IMMSV_ATTR_MODS_LIST* p)
 void
 immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST* avl)
 {
-    TRACE_ENTER();
+    /*TRACE_ENTER();*/
     while(avl) {
         IMMSV_ATTR_VALUES_LIST* tmp = avl;
         avl=avl->next;
@@ -503,7 +503,7 @@ immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST* avl)
         }
         free(tmp);
     }
-    TRACE_LEAVE();
+    /*TRACE_LEAVE();*/
 }
 
 static void
@@ -2164,13 +2164,10 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
     {
         IMMA_EVT* immaevt = &i_evt->info.imma;
         
-        /*Today ALL IMMA commincation is to the local IMMND => flat encode.*/
-        ncs_encode_n_octets_in_uba(o_ub,(uns8*)immaevt,sizeof(IMMA_EVT));
-        LOG_WA("Did not expect IMMA_EVT %u to be encoded non-flat, "
-            "should be node local. Flat encoding still used!", immaevt->type);
+        /*Nonflat encode for IMMA needed when agent and IMMND use different 
+          compilations despite being colocated. Example: Agent is compiled 
+          32bit, IMMND compiled for 64 bit. */
 
-#if 0 
-        //Code only needed if ever agent is to send directly inter-processor.
         p8 = ncs_enc_reserve_space(o_ub, 4);
         ncs_encode_32bit(&p8, immaevt->type);
         ncs_enc_claim_space(o_ub, 4);
@@ -2184,33 +2181,241 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                 
                 /* Events from IMMND */
             case IMMA_EVT_ND2A_IMM_INIT_RSP:
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.initRsp.immHandle);
+                ncs_enc_claim_space(o_ub, 8);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.initRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_IMM_FINALIZE_RSP:
+            case IMMA_EVT_ND2A_IMM_ERROR:
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.errRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_IMM_ADMINIT_RSP:
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admInitRsp.ownerId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admInitRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_IMM_ADMOP:     //Admin-op OI callback
-            case IMMA_EVT_ND2A_IMM_ERROR:     //Generic error reply
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admOpReq.adminOwnerId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admOpReq.invocation);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.admOpReq.operationId);
+                ncs_enc_claim_space(o_ub, 8);
+
+                /*skip admOpReq.timeout*/
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.admOpReq.continuationId);
+                ncs_enc_claim_space(o_ub, 8);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admOpReq.objectName.size);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 1);
+                ncs_encode_8bit(&p8, (immaevt->info.admOpReq.params)?1:0);
+                ncs_enc_claim_space(o_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_ADMOP_RSP: //Response from AdminOp to OM client
-                //IMMA_EVT_ND2A_ASYNC_ADMOP_RSP://Response from AdminOp to OM client, async
+
+                /*skip oi_client_hdl*/
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.admOpRsp.invocation);
+                ncs_enc_claim_space(o_ub, 8);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admOpRsp.result);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.admOpRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_CCBINIT_RSP: //Response from for CcbInit
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.ccbInitRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.ccbInitRsp.ccbId);
+                ncs_enc_claim_space(o_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_SEARCHINIT_RSP: //Response from for SearchInit
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchInitRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchInitRsp.searchId);
+                ncs_enc_claim_space(o_ub, 4);                
+                break;
+
             case IMMA_EVT_ND2A_SEARCHNEXT_RSP: //Response from for SearchNext
+                /*Totaly encoded in sublevel.*/
+                break;
+
             case IMMA_EVT_ND2A_SEARCH_REMOTE:  //Fetch pure runtime attributes.
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.searchRemote.client_hdl);
+                ncs_enc_claim_space(o_ub, 8);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchRemote.requestNodeId);
+                ncs_enc_claim_space(o_ub, 4);                
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchRemote.remoteNodeId);
+                ncs_enc_claim_space(o_ub, 4);                
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchRemote.searchId);
+                ncs_enc_claim_space(o_ub, 4);                
+                
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.searchRemote.objectName.size);
+                ncs_enc_claim_space(o_ub, 4);                
+ 
+                p8 = ncs_enc_reserve_space(o_ub, 1);
+                ncs_encode_8bit(&p8, (immaevt->info.searchRemote.attributeNames)?1:0);
+                ncs_enc_claim_space(o_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_CLASS_DESCR_GET_RSP: //Response for ClassDescriptionGet
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.classDescr.classCategory);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 1);
+                ncs_encode_8bit(&p8, (immaevt->info.classDescr.attrDefinitions)?1:0);
+                ncs_enc_claim_space(o_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_IMPLSET_RSP: //Response for saImmOiImplementerSet
-                /*IMMA_EVT_ND2A_CL_IMPLSET_RSP: Response for saImmOiClassImplementerSet*/
-                /*IMMA_EVT_ND2A_OBJ_IMPLSET_RSP: Response for saImmOiObjectImplementerSet*/
-            case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC: //OBJ CREATE UP-CALL.
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.implSetRsp.error);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.implSetRsp.implId);
+                ncs_enc_claim_space(o_ub, 4);                
+                break;
+
+            case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC: //OBJ CREATE UP-CALL
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objCreate.ccbId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objCreate.adminOwnerId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objCreate.className.size);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objCreate.parentName.size);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.objCreate.immHandle);
+                ncs_enc_claim_space(o_ub, 8);
+
+                p8 = ncs_enc_reserve_space(o_ub, 1);
+                ncs_encode_8bit(&p8, (immaevt->info.objCreate.attrValues)?1:0);
+                ncs_enc_claim_space(o_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC: //OBJ DELETE UP-CALL.
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objDelete.ccbId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objDelete.adminOwnerId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objDelete.objectName.size);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.objDelete.immHandle);
+                ncs_enc_claim_space(o_ub, 8);
+                break;
+
             case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC: //OBJ MODIFY UP-CALL.
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objModify.ccbId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objModify.adminOwnerId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.objModify.objectName.size);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 1);
+                ncs_encode_8bit(&p8, (immaevt->info.objModify.attrMods)?1:0);
+                ncs_enc_claim_space(o_ub, 1);
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.objModify.immHandle);
+                ncs_enc_claim_space(o_ub, 8);
+                break;
+
             case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC: //CCB COMPLETED UP-CALL.
             case IMMA_EVT_ND2A_OI_CCB_APPLY_UC: //CCB APPLY UP-CALL.
             case IMMA_EVT_ND2A_OI_CCB_ABORT_UC: //CCB ABORT UP-CALL.
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.ccbCompl.ccbId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.ccbCompl.implId);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 4);
+                ncs_encode_32bit(&p8, immaevt->info.ccbCompl.invocation);
+                ncs_enc_claim_space(o_ub, 4);
+
+                p8 = ncs_enc_reserve_space(o_ub, 8);
+                ncs_encode_64bit(&p8, immaevt->info.ccbCompl.immHandle);
+                ncs_enc_claim_space(o_ub, 8);
+                break;
+
+                /*
             case IMMA_EVT_ND2A_IMM_SYNC_RSP:
                 break;
+                */
             default:
                 LOG_ER("Illegal IMMA message type:%u", immaevt->type);
                 rc = NCSCC_RC_FAILURE;
         }
-#endif
     } else 
         if(i_evt->type == IMMSV_EVT_TYPE_IMMD)
         {
@@ -2370,35 +2575,216 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
             p8 = ncs_enc_reserve_space(o_ub, 4);
             ncs_encode_32bit(&p8, immndevt->type);
             ncs_enc_claim_space(o_ub, 4);
-            
+            /*TRACE_1("Encoding IMMND event:%u %s",immndevt->type, 
+              immsv_get_immnd_evt_name(immndevt->type));*/
             switch(immndevt->type) {
                 
-                /* Events from IMMA */
-                    
-                /* IMMA commincation to the local IMMND => should have been flat encode.*/
+                /*Nonflat encode for IMMA needed when agent and IMMND use different 
+                  compilations despite being colocated. Example: Agent is compiled 
+                  32bit, IMMND compiled for 64 bit. */
+
                 case IMMND_EVT_A2ND_IMM_INIT:         /* ImmOm Initialization */
                 case IMMND_EVT_A2ND_IMM_OI_INIT:      /* ImmOi Initialization */
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.initReq.version.releaseCode);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.initReq.version.majorVersion);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.initReq.version.minorVersion);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.initReq.client_pid);
+                    ncs_enc_claim_space(o_ub, 4);                    
+                    break;
+
                 case IMMND_EVT_A2ND_IMM_FINALIZE:     /* ImmOm finalization */
                 case IMMND_EVT_A2ND_IMM_OI_FINALIZE:  /* ImmOi finalization */
-                case IMMND_EVT_A2ND_IMM_ADMINIT:      /* AdminOwnerInitialize */ 
+                case IMMND_EVT_A2ND_SYNC_FINALIZE:   /* immsv_finalize_sync */
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.finReq.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+                    break;
+
+                case IMMND_EVT_A2ND_IMM_ADMINIT:      /* AdminOwnerInitialize */  
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.adminitReq.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 2);
+                    ncs_encode_16bit(&p8, 
+                        immndevt->info.adminitReq.i.adminOwnerName.length);
+                    ncs_enc_claim_space(o_ub, 2);
+                    
+                    /* adminOwnerName.value is top level because type is SaNameT */
+                    ncs_encode_n_octets_in_uba(o_ub,
+                        immndevt->info.adminitReq.i.adminOwnerName.value,
+                        immndevt->info.adminitReq.i.adminOwnerName.length);
+                    
+                    p8 = ncs_enc_reserve_space(o_ub, 1);
+                    ncs_encode_8bit(&p8, 
+                        immndevt->info.adminitReq.i.releaseOwnershipOnFinalize);
+                    ncs_enc_claim_space(o_ub, 1);
+                    break;
+
                 case IMMND_EVT_A2ND_IMM_FEVS:         /*Fake EVS msg from Agent (forward)*/
-                case IMMND_EVT_A2ND_CCBINIT:          /* CcbInitialize */ 
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.fevsReq.sender_count);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.fevsReq.reply_dest);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.fevsReq.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.fevsReq.msg.size);
+                    ncs_enc_claim_space(o_ub, 4);
+                    /* immndevt->info.fevsReq.msg.buf encoded by encode sublevel */
+                    break;
+
+                case IMMND_EVT_A2ND_CCBINIT:          /* CcbInitialize */
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.ccbinitReq.adminOwnerId);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.ccbinitReq.ccbFlags);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.ccbinitReq.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+                    break;
+
                 case IMMND_EVT_A2ND_SEARCHINIT:       /* SearchInitialize */ 
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.searchInit.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+                    
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.searchInit.rootName.size);
+                    ncs_enc_claim_space(o_ub, 4);
+                    
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.searchInit.scope);
+                    ncs_enc_claim_space(o_ub, 4);
+                    
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.searchInit.searchOptions);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.searchInit.searchParam.present);
+                    ncs_enc_claim_space(o_ub, 4);
+                    
+                    if(immndevt->info.searchInit.searchParam.present ==
+                        ImmOmSearchParameter_PR_oneAttrParam)
+                    {
+                        p8 = ncs_enc_reserve_space(o_ub, 4);
+                        ncs_encode_32bit(&p8, immndevt->info.searchInit.
+                            searchParam.choice.oneAttrParam.attrName.size);
+                        ncs_enc_claim_space(o_ub, 4);
+                    
+                        p8 = ncs_enc_reserve_space(o_ub, 4);
+                        ncs_encode_32bit(&p8, immndevt->info.searchInit.
+                            searchParam.choice.oneAttrParam.attrValueType);
+                        ncs_enc_claim_space(o_ub, 4);
+                    }
+
+                    p8 = ncs_enc_reserve_space(o_ub, 1);
+                    ncs_encode_8bit(&p8, (immndevt->info.searchInit.attributeNames)?1:0);
+                    ncs_enc_claim_space(o_ub, 1);
+                    break;
+
                 case IMMND_EVT_A2ND_SEARCHNEXT:       /* SearchNext */ 
                 case IMMND_EVT_A2ND_SEARCHFINALIZE:   /* SearchFinalize */ 
-                case IMMND_EVT_A2ND_SEARCH_REMOTE:    /* forward fetch of rt attr vals */ 
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.searchOp.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.searchOp.searchId);
+                    ncs_enc_claim_space(o_ub, 4);
+                    break;
+                    
+                    /*
+                case IMMND_EVT_A2ND_SEARCH_REMOTE:
+                    */
+
                 case IMMND_EVT_A2ND_RT_ATT_UPPD_RSP:  /* reply for fetch of rt attr vals */
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.rtAttUpdRpl.sr.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.rtAttUpdRpl.sr.requestNodeId);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.rtAttUpdRpl.sr.remoteNodeId);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.rtAttUpdRpl.sr.searchId);
+                    ncs_enc_claim_space(o_ub, 4); 
+                
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.rtAttUpdRpl.sr.objectName.size);
+                    ncs_enc_claim_space(o_ub, 4);
+ 
+                    p8 = ncs_enc_reserve_space(o_ub, 1);
+                    ncs_encode_8bit(&p8, (immndevt->info.rtAttUpdRpl.sr.attributeNames)?1:0);
+                    ncs_enc_claim_space(o_ub, 1);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.rtAttUpdRpl.result);
+                    ncs_enc_claim_space(o_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_ADMOP_RSP:       /* AdminOperation sync local Reply */
                 case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP: /* AdminOperation async local Reply */
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.admOpRsp.oi_client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.admOpRsp.invocation);
+                    ncs_enc_claim_space(o_ub, 8);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.admOpRsp.result);
+                    ncs_enc_claim_space(o_ub, 4);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.admOpRsp.error);
+                    ncs_enc_claim_space(o_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_CLASS_DESCR_GET:  /* saImmOmClassDescriptionGet */
-                case IMMND_EVT_A2ND_SYNC_FINALIZE:   /* immsv_finalize_sync */
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.classDescr.className.size);
+                    ncs_enc_claim_space(o_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_OI_IMPL_SET:     /* saImmOiImplementerSet */
+                    p8 = ncs_enc_reserve_space(o_ub, 8);
+                    ncs_encode_64bit(&p8, immndevt->info.implSet.client_hdl);
+                    ncs_enc_claim_space(o_ub, 8);
 
-                    LOG_ER("Did not expect IMMND_EVT %u %s from IMMA to be encoded NON-flat, "
-                        "should be node local. Flat encoding still used!", immndevt->type,
-                        immsv_get_immnd_evt_name(immndevt->type));
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.implSet.impl_name.size);
+                    ncs_enc_claim_space(o_ub, 4);
+                    /* immndevt->info.implSet.impl_name.buf encoded by sublevel */
 
-                    ncs_encode_n_octets_in_uba(o_ub,(uns8*)immndevt,sizeof(IMMND_EVT));
+                    /*skip scope & impl_id*/
                     break;
 
                     /*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
@@ -2901,14 +3287,10 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
     if(o_evt->type == IMMSV_EVT_TYPE_IMMA)
     {
         IMMA_EVT* immaevt = &o_evt->info.imma;
-        
-        /*Today ALL IMMA commincation is to the local IMMND => flat decode.*/
-        ncs_decode_n_octets_from_uba(i_ub,(uns8*)immaevt, sizeof(IMMA_EVT));
-        LOG_WA("Did not expect IMMA_EVT %u to be decoded non-flat, "
-            "should be node local", immaevt->type);
-        
-#if 0
-        //Code only needed if ever agent is to recv directly inter-processor.
+
+        /*Nonflat decode for IMMA needed when agent and IMMND use different 
+          compilations despite being colocated. Example: Agent is compiled 
+          32bit, IMMND compiled for 64 bit. */
         
         p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
         immaevt->type = ncs_decode_32bit(&p8);
@@ -2923,33 +3305,259 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                 
                 /* Events from IMMND */
             case IMMA_EVT_ND2A_IMM_INIT_RSP:
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.initRsp.immHandle = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.initRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                break;
+
             case IMMA_EVT_ND2A_IMM_FINALIZE_RSP:
-            case IMMA_EVT_ND2A_IMM_ADMINIT_RSP:
-            case IMMA_EVT_ND2A_IMM_ADMOP:     //Admin-op OI callback
             case IMMA_EVT_ND2A_IMM_ERROR:     //Generic error reply
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.errRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                break;
+
+            case IMMA_EVT_ND2A_IMM_ADMINIT_RSP:
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admInitRsp.ownerId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admInitRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                break;
+
+            case IMMA_EVT_ND2A_IMM_ADMOP:    /*Admin-op OI callback*/
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admOpReq.adminOwnerId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admOpReq.invocation = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.admOpReq.operationId = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+
+                /*skip admOpReq.timeout*/
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.admOpReq.continuationId = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admOpReq.objectName.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+                if(ncs_decode_8bit(&p8)) {
+                    /*Bogus pointer-val forces decode_sublevel to decode params. */
+                    immaevt->info.admOpReq.params = (void *) 0x1; 
+                }
+                ncs_dec_skip_space(i_ub, 1);
+
+                break;
+
             case IMMA_EVT_ND2A_ADMOP_RSP: //Response from AdminOp to OM client, normal call
-                //IMMA_EVT_ND2A_ASYNC_ADMOP_RSP: //Response from AdminOp to OM client, async
+
+                /*skip oi_client_hdl*/
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.admOpRsp.invocation = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+                
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admOpRsp.result = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.admOpRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);                
+                break;
+
             case IMMA_EVT_ND2A_CCBINIT_RSP: //Response from for CcbInit
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.ccbInitRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.ccbInitRsp.ccbId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4); 
+                break;
+
             case IMMA_EVT_ND2A_SEARCHINIT_RSP: //Response from for SearchInit
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchInitRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchInitRsp.searchId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4); 
+                break;
+
             case IMMA_EVT_ND2A_SEARCHNEXT_RSP: //Response from for SearchNext
+                /*Totaly decoded in sublevel.*/
+                break;
+
             case IMMA_EVT_ND2A_SEARCH_REMOTE:  //Fetch pure runtime attributes.
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.searchRemote.client_hdl = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchRemote.requestNodeId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchRemote.remoteNodeId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4); 
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchRemote.searchId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.searchRemote.objectName.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4); 
+
+                if(ncs_decode_8bit(&p8)) 
+                {
+                    /*Bogus pointer-val forces decode_sublevel to 
+                      decode attributeNames. */
+                    immaevt->info.searchRemote.attributeNames = (void *) 0x1; 
+                }
+                ncs_dec_skip_space(i_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_CLASS_DESCR_GET_RSP: //Response for SaImmOmClassDescriptionGet
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.classDescr.classCategory = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                if(ncs_decode_8bit(&p8)) 
+                {
+                    /*Bogus pointer-val forces decode_sublevel to 
+                      decode attributeNames. */
+                    immaevt->info.classDescr.attrDefinitions = (void *) 0x1; 
+                }
+                ncs_dec_skip_space(i_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_IMPLSET_RSP: //Response for saImmOiImplementerSet
-                /*IMMA_EVT_ND2A_CL_IMPLSET_RSP: Response for saImmOiClassImplementerSet*/
-                /*IMMA_EVT_ND2A_OBJ_IMPLSET_RSP: Response for saImmOiObjectImplementerSet*/
-            case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC: //OBJ CREATE UP-CALL.
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.implSetRsp.error = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.implSetRsp.implId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4); 
+                break;
+
+            case IMMA_EVT_ND2A_OI_OBJ_CREATE_UC: //OBJ CREATE UP-CALL
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objCreate.ccbId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objCreate.adminOwnerId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objCreate.className.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objCreate.parentName.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.objCreate.immHandle = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+                if(ncs_decode_8bit(&p8)) {
+                    /*Bogus pointer-val forces decode_sublevel to decode attrValues. */
+                    immaevt->info.objCreate.attrValues = (void *) 0x1; 
+                }
+                ncs_dec_skip_space(i_ub, 1);
+                break;
+
             case IMMA_EVT_ND2A_OI_OBJ_DELETE_UC: //OBJ DELETE UP-CALL.
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objDelete.ccbId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objDelete.adminOwnerId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objDelete.objectName.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.objDelete.immHandle = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+                break;
+
             case IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC: //OBJ MODIFY UP-CALL.
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objModify.ccbId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objModify.adminOwnerId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+                    
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.objModify.objectName.size = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+                if(ncs_decode_8bit(&p8)) {
+                    /*Bogus pointer-val forces decode_sublevel to decode attrMods. */
+                    immaevt->info.objModify.attrMods = (void *) 0x1; 
+                }
+                ncs_dec_skip_space(i_ub, 1);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.objModify.immHandle = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+                break;
+
             case IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC: //CCB COMPLETED UP-CALL.
             case IMMA_EVT_ND2A_OI_CCB_APPLY_UC: //CCB APPLY UP-CALL.
             case IMMA_EVT_ND2A_OI_CCB_ABORT_UC: //CCB ABORT UP-CALL.
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.ccbCompl.ccbId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.ccbCompl.implId = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                immaevt->info.ccbCompl.invocation = ncs_decode_32bit(&p8);
+                ncs_dec_skip_space(i_ub, 4);
+
+                p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                immaevt->info.ccbCompl.immHandle = ncs_decode_64bit(&p8);
+                ncs_dec_skip_space(i_ub, 8);
+                break;
+
+                    /*
             case IMMA_EVT_ND2A_IMM_SYNC_RSP:
                 break;
+                    */
             default:
                 LOG_ER("Illegal IMMA message type:%u", immaevt->type);
                 rc = NCSCC_RC_FAILURE;
         }
-#endif
     } else 
         if(o_evt->type == IMMSV_EVT_TYPE_IMMD)
         {
@@ -3111,7 +3719,8 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
             immndevt->type = ncs_decode_32bit(&p8);
             ncs_dec_skip_space(i_ub, 4);
             
-            /*TRACE_5("Decoding IMMND EVENT %u", immndevt->type);*/
+            /*TRACE_5("Decoding IMMND event:%u %s",immndevt->type, 
+              immsv_get_immnd_evt_name(immndevt->type));*/
             
             switch(immndevt->type) {
                 
@@ -3120,27 +3729,215 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                 /* IMMA commincation to the local IMMND => should have been flat encode.*/
                 case IMMND_EVT_A2ND_IMM_INIT:         /* ImmOm Initialization */
                 case IMMND_EVT_A2ND_IMM_OI_INIT:      /* ImmOi Initialization */
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.initReq.version.releaseCode = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.initReq.version.majorVersion = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.initReq.version.minorVersion = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.initReq.client_pid = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);                    
+                    break;
+
                 case IMMND_EVT_A2ND_IMM_FINALIZE:     /* ImmOm finalization */
                 case IMMND_EVT_A2ND_IMM_OI_FINALIZE:  /* ImmOi finalization */
+                case IMMND_EVT_A2ND_SYNC_FINALIZE:   /* immsv_finalize_sync */                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.finReq.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+                    break;
+
                 case IMMND_EVT_A2ND_IMM_ADMINIT:      /* AdminOwnerInitialize */ 
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.adminitReq.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 2);
+                    immndevt->info.adminitReq.i.adminOwnerName.length =
+                        ncs_decode_16bit(&p8);
+                    ncs_dec_skip_space(i_ub, 2);
+                    
+                    /* adminOwnerName.value is top level because type is SaNameT */
+                    ncs_decode_n_octets_from_uba(i_ub,
+                        immndevt->info.adminitReq.i.adminOwnerName.value,
+                        immndevt->info.adminitReq.i.adminOwnerName.length);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+                    immndevt->info.adminitReq.i.releaseOwnershipOnFinalize = 
+                        ncs_decode_8bit(&p8);
+                    ncs_dec_skip_space(i_ub, 1);
+                    break;
+
                 case IMMND_EVT_A2ND_IMM_FEVS:         /*Fake EVS msg from Agent (forward)*/
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.fevsReq.sender_count = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.fevsReq.reply_dest = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.fevsReq.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.fevsReq.msg.size = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    /* immndevt->info.fevsReq.msg.buf decoded by decode sublevel */
+                    break;
+
                 case IMMND_EVT_A2ND_CCBINIT:          /* CcbInitialize */ 
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.ccbinitReq.adminOwnerId = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.ccbinitReq.ccbFlags = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.ccbinitReq.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+                    break;
+
                 case IMMND_EVT_A2ND_SEARCHINIT:       /* SearchInitialize */ 
-                case IMMND_EVT_A2ND_SEARCHNEXT:       /* SearchNext */ 
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.searchInit.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.searchInit.rootName.size = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.searchInit.scope = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.searchInit.searchOptions = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.searchInit.searchParam.present = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    if(immndevt->info.searchInit.searchParam.present ==
+                        ImmOmSearchParameter_PR_oneAttrParam)
+                    {
+                        p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                        immndevt->info.searchInit.searchParam.choice.
+                            oneAttrParam.attrName.size = ncs_decode_32bit(&p8);
+                        ncs_dec_skip_space(i_ub, 4);
+
+                        p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                        immndevt->info.searchInit.searchParam.choice.
+                            oneAttrParam.attrValueType = ncs_decode_32bit(&p8);
+                        ncs_dec_skip_space(i_ub, 4);
+                    }
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+                    if(ncs_decode_8bit(&p8)) {
+                        /*Bogus pointer-val forces decode_sublevel to decode attributeNames. */
+                        immndevt->info.searchInit.attributeNames = (void *) 0x1; 
+                    }
+                    ncs_dec_skip_space(i_ub, 1);
+                    break;
+
+
+                case IMMND_EVT_A2ND_SEARCHNEXT:       /* SearchNext */
                 case IMMND_EVT_A2ND_SEARCHFINALIZE:   /* SearchFinalize */ 
-                case IMMND_EVT_A2ND_SEARCH_REMOTE:    /* forward fetch of rt attr vals */ 
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.searchOp.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.searchOp.searchId = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    break;
+
+                    /*
+                case IMMND_EVT_A2ND_SEARCH_REMOTE:
+                    */
+
                 case IMMND_EVT_A2ND_RT_ATT_UPPD_RSP:  /* reply for fetch of rt attr vals */
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.rtAttUpdRpl.sr.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.rtAttUpdRpl.sr.requestNodeId = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.rtAttUpdRpl.sr.remoteNodeId = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.rtAttUpdRpl.sr.searchId = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.rtAttUpdRpl.sr.objectName.size = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+
+                    if(ncs_decode_8bit(&p8)) 
+                    {
+                        /*Bogus pointer-val forces decode_sublevel to 
+                          decode attributeNames. */
+                        immndevt->info.rtAttUpdRpl.sr.attributeNames = 
+                            (void *) 0x1; 
+                    }
+                    ncs_dec_skip_space(i_ub, 1);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.rtAttUpdRpl.result = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_ADMOP_RSP:       /* AdminOperation sync local Reply */
                 case IMMND_EVT_A2ND_ASYNC_ADMOP_RSP: /* AdminOperation async local Reply */
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.admOpRsp.oi_client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.admOpRsp.invocation = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.admOpRsp.result = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.admOpRsp.error = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_CLASS_DESCR_GET:  /* saImmOmClassDescriptionGet */
-                case IMMND_EVT_A2ND_SYNC_FINALIZE:   /* immsv_finalize_sync */                    
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.classDescr.className.size = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    break;
+
                 case IMMND_EVT_A2ND_OI_IMPL_SET:     /* saImmOiImplementerSet */
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
+                    immndevt->info.implSet.client_hdl = ncs_decode_64bit(&p8);
+                    ncs_dec_skip_space(i_ub, 8);
 
-                    LOG_ER("Did not expect IMMND_EVT %u %s from IMMA to be decoded NON-flat, "
-                        "should be node local. Flat decoding still used!", immndevt->type,
-                        immsv_get_immnd_evt_name(immndevt->type));
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.implSet.impl_name.size = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
+                    /* immndevt->info.implSet.impl_name.buf decoded by sublevel */
 
-                    ncs_decode_n_octets_from_uba(i_ub,(uns8*)immndevt, sizeof(IMMND_EVT));
+                    /*skip scope & impl_id*/
                     break;
 
                     /*Fevs call IMMA->IMMD->IMMNDs have to suport non-flat encoding */
