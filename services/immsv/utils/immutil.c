@@ -57,10 +57,12 @@ static struct CcbUtilCcbData* ccbList = NULL;
 static void defaultImmutilError(char const* fmt, ...)
 {
     va_list ap;
+    va_list ap2;
 
     va_start(ap, fmt); 
+    va_copy(ap2, ap);
     vfprintf(stderr, fmt, ap);
-    vsyslog(LOG_ERR, fmt, ap);
+    vsyslog(LOG_ERR, fmt, ap2);
     va_end(ap);
     abort();
 }
@@ -708,7 +710,7 @@ static void* clistMalloc(struct Chunk* clist, size_t size)
  * makes the code cleaner.
  */
 
-struct ImmutilWrapperProfile immutilWrapperProfile = {1, 5, 400};
+struct ImmutilWrapperProfile immutilWrapperProfile = {1, 25, 400};
 
 SaAisErrorT immutil_saImmOiInitialize_2(
     SaImmOiHandleT *immOiHandle,
