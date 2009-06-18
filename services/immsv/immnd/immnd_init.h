@@ -51,6 +51,7 @@ uns32 immnd_is_immd_up(IMMND_CB *cb);
 void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE* reply, 
 			 SaUint32T reqConn);
 void immnd_ackToNid(uns32 rc);
+SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
 
 /* End immnd_proc.c */
 
