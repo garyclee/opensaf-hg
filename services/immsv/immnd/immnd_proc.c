@@ -576,7 +576,7 @@ static void immnd_abortLoading(IMMND_CB *cb)
     TRACE_LEAVE();
 }
 
-static SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, 
+SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, 
     SaUint32T step) 
 {/*Invoked by sync-coordinator and sync-clients.
    Other old-member nodes do not invoke.*/
@@ -1114,6 +1114,10 @@ uns32 immnd_proc_server(uns32 *timeout)
                 immnd_ackToNid(NCSCC_RC_SUCCESS);
                 LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> "
                     "IMM SERVER READY");
+                /*
+                  This code case duplicated in immnd_evt.c
+                  Search for: "ticket:#599"
+                 */
             } else if(immnd_iAmCoordinator(cb) == 1) {
                 /*This case is weird. It can only happen if the last
                   operational immexec crashed during this sync. 

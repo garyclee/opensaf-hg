@@ -4559,6 +4559,23 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt,
            with respect to the just arriving start-sync.
            Search for "ticket:#598" in immnd_proc.c
         */
+    } else if((cb->mState == IMM_SERVER_SYNC_CLIENT) && 
+        (immnd_syncComplete(cb, SA_FALSE, cb->mTimer)))
+    {
+        cb->mTimer = 0;
+        cb->mState = IMM_SERVER_READY;
+        immnd_ackToNid(NCSCC_RC_SUCCESS);
+        LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> "
+            "IMM SERVER READY (materialized by start sync)");
+        /* This is the case where sync has completed,
+           this node is a sync client,
+           yet this node has not grabbed this fact in immnd_proc
+           under case IMM_SERVER_SYNC_CLIENT, and now a start
+           sync arrives. We force the completion of the prior sync
+           client phase here. This node will now be an "old member"
+           with respect to the just arriving start-sync.
+           Search for "ticket:#599" in immnd_proc.c
+        */
     }
 
     cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
