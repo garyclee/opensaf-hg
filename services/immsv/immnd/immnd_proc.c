@@ -30,7 +30,7 @@
 
 static const char* loaderBase = "immload";
 
-static void immnd_ackToNid(uns32 rc)
+void immnd_ackToNid(uns32 rc)
 {
     if (immnd_cb->nid_started == 0)
 	return;
@@ -1099,6 +1099,10 @@ uns32 immnd_proc_server(uns32 *timeout)
                 cb->mState = IMM_SERVER_READY;
                 LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> "
                     "IMM_SERVER_READY");
+                /*
+                  This code case duplicated in immnd_evt.c
+                  Search for: "ticket:#598"
+                 */
             }
             break;
 

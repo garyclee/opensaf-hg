@@ -4543,6 +4543,24 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb,
 static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt,
     IMMSV_SEND_INFO *sinfo)
 {
+    if((cb->mState == IMM_SERVER_LOADING_CLIENT) && 
+        (immModel_getLoader(cb) == 0)) 
+    {
+        immnd_adjustEpoch(cb);
+        immnd_ackToNid(NCSCC_RC_SUCCESS);
+        cb->mState = IMM_SERVER_READY;
+        LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> "
+            "IMM_SERVER_READY (materialized by start sync)");
+        /* This is the case where loading has completed, 
+           yet this node has not grabbed this fact in immnd_proc
+           under case IMM_SERVER_LOADING_CLIENT, and now a start
+           sync arrives. We force the completion of the loading
+           client phase here. This node will now be an "old member"
+           with respect to the just arriving start-sync.
+           Search for "ticket:#598" in immnd_proc.c
+        */
+    }
+
     cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
     TRACE_2("Ruling Epoch:%u", cb->mRulingEpoch); 
 
