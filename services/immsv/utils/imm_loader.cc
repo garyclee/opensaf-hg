@@ -1585,25 +1585,23 @@ static void charsToValueHelper(SaImmAttrValueT* value,
     {
         case SA_IMM_ATTR_SAINT32T:
             *value = malloc(sizeof(SaInt32T));
-            *((SaInt32T*)*value) = (SaInt32T)atoi(str);
+            *((SaInt32T*)*value) = (SaInt32T)strtol(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SAUINT32T:
             *value = malloc(sizeof(SaUint32T));
-            *((SaUint32T*)*value) = (SaUint32T)atoi(str);
+            *((SaUint32T*)*value) = (SaUint32T)strtoul(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SAINT64T:
             *value = malloc(sizeof(SaInt64T));
-            *((SaInt64T*)*value) = (SaInt64T)atoll(str);
+            *((SaInt64T*)*value) = (SaInt64T)strtoll(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SAUINT64T:
             *value = malloc(sizeof(SaUint64T));
-            endMark = (char*)(str + len);
-            *((SaUint64T*)*value) = (SaUint64T)
-                                    strtoull(str, &endMark, 10);
+            *((SaUint64T*)*value) = (SaUint64T)strtoull(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SATIMET: // Int64T
             *value = malloc(sizeof(SaInt64T));
-            *((SaTimeT*)*value) = (SaTimeT)atoll(str);
+            *((SaTimeT*)*value) = (SaTimeT)strtoll(str, NULL, 0);
             break;
         case SA_IMM_ATTR_SANAMET:
             len = strlen(str);
