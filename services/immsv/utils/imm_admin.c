@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
         strncpy((char *) objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
         objectName.length = strnlen((char *) objectName.value, SA_MAX_NAME_LENGTH);
 
-        error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_SUBTREE);
+        error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
         if (error != SA_AIS_OK)
         {
             if (error == SA_AIS_ERR_NOT_EXIST)
@@ -256,7 +256,7 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
 
-        error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_SUBTREE);
+        error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
         if (error != SA_AIS_OK)
         {
             fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
