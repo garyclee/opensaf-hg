@@ -1246,6 +1246,15 @@ uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
 
     TRACE_ENTER();
 
+    /* Check that client still exist */
+    if ((param->clientId != -1) &&
+        (lgs_client_get_by_id(param->clientId) == NULL))
+    {
+        LOG_WA("Client %u does not exist, failed to create stream '%s'",
+            param->clientId, param->logStreamName);
+        goto done;
+    }
+
     stream = log_stream_get_by_name(param->logStreamName);
     if (stream != NULL)
     {
@@ -1280,6 +1289,7 @@ uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
         if (stream == NULL)
         {
             /* Do not allow standby to get out of sync */
+            LOG_ER("Failed to create stream '%s'", param->logStreamName);
             lgs_exit("Could not create new stream", SA_AMF_COMPONENT_RESTART);
         }
 
@@ -1298,9 +1308,12 @@ uns32 ckpt_proc_open_stream(lgs_cb_t *cb, lgsv_ckpt_msg_t *data)
         lgs_client_stream_add(param->clientId, stream->streamId) != 0)
     {
         /* Do not allow standby to get out of sync */
-        lgs_exit("Could not create new stream", SA_AMF_COMPONENT_RESTART);
+        LOG_ER("Failed to add stream '%s' to client %u",
+            param->logStreamName, param->clientId);
+        lgs_exit("Could not add stream to client", SA_AMF_COMPONENT_RESTART);
     }
 
+ done:
     /* Free strings allocated by the EDU encoder */
     free_edu_mem(param->logFile);
     free_edu_mem(param->logPath);
