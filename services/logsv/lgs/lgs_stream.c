@@ -112,7 +112,7 @@ static uns32 log_stream_add(NCS_PATRICIA_NODE *node, const char *key)
     rc = ncs_patricia_tree_add(&stream_dn_tree, node);
     if (rc != NCSCC_RC_SUCCESS)
     {
-        TRACE("ncs_patricia_tree_add FAILED");
+        LOG_WA("ncs_patricia_tree_add FAILED for '%s' %u", key, rc);
         node->key_info = NULL;
         goto done;
     }
@@ -304,6 +304,7 @@ log_stream_t *log_stream_new(SaNameT *dn,
 
     if (rc < 0)
     {
+        LOG_WA("Add stream to array FAILED");
         log_stream_delete(&stream);
         goto done;
     }

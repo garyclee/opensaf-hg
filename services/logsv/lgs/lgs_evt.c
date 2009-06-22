@@ -93,7 +93,7 @@ log_client_t *lgs_client_new(MDS_DEST mds_dest, uns32 client_id,
 {
     log_client_t *client;
 
-    TRACE_ENTER2("MDS dest %llx, client_id %u", mds_dest, client_id);
+    TRACE_ENTER2("MDS dest %llx", mds_dest);
 
     if (client_id == 0)
     {
