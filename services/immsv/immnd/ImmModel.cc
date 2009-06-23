@@ -5012,7 +5012,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
             //discardImplementer(info->mId); 
             //Doing it directly here for efficiency.
             //But watch out for changes in discardImplementer
-            TRACE_5("DISCARDING IMPLEMENTER %u <%u, %x>", 
+            LOG_IN("DISCARDING IMPLEMENTER %u <%u, %x>", 
                 info->mId, info->mConn, info->mNodeId);
             info->mId = 0;
             info->mConn = 0;
@@ -7229,6 +7229,11 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             if((*i2)->mDying) {
                 ii->id = 0;
                 ii->nodeId = 0;
+                /* Note that here the finalize sync message is bypassing
+                   any discardImplementer over fevs. Old clients receiving
+                   this message will need to discard implementer on the 
+                   basis of the incoming 'id' being zero.
+                 */
             } else {
                 ii->id = (*i2)->mId;
                 ii->nodeId = (*i2)->mNodeId;
@@ -7490,30 +7495,27 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ImplementerInfo* info = findImplementer(implName);
                 assert(info!=NULL);
                 
-                if(info->mId && (info->mId != (unsigned int) ii->id)) {
-                    if(info->mId == 0) {
+                if(info->mId != (unsigned int) ii->id) {
+                    if(ii->id == 0) {
                         LOG_NO("Sync-verify: Established node has different "
-                            "Implementer-id: 0 for name%s, sync says %u. "
-                            "Released?", implName.c_str(), ii->id);
+                            "Implementer-id %u for name%s, should be 0. "
+                            "Discarding it.",
+                            info->mId, implName.c_str());
+                        /*Does not delete struct that info points to.*/
+                        discardImplementer(info->mId, true);
                     } else {
                         LOG_ER("Sync-verify: Established node has different "
-                            "Implementer-id %u for name%s, should be %u.",
-                            info->mId, implName.c_str(), ii->id);
+                            "Implementer-id: %u for name%s, sync says %u. "
+                            "Released?", info->mId, implName.c_str(), ii->id);
                         assert(0);
                     }
                 }
                 
                 if(info->mNodeId != ii->nodeId) {
-                    if(info->mNodeId == 0) {
-                        LOG_NO("Sync-verify: Missmatch on node-id: "
-                            "0 for implementer %s, sync says %x. "
-                            "Released?", implName.c_str(), ii->nodeId);
-                    } else {
-                        LOG_ER("Sync-verify: Missmatch on node-id "
-                            "%x for implementer %s, should be %x",
-                            info->mNodeId, implName.c_str(), ii->nodeId);
-                        assert(0);
-                    }
+                    LOG_ER("Sync-verify: Missmatch on node-id "
+                        "%x for implementer %s, sync says %x",
+                        info->mNodeId, implName.c_str(), ii->nodeId);
+                    assert(0);
                 }
                 ii = ii->next;
             }
