@@ -150,7 +150,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     SaAisErrorT            errorCode;
     SaNameT                objectName;
     SaImmAttrValuesT_2**   attrs;
-    unsigned int           retryInterval = 1000; /* 1 sec */
+    unsigned int           retryInterval = 1000000; /* 1 sec */
     unsigned int           maxTries = 15;          /* 15 times == max 15 secs */
     unsigned int           tryCount=0;
     TRACE_ENTER();

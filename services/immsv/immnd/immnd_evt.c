@@ -818,6 +818,22 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb,
         goto agent_rsp;
     }
 
+    if(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & 
+        SA_IMM_SEARCH_PERSISTENT_ATTRS) {/*=>DUMP/BACKUP*/
+        if(cb->mCanBeCoord) {
+            if(immModel_immNotWritable(cb) || 
+                (cb->mState != IMM_SERVER_READY)) {
+                LOG_WA("Cannot allow official dump/backup when imm-sync "
+                    "is in progress");
+                error = SA_AIS_ERR_TRY_AGAIN;
+                goto agent_rsp;
+            }
+        } else {
+            /* Handle it as a regular search OP. */
+            LOG_WA("Dump of IMM not at controller is not an offical dump");
+        }
+    }
+
     error = immModel_searchInitialize(cb, &(evt->info.searchInit), &searchOp);
 
     /*Generate search-id */
@@ -837,22 +853,12 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb,
         if(((SaImmSearchOptionsT)evt->info.searchInit.searchOptions) & 
             SA_IMM_SEARCH_PERSISTENT_ATTRS) {/*=>DUMP/BACKUP*/
             if(cb->mCanBeCoord) {
-                if(immModel_immNotWritable(cb)) {
-                    LOG_WA("Cannot allow official dump/backup when imm-sync "
-                           "is in progress");
-                    /*TODO: DROP THE search OP !. currently leaking.*/
-                    error = SA_AIS_ERR_TRY_AGAIN;
-                } else {
-                    TRACE_2("SEARCH INIT tentatively adj epoch to "
-                        ":%u & adnnounce dump", cb->mMyEpoch+1);
-                    immnd_announceDump(cb); 
-                }
-            } else {
-                /* Handle it as a regular search OP. */
-                LOG_WA("Dump of IMM not at controller is not an offical dump");
+                assert(!immModel_immNotWritable(cb));
+                TRACE_2("SEARCH INIT tentatively adj epoch to "
+                    ":%u & adnnounce dump", cb->mMyEpoch+1);
+                immnd_announceDump(cb); 
             }
         }
-
     }
 
  agent_rsp:
