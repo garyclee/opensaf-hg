@@ -184,7 +184,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     TRACE_1("After searchInitialize rc:%u", errorCode);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed on saImmOmSearchInitialize - exiting" 
+        std::cout << "Failed on saImmOmSearchInitialize - exiting " 
             << errorCode 
             << std::endl;
 
@@ -683,11 +683,10 @@ static void typeToXML(SaImmAttrDefinitionT_2* p, xmlNodePtr parent)
 
 static std::list<std::string> getClassNames(SaImmHandleT immHandle)
 {
-    SaImmSearchHandleT searchHandle;
+    SaImmAccessorHandleT accessorHandle;
     SaImmAttrValuesT_2** attributes;
     SaImmAttrValuesT_2** p;
     SaNameT opensafObjectName;
-    SaNameT receivedName;
     SaAisErrorT errorCode;
     std::list<std::string> classNamesList;
     TRACE_ENTER();
@@ -696,18 +695,12 @@ static std::list<std::string> getClassNames(SaImmHandleT immHandle)
     opensafObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
 
     /* Initialize immOmSearch */
-    errorCode = saImmOmSearchInitialize_2(immHandle, 
-                                          &opensafObjectName, 
-                                          SA_IMM_SUBTREE,
-                                          (SaImmSearchOptionsT)
-                                          (SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR),
-                                          NULL/*&params*/, 
-                                          NULL, 
-                                          &searchHandle);
+    errorCode = saImmOmAccessorInitialize(immHandle, 
+                                          &accessorHandle);
 
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed on saImmOmSearchInitialize - exiting" 
+        std::cout << "Failed on saImmOmAccessorInitialize - exiting " 
             << errorCode 
             << std::endl;
         exit(1);
@@ -715,20 +708,22 @@ static std::list<std::string> getClassNames(SaImmHandleT immHandle)
 
     /* Get the first match */
 
-    errorCode = saImmOmSearchNext_2(searchHandle,
-                                    &receivedName,
-                                    &attributes);
+    errorCode = saImmOmAccessorGet_2(
+                                     accessorHandle,
+                                     &opensafObjectName,
+                                     NULL,
+                                     &attributes);
 
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed in saImmOmSearchNext - exiting " 
+        std::cout << "Failed in saImmOmAccessorGet - exiting " 
             << errorCode
             << std::endl;
         exit(1);
     }
 
     /* Find the classes attribute */
-    for (p = attributes; p != NULL; p++)
+    for (p = attributes; (*p) != NULL; p++)
     {
         if (strcmp((*p)->attrName, OPENSAF_IMM_ATTR_CLASSES) == 0)
         {
@@ -737,7 +732,7 @@ static std::list<std::string> getClassNames(SaImmHandleT immHandle)
         }
     }
 
-    if (NULL == p)
+    if (NULL == (*p))
     {
         std::cout << "Failed to get the classes attribute" << std::endl;
         exit(1);
@@ -771,10 +766,10 @@ static std::list<std::string> getClassNames(SaImmHandleT immHandle)
         }
     }
 
-    errorCode = saImmOmSearchFinalize(searchHandle);
+    errorCode = saImmOmAccessorFinalize(accessorHandle);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to finalize the search handle " 
+        std::cout << "Failed to finalize the accessor handle " 
             << errorCode
             << std::endl;
         exit(1);
