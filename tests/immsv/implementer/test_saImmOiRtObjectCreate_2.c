@@ -57,7 +57,7 @@ void saImmOiRtObjectCreate_2_01(void)
 
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
-
+    safassert(saImmOiRtObjectCreate_2(immOiHandle, className, NULL, NULL), SA_AIS_ERR_INVALID_PARAM);
     /* Create under root */
     if ((rc = saImmOiRtObjectCreate_2(immOiHandle, className, NULL, attrValues)) != SA_AIS_OK)
         goto done;

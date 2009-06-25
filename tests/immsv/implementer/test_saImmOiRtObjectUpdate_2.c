@@ -79,6 +79,7 @@ void saImmOiRtObjectUpdate_2_01(void)
     safassert(saImmOiInitialize_2(&immOiHandle, &immOiCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOiImplementerSet(immOiHandle, implementerName), SA_AIS_OK);
     safassert(saImmOiRtObjectCreate_2(immOiHandle, className, &parentName, attrValues), SA_AIS_OK);
+    safassert(saImmOiRtObjectUpdate_2(immOiHandle, &dn, NULL), SA_AIS_ERR_INVALID_PARAM);
 
     int1Value = 0xbadbabe;
     rc = saImmOiRtObjectUpdate_2(immOiHandle, &dn, (const SaImmAttrModificationT_2**) attrMods);
