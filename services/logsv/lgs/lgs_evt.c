@@ -694,36 +694,35 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param,
               applicationStream->maxLogFileSize,
               applicationStream->fixedLogRecordSize,
               applicationStream->maxFilesRotated);
-        rs = SA_AIS_ERR_INVALID_PARAM;
+        rs = SA_AIS_ERR_EXIST;
     }
     else if (applicationStream->logFullAction != open_sync_param->logFileFullAction)
     {
         TRACE("logFileFullAction create params differs, new: %d, old: %d",
               open_sync_param->logFileFullAction,
               applicationStream->logFullAction);
-        rs = SA_AIS_ERR_INVALID_PARAM;
+        rs = SA_AIS_ERR_EXIST;
     }
-/* TODO implement haProperty? */
-/*    else if (applicationStream->haProperty != open_sync_param->haProperty) */
-/*    { */
-/*       TRACE("Different haProperty, new: %d existing: %d", */
-/*                   open_sync_param->haProperty, */
-/*                   applicationStream->haProperty; */
-/*       rs = SA_AIS_ERR_INVALID_PARAM; */
-/*    } */
+    else if (applicationStream->haProperty != open_sync_param->haProperty)
+    {
+        TRACE("Different haProperty, new: %d existing: %d",
+            open_sync_param->haProperty,
+            applicationStream->haProperty);
+        rs = SA_AIS_ERR_EXIST;
+    }
     else if (strcmp(applicationStream->fileName,
                     open_sync_param->logFileName) != 0)
     {
         TRACE("logFileName differs, new: %s existing: %s",
               open_sync_param->logFileName, applicationStream->fileName);
-        rs = SA_AIS_ERR_INVALID_PARAM;
+        rs = SA_AIS_ERR_EXIST;
     }
     else if (strcmp(applicationStream->pathName,
                     open_sync_param->logFilePathName) != 0)
     {
         TRACE("log file path differs, new: %s existing: %s",
               open_sync_param->logFilePathName, applicationStream->pathName);
-        rs = SA_AIS_ERR_INVALID_PARAM;
+        rs = SA_AIS_ERR_EXIST;
     }
     else if ((open_sync_param->logFileFmt != NULL) &&
              strcmp((const char *)applicationStream->logFileFormat,
@@ -732,8 +731,9 @@ static SaAisErrorT file_attribute_cmp(lgsv_stream_open_req_t *open_sync_param,
         TRACE("logFile format differs, new: %s existing: %s",
               open_sync_param->logFileFmt,
               applicationStream->logFileFormat);
-        rs = SA_AIS_ERR_INVALID_PARAM;
+        rs = SA_AIS_ERR_EXIST;
     }
+
     TRACE_LEAVE();
     return rs;
 }
@@ -776,9 +776,12 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t  *evt)
         if (logStream->streamType == STREAM_TYPE_APPLICATION)
         {
             /* Verify the creation attributes for an existing appl. stream */
-            ais_rv = file_attribute_cmp(open_sync_param, logStream);
-            if (ais_rv != SA_AIS_OK)
-                goto snd_rsp;
+            if (open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE)
+            {
+                ais_rv = file_attribute_cmp(open_sync_param, logStream);
+                if (ais_rv != SA_AIS_OK)
+                    goto snd_rsp;
+            }
         }
         else
         {
@@ -796,6 +799,12 @@ static uns32 proc_stream_open_msg(lgs_cb_t *cb, lgsv_lgs_evt_t  *evt)
         {
             TRACE("IMM service unavailable, open stream failed");
             ais_rv = SA_AIS_ERR_TRY_AGAIN;
+            goto snd_rsp;
+        }
+
+        if ((open_sync_param->lstr_open_flags & SA_LOG_STREAM_CREATE) == 0)
+        {
+            ais_rv = SA_AIS_ERR_NOT_EXIST;
             goto snd_rsp;
         }
 
