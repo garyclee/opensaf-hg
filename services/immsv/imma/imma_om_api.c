@@ -1187,6 +1187,13 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT            ccbHandle,
         return SA_AIS_ERR_INVALID_PARAM;
     }
 
+    if(attrValues == NULL)
+    {
+        TRACE_2("attrValues is NULL");
+        TRACE_LEAVE();
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
     /* get the CB Lock*/
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
@@ -1539,6 +1546,13 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT            ccbHandle,
     if (objectName == NULL)
     {
         TRACE_2("objectName is NULL");
+        TRACE_LEAVE();
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
+    if (attrMods == NULL)
+    {
+        TRACE_2("attrMods is NULL");
         TRACE_LEAVE();
         return SA_AIS_ERR_INVALID_PARAM;
     }
@@ -3854,7 +3868,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT          accessorHandle,
 
     if (!attributes)
     {
-        TRACE_2("Incorrect parameter contents: attributes");
+        TRACE_2("attributes is NULL");
         return SA_AIS_ERR_INVALID_PARAM;
     }
 
@@ -3969,7 +3983,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
         return SA_AIS_ERR_BAD_HANDLE;
     }
 
-    if ((className == NULL) || (objectName == NULL))
+    if ((className == NULL) || (objectName == NULL) || (attrValues==NULL))
     {
         return SA_AIS_ERR_INVALID_PARAM;
     }

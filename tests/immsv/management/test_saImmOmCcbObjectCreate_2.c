@@ -82,6 +82,7 @@ void saImmOmCcbObjectCreate_01(void)
 
     /* Create object under parent, must be owner */
     safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
+    safassert(saImmOmCcbObjectCreate_2(ccbHandle, testConfigClassName, &parentName, NULL), SA_AIS_ERR_INVALID_PARAM);
     rc = saImmOmCcbObjectCreate_2(ccbHandle, testConfigClassName, &parentName, attrValues);
 
 done:

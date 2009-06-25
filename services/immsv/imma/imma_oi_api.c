@@ -1280,7 +1280,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle,
         return SA_AIS_ERR_BAD_HANDLE;
     }
 
-    if ((objectName == NULL) || (objectName->length > SA_MAX_NAME_LENGTH) ||
+    if ((objectName == NULL) || (objectName->length >= SA_MAX_NAME_LENGTH) ||
         (objectName->length == 0 ))
     {
         return SA_AIS_ERR_INVALID_PARAM;
@@ -1413,11 +1413,13 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle,
     }
 
     if ((objectName == NULL) || 
-        ((nameLen = strlen((char *) objectName->value)) == 0) ||
-        (objectName->length > SA_MAX_NAME_LENGTH))
+        (objectName->length == 0) ||
+        (objectName->length >= SA_MAX_NAME_LENGTH))
     {
         return SA_AIS_ERR_INVALID_PARAM;
     }
+    nameLen = strlen((char *) objectName->value);
+
     if (objectName->length < nameLen)
     {
         nameLen = objectName->length;
@@ -1534,10 +1536,18 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
     TRACE_ENTER();
 
-    if ((objectName == NULL) || (objectName->length > SA_MAX_NAME_LENGTH))
+    if ((objectName == NULL) || (objectName->length >= SA_MAX_NAME_LENGTH) ||
+        (objectName->length == 0))
     {
         TRACE_2("objectName is NULL or length of name is greater than %u", 
             SA_MAX_NAME_LENGTH);
+        TRACE_LEAVE();
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
+    if(attrMods == NULL) 
+    {
+        TRACE_2("attrMods is NULL");
         TRACE_LEAVE();
         return SA_AIS_ERR_INVALID_PARAM;
     }
@@ -1802,7 +1812,13 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
         return SA_AIS_ERR_INVALID_PARAM;
     }
 
-    if (parentName && parentName->length > SA_MAX_NAME_LENGTH)
+    if (attrValues == NULL)
+    {
+        TRACE_2("attrValues is NULL");
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+
+    if (parentName && parentName->length >= SA_MAX_NAME_LENGTH)
     {
         return SA_AIS_ERR_NAME_TOO_LONG;
     }
@@ -2056,7 +2072,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
         return SA_AIS_ERR_INVALID_PARAM;
     }
 
-    if(objectName->length > SA_MAX_NAME_LENGTH) {
+    if(objectName->length >= SA_MAX_NAME_LENGTH) {
         TRACE_2("Object name too long");
         return SA_AIS_ERR_INVALID_PARAM;        
     }

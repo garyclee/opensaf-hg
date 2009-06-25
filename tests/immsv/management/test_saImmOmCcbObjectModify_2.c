@@ -94,6 +94,8 @@ void saImmOmCcbObjectModify_2_01(void)
     safassert(saImmOmAdminOwnerSet(ownerHandle, dnObjs, SA_IMM_ONE), SA_AIS_OK);
     safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
 
+    safassert(saImmOmCcbObjectModify_2(ccbHandle, &dnObj1, NULL), 
+        SA_AIS_ERR_INVALID_PARAM);
     test_validate(saImmOmCcbObjectModify_2(ccbHandle, &dnObj1, attrMods), SA_AIS_OK);
 
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
