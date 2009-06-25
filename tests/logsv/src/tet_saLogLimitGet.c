@@ -27,9 +27,10 @@ void saLogLimitGet_01(void)
     test_validate(rc, SA_AIS_OK);
 }
 
+#if 0
 __attribute__ ((constructor)) static void saLibraryLifeCycle_constructor(void)
 {
     test_suite_add(3, "Limit Fetch API");
     test_case_add(3, saLogLimitGet_01, "saLogLimitGet() OK");
 }
-
+#endif
