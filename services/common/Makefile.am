@@ -32,7 +32,8 @@ noinst_HEADERS = \
 	inc/oac_api.h \
 	inc/saf_def.h \
 	inc/saf_mem.h \
-	inc/sprr_dl_api.h
+	inc/sprr_dl_api.h \
+	inc/nid_start_util.h
 
 libncs_common_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \
@@ -55,7 +56,8 @@ libncs_common_la_LDFLAGS = -static
 libncs_common_la_SOURCES = \
 	src/ncs_main_pub.c \
 	src/ncs_sprr.c \
-	src/logtrace.c
+	src/logtrace.c \
+	src/nid_start_util.c
 
 libsaf_common_la_CPPFLAGS = \
 	@NCS_CORE_CPP_DEFINES@ \

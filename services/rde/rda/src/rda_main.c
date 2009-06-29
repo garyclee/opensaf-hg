@@ -806,3 +806,36 @@ static uns32 rda_parse_msg(const char *pmsg, RDE_RDA_CMD_TYPE *cmd_type,
     return PCSRDA_RC_SUCCESS;
 }
 
+/**
+ * Get AMF style HA role from RDE
+ * @param ha_state [out]
+ * 
+ * @return uns32
+ */
+uns32 rda_get_role(SaAmfHAStateT *ha_state)
+{
+    uns32 rc = NCSCC_RC_SUCCESS;
+    PCS_RDA_ROLE role;
+
+    if (pcs_rda_get_role(&role) != PCSRDA_RC_SUCCESS)
+    {
+        rc = NCSCC_RC_FAILURE;
+        goto done;
+    }
+
+    switch (role)
+    {
+        case PCS_RDA_ACTIVE:
+            *ha_state = SA_AMF_HA_ACTIVE;
+            break;
+        case PCS_RDA_STANDBY:
+            *ha_state = SA_AMF_HA_STANDBY;
+            break;
+        default:
+            return NCSCC_RC_FAILURE;
+    }
+
+done:
+    return rc;
+}
+

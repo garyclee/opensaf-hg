@@ -30,6 +30,7 @@
 #include <configmake.h>
 
 #include <ncs_main_pvt.h>
+#include <rda_papi.h>
 
 #include "lgs.h"
 #include "lgs_util.h"
@@ -39,6 +40,7 @@
  * ========================================================================
  */ 
 
+#define FD_USR1 0
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
@@ -61,6 +63,7 @@ static int category_mask;
 
 static struct pollfd fds[4];
 static nfds_t nfds = 4;
+static NCS_SEL_OBJ usr1_sel_obj;
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -68,10 +71,25 @@ static nfds_t nfds = 4;
  */ 
 
 /**
- * USR1 signal handler to enable/disable trace (toggle)
+ * USR1 signal is used when AMF wants instantiate us as a
+ * component. Wake up the main thread so it can register with
+ * AMF.
+ * 
+ * @param i_sig_num
+ */
+static void sigusr1_handler(int sig)
+{
+    (void) sig;
+    signal(SIGUSR1, SIG_IGN); 
+    ncs_sel_obj_ind(usr1_sel_obj);
+    TRACE("Got USR1 signal");
+}
+
+/**
+ * USR2 signal handler to enable/disable trace (toggle)
  * @param sig
  */
-static void usr1_sig_handler(int sig)
+static void sigusr2_handler(int sig)
 {
     if (category_mask == 0)
     {
@@ -89,10 +107,10 @@ static void usr1_sig_handler(int sig)
 }
 
 /**
- * USR2 signal handler to dump information from all data structures
+ * Ssignal handler to dump information from all data structures
  * @param sig
  */
-static void usr2_sig_handler(int sig)
+static void dump_sig_handler(int sig)
 {
     log_stream_t *stream;
     log_client_t *client;
@@ -142,23 +160,77 @@ static void usr2_sig_handler(int sig)
 }
 
 /**
- * Initialize lgs
+ * Initialize log
  * 
  * @return uns32
  */
-static uns32 initialize_lgs(const char *progname)
+static uns32 log_initialize(const char *progname)
 {
-    uns32          rc;
-    FILE           *fp = NULL;
-    char path[NAME_MAX + 32];
+    uns32 rc = NCSCC_RC_SUCCESS;
+    char *logd_argv[] = {"", "MDS_SUBSCRIPTION_TMR_VAL=1"};
+    const char* trace_file;
+
+    /* Create PID file */
+    {
+        char path[256];
+        FILE *fp;
+        
+        snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
+        fp = fopen(path, "w");
+        if (fp == NULL)
+        {
+            syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        fprintf(fp, "%d\n", getpid());
+        fclose(fp);
+    }
+
+    /* Initialize trace system first of all so we can see what is going on. */
+    if ((trace_file = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
+    {
+        if (logtrace_init(basename(progname), trace_file) != 0)
+        {
+            syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
+            goto done;
+        }
+
+        if (getenv("LOGSV_TRACE_CATEGORIES") != NULL)
+        {
+            /* Do not care about categories now, get all */
+            trace_category_set(CATEGORY_ALL);
+        }
+    }
 
     TRACE_ENTER();
+
+    if (ncspvt_svcs_startup(2, logd_argv, NULL) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("ncspvt_svcs_startup failed");
+        goto done;
+    }
 
     /* Initialize lgs control block */
     if (lgs_cb_init(lgs_cb) != NCSCC_RC_SUCCESS)
     {
         LOG_ER("lgs_cb_init FAILED");
         rc = NCSCC_RC_FAILURE;
+        goto done;
+    }
+
+    if ((rc = rda_get_role(&lgs_cb->ha_state)) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("rda_get_role FAILED");
+        goto done;
+    }
+
+    /*
+    ** Get LOGSV root directory path. All created log files will be stored
+    ** relative to this directory as described in spec.
+    */
+    if ((lgs_cb->logsv_root_dir = getenv("LOGSV_ROOT_DIRECTORY")) == NULL)
+    {
+        syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
         goto done;
     }
 
@@ -169,25 +241,6 @@ static uns32 initialize_lgs(const char *progname)
         rc = NCSCC_RC_FAILURE;
         goto done;
     }
-
-    /* Create pidfile */
-    snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
-    if ((fp = fopen(path, "w")) == NULL)
-    {
-        LOG_ER("Could not open '%s': %s", path, strerror(errno));
-        rc = NCSCC_RC_FAILURE; 
-        goto done;
-    }
-
-    /* Write PID to it */
-    if (fprintf(fp, "%d", getpid()) < 1)
-    {
-        fclose(fp);
-        LOG_ER("Could not write to: %s", path);
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
-    fclose(fp);
 
     m_NCS_EDU_HDL_INIT(&lgs_cb->edu_hdl);
 
@@ -205,12 +258,6 @@ static uns32 initialize_lgs(const char *progname)
         goto done;
     }
 
-    if ((rc = lgs_amf_init(lgs_cb)) != SA_AIS_OK)
-    {
-        LOG_ER("lgs_amf_init FAILED %d", rc);
-        goto done;
-    }
-
     if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS)
     {
         LOG_ER("lgs_mds_init FAILED %d", rc);
@@ -223,7 +270,48 @@ static uns32 initialize_lgs(const char *progname)
     if ((rc = lgs_imm_init(lgs_cb)) != SA_AIS_OK)
         LOG_ER("lgs_imm_init FAILED");
 
+    /* Create a selection object */
+    if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("ncs_sel_obj_create failed");
+        goto done;
+    }
+
+    /*
+    ** Initialize a signal handler that will use the selection object.
+    ** The signal is sent from our script when AMF does instantiate.
+    */
+    if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR)
+    {
+        LOG_ER("signal USR1 failed: %s", strerror(errno));
+        rc = NCSCC_RC_FAILURE;
+        goto done;
+    }
+
+    if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR)
+    {
+        LOG_ER("signal USR2 failed: %s", strerror(errno));
+        rc = NCSCC_RC_FAILURE;
+        goto done;
+    }
+
+    if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
+    {
+        if (lgs_imm_activate(lgs_cb) != SA_AIS_OK)
+        {
+            LOG_ER("lgs_imm_activate FAILED");
+            rc = NCSCC_RC_FAILURE;
+            goto done;
+        }
+    }
+
 done:
+    if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("nid_notify failed");
+        rc = NCSCC_RC_FAILURE;
+    }
+
     TRACE_LEAVE();
     return(rc);
 }
@@ -280,22 +368,29 @@ static void imm_reinit_bg(lgs_cb_t *cb)
 }
 
 /**
- * Forever wait on events on AMF, MBCSV & LGS Mailbox file descriptors
- * and process them.
+ * The main routine for the lgs daemon.
+ * @param argc
+ * @param argv
+ * 
+ * @return int
  */
-static void main_process(void)
+int main(int argc, char *argv[])
 {
     NCS_SEL_OBJ         mbx_fd;
     SaAisErrorT         error = SA_AIS_OK;
     uns32 rc;
 
-    TRACE_ENTER();
+    if (log_initialize(argv[0]) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("log_initialize failed");
+        goto done;
+    }
 
     mbx_fd = ncs_ipc_get_sel_obj(&lgs_cb->mbx);
 
     /* Set up all file descriptors to listen to */
-    fds[FD_AMF].fd       = lgs_cb->amfSelectionObject;
-    fds[FD_AMF].events   = POLLIN;
+    fds[FD_USR1].fd      = usr1_sel_obj.rmv_obj;
+    fds[FD_USR1].events  = POLLIN;
     fds[FD_MBCSV].fd     = lgs_cb->mbcsv_sel_obj;
     fds[FD_MBCSV].events = POLLIN;
     fds[FD_MBX].fd       = mbx_fd.rmv_obj;
@@ -318,11 +413,25 @@ static void main_process(void)
 
         if (fds[FD_AMF].revents & POLLIN)
         {
-            /* dispatch all the AMF pending function */
-            if ((error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK)
+            if (lgs_cb->amf_hdl != 0)
             {
-                LOG_ER("saAmfDispatch failed: %u", error);
-                break;
+                if ((error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK)
+                {
+                    LOG_ER("saAmfDispatch failed: %u", error);
+                    break;
+                }
+            }
+            else
+            {
+                TRACE("SIGUSR1 event rec");
+                ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
+                ncs_sel_obj_destroy(usr1_sel_obj);
+
+                if (lgs_amf_init(lgs_cb) != NCSCC_RC_SUCCESS)
+                    break;
+
+                TRACE("AMF Initialization SUCCESS......");
+                fds[FD_AMF].fd = lgs_cb->amfSelectionObject;
             }
         }
 
@@ -379,76 +488,10 @@ static void main_process(void)
             }
         }
     }
-}
-
-/**
- * The main routine for the lgs daemon.
- * @param argc
- * @param argv
- * 
- * @return int
- */
-int main(int argc, char *argv[])
-{
-    char *value;
-
-    /* Initialize trace system first of all so we can see what is going on. */
-    if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
-    {
-        if (logtrace_init(basename(argv[0]), value) != 0)
-        {
-            syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-            goto done;
-        }
-
-        if ((value = getenv("LOGSV_TRACE_CATEGORIES")) != NULL)
-        {
-            /* Do not care about categories now, get all */
-            trace_category_set(CATEGORY_ALL);
-        }
-    }
-
-    /*
-    ** Get LOGSV root directory path. All created log files will be stored
-    ** relative to this directory as described in spec.
-    */
-    if ((value = getenv("LOGSV_ROOT_DIRECTORY")) == NULL)
-    {
-        syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
-        goto done;
-    }
-
-    /* Save path in control block */
-    lgs_cb->logsv_root_dir = value;
-
-    if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("ncspvt_svcs_startup failed");
-        goto done;
-    }
-
-    if (initialize_lgs(argv[0]) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("initialize_lgs failed");
-        goto done;
-    }
-
-    if (signal(SIGUSR1, usr1_sig_handler) == SIG_ERR)
-    {
-        LOG_ER("signal SIGUSR1 failed");
-        goto done;
-    }
-
-    if (signal(SIGUSR2, usr2_sig_handler) == SIG_ERR)
-    {
-        LOG_ER("signal SIGUSR2 failed");
-        goto done;
-    }
-
-    main_process();
 
 done:
-    LOG_ER("failed, exiting...");
+    LOG_ER("Failed, exiting...");
+    TRACE_LEAVE();
     exit(1);
 }
 

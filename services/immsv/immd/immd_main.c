@@ -66,37 +66,6 @@ static void usr2_sig_handler(int sig)
         printf("trace_category_set failed");
 }
 
-static uns32 rda_get_role(SaAmfHAStateT *ha_state)
-{
-    PCS_RDA_REQ pcs_rda_req;
-
-    pcs_rda_req.req_type = PCS_RDA_LIB_INIT;
-    if (pcs_rda_request(&pcs_rda_req) != PCSRDA_RC_SUCCESS)
-        return NCSCC_RC_FAILURE;
-
-    pcs_rda_req.req_type = PCS_RDA_GET_ROLE;
-    if (pcs_rda_request(&pcs_rda_req) != PCSRDA_RC_SUCCESS)
-        return NCSCC_RC_FAILURE;
-
-    switch (pcs_rda_req.info.io_role)
-    {
-        case PCS_RDA_ACTIVE:
-            *ha_state = SA_AMF_HA_ACTIVE;
-            break;
-        case PCS_RDA_STANDBY:
-            *ha_state = SA_AMF_HA_STANDBY;
-            break;
-        default:
-            return NCSCC_RC_FAILURE;
-    }
-
-    pcs_rda_req.req_type = PCS_RDA_LIB_DESTROY;
-    if (pcs_rda_request(&pcs_rda_req) != PCSRDA_RC_SUCCESS)
-        return NCSCC_RC_FAILURE;
-
-    return NCSCC_RC_SUCCESS;
-}
-
 /**
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with

@@ -19,6 +19,7 @@
  * other modules.
  */
 
+#include <nid_start_util.h>
 #include "lgs.h"
 #include "immutil.h"
 
@@ -54,29 +55,14 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb,
 {
     log_stream_t *stream;
     SaAisErrorT error = SA_AIS_OK;
-    char name[SA_MAX_NAME_LENGTH];
 
     TRACE_ENTER2("HA ACTIVE request");
 
-    /* If this is the first time active assignment, create well known streams */
-    memset(name, 0, SA_MAX_NAME_LENGTH);
-    strcpy(name, SA_LOG_STREAM_ALARM);
-    stream = log_stream_get_by_name(name);
-    if (stream == NULL)
-    {
-        /* Create streams and configure them from IMM */
-        if (lgs_imm_activate(cb) != SA_AIS_OK)
-        {
-            LOG_ER("lgs_imm_activate FAILED");
-            error = SA_AIS_ERR_FAILED_OPERATION;
-            goto done;
-        }
-    }
-    else
-    {
-        /* fail over or switch over, become implementer */
-        lgs_imm_impl_set(cb);
-    }
+    if (cb->ha_state == SA_AMF_HA_ACTIVE)
+        goto done;
+
+    /* fail over or switch over, become implementer */
+    lgs_imm_impl_set(cb);
 
     /* Open all streams */
     stream = log_stream_getnext_by_name(NULL);
@@ -91,7 +77,7 @@ static SaAisErrorT amf_active_state_handler(lgs_cb_t *cb,
     }
 
     lgs_cb->mds_role = V_DEST_RL_ACTIVE;
-
+    
 done:
     TRACE_LEAVE();
     return error;
@@ -445,6 +431,10 @@ SaAisErrorT lgs_amf_init(lgs_cb_t *cb)
     SaAisErrorT     error;
 
     TRACE_ENTER();
+
+    if (amf_comp_name_get_set_from_file(
+        "SAFLOGD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+        goto done;
 
     /* Initialize AMF callbacks */
     memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));

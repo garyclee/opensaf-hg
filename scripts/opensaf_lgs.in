@@ -1,4 +1,4 @@
-#!/bin/sh 
+#!/bin/bash
 #
 #      -*- OpenSAF  -*-
 #
@@ -22,38 +22,87 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 CMD=$1
 
-NAME=opensaf_saflogd
+NAME=saflogd
 CONFFILE=${SYSCONFDIR}/saflog.conf
 
 # Start generic part
-BIN=${LIBPATH}/${NAME}
-LOGFILE=${NCS_STDOUTS_PATH}/${NAME}.log
-PIDFILE=${PIDPATH}/${NAME}.pid
+SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
+BIN=${LIBPATH}/opensaf_${NAME}
+COMPNAMEFILE=${LOCALSTATEDIR}/${NAME}_comp_name
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_${NAME}.log
+PIDFILE=${PIDPATH}/opensaf_${NAME}.pid
 
 test -f $CONFFILE && source $CONFFILE
 test -f $PIDFILE && PID=`cat $PIDFILE`
 
-case "$CMD" in
-    instantiate)
-        if [ ! -x $BIN ]; then
-            logger -s -t $0 "ERROR: File $BIN does not exist or is not executable"
-            exit 1
-        fi
+start()
+{
+    test -p $NIDFIFO || exit 1
+
+    if [ ! -x $BIN ]; then
+        logger -s -t $0 "ERROR: File $BIN does not exist or is not executable"
+        echo "$NID_MAGIC:$SERVICE:$DAEMON_NOT_FND" > $NIDFIFO
+        exit 1
+    fi
+
+    test -f $PIDFILE && kill -KILL $PID
+
+    export ${SERVICE}_COMP_NAME_FILE=$COMPNAMEFILE
+
+    $TOOL $BIN >> $LOGFILE 2>&1 &
+   
+    if [ $? -ne 0 ]; then
+        logger -s -t $0 "ERROR: Cannot start $BIN."
+        echo "$NID_MAGIC:$SERVICE:$DAEMON_START_FAILED" > $NIDFIFO
+        exit 1
+    fi
+}
+
+instantiate()
+{
+    echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
+
+    # If the process exist it has been started earlier by NID, send signal to it.
+    # If the process does not exist, AMF wants it (re)started.
+    if test -f $PIDFILE; then
+        kill -USR1 $PID
+    else
         $TOOL $BIN >> $LOGFILE 2>&1 &
+    fi
+}
+
+stop()
+{
+    # Allow tools to dump results to file system before exit
+    if test -f $PIDFILE; then
+        if [ "$TOOL" == "" ]; then
+            kill -KILL $PID
+        else
+            kill -TERM $PID
+        fi
+    fi
+
+    rm -f $COMPNAMEFILE
+    rm -f $PIDFILE
+}
+
+case "$CMD" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    instantiate)
+        instantiate
         ;;
     cleanup)
-        if test -r $PIDFILE; then
-            if [ "$TOOL" == "" ]; then
-                kill -KILL $PID
-            else
-                kill -TERM $PID
-            fi
-            rm -f $PIDFILE
-        fi
+        stop
         ;;
     *)
-        echo "Usage: $0 {instantiate|cleanup}"
+        echo "Usage: $0 {start|stop|instantiate|cleanup}"
         exit 1
 esac
 
 exit 0
+
