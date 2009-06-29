@@ -699,6 +699,7 @@ static const SaImmOiCallbacksT_2 callbacks = {
 SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
 {
     SaAisErrorT rc = SA_AIS_OK;
+    log_stream_t *stream;
 
     TRACE_ENTER();
 
@@ -727,6 +728,16 @@ SaAisErrorT lgs_imm_activate(lgs_cb_t *cb)
     (void) immutil_update_one_rattr(cb->immOiHandle, SA_LOG_STREAM_SYSTEM,
         "saLogStreamCreationTimestamp", SA_IMM_ATTR_SATIMET,
         &cb->systemStream->creationTimeStamp);
+
+    /* Open all streams */
+    stream = log_stream_getnext_by_name(NULL);
+    while (stream != NULL)
+    {
+        if (log_stream_open(stream) != SA_AIS_OK)
+            goto done;
+        
+        stream = log_stream_getnext_by_name(stream->name);
+    }
 
  done:
     TRACE_LEAVE();

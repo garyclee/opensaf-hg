@@ -16,6 +16,7 @@
  */
 
 #include "immnd.h"
+#include <nid_start_util.h>
 
 #define NCS_SAF_ACCEPT_TIME 1000
 
@@ -142,76 +143,6 @@ static void immnd_saf_csi_set_cb(SaInvocationT invocation,
     return;
 }
 
-/**
- * Get AMF component name from file. File name found in
- * environment variable.
- * @param immd_cb
- * 
- * @return uns32
- */
-static uns32 comp_name_get_from_file(IMMND_CB *cb, const char *name)
-{
-    uns32 rc = NCSCC_RC_FAILURE;
-    char comp_name[256] = {0};
-    FILE *fp;
-    char *comp_name_file;
-
-    TRACE_ENTER();
-
-    if ((comp_name_file = getenv(name)) == NULL)
-    {
-        LOG_ER("getenv '%s' failed", name);
-        goto done;
-    }
-
-    /* Read the component name file now, our script should have populated it by now */
-    if ((fp = fopen(comp_name_file, "r")) == NULL)
-    {
-        LOG_ER("fopen '%s' failed - %s", comp_name_file, strerror(errno));
-        goto done;
-    }
-
-    if (fscanf(fp, "%s", comp_name) != 1)
-    {
-        (void) fclose(fp);
-        LOG_ER("Unable to retrieve component name from file '%s'", comp_name_file);
-        goto done;
-    }
-
-    if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
-    {
-        fclose(fp);
-        LOG_ER("setenv failed - %s", strerror(errno));
-        goto done;
-    }
-
-    if (fclose(fp) != 0)
-    {
-        LOG_ER("fclose failed - %s", strerror(errno));
-        goto done;
-    }
-
-    cb->comp_name.length = strlen(comp_name);
-    if(cb->comp_name.length <= SA_MAX_NAME_LENGTH) 
-    {
-        strcpy((char *) cb->comp_name.value, comp_name);
-    } else
-    {
-        LOG_ER("Comp name too long %u", cb->comp_name.length);
-        /* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
-           case. On the other hand, it should be long enough for all
-           reasonable comp names */
-
-        cb->comp_name.length = 0;
-        goto done;
-    }
-
-    rc = NCSCC_RC_SUCCESS;
-done:
-    TRACE_LEAVE2("%s", comp_name);
-    return rc;
-}
-
 /****************************************************************************
  * Name          : immnd_amf_init
  *
@@ -239,7 +170,8 @@ uns32 immnd_amf_init(IMMND_CB *cb)
     memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
     if (cb->nid_started && 
-        (comp_name_get_from_file(cb, "IMMND_COMP_NAME_FILE") != NCSCC_RC_SUCCESS))
+        (amf_comp_name_get_set_from_file(
+            "IMMND_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS))
         goto done;
 
     memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));

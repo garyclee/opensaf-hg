@@ -59,4 +59,7 @@ opensaf_saflogd_LDADD = \
 	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
 	$(top_builddir)/lib/lib_SaImm/libSaImmOi.la \
 	$(top_builddir)/lib/lib_SaImm/libSaImmOm.la \
-	$(top_builddir)/services/mbcsv/src/libmbca.la
+	$(top_builddir)/services/mbcsv/src/libmbca.la \
+	$(top_builddir)/services/rde/rda/librda.la \
+	$(top_builddir)/services/common/libncs_common.la
+

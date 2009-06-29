@@ -35,6 +35,7 @@
 ** Includes
 */
 #include <stdio.h>
+#include <saAmf.h>
 #include "ncsgl_defs.h"  /* uns32 */
 
 /*
@@ -136,6 +137,7 @@ typedef struct
 ** API Declaration
 */
 int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
+extern uns32 rda_get_role(SaAmfHAStateT *ha_state);
 
 #endif /* PCS_RDA_PAPI_H */
 
