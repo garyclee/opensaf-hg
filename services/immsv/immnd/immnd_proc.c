@@ -580,13 +580,21 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator,
     SaUint32T step) 
 {/*Invoked by sync-coordinator and sync-clients.
    Other old-member nodes do not invoke.*/
+
+#if 0 /* Enable this code only to test logic for handling coord crash in sync*/
+    if(coordinator && cb->mMyEpoch == 4) {
+        LOG_NO("FAULT INJECTION crash during sync");
+        exit(1);
+    }
+#endif
+
     SaBoolT completed;
     assert(cb->mSync || coordinator);
     assert(!(cb->mSync) || !coordinator);
     completed = immModel_syncComplete(cb);
     if(!completed) {
         /*Possibly a timeout with the help of step.
-          But timeout requires an abort of sync !!*/
+          But sync failure is aborted from coord. */
 
     } else { /*completed*/
         if(cb->mSync) {
@@ -603,11 +611,41 @@ SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator,
 
 static void immnd_abortSync(IMMND_CB *cb)
 {
+    uns32    rc=NCSCC_RC_SUCCESS;
+    IMMSV_EVT  send_evt;
+    memset(&send_evt,'\0', sizeof(IMMSV_EVT));
     TRACE_ENTER();
-    //cb->mPendSync = 0;
-    //TODO: Send abort-sync message to all members.
+    TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);
+    assert(cb->mIsCoord);
+    cb->mPendSync = 0;
+    immModel_abortSync(cb);
+
+    if(cb->mRulingEpoch == cb->mMyEpoch + 1) {
+        cb->mMyEpoch = cb->mRulingEpoch;
+    } else if(cb->mRulingEpoch != cb->mMyEpoch) {
+        LOG_ER("immnd_abortSync not clean on epoch: RE:%u ME:%u",
+            cb->mRulingEpoch, cb->mMyEpoch);
+    }
+
+    immnd_adjustEpoch(cb);
+    send_evt.type = IMMSV_EVT_TYPE_IMMD;
+    send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
+    send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
+    send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+
+
+    while(!immnd_is_immd_up(cb)) {
+        LOG_WA("Coord blocked in sending ABORT_SYNC because IMMD is DOWN");
+        sleep(1);
+    }
+
+    LOG_NO("Coord broadcasting ABORT_SYNC, epoch:%u", cb->mRulingEpoch);
+    rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
+        &send_evt);
+    if(rc != NCSCC_RC_SUCCESS) {
+        LOG_ER("Coord failed to send ABORT_SYNC over MDS err:%u", rc);
+    }
     TRACE_LEAVE();
-    exit(1);
 }
 
 static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
@@ -1144,6 +1182,7 @@ uns32 immnd_proc_server(uns32 *timeout)
                         "after %u seconds. Aborting this sync attempt", 
                         cb->mTimer/10);
                     immnd_abortSync(cb);
+                    assert(cb->syncPid = 0);
                     cb->mTimer = 0;
                     cb->mState = IMM_SERVER_READY;
                     LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> "

@@ -3153,6 +3153,17 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     p8 = ncs_enc_reserve_space(o_ub, 1);
                     ncs_encode_8bit(&p8, (immndevt->info.ctrl.isCoord)?1:0);
                     ncs_enc_claim_space(o_ub, 1);
+
+                    /*syncStarted & nodeEpoch not really used D->ND, 
+                      only D->D mbcp 
+                    */
+                    p8 = ncs_enc_reserve_space(o_ub, 1);
+                    ncs_encode_8bit(&p8,(immndevt->info.ctrl.syncStarted)?1:0);
+                    ncs_enc_claim_space(o_ub, 1);
+
+                    p8 = ncs_enc_reserve_space(o_ub, 4);
+                    ncs_encode_32bit(&p8, immndevt->info.ctrl.nodeEpoch);
+                    ncs_enc_claim_space(o_ub, 4);
                     break;
 
                 case IMMND_EVT_D2ND_GLOB_FEVS_REQ:/* Fake EVS msg from director (consume)*/
@@ -4379,6 +4390,20 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                         immndevt->info.ctrl.isCoord = TRUE;
                     }
                     ncs_dec_skip_space(i_ub, 1);
+
+                    /*syncStarted & nodeEpoch not really used D->ND, 
+                      only D->D mbcp 
+                    */
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
+                    if(ncs_decode_8bit(&p8)) 
+                    {
+                        immndevt->info.ctrl.syncStarted = TRUE;
+                    }
+                    ncs_dec_skip_space(i_ub, 1);
+
+                    p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+                    immndevt->info.ctrl.nodeEpoch = ncs_decode_32bit(&p8);
+                    ncs_dec_skip_space(i_ub, 4);
                     break;
 
                 case IMMND_EVT_D2ND_GLOB_FEVS_REQ:/* Fake EVS msg from director (consume)*/

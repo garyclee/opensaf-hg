@@ -64,6 +64,9 @@ extern "C" {
   /* These are functions that bridge from the C world of hte OpenSaf framework
      to the C++ world of the IMM server model ported from OpenAis */
 
+void
+immModel_abortSync(IMMND_CB *cb);
+
 SaAisErrorT 
 immModel_adminOwnerCreate(IMMND_CB *cb, 
 			  const struct ImmsvOmAdminOwnerInitialize* req,

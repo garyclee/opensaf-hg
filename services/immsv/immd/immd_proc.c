@@ -45,6 +45,69 @@ void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
     TRACE_LEAVE();
 }
 
+void immd_proc_abort_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *coord)
+{
+    MDS_DEST key;
+    IMMD_IMMND_INFO_NODE *immnd_info_node=NULL;
+    TRACE_ENTER();
+    memset(&key, 0, sizeof(MDS_DEST));
+
+    if(!coord) /* coord is NULL => first check if there was ongoing sync. */
+    { 
+        immd_immnd_info_node_getnext(&cb->immnd_tree, &key, 
+            &immnd_info_node);
+        TRACE_5("RulingEpoch(%u)", cb->mRulingEpoch);
+
+        while (immnd_info_node)
+        {
+            key = immnd_info_node->immnd_dest;
+            TRACE_5("immnd_info_node->epoch(%u) syncStarted:%u",
+                immnd_info_node->epoch, immnd_info_node->syncStarted);
+            if(immnd_info_node->syncStarted)
+            {
+                if(immnd_info_node->isCoord) 
+                {
+                    coord = immnd_info_node;
+                    break; /* out of while */
+                } else
+                {
+                    LOG_ER("Non coord has sync marker, removing it");
+                    immnd_info_node->syncStarted = FALSE;
+                }
+            }
+            immd_immnd_info_node_getnext(&cb->immnd_tree, &key, 
+                &immnd_info_node);
+        }
+    }
+
+    if(coord && coord->syncStarted)
+    {
+        memset(&key, 0, sizeof(MDS_DEST));
+        immd_immnd_info_node_getnext(&cb->immnd_tree, &key, 
+            &immnd_info_node);
+
+        while (immnd_info_node)
+        {
+            key = immnd_info_node->immnd_dest;
+            TRACE_5("cb->mRulingEpoch(%u) == immnd_info_node->epoch(%u) + 1)",
+                cb->mRulingEpoch, immnd_info_node->epoch);
+            if (cb->mRulingEpoch == (immnd_info_node->epoch + 1))
+            {
+                ++(immnd_info_node->epoch);
+                TRACE_5("Incremented epoch to %u for a node %x", 
+                    immnd_info_node->epoch, immnd_info_node->immnd_key);
+            }
+            immd_immnd_info_node_getnext(&cb->immnd_tree, &key, 
+                &immnd_info_node);
+        }
+        coord->syncStarted=FALSE;
+    }
+
+
+    TRACE_LEAVE();
+}
+
+
 int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 {
     IMMSV_EVT       send_evt;
@@ -186,6 +249,9 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
         send_evt.info.immnd.info.ctrl.ndExecPid = 
             immnd_info_node->immnd_execPid;
         send_evt.info.immnd.info.ctrl.isCoord = TRUE;
+        send_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+        send_evt.info.immnd.info.ctrl.syncStarted = FALSE;
+        send_evt.info.immnd.info.ctrl.nodeEpoch = immnd_info_node->epoch;
 
         mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
         mbcp_msg.info.ctrl = send_evt.info.immnd.info.ctrl;
@@ -245,6 +311,14 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info,
         {
             LOG_WA("IMMND coordinator at %x apparently crashed => "
                 "electing new coord", immnd_info->immnd_key);
+            if(immnd_info->syncStarted) 
+            {
+                /* Sync was started, but never completed by coord.
+                   Bump up epoch for all nodes that where already members.
+                   Broadcast sync abort message.
+                   (Also resets: immnd_info->syncStarted = FALSE;) */
+                immd_proc_abort_sync(cb, immnd_info);
+            }
             immnd_info->isCoord = 0;
             immnd_info->isOnController = 0;
             cb->immnd_coord = 0;
@@ -261,6 +335,10 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info,
                     immd_get_slot_and_subslot_id_from_node_id(immnd_info->immnd_key), 
                     cb->immd_self_id);
             possible_fo = TRUE;
+            if(immnd_info->isCoord && immnd_info->syncStarted)
+            {
+                immd_proc_abort_sync(cb, immnd_info);
+            }
         }
     }
 
@@ -340,6 +418,8 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info,
     }
 
     /*We remove the node for the lost IMMND on both active and standby. */
+    TRACE_5("Removing node key:%u dest:%u", immnd_info->immnd_key,
+        m_NCS_NODE_ID_FROM_MDS_DEST(immnd_info->immnd_dest));
     immd_immnd_info_node_delete(cb, immnd_info);
     immd_cb_dump();
     TRACE_LEAVE();
@@ -361,8 +441,11 @@ void immd_cb_dump(void)
 
     TRACE_5("*****************Printing IMMD CB Dump****************");
     TRACE_5("  MDS Handle:             %x", (uns32)cb->mds_handle);
-    TRACE_5("  IMMD State:  %d",cb->ha_state); 
-    TRACE_5("  SYNC UPDATE COUNT %u",cb->immd_sync_cnt);
+    TRACE_5("  IMMD State:  %d IMMND-coord-Id: %x",
+        cb->ha_state, cb->immnd_coord); 
+    TRACE_5("  Sync update count %u",cb->immd_sync_cnt);
+    TRACE_5("  Fevs send count %llu",cb->fevsSendCount);
+    TRACE_5("  RULING EPOCH: %u",cb->mRulingEpoch);
 
     if (cb->is_immnd_tree_up)
     {
@@ -386,10 +469,11 @@ void immd_cb_dump(void)
                 TRACE_5("   MDS Node ID:  = %x",
                         m_NCS_NODE_ID_FROM_MDS_DEST(immnd_info_node->
                                                     immnd_dest));
-                TRACE_5("   Pid:%u Epoch:%u syncR:%u onCtrlr:%u isCoord:%u",
+                TRACE_5("   Pid:%u Epoch:%u syncR:%u syncS:%u onCtrlr:%u isCoord:%u",
                         immnd_info_node->immnd_execPid,
                         immnd_info_node->epoch,
                         immnd_info_node->syncRequested,
+                        immnd_info_node->syncStarted,
                         immnd_info_node->isOnController,
                         immnd_info_node->isCoord);
 

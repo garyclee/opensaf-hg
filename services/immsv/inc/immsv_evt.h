@@ -360,8 +360,10 @@ typedef struct immsv_d2nd_control
   SaUint32T rulingEpoch;
   SaUint64T fevsMsgStart;
   SaUint32T ndExecPid;
-  uns8      canBeCoord; //is this needed ?
+  uns8      canBeCoord; 
   uns8      isCoord;
+  uns8      syncStarted;
+  SaUint32T nodeEpoch;
 } IMMSV_D2ND_CONTROL;
 
 /****************************************************************************
