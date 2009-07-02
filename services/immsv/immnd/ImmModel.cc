@@ -263,6 +263,12 @@ static std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 
 
+void
+immModel_abortSync(IMMND_CB *cb)
+{
+    ImmModel::instance(&cb->immModel)->abortSync();
+}
+
 SaAisErrorT
 immModel_adminOwnerCreate(IMMND_CB *cb, 
     const ImmsvOmAdminOwnerInitialize* req,
@@ -1218,26 +1224,66 @@ ImmModel::abortSync()
         
         case IMM_NODE_R_AVAILABLE:
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE; 
-            LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE%u", 
+            LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE (%u)", 
                 __LINE__);
             break;
             
-        case IMM_NODE_FULLY_AVAILABLE:
+        case IMM_NODE_UNKNOWN:
         case IMM_NODE_ISOLATED: 
             break;
+
+        case IMM_NODE_FULLY_AVAILABLE:
+            LOG_WA("Abort sync received while being fully available, "
+                "should not happen.");
+            break;
             
-        case IMM_NODE_UNKNOWN:
         case IMM_NODE_W_AVAILABLE:
+            sImmNodeState = IMM_NODE_UNKNOWN;
+            LOG_IN("NODE STATE-> IMM_NODE_UNKNOW %u", __LINE__);
+            /* Aborting a started but not completed sync. */
+            LOG_NO("Abort sync: Discarding synced objects");
+            while(sObjectMap.size()) {
+                ObjectMap::iterator oi = sObjectMap.begin();
+                TRACE("sObjectmap.size:%u delete: %s", sObjectMap.size(),
+                    oi->first.c_str());
+                commitDelete(oi->first);
+            }
+
+            LOG_NO("Abort sync: Discarding synced classes");
+            while(sClassMap.size()) {
+                ClassMap::iterator ci = sClassMap.begin();
+                TRACE("Removing Class:%s", ci->first.c_str());
+                assert(ci->second->mRefCount == 0);
+                while(ci->second->mAttrMap.size()) {
+                    AttrMap::iterator ai = ci->second->mAttrMap.begin();
+                    TRACE("Remove Attr:%s", ai->first.c_str());
+                    AttrInfo* ainfo = ai->second;
+                    assert(ainfo);
+                    delete(ainfo);
+                    ci->second->mAttrMap.erase(ai);
+                }
+                delete ci->second;
+                updateImmObject(ci->first, true);
+                sClassMap.erase(ci);
+            }
+
+            assert(!sOwnerVector.size());
+            assert(!sCcbVector.size());
+            assert(!sImplementerVector.size());
+            assert(!sMissingParents.size());
+            break;
+
         case IMM_NODE_LOADING:
             
-            LOG_ER("Node is in a state that cannot accept abort "
-                " of sync, will terminate");
+            LOG_ER("Node is in a state %u that cannot accept abort "
+                " of sync, will terminate", sImmNodeState);
             assert(0);
         default:
             LOG_ER("Impossible node state, will terminate");
             assert(0);
             
     }
+    setSync(0);
 }
 
 /**

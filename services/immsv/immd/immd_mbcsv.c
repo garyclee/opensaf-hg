@@ -479,7 +479,7 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
     TRACE_ENTER();
 
 
-    /*  Increment the async update count cb->immd_sync_cnt
+    /*  Increment the update count cb->immd_sync_cnt
         This increments on the primary/active side (encode)
      */
 
@@ -511,45 +511,25 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
                     immd_msg->info.fevsReq.client_hdl);
             uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns64));
-            if (uns64_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space for Async count Failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns64_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns64));
             ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.sender_count);
 
             uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns64));
-            if (uns64_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space for Async count Failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns64_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns64));
             ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.reply_dest);
 
             uns64_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns64));
-            if (uns64_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space for Async count Failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns64_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns64));
             ncs_encode_64bit(&uns64_ptr, immd_msg->info.fevsReq.client_hdl);
 
             uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns32));
-            if (uns32_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space for Async count Failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns32_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
             ncs_encode_32bit(&uns32_ptr, immd_msg->info.fevsReq.msg.size);
 
@@ -567,18 +547,14 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
             uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns32));
-            if (uns32_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space for Async count Failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns32_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
             ncs_encode_32bit(&uns32_ptr, immd_msg->info.count);
             break;
 
         case IMMD_A2S_MSG_INTRO_RSP:
         case IMMD_A2S_MSG_SYNC_START:
+        case IMMD_A2S_MSG_SYNC_ABORT:
         case IMMD_A2S_MSG_DUMP_OK:
             TRACE_5("ENCODE NODE CONTROL MESSAGE");
 
@@ -587,59 +563,45 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
             uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns32));
-            if (uns32_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns32_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
             ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeId);
 
             uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns32));
-            if (uns32_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns32_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
             ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.rulingEpoch);
 
+            uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
+                                              sizeof(uns32));
+            assert(uns32_ptr);
+            ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
+            ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.ndExecPid);
+
             uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                              sizeof(uns8));
-            if (uns8_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns8_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns8));
             ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.canBeCoord);
 
             uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                              sizeof(uns8));
-            if (uns8_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns8_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns8));
             ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.isCoord);
 
+            uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
+                                             sizeof(uns8));
+            assert(uns8_ptr);
+            ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns8));
+            ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.syncStarted);
+
             uns32_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
                                               sizeof(uns32));
-            if (uns32_ptr == NULL)
-            {
-                LOG_ER("IMMD - Encode Reserve Space failed");
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-            }
+            assert(uns32_ptr);
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns32));
-            ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.ndExecPid);
-
+            ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeEpoch);
             break;
 
         case IMMD_A2S_MSG_RESET:
@@ -797,12 +759,19 @@ static uns32 mbcsv_enc_msg_resp(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
             ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns8));
             ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncRequested);
 
+            uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba,
+                                             sizeof(uns8));
+            assert(uns8_ptr);
+            ncs_enc_claim_space(&arg->info.encode.io_uba,sizeof(uns8));
+            ncs_encode_8bit(&uns8_ptr, immnd_info_node->syncStarted);
+
             TRACE_5("Cold sync encoded node:%x Pid:%u Epoch:%u syncR:%u "
-                "onCtrlr:%u isCoord:%u",
+                "syncS:%u onCtrlr:%u isCoord:%u",
                 immnd_info_node->immnd_key,
                 immnd_info_node->immnd_execPid,
                 immnd_info_node->epoch,
                 immnd_info_node->syncRequested,
+                immnd_info_node->syncStarted,
                 immnd_info_node->isOnController,
                 immnd_info_node->isCoord);
 
@@ -1021,6 +990,7 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
         case IMMD_A2S_MSG_INTRO_RSP:
         case IMMD_A2S_MSG_SYNC_START:
+        case IMMD_A2S_MSG_SYNC_ABORT:
         case IMMD_A2S_MSG_DUMP_OK:
             ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
                                         sizeof(uns32));
@@ -1030,6 +1000,11 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
             ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
                                         sizeof(uns32));
             immd_msg->info.ctrl.rulingEpoch = ncs_decode_32bit(&ptr);
+            ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
+
+            ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
+                                        sizeof(uns32));
+            immd_msg->info.ctrl.ndExecPid = ncs_decode_32bit(&ptr);
             ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
 
             ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
@@ -1043,11 +1018,14 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
             ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns8));
 
             ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
+                                        sizeof(uns8));
+            immd_msg->info.ctrl.syncStarted = ncs_decode_8bit(&ptr);
+            ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns8));
+
+            ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,
                                         sizeof(uns32));
-            immd_msg->info.ctrl.ndExecPid = ncs_decode_32bit(&ptr);
+            immd_msg->info.ctrl.nodeEpoch = ncs_decode_32bit(&ptr);
             ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns32));
-
-
 
             rc = immd_process_node_accept(cb, &immd_msg->info.ctrl);
             if (rc != NCSCC_RC_SUCCESS)
@@ -1068,7 +1046,6 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
 
     end: 
     free(immd_msg);
-    immd_cb_dump();
     TRACE_LEAVE();
     return rc;
 
@@ -1184,11 +1161,17 @@ static uns32 mbcsv_dec_sync_resp(IMMD_CB *cb,NCS_MBCSV_CB_ARG *arg)
         node_info->syncRequested = ncs_decode_8bit(&ptr);
         ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns8));
 
-        TRACE_5("Cold sync decoded Pid:%u Epoch:%u syncR:%u onCtrlr:%u "
-            "isCoord:%u", node_info->immnd_execPid, node_info->epoch,
-                node_info->syncRequested,
-                node_info->isOnController,
-                node_info->isCoord);  
+        ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(uns8));
+        node_info->syncStarted = ncs_decode_8bit(&ptr);
+        ncs_dec_skip_space(&arg->info.decode.i_uba,sizeof(uns8));
+
+        TRACE_5("Cold sync decoded Pid:%u Epoch:%u syncR:%u syncS:%u "
+            "onCtrlr:%u isCoord:%u", node_info->immnd_execPid, 
+            node_info->epoch,
+            node_info->syncRequested,
+            node_info->syncStarted,
+            node_info->isOnController,
+            node_info->isCoord);  
 
         /* Obtain next continue marker.*/
         ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba,data,sizeof(uns8));

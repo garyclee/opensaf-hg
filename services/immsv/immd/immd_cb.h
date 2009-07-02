@@ -57,6 +57,7 @@ typedef struct immd_immnd_info_node
     NCS_BOOL syncRequested;
     NCS_BOOL isOnController;
     NCS_BOOL isCoord;
+    NCS_BOOL syncStarted;
 } IMMD_IMMND_INFO_NODE;
 
 

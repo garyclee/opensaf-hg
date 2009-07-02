@@ -243,6 +243,9 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb,
 static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb,
     IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
+static uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb,
+    IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
 static uns32 immnd_evt_proc_class_desc_get(IMMND_CB *cb,
     IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immnd_evt_proc_search_init(IMMND_CB *cb,
@@ -652,7 +655,9 @@ void immnd_process_evt(void)
             rc = immnd_evt_proc_start_sync(cb, &evt->info.immnd, &evt->sinfo);
             break;
 
-
+        case IMMND_EVT_D2ND_SYNC_ABORT:
+            rc = immnd_evt_proc_abort_sync(cb, &evt->info.immnd, &evt->sinfo);
+            break;
 
         case IMMND_EVT_D2ND_GLOB_FEVS_REQ:
             rc = immnd_evt_proc_fevs_rcv(cb, &evt->info.immnd, &evt->sinfo);
@@ -3091,18 +3096,34 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb,
     if(cl_node == NULL || cl_node->mIsStale) {
         LOG_WA("IMMND - Client went down so no response");
         return NCSCC_RC_SUCCESS; /* no problem for IMMND. */
-    } 
+    }
+
 
     if(cl_node->mIsSync) { 
         assert(cb->mIsCoord);
         memset(&send_evt, 0, sizeof(IMMSV_EVT)); /*No pointers=>no leak*/
         send_evt.type = IMMSV_EVT_TYPE_IMMND;
         send_evt.info.immnd.type = IMMND_EVT_ND2ND_SYNC_FINALIZE;
+
+#if 0  /* Enable this code only to test failure of sync-process during sync*/
+        if(cb->mMyEpoch == 4)
+        {
+            LOG_NO("ABT FAULT INJECTION finalize sync fails");
+            err = SA_AIS_ERR_BAD_OPERATION;
+        } else
+#endif
+
         err = immModel_finalizeSync(cb, &send_evt.info.immnd.info.finSync, 
             SA_TRUE, SA_FALSE);
+
         if(err != SA_AIS_OK) {
             LOG_ER("Failed to encode IMMND finalize sync message");
-            /*assert(0);*/ /*If we fail in sync then restart the IMMND sync client.*/
+            /*assert(0);*/ 
+            /*If we fail in sync then restart the IMMND sync client.
+             This assumes that ImmModel::finalizeSync(,,T,F) does not 
+             alter model state (to fully available) *if* if returns error.
+            */
+            
         } else {
             /*Pack message for fevs.*/
             proc_rc = ncs_enc_init_space(&uba);
@@ -4529,6 +4550,56 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb,
             LOG_ER("Missmatch on epoch mine:%u proposed new epoch:%u",
                 cb->mMyEpoch, cb->mRulingEpoch);
         }
+    }
+    TRACE_LEAVE();
+    return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_abort_sync
+ *
+ * Description   : Function to process start sync message
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *                 IMMSV_SEND_INFO *sinfo - Sender MDS information.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ *****************************************************************************/
+uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb,
+    IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+    TRACE_ENTER();
+    assert(cb->mRulingEpoch <= evt->info.ctrl.rulingEpoch);
+    cb->mRulingEpoch = evt->info.ctrl.rulingEpoch;
+
+    LOG_WA("Global ABORT SYNC received for epoch %u", cb->mRulingEpoch);
+
+    if(cb->mIsCoord)
+    {/* coord should already be up to date.*/
+        assert(cb->mMyEpoch == cb->mRulingEpoch);
+    } else
+    { /* Noncoord IMMNDs */
+        if(cb->mState == IMM_SERVER_SYNC_CLIENT)
+        { /* Sync client will have to restart the sync*/
+            cb->mState = IMM_SERVER_LOADING_PENDING;
+            LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> "
+                "IMM SERVER LOADING PENDING (sync aborted)");
+            cb->mTimer = 0;
+            cb->mMyEpoch = 0;
+            cb->mSync = FALSE;
+            assert(!(cb->mAccepted));
+        } else if(cb->mState == IMM_SERVER_READY) { /* old (nonccord) members */
+            if(cb->mRulingEpoch == cb->mMyEpoch + 1) {
+                cb->mMyEpoch = cb->mRulingEpoch;
+            } else if(cb->mRulingEpoch != cb->mMyEpoch) {
+                LOG_ER("immnd_evt_proc_abort_sync not clean on epoch: "
+                    "RE:%u ME:%u", cb->mRulingEpoch, cb->mMyEpoch);
+            }
+            immnd_adjustEpoch(cb);
+        }
+        immModel_abortSync(cb);
     }
     TRACE_LEAVE();
     return NCSCC_RC_SUCCESS;

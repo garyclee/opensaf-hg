@@ -139,8 +139,8 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL* ctrl)
     IMMD_IMMND_INFO_NODE *immnd_info_node;
     TRACE_ENTER();
 
-    TRACE_5("NodeId: %x epoch:%u canBeCoord:%u isCoord:%u", 
-            ctrl->nodeId, ctrl->rulingEpoch, ctrl->canBeCoord, ctrl->isCoord);
+    TRACE_5("NodeId: %x epoch:%u canBeCoord:%u isCoord:%u syncStart:%u, rulingEpoch:%u", 
+            ctrl->nodeId, ctrl->nodeEpoch, ctrl->canBeCoord, ctrl->isCoord, ctrl->syncStarted, ctrl->rulingEpoch);
     if (cb->mRulingEpoch < ctrl->rulingEpoch)
     {
         cb->mRulingEpoch = ctrl->rulingEpoch;
@@ -162,9 +162,9 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL* ctrl)
 
     if (immnd_info_node)
     {
-        if (immnd_info_node->epoch <= ctrl->rulingEpoch)
+        if (immnd_info_node->epoch <= ctrl->nodeEpoch)
         {
-            immnd_info_node->epoch = ctrl->rulingEpoch;
+            immnd_info_node->epoch = ctrl->nodeEpoch;
         }
         if (!(immnd_info_node->isOnController) && ctrl->canBeCoord)
         {
@@ -177,6 +177,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL* ctrl)
         if(ctrl->isCoord) {
             cb->immnd_coord = immnd_info_node->immnd_key;
             LOG_IN("IMMND coord at %x", immnd_info_node->immnd_key);
+            immnd_info_node->syncStarted = ctrl->syncStarted;
         } 
         
 
@@ -196,6 +197,7 @@ uns32 immd_process_node_accept(IMMD_CB *cb, IMMSV_D2ND_CONTROL* ctrl)
             ctrl->nodeId);
     }
     TRACE_LEAVE();
+    immd_cb_dump();
     return rc;
 }
 

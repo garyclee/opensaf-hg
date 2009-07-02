@@ -38,6 +38,10 @@ static uns32 immd_evt_proc_immnd_announce_load(IMMD_CB *cb,
                                                IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb, 
                                                IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+
+static uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, 
+    IMMSV_SEND_INFO *sinfo);
+
 static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, 
                                                IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
 static uns32 immd_evt_proc_adminit_req(IMMD_CB *cb,    
@@ -117,6 +121,9 @@ void immd_process_evt(void)
             break;
         case IMMD_EVT_ND2D_SYNC_START:
             rc = immd_evt_proc_immnd_announce_sync(cb, &evt->info.immd, &evt->sinfo);
+            break;
+        case IMMD_EVT_ND2D_SYNC_ABORT:
+            rc = immd_evt_proc_immnd_abort_sync(cb, &evt->info.immd, &evt->sinfo);
             break;
         case IMMD_EVT_ND2D_ANNOUNCE_DUMP:
             rc = immd_evt_proc_immnd_announce_dump(cb, &evt->info.immd, &evt->sinfo);
@@ -335,6 +342,8 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch,
     memset(&sync_evt, 0, sizeof(IMMSV_EVT));
     memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
 
+    node_info->syncStarted = TRUE;
+
     sync_evt.type = IMMSV_EVT_TYPE_IMMND;
     sync_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_START;
     sync_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
@@ -343,6 +352,8 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch,
     sync_evt.info.immnd.info.ctrl.canBeCoord = node_info->isOnController;
     sync_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
     sync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
+    sync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
+    sync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
 
     mbcp_msg.type = IMMD_A2S_MSG_SYNC_START;
     mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
@@ -362,6 +373,54 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch,
     {
         TRACE_5("failed to send message to IMMNDs");
     }
+
+    immd_cb_dump();
+    TRACE_LEAVE();
+}
+
+static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
+{
+    uns32                proc_rc = NCSCC_RC_SUCCESS;
+    IMMSV_EVT            sync_evt;
+    IMMD_MBCSV_MSG       mbcp_msg;
+    TRACE_ENTER();
+
+    memset(&sync_evt, 0, sizeof(IMMSV_EVT));
+    memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+
+    node_info->syncStarted = FALSE;
+
+    sync_evt.type = IMMSV_EVT_TYPE_IMMND;
+    sync_evt.info.immnd.type = IMMND_EVT_D2ND_SYNC_ABORT;
+    sync_evt.info.immnd.info.ctrl.nodeId = node_info->immnd_key;
+    sync_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
+    sync_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+    sync_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
+    sync_evt.info.immnd.info.ctrl.canBeCoord = node_info->isOnController;
+    sync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
+    sync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
+    sync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+
+    mbcp_msg.type = IMMD_A2S_MSG_SYNC_ABORT;
+    mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
+
+    proc_rc = immd_mbcsv_sync_update(cb,&mbcp_msg);
+    if (proc_rc != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("failed to replicate start_sync_ok message to stdby err:%u", 
+               proc_rc);
+        TRACE_LEAVE();
+        return;
+    }
+
+    proc_rc = immd_mds_bcast_send(cb, &sync_evt, NCSMDS_SVC_ID_IMMND); 
+
+    if (proc_rc !=  NCSCC_RC_SUCCESS)
+    {
+        TRACE_5("failed to send message to IMMNDs");
+    }
+
+    immd_cb_dump();
     TRACE_LEAVE();
 }
 
@@ -383,6 +442,9 @@ static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch,
     dump_evt.info.immnd.info.ctrl.canBeCoord = node_info->isOnController;
     dump_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
     dump_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
+    dump_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+    dump_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
+    dump_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
 
     mbcp_msg.type = IMMD_A2S_MSG_DUMP_OK;
     mbcp_msg.info.ctrl = dump_evt.info.immnd.info.ctrl;
@@ -454,6 +516,11 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
     rqsync_evt.info.immnd.info.ctrl.nodeId = node_info->immnd_key;
     rqsync_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
     rqsync_evt.info.immnd.info.ctrl.canBeCoord = node_info->isOnController;
+    rqsync_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+    rqsync_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
+    rqsync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
+    rqsync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
+    rqsync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
 
     if (!(cb->immnd_coord))
     {
@@ -540,6 +607,9 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info,
     accept_evt.info.immnd.info.ctrl.rulingEpoch = cb->mRulingEpoch;
     accept_evt.info.immnd.info.ctrl.canBeCoord = isOnController;
     accept_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
+    accept_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
+    accept_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+
 
     if (isOnController && (cb->immnd_coord == 0))
     {
@@ -554,6 +624,7 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info,
     if (node_info->isCoord)
     {
         accept_evt.info.immnd.info.ctrl.isCoord = TRUE;
+        accept_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
     }
 
     mbcp_msg.type = IMMD_A2S_MSG_INTRO_RSP;
@@ -784,6 +855,70 @@ static uns32 immd_evt_proc_immnd_announce_sync(IMMD_CB *cb,
     return proc_rc;
 }
 
+
+
+/****************************************************************************
+ * Name          : immd_evt_proc_immnd_abort_sync
+ *
+ * Description   : Function to process the IMMD_EVT_ND2D_SYNC_ABORT event 
+ *
+ * Arguments     : IMMD_CB *cb - IMMD CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ ****************************************************************************/
+uns32 immd_evt_proc_immnd_abort_sync(IMMD_CB *cb, IMMD_EVT *evt, 
+    IMMSV_SEND_INFO *sinfo)
+{
+    uns32 proc_rc = NCSCC_RC_SUCCESS;
+    IMMD_IMMND_INFO_NODE *node_info=NULL;
+    TRACE_ENTER();
+    immd_immnd_info_node_get(&cb->immnd_tree, &sinfo->dest, &node_info);
+    if (node_info)
+    {
+        if (node_info->immnd_execPid != evt->info.ctrl_msg.ndExecPid)
+        {
+            LOG_ER("Abort sync: wrong PID %u != %u", 
+                node_info->immnd_execPid,
+                evt->info.ctrl_msg.ndExecPid);
+            proc_rc = NCSCC_RC_FAILURE;
+        }
+
+        if (node_info->immnd_key != cb->immnd_coord)
+        {
+            LOG_ER("Abort sync: not Coord! %x != %x", node_info->immnd_key, 
+                cb->immnd_coord);
+            proc_rc = NCSCC_RC_FAILURE;
+        }
+
+        if (node_info->epoch != cb->mRulingEpoch)
+        {
+            LOG_ER("Abort sync: wrong Epoch %u != %u", node_info->epoch, 
+                cb->mRulingEpoch);
+            proc_rc = NCSCC_RC_FAILURE;
+        }
+
+        if (proc_rc == NCSCC_RC_SUCCESS)
+        {
+            /*Updates epoch for coord.*/
+            immd_abort_sync_ok(cb, node_info);
+
+            LOG_IN("Successfully aborted sync. Epoch:%u",
+                   cb->mRulingEpoch);
+        }
+    }
+    else
+    {
+        LOG_ER("Node not found %llu", sinfo->dest);
+        proc_rc = NCSCC_RC_FAILURE;
+    }
+    TRACE_LEAVE();
+    return proc_rc;
+}
+
+
+
 /****************************************************************************
  * Name          : immd_evt_proc_immnd_announce_load
  *
@@ -981,6 +1116,16 @@ static uns32 immd_evt_proc_immnd_intro(IMMD_CB *cb,
 
             node_info->immnd_execPid = newPid;
             node_info->epoch = newEpoch;
+
+            if(node_info->syncStarted)
+            {
+                assert(oldPid == newPid);
+                assert(node_info->isCoord);
+                assert(node_info->isOnController);
+                assert(node_info->epoch == cb->mRulingEpoch);
+                node_info->epoch = cb->mRulingEpoch;
+                node_info->syncStarted = FALSE;
+            }
 
             /*is this check necessary ?? 
               It could happen with EVS but not with FEVS.*/
