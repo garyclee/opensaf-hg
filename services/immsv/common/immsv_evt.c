@@ -3425,6 +3425,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                 immaevt->info.searchRemote.objectName.size = ncs_decode_32bit(&p8);
                 ncs_dec_skip_space(i_ub, 4); 
 
+                p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                 if(ncs_decode_8bit(&p8)) 
                 {
                     /*Bogus pointer-val forces decode_sublevel to 
@@ -3439,6 +3440,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                 immaevt->info.classDescr.classCategory = ncs_decode_32bit(&p8);
                 ncs_dec_skip_space(i_ub, 4);
 
+                p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                 if(ncs_decode_8bit(&p8)) 
                 {
                     /*Bogus pointer-val forces decode_sublevel to 
@@ -3888,6 +3890,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     immndevt->info.rtAttUpdRpl.sr.objectName.size = ncs_decode_32bit(&p8);
                     ncs_dec_skip_space(i_ub, 4);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4108,6 +4111,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     ncs_dec_skip_space(i_ub, 4);
                     /* immndevt->info.obj_sync.objectName.buf decoded by sublevel */
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4241,6 +4245,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     immndevt->info.finSync.lastContinuationId = ncs_decode_32bit(&p8);
                     ncs_dec_skip_space(i_ub, 4);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4249,6 +4254,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     }
                     ncs_dec_skip_space(i_ub, 1);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4257,6 +4263,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     }
                     ncs_dec_skip_space(i_ub, 1);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4290,6 +4297,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     ncs_dec_skip_space(i_ub, 4);
                     /* immndevt->info.searchRemote.objectName.buf decoded by sublevel */
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4323,6 +4331,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     ncs_dec_skip_space(i_ub, 4);
                     /* immndevt->info.rspSrchRmte.objectName.buf decoded by sublevel */
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         /*Bogus pointer-val forces decode_sublevel to 
@@ -4357,12 +4366,14 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
                     immndevt->info.ctrl.ndExecPid = ncs_decode_32bit(&p8);
                     ncs_dec_skip_space(i_ub, 4);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         immndevt->info.ctrl.canBeCoord = TRUE; 
                     }
                     ncs_dec_skip_space(i_ub, 1);
 
+                    p8 = ncs_dec_flatten_space(i_ub,local_data, 1);
                     if(ncs_decode_8bit(&p8)) 
                     {
                         immndevt->info.ctrl.isCoord = TRUE;
