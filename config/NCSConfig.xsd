@@ -1253,12 +1253,12 @@ should use a default value instead.</xs:documentation>
 											<xs:sequence>
 												<xs:element name="sndHbInt" type="xs:nonNegativeInteger">
 													<xs:annotation>
-														<xs:documentation>AVD to AVND heartbeat interval</xs:documentation>
+														<xs:documentation>AVD to AVND heartbeat interval in milli seconds</xs:documentation>
 													</xs:annotation>
 												</xs:element>
 												<xs:element name="rcvHbInt" type="xs:nonNegativeInteger">
 													<xs:annotation>
-														<xs:documentation>Avnd to AVD </xs:documentation>
+														<xs:documentation>Avnd to AVD heartbeat interval in milli seconds</xs:documentation>
 													</xs:annotation>
 												</xs:element>
 												<xs:element name="clusterInitTime" type="xs:nonNegativeInteger" minOccurs="0">
