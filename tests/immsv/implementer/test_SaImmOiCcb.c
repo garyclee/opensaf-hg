@@ -204,7 +204,7 @@ static void *objectImplementerThreadMain(void *arg)
     /* We can receive five callbacks: create, delete, modify, completed & apply */
     while(1)
     {
-        ret = poll(fds, 1, 1000);
+        ret = poll(fds, 1, 2000);
         if (ret == 0)
         {
             TRACE("poll timeout\n");
@@ -253,7 +253,7 @@ static void *classImplementerThreadMain(void *arg)
 
     while(1)
     {
-        ret = poll(fds, 1, 1000);
+        ret = poll(fds, 1, 2000);
         if (ret == 0)
         {
             TRACE("poll timeout\n");
@@ -380,6 +380,7 @@ static void saImmOiCcb_01(void)
     res = pthread_create(&thread[1], NULL, objectImplementerThreadMain, &dnObj2);
     assert(res == 0);
 
+    sleep(1); /* Race condition, allow implementer threads to set up !*/
     rc = om_ccb_exec();
 
     pthread_join(thread[0], NULL);
@@ -406,6 +407,7 @@ static void saImmOiCcb_02(void)
     assert(res == 0);
 
     saImmOiCcbObjectDeleteCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    sleep(1); /* Race condition, allow implementer threads to set up!*/
     rc = om_ccb_exec();
 
     pthread_join(thread[0], NULL);
@@ -429,7 +431,8 @@ static void saImmOiCcb_03(void)
     /* Create implementer threads */
     res = pthread_create(&thread[0], NULL, classImplementerThreadMain, testConfigClassName);
     assert(res == 0);
- 
+    
+    sleep(1); /* Race condition, allow implementer threads to set up!*/
     rc = om_ccb_exec();
 
     pthread_join(thread[0], NULL);
@@ -453,6 +456,7 @@ static void saImmOiCcb_04(void)
     assert(res == 0);
  
     saImmOiCcbObjectModifyCallback_response = SA_AIS_ERR_BAD_OPERATION;
+    sleep(1); /* Race condition, allow implementer threads to set up!*/
     rc = om_ccb_exec();
 
     pthread_join(thread[0], NULL);
