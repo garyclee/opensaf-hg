@@ -126,6 +126,12 @@ typedef SaUint32T ImmObjectFlags;
 //Even in the SAME ccb it is not allowed to create subobject to a registered
 //delete. 
 
+#define IMM_DN_INTERNAL_REP 0x00000004
+//If this flag is set it indicates that the DN has been changed in rep
+//from external rep to an internal rep, where any escaped commas "\," 
+//in external rep have been replaced by an escape hash "\#" in internal rep;
+//Escape hash in external rep are not allowed, will be rejected in create.
+
 struct ObjectInfo  
 {
     void             getAdminOwnerName(std::string *str) const;
@@ -136,7 +142,7 @@ struct ObjectInfo
     ImmAttrValueMap  mAttrValueMap; //<-Each ImmAttrValue needs explicit delete
     ClassInfo*       mClassInfo;    //<-Points INTO ClassMap. Not own copy!
     ImplementerInfo* mImplementer;  //<-Points INTO ImplementerVector
-    ImmObjectFlags   mFlags;
+    ImmObjectFlags   mObjFlags;
 };
 //typedef std::map<std::string, ObjectInfo*> ObjectMap;  
 typedef std::set<ObjectInfo*> ObjectSet;
@@ -2157,7 +2163,8 @@ void
 ImmModel::commitCreate(ObjectInfo* obj)
 {
     //obj->mCreateLock = false;
-    obj->mFlags &= ~IMM_CREATE_LOCK;
+    obj->mObjFlags &= ~IMM_CREATE_LOCK;
+    TRACE_5("Flags after remove create lock:%u", obj->mObjFlags);
 }
 
 void
@@ -2218,7 +2225,7 @@ ImmModel::commitDelete(const std::string& dn)
     oi->second->mAdminOwnerAttrVal=0;
     oi->second->mClassInfo=0;
     oi->second->mImplementer=0;
-    oi->second->mFlags = 0;
+    oi->second->mObjFlags = 0;
     
     TRACE_5("delete object '%s'", oi->first.c_str());
     AdminOwnerVector::iterator i2;
@@ -2477,7 +2484,9 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     TRACE_2("Aborting Delete of %s", omit->first.c_str());
                     oi = sObjectMap.find(omit->first);
                     assert(oi != sObjectMap.end());
-                    oi->second->mFlags &= ~IMM_DELETE_LOCK;//Remove delete lock
+                    oi->second->mObjFlags &= ~IMM_DELETE_LOCK;//Remove delete lock
+                    TRACE_5("Flags after remove delete lock:%u", 
+                        oi->second->mObjFlags);
                     break;
                     
                 case IMM_CREATE: {
@@ -2518,7 +2527,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                     afim->mAdminOwnerAttrVal=0;
                     afim->mClassInfo=0;
                     afim->mImplementer=0;
-                    afim->mFlags=0;
+                    afim->mObjFlags=0;
                     delete afim;
                 }
                     break;
@@ -2663,15 +2672,20 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     
     immsv_attr_values_list* attrValues = NULL;
     
-    
+    bool nameCorrected = false;
+
     //int isLoading = this->getLoader() > 0;
     int isLoading = (sImmNodeState == IMM_NODE_LOADING);
     
     if(!nameCheck(parentName)) {
-        TRACE_7("Not a proper parent name:%s size:%u", 
-            parentName.c_str(), (unsigned int) parentName.size());
-        err = SA_AIS_ERR_INVALID_PARAM;
-        goto ccbObjectCreateExit;
+        if(nameToInternal(parentName)) {
+            nameCorrected = true;
+        } else {
+            TRACE_7("Not a proper parent name:%s size:%u", 
+                parentName.c_str(), (unsigned int) parentName.size());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto ccbObjectCreateExit;
+        }
     }
     
     if(!nameCheck(className)) {
@@ -2754,7 +2768,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             }
         } else {
             parent = i5->second;
-            if((parent->mFlags & IMM_CREATE_LOCK) && 
+            if((parent->mObjFlags & IMM_CREATE_LOCK) && 
                 (parent->mCcbId != ccbId)) {
                 TRACE_7("Parent object '%s' is being created in a different "
                     "ccb %u from the ccb for this create %u", 
@@ -2762,8 +2776,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 err = SA_AIS_ERR_NOT_EXIST;
                 goto ccbObjectCreateExit;
             }
-            if(parent->mFlags & IMM_DELETE_LOCK) {
-                TRACE_7("Parent object '%s' is for delete in ccb: %u. "
+            if(parent->mObjFlags & IMM_DELETE_LOCK) {
+                TRACE_7("Parent object '%s' is locked for delete in ccb: %u. "
                     "Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -2826,9 +2840,11 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 goto ccbObjectCreateExit;
             }
             
-            if((size_t)attrValues->n.attrValue.val.x.size > 64) {
-                TRACE_7("RDN attribute is too large: %u. Max length is 64", 
-                    attrValues->n.attrValue.val.x.size);
+            if(((size_t)attrValues->n.attrValue.val.x.size > 64) &&
+                (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT))
+            {
+                TRACE_7("RDN attribute is too large: %u. Max length is 64 "
+                    "for SaStringT", attrValues->n.attrValue.val.x.size);
                 err = SA_AIS_ERR_INVALID_PARAM;     
                 goto ccbObjectCreateExit;
             }
@@ -2859,16 +2875,20 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         goto ccbObjectCreateExit;
     }
     
+    if(!nameCheck(objectName)) {
+        if(nameToInternal(objectName)) {
+            nameCorrected = true;
+        } else {
+            TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
+                (unsigned int) objectName.length());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto ccbObjectCreateExit;
+        }
+    }
+    
     if(objectName.find(',') != std::string::npos) {
         TRACE_7("Can not tollerate ',' in RDN");
         err = SA_AIS_ERR_INVALID_PARAM;     
-        goto ccbObjectCreateExit;
-    }
-    
-    if(!nameCheck(objectName)) {
-        TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
-            (unsigned int) objectName.length());
-        err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
     }
     
@@ -2885,7 +2905,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
-        if(i5->second->mFlags & IMM_CREATE_LOCK) {
+        if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("object '%s' is already registered "
                 "for creation in a ccb, but not applied yet", 
                 objectName.c_str());
@@ -2902,8 +2922,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         object->mCcbId = req->ccbId;
         object->mClassInfo = classInfo;
         object->mImplementer = classInfo->mImplementer;
-        //Set all flags to zero except create!
-        object->mFlags = IMM_CREATE_LOCK; 
+        //Note: mObjFlags is both initialized and assigned below
+        if(nameCorrected) {
+            object->mObjFlags = IMM_CREATE_LOCK | IMM_DN_INTERNAL_REP;
+        } else {
+            object->mObjFlags = IMM_CREATE_LOCK;
+        }
+        TRACE_5("Flags after insert create lock:%u", 
+            object->mObjFlags);
         
         
         // Add attributes to object
@@ -3243,7 +3269,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     bool chainedOp = false;
     immsv_attr_mods_list* p = req->attrMods;
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7( "Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectModifyExit;
@@ -3363,7 +3389,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         afim->mCcbId = ccbId;
         afim->mClassInfo = classInfo;
         afim->mImplementer = object->mImplementer;
-        afim->mFlags = object->mFlags;
+        afim->mObjFlags = object->mObjFlags;
         
         
         // Copy attribute values from existing object version to afim
@@ -3678,7 +3704,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     AdminOwnerVector::iterator i2;
     ObjectMap::iterator oi, oi2;
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7( "Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectDeleteExit;
@@ -3836,7 +3862,9 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     
     if(doIt) {
         oi->second->mCcbId = ccb->mId; //Overwrite any old obsolete ccb id.
-        oi->second->mFlags |= IMM_DELETE_LOCK;//Prevents creates of subobjects.
+        oi->second->mObjFlags |= IMM_DELETE_LOCK;//Prevents creates of subobjects.
+        TRACE_5("Flags after insert delete lock:%u", 
+            oi->second->mObjFlags);
         
         ObjectMutation* oMut = 
             new ObjectMutation(IMM_DELETE);
@@ -4171,7 +4199,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     }
     
     // Validate object name
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7( "Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto accessorExit;
@@ -4183,7 +4211,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
             TRACE_7("Object '%s' does not exist", objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
-        } else if(i->second->mFlags & IMM_CREATE_LOCK) {
+        } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("Object '%s' is being created, but ccb not yet applied", 
                 objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
@@ -4223,6 +4251,9 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     //if the attribute is not defined in the class of the object. 
     
     obj = i->second;
+    if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
+        nameToExternal(objectName);
+    }
     op.addObject(objectName);
     for(j = obj->mAttrValueMap.begin(); j != obj->mAttrValueMap.end(); j++) {
         if(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) {
@@ -4429,7 +4460,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     ObjectMap::iterator i;
     
     // Validate root name
-    if(!nameCheck(rootName)) {
+    if(! (nameCheck(rootName)||nameToInternal(rootName)) ) {
         TRACE_7( "Not a proper root name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
@@ -4441,7 +4472,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
             TRACE_7("root object '%s' does not exist", rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
-        } else if(i->second->mFlags & IMM_CREATE_LOCK) {
+        } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("Root object '%s' is being created, "
                 "but ccb not yet applied", rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
@@ -4473,7 +4504,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         case SA_IMM_SEARCH_GET_NO_ATTR:  break;
         case SA_IMM_SEARCH_GET_SOME_ATTR: break;
         default:
-            TRACE_7( "invalid search option");
+            TRACE_7("invalid search option");
             err = SA_AIS_ERR_INVALID_PARAM;
             goto searchInitializeExit;
     }
@@ -4485,7 +4516,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     for (i = sObjectMap.begin(); 
          err==SA_AIS_OK && i != sObjectMap.end(); i++) {
         ObjectInfo* obj = i->second;
-        if(obj->mFlags & IMM_CREATE_LOCK) {continue;}
+        if(obj->mObjFlags & IMM_CREATE_LOCK) {continue;}
         std::string objectName = i->first;
         size_t rootlen = rootName.length();
         if (objectName.length() >= rootlen) {
@@ -4505,7 +4536,12 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                             err, objectName.c_str())) {
                         continue; //filter missmatch
                     }
+                    if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
+                        nameToExternal(objectName);
+                    }
+                    TRACE_7("Add object:%s flags:%u", objectName.c_str(), obj->mObjFlags);
                     op.addObject(objectName);
+
                     if(searchOptions & (SA_IMM_SEARCH_GET_ALL_ATTR |
                            SA_IMM_SEARCH_GET_SOME_ATTR)) {
                         ImmAttrValueMap::iterator j;
@@ -4661,7 +4697,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     ObjectMap::iterator oi;
     std::string objAdminOwnerName;
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7( "Not a proper object name");
         TRACE_LEAVE();
         return SA_AIS_ERR_INVALID_PARAM;
@@ -4865,22 +4901,85 @@ ImmModel::checkSubLevel(const std::string& objectName,
 }
 
 bool
-ImmModel::nameCheck(const std::string& name) const
+ImmModel::nameCheck(const std::string& name, bool strict) const
 {
     size_t pos;
     size_t len = name.length();
+    unsigned char prev_chr = '\0';
     
     for(pos=0; pos < len; ++pos) {
-        if(!isgraph(name.at(pos)) && 
-            !(name.at(pos) == '\0' && pos == len - 1))
+        unsigned char chr = name.at(pos);
+        
+        if((((chr == ',') || (strict && (chr == '#'))) && 
+               (prev_chr == '\\')) || 
+            !isgraph(chr) && !(chr == '\0' && pos == len - 1))
         {
             TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());
-            TRACE_5("isgraph(%c) = %c, pos=%u", isgraph(name.at(pos)), 
-                name.at(pos), (unsigned int) pos);
+            TRACE_5("isgraph(%c):%u, pos=%u", chr, isgraph(chr), 
+                (unsigned int) pos);
             return false;
         }
+        prev_chr = chr;
     }
     return true;
+}
+
+bool
+ImmModel::nameToInternal(std::string& name)
+{
+    bool effective = false;
+    size_t pos;
+    size_t len = name.length();
+    unsigned char prev_chr = '\0';
+    
+    for(pos=0; pos < len; ++pos) {
+        unsigned char chr = name.at(pos);
+        //TRACE("nameToInternal: %u %u %c", len, pos, chr);
+        if(prev_chr == '\\') {
+            if(chr == ',') 
+            {
+                name.replace(pos, 1, 1, '#');
+                effective = true;
+            } else if(chr == '#') {
+                LOG_WA("Can not accept external DN with escaped hash '\\#' "
+                    "pos:%u in %s", pos, name.c_str());
+                return false;
+            }
+        }
+        prev_chr = chr;
+    }
+
+    if(effective) {
+        TRACE_5("Replaced occurences of '\\,' with '\\#' result:%s",
+            name.c_str());
+    }
+
+    return nameCheck(name, false);
+}
+
+void
+ImmModel::nameToExternal(std::string& name)
+{
+    bool effective = false;
+    size_t pos;
+    size_t len = name.length();
+    unsigned char prev_chr = '\0';
+    
+    for(pos=0; pos < len; ++pos) {
+        unsigned char chr = name.at(pos);
+        //TRACE("nameToInternal: %u %u %c", len, pos, chr);
+        if((chr == '#') && (prev_chr == '\\'))
+        {
+            name.replace(pos, 1, 1, ',');
+            effective = true;
+        }
+        prev_chr = chr;
+    }
+
+    if(effective) {
+        TRACE_5("Replaced occurences of '\\#' with '\\,' result:%s",
+            name.c_str());
+    }
 }
 
 void
@@ -5597,7 +5696,7 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string objectName((const char *)req->impl_name.buf, sz);
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7("Not a proper object DN");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -5681,7 +5780,7 @@ SaAisErrorT ImmModel::objectImplementerRelease(
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string objectName((const char *)req->impl_name.buf, sz);
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7("Not a proper object DN");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -6004,6 +6103,8 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     ImmAttrValueMap::iterator i6;
     
     immsv_attr_values_list* attrValues = NULL;
+
+    bool nameCorrected = false;
     
     /*Should rename member adminOwnerId. Used to store implid here.*/
     ImplementerInfo* info = findImplementer(req->adminOwnerId);
@@ -6028,10 +6129,14 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     //all nodes for the same implementer. 
     
     if(!nameCheck(parentName)) {
-        TRACE_7("Not a proper parent name:%s size:%u",
-            parentName.c_str(), (unsigned int) parentName.size());
-        err = SA_AIS_ERR_INVALID_PARAM;
-        goto rtObjectCreateExit;
+        if(nameToInternal(parentName)) {
+            nameCorrected = true;
+        } else {
+            TRACE_7("Not a proper parent name:%s size:%u",
+                parentName.c_str(), (unsigned int) parentName.size());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto rtObjectCreateExit;
+        }
     }
     
     if(!nameCheck(className)) {
@@ -6062,7 +6167,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             goto rtObjectCreateExit;
         } else {
             parent = i->second;
-            if(parent->mFlags & IMM_CREATE_LOCK) {
+            if(parent->mObjFlags & IMM_CREATE_LOCK) {
                 TRACE_7("parent object '%s' is being created "
                     "in a ccb %u that has not yet been applied.", 
                     parentName.c_str(), parent->mCcbId);
@@ -6070,7 +6175,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 goto rtObjectCreateExit;
             }
             
-            if(parent->mFlags & IMM_DELETE_LOCK) {
+            if(parent->mObjFlags & IMM_DELETE_LOCK) {
                 TRACE_7("parent object '%s' is registered for delete in ccb: "
                     "%u. Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
@@ -6106,9 +6211,11 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 goto rtObjectCreateExit;
             }
             
-            if((size_t)attrValues->n.attrValue.val.x.size > 64) {
-                TRACE_7("RDN attribute is too large: %u. Max length is 64", 
-                    attrValues->n.attrValue.val.x.size);
+            if(((size_t)attrValues->n.attrValue.val.x.size > 64) &&
+                (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT))
+            {
+                TRACE_7("RDN attribute is too large: %u. Max length is 64 "
+                    "for SaStringT", attrValues->n.attrValue.val.x.size);
                 err = SA_AIS_ERR_INVALID_PARAM;     
                 goto rtObjectCreateExit;
             }
@@ -6156,10 +6263,14 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if(!nameCheck(objectName)) {
-        TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
-            (unsigned int) objectName.length());
-        err = SA_AIS_ERR_INVALID_PARAM;
-        goto rtObjectCreateExit;
+        if(nameToInternal(objectName)) {
+            nameCorrected = true;
+        } else {
+            TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
+                (unsigned int) objectName.length());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto rtObjectCreateExit;
+        }
     }
     
     if (parent) {
@@ -6175,7 +6286,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
-        if(i5->second->mFlags & IMM_CREATE_LOCK) {
+        if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("object '%s' is already registered "
                 "for creation in a ccb, but not applied yet", 
                 objectName.c_str());
@@ -6191,7 +6302,11 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         object->mCcbId = 0;
         object->mClassInfo = classInfo;
         object->mImplementer = info;
-        object->mFlags = 0;
+        if(nameCorrected) {
+            object->mObjFlags = IMM_DN_INTERNAL_REP;
+        } else {
+            object->mObjFlags = 0;
+        }
         
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); 
@@ -6399,7 +6514,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     bool wasLocal = *isPureLocal;
     if(wasLocal) {assert(conn);}  //Assert may be a bit too strong here
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7("Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectUpdateExit;
@@ -6724,7 +6839,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     
     ObjectMap::iterator oi, oi2;
     
-    if(!nameCheck(objectName)) {
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         TRACE_7("Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectDeleteExit;
@@ -6842,7 +6957,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         object->mAdminOwnerAttrVal=0;
         object->mClassInfo=0;
         object->mImplementer = 0;
-        object->mFlags = 0;
+        object->mObjFlags = 0;
         
         LOG_IN("DELETE runtime object '%s' by Impl-id: %u", 
             oi->first.c_str(), info->mId);
@@ -6871,6 +6986,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     TRACE_ENTER();
     SaAisErrorT err=SA_AIS_OK;
     immsv_attr_values_list* p = NULL;
+    bool nameCorrected = false;
     
     switch(sImmNodeState){ 
         case IMM_NODE_W_AVAILABLE:
@@ -6904,10 +7020,14 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     ObjectMap::iterator i5;
     
     if(!nameCheck(objectName)) {
-        TRACE_7("Not a proper object name:%s size:%u", 
-            objectName.c_str(), (unsigned int) objectName.size());
-        err = SA_AIS_ERR_INVALID_PARAM;
-        goto objectSyncExit;
+        if(nameToInternal(objectName)) {
+            nameCorrected = true;
+        } else {
+            TRACE_7("Not a proper object name:%s size:%u", 
+                objectName.c_str(), (unsigned int) objectName.size());
+            err = SA_AIS_ERR_INVALID_PARAM;
+            goto objectSyncExit;
+        }
     }
     
     if (i3 == sClassMap.end()) {
@@ -6925,7 +7045,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     }
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
-        if(i5->second->mFlags & IMM_CREATE_LOCK) {
+        if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
             TRACE_7("object '%s' is already registered for creation in a ccb, "
                 "but not applied yet", objectName.c_str());
         } else {
@@ -6942,7 +7062,11 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         object->mCcbId = 0;
         object->mClassInfo = classInfo;
         object->mImplementer = 0; //Implementer will be corrected later.
-        object->mFlags = 0;
+        if(nameCorrected) {
+            object->mObjFlags = IMM_DN_INTERNAL_REP;
+        } else {
+            object->mObjFlags = 0;
+        }
         
         // Add attributes to object
         for (i4 = classInfo->mAttrMap.begin(); i4 != classInfo->mAttrMap.end();

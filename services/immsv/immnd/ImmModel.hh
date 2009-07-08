@@ -398,7 +398,9 @@ private:
                                      const std::string& objectName, 
                                      size_t rootStart);
 
-    bool               nameCheck(const std::string& name) const;
+    bool            nameCheck(const std::string& name, bool strict=true) const;
+    bool            nameToInternal(std::string& name);
+    void            nameToExternal(std::string& name);
     
     void               updateImmObject(
                                        std::string newClassName, 
