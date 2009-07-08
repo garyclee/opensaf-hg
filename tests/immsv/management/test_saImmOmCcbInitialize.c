@@ -80,6 +80,7 @@ extern void saImmOmCcbObjectCreate_03(void);
 extern void saImmOmCcbObjectCreate_04(void);
 extern void saImmOmCcbObjectCreate_05(void);
 extern void saImmOmCcbObjectCreate_06(void);
+extern void saImmOmCcbObjectCreate_07(void);
 extern void saImmOmCcbObjectDelete_01(void);
 extern void saImmOmCcbObjectDelete_02(void);
 extern void saImmOmCcbObjectDelete_03(void);
@@ -110,6 +111,7 @@ __attribute__ ((constructor)) static void saImmOmInitialize_constructor(void)
     test_case_add(6, saImmOmCcbObjectCreate_04, "saImmOmCcbObjectCreate - SA_AIS_ERR_BAD_OPERATION");
     test_case_add(6, saImmOmCcbObjectCreate_05, "saImmOmCcbObjectCreate - SA_AIS_ERR_EXIST");
     test_case_add(6, saImmOmCcbObjectCreate_06, "saImmOmCcbObjectCreate - SA_AIS_ERR_NOT_EXIST");
+    test_case_add(6, saImmOmCcbObjectCreate_07, "saImmOmCcbObjectCreate (association class) - SA_AIS_OK");
 
     test_case_add(6, saImmOmCcbObjectDelete_01, "saImmOmCcbObjectDelete - SA_AIS_OK");
     test_case_add(6, saImmOmCcbObjectDelete_02, "saImmOmCcbObjectDelete - SA_AIS_ERR_BAD_HANDLE");

@@ -218,7 +218,7 @@ void saImmOmCcbObjectModify_2_04(void)
 
     safassert(saImmOmInitialize(&immOmHandle, NULL, &immVersion), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName, SA_TRUE, &ownerHandle), SA_AIS_OK);
-    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_SUBTREE), SA_AIS_OK);
     safassert(config_class_create(immOmHandle), SA_AIS_OK);
     safassert(config_object_create(immOmHandle, ownerHandle, &parentName), SA_AIS_OK);
     safassert(saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_SUBTREE), SA_AIS_OK);
