@@ -320,16 +320,16 @@ static void createImmObject(ParserState* state)
         char* parent;
 
         /* ',' is the delimeter */
-        parent = strchr(state->objectName, ',');
+        /* but '\' is the escape character, used for association objects */
+        parent = state->objectName;
+        do {
+            parent = strchr(parent, ',');
+            TRACE_8("PARENT: %s", parent);
+        } while (parent && (*((++parent)-2)) == '\\');
 
-        if (parent == NULL || strlen(parent) <= 1)
+        if (parent && strlen(parent) <= 1)
         {
             parent = NULL;
-        }
-        else
-        {
-            parent++;
-            TRACE_8("PARENT %s\n", parent);
         }
 
         if (parent != NULL)
