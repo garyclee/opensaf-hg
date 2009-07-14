@@ -149,10 +149,19 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
                  appointed active. In this case re-elect the local coord
                  to bypass the problem of the old IMMD having elected the
                  same coord, but only managed to send the mbcp message and
-                 not the new-coord message to the IMMND. */
-
-                immnd_info_node->isCoord = FALSE;
-                immnd_info_node = NULL;
+                 not the new-coord message to the IMMND. 
+                 EXCEPT when there is an ongoing sync and the coord is
+                 colocated with new active. Then we are (a) sure there
+                 is no missed new-coord message and (b) we want to
+                 avoid disturbing the already started sync, if possible. */
+                if((cb->immnd_coord == cb->node_id) &&
+                    immnd_info_node->syncStarted) 
+                {
+                    assert(immnd_info_node->immnd_key == cb->node_id);
+                } else {
+                    immnd_info_node->isCoord = FALSE;
+                    immnd_info_node = NULL; /*Force new coord election. */
+                }
             }
             break; //out of while
         }
@@ -164,7 +173,8 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
     {
         TRACE_5("Elect coord: Coordinator node already exists: %x",
                 immnd_info_node->immnd_key);
-        assert(cb->mRulingEpoch == immnd_info_node->epoch);
+        assert((cb->mRulingEpoch == immnd_info_node->epoch) ||
+            (cb->immnd_coord == cb->node_id) && immnd_info_node->syncStarted);
     }
     else
     {
