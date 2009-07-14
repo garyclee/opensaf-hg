@@ -1855,8 +1855,17 @@ void syncClassDescription(std::string className, SaImmHandleT& immHandle)
         exit(1);
     }
 
-    err = saImmOmClassCreate_2(immHandle, cln, classCategory, 
-                               (const SaImmAttrDefinitionT_2**) attrDefinitions);
+    int retries = 0;
+    do
+    {
+        if(retries) {
+            usleep(500);
+            TRACE("Retry %u", retries);
+        }
+        err = saImmOmClassCreate_2(immHandle, cln, classCategory, 
+            (const SaImmAttrDefinitionT_2**) attrDefinitions);
+    } while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
+
     if (err != SA_AIS_OK)
     {
         LOG_ER("Failed to sync-create class %s, error code:%u", cln, err);
@@ -1973,9 +1982,13 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
         int retries = 0;
         do
         {
+            if(retries) {
+                usleep(500);
+                TRACE("Retry %u", retries);
+            }
             err = immsv_sync(immHandle, cln, &objectName, 
                              (const SaImmAttrValuesT_2 **) attributes);
-        } while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 10));
+        } while (err == SA_AIS_ERR_TRY_AGAIN && (++retries < 32));
 
         if (err != SA_AIS_OK)
         {
@@ -2014,9 +2027,11 @@ int immsync(void)
                                       &version);
         if (retries)
         {
+            usleep(500);
             TRACE_8("IMM-SYNC initialize retry %u", retries);
         }
-    } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) && (++retries < 10));
+    } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) && (++retries < 32));
+
     if (SA_AIS_OK != errorCode)
     {
         LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);

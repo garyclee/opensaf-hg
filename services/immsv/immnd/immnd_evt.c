@@ -2119,6 +2119,12 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb,
                                    This is where the ND sender count is needed.
                                    But we should be able to use the agents
                                    count/continuation-id .. ?*/
+
+    if(cl_node->mIsSync) {
+        assert(!cl_node->mSyncBlocked);
+        cl_node->mSyncBlocked = TRUE;
+    }
+
     return rc;/*Normal return here => asyncronous reply in fevs_rcv.*/
 
  agent_rsp:
@@ -2991,6 +2997,16 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
             }
         }
 
+        if(cl_node->mIsSync) {
+            if(cl_node->mSyncBlocked) {
+                cl_node->mSyncBlocked = FALSE;
+            } else {
+                LOG_ER("Unexpected class-create reply arrived destined for sync agent - "
+                    "discarding");
+                return;
+            }
+        }
+
         memset(&send_evt,'\0',sizeof(IMMSV_EVT));
         send_evt.type = IMMSV_EVT_TYPE_IMMA;
         send_evt.info.imma.info.errRsp.error= error;
@@ -3245,8 +3261,18 @@ static void immnd_evt_proc_object_sync(IMMND_CB *cb,
         assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
         send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 
-        if(immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
-            LOG_ER("Failed to send result %u to Agent over MDS", err);
+        if(cl_node->mIsSync && cl_node->mSyncBlocked) {
+            if(immnd_mds_send_rsp(cb, sinfo, &send_evt) != NCSCC_RC_SUCCESS) {
+                LOG_ER("Failed to send sync-object result to Agent");
+            }
+        } else {
+            LOG_ER("Unexpected sync-object reply arrived destined for sync agent - "
+                "isSync:%u blocked:%u discarding", 
+                cl_node->mIsSync, cl_node->mSyncBlocked);
+        }
+
+        if(cl_node->mSyncBlocked) {
+            cl_node->mSyncBlocked = FALSE;
         }
     }
     TRACE_LEAVE();
@@ -4545,7 +4571,19 @@ static uns32 immnd_evt_proc_dump_ok(IMMND_CB *cb,
               epoch at the other nodes. On the other hand, this slight
               difference is currently not persistent. */
 
-            immnd_adjustEpoch(cb);
+            int retryCount = 0;
+            for (;!immnd_is_immd_up(cb) && retryCount < 8;++retryCount) {
+                LOG_WA("Coord blocked in adjust Epoch because IMMD is DOWN %u", 
+                    retryCount);
+                sleep(1);
+            }
+            
+            if(immnd_is_immd_up(cb)) {
+                immnd_adjustEpoch(cb);
+            } else {
+                /* Not critical to increment epoch for dump */
+                LOG_ER("Dump-ok failed to adjust epoch, IMMD DOWN:");
+            }
         } else {
             LOG_ER("Missmatch on epoch mine:%u proposed new epoch:%u",
                 cb->mMyEpoch, cb->mRulingEpoch);
@@ -4597,7 +4635,13 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb,
                 LOG_ER("immnd_evt_proc_abort_sync not clean on epoch: "
                     "RE:%u ME:%u", cb->mRulingEpoch, cb->mMyEpoch);
             }
-            immnd_adjustEpoch(cb);
+
+            int retryCount = 0;
+            for (;!immnd_is_immd_up(cb) && retryCount < 16;++retryCount) {
+                 LOG_WA("IMMND can not adjust epoch because IMMD is DOWN %u", retryCount);
+                 sleep(1);
+             }
+            immnd_adjustEpoch(cb);/* will assert if immd is down. */
         }
         immModel_abortSync(cb);
     }
@@ -4839,8 +4883,12 @@ static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb,
     } else { /*This node was introduced to the IMM cluster*/
         cb->mIntroduced = TRUE;
         cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
-        if(evt->info.ctrl.isCoord && cb->mIsCoord) {
-            LOG_NO("This IMMND re-elected coord redundantly, failover ?");
+        if(evt->info.ctrl.isCoord) {
+            if(cb->mIsCoord) {
+                LOG_NO("This IMMND re-elected coord redundantly, failover ?");
+            } else {
+                LOG_NO("This IMMND is now the NEW Coord");
+            }
         }
         cb->mIsCoord = evt->info.ctrl.isCoord;
         assert(!cb->mIsCoord || cb->mCanBeCoord);
@@ -5141,19 +5189,40 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
         cb->mMyEpoch++;
         /*This must bring the epoch of the joiner up to the ruling epoch*/
         assert(cb->mMyEpoch == cb->mRulingEpoch);
+        /*This adjust-epoch will persistify the new epoch for sync-clients.*/
+        immnd_adjustEpoch(cb);
     } else {
-        if(!(cb->mIsCoord)) {
+        if(cb->mIsCoord) {
+            IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
+            immnd_client_node_get(cb, clnt_hdl, &cl_node);
+            if(cl_node == NULL || cl_node->mIsStale) {
+                TRACE_2("IMMND - Sync client alerady disconnected");
+            } else if(cl_node->mSyncBlocked) {
+                cl_node->mSyncBlocked = FALSE;
+            }
+            int retryCount = 0;
+            for (;!immnd_is_immd_up(cb) && retryCount < 24;++retryCount) {
+                LOG_WA("Coord blocked in adjust Epoch because IMMD is DOWN");
+                sleep(1);
+            }
+            /*This adjust-epoch will persistify the new epoch for: coord.*/
+            immnd_adjustEpoch(cb); /* Will assert if immd is down. */
+        } else {
             TRACE_2("FinalizeSync for veteran node that is non coord");
             /* In this case we use the sync message to verify the state 
                instad of syncing. */
             assert(immModel_finalizeSync(cb, &(evt->info.finSync), SA_FALSE, 
                        SA_FALSE) == SA_AIS_OK);
+            int retryCount = 0;
+            for (;!immnd_is_immd_up(cb) && retryCount < 16 ; ++retryCount) {
+                LOG_WA("IMMND blocked in adjust Epoch because IMMD is DOWN");
+                sleep(1);
+            }
+            /*This adjust-epoch will persistify the new epoch for: veterans.*/
+            immnd_adjustEpoch(cb); /* Will assert if immd is down. */
         }
     }
 
-    immnd_adjustEpoch(cb);
-    /*This adjust-epoch will persistify the new epoch for: coord, sync-client
-      and all other veteran members.*/
 
     TRACE_LEAVE();
 }

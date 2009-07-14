@@ -656,7 +656,13 @@ static uns32 immnd_mds_svc_evt(IMMND_CB *cb,
         switch (svc_evt->i_change) 
         {
             case NCSMDS_DOWN:
-                LOG_NO("Director Service is down");
+                if(cb->messages_pending) {
+                    LOG_WA("Director Service is down,  messages pending:%u "
+                        "fevs highest processed:%llu", 
+                    cb->messages_pending, cb->highestProcessed);
+                } else {
+                    LOG_NO("Director Service is down");
+                }
                 if(cb->is_immd_up == TRUE)
                 {
                     /* If IMMD is already UP */
@@ -675,7 +681,13 @@ static uns32 immnd_mds_svc_evt(IMMND_CB *cb,
 
             case NCSMDS_NO_ACTIVE:
                 cb->is_immd_up = FALSE;
-                LOG_NO("Director Service in NOACTIVE state");
+                if(cb->messages_pending) {
+                    LOG_WA("Director Service in NOACTIVE state - "
+                        "messages pending:%u fevs highest processed:%llu", 
+                        cb->messages_pending, cb->highestProcessed);
+                } else {
+                    LOG_NO("Director Service in NOACTIVE state");
+                }
                 break;        
     
             case NCSMDS_NEW_ACTIVE:
