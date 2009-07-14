@@ -131,7 +131,7 @@ uns32 immnd_client_node_tree_init(IMMND_CB *cb)
 {
     NCS_PATRICIA_PARAMS     param;
     memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-    param.key_size = sizeof(SaCkptHandleT);
+    param.key_size = sizeof(SaImmHandleT);
     if (ncs_patricia_tree_init(&cb->client_info_db,&param) != NCSCC_RC_SUCCESS)
     {
         return NCSCC_RC_FAILURE;

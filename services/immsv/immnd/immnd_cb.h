@@ -67,6 +67,7 @@ typedef struct immnd_immom_client_node
     NCSMDS_SVC_ID                 sv_id; /* OM or OI */
     IMMND_OM_SEARCH_NODE*         searchOpList;  
     uns8                          mIsSync;  /* Client is special sync client*/
+    uns8                          mSyncBlocked;/* Sync client expects reply*/
     uns8                          mIsStale; /* Client disconnected when IMMD
                                              is unavailable => postpone 
                                              discardClient. */

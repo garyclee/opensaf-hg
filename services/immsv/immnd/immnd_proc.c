@@ -289,8 +289,10 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
 /****************************************************************************
  * Name          : immnd_proc_imma_discard_stales
  *
- * Description   : Function to garbage collect stale client nodes.
- *                 Should only be needed at IMMD UP events.
+ * Description   : Function to garbage collect stale client nodes
+ *                 and to send TRY_AGAIN to a sync process blocked
+ *                 waiting for reply.
+ *                 Only used at IMMD UP events (failover/switchover).
  *
  * Arguments     : IMMND_CB *cb - IMMND CB pointer
  *
@@ -329,6 +331,30 @@ void immnd_proc_imma_discard_stales(IMMND_CB  *cb)
                  ++failed;
                  /*cl_node->mIsStale = TRUE; done in discard_connection*/
              }
+         } else if(cl_node->mIsSync && cl_node->mSyncBlocked) 
+         {
+             IMMSV_EVT send_evt;
+             LOG_NO("Detected a sync client waiting on reply, send TRY_AGAIN");
+             /* Dont need any delay of this. Worst case that could happen
+              is a resend of a sync message (new fevs, not same) that has 
+              actually already been processed. But such a duplicate sync
+              message (class_create/sync_object) will be rejected and
+              cause the sync to fail. This logic at least gives the sync
+              a chance to succeed. The finalize sync message is replied
+              immediately to agent, before it is sent over fevs. If the
+              immd is down then the agent gets immediate reply. So blocking
+              on immd down is not relevant for finalize sync.
+             */
+             memset(&send_evt,'\0',sizeof(IMMSV_EVT));
+             send_evt.type = IMMSV_EVT_TYPE_IMMA;
+             send_evt.info.imma.info.errRsp.error=SA_AIS_ERR_TRY_AGAIN;
+             assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
+             send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+             if(immnd_mds_send_rsp(cb, &(cl_node->tmpSinfo), &send_evt) != 
+                 NCSCC_RC_SUCCESS) {
+                 LOG_ER("Failed to send result to Sync Agent");
+             }
+             cl_node->mSyncBlocked = FALSE;
          } else {
              TRACE_5("No action client id :%llx sv_id:%u", 
                 cl_node->imm_app_hdl, cl_node->sv_id);
@@ -613,6 +639,7 @@ static void immnd_abortSync(IMMND_CB *cb)
 {
     uns32    rc=NCSCC_RC_SUCCESS;
     IMMSV_EVT  send_evt;
+    uns16 retryCount=0;
     memset(&send_evt,'\0', sizeof(IMMSV_EVT));
     TRACE_ENTER();
     TRACE("ME:%u RE:%u", cb->mMyEpoch, cb->mRulingEpoch);
@@ -627,17 +654,17 @@ static void immnd_abortSync(IMMND_CB *cb)
             cb->mRulingEpoch, cb->mMyEpoch);
     }
 
+    while(!immnd_is_immd_up(cb) && (retryCount++ < 20)) {
+        LOG_WA("Coord blocked in sending ABORT_SYNC because IMMD is DOWN %u",
+            retryCount);
+        sleep(1);
+    }
+
     immnd_adjustEpoch(cb);
     send_evt.type = IMMSV_EVT_TYPE_IMMD;
     send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
     send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
     send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
-
-
-    while(!immnd_is_immd_up(cb)) {
-        LOG_WA("Coord blocked in sending ABORT_SYNC because IMMD is DOWN");
-        sleep(1);
-    }
 
     LOG_NO("Coord broadcasting ABORT_SYNC, epoch:%u", cb->mRulingEpoch);
     rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, 
@@ -1209,7 +1236,9 @@ uns32 immnd_proc_server(uns32 *timeout)
                     }
                 } else {
                     /*Phase 3*/
-                    LOG_IN("Sync Phase-3 time:%u", cb->mTimer);
+                    if(!(cb->mTimer % 10)) {
+                        LOG_IN("Sync Phase-3 time:%u", cb->mTimer);
+                    }
                     if(immnd_syncComplete(cb, TRUE, cb->mTimer)) {
                         cb->mTimer = 0;
                         cb->mState = IMM_SERVER_READY; 

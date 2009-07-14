@@ -293,6 +293,8 @@ int main(int argc, char *argv[])
     int eventCount = 0; /*Used to regulate progress of background 
                           server task when we are very bussy. */
     int maxEvt = 100;
+    int64 start_time = 0LL;
+
     struct pollfd fds[2];
     
     if (immnd_initialize(argv[0]) != NCSCC_RC_SUCCESS)
@@ -318,11 +320,19 @@ int main(int argc, char *argv[])
     {
         /* Watch out for performance bug. Possibly change from event-count
           to recalculated timer. */
-        /*maxEvt = 10 * timeout;*/
+        /* ABT 13/07 2009 actually using both event-count and recalculated timer now. */
+        uns32 passed_time = start_time?(m_NCS_GET_TIME_MS - start_time):0;
+
         maxEvt = (timeout==100)?50:100;
 
+        /*
+        TRACE("timeout:%u adjustedTimeout:%u", timeout, 
+            (passed_time<timeout) ? (timeout - passed_time) : 0);
+        */
+
         /* Wait for events */
-        int ret = poll(fds, 2, timeout);
+        if(!start_time) { start_time =  m_NCS_GET_TIME_MS; }
+        int ret = poll(fds, 2, (passed_time<timeout) ? (timeout - passed_time) : 0);
 
         if (ret == -1)
         {
@@ -362,8 +372,17 @@ int main(int argc, char *argv[])
                 }
             }
 
-            if (fds[FD_MBX].revents & POLLIN)
+            if (fds[FD_MBX].revents & POLLIN) 
+            {
+                uns8 wasCoord = immnd_cb->mIsCoord;
                 immnd_process_evt();
+                if(!wasCoord && immnd_cb->mIsCoord) 
+                { 
+                    TRACE("We just became Coord => Force a server job!");
+                    /* This is particularly urgent in a failover situation. */
+                    eventCount = maxEvt;
+                }
+            }
 
             if(eventCount >= maxEvt)
             {
@@ -378,6 +397,7 @@ int main(int argc, char *argv[])
                     break;
                 }
                 eventCount = 0;
+                start_time = 0LL;
             }
         }
         else
@@ -391,6 +411,7 @@ int main(int argc, char *argv[])
                 break;
             }
             eventCount = 0;
+            start_time = 0LL;
         }
     }
 
