@@ -39,6 +39,17 @@ ntfa_cb_t ntfa_cb = {
 ntfa_subscriber_list_t *subscriberNoList = NULL;
 
 /* help functions */
+static SaAisErrorT checkHeader(SaNtfNotificationHeaderT *nh)
+{
+    if (nh->notificationObject->length > SA_MAX_NAME_LENGTH ||
+        nh->notifyingObject->length > SA_MAX_NAME_LENGTH)
+    {
+        TRACE_1("SaNameT length too big");
+        return SA_AIS_ERR_INVALID_PARAM;
+    }
+    return SA_AIS_OK;
+}
+
 static SaAisErrorT checkAlarmParameters(
     SaNtfAlarmNotificationT* alarmNotification)
 {
@@ -63,9 +74,7 @@ static SaAisErrorT checkAlarmParameters(
         TRACE_1("Invalid eventType value = %d", (int)*alarmNotification->notificationHeader.eventType);
         return SA_AIS_ERR_INVALID_PARAM;
     }
-
-    TRACE_1("Returning SA_AIS_OK!");
-    return SA_AIS_OK;
+    return checkHeader(&alarmNotification->notificationHeader);
 }
 
 static SaAisErrorT checkSecurityAlarmParameters(
@@ -78,8 +87,7 @@ static SaAisErrorT checkSecurityAlarmParameters(
         TRACE_1("Invalid eventType value");
         return SA_AIS_ERR_INVALID_PARAM;
     }
-
-    return SA_AIS_OK;
+    return checkHeader(&notification->notificationHeader);
 }
 
 
@@ -93,8 +101,7 @@ static SaAisErrorT checkStateChangeParameters(
         TRACE_1("Invalid eventType value");
         return SA_AIS_ERR_INVALID_PARAM;
     }
-
-    return SA_AIS_OK;
+    return checkHeader(&notification->notificationHeader);
 }
 
 static SaAisErrorT checkAttributeChangeParameters(
@@ -112,8 +119,7 @@ static SaAisErrorT checkAttributeChangeParameters(
         TRACE_1("Bad numAttributes");
         return SA_AIS_ERR_INVALID_PARAM;
     }
-
-    return SA_AIS_OK;
+    return checkHeader(&notification->notificationHeader);
 }
 
 static SaAisErrorT checkObjectCreateDeleteParameters(
@@ -132,8 +138,7 @@ static SaAisErrorT checkObjectCreateDeleteParameters(
         TRACE_1("Bad numAttributes");
         return SA_AIS_ERR_INVALID_PARAM;
     }
-
-    return SA_AIS_OK;
+    return checkHeader(&notification->notificationHeader);
 }
 
 /**
@@ -834,7 +839,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 
     if (rc != SA_AIS_OK)
     {
-        TRACE_1("Invalid parameters");
+        TRACE_1("Invalid parameter");
         goto done_give_hdls;
     }
 
