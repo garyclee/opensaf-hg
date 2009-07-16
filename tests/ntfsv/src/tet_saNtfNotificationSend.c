@@ -23,6 +23,17 @@
 
 static SaNtfAlarmNotificationT myAlarmNotification;
 
+static void dummyCallback(
+    SaNtfSubscriptionIdT subscriptionId,
+    const SaNtfNotificationsT *notification)
+{
+}
+
+static SaNtfCallbacksT dummyCallbacks = {
+    dummyCallback,
+    NULL
+};
+
 void saNtfNotificationSend_01(void) {
 	/*  struct pollfd fds[1];*/
 	/*  int ret;             */
@@ -440,11 +451,158 @@ void saNtfNotificationSend_05(void) {
 
 }
 
+
 void saNtfNotificationSend_06(void) {
 	// TODO MiscellaneousNotification
 	test_validate(SA_AIS_ERR_NOT_SUPPORTED, SA_AIS_OK);
 }
 
+static 
+SaAisErrorT send_obj_cr_del(saNotificationAllocationParamsT *myNotificationAllocationParams,
+                            saNotificationFilterAllocationParamsT *myNotificationFilterAllocationParams,
+                            saNotificationParamsT *myNotificationParams) 
+{
+   struct pollfd fds[1];
+   int ret;
+
+   SaNtfAlarmNotificationFilterT myAlarmFilter;
+   SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
+
+	safassert(saNtfInitialize(&ntfHandle, &dummyCallbacks, &ntfVersion), SA_AIS_OK);
+	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject), SA_AIS_OK);
+   safassert(saNtfAlarmNotificationFilterAllocate(
+       ntfHandle,
+       &myAlarmFilter,
+       myNotificationFilterAllocationParams->numEventTypes,
+       myNotificationFilterAllocationParams->numNotificationObjects,
+       myNotificationFilterAllocationParams->numNotifyingObjects,
+       myNotificationFilterAllocationParams->numNotificationClassIds,
+       myNotificationFilterAllocationParams->numProbableCauses,
+       myNotificationFilterAllocationParams->numPerceivedSeverities,
+       myNotificationFilterAllocationParams->numTrends), SA_AIS_OK);
+   /* Set perceived severities */
+   myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
+   myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
+
+   /* Initialize filter handles */
+   myNotificationFilterHandles.alarmFilterHandle =
+       myAlarmFilter.notificationFilterHandle;
+   myNotificationFilterHandles.attributeChangeFilterHandle =
+       SA_NTF_FILTER_HANDLE_NULL;
+   myNotificationFilterHandles.objectCreateDeleteFilterHandle =
+       SA_NTF_FILTER_HANDLE_NULL;
+   myNotificationFilterHandles.securityAlarmFilterHandle =
+       SA_NTF_FILTER_HANDLE_NULL;
+   myNotificationFilterHandles.stateChangeFilterHandle =
+       SA_NTF_FILTER_HANDLE_NULL;
+   rc = saNtfNotificationSubscribe(&myNotificationFilterHandles, 4);
+
+   SaNtfObjectCreateDeleteNotificationT myNotification;
+   safassert(saNtfObjectCreateDeleteNotificationAllocate(
+              ntfHandle, /* handle to Notification Service instance */
+              &myNotification,
+              /* number of correlated notifications */
+              myNotificationAllocationParams->numCorrelatedNotifications,
+              /* length of additional text */
+              myNotificationAllocationParams->lengthAdditionalText,
+              /* number of additional info items*/
+              myNotificationAllocationParams->numAdditionalInfo,
+              /* number of state changes */
+              myNotificationAllocationParams->numObjectAttributes,
+              /* use default allocation size */
+              myNotificationAllocationParams->variableDataSize), SA_AIS_OK);
+
+   /* Event type */
+  *(myNotification.notificationHeader.eventType) = SA_NTF_OBJECT_CREATION;
+
+  /* event time to be set automatically to current
+   time by saNtfNotificationSend */
+  *(myNotification.notificationHeader.eventTime)
+        = myNotificationParams->eventTime;
+
+  /* set Notification Class Identifier */
+  /* vendor id 33333 is not an existing SNMP enterprise number.
+   Just an example */
+  myNotification.notificationHeader.notificationClassId->vendorId
+        = myNotificationParams->notificationClassId.vendorId;
+
+  /* sub id of this notification class within "name space" of vendor ID */
+  myNotification.notificationHeader.notificationClassId->majorId
+        = myNotificationParams->notificationClassId.majorId;
+  myNotification.notificationHeader.notificationClassId->minorId
+        = myNotificationParams->notificationClassId.minorId;
+
+  /* set additional text and additional info */
+  (void) strncpy(myNotification.notificationHeader.additionalText,
+        myNotificationParams->additionalText,
+        myNotificationAllocationParams->lengthAdditionalText);
+
+  /* Set source indicator */
+  *myNotification.sourceIndicator
+        = myNotificationParams->objectCreateDeleteSourceIndicator;
+
+  /* Set objectAttibutes */
+  myNotification.objectAttributes[0].attributeId
+        = myNotificationParams->objectAttributes[0].attributeId;
+  myNotification.objectAttributes[0].attributeType
+        = myNotificationParams->objectAttributes[0].attributeType;
+  myNotification.objectAttributes[0].attributeValue.int32Val
+        = myNotificationParams->objectAttributes[0].attributeValue.int32Val;
+
+  myNotificationParams->eventType
+        = myNotificationParams->objectCreateDeleteEventType;
+  fill_header_part(&myNotification.notificationHeader,
+                   myNotificationParams,
+                   myNotificationAllocationParams->lengthAdditionalText);
+
+	rc = saNtfNotificationSend(myNotification.notificationHandle);
+   if(rc == SA_AIS_OK){
+       fds[0].fd = (int) selectionObject;
+       fds[0].events = POLLIN;
+       ret = poll(fds, 1, 10000);
+       assert(ret > 0);
+       safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ONE), SA_AIS_OK);
+   }
+   safassert(saNtfNotificationUnsubscribe(4), SA_AIS_OK); 
+	safassert(saNtfNotificationFree(myNotification.notificationHandle), SA_AIS_OK);
+	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+   return rc;
+}
+void saNtfNotificationSend_07()
+{
+    SaAisErrorT rc;
+
+    saNotificationAllocationParamsT myNotificationAllocationParams;
+    saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+    saNotificationParamsT myNotificationParams;
+    fillInDefaultValues(&myNotificationAllocationParams,
+                        &myNotificationFilterAllocationParams, &myNotificationParams);
+    myNotificationParams.notificationObject.length = 0;
+    myNotificationParams.notifyingObject.length = 0;
+
+    rc = send_obj_cr_del(&myNotificationAllocationParams,
+                         &myNotificationFilterAllocationParams,
+                         &myNotificationParams);
+    test_validate(rc, SA_AIS_OK);
+}
+
+void saNtfNotificationSend_08(void) 
+{
+    SaAisErrorT rc;
+
+    saNotificationAllocationParamsT myNotificationAllocationParams;
+    saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+    saNotificationParamsT myNotificationParams;
+    fillInDefaultValues(&myNotificationAllocationParams,
+                        &myNotificationFilterAllocationParams, &myNotificationParams);
+    myNotificationParams.notificationObject.length = 2048;
+    myNotificationParams.notifyingObject.length = 2048;
+
+    rc = send_obj_cr_del(&myNotificationAllocationParams,
+                         &myNotificationFilterAllocationParams,
+                         &myNotificationParams);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
+}
 __attribute__ ((constructor)) static void saNtfNotificationSend_constructor(
 		void) {
 	test_suite_add(8, "Producer API 3 send");
@@ -459,5 +617,9 @@ __attribute__ ((constructor)) static void saNtfNotificationSend_constructor(
 			"saNtfNotificationSend SecurityAlarm");
 	test_case_add(8, saNtfNotificationSend_06,
 			"saNtfNotificationSend Miscellaneous");
+   test_case_add(8, saNtfNotificationSend_07,
+                 "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length=0");
+   test_case_add(8, saNtfNotificationSend_08,
+                 "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length too large");
 }
 
