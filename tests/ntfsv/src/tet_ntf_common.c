@@ -416,17 +416,8 @@ void fill_header_part(SaNtfNotificationHeaderT *notificationHeader,
     *notificationHeader->eventType = notificationParams->eventType;
     *notificationHeader->eventTime = (SaTimeT)notificationParams->eventTime;
 
-    notificationHeader->notificationObject->length =
-        notificationParams->notificationObject.length;
-    (void)memcpy(notificationHeader->notificationObject->value,
-                 notificationParams->notificationObject.value,
-                 notificationParams->notificationObject.length);
-
-    notificationHeader->notifyingObject->length =
-        notificationParams->notifyingObject.length;
-    (void)memcpy(notificationHeader->notifyingObject->value,
-                 notificationParams->notifyingObject.value,
-                 notificationParams->notifyingObject.length);
+    *(notificationHeader->notificationObject) = notificationParams->notificationObject;
+    *(notificationHeader->notifyingObject) = notificationParams->notifyingObject;
 
     /* vendor id 33333 is not an existing SNMP enterprise number.
     Just an example */
