@@ -364,16 +364,41 @@ static uns32 encodeSaNameT(NCS_UBAID *uba,
         TRACE("p8 NULL!!!");
         return 0;
     }
+    if (name->length > SA_MAX_NAME_LENGTH)
+    {
+        LOG_ER("SaNameT length too long %hd", name->length);
+        assert(0);
+    }
     ncs_encode_16bit(&p8, name->length);
     ncs_enc_claim_space(uba, 2);
     total_bytes += 2;
-
     ncs_encode_n_octets_in_uba(uba, name->value, 
                                (uns32)name->length); 
     total_bytes += (uns32)name->length;   
     return total_bytes;
 }
 
+static uns32 decodeSaNameT(NCS_UBAID *uba,
+                           uns8 *p8, 
+                           uns32 total_bytes,
+                           SaNameT* name)
+{
+    uns8 local_data[2];
+    p8 = ncs_dec_flatten_space(uba, local_data, 2);
+    name->length = ncs_decode_16bit(&p8);
+    if (name->length > SA_MAX_NAME_LENGTH)
+    {
+        LOG_ER("SaNameT length too long: %hd", name->length);
+        /* this should not happen */
+        assert(0);
+    }
+    ncs_dec_skip_space(uba, 2);
+    total_bytes += 2;
+    ncs_decode_n_octets_from_uba(uba, name->value,
+                                 (uns32)name->length);
+    total_bytes += name->length;
+    return total_bytes;
+}
 static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
 {
     uns8 *p8;
@@ -675,23 +700,8 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
     *param->eventType = ncs_decode_32bit(&p8);
     ncs_dec_skip_space(uba, 4);
     total_bytes += 4;
-
-    /* saNameT  */
-    p8 = ncs_dec_flatten_space(uba, local_data, 2);
-    param->notificationObject->length = ncs_decode_16bit(&p8);
-    ncs_dec_skip_space(uba, 2);
-    total_bytes += 2;
-    ncs_decode_n_octets_from_uba(uba, param->notificationObject->value,
-                                 (uns32)param->notificationObject->length);
-    total_bytes += (uns32)param->notificationObject->length;
-    /* saNameT  */
-    p8 = ncs_dec_flatten_space(uba, local_data, 2);
-    param->notifyingObject->length = ncs_decode_16bit(&p8);
-    ncs_dec_skip_space(uba, 2);
-    total_bytes += 2;
-    ncs_decode_n_octets_from_uba(uba, param->notifyingObject->value,
-                                 (uns32)param->notifyingObject->length);
-    total_bytes += (uns32)param->notifyingObject->length;
+    total_bytes = decodeSaNameT(uba, p8,total_bytes, param->notificationObject);
+    total_bytes = decodeSaNameT(uba, p8,total_bytes, param->notifyingObject);
 
     p8 = ncs_dec_flatten_space(uba, local_data, 8);
     param->notificationClassId->vendorId = ncs_decode_32bit(&p8);

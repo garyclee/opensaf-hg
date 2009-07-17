@@ -499,17 +499,10 @@ void ntfsv_copy_ntf_header(SaNtfNotificationHeaderT *dest,
     *(dest->eventTime) = *(src->eventTime);
 
     /* Set Notification Object */
-    dest->notificationObject->length = src->notificationObject->length;
-    (void)memcpy(dest->notificationObject->value,
-                 src->notificationObject->value,
-                 src->notificationObject->length);
+    *(dest->notificationObject) = *(src->notificationObject);
 
     /* Set Notifying Object */
-    dest->notifyingObject->length =
-        src->notifyingObject->length;
-    (void)memcpy(dest->notifyingObject->value,
-                 src->notifyingObject->value,
-                 src->notifyingObject->length);
+    *(dest->notifyingObject) = *(src->notifyingObject);
 
     /* set Notification Class Identifier */
     dest->notificationClassId->vendorId =
