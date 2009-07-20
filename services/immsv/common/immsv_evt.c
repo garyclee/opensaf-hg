@@ -29,6 +29,7 @@
 #define IMMSV_MAX_CLASSES 1000
 #define IMMSV_MAX_IMPLEMENTERS 3000
 #define IMMSV_MAX_ADMINOWNERS 2000
+#define IMMSV_MAX_OBJECTS 10000
 
 /* This array must match IMMD_EVT_TYPE */
 static const char *immd_evt_names[] =
@@ -565,7 +566,7 @@ immsv_evt_dec_attrmods(NCS_UBAID* i_ub, IMMSV_ATTR_MODS_LIST** p)
     } while(c8 && (depth < IMMSV_MAX_DEPTH));
     
     if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY attribute modifications");
+        LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
         assert(depth < IMMSV_MAX_DEPTH);
     }
 }
@@ -625,21 +626,23 @@ immsv_evt_dec_attributes(NCS_UBAID* i_ub, IMMSV_ATTR_VALUES_LIST** p)
     } while(c8 && (depth < IMMSV_MAX_DEPTH));
 
     if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY attributes");
+        LOG_ER("TOO MANY attributes line:%u", __LINE__);
         assert(depth < IMMSV_MAX_DEPTH);
     }
 }
 
-static void
+static uns32
 immsv_evt_enc_name_list(NCS_UBAID* o_ub, IMMSV_OBJ_NAME_LIST* p)
 {
     uns8* p8;
+    uns16 objs=0;
     
     p8 = ncs_enc_reserve_space(o_ub, 1);
     ncs_encode_8bit(&p8, p?1:0);
     ncs_enc_claim_space(o_ub, 1);
     
-    while(p) {
+    while(p && (objs < IMMSV_MAX_OBJECTS)) {
+        ++objs;
         IMMSV_OCTET_STRING* os = &(p->name);  
         p8 = ncs_enc_reserve_space(o_ub, 4);
         ncs_encode_32bit(&p8, os->size);
@@ -651,6 +654,12 @@ immsv_evt_enc_name_list(NCS_UBAID* o_ub, IMMSV_OBJ_NAME_LIST* p)
         ncs_encode_8bit(&p8, p?1:0);
         ncs_enc_claim_space(o_ub, 1);
     }
+
+    if(objs >= IMMSV_MAX_OBJECTS) {
+        LOG_ER("TOO MANY Object Names line:%u", __LINE__);
+        return NCSCC_RC_OUT_OF_MEM;
+    }
+    return NCSCC_RC_SUCCESS;
 }
 
 static uns32
@@ -666,7 +675,7 @@ immsv_evt_dec_name_list(NCS_UBAID* i_ub, IMMSV_OBJ_NAME_LIST** p)
     c8 = ncs_decode_8bit(&p8);
     ncs_dec_skip_space(i_ub, 1);
     
-    while(c8 && (depth < IMMSV_MAX_DEPTH)) {
+    while(c8 && (depth < IMMSV_MAX_OBJECTS)) {
         
         *p = (IMMSV_OBJ_NAME_LIST *) calloc(1, sizeof(IMMSV_OBJ_NAME_LIST));
         
@@ -683,8 +692,8 @@ immsv_evt_dec_name_list(NCS_UBAID* i_ub, IMMSV_OBJ_NAME_LIST** p)
         ++depth;
     } 
     
-    if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY attrNames");
+    if(depth >= IMMSV_MAX_OBJECTS) {
+        LOG_ER("TOO MANY Object Names line:%u", __LINE__);
         return NCSCC_RC_OUT_OF_MEM;
     }
     return NCSCC_RC_SUCCESS;
@@ -770,7 +779,7 @@ immsv_evt_dec_class(NCS_UBAID* i_ub, IMMSV_CLASS_LIST** r)
     } while(c8 && (depth < IMMSV_MAX_CLASSES));
     
     if(depth >= IMMSV_MAX_CLASSES) {
-        LOG_ER("TOO MANY classes %u", depth);
+        LOG_ER("TOO MANY classes line: %u", __LINE__);
         return NCSCC_RC_OUT_OF_MEM;
     }
     
@@ -863,7 +872,7 @@ immsv_evt_dec_impl(NCS_UBAID* i_ub, IMMSV_IMPL_LIST** q)
     } while(c8 && (depth < IMMSV_MAX_IMPLEMENTERS));
     
     if(depth >= IMMSV_MAX_IMPLEMENTERS) {
-        LOG_ER("TOO MANY implementers %u", depth);
+        LOG_ER("TOO MANY implementers line:%u", __LINE__);
         return NCSCC_RC_OUT_OF_MEM;
     }
 
@@ -884,11 +893,12 @@ immsv_evt_free_impl(IMMSV_IMPL_LIST* q)
     }
 }
 
-static void
+static uns32
 immsv_evt_enc_admo(NCS_UBAID* o_ub, IMMSV_ADMO_LIST* p)
 {
-    if(!p) return;
+    if(!p) return NCSCC_RC_SUCCESS;
     uns8* p8;
+    uns32 rc = NCSCC_RC_SUCCESS;
     
     p8 = ncs_enc_reserve_space(o_ub, 4);
     ncs_encode_32bit(&p8, p->id);
@@ -908,11 +918,13 @@ immsv_evt_enc_admo(NCS_UBAID* o_ub, IMMSV_ADMO_LIST* p)
     ncs_encode_8bit(&p8, (p->releaseOnFinalize)?1:0);
     ncs_enc_claim_space(o_ub, 1);
 
-    immsv_evt_enc_name_list(o_ub, p->touchedObjects);
+    rc = immsv_evt_enc_name_list(o_ub, p->touchedObjects);
 
     p8 = ncs_enc_reserve_space(o_ub, 1);
     ncs_encode_8bit(&p8, (p->next)?1:0);
     ncs_enc_claim_space(o_ub, 1);
+
+    return rc;
 }
 
 
@@ -957,10 +969,10 @@ immsv_evt_dec_admo(NCS_UBAID* i_ub, IMMSV_ADMO_LIST** p)
         
         p = &((*p)->next);
         ++depth;
-    } while(c8 && (depth < IMMSV_MAX_DEPTH));
+    } while(c8 && (depth < IMMSV_MAX_ADMINOWNERS));
     
-    if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY attrNames");
+    if(depth >= IMMSV_MAX_ADMINOWNERS) {
+        LOG_ER("TOO MANY Admin Owners");
         return NCSCC_RC_OUT_OF_MEM;
     }
 
@@ -1154,7 +1166,7 @@ immsv_evt_dec_attr_def(NCS_UBAID* i_ub, IMMSV_ATTR_DEF_LIST** adp)
         ++depth;
     } while(c8 && (depth < IMMSV_MAX_DEPTH));
     if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY ATTR DEFS");
+        LOG_ER("TOO MANY ATTR DEFS line:%u", __LINE__);
         return NCSCC_RC_OUT_OF_MEM;
     }
     return NCSCC_RC_SUCCESS;
@@ -1193,7 +1205,7 @@ immsv_evt_dec_admop_param(NCS_UBAID* i_ub, IMMSV_ADMIN_OPERATION_PARAM** opp)
         ++depth;
     } while(c8 && (depth < IMMSV_MAX_DEPTH));
     if(depth >= IMMSV_MAX_DEPTH) {
-        LOG_ER("TOO MANY PARAMS");
+        LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
         return NCSCC_RC_OUT_OF_MEM;
     }
     return NCSCC_RC_SUCCESS;
@@ -1264,7 +1276,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     ++depth;
                 } while(al && (depth < IMMSV_MAX_DEPTH));
                 if(depth >= IMMSV_MAX_DEPTH) {
-                    LOG_ER("Search next: TOO MANY ATTR DEFS");
+                    LOG_ER("Search next: TOO MANY ATTR DEFS line:%u",__LINE__);
                     return NCSCC_RC_OUT_OF_MEM;
                 }
             } 
@@ -1293,7 +1305,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                 ++depth;
             }
             if(depth >= IMMSV_MAX_DEPTH) {
-                LOG_ER("TOO MANY attributes");
+                LOG_ER("TOO MANY attributes line:%u", __LINE__);
                 return NCSCC_RC_OUT_OF_MEM;
             }
         } else if(i_evt->info.imma.type == IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC)
@@ -1315,7 +1327,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                 ++depth;
             }
             if(depth >= IMMSV_MAX_DEPTH) {
-                LOG_ER("TOO MANY attribute modifications");
+                LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
                 return NCSCC_RC_OUT_OF_MEM;
             }
         } else if(i_evt->info.imma.type == IMMA_EVT_ND2A_OI_OBJ_DELETE_UC)
@@ -1339,7 +1351,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                 ++depth;
             }
             if(depth >= IMMSV_MAX_DEPTH) {
-                LOG_ER("TOO MANY PARAMS");
+                LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
                 return NCSCC_RC_OUT_OF_MEM;
             }
         } else if(i_evt->info.imma.type == IMMA_EVT_ND2A_SEARCH_REMOTE)
@@ -1361,7 +1373,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
             }
             
             if(depth >= IMMSV_MAX_DEPTH) {
-                LOG_ER("TOO MANY attribute names");
+                LOG_ER("TOO MANY attribute names line:%u", __LINE__);
                 return NCSCC_RC_OUT_OF_MEM;
             }
         }
@@ -1393,7 +1405,8 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     ++depth;
                 }
                 if(depth >= IMMSV_MAX_DEPTH) {
-                    LOG_ER("TOO MANY attribute modifications");
+                    LOG_ER("TOO MANY attribute modifications line:%u", 
+                        __LINE__);
                     return NCSCC_RC_OUT_OF_MEM;
                 }
             }
@@ -1431,7 +1444,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                         ++depth;
                     }
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY PARAMS");
+                        LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                     
@@ -1458,7 +1471,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                         ++depth;
                     }
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY ATTR DEFS");
+                        LOG_ER("TOO MANY ATTR DEFS line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE)||
@@ -1485,7 +1498,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                         ++depth;
                     }
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attributes");
+                        LOG_ER("TOO MANY attributes line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_MODIFY)||
@@ -1508,7 +1521,8 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                         ++depth;
                     }
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attribute modifications");
+                        LOG_ER("TOO MANY attribute modifications line:%u",
+                            __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if((i_evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_DELETE)||
@@ -1539,14 +1553,14 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                         ++depth;
                     }
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attributes");
+                        LOG_ER("TOO MANY attributes line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if((i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_SET) ||
                     (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
                     (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_CLEAR))
                 {
-                    immsv_evt_enc_name_list(o_ub, 
+                    return immsv_evt_enc_name_list(o_ub, 
                         i_evt->info.immnd.info.admReq.objectNames);
                     
                 } else if(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE)
@@ -1555,13 +1569,15 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     
                     IMMSV_ADMO_LIST* p = i_evt->info.immnd.info.finSync.adminOwners;
                     while(p &&(depth < IMMSV_MAX_ADMINOWNERS)) {
-                        immsv_evt_enc_admo(o_ub, p);
+                        if(immsv_evt_enc_admo(o_ub, p) != NCSCC_RC_SUCCESS) {
+                            return NCSCC_RC_OUT_OF_MEM;
+                        }
                         p = p->next;
                         ++depth;	  
                     }
                     
                     if(depth >= IMMSV_MAX_ADMINOWNERS) {
-                        LOG_ER("TOO MANY admin owners %u", depth);
+                        LOG_ER("TOO MANY admin owners line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                     
@@ -1574,7 +1590,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     }
                     
                     if(depth >= IMMSV_MAX_IMPLEMENTERS) {
-                        LOG_ER("TOO MANY implementers %u", depth);
+                        LOG_ER("TOO MANY implementers line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                     
@@ -1587,7 +1603,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     }
                     
                     if(depth >= IMMSV_MAX_CLASSES) {
-                        LOG_ER("TOO MANY classes %u", depth);
+                        LOG_ER("TOO MANY classes line: %u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if(i_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT)
@@ -1627,7 +1643,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     }
                     
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attribute names");
+                        LOG_ER("TOO MANY attribute names line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                     
@@ -1650,7 +1666,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     }
                     
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attribute names");
+                        LOG_ER("TOO MANY attribute names line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE)
@@ -1672,7 +1688,7 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                     }
                     
                     if(depth >= IMMSV_MAX_DEPTH) {
-                        LOG_ER("TOO MANY attribute names");
+                        LOG_ER("TOO MANY attribute names line:%u", __LINE__);
                         return NCSCC_RC_OUT_OF_MEM;
                     }
                 } else if(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SEARCH_REMOTE_RSP)
@@ -1702,7 +1718,8 @@ immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                             ++depth;
                         } while(al && (depth < IMMSV_MAX_DEPTH));
                         if(depth >= IMMSV_MAX_DEPTH) {
-                            LOG_ER("Search next: TOO MANY ATTR DEFS");
+                            LOG_ER("Search next: TOO MANY ATTR DEFS line:%u",
+                                __LINE__);
                             return NCSCC_RC_OUT_OF_MEM;
                         }
                     }
@@ -2414,7 +2431,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
                 */
             default:
                 LOG_ER("Illegal IMMA message type:%u", immaevt->type);
-                rc = NCSCC_RC_FAILURE;
+                rc = NCSCC_RC_OUT_OF_MEM;
         }
     } else 
         if(i_evt->type == IMMSV_EVT_TYPE_IMMD)
