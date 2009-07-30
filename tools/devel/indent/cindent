@@ -1,0 +1,173 @@
+#!/bin/sh
+
+# Parts borrowed from the the PostgreSQL folks, they have neat development scripts!
+# Source: http://anoncvs.postgresql.org/cvsweb.cgi/pgsql/src/tools/
+
+if [ "$#" -lt 2 ]; then
+	echo "Usage:  $(basename $0) typedefs file [...]" 1>&2
+	exit 1
+fi
+
+TYPEDEFS="$1"
+shift
+
+trap "rm -f /tmp/$$ /tmp/$$a" 0 1 2 3 15
+
+indent -? </dev/null >/dev/null 2>&1
+if [ "$?" -ne 1 ]; then
+	echo "You do not appear to have 'indent' installed on your system." >&2
+	exit 1
+fi
+
+for f in $(find $2 -iname "*.[chiy]"); do
+	cat "$f" |
+
+# Convert // comments to /* */
+	sed 's;^\([ 	]*\)//\(.*\)$;\1/* \2 */;g' >/tmp/$$a
+
+# Indent using the Linux Kernel Codying Style, with flexed line wrapping
+# http://lxr.linux.no/linux/Documentation/CodingStyle
+	indent -linux -l120 \
+		`cat "$TYPEDEFS" | sed -e '/^$/d' -e 's/.*/-T & /'` \
+		/tmp/$$a >/tmp/$$ 2>&1
+
+	if [ "$?" -ne 0 -o -s /tmp/$$ ]; then
+		echo
+		echo "$f"
+		cat /tmp/$$
+	fi
+	cat /tmp/$$a |
+
+# Workaround indent bug for 'static'.
+	sed 's;^static[ 	][ 	]*;static ;g' |
+
+# Remove too much indenting after closing brace.
+	sed 's;^}	[ 	]*;}	;' |
+
+# Indent single-line after-'else' comment by only one tab.
+	sed 's;\([} 	]\)else[ 	]*\(/\*.*\*/\)[ 	]*$;\1else	\2;g' |
+
+# Pull in #endif comments.
+	sed 's;^#endif[ 	][ 	]*/\*;#endif   /*;' |
+
+# Add space after comments that start on tab stops.
+	sed 's;\([^ 	]\)\(/\*.*\*/\)$;\1	\2;' |
+
+# Move trailing * in function return type.
+	sed 's;^\([A-Za-z_][^ 	]*\)[ 	][ 	]*\*$;\1 *;' |
+
+# Remove blank line between opening brace and block comment.
+	awk '
+	{
+			line3 = $0;  
+			if (skips > 0)
+				skips--;
+			if (line1 ~ /	*{$/ &&
+			    line2 ~ /^$/ &&
+			    line3 ~ /		*\/\*$/)
+			{
+				print line1;
+				print line3;
+				line2 = "";
+				line3 = "";
+				skips = 3;
+			}
+			else
+	 			if (skips == 0 && NR >= 3)
+					print line1;
+			line1 = line2;
+			line2 = line3;
+		}
+		END {
+			if (NR >= 2 && skips <= 1)
+				print line1;
+			if (NR >= 1 && skips <= 2)
+				print line2;
+		}' |
+
+# Pull up single-line comment after 'else' that was pulled down above
+	awk '
+		{
+			if (NR != 1)
+			{
+				if ($0 ~ "/\* _PGMV")
+				{
+					# remove tag
+					sub(" _PGMV", "", $0);
+					# remove leading whitespace
+					sub("^[ 	]*", "", $0);
+					# add comment with single tab prefix
+					print prev_line"	"$0;
+					# throw away current line
+					getline;
+				}
+				else
+					print prev_line;
+			}
+			prev_line = $0;
+		}
+		END {
+			if (NR >= 1)
+				print prev_line;
+		}' |
+
+# Remove trailing blank lines, helps with adding blank before trailing #endif.
+	awk '	BEGIN	{blank_lines = 0;}
+		{
+			line1 = $0;
+	 		if (line1 ~ /^$/)
+				blank_lines++;
+			else
+			{
+				for (; blank_lines > 0; blank_lines--)
+					printf "\n";
+				print line1;
+			}
+		}' |
+
+# Remove blank line before #else, #elif, and #endif.
+	awk '	BEGIN	{line1 = ""; line2 = ""; skips = 0}
+		{
+			line2 = $0;
+			if (skips > 0)
+				skips--;
+			if (line1 ~ /^$/ &&
+			    (line2 ~ /^#else/ ||
+			     line2 ~ /^#elif/ ||
+			     line2 ~ /^#endif/))
+			{
+				print line2;
+				line2 = "";
+				skips = 2;
+			}
+			else
+	 			if (skips == 0 && NR >= 2)
+					print line1;
+			line1 = line2;
+		}
+		END {
+			if (NR >= 1 && skips <= 1)
+				print line1;
+		}' |
+
+# Add blank line before #endif if it is the last line in the file.
+	awk '	BEGIN	{line1 = ""; line2 = ""}
+		{
+			line2 = $0;
+	 		if (NR >= 2)
+				print line1;
+			line1 = line2;
+		}
+		END {
+			if (NR >= 1 && line2 ~ /^#endif/)
+				printf "\n";
+			print line1;
+		}' |
+
+# end
+
+        cat >/tmp/$$ && cat /tmp/$$ >"$f"
+done
+
+# The 'for' loop makes these backup files useless so delete them
+rm -f *a.BAK
