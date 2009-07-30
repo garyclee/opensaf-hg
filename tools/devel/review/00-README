@@ -58,7 +58,7 @@ For instance under Red Hat/Fedora the package is called 'qct-mercurial'
 
 http://www.selenic.com/mercurial/wiki/index.cgi/QctExtension
 
-Under './tools/devel/commit.template', you'll find a default template that you
+Under './tools/devel/review/commit.template', you'll find a default template that you
 can use with the Qct extension. The extension automatically looks for a template
 file under `hg root`/.commit.template, a copy is already placed in the OpenSAF
 repository for developer that would like to use the Qct extension.
@@ -82,9 +82,6 @@ Mercurial Settings Needed for Email Review
 
 This section lists the settings that should be enabled from the '~/.hgrc' file to
 be able to use the helper script properly.
-
-If you need help using the Mercurial patch queue extension, take a look at the
-other document '00-README-hgtips' present in the current directory.
 
 The following options should be set in ~/.hgrc:
 
@@ -119,7 +116,7 @@ nodates and showfunc gives cleaner patch context.
 Using the submit-review.sh Helper Script
 ========================================
 
-Present in './tools/devel/submit-review.sh', this script will help developer to
+Present in './tools/devel/review/submit-review.sh', this script will help developer to
 easily submit work for review in well formatted patch series as seen on major
 open source project mailing lists.
 
