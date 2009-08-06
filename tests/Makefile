@@ -25,7 +25,7 @@
 # gmake PLATFORM=linux64
 # gmake PLATFORM=solaris
 # gmake TARGET=all
-# gmake [ avsv | cpsv | edsv | glsv | ifsv | logsv | mbcsv | mds | mqsv ]
+# gmake [ avsv | cpsv | edsv | glsv | logsv | mbcsv | mds | mqsv ]
 # gmake TARGET=clean
 # gmake TARGET=clobber
 # gmake tetsuites
@@ -55,7 +55,6 @@ SERVICES_DIRS := \
 	cpsv \
 	edsv \
 	glsv \
-	ifsv \
 	mbcsv \
 	mds \
 	mqsv

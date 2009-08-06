@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ifsv_ip_installer safimm saflog safntf
+SUBDIRS = safimm saflog safntf
 
 if ENABLE_HPI
 

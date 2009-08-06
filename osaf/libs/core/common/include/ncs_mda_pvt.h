@@ -63,7 +63,6 @@ typedef enum
     AVM_VDEST_ID,
     CPD_VDEST_ID,   
     MQD_VDEST_ID,
-    IFD_VDEST_ID,
     LGS_VDEST_ID,
     AVND_VDEST_ID,
     IMMD_VDEST_ID,

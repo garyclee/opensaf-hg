@@ -47,9 +47,6 @@
 #include "subagt.h"
 
 #include "avsv_subagt_init.h"
-#include "ifsv_subagt_init.h"
-#include "ifsv_entp_subagt_init.h"
-#include "ipxs_subagt_init.h"
 #include "dtsv_subagt_init.h"
 #include "avm_subagt_init.h"
 #include "rda_papi.h"
@@ -829,33 +826,6 @@ snmpsubagt_appl_mibs_register()
                                    "subagt_register_avm_subsys()", 0, 0); 
     }
 
-    /* register IFSV subsystem */ 
-    status = subagt_register_ifsv_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_REG_FAILED,
-                                   "subagt_register_ifsv_subsys()", 0, 0); 
-    }
-
-    /* register IFSV Enterprise MIB */
-    status = subagt_register_ifsv_entp_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_REG_FAILED,
-                                   "subagt_register_ifsv_entp_subsys()", 0, 0); 
-    }
-
-    /* register IPXS subsystem */
-    status = subagt_register_ipxs_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_REG_FAILED,
-                                   "subagt_register_ipxs_subsys()", 0, 0); 
-    }
-
     /* register DTSV subsystem */
     status = subagt_register_dtsv_subsys();  
     if (status != NCSCC_RC_SUCCESS)
@@ -908,33 +878,6 @@ snmpsubagt_appl_mibs_unregister()
         /* log the error */
         m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_UNREG_FAILED,
                                    "subagt_unregister_avm_subsys()", 0, 0); 
-    }
-
-    /* unregister IFSV subsystem */ 
-    status = subagt_unregister_ifsv_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_UNREG_FAILED,
-                                   "subagt_unregister_ifsv_subsys()", 0, 0); 
-    }
-
-    /* unregister IFSV Enterprise MIB */
-    status = subagt_unregister_ifsv_entp_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_UNREG_FAILED,
-                                   "subagt_unregister_ifsv_entp_subsys()", 0, 0); 
-    }
-
-    /* unregister IPXS subsystem */
-    status = subagt_unregister_ipxs_subsys();  
-    if (status != NCSCC_RC_SUCCESS)
-    {
-        /* log the error */
-        m_SNMPSUBAGT_ERROR_STR_LOG(SNMPSUBAGT_SUBSYS_UNREG_FAILED,
-                                   "subagt_unregister_ipxs_subsys()", 0, 0); 
     }
 
     /* unregister DTSV subsystem */

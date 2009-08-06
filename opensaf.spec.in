@@ -254,15 +254,11 @@ fi
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 # TODO Still needed?
-%{_pkglibdir}/ip_inst_script
 %{_pkglibdir}/ncs_cpnd_clean
 %{_pkglibdir}/ncs_cpnd_start
 %{_pkglibdir}/ncs_glnd_clean
 %{_pkglibdir}/ncs_glnd_start
-%{_pkglibdir}/ncs_ifnd_clean
-%{_pkglibdir}/ncs_ifnd_start
 # TODO Still needed?
-%{_pkglibdir}/ncs_ifsv_ip_ins_script
 %{_pkglibdir}/ncs_mqnd_clean
 %{_pkglibdir}/ncs_mqnd_start
 %{_pkglibdir}/ncs_vds_clean
@@ -315,11 +311,6 @@ fi
 %{_pkglibdir}/ncs_hisv_clean
 %{_pkglibdir}/ncs_hisv_start
 %endif
-%{_pkglibdir}/ncs_ifd
-%{_pkglibdir}/ncs_ifd_clean
-%{_pkglibdir}/ncs_ifd_start
-%{_pkglibdir}/ncs_ifnd
-%{_pkglibdir}/ncs_ifsv_ip_installer
 %{_pkglibdir}/ncs_mas
 %{_pkglibdir}/ncs_mas_clean
 %{_pkglibdir}/ncs_mas_start
@@ -380,7 +371,6 @@ fi
 %config %{_sysconfdir}/%{name}/subagt_lib.conf
 %config %{_sysconfdir}/%{name}/ValidationConfig.xml
 %config %{_sysconfdir}/%{name}/ValidationConfig.xsd
-%config(noreplace) %{_sysconfdir}/%{name}/vipsample.conf
 %config(noreplace) %{_sysconfdir}/%{name}/saflog.conf
 %config(noreplace) %{_sysconfdir}/%{name}/ntf.conf
 %config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.controller
@@ -411,12 +401,6 @@ fi
 %{_libdir}/%{name}/libedsv_subagt.so.*
 %{_libdir}/%{name}/libglsv_logstr.so.*
 %{_libdir}/%{name}/libglsv_subagt.so.*
-%{_libdir}/%{name}/libifsv_bind_subagt.so.*
-%{_libdir}/%{name}/libifsv_clicef.so.*
-%{_libdir}/%{name}/libifsv_entp_subagt.so.*
-%{_libdir}/%{name}/libifsv_logstr.so.*
-%{_libdir}/%{name}/libifsv_subagt.so.*
-%{_libdir}/%{name}/libipxs_subagt.so.*
 %{_libdir}/%{name}/libmab_logstr.so.*
 %{_libdir}/%{name}/libmbcsv_logstr.so.*
 %{_libdir}/%{name}/libmqsv_logstr.so.*
@@ -440,8 +424,6 @@ fi
 %defattr(-,root,root)
 %{_pkglibdir}/ncs_cpnd
 %{_pkglibdir}/ncs_glnd
-%{_pkglibdir}/ncs_ifnd
-%{_pkglibdir}/ncs_ifsv_ip_installer
 %{_pkglibdir}/ncs_mqnd
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/ncs_pcap
@@ -474,11 +456,9 @@ fi
 %{_libdir}/libcpsv_common.so.*
 %{_libdir}/libedsv_common.so.*
 %{_libdir}/libglsv_common.so.*
-%{_libdir}/libifsv_common.so.*
 %{_libdir}/libimmsv_common.so.*
 %{_libdir}/libmqsv_common.so.*
 %{_libdir}/libntfsv_common.so.*
-%{_libdir}/libifa.so.*
 %{_libdir}/libmaa.so.*
 %{_libdir}/librda.so.*
 %{_libdir}/libfma.so.*

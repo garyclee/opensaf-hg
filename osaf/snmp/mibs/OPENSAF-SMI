@@ -62,9 +62,6 @@ services OBJECT IDENTIFIER ::= { openSafObjects 1}
 -- Availability Service
 avsv 	OBJECT IDENTIFIER ::= { services 1 }
 
--- Interface Service
-ifsv 	OBJECT IDENTIFIER ::= { services 2 }
-
 -- Checkpoint Service
 cpsv 	OBJECT IDENTIFIER ::= { services 3 }
 

@@ -142,7 +142,6 @@ dist_pkgsysconf_DATA = \
 	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
 	$(top_srcdir)/config/ValidationConfig.xml \
 	$(top_srcdir)/config/ValidationConfig.xsd \
-	$(top_srcdir)/config/vipsample.conf \
 	$(top_srcdir)/config/nodeinit.conf.controller \
 	$(top_srcdir)/config/nodeinit.conf.payload \
 	$(top_srcdir)/config/saflog.conf \
@@ -212,10 +211,6 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/opensaf_fms \
 	$(top_builddir)/scripts/ncs_gld_start \
 	$(top_builddir)/scripts/ncs_glnd_start \
-	$(top_builddir)/scripts/ncs_ifd_clean \
-	$(top_builddir)/scripts/ncs_ifd_start \
-	$(top_builddir)/scripts/ncs_ifnd_clean \
-	$(top_builddir)/scripts/ncs_ifnd_start \
 	$(top_builddir)/scripts/ncs_mas_clean \
 	$(top_builddir)/scripts/ncs_mas_start \
 	$(top_builddir)/scripts/ncs_mqd_start \

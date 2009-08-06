@@ -1723,7 +1723,7 @@ uns32 avnd_mds_set_vdest_role (AVND_CB *cb, SaAmfHAStateT role)
 
  DESCRIPTION    : Sending the event to it's mail box
 
- ARGUMENTS      : ifsv_cb : IFD control Block
+ ARGUMENTS      : cb : IFD control Block
 
  RETURNS        : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 \*****************************************************************************/
@@ -1736,7 +1736,7 @@ uns32 avnd_mds_quiesced_process(AVND_CB *cb)
                          NULL, 0, 0, 0);
    if(NULL == evt)
    {
-     m_AVND_AVND_ERR_LOG("ifd_mds_quiesced_process:evt is NULL",NULL,0,0,0,0);
+     m_AVND_AVND_ERR_LOG("avnd_mds_quiesced_process:evt is NULL",NULL,0,0,0,0);
    }
    else
    {

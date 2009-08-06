@@ -28,7 +28,7 @@
 static void mqnd_timer_expiry (NCSCONTEXT uarg);
 
 /****************************************************************************
- * Name          : ifsv_cleanup_timer_expiry
+ * Name          : mqnd_cleanup_timer_expiry
  *
  * Description   : This function which is registered with the OS tmr function,
  *                 which will post a message to the corresponding mailbox 

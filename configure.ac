@@ -573,7 +573,6 @@ AC_CONFIG_FILES([
         osaf/cli/services/Makefile
         osaf/cli/services/avsv/Makefile
         osaf/cli/services/dtsv/Makefile
-        osaf/cli/services/ifsv/Makefile
         osaf/cli/services/psr/Makefile
         osaf/snmp/Makefile
         osaf/snmp/config/Makefile
@@ -583,11 +582,6 @@ AC_CONFIG_FILES([
         osaf/snmp/mapi/cpsv/Makefile
         osaf/snmp/mapi/edsv/Makefile
         osaf/snmp/mapi/glsv/Makefile
-        osaf/snmp/mapi/ifsv/Makefile
-        osaf/snmp/mapi/ifsv/entp/Makefile
-        osaf/snmp/mapi/ifsv/ipxs/Makefile
-        osaf/snmp/mapi/ifsv/ir/Makefile
-        osaf/snmp/mapi/ifsv/vip/Makefile
         osaf/snmp/mapi/mqsv/Makefile
         osaf/snmp/miblib/Makefile
         osaf/snmp/miblib/avsv/Makefile
@@ -602,8 +596,6 @@ AC_CONFIG_FILES([
         osaf/snmp/miblib/edsv/eds/Makefile
         osaf/snmp/miblib/glsv/Makefile
         osaf/snmp/miblib/glsv/gld/Makefile
-        osaf/snmp/miblib/ifsv/Makefile
-        osaf/snmp/miblib/ifsv/ifd/Makefile
         osaf/snmp/miblib/mqsv/Makefile
         osaf/snmp/miblib/mqsv/mqd/Makefile
         osaf/snmp/miblib/mqsv/mqnd/Makefile
@@ -631,10 +623,6 @@ AC_CONFIG_FILES([
         osaf/snmp/subagt/services/dtsv/Makefile
         osaf/snmp/subagt/services/edsv/Makefile
         osaf/snmp/subagt/services/glsv/Makefile
-        osaf/snmp/subagt/services/ifsv/Makefile
-        osaf/snmp/subagt/services/ifsv/entp/Makefile
-        osaf/snmp/subagt/services/ifsv/entp_ifsv_ir/Makefile
-        osaf/snmp/subagt/services/ifsv/ipxs/Makefile
         osaf/snmp/subagt/services/mqsv/Makefile
         osaf/snmp/subagt/services/pssv/Makefile
         osaf/libs/Makefile
@@ -643,7 +631,6 @@ AC_CONFIG_FILES([
         osaf/libs/agents/infrastructure/dta/Makefile
         osaf/libs/agents/infrastructure/fma/logstr/Makefile
         osaf/libs/agents/infrastructure/fma/Makefile
-        osaf/libs/agents/infrastructure/ifa/Makefile
         osaf/libs/agents/infrastructure/maa/Makefile
         osaf/libs/agents/infrastructure/oaa/Makefile
         osaf/libs/agents/infrastructure/rda/Makefile
@@ -714,12 +701,6 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/hisv/hpl/Makefile
         osaf/services/infrastructure/hisv/include/Makefile
         osaf/services/infrastructure/hisv/logstr/Makefile
-        osaf/services/infrastructure/ifsv/Makefile
-        osaf/services/infrastructure/ifsv/include/Makefile
-        osaf/services/infrastructure/ifsv/common/Makefile
-        osaf/services/infrastructure/ifsv/logstr/Makefile
-        osaf/services/infrastructure/ifsv/ifd/Makefile
-        osaf/services/infrastructure/ifsv/ifnd/Makefile
         osaf/services/infrastructure/masv/Makefile
         osaf/services/infrastructure/masv/include/Makefile
         osaf/services/infrastructure/masv/logstr/Makefile
@@ -770,10 +751,6 @@ AC_CONFIG_FILES([
         osaf/tools/Makefile
         osaf/tools/hisv_events_demo/Makefile
         osaf/tools/hisv_power_set_util/Makefile
-        osaf/tools/ifsv_ip_installer/Makefile
-        osaf/tools/ifsv_ip_installer/scripts/Makefile
-        osaf/tools/ifsv_ip_installer/scripts/ip_inst_script
-        osaf/tools/ifsv_ip_installer/scripts/ncs_ifsv_ip_ins_script
         osaf/tools/safimm/Makefile
         osaf/tools/safimm/immadm/Makefile
         osaf/tools/safimm/immcfg/Makefile
@@ -817,10 +794,6 @@ AC_CONFIG_FILES([
         scripts/ncs_gld_start
         scripts/ncs_glnd_start
         scripts/ncs_hisv_start
-        scripts/ncs_ifd_clean
-        scripts/ncs_ifd_start
-        scripts/ncs_ifnd_clean
-        scripts/ncs_ifnd_start
         scripts/ncs_mas_clean
         scripts/ncs_mas_start
         scripts/ncs_mqd_start

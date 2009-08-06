@@ -40,9 +40,6 @@ libopensaf_snmp_subagt_la_CPPFLAGS = \
 	-DNCS_EDA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_builddir)/osaf/snmp/subagt/services/avsv \
-	-I$(top_builddir)/osaf/snmp/subagt/services/ifsv \
-	-I$(top_builddir)/osaf/snmp/subagt/services/ifsv/ipxs \
-	-I$(top_builddir)/osaf/snmp/subagt/services/ifsv/entp \
 	-I$(top_builddir)/osaf/snmp/subagt/services/dtsv \
 	-I$(top_builddir)/osaf/snmp/subagt/services/avsv/avm \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
@@ -68,9 +65,6 @@ libopensaf_snmp_subagt_la_LDFLAGS = \
 
 libopensaf_snmp_subagt_la_LIBADD = \
    $(top_builddir)/osaf/snmp/subagt/services/avsv/avm/libavm_subagt.la \
-   $(top_builddir)/osaf/snmp/subagt/services/ifsv/entp/libifsv_entp_subagt.la \
-   $(top_builddir)/osaf/snmp/subagt/services/ifsv/ipxs/libipxs_subagt.la \
-   $(top_builddir)/osaf/snmp/subagt/services/ifsv/libifsv_subagt.la  \
    $(top_builddir)/osaf/snmp/subagt/services/avsv/libavsv_subagt.la \
    $(top_builddir)/osaf/snmp/subagt/services/dtsv/libdtsv_subagt.la \
    $(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

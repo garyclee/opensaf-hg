@@ -34,7 +34,6 @@
 /*#include "lim.h" */
 #include "md_cfg.h"
 #include "ncs_mds.h"
-#include "ifsvinit.h"
 
 #if (NCS_VDS == 1)
 #include "vds_dl_api.h"
@@ -75,23 +74,11 @@
 #include "glnd_dl_api.h"
 #endif
 
-#if (NCS_IFA == 1)
-#include "ifa_dl_api.h"
-#endif
-#if (NCS_IFD == 1)
-#include "ifd_dl_api.h"
-#endif
-#if (NCS_IFND == 1)
-#include "ifnd_dl_api.h"
-#include "ifsvinit.h"
-#endif
-
 #if (NCS_FLA == 1)
 #include "fla_dl_api.h"
 #endif
 #if (NCS_FLS == 1)
 #include "fls_dl_api.h"
-#include "ifsv_logstr.h"    
 #endif
 
 
