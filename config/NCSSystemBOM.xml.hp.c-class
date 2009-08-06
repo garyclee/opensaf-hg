@@ -1263,133 +1263,6 @@
                                         <enableAM>0</enableAM>
 				</componentPrototype>
 				
-
-                                <!--
-                                   The Configuration for Controller SYSTEM RESOURCE MONITORING NODE DIRECTOR component CompT_SC_SRMND
-                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
-                                -->
-                                <componentPrototype name="safComp=CompT_SC_SRMND" finalPrototype="1">
-
-                                        <!--
-                                             All the commands to manage the component life cycle
-                                        -->
-					<clcCommands>
-						<instantiateCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_start</command>
-							<timeout>50000</timeout>
-							<numMaxInstantiate>5</numMaxInstantiate>
-						</instantiateCommand>
-						<terminateCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
-							<timeout>5000</timeout>
-						</terminateCommand>
-						<cleanupCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
-							<timeout>5000</timeout>
-						</cleanupCommand>
-					</clcCommands>
-					<instantiationLevel>3</instantiationLevel>
-
-                                        <!--
-                                             Match the CSI Type specified here with
-                                             the one specified in CSI descriptor under SI
-                                        -->
-					<csiPrototypeName>safCsi=Csi_SRMND</csiPrototypeName>
-
-                                        <!--
-                                             Make a choice of SA_Aware component/proxied/unproxied
-                                        -->
-					<saAwareComponent>
-
-                                                <!--
-                                                     Set the capability supported by the component
-                                                -->
-						<capability>1_ACTIVE</capability>
-                                                <!--
-                                                     Configure the Health check Key here
-                                                -->
-						<healthCheck key="A9A9">
-							<period>240000</period>
-							<maxDuration>180000</maxDuration>
-						</healthCheck>
-						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
-						<terminationTimeout>240000</terminationTimeout>
-						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
-					</saAwareComponent>
-
-                                        <!--
-                                             Do you want Active Monitoring for this component ?
-                                             Here is the place to configure it.
-                                        -->
-                                        <enableAM>0</enableAM>
-				</componentPrototype>
-
-                                <!--
-                                   The Configuration for SYSTEM RESOURCE MONITORING NODE DIRECTOR component CompT_SRMND
-                                   The SAF standard mandates that the component name should start with &quot;safComp=&quot;
-                                --> 
-                                <componentPrototype name="safComp=CompT_SRMND" finalPrototype="1">
-                                
-
-                                        <!--
-                                             All the commands to manage the component life cycle
-                                        -->
-					<clcCommands>
-						<instantiateCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_start</command>
-							<timeout>50000</timeout>
-							<numMaxInstantiate>5</numMaxInstantiate>
-						</instantiateCommand>
-						<terminateCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
-							<timeout>5000</timeout>
-						</terminateCommand>
-						<cleanupCommand>
-							<command>xxLIBDIRxx/ncs_srmnd_clean</command>
-							<timeout>5000</timeout>
-						</cleanupCommand>
-					</clcCommands>
-					<instantiationLevel>1</instantiationLevel>
-                                       
-
-                                        <!--
-                                             Match the CSI Type specified here with
-                                             the one specified in CSI descriptor under SI
-                                        -->
-					<csiPrototypeName>safCsi=Csi_SRMND</csiPrototypeName>
-
-                                        <!--
-                                             Make a choice of SA_Aware component/proxied/unproxied
-                                        -->
-					<saAwareComponent>
-
-                                                <!--
-                                                     Set the capability supported by the component
-                                                -->
-						<capability>1_ACTIVE</capability>
-                                                <!--
-                                                     Configure the Health check Key here
-                                                -->
-						<healthCheck key="A9A9">
-							<period>240000</period>
-							<maxDuration>180000</maxDuration>
-						</healthCheck>
-						<disableRestart>0</disableRestart>
-						<QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
-						<terminationTimeout>240000</terminationTimeout>
-						<csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
-						<csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
-					</saAwareComponent>
-
-                                        <!--
-                                             Do you want Active Monitoring for this component ?
-                                             Here is the place to configure it.
-                                        -->
-                                        <enableAM>0</enableAM>
-				</componentPrototype>
-
                                 <componentPrototype name="safComp=CompT_VDS" finalPrototype="1">
 
                                         <!--
@@ -1930,7 +1803,6 @@
                                 -->
 						<componentPrototype>safComp=CompT_SC_RDE</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_FMS</componentPrototype>
-                                                <componentPrototype>safComp=CompT_SC_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_SC_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SC_GLND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_IMMND</componentPrototype>
@@ -1943,7 +1815,6 @@
                                  --> 
 				<SUPrototype name="safSu=SuT_NCS_PLD" finalPrototype="1">
 					<componentPrototypeList>
-						<componentPrototype>safComp=CompT_SRMND</componentPrototype>
 						<componentPrototype>safComp=CompT_MQND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_GLND</componentPrototype>
                                                 <componentPrototype>safComp=CompT_IMMND</componentPrototype>
@@ -1960,10 +1831,6 @@
 					<CSIList>
 						<CSIInstance name="safCsi=Csi_RDE" rank="1">
 							<prototypeName>safCsi=Csi_RDE</prototypeName>
-							<CSIAttributes/>
-						</CSIInstance>
-						<CSIInstance name="safCsi=Csi_SRMND" rank="2">
-							<prototypeName>safCsi=Csi_SRMND</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
 						<CSIInstance name="safCsi=Csi_MQND" rank="3">
@@ -2002,10 +1869,6 @@
 							<prototypeName>safCsi=Csi_RDE</prototypeName>
 							<CSIAttributes/>
 						</CSIInstance>
-						<CSIInstance name="safCsi=Csi_SRMND" rank="2">
-							<prototypeName>safCsi=Csi_SRMND</prototypeName>
-							<CSIAttributes/>
-						</CSIInstance>
 						<CSIInstance name="safCsi=Csi_MQND" rank="3">
 							<prototypeName>safCsi=Csi_MQND</prototypeName>
 							<CSIAttributes/>
@@ -2039,10 +1902,6 @@
                                 -->
 				<SIInstance name="safSi=Si_PLD3">
 					<CSIList>
-						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
-							<prototypeName>safCsi=Csi_SRMND</prototypeName>
-							<CSIAttributes/>
-						</CSIInstance>
 						<CSIInstance name="safCsi=Csi_MQND" rank="2">
 							<prototypeName>safCsi=Csi_MQND</prototypeName>
 							<CSIAttributes/>
@@ -2066,10 +1925,6 @@
                                 -->
 				<SIInstance name="safSi=Si_PLD4">
 					<CSIList>
-						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
-							<prototypeName>safCsi=Csi_SRMND</prototypeName>
-							<CSIAttributes/>
-						</CSIInstance>
 						<CSIInstance name="safCsi=Csi_MQND" rank="2">
 							<prototypeName>safCsi=Csi_MQND</prototypeName>
 							<CSIAttributes/>
@@ -2093,10 +1948,6 @@
                                 -->
 				<SIInstance name="safSi=Si_PLD5">
 					<CSIList>
-						<CSIInstance name="safCsi=Csi_SRMND" rank="1">
-							<prototypeName>safCsi=Csi_SRMND</prototypeName>
-							<CSIAttributes/>
-						</CSIInstance>
 						<CSIInstance name="safCsi=Csi_MQND" rank="2">
 							<prototypeName>safCsi=Csi_MQND</prototypeName>
 							<CSIAttributes/>

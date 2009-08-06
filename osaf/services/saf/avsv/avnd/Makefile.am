@@ -44,7 +44,6 @@ COMMON_SRC = \
 	avnd_pgdb.c \
 	avnd_proc.c \
 	avnd_sidb.c \
-	avnd_srm.c \
 	avnd_su.c \
 	avnd_sudb.c \
 	avnd_susm.c \

@@ -50,7 +50,6 @@ typedef enum
    NCS_SERVICE_AVND_SUB_ID_AVND_COMP_CBK,
    NCS_SERVICE_AVND_SUB_ID_AVND_HC,
    NCS_SERVICE_AVND_SUB_ID_AVND_PG,
-   NCS_SERVICE_AVND_SUB_ID_AVND_SRM_REQ,
    NCS_SERVICE_AVND_SUB_ID_AVND_PG_MEM,
    NCS_SERVICE_AVND_SUB_ID_AVND_PG_TRK,
    NCS_SERVICE_AVND_SUB_ID_AVND_DND_MSG_LIST,
@@ -196,15 +195,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVND, \
                                                 NCS_SERVICE_AVND_SUB_ID_AVND_HC)
-
-#define m_MMGR_ALLOC_AVND_SRM_REQ (AVND_SRM_REQ*)m_NCS_MEM_ALLOC(sizeof(AVND_SRM_REQ), \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVND, \
-                                                NCS_SERVICE_AVND_SUB_ID_AVND_SRM_REQ)
-#define m_MMGR_FREE_AVND_SRM_REQ(p)   m_NCS_MEM_FREE(p,\
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVND, \
-                                                NCS_SERVICE_AVND_SUB_ID_AVND_SRM_REQ)
 
 #define m_MMGR_ALLOC_AVND_PG      (AVND_PG*)m_NCS_MEM_ALLOC(sizeof(AVND_PG), \
                                                 NCS_MEM_REGION_PERSISTENT, \

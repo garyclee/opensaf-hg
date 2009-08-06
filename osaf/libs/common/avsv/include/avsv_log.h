@@ -75,22 +75,6 @@ typedef enum avsv_log_mds {
 
 
 /******************************************************************************
-                      Logging offset indices for SRM
- ******************************************************************************/
-typedef enum avsv_log_srm {
-   AVSV_LOG_SRM_REG,
-   AVSV_LOG_SRM_FINALIZE,
-   AVSV_LOG_SRM_UNREG,
-   AVSV_LOG_SRM_MON_START,
-   AVSV_LOG_SRM_MON_STOP,
-   AVSV_LOG_SRM_CALLBACK,
-   AVSV_LOG_SRM_DISPATCH,
-   AVSV_LOG_SRM_SUCCESS,
-   AVSV_LOG_SRM_FAILURE,
-   AVSV_LOG_SRM_MAX
-} AVSV_LOG_SRM;
-
-/******************************************************************************
                         Logging offset indices for EDU
  ******************************************************************************/
 typedef enum avsv_log_edu {

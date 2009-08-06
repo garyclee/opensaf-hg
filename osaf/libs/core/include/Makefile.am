@@ -84,8 +84,6 @@ pkginclude_HEADERS = \
 	rda_papi.h \
 	fm_papi.h \
 	sckt_defs.h \
-	srma_papi.h \
-	srmsv_papi.h \
 	subagt_mab.h \
 	subagt_oid_db.h \
 	sysf_ip.h \

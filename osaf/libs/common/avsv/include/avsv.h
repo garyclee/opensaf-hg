@@ -71,9 +71,6 @@
 #include "oac_papi.h"
 #include "oac_api.h"
 
-#include "srmsv_papi.h"
-#include "srma_papi.h"
-
 #include "avsv_mapi.h"
 #include "avsv_log.h"
 #include "avsv_defs.h"

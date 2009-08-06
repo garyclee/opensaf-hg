@@ -77,7 +77,6 @@ noinst_HEADERS = \
    avnd_mib.h \
    avnd_pg.h \
    avnd_proc.h \
-   avnd_srm.h \
    avnd_su.h \
    avnd_tmr.h \
    avnd_trap.h \

@@ -647,7 +647,6 @@ AC_CONFIG_FILES([
         osaf/libs/agents/infrastructure/maa/Makefile
         osaf/libs/agents/infrastructure/oaa/Makefile
         osaf/libs/agents/infrastructure/rda/Makefile
-        osaf/libs/agents/infrastructure/srma/Makefile
         osaf/libs/agents/infrastructure/vda/Makefile
         osaf/libs/agents/saf/Makefile
         osaf/libs/agents/saf/ava/Makefile
@@ -733,10 +732,6 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/rde/Makefile
         osaf/services/infrastructure/rde/logstr/Makefile
         osaf/services/infrastructure/rde/include/Makefile
-        osaf/services/infrastructure/srmsv/Makefile
-        osaf/services/infrastructure/srmsv/include/Makefile
-        osaf/services/infrastructure/srmsv/logstr/Makefile
-        osaf/services/infrastructure/srmsv/srmnd/Makefile
         osaf/services/infrastructure/vds/Makefile
         osaf/services/infrastructure/vds/include/Makefile
         osaf/services/infrastructure/vds/logstr/Makefile
@@ -839,7 +834,6 @@ AC_CONFIG_FILES([
         scripts/opensaf_fms
         scripts/ncs_scap_clean
         scripts/ncs_scap_start
-        scripts/ncs_srmnd_start
         scripts/ncs_vds_start
         scripts/nid_tipc
         scripts/openhpid_clean

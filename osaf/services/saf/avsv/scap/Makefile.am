@@ -21,12 +21,11 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_PROGRAMS = ncs_scap
 
 ncs_scap_CPPFLAGS = \
-	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 -DNCS_SRMA=1 \
+	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avm/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/srmsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include
 
@@ -41,7 +40,6 @@ ncs_scap_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/srma/libsrma.la \
 	$(top_builddir)/osaf/services/saf/avsv/avd/libavd.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_ctrl.la \
 	$(top_builddir)/osaf/services/saf/avsv/avm/libavm.la \

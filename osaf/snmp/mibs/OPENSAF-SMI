@@ -71,9 +71,6 @@ cpsv 	OBJECT IDENTIFIER ::= { services 3 }
 -- Event Distribution Service
 edsv 	OBJECT IDENTIFIER ::= { services 4 }
 
--- System Resource Monitoring
-srmsv 	OBJECT IDENTIFIER ::= { services 5 }
-
 -- Distributed Tracing Service
 dtsv 	OBJECT IDENTIFIER ::= { services 6 }
 

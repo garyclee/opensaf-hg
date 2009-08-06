@@ -265,8 +265,6 @@ fi
 %{_pkglibdir}/ncs_ifsv_ip_ins_script
 %{_pkglibdir}/ncs_mqnd_clean
 %{_pkglibdir}/ncs_mqnd_start
-%{_pkglibdir}/ncs_srmnd_clean
-%{_pkglibdir}/ncs_srmnd_start
 %{_pkglibdir}/ncs_vds_clean
 %{_pkglibdir}/ncs_vds_start
 %{_pkglibdir}/nid_tipc
@@ -346,7 +344,6 @@ fi
 %{_pkglibdir}/ncs_snmpsubagt_clean
 %{_pkglibdir}/ncs_snmpsubagt_reload
 %{_pkglibdir}/ncs_snmpsubagt_start
-%{_pkglibdir}/ncs_srmnd
 %{_pkglibdir}/ncs_vds
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
@@ -431,7 +428,6 @@ fi
 %{_libdir}/%{name}/libpssv_subagt.so.*
 %{_libdir}/%{name}/librde_logstr.so.*
 %{_libdir}/%{name}/libfma_logstr.so.*
-%{_libdir}/%{name}/libsrmsv_logstr.so.*
 %{_libdir}/%{name}/libsubagt_logstr.so.*
 %{_libdir}/%{name}/libvds_logstr.so.*
 #TODO: To be changed when supporting other HPI
@@ -449,7 +445,6 @@ fi
 %{_pkglibdir}/ncs_mqnd
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/ncs_pcap
-%{_pkglibdir}/ncs_srmnd
 %{_pkglibdir}/ncs_pcap_clean
 %{_pkglibdir}/ncs_pcap_start
 %{_pkglibdir}/opensaf_immnd
@@ -487,7 +482,6 @@ fi
 %{_libdir}/libmaa.so.*
 %{_libdir}/librda.so.*
 %{_libdir}/libfma.so.*
-%{_libdir}/libsrma.so.*
 %{_libdir}/libhpl.so.*
 
 

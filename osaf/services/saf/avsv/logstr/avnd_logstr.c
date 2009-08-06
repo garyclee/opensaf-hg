@@ -423,7 +423,6 @@ NCSFL_SET avnd_str_set[] =
 {
    { AVND_FC_SEAPI   , 0, (NCSFL_STR *) avsv_seapi_set    },
    { AVND_FC_MDS     , 0, (NCSFL_STR *) avsv_mds_set      },
-   { AVND_FC_SRM     , 0, (NCSFL_STR *) avsv_srm_set      }, 
    { AVND_FC_EDU     , 0, (NCSFL_STR *) avsv_edu_set      },
    { AVND_FC_LOCK    , 0, (NCSFL_STR *) avsv_lock_set     },
    { AVND_FC_CB      , 0, (NCSFL_STR *) avsv_cb_set       },
@@ -457,9 +456,6 @@ NCSFL_FMAT avnd_fmat_set[] =
 
    /* <MDS Register/Install/...> <Success/Failure> */
    { AVND_LID_MDS     , NCSFL_TYPE_TII  ,  "[%s] %s %s\n"                             },
-
-   /* <SRM Register/Finalize/...> <Success/Failure> */
-   { AVND_LID_SRM     , NCSFL_TYPE_TII  ,  "[%s] %s %s\n"                             }, 
 
    /* <EDU Init/Finalize> <Success/Failure> */
    { AVND_LID_EDU     , NCSFL_TYPE_TII  ,  "[%s] %s %s\n"                             },

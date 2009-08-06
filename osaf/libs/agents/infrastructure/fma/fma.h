@@ -38,9 +38,6 @@
 #include "oac_papi.h"
 #include "oac_api.h"
 
-#include "srmsv_papi.h"
-#include "srma_papi.h"
-
 #include <SaHpi.h>
 
 #include "fm_papi.h"

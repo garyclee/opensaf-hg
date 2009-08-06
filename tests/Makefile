@@ -25,7 +25,7 @@
 # gmake PLATFORM=linux64
 # gmake PLATFORM=solaris
 # gmake TARGET=all
-# gmake [ avsv | cpsv | edsv | glsv | ifsv | logsv | mbcsv | mds | mqsv | srmsv ]
+# gmake [ avsv | cpsv | edsv | glsv | ifsv | logsv | mbcsv | mds | mqsv ]
 # gmake TARGET=clean
 # gmake TARGET=clobber
 # gmake tetsuites
@@ -51,15 +51,14 @@ include Makefile.common
 #
 # add logsv to this list when it's ready
 #
-SERVICES_DIRS	:= \
+SERVICES_DIRS := \
 	cpsv \
 	edsv \
 	glsv \
 	ifsv \
 	mbcsv \
 	mds \
-	mqsv \
-	srmsv
+	mqsv
 
 # These are the files required to run the OpenSAF tests
 TET_SUITE_FILES := \

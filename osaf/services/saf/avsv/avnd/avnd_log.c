@@ -84,28 +84,6 @@ void avnd_log_mds (AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
 
 
 /****************************************************************************
-  Name          : avnd_log_srm
- 
-  Description   : This routine logs the SRM info.
-                  
-  Arguments     : op     - srm operation
-                  status - status of srm operation execution
-                  sev    - severity
- 
-  Return Values : None
- 
-  Notes         : None.
- *****************************************************************************/
-void avnd_log_srm (AVSV_LOG_SRM op, AVSV_LOG_SRM status, uns8 sev)
-{
-   ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_SRM, AVND_FC_SRM, 
-              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
-
-   return;
-}
-
-
-/****************************************************************************
   Name          : avnd_log_edu
  
   Description   : This routine logs the EDU info.

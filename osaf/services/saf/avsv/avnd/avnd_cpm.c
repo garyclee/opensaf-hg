@@ -38,216 +38,6 @@
 
 #include "avnd.h"
 
-
-/*****************************************************************************
- *                                                                           *
- *          FUNCTIONS FOR MAINTAINING SRM_REQ LIST                           *
- *                                                                           *
- * Note: These functions should not be called from any other contexts other  *
- *       than from the context of AVND_PM_REC maintanance functions.         *
- *       This table can be used to reach the corressponding AVND_PM_REC.     *
- *       Creation / deletion of the PM_REC will automatically update the     *
- *       corresponding SRM_REQ Table.                                         *
- *                                                                           *
- *****************************************************************************/
-
-/****************************************************************************
-  Name          : avnd_srm_req_list_init
- 
-  Description   : This routine initializes the srm_req_list.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_srm_req_list_init(AVND_CB *cb)
-{
-   NCS_DB_LINK_LIST *srm_req_list = &cb->srm_req_list;
-   uns32       rc = NCSCC_RC_SUCCESS;
-
-   /* initialize the srm req dll list */
-   srm_req_list->order = NCS_DBLIST_ANY_ORDER;
-   srm_req_list->cmp_cookie = avsv_dblist_uns32_cmp;
-   srm_req_list->free_cookie = avnd_srm_req_free;
-
-   return rc;
-}
-
-
-/****************************************************************************
-  Name          : avnd_srm_req_list_destroy
- 
-  Description   : This routine destroys the entire srm_req_list. It deletes 
-                  all the records in the list.
- 
-  Arguments     : cb  - ptr to the AvND control block
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : This dosen't destroy the records directly. It parses thru 
-                  the srm_req's and get the corresponding PM_REC, del the 
-                  PM_REC and as result the srm_req table entry will get
-                  deleted.
-******************************************************************************/
-uns32 avnd_srm_req_list_destroy(AVND_CB *cb)
-{
-   NCS_DB_LINK_LIST *srm_req_list;
-   AVND_SRM_REQ     *srm_req = 0;
-   uns32        rc = NCSCC_RC_SUCCESS;
-
-   /* get srm_req_list */
-   srm_req_list = &cb->srm_req_list;
-
-   /* traverse & delete all the SRM records and their corresponding PM_REC */
-   while ( 0 != (srm_req = 
-                (AVND_SRM_REQ *)m_NCS_DBLIST_FIND_FIRST(srm_req_list)) )
-   {
-      m_AVSV_ASSERT(srm_req->pm_rec);
-      
-      avnd_comp_pm_rec_del(cb, srm_req->pm_rec->comp, srm_req->pm_rec);
-   }
-
-   return rc;
-
-}
-
-
-/****************************************************************************
-  Name          : avnd_srm_req_add
- 
-  Description   : This routine adds a request (node) to the srm_req list. If 
-                  the record is already present, it is modified with the new 
-                  parameters.
- 
-  Arguments     : cb        - ptr to the AvND control block
-                  rsrc_hdl  - srm rsrc req habdle
-                  pm_rec    - pointer to component PM_REC
- 
-  Return Values : ptr to the newly added/modified record
- 
-  Notes         : This will be called from the pm_rec_add function only.
-******************************************************************************/
-AVND_SRM_REQ *avnd_srm_req_add (AVND_CB *cb, uns32 rsrc_hdl, AVND_COMP_PM_REC *pm_rec)
-{
-   NCS_DB_LINK_LIST *srm_req_list = &cb->srm_req_list;
-   AVND_SRM_REQ *srm_req = 0;
-   uns32        rc = NCSCC_RC_SUCCESS;
-
-   /* get the record, if any */
-   srm_req = avnd_srm_req_get(cb, rsrc_hdl);
-   if (!srm_req) 
-   {
-      /* a new record.. alloc & link it to the dll */
-      srm_req = m_MMGR_ALLOC_AVND_SRM_REQ;
-      if (srm_req)
-      {
-         memset(srm_req, 0, sizeof(AVND_SRM_REQ));
-
-         /* update the record key */
-         srm_req->rsrc_hdl = rsrc_hdl;
-         srm_req->cb_dll_node.key = (uns8 *)&srm_req->rsrc_hdl;
-
-         rc = ncs_db_link_list_add(srm_req_list, &srm_req->cb_dll_node);
-         if (NCSCC_RC_SUCCESS != rc) goto done;
-      }
-      else 
-      {
-         rc = NCSCC_RC_FAILURE;
-         goto done;
-      }
-   }
-
-   /* update the params */
-     srm_req->pm_rec = pm_rec;
-
-done:
-   if (NCSCC_RC_SUCCESS != rc)
-   {
-      if (srm_req)
-      {
-         avnd_srm_req_free(&srm_req->cb_dll_node);
-         srm_req = 0;
-      }
-   }
-
-   return srm_req;
-}
-
-
-/****************************************************************************
-  Name          : avnd_srm_req_del
- 
-  Description   : This routine deletes (unlinks & frees) the specified record
-                  (node) from the srm_req list.
- 
-  Arguments     : cb      - ptr to the AvND control block
-                  srm_hdl - srm resource handle of the req node that is to be
-                            deleted
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_srm_req_del(AVND_CB *cb, uns32 rsrc_hdl)
-{
-   NCS_DB_LINK_LIST  *srm_req_list = &cb->srm_req_list;
-   uns32        rc = NCSCC_RC_SUCCESS;
-
-   rc = ncs_db_link_list_del(srm_req_list, (uns8 *)&rsrc_hdl);
-
-   return rc;
-}
-
-
-/****************************************************************************
-  Name          : avnd_srm_req_get
- 
-  Description   : This routine retrives the specified record (node) from the 
-                  srm_req list.
- 
-  Arguments     : cb      - ptr to the AvND control block
-                  srm_hdl - handle of the srmsv req that is to be retrived
- 
-  Return Values : ptr to the specified record (if present)
- 
-  Notes         : None.
-******************************************************************************/
-AVND_SRM_REQ *avnd_srm_req_get(AVND_CB *cb, uns32 rsrc_hdl)
-{
-   NCS_DB_LINK_LIST  *srm_req_list = &cb->srm_req_list;
-
-   return (AVND_SRM_REQ *)ncs_db_link_list_find(srm_req_list, 
-                                               (uns8 *)&rsrc_hdl);
-}
-
-
-/****************************************************************************
-  Name          : avnd_srm_req_free
- 
-  Description   : This routine free the memory alloced to the specified 
-                  record in the srm_req list.
- 
-  Arguments     : node - ptr to the dll node
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *node)
-{
-   AVND_SRM_REQ *srm_req = (AVND_SRM_REQ *)node;
-
-   m_MMGR_FREE_AVND_SRM_REQ(srm_req);
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-
-
-
 /*****************************************************************************
  *                                                                           *
  *          FUNCTIONS FOR MAINTAINING COMP_PM_REC LIST                       *
@@ -314,7 +104,6 @@ uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 ******************************************************************************/
 uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-   AVND_SRM_REQ *srm_req = 0;
    uns32        rc = NCSCC_RC_SUCCESS;
 
    /*update the key */
@@ -323,14 +112,6 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
    /* add rec */
    rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
          if (NCSCC_RC_SUCCESS != rc) return rc;
-
-   /* add the record to the srm req list */
-   srm_req = avnd_srm_req_add(cb, rec->rsrc_hdl, rec);
-   if(!srm_req)
-   {
-      ncs_db_link_list_remove(&comp->pm_list,rec->comp_dll_node.key);
-      return NCSCC_RC_FAILURE;
-   }
 
    return rc;
 }
@@ -352,7 +133,6 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 ******************************************************************************/
 void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-   uns32 rsrc_hdl = rec->rsrc_hdl;
    uns32 rc = NCSCC_RC_SUCCESS;
 
    /* delete the PM_REC from pm_list */ 
@@ -363,11 +143,6 @@ void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
       ;
    }
    rec = NULL; /* rec is no more, dont use it */
-
-    /* remove the corresponding element from srm_req list */
-   rc = avnd_srm_req_del(cb, rsrc_hdl);
-   if( NCSCC_RC_SUCCESS != rc)
-      assert(0);
 
    return;
 }
@@ -443,10 +218,7 @@ uns32 avnd_comp_pm_stop_process (AVND_CB                 *cb,
    /* this rec has to be present */
    assert(rec);
 
-   /* stop monitoring */
-   rc = avnd_srm_stop(cb, rec, sa_err);
-
-   /* del the pm_rec and srm_req */
+   /* del the pm_rec */
    avnd_comp_pm_rec_del(cb, comp, rec);
 
    return rc;   
@@ -539,9 +311,6 @@ uns32 avnd_comp_pmstart_modify (AVND_CB                 *cb,
          rec->err             = pm_start->pm_err;
          rec->rec_rcvr        = pm_start->rec_rcvr;
          
-         /* start or call srmsv rsrc mon with same rsrc handle*/
-         rc = avnd_srm_start(cb, rec, sa_err);
-
          return rc;
 }
 
@@ -549,8 +318,7 @@ uns32 avnd_comp_pmstart_modify (AVND_CB                 *cb,
 /****************************************************************************
   Name          : avnd_comp_new_rsrc_mon
  
-  Description   : This routine adds a new pm record for the component, starts .
-                  srm rsrc mon
+  Description   : This routine adds a new pm record for the component
 
   Arguments     : cb        - ptr to the AvND control block
                   comp      - ptr the the component
@@ -585,27 +353,10 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon (AVND_CB                 *cb,
    /* store the comp bk ptr */
    rec->comp = comp;
 
-   /* start srmsv rsrc mon */
-   rc = avnd_srm_start(cb, rec, sa_err);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-     /*Check the type of Error return */
-     if (SA_AIS_ERR_NOT_EXIST ==  *sa_err )
-        {
-           rc = avnd_srm_stop(cb, rec, sa_err);
-           *sa_err = SA_AIS_ERR_TRY_AGAIN; 
-        }
-      
-      m_MMGR_FREE_AVND_COMP_PM_REC(rec);
-      rec = 0;
-      return rec;
-   }
- 
    /* add the rec to comp's PM_REC */
    rc = avnd_comp_pm_rec_add(cb, comp, rec);
    if(NCSCC_RC_SUCCESS != rc)
    {
-      rc = avnd_srm_stop(cb, rec, sa_err);
       m_MMGR_FREE_AVND_COMP_PM_REC(rec);
       rec = 0;
    }
@@ -802,8 +553,6 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
                             SaAisErrorT       *o_amf_rc)
 {
    *o_amf_rc = SA_AIS_OK;
-   NCS_DB_LINK_LIST *srm_req_list;
-   AVND_SRM_REQ     *srm_req = 0;
 
    switch (api_type)
    {
@@ -826,22 +575,6 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
                component. */
             *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
             return;
-         }
-
-         /* get srm_req_list */
-         srm_req_list = &cb->srm_req_list;
-
-         /* traverse & search all the SRM records and their corresponding PM_REC for duplicate pid*/
-         for(srm_req = (AVND_SRM_REQ *)m_NCS_DBLIST_FIND_FIRST(srm_req_list); srm_req;
-             srm_req = (AVND_SRM_REQ *)m_NCS_DBLIST_FIND_NEXT(&srm_req->cb_dll_node))
-         {
-            if(srm_req->pm_rec->pid == pm_start->pid &&
-                strcmp(srm_req->pm_rec->comp->name_net.value,
-                                             pm_start->comp_name_net.value))
-            {
-               *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
-               return;
-            }
          }
 
          /* non-existing component should not interact with AMF */
@@ -925,7 +658,6 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
 void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 {
    AVND_COMP_PM_REC *rec = 0;
-   SaAisErrorT      sa_err;
 
    /* No passive monitoring for external component. */
    if(TRUE == comp->su->su_is_external)
@@ -937,7 +669,6 @@ void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
       /* stop PM if comp's reg handle or hdl used for PM start is finalized */
       if(hdl == rec->req_hdl || hdl == comp->reg_hdl)
       {
-         avnd_srm_stop(cb, rec, &sa_err);
          avnd_comp_pm_rec_del(cb, comp, rec);
       }
    }

@@ -315,10 +315,6 @@ AVND_CB *avnd_cb_create ()
    if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
       goto err;
 
-  /* initialize srm_req list */
-   if(NCSCC_RC_SUCCESS != avnd_srm_req_list_init(cb))
-     goto err;
-
   /* initialize nodeid to mdsdest mapping db */
    if(NCSCC_RC_SUCCESS != avnd_nodeid_to_mdsdest_map_db_init(cb))
      goto err;
@@ -492,14 +488,6 @@ uns32 avnd_ext_intf_create (AVND_CB *cb)
       goto err;
    }
 #endif
-  /* SRMS registration */
-   rc = avnd_srm_reg(cb);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      m_AVND_LOG_SRM(AVSV_LOG_SRM_REG, AVSV_LOG_SRM_FAILURE, NCSFL_SEV_CRITICAL);
-      goto err;
-   }
-
 
    /* TBD Later */
    /* Initialise HPI */
@@ -599,10 +587,6 @@ uns32 avnd_cb_destroy (AVND_CB *cb)
 
    /* destroy pg db */
    if ( NCSCC_RC_SUCCESS != (rc = avnd_pgdb_destroy(cb)) )
-      goto done;
-
-   /* destroy srm list */
-   if( NCSCC_RC_SUCCESS != (rc = avnd_srm_req_list_destroy(cb)) )
       goto done;
 
    /* destroy nodeid to mds dest db */
@@ -730,13 +714,6 @@ uns32 avnd_ext_intf_destroy (AVND_CB *cb)
    rc = avnd_tbls_unreg_with_mab_for_vdest(cb);
    if ( NCSCC_RC_SUCCESS != rc ) goto done;
 #endif
-   /* SRM unregistration */
-   rc = avnd_srm_unreg(cb);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      m_AVND_LOG_SRM(AVSV_LOG_SRM_UNREG, AVSV_LOG_SRM_FAILURE, NCSFL_SEV_INFO);
-      goto done;
-   }
    /* TBD Later */
    /* unregister HPI */
    /* unregister EDS */
