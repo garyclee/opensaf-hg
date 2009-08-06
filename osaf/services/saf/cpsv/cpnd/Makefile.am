@@ -43,6 +43,3 @@ ncs_cpnd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/common/cpsv/libcpsv_common.la
-
-clean-local:
-	-rm -rf $(top_builddir)/services/cpsv/inc/snmp_inc
