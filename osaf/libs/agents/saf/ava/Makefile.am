@@ -36,6 +36,3 @@ libava_la_SOURCES = \
 	ava_log.c \
 	ava_mds.c \
 	ava_op.c
-
-clean-local:
-	-rm -rf $(top_builddir)/services/avsv/inc/avsv_snmp_inc

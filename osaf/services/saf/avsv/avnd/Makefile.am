@@ -86,3 +86,6 @@ libavnd_pld_la_CPPFLAGS = $(COMMON_CPPFLAGS)
 libavnd_pld_la_LDFLAGS = -static
 
 libavnd_pld_la_SOURCES = $(COMMON_SRC)
+
+libavnd_pld_la_LIBADD = \
+	$(top_builddir)/osaf/snmp/miblib/avsv/avnd/libavnd_miblib.la
