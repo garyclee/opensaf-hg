@@ -1,0 +1,77 @@
+ESMI-TABLE-MAPI-DIR-PATH  `/snmp/mapi/include/`
+ESMI-TABLE-SUBAGT-DIR-PATH  `/snmp/subagt/services/edsv/`
+
+
+
+ESMI-TABLE-DETAILS   safEvtScalarObject
+{
+   ESMI-TABLE-ID        NCSMIB_TBL_EDSV_SCALAR
+   ESMI-TABLE-HDR-FILE  `eds.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmp/miblib/edsv/eds/`
+}
+
+ESMI-OBJECT-DETAILS     safSpecVersion
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_SCALAR_NULL `version`
+}
+ESMI-OBJECT-DETAILS     safAgentVendor
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_SCALAR_NULL `vendor`
+}
+ESMI-OBJECT-DETAILS     safAgentVendorProductRev 
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_SCALAR_NULL `prod_rev`
+}
+ESMI-OBJECT-DETAILS     safServiceStartEnabled
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_SCALAR_NULL `svc_status`
+}
+ESMI-OBJECT-DETAILS     safServiceState
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_SCALAR_NULL `svc_state`
+}
+
+ESMI-TABLE-DETAILS   saEvtChannelEntry
+{
+   ESMI-TABLE-ID     NCSMIB_TBL_EDSV_CHAN_TBL
+   ESMI-TABLE-HDR-FILE  `eds.h`
+   ESMI-TABLE-MIBLIB-DIR-PATH  `/snmp/miblib/edsv/eds/`
+}
+
+ESMI-OBJECT-DETAILS     saEvtChannelName
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_CHAN_TBL_NULL `cname`
+}
+ESMI-OBJECT-DETAILS    saEvtChannelCreationTimeStamp
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_CHAN_TBL_NULL  `chan_row.create_time`
+}
+ESMI-OBJECT-DETAILS    saEvtChannelNumUsers
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_CHAN_TBL_NULL  `chan_row.num_users`
+}
+ESMI-OBJECT-DETAILS   saEvtChannelNumSubscribers
+{
+   ESMI-OBJECT-OFFSET     EDS_MIB_CHAN_TBL_NULL `chan_row.num_subscribers`
+}
+ESMI-OBJECT-DETAILS     saEvtChannelNumPublishers
+{
+   ESMI-OBJECT-OFFSET     EDS_MIB_CHAN_TBL_NULL `chan_row.num_publishers`
+}
+ESMI-OBJECT-DETAILS     saEvtChannelNumRetainedEvents
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_CHAN_TBL_NULL `chan_row.num_ret_evts`
+}
+ESMI-OBJECT-DETAILS   saEvtChannelLostEventsEventCount
+{
+   ESMI-OBJECT-OFFSET      EDS_MIB_CHAN_TBL_NULL `chan_row.num_lost_evts`
+}
+ESMI-TABLE-DETAILS    saEvtTrapObject
+{
+   ESMI-TABLE-ID           NCSMIB_TBL_EDSV_TRAPOBJ_TBL
+}
+ESMI-TABLE-DETAILS    saEvtTraps
+{
+   ESMI-TABLE-ID           NCSMIB_TBL_EDSV_TRAP_TBL
+}
+

@@ -10,8 +10,8 @@ AM_INIT_AUTOMAKE(opensaf, 3.0)
 
 AC_SUBST(TEST_INC_DIR, "-I /usr/include/opensaf -I /usr/include/openhpi")
 
-AC_ARG_VAR(saflib_suffix, [set this to 64 if opensaf libraries are present in a  .../lib64 directory])
-#AC_SUBST(TEST_LIBS, "../../../targets/$host/lib${saflib_suffix}")
+AC_ARG_VAR(libs/saf_suffix, [set this to 64 if opensaf libraries are present in a  .../lib64 directory])
+#AC_SUBST(TEST_LIBS, "../../../targets/$host/lib${libs/saf_suffix}")
 
 #mkdir -p $PWD/bin/$host
 #bindir=$PWD/bin/$host

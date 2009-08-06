@@ -1,0 +1,180 @@
+ESMI-TABLE-MAPI-DIR-PATH  `/snmp/mapi/include/`
+ESMI-TABLE-SUBAGT-DIR-PATH `/snmp/subagt/services/mqsv/`
+
+ESMI-TABLE-DETAILS safMsgScalarObject
+{
+  ESMI-TABLE-ID               NCSMIB_TBL_MQSV_SCLROBJECTSTBL
+  ESMI-TABLE-MIBLIB-DIR-PATH  `/snmp/miblib/mqsv/mqd/`
+  ESMI-TABLE-HDR-FILE         `mqd.h`
+}
+
+
+ESMI-OBJECT-DETAILS safSpecVersion
+{
+  ESMI-OBJECT-OFFSET MQD_CB_NULL `safSpecVer`
+}
+
+ESMI-OBJECT-DETAILS safAgentVendor
+{
+  ESMI-OBJECT-OFFSET     MQD_CB_NULL   `safAgtVen`
+}
+
+ESMI-OBJECT-DETAILS   safAgentVendorProductRev
+{
+  ESMI-OBJECT-OFFSET     MQD_CB_NULL   `safAgtVenPro`
+}
+
+
+ESMI-OBJECT-DETAILS   safServiceStartEnabled
+{
+  ESMI-OBJECT-OFFSET      MQD_CB_NULL   `serv_enabled`
+}
+
+ESMI-OBJECT-DETAILS   safServiceState
+{
+  ESMI-OBJECT-OFFSET      MQD_CB_NULL   `serv_state`
+}
+
+ESMI-TABLE-DETAILS   saMsgQueueGroupEntry
+{
+  ESMI-TABLE-ID       NCSMIB_TBL_MQSV_MQGRPTBL
+  ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/mqsv/mqd/`
+  ESMI-TABLE-HDR-FILE    `mqd.h`
+}
+
+ESMI-OBJECT-DETAILS   saMsgQueueGroupName
+{
+  ESMI-OBJECT-OFFSET  MQD_OBJ_INFO_NULL `name`
+}
+
+
+ESMI-OBJECT-DETAILS   saMsgQueueGroupPolicy
+{
+  ESMI-OBJECT-OFFSET  MQD_OBJ_INFO_NULL `info.qgrp.policy`
+} 
+
+ESMI-OBJECT-DETAILS   saMsgQueueGroupNumQs
+{
+  ESMI-OBJECT-OFFSET  MQD_OBJ_INFO_NULL `ilist.count`
+}
+
+ESMI-TABLE-DETAILS     saMsgQueueEntry
+{
+  ESMI-TABLE-ID    NCSMIB_TBL_MQSV_MSGQTBL
+  ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/mqsv/mqnd/`
+  ESMI-TABLE-HDR-FILE  `mqnd.h`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueName
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `queueName`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueIsPersistent
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `queueStatus.creationFlags`
+}
+
+
+ESMI-OBJECT-DETAILS     saMsgQueueRetentionTime
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `queueStatus.retentionTime`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueSize
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `totalQueueSize`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueUsedSize
+{
+  ESMI-OBJECT-OFFSET  ESMI_NULL    ESMI_NULL
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueCreateTime
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `creationTime`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueNumMsgs
+{
+  ESMI-OBJECT-OFFSET  ESMI_NULL    ESMI_NULL 
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueNumMemberQueueGroup
+{
+  ESMI-OBJECT-OFFSET  ESMI_NULL    ESMI_NULL 
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueIsBusy
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `owner_flag`
+  ESMI-OBJECT-LEN          1
+}
+
+ESMI-TABLE-DETAILS     saMsgQueuePriorityEntry
+{
+  ESMI-TABLE-ID    NCSMIB_TBL_MQSV_MSGQPRTBL
+  ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/mqsv/mqnd/`
+  ESMI-TABLE-HDR-FILE  `mqnd.h`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityName
+{
+  ESMI-OBJECT-OFFSET  MQND_QUEUE_INFO_NULL    `queueName`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityVal
+{
+  ESMI-OBJECT-OFFSET    ESMI_NULL   ESMI_NULL 
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityQSize
+{
+  ESMI-OBJECT-OFFSET  SaMsgQueueUsageT_NULL   `queueSize` 
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityQUsed
+{
+  ESMI-OBJECT-OFFSET  SaMsgQueueUsageT_NULL    `queueUsed`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityQNumMessages
+{
+  ESMI-OBJECT-OFFSET  SaMsgQueueUsageT_NULL   `numberOfMessages` 
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueuePriorityQNumFullErrors
+{
+  ESMI-OBJECT-OFFSET    ESMI_NULL    ESMI_NULL
+}
+
+
+ESMI-TABLE-DETAILS   saMsgQueueGroupMembersEntry
+{
+  ESMI-TABLE-ID       NCSMIB_TBL_MQSV_MSGQGRPMBRSTBL
+  ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/mqsv/mqd/`
+  ESMI-TABLE-HDR-FILE    `mqd.h`
+}
+
+
+ESMI-OBJECT-DETAILS     saMsgQueueGroupMembersGroupName
+{
+  ESMI-OBJECT-OFFSET  MQD_OBJ_INFO_NULL    `name`
+}
+
+ESMI-OBJECT-DETAILS     saMsgQueueGroupMembersQueueName
+{
+  ESMI-OBJECT-OFFSET  MQD_OBJ_INFO_NULL    `name`
+}
+
+ESMI-TABLE-DETAILS   saMsgTrapObject
+{
+  ESMI-TABLE-ID       NCSMIB_TBL_MQSV_TRAP_OBJECT
+}
+
+ESMI-TABLE-DETAILS   saMsgTraps
+{
+  ESMI-TABLE-ID       NCSMIB_TBL_MQSV_TRAPS
+}
+

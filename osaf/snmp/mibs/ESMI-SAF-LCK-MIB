@@ -1,0 +1,68 @@
+ESMI-TABLE-MAPI-DIR-PATH  `/snmp/mapi/include/`
+ESMI-TABLE-SUBAGT-DIR-PATH `/snmp/subagt/services/glsv/`
+
+ESMI-TABLE-DETAILS  safLckScalarObject 
+{
+   ESMI-TABLE-ID         NCSMIB_TBL_GLSV_SCLRS
+   ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/glsv/gld/`
+   ESMI-TABLE-HDR-FILE        `gld.h`
+}
+
+
+ESMI-OBJECT-DETAILS safSpecVersion
+{
+  ESMI-OBJECT-OFFSET      GLD_CB_NULL   `saf_spec_ver`
+}
+
+ESMI-OBJECT-DETAILS safAgentVendor
+{
+  ESMI-OBJECT-OFFSET      GLD_CB_NULL   `saf_agent_vend`
+}
+
+ESMI-OBJECT-DETAILS   safAgentVendorProductRev
+{
+  ESMI-OBJECT-OFFSET      GLD_CB_NULL   `saf_agent_vend_prod`
+}
+
+ESMI-OBJECT-DETAILS   safServiceStartEnabled
+{
+  ESMI-OBJECT-OFFSET      GLD_CB_NULL   `saf_serv_state_enabled`
+}
+
+ESMI-OBJECT-DETAILS   safServiceState
+{
+  ESMI-OBJECT-OFFSET      GLD_CB_NULL   `saf_serv_state`
+}
+
+ESMI-TABLE-DETAILS saLckResourceEntry 
+{
+   ESMI-TABLE-ID    NCSMIB_TBL_GLSV_RSCTBL
+   ESMI-TABLE-MIBLIB-DIR-PATH `/snmp/miblib/glsv/gld/`
+   ESMI-TABLE-HDR-FILE    `gld.h`
+}
+
+
+ESMI-OBJECT-DETAILS     saLckResourceResourceName 
+{
+   ESMI-OBJECT-OFFSET      GLD_RESOURCE_INFO_NODE_NULL  `lck_name`
+}
+
+ESMI-OBJECT-DETAILS    saLckResourceCreationTimeStamp 
+{
+   ESMI-OBJECT-OFFSET      GLD_RESOURCE_INFO_NODE_NULL  `saf_rsc_creation_time`
+}
+
+ESMI-OBJECT-DETAILS     saLckResourceNumUsers 
+{
+   ESMI-OBJECT-OFFSET      GLD_RESOURCE_INFO_NODE_NULL  `saf_rsc_no_of_users`
+}
+
+ESMI-OBJECT-DETAILS    saLckResourceIsOrphaned
+{
+   ESMI-OBJECT-OFFSET      GLD_RESOURCE_INFO_NODE_NULL `can_orphan`
+}
+
+ESMI-OBJECT-DETAILS   saLckResourceStrippedCount 
+{
+   ESMI-OBJECT-OFFSET      GLD_RESOURCE_INFO_NODE_NULL `saf_rsc_stripped_cnt`
+}
