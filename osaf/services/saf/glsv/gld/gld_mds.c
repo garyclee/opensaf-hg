@@ -237,7 +237,7 @@ uns32 gld_mds_rcv(GLSV_GLD_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 {
    GLSV_GLD_EVT   *evt = (GLSV_GLD_EVT *) rcv_info->i_msg;
    
-   /* Fill IFD CB handle in the received message */
+   /* Fill GLD CB handle in the received message */
    evt->gld_cb     = cb;
    evt->fr_dest_id = rcv_info->i_fr_dest;
    

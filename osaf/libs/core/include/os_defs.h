@@ -137,9 +137,6 @@ extern "C" {
 #define MABPSR_API
 #define RMSDLL_API
 #define CLIDLL_API
-#define IFDDLL_API
-#define IFNDDLL_API
-#define IFADLL_API
 #define GLDDLL_API
 #define GLNDDLL_API
 #define GLADLL_API

@@ -36,7 +36,6 @@ noinst_HEADERS = \
 	ncs_hash.h \
 	ncs_hdl.h \
 	ncs_ipcstats.h \
-	ncs_ipxs.h \
 	ncs_kms.h \
 	ncs_leap_version.h \
 	ncs_mib.h \

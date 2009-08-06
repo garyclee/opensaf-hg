@@ -42,9 +42,6 @@ extern void tet_glsv_startup() ;
 #ifdef TET_CPSV
 extern void tet_cpsv_startup() ;
 #endif
-#ifdef TET_IFSV 
-extern void tet_ifsv_startup();
-#endif
 #ifdef TET_MDS_TDS 
 extern void    tet_mds_tds_startup ();
 #endif
@@ -240,10 +237,6 @@ void tet_svcs_startup()
 
 #ifdef TET_GLSV
     tet_glsv_startup();
-#endif
-
-#ifdef TET_IFSV 
-    tet_ifsv_startup();
 #endif
 
 #ifdef TET_DLSV

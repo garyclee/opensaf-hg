@@ -273,7 +273,7 @@ uns32 mqd_mds_shut(MQD_CB *pMqd)
       m_LOG_MQSV_D(MQD_MDS_UNINSTALL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
       return rc;
    }   
-   /* Destroy the vertual Destination of IFD */
+   /* Destroy the vertual Destination of MQD */
    rc = mqd_mds_vdest_destroy(pMqd);
    return rc;
 } /* End of mqd_mds_shut() */

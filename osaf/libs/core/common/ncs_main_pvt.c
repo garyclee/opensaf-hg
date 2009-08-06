@@ -92,25 +92,11 @@
 #include "glnd_dl_api.h"
 #endif
 
-#if (NCS_IFA == 1)
-#include "ifa_dl_api.h"
-#endif
-#if (NCS_IFD == 1)
-#include "ifd_dl_api.h"
-#endif
-#if (NCS_IFND == 1)
-#include "ifnd_dl_api.h"
-#endif
-
 #if (NCS_CPD == 1)
 #include "cpd_dl_api.h"
 #endif
 #if (NCS_CPND == 1)
 #include "cpnd_dl_api.h"
-#endif
-
-#if ((NCS_IFA == 1) || (NCS_IFD == 1) || (NCS_IFND == 1))
-#include "ifsv_papi.h"
 #endif
 
 #if (NCS_MQA == 1)
@@ -157,10 +143,6 @@
 
 #if (MBCSV_LOG == 1)
 #include "mbcsv_log.h"
-#endif
-
-#if (NCS_IFSV_LOG == 1)
-#include "ifsv_logstr.h"
 #endif
 
 #if (NCS_AVSV_LOG == 1)
@@ -328,14 +310,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
    char                 *p_field;
 #endif
 
-#if (NCS_IFND == 1)
-   NCS_IFSV_DRV_SVC_REQ drv_svc_req;
-#endif
-
-#if (NCS_IFND == 1)
-   memset(&drv_svc_req,0,sizeof(drv_svc_req));
-#endif
-
    /*** Init LIB_CREATE request for Directors, NodeDirectors, 
    and Server ***/
    memset(&lib_create, 0, sizeof(lib_create));
@@ -442,12 +416,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       pss_reg_strings();
 #endif
 
-#if (NCS_IFSV_LOG == 1)
-      ifsv_flx_log_ascii_set_reg(NCS_SERVICE_ID_IFD);
-      ifsv_flx_log_ascii_set_reg(NCS_SERVICE_ID_IFND);
-      ifsv_flx_log_ascii_set_reg(NCS_SERVICE_ID_IFA);
-#endif
-      
 #if (NCS_AVSV_LOG == 1)
       ava_str_reg();
       avnd_str_reg();
@@ -692,70 +660,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
       }
    }
 #endif
-
-   if ('n' != ncs_util_get_char_option(argc, argv, "IFSV="))
-   {
-#if (NCS_IFD == 1)
-      /*** Init IFD ***/   
-      m_NCS_DBG_PRINTF("\nIFSV:IFD:ON");
-      if (ifd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-         printf("IFD lib request failed\n");
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-#endif
-      
-#if (NCS_IFND == 1)
-      if ('y' == ncs_util_get_char_option(argc, argv, "IFDRV="))
-      {
-         /*** Init IFDRV ***/   
-         m_NCS_DBG_PRINTF("\nIFSV:IFDRV:ON");
-         drv_svc_req.req_type = NCS_IFSV_DRV_INIT_REQ;
-         if (ncs_ifsv_drv_svc_req(&drv_svc_req) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-            printf("IFSV DRV svc request failed\n");
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-      }
-      else
-      {
-         /*** Init IFND ***/   
-         m_NCS_DBG_PRINTF("\nIFSV:IFND:ON");
-         if (ifnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-            printf("IFND lib request failed\n");
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-      }
-#endif
-      /*** Init IFA ***/
-      if (ncs_ifa_startup(argc, argv) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-         printf("IFA start-up has been failed\n");
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);      
-      }
-   }
-   else
-   {
-#if (NCS_IFND == 1)
-      if ('y' == ncs_util_get_char_option(argc, argv, "IFDRV="))
-      {
-         /*** Init IFDRV ***/   
-         m_NCS_DBG_PRINTF("\nIFSV:IFDRV:ON");
-         drv_svc_req.req_type        = NCS_IFSV_DRV_INIT_REQ;
-         if (ncs_ifsv_drv_svc_req(&drv_svc_req) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-            printf("IFSV DRV svc request failed\n");
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-      }
-#endif
-   }
 
    if ('n' != ncs_util_get_char_option(argc, argv, "HISV="))
    {

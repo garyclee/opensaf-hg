@@ -24,11 +24,7 @@ pkginclude_HEADERS = \
 	dts_papi.h \
 	hpl_api.h \
 	hpl_msg.h \
-	ifa_papi.h \
-	ifsv_cli_papi.h \
-	ifsv_papi.h \
 	ip_defs.h \
-	ipxs_papi.h \
 	mab_penv.h \
 	mac_papi.h \
 	mbcsv_papi.h \

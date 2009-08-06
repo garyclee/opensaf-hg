@@ -86,16 +86,6 @@
 #include "glnd_dl_api.h"
 #endif
 
-#if (NCS_IFA == 1)
-#include "ifa_dl_api.h"
-#endif
-#if (NCS_IFD == 1)
-#include "ifd_dl_api.h"
-#endif
-#if (NCS_IFND == 1)
-#include "ifnd_dl_api.h"
-#endif
-
 #if (NCS_MQA == 1)
 #include "mqa_dl_api.h"
 #endif
@@ -137,10 +127,6 @@
 
 #if (NCS_SNMPSUBAGT_LOG == 1)
 #include "subagt_log.h"
-#endif
-
-#if (NCS_IFSV_LOG == 1)
-#include "ifsv_logstr.h"
 #endif
 
 #if (NCS_AVSV_LOG == 1)
@@ -214,7 +200,6 @@ typedef struct ncs_main_pub_cb
    uns32               oac_use_count;
 
    NCS_AGENT_DATA      mbca;
-   NCS_AGENT_DATA      ifa;
    NCS_AGENT_DATA      maa;
    NCS_AGENT_DATA      ncs_hpl;
 
@@ -306,7 +291,6 @@ unsigned int ncs_agents_startup(int argc, char *argv[])
 unsigned int ncs_agents_shutdown(int argc, char *argv[])
 {
    ncs_maa_shutdown();
-   ncs_ifa_shutdown();
    ncs_mbca_shutdown();
 
    ncs_core_agents_shutdown();
@@ -586,10 +570,6 @@ uns32 ncs_non_core_agents_startup(int argc, char *argv[])
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
    
-   rc = ncs_ifa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-
    rc = ncs_maa_startup(argc, argv);
    if (rc != NCSCC_RC_SUCCESS)
       return rc;
@@ -762,65 +742,6 @@ unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_ifa_startup
-
-\***************************************************************************/
-unsigned int ncs_ifa_startup(int argc, char *argv[])
-{
-   NCS_LIB_REQ_INFO lib_create;
-
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
-
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
-
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.ifa.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.ifa.use_count++;
-   }
-   else  /*** Init IFA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "IFSV="))
-   {      
-      gl_ncs_main_pub_cb.ifa.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "ifa_lib_req");
-      if (gl_ncs_main_pub_cb.ifa.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nIFSV:IFA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.ifa.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nIFSV:IFA:ON");
-            gl_ncs_main_pub_cb.ifa.use_count = 1;
-         }
-      }
-   }
-
-   m_NCS_AGENT_UNLOCK;
-
-   return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_maa_startup
 
 \***************************************************************************/
@@ -875,42 +796,6 @@ unsigned int ncs_maa_startup(int argc, char *argv[])
    m_NCS_AGENT_UNLOCK;
 
    return NCSCC_RC_SUCCESS;
-}
-
-
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_ifa_shutdown
-
-\***************************************************************************/
-unsigned int ncs_ifa_shutdown(void)
-{
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
-
-   m_NCS_AGENT_LOCK;
-
-   if (gl_ncs_main_pub_cb.ifa.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.ifa.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
-
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
-
-   if (gl_ncs_main_pub_cb.ifa.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.ifa.lib_req)(&lib_destroy);
-
-   gl_ncs_main_pub_cb.ifa.use_count = 0;
-   gl_ncs_main_pub_cb.ifa.lib_req = NULL;
-
-   m_NCS_AGENT_UNLOCK;
-
-   return rc;
 }
 
 
