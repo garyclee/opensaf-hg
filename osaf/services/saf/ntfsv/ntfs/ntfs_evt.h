@@ -18,41 +18,37 @@
 #ifndef NTFS_EVT_H
 #define NTFS_EVT_H
 
-typedef enum ntfsv_ntfs_evt_type
-{
-   NTFSV_NTFS_NTFSV_MSG = 1,
-   NTFSV_NTFS_EVT_NTFA_UP = 2,
-   NTFSV_NTFS_EVT_NTFA_DOWN = 3,
-   NTFSV_EVT_QUIESCED_ACK = 4,
-   NTFSV_NTFS_EVT_MAX
+typedef enum ntfsv_ntfs_evt_type {
+	NTFSV_NTFS_NTFSV_MSG = 1,
+	NTFSV_NTFS_EVT_NTFA_UP = 2,
+	NTFSV_NTFS_EVT_NTFA_DOWN = 3,
+	NTFSV_EVT_QUIESCED_ACK = 4,
+	NTFSV_NTFS_EVT_MAX
 } NTFSV_NTFS_EVT_TYPE;
 
-typedef struct ntfsv_ntfs_mds_info
-{
-   uns32       node_id;
-   MDS_DEST    mds_dest_id;
+typedef struct ntfsv_ntfs_mds_info {
+	uns32 node_id;
+	MDS_DEST mds_dest_id;
 } ntfsv_ntfs_mds_info_t;
 
-typedef struct ntfsv_ntfs_evt
-{
-   struct ntfsv_ntfs_evt *next;
-   uns32             cb_hdl;    
-   MDS_SYNC_SND_CTXT mds_ctxt; /* Relevant when this event has to be responded to
-                                * in a synchronous fashion.
-                                */
-   MDS_DEST          fr_dest;
-   NODE_ID           fr_node_id; 
-   MDS_SEND_PRIORITY_TYPE rcvd_prio; /* Priority of the recvd evt */
-   NTFSV_NTFS_EVT_TYPE  evt_type;
-   union
-   {
-      ntfsv_msg_t             msg;
-      ntfsv_ntfs_mds_info_t  mds_info;
-   } info;
+typedef struct ntfsv_ntfs_evt {
+	struct ntfsv_ntfs_evt *next;
+	uns32 cb_hdl;
+	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
+					 * in a synchronous fashion.
+					 */
+	MDS_DEST fr_dest;
+	NODE_ID fr_node_id;
+	MDS_SEND_PRIORITY_TYPE rcvd_prio;	/* Priority of the recvd evt */
+	NTFSV_NTFS_EVT_TYPE evt_type;
+	union {
+		ntfsv_msg_t msg;
+		ntfsv_ntfs_mds_info_t mds_info;
+	} info;
 } ntfsv_ntfs_evt_t;
 
 /* These are the function prototypes for event handling */
 typedef uns32 (*NTFSV_NTFS_NTFA_API_MSG_HANDLER) (ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 typedef uns32 (*NTFSV_NTFS_EVT_HANDLER) (ntfsv_ntfs_evt_t *evt);
 
-#endif /*!NTFS_EVT_H */
+#endif   /*!NTFS_EVT_H */

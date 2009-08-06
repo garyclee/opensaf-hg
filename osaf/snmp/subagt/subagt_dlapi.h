@@ -23,30 +23,23 @@
   
   DESCRIPTION: This file describes the DL-SE APIs
   
-  ***************************************************************************/ 
+  ***************************************************************************/
 #ifndef SUBAGT_DLAPI_H
 #define SUBAGT_DLAPI_H
 
 struct ncsSa_cb;
 
 /* Single entry API for the NCS-SNMP-SUBAGT */
-EXTERN_C uns32
-ncs_snmpsubagt_lib_req(NCS_LIB_REQ_INFO *io_lib_req);
+EXTERN_C uns32 ncs_snmpsubagt_lib_req(NCS_LIB_REQ_INFO *io_lib_req);
 
 /* CREATE DL-SE API prototype */
-EXTERN_C uns32 
-ncs_snmpsubagt_create (int32 argc, uns8  **argv);
+EXTERN_C uns32 ncs_snmpsubagt_create(int32 argc, uns8 **argv);
 
 /* DESTROY DL-SE API prototype */
-EXTERN_C uns32 
-ncs_snmpsubagt_destroy(void); 
+EXTERN_C uns32 ncs_snmpsubagt_destroy(void);
 
-EXTERN_C uns32
-snmpsubagt_destroy(struct ncsSa_cb *cb, NCS_BOOL comp_unreg);
+EXTERN_C uns32 snmpsubagt_destroy(struct ncsSa_cb *cb, NCS_BOOL comp_unreg);
 
-uns32 
-ncs_snmpsubagt_init_deinit_msg_post(uns8* init_deinit_routine);
+uns32 ncs_snmpsubagt_init_deinit_msg_post(uns8 *init_deinit_routine);
 
 #endif
-
-

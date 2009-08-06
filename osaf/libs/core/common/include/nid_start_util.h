@@ -24,7 +24,7 @@ extern "C" {
 
 #include <saAis.h>
 
-extern unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn);
+	extern unsigned int amf_comp_name_get_set_from_file(const char *env_name, SaNameT *dn);
 
 #ifdef  __cplusplus
 }

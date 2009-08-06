@@ -18,21 +18,17 @@
 /*****************************************************************************
 ..............................................................................
 
-
   REVISION HISTORY:
-
 
 ..............................................................................
 
   DESCRIPTION:
-
 
 ******************************************************************************
 */
 
 #ifndef DTA_OPT_H
 #define DTA_OPT_H
-
 
 #include "ncs_opt.h"
 
@@ -47,8 +43,7 @@
  * The #define should appear as:  #define NCS_DTA_REV 200
  */
 
-#define NCS_DTA_REV 100  /* DTA Release 1.00 */
-
+#define NCS_DTA_REV 100		/* DTA Release 1.00 */
 
 /* DTA_LOG 
  **********
@@ -62,7 +57,6 @@
 #define DTA_LOG                 0
 #endif
 
-
 /* DTA_USE_LOCK_TYPE
  *********************
  * This flag describes which locking scheme you wish RMS to use. 
@@ -70,9 +64,9 @@
  * The options are:
  */
 
-#define DTA_NO_LOCKS   1   /* all locks are disabled (no overhead; Safe?) */
-#define DTA_TASK_LOCKS 2   /* As per LEAP docs m_INIT/START/END _CRITICAL */
-#define DTA_OBJ_LOCKS  3   /* As per LEAP docs m_NCS_OBJ_LOCK scheme */
+#define DTA_NO_LOCKS   1	/* all locks are disabled (no overhead; Safe?) */
+#define DTA_TASK_LOCKS 2	/* As per LEAP docs m_INIT/START/END _CRITICAL */
+#define DTA_OBJ_LOCKS  3	/* As per LEAP docs m_NCS_OBJ_LOCK scheme */
 
 /* 
  * Set DTA_USE_LOCK_TYPE to the locking paradigm you want to use. 
@@ -81,7 +75,6 @@
 #ifndef NCSDTA_USE_LOCK_TYPE
 #define NCSDTA_USE_LOCK_TYPE  DTA_OBJ_LOCKS
 #endif
-
 
 /* 
  * DTA_DEBUG
@@ -107,7 +100,4 @@
 #define DTA_TRACE2                 0
 #endif
 
-
-#endif /* #ifndef DTA_OPT_H */
-
-
+#endif   /* #ifndef DTA_OPT_H */

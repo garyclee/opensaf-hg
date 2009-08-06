@@ -39,7 +39,6 @@ extern "C" {
 #include "saAis.h"
 #include "saAmf.h"
 
-
 /* Macro for offset of value in the SaNameT structure.*/
 #define m_OFFSET_VAL_SANAMET ((long)((uns8 *)(((SaNameT *)0)->value)))
 
@@ -95,7 +94,6 @@ extern "C" {
 #define m_HTON_SANAMET_LEN(snamet_len) (htons(snamet_len))
 #define m_NTOH_SANAMET_LEN(snamet_len) (ntohs(snamet_len))
 
-
 #define m_CMP_NORDER_SANAMET_LEN(sanamet_len1, sanamet_len2)    \
    (memcmp(&(sanamet_len1), &(sanamet_len2), 2))
 
@@ -103,7 +101,6 @@ extern "C" {
 #define m_CMP_HORDER_SANAMET_LEN(sanamet_len1, sanamet_len2)    \
    (((sanamet_len1) > (sanamet_len2))? 1:                       \
       (((sanamet_len1) < (sanamet_len2))?-1:0))
-
 
 /* Note: The following macro assumes that bytes beyond the name-length
          are all set to zero (PATRICIA will expect the same for get-next 

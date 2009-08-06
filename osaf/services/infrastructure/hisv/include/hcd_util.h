@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,39 +46,33 @@
  * Name     : structure of domain arguments.
  */
 
-typedef struct hpi_session_args
-{
-   SaHpiDomainIdT   domain_id;
-   SaHpiSessionIdT  session_id;
-   SaHpiRptEntryT   entry;
-   uns32            chassis_id;
-   uns32            discover_domain_err;
-   uns32            rediscover;              /* re-discover the resources after failover  */
-   uns32            session_valid;           /* track validity of a session */
+typedef struct hpi_session_args {
+	SaHpiDomainIdT domain_id;
+	SaHpiSessionIdT session_id;
+	SaHpiRptEntryT entry;
+	uns32 chassis_id;
+	uns32 discover_domain_err;
+	uns32 rediscover;	/* re-discover the resources after failover  */
+	uns32 session_valid;	/* track validity of a session */
 } HPI_SESSION_ARGS;
 
-
 /* list of entity path types */
-typedef struct
-{
-   char *etype_str;
-   SaHpiEntityTypeT   etype_val;
+typedef struct {
+	char *etype_str;
+	SaHpiEntityTypeT etype_val;
 
-}ENTITY_TYPE_LIST;
-
+} ENTITY_TYPE_LIST;
 
 /**************************************************************************
  * Extern function declarations
  */
-EXTERN_C uns32  string_to_epath (uns8 *epathstr, uns32 epath_len,
-                                   SaHpiEntityPathT *epathptr);
+EXTERN_C uns32 string_to_epath(uns8 *epathstr, uns32 epath_len, SaHpiEntityPathT *epathptr);
 EXTERN_C uns32 get_chassis_id(SaHpiEntityPathT *epath, int32 *chassis_id);
-EXTERN_C uns32 print_hotswap(SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, 
-                             uns32 board_num, SaHpiEntityTypeT type);
+EXTERN_C uns32 print_hotswap(SaHpiHsStateT cur_state, SaHpiHsStateT prev_state, uns32 board_num, SaHpiEntityTypeT type);
 EXTERN_C uns32 print_invdata(HISV_INV_DATA *inv_data);
 EXTERN_C int hpi_decode_6bitpack(unsigned char *inbuf, unsigned char inlen, unsigned char *outbuf);
 EXTERN_C int hpi_decode_bcd_plus(unsigned char *inbuff, unsigned char inlen, unsigned char *outbuff);
 EXTERN_C int hpi_decode_to_ascii(SaHpiTextTypeT data_type, unsigned char *inbuf,
-                    unsigned char inlen, unsigned char *outbuf);
+				 unsigned char inlen, unsigned char *outbuf);
 
-#endif /* !HCD_UTIL_H */
+#endif   /* !HCD_UTIL_H */

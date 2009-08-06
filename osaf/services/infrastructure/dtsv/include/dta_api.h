@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,68 +30,59 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef DTA_API_H
 #define DTA_API_H
 
+typedef struct ncsdta_create {
+	NCSCONTEXT i_mds_hdl;	/* MDS hdl for 'installing'                    */
+	uns8 i_hmpool_id;	/* Handle Manager Pool Id                      */
 
-typedef struct ncsdta_create
-  {
-  NCSCONTEXT       i_mds_hdl;       /* MDS hdl for 'installing'                    */
-  uns8             i_hmpool_id;     /* Handle Manager Pool Id                      */
-
-  } NCSDTA_CREATE;
+} NCSDTA_CREATE;
 
 /***************************************************************************
  * Destroy an instance of a DTA service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsdta_destroy
-  {
-   uns32           i_dta_key;
-   void*           i_meaningless;     /* place holder struct; do nothing */
+typedef struct ncsdta_destroy {
+	uns32 i_dta_key;
+	void *i_meaningless;	/* place holder struct; do nothing */
 
-  } NCSDTA_DESTROY;
-
+} NCSDTA_DESTROY;
 
 /***************************************************************************
  * The operations set that a DTA instance supports
  ***************************************************************************/
 
-typedef enum dta_lm_op
-  {
-  DTA_LM_OP_CREATE,
-  DTA_LM_OP_DESTROY,
+typedef enum dta_lm_op {
+	DTA_LM_OP_CREATE,
+	DTA_LM_OP_DESTROY,
 
-  } NCSDTA_OP;
+} NCSDTA_OP;
 
 /***************************************************************************
  * The DTA API single entry point for all services
  ***************************************************************************/
 
-typedef struct ncsdta_arg
-{
-   NCSDTA_OP           i_op;            /* Operation; CREATE,DESTROY */
-   
-   union 
-    {
-      NCSDTA_CREATE     create;
-      NCSDTA_DESTROY    destroy;
-    } info;
-   
-} DTA_LM_ARG;
+typedef struct ncsdta_arg {
+	NCSDTA_OP i_op;		/* Operation; CREATE,DESTROY */
 
+	union {
+		NCSDTA_CREATE create;
+		NCSDTA_DESTROY destroy;
+	} info;
+
+} DTA_LM_ARG;
 
 /***************************************************************************
  * Global Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C DTADLL_API uns32 dta_lm    ( DTA_LM_ARG* arg );
+EXTERN_C DTADLL_API uns32 dta_lm(DTA_LM_ARG *arg);
 
 /***************************************************************************
  * Global Instance of DTA mailbox
  ***************************************************************************/
-EXTERN_C SYSF_MBX        gl_dta_mbx;
+EXTERN_C SYSF_MBX gl_dta_mbx;
 
 EXTERN_C uns32 dta_cleanup_seq(void);
 
@@ -102,4 +90,4 @@ EXTERN_C uns32 dta_cleanup_seq(void);
 #define DTA_UNCONGESTED_LOG_LIMIT 100
 #define DTA_MAX_THRESHOLD 2000
 
-#endif /* DTA_API_H */
+#endif   /* DTA_API_H */

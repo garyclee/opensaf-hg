@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -40,4 +37,4 @@ EXTERN_C CPADLL_API uns32 cpa_lib_req(NCS_LIB_REQ_INFO *);
 EXTERN_C unsigned int ncs_cpa_shutdown(void);
 EXTERN_C unsigned int ncs_cpa_startup(void);
 
-#endif /* CPA_DL_API_H */
+#endif   /* CPA_DL_API_H */

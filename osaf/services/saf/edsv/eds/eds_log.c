@@ -27,10 +27,7 @@
       eds_flx_log_reg
       eds_flx_log_dereg
 
-
 ******************************************************************************/
-
-
 
 /*****************************************************************************
 
@@ -47,14 +44,14 @@
                      data - Miscellineousdata
 *****************************************************************************/
 
-void eds_log(uns8 id,uns32 category,uns8 sev,long rc,char *fname,uns32 fno,uns32 data)
+void eds_log(uns8 id, uns32 category, uns8 sev, long rc, char *fname, uns32 fno, uns32 data)
 {
 
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_HDLN, EDS_FC_HDLN,
-              category, sev, NCSFL_TYPE_TCLILL,fname,fno,id,rc,data);
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_HDLN, EDS_FC_HDLN,
+		   category, sev, NCSFL_TYPE_TCLILL, fname, fno, id, rc, data);
 
-} /* End of eds_log()  */
+}	/* End of eds_log()  */
 
 /*****************************************************************************
 
@@ -72,14 +69,14 @@ void eds_log(uns8 id,uns32 category,uns8 sev,long rc,char *fname,uns32 fno,uns32
                      dest - uns64 mdsdest
 *****************************************************************************/
 
-EXTERN_C void eds_log_f(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno,uns32 dataa,uns64 dest)
+EXTERN_C void eds_log_f(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 dest)
 {
 
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_HDLNF, EDS_FC_HDLNF,
-              category, sev, NCSFL_TYPE_TCLILLF,fname,fno,id,rc,dataa,(double)dest);
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_HDLNF, EDS_FC_HDLNF,
+		   category, sev, NCSFL_TYPE_TCLILLF, fname, fno, id, rc, dataa, (double)dest);
 
-} /* End of eds_log_f()  */
+}	/* End of eds_log_f()  */
 
 /*****************************************************************************
 
@@ -90,9 +87,8 @@ EXTERN_C void eds_log_f(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns
 *****************************************************************************/
 void eds_log_event(uns8 id, int8 *pub_name, uns32 evt_id, uns32 pubtime, uns32 pri, uns32 rettime)
 {
-    ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
-               NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL,
-               id, pub_name, evt_id, pubtime, pri, rettime);
+	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
+		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL, id, pub_name, evt_id, pubtime, pri, rettime);
 }
 
 /*****************************************************************************
@@ -102,15 +98,12 @@ void eds_log_event(uns8 id, int8 *pub_name, uns32 evt_id, uns32 pubtime, uns32 p
   DESCRIPTION:       Log event header info.
 
 *****************************************************************************/
-void eds_log_lost_event(uns8 id, int8 *pub_name,uns32 evt_id,uns32 pubtime,uns32 pri)
+void eds_log_lost_event(uns8 id, int8 *pub_name, uns32 evt_id, uns32 pubtime, uns32 pri)
 {
-    ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
-               NCSFL_LC_EVENT,NCSFL_SEV_INFO,NCSFL_TYPE_TICLLLL,
-               id,pub_name,evt_id,pubtime,pri);
+	ncs_logmsg(NCS_SERVICE_ID_EDS, EDS_LID_EVENT, EDS_FC_EVENT,
+		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TICLLLL, id, pub_name, evt_id, pubtime, pri);
 
 }
-
-
 
 /****************************************************************************
  * Name          : eds_flx_log_reg
@@ -126,21 +119,20 @@ void eds_log_lost_event(uns8 id, int8 *pub_name,uns32 evt_id,uns32 pubtime,uns32
  * Notes         : None.
  *****************************************************************************/
 
-void
-eds_flx_log_reg (void)
+void eds_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_EDS;
-   /* fill version no. */
-   reg.info.bind_svc.version = EDSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "EDSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_EDS;
+	/* fill version no. */
+	reg.info.bind_svc.version = EDSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "EDSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -156,15 +148,15 @@ eds_flx_log_reg (void)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-eds_flx_log_dereg (void)
+void eds_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_EDS;
-   ncs_dtsv_su_req(&reg);
-   return;
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_EDS;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
+
 #endif

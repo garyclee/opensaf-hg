@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file inclused following routines:
@@ -48,15 +46,14 @@
 *****************************************************************************/
 uns32 machineEndianness()
 {
-   uns32 i = 1;
-   char *p = (char *) &i;
+	uns32 i = 1;
+	char *p = (char *)&i;
 
-   if (p[0] == 1) /* Lowest address contains the least significant byte */
-      return MQSV_LITTLE_ENDIAN;
-   else
-      return MQSV_BIG_ENDIAN;
+	if (p[0] == 1)		/* Lowest address contains the least significant byte */
+		return MQSV_LITTLE_ENDIAN;
+	else
+		return MQSV_BIG_ENDIAN;
 }
-
 
 /****************************************************************************
  * Function Name: mqsv_listenerq_msg_send
@@ -65,52 +62,51 @@ uns32 machineEndianness()
  ****************************************************************************/
 uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 {
-   NCS_OS_POSIX_MQ_REQ_INFO  info;
-   NCS_OS_MQ_MSG       mq_msg;
-   uns32 actual_qsize = 0, actual_qused = 0;
-    /* No listener queue present, return */
-    if (!listenerHandle)
-       return NCSCC_RC_SUCCESS;
+	NCS_OS_POSIX_MQ_REQ_INFO info;
+	NCS_OS_MQ_MSG mq_msg;
+	uns32 actual_qsize = 0, actual_qused = 0;
+	/* No listener queue present, return */
+	if (!listenerHandle)
+		return NCSCC_RC_SUCCESS;
 
-   /* Get actual queue size and usage stats. This is needed to determine if queue size needs to be increased */
-   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
-   info.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
-   info.info.attr.i_mqd = listenerHandle;
+	/* Get actual queue size and usage stats. This is needed to determine if queue size needs to be increased */
+	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+	info.req = NCS_OS_POSIX_MQ_REQ_GET_ATTR;
+	info.info.attr.i_mqd = listenerHandle;
 
-   if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
-      return NCSCC_RC_FAILURE;
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		return NCSCC_RC_FAILURE;
 
-   actual_qsize = info.info.attr.o_attr.mq_maxmsg;
-   actual_qused = info.info.attr.o_attr.mq_msgsize;
+	actual_qsize = info.info.attr.o_attr.mq_maxmsg;
+	actual_qused = info.info.attr.o_attr.mq_msgsize;
 
-   if ((actual_qsize - actual_qused) < 1000) {
-      memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
-      info.req = NCS_OS_POSIX_MQ_REQ_RESIZE;
-      info.info.resize.mqd = listenerHandle;
+	if ((actual_qsize - actual_qused) < 1000) {
+		memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+		info.req = NCS_OS_POSIX_MQ_REQ_RESIZE;
+		info.info.resize.mqd = listenerHandle;
 
-      /* Increase queue size so that its able to hold 5 such messages */
-      info.info.resize.i_newqsize = actual_qsize + 10000;
+		/* Increase queue size so that its able to hold 5 such messages */
+		info.info.resize.i_newqsize = actual_qsize + 10000;
 
-      if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
-         return NCSCC_RC_FAILURE;
-   }
+		if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+			return NCSCC_RC_FAILURE;
+	}
 
-   memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
-   memcpy(mq_msg.data, "A", 1);
+	memset(&mq_msg, 0, sizeof(NCS_OS_MQ_MSG));
+	memcpy(mq_msg.data, "A", 1);
 
-   memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
-   info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
-   info.info.send.mqd = listenerHandle;
-   info.info.send.datalen = 1;
-   info.info.send.i_msg = &mq_msg;
-   info.info.send.i_mtype = 1; 
+	memset(&info, 0, sizeof(NCS_OS_POSIX_MQ_REQ_INFO));
+	info.req = NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC;
+	info.info.send.mqd = listenerHandle;
+	info.info.send.datalen = 1;
+	info.info.send.i_msg = &mq_msg;
+	info.info.send.i_mtype = 1;
 
-   if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
-      return (NCSCC_RC_FAILURE);
+	if (m_NCS_OS_POSIX_MQ(&info) != NCSCC_RC_SUCCESS)
+		return (NCSCC_RC_FAILURE);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /********************************************************************************
  Name    :  mqsv_get_phy_slot_id
@@ -121,13 +117,12 @@ uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerHandle)
 
 *************************************************************************************/
 
-NCS_PHY_SLOT_ID  mqsv_get_phy_slot_id(MDS_DEST dest)
+NCS_PHY_SLOT_ID mqsv_get_phy_slot_id(MDS_DEST dest)
 {
-     NCS_PHY_SLOT_ID phy_slot;
-     NCS_SUB_SLOT_ID sub_slot;
+	NCS_PHY_SLOT_ID phy_slot;
+	NCS_SUB_SLOT_ID sub_slot;
 
-     m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest),NULL,&phy_slot,&sub_slot);
+	m_NCS_GET_PHYINFO_FROM_NODE_ID(m_NCS_NODE_ID_FROM_MDS_DEST(dest), NULL, &phy_slot, &sub_slot);
 
-    return ((sub_slot * NCS_SUB_SLOT_MAX) + phy_slot);
+	return ((sub_slot * NCS_SUB_SLOT_MAX) + phy_slot);
 }
-

@@ -53,38 +53,32 @@ extern "C" {
          ipv6z(4),
          dns(16)
 */
-typedef enum ncs_ip_addr_type
-{
-  NCS_IP_ADDR_TYPE_NONE,
-  NCS_IP_ADDR_TYPE_IPV4,
-  NCS_IP_ADDR_TYPE_IPV6,  
-  NCS_IP_ADDR_TYPE_MAX    /* Must be last. */
-} NCS_IP_ADDR_TYPE;
+	typedef enum ncs_ip_addr_type {
+		NCS_IP_ADDR_TYPE_NONE,
+		NCS_IP_ADDR_TYPE_IPV4,
+		NCS_IP_ADDR_TYPE_IPV6,
+		NCS_IP_ADDR_TYPE_MAX	/* Must be last. */
+	} NCS_IP_ADDR_TYPE;
 
 /* AFI Values */
 #define  NCS_AFI_IPV4    1
 #define  NCS_AFI_IPV6    2
 
-
-typedef struct ncs_ip_addr
-{
-  NCS_IP_ADDR_TYPE type;
-  union
-    {
-      NCS_IPV4_ADDR v4;
+	typedef struct ncs_ip_addr {
+		NCS_IP_ADDR_TYPE type;
+		union {
+			NCS_IPV4_ADDR v4;
 #if (NCS_IPV6 == 1)
-      NCS_IPV6_ADDR v6;
+			NCS_IPV6_ADDR v6;
 #endif
-    } info;
-} NCS_IP_ADDR;
+		} info;
+	} NCS_IP_ADDR;
 
 /* IP Prefix Defination */
-typedef struct ncs_ippfx
-{
-   NCS_IP_ADDR       ipaddr;   /* an IP Address                   */
-   uns8              mask_len;  /* the bitmask that applies        */
-}NCS_IPPFX;
-
+	typedef struct ncs_ippfx {
+		NCS_IP_ADDR ipaddr;	/* an IP Address                   */
+		uns8 mask_len;	/* the bitmask that applies        */
+	} NCS_IPPFX;
 
 /* Macro to convert peer address from host order to network order 
    In this only IPv4 address is converted into host to network order
@@ -119,25 +113,19 @@ typedef struct ncs_ippfx
 
 #define m_NCS_IS_IP_ADDR_ZERO(i_addr) ncs_is_ip_addr_zero(i_addr)
 
+	EXTERN_C LEAPDLL_API int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2);
 
-EXTERN_C LEAPDLL_API int32 ncs_cmp_ip_addr(NCS_IP_ADDR *addr1, NCS_IP_ADDR *addr2);
+	EXTERN_C LEAPDLL_API void ncs_ip_addr_to_display_str(NCS_IP_ADDR *i_addr, int8 *o_str);
 
-EXTERN_C LEAPDLL_API void ncs_ip_addr_to_display_str(NCS_IP_ADDR *i_addr, int8 *o_str);
+	EXTERN_C LEAPDLL_API NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr);
 
-EXTERN_C LEAPDLL_API NCS_BOOL ncs_is_ip_addr_all_zero(NCS_IP_ADDR *addr);
+	EXTERN_C LEAPDLL_API NCS_BOOL ncs_is_ip_addr_zero(NCS_IP_ADDR *addr);
 
-EXTERN_C LEAPDLL_API NCS_BOOL ncs_is_ip_addr_zero(NCS_IP_ADDR *addr);
+	EXTERN_C LEAPDLL_API uns16 ncs_ip_addr_to_octdata(uns8 *o_oct_data, NCS_IP_ADDR *i_addr, NCS_BOOL is_nwk_order);
 
-EXTERN_C LEAPDLL_API uns16 ncs_ip_addr_to_octdata(uns8          *o_oct_data, 
-                                     NCS_IP_ADDR    *i_addr, 
-                                     NCS_BOOL       is_nwk_order);
-
-EXTERN_C LEAPDLL_API void ncs_oct_data_to_ip_addr(uns8          *i_oct_data, 
-                                     NCS_IP_ADDR    *o_addr,
-                                     NCS_BOOL is_nwk_order);
+	EXTERN_C LEAPDLL_API void ncs_oct_data_to_ip_addr(uns8 *i_oct_data, NCS_IP_ADDR *o_addr, NCS_BOOL is_nwk_order);
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* _NCS_IPLIB_H */
-
+#endif   /* _NCS_IPLIB_H */

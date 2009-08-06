@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,17 +31,15 @@
 ******************************************************************************
 */
 
-
 #include "mqa.h"
 
-static void mqa_main_timeout_handler (void *arg);
-static void mqa_node_timeout_handler (void *arg);
-static NCS_BOOL match_invocation (void *key, void *qelem);
-static NCS_BOOL match_expiry (void *key, void *qelem);
-static void mqa_cleanup_senderid (void *arg);
-static NCS_BOOL match_node (void *key, void *qelem);
-static NCS_BOOL match_all (void *key, void *qelem);
-
+static void mqa_main_timeout_handler(void *arg);
+static void mqa_node_timeout_handler(void *arg);
+static NCS_BOOL match_invocation(void *key, void *qelem);
+static NCS_BOOL match_expiry(void *key, void *qelem);
+static void mqa_cleanup_senderid(void *arg);
+static NCS_BOOL match_node(void *key, void *qelem);
+static NCS_BOOL match_all(void *key, void *qelem);
 
 /****************************************************************************
   Name          : mqa_timer_table_init
@@ -60,37 +56,34 @@ static NCS_BOOL match_all (void *key, void *qelem);
 uns32 mqa_timer_table_init(MQA_CB *mqa_cb)
 {
 
-   
-   NCS_RP_TMR_INIT tmr_init_info;
+	NCS_RP_TMR_INIT tmr_init_info;
 
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return NCSCC_RC_FAILURE;
 
-      /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-      
-   }
+	}
 
-   tmr_init_info.callback_arg = NULL;
-   tmr_init_info.svc_id       =  NCSMDS_SVC_ID_MQA;
-   tmr_init_info.svc_sub_id   =  0;
-   tmr_init_info.tmr_callback =  mqa_main_timeout_handler;
-   tmr_init_info.tmr_ganularity = 1  ; /* in secs */
+	tmr_init_info.callback_arg = NULL;
+	tmr_init_info.svc_id = NCSMDS_SVC_ID_MQA;
+	tmr_init_info.svc_sub_id = 0;
+	tmr_init_info.tmr_callback = mqa_main_timeout_handler;
+	tmr_init_info.tmr_ganularity = 1;	/* in secs */
 
+	if ((mqa_cb->mqa_tmr_cb = m_NCS_RP_TMR_INIT(&tmr_init_info)) == NULL) {
+		m_LOG_MQSV_A(MQA_CB_TIMER_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if ( (mqa_cb->mqa_tmr_cb = m_NCS_RP_TMR_INIT(&tmr_init_info)) == NULL)
-   {
-      m_LOG_MQSV_A(MQA_CB_TIMER_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return NCSCC_RC_FAILURE;
-   }
+	ncs_create_queue(&(mqa_cb->mqa_timer_list));
 
-   ncs_create_queue(&(mqa_cb->mqa_timer_list));
-
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-   return NCSCC_RC_SUCCESS;
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -109,43 +102,38 @@ uns32 mqa_timer_table_init(MQA_CB *mqa_cb)
 void mqa_timer_table_destroy(MQA_CB *mqa_cb)
 {
 
-   void *temp;
-   MQA_TMR_NODE *tmr_node;
+	void *temp;
+	MQA_TMR_NODE *tmr_node;
 
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return;
 
-      /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return ;
-      
-   }
+	}
 
+	while ((temp = (void *)ncs_dequeue(&(mqa_cb->mqa_timer_list))) != NCS_QELEM_NULL) {
+		tmr_node = (MQA_TMR_NODE *)temp;
 
-   while ( (temp = (void *)ncs_dequeue(&(mqa_cb->mqa_timer_list))) != NCS_QELEM_NULL)
-   {
-      tmr_node = (MQA_TMR_NODE *)temp;
+		/* we don't check the return value, as we have to cleanup anyways. */
+		if (mqa_cb->mqa_tmr_cb) {
+			ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id);
 
-      /* we don't check the return value, as we have to cleanup anyways. */
-      if (mqa_cb->mqa_tmr_cb)
-      {
-          ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id);
+			ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id);
 
-          ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id);
+		}
+	}
 
-      }
-   }
+	if (mqa_cb->mqa_tmr_cb) {
+		mqa_destroy_senderid_timers(mqa_cb);
+		m_NCS_RP_TMR_DESTROY(&(mqa_cb->mqa_tmr_cb));
+	}
 
-   if (mqa_cb->mqa_tmr_cb)
-   { 
-       mqa_destroy_senderid_timers(mqa_cb);
-       m_NCS_RP_TMR_DESTROY(&(mqa_cb->mqa_tmr_cb));
-   }
+	m_MQSV_MQA_GIVEUP_MQA_CB;
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-
-   return ;
+	return;
 }
 
 /****************************************************************************
@@ -161,24 +149,24 @@ void mqa_timer_table_destroy(MQA_CB *mqa_cb)
   Notes         : None
 ******************************************************************************/
 
-static void mqa_main_timeout_handler (void *arg)
+static void mqa_main_timeout_handler(void *arg)
 {
 
-   MQA_CB *mqa_cb;
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return;
-   }
+	MQA_CB *mqa_cb;
 
-   m_NCS_RP_TMR_EXP(mqa_cb->mqa_tmr_cb);
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return;
+	}
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
+	m_NCS_RP_TMR_EXP(mqa_cb->mqa_tmr_cb);
 
-   return;
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+
+	return;
 
 }
 
@@ -195,65 +183,61 @@ static void mqa_main_timeout_handler (void *arg)
   Notes         : None
 ******************************************************************************/
 
-static void mqa_node_timeout_handler (void *arg)
+static void mqa_node_timeout_handler(void *arg)
 {
 
-   MQA_CB *mqa_cb;
-   SaInvocationT key;
-   MQA_TMR_NODE *tmr_node;
+	MQA_CB *mqa_cb;
+	SaInvocationT key;
+	MQA_TMR_NODE *tmr_node;
 
-   MQP_ASYNC_RSP_MSG *mqa_callback = (MQP_ASYNC_RSP_MSG *)arg;
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return;
-   }
+	MQP_ASYNC_RSP_MSG *mqa_callback = (MQP_ASYNC_RSP_MSG *)arg;
 
-   /* delete the tmr_node from the timer_list */
-   switch (mqa_callback->callbackType)
-   {
-      case MQP_ASYNC_RSP_OPEN:
-         key = mqa_callback->params.qOpen.invocation;
-         break;
-      case MQP_ASYNC_RSP_MSGDELIVERED:
-         key = mqa_callback->params.msgDelivered.invocation;
-         break;
-      default:
-         m_MQSV_MQA_GIVEUP_MQA_CB;
-         return;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return;
+	}
 
-   tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list),NCS_INT64_TO_PTR_CAST(key), match_invocation);
-   
-   if (tmr_node == NULL)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return;
-   }
+	/* delete the tmr_node from the timer_list */
+	switch (mqa_callback->callbackType) {
+	case MQP_ASYNC_RSP_OPEN:
+		key = mqa_callback->params.qOpen.invocation;
+		break;
+	case MQP_ASYNC_RSP_MSGDELIVERED:
+		key = mqa_callback->params.msgDelivered.invocation;
+		break;
+	default:
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return;
+	}
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return;
-   }
+	tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list), NCS_INT64_TO_PTR_CAST(key), match_invocation);
 
-   /*  Dequeue and free the node */
-   ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
- 
-   m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+	if (tmr_node == NULL) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return;
+	}
 
-   mqsv_mqa_callback_queue_write(mqa_cb, mqa_callback->messageHandle, mqa_callback);
-   
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
-   m_MQSV_MQA_GIVEUP_MQA_CB;
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return;
+	}
 
-   return;
-   
+	/*  Dequeue and free the node */
+	ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
+
+	m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+
+	mqsv_mqa_callback_queue_write(mqa_cb, mqa_callback->messageHandle, mqa_callback);
+
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+
+	return;
+
 }
-
 
 /****************************************************************************
   Name          : mqa_create_and_start_timer
@@ -269,131 +253,119 @@ static void mqa_node_timeout_handler (void *arg)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_create_and_start_timer (MQP_ASYNC_RSP_MSG *mqa_callback,
-                                  SaInvocationT invocation)
+uns32 mqa_create_and_start_timer(MQP_ASYNC_RSP_MSG *mqa_callback, SaInvocationT invocation)
 {
 
-   MQA_TMR_NODE   *node;
-   NCS_RP_TMR_HDL tmr_id;
-   MQP_ASYNC_RSP_MSG *callback;
-   uns32             rc = NCSCC_RC_SUCCESS;
-   MQA_CB *mqa_cb;
+	MQA_TMR_NODE *node;
+	NCS_RP_TMR_HDL tmr_id;
+	MQP_ASYNC_RSP_MSG *callback;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQA_CB *mqa_cb;
 
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
+	if ((tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0) {
+		m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		goto err1;
+	}
 
-   if ( (tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      goto err1;
-   }
+	callback = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
+	if (!callback) {
+		m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
+			     __FILE__, __LINE__);
+		goto err2;
+	}
+	memset(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
 
+	memcpy(callback, mqa_callback, sizeof(MQP_ASYNC_RSP_MSG));
 
-   callback = m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG;
-   if (!callback)
-   {
-      m_LOG_MQSV_A(MQP_ASYNC_RSP_MSG_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      goto err2;
-   }
-   memset(callback, 0, sizeof(MQP_ASYNC_RSP_MSG));
+	if ((rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id,
+				   MQA_ASYNC_TIMEOUT_DEFAULT, mqa_node_timeout_handler,
+				   (void *)callback)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		goto err3;
+	}
 
-   memcpy(callback, mqa_callback, sizeof(MQP_ASYNC_RSP_MSG));
+	/* Enqueue the timer information and invocation to the timer queue */
 
-   if ( (rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id, 
-                           MQA_ASYNC_TIMEOUT_DEFAULT,mqa_node_timeout_handler,
-                           (void *)callback )) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      goto err3;
-   }
+	node = (MQA_TMR_NODE *)m_MMGR_ALLOC_MQA_TMR_NODE;
+	if (!node) {
+		m_LOG_MQSV_A(MQA_TIMER_NODE_ALLOC_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE,
+			     __FILE__, __LINE__);
+		goto err4;
+	}
 
-    /* Enqueue the timer information and invocation to the timer queue */
+	node->tmr_id = tmr_id;
+	node->invoc = invocation;
+	node->callback = callback;
 
-   node = (MQA_TMR_NODE *)m_MMGR_ALLOC_MQA_TMR_NODE;
-   if(!node)
-   {
-      m_LOG_MQSV_A(MQA_TIMER_NODE_ALLOC_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      goto err4;
-   }
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		goto err5;
+	}
 
-   node->tmr_id = tmr_id;
-   node->invoc = invocation;
-   node->callback = callback;
+	if (ncs_enqueue(&(mqa_cb->mqa_timer_list), (void *)node) != NCSCC_RC_SUCCESS) {
+		goto err6;
+	}
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      goto err5;
-   }
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   if (ncs_enqueue(&(mqa_cb->mqa_timer_list), (void *)node) != NCSCC_RC_SUCCESS)
-   {
-      goto err6;
-   }
+	m_MQSV_MQA_GIVEUP_MQA_CB;
 
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
+ err6:
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   return NCSCC_RC_SUCCESS;
+ err5:
+	m_MMGR_FREE_MQA_TMR_NODE(node);
 
-err6:
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+ err4:
+	ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_id);
 
-err5:
-   m_MMGR_FREE_MQA_TMR_NODE(node);
+ err3:
+	m_MMGR_FREE_MQP_ASYNC_RSP_MSG(callback);
 
-err4:
-   ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_id);
+ err2:
+	ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_id);
 
-err3:
-   m_MMGR_FREE_MQP_ASYNC_RSP_MSG(callback);
+ err1:
+	m_MQSV_MQA_GIVEUP_MQA_CB;
 
-err2:
-   ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_id);
-
-err1:
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 
 }
 
-
-
-static NCS_BOOL match_invocation (void *key, void *qelem)
+static NCS_BOOL match_invocation(void *key, void *qelem)
 {
 
-   MQA_TMR_NODE *node = (MQA_TMR_NODE *)qelem;
-   SaInvocationT invocation = NCS_PTR_TO_UNS64_CAST(key);
+	MQA_TMR_NODE *node = (MQA_TMR_NODE *)qelem;
+	SaInvocationT invocation = NCS_PTR_TO_UNS64_CAST(key);
 
-   if (!qelem)
-      return FALSE;
+	if (!qelem)
+		return FALSE;
 
-   if (invocation == node->invoc)
-      return TRUE;
+	if (invocation == node->invoc)
+		return TRUE;
 
-   return FALSE;
+	return FALSE;
 }
 
-
-static NCS_BOOL match_node (void *key, void *qelem)
+static NCS_BOOL match_node(void *key, void *qelem)
 {
 
-   if (key == qelem)
-      return TRUE;
+	if (key == qelem)
+		return TRUE;
 
-   return FALSE;
+	return FALSE;
 
- 
 }
-
 
 /****************************************************************************
   Name          : mqa_stop_and_delete_timer
@@ -409,74 +381,68 @@ static NCS_BOOL match_node (void *key, void *qelem)
   Notes         : None
 ******************************************************************************/
 
-
-uns32 mqa_stop_and_delete_timer (MQP_ASYNC_RSP_MSG     *mqa_callbk_info)
+uns32 mqa_stop_and_delete_timer(MQP_ASYNC_RSP_MSG *mqa_callbk_info)
 {
-   MQA_CB *mqa_cb;
-   SaInvocationT key;
-   MQA_TMR_NODE *tmr_node;
-   uns32 rc = NCSCC_RC_FAILURE;
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return rc;
-   }
+	MQA_CB *mqa_cb;
+	SaInvocationT key;
+	MQA_TMR_NODE *tmr_node;
+	uns32 rc = NCSCC_RC_FAILURE;
 
-   switch (mqa_callbk_info->callbackType)
-   {
-   case MQP_ASYNC_RSP_OPEN:
-      key = mqa_callbk_info->params.qOpen.invocation;
-      break;
-   case MQP_ASYNC_RSP_MSGDELIVERED:
-      key = mqa_callbk_info->params.msgDelivered.invocation;
-      break;
-   default:
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return rc;
+	}
 
-   tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list),NCS_INT64_TO_PTR_CAST(key), match_invocation);
-   if (tmr_node == NULL)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	switch (mqa_callbk_info->callbackType) {
+	case MQP_ASYNC_RSP_OPEN:
+		key = mqa_callbk_info->params.qOpen.invocation;
+		break;
+	case MQP_ASYNC_RSP_MSGDELIVERED:
+		key = mqa_callbk_info->params.msgDelivered.invocation;
+		break;
+	default:
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list), NCS_INT64_TO_PTR_CAST(key), match_invocation);
+	if (tmr_node == NULL) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   /*  Dequeue and free the node */
-   ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if(tmr_node->callback)
-      m_MMGR_FREE_MQP_ASYNC_RSP_MSG(tmr_node->callback);
-      
-   m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+	/*  Dequeue and free the node */
+	ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
 
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	if (tmr_node->callback)
+		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(tmr_node->callback);
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-   return NCSCC_RC_SUCCESS;
+	m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -491,114 +457,103 @@ uns32 mqa_stop_and_delete_timer (MQP_ASYNC_RSP_MSG     *mqa_callbk_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 mqa_stop_and_delete_timer_by_invocation (void *key)
+uns32 mqa_stop_and_delete_timer_by_invocation(void *key)
 {
-   MQA_CB *mqa_cb;
-   MQA_TMR_NODE *tmr_node;
-   uns32 rc = NCSCC_RC_FAILURE;
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return rc;
-   }
+	MQA_CB *mqa_cb;
+	MQA_TMR_NODE *tmr_node;
+	uns32 rc = NCSCC_RC_FAILURE;
 
-   tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list), key, match_invocation);
-   if (tmr_node == NULL)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return rc;
+	}
 
-   if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	tmr_node = ncs_find_item(&(mqa_cb->mqa_timer_list), key, match_invocation);
+	if (tmr_node == NULL) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return rc;
-   }
+	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_node->tmr_id)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   /*  Dequeue and free the node */
-   ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return rc;
+	}
 
-   if(tmr_node->callback)
-      m_MMGR_FREE_MQP_ASYNC_RSP_MSG(tmr_node->callback);
-      
-   m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+	/*  Dequeue and free the node */
+	ncs_remove_item(&(mqa_cb->mqa_timer_list), tmr_node, match_node);
 
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	if (tmr_node->callback)
+		m_MMGR_FREE_MQP_ASYNC_RSP_MSG(tmr_node->callback);
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-   return NCSCC_RC_SUCCESS;
+	m_MMGR_FREE_MQA_TMR_NODE(tmr_node);
+
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+	return NCSCC_RC_SUCCESS;
 }
 
-
-static NCS_BOOL match_expiry (void *key, void *qelem)
+static NCS_BOOL match_expiry(void *key, void *qelem)
 {
 
-   MQA_SENDERID_INFO *node = (MQA_SENDERID_INFO *)qelem;
-   time_t   now;
+	MQA_SENDERID_INFO *node = (MQA_SENDERID_INFO *)qelem;
+	time_t now;
 
+	if (!node)
+		return FALSE;
 
-   if (!node)
-      return FALSE;
+	m_NCS_OS_GET_TIME_STAMP(now);
 
+	if ((now - node->timestamp) > MQSV_SENDERID_CLEANUP_INTERVAL)
+		return TRUE;
 
-   m_NCS_OS_GET_TIME_STAMP(now);
-
-   if ( (now - node->timestamp) > MQSV_SENDERID_CLEANUP_INTERVAL)
-      return TRUE;
-
-   return FALSE;
+	return FALSE;
 }
 
-
-static void mqa_cleanup_senderid (void *arg)
+static void mqa_cleanup_senderid(void *arg)
 {
 
-   MQA_CB *mqa_cb;
-   MQA_SENDERID_INFO *senderid_node;
-   
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return;
-   }
+	MQA_CB *mqa_cb;
+	MQA_SENDERID_INFO *senderid_node;
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return;
+	}
 
-   while( (senderid_node = ncs_remove_item(&(mqa_cb->mqa_senderid_list), NULL, match_expiry)) != NULL)
-   {
-      m_MMGR_FREE_MQA_SENDERID(senderid_node);
-   }
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return;
+	}
 
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+	while ((senderid_node = ncs_remove_item(&(mqa_cb->mqa_senderid_list), NULL, match_expiry)) != NULL) {
+		m_MMGR_FREE_MQA_SENDERID(senderid_node);
+	}
 
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-   return;
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
+
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+	return;
 
 }
-
 
 /****************************************************************************
   Name          : mqa_create_and_start_senderid_timer
@@ -613,60 +568,53 @@ static void mqa_cleanup_senderid (void *arg)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_create_and_start_senderid_timer ()
+uns32 mqa_create_and_start_senderid_timer()
 {
-   MQA_CB *mqa_cb;
-   NCS_RP_TMR_HDL tmr_id;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	MQA_CB *mqa_cb;
+	NCS_RP_TMR_HDL tmr_id;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* retrieve MQA CB */
-   mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
-   if(!mqa_cb)
-   {
-      m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
+	/* retrieve MQA CB */
+	mqa_cb = (MQA_CB *)m_MQSV_MQA_RETRIEVE_MQA_CB;
+	if (!mqa_cb) {
+		m_LOG_MQSV_A(MQA_CB_RETRIEVAL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
+	if ((tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0) {
+		m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if ( (tmr_id = ncs_rp_tmr_create(mqa_cb->mqa_tmr_cb)) == 0)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_CREATE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return NCSCC_RC_FAILURE;
-   }
+	if ((rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id,
+				   MQSV_SENDERID_CLEANUP_INTERVAL, mqa_cleanup_senderid,
+				   (void *)NULL)) == NCSCC_RC_FAILURE) {
+		m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_id);
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return NCSCC_RC_FAILURE;
+	}
 
+	if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		m_MQSV_MQA_GIVEUP_MQA_CB;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if ((rc = ncs_rp_tmr_start(mqa_cb->mqa_tmr_cb, tmr_id, 
-                           MQSV_SENDERID_CLEANUP_INTERVAL,mqa_cleanup_senderid,
-                           (void *)NULL )) == NCSCC_RC_FAILURE)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_START_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, tmr_id);
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return NCSCC_RC_FAILURE;
-   }
+	mqa_cb->mqa_senderid_tmr = tmr_id;
 
-   if (m_NCS_LOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-   {
-      m_MQSV_MQA_GIVEUP_MQA_CB;
-      return NCSCC_RC_FAILURE;
-   }
+	m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
 
-   mqa_cb->mqa_senderid_tmr = tmr_id;
-
-   m_NCS_UNLOCK(&mqa_cb->cb_lock, NCS_LOCK_WRITE);
-
-   m_MQSV_MQA_GIVEUP_MQA_CB;
-   return NCSCC_RC_SUCCESS;
+	m_MQSV_MQA_GIVEUP_MQA_CB;
+	return NCSCC_RC_SUCCESS;
 }
 
-
-
-
-static NCS_BOOL match_all (void *key, void *qelem)
+static NCS_BOOL match_all(void *key, void *qelem)
 {
 
-   return TRUE;
+	return TRUE;
 }
 
 /****************************************************************************
@@ -682,39 +630,30 @@ static NCS_BOOL match_all (void *key, void *qelem)
   Notes         : None
 ******************************************************************************/
 
-uns32 mqa_destroy_senderid_timers (MQA_CB *mqa_cb)
+uns32 mqa_destroy_senderid_timers(MQA_CB *mqa_cb)
 {
 
+	MQA_SENDERID_INFO *senderid_node = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   MQA_SENDERID_INFO  *senderid_node=NULL;
-   uns32              rc = NCSCC_RC_SUCCESS;
+	while ((senderid_node = ncs_remove_item(&(mqa_cb->mqa_senderid_list), NULL, match_all)) != NULL) {
+		m_MMGR_FREE_MQA_SENDERID(senderid_node);
 
- 
+	}
 
+	ncs_destroy_queue(&(mqa_cb->mqa_senderid_list));
 
-   while( (senderid_node = ncs_remove_item(&(mqa_cb->mqa_senderid_list), NULL, match_all)) != NULL)
-   {
-      m_MMGR_FREE_MQA_SENDERID(senderid_node);
+	if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
-   }
+	if ((rc = ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS) {
 
-   ncs_destroy_queue(&(mqa_cb->mqa_senderid_list));
+		m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if ((rc = ncs_rp_tmr_stop(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_MQSV_A(MQA_CB_TMR_STOP_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
-
-   if ((rc =ncs_rp_tmr_delete(mqa_cb->mqa_tmr_cb, mqa_cb->mqa_senderid_tmr)) != NCSCC_RC_SUCCESS)
-   {
-
-      m_LOG_MQSV_A(MQA_CB_TMR_DELETE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
-
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
-

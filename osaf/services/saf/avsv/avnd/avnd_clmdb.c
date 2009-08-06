@@ -33,12 +33,10 @@
 ******************************************************************************
 */
 
-
 #include "avnd.h"
 
 /* static function declarations */
 static uns32 avnd_clmdb_rec_free(NCS_DB_LINK_LIST_NODE *);
-
 
 /****************************************************************************
   Name          : avnd_clmdb_init
@@ -53,23 +51,21 @@ static uns32 avnd_clmdb_rec_free(NCS_DB_LINK_LIST_NODE *);
 ******************************************************************************/
 uns32 avnd_clmdb_init(AVND_CB *cb)
 {
-   AVND_CLM_DB *clmdb = &cb->clmdb;
-   uns32       rc = NCSCC_RC_SUCCESS;
+	AVND_CLM_DB *clmdb = &cb->clmdb;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* timestamp this node */
-   clmdb->node_info.bootTimestamp = time(NULL) * SA_TIME_ONE_SECOND;
+	/* timestamp this node */
+	clmdb->node_info.bootTimestamp = time(NULL) * SA_TIME_ONE_SECOND;
 
-   /* initialize the clm dll list */
-   clmdb->clm_list.order = NCS_DBLIST_ASSCEND_ORDER;
-   clmdb->clm_list.cmp_cookie = avsv_dblist_uns32_cmp;
-   clmdb->clm_list.free_cookie = avnd_clmdb_rec_free;
+	/* initialize the clm dll list */
+	clmdb->clm_list.order = NCS_DBLIST_ASSCEND_ORDER;
+	clmdb->clm_list.cmp_cookie = avsv_dblist_uns32_cmp;
+	clmdb->clm_list.free_cookie = avnd_clmdb_rec_free;
 
-   m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_CREATE, AVND_LOG_CLM_DB_SUCCESS, 
-                     0, NCSFL_SEV_INFO);
+	m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_CREATE, AVND_LOG_CLM_DB_SUCCESS, 0, NCSFL_SEV_INFO);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_clmdb_destroy
@@ -85,30 +81,26 @@ uns32 avnd_clmdb_init(AVND_CB *cb)
 ******************************************************************************/
 uns32 avnd_clmdb_destroy(AVND_CB *cb)
 {
-   AVND_CLM_DB  *clmdb = &cb->clmdb;
-   AVND_CLM_REC *rec = 0;
-   uns32        rc = NCSCC_RC_SUCCESS;
+	AVND_CLM_DB *clmdb = &cb->clmdb;
+	AVND_CLM_REC *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* traverse & delete all the CLM records */
-   while ( 0 != (rec = 
-                (AVND_CLM_REC *)m_NCS_DBLIST_FIND_FIRST(&clmdb->clm_list)) )
-   {
-      rc = avnd_clmdb_rec_del(cb, rec->info.node_id);
-      if ( NCSCC_RC_SUCCESS != rc ) goto err;
-   }
+	/* traverse & delete all the CLM records */
+	while (0 != (rec = (AVND_CLM_REC *)m_NCS_DBLIST_FIND_FIRST(&clmdb->clm_list))) {
+		rc = avnd_clmdb_rec_del(cb, rec->info.node_id);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto err;
+	}
 
-   /* traverse & delete all the CLM track request records TBD */
+	/* traverse & delete all the CLM track request records TBD */
 
-   m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_DESTROY, AVND_LOG_CLM_DB_SUCCESS, 
-                     0, NCSFL_SEV_INFO);
-   return rc;
+	m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_DESTROY, AVND_LOG_CLM_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+	return rc;
 
-err:
-   m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_DESTROY, AVND_LOG_CLM_DB_FAILURE, 
-                     0, NCSFL_SEV_CRITICAL);
-   return rc;
+ err:
+	m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_DESTROY, AVND_LOG_CLM_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_clmdb_rec_add
@@ -126,59 +118,51 @@ err:
 ******************************************************************************/
 AVND_CLM_REC *avnd_clmdb_rec_add(AVND_CB *cb, AVSV_CLM_INFO *node_info)
 {
-   AVND_CLM_DB  *clmdb = &cb->clmdb;
-   AVND_CLM_REC *rec = 0;
-   uns32        rc = NCSCC_RC_SUCCESS;
+	AVND_CLM_DB *clmdb = &cb->clmdb;
+	AVND_CLM_REC *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* get the record, if any */
-   rec = avnd_clmdb_rec_get(cb, node_info->node_id);
-   if (!rec) 
-   {
-      /* a new record.. alloc & link it to the dll */
-      rec = m_MMGR_ALLOC_AVND_CLM_REC;
-      if (rec)
-      {
-         memset(rec, 0, sizeof(AVND_CLM_REC));
+	/* get the record, if any */
+	rec = avnd_clmdb_rec_get(cb, node_info->node_id);
+	if (!rec) {
+		/* a new record.. alloc & link it to the dll */
+		rec = m_MMGR_ALLOC_AVND_CLM_REC;
+		if (rec) {
+			memset(rec, 0, sizeof(AVND_CLM_REC));
 
-         /* update the record key */
-         rec->info.node_id = node_info->node_id;
-         rec->clm_dll_node.key = (uns8 *)&rec->info.node_id;
+			/* update the record key */
+			rec->info.node_id = node_info->node_id;
+			rec->clm_dll_node.key = (uns8 *)&rec->info.node_id;
 
-         rc = ncs_db_link_list_add(&clmdb->clm_list, &rec->clm_dll_node);
-         if (NCSCC_RC_SUCCESS != rc) goto done;
-      }
-      else 
-      {
-         rc = NCSCC_RC_FAILURE;
-         goto done;
-      }
-   }
+			rc = ncs_db_link_list_add(&clmdb->clm_list, &rec->clm_dll_node);
+			if (NCSCC_RC_SUCCESS != rc)
+				goto done;
+		} else {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+	}
 
-   /* update the params */
-   rec->info.node_address = node_info->node_address;
-   rec->info.node_name_net = node_info->node_name_net;
-   rec->info.member = node_info->member;
-   rec->info.boot_timestamp = node_info->boot_timestamp;
-   rec->info.view_number = node_info->view_number;
+	/* update the params */
+	rec->info.node_address = node_info->node_address;
+	rec->info.node_name_net = node_info->node_name_net;
+	rec->info.member = node_info->member;
+	rec->info.boot_timestamp = node_info->boot_timestamp;
+	rec->info.view_number = node_info->view_number;
 
-   m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_ADD, AVND_LOG_CLM_DB_SUCCESS, 
-                     node_info->node_id, NCSFL_SEV_INFO);
+	m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_ADD, AVND_LOG_CLM_DB_SUCCESS, node_info->node_id, NCSFL_SEV_INFO);
 
-done:
-   if (NCSCC_RC_SUCCESS != rc)
-   {
-      m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_ADD, AVND_LOG_CLM_DB_FAILURE, 
-                        node_info->node_id, NCSFL_SEV_INFO);
-      if (rec)
-      {
-         avnd_clmdb_rec_free(&rec->clm_dll_node);
-         rec = 0;
-      }
-   }
+ done:
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_ADD, AVND_LOG_CLM_DB_FAILURE, node_info->node_id, NCSFL_SEV_INFO);
+		if (rec) {
+			avnd_clmdb_rec_free(&rec->clm_dll_node);
+			rec = 0;
+		}
+	}
 
-   return rec;
+	return rec;
 }
-
 
 /****************************************************************************
   Name          : avnd_clmdb_rec_del
@@ -195,21 +179,18 @@ done:
 ******************************************************************************/
 uns32 avnd_clmdb_rec_del(AVND_CB *cb, SaClmNodeIdT node_id)
 {
-   AVND_CLM_DB  *clmdb = &cb->clmdb;
-   uns32        rc = NCSCC_RC_SUCCESS;
+	AVND_CLM_DB *clmdb = &cb->clmdb;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   rc = ncs_db_link_list_del(&clmdb->clm_list, (uns8 *)&node_id);
+	rc = ncs_db_link_list_del(&clmdb->clm_list, (uns8 *)&node_id);
 
-   if (NCSCC_RC_SUCCESS == rc)
-      m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_DEL, AVND_LOG_CLM_DB_SUCCESS, 
-                        node_id, NCSFL_SEV_INFO);
-   else
-      m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_DEL, AVND_LOG_CLM_DB_FAILURE, 
-                        node_id, NCSFL_SEV_INFO);
+	if (NCSCC_RC_SUCCESS == rc)
+		m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_DEL, AVND_LOG_CLM_DB_SUCCESS, node_id, NCSFL_SEV_INFO);
+	else
+		m_AVND_LOG_CLM_DB(AVND_LOG_CLM_DB_REC_DEL, AVND_LOG_CLM_DB_FAILURE, node_id, NCSFL_SEV_INFO);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_clmdb_rec_get
@@ -226,12 +207,10 @@ uns32 avnd_clmdb_rec_del(AVND_CB *cb, SaClmNodeIdT node_id)
 ******************************************************************************/
 AVND_CLM_REC *avnd_clmdb_rec_get(AVND_CB *cb, SaClmNodeIdT node_id)
 {
-   AVND_CLM_DB  *clmdb = &cb->clmdb;
+	AVND_CLM_DB *clmdb = &cb->clmdb;
 
-   return (AVND_CLM_REC *)ncs_db_link_list_find(&clmdb->clm_list, 
-                                               (uns8 *)&node_id);
+	return (AVND_CLM_REC *)ncs_db_link_list_find(&clmdb->clm_list, (uns8 *)&node_id);
 }
-
 
 /****************************************************************************
   Name          : avnd_clmdb_rec_free
@@ -247,11 +226,11 @@ AVND_CLM_REC *avnd_clmdb_rec_get(AVND_CB *cb, SaClmNodeIdT node_id)
 ******************************************************************************/
 uns32 avnd_clmdb_rec_free(NCS_DB_LINK_LIST_NODE *node)
 {
-   AVND_CLM_REC *rec = (AVND_CLM_REC *)node;
+	AVND_CLM_REC *rec = (AVND_CLM_REC *)node;
 
-   m_MMGR_FREE_AVND_CLM_REC(rec);
+	m_MMGR_FREE_AVND_CLM_REC(rec);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -269,29 +248,24 @@ uns32 avnd_clmdb_rec_free(NCS_DB_LINK_LIST_NODE *node)
 ******************************************************************************/
 uns32 avnd_clm_trkinfo_list_add(AVND_CB *cb, AVND_CLM_TRK_INFO *trk_info)
 {
-   AVND_CLM_DB       *db = &cb->clmdb;
-   
-   if(!trk_info)
-   {
-      /* LOG ERROR */
-      return NCSCC_RC_FAILURE;  
-   }
+	AVND_CLM_DB *db = &cb->clmdb;
 
-   if(db->clm_trk_info == NULL)
-   {
-      /* This is the first track info add it in the front */
-      db->clm_trk_info = trk_info;
-      trk_info->next = NULL;
-   }
-   else
-   {
-      trk_info->next = db->clm_trk_info;
-      db->clm_trk_info = trk_info;
-   }
+	if (!trk_info) {
+		/* LOG ERROR */
+		return NCSCC_RC_FAILURE;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	if (db->clm_trk_info == NULL) {
+		/* This is the first track info add it in the front */
+		db->clm_trk_info = trk_info;
+		trk_info->next = NULL;
+	} else {
+		trk_info->next = db->clm_trk_info;
+		db->clm_trk_info = trk_info;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : avnd_clm_trkinfo_list_del
@@ -307,36 +281,30 @@ uns32 avnd_clm_trkinfo_list_add(AVND_CB *cb, AVND_CLM_TRK_INFO *trk_info)
   Notes         : Search and remove the node This routine doesnt free memory
 ******************************************************************************/
 
-AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_del(AVND_CB *cb, SaClmHandleT hdl,
-                                              MDS_DEST *dest)
+AVND_CLM_TRK_INFO *avnd_clm_trkinfo_list_del(AVND_CB *cb, SaClmHandleT hdl, MDS_DEST *dest)
 {
-   AVND_CLM_TRK_INFO *i_ptr = NULL;
-   AVND_CLM_TRK_INFO **p_ptr;
-   AVND_CLM_DB       *db = &cb->clmdb;
-   
-   if(!hdl)
-   {
-      /* LOG ERROR */
-      return NULL;  
-   }
+	AVND_CLM_TRK_INFO *i_ptr = NULL;
+	AVND_CLM_TRK_INFO **p_ptr;
+	AVND_CLM_DB *db = &cb->clmdb;
 
-   i_ptr = db->clm_trk_info;
-   p_ptr = &(db->clm_trk_info);
-   while(i_ptr != NULL)
-   {
-      if((i_ptr->req_hdl == hdl) &&
-         (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
-      {
-         *p_ptr = i_ptr->next;
-         return i_ptr;
-      }
-      p_ptr = &(i_ptr->next);
-      i_ptr = i_ptr->next;
-   }
+	if (!hdl) {
+		/* LOG ERROR */
+		return NULL;
+	}
 
-   return NULL;  
+	i_ptr = db->clm_trk_info;
+	p_ptr = &(db->clm_trk_info);
+	while (i_ptr != NULL) {
+		if ((i_ptr->req_hdl == hdl) && (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0)) {
+			*p_ptr = i_ptr->next;
+			return i_ptr;
+		}
+		p_ptr = &(i_ptr->next);
+		i_ptr = i_ptr->next;
+	}
+
+	return NULL;
 }
-
 
 /****************************************************************************
   Name          : avnd_clm_trkinfo_list_find
@@ -352,35 +320,27 @@ AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_del(AVND_CB *cb, SaClmHandleT hdl,
   Notes         : 
 ******************************************************************************/
 
-AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_find(AVND_CB *cb, SaClmHandleT hdl,
-                                               MDS_DEST *dest)
+AVND_CLM_TRK_INFO *avnd_clm_trkinfo_list_find(AVND_CB *cb, SaClmHandleT hdl, MDS_DEST *dest)
 {
-   AVND_CLM_TRK_INFO *i_ptr = NULL;
-   AVND_CLM_DB       *db = &cb->clmdb;
-   
-   if( (!db->clm_trk_info) || (!hdl) )
-   {
-      /* LOG ERROR */
-      return NULL;  
-   }
+	AVND_CLM_TRK_INFO *i_ptr = NULL;
+	AVND_CLM_DB *db = &cb->clmdb;
 
-   i_ptr = db->clm_trk_info;
-   while( (i_ptr != NULL) && 
-          (i_ptr->req_hdl != hdl) && 
-          (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) != 0) )
-   {
-      i_ptr = i_ptr->next;
-   }
+	if ((!db->clm_trk_info) || (!hdl)) {
+		/* LOG ERROR */
+		return NULL;
+	}
 
-   if((i_ptr != NULL) && (i_ptr->req_hdl == hdl) &&
-          (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0) )
-   {
-      return i_ptr;
-   }
-   
-   return NULL;
+	i_ptr = db->clm_trk_info;
+	while ((i_ptr != NULL) && (i_ptr->req_hdl != hdl) && (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) != 0)) {
+		i_ptr = i_ptr->next;
+	}
+
+	if ((i_ptr != NULL) && (i_ptr->req_hdl == hdl) && (memcmp(&i_ptr->mds_dest, dest, sizeof(MDS_DEST)) == 0)) {
+		return i_ptr;
+	}
+
+	return NULL;
 }
-
 
 /*****************************************************************************
  * Function: ncssndtableentry_get
@@ -405,34 +365,29 @@ AVND_CLM_TRK_INFO * avnd_clm_trkinfo_list_find(AVND_CB *cb, SaClmHandleT hdl,
  *
  * 
  **************************************************************************/
-uns32 ncssndtableentry_get(NCSCONTEXT cb,
-                           NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data)
+uns32 ncssndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVND_CB      *avnd_cb = (AVND_CB *)cb;
-   SaClmNodeIdT node_id;
+	AVND_CB *avnd_cb = (AVND_CB *)cb;
+	SaClmNodeIdT node_id;
 
-   if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* get the node id from the instant ID */
-   node_id = arg->i_idx.i_inst_ids[0];
-  
-   /* Check whether the Node Id matches with avnd nodeId */ 
-   if (avnd_cb->clmdb.node_info.nodeId != node_id)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-       
-   *data = (NCSCONTEXT)cb;
-     
-   return NCSCC_RC_SUCCESS;
+	/* get the node id from the instant ID */
+	node_id = arg->i_idx.i_inst_ids[0];
+
+	/* Check whether the Node Id matches with avnd nodeId */
+	if (avnd_cb->clmdb.node_info.nodeId != node_id) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)cb;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncssndtableentry_extract
@@ -466,22 +421,18 @@ uns32 ncssndtableentry_get(NCSCONTEXT cb,
  *
  * 
  **************************************************************************/
-uns32 ncssndtableentry_extract(NCSMIB_PARAM_VAL *param, 
-                               NCSMIB_VAR_INFO *var_info,
-                               NCSCONTEXT data,
-                               NCSCONTEXT buffer)
+uns32 ncssndtableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   /* No special processing is required for the objects in this table,
-    * call the MIBLIB utility routine for standard object types 
-    */
-   if ((var_info != NULL) && (var_info->offset != 0))
-      return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-   else
-      return NCSCC_RC_NO_OBJECT;
-                                       
-   return NCSCC_RC_SUCCESS;
-}
+	/* No special processing is required for the objects in this table,
+	 * call the MIBLIB utility routine for standard object types 
+	 */
+	if ((var_info != NULL) && (var_info->offset != 0))
+		return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+	else
+		return NCSCC_RC_NO_OBJECT;
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
  * Function: ncssndtableentry_set
@@ -509,15 +460,11 @@ uns32 ncssndtableentry_extract(NCSMIB_PARAM_VAL *param,
  *
  * 
  **************************************************************************/
-uns32 ncssndtableentry_set(NCSCONTEXT cb, 
-                           NCSMIB_ARG *arg, 
-                           NCSMIB_VAR_INFO *var_info,
-                           NCS_BOOL test_flag)
+uns32 ncssndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   /* This table has only read-only objects */ 
-   return NCSCC_RC_INV_VAL;
+	/* This table has only read-only objects */
+	return NCSCC_RC_INV_VAL;
 }
-
 
 /*****************************************************************************
  * Function: ncssndtableentry_next
@@ -548,44 +495,37 @@ uns32 ncssndtableentry_set(NCSCONTEXT cb,
  * 
  **************************************************************************/
 uns32 ncssndtableentry_next(NCSCONTEXT cb,
-                            NCSMIB_ARG *arg, 
-                            NCSCONTEXT *data,
-                            uns32 *next_inst_id,
-                            uns32 *next_inst_id_len)
+			    NCSMIB_ARG *arg, NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVND_CB      *avnd_cb = (AVND_CB *)cb;
-   SaClmNodeIdT node_id = 0;
+	AVND_CB *avnd_cb = (AVND_CB *)cb;
+	SaClmNodeIdT node_id = 0;
 
-   if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* Prepare the node id from the instant ID */
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      /* get the node id from the instant ID */
-      node_id = arg->i_idx.i_inst_ids[0];
-   }
-  
-   /* Check whether the Node Id matches with avnd nodeId */ 
-   if (avnd_cb->clmdb.node_info.nodeId <= node_id)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the node id from the instant ID */
+	if (arg->i_idx.i_inst_len != 0) {
+		/* get the node id from the instant ID */
+		node_id = arg->i_idx.i_inst_ids[0];
+	}
 
-   /* Prepare the instant ID from the nod id */
+	/* Check whether the Node Id matches with avnd nodeId */
+	if (avnd_cb->clmdb.node_info.nodeId <= node_id) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *next_inst_id_len = 1;
-   next_inst_id[0] = (uns32)(avnd_cb->clmdb.node_info.nodeId);
+	/* Prepare the instant ID from the nod id */
 
-   *data = (NCSCONTEXT)avnd_cb;
+	*next_inst_id_len = 1;
+	next_inst_id[0] = (uns32)(avnd_cb->clmdb.node_info.nodeId);
 
-   return NCSCC_RC_SUCCESS;
+	*data = (NCSCONTEXT)avnd_cb;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncssndtableentry_setrow
@@ -616,13 +556,11 @@ uns32 ncssndtableentry_next(NCSCONTEXT cb,
  * 
  **************************************************************************/
 uns32 ncssndtableentry_setrow(NCSCONTEXT cb,
-                              NCSMIB_ARG *args,
-                              NCSMIB_SETROW_PARAM_VAL *params,
-                              struct ncsmib_obj_info *obj_info,
-                              NCS_BOOL testrow_flag)
+			      NCSMIB_ARG *args,
+			      NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   /* This table has only read-only objects */ 
-   return NCSCC_RC_INV_VAL;
+	/* This table has only read-only objects */
+	return NCSCC_RC_INV_VAL;
 }
 
 /*****************************************************************************
@@ -640,6 +578,5 @@ uns32 ncssndtableentry_setrow(NCSCONTEXT cb,
  **************************************************************************/
 uns32 ncssndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

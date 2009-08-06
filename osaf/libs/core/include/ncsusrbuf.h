@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
     @     @  @@@@@  @@@@@@  @@@@@@  @     @ @@@@@@@         @     @
     @     @ @     @ @     @ @     @ @     @ @               @     @
     @     @ @       @     @ @     @ @     @ @               @     @
@@ -26,8 +25,6 @@
     @     @       @ @   @   @     @ @     @ @         @@@   @     @
     @     @ @     @ @    @  @     @ @     @ @         @@@   @     @
      @@@@@   @@@@@  @     @ @@@@@@   @@@@@  @         @@@   @     @
-
-
 
 ..............................................................................
 
@@ -54,9 +51,8 @@ extern "C" {
 #if (defined(_NCS_LTCS_DATA_PLANE_) || (NCS_SOFT_DPE == 1))
 #define PAYLOAD_BUF_SIZE 2048
 #else
-#define PAYLOAD_BUF_SIZE 1400       /* default size of packet_data bufrs */
-#endif 
-
+#define PAYLOAD_BUF_SIZE 1400	/* default size of packet_data bufrs */
+#endif
 
 /*****************************************************************************
 
@@ -67,22 +63,19 @@ extern "C" {
 
 *****************************************************************************/
 
-#if (NCSMDS_OSE_UD == 1)       /* Context of OSE's Signal memory pool */
+#if (NCSMDS_OSE_UD == 1)	/* Context of OSE's Signal memory pool */
 
-typedef struct lh_ose      /* OSE Extended Userdata info             */
-  {
-  SIGSELECT sig_no;        /* Signal number              (OSE based) */
-  uns32     key;           /* distinguishing attribute               */
-  uns8      pool_id;       /* id must align across environments      */
-  uns16     ttl;           /* total bytes in this USRDATA            */
-  uns16     cur;            
-  uns32     used_octets;
-  uns32     d_start;
-  
-  } LH_OSE;                                  /* Link Handler for OSE */
+	typedef struct lh_ose {	/* OSE Extended Userdata info             */
+		SIGSELECT sig_no;	/* Signal number              (OSE based) */
+		uns32 key;	/* distinguishing attribute               */
+		uns8 pool_id;	/* id must align across environments      */
+		uns16 ttl;	/* total bytes in this USRDATA            */
+		uns16 cur;
+		uns32 used_octets;
+		uns32 d_start;
 
+	} LH_OSE;		/* Link Handler for OSE */
 #endif
-
 
 /****************************************************************************
  *  typedef USRDATA_EXTEND
@@ -93,23 +86,18 @@ typedef struct lh_ose      /* OSE Extended Userdata info             */
 
 #if (NCSMDS_OSE_UD == 1)
 
-typedef struct usrdata_extent
-{
+	typedef struct usrdata_extent {
 
 #if (NCSMDS_OSE_UD == 1)
 
-    LH_OSE       ose;       /* OSE specific data traveling with the packet */
+		LH_OSE ose;	/* OSE specific data traveling with the packet */
+#endif   /* NCSMDS_OSE_UD == 1) */
 
-#endif /* NCSMDS_OSE_UD == 1) */
-
-} USRDATA_EXTENT;                    /* userdata extensions within USRDATA */
-
+	} USRDATA_EXTENT;	/* userdata extensions within USRDATA */
 #else
 
-typedef void * USRDATA_EXTENT;
-
-#endif /* (NCSMDS_OSE_UD == 1) */
-
+	typedef void *USRDATA_EXTENT;
+#endif   /* (NCSMDS_OSE_UD == 1) */
 
 /****************************************************************************
  *  typedef USRDATA
@@ -120,14 +108,12 @@ typedef void * USRDATA_EXTENT;
  * routine if we really want to give the memory back to the owning pool.
  */
 
-typedef struct usrdata
-{
-  USRDATA_EXTENT ue;                /* UserData Extensions                  */
-  uns32          RefCnt;            /* # of USRBUFs pointing to this block. */
-  char           Data[PAYLOAD_BUF_SIZE];    /* payload area ie. The Data  . */
+	typedef struct usrdata {
+		USRDATA_EXTENT ue;	/* UserData Extensions                  */
+		uns32 RefCnt;	/* # of USRBUFs pointing to this block. */
+		char Data[PAYLOAD_BUF_SIZE];	/* payload area ie. The Data  . */
 
-} USRDATA;
-
+	} USRDATA;
 
 /****************************************************************************
  *  typedef USRBUF_EXTEND
@@ -137,33 +123,28 @@ typedef struct usrdata
 
 #if ((NCS_HPFR == 1) || (SAR_BUFR_STORAGE == 1))
 
-typedef struct usrbuf_extent
-{
+	typedef struct usrbuf_extent {
 #if (NCS_HPFR == 1)
   /** The following 3 fields are used by the H&J HPFR RFC 1490 code, which
    ** may be used in conjunction with your purchase of either FRF.5 or FRF.8.
    ** If you are not using H&J's HPFR code, you can delete these 3 fields.
    **/
-  struct usrbuf* first_frag;
-  struct usrbuf* next_frag;
-  uns16          code;
-
-#endif /* (NCS_HPFR == 1) */
+		struct usrbuf *first_frag;
+		struct usrbuf *next_frag;
+		uns16 code;
+#endif   /* (NCS_HPFR == 1) */
 
 #if (SAR_BUFR_STORAGE == 1)
   /** Storage for hardware SAR driver 
    **/
-  void*          sar_data;
+		void *sar_data;
+#endif   /* (SAR_BUFR_STORAGE == 1) */
 
-#endif /* (SAR_BUFR_STORAGE == 1) */
-
-} USRBUF_EXTENT;              /* user definable extension within USEBUF */
-
+	} USRBUF_EXTENT;	/* user definable extension within USEBUF */
 #else
 
-typedef void * USRBUF_EXTENT;
-
-#endif /* ((NCS_HPFR == 1) || (SAR_BUFR_STORAGE == 1)) */
+	typedef void *USRBUF_EXTENT;
+#endif   /* ((NCS_HPFR == 1) || (SAR_BUFR_STORAGE == 1)) */
 
 /****************************************************************************
  *  typedef USRBUF
@@ -179,32 +160,31 @@ typedef void * USRBUF_EXTENT;
  * the USRBUF macros are honored.
  */
 
-typedef struct usrbuf
-{
+	typedef struct usrbuf {
   /** Pointer to the next usrbuf structure (used in queueing).
    **/
-  struct usrbuf *next; 
-  
+		struct usrbuf *next;
+
   /** Pointer to a 'linked' usrbuf structure - used whenever
    ** the user frame spans multiple usrbufs. All linked usrbuf
    ** structures comprise a single upper layer frame.
    **/
-  struct usrbuf *link;
-  
+		struct usrbuf *link;
+
   /** The total number of octets used (for this usrbuf) in the data 
    ** area pointed to by 'payload'.
    **/
-  unsigned int count;
+		unsigned int count;
 
   /** An offset in the 'payload' buffer where the upper layer's data
    ** begins. This can be represented as *(payload+start).
    **/
-  unsigned int start;
-  
+		unsigned int start;
+
   /** pool memory operations for pool_id
    **/
-  struct ncsub_pool* pool_ops;
- 
+		struct ncsub_pool *pool_ops;
+
   /**
    ** SPECIFICS:
    ** ---------
@@ -223,17 +203,15 @@ typedef struct usrbuf
    ** be retransmitted. This flag is used by SSCOP (UNI Signalling).
    **
    **/
-  
-  union
-    {
-      uns32  opaque;
-      struct sig_3x
-      {
-         uns32  nps;
-         uns8   rts;
-      } uni_sig_3x;
-    } specific;
-  
+
+		union {
+			uns32 opaque;
+			struct sig_3x {
+				uns32 nps;
+				uns8 rts;
+			} uni_sig_3x;
+		} specific;
+
   /** This member is intended for use by the target system if it requires
    ** implementation specific data to be associated with this structure.
    ** The base implementation code does not maintain or reference this 
@@ -243,13 +221,13 @@ typedef struct usrbuf
    **          the memory associated with this pointer should be freed BEFORE
    **          calling m_MMGR_FREE_BUFR to free the USRBUF structure.
    **/
-  USRBUF_EXTENT usrbuf_extent;
-  
-  USRDATA *payload;   /* pointer to TOP of USRDATA structure. */
-  
-} USRBUF;
+		USRBUF_EXTENT usrbuf_extent;
 
-#define BNULL    (USRBUF *)0          /* a null usrbuf pointer */
+		USRDATA *payload;	/* pointer to TOP of USRDATA structure. */
+
+	} USRBUF;
+
+#define BNULL    (USRBUF *)0	/* a null usrbuf pointer */
 
 /****************************************************************************
 
@@ -273,13 +251,13 @@ typedef struct usrbuf
 
 *****************************************************************************/
 
-#define UB_MAX_POOLS   5   /* Max Pools for this reference implementation */
+#define UB_MAX_POOLS   5	/* Max Pools for this reference implementation */
 
-#define NCSUB_LEAP_POOL 0   /* Default mem from m_NCS_MEM_ALLOC in OS Svcs  */
-#define NCSUB_HEAP_POOL 1   /* Mapped to m_NCS_OS_MEMALLOC in OS Prims      */
-#define NCSUB_UDEF_POOL 2   /* User Defined m_OS_UBMEM_ALLOC in OS Defs     */
-#define NCSUB_MDS_POOL  3   /* Pool for MDS messages                        */
-#define NCSUB_DMY2_POOL 4   /* paradigm extended, but this is a dummy       */
+#define NCSUB_LEAP_POOL 0	/* Default mem from m_NCS_MEM_ALLOC in OS Svcs  */
+#define NCSUB_HEAP_POOL 1	/* Mapped to m_NCS_OS_MEMALLOC in OS Prims      */
+#define NCSUB_UDEF_POOL 2	/* User Defined m_OS_UBMEM_ALLOC in OS Defs     */
+#define NCSUB_MDS_POOL  3	/* Pool for MDS messages                        */
+#define NCSUB_DMY2_POOL 4	/* paradigm extended, but this is a dummy       */
 
 /****************************************************************************
  
@@ -311,8 +289,8 @@ typedef struct usrbuf
 
 #if ((NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
 
-struct ncs_sysmon;
-extern struct ncs_sysmon gl_sysmon;
+	struct ncs_sysmon;
+	extern struct ncs_sysmon gl_sysmon;
 
 /****************************************************************************
 
@@ -322,34 +300,31 @@ extern struct ncs_sysmon gl_sysmon;
 
 *****************************************************************************/
 
-typedef struct ncsub_pool_stats
-{
-  uns32         max;     /* MAX available mem in the pool */
-  uns32         pool_id;  /* pool id */
-  uns32         alloced; /* alloc'ed so far */
-  uns32         freed;   /* free'ed so far */
-  uns32         curr;    /* current alloc'ed memory */
-  uns32         cnt;     /* current number of buffers alloc'ed from the pool */
-  uns32         hwm;     /* high water mark */
-  /* Count of Buffers chained to make a message at free time        */
-  uns32         fc_1;    /* 1 Buffer in chain at free time          */
-  uns32         fc_2;    /* 2 Buffers in chain at free time         */
-  uns32         fc_3;    /* 3 Buffers in chain at free time         */
-  uns32         fc_4;    /* 4 Buffers in chain at free time         */
-  uns32         fc_gt;   /* 5 or more Buffers in chain at free time */
-  /* Count of bytes in payload area at free time (actual message size)   */
-  uns32         s32b;    /* less than 32 byte payload at free time       */
-  uns32         s64b;    /* less than 64 byte payload at free time       */
-  uns32         s128b;   /* less than 128 byte payload at free time      */
-  uns32         s256b;   /* less than 256 byte payload at free time      */
-  uns32         s512b;   /* less than 512 byte payload at free time      */
-  uns32         s1024b;  /* less than 1024 byte payload at free time     */
-  uns32         s2048b;  /* less than 2048 byte payload at free time     */
-  uns32         sbig_b;  /* greater than 2048 byte payload at free time  */
+	typedef struct ncsub_pool_stats {
+		uns32 max;	/* MAX available mem in the pool */
+		uns32 pool_id;	/* pool id */
+		uns32 alloced;	/* alloc'ed so far */
+		uns32 freed;	/* free'ed so far */
+		uns32 curr;	/* current alloc'ed memory */
+		uns32 cnt;	/* current number of buffers alloc'ed from the pool */
+		uns32 hwm;	/* high water mark */
+		/* Count of Buffers chained to make a message at free time        */
+		uns32 fc_1;	/* 1 Buffer in chain at free time          */
+		uns32 fc_2;	/* 2 Buffers in chain at free time         */
+		uns32 fc_3;	/* 3 Buffers in chain at free time         */
+		uns32 fc_4;	/* 4 Buffers in chain at free time         */
+		uns32 fc_gt;	/* 5 or more Buffers in chain at free time */
+		/* Count of bytes in payload area at free time (actual message size)   */
+		uns32 s32b;	/* less than 32 byte payload at free time       */
+		uns32 s64b;	/* less than 64 byte payload at free time       */
+		uns32 s128b;	/* less than 128 byte payload at free time      */
+		uns32 s256b;	/* less than 256 byte payload at free time      */
+		uns32 s512b;	/* less than 512 byte payload at free time      */
+		uns32 s1024b;	/* less than 1024 byte payload at free time     */
+		uns32 s2048b;	/* less than 2048 byte payload at free time     */
+		uns32 sbig_b;	/* greater than 2048 byte payload at free time  */
 
-} NCSUB_POOL_STATS;
-
-
+	} NCSUB_POOL_STATS;
 #endif
 
 #ifdef  __cplusplus
@@ -357,5 +332,3 @@ typedef struct ncsub_pool_stats
 #endif
 
 #endif
-
-

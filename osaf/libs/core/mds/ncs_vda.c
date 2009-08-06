@@ -39,7 +39,7 @@
 
 static MDS_CLIENT_MSG_FORMAT_VER
  gl_vda_wrt_vds_msg_fmt_array[VDA_WRT_VDS_SUBPART_VER_RANGE] = {
-	1 /*msg format version for VDA subpart version 1 */
+	1			/*msg format version for VDA subpart version 1 */
 };
 
 #define m_NCSVDA_TRACE_ARG1(X)

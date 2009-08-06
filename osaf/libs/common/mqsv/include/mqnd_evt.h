@@ -22,4 +22,3 @@ EXTERN_C void mqnd_process_evt(MQSV_EVT *evt);
 EXTERN_C void mqnd_process_dsend_evt(MQSV_DSEND_EVT *evt);
 
 #endif
-

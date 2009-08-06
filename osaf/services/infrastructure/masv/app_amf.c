@@ -23,14 +23,14 @@
   
   DESCRIPTION: This file describes AMF Interface implementation common to 
                MAS and PSS
-*****************************************************************************/ 
+*****************************************************************************/
 
 #include "app_amf.h"
 #include "dta_papi.h"
 #include "mab_log.h"
 #include "rda_papi.h"
 
-void ncs_app_amf_init_timer_cb (void* amf_init_timer);
+void ncs_app_amf_init_timer_cb(void *amf_init_timer);
 
 /*****************************************************************************\
  *  Name:          ncs_app_signal_install                                     * 
@@ -44,21 +44,19 @@ void ncs_app_amf_init_timer_cb (void* amf_init_timer);
  *                 -1 - failure                                               *
  *  NOTE:                                                                     * 
 \*****************************************************************************/
-/* install the signal handler */ 
-int32
-ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
+/* install the signal handler */
+int32 ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
 {
-    struct sigaction sig_act; 
+	struct sigaction sig_act;
 
-    if ((i_sig_num <= 0) ||
-        (i_sig_num > 32) || /* not the real time signals */ 
-        (i_sig_handler == NULL))
-        return -1; 
+	if ((i_sig_num <= 0) || (i_sig_num > 32) ||	/* not the real time signals */
+	    (i_sig_handler == NULL))
+		return -1;
 
-    /* now say that, we are interested in this signal */ 
-    memset(&sig_act, 0, sizeof(struct sigaction)); 
-    sig_act.sa_handler = i_sig_handler; 
-    return sigaction(i_sig_num, &sig_act, NULL); 
+	/* now say that, we are interested in this signal */
+	memset(&sig_act, 0, sizeof(struct sigaction));
+	sig_act.sa_handler = i_sig_handler;
+	return sigaction(i_sig_num, &sig_act, NULL);
 
 }
 
@@ -75,12 +73,10 @@ ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
  *  Returns:       NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \*****************************************************************************/
-/* generic invalid state transition handler */     
-uns32 
-ncs_app_amf_invalid_state_process(void *data, PW_ENV_ID  envid, 
-                                  SaAmfCSIDescriptorT csiDesc)
+/* generic invalid state transition handler */
+uns32 ncs_app_amf_invalid_state_process(void *data, PW_ENV_ID envid, SaAmfCSIDescriptorT csiDesc)
 {
-    return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /*****************************************************************************\
@@ -100,92 +96,86 @@ ncs_app_amf_invalid_state_process(void *data, PW_ENV_ID  envid,
  *                 NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \*****************************************************************************/
-/* to initialize the AMF attributes of an application */ 
+/* to initialize the AMF attributes of an application */
 uns32
-ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS            *attribs, 
-                         int8                           *health_key, 
-                         SaDispatchFlagsT               dispatch_flags, 
-                         SaAmfHealthcheckInvocationT    hc_inv_type, 
-                         SaAmfRecommendedRecoveryT      recovery, 
-                         NCS_APP_AMF_HA_STATE_HANDLERS  *state_handler, 
-                         SaAmfCallbacksT                *amfCallbacks)
+ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS *attribs,
+			 int8 *health_key,
+			 SaDispatchFlagsT dispatch_flags,
+			 SaAmfHealthcheckInvocationT hc_inv_type,
+			 SaAmfRecommendedRecoveryT recovery,
+			 NCS_APP_AMF_HA_STATE_HANDLERS *state_handler, SaAmfCallbacksT *amfCallbacks)
 {
-    NCS_APP_AMF_HA_STATE i, j; 
-    
-    if (attribs == NULL)
-        return NCSCC_RC_FAILURE; 
+	NCS_APP_AMF_HA_STATE i, j;
 
-    if (health_key == NULL)
-        return NCSCC_RC_FAILURE; 
+	if (attribs == NULL)
+		return NCSCC_RC_FAILURE;
 
-    if (amfCallbacks == NULL)
-        return NCSCC_RC_FAILURE; 
+	if (health_key == NULL)
+		return NCSCC_RC_FAILURE;
 
-    /* initialize the SAF version details */
-    attribs->safVersion.releaseCode = (char) 'B';
-    attribs->safVersion.majorVersion = 0x01;
-    attribs->safVersion.minorVersion = 0x01;
+	if (amfCallbacks == NULL)
+		return NCSCC_RC_FAILURE;
 
-    attribs->dispatchFlags = dispatch_flags; 
-    attribs->recommendedRecovery = recovery; 
-    
-    /* Fill in the Health check key */
-    strncpy(attribs->healthCheckKey.key,health_key,sizeof(attribs->healthCheckKey.key)-1);
-    attribs->healthCheckKey.keyLen=strlen(attribs->healthCheckKey.key);
-    attribs->invocationType = hc_inv_type; 
+	/* initialize the SAF version details */
+	attribs->safVersion.releaseCode = (char)'B';
+	attribs->safVersion.majorVersion = 0x01;
+	attribs->safVersion.minorVersion = 0x01;
 
-    /* some applications may do AMF interface for the purpose of health check */ 
-    if (state_handler != NULL)
-    {
-        /* initialize the state machine */ 
-        for (i=NCS_APP_AMF_HA_STATE_NULL; i<NCS_APP_AMF_HA_STATE_MAX; i++)
-        {
-            for (j=NCS_APP_AMF_HA_STATE_NULL; j<NCS_APP_AMF_HA_STATE_MAX; j++)
-                attribs->ncs_app_amf_hastate_dispatch[i][j] = 
-                                            state_handler->invalidTrans; 
-        }
+	attribs->dispatchFlags = dispatch_flags;
+	attribs->recommendedRecovery = recovery;
 
-        /* go to HA state from NULL */  
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_NULL]
-                [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->initActive; 
+	/* Fill in the Health check key */
+	strncpy(attribs->healthCheckKey.key, health_key, sizeof(attribs->healthCheckKey.key) - 1);
+	attribs->healthCheckKey.keyLen = strlen(attribs->healthCheckKey.key);
+	attribs->invocationType = hc_inv_type;
 
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_NULL]
-                [NCS_APP_AMF_HA_STATE_STANDBY] = state_handler->initStandby; 
+	/* some applications may do AMF interface for the purpose of health check */
+	if (state_handler != NULL) {
+		/* initialize the state machine */
+		for (i = NCS_APP_AMF_HA_STATE_NULL; i < NCS_APP_AMF_HA_STATE_MAX; i++) {
+			for (j = NCS_APP_AMF_HA_STATE_NULL; j < NCS_APP_AMF_HA_STATE_MAX; j++)
+				attribs->ncs_app_amf_hastate_dispatch[i][j] = state_handler->invalidTrans;
+		}
 
-        /* from ACTIVE */ 
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_ACTIVE]
-                [NCS_APP_AMF_HA_STATE_QUISCED] = state_handler->quiescedTrans; 
+		/* go to HA state from NULL */
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_NULL]
+		    [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->initActive;
 
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_ACTIVE]
-                [NCS_APP_AMF_HA_STATE_QUISCING] = state_handler->quiescingTrans; 
-        
-        /* from STANDBY */
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_STANDBY]
-                [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans; 
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_NULL]
+		    [NCS_APP_AMF_HA_STATE_STANDBY] = state_handler->initStandby;
 
-        /* from QUIESCED */ 
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCED]
-                [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans; 
-        
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCED]
-                [NCS_APP_AMF_HA_STATE_STANDBY] = state_handler->standbyTrans; 
+		/* from ACTIVE */
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_ACTIVE]
+		    [NCS_APP_AMF_HA_STATE_QUISCED] = state_handler->quiescedTrans;
 
-        /* from QUIESCING */ 
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCING]
-                [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans; 
-        
-        attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCING]
-                [NCS_APP_AMF_HA_STATE_QUISCED] = state_handler->quiescingToQuiesced; 
-    }
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_ACTIVE]
+		    [NCS_APP_AMF_HA_STATE_QUISCING] = state_handler->quiescingTrans;
 
-    /* update the AMF callbacks */ 
-    memcpy(&attribs->amfCallbacks, 
-                    amfCallbacks, 
-                    sizeof(SaAmfCallbacksT)); 
+		/* from STANDBY */
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_STANDBY]
+		    [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans;
 
-    /* Set the time period to retry amf interface initialisation */
-    attribs->amf_init_timer.period = m_NCS_AMF_INIT_TIMEOUT_IN_SEC * SYSF_TMR_TICKS;
-    return NCSCC_RC_SUCCESS;
+		/* from QUIESCED */
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCED]
+		    [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans;
+
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCED]
+		    [NCS_APP_AMF_HA_STATE_STANDBY] = state_handler->standbyTrans;
+
+		/* from QUIESCING */
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCING]
+		    [NCS_APP_AMF_HA_STATE_ACTIVE] = state_handler->activeTrans;
+
+		attribs->ncs_app_amf_hastate_dispatch[NCS_APP_AMF_HA_STATE_QUISCING]
+		    [NCS_APP_AMF_HA_STATE_QUISCED] = state_handler->quiescingToQuiesced;
+	}
+
+	/* update the AMF callbacks */
+	memcpy(&attribs->amfCallbacks, amfCallbacks, sizeof(SaAmfCallbacksT));
+
+	/* Set the time period to retry amf interface initialisation */
+	attribs->amf_init_timer.period = m_NCS_AMF_INIT_TIMEOUT_IN_SEC * SYSF_TMR_TICKS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -199,81 +189,70 @@ ncs_app_amf_attribs_init(NCS_APP_AMF_ATTRIBS            *attribs,
  *  NOTE:                                                                     * 
 \*****************************************************************************/
 /* routine to intialize the AMF */
-SaAisErrorT
-ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
+SaAisErrorT ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
 {
-    SaAisErrorT status = SA_AIS_OK; 
- 
-    /* Initialize the AMF Library */
-    status = saAmfInitialize(&amf_attribs->amfHandle, /* AMF Handle */
-                    &amf_attribs->amfCallbacks, /* AMF Callbacks */ 
-                    &amf_attribs->safVersion /*Version of the AMF*/);
-    if (status != SA_AIS_OK) 
-    { 
-        /* log the error */ 
-        return status; 
-    }
-    
-    /* get the communication Handle */
-    status = saAmfSelectionObjectGet(amf_attribs->amfHandle, 
-                                &amf_attribs->amfSelectionObject); 
-    if (status != SA_AIS_OK)
-    {
-       /* log the error */ 
-       saAmfFinalize(amf_attribs->amfHandle);
-       amf_attribs->amfHandle = 0;
-       return status; 
-    }
+	SaAisErrorT status = SA_AIS_OK;
 
-    /* get the component name */
-    status = saAmfComponentNameGet(amf_attribs->amfHandle,  /* input */
-                              &amf_attribs->compName); /* output */
-    if (status != SA_AIS_OK) 
-    { 
-        /* log the error */ 
-        saAmfFinalize(amf_attribs->amfHandle);
-        amf_attribs->amfHandle = 0;
-        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+	/* Initialize the AMF Library */
+	status = saAmfInitialize(&amf_attribs->amfHandle,	/* AMF Handle */
+				 &amf_attribs->amfCallbacks,	/* AMF Callbacks */
+				 &amf_attribs->safVersion /*Version of the AMF */ );
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		return status;
+	}
 
-        return status;
-    }
+	/* get the communication Handle */
+	status = saAmfSelectionObjectGet(amf_attribs->amfHandle, &amf_attribs->amfSelectionObject);
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		saAmfFinalize(amf_attribs->amfHandle);
+		amf_attribs->amfHandle = 0;
+		return status;
+	}
 
-    /* register the component with the AMF */ 
-    status = saAmfComponentRegister(amf_attribs->amfHandle, 
-                                    &amf_attribs->compName, /* output */
-                                    NULL); 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */ 
-        saAmfFinalize(amf_attribs->amfHandle);
-        amf_attribs->amfHandle = 0;
-        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
-        memset(&amf_attribs->compName, 0, sizeof(SaNameT));
-        return status; 
-    }
+	/* get the component name */
+	status = saAmfComponentNameGet(amf_attribs->amfHandle,	/* input */
+				       &amf_attribs->compName);	/* output */
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		saAmfFinalize(amf_attribs->amfHandle);
+		amf_attribs->amfHandle = 0;
+		memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
 
-    /* start health check */
-    status = saAmfHealthcheckStart(amf_attribs->amfHandle,
-                                   &amf_attribs->compName,
-                                   &amf_attribs->healthCheckKey,
-                                   amf_attribs->invocationType,
-                                   amf_attribs->recommendedRecovery);
+		return status;
+	}
 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */ 
-        /* Unregister with AMF */ 
-        saAmfComponentUnregister(amf_attribs->amfHandle, 
-                                 &amf_attribs->compName, 
-                                 NULL); 
-        saAmfFinalize(amf_attribs->amfHandle);
-        amf_attribs->amfHandle = 0;
-        memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
-        memset(&amf_attribs->compName, 0, sizeof(SaNameT));
-        return status; 
-    }
+	/* register the component with the AMF */
+	status = saAmfComponentRegister(amf_attribs->amfHandle, &amf_attribs->compName,	/* output */
+					NULL);
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		saAmfFinalize(amf_attribs->amfHandle);
+		amf_attribs->amfHandle = 0;
+		memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+		memset(&amf_attribs->compName, 0, sizeof(SaNameT));
+		return status;
+	}
 
-    return status; 
+	/* start health check */
+	status = saAmfHealthcheckStart(amf_attribs->amfHandle,
+				       &amf_attribs->compName,
+				       &amf_attribs->healthCheckKey,
+				       amf_attribs->invocationType, amf_attribs->recommendedRecovery);
+
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		/* Unregister with AMF */
+		saAmfComponentUnregister(amf_attribs->amfHandle, &amf_attribs->compName, NULL);
+		saAmfFinalize(amf_attribs->amfHandle);
+		amf_attribs->amfHandle = 0;
+		memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
+		memset(&amf_attribs->compName, 0, sizeof(SaNameT));
+		return status;
+	}
+
+	return status;
 }
 
 /*****************************************************************************\
@@ -289,43 +268,34 @@ ncs_app_amf_initialize(NCS_APP_AMF_ATTRIBS *amf_attribs)
  *  NOTE:                                                                     * 
 \*****************************************************************************/
 /* Unregistration and Finalization with AMF Library */
-SaAisErrorT
-ncs_app_amf_finalize(NCS_APP_AMF_ATTRIBS *amf_attribs)
+SaAisErrorT ncs_app_amf_finalize(NCS_APP_AMF_ATTRIBS *amf_attribs)
 {
-    SaAisErrorT status = SA_AIS_OK; 
+	SaAisErrorT status = SA_AIS_OK;
 
-    /* Destroy the amf initialisation timer if it was created */
-    if(amf_attribs->amf_init_timer.timer_id != TMR_T_NULL)
-    {
-       m_NCS_TMR_DESTROY(amf_attribs->amf_init_timer.timer_id);
-       amf_attribs->amf_init_timer.timer_id = TMR_T_NULL;
-    }
+	/* Destroy the amf initialisation timer if it was created */
+	if (amf_attribs->amf_init_timer.timer_id != TMR_T_NULL) {
+		m_NCS_TMR_DESTROY(amf_attribs->amf_init_timer.timer_id);
+		amf_attribs->amf_init_timer.timer_id = TMR_T_NULL;
+	}
 
-    /* delete the fd from the select list */ 
-    memset(&amf_attribs->amfSelectionObject, 0, 
-                    sizeof(SaSelectionObjectT));
+	/* delete the fd from the select list */
+	memset(&amf_attribs->amfSelectionObject, 0, sizeof(SaSelectionObjectT));
 
-    /* Disable the health monitoring */ 
-    status = saAmfHealthcheckStop(amf_attribs->amfHandle, 
-                                &amf_attribs->compName, 
-                                &amf_attribs->healthCheckKey); 
-    if (status != SA_AIS_OK)
-    {
-        /* continue finalization */
-    }
+	/* Disable the health monitoring */
+	status = saAmfHealthcheckStop(amf_attribs->amfHandle, &amf_attribs->compName, &amf_attribs->healthCheckKey);
+	if (status != SA_AIS_OK) {
+		/* continue finalization */
+	}
 
-    /* Unregister with AMF */ 
-    status = saAmfComponentUnregister(amf_attribs->amfHandle, 
-                                    &amf_attribs->compName, 
-                                    NULL); 
-    if (status != SA_AIS_OK)
-    {
-        /* continue finalization */
-    } 
-    
-    /* Finalize */ 
-    status = saAmfFinalize(amf_attribs->amfHandle); 
-    return status; 
+	/* Unregister with AMF */
+	status = saAmfComponentUnregister(amf_attribs->amfHandle, &amf_attribs->compName, NULL);
+	if (status != SA_AIS_OK) {
+		/* continue finalization */
+	}
+
+	/* Finalize */
+	status = saAmfFinalize(amf_attribs->amfHandle);
+	return status;
 }
 
 /*****************************************************************************\
@@ -340,30 +310,25 @@ ncs_app_amf_finalize(NCS_APP_AMF_ATTRIBS *amf_attribs)
  *                 NCSCC_RC_FAILURE on failure                                *
  *  NOTE:                                                                     * 
 \*****************************************************************************/
-uns32 ncs_app_amf_init_start_timer(NCS_APP_AMF_INIT_TIMER* amf_init_timer)
+uns32 ncs_app_amf_init_start_timer(NCS_APP_AMF_INIT_TIMER *amf_init_timer)
 {
 
-   /* Create the timer if it is not yet created */
-   if (amf_init_timer->timer_id == TMR_T_NULL)
-   {
-      /* create the timer. */
-      m_NCS_TMR_CREATE(amf_init_timer->timer_id,
-                       amf_init_timer->period,
-                       ncs_app_amf_init_timer_cb,
-                       (void*)(amf_init_timer));
-   }
+	/* Create the timer if it is not yet created */
+	if (amf_init_timer->timer_id == TMR_T_NULL) {
+		/* create the timer. */
+		m_NCS_TMR_CREATE(amf_init_timer->timer_id,
+				 amf_init_timer->period, ncs_app_amf_init_timer_cb, (void *)(amf_init_timer));
+	}
 
-   /* start the timer. */
-   m_NCS_TMR_START(amf_init_timer->timer_id,
-                   amf_init_timer->period,
-                   ncs_app_amf_init_timer_cb,
-                   (void*)(amf_init_timer));
+	/* start the timer. */
+	m_NCS_TMR_START(amf_init_timer->timer_id,
+			amf_init_timer->period, ncs_app_amf_init_timer_cb, (void *)(amf_init_timer));
 
-   /* If timer is not started, return failure. */
-   if(amf_init_timer->timer_id == TMR_T_NULL)
-      return NCSCC_RC_FAILURE;
+	/* If timer is not started, return failure. */
+	if (amf_init_timer->timer_id == TMR_T_NULL)
+		return NCSCC_RC_FAILURE;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -377,37 +342,33 @@ uns32 ncs_app_amf_init_start_timer(NCS_APP_AMF_INIT_TIMER* amf_init_timer)
  *  Returns:       void                                                       *
  *  NOTE:                                                                     * 
 \*****************************************************************************/
-void ncs_app_amf_init_timer_cb (void* timer_data)
+void ncs_app_amf_init_timer_cb(void *timer_data)
 {
-   MAB_MSG* post_me = NULL;
-   uns32 status = NCSCC_RC_SUCCESS;
-   NCS_APP_AMF_INIT_TIMER* amf_init_timer = (NCS_APP_AMF_INIT_TIMER*)timer_data;
+	MAB_MSG *post_me = NULL;
+	uns32 status = NCSCC_RC_SUCCESS;
+	NCS_APP_AMF_INIT_TIMER *amf_init_timer = (NCS_APP_AMF_INIT_TIMER *)timer_data;
 
-   /* Stop the timer. */
-   m_NCS_TMR_STOP(amf_init_timer->timer_id);
+	/* Stop the timer. */
+	m_NCS_TMR_STOP(amf_init_timer->timer_id);
 
-   /* post message to mailbox as specified in amf_init_timer */
-   post_me = m_MMGR_ALLOC_MAB_MSG;
-   if(post_me == NULL)
-   {
-      /* No memory available. Log the error. */
-      /* m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM);*/
-      return;
-   }
+	/* post message to mailbox as specified in amf_init_timer */
+	post_me = m_MMGR_ALLOC_MAB_MSG;
+	if (post_me == NULL) {
+		/* No memory available. Log the error. */
+		/* m_MAB_DBG_SINK(NCSCC_RC_OUT_OF_MEM); */
+		return;
+	}
 
-   memset(post_me, 0, sizeof(MAB_MSG));
-   post_me->op = amf_init_timer->msg_type;
+	memset(post_me, 0, sizeof(MAB_MSG));
+	post_me->op = amf_init_timer->msg_type;
 
-   status = m_NCS_IPC_SEND(amf_init_timer->mbx,
-                           (NCS_IPC_MSG*)post_me,
-                           NCS_IPC_PRIORITY_HIGH);
-   if (status != NCSCC_RC_SUCCESS)
-   {
-      /*m_MAB_DBG_SINK(status);*/
-      return;
-   }
+	status = m_NCS_IPC_SEND(amf_init_timer->mbx, (NCS_IPC_MSG *)post_me, NCS_IPC_PRIORITY_HIGH);
+	if (status != NCSCC_RC_SUCCESS) {
+		/*m_MAB_DBG_SINK(status); */
+		return;
+	}
 
-   return;
+	return;
 }
 
 /****************************************************************************\
@@ -422,77 +383,71 @@ void ncs_app_amf_init_timer_cb (void* timer_data)
 *                 NCSCC_RC_SUCCESS - initial role is available in            *
 *                                    '*o_init_role'                          *                      
 \****************************************************************************/
-uns32
-app_rda_init_role_get(NCS_APP_AMF_HA_STATE *o_init_role) 
+uns32 app_rda_init_role_get(NCS_APP_AMF_HA_STATE *o_init_role)
 {
-    uns32       rc; 
-    uns32       status = NCSCC_RC_SUCCESS;
-    PCS_RDA_REQ app_rda_req;
+	uns32 rc;
+	uns32 status = NCSCC_RC_SUCCESS;
+	PCS_RDA_REQ app_rda_req;
 
-    /* validate the output location */ 
-    if (o_init_role == NULL)
-    {
-        /* log that invalid output param location */ 
-        m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_INVALID_OP_LOC, 0);
-        return NCSCC_RC_FAILURE; 
-    }
-    
-    /* initialize the RDA Library */ 
-    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
-    app_rda_req.req_type = PCS_RDA_LIB_INIT;
-    rc = pcs_rda_request (&app_rda_req);
-    if (rc  != PCSRDA_RC_SUCCESS)
-    {
-        /* log the error */ 
-        m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_LIB_INIT_FAILED, rc);
-        return NCSCC_RC_FAILURE; 
-    }
-    
-    /* get the role */ 
-    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
-    app_rda_req.req_type = PCS_RDA_GET_ROLE;
-    rc = pcs_rda_request(&app_rda_req);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        /* log the error */ 
-        m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_API_GET_ROLE_FAILED, rc);
+	/* validate the output location */
+	if (o_init_role == NULL) {
+		/* log that invalid output param location */
+		m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_INVALID_OP_LOC, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-        /* set the error code to be returned */ 
-        status = NCSCC_RC_FAILURE; 
-        
-        /* finalize */ 
-        goto finalize; 
-    }
-    
-    /* update the output parameter */ 
-    if (app_rda_req.info.io_role == PCS_RDA_ACTIVE)
-        *o_init_role = NCS_APP_AMF_HA_STATE_ACTIVE; 
-    else if (app_rda_req.info.io_role == PCS_RDA_STANDBY)
-        *o_init_role = NCS_APP_AMF_HA_STATE_STANDBY; 
-    else
-    {
-        /* log the state returned by RDA */
-        m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_INVALID_ROLE, app_rda_req.info.io_role);
-        
-        /* set the error code to be returned */ 
-        status = NCSCC_RC_FAILURE; 
+	/* initialize the RDA Library */
+	memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+	app_rda_req.req_type = PCS_RDA_LIB_INIT;
+	rc = pcs_rda_request(&app_rda_req);
+	if (rc != PCSRDA_RC_SUCCESS) {
+		/* log the error */
+		m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_LIB_INIT_FAILED, rc);
+		return NCSCC_RC_FAILURE;
+	}
 
-        goto finalize; 
-    }
+	/* get the role */
+	memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+	app_rda_req.req_type = PCS_RDA_GET_ROLE;
+	rc = pcs_rda_request(&app_rda_req);
+	if (rc != PCSRDA_RC_SUCCESS) {
+		/* log the error */
+		m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_API_GET_ROLE_FAILED, rc);
 
-    /* finalize the library */ 
-finalize:    
-    memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ)); 
-    app_rda_req.req_type = PCS_RDA_LIB_DESTROY;
-    rc = pcs_rda_request(&app_rda_req);
-    if (rc != PCSRDA_RC_SUCCESS)
-    {
-        /* log the error */ 
-        m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_LIB_FIN_FAILED, rc);
-        
-        return NCSCC_RC_FAILURE;
-    }
+		/* set the error code to be returned */
+		status = NCSCC_RC_FAILURE;
 
-    /* return the final status */ 
-    return status; 
+		/* finalize */
+		goto finalize;
+	}
+
+	/* update the output parameter */
+	if (app_rda_req.info.io_role == PCS_RDA_ACTIVE)
+		*o_init_role = NCS_APP_AMF_HA_STATE_ACTIVE;
+	else if (app_rda_req.info.io_role == PCS_RDA_STANDBY)
+		*o_init_role = NCS_APP_AMF_HA_STATE_STANDBY;
+	else {
+		/* log the state returned by RDA */
+		m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_INVALID_ROLE, app_rda_req.info.io_role);
+
+		/* set the error code to be returned */
+		status = NCSCC_RC_FAILURE;
+
+		goto finalize;
+	}
+
+	/* finalize the library */
+ finalize:
+	memset(&app_rda_req, 0, sizeof(PCS_RDA_REQ));
+	app_rda_req.req_type = PCS_RDA_LIB_DESTROY;
+	rc = pcs_rda_request(&app_rda_req);
+	if (rc != PCSRDA_RC_SUCCESS) {
+		/* log the error */
+		m_LOG_MAB_ERROR_I(NCSFL_SEV_ERROR, MAB_ERR_RDA_LIB_FIN_FAILED, rc);
+
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* return the final status */
+	return status;
 }

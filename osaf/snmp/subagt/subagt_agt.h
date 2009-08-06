@@ -24,7 +24,7 @@
   DESCRIPTION: This file describes the routines for the Agentx master 
                 agent interface
   
-  ***************************************************************************/ 
+  ***************************************************************************/
 #ifndef SUBAGT_AGT_H
 #define SUBAGT_AGT_H
 struct ncsSa_cb;
@@ -36,36 +36,28 @@ struct ncsSa_cb;
 #define SNMPSUBAGT_LOG_FILE "/var/log/ncsSnmpSubagt.log"
 
 /* To initialize the communication with the Agentx Agent */
-EXTERN_C uns32
-snmpsubagt_netsnmp_lib_initialize(struct ncsSa_cb  *cb);
+EXTERN_C uns32 snmpsubagt_netsnmp_lib_initialize(struct ncsSa_cb *cb);
 
 /* To finalize the session with the Agent, this frees the OID tree also */
-uns32
-snmpsubagt_netsnmp_lib_finalize(struct ncsSa_cb  *cb);
-
+uns32 snmpsubagt_netsnmp_lib_finalize(struct ncsSa_cb *cb);
 
 /* Handling Multiple Interfaces */
 /* 1. Interface with AMF
  * 2. Interface with Agentx Agent
  * 3. Interface with EDA
  */
-uns32
-snmpsubagt_request_process(struct ncsSa_cb  *cb);
+uns32 snmpsubagt_request_process(struct ncsSa_cb *cb);
 
-uns32 
-snmpsubagt_agt_startup_params_process(int32    argc, 
-                                      uns8     **argv);
+uns32 snmpsubagt_agt_startup_params_process(int32 argc, uns8 **argv);
 
 #if ( NET_SNMP_5_2_2_SUPPORT == 1)
  /*From Net-Snmp version 5.3.X  onwards , the equivalent call 
-  "agentx_config_init" is invoked in "init_agent" API"*/
+    "agentx_config_init" is invoked in "init_agent" API" */
 
 /* Function prototype of init_agentx_config declared here to avoid agentx header file inclusion. */
-void init_agentx_config(void); 
+void init_agentx_config(void);
 #endif
 
 EXTERN_C void subagt_process_sig_usr1_signal(struct ncsSa_cb *cb);
 
 #endif
-
-

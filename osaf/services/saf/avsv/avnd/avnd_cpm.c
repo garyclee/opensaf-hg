@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,7 +28,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-
 
   
 ******************************************************************************
@@ -43,7 +40,6 @@
  *          FUNCTIONS FOR MAINTAINING COMP_PM_REC LIST                       *
  *                                                                           *
  *****************************************************************************/
-
 
 /****************************************************************************
   Name          : avnd_pm_list_init
@@ -58,15 +54,13 @@
 ******************************************************************************/
 void avnd_pm_list_init(AVND_COMP *comp)
 {
-   NCS_DB_LINK_LIST *pm_list = &comp->pm_list;
+	NCS_DB_LINK_LIST *pm_list = &comp->pm_list;
 
-   /* initialize the pm_list dll  */
-   pm_list->order = NCS_DBLIST_ANY_ORDER;
-   pm_list->cmp_cookie = avsv_dblist_uns64_cmp;
-   pm_list->free_cookie = avnd_pm_rec_free;
+	/* initialize the pm_list dll  */
+	pm_list->order = NCS_DBLIST_ANY_ORDER;
+	pm_list->cmp_cookie = avsv_dblist_uns64_cmp;
+	pm_list->free_cookie = avnd_pm_rec_free;
 }
-
-
 
 /****************************************************************************
   Name          : avnd_pm_rec_free
@@ -82,13 +76,12 @@ void avnd_pm_list_init(AVND_COMP *comp)
 ******************************************************************************/
 uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 {
-   AVND_COMP_PM_REC *pm_rec = (AVND_COMP_PM_REC *)node;
+	AVND_COMP_PM_REC *pm_rec = (AVND_COMP_PM_REC *)node;
 
-   m_MMGR_FREE_AVND_COMP_PM_REC(pm_rec);
+	m_MMGR_FREE_AVND_COMP_PM_REC(pm_rec);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_rec_add
@@ -104,18 +97,18 @@ uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 ******************************************************************************/
 uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-   uns32        rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /*update the key */
-   rec->comp_dll_node.key = (uns8 *)&rec->pid; 
+	/*update the key */
+	rec->comp_dll_node.key = (uns8 *)&rec->pid;
 
-   /* add rec */
-   rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
-         if (NCSCC_RC_SUCCESS != rc) return rc;
+	/* add rec */
+	rc = ncs_db_link_list_add(&comp->pm_list, &rec->comp_dll_node);
+	if (NCSCC_RC_SUCCESS != rc)
+		return rc;
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_rec_del
@@ -131,22 +124,20 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
+void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* delete the PM_REC from pm_list */ 
-   rc = ncs_db_link_list_del(&comp->pm_list,(uns8 *)&rec->pid);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      /* log this problem */
-      ;
-   }
-   rec = NULL; /* rec is no more, dont use it */
+	/* delete the PM_REC from pm_list */
+	rc = ncs_db_link_list_del(&comp->pm_list, (uns8 *)&rec->pid);
+	if (NCSCC_RC_SUCCESS != rc) {
+		/* log this problem */
+		;
+	}
+	rec = NULL;		/* rec is no more, dont use it */
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_rec_del_all
@@ -160,23 +151,20 @@ void avnd_comp_pm_rec_del (AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_comp_pm_rec_del_all (AVND_CB *cb, AVND_COMP *comp)
+void avnd_comp_pm_rec_del_all(AVND_CB *cb, AVND_COMP *comp)
 {
-   AVND_COMP_PM_REC *rec = 0;
-   
-   /* No passive monitoring for external component. */
-   if(TRUE == comp->su->su_is_external)
-     return;
+	AVND_COMP_PM_REC *rec = 0;
 
-   /* scan & delete each pm_rec record */
-   while ( 0 != (rec = 
-                (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list)) )
-      avnd_comp_pm_rec_del(cb, comp, rec);
+	/* No passive monitoring for external component. */
+	if (TRUE == comp->su->su_is_external)
+		return;
 
-   return;
+	/* scan & delete each pm_rec record */
+	while (0 != (rec = (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list)))
+		avnd_comp_pm_rec_del(cb, comp, rec);
+
+	return;
 }
-
-
 
 /*****************************************************************************
  *                                                                           *
@@ -200,30 +188,26 @@ void avnd_comp_pm_rec_del_all (AVND_CB *cb, AVND_COMP *comp)
   Notes         : As of Now AvSv does not validate the stop qualifiers and
                   other param. It just stops the PM for the matching PID
 ******************************************************************************/
-uns32 avnd_comp_pm_stop_process (AVND_CB                 *cb,
-                                 AVND_COMP               *comp,
-                                 AVSV_AMF_PM_STOP_PARAM  *pm_stop,
-                                 SaAisErrorT             *sa_err)
+uns32 avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_PARAM *pm_stop, SaAisErrorT *sa_err)
 {
-   AVND_COMP_PM_REC *rec = 0;
-   SaUint64T        pid;
-   uns32       rc = NCSCC_RC_SUCCESS;
+	AVND_COMP_PM_REC *rec = 0;
+	SaUint64T pid;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* get the pid */
-   pid = pm_stop->pid;
+	/* get the pid */
+	pid = pm_stop->pid;
 
-   /* search the existing list for the pid in the comp's PM_rec */
-   rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list,(uns8 *)&pid);
+	/* search the existing list for the pid in the comp's PM_rec */
+	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uns8 *)&pid);
 
-   /* this rec has to be present */
-   assert(rec);
+	/* this rec has to be present */
+	assert(rec);
 
-   /* del the pm_rec */
-   avnd_comp_pm_rec_del(cb, comp, rec);
+	/* del the pm_rec */
+	avnd_comp_pm_rec_del(cb, comp, rec);
 
-   return rc;   
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_start_process
@@ -240,41 +224,34 @@ uns32 avnd_comp_pm_stop_process (AVND_CB                 *cb,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pm_start_process (AVND_CB                 *cb,
-                                  AVND_COMP               *comp,
-                                  AVSV_AMF_PM_START_PARAM *pm_start,
-                                  SaAisErrorT             *sa_err)
+uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start, SaAisErrorT *sa_err)
 {
-   AVND_COMP_PM_REC *rec = 0;
-   SaUint64T        pid;
-   uns32       rc = NCSCC_RC_SUCCESS;
-   *sa_err = SA_AIS_OK;
+	AVND_COMP_PM_REC *rec = 0;
+	SaUint64T pid;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	*sa_err = SA_AIS_OK;
 
-   /* get the pid */
-   pid = pm_start->pid;
+	/* get the pid */
+	pid = pm_start->pid;
 
-   /* search the existing list for the pid in the comp's PM_rec */
-   rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list,(uns8 *)&pid);
-   if (rec)/* is rec present or not */
-   {
-      /* compare the parametrs for PM start */
-      if(0 != avnd_comp_pm_rec_cmp(pm_start, rec)) 
-      {
-         rc = avnd_comp_pmstart_modify(cb, pm_start, rec, sa_err);
-         return rc; 
-      }
-      else
-         return rc; /* nothing to be done */
-   }
+	/* search the existing list for the pid in the comp's PM_rec */
+	rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(&comp->pm_list, (uns8 *)&pid);
+	if (rec) {		/* is rec present or not */
+		/* compare the parametrs for PM start */
+		if (0 != avnd_comp_pm_rec_cmp(pm_start, rec)) {
+			rc = avnd_comp_pmstart_modify(cb, pm_start, rec, sa_err);
+			return rc;
+		} else
+			return rc;	/* nothing to be done */
+	}
 
-   /* no previous rec found, its a fresh srm mon request*/
-   rec = (AVND_COMP_PM_REC *)avnd_comp_new_rsrc_mon(cb, comp, pm_start, sa_err);
-   if(!rec)
-      rc = NCSCC_RC_FAILURE;
-       
-    return rc;   
+	/* no previous rec found, its a fresh srm mon request */
+	rec = (AVND_COMP_PM_REC *)avnd_comp_new_rsrc_mon(cb, comp, pm_start, sa_err);
+	if (!rec)
+		rc = NCSCC_RC_FAILURE;
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pmstart_modify
@@ -290,30 +267,26 @@ uns32 avnd_comp_pm_start_process (AVND_CB                 *cb,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pmstart_modify (AVND_CB                 *cb,
-                                AVSV_AMF_PM_START_PARAM *pm_start,
-                                AVND_COMP_PM_REC        *rec,
-                                SaAisErrorT             *sa_err)
+uns32 avnd_comp_pmstart_modify(AVND_CB *cb,
+			       AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec, SaAisErrorT *sa_err)
 {
 
-         uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-         /* check whether the hdl for start & modify match */
-         if(pm_start->hdl != rec->req_hdl)
-         {
-            *sa_err = SA_AIS_ERR_BAD_HANDLE;
-            rc = NCSCC_RC_FAILURE;
-            return rc;
-         }
+	/* check whether the hdl for start & modify match */
+	if (pm_start->hdl != rec->req_hdl) {
+		*sa_err = SA_AIS_ERR_BAD_HANDLE;
+		rc = NCSCC_RC_FAILURE;
+		return rc;
+	}
 
-         /* fill the modified parameters */
-         rec->desc_tree_depth = pm_start->desc_tree_depth;
-         rec->err             = pm_start->pm_err;
-         rec->rec_rcvr        = pm_start->rec_rcvr;
-         
-         return rc;
+	/* fill the modified parameters */
+	rec->desc_tree_depth = pm_start->desc_tree_depth;
+	rec->err = pm_start->pm_err;
+	rec->rec_rcvr = pm_start->rec_rcvr;
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_new_rsrc_mon
@@ -329,41 +302,37 @@ uns32 avnd_comp_pmstart_modify (AVND_CB                 *cb,
  
   Notes         : None.
 ******************************************************************************/
-AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon (AVND_CB                 *cb,
-                                          AVND_COMP               *comp,
-                                          AVSV_AMF_PM_START_PARAM *pm_start,
-                                          SaAisErrorT             *sa_err)
+AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb,
+					 AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start, SaAisErrorT *sa_err)
 {
 
-   AVND_COMP_PM_REC *rec = 0;  
-   uns32 rc = NCSCC_RC_SUCCESS;
-   *sa_err = SA_AIS_OK;
+	AVND_COMP_PM_REC *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	*sa_err = SA_AIS_OK;
 
-   if ( (0 == (rec = m_MMGR_ALLOC_AVND_COMP_PM_REC)) )
-      return rec;
+	if ((0 == (rec = m_MMGR_ALLOC_AVND_COMP_PM_REC)))
+		return rec;
 
-   memset(rec, 0, sizeof(AVND_COMP_PM_REC));
+	memset(rec, 0, sizeof(AVND_COMP_PM_REC));
 
-   /* assign the pm params */
-   rec->desc_tree_depth = pm_start->desc_tree_depth;
-   rec->err             = pm_start->pm_err;
-   rec->rec_rcvr        = pm_start->rec_rcvr;
-   rec->pid             = pm_start->pid;
-   rec->req_hdl         = pm_start->hdl;
-   /* store the comp bk ptr */
-   rec->comp = comp;
+	/* assign the pm params */
+	rec->desc_tree_depth = pm_start->desc_tree_depth;
+	rec->err = pm_start->pm_err;
+	rec->rec_rcvr = pm_start->rec_rcvr;
+	rec->pid = pm_start->pid;
+	rec->req_hdl = pm_start->hdl;
+	/* store the comp bk ptr */
+	rec->comp = comp;
 
-   /* add the rec to comp's PM_REC */
-   rc = avnd_comp_pm_rec_add(cb, comp, rec);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      m_MMGR_FREE_AVND_COMP_PM_REC(rec);
-      rec = 0;
-   }
+	/* add the rec to comp's PM_REC */
+	rc = avnd_comp_pm_rec_add(cb, comp, rec);
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_MMGR_FREE_AVND_COMP_PM_REC(rec);
+		rec = 0;
+	}
 
-   return rec;
+	return rec;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_rec_cmp
@@ -382,20 +351,18 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon (AVND_CB                 *cb,
 NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec)
 {
 
+	if (pm_start->desc_tree_depth != rec->desc_tree_depth)
+		return 1;
 
-   if(pm_start->desc_tree_depth != rec->desc_tree_depth)
-      return 1;
-           
-   if(pm_start->pm_err != rec->err)
-      return 1;
-   
-   if(pm_start->rec_rcvr != rec->rec_rcvr)
-      return 1;
+	if (pm_start->pm_err != rec->err)
+		return 1;
 
-   return 0;
+	if (pm_start->rec_rcvr != rec->rec_rcvr)
+		return 1;
+
+	return 0;
 
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_ava_pm_start
@@ -410,57 +377,48 @@ NCS_BOOL avnd_comp_pm_rec_cmp(AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_RE
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_start (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_AMF_API_INFO       *api_info = &evt->info.ava.msg->info.api_info;
-   AVSV_AMF_PM_START_PARAM *pm_start = &api_info->param.pm_start;
-   AVND_COMP               *comp = 0;
-   uns32                   rc = NCSCC_RC_SUCCESS;
-   SaAisErrorT             amf_rc = SA_AIS_OK;
-   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
+	AVSV_AMF_PM_START_PARAM *pm_start = &api_info->param.pm_start;
+	AVND_COMP *comp = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT amf_rc = SA_AIS_OK;
+	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
-   if(AVND_EVT_AVND_AVND_MSG == evt->type)
-   {
-     /* This means that the message has come from proxy AvND to this AvND. */
-         msg_from_avnd = TRUE;
-   }
+	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
+		/* This means that the message has come from proxy AvND to this AvND. */
+		msg_from_avnd = TRUE;
+	}
 
-  if(FALSE == msg_from_avnd)
-  {
-     /* Check for internode or external coomponent first
-        If it is, then forward it to the respective AvND.*/
-      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-      if(TRUE == int_ext_comp)
-      {
-        goto done;
-      }
-  }
+	if (FALSE == msg_from_avnd) {
+		/* Check for internode or external coomponent first
+		   If it is, then forward it to the respective AvND. */
+		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+		if (TRUE == int_ext_comp) {
+			goto done;
+		}
+	}
 
-   /* validate the pm start message */
-   avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START,
-                (uns8 *)pm_start, &comp, 0, &amf_rc);
+	/* validate the pm start message */
+	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START, (uns8 *)pm_start, &comp, 0, &amf_rc);
 
+	/* try starting the srmsv monitor */
+	if (SA_AIS_OK == amf_rc)
+		rc = avnd_comp_pm_start_process(cb, comp, pm_start, &amf_rc);
 
-   /* try starting the srmsv monitor */
-   if (SA_AIS_OK == amf_rc)
-      rc = avnd_comp_pm_start_process(cb, comp, pm_start, &amf_rc); 
-  
+	/* send the response back to AvA */
+	rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_START, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
-   /* send the response back to AvA */
-   rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_START, amf_rc, 0, 
-                            &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
+ done:
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_start():Comp,Hdl,pid,desc_tree_depth and pm_err are",
+				    &pm_start->comp_name_net, pm_start->hdl, pm_start->pid,
+				    pm_start->desc_tree_depth, pm_start->pm_err);
+	}
 
-done:
-  if(NCSCC_RC_SUCCESS != rc)
-  {
-   m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_start():Comp,Hdl,pid,desc_tree_depth and pm_err are",
-                       &pm_start->comp_name_net,pm_start->hdl,pm_start->pid,
-                       pm_start->desc_tree_depth,pm_start->pm_err);
-  }
-
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_ava_pm_stop
@@ -475,58 +433,49 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_ava_pm_stop (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_ava_pm_stop(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_AMF_API_INFO      *api_info = &evt->info.ava.msg->info.api_info;
-   AVSV_AMF_PM_STOP_PARAM *pm_stop = &api_info->param.pm_stop;
-   AVND_COMP              *comp = 0;
-   AVND_COMP_PM_REC       *rec = 0;
-   uns32                  rc = NCSCC_RC_SUCCESS;
-   SaAisErrorT            amf_rc = SA_AIS_OK;
-   NCS_BOOL                msg_from_avnd = FALSE, int_ext_comp = FALSE;
+	AVSV_AMF_API_INFO *api_info = &evt->info.ava.msg->info.api_info;
+	AVSV_AMF_PM_STOP_PARAM *pm_stop = &api_info->param.pm_stop;
+	AVND_COMP *comp = 0;
+	AVND_COMP_PM_REC *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT amf_rc = SA_AIS_OK;
+	NCS_BOOL msg_from_avnd = FALSE, int_ext_comp = FALSE;
 
-   if(AVND_EVT_AVND_AVND_MSG == evt->type)
-   {
-     /* This means that the message has come from proxy AvND to this AvND. */
-         msg_from_avnd = TRUE;
-   }
+	if (AVND_EVT_AVND_AVND_MSG == evt->type) {
+		/* This means that the message has come from proxy AvND to this AvND. */
+		msg_from_avnd = TRUE;
+	}
 
-  if(FALSE == msg_from_avnd)
-  {
-     /* Check for internode or external coomponent first
-        If it is, then forward it to the respective AvND.*/
-      rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
-      if(TRUE == int_ext_comp)
-      {
-        goto done;
-      }
-  }
+	if (FALSE == msg_from_avnd) {
+		/* Check for internode or external coomponent first
+		   If it is, then forward it to the respective AvND. */
+		rc = avnd_int_ext_comp_hdlr(cb, api_info, &evt->mds_ctxt, &amf_rc, &int_ext_comp);
+		if (TRUE == int_ext_comp) {
+			goto done;
+		}
+	}
 
-   /* validate the pm stop message */
-   avnd_comp_pm_param_val(cb, AVSV_AMF_PM_STOP, (uns8 *)pm_stop,
-                          &comp, &rec, &amf_rc);
+	/* validate the pm stop message */
+	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_STOP, (uns8 *)pm_stop, &comp, &rec, &amf_rc);
 
-   /* stop the passive monitoring */
-   if (SA_AIS_OK == amf_rc) 
-      rc  = avnd_comp_pm_stop_process(cb, comp, pm_stop, &amf_rc);
+	/* stop the passive monitoring */
+	if (SA_AIS_OK == amf_rc)
+		rc = avnd_comp_pm_stop_process(cb, comp, pm_stop, &amf_rc);
 
+	/* send the response back to AvA */
+	rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_STOP, amf_rc, 0, &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
 
-   /* send the response back to AvA */
-   rc = avnd_amf_resp_send(cb, AVSV_AMF_PM_STOP, amf_rc, 0, 
-                            &api_info->dest, &evt->mds_ctxt, comp, msg_from_avnd);
+ done:
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_stop():Comp,Hdl,pid,stop_qual and pm_err are",
+				    &pm_stop->comp_name_net, pm_stop->hdl, pm_stop->pid,
+				    pm_stop->stop_qual, pm_stop->pm_err);
+	}
 
-done:
-  if(NCSCC_RC_SUCCESS != rc)
-  {
-   m_AVND_AVND_ERR_LOG(
-           "avnd_evt_ava_pm_stop():Comp,Hdl,pid,stop_qual and pm_err are",
-           &pm_stop->comp_name_net,pm_stop->hdl,pm_stop->pid,
-           pm_stop->stop_qual,pm_stop->pm_err);
-  }
-
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_param_val
@@ -545,99 +494,84 @@ done:
  
   Notes         : None
 ******************************************************************************/
-void avnd_comp_pm_param_val(AVND_CB           *cb, 
-                            AVSV_AMF_API_TYPE api_type,
-                            uns8              *param, 
-                            AVND_COMP         **o_comp, 
-                            AVND_COMP_PM_REC  **o_pm_rec,
-                            SaAisErrorT       *o_amf_rc)
+void avnd_comp_pm_param_val(AVND_CB *cb,
+			    AVSV_AMF_API_TYPE api_type,
+			    uns8 *param, AVND_COMP **o_comp, AVND_COMP_PM_REC **o_pm_rec, SaAisErrorT *o_amf_rc)
 {
-   *o_amf_rc = SA_AIS_OK;
+	*o_amf_rc = SA_AIS_OK;
 
-   switch (api_type)
-   {
-   case AVSV_AMF_PM_START:
-      {
-         AVSV_AMF_PM_START_PARAM *pm_start = (AVSV_AMF_PM_START_PARAM *)param;
+	switch (api_type) {
+	case AVSV_AMF_PM_START:
+		{
+			AVSV_AMF_PM_START_PARAM *pm_start = (AVSV_AMF_PM_START_PARAM *)param;
 
-         /* get the comp */
-         if ( 0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, 
-                                                    pm_start->comp_name_net)) )
-         {
-            *o_amf_rc = SA_AIS_ERR_NOT_EXIST;
-            return;
-         }
+			/* get the comp */
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_start->comp_name_net))) {
+				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
+				return;
+			}
 
-         if(TRUE == (*o_comp)->su->su_is_external)
-         {
-            /* This is the case when pm start request has come to controller
-               for external component. We don't support pm start for external
-               component. */
-            *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
-            return;
-         }
+			if (TRUE == (*o_comp)->su->su_is_external) {
+				/* This is the case when pm start request has come to controller
+				   for external component. We don't support pm start for external
+				   component. */
+				*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
+				return;
+			}
 
-         /* non-existing component should not interact with AMF */
-         if(m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(*o_comp)      ||
-            m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(*o_comp) ||
-            m_AVND_COMP_PRES_STATE_IS_TERMINATING(*o_comp)         ||
-            m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(*o_comp))
-         {
-            *o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
-            return;
-         }
+			/* non-existing component should not interact with AMF */
+			if (m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(*o_comp) ||
+			    m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(*o_comp) ||
+			    m_AVND_COMP_PRES_STATE_IS_TERMINATING(*o_comp) ||
+			    m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(*o_comp)) {
+				*o_amf_rc = SA_AIS_ERR_TRY_AGAIN;
+				return;
+			}
 
-         
-      }
-      break;
+		}
+		break;
 
-   case  AVSV_AMF_PM_STOP:
-      {
-         AVSV_AMF_PM_STOP_PARAM *pm_stop = (AVSV_AMF_PM_STOP_PARAM *)param;
+	case AVSV_AMF_PM_STOP:
+		{
+			AVSV_AMF_PM_STOP_PARAM *pm_stop = (AVSV_AMF_PM_STOP_PARAM *)param;
 
-         /* get the comp */
-         if ( 0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, 
-                                                    pm_stop->comp_name_net)) )
-         {
-            *o_amf_rc = SA_AIS_ERR_NOT_EXIST;
-            return;
-         }
-         
-         if(TRUE == (*o_comp)->su->su_is_external)
-         {
-            /* This is the case when pm stop request has come to controller
-               for external component. We don't support pm stop for external
-               component. */
-            *o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
-            return;
-         }
+			/* get the comp */
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_stop->comp_name_net))) {
+				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
+				return;
+			}
 
-         /* get the record from component passive monitoring list */
-         *o_pm_rec = (AVND_COMP_PM_REC *)ncs_db_link_list_find(
-                             &(*o_comp)->pm_list,(uns8 *)&pm_stop->pid);
-                                                     
-         if ( 0 == *o_pm_rec )
-         {
-            *o_amf_rc = SA_AIS_ERR_NOT_EXIST;
-            return;
-         }
+			if (TRUE == (*o_comp)->su->su_is_external) {
+				/* This is the case when pm stop request has come to controller
+				   for external component. We don't support pm stop for external
+				   component. */
+				*o_amf_rc = SA_AIS_ERR_INVALID_PARAM;
+				return;
+			}
 
-         /* if Handle dosen't match with that of PM Start */
-         if((*o_pm_rec)->req_hdl != pm_stop->hdl)
-         {
-            *o_amf_rc = SA_AIS_ERR_BAD_HANDLE;
-            return;
-         }
-      }
-      break;
+			/* get the record from component passive monitoring list */
+			*o_pm_rec =
+			    (AVND_COMP_PM_REC *)ncs_db_link_list_find(&(*o_comp)->pm_list, (uns8 *)&pm_stop->pid);
 
-   default:
-      m_AVSV_ASSERT(0);
-   } /* switch */
+			if (0 == *o_pm_rec) {
+				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
+				return;
+			}
 
-   return;
+			/* if Handle dosen't match with that of PM Start */
+			if ((*o_pm_rec)->req_hdl != pm_stop->hdl) {
+				*o_amf_rc = SA_AIS_ERR_BAD_HANDLE;
+				return;
+			}
+		}
+		break;
+
+	default:
+		m_AVSV_ASSERT(0);
+	}			/* switch */
+
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_pm_finalize
@@ -657,25 +591,20 @@ void avnd_comp_pm_param_val(AVND_CB           *cb,
 ******************************************************************************/
 void avnd_comp_pm_finalize(AVND_CB *cb, AVND_COMP *comp, SaAmfHandleT hdl)
 {
-   AVND_COMP_PM_REC *rec = 0;
+	AVND_COMP_PM_REC *rec = 0;
 
-   /* No passive monitoring for external component. */
-   if(TRUE == comp->su->su_is_external)
-     return;
+	/* No passive monitoring for external component. */
+	if (TRUE == comp->su->su_is_external)
+		return;
 
-   while ( 0 != (rec = 
-                (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list)) )
-   {
-      /* stop PM if comp's reg handle or hdl used for PM start is finalized */
-      if(hdl == rec->req_hdl || hdl == comp->reg_hdl)
-      {
-         avnd_comp_pm_rec_del(cb, comp, rec);
-      }
-   }
+	while (0 != (rec = (AVND_COMP_PM_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pm_list))) {
+		/* stop PM if comp's reg handle or hdl used for PM start is finalized */
+		if (hdl == rec->req_hdl || hdl == comp->reg_hdl) {
+			avnd_comp_pm_rec_del(cb, comp, rec);
+		}
+	}
 
-   return;
+	return;
 }
-
-
 
 /************************** END OF FILE ***************************************/

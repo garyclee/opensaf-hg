@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
  
 ..............................................................................
 
@@ -73,13 +71,13 @@
   RETURNS:
 *****************************************************************************/
 
-void ncsmem_aid_init (NCSMEM_AID*  ma, uns8* space, uns32 len)
-  {
-  ma->cur_ptr = space;
-  ma->bgn_ptr = space;
-  ma->max_len = len;
-  ma->status  = NCSCC_RC_SUCCESS;
-  }
+void ncsmem_aid_init(NCSMEM_AID *ma, uns8 *space, uns32 len)
+{
+	ma->cur_ptr = space;
+	ma->bgn_ptr = space;
+	ma->max_len = len;
+	ma->status = NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
 
@@ -94,19 +92,18 @@ void ncsmem_aid_init (NCSMEM_AID*  ma, uns8* space, uns32 len)
     PTR         - the ptr of where the copy lives.
 *****************************************************************************/
 
-uns8* ncsmem_aid_cpy(NCSMEM_AID* ma, const uns8* ref, uns32 len)
-  {
-  uns8* answer;
-  
-  if ((answer = ncsmem_aid_alloc(ma, len)) != NULL)
-    {
-    memcpy(answer, ref, len);
-    return answer;
-    }
+uns8 *ncsmem_aid_cpy(NCSMEM_AID *ma, const uns8 *ref, uns32 len)
+{
+	uns8 *answer;
 
-  m_LEAP_DBG_SINK(0);
-  return NULL;
-  }
+	if ((answer = ncsmem_aid_alloc(ma, len)) != NULL) {
+		memcpy(answer, ref, len);
+		return answer;
+	}
+
+	m_LEAP_DBG_SINK(0);
+	return NULL;
+}
 
 /*****************************************************************************
 
@@ -121,22 +118,21 @@ uns8* ncsmem_aid_cpy(NCSMEM_AID* ma, const uns8* ref, uns32 len)
     PTR         - the ptr of where the copy lives.
 *****************************************************************************/
 
-uns8* ncsmem_aid_alloc(NCSMEM_AID* ma, uns32 size)
-  {
-  uns8* answer;
-  
-  size = size + (size % 4); /* only allocate on even boundaries */
-  if (ma->max_len > size)
-    {
-    answer = ma->cur_ptr;
-    ma->cur_ptr = ma->cur_ptr + size;
-    ma->max_len = ma->max_len - size;
-    return answer;
-    }
-  ma->status = NCSCC_RC_FAILURE;
-  m_LEAP_DBG_SINK(0);
-  return NULL;
-  }
+uns8 *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size)
+{
+	uns8 *answer;
+
+	size = size + (size % 4);	/* only allocate on even boundaries */
+	if (ma->max_len > size) {
+		answer = ma->cur_ptr;
+		ma->cur_ptr = ma->cur_ptr + size;
+		ma->max_len = ma->max_len - size;
+		return answer;
+	}
+	ma->status = NCSCC_RC_FAILURE;
+	m_LEAP_DBG_SINK(0);
+	return NULL;
+}
 
 /*****************************************************************************
 
@@ -146,25 +142,23 @@ uns8* ncsmem_aid_alloc(NCSMEM_AID* ma, uns32 size)
   Find the Stack Element on the top of the stack. Do some sanity checking
   to make sure the stack frames are aligned. Complain if they are not.
 
-
   RETURNS:
      NULL - Trouble
      PTR  - To a stack frame
 
 *****************************************************************************/
-NCS_SE* get_top_se(NCS_STACK* st)
-  {
-  uns16* p_size = (uns16*)((long)(st) + ((long)(st->cur_depth) - (long)(sizeof(uns16)) - (long)(sizeof(uns16))));
-  uns16  size   = *p_size++;
+NCS_SE *get_top_se(NCS_STACK *st)
+{
+	uns16 *p_size = (uns16 *)((long)(st) + ((long)(st->cur_depth) - (long)(sizeof(uns16)) - (long)(sizeof(uns16))));
+	uns16 size = *p_size++;
 
-  if (*p_size != SE_ALIGNMENT_MARKER)
-  { 
-    m_LEAP_DBG_SINK(0);
-    return NULL;
-  }
+	if (*p_size != SE_ALIGNMENT_MARKER) {
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
-  return (NCS_SE*) ((uns8*)p_size - ((uns16)sizeof(uns16) + size));
-  }
+	return (NCS_SE *)((uns8 *)p_size - ((uns16)sizeof(uns16) + size));
+}
 
 /*****************************************************************************
 
@@ -183,13 +177,12 @@ NCS_SE* get_top_se(NCS_STACK* st)
 
 *****************************************************************************/
 
-void   ncsstack_init    (NCS_STACK* st, uns16 max_size)
-  {
-  st->se_cnt       = 0;
-  st->max_depth    = max_size;
-  st->cur_depth    = sizeof(NCS_STACK);
-  }
-
+void ncsstack_init(NCS_STACK *st, uns16 max_size)
+{
+	st->se_cnt = 0;
+	st->max_depth = max_size;
+	st->cur_depth = sizeof(NCS_STACK);
+}
 
 /*****************************************************************************
 
@@ -203,14 +196,13 @@ void   ncsstack_init    (NCS_STACK* st, uns16 max_size)
 
 *****************************************************************************/
 
-uns32  ncsstack_get_utilization (NCS_STACK* st)
-  {
-  if (st->max_depth == 0)
-     return 0;
+uns32 ncsstack_get_utilization(NCS_STACK *st)
+{
+	if (st->max_depth == 0)
+		return 0;
 
-  return ((st->cur_depth * 100) / (st->max_depth));
-  }
-
+	return ((st->cur_depth * 100) / (st->max_depth));
+}
 
 /*****************************************************************************
 
@@ -224,13 +216,10 @@ uns32  ncsstack_get_utilization (NCS_STACK* st)
 
 *****************************************************************************/
 
-uns32  ncsstack_get_element_count (NCS_STACK* st)
-  {
-  return (st->se_cnt);
-  }
-
-
-
+uns32 ncsstack_get_element_count(NCS_STACK *st)
+{
+	return (st->se_cnt);
+}
 
 /*****************************************************************************
 
@@ -246,13 +235,13 @@ uns32  ncsstack_get_element_count (NCS_STACK* st)
 
 *****************************************************************************/
 
-NCS_SE*  ncsstack_peek (NCS_STACK* st)
-  {
-  if (st->se_cnt == 0)
-    return (NCS_SE*) NULL;
+NCS_SE *ncsstack_peek(NCS_STACK *st)
+{
+	if (st->se_cnt == 0)
+		return (NCS_SE *)NULL;
 
-  return get_top_se(st);
-  }
+	return get_top_se(st);
+}
 
 /*****************************************************************************
 
@@ -267,33 +256,32 @@ NCS_SE*  ncsstack_peek (NCS_STACK* st)
 
 *****************************************************************************/
 
-NCS_SE*  ncsstack_push (NCS_STACK* st, uns16 type, uns16 size)
-  {
-  NCS_SE* top;
-  uns16* len;
+NCS_SE *ncsstack_push(NCS_STACK *st, uns16 type, uns16 size)
+{
+	NCS_SE *top;
+	uns16 *len;
 
-  if (st->max_depth <= (st->cur_depth + size + sizeof(uns16) + sizeof(uns16)) )
-  {
-    m_LEAP_DBG_SINK(NULL);
-    return NULL;  
-  }
+	if (st->max_depth <= (st->cur_depth + size + sizeof(uns16) + sizeof(uns16))) {
+		m_LEAP_DBG_SINK(NULL);
+		return NULL;
+	}
 
-  top = (NCS_SE*)((uns8*)st + st->cur_depth);
+	top = (NCS_SE *)((uns8 *)st + st->cur_depth);
 
-  top->length = size;
-  top->type   = type;
-  len         = (uns16*)((uns8*)top + size);
-  *len++      = size;
-  *len        = SE_ALIGNMENT_MARKER;
+	top->length = size;
+	top->type = type;
+	len = (uns16 *)((uns8 *)top + size);
+	*len++ = size;
+	*len = SE_ALIGNMENT_MARKER;
 
-  st->se_cnt++;
+	st->se_cnt++;
 
-  /* add SE size + 16bits of lenght + 16 bits of MARKER  to the cur_depth */
+	/* add SE size + 16bits of lenght + 16 bits of MARKER  to the cur_depth */
 
-  st->cur_depth = (uns16)(st->cur_depth + size + sizeof(uns16) + sizeof(uns16));
+	st->cur_depth = (uns16)(st->cur_depth + size + sizeof(uns16) + sizeof(uns16));
 
-  return top;
-  }
+	return top;
+}
 
 /*****************************************************************************
 
@@ -308,16 +296,16 @@ NCS_SE*  ncsstack_push (NCS_STACK* st, uns16 type, uns16 size)
 
 *****************************************************************************/
 
-NCS_SE*  ncsstack_pop (NCS_STACK* st)
-  {
-  NCS_SE* se;
-  if ((se = ncsstack_peek(st)) == NULL)
-    return (NCS_SE*)NULL;
+NCS_SE *ncsstack_pop(NCS_STACK *st)
+{
+	NCS_SE *se;
+	if ((se = ncsstack_peek(st)) == NULL)
+		return (NCS_SE *)NULL;
 
-  st->se_cnt--;
-  st->cur_depth = (uns16)((uns8*)se - (uns8*)st);
-  return se;
-  }
+	st->se_cnt--;
+	st->cur_depth = (uns16)((uns8 *)se - (uns8 *)st);
+	return se;
+}
 
 /*****************************************************************************
 
@@ -332,98 +320,97 @@ NCS_SE*  ncsstack_pop (NCS_STACK* st)
 
 *****************************************************************************/
 
-uns32  ncsstack_encode (NCS_STACK* st, struct ncs_ubaid* uba)
-  {
-  uns16  cur_offset;
-  uns16  cur_count;
-  uns8*  stream;
-  NCS_SE* top;
-  uns16* len;
+uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba)
+{
+	uns16 cur_offset;
+	uns16 cur_count;
+	uns8 *stream;
+	NCS_SE *top;
+	uns16 *len;
 
-  if(uba == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-  stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-  if(stream == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-  ncs_encode_16bit(&stream,st->se_cnt);
-  ncs_enc_claim_space(uba,sizeof(uns16));
+	if (uba == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-  if(stream == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-  ncs_encode_16bit(&stream,st->max_depth);
-  ncs_enc_claim_space(uba,sizeof(uns16));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-  if(stream == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-  ncs_encode_16bit(&stream,st->cur_depth);
-  ncs_enc_claim_space(uba,sizeof(uns16));
+	ncs_encode_16bit(&stream, st->se_cnt);
+	ncs_enc_claim_space(uba, sizeof(uns16));
 
-  cur_count = 0;
-  cur_offset = sizeof(NCS_STACK);
-  
-  /* now encode the space */
-  while((cur_offset < st->cur_depth) && (cur_count < st->se_cnt))
-    {
+	stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    top = (NCS_SE*)((uns8*)st + cur_offset);
+	ncs_encode_16bit(&stream, st->max_depth);
+	ncs_enc_claim_space(uba, sizeof(uns16));
 
-    /* Need to encode NCS_SE separately,
-       because the decode will decode them separately.
-       Do it to prevent any problems with structure member
-       alignments
-    */
-    stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-    if(stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-    ncs_encode_16bit(&stream,top->type);
-    ncs_enc_claim_space(uba,sizeof(uns16));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-    if(stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_16bit(&stream, st->cur_depth);
+	ncs_enc_claim_space(uba, sizeof(uns16));
 
-    ncs_encode_16bit(&stream,top->length);
-    ncs_enc_claim_space(uba,sizeof(uns16));
+	cur_count = 0;
+	cur_offset = sizeof(NCS_STACK);
 
-    stream = ncs_enc_reserve_space(uba,(top->length - sizeof(NCS_SE)));
-    if(stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	/* now encode the space */
+	while ((cur_offset < st->cur_depth) && (cur_count < st->se_cnt)) {
 
-    memcpy(stream,((uns8*)top + sizeof(NCS_SE)),(top->length - sizeof(NCS_SE)));
-    ncs_enc_claim_space(uba,(top->length - sizeof(NCS_SE)));
+		top = (NCS_SE *)((uns8 *)st + cur_offset);
 
-    len         = (uns16*)((uns8*)top + top->length);
+		/* Need to encode NCS_SE separately,
+		   because the decode will decode them separately.
+		   Do it to prevent any problems with structure member
+		   alignments
+		 */
+		stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-    if(stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-    ncs_encode_16bit(&stream,*len);
-    ncs_enc_claim_space(uba,sizeof(uns16));
+		ncs_encode_16bit(&stream, top->type);
+		ncs_enc_claim_space(uba, sizeof(uns16));
 
-    len++;
+		stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-    if(stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
-    ncs_encode_16bit(&stream,*len);
-    ncs_enc_claim_space(uba,sizeof(uns16));
+		ncs_encode_16bit(&stream, top->length);
+		ncs_enc_claim_space(uba, sizeof(uns16));
 
-    cur_count++;
-    cur_offset = (uns16)(cur_offset + top->length + sizeof(uns16) + sizeof(uns16));
+		stream = ncs_enc_reserve_space(uba, (top->length - sizeof(NCS_SE)));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    }
+		memcpy(stream, ((uns8 *)top + sizeof(NCS_SE)), (top->length - sizeof(NCS_SE)));
+		ncs_enc_claim_space(uba, (top->length - sizeof(NCS_SE)));
 
-    return NCSCC_RC_SUCCESS;
-  }
+		len = (uns16 *)((uns8 *)top + top->length);
+
+		stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+		ncs_encode_16bit(&stream, *len);
+		ncs_enc_claim_space(uba, sizeof(uns16));
+
+		len++;
+
+		stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+		ncs_encode_16bit(&stream, *len);
+		ncs_enc_claim_space(uba, sizeof(uns16));
+
+		cur_count++;
+		cur_offset = (uns16)(cur_offset + top->length + sizeof(uns16) + sizeof(uns16));
+
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
 
@@ -438,70 +425,67 @@ uns32  ncsstack_encode (NCS_STACK* st, struct ncs_ubaid* uba)
 
 *****************************************************************************/
 
-uns32  ncsstack_decode (NCS_STACK* st, NCS_UBAID* uba)
-  {
-  uns16  cur_offset;
-  uns16  cur_count;
-  uns8*  stream;
-  uns8   space[128];
-  NCS_SE* top;
-  uns16* len;
-  
-  if(uba == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  
+uns32 ncsstack_decode(NCS_STACK *st, NCS_UBAID *uba)
+{
+	uns16 cur_offset;
+	uns16 cur_count;
+	uns8 *stream;
+	uns8 space[128];
+	NCS_SE *top;
+	uns16 *len;
 
-  stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-  st->se_cnt = ncs_decode_16bit(&stream);
-  ncs_dec_skip_space(uba,sizeof(uns16));
+	if (uba == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-  st->max_depth = ncs_decode_16bit(&stream);
-  ncs_dec_skip_space(uba,sizeof(uns16));
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+	st->se_cnt = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns16));
 
-  stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-  st->cur_depth = ncs_decode_16bit(&stream);
-  ncs_dec_skip_space(uba,sizeof(uns16));
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+	st->max_depth = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns16));
 
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+	st->cur_depth = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns16));
 
-  cur_count = 0;
-  cur_offset = sizeof(NCS_STACK);
-  
-  /* now decode the space */
-  while((cur_offset < st->cur_depth) && (cur_count < st->se_cnt))
-    {
+	cur_count = 0;
+	cur_offset = sizeof(NCS_STACK);
 
-    top = (NCS_SE*)((uns8*)st + cur_offset);
+	/* now decode the space */
+	while ((cur_offset < st->cur_depth) && (cur_count < st->se_cnt)) {
 
-    stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-    top->type = ncs_decode_16bit(&stream);
-    ncs_dec_skip_space(uba,sizeof(uns16));
+		top = (NCS_SE *)((uns8 *)st + cur_offset);
 
-    stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-    top->length = ncs_decode_16bit(&stream);
-    ncs_dec_skip_space(uba,sizeof(uns16));
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+		top->type = ncs_decode_16bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns16));
 
-    stream = ncs_dec_flatten_space(uba,space,(top->length - sizeof(NCS_SE)));
-    memcpy(((uns8*)top + sizeof(NCS_SE)),stream,(top->length - sizeof(NCS_SE)));
-    ncs_dec_skip_space(uba,(top->length - sizeof(NCS_SE)));
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+		top->length = ncs_decode_16bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns16));
 
-    len         = (uns16*)((uns8*)top + top->length);
+		stream = ncs_dec_flatten_space(uba, space, (top->length - sizeof(NCS_SE)));
+		memcpy(((uns8 *)top + sizeof(NCS_SE)), stream, (top->length - sizeof(NCS_SE)));
+		ncs_dec_skip_space(uba, (top->length - sizeof(NCS_SE)));
 
-    stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-    *len = ncs_decode_16bit(&stream);
-    ncs_dec_skip_space(uba,sizeof(uns16));
+		len = (uns16 *)((uns8 *)top + top->length);
 
-    len++;
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+		*len = ncs_decode_16bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns16));
 
-    stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-    *len = ncs_decode_16bit(&stream);
-    ncs_dec_skip_space(uba,sizeof(uns16));
+		len++;
 
-    cur_count++;
-    cur_offset = (uns16)(cur_offset + top->length + sizeof(uns16) + sizeof(uns16));
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+		*len = ncs_decode_16bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns16));
 
-    }
+		cur_count++;
+		cur_offset = (uns16)(cur_offset + top->length + sizeof(uns16) + sizeof(uns16));
 
-    return NCSCC_RC_SUCCESS;
+	}
 
-  }
+	return NCSCC_RC_SUCCESS;
+
+}

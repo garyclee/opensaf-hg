@@ -18,10 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -76,7 +72,6 @@
 
 /* LEAP - Basic */
 #include "ncs_saf.h"
-
 #endif
 
 /*
@@ -98,7 +93,7 @@
 /* will not have access to     */
 /* them, so they should not be */
 /* included any longer.        */
-/*******************************/  
+/*******************************/
 #if (ENABLE_ATM == 1)
 #include "sysf_svc.h"
 #include "ncs_sar.h"
@@ -111,7 +106,6 @@
 #include "mpls_mem.h"
 #endif
 
-
 /*******************************/
 /*       LEAP - Basic          */
 /* The below includes will     */
@@ -120,7 +114,7 @@
 /* should be included directly */
 /* into src files, and not     */
 /* here.                       */
-/*******************************/  
+/*******************************/
 #include "ncs_svd.h"
 #include "ncs_hdl_pub.h"
 #include "ncssysf_lck.h"
@@ -137,17 +131,15 @@
 #include "ncspatricia.h"
 #include "ncs_queue.h"
 
-
 /*******************************/
 /*       LEAP - Basic          */
 /* The below includes violate  */
 /* the inc/pub_inc rules and   */
 /* WILL be removed by Phase 2  */
 /* split.                      */
-/*******************************/  
+/*******************************/
 #include "ncs_tasks.h"
 #include "sysf_ipc.h"
-
 
 /*******************************/
 /*       LEAP - Prod           */
@@ -157,10 +149,9 @@
 /* they shouldn't be included  */
 /* any longer in BBS/NCS       */
 /* releases.                   */
-/*******************************/  
+/*******************************/
 #include "sysf_ip.h"
 #include "ncs_ip.h"
-
 
 /*******************************/
 /*       LEAP - Basic          */
@@ -198,13 +189,12 @@
 
 #if (NCSCMS_PVCMGR_COMPONENT != 0)
 #include "pvc_def.h"
-#endif /* (NCSCMS_PVCMGR_COMPONENT != 0) */
-
+#endif   /* (NCSCMS_PVCMGR_COMPONENT != 0) */
 #endif
 
  /*
- * Additional include files for SSS subsystem...
- */
+  * Additional include files for SSS subsystem...
+  */
 #if (NCS_SIGL == 1)
 #include "ncssssopt.h"
 #include "sig_def.h"
@@ -215,29 +205,28 @@
  * Additional include files for PNNI Signalling subsystem...
  */
 #include "psig_def.h"
-#endif /* (PNNI == 1) */
-
-#endif /* (NCS_SIGL == 1) */
+#endif   /* (PNNI == 1) */
+#endif   /* (NCS_SIGL == 1) */
 
  /*
- * Additional include files for SAAL subsystem...
- */
+  * Additional include files for SAAL subsystem...
+  */
 
 #if (NCS_SAAL == 1)
 #include "saal_opt.h"
 #include "saal_os.h"
 #include "saal_def.h"
-#endif /* (NCS_SAAL == 1) */
+#endif   /* (NCS_SAAL == 1) */
 
  /*
- * Additional include files for A2SIG subsystem...
- */
+  * Additional include files for A2SIG subsystem...
+  */
 
 #if (NCS_A2SIG == 1)
 #include "a2sigopt.h"
 #include "a2os_def.h"
 #include "a2sigapp.h"
-#endif /* (NCS_A2SIG == 1) */
+#endif   /* (NCS_A2SIG == 1) */
 
 /*
  * Additional include files for LANES Client component...
@@ -259,7 +248,6 @@
 #include "ncslesmem.h"
 #endif
 
-
 /*
  * Additional include files for the ILMI subsystem...
  */
@@ -278,7 +266,6 @@
 #include "ipoa_sig.h"
 #include "ipoa_def.h"
 #include "ipoa_mem.h"
-
 #endif
 
 /*
@@ -292,8 +279,8 @@
 #endif
 
  /*
- * Additional include files for FRF8 subsystem...
- */
+  * Additional include files for FRF8 subsystem...
+  */
 #if (NCS_FRF8 == 1)
 #include "frf8_opt.h"
 #include "atm_adr.h"
@@ -301,7 +288,6 @@
 #include "patricia.h"
 #include "frf8_def.h"
 #include "frf8_mem.h"
-
 #endif
 
 /*
@@ -314,7 +300,7 @@
 
 #include "pnni_def.h"
 #include "pnni_mem.h"
-#include "pnni_tsk.h" 
+#include "pnni_tsk.h"
 #endif
 
 /*
@@ -334,7 +320,6 @@
 #include "frsigdef.h"
 #include "frsigmem.h"
 #endif
-
 
 /*
  * Additional include files for Frame Relay Q.922 subsystem...
@@ -383,7 +368,6 @@
 #include "mps_rdef.h"
 #endif
 
-
 /*
  * Additional include files for RMS subsystem...
  */
@@ -392,7 +376,6 @@
 #include "rms_def.h"
 #include "rms_mem.h"
 #endif
-
 
 /*
  * Additional include files for LCTS system...
@@ -407,19 +390,16 @@
  * This one is common for LTCS & OPTIRoute, and must
  * come AFTER lms_def.h.
  */
- 
+
 #if (NEEDS_TO_BE_REMOVED_FROM_LEAP == 1)
 #include "rdb_def.h"
 #endif
-
 
 #if (NCSMDS_USE_MDS_XLIM == 1)
 
 #include "patricia.h"
 #include "sysfxlim.h"
-
 #endif
-
 
 /* 
  * Additional include files for IPRP system...
@@ -435,40 +415,38 @@
 #include "ospf_def.h"
 #include "ospf_mem.h"
 #include "ospf_ipc.h"
-#endif  /* (APS_OSPF == 1) */
+#endif   /* (APS_OSPF == 1) */
 
 #if (APS_ISIS == 1)
 #include "isis_opt.h"
 #include "isis_def.h"
 #include "isis_mem.h"
 #include "isis_ipc.h"
-#endif  /* (APS_ISIS == 1) */
+#endif   /* (APS_ISIS == 1) */
 
 #if (APS_BGP == 1)
 #include "bgp_opt.h"
 #include "bgp_def.h"
 #include "bgp_mem.h"
 #include "bgp_ipc.h"
-#endif  /* (APS_BGP == 1) */
+#endif   /* (APS_BGP == 1) */
 
 #if (APS_RIP == 1)
 #include "rip_opt.h"
 #include "rip_def.h"
 #include "rip_mem.h"
 #include "rip_ipc.h"
-#endif  /* (APS_RIP == 1) */
+#endif   /* (APS_RIP == 1) */
 
 #if ((APS_FIBS == 1) || (APS_FIBC == 1))
 #include "fib_opt.h"
 #include "fib_defs.h"
 #include "fib_ipc.h"
 #include "fib_mem.h"
-#endif /* ((APS_FIBS == 1) || (APS_FIBC == 1)) */
-
-#endif /* (APS_IPRP == 1) */
+#endif   /* ((APS_FIBS == 1) || (APS_FIBC == 1)) */
+#endif   /* (APS_IPRP == 1) */
 
 /* Additional include files for CLI system... */
-
 
 /*
  * Additional include files for MAB subsystem...
@@ -504,8 +482,4 @@
 #include "lmp_ipc.h"
 #endif
 
-#endif  /** T_SUITE_H **/
-
-
-
-
+#endif   /** T_SUITE_H **/

@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME:  OS_PRIMS.H
-
 
   REVISION HISTORY:
 
@@ -53,7 +51,6 @@
     m_NCS_OS_CLEANUP( ) ..................... to request OS cleanup services
     m_NCS_OS_FILE( pncs_file, request ) ...... to request OS file operations
 
-
 ******************************************************************************
 */
 
@@ -80,7 +77,6 @@ extern "C" {
  ****************************************************************************
  ***************************************************************************/
 
-
 /***************************************************************************
  ** Typedefs for callback functions
  **
@@ -88,11 +84,10 @@ extern "C" {
  ** VR_CB_V  = "Void Returning CallBack Function using Void arg"
  **
  ** ********************************************************************** **/
-typedef void (*NCS_OS_CB)(void *);
-typedef void (*VR_CBF_V) (void);
+	typedef void (*NCS_OS_CB) (void *);
+	typedef void (*VR_CBF_V) (void);
 
-typedef void (*sighandler_t)(int);
-
+	typedef void (*sighandler_t) (int);
 
 /****************************************************************************
  ****************************************************************************
@@ -112,59 +107,47 @@ typedef void (*sighandler_t)(int);
  ****************************************************************************
  ***************************************************************************/
 
-
 /****************************************************************************
  * Control Structure Definition
  ***************************************************************************/
-typedef struct ncs_os_task_tag
-{
-  union
-  {
-    struct
-    {
-      NCS_OS_CB     i_entry_point;
-      char        *i_name;
-      unsigned int i_priority;
-      unsigned int i_stack_nbytes;
-      void        *i_ep_arg;
-      void        *o_handle;
-    } create;
+	typedef struct ncs_os_task_tag {
+		union {
+			struct {
+				NCS_OS_CB i_entry_point;
+				char *i_name;
+				unsigned int i_priority;
+				unsigned int i_stack_nbytes;
+				void *i_ep_arg;
+				void *o_handle;
+			} create;
 
-    struct
-    {
-      void        *i_handle;
-    } release;
+			struct {
+				void *i_handle;
+			} release;
 
-    struct 
-    {
-      void        *i_handle;
-    } detach;     
+			struct {
+				void *i_handle;
+			} detach;
 
-    struct
-    {
-      void        *i_handle;
-    } start;
+			struct {
+				void *i_handle;
+			} start;
 
-    struct
-    {
-      void        *i_handle;
-    } stop;
+			struct {
+				void *i_handle;
+			} stop;
 
-    struct
-    {
-      unsigned int i_delay_in_ms;
-    } sleep;
+			struct {
+				unsigned int i_delay_in_ms;
+			} sleep;
 
-    struct
-    {
-      void        *o_handle;
-    } current_handle;
+			struct {
+				void *o_handle;
+			} current_handle;
 
+		} info;
 
-   } info;
-
-}  NCS_OS_TASK;
-
+	} NCS_OS_TASK;
 
 /****************************************************************************
  * Supported Operations
@@ -175,21 +158,16 @@ typedef struct ncs_os_task_tag
  *  NCS_OS_TASK_SLEEP   (mandatory) Sleep/delay a NCS_OS_TASK task.
  *  NCS_OS_TASK_CURRENT_HANDLE (mandatory) Return handle of current NCS_OS_TASK task.
  ***************************************************************************/
-typedef enum
-{
-  NCS_OS_TASK_CREATE = 1,
-  NCS_OS_TASK_RELEASE,
-  NCS_OS_TASK_DETACH,  
-  NCS_OS_TASK_START,
-  NCS_OS_TASK_STOP,
-  NCS_OS_TASK_SLEEP,
-  NCS_OS_TASK_CURRENT_HANDLE,
-  NCS_OS_TASK_MAX
-} NCS_OS_TASK_REQUEST;
-
-
-
-
+	typedef enum {
+		NCS_OS_TASK_CREATE = 1,
+		NCS_OS_TASK_RELEASE,
+		NCS_OS_TASK_DETACH,
+		NCS_OS_TASK_START,
+		NCS_OS_TASK_STOP,
+		NCS_OS_TASK_SLEEP,
+		NCS_OS_TASK_CURRENT_HANDLE,
+		NCS_OS_TASK_MAX
+	} NCS_OS_TASK_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -215,46 +193,33 @@ typedef enum
 /****************************************************************************
  * Control Structure Definition
  ***************************************************************************/
-typedef struct ncs_os_timer_tag
-{
-  union
-  {
-    struct
-    {
-       void         *o_handle;         /* timer identifier                         */
-       NCS_OS_CB      i_callback;       /* expiration callback function             */
-       void         *i_cb_arg;         /* callback function argument               */
-       unsigned long i_period_in_ms;   /* timer expiration time                    */
-    } create;
+	typedef struct ncs_os_timer_tag {
+		union {
+			struct {
+				void *o_handle;	/* timer identifier                         */
+				NCS_OS_CB i_callback;	/* expiration callback function             */
+				void *i_cb_arg;	/* callback function argument               */
+				unsigned long i_period_in_ms;	/* timer expiration time                    */
+			} create;
 
+			struct {
+				void *i_handle;	/* timer identifier                         */
+			} release;
 
-    struct
-    {
-       void         *i_handle;        /* timer identifier                         */
-    } release;
+		} info;
 
-   } info;
-
-}  NCS_OS_TIMER;
-
+	} NCS_OS_TIMER;
 
 /****************************************************************************
  * Supported Operations
  *  NCS_OS_TIMER_CREATE  (mandatory) Create/Initialize NCS_OS_TIMER object
  *  NCS_OS_TIMER_RELEASE (mandatory) Release resources for NCS_OS_TIMER object.
  ***************************************************************************/
-typedef enum
-{
-NCS_OS_TIMER_CREATE = 1,
-NCS_OS_TIMER_RELEASE,
-NCS_OS_TIMER_REQUEST_MAX
-} NCS_OS_TIMER_REQUEST;
-
-
-
-
-
-
+	typedef enum {
+		NCS_OS_TIMER_CREATE = 1,
+		NCS_OS_TIMER_RELEASE,
+		NCS_OS_TIMER_REQUEST_MAX
+	} NCS_OS_TIMER_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -281,8 +246,6 @@ NCS_OS_TIMER_REQUEST_MAX
  * system.
  ***************************************************************************/
 
-
-
 /****************************************************************************
  * Supported Operations
  *  NCS_OS_LOCK_CREATE  (mandatory) Initialize a NCS_OS_LOCK object
@@ -290,18 +253,13 @@ NCS_OS_TIMER_REQUEST_MAX
  *  NCS_OS_LOCK_UNLOCK  (mandatory) Unlock the object.
  *  NCS_OS_LOCK_RELEASE (mandatory) Release resources for this lock object.
  ***************************************************************************/
-typedef enum
-{
-  NCS_OS_LOCK_CREATE = 1,
-  NCS_OS_LOCK_RELEASE,
-  NCS_OS_LOCK_LOCK,
-  NCS_OS_LOCK_UNLOCK,
-  NCS_OS_LOCK_REQUEST_MAX
-} NCS_OS_LOCK_REQUEST;
-
-
-
-
+	typedef enum {
+		NCS_OS_LOCK_CREATE = 1,
+		NCS_OS_LOCK_RELEASE,
+		NCS_OS_LOCK_LOCK,
+		NCS_OS_LOCK_UNLOCK,
+		NCS_OS_LOCK_REQUEST_MAX
+	} NCS_OS_LOCK_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -324,34 +282,27 @@ typedef enum
 /****************************************************************************
  * Control Structure Definition
  ***************************************************************************/
-typedef struct ncs_os_sem_tag
-{
-  union
-  {
-    struct
-    {
-      void              *o_handle;
-    } create;
+	typedef struct ncs_os_sem_tag {
+		union {
+			struct {
+				void *o_handle;
+			} create;
 
-    struct
-    {
-      void              *i_handle;
-    } give;
+			struct {
+				void *i_handle;
+			} give;
 
-    struct
-    {
-      void              *i_handle;
-    } take;
+			struct {
+				void *i_handle;
+			} take;
 
-    struct
-    {
-      void              *i_handle;
-    } release;
+			struct {
+				void *i_handle;
+			} release;
 
-  } info;
+		} info;
 
-}  NCS_OS_SEM;
-
+	} NCS_OS_SEM;
 
 /****************************************************************************
  * Supported Operations
@@ -360,14 +311,13 @@ typedef struct ncs_os_sem_tag
  *  NCS_OS_SEM_TAKE    (mandatory) Wait for a NCS_OS_SEM object.
  *  NCS_OS_SEM_RELEASE (mandatory) Release resources for this NCS_OS_SEM object.
  ***************************************************************************/
-typedef enum
-{
-  NCS_OS_SEM_CREATE = 1,
-  NCS_OS_SEM_GIVE,
-  NCS_OS_SEM_TAKE,
-  NCS_OS_SEM_RELEASE,
-  NCS_OS_SEM_REQUEST_MAX
-} NCS_OS_SEM_REQUEST;
+	typedef enum {
+		NCS_OS_SEM_CREATE = 1,
+		NCS_OS_SEM_GIVE,
+		NCS_OS_SEM_TAKE,
+		NCS_OS_SEM_RELEASE,
+		NCS_OS_SEM_REQUEST_MAX
+	} NCS_OS_SEM_REQUEST;
 
 /***************************************************************************
 ***************************************************************************
@@ -383,196 +333,151 @@ typedef enum
 #define NCS_OS_FILE_PERM_WRITE  0x02
 #define NCS_OS_FILE_PERM_APPEND 0x04
 
-typedef struct ncs_os_file_op_create
-{
-   uns8 * i_file_name;   /* with full directory path */
-   void * o_file_handle; /* handle for future reference */
-} NCS_OS_FILE_OP_CREATE;
+	typedef struct ncs_os_file_op_create {
+		uns8 *i_file_name;	/* with full directory path */
+		void *o_file_handle;	/* handle for future reference */
+	} NCS_OS_FILE_OP_CREATE;
 
+	typedef struct ncs_os_file_op_open {
+		uns8 *i_file_name;
+		uns8 i_read_write_mask;	/* to specify read-write permissions */
+		void *o_file_handle;	/* handle for future reference */
+	} NCS_OS_FILE_OP_OPEN;
 
-typedef struct ncs_os_file_op_open
-{
-   uns8 * i_file_name;
-   uns8   i_read_write_mask; /* to specify read-write permissions */
-   void * o_file_handle; /* handle for future reference */
-} NCS_OS_FILE_OP_OPEN;
+	typedef struct ncs_os_file_op_read {
+		void *i_file_handle;
+		uns32 i_buf_size;
+		uns8 *i_buffer;
+		uns32 o_bytes_read;
+	} NCS_OS_FILE_OP_READ;
 
+	typedef struct ncs_os_file_op_close {
+		void *i_file_handle;
+	} NCS_OS_FILE_OP_CLOSE;
 
-typedef struct ncs_os_file_op_read
-{
-   void * i_file_handle;
-   uns32  i_buf_size;
-   uns8 * i_buffer;
-   uns32  o_bytes_read;
-} NCS_OS_FILE_OP_READ;
+	typedef struct ncs_os_file_op_write {
+		void *i_file_handle;
+		uns32 i_buf_size;
+		uns8 *i_buffer;
+		uns32 o_bytes_written;
+	} NCS_OS_FILE_OP_WRITE;
 
+	typedef struct ncs_os_file_op_seek {
+		void *i_file_handle;
+		uns32 i_offset;
+	} NCS_OS_FILE_OP_SEEK;
 
-typedef struct ncs_os_file_op_close
-{
-   void * i_file_handle;
-} NCS_OS_FILE_OP_CLOSE;
+	typedef struct ncs_os_file_op_copy {
+		uns8 *i_file_name;
+		uns8 *i_new_file_name;
+	} NCS_OS_FILE_OP_COPY;
 
+	typedef struct ncs_os_file_op_rename {
+		uns8 *i_file_name;
+		uns8 *i_new_file_name;
+	} NCS_OS_FILE_OP_RENAME;
 
-typedef struct ncs_os_file_op_write
-{
-   void * i_file_handle;
-   uns32  i_buf_size;
-   uns8 * i_buffer;
-   uns32  o_bytes_written;
-} NCS_OS_FILE_OP_WRITE;
+	typedef struct ncs_os_file_op_remove {
+		uns8 *i_file_name;
+	} NCS_OS_FILE_OP_REMOVE;
 
+	typedef struct ncs_os_file_op_size {
+		uns8 *i_file_name;
+		uns32 o_file_size;
+	} NCS_OS_FILE_OP_SIZE;
 
-typedef struct ncs_os_file_op_seek
-{
-   void * i_file_handle;
-   uns32  i_offset;
-} NCS_OS_FILE_OP_SEEK;
+	typedef struct ncs_os_file_op_file_exists {
+		uns8 *i_file_name;
+		NCS_BOOL o_file_exists;
+	} NCS_OS_FILE_OP_FILE_EXISTS;
 
+	typedef struct ncs_os_file_op_dir_path {
+		uns8 *i_main_dir;
+		uns8 *i_sub_dir;
+		uns8 *io_buffer;
+		uns32 i_buf_size;
+	} NCS_OS_FILE_OP_DIR_PATH;
 
-typedef struct ncs_os_file_op_copy
-{
-   uns8 * i_file_name;
-   uns8 * i_new_file_name;
-} NCS_OS_FILE_OP_COPY;
+	typedef struct ncs_os_file_op_create_dir {
+		uns8 *i_dir_name;
+	} NCS_OS_FILE_OP_CREATE_DIR;
 
+	typedef struct ncs_os_file_op_delete_dir {
+		uns8 *i_dir_name;
+	} NCS_OS_FILE_OP_DELETE_DIR;
 
-typedef struct ncs_os_file_op_rename
-{
-   uns8 * i_file_name;
-   uns8 * i_new_file_name;
-} NCS_OS_FILE_OP_RENAME;
+	typedef struct ncs_os_file_op_copy_dir {
+		uns8 *i_dir_name;
+		uns8 *i_new_dir_name;
+	} NCS_OS_FILE_OP_COPY_DIR;
 
+	typedef struct ncs_os_file_op_dir_exists {
+		uns8 *i_dir_name;
+		NCS_BOOL o_exists;
+	} NCS_OS_FILE_OP_DIR_EXISTS;
 
-typedef struct ncs_os_file_op_remove
-{
-   uns8 * i_file_name;
-} NCS_OS_FILE_OP_REMOVE;
+	typedef struct ncs_os_file_op_get_next {
+		uns8 *i_dir_name;
+		uns8 *i_file_name;
+		uns8 *io_next_file;
+		uns32 i_buf_size;
+	} NCS_OS_FILE_OP_GET_NEXT;
 
+	typedef struct ncs_os_file_op_get_list {
+		uns8 *i_dir_name;
+		char **o_namelist;
+		uns32 o_list_count;
+	} NCS_OS_FILE_OP_GET_LIST;
 
-typedef struct ncs_os_file_op_size
-{
-   uns8 * i_file_name;
-   uns32  o_file_size;
-} NCS_OS_FILE_OP_SIZE;
-
-
-typedef struct ncs_os_file_op_file_exists
-{
-   uns8 *  i_file_name;
-   NCS_BOOL o_file_exists;
-} NCS_OS_FILE_OP_FILE_EXISTS;
-
-
-typedef struct ncs_os_file_op_dir_path
-{
-   uns8 * i_main_dir;
-   uns8 * i_sub_dir;
-   uns8 * io_buffer;
-   uns32  i_buf_size;
-} NCS_OS_FILE_OP_DIR_PATH;
-
-
-typedef struct ncs_os_file_op_create_dir
-{
-   uns8 * i_dir_name;
-} NCS_OS_FILE_OP_CREATE_DIR;
-
-
-typedef struct ncs_os_file_op_delete_dir
-{
-   uns8 * i_dir_name;
-} NCS_OS_FILE_OP_DELETE_DIR;
-
-
-typedef struct ncs_os_file_op_copy_dir
-{
-   uns8 * i_dir_name;
-   uns8 * i_new_dir_name;
-} NCS_OS_FILE_OP_COPY_DIR;
-
-
-typedef struct ncs_os_file_op_dir_exists
-{
-   uns8 *  i_dir_name;
-   NCS_BOOL o_exists;
-} NCS_OS_FILE_OP_DIR_EXISTS;
-
-
-typedef struct ncs_os_file_op_get_next
-{
-   uns8 *  i_dir_name;
-   uns8 *  i_file_name;
-   uns8 *  io_next_file;
-   uns32   i_buf_size;
-} NCS_OS_FILE_OP_GET_NEXT;
-
-
-typedef struct ncs_os_file_op_get_list
-{
-   uns8 *  i_dir_name;
-   char **  o_namelist;
-   uns32   o_list_count;
-} NCS_OS_FILE_OP_GET_LIST;
-
-
-typedef struct ncs_os_file_tag
-{
-   union
-   {
-      NCS_OS_FILE_OP_CREATE      create;
-      NCS_OS_FILE_OP_OPEN        open;
-      NCS_OS_FILE_OP_CLOSE       close;
-      NCS_OS_FILE_OP_READ        read;
-      NCS_OS_FILE_OP_WRITE       write;
-      NCS_OS_FILE_OP_SEEK        seek;
-      NCS_OS_FILE_OP_COPY        copy;
-      NCS_OS_FILE_OP_RENAME      rename;
-      NCS_OS_FILE_OP_REMOVE      remove;
-      NCS_OS_FILE_OP_SIZE        size;
-      NCS_OS_FILE_OP_FILE_EXISTS file_exists;
-      NCS_OS_FILE_OP_DIR_PATH    dir_path;
-      NCS_OS_FILE_OP_CREATE_DIR  create_dir;
-      NCS_OS_FILE_OP_DELETE_DIR  delete_dir;
-      NCS_OS_FILE_OP_COPY_DIR    copy_dir;
-      NCS_OS_FILE_OP_DIR_EXISTS  dir_exists;
-      NCS_OS_FILE_OP_GET_NEXT    get_next;
-      NCS_OS_FILE_OP_GET_LIST    get_list;
-   } info;
-} NCS_OS_FILE;
-
-
-
+	typedef struct ncs_os_file_tag {
+		union {
+			NCS_OS_FILE_OP_CREATE create;
+			NCS_OS_FILE_OP_OPEN open;
+			NCS_OS_FILE_OP_CLOSE close;
+			NCS_OS_FILE_OP_READ read;
+			NCS_OS_FILE_OP_WRITE write;
+			NCS_OS_FILE_OP_SEEK seek;
+			NCS_OS_FILE_OP_COPY copy;
+			NCS_OS_FILE_OP_RENAME rename;
+			NCS_OS_FILE_OP_REMOVE remove;
+			NCS_OS_FILE_OP_SIZE size;
+			NCS_OS_FILE_OP_FILE_EXISTS file_exists;
+			NCS_OS_FILE_OP_DIR_PATH dir_path;
+			NCS_OS_FILE_OP_CREATE_DIR create_dir;
+			NCS_OS_FILE_OP_DELETE_DIR delete_dir;
+			NCS_OS_FILE_OP_COPY_DIR copy_dir;
+			NCS_OS_FILE_OP_DIR_EXISTS dir_exists;
+			NCS_OS_FILE_OP_GET_NEXT get_next;
+			NCS_OS_FILE_OP_GET_LIST get_list;
+		} info;
+	} NCS_OS_FILE;
 
 /***************************************************************************
 *  Supported Operations
 *
 **************************************************************************/
 
-typedef enum
-{
-   NCS_OS_FILE_CREATE = 1,
-      NCS_OS_FILE_OPEN,
-      NCS_OS_FILE_CLOSE,
-      NCS_OS_FILE_READ,
-      NCS_OS_FILE_WRITE,
-      NCS_OS_FILE_SEEK,
-      NCS_OS_FILE_COPY,
-      NCS_OS_FILE_RENAME,
-      NCS_OS_FILE_REMOVE,
-      NCS_OS_FILE_SIZE,
-      NCS_OS_FILE_EXISTS,
-      NCS_OS_FILE_DIR_PATH,
-      NCS_OS_FILE_CREATE_DIR,
-      NCS_OS_FILE_DELETE_DIR,
-      NCS_OS_FILE_COPY_DIR,
-      NCS_OS_FILE_DIR_EXISTS,
-      NCS_OS_FILE_GET_NEXT,
-      NCS_OS_FILE_GET_LIST,
-      NCS_OS_FILE_MAX
-} NCS_OS_FILE_REQUEST;
-
-
-
+	typedef enum {
+		NCS_OS_FILE_CREATE = 1,
+		NCS_OS_FILE_OPEN,
+		NCS_OS_FILE_CLOSE,
+		NCS_OS_FILE_READ,
+		NCS_OS_FILE_WRITE,
+		NCS_OS_FILE_SEEK,
+		NCS_OS_FILE_COPY,
+		NCS_OS_FILE_RENAME,
+		NCS_OS_FILE_REMOVE,
+		NCS_OS_FILE_SIZE,
+		NCS_OS_FILE_EXISTS,
+		NCS_OS_FILE_DIR_PATH,
+		NCS_OS_FILE_CREATE_DIR,
+		NCS_OS_FILE_DELETE_DIR,
+		NCS_OS_FILE_COPY_DIR,
+		NCS_OS_FILE_DIR_EXISTS,
+		NCS_OS_FILE_GET_NEXT,
+		NCS_OS_FILE_GET_LIST,
+		NCS_OS_FILE_MAX
+	} NCS_OS_FILE_REQUEST;
 
 /****************************************************************************
  ****************************************************************************
@@ -596,7 +501,6 @@ typedef enum
 #error "Define mkdir for your os"
 #endif
 
-
 #ifndef NCS_UNS64_DEFINED
 /* Undefine  NCS_64BIT_DATA_TYPE_SUPPORT */
 #ifdef NCS_64BIT_DATA_TYPE_SUPPORT
@@ -606,8 +510,8 @@ typedef enum
 #define NCS_64BIT_DATA_TYPE_SUPPORT 0
 /* Set uns64 to uns32. That is the best we could do */
 #warning "uns64 not defined. Setting it to uns32"
-typedef uns32 uns64;
-typedef int32 int64;
+	typedef uns32 uns64;
+	typedef int32 int64;
 #endif
 
 #ifndef LEAPDLL_API
@@ -641,7 +545,6 @@ typedef int32 int64;
 #ifndef EDADLL_API
 #define EDADLL_API
 #endif
-
 
 /****************************************************************************
  * General definitions
@@ -709,14 +612,9 @@ typedef int32 int64;
  *
  ***************************************************************************/
 
-typedef void* (*NCS_POOL_MALLOC)(uns32  nbytes,
-                                uns8   pool_id, 
-                                uns8   priority);
+	typedef void *(*NCS_POOL_MALLOC)(uns32 nbytes, uns8 pool_id, uns8 priority);
 
-typedef void  (*NCS_POOL_MFREE) (void*  data,
-                                uns8   pool_id);
-
-
+	typedef void (*NCS_POOL_MFREE) (void *data, uns8 pool_id);
 
 /****************************************************************************
  * User Defined Pool Memory Allocate Primitive definition
@@ -736,8 +634,7 @@ typedef void  (*NCS_POOL_MFREE) (void*  data,
 #ifndef m_OS_UDEF_ALLOC
 
 #define m_OS_UDEF_ALLOC  ncs_os_udef_alloc
-EXTERN_C LEAPDLL_API void* ncs_os_udef_alloc( uns32 size, uns8 pool_id, uns8 pri);
-  
+	EXTERN_C LEAPDLL_API void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
 #endif
 
 /****************************************************************************
@@ -755,10 +652,8 @@ EXTERN_C LEAPDLL_API void* ncs_os_udef_alloc( uns32 size, uns8 pool_id, uns8 pri
 #ifndef m_OS_UDEF_FREE
 
 #define m_OS_UDEF_FREE   ncs_os_udef_free
-EXTERN_C LEAPDLL_API void  ncs_os_udef_free ( void* ptr, uns8 pool);
-
+	EXTERN_C LEAPDLL_API void ncs_os_udef_free(void *ptr, uns8 pool);
 #endif
-
 
 /****************************************************************************
  ****************************************************************************
@@ -793,7 +688,6 @@ EXTERN_C LEAPDLL_API void  ncs_os_udef_free ( void* ptr, uns8 pool);
 #define m_NCS_OS_TARGET_INIT
 #endif
 
-
 /****************************************************************************
  * Task Primitive definition
  * The actual function ncs_os_task must be resolved in the os_defs.h file.
@@ -812,10 +706,8 @@ EXTERN_C LEAPDLL_API void  ncs_os_udef_free ( void* ptr, uns8 pool);
 #ifndef m_NCS_OS_TASK
 
 #define m_NCS_OS_TASK(pncs_os_task,req) ncs_os_task (pncs_os_task,req)
-EXTERN_C LEAPDLL_API unsigned int ncs_os_task (NCS_OS_TASK*, NCS_OS_TASK_REQUEST);
-
+	EXTERN_C LEAPDLL_API unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
 #endif
-
 
 /****************************************************************************
 * Task Primitive definition
@@ -835,8 +727,7 @@ EXTERN_C LEAPDLL_API unsigned int ncs_os_task (NCS_OS_TASK*, NCS_OS_TASK_REQUEST
 #ifndef m_NCS_OS_FILE
 
 #define m_NCS_OS_FILE(pncs_os_file,req) ncs_os_file (pncs_os_file,req)
-EXTERN_C unsigned int ncs_os_file (NCS_OS_FILE*, NCS_OS_FILE_REQUEST);
-
+	EXTERN_C unsigned int ncs_os_file(NCS_OS_FILE *, NCS_OS_FILE_REQUEST);
 #endif
 
 /****************************************************************************
@@ -872,11 +763,8 @@ EXTERN_C unsigned int ncs_os_file (NCS_OS_FILE*, NCS_OS_FILE_REQUEST);
 #ifndef m_NCS_OS_CLEANUP
 
 #define m_NCS_OS_CLEANUP ncs_os_cleanup()
-EXTERN_C LEAPDLL_API void ncs_os_cleanup(void);
-
+	EXTERN_C LEAPDLL_API void ncs_os_cleanup(void);
 #endif
-
-
 
 /****************************************************************************
  * Timer Primitive definition
@@ -896,12 +784,9 @@ EXTERN_C LEAPDLL_API void ncs_os_cleanup(void);
 #ifndef m_NCS_OS_TIMER
 
 #define m_NCS_OS_TIMER(pncs_os_timer,req) ncs_os_timer(pncs_os_timer,req)
-EXTERN_C LEAPDLL_API unsigned int ncs_os_timer (NCS_OS_TIMER*, NCS_OS_TIMER_REQUEST);
-
+	EXTERN_C LEAPDLL_API unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
 #endif
 #endif
-
-
 
 /****************************************************************************
  * LOCK Primitive definition
@@ -926,10 +811,8 @@ EXTERN_C LEAPDLL_API unsigned int ncs_os_timer (NCS_OS_TIMER*, NCS_OS_TIMER_REQU
 #ifndef m_NCS_OS_LOCK
 
 #define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
-EXTERN_C LEAPDLL_API unsigned int ncs_os_lock (NCS_OS_LOCK*, NCS_OS_LOCK_REQUEST, unsigned int);
-
+	EXTERN_C LEAPDLL_API unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 #endif
-
 
 /****************************************************************************
  * Semaphore Primitive definition
@@ -949,12 +832,8 @@ EXTERN_C LEAPDLL_API unsigned int ncs_os_lock (NCS_OS_LOCK*, NCS_OS_LOCK_REQUEST
 #ifndef m_NCS_OS_SEM
 
 #define m_NCS_OS_SEM(pncs_os_sem,req) ncs_os_sem(pncs_os_sem,req)
-EXTERN_C LEAPDLL_API unsigned int ncs_os_sem (NCS_OS_SEM*, NCS_OS_SEM_REQUEST);
-
+	EXTERN_C LEAPDLL_API unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 #endif
-
-
-
 
 /*****************************************************************************
  **                                                                         **
@@ -969,16 +848,13 @@ EXTERN_C LEAPDLL_API unsigned int ncs_os_sem (NCS_OS_SEM*, NCS_OS_SEM_REQUEST);
 
 #ifndef m_NCS_OS_START_TASK_LOCK
 #define m_NCS_OS_START_TASK_LOCK   ncs_os_start_task_lock()
-EXTERN_C LEAPDLL_API void ncs_os_start_task_lock (void);
+	EXTERN_C LEAPDLL_API void ncs_os_start_task_lock(void);
 #endif
 
 #ifndef m_NCS_OS_END_TASK_LOCK
 #define m_NCS_OS_END_TASK_LOCK     ncs_os_end_task_lock()
-EXTERN_C LEAPDLL_API void ncs_os_end_task_lock (void);
+	EXTERN_C LEAPDLL_API void ncs_os_end_task_lock(void);
 #endif
-
-
-
 
 /****************************************************************************
  * Message-queues Primitive definition
@@ -994,19 +870,18 @@ EXTERN_C LEAPDLL_API void ncs_os_end_task_lock (void);
  *
  ***************************************************************************/
 
-typedef enum
-{
-   NCS_OS_MQ_REQ_MIN,
-   NCS_OS_MQ_REQ_CREATE,       /* Strictly create */
-   NCS_OS_MQ_REQ_OPEN,         /* Strictly open i.e. do not create */
-   NCS_OS_MQ_REQ_DESTROY,
-   NCS_OS_MQ_REQ_MSG_SEND,     
-   NCS_OS_MQ_REQ_MSG_SEND_ASYNC,     
-   NCS_OS_MQ_REQ_MSG_RECV,     /* Blocking recv call */
-   NCS_OS_MQ_REQ_MSG_RECV_ASYNC,     /* NonBlocking recv call */
-   NCS_OS_MQ_REQ_RESIZE,
-   NCS_OS_MQ_REQ_MAX   
-}NCS_OS_MQ_REQ_TYPE;
+	typedef enum {
+		NCS_OS_MQ_REQ_MIN,
+		NCS_OS_MQ_REQ_CREATE,	/* Strictly create */
+		NCS_OS_MQ_REQ_OPEN,	/* Strictly open i.e. do not create */
+		NCS_OS_MQ_REQ_DESTROY,
+		NCS_OS_MQ_REQ_MSG_SEND,
+		NCS_OS_MQ_REQ_MSG_SEND_ASYNC,
+		NCS_OS_MQ_REQ_MSG_RECV,	/* Blocking recv call */
+		NCS_OS_MQ_REQ_MSG_RECV_ASYNC,	/* NonBlocking recv call */
+		NCS_OS_MQ_REQ_RESIZE,
+		NCS_OS_MQ_REQ_MAX
+	} NCS_OS_MQ_REQ_TYPE;
 
 /* If MQ has a real implementation for the platform we are building, then 
 ** "os_defs.c" will have the appropriate definitions. Otherwise the 
@@ -1014,90 +889,80 @@ typedef enum
 ** compilation on unsupported platforms.
 */
 #ifndef NCS_OS_MQ_KEY
-#define NCS_OS_MQ_KEY int  /* Dummy definition */
+#define NCS_OS_MQ_KEY int	/* Dummy definition */
 #endif
 #ifndef NCS_OS_MQ_HDL
-#define NCS_OS_MQ_HDL int  /* Dummy definition */
+#define NCS_OS_MQ_HDL int	/* Dummy definition */
 #endif
 #ifndef NCS_OS_MQ_MSG_LL_HDR
-#define NCS_OS_MQ_MSG_LL_HDR int  /* Dummy definition */
+#define NCS_OS_MQ_MSG_LL_HDR int	/* Dummy definition */
 #endif
 #ifndef NCS_OS_MQ_MAX_PAYLOAD
-#define NCS_OS_MQ_MAX_PAYLOAD 100  /* Dummy definition */
+#define NCS_OS_MQ_MAX_PAYLOAD 100	/* Dummy definition */
 #endif
-typedef struct ncs_os_mq_msg
-{
-   /* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
-      to fill in the "data" portion only.
-   */
-   NCS_OS_MQ_MSG_LL_HDR   ll_hdr;  
-   uns8                   data[NCS_OS_MQ_MAX_PAYLOAD];
-}NCS_OS_MQ_MSG;
-
+	typedef struct ncs_os_mq_msg {
+		/* ll_hdr is filled by the MQ-implementation. A MQ-user is expected
+		   to fill in the "data" portion only.
+		 */
+		NCS_OS_MQ_MSG_LL_HDR ll_hdr;
+		uns8 data[NCS_OS_MQ_MAX_PAYLOAD];
+	} NCS_OS_MQ_MSG;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_create_info
-{
-   NCS_OS_MQ_KEY *i_key;
-   NCS_OS_MQ_HDL  o_hdl;
-}NCS_OS_MQ_REQ_CREATE_INFO;
+	typedef struct ncs_mq_req_create_info {
+		NCS_OS_MQ_KEY *i_key;
+		NCS_OS_MQ_HDL o_hdl;
+	} NCS_OS_MQ_REQ_CREATE_INFO;
 
 /*-----------------------------------*/
-typedef   NCS_OS_MQ_REQ_CREATE_INFO    NCS_OS_MQ_REQ_OPEN_INFO;
+	typedef NCS_OS_MQ_REQ_CREATE_INFO NCS_OS_MQ_REQ_OPEN_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_destroy_info
-{
-   NCS_OS_MQ_HDL i_hdl;
-}NCS_OS_MQ_REQ_DESTROY_INFO;
+	typedef struct ncs_mq_req_destroy_info {
+		NCS_OS_MQ_HDL i_hdl;
+	} NCS_OS_MQ_REQ_DESTROY_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_msg_send_info
-{
-   NCS_OS_MQ_HDL        i_hdl;
-   NCS_OS_MQ_MSG        *i_msg;
-   uns32                i_len;
-   uns32                i_mtype; /* Can be used for priority */
-}NCS_OS_MQ_REQ_MSG_SEND_INFO;
+	typedef struct ncs_mq_req_msg_send_info {
+		NCS_OS_MQ_HDL i_hdl;
+		NCS_OS_MQ_MSG *i_msg;
+		uns32 i_len;
+		uns32 i_mtype;	/* Can be used for priority */
+	} NCS_OS_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_msg_recv_info
-{
-   NCS_OS_MQ_HDL        i_hdl;
-   NCS_OS_MQ_MSG        *i_msg;
-   uns32                i_max_recv;
-   int32                i_mtype;  /* the first message on the queue with the 
-                                  lowest type less than or equal to the 
-                                  absolute value of i_mtype will be read */
-}NCS_OS_MQ_REQ_MSG_RECV_INFO;
+	typedef struct ncs_mq_req_msg_recv_info {
+		NCS_OS_MQ_HDL i_hdl;
+		NCS_OS_MQ_MSG *i_msg;
+		uns32 i_max_recv;
+		int32 i_mtype;	/* the first message on the queue with the 
+				   lowest type less than or equal to the 
+				   absolute value of i_mtype will be read */
+	} NCS_OS_MQ_REQ_MSG_RECV_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_resize_info
-{
-   NCS_OS_MQ_HDL i_hdl;
-   uns32         i_newqsize; /* new queue size */
-}NCS_OS_MQ_REQ_RESIZE_INFO;
+	typedef struct ncs_mq_req_resize_info {
+		NCS_OS_MQ_HDL i_hdl;
+		uns32 i_newqsize;	/* new queue size */
+	} NCS_OS_MQ_REQ_RESIZE_INFO;
 
 /*-----------------------------------*/
 
-typedef struct ncs_mq_req
-{
-   NCS_OS_MQ_REQ_TYPE req;
+	typedef struct ncs_mq_req {
+		NCS_OS_MQ_REQ_TYPE req;
 
-   union 
-   {
-      NCS_OS_MQ_REQ_CREATE_INFO    create;
-      NCS_OS_MQ_REQ_OPEN_INFO      open;
-      NCS_OS_MQ_REQ_DESTROY_INFO   destroy;
-      NCS_OS_MQ_REQ_MSG_SEND_INFO  send;
-      NCS_OS_MQ_REQ_MSG_RECV_INFO  recv;
-      NCS_OS_MQ_REQ_RESIZE_INFO    resize;
-   }info;
-}NCS_OS_MQ_REQ_INFO;
-
+		union {
+			NCS_OS_MQ_REQ_CREATE_INFO create;
+			NCS_OS_MQ_REQ_OPEN_INFO open;
+			NCS_OS_MQ_REQ_DESTROY_INFO destroy;
+			NCS_OS_MQ_REQ_MSG_SEND_INFO send;
+			NCS_OS_MQ_REQ_MSG_RECV_INFO recv;
+			NCS_OS_MQ_REQ_RESIZE_INFO resize;
+		} info;
+	} NCS_OS_MQ_REQ_INFO;
 
 #define m_NCS_OS_MQ ncs_os_mq
-EXTERN_C LEAPDLL_API uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
+	EXTERN_C LEAPDLL_API uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX Message-queues Primitive definition
@@ -1113,21 +978,19 @@ EXTERN_C LEAPDLL_API uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
  *
  ***************************************************************************/
 
-typedef enum
-{
-   NCS_OS_POSIX_MQ_REQ_MIN=1,
-   NCS_OS_POSIX_MQ_REQ_OPEN,         /* Strictly open i.e. do not create */
-   NCS_OS_POSIX_MQ_REQ_CLOSE,
-   NCS_OS_POSIX_MQ_REQ_UNLINK,
-   NCS_OS_POSIX_MQ_REQ_MSG_SEND,
-   NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC,
-   NCS_OS_POSIX_MQ_REQ_MSG_RECV,     /* Blocking recv call */
-   NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC,     /* NonBlocking recv call */
-   NCS_OS_POSIX_MQ_REQ_GET_ATTR,     /* Get attributes */
-   NCS_OS_POSIX_MQ_REQ_RESIZE,
-   NCS_OS_POSIX_MQ_REQ_MAX   
-}NCS_OS_POSIX_MQ_REQ_TYPE;
-
+	typedef enum {
+		NCS_OS_POSIX_MQ_REQ_MIN = 1,
+		NCS_OS_POSIX_MQ_REQ_OPEN,	/* Strictly open i.e. do not create */
+		NCS_OS_POSIX_MQ_REQ_CLOSE,
+		NCS_OS_POSIX_MQ_REQ_UNLINK,
+		NCS_OS_POSIX_MQ_REQ_MSG_SEND,
+		NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC,
+		NCS_OS_POSIX_MQ_REQ_MSG_RECV,	/* Blocking recv call */
+		NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC,	/* NonBlocking recv call */
+		NCS_OS_POSIX_MQ_REQ_GET_ATTR,	/* Get attributes */
+		NCS_OS_POSIX_MQ_REQ_RESIZE,
+		NCS_OS_POSIX_MQ_REQ_MAX
+	} NCS_OS_POSIX_MQ_REQ_TYPE;
 
 /* If POSIX MQ has a real implementation for the platform we are building, then 
 ** "os_defs.c" will have the appropriate definitions. Otherwise the 
@@ -1139,104 +1002,94 @@ typedef enum
 #endif
 
 #ifndef NCS_OS_POSIX_TIMESPEC
-typedef struct posix_timespec {
-    uns32 tv_nsec;
-    uns32 tv_sec;
-}posix_timespec;
+	typedef struct posix_timespec {
+		uns32 tv_nsec;
+		uns32 tv_sec;
+	} posix_timespec;
 
 #define NCS_OS_POSIX_TIMESPEC struct posix_timespec
 #endif
 
 #ifndef NCS_OS_POSIX_MQ_ATTR
-typedef struct ncs_os_posix_mq_attr
-{
-   uns32                  mq_flags;
-   uns32                  mq_maxmsg;
-   uns32                  mq_msgsize;
-   uns32                  mq_curmsgs;
-   uns32                  mq_stime;
-}NCS_OS_POSIX_MQ_ATTR;
+	typedef struct ncs_os_posix_mq_attr {
+		uns32 mq_flags;
+		uns32 mq_maxmsg;
+		uns32 mq_msgsize;
+		uns32 mq_curmsgs;
+		uns32 mq_stime;
+	} NCS_OS_POSIX_MQ_ATTR;
 
 #define NCS_OS_POSIX_MQ_ATTR struct ncs_os_posix_mq_attr
 #endif
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_open_info
-{
-   uns8  *qname;
-   uns32 node;
-   uns32 iflags;
-   NCS_OS_POSIX_MQD o_mqd;
-   NCS_OS_POSIX_MQ_ATTR attr;
-}NCS_OS_POSIX_MQ_REQ_OPEN_INFO;
+	typedef struct ncs_mq_req_open_info {
+		uns8 *qname;
+		uns32 node;
+		uns32 iflags;
+		NCS_OS_POSIX_MQD o_mqd;
+		NCS_OS_POSIX_MQ_ATTR attr;
+	} NCS_OS_POSIX_MQ_REQ_OPEN_INFO;
 
-typedef struct ncs_mq_req_attr_info
-{
-   NCS_OS_POSIX_MQD i_mqd;
-   NCS_OS_POSIX_MQ_ATTR o_attr;
-}NCS_OS_POSIX_MQ_REQ_ATTR_INFO;
+	typedef struct ncs_mq_req_attr_info {
+		NCS_OS_POSIX_MQD i_mqd;
+		NCS_OS_POSIX_MQ_ATTR o_attr;
+	} NCS_OS_POSIX_MQ_REQ_ATTR_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_close_info
-{
-   NCS_OS_POSIX_MQD mqd;
-}NCS_OS_POSIX_MQ_REQ_CLOSE_INFO;
+	typedef struct ncs_mq_req_close_info {
+		NCS_OS_POSIX_MQD mqd;
+	} NCS_OS_POSIX_MQ_REQ_CLOSE_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_mq_req_unlink_info
-{
-   uns8  *qname;
-}NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
+	typedef struct ncs_mq_req_unlink_info {
+		uns8 *qname;
+	} NCS_OS_POSIX_MQ_REQ_UNLINK_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_posix_mq_req_msg_send_info
-{
-   NCS_OS_POSIX_MQD mqd;
-   uns32                  datalen;
-   uns32                  dataprio;
-   NCS_OS_MQ_MSG          *i_msg;
-   uns32                  i_mtype; /* Can be used for priority */
-}NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO;
+	typedef struct ncs_posix_mq_req_msg_send_info {
+		NCS_OS_POSIX_MQD mqd;
+		uns32 datalen;
+		uns32 dataprio;
+		NCS_OS_MQ_MSG *i_msg;
+		uns32 i_mtype;	/* Can be used for priority */
+	} NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_posix_mq_req_msg_recv_info
-{
-   NCS_OS_POSIX_MQD mqd;
-   uns32                  datalen;
-   uns32                  dataprio;
-   NCS_OS_POSIX_TIMESPEC timeout;
-   NCS_OS_MQ_MSG          *i_msg;
-   int32                  i_mtype; /* the first message on the queue with the
-                                  lowest type less than or equal to the
-                                  absolute value of i_mtype will be read */
-}NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO;
+	typedef struct ncs_posix_mq_req_msg_recv_info {
+		NCS_OS_POSIX_MQD mqd;
+		uns32 datalen;
+		uns32 dataprio;
+		NCS_OS_POSIX_TIMESPEC timeout;
+		NCS_OS_MQ_MSG *i_msg;
+		int32 i_mtype;	/* the first message on the queue with the
+				   lowest type less than or equal to the
+				   absolute value of i_mtype will be read */
+	} NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_posix_mq_req_resize_info
-{
-   NCS_OS_POSIX_MQD mqd;
-   uns32            i_newqsize; /* new queue size */
-}NCS_OS_POSIX_MQ_REQ_RESIZE_INFO;
+	typedef struct ncs_posix_mq_req_resize_info {
+		NCS_OS_POSIX_MQD mqd;
+		uns32 i_newqsize;	/* new queue size */
+	} NCS_OS_POSIX_MQ_REQ_RESIZE_INFO;
 
 /*-----------------------------------*/
-typedef struct ncs_posix_mq_req_info
-{
-   NCS_OS_POSIX_MQ_REQ_TYPE req;
+	typedef struct ncs_posix_mq_req_info {
+		NCS_OS_POSIX_MQ_REQ_TYPE req;
 
-   union
-   {
-      NCS_OS_POSIX_MQ_REQ_OPEN_INFO      open;
-      NCS_OS_POSIX_MQ_REQ_CLOSE_INFO     close;
-      NCS_OS_POSIX_MQ_REQ_UNLINK_INFO    unlink;
-      NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO  send;
-      NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO  recv;
-      NCS_OS_POSIX_MQ_REQ_ATTR_INFO      attr;
-      NCS_OS_POSIX_MQ_REQ_RESIZE_INFO    resize;
-   }info;
-}NCS_OS_POSIX_MQ_REQ_INFO;
+		union {
+			NCS_OS_POSIX_MQ_REQ_OPEN_INFO open;
+			NCS_OS_POSIX_MQ_REQ_CLOSE_INFO close;
+			NCS_OS_POSIX_MQ_REQ_UNLINK_INFO unlink;
+			NCS_OS_POSIX_MQ_REQ_MSG_SEND_INFO send;
+			NCS_OS_POSIX_MQ_REQ_MSG_RECV_INFO recv;
+			NCS_OS_POSIX_MQ_REQ_ATTR_INFO attr;
+			NCS_OS_POSIX_MQ_REQ_RESIZE_INFO resize;
+		} info;
+	} NCS_OS_POSIX_MQ_REQ_INFO;
 
 #define m_NCS_OS_POSIX_MQ ncs_os_posix_mq
-EXTERN_C LEAPDLL_API uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
+	EXTERN_C LEAPDLL_API uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX shm_memory Primitive definition
@@ -1251,86 +1104,68 @@ EXTERN_C LEAPDLL_API uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
  *   NCSCC_RC_FAILURE - interface call failed.
  *
  ***************************************************************************/
-typedef enum
-{
+	typedef enum {
 
-   NCS_OS_POSIX_SHM_REQ_MIN=1,
-   NCS_OS_POSIX_SHM_REQ_OPEN,     /* opens and mmaps */
-   NCS_OS_POSIX_SHM_REQ_CLOSE,    /* close is munmap */
-   NCS_OS_POSIX_SHM_REQ_UNLINK,   /* unlink is shm_unlink */
-   NCS_OS_POSIX_SHM_REQ_READ,
-   NCS_OS_POSIX_SHM_REQ_WRITE,
-   NCS_OS_POSIX_SHM_REQ_MAX
+		NCS_OS_POSIX_SHM_REQ_MIN = 1,
+		NCS_OS_POSIX_SHM_REQ_OPEN,	/* opens and mmaps */
+		NCS_OS_POSIX_SHM_REQ_CLOSE,	/* close is munmap */
+		NCS_OS_POSIX_SHM_REQ_UNLINK,	/* unlink is shm_unlink */
+		NCS_OS_POSIX_SHM_REQ_READ,
+		NCS_OS_POSIX_SHM_REQ_WRITE,
+		NCS_OS_POSIX_SHM_REQ_MAX
+	} NCS_OS_POSIX_SHM_REQ_TYPE;
+	typedef struct ncs_os_posix_shm_req_open_info_tag {
+		int8 *i_name;
+		uns32 i_flags;
+		uns32 i_map_flags;
+		uns64 i_size;
+		int32 i_offset;
+		void *o_addr;
+		int32 o_fd;
+		uns32 o_hdl;
 
-}NCS_OS_POSIX_SHM_REQ_TYPE;
-typedef struct ncs_os_posix_shm_req_open_info_tag
-{
-   int8  *i_name;
-   uns32 i_flags;
-   uns32 i_map_flags;
-   uns64 i_size;
-   int32 i_offset;
-   void  *o_addr;
-   int32  o_fd;
-   uns32  o_hdl;
+	} NCS_OS_POSIX_SHM_REQ_OPEN_INFO;
+	typedef struct ncs_os_posix_shm_req_close_info_tag {
+		uns32 i_hdl;
+		void *i_addr;
+		int32 i_fd;
+		uns64 i_size;
+	} NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
 
-}NCS_OS_POSIX_SHM_REQ_OPEN_INFO;
-typedef struct ncs_os_posix_shm_req_close_info_tag
-{
-   uns32  i_hdl;
-   void *i_addr;
-   int32 i_fd;
-   uns64 i_size;
-}NCS_OS_POSIX_SHM_REQ_CLOSE_INFO;
+	typedef struct ncs_os_posix_shm_req_unlink_info_tag {
+		int8 *i_name;
+	} NCS_OS_POSIX_SHM_REQ_UNLINK_INFO;
 
+	typedef struct ncs_os_posix_shm_req_read_info {
+		uns32 i_hdl;
+		void *i_addr;
+		void *i_to_buff;
+		uns32 i_read_size;
+		int32 i_offset;
+	} NCS_OS_POSIX_SHM_REQ_READ_INFO;
 
-typedef struct ncs_os_posix_shm_req_unlink_info_tag
-{
-   int8 *i_name;
-}NCS_OS_POSIX_SHM_REQ_UNLINK_INFO;
+	typedef struct ncs_os_posix_shm_req_write_info {
+		uns32 i_hdl;
+		void *i_addr;
+		void *i_from_buff;
+		uns32 i_write_size;
+		int32 i_offset;
+	} NCS_OS_POSIX_SHM_REQ_WRITE_INFO;
 
+	typedef struct ncs_shm_req_info {
+		NCS_OS_POSIX_SHM_REQ_TYPE type;
 
-typedef struct ncs_os_posix_shm_req_read_info
-{
-   uns32 i_hdl;
-   void *i_addr;
-   void *i_to_buff;
-   uns32 i_read_size;
-   int32 i_offset;
-}NCS_OS_POSIX_SHM_REQ_READ_INFO;
+		union {
+			NCS_OS_POSIX_SHM_REQ_OPEN_INFO open;
+			NCS_OS_POSIX_SHM_REQ_CLOSE_INFO close;
+			NCS_OS_POSIX_SHM_REQ_UNLINK_INFO unlink;
+			NCS_OS_POSIX_SHM_REQ_READ_INFO read;
+			NCS_OS_POSIX_SHM_REQ_WRITE_INFO write;
+		} info;
 
-typedef struct ncs_os_posix_shm_req_write_info
-{
-   uns32 i_hdl;
-   void *i_addr;
-   void *i_from_buff;
-   uns32 i_write_size;
-   int32 i_offset;
-}NCS_OS_POSIX_SHM_REQ_WRITE_INFO;
+	} NCS_OS_POSIX_SHM_REQ_INFO;
 
-typedef struct ncs_shm_req_info
-{
-   NCS_OS_POSIX_SHM_REQ_TYPE type;
-
-   union
-   {
-      NCS_OS_POSIX_SHM_REQ_OPEN_INFO       open;
-      NCS_OS_POSIX_SHM_REQ_CLOSE_INFO      close;
-      NCS_OS_POSIX_SHM_REQ_UNLINK_INFO     unlink;
-      NCS_OS_POSIX_SHM_REQ_READ_INFO       read;
-      NCS_OS_POSIX_SHM_REQ_WRITE_INFO      write;
-   }info;
-
-}NCS_OS_POSIX_SHM_REQ_INFO;
-
-uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
-
-
-
-
-
-
-
+	uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
 
 /****************************************************************************\
  * B E G I N  :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
@@ -1345,15 +1180,13 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req);
                         a set needs to be constructed for invoking a
                         m_NCS_SEL_OBJ_SELECT() API.
 
-
   The real definitions are present in respective osprims/<os>/os_defs.h. The
   following are dummy definitions
 \****************************************************************************/
 #ifndef NCS_SEL_OBJ_DEFINED
 
-typedef int NCS_SEL_OBJ;       /* DUMMY DEFINITION for unsupported OSes */
-typedef int NCS_SEL_OBJ_SET;   /* DUMMY DEFINITION for unsupported OSes */
-
+	typedef int NCS_SEL_OBJ;	/* DUMMY DEFINITION for unsupported OSes */
+	typedef int NCS_SEL_OBJ_SET;	/* DUMMY DEFINITION for unsupported OSes */
 #endif
 
 /****************************************************************************\
@@ -1388,7 +1221,6 @@ typedef int NCS_SEL_OBJ_SET;   /* DUMMY DEFINITION for unsupported OSes */
 #define m_GET_HIGHER_SEL_OBJ(sel_obj1, sel_obj2) \
             ((sel_obj1).rmv_obj > (sel_obj2).rmv_obj? (sel_obj1):(sel_obj2))
 
-
 /****************************************************************************\
 
    ncs_sel_obj_create:  Returns a selection-object pair. It internally may 
@@ -1409,7 +1241,7 @@ typedef int NCS_SEL_OBJ_SET;   /* DUMMY DEFINITION for unsupported OSes */
                         if the return value is success)
 
 \****************************************************************************/
-uns32 ncs_sel_obj_create(NCS_SEL_OBJ  *o_sel_obj);
+	uns32 ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj);
 #define     m_NCS_SEL_OBJ_CREATE(o_sel_obj) ncs_sel_obj_create(o_sel_obj)
 
 /****************************************************************************\ 
@@ -1429,7 +1261,7 @@ uns32 ncs_sel_obj_create(NCS_SEL_OBJ  *o_sel_obj);
                         (This is an IN argument)
 
 \****************************************************************************/
-uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ  i_sel_obj);
+	uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ i_sel_obj);
 #define     m_NCS_SEL_OBJ_DESTROY(i_sel_obj) ncs_sel_obj_destroy(i_sel_obj)
 
 /****************************************************************************\ 
@@ -1451,7 +1283,7 @@ uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ  i_sel_obj);
 
 \****************************************************************************/
 
-uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ  *i_sel_obj);
+	uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_rmv_operation_shut(i_sel_obj)
 
 /****************************************************************************\ 
@@ -1472,9 +1304,8 @@ uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ  *i_sel_obj);
                         if the return value is success)
 
 \****************************************************************************/
-uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ  *i_sel_obj);
+	uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_sel_obj);
 #define     m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(i_sel_obj) ncs_sel_obj_raise_operation_shut(i_sel_obj)
-
 
 /****************************************************************************\ 
    ncs_sel_obj_ind:     Queues exactly 1 indication on a selection-object. It
@@ -1492,7 +1323,7 @@ uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ  *i_sel_obj);
                         (This is an IN argument)
 
 \****************************************************************************/
-uns32 ncs_sel_obj_ind      (NCS_SEL_OBJ i_sel_obj);
+	uns32 ncs_sel_obj_ind(NCS_SEL_OBJ i_sel_obj);
 #define     m_NCS_SEL_OBJ_IND(i_sel_obj)  ncs_sel_obj_ind(i_sel_obj)
 
 /****************************************************************************\ 
@@ -1504,7 +1335,6 @@ uns32 ncs_sel_obj_ind      (NCS_SEL_OBJ i_sel_obj);
       
      -1:                The selection-object is no longer valid. This
                         selection-object should no longer be used.
-
 
      0:                 There are no indications queued up on the 
                         selection-object. (Such a value can be returned
@@ -1533,9 +1363,7 @@ uns32 ncs_sel_obj_ind      (NCS_SEL_OBJ i_sel_obj);
                         the return value.
  
 \***************************************************************************/
-int ncs_sel_obj_rmv_ind   (NCS_SEL_OBJ i_sel_obj,
-                           NCS_BOOL    i_no_blocking_flag,                                 
-                           NCS_BOOL    i_rmv_only_one_flag);
+	int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_sel_obj, NCS_BOOL i_no_blocking_flag, NCS_BOOL i_rmv_only_one_flag);
 
 #define     m_NCS_SEL_OBJ_RMV_IND(sel_obj, noblock_flag, rmv_only_one_flag)\
             ncs_sel_obj_rmv_ind(sel_obj, noblock_flag,  rmv_only_one_flag)
@@ -1558,7 +1386,6 @@ int ncs_sel_obj_rmv_ind   (NCS_SEL_OBJ i_sel_obj,
                         NOTE : POSIX select() API expects highest-fd 
                         plus 1. But this API is happy even with a
                         highest-fd.
-
 
                         (Highest selection-object should be determined
                         using the m_GET_HIGHER_SEL_OBJ() macro)
@@ -1583,11 +1410,10 @@ int ncs_sel_obj_rmv_ind   (NCS_SEL_OBJ i_sel_obj,
 \***************************************************************************/
 /* Select is returnig uns32 it should be int */
 
-LEAPDLL_API int ncs_sel_obj_select(NCS_SEL_OBJ     highest_sel_obj,
-                         NCS_SEL_OBJ_SET *io_readfds,        
-                         NCS_SEL_OBJ_SET *io_writefds,       
-                         NCS_SEL_OBJ_SET *io_exceptfds,      
-                         uns32           *io_timeout);
+	LEAPDLL_API int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
+					   NCS_SEL_OBJ_SET *io_readfds,
+					   NCS_SEL_OBJ_SET *io_writefds,
+					   NCS_SEL_OBJ_SET *io_exceptfds, uns32 *io_timeout);
 #define     m_NCS_SEL_OBJ_SELECT(m, r, w, e, t)\
             ncs_sel_obj_select(m, r, w, e, t)
 
@@ -1617,8 +1443,7 @@ LEAPDLL_API int ncs_sel_obj_select(NCS_SEL_OBJ     highest_sel_obj,
                         of "fds" than that accepted by select(). 
 
 \***************************************************************************/
-LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj, 
-                                              uns32        *io_timeout);
+	LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *io_timeout);
 #define     m_NCS_SEL_OBJ_POLL_SINGLE_OBJ(obj, io_timeout)\
             ncs_sel_obj_poll_single_obj(obj, io_timeout)
 
@@ -1635,8 +1460,6 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
  * E N D      :  S E L E C T I O N - O B J E C T    P R I M I T I V E S     *
 \****************************************************************************/
 
-
-
 /****************************************************************************
  * Atomic Increment definition
  *
@@ -1649,9 +1472,8 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
  ***************************************************************************/
 
 #ifndef m_NCS_OS_ATOMIC_INC
-#error Warning! Implementation needed for Atomic Increment 
+#error Warning! Implementation needed for Atomic Increment
 #endif
-
 
 /****************************************************************************
  * Atomic Decrement definition
@@ -1667,7 +1489,6 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
 #ifndef m_NCS_OS_ATOMIC_DEC
 #error Warning! Implementation needed for Atomic Decrement
 #endif
-
 
 /****************************************************************************
  *                            Console I0 Macros                            *
@@ -1687,7 +1508,7 @@ LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ  sel_obj,
 
 #ifndef m_NCS_OS_CUR_CPU_USAGE
 #define m_NCS_OS_CUR_CPU_USAGE  os_cur_cpu_usage()
-EXTERN_C LEAPDLL_API unsigned int os_cur_cpu_usage(void);
+	EXTERN_C LEAPDLL_API unsigned int os_cur_cpu_usage(void);
 #endif
 
 /****************************************************************************
@@ -1699,12 +1520,12 @@ EXTERN_C LEAPDLL_API unsigned int os_cur_cpu_usage(void);
 
 #ifndef m_NCS_OS_INIT_CPU_MON
 #define m_NCS_OS_INIT_CPU_MON  ncs_cpu_mon_init()
-EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_init(void);
+	EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_init(void);
 #endif
 
 #ifndef m_NCS_OS_SHUTDOWN_CPU_MON
 #define m_NCS_OS_SHUTDOWN_CPU_MON  ncs_cpu_mon_shutdown()
-EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_shutdown(void);
+	EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_shutdown(void);
 #endif
 
 /****************************************************************************
@@ -1780,20 +1601,18 @@ EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_shutdown(void);
  ***************************************************************************/
 #if (USE_MY_MALLOC==1)
 #ifndef MY_MALLOC_SIZE
-#define MY_MALLOC_SIZE 256 /* bytes */
+#define MY_MALLOC_SIZE 256	/* bytes */
 #endif
 #endif
 
 #ifndef m_NCS_OS_MEMALLOC
 #if (USE_MY_MALLOC==1)
 #define m_NCS_OS_MEMALLOC(nbytes, region) my_malloc(nbytes)
-EXTERN_C void *my_malloc(size_t nbytes);
+	EXTERN_C void *my_malloc(size_t nbytes);
 #else
 #define m_NCS_OS_MEMALLOC(nbytes, region) malloc(nbytes)
 #endif
 #endif
-
-
 
 /****************************************************************************
  * Memory Free Primitive definition
@@ -1809,14 +1628,11 @@ EXTERN_C void *my_malloc(size_t nbytes);
 #ifndef m_NCS_OS_MEMFREE
 #if (USE_MY_MALLOC==1)
 #define m_NCS_OS_MEMFREE(mem_p, region)  my_free(mem_p)
-EXTERN_C void my_free(void *mem_p);
+	EXTERN_C void my_free(void *mem_p);
 #else
 #define m_NCS_OS_MEMFREE(mem_p, region)  free(mem_p)
 #endif
 #endif
-
-
-
 
 /*****************************************************************************
  **                                                                         **
@@ -1884,11 +1700,11 @@ EXTERN_C void my_free(void *mem_p);
 #define m_NCS_OS_GET_TIME_MS     0
 #endif
 
-#ifndef m_NCS_OS_GET_TIME_NS 
+#ifndef m_NCS_OS_GET_TIME_NS
 #define m_NCS_OS_GET_TIME_NS     0
 #endif
 
-#ifndef m_NCS_OS_GET_UPTIME 
+#ifndef m_NCS_OS_GET_UPTIME
 #error Warning! macro for uptime usage to be defined
 #endif
 
@@ -1986,7 +1802,7 @@ EXTERN_C void my_free(void *mem_p);
      ((uns8*)p8)[7] = (uns8)(in_long_long    );  \
 }
 #endif
-#endif 
+#endif
 
 /*********************************************************\
    m_NCS_OS_NTOHLL_P :  Decodes a 64-bit integer from a 
@@ -2001,7 +1817,6 @@ EXTERN_C void my_free(void *mem_p);
                   my_long_long = m_NCS_OS_NTOHLL_P(buff_64bit);
                   ...
                }
-
 
    NOTE :               Since there in no know "ntohll()" or
                         equivalent, the macro has same definition 
@@ -2029,11 +1844,9 @@ EXTERN_C void my_free(void *mem_p);
       ((uns64)((uns8*)(p8))[7]     )          \
       )
 #endif
-#endif 
+#endif
 
-
-#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0) /* no CPU alignment requirement */
-
+#if (NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT == 0)	/* no CPU alignment requirement */
 
 #ifndef m_NCS_OS_NTOHL_P
 #define m_NCS_OS_NTOHL_P(p8)         ntohl(*(uns32*)p8)
@@ -2050,8 +1863,7 @@ EXTERN_C void my_free(void *mem_p);
 #ifndef m_NCS_OS_HTONS_P
 #define m_NCS_OS_HTONS_P(p8,v16)     (*(uns16*)p8 = htons(v16))
 #endif
-
-#else /* CPU requires alignment access */
+#else				/* CPU requires alignment access */
 
 #ifndef m_NCS_OS_NTOHL_P
 #define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uns8*)p8<<24)|(*(uns8*)(p8+1)<<16)| \
@@ -2061,7 +1873,6 @@ EXTERN_C void my_free(void *mem_p);
 #ifndef m_NCS_OS_NTOHS_P
 #define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uns8*)p8<<8)|*((uns8*)(p8+1)))
 #endif
-
 
 #ifndef m_NCS_OS_HTONL_P
 #define m_NCS_OS_HTONL_P(p8,v32) { \
@@ -2076,8 +1887,7 @@ EXTERN_C void my_free(void *mem_p);
      *p8     = (uns8)(v16>>8); \
      *(p8+1) = (uns8)v16; }
 #endif
-
-#endif /* CPU alignment */
+#endif   /* CPU alignment */
 
 /*
  * Macro primitives to encode 2byte and 4byte values from host order into
@@ -2108,88 +1918,77 @@ EXTERN_C void my_free(void *mem_p);
  **                                                                        **
  ***************************************************************************/
 
+	typedef uns64 NCS_EXEC_HDL;
+	typedef uns64 NCS_EXEC_USR_HDL;
 
-typedef uns64 NCS_EXEC_HDL;
-typedef uns64 NCS_EXEC_USR_HDL;
+	/* This Structure assists in passing the environment arguments needed to be
+	   set in the newly created process. */
 
+	typedef struct ncs_os_environ_set_node_tag {
+		char *name;
+		char *value;
+		int overwrite;	/* zero the value is not overwritten else overwritten */
+	} NCS_OS_ENVIRON_SET_NODE;
 
- /* This Structure assists in passing the environment arguments needed to be
-   set in the newly created process. */ 
+	typedef struct ncs_os_environ_args_tag {
+		unsigned int num_args;
+		NCS_OS_ENVIRON_SET_NODE *env_arg;
+	} NCS_OS_ENVIRON_ARGS;
 
-typedef struct ncs_os_environ_set_node_tag
-{
-    char    *name;
-    char    *value;
-    int     overwrite; /* zero the value is not overwritten else overwritten */ 
-}NCS_OS_ENVIRON_SET_NODE;
+	typedef enum {
+		/* Exec of script failed (script not readable or path wrong) */
+		NCS_OS_PROC_EXEC_FAIL,
 
-typedef struct ncs_os_environ_args_tag
-{
-    unsigned int                num_args;
-    NCS_OS_ENVIRON_SET_NODE     *env_arg;   
-}NCS_OS_ENVIRON_ARGS;
+		/* Exec of script success, and script exits with status zero */
+		NCS_OS_PROC_EXIT_NORMAL,
 
-typedef enum {
-   /* Exec of script failed (script not readable or path wrong) */
-   NCS_OS_PROC_EXEC_FAIL,
+		/* Script did not exit within time */
+		NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
 
-   /* Exec of script success, and script exits with status zero */
-   NCS_OS_PROC_EXIT_NORMAL,
+		/* Exec of script success, but script exits with non-zero status */
+		NCS_OS_PROC_EXIT_WITH_CODE,
 
-   /* Script did not exit within time */
-   NCS_OS_PROC_EXIT_WAIT_TIMEOUT,
+		/* Exec of script success, but script exits due to a signal */
+		NCS_OS_PROC_EXIT_ON_SIGNAL
+	} NCS_OS_PROC_EXEC_STATUS;
 
-   /* Exec of script success, but script exits with non-zero status */
-   NCS_OS_PROC_EXIT_WITH_CODE,
+	typedef struct {
+		NCS_OS_PROC_EXEC_STATUS value;
+		union {
+			struct {
+				uns32 exit_code;
+			} exit_with_code;
 
-   /* Exec of script success, but script exits due to a signal */
-   NCS_OS_PROC_EXIT_ON_SIGNAL
-
-}NCS_OS_PROC_EXEC_STATUS;
-
-
-typedef struct {
-   NCS_OS_PROC_EXEC_STATUS value;
-   union{
-      struct {
-         uns32 exit_code;
-      }exit_with_code;
-      
-      struct {
-         uns32 signal_num;
-      }exit_on_signal;
-   }info;
-}NCS_OS_PROC_EXEC_STATUS_INFO;
+			struct {
+				uns32 signal_num;
+			} exit_on_signal;
+		} info;
+	} NCS_OS_PROC_EXEC_STATUS_INFO;
 
 /* CALLBACK structure definition */
-typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO
-{
-   NCS_EXEC_HDL i_exec_hdl;
-   NCS_EXEC_USR_HDL i_usr_hdl;
-   NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
+	typedef struct NCS_OS_PROC_EXECUTE_TIMED_CB_INFO {
+		NCS_EXEC_HDL i_exec_hdl;
+		NCS_EXEC_USR_HDL i_usr_hdl;
+		NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;
 
-}NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
-
+	} NCS_OS_PROC_EXECUTE_TIMED_CB_INFO;
 
 /* CALLBACK function prototype */
-typedef uns32 (*NCS_OS_PROC_EXECUTE_CB)(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
-
+	typedef uns32 (*NCS_OS_PROC_EXECUTE_CB) (NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 
 /* REQUEST structure definition */
-typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
-{
-   /* INPUTS */
-   char *i_script; /* Command  */
-   uns32 i_argc;     
-   char **i_argv;  
-   NCS_OS_ENVIRON_ARGS *i_set_env_args;
-   uns32 i_timeout_in_ms;
-   NCS_EXEC_USR_HDL i_usr_hdl;
-   NCS_OS_PROC_EXECUTE_CB i_cb;
-   /* OUTPUTS */
-   NCS_EXEC_HDL   o_exec_hdl; /*  */
-}NCS_OS_PROC_EXECUTE_TIMED_INFO;
-
+	typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO {
+		/* INPUTS */
+		char *i_script;	/* Command  */
+		uns32 i_argc;
+		char **i_argv;
+		NCS_OS_ENVIRON_ARGS *i_set_env_args;
+		uns32 i_timeout_in_ms;
+		NCS_EXEC_USR_HDL i_usr_hdl;
+		NCS_OS_PROC_EXECUTE_CB i_cb;
+		/* OUTPUTS */
+		NCS_EXEC_HDL o_exec_hdl;	/*  */
+	} NCS_OS_PROC_EXECUTE_TIMED_INFO;
 
 #define m_NCS_OS_PROCESS_EXECUTE_TIMED(arg)           ncs_os_process_execute_timed(arg)
 #define m_NCS_OS_PROCESS_EXECUTE(script,argv)         ncs_os_process_execute((char *)script,(char **)argv,(NCS_OS_ENVIRON_ARGS *)NULL)
@@ -2202,13 +2001,14 @@ typedef struct NCS_OS_PROC_EXECUTE_TIMED_INFO
 #define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
 /* declarations */
-EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
+	EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],NCS_OS_ENVIRON_ARGS *set_env_args);
+	EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod, char *argv[],
+								 NCS_OS_ENVIRON_ARGS *set_env_args);
 
-EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
+	EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
 
-EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
+	EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
 
 /****************************************************************************
  **                                                                        **
@@ -2225,7 +2025,6 @@ EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t hand
 #ifndef m_NCS_OS_EXP
 #define m_NCS_OS_EXP(double_x)     exp(double_x)
 #endif
-
 
 /*****************************************************************************
  **                                                                         **
@@ -2323,9 +2122,7 @@ EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t hand
 #ifndef m_NCS_OS_STACKTRACE_REPORT
 #define m_NCS_OS_STACKTRACE_REPORT
 #endif
-#endif /*#if (NCS_MMGR_STACKTRACE == 1)*/
-
-
+#endif   /*#if (NCS_MMGR_STACKTRACE == 1) */
 
 /*****************************************************************************
  **                                                                         **
@@ -2335,13 +2132,11 @@ EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t hand
 
 #ifndef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
-#endif /* min */
+#endif   /* min */
 
 #ifndef max
 #define max(a,b) ((a) > (b) ? (a) : (b))
-#endif /* max */
-
-
+#endif   /* max */
 
 /*****************************************************************************
  **                                                                         **
@@ -2378,7 +2173,6 @@ EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t hand
 #define  NCS_OS_KEY_MOD_CTRL   0x200
 #define  NCS_OS_KEY_MOD_ALT    0x201
 #define  NCS_OS_KEY_MOD_SHIFT  0x202
-
 
 #ifdef  __cplusplus
 }

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
  
 ..............................................................................
 
@@ -91,123 +89,106 @@
 
 *****************************************************************************/
 
-uns32 ncsmib_encode(NCSMIB_ARG*    arg, NCS_UBAID*     uba, uns16  msg_fmt_ver)
+uns32 ncsmib_encode(NCSMIB_ARG *arg, NCS_UBAID *uba, uns16 msg_fmt_ver)
 {
-   uns8* stream;
+	uns8 *stream;
 
-   if (uba == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (uba == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   if (arg == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (arg == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_16bit(&stream,arg->i_op);
-   ncs_enc_claim_space(uba,sizeof(uns16));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_16bit(&stream, arg->i_op);
+	ncs_enc_claim_space(uba, sizeof(uns16));
 
-   stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream,arg->i_tbl_id);
-   ncs_enc_claim_space(uba,sizeof(uns32));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_32bit(&stream, arg->i_tbl_id);
+	ncs_enc_claim_space(uba, sizeof(uns32));
 
-   stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream,arg->i_xch_id);
-   ncs_enc_claim_space(uba,sizeof(uns32));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_32bit(&stream, arg->i_xch_id);
+	ncs_enc_claim_space(uba, sizeof(uns32));
 
+	if (msg_fmt_ver == 1) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_32bit(&stream, NCS_PTR_TO_UNS32_CAST(arg->i_rsp_fnc));
+		ncs_enc_claim_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns64));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_64bit(&stream, (long)arg->i_rsp_fnc);
+		ncs_enc_claim_space(uba, sizeof(uns64));
+	}
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_32bit(&stream,NCS_PTR_TO_UNS32_CAST(arg->i_rsp_fnc));
-       ncs_enc_claim_space(uba,sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns64));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_64bit(&stream,(long)arg->i_rsp_fnc);
-       ncs_enc_claim_space(uba,sizeof(uns64));
-   }
+	if (msg_fmt_ver == 1) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_32bit(&stream, arg->i_mib_key);
+		ncs_enc_claim_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns64));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_64bit(&stream, arg->i_mib_key);
+		ncs_enc_claim_space(uba, sizeof(uns64));
+	}
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_32bit(&stream,arg->i_mib_key);
-       ncs_enc_claim_space(uba, sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns64));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_64bit(&stream,arg->i_mib_key);
-       ncs_enc_claim_space(uba, sizeof(uns64));
-   }
+	if (msg_fmt_ver == 1) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_32bit(&stream, arg->i_usr_key);
+		ncs_enc_claim_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_enc_reserve_space(uba, sizeof(uns64));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_64bit(&stream, arg->i_usr_key);
+		ncs_enc_claim_space(uba, sizeof(uns64));
+	}
 
+	stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_32bit(&stream, arg->i_idx.i_inst_len);
+	ncs_enc_claim_space(uba, sizeof(uns32));
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_32bit(&stream,arg->i_usr_key);
-       ncs_enc_claim_space(uba, sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_enc_reserve_space(uba,sizeof(uns64));
-       if (stream == NULL)
-          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-       ncs_encode_64bit(&stream,arg->i_usr_key);
-       ncs_enc_claim_space(uba, sizeof(uns64));
-   }
+	if (ncsmib_inst_encode(arg->i_idx.i_inst_ids, arg->i_idx.i_inst_len, uba) != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream,arg->i_idx.i_inst_len);
-   ncs_enc_claim_space(uba,sizeof(uns32));
+	stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+	if (stream == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	ncs_encode_32bit(&stream, arg->i_policy);
+	ncs_enc_claim_space(uba, sizeof(uns32));
 
-   if (ncsmib_inst_encode(arg->i_idx.i_inst_ids,arg->i_idx.i_inst_len,uba) != NCSCC_RC_SUCCESS)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (ncsstack_encode(&(arg->stack), uba) != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   stream = ncs_enc_reserve_space(uba, sizeof(uns32));
-   if (stream == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   ncs_encode_32bit(&stream, arg->i_policy);
-   ncs_enc_claim_space(uba,sizeof(uns32));
-      
-   if (ncsstack_encode(&(arg->stack),uba) != NCSCC_RC_SUCCESS)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (m_NCSMIB_ISIT_A_REQ(arg->i_op)) {	/* if request op. */
+		if (NCSCC_RC_SUCCESS != ncsmib_req_encode(arg->i_op, &arg->req, uba))
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	} else if (m_NCSMIB_ISIT_A_RSP(arg->i_op)) {	/* if response op. */
+		if (NCSCC_RC_SUCCESS != ncsmib_rsp_encode(arg->i_op, &arg->rsp, uba, msg_fmt_ver))
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	} else {
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   if (m_NCSMIB_ISIT_A_REQ(arg->i_op)) /* if request op. */
-   {
-      if (NCSCC_RC_SUCCESS != ncsmib_req_encode(arg->i_op, &arg->req, uba))
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   else if (m_NCSMIB_ISIT_A_RSP(arg->i_op)) /* if response op. */
-   {
-      if (NCSCC_RC_SUCCESS != ncsmib_rsp_encode(arg->i_op, &arg->rsp, uba, msg_fmt_ver))
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   else
-   {
-        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -222,122 +203,118 @@ uns32 ncsmib_encode(NCSMIB_ARG*    arg, NCS_UBAID*     uba, uns16  msg_fmt_ver)
 
 *****************************************************************************/
 
-uns32   ncsmib_req_encode( NCSMIB_OP     op,
-                          NCSMIB_REQ*   req,
-                          NCS_UBAID*    uba)
+uns32 ncsmib_req_encode(NCSMIB_OP op, NCSMIB_REQ *req, NCS_UBAID *uba)
 {
-   uns8* stream = NULL;
+	uns8 *stream = NULL;
 
-   if ((NULL == req) || (NULL == uba))
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((NULL == req) || (NULL == uba))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   if (m_NCSMIB_ISIT_A_RSP(op))
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (m_NCSMIB_ISIT_A_RSP(op))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   switch (op)
-   {
-      case NCSMIB_OP_REQ_GET  :
-      case NCSMIB_OP_REQ_GET_INFO:
-      case NCSMIB_OP_REQ_NEXT :
+	switch (op) {
+	case NCSMIB_OP_REQ_GET:
+	case NCSMIB_OP_REQ_GET_INFO:
+	case NCSMIB_OP_REQ_NEXT:
 
-         stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-         if (stream == NULL)
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         ncs_encode_32bit(&stream,req->info.get_req.i_param_id);
-         ncs_enc_claim_space(uba,sizeof(uns32));
+		stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+		if (stream == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		ncs_encode_32bit(&stream, req->info.get_req.i_param_id);
+		ncs_enc_claim_space(uba, sizeof(uns32));
 
-         break;
+		break;
 
-      case NCSMIB_OP_REQ_SET  :
-      case NCSMIB_OP_REQ_TEST :
+	case NCSMIB_OP_REQ_SET:
+	case NCSMIB_OP_REQ_TEST:
 
-         if (ncsmib_param_val_encode(&(req->info.set_req.i_param_val), uba) != NCSCC_RC_SUCCESS)
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		if (ncsmib_param_val_encode(&(req->info.set_req.i_param_val), uba) != NCSCC_RC_SUCCESS)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-         break;
+		break;
 
-      case NCSMIB_OP_REQ_GETROW  :
-      case NCSMIB_OP_REQ_NEXTROW :
+	case NCSMIB_OP_REQ_GETROW:
+	case NCSMIB_OP_REQ_NEXTROW:
 
-         break;
+		break;
 
-      case NCSMIB_OP_REQ_TESTROW :
-      case NCSMIB_OP_REQ_SETROW  :
-      case NCSMIB_OP_REQ_SETALLROWS:
-      case NCSMIB_OP_REQ_REMOVEROWS:
-         {
-            NCSMIB_SETROW_REQ* sr_req = &req->info.setrow_req;
-            uns32 ubsize = m_MMGR_LINK_DATA_LEN(sr_req->i_usrbuf);
+	case NCSMIB_OP_REQ_TESTROW:
+	case NCSMIB_OP_REQ_SETROW:
+	case NCSMIB_OP_REQ_SETALLROWS:
+	case NCSMIB_OP_REQ_REMOVEROWS:
+		{
+			NCSMIB_SETROW_REQ *sr_req = &req->info.setrow_req;
+			uns32 ubsize = m_MMGR_LINK_DATA_LEN(sr_req->i_usrbuf);
 
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_encode_32bit(&stream,ubsize);
-            ncs_enc_claim_space(uba,sizeof(uns32));
+			stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_encode_32bit(&stream, ubsize);
+			ncs_enc_claim_space(uba, sizeof(uns32));
 
-            ncs_enc_append_usrbuf(uba,m_MMGR_DITTO_BUFR(sr_req->i_usrbuf));
-         }
+			ncs_enc_append_usrbuf(uba, m_MMGR_DITTO_BUFR(sr_req->i_usrbuf));
+		}
 
-         break;
+		break;
 
-      case NCSMIB_OP_REQ_MOVEROW :
-        {
-            NCSMIB_MOVEROW_REQ* mr_req = &req->info.moverow_req;
-            uns32 ubsize = m_MMGR_LINK_DATA_LEN(mr_req->i_usrbuf);
+	case NCSMIB_OP_REQ_MOVEROW:
+		{
+			NCSMIB_MOVEROW_REQ *mr_req = &req->info.moverow_req;
+			uns32 ubsize = m_MMGR_LINK_DATA_LEN(mr_req->i_usrbuf);
 
-            stream = ncs_enc_reserve_space(uba,sizeof(MDS_DEST));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            mds_st_encode_mds_dest(&stream,&mr_req->i_move_to);
-            ncs_enc_claim_space(uba,sizeof(MDS_DEST));
+			stream = ncs_enc_reserve_space(uba, sizeof(MDS_DEST));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			mds_st_encode_mds_dest(&stream, &mr_req->i_move_to);
+			ncs_enc_claim_space(uba, sizeof(MDS_DEST));
 
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_encode_32bit(&stream,ubsize);
-            ncs_enc_claim_space(uba,sizeof(uns32));
+			stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_encode_32bit(&stream, ubsize);
+			ncs_enc_claim_space(uba, sizeof(uns32));
 
-            ncs_enc_append_usrbuf(uba,m_MMGR_DITTO_BUFR(mr_req->i_usrbuf));
-        }
+			ncs_enc_append_usrbuf(uba, m_MMGR_DITTO_BUFR(mr_req->i_usrbuf));
+		}
 
-        break;
+		break;
 
-      case NCSMIB_OP_REQ_CLI :
-         {
-            NCSMIB_CLI_REQ *cli_req = &req->info.cli_req;
-            uns32 ubsize = m_MMGR_LINK_DATA_LEN(cli_req->i_usrbuf);
+	case NCSMIB_OP_REQ_CLI:
+		{
+			NCSMIB_CLI_REQ *cli_req = &req->info.cli_req;
+			uns32 ubsize = m_MMGR_LINK_DATA_LEN(cli_req->i_usrbuf);
 
-           /* Encode i_cmnd_id */
-            stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_encode_16bit(&stream,cli_req->i_cmnd_id);
-            ncs_enc_claim_space(uba,sizeof(uns16));
+			/* Encode i_cmnd_id */
+			stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_encode_16bit(&stream, cli_req->i_cmnd_id);
+			ncs_enc_claim_space(uba, sizeof(uns16));
 
-           /* Encode i_cmnd_id */
-            stream = ncs_enc_reserve_space(uba,sizeof(uns16));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_encode_16bit(&stream,cli_req->i_wild_card);
-            ncs_enc_claim_space(uba,sizeof(uns16));
+			/* Encode i_cmnd_id */
+			stream = ncs_enc_reserve_space(uba, sizeof(uns16));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_encode_16bit(&stream, cli_req->i_wild_card);
+			ncs_enc_claim_space(uba, sizeof(uns16));
 
-            stream = ncs_enc_reserve_space(uba,sizeof(uns32));
-            if (stream == NULL)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_encode_32bit(&stream,ubsize);
-            ncs_enc_claim_space(uba,sizeof(uns32));
+			stream = ncs_enc_reserve_space(uba, sizeof(uns32));
+			if (stream == NULL)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_encode_32bit(&stream, ubsize);
+			ncs_enc_claim_space(uba, sizeof(uns32));
 
-            ncs_enc_append_usrbuf(uba,m_MMGR_DITTO_BUFR(cli_req->i_usrbuf));
-         }
-         break;
+			ncs_enc_append_usrbuf(uba, m_MMGR_DITTO_BUFR(cli_req->i_usrbuf));
+		}
+		break;
 
-      default:
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
+	default:
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -352,140 +329,136 @@ uns32   ncsmib_req_encode( NCSMIB_OP     op,
 
 *****************************************************************************/
 
-uns32 ncsmib_req_decode( NCSMIB_OP     op,
-                        NCSMIB_REQ*   req,
-                        NCS_UBAID*    uba)
+uns32 ncsmib_req_decode(NCSMIB_OP op, NCSMIB_REQ *req, NCS_UBAID *uba)
 {
-   uns8*      stream;
-   uns8       space[20];
+	uns8 *stream;
+	uns8 space[20];
 
-   if ((NULL == req) || (NULL == uba))
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((NULL == req) || (NULL == uba))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   if (m_NCSMIB_ISIT_A_RSP(op))
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (m_NCSMIB_ISIT_A_RSP(op))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-   switch (op)
-   {
-      case NCSMIB_OP_REQ_GET  :
-      case NCSMIB_OP_REQ_GET_INFO  :
-      case NCSMIB_OP_REQ_NEXT :
-         {
-            NCSMIB_GET_REQ* get_req = &req->info.get_req;
+	switch (op) {
+	case NCSMIB_OP_REQ_GET:
+	case NCSMIB_OP_REQ_GET_INFO:
+	case NCSMIB_OP_REQ_NEXT:
+		{
+			NCSMIB_GET_REQ *get_req = &req->info.get_req;
 
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            get_req->i_param_id = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+			get_req->i_param_id = ncs_decode_32bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns32));
 
-            break;
-         }
+			break;
+		}
 
-      case NCSMIB_OP_REQ_SET  :
-      case NCSMIB_OP_REQ_TEST :
-         {
-            NCSMIB_SET_REQ* set_req = &req->info.set_req;
+	case NCSMIB_OP_REQ_SET:
+	case NCSMIB_OP_REQ_TEST:
+		{
+			NCSMIB_SET_REQ *set_req = &req->info.set_req;
 
-            if (ncsmib_param_val_decode(&(set_req->i_param_val),NULL,uba) != NCSCC_RC_SUCCESS)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			if (ncsmib_param_val_decode(&(set_req->i_param_val), NULL, uba) != NCSCC_RC_SUCCESS)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-            break;
-         }
+			break;
+		}
 
-      case NCSMIB_OP_REQ_GETROW  :
-      case NCSMIB_OP_REQ_NEXTROW :
-         /* nothing ... */
-         break;
+	case NCSMIB_OP_REQ_GETROW:
+	case NCSMIB_OP_REQ_NEXTROW:
+		/* nothing ... */
+		break;
 
-      case NCSMIB_OP_REQ_TESTROW:
-      case NCSMIB_OP_REQ_SETROW:
-      case NCSMIB_OP_REQ_SETALLROWS:
-      case NCSMIB_OP_REQ_REMOVEROWS:
-         {
-            uns32 ubsize;
-            uns32 cpy_size;
-            NCSMIB_SETROW_REQ* sr_req = &req->info.setrow_req;
+	case NCSMIB_OP_REQ_TESTROW:
+	case NCSMIB_OP_REQ_SETROW:
+	case NCSMIB_OP_REQ_SETALLROWS:
+	case NCSMIB_OP_REQ_REMOVEROWS:
+		{
+			uns32 ubsize;
+			uns32 cpy_size;
+			NCSMIB_SETROW_REQ *sr_req = &req->info.setrow_req;
 
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            ubsize = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+			ubsize = ncs_decode_32bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns32));
 
-            /* KCQ: because the usrbuf is the last thing in the uba,
-                    we just copy whatever's left...
-            */
-            sr_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
-            cpy_size = m_MMGR_LINK_DATA_LEN(sr_req->i_usrbuf);
-            if (cpy_size != ubsize)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_dec_skip_space(uba,cpy_size);
+			/* KCQ: because the usrbuf is the last thing in the uba,
+			   we just copy whatever's left...
+			 */
+			sr_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
+			cpy_size = m_MMGR_LINK_DATA_LEN(sr_req->i_usrbuf);
+			if (cpy_size != ubsize)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_dec_skip_space(uba, cpy_size);
 
-            break;
-         }
+			break;
+		}
 
-      case NCSMIB_OP_REQ_MOVEROW:
-         {
-           uns32 ubsize;
-           uns32 cpy_size;
-           NCSMIB_MOVEROW_REQ* mr_req = &req->info.moverow_req;
+	case NCSMIB_OP_REQ_MOVEROW:
+		{
+			uns32 ubsize;
+			uns32 cpy_size;
+			NCSMIB_MOVEROW_REQ *mr_req = &req->info.moverow_req;
 
-           stream = ncs_dec_flatten_space(uba,space,sizeof(MDS_DEST));
-           mds_st_decode_mds_dest(&stream, &mr_req->i_move_to);
-           ncs_dec_skip_space(uba,sizeof(MDS_DEST));
+			stream = ncs_dec_flatten_space(uba, space, sizeof(MDS_DEST));
+			mds_st_decode_mds_dest(&stream, &mr_req->i_move_to);
+			ncs_dec_skip_space(uba, sizeof(MDS_DEST));
 
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            ubsize = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+			ubsize = ncs_decode_32bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns32));
 
-            /* KCQ: because the usrbuf is the last thing in the uba,
-                    we just copy whatever's left...
-            */
-            mr_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
-            cpy_size = m_MMGR_LINK_DATA_LEN(mr_req->i_usrbuf);
-            if (cpy_size != ubsize)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_dec_skip_space(uba,cpy_size);
+			/* KCQ: because the usrbuf is the last thing in the uba,
+			   we just copy whatever's left...
+			 */
+			mr_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
+			cpy_size = m_MMGR_LINK_DATA_LEN(mr_req->i_usrbuf);
+			if (cpy_size != ubsize)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_dec_skip_space(uba, cpy_size);
 
-            break;
-         }
+			break;
+		}
 
-      case NCSMIB_OP_REQ_CLI:
-         {
-            uns32 ubsize;
-            uns32 cpy_size;
-            NCSMIB_CLI_REQ* cli_req = &req->info.cli_req;
+	case NCSMIB_OP_REQ_CLI:
+		{
+			uns32 ubsize;
+			uns32 cpy_size;
+			NCSMIB_CLI_REQ *cli_req = &req->info.cli_req;
 
-            /* Get i_cmnd_id */
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-            cli_req->i_cmnd_id = ncs_decode_16bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns16));
+			/* Get i_cmnd_id */
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+			cli_req->i_cmnd_id = ncs_decode_16bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns16));
 
-            /* Get i_wild_card */
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-            cli_req->i_wild_card = ncs_decode_16bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns16));
+			/* Get i_wild_card */
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+			cli_req->i_wild_card = ncs_decode_16bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns16));
 
-            stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-            ubsize = ncs_decode_32bit(&stream);
-            ncs_dec_skip_space(uba,sizeof(uns32));
+			stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+			ubsize = ncs_decode_32bit(&stream);
+			ncs_dec_skip_space(uba, sizeof(uns32));
 
-            /* KCQ: because the usrbuf is the last thing in the uba,
-                    we just copy whatever's left...
-            */
-            cli_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
-            cpy_size = m_MMGR_LINK_DATA_LEN(cli_req->i_usrbuf);
-            if (cpy_size != ubsize)
-               return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            ncs_dec_skip_space(uba,cpy_size);
+			/* KCQ: because the usrbuf is the last thing in the uba,
+			   we just copy whatever's left...
+			 */
+			cli_req->i_usrbuf = m_MMGR_COPY_BUFR(uba->ub);
+			cpy_size = m_MMGR_LINK_DATA_LEN(cli_req->i_usrbuf);
+			if (cpy_size != ubsize)
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			ncs_dec_skip_space(uba, cpy_size);
 
-            break;
-         }
+			break;
+		}
 
-      default:
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   };
+	default:
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	};
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -500,118 +473,101 @@ uns32 ncsmib_req_decode( NCSMIB_OP     op,
 
 *****************************************************************************/
 
-NCSMIB_ARG* ncsmib_decode( NCS_UBAID*    uba, uns16 msg_fmt_ver)
+NCSMIB_ARG *ncsmib_decode(NCS_UBAID *uba, uns16 msg_fmt_ver)
 {
-   NCSMIB_ARG* new_arg;
-   uns8*      stream;
-   uns8       space[sizeof(NCS_KEY)]; 
-   uns32      status = NCSCC_RC_SUCCESS;
+	NCSMIB_ARG *new_arg;
+	uns8 *stream;
+	uns8 space[sizeof(NCS_KEY)];
+	uns32 status = NCSCC_RC_SUCCESS;
 
-   if (uba == NULL)
-   {
-      m_LEAP_DBG_SINK(0);
-      return NULL;
-   }
+	if (uba == NULL) {
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
+	if ((new_arg = m_MMGR_ALLOC_NCSMIB_ARG) == NULL) {
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
-   if ((new_arg = m_MMGR_ALLOC_NCSMIB_ARG) == NULL)
-   {
-      m_LEAP_DBG_SINK(0);
-      return NULL;
-   }
+	memset(new_arg, 0, sizeof(NCSMIB_ARG));
 
-   memset(new_arg,0,sizeof(NCSMIB_ARG));
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns16));
+	new_arg->i_op = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns16));
 
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns16));
-   new_arg->i_op = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns16));
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+	new_arg->i_tbl_id = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns32));
 
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_tbl_id = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+	new_arg->i_xch_id = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns32));
 
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_xch_id = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
+	if (msg_fmt_ver == 1) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+		new_arg->i_rsp_fnc = (NCSMIB_RSP_FNC)NCS_INT32_TO_PTR_CAST(ncs_decode_32bit(&stream));
+		ncs_dec_skip_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns64));
+		new_arg->i_rsp_fnc = (NCSMIB_RSP_FNC)(long)ncs_decode_64bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns64));
+	}
 
+	if (msg_fmt_ver == 1) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+		new_arg->i_mib_key = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns64));
+		new_arg->i_mib_key = ncs_decode_64bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns64));
+	}
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-       new_arg->i_rsp_fnc = (NCSMIB_RSP_FNC)NCS_INT32_TO_PTR_CAST(ncs_decode_32bit(&stream));
-       ncs_dec_skip_space(uba,sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns64));
-       new_arg->i_rsp_fnc = (NCSMIB_RSP_FNC)(long)ncs_decode_64bit(&stream);
-       ncs_dec_skip_space(uba,sizeof(uns64));
-   }
+	if (msg_fmt_ver == 1) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+		new_arg->i_usr_key = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns32));
+	} else if (msg_fmt_ver == 2) {
+		stream = ncs_dec_flatten_space(uba, space, sizeof(uns64));
+		new_arg->i_usr_key = ncs_decode_64bit(&stream);
+		ncs_dec_skip_space(uba, sizeof(uns64));
+	}
 
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+	new_arg->i_idx.i_inst_len = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns32));
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-       new_arg->i_mib_key = ncs_decode_32bit(&stream);
-       ncs_dec_skip_space(uba,sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns64));
-       new_arg->i_mib_key = ncs_decode_64bit(&stream);
-       ncs_dec_skip_space(uba,sizeof(uns64));
-   }
+	if (ncsmib_inst_decode((uns32 **)&new_arg->i_idx.i_inst_ids, new_arg->i_idx.i_inst_len, uba) !=
+	    NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_NCSMIB_ARG(new_arg);
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
+	stream = ncs_dec_flatten_space(uba, space, sizeof(uns32));
+	new_arg->i_policy = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(uba, sizeof(uns32));
 
-   if(msg_fmt_ver == 1)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-       new_arg->i_usr_key = ncs_decode_32bit(&stream);
-       ncs_dec_skip_space(uba,sizeof(uns32));
-   }
-   else if(msg_fmt_ver == 2)
-   {
-       stream = ncs_dec_flatten_space(uba,space,sizeof(uns64));
-       new_arg->i_usr_key = ncs_decode_64bit(&stream);
-       ncs_dec_skip_space(uba,sizeof(uns64));
-   }
+	if (ncsstack_decode(&(new_arg->stack), uba) != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_NCSMIB_ARG(new_arg);
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_idx.i_inst_len = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
+	/* Request and Response Ops. */
+	if (m_NCSMIB_ISIT_A_REQ(new_arg->i_op))
+		status = ncsmib_req_decode(new_arg->i_op, &new_arg->req, uba);
+	else if (m_NCSMIB_ISIT_A_RSP(new_arg->i_op))
+		status = ncsmib_rsp_decode(new_arg->i_op, &new_arg->rsp, uba, msg_fmt_ver);
+	else
+		status = NCSCC_RC_FAILURE;
 
-   if (ncsmib_inst_decode((uns32**)&new_arg->i_idx.i_inst_ids,new_arg->i_idx.i_inst_len,uba) != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_NCSMIB_ARG(new_arg);
-      m_LEAP_DBG_SINK(0);
-      return NULL;
-   }
+	if (NCSCC_RC_SUCCESS != status) {
+		m_MMGR_FREE_NCSMIB_ARG(new_arg);
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
-   stream = ncs_dec_flatten_space(uba,space,sizeof(uns32));
-   new_arg->i_policy = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(uba,sizeof(uns32));
-
-   if (ncsstack_decode(&(new_arg->stack),uba) != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_NCSMIB_ARG(new_arg);
-      m_LEAP_DBG_SINK(0);
-      return NULL;
-   }
-
-   /* Request and Response Ops. */
-   if (m_NCSMIB_ISIT_A_REQ(new_arg->i_op))
-      status = ncsmib_req_decode(new_arg->i_op, &new_arg->req, uba);
-   else if (m_NCSMIB_ISIT_A_RSP(new_arg->i_op))
-      status = ncsmib_rsp_decode(new_arg->i_op, &new_arg->rsp, uba, msg_fmt_ver);
-   else
-      status = NCSCC_RC_FAILURE;
-
-   if (NCSCC_RC_SUCCESS != status)
-   {
-      m_MMGR_FREE_NCSMIB_ARG(new_arg);
-      m_LEAP_DBG_SINK(0);
-      return NULL;
-   }
-
-   return new_arg;
+	return new_arg;
 }

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,7 +29,6 @@
 
 #ifndef AVND_MDS_H
 #define AVND_MDS_H
-
 
 #define AVND_AVD_SUBPART_VER_MIN   1
 #define AVND_AVD_SUBPART_VER_MAX   2
@@ -46,38 +43,34 @@
 #define AVND_CLA_SUBPART_VER_MAX   1
 
 /* timer type enums */
-typedef enum avnd_msg_type
-{
-   AVND_MSG_AVD = 1,
-   AVND_MSG_AVA,
-   AVND_MSG_CLA,
-   AVND_MSG_AVND,
-   AVND_MSG_MAX
+typedef enum avnd_msg_type {
+	AVND_MSG_AVD = 1,
+	AVND_MSG_AVA,
+	AVND_MSG_CLA,
+	AVND_MSG_AVND,
+	AVND_MSG_MAX
 } AVND_MSG_TYPE;
 
-typedef struct avnd_msg
-{
-   AVND_MSG_TYPE  type;
-   union {
-      AVSV_DND_MSG          *avd;  /* AvD message */
-      AVSV_ND2ND_AVND_MSG   *avnd; /* AvND message */
-      AVSV_NDA_AVA_MSG      *ava;  /* AvA message */
-      AVSV_NDA_CLA_MSG      *cla;  /* CLA message */
-   } info;
+typedef struct avnd_msg {
+	AVND_MSG_TYPE type;
+	union {
+		AVSV_DND_MSG *avd;	/* AvD message */
+		AVSV_ND2ND_AVND_MSG *avnd;	/* AvND message */
+		AVSV_NDA_AVA_MSG *ava;	/* AvA message */
+		AVSV_NDA_CLA_MSG *cla;	/* CLA message */
+	} info;
 } AVND_MSG;
 
-
-typedef struct avnd_dnd_msg_list_tag
-{
-   AVND_MSG msg;
-   AVND_TMR resp_tmr;
-   uns32    opq_hdl;
-   struct avnd_dnd_msg_list_tag *next;
+typedef struct avnd_dnd_msg_list_tag {
+	AVND_MSG msg;
+	AVND_TMR resp_tmr;
+	uns32 opq_hdl;
+	struct avnd_dnd_msg_list_tag *next;
 } AVND_DND_MSG_LIST;
 
 typedef struct avnd_dnd_list_tag {
-   AVND_DND_MSG_LIST  *head;
-   AVND_DND_MSG_LIST  *tail;
+	AVND_DND_MSG_LIST *head;
+	AVND_DND_MSG_LIST *tail;
 } AVND_DND_LIST;
 
 /*****************************************************************************
@@ -131,24 +124,21 @@ typedef struct avnd_dnd_list_tag {
    (m).param.unreg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
 }
 
-
 /*** Extern function declarations ***/
 
 struct avnd_cb_tag;
 
+EXTERN_C uns32 avnd_mds_reg(struct avnd_cb_tag *);
 
-EXTERN_C uns32 avnd_mds_reg (struct avnd_cb_tag *);
+EXTERN_C uns32 avnd_mds_unreg(struct avnd_cb_tag *);
 
-EXTERN_C uns32 avnd_mds_unreg (struct avnd_cb_tag *);
+EXTERN_C uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info);
 
-EXTERN_C uns32 avnd_mds_cbk (NCSMDS_CALLBACK_INFO *info);
+EXTERN_C uns32 avnd_mds_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_SYNC_SND_CTXT *);
 
-EXTERN_C uns32 avnd_mds_send (struct avnd_cb_tag *, AVND_MSG *, 
-                              MDS_DEST *, MDS_SYNC_SND_CTXT *);
-                     
-EXTERN_C uns32 avnd_mds_red_send (struct avnd_cb_tag *, AVND_MSG *, 
-                              MDS_DEST *, MDS_DEST *);
-EXTERN_C uns32 avnd_avnd_mds_send (struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
-EXTERN_C uns32 avnd_mds_vdest_reg (struct avnd_cb_tag *cb);
-EXTERN_C uns32 avnd_mds_set_vdest_role (struct avnd_cb_tag *cb, SaAmfHAStateT role);
-#endif /* !AVND_MDS_H */
+EXTERN_C uns32 avnd_mds_red_send(struct avnd_cb_tag *, AVND_MSG *, MDS_DEST *, MDS_DEST *);
+EXTERN_C uns32 avnd_avnd_mds_send(struct avnd_cb_tag *, MDS_DEST, AVND_MSG *);
+EXTERN_C uns32 avnd_mds_vdest_reg(struct avnd_cb_tag *cb);
+EXTERN_C uns32 avnd_mds_set_vdest_role(struct avnd_cb_tag *cb, SaAmfHAStateT role);
+
+#endif   /* !AVND_MDS_H */

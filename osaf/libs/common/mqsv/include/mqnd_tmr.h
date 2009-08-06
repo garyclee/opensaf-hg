@@ -15,30 +15,27 @@
  *
  */
 
-
 #ifndef MQND_TMR_H
 #define MQND_TMR_H
 #define MQND_MQA_EXPIRY_TIMER 10
-#define MQND_QTRANSFER_REQ_TIMER 999  /*  999 Ten milli seconds = 9.99 sec because timer at mqa is 10 sec*/
-typedef enum mqndq_tmr_type
-{
-   MQND_TMR_TYPE_RETENTION=1,
-   MQND_TMR_TYPE_MQA_EXPIRY, 
-   MQND_TMR_TYPE_NODE1_QTRANSFER,
-   MQND_TMR_TYPE_NODE2_QTRANSFER,
-   MQND_TMR_TYPE_MAX = MQND_TMR_TYPE_MQA_EXPIRY
-}MQND_TMR_TYPE;
+#define MQND_QTRANSFER_REQ_TIMER 999	/*  999 Ten milli seconds = 9.99 sec because timer at mqa is 10 sec */
+typedef enum mqndq_tmr_type {
+	MQND_TMR_TYPE_RETENTION = 1,
+	MQND_TMR_TYPE_MQA_EXPIRY,
+	MQND_TMR_TYPE_NODE1_QTRANSFER,
+	MQND_TMR_TYPE_NODE2_QTRANSFER,
+	MQND_TMR_TYPE_MAX = MQND_TMR_TYPE_MQA_EXPIRY
+} MQND_TMR_TYPE;
 
-typedef struct mqnd_tmr
-{
-   MQND_TMR_TYPE  type;  
-   tmr_t          tmr_id;     
-   SaMsgQueueHandleT qhdl;
-   uns32          uarg;
-   NCS_BOOL       is_active;
-}MQND_TMR;
+typedef struct mqnd_tmr {
+	MQND_TMR_TYPE type;
+	tmr_t tmr_id;
+	SaMsgQueueHandleT qhdl;
+	uns32 uarg;
+	NCS_BOOL is_active;
+} MQND_TMR;
 
-EXTERN_C uns32 mqnd_tmr_start (MQND_TMR *tmr, SaTimeT duration);
-EXTERN_C void mqnd_tmr_stop (MQND_TMR *tmr);
+EXTERN_C uns32 mqnd_tmr_start(MQND_TMR *tmr, SaTimeT duration);
+EXTERN_C void mqnd_tmr_stop(MQND_TMR *tmr);
 
 #endif

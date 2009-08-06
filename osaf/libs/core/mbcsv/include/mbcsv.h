@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: The master include for all DTS and user *.C files.
@@ -42,11 +40,9 @@
 
 #include "gl_defs.h"
 
-
 /* Get target's suite of header files...*/
 
 #include "t_suite.h"
-
 
 /* From /base/common/inc */
 
@@ -96,4 +92,3 @@ typedef uns64 MBCSV_ANCHOR;
 #include "mbcsv_dl_api.h"
 
 #endif
-

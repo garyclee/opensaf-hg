@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,10 +30,9 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef CPND_DL_API_H
 #define CPND_DL_API_H
 
 EXTERN_C CPNDDLL_API uns32 cpnd_lib_req(NCS_LIB_REQ_INFO *);
 
-#endif /* CPD_PAPI_H */
+#endif   /* CPD_PAPI_H */

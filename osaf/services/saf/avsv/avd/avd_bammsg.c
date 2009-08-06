@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module does the send and receive of messages between 
@@ -40,8 +38,6 @@
 
 #include "avd.h"
 
-
-
 /****************************************************************************
   Name          : avd_bam_snd_message
  
@@ -56,30 +52,28 @@
 ******************************************************************************/
 static uns32 avd_bam_snd_message(AVD_CL_CB *cb, AVD_BAM_MSG *snd_msg)
 {
-   NCSMDS_INFO snd_mds;
-   uns32 rc;
+	NCSMDS_INFO snd_mds;
+	uns32 rc;
 
-   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 
-   snd_mds.i_mds_hdl = cb->vaddr_pwe_hdl;
-   snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
-   snd_mds.i_op = MDS_SEND;
-   snd_mds.info.svc_send.i_msg = (NCSCONTEXT)snd_msg;
-   snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_BAM;
-   snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
-   snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
-   snd_mds.info.svc_send.info.snd.i_to_dest = cb->bam_mds_dest;
+	snd_mds.i_mds_hdl = cb->vaddr_pwe_hdl;
+	snd_mds.i_svc_id = NCSMDS_SVC_ID_AVD;
+	snd_mds.i_op = MDS_SEND;
+	snd_mds.info.svc_send.i_msg = (NCSCONTEXT)snd_msg;
+	snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_BAM;
+	snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+	snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+	snd_mds.info.svc_send.info.snd.i_to_dest = cb->bam_mds_dest;
 
-   if( (rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS)
-   {
-      m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND);
-      return rc;
-   }
+	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
+		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND);
+		return rc;
+	}
 
-   m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_SEND);
-   return NCSCC_RC_SUCCESS;
+	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_SEND);
+	return NCSCC_RC_SUCCESS;
 }
-   
 
 /****************************************************************************
 *  Name          : avd_bam_snd_restart
@@ -95,19 +89,19 @@ static uns32 avd_bam_snd_message(AVD_CL_CB *cb, AVD_BAM_MSG *snd_msg)
 ******************************************************************************/
 uns32 avd_bam_snd_restart(AVD_CL_CB *cb)
 {
-   AVD_BAM_MSG *snd_msg = m_MMGR_ALLOC_AVD_BAM_MSG;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVD_BAM_MSG *snd_msg = m_MMGR_ALLOC_AVD_BAM_MSG;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Fill in the message */
-   memset(snd_msg,'\0',sizeof(AVD_BAM_MSG));
-   snd_msg->msg_type = AVD_BAM_MSG_RESTART;
-   
-   rc = avd_bam_snd_message(cb, snd_msg);
+	/* Fill in the message */
+	memset(snd_msg, '\0', sizeof(AVD_BAM_MSG));
+	snd_msg->msg_type = AVD_BAM_MSG_RESTART;
 
-   if(rc != NCSCC_RC_SUCCESS)
-      avsv_bam_msg_free(snd_msg);
+	rc = avd_bam_snd_message(cb, snd_msg);
 
-   return rc;
+	if (rc != NCSCC_RC_SUCCESS)
+		avsv_bam_msg_free(snd_msg);
+
+	return rc;
 }
 
 /****************************************************************************
@@ -124,10 +118,9 @@ uns32 avd_bam_snd_restart(AVD_CL_CB *cb)
 ******************************************************************************/
 uns32 avd_bam_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 {
-   AVD_BAM_MSG *msg = cpy_info->i_msg;
+	AVD_BAM_MSG *msg = cpy_info->i_msg;
 
-   cpy_info->o_cpy = (NCSCONTEXT)msg;
-   cpy_info->i_msg = 0; /* memory is not allocated and hence this */
-   return NCSCC_RC_SUCCESS;
+	cpy_info->o_cpy = (NCSCONTEXT)msg;
+	cpy_info->i_msg = 0;	/* memory is not allocated and hence this */
+	return NCSCC_RC_SUCCESS;
 }
-

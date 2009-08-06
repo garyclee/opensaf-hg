@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: GLND_RES_REQ.C
 
@@ -26,12 +25,9 @@
   glnd_resource_req_node_find -     To Find the resource request node from the list.
   glnd_resource_req_node_del  -     To delete the node from the resource request list.
 
-
-
 ******************************************************************************/
 
 #include "glnd.h"
-
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_resource_req_node_add
@@ -46,68 +42,56 @@
 
   NOTES         : None
 *****************************************************************************/
-GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb, 
-                                                   GLSV_EVT_RSC_INFO  *rsc_info,
-                                                   MDS_SYNC_SND_CTXT  *mds_ctxt,
-                                                   SaLckResourceIdT   lcl_resource_id)
+GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
+						   GLSV_EVT_RSC_INFO *rsc_info,
+						   MDS_SYNC_SND_CTXT *mds_ctxt, SaLckResourceIdT lcl_resource_id)
 {
 
-   GLND_RESOURCE_REQ_LIST  *res_req_info;
+	GLND_RESOURCE_REQ_LIST *res_req_info;
 
-   res_req_info = (GLND_RESOURCE_REQ_LIST *)m_MMGR_ALLOC_GLND_RESOURCE_REQ_LIST;
-   
-   if(!res_req_info)
-   {
-      m_LOG_GLND_MEMFAIL(GLND_RSC_REQ_LIST_ALLOC_FAILED);
-      return NULL;
-   }
-   
-   memset(res_req_info,0,sizeof(GLND_RESOURCE_REQ_LIST));
-   res_req_info->res_req_hdl_id = ncshm_create_hdl((uns8)glnd_cb->pool_id,
-                                                   NCS_SERVICE_ID_GLND,(NCSCONTEXT)res_req_info);
-   if(!res_req_info->res_req_hdl_id)
-   {          
-      m_LOG_GLND_HEADLINE(GLND_RSC_REQ_CREATE_HANDLE_FAILED,NCSFL_SEV_ERROR);
-      m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
-     return NULL;           
-   }         
-   memcpy(&res_req_info->resource_name,&rsc_info->resource_name,sizeof(SaNameT));
-   res_req_info->client_handle_id = rsc_info->client_handle_id;
-   res_req_info->invocation = rsc_info->invocation;
-   res_req_info->agent_mds_dest = rsc_info->agent_mds_dest;
-   res_req_info->call_type = rsc_info->call_type;
-   res_req_info->glnd_res_mds_ctxt = *mds_ctxt;
-   res_req_info->lcl_resource_id = lcl_resource_id;
+	res_req_info = (GLND_RESOURCE_REQ_LIST *)m_MMGR_ALLOC_GLND_RESOURCE_REQ_LIST;
 
-   /* add it to the list */
-   if(glnd_cb->res_req_list != NULL) 
-   {
-      res_req_info->next = glnd_cb->res_req_list;
-      glnd_cb->res_req_list->prev = res_req_info;
-      glnd_cb->res_req_list = res_req_info;
-   }
-   else
-   {
-      glnd_cb->res_req_list = res_req_info;
-   }
+	if (!res_req_info) {
+		m_LOG_GLND_MEMFAIL(GLND_RSC_REQ_LIST_ALLOC_FAILED);
+		return NULL;
+	}
 
-   /* start the timeout timer */
-   if(rsc_info->call_type == GLSV_SYNC_CALL)
-   {
-      glnd_start_tmr(glnd_cb,&res_req_info->timeout,
-         GLND_TMR_RES_REQ_TIMEOUT,
-         rsc_info->timeout,
-         (uns32)res_req_info->res_req_hdl_id);
-   }
-   else
-   {
-      glnd_start_tmr(glnd_cb,&res_req_info->timeout,
-         GLND_TMR_RES_REQ_TIMEOUT,
-         GLSV_LOCK_DEFAULT_TIMEOUT,
-         (uns32)res_req_info->res_req_hdl_id);
+	memset(res_req_info, 0, sizeof(GLND_RESOURCE_REQ_LIST));
+	res_req_info->res_req_hdl_id = ncshm_create_hdl((uns8)glnd_cb->pool_id,
+							NCS_SERVICE_ID_GLND, (NCSCONTEXT)res_req_info);
+	if (!res_req_info->res_req_hdl_id) {
+		m_LOG_GLND_HEADLINE(GLND_RSC_REQ_CREATE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
+		return NULL;
+	}
+	memcpy(&res_req_info->resource_name, &rsc_info->resource_name, sizeof(SaNameT));
+	res_req_info->client_handle_id = rsc_info->client_handle_id;
+	res_req_info->invocation = rsc_info->invocation;
+	res_req_info->agent_mds_dest = rsc_info->agent_mds_dest;
+	res_req_info->call_type = rsc_info->call_type;
+	res_req_info->glnd_res_mds_ctxt = *mds_ctxt;
+	res_req_info->lcl_resource_id = lcl_resource_id;
 
-   }
-   return res_req_info;
+	/* add it to the list */
+	if (glnd_cb->res_req_list != NULL) {
+		res_req_info->next = glnd_cb->res_req_list;
+		glnd_cb->res_req_list->prev = res_req_info;
+		glnd_cb->res_req_list = res_req_info;
+	} else {
+		glnd_cb->res_req_list = res_req_info;
+	}
+
+	/* start the timeout timer */
+	if (rsc_info->call_type == GLSV_SYNC_CALL) {
+		glnd_start_tmr(glnd_cb, &res_req_info->timeout,
+			       GLND_TMR_RES_REQ_TIMEOUT, rsc_info->timeout, (uns32)res_req_info->res_req_hdl_id);
+	} else {
+		glnd_start_tmr(glnd_cb, &res_req_info->timeout,
+			       GLND_TMR_RES_REQ_TIMEOUT,
+			       GLSV_LOCK_DEFAULT_TIMEOUT, (uns32)res_req_info->res_req_hdl_id);
+
+	}
+	return res_req_info;
 }
 
 /*****************************************************************************
@@ -123,20 +107,17 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_add(GLND_CB *glnd_cb,
 
   NOTES         : 
 *****************************************************************************/
-GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB       *glnd_cb,
-                                                    SaNameT       resource_name)
+GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB *glnd_cb, SaNameT resource_name)
 {
-   GLND_RESOURCE_REQ_LIST  *res_req_info;
+	GLND_RESOURCE_REQ_LIST *res_req_info;
 
-   /* find it from the list */
-   for(res_req_info = glnd_cb->res_req_list; res_req_info != NULL;res_req_info = res_req_info->next)
-   {
-      if(memcmp(&resource_name,&res_req_info->resource_name, sizeof(SaNameT)) == 0)
-      {
-         break;
-      }
-   }
-   return res_req_info;
+	/* find it from the list */
+	for (res_req_info = glnd_cb->res_req_list; res_req_info != NULL; res_req_info = res_req_info->next) {
+		if (memcmp(&resource_name, &res_req_info->resource_name, sizeof(SaNameT)) == 0) {
+			break;
+		}
+	}
+	return res_req_info;
 }
 
 /*****************************************************************************
@@ -152,30 +133,29 @@ GLND_RESOURCE_REQ_LIST *glnd_resource_req_node_find(GLND_CB       *glnd_cb,
 
   NOTES         : Delete the returned pointer immediately.
 *****************************************************************************/
-void glnd_resource_req_node_del(GLND_CB  *glnd_cb, uns32 res_req_hdl)
+void glnd_resource_req_node_del(GLND_CB *glnd_cb, uns32 res_req_hdl)
 {
-   GLND_RESOURCE_REQ_LIST  *res_req_info;
-   res_req_info = (GLND_RESOURCE_REQ_LIST*)ncshm_take_hdl(NCS_SERVICE_ID_GLND, res_req_hdl);
+	GLND_RESOURCE_REQ_LIST *res_req_info;
+	res_req_info = (GLND_RESOURCE_REQ_LIST *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, res_req_hdl);
 
-   if(res_req_info != NULL)
-   {
-      /* delete it from the list and return the pointer */
-      if(glnd_cb->res_req_list == res_req_info)
-         glnd_cb->res_req_list = glnd_cb->res_req_list->next;
-      if(res_req_info->prev)
-         res_req_info->prev->next = res_req_info->next;
-      if(res_req_info->next)
-         res_req_info->next->prev= res_req_info->prev;
+	if (res_req_info != NULL) {
+		/* delete it from the list and return the pointer */
+		if (glnd_cb->res_req_list == res_req_info)
+			glnd_cb->res_req_list = glnd_cb->res_req_list->next;
+		if (res_req_info->prev)
+			res_req_info->prev->next = res_req_info->next;
+		if (res_req_info->next)
+			res_req_info->next->prev = res_req_info->prev;
 
-      glnd_stop_tmr(&res_req_info->timeout);
+		glnd_stop_tmr(&res_req_info->timeout);
 
-      ncshm_give_hdl(res_req_hdl);
-      /* destroy the handle */
-      ncshm_destroy_hdl(NCS_SERVICE_ID_GLND, res_req_info->res_req_hdl_id);
-      
-      /* free the memory */
-       m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
+		ncshm_give_hdl(res_req_hdl);
+		/* destroy the handle */
+		ncshm_destroy_hdl(NCS_SERVICE_ID_GLND, res_req_info->res_req_hdl_id);
 
-   }
-  return;
+		/* free the memory */
+		m_MMGR_FREE_GLND_RESOURCE_REQ_LIST(res_req_info);
+
+	}
+	return;
 }

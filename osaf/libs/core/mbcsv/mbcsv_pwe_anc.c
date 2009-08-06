@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
   DESCRIPTION:
 
   This file contains functions which will search an MBCSv mailbox from the the 
@@ -30,7 +28,6 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 #include "mbcsv.h"
@@ -40,17 +37,14 @@
  * for brodcasting the message to all the peers.
  */
 typedef struct {
-    uns32          pwe_hdl; /* Handle supplied by application with OPEN call */
-    MBCSV_ANCHOR   anchor;
-}MBCSV_PEER_KEY;
+	uns32 pwe_hdl;		/* Handle supplied by application with OPEN call */
+	MBCSV_ANCHOR anchor;
+} MBCSV_PEER_KEY;
 
-
-typedef struct  mbcsv_peer_list
-{
-    NCS_PATRICIA_NODE   pat_node;
-    MBCSV_PEER_KEY      key;
-}MBCSV_PEER_LIST;
-
+typedef struct mbcsv_peer_list {
+	NCS_PATRICIA_NODE pat_node;
+	MBCSV_PEER_KEY key;
+} MBCSV_PEER_LIST;
 
 /*****************************************************************************\
 *
@@ -64,51 +58,44 @@ typedef struct  mbcsv_peer_list
 *****************************************************************************/
 uns32 mbcsv_add_new_pwe_anc(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 {
-   MBCSV_PEER_KEY    key;
-   MBCSV_PEER_LIST   *new_entry;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	MBCSV_PEER_KEY key;
+	MBCSV_PEER_LIST *new_entry;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
+	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
-   key.pwe_hdl = pwe_hdl;
-   key.anchor  = anchor;
+	key.pwe_hdl = pwe_hdl;
+	key.anchor = anchor;
 
-   m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   if (NULL != ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uns8 *)&key))
-   {
-      rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      "Unable to add new entry in the peer's list.");
+	if (NULL != ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uns8 *)&key)) {
+		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to add new entry in the peer's list.");
 
-      goto done;
-   }
+		goto done;
+	}
 
-   if (NULL == (new_entry = m_MMGR_ALLOC_PEER_LIST_IN))
-   {
-      rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      "mbcsv_add_new_pwe_anc: Memory allocation failed");
-      goto done;
-   }
+	if (NULL == (new_entry = m_MMGR_ALLOC_PEER_LIST_IN)) {
+		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_add_new_pwe_anc: Memory allocation failed");
+		goto done;
+	}
 
-   memset(new_entry, '\0', sizeof(MBCSV_PEER_LIST));
+	memset(new_entry, '\0', sizeof(MBCSV_PEER_LIST));
 
-   new_entry->key.pwe_hdl = pwe_hdl;
-   new_entry->key.anchor  = anchor;
-   new_entry->pat_node.key_info = (uns8 *)&new_entry->key;
+	new_entry->key.pwe_hdl = pwe_hdl;
+	new_entry->key.anchor = anchor;
+	new_entry->pat_node.key_info = (uns8 *)&new_entry->key;
 
-   if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&mbcsv_cb.peer_list, 
-      (NCS_PATRICIA_NODE *)new_entry))
-   {
-      m_MMGR_FREE_PEER_LIST_IN(new_entry);
-      rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      "mbcsv_add_new_pwe_anc: Failed to add new mbx in tree");
-      goto done;
-   }
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_add(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)new_entry)) {
+		m_MMGR_FREE_PEER_LIST_IN(new_entry);
+		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_add_new_pwe_anc: Failed to add new mbx in tree");
+		goto done;
+	}
 
-done:
-   m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+ done:
+	m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   return rc;
+	return rc;
 }
 
 /*****************************************************************************\
@@ -125,33 +112,30 @@ done:
 *****************************************************************************/
 uns32 mbcsv_rmv_pwe_anc_entry(uns32 pwe_hdl, MBCSV_ANCHOR anchor)
 {
-   MBCSV_PEER_KEY    key;
-   MBCSV_PEER_LIST   *tree_entry;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	MBCSV_PEER_KEY key;
+	MBCSV_PEER_LIST *tree_entry;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
+	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
-   key.pwe_hdl = pwe_hdl;
-   key.anchor  = anchor;
+	key.pwe_hdl = pwe_hdl;
+	key.anchor = anchor;
 
-   m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list,
-                                          (const uns8 *)&key)))
-   {
-      rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      "Unable to remove entry from the peer list.");
-      goto done;
-   }
+	if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list, (const uns8 *)&key))) {
+		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to remove entry from the peer list.");
+		goto done;
+	}
 
-   ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
+	ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
 
-   m_MMGR_FREE_PEER_LIST_IN(tree_entry);
+	m_MMGR_FREE_PEER_LIST_IN(tree_entry);
 
-done:
-   m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+ done:
+	m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   return rc;
+	return rc;
 }
 
 /*****************************************************************************\
@@ -166,23 +150,21 @@ done:
 *****************************************************************************/
 uns32 mbcsv_initialize_peer_list(void)
 {
-   NCS_PATRICIA_PARAMS   pt_params;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS pt_params;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* 
-    * Create patricia tree for the peer list 
-    */
-   pt_params.key_size = sizeof(MBCSV_PEER_KEY);
-   
-   if(ncs_patricia_tree_init(&mbcsv_cb.peer_list, &pt_params) != NCSCC_RC_SUCCESS)
-   {
-      rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE,
-         "Lib init request failed.");
-   }
+	/* 
+	 * Create patricia tree for the peer list 
+	 */
+	pt_params.key_size = sizeof(MBCSV_PEER_KEY);
 
-   m_NCS_LOCK_INIT(&mbcsv_cb.peer_list_lock);
+	if (ncs_patricia_tree_init(&mbcsv_cb.peer_list, &pt_params) != NCSCC_RC_SUCCESS) {
+		rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Lib init request failed.");
+	}
 
-   return rc;
+	m_NCS_LOCK_INIT(&mbcsv_cb.peer_list_lock);
+
+	return rc;
 }
 
 /*****************************************************************************\
@@ -199,30 +181,28 @@ uns32 mbcsv_initialize_peer_list(void)
 *****************************************************************************/
 uns32 mbcsv_destroy_peer_list(void)
 {
-   MBCSV_PEER_KEY    key;
-   MBCSV_PEER_LIST   *tree_entry;
+	MBCSV_PEER_KEY key;
+	MBCSV_PEER_LIST *tree_entry;
 
-   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
+	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
-   key.pwe_hdl = 0;
-   key.anchor  = 0;
+	key.pwe_hdl = 0;
+	key.anchor = 0;
 
-   while (NULL != (tree_entry = 
-                (MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list,
-                                                   (const uns8 *)&key)))
-   {
-      key = tree_entry->key;
+	while (NULL != (tree_entry =
+			(MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list, (const uns8 *)&key))) {
+		key = tree_entry->key;
 
-      ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
-      
-      m_MMGR_FREE_PEER_LIST_IN(tree_entry);
-   }
+		ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
 
-   ncs_patricia_tree_destroy(&mbcsv_cb.peer_list);
+		m_MMGR_FREE_PEER_LIST_IN(tree_entry);
+	}
 
-   m_NCS_LOCK_DESTROY(&mbcsv_cb.peer_list_lock);
+	ncs_patricia_tree_destroy(&mbcsv_cb.peer_list);
 
-   return NCSCC_RC_SUCCESS;
+	m_NCS_LOCK_DESTROY(&mbcsv_cb.peer_list_lock);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -238,30 +218,30 @@ uns32 mbcsv_destroy_peer_list(void)
 *****************************************************************************/
 uns32 mbcsv_get_next_anchor_for_pwe(uns32 pwe_hdl, MBCSV_ANCHOR *anchor)
 {
-   MBCSV_PEER_KEY    key;
-   MBCSV_PEER_LIST   *tree_entry;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	MBCSV_PEER_KEY key;
+	MBCSV_PEER_LIST *tree_entry;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
+	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
-   key.pwe_hdl = pwe_hdl;
-   key.anchor  = *anchor;
+	key.pwe_hdl = pwe_hdl;
+	key.anchor = *anchor;
 
-   m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   if ((NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list,
-         (const uns8 *)&key))) || (tree_entry->key.pwe_hdl != pwe_hdl))
-   {
-       rc = NCSCC_RC_FAILURE;
-       goto done;
-   }
+	if ((NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_getnext(&mbcsv_cb.peer_list,
+										(const uns8 *)&key)))
+	    || (tree_entry->key.pwe_hdl != pwe_hdl)) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-   *anchor = tree_entry->key.anchor;
+	*anchor = tree_entry->key.anchor;
 
-done:
-   m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_READ);
+ done:
+	m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_READ);
 
-   return rc;
+	return rc;
 }
 
 /*****************************************************************************\
@@ -276,22 +256,17 @@ done:
 *                     FAILURE - fail to get entry.
 *
 *****************************************************************************/
-uns32 mbcsv_send_brodcast_msg(uns32       pwe_hdl, 
-                              MBCSV_EVT   *msg, 
-                              CKPT_INST   *ckpt)
+uns32 mbcsv_send_brodcast_msg(uns32 pwe_hdl, MBCSV_EVT *msg, CKPT_INST *ckpt)
 {
-   MBCSV_ANCHOR anchor = 0;
-   
-   while (NCSCC_RC_SUCCESS == mbcsv_get_next_anchor_for_pwe(pwe_hdl, &anchor))
-   {
-      if (NCSCC_RC_SUCCESS != m_NCS_MBCSV_MDS_ASYNC_SEND(msg, ckpt, anchor))
-      {
-         m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-            "Message brodcast failed");
-      }
-   }
+	MBCSV_ANCHOR anchor = 0;
 
-   return NCSCC_RC_SUCCESS;
+	while (NCSCC_RC_SUCCESS == mbcsv_get_next_anchor_for_pwe(pwe_hdl, &anchor)) {
+		if (NCSCC_RC_SUCCESS != m_NCS_MBCSV_MDS_ASYNC_SEND(msg, ckpt, anchor)) {
+			m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Message brodcast failed");
+		}
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -306,37 +281,34 @@ uns32 mbcsv_send_brodcast_msg(uns32       pwe_hdl,
 *                     FAILURE - fail to get entry.
 *
 *****************************************************************************/
-uns32 mbcsv_rmv_ancs_for_pwe(uns32   pwe_hdl)
+uns32 mbcsv_rmv_ancs_for_pwe(uns32 pwe_hdl)
 {
-   MBCSV_ANCHOR anchor = 0;
-   MBCSV_PEER_LIST   *tree_entry;
-   MBCSV_PEER_KEY    key;
-   uns32   rc = NCSCC_RC_SUCCESS;
+	MBCSV_ANCHOR anchor = 0;
+	MBCSV_PEER_LIST *tree_entry;
+	MBCSV_PEER_KEY key;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
+	memset(&key, '\0', sizeof(MBCSV_PEER_KEY));
 
-   key.pwe_hdl = pwe_hdl;
+	key.pwe_hdl = pwe_hdl;
 
-   m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+	m_NCS_LOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
 
-   while (NCSCC_RC_SUCCESS == mbcsv_get_next_anchor_for_pwe(pwe_hdl, &anchor))
-   {
-      key.anchor = anchor;
+	while (NCSCC_RC_SUCCESS == mbcsv_get_next_anchor_for_pwe(pwe_hdl, &anchor)) {
+		key.anchor = anchor;
 
-      if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list,
-         (const uns8 *)&key)))
-      {
-         rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-            "Unable to remove entry from the peer list.");
-         goto done;
-      }
+		if (NULL == (tree_entry = (MBCSV_PEER_LIST *)ncs_patricia_tree_get(&mbcsv_cb.peer_list,
+										   (const uns8 *)&key))) {
+			rc = m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "Unable to remove entry from the peer list.");
+			goto done;
+		}
 
-      ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
+		ncs_patricia_tree_del(&mbcsv_cb.peer_list, (NCS_PATRICIA_NODE *)tree_entry);
 
-      m_MMGR_FREE_PEER_LIST_IN(tree_entry);
-   }
+		m_MMGR_FREE_PEER_LIST_IN(tree_entry);
+	}
 
-done:
-   m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
-   return rc;
+ done:
+	m_NCS_UNLOCK(&mbcsv_cb.peer_list_lock, NCS_LOCK_WRITE);
+	return rc;
 }

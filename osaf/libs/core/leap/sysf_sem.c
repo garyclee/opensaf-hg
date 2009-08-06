@@ -35,55 +35,48 @@
  ******************************************************************************
  */
 
-
 #include "ncs_opt.h"
 #include "gl_defs.h"
 #include "ncs_osprm.h"
 
 #include "ncssysf_sem.h"
 
-uns32 ncs_sem_create (void **s_handle)
+uns32 ncs_sem_create(void **s_handle)
 {
-    NCS_OS_SEM sem;
-    uns32 rc;
+	NCS_OS_SEM sem;
+	uns32 rc;
 
+	rc = m_NCS_OS_SEM(&sem, NCS_OS_SEM_CREATE);
 
-    rc = m_NCS_OS_SEM(&sem, NCS_OS_SEM_CREATE);
+	if (NCSCC_RC_SUCCESS == rc)
+		*s_handle = sem.info.create.o_handle;
 
-    if (NCSCC_RC_SUCCESS == rc)
-      *s_handle = sem.info.create.o_handle;
-
-    return rc;
+	return rc;
 }
 
-
-uns32 ncs_sem_release (void *s_handle)
+uns32 ncs_sem_release(void *s_handle)
 {
-    NCS_OS_SEM sem;
+	NCS_OS_SEM sem;
 
+	sem.info.release.i_handle = s_handle;
 
-    sem.info.release.i_handle = s_handle;
-
-    return m_NCS_OS_SEM(&sem, NCS_OS_SEM_RELEASE);
+	return m_NCS_OS_SEM(&sem, NCS_OS_SEM_RELEASE);
 }
 
-uns32 ncs_sem_give (void *s_handle)
+uns32 ncs_sem_give(void *s_handle)
 {
-    NCS_OS_SEM sem;
+	NCS_OS_SEM sem;
 
+	sem.info.give.i_handle = s_handle;
 
-    sem.info.give.i_handle = s_handle;
-
-    return m_NCS_OS_SEM(&sem, NCS_OS_SEM_GIVE);
+	return m_NCS_OS_SEM(&sem, NCS_OS_SEM_GIVE);
 }
 
-
-uns32 ncs_sem_take (void *s_handle)
+uns32 ncs_sem_take(void *s_handle)
 {
-    NCS_OS_SEM sem;
+	NCS_OS_SEM sem;
 
+	sem.info.take.i_handle = s_handle;
 
-    sem.info.take.i_handle = s_handle;
-
-    return m_NCS_OS_SEM(&sem, NCS_OS_SEM_TAKE);
+	return m_NCS_OS_SEM(&sem, NCS_OS_SEM_TAKE);
 }

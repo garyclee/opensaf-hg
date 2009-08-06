@@ -19,17 +19,10 @@
 ..............................................................................
 
 
-
 */
-
 
 #include "dts.h"
 
-SYSF_MBX        gl_dts_mbx;
+SYSF_MBX gl_dts_mbx;
 
-DTS_CB         dts_cb;
-
-
-
-
-
+DTS_CB dts_cb;

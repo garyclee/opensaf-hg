@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -48,18 +46,16 @@ NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
  
   Notes         : None
 ******************************************************************************/
-uns32 glsv_gla_callback_queue_init (GLA_CLIENT_INFO  *client_info)
+uns32 glsv_gla_callback_queue_init(GLA_CLIENT_INFO *client_info)
 {
-   if(m_NCS_IPC_CREATE(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS)
-   {
-      if(m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS)
-      {
-         return NCSCC_RC_SUCCESS;
-      }
-      m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
-   }
-   m_LOG_GLA_SYS_CALL(GLA_GET_SEL_OBJ_FAIL,client_info->lock_handle_id);
-   return NCSCC_RC_FAILURE;
+	if (m_NCS_IPC_CREATE(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
+		if (m_NCS_IPC_ATTACH(&client_info->callbk_mbx) == NCSCC_RC_SUCCESS) {
+			return NCSCC_RC_SUCCESS;
+		}
+		m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
+	}
+	m_LOG_GLA_SYS_CALL(GLA_GET_SEL_OBJ_FAIL, client_info->lock_handle_id);
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -75,16 +71,15 @@ uns32 glsv_gla_callback_queue_init (GLA_CLIENT_INFO  *client_info)
 ******************************************************************************/
 NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-   GLSV_GLA_CALLBACK_INFO  *prev,*node = (GLSV_GLA_CALLBACK_INFO *)msg;
-   
-   /* loop thru the queue and deallocate the nodes */
-   while(node)
-   {
-      prev = node;
-      node = node->next;
-      m_MMGR_FREE_GLA_CALLBACK_INFO(prev);
-   }
-   return TRUE;
+	GLSV_GLA_CALLBACK_INFO *prev, *node = (GLSV_GLA_CALLBACK_INFO *)msg;
+
+	/* loop thru the queue and deallocate the nodes */
+	while (node) {
+		prev = node;
+		node = node->next;
+		m_MMGR_FREE_GLA_CALLBACK_INFO(prev);
+	}
+	return TRUE;
 }
 
 /****************************************************************************
@@ -98,15 +93,14 @@ NCS_BOOL gla_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  
   Notes         : None
 ******************************************************************************/
-void glsv_gla_callback_queue_destroy (GLA_CLIENT_INFO  *client_info)
+void glsv_gla_callback_queue_destroy(GLA_CLIENT_INFO *client_info)
 {
-   /* detach the mail box */
-   m_NCS_IPC_DETACH(&client_info->callbk_mbx,gla_client_cleanup_mbx,client_info);
-   
-   /* delete the mailbox */
-   m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
-}
+	/* detach the mail box */
+	m_NCS_IPC_DETACH(&client_info->callbk_mbx, gla_client_cleanup_mbx, client_info);
 
+	/* delete the mailbox */
+	m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
+}
 
 /****************************************************************************
   Name          : glsv_gla_callback_queue_write
@@ -123,31 +117,25 @@ void glsv_gla_callback_queue_destroy (GLA_CLIENT_INFO  *client_info)
  
   Notes         : None
 ******************************************************************************/
-uns32 glsv_gla_callback_queue_write (GLA_CB *gla_cb, 
-                                     SaLckHandleT handle ,
-                                     GLSV_GLA_CALLBACK_INFO *clbk_info)
+uns32 glsv_gla_callback_queue_write(GLA_CB *gla_cb, SaLckHandleT handle, GLSV_GLA_CALLBACK_INFO *clbk_info)
 {
-   GLA_CLIENT_INFO      *client_info = NULL;
-   uns32                rc = NCSCC_RC_FAILURE;
+	GLA_CLIENT_INFO *client_info = NULL;
+	uns32 rc = NCSCC_RC_FAILURE;
 
-   m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
-   /* Search for the node from the client tree */
-   client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree,(uns8 *)&handle);
-   
-   if(client_info == NULL)
-   {
-      /* recieved a callback for an non-existant client. so dump the callback info */
-      m_MMGR_FREE_GLA_CALLBACK_INFO(clbk_info);
-   }
-   else
-   {
-      rc = m_NCS_IPC_SEND(&client_info->callbk_mbx,clbk_info,NCS_IPC_PRIORITY_NORMAL);
-   }
-   m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
-   return rc;
-   
+	m_NCS_LOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
+	/* Search for the node from the client tree */
+	client_info = (GLA_CLIENT_INFO *)ncs_patricia_tree_get(&gla_cb->gla_client_tree, (uns8 *)&handle);
+
+	if (client_info == NULL) {
+		/* recieved a callback for an non-existant client. so dump the callback info */
+		m_MMGR_FREE_GLA_CALLBACK_INFO(clbk_info);
+	} else {
+		rc = m_NCS_IPC_SEND(&client_info->callbk_mbx, clbk_info, NCS_IPC_PRIORITY_NORMAL);
+	}
+	m_NCS_UNLOCK(&gla_cb->cb_lock, NCS_LOCK_READ);
+	return rc;
+
 }
-
 
 /****************************************************************************
   Name          : glsv_gla_callback_queue_read
@@ -161,9 +149,8 @@ uns32 glsv_gla_callback_queue_write (GLA_CB *gla_cb,
  
   Notes         : None
 ******************************************************************************/
-GLSV_GLA_CALLBACK_INFO *glsv_gla_callback_queue_read (GLA_CLIENT_INFO  *client_info)
+GLSV_GLA_CALLBACK_INFO *glsv_gla_callback_queue_read(GLA_CLIENT_INFO *client_info)
 {
-   /* remove it to the queue */
-   return (GLSV_GLA_CALLBACK_INFO*)m_NCS_IPC_NON_BLK_RECEIVE(&client_info->callbk_mbx,NULL);
+	/* remove it to the queue */
+	return (GLSV_GLA_CALLBACK_INFO *)m_NCS_IPC_NON_BLK_RECEIVE(&client_info->callbk_mbx, NULL);
 }
-

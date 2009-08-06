@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file includes following routines:
@@ -47,12 +45,7 @@
 #define NCS_2_0 1
 #include "mqd.h"
 
-
 MQDDLL_API MQDLIB_INFO gl_mqdinfo;
-
-
-
-
 
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 mqd_lib_init(void);
@@ -84,22 +77,22 @@ static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg);
 
 uns32 mqd_lib_req(NCS_LIB_REQ_INFO *info)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   switch(info->i_op) {      
-   case NCS_LIB_REQ_CREATE:
-      rc = mqd_lib_init();
-      break;
+	switch (info->i_op) {
+	case NCS_LIB_REQ_CREATE:
+		rc = mqd_lib_init();
+		break;
 
-   case NCS_LIB_REQ_DESTROY:
-      mqd_lib_destroy();
-      break;
+	case NCS_LIB_REQ_DESTROY:
+		mqd_lib_destroy();
+		break;
 
-   default:
-      break;
-   }   
-   return rc;
-} /* End of mqd_lib_req() */
+	default:
+		break;
+	}
+	return rc;
+}	/* End of mqd_lib_req() */
 
 /****************************************************************************\
   PROCEDURE NAME : mqd_lib_init
@@ -114,227 +107,213 @@ uns32 mqd_lib_req(NCS_LIB_REQ_INFO *info)
 \*****************************************************************************/
 static uns32 mqd_lib_init(void)
 {
-   uns32    rc = NCSCC_RC_SUCCESS;
-   MQD_CB   *pMqd = 0;
-#if NCS_2_0 /* Required for NCS 2.0 */ 
-   SaAisErrorT saErr = SA_AIS_OK;
-   SaNameT  sname;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQD_CB *pMqd = 0;
+#if NCS_2_0			/* Required for NCS 2.0 */
+	SaAisErrorT saErr = SA_AIS_OK;
+	SaNameT sname;
 #endif
-   SaAmfHealthcheckKeyT healthy;
-   int8*       health_key=0;
-   SaAisErrorT amf_error;
+	SaAmfHealthcheckKeyT healthy;
+	int8 *health_key = 0;
+	SaAisErrorT amf_error;
 
+	mqd_flx_log_reg();
 
+	/* Create the MQD Control Block */
+	pMqd = m_MMGR_ALLOC_MQD_CB;
+	if (!pMqd) {
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_CREATE_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
+	m_LOG_MQSV_D(MQD_CREATE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   mqd_flx_log_reg();
+	/* Initalize the Control block */
+	rc = mqd_cb_init(pMqd);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+		m_LOG_MQSV_D(MQD_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		m_MMGR_FREE_MQD_CB(pMqd);
+		return rc;
+	}
+	m_LOG_MQSV_D(MQD_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   /* Create the MQD Control Block */
-   pMqd = m_MMGR_ALLOC_MQD_CB;
-   if(!pMqd) {
-      rc = NCSCC_RC_FAILURE;
-      m_LOG_MQSV_D(MQD_CREATE_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
-   m_LOG_MQSV_D(MQD_CREATE_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+	/* Register MQD with the handle manager */
+	pMqd->hdl = ncshm_create_hdl(pMqd->hmpool, pMqd->my_svc_id, (NCSCONTEXT)pMqd);
+	if (!pMqd->hdl) {	/* Handle failure */
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_CREATE_HDL_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		mqd_cb_shut(pMqd);
+		return NCSCC_RC_FAILURE;
+	}
+	gl_mqdinfo.inst_hdl = pMqd->hdl;
+	m_LOG_MQSV_D(MQD_CREATE_HDL_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   /* Initalize the Control block */
-   rc = mqd_cb_init(pMqd);
-   if(NCSCC_RC_SUCCESS != rc) {     /* Handle failure */
-      m_LOG_MQSV_D(MQD_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      m_MMGR_FREE_MQD_CB(pMqd);
-      return rc;
-   }
-   m_LOG_MQSV_D(MQD_INIT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-
-   /* Register MQD with the handle manager */
-   pMqd->hdl = ncshm_create_hdl(pMqd->hmpool, pMqd->my_svc_id, (NCSCONTEXT)pMqd);
-   if(!pMqd->hdl) {     /* Handle failure */
-      rc = NCSCC_RC_FAILURE;
-      m_LOG_MQSV_D(MQD_CREATE_HDL_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      mqd_cb_shut(pMqd); 
-      return NCSCC_RC_FAILURE;
-   }
-   gl_mqdinfo.inst_hdl = pMqd->hdl;
-   m_LOG_MQSV_D(MQD_CREATE_HDL_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-
-   /* Initailize all AVSv callback */
-   rc = mqd_amf_init(pMqd);
-   if(NCSCC_RC_SUCCESS != rc) {     /* Handle failure */
-      m_LOG_MQSV_D(MQD_AMF_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      mqd_cb_shut(pMqd);      
-      return rc;
-   }
-   m_LOG_MQSV_D(MQD_AMF_INIT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-     /* Create the mail box */
-   rc = m_NCS_IPC_CREATE(&pMqd->mbx);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      m_LOG_MQSV_D(MQD_AMF_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-#if NCS_2_0 /* Required for NCS 2.0 */
-      saAmfFinalize(pMqd->amf_hdl);
+	/* Initailize all AVSv callback */
+	rc = mqd_amf_init(pMqd);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+		m_LOG_MQSV_D(MQD_AMF_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+	m_LOG_MQSV_D(MQD_AMF_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+	/* Create the mail box */
+	rc = m_NCS_IPC_CREATE(&pMqd->mbx);
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_LOG_MQSV_D(MQD_AMF_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+#if NCS_2_0			/* Required for NCS 2.0 */
+		saAmfFinalize(pMqd->amf_hdl);
 #endif
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
 
-    /* Attach IPC */
-   rc = m_NCS_IPC_ATTACH(&pMqd->mbx);
-   if(NCSCC_RC_SUCCESS != rc) {
-   m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-   m_LOG_MQSV_D(MQD_AMF_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-#if NCS_2_0 /* Required for NCS 2.0 */
-   saAmfFinalize(pMqd->amf_hdl);
+	/* Attach IPC */
+	rc = m_NCS_IPC_ATTACH(&pMqd->mbx);
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
+		m_LOG_MQSV_D(MQD_AMF_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+#if NCS_2_0			/* Required for NCS 2.0 */
+		saAmfFinalize(pMqd->amf_hdl);
 #endif
-   mqd_cb_shut(pMqd);
-   return rc;
-   }
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
 
-   rc = mqd_mds_init(pMqd);
-   if(NCSCC_RC_SUCCESS != rc) {     /* Handle failure */
-      m_LOG_MQSV_D(MQD_MDS_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-#if NCS_2_0 /* Required for NCS 2.0 */
-      saAmfFinalize(pMqd->amf_hdl);
+	rc = mqd_mds_init(pMqd);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+		m_LOG_MQSV_D(MQD_MDS_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+#if NCS_2_0			/* Required for NCS 2.0 */
+		saAmfFinalize(pMqd->amf_hdl);
 #endif
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
-   m_LOG_MQSV_D(MQD_MDS_INIT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+	m_LOG_MQSV_D(MQD_MDS_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
 /* Register with MBCSV initialise and open a session and do selection object*/
-   rc=mqd_mbcsv_register(pMqd);
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      mqd_mds_shut(pMqd);
-      saAmfFinalize(pMqd->amf_hdl);
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
+	rc = mqd_mbcsv_register(pMqd);
+	if (NCSCC_RC_SUCCESS != rc) {
+		mqd_mds_shut(pMqd);
+		saAmfFinalize(pMqd->amf_hdl);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
 
-   /* CLM Initialize */
+	/* CLM Initialize */
 
-   /* Initialize the MIBs scalar objects */
-   strcpy(pMqd->safSpecVer.value,"B.03.01");
-   pMqd->safSpecVer.length = strlen("B.03.01");
-   strcpy(pMqd->safAgtVen.value,"OpenSAF");
-   pMqd->safAgtVen.length = strlen("OpenSAF");
-   pMqd->safAgtVenPro = 2;
-   pMqd->serv_enabled = FALSE;
-   pMqd->serv_state = 1;
+	/* Initialize the MIBs scalar objects */
+	strcpy(pMqd->safSpecVer.value, "B.03.01");
+	pMqd->safSpecVer.length = strlen("B.03.01");
+	strcpy(pMqd->safAgtVen.value, "OpenSAF");
+	pMqd->safAgtVen.length = strlen("OpenSAF");
+	pMqd->safAgtVenPro = 2;
+	pMqd->serv_enabled = FALSE;
+	pMqd->serv_state = 1;
 
-   /* Initilize the Layer management variables */
-   rc = mqd_lm_init(pMqd);
-   if(NCSCC_RC_SUCCESS != rc) {     /* Handle failure */
-      m_LOG_MQSV_D(MQD_LM_INIT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+	/* Initilize the Layer management variables */
+	rc = mqd_lm_init(pMqd);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
+		m_LOG_MQSV_D(MQD_LM_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 /*      mqd_clm_shut(pMqd);*/
-      mqd_mbcsv_finalize(pMqd);
-      if(mqd_mds_shut(pMqd)!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-
-#if NCS_2_0 /* Required for NCS 2.0 */
-      saAmfFinalize(pMqd->amf_hdl);
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		}
+#if NCS_2_0			/* Required for NCS 2.0 */
+		saAmfFinalize(pMqd->amf_hdl);
 #endif
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
-   m_LOG_MQSV_D(MQD_LM_INIT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+	m_LOG_MQSV_D(MQD_LM_INIT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   /* EDU initialisation */
-   m_NCS_EDU_HDL_INIT(&pMqd->edu_hdl);
-   m_LOG_MQSV_D(MQD_EDU_BIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-     
-#if NCS_2_0 /* Not needed for NCS ver(1.0) */
-   /* Register MQSv - MQD component with AvSv */
-   sname.length = strlen(MQD_COMP_NAME);
-   strcpy(sname.value, MQD_COMP_NAME);
+	/* EDU initialisation */
+	m_NCS_EDU_HDL_INIT(&pMqd->edu_hdl);
+	m_LOG_MQSV_D(MQD_EDU_BIND_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
-   if(SA_AIS_OK != saErr) {    /* Handle failure */
-      m_LOG_MQSV_D(MQD_REG_COMP_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
+#if NCS_2_0			/* Not needed for NCS ver(1.0) */
+	/* Register MQSv - MQD component with AvSv */
+	sname.length = strlen(MQD_COMP_NAME);
+	strcpy(sname.value, MQD_COMP_NAME);
+
+	saErr = saAmfComponentRegister(pMqd->amf_hdl, &pMqd->comp_name, (SaNameT *)0);
+	if (SA_AIS_OK != saErr) {	/* Handle failure */
+		m_LOG_MQSV_D(MQD_REG_COMP_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 /*      mqd_clm_shut(pMqd);*/
-      mqd_mbcsv_finalize(pMqd);
-      if(mqd_mds_shut(pMqd)!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-      saAmfFinalize(pMqd->amf_hdl);
-      ncshm_give_hdl(pMqd->hdl);
-      mqd_cb_shut(pMqd);
-      return NCSCC_RC_FAILURE;
-   }
-#endif 
-   m_LOG_MQSV_D(MQD_REG_COMP_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-   
-   if(NCSCC_RC_SUCCESS != mqd_reg_with_miblib())
-   {
-      rc = NCSCC_RC_FAILURE;
-/*      mqd_clm_shut(pMqd);*/
-      mqd_mbcsv_finalize(pMqd);
-      if(mqd_mds_shut(pMqd)!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-      saAmfFinalize(pMqd->amf_hdl);
-      ncshm_give_hdl(pMqd->hdl);
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
-  
-   if(NCSCC_RC_SUCCESS != mqd_reg_with_mab(pMqd))
-   {
-      rc = NCSCC_RC_FAILURE;
-/*      mqd_clm_shut(pMqd);*/
-      mqd_mbcsv_finalize(pMqd);
-      if(mqd_mds_shut(pMqd)!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-      saAmfFinalize(pMqd->amf_hdl);
-      ncshm_give_hdl(pMqd->hdl);
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		}
+		saAmfFinalize(pMqd->amf_hdl);
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		return NCSCC_RC_FAILURE;
+	}
+#endif
+	m_LOG_MQSV_D(MQD_REG_COMP_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   /* Bind with ASAPi Layer */
-   mqd_asapi_bind(pMqd);
-   m_LOG_MQSV_D(MQD_ASAPi_BIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-
-   /*   start the AMF Health Check  */
-   memset(&healthy,0,sizeof(SaAmfHealthcheckKeyT));
-   health_key =  getenv("MQSV_ENV_HEALTHCHECK_KEY");
-   if(health_key == NULL)
-   {
-      strcpy(healthy.key,"E5F6");
-   }
-   else
-   {
-       strncpy(healthy.key,health_key,SA_AMF_HEALTHCHECK_KEY_MAX-1);
-   }
-   healthy.keyLen=strlen(healthy.key);
-
-   amf_error = saAmfHealthcheckStart(pMqd->amf_hdl,&pMqd->comp_name,&healthy,
-      SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_FAILOVER);
-   if (amf_error != SA_AIS_OK)
-   {
-      m_LOG_MQSV_D(MQD_AMF_HEALTH_CHECK_START_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,amf_error,__FILE__,__LINE__);
-      rc = NCSCC_RC_FAILURE;
-      mqd_unreg_with_mab(pMqd);
-      mqd_asapi_unbind();
+	if (NCSCC_RC_SUCCESS != mqd_reg_with_miblib()) {
+		rc = NCSCC_RC_FAILURE;
 /*      mqd_clm_shut(pMqd);*/
-      mqd_mbcsv_finalize(pMqd);
-      if(mqd_mds_shut(pMqd)!= NCSCC_RC_SUCCESS)
-      {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-      saAmfFinalize(pMqd->amf_hdl);
-      ncshm_give_hdl(pMqd->hdl);
-      mqd_cb_shut(pMqd);
-      return rc;
-   }
-    m_LOG_MQSV_D(MQD_AMF_HEALTH_CHECK_START_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,amf_error,__FILE__,__LINE__);
-    return rc;
-} /* End of mqd_lib_init() */
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		}
+		saAmfFinalize(pMqd->amf_hdl);
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+
+	if (NCSCC_RC_SUCCESS != mqd_reg_with_mab(pMqd)) {
+		rc = NCSCC_RC_FAILURE;
+/*      mqd_clm_shut(pMqd);*/
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		}
+		saAmfFinalize(pMqd->amf_hdl);
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+
+	/* Bind with ASAPi Layer */
+	mqd_asapi_bind(pMqd);
+	m_LOG_MQSV_D(MQD_ASAPi_BIND_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+
+	/*   start the AMF Health Check  */
+	memset(&healthy, 0, sizeof(SaAmfHealthcheckKeyT));
+	health_key = getenv("MQSV_ENV_HEALTHCHECK_KEY");
+	if (health_key == NULL) {
+		strcpy(healthy.key, "E5F6");
+	} else {
+		strncpy(healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX - 1);
+	}
+	healthy.keyLen = strlen(healthy.key);
+
+	amf_error = saAmfHealthcheckStart(pMqd->amf_hdl, &pMqd->comp_name, &healthy,
+					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
+	if (amf_error != SA_AIS_OK) {
+		m_LOG_MQSV_D(MQD_AMF_HEALTH_CHECK_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, amf_error,
+			     __FILE__, __LINE__);
+		rc = NCSCC_RC_FAILURE;
+		mqd_unreg_with_mab(pMqd);
+		mqd_asapi_unbind();
+/*      mqd_clm_shut(pMqd);*/
+		mqd_mbcsv_finalize(pMqd);
+		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		}
+		saAmfFinalize(pMqd->amf_hdl);
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		return rc;
+	}
+	m_LOG_MQSV_D(MQD_AMF_HEALTH_CHECK_START_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, amf_error, __FILE__,
+		     __LINE__);
+	return rc;
+}	/* End of mqd_lib_init() */
 
 /****************************************************************************\
   PROCEDURE NAME : mqd_lib_destroy
@@ -351,68 +330,66 @@ static uns32 mqd_lib_init(void)
 \*****************************************************************************/
 static void mqd_lib_destroy(void)
 {
-   MQD_CB   *pMqd = 0;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	MQD_CB *pMqd = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-#if NCS_2_0 /* Required for NCS 2.0 */
-   SaNameT  sname;
-#endif 
-
-   pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
-   if(pMqd) {
-#if NCS_2_0 /* Required for NCS 2.0 */
-      sname.length = strlen(MQD_COMP_NAME);
-      strcpy(sname.value, MQD_COMP_NAME);
-
-      /* Deregister MQSv - MQD component from AVSv */
-      saAmfComponentUnregister(pMqd->amf_hdl, &sname, (SaNameT*)0);
-      m_LOG_MQSV_D(MQD_DEREG_COMP_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-      saAmfFinalize(pMqd->amf_hdl);
-      m_LOG_MQSV_D(MQD_AMF_SHUT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+#if NCS_2_0			/* Required for NCS 2.0 */
+	SaNameT sname;
 #endif
 
-      /* Deactivate the component */
-      pMqd->active = FALSE;   
+	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, gl_mqdinfo.inst_hdl);
+	if (pMqd) {
+#if NCS_2_0			/* Required for NCS 2.0 */
+		sname.length = strlen(MQD_COMP_NAME);
+		strcpy(sname.value, MQD_COMP_NAME);
 
-      /* Shut off the MDS */
-      rc = mqd_mds_shut(pMqd); 
-      if(NCSCC_RC_SUCCESS != rc) {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      }
-      else {
-         m_LOG_MQSV_D(MQD_MDS_SHUT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-      }
+		/* Deregister MQSv - MQD component from AVSv */
+		saAmfComponentUnregister(pMqd->amf_hdl, &sname, (SaNameT *)0);
+		m_LOG_MQSV_D(MQD_DEREG_COMP_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+		saAmfFinalize(pMqd->amf_hdl);
+		m_LOG_MQSV_D(MQD_AMF_SHUT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+#endif
+
+		/* Deactivate the component */
+		pMqd->active = FALSE;
+
+		/* Shut off the MDS */
+		rc = mqd_mds_shut(pMqd);
+		if (NCSCC_RC_SUCCESS != rc) {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		} else {
+			m_LOG_MQSV_D(MQD_MDS_SHUT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
+				     __LINE__);
+		}
 
 /*      mqd_clm_shut(pMqd);*/
 
-      /* Release all LM resources */     
-      mqd_lm_shut(pMqd);  
-      m_LOG_MQSV_D(MQD_LM_SHUT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-      
-      /* Unbind from ASAPi */
-      mqd_asapi_unbind(); 
-      m_LOG_MQSV_D(MQD_ASAPi_UNBIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-      
-      /* Unbind from EDU */
-      m_NCS_EDU_HDL_FLUSH(&pMqd->edu_hdl); 
-      m_LOG_MQSV_D(MQD_EDU_UNBIND_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
-      
-      /* Shut down the MQD Insatnce */   
-      ncshm_give_hdl(pMqd->hdl);
-      mqd_cb_shut(pMqd);
-      m_LOG_MQSV_D(MQD_DESTROY_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_NOTICE,rc,__FILE__,__LINE__);
+		/* Release all LM resources */
+		mqd_lm_shut(pMqd);
+		m_LOG_MQSV_D(MQD_LM_SHUT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-      /* Unbind from FLA */
-      mqd_flx_log_dereg(); 
-   }
-   else {
-      m_LOG_MQSV_D(MQD_DONOT_EXIST,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-   }   
+		/* Unbind from ASAPi */
+		mqd_asapi_unbind();
+		m_LOG_MQSV_D(MQD_ASAPi_UNBIND_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-   gl_mqdinfo.inst_hdl = 0; /* MQD Instance destroyed */  
-   return; 
-} /* End of mqd_lib_destroy() */
+		/* Unbind from EDU */
+		m_NCS_EDU_HDL_FLUSH(&pMqd->edu_hdl);
+		m_LOG_MQSV_D(MQD_EDU_UNBIND_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
+		/* Shut down the MQD Insatnce */
+		ncshm_give_hdl(pMqd->hdl);
+		mqd_cb_shut(pMqd);
+		m_LOG_MQSV_D(MQD_DESTROY_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+
+		/* Unbind from FLA */
+		mqd_flx_log_dereg();
+	} else {
+		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+	}
+
+	gl_mqdinfo.inst_hdl = 0;	/* MQD Instance destroyed */
+	return;
+}	/* End of mqd_lib_destroy() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_main_process
@@ -429,61 +406,61 @@ static void mqd_lib_destroy(void)
 \*****************************************************************************/
 static void mqd_main_process(NCSCONTEXT hdl)
 {
-   MQD_CB               *pMqd = NULL; 
-   NCS_SEL_OBJ_SET      selObjSet;
-   NCS_SEL_OBJ          mbxFd, highSelObj, ncsAmfSelObj, ncsMBCSvSelObj;   
-   MQSV_EVT             *pEvt = NULL;
-#if 1 /* Required for NCS 2.0 */
-   SaAisErrorT          err = SA_AIS_OK;      
-   NCS_MBCSV_ARG        mbcsv_arg;
-   SaSelectionObjectT   amfSelObj;
+	MQD_CB *pMqd = NULL;
+	NCS_SEL_OBJ_SET selObjSet;
+	NCS_SEL_OBJ mbxFd, highSelObj, ncsAmfSelObj, ncsMBCSvSelObj;
+	MQSV_EVT *pEvt = NULL;
+#if 1				/* Required for NCS 2.0 */
+	SaAisErrorT err = SA_AIS_OK;
+	NCS_MBCSV_ARG mbcsv_arg;
+	SaSelectionObjectT amfSelObj;
 #endif
-   uns32                rc = NCSCC_RC_SUCCESS;
-   /* Get the controll block */
-   pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, *((uns32 *)hdl));
-   if(!pMqd) {
-      rc = NCSCC_RC_FAILURE;
-      m_LOG_MQSV_D(MQD_DONOT_EXIST,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-      return;
-   }
+	uns32 rc = NCSCC_RC_SUCCESS;
+	/* Get the controll block */
+	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, *((uns32 *)hdl));
+	if (!pMqd) {
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_DONOT_EXIST, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return;
+	}
 
-   m_NCS_SEL_OBJ_ZERO(&selObjSet);
+	m_NCS_SEL_OBJ_ZERO(&selObjSet);
 
-   mbxFd = m_NCS_IPC_GET_SEL_OBJ(&pMqd->mbx);
-   m_NCS_SEL_OBJ_SET(mbxFd, &selObjSet);
-   
-#if 1 /* Required for NCS 2.0 */
-   err = saAmfSelectionObjectGet(pMqd->amf_hdl, &amfSelObj);
-   if(SA_AIS_OK != err) {
-      ncshm_give_hdl(pMqd->hdl);
-      return;
-   }
+	mbxFd = m_NCS_IPC_GET_SEL_OBJ(&pMqd->mbx);
+	m_NCS_SEL_OBJ_SET(mbxFd, &selObjSet);
 
-   m_SET_FD_IN_SEL_OBJ((uns32)amfSelObj, ncsAmfSelObj);
-   m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);  
-   m_SET_FD_IN_SEL_OBJ((uns32)pMqd->mbcsv_sel_obj,ncsMBCSvSelObj);
-   m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj,&selObjSet);
+#if 1				/* Required for NCS 2.0 */
+	err = saAmfSelectionObjectGet(pMqd->amf_hdl, &amfSelObj);
+	if (SA_AIS_OK != err) {
+		ncshm_give_hdl(pMqd->hdl);
+		return;
+	}
 
-   highSelObj = m_GET_HIGHER_SEL_OBJ(ncsAmfSelObj, mbxFd);
+	m_SET_FD_IN_SEL_OBJ((uns32)amfSelObj, ncsAmfSelObj);
+	m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);
+	m_SET_FD_IN_SEL_OBJ((uns32)pMqd->mbcsv_sel_obj, ncsMBCSvSelObj);
+	m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj, &selObjSet);
+
+	highSelObj = m_GET_HIGHER_SEL_OBJ(ncsAmfSelObj, mbxFd);
 /*   highSelObj = m_GET_HIGHER_SEL_OBJ(highSelObj, ncsClmSelObj);*/
-   highSelObj = m_GET_HIGHER_SEL_OBJ(highSelObj,ncsMBCSvSelObj);
+	highSelObj = m_GET_HIGHER_SEL_OBJ(highSelObj, ncsMBCSvSelObj);
 #else
-   highSelObj = mbxFd;
+	highSelObj = mbxFd;
 #endif
 
-   while(m_NCS_SEL_OBJ_SELECT(highSelObj, &selObjSet, 0, 0, 0) != -1) {
-#if 1 /* Required for NCS 2.0 */
-      /* Process all the AMF messages */
-      if(m_NCS_SEL_OBJ_ISSET(ncsAmfSelObj, &selObjSet)) {
-         
-         /* Dispatch all the AMF pending function */
-         err = saAmfDispatch(pMqd->amf_hdl, SA_DISPATCH_ALL);
-         if(SA_AIS_OK != err) {
-            /* Log Error */
-         }
-      }
-#endif 
-      /* Process all the CLM messages */
+	while (m_NCS_SEL_OBJ_SELECT(highSelObj, &selObjSet, 0, 0, 0) != -1) {
+#if 1				/* Required for NCS 2.0 */
+		/* Process all the AMF messages */
+		if (m_NCS_SEL_OBJ_ISSET(ncsAmfSelObj, &selObjSet)) {
+
+			/* Dispatch all the AMF pending function */
+			err = saAmfDispatch(pMqd->amf_hdl, SA_DISPATCH_ALL);
+			if (SA_AIS_OK != err) {
+				/* Log Error */
+			}
+		}
+#endif
+		/* Process all the CLM messages */
 /*
       if(m_NCS_SEL_OBJ_ISSET(ncsClmSelObj, &selObjSet)) {
          err = saClmDispatch(pMqd->clm_hdl, SA_DISPATCH_ALL);
@@ -491,46 +468,41 @@ static void mqd_main_process(NCSCONTEXT hdl)
          }
       }
 */
-   /* Process all the MBCSV messages  */
-      if(m_NCS_SEL_OBJ_ISSET(ncsMBCSvSelObj,&selObjSet))
-      {
-          /* dispatch all the MBCSV pending callbacks */
-          mbcsv_arg.i_op        = NCS_MBCSV_OP_DISPATCH;
-          mbcsv_arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
-          mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
-          if(ncs_mbcsv_svc(&mbcsv_arg)!=SA_AIS_OK)
-          {
-            /* Log Error TBD*/
-          }
-      }
+		/* Process all the MBCSV messages  */
+		if (m_NCS_SEL_OBJ_ISSET(ncsMBCSvSelObj, &selObjSet)) {
+			/* dispatch all the MBCSV pending callbacks */
+			mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
+			mbcsv_arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
+			mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
+			if (ncs_mbcsv_svc(&mbcsv_arg) != SA_AIS_OK) {
+				/* Log Error TBD */
+			}
+		}
 
-
-
-      /* process the MQSv Mail box */
-      if(m_NCS_SEL_OBJ_ISSET(mbxFd, &selObjSet)) {
-         /* Now got the IPC mail box event */
-         if(0 != (pEvt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&pMqd->mbx, pEvt))) {
-            if((pEvt->type >= MQSV_EVT_BASE) && (pEvt->type <= MQSV_EVT_MAX)) {
-               /* Process Event */
-               mqd_evt_process(pEvt);
-            }
-            else {
-               /* Log Error */
-               /* Freee Event */
-            }
-         }
-      }
+		/* process the MQSv Mail box */
+		if (m_NCS_SEL_OBJ_ISSET(mbxFd, &selObjSet)) {
+			/* Now got the IPC mail box event */
+			if (0 != (pEvt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&pMqd->mbx, pEvt))) {
+				if ((pEvt->type >= MQSV_EVT_BASE) && (pEvt->type <= MQSV_EVT_MAX)) {
+					/* Process Event */
+					mqd_evt_process(pEvt);
+				} else {
+					/* Log Error */
+					/* Freee Event */
+				}
+			}
+		}
 
       /*** set the fd's again ***/
-      m_NCS_SEL_OBJ_ZERO(&selObjSet);
-      m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);
+		m_NCS_SEL_OBJ_ZERO(&selObjSet);
+		m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);
 /*      m_NCS_SEL_OBJ_SET(ncsClmSelObj, &selObjSet);*/
-      m_NCS_SEL_OBJ_SET(mbxFd,&selObjSet);
-      m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj,&selObjSet);
-   }
-   ncshm_give_hdl(pMqd->hdl);
-   return;
-} /* End of mqd_main_process() */
+		m_NCS_SEL_OBJ_SET(mbxFd, &selObjSet);
+		m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj, &selObjSet);
+	}
+	ncshm_give_hdl(pMqd->hdl);
+	return;
+}	/* End of mqd_main_process() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_init
@@ -543,37 +515,36 @@ static void mqd_main_process(NCSCONTEXT hdl)
 \*****************************************************************************/
 static uns32 mqd_cb_init(MQD_CB *pMqd)
 {
-   NCS_PATRICIA_PARAMS  params;
-   NCS_PATRICIA_PARAMS  params_nodedb;
-   uns32                rc = NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS params;
+	NCS_PATRICIA_PARAMS params_nodedb;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Initilize the constants variables */
-   memset(pMqd, 0, sizeof(MQD_CB));
-   memset(&params, 0, sizeof(params));
-   memset(&params_nodedb, 0, sizeof(params_nodedb));
+	/* Initilize the constants variables */
+	memset(pMqd, 0, sizeof(MQD_CB));
+	memset(&params, 0, sizeof(params));
+	memset(&params_nodedb, 0, sizeof(params_nodedb));
 
-   pMqd->hmpool = NCS_HM_POOL_ID_COMMON;
-   pMqd->my_svc_id = NCS_SERVICE_ID_MQD;
-   strcpy(&pMqd->my_name, MQD_COMP_NAME);
+	pMqd->hmpool = NCS_HM_POOL_ID_COMMON;
+	pMqd->my_svc_id = NCS_SERVICE_ID_MQD;
+	strcpy(&pMqd->my_name, MQD_COMP_NAME);
 
-   /* Initilaze the database tree */
-   params.key_size = sizeof(SaNameT);
-   params.info_size = 0;
-   rc = ncs_patricia_tree_init(&pMqd->qdb, &params);
-   if(rc != NCSCC_RC_SUCCESS)
-      return rc;
-   pMqd->qdb_up = TRUE;
-   /* Initialize the Node database */
-   params_nodedb.key_size = sizeof(NODE_ID);
-   params_nodedb.info_size = 0;
-   rc = ncs_patricia_tree_init(&pMqd->node_db, &params_nodedb);
-   if(rc != NCSCC_RC_SUCCESS)
-      return rc;
-   pMqd->node_db_up = TRUE;
+	/* Initilaze the database tree */
+	params.key_size = sizeof(SaNameT);
+	params.info_size = 0;
+	rc = ncs_patricia_tree_init(&pMqd->qdb, &params);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+	pMqd->qdb_up = TRUE;
+	/* Initialize the Node database */
+	params_nodedb.key_size = sizeof(NODE_ID);
+	params_nodedb.info_size = 0;
+	rc = ncs_patricia_tree_init(&pMqd->node_db, &params_nodedb);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+	pMqd->node_db_up = TRUE;
 
-
-   return rc;
-} /* End of mqd_cb_init() */
+	return rc;
+}	/* End of mqd_cb_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_shut
@@ -586,11 +557,12 @@ static uns32 mqd_cb_init(MQD_CB *pMqd)
 \*****************************************************************************/
 static void mqd_cb_shut(MQD_CB *pMqd)
 {
-   ncs_patricia_tree_destroy(&pMqd->qdb);
-   ncs_patricia_tree_destroy(&pMqd->node_db);
-   if(pMqd->hdl) ncshm_destroy_hdl(pMqd->my_svc_id, pMqd->hdl);
-   m_MMGR_FREE_MQD_CB(pMqd);
-} /* End of mqd_cb_shut() */
+	ncs_patricia_tree_destroy(&pMqd->qdb);
+	ncs_patricia_tree_destroy(&pMqd->node_db);
+	if (pMqd->hdl)
+		ncshm_destroy_hdl(pMqd->my_svc_id, pMqd->hdl);
+	m_MMGR_FREE_MQD_CB(pMqd);
+}	/* End of mqd_cb_shut() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_lm_init
@@ -604,29 +576,26 @@ static void mqd_cb_shut(MQD_CB *pMqd)
 \*****************************************************************************/
 static uns32 mqd_lm_init(MQD_CB *pMqd)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Create MQD Task */
-   rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqd_main_process,
-      (NCSCONTEXT)&pMqd->hdl,
-      MQD_COMP_NAME,
-      MQD_TASK_PRIORITY,
-      MQD_TASK_STACKSIZE,
-      &gl_mqdinfo.task_hdl);
-   if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-      return rc;
-   }
- 
-   /* Start the MQD task */
-   rc = m_NCS_TASK_START(gl_mqdinfo.task_hdl);
-   if(NCSCC_RC_SUCCESS != rc) {
-      m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
-      m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-      return rc;
-   }   
-   return rc;
-} /* End of mqd_lm_init() */
+	/* Create MQD Task */
+	rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqd_main_process,
+			       (NCSCONTEXT)&pMqd->hdl,
+			       MQD_COMP_NAME, MQD_TASK_PRIORITY, MQD_TASK_STACKSIZE, &gl_mqdinfo.task_hdl);
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
+		return rc;
+	}
+
+	/* Start the MQD task */
+	rc = m_NCS_TASK_START(gl_mqdinfo.task_hdl);
+	if (NCSCC_RC_SUCCESS != rc) {
+		m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
+		m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
+		return rc;
+	}
+	return rc;
+}	/* End of mqd_lm_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_lm_shut
@@ -640,15 +609,15 @@ static uns32 mqd_lm_init(MQD_CB *pMqd)
 \*****************************************************************************/
 static void mqd_lm_shut(MQD_CB *pMqd)
 {
-   /* Stop the task */
-   m_NCS_TASK_STOP(gl_mqdinfo.task_hdl);
+	/* Stop the task */
+	m_NCS_TASK_STOP(gl_mqdinfo.task_hdl);
 
-   /* Free up all the resources */
-   m_NCS_IPC_DETACH(&pMqd->mbx, mqd_clear_mbx, pMqd);
-   m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
-   m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
-   return;
-} /* End of mqd_lm_shut() */
+	/* Free up all the resources */
+	m_NCS_IPC_DETACH(&pMqd->mbx, mqd_clear_mbx, pMqd);
+	m_NCS_TASK_RELEASE(gl_mqdinfo.task_hdl);
+	m_NCS_IPC_RELEASE(&pMqd->mbx, 0);
+	return;
+}	/* End of mqd_lm_shut() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_amf_init
@@ -662,41 +631,38 @@ static void mqd_lm_shut(MQD_CB *pMqd)
 \*****************************************************************************/
 static uns32 mqd_amf_init(MQD_CB *pMqd)
 {
-   uns32             rc = NCSCC_RC_SUCCESS;
-#if NCS_2_0 /* Required for NCS 2.0 */
-   SaAisErrorT          saErr = SA_AIS_OK;
-   SaAmfCallbacksT   amfCallbacks;
-   SaVersionT        amfVersion;   
-   
-   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
-   
-   amfCallbacks.saAmfHealthcheckCallback = mqd_saf_hlth_chk_cb;
-   amfCallbacks.saAmfCSISetCallback = mqd_saf_csi_set_cb;
-   amfCallbacks.saAmfComponentTerminateCallback = mqd_amf_comp_terminate_callback;
-   amfCallbacks.saAmfCSIRemoveCallback = mqd_amf_csi_rmv_callback;
+	uns32 rc = NCSCC_RC_SUCCESS;
+#if NCS_2_0			/* Required for NCS 2.0 */
+	SaAisErrorT saErr = SA_AIS_OK;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amfVersion;
 
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-   m_MQSV_GET_AMF_VER(amfVersion);
-   
-   saErr = saAmfInitialize(&pMqd->amf_hdl, &amfCallbacks, &amfVersion);
-   if(SA_AIS_OK != saErr) {
-      /* Log Error */
-      return NCSCC_RC_FAILURE;      
-   }
-     /* get the component name */
-   saErr = saAmfComponentNameGet(pMqd->amf_hdl,&pMqd->comp_name);
-   if (saErr != SA_AIS_OK)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	amfCallbacks.saAmfHealthcheckCallback = mqd_saf_hlth_chk_cb;
+	amfCallbacks.saAmfCSISetCallback = mqd_saf_csi_set_cb;
+	amfCallbacks.saAmfComponentTerminateCallback = mqd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = mqd_amf_csi_rmv_callback;
 
+	m_MQSV_GET_AMF_VER(amfVersion);
+
+	saErr = saAmfInitialize(&pMqd->amf_hdl, &amfCallbacks, &amfVersion);
+	if (SA_AIS_OK != saErr) {
+		/* Log Error */
+		return NCSCC_RC_FAILURE;
+	}
+	/* get the component name */
+	saErr = saAmfComponentNameGet(pMqd->amf_hdl, &pMqd->comp_name);
+	if (saErr != SA_AIS_OK) {
+		return NCSCC_RC_FAILURE;
+	}
 #else
-   pMqd->ready_state = SA_AMF_IN_SERVICE;
-   pMqd->ha_state = SA_AMF_ACTIVE;
-   pMqd->active = TRUE;
-#endif 
-   return rc;
-} /* End of mqd_amf_init() */
+	pMqd->ready_state = SA_AMF_IN_SERVICE;
+	pMqd->ha_state = SA_AMF_ACTIVE;
+	pMqd->active = TRUE;
+#endif
+	return rc;
+}	/* End of mqd_amf_init() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_asapi_bind
@@ -709,18 +675,18 @@ static uns32 mqd_amf_init(MQD_CB *pMqd)
 \*****************************************************************************/
 static void mqd_asapi_bind(MQD_CB *pMqd)
 {
-   ASAPi_OPR_INFO opr;
+	ASAPi_OPR_INFO opr;
 
-   opr.type = ASAPi_OPR_BIND;
-   opr.info.bind.i_indhdlr = 0; 
-   opr.info.bind.i_mds_hdl = pMqd->my_mds_hdl;
-   opr.info.bind.i_mds_id = NCSMDS_SVC_ID_MQD;
-   opr.info.bind.i_my_id = pMqd->my_svc_id;
-   opr.info.bind.i_mydest = pMqd->my_dest;
+	opr.type = ASAPi_OPR_BIND;
+	opr.info.bind.i_indhdlr = 0;
+	opr.info.bind.i_mds_hdl = pMqd->my_mds_hdl;
+	opr.info.bind.i_mds_id = NCSMDS_SVC_ID_MQD;
+	opr.info.bind.i_my_id = pMqd->my_svc_id;
+	opr.info.bind.i_mydest = pMqd->my_dest;
 
-   asapi_opr_hdlr(&opr);
-   return;
-} /* End of mqd_asapi_bind() */
+	asapi_opr_hdlr(&opr);
+	return;
+}	/* End of mqd_asapi_bind() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_asapi_unbind
@@ -733,12 +699,12 @@ static void mqd_asapi_bind(MQD_CB *pMqd)
 \*****************************************************************************/
 static void mqd_asapi_unbind(void)
 {
-   ASAPi_OPR_INFO opr;
+	ASAPi_OPR_INFO opr;
 
-   opr.type = ASAPi_OPR_UNBIND;
-   asapi_opr_hdlr(&opr);
-   return;
-} /* End of mqd_asapi_unbind() */
+	opr.type = ASAPi_OPR_UNBIND;
+	asapi_opr_hdlr(&opr);
+	return;
+}	/* End of mqd_asapi_unbind() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_clear_mbx
@@ -752,20 +718,19 @@ static void mqd_asapi_unbind(void)
  RETURNS        : TRUE/FALSE
 \*****************************************************************************/
 static NCS_BOOL mqd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
-{   
-   MQSV_EVT *pEvt = (MQSV_EVT *)msg;
-   MQSV_EVT *pNext = NULL;
+{
+	MQSV_EVT *pEvt = (MQSV_EVT *)msg;
+	MQSV_EVT *pNext = NULL;
 
-   for(; pEvt; )
-   {
-      pNext = (MQSV_EVT *)NCS_INT64_TO_PTR_CAST(pEvt->hook_for_ipc);
+	for (; pEvt;) {
+		pNext = (MQSV_EVT *)NCS_INT64_TO_PTR_CAST(pEvt->hook_for_ipc);
 
-      /* Detroy the event */
+		/* Detroy the event */
 
-      pEvt = pNext;
-   }
-   return TRUE;
-} /* End of mqd_clear_mbx() */
+		pEvt = pNext;
+	}
+	return TRUE;
+}	/* End of mqd_clear_mbx() */
 
 /****************************************************************************\
  PROCEDURE NAME : mqd_cb_init

@@ -21,8 +21,4 @@
 #ifndef MQA_CALLBK_H
 #define MQA_CALLBK_H
 
-
-
-
-#endif /* MQA_CALLBK_H */
-
+#endif   /* MQA_CALLBK_H */

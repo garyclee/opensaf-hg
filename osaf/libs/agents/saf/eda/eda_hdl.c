@@ -50,21 +50,18 @@ static uns32 eda_hdl_cbk_dispatch_block(EDA_CB *, EDA_CLIENT_HDL_REC *);
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_BOOL
-eda_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
+NCS_BOOL eda_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-  EDSV_MSG *cbk, *pnext;
+	EDSV_MSG *cbk, *pnext;
 
-  pnext = cbk = (EDSV_MSG *)msg;
-  while (pnext)
-  {
-     pnext = cbk->next;
-     eda_msg_destroy(cbk);
-     cbk = pnext;
-  }
-  return TRUE;
+	pnext = cbk = (EDSV_MSG *)msg;
+	while (pnext) {
+		pnext = cbk->next;
+		eda_msg_destroy(cbk);
+		cbk = pnext;
+	}
+	return TRUE;
 }
-
 
 /****************************************************************************
   Name          : eda_event_hdl_rec_list_del
@@ -77,28 +74,25 @@ eda_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
  
   Notes         : 
 ******************************************************************************/
-static void
-eda_event_hdl_rec_list_del(EDA_EVENT_HDL_REC **pevent_hdl)
+static void eda_event_hdl_rec_list_del(EDA_EVENT_HDL_REC **pevent_hdl)
 {
-   EDA_EVENT_HDL_REC *event_hdl;
-   while (NULL != (event_hdl = *pevent_hdl))
-   {
-      *pevent_hdl = event_hdl->next;
+	EDA_EVENT_HDL_REC *event_hdl;
+	while (NULL != (event_hdl = *pevent_hdl)) {
+		*pevent_hdl = event_hdl->next;
 
-       ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, event_hdl->event_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, event_hdl->event_hdl);
       /** free pattern_array if any **/
-       edsv_free_evt_pattern_array(event_hdl->pattern_array);
+		edsv_free_evt_pattern_array(event_hdl->pattern_array);
       /** free the event data if any **/
-       if (event_hdl->evt_data)
-       {
-          m_MMGR_FREE_EDSV_EVENT_DATA(event_hdl->evt_data);
-          event_hdl->evt_data = NULL;
-       }
+		if (event_hdl->evt_data) {
+			m_MMGR_FREE_EDSV_EVENT_DATA(event_hdl->evt_data);
+			event_hdl->evt_data = NULL;
+		}
       /** remove the association with hdl-mngr 
        **/
-       m_MMGR_FREE_EDA_EVENT_HDL_REC(event_hdl);
-       event_hdl = NULL;
-   }
+		m_MMGR_FREE_EDA_EVENT_HDL_REC(event_hdl);
+		event_hdl = NULL;
+	}
 
 }
 
@@ -113,18 +107,16 @@ eda_event_hdl_rec_list_del(EDA_EVENT_HDL_REC **pevent_hdl)
  
   Notes         : 
 ******************************************************************************/
-static void
-eda_subsc_rec_list_del(EDA_SUBSC_REC **psubsc_rec)
+static void eda_subsc_rec_list_del(EDA_SUBSC_REC **psubsc_rec)
 {
-   EDA_SUBSC_REC *subsc_rec;
-   while ((subsc_rec = *psubsc_rec) != NULL)
-   {
-       *psubsc_rec = subsc_rec->next;
+	EDA_SUBSC_REC *subsc_rec;
+	while ((subsc_rec = *psubsc_rec) != NULL) {
+		*psubsc_rec = subsc_rec->next;
       /** remove the association with hdl-mngr 
        **/
-       m_MMGR_FREE_EDA_SUBSC_REC(subsc_rec);
-       subsc_rec = NULL;
-   }
+		m_MMGR_FREE_EDA_SUBSC_REC(subsc_rec);
+		subsc_rec = NULL;
+	}
 }
 
 /****************************************************************************
@@ -138,25 +130,23 @@ eda_subsc_rec_list_del(EDA_SUBSC_REC **psubsc_rec)
  
   Notes         : 
 ******************************************************************************/
-static void
-eda_channel_hdl_rec_list_del(EDA_CHANNEL_HDL_REC **pchan_hdl)
+static void eda_channel_hdl_rec_list_del(EDA_CHANNEL_HDL_REC **pchan_hdl)
 {
-   EDA_CHANNEL_HDL_REC *chan_hdl;
-   while ((chan_hdl = *pchan_hdl) != NULL)
-   {
-       *pchan_hdl = chan_hdl->next;
+	EDA_CHANNEL_HDL_REC *chan_hdl;
+	while ((chan_hdl = *pchan_hdl) != NULL) {
+		*pchan_hdl = chan_hdl->next;
       /** clean up the event records for this channel 
        **/
-       ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, chan_hdl->channel_hdl);
-       eda_event_hdl_rec_list_del(&chan_hdl->chan_event_anchor);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, chan_hdl->channel_hdl);
+		eda_event_hdl_rec_list_del(&chan_hdl->chan_event_anchor);
       /** clean up the subscription records for this channel
        **/
-       eda_subsc_rec_list_del(&chan_hdl->subsc_list);  
+		eda_subsc_rec_list_del(&chan_hdl->subsc_list);
       /** remove the association with hdl-mngr 
        **/
-       m_MMGR_FREE_EDA_CHANNEL_HDL_REC(chan_hdl);
-       chan_hdl = NULL;
-   }
+		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(chan_hdl);
+		chan_hdl = NULL;
+	}
 }
 
 /****************************************************************************
@@ -170,22 +160,20 @@ eda_channel_hdl_rec_list_del(EDA_CHANNEL_HDL_REC **pchan_hdl)
  
   Notes         : None
 ******************************************************************************/
-void 
-eda_hdl_list_del (EDA_CLIENT_HDL_REC **p_client_hdl)
+void eda_hdl_list_del(EDA_CLIENT_HDL_REC **p_client_hdl)
 {
-   EDA_CLIENT_HDL_REC *client_hdl;
-   while ((client_hdl = *p_client_hdl) != NULL)
-   {
-       *p_client_hdl = client_hdl->next;
-       ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, client_hdl->local_hdl);
+	EDA_CLIENT_HDL_REC *client_hdl;
+	while ((client_hdl = *p_client_hdl) != NULL) {
+		*p_client_hdl = client_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, client_hdl->local_hdl);
       /** clean up the channel records for this eda-client
        **/
-       eda_channel_hdl_rec_list_del(&client_hdl->chan_list);
+		eda_channel_hdl_rec_list_del(&client_hdl->chan_list);
       /** remove the association with hdl-mngr 
        **/
-       m_MMGR_FREE_EDA_CLIENT_HDL_REC(client_hdl);
-       client_hdl = 0;
-   }
+		m_MMGR_FREE_EDA_CLIENT_HDL_REC(client_hdl);
+		client_hdl = 0;
+	}
 }
 
 /****************************************************************************
@@ -202,65 +190,58 @@ eda_hdl_list_del (EDA_CLIENT_HDL_REC **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32
-eda_event_hdl_rec_del (EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node)
+uns32 eda_event_hdl_rec_del(EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node)
 {
-   /* Find the event hdl record in the list of records */
-   EDA_EVENT_HDL_REC *list_iter = *list_head;
-   
-   /* If the to be removed record is the first record */
-   if (list_iter == rm_node)
-   {
-      *list_head = rm_node->next; 
+	/* Find the event hdl record in the list of records */
+	EDA_EVENT_HDL_REC *list_iter = *list_head;
+
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
       /** remove the association with hdl-mngr 
        **/
-      ncshm_give_hdl(rm_node->event_hdl);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->event_hdl);
+		ncshm_give_hdl(rm_node->event_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->event_hdl);
       /** free pattern_array if any **/
-      edsv_free_evt_pattern_array(rm_node->pattern_array);
+		edsv_free_evt_pattern_array(rm_node->pattern_array);
       /** free the event data if any **/
-       if (rm_node->evt_data)
-       {
-          m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
-          rm_node->evt_data = NULL;
-       }
+		if (rm_node->evt_data) {
+			m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
+			rm_node->evt_data = NULL;
+		}
       /** Free the event hdl record 
        **/
-      m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
-      return NCSCC_RC_SUCCESS;
-   }
-   else /* find the rec */
-   {
-      while (NULL != list_iter)
-      {
-         if (list_iter->next == rm_node)
-         {
-            list_iter->next = rm_node->next;
-            /** remove the association with hdl-mngr 
+		m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+	    /** remove the association with hdl-mngr 
              **/
-            ncshm_give_hdl(rm_node->event_hdl);
-            ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->event_hdl);
-            /** free pattern_array if any **/
-            edsv_free_evt_pattern_array(rm_node->pattern_array);
-            /** free the event data if any **/
-             if (rm_node->evt_data)
-             {
-               m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
-               rm_node->evt_data = NULL;
-             }
-            /** Free the event hdl record 
+				ncshm_give_hdl(rm_node->event_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->event_hdl);
+	    /** free pattern_array if any **/
+				edsv_free_evt_pattern_array(rm_node->pattern_array);
+	    /** free the event data if any **/
+				if (rm_node->evt_data) {
+					m_MMGR_FREE_EDSV_EVENT_DATA(rm_node->evt_data);
+					rm_node->evt_data = NULL;
+				}
+	    /** Free the event hdl record 
              **/
-            m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
-            return NCSCC_RC_SUCCESS;
-         }
-                   
-         /* move onto the next one */
-         list_iter = list_iter->next;
-      }
-   }
+				m_MMGR_FREE_EDA_EVENT_HDL_REC(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
    /** The node couldn't be deleted **/
-   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   return NCSCC_RC_FAILURE;
+	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -277,40 +258,35 @@ eda_event_hdl_rec_del (EDA_EVENT_HDL_REC **list_head, EDA_EVENT_HDL_REC *rm_node
  
   Notes         : 
 ******************************************************************************/
-uns32
-eda_del_subsc_rec (EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
+uns32 eda_del_subsc_rec(EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
 {
-   /* Find the channel hdl record in the list of records */
-   EDA_SUBSC_REC *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	EDA_SUBSC_REC *list_iter = *list_head;
 
-   /* If the to be removed record is the first record */
-   if (list_iter == rm_node)
-   {
-     *list_head = rm_node->next; 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
       /** Free the subsc record 
        **/
-      m_MMGR_FREE_EDA_SUBSC_REC(rm_node);
-      return NCSCC_RC_SUCCESS;
-   }
-   else /* find the rec */
-   {
-      while (NULL != list_iter)
-      {
-         if (list_iter->next == rm_node)
-         {
-            list_iter->next = rm_node->next;
-            m_MMGR_FREE_EDA_SUBSC_REC(rm_node);
-            return NCSCC_RC_SUCCESS;
-         }
-         /* move onto the next one */
-         list_iter = list_iter->next;
-      }
-   }
-   
+		m_MMGR_FREE_EDA_SUBSC_REC(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+				m_MMGR_FREE_EDA_SUBSC_REC(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+
    /** The node couldn't be deleted 
     **/
-   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   return NCSCC_RC_FAILURE;
+	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -327,64 +303,58 @@ eda_del_subsc_rec (EDA_SUBSC_REC **list_head, EDA_SUBSC_REC *rm_node)
  
   Notes         : 
 ******************************************************************************/
-uns32
-eda_channel_hdl_rec_del (EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_REC *rm_node)
+uns32 eda_channel_hdl_rec_del(EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_REC *rm_node)
 {
-   /* Find the channel hdl record in the list of records */
-   EDA_CHANNEL_HDL_REC *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	EDA_CHANNEL_HDL_REC *list_iter = *list_head;
 
-   /* If the to be removed record is the first record */
-   if (list_iter == rm_node)
-   {
-     *list_head = rm_node->next; 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
       /** remove the association with hdl-mngr 
        **/
-      ncshm_give_hdl(rm_node->channel_hdl);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->channel_hdl);
+		ncshm_give_hdl(rm_node->channel_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->channel_hdl);
       /** Free the event hdl records off this hdl 
        **/
-      eda_event_hdl_rec_list_del(&rm_node->chan_event_anchor);
+		eda_event_hdl_rec_list_del(&rm_node->chan_event_anchor);
       /** clean up the subscription records for this channel
        **/
-      eda_subsc_rec_list_del(&rm_node->subsc_list);  
+		eda_subsc_rec_list_del(&rm_node->subsc_list);
       /** Free the channel hdl record 
        **/
-      m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rm_node);
-      return NCSCC_RC_SUCCESS;
-   }
-   else /* find the rec */
-   {
-      while (NULL != list_iter)
-      {
-         if (list_iter->next == rm_node)
-         {
-            list_iter->next = rm_node->next;
-            /** remove the association with hdl-mngr 
+		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+	    /** remove the association with hdl-mngr 
              **/
-            ncshm_give_hdl(rm_node->channel_hdl);
-            ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->channel_hdl);
-            /** Free the event hdl records off this hdl  
+				ncshm_give_hdl(rm_node->channel_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->channel_hdl);
+	    /** Free the event hdl records off this hdl  
              **/
-            eda_event_hdl_rec_list_del(&rm_node->chan_event_anchor);
-            /** clean up the subscription records for this channel
+				eda_event_hdl_rec_list_del(&rm_node->chan_event_anchor);
+	    /** clean up the subscription records for this channel
              **/
-            eda_subsc_rec_list_del(&rm_node->subsc_list);  
-            /** Free the channel hdl record 
+				eda_subsc_rec_list_del(&rm_node->subsc_list);
+	    /** Free the channel hdl record 
              **/
-            m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rm_node);
-            return NCSCC_RC_SUCCESS;
-         }
-         /* move onto the next one */
-         list_iter = list_iter->next;
-      }
-   }
-   
+				m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+
    /** The node couldn't be deleted 
     **/
-   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   return NCSCC_RC_FAILURE;
+	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	return NCSCC_RC_FAILURE;
 }
-
 
 /****************************************************************************
   Name          : eda_hdl_rec_del
@@ -402,70 +372,62 @@ eda_channel_hdl_rec_del (EDA_CHANNEL_HDL_REC **list_head, EDA_CHANNEL_HDL_REC *r
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saAmfFinalize on it.
 ******************************************************************************/
-uns32 
-eda_hdl_rec_del (EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
+uns32 eda_hdl_rec_del(EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
 {
-   /* Find the client hdl record in the list of records */
-   EDA_CLIENT_HDL_REC *list_iter = *list_head;
+	/* Find the client hdl record in the list of records */
+	EDA_CLIENT_HDL_REC *list_iter = *list_head;
 
-   /* If the to be removed record is the first record */
-   if (list_iter == rm_node)
-   {
-       *list_head = rm_node->next; 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
 
       /** detach & release the IPC 
        **/
-      m_NCS_IPC_DETACH(&rm_node->mbx ,eda_clear_mbx,NULL);
-      m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+		m_NCS_IPC_DETACH(&rm_node->mbx, eda_clear_mbx, NULL);
+		m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-      ncshm_give_hdl(rm_node->local_hdl);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->local_hdl);
+		ncshm_give_hdl(rm_node->local_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->local_hdl);
       /** Free the channel records off this hdl 
        **/
-      eda_channel_hdl_rec_list_del(&rm_node->chan_list);
-
+		eda_channel_hdl_rec_list_del(&rm_node->chan_list);
 
       /** free the hdl rec 
        **/
-      m_MMGR_FREE_EDA_CLIENT_HDL_REC(rm_node);
+		m_MMGR_FREE_EDA_CLIENT_HDL_REC(rm_node);
 
-      return NCSCC_RC_SUCCESS;
-   }
-   else /* find the rec */
-   {
-      while (NULL != list_iter)
-      {
-         if (list_iter->next == rm_node)
-         {
-            list_iter->next = rm_node->next;
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
 
-            /** detach & release the IPC 
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+
+	    /** detach & release the IPC 
              **/
-            m_NCS_IPC_DETACH(&rm_node->mbx ,eda_clear_mbx, NULL);
-            m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+				m_NCS_IPC_DETACH(&rm_node->mbx, eda_clear_mbx, NULL);
+				m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-            ncshm_give_hdl(rm_node->local_hdl);
-            ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->local_hdl);
-            /** Free the channel records off this eda_hdl  
+				ncshm_give_hdl(rm_node->local_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rm_node->local_hdl);
+	    /** Free the channel records off this eda_hdl  
              **/
-            eda_channel_hdl_rec_list_del(&rm_node->chan_list);
+				eda_channel_hdl_rec_list_del(&rm_node->chan_list);
 
-
-            /** free the hdl rec 
+	    /** free the hdl rec 
              **/
-            m_MMGR_FREE_EDA_CLIENT_HDL_REC(rm_node);
+				m_MMGR_FREE_EDA_CLIENT_HDL_REC(rm_node);
 
-            return NCSCC_RC_SUCCESS;
-         }
-         /* move onto the next one */
-         list_iter = list_iter->next;
-      }
-   }
-   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+	m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
 
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
-
 
 /****************************************************************************
   Name          : eda_event_hdl_rec_add
@@ -479,41 +441,37 @@ eda_hdl_rec_del (EDA_CLIENT_HDL_REC **list_head, EDA_CLIENT_HDL_REC *rm_node)
  
   Notes         : None
 ******************************************************************************/
-EDA_EVENT_HDL_REC *
-eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
+EDA_EVENT_HDL_REC *eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
 {
-   EDA_EVENT_HDL_REC *rec = 0;
+	EDA_EVENT_HDL_REC *rec = 0;
 
-   /* allocate the event hdl rec */
-   if ( NULL == (rec = m_MMGR_ALLOC_EDA_EVENT_HDL_REC))
-   {
-      m_LOG_EDSV_A(EDA_MEMALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NULL;
-   }
+	/* allocate the event hdl rec */
+	if (NULL == (rec = m_MMGR_ALLOC_EDA_EVENT_HDL_REC)) {
+		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NULL;
+	}
 
-   memset(rec, '\0', sizeof(EDA_EVENT_HDL_REC));
+	memset(rec, '\0', sizeof(EDA_EVENT_HDL_REC));
 
-   /* create the association with hdl-mngr */
-   if ( 0 == (rec->event_hdl = ncshm_create_hdl(1,NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
-   {
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
-      return NULL;
-   }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->event_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
+		return NULL;
+	}
    /** Initialize the parent channel **/
-   rec->parent_chan = *chan_hdl_rec;
+	rec->parent_chan = *chan_hdl_rec;
 
   /** Insert this record into the list of channel hdl records
    **/
-   rec->next = (*chan_hdl_rec)->chan_event_anchor;
-   (*chan_hdl_rec)->chan_event_anchor = rec;
+	rec->next = (*chan_hdl_rec)->chan_event_anchor;
+	(*chan_hdl_rec)->chan_event_anchor = rec;
 
   /** Everything appears fine, so return the 
    ** event hdl.
    **/
-   return rec;
+	return rec;
 };
-
 
 /****************************************************************************
   Name          : eda_channel_hdl_rec_add
@@ -531,57 +489,49 @@ eda_event_hdl_rec_add(EDA_CHANNEL_HDL_REC **chan_hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-EDA_CHANNEL_HDL_REC *
-eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec, 
-                        uns32               chan_id, 
-                        uns32               chan_open_id,
-                        uns32               channel_open_flags, 
-                        const SaNameT             *channelName)
+EDA_CHANNEL_HDL_REC *eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC **hdl_rec,
+					     uns32 chan_id,
+					     uns32 chan_open_id, uns32 channel_open_flags, const SaNameT *channelName)
 {
-   EDA_CHANNEL_HDL_REC *rec = 0;
+	EDA_CHANNEL_HDL_REC *rec = 0;
 
-   /* allocate the channel hdl rec */
-   if ( NULL == (rec = m_MMGR_ALLOC_EDA_CHANNEL_HDL_REC))
-   {
-      m_LOG_EDSV_A(EDA_MEMALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NULL;
-   }
+	/* allocate the channel hdl rec */
+	if (NULL == (rec = m_MMGR_ALLOC_EDA_CHANNEL_HDL_REC)) {
+		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NULL;
+	}
 
-   memset(rec, '\0', sizeof(EDA_CHANNEL_HDL_REC));
+	memset(rec, '\0', sizeof(EDA_CHANNEL_HDL_REC));
 
-   /* create the association with hdl-mngr */
-   if ( 0 == (rec->channel_hdl = ncshm_create_hdl(1,NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
-   {
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
-      return NULL;
-   }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->channel_hdl = ncshm_create_hdl(1, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_MMGR_FREE_EDA_CHANNEL_HDL_REC(rec);
+		return NULL;
+	}
 
    /** Initialize the known channel attributes at this point
     **/
-   rec->eds_chan_id      = chan_id;
-   rec->eds_chan_open_id = chan_open_id;
-   rec->open_flags       = channel_open_flags;
-   rec->channel_name.length = channelName->length;
-   memcpy((void*)rec->channel_name.value, 
-               (void*)channelName->value, 
-               channelName->length);
+	rec->eds_chan_id = chan_id;
+	rec->eds_chan_open_id = chan_open_id;
+	rec->open_flags = channel_open_flags;
+	rec->channel_name.length = channelName->length;
+	memcpy((void *)rec->channel_name.value, (void *)channelName->value, channelName->length);
    /** Initialize the parent handle **/
-   rec->parent_hdl = *hdl_rec;
+	rec->parent_hdl = *hdl_rec;
    /** Initialize the last Published event id to 1000 0-1000 are for reserved events**/
-   rec->last_pub_evt_id = MAX_RESERVED_EVENTID;
+	rec->last_pub_evt_id = MAX_RESERVED_EVENTID;
 
    /** Insert this record into the list of channel hdl records
     **/
-   rec->next = (*hdl_rec)->chan_list;
-   (*hdl_rec)->chan_list = rec;
+	rec->next = (*hdl_rec)->chan_list;
+	(*hdl_rec)->chan_list = rec;
 
    /** Everything appears fine, so return the 
     ** channel hdl.
     **/
-   return rec;
+	return rec;
 }
-
 
 /****************************************************************************
   Name          : eda_hdl_rec_add
@@ -597,83 +547,72 @@ eda_channel_hdl_rec_add(EDA_CLIENT_HDL_REC  **hdl_rec,
  
   Notes         : None
 ******************************************************************************/
-EDA_CLIENT_HDL_REC *eda_hdl_rec_add (EDA_CB **eda_cb,
-                                     const SaEvtCallbacksT *reg_cbks,
-                                     uns32 reg_id,
-                                     SaVersionT version)
+EDA_CLIENT_HDL_REC *eda_hdl_rec_add(EDA_CB **eda_cb, const SaEvtCallbacksT *reg_cbks, uns32 reg_id, SaVersionT version)
 {
-   EDA_CLIENT_HDL_REC *rec = 0;
+	EDA_CLIENT_HDL_REC *rec = 0;
 
-   /* allocate the hdl rec */
-   if ( NULL == (rec = m_MMGR_ALLOC_EDA_CLIENT_HDL_REC))
-   {
-      m_LOG_EDSV_A(EDA_MEMALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      goto error;
-   }
+	/* allocate the hdl rec */
+	if (NULL == (rec = m_MMGR_ALLOC_EDA_CLIENT_HDL_REC)) {
+		m_LOG_EDSV_A(EDA_MEMALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		goto error;
+	}
 
-   memset(rec, '\0', sizeof(EDA_CLIENT_HDL_REC));
+	memset(rec, '\0', sizeof(EDA_CLIENT_HDL_REC));
 
-   /* create the association with hdl-mngr */
-   if ( 0 == (rec->local_hdl = ncshm_create_hdl((*eda_cb)->pool_id, 
-                                 NCS_SERVICE_ID_EDA,(NCSCONTEXT)rec)))
-   {
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      goto error;
-   }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->local_hdl = ncshm_create_hdl((*eda_cb)->pool_id, NCS_SERVICE_ID_EDA, (NCSCONTEXT)rec))) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		goto error;
+	}
 
-   /* store the registered callbacks */
-   if (reg_cbks)
-       memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, 
-                       sizeof(SaEvtCallbacksT));
+	/* store the registered callbacks */
+	if (reg_cbks)
+		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaEvtCallbacksT));
 
    /** Associate with the reg_id obtained from EDS
     **/
-   rec->eds_reg_id = reg_id;
-   rec->version.releaseCode = version.releaseCode;
-   rec->version.majorVersion = version.majorVersion;
-   rec->version.minorVersion = version.minorVersion;
+	rec->eds_reg_id = reg_id;
+	rec->version.releaseCode = version.releaseCode;
+	rec->version.majorVersion = version.majorVersion;
+	rec->version.minorVersion = version.minorVersion;
 
    /** Initialize and attach the IPC/Priority queue
     **/
-    if(m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-       m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       goto error;
-    }
-    if(m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-       m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       goto error;
-    }
+	if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		goto error;
+	}
+	if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		goto error;
+	}
    /** Add this to the Link List of 
     ** CLIENT_HDL_RECORDS for this EDA_CB 
     **/
 
-    m_NCS_LOCK(&((*eda_cb)->cb_lock), NCS_LOCK_WRITE);
-    /* add this to the start of the list */
-    rec->next = (*eda_cb)->eda_init_rec_list;
-    (*eda_cb)->eda_init_rec_list = rec;
-    m_NCS_UNLOCK(&((*eda_cb)->cb_lock), NCS_LOCK_WRITE);
+	m_NCS_LOCK(&((*eda_cb)->cb_lock), NCS_LOCK_WRITE);
+	/* add this to the start of the list */
+	rec->next = (*eda_cb)->eda_init_rec_list;
+	(*eda_cb)->eda_init_rec_list = rec;
+	m_NCS_UNLOCK(&((*eda_cb)->cb_lock), NCS_LOCK_WRITE);
 
-    return rec;
+	return rec;
 
-error:
-   if (rec) 
-   {
-     /* remove the association with hdl-mngr */
-      if (rec->local_hdl)
-         ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rec->local_hdl);
+ error:
+	if (rec) {
+		/* remove the association with hdl-mngr */
+		if (rec->local_hdl)
+			ncshm_destroy_hdl(NCS_SERVICE_ID_EDA, rec->local_hdl);
 
       /** detach and release the IPC 
        **/
-      m_NCS_IPC_DETACH(&rec->mbx ,eda_clear_mbx,NULL);
-      m_NCS_IPC_RELEASE(&rec->mbx , NULL);
+		m_NCS_IPC_DETACH(&rec->mbx, eda_clear_mbx, NULL);
+		m_NCS_IPC_RELEASE(&rec->mbx, NULL);
 
-      m_MMGR_FREE_EDA_CLIENT_HDL_REC(rec);
-   }
-   return NULL;
+		m_MMGR_FREE_EDA_CLIENT_HDL_REC(rec);
+	}
+	return NULL;
 }
-
 
 /****************************************************************************
   Name          : eda_hdl_cbk_dispatch
@@ -689,33 +628,29 @@ error:
  
   Notes         : None
 ******************************************************************************/
-uns32 
-eda_hdl_cbk_dispatch (EDA_CB                  *cb, 
-                      EDA_CLIENT_HDL_REC      *hdl_rec, 
-                      SaDispatchFlagsT flags)
+uns32 eda_hdl_cbk_dispatch(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec, SaDispatchFlagsT flags)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   switch (flags)
-   {
-   case SA_DISPATCH_ONE:
-       rc = eda_hdl_cbk_dispatch_one(cb, hdl_rec);
-      break;
+	switch (flags) {
+	case SA_DISPATCH_ONE:
+		rc = eda_hdl_cbk_dispatch_one(cb, hdl_rec);
+		break;
 
-   case SA_DISPATCH_ALL:
-       rc = eda_hdl_cbk_dispatch_all(cb, hdl_rec);
-      break;
+	case SA_DISPATCH_ALL:
+		rc = eda_hdl_cbk_dispatch_all(cb, hdl_rec);
+		break;
 
-   case SA_DISPATCH_BLOCKING:
-       rc = eda_hdl_cbk_dispatch_block(cb, hdl_rec);
-      break;
+	case SA_DISPATCH_BLOCKING:
+		rc = eda_hdl_cbk_dispatch_block(cb, hdl_rec);
+		break;
 
-   default:
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,flags,__FILE__,__LINE__,0);
-      break;
-   } /* switch */
+	default:
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, flags, __FILE__, __LINE__, 0);
+		break;
+	}			/* switch */
 
-   return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -732,42 +667,36 @@ eda_hdl_cbk_dispatch (EDA_CB                  *cb,
  
   Notes         : None
 ******************************************************************************/
-static void 
-eda_hdl_cbk_rec_prc (EDA_CB           *cb, 
-                     EDSV_MSG         *msg,
-                     SaEvtCallbacksT  *reg_cbk)
+static void eda_hdl_cbk_rec_prc(EDA_CB *cb, EDSV_MSG *msg, SaEvtCallbacksT *reg_cbk)
 {
-   EDSV_CBK_INFO *info = &msg->info.cbk_info;
+	EDSV_CBK_INFO *info = &msg->info.cbk_info;
 
-   /* invoke the corresponding callback */
-   switch (info->type)
-   {
-   case EDSV_EDS_CHAN_OPEN:
-      {
-         EDSV_EDA_CHAN_OPEN_CBK_PARAM *chanopen = &info->param.chan_open_cbk;
+	/* invoke the corresponding callback */
+	switch (info->type) {
+	case EDSV_EDS_CHAN_OPEN:
+		{
+			EDSV_EDA_CHAN_OPEN_CBK_PARAM *chanopen = &info->param.chan_open_cbk;
 
-         if (reg_cbk->saEvtChannelOpenCallback)
-             reg_cbk->saEvtChannelOpenCallback(info->inv, 
-               chanopen->eda_chan_hdl, chanopen->error);
-      }
-      break;
+			if (reg_cbk->saEvtChannelOpenCallback)
+				reg_cbk->saEvtChannelOpenCallback(info->inv, chanopen->eda_chan_hdl, chanopen->error);
+		}
+		break;
 
-   case EDSV_EDS_DELIVER_EVENT:
-      {
-         EDSV_EDA_EVT_DELIVER_CBK_PARAM *evtdeliver = &info->param.evt_deliver_cbk;
+	case EDSV_EDS_DELIVER_EVENT:
+		{
+			EDSV_EDA_EVT_DELIVER_CBK_PARAM *evtdeliver = &info->param.evt_deliver_cbk;
 
-         if (reg_cbk->saEvtEventDeliverCallback)
-             reg_cbk->saEvtEventDeliverCallback(evtdeliver->sub_id,
-                                                evtdeliver->event_hdl,
-                                                evtdeliver->data_len);
-      }
-      break;
-   default:
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,info->type,__FILE__,__LINE__,0);
-      break;
-   } /* switch */
+			if (reg_cbk->saEvtEventDeliverCallback)
+				reg_cbk->saEvtEventDeliverCallback(evtdeliver->sub_id,
+								   evtdeliver->event_hdl, evtdeliver->data_len);
+		}
+		break;
+	default:
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, info->type, __FILE__, __LINE__, 0);
+		break;
+	}			/* switch */
 
-   return;
+	return;
 }
 
 /****************************************************************************
@@ -783,72 +712,61 @@ eda_hdl_cbk_rec_prc (EDA_CB           *cb,
  
   Notes         : None
 ******************************************************************************/
-static uns32 
-eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
+static uns32 eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG *cbk_msg)
 {
-   EDA_CHANNEL_HDL_REC *chan_hdl_rec =NULL;
-   EDA_EVENT_HDL_REC     *evt_hdl_rec = NULL;
-   EDSV_EDA_EVT_DELIVER_CBK_PARAM *evt_dlv_param =&cbk_msg->info.cbk_info.param.evt_deliver_cbk;
-   SaEvtEventHandleT eventHandle =  evt_dlv_param->event_hdl; 
+	EDA_CHANNEL_HDL_REC *chan_hdl_rec = NULL;
+	EDA_EVENT_HDL_REC *evt_hdl_rec = NULL;
+	EDSV_EDA_EVT_DELIVER_CBK_PARAM *evt_dlv_param = &cbk_msg->info.cbk_info.param.evt_deliver_cbk;
+	SaEvtEventHandleT eventHandle = evt_dlv_param->event_hdl;
    /** Lookup the hdl rec 
     **/
-    /* retrieve event hdl record */
-   if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(
-                              NCS_SERVICE_ID_EDA, eventHandle)))
-   {
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,eventHandle,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
-   if(evt_hdl_rec->parent_chan)
-   { /* Check if channel still exists */
-        if(evt_hdl_rec->parent_chan->channel_hdl)
-        {
-            /* retrieve the eda channel hdl record */
-            if (NULL != (chan_hdl_rec = (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(
-                                 NCS_SERVICE_ID_EDA, evt_hdl_rec->parent_chan->channel_hdl)))
-            {
-               if (NULL != eda_find_subsc_by_subsc_id(chan_hdl_rec,
-                                             evt_dlv_param->sub_id))
-               {
-                   ncshm_give_hdl(eventHandle);
-                   ncshm_give_hdl(chan_hdl_rec->channel_hdl);
-                   return NCSCC_RC_SUCCESS;
-               }
-               else
-               {
-                 if (chan_hdl_rec->subsc_list)
-                 {
-                     ncshm_give_hdl(eventHandle);
-                     ncshm_give_hdl(chan_hdl_rec->channel_hdl);
-                     return NCSCC_RC_SUCCESS;
-                 }
-                 else
-                 {
-                    /** Lock EDA_CB synchronize access with MDS thread.
+	/* retrieve event hdl record */
+	if (NULL == (evt_hdl_rec = (EDA_EVENT_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA, eventHandle))) {
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, eventHandle, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	if (evt_hdl_rec->parent_chan) {	/* Check if channel still exists */
+		if (evt_hdl_rec->parent_chan->channel_hdl) {
+			/* retrieve the eda channel hdl record */
+			if (NULL !=
+			    (chan_hdl_rec =
+			     (EDA_CHANNEL_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_EDA,
+								   evt_hdl_rec->parent_chan->channel_hdl))) {
+				if (NULL != eda_find_subsc_by_subsc_id(chan_hdl_rec, evt_dlv_param->sub_id)) {
+					ncshm_give_hdl(eventHandle);
+					ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+					return NCSCC_RC_SUCCESS;
+				} else {
+					if (chan_hdl_rec->subsc_list) {
+						ncshm_give_hdl(eventHandle);
+						ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+						return NCSCC_RC_SUCCESS;
+					} else {
+		    /** Lock EDA_CB synchronize access with MDS thread.
                      **/
-                    m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+						m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-                     /** Delete this evt record from the
+		     /** Delete this evt record from the
                       ** list of events
                       **/
-                    if (NCSCC_RC_SUCCESS !=
-                    eda_event_hdl_rec_del(&chan_hdl_rec->chan_event_anchor, evt_hdl_rec))
-                    {
-                      ncshm_give_hdl(eventHandle);
-                    }
-                    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-                    ncshm_give_hdl(chan_hdl_rec->channel_hdl);
-                    return NCSCC_RC_FAILURE;
-                   
-                 } 
- 
-               }
-            }
-        }
-  }
-  
-  ncshm_give_hdl(eventHandle);
-  return NCSCC_RC_FAILURE;
+						if (NCSCC_RC_SUCCESS !=
+						    eda_event_hdl_rec_del(&chan_hdl_rec->chan_event_anchor,
+									  evt_hdl_rec)) {
+							ncshm_give_hdl(eventHandle);
+						}
+						m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+						ncshm_give_hdl(chan_hdl_rec->channel_hdl);
+						return NCSCC_RC_FAILURE;
+
+					}
+
+				}
+			}
+		}
+	}
+
+	ncshm_give_hdl(eventHandle);
+	return NCSCC_RC_FAILURE;
 
 }
 
@@ -864,36 +782,30 @@ eda_find_subsc_validity(EDA_CB *cb, EDSV_MSG  *cbk_msg)
  
   Notes         : None
 ******************************************************************************/
-static uns32 
-eda_hdl_cbk_dispatch_one (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uns32 eda_hdl_cbk_dispatch_one(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
-   EDSV_MSG         *cbk_msg = NULL;
-   uns32 rc = SA_AIS_OK;
+	EDSV_MSG *cbk_msg = NULL;
+	uns32 rc = SA_AIS_OK;
 
-   /* Nonblk receive to obtain the message from priority queue*/
-   while (NULL != (cbk_msg = (EDSV_MSG *)
-         m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-   {    
-        if( cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT)
-        { 
-          if(eda_find_subsc_validity(cb , cbk_msg) == NCSCC_RC_SUCCESS )
-          { 
-             /* process the callback list record */
-             eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-             eda_msg_destroy(cbk_msg);
-             break;
-          }
-          eda_msg_destroy(cbk_msg);
-        }
-        else
-        {
-             /* process the callback list record */
-             eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-             eda_msg_destroy(cbk_msg);
-             break;
-        }
-   }
-   return rc;
+	/* Nonblk receive to obtain the message from priority queue */
+	while (NULL != (cbk_msg = (EDSV_MSG *)
+			m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
+		if (cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT) {
+			if (eda_find_subsc_validity(cb, cbk_msg) == NCSCC_RC_SUCCESS) {
+				/* process the callback list record */
+				eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+				eda_msg_destroy(cbk_msg);
+				break;
+			}
+			eda_msg_destroy(cbk_msg);
+		} else {
+			/* process the callback list record */
+			eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+			eda_msg_destroy(cbk_msg);
+			break;
+		}
+	}
+	return rc;
 }
 
 /****************************************************************************
@@ -908,37 +820,30 @@ eda_hdl_cbk_dispatch_one (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-static uns32 
-eda_hdl_cbk_dispatch_all (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uns32 eda_hdl_cbk_dispatch_all(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
-   EDSV_MSG   *cbk_msg = NULL;
-   uns32       rc = SA_AIS_OK;
-   
-   /* Recv all the cbk notifications from the queue & process them */
-   do
-   {
-      if (NULL == (cbk_msg = (EDSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-         break;
-      if( cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT)
-      {
-         if( eda_find_subsc_validity(cb , cbk_msg) == NCSCC_RC_SUCCESS ) 
-         {
-            /* process the callback list record */
-            eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-         }
-      }
-      else 
-      {
-         /* process the callback list record */
-         eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-      }
-      /* now that we are done with this rec, free the resources */
-      eda_msg_destroy(cbk_msg);
-   } while (1);
+	EDSV_MSG *cbk_msg = NULL;
+	uns32 rc = SA_AIS_OK;
 
-   return rc;
+	/* Recv all the cbk notifications from the queue & process them */
+	do {
+		if (NULL == (cbk_msg = (EDSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
+			break;
+		if (cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT) {
+			if (eda_find_subsc_validity(cb, cbk_msg) == NCSCC_RC_SUCCESS) {
+				/* process the callback list record */
+				eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+			}
+		} else {
+			/* process the callback list record */
+			eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+		}
+		/* now that we are done with this rec, free the resources */
+		eda_msg_destroy(cbk_msg);
+	} while (1);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : eda_hdl_cbk_dispatch_block
@@ -954,42 +859,34 @@ eda_hdl_cbk_dispatch_all (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-static uns32 
-eda_hdl_cbk_dispatch_block (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
+static uns32 eda_hdl_cbk_dispatch_block(EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
 {
-   EDSV_MSG   *cbk_msg = NULL;
-   uns32 rc = SA_AIS_OK;
+	EDSV_MSG *cbk_msg = NULL;
+	uns32 rc = SA_AIS_OK;
 
-   for(;;)
-   {
-      if (NULL != (cbk_msg = (EDSV_MSG *)
-               m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-      {
-        if( cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT)
-        {
-           if(eda_find_subsc_validity(cb , cbk_msg) == NCSCC_RC_SUCCESS )
-           {
-              /* process the callback list record */
-              eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-           }
-        }
-        else
-        {
-           /* process the callback list record */
-           eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-        }
-            
-        /* now that we are done with this rec, free the resources */
-         eda_msg_destroy(cbk_msg);
-        /* check to see the validity of the hdl.*/
-        if (FALSE == eda_validate_eda_client_hdl(cb, hdl_rec))
-           return rc;
-      }
-      else
-         return rc; /* FIX to handle finalize clean up of mbx */
-   }
+	for (;;) {
+		if (NULL != (cbk_msg = (EDSV_MSG *)
+			     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
+			if (cbk_msg->info.cbk_info.type == EDSV_EDS_DELIVER_EVENT) {
+				if (eda_find_subsc_validity(cb, cbk_msg) == NCSCC_RC_SUCCESS) {
+					/* process the callback list record */
+					eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+				}
+			} else {
+				/* process the callback list record */
+				eda_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+			}
 
-   return rc;
+			/* now that we are done with this rec, free the resources */
+			eda_msg_destroy(cbk_msg);
+			/* check to see the validity of the hdl. */
+			if (FALSE == eda_validate_eda_client_hdl(cb, hdl_rec))
+				return rc;
+		} else
+			return rc;	/* FIX to handle finalize clean up of mbx */
+	}
+
+	return rc;
 }
 
 /****************************************************************************
@@ -1007,114 +904,94 @@ eda_hdl_cbk_dispatch_block (EDA_CB *cb, EDA_CLIENT_HDL_REC *hdl_rec)
   Notes         : None
 ******************************************************************************/
 SaAisErrorT
-eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
-                               SaEvtEventPatternArrayT **to_pattern_array) 
+eda_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array, SaEvtEventPatternArrayT **to_pattern_array)
 {
-   uns32 n=0;
-   SaEvtEventPatternT *from_pattern, *to_pattern;
-   SaAisErrorT error=SA_AIS_OK;
-   
-   (*to_pattern_array)->patternsNumber = 
-      from_pattern_array->patternsNumber;
+	uns32 n = 0;
+	SaEvtEventPatternT *from_pattern, *to_pattern;
+	SaAisErrorT error = SA_AIS_OK;
+
+	(*to_pattern_array)->patternsNumber = from_pattern_array->patternsNumber;
 
    /** For now copy the patterns only if a buffer of a correct
     ** size has been provided.
     **/
-   if ((*to_pattern_array)->allocatedNumber <
-                              from_pattern_array->patternsNumber)
-   {
-       for(n = 0, 
-           from_pattern = from_pattern_array->patterns, 
-           to_pattern = (*to_pattern_array)->patterns; 
-           n <(*to_pattern_array)->allocatedNumber; 
-           n++,from_pattern++, to_pattern++)
-      {
-           if(to_pattern && from_pattern)
-              to_pattern->patternSize = from_pattern->patternSize;
-      }
-      
-      error=SA_AIS_ERR_NO_SPACE;
-      m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-      return error;
-   }
+	if ((*to_pattern_array)->allocatedNumber < from_pattern_array->patternsNumber) {
+		for (n = 0,
+		     from_pattern = from_pattern_array->patterns,
+		     to_pattern = (*to_pattern_array)->patterns;
+		     n < (*to_pattern_array)->allocatedNumber; n++, from_pattern++, to_pattern++) {
+			if (to_pattern && from_pattern)
+				to_pattern->patternSize = from_pattern->patternSize;
+		}
 
-   for(n = 0, 
-       from_pattern = from_pattern_array->patterns, 
-       to_pattern = (*to_pattern_array)->patterns; 
-       n < from_pattern_array->patternsNumber; 
-       n++,from_pattern++, to_pattern++)
-   {
-      if ((to_pattern == NULL) ||
-           (from_pattern->patternSize > to_pattern->allocatedSize))
-      {
-            error=SA_AIS_ERR_NO_SPACE;
-            m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-      }
-      else
-      {
-         memcpy((void *)to_pattern->pattern, 
-                      (void *)from_pattern->pattern, 
-                      (uns32)from_pattern->patternSize);
-      }
-      /* pattern size should be set in all cases.'B' spec */
-      if(to_pattern != NULL)
-         to_pattern->patternSize = from_pattern->patternSize;
+		error = SA_AIS_ERR_NO_SPACE;
+		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+		return error;
+	}
 
-   }/*end for */
+	for (n = 0,
+	     from_pattern = from_pattern_array->patterns,
+	     to_pattern = (*to_pattern_array)->patterns;
+	     n < from_pattern_array->patternsNumber; n++, from_pattern++, to_pattern++) {
+		if ((to_pattern == NULL) || (from_pattern->patternSize > to_pattern->allocatedSize)) {
+			error = SA_AIS_ERR_NO_SPACE;
+			m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+		} else {
+			memcpy((void *)to_pattern->pattern,
+			       (void *)from_pattern->pattern, (uns32)from_pattern->patternSize);
+		}
+		/* pattern size should be set in all cases.'B' spec */
+		if (to_pattern != NULL)
+			to_pattern->patternSize = from_pattern->patternSize;
 
-   return  error;
+	}			/*end for */
+
+	return error;
 }
-SaAisErrorT              
+
+SaAisErrorT
 eda_allocate_and_extract_pattern_from_event(SaEvtEventPatternArrayT *from_pattern_array,
-                               SaEvtEventPatternArrayT **to_pattern_array) 
+					    SaEvtEventPatternArrayT **to_pattern_array)
 {
-     uns32 n=0;
-     SaEvtEventPatternT *from_pattern, *to_pattern;
-     SaAisErrorT error=SA_AIS_OK;
-                                                                                
-     (*to_pattern_array)->patternsNumber = 
-                 from_pattern_array->patternsNumber;
+	uns32 n = 0;
+	SaEvtEventPatternT *from_pattern, *to_pattern;
+	SaAisErrorT error = SA_AIS_OK;
+
+	(*to_pattern_array)->patternsNumber = from_pattern_array->patternsNumber;
 
       /** Initialize the  patterns field **/
-      if( from_pattern_array->patternsNumber != 0)
-      {
-         (*to_pattern_array)->patterns = malloc((*to_pattern_array) ->patternsNumber * sizeof(SaEvtEventPatternT));
-         if (NULL == (* to_pattern_array) ->patterns)
-         {
-            error= SA_AIS_ERR_NO_MEMORY;
-            m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-            return error;
-          }
-          /** zero the memory **/
-          memset((*to_pattern_array)->patterns, '\0', (*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
-          for(n = 0, 
-              from_pattern = from_pattern_array->patterns, 
-              to_pattern = (*to_pattern_array)->patterns; 
-              n < from_pattern_array->patternsNumber; 
-              n++,from_pattern++,to_pattern++)
-          {
-             if(from_pattern != NULL)
-             {
-                /** Assign the pattern size **/
-                to_pattern->patternSize = from_pattern->patternSize;
-                /** Allocate memory for the individual pattern **/
-                if (NULL == (to_pattern->pattern = (SaUint8T *)
-                            malloc(((uns32)from_pattern->patternSize)* sizeof(SaUint8T))))
-                {
-                   error = SA_AIS_ERR_NO_MEMORY;  
-                   m_LOG_EDSV_A(EDA_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-                   free((*to_pattern_array)->patterns);
-                   (*to_pattern_array)->patterns = NULL;
-                   return error;
-                }
-                /** Clear memory for the allocated pattern **/
-                memset(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
-                memcpy((void *)to_pattern->pattern, 
-                             (void *)from_pattern->pattern, 
-                             (uns32)from_pattern->patternSize);
-             }
-          }/*end for */
-      }/* End if from_pattern_array->patternsNumber != 0 */
-      return  error;
+	if (from_pattern_array->patternsNumber != 0) {
+		(*to_pattern_array)->patterns =
+		    malloc((*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
+		if (NULL == (*to_pattern_array)->patterns) {
+			error = SA_AIS_ERR_NO_MEMORY;
+			m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+			return error;
+		}
+	  /** zero the memory **/
+		memset((*to_pattern_array)->patterns, '\0',
+		       (*to_pattern_array)->patternsNumber * sizeof(SaEvtEventPatternT));
+		for (n = 0, from_pattern = from_pattern_array->patterns, to_pattern = (*to_pattern_array)->patterns;
+		     n < from_pattern_array->patternsNumber; n++, from_pattern++, to_pattern++) {
+			if (from_pattern != NULL) {
+		/** Assign the pattern size **/
+				to_pattern->patternSize = from_pattern->patternSize;
+		/** Allocate memory for the individual pattern **/
+				if (NULL == (to_pattern->pattern = (SaUint8T *)
+					     malloc(((uns32)from_pattern->patternSize) * sizeof(SaUint8T)))) {
+					error = SA_AIS_ERR_NO_MEMORY;
+					m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
+						     __LINE__, 0);
+					free((*to_pattern_array)->patterns);
+					(*to_pattern_array)->patterns = NULL;
+					return error;
+				}
+		/** Clear memory for the allocated pattern **/
+				memset(to_pattern->pattern, '\0', (uns32)to_pattern->patternSize);
+				memcpy((void *)to_pattern->pattern,
+				       (void *)from_pattern->pattern, (uns32)from_pattern->patternSize);
+			}
+		}		/*end for */
+	}			/* End if from_pattern_array->patternsNumber != 0 */
+	return error;
 }
-

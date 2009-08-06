@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -69,11 +68,8 @@ do { \
 
 EXTERN_C uns32 hpl_mds_initialize(HPL_CB *hpl_cb);
 EXTERN_C uns32 hpl_mds_finalize(HPL_CB *hpl_cb);
-EXTERN_C uns32 hpl_mds_msg_async_send(HPL_CB *cb, HISV_MSG *i_msg,
-                                      MDS_DEST *ham_dest, uns32 prio);
-EXTERN_C HISV_MSG* hpl_mds_msg_sync_send(HPL_CB *cb, HISV_MSG *i_msg,
-                                      MDS_DEST *ham_dest, uns32 prio, uns32 timeout);
-EXTERN_C uns32 get_ham_dest (HPL_CB *hpl_cb, MDS_DEST *ham_dest,
-                             uns32 chassis_d);
+EXTERN_C uns32 hpl_mds_msg_async_send(HPL_CB *cb, HISV_MSG *i_msg, MDS_DEST *ham_dest, uns32 prio);
+EXTERN_C HISV_MSG *hpl_mds_msg_sync_send(HPL_CB *cb, HISV_MSG *i_msg, MDS_DEST *ham_dest, uns32 prio, uns32 timeout);
+EXTERN_C uns32 get_ham_dest(HPL_CB *hpl_cb, MDS_DEST *ham_dest, uns32 chassis_d);
 
-#endif /* !HPL_MDS_H */
+#endif   /* !HPL_MDS_H */

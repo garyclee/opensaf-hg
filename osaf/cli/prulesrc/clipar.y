@@ -28,7 +28,7 @@
 
 ******************************************************************************
 */
-%{
+% {
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -42,23 +42,23 @@
                 Variable declaration.
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-static CLI_CB *parCli = 0;
+	static CLI_CB *parCli = 0;
 
 /* Global variables */
-int32 yylineno;
+	int32 yylineno;
 
 /* External defined functions */
-EXTERN_C int8 *yytext;
-EXTERN_C void yyerror(int8 *);
-EXTERN_C int32 yylex();
+	EXTERN_C int8 *yytext;
+	EXTERN_C void yyerror(int8 *);
+	EXTERN_C int32 yylex();
 
-static void
-get_range_values(CLI_CMD_ELEMENT *, CLI_TOKEN_ATTRIB, int8 *, int8 *);
-static void do_lbrace_opr(CLI_CB *);
-static void do_rbarce_opr(CLI_CB *);
-static void do_lcurlybrace_opr(CLI_CB *);
-static void do_rcurlybrace_opr(CLI_CB *);
-                 
+	static void
+	 get_range_values(CLI_CMD_ELEMENT *, CLI_TOKEN_ATTRIB, int8 *, int8 *);
+	static void do_lbrace_opr(CLI_CB *);
+	static void do_rbarce_opr(CLI_CB *);
+	static void do_lcurlybrace_opr(CLI_CB *);
+	static void do_rcurlybrace_opr(CLI_CB *);
+
 #define m_SET_TOKEN_ATTRIBUTE(val)\
 {\
     cli_set_token_attrib(parCli,\
@@ -72,239 +72,206 @@ static void do_rcurlybrace_opr(CLI_CB *);
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 %}
-%token CLI_TOK_KEYWORD
-%token CLI_TOK_PARAM
-%token CLI_TOK_NUMBER
-%token CLI_TOK_PASSWORD
-%token CLI_TOK_CIDRv4
-%token CLI_TOK_IPADDRv4
-%token CLI_TOK_IPADDRv6
-%token CLI_TOK_MASKv4
-%token CLI_TOK_CIDRv6
-%token CLI_TOK_RANGE
-%token CLI_TOK_DEFAULT_VAL
-%token CLI_TOK_HELP_STR
-%token CLI_TOK_MODE_CHANGE
-%token CLI_TOK_LCURLYBRACE
-%token CLI_TOK_RCURLYBRACE
-%token CLI_TOK_LBRACE
-%token CLI_TOK_RBRACE
-%token CLI_TOK_LESS_THAN
-%token CLI_TOK_GRTR_THAN
-%token CLI_TOK_OR
-%token CLI_TOK_CONTINOUS_EXP
-%token CLI_TOK_COMMUNITY
-%token CLI_TOK_WILDCARD
-%token CLI_TOK_MACADDR
-%start Command_String
 
-%%
+%token CLI_TOK_KEYWORD
+    % token CLI_TOK_PARAM
+    % token CLI_TOK_NUMBER
+    % token CLI_TOK_PASSWORD
+    % token CLI_TOK_CIDRv4
+    % token CLI_TOK_IPADDRv4
+    % token CLI_TOK_IPADDRv6
+    % token CLI_TOK_MASKv4
+    % token CLI_TOK_CIDRv6
+    % token CLI_TOK_RANGE
+    % token CLI_TOK_DEFAULT_VAL
+    % token CLI_TOK_HELP_STR
+    % token CLI_TOK_MODE_CHANGE
+    % token CLI_TOK_LCURLYBRACE
+    % token CLI_TOK_RCURLYBRACE
+    % token CLI_TOK_LBRACE
+    % token CLI_TOK_RBRACE
+    % token CLI_TOK_LESS_THAN
+    % token CLI_TOK_GRTR_THAN
+    % token CLI_TOK_OR
+    % token CLI_TOK_CONTINOUS_EXP
+    % token CLI_TOK_COMMUNITY % token CLI_TOK_WILDCARD % token CLI_TOK_MACADDR % start Command_String %%
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                 Grammar rules
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-Command_String  :   token_param 
-                ; 
+ Command_String:token_param;
 
-token_param     :   param_type    
-                |   param_type token_param
-                |   param_type 
-                    CLI_TOK_OR
-                    {
-                        /* set the OR flag */
-                        parCli->par_cb.orFlag = TRUE;                                               
-                    }
-                    token_param
-                ;
-                
-param_type      :   tokens
-                |   expression              
-                ;
-                
-expression      :   left_delimiter delimiter_option right_delimiter 
-                ;
+ token_param:param_type | param_type token_param | param_type CLI_TOK_OR {
+	/* set the OR flag */
+	parCli->par_cb.orFlag = TRUE;
+}
 
-delimiter_option    :   tokens
-                    |   tokens delimiter_option
-                    |   tokens 
-                        CLI_TOK_OR
-                        {
-                            /* set the OR flag */
-                            parCli->par_cb.orFlag = TRUE;
-                        }
-                        delimiter_option
-                    |   left_delimiter delimiter_option right_delimiter
-                    |   left_delimiter delimiter_option right_delimiter delimiter_option
-                    |   left_delimiter delimiter_option right_delimiter 
-                        CLI_TOK_OR
-                        {
-                            /* set the OR flag */
-                            parCli->par_cb.orFlag = TRUE;                       
-                        }
-                        delimiter_option              
-                    ;
-                              
-left_delimiter  :   CLI_TOK_LESS_THAN               
-                |   CLI_TOK_LBRACE 
-                    {       
-						do_lbrace_opr(parCli);
-                    }                
-                |   CLI_TOK_LCURLYBRACE 
-                    {   
-						do_lcurlybrace_opr(parCli);                        
-                    }
-                ;
-                           
-right_delimiter :   CLI_TOK_GRTR_THAN                   
-                |   CLI_TOK_RBRACE  
-                    {   
-						do_rbarce_opr(parCli);
-                    }                                   
-                |   CLI_TOK_RCURLYBRACE                 
-                    {                     
-						do_rcurlybrace_opr(parCli);
-                    }
-                ;
+token_param;
 
-tokens          :   keyword                     
-                |   parameters  
-                |   continous_exp            
-                ;
-                
-continous_exp   :   CLI_TOK_CONTINOUS_EXP
-                    {
-                        /* Evaluate the level and relation type of token */                      
-                        cli_evaluate_token(NCSCLI_CONTINOUS_EXP);
-                        
-                        /* Set the attribute of the token */  
-                        m_SET_TOKEN_ATTRIBUTE(CLI_CONTINOUS_RANGE);                      
-                        
-                        parCli->par_cb.is_tok_cont = TRUE;                        
-                    }  
-                |   continous_exp
-                    CLI_TOK_HELP_STR
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);                        
-                    }
-                ;             
-keyword         :   CLI_TOK_KEYWORD 
-                    {   
-                        /* Evaluate the level and relation type of token */                      
-                        cli_evaluate_token(NCSCLI_KEYWORD);                                              
-                    }                                   
-                |   keyword 
-                    CLI_TOK_RANGE 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_RANGE_VALUE);                                                
-                    }
-                |   keyword 
-                    CLI_TOK_DEFAULT_VAL 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_DEFALUT_VALUE);                        
-                    }
-                |   keyword 
-                    CLI_TOK_HELP_STR 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);                        
-                    }
-                |   keyword 
-                    CLI_TOK_MODE_CHANGE 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_MODE_CHANGE);                        
-                    }
-                ;
-                
-parameters      :   parameter_type 
-                |   parameters 
-                    CLI_TOK_RANGE   
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_RANGE_VALUE);                        
-                    }       
-                |   parameters 
-                    CLI_TOK_DEFAULT_VAL 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_DEFALUT_VALUE);                        
-                    }
-                |   parameters 
-                    CLI_TOK_HELP_STR 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);                        
-                    }
-                |   parameters 
-                    CLI_TOK_MODE_CHANGE 
-                    {
-                        /* Set the attribute of the token */
-                        m_SET_TOKEN_ATTRIBUTE(CLI_MODE_CHANGE);                        
-                    }
-                ;
-                
-parameter_type  :   CLI_TOK_PARAM
-                    {   
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_STRING);
-                    }                               
-                |   CLI_TOK_NUMBER      
-                    {   
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_NUMBER);
-                    }
-                |   CLI_TOK_CIDRv4
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_CIDRv4);
-                    } 
-                |   CLI_TOK_IPADDRv4              
-                    {   
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_IPv4);
-                    }
-                |   CLI_TOK_IPADDRv6
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_IPv6);                 
-                    }    
-                |   CLI_TOK_MASKv4
-                    {   
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_MASKv4);
-                    }
-                |   CLI_TOK_CIDRv6
-                    {   
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_CIDRv6);
-                    }
-                |   CLI_TOK_PASSWORD
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_PASSWORD);
-                    } 
-                |   CLI_TOK_COMMUNITY
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_COMMUNITY);
-                    }       
-                |   CLI_TOK_WILDCARD                
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_WILDCARD);
-                    }        
-                |   CLI_TOK_MACADDR
-                    {
-                        /* Evaluate the level and relation type of token */
-                        cli_evaluate_token(NCSCLI_MACADDR);
-                    }
-                ;               
+ param_type:tokens | expression;
+
+ expression:left_delimiter delimiter_option right_delimiter;
+
+ delimiter_option:tokens | tokens delimiter_option | tokens CLI_TOK_OR {
+	/* set the OR flag */
+	parCli->par_cb.orFlag = TRUE;
+}
+
+delimiter_option
+    | left_delimiter delimiter_option right_delimiter
+    | left_delimiter delimiter_option right_delimiter delimiter_option
+    | left_delimiter delimiter_option right_delimiter CLI_TOK_OR {
+	/* set the OR flag */
+	parCli->par_cb.orFlag = TRUE;
+}
+
+delimiter_option;
+
+ left_delimiter:CLI_TOK_LESS_THAN | CLI_TOK_LBRACE {
+	do_lbrace_opr(parCli);
+}
+
+|CLI_TOK_LCURLYBRACE {
+	do_lcurlybrace_opr(parCli);
+}
+
+;
+
+ right_delimiter:CLI_TOK_GRTR_THAN | CLI_TOK_RBRACE {
+	do_rbarce_opr(parCli);
+}
+
+|CLI_TOK_RCURLYBRACE {
+	do_rcurlybrace_opr(parCli);
+}
+
+;
+
+ tokens:keyword | parameters | continous_exp;
+
+ continous_exp:CLI_TOK_CONTINOUS_EXP {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_CONTINOUS_EXP);
+
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_CONTINOUS_RANGE);
+
+	parCli->par_cb.is_tok_cont = TRUE;
+}
+
+|continous_exp CLI_TOK_HELP_STR {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);
+}
+
+;
+ keyword:CLI_TOK_KEYWORD {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_KEYWORD);
+}
+
+|keyword CLI_TOK_RANGE {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_RANGE_VALUE);
+}
+
+|keyword CLI_TOK_DEFAULT_VAL {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_DEFALUT_VALUE);
+}
+
+|keyword CLI_TOK_HELP_STR {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);
+}
+
+|keyword CLI_TOK_MODE_CHANGE {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_MODE_CHANGE);
+}
+
+;
+
+ parameters:parameter_type | parameters CLI_TOK_RANGE {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_RANGE_VALUE);
+}
+
+|parameters CLI_TOK_DEFAULT_VAL {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_DEFALUT_VALUE);
+}
+
+|parameters CLI_TOK_HELP_STR {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_HELP_STR);
+}
+
+|parameters CLI_TOK_MODE_CHANGE {
+	/* Set the attribute of the token */
+	m_SET_TOKEN_ATTRIBUTE(CLI_MODE_CHANGE);
+}
+
+;
+
+ parameter_type:CLI_TOK_PARAM {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_STRING);
+}
+
+|CLI_TOK_NUMBER {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_NUMBER);
+}
+
+|CLI_TOK_CIDRv4 {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_CIDRv4);
+}
+
+|CLI_TOK_IPADDRv4 {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_IPv4);
+}
+
+|CLI_TOK_IPADDRv6 {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_IPv6);
+}
+
+|CLI_TOK_MASKv4 {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_MASKv4);
+}
+
+|CLI_TOK_CIDRv6 {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_CIDRv6);
+}
+
+|CLI_TOK_PASSWORD {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_PASSWORD);
+}
+
+|CLI_TOK_COMMUNITY {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_COMMUNITY);
+}
+
+|CLI_TOK_WILDCARD {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_WILDCARD);
+}
+
+|CLI_TOK_MACADDR {
+	/* Evaluate the level and relation type of token */
+	cli_evaluate_token(NCSCLI_MACADDR);
+}
+
+;
 %%
-
 /*****************************************************************************
  Procedure NAME   : do_lbrace_opr
  DESCRIPTION	   : Routine thats does the sematic matching when left barce 
@@ -317,39 +284,38 @@ static void do_lbrace_opr(CLI_CB *pCli)
 	/*  increment the Optional brace type counter */
 	pCli->par_cb.optCntr++;
 
-	/* Set the level */                 
-	if(pCli->par_cb.orFlag == TRUE) {
+	/* Set the level */
+	if (pCli->par_cb.orFlag == TRUE) {
 		pCli->par_cb.optLvlCntr = pCli->par_cb.tokLvlCntr;
 
-		if(pCli->par_cb.grpCntr == 0) {   
-			if(pCli->par_cb.optCntr > 1)
+		if (pCli->par_cb.grpCntr == 0) {
+			if (pCli->par_cb.optCntr > 1)
 				pCli->par_cb.relnType = CLI_OPT_SIBLING_TOKEN;
 			else
-				pCli->par_cb.relnType = CLI_SIBLING_TOKEN;                            
-		}
-		else pCli->par_cb.relnType = CLI_GRP_SIBLING_TOKEN;
-	}
-	else {
+				pCli->par_cb.relnType = CLI_SIBLING_TOKEN;
+		} else
+			pCli->par_cb.relnType = CLI_GRP_SIBLING_TOKEN;
+	} else {
 		pCli->par_cb.optLvlCntr = (uns16)(pCli->par_cb.tokLvlCntr + 1);
-    
-		if(pCli->par_cb.grpCntr == 0) {   
-			if(pCli->par_cb.optCntr > 1)
+
+		if (pCli->par_cb.grpCntr == 0) {
+			if (pCli->par_cb.optCntr > 1)
 				pCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;
 			else
-				pCli->par_cb.relnType = CLI_CHILD_TOKEN;                                                  
-		}
-		else pCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
+				pCli->par_cb.relnType = CLI_CHILD_TOKEN;
+		} else
+			pCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
 	}
-                
-	/* push the current level into the optional stack */                                                
+
+	/* push the current level into the optional stack */
 	pCli->par_cb.optStack[++pCli->par_cb.optStackPtr] = pCli->par_cb.optLvlCntr;
 
-	pCli->par_cb.brcType = CLI_OPT_BRACE;                       
+	pCli->par_cb.brcType = CLI_OPT_BRACE;
 	pCli->par_cb.brcStack[++pCli->par_cb.brcStackPtr] = CLI_OPT_BRACE;
 
-	/*Process token*/
-	cli_process_token(pCli->par_cb.optLvlCntr, pCli->par_cb.relnType, NCSCLI_OPTIONAL);                     
-	pCli->par_cb.firstOptChild = TRUE;	
+	/*Process token */
+	cli_process_token(pCli->par_cb.optLvlCntr, pCli->par_cb.relnType, NCSCLI_OPTIONAL);
+	pCli->par_cb.firstOptChild = TRUE;
 }
 
 /*****************************************************************************
@@ -362,36 +328,35 @@ static void do_lbrace_opr(CLI_CB *pCli)
 static void do_lcurlybrace_opr(CLI_CB *pCli)
 {
 	pCli->par_cb.grpCntr++;
-                        
-	/* Set the level */                 
-	if(pCli->par_cb.orFlag == TRUE) {
+
+	/* Set the level */
+	if (pCli->par_cb.orFlag == TRUE) {
 		pCli->par_cb.grpLvlCntr = pCli->par_cb.tokLvlCntr;
-    
-		if(pCli->par_cb.optCntr == 0) {
-			if(pCli->par_cb.grpCntr > 1)
+
+		if (pCli->par_cb.optCntr == 0) {
+			if (pCli->par_cb.grpCntr > 1)
 				pCli->par_cb.relnType = CLI_GRP_SIBLING_TOKEN;
 			else
-				pCli->par_cb.relnType = CLI_SIBLING_TOKEN;                            
-		}
-		else pCli->par_cb.relnType = CLI_OPT_SIBLING_TOKEN;                            
-	}
-	else {
+				pCli->par_cb.relnType = CLI_SIBLING_TOKEN;
+		} else
+			pCli->par_cb.relnType = CLI_OPT_SIBLING_TOKEN;
+	} else {
 		pCli->par_cb.grpLvlCntr = (uns16)(pCli->par_cb.tokLvlCntr + 1);
-    
-		if(pCli->par_cb.optCntr == 0) {
-			if(pCli->par_cb.grpCntr > 1)
+
+		if (pCli->par_cb.optCntr == 0) {
+			if (pCli->par_cb.grpCntr > 1)
 				pCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
-			else 
-				pCli->par_cb.relnType = CLI_CHILD_TOKEN;                                                  
-		}
-		else pCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;                          
+			else
+				pCli->par_cb.relnType = CLI_CHILD_TOKEN;
+		} else
+			pCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;
 	}
-                
-	/* push the current level into the optional stack */                                                
+
+	/* push the current level into the optional stack */
 	pCli->par_cb.grpStack[++pCli->par_cb.grpStackPtr] = pCli->par_cb.grpLvlCntr;
-                                                    
-	pCli->par_cb.brcType = CLI_GRP_BRACE;                       
-	pCli->par_cb.brcStack[++pCli->par_cb.brcStackPtr] = CLI_GRP_BRACE;                      
+
+	pCli->par_cb.brcType = CLI_GRP_BRACE;
+	pCli->par_cb.brcStack[++pCli->par_cb.brcStackPtr] = CLI_GRP_BRACE;
 
 	/*Process token */
 	cli_process_token(pCli->par_cb.grpLvlCntr, pCli->par_cb.relnType, NCSCLI_GROUP);
@@ -411,17 +376,17 @@ static void do_rbarce_opr(CLI_CB *pCli)
 	pCli->par_cb.optCntr--;
 
 	/* pop the stord level from the stack */
-	pCli->par_cb.tokLvlCntr = (uns16)pCli->par_cb.optStack[pCli->par_cb.optStackPtr];    
-	pCli->par_cb.optStackPtr--;                   
+	pCli->par_cb.tokLvlCntr = (uns16)pCli->par_cb.optStack[pCli->par_cb.optStackPtr];
+	pCli->par_cb.optStackPtr--;
 
 	pCli->par_cb.optTokCnt = 0;
 
 	--pCli->par_cb.brcStackPtr;
-	if(pCli->par_cb.brcStackPtr > -1)
+	if (pCli->par_cb.brcStackPtr > -1)
 		pCli->par_cb.brcType = pCli->par_cb.brcStack[pCli->par_cb.brcStackPtr];
 	else
 		pCli->par_cb.brcType = CLI_NONE_BRACE;
-    
+
 	/*Process token */
 	cli_process_token(pCli->par_cb.grpLvlCntr, CLI_NO_RELATION, NCSCLI_BRACE_END);
 }
@@ -439,16 +404,16 @@ static void do_rcurlybrace_opr(CLI_CB *pCli)
 	pCli->par_cb.grpCntr--;
 
 	/* pop the stord level from the stack */
-	pCli->par_cb.tokLvlCntr = (uns16)pCli->par_cb.grpStack[pCli->par_cb.grpStackPtr];    
+	pCli->par_cb.tokLvlCntr = (uns16)pCli->par_cb.grpStack[pCli->par_cb.grpStackPtr];
 	pCli->par_cb.grpStackPtr--;
 
-	pCli->par_cb.grpTokCnt = 0;    
+	pCli->par_cb.grpTokCnt = 0;
 	--pCli->par_cb.brcStackPtr;
-	if(pCli->par_cb.brcStackPtr > -1)
+	if (pCli->par_cb.brcStackPtr > -1)
 		pCli->par_cb.brcType = pCli->par_cb.brcStack[pCli->par_cb.brcStackPtr];
 	else
 		pCli->par_cb.brcType = CLI_NONE_BRACE;
-		    
+
 	/*Process token */
 	pCli->par_cb.is_tok_cont = FALSE;
 	cli_process_token(pCli->par_cb.grpLvlCntr, CLI_NO_RELATION, NCSCLI_BRACE_END);
@@ -470,7 +435,7 @@ static void do_rcurlybrace_opr(CLI_CB *pCli)
 *****************************************************************************/
 uns32 yygettoken(void)
 {
-    return yylex(); 
+	return yylex();
 }
 
 /*****************************************************************************
@@ -486,72 +451,71 @@ uns32 yygettoken(void)
 *****************************************************************************/
 void cli_evaluate_token(NCSCLI_TOKEN_TYPE i_token_type)
 {
-   if(TRUE == parCli->par_cb.orFlag) {
-      parCli->par_cb.orFlag = FALSE;
+	if (TRUE == parCli->par_cb.orFlag) {
+		parCli->par_cb.orFlag = FALSE;
 
-      switch(parCli->par_cb.brcType) {
-      case CLI_OPT_BRACE:                                     
-         if(TRUE == parCli->par_cb.firstOptChild) {
-            parCli->par_cb.firstOptChild = FALSE;
-            parCli->par_cb.relnType  = CLI_OPT_CHILD_TOKEN;                 
-            parCli->par_cb.optTokCnt++;
-         }
-         else parCli->par_cb.relnType  = CLI_OPT_SIBLING_TOKEN;                                    
-         break;
+		switch (parCli->par_cb.brcType) {
+		case CLI_OPT_BRACE:
+			if (TRUE == parCli->par_cb.firstOptChild) {
+				parCli->par_cb.firstOptChild = FALSE;
+				parCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;
+				parCli->par_cb.optTokCnt++;
+			} else
+				parCli->par_cb.relnType = CLI_OPT_SIBLING_TOKEN;
+			break;
 
-      case CLI_GRP_BRACE:
-         if(TRUE == parCli->par_cb.firstGrpChild) {
-            parCli->par_cb.firstGrpChild = FALSE;
-            parCli->par_cb.relnType  = CLI_GRP_CHILD_TOKEN;                 
-            parCli->par_cb.grpTokCnt++;
-         }
-         else parCli->par_cb.relnType = CLI_GRP_SIBLING_TOKEN;                                                
-         break;
+		case CLI_GRP_BRACE:
+			if (TRUE == parCli->par_cb.firstGrpChild) {
+				parCli->par_cb.firstGrpChild = FALSE;
+				parCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
+				parCli->par_cb.grpTokCnt++;
+			} else
+				parCli->par_cb.relnType = CLI_GRP_SIBLING_TOKEN;
+			break;
 
-      case CLI_NONE_BRACE:
-         parCli->par_cb.relnType = CLI_SIBLING_TOKEN;
-         break;              
+		case CLI_NONE_BRACE:
+			parCli->par_cb.relnType = CLI_SIBLING_TOKEN;
+			break;
 
-      default:
-         break;            
-      }       
-   }
-   else {
-      parCli->par_cb.tokLvlCntr++;
-      parCli->par_cb.optLvlCntr = parCli->par_cb.tokLvlCntr;
-      parCli->par_cb.grpLvlCntr = parCli->par_cb.tokLvlCntr;                          
-  
-      switch(parCli->par_cb.brcType) {
-      case CLI_OPT_BRACE:                                     
-         parCli->par_cb.optTokCnt++;
-				                  
-         if(TRUE == parCli->par_cb.firstOptChild)
-            parCli->par_cb.firstOptChild = FALSE;
+		default:
+			break;
+		}
+	} else {
+		parCli->par_cb.tokLvlCntr++;
+		parCli->par_cb.optLvlCntr = parCli->par_cb.tokLvlCntr;
+		parCli->par_cb.grpLvlCntr = parCli->par_cb.tokLvlCntr;
 
-         if(parCli->par_cb.optCntr > 0)
-            parCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;            
-         break;
+		switch (parCli->par_cb.brcType) {
+		case CLI_OPT_BRACE:
+			parCli->par_cb.optTokCnt++;
 
-      case CLI_GRP_BRACE:
-         parCli->par_cb.grpTokCnt++;
-			      
-         if(TRUE == parCli->par_cb.firstGrpChild)
-            parCli->par_cb.firstGrpChild = FALSE;
+			if (TRUE == parCli->par_cb.firstOptChild)
+				parCli->par_cb.firstOptChild = FALSE;
 
-         if(parCli->par_cb.grpCntr > 0)
-            parCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
-         break;              
+			if (parCli->par_cb.optCntr > 0)
+				parCli->par_cb.relnType = CLI_OPT_CHILD_TOKEN;
+			break;
 
-      case CLI_NONE_BRACE:
-         parCli->par_cb.relnType = CLI_CHILD_TOKEN;              
-         break;                  
+		case CLI_GRP_BRACE:
+			parCli->par_cb.grpTokCnt++;
 
-      default:
-         break;
-      }
-   }
-            
-   cli_process_token(parCli->par_cb.tokLvlCntr, parCli->par_cb.relnType, i_token_type);     
+			if (TRUE == parCli->par_cb.firstGrpChild)
+				parCli->par_cb.firstGrpChild = FALSE;
+
+			if (parCli->par_cb.grpCntr > 0)
+				parCli->par_cb.relnType = CLI_GRP_CHILD_TOKEN;
+			break;
+
+		case CLI_NONE_BRACE:
+			parCli->par_cb.relnType = CLI_CHILD_TOKEN;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	cli_process_token(parCli->par_cb.tokLvlCntr, parCli->par_cb.relnType, i_token_type);
 }
 
 /*****************************************************************************
@@ -566,181 +530,194 @@ void cli_evaluate_token(NCSCLI_TOKEN_TYPE i_token_type)
   RETURNS			:   none
   NOTES				:
 *****************************************************************************/
-void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation, 
-					   NCSCLI_TOKEN_TYPE i_token_type)
-{   
-    /* Create token node */ 
-    CLI_CMD_ELEMENT *cmd_node = m_MMGR_ALLOC_CLI_CMD_ELEMENT;
-    
-    if(0 == cmd_node) return;        
-    memset(cmd_node, 0, sizeof(CLI_CMD_ELEMENT));
-    
-    /* Set the token type */
-    cmd_node->tokType  = i_token_type;
-    cmd_node->tokLvl = (uns8)i_token_level;          
-    
-    if(TRUE == parCli->par_cb.is_tok_cont)
-        cmd_node->isCont = TRUE;        
-    else
-        cmd_node->isCont = FALSE;         
-        
-    /* Set the token type ie Mandatory or Optional */
-   switch(i_token_relation) {           
-   case CLI_CHILD_TOKEN:
-      if(NCSCLI_OPTIONAL == i_token_type)
-         cmd_node->isMand = FALSE;
-      else                        
-         cmd_node->isMand = TRUE;                                           
-      break;
+void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation, NCSCLI_TOKEN_TYPE i_token_type)
+{
+	/* Create token node */
+	CLI_CMD_ELEMENT *cmd_node = m_MMGR_ALLOC_CLI_CMD_ELEMENT;
 
-   case CLI_OPT_CHILD_TOKEN:
-      cmd_node->isMand = FALSE;                              
-      break;          
+	if (0 == cmd_node)
+		return;
+	memset(cmd_node, 0, sizeof(CLI_CMD_ELEMENT));
 
-   case CLI_GRP_CHILD_TOKEN:
-   cmd_node->isMand = TRUE;                   
-      if(1 == parCli->par_cb.grpTokCnt && parCli->par_cb.optCntr > 0)
-         cmd_node->isMand = FALSE;
-      else if(i_token_type == NCSCLI_OPTIONAL)
-         cmd_node->isMand = FALSE;
-      break;
+	/* Set the token type */
+	cmd_node->tokType = i_token_type;
+	cmd_node->tokLvl = (uns8)i_token_level;
 
-   case CLI_SIBLING_TOKEN:
-      if(NCSCLI_OPTIONAL == i_token_type)
-         cmd_node->isMand = FALSE;
-      else            
-         cmd_node->isMand = TRUE;                                       
-      break;
+	if (TRUE == parCli->par_cb.is_tok_cont)
+		cmd_node->isCont = TRUE;
+	else
+		cmd_node->isCont = FALSE;
 
-   case CLI_OPT_SIBLING_TOKEN:     
-      cmd_node->isMand = FALSE;                      
-      break;
+	/* Set the token type ie Mandatory or Optional */
+	switch (i_token_relation) {
+	case CLI_CHILD_TOKEN:
+		if (NCSCLI_OPTIONAL == i_token_type)
+			cmd_node->isMand = FALSE;
+		else
+			cmd_node->isMand = TRUE;
+		break;
 
-   case CLI_GRP_SIBLING_TOKEN:                                 
-      cmd_node->isMand = TRUE;               
-      break;              
+	case CLI_OPT_CHILD_TOKEN:
+		cmd_node->isMand = FALSE;
+		break;
 
-   case CLI_NO_RELATION:
-      break;      
+	case CLI_GRP_CHILD_TOKEN:
+		cmd_node->isMand = TRUE;
+		if (1 == parCli->par_cb.grpTokCnt && parCli->par_cb.optCntr > 0)
+			cmd_node->isMand = FALSE;
+		else if (i_token_type == NCSCLI_OPTIONAL)
+			cmd_node->isMand = FALSE;
+		break;
 
-   default:
-      break;
-   }       
-        
-   if(CLI_NO_RELATION != i_token_relation)
-   {   
-      if(TRUE == parCli->par_cb.firstOptChild)
-         parCli->par_cb.firstOptChild = FALSE;       
-        
-      if(TRUE == parCli->par_cb.firstGrpChild)
-         parCli->par_cb.firstGrpChild = FALSE;       
-        
-      /* Assign the token name */         
-      switch(i_token_type) {           
-      case NCSCLI_KEYWORD:
-		   cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(yytext)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-			strcpy(cmd_node->tokName, yytext);                
-         break;
+	case CLI_SIBLING_TOKEN:
+		if (NCSCLI_OPTIONAL == i_token_type)
+			cmd_node->isMand = FALSE;
+		else
+			cmd_node->isMand = TRUE;
+		break;
 
-      case NCSCLI_CONTINOUS_EXP:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CONTINOUS_EXP)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_CONTINOUS_EXP);                
-         break;    
+	case CLI_OPT_SIBLING_TOKEN:
+		cmd_node->isMand = FALSE;
+		break;
 
-      case NCSCLI_GROUP:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_GRP_NODE)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_GRP_NODE);
-         break;
+	case CLI_GRP_SIBLING_TOKEN:
+		cmd_node->isMand = TRUE;
+		break;
 
-      case NCSCLI_OPTIONAL:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_OPT_NODE)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_OPT_NODE);
-         break;      
+	case CLI_NO_RELATION:
+		break;
 
-      case NCSCLI_STRING:
-		   cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_STRING)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_STRING);
-         break;
+	default:
+		break;
+	}
 
-      case NCSCLI_NUMBER:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_NUMBER)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_NUMBER);
-         break;
+	if (CLI_NO_RELATION != i_token_relation) {
+		if (TRUE == parCli->par_cb.firstOptChild)
+			parCli->par_cb.firstOptChild = FALSE;
 
-      case NCSCLI_CIDRv4:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CIDRv4)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_CIDRv4);
-         break;
+		if (TRUE == parCli->par_cb.firstGrpChild)
+			parCli->par_cb.firstGrpChild = FALSE;
 
-      case NCSCLI_IPv4:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPADDRESSv4)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_IPADDRESSv4);
-         break;
+		/* Assign the token name */
+		switch (i_token_type) {
+		case NCSCLI_KEYWORD:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(yytext) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, yytext);
+			break;
 
-      case NCSCLI_IPv6:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPADDRESSv6)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_IPADDRESSv6);
-         break;
+		case NCSCLI_CONTINOUS_EXP:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CONTINOUS_EXP) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_CONTINOUS_EXP);
+			break;
 
-      case NCSCLI_MASKv4:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPMASKv4)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_IPMASKv4);
-         break;
+		case NCSCLI_GROUP:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_GRP_NODE) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_GRP_NODE);
+			break;
 
-      case NCSCLI_CIDRv6:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CIDRv6)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_CIDRv6);
-         break;                
+		case NCSCLI_OPTIONAL:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_OPT_NODE) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_OPT_NODE);
+			break;
 
-      case NCSCLI_PASSWORD:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_PASSWORD)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_PASSWORD);
-         break;
+		case NCSCLI_STRING:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_STRING) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_STRING);
+			break;
 
-      case NCSCLI_COMMUNITY:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_COMMUNITY)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_COMMUNITY);
-         break;  
+		case NCSCLI_NUMBER:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_NUMBER) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_NUMBER);
+			break;
 
-      case NCSCLI_WILDCARD:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_WILDCARD)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_WILDCARD);
-         break;
+		case NCSCLI_CIDRv4:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CIDRv4) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_CIDRv4);
+			break;
 
-      case NCSCLI_MACADDR:
-			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_MACADDR)+1);
-			if(!cmd_node->tokName) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-         strcpy(cmd_node->tokName, CLI_MACADDR);
-         break;
+		case NCSCLI_IPv4:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPADDRESSv4) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_IPADDRESSv4);
+			break;
 
-      default:
-         break;
-      }
-        
-		sprintf(parCli->par_cb.str, "OF LEVEL (%d)", i_token_level);     
-      m_LOG_NCSCLI_COMMENTS(cmd_node->tokName, (TRUE == cmd_node->isMand)?
-                     NCSCLI_PAR_MANDATORY_TOKEN:NCSCLI_PAR_OPTIONAL_TOKEN, 
-                     parCli->par_cb.str);             
-   }
-        
-   /* Add token into the command tree */
-   cmd_node->tokRel = i_token_relation;
-   parCli->par_cb.tokList[parCli->par_cb.tokCnt] = cmd_node;
-   parCli->par_cb.tokCnt++;   
+		case NCSCLI_IPv6:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPADDRESSv6) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_IPADDRESSv6);
+			break;
+
+		case NCSCLI_MASKv4:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_IPMASKv4) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_IPMASKv4);
+			break;
+
+		case NCSCLI_CIDRv6:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_CIDRv6) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_CIDRv6);
+			break;
+
+		case NCSCLI_PASSWORD:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_PASSWORD) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_PASSWORD);
+			break;
+
+		case NCSCLI_COMMUNITY:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_COMMUNITY) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_COMMUNITY);
+			break;
+
+		case NCSCLI_WILDCARD:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_WILDCARD) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_WILDCARD);
+			break;
+
+		case NCSCLI_MACADDR:
+			cmd_node->tokName = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(CLI_MACADDR) + 1);
+			if (!cmd_node->tokName)
+				m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+			strcpy(cmd_node->tokName, CLI_MACADDR);
+			break;
+
+		default:
+			break;
+		}
+
+		sprintf(parCli->par_cb.str, "OF LEVEL (%d)", i_token_level);
+		m_LOG_NCSCLI_COMMENTS(cmd_node->tokName, (TRUE == cmd_node->isMand) ?
+				      NCSCLI_PAR_MANDATORY_TOKEN : NCSCLI_PAR_OPTIONAL_TOKEN, parCli->par_cb.str);
+	}
+
+	/* Add token into the command tree */
+	cmd_node->tokRel = i_token_relation;
+	parCli->par_cb.tokList[parCli->par_cb.tokCnt] = cmd_node;
+	parCli->par_cb.tokCnt++;
 }
 
 /*****************************************************************************
@@ -754,8 +731,8 @@ void cli_process_token(int32 i_token_level, CLI_TOKEN_RELATION i_token_relation,
 *****************************************************************************/
 void yyerror(int8 *text)
 {
-    if(strlen(yytext) != 0)
-       printf("Error on line %d at %s (%s)\n",yylineno, yytext, text);
+	if (strlen(yytext) != 0)
+		printf("Error on line %d at %s (%s)\n", yylineno, yytext, text);
 }
 
 /*****************************************************************************
@@ -769,7 +746,7 @@ void yyerror(int8 *text)
 *****************************************************************************/
 void cli_pcb_set(CLI_CB *pCli)
 {
-    parCli = pCli;  
+	parCli = pCli;
 }
 
 /*****************************************************************************
@@ -790,123 +767,120 @@ void cli_pcb_set(CLI_CB *pCli)
                      3. Store the attribute in the corresponding value of 
                         the attribute in the node that is currently added
 *****************************************************************************/
-void cli_set_token_attrib(CLI_CB             *pCli, 
-		                    CLI_CMD_ELEMENT    *i_node, 
-                          CLI_TOKEN_ATTRIB   i_token_attrib, 
-                          int8               *i_value)
+void cli_set_token_attrib(CLI_CB *pCli, CLI_CMD_ELEMENT *i_node, CLI_TOKEN_ATTRIB i_token_attrib, int8 *i_value)
 {
-   uns32   token_len;
-   int8    *token = 0;    
+	uns32 token_len;
+	int8 *token = 0;
 
-   if(!i_node) return;
+	if (!i_node)
+		return;
 
-   switch(i_token_attrib) {
-   case CLI_HELP_STR:
-      token = sysf_strtok(i_value, CLI_HELP_IDENTIFIER);
+	switch (i_token_attrib) {
+	case CLI_HELP_STR:
+		token = sysf_strtok(i_value, CLI_HELP_IDENTIFIER);
 
-		i_node->helpStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token)+1);
-		if(!i_node->helpStr) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-      strcpy(i_node->helpStr, token);            
-      break;    
+		i_node->helpStr = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token) + 1);
+		if (!i_node->helpStr)
+			m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+		strcpy(i_node->helpStr, token);
+		break;
 
-   case CLI_DEFALUT_VALUE:
-      token = sysf_strtok(i_value, CLI_DEFAULT_IDENTIFIER);
+	case CLI_DEFALUT_VALUE:
+		token = sysf_strtok(i_value, CLI_DEFAULT_IDENTIFIER);
 
-      if(NCSCLI_NUMBER == i_node->tokType) {
-         i_node->defVal = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
-         if(!i_node->defVal) return;
-         *((uns32 *)i_node->defVal) = atoi(token);
-      }
-      else {
-         token_len = strlen(token) + 1;
-         i_node->defVal = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
-         if(!i_node->defVal) return;
-         strcpy(((int8 *)i_node->defVal), token);
-      }
-      break;        
-
-   case CLI_RANGE_VALUE:
-	   {
-		   int8    range_dilimeter[] = "<..>";           
-			get_range_values(i_node, i_token_attrib, i_value, range_dilimeter);
-		}
-      break;        
-    
-    case CLI_CONTINOUS_RANGE:
-		{
-			int8    range_dilimeter[] = "(...)";   
-			get_range_values(i_node, i_token_attrib, i_value, range_dilimeter);        
+		if (NCSCLI_NUMBER == i_node->tokType) {
+			i_node->defVal = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
+			if (!i_node->defVal)
+				return;
+			*((uns32 *)i_node->defVal) = atoi(token);
+		} else {
+			token_len = strlen(token) + 1;
+			i_node->defVal = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
+			if (!i_node->defVal)
+				return;
+			strcpy(((int8 *)i_node->defVal), token);
 		}
 		break;
 
-   case CLI_MODE_CHANGE:
-      token = sysf_strtok(i_value, CLI_MODE_IDENTIFIER);
-   
-      i_node->modChg = TRUE;
-      i_node->nodePath = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token)+1);
-		if(!i_node->nodePath) m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-      strcpy(i_node->nodePath, token);            
-      break;
-    
-   case CLI_DO_FUNC:
-      cli_set_cef(pCli);
-      break;        
-    
-   default:
-      break;
-   }
+	case CLI_RANGE_VALUE:
+		{
+			int8 range_dilimeter[] = "<..>";
+			get_range_values(i_node, i_token_attrib, i_value, range_dilimeter);
+		}
+		break;
+
+	case CLI_CONTINOUS_RANGE:
+		{
+			int8 range_dilimeter[] = "(...)";
+			get_range_values(i_node, i_token_attrib, i_value, range_dilimeter);
+		}
+		break;
+
+	case CLI_MODE_CHANGE:
+		token = sysf_strtok(i_value, CLI_MODE_IDENTIFIER);
+
+		i_node->modChg = TRUE;
+		i_node->nodePath = m_MMGR_ALLOC_CLI_DEFAULT_VAL(strlen(token) + 1);
+		if (!i_node->nodePath)
+			m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+		strcpy(i_node->nodePath, token);
+		break;
+
+	case CLI_DO_FUNC:
+		cli_set_cef(pCli);
+		break;
+
+	default:
+		break;
+	}
 }
 
-static void
-get_range_values(CLI_CMD_ELEMENT    *i_node, 
-                 CLI_TOKEN_ATTRIB   i_token_attrib, 
-                 int8               *i_value,
-                 int8				*delimiter)
+static void get_range_values(CLI_CMD_ELEMENT *i_node, CLI_TOKEN_ATTRIB i_token_attrib, int8 *i_value, int8 *delimiter)
 {
-   int8    *token = 0;
-   uns32   token_len = 0;    
-   int	   val = 0;		
+	int8 *token = 0;
+	uns32 token_len = 0;
+	int val = 0;
 
-   i_node->range = m_MMGR_ALLOC_CLI_RANGE;
-   if(!i_node->range) return;
+	i_node->range = m_MMGR_ALLOC_CLI_RANGE;
+	if (!i_node->range)
+		return;
 
-   memset(i_node->range, 0, sizeof(CLI_RANGE));
-   token = sysf_strtok(i_value, delimiter);
+	memset(i_node->range, 0, sizeof(CLI_RANGE));
+	token = sysf_strtok(i_value, delimiter);
 
-   if(NCSCLI_NUMBER == i_node->tokType ||
-   NCSCLI_CONTINOUS_EXP == i_node->tokType) {
-      i_node->range->lLimit = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
-   
-      if(!i_node->range->lLimit) return;
-	  sscanf(token, "%u", &val);
-      *((uns32 *)i_node->range->lLimit) = val;
-   }
-   else {
-      token_len = strlen(token) + 1;
-   
-      i_node->range->lLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
-      if(!i_node->range->lLimit) return;
-      strcpy(((int8 *)i_node->range->lLimit), token);
-   }
+	if (NCSCLI_NUMBER == i_node->tokType || NCSCLI_CONTINOUS_EXP == i_node->tokType) {
+		i_node->range->lLimit = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
 
-   while(0 != token) {
-      token = sysf_strtok(0, delimiter);
-   
-      if(token) {               
-         if(NCSCLI_NUMBER == i_node->tokType ||
-            NCSCLI_CONTINOUS_EXP == i_node->tokType) {
-            i_node->range->uLimit = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
-            if(!i_node->range->uLimit) return;
-			sscanf(token, "%u", &val);
-            *((uns32 *)i_node->range->uLimit) = val;
-         }
-         else
-         {
-            token_len = strlen(token) + 1;
-            i_node->range->uLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
-            if(!i_node->range->uLimit) return;
-            strcpy(((int8 *)i_node->range->uLimit), token);
-         }
-      }
-   }
+		if (!i_node->range->lLimit)
+			return;
+		sscanf(token, "%u", &val);
+		*((uns32 *)i_node->range->lLimit) = val;
+	} else {
+		token_len = strlen(token) + 1;
+
+		i_node->range->lLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
+		if (!i_node->range->lLimit)
+			return;
+		strcpy(((int8 *)i_node->range->lLimit), token);
+	}
+
+	while (0 != token) {
+		token = sysf_strtok(0, delimiter);
+
+		if (token) {
+			if (NCSCLI_NUMBER == i_node->tokType || NCSCLI_CONTINOUS_EXP == i_node->tokType) {
+				i_node->range->uLimit = (uns32 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(uns32));
+				if (!i_node->range->uLimit)
+					return;
+				sscanf(token, "%u", &val);
+				*((uns32 *)i_node->range->uLimit) = val;
+			} else {
+				token_len = strlen(token) + 1;
+				i_node->range->uLimit = (int8 *)m_MMGR_ALLOC_CLI_DEFAULT_VAL(sizeof(int8) * token_len);
+				if (!i_node->range->uLimit)
+					return;
+				strcpy(((int8 *)i_node->range->uLimit), token);
+			}
+		}
+	}
 }

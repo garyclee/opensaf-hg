@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: ASAPi messages Allocation & Free macros 
@@ -37,16 +35,15 @@
 /******************************************************************************
                 Service Sub IDs for MQD macros
 *******************************************************************************/
-typedef enum
-{
-   NCS_SERVICE_MQD_SUB_ID_MQD_CB,
-   NCS_SERVICE_MQD_SUB_ID_MQD_OBJECT_ELEM,
-   NCS_SERVICE_MQD_SUB_ID_MQD_OBJ_NODE,
-   NCS_SERVICE_MQD_SUB_ID_MQD_TRACK_OBJ,
-   NCS_SERVICE_MQD_SUB_ID_MQD_A2S_MSG,
-   NCS_SERVICE_MQD_SUB_ID_MQD_DEFAULT_VAL, 
-   NCS_SERVICE_MQD_SUB_ID_MQD_ND_DB_NODE,
-   NCS_SERVICE_MQD_SUB_ID_MAX       /* This should be the last id */
+typedef enum {
+	NCS_SERVICE_MQD_SUB_ID_MQD_CB,
+	NCS_SERVICE_MQD_SUB_ID_MQD_OBJECT_ELEM,
+	NCS_SERVICE_MQD_SUB_ID_MQD_OBJ_NODE,
+	NCS_SERVICE_MQD_SUB_ID_MQD_TRACK_OBJ,
+	NCS_SERVICE_MQD_SUB_ID_MQD_A2S_MSG,
+	NCS_SERVICE_MQD_SUB_ID_MQD_DEFAULT_VAL,
+	NCS_SERVICE_MQD_SUB_ID_MQD_ND_DB_NODE,
+	NCS_SERVICE_MQD_SUB_ID_MAX	/* This should be the last id */
 } NCS_SERVICE_MQSV_MQD_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -110,7 +107,6 @@ typedef enum
                                                 NCS_SERVICE_ID_MQD, \
                                                 NCS_SERVICE_MQD_SUB_ID_MQD_A2S_MSG)
 
-
 #define m_MMGR_ALLOC_MQD_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -121,8 +117,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_MQD, \
                                                 NCS_SERVICE_MQD_SUB_ID_MQD_DEFAULT_VAL)
-
-
 
 #define m_MMGR_ALLOC_MQD_ND_DB_NODE             m_NCS_MEM_ALLOC( \
                                                 sizeof(MQD_ND_DB_NODE), \
@@ -135,5 +129,4 @@ typedef enum
                                                 NCS_SERVICE_ID_MQD, \
                                                 NCS_SERVICE_MQD_SUB_ID_MQD_ND_DB_NODE)
 
-
-#endif /* MQD_MEM_H */
+#endif   /* MQD_MEM_H */

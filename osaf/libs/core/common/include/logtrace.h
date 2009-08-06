@@ -39,22 +39,21 @@ extern "C" {
 #endif
 
 /* Categories */
-enum logtrace_categories
-{
-    CAT_LOG = 0,
-    CAT_TRACE,
-    CAT_TRACE1,
-    CAT_TRACE2,
-    CAT_TRACE3,
-    CAT_TRACE4,
-    CAT_TRACE5,
-    CAT_TRACE6,
-    CAT_TRACE7,
-    CAT_TRACE8,
-    CAT_TRACE_ENTER,
-    CAT_TRACE_LEAVE,
-    CAT_MAX
-};
+	enum logtrace_categories {
+		CAT_LOG = 0,
+		CAT_TRACE,
+		CAT_TRACE1,
+		CAT_TRACE2,
+		CAT_TRACE3,
+		CAT_TRACE4,
+		CAT_TRACE5,
+		CAT_TRACE6,
+		CAT_TRACE7,
+		CAT_TRACE8,
+		CAT_TRACE_ENTER,
+		CAT_TRACE_LEAVE,
+		CAT_MAX
+	};
 
 #define CATEGORY_ALL    0xffffffff
 
@@ -71,7 +70,7 @@ enum logtrace_categories
  * 
  * @return int - 0 if OK, -1 otherwise
  */
-extern int logtrace_init(const char *ident, const char *pathname);
+	extern int logtrace_init(const char *ident, const char *pathname);
 
 /**
  * trace_category_set - Set the mask used for trace filtering.
@@ -89,13 +88,13 @@ extern int logtrace_init(const char *ident, const char *pathname);
  * 
  * @return int - 0 if OK, -1 otherwise
  */
-extern int trace_category_set(unsigned int category_mask);
+	extern int trace_category_set(unsigned int category_mask);
 
 /* internal functions, do not use directly */
-extern void _logtrace_log(const char* file, unsigned int line, int priority,
-    const char *format, ...) __attribute__((format(printf, 4, 5)));
-extern void _logtrace_trace(const char* file, unsigned int line, unsigned int category,
-    const char *format, ...) __attribute__((format(printf, 4, 5)));
+	extern void _logtrace_log(const char *file, unsigned int line, int priority,
+				  const char *format, ...) __attribute__ ((format(printf, 4, 5)));
+	extern void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
+				    const char *format, ...) __attribute__ ((format(printf, 4, 5)));
 
 /* LOG API. Use same levels as syslog */
 #define LOG_EM(format, args...) _logtrace_log(__FILE__, __LINE__, LOG_EMERG, (format), ##args)

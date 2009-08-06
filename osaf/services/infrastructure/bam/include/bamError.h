@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,54 +45,48 @@
 #include <xercesc/dom/DOMErrorHandler.hpp>
 
 XERCES_CPP_NAMESPACE_USE
-
 /* ---------------------------------------------------------------------------
 **  Simple error handler deriviative to install on parser
 ** ---------------------------------------------------------------------------
 */
-class DOMBamErrorHandler : public DOMErrorHandler
-{
-public:
-    /* -----------------------------------------------------------------------
-    **  Constructors and Destructor
-    ** -----------------------------------------------------------------------
-    */
-    DOMBamErrorHandler();
-    ~DOMBamErrorHandler();
+ class DOMBamErrorHandler:public DOMErrorHandler {
+ public:
+	/* -----------------------------------------------------------------------
+	 **  Constructors and Destructor
+	 ** -----------------------------------------------------------------------
+	 */
+	DOMBamErrorHandler();
+	~DOMBamErrorHandler();
 
+	/* -----------------------------------------------------------------------
+	 **  Getter methods
+	 ** -----------------------------------------------------------------------
+	 */
+	bool getSawErrors() const;
 
-    /* -----------------------------------------------------------------------
-    **  Getter methods
-    ** -----------------------------------------------------------------------
-    */
-    bool getSawErrors() const;
+	/* -----------------------------------------------------------------------
+	 **  Implementation of the DOM ErrorHandler interface
+	 ** -----------------------------------------------------------------------
+	 */
+	bool handleError(const DOMError & domError);
+	void resetErrors();
 
+ private:
+	/* -----------------------------------------------------------------------
+	 **  Unimplemented constructors and operators
+	 ** -----------------------------------------------------------------------
+	 */
+	DOMBamErrorHandler(const DOMBamErrorHandler &);
+	void operator=(const DOMBamErrorHandler &);
 
-    /* -----------------------------------------------------------------------
-    **  Implementation of the DOM ErrorHandler interface
-    ** -----------------------------------------------------------------------
-    */
-    bool handleError(const DOMError& domError);
-    void resetErrors();
-
-
-private :
-    /* -----------------------------------------------------------------------
-    **  Unimplemented constructors and operators
-    ** -----------------------------------------------------------------------
-    */
-    DOMBamErrorHandler(const DOMBamErrorHandler&);
-    void operator=(const DOMBamErrorHandler&);
-
-
-    /* -----------------------------------------------------------------------
-    **  Private data members
-    **
-    **  fSawErrors
-    **      This is set if we get any errors, and is queryable via a getter
-    **      method. Its used by the main code to suppress output if there are
-    **      errors.
-    ** -----------------------------------------------------------------------
-    */
-    bool    fSawErrors;
+	/* -----------------------------------------------------------------------
+	 **  Private data members
+	 **
+	 **  fSawErrors
+	 **      This is set if we get any errors, and is queryable via a getter
+	 **      method. Its used by the main code to suppress output if there are
+	 **      errors.
+	 ** -----------------------------------------------------------------------
+	 */
+	bool fSawErrors;
 };

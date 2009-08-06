@@ -18,10 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: NCS_DEC.C  
-
-
 
   REVISION HISTORY:
 
@@ -53,10 +50,8 @@ The following set does NOT do buffer chaining management
   ncs_decode_24bit( uns8 **stream)
   ncs_decode_32bit( uns8 **stream)
 
-
 *******************************************************************************
 */
-
 
 #include "ncs_opt.h"
 #include "gl_defs.h"
@@ -66,58 +61,47 @@ The following set does NOT do buffer chaining management
 #include "ncs_svd.h"
 #include "ncsencdec_pub.h"
 
-
-USRBUF *
-ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
+USRBUF *ncs_decode_n_octets(USRBUF *u, uns8 *os, uns32 count)
 {
 
-  char   *s;
+	char *s;
 
   /** Xtract "count" # of octets from the packet...
    **/
-  if ((s = m_MMGR_DATA_AT_START( u, count, (char*)os)) != (char*)os)
-  {
-     if (s == 0)
-     {
-        m_LEAP_DBG_SINK(0);
-        return (USRBUF *) 0;
-     }
-     memcpy(os, s,(size_t)count);
-  }
+	if ((s = m_MMGR_DATA_AT_START(u, count, (char *)os)) != (char *)os) {
+		if (s == 0) {
+			m_LEAP_DBG_SINK(0);
+			return (USRBUF *)0;
+		}
+		memcpy(os, s, (size_t)count);
+	}
 
   /** Strip off "count" number of octets from the packet...
    **/
-  m_MMGR_REMOVE_FROM_START( &u, count);
-  return u;   /* Return the new head */
+	m_MMGR_REMOVE_FROM_START(&u, count);
+	return u;		/* Return the new head */
 
 }
 
+uns8 *ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count)
+{
+	if (u == BNULL) {
+		m_LEAP_DBG_SINK(0);
+		return NULL;
+	}
 
-uns8*
-ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count)
-  {
-  if (u == BNULL)
-  {
-    m_LEAP_DBG_SINK(0);
-    return NULL;
-  }
+	return (uns8 *)m_MMGR_DATA_AT_START(u, count, (char *)os);
+}
 
-
-  return (uns8*)m_MMGR_DATA_AT_START( u, count, (char*)os);
-  }
-
-
-USRBUF *
-ncs_skip_n_octets( USRBUF *u, uns32 count)
+USRBUF *ncs_skip_n_octets(USRBUF *u, uns32 count)
 {
 
   /** Strip off "count" number of octets from the packet...
    **/
-  m_MMGR_REMOVE_FROM_START( &u, count);
-  return u;   /* Return the new head */
+	m_MMGR_REMOVE_FROM_START(&u, count);
+	return u;		/* Return the new head */
 
 }
-
 
 /*****************************************************************************
 
@@ -133,7 +117,6 @@ ncs_skip_n_octets( USRBUF *u, uns32 count)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 2-octet unsigned short in the network order.
@@ -141,19 +124,18 @@ ncs_skip_n_octets( USRBUF *u, uns32 count)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32
-ncs_decode_short( uns8 **stream)
+uns32 ncs_decode_short(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
+	uns32 val = 0;		/* Accumulator */
 
+	val = (uns32)*(*stream)++ << 8;
+	val |= (uns32)*(*stream)++;
 
-  val = (uns32)*(*stream)++ << 8;
-  val |= (uns32)*(*stream)++;
-
-  return (val & 0x0000FFFF);
+	return (val & 0x0000FFFF);
 
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:    ncs_decode_24bit
@@ -168,7 +150,6 @@ ncs_decode_short( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 3-octet unsigned value in the network order.
@@ -176,20 +157,19 @@ ncs_decode_short( uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32
-ncs_decode_24bit( uns8 **stream)
+uns32 ncs_decode_24bit(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
+	uns32 val = 0;		/* Accumulator */
 
+	val = (uns32)*(*stream)++ << 16;
+	val |= (uns32)*(*stream)++ << 8;
+	val |= (uns32)*(*stream)++;
 
-  val = (uns32)*(*stream)++ << 16;
-  val |= (uns32)*(*stream)++ << 8;
-  val |= (uns32)*(*stream)++;
-
-  return (val & 0x00FFFFFF);
+	return (val & 0x00FFFFFF);
 
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:    ncs_decode_32bit
@@ -204,7 +184,6 @@ ncs_decode_24bit( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 4-octet unsigned value in the network order.
@@ -212,21 +191,20 @@ ncs_decode_24bit( uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns32
-ncs_decode_32bit( uns8 **stream)
+uns32 ncs_decode_32bit(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
+	uns32 val = 0;		/* Accumulator */
 
+	val = (uns32)*(*stream)++ << 24;
+	val |= (uns32)*(*stream)++ << 16;
+	val |= (uns32)*(*stream)++ << 8;
+	val |= (uns32)*(*stream)++;
 
-  val  = (uns32)*(*stream)++ << 24;
-  val |= (uns32)*(*stream)++ << 16;
-  val |= (uns32)*(*stream)++ << 8;
-  val |= (uns32)*(*stream)++;
-
-  return val;
+	return val;
 
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:    ncs_decode_64bit
@@ -241,7 +219,6 @@ ncs_decode_32bit( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 8-octet unsigned value in the network order.
@@ -249,15 +226,14 @@ ncs_decode_32bit( uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns64
-ncs_decode_64bit( uns8 **stream)
+uns64 ncs_decode_64bit(uns8 **stream)
 {
-   uns64 val;
+	uns64 val;
 
-   val = m_NCS_OS_NTOHLL_P((*stream));
-   (*stream) += 8;
+	val = m_NCS_OS_NTOHLL_P((*stream));
+	(*stream) += 8;
 
-  return val;
+	return val;
 }
 
 /*****************************************************************************
@@ -274,7 +250,6 @@ ncs_decode_64bit( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 2-octet unsigned short in the network order.
@@ -282,17 +257,15 @@ ncs_decode_64bit( uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns16
-ncs_decode_16bit( uns8 **stream)
+uns16 ncs_decode_16bit(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
+	uns32 val = 0;		/* Accumulator */
 
+	val = (uns32)*(*stream)++ << 8;
+	val |= (uns32)*(*stream)++;
 
-  val = (uns32)*(*stream)++ << 8;
-  val |= (uns32)*(*stream)++;
-
-  return (uns16)(val & 0x0000FFFF);
+	return (uns16)(val & 0x0000FFFF);
 
 }
 
@@ -310,7 +283,6 @@ ncs_decode_16bit( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 2-octet unsigned short in the network order.
@@ -318,15 +290,14 @@ ncs_decode_16bit( uns8 **stream)
   This function has a built-in network-to-host order effect.
 
 *****************************************************************************/
-uns8
-ncs_decode_8bit( uns8 **stream)
+uns8 ncs_decode_8bit(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
+	uns32 val = 0;		/* Accumulator */
 
-  val = (uns32)*(*stream)++;
+	val = (uns32)*(*stream)++;
 
-  return (uns8)(val & 0x000000FF);
+	return (uns8)(val & 0x000000FF);
 
 }
 
@@ -355,40 +326,38 @@ ncs_decode_8bit( uns8 **stream)
 
 *****************************************************************************/
 
-uns32
-ncs_decode_key(uns8 **stream, NCS_KEY* key)
-  {
-  uns8 len;
+uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key)
+{
+	uns8 len;
 
-  key->svc  = *(*stream)++;
-  key->fmat = *(*stream)++;
-  key->type = *(*stream)++;
+	key->svc = *(*stream)++;
+	key->fmat = *(*stream)++;
+	key->type = *(*stream)++;
 
-  switch (key->fmat)
-    {
-    case NCS_FMT_NUM : 
-      key->val.num = ncs_decode_32bit(stream);
-      return 7;
-      break;
-    case NCS_FMT_STR :
-      len = *(*stream)++;
-      m_KEY_CHK_LEN(key->val.oct.len);
-      strncpy((char*)key->val.str, (char*)(*stream), len);
-      *stream = *stream + len; /* move pointer beyond what was consumed */
-      return (3 + len + 1);
-      break;
+	switch (key->fmat) {
+	case NCS_FMT_NUM:
+		key->val.num = ncs_decode_32bit(stream);
+		return 7;
+		break;
+	case NCS_FMT_STR:
+		len = *(*stream)++;
+		m_KEY_CHK_LEN(key->val.oct.len);
+		strncpy((char *)key->val.str, (char *)(*stream), len);
+		*stream = *stream + len;	/* move pointer beyond what was consumed */
+		return (3 + len + 1);
+		break;
 
-    case NCS_FMT_OCT :
-      len = *(*stream)++;
-      m_KEY_CHK_LEN(key->val.oct.len);
-      key->val.oct.len = len;
-      memcpy(key->val.oct.data, *stream, len);
-      *stream = *stream + len; /* move pointer beyond what was consumed */
-      return (3 + len + 1);
-      break;
-    }
-    return m_LEAP_DBG_SINK(0);
-  }
+	case NCS_FMT_OCT:
+		len = *(*stream)++;
+		m_KEY_CHK_LEN(key->val.oct.len);
+		key->val.oct.len = len;
+		memcpy(key->val.oct.data, *stream, len);
+		*stream = *stream + len;	/* move pointer beyond what was consumed */
+		return (3 + len + 1);
+		break;
+	}
+	return m_LEAP_DBG_SINK(0);
+}
 
 /*****************************************************************************
 
@@ -404,7 +373,6 @@ ncs_decode_key(uns8 **stream, NCS_KEY* key)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of float value in the network order.
@@ -412,16 +380,15 @@ ncs_decode_key(uns8 **stream, NCS_KEY* key)
   Convert a 4 byte IEEE Float object to host format.
 
 *****************************************************************************/
-ncsfloat32
-ncs_decode_float( uns8 **stream)
+ncsfloat32 ncs_decode_float(uns8 **stream)
 {
- uns32 val;
- ncsfloat32 ret_val;
+	uns32 val;
+	ncsfloat32 ret_val;
 
-    val  = (uns32)*(*stream)++ << 24;
-    val |= (uns32)*(*stream)++ << 16;
-    val |= (uns32)*(*stream)++ << 8;
-    val |= (uns32)*(*stream)++;
- m_NCS_DECODE_FLOAT(val, &ret_val);
- return ret_val;
+	val = (uns32)*(*stream)++ << 24;
+	val |= (uns32)*(*stream)++ << 16;
+	val |= (uns32)*(*stream)++ << 8;
+	val |= (uns32)*(*stream)++;
+	m_NCS_DECODE_FLOAT(val, &ret_val);
+	return ret_val;
 }

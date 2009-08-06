@@ -41,14 +41,13 @@
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-static void immnd_saf_health_chk_callback (SaInvocationT invocation,
-    const SaNameT *compName,
-    SaAmfHealthcheckKeyT *checkType)
+static void immnd_saf_health_chk_callback(SaInvocationT invocation,
+					  const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-    TRACE_ENTER();
-  
-    if( saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK) != SA_AIS_OK)
-        LOG_ER("Amf Response Failed");
+	TRACE_ENTER();
+
+	if (saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK) != SA_AIS_OK)
+		LOG_ER("Amf Response Failed");
 }
 
 /****************************************************************************
@@ -72,15 +71,14 @@ static void immnd_saf_health_chk_callback (SaInvocationT invocation,
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-static void immnd_amf_comp_terminate_callback(SaInvocationT invocation,
-    const SaNameT *compName)
+static void immnd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-    TRACE_ENTER();
-    saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
-    LOG_NO("AMF Terminate Callback Invoked - exiting");
-    sleep(1);
-    TRACE_LEAVE();
-    exit(0);
+	TRACE_ENTER();
+	saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
+	LOG_NO("AMF Terminate Callback Invoked - exiting");
+	sleep(1);
+	TRACE_LEAVE();
+	exit(0);
 }
 
 /****************************************************************************
@@ -92,14 +90,12 @@ static void immnd_amf_comp_terminate_callback(SaInvocationT invocation,
  * Return Values : None 
  *****************************************************************************/
 static void immnd_amf_csi_rmv_callback(SaInvocationT invocation,
-    const SaNameT *compName,
-    const SaNameT *csiName,
-    SaAmfCSIFlagsT csiFlags)
+				       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
-    TRACE_ENTER();
-    saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
-    TRACE_LEAVE();
-    return;
+	TRACE_ENTER();
+	saAmfResponse(immnd_cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_LEAVE();
+	return;
 }
 
 /****************************************************************************\
@@ -122,25 +118,22 @@ static void immnd_amf_csi_rmv_callback(SaInvocationT invocation,
                                   csiName.
 \****************************************************************************/
 static void immnd_saf_csi_set_cb(SaInvocationT invocation,
-    const SaNameT *compName,
-    SaAmfHAStateT haState,
-    SaAmfCSIDescriptorT csiDescriptor)
-
+				 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-    SaAisErrorT    saErr = SA_AIS_OK;
+	SaAisErrorT saErr = SA_AIS_OK;
 
-    TRACE_ENTER();
-    immnd_cb->ha_state = haState; /* Set the HA State */
-    /*TODO: this ha_state is never accessed by any other part of immnd.
-      Perhaps it should be? Perhaps we should wait in responding until
-      we have synced? Perhaps we should check this state as being active
-      before allowing any service request to be completed? In particular
-      mutating requests such as create a new CCB. */
+	TRACE_ENTER();
+	immnd_cb->ha_state = haState;	/* Set the HA State */
+	/*TODO: this ha_state is never accessed by any other part of immnd.
+	   Perhaps it should be? Perhaps we should wait in responding until
+	   we have synced? Perhaps we should check this state as being active
+	   before allowing any service request to be completed? In particular
+	   mutating requests such as create a new CCB. */
 
-    saAmfResponse(immnd_cb->amf_hdl, invocation, saErr);
-    TRACE_2("CSI Set Callback Invoked ha-state:%u", haState);
-    TRACE_LEAVE();
-    return;
+	saAmfResponse(immnd_cb->amf_hdl, invocation, saErr);
+	TRACE_2("CSI Set Callback Invoked ha-state:%u", haState);
+	TRACE_LEAVE();
+	return;
 }
 
 /****************************************************************************
@@ -157,99 +150,84 @@ static void immnd_saf_csi_set_cb(SaInvocationT invocation,
  *****************************************************************************/
 uns32 immnd_amf_init(IMMND_CB *cb)
 {
-    SaAmfCallbacksT amfCallbacks;
-    SaVersionT      version;   
-    SaAisErrorT     error;
-    uns32           res = NCSCC_RC_FAILURE;
-    SaClmClusterNodeT    cluster_node;
-    const char *health_key;
-    SaAmfHealthcheckKeyT healthy;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT version;
+	SaAisErrorT error;
+	uns32 res = NCSCC_RC_FAILURE;
+	SaClmClusterNodeT cluster_node;
+	const char *health_key;
+	SaAmfHealthcheckKeyT healthy;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
+	memset(&cluster_node, 0, sizeof(SaClmClusterNodeT));
 
-    if (cb->nid_started && 
-        (amf_comp_name_get_set_from_file(
-            "IMMND_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS))
-        goto done;
+	if (cb->nid_started &&
+	    (amf_comp_name_get_set_from_file("IMMND_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS))
+		goto done;
 
-    memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
-    amfCallbacks.saAmfHealthcheckCallback = 
-        immnd_saf_health_chk_callback;
-    amfCallbacks.saAmfCSISetCallback = immnd_saf_csi_set_cb;
-    amfCallbacks.saAmfComponentTerminateCallback =
-        immnd_amf_comp_terminate_callback;
-    amfCallbacks.saAmfCSIRemoveCallback = 
-        immnd_amf_csi_rmv_callback;
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	amfCallbacks.saAmfHealthcheckCallback = immnd_saf_health_chk_callback;
+	amfCallbacks.saAmfCSISetCallback = immnd_saf_csi_set_cb;
+	amfCallbacks.saAmfComponentTerminateCallback = immnd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = immnd_amf_csi_rmv_callback;
 
-    m_IMMSV_GET_AMF_VER(version);
+	m_IMMSV_GET_AMF_VER(version);
 
-    error = saAmfInitialize(&cb->amf_hdl, &amfCallbacks, &version);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfInitialize failed");
-        goto done;
-    }
+	error = saAmfInitialize(&cb->amf_hdl, &amfCallbacks, &version);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfInitialize failed");
+		goto done;
+	}
 
-    error = saAmfComponentNameGet(cb->amf_hdl, &cb->comp_name);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfComponentNameGet failed");
-        goto done;
-    }
+	error = saAmfComponentNameGet(cb->amf_hdl, &cb->comp_name);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentNameGet failed");
+		goto done;
+	}
 
-    error = saAmfSelectionObjectGet(cb->amf_hdl, &cb->amf_sel_obj);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfSelectionObjectGet failed");
-        goto done;
-    }
+	error = saAmfSelectionObjectGet(cb->amf_hdl, &cb->amf_sel_obj);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfSelectionObjectGet failed");
+		goto done;
+	}
 
-    error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, NULL);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfComponentRegister failed: %u", error);
-        goto done;
-    }
+	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, NULL);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentRegister failed: %u", error);
+		goto done;
+	}
 
-    /*   start the AMF Health Check  */
-    memset(&healthy,0,sizeof(healthy));
-    health_key = getenv("IMMSV_ENV_HEALTHCHECK_KEY");
+	/*   start the AMF Health Check  */
+	memset(&healthy, 0, sizeof(healthy));
+	health_key = getenv("IMMSV_ENV_HEALTHCHECK_KEY");
 
-    if(health_key == NULL)
-    {
-        strcpy((char *) healthy.key, "A1B2");
-        healthy.keyLen = strlen((char *) healthy.key);
-    }
-    else
-    {
-        healthy.keyLen = strlen((char *) health_key);
-        if(healthy.keyLen <= SA_MAX_NAME_LENGTH)
-        {
-            strcpy((char *) healthy.key, health_key);
-        } else
-        {
-            LOG_ER("Health check key too long:%u", healthy.keyLen);
-            /* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
-               case. On the other hand, it should be long enough for all
-               reasonable health check keys */
-            goto done;
-        }
-    }
+	if (health_key == NULL) {
+		strcpy((char *)healthy.key, "A1B2");
+		healthy.keyLen = strlen((char *)healthy.key);
+	} else {
+		healthy.keyLen = strlen((char *)health_key);
+		if (healthy.keyLen <= SA_MAX_NAME_LENGTH) {
+			strcpy((char *)healthy.key, health_key);
+		} else {
+			LOG_ER("Health check key too long:%u", healthy.keyLen);
+			/* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
+			   case. On the other hand, it should be long enough for all
+			   reasonable health check keys */
+			goto done;
+		}
+	}
 
-    error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
-        SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfHealthcheckStart failed: %u", error);
-        goto done;
-    }
+	error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
+				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfHealthcheckStart failed: %u", error);
+		goto done;
+	}
 
-    res = NCSCC_RC_SUCCESS;
+	res = NCSCC_RC_SUCCESS;
 
-done:
-    TRACE_LEAVE2("%u, %s", res, cb->comp_name.value);
-    return (res);
+ done:
+	TRACE_LEAVE2("%u, %s", res, cb->comp_name.value);
+	return (res);
 }
-

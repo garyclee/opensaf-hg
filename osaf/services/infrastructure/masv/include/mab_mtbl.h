@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -76,30 +74,26 @@
     3 - Start your MIB TBL ID assignments way outside NetPlane's set. (This is
         a variation of 2).
 
-
   NOTE: The mnemonic NCSMIB_TBL_END is the current last OpenSAF MIB
         Table ID, which is found at the end of the MIB table enums in file
         ncs_mtbl.h.
 ******************************************************************************/
 
 typedef enum mib_ud_tbl_id {
-  
-  MIB_UD_TBL_ID_STUB_0  = NCSMIB_TBL_END , /* Last OpenSAF MIB ID + 1 */
 
-  MIB_UD_TBL_ID_STUB_1,
-  MIB_UD_TBL_ID_STUB_2,
-  MIB_UD_TBL_ID_STUB_3,
-  MIB_UD_TBL_ID_STUB_4,
-  MIB_UD_TBL_ID_STUB_5,
+	MIB_UD_TBL_ID_STUB_0 = NCSMIB_TBL_END,	/* Last OpenSAF MIB ID + 1 */
 
+	MIB_UD_TBL_ID_STUB_1,
+	MIB_UD_TBL_ID_STUB_2,
+	MIB_UD_TBL_ID_STUB_3,
+	MIB_UD_TBL_ID_STUB_4,
+	MIB_UD_TBL_ID_STUB_5,
 
-  /* This field is reserved and not to be touched. All customer defined mib table ids
-   * should be added between NCSMIB_TBL_END and NCSMIB_UD_TBL_ID_END
-   */
+	/* This field is reserved and not to be touched. All customer defined mib table ids
+	 * should be added between NCSMIB_TBL_END and NCSMIB_UD_TBL_ID_END
+	 */
 
-  NCSMIB_UD_TBL_ID_END
-  } MIB_UD_TBL_ID;
-  
+	NCSMIB_UD_TBL_ID_END
+} MIB_UD_TBL_ID;
 
 #endif
-                   

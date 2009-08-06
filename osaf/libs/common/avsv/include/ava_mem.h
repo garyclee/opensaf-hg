@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,13 +31,12 @@
 #define AVA_MEM_H
 
 /* Service Sub IDs for AVA */
-typedef enum
-{
-   NCS_SERVICE_AVA_SUB_ID_AVA_DEFAULT_VAL = 1,
-   NCS_SERVICE_AVA_SUB_ID_AVA_CB,
-   NCS_SERVICE_AVA_SUB_ID_AVA_PEND_CBK_REC,
-   NCS_SERVICE_AVA_SUB_ID_AVA_HDL_REC,
-   NCS_SERVICE_AVA_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_AVA_SUB_ID_AVA_DEFAULT_VAL = 1,
+	NCS_SERVICE_AVA_SUB_ID_AVA_CB,
+	NCS_SERVICE_AVA_SUB_ID_AVA_PEND_CBK_REC,
+	NCS_SERVICE_AVA_SUB_ID_AVA_HDL_REC,
+	NCS_SERVICE_AVA_SUB_ID_MAX
 } NCS_SERVICE_AVA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -47,7 +44,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_AVA_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -86,4 +82,4 @@ typedef enum
                                                 NCS_SERVICE_ID_AVA, \
                                                 NCS_SERVICE_AVA_SUB_ID_AVA_HDL_REC)
 
-#endif /* !AVA_MEM_H */
+#endif   /* !AVA_MEM_H */

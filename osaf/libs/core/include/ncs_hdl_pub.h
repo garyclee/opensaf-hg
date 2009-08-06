@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: Abstractions and APIs for NCS_HDL service, an access-safe,
@@ -38,7 +36,7 @@
 /*
  * Module Inclusion Control...
  */
- 
+
 #ifndef NCS_HDL_PUB_H
 #define NCS_HDL_PUB_H
 
@@ -51,7 +49,7 @@ extern "C" {
 /************************************************************************/
 /* Pre-ordained Pool ID Names                                           */
 /************************************************************************/
-#define NCSHM_POOL_LOCAL   0  /* ment for non-shared, local handles      */
+#define NCSHM_POOL_LOCAL   0	/* ment for non-shared, local handles      */
 #define NCSHM_POOL_1       1
 #define NCSHM_POOL_2       2
 #define NCSHM_POOL_3       3
@@ -61,20 +59,19 @@ extern "C" {
 #define NCSHM_POOL_7       7
 #define NCSHM_POOL_8       8
 
-
 /* Public Pool IDs to be used */
-typedef enum{
-   NCS_HM_POOL_ID_COMMON = NCSHM_POOL_LOCAL,    /* Pool 0(for LEAP/MDS services) */
-   NCS_HM_POOL_ID_NCS,                          /* Pool 1(for NCS services) */
-   NCS_HM_POOL_ID_APS,                          /* Pool 2(for APS subsystems) */
-   NCS_HM_POOL_ID_EXTERNAL1,                    /* Pool 3(for applications) */
-   NCS_HM_POOL_ID_EXTERNAL2,                    /* Pool 4(for applications) */
-   NCS_HM_POOL_ID_EXTERNAL3,                    /* Pool 5(for applications) */
-   NCS_HM_POOL_ID_RESERVED1,                    /* Pool 6(reserved) */
-   NCS_HM_POOL_ID_RESERVED2,                    /* Pool 7(reserved) */
-   NCS_HM_POOL_ID_RESERVED3,                     /* Pool 8(reserved) */
-   NCS_HM_POOL_ID_MAX   /* Invalid Pool ID */
-}NCS_HM_POOL_ID;
+	typedef enum {
+		NCS_HM_POOL_ID_COMMON = NCSHM_POOL_LOCAL,	/* Pool 0(for LEAP/MDS services) */
+		NCS_HM_POOL_ID_NCS,	/* Pool 1(for NCS services) */
+		NCS_HM_POOL_ID_APS,	/* Pool 2(for APS subsystems) */
+		NCS_HM_POOL_ID_EXTERNAL1,	/* Pool 3(for applications) */
+		NCS_HM_POOL_ID_EXTERNAL2,	/* Pool 4(for applications) */
+		NCS_HM_POOL_ID_EXTERNAL3,	/* Pool 5(for applications) */
+		NCS_HM_POOL_ID_RESERVED1,	/* Pool 6(reserved) */
+		NCS_HM_POOL_ID_RESERVED2,	/* Pool 7(reserved) */
+		NCS_HM_POOL_ID_RESERVED3,	/* Pool 8(reserved) */
+		NCS_HM_POOL_ID_MAX	/* Invalid Pool ID */
+	} NCS_HM_POOL_ID;
 
 /***************************************************************************
  *
@@ -82,38 +79,30 @@ typedef enum{
  *
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32      ncshm_init                  (void);
+	EXTERN_C LEAPDLL_API uns32 ncshm_init(void);
 
-EXTERN_C LEAPDLL_API void       ncshm_delete                (void);
+	EXTERN_C LEAPDLL_API void ncshm_delete(void);
 
 /* p_id is the pool ID from where the handles would be created from. */
-EXTERN_C LEAPDLL_API uns32      ncshm_create_hdl            (uns8          p_id,
-                                                NCS_SERVICE_ID id, 
-                                                NCSCONTEXT     save);
+	EXTERN_C LEAPDLL_API uns32 ncshm_create_hdl(uns8 p_id, NCS_SERVICE_ID id, NCSCONTEXT save);
 
-EXTERN_C LEAPDLL_API uns32      ncshm_declare_hdl           (uns32         hdl,
-                                                NCS_SERVICE_ID id,
-                                                NCSCONTEXT     save);
+	EXTERN_C LEAPDLL_API uns32 ncshm_declare_hdl(uns32 hdl, NCS_SERVICE_ID id, NCSCONTEXT save);
 
-EXTERN_C LEAPDLL_API NCSCONTEXT  ncshm_destroy_hdl           (NCS_SERVICE_ID id,
-                                                uns32         hdl);
+	EXTERN_C LEAPDLL_API NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 hdl);
 
-EXTERN_C LEAPDLL_API NCSCONTEXT  ncshm_take_hdl              (NCS_SERVICE_ID id,
-                                                uns32         hdl);
+	EXTERN_C LEAPDLL_API NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 hdl);
 
-EXTERN_C LEAPDLL_API void       ncshm_give_hdl              (uns32         hdl);
-
+	EXTERN_C LEAPDLL_API void ncshm_give_hdl(uns32 hdl);
 
 /************************************************************************/
 /* NCSLPG_OBJ - this structure is embedded in known, persistent thing    */
 /************************************************************************/
 
-typedef struct ncslpg_obj
-  {
-  NCS_BOOL      open;   /* Is the object (still) open/available     */
-  uns8         inhere; /* use-count of clients 'inside' object now */
+	typedef struct ncslpg_obj {
+		NCS_BOOL open;	/* Is the object (still) open/available     */
+		uns8 inhere;	/* use-count of clients 'inside' object now */
 
-  } NCSLPG_OBJ; /* Local Persistence Guard */
+	} NCSLPG_OBJ;		/* Local Persistence Guard */
 
 /***************************************************************************
  *
@@ -121,16 +110,13 @@ typedef struct ncslpg_obj
  *
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API NCS_BOOL    ncslpg_take     (NCSLPG_OBJ* pg);
-EXTERN_C LEAPDLL_API uns32      ncslpg_give     (NCSLPG_OBJ* pg,
-                                    uns32      ret);
-EXTERN_C LEAPDLL_API uns32      ncslpg_create   (NCSLPG_OBJ* pg);
-EXTERN_C LEAPDLL_API NCS_BOOL    ncslpg_destroy  (NCSLPG_OBJ* pg);
+	EXTERN_C LEAPDLL_API NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg);
+	EXTERN_C LEAPDLL_API uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret);
+	EXTERN_C LEAPDLL_API uns32 ncslpg_create(NCSLPG_OBJ *pg);
+	EXTERN_C LEAPDLL_API NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-
-

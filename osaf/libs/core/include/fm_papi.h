@@ -21,7 +21,6 @@
 #include "saAis.h"
 #include <SaHpi.h>
 
-
 #define FMA_UNS32_HDL_MAX 0xffffffff
 
 /*
@@ -29,56 +28,41 @@
 */
 typedef SaUint64T fmHandleT;
 
-
-typedef enum 
-{
-   fmHeartbeatLost,
-   fmHeartbeatRestore
-} fmHeartbeatIndType; 
-
+typedef enum {
+	fmHeartbeatLost,
+	fmHeartbeatRestore
+} fmHeartbeatIndType;
 
 /*************************************************/
 /****** Callback functions declarations **********/
 /*************************************************/
-typedef void (*fmNodeResetIndCallbackT )(SaInvocationT invocation, 
-                                         SaHpiEntityPathT entityReset);
+typedef void (*fmNodeResetIndCallbackT) (SaInvocationT invocation, SaHpiEntityPathT entityReset);
 
-typedef void (*fmSysManSwitchReqCallbackT )(SaInvocationT invocation);
-
+typedef void (*fmSysManSwitchReqCallbackT) (SaInvocationT invocation);
 
 typedef struct {
-   fmNodeResetIndCallbackT    fmNodeResetIndCallback;
-   fmSysManSwitchReqCallbackT fmSysManSwitchReqCallback;
+	fmNodeResetIndCallbackT fmNodeResetIndCallback;
+	fmSysManSwitchReqCallbackT fmSysManSwitchReqCallback;
 } fmCallbacksT;
-
 
 /*************************************************/
 /********* FMA API declarations ******************/
 /*************************************************/
 
-EXTERN_C SaAisErrorT fmInitialize(fmHandleT *fmHandle, 
-                                  const fmCallbacksT *fmCallbacks, 
-                                  SaVersionT *version);
+EXTERN_C SaAisErrorT fmInitialize(fmHandleT *fmHandle, const fmCallbacksT *fmCallbacks, SaVersionT *version);
 
-EXTERN_C SaAisErrorT fmSelectionObjectGet(fmHandleT fmHandle, 
-                                 SaSelectionObjectT *selectionObject);
+EXTERN_C SaAisErrorT fmSelectionObjectGet(fmHandleT fmHandle, SaSelectionObjectT *selectionObject);
 
 EXTERN_C SaAisErrorT fmDispatch(fmHandleT fmHandle, SaDispatchFlagsT dispatchFlags);
 
 EXTERN_C SaAisErrorT fmFinalize(fmHandleT fmHandle);
 
-EXTERN_C SaAisErrorT fmCanSwitchoverProceed(fmHandleT fmHandle, 
-                                            SaBoolT *CanSwitchoverProceed);
+EXTERN_C SaAisErrorT fmCanSwitchoverProceed(fmHandleT fmHandle, SaBoolT *CanSwitchoverProceed);
 
 EXTERN_C SaAisErrorT fmNodeResetInd(fmHandleT fmHandle, SaHpiEntityPathT entityReset);
 
-EXTERN_C SaAisErrorT fmNodeHeartbeatInd(fmHandleT fmHandle,
-                                        fmHeartbeatIndType fmHbType, 
-                                        SaHpiEntityPathT entityReset);
+EXTERN_C SaAisErrorT fmNodeHeartbeatInd(fmHandleT fmHandle, fmHeartbeatIndType fmHbType, SaHpiEntityPathT entityReset);
 
-EXTERN_C SaAisErrorT fmResponse(fmHandleT fmHandle, SaInvocationT invocation, 
-                                SaAisErrorT error);
+EXTERN_C SaAisErrorT fmResponse(fmHandleT fmHandle, SaInvocationT invocation, SaAisErrorT error);
 
 #endif
-
-

@@ -31,31 +31,27 @@
 
 #include "eds.h"
 
-
 /* Service Sub IDs for EDS */
-typedef enum
-{
-   NCS_SERVICE_EDS_REC = 1,
-   NCS_SERVICE_EDS_WORKLIST,
-   NCS_SERVICE_EDS_SUBLIST,
-   NCS_SERVICE_EDS_SUBREC,
-   NCS_SERVICE_EDS_COPEN_REC,
-   NCS_SERVICE_EDS_COPEN_LIST,
-   NCS_SERVICE_EDS_CHANNEL_NAME,
-   NCS_SERVICE_EDS_FILTER,
-   NCS_SERVICE_SUB_ID_EDS_CB,
-   NCS_SERVICE_SUB_ID_EDSV_EDS_EVT,
-   NCS_SERVICE_SUB_ID_EDS_RETAINED_EVT,
-   NCS_SERVICE_EDS_CNAME_REC,
-   NCS_SERVICE_EDA_DOWN_LIST,
-   NCS_SERVICE_EDS_CLUSTER_NODE_LIST, 
+typedef enum {
+	NCS_SERVICE_EDS_REC = 1,
+	NCS_SERVICE_EDS_WORKLIST,
+	NCS_SERVICE_EDS_SUBLIST,
+	NCS_SERVICE_EDS_SUBREC,
+	NCS_SERVICE_EDS_COPEN_REC,
+	NCS_SERVICE_EDS_COPEN_LIST,
+	NCS_SERVICE_EDS_CHANNEL_NAME,
+	NCS_SERVICE_EDS_FILTER,
+	NCS_SERVICE_SUB_ID_EDS_CB,
+	NCS_SERVICE_SUB_ID_EDSV_EDS_EVT,
+	NCS_SERVICE_SUB_ID_EDS_RETAINED_EVT,
+	NCS_SERVICE_EDS_CNAME_REC,
+	NCS_SERVICE_EDA_DOWN_LIST,
+	NCS_SERVICE_EDS_CLUSTER_NODE_LIST,
 } NCS_SERVICE_EDS_SUBID;
-
 
 /****************************************
  * Memory Allocation and Release Macros *
  ***************************************/
-
 
 #define m_MMGR_ALLOC_EDS_REC(size)      m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
@@ -67,7 +63,6 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_REC)
 
-
 #define m_MMGR_ALLOC_EDS_WORKLIST(size)     m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
@@ -77,7 +72,6 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_WORKLIST)
-
 
 #define m_MMGR_ALLOC_EDS_SUBLIST(size)      m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
@@ -89,7 +83,6 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_SUBLIST)
 
-
 #define m_MMGR_ALLOC_EDS_SUBREC(size)       m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
@@ -99,7 +92,6 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_SUBREC)
-
 
 #define m_MMGR_ALLOC_EDS_COPEN_REC(size)    m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
@@ -111,7 +103,6 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_COPEN_REC)
 
-
 #define m_MMGR_ALLOC_EDS_COPEN_LIST(size)   m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
@@ -122,7 +113,6 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_COPEN_LIST)
 
-
 #define m_MMGR_ALLOC_EDS_CHAN_NAME(size)    m_NCS_MEM_ALLOC(size, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
@@ -132,7 +122,6 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_CHANNEL_NAME)
-
 
 /** New definitions **/
 
@@ -196,4 +185,4 @@ typedef enum
                                             NCS_SERVICE_ID_EDS, \
                                             NCS_SERVICE_EDS_CLUSTER_NODE_LIST)
 
-#endif /* !EDS_MEM_H */
+#endif   /* !EDS_MEM_H */

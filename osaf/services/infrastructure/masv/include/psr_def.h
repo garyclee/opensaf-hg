@@ -26,7 +26,6 @@
 
   DESCRIPTION: Contains definitions for PSR definitions and constants.
 
-
 ******************************************************************************
 */
 
@@ -40,28 +39,25 @@
 #define m_PSS_SPCN_LIST_FILE_NAME OSAF_LOCALSTATEDIR "pssv_spcn.list"
 #define NCS_PSS_DEF_PSSV_ROOT_PATH    OSAF_LOCALSTATEDIR "pssv_store/"
 
-typedef struct mab_pss_tbl_list_tag
-{
-    uns32       tbl_id;
-    struct mab_pss_tbl_list_tag *next;
-}MAB_PSS_TBL_LIST;
+typedef struct mab_pss_tbl_list_tag {
+	uns32 tbl_id;
+	struct mab_pss_tbl_list_tag *next;
+} MAB_PSS_TBL_LIST;
 
-typedef struct mab_pss_client_list_tag
-{
-    char             *pcn;
-    MAB_PSS_TBL_LIST *tbl_list;
-}MAB_PSS_CLIENT_LIST;
-
+typedef struct mab_pss_client_list_tag {
+	char *pcn;
+	MAB_PSS_TBL_LIST *tbl_list;
+} MAB_PSS_CLIENT_LIST;
 
 #ifdef NCS_PSS_DEBUG
 #if (NCS_PSS_DEBUG == 1)
 #define m_PSS_DBG_PRINTF printf
 #else
-#define m_PSS_DBG_PRINTF 
+#define m_PSS_DBG_PRINTF
 #endif
 #else
 #define NCS_PSS_DEBUG    0
-#define m_PSS_DBG_PRINTF 
+#define m_PSS_DBG_PRINTF
 #endif
 
 #endif

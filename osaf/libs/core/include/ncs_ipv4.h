@@ -39,18 +39,15 @@ extern "C" {
 /* NOTE:  Macro should be only used for values in the range 0-32. */
 #define m_NCS_IPV4ADDR_MASK_FROM_LEN(x)   ((x)?0xffffffff << (32 - (x)):0)
 
-
 /* m_LEN_IPV4_MASK_LEN_P : This macro counts the number of bits in an
    IPV4 address MASK. This macro will have to be used when "m" is a pointer to 
    memory which is, possibly, not word aligned.
-
 
    m = pointer to the mask. The mask should be in NETWORK ORDER.
    l = this will be set to the length 
 */
 #define m_NCS_IPV4_MASK_LEN_P(l,m) \
   { l =0; while (l < 32 && (uns8)(((uns8*)(m))[l>>3] <<(l%8))) l++; }
-
 
 /* m_LEN_IPV4_MASK_LEN : This macro counts the number of bits in an
    IPV4 address MASK.    
@@ -70,7 +67,6 @@ extern "C" {
 
 #define m_NCS_COMP_IPV4_ADDR_N(a,b)  memcmp((void *)a, (void *)b, 4);
 
-
 /* This macro can be used to determine a multicast ip address */
 #define m_NCS_IPV4_IS_MULTICAST(i)  (i>=0xE0000000)?((i<=0xEFFFFFFF)?1:0):0
 
@@ -78,5 +74,4 @@ extern "C" {
 }
 #endif
 
-#endif /* _NCS_IPV4_H */
-
+#endif   /* _NCS_IPV4_H */

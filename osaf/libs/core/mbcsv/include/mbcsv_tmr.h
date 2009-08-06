@@ -40,27 +40,26 @@
 * Bit masks for timers
 */
 #define NCS_MBCSV_TMR_CLEAR_ALL_BIT          0x00
-#define NCS_MBCSV_TMR_SEND_COLD_SYNC_BIT     0x01  /* Send cold sync when timer expires */
-#define NCS_MBCSV_TMR_SEND_WARM_SYNC_BIT     0x02  /* Send warm sync when timer expires*/
-#define NCS_MBCSV_TMR_COLD_SYNC_CMPLT_BIT    0x04  /* Warn target that cold sync not cmplt */
-#define NCS_MBCSV_TMR_WARM_SYNC_CMPLT_BIT    0x08  /* Watchdog for warm sync responses */
-#define NCS_MBCSV_TMR_DATA_RESP_CMPLT_BIT    0x10  /* Watchdog for data requests */
-#define NCS_MBCSV_TMR_TRANSMIT_BIT           0x20  /* The transmit timer */
-#define NCS_MBCSV_TMR_GRAVEYARD_BIT          0x40  /* The graveyard timer */
+#define NCS_MBCSV_TMR_SEND_COLD_SYNC_BIT     0x01	/* Send cold sync when timer expires */
+#define NCS_MBCSV_TMR_SEND_WARM_SYNC_BIT     0x02	/* Send warm sync when timer expires */
+#define NCS_MBCSV_TMR_COLD_SYNC_CMPLT_BIT    0x04	/* Warn target that cold sync not cmplt */
+#define NCS_MBCSV_TMR_WARM_SYNC_CMPLT_BIT    0x08	/* Watchdog for warm sync responses */
+#define NCS_MBCSV_TMR_DATA_RESP_CMPLT_BIT    0x10	/* Watchdog for data requests */
+#define NCS_MBCSV_TMR_TRANSMIT_BIT           0x20	/* The transmit timer */
+#define NCS_MBCSV_TMR_GRAVEYARD_BIT          0x40	/* The graveyard timer */
 
 /*
 * Timer periods for MBCSv
 */
-#define NCS_MBCSV_TMR_SEND_COLD_SYNC_PERIOD       900  /* Send cold sync when timer expires */
-#define NCS_MBCSV_TMR_SEND_WARM_SYNC_PERIOD      6000  /* Send warm sync when timer expires*/
-#define NCS_MBCSV_TMR_COLD_SYNC_CMPLT_PERIOD   360000  /* Warn target that cold sync not cmplt */
-#define NCS_MBCSV_TMR_WARM_SYNC_CMPLT_PERIOD    60000  /* Watchdog for warm sync responses */
-#define NCS_MBCSV_TMR_DATA_RESP_CMPLT_PERIOD    60000  /* Watchdog for data requests */
-#define NCS_MBCSV_TMR_TRANSMIT_PERIOD              10  /* The transmit timer; very brief pause */
+#define NCS_MBCSV_TMR_SEND_COLD_SYNC_PERIOD       900	/* Send cold sync when timer expires */
+#define NCS_MBCSV_TMR_SEND_WARM_SYNC_PERIOD      6000	/* Send warm sync when timer expires */
+#define NCS_MBCSV_TMR_COLD_SYNC_CMPLT_PERIOD   360000	/* Warn target that cold sync not cmplt */
+#define NCS_MBCSV_TMR_WARM_SYNC_CMPLT_PERIOD    60000	/* Watchdog for warm sync responses */
+#define NCS_MBCSV_TMR_DATA_RESP_CMPLT_PERIOD    60000	/* Watchdog for data requests */
+#define NCS_MBCSV_TMR_TRANSMIT_PERIOD              10	/* The transmit timer; very brief pause */
 
-
-#define NCS_MBCSV_MIN_SEND_WARM_SYNC_TIME        1000  /*Minimum value can be set */
-#define NCS_MBCSV_MAX_SEND_WARM_SYNC_TIME      360000  /*Maximum value can be set */
+#define NCS_MBCSV_MIN_SEND_WARM_SYNC_TIME        1000	/*Minimum value can be set */
+#define NCS_MBCSV_MAX_SEND_WARM_SYNC_TIME      360000	/*Maximum value can be set */
 
 /* type to house NCS_MBCSV_TMR handle(xdb) */
 typedef unsigned long NCS_MBCSV_TMR_HDL;
@@ -72,38 +71,35 @@ typedef unsigned long NCS_MBCSV_TMR_HDL;
  * of the memeber xdb in the following structure.
  * xdb is a placeholder for user handles(from handle manager) and pointers.
  */
-typedef struct ncs_mbcsv_tmr
-{
-    tmr_t  tmr_id;
-    NCS_MBCSV_TMR_HDL xdb;
-    uns32  period;
-    uns16  is_active;
-    uns8   curr_exp_count;
-    uns8   has_expired;
-    uns8   type;
+typedef struct ncs_mbcsv_tmr {
+	tmr_t tmr_id;
+	NCS_MBCSV_TMR_HDL xdb;
+	uns32 period;
+	uns16 is_active;
+	uns8 curr_exp_count;
+	uns8 has_expired;
+	uns8 type;
 } NCS_MBCSV_TMR;
 
-typedef struct ncs_mbcsv_tmr_db
-{
-  char          name[12];
-  TMR_CALLBACK  cb_func;
-  uns8         event;
+typedef struct ncs_mbcsv_tmr_db {
+	char name[12];
+	TMR_CALLBACK cb_func;
+	uns8 event;
 } NCS_MBCSV_TMR_DB;
 
 /*
 * Timer types for MBCSv
 */
 typedef enum {
-      NCS_MBCSV_TMR_SEND_COLD_SYNC  = 0,
-      NCS_MBCSV_TMR_SEND_WARM_SYNC  = 1,
-      NCS_MBCSV_TMR_COLD_SYNC_CMPLT = 2,
-      NCS_MBCSV_TMR_WARM_SYNC_CMPLT = 3,
-      NCS_MBCSV_TMR_DATA_RESP_CMPLT = 4,
-      NCS_MBCSV_TMR_TRANSMIT        = 5,
-}TIMER_TYPE_ENUM;
+	NCS_MBCSV_TMR_SEND_COLD_SYNC = 0,
+	NCS_MBCSV_TMR_SEND_WARM_SYNC = 1,
+	NCS_MBCSV_TMR_COLD_SYNC_CMPLT = 2,
+	NCS_MBCSV_TMR_WARM_SYNC_CMPLT = 3,
+	NCS_MBCSV_TMR_DATA_RESP_CMPLT = 4,
+	NCS_MBCSV_TMR_TRANSMIT = 5,
+} TIMER_TYPE_ENUM;
 
 #define NCS_MBCSV_MAX_TMRS               6
-
 
 /***********************************************************************************
 
@@ -139,9 +135,4 @@ typedef enum {
 
 #define m_IS_NCS_MBCSV_TMR_EXP_VALID(i,t) ((i)->tmr[t].has_expired == TRUE)
 
-
-
-
 #endif
-
-

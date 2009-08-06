@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: RDEAMF.C
 
@@ -71,10 +70,10 @@ static uns32 rde_amf_lib_destroy(RDE_AMF_CB *rde_amf_cb);
  *
  * Notes         : None.
  *****************************************************************************/
-RDE_AMF_CB* rde_amf_get_cb(void)
+RDE_AMF_CB *rde_amf_get_cb(void)
 {
-   RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
-   return &rde_cb->rde_amf_cb;
+	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
+	return &rde_cb->rde_amf_cb;
 }
 
 /****************************************************************************
@@ -104,30 +103,22 @@ RDE_AMF_CB* rde_amf_get_cb(void)
  * Notes         : None.
  *****************************************************************************/
 void rde_saf_CSI_set_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         SaAmfHAStateT haState,
-                         SaAmfCSIDescriptorT csiDescriptor)
+			      const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-   RDE_AMF_CB *rde_amf_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	RDE_AMF_CB *rde_amf_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_INVOKED,
-       (char *) compName->value);
-   printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_set_callback invoked %s\n",
-       m_RDE_DBG_FILE_LINE_ARG, compName->value);
-   rde_amf_cb = rde_amf_get_cb();
-   if (rde_amf_cb != NULL)   
-   {
-      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
-      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_RSP_SENT,
-          (char *) rde_amf_cb->comp_name);
-      printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_set_callback response sent: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, error);
-      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
-          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
-   }  
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_INVOKED, (char *)compName->value);
+	printf(m_RDE_DBG_FILE_LINE "rde_saf_CSI_set_callback invoked %s\n", m_RDE_DBG_FILE_LINE_ARG, compName->value);
+	rde_amf_cb = rde_amf_get_cb();
+	if (rde_amf_cb != NULL) {
+		error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+		m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_SET_RSP_SENT, (char *)rde_amf_cb->comp_name);
+		printf(m_RDE_DBG_FILE_LINE "rde_saf_CSI_set_callback response sent: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, error);
+		printf(m_RDE_DBG_FILE_LINE "Component Name: %s\n", m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+	}
 }
-
 
 /****************************************************************************
  * Name          : rde_saf_health_chk_callback
@@ -150,28 +141,22 @@ void rde_saf_CSI_set_callback(SaInvocationT invocation,
  *
  * Notes         : None
  *****************************************************************************/
-void rde_saf_health_chk_callback(SaInvocationT invocation,
-                             const SaNameT *compName,
-                             SaAmfHealthcheckKeyT *checkType)
+void rde_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-   RDE_AMF_CB *rde_amf_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	RDE_AMF_CB *rde_amf_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_INVOKED,
-       (char *) compName->value);
-   printf(m_RDE_DBG_FILE_LINE"rde_saf_health_chk_callback invoked %s\n",
-       m_RDE_DBG_FILE_LINE_ARG, compName->value);
-   rde_amf_cb = rde_amf_get_cb();
-   if (rde_amf_cb != NULL)
-   {
-      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
-      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_RSP_SENT,
-          (char *) rde_amf_cb->comp_name);
-      printf(m_RDE_DBG_FILE_LINE"rde_saf_health_chk_callback response sent: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, error);
-      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
-          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
-   }
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_INVOKED, (char *)compName->value);
+	printf(m_RDE_DBG_FILE_LINE "rde_saf_health_chk_callback invoked %s\n",
+	       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+	rde_amf_cb = rde_amf_get_cb();
+	if (rde_amf_cb != NULL) {
+		error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+		m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_HEALTH_CHK_RSP_SENT, (char *)rde_amf_cb->comp_name);
+		printf(m_RDE_DBG_FILE_LINE "rde_saf_health_chk_callback response sent: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, error);
+		printf(m_RDE_DBG_FILE_LINE "Component Name: %s\n", m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+	}
 }
 
 /****************************************************************************
@@ -206,27 +191,21 @@ void rde_saf_health_chk_callback(SaInvocationT invocation,
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
 void rde_saf_CSI_rem_callback(SaInvocationT invocation,
-                               const SaNameT *compName,
-                               const SaNameT *csiName,
-                               const SaAmfCSIFlagsT csiFlags)
+			      const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
 {
-   RDE_AMF_CB *rde_amf_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	RDE_AMF_CB *rde_amf_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_rem_callback invoked %s\n",
-       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+	printf(m_RDE_DBG_FILE_LINE "rde_saf_CSI_rem_callback invoked %s\n", m_RDE_DBG_FILE_LINE_ARG, compName->value);
 
-   rde_amf_cb = rde_amf_get_cb();
-   if (rde_amf_cb != NULL)   
-   {
-      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
-      printf(m_RDE_DBG_FILE_LINE"rde_saf_CSI_rem_callback response sent: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, error);
-      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
-          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
-   }  
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_REMOVE_INVOKED,
-       (char *) rde_amf_cb->comp_name);
+	rde_amf_cb = rde_amf_get_cb();
+	if (rde_amf_cb != NULL) {
+		error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+		printf(m_RDE_DBG_FILE_LINE "rde_saf_CSI_rem_callback response sent: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, error);
+		printf(m_RDE_DBG_FILE_LINE "Component Name: %s\n", m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+	}
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_CSI_REMOVE_INVOKED, (char *)rde_amf_cb->comp_name);
 }
 
 /****************************************************************************
@@ -249,26 +228,22 @@ void rde_saf_CSI_rem_callback(SaInvocationT invocation,
  *
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
-void rde_saf_comp_terminate_callback(SaInvocationT invocation,
-                                      const SaNameT *compName)
+void rde_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-   RDE_AMF_CB *rde_amf_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	RDE_AMF_CB *rde_amf_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   printf(m_RDE_DBG_FILE_LINE"rde_saf_comp_terminate_callback invoked %s\n",
-       m_RDE_DBG_FILE_LINE_ARG, compName->value);
-   rde_amf_cb = rde_amf_get_cb();
-   if (rde_amf_cb != NULL)   
-   {
-      error = saAmfResponse(rde_amf_cb->amf_hdl,invocation, error);
-      printf(m_RDE_DBG_FILE_LINE"rde_saf_comp_terminate_callback response sent: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, error);
-      printf(m_RDE_DBG_FILE_LINE"Component Name: %s\n",
-          m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
-   }  
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_COMP_TERMINATE_INVOKED,
-       (char *) rde_amf_cb->comp_name);
-   return;
+	printf(m_RDE_DBG_FILE_LINE "rde_saf_comp_terminate_callback invoked %s\n",
+	       m_RDE_DBG_FILE_LINE_ARG, compName->value);
+	rde_amf_cb = rde_amf_get_cb();
+	if (rde_amf_cb != NULL) {
+		error = saAmfResponse(rde_amf_cb->amf_hdl, invocation, error);
+		printf(m_RDE_DBG_FILE_LINE "rde_saf_comp_terminate_callback response sent: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, error);
+		printf(m_RDE_DBG_FILE_LINE "Component Name: %s\n", m_RDE_DBG_FILE_LINE_ARG, rde_amf_cb->comp_name);
+	}
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_COMP_TERMINATE_INVOKED, (char *)rde_amf_cb->comp_name);
+	return;
 
 }
 
@@ -286,33 +261,29 @@ void rde_saf_comp_terminate_callback(SaInvocationT invocation,
  *****************************************************************************/
 static uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb)
 {
-   SaAmfCallbacksT amfCallbacks;
-   SaVersionT      amf_version;   
-   SaAisErrorT     amf_error;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amf_version;
+	SaAisErrorT amf_error;
 
-   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-   amfCallbacks.saAmfHealthcheckCallback        = rde_saf_health_chk_callback;
-   amfCallbacks.saAmfCSISetCallback             = rde_saf_CSI_set_callback;
-   amfCallbacks.saAmfCSIRemoveCallback          = rde_saf_CSI_rem_callback;
-   amfCallbacks.saAmfComponentTerminateCallback = rde_saf_comp_terminate_callback;
+	amfCallbacks.saAmfHealthcheckCallback = rde_saf_health_chk_callback;
+	amfCallbacks.saAmfCSISetCallback = rde_saf_CSI_set_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = rde_saf_CSI_rem_callback;
+	amfCallbacks.saAmfComponentTerminateCallback = rde_saf_comp_terminate_callback;
 
-   m_RDE_GET_AMF_VER(amf_version);
+	m_RDE_GET_AMF_VER(amf_version);
 
-   amf_error = saAmfInitialize(&rde_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
-   if (amf_error != SA_AIS_OK)
-   {         
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_INIT_FAILED, amf_error);
-         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_INIT_FAILED: amf_rc %d\n",
-             m_RDE_DBG_FILE_LINE_ARG, amf_error);
-         return NCSCC_RC_FAILURE;
-   }
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_INIT_DONE,
-       (char *) rde_amf_cb->comp_name);
-   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_INIT_DONE\n",
-       m_RDE_DBG_FILE_LINE_ARG);
+	amf_error = saAmfInitialize(&rde_amf_cb->amf_hdl, &amfCallbacks, &amf_version);
+	if (amf_error != SA_AIS_OK) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_INIT_FAILED, amf_error);
+		printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_INIT_FAILED: amf_rc %d\n", m_RDE_DBG_FILE_LINE_ARG, amf_error);
+		return NCSCC_RC_FAILURE;
+	}
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_INIT_DONE, (char *)rde_amf_cb->comp_name);
+	printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_INIT_DONE\n", m_RDE_DBG_FILE_LINE_ARG);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -328,29 +299,25 @@ static uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_amf_register(RDE_AMF_CB *rde_amf_cb)
 {
-   SaAisErrorT    amf_error;
-   uns32          res = NCSCC_RC_SUCCESS;
-   SaNameT        sname;
-   
-   sname.length = strlen(rde_amf_cb->comp_name);
-   strcpy(sname.value,rde_amf_cb->comp_name);
+	SaAisErrorT amf_error;
+	uns32 res = NCSCC_RC_SUCCESS;
+	SaNameT sname;
 
-   /* 
-    * register RDE component with AvSv 
-    */
-   amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
-   if (amf_error != SA_AIS_OK)
-   {            
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_REG_FAILED, amf_error);
-      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_REG_FAILED: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, amf_error);
-      return NCSCC_RC_FAILURE;
-   }
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_REG_DONE,
-       (char *) rde_amf_cb->comp_name);
-   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_REG_DONE\n",
-       m_RDE_DBG_FILE_LINE_ARG);
-   return (res);
+	sname.length = strlen(rde_amf_cb->comp_name);
+	strcpy(sname.value, rde_amf_cb->comp_name);
+
+	/* 
+	 * register RDE component with AvSv 
+	 */
+	amf_error = saAmfComponentRegister(rde_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
+	if (amf_error != SA_AIS_OK) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_REG_FAILED, amf_error);
+		printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_REG_FAILED: amf_rc %d\n", m_RDE_DBG_FILE_LINE_ARG, amf_error);
+		return NCSCC_RC_FAILURE;
+	}
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_REG_DONE, (char *)rde_amf_cb->comp_name);
+	printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_REG_DONE\n", m_RDE_DBG_FILE_LINE_ARG);
+	return (res);
 }
 
 /****************************************************************************
@@ -366,29 +333,26 @@ static uns32 rde_amf_register(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_amf_unregister(RDE_AMF_CB *rde_amf_cb)
 {
-   SaAisErrorT    amf_error;
-   uns32          res = NCSCC_RC_SUCCESS;
-   SaNameT        sname;
-   
-   sname.length = strlen(rde_amf_cb->comp_name);
-   strcpy(sname.value, rde_amf_cb->comp_name);
+	SaAisErrorT amf_error;
+	uns32 res = NCSCC_RC_SUCCESS;
+	SaNameT sname;
 
-   /* 
-    * Unregister RDE component with AvSv 
-    */
-   amf_error = saAmfComponentUnregister(rde_amf_cb->amf_hdl, &sname, (SaNameT*)NULL);
-   if (amf_error != SA_AIS_OK)
-   {    
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_UNREG_FAILED, amf_error);        
-      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_UNREG_FAILED: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, amf_error);
-      return NCSCC_RC_FAILURE;
-   }
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_UNREG_DONE,
-       (char *) rde_amf_cb->comp_name);   
-   printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_UNREG_DONE\n",
-       m_RDE_DBG_FILE_LINE_ARG);
-   return (res);
+	sname.length = strlen(rde_amf_cb->comp_name);
+	strcpy(sname.value, rde_amf_cb->comp_name);
+
+	/* 
+	 * Unregister RDE component with AvSv 
+	 */
+	amf_error = saAmfComponentUnregister(rde_amf_cb->amf_hdl, &sname, (SaNameT *)NULL);
+	if (amf_error != SA_AIS_OK) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_UNREG_FAILED, amf_error);
+		printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_UNREG_FAILED: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, amf_error);
+		return NCSCC_RC_FAILURE;
+	}
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_UNREG_DONE, (char *)rde_amf_cb->comp_name);
+	printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_UNREG_DONE\n", m_RDE_DBG_FILE_LINE_ARG);
+	return (res);
 }
 
 /****************************************************************************
@@ -404,17 +368,17 @@ static uns32 rde_amf_unregister(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_fla_log_bind(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
-   /* fill version no. */
-   reg.info.bind_svc.version = NCS_RDE_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "RDE");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
+	/* fill version no. */
+	reg.info.bind_svc.version = NCS_RDE_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "RDE");
 
-   return(ncs_dtsv_su_req(&reg));   
+	return (ncs_dtsv_su_req(&reg));
 }
 
 /****************************************************************************
@@ -430,12 +394,12 @@ static uns32 rde_fla_log_bind(void)
  *****************************************************************************/
 static uns32 rde_fla_log_unbind(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                 = NCS_DTSV_OP_UNBIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
-   return(ncs_dtsv_su_req(&reg));   
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_RDE;
+	return (ncs_dtsv_su_req(&reg));
 }
 
 /****************************************************************************
@@ -451,27 +415,26 @@ static uns32 rde_fla_log_unbind(void)
  *****************************************************************************/
 uns32 rde_agents_startup(void)
 {
-   uns32   rc = NCSCC_RC_SUCCESS;
-   int     argc;
-   char*   argv[64] = {NULL};
+	uns32 rc = NCSCC_RC_SUCCESS;
+	int argc;
+	char *argv[64] = { NULL };
 
-   argc = 0;
+	argc = 0;
 
-   /* Start agents */
-   rc = ncs_agents_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      printf("rde ncs_agents_startup call failed\n ");
-      m_RDE_LOG_COND_L(RDE_SEV_INFO, RDE_COND_CORE_AGENTS_START_FAILED, rc);
-   }
+	/* Start agents */
+	rc = ncs_agents_startup(argc, argv);
+	if (rc != NCSCC_RC_SUCCESS) {
+		printf("rde ncs_agents_startup call failed\n ");
+		m_RDE_LOG_COND_L(RDE_SEV_INFO, RDE_COND_CORE_AGENTS_START_FAILED, rc);
+	}
 
-   printf("rde ncs_agents_startup success\n ");
-   /* bind with flex loging Agent */
-   rde_fla_log_bind();
+	printf("rde ncs_agents_startup success\n ");
+	/* bind with flex loging Agent */
+	rde_fla_log_bind();
 
-   printf("rde_fla_log_bind success\n ");
+	printf("rde_fla_log_bind success\n ");
 
-   return (rc);
+	return (rc);
 }
 
 /****************************************************************************
@@ -487,15 +450,14 @@ uns32 rde_agents_startup(void)
  *****************************************************************************/
 uns32 rde_agents_shutdown(void)
 {
-   rde_fla_log_unbind();
+	rde_fla_log_unbind();
 
-   /* 
-    * Shutdown agents 
-    */
-   ncs_agents_shutdown(0, 0);
-   return (NCSCC_RC_SUCCESS);
+	/* 
+	 * Shutdown agents 
+	 */
+	ncs_agents_shutdown(0, 0);
+	return (NCSCC_RC_SUCCESS);
 }
-
 
 /****************************************************************************
  * Name          : rde_amf_healthcheck_start
@@ -510,54 +472,46 @@ uns32 rde_agents_shutdown(void)
  *****************************************************************************/
 static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
 {
-   SaAisErrorT          amf_error;
-   SaAmfHealthcheckKeyT Healthy;
-   SaNameT              SaCompName;
-   char                 *phlth_ptr;
-   char                 hlth_str[256];
+	SaAisErrorT amf_error;
+	SaAmfHealthcheckKeyT Healthy;
+	SaNameT SaCompName;
+	char *phlth_ptr;
+	char hlth_str[256];
 
-   /*
-   ** Start the AMF health check 
-   */   
-   memset(&SaCompName,0,sizeof(SaCompName));
-   strcpy(SaCompName.value, rde_amf_cb->comp_name);
-   SaCompName.length = strlen(rde_amf_cb->comp_name);
+	/*
+	 ** Start the AMF health check 
+	 */
+	memset(&SaCompName, 0, sizeof(SaCompName));
+	strcpy(SaCompName.value, rde_amf_cb->comp_name);
+	SaCompName.length = strlen(rde_amf_cb->comp_name);
 
-   memset(&Healthy, 0, sizeof(Healthy));
-   phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
-   if (phlth_ptr == NULL)
-   {
-      /*
-      ** default health check key 
-      */
-      strcpy(hlth_str, "BAD10");
-   } 
-   else
-   {
-      strcpy(hlth_str, phlth_ptr);
-   }
-   strcpy(Healthy.key, hlth_str);
-   Healthy.keyLen = strlen(Healthy.key);
+	memset(&Healthy, 0, sizeof(Healthy));
+	phlth_ptr = getenv("RDE_HA_ENV_HEALTHCHECK_KEY");
+	if (phlth_ptr == NULL) {
+		/*
+		 ** default health check key 
+		 */
+		strcpy(hlth_str, "BAD10");
+	} else {
+		strcpy(hlth_str, phlth_ptr);
+	}
+	strcpy(Healthy.key, hlth_str);
+	Healthy.keyLen = strlen(Healthy.key);
 
-   printf("Healthcheck key: %s\n", Healthy.key);
-  
-   amf_error = saAmfHealthcheckStart(rde_amf_cb->amf_hdl,&SaCompName,&Healthy,
-      SA_AMF_HEALTHCHECK_AMF_INVOKED,SA_AMF_COMPONENT_RESTART);
-   if (amf_error != SA_AIS_OK)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_HEALTH_CHK_START_FAIL, amf_error);
-      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_HEALTH_CHK_START_FAIL: amf_rc %d\n",
-          m_RDE_DBG_FILE_LINE_ARG, amf_error);
-       
-   } 
-   else
-   {
-      m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_HEALTH_CHK_START_DONE,
-          (char *) rde_amf_cb->comp_name);
-      printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_HEALTH_CHK_START_DONE\n",
-          m_RDE_DBG_FILE_LINE_ARG);
-   }
-   return (NCSCC_RC_SUCCESS);
+	printf("Healthcheck key: %s\n", Healthy.key);
+
+	amf_error = saAmfHealthcheckStart(rde_amf_cb->amf_hdl, &SaCompName, &Healthy,
+					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);
+	if (amf_error != SA_AIS_OK) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_HEALTH_CHK_START_FAIL, amf_error);
+		printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_HEALTH_CHK_START_FAIL: amf_rc %d\n",
+		       m_RDE_DBG_FILE_LINE_ARG, amf_error);
+
+	} else {
+		m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_HEALTH_CHK_START_DONE, (char *)rde_amf_cb->comp_name);
+		printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_HEALTH_CHK_START_DONE\n", m_RDE_DBG_FILE_LINE_ARG);
+	}
+	return (NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -573,71 +527,67 @@ static uns32 rde_amf_healthcheck_start(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_amf_lib_init(RDE_AMF_CB *rde_amf_cb)
 {
-   uns32             rc = NCSCC_RC_SUCCESS;
-   SaAisErrorT       amf_error = SA_AIS_OK;
-   SaNameT           sname;
-   
-   do
-   {
-      /* 
-      ** Initialize all the AvSv callback 
-      */
-      rc = rde_amf_init(rde_amf_cb);
-      if (rc != NCSCC_RC_SUCCESS)         
-         break;
-         
-      /* 
-      ** Get the component name 
-      */
-      memset(&sname, 0, sizeof(sname));
-      amf_error = saAmfComponentNameGet(rde_amf_cb->amf_hdl, &sname);
-      if (amf_error != SA_AIS_OK)
-      {
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_NAME_FAILED, amf_error);
-         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_GET_NAME_FAILED: amf_rc %d\n",
-             m_RDE_DBG_FILE_LINE_ARG, amf_error);
-         rc = NCSCC_RC_FAILURE;
-         break;
-      }  
-      strcpy(rde_amf_cb->comp_name, sname.value);
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT amf_error = SA_AIS_OK;
+	SaNameT sname;
 
-      /* 
-      ** Get the AMF selection object 
-      */
-      amf_error = saAmfSelectionObjectGet(rde_amf_cb->amf_hdl, &rde_amf_cb->amf_fd);
-      if (amf_error != SA_AIS_OK)
-      {     
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_OBJ_FAILED, amf_error);
-         printf(m_RDE_DBG_FILE_LINE"RDE_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n",
-             m_RDE_DBG_FILE_LINE_ARG, amf_error);
-         break;
-      }
+	do {
+		/* 
+		 ** Initialize all the AvSv callback 
+		 */
+		rc = rde_amf_init(rde_amf_cb);
+		if (rc != NCSCC_RC_SUCCESS)
+			break;
 
-      /* 
-      ** Register RDE with AMF 
-      */
-      rc = rde_amf_register(rde_amf_cb);
-      if (rc != NCSCC_RC_SUCCESS)
-          break;
+		/* 
+		 ** Get the component name 
+		 */
+		memset(&sname, 0, sizeof(sname));
+		amf_error = saAmfComponentNameGet(rde_amf_cb->amf_hdl, &sname);
+		if (amf_error != SA_AIS_OK) {
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_NAME_FAILED, amf_error);
+			printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_GET_NAME_FAILED: amf_rc %d\n",
+			       m_RDE_DBG_FILE_LINE_ARG, amf_error);
+			rc = NCSCC_RC_FAILURE;
+			break;
+		}
+		strcpy(rde_amf_cb->comp_name, sname.value);
 
-      /* 
-      ** Start component healthcheck 
-      */
-      rc = rde_amf_healthcheck_start(rde_amf_cb);
-      if (rc != NCSCC_RC_SUCCESS)
-          break;
-     
-   }while (0);
+		/* 
+		 ** Get the AMF selection object 
+		 */
+		amf_error = saAmfSelectionObjectGet(rde_amf_cb->amf_hdl, &rde_amf_cb->amf_fd);
+		if (amf_error != SA_AIS_OK) {
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_GET_OBJ_FAILED, amf_error);
+			printf(m_RDE_DBG_FILE_LINE "RDE_COND_AMF_GET_OBJ_FAILED: amf_rc %d\n",
+			       m_RDE_DBG_FILE_LINE_ARG, amf_error);
+			break;
+		}
 
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      /* 
-      ** Destroy the lib 
-      */
-      rde_amf_lib_destroy(rde_amf_cb);
-   }
-   
-   return (rc);
+		/* 
+		 ** Register RDE with AMF 
+		 */
+		rc = rde_amf_register(rde_amf_cb);
+		if (rc != NCSCC_RC_SUCCESS)
+			break;
+
+		/* 
+		 ** Start component healthcheck 
+		 */
+		rc = rde_amf_healthcheck_start(rde_amf_cb);
+		if (rc != NCSCC_RC_SUCCESS)
+			break;
+
+	} while (0);
+
+	if (rc != NCSCC_RC_SUCCESS) {
+		/* 
+		 ** Destroy the lib 
+		 */
+		rde_amf_lib_destroy(rde_amf_cb);
+	}
+
+	return (rc);
 }
 
 /****************************************************************************
@@ -652,23 +602,22 @@ static uns32 rde_amf_lib_init(RDE_AMF_CB *rde_amf_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32 rde_amf_lib_destroy(RDE_AMF_CB * rde_amf_cb)
-{ 
-   /* 
-   ** Unregister RDE with AMF 
-   */
-   rde_amf_unregister(rde_amf_cb);
+static uns32 rde_amf_lib_destroy(RDE_AMF_CB *rde_amf_cb)
+{
+	/* 
+	 ** Unregister RDE with AMF 
+	 */
+	rde_amf_unregister(rde_amf_cb);
 
-   /* 
-   ** Unintialize RDE with AMF 
-   */
-   saAmfFinalize(rde_amf_cb->amf_hdl);
-    
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_DESTROY_DONE,
-       (char *) rde_amf_cb->comp_name);
-   
-   return (NCSCC_RC_SUCCESS);
-     
+	/* 
+	 ** Unintialize RDE with AMF 
+	 */
+	saAmfFinalize(rde_amf_cb->amf_hdl);
+
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_AMF_DESTROY_DONE, (char *)rde_amf_cb->comp_name);
+
+	return (NCSCC_RC_SUCCESS);
+
 }
 
 /****************************************************************************
@@ -684,40 +633,37 @@ static uns32 rde_amf_lib_destroy(RDE_AMF_CB * rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_pipe_open(RDE_AMF_CB *rde_amf_cb)
 {
-   int            result;
+	int result;
 
-   /* 
-   ** AMF fd and PIPE fd are opened on mutually exclusive basis 
-   */
-   rde_amf_cb->is_amf_up = FALSE;
-      
-   /* 
-   ** Open the named pipe 
-   */
-   rde_amf_cb-> pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
-   if (rde_amf_cb-> pipe_fd == -1)
-   {
-      /* Create the pipe since RDE comes up before NCS starts it */ 
-      result = mkfifo(RDE_HA_COMP_NAMED_PIPE, S_IWUSR | S_IRUSR | S_IRGRP);
-      if (result != 0 && result != EEXIST)
-      {
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_CREATE_FAILED, errno);
-         return NCSCC_RC_FAILURE;
-      }
-      
-      /* Try to open the pipe now */
-      rde_amf_cb-> pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
-      if (rde_amf_cb-> pipe_fd == -1)
-      {
-        /* Unable to open the pipe */ 
-        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_OPEN_FAILED, errno);
-        return NCSCC_RC_FAILURE;
-      } 
-   }
+	/* 
+	 ** AMF fd and PIPE fd are opened on mutually exclusive basis 
+	 */
+	rde_amf_cb->is_amf_up = FALSE;
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_OPEN_DONE, RDE_HA_COMP_NAMED_PIPE);
+	/* 
+	 ** Open the named pipe 
+	 */
+	rde_amf_cb->pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
+	if (rde_amf_cb->pipe_fd == -1) {
+		/* Create the pipe since RDE comes up before NCS starts it */
+		result = mkfifo(RDE_HA_COMP_NAMED_PIPE, S_IWUSR | S_IRUSR | S_IRGRP);
+		if (result != 0 && result != EEXIST) {
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_CREATE_FAILED, errno);
+			return NCSCC_RC_FAILURE;
+		}
 
-   return (NCSCC_RC_SUCCESS);
+		/* Try to open the pipe now */
+		rde_amf_cb->pipe_fd = open(RDE_HA_COMP_NAMED_PIPE, O_RDONLY | O_NONBLOCK);
+		if (rde_amf_cb->pipe_fd == -1) {
+			/* Unable to open the pipe */
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_OPEN_FAILED, errno);
+			return NCSCC_RC_FAILURE;
+		}
+	}
+
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_OPEN_DONE, RDE_HA_COMP_NAMED_PIPE);
+
+	return (NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -733,27 +679,26 @@ static uns32 rde_pipe_open(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 static uns32 rde_pipe_close(RDE_AMF_CB *rde_amf_cb)
 {
-   int            result;
+	int result;
 
-   if (rde_amf_cb-> pipe_fd == -1)
-       return NCSCC_RC_SUCCESS ;
+	if (rde_amf_cb->pipe_fd == -1)
+		return NCSCC_RC_SUCCESS;
 
-   /* 
-   ** Close the named pipe 
-   */
-   close(rde_amf_cb-> pipe_fd);
-   rde_amf_cb-> pipe_fd = -1;
-       
-   /* 
-   ** Remove the named pipe 
-   */
-   result = unlink (RDE_HA_COMP_NAMED_PIPE);
-   if (result != 0)
-   { 
-       return NCSCC_RC_FAILURE;
-   }
+	/* 
+	 ** Close the named pipe 
+	 */
+	close(rde_amf_cb->pipe_fd);
+	rde_amf_cb->pipe_fd = -1;
 
-   return NCSCC_RC_SUCCESS ;
+	/* 
+	 ** Remove the named pipe 
+	 */
+	result = unlink(RDE_HA_COMP_NAMED_PIPE);
+	if (result != 0) {
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -769,17 +714,16 @@ static uns32 rde_pipe_close(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 uns32 rde_amf_open(RDE_AMF_CB *rde_amf_cb)
 {
-   if (rde_pipe_open(rde_amf_cb) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	if (rde_pipe_open(rde_amf_cb) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* 
-   ** AMF fd and PIPE fd are opened on mutually exclusive basis
-   */
-   rde_amf_cb->is_amf_up = FALSE;
+	/* 
+	 ** AMF fd and PIPE fd are opened on mutually exclusive basis
+	 */
+	rde_amf_cb->is_amf_up = FALSE;
 
-   return NCSCC_RC_SUCCESS ;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -795,18 +739,15 @@ uns32 rde_amf_open(RDE_AMF_CB *rde_amf_cb)
  *****************************************************************************/
 uns32 rde_amf_close(RDE_AMF_CB *rde_amf_cb)
 {
-   uns32 rc;
-   if (rde_amf_cb->is_amf_up)
-   {
-       rc = rde_amf_lib_destroy(rde_amf_cb);
-   }
-   else
-   {
-       rc = rde_pipe_close(rde_amf_cb);
+	uns32 rc;
+	if (rde_amf_cb->is_amf_up) {
+		rc = rde_amf_lib_destroy(rde_amf_cb);
+	} else {
+		rc = rde_pipe_close(rde_amf_cb);
 
-   }
+	}
 
-   return rc;
+	return rc;
 }
 
 /*****************************************************************************
@@ -825,100 +766,95 @@ uns32 rde_amf_close(RDE_AMF_CB *rde_amf_cb)
 
 uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_amf_cb)
 {
-   uns32    rc             = NCSCC_RC_SUCCESS;
-   int      msg_size       =  0;
-   char     comp_name[256] = {0};
-   char     *pc            = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	int msg_size = 0;
+	char comp_name[256] = { 0 };
+	char *pc = NULL;
 
    /***************************************************************\
     *                                                               *
     *         Read from pipe into input buffer                      *
     *                                                               *
    \***************************************************************/
-   msg_size = read(rde_amf_cb-> pipe_fd, comp_name, sizeof(comp_name));
-   
-   if (msg_size < 0)
-   {
-      if (errno != EINTR && errno != EWOULDBLOCK)
-          /* log Non-benign error */
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_READ_FAILED, errno);
-      
-      return NCSCC_RC_FAILURE;
-   }
+	msg_size = read(rde_amf_cb->pipe_fd, comp_name, sizeof(comp_name));
 
-   /*
-   ** Remove the | that separates comp name and healthcheck key 
-   */
-   pc = strchr(comp_name, '|');
-   if (pc != NULL)
-      *pc = '\0';
+	if (msg_size < 0) {
+		if (errno != EINTR && errno != EWOULDBLOCK)
+			/* log Non-benign error */
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_PIPE_READ_FAILED, errno);
 
-   /*
-   ** Check if component name is empty
-   */
-   if (strlen(comp_name) == 0)
-   {
-       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_COMP_NAME, "<No component name>");
-       return NCSCC_RC_FAILURE;
-   }
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_COMP_NAME, comp_name);
+	/*
+	 ** Remove the | that separates comp name and healthcheck key 
+	 */
+	pc = strchr(comp_name, '|');
+	if (pc != NULL)
+		*pc = '\0';
 
-   pc++;
+	/*
+	 ** Check if component name is empty
+	 */
+	if (strlen(comp_name) == 0) {
+		m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_COMP_NAME, "<No component name>");
+		return NCSCC_RC_FAILURE;
+	}
 
-   /*
-   ** Check if health check key is empty
-   */
-   if (strlen(pc) == 0)
-   {
-       m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_HC_KEY, "<No health check key>");
-       return NCSCC_RC_FAILURE;
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_COMP_NAME, comp_name);
 
-   }
+	pc++;
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_HC_KEY, pc);
+	/*
+	 ** Check if health check key is empty
+	 */
+	if (strlen(pc) == 0) {
+		m_RDE_LOG_COND_C(RDE_SEV_ERROR, RDE_COND_PIPE_HC_KEY, "<No health check key>");
+		return NCSCC_RC_FAILURE;
 
-   /*
-   ** Set SA_AMF_COMPONENT_NAME env variable 
-   */
-   if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
-   {
-       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_COMP_NAME_FAIL, errno);
-       return NCSCC_RC_FAILURE;
-   }
+	}
 
-   /*
-   ** Set RDE_HA_ENV_HEALTHCHECK_KEY env variable 
-   */
-   if (setenv("RDE_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1)
-   {
-       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_HC_KEYE_FAIL, errno);
-       return NCSCC_RC_FAILURE;
-   }
-      
-   /* 
-   ** We recieved a signal on the pipe, init lib 
-   */
-   rc = rde_amf_lib_init(rde_amf_cb);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      /* Go back to initial state */
-      rde_amf_cb->is_amf_up = FALSE;
-      return rc;
-   }       
-   
-   /* 
-   ** Close the pipe 
-   */
-   rde_pipe_close(rde_amf_cb);
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_PIPE_HC_KEY, pc);
 
-   /* 
-   ** AMF is up 
-   */
-   rde_amf_cb->is_amf_up = TRUE;
+	/*
+	 ** Set SA_AMF_COMPONENT_NAME env variable 
+	 */
+	if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_COMP_NAME_FAIL, errno);
+		return NCSCC_RC_FAILURE;
+	}
 
-   return rc; 
+	/*
+	 ** Set RDE_HA_ENV_HEALTHCHECK_KEY env variable 
+	 */
+	if (setenv("RDE_HA_ENV_HEALTHCHECK_KEY", pc, 1) == -1) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SETENV_HC_KEYE_FAIL, errno);
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* 
+	 ** We recieved a signal on the pipe, init lib 
+	 */
+	rc = rde_amf_lib_init(rde_amf_cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		/* Go back to initial state */
+		rde_amf_cb->is_amf_up = FALSE;
+		return rc;
+	}
+
+	/* 
+	 ** Close the pipe 
+	 */
+	rde_pipe_close(rde_amf_cb);
+
+	/* 
+	 ** AMF is up 
+	 */
+	rde_amf_cb->is_amf_up = TRUE;
+
+	return rc;
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:       rde_amf_process_msg
@@ -935,21 +871,18 @@ uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_amf_cb)
 
 uns32 rde_amf_process_msg(RDE_AMF_CB *rde_amf_cb)
 {
-   SaAisErrorT amf_error = SA_AIS_OK;
+	SaAisErrorT amf_error = SA_AIS_OK;
 
-   /* 
-   ** Dispatch all the AMF pending function 
-   */
-   amf_error = saAmfDispatch(rde_amf_cb->amf_hdl, SA_DISPATCH_ALL);
-   if (amf_error != SA_AIS_OK)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_DISPATCH_FAIL, amf_error);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   return NCSCC_RC_SUCCESS ;
+	/* 
+	 ** Dispatch all the AMF pending function 
+	 */
+	amf_error = saAmfDispatch(rde_amf_cb->amf_hdl, SA_DISPATCH_ALL);
+	if (amf_error != SA_AIS_OK) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_AMF_DISPATCH_FAIL, amf_error);
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /**************************************************/
-
-

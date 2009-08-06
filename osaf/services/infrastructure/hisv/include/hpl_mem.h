@@ -30,13 +30,10 @@
 #define HPL_MEM_H
 
 /* Service Sub IDs for HISv - HPL */
-typedef enum
-{
-   NCS_SERVICE_HPL_CB = 1,
-   NCS_SERVICE_HAM_INFO
-
+typedef enum {
+	NCS_SERVICE_HPL_CB = 1,
+	NCS_SERVICE_HAM_INFO
 } NCS_SERVICE_HPL_SUBID;
-
 
 /****************************************
  * Memory Allocation and Release Macros *
@@ -51,7 +48,6 @@ typedef enum
                                            NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_HPL, \
                                            NCS_SERVICE_HPL_CB)
-
 
 #define m_MMGR_ALLOC_HAM_INFO         (HAM_INFO *)m_NCS_MEM_ALLOC(sizeof(HAM_INFO),\
                                            NCS_MEM_REGION_PERSISTENT, \
@@ -73,4 +69,4 @@ typedef enum
                                            NCS_SERVICE_ID_HPL, \
                                            NCS_SERVICE_HPL_CB)
 
-#endif /* !HPL_MEM_H */
+#endif   /* !HPL_MEM_H */

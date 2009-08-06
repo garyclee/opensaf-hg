@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -39,8 +37,8 @@
 #define m_NCS_EDP_SAMSGSENDERIDT m_NCS_EDP_SAUINT64T
 #define M_NCS_EDP_SAMSGACKFLAGST m_NCS_EDP_SAUINT32T
 
-EXTERN_C MQSVDLL_API uns32 mqsv_edp_mqsv_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-#endif  /* MQSV_EDU_H */
+EXTERN_C MQSVDLL_API uns32 mqsv_edp_mqsv_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+
+#endif   /* MQSV_EDU_H */

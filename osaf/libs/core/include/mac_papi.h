@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -59,13 +57,11 @@ extern "C" {
  */
 #define m_MAA_SP_ABST_NAME "NCS_MAA"
 
-EXTERN_C MABMAC_API uns32 ncsmac_mib_request   ( NCSMIB_ARG* req );
-EXTERN_C MABMAC_API uns32 gl_mac_handle;
-
+	EXTERN_C MABMAC_API uns32 ncsmac_mib_request(NCSMIB_ARG *req);
+	EXTERN_C MABMAC_API uns32 gl_mac_handle;
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* MAC_PAPI_H */
-
+#endif   /* MAC_PAPI_H */

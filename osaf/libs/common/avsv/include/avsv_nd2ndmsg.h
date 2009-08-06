@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -45,40 +43,35 @@
 typedef AVSV_NDA_AVA_MSG AVSV_ND2ND_AVA_MSG;
 
 /* AvND-AvND event type */
-typedef enum avnd_evnt_evt_type
-{
-   AVND_AVND_AVA_MSG = 1,
-   AVND_AVND_CBK_DEL,
-   AVND_AVND_EVT_MAX
+typedef enum avnd_evnt_evt_type {
+	AVND_AVND_AVA_MSG = 1,
+	AVND_AVND_CBK_DEL,
+	AVND_AVND_EVT_MAX
 } AVND_AVND_EVT_TYPE;
 
-typedef struct avsv_nd2nd_cbk_del
-{
-   SaNameT  comp_name;
-   uns32    opq_hdl;
-}AVSV_ND2ND_CBK_DEL;
+typedef struct avsv_nd2nd_cbk_del {
+	SaNameT comp_name;
+	uns32 opq_hdl;
+} AVSV_ND2ND_CBK_DEL;
 
-typedef struct avsv_nd2nd_avnd_msg
-{
-   /* mds_ctxt and component name will be used for sending resp back 
-      to AvA from AvND.*/
-   AVND_AVND_EVT_TYPE   type;
-   MDS_SYNC_SND_CTXT    mds_ctxt;
-   SaNameT              comp_name; /* Used to wait for registration validation
-                                   resp from AvND of proxied comp.*/
-   union
-   {
-      AVSV_ND2ND_AVA_MSG   *msg;
-      AVSV_ND2ND_CBK_DEL   cbk_del;
-   }info;
+typedef struct avsv_nd2nd_avnd_msg {
+	/* mds_ctxt and component name will be used for sending resp back 
+	   to AvA from AvND. */
+	AVND_AVND_EVT_TYPE type;
+	MDS_SYNC_SND_CTXT mds_ctxt;
+	SaNameT comp_name;	/* Used to wait for registration validation
+				   resp from AvND of proxied comp. */
+	union {
+		AVSV_ND2ND_AVA_MSG *msg;
+		AVSV_ND2ND_CBK_DEL cbk_del;
+	} info;
 
 } AVSV_ND2ND_AVND_MSG;
 
-EXTERN_C void avsv_nd2nd_avnd_msg_free (AVSV_ND2ND_AVND_MSG *msg);
-EXTERN_C uns32 avsv_ndnd_avnd_msg_copy (AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
+EXTERN_C void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg);
+EXTERN_C uns32 avsv_ndnd_avnd_msg_copy(AVSV_ND2ND_AVND_MSG *dmsg, AVSV_ND2ND_AVND_MSG *smsg);
 EXTERN_C uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                EDU_ERR *o_err);
+				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-#endif /* !AVSV_ND2NDMSG_H */
+#endif   /* !AVSV_ND2NDMSG_H */

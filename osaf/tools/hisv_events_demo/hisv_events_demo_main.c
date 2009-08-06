@@ -33,49 +33,47 @@ int raw = 0;
 
 #include "hisv_events_demo_app.h"
 
-void err_usage() {
-   printf("\nINCORRECT ARGUMENTS:\n USAGE: hisv_events_demo\n");
-   printf(" or\n");
-   printf("        hisv_events_demo --raw\n");
-}
-
-int main(int argc, char*argv[])
+void err_usage()
 {
-   if (argc > 2) {
-     err_usage();
-     return (NCSCC_RC_FAILURE);
-   }
-   else {
-      if (argc == 2) {
-         if (strcmp(argv[1], "--raw") == 0) {
-            raw = 1;
-         }
-         else {
-            err_usage();
-            return (NCSCC_RC_FAILURE);
-         }
-      }
-   }
-
-   printf("\n\n ################################################### \n");
-   printf(" #                                                 # \n");
-   printf(" #   You are about to witness HISv Events Demo !!! # \n");
-   printf(" #   To start the demo, press any key              # \n");
-   printf(" #                                                 # \n");
-   printf(" ################################################### \n");
-
-   /* Wait for the start trigger from the user */
-   if ( 'q' == getchar() )
-      return 0;
- 
-   /* Start the AvSv toolkit application */ 
-   ncs_hisv_run();
-
-   printf("\n ### HISv Events Demo over, To quit, press 'q' and <Enter> ### \n");
-
-   /* Check if it's time to exit */
-   while ( 'q' != getchar() );
-   
-   return 0;    
+	printf("\nINCORRECT ARGUMENTS:\n USAGE: hisv_events_demo\n");
+	printf(" or\n");
+	printf("        hisv_events_demo --raw\n");
 }
 
+int main(int argc, char *argv[])
+{
+	if (argc > 2) {
+		err_usage();
+		return (NCSCC_RC_FAILURE);
+	} else {
+		if (argc == 2) {
+			if (strcmp(argv[1], "--raw") == 0) {
+				raw = 1;
+			} else {
+				err_usage();
+				return (NCSCC_RC_FAILURE);
+			}
+		}
+	}
+
+	printf("\n\n ################################################### \n");
+	printf(" #                                                 # \n");
+	printf(" #   You are about to witness HISv Events Demo !!! # \n");
+	printf(" #   To start the demo, press any key              # \n");
+	printf(" #                                                 # \n");
+	printf(" ################################################### \n");
+
+	/* Wait for the start trigger from the user */
+	if ('q' == getchar())
+		return 0;
+
+	/* Start the AvSv toolkit application */
+	ncs_hisv_run();
+
+	printf("\n ### HISv Events Demo over, To quit, press 'q' and <Enter> ### \n");
+
+	/* Check if it's time to exit */
+	while ('q' != getchar()) ;
+
+	return 0;
+}

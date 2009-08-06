@@ -18,14 +18,11 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: SYSF_KEY.H
-
 
 ..............................................................................
 
   DESCRIPTION: Contains macros related to NCS_KEYs
-
 
 ******************************************************************************
 */
@@ -49,8 +46,8 @@ extern NCS_KEY subsys_list[NCS_SERVICE_ID_MAX][MAX_VR];
 
 /* Macro for Registering the subsystem with AKE */
 #define m_REGISTER_SUBSYSTEM(key, vr_id)   subsys_list[key.svc][vr_id] = key
-      
+
 /* Macro for getting the Subsystem ID register with AKE */
 #define m_GET_SUBSYSTEM_KEY(svc_id, vr_id)  subsys_list[svc_id][vr_id]
- 
+
 #endif

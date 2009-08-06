@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -38,18 +36,16 @@
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpa_client_tree_init (CPA_CB  *cb)
+uns32 cpa_client_tree_init(CPA_CB *cb)
 {
-   NCS_PATRICIA_PARAMS     param;
-   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   param.key_size = sizeof(SaCkptHandleT);
-   if (ncs_patricia_tree_init(&cb->client_tree, &param) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaCkptHandleT);
+	if (ncs_patricia_tree_init(&cb->client_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_client_node_get
@@ -60,16 +56,13 @@ uns32 cpa_client_tree_init (CPA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpa_client_node_get(NCS_PATRICIA_TREE *client_tree, 
-                           SaCkptHandleT *cl_hdl,
-                           CPA_CLIENT_NODE **cl_node)
+uns32 cpa_client_node_get(NCS_PATRICIA_TREE *client_tree, SaCkptHandleT *cl_hdl, CPA_CLIENT_NODE **cl_node)
 {
-   *cl_node = (CPA_CLIENT_NODE *)
-                     ncs_patricia_tree_get(client_tree, (uns8 *)cl_hdl);
-   
-   return NCSCC_RC_SUCCESS;
-}
+	*cl_node = (CPA_CLIENT_NODE *)
+	    ncs_patricia_tree_get(client_tree, (uns8 *)cl_hdl);
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
   Name          : cpa_client_node_add
@@ -79,19 +72,17 @@ uns32 cpa_client_node_get(NCS_PATRICIA_TREE *client_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpa_client_node_add(NCS_PATRICIA_TREE *client_tree, 
-                          CPA_CLIENT_NODE *cl_node)
+uns32 cpa_client_node_add(NCS_PATRICIA_TREE *client_tree, CPA_CLIENT_NODE *cl_node)
 {
-   uns32 rc= NCSCC_RC_FAILURE;
-   /* Store the client_info pointer as msghandle. */
-   cl_node->patnode.key_info = (uns8*)&cl_node->cl_hdl;
- 
-   if((rc = ncs_patricia_tree_add (client_tree, &cl_node->patnode)) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   
-   return NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_FAILURE;
+	/* Store the client_info pointer as msghandle. */
+	cl_node->patnode.key_info = (uns8 *)&cl_node->cl_hdl;
+
+	if ((rc = ncs_patricia_tree_add(client_tree, &cl_node->patnode)) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -104,25 +95,24 @@ uns32 cpa_client_node_add(NCS_PATRICIA_TREE *client_tree,
 ******************************************************************************/
 uns32 cpa_client_node_delete(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   if(cl_node == NULL)
-      return NCSCC_RC_FAILURE;
-   
-   /* Remove the Node from the client tree */   
-   if(ncs_patricia_tree_del(&cb->client_tree,&cl_node->patnode)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
-  
-   /* Free the Client Node */
-   if(cl_node)
-      m_MMGR_FREE_CPA_CLIENT_NODE(cl_node);
-  
-   return rc;
-   
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (cl_node == NULL)
+		return NCSCC_RC_FAILURE;
+
+	/* Remove the Node from the client tree */
+	if (ncs_patricia_tree_del(&cb->client_tree, &cl_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	/* Free the Client Node */
+	if (cl_node)
+		m_MMGR_FREE_CPA_CLIENT_NODE(cl_node);
+
+	return rc;
+
 }
-  
+
 /****************************************************************************
   Name          : cpa_client_tree_destroy
   Description   : This routine destroys the CPA client tree.
@@ -132,13 +122,13 @@ uns32 cpa_client_node_delete(CPA_CB *cb, CPA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 void cpa_client_tree_destroy(CPA_CB *cb)
 {
-   /* cleanup the client tree */
-   cpa_client_tree_cleanup(cb);
-   
-   /* destroy the tree */
-   ncs_patricia_tree_destroy(&cb->client_tree);
-   
-   return;
+	/* cleanup the client tree */
+	cpa_client_tree_cleanup(cb);
+
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->client_tree);
+
+	return;
 }
 
 /****************************************************************************
@@ -150,25 +140,24 @@ void cpa_client_tree_destroy(CPA_CB *cb)
 ******************************************************************************/
 void cpa_client_tree_cleanup(CPA_CB *cb)
 {
-   CPA_CLIENT_NODE  *clnode=NULL;
-   SaCkptHandleT *temp_ptr=NULL;
-   SaCkptHandleT temp_hdl=0;
-   
-   /* scan the entire handle db & delete each record */
-   while((clnode = (CPA_CLIENT_NODE *)
-      ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
-   {      
-      /* delete the client info */
-      temp_hdl = clnode->cl_hdl;
-      temp_ptr = &temp_hdl;
-      
-      /* Destroy the IPC attached to this client */
-      cpa_callback_ipc_destroy(clnode);
-      
-      /* Delete the Client Node */
-      cpa_client_node_delete(cb, clnode);
-   }
-   return;
+	CPA_CLIENT_NODE *clnode = NULL;
+	SaCkptHandleT *temp_ptr = NULL;
+	SaCkptHandleT temp_hdl = 0;
+
+	/* scan the entire handle db & delete each record */
+	while ((clnode = (CPA_CLIENT_NODE *)
+		ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
+		/* delete the client info */
+		temp_hdl = clnode->cl_hdl;
+		temp_ptr = &temp_hdl;
+
+		/* Destroy the IPC attached to this client */
+		cpa_callback_ipc_destroy(clnode);
+
+		/* Delete the Client Node */
+		cpa_client_node_delete(cb, clnode);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -179,18 +168,16 @@ void cpa_client_tree_cleanup(CPA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpa_lcl_ckpt_tree_init (CPA_CB  *cb)
+uns32 cpa_lcl_ckpt_tree_init(CPA_CB *cb)
 {
-   NCS_PATRICIA_PARAMS     param;
-   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   param.key_size = sizeof(SaCkptCheckpointHandleT);
-   if (ncs_patricia_tree_init(&cb->lcl_ckpt_tree, &param) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaCkptCheckpointHandleT);
+	if (ncs_patricia_tree_init(&cb->lcl_ckpt_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_lcl_ckpt_node_get
@@ -201,16 +188,14 @@ uns32 cpa_lcl_ckpt_tree_init (CPA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpa_lcl_ckpt_node_get(NCS_PATRICIA_TREE *lcl_ckpt_tree, 
-                           SaCkptCheckpointHandleT *lc_hdl,
-                           CPA_LOCAL_CKPT_NODE **lc_node)
+uns32 cpa_lcl_ckpt_node_get(NCS_PATRICIA_TREE *lcl_ckpt_tree,
+			    SaCkptCheckpointHandleT *lc_hdl, CPA_LOCAL_CKPT_NODE **lc_node)
 {
-   *lc_node = (CPA_LOCAL_CKPT_NODE *)
-                     ncs_patricia_tree_get(lcl_ckpt_tree, (uns8 *)lc_hdl);
-   
-   return NCSCC_RC_SUCCESS;
-}
+	*lc_node = (CPA_LOCAL_CKPT_NODE *)
+	    ncs_patricia_tree_get(lcl_ckpt_tree, (uns8 *)lc_hdl);
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /******************************************************************************
   Name          : cpa_lcl_ckpt_node_getnext
@@ -221,20 +206,16 @@ uns32 cpa_lcl_ckpt_node_get(NCS_PATRICIA_TREE *lcl_ckpt_tree,
  
   Notes
 ******************************************************************************/
-void  cpa_lcl_ckpt_node_getnext(CPA_CB *cb,
-                           SaCkptCheckpointHandleT *lc_hdl,
-                           CPA_LOCAL_CKPT_NODE **lc_node)
+void cpa_lcl_ckpt_node_getnext(CPA_CB *cb, SaCkptCheckpointHandleT *lc_hdl, CPA_LOCAL_CKPT_NODE **lc_node)
 {
-    if(lc_hdl)
-       *lc_node = (CPA_LOCAL_CKPT_NODE *) ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)lc_hdl);
-    
-    else
-       *lc_node = (CPA_LOCAL_CKPT_NODE *) ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)NULL);
-       
-    return;
+	if (lc_hdl)
+		*lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)lc_hdl);
+
+	else
+		*lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)NULL);
+
+	return;
 }
-
-
 
 /****************************************************************************
   Name          : cpa_lcl_ckpt_node_add
@@ -244,22 +225,18 @@ void  cpa_lcl_ckpt_node_getnext(CPA_CB *cb,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree,  
-                          CPA_LOCAL_CKPT_NODE *lc_node)
+uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree, CPA_LOCAL_CKPT_NODE *lc_node)
 {
-   /* Store the client_info pointer as msghandle. */
-   lc_node->patnode.key_info = (uns8*)&lc_node->lcl_ckpt_hdl;
-   
- 
-   if(ncs_patricia_tree_add (lcl_ckpt_tree, &lc_node->patnode) != NCSCC_RC_SUCCESS)
-   {
-      /* Logging done by caller of this function */
-      return NCSCC_RC_FAILURE;
-   }
+	/* Store the client_info pointer as msghandle. */
+	lc_node->patnode.key_info = (uns8 *)&lc_node->lcl_ckpt_hdl;
 
-   return NCSCC_RC_SUCCESS;
+	if (ncs_patricia_tree_add(lcl_ckpt_tree, &lc_node->patnode) != NCSCC_RC_SUCCESS) {
+		/* Logging done by caller of this function */
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_lcl_ckpt_node_delete
@@ -271,32 +248,29 @@ uns32 cpa_lcl_ckpt_node_add(NCS_PATRICIA_TREE *lcl_ckpt_tree,
 ******************************************************************************/
 uns32 cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   if(lc_node == NULL)
-      return NCSCC_RC_FAILURE;
-   
-   /* Remove the Node from the client tree */   
-   if(ncs_patricia_tree_del(&cb->lcl_ckpt_tree, &lc_node->patnode)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
-  
-   /* Free the Client Node */
-   if(lc_node)
-   {
-      /* Stop timer, if running */
-      cpa_tmr_stop(&lc_node->async_req_tmr);
-      
-      if(lc_node->async_req_tmr.uarg)
-      {
-         ncshm_destroy_hdl(NCS_SERVICE_ID_CPA, lc_node->async_req_tmr.uarg);
-      }
-      
-      m_MMGR_FREE_CPA_LOCAL_CKPT_NODE(lc_node);
-   }
-  
-   return rc;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (lc_node == NULL)
+		return NCSCC_RC_FAILURE;
+
+	/* Remove the Node from the client tree */
+	if (ncs_patricia_tree_del(&cb->lcl_ckpt_tree, &lc_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	/* Free the Client Node */
+	if (lc_node) {
+		/* Stop timer, if running */
+		cpa_tmr_stop(&lc_node->async_req_tmr);
+
+		if (lc_node->async_req_tmr.uarg) {
+			ncshm_destroy_hdl(NCS_SERVICE_ID_CPA, lc_node->async_req_tmr.uarg);
+		}
+
+		m_MMGR_FREE_CPA_LOCAL_CKPT_NODE(lc_node);
+	}
+
+	return rc;
 
 }
 
@@ -309,28 +283,24 @@ uns32 cpa_lcl_ckpt_node_delete(CPA_CB *cb, CPA_LOCAL_CKPT_NODE *lc_node)
 ******************************************************************************/
 void cpa_lcl_ckpt_tree_cleanup(CPA_CB *cb)
 {
-   SaCkptCheckpointHandleT  prev_ckpt_id=0;
-   CPA_LOCAL_CKPT_NODE *lc_node;
-   
-   /* Print the Lcl Checkpoint Details */
-   if(cb->is_lcl_ckpt_tree_up)
-   {
-      /* Get the First Node */
-      lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
-                                                   (uns8*)&prev_ckpt_id);
-      while(lc_node)
-      {
-         prev_ckpt_id = lc_node->lcl_ckpt_hdl;
-         
-         cpa_lcl_ckpt_node_delete(cb, lc_node);
+	SaCkptCheckpointHandleT prev_ckpt_id = 0;
+	CPA_LOCAL_CKPT_NODE *lc_node;
 
-         lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
-                                                   (uns8*)&prev_ckpt_id);            
-      }
-   }
-   return;
+	/* Print the Lcl Checkpoint Details */
+	if (cb->is_lcl_ckpt_tree_up) {
+		/* Get the First Node */
+		lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree, (uns8 *)&prev_ckpt_id);
+		while (lc_node) {
+			prev_ckpt_id = lc_node->lcl_ckpt_hdl;
+
+			cpa_lcl_ckpt_node_delete(cb, lc_node);
+
+			lc_node = (CPA_LOCAL_CKPT_NODE *)ncs_patricia_tree_getnext(&cb->lcl_ckpt_tree,
+										   (uns8 *)&prev_ckpt_id);
+		}
+	}
+	return;
 }
-
 
 /****************************************************************************
   Name          : cpa_lcl_ckpt_tree_destroy
@@ -341,15 +311,14 @@ void cpa_lcl_ckpt_tree_cleanup(CPA_CB *cb)
 ******************************************************************************/
 void cpa_lcl_ckpt_tree_destroy(CPA_CB *cb)
 {
-   /* cleanup the client tree */
-   cpa_lcl_ckpt_tree_cleanup(cb);
-   
-   /* destroy the tree */
-   ncs_patricia_tree_destroy(&cb->lcl_ckpt_tree);
-   
-   return;
-}
+	/* cleanup the client tree */
+	cpa_lcl_ckpt_tree_cleanup(cb);
 
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->lcl_ckpt_tree);
+
+	return;
+}
 
 /****************************************************************************
   Name          : cpa_gbl_ckpt_tree_init
@@ -363,18 +332,16 @@ void cpa_lcl_ckpt_tree_destroy(CPA_CB *cb)
  
   Notes         : None
 ******************************************************************************/
-uns32 cpa_gbl_ckpt_tree_init (CPA_CB  *cb)
+uns32 cpa_gbl_ckpt_tree_init(CPA_CB *cb)
 {
-   NCS_PATRICIA_PARAMS     param;
-   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   param.key_size = sizeof(SaCkptCheckpointHandleT);
-   if (ncs_patricia_tree_init(&cb->gbl_ckpt_tree, &param) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaCkptCheckpointHandleT);
+	if (ncs_patricia_tree_init(&cb->gbl_ckpt_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_gbl_ckpt_node_find_add
@@ -385,49 +352,43 @@ uns32 cpa_gbl_ckpt_tree_init (CPA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, 
-                                 SaCkptCheckpointHandleT *gc_hdl,
-                                 CPA_GLOBAL_CKPT_NODE **gc_node,
-                                 NCS_BOOL *add_flag)
+uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
+				 SaCkptCheckpointHandleT *gc_hdl, CPA_GLOBAL_CKPT_NODE **gc_node, NCS_BOOL *add_flag)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   *gc_node = (CPA_GLOBAL_CKPT_NODE *)
-                     ncs_patricia_tree_get(gbl_ckpt_tree, (uns8 *)gc_hdl);
-   
-   if((*gc_node == NULL) && (*add_flag == TRUE))
-   {
-      /* Allocate the CPA_GLOBAL_CKPT_NODE & Populate gbl_ckpt_hdl */
-      *gc_node = (CPA_GLOBAL_CKPT_NODE *)m_MMGR_ALLOC_CPA_GLOBAL_CKPT_NODE;
-      if(*gc_node == NULL)
-      {
-         rc = NCSCC_RC_OUT_OF_MEM;
-         /* Log not required, this will be logged by theh caller */
-         return NCSCC_RC_FAILURE;
-      }
-      
-      memset(*gc_node, 0, sizeof(CPA_GLOBAL_CKPT_NODE));
-      (*gc_node)->gbl_ckpt_hdl = (SaCkptCheckpointHandleT) *gc_hdl;
-      
-      m_NCS_LOCK_INIT(&((*gc_node)->cpd_active_sync_lock));
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-      rc = cpa_gbl_ckpt_node_add(gbl_ckpt_tree, *gc_node);
-      
-      if(rc != NCSCC_RC_SUCCESS)
-      {
-         m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(*gc_node);
-         *gc_node = NULL;
-         /* Log not required, this will be logged by theh caller */
-         return rc;
-      }
-      
-      /* Toggle the add Flag */
-      *add_flag = FALSE;
-   }
-   
-   return NCSCC_RC_SUCCESS;
+	*gc_node = (CPA_GLOBAL_CKPT_NODE *)
+	    ncs_patricia_tree_get(gbl_ckpt_tree, (uns8 *)gc_hdl);
+
+	if ((*gc_node == NULL) && (*add_flag == TRUE)) {
+		/* Allocate the CPA_GLOBAL_CKPT_NODE & Populate gbl_ckpt_hdl */
+		*gc_node = (CPA_GLOBAL_CKPT_NODE *)m_MMGR_ALLOC_CPA_GLOBAL_CKPT_NODE;
+		if (*gc_node == NULL) {
+			rc = NCSCC_RC_OUT_OF_MEM;
+			/* Log not required, this will be logged by theh caller */
+			return NCSCC_RC_FAILURE;
+		}
+
+		memset(*gc_node, 0, sizeof(CPA_GLOBAL_CKPT_NODE));
+		(*gc_node)->gbl_ckpt_hdl = (SaCkptCheckpointHandleT)*gc_hdl;
+
+		m_NCS_LOCK_INIT(&((*gc_node)->cpd_active_sync_lock));
+
+		rc = cpa_gbl_ckpt_node_add(gbl_ckpt_tree, *gc_node);
+
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(*gc_node);
+			*gc_node = NULL;
+			/* Log not required, this will be logged by theh caller */
+			return rc;
+		}
+
+		/* Toggle the add Flag */
+		*add_flag = FALSE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_gbl_ckpt_node_add
@@ -437,20 +398,19 @@ uns32 cpa_gbl_ckpt_node_find_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,  
-                          CPA_GLOBAL_CKPT_NODE *gc_node)
+uns32 cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree, CPA_GLOBAL_CKPT_NODE *gc_node)
 {
-   /* Store the client_info pointer as msghandle. */
-   gc_node->patnode.key_info = (uns8*)&gc_node->gbl_ckpt_hdl;
- 
-   if(ncs_patricia_tree_add (gbl_ckpt_tree, &gc_node->patnode) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_HEADLINE(CPA_GLOBAL_CKPT_NODE_ADD_FAILED, NCSFL_SEV_ERROR);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   return NCSCC_RC_SUCCESS;
+	/* Store the client_info pointer as msghandle. */
+	gc_node->patnode.key_info = (uns8 *)&gc_node->gbl_ckpt_hdl;
+
+	if (ncs_patricia_tree_add(gbl_ckpt_tree, &gc_node->patnode) != NCSCC_RC_SUCCESS) {
+		m_LOG_CPA_HEADLINE(CPA_GLOBAL_CKPT_NODE_ADD_FAILED, NCSFL_SEV_ERROR);
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
+
 /****************************************************************************
   Name          : cpa_sect_iter_tree_destroy
   Description   : This routine destroys the CPA Section Iteration tree.
@@ -460,13 +420,12 @@ uns32 cpa_gbl_ckpt_node_add(NCS_PATRICIA_TREE *gbl_ckpt_tree,
 ******************************************************************************/
 void cpa_sect_iter_tree_destroy(CPA_CB *cb)
 {
-     
-   /* destroy the tree */
-   ncs_patricia_tree_destroy(&cb->sect_iter_tree);
-   
-   return;
-}
 
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->sect_iter_tree);
+
+	return;
+}
 
 /****************************************************************************
   Name          : cpa_gbl_ckpt_node_delete
@@ -478,24 +437,22 @@ void cpa_sect_iter_tree_destroy(CPA_CB *cb)
 ******************************************************************************/
 uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   if(gc_node == NULL)
-      return NCSCC_RC_FAILURE;
-   
-   /* Remove the Node from the client tree */   
-   if(ncs_patricia_tree_del(&cb->gbl_ckpt_tree, &gc_node->patnode)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   if(gc_node)
-      m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(gc_node);
-  
-   return rc;
-   
+	if (gc_node == NULL)
+		return NCSCC_RC_FAILURE;
+
+	/* Remove the Node from the client tree */
+	if (ncs_patricia_tree_del(&cb->gbl_ckpt_tree, &gc_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	if (gc_node)
+		m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(gc_node);
+
+	return rc;
+
 }
-
 
 /****************************************************************************
   Name          : cpa_sect_iter_tree_init
@@ -505,18 +462,16 @@ uns32 cpa_gbl_ckpt_node_delete(CPA_CB *cb, CPA_GLOBAL_CKPT_NODE *gc_node)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 cpa_sect_iter_tree_init (CPA_CB  *cb)
+uns32 cpa_sect_iter_tree_init(CPA_CB *cb)
 {
-   NCS_PATRICIA_PARAMS     param;
-   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   param.key_size = sizeof(SaCkptSectionIterationHandleT);
-   if (ncs_patricia_tree_init(&cb->sect_iter_tree, &param) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaCkptSectionIterationHandleT);
+	if (ncs_patricia_tree_init(&cb->sect_iter_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_sect_iter_node_get
@@ -527,16 +482,14 @@ uns32 cpa_sect_iter_tree_init (CPA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 cpa_sect_iter_node_get(NCS_PATRICIA_TREE *sect_iter_tree, 
-                           SaCkptSectionIterationHandleT *sect_iter_hdl,
-                           CPA_SECT_ITER_NODE **sect_iter_node)
+uns32 cpa_sect_iter_node_get(NCS_PATRICIA_TREE *sect_iter_tree,
+			     SaCkptSectionIterationHandleT *sect_iter_hdl, CPA_SECT_ITER_NODE **sect_iter_node)
 {
-   *sect_iter_node = (CPA_SECT_ITER_NODE *)
-                     ncs_patricia_tree_get(sect_iter_tree, (uns8 *)sect_iter_hdl);
-   
-   return NCSCC_RC_SUCCESS;
-}
+	*sect_iter_node = (CPA_SECT_ITER_NODE *)
+	    ncs_patricia_tree_get(sect_iter_tree, (uns8 *)sect_iter_hdl);
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
   Name          : cpa_sect_iter_node_getnext
@@ -547,21 +500,17 @@ uns32 cpa_sect_iter_node_get(NCS_PATRICIA_TREE *sect_iter_tree,
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-void cpa_sect_iter_node_getnext(NCS_PATRICIA_TREE *sect_iter_tree, 
-                           SaCkptSectionIterationHandleT *sect_iter_hdl,
-                           CPA_SECT_ITER_NODE **sect_iter_node)
+void cpa_sect_iter_node_getnext(NCS_PATRICIA_TREE *sect_iter_tree,
+				SaCkptSectionIterationHandleT *sect_iter_hdl, CPA_SECT_ITER_NODE **sect_iter_node)
 {
-   if(sect_iter_hdl)
-      *sect_iter_node = (CPA_SECT_ITER_NODE *)
-                     ncs_patricia_tree_getnext(sect_iter_tree, (uns8 *)sect_iter_hdl);
-   else
-      *sect_iter_node = (CPA_SECT_ITER_NODE *)
-                     ncs_patricia_tree_getnext(sect_iter_tree, (uns8 *)NULL);
-   return;
+	if (sect_iter_hdl)
+		*sect_iter_node = (CPA_SECT_ITER_NODE *)
+		    ncs_patricia_tree_getnext(sect_iter_tree, (uns8 *)sect_iter_hdl);
+	else
+		*sect_iter_node = (CPA_SECT_ITER_NODE *)
+		    ncs_patricia_tree_getnext(sect_iter_tree, (uns8 *)NULL);
+	return;
 }
-
-
-
 
 /****************************************************************************
   Name          : cpa_sect_iter_node_add
@@ -571,20 +520,17 @@ void cpa_sect_iter_node_getnext(NCS_PATRICIA_TREE *sect_iter_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 cpa_sect_iter_node_add(NCS_PATRICIA_TREE *sect_iter_tree,  
-                          CPA_SECT_ITER_NODE *sect_iter_node)
+uns32 cpa_sect_iter_node_add(NCS_PATRICIA_TREE *sect_iter_tree, CPA_SECT_ITER_NODE *sect_iter_node)
 {
-   /* Store the client_info pointer as msghandle. */
-   sect_iter_node->patnode.key_info = (uns8*)&sect_iter_node->iter_id;
- 
-   if(ncs_patricia_tree_add (sect_iter_tree, &sect_iter_node->patnode) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	/* Store the client_info pointer as msghandle. */
+	sect_iter_node->patnode.key_info = (uns8 *)&sect_iter_node->iter_id;
 
-   return NCSCC_RC_SUCCESS;
+	if (ncs_patricia_tree_add(sect_iter_tree, &sect_iter_node->patnode) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : cpa_sect_iter_node_delete
@@ -596,34 +542,30 @@ uns32 cpa_sect_iter_node_add(NCS_PATRICIA_TREE *sect_iter_tree,
 ******************************************************************************/
 uns32 cpa_sect_iter_node_delete(CPA_CB *cb, CPA_SECT_ITER_NODE *sect_iter_node)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   if(sect_iter_node == NULL)
-      return NCSCC_RC_FAILURE;
-   
-   /* Remove the Node from the client tree */   
-   if(ncs_patricia_tree_del(&cb->sect_iter_tree, &sect_iter_node->patnode)!=NCSCC_RC_SUCCESS)
-   {
-      rc =   NCSCC_RC_FAILURE;
-   }
-  
-   /* Free the Client Node */
-   if(sect_iter_node)
-   {
-      if(sect_iter_node->section_id.id)
-      {
-         m_MMGR_FREE_CPSV_DEFAULT_VAL(sect_iter_node->section_id.id, NCS_SERVICE_ID_CPND);
-      }
-      if ( sect_iter_node->out_evt != NULL) {
-              m_MMGR_FREE_CPSV_EVT(sect_iter_node->out_evt, NCS_SERVICE_ID_CPA);
-      }
-      m_MMGR_FREE_CPA_SECT_ITER_NODE(sect_iter_node);
-      sect_iter_node = NULL;
-   }
-   return rc;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (sect_iter_node == NULL)
+		return NCSCC_RC_FAILURE;
+
+	/* Remove the Node from the client tree */
+	if (ncs_patricia_tree_del(&cb->sect_iter_tree, &sect_iter_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	/* Free the Client Node */
+	if (sect_iter_node) {
+		if (sect_iter_node->section_id.id) {
+			m_MMGR_FREE_CPSV_DEFAULT_VAL(sect_iter_node->section_id.id, NCS_SERVICE_ID_CPND);
+		}
+		if (sect_iter_node->out_evt != NULL) {
+			m_MMGR_FREE_CPSV_EVT(sect_iter_node->out_evt, NCS_SERVICE_ID_CPA);
+		}
+		m_MMGR_FREE_CPA_SECT_ITER_NODE(sect_iter_node);
+		sect_iter_node = NULL;
+	}
+	return rc;
 
 }
-
 
 /****************************************************************************
   Name          : cpa_gbl_ckpt_tree_destroy 
@@ -634,11 +576,11 @@ uns32 cpa_sect_iter_node_delete(CPA_CB *cb, CPA_SECT_ITER_NODE *sect_iter_node)
 ******************************************************************************/
 void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb)
 {
-     
-   /* destroy the tree */
-   ncs_patricia_tree_destroy(&cb->gbl_ckpt_tree);
-   
-   return;
+
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->gbl_ckpt_tree);
+
+	return;
 }
 
 /****************************************************************************
@@ -650,39 +592,34 @@ void cpa_gbl_ckpt_tree_destroy(CPA_CB *cb)
 ******************************************************************************/
 uns32 cpa_db_init(CPA_CB *cb)
 {
-   uns32 rc;
-   
-   rc = cpa_client_tree_init(cb);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__ ,__LINE__);
-      return rc;
-   }
-   
-   rc = cpa_lcl_ckpt_tree_init(cb);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__ ,__LINE__);
-      return rc;
-   }
-   
-   rc = cpa_gbl_ckpt_tree_init(cb);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__ ,__LINE__);
-      return rc;
-   }
-   
-   rc = cpa_sect_iter_tree_init(cb);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__ ,__LINE__);
-      return rc;
-   }
-   
-   return NCSCC_RC_SUCCESS;  
-}
+	uns32 rc;
 
+	rc = cpa_client_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		return rc;
+	}
+
+	rc = cpa_lcl_ckpt_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		return rc;
+	}
+
+	rc = cpa_gbl_ckpt_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		return rc;
+	}
+
+	rc = cpa_sect_iter_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_CPA_CCL(CPA_PROC_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "db_init", __FILE__, __LINE__);
+		return rc;
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
   Name          : cpa_db_destroy 
@@ -693,14 +630,14 @@ uns32 cpa_db_init(CPA_CB *cb)
 ******************************************************************************/
 uns32 cpa_db_destroy(CPA_CB *cb)
 {
-   
-   cpa_client_tree_destroy(cb);
-   
-   cpa_lcl_ckpt_tree_destroy(cb);
-   
-   cpa_gbl_ckpt_tree_destroy(cb);
-   
-   cpa_sect_iter_tree_destroy(cb);
-   
-   return NCSCC_RC_SUCCESS;  
+
+	cpa_client_tree_destroy(cb);
+
+	cpa_lcl_ckpt_tree_destroy(cb);
+
+	cpa_gbl_ckpt_tree_destroy(cb);
+
+	cpa_sect_iter_tree_destroy(cb);
+
+	return NCSCC_RC_SUCCESS;
 }

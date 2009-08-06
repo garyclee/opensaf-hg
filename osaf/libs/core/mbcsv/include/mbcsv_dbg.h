@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +29,6 @@
  */
 #ifndef MBCSV_DBG_H
 #define MBCSV_DBG_H
-
 
 /*
  * m_MBCSV_DBG_SINK
@@ -51,19 +47,17 @@
 
 #if (MBCSV_LOG == 1)
 
-EXTERN_C uns32 mbcsv_dbg_sink (uns32,char*,long, char*);
-EXTERN_C uns32 mbcsv_dbg_sink_svc (uns32,char*,uns32, char*, uns32);
+EXTERN_C uns32 mbcsv_dbg_sink(uns32, char *, long, char *);
+EXTERN_C uns32 mbcsv_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
 
 /* m_MBCSV_DBG_VOID() used to keep compiler happy @ void return functions */
 
 #define m_MBCSV_DBG_SINK(r, s)  mbcsv_dbg_sink(__LINE__,__FILE__,(long)r, (char*)s)
 #define m_MBCSV_DBG_SINK_SVC(r, s, sid)  mbcsv_dbg_sink_svc(__LINE__,__FILE__,(uns32)r, (char*)s, (uns32)sid)
-
 #else
 
 #define m_MBCSV_DBG_SINK(r, s)  r
 #define m_MBCSV_DBG_SINK_SVC(r, s, sid) r
+#endif   /*MBCSV_LOG == 1 */
 
-#endif /*MBCSV_LOG == 1 */
-
-#endif /* MBCSV_DBG_H */
+#endif   /* MBCSV_DBG_H */

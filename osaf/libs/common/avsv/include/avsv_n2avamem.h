@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -39,13 +37,12 @@
  * Also see avsv_d2nmem.h
  */
 
-typedef enum
-{
-   NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_AVA_MSG = 30,
-   NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_AMF_CBK_INFO,
-   NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_INFO,
-   NCS_SERVICE_AVSV_ND2ND_SUB_ID_AVSV_ND_INFO,
-   NCS_SERVICE_AVSV_N2AVA_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_AVA_MSG = 30,
+	NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_AMF_CBK_INFO,
+	NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_INFO,
+	NCS_SERVICE_AVSV_ND2ND_SUB_ID_AVSV_ND_INFO,
+	NCS_SERVICE_AVSV_N2AVA_SUB_ID_MAX
 } NCS_SERVICE_AVSV_N2AVA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -53,7 +50,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_AVSV_NDA_AVA_MSG      (AVSV_NDA_AVA_MSG*)m_NCS_MEM_ALLOC(sizeof(AVSV_NDA_AVA_MSG), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -92,4 +88,4 @@ typedef enum
                                                 NCS_SERVICE_ID_AVSV, \
                                                 NCS_SERVICE_AVSV_N2AVA_SUB_ID_AVSV_NDA_INFO)
 
-#endif /* !AVSV_N2AVAMEM_H */
+#endif   /* !AVSV_N2AVAMEM_H */

@@ -30,69 +30,65 @@
  * The messages used by GLD
  *****************************************************************************/
 
-typedef struct glsv_a2s_node_list_tag{
-   MDS_DEST                   dest_id;
-   uns32                      node_id;
-   uns32                      status;
-   struct glsv_a2s_node_list_tag  *next;
-}GLSV_A2S_NODE_LIST;
+typedef struct glsv_a2s_node_list_tag {
+	MDS_DEST dest_id;
+	uns32 node_id;
+	uns32 status;
+	struct glsv_a2s_node_list_tag *next;
+} GLSV_A2S_NODE_LIST;
 
+typedef struct glsv_gld_a2s_rsc_details {
+	SaNameT resource_name;	/* Cluster-wide unique lock name             */
+	SaLckResourceIdT rsc_id;	/* unique resource id - Index for            */
+	NCS_BOOL can_orphan;	/* is this resource allocated in orphan mode */
+	SaLckLockModeT orphan_lck_mode;	/* related to orphan mode */
+	GLSV_A2S_NODE_LIST *node_list;	/* Nodes on which this resource is reffered  */
+} GLSV_GLD_A2S_RSC_DETAILS;
 
-typedef struct glsv_gld_a2s_rsc_details{
-   SaNameT              resource_name;    /* Cluster-wide unique lock name             */
-   SaLckResourceIdT     rsc_id;           /* unique resource id - Index for            */
-   NCS_BOOL             can_orphan;       /* is this resource allocated in orphan mode */
-   SaLckLockModeT       orphan_lck_mode;  /* related to orphan mode */ 
-   GLSV_A2S_NODE_LIST   *node_list;       /* Nodes on which this resource is reffered  */
-}GLSV_GLD_A2S_RSC_DETAILS;
+typedef struct glsv_a2s_rsc_open_info {
+	SaNameT rsc_name;
+	SaLckResourceIdT rsc_id;
+	MDS_DEST mdest_id;
+	SaTimeT rsc_creation_time;
+} GLSV_A2S_RSC_OPEN_INFO;
 
-typedef struct glsv_a2s_rsc_open_info
-{
-   SaNameT                  rsc_name;
-   SaLckResourceIdT         rsc_id;
-   MDS_DEST                 mdest_id;
-   SaTimeT                  rsc_creation_time;
-}GLSV_A2S_RSC_OPEN_INFO;
-
-typedef struct glsv_a2s_rsc_details
-{
-   SaLckResourceIdT  rsc_id;
-   NCS_BOOL          orphan;
-   SaLckLockModeT    lck_mode;
-   MDS_DEST          mdest_id;
-   uns32             lcl_ref_cnt;
+typedef struct glsv_a2s_rsc_details {
+	SaLckResourceIdT rsc_id;
+	NCS_BOOL orphan;
+	SaLckLockModeT lck_mode;
+	MDS_DEST mdest_id;
+	uns32 lcl_ref_cnt;
 } GLSV_A2S_RSC_DETAILS;
 
-typedef struct glsv_a2s_glnd_mds_info_tag
-{
-   MDS_DEST    mdest_id;
-}GLSV_A2S_GLND_MDS_INFO;
+typedef struct glsv_a2s_glnd_mds_info_tag {
+	MDS_DEST mdest_id;
+} GLSV_A2S_GLND_MDS_INFO;
 
+typedef struct glsv_gld_a2s_ckpt_evt_tag {
 
-typedef struct glsv_gld_a2s_ckpt_evt_tag
-{
-
-   GLSV_GLD_EVT_TYPE    evt_type;
-   union
-   {
-      GLSV_A2S_RSC_OPEN_INFO         rsc_open_info;
-      GLSV_A2S_RSC_DETAILS           rsc_details;
-      GLSV_A2S_GLND_MDS_INFO         glnd_mds_info;
-   }info;
-}GLSV_GLD_A2S_CKPT_EVT;
+	GLSV_GLD_EVT_TYPE evt_type;
+	union {
+		GLSV_A2S_RSC_OPEN_INFO rsc_open_info;
+		GLSV_A2S_RSC_DETAILS rsc_details;
+		GLSV_A2S_GLND_MDS_INFO glnd_mds_info;
+	} info;
+} GLSV_GLD_A2S_CKPT_EVT;
 
 /* This is the function prototype for event handling */
-typedef uns32 (*GLSV_GLD_A2S_EVT_HANDLER) (struct glsv_gld_a2s_ckpt_evt_tag* evt);
+typedef uns32 (*GLSV_GLD_A2S_EVT_HANDLER) (struct glsv_gld_a2s_ckpt_evt_tag * evt);
 
-EXTERN_C uns32 gld_process_standby_evt(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_CKPT_EVT* evt);
+EXTERN_C uns32 gld_process_standby_evt(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *evt);
 
-EXTERN_C uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb,GLSV_GLD_A2S_RSC_DETAILS *rsc_details );
+EXTERN_C uns32 gld_sb_proc_data_rsp(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_RSC_DETAILS *rsc_details);
 
 EXTERN_C GLSV_GLD_GLND_DETAILS *gld_add_glnd_node(GLSV_GLD_CB *gld_cb, MDS_DEST glnd_mds_dest);
-EXTERN_C void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB gld_cb, SaNameT rsc_name, SaLckResourceIdT     rsc_id,MDS_DEST mdest_id, SaTimeT   creation_time);
+EXTERN_C void glsv_gld_a2s_ckpt_resource(GLSV_GLD_CB gld_cb, SaNameT rsc_name, SaLckResourceIdT rsc_id,
+					 MDS_DEST mdest_id, SaTimeT creation_time);
 
 EXTERN_C void glsv_gld_a2s_ckpt_node_details(GLSV_GLD_CB gld_cb, MDS_DEST mdest_id, uns32 evt_type);
-EXTERN_C void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB gld_cb,GLSV_GLD_EVT_TYPE    evt_type, GLSV_RSC_DETAILS rsc_details,MDS_DEST   mdest_id,uns32 lcl_ref_cnt);
+EXTERN_C void glsv_gld_a2s_ckpt_rsc_details(GLSV_GLD_CB gld_cb, GLSV_GLD_EVT_TYPE evt_type,
+					    GLSV_RSC_DETAILS rsc_details, MDS_DEST mdest_id, uns32 lcl_ref_cnt);
 EXTERN_C uns32 glsv_gld_mbcsv_async_update(GLSV_GLD_CB *gld_cb, GLSV_GLD_A2S_CKPT_EVT *a2s_evt);
 EXTERN_C uns32 glsv_gld_mbcsv_chgrole(GLSV_GLD_CB *gld_cb);
+
 #endif

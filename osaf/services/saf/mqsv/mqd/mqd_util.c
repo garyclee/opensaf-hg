@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file inclused following routines:
@@ -42,7 +40,7 @@
 #if (NCS_MQD != 0)
 
 /******************************** LOCAL ROUTINES *****************************/
-static NCS_BOOL mqd_track_obj_cmp(void* key, void* elem);
+static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem);
 /*****************************************************************************/
 
 /****************************************************************************\
@@ -58,10 +56,10 @@ static NCS_BOOL mqd_track_obj_cmp(void* key, void* elem);
 \****************************************************************************/
 uns32 mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
-   /*m_HTON_SANAMET_LEN(pNode->oinfo.name.length);*/
-   pNode->node.key_info = (uns8 *)&pNode->oinfo.name;
-   return ncs_patricia_tree_add(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
-} /* End of mqd_db_node_add() */
+	/*m_HTON_SANAMET_LEN(pNode->oinfo.name.length); */
+	pNode->node.key_info = (uns8 *)&pNode->oinfo.name;
+	return ncs_patricia_tree_add(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
+}	/* End of mqd_db_node_add() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_db_node_del
@@ -76,25 +74,25 @@ uns32 mqd_db_node_add(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 \****************************************************************************/
 void mqd_db_node_del(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 {
-   MQD_OBJECT_ELEM   *pOelm = NULL;
-   MQD_TRACK_OBJ  *pObj = NULL;
+	MQD_OBJECT_ELEM *pOelm = NULL;
+	MQD_TRACK_OBJ *pObj = NULL;
 
-   while((pOelm = ncs_dequeue(&pNode->oinfo.ilist))) {
-      m_MMGR_FREE_MQD_OBJECT_ELEM(pOelm);
-   }
-   
-   while((pObj = ncs_dequeue(&pNode->oinfo.tlist))) {
-      m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
-   }
+	while ((pOelm = ncs_dequeue(&pNode->oinfo.ilist))) {
+		m_MMGR_FREE_MQD_OBJECT_ELEM(pOelm);
+	}
 
-   /* Destroy the Object list & Track list */
-   ncs_destroy_queue(&pNode->oinfo.ilist); 
-   ncs_destroy_queue(&pNode->oinfo.tlist); 
-   
-   /* Remove the object node from the tree */
-   ncs_patricia_tree_del(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
-   m_MMGR_FREE_MQD_OBJ_NODE(pNode);
-} /* End of mqd_db_node_del() */
+	while ((pObj = ncs_dequeue(&pNode->oinfo.tlist))) {
+		m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
+	}
+
+	/* Destroy the Object list & Track list */
+	ncs_destroy_queue(&pNode->oinfo.ilist);
+	ncs_destroy_queue(&pNode->oinfo.tlist);
+
+	/* Remove the object node from the tree */
+	ncs_patricia_tree_del(&pMqd->qdb, (NCS_PATRICIA_NODE *)&pNode->node);
+	m_MMGR_FREE_MQD_OBJ_NODE(pNode);
+}	/* End of mqd_db_node_del() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_db_node_create
@@ -110,19 +108,20 @@ void mqd_db_node_del(MQD_CB *pMqd, MQD_OBJ_NODE *pNode)
 \****************************************************************************/
 uns32 mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 {
-   MQD_OBJ_NODE *pNode = 0;
+	MQD_OBJ_NODE *pNode = 0;
 
-   pNode = m_MMGR_ALLOC_MQD_OBJ_NODE;
-   if(!pNode) return NCSCC_RC_FAILURE;
-   memset(pNode, 0, sizeof(MQD_OBJ_NODE));
+	pNode = m_MMGR_ALLOC_MQD_OBJ_NODE;
+	if (!pNode)
+		return NCSCC_RC_FAILURE;
+	memset(pNode, 0, sizeof(MQD_OBJ_NODE));
 
-   /* Initialize the Queue/Group & Track List */
-   ncs_create_queue(&pNode->oinfo.ilist);  
-   ncs_create_queue(&pNode->oinfo.tlist);
+	/* Initialize the Queue/Group & Track List */
+	ncs_create_queue(&pNode->oinfo.ilist);
+	ncs_create_queue(&pNode->oinfo.tlist);
 
-   *o_pnode = pNode;
-   return NCSCC_RC_SUCCESS;
-} /* End of mqd_db_node_create() */
+	*o_pnode = pNode;
+	return NCSCC_RC_SUCCESS;
+}	/* End of mqd_db_node_create() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_qparam_upd
@@ -136,15 +135,15 @@ uns32 mqd_db_node_create(MQD_CB *pMqd, MQD_OBJ_NODE **o_pnode)
 \****************************************************************************/
 void mqd_qparam_upd(MQD_OBJ_NODE *pNode, ASAPi_QUEUE_PARAM *qparam)
 {
-   /* Update the Queue params */
-   pNode->oinfo.info.q.retentionTime = qparam->retentionTime;
-   pNode->oinfo.info.q.send_state = qparam->status;
-   pNode->oinfo.info.q.owner = qparam->owner;
-   pNode->oinfo.info.q.dest = qparam->addr;
-   pNode->oinfo.info.q.hdl = qparam->hdl;
-   pNode->oinfo.info.q.creationFlags = qparam->creationFlags;
-   memcpy(pNode->oinfo.info.q.size, qparam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
-} /* End of mqd_qparam_upd() */
+	/* Update the Queue params */
+	pNode->oinfo.info.q.retentionTime = qparam->retentionTime;
+	pNode->oinfo.info.q.send_state = qparam->status;
+	pNode->oinfo.info.q.owner = qparam->owner;
+	pNode->oinfo.info.q.dest = qparam->addr;
+	pNode->oinfo.info.q.hdl = qparam->hdl;
+	pNode->oinfo.info.q.creationFlags = qparam->creationFlags;
+	memcpy(pNode->oinfo.info.q.size, qparam->size, sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
+}	/* End of mqd_qparam_upd() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_qparam_fill
@@ -158,18 +157,17 @@ void mqd_qparam_upd(MQD_OBJ_NODE *pNode, ASAPi_QUEUE_PARAM *qparam)
 \****************************************************************************/
 void mqd_qparam_fill(MQD_QUEUE_PARAM *pParam, ASAPi_QUEUE_PARAM *pQparam)
 {
-   /* Fill the Queue params */
-   pQparam->retentionTime = pParam->retentionTime;
-   pQparam->status = pParam->send_state;
-   pQparam->owner = pParam->owner;
-   pQparam->addr = pParam->dest;
-   pQparam->hdl = pParam->hdl;
-   pQparam->is_mqnd_down = pParam->is_mqnd_down;
-   pQparam->creationFlags = pParam->creationFlags;
-   memcpy(pQparam->size, pParam->size, sizeof(SaSizeT)*(SA_MSG_MESSAGE_LOWEST_PRIORITY+1));
-   
-} /* End of mqd_qparam_fill() */
+	/* Fill the Queue params */
+	pQparam->retentionTime = pParam->retentionTime;
+	pQparam->status = pParam->send_state;
+	pQparam->owner = pParam->owner;
+	pQparam->addr = pParam->dest;
+	pQparam->hdl = pParam->hdl;
+	pQparam->is_mqnd_down = pParam->is_mqnd_down;
+	pQparam->creationFlags = pParam->creationFlags;
+	memcpy(pQparam->size, pParam->size, sizeof(SaSizeT) * (SA_MSG_MESSAGE_LOWEST_PRIORITY + 1));
 
+}	/* End of mqd_qparam_fill() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_add
@@ -186,23 +184,24 @@ void mqd_qparam_fill(MQD_QUEUE_PARAM *pParam, ASAPi_QUEUE_PARAM *pQparam)
 \****************************************************************************/
 uns32 mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 {
-   MQD_TRACK_OBJ  *pObj = 0;
-   uns32          rc = NCSCC_RC_SUCCESS;
-   
-   /* Check whether the destination object already exist */
-   pObj = ncs_find_item(list, dest, mqd_track_obj_cmp); 
-   if(!pObj) {
-      pObj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
-      if(!pObj) return SA_AIS_ERR_NO_MEMORY;
+	MQD_TRACK_OBJ *pObj = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-      pObj->dest = *dest;  /* Set the destination value */
-      pObj->to_svc = svc;  /* Set the service id */
-   
-      /* Add the object to the list */
-      ncs_enqueue(list, pObj);
-   }   
-   return rc;
-} /* End of mqd_track_add() */
+	/* Check whether the destination object already exist */
+	pObj = ncs_find_item(list, dest, mqd_track_obj_cmp);
+	if (!pObj) {
+		pObj = m_MMGR_ALLOC_MQD_TRACK_OBJ;
+		if (!pObj)
+			return SA_AIS_ERR_NO_MEMORY;
+
+		pObj->dest = *dest;	/* Set the destination value */
+		pObj->to_svc = svc;	/* Set the service id */
+
+		/* Add the object to the list */
+		ncs_enqueue(list, pObj);
+	}
+	return rc;
+}	/* End of mqd_track_add() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_del
@@ -219,16 +218,17 @@ uns32 mqd_track_add(NCS_QUEUE *list, MDS_DEST *dest, MDS_SVC_ID svc)
 \****************************************************************************/
 uns32 mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
 {
-   MQD_TRACK_OBJ  *pObj = 0;
-   uns32          rc = NCSCC_RC_SUCCESS;
-   
-   /* Check whether the destination object already exist */
-   pObj = ncs_remove_item(list, dest, mqd_track_obj_cmp); 
-   if(!pObj) return SA_AIS_ERR_NOT_EXIST;
-   
-   m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
-   return rc;
-} /* End of mqd_track_del() */
+	MQD_TRACK_OBJ *pObj = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	/* Check whether the destination object already exist */
+	pObj = ncs_remove_item(list, dest, mqd_track_obj_cmp);
+	if (!pObj)
+		return SA_AIS_ERR_NOT_EXIST;
+
+	m_MMGR_FREE_MQD_TRACK_OBJ(pObj);
+	return rc;
+}	/* End of mqd_track_del() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_track_obj_cmp
@@ -241,16 +241,16 @@ uns32 mqd_track_del(NCS_QUEUE *list, MDS_DEST *dest)
    
    RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL mqd_track_obj_cmp(void* key, void* elem)
+static NCS_BOOL mqd_track_obj_cmp(void *key, void *elem)
 {
-   MQD_TRACK_OBJ *pObj = (MQD_TRACK_OBJ *)elem;
+	MQD_TRACK_OBJ *pObj = (MQD_TRACK_OBJ *)elem;
 
-   if(!memcmp(&pObj->dest, (MDS_DEST *)key, sizeof(MDS_DEST))) {
-      return TRUE;
-   }
-   return FALSE;
-} /* End of mqd_track_obj_cmp() */
-
-#else /* (NCS_MQD != 0) */
+	if (!memcmp(&pObj->dest, (MDS_DEST *)key, sizeof(MDS_DEST))) {
+		return TRUE;
+	}
+	return FALSE;
+}	/* End of mqd_track_obj_cmp() */
+#else				/* (NCS_MQD != 0) */
 extern int dummy;
+
 #endif

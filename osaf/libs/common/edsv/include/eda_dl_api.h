@@ -22,4 +22,4 @@
 
 EXTERN_C LEAPDLL_API uns32 ncs_eda_lib_req (NCS_LIB_REQ_INFO *);
 
-#endif /* !EDA_DL_API_H */
+#endif   /* !EDA_DL_API_H */

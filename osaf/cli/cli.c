@@ -56,46 +56,47 @@ static uns32 cli_more_time(CLI_CB *, uns32);
 \*****************************************************************************/
 uns32 cli_inst_request(CLI_INST_INFO *i_request)
 {
-   CLI_CB   *pCli = 0;
-   uns32    rc = NCSCC_RC_SUCCESS;
-   
-   /* Validate the CLI handle */
-   pCli = (CLI_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLI, (uns32)i_request->i_hdl);
-   
-   if((CLI_INST_REQ_CREATE == i_request->i_req) && (pCli)) {
-      /* Wrong call, cli already exists ! */
-      m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CB_ALREADY_EXISTS);
-      ncshm_give_hdl(pCli->cli_hdl);
-      return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   
-   if((CLI_INST_REQ_CREATE != i_request->i_req) && (!pCli)) {
-      /* Wrong call, cli does not exists ! */      
-      return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   
-   switch(i_request->i_req) {
-   case CLI_INST_REQ_CREATE:
-      rc = cli_create(&i_request->info.io_create, &pCli);
-      if(NCSCC_RC_SUCCESS != rc) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);      
-      
-      m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CREATE_SUCCESS);
-      break;
-      
-   case CLI_INST_REQ_DESTROY: 
-      ncshm_give_hdl(pCli->cli_hdl);
-      cli_destroy(&pCli);      
-      break;
-   
-   case CLI_INST_REQ_BEGIN:
-      cli_read_input(pCli, i_request->info.i_begin.vr_id);
-      ncshm_give_hdl(pCli->cli_hdl);
-      break;
+	CLI_CB *pCli = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   default:
-      break;         
-   }             
-   return rc;
+	/* Validate the CLI handle */
+	pCli = (CLI_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLI, (uns32)i_request->i_hdl);
+
+	if ((CLI_INST_REQ_CREATE == i_request->i_req) && (pCli)) {
+		/* Wrong call, cli already exists ! */
+		m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CB_ALREADY_EXISTS);
+		ncshm_give_hdl(pCli->cli_hdl);
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+
+	if ((CLI_INST_REQ_CREATE != i_request->i_req) && (!pCli)) {
+		/* Wrong call, cli does not exists ! */
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+
+	switch (i_request->i_req) {
+	case CLI_INST_REQ_CREATE:
+		rc = cli_create(&i_request->info.io_create, &pCli);
+		if (NCSCC_RC_SUCCESS != rc)
+			return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+
+		m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CREATE_SUCCESS);
+		break;
+
+	case CLI_INST_REQ_DESTROY:
+		ncshm_give_hdl(pCli->cli_hdl);
+		cli_destroy(&pCli);
+		break;
+
+	case CLI_INST_REQ_BEGIN:
+		cli_read_input(pCli, i_request->info.i_begin.vr_id);
+		ncshm_give_hdl(pCli->cli_hdl);
+		break;
+
+	default:
+		break;
+	}
+	return rc;
 }
 
 /****************************************************************************\
@@ -116,53 +117,57 @@ uns32 cli_inst_request(CLI_INST_INFO *i_request)
 \****************************************************************************/
 uns32 ncscli_opr_request(NCSCLI_OP_INFO *i_request)
 {
-   CLI_CB   *pCli = 0;
-   uns32    rc = NCSCC_RC_SUCCESS;
-   
-   /* Validate the CLI handle */
-   pCli = (CLI_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLI, (uns32)i_request->i_hdl);
-   if(!pCli) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);   
-   
-   switch(i_request->i_req) {      
-   case NCSCLI_OPREQ_REGISTER:          
-      rc = cli_register_cmds(pCli, &i_request->info.i_register);      
+	CLI_CB *pCli = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-      if(NCSCC_RC_SUCCESS == rc) m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_REG_CMDS_SUCCESS);
-      break;
-      
-   case NCSCLI_OPREQ_DEREGISTER:      
-      rc = cli_deregister_cmds(pCli, &i_request->info.i_deregister);      
+	/* Validate the CLI handle */
+	pCli = (CLI_CB *)ncshm_take_hdl(NCS_SERVICE_ID_CLI, (uns32)i_request->i_hdl);
+	if (!pCli)
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
 
-      if(NCSCC_RC_SUCCESS == rc) m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_REG_CMDS_SUCCESS);
-      break;      
+	switch (i_request->i_req) {
+	case NCSCLI_OPREQ_REGISTER:
+		rc = cli_register_cmds(pCli, &i_request->info.i_register);
 
-   case NCSCLI_OPREQ_DONE:
-      rc = cli_done(pCli, &i_request->info.i_done);
-      break;
+		if (NCSCC_RC_SUCCESS == rc)
+			m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_REG_CMDS_SUCCESS);
+		break;
 
-   case NCSCLI_OPREQ_MORE_TIME:
-      rc = cli_more_time(pCli, i_request->info.i_more.i_delay);      
-      break;
+	case NCSCLI_OPREQ_DEREGISTER:
+		rc = cli_deregister_cmds(pCli, &i_request->info.i_deregister);
 
-   case NCSCLI_OPREQ_DISPLAY:
-      rc = cli_display(pCli, i_request->info.i_display.i_str);
-      break;
+		if (NCSCC_RC_SUCCESS == rc)
+			m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_REG_CMDS_SUCCESS);
+		break;
 
-   case NCSCLI_OPREQ_GET_DATA:
-      i_request->info.i_data.o_info = cli_get_subsys_cb(pCli);
-      break;
+	case NCSCLI_OPREQ_DONE:
+		rc = cli_done(pCli, &i_request->info.i_done);
+		break;
 
-   case NCSCLI_OPREQ_GET_MODE:
-      i_request->info.i_mode.o_data = cli_mode_get(pCli, i_request->info.i_mode.i_lvl);
-      break;
+	case NCSCLI_OPREQ_MORE_TIME:
+		rc = cli_more_time(pCli, i_request->info.i_more.i_delay);
+		break;
 
-   default:
-      break;         
-   }            
+	case NCSCLI_OPREQ_DISPLAY:
+		rc = cli_display(pCli, i_request->info.i_display.i_str);
+		break;
 
-   ncshm_give_hdl(pCli->cli_hdl);
-   if(NCSCC_RC_SUCCESS != rc) return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-   return rc;
+	case NCSCLI_OPREQ_GET_DATA:
+		i_request->info.i_data.o_info = cli_get_subsys_cb(pCli);
+		break;
+
+	case NCSCLI_OPREQ_GET_MODE:
+		i_request->info.i_mode.o_data = cli_mode_get(pCli, i_request->info.i_mode.i_lvl);
+		break;
+
+	default:
+		break;
+	}
+
+	ncshm_give_hdl(pCli->cli_hdl);
+	if (NCSCC_RC_SUCCESS != rc)
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+	return rc;
 }
 
 /****************************************************************************\
@@ -177,14 +182,13 @@ uns32 ncscli_opr_request(NCSCLI_OP_INFO *i_request)
 \****************************************************************************/
 uns32 cli_more_time(CLI_CB *pCli, uns32 i_tmrDelay)
 {
-   /* Stop Timer */
-   m_NCS_TMR_STOP(pCli->cefTmr.tid);
-   
-   /* Restart the timer */
-   m_NCS_TMR_START(pCli->cefTmr.tid, i_tmrDelay, (TMR_CALLBACK)pCli->cefTmr.tmrCB,
-      &pCli->cli_hdl);
-   m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_MORE_TIME);   
-   return NCSCC_RC_SUCCESS;
+	/* Stop Timer */
+	m_NCS_TMR_STOP(pCli->cefTmr.tid);
+
+	/* Restart the timer */
+	m_NCS_TMR_START(pCli->cefTmr.tid, i_tmrDelay, (TMR_CALLBACK)pCli->cefTmr.tmrCB, &pCli->cli_hdl);
+	m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_MORE_TIME);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -199,11 +203,11 @@ uns32 cli_more_time(CLI_CB *pCli, uns32 i_tmrDelay)
                      latter commands.
 \****************************************************************************/
 NCSCLI_SUBSYS_CB *cli_get_subsys_cb(CLI_CB *pCli)
-{  
-   /* Return the control block of subsystem */   
-   if(!pCli->subsys_cb.i_cef_mode)
-      pCli->subsys_cb.i_cef_mode = pCli->ctree_cb.trvMrkr->pData;
-   return &pCli->subsys_cb;
+{
+	/* Return the control block of subsystem */
+	if (!pCli->subsys_cb.i_cef_mode)
+		pCli->subsys_cb.i_cef_mode = pCli->ctree_cb.trvMrkr->pData;
+	return &pCli->subsys_cb;
 }
 
 /****************************************************************************\
@@ -218,12 +222,12 @@ NCSCLI_SUBSYS_CB *cli_get_subsys_cb(CLI_CB *pCli)
                      obtained using target Svcs macro m_GET_CONSOLE.
 \****************************************************************************/
 uns32 cli_display(CLI_CB *pCli, int8 *i_str)
-{   
-   if(!pCli->cefTmrFlag) {
-      m_CLI_FLUSH_STR(i_str, pCli->consoleId);      
-      return NCSCC_RC_SUCCESS;
-   }   
-   return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+{
+	if (!pCli->cefTmrFlag) {
+		m_CLI_FLUSH_STR(i_str, pCli->consoleId);
+		return NCSCC_RC_SUCCESS;
+	}
+	return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
 }
 
 /****************************************************************************\
@@ -240,21 +244,21 @@ uns32 cli_display(CLI_CB *pCli, int8 *i_str)
                      to accept commands from console
 \****************************************************************************/
 uns32 cli_done(CLI_CB *pCli, NCSCLI_OP_DONE *done)
-{   
-   /* Stop Timer */
-   m_NCS_TMR_STOP(pCli->cefTmr.tid);
-   
-   pCli->cefStatus = done->i_status;
-   if(NCSCC_RC_FAILURE == done->i_status)      
-      m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CEF_FAILED);   
-   
-   if(pCli->semUsgCnt == 1) {
-      --pCli->semUsgCnt;         
-      
-      /* Give Semaphore */
-      m_NCS_SEM_GIVE(pCli->cefSem);
-   }   
-   return NCSCC_RC_SUCCESS;
+{
+	/* Stop Timer */
+	m_NCS_TMR_STOP(pCli->cefTmr.tid);
+
+	pCli->cefStatus = done->i_status;
+	if (NCSCC_RC_FAILURE == done->i_status)
+		m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CEF_FAILED);
+
+	if (pCli->semUsgCnt == 1) {
+		--pCli->semUsgCnt;
+
+		/* Give Semaphore */
+		m_NCS_SEM_GIVE(pCli->cefSem);
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -268,27 +272,30 @@ uns32 cli_done(CLI_CB *pCli, NCSCLI_OP_DONE *done)
                      at level 2 asnd so on.
 \*****************************************************************************/
 NCSCONTEXT cli_mode_get(CLI_CB *pCli, uns16 i_lvl)
-{   
-   CLI_CMD_NODE *pNode = 0;
-   uns16        lvl = 0;
-   
-   /* Get the CLI control block associated with this cli key */   
-   if(!pCli) {
-      m_CLI_DBG_SINK_VOID(NCSCC_RC_FAILURE);
-      return 0;
-   }   
+{
+	CLI_CMD_NODE *pNode = 0;
+	uns16 lvl = 0;
 
-   /* Own mode information */
-   if(!i_lvl) return pCli->ctree_cb.trvMrkr->pData;
+	/* Get the CLI control block associated with this cli key */
+	if (!pCli) {
+		m_CLI_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		return 0;
+	}
 
-   /* Parent mode information */
-   pNode = pCli->ctree_cb.trvMrkr;
-   for(lvl=1; (lvl<=i_lvl) && pNode; lvl++) pNode = pNode->pParent;   
-      
-   if(pNode) return pNode->pData;
-   return 0;
+	/* Own mode information */
+	if (!i_lvl)
+		return pCli->ctree_cb.trvMrkr->pData;
+
+	/* Parent mode information */
+	pNode = pCli->ctree_cb.trvMrkr;
+	for (lvl = 1; (lvl <= i_lvl) && pNode; lvl++)
+		pNode = pNode->pParent;
+
+	if (pNode)
+		return pNode->pData;
+	return 0;
 }
-
 #else
 extern int dummy;
-#endif /* (if NCS_CLI == 1) */
+
+#endif   /* (if NCS_CLI == 1) */

@@ -20,7 +20,6 @@
 
  MODULE NAME: ncs_edu_pub.h
 
-
  REVISION HISTORY:
 
  Date     Version  Name          Description
@@ -39,7 +38,6 @@
 /*
  * Module Inclusion Control...
  */
- 
 
 #ifndef NCS_EDU_PUB_H
 #define NCS_EDU_PUB_H
@@ -52,7 +50,7 @@ extern "C" {
 #endif
 
 #ifndef NCS_EDU_VERBOSE_PRINT
-#define NCS_EDU_VERBOSE_PRINT       0   /* Turning flag default OFF. */
+#define NCS_EDU_VERBOSE_PRINT       0	/* Turning flag default OFF. */
 #endif
 
 /* EDU Instructions's maximum Label Size(in number of characters) */
@@ -60,101 +58,91 @@ extern "C" {
 
 #define GL_LOG_STRING_LEN       64
 
-typedef uns16 EDU_MSG_VERSION;
-
+	typedef uns16 EDU_MSG_VERSION;
 
 /* EDU operation type */
-typedef enum
-{
-  EDP_OP_TYPE_ENC,
-  EDP_OP_TYPE_DEC,
-  EDP_OP_TYPE_MAX
-} EDP_OP_TYPE;
-
+	typedef enum {
+		EDP_OP_TYPE_ENC,
+		EDP_OP_TYPE_DEC,
+		EDP_OP_TYPE_MAX
+	} EDP_OP_TYPE;
 
 /* Qualifiers used in the EDU Instruction Set */
 #define EDQ_LNKLIST             0x00000001
-#define EDQ_ARRAY               0x00000002 /* exec statement would pass "value" 
-                                              for the number of array elements. */
+#define EDQ_ARRAY               0x00000002	/* exec statement would pass "value" 
+						   for the number of array elements. */
 #define EDQ_POINTER             0x00000004
 #define EDQ_VAR_LEN_DATA        0x00000008
 
-
 /* EDU instruction set */
-typedef enum
-{
-  EDU_START,                    /* initialize program */
-  EDU_EXEC,
-  EDU_EXEC_EXT,                 /* Extension to EDU_EXEC for variable-data */
-  EDU_TEST_LL_PTR,              /* test if linked-list ptr is non-NULL, 
-                                   and invoke another program. */
-  EDU_TEST,                     /* "test" statement */
-  EDU_VER_USR, /*to execute an user-provided .chk_ver_usr. function app ver info */                
-  EDU_VER_GE,  
-  EDU_END,                      /* exit program */
-  EDU_MAX
-} EDU_INST_TYPE;
-
+	typedef enum {
+		EDU_START,	/* initialize program */
+		EDU_EXEC,
+		EDU_EXEC_EXT,	/* Extension to EDU_EXEC for variable-data */
+		EDU_TEST_LL_PTR,	/* test if linked-list ptr is non-NULL, 
+					   and invoke another program. */
+		EDU_TEST,	/* "test" statement */
+		EDU_VER_USR,	/*to execute an user-provided .chk_ver_usr. function app ver info */
+		EDU_VER_GE,
+		EDU_END,	/* exit program */
+		EDU_MAX
+	} EDU_INST_TYPE;
 
 /* EDU global(and constant) GO-NEXT labels */
-typedef enum
-{
-  EDU_NEXT = 0xfffffff0,
-  EDU_EXIT,
-  EDU_SAME, /* Run same command with new offset(for linked-lists, etc). */
-  EDU_FAIL,
-  EDU_LABEL_MAX
-} EDU_LABEL;
-
+	typedef enum {
+		EDU_NEXT = 0xfffffff0,
+		EDU_EXIT,
+		EDU_SAME,	/* Run same command with new offset(for linked-lists, etc). */
+		EDU_FAIL,
+		EDU_LABEL_MAX
+	} EDU_LABEL;
 
 /* EDU Error values */
-typedef enum
-{
-  EDU_NORMAL = 0xffff0000,
-  EDU_ERR_MEM_FAIL,
-  EDU_ERR_UBUF_PARSE_FAIL,
-  EDU_ERR_INV_EDP_VALUE,
-  EDU_ERR_EDU_START_NOT_FIRST_INSTR,
-  EDU_ERR_EDP_NOT_MATCHING_IN_EDU_START_INSTR,
-  EDU_ERR_INV_NUMBER_OF_EDU_INSTRUCTIONS,
-  EDU_ERR_EDU_END_NOT_LAST_INSTR,
-  EDU_ERR_ILLEGAL_INSTR_GIVEN,
-  EDU_ERR_DUPLICATE_EDU_START_INSTR_FOUND,
-  EDU_ERR_DUPLICATE_EDU_END_INSTR_FOUND,
-  EDU_ERR_DUPLICATE_EDU_TEST_LL_PTR_INSTR_FOUND,
-  EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE,
-  EDU_ERR_VAR_LEN_PARAMETER_NOT_BASIC_EDP_TYPE,
-  EDU_ERR_INV_ATTRIBUTE_FOR_LINKED_LIST_EDP,
-  EDU_ERR_INV_ATTRIBUTE_COMBINATION_IN_START_INSTR,
-  EDU_ERR_INV_ATTRIBUTE_FOR_EXEC_INSTR,
-  EDU_ERR_EDP_REFERENCES_SELF,
-  EDU_ERR_EXEC_INSTR_DOES_NOT_EXIST_FOR_OFFSET_OF_TEST_INSTR,
-  EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC,
-  EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_GE,
-  EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_USR,
-  EDU_ERR_EDP_NULL,
-  EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME,
-  EDU_ERR_INV_LEN_SIZE_FOUND_FOR_VAR_SIZED_DATA,
-  EDU_ERR_TEST_FUNC_NULL,
-  EDU_ERR_SRC_POINTER_NULL,
-  EDU_ERR_DEST_DOUBLE_POINTER_NULL,
-  EDU_ERR_EDU_HDL_NULL,
-  EDU_ERR_UBAID_POINTER_NULL,
-  EDU_ERR_POINTER_TO_CNT_NULL,
-  EDU_ERR_POINTER_TO_EDU_ERR_RET_VAL_NULL,
-  EDU_ERR_INV_OP_TYPE,
-  EDU_ERR_EDU_TEST_LL_PTR_INSTR_NOT_FOUND,
-  EDU_ERR_ILLEGAL_NEXT_LABEL_VALUE,
-  EDU_ERR_EDP_NOT_USABLE_AT_EXEC_TIME,
-  EDU_ERR_TLV_BUF_POINTER_NULL,
-  EDU_ERR_INV_TLV_BUF_SIZE,
-  EDU_ERR_EDU_HDL_NOT_INITED_BY_OWNER,
-  EDU_ERR_SELECTIVE_EXECUTE_OP_FAIL,   /* Selective encode/decode of rules failed */
-  EDU_ERR_VER_GE_FIELD_NULL,
-  EDU_ERR_VER_USR_FIELD_NULL,
-  EDU_ERR_MAX
-}EDU_ERR;
-
+	typedef enum {
+		EDU_NORMAL = 0xffff0000,
+		EDU_ERR_MEM_FAIL,
+		EDU_ERR_UBUF_PARSE_FAIL,
+		EDU_ERR_INV_EDP_VALUE,
+		EDU_ERR_EDU_START_NOT_FIRST_INSTR,
+		EDU_ERR_EDP_NOT_MATCHING_IN_EDU_START_INSTR,
+		EDU_ERR_INV_NUMBER_OF_EDU_INSTRUCTIONS,
+		EDU_ERR_EDU_END_NOT_LAST_INSTR,
+		EDU_ERR_ILLEGAL_INSTR_GIVEN,
+		EDU_ERR_DUPLICATE_EDU_START_INSTR_FOUND,
+		EDU_ERR_DUPLICATE_EDU_END_INSTR_FOUND,
+		EDU_ERR_DUPLICATE_EDU_TEST_LL_PTR_INSTR_FOUND,
+		EDU_ERR_FIELD_OFFSET_EXCEEDS_EDP_SIZE,
+		EDU_ERR_VAR_LEN_PARAMETER_NOT_BASIC_EDP_TYPE,
+		EDU_ERR_INV_ATTRIBUTE_FOR_LINKED_LIST_EDP,
+		EDU_ERR_INV_ATTRIBUTE_COMBINATION_IN_START_INSTR,
+		EDU_ERR_INV_ATTRIBUTE_FOR_EXEC_INSTR,
+		EDU_ERR_EDP_REFERENCES_SELF,
+		EDU_ERR_EXEC_INSTR_DOES_NOT_EXIST_FOR_OFFSET_OF_TEST_INSTR,
+		EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_TEST_FNC,
+		EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_GE,
+		EDU_ERR_INV_JUMPTO_OFFSET_PROVIDED_BY_VER_USR,
+		EDU_ERR_EDP_NULL,
+		EDU_ERR_EDP_NOT_FOUND_AT_EXEC_TIME,
+		EDU_ERR_INV_LEN_SIZE_FOUND_FOR_VAR_SIZED_DATA,
+		EDU_ERR_TEST_FUNC_NULL,
+		EDU_ERR_SRC_POINTER_NULL,
+		EDU_ERR_DEST_DOUBLE_POINTER_NULL,
+		EDU_ERR_EDU_HDL_NULL,
+		EDU_ERR_UBAID_POINTER_NULL,
+		EDU_ERR_POINTER_TO_CNT_NULL,
+		EDU_ERR_POINTER_TO_EDU_ERR_RET_VAL_NULL,
+		EDU_ERR_INV_OP_TYPE,
+		EDU_ERR_EDU_TEST_LL_PTR_INSTR_NOT_FOUND,
+		EDU_ERR_ILLEGAL_NEXT_LABEL_VALUE,
+		EDU_ERR_EDP_NOT_USABLE_AT_EXEC_TIME,
+		EDU_ERR_TLV_BUF_POINTER_NULL,
+		EDU_ERR_INV_TLV_BUF_SIZE,
+		EDU_ERR_EDU_HDL_NOT_INITED_BY_OWNER,
+		EDU_ERR_SELECTIVE_EXECUTE_OP_FAIL,	/* Selective encode/decode of rules failed */
+		EDU_ERR_VER_GE_FIELD_NULL,
+		EDU_ERR_VER_USR_FIELD_NULL,
+		EDU_ERR_MAX
+	} EDU_ERR;
 
 /* EDU Handle which resides in the application's Control Block(CB).
    This gets passed to EDU at time of encode/decode operation.
@@ -162,150 +150,125 @@ typedef enum
         - label information of each EDP
         - EDCOMPILE status of EDP
  */
-typedef struct edu_hdl_tag
-{
-    NCS_BOOL            is_inited;  /* Is the tree initialised */
-    NCS_PATRICIA_TREE   tree;
-    EDU_MSG_VERSION  to_version;
-}EDU_HDL;
+	typedef struct edu_hdl_tag {
+		NCS_BOOL is_inited;	/* Is the tree initialised */
+		NCS_PATRICIA_TREE tree;
+		EDU_MSG_VERSION to_version;
+	} EDU_HDL;
 
-
-
-struct edu_tkn_tag; /* Forward declaration required here. */
-
+	struct edu_tkn_tag;	/* Forward declaration required here. */
 
 /* Definition of EDU_TLV_ENV, used in EDU internal API. */
-typedef struct edu_tlv_env_tag
-{
-    NCSCONTEXT      cur_bufp;   /* Running buffer pointer */
-    uns32           size;
-    uns32           bytes_consumed;
-}EDU_TLV_ENV;
+	typedef struct edu_tlv_env_tag {
+		NCSCONTEXT cur_bufp;	/* Running buffer pointer */
+		uns32 size;
+		uns32 bytes_consumed;
+	} EDU_TLV_ENV;
 
 /* Definition of envelope of EDU_TLV_ENV and NCS_UBAID */
-typedef struct edu_buf_env_tag
-{
-    NCS_BOOL        is_ubaid;   /* Is this NCS_UBAID or not? */
-    union {
-        NCS_UBAID   *uba;
-        EDU_TLV_ENV tlv_env;
-    }info;
-}EDU_BUF_ENV;
-
+	typedef struct edu_buf_env_tag {
+		NCS_BOOL is_ubaid;	/* Is this NCS_UBAID or not? */
+		union {
+			NCS_UBAID *uba;
+			EDU_TLV_ENV tlv_env;
+		} info;
+	} EDU_BUF_ENV;
 
 /* Prototype for function handler for test-functionality. This
    function is expected to return the label of the next 
    instruction to execute. */
-typedef uns32 (*EDU_PROG_HANDLER)(EDU_HDL *edu_hdl, struct edu_tkn_tag *edu_tkn, \
-                                  NCSCONTEXT data_ptr, uns32 *ptr_data_len, \
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, \
-                                  EDU_ERR *o_err);
-typedef int (*EDU_EXEC_RTINE)(NCSCONTEXT arg);
-
-
-
+	typedef uns32 (*EDU_PROG_HANDLER) (EDU_HDL *edu_hdl, struct edu_tkn_tag * edu_tkn,
+					   NCSCONTEXT data_ptr, uns32 *ptr_data_len,
+					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	typedef int (*EDU_EXEC_RTINE) (NCSCONTEXT arg);
 
 /* EDU's Prettyprint database(Internal use only). */
 #if (NCS_EDU_VERBOSE_PRINT == 1)
-typedef struct edu_ppdb
-{
-   NCS_PATRICIA_TREE        tree;
-   NCS_BOOL                 is_up;     /* Has the tree been init'ed */
-} EDU_PPDB;
+	typedef struct edu_ppdb {
+		NCS_PATRICIA_TREE tree;
+		NCS_BOOL is_up;	/* Has the tree been init'ed */
+	} EDU_PPDB;
 
 /* Key to the EDU_PPDB database. */
-typedef struct edu_ppdb_key
-{
-    EDU_PROG_HANDLER    parent_edp; /* EDP of parent structure containing this field */
-    EDU_PROG_HANDLER    self_edp;   /* EDP of the data type of this field */
-    uns32               field_offset;   /* Offset of the field in the parent structure */
-}EDU_PPDB_KEY;
+	typedef struct edu_ppdb_key {
+		EDU_PROG_HANDLER parent_edp;	/* EDP of parent structure containing this field */
+		EDU_PROG_HANDLER self_edp;	/* EDP of the data type of this field */
+		uns32 field_offset;	/* Offset of the field in the parent structure */
+	} EDU_PPDB_KEY;
 
 /* Structure for a node of the EDU's prettyprint database. */
-typedef struct edu_ppdb_node_info
-{  
-   NCS_PATRICIA_NODE        pat_node;
-   EDU_PPDB_KEY             key;
-   NCSCONTEXT               data_ptr;   /* Pointer to data memory. This
-                                           memory is malloc'ed by EDU
-                                           while Pretty-printing. */
-   uns32                    data_size;  /* Size of the data present. */
-   uns8                     refcount;   /* Number of instructions
-                                           referencing this node. */
-} EDU_PPDB_NODE_INFO;
+	typedef struct edu_ppdb_node_info {
+		NCS_PATRICIA_NODE pat_node;
+		EDU_PPDB_KEY key;
+		NCSCONTEXT data_ptr;	/* Pointer to data memory. This
+					   memory is malloc'ed by EDU
+					   while Pretty-printing. */
+		uns32 data_size;	/* Size of the data present. */
+		uns8 refcount;	/* Number of instructions
+				   referencing this node. */
+	} EDU_PPDB_NODE_INFO;
 #endif
-
-
-
 
 /* EDU Token definition. This is the application's passport
    for passing the EDP program that has to be used for encoding/decoding.
  */
-typedef struct edu_tkn_tag
-{
-    EDU_PROG_HANDLER  i_edp;      /* EDP(of type EDU_PROG_HANDLER) used for 
-                               encoding/decoding. */
+	typedef struct edu_tkn_tag {
+		EDU_PROG_HANDLER i_edp;	/* EDP(of type EDU_PROG_HANDLER) used for 
+					   encoding/decoding. */
 
-    EDU_PROG_HANDLER  parent_edp; /* EDP of the parent message envelope */
-    uns8 var_cnt;    /* Variable number of "selected-rules"(user-provided) for 
-                        performing encode/decode operation. */
+		EDU_PROG_HANDLER parent_edp;	/* EDP of the parent message envelope */
+		uns8 var_cnt;	/* Variable number of "selected-rules"(user-provided) for 
+				   performing encode/decode operation. */
 
-    int *var_array; /* Alloc'ed Array of "selected-rules"(user-provided) */
+		int *var_array;	/* Alloc'ed Array of "selected-rules"(user-provided) */
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
-    EDU_PPDB    ppdb;
+		EDU_PPDB ppdb;
 #endif
-}EDU_TKN;
-
-
+	} EDU_TKN;
 
 /* EDU Instruction Set Definition */
-typedef struct edu_inst_set
-{
-        EDU_INST_TYPE       instr;  /* EDU instruction type */
+	typedef struct edu_inst_set {
+		EDU_INST_TYPE instr;	/* EDU instruction type */
 
-        EDU_PROG_HANDLER    fld1;
+		EDU_PROG_HANDLER fld1;
 
-        uns32               fld2;
+		uns32 fld2;
 
-        EDU_PROG_HANDLER    fld3;
+		EDU_PROG_HANDLER fld3;
 
-        int                 nxt_lbl;  /* Next label to execute */
+		int nxt_lbl;	/* Next label to execute */
 
-        long               fld5;
+		long fld5;
 
-        long               fld6;
+		long fld6;
 
-        EDU_EXEC_RTINE      fld7;   /* pointer to "test" function */
-}EDU_INST_SET;
-
+		EDU_EXEC_RTINE fld7;	/* pointer to "test" function */
+	} EDU_INST_SET;
 
 /* EDU "test"able Instructions list(Internal use only) */
-typedef struct edp_test_instr_rec_tag
-{
-    uns32               offset; /* Of the "test"able field */
-    EDU_PROG_HANDLER    edp;  /* Of the "test"able field */
-    uns32               refcount;   /* Number of references by EDU_TEST instructions. */
-    struct edp_test_instr_rec_tag *next;
-}EDP_TEST_INSTR_REC;
+	typedef struct edp_test_instr_rec_tag {
+		uns32 offset;	/* Of the "test"able field */
+		EDU_PROG_HANDLER edp;	/* Of the "test"able field */
+		uns32 refcount;	/* Number of references by EDU_TEST instructions. */
+		struct edp_test_instr_rec_tag *next;
+	} EDP_TEST_INSTR_REC;
 
 /* EDU handle node type definition */
-typedef struct edu_hdl_node_tag
-{
-    NCS_PATRICIA_NODE   pat_node;
+	typedef struct edu_hdl_node_tag {
+		NCS_PATRICIA_NODE pat_node;
 
-    EDU_PROG_HANDLER    edp;    /* EDU Program handler(Key to Patricia-tree) */
+		EDU_PROG_HANDLER edp;	/* EDU Program handler(Key to Patricia-tree) */
 
-    uns32               size;   /* Size of data structure */
+		uns32 size;	/* Size of data structure */
 
-    NCS_BOOL            edcompile_pass; /* Updated by EDU */
+		NCS_BOOL edcompile_pass;	/* Updated by EDU */
 
-    uns32               attrb;  /* EDP attributes */
+		uns32 attrb;	/* EDP attributes */
 
-    EDP_TEST_INSTR_REC  *test_instr_store;   /* Internal only */
+		EDP_TEST_INSTR_REC *test_instr_store;	/* Internal only */
 
-}EDU_HDL_NODE;
-
+	} EDU_HDL_NODE;
 
 /************* EDU EXTERNAL API (to Service Users) *************/
 /* To be invoked for encoding/decoding into/from NCS_UBAID. */
@@ -317,7 +280,6 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,0)
 
 #define ncs_edu_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,var_cnt, ...)\
 ncs_edu_ver_exec(edu_hdl,edp_ptr,uba, op,data_ptr,o_err, 1 ,var_cnt,## __VA_ARGS__)
-
 
 #define m_NCS_EDU_SEL_VER_EXEC(edu_hdl,edp_ptr,uba,op,data_ptr,o_err,to_version,var_cnt,...)\
 ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, ## __VA_ARGS__)
@@ -342,131 +304,109 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 #if (NCS_EDU_VERBOSE_PRINT == 1)
 #define m_NCS_EDU_PRINT_ERROR_STRING(eduerr) ncs_edu_print_error_string(eduerr)
 #else
-#define m_NCS_EDU_PRINT_ERROR_STRING(eduerr) 
+#define m_NCS_EDU_PRINT_ERROR_STRING(eduerr)
 #endif
 /************* EDU EXTERNAL API (to Service Users) *************/
 
-
-
 /************ EDU external macro-related functions. ************/
-EXTERN_C LEAPDLL_API uns32 
-ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET prog[ ], 
-                  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                  EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count);
+	EXTERN_C LEAPDLL_API uns32
+	 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET prog[],
+			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
+			   EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count);
 
-EXTERN_C LEAPDLL_API 
-uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
-                          EDU_HDL_NODE **p_hdl_node, EDU_ERR *o_err);
+	EXTERN_C LEAPDLL_API
+	    uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
+				      EDU_HDL_NODE **p_hdl_node, EDU_ERR *o_err);
 
-EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
+	EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
 
-EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
+	EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
 
 #if 0
-EXTERN_C LEAPDLL_API uns32 
-ncs_edu_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba, 
-             EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, 
-             uns8 var_cnt, ...);
+	EXTERN_C LEAPDLL_API uns32
+	 ncs_edu_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
+		      EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 #endif
 
-EXTERN_C LEAPDLL_API uns32 
-ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba, 
-             EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
-             uns8 var_cnt, ...);
+	EXTERN_C LEAPDLL_API uns32
+	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
+			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
+			  uns8 var_cnt, ...);
 
-EXTERN_C LEAPDLL_API uns32 
-ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp, 
-                 uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, 
-                 EDU_ERR *o_err, uns8 var_cnt, ...);
+	EXTERN_C LEAPDLL_API uns32
+	 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp,
+			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 
-EXTERN_C LEAPDLL_API void ncs_edu_print_error_string(int enum_val);
+	EXTERN_C LEAPDLL_API void ncs_edu_print_error_string(int enum_val);
 /************ EDU external macro-related functions. ************/
 
-
 /************* NCS Built-in EDU Program Prototypes *************/
-LEAPDLL_API uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					   NCSCONTEXT ptr, uns32 *ptr_data_len,
+					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #if 0
-#define m_NCS_EDP_ULONG         ncs_edp_long /* The data size for "long" and "unsigned long" is same. */
+#define m_NCS_EDP_ULONG         ncs_edp_long	/* The data size for "long" and "unsigned long" is same. */
 #endif
 
 #if(NCS_UNS64_DEFINED == 1)
-LEAPDLL_API uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #else
-#define ncs_edp_uns64           ncs_edp_uns32   /* macro-convention ignored */
-#define ncs_edp_int64           ncs_edp_int32   /* macro-convention ignored */
+#define ncs_edp_uns64           ncs_edp_uns32	/* macro-convention ignored */
+#define ncs_edp_int64           ncs_edp_int32	/* macro-convention ignored */
 #endif
 
-LEAPDLL_API uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				      NCSCONTEXT ptr, uns32 *ptr_data_len,
+				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #if 0
-LEAPDLL_API uns32 ncs_edp_long(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_long(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #endif
 
-LEAPDLL_API uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uns32 *ptr_data_len,
+				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #if 0
-LEAPDLL_API uns32 ncs_edp_double(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_float(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_double(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uns32 *ptr_data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_float(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *ptr_data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #else
 #define ncs_edp_double ncs_edp_int64
 #define ncs_edp_float ncs_edp_int32
@@ -475,34 +415,30 @@ LEAPDLL_API uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 #define ncs_edp_mds_dest ncs_edp_uns64
 
-LEAPDLL_API uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_ncsmib_param_val(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_ncsmib_idx(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_ncs_trap_varbind(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_ncs_trap(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					  NCSCONTEXT ptr, uns32 *ptr_data_len,
+					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncsmib_param_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+						   NCSCONTEXT ptr, uns32 *ptr_data_len,
+						   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncsmib_idx(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uns32 *ptr_data_len,
+					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncs_trap_varbind(EDU_HDL *edu_hdl,
+						   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+						   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
+						   EDP_OP_TYPE op, EDU_ERR *o_err);
+	LEAPDLL_API uns32 ncs_edp_ncs_trap(EDU_HDL *edu_hdl,
+					   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+					   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #if 0
-LEAPDLL_API int ncs_edu_mds_dest_test_nodeid_fnc(NCSCONTEXT arg);
+	LEAPDLL_API int ncs_edu_mds_dest_test_nodeid_fnc(NCSCONTEXT arg);
 #endif
 
-LEAPDLL_API int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);
+	LEAPDLL_API int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);
 
-LEAPDLL_API int ncs_edu_ncsmib_param_val_test_fmat_fnc(NCSCONTEXT arg);
+	LEAPDLL_API int ncs_edu_ncsmib_param_val_test_fmat_fnc(NCSCONTEXT arg);
 
 /************* NCS Built-in EDU Program Prototypes *************/
 
@@ -510,5 +446,4 @@ LEAPDLL_API int ncs_edu_ncsmib_param_val_test_fmat_fnc(NCSCONTEXT arg);
 }
 #endif
 
-#endif          /* ifndef NCS_EDU_PUB_H */
-
+#endif   /* ifndef NCS_EDU_PUB_H */

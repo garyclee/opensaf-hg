@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   
-
 
 ..............................................................................
 
@@ -79,79 +77,69 @@ extern "C" {
  *           
  ***************************************************************************/
 #if 0
-    uns32 example_ncsmib_arg_on_stack(NCS_KEY* mib_key)
-      {
-      NCSMIB_ARG  arg;           /* REQ on STACK, RSP on STACK too  */
-      NCSMEM_AID  ma;            /* RSP allocations from STACK space too  */
-      uns8       space[1024];   /* This is the stack-space used for 'allocations'  */
-      uns8      *octet;
+	uns32 example_ncsmib_arg_on_stack(NCS_KEY *mib_key) {
+		NCSMIB_ARG arg;	/* REQ on STACK, RSP on STACK too  */
+		NCSMEM_AID ma;	/* RSP allocations from STACK space too  */
+		uns8 space[1024];	/* This is the stack-space used for 'allocations'  */
+		uns8 *octet;
 
-      ncsmib_init(&arg);                  /* NOTE: NCSMIB_ARG on STACK!!!!  */
-      ncsmem_aid_init(&ma, space, 1024);  /* Put NCSMEM_AID in start state  */
+		 ncsmib_init(&arg);	/* NOTE: NCSMIB_ARG on STACK!!!!  */
+		 ncsmem_aid_init(&ma, space, 1024);	/* Put NCSMEM_AID in start state  */
 
-      arg.i_mib_key = mib_key;  /* OK, keep example complete/honest,  */
-      arg.i_usr_key = mib_key;  /* but this is all irrelevant to the point  */
+		 arg.i_mib_key = mib_key;	/* OK, keep example complete/honest,  */
+		 arg.i_usr_key = mib_key;	/* but this is all irrelevant to the point  */
 
-      arg.i_op             = NCSMIB_OP_REQ_GET;  /* ditto on irrelevance  */
-      arg.i_idx.i_inst_ids = instance-thing;
-      arg.i_idx.i_inst_len = 8;
-      arg.i_rsp_fnc        = NULL;
-      arg.i_tbl_id         = FSS1MIB_TBL_BFAKE; 
+		 arg.i_op = NCSMIB_OP_REQ_GET;	/* ditto on irrelevance  */
+		 arg.i_idx.i_inst_ids = instance - thing;
+		 arg.i_idx.i_inst_len = 8;
+		 arg.i_rsp_fnc = NULL;
+		 arg.i_tbl_id = FSS1MIB_TBL_BFAKE;
 
-      /* OK,thing fetched is type OCTET-STR; memory to come from stack via NCSMEM_AID */
-       
-      arg.req.info.get_req.i_param_id = FAKE_OBJ_TYPE_OCTET_STRING;
+		/* OK,thing fetched is type OCTET-STR; memory to come from stack via NCSMEM_AID */
 
-      /* OK, 'ma' goes down (not NULL), so NCSMIB_ARG RSP mem will ALL BE FROM STACK */
+		 arg.req.info.get_req.i_param_id = FAKE_OBJ_TYPE_OCTET_STRING;
 
-      ncsmib_sync_request(&arg, ncsmac_mib_request, FMC_WAIT_TIME, &ma); /* example */
+		/* OK, 'ma' goes down (not NULL), so NCSMIB_ARG RSP mem will ALL BE FROM STACK */
 
-      /* OK, we got an 'octet' answer; 'octet' memory is from stack 'space[1024]' */
+		 ncsmib_sync_request(&arg, ncsmac_mib_request, FMC_WAIT_TIME, &ma);	/* example */
 
-      octet = arg.rsp.info.get_rsp.i_param_val.info.i_oct;
-       
-      /* Now if we return here, there is automatic NCSMIB_ARG REQ/RSP cleanup, since */
-      /* all data is on the stack. Popping the stack is enough!! */
+		/* OK, we got an 'octet' answer; 'octet' memory is from stack 'space[1024]' */
 
-      return NCSCC_RC_SUCCESS;
-      }
+		 octet = arg.rsp.info.get_rsp.i_param_val.info.i_oct;
+
+		/* Now if we return here, there is automatic NCSMIB_ARG REQ/RSP cleanup, since */
+		/* all data is on the stack. Popping the stack is enough!! */
+
+		 return NCSCC_RC_SUCCESS;
+	}
 #endif
-
 /***************************************************************************
  *
  * NOTE: All allocs from NCSMEM_AID are guarenteed to start on 4 byte 
  *       boundaries, aligned with the originally passed 'space' pointer.
- ***************************************************************************/
+ ***************************************************************************/ typedef struct ncsmem_aid {
 
-typedef struct ncsmem_aid
-  {
+		/* P R I V A T E fields should not be referenced by client            */
 
-  /* P R I V A T E fields should not be referenced by client            */
+		uns32 max_len;	/* start len of passed buffer (HEAP or STACK)       */
+		uns8 *cur_ptr;	/* current place for getting memory                 */
+		uns8 *bgn_ptr;	/* original buffer ptr; if from HEAP, use to free   */
 
-  uns32  max_len;   /* start len of passed buffer (HEAP or STACK)       */
-  uns8*  cur_ptr;   /* current place for getting memory                 */
-  uns8*  bgn_ptr;   /* original buffer ptr; if from HEAP, use to free   */
+		/* P U B L I C   inspectable by client; set by NCSMEM_AID member funcs */
 
-  /* P U B L I C   inspectable by client; set by NCSMEM_AID member funcs */
-  
-  uns32  status;    /* If any alloc fails, mark it                      */
+		uns32 status;	/* If any alloc fails, mark it                      */
 
-  } NCSMEM_AID;
+	} NCSMEM_AID;
 
 /***************************************************************************
  * NCSMEM_AID  public member function prototypes
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API void     ncsmem_aid_init (NCSMEM_AID*  ma, 
-                                  uns8*       space, 
-                                  uns32       len);
+	EXTERN_C LEAPDLL_API void ncsmem_aid_init(NCSMEM_AID *ma, uns8 *space, uns32 len);
 
-EXTERN_C LEAPDLL_API uns8*    ncsmem_aid_alloc(NCSMEM_AID*  ma, 
-                                  uns32       size);
+	EXTERN_C LEAPDLL_API uns8 *ncsmem_aid_alloc(NCSMEM_AID *ma, uns32 size);
 
-EXTERN_C LEAPDLL_API uns8*    ncsmem_aid_cpy  (NCSMEM_AID*  ma, 
-                                  const uns8* ref, 
-                                  uns32       len);
+	EXTERN_C LEAPDLL_API uns8 *ncsmem_aid_cpy(NCSMEM_AID *ma, const uns8 *ref, uns32 len);
 
 /***************************************************************************
  ***************************************************************************
@@ -160,7 +148,6 @@ EXTERN_C LEAPDLL_API uns8*    ncsmem_aid_cpy  (NCSMEM_AID*  ma,
  *
  ***************************************************************************
  ***************************************************************************/
-
 
 /***************************************************************************
  *
@@ -172,43 +159,38 @@ EXTERN_C LEAPDLL_API uns8*    ncsmem_aid_cpy  (NCSMEM_AID*  ma,
  *  NCS_STACK : keeps track of current stack state
  ***************************************************************************/
 
-typedef struct ncs_stack
-  {
-  uns16                se_cnt;        /* Number of elements in stack     */
-  uns16                max_depth;     /* Maximum Depth                   */
-  uns16                cur_depth;     /* Current Depth                   */
-  uns16                pad;           /* To 32 bit boundary...           */ 
+	typedef struct ncs_stack {
+		uns16 se_cnt;	/* Number of elements in stack     */
+		uns16 max_depth;	/* Maximum Depth                   */
+		uns16 cur_depth;	/* Current Depth                   */
+		uns16 pad;	/* To 32 bit boundary...           */
 
-  } NCS_STACK;
+	} NCS_STACK;
 
 /***************************************************************************
  *  NCS_SE    : All Stack Elements are preceeded by one of these..
  ***************************************************************************/
 
-typedef struct ncs_se
-  {
-  uns16               type;          /* Stack element type              */
-  uns16               length;        /* lenght of stack element         */
+	typedef struct ncs_se {
+		uns16 type;	/* Stack element type              */
+		uns16 length;	/* lenght of stack element         */
 
-  } NCS_SE;
-
+	} NCS_SE;
 
 /***************************************************************************
  * Stack Element Types : Each SE has a unique type ID
  ***************************************************************************/
 
-typedef enum ncs_se_type {
+	typedef enum ncs_se_type {
 
-  NCS_SE_TYPE_BACKTO,                   /* Where this msg goes back to  */
-  NCS_SE_TYPE_REQUEST,                  /* An encoded request as USRBUF */
-  NCS_SE_TYPE_MIB_SYNC,
-  NCS_SE_TYPE_MIB_TIMED,
-  NCS_SE_TYPE_FILTER_ID,
-  NCS_SE_TYPE_MIB_ORIG,
-  NCS_SE_TYPE_FORWARD_TO_PSR
-
-  } NCS_SE_TYPE;
-
+		NCS_SE_TYPE_BACKTO,	/* Where this msg goes back to  */
+		NCS_SE_TYPE_REQUEST,	/* An encoded request as USRBUF */
+		NCS_SE_TYPE_MIB_SYNC,
+		NCS_SE_TYPE_MIB_TIMED,
+		NCS_SE_TYPE_FILTER_ID,
+		NCS_SE_TYPE_MIB_ORIG,
+		NCS_SE_TYPE_FORWARD_TO_PSR
+	} NCS_SE_TYPE;
 
 /***************************************************************************
  *
@@ -218,29 +200,22 @@ typedef enum ncs_se_type {
 
 #define m_NCSSTACK_SPACE(se)        ((uns8*)((uns8*)se + sizeof(NCS_SE)))
 
-EXTERN_C LEAPDLL_API void    ncsstack_init      ( NCS_STACK*       st, 
-                                     uns16 max_size);
+	EXTERN_C LEAPDLL_API void ncsstack_init(NCS_STACK *st, uns16 max_size);
 
-EXTERN_C LEAPDLL_API NCS_SE*  ncsstack_peek      ( NCS_STACK*       st);
+	EXTERN_C LEAPDLL_API NCS_SE *ncsstack_peek(NCS_STACK *st);
 
-EXTERN_C LEAPDLL_API NCS_SE*  ncsstack_push      ( NCS_STACK*       st, 
-                                     uns16 type, 
-                                     uns16 size);
+	EXTERN_C LEAPDLL_API NCS_SE *ncsstack_push(NCS_STACK *st, uns16 type, uns16 size);
 
-EXTERN_C LEAPDLL_API NCS_SE*  ncsstack_pop               ( NCS_STACK*       st);
-EXTERN_C LEAPDLL_API uns32   ncsstack_get_utilization   ( NCS_STACK*       st);
-EXTERN_C LEAPDLL_API uns32   ncsstack_get_element_count ( NCS_STACK*       st);
+	EXTERN_C LEAPDLL_API NCS_SE *ncsstack_pop(NCS_STACK *st);
+	EXTERN_C LEAPDLL_API uns32 ncsstack_get_utilization(NCS_STACK *st);
+	EXTERN_C LEAPDLL_API uns32 ncsstack_get_element_count(NCS_STACK *st);
 
+	EXTERN_C LEAPDLL_API uns32 ncsstack_encode(NCS_STACK *st, struct ncs_ubaid *uba);
 
-EXTERN_C LEAPDLL_API uns32   ncsstack_encode    (NCS_STACK*        st,
-                                    struct ncs_ubaid* uba);
-
-EXTERN_C LEAPDLL_API uns32   ncsstack_decode    (NCS_STACK*        st,
-                                    struct ncs_ubaid* uba);
+	EXTERN_C LEAPDLL_API uns32 ncsstack_decode(NCS_STACK *st, struct ncs_ubaid *uba);
 
 #ifdef  __cplusplus
 }
 #endif
 
-
-#endif  /* NCS_STACK_PUB_H */
+#endif   /* NCS_STACK_PUB_H */

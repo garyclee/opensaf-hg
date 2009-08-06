@@ -47,11 +47,9 @@
 #include "ncs_trap.h"
 #include "ncs_edu_pub.h"
 
-
 #include "saAis.h"
 #include "saEvt.h"
 #include "saClm.h"
-
 
 #include "dta_papi.h"
 #if (NCS_DTS == 1)

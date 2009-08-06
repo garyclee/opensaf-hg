@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,7 +27,6 @@
 
 ******************************************************************************
 */
-
 
 /*
  * Module Inclusion Control...
@@ -53,92 +49,88 @@ extern "C" {
 
 *************************************************************************/
 
-typedef enum ncs_service_id
-{
+	typedef enum ncs_service_id {
   /** The H & J Subsystem and Service Identifiers
    **/
-  NCS_SERVICE_ID_BASE = 0,
-  NCS_SERVICE_ID_DUMMY = NCS_SERVICE_ID_BASE,
-  NCS_SERVICE_ID_LEAP_TMR,
-  NCS_SERVICE_ID_MDS,
-  NCS_SERVICE_ID_MAB,
-  NCS_SERVICE_ID_COMMON,
-  NCS_SERVICE_ID_OS_SVCS,
-  NCS_SERVICE_ID_TARGSVCS,
-  NCS_SERVICE_ID_SOCKET,
-  NCS_SERVICE_ID_L2SOCKET,
-  NCS_SERVICE_ID_CLI,
-  NCS_SERVICE_ID_DTSV,
-  NCS_SERVICE_ID_AVSV,
-  NCS_SERVICE_ID_AVD,
-  NCS_SERVICE_ID_AVND,
-  NCS_SERVICE_ID_AVA,
-  NCS_SERVICE_ID_AVM,
-  NCS_SERVICE_ID_AVM_AVD,
-  NCS_SERVICE_ID_CLA,
-  NCS_SERVICE_ID_BAM,
-  NCS_SERVICE_ID_BAM_AVD,
-  NCS_SERVICE_ID_BAM_AVM,
-  NCS_SERVICE_ID_GLD,
-  NCS_SERVICE_ID_GLND,
-  NCS_SERVICE_ID_GLA,
-  NCS_SERVICE_ID_EDA,
-  NCS_SERVICE_ID_EDS,
-  NCS_SERVICE_ID_SNMPSUBAGT,
-  NCS_SERVICE_ID_MQA,
-  NCS_SERVICE_ID_MQND,
-  NCS_SERVICE_ID_MQD,
-  NCS_SERVICE_ID_CPA,
-  NCS_SERVICE_ID_CPND,
-  NCS_SERVICE_ID_CPD,
-  NCS_SERVICE_ID_PSS,
-  NCS_SERVICE_ID_PSSTS,
-  NCS_SERVICE_ID_SAF_COMMON,
-  NCS_SERVICE_ID_HCD,
-  NCS_SERVICE_ID_HPL,
-  NCS_SERVICE_ID_MBCSV,
+		NCS_SERVICE_ID_BASE = 0,
+		NCS_SERVICE_ID_DUMMY = NCS_SERVICE_ID_BASE,
+		NCS_SERVICE_ID_LEAP_TMR,
+		NCS_SERVICE_ID_MDS,
+		NCS_SERVICE_ID_MAB,
+		NCS_SERVICE_ID_COMMON,
+		NCS_SERVICE_ID_OS_SVCS,
+		NCS_SERVICE_ID_TARGSVCS,
+		NCS_SERVICE_ID_SOCKET,
+		NCS_SERVICE_ID_L2SOCKET,
+		NCS_SERVICE_ID_CLI,
+		NCS_SERVICE_ID_DTSV,
+		NCS_SERVICE_ID_AVSV,
+		NCS_SERVICE_ID_AVD,
+		NCS_SERVICE_ID_AVND,
+		NCS_SERVICE_ID_AVA,
+		NCS_SERVICE_ID_AVM,
+		NCS_SERVICE_ID_AVM_AVD,
+		NCS_SERVICE_ID_CLA,
+		NCS_SERVICE_ID_BAM,
+		NCS_SERVICE_ID_BAM_AVD,
+		NCS_SERVICE_ID_BAM_AVM,
+		NCS_SERVICE_ID_GLD,
+		NCS_SERVICE_ID_GLND,
+		NCS_SERVICE_ID_GLA,
+		NCS_SERVICE_ID_EDA,
+		NCS_SERVICE_ID_EDS,
+		NCS_SERVICE_ID_SNMPSUBAGT,
+		NCS_SERVICE_ID_MQA,
+		NCS_SERVICE_ID_MQND,
+		NCS_SERVICE_ID_MQD,
+		NCS_SERVICE_ID_CPA,
+		NCS_SERVICE_ID_CPND,
+		NCS_SERVICE_ID_CPD,
+		NCS_SERVICE_ID_PSS,
+		NCS_SERVICE_ID_PSSTS,
+		NCS_SERVICE_ID_SAF_COMMON,
+		NCS_SERVICE_ID_HCD,
+		NCS_SERVICE_ID_HPL,
+		NCS_SERVICE_ID_MBCSV,
 
-  UD_SERVICE_ID_STUB1,
-  UD_SERVICE_ID_STUB2,
-  NCS_SERVICE_ID_VDS,
-  NCS_SERVICE_ID_RDE,
+		UD_SERVICE_ID_STUB1,
+		UD_SERVICE_ID_STUB2,
+		NCS_SERVICE_ID_VDS,
+		NCS_SERVICE_ID_RDE,
 
-  UD_DTSV_DEMO_SERVICE1,
-  UD_DTSV_DEMO_SERVICE2,
+		UD_DTSV_DEMO_SERVICE1,
+		UD_DTSV_DEMO_SERVICE2,
 
-  NCS_SERVICE_ID_PDRBD,
+		NCS_SERVICE_ID_PDRBD,
 
-  NCS_SERVICE_ID_LGA, /* SAF LOG Service */
-  NCS_SERVICE_ID_LGS,
+		NCS_SERVICE_ID_LGA,	/* SAF LOG Service */
+		NCS_SERVICE_ID_LGS,
 
-  NCS_SERVICE_ID_FMA_GFM,
-  NCS_SERVICE_ID_FMA,
-  NCS_SERVICE_ID_GFM,
+		NCS_SERVICE_ID_FMA_GFM,
+		NCS_SERVICE_ID_FMA,
+		NCS_SERVICE_ID_GFM,
 
-  NCS_SERVICE_ID_IMMA,
-  NCS_SERVICE_ID_IMMND,
-  NCS_SERVICE_ID_IMMD,
+		NCS_SERVICE_ID_IMMA,
+		NCS_SERVICE_ID_IMMND,
+		NCS_SERVICE_ID_IMMD,
 
-  NCS_SERVICE_ID_NTFA,
-  NCS_SERVICE_ID_NTFS,
+		NCS_SERVICE_ID_NTFA,
+		NCS_SERVICE_ID_NTFS,
 
-  NCS_SERVICE_ID_MAX,
-  NCS_SERVICE_ID_END = 1000,
+		NCS_SERVICE_ID_MAX,
+		NCS_SERVICE_ID_END = 1000,
 
-  NCS_SERVICE_ID_INTERNAL_BASE,
-  /* All Motorola internal non-NCS service-ids go in this range */
-  NCS_SERVICE_ID_INTERNAL_END = 2000,
+		NCS_SERVICE_ID_INTERNAL_BASE,
+		/* All Motorola internal non-NCS service-ids go in this range */
+		NCS_SERVICE_ID_INTERNAL_END = 2000,
 
-  UD_SERVICE_ID_BASE,
-  /* All Motorola external service-ids should come from this range */
-  UD_SERVICE_ID_MAX,
-  UD_SERVICE_ID_END = 3000
+		UD_SERVICE_ID_BASE,
+		/* All Motorola external service-ids should come from this range */
+		UD_SERVICE_ID_MAX,
+		UD_SERVICE_ID_END = 3000
+	} NCS_SERVICE_ID;
 
-} NCS_SERVICE_ID;
-
-
-typedef NCS_SERVICE_ID   SS_SVC_ID;    /* Subsystem Service ID     */
-
+	typedef NCS_SERVICE_ID SS_SVC_ID;	/* Subsystem Service ID     */
 
 /************************************************************************
 
@@ -151,30 +143,26 @@ typedef NCS_SERVICE_ID   SS_SVC_ID;    /* Subsystem Service ID     */
 
 *************************************************************************/
 
-#define SYSF_MAX_KEY_LEN  42 /* picked as 'big enough' so far */
+#define SYSF_MAX_KEY_LEN  42	/* picked as 'big enough' so far */
 
-typedef struct ncs_octstr
-  {
-  uns8          len;
-  uns8          data[SYSF_MAX_KEY_LEN];
-  } NCS_OCTSTR;
+	typedef struct ncs_octstr {
+		uns8 len;
+		uns8 data[SYSF_MAX_KEY_LEN];
+	} NCS_OCTSTR;
 
-typedef struct ncs_key
-  {
-  NCS_SERVICE_ID svc;                /* an object based in this service */
-  uns8          type;                /* type or component of service   */
-  uns8          fmat;                /* value format NUM|HDL|STR|OCT   */
+	typedef struct ncs_key {
+		NCS_SERVICE_ID svc;	/* an object based in this service */
+		uns8 type;	/* type or component of service   */
+		uns8 fmat;	/* value format NUM|HDL|STR|OCT   */
 
-  union
-    {
-    uns32       num;
-    NCSCONTEXT   hdl;
-    NCS_OCTSTR   oct;
-    uns8        str[SYSF_MAX_KEY_LEN]; /* null terminated string       */
-    } val;
+		union {
+			uns32 num;
+			NCSCONTEXT hdl;
+			NCS_OCTSTR oct;
+			uns8 str[SYSF_MAX_KEY_LEN];	/* null terminated string       */
+		} val;
 
-  } NCS_KEY;
-
+	} NCS_KEY;
 
 /* NCS_KEY::fmat values */
 
@@ -234,14 +222,11 @@ typedef struct ncs_key
 NOTE: is designed to be small (32 bits). Don't mess with this!!!
 *************************************************************************/
 
-
-typedef struct ftcc_name
-  {
-  uns8        ncs_ss;   /* entity type/subsystem; an NCS_SERVICE_ID value   */
-  uns8        ncs_qual; /* entity qualifier (ex. SIG = UNI31_NET, PNNI,etc.*/
-  uns16       ncs_inst; /* some assigned value                             */
-  } NCSSS_NAME;
-
+	typedef struct ftcc_name {
+		uns8 ncs_ss;	/* entity type/subsystem; an NCS_SERVICE_ID value   */
+		uns8 ncs_qual;	/* entity qualifier (ex. SIG = UNI31_NET, PNNI,etc. */
+		uns16 ncs_inst;	/* some assigned value                             */
+	} NCSSS_NAME;
 
 /************************************************************************
 
@@ -255,12 +240,11 @@ typedef struct ftcc_name
  If (some) customers didn't ask for it, it would not be done.
 *************************************************************************/
 
-typedef struct ncs_lock_desc
-  {
-  NCS_SERVICE_ID subsystem_id; /* Subsystem specific owner of this lock */
-  uns32         lock_id;      /* maps to a subsys specific lock identifier */
-  uns32         lock_type;    /* This is one of NCS_LOCK_READ or NCS_LOCK_WRITE */
-  } NCS_LOCK_DESC;
+	typedef struct ncs_lock_desc {
+		NCS_SERVICE_ID subsystem_id;	/* Subsystem specific owner of this lock */
+		uns32 lock_id;	/* maps to a subsys specific lock identifier */
+		uns32 lock_type;	/* This is one of NCS_LOCK_READ or NCS_LOCK_WRITE */
+	} NCS_LOCK_DESC;
 
 #ifdef  __cplusplus
 }

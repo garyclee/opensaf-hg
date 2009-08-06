@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:  The VDEST-ID range is made of 3 ranges
@@ -34,7 +33,6 @@
 #ifndef NCS_MDA_PVT_H
 #define NCS_MDA_PVT_H
 
-
 /***********************************************************************\
          Range of unnamed VDEST values reserved for 
          services external NCS implementation.
@@ -45,30 +43,28 @@
 /* External range is defined in "ncs_mda_papi.h" */
 
 /* RESERVED VDEST values */
-typedef enum
-{
-    AVSV_VDEST_ID = NCSVDA_INTERNAL_UNNAMED_MIN,
-    VDS_VDEST_ID,              
-    DTS_VDEST_ID,              
-    EDS_VDEST_ID,              
-    SPSV_VDEST_ID_UNUSED, 
-    MAS_VDEST_ID,              
-    BAM_VDEST_ID,              
+typedef enum {
+	AVSV_VDEST_ID = NCSVDA_INTERNAL_UNNAMED_MIN,
+	VDS_VDEST_ID,
+	DTS_VDEST_ID,
+	EDS_VDEST_ID,
+	SPSV_VDEST_ID_UNUSED,
+	MAS_VDEST_ID,
+	BAM_VDEST_ID,
 
-    GLD_VDEST_ID,              
-    PSR_VDEST_ID,              
+	GLD_VDEST_ID,
+	PSR_VDEST_ID,
 
-    HISV_VDEST_ID,             
-    SWITCH_VDEST_ID,      
-    AVM_VDEST_ID,
-    CPD_VDEST_ID,   
-    MQD_VDEST_ID,
-    LGS_VDEST_ID,
-    AVND_VDEST_ID,
-    IMMD_VDEST_ID,
-    NTFS_VDEST_ID,
-    MAX_INTERNAL_FIXED_VDEST = NCSVDA_INTERNAL_UNNAMED_MAX              
-}NCS_INTERNAL_FIXED_VDEST;
-
+	HISV_VDEST_ID,
+	SWITCH_VDEST_ID,
+	AVM_VDEST_ID,
+	CPD_VDEST_ID,
+	MQD_VDEST_ID,
+	LGS_VDEST_ID,
+	AVND_VDEST_ID,
+	IMMD_VDEST_ID,
+	NTFS_VDEST_ID,
+	MAX_INTERNAL_FIXED_VDEST = NCSVDA_INTERNAL_UNNAMED_MAX
+} NCS_INTERNAL_FIXED_VDEST;
 
 #endif

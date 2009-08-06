@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ******************************************************************************
 */
 
@@ -58,9 +57,8 @@
 #include "dta_papi.h"
 
 /* From targsvcs/common/inc */
-#include "mds_papi.h"  
+#include "mds_papi.h"
 #include "sysf_file.h"
-
 
 /* From /base/products/mab/inc and pubinc */
 #include "mab_env.h"
@@ -83,5 +81,4 @@
 #include "psr_log.h"
 #include "psr_amf.h"
 
-#endif /* #ifndef PSR_H */ 
-
+#endif   /* #ifndef PSR_H */

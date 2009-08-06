@@ -32,11 +32,11 @@
 #include "clilog.h"
 
 #if (NCS_CLI == 1)
-CLIKEY_TO_CLICB_MAP   cli_mapper[5];
+CLIKEY_TO_CLICB_MAP cli_mapper[5];
 #define CLI_START_OF_LINE        0
 
 #if (NCSCLI_FILE == 1)
-FILE  *script;
+FILE *script;
 #endif
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -64,27 +64,26 @@ EXTERN_C uns32 sysf_get_char_map(uns32 ch);
 *****************************************************************************/
 void sysf_cli_notify(NCSCLI_NOTIFY_INFO_TAG *i_notify_info)
 {
-    switch(i_notify_info->i_evt_type)
-    {
-    case NCSCLI_NOTIFY_EVENT_INVALID_CLI_CB:
-        printf("Invalid Control Bolck: NCSCLI_NOTIFY_EVENT_INVALID_CLI_CB \n");
-        break;
+	switch (i_notify_info->i_evt_type) {
+	case NCSCLI_NOTIFY_EVENT_INVALID_CLI_CB:
+		printf("Invalid Control Bolck: NCSCLI_NOTIFY_EVENT_INVALID_CLI_CB \n");
+		break;
 
-    case NCSCLI_NOTIFY_EVENT_MALLOC_CLI_CB_FAILED:
-        printf("Control Bolck Malloc Failed: NCSCLI_NOTIFY_EVENT_MALLOC_CLI_CB_FAILED \n");
-        break;
+	case NCSCLI_NOTIFY_EVENT_MALLOC_CLI_CB_FAILED:
+		printf("Control Bolck Malloc Failed: NCSCLI_NOTIFY_EVENT_MALLOC_CLI_CB_FAILED \n");
+		break;
 
-    case NCSCLI_NOTIFY_EVENT_CEF_TMR_EXP:
-        m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CEF_TMR_ELAPSED);
-        break;
+	case NCSCLI_NOTIFY_EVENT_CEF_TMR_EXP:
+		m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_CEF_TMR_ELAPSED);
+		break;
 
-    case NCSCLI_NOTIFY_EVENT_CLI_INVALID_NODE:
-        m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_INVALID_NODE);
-        break;
+	case NCSCLI_NOTIFY_EVENT_CLI_INVALID_NODE:
+		m_LOG_NCSCLI_HEADLINE(NCSCLI_HDLN_CLI_INVALID_NODE);
+		break;
 
-    default:
-        break;
-    }
+	default:
+		break;
+	}
 }
 
 /*****************************************************************************
@@ -105,7 +104,7 @@ void sysf_cli_notify(NCSCLI_NOTIFY_INFO_TAG *i_notify_info)
 *****************************************************************************/
 uns32 sysf_getchar(NCS_VRID id)
 {
-   return sysf_get_char_map(m_NCSCLI_GETCHAR(NCS_VRID id));
+	return sysf_get_char_map(m_NCSCLI_GETCHAR(NCS_VRID id));
 }
 
 /*****************************************************************************
@@ -127,28 +126,27 @@ uns32 sysf_getchar(NCS_VRID id)
 *****************************************************************************/
 uns32 sysf_get_char_map(uns32 ch)
 {
-   switch(ch)
-   {
-   case 224:
-   case 27:
-   case 127:      /* To Fix the bug 58884 */
-   case 8:        /* To Fix the bug 58884 */
-   case 0:        /* To Fix the bug 58884 */
-      return 0;
+	switch (ch) {
+	case 224:
+	case 27:
+	case 127:		/* To Fix the bug 58884 */
+	case 8:		/* To Fix the bug 58884 */
+	case 0:		/* To Fix the bug 58884 */
+		return 0;
 #ifdef WIN32
-   case CLI_CONS_UP_ARROW:      
-     return CLI_CONS_UP_ARROW;
-   case CLI_CONS_DOWN_ARROW:
-      return CLI_CONS_DOWN_ARROW;
-   case CLI_CONS_LEFT_ARROW:
-      return CLI_CONS_LEFT_ARROW;
-   case CLI_CONS_RIGHT_ARROW:
-      return CLI_CONS_RIGHT_ARROW;
+	case CLI_CONS_UP_ARROW:
+		return CLI_CONS_UP_ARROW;
+	case CLI_CONS_DOWN_ARROW:
+		return CLI_CONS_DOWN_ARROW;
+	case CLI_CONS_LEFT_ARROW:
+		return CLI_CONS_LEFT_ARROW;
+	case CLI_CONS_RIGHT_ARROW:
+		return CLI_CONS_RIGHT_ARROW;
 #endif
 
-   default:
-      return ch;
-   }
+	default:
+		return ch;
+	}
 }
 
 #if (NCSCLI_FILE == 1)
@@ -168,34 +166,38 @@ uns32 sysf_get_char_map(uns32 ch)
   NOTES:         
 
 *****************************************************************************/
-NCS_BOOL sysf_readln_from_file(int8 * buffer)
+NCS_BOOL sysf_readln_from_file(int8 *buffer)
 {
-   uns32 ch=0, i=0;    
-   NCS_BOOL cmt_flag = FALSE, start_of_line = FALSE;      
-   
-   /* read one line after another from file */        
-   while(i < CLI_BUFFER_SIZE)
-   {
-      ch = m_NCSCLI_FILE_READ(script);
-      if((ch == EOF) || (ch == CLI_CONS_EOL)) break;            
-      
-      /* Ignore white character at the start of the line */
-      if(CLI_CONS_BLANK_SPACE == ch && !start_of_line) continue;
-      else if(CLI_CONS_BLANK_SPACE != ch && !start_of_line) start_of_line = TRUE;
+	uns32 ch = 0, i = 0;
+	NCS_BOOL cmt_flag = FALSE, start_of_line = FALSE;
 
-      /* If comment then ignore line */
-      if((m_NCSCLI_COMMENT == ch) && (CLI_START_OF_LINE == i)) cmt_flag = TRUE;        
-           
-      buffer[i] = (char)ch;                     
-      i++;
-   }
-   
-   /* Terminate the buffer's content */
-   buffer[i] = '\0';
+	/* read one line after another from file */
+	while (i < CLI_BUFFER_SIZE) {
+		ch = m_NCSCLI_FILE_READ(script);
+		if ((ch == EOF) || (ch == CLI_CONS_EOL))
+			break;
 
-   /* If comment or EOL with out any command then continue */
-   if(cmt_flag || ((0 == i) && (ch == CLI_CONS_EOL))) return FALSE;   
-   return TRUE;
+		/* Ignore white character at the start of the line */
+		if (CLI_CONS_BLANK_SPACE == ch && !start_of_line)
+			continue;
+		else if (CLI_CONS_BLANK_SPACE != ch && !start_of_line)
+			start_of_line = TRUE;
+
+		/* If comment then ignore line */
+		if ((m_NCSCLI_COMMENT == ch) && (CLI_START_OF_LINE == i))
+			cmt_flag = TRUE;
+
+		buffer[i] = (char)ch;
+		i++;
+	}
+
+	/* Terminate the buffer's content */
+	buffer[i] = '\0';
+
+	/* If comment or EOL with out any command then continue */
+	if (cmt_flag || ((0 == i) && (ch == CLI_CONS_EOL)))
+		return FALSE;
+	return TRUE;
 }
 
 /*****************************************************************************
@@ -213,16 +215,14 @@ NCS_BOOL sysf_readln_from_file(int8 * buffer)
   NOTES:         
 
 *****************************************************************************/
-uns32 
-sysf_open_file(char *fname)
+uns32 sysf_open_file(char *fname)
 {
-   /* Open for read will fail if file does not exist) */
-   if ((script  = m_NCSCLI_FILE_OPEN(fname, "r")) == NULL)
-   {
-      return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-   }    
-   
-   return NCSCC_RC_SUCCESS;
+	/* Open for read will fail if file does not exist) */
+	if ((script = m_NCSCLI_FILE_OPEN(fname, "r")) == NULL) {
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -240,17 +240,15 @@ sysf_open_file(char *fname)
   NOTES:         
 
 *****************************************************************************/
-uns32
-sysf_close_file(void)
+uns32 sysf_close_file(void)
 {
-   /* Close file */
-   if (m_NCSCLI_FILE_CLOSE(script))
-   {
-      return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   return NCSCC_RC_SUCCESS;
-} 
-#endif  
+	/* Close file */
+	if (m_NCSCLI_FILE_CLOSE(script)) {
+		return m_CLI_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+	return NCSCC_RC_SUCCESS;
+}
+#endif
 
 #if (NCSCLI_DEBUG == 1)
 /* 
@@ -264,13 +262,13 @@ sysf_close_file(void)
  * re-populate the function here.
  */
 
-uns32 cli_dbg_sink(uns32 l, char* f, uns32 code)
-  {
+uns32 cli_dbg_sink(uns32 l, char *f, uns32 code)
+{
 
-  printf ("IN CLI_DBG_SINK: line %d, file %s\n",l,f);
+	printf("IN CLI_DBG_SINK: line %d, file %s\n", l, f);
 
-  return code;
-  }
+	return code;
+}
+#endif
 
 #endif
-#endif 

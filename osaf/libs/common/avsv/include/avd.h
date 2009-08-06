@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,7 +33,6 @@
 #ifndef AVD_H
 #define AVD_H
 
-
 #include "avsv.h"
 #include "avsv_d2nmsg.h"
 
@@ -50,7 +47,6 @@
 
 /* AvD managment API Include Files */
 #include "avd_dl_api.h"
-
 
 #include "mbcsv_papi.h"
 #include "avd_ckp.h"
@@ -88,8 +84,8 @@
 #include "avd_ckpt_edu.h"
 #include "avd_ckpt_updt.h"
 
-
 #include "avd_avm.h"
 #include "ncs_trap.h"
 #include "avd_trap.h"
+
 #endif

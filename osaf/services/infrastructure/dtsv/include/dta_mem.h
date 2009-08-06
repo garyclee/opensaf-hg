@@ -35,7 +35,6 @@
 #ifndef DTA_MEM_H
 #define DTA_MEM_H
 
-
 #define DTSV_MEM_DTA_CB 1
 #define DTSV_MEM_DTA_REG 2
 /* Changes for buffering of logs */
@@ -47,7 +46,6 @@
 
 #define m_MMGR_FREE_DTA_CB(p)     m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTSV_MEM_DTA_CB)
-
 
 #define m_MMGR_ALLOC_DTA_REG_TBL  (REG_TBL_ENTRY *)m_NCS_MEM_ALLOC(sizeof(REG_TBL_ENTRY), \
                                    NCS_MEM_REGION_TRANSIENT, \

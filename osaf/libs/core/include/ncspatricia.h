@@ -25,9 +25,6 @@
  @       @    @     @    @   @      @    @    @     @    @    @   @@@    @    @
  @       @    @     @    @    @     @     @@@@      @    @    @   @@@    @    @
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -50,54 +47,46 @@ extern "C" {
 
 #include "ncsgl_defs.h"
 
-typedef struct ncs_patricia_params 
-{
-   int key_size;         /* 1..NCS_PATRICIA_MAX_KEY_SIZE - in OCTETS */
-   int info_size;         /* NOT USED!  Present for backward-compatibility only! */
-   int actual_key_size;   /* NOT USED!  Present for backward-compatibility only! */
-   int node_size;         /* NOT USED!  Present for backward compatibitity only! */
-} NCS_PATRICIA_PARAMS;
+	typedef struct ncs_patricia_params {
+		int key_size;	/* 1..NCS_PATRICIA_MAX_KEY_SIZE - in OCTETS */
+		int info_size;	/* NOT USED!  Present for backward-compatibility only! */
+		int actual_key_size;	/* NOT USED!  Present for backward-compatibility only! */
+		int node_size;	/* NOT USED!  Present for backward compatibitity only! */
+	} NCS_PATRICIA_PARAMS;
 
-#define NCS_PATRICIA_MAX_KEY_SIZE 600  /* # octets */
+#define NCS_PATRICIA_MAX_KEY_SIZE 600	/* # octets */
 
-
-typedef struct ncs_patricia_node
-{
-   int bit;  /* must be signed type (bits start at -1) */
-   struct ncs_patricia_node *left;
-   struct ncs_patricia_node *right;
-   uns8  *key_info;
-} NCS_PATRICIA_NODE;
+	typedef struct ncs_patricia_node {
+		int bit;	/* must be signed type (bits start at -1) */
+		struct ncs_patricia_node *left;
+		struct ncs_patricia_node *right;
+		uns8 *key_info;
+	} NCS_PATRICIA_NODE;
 
 #define NCS_PATRICIA_NODE_NULL ((NCS_PATRICIA_NODE *)0)
 
-typedef uns8 NCS_PATRICIA_LEXICAL_STACK;  /* ancient history... */
+	typedef uns8 NCS_PATRICIA_LEXICAL_STACK;	/* ancient history... */
 
-typedef struct ncs_patricia_tree
-{
-   NCS_PATRICIA_NODE root_node;  /* A tree always has a root node. */
-   NCS_PATRICIA_PARAMS params;
-   unsigned int      n_nodes;
-} NCS_PATRICIA_TREE;
+	typedef struct ncs_patricia_tree {
+		NCS_PATRICIA_NODE root_node;	/* A tree always has a root node. */
+		NCS_PATRICIA_PARAMS params;
+		unsigned int n_nodes;
+	} NCS_PATRICIA_TREE;
 
+	EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
+								 const NCS_PATRICIA_PARAMS *const pParams);
+	EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree);
+	EXTERN_C LEAPDLL_API void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree);
+	EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree,
+								NCS_PATRICIA_NODE *const pNode);
+	EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
+								NCS_PATRICIA_NODE *const pNode);
+	EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
+								      const uns8 *const pKey);
+	EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey, uns16 KeyLen);	/* Length of key (in BITS) */
+	EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree, const uns8 *const pKey);	/* NULL means get 1st */
 
-EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_init(NCS_PATRICIA_TREE *const pTree,
-                                   const NCS_PATRICIA_PARAMS *const pParams);
-EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_destroy(NCS_PATRICIA_TREE *const pTree);
-EXTERN_C LEAPDLL_API void ncs_patricia_tree_clear(NCS_PATRICIA_TREE *const pTree);
-EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_add(NCS_PATRICIA_TREE *const pTree,
-                                  NCS_PATRICIA_NODE *const pNode);
-EXTERN_C LEAPDLL_API unsigned int ncs_patricia_tree_del(NCS_PATRICIA_TREE *const pTree,
-                                  NCS_PATRICIA_NODE *const pNode);
-EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_get(const NCS_PATRICIA_TREE *const pTree,
-                                       const uns8 *const pKey);
-EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_get_best(const NCS_PATRICIA_TREE *const pTree,
-                                            const uns8 *const pKey,
-                                            uns16 KeyLen);  /* Length of key (in BITS) */
-EXTERN_C LEAPDLL_API NCS_PATRICIA_NODE *ncs_patricia_tree_getnext(NCS_PATRICIA_TREE *const pTree,
-                                           const uns8 *const pKey);  /* NULL means get 1st */
-
-EXTERN_C LEAPDLL_API int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);
+	EXTERN_C LEAPDLL_API int ncs_patricia_tree_size(const NCS_PATRICIA_TREE *const pTree);
 
 #ifdef  __cplusplus
 }

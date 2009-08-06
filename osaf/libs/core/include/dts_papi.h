@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +29,6 @@
 /*
  * Module Inclusion Control...
  */
-
 
 #ifndef DTS_PAPI_H
 #define DTS_PAPI_H
@@ -57,11 +53,8 @@
 
   F l e x l o g    R e g i s t r a t i o n   T i m e   S t r u c t s
 
-
-
   The following diagram provides a roadmap of how the various typedefs are
   intended to be used to build up such information.
-
 
                                            NCSFL_STR[]
                                        +->+------------+
@@ -103,7 +96,6 @@
 
 *************************************************************************/
 
-
 /************************************************************************
   NCSFL_STR
 
@@ -119,10 +111,9 @@
 
  ************************************************************************/
 
-typedef struct ncsfl_str
-{
-   uns16       str_id;
-   char*       str_val;
+typedef struct ncsfl_str {
+	uns16 str_id;
+	char *str_val;
 
 } NCSFL_STR;
 
@@ -143,11 +134,10 @@ typedef struct ncsfl_str
 
 ************************************************************************/
 
-typedef struct ncsfl_set
-{
-   uns16          set_id;
-   uns16          set_cnt;
-   NCSFL_STR*     set_vals;
+typedef struct ncsfl_set {
+	uns16 set_id;
+	uns16 set_cnt;
+	NCSFL_STR *set_vals;
 
 } NCSFL_SET;
 
@@ -166,14 +156,12 @@ typedef struct ncsfl_set
 
  ************************************************************************/
 
-typedef struct ncsfl_fmat
-{
-   uns8             fmat_id;
-   char*            fmat_type;
-   char*            fmat_str;
+typedef struct ncsfl_fmat {
+	uns8 fmat_id;
+	char *fmat_type;
+	char *fmat_str;
 
 } NCSFL_FMAT;
-
 
 /************************************************************************
  NCSFL_ASCII_SPEC
@@ -186,25 +174,24 @@ typedef struct ncsfl_fmat
 
  ************************************************************************/
 
-typedef struct ncsfl_ascii_spec
-{
+typedef struct ncsfl_ascii_spec {
 
-   /* PUBLIC part of ASCII SPEC data struct filled in by subsystem */
+	/* PUBLIC part of ASCII SPEC data struct filled in by subsystem */
 
-   SS_SVC_ID   ss_id;          /* subsystem Identifier             */
-   uns16       ss_ver;         /* subsystem version identifier */
-   char*       svc_name;       /* Service name of the service; Should 
-                                be as concise as possible,
-                                Ex. "DTSV" for distributed tracing service*/
+	SS_SVC_ID ss_id;	/* subsystem Identifier             */
+	uns16 ss_ver;		/* subsystem version identifier */
+	char *svc_name;		/* Service name of the service; Should 
+				   be as concise as possible,
+				   Ex. "DTSV" for distributed tracing service */
 
-   NCSFL_SET*   str_set;        /* canned strings used in messages  */
+	NCSFL_SET *str_set;	/* canned strings used in messages  */
 
-   NCSFL_FMAT*  fmat_set;       /* format template information      */
+	NCSFL_FMAT *fmat_set;	/* format template information      */
 
-   /* PRIVATE part of the ASCII SPEC data struct used by Flexlog   */
+	/* PRIVATE part of the ASCII SPEC data struct used by Flexlog   */
 
-   uns16       str_set_cnt;    /* count of canned string sets      */
-   uns16       fmat_set_cnt;   /* count of format string sets      */
+	uns16 str_set_cnt;	/* count of canned string sets      */
+	uns16 fmat_set_cnt;	/* count of format string sets      */
 
 } NCSFL_ASCII_SPEC;
 
@@ -212,54 +199,48 @@ typedef struct ncsfl_ascii_spec
  * dtsv de-register canned strings (ASCII_SCPEC_TABLE)
  ***************************************************************************/
 
-typedef struct ncs_deregister_ascii_spec
-  {
-    SS_SVC_ID svc_id;  /* Service ID of the service wants to de-register ascii spec */
-    uns16 version; /* Version of ASCII_SPEC being de-registered. */
+typedef struct ncs_deregister_ascii_spec {
+	SS_SVC_ID svc_id;	/* Service ID of the service wants to de-register ascii spec */
+	uns16 version;		/* Version of ASCII_SPEC being de-registered. */
 
-  } NCS_DEREGISTER_ASCII_SPEC;
+} NCS_DEREGISTER_ASCII_SPEC;
 /***************************************************************************
  * dtsv register canned strings (ASCII_SCPEC_TABLE)
  ***************************************************************************/
 
-typedef struct ncs_register_ascii_spec
-  {
-   NCSFL_ASCII_SPEC* spec;  /* Ascii spec table to be register with DTSv */
+typedef struct ncs_register_ascii_spec {
+	NCSFL_ASCII_SPEC *spec;	/* Ascii spec table to be register with DTSv */
 
-  } NCS_REGISTER_ASCII_SPEC;
+} NCS_REGISTER_ASCII_SPEC;
 
 /***************************************************************************
  * The operations set that a DTA instance supports
  ***************************************************************************/
 
-typedef enum ncs_dtsv_ascii_spec_op
-  {
-  NCS_DTSV_OP_ASCII_SPEC_REGISTER,
-  NCS_DTSV_OP_ASCII_SPEC_DEREGISTER
-
-  } NCS_DTSV_ASCII_SPEC_OP;
+typedef enum ncs_dtsv_ascii_spec_op {
+	NCS_DTSV_OP_ASCII_SPEC_REGISTER,
+	NCS_DTSV_OP_ASCII_SPEC_DEREGISTER
+} NCS_DTSV_ASCII_SPEC_OP;
 
 /***************************************************************************
  * The DTSV API single entry point for all services
  ***************************************************************************/
-typedef struct ncs_dtsv_reg_canned_str
-  {
-  NCS_DTSV_ASCII_SPEC_OP           i_op;            /* Operation; Register, deregister */
+typedef struct ncs_dtsv_reg_canned_str {
+	NCS_DTSV_ASCII_SPEC_OP i_op;	/* Operation; Register, deregister */
 
-  union 
-    {
-    NCS_REGISTER_ASCII_SPEC     reg_ascii_spec;
-    NCS_DEREGISTER_ASCII_SPEC   dereg_ascii_spec;
+	union {
+		NCS_REGISTER_ASCII_SPEC reg_ascii_spec;
+		NCS_DEREGISTER_ASCII_SPEC dereg_ascii_spec;
 
-    } info;
+	} info;
 
-  } NCS_DTSV_REG_CANNED_STR;
+} NCS_DTSV_REG_CANNED_STR;
 
 /***************************************************************************
  * DTSV public API's for registering ASCII strings
  ***************************************************************************/
-EXTERN_C DTSDLL_API uns32 ncs_dtsv_ascii_spec_api (NCS_DTSV_REG_CANNED_STR* arg);
-EXTERN_C DTSDLL_API uns32 dts_lib_req (NCS_LIB_REQ_INFO *req_info);
+EXTERN_C DTSDLL_API uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg);
+EXTERN_C DTSDLL_API uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
 EXTERN_C DTSDLL_API uns32 dts_pssv_register(uns32 psr_hdl);
 
-#endif /* DTS_PAPI_H */
+#endif   /* DTS_PAPI_H */

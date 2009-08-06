@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -29,7 +27,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-
 
   
 *******************************************************************************/
@@ -53,49 +50,40 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 eds_start_tmr (EDS_CB         *cb,
-                     EDS_TMR        *tmr, 
-                     EDS_TMR_TYPE   type,
-                     SaTimeT        period, 
-                     uns32          uarg)
+uns32 eds_start_tmr(EDS_CB *cb, EDS_TMR *tmr, EDS_TMR_TYPE type, SaTimeT period, uns32 uarg)
 {
-   uns32 tmr_period = (uns32) (period / EDSV_NANOSEC_TO_LEAPTM);
-   
-   if (EDS_TMR_MAX <= tmr->type)
-   {
-      m_LOG_EDSV_S(EDS_TIMER_START_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,type,__FILE__,__LINE__,tmr_period);
-      return NCSCC_RC_FAILURE;
-   }
+	uns32 tmr_period = (uns32)(period / EDSV_NANOSEC_TO_LEAPTM);
 
-   if (tmr->tmr_id == TMR_T_NULL)
-   {
-      tmr->type = type;
-      m_NCS_TMR_CREATE (tmr->tmr_id, 
-         (uns32)tmr_period, eds_tmr_exp, (void*)tmr);
-   }
+	if (EDS_TMR_MAX <= tmr->type) {
+		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
+			     tmr_period);
+		return NCSCC_RC_FAILURE;
+	}
 
-     if (tmr->is_active == TRUE)
-   {
-      m_NCS_TMR_STOP (tmr->tmr_id);
-      tmr->is_active = FALSE;
-   }
+	if (tmr->tmr_id == TMR_T_NULL) {
+		tmr->type = type;
+		m_NCS_TMR_CREATE(tmr->tmr_id, (uns32)tmr_period, eds_tmr_exp, (void *)tmr);
+	}
 
-   tmr->opq_hdl = uarg;
-   tmr->cb_hdl  =  cb->my_hdl;
-   m_NCS_TMR_START (tmr->tmr_id, 
-      (uns32)tmr_period, eds_tmr_exp, (void*)tmr);
+	if (tmr->is_active == TRUE) {
+		m_NCS_TMR_STOP(tmr->tmr_id);
+		tmr->is_active = FALSE;
+	}
 
-   tmr->is_active = TRUE;
-   
-   if (TMR_T_NULL == tmr->tmr_id)
-   {
-      m_LOG_EDSV_S(EDS_TIMER_START_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,type,__FILE__,__LINE__,tmr_period);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   return NCSCC_RC_SUCCESS;
+	tmr->opq_hdl = uarg;
+	tmr->cb_hdl = cb->my_hdl;
+	m_NCS_TMR_START(tmr->tmr_id, (uns32)tmr_period, eds_tmr_exp, (void *)tmr);
+
+	tmr->is_active = TRUE;
+
+	if (TMR_T_NULL == tmr->tmr_id) {
+		m_LOG_EDSV_S(EDS_TIMER_START_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, type, __FILE__, __LINE__,
+			     tmr_period);
+		return NCSCC_RC_FAILURE;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
   PROCEDURE NAME : eds_stop_tmr
@@ -108,35 +96,31 @@ uns32 eds_start_tmr (EDS_CB         *cb,
 
   NOTES          : None
 *****************************************************************************/
-void eds_stop_tmr (EDS_TMR *tmr)
+void eds_stop_tmr(EDS_TMR *tmr)
 {
-   /* If timer type is invalid just return */
-   if (tmr == NULL)
-   {
-      m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,tmr,__FILE__,__LINE__,0);
-      return;
-   }
-   else if (EDS_TMR_MAX <= tmr->type)
-   {
-      m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,tmr->type,__FILE__,__LINE__,0);
-      return;
-   }         
+	/* If timer type is invalid just return */
+	if (tmr == NULL) {
+		m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, tmr, __FILE__, __LINE__, 0);
+		return;
+	} else if (EDS_TMR_MAX <= tmr->type) {
+		m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, tmr->type, __FILE__, __LINE__,
+			     0);
+		return;
+	}
 
-   /* Stop the timer if it is active... */
-   if (tmr->is_active == TRUE)
-   {
-      m_NCS_TMR_STOP (tmr->tmr_id);
-      tmr->is_active = FALSE;
-   }
-   
-   /* Destroy the timer if it exists.. */
-   if (tmr->tmr_id != TMR_T_NULL)
-   {
-      m_NCS_TMR_DESTROY(  tmr->tmr_id);
-      tmr->tmr_id = TMR_T_NULL;
-   }
-   
-   return;
+	/* Stop the timer if it is active... */
+	if (tmr->is_active == TRUE) {
+		m_NCS_TMR_STOP(tmr->tmr_id);
+		tmr->is_active = FALSE;
+	}
+
+	/* Destroy the timer if it exists.. */
+	if (tmr->tmr_id != TMR_T_NULL) {
+		m_NCS_TMR_DESTROY(tmr->tmr_id);
+		tmr->tmr_id = TMR_T_NULL;
+	}
+
+	return;
 }
 
 /*****************************************************************************
@@ -148,15 +132,13 @@ void eds_stop_tmr (EDS_TMR *tmr)
 *****************************************************************************/
 static EDSV_EDS_EVT_TYPE eds_tmr_evt_map(EDS_TMR_TYPE tmr_type)
 {
-   switch(tmr_type)
-   {
-   case EDS_RET_EVT_TMR:
-      return EDSV_EDS_RET_TIMER_EXP;
-   default :
-      return EDSV_EDS_EVT_MAX;
-   }
+	switch (tmr_type) {
+	case EDS_RET_EVT_TMR:
+		return EDSV_EDS_RET_TIMER_EXP;
+	default:
+		return EDSV_EDS_EVT_MAX;
+	}
 }
-
 
 /*****************************************************************************
   PROCEDURE NAME : eds_tmr_exp
@@ -170,57 +152,52 @@ static EDSV_EDS_EVT_TYPE eds_tmr_evt_map(EDS_TMR_TYPE tmr_type)
 
   NOTES         : None
 *****************************************************************************/
-void eds_tmr_exp (void *uarg)
+void eds_tmr_exp(void *uarg)
 {
-   EDS_CB        *eds_cb=0;
-   EDS_TMR       *tmr = (EDS_TMR *)uarg;
-   EDSV_EDS_EVT  *evt=0;
-   uns32         temp_tmr_hdl;
-   
-   temp_tmr_hdl = tmr->cb_hdl;
-   
+	EDS_CB *eds_cb = 0;
+	EDS_TMR *tmr = (EDS_TMR *)uarg;
+	EDSV_EDS_EVT *evt = 0;
+	uns32 temp_tmr_hdl;
 
-   /* retrieve EDS CB */
-   if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, tmr->cb_hdl)))
-   {
-      m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return;
-   }
+	temp_tmr_hdl = tmr->cb_hdl;
 
-   if (tmr->is_active) 
-   {
-      tmr->is_active = FALSE;
-       /* Destroy the timer if it exists.. */
-      if (tmr->tmr_id != TMR_T_NULL)
-     {
-          m_NCS_TMR_DESTROY(  tmr->tmr_id);
-          tmr->tmr_id = TMR_T_NULL;
-     }
+	/* retrieve EDS CB */
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, tmr->cb_hdl))) {
+		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return;
+	}
 
-      /* create & send the timer event */
-      evt = m_MMGR_ALLOC_EDSV_EDS_EVT;
-      if(evt)
-      {
-         memset(evt, '\0',sizeof(EDSV_EDS_EVT));
+	if (tmr->is_active) {
+		tmr->is_active = FALSE;
+		/* Destroy the timer if it exists.. */
+		if (tmr->tmr_id != TMR_T_NULL) {
+			m_NCS_TMR_DESTROY(tmr->tmr_id);
+			tmr->tmr_id = TMR_T_NULL;
+		}
 
-         /* assign the timer evt */
-         evt->evt_type = eds_tmr_evt_map(tmr->type);
-         evt->info.tmr_info.opq_hdl = tmr->opq_hdl;
-         
-         evt->cb_hdl = tmr->cb_hdl;
-         
-         if(NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH))
-         {
-            m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,evt->cb_hdl,__FILE__,__LINE__,evt->evt_type);
-            eds_evt_destroy(evt);
-         }
+		/* create & send the timer event */
+		evt = m_MMGR_ALLOC_EDSV_EDS_EVT;
+		if (evt) {
+			memset(evt, '\0', sizeof(EDSV_EDS_EVT));
 
-      }
-      
-   }
+			/* assign the timer evt */
+			evt->evt_type = eds_tmr_evt_map(tmr->type);
+			evt->info.tmr_info.opq_hdl = tmr->opq_hdl;
 
-   /* return EDS CB */
-   ncshm_give_hdl(temp_tmr_hdl);
+			evt->cb_hdl = tmr->cb_hdl;
 
-   return;
+			if (NCSCC_RC_FAILURE == m_NCS_IPC_SEND(&eds_cb->mbx, evt, NCS_IPC_PRIORITY_HIGH)) {
+				m_LOG_EDSV_S(EDS_TIMER_STOP_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, evt->cb_hdl,
+					     __FILE__, __LINE__, evt->evt_type);
+				eds_evt_destroy(evt);
+			}
+
+		}
+
+	}
+
+	/* return EDS CB */
+	ncshm_give_hdl(temp_tmr_hdl);
+
+	return;
 }

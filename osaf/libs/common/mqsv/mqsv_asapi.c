@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file inclused following routines:
@@ -40,7 +38,7 @@
  */
 #include "mqsv.h"
 
-MQSVDLL_API ASAPi_CB asapi;  /* Global ASAPi Control Block */
+MQSVDLL_API ASAPi_CB asapi;	/* Global ASAPi Control Block */
 
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *);
@@ -54,7 +52,7 @@ static uns32 asapi_msg_process(ASAPi_MSG_INFO *, ASAPi_CACHE_INFO **);
 static NCS_BOOL asapi_obj_cmp(void *, void *);
 static NCS_BOOL asapi_queue_cmp(void *, void *);
 static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *, ASAPi_OBJECT_INFO *, ASAPi_OBJECT_OPR);
-static void asapi_usr_unbind(void); 
+static void asapi_usr_unbind(void);
 static uns32 aspai_fetch_info(ASAPi_MSG_INFO *, MQSV_SEND_INFO *, ASAPi_CACHE_INFO **);
 static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *);
 static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *, ASAPi_GROUP_TRACK_INFO *);
@@ -77,39 +75,35 @@ static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *, ASAPi_GROUP_TRACK_INFO *);
 \****************************************************************************/
 uns32 asapi_opr_hdlr(ASAPi_OPR_INFO *opr)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Do the required operation based on the request/operation type */
-   if(ASAPi_OPR_BIND == opr->type) {
-      /* Store the User specific attributes */
-      asapi.usrhdlr = opr->info.bind.i_indhdlr;
-      asapi.mds_hdl = opr->info.bind.i_mds_hdl;
-      asapi.mds_svc_id = opr->info.bind.i_mds_id;
-      asapi.my_svc_id = opr->info.bind.i_my_id;
-      asapi.my_dest = opr->info.bind.i_mydest;
+	/* Do the required operation based on the request/operation type */
+	if (ASAPi_OPR_BIND == opr->type) {
+		/* Store the User specific attributes */
+		asapi.usrhdlr = opr->info.bind.i_indhdlr;
+		asapi.mds_hdl = opr->info.bind.i_mds_hdl;
+		asapi.mds_svc_id = opr->info.bind.i_mds_id;
+		asapi.my_svc_id = opr->info.bind.i_my_id;
+		asapi.my_dest = opr->info.bind.i_mydest;
 
-      /* Initialize the Cache */
-      ncs_create_queue(&asapi.cache); 
-   }
-   else if(ASAPi_OPR_UNBIND == opr->type) {      
-      asapi_usr_unbind();
-   }
-   else if(ASAPi_OPR_GET_DEST == opr->type) {
-      rc = asapi_dest_get(&opr->info.dest);
-   }
-   else if(ASAPi_OPR_GET_QUEUE == opr->type) {
-      rc = asapi_queue_get(&opr->info.queue);
-   }
-   else if(ASAPi_OPR_TRACK == opr->type) {
-      rc = asapi_track_process(&opr->info.track); 
-   }
-   else if(ASAPi_OPR_MSG == opr->type) {
-      rc = asapi_msg_hdlr(&opr->info.msg); /* Handle ASAPi Messages */
-   }
+		/* Initialize the Cache */
+		ncs_create_queue(&asapi.cache);
+	} else if (ASAPi_OPR_UNBIND == opr->type) {
+		asapi_usr_unbind();
+	} else if (ASAPi_OPR_GET_DEST == opr->type) {
+		rc = asapi_dest_get(&opr->info.dest);
+	} else if (ASAPi_OPR_GET_QUEUE == opr->type) {
+		rc = asapi_queue_get(&opr->info.queue);
+	} else if (ASAPi_OPR_TRACK == opr->type) {
+		rc = asapi_track_process(&opr->info.track);
+	} else if (ASAPi_OPR_MSG == opr->type) {
+		rc = asapi_msg_hdlr(&opr->info.msg);	/* Handle ASAPi Messages */
+	}
 
-   if(NCSCC_RC_SUCCESS == rc) rc = SA_AIS_OK;
-   return rc;
-} /* End of asapi_opr_hdlr() */ 
+	if (NCSCC_RC_SUCCESS == rc)
+		rc = SA_AIS_OK;
+	return rc;
+}	/* End of asapi_opr_hdlr() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_usr_unbind
@@ -122,32 +116,32 @@ uns32 asapi_opr_hdlr(ASAPi_OPR_INFO *opr)
 \****************************************************************************/
 static void asapi_usr_unbind(void)
 {
-   ASAPi_QUEUE_INFO  *pQinfo = 0;
-   ASAPi_CACHE_INFO  *pCache = 0;
-   
-   /* Check whetehr Cache exist & if so then we need to clean it up .. */
-   while((pCache = ncs_dequeue(&asapi.cache))) {
-      m_NCS_LOCK(&pCache->clock, NCS_LOCK_WRITE); /* Lock the cache */
-      
-      if(ASAPi_OBJ_GROUP == pCache->objtype) {
-         while((pQinfo = ncs_dequeue(&pCache->info.ginfo.qlist))) {
-            m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id); /* Clean up the queues */
-         }
-         
-         /* Destroy the queue list */
-         ncs_destroy_queue(&pCache->info.ginfo.qlist);
-      }
-      m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE); /* Unlock the cache */
-      
-      m_NCS_LOCK_DESTROY(&pCache->clock); 
-      m_MMGR_FREE_ASAPi_CACHE_INFO(pCache, asapi.my_svc_id); /* Clean up cache nodes */
-   }     
-   
-   /* Destroy the Cache */
-   ncs_destroy_queue(&asapi.cache); 
+	ASAPi_QUEUE_INFO *pQinfo = 0;
+	ASAPi_CACHE_INFO *pCache = 0;
 
-   /* Reset the user information */ 
-   memset(&asapi, 0, sizeof(asapi));   
+	/* Check whetehr Cache exist & if so then we need to clean it up .. */
+	while ((pCache = ncs_dequeue(&asapi.cache))) {
+		m_NCS_LOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Lock the cache */
+
+		if (ASAPi_OBJ_GROUP == pCache->objtype) {
+			while ((pQinfo = ncs_dequeue(&pCache->info.ginfo.qlist))) {
+				m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id);	/* Clean up the queues */
+			}
+
+			/* Destroy the queue list */
+			ncs_destroy_queue(&pCache->info.ginfo.qlist);
+		}
+		m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Unlock the cache */
+
+		m_NCS_LOCK_DESTROY(&pCache->clock);
+		m_MMGR_FREE_ASAPi_CACHE_INFO(pCache, asapi.my_svc_id);	/* Clean up cache nodes */
+	}
+
+	/* Destroy the Cache */
+	ncs_destroy_queue(&asapi.cache);
+
+	/* Reset the user information */
+	memset(&asapi, 0, sizeof(asapi));
 }
 
 /****************************************************************************\
@@ -164,45 +158,42 @@ static void asapi_usr_unbind(void)
                      SA_AIS_ERROR
 \****************************************************************************/
 static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *msg)
-{  
-   uns32 rc = NCSCC_RC_SUCCESS;
-   ASAPi_CACHE_INFO  *pCache = 0;
-   
-   /* Check what action needs to be carried out vis-a-vis message */
-   if(ASAPi_MSG_SEND == msg->opr) { /* Message has to be sent */  
-      NCSMDS_INFO mds;
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_CACHE_INFO *pCache = 0;
 
-      /* Send to the specified destination */
-      rc = asapi_msg_send(&msg->req, &msg->sinfo, &mds);   
-      if(NCSCC_RC_REQ_TIMOUT == rc)
-      {
-       return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT); 
-      }
+	/* Check what action needs to be carried out vis-a-vis message */
+	if (ASAPi_MSG_SEND == msg->opr) {	/* Message has to be sent */
+		NCSMDS_INFO mds;
 
-      if(NCSCC_RC_SUCCESS != rc) {
-         return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN); 
-      }
-      
-      if(MDS_SENDTYPE_SNDRSP == msg->sinfo.stype) {
-         if(mds.info.svc_send.info.sndrsp.o_rsp){
-             msg->resp = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
-             m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
-         }
-         if(!msg->resp) {            
-            return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);                  
-         }
-      }      
-   }
-   else if(ASAPI_MSG_RECEIVE == msg->opr) { /* Message received */      
-      asapi_msg_process(msg->resp, &pCache);
-      asapi_msg_free(&msg->resp);   /* Free up the ASAPi Message */
-   }
-   else {      
-      return m_ASAPi_DBG_SINK(SA_AIS_ERR_INVALID_PARAM); /* Wrong Request */
-   }
+		/* Send to the specified destination */
+		rc = asapi_msg_send(&msg->req, &msg->sinfo, &mds);
+		if (NCSCC_RC_REQ_TIMOUT == rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
+		}
 
-   return rc;
-} /* End of asapi_msg_hdlr() */
+		if (NCSCC_RC_SUCCESS != rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);
+		}
+
+		if (MDS_SENDTYPE_SNDRSP == msg->sinfo.stype) {
+			if (mds.info.svc_send.info.sndrsp.o_rsp) {
+				msg->resp = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
+				m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
+			}
+			if (!msg->resp) {
+				return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
+			}
+		}
+	} else if (ASAPI_MSG_RECEIVE == msg->opr) {	/* Message received */
+		asapi_msg_process(msg->resp, &pCache);
+		asapi_msg_free(&msg->resp);	/* Free up the ASAPi Message */
+	} else {
+		return m_ASAPi_DBG_SINK(SA_AIS_ERR_INVALID_PARAM);	/* Wrong Request */
+	}
+
+	return rc;
+}	/* End of asapi_msg_hdlr() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_dest_get
@@ -218,68 +209,61 @@ static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *msg)
 \****************************************************************************/
 static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
 {
-   uns32             rc = NCSCC_RC_SUCCESS;
-   ASAPi_CACHE_INFO  *pNode = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_CACHE_INFO *pNode = 0;
 
-   /* Check whether Object with that name exist in Local Cache */
-   pNode = asapi_object_find(&dinfo->i_object);
-   if(!pNode) {
-      /* If the request is for the queue, then check if the queue exist with 
-       * any of the queue group before requesting the information MQD 
-      */
+	/* Check whether Object with that name exist in Local Cache */
+	pNode = asapi_object_find(&dinfo->i_object);
+	if (!pNode) {
+		/* If the request is for the queue, then check if the queue exist with 
+		 * any of the queue group before requesting the information MQD 
+		 */
 
+		/* If the information doesn't exist within the Local Cahce, then need
+		   to send ASAPi Name Resolution request to get the information form the 
+		   server.
+		 */
+		ASAPi_MSG_INFO msg;
 
-      /* If the information doesn't exist within the Local Cahce, then need
-         to send ASAPi Name Resolution request to get the information form the 
-         server.
-      */
-      ASAPi_MSG_INFO msg; 
-      
-      memset(&msg, 0, sizeof(ASAPi_MSG_INFO));     
-      
-      /* Polulate the ASAPi Name Resolution message */
-      msg.msgtype = ASAPi_MSG_NRESOLVE;      
+		memset(&msg, 0, sizeof(ASAPi_MSG_INFO));
 
-      memcpy(&msg.info.nresolve.object, &dinfo->i_object, sizeof(SaNameT)); 
-      msg.info.nresolve.track = dinfo->i_track;           
-      dinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP; /* Make syncronous request */
-      
-      /* Fetch the information from the server and update the Cache */
-      rc = aspai_fetch_info(&msg, &dinfo->i_sinfo, &pNode);
-      if(NCSCC_RC_SUCCESS != rc) {
-         return m_ASAPi_DBG_SINK(rc);
-      }
-   }
-   /* The following if-else checks wheather the particular MQND is up or pwn
-   If MQND is down then rc is set to TRYAGAIN    */
+		/* Polulate the ASAPi Name Resolution message */
+		msg.msgtype = ASAPi_MSG_NRESOLVE;
 
-   if(pNode->objtype == ASAPi_OBJ_GROUP)
-   {
-      ASAPi_QUEUE_INFO *pQelmSelected=pNode->info.ginfo.pQueue;
-      ASAPi_QUEUE_INFO *pQelmLast=pNode->info.ginfo.plaQueue;
-       
-      pNode->info.ginfo.pQueue=0;
-      asapi_queue_select(&(pNode->info.ginfo));
-      if(pNode->info.ginfo.pQueue)
-      {
-          if(pNode->info.ginfo.pQueue->param.is_mqnd_down == TRUE)
-          {
-             rc = SA_AIS_ERR_TRY_AGAIN;
-          }
-      }   
-      pNode->info.ginfo.pQueue = pQelmSelected; /* This is current selected Queue , retaining the old value for the Selected and last selected queues*/
-      pNode->info.ginfo.plaQueue = pQelmLast; /* update last selected Queue */
-   }
-   else if(pNode->objtype == ASAPi_OBJ_QUEUE)
-   {
-      if(pNode->info.qinfo.param.is_mqnd_down == TRUE)
-      {
-         rc = SA_AIS_ERR_TRY_AGAIN;
-      }
-   }    
-   dinfo->o_cache = pNode; /* Return the cache node */
-   return rc;
-} /* End of asapi_dest_get() */
+		memcpy(&msg.info.nresolve.object, &dinfo->i_object, sizeof(SaNameT));
+		msg.info.nresolve.track = dinfo->i_track;
+		dinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;	/* Make syncronous request */
+
+		/* Fetch the information from the server and update the Cache */
+		rc = aspai_fetch_info(&msg, &dinfo->i_sinfo, &pNode);
+		if (NCSCC_RC_SUCCESS != rc) {
+			return m_ASAPi_DBG_SINK(rc);
+		}
+	}
+	/* The following if-else checks wheather the particular MQND is up or pwn
+	   If MQND is down then rc is set to TRYAGAIN    */
+
+	if (pNode->objtype == ASAPi_OBJ_GROUP) {
+		ASAPi_QUEUE_INFO *pQelmSelected = pNode->info.ginfo.pQueue;
+		ASAPi_QUEUE_INFO *pQelmLast = pNode->info.ginfo.plaQueue;
+
+		pNode->info.ginfo.pQueue = 0;
+		asapi_queue_select(&(pNode->info.ginfo));
+		if (pNode->info.ginfo.pQueue) {
+			if (pNode->info.ginfo.pQueue->param.is_mqnd_down == TRUE) {
+				rc = SA_AIS_ERR_TRY_AGAIN;
+			}
+		}
+		pNode->info.ginfo.pQueue = pQelmSelected;	/* This is current selected Queue , retaining the old value for the Selected and last selected queues */
+		pNode->info.ginfo.plaQueue = pQelmLast;	/* update last selected Queue */
+	} else if (pNode->objtype == ASAPi_OBJ_QUEUE) {
+		if (pNode->info.qinfo.param.is_mqnd_down == TRUE) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+	}
+	dinfo->o_cache = pNode;	/* Return the cache node */
+	return rc;
+}	/* End of asapi_dest_get() */
 
 /****************************************************************************\
   PROCEDURE NAME :  asapi_queue_get
@@ -296,75 +280,71 @@ static uns32 asapi_dest_get(ASAPi_DEST_INFO *dinfo)
 \****************************************************************************/
 static uns32 asapi_queue_get(ASAPi_Q_INFO *qinfo)
 {
-   uns32             rc = NCSCC_RC_SUCCESS;
-   ASAPi_CACHE_INFO  *pNode = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_CACHE_INFO *pNode = 0;
 
-   /* Check whether Object with that name exist in Local Cache */
-   pNode = asapi_object_find(&qinfo->i_name);
-   if(!pNode) {
-      /* If the request is for the queue, then check if the queue exist with 
-       * any of the queue group before requesting the information MQD 
-      */
+	/* Check whether Object with that name exist in Local Cache */
+	pNode = asapi_object_find(&qinfo->i_name);
+	if (!pNode) {
+		/* If the request is for the queue, then check if the queue exist with 
+		 * any of the queue group before requesting the information MQD 
+		 */
 
-      /* If the information doesn't exist within the Local Cahce, then need
-         to send ASAPi Name Resolution request to get the information form the 
-         server.
-      */
-      ASAPi_MSG_INFO msg; 
-      ASAPi_MSG_INFO *pMsg = 0;
-      NCSMDS_INFO    mds;
-      
-      /* Polulate the ASAPi Name Resolution message */
-      msg.msgtype = ASAPi_MSG_GETQUEUE;
-      
-      memcpy(&msg.info.getqueue.queue, &qinfo->i_name, sizeof(SaNameT));            
-      qinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
-      
-      /* Send the message to the specified destination */
-      rc = asapi_msg_send(&msg, &qinfo->i_sinfo, &mds);      
-      
-      if(NCSCC_RC_REQ_TIMOUT == rc)
-      {
-       return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
-      }
+		/* If the information doesn't exist within the Local Cahce, then need
+		   to send ASAPi Name Resolution request to get the information form the 
+		   server.
+		 */
+		ASAPi_MSG_INFO msg;
+		ASAPi_MSG_INFO *pMsg = 0;
+		NCSMDS_INFO mds;
 
-      if(NCSCC_RC_SUCCESS != rc) {         
-         return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);
-      }
+		/* Polulate the ASAPi Name Resolution message */
+		msg.msgtype = ASAPi_MSG_GETQUEUE;
 
-      if(mds.info.svc_send.info.sndrsp.o_rsp){
-          pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
-          m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
-      }
+		memcpy(&msg.info.getqueue.queue, &qinfo->i_name, sizeof(SaNameT));
+		qinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
 
-      if(!pMsg) {
-         return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
-      }
-  
-      if (pMsg->info.vresp.err.flag)
-      {
-          rc = pMsg->info.vresp.err.errcode;
-      }
-      else
-      {
-          /* Populate the information that needed by the user */
-          qinfo->o_parm = pMsg->info.vresp.queue;
-      }
-    
-      /* Free up the ASAPi Message */
-      asapi_msg_free(&pMsg);
-      return rc;
-   }
-   
-   if(ASAPi_OBJ_QUEUE == pNode->objtype)
-      qinfo->o_parm = pNode->info.qinfo.param;
-   else {
-      /* Make sure the user has request for Queue & not fro Group */      
-      return m_ASAPi_DBG_SINK(SA_AIS_ERR_NOT_EXIST);
-   }
+		/* Send the message to the specified destination */
+		rc = asapi_msg_send(&msg, &qinfo->i_sinfo, &mds);
 
-   return rc;
-} /* End of asapi_queue_get() */
+		if (NCSCC_RC_REQ_TIMOUT == rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
+		}
+
+		if (NCSCC_RC_SUCCESS != rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);
+		}
+
+		if (mds.info.svc_send.info.sndrsp.o_rsp) {
+			pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
+			m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
+		}
+
+		if (!pMsg) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
+		}
+
+		if (pMsg->info.vresp.err.flag) {
+			rc = pMsg->info.vresp.err.errcode;
+		} else {
+			/* Populate the information that needed by the user */
+			qinfo->o_parm = pMsg->info.vresp.queue;
+		}
+
+		/* Free up the ASAPi Message */
+		asapi_msg_free(&pMsg);
+		return rc;
+	}
+
+	if (ASAPi_OBJ_QUEUE == pNode->objtype)
+		qinfo->o_parm = pNode->info.qinfo.param;
+	else {
+		/* Make sure the user has request for Queue & not fro Group */
+		return m_ASAPi_DBG_SINK(SA_AIS_ERR_NOT_EXIST);
+	}
+
+	return rc;
+}	/* End of asapi_queue_get() */
 
 /****************************************************************************\
    PROCEDURE NAME :  aspai_fetch_info
@@ -377,42 +357,40 @@ static uns32 asapi_queue_get(ASAPi_Q_INFO *qinfo)
    RETURNS        :  MDS_DEST - All went well
                      NULL - internal processing didn't like something.
 \****************************************************************************/
-static uns32 aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, 
-                              ASAPi_CACHE_INFO **o_cache)
+static uns32 aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, ASAPi_CACHE_INFO **o_cache)
 {
-   uns32          rc = NCSCC_RC_SUCCESS;
-   ASAPi_MSG_INFO *pMsg = 0;
-   NCSMDS_INFO    mds;
-   
-   /* Send the message to the specified destination */
-   rc = asapi_msg_send(msg, sinfo, &mds);      
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_MSG_INFO *pMsg = 0;
+	NCSMDS_INFO mds;
 
-   if(NCSCC_RC_REQ_TIMOUT == rc)
-      {
-       return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
-      }
+	/* Send the message to the specified destination */
+	rc = asapi_msg_send(msg, sinfo, &mds);
 
-   if(NCSCC_RC_SUCCESS != rc) {      
-      return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);      
-   }
-  
-   /* Get hold of the received information */
-   if(mds.info.svc_send.info.sndrsp.o_rsp){
-       pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
-       m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
-   }
+	if (NCSCC_RC_REQ_TIMOUT == rc) {
+		return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
+	}
 
-   if(!pMsg) {
-      return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
-   }
-   
-   /* Process the message */
-   rc = asapi_msg_process(pMsg, o_cache);
-   asapi_msg_free(&pMsg);   /* Free up the ASAPi Message */
-   if(NCSCC_RC_SUCCESS != rc) {      
-      return m_ASAPi_DBG_SINK(rc);      
-   }
-   return rc;    
+	if (NCSCC_RC_SUCCESS != rc) {
+		return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);
+	}
+
+	/* Get hold of the received information */
+	if (mds.info.svc_send.info.sndrsp.o_rsp) {
+		pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
+		m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
+	}
+
+	if (!pMsg) {
+		return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
+	}
+
+	/* Process the message */
+	rc = asapi_msg_process(pMsg, o_cache);
+	asapi_msg_free(&pMsg);	/* Free up the ASAPi Message */
+	if (NCSCC_RC_SUCCESS != rc) {
+		return m_ASAPi_DBG_SINK(rc);
+	}
+	return rc;
 }
 
 /****************************************************************************\
@@ -428,80 +406,78 @@ static uns32 aspai_fetch_info(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo,
 \****************************************************************************/
 static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
 {
-   ASAPi_CACHE_INFO  *pNode = 0;
-   uns32             rc = NCSCC_RC_SUCCESS;
-   
-   if(m_ASAPi_TRACK_IS_ENABLE(tinfo->i_option)) {
-      pNode = asapi_object_find(&tinfo->i_group);
-      if(!pNode) {
-         /* If the information doesn't exist within the Local Cahce, then need
-          * to send ASAPi Track request to get the information form the server.
-         */
-         ASAPi_MSG_INFO msg;      
-         
-         /* Polulate the ASAPi Name Resolution message */
-         msg.msgtype = ASAPi_MSG_TRACK;
-                  
-         memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
-         msg.info.track.val = tinfo->i_option;
-         tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
-         
-         /* Fetch the information from the server and update the Cache */
-         rc = aspai_fetch_info(&msg, &tinfo->i_sinfo, &pNode);
-         if(NCSCC_RC_SUCCESS != rc) {
-            return m_ASAPi_DBG_SINK(rc);
-         }
-         
-         if(SA_TRACK_CURRENT == tinfo->i_flags) {
-            rc = asapi_cpy_track_info(&pNode->info.ginfo,&tinfo->o_ginfo);
-         }        
-         return rc;
-      }      
-      
-      /* Track current information */
-      /* No need to fill notification buffer in case of TrackChanges or TrackChangesOnly */
-      if(tinfo->i_flags && SA_TRACK_CURRENT){
-         rc =  asapi_cpy_track_info(&pNode->info.ginfo,&tinfo->o_ginfo);
-      }      
-   }
-   else {
-      ASAPi_MSG_INFO msg;
-      ASAPi_MSG_INFO *pMsg = 0;
-      NCSMDS_INFO    mds;
-      
-      /* Polulate the ASAPi Name Resolution message */
-      msg.msgtype = ASAPi_MSG_TRACK;
-      
-      memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
-      msg.info.track.val = tinfo->i_option;
-      tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP; /* Make syncronous request */
-      
-      rc = asapi_msg_send(&msg, &tinfo->i_sinfo, &mds);      
-      
-      if(NCSCC_RC_REQ_TIMOUT == rc)
-      {
-       return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
-      } 
-      if(NCSCC_RC_SUCCESS != rc) {
-         return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);      
-      }
-      
-      /* Update the local cache with the received information */       
-      if(mds.info.svc_send.info.sndrsp.o_rsp){
-         pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
-         m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
-      }
-   
-      if(!pMsg) {
-         return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
-      }
-      asapi_msg_free(&pMsg);
-      
-      /* Remove the Group from the cache */
-      asapi_object_destroy(&tinfo->i_group);
-   }
-   
-   return rc;
+	ASAPi_CACHE_INFO *pNode = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	if (m_ASAPi_TRACK_IS_ENABLE(tinfo->i_option)) {
+		pNode = asapi_object_find(&tinfo->i_group);
+		if (!pNode) {
+			/* If the information doesn't exist within the Local Cahce, then need
+			 * to send ASAPi Track request to get the information form the server.
+			 */
+			ASAPi_MSG_INFO msg;
+
+			/* Polulate the ASAPi Name Resolution message */
+			msg.msgtype = ASAPi_MSG_TRACK;
+
+			memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
+			msg.info.track.val = tinfo->i_option;
+			tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;
+
+			/* Fetch the information from the server and update the Cache */
+			rc = aspai_fetch_info(&msg, &tinfo->i_sinfo, &pNode);
+			if (NCSCC_RC_SUCCESS != rc) {
+				return m_ASAPi_DBG_SINK(rc);
+			}
+
+			if (SA_TRACK_CURRENT == tinfo->i_flags) {
+				rc = asapi_cpy_track_info(&pNode->info.ginfo, &tinfo->o_ginfo);
+			}
+			return rc;
+		}
+
+		/* Track current information */
+		/* No need to fill notification buffer in case of TrackChanges or TrackChangesOnly */
+		if (tinfo->i_flags && SA_TRACK_CURRENT) {
+			rc = asapi_cpy_track_info(&pNode->info.ginfo, &tinfo->o_ginfo);
+		}
+	} else {
+		ASAPi_MSG_INFO msg;
+		ASAPi_MSG_INFO *pMsg = 0;
+		NCSMDS_INFO mds;
+
+		/* Polulate the ASAPi Name Resolution message */
+		msg.msgtype = ASAPi_MSG_TRACK;
+
+		memcpy(&msg.info.track.object, &tinfo->i_group, sizeof(SaNameT));
+		msg.info.track.val = tinfo->i_option;
+		tinfo->i_sinfo.stype = MDS_SENDTYPE_SNDRSP;	/* Make syncronous request */
+
+		rc = asapi_msg_send(&msg, &tinfo->i_sinfo, &mds);
+
+		if (NCSCC_RC_REQ_TIMOUT == rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TIMEOUT);
+		}
+		if (NCSCC_RC_SUCCESS != rc) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_TRY_AGAIN);
+		}
+
+		/* Update the local cache with the received information */
+		if (mds.info.svc_send.info.sndrsp.o_rsp) {
+			pMsg = ((MQSV_EVT *)(mds.info.svc_send.info.sndrsp.o_rsp))->msg.asapi;
+			m_MMGR_FREE_MQSV_EVT(mds.info.svc_send.info.sndrsp.o_rsp, asapi.my_svc_id);
+		}
+
+		if (!pMsg) {
+			return m_ASAPi_DBG_SINK(SA_AIS_ERR_MESSAGE_ERROR);
+		}
+		asapi_msg_free(&pMsg);
+
+		/* Remove the Group from the cache */
+		asapi_object_destroy(&tinfo->i_group);
+	}
+
+	return rc;
 }
 
 /****************************************************************************\
@@ -518,37 +494,38 @@ static uns32 asapi_track_process(ASAPi_GRP_TRACK_INFO *tinfo)
 \****************************************************************************/
 static uns32 asapi_msg_process(ASAPi_MSG_INFO *msg, ASAPi_CACHE_INFO **o_cache)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   /* Update the local cache with the received information */ 
-   *o_cache = 0;
-   if(ASAPi_MSG_NRESOLVE_RESP == msg->msgtype) {
-      if(!msg->info.nresp.err.flag) {
-         rc = asapi_cache_update(&msg->info.nresp.oinfo, ASAPi_QUEUE_ADD, o_cache);
-         if(NCSCC_RC_SUCCESS != rc) rc = SA_AIS_ERR_LIBRARY;
-      }
-      else rc = msg->info.nresp.err.errcode;
-      return rc;      
-   }
-   else if(ASAPi_MSG_TRACK_NTFY == msg->msgtype) {
-      rc = asapi_cache_update(&msg->info.tntfy.oinfo, msg->info.tntfy.opr, o_cache);      
-   }
-   else if(ASAPi_MSG_TRACK_RESP == msg->msgtype) {
-      if(!msg->info.tresp.err.flag) {
-         rc = asapi_cache_update(&msg->info.tresp.oinfo, ASAPi_QUEUE_ADD, o_cache);
-         if(NCSCC_RC_SUCCESS != rc) rc = SA_AIS_ERR_LIBRARY;
-      }
-      else rc = msg->info.tresp.err.errcode;
-      return rc; 
-   }
-   
-   /* Indicate the upper layer about the arrival of the message */
-   if(asapi.usrhdlr) {
-      rc = asapi.usrhdlr(msg);                           
-   }   
-   if(NCSCC_RC_SUCCESS != rc) rc = SA_AIS_ERR_LIBRARY;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   return rc;   
+	/* Update the local cache with the received information */
+	*o_cache = 0;
+	if (ASAPi_MSG_NRESOLVE_RESP == msg->msgtype) {
+		if (!msg->info.nresp.err.flag) {
+			rc = asapi_cache_update(&msg->info.nresp.oinfo, ASAPi_QUEUE_ADD, o_cache);
+			if (NCSCC_RC_SUCCESS != rc)
+				rc = SA_AIS_ERR_LIBRARY;
+		} else
+			rc = msg->info.nresp.err.errcode;
+		return rc;
+	} else if (ASAPi_MSG_TRACK_NTFY == msg->msgtype) {
+		rc = asapi_cache_update(&msg->info.tntfy.oinfo, msg->info.tntfy.opr, o_cache);
+	} else if (ASAPi_MSG_TRACK_RESP == msg->msgtype) {
+		if (!msg->info.tresp.err.flag) {
+			rc = asapi_cache_update(&msg->info.tresp.oinfo, ASAPi_QUEUE_ADD, o_cache);
+			if (NCSCC_RC_SUCCESS != rc)
+				rc = SA_AIS_ERR_LIBRARY;
+		} else
+			rc = msg->info.tresp.err.errcode;
+		return rc;
+	}
+
+	/* Indicate the upper layer about the arrival of the message */
+	if (asapi.usrhdlr) {
+		rc = asapi.usrhdlr(msg);
+	}
+	if (NCSCC_RC_SUCCESS != rc)
+		rc = SA_AIS_ERR_LIBRARY;
+
+	return rc;
 }
 
 /****************************************************************************\
@@ -564,97 +541,89 @@ static uns32 asapi_msg_process(ASAPi_MSG_INFO *msg, ASAPi_CACHE_INFO **o_cache)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr,
-                                ASAPi_CACHE_INFO **o_cache)
+static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr, ASAPi_CACHE_INFO **o_cache)
 {
-   ASAPi_CACHE_INFO        *pCache = 0;
-   uns32                   rc = NCSCC_RC_SUCCESS;
-   SaNameT                 *pObject = 0;
-   
-   /* Check if cache entry exist with us or not */
-   *o_cache = 0;
-   if(pInfo->group.length) pObject = &pInfo->group;   /* Group request */
-   else pObject = &pInfo->qparam->name;               /* Queue request */
+	ASAPi_CACHE_INFO *pCache = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaNameT *pObject = 0;
 
-   pCache = asapi_object_find(pObject);   
-   if(pCache) { /* Node exist with us, we olny need to update the information */   
-      m_NCS_LOCK(&pCache->clock, NCS_LOCK_WRITE); /* Lock the cache */
+	/* Check if cache entry exist with us or not */
+	*o_cache = 0;
+	if (pInfo->group.length)
+		pObject = &pInfo->group;	/* Group request */
+	else
+		pObject = &pInfo->qparam->name;	/* Queue request */
 
-      if(ASAPi_OBJ_QUEUE == pCache->objtype) { /* Object is a queue */         
-         if(ASAPi_QUEUE_DEL == opr) {  
-            m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE); /* Unlock the cache */
-            m_NCS_LOCK_DESTROY(&pCache->clock);
-            
-            asapi_object_destroy(pObject);
-            return rc;
-         }
-         else if(ASAPi_QUEUE_UPD == opr) {
-            pCache->info.qinfo.param = *(pInfo->qparam);
-         }
-         else if(ASAPi_QUEUE_MQND_UP == opr)
-              {
-                pCache->info.qinfo.param = *(pInfo->qparam);
-              }
-              else if (ASAPi_QUEUE_MQND_DOWN == opr)
-                   {
-                     pCache->info.qinfo.param = *(pInfo->qparam);
-                   }    
-      } 
-      else { /* Object is a group */
-         if(ASAPi_GROUP_DEL == opr) {
-            m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE); /* Unlock the cache */
-            m_NCS_LOCK_DESTROY(&pCache->clock);  
-            
-            /* Remove the Cache node */
-            asapi_object_destroy(pObject);
-            return rc;
-         }
-         else {
-            /* Update the queue group */
-            asapi_grp_upd(&pCache->info.ginfo, pInfo, opr);
-         }
-      }
+	pCache = asapi_object_find(pObject);
+	if (pCache) {		/* Node exist with us, we olny need to update the information */
+		m_NCS_LOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Lock the cache */
 
-      /* Unlock Cache */
-      m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE); /* Unlock the cache */
-   }
-   else { /* Node deosn't exist */
-      /* Allocate the Cache Informaton node */
-      pCache = m_MMGR_ALLOC_ASAPi_CACHE_INFO(asapi.my_svc_id);
-      if(!pCache) {
-         return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-      memset(pCache, 0, sizeof(ASAPi_CACHE_INFO)); 
-      m_NCS_LOCK_INIT(&pCache->clock);
+		if (ASAPi_OBJ_QUEUE == pCache->objtype) {	/* Object is a queue */
+			if (ASAPi_QUEUE_DEL == opr) {
+				m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Unlock the cache */
+				m_NCS_LOCK_DESTROY(&pCache->clock);
 
-      if(!pInfo->group.length) {
-         pCache->objtype = ASAPi_OBJ_QUEUE;
-         pCache->info.qinfo.param = *(pInfo->qparam);         
-      }
-      else {
-         pCache->objtype = ASAPi_OBJ_GROUP;
-         memcpy(&pCache->info.ginfo.group, &pInfo->group, sizeof(SaNameT));                      
-      
-         /* Initilize the group list for queues */
-         ncs_create_queue(&pCache->info.ginfo.qlist);
-         
-         /* Update the queue group */
-         rc = asapi_grp_upd(&pCache->info.ginfo, pInfo, opr);
-         if(NCSCC_RC_SUCCESS != rc) {
-            
-            /* Remove the Cache node */
-            m_NCS_LOCK_DESTROY(&pCache->clock);
-            asapi_object_destroy(pObject);            
-         }
-      }
+				asapi_object_destroy(pObject);
+				return rc;
+			} else if (ASAPi_QUEUE_UPD == opr) {
+				pCache->info.qinfo.param = *(pInfo->qparam);
+			} else if (ASAPi_QUEUE_MQND_UP == opr) {
+				pCache->info.qinfo.param = *(pInfo->qparam);
+			} else if (ASAPi_QUEUE_MQND_DOWN == opr) {
+				pCache->info.qinfo.param = *(pInfo->qparam);
+			}
+		} else {	/* Object is a group */
+			if (ASAPi_GROUP_DEL == opr) {
+				m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Unlock the cache */
+				m_NCS_LOCK_DESTROY(&pCache->clock);
 
-      /* Add the cache node */
-      ncs_enqueue(&asapi.cache, pCache);
-   }   
+				/* Remove the Cache node */
+				asapi_object_destroy(pObject);
+				return rc;
+			} else {
+				/* Update the queue group */
+				asapi_grp_upd(&pCache->info.ginfo, pInfo, opr);
+			}
+		}
 
-   *o_cache = pCache;
-   return rc;
-} /* End of asapi_cache_update() */
+		/* Unlock Cache */
+		m_NCS_UNLOCK(&pCache->clock, NCS_LOCK_WRITE);	/* Unlock the cache */
+	} else {		/* Node deosn't exist */
+		/* Allocate the Cache Informaton node */
+		pCache = m_MMGR_ALLOC_ASAPi_CACHE_INFO(asapi.my_svc_id);
+		if (!pCache) {
+			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+		memset(pCache, 0, sizeof(ASAPi_CACHE_INFO));
+		m_NCS_LOCK_INIT(&pCache->clock);
+
+		if (!pInfo->group.length) {
+			pCache->objtype = ASAPi_OBJ_QUEUE;
+			pCache->info.qinfo.param = *(pInfo->qparam);
+		} else {
+			pCache->objtype = ASAPi_OBJ_GROUP;
+			memcpy(&pCache->info.ginfo.group, &pInfo->group, sizeof(SaNameT));
+
+			/* Initilize the group list for queues */
+			ncs_create_queue(&pCache->info.ginfo.qlist);
+
+			/* Update the queue group */
+			rc = asapi_grp_upd(&pCache->info.ginfo, pInfo, opr);
+			if (NCSCC_RC_SUCCESS != rc) {
+
+				/* Remove the Cache node */
+				m_NCS_LOCK_DESTROY(&pCache->clock);
+				asapi_object_destroy(pObject);
+			}
+		}
+
+		/* Add the cache node */
+		ncs_enqueue(&asapi.cache, pCache);
+	}
+
+	*o_cache = pCache;
+	return rc;
+}	/* End of asapi_cache_update() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_grp_upd
@@ -669,152 +638,129 @@ static uns32 asapi_cache_update(ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr,
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, 
-                           ASAPi_OBJECT_OPR opr) 
+static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo, ASAPi_OBJECT_OPR opr)
 {
-   ASAPi_QUEUE_INFO  *pQinfo = 0;
-   uns32             idx = 0;
+	ASAPi_QUEUE_INFO *pQinfo = 0;
+	uns32 idx = 0;
 
-   /* Update the group policy ... */
-   pGrp->policy = pInfo->policy;
-   
-   for(idx=0; idx<pInfo->qcnt; idx++) {
-      if(ASAPi_QUEUE_ADD == opr) {
-         pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);      
-         if (pQinfo)
-            continue;
+	/* Update the group policy ... */
+	pGrp->policy = pInfo->policy;
 
-         pQinfo = m_MMGR_ALLOC_ASAPi_QUEUE_INFO(asapi.my_svc_id);
-         if(!pQinfo) {
-            return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         
-         /* Update the parameters */
-         pQinfo->param = pInfo->qparam[idx];
-         
-         if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-            m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr))
-         {
-            pGrp->lcl_qcnt++;
-         }
+	for (idx = 0; idx < pInfo->qcnt; idx++) {
+		if (ASAPi_QUEUE_ADD == opr) {
+			pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
+			if (pQinfo)
+				continue;
 
-         /* Add the node to the Group */
-         ncs_enqueue(&pGrp->qlist, pQinfo);      
-      }   
-      else if(ASAPi_QUEUE_UPD == opr) {
-         pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);      
-         if(pQinfo) 
-         {  
-            /* Udjust the the local reference count before update */             
-            if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-                                m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr))
-            {
-               pGrp->lcl_qcnt--;
-            }
-            
-            pQinfo->param = pInfo->qparam[idx];
-            
-            /* Udjust the the local reference count after update */            
-            if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-                                m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr))
-            {
-               pGrp->lcl_qcnt++;
-            }
-                        
-         }
-         else {
-            return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-      }
-      else if(ASAPi_QUEUE_DEL == opr) {
+			pQinfo = m_MMGR_ALLOC_ASAPi_QUEUE_INFO(asapi.my_svc_id);
+			if (!pQinfo) {
+				return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+			}
 
-         /* Find, whether queue that is going to delete is in the last send queue (plaQueue) 
-            in Cache, if it is the case it will update the plaQueue */
-         pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp); 
+			/* Update the parameters */
+			pQinfo->param = pInfo->qparam[idx];
 
-         if(pQinfo)
-         {
-             if(pQinfo == pGrp->plaQueue)
-             {
-                ASAPi_QUEUE_INFO  *pQprev=0,*pQnext=0;
-                NCS_Q_ITR        itr;
-                itr.state = 0;
-                pQnext =  (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGrp->qlist, &itr);        
-                while(pQnext)
-                {
-                   if(pQnext == pGrp->plaQueue)
-                   {
-                      pGrp->plaQueue = pQprev;
-                      break;
-                   }
-                   itr.state = pQnext;
-                   pQprev = pQnext;
-                   pQnext = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGrp->qlist, &itr);
-                }
-             }
-         }
+			if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+			    m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr)) {
+				pGrp->lcl_qcnt++;
+			}
 
-         /* Updated the plaQueue info, now delete the queue from the list*/
+			/* Add the node to the Group */
+			ncs_enqueue(&pGrp->qlist, pQinfo);
+		} else if (ASAPi_QUEUE_UPD == opr) {
+			pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
+			if (pQinfo) {
+				/* Udjust the the local reference count before update */
+				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+				    m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr)) {
+					pGrp->lcl_qcnt--;
+				}
 
-         pQinfo = ncs_remove_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);      
-         if(pQinfo) 
-         {
-            /* Reduce the local reference count before delete */             
-            if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-                                m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr))
-            {
-               pGrp->lcl_qcnt--;
-            }
+				pQinfo->param = pInfo->qparam[idx];
 
-            m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id); /* Clean up the queue */
-         }
-         else {
-            return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-      } else if(ASAPi_QUEUE_MQND_DOWN == opr)
-        {
-           if( pInfo->qparam[idx].is_mqnd_down == TRUE)
-           {
-              pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
-              if (pQinfo)
-              {
-                 pQinfo->param = pInfo->qparam[idx];
-                 continue;
-              } 
-           }
-        } else if( ASAPi_QUEUE_MQND_UP ==opr)
-               {
-                  if( pInfo->qparam[idx].is_mqnd_down == FALSE)
-                  {
-                     pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
-                     if (pQinfo)
-                     {
-                        pQinfo->param = pInfo->qparam[idx];
-                        continue;
-                     } 
+				/* Udjust the the local reference count after update */
+				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+				    m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr)) {
+					pGrp->lcl_qcnt++;
+				}
 
-                     pQinfo = m_MMGR_ALLOC_ASAPi_QUEUE_INFO(asapi.my_svc_id);
-                     if(!pQinfo) 
-                     {
-                       return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-                     }
+			} else {
+				return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+			}
+		} else if (ASAPi_QUEUE_DEL == opr) {
 
-                        /* Update the parameters */
-                     pQinfo->param = pInfo->qparam[idx];
+			/* Find, whether queue that is going to delete is in the last send queue (plaQueue) 
+			   in Cache, if it is the case it will update the plaQueue */
+			pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
 
-                    if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-                            m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr))
-                    {
-                       pGrp->lcl_qcnt++;
-                    }
+			if (pQinfo) {
+				if (pQinfo == pGrp->plaQueue) {
+					ASAPi_QUEUE_INFO *pQprev = 0, *pQnext = 0;
+					NCS_Q_ITR itr;
+					itr.state = 0;
+					pQnext = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGrp->qlist, &itr);
+					while (pQnext) {
+						if (pQnext == pGrp->plaQueue) {
+							pGrp->plaQueue = pQprev;
+							break;
+						}
+						itr.state = pQnext;
+						pQprev = pQnext;
+						pQnext = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGrp->qlist, &itr);
+					}
+				}
+			}
 
-                     /* Add the node to the Group */
-                   ncs_enqueue(&pGrp->qlist, pQinfo);
-                }
-              }
-   } 
-   pInfo->qcnt =  pGrp->qlist.count;
-   return NCSCC_RC_SUCCESS;
+			/* Updated the plaQueue info, now delete the queue from the list */
+
+			pQinfo = ncs_remove_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
+			if (pQinfo) {
+				/* Reduce the local reference count before delete */
+				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+				    m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr)) {
+					pGrp->lcl_qcnt--;
+				}
+
+				m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id);	/* Clean up the queue */
+			} else {
+				return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+			}
+		} else if (ASAPi_QUEUE_MQND_DOWN == opr) {
+			if (pInfo->qparam[idx].is_mqnd_down == TRUE) {
+				pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
+				if (pQinfo) {
+					pQinfo->param = pInfo->qparam[idx];
+					continue;
+				}
+			}
+		} else if (ASAPi_QUEUE_MQND_UP == opr) {
+			if (pInfo->qparam[idx].is_mqnd_down == FALSE) {
+				pQinfo = ncs_find_item(&pGrp->qlist, &pInfo->qparam[idx].name, asapi_queue_cmp);
+				if (pQinfo) {
+					pQinfo->param = pInfo->qparam[idx];
+					continue;
+				}
+
+				pQinfo = m_MMGR_ALLOC_ASAPi_QUEUE_INFO(asapi.my_svc_id);
+				if (!pQinfo) {
+					return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+				}
+
+				/* Update the parameters */
+				pQinfo->param = pInfo->qparam[idx];
+
+				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+				    m_NCS_NODE_ID_FROM_MDS_DEST(pQinfo->param.addr)) {
+					pGrp->lcl_qcnt++;
+				}
+
+				/* Add the node to the Group */
+				ncs_enqueue(&pGrp->qlist, pQinfo);
+			}
+		}
+	}
+	pInfo->qcnt = pGrp->qlist.count;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -832,48 +778,44 @@ static uns32 asapi_grp_upd(ASAPi_GROUP_INFO *pGrp, ASAPi_OBJECT_INFO *pInfo,
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, 
-                            NCSMDS_INFO *mds)
+static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo, NCSMDS_INFO *mds)
 {
-   MQSV_EVT evt;
-   uns32    rc = NCSCC_RC_SUCCESS;
-      
-   /* Populate the MDS envolpe & Send the message to destination */  
-   evt.type = MQSV_EVT_ASAPI;
-   evt.msg.asapi = msg;   
-   
-   /* Send to the specified destination */
-   memset(mds, 0, sizeof(NCSMDS_INFO));
-   mds->i_mds_hdl = asapi.mds_hdl;  /* MDS handle */
-   mds->i_svc_id = asapi.mds_svc_id;    /* User's service id */ 
-   mds->i_op = MDS_SEND;
-   
-   mds->info.svc_send.i_msg = &evt; 
-   mds->info.svc_send.i_priority = MDS_SEND_PRIORITY_LOW;
-   mds->info.svc_send.i_sendtype = sinfo->stype; 
-   mds->info.svc_send.i_to_svc = sinfo->to_svc;
-   
-   if(MDS_SENDTYPE_SNDRSP == sinfo->stype) {
-      if(mds->i_svc_id == NCSMDS_SVC_ID_MQND)
-        mds->info.svc_send.info.sndrsp.i_time_to_wait = MQSV_WAIT_TIME_MQND;
-      else
-       mds->info.svc_send.info.sndrsp.i_time_to_wait = MQSV_WAIT_TIME;  
-      mds->info.svc_send.info.sndrsp.i_to_dest = sinfo->dest;        
-   }
-   else if(MDS_SENDTYPE_RSP == sinfo->stype) {
-      mds->info.svc_send.info.rsp.i_msg_ctxt = sinfo->ctxt;
-      mds->info.svc_send.info.rsp.i_sender_dest = sinfo->dest;
-   }
-   else if(MDS_SENDTYPE_SND == sinfo->stype) {
-      mds->info.svc_send.info.snd.i_to_dest = sinfo->dest;
-   }
-   else {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* Invalid send type */
-   }
-   
-   rc = ncsmds_api(mds);   
-   return rc;
-} /* End of asapi_msg_send() */
+	MQSV_EVT evt;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	/* Populate the MDS envolpe & Send the message to destination */
+	evt.type = MQSV_EVT_ASAPI;
+	evt.msg.asapi = msg;
+
+	/* Send to the specified destination */
+	memset(mds, 0, sizeof(NCSMDS_INFO));
+	mds->i_mds_hdl = asapi.mds_hdl;	/* MDS handle */
+	mds->i_svc_id = asapi.mds_svc_id;	/* User's service id */
+	mds->i_op = MDS_SEND;
+
+	mds->info.svc_send.i_msg = &evt;
+	mds->info.svc_send.i_priority = MDS_SEND_PRIORITY_LOW;
+	mds->info.svc_send.i_sendtype = sinfo->stype;
+	mds->info.svc_send.i_to_svc = sinfo->to_svc;
+
+	if (MDS_SENDTYPE_SNDRSP == sinfo->stype) {
+		if (mds->i_svc_id == NCSMDS_SVC_ID_MQND)
+			mds->info.svc_send.info.sndrsp.i_time_to_wait = MQSV_WAIT_TIME_MQND;
+		else
+			mds->info.svc_send.info.sndrsp.i_time_to_wait = MQSV_WAIT_TIME;
+		mds->info.svc_send.info.sndrsp.i_to_dest = sinfo->dest;
+	} else if (MDS_SENDTYPE_RSP == sinfo->stype) {
+		mds->info.svc_send.info.rsp.i_msg_ctxt = sinfo->ctxt;
+		mds->info.svc_send.info.rsp.i_sender_dest = sinfo->dest;
+	} else if (MDS_SENDTYPE_SND == sinfo->stype) {
+		mds->info.svc_send.info.snd.i_to_dest = sinfo->dest;
+	} else {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* Invalid send type */
+	}
+
+	rc = ncsmds_api(mds);
+	return rc;
+}	/* End of asapi_msg_send() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_fill_track_info
@@ -889,45 +831,41 @@ static uns32 asapi_msg_send(ASAPi_MSG_INFO *msg, MQSV_SEND_INFO *sinfo,
 \****************************************************************************/
 static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *pGinfo, ASAPi_GROUP_TRACK_INFO *pGTrackinfo)
 {
-   ASAPi_QUEUE_INFO *pQelm = 0;
-   NCS_Q_ITR        itr;
-   uns32 q_cnt=0;
-   uns32 i=0;
+	ASAPi_QUEUE_INFO *pQelm = 0;
+	NCS_Q_ITR itr;
+	uns32 q_cnt = 0;
+	uns32 i = 0;
 
-  itr.state = 0;
-  while ( (pQelm = (ASAPi_QUEUE_INFO *)ncs_walk_items(&pGinfo->qlist, &itr)) )
-  {
-     q_cnt++;
-     itr.state = pQelm;
+	itr.state = 0;
+	while ((pQelm = (ASAPi_QUEUE_INFO *)ncs_walk_items(&pGinfo->qlist, &itr))) {
+		q_cnt++;
+		itr.state = pQelm;
 
-  }
+	}
 
-  if (q_cnt > pGTrackinfo->notification_buffer.numberOfItems)
-     return NCSCC_RC_FAILURE;
+	if (q_cnt > pGTrackinfo->notification_buffer.numberOfItems)
+		return NCSCC_RC_FAILURE;
 
+	itr.state = 0;
+	while ((pQelm = (ASAPi_QUEUE_INFO *)ncs_walk_items(&pGinfo->qlist, &itr))) {
 
-  itr.state = 0;
-  while ( (pQelm = (ASAPi_QUEUE_INFO *)ncs_walk_items(&pGinfo->qlist, &itr)) )
-  {
-    
-     pGTrackinfo->notification_buffer.notification[i].change = SA_MSG_QUEUE_GROUP_NO_CHANGE;
-     pGTrackinfo->notification_buffer.notification[i].member.queueName = pQelm->param.name;
- 
-  /* Sending state is removed from B.1.1 
-     pGTrackinfo->notification_buffer.notification[i].member.sendingState =
-                                                       pQelm->param.status; */
-      i++;
-      itr.state = pQelm;
+		pGTrackinfo->notification_buffer.notification[i].change = SA_MSG_QUEUE_GROUP_NO_CHANGE;
+		pGTrackinfo->notification_buffer.notification[i].member.queueName = pQelm->param.name;
 
-  }
+		/* Sending state is removed from B.1.1 
+		   pGTrackinfo->notification_buffer.notification[i].member.sendingState =
+		   pQelm->param.status; */
+		i++;
+		itr.state = pQelm;
 
-  pGTrackinfo->notification_buffer.numberOfItems = i;
-  pGTrackinfo->policy = pGinfo->policy;
-  pGTrackinfo->qcnt = i;
+	}
 
-   return NCSCC_RC_SUCCESS;
-} /* End of asapi_cpy_track_info() */
+	pGTrackinfo->notification_buffer.numberOfItems = i;
+	pGTrackinfo->policy = pGinfo->policy;
+	pGTrackinfo->qcnt = i;
 
+	return NCSCC_RC_SUCCESS;
+}	/* End of asapi_cpy_track_info() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_queue_select
@@ -946,67 +884,57 @@ static uns32 asapi_cpy_track_info(ASAPi_GROUP_INFO *pGinfo, ASAPi_GROUP_TRACK_IN
 \****************************************************************************/
 uns32 asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 {
-   ASAPi_QUEUE_INFO *pQelm = 0;
-   NCS_Q_ITR        itr;
-   uns32            q_cnt = pGinfo->qlist.count;
-   
-   /* Ignore the request if there is no queue under the group */
-   if(!pGinfo->qlist.count) 
-      return NCSCC_RC_SUCCESS;
-   
-   
-   if((SA_MSG_QUEUE_GROUP_ROUND_ROBIN ==  pGinfo->policy) ||
-      (SA_MSG_QUEUE_GROUP_BROADCAST == pGinfo->policy) ||
-      (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN ==  pGinfo->policy))
-   {
-      itr.state = pGinfo->plaQueue;
-      pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
-      
-      if(!pQelm) 
-      {  
-         /* It has reach end of the list, need to get the first Queue */
-         itr.state = 0;
-         pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);            
-      }
-      
-      if((pGinfo->lcl_qcnt) &&
-         (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN ==  pGinfo->policy))
-      {
-         /* Select only the local queue */
-         while(q_cnt)
-         {
-            if(m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
-               m_NCS_NODE_ID_FROM_MDS_DEST(pQelm->param.addr))
-            {
-               break;
-            }
-            else
-            {
-               q_cnt--;
-               itr.state = pQelm;
-               pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
-      
-               if(!pQelm) 
-               {  
-                  /* It has reach end of the list, need to get the first Queue */
-                  itr.state = 0;
-                  pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);            
-               }
-            } /* End of else */
-         } /* End of while */         
-      } /* Endof SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN if */
-      
-      /* Queue Selected, return the result */
-      pGinfo->pQueue = pQelm; /* This is current selected Queue */
-      pGinfo->plaQueue = pQelm; /* update last selected Queue */
-   }
-   else /* Other policy not supported */
-   { 
-      pGinfo->pQueue = 0;
-   }
+	ASAPi_QUEUE_INFO *pQelm = 0;
+	NCS_Q_ITR itr;
+	uns32 q_cnt = pGinfo->qlist.count;
 
-   return NCSCC_RC_SUCCESS;
-} /* End of asapi_queue_select() */
+	/* Ignore the request if there is no queue under the group */
+	if (!pGinfo->qlist.count)
+		return NCSCC_RC_SUCCESS;
+
+	if ((SA_MSG_QUEUE_GROUP_ROUND_ROBIN == pGinfo->policy) ||
+	    (SA_MSG_QUEUE_GROUP_BROADCAST == pGinfo->policy) ||
+	    (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN == pGinfo->policy)) {
+		itr.state = pGinfo->plaQueue;
+		pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+		if (!pQelm) {
+			/* It has reach end of the list, need to get the first Queue */
+			itr.state = 0;
+			pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+		}
+
+		if ((pGinfo->lcl_qcnt) && (SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN == pGinfo->policy)) {
+			/* Select only the local queue */
+			while (q_cnt) {
+				if (m_NCS_NODE_ID_FROM_MDS_DEST(asapi.my_dest) ==
+				    m_NCS_NODE_ID_FROM_MDS_DEST(pQelm->param.addr)) {
+					break;
+				} else {
+					q_cnt--;
+					itr.state = pQelm;
+					pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+
+					if (!pQelm) {
+						/* It has reach end of the list, need to get the first Queue */
+						itr.state = 0;
+						pQelm = (ASAPi_QUEUE_INFO *)ncs_queue_get_next(&pGinfo->qlist, &itr);
+					}
+				}	/* End of else */
+			}	/* End of while */
+		}
+
+		/* Endof SA_MSG_QUEUE_GROUP_LOCAL_ROUND_ROBIN if */
+		/* Queue Selected, return the result */
+		pGinfo->pQueue = pQelm;	/* This is current selected Queue */
+		pGinfo->plaQueue = pQelm;	/* update last selected Queue */
+	} else {		/* Other policy not supported */
+
+		pGinfo->pQueue = 0;
+	}
+
+	return NCSCC_RC_SUCCESS;
+}	/* End of asapi_queue_select() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_object_find
@@ -1021,13 +949,13 @@ uns32 asapi_queue_select(ASAPi_GROUP_INFO *pGinfo)
 \****************************************************************************/
 static ASAPi_CACHE_INFO *asapi_object_find(SaNameT *pObj)
 {
-   ASAPi_CACHE_INFO  *pNode = 0;   
-   
-   /* Find the cache node : If exist */
-   pNode = ncs_find_item(&asapi.cache, (NCSCONTEXT)pObj, asapi_obj_cmp);
-   return pNode; 
-   
-} /* End of asapi_object_find() */
+	ASAPi_CACHE_INFO *pNode = 0;
+
+	/* Find the cache node : If exist */
+	pNode = ncs_find_item(&asapi.cache, (NCSCONTEXT)pObj, asapi_obj_cmp);
+	return pNode;
+
+}	/* End of asapi_object_find() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_object_destroy
@@ -1042,25 +970,24 @@ static ASAPi_CACHE_INFO *asapi_object_find(SaNameT *pObj)
 \****************************************************************************/
 static void asapi_object_destroy(SaNameT *pObj)
 {
-   ASAPi_CACHE_INFO  *pCache = 0;
-   ASAPi_QUEUE_INFO  *pQinfo = 0;
-   
-   /* Find the cache node : If exist */
-   pCache = ncs_remove_item(&asapi.cache, (NCSCONTEXT)pObj, asapi_obj_cmp);
-   if(pCache) {
-      if(ASAPi_OBJ_GROUP == pCache->objtype) {
-         /* Clean up all the Queues if any in the group */
-         while((pQinfo = ncs_dequeue(&pCache->info.ginfo.qlist))) {
-            m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id);
-         }
-         
-         /* Destroy the queue list */
-         ncs_destroy_queue(&pCache->info.ginfo.qlist);
-      }      
-      m_MMGR_FREE_ASAPi_CACHE_INFO(pCache, asapi.my_svc_id);
-   }   
-} /* End of asapi_object_destroy() */
+	ASAPi_CACHE_INFO *pCache = 0;
+	ASAPi_QUEUE_INFO *pQinfo = 0;
 
+	/* Find the cache node : If exist */
+	pCache = ncs_remove_item(&asapi.cache, (NCSCONTEXT)pObj, asapi_obj_cmp);
+	if (pCache) {
+		if (ASAPi_OBJ_GROUP == pCache->objtype) {
+			/* Clean up all the Queues if any in the group */
+			while ((pQinfo = ncs_dequeue(&pCache->info.ginfo.qlist))) {
+				m_MMGR_FREE_ASAPi_QUEUE_INFO(pQinfo, asapi.my_svc_id);
+			}
+
+			/* Destroy the queue list */
+			ncs_destroy_queue(&pCache->info.ginfo.qlist);
+		}
+		m_MMGR_FREE_ASAPi_CACHE_INFO(pCache, asapi.my_svc_id);
+	}
+}	/* End of asapi_object_destroy() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_obj_cmp
@@ -1072,31 +999,27 @@ static void asapi_object_destroy(SaNameT *pObj)
    
    RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL asapi_obj_cmp(void* key, void* qelem)
+static NCS_BOOL asapi_obj_cmp(void *key, void *qelem)
 {
-   NCS_BOOL          match = FALSE;
-   ASAPi_CACHE_INFO  *pNode = (ASAPi_CACHE_INFO *)qelem;
-   uns32             cmp = 0;
+	NCS_BOOL match = FALSE;
+	ASAPi_CACHE_INFO *pNode = (ASAPi_CACHE_INFO *)qelem;
+	uns32 cmp = 0;
 
-   /* Match the object content */
-   if(ASAPi_OBJ_QUEUE == pNode->objtype) {
-      if (((SaNameT *)key)->length != pNode->info.qinfo.param.name.length)
-          return FALSE;
-      cmp = memcmp(((SaNameT *)key)->value, 
-                           pNode->info.qinfo.param.name.value, 
-                           ((SaNameT *)key)->length);
-   }
-   else if(ASAPi_OBJ_GROUP == pNode->objtype) {
-      if (((SaNameT *)key)->length != pNode->info.ginfo.group.length)
-          return FALSE;
-      cmp = memcmp(((SaNameT *)key)->value, 
-                            pNode->info.ginfo.group.value,
-                           ((SaNameT *)key)->length);
-   }
+	/* Match the object content */
+	if (ASAPi_OBJ_QUEUE == pNode->objtype) {
+		if (((SaNameT *)key)->length != pNode->info.qinfo.param.name.length)
+			return FALSE;
+		cmp = memcmp(((SaNameT *)key)->value, pNode->info.qinfo.param.name.value, ((SaNameT *)key)->length);
+	} else if (ASAPi_OBJ_GROUP == pNode->objtype) {
+		if (((SaNameT *)key)->length != pNode->info.ginfo.group.length)
+			return FALSE;
+		cmp = memcmp(((SaNameT *)key)->value, pNode->info.ginfo.group.value, ((SaNameT *)key)->length);
+	}
 
-   if(!cmp) match = TRUE;   
-   return match;
-} /* End of asapi_obj_cmp() */
+	if (!cmp)
+		match = TRUE;
+	return match;
+}	/* End of asapi_obj_cmp() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_queue_cmp
@@ -1109,15 +1032,15 @@ static NCS_BOOL asapi_obj_cmp(void* key, void* qelem)
    
    RETURNS        :  TRUE(If sucessfully matched)/FALSE(No match)                     
 \****************************************************************************/
-static NCS_BOOL asapi_queue_cmp(void* key, void* elem)
+static NCS_BOOL asapi_queue_cmp(void *key, void *elem)
 {
-   ASAPi_QUEUE_INFO *pQelm = (ASAPi_QUEUE_INFO *)elem;
+	ASAPi_QUEUE_INFO *pQelm = (ASAPi_QUEUE_INFO *)elem;
 
-   if(!memcmp(&pQelm->param.name, (SaNameT *)key, sizeof(SaNameT))) {
-      return TRUE;
-   }
-   return FALSE;
-} /* End of asapi_queue_cmp() */
+	if (!memcmp(&pQelm->param.name, (SaNameT *)key, sizeof(SaNameT))) {
+		return TRUE;
+	}
+	return FALSE;
+}	/* End of asapi_queue_cmp() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_msg_free
@@ -1131,27 +1054,30 @@ static NCS_BOOL asapi_queue_cmp(void* key, void* elem)
 \****************************************************************************/
 void asapi_msg_free(ASAPi_MSG_INFO **msg)
 {
-   ASAPi_OBJECT_INFO *pInfo = 0;
+	ASAPi_OBJECT_INFO *pInfo = 0;
 
-   if(!(*msg)) return;
-   
-   /* Ceck the usage count before freeing the message */
-   if((*msg)->usg_cnt) {
-      (*msg)->usg_cnt--;
-      return; /* We can't free ... */
-   }
+	if (!(*msg))
+		return;
 
-   if(ASAPi_MSG_NRESOLVE_RESP == (*msg)->msgtype) pInfo = &((*msg)->info.nresp.oinfo); 
-   else if(ASAPi_MSG_TRACK_NTFY == (*msg)->msgtype) pInfo = &((*msg)->info.tntfy.oinfo); 
-   
-   if((pInfo) && (pInfo->qparam)) {
-      m_MMGR_FREE_ASAPi_DEFAULT_VAL(pInfo->qparam, asapi.my_svc_id); /* Free the queue */
-      pInfo->qparam = 0;
-   }         
-   
-   m_MMGR_FREE_ASAPi_MSG_INFO((*msg), asapi.my_svc_id); /* Free the ASAPi Message */
-   *msg = 0;   
-} /* End of asapi_msg_free() */
+	/* Ceck the usage count before freeing the message */
+	if ((*msg)->usg_cnt) {
+		(*msg)->usg_cnt--;
+		return;		/* We can't free ... */
+	}
+
+	if (ASAPi_MSG_NRESOLVE_RESP == (*msg)->msgtype)
+		pInfo = &((*msg)->info.nresp.oinfo);
+	else if (ASAPi_MSG_TRACK_NTFY == (*msg)->msgtype)
+		pInfo = &((*msg)->info.tntfy.oinfo);
+
+	if ((pInfo) && (pInfo->qparam)) {
+		m_MMGR_FREE_ASAPi_DEFAULT_VAL(pInfo->qparam, asapi.my_svc_id);	/* Free the queue */
+		pInfo->qparam = 0;
+	}
+
+	m_MMGR_FREE_ASAPi_MSG_INFO((*msg), asapi.my_svc_id);	/* Free the ASAPi Message */
+	*msg = 0;
+}	/* End of asapi_msg_free() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_msg_cpy
@@ -1168,39 +1094,40 @@ void asapi_msg_free(ASAPi_MSG_INFO **msg)
 \****************************************************************************/
 uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
 {
-   ASAPi_MSG_INFO          *pMsg = 0;
-   ASAPi_OBJECT_INFO       *info = 0;
+	ASAPi_MSG_INFO *pMsg = 0;
+	ASAPi_OBJECT_INFO *info = 0;
 
-   if(!from) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   
-   *to = 0;   
-   pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(asapi.my_svc_id); /* Allocate new MSG envelop */
-   if(!pMsg) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* Memmory failure ... */ 
-   }
-   memcpy(pMsg, from, sizeof(ASAPi_MSG_INFO));
+	if (!from) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   /* Need to futher re-alloc internal messages if any offor certian type of 
-    * messages
-   */
-   if(ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype) info = &pMsg->info.nresp.oinfo;
-   else if(ASAPi_MSG_TRACK_NTFY == pMsg->msgtype) info = &pMsg->info.tntfy.oinfo;
-   
-   if((info) && (info->qcnt)) {
-      info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(info->qcnt*sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
-      if(!info->qparam) {
-         return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);         
-      }
-      memcpy(info->qparam, (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype)?
-         &pMsg->info.nresp.oinfo.qparam:&pMsg->info.tntfy.oinfo.qparam, 
-         sizeof(ASAPi_QUEUE_PARAM));
-   }   
-   
-   *to = pMsg;
-   return NCSCC_RC_SUCCESS;
-} /* End of asapi_msg_cpy() */
+	*to = 0;
+	pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(asapi.my_svc_id);	/* Allocate new MSG envelop */
+	if (!pMsg) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* Memmory failure ... */
+	}
+	memcpy(pMsg, from, sizeof(ASAPi_MSG_INFO));
+
+	/* Need to futher re-alloc internal messages if any offor certian type of 
+	 * messages
+	 */
+	if (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype)
+		info = &pMsg->info.nresp.oinfo;
+	else if (ASAPi_MSG_TRACK_NTFY == pMsg->msgtype)
+		info = &pMsg->info.tntfy.oinfo;
+
+	if ((info) && (info->qcnt)) {
+		info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(info->qcnt * sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
+		if (!info->qparam) {
+			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+		memcpy(info->qparam, (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype) ?
+		       &pMsg->info.nresp.oinfo.qparam : &pMsg->info.tntfy.oinfo.qparam, sizeof(ASAPi_QUEUE_PARAM));
+	}
+
+	*to = pMsg;
+	return NCSCC_RC_SUCCESS;
+}	/* End of asapi_msg_cpy() */
 
 /*****************************************************************************
 
@@ -1226,10 +1153,10 @@ uns32 asapi_msg_cpy(ASAPi_MSG_INFO *from, ASAPi_MSG_INFO **to)
 
 #if (ASAPi_DEBUG == 1)
 
-uns32 asapi_dbg_sink(uns32 l, char* f, uns32 code)
-  {
-  printf ("IN ASAPi_DBG_SINK: line %d, file %s\n",l,f);
-  return code;
-  }
+uns32 asapi_dbg_sink(uns32 l, char *f, uns32 code)
+{
+	printf("IN ASAPi_DBG_SINK: line %d, file %s\n", l, f);
+	return code;
+}
 
 #endif

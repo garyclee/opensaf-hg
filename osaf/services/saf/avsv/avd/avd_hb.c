@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,7 +29,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-
 
   
 ******************************************************************************
@@ -63,32 +60,29 @@
 
 uns32 avd_init_heartbeat(AVD_CL_CB *cb)
 {
-   m_AVD_LOG_FUNC_ENTRY("avd_init_heartbeat");
+	m_AVD_LOG_FUNC_ENTRY("avd_init_heartbeat");
 
-   /* 
-    * Send the heartbeat message to the other AvD, start the send heartbeat timer and  
-    * start the receive timer for receiving heart beat messages from the other AvD.
-    */
-   if (NCSCC_RC_SUCCESS != avd_snd_hb_msg(cb))
-   {
-      /* Log error */
-      m_AVD_LOG_CKPT_EVT(AVD_HB_MSG_SND_FAILURE, 
-            NCSFL_SEV_EMERGENCY, NCSCC_RC_FAILURE);
-   }
+	/* 
+	 * Send the heartbeat message to the other AvD, start the send heartbeat timer and  
+	 * start the receive timer for receiving heart beat messages from the other AvD.
+	 */
+	if (NCSCC_RC_SUCCESS != avd_snd_hb_msg(cb)) {
+		/* Log error */
+		m_AVD_LOG_CKPT_EVT(AVD_HB_MSG_SND_FAILURE, NCSFL_SEV_EMERGENCY, NCSCC_RC_FAILURE);
+	}
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
-   avd_stop_tmr(cb, &cb->heartbeat_send_avd);
-   m_AVD_SND_HB_TMR_START(cb);
+	avd_stop_tmr(cb, &cb->heartbeat_send_avd);
+	m_AVD_SND_HB_TMR_START(cb);
 
-   avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
-   m_AVD_RCV_HB_TMR_START(cb);
+	avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
+	m_AVD_RCV_HB_TMR_START(cb);
 
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avd_d2d_heartbeat_msg_func
@@ -109,31 +103,29 @@ uns32 avd_init_heartbeat(AVD_CL_CB *cb)
 
 void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
 {
-   m_AVD_LOG_FUNC_ENTRY("avd_d2d_heartbeat_msg_func");
+	m_AVD_LOG_FUNC_ENTRY("avd_d2d_heartbeat_msg_func");
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-   avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	avd_stop_tmr(cb, &cb->heartbeat_rcv_avd);
 
-   /* Restart the receive heart beat timer for receiving
-    * next heart beat message. */
+	/* Restart the receive heart beat timer for receiving
+	 * next heart beat message. */
 
-   m_AVD_RCV_HB_TMR_START(cb);
-   
-   /* Inform AVM About the first heart beat recevied 
-      from peer AVD */
+	m_AVD_RCV_HB_TMR_START(cb);
 
-   if(FALSE == cb->avd_hrt_beat_rcvd)
-   {
-     avd_avm_d_hb_restore_msg(cb, cb->node_id_avd_other);
-     /* message sent to AVM */
-     cb->avd_hrt_beat_rcvd = TRUE;
-   }
- 
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	/* Inform AVM About the first heart beat recevied 
+	   from peer AVD */
 
-   return;
+	if (FALSE == cb->avd_hrt_beat_rcvd) {
+		avd_avm_d_hb_restore_msg(cb, cb->node_id_avd_other);
+		/* message sent to AVM */
+		cb->avd_hrt_beat_rcvd = TRUE;
+	}
+
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_tmr_snd_hb_func
@@ -152,39 +144,34 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-void avd_tmr_snd_hb_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   m_AVD_LOG_FUNC_ENTRY("avd_tmr_snd_hb_func");
+	m_AVD_LOG_FUNC_ENTRY("avd_tmr_snd_hb_func");
 
-   if ((cb->node_id_avd_other == 0) ||
-         (cb->other_avd_adest == 0) )
-      return;
+	if ((cb->node_id_avd_other == 0) || (cb->other_avd_adest == 0))
+		return;
 
-   if (evt->info.tmr.type != AVD_TMR_SND_HB)
-   {
-      /* log error that a wrong timer type value */
-      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-      return;
-   }
+	if (evt->info.tmr.type != AVD_TMR_SND_HB) {
+		/* log error that a wrong timer type value */
+		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
+		return;
+	}
 
-   /* Send Heart beat notify message to peer */
-   if (NCSCC_RC_SUCCESS != avd_snd_hb_msg(cb))
-   {
-      /* Log error */
-      m_AVD_LOG_CKPT_EVT(AVD_HB_MSG_SND_FAILURE, 
-            NCSFL_SEV_EMERGENCY, NCSCC_RC_FAILURE);
-   }
+	/* Send Heart beat notify message to peer */
+	if (NCSCC_RC_SUCCESS != avd_snd_hb_msg(cb)) {
+		/* Log error */
+		m_AVD_LOG_CKPT_EVT(AVD_HB_MSG_SND_FAILURE, NCSFL_SEV_EMERGENCY, NCSCC_RC_FAILURE);
+	}
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
-   avd_stop_tmr(cb, &cb->heartbeat_send_avd);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	avd_stop_tmr(cb, &cb->heartbeat_send_avd);
 
-   m_AVD_SND_HB_TMR_START(cb);
-   /*avd_start_tmr(cb,&(cb->heartbeat_send_avd),cb->snd_hb_intvl); */
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_SND_HB_TMR_START(cb);
+	/*avd_start_tmr(cb,&(cb->heartbeat_send_avd),cb->snd_hb_intvl); */
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_tmr_rcv_hb_d_func
@@ -206,48 +193,42 @@ void avd_tmr_snd_hb_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = AVD_AVND_NULL;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_d_func");
-   m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, 
-         NCSFL_SEV_NOTICE, cb->node_id_avd_other);
-   syslog(LOG_WARNING, "AVD: Heart Beat missed with standby director on %x",
-          cb->node_id_avd_other);
+	m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_d_func");
+	m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, NCSFL_SEV_NOTICE, cb->node_id_avd_other);
+	syslog(LOG_WARNING, "AVD: Heart Beat missed with standby director on %x", cb->node_id_avd_other);
 
-   /* we need not do a sync send to stanby */
-   cb->sync_required = FALSE;
+	/* we need not do a sync send to stanby */
+	cb->sync_required = FALSE;
 
-   if (evt->info.tmr.type != AVD_TMR_RCV_HB_D)
-   {
-      /* log error that a wrong timer type value */
-      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-      return;
-   }
+	if (evt->info.tmr.type != AVD_TMR_RCV_HB_D) {
+		/* log error that a wrong timer type value */
+		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
+		return;
+	}
 
-   /* Inform AVM About this */
-   avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
-  
-   /*Set the first heat beat variable to False */
-    cb->avd_hrt_beat_rcvd = FALSE;
+	/* Inform AVM About this */
+	avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
 
-   /* get avnd ptr to call avd_avm_mark_nd_absent */
-   if( (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other)) == AVD_AVND_NULL)
-   {
-      /* we can't do anything without getting avnd ptr. just return */
-      m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
-      return;
-   }
+	/*Set the first heat beat variable to False */
+	cb->avd_hrt_beat_rcvd = FALSE;
 
-   /* check if the node was undergoing shutdown, if so send shutdown response */
-   if(avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
-      avd_avm_send_reset_req(cb, &avnd->node_info.nodeName); 
+	/* get avnd ptr to call avd_avm_mark_nd_absent */
+	if ((avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other)) == AVD_AVND_NULL) {
+		/* we can't do anything without getting avnd ptr. just return */
+		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
+		return;
+	}
 
+	/* check if the node was undergoing shutdown, if so send shutdown response */
+	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
+		avd_avm_send_reset_req(cb, &avnd->node_info.nodeName);
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_tmr_rcv_hb_init_func
@@ -267,11 +248,10 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_mds_avd_up_func
@@ -288,11 +268,10 @@ void avd_tmr_rcv_hb_init_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_mds_avd_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_mds_avd_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_mds_avd_down_func
@@ -312,11 +291,10 @@ void avd_mds_avd_up_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_mds_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_mds_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_standby_tmr_rcv_hb_d_func
@@ -340,31 +318,27 @@ void avd_mds_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   m_AVD_LOG_FUNC_ENTRY("avd_standby_tmr_rcv_hb_d_func");
-   syslog(LOG_WARNING, "AVD: Heart Beat missed with active director on %x",
-          cb->node_id_avd_other);
+	m_AVD_LOG_FUNC_ENTRY("avd_standby_tmr_rcv_hb_d_func");
+	syslog(LOG_WARNING, "AVD: Heart Beat missed with active director on %x", cb->node_id_avd_other);
 
-   m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, 
-         NCSFL_SEV_NOTICE, cb->node_id_avd_other);
+	m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, NCSFL_SEV_NOTICE, cb->node_id_avd_other);
 
-   if (evt->info.tmr.type != AVD_TMR_RCV_HB_D)
-   {
-      /* log error that a wrong timer type value */
-      m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-      return;
-   }
+	if (evt->info.tmr.type != AVD_TMR_RCV_HB_D) {
+		/* log error that a wrong timer type value */
+		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
+		return;
+	}
 
-  /*Set the first heat beat variable to False */
-   cb->avd_hrt_beat_rcvd = FALSE;
+	/*Set the first heat beat variable to False */
+	cb->avd_hrt_beat_rcvd = FALSE;
 
-   /* Inform AVM About this */
-   avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
+	/* Inform AVM About this */
+	avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_standby_avd_down_func
@@ -384,11 +358,10 @@ void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_standby_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_standby_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_rcv_hb_msg
@@ -407,47 +380,39 @@ void avd_standby_avd_down_func(AVD_CL_CB *cb,AVD_EVT *evt)
 
 void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   AVD_D2D_MSG *d2d_msg = evt->info.avd_msg;
-   uns32 rc = NCSCC_RC_SUCCESS;
- 
-   m_AVD_LOG_FUNC_ENTRY("avd_rcv_hb_msg");
-   
-   if((SA_AMF_HA_ACTIVE == cb->avail_state_avd) &&
-      (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state))
-   {
-     /* There has been change in the role of peer AvD, so, we need to send
-        the role to the peer controller AvND. */
-      m_AVD_PXY_PXD_SUCC_LOG(
-        "avd_rcv_hb_d_msg: role changed. Prev nodeid,Chgd nodeid,Pre role,chgd role",
-        NULL, cb->node_id_avd_other, d2d_msg->msg_info.d2d_hrt_bt.node_id,
-        cb->avail_state_avd_other,
-        d2d_msg->msg_info.d2d_hrt_bt.avail_state);
-      rc = avd_avnd_send_role_change(cb, d2d_msg->msg_info.d2d_hrt_bt.node_id,
-                                     d2d_msg->msg_info.d2d_hrt_bt.avail_state);
-      if(NCSCC_RC_SUCCESS != rc)
-      {
-        m_AVD_PXY_PXD_ERR_LOG(
-        "avd_rcv_hb_d_msg: role sent failed. Node Id and role are",
-        NULL,d2d_msg->msg_info.d2d_hrt_bt.node_id,
-        d2d_msg->msg_info.d2d_hrt_bt.avail_state,0,0);
-      }
-      else
-      {
-         avd_d2n_msg_dequeue(cb);
-      }
+	AVD_D2D_MSG *d2d_msg = evt->info.avd_msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   }
+	m_AVD_LOG_FUNC_ENTRY("avd_rcv_hb_msg");
 
-   /* update our data */
-   cb->node_id_avd_other = d2d_msg->msg_info.d2d_hrt_bt.node_id;
-   cb->avail_state_avd_other = d2d_msg->msg_info.d2d_hrt_bt.avail_state;
-   
+	if ((SA_AMF_HA_ACTIVE == cb->avail_state_avd) &&
+	    (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state)) {
+		/* There has been change in the role of peer AvD, so, we need to send
+		   the role to the peer controller AvND. */
+		m_AVD_PXY_PXD_SUCC_LOG("avd_rcv_hb_d_msg: role changed. Prev nodeid,Chgd nodeid,Pre role,chgd role",
+				       NULL, cb->node_id_avd_other, d2d_msg->msg_info.d2d_hrt_bt.node_id,
+				       cb->avail_state_avd_other, d2d_msg->msg_info.d2d_hrt_bt.avail_state);
+		rc = avd_avnd_send_role_change(cb, d2d_msg->msg_info.d2d_hrt_bt.node_id,
+					       d2d_msg->msg_info.d2d_hrt_bt.avail_state);
+		if (NCSCC_RC_SUCCESS != rc) {
+			m_AVD_PXY_PXD_ERR_LOG("avd_rcv_hb_d_msg: role sent failed. Node Id and role are",
+					      NULL, d2d_msg->msg_info.d2d_hrt_bt.node_id,
+					      d2d_msg->msg_info.d2d_hrt_bt.avail_state, 0, 0);
+		} else {
+			avd_d2n_msg_dequeue(cb);
+		}
 
-   /* So we have received HB message. Time to process it */
-   avd_d2d_heartbeat_msg_func(cb);
+	}
 
-   /* free this msg */
-   avsv_d2d_msg_free(d2d_msg);
+	/* update our data */
+	cb->node_id_avd_other = d2d_msg->msg_info.d2d_hrt_bt.node_id;
+	cb->avail_state_avd_other = d2d_msg->msg_info.d2d_hrt_bt.avail_state;
 
-   return ;
+	/* So we have received HB message. Time to process it */
+	avd_d2d_heartbeat_msg_func(cb);
+
+	/* free this msg */
+	avsv_d2d_msg_free(d2d_msg);
+
+	return;
 }

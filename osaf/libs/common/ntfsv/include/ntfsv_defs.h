@@ -22,4 +22,4 @@
 #define NTF_MAJOR_VERSION 2
 #define NTF_MINOR_VERSION 1
 
-#endif /* NTFSV_DEFS_H */
+#endif   /* NTFSV_DEFS_H */

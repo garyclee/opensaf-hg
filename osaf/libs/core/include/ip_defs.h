@@ -22,15 +22,11 @@
 
   DESCRIPTION:
 
-
 ******************************************************************************
 */
 
-
 #ifndef IP_DEFS_H
 #define IP_DEFS_H
-
-
 
 /*****************************************************************************
  **                                                                         **
@@ -45,10 +41,9 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
- 
-EXTERN_C LEAPDLL_API int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
-EXTERN_C LEAPDLL_API unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 
+	EXTERN_C LEAPDLL_API int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
+	EXTERN_C LEAPDLL_API unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 
 /*****************************************************************************
  **                                                                         **
@@ -71,39 +66,39 @@ EXTERN_C LEAPDLL_API unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 #define NCS_SUPPORT_GET_PKT_INFO (0)
 #endif
 
-#define NCS_TS_SOCK_USE_MULTICAST_LOOP        1   /* yes */
+#define NCS_TS_SOCK_USE_MULTICAST_LOOP        1	/* yes */
 
 /* Does OS support unnumbered IPv4 interfaces*/
-#define NCS_OS_SUPPORTS_UNNUMBERED   1   /* Yes */
+#define NCS_OS_SUPPORTS_UNNUMBERED   1	/* Yes */
 
 /* does IP stack require a separate multicast socket;
                          i.e. multicast is not supported */
-#define NCS_TS_SOCK_MULTICAST_READ_SOCKET     1   /* yes */
+#define NCS_TS_SOCK_MULTICAST_READ_SOCKET     1	/* yes */
 
 /* is bind to device supported ? */
-#define NCS_TS_SOCK_BINDTODEVICE_SUPPORTED    1   /* yes */
+#define NCS_TS_SOCK_BINDTODEVICE_SUPPORTED    1	/* yes */
 
 /* build ip hdr to send on raw socket - set to 1 (yes) */
-#define NCS_TS_SOCK_USE_IPHDR        1   /* yes*/
+#define NCS_TS_SOCK_USE_IPHDR        1	/* yes */
 /* build udp hdr to send on udp socket - set to 1 (yes) */
-#define NCS_TS_SOCK_USE_UDPHDR        0   /* No */
+#define NCS_TS_SOCK_USE_UDPHDR        0	/* No */
 
 /* use L2 simulated sockets for operating on multicast packets */
 /* Undefine/redefine if defined already in ncs_scktprm.h */
 #ifdef NCS_USE_L2_MCAST_SOCK
 #undef NCS_USE_L2_MCAST_SOCK
-#define NCS_USE_L2_MCAST_SOCK (1)    /* No */
+#define NCS_USE_L2_MCAST_SOCK (1)	/* No */
 #endif
 
 /* structure needed when joining a socket to a multicast group */
 #define NCS_TS_SOCK_MREQ_OBJ struct ip_mreqn
 
-struct ncs_socket_entry_tag;
+	struct ncs_socket_entry_tag;
 #if (NCS_IPV6 == 1)
 #define m_NCS_TS_SOCK_IPV6_MREQ_OBJ struct ipv6_mreq
 #define m_IP_SVC_MC_SET_IPV6_SND_IF(se) ipv6_svc_mc_lin_set_snd_if(se)
-extern uns32 ipv6_svc_mc_lin_set_snd_if(struct ncs_socket_entry_tag*    se);
-extern int os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6);
+	extern uns32 ipv6_svc_mc_lin_set_snd_if(struct ncs_socket_entry_tag *se);
+	extern int os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6);
 #endif
 
 /* set up the socket multicast address structure */
@@ -113,13 +108,11 @@ extern int os_ipv6_to_ifidx(NCS_IPV6_ADDR hbo_ipv6);
  (s).imr_ifindex          = (i);                  \
 }
 
-
 #define m_IP_SVC_MC_SET_SND_IF(se) ip_svc_mc_lin_set_snd_if(se)
-extern uns32 ip_svc_mc_lin_set_snd_if(struct ncs_socket_entry_tag*    se);
+	extern uns32 ip_svc_mc_lin_set_snd_if(struct ncs_socket_entry_tag *se);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* IP_DEFS_H */
-
+#endif   /* IP_DEFS_H */

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: Common DTSv sub-part messaging formats that travels between 
@@ -42,7 +40,6 @@
 #define MBCSV_MEM_MDS_REG       5
 #define MBCSV_MEM_SVC_REG       6
 #define MBCSV_MEM_PEER_LIST     7
-
 
 /* Allocate and free MBCSV message */
 #define m_MMGR_ALLOC_MBCSV_EVT      (MBCSV_EVT *)m_NCS_MEM_ALLOC(sizeof(MBCSV_EVT), \
@@ -91,5 +88,5 @@
 
 #define m_MMGR_FREE_PEER_LIST_IN(p)  m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                      NCS_SERVICE_ID_MBCSV, MBCSV_MEM_PEER_LIST)
-#endif
 
+#endif

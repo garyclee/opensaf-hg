@@ -29,23 +29,19 @@
 #ifndef HCD_MEM_H
 #define HCD_MEM_H
 
-
 /* Service Sub IDs for HISv - HAM */
-typedef enum
-{
-   NCS_SERVICE_HAM_CB = 1,
-   NCS_SERVICE_HISV_MSG,
-   NCS_SERVICE_HSM_CB,
-   NCS_SERVICE_SIM_CB,
-   NCS_SERVICE_HISV_DATA,
-   NCS_SERVICE_HSM_INV_DATA,
-   NCS_SERVICE_HISV_EVT,
-   NCS_SERVICE_SIM_EVT,
-   NCS_SERVICE_HPI_DOM_ARGS,
-   NCS_SERVICE_HAM_ADEST
-
+typedef enum {
+	NCS_SERVICE_HAM_CB = 1,
+	NCS_SERVICE_HISV_MSG,
+	NCS_SERVICE_HSM_CB,
+	NCS_SERVICE_SIM_CB,
+	NCS_SERVICE_HISV_DATA,
+	NCS_SERVICE_HSM_INV_DATA,
+	NCS_SERVICE_HISV_EVT,
+	NCS_SERVICE_SIM_EVT,
+	NCS_SERVICE_HPI_DOM_ARGS,
+	NCS_SERVICE_HAM_ADEST
 } NCS_SERVICE_HAM_SUBID;
-
 
 /****************************************
  * Memory Allocation and Release Macros *
@@ -162,4 +158,4 @@ typedef enum
                                            NCS_SERVICE_ID_HCD, \
                                            NCS_SERVICE_HSM_INV_DATA)
 
-#endif /* !HCD_MEM_H */
+#endif   /* !HCD_MEM_H */

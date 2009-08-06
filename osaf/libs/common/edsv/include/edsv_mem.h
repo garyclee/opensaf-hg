@@ -28,22 +28,19 @@
 
 #include "eda.h"
 
-
 /* Service Sub IDs for EDA */
-typedef enum
-{  
+typedef enum {
    /** Must start from where NCS_SERVICE_EDA_SUBID ends 
     ** as there is no service id for EDSV
     **/
-   NCS_SERVICE_SUB_ID_EDSV_MSG = NCS_SERVICE_SUB_ID_EDA_SUB_MAX,
-   NCS_SERVICE_SUB_ID_EDSV_EVENT_PATTERN_ARRAY,
-   NCS_SERVICE_SUB_ID_EDSV_EVENT_PATTERNS,
-   NCS_SERVICE_SUB_ID_EDSV_EVENT_FILTER_ARRAY,
-   NCS_SERVICE_SUB_ID_EDSV_EVENT_FILTERS,
-   NCS_SERVICE_SUB_ID_EDSV_EVENT_DATA,
-   NCS_SERVICE_SUB_ID_EDSV_CKPT_MSG
+	NCS_SERVICE_SUB_ID_EDSV_MSG = NCS_SERVICE_SUB_ID_EDA_SUB_MAX,
+	NCS_SERVICE_SUB_ID_EDSV_EVENT_PATTERN_ARRAY,
+	NCS_SERVICE_SUB_ID_EDSV_EVENT_PATTERNS,
+	NCS_SERVICE_SUB_ID_EDSV_EVENT_FILTER_ARRAY,
+	NCS_SERVICE_SUB_ID_EDSV_EVENT_FILTERS,
+	NCS_SERVICE_SUB_ID_EDSV_EVENT_DATA,
+	NCS_SERVICE_SUB_ID_EDSV_CKPT_MSG
 } NCS_SERVICE_EDSV_SUBID;
-
 
 /****************************************
  * Memory Allocation and Release Macros *
@@ -51,7 +48,7 @@ typedef enum
 #define m_MMGR_ALLOC_EDSV_MSG        (EDSV_MSG *)m_NCS_MEM_ALLOC(sizeof(EDSV_MSG), \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDA, \
-                                            NCS_SERVICE_SUB_ID_EDSV_MSG) 
+                                            NCS_SERVICE_SUB_ID_EDSV_MSG)
 
 #define m_MMGR_FREE_EDSV_MSG(p)         m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
@@ -91,7 +88,6 @@ typedef enum
                                                 NCS_SERVICE_ID_EDA, \
                                                 NCS_SERVICE_SUB_ID_EDSV_EVENT_FILTER_ARRAY)
 
-    
 #define m_MMGR_ALLOC_EVENT_FILTERS(n)  (SaEvtEventFilterT *) \
                                              m_NCS_MEM_ALLOC((n * sizeof(SaEvtEventFilterT)), \
                                                        NCS_MEM_REGION_PERSISTENT, \
@@ -114,4 +110,4 @@ typedef enum
                                             NCS_SERVICE_ID_EDA, \
                                             NCS_SERVICE_SUB_ID_EDSV_EVENT_DATA)
 
-#endif /* !EDSV_MEM_H */
+#endif   /* !EDSV_MEM_H */

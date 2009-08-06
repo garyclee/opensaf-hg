@@ -17,7 +17,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:  This file declares utility macros.
@@ -27,22 +26,18 @@
 #ifndef NCS_UTIL_H
 #define NCS_UTIL_H
 
-
- 
- #define m_NCS_ENC_MSG_FMT_GET(rem_ver,rem_ver_min,rem_ver_max,msg_fmt_array) \
+#define m_NCS_ENC_MSG_FMT_GET(rem_ver,rem_ver_min,rem_ver_max,msg_fmt_array) \
    (((rem_ver) < (rem_ver_min))?0:\
    (((rem_ver) >= (rem_ver_max))?((msg_fmt_array)[(rem_ver_max) - (rem_ver_min)]):\
    ((msg_fmt_array)[(rem_ver) - (rem_ver_min)])))
- 
- 
- 
- 
+
 #define m_NCS_MSG_FORMAT_IS_VALID(                                    \
                msg_fmt_version,rem_ver_min,rem_ver_max,msg_fmt_array) \
                (((msg_fmt_version) > (msg_fmt_array)[(rem_ver_max) - (rem_ver_min)])?\
                0:(((msg_fmt_version) < (msg_fmt_array)[0])?0:1))
 
- #define m_NCS_MBCSV_FMT_GET(peer_mbcsv_ver,mbcsv_ver,mbcsv_ver_min) \
+#define m_NCS_MBCSV_FMT_GET(peer_mbcsv_ver,mbcsv_ver,mbcsv_ver_min) \
                 (((peer_mbcsv_ver) < (mbcsv_ver_min))?0:\
                 (((peer_mbcsv_ver) >=(mbcsv_ver))?(mbcsv_ver):(peer_mbcsv_ver)))
+
 #endif

@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +29,6 @@
  */
 #ifndef MAB_TGT_H
 #define MAB_TGT_H
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -87,23 +83,20 @@
  * MAB_DEBUG can be enabled in mab_opt,h
  */
 
-
 #if (MAB_DEBUG == 1)
 
-EXTERN_C MABCOM_API uns32 mab_dbg_sink (uns32,char*,uns32);
+EXTERN_C MABCOM_API uns32 mab_dbg_sink(uns32, char *, uns32);
 
 /* m_MAB_DBG_VOID() used to keep compiler happy @ void return functions */
 
 #define m_MAB_DBG_SINK(r)  mab_dbg_sink(__LINE__,__FILE__,(uns32)r)
 #define m_MAB_DBG_SINK_VOID(r)  mab_dbg_sink(__LINE__,__FILE__,(uns32)r)
 #define m_MAB_DBG_VOID     mab_dbg_sink(__LINE__,__FILE__,1)
-
 #else
 
 #define m_MAB_DBG_SINK(r)  r
-#define m_MAB_DBG_SINK_VOID(r)  
+#define m_MAB_DBG_SINK_VOID(r)
 #define m_MAB_DBG_VOID
-
 #endif
 
 /*
@@ -123,13 +116,10 @@ EXTERN_C MABCOM_API uns32 mab_dbg_sink (uns32,char*,uns32);
 #if (MAB_TRACE == 1)
 
 #define m_MAB_DBG_TRACE(t) printf(t)
-
 #else
 
 #define m_MAB_DBG_TRACE(t)
-
 #endif
-
 
 /*
  * m_MAB_DBG_TRACE2_XXXX
@@ -149,24 +139,20 @@ EXTERN_C MABCOM_API uns32 mab_dbg_sink (uns32,char*,uns32);
 
 #if (MAB_TRACE2 == 1)
 
-typedef enum mab_fmode
-{
-  MFM_CREATE,
-  MFM_MODIFY,
-  MFM_DESTROY
-
+typedef enum mab_fmode {
+	MFM_CREATE,
+	MFM_MODIFY,
+	MFM_DESTROY
 } MAB_FMODE;
 
 /* forward declarations to make the compiler happy */
 struct mas_tbl;
 struct mas_fltr;
 
-EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
-                                   struct mas_fltr* fltr,
-                                   uns32            tbl_id,
-                                   MAB_FMODE        mode);
+EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl *inst,
+					      struct mas_fltr *fltr, uns32 tbl_id, MAB_FMODE mode);
 
-#if (NCS_RMS == 1) 
+#if (NCS_RMS == 1)
 
 #define m_MAB_DBG_TRACE2_MAS_IN(i,m) \
   printf("\nMAS:%p,role:%s | MSG:%p\n", \
@@ -181,17 +167,15 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
                     inst, \
                     "NONE", \
                       msg)
-
-#endif 
+#endif
 
 #define m_MAB_DBG_TRACE2_MAS_TR_ALLOC(tr) \
   printf("\n ALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
 
-
 #define m_MAB_DBG_TRACE2_MAS_TR_DALLOC(tr) \
   printf("\n DEALLOCED TBL:(id:%d):%p\n",tr->tbl_id,tr)
 
-#if (NCS_RMS == 1) 
+#if (NCS_RMS == 1)
 
 #define m_MAB_DBG_TRACE2_MAS_DF_OP(i,m,tr,o) \
   printf("\n[DEF FLTR]:MAS_TBL:%p/role:%s/tbl_id:%d/vcard:%d/anc:%d\n", \
@@ -199,7 +183,6 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
       i->re.role == NCSFT_ROLE_PRIMARY ? "PRIMARY" : "OTHER", \
       tr->tbl_id, \
       tr->dfltr.vcard,msg->fr_anc)
-
 #else
 
 #define m_MAB_DBG_TRACE2_MAS_DF_OP(i,m,tr,o) \
@@ -208,15 +191,9 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
       "NONE", \
       tr->tbl_id, \
       tr->dfltr.vcard,msg->fr_anc)
-
 #endif
 
 #define m_MAB_DBG_TRACE2_MAS_MF_OP(i,mf,tid,o) mab_dbg_dump_fltr_op(i,mf,tid,o)
-        
-
-
-
-
 #else
 
 #define m_MAB_DBG_TRACE2_MAS_IN(i,m)
@@ -224,19 +201,7 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
 #define m_MAB_DBG_TRACE2_MAS_TR_DALLOC(tr)
 #define m_MAB_DBG_TRACE2_MAS_DF_OP(i,m,tr,o)
 #define m_MAB_DBG_TRACE2_MAS_MF_OP(i,mf,tid,o)
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
 
 /*
  * m_<MAB>_VALIDATE_HDL
@@ -255,12 +220,10 @@ EXTERN_C MABCOM_API void mab_dbg_dump_fltr_op(struct mas_tbl*  inst,
  *       store this however it wants.
  */
 
-
-EXTERN_C MABCOM_API void* sysf_mac_validate(uns32 k);
-EXTERN_C MABCOM_API void* sysf_mas_validate(uns32 k);
-EXTERN_C MABCOM_API void* sysf_oac_validate(uns32 k);
-EXTERN_C MABCOM_API void* sysf_pss_validate(uns32 k);
-
+EXTERN_C MABCOM_API void *sysf_mac_validate(uns32 k);
+EXTERN_C MABCOM_API void *sysf_mas_validate(uns32 k);
+EXTERN_C MABCOM_API void *sysf_oac_validate(uns32 k);
+EXTERN_C MABCOM_API void *sysf_pss_validate(uns32 k);
 
 /* The MAC validate macro */
 
@@ -278,354 +241,289 @@ EXTERN_C MABCOM_API void* sysf_pss_validate(uns32 k);
 
 #define m_PSS_VALIDATE_HDL(k)  sysf_pss_validate(k)
 
-
 /* Define PSS Target Service API here */
-#define NCS_PSSTS_PROFILE_DESC_FILE     "ProDesc.txt" /* Profile Description file name */
-#define NCS_PSSTS_MAX_PATH_LEN           256          /* Maximum length of the path of a file */
-#define NCS_PSSTS_ROOT_DIRECTORY         "c:"         /* Default root directory */
-#define NCS_PSSTS_DEFAULT_PROFILE        "current"    /* Current profile name   */
-#define NCS_PSSTS_TEMP_FILE_NAME         "tmp123.dat" /* Temporary file name    */
+#define NCS_PSSTS_PROFILE_DESC_FILE     "ProDesc.txt"	/* Profile Description file name */
+#define NCS_PSSTS_MAX_PATH_LEN           256	/* Maximum length of the path of a file */
+#define NCS_PSSTS_ROOT_DIRECTORY         "c:"	/* Default root directory */
+#define NCS_PSSTS_DEFAULT_PROFILE        "current"	/* Current profile name   */
+#define NCS_PSSTS_TEMP_FILE_NAME         "tmp123.dat"	/* Temporary file name    */
 
-typedef enum
-{
-  NCS_PSSTS_OP_OPEN_FILE = 1,    /* Open an existing file for reading or a new/existing file for writing */
-  NCS_PSSTS_OP_READ_FILE,        /* Read in some data from an open file from a given offset */
-  NCS_PSSTS_OP_WRITE_FILE,       /* Write the given data to the file */
-  NCS_PSSTS_OP_CLOSE_FILE,       /* Close the opened file */
-  NCS_PSSTS_OP_FILE_EXISTS,      /* Returns TRUE if the file exists */
-  NCS_PSSTS_OP_FILE_SIZE,        /* Returns the size of the file */
-  NCS_PSSTS_OP_CREATE_PROFILE,   /* Creates a new profile. */
-  NCS_PSSTS_OP_MOVE_PROFILE,     /* Renames a profile. So, moves the corresponding directory */
-  NCS_PSSTS_OP_COPY_PROFILE,     /* Makes a copy of an existing profile */
-  NCS_PSSTS_OP_DELETE_PROFILE,   /* Delete the files associated with an existing profile */
-  NCS_PSSTS_OP_GET_PROFILE_DESC, /* Get the Description Text for a profile */
-  NCS_PSSTS_OP_SET_PROFILE_DESC, /* Set the Description Text for a profile */
-  NCS_PSSTS_OP_GET_PSS_CONFIG,   /* Retrieve the basic configuration for PSS */
-  NCS_PSSTS_OP_SET_PSS_CONFIG,   /* Set the basic configuration for PSS */
-  NCS_PSSTS_OP_FILE_DELETE,      /* Delete a MIB file in a given profile */
-  NCS_PSSTS_OP_PCN_DELETE,       /* Delete a PCN in a given profile */
-  NCS_PSSTS_OP_OPEN_TEMP_FILE,   /* Open a temporary file for writing some data */
-  NCS_PSSTS_OP_COPY_TEMP_FILE,   /* Copy the contents of the temporary file to the actual file */
-  NCS_PSSTS_OP_GET_NEXT_PROFILE, /* Get the next profile on the persistent store */
-  NCS_PSSTS_OP_GET_MIB_LIST_PER_PCN, /* Get the MIB files list for a <pwe><PCN> from the persistent store */
-  NCS_PSSTS_OP_PROFILE_EXISTS,   /* Check if the given profile exists */
-  NCS_PSSTS_OP_PWE_EXISTS,       /* Check if a pwe exists for a given profile */
-  NCS_PSSTS_OP_PCN_EXISTS,     /* Check if a vcard exists for a given profile, pwe */
-  NCS_PSSTS_OP_GET_CLIENTS,    /* Get the list of clients, given a profile */
-  NCS_PSSTS_OP_DELETE_TEMP_FILE,
-  NCS_PSSTS_OP_MOVE_TBL_DETAILS_FILE,
-  NCS_PSSTS_OP_DELETE_TBL_DETAILS_FILE,
-  NCS_PSSTS_OP_MAX
+typedef enum {
+	NCS_PSSTS_OP_OPEN_FILE = 1,	/* Open an existing file for reading or a new/existing file for writing */
+	NCS_PSSTS_OP_READ_FILE,	/* Read in some data from an open file from a given offset */
+	NCS_PSSTS_OP_WRITE_FILE,	/* Write the given data to the file */
+	NCS_PSSTS_OP_CLOSE_FILE,	/* Close the opened file */
+	NCS_PSSTS_OP_FILE_EXISTS,	/* Returns TRUE if the file exists */
+	NCS_PSSTS_OP_FILE_SIZE,	/* Returns the size of the file */
+	NCS_PSSTS_OP_CREATE_PROFILE,	/* Creates a new profile. */
+	NCS_PSSTS_OP_MOVE_PROFILE,	/* Renames a profile. So, moves the corresponding directory */
+	NCS_PSSTS_OP_COPY_PROFILE,	/* Makes a copy of an existing profile */
+	NCS_PSSTS_OP_DELETE_PROFILE,	/* Delete the files associated with an existing profile */
+	NCS_PSSTS_OP_GET_PROFILE_DESC,	/* Get the Description Text for a profile */
+	NCS_PSSTS_OP_SET_PROFILE_DESC,	/* Set the Description Text for a profile */
+	NCS_PSSTS_OP_GET_PSS_CONFIG,	/* Retrieve the basic configuration for PSS */
+	NCS_PSSTS_OP_SET_PSS_CONFIG,	/* Set the basic configuration for PSS */
+	NCS_PSSTS_OP_FILE_DELETE,	/* Delete a MIB file in a given profile */
+	NCS_PSSTS_OP_PCN_DELETE,	/* Delete a PCN in a given profile */
+	NCS_PSSTS_OP_OPEN_TEMP_FILE,	/* Open a temporary file for writing some data */
+	NCS_PSSTS_OP_COPY_TEMP_FILE,	/* Copy the contents of the temporary file to the actual file */
+	NCS_PSSTS_OP_GET_NEXT_PROFILE,	/* Get the next profile on the persistent store */
+	NCS_PSSTS_OP_GET_MIB_LIST_PER_PCN,	/* Get the MIB files list for a <pwe><PCN> from the persistent store */
+	NCS_PSSTS_OP_PROFILE_EXISTS,	/* Check if the given profile exists */
+	NCS_PSSTS_OP_PWE_EXISTS,	/* Check if a pwe exists for a given profile */
+	NCS_PSSTS_OP_PCN_EXISTS,	/* Check if a vcard exists for a given profile, pwe */
+	NCS_PSSTS_OP_GET_CLIENTS,	/* Get the list of clients, given a profile */
+	NCS_PSSTS_OP_DELETE_TEMP_FILE,
+	NCS_PSSTS_OP_MOVE_TBL_DETAILS_FILE,
+	NCS_PSSTS_OP_DELETE_TBL_DETAILS_FILE,
+	NCS_PSSTS_OP_MAX
 } NCS_PSSTS_REQUEST;
-
 
 /* Modes in which the files can be opened */
 #define NCS_PSSTS_FILE_PERM_READ   0x01
 #define NCS_PSSTS_FILE_PERM_WRITE  0x02
 
-
-typedef struct ncs_pssts_arg_open_file
-{
-    uns8 * i_profile_name;
-    char * i_pcn;
-    uns16  i_pwe_id;
-    uns32  i_tbl_id;
-    uns8   i_mode;    /* Mode in which the file is to be opened */
-    long  o_handle;
+typedef struct ncs_pssts_arg_open_file {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	uns16 i_pwe_id;
+	uns32 i_tbl_id;
+	uns8 i_mode;		/* Mode in which the file is to be opened */
+	long o_handle;
 } NCS_PSSTS_ARG_OPEN_FILE;
 
-
-typedef struct ncs_pssts_arg_read_file
-{
-    long  i_handle;
-    uns32  i_bytes_to_read;
-    uns32  i_offset;
-    uns8 * io_buffer;
-    uns32  o_bytes_read;
+typedef struct ncs_pssts_arg_read_file {
+	long i_handle;
+	uns32 i_bytes_to_read;
+	uns32 i_offset;
+	uns8 *io_buffer;
+	uns32 o_bytes_read;
 } NCS_PSSTS_ARG_READ_FILE;
 
-
-typedef struct ncs_pssts_arg_write_file
-{
-    long  i_handle;
-    uns8 * i_buffer;
-    uns32  i_buf_size;
+typedef struct ncs_pssts_arg_write_file {
+	long i_handle;
+	uns8 *i_buffer;
+	uns32 i_buf_size;
 } NCS_PSSTS_ARG_WRITE_FILE;
 
-
-typedef struct ncs_pssts_arg_close_file
-{
-    long i_handle;
+typedef struct ncs_pssts_arg_close_file {
+	long i_handle;
 } NCS_PSSTS_ARG_CLOSE_FILE;
 
-
-typedef struct ncs_pssts_arg_file_exists
-{
-    uns8 *  i_profile_name;
-    char *  i_pcn;
-    uns16   i_pwe_id;
-    uns32   i_tbl_id;
-    NCS_BOOL o_exists;
+typedef struct ncs_pssts_arg_file_exists {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	uns16 i_pwe_id;
+	uns32 i_tbl_id;
+	NCS_BOOL o_exists;
 } NCS_PSSTS_ARG_FILE_EXISTS;
 
-
-typedef struct ncs_pssts_arg_file_size
-{
-    uns8 * i_profile_name;
-    char * i_pcn;
-    uns16  i_pwe_id; 
-    uns32  i_tbl_id;
-    uns32  o_file_size;
+typedef struct ncs_pssts_arg_file_size {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	uns16 i_pwe_id;
+	uns32 i_tbl_id;
+	uns32 o_file_size;
 } NCS_PSSTS_ARG_FILE_SIZE;
 
-
-typedef struct ncs_pssts_arg_create_profile
-{
-    uns8 * i_profile_name;
+typedef struct ncs_pssts_arg_create_profile {
+	uns8 *i_profile_name;
 } NCS_PSSTS_ARG_CREATE_PROFILE;
 
-
-typedef struct ncs_pssts_arg_move_profile
-{
-    uns8 * i_profile_name;
-    uns8 * i_new_profile_name;
+typedef struct ncs_pssts_arg_move_profile {
+	uns8 *i_profile_name;
+	uns8 *i_new_profile_name;
 } NCS_PSSTS_ARG_MOVE_PROFILE;
 
-
-typedef struct ncs_pssts_arg_copy_profile
-{
-    uns8 * i_profile_name;
-    uns8 * i_new_profile_name;
+typedef struct ncs_pssts_arg_copy_profile {
+	uns8 *i_profile_name;
+	uns8 *i_new_profile_name;
 } NCS_PSSTS_ARG_COPY_PROFILE;
 
-
-typedef struct ncs_pssts_arg_delete_profile
-{
-    uns8 * i_profile_name;
+typedef struct ncs_pssts_arg_delete_profile {
+	uns8 *i_profile_name;
 } NCS_PSSTS_ARG_DELETE_PROFILE;
 
-typedef struct ncs_pssts_arg_delete_file
-{
-    uns8 * i_profile_name;
-    uns16  i_pwe;
-    char * i_pcn;
-    uns32  i_tbl_id;
+typedef struct ncs_pssts_arg_delete_file {
+	uns8 *i_profile_name;
+	uns16 i_pwe;
+	char *i_pcn;
+	uns32 i_tbl_id;
 } NCS_PSSTS_ARG_DELETE_FILE;
 
-typedef struct ncs_pssts_arg_delete_pcn
-{
-    uns8 * i_profile_name;
-    uns16  i_pwe;
-    char * i_pcn;
+typedef struct ncs_pssts_arg_delete_pcn {
+	uns8 *i_profile_name;
+	uns16 i_pwe;
+	char *i_pcn;
 } NCS_PSSTS_ARG_DELETE_PCN;
 
-typedef struct ncs_pssts_arg_get_desc
-{
-    uns8 * i_profile_name;
-    uns8 * io_buffer;
-    uns32  i_buf_length;
-    NCS_BOOL o_exists;
+typedef struct ncs_pssts_arg_get_desc {
+	uns8 *i_profile_name;
+	uns8 *io_buffer;
+	uns32 i_buf_length;
+	NCS_BOOL o_exists;
 } NCS_PSSTS_ARG_GET_DESC;
 
-
-typedef struct ncs_pssts_arg_set_desc
-{
-    uns8 * i_profile_name;
-    uns8 * i_buffer;
+typedef struct ncs_pssts_arg_set_desc {
+	uns8 *i_profile_name;
+	uns8 *i_buffer;
 } NCS_PSSTS_ARG_SET_DESC;
 
-
-typedef struct ncs_pssts_arg_pss_config
-{
-    uns8 * current_profile_name; /* null-terminated string */
+typedef struct ncs_pssts_arg_pss_config {
+	uns8 *current_profile_name;	/* null-terminated string */
 } NCS_PSSTS_ARG_PSS_CONFIG;
 
-
-typedef struct ncs_pssts_arg_set_config
-{
-    uns8 * i_current_profile_name; /* null-terminated string */
+typedef struct ncs_pssts_arg_set_config {
+	uns8 *i_current_profile_name;	/* null-terminated string */
 } NCS_PSSTS_ARG_SET_CONFIG;
 
-
-typedef struct ncs_pssts_arg_open_temp_file
-{
-    long  o_handle;             /* Handle to the opened file */
+typedef struct ncs_pssts_arg_open_temp_file {
+	long o_handle;		/* Handle to the opened file */
 } NCS_PSSTS_ARG_OPEN_TEMP_FILE;
 
-
-typedef struct ncs_pssts_arg_copy_temp_file
-{
-    uns8 *    i_profile_name;
-    char *    i_pcn;
-    uns16     i_pwe_id;
-    uns32     i_tbl_id;
+typedef struct ncs_pssts_arg_copy_temp_file {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	uns16 i_pwe_id;
+	uns32 i_tbl_id;
 } NCS_PSSTS_ARG_COPY_TEMP_FILE;
 
-
-typedef struct ncs_pssts_arg_get_next_profile
-{
-    uns8 *    i_profile_name;
-    uns8 *    io_buffer;
-    uns32     i_buf_length;
+typedef struct ncs_pssts_arg_get_next_profile {
+	uns8 *i_profile_name;
+	uns8 *io_buffer;
+	uns32 i_buf_length;
 } NCS_PSSTS_ARG_GET_NEXT_PROFILE;
 
-
-typedef struct ncs_pssts_arg_profile_exists
-{
-    uns8 *    i_profile_name;
-    NCS_BOOL   o_exists;
+typedef struct ncs_pssts_arg_profile_exists {
+	uns8 *i_profile_name;
+	NCS_BOOL o_exists;
 } NCS_PSSTS_ARG_PROFILE_EXISTS;
 
-
-typedef struct ncs_pssts_arg_pwe_exists
-{
-    uns8 *    i_profile_name;
-    uns16     i_pwe;
-    NCS_BOOL   o_exists;
+typedef struct ncs_pssts_arg_pwe_exists {
+	uns8 *i_profile_name;
+	uns16 i_pwe;
+	NCS_BOOL o_exists;
 } NCS_PSSTS_ARG_PWE_EXISTS;
 
-
-typedef struct ncs_pssts_arg_pcn_exists
-{
-    uns8 *    i_profile_name;
-    uns16     i_pwe;
-    char      *i_pcn;
-    NCS_BOOL   o_exists;
+typedef struct ncs_pssts_arg_pcn_exists {
+	uns8 *i_profile_name;
+	uns16 i_pwe;
+	char *i_pcn;
+	NCS_BOOL o_exists;
 } NCS_PSSTS_ARG_PCN_EXISTS;
 
-
-typedef struct ncs_pssts_arg_get_clients
-{
-    uns8 *    i_profile_name;
-    USRBUF    *o_usrbuf; /* Clients information is encoded and available here */
+typedef struct ncs_pssts_arg_get_clients {
+	uns8 *i_profile_name;
+	USRBUF *o_usrbuf;	/* Clients information is encoded and available here */
 } NCS_PSSTS_ARG_GET_CLIENTS;
 
-typedef struct ncs_pssts_arg_get_miblist_per_pcn
-{
-    uns8 *    i_profile_name;
-    char      *i_pcn;
-    USRBUF    *o_usrbuf; /* MIB LIST information is encoded and available here */
+typedef struct ncs_pssts_arg_get_miblist_per_pcn {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	USRBUF *o_usrbuf;	/* MIB LIST information is encoded and available here */
 } NCS_PSSTS_ARG_GET_MIBLIST_PER_PCN;
 
-typedef struct ncs_pssts_arg_move_tbl_details_file
-{
-    uns8 *    i_profile_name;
-    char      *i_pcn;
-    uns16     i_pwe_id;
-    uns32     i_tbl_id;
-}NCS_PSSTS_ARG_MOVE_TBL_DETAILS_FILE;
+typedef struct ncs_pssts_arg_move_tbl_details_file {
+	uns8 *i_profile_name;
+	char *i_pcn;
+	uns16 i_pwe_id;
+	uns32 i_tbl_id;
+} NCS_PSSTS_ARG_MOVE_TBL_DETAILS_FILE;
 
-typedef struct ncs_pssts_arg_tag
-{
-  NCS_PSSTS_REQUEST              i_op;        /* Specifies the request type */
-  uns32                         ncs_hdl;      /* Handle from Handle Manager */
-  union
-  {
-    NCS_PSSTS_ARG_OPEN_FILE      open_file;
-    NCS_PSSTS_ARG_READ_FILE      read_file;
-    NCS_PSSTS_ARG_WRITE_FILE     write_file;
-    NCS_PSSTS_ARG_CLOSE_FILE     close_file;
-    NCS_PSSTS_ARG_FILE_EXISTS    file_exists;
-    NCS_PSSTS_ARG_FILE_SIZE      file_size;
-    NCS_PSSTS_ARG_CREATE_PROFILE create_profile;
-    NCS_PSSTS_ARG_MOVE_PROFILE   move_profile;
-    NCS_PSSTS_ARG_COPY_PROFILE   copy_profile;
-    NCS_PSSTS_ARG_DELETE_PROFILE delete_profile;
-    NCS_PSSTS_ARG_DELETE_FILE    delete_file;
-    NCS_PSSTS_ARG_DELETE_PCN     delete_pcn;
-    NCS_PSSTS_ARG_GET_DESC       get_desc;
-    NCS_PSSTS_ARG_SET_DESC       set_desc;
-    NCS_PSSTS_ARG_PSS_CONFIG     pss_config;
-    NCS_PSSTS_ARG_SET_CONFIG     set_config;
-    NCS_PSSTS_ARG_OPEN_TEMP_FILE open_tfile;
-    NCS_PSSTS_ARG_COPY_TEMP_FILE copy_tfile;
-    NCS_PSSTS_ARG_GET_NEXT_PROFILE get_next;
-    NCS_PSSTS_ARG_PROFILE_EXISTS profile_exists;
-    NCS_PSSTS_ARG_PWE_EXISTS     pwe_exists;
-    NCS_PSSTS_ARG_PCN_EXISTS     pcn_exists;
-    NCS_PSSTS_ARG_GET_CLIENTS    get_clients;
-    NCS_PSSTS_ARG_GET_MIBLIST_PER_PCN  get_miblist_per_pcn;
-    /* Deleting temporary file : Arguments are not required for this as it is always in the same path with the same name */
-    NCS_PSSTS_ARG_MOVE_TBL_DETAILS_FILE move_detailsfile;
-    /* Deleting table details file: Structure NCS_PSSTS_ARG_DELETE_FILE can be used */
-  } info;
+typedef struct ncs_pssts_arg_tag {
+	NCS_PSSTS_REQUEST i_op;	/* Specifies the request type */
+	uns32 ncs_hdl;		/* Handle from Handle Manager */
+	union {
+		NCS_PSSTS_ARG_OPEN_FILE open_file;
+		NCS_PSSTS_ARG_READ_FILE read_file;
+		NCS_PSSTS_ARG_WRITE_FILE write_file;
+		NCS_PSSTS_ARG_CLOSE_FILE close_file;
+		NCS_PSSTS_ARG_FILE_EXISTS file_exists;
+		NCS_PSSTS_ARG_FILE_SIZE file_size;
+		NCS_PSSTS_ARG_CREATE_PROFILE create_profile;
+		NCS_PSSTS_ARG_MOVE_PROFILE move_profile;
+		NCS_PSSTS_ARG_COPY_PROFILE copy_profile;
+		NCS_PSSTS_ARG_DELETE_PROFILE delete_profile;
+		NCS_PSSTS_ARG_DELETE_FILE delete_file;
+		NCS_PSSTS_ARG_DELETE_PCN delete_pcn;
+		NCS_PSSTS_ARG_GET_DESC get_desc;
+		NCS_PSSTS_ARG_SET_DESC set_desc;
+		NCS_PSSTS_ARG_PSS_CONFIG pss_config;
+		NCS_PSSTS_ARG_SET_CONFIG set_config;
+		NCS_PSSTS_ARG_OPEN_TEMP_FILE open_tfile;
+		NCS_PSSTS_ARG_COPY_TEMP_FILE copy_tfile;
+		NCS_PSSTS_ARG_GET_NEXT_PROFILE get_next;
+		NCS_PSSTS_ARG_PROFILE_EXISTS profile_exists;
+		NCS_PSSTS_ARG_PWE_EXISTS pwe_exists;
+		NCS_PSSTS_ARG_PCN_EXISTS pcn_exists;
+		NCS_PSSTS_ARG_GET_CLIENTS get_clients;
+		NCS_PSSTS_ARG_GET_MIBLIST_PER_PCN get_miblist_per_pcn;
+		/* Deleting temporary file : Arguments are not required for this as it is always in the same path with the same name */
+		NCS_PSSTS_ARG_MOVE_TBL_DETAILS_FILE move_detailsfile;
+		/* Deleting table details file: Structure NCS_PSSTS_ARG_DELETE_FILE can be used */
+	} info;
 
 } NCS_PSSTS_ARG;
 
 typedef uns32 (*NCS_PSSTS) (NCS_PSSTS_ARG *parg);
 
-typedef enum
-{
-  NCS_PSSTS_LM_OP_CREATE = 1,
-  NCS_PSSTS_LM_OP_DESTROY,
-  NCS_PSSTS_LM_OP_MAX
-}NCS_PSSTS_LM_OP;
+typedef enum {
+	NCS_PSSTS_LM_OP_CREATE = 1,
+	NCS_PSSTS_LM_OP_DESTROY,
+	NCS_PSSTS_LM_OP_MAX
+} NCS_PSSTS_LM_OP;
 
-
-typedef struct ncs_pssts_lm_create
-{
-  uns32      i_usr_key;
-  uns8       i_hmpool_id;
-  uns8 *     i_root_dir;
-  uns32      o_handle;
+typedef struct ncs_pssts_lm_create {
+	uns32 i_usr_key;
+	uns8 i_hmpool_id;
+	uns8 *i_root_dir;
+	uns32 o_handle;
 } NCS_PSSTS_LM_CREATE;
 
-
-typedef struct ncs_pssts_lm_destroy
-{
-  uns32      i_handle;
+typedef struct ncs_pssts_lm_destroy {
+	uns32 i_handle;
 } NCS_PSSTS_LM_DESTROY;
 
-
-typedef struct ncs_pssts_cb
-{
-  uns8       hmpool_id;
-  uns32      hm_hdl;
-  uns8       root_dir[NCS_PSSTS_MAX_PATH_LEN];
-  uns8       current_profile[NCS_PSSTS_MAX_PATH_LEN];
-  uns32      my_key;
+typedef struct ncs_pssts_cb {
+	uns8 hmpool_id;
+	uns32 hm_hdl;
+	uns8 root_dir[NCS_PSSTS_MAX_PATH_LEN];
+	uns8 current_profile[NCS_PSSTS_MAX_PATH_LEN];
+	uns32 my_key;
 } NCS_PSSTS_CB;
 
-
-typedef struct ncs_pssts_lm_arg
-{
-  NCS_PSSTS_LM_OP              i_op;
-  union
-  {
-    NCS_PSSTS_LM_CREATE        create;
-    NCS_PSSTS_LM_DESTROY       destroy;
-  } info;
+typedef struct ncs_pssts_lm_arg {
+	NCS_PSSTS_LM_OP i_op;
+	union {
+		NCS_PSSTS_LM_CREATE create;
+		NCS_PSSTS_LM_DESTROY destroy;
+	} info;
 
 } NCS_PSSTS_LM_ARG;
 
 /* Sort table for list of profiles in the persistent store. */
-typedef struct ncs_pssts_sort_key_tag
-{
-   uns16 len;
-   char  name[NCS_PSSTS_MAX_PATH_LEN];
-}NCS_PSSTS_SORT_KEY;
+typedef struct ncs_pssts_sort_key_tag {
+	uns16 len;
+	char name[NCS_PSSTS_MAX_PATH_LEN];
+} NCS_PSSTS_SORT_KEY;
 
-typedef struct ncs_pssts_sort_node_tag
-{
-   NCS_PATRICIA_NODE pat_node;
+typedef struct ncs_pssts_sort_node_tag {
+	NCS_PATRICIA_NODE pat_node;
 
-   NCS_PSSTS_SORT_KEY key;
-}NCS_PSSTS_SORT_NODE;
+	NCS_PSSTS_SORT_KEY key;
+} NCS_PSSTS_SORT_NODE;
 
-typedef struct ncs_pssts_sort_db_tag
-{
-   NCS_PATRICIA_TREE tree;
+typedef struct ncs_pssts_sort_db_tag {
+	NCS_PATRICIA_TREE tree;
 
-   NCS_PATRICIA_PARAMS params;
-}NCS_PSSTS_SORT_DB;
-
+	NCS_PATRICIA_PARAMS params;
+} NCS_PSSTS_SORT_DB;
 
 /***************************************************************************
  * Global Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
-
+EXTERN_C MABCOM_API uns32 ncspssts_lm(NCS_PSSTS_LM_ARG *arg);
 
 /***************************************************************************
  * Some useful macros for PSSTS
@@ -679,7 +577,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.i_op   = NCS_PSSTS_OP_CREATE_PROFILE; \
         pssts_arg.info.create_profile.i_profile_name = name; \
         ret = (func)(&pssts_arg); \
-    } 
+    }
 
 #define m_NCS_PSSTS_PROFILE_DELETE(func, hdl, ret, name) \
     { \
@@ -690,7 +588,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.i_op   = NCS_PSSTS_OP_DELETE_PROFILE; \
         pssts_arg.info.delete_profile.i_profile_name = name; \
         ret = (func)(&pssts_arg); \
-    } 
+    }
 
 #define m_NCS_PSSTS_GET_NEXT_PROFILE(func, hdl, ret, name, len, buf) \
     { \
@@ -703,7 +601,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.info.get_next.i_buf_length = len; \
         pssts_arg.info.get_next.io_buffer = buf; \
         ret = (func)(&pssts_arg); \
-    } 
+    }
 
 #define m_NCS_PSSTS_PROFILE_COPY(func, hdl, ret, name, copyfrom) \
     { \
@@ -715,7 +613,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.info.copy_profile.i_profile_name = copyfrom; \
         pssts_arg.info.copy_profile.i_new_profile_name = name; \
         ret = (func)(&pssts_arg); \
-    } 
+    }
 
 #define m_NCS_PSSTS_PROFILE_MOVE(func, hdl, ret, name, movefrom) \
     { \
@@ -727,7 +625,7 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         pssts_arg.info.move_profile.i_profile_name = movefrom; \
         pssts_arg.info.move_profile.i_new_profile_name = name; \
         ret = (func)(&pssts_arg); \
-    } 
+    }
 
 #define m_NCS_PSSTS_PWE_EXISTS(func, hdl, ret, name, pwe, exists) \
     { \
@@ -958,4 +856,4 @@ EXTERN_C MABCOM_API uns32 ncspssts_lm    ( NCS_PSSTS_LM_ARG* arg );
         ret = (func)(&pssts_arg); \
     }
 
-#endif /* MAB_TGT_H */
+#endif   /* MAB_TGT_H */

@@ -24,41 +24,38 @@
 #define NTFS_HA_INIT_STATE 0
 
 /* CHECKPOINT status */
-typedef enum checkpoint_status
-{
-    COLD_SYNC_IDLE = 0,
-    COLD_SYNC_COMPLETE,
+typedef enum checkpoint_status {
+	COLD_SYNC_IDLE = 0,
+	COLD_SYNC_COMPLETE,
 } CHECKPOINT_STATE;
 
-typedef struct
-{
-    NCS_PATRICIA_NODE  pat_node;
-    uns32              client_id;
-    uns32              client_id_net;
-    MDS_DEST           mds_dest;
+typedef struct {
+	NCS_PATRICIA_NODE pat_node;
+	uns32 client_id;
+	uns32 client_id_net;
+	MDS_DEST mds_dest;
 } ntf_client_t;
 
-typedef struct ntfs_cb
-{
-   SYSF_MBX mbx;                      /* NTFS's mailbox                             */
-   MDS_HDL mds_hdl;                   /* PWE Handle for interacting with NTFAs      */
-   V_DEST_RL mds_role;                /* Current MDS role - ACTIVE/STANDBY         */
-   MDS_DEST vaddr;                    /* My identification in MDS                  */
-   SaVersionT ntf_version;            /* The version currently supported           */
-   SaNameT comp_name;                 /* Components's name NTFS                     */
-   SaAmfHandleT amf_hdl;              /* AMF handle, obtained thru AMF init        */
-   SaInvocationT amf_invocation_id;   /* AMF InvocationID - needed to handle Quiesed state */
-   NCS_BOOL is_quisced_set;
-   SaSelectionObjectT amfSelectionObject; /* Selection Object to wait for amf events */
-   SaSelectionObjectT logSelectionObject; /* Selection Object to wait for log events */
-   SaAmfHAStateT ha_state;                /* present AMF HA state of the component     */
-   uns32 async_upd_cnt;                   /* Async Update Count for Warmsync */
-   CHECKPOINT_STATE ckpt_state;           /* State if cold synched */
-   NCS_MBCSV_HDL mbcsv_hdl;               /* Handle obtained during mbcsv init */
-   SaSelectionObjectT mbcsv_sel_obj;      /* Selection object to wait for MBCSv events */
-   NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;     /* MBCSv handle obtained during checkpoint open */
-   EDU_HDL edu_hdl;                       /* Handle from EDU for encode/decode operations */
-   NCS_BOOL csi_assigned;
+typedef struct ntfs_cb {
+	SYSF_MBX mbx;		/* NTFS's mailbox                             */
+	MDS_HDL mds_hdl;	/* PWE Handle for interacting with NTFAs      */
+	V_DEST_RL mds_role;	/* Current MDS role - ACTIVE/STANDBY         */
+	MDS_DEST vaddr;		/* My identification in MDS                  */
+	SaVersionT ntf_version;	/* The version currently supported           */
+	SaNameT comp_name;	/* Components's name NTFS                     */
+	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
+	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
+	NCS_BOOL is_quisced_set;
+	SaSelectionObjectT amfSelectionObject;	/* Selection Object to wait for amf events */
+	SaSelectionObjectT logSelectionObject;	/* Selection Object to wait for log events */
+	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
+	uns32 async_upd_cnt;	/* Async Update Count for Warmsync */
+	CHECKPOINT_STATE ckpt_state;	/* State if cold synched */
+	NCS_MBCSV_HDL mbcsv_hdl;	/* Handle obtained during mbcsv init */
+	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
+	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
+	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
+	NCS_BOOL csi_assigned;
 } ntfs_cb_t;
 
 extern uns32 ntfs_cb_init(ntfs_cb_t *);

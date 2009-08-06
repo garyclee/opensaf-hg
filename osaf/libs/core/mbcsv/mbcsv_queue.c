@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -49,20 +47,16 @@
  
   Notes         : None
 ******************************************************************************/
-uns32 mbcsv_client_queue_init (MBCSV_REG* mbc_reg)
+uns32 mbcsv_client_queue_init(MBCSV_REG *mbc_reg)
 {
-   if(m_NCS_IPC_CREATE(&mbc_reg->mbx) == NCSCC_RC_SUCCESS)
-   {
-      if(m_NCS_IPC_ATTACH(&mbc_reg->mbx) == NCSCC_RC_SUCCESS)
-      {
-         return NCSCC_RC_SUCCESS;
-      }
-      m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);
-   }
+	if (m_NCS_IPC_CREATE(&mbc_reg->mbx) == NCSCC_RC_SUCCESS) {
+		if (m_NCS_IPC_ATTACH(&mbc_reg->mbx) == NCSCC_RC_SUCCESS) {
+			return NCSCC_RC_SUCCESS;
+		}
+		m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);
+	}
 
-   return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-        "Failed to create MBCSv mailbox", 
-        mbc_reg->svc_id);
+	return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, "Failed to create MBCSv mailbox", mbc_reg->svc_id);
 }
 
 /****************************************************************************
@@ -79,14 +73,13 @@ uns32 mbcsv_client_queue_init (MBCSV_REG* mbc_reg)
 ******************************************************************************/
 NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-   MBCSV_EVT *node = (MBCSV_EVT *)msg;
-   
-   /* deallocate the nodes */
-   if (NULL != node)
-   {
-      m_MMGR_FREE_MBCSV_EVT(node);
-   }
-   return TRUE;
+	MBCSV_EVT *node = (MBCSV_EVT *)msg;
+
+	/* deallocate the nodes */
+	if (NULL != node) {
+		m_MMGR_FREE_MBCSV_EVT(node);
+	}
+	return TRUE;
 }
 
 /****************************************************************************
@@ -100,17 +93,14 @@ NCS_BOOL mbcsv_client_cleanup_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
  
   Notes         : None
 ******************************************************************************/
-void mbcsv_client_queue_destroy (MBCSV_REG* mbc_reg)
+void mbcsv_client_queue_destroy(MBCSV_REG *mbc_reg)
 {
-   /* detach the mail box */
-   m_NCS_IPC_DETACH(&mbc_reg->mbx, mbcsv_client_cleanup_mbx, (NCSCONTEXT)mbc_reg);
-   
-   /* delete the mailbox */
-   m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);
+	/* detach the mail box */
+	m_NCS_IPC_DETACH(&mbc_reg->mbx, mbcsv_client_cleanup_mbx, (NCSCONTEXT)mbc_reg);
 
-   mbc_reg->mbx = 0;
+	/* delete the mailbox */
+	m_NCS_IPC_RELEASE(&mbc_reg->mbx, NULL);
+
+	mbc_reg->mbx = 0;
 
 }
-
-
-

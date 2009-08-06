@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  hisv_demo.c                                                 *
@@ -41,7 +40,6 @@ static uns32 hpl_control(void);
 static uns32 init_hcd_flag = 0;
 static uns32 init_hpl_flag = 0;
 
-
 /****************************************************************************
  * Name          : 'Main' function
  *
@@ -63,51 +61,48 @@ uns32 hisv_main(int argc, char **argv)
     ** char *argv[]={"", "CLUSTER_ID=19875", "NODE_ID=1", "HUB=y", "PCON_ID=1"};
     **/
 
-   /* init the services */
-   /* ncs_svcs_startup(argc, argv); */
+	/* init the services */
+	/* ncs_svcs_startup(argc, argv); */
 
-   for (;;)
-   {
-      uns32 command;
-      /* display the menu */
-      printf("\nMENU: Please input number for command\n");
-      printf("     0 : Display MENU again\n");
-      printf("     1 : Start or Stop HCD\n");
-      printf("     2 : Initialize and Use HPL\n");
-      printf("     3 : Exit\n");
-      scanf("%d", &command);
-      switch(command)
-      {
-         case HISV_DISPLAY_MENU:
-            continue;
-            break;
+	for (;;) {
+		uns32 command;
+		/* display the menu */
+		printf("\nMENU: Please input number for command\n");
+		printf("     0 : Display MENU again\n");
+		printf("     1 : Start or Stop HCD\n");
+		printf("     2 : Initialize and Use HPL\n");
+		printf("     3 : Exit\n");
+		scanf("%d", &command);
+		switch (command) {
+		case HISV_DISPLAY_MENU:
+			continue;
+			break;
 
-         case HISV_HCD_CONTROL:
-            /* program to act as HCD controller */
-            hcd_control(argc, argv);
-            break;
+		case HISV_HCD_CONTROL:
+			/* program to act as HCD controller */
+			hcd_control(argc, argv);
+			break;
 
-         case HISV_HPL_CONTROL:
-            /* program to initialize and use HPL library */
-            hpl_control();
-            break;
+		case HISV_HPL_CONTROL:
+			/* program to initialize and use HPL library */
+			hpl_control();
+			break;
 
-         case HISV_DEMO_EXIT:
-            /* done with demo, exit */
-            printf("Exit demo\n");
-            goto demo_ret;
-            break;
+		case HISV_DEMO_EXIT:
+			/* done with demo, exit */
+			printf("Exit demo\n");
+			goto demo_ret;
+			break;
 
-         default:
-            printf("Invalid option\n");
-            break;
-      }
-   }
+		default:
+			printf("Invalid option\n");
+			break;
+		}
+	}
 
-demo_ret:
-   return NCSCC_RC_SUCCESS;
+ demo_ret:
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
  * Name          : hcd_control
@@ -124,99 +119,92 @@ demo_ret:
 
 static uns32 hcd_control(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO req_info;
-   uns32 chassis_id;
-   char *argv_def[]={"6", "NULL"};
+	NCS_LIB_REQ_INFO req_info;
+	uns32 chassis_id;
+	char *argv_def[] = { "6", "NULL" };
 
-   /* Initialize the input argument for chassis_id */
-   req_info.i_op = NCS_LIB_REQ_CREATE;
-   req_info.info.create.argc = 1;
+	/* Initialize the input argument for chassis_id */
+	req_info.i_op = NCS_LIB_REQ_CREATE;
+	req_info.info.create.argc = 1;
 
-   req_info.info.create.argv = argv;
-   if (argc == 0)
-      req_info.info.create.argv = argv_def;
+	req_info.info.create.argv = argv;
+	if (argc == 0)
+		req_info.info.create.argv = argv_def;
 
-   for (;;)
-   {
-      uns32 command;
-      /* Display the Menu */
-      printf("\nHCD MENU: Please input number for command\n");
-      printf("     0 : Display MENU again\n");
-      printf("     1 : Initialize and start HCD\n");
-      printf("     2 : Finalize and stop HCD\n");
-      printf("     3 : Finalize, stop HCD & return\n");
-      printf("     4 : Just return to Main Menu\n");
-      scanf("%d", &command);
-      switch(command)
-      {
-      case HCD_DISPLAY_MENU:
-         /* Re-Display Menu */
-         break;
+	for (;;) {
+		uns32 command;
+		/* Display the Menu */
+		printf("\nHCD MENU: Please input number for command\n");
+		printf("     0 : Display MENU again\n");
+		printf("     1 : Initialize and start HCD\n");
+		printf("     2 : Finalize and stop HCD\n");
+		printf("     3 : Finalize, stop HCD & return\n");
+		printf("     4 : Just return to Main Menu\n");
+		scanf("%d", &command);
+		switch (command) {
+		case HCD_DISPLAY_MENU:
+			/* Re-Display Menu */
+			break;
 
-      case HCD_INITIALIZE:
-         /* check if already initialized */
-         if (init_hcd_flag)
-         {
-            printf("HCD already running\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HCD_INITIALIZE:
+			/* check if already initialized */
+			if (init_hcd_flag) {
+				printf("HCD already running\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* initialize HAM and HSM on this chassis */
-         if (NCSCC_RC_FAILURE == ncs_hisv_hcd_lib_req(&req_info))
-         {
-            printf("Failed to Initialize HCD\n");
-            break;
-         }
-         init_hcd_flag = 1;
-         printf("HCD Initialization done\n");
-         break;
+			/* initialize HAM and HSM on this chassis */
+			if (NCSCC_RC_FAILURE == ncs_hisv_hcd_lib_req(&req_info)) {
+				printf("Failed to Initialize HCD\n");
+				break;
+			}
+			init_hcd_flag = 1;
+			printf("HCD Initialization done\n");
+			break;
 
-      case HCD_FINALIZE:
-         /* check if HCD not yet initialized */
-         if (0 == init_hcd_flag)
-         {
-            printf("HCD Not initiailized\n");
-            break;
-         }
-         /* finalize HAM and HSM */
-         hsm_finalize();
-         ham_finalize();
-         init_hcd_flag = 0;
-         printf("HCD finalization done\n");
-         break;
+		case HCD_FINALIZE:
+			/* check if HCD not yet initialized */
+			if (0 == init_hcd_flag) {
+				printf("HCD Not initiailized\n");
+				break;
+			}
+			/* finalize HAM and HSM */
+			hsm_finalize();
+			ham_finalize();
+			init_hcd_flag = 0;
+			printf("HCD finalization done\n");
+			break;
 
-      case HCD_RET_MAIN_MENU:
-         /* just return to main menu without terminating HCD */
-         goto ret;
-         break;
+		case HCD_RET_MAIN_MENU:
+			/* just return to main menu without terminating HCD */
+			goto ret;
+			break;
 
-      case HCD_FINALIZE_RET:
-         /* finalize and return to Main menu */
-         if (0 == init_hcd_flag)
-            printf("HCD was Not initiailized\n");
-         else
-         {
-            /* finalize HSM */
-            hsm_finalize();
-            /* finalize HAM */
-            ham_finalize();
-            init_hcd_flag = 0;
-         }
-         goto ret;
-         break;
+		case HCD_FINALIZE_RET:
+			/* finalize and return to Main menu */
+			if (0 == init_hcd_flag)
+				printf("HCD was Not initiailized\n");
+			else {
+				/* finalize HSM */
+				hsm_finalize();
+				/* finalize HAM */
+				ham_finalize();
+				init_hcd_flag = 0;
+			}
+			goto ret;
+			break;
 
-      default:
-         /* unknow command option */
-         printf("Invalid option\n");
-         break;
-      }
-   }
-ret:
-   return NCSCC_RC_SUCCESS;
+		default:
+			/* unknow command option */
+			printf("Invalid option\n");
+			break;
+		}
+	}
+ ret:
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
  * Name          : hpl_control
@@ -235,412 +223,392 @@ ret:
 
 static uns32 hpl_control()
 {
-   NCS_LIB_REQ_INFO req_info;
-   uns32 rc, chassis_id, arg;
-   uns8 entity_path[MAX_ENTITY_PATH_LEN];
-   HISV_API_CMD cmd;
+	NCS_LIB_REQ_INFO req_info;
+	uns32 rc, chassis_id, arg;
+	uns8 entity_path[MAX_ENTITY_PATH_LEN];
+	HISV_API_CMD cmd;
 
    /** Initialize the EDSV server with this HPL program
     ** so that the EDA agent in HSM can publish event
     ** on to it. And users of HPL can also subscribe
     ** to EDS to receive those events
     **/
-   for (;;)
-   {
-      uns32 command;
-      /* Display the Menu */
-      printf("\nHPL MENU: Please input number for command\n");
-      printf("     0 : Display MENU again\n");
-      printf("     1 : Initialize HPL Library\n");
-      printf("     2 : Reset the Resource\n");
-      printf("     3 : Change the Power State of Resource\n");
-      printf("     4 : Clear the System Event Log\n");
-      printf("     5 : Finalize HPL Library\n");
-      printf("     6 : Finalize, HPL & return\n");
-      printf("     7 : Just return to Main Menu\n");
-      scanf("%d", &command);
-      switch(command)
-      {
-      case HPL_DISPLAY_MENU:
-         /* Re-Display Menu */
-         break;
+	for (;;) {
+		uns32 command;
+		/* Display the Menu */
+		printf("\nHPL MENU: Please input number for command\n");
+		printf("     0 : Display MENU again\n");
+		printf("     1 : Initialize HPL Library\n");
+		printf("     2 : Reset the Resource\n");
+		printf("     3 : Change the Power State of Resource\n");
+		printf("     4 : Clear the System Event Log\n");
+		printf("     5 : Finalize HPL Library\n");
+		printf("     6 : Finalize, HPL & return\n");
+		printf("     7 : Just return to Main Menu\n");
+		scanf("%d", &command);
+		switch (command) {
+		case HPL_DISPLAY_MENU:
+			/* Re-Display Menu */
+			break;
 
-      case HPL_INITIALIZE:
-         /* check if already initialized */
-         if (init_hpl_flag)
-         {
-            printf("HPL already initialized\n");
-            break;
-         }
-         memset(&req_info, '\0', sizeof(req_info));
-         req_info.i_op = NCS_LIB_REQ_CREATE;
+		case HPL_INITIALIZE:
+			/* check if already initialized */
+			if (init_hpl_flag) {
+				printf("HPL already initialized\n");
+				break;
+			}
+			memset(&req_info, '\0', sizeof(req_info));
+			req_info.i_op = NCS_LIB_REQ_CREATE;
 
-         /* request to initialize HPL library */
-         rc = ncs_hpl_lib_req(&req_info);
-         if (rc != NCSCC_RC_SUCCESS)
-         {
-            printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
-            break;
-         }
-         printf("HPL initialization done\n");
-         init_hpl_flag = 1;
-         break;
+			/* request to initialize HPL library */
+			rc = ncs_hpl_lib_req(&req_info);
+			if (rc != NCSCC_RC_SUCCESS) {
+				printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
+				break;
+			}
+			printf("HPL initialization done\n");
+			init_hpl_flag = 1;
+			break;
 
-      case HPL_RESOURCE_RESET:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_RESOURCE_RESET:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         rc = hpl_resource_reset(chassis_id, entity_path, arg);
-         printf("HPL API hpl_resource_reset() invoked, rc = %d\n", rc);
-         break;
+			/* invoke HPL API to reset the resource */
+			rc = hpl_resource_reset(chassis_id, entity_path, arg);
+			printf("HPL API hpl_resource_reset() invoked, rc = %d\n", rc);
+			break;
 
-      case HPL_RESOURCE_POWER_SET:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_RESOURCE_POWER_SET:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
 
-         /* read the power state for this resource */
-         printf("Enter the Power State\n");
-         printf("Power-Off=0, Power-On=1, Power-Cycle=2\n");
-         scanf("%d",&arg);
+			/* read the power state for this resource */
+			printf("Enter the Power State\n");
+			printf("Power-Off=0, Power-On=1, Power-Cycle=2\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to change the power state of resource */
-         rc = hpl_resource_power_set(chassis_id, entity_path, arg);
-         printf("HPL API hpl_resource_power_set() invoked rc = %d\n", rc);
-         break;
+			/* invoke HPL API to change the power state of resource */
+			rc = hpl_resource_power_set(chassis_id, entity_path, arg);
+			printf("HPL API hpl_resource_power_set() invoked rc = %d\n", rc);
+			break;
 
-      case HPL_SEL_CLEAR:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_SEL_CLEAR:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* invoke HPL API to clear the system event log of HPI */
-         rc = hpl_sel_clear(chassis_id);
-         printf("HPL API hpl_sel_clear() invoked, rc = %d\n", rc);
-         break;
+			/* invoke HPL API to clear the system event log of HPI */
+			rc = hpl_sel_clear(chassis_id);
+			printf("HPL API hpl_sel_clear() invoked, rc = %d\n", rc);
+			break;
 
-      case HPL_CONFIG_HOTSWAP:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_CONFIG_HOTSWAP:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the hotswap config command */
-         printf("Enter\n0 - HS_AUTO_INSERT_TIMEOUT_SET\n1 - HS_AUTO_INSERT_TIMEOUT_GET\n");
-         if (cmd == 0) cmd = HS_AUTO_INSERT_TIMEOUT_SET;
-         else cmd = HS_AUTO_INSERT_TIMEOUT_GET;
+			/* read the hotswap config command */
+			printf("Enter\n0 - HS_AUTO_INSERT_TIMEOUT_SET\n1 - HS_AUTO_INSERT_TIMEOUT_GET\n");
+			if (cmd == 0)
+				cmd = HS_AUTO_INSERT_TIMEOUT_SET;
+			else
+				cmd = HS_AUTO_INSERT_TIMEOUT_GET;
 
-         /* read the auto insert time in case of set */
-         if (cmd == HS_AUTO_INSERT_TIMEOUT_SET)
-         {
-            printf("Enter the auto insert time to set\n");
-            scanf("%d",&arg);
-         }
+			/* read the auto insert time in case of set */
+			if (cmd == HS_AUTO_INSERT_TIMEOUT_SET) {
+				printf("Enter the auto insert time to set\n");
+				scanf("%d", &arg);
+			}
 
-         /* invoke hpl_config_hotswap cmd */
-         rc = hpl_config_hotswap(chassis_id, cmd, (uns64 *)&arg);
-         printf("HPL API hpl_config_hotswap() invoked, rc = %d, arg = %d\n", rc, arg);
-         break;
+			/* invoke hpl_config_hotswap cmd */
+			rc = hpl_config_hotswap(chassis_id, cmd, (uns64 *)&arg);
+			printf("HPL API hpl_config_hotswap() invoked, rc = %d, arg = %d\n", rc, arg);
+			break;
 
-      case HPL_CONFIG_HS_STATE_GET:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_CONFIG_HS_STATE_GET:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         rc = hpl_config_hs_state_get(chassis_id, entity_path, &arg);
-         printf("HPL API hpl_resource_reset() invoked, rc = %d\n", rc);
-         break;
+			/* invoke HPL API to reset the resource */
+			rc = hpl_config_hs_state_get(chassis_id, entity_path, &arg);
+			printf("HPL API hpl_resource_reset() invoked, rc = %d\n", rc);
+			break;
 
-      case HPL_CONFIG_HS_INDICATOR:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_CONFIG_HS_INDICATOR:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         hpl_config_hs_indicator(chassis_id, entity_path, cmd, &arg);
-         printf("HPL API hpl_config_hs_indicator() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			hpl_config_hs_indicator(chassis_id, entity_path, cmd, &arg);
+			printf("HPL API hpl_config_hs_indicator() invoked\n");
+			break;
 
-      case HPL_CONFIG_HS_AUTOEXTRACT:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_CONFIG_HS_AUTOEXTRACT:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         hpl_config_hs_autoextract(chassis_id, entity_path, cmd, (uns64 *)&arg);
-         printf("HPL API hpl_config_hs_autoextract() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			hpl_config_hs_autoextract(chassis_id, entity_path, cmd, (uns64 *)&arg);
+			printf("HPL API hpl_config_hs_autoextract() invoked\n");
+			break;
 
-      case HPL_MANAGE_HOTSWAP:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_MANAGE_HOTSWAP:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* read the manage hotswap command */
-         printf("Enter\n0 - HS_POLICY_CANCEL\n1 - HS_RESOURCE_ACTIVE_SET\n");
-         printf("\n2 - HS_RESOURCE_INACTIVE_SET\n3 - HS_ACTION_REQUEST\n");
+			/* read the manage hotswap command */
+			printf("Enter\n0 - HS_POLICY_CANCEL\n1 - HS_RESOURCE_ACTIVE_SET\n");
+			printf("\n2 - HS_RESOURCE_INACTIVE_SET\n3 - HS_ACTION_REQUEST\n");
 
-         /* invoke HPL API to reset the resource */
-         hpl_manage_hotswap(chassis_id, entity_path, cmd, arg);
-         printf("HPL API hpl_manage_hotswap() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			hpl_manage_hotswap(chassis_id, entity_path, cmd, arg);
+			printf("HPL API hpl_manage_hotswap() invoked\n");
+			break;
 
-      case HPL_ALARM_ADD:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_ALARM_ADD:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         /*
-         hpl_alarm_add(uns32 chassis_id, HISV_API_CMD alarm_cmd,
-                         uns16 arg_len, uns8* arg);*/
-         printf("HPL API hpl_alarm_add() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			/*
+			   hpl_alarm_add(uns32 chassis_id, HISV_API_CMD alarm_cmd,
+			   uns16 arg_len, uns8* arg); */
+			printf("HPL API hpl_alarm_add() invoked\n");
+			break;
 
-      case HPL_ALARM_GET:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_ALARM_GET:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         /* hpl_alarm_get(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
-                         uns16 arg_len, uns8* arg); */
-         printf("HPL API hpl_alarm_get() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			/* hpl_alarm_get(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
+			   uns16 arg_len, uns8* arg); */
+			printf("HPL API hpl_alarm_get() invoked\n");
+			break;
 
-      case HPL_ALARM_DELETE:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_ALARM_DELETE:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         /* hpl_alarm_delete(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
-                         uns32 alarm_severity); */
-         printf("HPL API hpl_alarm_delete() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			/* hpl_alarm_delete(uns32 chassis_id, HISV_API_CMD alarm_cmd, uns32 alarm_id,
+			   uns32 alarm_severity); */
+			printf("HPL API hpl_alarm_delete() invoked\n");
+			break;
 
-      case HPL_EVENT_LOT_TIME:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         printf("Enter Chassis Identifier\n");
-         scanf("%d",&chassis_id);
+		case HPL_EVENT_LOT_TIME:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			printf("Enter Chassis Identifier\n");
+			scanf("%d", &chassis_id);
 
-         /* read the resource entity path */
-         printf("Enter the Entity path of the resource\n");
-         scanf("%s",&entity_path[0]);
-         printf("Entity path = %s\n", entity_path);
+			/* read the resource entity path */
+			printf("Enter the Entity path of the resource\n");
+			scanf("%s", &entity_path[0]);
+			printf("Entity path = %s\n", entity_path);
 
-         /* read the reset type */
-         printf("Enter the Reset Type\n");
-         printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
-         scanf("%d",&arg);
+			/* read the reset type */
+			printf("Enter the Reset Type\n");
+			printf("Cold=0, Warm=1, Asserive=2, De-Assertive=3\n");
+			scanf("%d", &arg);
 
-         /* invoke HPL API to reset the resource */
-         /* hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
-                         HISV_API_CMD evlog_time_cmd, uns64 *arg); */
-         printf("HPL API hpl_event_log_time() invoked\n");
-         break;
+			/* invoke HPL API to reset the resource */
+			/* hpl_event_log_time(uns32 chassis_id, uns8 *entity_path,
+			   HISV_API_CMD evlog_time_cmd, uns64 *arg); */
+			printf("HPL API hpl_event_log_time() invoked\n");
+			break;
 
-      case HPL_FINALIZE:
-         /* check if HPL not yet initialized */
-         if (0 == init_hpl_flag)
-         {
-            printf("HPL Not initiailized\n");
-            break;
-         }
-         memset(&req_info, '\0', sizeof(req_info));
-         req_info.i_op = NCS_LIB_REQ_DESTROY;
+		case HPL_FINALIZE:
+			/* check if HPL not yet initialized */
+			if (0 == init_hpl_flag) {
+				printf("HPL Not initiailized\n");
+				break;
+			}
+			memset(&req_info, '\0', sizeof(req_info));
+			req_info.i_op = NCS_LIB_REQ_DESTROY;
 
-         /* request to finalize HPL library */
-         rc = ncs_hpl_lib_req(&req_info);
-         if (rc != NCSCC_RC_SUCCESS)
-         {
-            printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
-            break;
-         }
-         printf("HPL finalization done\n");
-         init_hpl_flag = 0;
-         break;
+			/* request to finalize HPL library */
+			rc = ncs_hpl_lib_req(&req_info);
+			if (rc != NCSCC_RC_SUCCESS) {
+				printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
+				break;
+			}
+			printf("HPL finalization done\n");
+			init_hpl_flag = 0;
+			break;
 
-      case HPL_FINALIZE_RET:
-         /* finalize and return to Main menu */
-         if (0 == init_hpl_flag)
-            printf("HPL was Not initiailized\n");
-         else
-         {
-            memset(&req_info, '\0', sizeof(req_info));
-            req_info.i_op = NCS_LIB_REQ_DESTROY;
+		case HPL_FINALIZE_RET:
+			/* finalize and return to Main menu */
+			if (0 == init_hpl_flag)
+				printf("HPL was Not initiailized\n");
+			else {
+				memset(&req_info, '\0', sizeof(req_info));
+				req_info.i_op = NCS_LIB_REQ_DESTROY;
 
-            /* request to finalize HPL library */
-            rc = ncs_hpl_lib_req(&req_info);
-            if (rc != NCSCC_RC_SUCCESS)
-            {
-               printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
-               goto ret;
-            }
-            init_hpl_flag = 0;
-         }
-         goto ret;
-         break;
+				/* request to finalize HPL library */
+				rc = ncs_hpl_lib_req(&req_info);
+				if (rc != NCSCC_RC_SUCCESS) {
+					printf("ncs_hpl_lib_req() failed. rc=%d\n", rc);
+					goto ret;
+				}
+				init_hpl_flag = 0;
+			}
+			goto ret;
+			break;
 
-      case HPL_RET_MAIN_MENU:
-         /* just return to main menu without finalizing HPL */
-         return NCSCC_RC_SUCCESS;
-         break;
+		case HPL_RET_MAIN_MENU:
+			/* just return to main menu without finalizing HPL */
+			return NCSCC_RC_SUCCESS;
+			break;
 
-      default:
-         /* unknow command option */
-         printf("Invalid option\n");
-         break;
-      }
-   }
+		default:
+			/* unknow command option */
+			printf("Invalid option\n");
+			break;
+		}
+	}
 
-ret:
-   return NCSCC_RC_SUCCESS;
+ ret:
+	return NCSCC_RC_SUCCESS;
 }
-

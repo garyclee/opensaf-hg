@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: CPSv messages Allocation & Free macros 
@@ -37,18 +35,16 @@
 /******************************************************************************
                            Service Sub IDs Commonly used by CPA, CPND & CPD
 *******************************************************************************/
-typedef enum
-{
-   CPSV_SVC_SUB_ID_CPSV_EVT = 1,
-   CPSV_SVC_SUB_ID_CPSV_ND2A_READ_MAP,
-   CPSV_SVC_SUB_ID_CPSV_ND2A_READ_DATA,
-   CPSV_SVC_SUB_ID_CPSV_SaUint32T,
-   CPSV_SVC_SUB_ID_CPSV_SaCkptSectionIdT,
-   CPSV_SVC_SUB_ID_CPSV_DEFAULT_VAL,
-   CPSV_SVC_SUB_ID_CPSV_CKPT_DATA,
+typedef enum {
+	CPSV_SVC_SUB_ID_CPSV_EVT = 1,
+	CPSV_SVC_SUB_ID_CPSV_ND2A_READ_MAP,
+	CPSV_SVC_SUB_ID_CPSV_ND2A_READ_DATA,
+	CPSV_SVC_SUB_ID_CPSV_SaUint32T,
+	CPSV_SVC_SUB_ID_CPSV_SaCkptSectionIdT,
+	CPSV_SVC_SUB_ID_CPSV_DEFAULT_VAL,
+	CPSV_SVC_SUB_ID_CPSV_CKPT_DATA,
 
-   CPSV_SVC_SUB_ID_MAX = CPSV_SVC_SUB_ID_CPSV_SaUint32T /* This should be the last id */
-
+	CPSV_SVC_SUB_ID_MAX = CPSV_SVC_SUB_ID_CPSV_SaUint32T	/* This should be the last id */
 } CPSV_SVC_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -77,7 +73,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 scv_id, \
                                                 CPSV_SVC_SUB_ID_CPSV_ND2A_READ_MAP)
-
 
 #define m_MMGR_ALLOC_CPSV_ND2A_READ_DATA(cnt, svc_id)                          \
           (CPSV_ND2A_READ_DATA *)m_NCS_MEM_ALLOC((cnt* sizeof(CPSV_ND2A_READ_DATA)), \
@@ -109,7 +104,7 @@ typedef enum
 #define m_MMGR_FREE_CPSV_SaCkptSectionIdT(p, scv_id)      m_NCS_MEM_FREE(p, \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 scv_id, \
-                                                CPSV_SVC_SUB_ID_CPSV_SaCkptSectionIdT)                                                
+                                                CPSV_SVC_SUB_ID_CPSV_SaCkptSectionIdT)
 
 #define m_MMGR_ALLOC_CPSV_DEFAULT_VAL(cnt, svc_id)                          \
                                           (uns8 *)m_NCS_MEM_ALLOC(cnt, \

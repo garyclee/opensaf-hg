@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: The master include for all MAB and user *.C files.
@@ -82,7 +80,6 @@
 #include "mac_api.h"
 #include "mac_pvt.h"
 #include "dta_papi.h"
-#endif /* (NCS_MAB == 1) */
+#endif   /* (NCS_MAB == 1) */
 
-#endif /* #ifndef MAB_H */ 
-
+#endif   /* #ifndef MAB_H */

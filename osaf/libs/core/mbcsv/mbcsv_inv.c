@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
   DESCRIPTION:
 
   This file contains API to print Message Based 
@@ -39,14 +37,13 @@
 #define   NUMBER_OF_HA_ROLES  4
 #define   MAX_FSM_STATES      6
 
-const char mbcsv_prt_role[] = { 'I', 'A', 'S', 'Q'};
+const char mbcsv_prt_role[] = { 'I', 'A', 'S', 'Q' };
 
-const char *mbcsv_prt_fsm_state[NUMBER_OF_HA_ROLES][MAX_FSM_STATES] = 
-{
- {"IDLE","----","----","----","----","----"},
- {"IDLE","WFCS","KSIS","MACT","----","----"},
- {"IDLE","WTCS","SISY","WTWS","VWSD","WFDR"},
- {"QUIE","----","----","----","----","----"}
+const char *mbcsv_prt_fsm_state[NUMBER_OF_HA_ROLES][MAX_FSM_STATES] = {
+	{"IDLE", "----", "----", "----", "----", "----"},
+	{"IDLE", "WFCS", "KSIS", "MACT", "----", "----"},
+	{"IDLE", "WTCS", "SISY", "WTWS", "VWSD", "WFDR"},
+	{"QUIE", "----", "----", "----", "----", "----"}
 };
 
 extern MBCSV_CB mbcsv_cb;
@@ -84,8 +81,6 @@ extern MBCSV_CB mbcsv_cb;
    peer_ptr->w_syn_resp_process, peer_ptr->version); \
 }
 
-
-
 /****************************************************************************
  * PROCEDURE     : mbcsv_prt_inv
  *
@@ -97,94 +92,88 @@ extern MBCSV_CB mbcsv_cb;
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 mbcsv_prt_inv (void)
+uns32 mbcsv_prt_inv(void)
 {
-   MBCSV_REG                 *mbc_reg;
-   CKPT_INST                 *ckpt;
-   PEER_INST                 *peer_ptr;
-   SS_SVC_ID                 svc_id = 0;
-   SaAisErrorT               rc = SA_AIS_OK;
-   uns32                     pwe_hdl = 0;
-   uns32                     c_count = 0, p_count = 0;
+	MBCSV_REG *mbc_reg;
+	CKPT_INST *ckpt;
+	PEER_INST *peer_ptr;
+	SS_SVC_ID svc_id = 0;
+	SaAisErrorT rc = SA_AIS_OK;
+	uns32 pwe_hdl = 0;
+	uns32 c_count = 0, p_count = 0;
 
-   if (mbcsv_cb.created == FALSE)
-      return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, 
-      "MBCA instance is not created. First call mbcsv dl api.");
+	if (mbcsv_cb.created == FALSE)
+		return m_MBCSV_DBG_SINK(SA_AIS_ERR_NOT_EXIST, "MBCA instance is not created. First call mbcsv dl api.");
 
-   m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
-   m_LOG_MBCSV_GL_LOCK(MBCSV_LK_LOCKED, &mbcsv_cb.global_lock);
-   
-   m_MBCSV_PRT_INV_HDR;
+	m_NCS_LOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
+	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_LOCKED, &mbcsv_cb.global_lock);
 
-  /* 
-   * Walk through MBCSv reg list.
-   */
-   while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list,
-                            (const uns8 *)&svc_id)))
-   {
-      m_NCS_LOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
-      
-      m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
-      svc_id = mbc_reg->svc_id;
+	m_MBCSV_PRT_INV_HDR;
 
-      printf("\n|%6d|%8X|         MY  CSI       |                                  |",
-                      svc_id, mbc_reg->mbcsv_hdl);
-      
-      c_count = 0;
-      pwe_hdl = 0;
+	/* 
+	 * Walk through MBCSv reg list.
+	 */
+	while (NULL != (mbc_reg = (MBCSV_REG *)ncs_patricia_tree_getnext(&mbcsv_cb.reg_list, (const uns8 *)&svc_id))) {
+		m_NCS_LOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
 
-      while (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_getnext(&mbc_reg->ckpt_ssn_list,
-                          (const uns8 *)&pwe_hdl)))
-      {
-         c_count++;
-         pwe_hdl = ckpt->pwe_hdl;
+		m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_LOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
+		svc_id = mbc_reg->svc_id;
 
-         printf("\n|               |%8X|%8X| %c |%c|                                  |",
-            ckpt->pwe_hdl, ckpt->ckpt_hdl, (ckpt->warm_sync_on?'T':'F'), mbcsv_prt_role[ckpt->my_role]);
-         printf("\n|               |%16llX|%1d%1d%1d%1d%1d |           MY   PEERS              |",
-            (uns64)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, 
-            ckpt->ftm_role_set, ckpt->role_set, ckpt->data_req_sent);
+		printf("\n|%6d|%8X|         MY  CSI       |                                  |",
+		       svc_id, mbc_reg->mbcsv_hdl);
 
-         p_count = 0;
-         peer_ptr = ckpt->peer_list;
+		c_count = 0;
+		pwe_hdl = 0;
 
-         while (NULL != peer_ptr)
-         {
-            p_count++;
-            m_MBCSV_PRT_PEER_INFO(peer_ptr);
-            peer_ptr = peer_ptr->next;
-         }
+		while (NULL != (ckpt = (CKPT_INST *)ncs_patricia_tree_getnext(&mbc_reg->ckpt_ssn_list,
+									      (const uns8 *)&pwe_hdl))) {
+			c_count++;
+			pwe_hdl = ckpt->pwe_hdl;
 
-         if (p_count == 0)
-            printf("\n|               |                       |           NONE                   |");
-         else
-         {
-            if (NULL != ckpt->active_peer)
-            {
-               printf("\n|               |                       |           MY ACTIVE PEER         |");
-               m_MBCSV_PRT_PEER_INFO(ckpt->active_peer);
-            }
-         }
-         printf("\n|               |-----------------------|----------------------------------|");
-      }
+			printf("\n|               |%8X|%8X| %c |%c|                                  |",
+			       ckpt->pwe_hdl, ckpt->ckpt_hdl, (ckpt->warm_sync_on ? 'T' : 'F'),
+			       mbcsv_prt_role[ckpt->my_role]);
+			printf("\n|               |%16llX|%1d%1d%1d%1d%1d |           MY   PEERS              |",
+			       (uns64)ckpt->my_anchor, ckpt->in_quiescing, ckpt->peer_up_sent, ckpt->ftm_role_set,
+			       ckpt->role_set, ckpt->data_req_sent);
 
-      if (c_count == 0)
-         printf("\n|               |           NONE        |           NONE                   |");
+			p_count = 0;
+			peer_ptr = ckpt->peer_list;
 
-      printf("\n------------------------------------------------------------------------------");
+			while (NULL != peer_ptr) {
+				p_count++;
+				m_MBCSV_PRT_PEER_INFO(peer_ptr);
+				peer_ptr = peer_ptr->next;
+			}
 
-      m_NCS_UNLOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
-      m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_UNLOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
-   }
+			if (p_count == 0)
+				printf
+				    ("\n|               |                       |           NONE                   |");
+			else {
+				if (NULL != ckpt->active_peer) {
+					printf
+					    ("\n|               |                       |           MY ACTIVE PEER         |");
+					m_MBCSV_PRT_PEER_INFO(ckpt->active_peer);
+				}
+			}
+			printf("\n|               |-----------------------|----------------------------------|");
+		}
 
+		if (c_count == 0)
+			printf("\n|               |           NONE        |           NONE                   |");
 
-   m_MBCSV_PRT_INV_FOOTER;
+		printf("\n------------------------------------------------------------------------------");
 
-   m_NCS_UNLOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
-   m_LOG_MBCSV_GL_LOCK(MBCSV_LK_UNLOCKED, &mbcsv_cb.global_lock);
+		m_NCS_UNLOCK(&mbc_reg->svc_lock, NCS_LOCK_READ);
+		m_LOG_MBCSV_SVC_LOCK(MBCSV_LK_UNLOCKED, mbc_reg->svc_id, &mbc_reg->svc_lock);
+	}
 
-   return rc;
+	m_MBCSV_PRT_INV_FOOTER;
+
+	m_NCS_UNLOCK(&mbcsv_cb.global_lock, NCS_LOCK_READ);
+	m_LOG_MBCSV_GL_LOCK(MBCSV_LK_UNLOCKED, &mbcsv_cb.global_lock);
+
+	return rc;
 }
-
 
 #endif

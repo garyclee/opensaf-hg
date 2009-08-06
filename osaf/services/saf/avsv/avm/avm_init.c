@@ -34,7 +34,6 @@
 ******************************************************************************
 */
 
-
 /*
  * Module Inclusion Control...
  */
@@ -49,20 +48,15 @@ uns32 g_avm_hdl = 0;
 void *g_avm_task_hdl = NULL;
 uns32 count = 0;
 
-static uns32 
-avm_init(NCS_LIB_REQ_INFO *req_info);
+static uns32 avm_init(NCS_LIB_REQ_INFO *req_info);
 
-static void 
-avm_init_proc(uns32 *avm_init_hdl);
+static void avm_init_proc(uns32 *avm_init_hdl);
 
-static uns32 
-avm_destroy( AVM_DESTROY_T destroy);
+static uns32 avm_destroy(AVM_DESTROY_T destroy);
 
-static uns32
-avm_hpl_init();
+static uns32 avm_hpl_init();
 
-static uns32
-avm_hpl_destroy();
+static uns32 avm_hpl_destroy();
 
 /**************************************************************************
 * Function: avm_hpl_init
@@ -76,22 +70,22 @@ avm_hpl_destroy();
 * NOTES:
 *
 **************************************************************************/
-static uns32
-avm_hpl_init()
+static uns32 avm_hpl_init()
 {
-   NCS_LIB_REQ_INFO req_info;
- 
-   memset(&req_info, '\0', sizeof(req_info));
-   req_info.i_op = NCS_LIB_REQ_CREATE;
- 
-   /* request to initialize HPL library */
-   /* return ncs_hpl_lib_req(&req_info); */
+	NCS_LIB_REQ_INFO req_info;
 
-   /* HISv is now being initialized by fma_hpl_init().               */
-   /* If we initialize HISv again here, it causes errors in SCAP and */
-   /* causes any further use of HISv to fail.                        */
-   return(NCSCC_RC_SUCCESS);
+	memset(&req_info, '\0', sizeof(req_info));
+	req_info.i_op = NCS_LIB_REQ_CREATE;
+
+	/* request to initialize HPL library */
+	/* return ncs_hpl_lib_req(&req_info); */
+
+	/* HISv is now being initialized by fma_hpl_init().               */
+	/* If we initialize HISv again here, it causes errors in SCAP and */
+	/* causes any further use of HISv to fail.                        */
+	return (NCSCC_RC_SUCCESS);
 }
+
 /**************************************************************************
 * Function: avm_hpl_destroy
 *
@@ -104,25 +98,24 @@ avm_hpl_init()
 * NOTES:
 *
 **************************************************************************/
-static uns32
-avm_hpl_destroy()
+static uns32 avm_hpl_destroy()
 {
-   NCS_LIB_REQ_INFO req_info;
-   uns32 rc;
- 
-   memset(&req_info, '\0', sizeof(req_info));
-   req_info.i_op = NCS_LIB_REQ_DESTROY;
- 
-   /* request to initialize HPL library */
-   rc = ncs_hpl_lib_req(&req_info);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_AVM_LOG_HPL(AVM_LOG_HPL_DESTROY, AVM_LOG_HPL_FAILURE, NCSFL_SEV_CRITICAL);
-   }
-   m_AVM_LOG_HPL(AVM_LOG_HPL_DESTROY, AVM_LOG_HPL_SUCCESS, NCSFL_SEV_INFO);
+	NCS_LIB_REQ_INFO req_info;
+	uns32 rc;
 
-   return rc;
+	memset(&req_info, '\0', sizeof(req_info));
+	req_info.i_op = NCS_LIB_REQ_DESTROY;
+
+	/* request to initialize HPL library */
+	rc = ncs_hpl_lib_req(&req_info);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_AVM_LOG_HPL(AVM_LOG_HPL_DESTROY, AVM_LOG_HPL_FAILURE, NCSFL_SEV_CRITICAL);
+	}
+	m_AVM_LOG_HPL(AVM_LOG_HPL_DESTROY, AVM_LOG_HPL_SUCCESS, NCSFL_SEV_INFO);
+
+	return rc;
 }
+
 /***********************************************************************
  ******
  * Name          : avm_init_db
@@ -139,66 +132,60 @@ avm_hpl_destroy()
  * Notes         : None
  ************************************************************************
  *****/
-static uns32
-avm_init_db()
+static uns32 avm_init_db()
 {
-   AVM_CB_T             *cb;
-   NCS_PATRICIA_PARAMS  patricia_params;
+	AVM_CB_T *cb;
+	NCS_PATRICIA_PARAMS patricia_params;
 
-   m_AVM_LOG_FUNC_ENTRY("avm_init_db");
-  
-   memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	m_AVM_LOG_FUNC_ENTRY("avm_init_db");
 
-   if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl)))
-   {    
-      m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+	memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   patricia_params.key_size = AVM_MAX_INDEX_LEN;
-   if( ncs_patricia_tree_init(&cb->db.valid_info_anchor, &patricia_params) 
-                            != NCSCC_RC_SUCCESS)
-   {
-      m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
-   m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
+	if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl))) {
+		m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   patricia_params.key_size = sizeof(SaHpiEntityPathT);
-   if( ncs_patricia_tree_init(&cb->db.ent_info_anchor, &patricia_params) 
-                            != NCSCC_RC_SUCCESS)
-   {
-      ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
-      m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
-   m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
+	patricia_params.key_size = AVM_MAX_INDEX_LEN;
+	if (ncs_patricia_tree_init(&cb->db.valid_info_anchor, &patricia_params)
+	    != NCSCC_RC_SUCCESS) {
+		m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
+	m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
 
-   patricia_params.key_size = sizeof(AVM_ENT_PATH_STR_T);
-   if( ncs_patricia_tree_init(&cb->db.ent_info_str_anchor, &patricia_params) 
-                            != NCSCC_RC_SUCCESS)
-   {
-      ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
-      ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
-      m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
-   m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
+	patricia_params.key_size = sizeof(SaHpiEntityPathT);
+	if (ncs_patricia_tree_init(&cb->db.ent_info_anchor, &patricia_params)
+	    != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
+		m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
+	m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
 
-   patricia_params.key_size = SA_MAX_NAME_LENGTH;
-   if( ncs_patricia_tree_init(&cb->db.node_name_anchor, &patricia_params) 
-                            != NCSCC_RC_SUCCESS)
-   {
-      ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
-      ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
-      ncs_patricia_tree_destroy(&cb->db.ent_info_str_anchor);
-      m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
-   m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
+	patricia_params.key_size = sizeof(AVM_ENT_PATH_STR_T);
+	if (ncs_patricia_tree_init(&cb->db.ent_info_str_anchor, &patricia_params)
+	    != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
+		ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
+		m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
+	m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
 
-   return NCSCC_RC_SUCCESS;
- 
+	patricia_params.key_size = SA_MAX_NAME_LENGTH;
+	if (ncs_patricia_tree_init(&cb->db.node_name_anchor, &patricia_params)
+	    != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&cb->db.valid_info_anchor);
+		ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
+		ncs_patricia_tree_destroy(&cb->db.ent_info_str_anchor);
+		m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
+	m_AVM_LOG_PATRICIA(AVM_LOG_PAT_INIT, AVM_LOG_PAT_SUCCESS, NCSFL_SEV_INFO);
+
+	return NCSCC_RC_SUCCESS;
+
 }
 
 /*****************************************************************************
@@ -218,192 +205,172 @@ avm_init_db()
  * 
  **************************************************************************/
 
-static void 
-avm_init_proc(uns32 *avm_init_hdl)
+static void avm_init_proc(uns32 *avm_init_hdl)
 {
-   AVM_CB_T             *cb = AVM_CB_NULL;
-   NCS_SEL_OBJ          mbx_sel_obj;
-   NCS_SEL_OBJ          mbc_sel_obj;
+	AVM_CB_T *cb = AVM_CB_NULL;
+	NCS_SEL_OBJ mbx_sel_obj;
+	NCS_SEL_OBJ mbc_sel_obj;
 
-   uns8                 script_buf[AVM_SCRIPT_BUF_LEN];
-   uns8                 dhcp_initialise = 2;
+	uns8 script_buf[AVM_SCRIPT_BUF_LEN];
+	uns8 dhcp_initialise = 2;
 
-   uns32                rc;
+	uns32 rc;
 
-   m_AVM_LOG_FUNC_ENTRY("avm_init_proc");
-   
-   if (NULL == avm_init_hdl)
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(0); 
-      return ;
-   }
+	m_AVM_LOG_FUNC_ENTRY("avm_init_proc");
 
-   if (*avm_init_hdl != g_avm_hdl)
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(*avm_init_hdl);
-      return ;
-   }
+	if (NULL == avm_init_hdl) {
+		m_AVM_LOG_INVALID_VAL_FATAL(0);
+		return;
+	}
 
-   /* get the AvM Control Block from the handle manager */
-   if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl)))
-   {    
-      m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-      return ;
-   }
-  
-   cb->dummy_parent_cnt  = 0;
-   cb->valid_info_state  = AVM_VALID_INFO_NOT_DONE;
-   cb->config_state      = AVM_CONFIG_NOT_DONE;
-   cb->config_cnt        = 0;  
-   cb->eda_init           = AVM_EDA_NOT_DONE;
-   cb->eda_init_tmr.tmr_id = TMR_T_NULL;
-   cb->ssu_tmr.tmr_id = TMR_T_NULL;
-   cb->ssu_tmr.status = AVM_TMR_NOT_STARTED;
+	if (*avm_init_hdl != g_avm_hdl) {
+		m_AVM_LOG_INVALID_VAL_FATAL(*avm_init_hdl);
+		return;
+	}
 
-   /* Get the mailbox selection object */
-   mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->mailbox);
+	/* get the AvM Control Block from the handle manager */
+	if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl))) {
+		m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+		return;
+	}
 
-   /* reset the select objects */
-   m_NCS_SEL_OBJ_ZERO(&cb->sel_obj_set);
+	cb->dummy_parent_cnt = 0;
+	cb->valid_info_state = AVM_VALID_INFO_NOT_DONE;
+	cb->config_state = AVM_CONFIG_NOT_DONE;
+	cb->config_cnt = 0;
+	cb->eda_init = AVM_EDA_NOT_DONE;
+	cb->eda_init_tmr.tmr_id = TMR_T_NULL;
+	cb->ssu_tmr.tmr_id = TMR_T_NULL;
+	cb->ssu_tmr.status = AVM_TMR_NOT_STARTED;
 
-   /* set the mailbox sel obj in cb selection object set */
-   m_NCS_SEL_OBJ_SET(mbx_sel_obj, &cb->sel_obj_set);
+	/* Get the mailbox selection object */
+	mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->mailbox);
 
-   cb->sel_high    = mbx_sel_obj;
-   cb->mbx_sel_obj = mbx_sel_obj;
+	/* reset the select objects */
+	m_NCS_SEL_OBJ_ZERO(&cb->sel_obj_set);
 
-   rc = avm_init_db();   
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_destroy(AVM_DESTROY_CB);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return;
-   }
+	/* set the mailbox sel obj in cb selection object set */
+	m_NCS_SEL_OBJ_SET(mbx_sel_obj, &cb->sel_obj_set);
 
-   /* Create EDU handle */
-   
-   m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
+	cb->sel_high = mbx_sel_obj;
+	cb->mbx_sel_obj = mbx_sel_obj;
 
-   if(NCSCC_RC_SUCCESS != avm_rda_initialize(cb))
-   {
-      m_AVM_LOG_RDE(AVM_LOG_RDE_REG, AVM_LOG_RDE_FAILURE, NCSFL_SEV_CRITICAL);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return ;
-   }
-   
-   /* Initialise /etc/dhcpd.conf */
-   if(cb->ha_state == SA_AMF_HA_ACTIVE)
-   {
-      /* Initialise the configuration file. except dhcp_initialise, other parameters are dummy  */
-      snprintf(script_buf, AVM_SCRIPT_BUF_LEN-1, "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d",
-              AVM_SSU_DHCONF_SCRIPT, "host1" , "host2", 1, 
-              1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-              "filename", "tftpserver", dhcp_initialise);
+	rc = avm_init_db();
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_destroy(AVM_DESTROY_CB);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
 
-      /* Invoke script to initialise the DHCP Configuration file */
-      if (system(script_buf))
-      {
-          /* ncshm_give_hdl(g_avm_hdl);
-             g_avm_hdl = 0;
-             return;
-          */  
-          m_AVM_LOG_DEBUG("AVM-SSU: Failed to execute AVM_SSU_DHCONF_SCRIPT to initialise DHCP conf file", NCSFL_SEV_WARNING); 
-      }
-   }
-   if(cb->ha_state == SA_AMF_HA_STANDBY)
-   {
-      /*ssu_tmr is not needed if initially coming up as standby */
-      cb->ssu_tmr.status = AVM_TMR_EXPIRED;
-   }
+	/* Create EDU handle */
 
-   /* Initialize with FMA */
-   if(NCSCC_RC_SUCCESS != avm_fma_initialize(cb))
-   {
-      m_AVM_LOG_FM_INFO(AVM_LOG_FMA_INIT_FAILED, NCSFL_SEV_CRITICAL, NCSFL_LC_FUNC_RET_FAIL);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return ;
-   }
+	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
 
-   /* Initialise MDS */
-   if (NCSCC_RC_SUCCESS != avm_mds_initialize(cb))
-   {
-      m_AVM_LOG_MDS(AVM_LOG_MDS_REG, AVM_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
-      avm_destroy(AVM_DESTROY_PATRICIA);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return;
-   }
-   m_AVM_LOG_MDS(AVM_LOG_MDS_REG, AVM_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+	if (NCSCC_RC_SUCCESS != avm_rda_initialize(cb)) {
+		m_AVM_LOG_RDE(AVM_LOG_RDE_REG, AVM_LOG_RDE_FAILURE, NCSFL_SEV_CRITICAL);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
 
-   if(NCSCC_RC_FAILURE == avm_mbc_register(cb))
-   {
-      m_AVM_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-      return;
-   }
+	/* Initialise /etc/dhcpd.conf */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+		/* Initialise the configuration file. except dhcp_initialise, other parameters are dummy  */
+		snprintf(script_buf, AVM_SCRIPT_BUF_LEN - 1,
+			 "%s %s %s %d %02x:%02x:%02x:%02x:%02x:%02x %02x:%02x:%02x:%02x:%02x:%02x %s %s %d",
+			 AVM_SSU_DHCONF_SCRIPT, "host1", "host2", 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, "filename",
+			 "tftpserver", dhcp_initialise);
 
-   m_SET_FD_IN_SEL_OBJ((uns32)cb->mbc_sel_obj, mbc_sel_obj);
-   m_NCS_SEL_OBJ_SET(mbc_sel_obj, &cb->sel_obj_set);
-   cb->sel_high = m_GET_HIGHER_SEL_OBJ(mbc_sel_obj, cb->sel_high);
+		/* Invoke script to initialise the DHCP Configuration file */
+		if (system(script_buf)) {
+			/* ncshm_give_hdl(g_avm_hdl);
+			   g_avm_hdl = 0;
+			   return;
+			 */
+			m_AVM_LOG_DEBUG("AVM-SSU: Failed to execute AVM_SSU_DHCONF_SCRIPT to initialise DHCP conf file",
+					NCSFL_SEV_WARNING);
+		}
+	}
+	if (cb->ha_state == SA_AMF_HA_STANDBY) {
+		/*ssu_tmr is not needed if initially coming up as standby */
+		cb->ssu_tmr.status = AVM_TMR_EXPIRED;
+	}
 
-   /* Initialize MIBLIB routines */
-   if (NCSCC_RC_SUCCESS != avm_miblib_init(cb))
-   {
-      m_AVM_LOG_MAS(AVM_LOG_MIBLIB_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_CRITICAL);
-      avm_destroy(AVM_DESTROY_PATRICIA);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return;
-   }
-   m_AVM_LOG_MAS(AVM_LOG_MIBLIB_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_INFO);
+	/* Initialize with FMA */
+	if (NCSCC_RC_SUCCESS != avm_fma_initialize(cb)) {
+		m_AVM_LOG_FM_INFO(AVM_LOG_FMA_INIT_FAILED, NCSFL_SEV_CRITICAL, NCSFL_LC_FUNC_RET_FAIL);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
 
-   /* Initialise MAB */
-   if (avm_mab_init(cb) != NCSCC_RC_SUCCESS)
-   {
-      m_AVM_LOG_MAS(AVM_LOG_OAC_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_CRITICAL);
-      avm_destroy(AVM_DESTROY_MDS);
-      ncshm_give_hdl(g_avm_hdl);
-      g_avm_hdl = 0;
-      return;
-   }
+	/* Initialise MDS */
+	if (NCSCC_RC_SUCCESS != avm_mds_initialize(cb)) {
+		m_AVM_LOG_MDS(AVM_LOG_MDS_REG, AVM_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+		avm_destroy(AVM_DESTROY_PATRICIA);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
+	m_AVM_LOG_MDS(AVM_LOG_MDS_REG, AVM_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
-   /*Initialise EDS */
-   rc = avm_eda_initialize(cb);
-   if(AVM_EDA_FAILURE == rc)
-   {
-     m_AVM_INIT_EDA_TMR_START(cb);
-   }else     
-   {
-     if(NCSCC_RC_FAILURE == rc)
-     {
-        m_AVM_LOG_EDA(AVM_LOG_EDA_CREATE, AVM_LOG_EDA_FAILURE, NCSFL_SEV_CRITICAL);
-        avm_destroy(AVM_DESTROY_MAB); 
-     }else
-     {
-        cb->eda_init  = AVM_EDA_DONE;
-        m_AVM_LOG_EDA(AVM_LOG_EDA_CREATE, AVM_LOG_EDA_SUCCESS, NCSFL_SEV_INFO);
-     }
-   }
-   rc = avm_hpl_init();
-   if(NCSCC_RC_FAILURE == rc)
-   {
-      m_AVM_LOG_HPL(AVM_LOG_HPL_INIT, AVM_LOG_HPL_FAILURE, NCSFL_SEV_CRITICAL);
-   }else
-   {
-      m_AVM_LOG_HPL(AVM_LOG_HPL_INIT, AVM_LOG_HPL_SUCCESS, NCSFL_SEV_INFO);
-   }
-   cb->cfg_state = AVM_CONFIG_DONE;
+	if (NCSCC_RC_FAILURE == avm_mbc_register(cb)) {
+		m_AVM_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+		return;
+	}
 
-   /* give back the handle */
-   ncshm_give_hdl(g_avm_hdl);
+	m_SET_FD_IN_SEL_OBJ((uns32)cb->mbc_sel_obj, mbc_sel_obj);
+	m_NCS_SEL_OBJ_SET(mbc_sel_obj, &cb->sel_obj_set);
+	cb->sel_high = m_GET_HIGHER_SEL_OBJ(mbc_sel_obj, cb->sel_high);
 
-   /* call the main processing module that will not return*/
-   avm_proc();
+	/* Initialize MIBLIB routines */
+	if (NCSCC_RC_SUCCESS != avm_miblib_init(cb)) {
+		m_AVM_LOG_MAS(AVM_LOG_MIBLIB_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_CRITICAL);
+		avm_destroy(AVM_DESTROY_PATRICIA);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
+	m_AVM_LOG_MAS(AVM_LOG_MIBLIB_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_INFO);
+
+	/* Initialise MAB */
+	if (avm_mab_init(cb) != NCSCC_RC_SUCCESS) {
+		m_AVM_LOG_MAS(AVM_LOG_OAC_REGISTER, AVM_LOG_MAS_FAILURE, NCSFL_SEV_CRITICAL);
+		avm_destroy(AVM_DESTROY_MDS);
+		ncshm_give_hdl(g_avm_hdl);
+		g_avm_hdl = 0;
+		return;
+	}
+
+	/*Initialise EDS */
+	rc = avm_eda_initialize(cb);
+	if (AVM_EDA_FAILURE == rc) {
+		m_AVM_INIT_EDA_TMR_START(cb);
+	} else {
+		if (NCSCC_RC_FAILURE == rc) {
+			m_AVM_LOG_EDA(AVM_LOG_EDA_CREATE, AVM_LOG_EDA_FAILURE, NCSFL_SEV_CRITICAL);
+			avm_destroy(AVM_DESTROY_MAB);
+		} else {
+			cb->eda_init = AVM_EDA_DONE;
+			m_AVM_LOG_EDA(AVM_LOG_EDA_CREATE, AVM_LOG_EDA_SUCCESS, NCSFL_SEV_INFO);
+		}
+	}
+	rc = avm_hpl_init();
+	if (NCSCC_RC_FAILURE == rc) {
+		m_AVM_LOG_HPL(AVM_LOG_HPL_INIT, AVM_LOG_HPL_FAILURE, NCSFL_SEV_CRITICAL);
+	} else {
+		m_AVM_LOG_HPL(AVM_LOG_HPL_INIT, AVM_LOG_HPL_SUCCESS, NCSFL_SEV_INFO);
+	}
+	cb->cfg_state = AVM_CONFIG_DONE;
+
+	/* give back the handle */
+	ncshm_give_hdl(g_avm_hdl);
+
+	/* call the main processing module that will not return */
+	avm_proc();
 
 }
-
 
 /*****************************************************************************
  * Function: avm_init
@@ -421,114 +388,102 @@ avm_init_proc(uns32 *avm_init_hdl)
  * 
  **************************************************************************/
 
-static uns32 
-avm_init(NCS_LIB_REQ_INFO *req_info)
+static uns32 avm_init(NCS_LIB_REQ_INFO *req_info)
 {
-   AVM_CB_T    *cb;
+	AVM_CB_T *cb;
 
-   m_AVM_LOG_FUNC_ENTRY("avm_init");
-   
-   /* check if g_avm_hdl is 0, if not AvM is
-    * already initialised return now */
-   if (0 != g_avm_hdl )
-   {
-      m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_DEBUG);
-      return NCSCC_RC_FAILURE;
-   }
+	m_AVM_LOG_FUNC_ENTRY("avm_init");
 
+	/* check if g_avm_hdl is 0, if not AvM is
+	 * already initialised return now */
+	if (0 != g_avm_hdl) {
+		m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_DEBUG);
+		return NCSCC_RC_FAILURE;
+	}
 #if (NCS_AVM_LOG == 1)
-   /* 
-    * Register with Logging subsystem. This is an agent call and
-    * could succeed even if the DTS server is not available 
-    */
-   avm_flx_log_reg();
-#endif /* (NCS_AVM_LOG == 1) */
+	/* 
+	 * Register with Logging subsystem. This is an agent call and
+	 * could succeed even if the DTS server is not available 
+	 */
+	avm_flx_log_reg();
+#endif   /* (NCS_AVM_LOG == 1) */
 
-   /* Create Control Block and fill g_avm_hdl with
-    * the handle returned by handle manager */
-   cb = m_MMGR_ALLOC_AVM_CB;
-   if (AVM_CB_NULL == cb)
-   {
-      m_AVM_LOG_CB(AVM_LOG_CB_CREATE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+	/* Create Control Block and fill g_avm_hdl with
+	 * the handle returned by handle manager */
+	cb = m_MMGR_ALLOC_AVM_CB;
+	if (AVM_CB_NULL == cb) {
+		m_AVM_LOG_CB(AVM_LOG_CB_CREATE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_AVM_LOG_CB(AVM_LOG_CB_CREATE, AVM_LOG_CB_SUCCESS,  NCSFL_SEV_INFO);
+	m_AVM_LOG_CB(AVM_LOG_CB_CREATE, AVM_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-   memset(cb, '\0', sizeof(AVM_CB_T));
-   if ((g_avm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_AVM, cb)) == 0)
-   {
-        m_MMGR_FREE_AVM_CB(cb);
-        m_AVM_LOG_CB(AVM_LOG_CB_HDL_ASS_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
-        return NCSCC_RC_FAILURE;
-   }
+	memset(cb, '\0', sizeof(AVM_CB_T));
+	if ((g_avm_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_AVM, cb)) == 0) {
+		m_MMGR_FREE_AVM_CB(cb);
+		m_AVM_LOG_CB(AVM_LOG_CB_HDL_ASS_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_AVM_LOG_CB(AVM_LOG_CB_HDL_ASS_CREATE, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
+	m_AVM_LOG_CB(AVM_LOG_CB_HDL_ASS_CREATE, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
 
-   cb->cb_hdl = g_avm_hdl;
+	cb->cb_hdl = g_avm_hdl;
 
-   /* Create a MailBox */
-   if (m_NCS_IPC_CREATE (&cb->mailbox) != NCSCC_RC_SUCCESS)
-   {
-      m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
-      g_avm_hdl = 0;
-      m_MMGR_FREE_AVM_CB(cb);
-      return NCSCC_RC_FAILURE;
-   }
-   m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
+	/* Create a MailBox */
+	if (m_NCS_IPC_CREATE(&cb->mailbox) != NCSCC_RC_SUCCESS) {
+		m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
+		g_avm_hdl = 0;
+		m_MMGR_FREE_AVM_CB(cb);
+		return NCSCC_RC_FAILURE;
+	}
+	m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
 
-   /* Create a SSU MailBox */
-   if (m_NCS_IPC_CREATE (&cb->ssu_mbx) != NCSCC_RC_SUCCESS)
-   {
-      m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
-      g_avm_hdl = 0;
-      m_MMGR_FREE_AVM_CB(cb);
-      return NCSCC_RC_FAILURE;
-   }
+	/* Create a SSU MailBox */
+	if (m_NCS_IPC_CREATE(&cb->ssu_mbx) != NCSCC_RC_SUCCESS) {
+		m_AVM_LOG_MBX(AVM_LOG_MBX_CREATE, AVM_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
+		g_avm_hdl = 0;
+		m_MMGR_FREE_AVM_CB(cb);
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_NCS_IPC_ATTACH(&cb->mailbox);
+	m_NCS_IPC_ATTACH(&cb->mailbox);
 
-   m_AVM_LOG_MBX(AVM_LOG_MBX_ATTACH, AVM_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
+	m_AVM_LOG_MBX(AVM_LOG_MBX_ATTACH, AVM_LOG_MBX_SUCCESS, NCSFL_SEV_INFO);
 
-   m_NCS_IPC_ATTACH(&cb->ssu_mbx);
+	m_NCS_IPC_ATTACH(&cb->ssu_mbx);
 
-   /* create and start the AvM thread with the cb handle argument */
-   if (m_NCS_TASK_CREATE ((NCS_OS_CB)avm_init_proc,
-                    &g_avm_hdl,
-                    NCS_AVM_NAME,
-                    NCS_AVM_PRIORITY,
-                    NCS_AVM_STACK_SIZE,
-                    &g_avm_task_hdl) != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_IPC_RELEASE(&cb->mailbox, NULL);
-      m_NCS_IPC_RELEASE(&cb->ssu_mbx, NULL);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
-      g_avm_hdl = 0;
-      m_MMGR_FREE_AVM_CB(cb);
-      m_AVM_LOG_TASK(AVM_LOG_TASK_CREATE, AVM_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+	/* create and start the AvM thread with the cb handle argument */
+	if (m_NCS_TASK_CREATE((NCS_OS_CB)avm_init_proc,
+			      &g_avm_hdl,
+			      NCS_AVM_NAME,
+			      NCS_AVM_PRIORITY, NCS_AVM_STACK_SIZE, &g_avm_task_hdl) != NCSCC_RC_SUCCESS) {
+		m_NCS_IPC_RELEASE(&cb->mailbox, NULL);
+		m_NCS_IPC_RELEASE(&cb->ssu_mbx, NULL);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
+		g_avm_hdl = 0;
+		m_MMGR_FREE_AVM_CB(cb);
+		m_AVM_LOG_TASK(AVM_LOG_TASK_CREATE, AVM_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_AVM_LOG_TASK(AVM_LOG_TASK_CREATE, AVM_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
+	m_AVM_LOG_TASK(AVM_LOG_TASK_CREATE, AVM_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
 
-   if (m_NCS_TASK_START (g_avm_task_hdl) != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_TASK_RELEASE(g_avm_task_hdl);
-      m_NCS_IPC_RELEASE(&cb->mailbox, NULL);
-      m_NCS_IPC_RELEASE(&cb->ssu_mbx, NULL);
-      ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
-      g_avm_hdl = 0;
-      m_MMGR_FREE_AVM_CB(cb);
-      m_AVM_LOG_TASK(AVM_LOG_TASK_START, AVM_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+	if (m_NCS_TASK_START(g_avm_task_hdl) != NCSCC_RC_SUCCESS) {
+		m_NCS_TASK_RELEASE(g_avm_task_hdl);
+		m_NCS_IPC_RELEASE(&cb->mailbox, NULL);
+		m_NCS_IPC_RELEASE(&cb->ssu_mbx, NULL);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl);
+		g_avm_hdl = 0;
+		m_MMGR_FREE_AVM_CB(cb);
+		m_AVM_LOG_TASK(AVM_LOG_TASK_START, AVM_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_AVM_LOG_TASK(AVM_LOG_TASK_START, AVM_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
-   return NCSCC_RC_SUCCESS;
+	m_AVM_LOG_TASK(AVM_LOG_TASK_START, AVM_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avm_destroy
@@ -546,66 +501,60 @@ avm_init(NCS_LIB_REQ_INFO *req_info)
  * 
  **************************************************************************/
 
-static uns32 
-avm_destroy(AVM_DESTROY_T     destroy)
+static uns32 avm_destroy(AVM_DESTROY_T destroy)
 {
-   AVM_CB_T  *cb;
+	AVM_CB_T *cb;
 
-   if(0 == g_avm_hdl)
-   {
-      m_AVM_LOG_INVALID_VAL_ERROR(0);
-      return NCSCC_RC_FAILURE;
-   }
+	if (0 == g_avm_hdl) {
+		m_AVM_LOG_INVALID_VAL_ERROR(0);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl)))
-   {    
-      m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-      return NCSCC_RC_FAILURE;
-   }
+	if (AVM_CB_NULL == (cb = ncshm_take_hdl(NCS_SERVICE_ID_AVM, g_avm_hdl))) {
+		m_AVM_LOG_CB(AVM_LOG_CB_RETRIEVE, AVM_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+		return NCSCC_RC_FAILURE;
+	}
 
-   switch(destroy)
-   {
-      case AVM_DESTROY_HPL:
-      {
-         avm_hpl_destroy();   
-      }
-      case AVM_DESTROY_EDA:
-      {
-         avm_eda_finalize(cb);
-      }
-      case AVM_DESTROY_MAB:
-      {
-         avm_mab_destroy(cb);
-      }
-      case AVM_DESTROY_MDS:
-      {
-         avm_mds_finalize(cb);
-      }
-      case AVM_DESTROY_PATRICIA:
-      {
-         ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
-         ncs_patricia_tree_destroy(&cb->db.ent_info_str_anchor);
-         ncs_patricia_tree_destroy(&cb->db.node_name_anchor);
-      }
-      case AVM_DESTROY_TASK:
-      {
-      }
-      case AVM_DESTROY_MBX:
-      {
-      }
-      case AVM_DESTROY_CB:
-      {
-      }
-      default:
-      {
-         m_AVM_LOG_INVALID_VAL_ERROR(destroy);
-      }
-   }
-   
-   return NCSCC_RC_SUCCESS;
+	switch (destroy) {
+	case AVM_DESTROY_HPL:
+		{
+			avm_hpl_destroy();
+		}
+	case AVM_DESTROY_EDA:
+		{
+			avm_eda_finalize(cb);
+		}
+	case AVM_DESTROY_MAB:
+		{
+			avm_mab_destroy(cb);
+		}
+	case AVM_DESTROY_MDS:
+		{
+			avm_mds_finalize(cb);
+		}
+	case AVM_DESTROY_PATRICIA:
+		{
+			ncs_patricia_tree_destroy(&cb->db.ent_info_anchor);
+			ncs_patricia_tree_destroy(&cb->db.ent_info_str_anchor);
+			ncs_patricia_tree_destroy(&cb->db.node_name_anchor);
+		}
+	case AVM_DESTROY_TASK:
+		{
+		}
+	case AVM_DESTROY_MBX:
+		{
+		}
+	case AVM_DESTROY_CB:
+		{
+		}
+	default:
+		{
+			m_AVM_LOG_INVALID_VAL_ERROR(destroy);
+		}
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: avm_lib_req
@@ -624,52 +573,46 @@ avm_destroy(AVM_DESTROY_T     destroy)
  **************************************************************************/
 uns32 avm_lib_req(NCS_LIB_REQ_INFO *req_info)
 {
-   
-   uns32 rc;   
-  
-   m_AVM_LOG_FUNC_ENTRY("avm_lib_req");
- 
-   if (NULL == req_info)
-   {
-      m_AVM_LOG_INVALID_VAL_ERROR(0);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   switch(req_info->i_op)
-   {
-      case NCS_LIB_REQ_CREATE:
-      {
-         rc =  avm_init(req_info);
 
-         if(NCSCC_RC_SUCCESS == rc)
-         {
-            m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
-         }else
-         {
-            m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
-         }
-      }
-      break;
+	uns32 rc;
 
-      case NCS_LIB_REQ_DESTROY:
-      {
-         rc = avm_destroy(AVM_DESTROY_HPL);
+	m_AVM_LOG_FUNC_ENTRY("avm_lib_req");
 
-         if(NCSCC_RC_SUCCESS == rc)
-         {
-            m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_DESTROY, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
-         }else
-         {
-            m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_DESTROY, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
-         }
-      }
-      break;
+	if (NULL == req_info) {
+		m_AVM_LOG_INVALID_VAL_ERROR(0);
+		return NCSCC_RC_FAILURE;
+	}
 
-      default:
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(req_info->i_op);
-         rc = NCSCC_RC_FAILURE;
-      }
-    }
-    return rc;      
+	switch (req_info->i_op) {
+	case NCS_LIB_REQ_CREATE:
+		{
+			rc = avm_init(req_info);
+
+			if (NCSCC_RC_SUCCESS == rc) {
+				m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
+			} else {
+				m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_CREATE, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
+			}
+		}
+		break;
+
+	case NCS_LIB_REQ_DESTROY:
+		{
+			rc = avm_destroy(AVM_DESTROY_HPL);
+
+			if (NCSCC_RC_SUCCESS == rc) {
+				m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_DESTROY, AVM_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
+			} else {
+				m_AVM_LOG_SEAPI(AVM_LOG_SEAPI_DESTROY, AVM_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
+			}
+		}
+		break;
+
+	default:
+		{
+			m_AVM_LOG_INVALID_VAL_FATAL(req_info->i_op);
+			rc = NCSCC_RC_FAILURE;
+		}
+	}
+	return rc;
 }

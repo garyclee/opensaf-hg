@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module deals with the creation, accessing and deletion of
@@ -64,7 +62,6 @@
   saamfnodetableentry_setrow - This function is the setrow processing for
                                SA_AMF_NODE_TABLE_ENTRY_ID table.
 
-
   CLM NODE related functions.
 
   saclmnodetableentry_get - This function is one of the get processing
@@ -80,7 +77,6 @@
   saclmnodetableentry_setrow - This function is the setrow processing for
                                SA_CLM_NODE_TABLE_ENTRY_ID table.
 
-
 ******************************************************************************
 */
 
@@ -89,8 +85,6 @@
  */
 
 #include "avd.h"
-
-
 
 /*****************************************************************************
  * Function: avd_avnd_struc_crt
@@ -110,84 +104,73 @@
  * 
  **************************************************************************/
 
-AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
+AVD_AVND *avd_avnd_struc_crt(AVD_CL_CB *cb, SaNameT node_name, NCS_BOOL ckpt)
 {
-   AVD_AVND *avnd;
+	AVD_AVND *avnd;
 
-   if( (node_name.length <= 8) || (strncmp(node_name.value,"safNode=",8) != 0) )
-   {
-      return AVD_AVND_NULL;
-   }
+	if ((node_name.length <= 8) || (strncmp(node_name.value, "safNode=", 8) != 0)) {
+		return AVD_AVND_NULL;
+	}
 
-   /* Allocate a new block structure now
-    */
-   if ((avnd = m_MMGR_ALLOC_AVD_AVND) == AVD_AVND_NULL)
-   {
-      /* log an error */
-      m_AVD_LOG_MEM_FAIL(AVD_AVND_ALLOC_FAILED);
-      return AVD_AVND_NULL;
-   }
+	/* Allocate a new block structure now
+	 */
+	if ((avnd = m_MMGR_ALLOC_AVD_AVND) == AVD_AVND_NULL) {
+		/* log an error */
+		m_AVD_LOG_MEM_FAIL(AVD_AVND_ALLOC_FAILED);
+		return AVD_AVND_NULL;
+	}
 
-   memset((char *)avnd, '\0', sizeof(AVD_AVND));
+	memset((char *)avnd, '\0', sizeof(AVD_AVND));
 
-   if (ckpt)
-   {
-      /* Fill the node name into the field and also into the key area. */ 
-      memcpy(avnd->node_info.nodeName.value, 
-         node_name.value, m_NCS_OS_NTOHS(node_name.length));
-      avnd->node_info.nodeName.length = node_name.length;
-   }
-   else
-   {
-      /* Fill the node name into the field and also into the key area. */ 
-      memcpy(avnd->node_info.nodeName.value, 
-         node_name.value, node_name.length);
+	if (ckpt) {
+		/* Fill the node name into the field and also into the key area. */
+		memcpy(avnd->node_info.nodeName.value, node_name.value, m_NCS_OS_NTOHS(node_name.length));
+		avnd->node_info.nodeName.length = node_name.length;
+	} else {
+		/* Fill the node name into the field and also into the key area. */
+		memcpy(avnd->node_info.nodeName.value, node_name.value, node_name.length);
 
-      avnd->node_info.nodeName.length = m_HTON_SANAMET_LEN(node_name.length);
-      
-      
+		avnd->node_info.nodeName.length = m_HTON_SANAMET_LEN(node_name.length);
 
-      avnd->su_admin_state = NCS_ADMIN_STATE_UNLOCK;
-      avnd->oper_state = NCS_OPER_STATE_DISABLE;
-      avnd->row_status = NCS_ROW_NOT_READY;
-      avnd->node_state = AVD_AVND_STATE_ABSENT;
-      avnd->node_info.member = SA_FALSE;
+		avnd->su_admin_state = NCS_ADMIN_STATE_UNLOCK;
+		avnd->oper_state = NCS_OPER_STATE_DISABLE;
+		avnd->row_status = NCS_ROW_NOT_READY;
+		avnd->node_state = AVD_AVND_STATE_ABSENT;
+		avnd->node_info.member = SA_FALSE;
 
-      /* if the node is sitting on the same node as the AVD mark
-       * the type value as indicating that it is system controller AvND.
-       */
-      avnd->type = AVSV_AVND_CARD_PAYLOAD;
-   }
-   avnd->avm_oper_state = NCS_OPER_STATE_ENABLE;
+		/* if the node is sitting on the same node as the AVD mark
+		 * the type value as indicating that it is system controller AvND.
+		 */
+		avnd->type = AVSV_AVND_CARD_PAYLOAD;
+	}
+	avnd->avm_oper_state = NCS_OPER_STATE_ENABLE;
 
-   /* init pointers */
-   avnd->list_of_su = AVD_SU_NULL;
-   avnd->list_of_ncs_su = AVD_SU_NULL;
+	/* init pointers */
+	avnd->list_of_su = AVD_SU_NULL;
+	avnd->list_of_ncs_su = AVD_SU_NULL;
 
-   /* initialize the pg csi-list */
-   avnd->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
-   avnd->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
-   avnd->pg_csi_list.free_cookie = 0;
+	/* initialize the pg csi-list */
+	avnd->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
+	avnd->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
+	avnd->pg_csi_list.free_cookie = 0;
 
-   
-   avnd->tree_node_name_node.key_info = (uns8*)&(avnd->node_info.nodeName);
-   avnd->tree_node_name_node.bit   = 0;
-   avnd->tree_node_name_node.left  = NCS_PATRICIA_NODE_NULL;
-   avnd->tree_node_name_node.right = NCS_PATRICIA_NODE_NULL;
+	avnd->tree_node_name_node.key_info = (uns8 *)&(avnd->node_info.nodeName);
+	avnd->tree_node_name_node.bit = 0;
+	avnd->tree_node_name_node.left = NCS_PATRICIA_NODE_NULL;
+	avnd->tree_node_name_node.right = NCS_PATRICIA_NODE_NULL;
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
-   if( ncs_patricia_tree_add(&cb->avnd_anchor_name,&avnd->tree_node_name_node) 
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log an error */
-      m_MMGR_FREE_AVD_AVND(avnd);
-      return AVD_AVND_NULL;
-   }
+	if (ncs_patricia_tree_add(&cb->avnd_anchor_name, &avnd->tree_node_name_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log an error */
+		m_MMGR_FREE_AVD_AVND(avnd);
+		return AVD_AVND_NULL;
+	}
 
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
-   return avnd;
+	return avnd;
 }
 
 /*****************************************************************************
@@ -206,27 +189,25 @@ AVD_AVND * avd_avnd_struc_crt(AVD_CL_CB *cb,SaNameT node_name, NCS_BOOL ckpt)
  * 
  **************************************************************************/
 
-uns32 avd_avnd_struc_add_nodeid(AVD_CL_CB *cb,AVD_AVND *avnd)
+uns32 avd_avnd_struc_add_nodeid(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-   if(avnd && avnd->node_info.nodeId)
-   {
-      avnd->tree_node_id_node.key_info = (uns8*)&(avnd->node_info.nodeId);
-      avnd->tree_node_id_node.bit   = 0;
-      avnd->tree_node_id_node.left  = NCS_PATRICIA_NODE_NULL;
-      avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
+	if (avnd && avnd->node_info.nodeId) {
+		avnd->tree_node_id_node.key_info = (uns8 *)&(avnd->node_info.nodeId);
+		avnd->tree_node_id_node.bit = 0;
+		avnd->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
+		avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
-      m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
-      if( ncs_patricia_tree_add(&cb->avnd_anchor,&avnd->tree_node_id_node)
-                      != NCSCC_RC_SUCCESS)
-      {
-         /* log an error */
-         return NCSCC_RC_FAILURE;
-      }
-      
-      m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
-   }
-   return NCSCC_RC_SUCCESS;
+		if (ncs_patricia_tree_add(&cb->avnd_anchor, &avnd->tree_node_id_node)
+		    != NCSCC_RC_SUCCESS) {
+			/* log an error */
+			return NCSCC_RC_FAILURE;
+		}
+
+		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -246,28 +227,26 @@ uns32 avd_avnd_struc_add_nodeid(AVD_CL_CB *cb,AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb,SaNameT node_name)
+AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb, SaNameT node_name)
 {
-   AVD_AVND *avnd;
-   SaNameT lnode_name_net;
+	AVD_AVND *avnd;
+	SaNameT lnode_name_net;
 
-   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   memcpy(lnode_name_net.value,node_name.value,node_name.length);
-   lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
+	memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+	memcpy(lnode_name_net.value, node_name.value, node_name.length);
+	lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
-   avnd = (AVD_AVND *)ncs_patricia_tree_get(&cb->avnd_anchor_name,
-                                          (uns8*)&lnode_name_net);
+	avnd = (AVD_AVND *)ncs_patricia_tree_get(&cb->avnd_anchor_name, (uns8 *)&lnode_name_net);
 
-   if (avnd != AVD_AVND_NULL)
-   {
-       /* Adjust the pointer
-        */
-       avnd = (AVD_AVND *)(((char *)avnd)
-                      - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-                       - ((char *)AVD_AVND_NULL)));
-   }
+	if (avnd != AVD_AVND_NULL) {
+		/* Adjust the pointer
+		 */
+		avnd = (AVD_AVND *)(((char *)avnd)
+				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
+				       - ((char *)AVD_AVND_NULL)));
+	}
 
-   return avnd;
+	return avnd;
 }
 
 /*****************************************************************************
@@ -286,15 +265,14 @@ AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb,SaNameT node_name)
  * 
  **************************************************************************/
 
-AVD_AVND *avd_avnd_struc_find_nodeid(AVD_CL_CB *cb,SaClmNodeIdT node_id)
+AVD_AVND *avd_avnd_struc_find_nodeid(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 {
-   AVD_AVND *avnd;
+	AVD_AVND *avnd;
 
-   avnd = (AVD_AVND *)ncs_patricia_tree_get(&cb->avnd_anchor,(uns8*)&node_id);
+	avnd = (AVD_AVND *)ncs_patricia_tree_get(&cb->avnd_anchor, (uns8 *)&node_id);
 
-   return avnd;
+	return avnd;
 }
-
 
 /*****************************************************************************
  * Function: avd_avnd_struc_find_next
@@ -313,28 +291,26 @@ AVD_AVND *avd_avnd_struc_find_nodeid(AVD_CL_CB *cb,SaClmNodeIdT node_id)
  * 
  **************************************************************************/
 
-AVD_AVND * avd_avnd_struc_find_next(AVD_CL_CB *cb,SaNameT node_name)
+AVD_AVND *avd_avnd_struc_find_next(AVD_CL_CB *cb, SaNameT node_name)
 {
-   AVD_AVND *avnd;
-   SaNameT lnode_name_net;
+	AVD_AVND *avnd;
+	SaNameT lnode_name_net;
 
-   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   memcpy(lnode_name_net.value,node_name.value,node_name.length);
-   lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
+	memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+	memcpy(lnode_name_net.value, node_name.value, node_name.length);
+	lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
-   avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor_name,
-                                          (uns8*)&lnode_name_net);
+	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor_name, (uns8 *)&lnode_name_net);
 
-   if (avnd != AVD_AVND_NULL)
-   {
-       /* Adjust the pointer
-        */
-       avnd = (AVD_AVND *)(((char *)avnd)
-                      - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-                       - ((char *)AVD_AVND_NULL)));
-   }
+	if (avnd != AVD_AVND_NULL) {
+		/* Adjust the pointer
+		 */
+		avnd = (AVD_AVND *)(((char *)avnd)
+				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
+				       - ((char *)AVD_AVND_NULL)));
+	}
 
-   return avnd;
+	return avnd;
 }
 
 /*****************************************************************************
@@ -355,34 +331,31 @@ AVD_AVND * avd_avnd_struc_find_next(AVD_CL_CB *cb,SaNameT node_name)
  * 
  **************************************************************************/
 
-static AVD_AVND * avd_avnd_struc_find_next_cl_member(AVD_CL_CB *cb,SaNameT node_name)
+static AVD_AVND *avd_avnd_struc_find_next_cl_member(AVD_CL_CB *cb, SaNameT node_name)
 {
-   AVD_AVND *avnd = AVD_AVND_NULL;
-   SaNameT lnode_name_net;
+	AVD_AVND *avnd = AVD_AVND_NULL;
+	SaNameT lnode_name_net;
 
-   memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
-   memcpy(lnode_name_net.value,node_name.value,node_name.length);
-   lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
+	memset((char *)&lnode_name_net, '\0', sizeof(SaNameT));
+	memcpy(lnode_name_net.value, node_name.value, node_name.length);
+	lnode_name_net.length = m_HTON_SANAMET_LEN(node_name.length);
 
-   do
-   {
-      avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor_name,
-                                                   (uns8*)&lnode_name_net);
+	do {
+		avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor_name, (uns8 *)&lnode_name_net);
 
-      if (avnd != AVD_AVND_NULL)
-      {
-          /* Adjust the pointer
-           */
-          avnd = (AVD_AVND *)(((char *)avnd)
-                      - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-                       - ((char *)AVD_AVND_NULL)));
+		if (avnd != AVD_AVND_NULL) {
+			/* Adjust the pointer
+			 */
+			avnd = (AVD_AVND *)(((char *)avnd)
+					    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
+					       - ((char *)AVD_AVND_NULL)));
 
-          lnode_name_net = avnd->node_info.nodeName;
-      }
+			lnode_name_net = avnd->node_info.nodeName;
+		}
 
-   }while( (avnd != AVD_AVND_NULL) && (avnd->node_info.member == FALSE) );
+	} while ((avnd != AVD_AVND_NULL) && (avnd->node_info.member == FALSE));
 
-   return avnd;
+	return avnd;
 }
 
 /*****************************************************************************
@@ -401,15 +374,14 @@ static AVD_AVND * avd_avnd_struc_find_next_cl_member(AVD_CL_CB *cb,SaNameT node_
  * 
  **************************************************************************/
 
-AVD_AVND * avd_avnd_struc_find_next_nodeid(AVD_CL_CB *cb,SaClmNodeIdT node_id)
+AVD_AVND *avd_avnd_struc_find_next_nodeid(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 {
-   AVD_AVND *avnd;
+	AVD_AVND *avnd;
 
-   avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor,(uns8*)&node_id);
+	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor, (uns8 *)&node_id);
 
-   return avnd;
+	return avnd;
 }
-
 
 /*****************************************************************************
  * Function: avd_add_avnd_anchor_nodeid
@@ -428,37 +400,32 @@ AVD_AVND * avd_avnd_struc_find_next_nodeid(AVD_CL_CB *cb,SaClmNodeIdT node_id)
  * 
  **************************************************************************/
 
-uns32 avd_add_avnd_anchor_nodeid(AVD_CL_CB *cb, SaNameT node_name,
-                                 SaClmNodeIdT node_id)
+uns32 avd_add_avnd_anchor_nodeid(AVD_CL_CB *cb, SaNameT node_name, SaClmNodeIdT node_id)
 {
-   AVD_AVND *avnd;
-   avnd = avd_avnd_struc_find(cb, node_name);
+	AVD_AVND *avnd;
+	avnd = avd_avnd_struc_find(cb, node_name);
 
-   if(!avnd)
-   {
-      /* log an error */
-      return NCSCC_RC_FAILURE;
-   }
+	if (!avnd) {
+		/* log an error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   avnd->node_info.nodeId = node_id;
+	avnd->node_info.nodeId = node_id;
 
-   avnd->tree_node_id_node.key_info = (uns8*)&(avnd->node_info.nodeId);
-   avnd->tree_node_id_node.bit   = 0;
-   avnd->tree_node_id_node.left  = NCS_PATRICIA_NODE_NULL;
-   avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
+	avnd->tree_node_id_node.key_info = (uns8 *)&(avnd->node_info.nodeId);
+	avnd->tree_node_id_node.bit = 0;
+	avnd->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
+	avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
+	if (ncs_patricia_tree_add(&cb->avnd_anchor, &avnd->tree_node_id_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log an error */
+		m_MMGR_FREE_AVD_AVND(avnd);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if( ncs_patricia_tree_add(&cb->avnd_anchor,&avnd->tree_node_id_node)
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log an error */
-      m_MMGR_FREE_AVD_AVND(avnd);
-      return NCSCC_RC_FAILURE;
-   }
-
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avd_avnd_struc_del
@@ -479,25 +446,24 @@ uns32 avd_add_avnd_anchor_nodeid(AVD_CL_CB *cb, SaNameT node_name,
 
 uns32 avd_avnd_struc_del(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-   if (avnd == AVD_AVND_NULL)
-      return NCSCC_RC_FAILURE;
+	if (avnd == AVD_AVND_NULL)
+		return NCSCC_RC_FAILURE;
 
-   /* the pg-csi list should be null */
-   m_AVSV_ASSERT(!avnd->pg_csi_list.n_nodes);
+	/* the pg-csi list should be null */
+	m_AVSV_ASSERT(!avnd->pg_csi_list.n_nodes);
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
-   if(ncs_patricia_tree_del(&cb->avnd_anchor_name,&avnd->tree_node_name_node) 
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
+	if (ncs_patricia_tree_del(&cb->avnd_anchor_name, &avnd->tree_node_name_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 
-   m_MMGR_FREE_AVD_AVND(avnd);
-   return NCSCC_RC_SUCCESS;
+	m_MMGR_FREE_AVD_AVND(avnd);
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -518,23 +484,21 @@ uns32 avd_avnd_struc_del(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 uns32 avd_avnd_struc_rmv_nodeid(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
-   if (avnd == AVD_AVND_NULL)
-      return NCSCC_RC_FAILURE;
+	if (avnd == AVD_AVND_NULL)
+		return NCSCC_RC_FAILURE;
 
-   m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
-   if(ncs_patricia_tree_del(&cb->avnd_anchor,&avnd->tree_node_id_node) 
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
-   
-   m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+	if (ncs_patricia_tree_del(&cb->avnd_anchor, &avnd->tree_node_id_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncsndtableentry_get
@@ -560,41 +524,36 @@ uns32 avd_avnd_struc_rmv_nodeid(AVD_CL_CB *cb, AVD_AVND *avnd)
  * 
  **************************************************************************/
 
-uns32 ncsndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 ncsndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT  node_name;
-   AVD_AVND      *avnd;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0] ;
-   for(i = 0; i < node_name.length; i++)
-   {
-      node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT node_name;
+	AVD_AVND *avnd;
+	uns32 i;
 
-   avnd = avd_avnd_struc_find(avd_cb,node_name);
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   
-   *data = (NCSCONTEXT)avnd;
+	/* Prepare the nodename database key from the instant ID */
+	node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < node_name.length; i++) {
+		node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	avnd = avd_avnd_struc_find(avd_cb, node_name);
+
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -630,27 +589,23 @@ uns32 ncsndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncsndtableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 ncsndtableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_AVND      *avnd = (AVD_AVND *)data;
+	AVD_AVND *avnd = (AVD_AVND *)data;
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* This table have the standard object types so just call the MIBLIB 
-    * utility routine for standard object types */
+	/* This table have the standard object types so just call the MIBLIB 
+	 * utility routine for standard object types */
 
-   if ((var_info != NULL) && (var_info->offset != 0))
-      return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-   else
-      return NCSCC_RC_NO_OBJECT;
+	if ((var_info != NULL) && (var_info->offset != 0))
+		return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+	else
+		return NCSCC_RC_NO_OBJECT;
 }
-
 
 /*****************************************************************************
  * Function: ncsndtableentry_set
@@ -678,86 +633,77 @@ uns32 ncsndtableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
 
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       node_name;
-   AVD_AVND      *avnd;
-   NCSMIBLIB_REQ_INFO temp_mib_req;
-   NCS_BOOL      val_same_flag = FALSE;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0] ;
-   for(i = 0; i < node_name.length; i++)
-   {
-      node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT node_name;
+	AVD_AVND *avnd;
+	NCSMIBLIB_REQ_INFO temp_mib_req;
+	NCS_BOOL val_same_flag = FALSE;
+	uns32 i;
 
-   avnd = avd_avnd_struc_find(avd_cb,node_name);
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* RowStatus doesnt exist for this table. A row is created automatically
-      ** when a row in AMF node table is created. CREATE request doesnt
-      ** happen for this table and hence return if the struc is not available
-      */
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-      /* however, when PSS does the playback we want to relax this restriction
-      ** so check the AVD state and create the structure
-      */
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-      if(avd_cb->init_state == AVD_CFG_READY)
-      {
-         m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+	/* Prepare the nodename database key from the instant ID */
+	node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < node_name.length; i++) {
+		node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-         avnd = avd_avnd_struc_crt(avd_cb, node_name, FALSE);
+	avnd = avd_avnd_struc_find(avd_cb, node_name);
+	if (avnd == AVD_AVND_NULL) {
+		/* RowStatus doesnt exist for this table. A row is created automatically
+		 ** when a row in AMF node table is created. CREATE request doesnt
+		 ** happen for this table and hence return if the struc is not available
+		 */
 
-         m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-      }
+		/* however, when PSS does the playback we want to relax this restriction
+		 ** so check the AVD state and create the structure
+		 */
 
-      if(avnd == AVD_AVND_NULL)
-         return NCSCC_RC_NO_INSTANCE; 
-   }
+		if (avd_cb->init_state == AVD_CFG_READY) {
+			m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-   /* We now have the avnd block */
-   
-   if(avnd->row_status == NCS_ROW_ACTIVE)
-   {
-      /* when row status is active we don't allow any other MIB object to be
-       * modified.
-       */
-      return NCSCC_RC_INV_VAL;
-   }
+			avnd = avd_avnd_struc_crt(avd_cb, node_name, FALSE);
 
-   if(test_flag == TRUE)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
+			m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+		}
 
-   /* All the fields are standard mib objects */
-   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+		if (avnd == AVD_AVND_NULL)
+			return NCSCC_RC_NO_INSTANCE;
+	}
 
-   temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
-   temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-   temp_mib_req.info.i_set_util_info.var_info = var_info;
-   temp_mib_req.info.i_set_util_info.data = avnd;
-   temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+	/* We now have the avnd block */
 
-   /* call the mib routine handler */ 
-   return ncsmiblib_process_req(&temp_mib_req);
+	if (avnd->row_status == NCS_ROW_ACTIVE) {
+		/* when row status is active we don't allow any other MIB object to be
+		 * modified.
+		 */
+		return NCSCC_RC_INV_VAL;
+	}
+
+	if (test_flag == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
+
+	/* All the fields are standard mib objects */
+	memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+
+	temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
+	temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
+	temp_mib_req.info.i_set_util_info.var_info = var_info;
+	temp_mib_req.info.i_set_util_info.data = avnd;
+	temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+
+	/* call the mib routine handler */
+	return ncsmiblib_process_req(&temp_mib_req);
 }
-
-
 
 /*****************************************************************************
  * Function: ncsndtableentry_next
@@ -788,58 +734,51 @@ uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncsndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 ncsndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			   NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_AVND      *avnd;
-   SaNameT       node_name;
-   uns32         i;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_AVND *avnd;
+	SaNameT node_name;
+	uns32 i;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   
-    if (arg->i_idx.i_inst_len != 0)
-   {   
-   
-      node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-      for(i = 0; i < node_name.length; i++)
-      {
-         node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   avnd = avd_avnd_struc_find_next(avd_cb,node_name);
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the nodename database key from the instant ID */
 
-   /* Prepare the instant ID from the node_name */
+	if (arg->i_idx.i_inst_len != 0) {
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
-   next_inst_id[0] = *next_inst_id_len -1;
+		node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < node_name.length; i++) {
+			node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
 
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
-   }
+	avnd = avd_avnd_struc_find_next(avd_cb, node_name);
 
-   *data = (NCSCONTEXT)avnd;
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	/* Prepare the instant ID from the node_name */
+
+	*next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
+	next_inst_id[0] = *next_inst_id_len - 1;
+
+	for (i = 0; i < next_inst_id[0]; i++) {
+		next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
+	}
+
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncsndtableentry_setrow
@@ -869,14 +808,11 @@ uns32 ncsndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncsndtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 ncsndtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+			     NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
-
 
 /*****************************************************************************
  * Function: ncsndtableentry_rmvrow
@@ -891,9 +827,9 @@ uns32 ncsndtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  *                   to set the args->rsp.i_status field before returning the
  *                   NCSMIB_ARG to the caller's context
  **************************************************************************/
-uns32 ncsndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx) 
+uns32 ncsndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -920,41 +856,36 @@ uns32 ncsndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-uns32 saamfnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 saamfnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       node_name;
-   AVD_AVND      *avnd;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < node_name.length; i++)
-   {
-      node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT node_name;
+	AVD_AVND *avnd;
+	uns32 i;
 
-   avnd = avd_avnd_struc_find(avd_cb,node_name);
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   
-   *data = (NCSCONTEXT)avnd;
+	/* Prepare the nodename database key from the instant ID */
+	node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < node_name.length; i++) {
+		node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	avnd = avd_avnd_struc_find(avd_cb, node_name);
+
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -990,35 +921,31 @@ uns32 saamfnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfnodetableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saamfnodetableentry_extract(NCSMIB_PARAM_VAL *param,
+				  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_AVND      *avnd = (AVD_AVND *)data;
+	AVD_AVND *avnd = (AVD_AVND *)data;
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   switch(param->i_param_id)
-   {
-   case saAmfNodeSuFailoverProb_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avnd->su_failover_prob);
-      break;
-   default:
-      /* call the MIBLIB utility routine for standfard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
+	switch (param->i_param_id) {
+	case saAmfNodeSuFailoverProb_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avnd->su_failover_prob);
+		break;
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfnodetableentry_set
@@ -1046,342 +973,297 @@ uns32 saamfnodetableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       node_name;
-   AVD_AVND      *avnd;
-   NCSMIBLIB_REQ_INFO temp_mib_req;
-   NCS_BOOL      val_same_flag = FALSE;
-   uns32         i;
-   uns32         rc;
-   SaTimeT       backup_time;
-   uns32         back_val;
-   AVSV_PARAM_INFO param;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < node_name.length; i++)
-   {
-      node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT node_name;
+	AVD_AVND *avnd;
+	NCSMIBLIB_REQ_INFO temp_mib_req;
+	NCS_BOOL val_same_flag = FALSE;
+	uns32 i;
+	uns32 rc;
+	SaTimeT backup_time;
+	uns32 back_val;
+	AVSV_PARAM_INFO param;
 
-   avnd = avd_avnd_struc_find(avd_cb,node_name);
-   if (avnd == AVD_AVND_NULL)
-   {
-      if((arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeRowStatus_ID)
-         && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT))
-      {
-         /* Invalid row status object */
-         return NCSCC_RC_INV_VAL;      
-      }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-      if(test_flag == TRUE)
-      {
-         return NCSCC_RC_SUCCESS;
-      }
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-      m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+	/* Prepare the nodename database key from the instant ID */
+	node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < node_name.length; i++) {
+		node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-      avnd = avd_avnd_struc_crt(avd_cb, node_name, FALSE);
+	avnd = avd_avnd_struc_find(avd_cb, node_name);
+	if (avnd == AVD_AVND_NULL) {
+		if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeRowStatus_ID)
+		    && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)) {
+			/* Invalid row status object */
+			return NCSCC_RC_INV_VAL;
+		}
 
-      m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+		if (test_flag == TRUE) {
+			return NCSCC_RC_SUCCESS;
+		}
 
-      if(avnd == AVD_AVND_NULL)
-      {
-         /* Invalid instance object */
-         return NCSCC_RC_NO_INSTANCE; 
-      }
+		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-   }else /* if (avnd == AVD_AVND_NULL) */
-   {
-      /* The record is already available */
+		avnd = avd_avnd_struc_crt(avd_cb, node_name, FALSE);
 
-      if(arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeRowStatus_ID)
-      {
-         /* This is a row status operation */
-         if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)avnd->row_status)
-         {
-            /* row status object already set nothing to do. */
-            return NCSCC_RC_SUCCESS;
-         }
+		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-         switch(arg->req.info.set_req.i_param_val.info.i_int)
-         {
-         case NCS_ROW_ACTIVE:
-            /* validate the structure to see if the row can be made active */
-            
-            if ((avnd->node_info.nodeId == 0) ||
-               (avnd->su_failover_max == 0) ||
-               (avnd->su_failover_prob == 0))
-            {
-               /* All the mandatory fields are not filled
-                */
-               /* log information error */
-               return NCSCC_RC_INV_VAL;
-            }
+		if (avnd == AVD_AVND_NULL) {
+			/* Invalid instance object */
+			return NCSCC_RC_NO_INSTANCE;
+		}
 
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
+	} else {		/* if (avnd == AVD_AVND_NULL) */
 
-            /* add the structure with nodeId as the index in the CB */
-            m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+		/* The record is already available */
 
-            rc = avd_avnd_struc_add_nodeid(avd_cb, avnd);
+		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeRowStatus_ID) {
+			/* This is a row status operation */
+			if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)avnd->row_status) {
+				/* row status object already set nothing to do. */
+				return NCSCC_RC_SUCCESS;
+			}
 
-            m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+			switch (arg->req.info.set_req.i_param_val.info.i_int) {
+			case NCS_ROW_ACTIVE:
+				/* validate the structure to see if the row can be made active */
 
-            /* set the value, checkpoint the entire record.
-             */
-            if( rc == NCSCC_RC_SUCCESS)
-            {
-               avnd->row_status = NCS_ROW_ACTIVE;
-               m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+				if ((avnd->node_info.nodeId == 0) ||
+				    (avnd->su_failover_max == 0) || (avnd->su_failover_prob == 0)) {
+					/* All the mandatory fields are not filled
+					 */
+					/* log information error */
+					return NCSCC_RC_INV_VAL;
+				}
 
-            }
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
 
-            return rc;
+				/* add the structure with nodeId as the index in the CB */
+				m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-         case NCS_ROW_NOT_IN_SERVICE:
-         case NCS_ROW_DESTROY:
-            
-            /* check if it is active currently */
+				rc = avd_avnd_struc_add_nodeid(avd_cb, avnd);
 
-            if(avnd->row_status == NCS_ROW_ACTIVE)
-            {
+				m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-               /* Check to see that the node is in admin locked state before
-                * making the row status as not in service or delete 
-                */
-               if((avnd->node_info.member) || 
-                  (avnd->type == AVSV_AVND_CARD_SYS_CON) )
-               {
-                  return NCSCC_RC_INV_VAL;
-               }
+				/* set the value, checkpoint the entire record.
+				 */
+				if (rc == NCSCC_RC_SUCCESS) {
+					avnd->row_status = NCS_ROW_ACTIVE;
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
 
-               if((avnd->node_info.member != SA_FALSE) ||
-                  (avnd->su_admin_state != NCS_ADMIN_STATE_LOCK))
-               {
-                  /* log information error */
-                  return NCSCC_RC_INV_VAL;
-               }
+				}
 
-               /* Check to see that no SUs exists on this node */
-               if(avnd->list_of_su != AVD_SU_NULL)
-               {
-                  /* log information error */
-                  return NCSCC_RC_INV_VAL;
-               }
+				return rc;
 
-               if(test_flag == TRUE)
-               {
-                  return NCSCC_RC_SUCCESS;
-               }
+			case NCS_ROW_NOT_IN_SERVICE:
+			case NCS_ROW_DESTROY:
 
-               /* Remove the node from the node_id tree of the CB. 
-                * This is done for both NOT_IN_SERVICE and DESTROY
-                * requests.
-                */
-               m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-               
-               avd_avnd_struc_rmv_nodeid(avd_cb, avnd);
+				/* check if it is active currently */
 
-               m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+				if (avnd->row_status == NCS_ROW_ACTIVE) {
 
-               /* we need to delete this avnd structure on the
-                * standby AVD.
-                */
+					/* Check to see that the node is in admin locked state before
+					 * making the row status as not in service or delete 
+					 */
+					if ((avnd->node_info.member) || (avnd->type == AVSV_AVND_CARD_SYS_CON)) {
+						return NCSCC_RC_INV_VAL;
+					}
 
-               /* check point to the standby AVD that this
-                * record need to be deleted
-                */
-               m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
-            }
+					if ((avnd->node_info.member != SA_FALSE) ||
+					    (avnd->su_admin_state != NCS_ADMIN_STATE_LOCK)) {
+						/* log information error */
+						return NCSCC_RC_INV_VAL;
+					}
 
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
+					/* Check to see that no SUs exists on this node */
+					if (avnd->list_of_su != AVD_SU_NULL) {
+						/* log information error */
+						return NCSCC_RC_INV_VAL;
+					}
 
-            if(arg->req.info.set_req.i_param_val.info.i_int
-                  == NCS_ROW_DESTROY)
-            {
-               /* delete and free the structure */
-               m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-               
-               /* Remove the node from the node_id tree of the CB. */
-               avd_avnd_struc_del(avd_cb,avnd);
+					if (test_flag == TRUE) {
+						return NCSCC_RC_SUCCESS;
+					}
 
-               m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+					/* Remove the node from the node_id tree of the CB. 
+					 * This is done for both NOT_IN_SERVICE and DESTROY
+					 * requests.
+					 */
+					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-               return NCSCC_RC_SUCCESS;
-            }
+					avd_avnd_struc_rmv_nodeid(avd_cb, avnd);
 
-            avnd->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-            return NCSCC_RC_SUCCESS;
+					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-            break;
-         default:
-            /* Invalid row status object */
-            m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
-            return NCSCC_RC_INV_VAL;
-            break;
-         } /* switch(arg->req.info.set_req.i_param_val.info.i_int) */
+					/* we need to delete this avnd structure on the
+					 * standby AVD.
+					 */
 
-      } /* if(arg->req.info.set_req.i_param_val.i_param_id == ncsNDRowStatus_ID) */
+					/* check point to the standby AVD that this
+					 * record need to be deleted
+					 */
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+				}
 
-   } /* if (avnd == AVD_AVND_NULL) */
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
 
-   if(test_flag == TRUE)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
+				if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY) {
+					/* delete and free the structure */
+					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-   /* We now have the avnd block */
-   
-   if(avnd->row_status == NCS_ROW_ACTIVE)
-   {
-      if(avd_cb->init_state  != AVD_APP_STATE)
-      {
-         return NCSCC_RC_INV_VAL;
-      }
+					/* Remove the node from the node_id tree of the CB. */
+					avd_avnd_struc_del(avd_cb, avnd);
 
-      if(arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeAdminState_ID)
-      {
-         if (arg->req.info.set_req.i_param_val.info.i_int == avnd->su_admin_state)
-            return NCSCC_RC_SUCCESS;
-         
-         if ((avnd->su_admin_state == NCS_ADMIN_STATE_LOCK) && 
-           (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_SHUTDOWN))
-            return NCSCC_RC_INV_VAL;
-         
-         if(avd_sg_app_node_admin_func(cb, avnd,arg->req.info.set_req.i_param_val.info.i_int)
-            != NCSCC_RC_SUCCESS )
-         {
-            return NCSCC_RC_INV_VAL;
-         }
-         return NCSCC_RC_SUCCESS;
-      }
-      else if((arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverProb_ID) ||
-              (arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverMax_ID))
-      {  
-         memset(((uns8 *)&param),'\0',sizeof(AVSV_PARAM_INFO));
-         param.table_id = NCSMIB_TBL_AVSV_AMF_NODE;
-         param.obj_id = arg->req.info.set_req.i_param_val.i_param_id;   
-         param.act = AVSV_OBJ_OPR_MOD;
-         param.name_net = avnd->node_info.nodeName;
-        
-         if(param.obj_id == saAmfNodeSuFailoverProb_ID)
-         {
-            if(avnd->node_state != AVD_AVND_STATE_ABSENT)
-            {
-               backup_time = avnd->su_failover_prob;
-               param.value_len = sizeof(SaTimeT);
-               memcpy(&param.value[0], 
-                            arg->req.info.set_req.i_param_val.info.i_oct, 
-                            param.value_len);
+					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-               avnd->su_failover_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct); 
+					return NCSCC_RC_SUCCESS;
+				}
 
-               if(avd_snd_op_req_msg(avd_cb,avnd,&param)!= NCSCC_RC_SUCCESS)
-               {
-                  avnd->su_failover_prob = backup_time;
-                  /* don't do the operation now */
-                  return NCSCC_RC_INV_VAL;
-               }
-            }
-            else
-            {
-               avnd->su_failover_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct); 
-            }
-            
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
-            return NCSCC_RC_SUCCESS;
-         }
-         else
-         {   
-            if(avnd->node_state != AVD_AVND_STATE_ABSENT)
-            {
-               back_val = avnd->su_failover_max;
-               param.value_len = sizeof(uns32);
-               m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
-               avnd->su_failover_max = arg->req.info.set_req.i_param_val.info.i_int;
+				avnd->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+				return NCSCC_RC_SUCCESS;
 
-               if(avd_snd_op_req_msg(avd_cb,avnd,&param)!= NCSCC_RC_SUCCESS)
-               {
-                  avnd->su_failover_max = back_val;
-                  /* don't do the operation now */
-                  return NCSCC_RC_INV_VAL;
-               }
-            }
-            else
-            {
-               avnd->su_failover_max = arg->req.info.set_req.i_param_val.info.i_int;
-            }
+				break;
+			default:
+				/* Invalid row status object */
+				m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
+				return NCSCC_RC_INV_VAL;
+				break;
+			}	/* switch(arg->req.info.set_req.i_param_val.info.i_int) */
 
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
-            return NCSCC_RC_SUCCESS;
-         }
-      }
-      /* when row status is active we don't allow any other MIB object to be
-       * modified.
-       */
-      return NCSCC_RC_INV_VAL;
-   }  /* if(avnd->row_status == NCS_ROW_ACTIVE) */
+		}
+		/* if(arg->req.info.set_req.i_param_val.i_param_id == ncsNDRowStatus_ID) */
+	}			/* if (avnd == AVD_AVND_NULL) */
 
+	if (test_flag == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-   switch(arg->req.info.set_req.i_param_val.i_param_id)
-   {
-   case saAmfNodeRowStatus_ID:
-      /* fill the row status value */
-      if(arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)
-      {
-         avnd->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-      }
-      break;
-   case saAmfNodeSuFailoverProb_ID:
-      /* fill the probation period value */
-      avnd->su_failover_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
-      break;
-   default:
-      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+	/* We now have the avnd block */
 
-      temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
-      temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-      temp_mib_req.info.i_set_util_info.var_info = var_info;
-      temp_mib_req.info.i_set_util_info.data = avnd;
-      temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+	if (avnd->row_status == NCS_ROW_ACTIVE) {
+		if (avd_cb->init_state != AVD_APP_STATE) {
+			return NCSCC_RC_INV_VAL;
+		}
 
-      /* call the mib routine handler */ 
-      if((rc = ncsmiblib_process_req(&temp_mib_req)) != NCSCC_RC_SUCCESS) 
-      {
-         return rc;
-      }
+		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeAdminState_ID) {
+			if (arg->req.info.set_req.i_param_val.info.i_int == avnd->su_admin_state)
+				return NCSCC_RC_SUCCESS;
 
-     /* check to verify that the admin object is not shutdown
-      * if shutdown change to LOCK.
-      */
-      if (avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN)
-      {
-         avnd->su_admin_state = NCS_ADMIN_STATE_LOCK;
-      }
-      break;
-   } /* switch(arg->req.info.set_req.i_param_val.i_param_id) */
-   
-   return NCSCC_RC_SUCCESS;
+			if ((avnd->su_admin_state == NCS_ADMIN_STATE_LOCK) &&
+			    (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_SHUTDOWN))
+				return NCSCC_RC_INV_VAL;
+
+			if (avd_sg_app_node_admin_func(cb, avnd, arg->req.info.set_req.i_param_val.info.i_int)
+			    != NCSCC_RC_SUCCESS) {
+				return NCSCC_RC_INV_VAL;
+			}
+			return NCSCC_RC_SUCCESS;
+		} else if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverProb_ID) ||
+			   (arg->req.info.set_req.i_param_val.i_param_id == saAmfNodeSuFailoverMax_ID)) {
+			memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
+			param.table_id = NCSMIB_TBL_AVSV_AMF_NODE;
+			param.obj_id = arg->req.info.set_req.i_param_val.i_param_id;
+			param.act = AVSV_OBJ_OPR_MOD;
+			param.name_net = avnd->node_info.nodeName;
+
+			if (param.obj_id == saAmfNodeSuFailoverProb_ID) {
+				if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
+					backup_time = avnd->su_failover_prob;
+					param.value_len = sizeof(SaTimeT);
+					memcpy(&param.value[0],
+					       arg->req.info.set_req.i_param_val.info.i_oct, param.value_len);
+
+					avnd->su_failover_prob =
+					    m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+
+					if (avd_snd_op_req_msg(avd_cb, avnd, &param) != NCSCC_RC_SUCCESS) {
+						avnd->su_failover_prob = backup_time;
+						/* don't do the operation now */
+						return NCSCC_RC_INV_VAL;
+					}
+				} else {
+					avnd->su_failover_prob =
+					    m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+				}
+
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+				return NCSCC_RC_SUCCESS;
+			} else {
+				if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
+					back_val = avnd->su_failover_max;
+					param.value_len = sizeof(uns32);
+					m_NCS_OS_HTONL_P(&param.value[0], arg->req.info.set_req.i_param_val.info.i_int);
+					avnd->su_failover_max = arg->req.info.set_req.i_param_val.info.i_int;
+
+					if (avd_snd_op_req_msg(avd_cb, avnd, &param) != NCSCC_RC_SUCCESS) {
+						avnd->su_failover_max = back_val;
+						/* don't do the operation now */
+						return NCSCC_RC_INV_VAL;
+					}
+				} else {
+					avnd->su_failover_max = arg->req.info.set_req.i_param_val.info.i_int;
+				}
+
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+				return NCSCC_RC_SUCCESS;
+			}
+		}
+		/* when row status is active we don't allow any other MIB object to be
+		 * modified.
+		 */
+		return NCSCC_RC_INV_VAL;
+	}
+
+	/* if(avnd->row_status == NCS_ROW_ACTIVE) */
+	switch (arg->req.info.set_req.i_param_val.i_param_id) {
+	case saAmfNodeRowStatus_ID:
+		/* fill the row status value */
+		if (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT) {
+			avnd->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+		}
+		break;
+	case saAmfNodeSuFailoverProb_ID:
+		/* fill the probation period value */
+		avnd->su_failover_prob = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+		break;
+	default:
+		memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+
+		temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
+		temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
+		temp_mib_req.info.i_set_util_info.var_info = var_info;
+		temp_mib_req.info.i_set_util_info.data = avnd;
+		temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+
+		/* call the mib routine handler */
+		if ((rc = ncsmiblib_process_req(&temp_mib_req)) != NCSCC_RC_SUCCESS) {
+			return rc;
+		}
+
+		/* check to verify that the admin object is not shutdown
+		 * if shutdown change to LOCK.
+		 */
+		if (avnd->su_admin_state == NCS_ADMIN_STATE_SHUTDOWN) {
+			avnd->su_admin_state = NCS_ADMIN_STATE_LOCK;
+		}
+		break;
+	}			/* switch(arg->req.info.set_req.i_param_val.i_param_id) */
+
+	return NCSCC_RC_SUCCESS;
 }
-  
 
 /*****************************************************************************
  * Function: saamfnodetableentry_next
@@ -1412,55 +1294,48 @@ uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 saamfnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_AVND      *avnd;
-   SaNameT       node_name;
-   uns32         i;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_AVND *avnd;
+	SaNameT node_name;
+	uns32 i;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      /* Prepare the nodename database key from the instant ID */
-      node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-      for(i = 0; i < node_name.length; i++)
-      {
-         node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-   }
-   avnd = avd_avnd_struc_find_next(avd_cb,node_name);
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (arg->i_idx.i_inst_len != 0) {
+		/* Prepare the nodename database key from the instant ID */
+		node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < node_name.length; i++) {
+			node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
+	avnd = avd_avnd_struc_find_next(avd_cb, node_name);
 
-   /* Prepare the instant ID from the node_name */
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
-   next_inst_id[0] = *next_inst_id_len -1;
+	/* Prepare the instant ID from the node_name */
 
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
-   }
+	*next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
+	next_inst_id[0] = *next_inst_id_len - 1;
 
-   *data = (NCSCONTEXT)avnd;
+	for (i = 0; i < next_inst_id[0]; i++) {
+		next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfnodetableentry_setrow
@@ -1490,15 +1365,12 @@ uns32 saamfnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				 NCSMIB_SETROW_PARAM_VAL *params,
+				 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
-
-
 
 /*****************************************************************************
  * Function: saclmnodetableentry_get
@@ -1524,41 +1396,36 @@ uns32 saamfnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  * 
  **************************************************************************/
 
-uns32 saclmnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 saclmnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       node_name;
-   AVD_AVND      *avnd;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the nodename database key from the instant ID */
-   node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < node_name.length; i++)
-   {
-      node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT node_name;
+	AVD_AVND *avnd;
+	uns32 i;
 
-   avnd = avd_avnd_struc_find(avd_cb,node_name);
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   
-   *data = (NCSCONTEXT)avnd;
+	/* Prepare the nodename database key from the instant ID */
+	node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < node_name.length; i++) {
+		node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	avnd = avd_avnd_struc_find(avd_cb, node_name);
+
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -1594,50 +1461,45 @@ uns32 saclmnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saclmnodetableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saclmnodetableentry_extract(NCSMIB_PARAM_VAL *param,
+				  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_AVND      *avnd = (AVD_AVND *)data;
+	AVD_AVND *avnd = (AVD_AVND *)data;
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   switch(param->i_param_id)
-   {
-   case saClmNodeHPIEntityPath_ID:
-      m_AVSV_OCTVAL_TO_PARAM(param, buffer, avnd->hpi_entity_path.length,
-                             avnd->hpi_entity_path.value);
-      break;
-   case saClmNodeAddress_ID:
-      m_AVSV_LENVAL_TO_PARAM(param,buffer,avnd->node_info.nodeAddress);
-      break;
-   case saClmNodeBootTimeStamp_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avnd->node_info.bootTimestamp);
-      break;
-   case saClmNodeInitialViewNumber_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avnd->node_info.initialViewNumber);
-      break;
-   case saClmNodeIsMember_ID:
-      param->i_fmat_id = NCSMIB_FMAT_INT; 
-      param->i_length = 1; 
-      param->info.i_int = (avnd->node_info.member == 0) ? NCS_SNMP_FALSE:NCS_SNMP_TRUE;
-      break;
-   default:
-      /* call the MIBLIB utility routine for standfard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
+	switch (param->i_param_id) {
+	case saClmNodeHPIEntityPath_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, avnd->hpi_entity_path.length, avnd->hpi_entity_path.value);
+		break;
+	case saClmNodeAddress_ID:
+		m_AVSV_LENVAL_TO_PARAM(param, buffer, avnd->node_info.nodeAddress);
+		break;
+	case saClmNodeBootTimeStamp_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avnd->node_info.bootTimestamp);
+		break;
+	case saClmNodeInitialViewNumber_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avnd->node_info.initialViewNumber);
+		break;
+	case saClmNodeIsMember_ID:
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
+		param->info.i_int = (avnd->node_info.member == 0) ? NCS_SNMP_FALSE : NCS_SNMP_TRUE;
+		break;
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saclmnodetableentry_set
@@ -1665,14 +1527,11 @@ uns32 saclmnodetableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 saclmnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saclmnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-  
-   return NCSCC_RC_FAILURE;
+
+	return NCSCC_RC_FAILURE;
 }
-
-
 
 /*****************************************************************************
  * Function: saclmnodetableentry_next
@@ -1703,56 +1562,49 @@ uns32 saclmnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saclmnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 saclmnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_AVND      *avnd = AVD_AVND_NULL;
-   SaNameT       node_name;
-   uns32         i;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_AVND *avnd = AVD_AVND_NULL;
+	SaNameT node_name;
+	uns32 i;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
-   
-   memset(&node_name, '\0', sizeof(SaNameT));
-   
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      /* Prepare the nodename database key from the instant ID */
-      node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-      for(i = 0; i < node_name.length; i++)
-      {
-         node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   avnd = avd_avnd_struc_find_next_cl_member(avd_cb,node_name);
+	memset(&node_name, '\0', sizeof(SaNameT));
 
-   if (avnd == AVD_AVND_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (arg->i_idx.i_inst_len != 0) {
+		/* Prepare the nodename database key from the instant ID */
+		node_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < node_name.length; i++) {
+			node_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
 
-   /* Prepare the instant ID from the node_name */
+	avnd = avd_avnd_struc_find_next_cl_member(avd_cb, node_name);
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
-   next_inst_id[0] = *next_inst_id_len -1;
+	if (avnd == AVD_AVND_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
-   }
+	/* Prepare the instant ID from the node_name */
 
-   *data = (NCSCONTEXT)avnd;
+	*next_inst_id_len = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length) + 1;
+	next_inst_id[0] = *next_inst_id_len - 1;
 
-   return NCSCC_RC_SUCCESS;
+	for (i = 0; i < next_inst_id[0]; i++) {
+		next_inst_id[i + 1] = (uns32)(avnd->node_info.nodeName.value[i]);
+	}
+
+	*data = (NCSCONTEXT)avnd;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saclmnodetableentry_setrow
@@ -1782,12 +1634,11 @@ uns32 saclmnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saclmnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saclmnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				 NCSMIB_SETROW_PARAM_VAL *params,
+				 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /*****************************************************************************
@@ -1803,7 +1654,7 @@ uns32 saclmnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  *                   to set the args->rsp.i_status field before returning the
  *                   NCSMIB_ARG to the caller's context
  **************************************************************************/
-uns32 saclmnodetableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx) 
+uns32 saclmnodetableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

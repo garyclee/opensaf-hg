@@ -15,17 +15,11 @@
  *
  */
 
-/*****************************************************************************
-..............................................................................
-
-
 #ifndef NCS_LEAP_VERSION_H
 #define NCS_LEAP_VERSION_H
-
 
 #define NCS_LEAP_REV_MAJOR 2
 #define NCS_LEAP_REV_MINOR 5
 #define NCS_LEAP_REV_SP    0 /* service pack */
-
 
 #endif

@@ -48,11 +48,10 @@
 #include "lgs_util.h"
 #include "lgs_stream.h"
 
-
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
- */ 
+ */
 
 /* Hard Coded in test!!! FIX */
 #define ALARM_LOG_STREAM_ID 0
@@ -71,26 +70,23 @@
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
- */ 
+ */
 
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
- */ 
+ */
 extern lgs_cb_t *lgs_cb;
 extern uns32 lgs_amf_init(lgs_cb_t *);
 extern uns32 lgs_mds_init(lgs_cb_t *cb);
 extern uns32 lgs_mds_finalize(lgs_cb_t *cb);
 extern uns32 lgs_mds_change_role(lgs_cb_t *cb);
-extern uns32 lgs_mds_msg_send(lgs_cb_t          *cb,
-                              lgsv_msg_t          *msg,
-                              MDS_DEST          *dest,
-                              MDS_SYNC_SND_CTXT *mds_ctxt,
-                              MDS_SEND_PRIORITY_TYPE prio);
+extern uns32 lgs_mds_msg_send(lgs_cb_t *cb,
+			      lgsv_msg_t *msg,
+			      MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
 extern SaAisErrorT lgs_imm_activate(lgs_cb_t *cb);
 extern void lgs_imm_impl_set(lgs_cb_t *cb);
 extern SaAisErrorT lgs_imm_init(lgs_cb_t *cb);
 
 #endif   /* ifndef __LGS_H */
-

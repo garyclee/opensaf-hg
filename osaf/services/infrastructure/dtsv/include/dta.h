@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: The master include for all DTA and user *.C files.
@@ -42,13 +40,11 @@
 
 #include "gl_defs.h"
 
-
 /* Get target's suite of header files...*/
 
 #include "t_suite.h"
 
 #include "dta_tgt.h"
-
 
 /* From /base/common/inc */
 
@@ -64,14 +60,11 @@
 #include "ncs_log.h"
 #include "ncs_lib.h"
 
-
 /* From targsvcs/common/inc */
 
-#include "mds_papi.h"  
-
+#include "mds_papi.h"
 
 /* From /base/products/rms/inc */
-
 
 #include "dta_opt.h"
 #include "dtsv_msg.h"
@@ -82,6 +75,4 @@
 #include "dtsv_mem.h"
 #include "dta_dl_api.h"
 
-
 #endif
-

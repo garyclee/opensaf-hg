@@ -25,10 +25,9 @@
 /*
  * Module Inclusion Control...
  */
- 
+
 #ifndef NCS_MIB_PUB_H
 #define NCS_MIB_PUB_H
-
 
 #include "ncsgl_defs.h"
 #include "ncs_mtbl.h"
@@ -63,7 +62,6 @@ extern "C" {
  *
  ***************************************************************************/
 
-
 /***************************************************************************
  *
  *   P a r a m e t e r   A b s t r a c t i o n s
@@ -74,48 +72,44 @@ extern "C" {
  * General indexing information for Access operations
  ***************************************************************************/
 
-typedef struct ncsmib_idx {
+	typedef struct ncsmib_idx {
 
-  const uns32*        i_inst_ids;
-  uns32               i_inst_len;
-  
-  } NCSMIB_IDX;
+		const uns32 *i_inst_ids;
+		uns32 i_inst_len;
+
+	} NCSMIB_IDX;
 
 /*************************************************************************** 
  * General parameter value expression
  ***************************************************************************/
-typedef enum ncsmib_fmat_id
-{
-    NCSMIB_FMAT_INT = 1,
-    NCSMIB_FMAT_OCT,
-    NCSMIB_FMAT_BOOL,
-    NCSMIB_FMAT_2LONG
-}NCSMIB_FMAT_ID;
-
+	typedef enum ncsmib_fmat_id {
+		NCSMIB_FMAT_INT = 1,
+		NCSMIB_FMAT_OCT,
+		NCSMIB_FMAT_BOOL,
+		NCSMIB_FMAT_2LONG
+	} NCSMIB_FMAT_ID;
 
 /***************************************************************************
  * General parameter ID expression
  ***************************************************************************/
 
-typedef uns32 NCSMIB_PARAM_ID;
+	typedef uns32 NCSMIB_PARAM_ID;
 
 /***************************************************************************
  * General Parameter Abstraction
  ***************************************************************************/
 
-typedef struct ncsmib_param_val
-{
-  NCSMIB_PARAM_ID              i_param_id;
-  NCSMIB_FMAT_ID               i_fmat_id;  /* int or octets */
-  uns16                       i_length;   /* Always octets? */
+	typedef struct ncsmib_param_val {
+		NCSMIB_PARAM_ID i_param_id;
+		NCSMIB_FMAT_ID i_fmat_id;	/* int or octets */
+		uns16 i_length;	/* Always octets? */
 
-  union
-  {
-    uns32                     i_int;
-    const uns8*               i_oct;
-  } info;
+		union {
+			uns32 i_int;
+			const uns8 *i_oct;
+		} info;
 
-} NCSMIB_PARAM_VAL;
+	} NCSMIB_PARAM_VAL;
 
 /*typedef enum ncsmib_policy
 {
@@ -187,10 +181,10 @@ The encode scheme in all of these cases are as follows
 
 ******************************************************************************/
 
-#define PARM_ENC_SEQ_MARKER 0x230F /* Arbitrary but unlikely by accident */
-#define ROW_ENC_SEQ_MARKER    0x23F0 /* Arbitrary but unlikely by accident */
-#define REMROW_ENC_SEQ_MARKER 0x23FF /* Arbitrary but unlikely by accident */
-#define NO_NAME_OBJECT  0x45464553 /* Arbitrary but unlikely by accident */ 
+#define PARM_ENC_SEQ_MARKER 0x230F	/* Arbitrary but unlikely by accident */
+#define ROW_ENC_SEQ_MARKER    0x23F0	/* Arbitrary but unlikely by accident */
+#define REMROW_ENC_SEQ_MARKER 0x23FF	/* Arbitrary but unlikely by accident */
+#define NO_NAME_OBJECT  0x45464553	/* Arbitrary but unlikely by accident */
 
 /******************************************************************************
 
@@ -215,50 +209,41 @@ The encode scheme in all of these cases are as follows
 
 ******************************************************************************/
 
-typedef struct ncsparm_aid {
+	typedef struct ncsparm_aid {
 
-                   /* ENC functions           DEC functions                 */
-                   /*=======================+===============================*/
-  NCS_UBAID  uba;   /* usrbuf mgmt             usrbuf mgmt                   */
-  uns16*    p_len; /* pts to where len goes   Not Used                      */
-  uns16*    p_cnt; /* pts to where cnt goes   Not Used                      */
-  uns16     cnt;   /* num parms encoded       num parms left to decode      */
-  uns16     len;   /* Not Used                ttl len expected              */      
+		/* ENC functions           DEC functions                 */
+		   /*=======================+===============================*/
+		NCS_UBAID uba;	/* usrbuf mgmt             usrbuf mgmt                   */
+		uns16 *p_len;	/* pts to where len goes   Not Used                      */
+		uns16 *p_cnt;	/* pts to where cnt goes   Not Used                      */
+		uns16 cnt;	/* num parms encoded       num parms left to decode      */
+		uns16 len;	/* Not Used                ttl len expected              */
 
-} NCSPARM_AID;
+	} NCSPARM_AID;
 
 /******************************************************************************
   H J P A R M _ A I D  Encode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API void    ncsparm_enc_init     ( NCSPARM_AID*      pa);
+	EXTERN_C LEAPDLL_API void ncsparm_enc_init(NCSPARM_AID *pa);
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_enc_int      ( NCSPARM_AID*      pa, 
-                                       NCSMIB_PARAM_ID   id, 
-                                       uns32            val);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_enc_int(NCSPARM_AID *pa, NCSMIB_PARAM_ID id, uns32 val);
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_enc_oct      ( NCSPARM_AID*      pa, 
-                                       NCSMIB_PARAM_ID   id, 
-                                       uns16            len, 
-                                       uns8*            octs);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_enc_oct(NCSPARM_AID *pa, NCSMIB_PARAM_ID id, uns16 len, uns8 *octs);
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_enc_param    ( NCSPARM_AID*      pa, 
-                                       NCSMIB_PARAM_VAL* val);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_enc_param(NCSPARM_AID *pa, NCSMIB_PARAM_VAL *val);
 
-EXTERN_C LEAPDLL_API USRBUF* ncsparm_enc_done     ( NCSPARM_AID*      pa);
+	EXTERN_C LEAPDLL_API USRBUF *ncsparm_enc_done(NCSPARM_AID *pa);
 
 /******************************************************************************
   H J P A R M _ A I D  Decode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_dec_init     ( NCSPARM_AID*      pa,
-                                       USRBUF*          ub);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_dec_init(NCSPARM_AID *pa, USRBUF *ub);
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_dec_parm     ( NCSPARM_AID*      pa,
-                                       NCSMIB_PARAM_VAL* val, 
-                                       NCSMEM_AID*       ma);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_dec_parm(NCSPARM_AID *pa, NCSMIB_PARAM_VAL *val, NCSMEM_AID *ma);
 
-EXTERN_C LEAPDLL_API uns32   ncsparm_dec_done     ( NCSPARM_AID*      pa);
+	EXTERN_C LEAPDLL_API uns32 ncsparm_dec_done(NCSPARM_AID *pa);
 
 /******************************************************************************
    
@@ -293,65 +278,53 @@ EXTERN_C LEAPDLL_API uns32   ncsparm_dec_done     ( NCSPARM_AID*      pa);
    
 ******************************************************************************/
 
-typedef struct ncsrow_aid {
+	typedef struct ncsrow_aid {
    /*=======================+===============================*/
-   /* ENC functions           DEC functions                 */
+		/* ENC functions           DEC functions                 */
    /*=======================+===============================*/
-   NCS_UBAID   uba;   /* usrbuf mgmt             usrbuf mgmt                   */
-   uns16*     p_len; /* pts to where len goes   Not Used                      */
-   uns16*     p_cnt; /* pts to where cnt goes   Not Used                      */
-   uns16      cnt;   /* num rows encoded        num rows left to decode       */
-   uns16      len;   /* Not Used                ttl len expected              */
-   NCSPARM_AID parm;  /* encode parameters       decode parameters             */
-} NCSROW_AID;        /*=======================+===============================*/
+		NCS_UBAID uba;	/* usrbuf mgmt             usrbuf mgmt                   */
+		uns16 *p_len;	/* pts to where len goes   Not Used                      */
+		uns16 *p_cnt;	/* pts to where cnt goes   Not Used                      */
+		uns16 cnt;	/* num rows encoded        num rows left to decode       */
+		uns16 len;	/* Not Used                ttl len expected              */
+		NCSPARM_AID parm;	/* encode parameters       decode parameters             */
+	} NCSROW_AID;	/*=======================+===============================*/
 
 /******************************************************************************
                      H J R O W _ A I D  Encode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32   ncssetallrows_enc_init  ( NCSROW_AID*      ra);
+	EXTERN_C LEAPDLL_API uns32 ncssetallrows_enc_init(NCSROW_AID *ra);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_init         ( NCSROW_AID*      ra);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_init(NCSROW_AID *ra);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_inst_ids     ( NCSROW_AID*      ra,
-                                          NCSMIB_IDX*      inst);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_inst_ids(NCSROW_AID *ra, NCSMIB_IDX *inst);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_int          ( NCSROW_AID*      ra,
-                                          NCSMIB_PARAM_ID  id,
-                                          uns32           val);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_int(NCSROW_AID *ra, NCSMIB_PARAM_ID id, uns32 val);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_oct          ( NCSROW_AID*       ra,
-                                          NCSMIB_PARAM_ID   id,
-                                          uns16            len,
-                                          uns8*            octs);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_oct(NCSROW_AID *ra, NCSMIB_PARAM_ID id, uns16 len, uns8 *octs);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_param        ( NCSROW_AID*       ra,
-                                          NCSMIB_PARAM_VAL* val);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_param(NCSROW_AID *ra, NCSMIB_PARAM_VAL *val);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_enc_done         ( NCSROW_AID*       ra);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_enc_done(NCSROW_AID *ra);
 
-EXTERN_C LEAPDLL_API USRBUF* ncssetallrows_enc_done  ( NCSROW_AID*       ra);
+	EXTERN_C LEAPDLL_API USRBUF *ncssetallrows_enc_done(NCSROW_AID *ra);
 
 /******************************************************************************
 H J R O W _ A I D  Decode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32   ncssetallrows_dec_init ( NCSROW_AID*     ra,
-                                         USRBUF*        ub);
+	EXTERN_C LEAPDLL_API uns32 ncssetallrows_dec_init(NCSROW_AID *ra, USRBUF *ub);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_dec_init        ( NCSROW_AID*      ra);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_dec_init(NCSROW_AID *ra);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_dec_inst_ids    ( NCSROW_AID*      ra,
-                                         NCSMIB_IDX*      idx,
-                                         NCSMEM_AID*      ma);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_dec_inst_ids(NCSROW_AID *ra, NCSMIB_IDX *idx, NCSMEM_AID *ma);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_dec_param       ( NCSROW_AID*       ra,
-                                         NCSMIB_PARAM_VAL* val,
-                                         NCSMEM_AID*       ma);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_dec_param(NCSROW_AID *ra, NCSMIB_PARAM_VAL *val, NCSMEM_AID *ma);
 
-EXTERN_C LEAPDLL_API uns32   ncsrow_dec_done        ( NCSROW_AID*       ra);
+	EXTERN_C LEAPDLL_API uns32 ncsrow_dec_done(NCSROW_AID *ra);
 
-EXTERN_C LEAPDLL_API uns32   ncssetallrows_dec_done ( NCSROW_AID*       ra);
+	EXTERN_C LEAPDLL_API uns32 ncssetallrows_dec_done(NCSROW_AID *ra);
 
 /******************************************************************************
 
@@ -374,41 +347,37 @@ EXTERN_C LEAPDLL_API uns32   ncssetallrows_dec_done ( NCSROW_AID*       ra);
             
 ******************************************************************************/
 
-typedef struct ncsremrow_aid {
-   
-   /* ENC functions           DEC functions                 */
+	typedef struct ncsremrow_aid {
+
+		/* ENC functions           DEC functions                 */
    /*=======================+===============================*/
-   NCS_UBAID  uba;   /* usrbuf mgmt             usrbuf mgmt                   */
-   uns16*    p_len; /* pts to where len goes   Not Used                      */
-   uns16*    p_cnt; /* pts to where cnt goes   Not Used                      */
-   uns16     cnt;   /* num parms encoded       num parms left to decode      */
-   uns16     len;   /* Not Used                ttl len expected              */      
-   
-} NCSREMROW_AID;
+		NCS_UBAID uba;	/* usrbuf mgmt             usrbuf mgmt                   */
+		uns16 *p_len;	/* pts to where len goes   Not Used                      */
+		uns16 *p_cnt;	/* pts to where cnt goes   Not Used                      */
+		uns16 cnt;	/* num parms encoded       num parms left to decode      */
+		uns16 len;	/* Not Used                ttl len expected              */
+
+	} NCSREMROW_AID;
 
 /******************************************************************************
 H J R E M R O W _ A I D  Encode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32   ncsremrow_enc_init     ( NCSREMROW_AID*      rra);
+	EXTERN_C LEAPDLL_API uns32 ncsremrow_enc_init(NCSREMROW_AID *rra);
 
-EXTERN_C LEAPDLL_API uns32   ncsremrow_enc_inst_ids ( NCSREMROW_AID*      rra,
-                                         NCSMIB_IDX*         idx);
+	EXTERN_C LEAPDLL_API uns32 ncsremrow_enc_inst_ids(NCSREMROW_AID *rra, NCSMIB_IDX *idx);
 
-EXTERN_C LEAPDLL_API USRBUF* ncsremrow_enc_done     ( NCSREMROW_AID*      rra);
+	EXTERN_C LEAPDLL_API USRBUF *ncsremrow_enc_done(NCSREMROW_AID *rra);
 
 /******************************************************************************
 H J R E M R O W _ A I D  Decode functions
 ******************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32   ncsremrow_dec_init     ( NCSREMROW_AID*      rra,
-                                         USRBUF*            ub);
+	EXTERN_C LEAPDLL_API uns32 ncsremrow_dec_init(NCSREMROW_AID *rra, USRBUF *ub);
 
-EXTERN_C LEAPDLL_API uns32   ncsremrow_dec_inst_ids ( NCSREMROW_AID*      rra,
-                                         NCSMIB_IDX*         idx,
-                                         NCSMEM_AID*         ma);
+	EXTERN_C LEAPDLL_API uns32 ncsremrow_dec_inst_ids(NCSREMROW_AID *rra, NCSMIB_IDX *idx, NCSMEM_AID *ma);
 
-EXTERN_C LEAPDLL_API uns32   ncsremrow_dec_done     ( NCSREMROW_AID*      rra);
+	EXTERN_C LEAPDLL_API uns32 ncsremrow_dec_done(NCSREMROW_AID *rra);
 
 /***************************************************************************
  *
@@ -420,318 +389,283 @@ EXTERN_C LEAPDLL_API uns32   ncsremrow_dec_done     ( NCSREMROW_AID*      rra);
  * MIB Object get request
  ***************************************************************************/
 
-typedef struct ncsmib_get_req
-{
-  NCSMIB_PARAM_ID              i_param_id;
+	typedef struct ncsmib_get_req {
+		NCSMIB_PARAM_ID i_param_id;
 
-} NCSMIB_GET_REQ;
+	} NCSMIB_GET_REQ;
 
 /***************************************************************************
  * MIB Object get-next request  (same form as 'get')
  ***************************************************************************/
 
-typedef NCSMIB_GET_REQ          NCSMIB_NEXT_REQ;
-
+	typedef NCSMIB_GET_REQ NCSMIB_NEXT_REQ;
 
 /***************************************************************************
  * MIB Object get-info request  (same form as 'get')
  ***************************************************************************/
 
-typedef NCSMIB_GET_REQ          NCSMIB_GET_INFO_REQ;
-
+	typedef NCSMIB_GET_REQ NCSMIB_GET_INFO_REQ;
 
 /***************************************************************************
  * MIB Object set request
  ***************************************************************************/
 
-typedef struct ncsmib_set_req
-{
-  NCSMIB_PARAM_VAL             i_param_val;
+	typedef struct ncsmib_set_req {
+		NCSMIB_PARAM_VAL i_param_val;
 
-} NCSMIB_SET_REQ;
+	} NCSMIB_SET_REQ;
 
 /***************************************************************************
  * MIB Object test request (same form as 'set')
  ***************************************************************************/
 
-typedef NCSMIB_SET_REQ         NCSMIB_TEST_REQ;
+	typedef NCSMIB_SET_REQ NCSMIB_TEST_REQ;
 
 /***************************************************************************
  * MIB Object get BULK request
  ***************************************************************************/
 
-typedef struct ncsmib_getrow_req
-{
-  uns32                       i_meaningless;
+	typedef struct ncsmib_getrow_req {
+		uns32 i_meaningless;
 
-} NCSMIB_GETROW_REQ;
+	} NCSMIB_GETROW_REQ;
 
 /***************************************************************************
  * MIB Object get-next BULK request (same form as 'get-BULK')
  ***************************************************************************/
 
-typedef NCSMIB_GETROW_REQ      NCSMIB_NEXTROW_REQ;
-
+	typedef NCSMIB_GETROW_REQ NCSMIB_NEXTROW_REQ;
 
 /***************************************************************************
  * MIB Object set BULK request
  ***************************************************************************/
 
-typedef struct ncsmib_setrow_req
-{
-  USRBUF*                     i_usrbuf;
+	typedef struct ncsmib_setrow_req {
+		USRBUF *i_usrbuf;
 
-} NCSMIB_SETROW_REQ;
+	} NCSMIB_SETROW_REQ;
 
 /***************************************************************************
  * MIB Object set BULK ROWs request
  ***************************************************************************/
-   
-typedef struct ncsmib_setallrows_req
-{
-   USRBUF*                     i_usrbuf;
-   
-} NCSMIB_SETALLROWS_REQ;
+
+	typedef struct ncsmib_setallrows_req {
+		USRBUF *i_usrbuf;
+
+	} NCSMIB_SETALLROWS_REQ;
 
 /***************************************************************************
  * MIB Object REMOVE ROWs request
  ***************************************************************************/
 
-typedef struct ncsmib_removerows_req
-{
-   USRBUF*                     i_usrbuf;
-   
-} NCSMIB_REMOVEROWS_REQ;
+	typedef struct ncsmib_removerows_req {
+		USRBUF *i_usrbuf;
+
+	} NCSMIB_REMOVEROWS_REQ;
 
 /***************************************************************************
  * MIB object test BULK request (same form as 'set-BULK')
  ***************************************************************************/
 
-typedef NCSMIB_SETROW_REQ      NCSMIB_TESTROW_REQ;
+	typedef NCSMIB_SETROW_REQ NCSMIB_TESTROW_REQ;
 
 /***************************************************************************
  * MIB object get response
  ***************************************************************************/
 
-typedef struct ncsmib_get_rsp
-{
-  NCSMIB_PARAM_VAL             i_param_val;
+	typedef struct ncsmib_get_rsp {
+		NCSMIB_PARAM_VAL i_param_val;
 
-} NCSMIB_GET_RSP;
+	} NCSMIB_GET_RSP;
 
 /***************************************************************************
  * MIB object set response (same form as 'get')
  ***************************************************************************/
 
-typedef NCSMIB_GET_RSP         NCSMIB_SET_RSP;
+	typedef NCSMIB_GET_RSP NCSMIB_SET_RSP;
 
 /***************************************************************************
  * MIB object test response (same form as 'get')
  ***************************************************************************/
 
-typedef NCSMIB_GET_RSP         NCSMIB_TEST_RSP;
+	typedef NCSMIB_GET_RSP NCSMIB_TEST_RSP;
 
 /***************************************************************************
  * MIB object get-next response
  ***************************************************************************/
 
-typedef struct ncsmib_next_rsp
-{
-  NCSMIB_PARAM_VAL             i_param_val;
-  NCSMIB_IDX                   i_next;
+	typedef struct ncsmib_next_rsp {
+		NCSMIB_PARAM_VAL i_param_val;
+		NCSMIB_IDX i_next;
 
-} NCSMIB_NEXT_RSP;
+	} NCSMIB_NEXT_RSP;
 
 /***************************************************************************
  * MIB Table get BULK response
  ***************************************************************************/
 
-typedef struct ncsmib_getrow_rsp
-{
-  USRBUF*                     i_usrbuf;
+	typedef struct ncsmib_getrow_rsp {
+		USRBUF *i_usrbuf;
 
-} NCSMIB_GETROW_RSP;
+	} NCSMIB_GETROW_RSP;
 
 /***************************************************************************
  * MIB Table set BULK ROWs response
  ***************************************************************************/
-   
-typedef struct ncsmib_setallrows_rsp
-{
-   USRBUF*                     i_usrbuf;
-   
-} NCSMIB_SETALLROWS_RSP;
-   
+
+	typedef struct ncsmib_setallrows_rsp {
+		USRBUF *i_usrbuf;
+
+	} NCSMIB_SETALLROWS_RSP;
+
 /***************************************************************************
  * MIB Table REMOVE ROWs response
  ***************************************************************************/
 
-typedef struct ncsmib_removerows_rsp
-{
-   USRBUF*                     i_usrbuf;
-   
-} NCSMIB_REMOVEROWS_RSP;
+	typedef struct ncsmib_removerows_rsp {
+		USRBUF *i_usrbuf;
+
+	} NCSMIB_REMOVEROWS_RSP;
 
 /***************************************************************************
  * MIB object test BULK response (same form as 'getrow')
  ***************************************************************************/
 
-typedef NCSMIB_GETROW_RSP      NCSMIB_TESTROW_RSP;
+	typedef NCSMIB_GETROW_RSP NCSMIB_TESTROW_RSP;
 
 /***************************************************************************
  * MIB object set BULK response (same form as 'getrow')
  ***************************************************************************/
 
-typedef NCSMIB_GETROW_RSP      NCSMIB_SETROW_RSP;
+	typedef NCSMIB_GETROW_RSP NCSMIB_SETROW_RSP;
 
 /***************************************************************************
  * MIB Table get-next BULK response
  ***************************************************************************/
 
-typedef struct ncsmib_nextrow_rsp
-{
-  USRBUF*                     i_usrbuf;
-  NCSMIB_IDX                   i_next;
+	typedef struct ncsmib_nextrow_rsp {
+		USRBUF *i_usrbuf;
+		NCSMIB_IDX i_next;
 
-} NCSMIB_NEXTROW_RSP;
-
+	} NCSMIB_NEXTROW_RSP;
 
 /***************************************************************************
  * Move MIB row request
  ***************************************************************************/
 
-typedef struct ncsmib_moverow_req
-{
-  MDS_DEST                    i_move_to;
-  USRBUF*                     i_usrbuf;
+	typedef struct ncsmib_moverow_req {
+		MDS_DEST i_move_to;
+		USRBUF *i_usrbuf;
 
-} NCSMIB_MOVEROW_REQ;
+	} NCSMIB_MOVEROW_REQ;
 
-typedef struct ncsmib_moverow_rsp
-{
-   MDS_DEST                   i_move_to;
-   USRBUF*                    i_usrbuf;
-   
-} NCSMIB_MOVEROW_RSP;
+	typedef struct ncsmib_moverow_rsp {
+		MDS_DEST i_move_to;
+		USRBUF *i_usrbuf;
+
+	} NCSMIB_MOVEROW_RSP;
 
 /***************************************************************************
  * TRAP expression function: entirely inadequate at this point (not used)
  ***************************************************************************/
 
-typedef struct ncsmib_trap
-{
-  uns32                        i_trap_id;
+	typedef struct ncsmib_trap {
+		uns32 i_trap_id;
 
-} NCSMIB_TRAP;
-
-
-
+	} NCSMIB_TRAP;
 
 /***************************************************************************
  * MIB object get-info response
  ***************************************************************************/
 
-typedef struct ncsmib_get_info_rsp
-{
-  uns32            settable;
-  NCSMIB_FMAT_ID    type;
-  uns32            max_size;
-  uns32            min_value;
-  uns32            max_value;
-  char*            name;
+	typedef struct ncsmib_get_info_rsp {
+		uns32 settable;
+		NCSMIB_FMAT_ID type;
+		uns32 max_size;
+		uns32 min_value;
+		uns32 max_value;
+		char *name;
 
-} NCSMIB_GET_INFO_RSP;
-
+	} NCSMIB_GET_INFO_RSP;
 
 /***************************************************************************
  * MIB object CLI request
  ***************************************************************************/
-typedef struct ncsmib_cli_req
-{
-   uns16     i_cmnd_id;   /* Command ID, should be unique per CMD-TBL-ID */
-   NCS_BOOL  i_wild_card; /* TRUE for a wild-card request */
-   USRBUF    *i_usrbuf;   /* User data */
-} NCSMIB_CLI_REQ;
-
+	typedef struct ncsmib_cli_req {
+		uns16 i_cmnd_id;	/* Command ID, should be unique per CMD-TBL-ID */
+		NCS_BOOL i_wild_card;	/* TRUE for a wild-card request */
+		USRBUF *i_usrbuf;	/* User data */
+	} NCSMIB_CLI_REQ;
 
 /***************************************************************************
  * MIB object CLI response
  ***************************************************************************/
-typedef struct ncsmib_cli_rsp
-{
-  uns16    i_cmnd_id; /* issued Command ID */
-  NCS_BOOL o_partial;    /* Set TRUE for partial response of the REQ, else FALSE */
-  USRBUF   *o_answer; /* Info content, if required */  
-} NCSMIB_CLI_RSP;
-
-
+	typedef struct ncsmib_cli_rsp {
+		uns16 i_cmnd_id;	/* issued Command ID */
+		NCS_BOOL o_partial;	/* Set TRUE for partial response of the REQ, else FALSE */
+		USRBUF *o_answer;	/* Info content, if required */
+	} NCSMIB_CLI_RSP;
 
 /***************************************************************************
  * MIB Object Response structure
  ***************************************************************************/
 
-typedef  struct ncsmib_rsp
-  {
+	typedef struct ncsmib_rsp {
 
-  uns32                 i_status;
+		uns32 i_status;
 
-  union
-    {
-    NCSMIB_GET_RSP       get_rsp;
-    NCSMIB_SET_RSP       set_rsp;
-    NCSMIB_TEST_RSP      test_rsp;
-    NCSMIB_NEXT_RSP      next_rsp;
-    NCSMIB_GETROW_RSP    getrow_rsp;
-    NCSMIB_NEXTROW_RSP   nextrow_rsp;
-    NCSMIB_SETROW_RSP    setrow_rsp;
-    NCSMIB_TESTROW_RSP   testrow_rsp;
-    NCSMIB_TRAP          trap;
-    NCSMIB_GET_INFO_RSP  get_info_rsp;
-    NCSMIB_SETALLROWS_RSP setallrows_rsp;
-    NCSMIB_REMOVEROWS_RSP removerows_rsp;
-    NCSMIB_MOVEROW_RSP    moverow_rsp;
-    NCSMIB_CLI_RSP        cli_rsp;
-    } info;
+		union {
+			NCSMIB_GET_RSP get_rsp;
+			NCSMIB_SET_RSP set_rsp;
+			NCSMIB_TEST_RSP test_rsp;
+			NCSMIB_NEXT_RSP next_rsp;
+			NCSMIB_GETROW_RSP getrow_rsp;
+			NCSMIB_NEXTROW_RSP nextrow_rsp;
+			NCSMIB_SETROW_RSP setrow_rsp;
+			NCSMIB_TESTROW_RSP testrow_rsp;
+			NCSMIB_TRAP trap;
+			NCSMIB_GET_INFO_RSP get_info_rsp;
+			NCSMIB_SETALLROWS_RSP setallrows_rsp;
+			NCSMIB_REMOVEROWS_RSP removerows_rsp;
+			NCSMIB_MOVEROW_RSP moverow_rsp;
+			NCSMIB_CLI_RSP cli_rsp;
+		} info;
 
-    /* Following fields provide addtional error information
-     * in the response 
-     */
-     /* length of the binary stream */ 
-     
-     uns16                 add_info_len; 
+		/* Following fields provide addtional error information
+		 * in the response 
+		 */
+		/* length of the binary stream */
 
-     /* pointer to the binary stream, need not end with '\0' */
-     uns8                  *add_info; 
-  
-  } NCSMIB_RSP;
+		uns16 add_info_len;
 
+		/* pointer to the binary stream, need not end with '\0' */
+		uns8 *add_info;
+
+	} NCSMIB_RSP;
 
 /***************************************************************************
  * MIB Object Request structure
  ***************************************************************************/
 
-typedef struct ncsmib_req
-  {
-  union
-    {
-    NCSMIB_GET_REQ       get_req;
-    NCSMIB_SET_REQ       set_req;
-    NCSMIB_SET_REQ       test_req;
-    NCSMIB_NEXT_REQ      next_req;
-    NCSMIB_GETROW_REQ    getrow_req;
-    NCSMIB_NEXTROW_REQ   nextrow_req;
-    NCSMIB_SETROW_REQ    setrow_req;
-    NCSMIB_TESTROW_REQ   testrow_req;
-    NCSMIB_MOVEROW_REQ   moverow_req;
-    NCSMIB_GET_INFO_REQ  get_info_req;
-    NCSMIB_SETALLROWS_REQ setallrows_req;
-    NCSMIB_REMOVEROWS_REQ removerows_req;
-    NCSMIB_CLI_REQ        cli_req;
+	typedef struct ncsmib_req {
+		union {
+			NCSMIB_GET_REQ get_req;
+			NCSMIB_SET_REQ set_req;
+			NCSMIB_SET_REQ test_req;
+			NCSMIB_NEXT_REQ next_req;
+			NCSMIB_GETROW_REQ getrow_req;
+			NCSMIB_NEXTROW_REQ nextrow_req;
+			NCSMIB_SETROW_REQ setrow_req;
+			NCSMIB_TESTROW_REQ testrow_req;
+			NCSMIB_MOVEROW_REQ moverow_req;
+			NCSMIB_GET_INFO_REQ get_info_req;
+			NCSMIB_SETALLROWS_REQ setallrows_req;
+			NCSMIB_REMOVEROWS_REQ removerows_req;
+			NCSMIB_CLI_REQ cli_req;
 
-    } info;
-  
-  } NCSMIB_REQ;
+		} info;
 
+	} NCSMIB_REQ;
 
 /***************************************************************************
  *
@@ -743,41 +677,40 @@ typedef struct ncsmib_req
  * MIB Object Response Operation Identifiers
  ***************************************************************************/
 
-typedef enum ncsmib_op {
+	typedef enum ncsmib_op {
 
-  NCSMIB_OP_RSP_GET         = 0x0001,   
-  NCSMIB_OP_RSP_SET         = 0x0002,
-  NCSMIB_OP_RSP_TEST        = 0x0003,
-  NCSMIB_OP_RSP_NEXT        = 0x0004,
-  NCSMIB_OP_RSP_GETROW      = 0x0005,
-  NCSMIB_OP_RSP_NEXTROW     = 0x0006,
-  NCSMIB_OP_RSP_SETROW      = 0x0007,
-  NCSMIB_OP_RSP_TESTROW     = 0x0008,
-  NCSMIB_OP_RSP_MOVEROW     = 0x0009,
-  NCSMIB_OP_RSP_GET_INFO    = 0x000A,
-  NCSMIB_OP_RSP_REMOVEROWS  = 0x000B,
-  NCSMIB_OP_RSP_SETALLROWS  = 0x000C,
+		NCSMIB_OP_RSP_GET = 0x0001,
+		NCSMIB_OP_RSP_SET = 0x0002,
+		NCSMIB_OP_RSP_TEST = 0x0003,
+		NCSMIB_OP_RSP_NEXT = 0x0004,
+		NCSMIB_OP_RSP_GETROW = 0x0005,
+		NCSMIB_OP_RSP_NEXTROW = 0x0006,
+		NCSMIB_OP_RSP_SETROW = 0x0007,
+		NCSMIB_OP_RSP_TESTROW = 0x0008,
+		NCSMIB_OP_RSP_MOVEROW = 0x0009,
+		NCSMIB_OP_RSP_GET_INFO = 0x000A,
+		NCSMIB_OP_RSP_REMOVEROWS = 0x000B,
+		NCSMIB_OP_RSP_SETALLROWS = 0x000C,
 
-  NCSMIB_OP_RSP_CLI         = 0x000D,
-  NCSMIB_OP_RSP_CLI_DONE    = 0x000E,
+		NCSMIB_OP_RSP_CLI = 0x000D,
+		NCSMIB_OP_RSP_CLI_DONE = 0x000E,
 
-  NCSMIB_OP_REQ_GET         = 0x0010,
-  NCSMIB_OP_REQ_SET         = 0x0020,
-  NCSMIB_OP_REQ_TEST        = 0x0030,
-  NCSMIB_OP_REQ_NEXT        = 0x0040,
-  NCSMIB_OP_REQ_GETROW      = 0x0050,
-  NCSMIB_OP_REQ_NEXTROW     = 0x0060,
-  NCSMIB_OP_REQ_SETROW      = 0x0070,
-  NCSMIB_OP_REQ_TESTROW     = 0x0080,
-  NCSMIB_OP_REQ_MOVEROW     = 0x0090,
-  NCSMIB_OP_REQ_GET_INFO    = 0x00A0,
-  NCSMIB_OP_REQ_REMOVEROWS  = 0x00B0,
-  NCSMIB_OP_REQ_SETALLROWS  = 0x00C0,
-  NCSMIB_OP_REQ_CLI         = 0x00D0,
+		NCSMIB_OP_REQ_GET = 0x0010,
+		NCSMIB_OP_REQ_SET = 0x0020,
+		NCSMIB_OP_REQ_TEST = 0x0030,
+		NCSMIB_OP_REQ_NEXT = 0x0040,
+		NCSMIB_OP_REQ_GETROW = 0x0050,
+		NCSMIB_OP_REQ_NEXTROW = 0x0060,
+		NCSMIB_OP_REQ_SETROW = 0x0070,
+		NCSMIB_OP_REQ_TESTROW = 0x0080,
+		NCSMIB_OP_REQ_MOVEROW = 0x0090,
+		NCSMIB_OP_REQ_GET_INFO = 0x00A0,
+		NCSMIB_OP_REQ_REMOVEROWS = 0x00B0,
+		NCSMIB_OP_REQ_SETALLROWS = 0x00C0,
+		NCSMIB_OP_REQ_CLI = 0x00D0,
 
-  NCSMIB_OP_STD_LEAP_END    = 0x0100 /* MIB Broker takes over from here */
-  
-  } NCSMIB_OP;
+		NCSMIB_OP_STD_LEAP_END = 0x0100	/* MIB Broker takes over from here */
+	} NCSMIB_OP;
 
 /***************************************************************************
  * Useful values and inline assist macros used to understand the Op ID.
@@ -789,19 +722,18 @@ typedef enum ncsmib_op {
 #define m_NCSMIB_ISIT_A_RSP(op) (op & NCSMIB_OP_RSP)
 #define m_NCSMIB_ISIT_A_REQ(op) (op & NCSMIB_OP_REQ)
 
-#define m_NCSMIB_REQ_TO_RSP(op) (op >> 4) 
+#define m_NCSMIB_REQ_TO_RSP(op) (op >> 4)
 #define m_NCSMIB_RSP_TO_REQ(op) (op << 4)
 
 /***************************************************************************
  * Compiler hint that there is such a structure in the world..
  ***************************************************************************/
 
-struct ncsmib_arg;          /* this allows function prototypes below to fly */
+	struct ncsmib_arg;	/* this allows function prototypes below to fly */
 
 /***************************************************************************
  * NCS_KEY i_usr_hdl   : See /base/common/inc/ncs_svd.h
  ***************************************************************************/
-
 
 /***************************************************************************
  *
@@ -816,7 +748,7 @@ struct ncsmib_arg;          /* this allows function prototypes below to fly */
  * Asynchronous and abides by the NCSMIB_RSP_FNC function prototype.
  ***************************************************************************/
 
-typedef uns32 (*NCSMIB_REQ_FNC)(struct ncsmib_arg* req);
+	typedef uns32 (*NCSMIB_REQ_FNC) (struct ncsmib_arg * req);
 
 /***************************************************************************
  * Function prototype used for MIB Object RESPONSEs.. A Requestor always 
@@ -824,9 +756,7 @@ typedef uns32 (*NCSMIB_REQ_FNC)(struct ncsmib_arg* req);
  * subsystem.
  ***************************************************************************/
 
-typedef uns32 (*NCSMIB_RSP_FNC)(struct ncsmib_arg* rsp);
-
-
+	typedef uns32 (*NCSMIB_RSP_FNC) (struct ncsmib_arg * rsp);
 
 /***************************************************************************
  *
@@ -853,31 +783,30 @@ typedef uns32 (*NCSMIB_RSP_FNC)(struct ncsmib_arg* rsp);
  *    
  ***************************************************************************/
 
-typedef struct ncsmib_arg
-  {
+	typedef struct ncsmib_arg {
 
-  /*  C o m m o n   T r a n s a c t i o n   D a t a                      */
+		/*  C o m m o n   T r a n s a c t i o n   D a t a                      */
 
-  NCSMIB_OP              i_op;        /* Flavors of Request/Response op   */
-  NCSMIB_TBL_ID          i_tbl_id;    /* MIB table id operation is about  */
-  uns64                 i_usr_key;   /* Service User's ID value          */
-  uns64                 i_mib_key;   /* Service Provider's ID value      */
-  uns32                 i_xch_id;    /* Unique transaction value         */
-  NCSMIB_RSP_FNC         i_rsp_fnc;   /* callback function for RESPONSE   */
-  NCSMIB_IDX             i_idx;       /* indexing info for operation      */
-  uns16                  i_policy;    /* Bitmask, how to treat this request  */
+		NCSMIB_OP i_op;	/* Flavors of Request/Response op   */
+		NCSMIB_TBL_ID i_tbl_id;	/* MIB table id operation is about  */
+		uns64 i_usr_key;	/* Service User's ID value          */
+		uns64 i_mib_key;	/* Service Provider's ID value      */
+		uns32 i_xch_id;	/* Unique transaction value         */
+		NCSMIB_RSP_FNC i_rsp_fnc;	/* callback function for RESPONSE   */
+		NCSMIB_IDX i_idx;	/* indexing info for operation      */
+		uns16 i_policy;	/* Bitmask, how to treat this request  */
 
-  /*  S t a c k   S v c   f o r   N e s t e d  M I B   O p s             */
+		/*  S t a c k   S v c   f o r   N e s t e d  M I B   O p s             */
 
-  NCS_STACK              stack;       /* private 'help' data;internal use */
-  uns8                  space[NCSMIB_STACK_SIZE];          /* stack space */
+		NCS_STACK stack;	/* private 'help' data;internal use */
+		uns8 space[NCSMIB_STACK_SIZE];	/* stack space */
 
-  /*  M I B   P a r a m e t e r   P a r t i c u l a r  I n f o           */
+		/*  M I B   P a r a m e t e r   P a r t i c u l a r  I n f o           */
 
-  NCSMIB_REQ             req;         /* Request & parameter particulars  */
-  NCSMIB_RSP             rsp;         /* Response & parameter particulars */
+		NCSMIB_REQ req;	/* Request & parameter particulars  */
+		NCSMIB_RSP rsp;	/* Response & parameter particulars */
 
-  } NCSMIB_ARG;
+	} NCSMIB_ARG;
 
 /***************************************************************************
  *
@@ -885,19 +814,14 @@ typedef struct ncsmib_arg
  *
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_sync_request ( NCSMIB_ARG*    arg, 
-                                         NCSMIB_REQ_FNC req, 
-                                         uns32         period_10ms,
-                                         NCSMEM_AID*    ma         );
+	EXTERN_C LEAPDLL_API uns32 ncsmib_sync_request(NCSMIB_ARG *arg,
+						       NCSMIB_REQ_FNC req, uns32 period_10ms, NCSMEM_AID *ma);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_timed_request( NCSMIB_ARG*    arg, 
-                                         NCSMIB_REQ_FNC req, 
-                                         uns32         period_10ms);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_timed_request(NCSMIB_ARG *arg, NCSMIB_REQ_FNC req, uns32 period_10ms);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_tm_create    ( void                     );
+	EXTERN_C LEAPDLL_API uns32 ncsmib_tm_create(void);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_tm_destroy   ( void                     );
-
+	EXTERN_C LEAPDLL_API uns32 ncsmib_tm_destroy(void);
 
 /***************************************************************************
  *
@@ -905,31 +829,24 @@ EXTERN_C LEAPDLL_API uns32      ncsmib_tm_destroy   ( void                     )
  *
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_make_req_looklike_rsp( 
-                                                 NCSMIB_ARG*    req, 
-                                                 NCSMIB_ARG*    rsp,
-                                                 NCSMEM_AID*    maid);
-EXTERN_C LEAPDLL_API void       ncsmib_pp                   ( NCSMIB_ARG*    arg);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_make_req_looklike_rsp(NCSMIB_ARG *req, NCSMIB_ARG *rsp, NCSMEM_AID *maid);
+	EXTERN_C LEAPDLL_API void ncsmib_pp(NCSMIB_ARG *arg);
 
-EXTERN_C LEAPDLL_API char*      mibpp_status               ( uns32         status);
+	EXTERN_C LEAPDLL_API char *mibpp_status(uns32 status);
 
-EXTERN_C LEAPDLL_API void       ncsmib_req_pp                   ( NCSMIB_ARG*    arg);/* Fix for bug 60198 */
+	EXTERN_C LEAPDLL_API void ncsmib_req_pp(NCSMIB_ARG *arg);	/* Fix for bug 60198 */
 
-EXTERN_C LEAPDLL_API void       ncsmib_init                 ( NCSMIB_ARG*    arg);
+	EXTERN_C LEAPDLL_API void ncsmib_init(NCSMIB_ARG *arg);
 
-EXTERN_C LEAPDLL_API NCSMIB_ARG* ncsmib_memcopy              ( NCSMIB_ARG*    arg);
+	EXTERN_C LEAPDLL_API NCSMIB_ARG *ncsmib_memcopy(NCSMIB_ARG *arg);
 
-EXTERN_C LEAPDLL_API void       ncsmib_memfree              ( NCSMIB_ARG*    arg);
+	EXTERN_C LEAPDLL_API void ncsmib_memfree(NCSMIB_ARG *arg);
 
-EXTERN_C LEAPDLL_API uns32*     ncsmib_inst_memcopy         ( uns32         len, 
-                                                 const uns32*  ref);
+	EXTERN_C LEAPDLL_API uns32 *ncsmib_inst_memcopy(uns32 len, const uns32 *ref);
 
-EXTERN_C LEAPDLL_API uns8*      ncsmib_oct_memcopy          ( uns32         len,
-                                                 const uns8*   ref);
+	EXTERN_C LEAPDLL_API uns8 *ncsmib_oct_memcopy(uns32 len, const uns8 *ref);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_arg_free_resources   ( NCSMIB_ARG*    arg,
-                                                 NCS_BOOL       is_req);
-
+	EXTERN_C LEAPDLL_API uns32 ncsmib_arg_free_resources(NCSMIB_ARG *arg, NCS_BOOL is_req);
 
 /***************************************************************************
  *
@@ -937,60 +854,35 @@ EXTERN_C LEAPDLL_API uns32      ncsmib_arg_free_resources   ( NCSMIB_ARG*    arg
  *
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_encode          ( NCSMIB_ARG*      arg, 
-                                            NCS_UBAID*       uba, 
-                                            uns16 msg_fmt_ver);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_encode(NCSMIB_ARG *arg, NCS_UBAID *uba, uns16 msg_fmt_ver);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_req_encode      ( NCSMIB_OP        op,
-                                            NCSMIB_REQ*      req,
-                                            NCS_UBAID*       uba);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_req_encode(NCSMIB_OP op, NCSMIB_REQ *req, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_rsp_encode      ( NCSMIB_OP        op,
-                                            NCSMIB_RSP*      rsp,
-                                            NCS_UBAID*       uba,
-                                            uns16 msg_fmt_ver);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_rsp_encode(NCSMIB_OP op, NCSMIB_RSP *rsp, NCS_UBAID *uba, uns16 msg_fmt_ver);
 
+	EXTERN_C LEAPDLL_API uns32 ncsmib_param_val_encode(NCSMIB_PARAM_VAL *mpv, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_param_val_encode( NCSMIB_PARAM_VAL* mpv,
-                                            NCS_UBAID*        uba);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_inst_encode(const uns32 *inst_ids, uns32 inst_len, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_inst_encode     ( const uns32*     inst_ids,
-                                            uns32            inst_len,
-                                            NCS_UBAID*        uba);
+	EXTERN_C LEAPDLL_API NCSMIB_ARG *ncsmib_decode(NCS_UBAID *uba, uns16 msg_fmt_ver);
 
-EXTERN_C LEAPDLL_API NCSMIB_ARG* ncsmib_decode          ( NCS_UBAID*        uba,
-                                                          uns16             msg_fmt_ver);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_req_decode(NCSMIB_OP op, NCSMIB_REQ *req, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_req_decode      ( NCSMIB_OP         op,
-                                            NCSMIB_REQ*       req,
-                                            NCS_UBAID*        uba);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_rsp_decode(NCSMIB_OP op, NCSMIB_RSP *rsp, NCS_UBAID *uba, uns16 msg_fmt_ver);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_rsp_decode      ( NCSMIB_OP         op,
-                                            NCSMIB_RSP*       rsp,
-                                            NCS_UBAID*        uba,
-                                            uns16             msg_fmt_ver);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_param_val_decode(NCSMIB_PARAM_VAL *mpv, NCSMEM_AID *ma, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_param_val_decode( NCSMIB_PARAM_VAL* mpv,
-                                            NCSMEM_AID*       ma,
-                                            NCS_UBAID*        uba);
+	EXTERN_C LEAPDLL_API uns32 ncsmib_inst_decode(uns32 **inst_ids, uns32 inst_len, NCS_UBAID *uba);
 
-EXTERN_C LEAPDLL_API uns32      ncsmib_inst_decode     ( uns32**          inst_ids,
-                                            uns32            inst_len,
-                                            NCS_UBAID*        uba);
+/* to extract the oid into uns32 array from octet stream */
+	EXTERN_C uns32
+	 ncsmib_oid_extract(uns16 i_oid_length_in_ints, uns8 *i_oct, uns32 *o_obj_id);
 
-/* to extract the oid into uns32 array from octet stream */ 
-EXTERN_C uns32
-ncsmib_oid_extract(uns16 i_oid_length_in_ints, uns8 *i_oct, uns32 *o_obj_id);
-
-/* to put the OID into param value from octet stream */ 
-EXTERN_C uns32
-ncsmib_oid_put(uns16    i_oid_len_in_ints,    
-               uns32    *i_oid, 
-               uns8     *io_oid_buff, 
-               NCSMIB_PARAM_VAL *io_param_val); 
+/* to put the OID into param value from octet stream */
+	EXTERN_C uns32
+	 ncsmib_oid_put(uns16 i_oid_len_in_ints, uns32 *i_oid, uns8 *io_oid_buff, NCSMIB_PARAM_VAL *io_param_val);
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -29,7 +27,6 @@
 
 ******************************************************************************
 */
-
 
 /*
  * Module Inclusion Control...
@@ -78,38 +75,37 @@
  **********************************
  */
 
-typedef struct ncsft_red
-{
-  /* H&J or non-H&J subsystem */
-  uns16  subsystem; 
+typedef struct ncsft_red {
+	/* H&J or non-H&J subsystem */
+	uns16 subsystem;
 
-  /* The subsystem_version is returned when ncsft_register() is called
-   * to register a subsystem with the Generic Fault Tolerant Engine.
-   */
-  uns16  subsystem_version;  
+	/* The subsystem_version is returned when ncsft_register() is called
+	 * to register a subsystem with the Generic Fault Tolerant Engine.
+	 */
+	uns16 subsystem_version;
 
-  /* This is a redundant unit within a subsystem. Each subsystem has 
-   * different characteristics regarding it's components that can be
-   * backed up. For instance for signalling this maps to an interface
-   */
-  uns32 redundant_entity_id[4]; 
+	/* This is a redundant unit within a subsystem. Each subsystem has 
+	 * different characteristics regarding it's components that can be
+	 * backed up. For instance for signalling this maps to an interface
+	 */
+	uns32 redundant_entity_id[4];
 
-  /* The collection identifier is used to group redundant entities
-   * together. There are APIs provided that can change role by collection
-   * ID for instance.
-   */
-  uns32 collection_id; 
+	/* The collection identifier is used to group redundant entities
+	 * together. There are APIs provided that can change role by collection
+	 * ID for instance.
+	 */
+	uns32 collection_id;
 
-  /* The collection priority is used in conjunction with the collection
-   * ID to act on redundant entities. The priority determines the order
-   * in which the entities are processed within a collection. 
-   */
-  uns32 collection_priority; 
+	/* The collection priority is used in conjunction with the collection
+	 * ID to act on redundant entities. The priority determines the order
+	 * in which the entities are processed within a collection. 
+	 */
+	uns32 collection_priority;
 
-  /* This can be used by the target environment - RMS does not modify
-   * or use this field 
-   */
-  void* opaque;
+	/* This can be used by the target environment - RMS does not modify
+	 * or use this field 
+	 */
+	void *opaque;
 
 } NCSFT_RED;
 
@@ -117,6 +113,4 @@ typedef struct ncsft_red
 
 #define NEW_STYLE_RED_MARKER  0xf000000f
 
-
 #endif
-

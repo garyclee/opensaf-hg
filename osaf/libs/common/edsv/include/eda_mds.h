@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -74,7 +72,6 @@ do { \
    (m).info.api_info.type = EDSV_EDA_FINALIZE; \
    (m).info.api_info.param.finalize.reg_id = (regid); \
 } while (0);
-
 
 /* Macro to populate the 'EVT Channel Open' sync message */
 #define m_EDA_EDSV_CHAN_OPEN_SYNC_MSG_FILL(m, regid, copenflags, cn) \
@@ -198,18 +195,13 @@ do { \
 
 /*** Extern function declarations ***/
 
-
-EXTERN_C uns32 eda_mds_init (EDA_CB *cb);
+EXTERN_C uns32 eda_mds_init(EDA_CB *cb);
 EXTERN_C void eda_sync_with_eds(EDA_CB *cb);
-EXTERN_C void  eda_mds_finalize (EDA_CB *cb);
-EXTERN_C uns32 eda_mds_msg_sync_send (struct eda_cb_tag *cb, 
-                                struct edsv_msg *i_msg, 
-                                struct edsv_msg **o_msg, 
-                                uns32 timeout);
+EXTERN_C void eda_mds_finalize(EDA_CB *cb);
+EXTERN_C uns32 eda_mds_msg_sync_send(struct eda_cb_tag *cb,
+				     struct edsv_msg *i_msg, struct edsv_msg **o_msg, uns32 timeout);
 
-EXTERN_C uns32 eda_mds_msg_async_send (struct eda_cb_tag *cb, 
-                                       struct edsv_msg *i_msg,
-                                       uns32 prio);
-EXTERN_C void edsv_eda_evt_free (struct edsv_msg *);
+EXTERN_C uns32 eda_mds_msg_async_send(struct eda_cb_tag *cb, struct edsv_msg *i_msg, uns32 prio);
+EXTERN_C void edsv_eda_evt_free(struct edsv_msg *);
 
-#endif /* !EDA_MDS_H */
+#endif   /* !EDA_MDS_H */

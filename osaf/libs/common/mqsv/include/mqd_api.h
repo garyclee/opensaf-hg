@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   FILE NAME: mqd_api.h
 
 ..............................................................................
@@ -34,10 +33,10 @@
 #define MQD_COMP_NAME      "MQD"
 #define MQD_TASK_PRIORITY  5
 #define MQD_TASK_STACKSIZE NCS_STACKSIZE_HUGE
-#define MQSV_MQD_REV       1 /* MQD Release 1.00 */
+#define MQSV_MQD_REV       1	/* MQD Release 1.00 */
 
 /*****************************EVT HANDLER ***********************************/
-typedef uns32 (*MQD_EVT_HANDLER)(struct mqsv_evt *, struct mqd_cb *);
+typedef uns32 (*MQD_EVT_HANDLER) (struct mqsv_evt *, struct mqd_cb *);
 /****************************************************************************/
 
 EXTERN_C uns32 mqd_track_add(NCS_QUEUE *, MDS_DEST *, MDS_SVC_ID);
@@ -50,8 +49,8 @@ EXTERN_C uns32 mqd_ctrl_evt_hdlr(MQSV_EVT *, MQD_CB *);
 
 EXTERN_C uns32 mqd_asapi_dereg_hdlr(MQD_CB *, ASAPi_DEREG_INFO *, MQSV_SEND_INFO *);
 EXTERN_C uns32 mqd_mds_send_rsp(MQD_CB *cb, MQSV_SEND_INFO *s_info, MQSV_EVT *evt);
-EXTERN_C void mqd_nd_restart_update_dest_info(MQD_CB *pMqd,MDS_DEST dest);
-EXTERN_C void mqd_nd_down_update_info(MQD_CB *pMqd,MDS_DEST dest);
-EXTERN_C NCS_BOOL mqd_obj_cmp(void * key, void * elem);
+EXTERN_C void mqd_nd_restart_update_dest_info(MQD_CB *pMqd, MDS_DEST dest);
+EXTERN_C void mqd_nd_down_update_info(MQD_CB *pMqd, MDS_DEST dest);
+EXTERN_C NCS_BOOL mqd_obj_cmp(void *key, void *elem);
 
-#endif /* MQD_API_H */
+#endif   /* MQD_API_H */

@@ -20,52 +20,50 @@
 
 /* EVT from other GFM over MDS.*/
 typedef enum {
-   GFM_GFM_EVT_NODE_RESET_IND,
-   GFM_GFM_EVT_MAX
-}GFM_GFM_MSG_TYPE;
+	GFM_GFM_EVT_NODE_RESET_IND,
+	GFM_GFM_EVT_MAX
+} GFM_GFM_MSG_TYPE;
 
-typedef struct node_reset_info{
-   uns8  shelf;
-   uns8  slot;
-   uns8  sub_slot;
-}NODE_RESET_INFO;
+typedef struct node_reset_info {
+	uns8 shelf;
+	uns8 slot;
+	uns8 sub_slot;
+} NODE_RESET_INFO;
 
 typedef struct gfm_gfm_msg {
-   GFM_GFM_MSG_TYPE msg_type;
+	GFM_GFM_MSG_TYPE msg_type;
 
-   union {
-        NODE_RESET_INFO  node_reset_ind_info;
-   }info;
+	union {
+		NODE_RESET_INFO node_reset_ind_info;
+	} info;
 
-}GFM_GFM_MSG;
+} GFM_GFM_MSG;
 
 /* FM generated events.*/
 typedef enum {
-   FM_EVT_TMR_EXP,
-   FM_EVT_FMA_START,
-   FM_EVT_HB_LOSS = FM_EVT_FMA_START,
-   FM_EVT_HB_RESTORE,
-   FM_EVT_CAN_SMH_SW,
-   FM_EVT_AVM_NODE_RESET_IND,
-   FM_FSM_EVT_MAX
-}FM_FSM_EVT_CODE;
+	FM_EVT_TMR_EXP,
+	FM_EVT_FMA_START,
+	FM_EVT_HB_LOSS = FM_EVT_FMA_START,
+	FM_EVT_HB_RESTORE,
+	FM_EVT_CAN_SMH_SW,
+	FM_EVT_AVM_NODE_RESET_IND,
+	FM_FSM_EVT_MAX
+} FM_FSM_EVT_CODE;
 
 typedef struct fm_evt {
-   struct fm_evt        *next;   
-   uns8                 slot;
-   uns8                 sub_slot;
-   FM_FSM_EVT_CODE      evt_code;   
-   NCS_IPC_PRIORITY     priority;
-   MDS_SYNC_SND_CTXT    mds_ctxt;
-   MDS_DEST             fr_dest;
-   union{
-        FM_TMR          *fm_tmr;
-        GFM_GFM_MSG     gfm_msg;
-   }info;
+	struct fm_evt *next;
+	uns8 slot;
+	uns8 sub_slot;
+	FM_FSM_EVT_CODE evt_code;
+	NCS_IPC_PRIORITY priority;
+	MDS_SYNC_SND_CTXT mds_ctxt;
+	MDS_DEST fr_dest;
+	union {
+		FM_TMR *fm_tmr;
+		GFM_GFM_MSG gfm_msg;
+	} info;
 } FM_EVT;
 
-
-EXTERN_C void fm_mbx_evt_handler(FM_CB *fm_cb, FM_EVT *fm_evt); 
+EXTERN_C void fm_mbx_evt_handler(FM_CB *fm_cb, FM_EVT *fm_evt);
 
 #endif
-

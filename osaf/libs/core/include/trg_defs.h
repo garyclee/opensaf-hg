@@ -15,7 +15,6 @@
  *
  */
 
- 
 /*****************************************************************************
    DESCRIPTION:
 
@@ -35,66 +34,61 @@ extern "C" {
 
 /* The following are the required typedefs and defines the end user has to supply. */
 
-typedef unsigned char     uns8;       /*  8-bit */
-typedef unsigned short    uns16;      /* 16-bit */
-typedef unsigned int      uns32;      /* 32-bit */
+	typedef unsigned char uns8;	/*  8-bit */
+	typedef unsigned short uns16;	/* 16-bit */
+	typedef unsigned int uns32;	/* 32-bit */
 
-typedef signed   char     int8;
-typedef signed   short    int16;
-typedef signed   long     int32;             
- 
+	typedef signed char int8;
+	typedef signed short int16;
+	typedef signed long int32;
+
 /** support for double is dependent upon the target system and/or C-compiler.
  ** If your system does NOT support double, change this to uns32.
  **/
-typedef double DOUBLE;
+	typedef double DOUBLE;
 
+	typedef float ncsfloat32;
 
-typedef float             ncsfloat32;
+	typedef uns16 NCS_VRID;	/* Virtual Router ID */
 
-typedef uns16             NCS_VRID;    /* Virtual Router ID */
+	typedef unsigned short cfgflag;	/* Usually a YES/NO or T/F boolean */
+	typedef unsigned short cfgenum;	/* An enumerated value */
 
-typedef unsigned short    cfgflag;    /* Usually a YES/NO or T/F boolean */
-typedef unsigned short    cfgenum;    /* An enumerated value */
+	typedef unsigned int BOOLEAN;
+	typedef unsigned int NCS_BOOL;	/* move to this solves BOOLEAN problem */
+	typedef unsigned char bcd;	/* Binary-Coded-Decimal */
 
-typedef unsigned int      BOOLEAN;
-typedef unsigned int      NCS_BOOL;    /* move to this solves BOOLEAN problem */
-typedef unsigned char     bcd;        /* Binary-Coded-Decimal */
+	typedef void *NCSCONTEXT;	/* opaque context between svc-usr/svc-provider */
 
-typedef void *            NCSCONTEXT;  /* opaque context between svc-usr/svc-provider */
+	typedef uns32 IE_DESC[2];	/* IE Descriptor for ATM Signallng */
+	typedef uns32 FIE_DESC;	/* IE Descriptor for FR Signalling. */
 
-typedef uns32             IE_DESC[2]; /* IE Descriptor for ATM Signallng */
-typedef uns32             FIE_DESC;   /* IE Descriptor for FR Signalling.*/
+	typedef uns32 ncs_oid;	/* Basic data type for SNMP/ILMI Object Sub-ids... */
 
-typedef uns32             ncs_oid;  /* Basic data type for SNMP/ILMI Object Sub-ids...*/
+	typedef uns32 NCS_IPV4_ADDR;
 
-typedef uns32 NCS_IPV4_ADDR;
+	typedef enum ncs_ip_addr_type {
+		NCS_IP_ADDR_TYPE_NONE,
+		NCS_IP_ADDR_TYPE_IPV4,
+		NCS_IP_ADDR_TYPE_IPV6,	/* Do not use (yet!) */
 
-typedef enum ncs_ip_addr_type
-{
-  NCS_IP_ADDR_TYPE_NONE,
-  NCS_IP_ADDR_TYPE_IPV4,
-  NCS_IP_ADDR_TYPE_IPV6,  /* Do not use (yet!) */
+		NCS_IP_ADDR_TYPE_MAX	/* Must be last. */
+	} NCS_IP_ADDR_TYPE;
 
-  NCS_IP_ADDR_TYPE_MAX    /* Must be last. */
-} NCS_IP_ADDR_TYPE;
-
-typedef struct ncs_ip_addr
-{
-  NCS_IP_ADDR_TYPE type;
-  union
-    {
-      NCS_IPV4_ADDR v4;
-      /* Some day a v6 structure will go here. */
-    } info;
-} NCS_IP_ADDR;
-
+	typedef struct ncs_ip_addr {
+		NCS_IP_ADDR_TYPE type;
+		union {
+			NCS_IPV4_ADDR v4;
+			/* Some day a v6 structure will go here. */
+		} info;
+	} NCS_IP_ADDR;
 
 /* prototype for registered function to 'Probe' protocol values */
 
-typedef void (*PROBER)(uns32 dir_flag, void *,  const void *);
+	typedef void (*PROBER) (uns32 dir_flag, void *, const void *);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* __TRG_DEFS_H__ */
+#endif   /* __TRG_DEFS_H__ */

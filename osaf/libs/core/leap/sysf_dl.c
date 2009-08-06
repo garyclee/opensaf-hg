@@ -24,12 +24,10 @@
 
   DESCRIPTION:
 
-
   NOTES:
 
 ******************************************************************************
 */
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -42,7 +40,6 @@
 #include "ncs_dlprm.h"
 
 #include "ncs_dl.h"
-
 
 /*****************************************************************************
 
@@ -63,64 +60,56 @@
 
 *****************************************************************************/
 
-uns32
-sysf_dl_request (struct ncs_dl_request_info_tag *dlr)
+uns32 sysf_dl_request(struct ncs_dl_request_info_tag *dlr)
 {
-   uns32 rc;     
-   switch (dlr->i_request)
-   {
-   case NCS_DL_CTRL_REQUEST_BIND:
+	uns32 rc;
+	switch (dlr->i_request) {
+	case NCS_DL_CTRL_REQUEST_BIND:
 
-      rc = ncs_dl_bind_l2_layer (dlr);     
-      break;
+		rc = ncs_dl_bind_l2_layer(dlr);
+		break;
 
-   case NCS_DL_CTRL_REQUEST_UNBIND:
+	case NCS_DL_CTRL_REQUEST_UNBIND:
 
-      rc = ncs_dl_unbind_l2_layer (dlr);
-      break;
+		rc = ncs_dl_unbind_l2_layer(dlr);
+		break;
 
-   case NCS_DL_CTRL_REQUEST_OPEN:
+	case NCS_DL_CTRL_REQUEST_OPEN:
 
-      rc = ncs_dl_open_l2_layer (dlr);
-      break;
+		rc = ncs_dl_open_l2_layer(dlr);
+		break;
 
-   case NCS_DL_CTRL_REQUEST_CLOSE:
-     
-      rc = ncs_dl_close_l2_layer (dlr);
-      break;
+	case NCS_DL_CTRL_REQUEST_CLOSE:
 
-   case NCS_DL_DATA_REQUEST_SEND_DATA:
-     
-      rc = ncs_dl_send_data_to_l2_layer (dlr);
-      break;
+		rc = ncs_dl_close_l2_layer(dlr);
+		break;
 
-   case NCS_DL_CTRL_REQUEST_MULTICAST_JOIN:
-     
-      rc = ncs_dl_mcast_join (dlr);
-      break;
+	case NCS_DL_DATA_REQUEST_SEND_DATA:
 
-   case NCS_DL_CTRL_REQUEST_MULTICAST_LEAVE:
- 
-      rc = ncs_dl_mcast_leave (dlr);
-      break;
-   case NCS_DL_CTRL_REQUEST_GET_ETH_ADDR:
-      return (ncs_dl_getl2_eth_addr ((uns32 *)dlr->info.ctrl.get_eth_addr.io_if_index,\
-                dlr->info.ctrl.get_eth_addr.io_if_name,\
-                    dlr->info.ctrl.get_eth_addr.o_mac_addr));
-      break;
-   default:
-     
-      return NCSCC_RC_FAILURE;
-   }
+		rc = ncs_dl_send_data_to_l2_layer(dlr);
+		break;
 
-   if (rc != NCSCC_RC_SUCCESS)
-       return m_LEAP_DBG_SINK(rc);
+	case NCS_DL_CTRL_REQUEST_MULTICAST_JOIN:
 
-   return NCSCC_RC_SUCCESS;
+		rc = ncs_dl_mcast_join(dlr);
+		break;
+
+	case NCS_DL_CTRL_REQUEST_MULTICAST_LEAVE:
+
+		rc = ncs_dl_mcast_leave(dlr);
+		break;
+	case NCS_DL_CTRL_REQUEST_GET_ETH_ADDR:
+		return (ncs_dl_getl2_eth_addr((uns32 *)dlr->info.ctrl.get_eth_addr.io_if_index,
+					      dlr->info.ctrl.get_eth_addr.io_if_name,
+					      dlr->info.ctrl.get_eth_addr.o_mac_addr));
+		break;
+	default:
+
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (rc != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(rc);
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
-
-
-
-

@@ -18,15 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module deals with the creation, accessing and deletion of
   the SI database and SU SI relationship list on the AVD. It also deals with
   all the MIB operations like set,get,getnext etc related to the 
   Service instance table and service unit service instance relationship table.
-
 
 ..............................................................................
 
@@ -51,7 +48,6 @@
   ncssitableentry_rmvrow- This function is the setrow processing for
                            objects in SA_AMF_S_I_TABLE_ENTRY_ID table.
 
-
   
 ******************************************************************************
 */
@@ -61,7 +57,6 @@
  */
 
 #include "avd.h"
-
 
 /*****************************************************************************
  * Function: avd_si_struc_crt
@@ -82,67 +77,59 @@
  * 
  **************************************************************************/
 
-AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
+AVD_SI *avd_si_struc_crt(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL ckpt)
 {
-   AVD_SI *si;
- 
-   if( (si_name.length <= 6) || (strncmp(si_name.value,"safSi=",6) != 0) )
-   {
-      return AVD_SI_NULL;
-   }
+	AVD_SI *si;
 
-   /* Allocate a new block structure now
-    */
-   if ((si = m_MMGR_ALLOC_AVD_SI) == AVD_SI_NULL)
-   {
-      /* log an error */
-      m_AVD_LOG_MEM_FAIL(AVD_SI_ALLOC_FAILED);
-      return AVD_SI_NULL;
-   }
+	if ((si_name.length <= 6) || (strncmp(si_name.value, "safSi=", 6) != 0)) {
+		return AVD_SI_NULL;
+	}
 
-   memset((char *)si, '\0', sizeof(AVD_SI));
+	/* Allocate a new block structure now
+	 */
+	if ((si = m_MMGR_ALLOC_AVD_SI) == AVD_SI_NULL) {
+		/* log an error */
+		m_AVD_LOG_MEM_FAIL(AVD_SI_ALLOC_FAILED);
+		return AVD_SI_NULL;
+	}
 
-   if (ckpt)
-   {
-      memcpy(si->name_net.value,si_name.value,m_NCS_OS_NTOHS(si_name.length));
-      si->name_net.length = si_name.length;
-   }
-   else
-   {
-      memcpy(si->name_net.value,si_name.value,si_name.length);
-      si->name_net.length = m_HTON_SANAMET_LEN(si_name.length);
-      
-      si->row_status = NCS_ROW_NOT_READY;
-      si->si_switch = AVSV_SI_TOGGLE_STABLE;
-      si->admin_state = NCS_ADMIN_STATE_UNLOCK;
-      si->su_config_per_si = 1;
-   }
+	memset((char *)si, '\0', sizeof(AVD_SI));
 
-   /* init pointers */
-   si->list_of_csi = AVD_CSI_NULL;
-   si->list_of_sisu = AVD_SU_SI_REL_NULL;
-   si->sg_list_of_si_next = AVD_SI_NULL;
-   si->sg_of_si = AVD_SG_NULL;
-   si->si_dep_state = AVD_SI_NO_DEPENDENCY;
+	if (ckpt) {
+		memcpy(si->name_net.value, si_name.value, m_NCS_OS_NTOHS(si_name.length));
+		si->name_net.length = si_name.length;
+	} else {
+		memcpy(si->name_net.value, si_name.value, si_name.length);
+		si->name_net.length = m_HTON_SANAMET_LEN(si_name.length);
 
-   si->tree_node.key_info = (uns8*)&(si->name_net);
-   si->tree_node.bit   = 0;
-   si->tree_node.left  = NCS_PATRICIA_NODE_NULL;
-   si->tree_node.right = NCS_PATRICIA_NODE_NULL;
+		si->row_status = NCS_ROW_NOT_READY;
+		si->si_switch = AVSV_SI_TOGGLE_STABLE;
+		si->admin_state = NCS_ADMIN_STATE_UNLOCK;
+		si->su_config_per_si = 1;
+	}
 
-   if( ncs_patricia_tree_add(&cb->si_anchor,&si->tree_node) 
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log an error */
-      m_MMGR_FREE_AVD_SI(si);
-      return AVD_SI_NULL;
-   }
+	/* init pointers */
+	si->list_of_csi = AVD_CSI_NULL;
+	si->list_of_sisu = AVD_SU_SI_REL_NULL;
+	si->sg_list_of_si_next = AVD_SI_NULL;
+	si->sg_of_si = AVD_SG_NULL;
+	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
 
+	si->tree_node.key_info = (uns8 *)&(si->name_net);
+	si->tree_node.bit = 0;
+	si->tree_node.left = NCS_PATRICIA_NODE_NULL;
+	si->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
-   return si;
-   
+	if (ncs_patricia_tree_add(&cb->si_anchor, &si->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log an error */
+		m_MMGR_FREE_AVD_SI(si);
+		return AVD_SI_NULL;
+	}
+
+	return si;
+
 }
-
 
 /*****************************************************************************
  * Function: avd_si_struc_find
@@ -161,22 +148,20 @@ AVD_SI * avd_si_struc_crt(AVD_CL_CB *cb,SaNameT si_name, NCS_BOOL ckpt)
  * 
  **************************************************************************/
 
-AVD_SI * avd_si_struc_find(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_order)
+AVD_SI *avd_si_struc_find(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order)
 {
-   AVD_SI *si;
-   SaNameT  lsi_name;
+	AVD_SI *si;
+	SaNameT lsi_name;
 
-   memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-   lsi_name.length = (host_order == FALSE) ? si_name.length :  
-                                            m_HTON_SANAMET_LEN(si_name.length);
+	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
+	lsi_name.length = (host_order == FALSE) ? si_name.length : m_HTON_SANAMET_LEN(si_name.length);
 
-   memcpy(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
+	memcpy(lsi_name.value, si_name.value, m_NCS_OS_NTOHS(lsi_name.length));
 
-   si = (AVD_SI *)ncs_patricia_tree_get(&cb->si_anchor, (uns8*)&lsi_name);
+	si = (AVD_SI *)ncs_patricia_tree_get(&cb->si_anchor, (uns8 *)&lsi_name);
 
-   return si;
+	return si;
 }
-
 
 /*****************************************************************************
  * Function: avd_si_struc_find_next
@@ -195,22 +180,20 @@ AVD_SI * avd_si_struc_find(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_order)
  * 
  **************************************************************************/
 
-AVD_SI * avd_si_struc_find_next(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_order)
+AVD_SI *avd_si_struc_find_next(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order)
 {
-   AVD_SI *si;
-   SaNameT  lsi_name;
+	AVD_SI *si;
+	SaNameT lsi_name;
 
-   memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-   lsi_name.length = (host_order == FALSE) ? si_name.length :  
-                                            m_HTON_SANAMET_LEN(si_name.length);
+	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
+	lsi_name.length = (host_order == FALSE) ? si_name.length : m_HTON_SANAMET_LEN(si_name.length);
 
-   memcpy(lsi_name.value,si_name.value,m_NCS_OS_NTOHS(lsi_name.length));
+	memcpy(lsi_name.value, si_name.value, m_NCS_OS_NTOHS(lsi_name.length));
 
-   si = (AVD_SI *)ncs_patricia_tree_getnext(&cb->si_anchor, (uns8*)&lsi_name);
+	si = (AVD_SI *)ncs_patricia_tree_getnext(&cb->si_anchor, (uns8 *)&lsi_name);
 
-   return si;
+	return si;
 }
-
 
 /*****************************************************************************
  * Function: avd_si_struc_del
@@ -228,22 +211,20 @@ AVD_SI * avd_si_struc_find_next(AVD_CL_CB *cb,SaNameT si_name,NCS_BOOL host_orde
  * 
  **************************************************************************/
 
-uns32 avd_si_struc_del(AVD_CL_CB *cb,AVD_SI *si)
+uns32 avd_si_struc_del(AVD_CL_CB *cb, AVD_SI *si)
 {
-   if (si == AVD_SI_NULL)
-      return NCSCC_RC_FAILURE;
+	if (si == AVD_SI_NULL)
+		return NCSCC_RC_FAILURE;
 
-   if(ncs_patricia_tree_del(&cb->si_anchor,&si->tree_node) 
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
+	if (ncs_patricia_tree_del(&cb->si_anchor, &si->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_MMGR_FREE_AVD_SI(si);
-   return NCSCC_RC_SUCCESS;
+	m_MMGR_FREE_AVD_SI(si);
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avd_si_del_sg_list
@@ -261,41 +242,35 @@ uns32 avd_si_struc_del(AVD_CL_CB *cb,AVD_SI *si)
  * 
  **************************************************************************/
 
-void avd_si_del_sg_list(AVD_CL_CB *cb,AVD_SI *si)
+void avd_si_del_sg_list(AVD_CL_CB *cb, AVD_SI *si)
 {
-   AVD_SI *i_si = AVD_SI_NULL;
-   AVD_SI *prev_si = AVD_SI_NULL;
+	AVD_SI *i_si = AVD_SI_NULL;
+	AVD_SI *prev_si = AVD_SI_NULL;
 
-   if (si->sg_of_si != AVD_SG_NULL)
-   {
-      /* remove SI from SG */
-      i_si = si->sg_of_si->list_of_si;
+	if (si->sg_of_si != AVD_SG_NULL) {
+		/* remove SI from SG */
+		i_si = si->sg_of_si->list_of_si;
 
-      while ((i_si != AVD_SI_NULL) && (i_si != si))
-      {
-         prev_si = i_si;
-         i_si = i_si->sg_list_of_si_next;
-      }
+		while ((i_si != AVD_SI_NULL) && (i_si != si)) {
+			prev_si = i_si;
+			i_si = i_si->sg_list_of_si_next;
+		}
 
-      if(i_si != si)
-      {
-         /* Log a fatal error */
-      }else
-      {
-         if (prev_si == AVD_SI_NULL)
-         {
-            si->sg_of_si->list_of_si = i_si->sg_list_of_si_next;
-         }else
-         {
-            prev_si->sg_list_of_si_next = si->sg_list_of_si_next;
-         }                     
-      }
+		if (i_si != si) {
+			/* Log a fatal error */
+		} else {
+			if (prev_si == AVD_SI_NULL) {
+				si->sg_of_si->list_of_si = i_si->sg_list_of_si_next;
+			} else {
+				prev_si->sg_list_of_si_next = si->sg_list_of_si_next;
+			}
+		}
 
-      si->sg_list_of_si_next = AVD_SI_NULL;
-      si->sg_of_si = AVD_SG_NULL;
-   } /* if (si->sg_of_si != AVD_SG_NULL) */  
-   
-   return;
+		si->sg_list_of_si_next = AVD_SI_NULL;
+		si->sg_of_si = AVD_SG_NULL;
+	}
+	/* if (si->sg_of_si != AVD_SG_NULL) */
+	return;
 }
 
 /*****************************************************************************
@@ -314,34 +289,31 @@ void avd_si_del_sg_list(AVD_CL_CB *cb,AVD_SI *si)
  * 
  **************************************************************************/
 
-void avd_si_add_sg_list(AVD_CL_CB *cb,AVD_SI *si)
+void avd_si_add_sg_list(AVD_CL_CB *cb, AVD_SI *si)
 {
-   AVD_SI *i_si = AVD_SI_NULL;
-   AVD_SI *prev_si = AVD_SI_NULL;
+	AVD_SI *i_si = AVD_SI_NULL;
+	AVD_SI *prev_si = AVD_SI_NULL;
 
-   if ( (si == AVD_SI_NULL) || (si->sg_of_si == AVD_SG_NULL) )
-      return;
+	if ((si == AVD_SI_NULL) || (si->sg_of_si == AVD_SG_NULL))
+		return;
 
-   i_si = si->sg_of_si->list_of_si;
+	i_si = si->sg_of_si->list_of_si;
 
-   while( (i_si != AVD_SI_NULL) && (i_si->rank < si->rank) )
-   {
-      prev_si = i_si;
-      i_si = i_si->sg_list_of_si_next;
-   }
-   
-   if(prev_si == AVD_SI_NULL)
-   {
-      si->sg_list_of_si_next = si->sg_of_si->list_of_si;
-      si->sg_of_si->list_of_si = si;
-   }
-   else
-   {
-      prev_si->sg_list_of_si_next = si;
-      si->sg_list_of_si_next = i_si;
-   }
-   return;
+	while ((i_si != AVD_SI_NULL) && (i_si->rank < si->rank)) {
+		prev_si = i_si;
+		i_si = i_si->sg_list_of_si_next;
+	}
+
+	if (prev_si == AVD_SI_NULL) {
+		si->sg_list_of_si_next = si->sg_of_si->list_of_si;
+		si->sg_of_si->list_of_si = si;
+	} else {
+		prev_si->sg_list_of_si_next = si;
+		si->sg_list_of_si_next = i_si;
+	}
+	return;
 }
+
 /*****************************************************************************
  * Function: saamfsitableentry_get
  *
@@ -366,40 +338,36 @@ void avd_si_add_sg_list(AVD_CL_CB *cb,AVD_SI *si)
  * 
  **************************************************************************/
 
-uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	uns32 i;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < si_name.length; i++)
-   {
-      si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   si = avd_si_struc_find(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the service instance database key from the instant ID */
+	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < si_name.length; i++) {
+		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   *data = (NCSCONTEXT)si;
+	si = avd_si_struc_find(avd_cb, si_name, TRUE);
 
-   return NCSCC_RC_SUCCESS;
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)si;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -435,48 +403,42 @@ uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsitableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saamfsitableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_SI        *si = (AVD_SI *)data;
+	AVD_SI *si = (AVD_SI *)data;
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   switch(param->i_param_id)
-   {
-   case saAmfSIParentSGName_ID:
-       m_AVSV_OCTVAL_TO_PARAM(param, buffer,si->sg_name.length,
-                              si->sg_name.value); 
-       break;
-   case saAmfSIOperState_ID:
+	switch (param->i_param_id) {
+	case saAmfSIParentSGName_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, si->sg_name.length, si->sg_name.value);
+		break;
+	case saAmfSIOperState_ID:
 
-      param->i_fmat_id = NCSMIB_FMAT_INT; 
-      param->i_length = 1; 
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
 
-      if(si->list_of_sisu != AVD_SU_SI_REL_NULL)
-         param->info.i_int = NCS_OPER_STATE_ENABLE;
-      else
-         param->info.i_int = NCS_OPER_STATE_DISABLE;
-         
-      break;
-        
-   default:
-      /* call the MIBLIB utility routine for standfard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
+		if (si->list_of_sisu != AVD_SU_SI_REL_NULL)
+			param->info.i_int = NCS_OPER_STATE_ENABLE;
+		else
+			param->info.i_int = NCS_OPER_STATE_DISABLE;
 
-   return NCSCC_RC_SUCCESS;
+		break;
+
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsitableentry_set
@@ -504,471 +466,405 @@ uns32 saamfsitableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   SaNameT       temp_name;
-   uns32 i;
-   NCSMIBLIB_REQ_INFO temp_mib_req;
-   NCS_BOOL       val_same_flag = FALSE;
-   uns32 rc;
-   NCS_ADMIN_STATE back_val;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	SaNameT temp_name;
+	uns32 i;
+	NCSMIBLIB_REQ_INFO temp_mib_req;
+	NCS_BOOL val_same_flag = FALSE;
+	uns32 rc;
+	NCS_ADMIN_STATE back_val;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < si_name.length; i++)
-   {
-      si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-   si = avd_si_struc_find(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if (si == AVD_SI_NULL)
-   {
-      if((arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID)
-         && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT))
-      {
-         /* Invalid row status object */
-         return NCSCC_RC_INV_VAL;      
-      }
+	/* Prepare the service instance database key from the instant ID */
+	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < si_name.length; i++) {
+		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-      if(test_flag == TRUE)
-      {
-         return NCSCC_RC_SUCCESS;
-      }
+	si = avd_si_struc_find(avd_cb, si_name, TRUE);
 
-      m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+	if (si == AVD_SI_NULL) {
+		if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID)
+		    && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)) {
+			/* Invalid row status object */
+			return NCSCC_RC_INV_VAL;
+		}
 
-      si = avd_si_struc_crt(avd_cb,si_name, FALSE);
+		if (test_flag == TRUE) {
+			return NCSCC_RC_SUCCESS;
+		}
 
-      m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-      if(si == AVD_SI_NULL)
-      {
-         /* Invalid instance object */
-         return NCSCC_RC_NO_INSTANCE; 
-      }
+		si = avd_si_struc_crt(avd_cb, si_name, FALSE);
 
-   }else /* if (si == AVD_SI_NULL) */
-   {
-      /* The record is already available */
+		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-      if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID)
-      {
-         /* This is a row status operation */
-         if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)si->row_status)
-         {
-            /* row status object is same so nothing to be done. */
-            return NCSCC_RC_SUCCESS;
-         }
+		if (si == AVD_SI_NULL) {
+			/* Invalid instance object */
+			return NCSCC_RC_NO_INSTANCE;
+		}
 
-         switch(arg->req.info.set_req.i_param_val.info.i_int)
-         {
-         case NCS_ROW_ACTIVE:
-            /* validate the structure to see if the row can be made active */
+	} else {		/* if (si == AVD_SI_NULL) */
 
-            if ((si->su_config_per_si == 0) || 
-               (si->max_num_csi ==0) ||
-               (si->rank == 0) )
-            {
-               /* log information error */
-               return NCSCC_RC_INV_VAL;
-            }
-            
-            /* check that the SG is present and is active.
-             */
+		/* The record is already available */
 
-            if(si->sg_name.length == 0)
-            {
-               /* log information error */
-               return NCSCC_RC_INV_VAL;
-            }
-            if ((si->sg_of_si = avd_sg_struc_find(avd_cb,si->sg_name,TRUE)) == AVD_SG_NULL)
-            {
-               return NCSCC_RC_INV_VAL;
-            }
-      
-            if (si->sg_of_si->row_status != NCS_ROW_ACTIVE)
-            {
-               si->sg_of_si = AVD_SG_NULL;
-               return NCSCC_RC_INV_VAL;
-            }
+		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID) {
+			/* This is a row status operation */
+			if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)si->row_status) {
+				/* row status object is same so nothing to be done. */
+				return NCSCC_RC_SUCCESS;
+			}
 
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
+			switch (arg->req.info.set_req.i_param_val.info.i_int) {
+			case NCS_ROW_ACTIVE:
+				/* validate the structure to see if the row can be made active */
 
-            /* add to SG-SI Rank Table */
-            if(avd_sg_si_rank_add_row(avd_cb, si) == AVD_SG_SI_RANK_NULL)
-            {
-               return NCSCC_RC_INV_VAL;
-            }
+				if ((si->su_config_per_si == 0) || (si->max_num_csi == 0) || (si->rank == 0)) {
+					/* log information error */
+					return NCSCC_RC_INV_VAL;
+				}
 
-            /* add to the list of SG  */
-            avd_si_add_sg_list(avd_cb, si);
+				/* check that the SG is present and is active.
+				 */
 
-            /* set the value, checkpoint the entire record.
-             */
-            si->row_status = NCS_ROW_ACTIVE;
-            
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+				if (si->sg_name.length == 0) {
+					/* log information error */
+					return NCSCC_RC_INV_VAL;
+				}
+				if ((si->sg_of_si = avd_sg_struc_find(avd_cb, si->sg_name, TRUE)) == AVD_SG_NULL) {
+					return NCSCC_RC_INV_VAL;
+				}
 
-            return NCSCC_RC_SUCCESS;
-            break;
+				if (si->sg_of_si->row_status != NCS_ROW_ACTIVE) {
+					si->sg_of_si = AVD_SG_NULL;
+					return NCSCC_RC_INV_VAL;
+				}
 
-         case NCS_ROW_NOT_IN_SERVICE:
-         case NCS_ROW_DESTROY:
-            
-            /* check if it is active currently */
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
 
-            if(si->row_status == NCS_ROW_ACTIVE)
-            {
+				/* add to SG-SI Rank Table */
+				if (avd_sg_si_rank_add_row(avd_cb, si) == AVD_SG_SI_RANK_NULL) {
+					return NCSCC_RC_INV_VAL;
+				}
 
-               /* Check to see that the SI is in admin locked state before
-                * making the row status as not in service or delete 
-                */
+				/* add to the list of SG  */
+				avd_si_add_sg_list(avd_cb, si);
 
-               if(si->admin_state != NCS_ADMIN_STATE_LOCK)
-               {
-                  /* log information error */
-                  return NCSCC_RC_INV_VAL;
-               }
+				/* set the value, checkpoint the entire record.
+				 */
+				si->row_status = NCS_ROW_ACTIVE;
 
-               /* Check to see that no CSI or SUSI exists on this SI */
-               if((si->list_of_csi != AVD_CSI_NULL) ||
-                  (si->list_of_sisu != AVD_SU_SI_REL_NULL))
-               {
-                  /* log information error */
-                  return NCSCC_RC_INV_VAL;
-               }
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 
-               if(test_flag == TRUE)
-               {
-                  return NCSCC_RC_SUCCESS;
-               }              
+				return NCSCC_RC_SUCCESS;
+				break;
 
-               m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+			case NCS_ROW_NOT_IN_SERVICE:
+			case NCS_ROW_DESTROY:
 
-               /* remove the SI from the SG list if present.
-                */
+				/* check if it is active currently */
 
-               avd_si_del_sg_list(avd_cb,si);
+				if (si->row_status == NCS_ROW_ACTIVE) {
 
-               avd_sg_si_rank_del_row(avd_cb, si);
+					/* Check to see that the SI is in admin locked state before
+					 * making the row status as not in service or delete 
+					 */
 
-               /* Delete the SI-SI dep records corresponding to this SI */
-               avd_si_dep_delete(avd_cb, si);
+					if (si->admin_state != NCS_ADMIN_STATE_LOCK) {
+						/* log information error */
+						return NCSCC_RC_INV_VAL;
+					}
 
-               m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-               /* we need to delete this avnd structure on the
-                * standby AVD.
-                */
+					/* Check to see that no CSI or SUSI exists on this SI */
+					if ((si->list_of_csi != AVD_CSI_NULL) ||
+					    (si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
+						/* log information error */
+						return NCSCC_RC_INV_VAL;
+					}
 
-               /* check point to the standby AVD that this
-                * record need to be deleted
-                */
-               m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-               
-            }
+					if (test_flag == TRUE) {
+						return NCSCC_RC_SUCCESS;
+					}
 
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
+					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-            if(arg->req.info.set_req.i_param_val.info.i_int
-                  == NCS_ROW_DESTROY)
-            {
-               /* delete and free the structure */
-               m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+					/* remove the SI from the SG list if present.
+					 */
 
-               /* remove the SI from the SG list if present.
-                */
+					avd_si_del_sg_list(avd_cb, si);
 
-               avd_si_del_sg_list(avd_cb,si);
-               
-               avd_si_struc_del(avd_cb,si);
+					avd_sg_si_rank_del_row(avd_cb, si);
 
-               m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+					/* Delete the SI-SI dep records corresponding to this SI */
+					avd_si_dep_delete(avd_cb, si);
 
-               return NCSCC_RC_SUCCESS;
+					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+					/* we need to delete this avnd structure on the
+					 * standby AVD.
+					 */
 
-            } /* if(arg->req.info.set_req.i_param_val.info.i_int
-                  == NCS_ROW_DESTROY) */
+					/* check point to the standby AVD that this
+					 * record need to be deleted
+					 */
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
 
-            si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-            return NCSCC_RC_SUCCESS;
+				}
 
-            break;
-         default:
-            m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
-            /* Invalid row status object */
-            return NCSCC_RC_INV_VAL;
-            break;
-         } /* switch(arg->req.info.set_req.i_param_val.info.i_int) */
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
 
-      } /* if(arg->req.info.set_req.i_param_val.i_param_id == ncsSISiRowStatus_ID) */
+				if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY) {
+					/* delete and free the structure */
+					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-   } /* if (si == AVD_SI_NULL) */
+					/* remove the SI from the SG list if present.
+					 */
 
-   /* We now have the si block */
-   if(test_flag == TRUE)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
+					avd_si_del_sg_list(avd_cb, si);
 
-   
-   if(si->row_status == NCS_ROW_ACTIVE)
-   {
-      if(avd_cb->init_state  != AVD_APP_STATE)
-      {
-         return NCSCC_RC_INV_VAL;
-      }
-      
-      switch(arg->req.info.set_req.i_param_val.i_param_id)
-      {
-         case saAmfSINumCSIs_ID:
-            if(si->admin_state == NCS_ADMIN_STATE_LOCK)
-            {
-               si->max_num_csi = arg->req.info.set_req.i_param_val.info.i_int;
-               m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-            }
-            break;
-         case saAmfSIPrefNumAssignments_ID:
-            si->su_config_per_si = arg->req.info.set_req.i_param_val.info.i_int;
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-            break;
-         case saAmfSIAdminState_ID:
-            if (arg->req.info.set_req.i_param_val.info.i_int == si->admin_state)
-               return NCSCC_RC_SUCCESS;
-            
-            if (si->sg_of_si->sg_ncs_spec == SA_TRUE)
-               return NCSCC_RC_INV_VAL;
-            
-            if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_UNLOCK)
-            {
-               m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_UNLOCK);
+					avd_si_struc_del(avd_cb, si);
 
-               if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)
-               {
-                  return NCSCC_RC_INV_VAL;
-               }
-               
-               if(si->max_num_csi == si->num_csi)
-               {
-                  switch(si->sg_of_si->su_redundancy_model)
-                  {
-                  case AVSV_SG_RED_MODL_2N:
-                     if(avd_sg_2n_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-                     { 
-                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK);
-                        return NCSCC_RC_INV_VAL;
-                     }
-                     break;
+					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-                  case AVSV_SG_RED_MODL_NWAYACTV:
-                     if(avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-                     { 
-                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
-                        return NCSCC_RC_INV_VAL;
-                     }
-                     break;
+					return NCSCC_RC_SUCCESS;
 
-                  case AVSV_SG_RED_MODL_NWAY:
-                     if(avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-                     { 
-                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
-                        return NCSCC_RC_INV_VAL;
-                     }
-                     break;
-                     
-                  case AVSV_SG_RED_MODL_NPM:
-                     if(avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-                     { 
-                        m_AVD_SET_SI_ADMIN(avd_cb,si,NCS_ADMIN_STATE_LOCK); 
-                        return NCSCC_RC_INV_VAL;
-                     }
-                     break;
+				}
+				/* if(arg->req.info.set_req.i_param_val.info.i_int
+				   == NCS_ROW_DESTROY) */
+				si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+				return NCSCC_RC_SUCCESS;
 
-                  case AVSV_SG_RED_MODL_NORED:
-                  default:
-                     if(avd_sg_nored_si_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-                     { 
-                        m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK);
-                        return NCSCC_RC_INV_VAL;
-                     }
-                     break;
-                  }            
-               }
-               return NCSCC_RC_SUCCESS;
-            }
-            else
-            {
-               if ((si->admin_state == NCS_ADMIN_STATE_LOCK) && 
-                  (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_SHUTDOWN))
-                  return NCSCC_RC_INV_VAL;
-               
-               if (si->list_of_sisu == AVD_SU_SI_REL_NULL)
-               {
-                  m_AVD_SET_SI_ADMIN(cb,si,NCS_ADMIN_STATE_LOCK);
-                  return NCSCC_RC_SUCCESS;
-               }      
-  
-               /* SI lock should not be done, this SI is been DISABLED because
-                  of SI-SI dependency */
-               if ((si->si_dep_state != AVD_SI_ASSIGNED) &&
-                   (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING))
-               {
-                  return NCSCC_RC_INV_VAL;
-               }      
-               
-               /* Check if other semantics are happening for other SUs. If yes
-                * return an error.
-                */
-               if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)
-               {
-                  if((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
-                     (si->admin_state != NCS_ADMIN_STATE_SHUTDOWN) || 
-                     (arg->req.info.set_req.i_param_val.info.i_int != NCS_ADMIN_STATE_LOCK))
-                  {
-                     return NCSCC_RC_INV_VAL;
-                  }
-               }/*if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE)*/
-               
-               
-               back_val = si->admin_state;
-               m_AVD_SET_SI_ADMIN(cb,si,(arg->req.info.set_req.i_param_val.info.i_int));
+				break;
+			default:
+				m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
+				/* Invalid row status object */
+				return NCSCC_RC_INV_VAL;
+				break;
+			}	/* switch(arg->req.info.set_req.i_param_val.info.i_int) */
 
-               switch(si->sg_of_si->su_redundancy_model)
-               {
-               case AVSV_SG_RED_MODL_2N:
-                  if(avd_sg_2n_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS)
-                  {
-                     m_AVD_SET_SI_ADMIN(cb,si,back_val);
-                     return NCSCC_RC_INV_VAL;
-                  }
-                  break;
+		}
+		/* if(arg->req.info.set_req.i_param_val.i_param_id == ncsSISiRowStatus_ID) */
+	}			/* if (si == AVD_SI_NULL) */
 
-               case AVSV_SG_RED_MODL_NWAY:
-                  if(avd_sg_nway_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS)
-                  {
-                     m_AVD_SET_SI_ADMIN(cb,si,back_val);
-                     return NCSCC_RC_INV_VAL;
-                  }
-                  break;
+	/* We now have the si block */
+	if (test_flag == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-               case AVSV_SG_RED_MODL_NWAYACTV:
-                  if(avd_sg_nacvred_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS)
-                  {
-                     m_AVD_SET_SI_ADMIN(cb,si,back_val);
-                     return NCSCC_RC_INV_VAL;
-                  }
-                  break;
-                  
-               case AVSV_SG_RED_MODL_NPM:
-                  if(avd_sg_npm_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS)
-                  {
-                     m_AVD_SET_SI_ADMIN(cb,si,back_val);
-                     return NCSCC_RC_INV_VAL;
-                  }
-                  break;
+	if (si->row_status == NCS_ROW_ACTIVE) {
+		if (avd_cb->init_state != AVD_APP_STATE) {
+			return NCSCC_RC_INV_VAL;
+		}
 
-               case AVSV_SG_RED_MODL_NORED:
-               default:
-                  if(avd_sg_nored_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS)
-                  {
-                     m_AVD_SET_SI_ADMIN(cb,si,back_val);
-                     return NCSCC_RC_INV_VAL;
-                  }
-                  break;
-               } 
-               return NCSCC_RC_SUCCESS;
-            }            
-            break;
-         default:
-            
-            /* when row status is active we don't allow any other MIB object to be
-             * modified.
-             */
- 
-            return NCSCC_RC_INV_VAL;
-      }
-      return NCSCC_RC_SUCCESS;
-   }
+		switch (arg->req.info.set_req.i_param_val.i_param_id) {
+		case saAmfSINumCSIs_ID:
+			if (si->admin_state == NCS_ADMIN_STATE_LOCK) {
+				si->max_num_csi = arg->req.info.set_req.i_param_val.info.i_int;
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+			}
+			break;
+		case saAmfSIPrefNumAssignments_ID:
+			si->su_config_per_si = arg->req.info.set_req.i_param_val.info.i_int;
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+			break;
+		case saAmfSIAdminState_ID:
+			if (arg->req.info.set_req.i_param_val.info.i_int == si->admin_state)
+				return NCSCC_RC_SUCCESS;
 
+			if (si->sg_of_si->sg_ncs_spec == SA_TRUE)
+				return NCSCC_RC_INV_VAL;
 
-   switch(arg->req.info.set_req.i_param_val.i_param_id)
-   {
-   case saAmfSIRowStatus_ID:
-      /* fill the row status value */
-      if(arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)
-      {
-         si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-      }
-      break;
-   case saAmfSIParentSGName_ID:
-      
-      /* fill the SG name value */
-      temp_name.length = arg->req.info.set_req.i_param_val.i_length;
-      memcpy(temp_name.value,
-                   arg->req.info.set_req.i_param_val.info.i_oct,
-                   temp_name.length);
+			if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_UNLOCK) {
+				m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_UNLOCK);
 
-      /* check if already This SI is part of a SG */
-      if(si->sg_of_si != AVD_SG_NULL)
-      {
-         if (temp_name.length == si->sg_of_si->name_net.length)
-         {
-            if(memcmp(si->sg_of_si->name_net.value,
-                            temp_name.value,temp_name.length) == 0)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
-         }
-         
-         /* delete the SI from the prev SG list */
-         avd_si_del_sg_list(avd_cb,si);
-      }
+				if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+					return NCSCC_RC_INV_VAL;
+				}
 
-      si->sg_name.length = arg->req.info.set_req.i_param_val.i_length;
-      memcpy(si->sg_name.value, 
-                   arg->req.info.set_req.i_param_val.info.i_oct, 
-                   si->sg_name.length);
-      break;
+				if (si->max_num_csi == si->num_csi) {
+					switch (si->sg_of_si->su_redundancy_model) {
+					case AVSV_SG_RED_MODL_2N:
+						if (avd_sg_2n_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
+							return NCSCC_RC_INV_VAL;
+						}
+						break;
 
-   default:
-      memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+					case AVSV_SG_RED_MODL_NWAYACTV:
+						if (avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
+							return NCSCC_RC_INV_VAL;
+						}
+						break;
 
-      temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
-      temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-      temp_mib_req.info.i_set_util_info.var_info = var_info;
-      temp_mib_req.info.i_set_util_info.data = si;
-      temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+					case AVSV_SG_RED_MODL_NWAY:
+						if (avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
+							return NCSCC_RC_INV_VAL;
+						}
+						break;
 
-      /* call the mib routine handler */ 
-      if((rc = ncsmiblib_process_req(&temp_mib_req)) != NCSCC_RC_SUCCESS) 
-      {
-         return rc;
-      }
-      break;
-   } /* switch(arg->req.info.set_req.i_param_val.i_param_id) */
-   
-   return NCSCC_RC_SUCCESS;
+					case AVSV_SG_RED_MODL_NPM:
+						if (avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
+							return NCSCC_RC_INV_VAL;
+						}
+						break;
+
+					case AVSV_SG_RED_MODL_NORED:
+					default:
+						if (avd_sg_nored_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+							m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_LOCK);
+							return NCSCC_RC_INV_VAL;
+						}
+						break;
+					}
+				}
+				return NCSCC_RC_SUCCESS;
+			} else {
+				if ((si->admin_state == NCS_ADMIN_STATE_LOCK) &&
+				    (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_SHUTDOWN))
+					return NCSCC_RC_INV_VAL;
+
+				if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
+					m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_LOCK);
+					return NCSCC_RC_SUCCESS;
+				}
+
+				/* SI lock should not be done, this SI is been DISABLED because
+				   of SI-SI dependency */
+				if ((si->si_dep_state != AVD_SI_ASSIGNED) &&
+				    (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
+					return NCSCC_RC_INV_VAL;
+				}
+
+				/* Check if other semantics are happening for other SUs. If yes
+				 * return an error.
+				 */
+				if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+					if ((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
+					    (si->admin_state != NCS_ADMIN_STATE_SHUTDOWN) ||
+					    (arg->req.info.set_req.i_param_val.info.i_int != NCS_ADMIN_STATE_LOCK)) {
+						return NCSCC_RC_INV_VAL;
+					}
+				}
+
+				/*if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) */
+				back_val = si->admin_state;
+				m_AVD_SET_SI_ADMIN(cb, si, (arg->req.info.set_req.i_param_val.info.i_int));
+
+				switch (si->sg_of_si->su_redundancy_model) {
+				case AVSV_SG_RED_MODL_2N:
+					if (avd_sg_2n_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+						m_AVD_SET_SI_ADMIN(cb, si, back_val);
+						return NCSCC_RC_INV_VAL;
+					}
+					break;
+
+				case AVSV_SG_RED_MODL_NWAY:
+					if (avd_sg_nway_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+						m_AVD_SET_SI_ADMIN(cb, si, back_val);
+						return NCSCC_RC_INV_VAL;
+					}
+					break;
+
+				case AVSV_SG_RED_MODL_NWAYACTV:
+					if (avd_sg_nacvred_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+						m_AVD_SET_SI_ADMIN(cb, si, back_val);
+						return NCSCC_RC_INV_VAL;
+					}
+					break;
+
+				case AVSV_SG_RED_MODL_NPM:
+					if (avd_sg_npm_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+						m_AVD_SET_SI_ADMIN(cb, si, back_val);
+						return NCSCC_RC_INV_VAL;
+					}
+					break;
+
+				case AVSV_SG_RED_MODL_NORED:
+				default:
+					if (avd_sg_nored_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
+						m_AVD_SET_SI_ADMIN(cb, si, back_val);
+						return NCSCC_RC_INV_VAL;
+					}
+					break;
+				}
+				return NCSCC_RC_SUCCESS;
+			}
+			break;
+		default:
+
+			/* when row status is active we don't allow any other MIB object to be
+			 * modified.
+			 */
+
+			return NCSCC_RC_INV_VAL;
+		}
+		return NCSCC_RC_SUCCESS;
+	}
+
+	switch (arg->req.info.set_req.i_param_val.i_param_id) {
+	case saAmfSIRowStatus_ID:
+		/* fill the row status value */
+		if (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT) {
+			si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+		}
+		break;
+	case saAmfSIParentSGName_ID:
+
+		/* fill the SG name value */
+		temp_name.length = arg->req.info.set_req.i_param_val.i_length;
+		memcpy(temp_name.value, arg->req.info.set_req.i_param_val.info.i_oct, temp_name.length);
+
+		/* check if already This SI is part of a SG */
+		if (si->sg_of_si != AVD_SG_NULL) {
+			if (temp_name.length == si->sg_of_si->name_net.length) {
+				if (memcmp(si->sg_of_si->name_net.value, temp_name.value, temp_name.length) == 0) {
+					return NCSCC_RC_SUCCESS;
+				}
+			}
+
+			/* delete the SI from the prev SG list */
+			avd_si_del_sg_list(avd_cb, si);
+		}
+
+		si->sg_name.length = arg->req.info.set_req.i_param_val.i_length;
+		memcpy(si->sg_name.value, arg->req.info.set_req.i_param_val.info.i_oct, si->sg_name.length);
+		break;
+
+	default:
+		memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+
+		temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
+		temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
+		temp_mib_req.info.i_set_util_info.var_info = var_info;
+		temp_mib_req.info.i_set_util_info.data = si;
+		temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+
+		/* call the mib routine handler */
+		if ((rc = ncsmiblib_process_req(&temp_mib_req)) != NCSCC_RC_SUCCESS) {
+			return rc;
+		}
+		break;
+	}			/* switch(arg->req.info.set_req.i_param_val.i_param_id) */
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsitableentry_next
@@ -999,56 +895,49 @@ uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			     NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	uns32 i;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-      for(i = 0; i < si_name.length; i++)
-      {
-         si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   si = avd_si_struc_find_next(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the service instance database key from the instant ID */
+	if (arg->i_idx.i_inst_len != 0) {
+		si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < si_name.length; i++) {
+			si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
 
-   /* Prepare the instant ID from the SI name */
+	si = avd_si_struc_find_next(avd_cb, si_name, TRUE);
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   next_inst_id[0] = *next_inst_id_len -1;
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
-   }
+	/* Prepare the instant ID from the SI name */
 
-   *data = (NCSCONTEXT)si;
+	*next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
 
-   return NCSCC_RC_SUCCESS;
+	next_inst_id[0] = *next_inst_id_len - 1;
+	for (i = 0; i < next_inst_id[0]; i++) {
+		next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
+	}
+
+	*data = (NCSCONTEXT)si;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsitableentry_setrow
@@ -1078,14 +967,11 @@ uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+			       NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncssitableentry_rmvrow
@@ -1100,12 +986,10 @@ uns32 saamfsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  *                   to set the args->rsp.i_status field before returning the
  *                   NCSMIB_ARG to the caller's context
  **************************************************************************/
-uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx) 
+uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: ncssitableentry_get
@@ -1131,40 +1015,36 @@ uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	uns32 i;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < si_name.length; i++)
-   {
-      si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   si = avd_si_struc_find(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the service instance database key from the instant ID */
+	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < si_name.length; i++) {
+		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   *data = (NCSCONTEXT)si;
+	si = avd_si_struc_find(avd_cb, si_name, TRUE);
 
-   return NCSCC_RC_SUCCESS;
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)si;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -1200,25 +1080,21 @@ uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncssitableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 ncssitableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_SI        *si = (AVD_SI *)data;
+	AVD_SI *si = (AVD_SI *)data;
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* call the MIBLIB utility routine for standfard object types */
-   if ((var_info != NULL) && (var_info->offset != 0))
-      return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-   else
-      return NCSCC_RC_NO_OBJECT;
+	/* call the MIBLIB utility routine for standfard object types */
+	if ((var_info != NULL) && (var_info->offset != 0))
+		return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+	else
+		return NCSCC_RC_NO_OBJECT;
 }
-
 
 /*****************************************************************************
  * Function: ncssitableentry_set
@@ -1246,120 +1122,105 @@ uns32 ncssitableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   uns32         i;
-   NCSMIBLIB_REQ_INFO temp_mib_req;
-   NCS_BOOL      val_same_flag = FALSE;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	uns32 i;
+	NCSMIBLIB_REQ_INFO temp_mib_req;
+	NCS_BOOL val_same_flag = FALSE;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for(i = 0; i < si_name.length; i++)
-   {
-      si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-   si = avd_si_struc_find(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if(si == AVD_SI_NULL)
-   {
-      /* Invalid instance object */
-      return NCSCC_RC_NO_INSTANCE; 
-   }
-   
-   if(si->row_status != NCS_ROW_ACTIVE)
-      return NCSCC_RC_INV_VAL;  
+	/* Prepare the service instance database key from the instant ID */
+	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < si_name.length; i++) {
+		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   if(si->sg_of_si->sg_ncs_spec)
-      return NCSCC_RC_INV_VAL;
-   
-   if(avd_cb->init_state  != AVD_APP_STATE)
-   {
-      return NCSCC_RC_INV_VAL;
-   }
-   
-   if(test_flag == TRUE)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
+	si = avd_si_struc_find(avd_cb, si_name, TRUE);
 
-   /* We now have the si block */
+	if (si == AVD_SI_NULL) {
+		/* Invalid instance object */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   if(arg->req.info.set_req.i_param_val.i_param_id == ncsSISwitchState_ID)
-   {
-      if((arg->req.info.set_req.i_param_val.info.i_int != AVSV_SI_TOGGLE_SWITCH)
-         || si->si_switch == AVSV_SI_TOGGLE_SWITCH)
-      {
-         return NCSCC_RC_INV_VAL;
-      }
-      
-      m_AVD_SET_SI_SWITCH(cb,si,AVSV_SI_TOGGLE_SWITCH);
-      
-      switch(si->sg_of_si->su_redundancy_model)
-      {
-      case AVSV_SG_RED_MODL_2N:
-         if (avd_sg_2n_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-         {
-            m_AVD_SET_SI_SWITCH(cb,si,AVSV_SI_TOGGLE_STABLE);
-            return NCSCC_RC_INV_VAL;
-         }
-         break;
+	if (si->row_status != NCS_ROW_ACTIVE)
+		return NCSCC_RC_INV_VAL;
 
-      case AVSV_SG_RED_MODL_NWAY:
-         if (avd_sg_nway_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-         {
-            si->si_switch = AVSV_SI_TOGGLE_STABLE;
-            return NCSCC_RC_INV_VAL;
-         }
-         break;
-         
-      case AVSV_SG_RED_MODL_NPM:
-         if (avd_sg_npm_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS)
-         {
-            si->si_switch = AVSV_SI_TOGGLE_STABLE;
-            return NCSCC_RC_INV_VAL;
-         }
-         break;
+	if (si->sg_of_si->sg_ncs_spec)
+		return NCSCC_RC_INV_VAL;
 
-      case AVSV_SG_RED_MODL_NWAYACTV:
-      case AVSV_SG_RED_MODL_NORED:
-      default:
-         m_AVD_SET_SI_SWITCH(cb,si,AVSV_SI_TOGGLE_STABLE);
-         return NCSCC_RC_INV_VAL;
-         break;
-      }
-      
-      return NCSCC_RC_SUCCESS;
-      
-   }
+	if (avd_cb->init_state != AVD_APP_STATE) {
+		return NCSCC_RC_INV_VAL;
+	}
 
+	if (test_flag == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-   memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO)); 
+	/* We now have the si block */
 
-   temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP; 
-   temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-   temp_mib_req.info.i_set_util_info.var_info = var_info;
-   temp_mib_req.info.i_set_util_info.data = si;
-   temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+	if (arg->req.info.set_req.i_param_val.i_param_id == ncsSISwitchState_ID) {
+		if ((arg->req.info.set_req.i_param_val.info.i_int != AVSV_SI_TOGGLE_SWITCH)
+		    || si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
+			return NCSCC_RC_INV_VAL;
+		}
 
-   /* call the mib routine handler */ 
-   return ncsmiblib_process_req(&temp_mib_req);
+		m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_SWITCH);
+
+		switch (si->sg_of_si->su_redundancy_model) {
+		case AVSV_SG_RED_MODL_2N:
+			if (avd_sg_2n_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+				return NCSCC_RC_INV_VAL;
+			}
+			break;
+
+		case AVSV_SG_RED_MODL_NWAY:
+			if (avd_sg_nway_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				si->si_switch = AVSV_SI_TOGGLE_STABLE;
+				return NCSCC_RC_INV_VAL;
+			}
+			break;
+
+		case AVSV_SG_RED_MODL_NPM:
+			if (avd_sg_npm_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
+				si->si_switch = AVSV_SI_TOGGLE_STABLE;
+				return NCSCC_RC_INV_VAL;
+			}
+			break;
+
+		case AVSV_SG_RED_MODL_NWAYACTV:
+		case AVSV_SG_RED_MODL_NORED:
+		default:
+			m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
+			return NCSCC_RC_INV_VAL;
+			break;
+		}
+
+		return NCSCC_RC_SUCCESS;
+
+	}
+
+	memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+
+	temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
+	temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
+	temp_mib_req.info.i_set_util_info.var_info = var_info;
+	temp_mib_req.info.i_set_util_info.data = si;
+	temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
+
+	/* call the mib routine handler */
+	return ncsmiblib_process_req(&temp_mib_req);
 
 }
-
-
 
 /*****************************************************************************
  * Function: ncssitableentry_next
@@ -1390,56 +1251,49 @@ uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			   NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SI        *si;
-   SaNameT       si_name;
-   uns32         i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SI *si;
+	SaNameT si_name;
+	uns32 i;
 
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the service instance database key from the instant ID */
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-      for(i = 0; i < si_name.length; i++)
-      {
-         si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   si = avd_si_struc_find_next(avd_cb,si_name,TRUE);
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   if (si == AVD_SI_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* Prepare the service instance database key from the instant ID */
+	if (arg->i_idx.i_inst_len != 0) {
+		si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < si_name.length; i++) {
+			si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
 
-   /* Prepare the instant ID from the SI name */
+	si = avd_si_struc_find_next(avd_cb, si_name, TRUE);
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
+	if (si == AVD_SI_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   next_inst_id[0] = *next_inst_id_len -1;
-   for(i = 0; i < next_inst_id[0]; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
-   }
+	/* Prepare the instant ID from the SI name */
 
-   *data = (NCSCONTEXT)si;
+	*next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
 
-   return NCSCC_RC_SUCCESS;
+	next_inst_id[0] = *next_inst_id_len - 1;
+	for (i = 0; i < next_inst_id[0]; i++) {
+		next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
+	}
+
+	*data = (NCSCONTEXT)si;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncssitableentry_setrow
@@ -1469,15 +1323,11 @@ uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+			     NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: avd_sg_si_rank_add_row
@@ -1495,48 +1345,44 @@ uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  * 
  **************************************************************************/
 
-AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
-{  
-   AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
+AVD_SG_SI_RANK *avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
+{
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   /* Allocate a new block structure now
-    */
-   if ((rank_elt = m_MMGR_ALLOC_AVD_SG_SI_RANK) == AVD_SG_SI_RANK_NULL)
-   {
-      /* log an error */
-      m_AVD_LOG_MEM_FAIL(AVD_SG_SI_RANK_ALLOC_FAILED);
-      return AVD_SG_SI_RANK_NULL;
-   }
+	/* Allocate a new block structure now
+	 */
+	if ((rank_elt = m_MMGR_ALLOC_AVD_SG_SI_RANK) == AVD_SG_SI_RANK_NULL) {
+		/* log an error */
+		m_AVD_LOG_MEM_FAIL(AVD_SG_SI_RANK_ALLOC_FAILED);
+		return AVD_SG_SI_RANK_NULL;
+	}
 
-   memset((char *)rank_elt, '\0', sizeof(AVD_SG_SI_RANK));
+	memset((char *)rank_elt, '\0', sizeof(AVD_SG_SI_RANK));
 
-   rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
+	rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
-   memcpy(rank_elt->indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
+	memcpy(rank_elt->indx.sg_name_net.value, si->sg_name.value, si->sg_name.length);
 
-   rank_elt->indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
- 
-   rank_elt->tree_node.key_info = (uns8*)(&rank_elt->indx);
-   rank_elt->tree_node.bit   = 0;
-   rank_elt->tree_node.left  = NCS_PATRICIA_NODE_NULL;
-   rank_elt->tree_node.right = NCS_PATRICIA_NODE_NULL;
+	rank_elt->indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
 
-   if( ncs_patricia_tree_add(&cb->sg_si_rank_anchor,&rank_elt->tree_node)
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log an error */
-      m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
-      return AVD_SG_SI_RANK_NULL;
-   }
+	rank_elt->tree_node.key_info = (uns8 *)(&rank_elt->indx);
+	rank_elt->tree_node.bit = 0;
+	rank_elt->tree_node.left = NCS_PATRICIA_NODE_NULL;
+	rank_elt->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
-   rank_elt->si_name.length = m_NCS_OS_NTOHS(si->name_net.length);
-   memcpy(rank_elt->si_name.value, si->name_net.value, rank_elt->si_name.length);
+	if (ncs_patricia_tree_add(&cb->sg_si_rank_anchor, &rank_elt->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log an error */
+		m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
+		return AVD_SG_SI_RANK_NULL;
+	}
 
+	rank_elt->si_name.length = m_NCS_OS_NTOHS(si->name_net.length);
+	memcpy(rank_elt->si_name.value, si->name_net.value, rank_elt->si_name.length);
 
-   return rank_elt;
+	return rank_elt;
 
 }
-
 
 /*****************************************************************************
  * Function: avd_sg_si_rank_struc_find
@@ -1554,15 +1400,14 @@ AVD_SG_SI_RANK * avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-AVD_SG_SI_RANK * avd_sg_si_rank_struc_find(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
+AVD_SG_SI_RANK *avd_sg_si_rank_struc_find(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
 {
-   AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_get(&cb->sg_si_rank_anchor, (uns8*)&indx);
+	rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_get(&cb->sg_si_rank_anchor, (uns8 *)&indx);
 
-   return rank_elt;
+	return rank_elt;
 }
-
 
 /*****************************************************************************
  * Function: avd_sg_si_rank_struc_find_next
@@ -1580,15 +1425,14 @@ AVD_SG_SI_RANK * avd_sg_si_rank_struc_find(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX in
  * 
  **************************************************************************/
 
-AVD_SG_SI_RANK * avd_sg_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
+AVD_SG_SI_RANK *avd_sg_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
 {
-   AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_getnext(&cb->sg_si_rank_anchor, (uns8*)&indx);
+	rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_getnext(&cb->sg_si_rank_anchor, (uns8 *)&indx);
 
-   return rank_elt;
+	return rank_elt;
 }
-
 
 /*****************************************************************************
  * Function: avd_sg_si_rank_del_row
@@ -1608,40 +1452,37 @@ AVD_SG_SI_RANK * avd_sg_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SG_SI_RANK_IN
 
 uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si)
 {
-   AVD_SG_SI_RANK_INDX    indx;
-   AVD_SG_SI_RANK *       rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_SG_SI_RANK_INDX indx;
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   if (si == AVD_SI_NULL)
-      return NCSCC_RC_FAILURE;
+	if (si == AVD_SI_NULL)
+		return NCSCC_RC_FAILURE;
 
-   memset((char *)&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+	memset((char *)&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
-   indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
+	indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
 
-   memcpy(indx.sg_name_net.value,si->sg_name.value,si->sg_name.length);
+	memcpy(indx.sg_name_net.value, si->sg_name.value, si->sg_name.length);
 
-   indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
+	indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
 
-   rank_elt = avd_sg_si_rank_struc_find(cb, indx);
+	rank_elt = avd_sg_si_rank_struc_find(cb, indx);
 
-   /* Row not found */
-   if(rank_elt == AVD_SG_SI_RANK_NULL)
-   {
-      return NCSCC_RC_FAILURE;
-   }       
+	/* Row not found */
+	if (rank_elt == AVD_SG_SI_RANK_NULL) {
+		return NCSCC_RC_FAILURE;
+	}
 
-   if(ncs_patricia_tree_del(&cb->sg_si_rank_anchor,&rank_elt->tree_node)
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
+	if (ncs_patricia_tree_del(&cb->sg_si_rank_anchor, &rank_elt->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
+	m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_get
@@ -1667,52 +1508,44 @@ uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-
-uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                             NCSCONTEXT* data)
+uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SG_SI_RANK_INDX   indx;
-   uns16 len;
-   uns32 i;
-   AVD_SG_SI_RANK *   rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SG_SI_RANK_INDX indx;
+	uns16 len;
+	uns32 i;
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+	memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
-   /* Prepare the SuperSiRank database key from the instant ID */
-   len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	/* Prepare the SuperSiRank database key from the instant ID */
+	len = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-   indx.sg_name_net.length  = m_NCS_OS_HTONS(len);
+	indx.sg_name_net.length = m_NCS_OS_HTONS(len);
 
-   for(i = 0; i < len; i++)
-   {
-      indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
-   if (arg->i_idx.i_inst_len > len + 1 )
-   {
-      indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-   }
+	for (i = 0; i < len; i++) {
+		indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
+	if (arg->i_idx.i_inst_len > len + 1) {
+		indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+	}
 
-   rank_elt = avd_sg_si_rank_struc_find(avd_cb,indx);
+	rank_elt = avd_sg_si_rank_struc_find(avd_cb, indx);
 
-   if (rank_elt == AVD_SG_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (rank_elt == AVD_SG_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *data = (NCSCONTEXT)rank_elt;
+	*data = (NCSCONTEXT)rank_elt;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_extract
@@ -1747,41 +1580,34 @@ uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
-uns32 saamfsgsirankentry_extract(NCSMIB_PARAM_VAL* param,
-                                 NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                                 NCSCONTEXT buffer)
+uns32 saamfsgsirankentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_SG_SI_RANK *   rank_elt = (AVD_SG_SI_RANK *)data;
+	AVD_SG_SI_RANK *rank_elt = (AVD_SG_SI_RANK *)data;
 
-   if (rank_elt == AVD_SG_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (rank_elt == AVD_SG_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   switch(param->i_param_id)
-   {
+	switch (param->i_param_id) {
 
-   case saAmfSGSIRankSIName_ID:
-      m_AVSV_OCTVAL_TO_PARAM(param, buffer, rank_elt->si_name.length,
-                             rank_elt->si_name.value);
-      break;
+	case saAmfSGSIRankSIName_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, rank_elt->si_name.length, rank_elt->si_name.value);
+		break;
 
-   default:
-      /* call the MIBLIB utility routine for standfard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-   break;
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
 
-   }
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_next
@@ -1812,74 +1638,63 @@ uns32 saamfsgsirankentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-
 uns32 saamfsgsirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                              NCSCONTEXT* data, uns32* next_inst_id,
-                              uns32 *next_inst_id_len)
+			      NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SG_SI_RANK_INDX   indx;
-   uns16 len;
-   uns32 i;
-   AVD_SG_SI_RANK *   rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SG_SI_RANK_INDX indx;
+	uns16 len;
+	uns32 i;
+	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+	memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
 
-   if (arg->i_idx.i_inst_len != 0)
-   {
+	if (arg->i_idx.i_inst_len != 0) {
 
-      /* Prepare the SuperSiRank database key from the instant ID */
-      len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		/* Prepare the SuperSiRank database key from the instant ID */
+		len = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-      indx.sg_name_net.length  = m_NCS_OS_HTONS(len);
+		indx.sg_name_net.length = m_NCS_OS_HTONS(len);
 
-      for(i = 0; i < len; i++)
-      {
-         indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-      if (arg->i_idx.i_inst_len > len + 1)
-      {
-         indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-      }
-   }
+		for (i = 0; i < len; i++) {
+			indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+		if (arg->i_idx.i_inst_len > len + 1) {
+			indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+		}
+	}
 
-   rank_elt = avd_sg_si_rank_struc_find_next(avd_cb,indx);
+	rank_elt = avd_sg_si_rank_struc_find_next(avd_cb, indx);
 
-   if (rank_elt == AVD_SG_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (rank_elt == AVD_SG_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *data = (NCSCONTEXT)rank_elt;
+	*data = (NCSCONTEXT)rank_elt;
 
-   /* Prepare the instant ID from the SI name and SU rank */
-   len = m_NCS_OS_NTOHS(rank_elt->indx.sg_name_net.length);
+	/* Prepare the instant ID from the SI name and SU rank */
+	len = m_NCS_OS_NTOHS(rank_elt->indx.sg_name_net.length);
 
-   *next_inst_id_len = len + 1 + 1;
+	*next_inst_id_len = len + 1 + 1;
 
-   next_inst_id[0] = len;
+	next_inst_id[0] = len;
 
-   for(i = 0; i < len; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(rank_elt->indx.sg_name_net.value[i]);
-   }
+	for (i = 0; i < len; i++) {
+		next_inst_id[i + 1] = (uns32)(rank_elt->indx.sg_name_net.value[i]);
+	}
 
-   next_inst_id[len+1] = m_NCS_OS_NTOHL(rank_elt->indx.si_rank_net);
+	next_inst_id[len + 1] = m_NCS_OS_NTOHL(rank_elt->indx.si_rank_net);
 
-   *data = (NCSCONTEXT)rank_elt;
+	*data = (NCSCONTEXT)rank_elt;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_set
@@ -1907,13 +1722,10 @@ uns32 saamfsgsirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
-uns32 saamfsgsirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                             NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfsgsirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_setrow
@@ -1943,16 +1755,12 @@ uns32 saamfsgsirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
-uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				NCSMIB_SETROW_PARAM_VAL *params,
+				struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsgsirankentry_rmvrow 
@@ -1969,5 +1777,5 @@ uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  **************************************************************************/
 uns32 saamfsgsirankentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

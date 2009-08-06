@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -37,63 +35,54 @@
  */
 
 /* Pending callback rec */
-typedef struct ava_pend_cbk_rec
-{
-   AVSV_AMF_CBK_INFO *cbk_info;   /* callbk info */
-   uns32 flag; /* unused, dont remove it */
+typedef struct ava_pend_cbk_rec {
+	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
+	uns32 flag;		/* unused, dont remove it */
 
-   struct ava_pend_cbk_rec   *next;
+	struct ava_pend_cbk_rec *next;
 } AVA_PEND_CBK_REC;
 
 /* Pending callback list */
-typedef struct ava_pend_cbk
-{
-   uns16    num;    /* no of pending callbacks */
-   AVA_PEND_CBK_REC  *head;
-   AVA_PEND_CBK_REC  *tail;
+typedef struct ava_pend_cbk {
+	uns16 num;		/* no of pending callbacks */
+	AVA_PEND_CBK_REC *head;
+	AVA_PEND_CBK_REC *tail;
 } AVA_PEND_CBK;
 
 /* Pending response rec */
-typedef struct ava_pend_resp_rec
-{
-   AVSV_AMF_CBK_INFO *cbk_info;   /* callbk info */
-   uns32 flag; /* used to see, if we have responded
-                   in callback itself */
+typedef struct ava_pend_resp_rec {
+	AVSV_AMF_CBK_INFO *cbk_info;	/* callbk info */
+	uns32 flag;		/* used to see, if we have responded
+				   in callback itself */
 
-   struct ava_pend_resp_rec   *next;
+	struct ava_pend_resp_rec *next;
 } AVA_PEND_RESP_REC;
 
 /* Pending response list */
-typedef struct ava_resp_cbk
-{
-   uns16    num;    /* no of pending callbacks */
-   AVA_PEND_RESP_REC  *head;
-   AVA_PEND_RESP_REC  *tail;
+typedef struct ava_resp_cbk {
+	uns16 num;		/* no of pending callbacks */
+	AVA_PEND_RESP_REC *head;
+	AVA_PEND_RESP_REC *tail;
 } AVA_PEND_RESP;
 
-
 /* AvA handle database records */
-typedef struct ava_hdl_rec_tag
-{
-   NCS_PATRICIA_NODE hdl_node;  /* hdl-db tree node */
+typedef struct ava_hdl_rec_tag {
+	NCS_PATRICIA_NODE hdl_node;	/* hdl-db tree node */
 
-   uns32       hdl;        /* AMF handle (derived from hdl-mngr) */
-   NCS_SEL_OBJ sel_obj;    /* selection object */
-   
-   SaAmfCallbacksT  reg_cbk; /* callbacks registered by the application */
+	uns32 hdl;		/* AMF handle (derived from hdl-mngr) */
+	NCS_SEL_OBJ sel_obj;	/* selection object */
 
-   AVA_PEND_CBK  pend_cbk; /* list of pending AvSv callbacks */
-   AVA_PEND_RESP pend_resp; /* list of pending AvSv Response */
+	SaAmfCallbacksT reg_cbk;	/* callbacks registered by the application */
+
+	AVA_PEND_CBK pend_cbk;	/* list of pending AvSv callbacks */
+	AVA_PEND_RESP pend_resp;	/* list of pending AvSv Response */
 } AVA_HDL_REC;
 
-
 /* AvA handle database top level structure */
-typedef struct ava_hdl_db_tag
-{
-   NCS_PATRICIA_TREE hdl_db_anchor; /* root of the handle db */
-   uns32 num;       /* no of hdl db records */
+typedef struct ava_hdl_db_tag {
+	NCS_PATRICIA_TREE hdl_db_anchor;	/* root of the handle db */
+	uns32 num;		/* no of hdl db records */
 } AVA_HDL_DB;
-
 
 /*** Macro Definitions */
 
@@ -112,7 +101,6 @@ typedef struct ava_hdl_db_tag
  */
 #define m_AVA_HDL_PEND_RESP_GET(list, rec, key) \
             (rec) =  (AVA_PEND_CBK_REC *)ava_hdl_pend_resp_get((list) ,(key))
-
 
 #define m_AVA_HDL_PEND_RESP_PUSH m_AVA_HDL_PEND_CBK_PUSH
 #define m_AVA_HDL_PEND_RESP_POP(list, rec, key) \
@@ -150,7 +138,6 @@ typedef struct ava_hdl_db_tag
       (list)->num--; \
    } else (o_rec) = 0; \
 }
-
 
 /* 
  * Macro to determine if the required callbacks were supplied 
@@ -190,7 +177,7 @@ typedef struct ava_hdl_db_tag
 #define m_AVA_HDL_CBK_REC_IN_DISPATCH_SET(x)  m_AVA_HDL_FLAG_SET(x, AVA_HDL_CBK_REC_IN_DISPATCH)
 
    /* reset the flag */
-#define m_AVA_HDL_FLAG_RESET(x, bitmap)       (((x)->flag) &= ~(bitmap)) 
+#define m_AVA_HDL_FLAG_RESET(x, bitmap)       (((x)->flag) &= ~(bitmap))
 #define m_AVA_HDL_CBK_RESP_DONE_RESET(x)        m_AVA_HDL_FLAG_RESET(x, AVA_HDL_CBK_RESP_DONE)
 #define m_AVA_HDL_CBK_REC_IN_DISPATCH_RESET(x)  m_AVA_HDL_FLAG_RESET(x, AVA_HDL_CBK_REC_IN_DISPATCH)
 
@@ -198,25 +185,22 @@ typedef struct ava_hdl_db_tag
 
 struct ava_cb_tag;
 
-EXTERN_C uns32 ava_hdl_cbk_param_add (struct ava_cb_tag *, AVA_HDL_REC *, 
-                                      AVSV_AMF_CBK_INFO *);
+EXTERN_C uns32 ava_hdl_cbk_param_add(struct ava_cb_tag *, AVA_HDL_REC *, AVSV_AMF_CBK_INFO *);
 
-EXTERN_C uns32 ava_hdl_init (AVA_HDL_DB *);
+EXTERN_C uns32 ava_hdl_init(AVA_HDL_DB *);
 
-EXTERN_C void ava_hdl_del (struct ava_cb_tag *);
+EXTERN_C void ava_hdl_del(struct ava_cb_tag *);
 
-EXTERN_C void ava_hdl_rec_del (struct ava_cb_tag *, AVA_HDL_DB *, 
-                               AVA_HDL_REC *);
+EXTERN_C void ava_hdl_rec_del(struct ava_cb_tag *, AVA_HDL_DB *, AVA_HDL_REC *);
 
-EXTERN_C AVA_HDL_REC *ava_hdl_rec_add (struct ava_cb_tag *, AVA_HDL_DB *, 
-                              const SaAmfCallbacksT *);
+EXTERN_C AVA_HDL_REC *ava_hdl_rec_add(struct ava_cb_tag *, AVA_HDL_DB *, const SaAmfCallbacksT *);
 
-EXTERN_C uns32 ava_hdl_cbk_dispatch (struct ava_cb_tag **, AVA_HDL_REC **, 
-                                     SaDispatchFlagsT);
+EXTERN_C uns32 ava_hdl_cbk_dispatch(struct ava_cb_tag **, AVA_HDL_REC **, SaDispatchFlagsT);
 
 EXTERN_C void ava_hdl_cbk_rec_del(AVA_PEND_CBK_REC *);
 
-EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT );
+EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_pop(AVA_PEND_RESP *, SaInvocationT);
 
-EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT );
-#endif /* !AVA_HDL_H */
+EXTERN_C AVA_PEND_RESP_REC *ava_hdl_pend_resp_get(AVA_PEND_RESP *, SaInvocationT);
+
+#endif   /* !AVA_HDL_H */

@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   
-
 
 ..............................................................................
 
@@ -49,10 +47,10 @@
                Private functions used by UBSAR
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-EXTERN_C uns32 ubsar_init         (NCS_UBSAR_INIT*     init);
-EXTERN_C uns32 ubsar_segment      (NCS_UBSAR_SEGMENT*  segment);
-EXTERN_C uns32 ubsar_assemble     (NCS_UBSAR_ASSEMBLE* assemble);
-EXTERN_C uns32 ubsar_get_app_trlr (NCS_UBSAR_TRLR*     trlr);
-EXTERN_C uns32 ubsar_destroy      (NCS_UBSAR_DESTROY*  destroy);
+EXTERN_C uns32 ubsar_init(NCS_UBSAR_INIT *init);
+EXTERN_C uns32 ubsar_segment(NCS_UBSAR_SEGMENT *segment);
+EXTERN_C uns32 ubsar_assemble(NCS_UBSAR_ASSEMBLE *assemble);
+EXTERN_C uns32 ubsar_get_app_trlr(NCS_UBSAR_TRLR *trlr);
+EXTERN_C uns32 ubsar_destroy(NCS_UBSAR_DESTROY *destroy);
 
 #endif

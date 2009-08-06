@@ -28,64 +28,58 @@
 ******************************************************************************
 */
 
-
 #include "avm_avd.h"
 
-static uns32
-avm_avd_free_list(AVM_LIST_HEAD_T head);
+static uns32 avm_avd_free_list(AVM_LIST_HEAD_T head);
 
-static uns32
-avm_avd_free_list(AVM_LIST_HEAD_T head)
+static uns32 avm_avd_free_list(AVM_LIST_HEAD_T head)
 {
-   AVM_LIST_NODE_T *node_ptr;
-   AVM_LIST_NODE_T *temp;
-   
-   node_ptr = head.node;
+	AVM_LIST_NODE_T *node_ptr;
+	AVM_LIST_NODE_T *temp;
 
-   for(node_ptr = head.node; AVM_LIST_NODE_NULL != node_ptr;)
-   {
-      temp = node_ptr->next;
-      m_MMGR_FREE_AVM_AVD_LIST_NODE(node_ptr);
-      node_ptr = temp;
-   }
-   return NCSCC_RC_SUCCESS;
+	node_ptr = head.node;
+
+	for (node_ptr = head.node; AVM_LIST_NODE_NULL != node_ptr;) {
+		temp = node_ptr->next;
+		m_MMGR_FREE_AVM_AVD_LIST_NODE(node_ptr);
+		node_ptr = temp;
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
-extern uns32
-avm_avd_free_msg(AVM_AVD_MSG_T **avm_avd)
+extern uns32 avm_avd_free_msg(AVM_AVD_MSG_T **avm_avd)
 {
-   switch((*avm_avd)->msg_type)
-   {
-      case AVM_AVD_NODE_FAILOVER_REQ_MSG:
-      {
-         avm_avd_free_list((*avm_avd)->avm_avd_msg.failover_req.head);
-      }
-      break;
+	switch ((*avm_avd)->msg_type) {
+	case AVM_AVD_NODE_FAILOVER_REQ_MSG:
+		{
+			avm_avd_free_list((*avm_avd)->avm_avd_msg.failover_req.head);
+		}
+		break;
 
-      case AVM_AVD_NODE_SHUTDOWN_REQ_MSG:
-      {
-         avm_avd_free_list((*avm_avd)->avm_avd_msg.shutdown_req.head);
-      }
-      break;
-   
-      case AVM_AVD_NODE_OPERSTATE_MSG:
-      {
-         avm_avd_free_list((*avm_avd)->avm_avd_msg.operstate.head);
-      }
-      break;
-      
-      case AVM_AVD_FAULT_DOMAIN_RESP_MSG:
-      {
-         avm_avd_free_list((*avm_avd)->avm_avd_msg.faultdomain_resp.head);
-      }
-      break;
+	case AVM_AVD_NODE_SHUTDOWN_REQ_MSG:
+		{
+			avm_avd_free_list((*avm_avd)->avm_avd_msg.shutdown_req.head);
+		}
+		break;
 
-      default:
-      break; 
-   }
+	case AVM_AVD_NODE_OPERSTATE_MSG:
+		{
+			avm_avd_free_list((*avm_avd)->avm_avd_msg.operstate.head);
+		}
+		break;
 
-   m_MMGR_FREE_AVM_AVD_MSG(*avm_avd);
-   *avm_avd = AVM_AVD_MSG_NULL;
+	case AVM_AVD_FAULT_DOMAIN_RESP_MSG:
+		{
+			avm_avd_free_list((*avm_avd)->avm_avd_msg.faultdomain_resp.head);
+		}
+		break;
 
-   return NCSCC_RC_SUCCESS;
-}   
+	default:
+		break;
+	}
+
+	m_MMGR_FREE_AVM_AVD_MSG(*avm_avd);
+	*avm_avd = AVM_AVD_MSG_NULL;
+
+	return NCSCC_RC_SUCCESS;
+}

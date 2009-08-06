@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   FILE NAME: mqd_sbevt.c
 
 ..............................................................................
@@ -43,28 +42,26 @@
 
 #include <mqd.h>
 
-typedef uns32 (*MQD_PROCESS_A2S_EVENT_FUNC_PTR) (MQD_CB *pMqd,MQD_A2S_MSG msg);
+typedef uns32 (*MQD_PROCESS_A2S_EVENT_FUNC_PTR) (MQD_CB *pMqd, MQD_A2S_MSG msg);
 
+static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg);
+static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg);
 
-static uns32 mqd_process_a2s_register_req( MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_deregister_req( MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_track_req( MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_queueinfo_req( MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_userevent_req( MQD_CB *pMqd, MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_mqnd_status_req( MQD_CB *pMqd,MQD_A2S_MSG msg);
-static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd,MQD_A2S_MSG msg);
-
-static const MQD_PROCESS_A2S_EVENT_FUNC_PTR  mqd_process_a2s_event_handler[MQD_A2S_MSG_TYPE_MAX-MQD_A2S_MSG_TYPE_BASE] =
-{
- mqd_process_a2s_register_req,
- mqd_process_a2s_deregister_req,
- mqd_process_a2s_track_req,
- mqd_process_a2s_queueinfo_req,
- mqd_process_a2s_userevent_req,
- mqd_process_a2s_mqnd_status_req,
- mqd_process_a2s_mqnd_timer_expiry_event
+static const MQD_PROCESS_A2S_EVENT_FUNC_PTR mqd_process_a2s_event_handler[MQD_A2S_MSG_TYPE_MAX -
+									  MQD_A2S_MSG_TYPE_BASE] = {
+	mqd_process_a2s_register_req,
+	mqd_process_a2s_deregister_req,
+	mqd_process_a2s_track_req,
+	mqd_process_a2s_queueinfo_req,
+	mqd_process_a2s_userevent_req,
+	mqd_process_a2s_mqnd_status_req,
+	mqd_process_a2s_mqnd_timer_expiry_event
 };
-
 
 /*****************************************************************************\
 *
@@ -91,23 +88,20 @@ static const MQD_PROCESS_A2S_EVENT_FUNC_PTR  mqd_process_a2s_event_handler[MQD_A
 
 uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
 {
-  uns32     rc= NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-  if(msg->type< MQD_A2S_MSG_TYPE_BASE || msg->type >= MQD_A2S_MSG_TYPE_MAX) 
-  {
-     rc = NCSCC_RC_FAILURE;
-     m_LOG_MQSV_D(MQD_RED_BAD_A2S_TYPE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-     return rc;
-  }
-  rc=  mqd_process_a2s_event_handler[msg->type-MQD_A2S_MSG_TYPE_BASE-1](pMqd,*msg);
-  if(rc != NCSCC_RC_SUCCESS)
-  {
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESSING_FAILED,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-  }
-  return rc;
+	if (msg->type < MQD_A2S_MSG_TYPE_BASE || msg->type >= MQD_A2S_MSG_TYPE_MAX) {
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_RED_BAD_A2S_TYPE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return rc;
+	}
+	rc = mqd_process_a2s_event_handler[msg->type - MQD_A2S_MSG_TYPE_BASE - 1] (pMqd, *msg);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESSING_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+			     __LINE__);
+	}
+	return rc;
 }
-
-
 
 /*****************************************************************************\
 *
@@ -126,14 +120,11 @@ uns32 mqd_process_a2s_event(MQD_CB *pMqd, MQD_A2S_MSG *msg)
 static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-  return rc;
+	return rc;
 
 }
-
-
-
 
 /*****************************************************************************\
 *
@@ -151,24 +142,23 @@ static uns32 mqd_process_a2s_queueinfo_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
-  MQD_OBJ_NODE      *pObjNode=0;
-  ASAPi_OBJECT_OPR  opr=0;
-  
-  rc= mqd_asapi_db_upd(pMqd,(ASAPi_REG_INFO *)(&(msg.info.reg)),&pObjNode,&opr);
-  if(!pObjNode)
-  {
-     rc = NCSCC_RC_FAILURE;
-     m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-  }
-  if(rc == NCSCC_RC_SUCCESS)
-  {
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_REG_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
-  }
-  return rc;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQD_OBJ_NODE *pObjNode = 0;
+	ASAPi_OBJECT_OPR opr = 0;
+
+	rc = mqd_asapi_db_upd(pMqd, (ASAPi_REG_INFO *)(&(msg.info.reg)), &pObjNode, &opr);
+	if (!pObjNode) {
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+			     __LINE__);
+	}
+	if (rc == NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_REG_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
+			     __LINE__);
+	}
+	return rc;
 
 }
-
 
 /*****************************************************************************\
 *
@@ -186,22 +176,21 @@ static uns32 mqd_process_a2s_register_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
-  ASAPi_MSG_INFO    mesg;
-  
-  memset(&mesg, 0, sizeof(mesg));
-  
-  rc= mqd_asapi_dereg_db_upd(pMqd, (ASAPi_DEREG_INFO *)(&(msg.info.dereg)), &mesg);
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_MSG_INFO mesg;
 
-  if(rc == NCSCC_RC_SUCCESS)
-  {
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
-  }
-  else 
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_FAILURE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-  return rc;
+	memset(&mesg, 0, sizeof(mesg));
+
+	rc = mqd_asapi_dereg_db_upd(pMqd, (ASAPi_DEREG_INFO *)(&(msg.info.dereg)), &mesg);
+
+	if (rc == NCSCC_RC_SUCCESS) {
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
+			     __LINE__);
+	} else
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_DEREG_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+			     __LINE__);
+	return rc;
 }
-
 
 /*****************************************************************************\
 *
@@ -219,29 +208,29 @@ static uns32 mqd_process_a2s_deregister_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
-  MQD_OBJ_NODE      *pObjNode=0; 
-  MQSV_SEND_INFO    info;
-  
-  memset(&info, 0, sizeof(MQSV_SEND_INFO));
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQD_OBJ_NODE *pObjNode = 0;
+	MQSV_SEND_INFO info;
 
-  info.dest = msg.info.track.dest;
-  info.to_svc = msg.info.track.to_svc;
-  rc= mqd_asapi_track_db_upd(pMqd,(ASAPi_TRACK_INFO *)(&(msg.info.track.track)),&info,&pObjNode);
-  if(!pObjNode)
-  {
-     rc = NCSCC_RC_FAILURE;
-     m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-  }
-  if(rc == NCSCC_RC_SUCCESS)
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
-  else 
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_FAILURE,NCSFL_LC_MQSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__);
-     
-  return rc;
+	memset(&info, 0, sizeof(MQSV_SEND_INFO));
+
+	info.dest = msg.info.track.dest;
+	info.to_svc = msg.info.track.to_svc;
+	rc = mqd_asapi_track_db_upd(pMqd, (ASAPi_TRACK_INFO *)(&(msg.info.track.track)), &info, &pObjNode);
+	if (!pObjNode) {
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_MQSV_D(MQD_RED_STANDBY_QUEUE_NODE_NOT_PRESENT, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+			     __LINE__);
+	}
+	if (rc == NCSCC_RC_SUCCESS)
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
+			     __LINE__);
+	else
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_TRACK_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+			     __LINE__);
+
+	return rc;
 }
-
-
 
 /*****************************************************************************\
 *
@@ -260,15 +249,15 @@ static uns32 mqd_process_a2s_track_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
-    
-  rc=mqd_user_evt_track_delete(pMqd,&msg.info.user_evt.dest);
-  
-  if(rc == NCSCC_RC_SUCCESS)
-     m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_USEREVT_SUCCESS,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__);
-  return rc;
-}
+	uns32 rc = NCSCC_RC_SUCCESS;
 
+	rc = mqd_user_evt_track_delete(pMqd, &msg.info.user_evt.dest);
+
+	if (rc == NCSCC_RC_SUCCESS)
+		m_LOG_MQSV_D(MQD_RED_STANDBY_PROCESS_USEREVT_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, rc, __FILE__,
+			     __LINE__);
+	return rc;
+}
 
 /*****************************************************************************\
 *
@@ -284,40 +273,36 @@ static uns32 mqd_process_a2s_userevent_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *                 FAILURE - Some thing went wrong
 *
 *****************************************************************************/
-static uns32  mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
+static uns32 mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
 
-  uns32             rc= NCSCC_RC_SUCCESS;
-  MQD_ND_DB_NODE    *pNdNode=0;
-   /*Update the node info structure and start the expiry timer for MQND */
-  #ifdef NCS_MQD
-  printf("mqd_process_a2s_mqnd_status_req \n");
-  #endif
-  if(msg.type == MQD_A2S_MSG_TYPE_MQND_STATEVT)
-  {
-     if(!msg.info.nd_stat_evt.is_restarting)
-     {  
-        #ifdef NCS_MQD
-        printf("A2S DOWN EVT PROCESSED\n");
-        #endif
-    }
-    else
-    {
-     pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get( &pMqd->node_db, (uns8 *)&msg.info.nd_stat_evt.nodeid);
-     if(pNdNode)
-      {
-       mqd_tmr_stop(&pNdNode->info.timer); 
-       mqd_red_db_node_del(pMqd, pNdNode);
-       
-       #ifdef NCS_MQD
-        printf("A2S UP EVT PROCESSED\n");
-       #endif  
-      }
-    }
- }  
-  return rc;
-}
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQD_ND_DB_NODE *pNdNode = 0;
+	/*Update the node info structure and start the expiry timer for MQND */
+#ifdef NCS_MQD
+	printf("mqd_process_a2s_mqnd_status_req \n");
+#endif
+	if (msg.type == MQD_A2S_MSG_TYPE_MQND_STATEVT) {
+		if (!msg.info.nd_stat_evt.is_restarting) {
+#ifdef NCS_MQD
+			printf("A2S DOWN EVT PROCESSED\n");
+#endif
+		} else {
+			pNdNode =
+			    (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db,
+								    (uns8 *)&msg.info.nd_stat_evt.nodeid);
+			if (pNdNode) {
+				mqd_tmr_stop(&pNdNode->info.timer);
+				mqd_red_db_node_del(pMqd, pNdNode);
 
+#ifdef NCS_MQD
+				printf("A2S UP EVT PROCESSED\n");
+#endif
+			}
+		}
+	}
+	return rc;
+}
 
 /*****************************************************************************\
 *
@@ -333,28 +318,23 @@ static uns32  mqd_process_a2s_mqnd_status_req(MQD_CB *pMqd, MQD_A2S_MSG msg)
 *
 *****************************************************************************/
 
-static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd,MQD_A2S_MSG msg)
+static uns32 mqd_process_a2s_mqnd_timer_expiry_event(MQD_CB *pMqd, MQD_A2S_MSG msg)
 {
-   uns32            rc=NCSCC_RC_SUCCESS;
-   MQD_ND_DB_NODE   *pNdNode=0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	MQD_ND_DB_NODE *pNdNode = 0;
 
-   /* At standby if the timer expires do nothing */
-   pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)&msg.info.nd_tmr_exp_evt.nodeid);
+	/* At standby if the timer expires do nothing */
+	pNdNode = (MQD_ND_DB_NODE *)ncs_patricia_tree_get(&pMqd->node_db, (uns8 *)&msg.info.nd_tmr_exp_evt.nodeid);
 
-   if(pNdNode)
-   {
-    #ifdef NCS_MQD
-     printf("mqd_process_a2s_mqnd_timer_expiry_event, pNdNode found\n");
-    #endif
-     mqd_tmr_stop(&pNdNode->info.timer);
-     mqd_red_db_node_del(pMqd, pNdNode);
-   }
-   #ifdef NCS_MQD 
-    printf("A2S TIMER EXPIRY EVT PROCESSED \n");
-   #endif
-   return rc;
+	if (pNdNode) {
+#ifdef NCS_MQD
+		printf("mqd_process_a2s_mqnd_timer_expiry_event, pNdNode found\n");
+#endif
+		mqd_tmr_stop(&pNdNode->info.timer);
+		mqd_red_db_node_del(pMqd, pNdNode);
+	}
+#ifdef NCS_MQD
+	printf("A2S TIMER EXPIRY EVT PROCESSED \n");
+#endif
+	return rc;
 }
-
-
-
-

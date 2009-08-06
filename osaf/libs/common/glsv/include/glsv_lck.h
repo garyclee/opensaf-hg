@@ -18,36 +18,31 @@
 #ifndef GLSV_LCK_H
 #define GLSV_LCK_H
 
-typedef struct glsv_lock_req_info_tag
-{
-   SaLckLockIdT      lockid;        /* index for identifying the lock*/
-   SaLckLockIdT      lcl_lockid;        /* index for identifying the lock*/
-   SaLckHandleT      handleId;      /* source application requesting lock */
-   SaInvocationT     invocation;    
-   SaLckLockModeT    lock_type;
-   SaTimeT           timeout;
-   SaLckLockFlagsT   lockFlags;
-   SaLckLockStatusT  lockStatus;
-   GLSV_CALL_TYPE    call_type;  
-   MDS_DEST          agent_mds_dest;
-   SaLckWaiterSignalT  waiter_signal; 
-}GLSV_LOCK_REQ_INFO;
+typedef struct glsv_lock_req_info_tag {
+	SaLckLockIdT lockid;	/* index for identifying the lock */
+	SaLckLockIdT lcl_lockid;	/* index for identifying the lock */
+	SaLckHandleT handleId;	/* source application requesting lock */
+	SaInvocationT invocation;
+	SaLckLockModeT lock_type;
+	SaTimeT timeout;
+	SaLckLockFlagsT lockFlags;
+	SaLckLockStatusT lockStatus;
+	GLSV_CALL_TYPE call_type;
+	MDS_DEST agent_mds_dest;
+	SaLckWaiterSignalT waiter_signal;
+} GLSV_LOCK_REQ_INFO;
 
-typedef enum
-{
-   GLSV_LOCK_NOT_INITIALISED = 0,
-   GLSV_LOCK_REQ_PENDING,
-   GLSV_UNLOCK_REQ_PENDING,
-   GLSV_LOCK_REQ_GRANTED,
-   GLSV_LOCK_REQ_BLOCKED
-}GLSV_LOCK_STATUS;
+typedef enum {
+	GLSV_LOCK_NOT_INITIALISED = 0,
+	GLSV_LOCK_REQ_PENDING,
+	GLSV_UNLOCK_REQ_PENDING,
+	GLSV_LOCK_REQ_GRANTED,
+	GLSV_LOCK_REQ_BLOCKED
+} GLSV_LOCK_STATUS;
 
-
-typedef struct glnd_lock_list_info_tag
-{
-   GLSV_LOCK_REQ_INFO   lock_info;
-   struct glnd_lock_list_info_tag  *next;
-}GLND_LOCK_LIST_INFO;
+typedef struct glnd_lock_list_info_tag {
+	GLSV_LOCK_REQ_INFO lock_info;
+	struct glnd_lock_list_info_tag *next;
+} GLND_LOCK_LIST_INFO;
 
 #endif
-

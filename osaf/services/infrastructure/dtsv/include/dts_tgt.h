@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +29,6 @@
  */
 #ifndef DTS_TGT_H
 #define DTS_TGT_H
-
 
 /*
  * m_DTS_DBG_SINK
@@ -49,13 +45,12 @@
  * DTS_DEBUG can be enabled in dts_opt,h
  */
 
-
 #if ((DTS_DEBUG == 1) || (DTS_LOG == 1))
 
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink (uns32,char*,uns32, char*);
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc (uns32,char*,uns32, char*, uns32);
+EXTERN_C DTSDLL_API uns32 dts_dbg_sink(uns32, char *, uns32, char *);
+EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
 /* Added new function to display service name */
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32,char*,uns32,char*,char*);
+EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
 /* m_DTS_DBG_VOID() used to keep compiler happy @ void return functions */
 
 #define m_DTS_DBG_SINK(r, s)  dts_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
@@ -63,14 +58,12 @@ EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32,char*,uns32,char*,char*);
 /* Added new macro to map to the new function */
 #define m_DTS_DBG_SINK_SVC_NAME(r, s, svc)  dts_dbg_sink_svc_name(__LINE__,__FILE__,(uns32)r, (char*)s, (char*)svc)
 #define m_DTS_DBG_VOID     dts_dbg_sink(__LINE__,__FILE__,1)
-
 #else
 
 #define m_DTS_DBG_SINK(r, s)  r
 #define m_DTS_DBG_SINK_SVC(r, s, svc)
 #define m_DTS_DBG_SINK_SVC_NAME(r, s, svc)
 #define m_DTS_DBG_VOID
-
 #endif
 
 /*
@@ -90,13 +83,10 @@ EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32,char*,uns32,char*,char*);
 #if (DTS_TRACE == 1)
 
 #define m_DTS_DBG_TRACE(t) printf(t)
-
 #else
 
 #define m_DTS_DBG_TRACE(t)
-
 #endif
-
 
 /*
  * m_<DTS>_VALIDATE_HDL
@@ -115,12 +105,10 @@ EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32,char*,uns32,char*,char*);
  *       store this however it wants.
  */
 
-
-EXTERN_C DTSDLL_API void* sysf_dts_validate(uns32 k);
-
+EXTERN_C DTSDLL_API void *sysf_dts_validate(uns32 k);
 
 /* The DTS validate macro */
 
 #define m_DTS_VALIDATE_HDL(k)  sysf_dts_validate(k)
 
-#endif /* DTS_TGT_H */
+#endif   /* DTS_TGT_H */

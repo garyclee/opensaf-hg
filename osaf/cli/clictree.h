@@ -38,10 +38,9 @@
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 typedef struct cli_bindery_list {
-   NCSCLI_BINDERY  *bindery;
-   struct cli_bindery_list *next;
+	NCSCLI_BINDERY *bindery;
+	struct cli_bindery_list *next;
 } CLI_BINDERY_LIST;
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -66,4 +65,5 @@ EXTERN_C void cli_clean_ctree(CLI_CB *);
 EXTERN_C void cli_clean_cmd_element(CLI_CMD_ELEMENT *);
 EXTERN_C void cli_free_cmd_element(CLI_CMD_ELEMENT **);
 EXTERN_C void cli_clean_cmd_node(CLI_CMD_NODE *);
+
 #endif

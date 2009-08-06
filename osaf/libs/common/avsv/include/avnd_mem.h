@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,32 +31,31 @@
 #define AVND_MEM_H
 
 /* Service Sub IDs for AVND */
-typedef enum
-{
-   NCS_SERVICE_AVND_SUB_ID_AVND_DEFAULT_VAL = 1,
-   NCS_SERVICE_AVND_SUB_ID_AVND_CB,
-   NCS_SERVICE_AVND_SUB_ID_AVND_CLM_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_EVT,
-   NCS_SERVICE_AVND_SUB_ID_AVND_SU,
-   NCS_SERVICE_AVND_SUB_ID_AVND_SU_SI_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_SU_SIQ_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP_CSI_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP_HC_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP_PM_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP_PXIED_REC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_COMP_CBK,
-   NCS_SERVICE_AVND_SUB_ID_AVND_HC,
-   NCS_SERVICE_AVND_SUB_ID_AVND_PG,
-   NCS_SERVICE_AVND_SUB_ID_AVND_PG_MEM,
-   NCS_SERVICE_AVND_SUB_ID_AVND_PG_TRK,
-   NCS_SERVICE_AVND_SUB_ID_AVND_DND_MSG_LIST,
-   NCS_SERVICE_AVND_SUB_ID_AVSV_CLM_TRK_INFO,
-   NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG,
-   NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST,
-   NCS_SERVICE_AVND_SUB_ID_REG_REQ_PENDING,
-   NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT,
-   NCS_SERVICE_AVND_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_AVND_SUB_ID_AVND_DEFAULT_VAL = 1,
+	NCS_SERVICE_AVND_SUB_ID_AVND_CB,
+	NCS_SERVICE_AVND_SUB_ID_AVND_CLM_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_EVT,
+	NCS_SERVICE_AVND_SUB_ID_AVND_SU,
+	NCS_SERVICE_AVND_SUB_ID_AVND_SU_SI_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_SU_SIQ_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP_CSI_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP_HC_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP_PM_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP_PXIED_REC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_COMP_CBK,
+	NCS_SERVICE_AVND_SUB_ID_AVND_HC,
+	NCS_SERVICE_AVND_SUB_ID_AVND_PG,
+	NCS_SERVICE_AVND_SUB_ID_AVND_PG_MEM,
+	NCS_SERVICE_AVND_SUB_ID_AVND_PG_TRK,
+	NCS_SERVICE_AVND_SUB_ID_AVND_DND_MSG_LIST,
+	NCS_SERVICE_AVND_SUB_ID_AVSV_CLM_TRK_INFO,
+	NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG,
+	NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST,
+	NCS_SERVICE_AVND_SUB_ID_REG_REQ_PENDING,
+	NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT,
+	NCS_SERVICE_AVND_SUB_ID_MAX
 } NCS_SERVICE_AVND_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -66,7 +63,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_AVND_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -140,7 +136,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVND, \
                                                 NCS_SERVICE_AVND_SUB_ID_AVND_SU_SIQ_REC)
-
 
 #define m_MMGR_ALLOC_AVND_COMP      (AVND_COMP*)m_NCS_MEM_ALLOC(sizeof(AVND_COMP), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -268,4 +263,5 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVND, \
                                                 NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT)
-#endif /* !AVND_MEM_H */
+
+#endif   /* !AVND_MEM_H */

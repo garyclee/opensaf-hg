@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   DESCRIPTION:
@@ -49,19 +48,18 @@
 
 uns32 mbcsv_log_bind(void)
 {
-    NCS_DTSV_RQ        reg;
+	NCS_DTSV_RQ reg;
 
-    memset(&reg, '\0', sizeof(NCS_DTSV_RQ));
+	memset(&reg, '\0', sizeof(NCS_DTSV_RQ));
 
-    reg.i_op = NCS_DTSV_OP_BIND;
-    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MBCSV;
-    reg.info.bind_svc.version = MBCSV_LOG_VERSION;
-    strcpy(reg.info.bind_svc.svc_name, "MBCSv");
-  
-    if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
-        return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      " mbcsv_log_bind: NCS_SERVICE_ID_MBCSV bind failed");
-    return NCSCC_RC_SUCCESS;
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MBCSV;
+	reg.info.bind_svc.version = MBCSV_LOG_VERSION;
+	strcpy(reg.info.bind_svc.svc_name, "MBCSv");
+
+	if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
+		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, " mbcsv_log_bind: NCS_SERVICE_ID_MBCSV bind failed");
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -74,19 +72,13 @@ uns32 mbcsv_log_bind(void)
 
 uns32 mbcsv_log_unbind(void)
 {
-    NCS_DTSV_RQ        dereg;
+	NCS_DTSV_RQ dereg;
 
-    dereg.i_op = NCS_DTSV_OP_UNBIND;
-    dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MBCSV;
-    if (ncs_dtsv_su_req(&dereg) != NCSCC_RC_SUCCESS)
-        return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, 
-      "mbcsv_log_bind: Unbind failed for NCS_SERVICE_ID_MBCSV");
-    return NCSCC_RC_SUCCESS;
+	dereg.i_op = NCS_DTSV_OP_UNBIND;
+	dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MBCSV;
+	if (ncs_dtsv_su_req(&dereg) != NCSCC_RC_SUCCESS)
+		return m_MBCSV_DBG_SINK(NCSCC_RC_FAILURE, "mbcsv_log_bind: Unbind failed for NCS_SERVICE_ID_MBCSV");
+	return NCSCC_RC_SUCCESS;
 }
 
-#endif/* (MBCSV_LOG == 1) */
-
-
-
-
-
+#endif   /* (MBCSV_LOG == 1) */

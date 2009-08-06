@@ -38,25 +38,25 @@
 extern "C" {
 #endif
 
-typedef char                  SaInt8T;
-typedef short                 SaInt16T;
-typedef int                   SaInt32T;
-typedef long long             SaInt64T;
-typedef unsigned char         SaUint8T;
-typedef unsigned short        SaUint16T;
-typedef unsigned int          SaUint32T;
-typedef unsigned long long    SaUint64T;
+	typedef char SaInt8T;
+	typedef short SaInt16T;
+	typedef int SaInt32T;
+	typedef long long SaInt64T;
+	typedef unsigned char SaUint8T;
+	typedef unsigned short SaUint16T;
+	typedef unsigned int SaUint32T;
+	typedef unsigned long long SaUint64T;
 
 /** Types used by the NTF/IMMS service **/
-typedef float                 SaFloatT;
-typedef double                SaDoubleT;
-typedef char*                 SaStringT;
+	typedef float SaFloatT;
+	typedef double SaDoubleT;
+	typedef char *SaStringT;
 
-typedef SaInt64T              SaTimeT;
-typedef SaUint64T             SaInvocationT;
-typedef SaUint64T             SaSizeT;
-typedef SaUint64T             SaOffsetT;
-typedef SaUint64T             SaSelectionObjectT;
+	typedef SaInt64T SaTimeT;
+	typedef SaUint64T SaInvocationT;
+	typedef SaUint64T SaSizeT;
+	typedef SaUint64T SaOffsetT;
+	typedef SaUint64T SaSelectionObjectT;
 
 #define SA_TIME_END              0x7FFFFFFFFFFFFFFFLL
 #define SA_TIME_BEGIN            0x0LL
@@ -76,93 +76,92 @@ typedef SaUint64T             SaSelectionObjectT;
 #define SA_TRACK_CHANGES 0x02
 #define SA_TRACK_CHANGES_ONLY 0x04
 
-typedef enum {
-    SA_FALSE = 0,
-    SA_TRUE = 1
-} SaBoolT;
+	typedef enum {
+		SA_FALSE = 0,
+		SA_TRUE = 1
+	} SaBoolT;
 
-typedef enum {
-    SA_DISPATCH_ONE = 1,
-    SA_DISPATCH_ALL = 2,
-    SA_DISPATCH_BLOCKING = 3
-} SaDispatchFlagsT;
+	typedef enum {
+		SA_DISPATCH_ONE = 1,
+		SA_DISPATCH_ALL = 2,
+		SA_DISPATCH_BLOCKING = 3
+	} SaDispatchFlagsT;
 
-typedef enum {
-   SA_AIS_OK = 1,
-   SA_AIS_ERR_LIBRARY = 2,
-   SA_AIS_ERR_VERSION = 3,
-   SA_AIS_ERR_INIT = 4,
-   SA_AIS_ERR_TIMEOUT = 5,
-   SA_AIS_ERR_TRY_AGAIN = 6,
-   SA_AIS_ERR_INVALID_PARAM = 7,
-   SA_AIS_ERR_NO_MEMORY = 8,
-   SA_AIS_ERR_BAD_HANDLE = 9,
-   SA_AIS_ERR_BUSY = 10,
-   SA_AIS_ERR_ACCESS = 11,
-   SA_AIS_ERR_NOT_EXIST = 12,
-   SA_AIS_ERR_NAME_TOO_LONG = 13,
-   SA_AIS_ERR_EXIST = 14,
-   SA_AIS_ERR_NO_SPACE = 15,
-   SA_AIS_ERR_INTERRUPT =16,
-   SA_AIS_ERR_NAME_NOT_FOUND = 17,
-   SA_AIS_ERR_NO_RESOURCES = 18,
-   SA_AIS_ERR_NOT_SUPPORTED = 19,
-   SA_AIS_ERR_BAD_OPERATION = 20,
-   SA_AIS_ERR_FAILED_OPERATION = 21,
-   SA_AIS_ERR_MESSAGE_ERROR = 22,
-   SA_AIS_ERR_QUEUE_FULL = 23,
-   SA_AIS_ERR_QUEUE_NOT_AVAILABLE = 24,
-   SA_AIS_ERR_BAD_FLAGS = 25,
-   SA_AIS_ERR_TOO_BIG = 26,
-   SA_AIS_ERR_NO_SECTIONS = 27,
-   SA_AIS_ERR_NO_OP = 28,          
-   SA_AIS_ERR_REPAIR_PENDING = 29,
-   SA_AIS_ERR_NO_BINDINGS = 30,
-   SA_AIS_ERR_UNAVAILABLE = 31,
-} SaAisErrorT;
+	typedef enum {
+		SA_AIS_OK = 1,
+		SA_AIS_ERR_LIBRARY = 2,
+		SA_AIS_ERR_VERSION = 3,
+		SA_AIS_ERR_INIT = 4,
+		SA_AIS_ERR_TIMEOUT = 5,
+		SA_AIS_ERR_TRY_AGAIN = 6,
+		SA_AIS_ERR_INVALID_PARAM = 7,
+		SA_AIS_ERR_NO_MEMORY = 8,
+		SA_AIS_ERR_BAD_HANDLE = 9,
+		SA_AIS_ERR_BUSY = 10,
+		SA_AIS_ERR_ACCESS = 11,
+		SA_AIS_ERR_NOT_EXIST = 12,
+		SA_AIS_ERR_NAME_TOO_LONG = 13,
+		SA_AIS_ERR_EXIST = 14,
+		SA_AIS_ERR_NO_SPACE = 15,
+		SA_AIS_ERR_INTERRUPT = 16,
+		SA_AIS_ERR_NAME_NOT_FOUND = 17,
+		SA_AIS_ERR_NO_RESOURCES = 18,
+		SA_AIS_ERR_NOT_SUPPORTED = 19,
+		SA_AIS_ERR_BAD_OPERATION = 20,
+		SA_AIS_ERR_FAILED_OPERATION = 21,
+		SA_AIS_ERR_MESSAGE_ERROR = 22,
+		SA_AIS_ERR_QUEUE_FULL = 23,
+		SA_AIS_ERR_QUEUE_NOT_AVAILABLE = 24,
+		SA_AIS_ERR_BAD_FLAGS = 25,
+		SA_AIS_ERR_TOO_BIG = 26,
+		SA_AIS_ERR_NO_SECTIONS = 27,
+		SA_AIS_ERR_NO_OP = 28,
+		SA_AIS_ERR_REPAIR_PENDING = 29,
+		SA_AIS_ERR_NO_BINDINGS = 30,
+		SA_AIS_ERR_UNAVAILABLE = 31,
+	} SaAisErrorT;
 
-typedef enum {
-    SA_SVC_HPI  =  1,
-    SA_SVC_AMF  =  2,
-    SA_SVC_CLM  =  3,
-    SA_SVC_CKPT =  4,
-    SA_SVC_EVT  =  5,
-    SA_SVC_MSG  =  6,
-    SA_SVC_LCK  =  7,
-    SA_SVC_IMMS =  8, 
-    SA_SCV_LOG  =  9,
-    SA_SVC_NTF  =  10,
-    SA_SVC_NAM  =  11,
-    SA_SVC_TMR  =  12
-} SaServicesT;
+	typedef enum {
+		SA_SVC_HPI = 1,
+		SA_SVC_AMF = 2,
+		SA_SVC_CLM = 3,
+		SA_SVC_CKPT = 4,
+		SA_SVC_EVT = 5,
+		SA_SVC_MSG = 6,
+		SA_SVC_LCK = 7,
+		SA_SVC_IMMS = 8,
+		SA_SCV_LOG = 9,
+		SA_SVC_NTF = 10,
+		SA_SVC_NAM = 11,
+		SA_SVC_TMR = 12
+	} SaServicesT;
 
-typedef struct {
-   SaSizeT   bufferSize;
-   SaUint8T  *bufferAddr;
-} SaAnyT;
+	typedef struct {
+		SaSizeT bufferSize;
+		SaUint8T *bufferAddr;
+	} SaAnyT;
 
-typedef struct {
-    SaUint16T length;
-    SaUint8T value[SA_MAX_NAME_LENGTH];
-} SaNameT;
+	typedef struct {
+		SaUint16T length;
+		SaUint8T value[SA_MAX_NAME_LENGTH];
+	} SaNameT;
 
-typedef struct {
-    SaUint8T releaseCode;
-    SaUint8T majorVersion;
-    SaUint8T minorVersion;
-} SaVersionT;
+	typedef struct {
+		SaUint8T releaseCode;
+		SaUint8T majorVersion;
+		SaUint8T minorVersion;
+	} SaVersionT;
 
-typedef union {
-    SaInt64T int64Value;
-    SaUint64T uint64Value;
-    SaTimeT timeValue;
-    SaFloatT floatValue;
-    SaDoubleT doubleValue;
-} SaLimitValueT;
+	typedef union {
+		SaInt64T int64Value;
+		SaUint64T uint64Value;
+		SaTimeT timeValue;
+		SaFloatT floatValue;
+		SaDoubleT doubleValue;
+	} SaLimitValueT;
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif  /* _SA_AIS_H */
-
+#endif   /* _SA_AIS_H */

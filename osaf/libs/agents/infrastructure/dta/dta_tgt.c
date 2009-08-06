@@ -19,7 +19,6 @@
 ..............................................................................
 
 
-
 */
 
 /** H&J Includes...
@@ -55,25 +54,24 @@
 
 #if (DTA_DEBUG == 1)
 
-uns32 dta_dbg_sink(uns32 l, char* f, uns32 code, char * str)
-  {
-  printf ("IN DTA_DBG_SINK: line %d, file %s\n",l,f);
+uns32 dta_dbg_sink(uns32 l, char *f, uns32 code, char *str)
+{
+	printf("IN DTA_DBG_SINK: line %d, file %s\n", l, f);
 
-  if (NULL != str)
-      printf ("Reason : %s \n", str);
+	if (NULL != str)
+		printf("Reason : %s \n", str);
 
-  return code;
-  }
+	return code;
+}
 
-uns32 dta_dbg_sink_svc(uns32 l, char* f, uns32 code, char * str, SS_SVC_ID svc_id)
-  {
-  printf ("IN DTA_DBG_SINK: SVC_ID %d, line %d, file %s\n",svc_id,l,f);
+uns32 dta_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, SS_SVC_ID svc_id)
+{
+	printf("IN DTA_DBG_SINK: SVC_ID %d, line %d, file %s\n", svc_id, l, f);
 
-  if (NULL != str)
-      printf ("Reason : %s \n", str);
+	if (NULL != str)
+		printf("Reason : %s \n", str);
 
-  return code;
-  }
+	return code;
+}
 
 #endif
-

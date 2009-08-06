@@ -30,8 +30,7 @@
 #ifndef MQD_CLM_H
 #define MQD_CLM_H
 
-EXTERN_C void mqd_clm_cluster_track_callback(const SaClmClusterNotificationBufferT *notificationBuffer, 
-                                     SaUint32T numberOfMembers, 
-                                     SaAisErrorT error);
+EXTERN_C void mqd_clm_cluster_track_callback(const SaClmClusterNotificationBufferT *notificationBuffer,
+					     SaUint32T numberOfMembers, SaAisErrorT error);
 
-#endif /* MQD_CLM_H */
+#endif   /* MQD_CLM_H */

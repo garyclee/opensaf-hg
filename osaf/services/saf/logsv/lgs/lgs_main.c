@@ -38,23 +38,23 @@
 /* ========================================================================
  *   DEFINITIONS
  * ========================================================================
- */ 
+ */
 
 #define FD_USR1 0
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
-#define FD_IMM 3 /* Must be the last in the fds array */
+#define FD_IMM 3		/* Must be the last in the fds array */
 
 /* ========================================================================
  *   TYPE DEFINITIONS
  * ========================================================================
- */ 
+ */
 
 /* ========================================================================
  *   DATA DECLARATIONS
  * ========================================================================
- */ 
+ */
 
 static lgs_cb_t _lgs_cb;
 lgs_cb_t *lgs_cb = &_lgs_cb;
@@ -68,7 +68,7 @@ static NCS_SEL_OBJ usr1_sel_obj;
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
- */ 
+ */
 
 /**
  * USR1 signal is used when AMF wants instantiate us as a
@@ -79,10 +79,10 @@ static NCS_SEL_OBJ usr1_sel_obj;
  */
 static void sigusr1_handler(int sig)
 {
-    (void) sig;
-    signal(SIGUSR1, SIG_IGN); 
-    ncs_sel_obj_ind(usr1_sel_obj);
-    TRACE("Got USR1 signal");
+	(void)sig;
+	signal(SIGUSR1, SIG_IGN);
+	ncs_sel_obj_ind(usr1_sel_obj);
+	TRACE("Got USR1 signal");
 }
 
 /**
@@ -91,19 +91,16 @@ static void sigusr1_handler(int sig)
  */
 static void sigusr2_handler(int sig)
 {
-    if (category_mask == 0)
-    {
-        category_mask = CATEGORY_ALL;
-        printf("Enabling traces");
-    }
-    else
-    {
-        category_mask = 0;
-        printf("Disabling traces");
-    }
+	if (category_mask == 0) {
+		category_mask = CATEGORY_ALL;
+		printf("Enabling traces");
+	} else {
+		category_mask = 0;
+		printf("Disabling traces");
+	}
 
-    if (trace_category_set(category_mask) == -1)
-        printf("trace_category_set failed");
+	if (trace_category_set(category_mask) == -1)
+		printf("trace_category_set failed");
 }
 
 /**
@@ -112,51 +109,48 @@ static void sigusr2_handler(int sig)
  */
 static void dump_sig_handler(int sig)
 {
-    log_stream_t *stream;
-    log_client_t *client;
-    int old_category_mask = category_mask;
+	log_stream_t *stream;
+	log_client_t *client;
+	int old_category_mask = category_mask;
 
-    if (trace_category_set(CATEGORY_ALL) == -1)
-        printf("trace_category_set failed");
+	if (trace_category_set(CATEGORY_ALL) == -1)
+		printf("trace_category_set failed");
 
-    TRACE("Control block information");
-    TRACE("  comp_name:      %s", lgs_cb->comp_name.value);
-    TRACE("  log_version:    %c.%02d.%02d", lgs_cb->log_version.releaseCode,
-           lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion);
-    TRACE("  mds_role:       %u", lgs_cb->mds_role);
-    TRACE("  last_client_id: %u", lgs_cb->last_client_id);
-    TRACE("  ha_state:       %u", lgs_cb->ha_state);
-    TRACE("  ckpt_state:     %u", lgs_cb->ckpt_state);
-    TRACE("  root_dir:       %s", lgs_cb->logsv_root_dir);
+	TRACE("Control block information");
+	TRACE("  comp_name:      %s", lgs_cb->comp_name.value);
+	TRACE("  log_version:    %c.%02d.%02d", lgs_cb->log_version.releaseCode,
+	      lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion);
+	TRACE("  mds_role:       %u", lgs_cb->mds_role);
+	TRACE("  last_client_id: %u", lgs_cb->last_client_id);
+	TRACE("  ha_state:       %u", lgs_cb->ha_state);
+	TRACE("  ckpt_state:     %u", lgs_cb->ckpt_state);
+	TRACE("  root_dir:       %s", lgs_cb->logsv_root_dir);
 
-    TRACE("Client information");
-    client = (log_client_t *) ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL);
-    while (client != NULL)
-    {
-        lgs_stream_list_t *s = client->stream_list_root;
-        TRACE("  client_id: %u", client->client_id);
-        TRACE("    lga_client_dest: %llx", client->mds_dest);
+	TRACE("Client information");
+	client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL);
+	while (client != NULL) {
+		lgs_stream_list_t *s = client->stream_list_root;
+		TRACE("  client_id: %u", client->client_id);
+		TRACE("    lga_client_dest: %llx", client->mds_dest);
 
-        while (s != NULL)
-        {
-            TRACE("    stream id: %u", s->stream_id);
-            s = s->next;
-        }
-        client = (log_client_t *) ncs_patricia_tree_getnext(&lgs_cb->client_tree,
-                                                            (uns8 *)&client->client_id_net);
-    }
+		while (s != NULL) {
+			TRACE("    stream id: %u", s->stream_id);
+			s = s->next;
+		}
+		client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree,
+								   (uns8 *)&client->client_id_net);
+	}
 
-    TRACE("Streams information");
-    stream = (log_stream_t *) log_stream_getnext_by_name(NULL);
-    while (stream != NULL)
-    {
-        log_stream_print(stream);
-        stream = (log_stream_t *) log_stream_getnext_by_name(stream->name);
-    }
-    log_stream_id_print();
+	TRACE("Streams information");
+	stream = (log_stream_t *)log_stream_getnext_by_name(NULL);
+	while (stream != NULL) {
+		log_stream_print(stream);
+		stream = (log_stream_t *)log_stream_getnext_by_name(stream->name);
+	}
+	log_stream_id_print();
 
-    if (trace_category_set(old_category_mask) == -1)
-        printf("trace_category_set failed");
+	if (trace_category_set(old_category_mask) == -1)
+		printf("trace_category_set failed");
 }
 
 /**
@@ -166,154 +160,136 @@ static void dump_sig_handler(int sig)
  */
 static uns32 log_initialize(const char *progname)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
-    char *logd_argv[] = {"", "MDS_SUBSCRIPTION_TMR_VAL=1"};
-    const char* trace_file;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	char *logd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
+	const char *trace_file;
 
-    /* Create PID file */
-    {
-        char path[256];
-        FILE *fp;
-        
-        snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
-        fp = fopen(path, "w");
-        if (fp == NULL)
-        {
-            syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-            exit(EXIT_FAILURE);
-        }
-        fprintf(fp, "%d\n", getpid());
-        fclose(fp);
-    }
+	/* Create PID file */
+	{
+		char path[256];
+		FILE *fp;
 
-    /* Initialize trace system first of all so we can see what is going on. */
-    if ((trace_file = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
-    {
-        if (logtrace_init(basename(progname), trace_file) != 0)
-        {
-            syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-            goto done;
-        }
+		snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
+		fp = fopen(path, "w");
+		if (fp == NULL) {
+			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+		fprintf(fp, "%d\n", getpid());
+		fclose(fp);
+	}
 
-        if (getenv("LOGSV_TRACE_CATEGORIES") != NULL)
-        {
-            /* Do not care about categories now, get all */
-            trace_category_set(CATEGORY_ALL);
-        }
-    }
+	/* Initialize trace system first of all so we can see what is going on. */
+	if ((trace_file = getenv("LOGSV_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init(basename(progname), trace_file) != 0) {
+			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
+			goto done;
+		}
 
-    TRACE_ENTER();
+		if (getenv("LOGSV_TRACE_CATEGORIES") != NULL) {
+			/* Do not care about categories now, get all */
+			trace_category_set(CATEGORY_ALL);
+		}
+	}
 
-    if (ncspvt_svcs_startup(2, logd_argv, NULL) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("ncspvt_svcs_startup failed");
-        goto done;
-    }
+	TRACE_ENTER();
 
-    /* Initialize lgs control block */
-    if (lgs_cb_init(lgs_cb) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("lgs_cb_init FAILED");
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
+	if (ncspvt_svcs_startup(2, logd_argv, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncspvt_svcs_startup failed");
+		goto done;
+	}
 
-    if ((rc = rda_get_role(&lgs_cb->ha_state)) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("rda_get_role FAILED");
-        goto done;
-    }
+	/* Initialize lgs control block */
+	if (lgs_cb_init(lgs_cb) != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_cb_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-    /*
-    ** Get LOGSV root directory path. All created log files will be stored
-    ** relative to this directory as described in spec.
-    */
-    if ((lgs_cb->logsv_root_dir = getenv("LOGSV_ROOT_DIRECTORY")) == NULL)
-    {
-        syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
-        goto done;
-    }
+	if ((rc = rda_get_role(&lgs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
 
-    /* Initialize stream class */
-    if (log_stream_init() != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("log_stream_init FAILED");
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
+	/*
+	 ** Get LOGSV root directory path. All created log files will be stored
+	 ** relative to this directory as described in spec.
+	 */
+	if ((lgs_cb->logsv_root_dir = getenv("LOGSV_ROOT_DIRECTORY")) == NULL) {
+		syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
+		goto done;
+	}
 
-    m_NCS_EDU_HDL_INIT(&lgs_cb->edu_hdl);
+	/* Initialize stream class */
+	if (log_stream_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("log_stream_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-    /* Create the mailbox used for communication with LGS */
-    if ((rc = m_NCS_IPC_CREATE(&lgs_cb->mbx)) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
-        goto done;
-    }
+	m_NCS_EDU_HDL_INIT(&lgs_cb->edu_hdl);
 
-    /* Attach mailbox to this thread */
-    if ((rc = m_NCS_IPC_ATTACH(&lgs_cb->mbx) != NCSCC_RC_SUCCESS))
-    {
-        LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
-        goto done;
-    }
+	/* Create the mailbox used for communication with LGS */
+	if ((rc = m_NCS_IPC_CREATE(&lgs_cb->mbx)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("m_NCS_IPC_CREATE FAILED %d", rc);
+		goto done;
+	}
 
-    if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("lgs_mds_init FAILED %d", rc);
-        return rc;
-    }
+	/* Attach mailbox to this thread */
+	if ((rc = m_NCS_IPC_ATTACH(&lgs_cb->mbx) != NCSCC_RC_SUCCESS)) {
+		LOG_ER("m_NCS_IPC_ATTACH FAILED %d", rc);
+		goto done;
+	}
 
-    if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS)
-        LOG_ER("lgs_mbcsv_init FAILED");
+	if ((rc = lgs_mds_init(lgs_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_mds_init FAILED %d", rc);
+		return rc;
+	}
 
-    if ((rc = lgs_imm_init(lgs_cb)) != SA_AIS_OK)
-        LOG_ER("lgs_imm_init FAILED");
+	if ((rc = lgs_mbcsv_init(lgs_cb)) != NCSCC_RC_SUCCESS)
+		LOG_ER("lgs_mbcsv_init FAILED");
 
-    /* Create a selection object */
-    if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("ncs_sel_obj_create failed");
-        goto done;
-    }
+	if ((rc = lgs_imm_init(lgs_cb)) != SA_AIS_OK)
+		LOG_ER("lgs_imm_init FAILED");
 
-    /*
-    ** Initialize a signal handler that will use the selection object.
-    ** The signal is sent from our script when AMF does instantiate.
-    */
-    if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR)
-    {
-        LOG_ER("signal USR1 failed: %s", strerror(errno));
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
+	/* Create a selection object */
+	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_sel_obj_create failed");
+		goto done;
+	}
 
-    if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR)
-    {
-        LOG_ER("signal USR2 failed: %s", strerror(errno));
-        rc = NCSCC_RC_FAILURE;
-        goto done;
-    }
+	/*
+	 ** Initialize a signal handler that will use the selection object.
+	 ** The signal is sent from our script when AMF does instantiate.
+	 */
+	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+		LOG_ER("signal USR1 failed: %s", strerror(errno));
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-    if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE)
-    {
-        if (lgs_imm_activate(lgs_cb) != SA_AIS_OK)
-        {
-            LOG_ER("lgs_imm_activate FAILED");
-            rc = NCSCC_RC_FAILURE;
-            goto done;
-        }
-    }
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		LOG_ER("signal USR2 failed: %s", strerror(errno));
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-done:
-    if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("nid_notify failed");
-        rc = NCSCC_RC_FAILURE;
-    }
+	if (lgs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		if (lgs_imm_activate(lgs_cb) != SA_AIS_OK) {
+			LOG_ER("lgs_imm_activate FAILED");
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+	}
 
-    TRACE_LEAVE();
-    return(rc);
+ done:
+	if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	TRACE_LEAVE();
+	return (rc);
 }
 
 /**
@@ -326,27 +302,26 @@ done:
  */
 static void *imm_reinit_thread(void *_cb)
 {
-    SaAisErrorT error;
-    lgs_cb_t *cb = (lgs_cb_t*) _cb;
+	SaAisErrorT error;
+	lgs_cb_t *cb = (lgs_cb_t *)_cb;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    if ((error = lgs_imm_init(cb)) != SA_AIS_OK)
-    {
-        LOG_ER("lgs_imm_init FAILED: %u", error);
-        exit(EXIT_FAILURE);
-    }
+	if ((error = lgs_imm_init(cb)) != SA_AIS_OK) {
+		LOG_ER("lgs_imm_init FAILED: %u", error);
+		exit(EXIT_FAILURE);
+	}
 
-    /* If this is the active server, become implementer again. */
-    if (cb->ha_state == SA_AMF_HA_ACTIVE)
-        lgs_imm_impl_set(cb);
+	/* If this is the active server, become implementer again. */
+	if (cb->ha_state == SA_AMF_HA_ACTIVE)
+		lgs_imm_impl_set(cb);
 
-    TRACE("New IMM fd: %llu", cb->immSelectionObject);
-    fds[FD_IMM].fd = cb->immSelectionObject;
-    nfds = FD_IMM + 1;
+	TRACE("New IMM fd: %llu", cb->immSelectionObject);
+	fds[FD_IMM].fd = cb->immSelectionObject;
+	nfds = FD_IMM + 1;
 
-    TRACE_LEAVE();
-    return NULL;
+	TRACE_LEAVE();
+	return NULL;
 }
 
 /**
@@ -356,15 +331,14 @@ static void *imm_reinit_thread(void *_cb)
  */
 static void imm_reinit_bg(lgs_cb_t *cb)
 {
-    pthread_t thread;
+	pthread_t thread;
 
-    TRACE_ENTER();
-    if (pthread_create(&thread, NULL, imm_reinit_thread, cb) != 0)
-    {
-        LOG_ER("pthread_create FAILED: %s", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    TRACE_LEAVE();
+	TRACE_ENTER();
+	if (pthread_create(&thread, NULL, imm_reinit_thread, cb) != 0) {
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	TRACE_LEAVE();
 }
 
 /**
@@ -376,122 +350,107 @@ static void imm_reinit_bg(lgs_cb_t *cb)
  */
 int main(int argc, char *argv[])
 {
-    NCS_SEL_OBJ         mbx_fd;
-    SaAisErrorT         error = SA_AIS_OK;
-    uns32 rc;
+	NCS_SEL_OBJ mbx_fd;
+	SaAisErrorT error = SA_AIS_OK;
+	uns32 rc;
 
-    if (log_initialize(argv[0]) != NCSCC_RC_SUCCESS)
-    {
-        LOG_ER("log_initialize failed");
-        goto done;
-    }
+	if (log_initialize(argv[0]) != NCSCC_RC_SUCCESS) {
+		LOG_ER("log_initialize failed");
+		goto done;
+	}
 
-    mbx_fd = ncs_ipc_get_sel_obj(&lgs_cb->mbx);
+	mbx_fd = ncs_ipc_get_sel_obj(&lgs_cb->mbx);
 
-    /* Set up all file descriptors to listen to */
-    fds[FD_USR1].fd      = usr1_sel_obj.rmv_obj;
-    fds[FD_USR1].events  = POLLIN;
-    fds[FD_MBCSV].fd     = lgs_cb->mbcsv_sel_obj;
-    fds[FD_MBCSV].events = POLLIN;
-    fds[FD_MBX].fd       = mbx_fd.rmv_obj;
-    fds[FD_MBX].events   = POLLIN;
-    fds[FD_IMM].fd       = lgs_cb->immSelectionObject;
-    fds[FD_IMM].events   = POLLIN;
+	/* Set up all file descriptors to listen to */
+	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
+	fds[FD_USR1].events = POLLIN;
+	fds[FD_MBCSV].fd = lgs_cb->mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_IMM].fd = lgs_cb->immSelectionObject;
+	fds[FD_IMM].events = POLLIN;
 
-    while (1)
-    {
-        int ret = poll(fds, nfds, -1);
+	while (1) {
+		int ret = poll(fds, nfds, -1);
 
-        if (ret == -1)
-        {
-            if (errno == EINTR)
-                continue;
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 
-            LOG_ER("poll failed - %s", strerror(errno));
-            break;
-        }
+			LOG_ER("poll failed - %s", strerror(errno));
+			break;
+		}
 
-        if (fds[FD_AMF].revents & POLLIN)
-        {
-            if (lgs_cb->amf_hdl != 0)
-            {
-                if ((error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK)
-                {
-                    LOG_ER("saAmfDispatch failed: %u", error);
-                    break;
-                }
-            }
-            else
-            {
-                TRACE("SIGUSR1 event rec");
-                ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
-                ncs_sel_obj_destroy(usr1_sel_obj);
+		if (fds[FD_AMF].revents & POLLIN) {
+			if (lgs_cb->amf_hdl != 0) {
+				if ((error = saAmfDispatch(lgs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u", error);
+					break;
+				}
+			} else {
+				TRACE("SIGUSR1 event rec");
+				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
+				ncs_sel_obj_destroy(usr1_sel_obj);
 
-                if (lgs_amf_init(lgs_cb) != NCSCC_RC_SUCCESS)
-                    break;
+				if (lgs_amf_init(lgs_cb) != NCSCC_RC_SUCCESS)
+					break;
 
-                TRACE("AMF Initialization SUCCESS......");
-                fds[FD_AMF].fd = lgs_cb->amfSelectionObject;
-            }
-        }
+				TRACE("AMF Initialization SUCCESS......");
+				fds[FD_AMF].fd = lgs_cb->amfSelectionObject;
+			}
+		}
 
-        if (fds[FD_MBCSV].revents & POLLIN)
-        {
-            if ((rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl)) != NCSCC_RC_SUCCESS)
-            {
-                LOG_ER("MBCSv Dispatch Failed");
-                break;
-            }
-        }
+		if (fds[FD_MBCSV].revents & POLLIN) {
+			if ((rc = lgs_mbcsv_dispatch(lgs_cb->mbcsv_hdl)) != NCSCC_RC_SUCCESS) {
+				LOG_ER("MBCSv Dispatch Failed");
+				break;
+			}
+		}
 
-        if (fds[FD_MBX].revents & POLLIN)
-            lgs_process_mbx(&lgs_cb->mbx);
+		if (fds[FD_MBX].revents & POLLIN)
+			lgs_process_mbx(&lgs_cb->mbx);
 
-        if (lgs_cb->immOiHandle && fds[FD_IMM].revents & POLLIN)
-        {
-            error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL);
+		if (lgs_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
+			error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL);
 
-            /*
-            ** BAD_HANDLE is interpreted as an IMM service restart. Try 
-            ** reinitialize the IMM OI API in a background thread and let 
-            ** this thread do business as usual especially handling write 
-            ** requests.
-            **
-            ** All other errors are treated as non-recoverable (fatal) and will
-            ** cause an exit of the process.
-            */
-            if (error == SA_AIS_ERR_BAD_HANDLE)
-            {
-                TRACE("saImmOiDispatch returned BAD_HANDLE");
+			/*
+			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
+			 ** reinitialize the IMM OI API in a background thread and let 
+			 ** this thread do business as usual especially handling write 
+			 ** requests.
+			 **
+			 ** All other errors are treated as non-recoverable (fatal) and will
+			 ** cause an exit of the process.
+			 */
+			if (error == SA_AIS_ERR_BAD_HANDLE) {
+				TRACE("saImmOiDispatch returned BAD_HANDLE");
 
-                /* 
-                ** Invalidate the IMM OI handle, this info is used in other
-                ** locations. E.g. giving TRY_AGAIN responses to a create and
-                ** close app stream requests. That is needed since the IMM OI
-                ** is used in context of these functions.
-                */
-                lgs_cb->immOiHandle = 0;
+				/* 
+				 ** Invalidate the IMM OI handle, this info is used in other
+				 ** locations. E.g. giving TRY_AGAIN responses to a create and
+				 ** close app stream requests. That is needed since the IMM OI
+				 ** is used in context of these functions.
+				 */
+				lgs_cb->immOiHandle = 0;
 
-                /* 
-                ** Skip the IMM file descriptor in next poll(), IMM fd must
-                ** be the last in the fd array.
-                */
-                nfds = FD_MBX + 1;
+				/* 
+				 ** Skip the IMM file descriptor in next poll(), IMM fd must
+				 ** be the last in the fd array.
+				 */
+				nfds = FD_MBX + 1;
 
-                /* Initiate IMM reinitializtion in the background */
-                imm_reinit_bg(lgs_cb);
-            }
-            else if (error != SA_AIS_OK)
-            {
-                LOG_ER("saImmOiDispatch FAILED: %u", error);
-                break;
-            }
-        }
-    }
+				/* Initiate IMM reinitializtion in the background */
+				imm_reinit_bg(lgs_cb);
+			} else if (error != SA_AIS_OK) {
+				LOG_ER("saImmOiDispatch FAILED: %u", error);
+				break;
+			}
+		}
+	}
 
-done:
-    LOG_ER("Failed, exiting...");
-    TRACE_LEAVE();
-    exit(1);
+ done:
+	LOG_ER("Failed, exiting...");
+	TRACE_LEAVE();
+	exit(1);
 }
-

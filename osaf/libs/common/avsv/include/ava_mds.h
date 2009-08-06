@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,7 +29,6 @@
 
 #ifndef AVA_MDS_H
 #define AVA_MDS_H
-
 
 /* In Service upgrade support */
 #define AVA_MDS_SUB_PART_VERSION   1
@@ -271,13 +268,12 @@
 
 /*** Extern function declarations ***/
 struct ava_cb_tag;
-EXTERN_C uns32 ava_mds_reg (struct ava_cb_tag *);
+EXTERN_C uns32 ava_mds_reg(struct ava_cb_tag *);
 
-EXTERN_C uns32 ava_mds_unreg (struct ava_cb_tag *);
+EXTERN_C uns32 ava_mds_unreg(struct ava_cb_tag *);
 
-EXTERN_C uns32 ava_mds_cbk (NCSMDS_CALLBACK_INFO *);
+EXTERN_C uns32 ava_mds_cbk(NCSMDS_CALLBACK_INFO *);
 
-EXTERN_C uns32 ava_mds_send (struct ava_cb_tag *, AVSV_NDA_AVA_MSG *, 
-                             AVSV_NDA_AVA_MSG **);
+EXTERN_C uns32 ava_mds_send(struct ava_cb_tag *, AVSV_NDA_AVA_MSG *, AVSV_NDA_AVA_MSG **);
 
-#endif /* !AVA_MDS_H */
+#endif   /* !AVA_MDS_H */

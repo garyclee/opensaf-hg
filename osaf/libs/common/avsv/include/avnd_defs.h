@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -57,33 +55,29 @@
 #define  AVND_ERR_NO_PG      AVND_ERR+15
 #define  AVND_ERR_DUP_PG     AVND_ERR+16
 
-
 /****************************************************************************
                         Timeout Values (in millisecs) 
 *****************************************************************************/
 
-#define AVND_COMP_CBK_RESP_TIME       5000   /* time out callback response */
-#define AVND_AVD_MSG_RESP_TIME   1000   /* time out AvD message response */
+#define AVND_COMP_CBK_RESP_TIME       5000	/* time out callback response */
+#define AVND_AVD_MSG_RESP_TIME   1000	/* time out AvD message response */
 
 #define m_AVND_TASK_PRIORITY   (5)
 #define m_AVND_STACKSIZE       NCS_STACKSIZE_HUGE
 
+typedef enum {
+	AVND_TERM_STATE_UP = 0,
+	AVND_TERM_STATE_SHUTTING_APP_SU,
+	AVND_TERM_STATE_SHUTTING_APP_DONE,
+	AVND_TERM_STATE_SHUTTING_NCS_SI,
+	AVND_TERM_STATE_SHUTTING_NCS_SU,
+	AVND_TERM_STATE_MAX
+} AVND_TERM_STATE;
 
-typedef enum 
-{
-   AVND_TERM_STATE_UP = 0,
-   AVND_TERM_STATE_SHUTTING_APP_SU,
-   AVND_TERM_STATE_SHUTTING_APP_DONE,
-   AVND_TERM_STATE_SHUTTING_NCS_SI,
-   AVND_TERM_STATE_SHUTTING_NCS_SU,
-   AVND_TERM_STATE_MAX
-}AVND_TERM_STATE;
+typedef enum {
+	AVND_LED_STATE_RED = 0,
+	AVND_LED_STATE_GREEN,
+	AVND_LED_STATE_MAX
+} AVND_LED_STATE;
 
-typedef enum
-{
-   AVND_LED_STATE_RED = 0,
-   AVND_LED_STATE_GREEN,
-   AVND_LED_STATE_MAX
-}AVND_LED_STATE;
-
-#endif /* !AVND_DEFS_H */
+#endif   /* !AVND_DEFS_H */

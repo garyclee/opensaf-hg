@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -34,7 +32,6 @@
 */
 
 #include "avsv.h"
-
 
 /*****************************************************************************
  * Function: avsv_cpy_SU_DN_from_DN
@@ -52,36 +49,34 @@
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
-                              SaNameT *s_dn_name)
+uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
 {
-   char          *tmp = NULL;
+	char *tmp = NULL;
 
-   memset(d_su_dn, 0, sizeof(SaNameT));
+	memset(d_su_dn, 0, sizeof(SaNameT));
 
-   /* SU DN name is  SU name + NODE name */
+	/* SU DN name is  SU name + NODE name */
 
-   /* First get the SU name */
-   tmp = strstr(s_dn_name->value, "safSu");
+	/* First get the SU name */
+	tmp = strstr(s_dn_name->value, "safSu");
 
-   /* It might be external SU. */
-   if(NULL == tmp)
-       tmp = strstr(s_dn_name->value, "safEsu");
+	/* It might be external SU. */
+	if (NULL == tmp)
+		tmp = strstr(s_dn_name->value, "safEsu");
 
-   if(!tmp)
-      return NCSCC_RC_FAILURE;
+	if (!tmp)
+		return NCSCC_RC_FAILURE;
 
-   if(strlen(tmp) < SA_MAX_NAME_LENGTH){ 
-      strcpy(d_su_dn->value, tmp);
+	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
+		strcpy(d_su_dn->value, tmp);
 
-      /* Fill the length and return the pointer */
-      d_su_dn->length = strlen(d_su_dn->value);
-   }else
-      return NCSCC_RC_FAILURE;
+		/* Fill the length and return the pointer */
+		d_su_dn->length = strlen(d_su_dn->value);
+	} else
+		return NCSCC_RC_FAILURE;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avsv_cpy_node_DN_from_DN
@@ -99,31 +94,28 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn,
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn,
-                              SaNameT *s_dn_name)
+uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
 {
-   char          *tmp = NULL;
+	char *tmp = NULL;
 
-   memset(d_node_dn, 0, sizeof(SaNameT));
+	memset(d_node_dn, 0, sizeof(SaNameT));
 
-   /* get the node name */
-   tmp = strstr(s_dn_name->value, "safNode");
+	/* get the node name */
+	tmp = strstr(s_dn_name->value, "safNode");
 
-   if(!tmp)
-      return NCSCC_RC_FAILURE;
+	if (!tmp)
+		return NCSCC_RC_FAILURE;
 
-   if(strlen(tmp) < SA_MAX_NAME_LENGTH){
-      strcpy(d_node_dn->value, tmp);
-   
-      /* Fill the length and return the pointer */
-      d_node_dn->length = strlen(d_node_dn->value);
-   }else
-      return NCSCC_RC_FAILURE; 
+	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
+		strcpy(d_node_dn->value, tmp);
 
-   return NCSCC_RC_SUCCESS;
+		/* Fill the length and return the pointer */
+		d_node_dn->length = strlen(d_node_dn->value);
+	} else
+		return NCSCC_RC_FAILURE;
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: avsv_is_external_DN
@@ -143,9 +135,8 @@ uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn,
 
 NCS_BOOL avsv_is_external_DN(SaNameT *dn_name)
 {
-   return FALSE;
+	return FALSE;
 }
-
 
 /*****************************************************************************
  * Function: avsv_cpy_SI_DN_from_DN
@@ -163,30 +154,28 @@ NCS_BOOL avsv_is_external_DN(SaNameT *dn_name)
  * 
  **************************************************************************/
 
-uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn,
-                              SaNameT *s_dn_name)
+uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
 {
-   char          *tmp = NULL;
+	char *tmp = NULL;
 
-   memset(d_si_dn, 0, sizeof(SaNameT));
+	memset(d_si_dn, 0, sizeof(SaNameT));
 
-   /* get the si name */
-   tmp = strstr(s_dn_name->value, "safSi");
+	/* get the si name */
+	tmp = strstr(s_dn_name->value, "safSi");
 
-   if(!tmp)
-      return NCSCC_RC_FAILURE;
+	if (!tmp)
+		return NCSCC_RC_FAILURE;
 
-   if(strlen(tmp) < SA_MAX_NAME_LENGTH){
-      strcpy(d_si_dn->value, tmp);
-   
-      /* Fill the length and return the pointer */
-      d_si_dn->length = strlen(d_si_dn->value);
-   }else
-      return NCSCC_RC_FAILURE;
+	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
+		strcpy(d_si_dn->value, tmp);
 
-   return NCSCC_RC_SUCCESS;
+		/* Fill the length and return the pointer */
+		d_si_dn->length = strlen(d_si_dn->value);
+	} else
+		return NCSCC_RC_FAILURE;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : avsv_dblist_uns32_cmp
@@ -205,12 +194,12 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn,
 ******************************************************************************/
 uns32 avsv_dblist_uns32_cmp(uns8 *key1, uns8 *key2)
 {
-   uns32 val1, val2;
+	uns32 val1, val2;
 
-   val1 = *((uns32 *)key1);
-   val2 = *((uns32 *)key2);
+	val1 = *((uns32 *)key1);
+	val2 = *((uns32 *)key2);
 
-   return ( (val1 == val2) ? 0 : ( (val1 > val2) ? 1 : 2) );
+	return ((val1 == val2) ? 0 : ((val1 > val2) ? 1 : 2));
 }
 
 /****************************************************************************
@@ -230,12 +219,12 @@ uns32 avsv_dblist_uns32_cmp(uns8 *key1, uns8 *key2)
 ******************************************************************************/
 uns32 avsv_dblist_uns64_cmp(uns8 *key1, uns8 *key2)
 {
-   uns64 val1, val2;
+	uns64 val1, val2;
 
-   val1 = *((uns64 *)key1);
-   val2 = *((uns64 *)key2);
+	val1 = *((uns64 *)key1);
+	val2 = *((uns64 *)key2);
 
-   return ( (val1 == val2) ? 0 : ( (val1 > val2) ? 1 : 2) );
+	return ((val1 == val2) ? 0 : ((val1 > val2) ? 1 : 2));
 }
 
 /****************************************************************************
@@ -255,17 +244,16 @@ uns32 avsv_dblist_uns64_cmp(uns8 *key1, uns8 *key2)
 ******************************************************************************/
 uns32 avsv_dblist_saname_cmp(uns8 *key1, uns8 *key2)
 {
-   int i=0;
-   SaNameT name1_net, name2_net;
+	int i = 0;
+	SaNameT name1_net, name2_net;
 
-   name1_net = *((SaNameT *)key1);
-   name2_net = *((SaNameT *)key2);
+	name1_net = *((SaNameT *)key1);
+	name2_net = *((SaNameT *)key2);
 
-   i = m_CMP_NORDER_SANAMET(name1_net, name2_net);
+	i = m_CMP_NORDER_SANAMET(name1_net, name2_net);
 
-   return ( (i == 0) ? 0 : ( (i > 0) ? 1 : 2) );
+	return ((i == 0) ? 0 : ((i > 0) ? 1 : 2));
 }
-
 
 /****************************************************************************
   Name          : avsv_dblist_sahckey_cmp
@@ -284,17 +272,16 @@ uns32 avsv_dblist_saname_cmp(uns8 *key1, uns8 *key2)
 ******************************************************************************/
 uns32 avsv_dblist_sahckey_cmp(uns8 *key1, uns8 *key2)
 {
-   int i = 0;
-   SaAmfHealthcheckKeyT hc_key1, hc_key2;
+	int i = 0;
+	SaAmfHealthcheckKeyT hc_key1, hc_key2;
 
-   hc_key1 = *((SaAmfHealthcheckKeyT *)key1);
-   hc_key2 = *((SaAmfHealthcheckKeyT *)key2);
+	hc_key1 = *((SaAmfHealthcheckKeyT *)key1);
+	hc_key2 = *((SaAmfHealthcheckKeyT *)key2);
 
-   i = m_CMP_HORDER_SAHCKEY(hc_key1, hc_key2);
+	i = m_CMP_HORDER_SAHCKEY(hc_key1, hc_key2);
 
-   return ( (i == 0) ? 0 : ( (i > 0) ? 1 : 2) );
+	return ((i == 0) ? 0 : ((i > 0) ? 1 : 2));
 }
-
 
 /****************************************************************************
   Name          : avsv_sa_name_is_null
@@ -307,16 +294,14 @@ uns32 avsv_dblist_sahckey_cmp(uns8 *key1, uns8 *key2)
  
   Notes         : None.
 ******************************************************************************/
-NCS_BOOL avsv_sa_name_is_null (SaNameT *name)
+NCS_BOOL avsv_sa_name_is_null(SaNameT *name)
 {
-   SaNameT null_name;
+	SaNameT null_name;
 
-   memset(&null_name, 0, sizeof(SaNameT));
+	memset(&null_name, 0, sizeof(SaNameT));
 
-   if ( !m_CMP_HORDER_SANAMET(*name, null_name) )
-      return TRUE;
-   else
-      return FALSE;
+	if (!m_CMP_HORDER_SANAMET(*name, null_name))
+		return TRUE;
+	else
+		return FALSE;
 }
-
-

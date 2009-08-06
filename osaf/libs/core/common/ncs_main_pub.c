@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME:       ncs_main_pub.c
 
   DESCRIPTION:       Contains an API that agent starts up NCS.
@@ -93,7 +92,6 @@
 #include "mqd_dl_api.h"
 #endif
 #if (NCS_MQND == 1)
-
 #endif
 
 #if (NCS_CPA == 1)
@@ -142,8 +140,7 @@
 #if (NCSMQD_LOG == 1)
 #include "mqd_logstr.h"
 #endif
-
-#endif /* NCS_DTS */
+#endif   /* NCS_DTS */
 
 #if (NCS_MAC == 1)
 #include "mac_papi.h"
@@ -151,11 +148,8 @@
 
 #include "ncs_sprr_papi.h"
 
-
-
 #include "ncs_mib.h"
 #include "ncsmiblib.h"
-
 
 #ifdef __NCSINC_LINUX__
 #define LOG_PATH OSAF_LOCALSTATEDIR "log"
@@ -171,37 +165,35 @@
 
 \**************************************************************************/
 
-typedef uns32 (*LIB_REQ)(NCS_LIB_REQ_INFO *);
+typedef uns32 (*LIB_REQ) (NCS_LIB_REQ_INFO *);
 
-typedef struct ncs_agent_data
-{
-   uns32    use_count;
-   LIB_REQ  lib_req;
+typedef struct ncs_agent_data {
+	uns32 use_count;
+	LIB_REQ lib_req;
 } NCS_AGENT_DATA;
 
-typedef struct ncs_main_pub_cb
-{
+typedef struct ncs_main_pub_cb {
 #ifdef __NCSINC_WIN32__
-   HINSTANCE           *lib_hdl;
+	HINSTANCE *lib_hdl;
 #else
-   NCS_OS_DLIB_HDL     *lib_hdl;
+	NCS_OS_DLIB_HDL *lib_hdl;
 #endif
 
-   NCS_LOCK            lock;
-   uns32               lock_create;
-   NCS_BOOL            core_started;
-   uns32               my_nodeid;
-   uns32               my_procid;
+	NCS_LOCK lock;
+	uns32 lock_create;
+	NCS_BOOL core_started;
+	uns32 my_nodeid;
+	uns32 my_procid;
 
-   uns32               core_use_count;
-   uns32               leap_use_count;
-   uns32               mds_use_count;
-   uns32               dta_use_count;
-   uns32               oac_use_count;
+	uns32 core_use_count;
+	uns32 leap_use_count;
+	uns32 mds_use_count;
+	uns32 dta_use_count;
+	uns32 oac_use_count;
 
-   NCS_AGENT_DATA      mbca;
-   NCS_AGENT_DATA      maa;
-   NCS_AGENT_DATA      ncs_hpl;
+	NCS_AGENT_DATA mbca;
+	NCS_AGENT_DATA maa;
+	NCS_AGENT_DATA ncs_hpl;
 
 } NCS_MAIN_PUB_CB;
 
@@ -211,13 +203,10 @@ static uns32 mainget_node_id(uns32 *node_id);
 static uns32 ncs_set_config_root(void);
 static uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
 static uns32 ncs_non_core_agents_startup(int argc, char *argv[]);
-static void ncs_get_sys_params_arg(int i_argc,
-                                   char *i_argv[], 
-                                   NCS_SYS_PARAMS *sys_params);
+static void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_params);
 static uns32 ncs_update_sys_param_args(int argc, char *argv[]);
 
 static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
-
 
 #ifndef NCSMAINPUB_TRACE_LEVEL
 #define NCSMAINPUB_TRACE_LEVEL 1
@@ -233,18 +222,17 @@ static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 #define NCSMAINPUB_TRACE1_ARG1(x)
 #define NCSMAINPUB_TRACE1_ARG2(x,y)
 
-#define NCSMAINPUB_DBG_TRACE1_ARG1(x)   
+#define NCSMAINPUB_DBG_TRACE1_ARG1(x)
 #define NCSMAINPUB_DBG_TRACE1_ARG2(x,y)
 #endif
-
 
 static NCS_MAIN_PUB_CB gl_ncs_main_pub_cb;
 
 /* Global argument definitions */
-char  *gl_pargv[NCS_MAIN_MAX_INPUT];
+char *gl_pargv[NCS_MAIN_MAX_INPUT];
 uns32 gl_pargc = 0;
 
-EXTERN_C NCS_BOOL dts_sync_up_flag; 
+EXTERN_C NCS_BOOL dts_sync_up_flag;
 
 /* Agent specific LOCKs */
 #define m_NCS_AGENT_LOCK                                 \
@@ -253,13 +241,12 @@ EXTERN_C NCS_BOOL dts_sync_up_flag;
       m_NCS_LOCK_INIT(&gl_ncs_main_pub_cb.lock);         \
    }                                                     \
    gl_ncs_main_pub_cb.lock_create = 1;                   \
-   m_NCS_LOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE); 
-      
+   m_NCS_LOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE);
+
 #define m_NCS_AGENT_UNLOCK m_NCS_UNLOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE)
 
-
 #define NCS_LOG_DIR_NAME_MAXLEN 256
-char gl_ncs_log_dir[NCS_LOG_DIR_NAME_MAXLEN]; /* To store the path for logging directory */
+char gl_ncs_log_dir[NCS_LOG_DIR_NAME_MAXLEN];	/* To store the path for logging directory */
 
 /***************************************************************************\
 
@@ -268,20 +255,19 @@ char gl_ncs_log_dir[NCS_LOG_DIR_NAME_MAXLEN]; /* To store the path for logging d
 \***************************************************************************/
 unsigned int ncs_agents_startup(int argc, char *argv[])
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   rc = ncs_core_agents_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-   
-   /* From now on, use gl_pargc & gl_pargv */
-   rc = ncs_non_core_agents_startup(gl_pargc, gl_pargv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
+	rc = ncs_core_agents_startup(argc, argv);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
 
-   return rc;
+	/* From now on, use gl_pargc & gl_pargv */
+	rc = ncs_non_core_agents_startup(gl_pargc, gl_pargv);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+
+	return rc;
 }
-
 
 /***************************************************************************\
 
@@ -290,14 +276,13 @@ unsigned int ncs_agents_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_agents_shutdown(int argc, char *argv[])
 {
-   ncs_maa_shutdown();
-   ncs_mbca_shutdown();
+	ncs_maa_shutdown();
+	ncs_mbca_shutdown();
 
-   ncs_core_agents_shutdown();
+	ncs_core_agents_shutdown();
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -306,75 +291,68 @@ unsigned int ncs_agents_shutdown(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_leap_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
-   char             *p_field;
+	NCS_LIB_REQ_INFO lib_create;
+	char *p_field;
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.leap_use_count > 0)
-   {
-      gl_ncs_main_pub_cb.leap_use_count++;
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_SUCCESS;
-   }   
+	if (gl_ncs_main_pub_cb.leap_use_count > 0) {
+		gl_ncs_main_pub_cb.leap_use_count++;
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_SUCCESS;
+	}
 
-   /* Print the process-id for information sakes */
-   gl_ncs_main_pub_cb.my_procid = (uns32)getpid();
-   NCSMAINPUB_DBG_TRACE1_ARG2("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
+	/* Print the process-id for information sakes */
+	gl_ncs_main_pub_cb.my_procid = (uns32)getpid();
+	NCSMAINPUB_DBG_TRACE1_ARG2("\nNCS:PROCESS_ID=%d\n", gl_ncs_main_pub_cb.my_procid);
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   if (ncs_main_set_log_dir() != NCSCC_RC_SUCCESS)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't create log directory\n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (ncs_main_set_log_dir() != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't create log directory\n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
    /*** Initalize basic services ***/
-   if (leap_env_init() != NCSCC_RC_SUCCESS)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't initialised LEAP basic services \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (leap_env_init() != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't initialised LEAP basic services \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (sprr_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("\nERROR: SPRR lib_req failed \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (sprr_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("\nERROR: SPRR lib_req failed \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
    /****** DTSV SYNC flag *******/
-   p_field = ncs_util_search_argv_list(argc, argv, "DTSV_SYNC_UP=");
-   if (p_field != NULL)
-   {
-      if (sscanf(p_field + strlen("DTSV_SYNC_UP="), "%d", &dts_sync_up_flag) != 1)
-      {
-         NCSMAINPUB_TRACE1_ARG1("ERROR:Problem in dts_sync_up argument\n");
-         m_NCS_AGENT_UNLOCK;
-         return NCSCC_RC_FAILURE;
-      }
-   }   
+	p_field = ncs_util_search_argv_list(argc, argv, "DTSV_SYNC_UP=");
+	if (p_field != NULL) {
+		if (sscanf(p_field + strlen("DTSV_SYNC_UP="), "%d", &dts_sync_up_flag) != 1) {
+			NCSMAINPUB_TRACE1_ARG1("ERROR:Problem in dts_sync_up argument\n");
+			m_NCS_AGENT_UNLOCK;
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
-   gl_ncs_main_pub_cb.leap_use_count = 1;
+	gl_ncs_main_pub_cb.leap_use_count = 1;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
      /*** start initializing all the required agents ***/
 #ifdef __NCSINC_WIN32__
-   gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD("NCS_DLL", m_NCS_OS_DLIB_ATTR);
+	gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD("NCS_DLL", m_NCS_OS_DLIB_ATTR);
 #else
-   gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD(NULL, m_NCS_OS_DLIB_ATTR);
+	gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD(NULL, m_NCS_OS_DLIB_ATTR);
 #endif
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -383,61 +361,54 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_mds_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
+	m_NCS_AGENT_LOCK;
 
-   m_NCS_AGENT_LOCK;
-   
-   if (!gl_ncs_main_pub_cb.leap_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nLEAP core not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.leap_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nLEAP core not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (gl_ncs_main_pub_cb.mds_use_count > 0)
-   {
-      gl_ncs_main_pub_cb.mds_use_count++;
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_SUCCESS;
-   }
-   
-   /* Get & Update system specific arguments */
-   if (ncs_update_sys_param_args(argc, argv) != NCSCC_RC_SUCCESS)
-   {
-      NCSMAINPUB_TRACE1_ARG1("ERROR: Update System Param args \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (gl_ncs_main_pub_cb.mds_use_count > 0) {
+		gl_ncs_main_pub_cb.mds_use_count++;
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_SUCCESS;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = gl_pargc;
-   lib_create.info.create.argv = gl_pargv;
+	/* Get & Update system specific arguments */
+	if (ncs_update_sys_param_args(argc, argv) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: Update System Param args \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* STEP : Initialize the MDS layer */
-   if (mds_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: MDS lib_req failed \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = gl_pargc;
+	lib_create.info.create.argv = gl_pargv;
 
-   /* STEP : Initialize the ADA/VDA layer */
-   if (mda_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: MDA lib_req failed \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	/* STEP : Initialize the MDS layer */
+	if (mds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: MDS lib_req failed \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   gl_ncs_main_pub_cb.mds_use_count = 1;
+	/* STEP : Initialize the ADA/VDA layer */
+	if (mda_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: MDA lib_req failed \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_NCS_AGENT_UNLOCK;
+	gl_ncs_main_pub_cb.mds_use_count = 1;
 
-   return NCSCC_RC_SUCCESS;
+	m_NCS_AGENT_UNLOCK;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -446,52 +417,46 @@ unsigned int ncs_mds_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_dta_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
-   
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (!gl_ncs_main_pub_cb.leap_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.leap_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (!gl_ncs_main_pub_cb.mds_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.mds_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (gl_ncs_main_pub_cb.dta_use_count > 0)
-   {
-      gl_ncs_main_pub_cb.dta_use_count++;
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_SUCCESS;
-   }
+	if (gl_ncs_main_pub_cb.dta_use_count > 0) {
+		gl_ncs_main_pub_cb.dta_use_count++;
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_SUCCESS;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   /* STEP : Initialize the DTA layer */
-   if (dta_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: DTA lib_req failed \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	/* STEP : Initialize the DTA layer */
+	if (dta_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA lib_req failed \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   gl_ncs_main_pub_cb.dta_use_count = 1;
+	gl_ncs_main_pub_cb.dta_use_count = 1;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -500,62 +465,55 @@ unsigned int ncs_dta_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_oac_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
+	m_NCS_AGENT_LOCK;
 
-   m_NCS_AGENT_LOCK;
+	if (!gl_ncs_main_pub_cb.leap_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (!gl_ncs_main_pub_cb.leap_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.mds_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (!gl_ncs_main_pub_cb.mds_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
-   
-   if (!gl_ncs_main_pub_cb.dta_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nDTA not yet started.... \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.dta_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nDTA not yet started.... \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (gl_ncs_main_pub_cb.oac_use_count > 0)
-   {
-      gl_ncs_main_pub_cb.oac_use_count++;
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_SUCCESS;
-   }
+	if (gl_ncs_main_pub_cb.oac_use_count > 0) {
+		gl_ncs_main_pub_cb.oac_use_count++;
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_SUCCESS;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   /* STEP : Initialize the OAA layer */
-   if (oaclib_request(&lib_create) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: OAC lib_req failed \n");
-      m_NCS_AGENT_UNLOCK;
-      return NCSCC_RC_FAILURE;
-   }
+	/* STEP : Initialize the OAA layer */
+	if (oaclib_request(&lib_create) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: OAC lib_req failed \n");
+		m_NCS_AGENT_UNLOCK;
+		return NCSCC_RC_FAILURE;
+	}
 
-   gl_ncs_main_pub_cb.oac_use_count = 1;
+	gl_ncs_main_pub_cb.oac_use_count = 1;
 
-   /* All CORE services are started */
-   gl_ncs_main_pub_cb.core_started = TRUE;
+	/* All CORE services are started */
+	gl_ncs_main_pub_cb.core_started = TRUE;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
- 
 
 /***************************************************************************\
 
@@ -564,19 +522,18 @@ unsigned int ncs_oac_startup(int argc, char *argv[])
 \***************************************************************************/
 uns32 ncs_non_core_agents_startup(int argc, char *argv[])
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   rc = ncs_mbca_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
-   
-   rc = ncs_maa_startup(argc, argv);
-   if (rc != NCSCC_RC_SUCCESS)
-      return rc;
+	rc = ncs_mbca_startup(argc, argv);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
 
-   return NCSCC_RC_SUCCESS;
+	rc = ncs_maa_startup(argc, argv);
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -585,42 +542,36 @@ uns32 ncs_non_core_agents_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_core_agents_startup(int argc, char *argv[])
 {
-   if (gl_ncs_main_pub_cb.core_use_count)
-   {      
-      gl_ncs_main_pub_cb.core_use_count++;
-      return NCSCC_RC_SUCCESS;
-   }   
+	if (gl_ncs_main_pub_cb.core_use_count) {
+		gl_ncs_main_pub_cb.core_use_count++;
+		return NCSCC_RC_SUCCESS;
+	}
 
-   if (ncs_leap_startup(argc, argv) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: LEAP svcs startup failed \n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
+	if (ncs_leap_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: LEAP svcs startup failed \n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   if (ncs_mds_startup(argc, argv) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: MDS startup failed \n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
-   
-   if (ncs_dta_startup(argc, argv) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: DTA startup failed \n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
+	if (ncs_mds_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: MDS startup failed \n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   if (ncs_oac_startup(argc, argv) != NCSCC_RC_SUCCESS)
-   {      
-      NCSMAINPUB_TRACE1_ARG1("ERROR: OAC startup failed \n");
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-   }
+	if (ncs_dta_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA startup failed \n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   gl_ncs_main_pub_cb.core_started = TRUE;
-   gl_ncs_main_pub_cb.core_use_count = 1;
+	if (ncs_oac_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+		NCSMAINPUB_TRACE1_ARG1("ERROR: OAC startup failed \n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	gl_ncs_main_pub_cb.core_started = TRUE;
+	gl_ncs_main_pub_cb.core_use_count = 1;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -629,57 +580,46 @@ unsigned int ncs_core_agents_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_mbca_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.core_started) {
+		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
+	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
+		return NCSCC_RC_SUCCESS;	/* No agents to load */
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.mbca.use_count > 0)
-   {
-       /* Already created, so just increment the use_count */
-       gl_ncs_main_pub_cb.mbca.use_count++;
-   }
-   else /*** Init MBCA ***/   
-   if ('n' != ncs_util_get_char_option(argc, argv, "MBCSV="))
-   {
-      gl_ncs_main_pub_cb.mbca.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
-      if (gl_ncs_main_pub_cb.mbca.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.mbca.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:ON");
-            gl_ncs_main_pub_cb.mbca.use_count = 1;
-         }
-      }      
-   }
+	if (gl_ncs_main_pub_cb.mbca.use_count > 0) {
+		/* Already created, so just increment the use_count */
+		gl_ncs_main_pub_cb.mbca.use_count++;
+	} else /*** Init MBCA ***/ if ('n' != ncs_util_get_char_option(argc, argv, "MBCSV=")) {
+		gl_ncs_main_pub_cb.mbca.lib_req =
+		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
+		if (gl_ncs_main_pub_cb.mbca.lib_req == NULL) {
+			NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:OFF");
+		} else {
+			if ((*gl_ncs_main_pub_cb.mbca.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
+				m_NCS_AGENT_UNLOCK;
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			} else {
+				NCSMAINPUB_DBG_TRACE1_ARG1("\nMBCSV:MBCA:ON");
+				gl_ncs_main_pub_cb.mbca.use_count = 1;
+			}
+		}
+	}
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -688,57 +628,46 @@ unsigned int ncs_mbca_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.core_started) {
+		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
+	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
+		return NCSCC_RC_SUCCESS;	/* No agents to load */
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.ncs_hpl.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.ncs_hpl.use_count++;
-   }
-   else  /*** Init HPL ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "HISV="))
-   {
-      gl_ncs_main_pub_cb.ncs_hpl.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "ncs_hpl_lib_req");
-      if (gl_ncs_main_pub_cb.ncs_hpl.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nHISV:HPL:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.ncs_hpl.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nHISV:HPL:ON");
-            gl_ncs_main_pub_cb.ncs_hpl.use_count = 1;
-         }
-      }
-   }
+	if (gl_ncs_main_pub_cb.ncs_hpl.use_count > 0) {
+		/* Already created, so just increment the use_count */
+		gl_ncs_main_pub_cb.ncs_hpl.use_count++;
+	} else /*** Init HPL ***/ if ('n' != ncs_util_get_char_option(argc, argv, "HISV=")) {
+		gl_ncs_main_pub_cb.ncs_hpl.lib_req =
+		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "ncs_hpl_lib_req");
+		if (gl_ncs_main_pub_cb.ncs_hpl.lib_req == NULL) {
+			NCSMAINPUB_DBG_TRACE1_ARG1("\nHISV:HPL:OFF");
+		} else {
+			if ((*gl_ncs_main_pub_cb.ncs_hpl.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
+				m_NCS_AGENT_UNLOCK;
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			} else {
+				NCSMAINPUB_DBG_TRACE1_ARG1("\nHISV:HPL:ON");
+				gl_ncs_main_pub_cb.ncs_hpl.use_count = 1;
+			}
+		}
+	}
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -747,57 +676,46 @@ unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_maa_startup(int argc, char *argv[])
 {
-   NCS_LIB_REQ_INFO lib_create;
+	NCS_LIB_REQ_INFO lib_create;
 
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.core_started) {
+		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   memset(&lib_create, 0, sizeof(lib_create));
-   lib_create.i_op = NCS_LIB_REQ_CREATE;
-   lib_create.info.create.argc = argc;
-   lib_create.info.create.argv = argv;
+	memset(&lib_create, 0, sizeof(lib_create));
+	lib_create.i_op = NCS_LIB_REQ_CREATE;
+	lib_create.info.create.argc = argc;
+	lib_create.info.create.argv = argv;
 
-   if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-      return NCSCC_RC_SUCCESS; /* No agents to load */
+	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
+		return NCSCC_RC_SUCCESS;	/* No agents to load */
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.maa.use_count > 0)
-   {
-      /* Already created, so just increment the use_count */
-      gl_ncs_main_pub_cb.maa.use_count++;
-   }
-   else       /*** Init MAA ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "MASV="))
-   {      
-      gl_ncs_main_pub_cb.maa.lib_req = (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "maclib_request");
-      if (gl_ncs_main_pub_cb.maa.lib_req == NULL)
-      {
-         NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:OFF");
-      }
-      else
-      {
-         if ((*gl_ncs_main_pub_cb.maa.lib_req)(&lib_create) != NCSCC_RC_SUCCESS)
-         {
-            m_NCS_AGENT_UNLOCK;
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         }
-         else
-         {
-            NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:ON");
-            gl_ncs_main_pub_cb.maa.use_count = 1;
-         }
-      }
-   }
+	if (gl_ncs_main_pub_cb.maa.use_count > 0) {
+		/* Already created, so just increment the use_count */
+		gl_ncs_main_pub_cb.maa.use_count++;
+	} else /*** Init MAA ***/ if ('n' != ncs_util_get_char_option(argc, argv, "MASV=")) {
+		gl_ncs_main_pub_cb.maa.lib_req =
+		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "maclib_request");
+		if (gl_ncs_main_pub_cb.maa.lib_req == NULL) {
+			NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:OFF");
+		} else {
+			if ((*gl_ncs_main_pub_cb.maa.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
+				m_NCS_AGENT_UNLOCK;
+				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			} else {
+				NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:ON");
+				gl_ncs_main_pub_cb.maa.use_count = 1;
+			}
+		}
+	}
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************\
 
@@ -806,33 +724,31 @@ unsigned int ncs_maa_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_hisv_hpl_shutdown(void)
 {
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	NCS_LIB_REQ_INFO lib_destroy;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_AGENT_LOCK;
-   if (gl_ncs_main_pub_cb.ncs_hpl.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.ncs_hpl.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
+	m_NCS_AGENT_LOCK;
+	if (gl_ncs_main_pub_cb.ncs_hpl.use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.ncs_hpl.use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return rc;
+	}
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;;
 
-   if (gl_ncs_main_pub_cb.ncs_hpl.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.ncs_hpl.lib_req)(&lib_destroy);
+	if (gl_ncs_main_pub_cb.ncs_hpl.lib_req != NULL)
+		rc = (*gl_ncs_main_pub_cb.ncs_hpl.lib_req) (&lib_destroy);
 
-   gl_ncs_main_pub_cb.ncs_hpl.use_count = 0;
-   gl_ncs_main_pub_cb.ncs_hpl.lib_req = NULL;
+	gl_ncs_main_pub_cb.ncs_hpl.use_count = 0;
+	gl_ncs_main_pub_cb.ncs_hpl.lib_req = NULL;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return rc;
+	return rc;
 }
-
 
 /***************************************************************************\
 
@@ -841,33 +757,31 @@ unsigned int ncs_hisv_hpl_shutdown(void)
 \***************************************************************************/
 unsigned int ncs_mbca_shutdown(void)
 {
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	NCS_LIB_REQ_INFO lib_destroy;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_AGENT_LOCK;
-   if (gl_ncs_main_pub_cb.mbca.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.mbca.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
+	m_NCS_AGENT_LOCK;
+	if (gl_ncs_main_pub_cb.mbca.use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.mbca.use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return rc;
+	}
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;;
 
-   if (gl_ncs_main_pub_cb.mbca.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.mbca.lib_req)(&lib_destroy);
+	if (gl_ncs_main_pub_cb.mbca.lib_req != NULL)
+		rc = (*gl_ncs_main_pub_cb.mbca.lib_req) (&lib_destroy);
 
-   gl_ncs_main_pub_cb.mbca.use_count = 0;
-   gl_ncs_main_pub_cb.mbca.lib_req = NULL;
+	gl_ncs_main_pub_cb.mbca.use_count = 0;
+	gl_ncs_main_pub_cb.mbca.lib_req = NULL;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return rc;
+	return rc;
 }
-
 
 /***************************************************************************\
 
@@ -876,34 +790,32 @@ unsigned int ncs_mbca_shutdown(void)
 \***************************************************************************/
 unsigned int ncs_maa_shutdown(void)
 {
-   NCS_LIB_REQ_INFO  lib_destroy;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	NCS_LIB_REQ_INFO lib_destroy;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.maa.use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.maa.use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return rc;
-   }
+	if (gl_ncs_main_pub_cb.maa.use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.maa.use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return rc;
+	}
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;;
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;;
 
-   if (gl_ncs_main_pub_cb.maa.lib_req != NULL)
-      rc = (*gl_ncs_main_pub_cb.maa.lib_req)(&lib_destroy);
+	if (gl_ncs_main_pub_cb.maa.lib_req != NULL)
+		rc = (*gl_ncs_main_pub_cb.maa.lib_req) (&lib_destroy);
 
-   gl_ncs_main_pub_cb.maa.use_count = 0;
-   gl_ncs_main_pub_cb.maa.lib_req = NULL;
-   
-   m_NCS_AGENT_UNLOCK;
+	gl_ncs_main_pub_cb.maa.use_count = 0;
+	gl_ncs_main_pub_cb.maa.lib_req = NULL;
 
-   return rc;
+	m_NCS_AGENT_UNLOCK;
+
+	return rc;
 }
-
 
 /***************************************************************************\
 
@@ -912,43 +824,39 @@ unsigned int ncs_maa_shutdown(void)
 \***************************************************************************/
 void ncs_leap_shutdown()
 {
-   NCS_LIB_REQ_INFO lib_destroy;
- 
-   m_NCS_AGENT_LOCK;
+	NCS_LIB_REQ_INFO lib_destroy;
 
-   if (gl_ncs_main_pub_cb.leap_use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.leap_use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return;
-   }
+	m_NCS_AGENT_LOCK;
 
+	if (gl_ncs_main_pub_cb.leap_use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.leap_use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return;
+	}
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;
 
 #ifdef __NCSINC_WIN32__
-   m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
+	m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
 #else
-   m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
+	m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
 #endif
-   gl_ncs_main_pub_cb.lib_hdl = NULL;
+	gl_ncs_main_pub_cb.lib_hdl = NULL;
 
+	sprr_lib_req(&lib_destroy);
 
-   sprr_lib_req(&lib_destroy);
-   
-   leap_env_destroy();
-   
-   gl_ncs_main_pub_cb.leap_use_count = 0;
-   gl_ncs_main_pub_cb.core_started = FALSE;
+	leap_env_destroy();
 
-   m_NCS_AGENT_UNLOCK;
+	gl_ncs_main_pub_cb.leap_use_count = 0;
+	gl_ncs_main_pub_cb.core_started = FALSE;
 
-   return;
+	m_NCS_AGENT_UNLOCK;
+
+	return;
 }
-
 
 /***************************************************************************\
 
@@ -957,39 +865,36 @@ void ncs_leap_shutdown()
 \***************************************************************************/
 void ncs_mds_shutdown()
 {
-   NCS_LIB_REQ_INFO lib_destroy;
-   uns32 tmp_ctr;
+	NCS_LIB_REQ_INFO lib_destroy;
+	uns32 tmp_ctr;
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.mds_use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.mds_use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return;
-   }
-   
+	if (gl_ncs_main_pub_cb.mds_use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.mds_use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return;
+	}
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;
 
-   mda_lib_req(&lib_destroy);
-   mds_lib_req(&lib_destroy);
-   
-   gl_ncs_main_pub_cb.mds_use_count = 0;
-   gl_ncs_main_pub_cb.core_started = FALSE;
+	mda_lib_req(&lib_destroy);
+	mds_lib_req(&lib_destroy);
 
-   for (tmp_ctr=0;tmp_ctr<gl_pargc;tmp_ctr++)
-       free(gl_pargv[tmp_ctr]);
-   gl_pargc = 0;
+	gl_ncs_main_pub_cb.mds_use_count = 0;
+	gl_ncs_main_pub_cb.core_started = FALSE;
 
-   m_NCS_AGENT_UNLOCK;
+	for (tmp_ctr = 0; tmp_ctr < gl_pargc; tmp_ctr++)
+		free(gl_pargv[tmp_ctr]);
+	gl_pargc = 0;
 
-   return;
+	m_NCS_AGENT_UNLOCK;
+
+	return;
 }
-
 
 /***************************************************************************\
 
@@ -998,33 +903,30 @@ void ncs_mds_shutdown()
 \***************************************************************************/
 void ncs_dta_shutdown()
 {
-   NCS_LIB_REQ_INFO lib_destroy;
+	NCS_LIB_REQ_INFO lib_destroy;
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.dta_use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.dta_use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return;
-   }
+	if (gl_ncs_main_pub_cb.dta_use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.dta_use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return;
+	}
 
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;
 
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;
+	dta_lib_req(&lib_destroy);
 
-   dta_lib_req(&lib_destroy);
-   
-   gl_ncs_main_pub_cb.dta_use_count = 0;
-   gl_ncs_main_pub_cb.core_started = FALSE;
+	gl_ncs_main_pub_cb.dta_use_count = 0;
+	gl_ncs_main_pub_cb.core_started = FALSE;
 
-   m_NCS_AGENT_UNLOCK;
+	m_NCS_AGENT_UNLOCK;
 
-   return;
+	return;
 }
-
 
 /***************************************************************************\
 
@@ -1033,66 +935,62 @@ void ncs_dta_shutdown()
 \***************************************************************************/
 void ncs_oac_shutdown()
 {
-   NCS_SPIR_REQ_INFO spir_req;
-   NCS_LIB_REQ_INFO  lib_destroy;
-   int               rc;
+	NCS_SPIR_REQ_INFO spir_req;
+	NCS_LIB_REQ_INFO lib_destroy;
+	int rc;
 
-   m_NCS_AGENT_LOCK;
+	m_NCS_AGENT_LOCK;
 
-   if (gl_ncs_main_pub_cb.oac_use_count > 1)
-   {
-      /* Still users extis, so just decrement the use_count */
-      gl_ncs_main_pub_cb.oac_use_count--;
-      m_NCS_AGENT_UNLOCK;
-      return;
-   }
+	if (gl_ncs_main_pub_cb.oac_use_count > 1) {
+		/* Still users extis, so just decrement the use_count */
+		gl_ncs_main_pub_cb.oac_use_count--;
+		m_NCS_AGENT_UNLOCK;
+		return;
+	}
 
-   /* STEP: Check if any "OAC" has been created on ADEST-PWE1. This is
-            required because the NCSADA_GET_HDLS does not have a 
-            corresponding NCSADA_REL_HDLS API. Hence, any OAC on the
-            pre-created ADEST-PWE1 has to be explicitly destroyed. 
+	/* STEP: Check if any "OAC" has been created on ADEST-PWE1. This is
+	   required because the NCSADA_GET_HDLS does not have a 
+	   corresponding NCSADA_REL_HDLS API. Hence, any OAC on the
+	   pre-created ADEST-PWE1 has to be explicitly destroyed. 
 
-            A similar thing has to be done when a PWE on VDEST or ADEST
-            is destroyed; It needs to be checked whether any OAC has
-            been created, and if yes, then it has to be destroyed. Please 
-            see NCSVDA_PWE_DESTROY/NCSADA_PWE_DESTROY code for this.
-   */
-   memset(&spir_req, 0, sizeof(spir_req));
-   spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-   spir_req.i_environment_id = 1;
-   spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-   spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-   if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS)
-   {
-        /* PWE1-OAC has been created. So destroy it */
-        memset(&spir_req, 0, sizeof(spir_req));
-        spir_req.type = NCS_SPIR_REQ_REL_INST;
-        spir_req.i_environment_id = 1;
-        spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-        spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-            
-        if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS)
-        {
-           rc = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-           return;
-        }
-    }
+	   A similar thing has to be done when a PWE on VDEST or ADEST
+	   is destroyed; It needs to be checked whether any OAC has
+	   been created, and if yes, then it has to be destroyed. Please 
+	   see NCSVDA_PWE_DESTROY/NCSADA_PWE_DESTROY code for this.
+	 */
+	memset(&spir_req, 0, sizeof(spir_req));
+	spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
+	spir_req.i_environment_id = 1;
+	spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
+	spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
+	if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
+		/* PWE1-OAC has been created. So destroy it */
+		memset(&spir_req, 0, sizeof(spir_req));
+		spir_req.type = NCS_SPIR_REQ_REL_INST;
+		spir_req.i_environment_id = 1;
+		spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
+		spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
 
-   /* STEP: Invoke OAC library shutdown */         
-   memset(&lib_destroy, 0, sizeof(lib_destroy));
-   lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-   lib_destroy.info.destroy.dummy = 0;
+		if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
+			rc = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			return;
+		}
+	}
 
-   oaclib_request(&lib_destroy);
-   
-   gl_ncs_main_pub_cb.oac_use_count = 0;
-   gl_ncs_main_pub_cb.core_started = FALSE;
+	/* STEP: Invoke OAC library shutdown */
+	memset(&lib_destroy, 0, sizeof(lib_destroy));
+	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
+	lib_destroy.info.destroy.dummy = 0;
 
-   m_NCS_AGENT_UNLOCK;
+	oaclib_request(&lib_destroy);
 
-   return;
+	gl_ncs_main_pub_cb.oac_use_count = 0;
+	gl_ncs_main_pub_cb.core_started = FALSE;
+
+	m_NCS_AGENT_UNLOCK;
+
+	return;
 }
-
 
 /***************************************************************************\
 
@@ -1101,30 +999,27 @@ void ncs_oac_shutdown()
 \***************************************************************************/
 unsigned int ncs_core_agents_shutdown()
 {
-   if (!gl_ncs_main_pub_cb.core_use_count)
-   {
-      NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-      return NCSCC_RC_FAILURE;
-   }
+	if (!gl_ncs_main_pub_cb.core_use_count) {
+		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (gl_ncs_main_pub_cb.core_use_count > 1)
-   {
-      /* Decrement the use count */
-      gl_ncs_main_pub_cb.core_use_count--;
-      return NCSCC_RC_SUCCESS;
-   }
+	if (gl_ncs_main_pub_cb.core_use_count > 1) {
+		/* Decrement the use count */
+		gl_ncs_main_pub_cb.core_use_count--;
+		return NCSCC_RC_SUCCESS;
+	}
 
    /*** Shutdown basic services ***/
-   ncs_oac_shutdown();
-   /*usleep(1000); */ 
-   ncs_dta_shutdown();
-   ncs_mds_shutdown();
-   ncs_leap_shutdown();
-   gl_ncs_main_pub_cb.core_use_count = 0;
-   
-   return (NCSCC_RC_SUCCESS);
-}
+	ncs_oac_shutdown();
+	/*usleep(1000); */
+	ncs_dta_shutdown();
+	ncs_mds_shutdown();
+	ncs_leap_shutdown();
+	gl_ncs_main_pub_cb.core_use_count = 0;
 
+	return (NCSCC_RC_SUCCESS);
+}
 
 /***************************************************************************\
 
@@ -1133,370 +1028,320 @@ unsigned int ncs_core_agents_shutdown()
 \***************************************************************************/
 NCS_NODE_ID ncs_get_node_id(void)
 {
-   if (!gl_ncs_main_pub_cb.core_started)
-   {
-      return m_LEAP_DBG_SINK(0);
-   }
+	if (!gl_ncs_main_pub_cb.core_started) {
+		return m_LEAP_DBG_SINK(0);
+	}
 
-   return gl_ncs_main_pub_cb.my_nodeid;
+	return gl_ncs_main_pub_cb.my_nodeid;
 }
-
-
-
 
 uns32 file_get_word(FILE **fp, char *o_chword)
 {
-   int temp_char;
-   unsigned int temp_ctr=0;
-try_again:
-   temp_ctr = 0;
-   temp_char = getc(*fp);
-   while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != ' ') && (temp_char != '\0'))
-   {
-      o_chword[temp_ctr] = (char)temp_char;
-      temp_char = getc(*fp);
-      temp_ctr++;
-   }
-   o_chword[temp_ctr] = '\0';
-   if (temp_char == EOF)
-   {
-      return(NCS_MAIN_EOF);
-   }
-   if (temp_char == '\n')
-   {
-      return(NCS_MAIN_ENTER_CHAR);
-   }
-   if(o_chword[0] == 0x0)
-      goto try_again;
-   return(0);
+	int temp_char;
+	unsigned int temp_ctr = 0;
+ try_again:
+	temp_ctr = 0;
+	temp_char = getc(*fp);
+	while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != ' ') && (temp_char != '\0')) {
+		o_chword[temp_ctr] = (char)temp_char;
+		temp_char = getc(*fp);
+		temp_ctr++;
+	}
+	o_chword[temp_ctr] = '\0';
+	if (temp_char == EOF) {
+		return (NCS_MAIN_EOF);
+	}
+	if (temp_char == '\n') {
+		return (NCS_MAIN_ENTER_CHAR);
+	}
+	if (o_chword[0] == 0x0)
+		goto try_again;
+	return (0);
 }
 
 uns32 file_get_string(FILE **fp, char *o_chword)
 {
-   int temp_char;
-   unsigned int temp_ctr=0;
-try_again:
-   temp_ctr = 0;
-   temp_char = getc(*fp);
-   while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != '\0'))
-   {
-      o_chword[temp_ctr] = (char)temp_char;
-      temp_char = getc(*fp);
-      temp_ctr++;
-   }
-   o_chword[temp_ctr] = '\0';
-   if (temp_char == EOF)
-   {
-      return(NCS_MAIN_EOF);
-   }
-   if (temp_char == '\n')
-   {
-      return(NCS_MAIN_ENTER_CHAR);
-   }
-   if(o_chword[0] == 0x0)
-      goto try_again;
-   return(0);
+	int temp_char;
+	unsigned int temp_ctr = 0;
+ try_again:
+	temp_ctr = 0;
+	temp_char = getc(*fp);
+	while ((temp_char != EOF) && (temp_char != '\n') && (temp_char != '\0')) {
+		o_chword[temp_ctr] = (char)temp_char;
+		temp_char = getc(*fp);
+		temp_ctr++;
+	}
+	o_chword[temp_ctr] = '\0';
+	if (temp_char == EOF) {
+		return (NCS_MAIN_EOF);
+	}
+	if (temp_char == '\n') {
+		return (NCS_MAIN_ENTER_CHAR);
+	}
+	if (o_chword[0] == 0x0)
+		goto try_again;
+	return (0);
 }
-
-
 
 uns32 mainget_node_id(uns32 *node_id)
 {
-   FILE *fp;
-   char get_word[256];
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   char *tmp;
+	FILE *fp;
+	char get_word[256];
+	uns32 res = NCSCC_RC_SUCCESS;
+	uns32 d_len, f_len;
+	char *tmp;
 
 #ifdef __NCSINC_LINUX__
 #if (MDS_MULTI_HUB_PER_OS_INSTANCE == 1)
-   tmp = getenv("NCS_SIM_NODE_ID");
-   if (tmp != NULL)
-   {
-       m_NCS_DBG_PRINTF("\nNCS: Reading node_id(%s) from environment var.\n",tmp);
-       *node_id = atoi(tmp);
-       return NCSCC_RC_SUCCESS;
-   }
+	tmp = getenv("NCS_SIM_NODE_ID");
+	if (tmp != NULL) {
+		m_NCS_DBG_PRINTF("\nNCS: Reading node_id(%s) from environment var.\n", tmp);
+		*node_id = atoi(tmp);
+		return NCSCC_RC_SUCCESS;
+	}
 #else
-   USE(tmp);
+	USE(tmp);
 #endif
-   d_len = strlen(ncs_config_root);
-   f_len = strlen("/node_id");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-       printf("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* Hack ncs_config_root to construct path */
-   sprintf(ncs_config_root + d_len, "%s", "/node_id");
+	d_len = strlen(ncs_config_root);
+	f_len = strlen("/node_id");
+	if ((d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN) {
+		printf("\n Filename too long \n");
+		return NCSCC_RC_FAILURE;
+	}
+	/* Hack ncs_config_root to construct path */
+	sprintf(ncs_config_root + d_len, "%s", "/node_id");
 
+	/* LSB changes. Pick nodeid from OSAF_LOCALSTATEDIR */
 
-   /* LSB changes. Pick nodeid from OSAF_LOCALSTATEDIR */
+	fp = fopen(NODE_ID_FILE, "r");
 
-   fp = fopen(NODE_ID_FILE,"r");
-
-   /* Reverse hack ncs_config_root to original value*/
-   ncs_config_root[d_len] = 0;
+	/* Reverse hack ncs_config_root to original value */
+	ncs_config_root[d_len] = 0;
 #else
-   fp = fopen("c:\\ncs\\node_id","r");
+	fp = fopen("c:\\ncs\\node_id", "r");
 #endif
-   if (fp == NULL)
-   {
-      res = NCSCC_RC_FAILURE;
-   } else
-   {
-      do
-      {   
-         file_get_word(&fp,get_word);
-          
-         if (sscanf((const char *)&get_word,"%x",node_id)!= 1)
-         { 
-             res = NCSCC_RC_FAILURE;
-             break;
-         }     
-         fclose(fp);
+	if (fp == NULL) {
+		res = NCSCC_RC_FAILURE;
+	} else {
+		do {
+			file_get_word(&fp, get_word);
 
-      } while(0);
-   }
+			if (sscanf((const char *)&get_word, "%x", node_id) != 1) {
+				res = NCSCC_RC_FAILURE;
+				break;
+			}
+			fclose(fp);
 
-   return (res);
+		} while (0);
+	}
+
+	return (res);
 }
 
-
 /* Fetchs the chassis type string */
-uns32
-ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type)
+uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type)
 {
-   FILE *fp;
-   uns32 res = NCSCC_RC_SUCCESS;
-   uns32 d_len, f_len;
-   uns32 file_size = 0;
-   char temp_ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
+	FILE *fp;
+	uns32 res = NCSCC_RC_SUCCESS;
+	uns32 d_len, f_len;
+	uns32 file_size = 0;
+	char temp_ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 
-   if((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS) 
-      return NCSCC_RC_FAILURE;
+	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS)
+		return NCSCC_RC_FAILURE;
 
-   memset(temp_ncs_config_root,0,sizeof(temp_ncs_config_root));
+	memset(temp_ncs_config_root, 0, sizeof(temp_ncs_config_root));
 
-   strncpy(temp_ncs_config_root,ncs_config_root,sizeof(temp_ncs_config_root)-1);
-  
-   if(i_max_len > NCS_MAX_CHASSIS_TYPE_LEN)
-       return NCSCC_RC_FAILURE;
+	strncpy(temp_ncs_config_root, ncs_config_root, sizeof(temp_ncs_config_root) - 1);
 
-   d_len = strlen(temp_ncs_config_root);
+	if (i_max_len > NCS_MAX_CHASSIS_TYPE_LEN)
+		return NCSCC_RC_FAILURE;
 
-   f_len = strlen("/chassis_type");
-   if ( (d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN)
-   {
-      printf("\n Filename too long \n");
-      return NCSCC_RC_FAILURE;
-   }
+	d_len = strlen(temp_ncs_config_root);
 
-   /* Hack ncs_config_root to construct path */
-   sprintf(temp_ncs_config_root + d_len, "%s", "/chassis_type");
-   fp = fopen(temp_ncs_config_root,"r");
-   if (fp == NULL)
-   {
-      printf("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
-      return NCSCC_RC_FAILURE;
-   }
+	f_len = strlen("/chassis_type");
+	if ((d_len + f_len) >= MAX_NCS_CONFIG_FILEPATH_LEN) {
+		printf("\n Filename too long \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* positions the file pointer to the end of the file */
-   if(0 != fseek(fp,0L,SEEK_END))
-   {
-      printf("fseek call failed with errno  %d \n",errno);
-      fclose(fp);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   /* gets the file pointer offset from the start of the file */
-   file_size  = ftell(fp);
-   if(file_size == -1)
-   { 
-        printf("ftell call failed with errno %d \n",errno);
-        fclose(fp);
-        return NCSCC_RC_FAILURE;
-   }
+	/* Hack ncs_config_root to construct path */
+	sprintf(temp_ncs_config_root + d_len, "%s", "/chassis_type");
+	fp = fopen(temp_ncs_config_root, "r");
+	if (fp == NULL) {
+		printf("\nNCS: Couldn't open %s/chassis_type \n", temp_ncs_config_root);
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* validating the file size */
-   if((file_size > NCS_MAX_CHASSIS_TYPE_LEN +1)||(file_size > i_max_len + 1) ||(file_size == 0)) 
-   {
-     printf("Some thing wrong with chassis_type file \n");
-     fclose(fp);
-     return NCSCC_RC_FAILURE;
-   }
+	/* positions the file pointer to the end of the file */
+	if (0 != fseek(fp, 0L, SEEK_END)) {
+		printf("fseek call failed with errno  %d \n", errno);
+		fclose(fp);
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* positions the file pointer to the end of the file */
-   if(0 != fseek(fp,0L,SEEK_SET))
-   {
-      printf("fseek call failed with errno  %d \n",errno);
-      fclose(fp);
-      return NCSCC_RC_FAILURE;
-   }
+	/* gets the file pointer offset from the start of the file */
+	file_size = ftell(fp);
+	if (file_size == -1) {
+		printf("ftell call failed with errno %d \n", errno);
+		fclose(fp);
+		return NCSCC_RC_FAILURE;
+	}
 
-   do
-   {
-      /* reads the chassis type string from the file and copies into the user provided buffer*/ 
-      file_get_string(&fp,o_chassis_type);
+	/* validating the file size */
+	if ((file_size > NCS_MAX_CHASSIS_TYPE_LEN + 1) || (file_size > i_max_len + 1) || (file_size == 0)) {
+		printf("Some thing wrong with chassis_type file \n");
+		fclose(fp);
+		return NCSCC_RC_FAILURE;
+	}
 
-      fclose(fp);
+	/* positions the file pointer to the end of the file */
+	if (0 != fseek(fp, 0L, SEEK_SET)) {
+		printf("fseek call failed with errno  %d \n", errno);
+		fclose(fp);
+		return NCSCC_RC_FAILURE;
+	}
 
-   } while(0);
+	do {
+		/* reads the chassis type string from the file and copies into the user provided buffer */
+		file_get_string(&fp, o_chassis_type);
 
-   return(res);
+		fclose(fp);
+
+	} while (0);
+
+	return (res);
 }
 
 static uns32 ncs_set_config_root(void)
 {
-   char *tmp;  
-   static NCS_BOOL config_root_init =FALSE;
-  
-   if(config_root_init == TRUE)
-     return NCSCC_RC_SUCCESS;
-   else
-      config_root_init = TRUE;
+	char *tmp;
+	static NCS_BOOL config_root_init = FALSE;
 
-   tmp = getenv("NCS_SIMULATION_CONFIG_ROOTDIR");
-   if (tmp != NULL)
-   {
-      if (strlen (tmp) >= MAX_NCS_CONFIG_ROOTDIR_LEN)
-      {
-          /* m_NCS_NID_NOTIFY(NID_NCS_CFG_DIR_ROOTNAME_LEN_EXCEED); */
-             printf("Config directory root name too long\n");
-             return NCSCC_RC_FAILURE;
-      }
-     sprintf(ncs_config_root, "%s", tmp);
-   
-     m_NCS_DBG_PRINTF("\nNCS: Using %s as config directory root\n", ncs_config_root);
-   }
-   else
-   {
-      sprintf(ncs_config_root, "%s", NCS_DEF_CONFIG_FILEPATH);
-   }
+	if (config_root_init == TRUE)
+		return NCSCC_RC_SUCCESS;
+	else
+		config_root_init = TRUE;
 
-   return NCSCC_RC_SUCCESS;
+	tmp = getenv("NCS_SIMULATION_CONFIG_ROOTDIR");
+	if (tmp != NULL) {
+		if (strlen(tmp) >= MAX_NCS_CONFIG_ROOTDIR_LEN) {
+			/* m_NCS_NID_NOTIFY(NID_NCS_CFG_DIR_ROOTNAME_LEN_EXCEED); */
+			printf("Config directory root name too long\n");
+			return NCSCC_RC_FAILURE;
+		}
+		sprintf(ncs_config_root, "%s", tmp);
+
+		m_NCS_DBG_PRINTF("\nNCS: Using %s as config directory root\n", ncs_config_root);
+	} else {
+		sprintf(ncs_config_root, "%s", NCS_DEF_CONFIG_FILEPATH);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 {
-   char  *tmp_ptr;
-   uns32 res = NCSCC_RC_SUCCESS;
+	char *tmp_ptr;
+	uns32 res = NCSCC_RC_SUCCESS;
 
-   memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
-   
-   if((res = ncs_set_config_root())!= NCSCC_RC_SUCCESS)
-   {
-      printf("Unable to set config root \n");
-      return NCSCC_RC_FAILURE;
-   }
+	memset(sys_params, 0, sizeof(NCS_SYS_PARAMS));
 
+	if ((res = ncs_set_config_root()) != NCSCC_RC_SUCCESS) {
+		printf("Unable to set config root \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   if(mainget_node_id(&sys_params->node_id)!= NCSCC_RC_SUCCESS)
-   {
-      /* m_NCS_NID_NOTIFY(NID_NCS_GET_NODE_ID_FAILED); */
-       printf("Not able to get the NODE ID\n");
-      return(NCSCC_RC_FAILURE);
-   }
+	if (mainget_node_id(&sys_params->node_id) != NCSCC_RC_SUCCESS) {
+		/* m_NCS_NID_NOTIFY(NID_NCS_GET_NODE_ID_FAILED); */
+		printf("Not able to get the NODE ID\n");
+		return (NCSCC_RC_FAILURE);
+	}
 
-      
-   if ((tmp_ptr = getenv("NCS_PCON_ID")) != NULL)
-   {
-      sys_params->pcon_id = atoi(tmp_ptr);
-   }
-   else
-   {
-      sys_params->pcon_id = NCS_MAIN_DEF_PCON_ID ;
-   }
+	if ((tmp_ptr = getenv("NCS_PCON_ID")) != NULL) {
+		sys_params->pcon_id = atoi(tmp_ptr);
+	} else {
+		sys_params->pcon_id = NCS_MAIN_DEF_PCON_ID;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
-
-void ncs_get_sys_params_arg(int i_argc,
-                            char *i_argv[], 
-                            NCS_SYS_PARAMS *sys_params)
+void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_params)
 {
-   char   *p_field;
-   uns32  tmp_ctr;
-   uns32  orig_argc;
-   NCS_SUB_SLOT_ID   sub_slot_id = 0;
-   NCS_SYS_PARAMS params;
-   char *ptr;
- 
-   orig_argc = gl_pargc;
-   for (tmp_ctr=0; tmp_ctr<NCS_MAX_INPUT_ARG_DEF; tmp_ctr++)
-   {
-     gl_pargv[(gl_pargc) + tmp_ctr] = (char*)malloc(NCS_MAX_STR_INPUT);
-     memset(gl_pargv[(gl_pargc) + tmp_ctr],0,NCS_MAX_STR_INPUT);
-   }
-   gl_pargc += tmp_ctr;
+	char *p_field;
+	uns32 tmp_ctr;
+	uns32 orig_argc;
+	NCS_SUB_SLOT_ID sub_slot_id = 0;
+	NCS_SYS_PARAMS params;
+	char *ptr;
 
-   /* Check   argv[argc-1] through argv[1] */
-   for ( ; i_argc > 1; i_argc -- )
-   {
-      p_field = strstr(i_argv[i_argc-1], "NODE_ID=");
-      if (p_field != NULL)
-      {
-         if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
-            sys_params->node_id = params.node_id;
+	orig_argc = gl_pargc;
+	for (tmp_ctr = 0; tmp_ctr < NCS_MAX_INPUT_ARG_DEF; tmp_ctr++) {
+		gl_pargv[(gl_pargc) + tmp_ctr] = (char *)malloc(NCS_MAX_STR_INPUT);
+		memset(gl_pargv[(gl_pargc) + tmp_ctr], 0, NCS_MAX_STR_INPUT);
+	}
+	gl_pargc += tmp_ctr;
 
-         continue;
-      }
-      else
-      p_field = strstr(i_argv[i_argc-1], "PCON_ID=");
-      if (p_field != NULL)
-      {
-         if (sscanf(p_field + strlen("PCON_ID="), "%d", &params.pcon_id) == 1)
-            sys_params->pcon_id = params.pcon_id;
+	/* Check   argv[argc-1] through argv[1] */
+	for (; i_argc > 1; i_argc--) {
+		p_field = strstr(i_argv[i_argc - 1], "NODE_ID=");
+		if (p_field != NULL) {
+			if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
+				sys_params->node_id = params.node_id;
 
-         continue;
-      }
-      else      
-      {
-         /* else store whatever comes */
-         gl_pargv[gl_pargc] = (char*)malloc(NCS_MAX_STR_INPUT);
-         memset(gl_pargv[gl_pargc],0,NCS_MAX_STR_INPUT);
-         strcpy(gl_pargv[gl_pargc], i_argv[i_argc-1]);
-         gl_pargc = (gl_pargc) + 1;
-      }
-   }
-   
-   if ((ptr = getenv("NCS_ENV_NODE_ID")) != NULL)
-       sys_params->node_id = atoi(ptr);
-   
-   m_NCS_DBG_PRINTF("NCS:NODE_ID=0x%08X\n", sys_params->node_id);
+			continue;
+		} else
+			p_field = strstr(i_argv[i_argc - 1], "PCON_ID=");
+		if (p_field != NULL) {
+			if (sscanf(p_field + strlen("PCON_ID="), "%d", &params.pcon_id) == 1)
+				sys_params->pcon_id = params.pcon_id;
 
-   gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
+			continue;
+		} else {
+			/* else store whatever comes */
+			gl_pargv[gl_pargc] = (char *)malloc(NCS_MAX_STR_INPUT);
+			memset(gl_pargv[gl_pargc], 0, NCS_MAX_STR_INPUT);
+			strcpy(gl_pargv[gl_pargc], i_argv[i_argc - 1]);
+			gl_pargc = (gl_pargc) + 1;
+		}
+	}
 
-   if(m_NCS_GET_PHYINFO_FROM_NODE_ID(sys_params->node_id,&sys_params->shelf_id,
-                              &sys_params->slot_id,&sub_slot_id)!= NCSCC_RC_SUCCESS)
-   {
-      
-        m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-        return ; 
-   }
+	if ((ptr = getenv("NCS_ENV_NODE_ID")) != NULL)
+		sys_params->node_id = atoi(ptr);
 
-   sprintf(gl_pargv[orig_argc + 0],"NONE");
-   sprintf(gl_pargv[orig_argc + 1],"CLUSTER_ID=%d",sys_params->cluster_id);
-   sprintf(gl_pargv[orig_argc + 2],"SHELF_ID=%d",sys_params->shelf_id);
-   sprintf(gl_pargv[orig_argc + 3],"SLOT_ID=%d",sys_params->slot_id);
-   sprintf(gl_pargv[orig_argc + 4],"NODE_ID=%d",sys_params->node_id);
-   sprintf(gl_pargv[orig_argc + 5],"PCON_ID=%d",sys_params->pcon_id);
-      
-   return;
+	m_NCS_DBG_PRINTF("NCS:NODE_ID=0x%08X\n", sys_params->node_id);
+
+	gl_ncs_main_pub_cb.my_nodeid = sys_params->node_id;
+
+	if (m_NCS_GET_PHYINFO_FROM_NODE_ID(sys_params->node_id, &sys_params->shelf_id,
+					   &sys_params->slot_id, &sub_slot_id) != NCSCC_RC_SUCCESS) {
+
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return;
+	}
+
+	sprintf(gl_pargv[orig_argc + 0], "NONE");
+	sprintf(gl_pargv[orig_argc + 1], "CLUSTER_ID=%d", sys_params->cluster_id);
+	sprintf(gl_pargv[orig_argc + 2], "SHELF_ID=%d", sys_params->shelf_id);
+	sprintf(gl_pargv[orig_argc + 3], "SLOT_ID=%d", sys_params->slot_id);
+	sprintf(gl_pargv[orig_argc + 4], "NODE_ID=%d", sys_params->node_id);
+	sprintf(gl_pargv[orig_argc + 5], "PCON_ID=%d", sys_params->pcon_id);
+
+	return;
 }
 
-uns32 ncs_update_sys_param_args(int argc, char *argv[]) 
+uns32 ncs_update_sys_param_args(int argc, char *argv[])
 {
-   NCS_SYS_PARAMS sys_params;
+	NCS_SYS_PARAMS sys_params;
 
-   /* Get the system specific parameters */
-   ncs_util_get_sys_params(&sys_params);
+	/* Get the system specific parameters */
+	ncs_util_get_sys_params(&sys_params);
 
-   /* Frame input arguments */
-   ncs_get_sys_params_arg(argc, argv, &sys_params);
-   
-   return NCSCC_RC_SUCCESS;
+	/* Frame input arguments */
+	ncs_get_sys_params_arg(argc, argv, &sys_params);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************\
@@ -1506,23 +1351,22 @@ uns32 ncs_update_sys_param_args(int argc, char *argv[])
 \***************************************************************************/
 char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix)
 {
-   char char_option;
-   char                 *p_field;
+	char char_option;
+	char *p_field;
 
-   p_field = ncs_util_search_argv_list(argc, argv, arg_prefix);
-   if (p_field == NULL)
-   {
-      return 0;
-   }
-   if (sscanf(p_field + strlen(arg_prefix), "%c", &char_option) != 1)
-   {
-      return 0;
-   }
-   if (isupper(char_option))
-      char_option = (char)tolower(char_option);
+	p_field = ncs_util_search_argv_list(argc, argv, arg_prefix);
+	if (p_field == NULL) {
+		return 0;
+	}
+	if (sscanf(p_field + strlen(arg_prefix), "%c", &char_option) != 1) {
+		return 0;
+	}
+	if (isupper(char_option))
+		char_option = (char)tolower(char_option);
 
-   return char_option;
+	return char_option;
 }
+
 /***************************************************************************\
 
   PROCEDURE    :    ncs_util_search_argv_list
@@ -1530,16 +1374,15 @@ char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix)
 \***************************************************************************/
 char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 {
-   char *tmp;
+	char *tmp;
 
-   /* Check   argv[argc-1] through argv[1] */
-   for ( ; argc > 1; argc -- )
-   {
-      tmp = strstr(argv[argc-1], arg_prefix);
-      if (tmp != NULL)
-         return tmp;
-   }
-   return NULL;
+	/* Check   argv[argc-1] through argv[1] */
+	for (; argc > 1; argc--) {
+		tmp = strstr(argv[argc - 1], arg_prefix);
+		if (tmp != NULL)
+			return tmp;
+	}
+	return NULL;
 }
 
 /*****************************************************************************
@@ -1551,7 +1394,6 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 
                      Global variable name = "gl_ncs_log_dir"
 
-
   RETURNS:           SUCCESS - All went well.
                      FAILURE - Something went wrong.
 
@@ -1559,28 +1401,24 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 static uns32 ncs_main_set_log_dir()
 {
 #ifdef __NCSINC_LINUX__
-   {
-       char * env_var;
-       env_var = getenv("NCS_LOG_PATH");
+	{
+		char *env_var;
+		env_var = getenv("NCS_LOG_PATH");
 
-       if(env_var)
-       {
-           strcpy(gl_ncs_log_dir, env_var);
-       }
-       else
-       {
-           strcpy(gl_ncs_log_dir, LOG_PATH);
-       }
+		if (env_var) {
+			strcpy(gl_ncs_log_dir, env_var);
+		} else {
+			strcpy(gl_ncs_log_dir, LOG_PATH);
+		}
 
-       if (ncs_main_create_log_dir(gl_ncs_log_dir) != NCSCC_RC_SUCCESS)
-       {
-           return NCSCC_RC_FAILURE;
-       }
-   }
+		if (ncs_main_create_log_dir(gl_ncs_log_dir) != NCSCC_RC_SUCCESS) {
+			return NCSCC_RC_FAILURE;
+		}
+	}
 #else
-   strcpy(gl_ncs_log_dir, LOG_PATH);
+	strcpy(gl_ncs_log_dir, LOG_PATH);
 #endif
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 #ifdef __NCSINC_LINUX__
@@ -1596,52 +1434,45 @@ static uns32 ncs_main_set_log_dir()
 *****************************************************************************/
 static uns32 ncs_main_create_log_dir(char *path)
 {
-    uns32 retval = NCSCC_RC_SUCCESS;
-    uns32 i= 0, len = 0;
-    char *tmp, tchar[200];
+	uns32 retval = NCSCC_RC_SUCCESS;
+	uns32 i = 0, len = 0;
+	char *tmp, tchar[200];
 
-    if (NCS_LOG_DIR_NAME_MAXLEN < strlen(path))
-    {
-       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-    }
-    if (*path != '/')
-    {
-       return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-    }
+	if (NCS_LOG_DIR_NAME_MAXLEN < strlen(path)) {
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+	if (*path != '/') {
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-    len = strlen(path);
+	len = strlen(path);
 
-    if (path[len-1] != '/')
-    {
-        path[len] = '/';
-        path[len+1] = '\0';
-    }
+	if (path[len - 1] != '/') {
+		path[len] = '/';
+		path[len + 1] = '\0';
+	}
 
-    tmp = path;
+	tmp = path;
 
-    while(*tmp != '\0')
-    {
-        tchar[i] = *tmp;
-        tmp++;
-        i++;
+	while (*tmp != '\0') {
+		tchar[i] = *tmp;
+		tmp++;
+		i++;
 
-        if ((*tmp == '/') || (*tmp == '\0'))
-        {
-            tchar[i] = '\0';
-            if (MKDIR(tchar, 0x3ED) == -1)
-            {
-               if (errno != EEXIST)
-               {
-                   perror("Failed to create log directory:");
-                   retval = NCSCC_RC_FAILURE;
-                   break;
-               }
-            }
-            tchar[i] = '/';
-        }
-    }
-    NCSMAINPUB_DBG_TRACE1_ARG2("\n My log directory path = %s \n", path);
-    return retval;
+		if ((*tmp == '/') || (*tmp == '\0')) {
+			tchar[i] = '\0';
+			if (MKDIR(tchar, 0x3ED) == -1) {
+				if (errno != EEXIST) {
+					perror("Failed to create log directory:");
+					retval = NCSCC_RC_FAILURE;
+					break;
+				}
+			}
+			tchar[i] = '/';
+		}
+	}
+	NCSMAINPUB_DBG_TRACE1_ARG2("\n My log directory path = %s \n", path);
+	return retval;
 }
 #endif
 
@@ -1661,17 +1492,16 @@ static uns32 ncs_main_create_log_dir(char *path)
 
   Notes         :  None.
 ******************************************************************************/
-uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id, 
-                                                 NCS_SUB_SLOT_ID i_sub_slot_id , NCS_NODE_ID *o_node_id)
+uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID i_phy_slot_id,
+				  NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id)
 {
-    if ( o_node_id == NULL)
-       return NCSCC_RC_FAILURE;
+	if (o_node_id == NULL)
+		return NCSCC_RC_FAILURE;
 
-    *o_node_id = ((NCS_CHASSIS_ID)i_chassis_id << 16) |
-                 ((NCS_NODE_ID)i_phy_slot_id << 8) |
-                 (NCS_NODE_ID)i_sub_slot_id ;
-                                  
-    return NCSCC_RC_SUCCESS;
+	*o_node_id = ((NCS_CHASSIS_ID)i_chassis_id << 16) |
+	    ((NCS_NODE_ID)i_phy_slot_id << 8) | (NCS_NODE_ID)i_sub_slot_id;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1690,18 +1520,17 @@ uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id, NCS_PHY_SLOT_ID 
 
   Notes         :  None.
 ******************************************************************************/
-uns8 ncs_get_phyinfo_from_node_id( NCS_NODE_ID i_node_id , NCS_CHASSIS_ID *o_chassis_id, 
-                                               NCS_PHY_SLOT_ID  *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
+uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id, NCS_CHASSIS_ID *o_chassis_id,
+				  NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id)
 {
-   if(o_sub_slot_id!=NULL)
-      *o_sub_slot_id =  ((NCS_SUB_SLOT_ID) i_node_id);
+	if (o_sub_slot_id != NULL)
+		*o_sub_slot_id = ((NCS_SUB_SLOT_ID)i_node_id);
 
-   if(o_chassis_id!=NULL)
-      *o_chassis_id  =  (NCS_CHASSIS_ID)(i_node_id >>16);
-   
-   if(o_phy_slot_id!=NULL)
-      *o_phy_slot_id =  (NCS_PHY_SLOT_ID)(i_node_id >>8);
+	if (o_chassis_id != NULL)
+		*o_chassis_id = (NCS_CHASSIS_ID)(i_node_id >> 16);
 
-   return NCSCC_RC_SUCCESS;
+	if (o_phy_slot_id != NULL)
+		*o_phy_slot_id = (NCS_PHY_SLOT_ID)(i_node_id >> 8);
+
+	return NCSCC_RC_SUCCESS;
 }
-        

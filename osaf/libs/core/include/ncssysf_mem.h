@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,13 +46,10 @@ extern "C" {
 #if (NCSSYSM_BUF_DBG_ENABLE == 1)
 
 #define m_NCSSYSM_BUF_ASSERT(exp)  assert(exp)
-
 #else
 
 #define m_NCSSYSM_BUF_ASSERT(exp)
-
 #endif
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
@@ -95,12 +91,10 @@ extern "C" {
 #define m_BUFR_STUFF_OWNER(p)  if (NULL != p)\
                                  ncs_ub_dbg_loc(p,__LINE__,__FILE__)
 
-LEAPDLL_API void ncs_ub_dbg_loc(USRBUF* ub, uns32 l, char* f);
+	LEAPDLL_API void ncs_ub_dbg_loc(USRBUF *ub, uns32 l, char *f);
 #else
 #define m_BUFR_STUFF_OWNER(p)
 #endif
-
-
 
 /** Macro to allocate a USRBUF (packet buffer) from a particular pool
  ** at a particular priority. Subsystems that are 'USRBUF pool ready' will
@@ -128,14 +122,11 @@ LEAPDLL_API void ncs_ub_dbg_loc(USRBUF* ub, uns32 l, char* f);
  ** 
  ** The macro must return a pointer to the USRBUF.
  **/
-#define m_MMGR_ALLOC_BUFR(n)  (sysf_alloc_pkt(0,0,n,__LINE__,__FILE__)) /* Alloc short-term buffer */
-
+#define m_MMGR_ALLOC_BUFR(n)  (sysf_alloc_pkt(0,0,n,__LINE__,__FILE__))	/* Alloc short-term buffer */
 
 /** Macro to free a USRBUF (packet buffer)...
  **/
-#define m_MMGR_FREE_BUFR(ub)  (sysf_free_pkt(ub)) /* Free short-term buffer */
-
-
+#define m_MMGR_FREE_BUFR(ub)  (sysf_free_pkt(ub))	/* Free short-term buffer */
 
  /** Macro to mark a USRBUF with owner svc_id,sub_id,file, and line ...
  **/
@@ -145,27 +136,24 @@ LEAPDLL_API void ncs_ub_dbg_loc(USRBUF* ub, uns32 l, char* f);
 #define m_NCS_BUF_DBG_LOC(ptr,svc_id,sub_id)
 #endif
 
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
  @          MEMORY MANAGER (PACKET BUFFER) Function Prototypes...
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-LEAPDLL_API void* sysf_leap_alloc(uns32 b,uns8 pool_id, uns8 pri);
-LEAPDLL_API void sysf_leap_free(void *data,uns8 pool_id);
-LEAPDLL_API void* sysf_heap_alloc( uns32 b,uns8 pool_id, uns8 pri);
-LEAPDLL_API void sysf_heap_free(void *data,uns8 pool_id);
-LEAPDLL_API void* sysf_stub_alloc(uns32 b,uns8 pool_id, uns8 pri);
-LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
-
+	LEAPDLL_API void *sysf_leap_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	LEAPDLL_API void sysf_leap_free(void *data, uns8 pool_id);
+	LEAPDLL_API void *sysf_heap_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	LEAPDLL_API void sysf_heap_free(void *data, uns8 pool_id);
+	LEAPDLL_API void *sysf_stub_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	LEAPDLL_API void sysf_stub_free(void *data, uns8 pool_id);
 
 /* free the user frame data info */
 #define m_MMGR_FREE_BUFR_FRAMES(ptr) m_NCS_MEM_FREE(ptr->bufp, NCS_MEM_REGION_TRANSIENT, \
                                                 NCS_SERVICE_ID_SOCKET, 0);\
                                                 m_NCS_MEM_FREE(ptr, NCS_MEM_REGION_TRANSIENT, \
                                                 NCS_SERVICE_ID_SOCKET, 0);
-
 
 /** Macro to fetch the beginning of "available" payload in a given USRBUF...
  ** 
@@ -178,8 +166,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
 
 #define m_MMGR_DATA(p, t)     ((t)((p)->payload->Data + (p)->start))
 
-
-
  /** Macro to fetch a pointer to payload at a specified offset in a given USRBUF...
  ** 
  ** "p" is a given USRBUF
@@ -188,8 +174,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **
  **/
 #define m_MMGR_DATA_AT_OFFSET(p, o, t)     ((t)((p)->payload->Data + (p)->start + o))
-
-
 
 /** Macro to fetch the count of octets that may be prepended to the 
  ** beginning of payload within a USRBUF...In some implementations
@@ -212,7 +196,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_TAILROOM(p)    (PAYLOAD_BUF_SIZE - (p)->start - (p)->count)
 
-
 /** Macro to fetch the count of payload data in a given USRBUF (chain)...
  ** 
  ** "p" is a given USRBUF
@@ -220,7 +203,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** This macro must return an unsigned int.
  **/
 #define m_MMGR_LINK_DATA_LEN(p)  sysf_get_chain_len(p)
-
 
 /** Macro to calculate the cksum of payload data in a given USRBUF (chain)...
  ** 
@@ -241,11 +223,10 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** This macro must return a pointer to the duplicate USRBUF.
  **/
 #if (NCSSYSM_BUF_DBG_ENABLE == 1)
-#define m_MMGR_DITTO_BUFR(p)     sysf_ditto_pkt(ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__)) 
+#define m_MMGR_DITTO_BUFR(p)     sysf_ditto_pkt(ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__))
 #else
 #define m_MMGR_DITTO_BUFR(p)     sysf_ditto_pkt(p)
 #endif
-
 
 /** Macro to copy a USRBUF...This translates into creating additional
  ** packet buffer descriptor(s) and payload area(s).
@@ -259,7 +240,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
 #else
 #define m_MMGR_COPY_BUFR(p)     sysf_copy_pkt(p)
 #endif
-
 
 /** Macro to free a USRBUF (chain)...
  ** 
@@ -448,10 +428,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
 }
 #endif
 
-
-
-
-
 /** Macro to fetch the next USRBUF in a queue of USRBUFs.
  ** 
  ** "p" is a given USRBUF
@@ -460,8 +436,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** dequeueing of USRBUFs in certain queues.
  **/
 #define m_MMGR_NEXT(p)        ((p)->next)
-
-
 
 /** Reserves n bytes immediately following the
  ** existing payload of the USRBUF (chain) pointed to by the
@@ -486,8 +460,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_RESERVE_AT_END_AMAP(pp, pn, t) ((t)sysf_reserve_at_end_amap(pp, pn, FALSE))
 
-
-
 /** Removes n bytes from the end of the the existing
  ** payload of the USRBUF (chain) pointed to by the
  ** USRBUF* p.  The size of the payload of the USRBUF
@@ -499,9 +471,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** value.
 **/
 #define m_MMGR_REMOVE_FROM_END(p, n) sysf_remove_from_end(p, n)
-
-
-
 
 /** Reserves n bytes immediately in front of the the
  ** existing payload of the USRBUF (chain) pointed to by the
@@ -518,8 +487,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_RESERVE_AT_START(pp, n, t) ((t)sysf_reserve_at_start(pp, n))
 
-
-
 /** Removes n bytes from the start of the existing
  ** payload of the USRBUF (chain) pointed to by the value
  ** pointed to by the USRBUF** pp.  The size of the payload
@@ -534,7 +501,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_REMOVE_FROM_START(pp, n) sysf_remove_from_start(pp, n)
 
-
 /** Evaluates to a pointer (char*) to the last n bytes in the
  ** current payload area in the USRBUF (chain) headed by p.
  ** The pointer value returned by this macro must point to a
@@ -547,8 +513,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_DATA_AT_END(p, n, s) sysf_data_at_end(p, n, s)
 
-
-
 /** Evaluates to a pointer (char*) to the first n bytes in the
  ** current payload area in the USRBUF (chain) headed by p.
  ** The pointer value returned by this macro must point to a
@@ -560,8 +524,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** this case, the macro should evaluate to the value of s.
  **/
 #define m_MMGR_DATA_AT_START(p, n, s) sysf_data_at_start(p, n, s)
-
-
 
 /** Evaluates to a pointer (char*) to the n bytes at offset o in the
  ** current payload area in the USRBUF (chain) headed by p.
@@ -581,7 +543,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
 
 #define m_MMGR_PTR_MID_DATA(p, o, n, s) \
  sysf_data_in_mid(p, (unsigned int) o, (unsigned int) n, (char*)(s), FALSE)
- 
 
 /** Evaluates to a pointer (char*) to a copy of the n bytes at 
  ** offset o in the current payload area in the USRBUF (chain) 
@@ -595,8 +556,7 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** have taken place. 
  **/
 #define m_MMGR_COPY_MID_DATA(p, o, n, s) \
- sysf_data_in_mid(p,(unsigned int) o, (unsigned int) n, (char*)s, TRUE) 
-
+ sysf_data_in_mid(p,(unsigned int) o, (unsigned int) n, (char*)s, TRUE)
 
 /*
  ** Evaluates to a pointer (char *) which is 'o' bytes from the 
@@ -627,7 +587,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_APPEND_DATA(p1, p2)     sysf_append_data(p1, p2)
 
-
 /**
  ** The macro fragments the existing payload of the USRBUF (chain) 
  ** pointed to by the contents of the USRBUF *ppb.  Each fragment 
@@ -646,9 +605,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_FRAG_BUFR(pbuf, n, ubq)   sysf_frag_bufr(pbuf, n, &ubq)
 
-
-
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
  @      OPTIONAL MEMORY MANAGER (PACKET BUFFER) PRIMITIVES (MACROS) USED
@@ -665,7 +621,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_FETCH_NPS(p)   ((p)->specific.uni_sig_3x.nps)
 
-
 /** Macro to set the "Poll-Sequence Number" for a given USRBUF...
  ** 
  ** "p" is a given USRBUF
@@ -675,7 +630,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_SET_NPS(p, v)  ((p)->specific.uni_sig_3x.nps = (v))
 
-
 /** Macro to fetch the "Retransmission Bit" for a given USRBUF...
  ** 
  ** "p" is a given USRBUF
@@ -683,7 +637,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** This macro should return 1 or 0.
  **/
 #define m_MMGR_FETCH_RTS(p)   ((p)->specific.uni_sig_3x.rts)
-
 
 /** Macro to set the "Retransmission Bit" for a given USRBUF...
  ** 
@@ -694,7 +647,6 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  **/
 #define m_MMGR_SET_RTS(p, v)  ((p)->specific.uni_sig_3x.rts = (v))
 
-
 /** The following macros are used to access a singly linked list of USRBUFs.
  ** This function has been abstracted to a set of macros so that in systems
  ** where the USRBUF does not have a NEXT field, the NQ and DQ routines can
@@ -702,13 +654,12 @@ LEAPDLL_API void sysf_stub_free(void *data,uns8 pool_id);
  ** a NEXT pointer.
  **/
 
-typedef struct sysf_ubq
-{
-    unsigned int count;
-    USRBUF *head;
-    USRBUF *tail;
-    NCS_LOCK lock;
-} SYSF_UBQ;
+	typedef struct sysf_ubq {
+		unsigned int count;
+		USRBUF *head;
+		USRBUF *tail;
+		NCS_LOCK lock;
+	} SYSF_UBQ;
 
 #define m_MMGR_UBQ_CREATE(ubq) \
     { \
@@ -756,86 +707,53 @@ typedef struct sysf_ubq
  **/
 #define m_MMGR_UBQ_NEXT(ubq, pbuf)  m_MMGR_NEXT(pbuf)
 
-
-
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
  @              FUNCTION PROTOTYPES
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-EXTERN_C LEAPDLL_API void         sysf_free_pkt(USRBUF *pb);
+	EXTERN_C LEAPDLL_API void sysf_free_pkt(USRBUF *pb);
 
+	EXTERN_C LEAPDLL_API USRBUF *sysf_alloc_pkt(unsigned char pool_id,
+						    unsigned char priority, int num, unsigned int line, char *file);
 
-EXTERN_C LEAPDLL_API USRBUF      *sysf_alloc_pkt           ( unsigned char pool_id, 
-                                                 unsigned char priority, 
-                                                 int           num, 
-                                                 unsigned int  line, 
-                                                 char*         file);
+	EXTERN_C LEAPDLL_API char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
+	EXTERN_C LEAPDLL_API char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
+	EXTERN_C LEAPDLL_API void sysf_remove_from_end(USRBUF *pb, unsigned int size);
+	EXTERN_C LEAPDLL_API char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
+	EXTERN_C LEAPDLL_API void sysf_remove_from_start(USRBUF **ppb, unsigned int size);
+	EXTERN_C LEAPDLL_API char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare);
+	EXTERN_C LEAPDLL_API char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare);
+	EXTERN_C LEAPDLL_API USRBUF *sysf_ditto_pkt(USRBUF *);
+	EXTERN_C LEAPDLL_API USRBUF *sysf_copy_pkt(USRBUF *dup_me);
+	EXTERN_C LEAPDLL_API char *sysf_data_in_mid(USRBUF *pb,
+						    unsigned int offset,
+						    unsigned int size, char *spare, unsigned int copy_flag);
+	EXTERN_C LEAPDLL_API char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata);
+	EXTERN_C LEAPDLL_API char *sysf_insert_in_mid(USRBUF *pb,
+						      unsigned int offset, unsigned int size, char *ins_data);
+	EXTERN_C LEAPDLL_API unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_sz, SYSF_UBQ *q);
+	EXTERN_C LEAPDLL_API void sysf_append_data(USRBUF *p1, USRBUF *p2);
+	EXTERN_C LEAPDLL_API USRBUF *sysf_ubq_dq_head(SYSF_UBQ *q);
+	EXTERN_C LEAPDLL_API void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
+	EXTERN_C LEAPDLL_API USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
 
-EXTERN_C LEAPDLL_API char        *sysf_reserve_at_end      (USRBUF **ppb, unsigned int size);
-EXTERN_C LEAPDLL_API char        *sysf_reserve_at_end_amap (USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
-EXTERN_C LEAPDLL_API void         sysf_remove_from_end     (USRBUF *pb,   unsigned int size);
-EXTERN_C LEAPDLL_API char        *sysf_reserve_at_start    (USRBUF **ppb, unsigned int size);
-EXTERN_C LEAPDLL_API void         sysf_remove_from_start   (USRBUF **ppb, unsigned int size);
-EXTERN_C LEAPDLL_API char        *sysf_data_at_end         (const USRBUF *pb,   
-                                                unsigned int  size,   
-                                                char         *spare);
-EXTERN_C LEAPDLL_API char        *sysf_data_at_start       (const USRBUF *pb,
-                                                unsigned int  size,   
-                                                char         *spare);
-EXTERN_C LEAPDLL_API USRBUF      *sysf_ditto_pkt           (USRBUF *);
-EXTERN_C LEAPDLL_API USRBUF      *sysf_copy_pkt            (USRBUF       *dup_me);
-EXTERN_C LEAPDLL_API char        *sysf_data_in_mid         (USRBUF       *pb,   
-                                                unsigned int  offset, 
-                                                unsigned int  size, 
-                                                char         *spare, 
-                                                unsigned int  copy_flag);
-EXTERN_C LEAPDLL_API char        *sysf_write_in_mid        (USRBUF       *pb,
-                                                unsigned int  offset, 
-                                                unsigned int  size, 
-                                                char         *cdata);
-EXTERN_C LEAPDLL_API char        *sysf_insert_in_mid       (USRBUF       *pb,   
-                                                unsigned int  offset, 
-                                                unsigned int  size, 
-                                                char         *ins_data);
-EXTERN_C LEAPDLL_API unsigned int sysf_frag_bufr           (USRBUF       *ppb,  
-                                                unsigned int  frag_sz,
-                                                SYSF_UBQ     *q);
-EXTERN_C LEAPDLL_API void         sysf_append_data         (USRBUF       *p1,   
-                                                USRBUF       *p2);
-EXTERN_C LEAPDLL_API USRBUF      *sysf_ubq_dq_head         (SYSF_UBQ     *q);
-EXTERN_C LEAPDLL_API void         sysf_ubq_dq_specific     (SYSF_UBQ     *q, 
-                                                USRBUF       *ub);
-EXTERN_C LEAPDLL_API USRBUF      *sysf_ubq_scan_specific   (SYSF_UBQ     *q, 
-                                                USRBUF       *ub);
-
-EXTERN_C LEAPDLL_API uns32        sysf_copy_from_usrbuf    (USRBUF       *packet, 
-                                                uns8         *buffer,
-                                                uns32         buff_len);
-EXTERN_C LEAPDLL_API USRBUF      *sysf_copy_to_usrbuf      (uns8         *packet, 
-                                                unsigned int  length);
+	EXTERN_C LEAPDLL_API uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
+	EXTERN_C LEAPDLL_API USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
 
 /** Computational routines **/
-EXTERN_C LEAPDLL_API uns32        sysf_get_chain_len       ( const USRBUF *);
-EXTERN_C LEAPDLL_API void         sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, 
-                                                     unsigned int, 
-                                                     uns16 *const);
+	EXTERN_C LEAPDLL_API uns32 sysf_get_chain_len(const USRBUF *);
+	EXTERN_C LEAPDLL_API void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
 
-EXTERN_C LEAPDLL_API void         sysf_usrbuf_hexdump       (USRBUF*       buf, 
-                                                 char*         fname);
+	EXTERN_C LEAPDLL_API void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 
-EXTERN_C LEAPDLL_API uns32        sysf_str_hexdump          (uns8*         data, 
-                                                 uns32         size, 
-                                                 char*         fname);
+	EXTERN_C LEAPDLL_API uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
 
-EXTERN_C LEAPDLL_API uns32        sysf_pick_output          (char*         str, 
-                                                 char*         fname);
+	EXTERN_C LEAPDLL_API uns32 sysf_pick_output(char *str, char *fname);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

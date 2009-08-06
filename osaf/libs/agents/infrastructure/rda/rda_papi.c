@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: rda_papi.c
 
 ..............................................................................
@@ -34,42 +33,38 @@
 #include "rda_papi.h"
 #include <dlfcn.h>
 
-
 /*
 ** Error strings for API users
 */
-char *pcsrda_err_str[] =
-{
-    "PCSRDA_RC_SUCCESS",
-    "PCSRDA_RC_TIMEOUT",
-    "PCSRDA_RC_INVALID_PARAMETER",
-    "PCSRDA_RC_LIB_LOAD_FAILED",
-    "PCSRDA_RC_LIB_NOT_INITIALIZED",
-    "PCSRDA_RC_LIB_NOT_FOUND",
-    "PCSRDA_RC_LIB_SYM_FAILED",
-    "PCSRDA_RC_IPC_CREATE_FAILED",
-    "PCSRDA_RC_IPC_CONNECT_FAILED",
-    "PCSRDA_RC_IPC_SEND_FAILED",
-    "PCSRDA_RC_IPC_RECV_FAILED",
-    "PCSRDA_RC_TASK_SPAWN_FAILED",
-    "PCSRDA_RC_MEM_ALLOC_FAILED",
-    "PCSRDA_RC_CALLBACK_REG_FAILED",
-    "PCSRDA_RC_CALLBACK_ALREADY_REGD",
-    "PCSRDA_RC_LEAP_INIT_FAILED",
-    "PCSRDA_RC_FATAL_IPC_CONNECTION_LOST",
-    "PCSRDA_RC_ROLE_GET_FAILED",
-    "PCSRDA_RC_ROLE_SET_FAILED",
+char *pcsrda_err_str[] = {
+	"PCSRDA_RC_SUCCESS",
+	"PCSRDA_RC_TIMEOUT",
+	"PCSRDA_RC_INVALID_PARAMETER",
+	"PCSRDA_RC_LIB_LOAD_FAILED",
+	"PCSRDA_RC_LIB_NOT_INITIALIZED",
+	"PCSRDA_RC_LIB_NOT_FOUND",
+	"PCSRDA_RC_LIB_SYM_FAILED",
+	"PCSRDA_RC_IPC_CREATE_FAILED",
+	"PCSRDA_RC_IPC_CONNECT_FAILED",
+	"PCSRDA_RC_IPC_SEND_FAILED",
+	"PCSRDA_RC_IPC_RECV_FAILED",
+	"PCSRDA_RC_TASK_SPAWN_FAILED",
+	"PCSRDA_RC_MEM_ALLOC_FAILED",
+	"PCSRDA_RC_CALLBACK_REG_FAILED",
+	"PCSRDA_RC_CALLBACK_ALREADY_REGD",
+	"PCSRDA_RC_LEAP_INIT_FAILED",
+	"PCSRDA_RC_FATAL_IPC_CONNECTION_LOST",
+	"PCSRDA_RC_ROLE_GET_FAILED",
+	"PCSRDA_RC_ROLE_SET_FAILED",
 };
 
-char *pcsrda_role_str[] =
-{ 
-    "PCS_RDA_ACTIVE",
-    "PCS_RDA_STANDBY",
-    "PCS_RDA_QUIESCED",
-    "PCS_RDA_ASSERTING",
-    "PCS_RDA_YIELDING",
-    "PCS_RDA_UNDEFINED"
-
+char *pcsrda_role_str[] = {
+	"PCS_RDA_ACTIVE",
+	"PCS_RDA_STANDBY",
+	"PCS_RDA_QUIESCED",
+	"PCS_RDA_ASSERTING",
+	"PCS_RDA_YIELDING",
+	"PCS_RDA_UNDEFINED"
 };
 
 /*
@@ -85,27 +80,26 @@ char *pcsrda_role_str[] =
 #define PCS_RDA_SYM_SET_ROLE           "pcs_rda_set_role"
 #define PCS_RDA_SYM_GET_ROLE           "pcs_rda_get_role"
 
-typedef int (*PCS_RDA_PTR_REG_CALLBACK)   (uns32, PCS_RDA_CB_PTR, void**);
-typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (void*);
-typedef int (*PCS_RDA_PTR_SET_ROLE)       (PCS_RDA_ROLE);
-typedef int (*PCS_RDA_PTR_GET_ROLE)       (PCS_RDA_ROLE*);
+typedef int (*PCS_RDA_PTR_REG_CALLBACK) (uns32, PCS_RDA_CB_PTR, void **);
+typedef int (*PCS_RDA_PTR_UNREG_CALLBACK) (void *);
+typedef int (*PCS_RDA_PTR_SET_ROLE) (PCS_RDA_ROLE);
+typedef int (*PCS_RDA_PTR_GET_ROLE) (PCS_RDA_ROLE *);
 
 /*
 ** Global data
 */
-static void * pcs_rda_lib_handle    = NULL;
-static void *pcs_rda_callback_cb   = NULL;
-
+static void *pcs_rda_lib_handle = NULL;
+static void *pcs_rda_callback_cb = NULL;
 
 /*
 ** Helper functions
 */
-static int pcs_rda_lib_init          (void);
-static int pcs_rda_lib_destroy       (void);
-static int pcs_rda_lib_reg_callback  (uns32, PCS_RDA_CB_PTR cb_ptr);
+static int pcs_rda_lib_init(void);
+static int pcs_rda_lib_destroy(void);
+static int pcs_rda_lib_reg_callback(uns32, PCS_RDA_CB_PTR cb_ptr);
 static int pcs_rda_lib_unreg_callback(void);
-static int pcs_rda_lib_set_role      (PCS_RDA_ROLE    role);
-static int pcs_rda_lib_get_role      (PCS_RDA_ROLE   *role);
+static int pcs_rda_lib_set_role(PCS_RDA_ROLE role);
+static int pcs_rda_lib_get_role(PCS_RDA_ROLE *role);
 
 /****************************************************************************
  * Name          : pcs_rda_request
@@ -129,242 +123,224 @@ static int pcs_rda_lib_get_role      (PCS_RDA_ROLE   *role);
  *****************************************************************************/
 int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req)
 {
-        int ret = PCSRDA_RC_SUCCESS;
-        
-    switch (pcs_rda_req->req_type)
-    {
+	int ret = PCSRDA_RC_SUCCESS;
 
-    case PCS_RDA_LIB_INIT:
-                ret = pcs_rda_lib_init (); 
-                break;
+	switch (pcs_rda_req->req_type) {
 
-    case PCS_RDA_LIB_DESTROY:
-                ret = pcs_rda_lib_destroy (); 
-                break;
+	case PCS_RDA_LIB_INIT:
+		ret = pcs_rda_lib_init();
+		break;
 
-    case PCS_RDA_REGISTER_CALLBACK:
-                ret = pcs_rda_lib_reg_callback (pcs_rda_req->callback_handle, pcs_rda_req->info.call_back);
-                break;
+	case PCS_RDA_LIB_DESTROY:
+		ret = pcs_rda_lib_destroy();
+		break;
 
-    case PCS_RDA_UNREGISTER_CALLBACK:
-                ret = pcs_rda_lib_unreg_callback ();
-                break;
+	case PCS_RDA_REGISTER_CALLBACK:
+		ret = pcs_rda_lib_reg_callback(pcs_rda_req->callback_handle, pcs_rda_req->info.call_back);
+		break;
 
-    case PCS_RDA_SET_ROLE:
-                ret = pcs_rda_lib_set_role (pcs_rda_req->info.io_role);
-                break;
+	case PCS_RDA_UNREGISTER_CALLBACK:
+		ret = pcs_rda_lib_unreg_callback();
+		break;
 
-    case PCS_RDA_GET_ROLE:
-                pcs_rda_req->info.io_role = PCS_RDA_UNDEFINED;
-                ret = pcs_rda_lib_get_role (&pcs_rda_req->info.io_role);
-                break;
-    
-    default:
-                ret = PCSRDA_RC_INVALID_PARAMETER;
+	case PCS_RDA_SET_ROLE:
+		ret = pcs_rda_lib_set_role(pcs_rda_req->info.io_role);
+		break;
 
-    }/* switch */
+	case PCS_RDA_GET_ROLE:
+		pcs_rda_req->info.io_role = PCS_RDA_UNDEFINED;
+		ret = pcs_rda_lib_get_role(&pcs_rda_req->info.io_role);
+		break;
 
-    /*
-    ** Done
-    */
-    return ret;
+	default:
+		ret = PCSRDA_RC_INVALID_PARAMETER;
+
+	}			/* switch */
+
+	/*
+	 ** Done
+	 */
+	return ret;
 
 }
 
 /*
 ** Helper functions
 */
-static int pcs_rda_lib_init (void)
+static int pcs_rda_lib_init(void)
 {
+	/*
+	 ** Is the libray already loaded?
+	 */
+	if (pcs_rda_lib_handle != NULL) {
+		/* Yes */
+		return PCSRDA_RC_SUCCESS;
 
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle != NULL)
-    {
-        /* Yes */
-        return PCSRDA_RC_SUCCESS;
+	}
 
-    }
+	pcs_rda_lib_handle = dlopen(PCS_RDA_SHARED_LIB_NAME, RTLD_LAZY);
+	if (pcs_rda_lib_handle == NULL) {
+		printf("%s\n", dlerror());
+		return PCSRDA_RC_LIB_LOAD_FAILED;
 
-    pcs_rda_lib_handle = dlopen (PCS_RDA_SHARED_LIB_NAME, RTLD_LAZY);
-    if (pcs_rda_lib_handle == NULL)
-    {
-         printf ("%s\n", dlerror());
-         return PCSRDA_RC_LIB_LOAD_FAILED;
-        
-    }
+	}
 
-    /*
-    ** Done
-    */
-    return PCSRDA_RC_SUCCESS;
+	/*
+	 ** Done
+	 */
+	return PCSRDA_RC_SUCCESS;
 }
 
-
-static int pcs_rda_lib_destroy (void)
+static int pcs_rda_lib_destroy(void)
 {
+	/*
+	 ** Is the libray loaded?
+	 */
+	if (pcs_rda_lib_handle == NULL) {
+		/* No */
+		return PCSRDA_RC_SUCCESS;
 
-    /*
-    ** Is the libray loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-    {
-        /* No */
-        return PCSRDA_RC_SUCCESS;
+	}
 
-    }
+	/*
+	 ** Need to unregiter the callback
+	 */
+	pcs_rda_lib_unreg_callback();
 
-    /*
-    ** Need to unregiter the callback
-    */
-    pcs_rda_lib_unreg_callback ();
+	/*
+	 ** Close shared library
+	 */
+	dlclose(pcs_rda_lib_handle);
+	pcs_rda_lib_handle = NULL;
 
-    /*
-    ** Close shared library
-    */
-    dlclose (pcs_rda_lib_handle);
-    pcs_rda_lib_handle = NULL;
-    
-    /*
-    ** Done
-    */
-    return PCSRDA_RC_SUCCESS;
+	/*
+	 ** Done
+	 */
+	return PCSRDA_RC_SUCCESS;
 
 }
 
-static int pcs_rda_lib_reg_callback (uns32 callback_handle, PCS_RDA_CB_PTR cb_ptr)
+static int pcs_rda_lib_reg_callback(uns32 callback_handle, PCS_RDA_CB_PTR cb_ptr)
 {
-    PCS_RDA_PTR_REG_CALLBACK pcs_rda_ptr_reg_callback;
+	PCS_RDA_PTR_REG_CALLBACK pcs_rda_ptr_reg_callback;
 
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-    {
-            /* No */
-            return PCSRDA_RC_LIB_NOT_INITIALIZED;
+	/*
+	 ** Is the libray already loaded?
+	 */
+	if (pcs_rda_lib_handle == NULL) {
+		/* No */
+		return PCSRDA_RC_LIB_NOT_INITIALIZED;
 
-    }
+	}
 
-    /*
-    ** Is the callback already registered?
-    */
-    if (pcs_rda_callback_cb != NULL)
-    {
-            /* Yes */
-            return PCSRDA_RC_CALLBACK_ALREADY_REGD;
+	/*
+	 ** Is the callback already registered?
+	 */
+	if (pcs_rda_callback_cb != NULL) {
+		/* Yes */
+		return PCSRDA_RC_CALLBACK_ALREADY_REGD;
 
-    }
+	}
 
-    pcs_rda_ptr_reg_callback = (PCS_RDA_PTR_REG_CALLBACK) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_REG_CALLBACK);
-    if (pcs_rda_ptr_reg_callback == NULL)
-    {
-            printf ("%s\n", dlerror());
-            return PCSRDA_RC_LIB_SYM_FAILED;
-    
-    }
+	pcs_rda_ptr_reg_callback = (PCS_RDA_PTR_REG_CALLBACK)dlsym(pcs_rda_lib_handle, PCS_RDA_SYM_REG_CALLBACK);
+	if (pcs_rda_ptr_reg_callback == NULL) {
+		printf("%s\n", dlerror());
+		return PCSRDA_RC_LIB_SYM_FAILED;
 
-    /*
-    ** Register callback
-    */
-    return (*pcs_rda_ptr_reg_callback) (callback_handle, cb_ptr, &pcs_rda_callback_cb);
+	}
+
+	/*
+	 ** Register callback
+	 */
+	return (*pcs_rda_ptr_reg_callback) (callback_handle, cb_ptr, &pcs_rda_callback_cb);
 
 }
 
-static int pcs_rda_lib_unreg_callback ()
+static int pcs_rda_lib_unreg_callback()
 {
-    /*
-    ** Is the libray loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-    {
-        /* No */
-        return PCSRDA_RC_SUCCESS;
+	/*
+	 ** Is the libray loaded?
+	 */
+	if (pcs_rda_lib_handle == NULL) {
+		/* No */
+		return PCSRDA_RC_SUCCESS;
 
-    }
+	}
 
-    /*
-    ** Need to unregiter the callback
-    */
-    if (pcs_rda_callback_cb != NULL)
-    {
-        PCS_RDA_PTR_UNREG_CALLBACK pcs_rda_ptr_unreg_callback;
-        pcs_rda_ptr_unreg_callback = (PCS_RDA_PTR_UNREG_CALLBACK) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_UNREG_CALLBACK);
-        if (pcs_rda_ptr_unreg_callback == NULL)
-        {
-            printf ("%s\n", dlerror());
-            return PCSRDA_RC_LIB_SYM_FAILED;
-        }
+	/*
+	 ** Need to unregiter the callback
+	 */
+	if (pcs_rda_callback_cb != NULL) {
+		PCS_RDA_PTR_UNREG_CALLBACK pcs_rda_ptr_unreg_callback;
+		pcs_rda_ptr_unreg_callback =
+		    (PCS_RDA_PTR_UNREG_CALLBACK)dlsym(pcs_rda_lib_handle, PCS_RDA_SYM_UNREG_CALLBACK);
+		if (pcs_rda_ptr_unreg_callback == NULL) {
+			printf("%s\n", dlerror());
+			return PCSRDA_RC_LIB_SYM_FAILED;
+		}
 
-        (*pcs_rda_ptr_unreg_callback) (pcs_rda_callback_cb);
-        pcs_rda_callback_cb = NULL;
+		(*pcs_rda_ptr_unreg_callback) (pcs_rda_callback_cb);
+		pcs_rda_callback_cb = NULL;
 
-    }
+	}
 
-    /*
-    ** Done
-    */
-    return PCSRDA_RC_SUCCESS;
+	/*
+	 ** Done
+	 */
+	return PCSRDA_RC_SUCCESS;
 
 }
 
-
-static int pcs_rda_lib_set_role (PCS_RDA_ROLE role)
+static int pcs_rda_lib_set_role(PCS_RDA_ROLE role)
 {
-        PCS_RDA_PTR_SET_ROLE pcs_rda_set_role;
+	PCS_RDA_PTR_SET_ROLE pcs_rda_set_role;
 
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-        {
-                /* No */
-                return PCSRDA_RC_LIB_NOT_INITIALIZED;
+	/*
+	 ** Is the libray already loaded?
+	 */
+	if (pcs_rda_lib_handle == NULL) {
+		/* No */
+		return PCSRDA_RC_LIB_NOT_INITIALIZED;
 
-        }
+	}
 
-        pcs_rda_set_role = (PCS_RDA_PTR_SET_ROLE) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_SET_ROLE);
-        if (pcs_rda_set_role == NULL)
-        {
-                printf ("%s\n", dlerror());
-                return PCSRDA_RC_LIB_SYM_FAILED;
-        
-        }
+	pcs_rda_set_role = (PCS_RDA_PTR_SET_ROLE)dlsym(pcs_rda_lib_handle, PCS_RDA_SYM_SET_ROLE);
+	if (pcs_rda_set_role == NULL) {
+		printf("%s\n", dlerror());
+		return PCSRDA_RC_LIB_SYM_FAILED;
 
-        /*
-        ** Set role
-        */
-        return (*pcs_rda_set_role) (role);
+	}
+
+	/*
+	 ** Set role
+	 */
+	return (*pcs_rda_set_role) (role);
 
 }
 
-
-static int pcs_rda_lib_get_role (PCS_RDA_ROLE   *role)
+static int pcs_rda_lib_get_role(PCS_RDA_ROLE *role)
 {
-    PCS_RDA_PTR_GET_ROLE pcs_rda_get_role;
+	PCS_RDA_PTR_GET_ROLE pcs_rda_get_role;
 
-    /*
-    ** Is the libray already loaded?
-    */
-    if (pcs_rda_lib_handle == NULL)
-        {
-                /* No */
-                return PCSRDA_RC_LIB_NOT_INITIALIZED;
+	/*
+	 ** Is the libray already loaded?
+	 */
+	if (pcs_rda_lib_handle == NULL) {
+		/* No */
+		return PCSRDA_RC_LIB_NOT_INITIALIZED;
 
-        }
+	}
 
-        pcs_rda_get_role = (PCS_RDA_PTR_GET_ROLE) dlsym (pcs_rda_lib_handle, PCS_RDA_SYM_GET_ROLE);
-        if (pcs_rda_get_role == NULL)
-        {
-                printf ("%s\n", dlerror());
-                return PCSRDA_RC_LIB_SYM_FAILED;
-        
-        }
+	pcs_rda_get_role = (PCS_RDA_PTR_GET_ROLE)dlsym(pcs_rda_lib_handle, PCS_RDA_SYM_GET_ROLE);
+	if (pcs_rda_get_role == NULL) {
+		printf("%s\n", dlerror());
+		return PCSRDA_RC_LIB_SYM_FAILED;
 
-        /*
-        ** Set role
-        */
-        return (*pcs_rda_get_role) (role);
+	}
+
+	/*
+	 ** Set role
+	 */
+	return (*pcs_rda_get_role) (role);
 
 }

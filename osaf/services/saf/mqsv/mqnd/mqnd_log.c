@@ -15,7 +15,6 @@
  *
  */
 
-
 #include "mqnd.h"
 
 /*****************************************************************************
@@ -27,11 +26,7 @@
       mqnd_flx_log_reg
       mqnd_flx_log_unreg
 
-
 ******************************************************************************/
-
-
-
 
 /*****************************************************************************
 
@@ -47,16 +42,14 @@
                      fno  - filenumber
 *****************************************************************************/
 
-void mqnd_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno)
+void mqnd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno)
 {
 
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_MQND, MQND_LID_HDLN, MQND_FC_HDLN,
-              category, sev, NCSFL_TYPE_TCLIL,fname,fno,id,rc);
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_MQND, MQND_LID_HDLN, MQND_FC_HDLN,
+		   category, sev, NCSFL_TYPE_TCLIL, fname, fno, id, rc);
 
-} /* End of mqnd_new_log()  */
-
-
+}	/* End of mqnd_new_log()  */
 
 /****************************************************************************
  * Name          : mqnd_flx_log_reg
@@ -71,20 +64,20 @@ void mqnd_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno)
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_flx_log_reg (void)
+void mqnd_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MQND;
-   /* fill version no. */
-   reg.info.bind_svc.version = MQSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "MQSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MQND;
+	/* fill version no. */
+	reg.info.bind_svc.version = MQSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "MQSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -100,14 +93,13 @@ void mqnd_flx_log_reg (void)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-mqnd_flx_log_dereg (void)
+void mqnd_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MQND;
-   ncs_dtsv_su_req(&reg);
-   return;
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MQND;
+	ncs_dtsv_su_req(&reg);
+	return;
 }

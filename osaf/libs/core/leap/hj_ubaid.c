@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   
 
 ..............................................................................
@@ -82,7 +81,7 @@
 
 /** Does not violate LEAP split. No MDS 
     headers included in below file
- **/    
+ **/
 #include "ncs_mds_def.h"
 
 #define SIXTYFOUR_BYTES 64
@@ -99,8 +98,6 @@
     area of a single USRDATA, in the NetPlane implementation of USRBUFs.
     .
 *****************************************************************************/
-
-
 
 /*****************************************************************************
 
@@ -120,17 +117,16 @@
 
 *****************************************************************************/
 
-int32
-ncs_enc_init_space(NCS_UBAID* uba)
+int32 ncs_enc_init_space(NCS_UBAID *uba)
 {
-  if ((uba->start = m_MMGR_ALLOC_BUFR (sizeof (USRBUF))) == BNULL)
-      return NCSCC_RC_FAILURE;
+	if ((uba->start = m_MMGR_ALLOC_BUFR(sizeof(USRBUF))) == BNULL)
+		return NCSCC_RC_FAILURE;
 
-  uba->ub  = uba->start;
-  uba->res = 0;
-  uba->ttl = 0;
+	uba->ub = uba->start;
+	uba->res = 0;
+	uba->ttl = 0;
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -157,18 +153,16 @@ ncs_enc_init_space(NCS_UBAID* uba)
 
 *****************************************************************************/
 
-
-int32   
-ncs_enc_init_space_pp(NCS_UBAID* uba, uns8 pool_id, uns8 priority)
+int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uns8 pool_id, uns8 priority)
 {
-  if ((uba->start = m_MMGR_ALLOC_POOLBUFR (pool_id,priority)) == BNULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((uba->start = m_MMGR_ALLOC_POOLBUFR(pool_id, priority)) == BNULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  uba->ub  = uba->start;
-  uba->res = 0;
-  uba->ttl = 0;
+	uba->ub = uba->start;
+	uba->res = 0;
+	uba->ttl = 0;
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -188,14 +182,13 @@ ncs_enc_init_space_pp(NCS_UBAID* uba, uns8 pool_id, uns8 priority)
   NOTES:
 
 *****************************************************************************/
-void
-ncs_enc_prime_space(NCS_UBAID* uba, USRBUF* ub)
-  {
-  uba->start = ub;
-  uba->ub    = ub;
-  uba->res   = 0;
-  uba->ttl   = 0;
-  }
+void ncs_enc_prime_space(NCS_UBAID *uba, USRBUF *ub)
+{
+	uba->start = ub;
+	uba->ub = ub;
+	uba->res = 0;
+	uba->ttl = 0;
+}
 
 /*****************************************************************************
 
@@ -216,11 +209,10 @@ ncs_enc_prime_space(NCS_UBAID* uba, USRBUF* ub)
 
 *****************************************************************************/
 
-void
-ncs_enc_append_usrbuf(NCS_UBAID* uba, USRBUF* ub)
+void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub)
 {
-    m_MMGR_APPEND_DATA(uba->ub, ub);
-    uba->ttl += m_MMGR_LINK_DATA_LEN(ub);
+	m_MMGR_APPEND_DATA(uba->ub, ub);
+	uba->ttl += m_MMGR_LINK_DATA_LEN(ub);
 }
 
 /*****************************************************************************
@@ -245,31 +237,28 @@ ncs_enc_append_usrbuf(NCS_UBAID* uba, USRBUF* ub)
 
 *****************************************************************************/
 
-uns8*
-ncs_enc_reserve_space(NCS_UBAID* uba, int32 res)
+uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res)
 {
-  if (res > PAYLOAD_BUF_SIZE) /* can never reserve > min payload of USRBUF */
-    {
-    res = PAYLOAD_BUF_SIZE;
-    }
+	if (res > PAYLOAD_BUF_SIZE) {	/* can never reserve > min payload of USRBUF */
+		res = PAYLOAD_BUF_SIZE;
+	}
 
-  uba->res = res;  
+	uba->res = res;
 
-   /* HARRY FENG NOTE:
-   ** Most callers of this function don't check NULL pointer (see bug #3349).
-   ** As a patch, we post an out-of-memory message so that 
-   ** there is some indication as to where the crash came from.
-   */
-  uba->bufp = m_MMGR_RESERVE_AT_END( &(uba->ub), (uns32)res, uns8*);
+	/* HARRY FENG NOTE:
+	 ** Most callers of this function don't check NULL pointer (see bug #3349).
+	 ** As a patch, we post an out-of-memory message so that 
+	 ** there is some indication as to where the crash came from.
+	 */
+	uba->bufp = m_MMGR_RESERVE_AT_END(&(uba->ub), (uns32)res, uns8 *);
 
 #ifdef _DEBUG
-  if(uba->bufp == NULL)
-     printf("\nOut of memory in ncs_enc_reserve_space()!");
+	if (uba->bufp == NULL)
+		printf("\nOut of memory in ncs_enc_reserve_space()!");
 #endif
 
-  return uba->bufp;
+	return uba->bufp;
 }
-
 
 /*****************************************************************************
 
@@ -289,15 +278,14 @@ ncs_enc_reserve_space(NCS_UBAID* uba, int32 res)
 
 *****************************************************************************/
 
-void
-ncs_enc_claim_space(NCS_UBAID* uba, int32 used)
+void ncs_enc_claim_space(NCS_UBAID *uba, int32 used)
 {
-  uba->ttl = (uns16)(uba->ttl + used); /* keep our grand total */
+	uba->ttl = (uns16)(uba->ttl + used);	/* keep our grand total */
 
-  /* Free up unused portion which was reserved  */
-  m_MMGR_REMOVE_FROM_END(uba->ub, (uns32)(uba->res - used));
+	/* Free up unused portion which was reserved  */
+	m_MMGR_REMOVE_FROM_END(uba->ub, (uns32)(uba->res - used));
 
-  uba->res = 0; /* wipe out notion that space was reserved...*/
+	uba->res = 0;		/* wipe out notion that space was reserved... */
 }
 
 /*****************************************************************************
@@ -319,15 +307,14 @@ ncs_enc_claim_space(NCS_UBAID* uba, int32 used)
   NOTES:
 
 *****************************************************************************/
-void
-ncs_dec_init_space(NCS_UBAID* uba, USRBUF* ub)
-  {
-  uba->start = 0;
-  uba->ub    = ub;
-  uba->res   = 0;
-  uba->ttl   = 0;
-  uba->max   = m_MMGR_LINK_DATA_LEN(ub); /* find max amount of data as of now */
-  }
+void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub)
+{
+	uba->start = 0;
+	uba->ub = ub;
+	uba->res = 0;
+	uba->ttl = 0;
+	uba->max = m_MMGR_LINK_DATA_LEN(ub);	/* find max amount of data as of now */
+}
 
 /*****************************************************************************
 
@@ -353,18 +340,15 @@ ncs_dec_init_space(NCS_UBAID* uba, USRBUF* ub)
 
 *****************************************************************************/
 
-uns8*
-ncs_dec_flatten_space(NCS_UBAID* uba, uns8 *os, int32 count )
-  {
-  if (uba->ub == BNULL)
-  {
-    m_LEAP_DBG_SINK(NULL);
-    return NULL;
-  }
+uns8 *ncs_dec_flatten_space(NCS_UBAID *uba, uns8 *os, int32 count)
+{
+	if (uba->ub == BNULL) {
+		m_LEAP_DBG_SINK(NULL);
+		return NULL;
+	}
 
-
-  return (uns8*)m_MMGR_DATA_AT_START( uba->ub, (uns32)count, (char*)os);
-  }
+	return (uns8 *)m_MMGR_DATA_AT_START(uba->ub, (uns32)count, (char *)os);
+}
 
 /*****************************************************************************
 
@@ -384,14 +368,11 @@ ncs_dec_flatten_space(NCS_UBAID* uba, uns8 *os, int32 count )
 
 *****************************************************************************/
 
-
-void    
-ncs_dec_skip_space (NCS_UBAID* uba, int32 count)
-  {
-  m_MMGR_REMOVE_FROM_START( &uba->ub, (uns32)count);
-  uba->ttl = uba->ttl + count;
-  }
-
+void ncs_dec_skip_space(NCS_UBAID *uba, int32 count)
+{
+	m_MMGR_REMOVE_FROM_START(&uba->ub, (uns32)count);
+	uba->ttl = uba->ttl + count;
+}
 
 /*****************************************************************************
 
@@ -413,11 +394,10 @@ ncs_dec_skip_space (NCS_UBAID* uba, int32 count)
 
 *****************************************************************************/
 
-void    
-ncs_set_max (NCS_UBAID* uba, int32 max )
-  {
-  uba->max = max;
-  }
+void ncs_set_max(NCS_UBAID *uba, int32 max)
+{
+	uba->max = max;
+}
 
 /*****************************************************************************
 
@@ -448,13 +428,13 @@ ncs_set_max (NCS_UBAID* uba, int32 max )
         API) OR set ncs_set_max(0xffff)).
 
 *****************************************************************************/
- 
-NCS_BOOL ncs_enc_can_i_put ( NCS_UBAID* uba, int32 to_put)
+
+NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32 to_put)
 {
-  if ((uba->ttl + to_put) <= uba->max)
-     return (TRUE);
-  else
-     return (FALSE);
+	if ((uba->ttl + to_put) <= uba->max)
+		return (TRUE);
+	else
+		return (FALSE);
 }
 
 /*****************************************************************************
@@ -484,13 +464,12 @@ NCS_BOOL ncs_enc_can_i_put ( NCS_UBAID* uba, int32 to_put)
 
 *****************************************************************************/
 
-NCS_BOOL 
-ncs_dec_can_i_get(NCS_UBAID* uba, int32 to_get)
+NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32 to_get)
 {
-  if ((uba->ttl + to_get) <= uba->max)
-     return (TRUE);
-  else
-     return (FALSE);
+	if ((uba->ttl + to_get) <= uba->max)
+		return (TRUE);
+	else
+		return (FALSE);
 }
 
 /*****************************************************************************
@@ -512,18 +491,17 @@ ncs_dec_can_i_get(NCS_UBAID* uba, int32 to_get)
 
 *****************************************************************************/
 
-void    
-ncs_reset_uba (NCS_UBAID* uba)
-  {
-  if (uba->ub != NULL)
-    m_MMGR_FREE_BUFR_LIST(uba->ub);
+void ncs_reset_uba(NCS_UBAID *uba)
+{
+	if (uba->ub != NULL)
+		m_MMGR_FREE_BUFR_LIST(uba->ub);
 
-  uba->start = NULL;
-  uba->ub    = NULL;
-  uba->res   = 0;
-  uba->ttl   = 0;
-  uba->max   = 0;
-  }
+	uba->start = NULL;
+	uba->ub = NULL;
+	uba->res = 0;
+	uba->ttl = 0;
+	uba->max = 0;
+}
 
 /***************************************************************\
       mds_encode_mds_dest: Encodes an MDS_DEST into a USRBUF. The
@@ -537,27 +515,25 @@ ncs_reset_uba (NCS_UBAID* uba)
 \***************************************************************/
 USRBUF *mds_encode_mds_dest(USRBUF *i_ub, MDS_DEST *i_mds_dest)
 {
-   uns8   *p;
-  
-   if ((p = m_MMGR_RESERVE_AT_END( &i_ub, 8, uns8 *)) != (uns8 *)0)
-   {
-      ncs_encode_64bit(&p, *i_mds_dest);
-      return i_ub;
-   }
-   else
-      return NULL;
+	uns8 *p;
+
+	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, 8, uns8 *)) != (uns8 *)0) {
+		ncs_encode_64bit(&p, *i_mds_dest);
+		return i_ub;
+	} else
+		return NULL;
 }
-   
+
 USRBUF *mds_decode_mds_dest(USRBUF *i_ub, MDS_DEST *o_mds_dest)
 {
-   char buff[8];
-   uns8   *s;
-   
-   s = (uns8*)m_MMGR_DATA_AT_START( i_ub, 8, buff);
-   *o_mds_dest = ncs_decode_64bit(&s);
-   m_MMGR_REMOVE_FROM_START( &i_ub, 8);
+	char buff[8];
+	uns8 *s;
 
-   return i_ub;   /* Return the new head */
+	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, 8, buff);
+	*o_mds_dest = ncs_decode_64bit(&s);
+	m_MMGR_REMOVE_FROM_START(&i_ub, 8);
+
+	return i_ub;		/* Return the new head */
 }
 
 /***************************************************************\
@@ -572,52 +548,43 @@ USRBUF *mds_decode_mds_dest(USRBUF *i_ub, MDS_DEST *o_mds_dest)
 \***************************************************************/
 uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest)
 {
-   uns8  *p;
+	uns8 *p;
 
-   p = ncs_enc_reserve_space(uba, 8);
-   ncs_encode_64bit(&p, *i_mds_dest);
-   ncs_enc_claim_space(uba,8);
-   return NCSCC_RC_SUCCESS;
+	p = ncs_enc_reserve_space(uba, 8);
+	ncs_encode_64bit(&p, *i_mds_dest);
+	ncs_enc_claim_space(uba, 8);
+	return NCSCC_RC_SUCCESS;
 }
+
 uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest)
 {
-   uns8 buff[8];
-   uns8 *s;
+	uns8 buff[8];
+	uns8 *s;
 
-   s = ncs_dec_flatten_space(uba, buff,8);
-   *o_mds_dest = ncs_decode_64bit(&s);
-   ncs_dec_skip_space(uba, 8);
+	s = ncs_dec_flatten_space(uba, buff, 8);
+	*o_mds_dest = ncs_decode_64bit(&s);
+	ncs_dec_skip_space(uba, 8);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
-
-uns32
-mds_st_encode_mds_dest(uns8 ** stream, MDS_DEST * idest)
+uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest)
 {
-    if ((stream == NULL) ||
-        (*stream == NULL) ||
-        (idest == NULL))
-        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((stream == NULL) || (*stream == NULL) || (idest == NULL))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    ncs_encode_64bit(stream, *idest);
-    return NCSCC_RC_SUCCESS;
+	ncs_encode_64bit(stream, *idest);
+	return NCSCC_RC_SUCCESS;
 }
 
-
-uns32
-mds_st_decode_mds_dest(uns8 ** stream, MDS_DEST * odest)
+uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest)
 {
-    if ((stream == NULL) ||
-        (*stream == NULL) ||
-        (odest == NULL))
-        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((stream == NULL) || (*stream == NULL) || (odest == NULL))
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    *odest = ncs_decode_64bit(stream);
-    return NCSCC_RC_SUCCESS;
+	*odest = ncs_decode_64bit(stream);
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /***************************************************************\
       ncs_encode_pointer: Encodes a pointer into a USRBUF. The
@@ -632,50 +599,47 @@ mds_st_decode_mds_dest(uns8 ** stream, MDS_DEST * odest)
 
 USRBUF *ncs_encode_pointer(USRBUF *i_ub, NCSCONTEXT i_pointer)
 {
-   uns8   *p;
-   uns16  p_len;
- 
-   p_len = sizeof(NCSCONTEXT);
-   if ((p = m_MMGR_RESERVE_AT_END( &i_ub, (int32)(p_len + sizeof(uns8)), uns8 *)) != (uns8 *)0)
-   {  
-     ncs_encode_8bit(&p,p_len);
-     if(p_len == sizeof(uns32))
-       ncs_encode_32bit(&p,NCS_PTR_TO_INT32_CAST(i_pointer));
-     else
-       ncs_encode_64bit(&p,NCS_PTR_TO_UNS64_CAST(i_pointer));
-     return i_ub;
-   }
-   else
-     return NULL;
+	uns8 *p;
+	uns16 p_len;
+
+	p_len = sizeof(NCSCONTEXT);
+	if ((p = m_MMGR_RESERVE_AT_END(&i_ub, (int32)(p_len + sizeof(uns8)), uns8 *)) != (uns8 *)0) {
+		ncs_encode_8bit(&p, p_len);
+		if (p_len == sizeof(uns32))
+			ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
+		else
+			ncs_encode_64bit(&p, NCS_PTR_TO_UNS64_CAST(i_pointer));
+		return i_ub;
+	} else
+		return NULL;
 }
 
-USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr,uns8* o_ptr_size_in_bytes)
+USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in_bytes)
 {
-   uns8   *s;
-   uns8  p_len;
-   
-   *o_recvd_ptr = 0;
-   *o_ptr_size_in_bytes = 0;
+	uns8 *s;
+	uns8 p_len;
 
-   s = (uns8*)m_MMGR_DATA_AT_START( i_ub,(int32)(sizeof(uns8)),(char *)o_ptr_size_in_bytes);
-   p_len = ncs_decode_8bit(&s);
-   *o_ptr_size_in_bytes = p_len;
-   m_MMGR_REMOVE_FROM_START(&i_ub,sizeof(uns8)); 
+	*o_recvd_ptr = 0;
+	*o_ptr_size_in_bytes = 0;
 
-   s = (uns8*)m_MMGR_DATA_AT_START( i_ub,(int32)p_len,(char *)o_recvd_ptr);
+	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, (int32)(sizeof(uns8)), (char *)o_ptr_size_in_bytes);
+	p_len = ncs_decode_8bit(&s);
+	*o_ptr_size_in_bytes = p_len;
+	m_MMGR_REMOVE_FROM_START(&i_ub, sizeof(uns8));
 
-   if(p_len == sizeof(uns32))
-     *o_recvd_ptr =ncs_decode_32bit(&s);
-   else
-   {
-     if(p_len != sizeof(NCSCONTEXT))
-       m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-     *o_recvd_ptr = ncs_decode_64bit(&s);
-   }
+	s = (uns8 *)m_MMGR_DATA_AT_START(i_ub, (int32)p_len, (char *)o_recvd_ptr);
 
-   m_MMGR_REMOVE_FROM_START(&i_ub, p_len);
+	if (p_len == sizeof(uns32))
+		*o_recvd_ptr = ncs_decode_32bit(&s);
+	else {
+		if (p_len != sizeof(NCSCONTEXT))
+			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		*o_recvd_ptr = ncs_decode_64bit(&s);
+	}
 
-   return i_ub;   /* Return the new head */
+	m_MMGR_REMOVE_FROM_START(&i_ub, p_len);
+
+	return i_ub;		/* Return the new head */
 }
 
 /***************************************************************\
@@ -690,48 +654,47 @@ USRBUF *ncs_decode_pointer(USRBUF *i_ub, uns64 *o_recvd_ptr,uns8* o_ptr_size_in_
 \***************************************************************/
 uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer)
 {
-   uns8  *p;
-   uns8 p_len;
-   
-   p_len = sizeof(NCSCONTEXT);
-   p = ncs_enc_reserve_space(uba, (int32)(p_len +sizeof(uns8)));
+	uns8 *p;
+	uns8 p_len;
 
-   ncs_encode_8bit(&p,p_len);
-   if(p_len  == sizeof (uns32))
-     ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
-   else
-     ncs_encode_64bit(&p,NCS_PTR_TO_UNS64_CAST(i_pointer));
+	p_len = sizeof(NCSCONTEXT);
+	p = ncs_enc_reserve_space(uba, (int32)(p_len + sizeof(uns8)));
 
-   ncs_enc_claim_space(uba,(int32)(p_len+sizeof(uns8)));
-   return NCSCC_RC_SUCCESS;
+	ncs_encode_8bit(&p, p_len);
+	if (p_len == sizeof(uns32))
+		ncs_encode_32bit(&p, NCS_PTR_TO_INT32_CAST(i_pointer));
+	else
+		ncs_encode_64bit(&p, NCS_PTR_TO_UNS64_CAST(i_pointer));
+
+	ncs_enc_claim_space(uba, (int32)(p_len + sizeof(uns8)));
+	return NCSCC_RC_SUCCESS;
 }
 
-uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,uns8* o_ptr_size_in_bytes)
+uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr, uns8 *o_ptr_size_in_bytes)
 {
-   uns8 *s;
-   uns8 p_len;
+	uns8 *s;
+	uns8 p_len;
 
-   *o_recvd_ptr = 0;
-   *o_ptr_size_in_bytes = 0;
-   s = ncs_dec_flatten_space(uba,(uns8 *)o_ptr_size_in_bytes,(int32)(sizeof(uns8)));
-   p_len = ncs_decode_8bit(&s);
-   ncs_dec_skip_space(uba,(int32)(sizeof(uns8)));
+	*o_recvd_ptr = 0;
+	*o_ptr_size_in_bytes = 0;
+	s = ncs_dec_flatten_space(uba, (uns8 *)o_ptr_size_in_bytes, (int32)(sizeof(uns8)));
+	p_len = ncs_decode_8bit(&s);
+	ncs_dec_skip_space(uba, (int32)(sizeof(uns8)));
 
-   *o_ptr_size_in_bytes = p_len;
-   s = ncs_dec_flatten_space(uba,(uns8 *) o_recvd_ptr,(int32)p_len);
-   if(p_len  == sizeof(uns32))
-     *o_recvd_ptr = ncs_decode_32bit(&s);
-   else
-   {
-     if(p_len != sizeof(NCSCONTEXT))
-       m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	*o_ptr_size_in_bytes = p_len;
+	s = ncs_dec_flatten_space(uba, (uns8 *)o_recvd_ptr, (int32)p_len);
+	if (p_len == sizeof(uns32))
+		*o_recvd_ptr = ncs_decode_32bit(&s);
+	else {
+		if (p_len != sizeof(NCSCONTEXT))
+			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-     *o_recvd_ptr = ncs_decode_64bit(&s);
-   }
+		*o_recvd_ptr = ncs_decode_64bit(&s);
+	}
 
-   ncs_dec_skip_space(uba,(int32)(p_len ));
+	ncs_dec_skip_space(uba, (int32)(p_len));
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -754,60 +717,53 @@ uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,uns8* o_ptr_size
   NOTES:
 
 *****************************************************************************/
-uns32 
-ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
+uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
 {
-    uns8           *p;
-    uns32          remaining;
-    uns32          try_put;
+	uns8 *p;
+	uns32 remaining;
+	uns32 try_put;
 
-    if(uba->ub == NULL)
-    {
-        /* Operation fail */
-        return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-    }
-    if(uba->start == NULL)
-    {
-        /* We perform "ncs_enc_init_space" operation on the uba now. */
-        if(ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS)
-            return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-    }
+	if (uba->ub == NULL) {
+		/* Operation fail */
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+	if (uba->start == NULL) {
+		/* We perform "ncs_enc_init_space" operation on the uba now. */
+		if (ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-    for(remaining = count; remaining > 0; remaining -= try_put)
-    {
-        /* The no of bytes to be put in the current payload has
-        to be the least of
-        (1) Tail-room available (if any)
-        (2) Max bytes per payload
-        (3) Remaining bytes
+	for (remaining = count; remaining > 0; remaining -= try_put) {
+		/* The no of bytes to be put in the current payload has
+		   to be the least of
+		   (1) Tail-room available (if any)
+		   (2) Max bytes per payload
+		   (3) Remaining bytes
 
-        NOTE: tail-room is a best effort attempt. It is not always
-        guaranteed that any tail-room available can be used (because
-        if the payload->RefCnt > 1, then this payload tail-room
-        cannot be used) And it is pretty useless, when the user
-        needs more than PAYLOAD_BUF_SIZE bytes anyway. 
-        */
-        try_put = remaining;
-        p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uns8*); /* Total=FALSE, i.e. only as much as possible*/
-        if (p != NULL)
-        {
-            /*
-             * Build the octet string...Remember a NULL pointer
-             * indicates an all-zero octet-string...
-             */
-            if (os == (uns8 *)0)
-                memset( (char *)p, '\0', try_put);
-            else
-                memcpy( (char *)p, (char *)(os + count-remaining), try_put);
-        }
-        else
-        {
-            return NCSCC_RC_FAILURE;
-        }   
-    }
-    uba->ttl += count;
+		   NOTE: tail-room is a best effort attempt. It is not always
+		   guaranteed that any tail-room available can be used (because
+		   if the payload->RefCnt > 1, then this payload tail-room
+		   cannot be used) And it is pretty useless, when the user
+		   needs more than PAYLOAD_BUF_SIZE bytes anyway. 
+		 */
+		try_put = remaining;
+		p = m_MMGR_RESERVE_AT_END_AMAP(&(uba->ub), &try_put, uns8 *);	/* Total=FALSE, i.e. only as much as possible */
+		if (p != NULL) {
+			/*
+			 * Build the octet string...Remember a NULL pointer
+			 * indicates an all-zero octet-string...
+			 */
+			if (os == (uns8 *)0)
+				memset((char *)p, '\0', try_put);
+			else
+				memcpy((char *)p, (char *)(os + count - remaining), try_put);
+		} else {
+			return NCSCC_RC_FAILURE;
+		}
+	}
+	uba->ttl += count;
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -830,39 +786,31 @@ ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
   NOTES:
 
 *****************************************************************************/
-uns32 
-ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
+uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count)
 {
-    uns8           *p8;    
+	uns8 *p8;
 
-    if(uba->start != NULL)
-    {
-        /* We perform "ncs_dec_init_space" operation on the uba now. */
-        ncs_dec_init_space(uba, uba->start);
-    }
-    else if(uba->ub == NULL)
-    {
-        /* If both "start" and "ub" are NULL, this is fatal error. */
-        return NCSCC_RC_FAILURE;
-    }
+	if (uba->start != NULL) {
+		/* We perform "ncs_dec_init_space" operation on the uba now. */
+		ncs_dec_init_space(uba, uba->start);
+	} else if (uba->ub == NULL) {
+		/* If both "start" and "ub" are NULL, this is fatal error. */
+		return NCSCC_RC_FAILURE;
+	}
 
-    p8 = ncs_dec_flatten_space(uba, os, count);
-    if(p8 != os)
-    {
-        /* If "uba->ub" has the required data, it returns the offset
-           into its "uba->ub" where the data starts. */
-        memcpy(os, p8, count);
-    }
-    else
-    {
-        /* Required data is already available in "os".
-           How??? Because, ncs_dec_flatten_space( ) takes care
-           of populating the "os" segment with data that was spread
-           across "uba->ub" and its "link" USRBUFs. 
-         */
-    }
-    ncs_dec_skip_space(uba, count);
+	p8 = ncs_dec_flatten_space(uba, os, count);
+	if (p8 != os) {
+		/* If "uba->ub" has the required data, it returns the offset
+		   into its "uba->ub" where the data starts. */
+		memcpy(os, p8, count);
+	} else {
+		/* Required data is already available in "os".
+		   How??? Because, ncs_dec_flatten_space( ) takes care
+		   of populating the "os" segment with data that was spread
+		   across "uba->ub" and its "link" USRBUFs. 
+		 */
+	}
+	ncs_dec_skip_space(uba, count);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

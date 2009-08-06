@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  eds_debug.c                                                 *
@@ -28,11 +27,8 @@
 *****************************************************************************/
 #include "eds.h"
 
-
 #define BUFF_SIZE_80    80
 #define INT_WIDTH_8      8
-
-
 
 /***************************************************************************
  *
@@ -40,28 +36,25 @@
  *                             a SAF patternArray.
  *
  ***************************************************************************/
-void
-eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
+void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 {
-   SaEvtEventPatternT  *pEventPattern;
-   int32   x = 0;
-   int8    buf[256];
+	SaEvtEventPatternT *pEventPattern;
+	int32 x = 0;
+	int8 buf[256];
 
-   if (patternArray == NULL)
-      return;
-   if (patternArray->patterns == 0)
-      return;
+	if (patternArray == NULL)
+		return;
+	if (patternArray->patterns == 0)
+		return;
 
-   pEventPattern = patternArray->patterns; /* Point to first pattern */
-   for (x=0; x<(int32)patternArray->patternsNumber; x++) {
-      memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
-      buf[pEventPattern->patternSize] = '\0';
-      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
-             x, (uns32)pEventPattern->patternSize, buf);
-      pEventPattern++;
-   }
+	pEventPattern = patternArray->patterns;	/* Point to first pattern */
+	for (x = 0; x < (int32)patternArray->patternsNumber; x++) {
+		memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+		buf[pEventPattern->patternSize] = '\0';
+		printf("     pattern[%ld] =    {%2u, \"%s\"}\n", x, (uns32)pEventPattern->patternSize, buf);
+		pEventPattern++;
+	}
 }
-
 
 /***************************************************************************
  *
@@ -79,91 +72,79 @@ eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
  * Match? NO
  *
  ***************************************************************************/
-void
-eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
-                        SaEvtEventFilterArrayT  *filterArray)
+void eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
-   int32                x;
-   int32                match = 0;
-   uns8                *p = NULL;
-   SaEvtEventFilterT   *filter;
-   SaEvtEventPatternT  *pattern;
-   SaEvtEventPatternT   emptyPattern = {0,0,NULL};
-   int8    buf[256];
+	int32 x;
+	int32 match = 0;
+	uns8 *p = NULL;
+	SaEvtEventFilterT *filter;
+	SaEvtEventPatternT *pattern;
+	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
+	int8 buf[256];
 
+	if ((patternArray == NULL) || (filterArray == NULL))
+		return;
 
-   if ((patternArray == NULL) || (filterArray == NULL))
-      return;
+	pattern = patternArray->patterns;
+	filter = filterArray->filters;
 
+	printf("          PATTERN            FILTER\n");
 
-   pattern = patternArray->patterns;
-   filter  = filterArray->filters;
+	for (x = 1; x <= (int32)filterArray->filtersNumber; x++) {
+		/* NULL terminate for printing */
+		memcpy(buf, pattern->pattern, (uns32)pattern->patternSize);
+		buf[(uns32)pattern->patternSize] = '\0';
+		printf(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
 
+		match = 0;
+		switch (filter->filterType) {
+		case SA_EVT_PREFIX_FILTER:
+			printf("  SA_EVT_PREFIX_FILTER");
+			if (memcmp(filter->filter.pattern, pattern->pattern, (size_t)filter->filter.patternSize) == 0)
+				match = 1;
+			break;
+		case SA_EVT_SUFFIX_FILTER:
+			printf("  SA_EVT_SUFFIX_FILTER");
+			/* Pattern must be at least as long as filter */
+			if (pattern->patternSize < filter->filter.patternSize)
+				break;	/* No match */
 
-   printf("          PATTERN            FILTER\n");
+			/* Set p to offset into pattern */
+			p = pattern->pattern + ((int)pattern->patternSize - (int)filter->filter.patternSize);
+			if (memcmp(filter->filter.pattern, p, (size_t)filter->filter.patternSize) == 0)
+				match = 1;
+			break;
+		case SA_EVT_EXACT_FILTER:
+			printf("   SA_EVT_EXACT_FILTER");
+			if (filter->filter.patternSize == pattern->patternSize)
+				if (memcmp(filter->filter.pattern, pattern->pattern,
+					   (size_t)filter->filter.patternSize) == 0)
+					match = 1;
+			break;
+		case SA_EVT_PASS_ALL_FILTER:
+			printf("SA_EVT_PASS_ALL_FILTER");
+			match = 1;
+			break;
+		default:
+			printf("ERROR: Unknown filterType(%d)\n", filter->filterType);
+		}
 
+		/* NULL terminate for printing */
+		memcpy(buf, filter->filter.pattern, (uns32)filter->filter.patternSize);
+		buf[(uns32)filter->filter.patternSize] = '\0';
+		printf(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);
+		if (match)
+			printf(" [MATCH]\n");
+		else
+			printf(" [no]\n");
 
-   for (x=1; x <= (int32)filterArray->filtersNumber; x++)
-   {
-      /* NULL terminate for printing */
-      memcpy(buf, pattern->pattern,
-                   (uns32)pattern->patternSize);
-      buf[(uns32)pattern->patternSize] = '\0';
-      printf(" {%14s, %3u} ,  {", buf, (uns32)pattern->patternSize);
+		filter++;
+		if (x < (int32)patternArray->patternsNumber)
+			pattern++;
+		else
+			pattern = &emptyPattern;
 
-      match = 0;
-      switch (filter->filterType)
-      {
-      case SA_EVT_PREFIX_FILTER:
-         printf("  SA_EVT_PREFIX_FILTER");
-         if (memcmp(filter->filter.pattern, pattern->pattern,
-                          (size_t)filter->filter.patternSize) == 0)
-            match = 1;
-         break;
-      case SA_EVT_SUFFIX_FILTER:
-         printf("  SA_EVT_SUFFIX_FILTER");
-         /* Pattern must be at least as long as filter */
-         if (pattern->patternSize < filter->filter.patternSize)
-            break; /* No match */
-
-         /* Set p to offset into pattern */
-         p = pattern->pattern +
-            ((int)pattern->patternSize - (int)filter->filter.patternSize);
-         if (memcmp(filter->filter.pattern, p,
-                          (size_t)filter->filter.patternSize) == 0)
-            match = 1;
-         break;
-      case SA_EVT_EXACT_FILTER:
-         printf("   SA_EVT_EXACT_FILTER");
-         if (filter->filter.patternSize == pattern->patternSize)
-            if (memcmp(filter->filter.pattern, pattern->pattern,
-                             (size_t)filter->filter.patternSize) == 0)
-               match = 1;
-         break;
-      case SA_EVT_PASS_ALL_FILTER:
-         printf("SA_EVT_PASS_ALL_FILTER");
-         match = 1;
-         break;
-      default:
-         printf("ERROR: Unknown filterType(%d)\n", filter->filterType);
-      }
-
-      /* NULL terminate for printing */
-      memcpy(buf, filter->filter.pattern,
-                   (uns32)filter->filter.patternSize);
-      buf[(uns32)filter->filter.patternSize] = '\0';
-      printf(", %14s, %3u}", buf, (uns32)filter->filter.patternSize);
-      if (match) printf(" [MATCH]\n");
-      else printf(" [no]\n");
-
-
-      filter++;
-      if (x < (int32)patternArray->patternsNumber)
-         pattern++;
-      else
-         pattern = &emptyPattern;
-
-   } /* End for */
+	}			/* End for */
 
 }
 
@@ -175,84 +156,74 @@ eds_dump_pattern_filter(SaEvtEventPatternArrayT *patternArray,
  * subscription IDs contained in a EDA_REG_LIST registration list.
  *
  ***************************************************************************/
-void
-eds_dump_reglist()
+void eds_dump_reglist()
 {
-   uns32            num_registrations = 0;
-   uns32            num_subscriptions = 0;
-   CHAN_OPEN_LIST  *co = NULL;
-   SUBSC_LIST      *s = NULL;
-   int8            *bp;
-   EDA_REG_REC     *rl;
-   int8             buff[60];
-   EDS_CB          *cb = NULL;
-   uns32 temp;
-   EDA_DOWN_LIST *down_rec = NULL;
+	uns32 num_registrations = 0;
+	uns32 num_subscriptions = 0;
+	CHAN_OPEN_LIST *co = NULL;
+	SUBSC_LIST *s = NULL;
+	int8 *bp;
+	EDA_REG_REC *rl;
+	int8 buff[60];
+	EDS_CB *cb = NULL;
+	uns32 temp;
+	EDA_DOWN_LIST *down_rec = NULL;
 
-   printf("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
-   printf("     regIDs         Subscription IDs\n");
-   
-   /* Get the cb from the global handle */
-   if (NULL == (cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
-   {
-      return;
-   }
- 
-   rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8 *)0);
+	printf("\n-=-=-=-=- REGLIST SUBSCRIPTION IDs -=-=-=-=-\n");
+	printf("     regIDs         Subscription IDs\n");
 
-   while(rl)  /* While there are registration entries... */
-   {
-      num_registrations++;
-      printf("%6u %-8s->", rl->reg_id, " ");
-      buff[0] = '\0';
-      bp = buff;
+	/* Get the cb from the global handle */
+	if (NULL == (cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		return;
+	}
 
-      co = rl->chan_open_list;
-      while(co)  /* While there are channelOpen entries... */
-      {
-         s = co->subsc_list_head;
-         while(s)   /* While there are subscription entries... */
-         {
-            num_subscriptions++;
-            /* Loop, appending subscription IDs to string */
-            snprintf(bp,sizeof(buff)-1, " %9u ", s->subsc_rec->subscript_id);
-            bp = buff + (strlen(buff));
+	rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
 
-            /* Close to end of buffer? */
-            if ((bp-buff >= sizeof(buff)-12) &&
-                ((s->next) || (co->next)))     /* and something follows? */
-            {
-               /* Output this chunk and start a new one */
-               printf("%s\n", buff);
-               bp = buff;
+	while (rl) {		/* While there are registration entries... */
+		num_registrations++;
+		printf("%6u %-8s->", rl->reg_id, " ");
+		buff[0] = '\0';
+		bp = buff;
 
-               /* Space over the continuation line */
-               snprintf(bp, sizeof(buff)-1, "%24s", " ");
-               bp = buff + (strlen(buff));
-            }                    
-            s = s->next;
-         }
-         co = co->next;
-      }
-      printf("%s\n", buff);
+		co = rl->chan_open_list;
+		while (co) {	/* While there are channelOpen entries... */
+			s = co->subsc_list_head;
+			while (s) {	/* While there are subscription entries... */
+				num_subscriptions++;
+				/* Loop, appending subscription IDs to string */
+				snprintf(bp, sizeof(buff) - 1, " %9u ", s->subsc_rec->subscript_id);
+				bp = buff + (strlen(buff));
 
-      rl = (EDA_REG_REC *)ncs_patricia_tree_getnext
-               (&cb->eda_reg_list,(uns8 *)&rl->reg_id_Net);
-   }
-   temp = 0;
-   down_rec = cb->eda_down_list_head;
-   while(down_rec)
-   {
-       temp++;
-       down_rec = down_rec->next;
-    }
+				/* Close to end of buffer? */
+				if ((bp - buff >= sizeof(buff) - 12) && ((s->next) || (co->next))) {	/* and something follows? */
+					/* Output this chunk and start a new one */
+					printf("%s\n", buff);
+					bp = buff;
 
-   printf("\nTotal Registrations:%d   Total Subscriptions:%d\n",
-          num_registrations, num_subscriptions);
-   printf("\nEDA DOWN recs : %d Async Update Count :%d \n",temp,cb->async_upd_cnt);
-   
-   /* Give back the handle */
-   ncshm_give_hdl(gl_eds_hdl);
+					/* Space over the continuation line */
+					snprintf(bp, sizeof(buff) - 1, "%24s", " ");
+					bp = buff + (strlen(buff));
+				}
+				s = s->next;
+			}
+			co = co->next;
+		}
+		printf("%s\n", buff);
+
+		rl = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&rl->reg_id_Net);
+	}
+	temp = 0;
+	down_rec = cb->eda_down_list_head;
+	while (down_rec) {
+		temp++;
+		down_rec = down_rec->next;
+	}
+
+	printf("\nTotal Registrations:%d   Total Subscriptions:%d\n", num_registrations, num_subscriptions);
+	printf("\nEDA DOWN recs : %d Async Update Count :%d \n", temp, cb->async_upd_cnt);
+
+	/* Give back the handle */
+	ncshm_give_hdl(gl_eds_hdl);
 }
 
 /****************************************************************************
@@ -263,120 +234,100 @@ eds_dump_reglist()
  * subscription IDs contained in a EDS_WORKLIST work list.
  *
  ***************************************************************************/
-void
-eds_dump_worklist()
+void eds_dump_worklist()
 {
-   uns32           num_events = 0;
-   uns32           num_subscriptions = 0;
-   CHAN_OPEN_REC   *co = NULL;
-   SUBSC_REC       *s = NULL;
-   EDS_RETAINED_EVT_REC *retd_evt_rec=NULL;
-   int8            *bp;
-   int8            buff[BUFF_SIZE_80];
-   SaUint8T        list_iter;
-   EDS_CB          *eds_cb = NULL;
-   EDS_WORKLIST    *wp = NULL;
-   EDS_CNAME_REC *cn= NULL;  
-   
-   printf("\n-=-=-=-=- WORKLIST SUBSCRIPTION IDs -=-=-=-=-\n");
-   printf("     Channel               Copenid:retained events\n");
-  
+	uns32 num_events = 0;
+	uns32 num_subscriptions = 0;
+	CHAN_OPEN_REC *co = NULL;
+	SUBSC_REC *s = NULL;
+	EDS_RETAINED_EVT_REC *retd_evt_rec = NULL;
+	int8 *bp;
+	int8 buff[BUFF_SIZE_80];
+	SaUint8T list_iter;
+	EDS_CB *eds_cb = NULL;
+	EDS_WORKLIST *wp = NULL;
+	EDS_CNAME_REC *cn = NULL;
 
-   printf("   OpenID:regID            Subscription IDs\n");
-   
-   /* Get the cb from the global handle. */
-    if (NULL == (eds_cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
-   {
-      return;
-   } 
-   
-   /* Get the worklist */
-   wp = eds_cb->eds_work_list ; 
+	printf("\n-=-=-=-=- WORKLIST SUBSCRIPTION IDs -=-=-=-=-\n");
+	printf("     Channel               Copenid:retained events\n");
 
-   while(wp)  /* While there are channel entries... */
-   {
-      num_events++;
-      if (wp->chan_attrib & CHANNEL_UNLINKED) /* Flag if channel is UnLinked */
-         snprintf(buff, BUFF_SIZE_80-1, "u");
-      else snprintf(buff, BUFF_SIZE_80-1, " ");
-      printf("\n%s%6u %s", buff, wp->chan_id, wp->cname);
-      
-      printf("         ");
-      for(list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY ; list_iter++)
-      {
-          retd_evt_rec = wp->ret_evt_list_head[list_iter];
-   
-          printf("    P:%u", list_iter );
-          while (retd_evt_rec)
-          {
-               printf("  %d:%u",retd_evt_rec->retd_evt_chan_open_id,retd_evt_rec->event_id );
-               retd_evt_rec = retd_evt_rec->next;
-          }
-       }
-       
-       printf("\n");
-       bp = buff;
+	printf("   OpenID:regID            Subscription IDs\n");
 
+	/* Get the cb from the global handle. */
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		return;
+	}
 
-      co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-                                                      (uns8*)0);
-      while(co)  /* While there are channelOpen entries... */
-      {
-         snprintf(bp, BUFF_SIZE_80-1, "%10d:%-6d", co->chan_open_id, co->reg_id);
-         bp = buff + (strlen(buff));
-         s = co->subsc_rec_head;
-         while(s)   /* While there are subscription entries... */
-         {
-            num_subscriptions++;
-            /* Loop, appending subscription IDs to string */
-            snprintf(bp,BUFF_SIZE_80-1, " %12u", s->subscript_id);
-            bp = buff + (strlen(buff));
+	/* Get the worklist */
+	wp = eds_cb->eds_work_list;
 
-            /* Close to end of buffer? */
-            if ((bp-buff >= sizeof(buff)-(INT_WIDTH_8*2)) &&
-                (s->next))     /* and something follows? */
-            {
-               /* Output this chunk and start a new one */
-               printf("%s\n", buff);
-               bp = buff;
+	while (wp) {		/* While there are channel entries... */
+		num_events++;
+		if (wp->chan_attrib & CHANNEL_UNLINKED)	/* Flag if channel is UnLinked */
+			snprintf(buff, BUFF_SIZE_80 - 1, "u");
+		else
+			snprintf(buff, BUFF_SIZE_80 - 1, " ");
+		printf("\n%s%6u %s", buff, wp->chan_id, wp->cname);
 
-               /* Space over the continuation line */
-               snprintf(bp,BUFF_SIZE_80-1, "%25s", " ");
-               bp = buff + (strlen(buff));
-            }                    
-            s = s->next;
-         }
-         printf("%s\n", buff);
-         bp = buff;
+		printf("         ");
+		for (list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
+			retd_evt_rec = wp->ret_evt_list_head[list_iter];
 
-         co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-                                                    (uns8*)&co->copen_id_Net);
-      }
-      wp = wp->next;
-   }
-   
-   printf("\nTotal Channel IDs:%d   Total Subscriptions:%d\n",
-          num_events, num_subscriptions);
-   
+			printf("    P:%u", list_iter);
+			while (retd_evt_rec) {
+				printf("  %d:%u", retd_evt_rec->retd_evt_chan_open_id, retd_evt_rec->event_id);
+				retd_evt_rec = retd_evt_rec->next;
+			}
+		}
+
+		printf("\n");
+		bp = buff;
+
+		co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		while (co) {	/* While there are channelOpen entries... */
+			snprintf(bp, BUFF_SIZE_80 - 1, "%10d:%-6d", co->chan_open_id, co->reg_id);
+			bp = buff + (strlen(buff));
+			s = co->subsc_rec_head;
+			while (s) {	/* While there are subscription entries... */
+				num_subscriptions++;
+				/* Loop, appending subscription IDs to string */
+				snprintf(bp, BUFF_SIZE_80 - 1, " %12u", s->subscript_id);
+				bp = buff + (strlen(buff));
+
+				/* Close to end of buffer? */
+				if ((bp - buff >= sizeof(buff) - (INT_WIDTH_8 * 2)) && (s->next)) {	/* and something follows? */
+					/* Output this chunk and start a new one */
+					printf("%s\n", buff);
+					bp = buff;
+
+					/* Space over the continuation line */
+					snprintf(bp, BUFF_SIZE_80 - 1, "%25s", " ");
+					bp = buff + (strlen(buff));
+				}
+				s = s->next;
+			}
+			printf("%s\n", buff);
+			bp = buff;
+
+			co = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)&co->copen_id_Net);
+		}
+		wp = wp->next;
+	}
+
+	printf("\nTotal Channel IDs:%d   Total Subscriptions:%d\n", num_events, num_subscriptions);
+
 /* Code for MIB DUMP */
-   printf("\nMIB DATA BASE \n");
-   cn =  (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list,
-                                                        (uns8*)NULL);
+	printf("\nMIB DATA BASE \n");
+	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)NULL);
 
-   while (cn)
-   {
-      if(cn->wp_rec)
-         printf("\nMib : %s                 Actual: %s" , cn->chan_name.value,(cn->wp_rec)->cname);
-      cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext
-               (&eds_cb->eds_cname_list,(uns8 *)&cn->chan_name);
-   }
+	while (cn) {
+		if (cn->wp_rec)
+			printf("\nMib : %s                 Actual: %s", cn->chan_name.value, (cn->wp_rec)->cname);
+		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)&cn->chan_name);
+	}
 
-
-  
-
-      
-   /* Give back the handle */
-   ncshm_give_hdl(gl_eds_hdl);
+	/* Give back the handle */
+	ncshm_give_hdl(gl_eds_hdl);
 
 }
 

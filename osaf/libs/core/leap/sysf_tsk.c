@@ -38,7 +38,6 @@
  ******************************************************************************
  */
 
-
 #include "ncs_opt.h"
 #include "gl_defs.h"
 #include "ncs_osprm.h"
@@ -47,114 +46,101 @@
 
 uns32
 ncs_task_create(NCS_OS_CB entry_pt,
-               void *arg,
-               char *name,
-               unsigned int priority,
-               unsigned int stack_size_in_bytes,
-               void **task_handle)
+		void *arg, char *name, unsigned int priority, unsigned int stack_size_in_bytes, void **task_handle)
 {
-    NCS_OS_TASK task;
-    uns32 rc;
+	NCS_OS_TASK task;
+	uns32 rc;
 
+	task.info.create.i_entry_point = entry_pt;
+	task.info.create.i_name = name;
+	task.info.create.i_priority = priority;
+	task.info.create.i_stack_nbytes = stack_size_in_bytes;
+	task.info.create.i_ep_arg = arg;
 
-    task.info.create.i_entry_point = entry_pt;
-    task.info.create.i_name = name;
-    task.info.create.i_priority = priority;
-    task.info.create.i_stack_nbytes = stack_size_in_bytes;
-    task.info.create.i_ep_arg = arg;
+	rc = m_NCS_OS_TASK(&task, NCS_OS_TASK_CREATE);
 
-    rc = m_NCS_OS_TASK(&task, NCS_OS_TASK_CREATE);
+	if (NCSCC_RC_SUCCESS == rc)
+		*task_handle = task.info.create.o_handle;
 
-    if (NCSCC_RC_SUCCESS == rc)
-      *task_handle = task.info.create.o_handle;
-
-    return rc;
+	return rc;
 }
 
-uns32
-ncs_task_release(void *task_handle)
+uns32 ncs_task_release(void *task_handle)
 {
-    NCS_OS_TASK task;
+	NCS_OS_TASK task;
 
-    if (task_handle == NULL)
-      return NCSCC_RC_SUCCESS;
+	if (task_handle == NULL)
+		return NCSCC_RC_SUCCESS;
 
-    task.info.release.i_handle = task_handle;
+	task.info.release.i_handle = task_handle;
 
-    return m_NCS_OS_TASK(&task, NCS_OS_TASK_RELEASE);
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_RELEASE);
 }
 
-uns32
-ncs_task_detach(void *task_handle) 
+uns32 ncs_task_detach(void *task_handle)
 {
-    NCS_OS_TASK task;
+	NCS_OS_TASK task;
 
-    if (task_handle == NULL)
-      return NCSCC_RC_SUCCESS;
+	if (task_handle == NULL)
+		return NCSCC_RC_SUCCESS;
 
-    task.info.release.i_handle = task_handle;
+	task.info.release.i_handle = task_handle;
 
-    return m_NCS_OS_TASK(&task, NCS_OS_TASK_DETACH);
-}
-    
-uns32
-ncs_task_start(void *task_handle)
-{
-    NCS_OS_TASK task;
-
-    if (task_handle == NULL)
-      return NCSCC_RC_SUCCESS;
-
-    task.info.start.i_handle = task_handle;
-
-    return m_NCS_OS_TASK(&task, NCS_OS_TASK_START);
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_DETACH);
 }
 
-uns32
-ncs_task_stop(void *task_handle)
+uns32 ncs_task_start(void *task_handle)
 {
-    NCS_OS_TASK task;
+	NCS_OS_TASK task;
 
-    if (task_handle == NULL)
-      return NCSCC_RC_SUCCESS;
+	if (task_handle == NULL)
+		return NCSCC_RC_SUCCESS;
 
-    task.info.stop.i_handle = task_handle;
+	task.info.start.i_handle = task_handle;
 
-    return m_NCS_OS_TASK(&task, NCS_OS_TASK_STOP);
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_START);
 }
 
-uns32
-ncs_task_sleep (unsigned int delay_in_ms)
+uns32 ncs_task_stop(void *task_handle)
 {
-    NCS_OS_TASK task;
+	NCS_OS_TASK task;
 
-    task.info.sleep.i_delay_in_ms = delay_in_ms;
+	if (task_handle == NULL)
+		return NCSCC_RC_SUCCESS;
 
-    return m_NCS_OS_TASK(&task, NCS_OS_TASK_SLEEP);
+	task.info.stop.i_handle = task_handle;
+
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_STOP);
 }
 
-
-uns32
-ncs_task_current(void **task_handle)
+uns32 ncs_task_sleep(unsigned int delay_in_ms)
 {
-    NCS_OS_TASK task;
-    uns32 rc;
+	NCS_OS_TASK task;
 
-    rc = m_NCS_OS_TASK(&task, NCS_OS_TASK_CURRENT_HANDLE);
+	task.info.sleep.i_delay_in_ms = delay_in_ms;
 
-    if (NCSCC_RC_SUCCESS == rc)
-      *task_handle = task.info.current_handle.o_handle;
-
-    return rc;
+	return m_NCS_OS_TASK(&task, NCS_OS_TASK_SLEEP);
 }
 
-int
-ncs_task_entry (NCS_OS_TASK *task)
+uns32 ncs_task_current(void **task_handle)
+{
+	NCS_OS_TASK task;
+	uns32 rc;
+
+	rc = m_NCS_OS_TASK(&task, NCS_OS_TASK_CURRENT_HANDLE);
+
+	if (NCSCC_RC_SUCCESS == rc)
+		*task_handle = task.info.current_handle.o_handle;
+
+	return rc;
+}
+
+int ncs_task_entry(NCS_OS_TASK *task)
 {
 
-   m_NCS_OS_TASK_PRELUDE;
+	m_NCS_OS_TASK_PRELUDE;
 
-   task->info.create.i_entry_point(task->info.create.i_ep_arg);
+	task->info.create.i_entry_point(task->info.create.i_ep_arg);
 
-   return 0;
+	return 0;
 }

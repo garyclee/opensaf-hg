@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -76,6 +75,6 @@
 
 /* HPL CB global handle declaration */
 EXTERN_C uns32 gl_hpl_hdl;
-EXTERN_C uns32 free_hisv_ret_msg (HISV_MSG *msg);
+EXTERN_C uns32 free_hisv_ret_msg(HISV_MSG *msg);
 
-#endif /* !HPL_H */
+#endif   /* !HPL_H */

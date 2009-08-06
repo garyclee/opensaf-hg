@@ -31,9 +31,9 @@
 #ifndef PSR_VERSION_H
 #define PSR_VERSION_H
 
-/* macro to describe the version of the PSSv and its persistent store format */ 
+/* macro to describe the version of the PSSv and its persistent store format */
 #define m_PSS_SERVICE_VERSION 1
-#define PSS_MBCSV_VERSION     2 /* Incremented as Cold-sync does not include pssv_lib.conf contents */
+#define PSS_MBCSV_VERSION     2	/* Incremented as Cold-sync does not include pssv_lib.conf contents */
 #define PSS_MBCSV_VERSION_MIN 1
 #define PSS_PS_FORMAT_VERSION 2
 
@@ -43,27 +43,27 @@
  */
 #define m_PSS_DEF_TBL_VERSION 1
 
-#define PSS_MDS_SUB_PART_VERSION  1 
+#define PSS_MDS_SUB_PART_VERSION  1
 
 #define PSS_WRT_MAC_SUBPART_VER_MIN    1
 #define PSS_WRT_MAC_SUBPART_VER_MAX    1
 
 #define  PSS_WRT_MAC_SUBPART_VER_RANGE     \
          (PSS_WRT_MAC_SUBPART_VER_MAX  -   \
-          PSS_WRT_MAC_SUBPART_VER_MIN + 1) 
+          PSS_WRT_MAC_SUBPART_VER_MIN + 1)
 
 #define PSS_WRT_OAC_SUBPART_VER_MIN    1
 #define PSS_WRT_OAC_SUBPART_VER_MAX    1
 
 #define  PSS_WRT_OAC_SUBPART_VER_RANGE     \
          (PSS_WRT_OAC_SUBPART_VER_MAX  -   \
-          PSS_WRT_OAC_SUBPART_VER_MIN + 1) 
+          PSS_WRT_OAC_SUBPART_VER_MIN + 1)
 
 #define PSS_WRT_BAM_SUBPART_VER_MIN    1
 #define PSS_WRT_BAM_SUBPART_VER_MAX    1
 
 #define  PSS_WRT_BAM_SUBPART_VER_RANGE     \
          (PSS_WRT_BAM_SUBPART_VER_MAX  -   \
-          PSS_WRT_BAM_SUBPART_VER_MIN + 1) 
+          PSS_WRT_BAM_SUBPART_VER_MIN + 1)
 
 #endif

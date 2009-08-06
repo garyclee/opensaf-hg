@@ -18,15 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: Implementation for NCS_HDL service, an access-safe,
   use-safe means to fetch and use fleeting and/or volitile objects.
   See ncs_hdl.h for brief write-up of issues/capabilities. See the
   ncshm_ calls.
-
 
   This file also contains an implementation for a 'Local Persistence Guard',
   which is a cheap (in CPU cycles) persistence guard scheme (for read
@@ -49,7 +46,6 @@
 #include "ncssysf_tsk.h"
 #include "ncssysfpool.h"
 
-
 /************************************************************************
 
  H a n d l e   M a n a g e r    P o o l s
@@ -58,25 +54,32 @@
 
 ************************************************************************/
 
-static HM_CORE gl_hm;      /* anchor global for this primitive service */
+static HM_CORE gl_hm;		/* anchor global for this primitive service */
 
-
-HM_POOL    gl_hpool[HM_POOL_CNT] = 
-  {
+HM_POOL gl_hpool[HM_POOL_CNT] = {
   /*-------------+----------+--------+----------------------*/
-  /*             |   name space unit |                      */
-  /* pool ID     |   min    |   max  |     approx # of hdls */
+	/*             |   name space unit |                      */
+	/* pool ID     |   min    |   max  |     approx # of hdls */
   /*-------------+----------+--------+----------------------*/
-  /*     0     */   {  0    ,     1 } , /*  2.1 million hdls */
-  /*     1     */   {  2    ,    32 } , /* 32.5 million hdls */
-  /*     2     */   {  33   ,    64 } , /* 33.5 million hdls */
-  /*     3     */   {  65   ,    96 } , /* 33.5 million hdls */
-  /*     4     */   {  97   ,   128 } , /* 33.5 million hdls */
-  /*     5     */   { 129   ,   160 } , /* 33.5 million hdls */
-  /*     6     */   { 161   ,   192 } , /* 33.5 million hdls */
-  /*     7     */   { 193   ,   224 } , /* 33.5 million hdls */
-  /*     8     */   { 225   ,   255 }   /* 32.5 million hdls */
-  };
+				/*     0     */ {0, 1},
+				/*  2.1 million hdls */
+					/*     1     */ {2, 32},
+					/* 32.5 million hdls */
+					/*     2     */ {33, 64},
+					/* 33.5 million hdls */
+					/*     3     */ {65, 96},
+					/* 33.5 million hdls */
+					/*     4     */ {97, 128},
+					/* 33.5 million hdls */
+					/*     5     */ {129, 160},
+					/* 33.5 million hdls */
+					/*     6     */ {161, 192},
+					/* 33.5 million hdls */
+					/*     7     */ {193, 224},
+					/* 33.5 million hdls */
+					/*     8     */ {225, 255}
+					/* 32.5 million hdls */
+};
 
 /***************************************************************************
  *
@@ -100,16 +103,15 @@ HM_POOL    gl_hpool[HM_POOL_CNT] =
 /* Commented out function. Use this, if mapping for the poolID and unitID changes. */
 #define m_HM_POOL_ID(unit) hm_pool_id
 uns32 hm_pool_id(uns8 unit)
-  {
-  uns32 i = 0;
-  
-  for (i = 0; i < HM_POOL_CNT; i++)
-    {
-    if (gl_hpool[i].max >= unit)
-      return i;
-    }
-  return m_LEAP_DBG_SINK(i);  /* This can't/shouldn't happen really */
-  }
+{
+	uns32 i = 0;
+
+	for (i = 0; i < HM_POOL_CNT; i++) {
+		if (gl_hpool[i].max >= unit)
+			return i;
+	}
+	return m_LEAP_DBG_SINK(i);	/* This can't/shouldn't happen really */
+}
 #endif
 
 /*****************************************************************************
@@ -120,36 +122,34 @@ uns32 hm_pool_id(uns8 unit)
 
 *****************************************************************************/
 
-uns32 hm_init_pools(HM_PMGR* pmgr, HM_POOL* pool)
-  {
-  uns32 i;
-  int32 last_max = -1;
+uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool)
+{
+	uns32 i;
+	int32 last_max = -1;
 
-  for (i = 0; i < HM_POOL_CNT; i++)
-    {
-    /* force pool units to be contiguous & non-overlapping */
+	for (i = 0; i < HM_POOL_CNT; i++) {
+		/* force pool units to be contiguous & non-overlapping */
 
-    if (!((last_max + 1) == pool->min))     /* contiguous */
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		if (!((last_max + 1) == pool->min))	/* contiguous */
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    if (pool->max >= 256)        /* greater than max units */
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		if (pool->max >= 256)	/* greater than max units */
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    if (pool->min > pool->max)     /* malformed range spec */
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		if (pool->min > pool->max)	/* malformed range spec */
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    last_max = pool->max;
+		last_max = pool->max;
 
-    pmgr->curr = pool->min;
-    pmgr->max  = pool->max;
+		pmgr->curr = pool->min;
+		pmgr->max = pool->max;
 
-    pmgr++;
-    pool++;
-    }
+		pmgr++;
+		pool++;
+	}
 
-  return NCSCC_RC_SUCCESS;
-  }
-
+	return NCSCC_RC_SUCCESS;
+}
 
 /***************************************************************************
  *
@@ -173,50 +173,49 @@ uns32 hm_init_pools(HM_PMGR* pmgr, HM_POOL* pool)
 uns32 gl_im_created = 0;
 
 uns32 ncshm_init(void)
-  {
-  /* Hdl Mgr does bit-fields; here we do a few exercises up front to make */
-  /* sure YOUR target system can cope with bit-stuff we do............... */
-  HM_HDL    ha;
-  HM_HDL    hb;
-  HM_HDL*   p_hdl;
-  uns32*    p_temp;
-  uns32     cnt = 0;
+{
+	/* Hdl Mgr does bit-fields; here we do a few exercises up front to make */
+	/* sure YOUR target system can cope with bit-stuff we do............... */
+	HM_HDL ha;
+	HM_HDL hb;
+	HM_HDL *p_hdl;
+	uns32 *p_temp;
+	uns32 cnt = 0;
 
-  gl_im_created++;
-  if(gl_im_created > 1)
-    return NCSCC_RC_SUCCESS;
+	gl_im_created++;
+	if (gl_im_created > 1)
+		return NCSCC_RC_SUCCESS;
 
-  assert(sizeof(HM_FREE) == sizeof(HM_CELL)); /* must be same size */
+	assert(sizeof(HM_FREE) == sizeof(HM_CELL));	/* must be same size */
 
-  assert(sizeof(uns32) == sizeof(HM_HDL));    /* must be same size */
+	assert(sizeof(uns32) == sizeof(HM_HDL));	/* must be same size */
 
-  ha.idx1   = 1;                     /* make up a fake handle with values */
-  ha.idx2   = 2;
-  ha.idx3   = 3;
-  ha.seq_id = 6;
+	ha.idx1 = 1;		/* make up a fake handle with values */
+	ha.idx2 = 2;
+	ha.idx3 = 3;
+	ha.seq_id = 6;
 
-  /* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ? */
+	/* cast to INT PTR, to HDL PTR, deref to HDL; bit-fields still stable ? */
 
-  p_temp    = (uns32*)(&ha);  
-  p_hdl     = (HM_HDL*)p_temp;
-  hb        = *p_hdl;
+	p_temp = (uns32 *)(&ha);
+	p_hdl = (HM_HDL *)p_temp;
+	hb = *p_hdl;
 
-  /* are all the bitfields still in tact?? ..............................*/
+	/* are all the bitfields still in tact?? .............................. */
 
-  assert(((ha.idx1==hb.idx1)&&(ha.idx2  ==hb.idx2)&&
-               (ha.idx3==hb.idx3)&&(ha.seq_id==hb.seq_id)));
+	assert(((ha.idx1 == hb.idx1) && (ha.idx2 == hb.idx2) && (ha.idx3 == hb.idx3) && (ha.seq_id == hb.seq_id)));
 
-  /* Done with basic tests; now we move on to normal initialization      */
-  
-  memset(&gl_hm,0,sizeof(HM_CORE));
-  for(cnt = 0; cnt < HM_POOL_CNT; cnt++)
-    m_NCS_LOCK_INIT (&gl_hm.lock[cnt]);
+	/* Done with basic tests; now we move on to normal initialization      */
 
-  if ( hm_init_pools(gl_hm.pool, gl_hpool) != NCSCC_RC_SUCCESS)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	memset(&gl_hm, 0, sizeof(HM_CORE));
+	for (cnt = 0; cnt < HM_POOL_CNT; cnt++)
+		m_NCS_LOCK_INIT(&gl_hm.lock[cnt]);
 
-  return NCSCC_RC_SUCCESS;
-  }
+	if (hm_init_pools(gl_hm.pool, gl_hpool) != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+	return NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
 
@@ -227,41 +226,36 @@ uns32 ncshm_init(void)
 *****************************************************************************/
 
 void ncshm_delete(void)
-  {
-  uns32    i,j;
-  HM_UNIT* unit;
+{
+	uns32 i, j;
+	HM_UNIT *unit;
 
-  gl_im_created--;
-  if(gl_im_created > 0)
-    return;
+	gl_im_created--;
+	if (gl_im_created > 0)
+		return;
 
-  /* Destroy all the locks now. */
-  for(i = 0; i < HM_POOL_CNT; i++)
-  {
-      if(m_NCS_LOCK_DESTROY(&gl_hm.lock[i]) != NCSCC_RC_SUCCESS)
-      {
-          m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
-      }
-  }
+	/* Destroy all the locks now. */
+	for (i = 0; i < HM_POOL_CNT; i++) {
+		if (m_NCS_LOCK_DESTROY(&gl_hm.lock[i]) != NCSCC_RC_SUCCESS) {
+			m_LEAP_DBG_SINK_VOID(NCSCC_RC_FAILURE);
+		}
+	}
 
-  for(i = 0; i < HM_UNIT_CNT; i++)
-    {
-    if ((unit = gl_hm.unit[i]) != NULL)
-      {
-      for(j = 0; j < HM_BANK_CNT; j++)
-        {
-        if (unit->cells[j] != NULL)
-          m_MMGR_FREE_HM_CELLS(unit->cells[j]);
-        }
-      m_MMGR_FREE_HM_UNIT(unit);
-      }
-    }
+	for (i = 0; i < HM_UNIT_CNT; i++) {
+		if ((unit = gl_hm.unit[i]) != NULL) {
+			for (j = 0; j < HM_BANK_CNT; j++) {
+				if (unit->cells[j] != NULL)
+					m_MMGR_FREE_HM_CELLS(unit->cells[j]);
+			}
+			m_MMGR_FREE_HM_UNIT(unit);
+		}
+	}
 
-  /* Memset the gl_hm data structure. */
-  memset(&gl_hm,0,sizeof(HM_CORE));
+	/* Memset the gl_hm data structure. */
+	memset(&gl_hm, 0, sizeof(HM_CORE));
 
-  /* ncshm_init();*/ /* put struct back in start state.. Why not?? */
-  }
+	/* ncshm_init(); */	/* put struct back in start state.. Why not?? */
+}
 
 /*****************************************************************************
 
@@ -272,31 +266,30 @@ void ncshm_delete(void)
 
 *****************************************************************************/
 uns32 ncshm_create_hdl(uns8 pool, NCS_SERVICE_ID id, NCSCONTEXT save)
-  {
-  HM_FREE* free;
-  HM_CELL* cell;
-  uns32    ret = 0;
+{
+	HM_FREE *free;
+	HM_CELL *cell;
+	uns32 ret = 0;
 
-  if(pool >= HM_POOL_CNT)
-      return ret;   /* Invalid handle returned. */
+	if (pool >= HM_POOL_CNT)
+		return ret;	/* Invalid handle returned. */
 
-  m_NCS_LOCK (&gl_hm.lock[pool], NCS_LOCK_WRITE);
+	m_NCS_LOCK(&gl_hm.lock[pool], NCS_LOCK_WRITE);
 
-  if ((free = hm_alloc_cell(pool)) != NULL)
-    {
-    cell   = hm_find_cell(&free->hdl);          /* These two lines are sanity */
-    assert(((void*)free == (void*)cell));/* checks that add no value   */
+	if ((free = hm_alloc_cell(pool)) != NULL) {
+		cell = hm_find_cell(&free->hdl);	/* These two lines are sanity */
+		assert(((void *)free == (void *)cell));	/* checks that add no value   */
 
-    ret           = (*(uns32*)&free->hdl);
-    cell->data    = save;         /* store user stuff and internal state */
-    cell->use_ct  = 1;
-    cell->svc_id  = id;
-    cell->busy    = TRUE;
-    }
+		ret = (*(uns32 *)&free->hdl);
+		cell->data = save;	/* store user stuff and internal state */
+		cell->use_ct = 1;
+		cell->svc_id = id;
+		cell->busy = TRUE;
+	}
 
-  m_NCS_UNLOCK (&gl_hm.lock[pool], NCS_LOCK_WRITE);
-  return ret;
-  }
+	m_NCS_UNLOCK(&gl_hm.lock[pool], NCS_LOCK_WRITE);
+	return ret;
+}
 
 /*****************************************************************************
 
@@ -312,35 +305,34 @@ uns32 ncshm_create_hdl(uns8 pool, NCS_SERVICE_ID id, NCSCONTEXT save)
 
 *****************************************************************************/
 
-uns32 ncshm_declare_hdl(uns32  uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
-  {
-  HM_FREE*  free;
-  HM_CELL*  cell = NULL;
-  HM_HDL*   hdl  = (HM_HDL*)&uhdl;
-  uns32     ret  = NCSCC_RC_FAILURE;
-  uns32     pool_id = 0;
+uns32 ncshm_declare_hdl(uns32 uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
+{
+	HM_FREE *free;
+	HM_CELL *cell = NULL;
+	HM_HDL *hdl = (HM_HDL *)&uhdl;
+	uns32 ret = NCSCC_RC_FAILURE;
+	uns32 pool_id = 0;
 
-  pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
-  if(pool_id >= HM_POOL_CNT)
-      return ret;
+	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
+	if (pool_id >= HM_POOL_CNT)
+		return ret;
 
-  m_NCS_LOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-  if ((free = hm_target_cell(hdl)) != NULL)     /* must have THIS cell */
-    {
-    cell   = hm_find_cell(hdl);                 /* These two lines are sanity */
-    assert(((void*)free == (void*)cell));/* checks that add no value   */
+	if ((free = hm_target_cell(hdl)) != NULL) {	/* must have THIS cell */
+		cell = hm_find_cell(hdl);	/* These two lines are sanity */
+		assert(((void *)free == (void *)cell));	/* checks that add no value   */
 
-    cell->data    = save;         /* store user stuff and internal state */
-    cell->use_ct  = 1;
-    cell->svc_id  = id;
-    cell->busy    = TRUE;
-    ret = NCSCC_RC_SUCCESS;
-    }
+		cell->data = save;	/* store user stuff and internal state */
+		cell->use_ct = 1;
+		cell->svc_id = id;
+		cell->busy = TRUE;
+		ret = NCSCC_RC_SUCCESS;
+	}
 
-  m_NCS_UNLOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
-  return ret;
-  }
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	return ret;
+}
 
 /*****************************************************************************
 
@@ -352,40 +344,35 @@ uns32 ncshm_declare_hdl(uns32  uhdl, NCS_SERVICE_ID id, NCSCONTEXT save)
 
 *****************************************************************************/
 
-NCSCONTEXT  ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
-  {
-  HM_CELL*  cell = NULL;
-  HM_HDL*   hdl  = (HM_HDL*)&uhdl;
-  NCSCONTEXT data = NULL;
-  uns32     pool_id = 0;
+NCSCONTEXT ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
+{
+	HM_CELL *cell = NULL;
+	HM_HDL *hdl = (HM_HDL *)&uhdl;
+	NCSCONTEXT data = NULL;
+	uns32 pool_id = 0;
 
-  pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
-  if(pool_id >= HM_POOL_CNT)
-      return NULL;
+	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
+	if (pool_id >= HM_POOL_CNT)
+		return NULL;
 
-  m_NCS_LOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-  if ((cell = hm_find_cell(hdl)) != NULL)
-    {
-    if ((cell->seq_id == hdl->seq_id)        && 
-        ((NCS_SERVICE_ID)cell->svc_id == id)  &&
-        (cell->busy   == TRUE))
-      {
-      cell->busy = FALSE;
-      data = cell->data;
+	if ((cell = hm_find_cell(hdl)) != NULL) {
+		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == TRUE)) {
+			cell->busy = FALSE;
+			data = cell->data;
 
-      if (cell->use_ct > 1)
-        {
-        hm_block_me(cell, (uns8)pool_id);                 /* must unlock inside */
-        m_NCS_LOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);  /* must lock again!!! */
-        }
-      hm_free_cell(cell, hdl, TRUE);
-      }
-    }
-  m_NCS_UNLOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+			if (cell->use_ct > 1) {
+				hm_block_me(cell, (uns8)pool_id);	/* must unlock inside */
+				m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* must lock again!!! */
+			}
+			hm_free_cell(cell, hdl, TRUE);
+		}
+	}
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-  return data;
-  }
+	return data;
+}
 
 /*****************************************************************************
 
@@ -395,37 +382,32 @@ NCSCONTEXT  ncshm_destroy_hdl(NCS_SERVICE_ID id, uns32 uhdl)
                      data that this hdl leads to.
 
 *****************************************************************************/
-NCSCONTEXT  ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
-  {
-  HM_CELL*  cell = NULL;
-  HM_HDL*   hdl  = (HM_HDL*)&uhdl;
-  NCSCONTEXT data = NULL;
-  uns32     pool_id = 0;
+NCSCONTEXT ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
+{
+	HM_CELL *cell = NULL;
+	HM_HDL *hdl = (HM_HDL *)&uhdl;
+	NCSCONTEXT data = NULL;
+	uns32 pool_id = 0;
 
-  pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
-  if(pool_id >= HM_POOL_CNT)
-      return NULL;
+	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
+	if (pool_id >= HM_POOL_CNT)
+		return NULL;
 
-  m_NCS_LOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-  if ((cell = hm_find_cell(hdl)) != NULL)
-    {
-    if ((cell->seq_id == hdl->seq_id)       && 
-        ((NCS_SERVICE_ID)cell->svc_id == id) &&
-        (cell->busy   == TRUE)                 )
-      {
-        if (++cell->use_ct == 0)
-        {
-            m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* Too many takes()s!! */
-        }
+	if ((cell = hm_find_cell(hdl)) != NULL) {
+		if ((cell->seq_id == hdl->seq_id) && ((NCS_SERVICE_ID)cell->svc_id == id) && (cell->busy == TRUE)) {
+			if (++cell->use_ct == 0) {
+				m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* Too many takes()s!! */
+			}
 
-        data = cell->data;
-      }
-    }
+			data = cell->data;
+		}
+	}
 
-  m_NCS_UNLOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
-  return data;
-  }
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	return data;
+}
 
 /*****************************************************************************
 
@@ -435,44 +417,39 @@ NCSCONTEXT  ncshm_take_hdl(NCS_SERVICE_ID id, uns32 uhdl)
                      data.
 
 *****************************************************************************/
-void ncshm_give_hdl(uns32  uhdl)
-  {
-  HM_CELL*  cell = NULL;
-  HM_HDL*   hdl  = (HM_HDL*)&uhdl;
-  uns32     dummy = 0;
-  uns32     pool_id = 0;
+void ncshm_give_hdl(uns32 uhdl)
+{
+	HM_CELL *cell = NULL;
+	HM_HDL *hdl = (HM_HDL *)&uhdl;
+	uns32 dummy = 0;
+	uns32 pool_id = 0;
 
-  pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
-  if(pool_id >= HM_POOL_CNT)
-      return;
+	pool_id = m_HM_DETM_POOL_FRM_HDL(&uhdl);
+	if (pool_id >= HM_POOL_CNT)
+		return;
 
-  m_NCS_LOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+	m_NCS_LOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
 
-  if ((cell = hm_find_cell(hdl)) != NULL)
-    {
-    if (cell->seq_id == hdl->seq_id)
-      {
-      if (--cell->use_ct < 1)
-        {
-        dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE); /* Client BUG..Too many give()s!! */
-        cell->use_ct++;
-        }
-      else
-        {
-        if ((cell->busy == FALSE) && (cell->use_ct == 1))
-          hm_unblock_him(cell);
-        }
-      }
-    }
-  m_NCS_UNLOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
-  }
+	if ((cell = hm_find_cell(hdl)) != NULL) {
+		if (cell->seq_id == hdl->seq_id) {
+			if (--cell->use_ct < 1) {
+				dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);	/* Client BUG..Too many give()s!! */
+				cell->use_ct++;
+			} else {
+				if ((cell->busy == FALSE) && (cell->use_ct == 1))
+					hm_unblock_him(cell);
+			}
+		}
+	}
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);
+}
 
 /***************************************************************************
  *
  * P r i v a t e  H a n d l e   M g r   F u n c t i o n s (prefix 'hm_')
  *
  ***************************************************************************/
- 
+
 /*****************************************************************************
 
    PROCEDURE NAME:   hm_alloc_cell
@@ -481,30 +458,28 @@ void ncshm_give_hdl(uns32  uhdl)
 
 *****************************************************************************/
 
-HM_FREE*   hm_alloc_cell(uns8 id)
-  {
-  HM_FREE* free;
-  HM_PMGR* pmgr = &gl_hm.pool[id];
+HM_FREE *hm_alloc_cell(uns8 id)
+{
+	HM_FREE *free;
+	HM_PMGR *pmgr = &gl_hm.pool[id];
 
-  if (pmgr->free_pool == NULL)
-    {
-    if ( hm_make_free_cells(pmgr) != NCSCC_RC_SUCCESS)
-       {
-       m_LEAP_DBG_SINK(NULL); 
-       return NULL;
-       }
-    }
-  
-  /* OK, pool should be replenished, lets get one */
+	if (pmgr->free_pool == NULL) {
+		if (hm_make_free_cells(pmgr) != NCSCC_RC_SUCCESS) {
+			m_LEAP_DBG_SINK(NULL);
+			return NULL;
+		}
+	}
 
-  free = pmgr->free_pool;
-  pmgr->free_pool = free->next;
+	/* OK, pool should be replenished, lets get one */
 
-  m_HM_STAT_ADD_IN_USE(pmgr->in_use);
-  m_HM_STAT_RMV_FR_Q(pmgr->in_q);
-  
-  return free;
-  }
+	free = pmgr->free_pool;
+	pmgr->free_pool = free->next;
+
+	m_HM_STAT_ADD_IN_USE(pmgr->in_use);
+	m_HM_STAT_RMV_FR_Q(pmgr->in_q);
+
+	return free;
+}
 
 /*****************************************************************************
 
@@ -515,25 +490,23 @@ HM_FREE*   hm_alloc_cell(uns8 id)
 
 *****************************************************************************/
 
-HM_CELL*  hm_find_cell(HM_HDL* hdl)
-  {
-  HM_UNIT*  unit;
-  HM_CELLS* spot;
+HM_CELL *hm_find_cell(HM_HDL *hdl)
+{
+	HM_UNIT *unit;
+	HM_CELLS *spot;
 
-  if ((unit = gl_hm.unit[hdl->idx1]) == NULL)
-  {
-    m_LEAP_DBG_SINK(NULL);
-    return NULL;
-  }
+	if ((unit = gl_hm.unit[hdl->idx1]) == NULL) {
+		m_LEAP_DBG_SINK(NULL);
+		return NULL;
+	}
 
-  if ((spot = unit->cells[hdl->idx2]) == NULL)
-  {
-    m_LEAP_DBG_SINK(NULL);
-    return NULL;
-  }
+	if ((spot = unit->cells[hdl->idx2]) == NULL) {
+		m_LEAP_DBG_SINK(NULL);
+		return NULL;
+	}
 
-  return &(spot->cell[hdl->idx3]);
-  }
+	return &(spot->cell[hdl->idx3]);
+}
 
 /*****************************************************************************
 
@@ -543,23 +516,23 @@ HM_CELL*  hm_find_cell(HM_HDL* hdl)
 
 *****************************************************************************/
 
-void  hm_free_cell(HM_CELL* cell, HM_HDL* hdl, NCS_BOOL recycle)
-  {
-  HM_PMGR* pmgr;
-  HM_FREE* free = (HM_FREE*)cell;
+void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle)
+{
+	HM_PMGR *pmgr;
+	HM_FREE *free = (HM_FREE *)cell;
 
-  free->hdl  = *hdl;
-  free->hdl.seq_id++;
+	free->hdl = *hdl;
+	free->hdl.seq_id++;
 
-  if (free->hdl.seq_id == 0)
-    free->hdl.seq_id++; /* seq_id must be non-zero always */
+	if (free->hdl.seq_id == 0)
+		free->hdl.seq_id++;	/* seq_id must be non-zero always */
 
-  pmgr            = &gl_hm.pool[m_HM_POOL_ID((uns8)free->hdl.idx1)];
-  free->next      = pmgr->free_pool;
-  pmgr->free_pool = free;
-  m_HM_STAT_ADD_TO_Q(pmgr->in_q);
-  m_HM_STAT_RMV_IN_USE(recycle, pmgr->in_use);
-  }
+	pmgr = &gl_hm.pool[m_HM_POOL_ID((uns8)free->hdl.idx1)];
+	free->next = pmgr->free_pool;
+	pmgr->free_pool = free;
+	m_HM_STAT_ADD_TO_Q(pmgr->in_q);
+	m_HM_STAT_RMV_IN_USE(recycle, pmgr->in_use);
+}
 
 /*****************************************************************************
 
@@ -568,59 +541,56 @@ void  hm_free_cell(HM_CELL* cell, HM_HDL* hdl, NCS_BOOL recycle)
    DESCRIPTION:      create a bunch of cells and put them in the free pool.
 
 *****************************************************************************/
-uns32 hm_make_free_cells(HM_PMGR* pmgr)
-  {
-  HM_UNIT*  unit;
-  HM_CELLS* cells;
-  HM_CELL*  cell;
-  HM_HDL    hdl;
-  uns32     i;
+uns32 hm_make_free_cells(HM_PMGR *pmgr)
+{
+	HM_UNIT *unit;
+	HM_CELLS *cells;
+	HM_CELL *cell;
+	HM_HDL hdl;
+	uns32 i;
 
-  unit = gl_hm.unit[pmgr->curr];
+	unit = gl_hm.unit[pmgr->curr];
 
-  /* first time this pool has been used ?? */
+	/* first time this pool has been used ?? */
 
-  if (unit == NULL)             
-    {
-    if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
-      return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if (unit == NULL) {
+		if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-    memset(unit,0,sizeof(HM_UNIT));
-    gl_hm.unit[pmgr->curr] = unit;
-    }
+		memset(unit, 0, sizeof(HM_UNIT));
+		gl_hm.unit[pmgr->curr] = unit;
+	}
 
-  /* another million hdls used up ?? */
+	/* another million hdls used up ?? */
 
-  /* Check to see if BACKUP has caused random cell banks to be created */
+	/* Check to see if BACKUP has caused random cell banks to be created */
 
-  while (unit->cells[unit->curr] != NULL)     /* BACKUP has been here!! */
-    {
-    /* Commenting as condition is always false and it was giving warnings */
-    ++unit->curr;
-    }
+	while (unit->cells[unit->curr] != NULL) {	/* BACKUP has been here!! */
+		/* Commenting as condition is always false and it was giving warnings */
+		++unit->curr;
+	}
 
-  /* Now go make HM_CELL_CNT (4096) new cells */
+	/* Now go make HM_CELL_CNT (4096) new cells */
 
-  if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL)
-    return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-  memset(cells,0,sizeof(HM_CELLS));
+	memset(cells, 0, sizeof(HM_CELLS));
 
-  hdl.idx1   = pmgr->curr;                    /* set handle conditions */
-  hdl.idx2   = unit->curr;
-  hdl.seq_id = 0;
+	hdl.idx1 = pmgr->curr;	/* set handle conditions */
+	hdl.idx2 = unit->curr;
+	hdl.seq_id = 0;
 
-  unit->cells[unit->curr++] = cells;    /* update curr++ for next time */
- 
-  for(i = 0; i < HM_CELL_CNT; i++) /* carve um up and put in free-po0l */
-    {
-    hdl.idx3 = i;
-    cell = &(cells->cell[i]);
-    hm_free_cell(cell, &hdl, FALSE);
-    }
+	unit->cells[unit->curr++] = cells;	/* update curr++ for next time */
 
-  return NCSCC_RC_SUCCESS;
-  }
+	for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-po0l */
+		hdl.idx3 = i;
+		cell = &(cells->cell[i]);
+		hm_free_cell(cell, &hdl, FALSE);
+	}
+
+	return NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
 
@@ -637,80 +607,73 @@ uns32 hm_make_free_cells(HM_PMGR* pmgr)
 
 *****************************************************************************/
 
-HM_FREE* hm_target_cell(HM_HDL* hdl)
-  {
-  HM_PMGR*  pmgr;
-  HM_UNIT*  unit;
-  HM_CELLS* cells;
-  HM_CELL*  cell;
-  HM_HDL    tmp_hdl;
-  HM_FREE*  back;
-  HM_FREE*  found;
-  uns32     i;
+HM_FREE *hm_target_cell(HM_HDL *hdl)
+{
+	HM_PMGR *pmgr;
+	HM_UNIT *unit;
+	HM_CELLS *cells;
+	HM_CELL *cell;
+	HM_HDL tmp_hdl;
+	HM_FREE *back;
+	HM_FREE *found;
+	uns32 i;
 
-  uns32     tgt  = *((uns32*)hdl);
+	uns32 tgt = *((uns32 *)hdl);
 
-  pmgr = &gl_hm.pool[m_HM_POOL_ID((uns8)hdl->idx1)];  /* determine pool */
+	pmgr = &gl_hm.pool[m_HM_POOL_ID((uns8)hdl->idx1)];	/* determine pool */
 
-  if ((unit = gl_hm.unit[hdl->idx1]) == NULL)
-    {
-    if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL)
-    {
-      m_LEAP_DBG_SINK(NULL);
-      return NULL;
-    }
+	if ((unit = gl_hm.unit[hdl->idx1]) == NULL) {
+		if ((unit = m_MMGR_ALLOC_HM_UNIT) == NULL) {
+			m_LEAP_DBG_SINK(NULL);
+			return NULL;
+		}
 
-    memset(unit,0,sizeof(HM_UNIT));
-    gl_hm.unit[hdl->idx1] = unit;
-    }
+		memset(unit, 0, sizeof(HM_UNIT));
+		gl_hm.unit[hdl->idx1] = unit;
+	}
 
-  if ((cells = unit->cells[hdl->idx2])== NULL)
-    {
-    if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL)
-    {
-      m_LEAP_DBG_SINK(NULL);
-      return NULL;
-    }
+	if ((cells = unit->cells[hdl->idx2]) == NULL) {
+		if ((cells = m_MMGR_ALLOC_HM_CELLS) == NULL) {
+			m_LEAP_DBG_SINK(NULL);
+			return NULL;
+		}
 
-    memset(cells,0,sizeof(HM_CELLS));
+		memset(cells, 0, sizeof(HM_CELLS));
 
-    tmp_hdl.idx1   = hdl->idx1;
-    tmp_hdl.idx2   = hdl->idx2;
-    tmp_hdl.seq_id = 0;
+		tmp_hdl.idx1 = hdl->idx1;
+		tmp_hdl.idx2 = hdl->idx2;
+		tmp_hdl.seq_id = 0;
 
-    unit->cells[hdl->idx2] = cells;    /* put it where it goes */
- 
-    for(i = 0; i < HM_CELL_CNT; i++) /* carve um up and put in free-pool */
-      {
-      tmp_hdl.idx3 = i;
-      cell = &(cells->cell[i]);
-      hm_free_cell(cell, &tmp_hdl, FALSE);
-      }
-    }
+		unit->cells[hdl->idx2] = cells;	/* put it where it goes */
 
-  /* prepare to walk free list and find target cell */
+		for (i = 0; i < HM_CELL_CNT; i++) {	/* carve um up and put in free-pool */
+			tmp_hdl.idx3 = i;
+			cell = &(cells->cell[i]);
+			hm_free_cell(cell, &tmp_hdl, FALSE);
+		}
+	}
 
-  back = (HM_FREE*)&pmgr->free_pool;
+	/* prepare to walk free list and find target cell */
 
-  while (back->next != NULL)
-    {
-    uns32 tst = *((uns32*)&back->next->hdl);
-    if (tst == tgt)
-      {
-      found = back->next;            /* found it */
-      back->next = back->next->next; /* splice it out */
+	back = (HM_FREE *)&pmgr->free_pool;
 
-      m_HM_STAT_ADD_IN_USE(pmgr->in_use);
-      m_HM_STAT_RMV_FR_Q(pmgr->in_q);
+	while (back->next != NULL) {
+		uns32 tst = *((uns32 *)&back->next->hdl);
+		if (tst == tgt) {
+			found = back->next;	/* found it */
+			back->next = back->next->next;	/* splice it out */
 
-      return found;                  /* return it */
-      }
-    back = back->next;
-    }
+			m_HM_STAT_ADD_IN_USE(pmgr->in_use);
+			m_HM_STAT_RMV_FR_Q(pmgr->in_q);
 
-   m_LEAP_DBG_SINK(NULL);
-   return NULL;
-  }
+			return found;	/* return it */
+		}
+		back = back->next;
+	}
+
+	m_LEAP_DBG_SINK(NULL);
+	return NULL;
+}
 
 /*****************************************************************************
 
@@ -720,15 +683,16 @@ HM_FREE* hm_target_cell(HM_HDL* hdl)
 
 *****************************************************************************/
 
-void hm_block_me(HM_CELL* cell, uns8 pool_id)
-  {
-  m_HM_STAT_CRASH(gl_hm.woulda_crashed);
+void hm_block_me(HM_CELL *cell, uns8 pool_id)
+{
+	m_HM_STAT_CRASH(gl_hm.woulda_crashed);
 
-  m_NCS_SEM_CREATE(&cell->data); /* Create a semaphor to block this thread */
-  m_NCS_UNLOCK (&gl_hm.lock[pool_id], NCS_LOCK_WRITE);      /* let others run */
-  m_NCS_SEM_TAKE(cell->data);              /* stay here till refcount == 1 */
-  m_NCS_SEM_RELEASE(cell->data);           /* OK, all set, continue on.... */ 
-  }
+	m_NCS_SEM_CREATE(&cell->data);	/* Create a semaphor to block this thread */
+	m_NCS_UNLOCK(&gl_hm.lock[pool_id], NCS_LOCK_WRITE);	/* let others run */
+	m_NCS_SEM_TAKE(cell->data);	/* stay here till refcount == 1 */
+	m_NCS_SEM_RELEASE(cell->data);	/* OK, all set, continue on.... */
+}
+
 /*****************************************************************************
 
    PROCEDURE NAME:   hm_unblock_him
@@ -738,10 +702,10 @@ void hm_block_me(HM_CELL* cell, uns8 pool_id)
 
 *****************************************************************************/
 
-void hm_unblock_him(HM_CELL* cell)
-  {
-  m_NCS_SEM_GIVE(cell->data); /* unblock that destroy thread */
-  }
+void hm_unblock_him(HM_CELL *cell)
+{
+	m_NCS_SEM_GIVE(cell->data);	/* unblock that destroy thread */
+}
 
 /***************************************************************************
  *
@@ -764,15 +728,15 @@ void hm_unblock_him(HM_CELL* cell)
 
 *****************************************************************************/
 
-NCS_BOOL ncslpg_take(NCSLPG_OBJ* pg)
-  {
-  m_NCS_OS_ATOMIC_INC(&(pg->inhere));   /* set first, ask later.. to beat 'closing' */
-  if (pg->open == TRUE) 
-    return TRUE;   /* its open, lets go in */
-  else
-    m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
-  return FALSE;    /* its closed */
-  }
+NCS_BOOL ncslpg_take(NCSLPG_OBJ *pg)
+{
+	m_NCS_OS_ATOMIC_INC(&(pg->inhere));	/* set first, ask later.. to beat 'closing' */
+	if (pg->open == TRUE)
+		return TRUE;	/* its open, lets go in */
+	else
+		m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
+	return FALSE;		/* its closed */
+}
 
 /*****************************************************************************
 
@@ -782,11 +746,11 @@ NCS_BOOL ncslpg_take(NCSLPG_OBJ* pg)
 
 *****************************************************************************/
 
-uns32 ncslpg_give(NCSLPG_OBJ* pg, uns32 ret)
-  { 
-  m_NCS_OS_ATOMIC_DEC(&(pg->inhere)); 
-  return ret; 
-  }
+uns32 ncslpg_give(NCSLPG_OBJ *pg, uns32 ret)
+{
+	m_NCS_OS_ATOMIC_DEC(&(pg->inhere));
+	return ret;
+}
 
 /*****************************************************************************
 
@@ -797,15 +761,15 @@ uns32 ncslpg_give(NCSLPG_OBJ* pg, uns32 ret)
 
 *****************************************************************************/
 
-uns32 ncslpg_create(NCSLPG_OBJ* pg) 
-  {
-    uns32  dummy;
-  if (pg->open == TRUE)
-    dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  pg->open   = TRUE;
-  pg->inhere = 0;
-  return NCSCC_RC_SUCCESS;
-  }
+uns32 ncslpg_create(NCSLPG_OBJ *pg)
+{
+	uns32 dummy;
+	if (pg->open == TRUE)
+		dummy = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	pg->open = TRUE;
+	pg->inhere = 0;
+	return NCSCC_RC_SUCCESS;
+}
 
 /*****************************************************************************
 
@@ -819,16 +783,13 @@ uns32 ncslpg_create(NCSLPG_OBJ* pg)
 
 *****************************************************************************/
 
-NCS_BOOL ncslpg_destroy(NCSLPG_OBJ* pg)
-  {
-  if (pg->open == FALSE)
-    return FALSE;           /* already closed            */
-  pg->open = FALSE;         /* stop others from entering */
-  while(pg->inhere != 0)    /* Anybody inhere??          */
-    m_NCS_TASK_SLEEP(1);     /* OK, I'll wait; could do semaphore I suppose */
-  
-  return TRUE;  /* Invoker can proceed to get rid of protected thing */
-  }
+NCS_BOOL ncslpg_destroy(NCSLPG_OBJ *pg)
+{
+	if (pg->open == FALSE)
+		return FALSE;	/* already closed            */
+	pg->open = FALSE;	/* stop others from entering */
+	while (pg->inhere != 0)	/* Anybody inhere??          */
+		m_NCS_TASK_SLEEP(1);	/* OK, I'll wait; could do semaphore I suppose */
 
-
-
+	return TRUE;		/* Invoker can proceed to get rid of protected thing */
+}

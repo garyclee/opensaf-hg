@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -53,7 +50,6 @@
         2) Microsoft C++ does not like putting void* in a queue, so passed
            void* pointers are cast to uns32* for enqueue/dequeue operations.
 
-
 ******************************************************************************
 */
 
@@ -71,23 +67,23 @@
 #endif
 
 typedef struct ncs_qlink {
-  struct ncs_qlink  *next;                      /* link to the next one, if needed        */
-  uns32            *slot[NCS_QSPACE_SLOTS_MAX]; /* hold up to 100 element entries         */
-  } NCS_QLINK;
+	struct ncs_qlink *next;	/* link to the next one, if needed        */
+	uns32 *slot[NCS_QSPACE_SLOTS_MAX];	/* hold up to 100 element entries         */
+} NCS_QLINK;
 
 typedef struct ncs_qspace {
-  char*            file;
-  uns32            line;
-  NCS_QLINK         *front;  /* front buffer, from which to dequeue        */
-  NCS_QLINK         *back;   /* back buffer, from which to enqueue         */
-  uns16            slots;   /* # of elements that can live in an NCS_QLINK */
-  uns16            f_idx;   /* front index from which to read next        */
-  uns16            b_idx;   /* back index to which we write next          */
-  int32            count;
-  int32            max_size;
+	char *file;
+	uns32 line;
+	NCS_QLINK *front;	/* front buffer, from which to dequeue        */
+	NCS_QLINK *back;	/* back buffer, from which to enqueue         */
+	uns16 slots;		/* # of elements that can live in an NCS_QLINK */
+	uns16 f_idx;		/* front index from which to read next        */
+	uns16 b_idx;		/* back index to which we write next          */
+	int32 count;
+	int32 max_size;
 } NCS_QSPACE;
 
-#define NCS_QSPACE_DEAD 0xffffffff /* RMV puts this in place of found value */
+#define NCS_QSPACE_DEAD 0xffffffff	/* RMV puts this in place of found value */
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -97,27 +93,25 @@ typedef struct ncs_qspace {
 
 /* constructor & destructor */
 
-EXTERN_C LEAPDLL_API void    ncs_qspace_construct(NCS_QSPACE* qs);
-EXTERN_C LEAPDLL_API void    ncs_circ_qspace_construct(NCS_QSPACE* qs, int32 max_size);
-EXTERN_C LEAPDLL_API void    ncs_qspace_delete(NCS_QSPACE* qs);
+EXTERN_C LEAPDLL_API void ncs_qspace_construct(NCS_QSPACE *qs);
+EXTERN_C LEAPDLL_API void ncs_circ_qspace_construct(NCS_QSPACE *qs, int32 max_size);
+EXTERN_C LEAPDLL_API void ncs_qspace_delete(NCS_QSPACE *qs);
 
 /* Commit resources and prepare for enqueue & dequeue */
 
-EXTERN_C LEAPDLL_API void    ncs_qspace_init  (NCS_QSPACE* qs);
-EXTERN_C LEAPDLL_API void    ncs_qspace_enq   (NCS_QSPACE* qs, void* it);
-EXTERN_C LEAPDLL_API void*   ncs_qspace_deq   (NCS_QSPACE* qs);
-EXTERN_C LEAPDLL_API void*   ncs_qspace_pop   (NCS_QSPACE* qs);
-
+EXTERN_C LEAPDLL_API void ncs_qspace_init(NCS_QSPACE *qs);
+EXTERN_C LEAPDLL_API void ncs_qspace_enq(NCS_QSPACE *qs, void *it);
+EXTERN_C LEAPDLL_API void *ncs_qspace_deq(NCS_QSPACE *qs);
+EXTERN_C LEAPDLL_API void *ncs_qspace_pop(NCS_QSPACE *qs);
 
 /* find & purge */
 
-EXTERN_C LEAPDLL_API NCS_BOOL ncs_qspace_hunt  (NCS_QSPACE *qs, void* tgt);
-EXTERN_C LEAPDLL_API NCS_BOOL ncs_qspace_remove(NCS_QSPACE *qs, void* tgt, NCS_BOOL find_all);
-EXTERN_C LEAPDLL_API void*   ncs_qspace_peek(NCS_QSPACE *qs, int32 index);
+EXTERN_C LEAPDLL_API NCS_BOOL ncs_qspace_hunt(NCS_QSPACE *qs, void *tgt);
+EXTERN_C LEAPDLL_API NCS_BOOL ncs_qspace_remove(NCS_QSPACE *qs, void *tgt, NCS_BOOL find_all);
+EXTERN_C LEAPDLL_API void *ncs_qspace_peek(NCS_QSPACE *qs, int32 index);
 
 /* change max size */
 EXTERN_C LEAPDLL_API uns32 ncs_circ_qspace_set_maxsize(NCS_QSPACE *qs, int32 max_size);
-
 
 /* yea, we could use ncs_qspace_enq instead of ncs_qspace_push,
    but isn't the symmetry nice? */
@@ -125,13 +119,10 @@ EXTERN_C LEAPDLL_API uns32 ncs_circ_qspace_set_maxsize(NCS_QSPACE *qs, int32 max
 
 #define ncs_qspace_count(qs)       (qs)->count
 
-
 #define m_NCS_QSPACE_INIT(q)           (q)->file = __FILE__; \
                                       (q)->line = __LINE__; \
-                                      ncs_qspace_init(q); 
+                                      ncs_qspace_init(q);
 
 #define m_QSPACE_STUFF_OWNER(qs,a)  ncs_mem_dbg_loc(a,qs->line,qs->file)
 
-#endif /* NCS_QPTR_H */
-
-
+#endif   /* NCS_QPTR_H */

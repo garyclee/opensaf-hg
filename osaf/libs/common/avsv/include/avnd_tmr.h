@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,34 +33,30 @@
 struct avnd_cb_tag;
 
 /* timer type enums */
-typedef enum avnd_tmr_type
-{
-   AVND_TMR_HC = 1,       /* health check timer */ 
-   AVND_TMR_CBK_RESP,     /* callback response timer */ 
-   AVND_TMR_HB,           /* heart beat timer */
-   AVND_TMR_MSG_RSP,      /* message response timer */
-   AVND_TMR_CLC_COMP_REG, /* CLC comp register timer */
-   AVND_TMR_SU_ERR_ESC,   /* su error escalation timer */
-   AVND_TMR_NODE_ERR_ESC, /* node error escalation timer */
-   AVND_TMR_CLC_PXIED_COMP_INST, /* proxied inst timer */
-   AVND_TMR_CLC_PXIED_COMP_REG, /* proxied orphan timer */
-   AVND_TMR_MAX 
+typedef enum avnd_tmr_type {
+	AVND_TMR_HC = 1,	/* health check timer */
+	AVND_TMR_CBK_RESP,	/* callback response timer */
+	AVND_TMR_HB,		/* heart beat timer */
+	AVND_TMR_MSG_RSP,	/* message response timer */
+	AVND_TMR_CLC_COMP_REG,	/* CLC comp register timer */
+	AVND_TMR_SU_ERR_ESC,	/* su error escalation timer */
+	AVND_TMR_NODE_ERR_ESC,	/* node error escalation timer */
+	AVND_TMR_CLC_PXIED_COMP_INST,	/* proxied inst timer */
+	AVND_TMR_CLC_PXIED_COMP_REG,	/* proxied orphan timer */
+	AVND_TMR_MAX
 } AVND_TMR_TYPE;
 
-
 /* AvND Timer definition */
-typedef struct avnd_tmr
-{   
-   tmr_t          tmr_id;   
-   AVND_TMR_TYPE  type;      /* timer type */
-   uns32          cb_hdl;    /* cb hdl to retrieve the AvND cb ptr */
-   uns32          opq_hdl;   /* hdl to retrive the timer context */
-   NCS_BOOL       is_active;
+typedef struct avnd_tmr {
+	tmr_t tmr_id;
+	AVND_TMR_TYPE type;	/* timer type */
+	uns32 cb_hdl;		/* cb hdl to retrieve the AvND cb ptr */
+	uns32 opq_hdl;		/* hdl to retrive the timer context */
+	NCS_BOOL is_active;
 } AVND_TMR;
 
 /* Macro to determine if AvND timer is active */
 #define m_AVND_TMR_IS_ACTIVE(tmr)  ((tmr).is_active)
-
 
 /* Macro to start the hc timer */
 #define m_AVND_TMR_COMP_HC_START(cb, rec, rc) \
@@ -75,7 +69,6 @@ typedef struct avnd_tmr
 #define m_AVND_TMR_COMP_HC_STOP(cb, rec) \
             avnd_stop_tmr ((cb), &(rec).tmr);
 
-
 /* Macro to start the callback response timer */
 #define m_AVND_TMR_COMP_CBK_RESP_START(cb, cbn, per, rc) \
             (rc) = avnd_start_tmr((cb), &(cbn).resp_tmr, \
@@ -85,7 +78,6 @@ typedef struct avnd_tmr
 /* Macro to stop the callback response timer */
 #define m_AVND_TMR_COMP_CBK_RESP_STOP(cb, cbn) \
             avnd_stop_tmr((cb), &(cbn).resp_tmr);
-
 
 /* Macro to start the comp-reg timer */
 #define m_AVND_TMR_COMP_REG_START(cb, comp, rc) \
@@ -105,7 +97,6 @@ typedef struct avnd_tmr
 #define m_AVND_TMR_COMP_REG_STOP(cb, comp) \
             avnd_stop_tmr ((cb), &(comp).clc_info.clc_reg_tmr);
 
-
 /* Macro to start the heartbeat timer */
 #define m_AVND_TMR_HB_START(cb, rc) \
             (rc) = avnd_start_tmr((cb), &(cb)->hb_tmr, AVND_TMR_HB, \
@@ -114,7 +105,6 @@ typedef struct avnd_tmr
 /* Macro to stop the heartbeat timer */
 #define m_AVND_TMR_HB_STOP(cb) \
             avnd_stop_tmr((cb), &(cb)->hb_tmr);
-
 
 /* Macro to start the msg response timer */
 #define m_AVND_TMR_MSG_RESP_START(cb, rec, rc) \
@@ -186,14 +176,12 @@ typedef struct avnd_tmr
 #define m_AVND_TMR_PXIED_COMP_REG_STOP(cb, comp) \
             avnd_stop_tmr ((cb), &(comp).orph_tmr);
 
-
 /*** Extern function declarations ***/
 
-EXTERN_C void avnd_tmr_exp (void *);
+EXTERN_C void avnd_tmr_exp(void *);
 
-EXTERN_C uns32 avnd_start_tmr (struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, 
-                               SaTimeT, uns32);
+EXTERN_C uns32 avnd_start_tmr(struct avnd_cb_tag *, AVND_TMR *, AVND_TMR_TYPE, SaTimeT, uns32);
 
-EXTERN_C void avnd_stop_tmr (struct avnd_cb_tag *, AVND_TMR *);
+EXTERN_C void avnd_stop_tmr(struct avnd_cb_tag *, AVND_TMR *);
 
-#endif /* !AVND_TMR_H */
+#endif   /* !AVND_TMR_H */

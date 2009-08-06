@@ -32,31 +32,31 @@
 
 #include "mab_log_const.h"
 
-EXTERN_C MABCOM_API uns32 mab_log_bind(void); 
-EXTERN_C MABCOM_API uns32 mab_log_unbind(void); 
+EXTERN_C MABCOM_API uns32 mab_log_bind(void);
+EXTERN_C MABCOM_API uns32 mab_log_unbind(void);
 
 #if (MAB_LOG == 1)
 struct mas_fltr;
-EXTERN_C MABCOM_API uns32 log_mab_svc_prvdr_evt(uns8, uns32, uns32, MDS_DEST, uns32, uns32); 
-EXTERN_C MABCOM_API uns32 log_mab_svc_prvdr_msg(uns8, uns32, uns32, MDS_DEST, uns32); 
-EXTERN_C MABCOM_API uns32 log_mab_fltr_data(uns8, uns32,uns32,uns32, NCSMAB_FLTR *); 
-EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8,uns32,uns32,struct mas_fltr*,struct mas_fltr*); 
+EXTERN_C MABCOM_API uns32 log_mab_svc_prvdr_evt(uns8, uns32, uns32, MDS_DEST, uns32, uns32);
+EXTERN_C MABCOM_API uns32 log_mab_svc_prvdr_msg(uns8, uns32, uns32, MDS_DEST, uns32);
+EXTERN_C MABCOM_API uns32 log_mab_fltr_data(uns8, uns32, uns32, uns32, NCSMAB_FLTR *);
+EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8, uns32, uns32, struct mas_fltr *, struct mas_fltr *);
 
 #define m_LOG_MAB_HEADLINE(s, id) \
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_HDLN, MAB_FC_HDLN,\
-                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TI, id) 
+                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TI, id)
 
 #define m_LOG_MAB_HDLN_I(s, id, i1) \
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_HDLN_I, MAB_FC_HDLN,\
-                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TIL, id, i1) 
+                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TIL, id, i1)
 
 #define m_LOG_MAB_HDLN_II(s, id, i1, i2) \
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_HDLN_II, MAB_FC_HDLN,\
-                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TILL, id, i1, i2) 
+                   NCSFL_LC_HEADLINE, s, NCSFL_TYPE_TILL, id, i1, i2)
 
 #define m_LOG_MAB_SVC_PRVDR_EVT(s, id, svc_id, dest, new_state, anchor) \
         log_mab_svc_prvdr_evt(s, id, svc_id, dest, new_state, anchor)
-        
+
 #define m_LOG_MAB_SVC_PRVDR_MSG(s, id, svc_id, dest, msg_type) \
         log_mab_svc_prvdr_msg(s, id, svc_id, dest, msg_type)
 
@@ -85,10 +85,9 @@ EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8,uns32,uns32,struct mas_fltr
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_FLTR_DET, MAB_FC_FLTR_DET,\
                    c, s, NCSFL_TYPE_TILLL, id, tbl_id, fltr_id, fltr_type)
 
-
 #define m_LOG_MAB_FLTR_DATA(sev, env_id, tbl_id, fltr_id, fltr_data_ptr) \
         log_mab_fltr_data(sev, env_id, tbl_id, fltr_id, fltr_data_ptr)
-        
+
 #define m_LOG_MAB_OVERLAPPING_FLTRS(sev, env_id, tbl_id, exst_fltr, new_fltr) \
         log_overlapping_fltrs(sev, env_id, tbl_id, exst_fltr, new_fltr)
 
@@ -171,27 +170,25 @@ EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8,uns32,uns32,struct mas_fltr
         ncs_logmsg(NCS_SERVICE_ID_MAB, MAB_LID_ERR_II, \
                    MAB_FC_ERROR, c, s, \
                    NCSFL_TYPE_TILL, id, i1, i2)
- 
- 
 #else
 
-#define m_LOG_MAB_HEADLINE(f, id)  
+#define m_LOG_MAB_HEADLINE(f, id)
 #define m_LOG_MAB_HDLN_I(s, id, i1)
-#define m_LOG_MAB_HDLN_II(s, id, i1, i2) 
+#define m_LOG_MAB_HDLN_II(s, id, i1, i2)
 #define m_LOG_MAB_SVC_PRVDR(s, id, i1, i2)
-#define m_LOG_MAB_LOCK(id, lck)        
+#define m_LOG_MAB_LOCK(id, lck)
 #define m_LOG_MAB_MEM(s, id, inst_len, mem)
-#define m_LOG_MAB_API(id)        
-#define m_LOG_MAB_EVT(s, id)           
-#define m_LOG_MAB_TBL_DETAILS(c, s, id, env_id, tbl_id) 
+#define m_LOG_MAB_API(id)
+#define m_LOG_MAB_EVT(s, id)
+#define m_LOG_MAB_TBL_DETAILS(c, s, id, env_id, tbl_id)
 #define m_LOG_MAB_FLTR_DETAILS(c, s, id, tbl_id, fltr_id, fltr_type)
 #define m_LOG_MAB_FLTR_DATA(sev, env_id, tbl_id, fltr_id, fltr_data)
-#define m_LOG_MAB_OVERLAPPING_FLTRS(sev, env_id, tbl_id, exst_fltr, new_fltr) 
-#define m_LOG_MAB_SVC_PRVDR_EVT(s, id, svc_id, dest, new_state, anchor) 
+#define m_LOG_MAB_OVERLAPPING_FLTRS(sev, env_id, tbl_id, exst_fltr, new_fltr)
+#define m_LOG_MAB_SVC_PRVDR_EVT(s, id, svc_id, dest, new_state, anchor)
 #define m_LOG_MAB_SVC_PRVDR_MSG(s, id, svc_id, dest, msg_type)
 #define m_LOG_MAB_NO_CB(func_name)
 #define m_LOG_MAB_ERROR_II(c, s, id, i1, i2)
-#define m_LOG_MAB_ERROR_I(s, id, i1) 
+#define m_LOG_MAB_ERROR_I(s, id, i1)
 #define m_LOG_MAB_CSI_DETAILS(s, id, flags, compName, csiName, state)
 #define m_LOG_MAB_STATE_CHG(s, id, cur_state, new_state)
 #define m_LOG_MAB_MEMFAIL(s, id, func_name)
@@ -206,6 +203,6 @@ EXTERN_C MABCOM_API uns32 log_overlapping_fltrs(uns8,uns32,uns32,struct mas_fltr
 #define m_LOG_OAA_WARMBOOTREQ_INFO_I(s, id, psr_here, mas_here)
 #define m_LOG_OAA_WARMBOOTREQ_INFO_II(s, id, pcn, is_sys_client, tbl_id)
 #define m_LOG_OAA_WARMBOOTREQ_INFO_III(s, id, pcn, is_sys_client, tbl_id, wbreq_hdl)
-#endif /* MAB_LOG == 1 */
+#endif   /* MAB_LOG == 1 */
 
-#endif /* MAB_LOG_H */
+#endif   /* MAB_LOG_H */

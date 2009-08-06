@@ -110,5 +110,4 @@
 extern uns32 g_avm_hdl;
 extern void *g_avm_task_hdl;
 
-#endif /*__AVM_H__ */
-
+#endif   /*__AVM_H__ */

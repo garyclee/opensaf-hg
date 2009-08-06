@@ -61,7 +61,6 @@
 #ifndef NCS_KMS_H
 #define NCS_KMS_H
 
-
 /**************************************************************************
 
                           N e t P l a n e 
@@ -91,20 +90,18 @@
 
 ****************************************************************************/
 
-
 /*****************************************************************************
  H J K M S _ B Y _ N A M E
  
   Fetch the NCSKMS_REC by name.
  *****************************************************************************/
 
-typedef struct ncskms_by_name
-  {
-  char*              i_name;    /* name of PWE-id Key record */
-  NCS_SERVICE_ID      i_ss_id;   /* service identifier of key desired */
-  NCS_KEY*            o_key;     /* If success, get a ptr to internal NCS_KEY */
+typedef struct ncskms_by_name {
+	char *i_name;		/* name of PWE-id Key record */
+	NCS_SERVICE_ID i_ss_id;	/* service identifier of key desired */
+	NCS_KEY *o_key;		/* If success, get a ptr to internal NCS_KEY */
 
-  } NCSKMS_BY_NAME;
+} NCSKMS_BY_NAME;
 
 /*****************************************************************************
  H J K M S _ B Y _ P W E 
@@ -112,25 +109,21 @@ typedef struct ncskms_by_name
   Fetch the NCSKMS_REC by PWE id.
  *****************************************************************************/
 
-typedef struct ncskms_by_pwe
-  {
-  uns32              i_pwe;     /* PWE-id value mapping to proper record   */
-  NCS_SERVICE_ID      i_ss_id;   /* service identifier of key desired */
-  NCS_KEY*            o_key;     /* If success, get a ptr to internal NCS_KEY */
+typedef struct ncskms_by_pwe {
+	uns32 i_pwe;		/* PWE-id value mapping to proper record   */
+	NCS_SERVICE_ID i_ss_id;	/* service identifier of key desired */
+	NCS_KEY *o_key;		/* If success, get a ptr to internal NCS_KEY */
 
-  } NCSKMS_BY_PWE;
-
+} NCSKMS_BY_PWE;
 
 /* Operations mnemonics for KMS Services used by subsystem clients       */
 
-typedef enum ncskms_ss_op
-  {
-  /* Subsystem clients use to get proper subsystem key value */
+typedef enum ncskms_ss_op {
+	/* Subsystem clients use to get proper subsystem key value */
 
-  NCSKMS_SS_GET_BY_NAME,
-  NCSKMS_SS_GET_BY_PWE   
-
-  } NCSKMS_SS_OP;
+	NCSKMS_SS_GET_BY_NAME,
+	NCSKMS_SS_GET_BY_PWE
+} NCSKMS_SS_OP;
 
 /***************************************************************************
   H J K M S _ S S _ A R G
@@ -140,27 +133,24 @@ typedef enum ncskms_ss_op
 
  ***************************************************************************/
 
-typedef struct ncskms_ss_arg
-  {
+typedef struct ncskms_ss_arg {
 
-  NCSKMS_SS_OP         i_op;
+	NCSKMS_SS_OP i_op;
 
-  union {
+	union {
 
-    /* used by subsystem clients to fetch proper NCS_KEY for target subsystem */
+		/* used by subsystem clients to fetch proper NCS_KEY for target subsystem */
 
-    NCSKMS_BY_NAME      by_name;
-    NCSKMS_BY_PWE       by_pwe;
-    
-    } op;
+		NCSKMS_BY_NAME by_name;
+		NCSKMS_BY_PWE by_pwe;
 
-  } NCSKMS_SS_ARG;
+	} op;
 
+} NCSKMS_SS_ARG;
 
 /* The master entry point for KMS Service used by subsystem clients */
 
-EXTERN_C LEAPDLL_API uns32 ncskms_ss( NCSKMS_SS_ARG* arg );
-
+EXTERN_C LEAPDLL_API uns32 ncskms_ss(NCSKMS_SS_ARG *arg);
 
 /**************************************************************************
 
@@ -189,11 +179,10 @@ EXTERN_C LEAPDLL_API uns32 ncskms_ss( NCSKMS_SS_ARG* arg );
  Create THE Key Map Service for this environment.
  ***************************************************************************/
 
-typedef struct ncskms_create
-  {
-  uns32           i_meaningless;/* keep compiler happy                     */
+typedef struct ncskms_create {
+	uns32 i_meaningless;	/* keep compiler happy                     */
 
-  } NCSKMS_CREATE;
+} NCSKMS_CREATE;
 
 /***************************************************************************
  H J K M S _ D E S T R O Y
@@ -201,12 +190,10 @@ typedef struct ncskms_create
  Recover all system resources associated with THE Key Map Service.
  ***************************************************************************/
 
-typedef struct ncskms_destroy
-  {
-  uns32           i_meaningless;/* keep compiler happy                     */
+typedef struct ncskms_destroy {
+	uns32 i_meaningless;	/* keep compiler happy                     */
 
-  } NCSKMS_DESTROY;
-
+} NCSKMS_DESTROY;
 
 /***************************************************************************
  H J K M S _ A D D _ R E C
@@ -215,12 +202,11 @@ typedef struct ncskms_destroy
 
  ***************************************************************************/
 
-typedef struct ncskms_add_rec
-  {
-  uns32           i_pwe_id; /* The PWE-id to which these keys are mapped  */
-  char*           i_name;   /* The name that this PWE-id shall go by */ 
+typedef struct ncskms_add_rec {
+	uns32 i_pwe_id;		/* The PWE-id to which these keys are mapped  */
+	char *i_name;		/* The name that this PWE-id shall go by */
 
-  } NCSKMS_ADD_REC;
+} NCSKMS_ADD_REC;
 
 /***************************************************************************
  H J K M S _ R M V _ R E C
@@ -229,11 +215,10 @@ typedef struct ncskms_add_rec
 
  ***************************************************************************/
 
-typedef struct ncskms_rmv_rec
-  {
-  uns32           i_pwe_id; /* The PWE-id to which these keys are mapped  */
+typedef struct ncskms_rmv_rec {
+	uns32 i_pwe_id;		/* The PWE-id to which these keys are mapped  */
 
-  } NCSKMS_RMV_REC;
+} NCSKMS_RMV_REC;
 
 /***************************************************************************
  H J K M S _ A D D _ K E Y
@@ -244,12 +229,11 @@ typedef struct ncskms_rmv_rec
 
  ***************************************************************************/
 
-typedef struct ncskms_add_key
-  {
-  uns32           i_pwe_id; /* The PWE-id to which these keys are mapped  */
-  NCS_KEY*         i_key;    /* the keys id-ed via the exist bitmap to add */
+typedef struct ncskms_add_key {
+	uns32 i_pwe_id;		/* The PWE-id to which these keys are mapped  */
+	NCS_KEY *i_key;		/* the keys id-ed via the exist bitmap to add */
 
-  } NCSKMS_ADD_KEY;
+} NCSKMS_ADD_KEY;
 
 /***************************************************************************
  H J K M S _ R M V _ K E Y 
@@ -260,27 +244,23 @@ typedef struct ncskms_add_key
 
  ***************************************************************************/
 
-typedef struct ncskms_rmv_key  
-  {
-  uns32           i_pwe_id; /* The PWE-id to which keys shall be removed */
-  NCS_SERVICE_ID   i_ss_id;  /* the service ID of the Key to remove       */
+typedef struct ncskms_rmv_key {
+	uns32 i_pwe_id;		/* The PWE-id to which keys shall be removed */
+	NCS_SERVICE_ID i_ss_id;	/* the service ID of the Key to remove       */
 
-  } NCSKMS_RMV_KEY; 
-
+} NCSKMS_RMV_KEY;
 
 /* Operations mnemonics for a KMS Service used by The Layer Management */
 
-typedef enum ncskms_lm_op
-  {
-  NCSKMS_LM_CREATE,
-  NCSKMS_LM_DESTROY,
+typedef enum ncskms_lm_op {
+	NCSKMS_LM_CREATE,
+	NCSKMS_LM_DESTROY,
 
-  NCSKMS_LM_ADD_REC,
-  NCSKMS_LM_RMV_REC,
-  NCSKMS_LM_ADD_KEY,
-  NCSKMS_LM_RMV_KEY
-
-  } NCSKMS_LM_OP;
+	NCSKMS_LM_ADD_REC,
+	NCSKMS_LM_RMV_REC,
+	NCSKMS_LM_ADD_KEY,
+	NCSKMS_LM_RMV_KEY
+} NCSKMS_LM_OP;
 
 /***************************************************************************
   H J K M S _ L M _ A R G
@@ -290,37 +270,33 @@ typedef enum ncskms_lm_op
   PWE-ids.
  ***************************************************************************/
 
-typedef struct ncskms_lm_arg
-  {
-  NCSKMS_LM_OP          i_op;
+typedef struct ncskms_lm_arg {
+	NCSKMS_LM_OP i_op;
 
-  union {
+	union {
 
-    NCSKMS_CREATE       create;  /* Create THE Key Map Service              */
-    NCSKMS_DESTROY      destroy; /* destroy THE Key Map Service             */
- 
-    NCSKMS_ADD_REC      add_rec; /* name is specified here */
-    NCSKMS_RMV_REC      rmv_rec;
-    NCSKMS_ADD_KEY      add_key;     /* Add keys that map to a particular PWE   */
-    NCSKMS_RMV_KEY      rmv_key;     /* Remove kesy that map to a particular PWE*/
+		NCSKMS_CREATE create;	/* Create THE Key Map Service              */
+		NCSKMS_DESTROY destroy;	/* destroy THE Key Map Service             */
 
-    } op;
+		NCSKMS_ADD_REC add_rec;	/* name is specified here */
+		NCSKMS_RMV_REC rmv_rec;
+		NCSKMS_ADD_KEY add_key;	/* Add keys that map to a particular PWE   */
+		NCSKMS_RMV_KEY rmv_key;	/* Remove kesy that map to a particular PWE */
 
-  } NCSKMS_LM_ARG;
+	} op;
 
+} NCSKMS_LM_ARG;
 
 /* The master entry point for Layer Management Service used by the AKE */
 
-EXTERN_C LEAPDLL_API uns32 ncskms_lm( NCSKMS_LM_ARG* arg);
-
+EXTERN_C LEAPDLL_API uns32 ncskms_lm(NCSKMS_LM_ARG *arg);
 
 /**************************************************************
    KMS Locking Entry point interface....      
                                                                 
  **************************************************************/
 
-EXTERN_C LEAPDLL_API uns32 ncskms_lock  (void);
+EXTERN_C LEAPDLL_API uns32 ncskms_lock(void);
 EXTERN_C LEAPDLL_API uns32 ncskms_unlock(void);
-
 
 #endif

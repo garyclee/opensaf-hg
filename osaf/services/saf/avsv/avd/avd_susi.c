@@ -18,15 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module deals with the creation, accessing and deletion of
   the SU SI relationship list on the AVD. It also deals with
   all the MIB operations like set,get,getnext etc related to the 
   service unit service instance relationship table.
-
 
 ..............................................................................
 
@@ -52,7 +49,6 @@
   saamfsusitableentry_setrow - This function is the setrow processing for
                            objects in SA_AMF_S_U_S_I_TABLE_ENTRY_ID table.
 
-
   
 ******************************************************************************
 */
@@ -62,9 +58,6 @@
  */
 
 #include "avd.h"
-
-
-
 
 /*****************************************************************************
  * Function: avd_susi_struc_crt
@@ -83,131 +76,120 @@
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL * avd_susi_struc_crt(AVD_CL_CB *cb,AVD_SI *si,AVD_SU *su)
+AVD_SU_SI_REL *avd_susi_struc_crt(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su)
 {
-   AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
-   AVD_SU        *curr_su = 0;
-   AVD_SUS_PER_SI_RANK_INDX i_idx;
-   AVD_SUS_PER_SI_RANK      *su_rank_rec = 0, *i_su_rank_rec = 0;
-   uns32                    rank1, rank2;
+	AVD_SU_SI_REL *su_si, *p_su_si, *i_su_si;
+	AVD_SU *curr_su = 0;
+	AVD_SUS_PER_SI_RANK_INDX i_idx;
+	AVD_SUS_PER_SI_RANK *su_rank_rec = 0, *i_su_rank_rec = 0;
+	uns32 rank1, rank2;
 
-   /* Allocate a new block structure now
-    */
-   if ((su_si = m_MMGR_ALLOC_AVD_SU_SI_REL) == AVD_SU_SI_REL_NULL)
-   {
-      /* log an error */
-      m_AVD_LOG_MEM_FAIL(AVD_SUSI_ALLOC_FAILED);
-      return AVD_SU_SI_REL_NULL;
-   }
+	/* Allocate a new block structure now
+	 */
+	if ((su_si = m_MMGR_ALLOC_AVD_SU_SI_REL) == AVD_SU_SI_REL_NULL) {
+		/* log an error */
+		m_AVD_LOG_MEM_FAIL(AVD_SUSI_ALLOC_FAILED);
+		return AVD_SU_SI_REL_NULL;
+	}
 
-   memset((char *)su_si, '\0', sizeof(AVD_SU_SI_REL));
+	memset((char *)su_si, '\0', sizeof(AVD_SU_SI_REL));
 
-   su_si->state = SA_AMF_HA_STANDBY;
-   su_si->fsm = AVD_SU_SI_STATE_ABSENT;
-   su_si->list_of_csicomp = AVD_COMP_CSI_REL_NULL;
-   su_si->si = si;
-   su_si->su = su;
+	su_si->state = SA_AMF_HA_STANDBY;
+	su_si->fsm = AVD_SU_SI_STATE_ABSENT;
+	su_si->list_of_csicomp = AVD_COMP_CSI_REL_NULL;
+	su_si->si = si;
+	su_si->su = su;
 
-   /* 
-    * Add the susi rel rec to the ordered si-list
-    */
+	/* 
+	 * Add the susi rel rec to the ordered si-list
+	 */
 
-   /* determine if the su is ranked per si */
-   memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
-   i_idx.si_name_net = si->name_net;
-   i_idx.su_rank_net = 0;
-   for (su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
-        su_rank_rec && (m_CMP_NORDER_SANAMET(su_rank_rec->indx.si_name_net, si->name_net) == 0);
-        su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb,su_rank_rec->indx) )
-   {
-      curr_su = avd_su_struc_find(cb, su_rank_rec->su_name, TRUE);
-      if (curr_su == su) break;
-   }
+	/* determine if the su is ranked per si */
+	memset((uns8 *)&i_idx, '\0', sizeof(i_idx));
+	i_idx.si_name_net = si->name_net;
+	i_idx.su_rank_net = 0;
+	for (su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
+	     su_rank_rec && (m_CMP_NORDER_SANAMET(su_rank_rec->indx.si_name_net, si->name_net) == 0);
+	     su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, su_rank_rec->indx)) {
+		curr_su = avd_su_struc_find(cb, su_rank_rec->su_name, TRUE);
+		if (curr_su == su)
+			break;
+	}
 
-   /* set the ranking flag */
-   su_si->is_per_si = (curr_su == su) ? TRUE : FALSE;
+	/* set the ranking flag */
+	su_si->is_per_si = (curr_su == su) ? TRUE : FALSE;
 
-   /* determine the insert position */
-   for (p_su_si = AVD_SU_SI_REL_NULL, i_su_si = si->list_of_sisu;
-       i_su_si; p_su_si = i_su_si, i_su_si = i_su_si->si_next)
-   {
-      if (i_su_si->is_per_si == TRUE)
-      {
-         if (FALSE == su_si->is_per_si) continue;
+	/* determine the insert position */
+	for (p_su_si = AVD_SU_SI_REL_NULL, i_su_si = si->list_of_sisu;
+	     i_su_si; p_su_si = i_su_si, i_su_si = i_su_si->si_next) {
+		if (i_su_si->is_per_si == TRUE) {
+			if (FALSE == su_si->is_per_si)
+				continue;
 
-         /* determine the su_rank rec for this rec */
-         memset((uns8 *)&i_idx,'\0',sizeof(i_idx));
-         i_idx.si_name_net = si->name_net;
-         i_idx.su_rank_net = 0;
-         for (i_su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
-              i_su_rank_rec && (m_CMP_NORDER_SANAMET(i_su_rank_rec->indx.si_name_net, si->name_net) == 0);
-              i_su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb,i_su_rank_rec->indx) )
-         {
-            curr_su = avd_su_struc_find(cb, i_su_rank_rec->su_name, TRUE);
-            if (curr_su == i_su_si->su) break;
-         }
+			/* determine the su_rank rec for this rec */
+			memset((uns8 *)&i_idx, '\0', sizeof(i_idx));
+			i_idx.si_name_net = si->name_net;
+			i_idx.su_rank_net = 0;
+			for (i_su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_idx);
+			     i_su_rank_rec
+			     && (m_CMP_NORDER_SANAMET(i_su_rank_rec->indx.si_name_net, si->name_net) == 0);
+			     i_su_rank_rec = avd_sus_per_si_rank_struc_find_next(cb, i_su_rank_rec->indx)) {
+				curr_su = avd_su_struc_find(cb, i_su_rank_rec->su_name, TRUE);
+				if (curr_su == i_su_si->su)
+					break;
+			}
 
-         m_AVSV_ASSERT(i_su_rank_rec);
+			m_AVSV_ASSERT(i_su_rank_rec);
 
-         rank1 = su_rank_rec->indx.su_rank_net;
-         rank2 = i_su_rank_rec->indx.su_rank_net;
-         rank1 = m_NCS_OS_NTOHL(rank1);
-         rank2 = m_NCS_OS_NTOHL(rank2);
-         if (rank1 <= rank2) break;
-      }
-      else
-      {
-         if (TRUE == su_si->is_per_si) break;
+			rank1 = su_rank_rec->indx.su_rank_net;
+			rank2 = i_su_rank_rec->indx.su_rank_net;
+			rank1 = m_NCS_OS_NTOHL(rank1);
+			rank2 = m_NCS_OS_NTOHL(rank2);
+			if (rank1 <= rank2)
+				break;
+		} else {
+			if (TRUE == su_si->is_per_si)
+				break;
 
-         if (su->rank <= i_su_si->su->rank)
-            break;
-      }
-   } /* for */
+			if (su->rank <= i_su_si->su->rank)
+				break;
+		}
+	}			/* for */
 
-   /* now insert the susi rel at the correct position */
-   if (p_su_si)
-   {
-      su_si->si_next = p_su_si->si_next;
-      p_su_si->si_next = su_si;
-   }
-   else
-   {
-      su_si->si_next = si->list_of_sisu;
-      si->list_of_sisu = su_si;
-   }
+	/* now insert the susi rel at the correct position */
+	if (p_su_si) {
+		su_si->si_next = p_su_si->si_next;
+		p_su_si->si_next = su_si;
+	} else {
+		su_si->si_next = si->list_of_sisu;
+		si->list_of_sisu = su_si;
+	}
 
+	/* keep the list in su inascending order */
+	if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
+		su->list_of_susi = su_si;
+		su_si->su_next = AVD_SU_SI_REL_NULL;
+		return su_si;
+	}
 
-   /* keep the list in su inascending order */ 
-   if (su->list_of_susi == AVD_SU_SI_REL_NULL)
-   {
-      su->list_of_susi = su_si;
-      su_si->su_next = AVD_SU_SI_REL_NULL;
-      return su_si;
-   }
+	p_su_si = AVD_SU_SI_REL_NULL;
+	i_su_si = su->list_of_susi;
+	while ((i_su_si != AVD_SU_SI_REL_NULL) &&
+	       (m_CMP_NORDER_SANAMET(i_su_si->si->name_net, su_si->si->name_net) < 0)) {
+		p_su_si = i_su_si;
+		i_su_si = i_su_si->su_next;
+	}
 
+	if (p_su_si == AVD_SU_SI_REL_NULL) {
+		su_si->su_next = su->list_of_susi;
+		su->list_of_susi = su_si;
+	} else {
+		su_si->su_next = p_su_si->su_next;
+		p_su_si->su_next = su_si;
+	}
 
-   p_su_si = AVD_SU_SI_REL_NULL;
-   i_su_si = su->list_of_susi;
-   while ((i_su_si != AVD_SU_SI_REL_NULL) && 
-      (m_CMP_NORDER_SANAMET(i_su_si->si->name_net, su_si->si->name_net) < 0))
-   {
-      p_su_si = i_su_si;
-      i_su_si = i_su_si->su_next;
-   }
-
-   if (p_su_si == AVD_SU_SI_REL_NULL)
-   {
-      su_si->su_next = su->list_of_susi;
-      su->list_of_susi = su_si;
-   }else
-   {
-      su_si->su_next = p_su_si->su_next;
-      p_su_si->su_next = su_si;
-   }
-
-   return su_si;
+	return su_si;
 }
-
 
 /*****************************************************************************
  * Function: avd_su_susi_struc_find
@@ -227,51 +209,39 @@ AVD_SU_SI_REL * avd_susi_struc_crt(AVD_CL_CB *cb,AVD_SI *si,AVD_SU *su)
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL * avd_su_susi_struc_find(AVD_CL_CB *cb,AVD_SU *su,
-                                    SaNameT si_name,NCS_BOOL host_order)
+AVD_SU_SI_REL *avd_su_susi_struc_find(AVD_CL_CB *cb, AVD_SU *su, SaNameT si_name, NCS_BOOL host_order)
 {
 
-   AVD_SU_SI_REL *su_si;
-   SaNameT si_name_net;
+	AVD_SU_SI_REL *su_si;
+	SaNameT si_name_net;
 
-   su_si = su->list_of_susi;
-   
-   if(host_order == TRUE)
-   {
-      memset((char *)&si_name_net, '\0', sizeof(SaNameT));
-      memcpy(si_name_net.value,si_name.value,si_name.length);
-      si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
-      
-      while ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) < 0))
-      {
-         su_si = su_si->su_next;
-      }
-      
-      if ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) == 0))
-      {
-         return su_si;
-      }
-   
-   }else
-   {
-      while ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) < 0))
-      {
-         su_si = su_si->su_next;
-      }
-      
-      if ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) == 0))
-      {
-         return su_si;
-      }
-   }
+	su_si = su->list_of_susi;
 
-   return AVD_SU_SI_REL_NULL;
+	if (host_order == TRUE) {
+		memset((char *)&si_name_net, '\0', sizeof(SaNameT));
+		memcpy(si_name_net.value, si_name.value, si_name.length);
+		si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
+
+		while ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) < 0)) {
+			su_si = su_si->su_next;
+		}
+
+		if ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) == 0)) {
+			return su_si;
+		}
+
+	} else {
+		while ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) < 0)) {
+			su_si = su_si->su_next;
+		}
+
+		if ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) == 0)) {
+			return su_si;
+		}
+	}
+
+	return AVD_SU_SI_REL_NULL;
 }
-
 
 /*****************************************************************************
  * Function: avd_susi_struc_find
@@ -291,17 +261,15 @@ AVD_SU_SI_REL * avd_su_susi_struc_find(AVD_CL_CB *cb,AVD_SU *su,
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL * avd_susi_struc_find(AVD_CL_CB *cb,SaNameT su_name,
-                                    SaNameT si_name,NCS_BOOL host_order)
+AVD_SU_SI_REL *avd_susi_struc_find(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name, NCS_BOOL host_order)
 {
-   AVD_SU *su;
+	AVD_SU *su;
 
-   if ((su =  avd_su_struc_find(cb,su_name,host_order)) == AVD_SU_NULL)
-      return AVD_SU_SI_REL_NULL;
+	if ((su = avd_su_struc_find(cb, su_name, host_order)) == AVD_SU_NULL)
+		return AVD_SU_SI_REL_NULL;
 
-   return avd_su_susi_struc_find(cb,su,si_name,host_order);
+	return avd_su_susi_struc_find(cb, su, si_name, host_order);
 }
-
 
 /*****************************************************************************
  * Function: avd_susi_struc_find_next
@@ -322,82 +290,69 @@ AVD_SU_SI_REL * avd_susi_struc_find(AVD_CL_CB *cb,SaNameT su_name,
  * 
  **************************************************************************/
 
-AVD_SU_SI_REL * avd_susi_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,
-                                    SaNameT si_name,NCS_BOOL host_order)
+AVD_SU_SI_REL *avd_susi_struc_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name, NCS_BOOL host_order)
 {
-   AVD_SU *su;
-   AVD_SU_SI_REL *su_si = AVD_SU_SI_REL_NULL;
-   SaNameT su_name_net,si_name_net;
+	AVD_SU *su;
+	AVD_SU_SI_REL *su_si = AVD_SU_SI_REL_NULL;
+	SaNameT su_name_net, si_name_net;
 
-   /* check if exact match of SU is found so that the next SU SI
-    * in the list of SU can be found. If not select the next SUs
-    * first SU SI relation
-    */
-   if (su_name.length != 0)
-   {
-      su = avd_su_struc_find(cb,su_name,host_order);
-      if (su == AVD_SU_NULL)
-         su_si = AVD_SU_SI_REL_NULL;
-      else
-         su_si = su->list_of_susi;
-   }
+	/* check if exact match of SU is found so that the next SU SI
+	 * in the list of SU can be found. If not select the next SUs
+	 * first SU SI relation
+	 */
+	if (su_name.length != 0) {
+		su = avd_su_struc_find(cb, su_name, host_order);
+		if (su == AVD_SU_NULL)
+			su_si = AVD_SU_SI_REL_NULL;
+		else
+			su_si = su->list_of_susi;
+	}
 
-   if(host_order == TRUE)
-   {
-      memset((char *)&si_name_net, '\0', sizeof(SaNameT));
-      memcpy(si_name_net.value,si_name.value,si_name.length);
-      si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
-      
-      while ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) <= 0))
-      {
-         su_si = su_si->su_next;
-      }
+	if (host_order == TRUE) {
+		memset((char *)&si_name_net, '\0', sizeof(SaNameT));
+		memcpy(si_name_net.value, si_name.value, si_name.length);
+		si_name_net.length = m_HTON_SANAMET_LEN(si_name.length);
 
-   }else
-   {
-      while ((su_si != AVD_SU_SI_REL_NULL) && 
-         (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) <= 0))
-      {
-         su_si = su_si->su_next;
-      }
-      
-   }   
-      
-   if (su_si != AVD_SU_SI_REL_NULL)
-   {
-      return su_si;
-   }
-      
-   /* Find the the first SU SI relation in the next SU with
-    * a SU SI relation.
-    */
-   su_name_net = su_name;
-   if (host_order == TRUE)
-      su_name_net.length = m_HTON_SANAMET_LEN(su_name.length);
-   
-   while((su = avd_su_struc_find_next(cb,su_name_net,FALSE)) != AVD_SU_NULL)
-   {
-      if (su->list_of_susi != AVD_SU_SI_REL_NULL)
-         break;
+		while ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name_net) <= 0)) {
+			su_si = su_si->su_next;
+		}
 
-      su_name_net = su->name_net;
-   }
+	} else {
+		while ((su_si != AVD_SU_SI_REL_NULL) && (m_CMP_NORDER_SANAMET(su_si->si->name_net, si_name) <= 0)) {
+			su_si = su_si->su_next;
+		}
 
-   
-   /* The given element didn't have a exact match but an element with
-    * a greater SI name was found in the list
-    */
+	}
 
-   if (su == AVD_SU_NULL)
-      return AVD_SU_SI_REL_NULL;
-   else
-      return su->list_of_susi;
-   
+	if (su_si != AVD_SU_SI_REL_NULL) {
+		return su_si;
+	}
 
-   return su_si;
+	/* Find the the first SU SI relation in the next SU with
+	 * a SU SI relation.
+	 */
+	su_name_net = su_name;
+	if (host_order == TRUE)
+		su_name_net.length = m_HTON_SANAMET_LEN(su_name.length);
+
+	while ((su = avd_su_struc_find_next(cb, su_name_net, FALSE)) != AVD_SU_NULL) {
+		if (su->list_of_susi != AVD_SU_SI_REL_NULL)
+			break;
+
+		su_name_net = su->name_net;
+	}
+
+	/* The given element didn't have a exact match but an element with
+	 * a greater SI name was found in the list
+	 */
+
+	if (su == AVD_SU_NULL)
+		return AVD_SU_SI_REL_NULL;
+	else
+		return su->list_of_susi;
+
+	return su_si;
 }
-
 
 /*****************************************************************************
  * Function: avd_susi_struc_del
@@ -416,101 +371,85 @@ AVD_SU_SI_REL * avd_susi_struc_find_next(AVD_CL_CB *cb,SaNameT su_name,
  * 
  **************************************************************************/
 
-uns32 avd_susi_struc_del(AVD_CL_CB *cb,AVD_SU_SI_REL *susi,NCS_BOOL ckpt)
+uns32 avd_susi_struc_del(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 {
-   AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
-   AVD_AVND      *avnd = NULL;
-   SaBoolT       is_ncs = susi->su->sg_of_su->sg_ncs_spec;
-   
-   m_AVD_GET_SU_NODE_PTR(cb,susi->su,avnd);
+	AVD_SU_SI_REL *p_su_si, *p_si_su, *i_su_si;
+	AVD_AVND *avnd = NULL;
+	SaBoolT is_ncs = susi->su->sg_of_su->sg_ncs_spec;
 
-   /* delete the comp-csi rels */
-   avd_compcsi_list_del(cb, susi, ckpt);
+	m_AVD_GET_SU_NODE_PTR(cb, susi->su, avnd);
 
-   /* check the SU list to get the prev pointer */
-   i_su_si = susi->su->list_of_susi;
-   p_su_si = AVD_SU_SI_REL_NULL; 
-   while ((i_su_si != AVD_SU_SI_REL_NULL) && (i_su_si != susi))
-   {
-      p_su_si = i_su_si;
-      i_su_si = i_su_si->su_next;
-   }
+	/* delete the comp-csi rels */
+	avd_compcsi_list_del(cb, susi, ckpt);
 
-   if (i_su_si == AVD_SU_SI_REL_NULL)
-   {
-      /* problem it is mssing to delete*/
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
+	/* check the SU list to get the prev pointer */
+	i_su_si = susi->su->list_of_susi;
+	p_su_si = AVD_SU_SI_REL_NULL;
+	while ((i_su_si != AVD_SU_SI_REL_NULL) && (i_su_si != susi)) {
+		p_su_si = i_su_si;
+		i_su_si = i_su_si->su_next;
+	}
 
+	if (i_su_si == AVD_SU_SI_REL_NULL) {
+		/* problem it is mssing to delete */
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* check the SI list to get the prev pointer */
-   i_su_si = susi->si->list_of_sisu;
-   p_si_su = AVD_SU_SI_REL_NULL;
+	/* check the SI list to get the prev pointer */
+	i_su_si = susi->si->list_of_sisu;
+	p_si_su = AVD_SU_SI_REL_NULL;
 
-   while ((i_su_si != AVD_SU_SI_REL_NULL) && (i_su_si != susi))
-   {
-      p_si_su = i_su_si;
-      i_su_si = i_su_si->si_next;
-   }
+	while ((i_su_si != AVD_SU_SI_REL_NULL) && (i_su_si != susi)) {
+		p_si_su = i_su_si;
+		i_su_si = i_su_si->si_next;
+	}
 
-   if (i_su_si == AVD_SU_SI_REL_NULL)
-   {
-      /* problem it is mssing to delete*/
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
+	if (i_su_si == AVD_SU_SI_REL_NULL) {
+		/* problem it is mssing to delete */
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* now delete it from the SU list */
-   if (p_su_si == AVD_SU_SI_REL_NULL)
-   {
-      susi->su->list_of_susi =  susi->su_next;
-      susi->su_next = AVD_SU_SI_REL_NULL;
-   }else
-   {
-      p_su_si->su_next = susi->su_next;
-      susi->su_next = AVD_SU_SI_REL_NULL;
-   }
+	/* now delete it from the SU list */
+	if (p_su_si == AVD_SU_SI_REL_NULL) {
+		susi->su->list_of_susi = susi->su_next;
+		susi->su_next = AVD_SU_SI_REL_NULL;
+	} else {
+		p_su_si->su_next = susi->su_next;
+		susi->su_next = AVD_SU_SI_REL_NULL;
+	}
 
-   /* now delete it from the SI list */
-   if (p_si_su == AVD_SU_SI_REL_NULL)
-   {
-      susi->si->list_of_sisu =  susi->si_next;
-      susi->si_next = AVD_SU_SI_REL_NULL;
-   }else
-   {
-      p_si_su->si_next = susi->si_next;
-      susi->si_next = AVD_SU_SI_REL_NULL;
-   }
-  
-   if(!ckpt)
-   { 
-      /* update the si counters */
-      if ( SA_AMF_HA_STANDBY == susi->state )
-      {
-         m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
-      }
-      else
-      {
-         m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
-      }
-   }
+	/* now delete it from the SI list */
+	if (p_si_su == AVD_SU_SI_REL_NULL) {
+		susi->si->list_of_sisu = susi->si_next;
+		susi->si_next = AVD_SU_SI_REL_NULL;
+	} else {
+		p_si_su->si_next = susi->si_next;
+		susi->si_next = AVD_SU_SI_REL_NULL;
+	}
 
-   susi->si = AVD_SI_NULL;
-   susi->su = AVD_SU_NULL;
+	if (!ckpt) {
+		/* update the si counters */
+		if (SA_AMF_HA_STANDBY == susi->state) {
+			m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
+		} else {
+			m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
+		}
+	}
 
-   m_MMGR_FREE_AVD_SU_SI_REL(susi);
+	susi->si = AVD_SI_NULL;
+	susi->su = AVD_SU_NULL;
 
-   /* call the func to check on the context for deletion */
-   if(!ckpt)
-   {
-      avd_chk_failover_shutdown_cxt(cb, avnd, is_ncs);
-   }
+	m_MMGR_FREE_AVD_SU_SI_REL(susi);
 
-   return NCSCC_RC_SUCCESS;
+	/* call the func to check on the context for deletion */
+	if (!ckpt) {
+		avd_chk_failover_shutdown_cxt(cb, avnd, is_ncs);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsusitableentry_get
@@ -536,57 +475,52 @@ uns32 avd_susi_struc_del(AVD_CL_CB *cb,AVD_SU_SI_REL *susi,NCS_BOOL ckpt)
  * 
  **************************************************************************/
 
-uns32 saamfsusitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 saamfsusitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       su_name;
-   SaNameT       si_name;
-   uns32         *inst_ptr;
-   AVD_SU_SI_REL *susi;   
-   uns32 i;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT su_name;
+	SaNameT si_name;
+	uns32 *inst_ptr;
+	AVD_SU_SI_REL *susi;
+	uns32 i;
 
-   memset(&su_name, '\0', sizeof(SaNameT));
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the SU name from the instant ID */
-   su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   inst_ptr = (uns32 *)(arg->i_idx.i_inst_ids + 1);
-   for(i = 0; i < su_name.length; i++)
-   {
-      su_name.value[i] = (uns8)(inst_ptr[i]);
-   }
+	memset(&su_name, '\0', sizeof(SaNameT));
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-   inst_ptr = inst_ptr + su_name.length;
+	/* Prepare the SU name from the instant ID */
+	su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-   /* Prepare the SI name from the instant ID */
-   si_name.length = (SaUint16T)inst_ptr[0];
+	inst_ptr = (uns32 *)(arg->i_idx.i_inst_ids + 1);
+	for (i = 0; i < su_name.length; i++) {
+		su_name.value[i] = (uns8)(inst_ptr[i]);
+	}
 
-   inst_ptr = inst_ptr + 1;
-   for(i = 0; i < si_name.length; i++)
-   {
-      si_name.value[i] = (uns8)(inst_ptr[i]);
-   }
+	inst_ptr = inst_ptr + su_name.length;
 
-   /* find the instance of the SU SI */
-   susi = avd_susi_struc_find(avd_cb,su_name,si_name,TRUE);
+	/* Prepare the SI name from the instant ID */
+	si_name.length = (SaUint16T)inst_ptr[0];
 
-   if (susi == AVD_SU_SI_REL_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	inst_ptr = inst_ptr + 1;
+	for (i = 0; i < si_name.length; i++) {
+		si_name.value[i] = (uns8)(inst_ptr[i]);
+	}
 
-   *data = (NCSCONTEXT)susi;
+	/* find the instance of the SU SI */
+	susi = avd_susi_struc_find(avd_cb, su_name, si_name, TRUE);
 
-   return NCSCC_RC_SUCCESS;
+	if (susi == AVD_SU_SI_REL_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)susi;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -622,37 +556,32 @@ uns32 saamfsusitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsusitableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saamfsusitableentry_extract(NCSMIB_PARAM_VAL *param,
+				  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   
-   AVD_SU_SI_REL *susi = (AVD_SU_SI_REL *)data;
 
-   if (susi == AVD_SU_SI_REL_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-    switch(param->i_param_id)
-   {
+	AVD_SU_SI_REL *susi = (AVD_SU_SI_REL *)data;
 
-   case saAmfSUSISGName_ID:
-      m_AVSV_OCTVAL_TO_PARAM(param, buffer, susi->su->sg_name.length,
-                             susi->su->sg_name.value);
-      break;
+	if (susi == AVD_SU_SI_REL_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+	switch (param->i_param_id) {
 
-   default:
-     /* call the MIBLIB utility routine for standfard object types */
-     if ((var_info != NULL) && (var_info->offset != 0))
-        return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-     else
-        return NCSCC_RC_NO_OBJECT;
-   } 
-   return NCSCC_RC_SUCCESS;
-  
+	case saAmfSUSISGName_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, susi->su->sg_name.length, susi->su->sg_name.value);
+		break;
+
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+	}
+	return NCSCC_RC_SUCCESS;
+
 }
-
 
 /*****************************************************************************
  * Function: saamfsusitableentry_set
@@ -680,14 +609,11 @@ uns32 saamfsusitableentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 saamfsusitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfsusitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   /* Invalid operation */
-   return NCSCC_RC_INV_VAL;
+	/* Invalid operation */
+	return NCSCC_RC_INV_VAL;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsusitableentry_next
@@ -718,82 +644,74 @@ uns32 saamfsusitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsusitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 saamfsusitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaNameT       su_name;
-   SaNameT       si_name;
-   uns32         *inst_ptr;
-   AVD_SU_SI_REL *susi;   
-   uns32 i,i_si;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaNameT su_name;
+	SaNameT si_name;
+	uns32 *inst_ptr;
+	AVD_SU_SI_REL *susi;
+	uns32 i, i_si;
 
-   memset(&su_name, '\0', sizeof(SaNameT));
-   memset(&si_name, '\0', sizeof(SaNameT));
-   
-   /* Prepare the SU name from the instant ID */
-   if (arg->i_idx.i_inst_len != 0)
-   {
-      su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-      inst_ptr = (uns32 *)(arg->i_idx.i_inst_ids + 1);
-      for(i = 0; i < su_name.length; i++)
-      {
-         su_name.value[i] = (uns8)(inst_ptr[i]);
-      }
+	memset(&su_name, '\0', sizeof(SaNameT));
+	memset(&si_name, '\0', sizeof(SaNameT));
 
-      if(arg->i_idx.i_inst_len > (uns32)(su_name.length + 1))
-      {
+	/* Prepare the SU name from the instant ID */
+	if (arg->i_idx.i_inst_len != 0) {
+		su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-         inst_ptr = inst_ptr + su_name.length;
+		inst_ptr = (uns32 *)(arg->i_idx.i_inst_ids + 1);
+		for (i = 0; i < su_name.length; i++) {
+			su_name.value[i] = (uns8)(inst_ptr[i]);
+		}
 
-         /* Prepare the SI name from the instant ID */
-         si_name.length = (SaUint16T)inst_ptr[0];
+		if (arg->i_idx.i_inst_len > (uns32)(su_name.length + 1)) {
 
-         inst_ptr = inst_ptr + 1;
-         for(i = 0; i < si_name.length; i++)
-         {
-            si_name.value[i] = (uns8)(inst_ptr[i]);
-         }
-      } /* if(arg->i_idx.i_inst_len > (su_name.length + 1)) */
+			inst_ptr = inst_ptr + su_name.length;
 
-   } /* if (arg->i_idx.i_inst_len != 0) */
+			/* Prepare the SI name from the instant ID */
+			si_name.length = (SaUint16T)inst_ptr[0];
 
-   /* find the instance of the SU SI */
-   susi = avd_susi_struc_find_next(avd_cb,su_name,si_name,TRUE);
+			inst_ptr = inst_ptr + 1;
+			for (i = 0; i < si_name.length; i++) {
+				si_name.value[i] = (uns8)(inst_ptr[i]);
+			}
+		}
+		/* if(arg->i_idx.i_inst_len > (su_name.length + 1)) */
+	}
 
-   if (susi == AVD_SU_SI_REL_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	/* if (arg->i_idx.i_inst_len != 0) */
+	/* find the instance of the SU SI */
+	susi = avd_susi_struc_find_next(avd_cb, su_name, si_name, TRUE);
 
-   /* Prepare the instant ID from the SU name and SI name */
+	if (susi == AVD_SU_SI_REL_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *next_inst_id_len = m_NCS_OS_NTOHS(susi->si->name_net.length) + 
-                       m_NCS_OS_NTOHS(susi->su->name_net.length) + 2;
+	/* Prepare the instant ID from the SU name and SI name */
 
-   next_inst_id[0] = m_NCS_OS_NTOHS(susi->su->name_net.length);
-   for(i = 0; i < next_inst_id[0]; i++)
-      next_inst_id[i + 1] = (uns32)(susi->su->name_net.value[i]);
+	*next_inst_id_len = m_NCS_OS_NTOHS(susi->si->name_net.length) + m_NCS_OS_NTOHS(susi->su->name_net.length) + 2;
 
-   next_inst_id[i + 1] = m_NCS_OS_NTOHS(susi->si->name_net.length);
-   i_si = i + 2;
-   for(i = 0; i < m_NCS_OS_NTOHS(susi->si->name_net.length); i++)
-      next_inst_id[i + i_si] = (uns32)(susi->si->name_net.value[i]);
+	next_inst_id[0] = m_NCS_OS_NTOHS(susi->su->name_net.length);
+	for (i = 0; i < next_inst_id[0]; i++)
+		next_inst_id[i + 1] = (uns32)(susi->su->name_net.value[i]);
 
-   *data = (NCSCONTEXT)susi;
+	next_inst_id[i + 1] = m_NCS_OS_NTOHS(susi->si->name_net.length);
+	i_si = i + 2;
+	for (i = 0; i < m_NCS_OS_NTOHS(susi->si->name_net.length); i++)
+		next_inst_id[i + i_si] = (uns32)(susi->si->name_net.value[i]);
 
-   return NCSCC_RC_SUCCESS;
+	*data = (NCSCONTEXT)susi;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsusitableentry_setrow
@@ -823,12 +741,11 @@ uns32 saamfsusitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfsusitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfsusitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				 NCSMIB_SETROW_PARAM_VAL *params,
+				 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -846,9 +763,8 @@ uns32 saamfsusitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  **************************************************************************/
 uns32 saamfsusitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avd_sus_per_si_rank_struc_crt
@@ -866,46 +782,43 @@ uns32 saamfsusitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
+AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
 {
-   AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
 
-   /* Allocate a new block structure now
-    */
-   if ((rank_elt = m_MMGR_ALLOC_AVD_SU_PER_SI_RANK) == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /* log an error */
-      m_AVD_LOG_MEM_FAIL(AVD_SU_PER_SI_RANK_ALLOC_FAILED);
-      return AVD_SU_PER_SI_RANK_NULL;
-   }
+	/* Allocate a new block structure now
+	 */
+	if ((rank_elt = m_MMGR_ALLOC_AVD_SU_PER_SI_RANK) == AVD_SU_PER_SI_RANK_NULL) {
+		/* log an error */
+		m_AVD_LOG_MEM_FAIL(AVD_SU_PER_SI_RANK_ALLOC_FAILED);
+		return AVD_SU_PER_SI_RANK_NULL;
+	}
 
-   memset((char *)rank_elt, '\0', sizeof(AVD_SUS_PER_SI_RANK));
+	memset((char *)rank_elt, '\0', sizeof(AVD_SUS_PER_SI_RANK));
 
-   rank_elt->indx.si_name_net.length = indx.si_name_net.length;
-   memcpy(rank_elt->indx.si_name_net.value,indx.si_name_net.value,m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length));
+	rank_elt->indx.si_name_net.length = indx.si_name_net.length;
+	memcpy(rank_elt->indx.si_name_net.value, indx.si_name_net.value,
+	       m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length));
 
-   rank_elt->indx.su_rank_net = indx.su_rank_net;
- 
-   rank_elt->row_status = NCS_ROW_NOT_READY;
+	rank_elt->indx.su_rank_net = indx.su_rank_net;
 
-   rank_elt->tree_node.key_info = (uns8*)(&rank_elt->indx);
-   rank_elt->tree_node.bit   = 0;
-   rank_elt->tree_node.left  = NCS_PATRICIA_NODE_NULL;
-   rank_elt->tree_node.right = NCS_PATRICIA_NODE_NULL;
+	rank_elt->row_status = NCS_ROW_NOT_READY;
 
-   if( ncs_patricia_tree_add(&cb->su_per_si_rank_anchor,&rank_elt->tree_node)
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log an error */
-      m_MMGR_FREE_AVD_SU_PER_SI_RANK(rank_elt);
-      return AVD_SU_PER_SI_RANK_NULL;
-   }
+	rank_elt->tree_node.key_info = (uns8 *)(&rank_elt->indx);
+	rank_elt->tree_node.bit = 0;
+	rank_elt->tree_node.left = NCS_PATRICIA_NODE_NULL;
+	rank_elt->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
+	if (ncs_patricia_tree_add(&cb->su_per_si_rank_anchor, &rank_elt->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log an error */
+		m_MMGR_FREE_AVD_SU_PER_SI_RANK(rank_elt);
+		return AVD_SU_PER_SI_RANK_NULL;
+	}
 
-   return rank_elt;
+	return rank_elt;
 
 }
-
 
 /*****************************************************************************
  * Function: avd_sus_per_si_rank_struc_find
@@ -923,21 +836,20 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_S
  * 
  **************************************************************************/
 
-AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
+AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
 {
-   AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
-   AVD_SUS_PER_SI_RANK_INDX rank_indx;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
-   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-   rank_indx.si_name_net.length = indx.si_name_net.length;
-   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
-   rank_indx.su_rank_net = indx.su_rank_net;
-   
-   rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
+	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	rank_indx.si_name_net.length = indx.si_name_net.length;
+	memcpy(rank_indx.si_name_net.value, indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+	rank_indx.su_rank_net = indx.su_rank_net;
 
-   return rank_elt;
+	rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_get(&cb->su_per_si_rank_anchor, (uns8 *)&rank_indx);
+
+	return rank_elt;
 }
-
 
 /*****************************************************************************
  * Function: avd_sus_per_si_rank_struc_find_next
@@ -955,21 +867,20 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_
  * 
  **************************************************************************/
 
-AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
+AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx)
 {
-   AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
-   AVD_SUS_PER_SI_RANK_INDX rank_indx;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_SUS_PER_SI_RANK_INDX rank_indx;
 
-   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-   rank_indx.si_name_net.length = indx.si_name_net.length;
-   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
-   rank_indx.su_rank_net = indx.su_rank_net;
+	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	rank_indx.si_name_net.length = indx.si_name_net.length;
+	memcpy(rank_indx.si_name_net.value, indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+	rank_indx.su_rank_net = indx.su_rank_net;
 
-   rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
+	rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8 *)&rank_indx);
 
-   return rank_elt;
+	return rank_elt;
 }
-
 
 /*****************************************************************************
  * Function: avd_sus_per_si_rank_struc_find_valid_next
@@ -991,44 +902,42 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS
  * 
  **************************************************************************/
 
-AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx,AVD_SU **o_su)
+AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx,
+							       AVD_SU **o_su)
 {
-   AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
-   AVD_SUS_PER_SI_RANK_INDX rank_indx;
-   AVD_SI *si = AVD_SI_NULL;
-   AVD_SU *su = AVD_SU_NULL;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_SUS_PER_SI_RANK_INDX rank_indx;
+	AVD_SI *si = AVD_SI_NULL;
+	AVD_SU *su = AVD_SU_NULL;
 
-   memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-   rank_indx.si_name_net.length = indx.si_name_net.length;
-   memcpy(rank_indx.si_name_net.value,indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
-   rank_indx.su_rank_net = indx.su_rank_net;
+	memset(&rank_indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	rank_indx.si_name_net.length = indx.si_name_net.length;
+	memcpy(rank_indx.si_name_net.value, indx.si_name_net.value, m_NCS_OS_NTOHS(indx.si_name_net.length));
+	rank_indx.su_rank_net = indx.su_rank_net;
 
-   rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8*)&rank_indx);
+	rank_elt = (AVD_SUS_PER_SI_RANK *)ncs_patricia_tree_getnext(&cb->su_per_si_rank_anchor, (uns8 *)&rank_indx);
 
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /*  return NULL */
-      return rank_elt;
-   }
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+		/*  return NULL */
+		return rank_elt;
+	}
 
-   if (rank_elt->row_status != NCS_ROW_ACTIVE)
-   {
-      return avd_sus_per_si_rank_struc_find_valid_next(cb, rank_elt->indx,o_su);
-   }
+	if (rank_elt->row_status != NCS_ROW_ACTIVE) {
+		return avd_sus_per_si_rank_struc_find_valid_next(cb, rank_elt->indx, o_su);
+	}
 
-   /* get the su & si */
-   su = avd_su_struc_find(cb, rank_elt->su_name, TRUE);
-   si = avd_si_struc_find(cb, indx.si_name_net, FALSE);
+	/* get the su & si */
+	su = avd_su_struc_find(cb, rank_elt->su_name, TRUE);
+	si = avd_si_struc_find(cb, indx.si_name_net, FALSE);
 
-   /* validate this entry */
-   if ((si == AVD_SI_NULL) || (su == AVD_SU_NULL) || (si->row_status != NCS_ROW_ACTIVE) ||
-         (su->row_status != NCS_ROW_ACTIVE) || (si->sg_of_si != su->sg_of_su))
-       return avd_sus_per_si_rank_struc_find_valid_next(cb, rank_elt->indx,o_su);
+	/* validate this entry */
+	if ((si == AVD_SI_NULL) || (su == AVD_SU_NULL) || (si->row_status != NCS_ROW_ACTIVE) ||
+	    (su->row_status != NCS_ROW_ACTIVE) || (si->sg_of_si != su->sg_of_su))
+		return avd_sus_per_si_rank_struc_find_valid_next(cb, rank_elt->indx, o_su);
 
-   *o_su = su;
-   return rank_elt;
+	*o_su = su;
+	return rank_elt;
 }
-
 
 /*****************************************************************************
  * Function: avd_sus_per_si_rank_struc_del
@@ -1048,20 +957,18 @@ AVD_SUS_PER_SI_RANK * avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *cb, A
 
 uns32 avd_sus_per_si_rank_struc_del(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *rank_elt)
 {
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-      return NCSCC_RC_FAILURE;
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
+		return NCSCC_RC_FAILURE;
 
-   if(ncs_patricia_tree_del(&cb->su_per_si_rank_anchor,&rank_elt->tree_node)
-                      != NCSCC_RC_SUCCESS)
-   {
-      /* log error */
-      return NCSCC_RC_FAILURE;
-   }
-   
-   m_MMGR_FREE_AVD_SU_PER_SI_RANK(rank_elt);
-   return NCSCC_RC_SUCCESS;
+	if (ncs_patricia_tree_del(&cb->su_per_si_rank_anchor, &rank_elt->tree_node)
+	    != NCSCC_RC_SUCCESS) {
+		/* log error */
+		return NCSCC_RC_FAILURE;
+	}
+
+	m_MMGR_FREE_AVD_SU_PER_SI_RANK(rank_elt);
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsuspersirankentry_get
@@ -1087,52 +994,44 @@ uns32 avd_sus_per_si_rank_struc_del(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *rank_elt
  * 
  **************************************************************************/
 
-
-uns32 saamfsuspersirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                                  NCSCONTEXT* data) 
+uns32 saamfsuspersirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SUS_PER_SI_RANK_INDX   indx;
-   uns16 len;
-   uns32 i;
-   AVD_SUS_PER_SI_RANK *   rank_elt = AVD_SU_PER_SI_RANK_NULL;
-   
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-   
-   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SUS_PER_SI_RANK_INDX indx;
+	uns16 len;
+	uns32 i;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
 
-   /* Prepare the SuperSiRank database key from the instant ID */
-   len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   indx.si_name_net.length  = m_NCS_OS_HTONS(len);
+	memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
-   for(i = 0; i < len; i++)
-   {
-      indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
-   if (arg->i_idx.i_inst_len > len + 1)
-   {
-      indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-   }  
- 
-   rank_elt = avd_sus_per_si_rank_struc_find(avd_cb,indx);
+	/* Prepare the SuperSiRank database key from the instant ID */
+	len = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	indx.si_name_net.length = m_NCS_OS_HTONS(len);
 
-   *data = (NCSCONTEXT)rank_elt;
+	for (i = 0; i < len; i++) {
+		indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
+	if (arg->i_idx.i_inst_len > len + 1) {
+		indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	rank_elt = avd_sus_per_si_rank_struc_find(avd_cb, indx);
+
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)rank_elt;
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfsuspersirankentry_extract
@@ -1167,41 +1066,35 @@ uns32 saamfsuspersirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
-uns32 saamfsuspersirankentry_extract(NCSMIB_PARAM_VAL* param,
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saamfsuspersirankentry_extract(NCSMIB_PARAM_VAL *param,
+				     NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_SUS_PER_SI_RANK *   rank_elt = (AVD_SUS_PER_SI_RANK *)data;
+	AVD_SUS_PER_SI_RANK *rank_elt = (AVD_SUS_PER_SI_RANK *)data;
 
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
- 
-   switch(param->i_param_id)
-   {
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   case saAmfSUsperSISUName_ID:
-      m_AVSV_OCTVAL_TO_PARAM(param, buffer, rank_elt->su_name.length,
-                             rank_elt->su_name.value);
-      break;
- 
-   default:
-      /* call the MIBLIB utility routine for standfard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-   break;
+	switch (param->i_param_id) {
 
-   }
+	case saAmfSUsperSISUName_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, rank_elt->su_name.length, rank_elt->su_name.value);
+		break;
 
-   return NCSCC_RC_SUCCESS;
-   
+	default:
+		/* call the MIBLIB utility routine for standfard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+
+	}
+
+	return NCSCC_RC_SUCCESS;
+
 }
-
 
 /*****************************************************************************
  * Function: saamfsuspersirankentry_set
@@ -1229,195 +1122,162 @@ uns32 saamfsuspersirankentry_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-
-uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
 
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SUS_PER_SI_RANK_INDX   indx;
-   uns16 len;
-   uns32 i;
-   AVD_SUS_PER_SI_RANK *   rank_elt = AVD_SU_PER_SI_RANK_NULL;
-   AVD_SU  *su = AVD_SU_NULL;
-   AVD_SI  *si = AVD_SI_NULL;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SUS_PER_SI_RANK_INDX indx;
+	uns16 len;
+	uns32 i;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_SU *su = AVD_SU_NULL;
+	AVD_SI *si = AVD_SI_NULL;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
-   /* Prepare the SuperSiRank database key from the instant ID */
-   len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	/* Prepare the SuperSiRank database key from the instant ID */
+	len = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-   indx.si_name_net.length  = m_NCS_OS_HTONS(len);
+	indx.si_name_net.length = m_NCS_OS_HTONS(len);
 
-   for(i = 0; i < len; i++)
-   {
-      indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
-   if (arg->i_idx.i_inst_len > len + 1)
-   {
-      indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-   }
+	for (i = 0; i < len; i++) {
+		indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
+	if (arg->i_idx.i_inst_len > len + 1) {
+		indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+	}
 
-   rank_elt = avd_sus_per_si_rank_struc_find(avd_cb,indx);
+	rank_elt = avd_sus_per_si_rank_struc_find(avd_cb, indx);
 
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      if((arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID)
-         && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT))
-      {
-         /* Invalid row status object */
-         return NCSCC_RC_INV_VAL;
-      }
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+		/* The row was not found */
+		if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID)
+		    && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)) {
+			/* Invalid row status object */
+			return NCSCC_RC_INV_VAL;
+		}
 
-      if(test_flag == TRUE)
-      {
-         return NCSCC_RC_SUCCESS;
-      }
+		if (test_flag == TRUE) {
+			return NCSCC_RC_SUCCESS;
+		}
 
-      m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-      rank_elt = avd_sus_per_si_rank_struc_crt(avd_cb,indx);
+		rank_elt = avd_sus_per_si_rank_struc_crt(avd_cb, indx);
 
-      m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
-      if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-      {
-         /* Invalid instance object */
-         return NCSCC_RC_NO_INSTANCE;
-      }
+		if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+			/* Invalid instance object */
+			return NCSCC_RC_NO_INSTANCE;
+		}
 
-   }else  /* The record is already available */
-   {
-      if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID)
-      {
-         /* This is a row status operation */
-         if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)rank_elt->row_status)
-         {
-            /* row status object is same so nothing to be done. */
-            return NCSCC_RC_SUCCESS;
-         }
+	} else {		/* The record is already available */
 
-         switch(arg->req.info.set_req.i_param_val.info.i_int)
-         {
-         case NCS_ROW_ACTIVE:
-            
-            /* validate the structure to see if the row can be made active */
-            if(rank_elt->su_name.length <= 0)
-            {
-               /* SU name must be present for the row to be made active. */
-               return NCSCC_RC_INV_VAL;
-            }
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
-            rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, rank_elt, AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG);
-            return NCSCC_RC_SUCCESS;
-            break;
+		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID) {
+			/* This is a row status operation */
+			if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)rank_elt->row_status) {
+				/* row status object is same so nothing to be done. */
+				return NCSCC_RC_SUCCESS;
+			}
 
-         case NCS_ROW_NOT_IN_SERVICE:
-         case NCS_ROW_DESTROY:
-            
-            su = avd_su_struc_find(avd_cb, rank_elt->su_name,TRUE);
-            si = avd_si_struc_find(avd_cb, rank_elt->indx.si_name_net,FALSE);
-         
-            if(su != AVD_SU_NULL)
-            {
-              if(su->admin_state != NCS_ADMIN_STATE_LOCK)
-              { 
-                 return NCSCC_RC_INV_VAL;
-              }
-            }
-            if(si != AVD_SI_NULL)
-            {
-              if(si->admin_state != NCS_ADMIN_STATE_LOCK)
-              {
-                 return NCSCC_RC_INV_VAL;
-              }
-            }
-            if(test_flag == TRUE)
-            {
-               return NCSCC_RC_SUCCESS;
-            }
-            
-            if(rank_elt->row_status == NCS_ROW_ACTIVE)
-            {
-               m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, rank_elt, AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG);
-            }
+			switch (arg->req.info.set_req.i_param_val.info.i_int) {
+			case NCS_ROW_ACTIVE:
 
-            if(arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY)
-            {
-                /* delete and free the structure */
-                m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
+				/* validate the structure to see if the row can be made active */
+				if (rank_elt->su_name.length <= 0) {
+					/* SU name must be present for the row to be made active. */
+					return NCSCC_RC_INV_VAL;
+				}
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
+				rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, rank_elt, AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG);
+				return NCSCC_RC_SUCCESS;
+				break;
 
-                avd_sus_per_si_rank_struc_del(avd_cb,rank_elt);
+			case NCS_ROW_NOT_IN_SERVICE:
+			case NCS_ROW_DESTROY:
 
-                m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-            }
-            else
-            {
-               rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-            }
-            
-            return NCSCC_RC_SUCCESS;
-            break;
+				su = avd_su_struc_find(avd_cb, rank_elt->su_name, TRUE);
+				si = avd_si_struc_find(avd_cb, rank_elt->indx.si_name_net, FALSE);
 
-         default:
-            
-            m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
-            /* Invalid row status object */
-            return NCSCC_RC_INV_VAL;
-            break;
-         }
-      }
-   }
+				if (su != AVD_SU_NULL) {
+					if (su->admin_state != NCS_ADMIN_STATE_LOCK) {
+						return NCSCC_RC_INV_VAL;
+					}
+				}
+				if (si != AVD_SI_NULL) {
+					if (si->admin_state != NCS_ADMIN_STATE_LOCK) {
+						return NCSCC_RC_INV_VAL;
+					}
+				}
+				if (test_flag == TRUE) {
+					return NCSCC_RC_SUCCESS;
+				}
 
-   if(rank_elt->row_status == NCS_ROW_ACTIVE)
-   {
-      /* when row status is active we don't allow any MIB object to be
-       * modified.
-       */
-      return NCSCC_RC_INV_VAL;
-   }
+				if (rank_elt->row_status == NCS_ROW_ACTIVE) {
+					m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, rank_elt,
+									AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG);
+				}
 
-   if(test_flag == TRUE)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
+				if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY) {
+					/* delete and free the structure */
+					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
 
-   if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID)
-   {
-      /* fill the row status value */
-      if(arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)
-      {
-         rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-      }
+					avd_sus_per_si_rank_struc_del(avd_cb, rank_elt);
 
+					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+				} else {
+					rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+				}
 
-   }else if(arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSISUName_ID)
-   {
-         rank_elt->su_name.length = arg->req.info.set_req.i_param_val.i_length;
-         memcpy(rank_elt->su_name.value,
-                   arg->req.info.set_req.i_param_val.info.i_oct,
-                   rank_elt->su_name.length);
-   }
-   else 
-   { 
-       /* Invalid Object ID */
-       return NCSCC_RC_INV_VAL;
-   }
+				return NCSCC_RC_SUCCESS;
+				break;
 
-   return NCSCC_RC_SUCCESS;
+			default:
+
+				m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
+				/* Invalid row status object */
+				return NCSCC_RC_INV_VAL;
+				break;
+			}
+		}
+	}
+
+	if (rank_elt->row_status == NCS_ROW_ACTIVE) {
+		/* when row status is active we don't allow any MIB object to be
+		 * modified.
+		 */
+		return NCSCC_RC_INV_VAL;
+	}
+
+	if (test_flag == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
+
+	if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSIRowStatus_ID) {
+		/* fill the row status value */
+		if (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT) {
+			rank_elt->row_status = arg->req.info.set_req.i_param_val.info.i_int;
+		}
+
+	} else if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSUsperSISUName_ID) {
+		rank_elt->su_name.length = arg->req.info.set_req.i_param_val.i_length;
+		memcpy(rank_elt->su_name.value, arg->req.info.set_req.i_param_val.info.i_oct, rank_elt->su_name.length);
+	} else {
+		/* Invalid Object ID */
+		return NCSCC_RC_INV_VAL;
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsuspersirankentry_next
@@ -1448,72 +1308,63 @@ uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
 uns32 saamfsuspersirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+				  NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   AVD_SUS_PER_SI_RANK_INDX   indx;
-   uns16 len;
-   uns32 i;
-   AVD_SUS_PER_SI_RANK *   rank_elt = AVD_SU_PER_SI_RANK_NULL;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	AVD_SUS_PER_SI_RANK_INDX indx;
+	uns16 len;
+	uns32 i;
+	AVD_SUS_PER_SI_RANK *rank_elt = AVD_SU_PER_SI_RANK_NULL;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
+	memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
 
-   if (arg->i_idx.i_inst_len != 0)
-   {
+	if (arg->i_idx.i_inst_len != 0) {
 
-      /* Prepare the SuperSiRank database key from the instant ID */
-      len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		/* Prepare the SuperSiRank database key from the instant ID */
+		len = (SaUint16T)arg->i_idx.i_inst_ids[0];
 
-      indx.si_name_net.length  = m_NCS_OS_HTONS(len);
+		indx.si_name_net.length = m_NCS_OS_HTONS(len);
 
-      for(i = 0; i < len; i++)
-      {
-         indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-      }
-      if (arg->i_idx.i_inst_len > len + 1)
-      {
-         indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-      }
-   }
+		for (i = 0; i < len; i++) {
+			indx.si_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+		if (arg->i_idx.i_inst_len > len + 1) {
+			indx.su_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+		}
+	}
 
-   rank_elt = avd_sus_per_si_rank_struc_find_next(avd_cb,indx);
+	rank_elt = avd_sus_per_si_rank_struc_find_next(avd_cb, indx);
 
-   if (rank_elt == AVD_SU_PER_SI_RANK_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (rank_elt == AVD_SU_PER_SI_RANK_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *data = (NCSCONTEXT)rank_elt;
+	*data = (NCSCONTEXT)rank_elt;
 
-   /* Prepare the instant ID from the SI name and SU rank */
-   len = m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length);
+	/* Prepare the instant ID from the SI name and SU rank */
+	len = m_NCS_OS_NTOHS(rank_elt->indx.si_name_net.length);
 
-   *next_inst_id_len = len + 1 + 1;
+	*next_inst_id_len = len + 1 + 1;
 
-   next_inst_id[0] = len;
+	next_inst_id[0] = len;
 
-   for(i = 0; i < len; i++)
-   {
-      next_inst_id[i + 1] = (uns32)(rank_elt->indx.si_name_net.value[i]);
-   }
+	for (i = 0; i < len; i++) {
+		next_inst_id[i + 1] = (uns32)(rank_elt->indx.si_name_net.value[i]);
+	}
 
-   next_inst_id[len+1] = m_NCS_OS_NTOHL(rank_elt->indx.su_rank_net);
+	next_inst_id[len + 1] = m_NCS_OS_NTOHL(rank_elt->indx.su_rank_net);
 
-   *data = (NCSCONTEXT)rank_elt;
+	*data = (NCSCONTEXT)rank_elt;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfsuspersirankentry_setrow
@@ -1543,12 +1394,9 @@ uns32 saamfsuspersirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-
-uns32 saamfsuspersirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfsuspersirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				    NCSMIB_SETROW_PARAM_VAL *params,
+				    struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

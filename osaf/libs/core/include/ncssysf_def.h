@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -63,8 +60,6 @@ extern "C" {
 
 #define m_NCS_LOG_WRITE(filename, string)  m_NCS_TS_LOG_WRITE(filename, string)
 
-
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************
@@ -80,8 +75,6 @@ extern "C" {
  ****************************************************************************
  ****************************************************************************
  ***************************************************************************/
-
-
 
 /*****************************************************************************
  **                                                                         **
@@ -102,16 +95,15 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32 decode_32bitOS_inc( uns8 **stream);
-EXTERN_C LEAPDLL_API uns32 encode_32bitOS_inc( uns8 **stream, uns32 val);
-EXTERN_C LEAPDLL_API uns32 encode_16bitOS_inc( uns8 **stream, uns32 val);
-EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
+	EXTERN_C LEAPDLL_API uns32 decode_32bitOS_inc(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
+	EXTERN_C LEAPDLL_API uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
+	EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc(uns8 **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
 #define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)
-#define m_NCS_OS_NTOHL_P_INC(p8)     decode_32bitOS_inc(&p8) 
+#define m_NCS_OS_NTOHL_P_INC(p8)     decode_32bitOS_inc(&p8)
 #define m_NCS_OS_NTOHS_P_INC(p8)    decode_16bitOS_inc(&p8)
-
 
 /*****************************************************************************
  **                                                                         **
@@ -136,7 +128,6 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
 
 #define m_NCS_DBG_PRINTF         m_NCS_OS_DBG_PRINTF
 
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
@@ -149,8 +140,7 @@ EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc( uns8 **stream);
 #define m_START_CRITICAL               m_NCS_OS_START_TASK_LOCK
 #define m_END_CRITICAL                 m_NCS_OS_END_TASK_LOCK
 
-extern void ncs_reboot(const char *reason);
-
+	extern void ncs_reboot(const char *reason);
 
 /*****************************************************************************
  **                                                                         **
@@ -171,7 +161,7 @@ extern void ncs_reboot(const char *reason);
 
 #define m_NCS_DATE_TIME_TO_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_DATE_TIME_TO_STR(timestamp, asc_timestamp)
-    
+
 #define m_NCS_TIME_TO_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_TIME_TO_STR(timestamp, asc_timestamp)
 
@@ -188,10 +178,10 @@ extern void ncs_reboot(const char *reason);
     m_NCS_OS_GET_TIME_MS
 
 #define m_NCS_GET_TIME_NS  \
-    m_NCS_OS_GET_TIME_NS  
+    m_NCS_OS_GET_TIME_NS
 
 #define m_NCS_GET_UPTIME \
-    m_NCS_OS_GET_UPTIME  
+    m_NCS_OS_GET_UPTIME
 
 #define m_GET_TIME_STAMP_STR(timestamp, asc_timestamp)  \
     m_NCS_OS_GET_TIME_STAMP_STR(timestamp, asc_timestamp)
@@ -200,8 +190,7 @@ extern void ncs_reboot(const char *reason);
  **/
 #define sysf_time_stamp  ncs_time_stamp()
 
-EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
-
+	EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
 
 /*****************************************************************************
  **                                                                         **
@@ -214,7 +203,6 @@ EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
 #define m_KEY_CHK_FMT(k,f)  { if (k.fmat != f) m_LEAP_DBG_SINK(0);}
 #define m_KEY_CHK_LEN(l)    { if (l > SYSF_MAX_KEY_LEN) m_LEAP_DBG_SINK(0); }
 #define m_KEY_CHK_SLEN(s)   { uns32 l = m_NCS_STRLEN(s); m_KEY_CHK_LEN(l); }
-
 
 /*
  * m_LEAP_DBG_SINK
@@ -231,13 +219,11 @@ EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
  * ENABLE_LEAP_DBG can be enabled in ncs_opt,h
  */
 
-
-EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
+	EXTERN_C LEAPDLL_API uns32 leap_dbg_sink(uns32, char *, long);
 
 #define m_LEAP_GOTO_DBG_SINK(l,f,r) leap_dbg_sink(l,f,(uns32)r)
 #define m_LEAP_DBG_SINK(r)          leap_dbg_sink(__LINE__,__FILE__,(long)r)
 #define m_LEAP_DBG_SINK_VOID(r)          leap_dbg_sink(__LINE__,__FILE__,(uns32)r)
-
 
 /*****************************************************************************
  **                                                                         **
@@ -365,9 +351,8 @@ EXTERN_C LEAPDLL_API uns32 leap_dbg_sink (uns32,char*,long);
  **                                                                         **
  ****************************************************************************/
 
-EXTERN_C LEAPDLL_API int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
-EXTERN_C LEAPDLL_API int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
-
+	EXTERN_C LEAPDLL_API int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
+	EXTERN_C LEAPDLL_API int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
 
 /*****************************************************************************
  **                                                                         **
@@ -380,22 +365,17 @@ EXTERN_C LEAPDLL_API int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n
 
 #define m_NCS_STACKTRACE_GET      m_NCS_OS_STACKTRACE_GET
 #define m_NCS_STACKTRACE_EXPAND   m_NCS_OS_STACKTRACE_EXPAND
-#endif  /*#if (NCS_MMGR_STACKTRACE == 1)*/
-
+#endif   /*#if (NCS_MMGR_STACKTRACE == 1) */
 
 #ifdef  __cplusplus
 }
 #endif
-
 /*****************************************************************************
  **                                                                         **
  **             LEAP ENVIRONMENT INITIALIZATION AND CLEAN UP                **
  **                                                                         **
  ****************************************************************************/
-
-EXTERN_C LEAPDLL_API uns32 leap_env_init   (void);
+    EXTERN_C LEAPDLL_API uns32 leap_env_init(void);
 EXTERN_C LEAPDLL_API uns32 leap_env_destroy(void);
 
 #endif
-
-

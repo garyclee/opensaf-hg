@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,7 +28,6 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
   
 ******************************************************************************
 */
@@ -39,7 +36,6 @@
 
 /* static function declarations */
 static uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2);
-
 
 /****************************************************************************
   Name          : avnd_pgdb_init
@@ -52,25 +48,22 @@ static uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2);
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_init (AVND_CB *cb)
+uns32 avnd_pgdb_init(AVND_CB *cb)
 {
-   NCS_PATRICIA_PARAMS params;
-   uns32               rc = NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS params;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   params.key_size = sizeof(SaNameT);
-   rc = ncs_patricia_tree_init(&cb->pgdb, &params);
-   if (NCSCC_RC_SUCCESS == rc)
-      m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_SUCCESS, 
-                       0, NCSFL_SEV_INFO);
-   else
-      m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_FAILURE, 
-                       0, NCSFL_SEV_CRITICAL);
+	params.key_size = sizeof(SaNameT);
+	rc = ncs_patricia_tree_init(&cb->pgdb, &params);
+	if (NCSCC_RC_SUCCESS == rc)
+		m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+	else
+		m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_CREATE, AVND_LOG_PG_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_destroy
@@ -83,34 +76,31 @@ uns32 avnd_pgdb_init (AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_destroy (AVND_CB *cb)
+uns32 avnd_pgdb_destroy(AVND_CB *cb)
 {
-   AVND_PG *pg = 0;
-   uns32   rc = NCSCC_RC_SUCCESS;
+	AVND_PG *pg = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* scan & delete each pg rec */
-   while ( 0 != (pg = 
-            (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uns8 *)0)) )
-   {
-      /* delete the record */
-      rc = avnd_pgdb_rec_del(cb, &pg->csi_name_net);
-      if ( NCSCC_RC_SUCCESS != rc ) goto err;
-   }
+	/* scan & delete each pg rec */
+	while (0 != (pg = (AVND_PG *)ncs_patricia_tree_getnext(&cb->pgdb, (uns8 *)0))) {
+		/* delete the record */
+		rc = avnd_pgdb_rec_del(cb, &pg->csi_name_net);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto err;
+	}
 
-   /* finally destroy patricia tree */
-   rc = ncs_patricia_tree_destroy(&cb->pgdb);
-   if ( NCSCC_RC_SUCCESS != rc ) goto err;
+	/* finally destroy patricia tree */
+	rc = ncs_patricia_tree_destroy(&cb->pgdb);
+	if (NCSCC_RC_SUCCESS != rc)
+		goto err;
 
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_SUCCESS, 
-                    0, NCSFL_SEV_INFO);
-   return rc;
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_SUCCESS, 0, NCSFL_SEV_INFO);
+	return rc;
 
-err:
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_FAILURE, 
-                    0, NCSFL_SEV_CRITICAL);
-   return rc;
+ err:
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_DESTROY, AVND_LOG_PG_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_rec_add
@@ -126,65 +116,60 @@ err:
  
   Notes         : None.
 ******************************************************************************/
-AVND_PG *avnd_pgdb_rec_add (AVND_CB *cb, SaNameT *csi_name_net, uns32 *rc)
+AVND_PG *avnd_pgdb_rec_add(AVND_CB *cb, SaNameT *csi_name_net, uns32 *rc)
 {
-   AVND_PG *pg = 0;
+	AVND_PG *pg = 0;
 
-   /* verify if this pg is already present in the db */
-   if ( 0 != m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name_net) )
-   {
-      *rc = AVND_ERR_DUP_PG;
-      goto err;
-   }
+	/* verify if this pg is already present in the db */
+	if (0 != m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name_net)) {
+		*rc = AVND_ERR_DUP_PG;
+		goto err;
+	}
 
-   /* a fresh pg... */
-   pg = m_MMGR_ALLOC_AVND_PG;
-   if (!pg)
-   {
-      *rc = AVND_ERR_NO_MEMORY;
-      goto err;
-   }
+	/* a fresh pg... */
+	pg = m_MMGR_ALLOC_AVND_PG;
+	if (!pg) {
+		*rc = AVND_ERR_NO_MEMORY;
+		goto err;
+	}
 
-   memset(pg, 0, sizeof(AVND_PG));
+	memset(pg, 0, sizeof(AVND_PG));
 
-   /* update the csi-name (patricia key) */
-   pg->csi_name_net = *csi_name_net;
+	/* update the csi-name (patricia key) */
+	pg->csi_name_net = *csi_name_net;
 
-   /* until avd acknowldges it's presence, it doesn't exit */
-   pg->is_exist = FALSE;
+	/* until avd acknowldges it's presence, it doesn't exit */
+	pg->is_exist = FALSE;
 
-   /* initialize the mem-list */
-   pg->mem_list.order = NCS_DBLIST_ANY_ORDER;
-   pg->mem_list.cmp_cookie = avsv_dblist_saname_cmp;
-   pg->mem_list.free_cookie = 0;
+	/* initialize the mem-list */
+	pg->mem_list.order = NCS_DBLIST_ANY_ORDER;
+	pg->mem_list.cmp_cookie = avsv_dblist_saname_cmp;
+	pg->mem_list.free_cookie = 0;
 
-   /* initialize the track-list */
-   pg->trk_list.order = NCS_DBLIST_ANY_ORDER;
-   pg->trk_list.cmp_cookie = avnd_pgdb_trk_key_cmp;
-   pg->trk_list.free_cookie = 0;
+	/* initialize the track-list */
+	pg->trk_list.order = NCS_DBLIST_ANY_ORDER;
+	pg->trk_list.cmp_cookie = avnd_pgdb_trk_key_cmp;
+	pg->trk_list.free_cookie = 0;
 
-   /* add to the patricia tree */
-   pg->tree_node.bit = 0;
-   pg->tree_node.key_info = (uns8*)&pg->csi_name_net;
-   *rc = ncs_patricia_tree_add(&cb->pgdb, &pg->tree_node);
-   if ( NCSCC_RC_SUCCESS != *rc )
-   {
-      *rc = AVND_ERR_TREE;
-      goto err;
-   }
+	/* add to the patricia tree */
+	pg->tree_node.bit = 0;
+	pg->tree_node.key_info = (uns8 *)&pg->csi_name_net;
+	*rc = ncs_patricia_tree_add(&cb->pgdb, &pg->tree_node);
+	if (NCSCC_RC_SUCCESS != *rc) {
+		*rc = AVND_ERR_TREE;
+		goto err;
+	}
 
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_SUCCESS, 
-                    csi_name_net, NCSFL_SEV_INFO);
-   return pg;
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_SUCCESS, csi_name_net, NCSFL_SEV_INFO);
+	return pg;
 
-err:
-   if (pg) m_MMGR_FREE_AVND_PG(pg);
+ err:
+	if (pg)
+		m_MMGR_FREE_AVND_PG(pg);
 
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_FAILURE, 
-                    csi_name_net, NCSFL_SEV_CRITICAL);
-   return 0;
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_ADD, AVND_LOG_PG_DB_FAILURE, csi_name_net, NCSFL_SEV_CRITICAL);
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_rec_del
@@ -198,47 +183,42 @@ err:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_pgdb_rec_del (AVND_CB *cb, SaNameT *csi_name_net)
+uns32 avnd_pgdb_rec_del(AVND_CB *cb, SaNameT *csi_name_net)
 {
-   AVND_PG *pg = 0;
-   uns32   rc = NCSCC_RC_SUCCESS;
+	AVND_PG *pg = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* get the pg record */
-   pg = m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name_net);
-   if (!pg)
-   {
-      rc = AVND_ERR_NO_PG;
-      goto err;
-   }
+	/* get the pg record */
+	pg = m_AVND_PGDB_REC_GET(cb->pgdb, *csi_name_net);
+	if (!pg) {
+		rc = AVND_ERR_NO_PG;
+		goto err;
+	}
 
-   /* delete the mem-list */
-   avnd_pgdb_mem_rec_del_all(cb, pg);
+	/* delete the mem-list */
+	avnd_pgdb_mem_rec_del_all(cb, pg);
 
-   /* delete the track-list */
-   avnd_pgdb_trk_rec_del_all(cb, pg);
+	/* delete the track-list */
+	avnd_pgdb_trk_rec_del_all(cb, pg);
 
-   /* remove from the patricia tree */
-   rc = ncs_patricia_tree_del(&cb->pgdb, &pg->tree_node);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      rc = AVND_ERR_TREE;
-      goto err;
-   }
+	/* remove from the patricia tree */
+	rc = ncs_patricia_tree_del(&cb->pgdb, &pg->tree_node);
+	if (NCSCC_RC_SUCCESS != rc) {
+		rc = AVND_ERR_TREE;
+		goto err;
+	}
 
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_SUCCESS, 
-                    csi_name_net, NCSFL_SEV_INFO);
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_SUCCESS, csi_name_net, NCSFL_SEV_INFO);
 
-   /* free the memory */
-   m_MMGR_FREE_AVND_PG(pg);
+	/* free the memory */
+	m_MMGR_FREE_AVND_PG(pg);
 
-   return rc;
+	return rc;
 
-err:
-   m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_FAILURE, 
-                    csi_name_net, NCSFL_SEV_CRITICAL);
-   return rc;
+ err:
+	m_AVND_LOG_PG_DB(AVND_LOG_PG_DB_REC_DEL, AVND_LOG_PG_DB_FAILURE, csi_name_net, NCSFL_SEV_CRITICAL);
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_trk_rec_add
@@ -255,45 +235,42 @@ err:
  
   Notes         : None.
 ******************************************************************************/
-AVND_PG_TRK *avnd_pgdb_trk_rec_add (AVND_CB          *cb, 
-                                    AVND_PG          *pg, 
-                                    AVND_PG_TRK_INFO *trk_info)
+AVND_PG_TRK *avnd_pgdb_trk_rec_add(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_INFO *trk_info)
 {
-   AVND_PG_TRK *pg_trk = 0;
+	AVND_PG_TRK *pg_trk = 0;
 
-   /* get the trk rec */
-   pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, trk_info->key);
-   if (!pg_trk) 
-   {
-      /* a new record.. alloc & link it to the dll */
-      pg_trk = m_MMGR_ALLOC_AVND_PG_TRK;
-      if (!pg_trk) goto err;
+	/* get the trk rec */
+	pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, trk_info->key);
+	if (!pg_trk) {
+		/* a new record.. alloc & link it to the dll */
+		pg_trk = m_MMGR_ALLOC_AVND_PG_TRK;
+		if (!pg_trk)
+			goto err;
 
-      memset(pg_trk, 0, sizeof(AVND_PG_TRK));
-      
-      /* update the record key */
-      pg_trk->info.key = trk_info->key;
-      pg_trk->pg_dll_node.key = (uns8 *)(&(pg_trk->info.key));
-      
-      /* add to the dll */
-      if ( NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->trk_list, 
-                                                    &pg_trk->pg_dll_node) )
-         goto err;
-   }
+		memset(pg_trk, 0, sizeof(AVND_PG_TRK));
 
-   /* update the params */
-   pg_trk->info.flags = trk_info->flags;
-   pg_trk->info.mds_ctxt = trk_info->mds_ctxt;
-   pg_trk->info.is_syn = trk_info->is_syn;
+		/* update the record key */
+		pg_trk->info.key = trk_info->key;
+		pg_trk->pg_dll_node.key = (uns8 *)(&(pg_trk->info.key));
 
-   return pg_trk;
+		/* add to the dll */
+		if (NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->trk_list, &pg_trk->pg_dll_node))
+			goto err;
+	}
 
-err:
-   if (pg_trk) m_MMGR_FREE_AVND_PG_TRK(pg_trk);
+	/* update the params */
+	pg_trk->info.flags = trk_info->flags;
+	pg_trk->info.mds_ctxt = trk_info->mds_ctxt;
+	pg_trk->info.is_syn = trk_info->is_syn;
 
-   return 0;
+	return pg_trk;
+
+ err:
+	if (pg_trk)
+		m_MMGR_FREE_AVND_PG_TRK(pg_trk);
+
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_trk_rec_del
@@ -308,23 +285,23 @@ err:
  
   Notes         : None.
 ******************************************************************************/
-void avnd_pgdb_trk_rec_del (AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
+void avnd_pgdb_trk_rec_del(AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
 {
-   AVND_PG_TRK *pg_trk = 0;
+	AVND_PG_TRK *pg_trk = 0;
 
-   /* get the pg track record */
-   pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, *key);
-   if (!pg_trk) return;
+	/* get the pg track record */
+	pg_trk = m_AVND_PGDB_TRK_REC_GET(*pg, *key);
+	if (!pg_trk)
+		return;
 
-   /* remove from the dll */
-   ncs_db_link_list_remove(&pg->trk_list, (uns8 *)key);
+	/* remove from the dll */
+	ncs_db_link_list_remove(&pg->trk_list, (uns8 *)key);
 
-   /* free the memory */
-   m_MMGR_FREE_AVND_PG_TRK(pg_trk);
+	/* free the memory */
+	m_MMGR_FREE_AVND_PG_TRK(pg_trk);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_trk_rec_del_all
@@ -339,16 +316,15 @@ void avnd_pgdb_trk_rec_del (AVND_CB *cb, AVND_PG *pg, AVND_PG_TRK_KEY *key)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_pgdb_trk_rec_del_all (AVND_CB *cb, AVND_PG *pg)
+void avnd_pgdb_trk_rec_del_all(AVND_CB *cb, AVND_PG *pg)
 {
-   AVND_PG_TRK *curr = 0;
+	AVND_PG_TRK *curr = 0;
 
-   while ( 0 != (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list)) )
-      avnd_pgdb_trk_rec_del(cb, pg, &curr->info.key);
+	while (0 != (curr = (AVND_PG_TRK *)m_NCS_DBLIST_FIND_FIRST(&pg->trk_list)))
+		avnd_pgdb_trk_rec_del(cb, pg, &curr->info.key);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_mem_rec_add
@@ -365,48 +341,44 @@ void avnd_pgdb_trk_rec_del_all (AVND_CB *cb, AVND_PG *pg)
  
   Notes         : None.
 ******************************************************************************/
-AVND_PG_MEM *avnd_pgdb_mem_rec_add (AVND_CB                           *cb, 
-                                    AVND_PG                           *pg, 
-                                    SaAmfProtectionGroupNotificationT *mem_info)
+AVND_PG_MEM *avnd_pgdb_mem_rec_add(AVND_CB *cb, AVND_PG *pg, SaAmfProtectionGroupNotificationT *mem_info)
 {
-   AVND_PG_MEM *pg_mem = 0;
+	AVND_PG_MEM *pg_mem = 0;
 
-   /* get the mem rec */
-   pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
-   if (!pg_mem)
-   {
-      /* a new record.. alloc & link it to the dll */
-      pg_mem = m_MMGR_ALLOC_AVND_PG_MEM;
-      if (!pg_mem) goto err;
+	/* get the mem rec */
+	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, mem_info->member.compName);
+	if (!pg_mem) {
+		/* a new record.. alloc & link it to the dll */
+		pg_mem = m_MMGR_ALLOC_AVND_PG_MEM;
+		if (!pg_mem)
+			goto err;
 
-      memset(pg_mem, 0, sizeof(AVND_PG_MEM));
+		memset(pg_mem, 0, sizeof(AVND_PG_MEM));
 
-      /* a fresh rec.. mark this member as a new addition */
-      pg_mem->info.change = mem_info->change;
-      
-      /* update the record key */
-      pg_mem->info.member.compName = mem_info->member.compName;
-      pg_mem->pg_dll_node.key = (uns8 *)&pg_mem->info.member.compName;
-      
-      /* add to the dll */
-      if ( NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->mem_list, 
-                                                    &pg_mem->pg_dll_node) )
-         goto err;
-   }
-   else
-      pg_mem->info.change = SA_AMF_PROTECTION_GROUP_STATE_CHANGE;
+		/* a fresh rec.. mark this member as a new addition */
+		pg_mem->info.change = mem_info->change;
 
-   /* update other params */
-   pg_mem->info.member = mem_info->member;
+		/* update the record key */
+		pg_mem->info.member.compName = mem_info->member.compName;
+		pg_mem->pg_dll_node.key = (uns8 *)&pg_mem->info.member.compName;
 
-   return pg_mem;
+		/* add to the dll */
+		if (NCSCC_RC_SUCCESS != ncs_db_link_list_add(&pg->mem_list, &pg_mem->pg_dll_node))
+			goto err;
+	} else
+		pg_mem->info.change = SA_AMF_PROTECTION_GROUP_STATE_CHANGE;
 
-err:
-   if (pg_mem) m_MMGR_FREE_AVND_PG_MEM(pg_mem);
+	/* update other params */
+	pg_mem->info.member = mem_info->member;
 
-   return 0;
+	return pg_mem;
+
+ err:
+	if (pg_mem)
+		m_MMGR_FREE_AVND_PG_MEM(pg_mem);
+
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_mem_rec_rmv
@@ -423,26 +395,24 @@ err:
   Notes         : This routine only pops the cooresponding member record. It
                   doesn't delete it.
 ******************************************************************************/
-AVND_PG_MEM *avnd_pgdb_mem_rec_rmv (AVND_CB *cb, 
-                                    AVND_PG *pg, 
-                                    SaNameT *comp_name_net)
+AVND_PG_MEM *avnd_pgdb_mem_rec_rmv(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name_net)
 {
-   AVND_PG_MEM *pg_mem = 0;
+	AVND_PG_MEM *pg_mem = 0;
 
-   /* get the pg mem record */
-   pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, *comp_name_net);
-   if (!pg_mem) return 0;
+	/* get the pg mem record */
+	pg_mem = m_AVND_PGDB_MEM_REC_GET(*pg, *comp_name_net);
+	if (!pg_mem)
+		return 0;
 
-   /* remove from the dll */
-   ncs_db_link_list_remove(&pg->mem_list, (uns8 *)comp_name_net);
+	/* remove from the dll */
+	ncs_db_link_list_remove(&pg->mem_list, (uns8 *)comp_name_net);
 
-   /* update the params that are no longer valid */
-   pg_mem->info.change = SA_AMF_PROTECTION_GROUP_REMOVED;
-   pg_mem->info.member.haState = 0;
+	/* update the params that are no longer valid */
+	pg_mem->info.change = SA_AMF_PROTECTION_GROUP_REMOVED;
+	pg_mem->info.member.haState = 0;
 
-   return pg_mem;
+	return pg_mem;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_mem_rec_del
@@ -458,20 +428,20 @@ AVND_PG_MEM *avnd_pgdb_mem_rec_rmv (AVND_CB *cb,
  
   Notes         : None.
 ******************************************************************************/
-void avnd_pgdb_mem_rec_del (AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name_net)
+void avnd_pgdb_mem_rec_del(AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name_net)
 {
-   AVND_PG_MEM *pg_mem = 0;
+	AVND_PG_MEM *pg_mem = 0;
 
-   /* remove the pg mem record */
-   pg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, comp_name_net);
-   if (!pg_mem) return;
+	/* remove the pg mem record */
+	pg_mem = avnd_pgdb_mem_rec_rmv(cb, pg, comp_name_net);
+	if (!pg_mem)
+		return;
 
-   /* free the memory */
-   m_MMGR_FREE_AVND_PG_MEM(pg_mem);
+	/* free the memory */
+	m_MMGR_FREE_AVND_PG_MEM(pg_mem);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_mem_rec_del_all
@@ -486,16 +456,15 @@ void avnd_pgdb_mem_rec_del (AVND_CB *cb, AVND_PG *pg, SaNameT *comp_name_net)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_pgdb_mem_rec_del_all (AVND_CB *cb, AVND_PG *pg)
+void avnd_pgdb_mem_rec_del_all(AVND_CB *cb, AVND_PG *pg)
 {
-   AVND_PG_MEM *curr = 0;
+	AVND_PG_MEM *curr = 0;
 
-   while ( 0 != (curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list)) )
-      avnd_pgdb_mem_rec_del(cb, pg, &curr->info.member.compName);
+	while (0 != (curr = (AVND_PG_MEM *)m_NCS_DBLIST_FIND_FIRST(&pg->mem_list)))
+		avnd_pgdb_mem_rec_del(cb, pg, &curr->info.member.compName);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_pgdb_trk_key_cmp
@@ -514,11 +483,9 @@ void avnd_pgdb_mem_rec_del_all (AVND_CB *cb, AVND_PG *pg)
 ******************************************************************************/
 uns32 avnd_pgdb_trk_key_cmp(uns8 *key1, uns8 *key2)
 {
-   int i = 0;
+	int i = 0;
 
-   i = memcmp(key1, key2, sizeof(AVND_PG_TRK_KEY));
+	i = memcmp(key1, key2, sizeof(AVND_PG_TRK_KEY));
 
-   return ( (i == 0) ? 0 : ( (i > 0) ? 1 : 2) );
+	return ((i == 0) ? 0 : ((i > 0) ? 1 : 2));
 }
-
-

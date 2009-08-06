@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: Abstractions and APIs for NCS_HDL service, an access-safe,
@@ -150,40 +148,37 @@
  * General handle definition, handed to clients; They don't know or care
  ***************************************************************************/
 
-typedef struct hm_hdl
-  {
-  uns32      seq_id:4;    /* Sequence ID that must match  'cell' value */
-  uns32      idx1  :8;    /* Navigational marker for first array */
-  uns32      idx2  :8;    /* Navigational marker for second array */
-  uns32      idx3  :12;   /* Navigational marker for third array */
+typedef struct hm_hdl {
+	uns32 seq_id:4;		/* Sequence ID that must match  'cell' value */
+	uns32 idx1:8;		/* Navigational marker for first array */
+	uns32 idx2:8;		/* Navigational marker for second array */
+	uns32 idx3:12;		/* Navigational marker for third array */
 
-  } HM_HDL;
+} HM_HDL;
 
 /*************************************************************************** 
  * Internal CELL stores private state info and client data mapped to handle
  ***************************************************************************/
 
-typedef struct hm_cell
-  {
-  NCSCONTEXT  data;        /* This is the stored data thing */
+typedef struct hm_cell {
+	NCSCONTEXT data;	/* This is the stored data thing */
 
-  uns32      seq_id:4;    /* sequence ID must match for valid key find */
-  uns32      svc_id:12;   /* Service ID of owning subsystem */
-  uns32      busy  :1;    /* sub-type of datat stored in context */
-  uns32      use_ct:11;    /* Use Count; Multiple readers, once created */
+	uns32 seq_id:4;		/* sequence ID must match for valid key find */
+	uns32 svc_id:12;	/* Service ID of owning subsystem */
+	uns32 busy:1;		/* sub-type of datat stored in context */
+	uns32 use_ct:11;	/* Use Count; Multiple readers, once created */
 
-  } HM_CELL;
+} HM_CELL;
 
 /*************************************************************************** 
  * When not a CELL, a CELL is on the free-cell list and looks like this
  ***************************************************************************/
 
-typedef struct hm_free
-  {
-  struct hm_free* next;   /* linked list of free/available cells */
-  HM_HDL          hdl;    /* The place where this memory lives */
+typedef struct hm_free {
+	struct hm_free *next;	/* linked list of free/available cells */
+	HM_HDL hdl;		/* The place where this memory lives */
 
-  } HM_FREE;
+} HM_FREE;
 
 /*************************************************************************** 
  * CELLs are allocated in hunks
@@ -191,24 +186,22 @@ typedef struct hm_free
 
 #define HM_CELL_CNT  4096
 
-typedef struct hm_cells
-  {
-  HM_CELL         cell[HM_CELL_CNT];  /* twelve bits of counter */
+typedef struct hm_cells {
+	HM_CELL cell[HM_CELL_CNT];	/* twelve bits of counter */
 
-  } HM_CELLS;
+} HM_CELLS;
 
 /*************************************************************************** 
  * Handle Manager has BANKS of CELLs that emerge dyanamically
  ***************************************************************************/
 
-#define HM_BANK_CNT  256  /* FF  */
+#define HM_BANK_CNT  256	/* FF  */
 
-typedef struct hm_unit
-  {
-  uns8            curr;                /* next idx to fill in */
-  HM_CELLS*       cells[HM_BANK_CNT];  /* when the cell-bank itself */
+typedef struct hm_unit {
+	uns8 curr;		/* next idx to fill in */
+	HM_CELLS *cells[HM_BANK_CNT];	/* when the cell-bank itself */
 
-  } HM_UNIT;
+} HM_UNIT;
 
 /*************************************************************************** 
 
@@ -225,46 +218,40 @@ typedef struct hm_unit
  ***************************************************************************/
 
 #define HM_POOL_CNT  9
- 
-typedef struct hm_pool
-  {
-  int32           min;      /* min name-sapce unit inclusive */
-  int32           max;      /* max name-space unit inclusive */
 
-  } HM_POOL;
+typedef struct hm_pool {
+	int32 min;		/* min name-sapce unit inclusive */
+	int32 max;		/* max name-space unit inclusive */
 
+} HM_POOL;
 
 /*************************************************************************** 
  * Handle Manager Pool Manager block.. manage a pool of handles
  ***************************************************************************/
 
-typedef struct hm_pmgr
-  {
-  HM_FREE*        free_pool;     /* the free ones go here */
-  uns32           in_q;          /* current handles in this queue */
-  uns32           in_use;        /* current handles in world from this pool */
-  uns32           curr;          /* current unit-id we are working on */
-  uns32           max;           /* max unit-id that this pool owns */
+typedef struct hm_pmgr {
+	HM_FREE *free_pool;	/* the free ones go here */
+	uns32 in_q;		/* current handles in this queue */
+	uns32 in_use;		/* current handles in world from this pool */
+	uns32 curr;		/* current unit-id we are working on */
+	uns32 max;		/* max unit-id that this pool owns */
 
-  } HM_PMGR;
+} HM_PMGR;
 
 /*************************************************************************** 
  * Handle Manager Core data structure manages the works...
  ***************************************************************************/
 
-#define HM_UNIT_CNT  256  /* FF  */
+#define HM_UNIT_CNT  256	/* FF  */
 
-typedef struct hm_core
-  {
-  NCS_LOCK         lock[HM_POOL_CNT];   /* Lock for each pool */
-  HM_UNIT*        unit[HM_UNIT_CNT]; /* Name space units */
-  HM_PMGR         pool[HM_POOL_CNT]; /* pools of name space units */
+typedef struct hm_core {
+	NCS_LOCK lock[HM_POOL_CNT];	/* Lock for each pool */
+	HM_UNIT *unit[HM_UNIT_CNT];	/* Name space units */
+	HM_PMGR pool[HM_POOL_CNT];	/* pools of name space units */
 
-  uns32           woulda_crashed;    /* # times destroy thread blocked */
+	uns32 woulda_crashed;	/* # times destroy thread blocked */
 
-  } HM_CORE;  
-
-
+} HM_CORE;
 
 /*************************************************************************** 
 
@@ -272,7 +259,7 @@ typedef struct hm_core
 
  ***************************************************************************/
 
-#define HM_STATS   1         /* enable/disable Handle Manager Stats counts */
+#define HM_STATS   1		/* enable/disable Handle Manager Stats counts */
 
 /*************************************************************************** 
  * Handle Manager Statistic counters
@@ -285,7 +272,6 @@ typedef struct hm_core
 #define m_HM_STAT_RMV_FR_Q(n)   n--
 #define m_HM_STAT_ADD_IN_USE(n) n++
 #define m_HM_STAT_RMV_IN_USE(r,n) if(r) n--
-
 #else
 
 #define m_HM_STAT_CRASH(n)
@@ -293,13 +279,12 @@ typedef struct hm_core
 #define m_HM_STAT_RMV_FR_Q(n)
 #define m_HM_STAT_ADD_IN_USE(n)
 #define m_HM_STAT_RMV_IN_USE(r,n)
-
 #endif
 
 /*************************************************************************** 
  * Required Memory Management Macros for Handle Manager
  ***************************************************************************/
-      
+
 #define m_MMGR_ALLOC_HM_CELLS      (HM_CELLS*) m_NCS_MEM_ALLOC(sizeof(HM_CELLS),\
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_COMMON,     \
@@ -327,28 +312,23 @@ typedef struct hm_core
  *
  ***************************************************************************/
 
-EXTERN_C uns32      hm_pool_id                (uns8           unit);
+EXTERN_C uns32 hm_pool_id(uns8 unit);
 
-EXTERN_C uns32      hm_init_pools             (HM_PMGR*       pmgr, 
-                                               HM_POOL*       pool);
+EXTERN_C uns32 hm_init_pools(HM_PMGR *pmgr, HM_POOL *pool);
 
-EXTERN_C HM_FREE*   hm_alloc_cell             (uns8           id);
+EXTERN_C HM_FREE *hm_alloc_cell(uns8 id);
 
-EXTERN_C HM_CELL*   hm_find_cell              (HM_HDL*        hdl);
+EXTERN_C HM_CELL *hm_find_cell(HM_HDL *hdl);
 
-EXTERN_C HM_FREE*   hm_target_cell            (HM_HDL*        hdl);
+EXTERN_C HM_FREE *hm_target_cell(HM_HDL *hdl);
 
-EXTERN_C void       hm_free_cell              (HM_CELL*       cell, 
-                                               HM_HDL*        hdl,
-                                               NCS_BOOL        recycle);
+EXTERN_C void hm_free_cell(HM_CELL *cell, HM_HDL *hdl, NCS_BOOL recycle);
 
-EXTERN_C uns32      hm_make_free_cells        (HM_PMGR*       pmgr);
+EXTERN_C uns32 hm_make_free_cells(HM_PMGR *pmgr);
 
-EXTERN_C void       hm_block_me               (HM_CELL*       cell, 
-                                               uns8           pool_id);
+EXTERN_C void hm_block_me(HM_CELL *cell, uns8 pool_id);
 
-EXTERN_C void       hm_unblock_him            (HM_CELL*       cell);
-
+EXTERN_C void hm_unblock_him(HM_CELL *cell);
 
 /***************************************************************************
 
@@ -403,5 +383,3 @@ EXTERN_C void       hm_unblock_him            (HM_CELL*       cell);
  ***************************************************************************/
 
 #endif
-
-

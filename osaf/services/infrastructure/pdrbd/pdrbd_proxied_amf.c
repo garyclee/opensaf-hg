@@ -16,8 +16,6 @@
 
 #include "pdrbd.h"
 
-
-
 /****************************************************************************
  * Name          : pdrbdProxiedAmfInitialise
  *
@@ -31,37 +29,34 @@
  *****************************************************************************/
 uns32 pdrbdProxiedAmfInitialise()
 {
-   SaAmfCallbacksT amfCallbacks;
-   SaVersionT amfVersion;
-   SaAisErrorT error;
-   uns32 ret=NCSCC_RC_SUCCESS;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amfVersion;
+	SaAisErrorT error;
+	uns32 ret = NCSCC_RC_SUCCESS;
 
-   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-   amfCallbacks.saAmfCSISetCallback = pdrbdProxiedAmfCsiSetCallback;
+	amfCallbacks.saAmfCSISetCallback = pdrbdProxiedAmfCsiSetCallback;
 
-   /* Let the pseudo (main) component do the health-check; so no need to register */
-   amfCallbacks.saAmfCSIRemoveCallback = (SaAmfCSIRemoveCallbackT) pdrbdProxiedAmfCsiRemoveCallback;
-   amfCallbacks.saAmfComponentTerminateCallback = pdrbdProxiedAmfTerminateCallback;
-   amfCallbacks.saAmfProxiedComponentInstantiateCallback = pdrbdProxiedAmfInstantiateCallback;
-   amfCallbacks.saAmfProxiedComponentCleanupCallback = pdrbdProxiedAmfCleanupCallback;
+	/* Let the pseudo (main) component do the health-check; so no need to register */
+	amfCallbacks.saAmfCSIRemoveCallback = (SaAmfCSIRemoveCallbackT)pdrbdProxiedAmfCsiRemoveCallback;
+	amfCallbacks.saAmfComponentTerminateCallback = pdrbdProxiedAmfTerminateCallback;
+	amfCallbacks.saAmfProxiedComponentInstantiateCallback = pdrbdProxiedAmfInstantiateCallback;
+	amfCallbacks.saAmfProxiedComponentCleanupCallback = pdrbdProxiedAmfCleanupCallback;
 
-   m_PSEUDO_GET_AMF_VER(amfVersion);
+	m_PSEUDO_GET_AMF_VER(amfVersion);
 
-   if((error = saAmfInitialize(&pseudoCB.proxiedAmfHandle, &amfCallbacks, &amfVersion)) != SA_AIS_OK)
-   {
-      ret = NCSCC_RC_FAILURE;
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_INIT_FAILED, NCSFL_SEV_ERROR, NULL);
-   }
+	if ((error = saAmfInitialize(&pseudoCB.proxiedAmfHandle, &amfCallbacks, &amfVersion)) != SA_AIS_OK) {
+		ret = NCSCC_RC_FAILURE;
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_INIT_FAILED, NCSFL_SEV_ERROR, NULL);
+	}
 
-   else
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_INIT_SUCCESS, NCSFL_SEV_NOTICE, NULL);
-   }
+	else {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_INIT_SUCCESS, NCSFL_SEV_NOTICE, NULL);
+	}
 
-   return(ret);
+	return (ret);
 }
-
 
 /*******************************************************************************
  * Name          : pdrbdProxiedAmfUninitialise
@@ -76,23 +71,20 @@ uns32 pdrbdProxiedAmfInitialise()
  *******************************************************************************/
 uns32 pdrbdProxiedAmfUninitialise()
 {
-   SaAisErrorT error;
-   uns32 ret=NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
+	uns32 ret = NCSCC_RC_SUCCESS;
 
-   if((error = saAmfFinalize(pseudoCB.proxiedAmfHandle)) != SA_AIS_OK)
-   {
-      ret = NCSCC_RC_FAILURE;
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_UNINIT_FAILED, NCSFL_SEV_ERROR, NULL);
-   }
+	if ((error = saAmfFinalize(pseudoCB.proxiedAmfHandle)) != SA_AIS_OK) {
+		ret = NCSCC_RC_FAILURE;
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_UNINIT_FAILED, NCSFL_SEV_ERROR, NULL);
+	}
 
-   else
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_UNINIT_SUCCESS, NCSFL_SEV_NOTICE, NULL);
-   }
+	else {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_CBK_UNINIT_SUCCESS, NCSFL_SEV_NOTICE, NULL);
+	}
 
-   return(ret);
+	return (ret);
 }
-
 
 /********************************************************************************
  * Name          : pdrbdProxiedAmfRegister
@@ -107,27 +99,24 @@ uns32 pdrbdProxiedAmfUninitialise()
  *********************************************************************************/
 uns32 pdrbdProxiedAmfRegister(uns32 pxNum)
 {
-   SaAisErrorT error;
-   uns32 ret=NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
+	uns32 ret = NCSCC_RC_SUCCESS;
 
-   /* Register the proxied (sub) component */
-   if((error = saAmfComponentRegister(pseudoCB.proxiedAmfHandle, &pseudoCB.proxied_info[pxNum].compName,
-                                       &pseudoCB.compName)) != SA_AIS_OK)
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_REG_FAILED, NCSFL_SEV_WARNING, NULL);
-      pseudoCB.proxied_info[pxNum].regDone = FALSE;
-      ret = NCSCC_RC_FAILURE;
-   }
+	/* Register the proxied (sub) component */
+	if ((error = saAmfComponentRegister(pseudoCB.proxiedAmfHandle, &pseudoCB.proxied_info[pxNum].compName,
+					    &pseudoCB.compName)) != SA_AIS_OK) {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_REG_FAILED, NCSFL_SEV_WARNING, NULL);
+		pseudoCB.proxied_info[pxNum].regDone = FALSE;
+		ret = NCSCC_RC_FAILURE;
+	}
 
-   else
-   {
-      pseudoCB.proxied_info[pxNum].regDone = TRUE;
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_REG_SUCCESS, NCSFL_SEV_NOTICE, NULL);
-   }
+	else {
+		pseudoCB.proxied_info[pxNum].regDone = TRUE;
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_REG_SUCCESS, NCSFL_SEV_NOTICE, NULL);
+	}
 
-   return(ret);
+	return (ret);
 }
-
 
 /***********************************************************************************
  * Name          : pdrbdProxiedAmfUnregister
@@ -142,25 +131,22 @@ uns32 pdrbdProxiedAmfRegister(uns32 pxNum)
  ***********************************************************************************/
 uns32 pdrbdProxiedAmfUnregister(uns32 pxNum)
 {
-   SaAisErrorT error;
-   uns32 ret=NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
+	uns32 ret = NCSCC_RC_SUCCESS;
 
-   /* Un-register the proxied (sub) component */
-   if((error = saAmfComponentUnregister(pseudoCB.proxiedAmfHandle, &pseudoCB.proxied_info[pxNum].compName,
-                                          (SaNameT *) NULL)) != SA_AIS_OK)
-   {
-      ret = NCSCC_RC_FAILURE;
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_UNREG_FAILED, NCSFL_SEV_ERROR, NULL);
-   }
+	/* Un-register the proxied (sub) component */
+	if ((error = saAmfComponentUnregister(pseudoCB.proxiedAmfHandle, &pseudoCB.proxied_info[pxNum].compName,
+					      (SaNameT *)NULL)) != SA_AIS_OK) {
+		ret = NCSCC_RC_FAILURE;
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_UNREG_FAILED, NCSFL_SEV_ERROR, NULL);
+	}
 
-   else
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_UNREG_SUCCESS, NCSFL_SEV_NOTICE, NULL);
-   }
+	else {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_NAME_UNREG_SUCCESS, NCSFL_SEV_NOTICE, NULL);
+	}
 
-   return(ret);
+	return (ret);
 }
-
 
 /*****************************************************************************
  * Name          : pdrbdProxiedAmfCsiSetCallback
@@ -194,127 +180,124 @@ uns32 pdrbdProxiedAmfUnregister(uns32 pxNum)
  * Notes:
  ******************************************************************************/
 void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *compName, SaAmfHAStateT haState,
-                                    SaAmfCSIDescriptorT csiDescriptor)
+				   SaAmfCSIDescriptorT csiDescriptor)
 {
-   uns32 ret,compNo;
-   char script[250] = {0};
-   SaAisErrorT error=SA_AIS_OK;
+	uns32 ret, compNo;
+	char script[250] = { 0 };
+	SaAisErrorT error = SA_AIS_OK;
 
-   for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
-   {
-      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
-         break;
-   }
+	for (compNo = 0; compNo < pseudoCB.noOfProxied; compNo++) {
+		if (0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+			break;
+	}
 
-   switch(haState)
-   {
-   case SA_AMF_HA_ACTIVE:
+	switch (haState) {
+	case SA_AMF_HA_ACTIVE:
 
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_ACT_ROLE, NCSFL_SEV_NOTICE,
-                           pseudoCB.proxied_info[compNo].compName.value);
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_ACT_ROLE, NCSFL_SEV_NOTICE,
+				 pseudoCB.proxied_info[compNo].compName.value);
 
-      /* Save the HA state */
-      pseudoCB.proxied_info[compNo].haState = haState;
+		/* Save the HA state */
+		pseudoCB.proxied_info[compNo].haState = haState;
 
-      /* Save the invocation context for use with aynchronous response from processing thread */
-      pseudoCB.proxied_info[compNo].script_status_array[PDRBD_PRI_ROLE_ASSIGN_CB].invocation = invocation;
+		/* Save the invocation context for use with aynchronous response from processing thread */
+		pseudoCB.proxied_info[compNo].script_status_array[PDRBD_PRI_ROLE_ASSIGN_CB].invocation = invocation;
 
-      /* Put the DRBD in Primary state */
-      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_pri", compNo,
-                     pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
-                     pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
-                     pseudoCB.proxied_info[compNo].metaDisk);
+		/* Put the DRBD in Primary state */
+		sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_pri", compNo,
+			pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
+			pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
+			pseudoCB.proxied_info[compNo].metaDisk);
 
-      ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_ACTIVE, PDRBD_PRI_ROLE_ASSIGN_CB, compNo);
+		ret =
+		    pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_ACTIVE, PDRBD_PRI_ROLE_ASSIGN_CB,
+					 compNo);
 
-      if(ret == NCSCC_RC_FAILURE)
-      {
-         error = SA_AIS_ERR_FAILED_OPERATION;
-         m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_ACT_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
-      }
+		if (ret == NCSCC_RC_FAILURE) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_ACT_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
+		}
 
-      else
-      {
-         if(pseudoCB.compsReady == FALSE)
-            pseudoCB.compsReady = TRUE;
-      }
+		else {
+			if (pseudoCB.compsReady == FALSE)
+				pseudoCB.compsReady = TRUE;
+		}
 
-      break;
+		break;
 
-   case SA_AMF_HA_STANDBY:
+	case SA_AMF_HA_STANDBY:
 
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_STDBY_ROLE, NCSFL_SEV_NOTICE,
-                           pseudoCB.proxied_info[compNo].compName.value);
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_STDBY_ROLE, NCSFL_SEV_NOTICE,
+				 pseudoCB.proxied_info[compNo].compName.value);
 
-      /* Save the HA state */
-      pseudoCB.proxied_info[compNo].haState = haState;
+		/* Save the HA state */
+		pseudoCB.proxied_info[compNo].haState = haState;
 
-      /* Save the invocation context for use with aynchronous response from processing thread */
-      pseudoCB.proxied_info[compNo].script_status_array[PDRBD_SEC_ROLE_ASSIGN_CB].invocation = invocation;
+		/* Save the invocation context for use with aynchronous response from processing thread */
+		pseudoCB.proxied_info[compNo].script_status_array[PDRBD_SEC_ROLE_ASSIGN_CB].invocation = invocation;
 
-      /* Put the DRBD in Secondary state */
-      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_sec", compNo,
-                     pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
-                     pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
-                     pseudoCB.proxied_info[compNo].metaDisk);
+		/* Put the DRBD in Secondary state */
+		sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_sec", compNo,
+			pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
+			pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
+			pseudoCB.proxied_info[compNo].metaDisk);
 
-      ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_STANDBY, PDRBD_SEC_ROLE_ASSIGN_CB, compNo);
+		ret =
+		    pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_STANDBY, PDRBD_SEC_ROLE_ASSIGN_CB,
+					 compNo);
 
-      if(ret == NCSCC_RC_FAILURE)
-      {
-         error = SA_AIS_ERR_FAILED_OPERATION;
-         m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_STDBY_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
-      }
+		if (ret == NCSCC_RC_FAILURE) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_STDBY_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
+		}
 
-      else
-      {
-         if(pseudoCB.compsReady == FALSE)
-            pseudoCB.compsReady = TRUE;
-      }
+		else {
+			if (pseudoCB.compsReady == FALSE)
+				pseudoCB.compsReady = TRUE;
+		}
 
-      break;
+		break;
 
-   case SA_AMF_HA_QUIESCED:   /* for DRBD Quiesced state is same as Secondary */
+	case SA_AMF_HA_QUIESCED:	/* for DRBD Quiesced state is same as Secondary */
 
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_QUISCED_ROLE, NCSFL_SEV_NOTICE,
-                           pseudoCB.proxied_info[compNo].compName.value);
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_QUISCED_ROLE, NCSFL_SEV_NOTICE,
+				 pseudoCB.proxied_info[compNo].compName.value);
 
-      /* Save the HA state */
-      pseudoCB.proxied_info[compNo].haState = haState;
+		/* Save the HA state */
+		pseudoCB.proxied_info[compNo].haState = haState;
 
-      /* Save the invocation context for use with aynchronous response from processing thread */
-      pseudoCB.proxied_info[compNo].script_status_array[PDRBD_QUI_ROLE_ASSIGN_CB].invocation = invocation;
+		/* Save the invocation context for use with aynchronous response from processing thread */
+		pseudoCB.proxied_info[compNo].script_status_array[PDRBD_QUI_ROLE_ASSIGN_CB].invocation = invocation;
 
-      /* Put the DRBD in Secondary state */
-      sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_qui", compNo,
-                     pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
-                     pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
-                     pseudoCB.proxied_info[compNo].metaDisk);
+		/* Put the DRBD in Secondary state */
+		sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "set_qui", compNo,
+			pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
+			pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
+			pseudoCB.proxied_info[compNo].metaDisk);
 
-      ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_QUIESCED, PDRBD_QUI_ROLE_ASSIGN_CB, compNo);
+		ret =
+		    pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_QUIESCED, PDRBD_QUI_ROLE_ASSIGN_CB,
+					 compNo);
 
-      if(ret == NCSCC_RC_FAILURE)
-      {
-         error = SA_AIS_ERR_FAILED_OPERATION;
-         m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_QSED_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
-      }
+		if (ret == NCSCC_RC_FAILURE) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_QSED_CSI_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
+		}
 
-      break;
+		break;
 
-   default:
-      error = SA_AIS_ERR_FAILED_OPERATION;
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_INVALID_ROLE, NCSFL_SEV_ERROR, NULL);
-      break;
-   };
+	default:
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_INVALID_ROLE, NCSFL_SEV_ERROR, NULL);
+		break;
+	};
 
-   if(error == SA_AIS_ERR_FAILED_OPERATION)
-   {
-      saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
-   }
+	if (error == SA_AIS_ERR_FAILED_OPERATION) {
+		saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
+	}
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Name          : pdrbdProxiedAmfCsiRemoveCallback
@@ -336,44 +319,41 @@ void pdrbdProxiedAmfCsiSetCallback(SaInvocationT invocation, const SaNameT *comp
  ******************************************************************************/
 void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *compName)
 {
-   uns32 ret,compNo;
-   char script[250] = {0};
-   SaAisErrorT error=SA_AIS_OK;
+	uns32 ret, compNo;
+	char script[250] = { 0 };
+	SaAisErrorT error = SA_AIS_OK;
 
-   for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
-   {
-      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
-         break;
-   }
+	for (compNo = 0; compNo < pseudoCB.noOfProxied; compNo++) {
+		if (0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+			break;
+	}
 
-   /* Save the HA role as null or void */
-   pseudoCB.proxied_info[compNo].haState = PSEUDO_DRBD_DEFAULT_ROLE;
+	/* Save the HA role as null or void */
+	pseudoCB.proxied_info[compNo].haState = PSEUDO_DRBD_DEFAULT_ROLE;
 
-   m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_RMV_CBK, NCSFL_SEV_ERROR,
-                        pseudoCB.proxied_info[compNo].compName.value );
+	m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_RMV_CBK, NCSFL_SEV_ERROR,
+			 pseudoCB.proxied_info[compNo].compName.value);
 
-   /* Save the invocation context for use with aynchronous response from processing thread */
-   pseudoCB.proxied_info[compNo].script_status_array[PDRBD_REMOVE_CB].invocation = invocation;
+	/* Save the invocation context for use with aynchronous response from processing thread */
+	pseudoCB.proxied_info[compNo].script_status_array[PDRBD_REMOVE_CB].invocation = invocation;
 
-   /* Terminate (cleanup) the DRBD */
-   sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "remove", compNo,
-                  pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
-                  pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
-                  pseudoCB.proxied_info[compNo].metaDisk);
+	/* Terminate (cleanup) the DRBD */
+	sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "remove", compNo,
+		pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
+		pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
+		pseudoCB.proxied_info[compNo].metaDisk);
 
-   ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_REMOVE, PDRBD_REMOVE_CB, compNo);
+	ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_REMOVE, PDRBD_REMOVE_CB, compNo);
 
-   if(ret == NCSCC_RC_FAILURE)
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RMV_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR,
-                           pseudoCB.proxied_info[compNo].compName.value );
-      error = SA_AIS_ERR_FAILED_OPERATION;
-      saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
-   }
+	if (ret == NCSCC_RC_FAILURE) {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RMV_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR,
+				 pseudoCB.proxied_info[compNo].compName.value);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
+	}
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Name          : pdrbdProxiedAmfCsiTerminateCallback
@@ -395,52 +375,48 @@ void pdrbdProxiedAmfCsiRemoveCallback(SaInvocationT invocation, const SaNameT *c
  ******************************************************************************/
 void pdrbdProxiedAmfTerminateCallback(SaInvocationT invocation, const SaNameT *compName)
 {
-   uns32 ret,compNo;
-   char script[250] = {0};
-   SaAisErrorT error=SA_AIS_OK;
+	uns32 ret, compNo;
+	char script[250] = { 0 };
+	SaAisErrorT error = SA_AIS_OK;
 
-   for(compNo=0; compNo<pseudoCB.noOfProxied; compNo++)
-   {
-      if(0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
-         break;
-   }
+	for (compNo = 0; compNo < pseudoCB.noOfProxied; compNo++) {
+		if (0 == strcmp(compName->value, pseudoCB.proxied_info[compNo].compName.value))
+			break;
+	}
 
-   m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_TERM_CBK, NCSFL_SEV_NOTICE,
-                        pseudoCB.proxied_info[compNo].compName.value);
+	m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_RCVD_TERM_CBK, NCSFL_SEV_NOTICE,
+			 pseudoCB.proxied_info[compNo].compName.value);
 
-   /* Save the invocation context for use with aynchronous response from processing thread */
-   pseudoCB.proxied_info[compNo].script_status_array[PDRBD_TERMINATE_CB].invocation = invocation;
+	/* Save the invocation context for use with aynchronous response from processing thread */
+	pseudoCB.proxied_info[compNo].script_status_array[PDRBD_TERMINATE_CB].invocation = invocation;
 
-   /* Terminate (cleanup) the DRBD */
-   sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "terminate", compNo,
-                  pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
-                  pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
-                  pseudoCB.proxied_info[compNo].metaDisk);
+	/* Terminate (cleanup) the DRBD */
+	sprintf(script, "%s %s %d %s %s %s %s %s", PSEUDO_CTRL_SCRIPT_NAME, "terminate", compNo,
+		pseudoCB.proxied_info[compNo].resName, pseudoCB.proxied_info[compNo].devName,
+		pseudoCB.proxied_info[compNo].mountPnt, pseudoCB.proxied_info[compNo].dataDisk,
+		pseudoCB.proxied_info[compNo].metaDisk);
 
-   ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_TERMINATE, PDRBD_TERMINATE_CB, compNo);
+	ret = pdrbd_script_execute(&pseudoCB, script, PDRBD_SCRIPT_TIMEOUT_TERMINATE, PDRBD_TERMINATE_CB, compNo);
 
-   if(ret == NCSCC_RC_FAILURE)
-   {
-      m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_TERM_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
-      error = SA_AIS_ERR_FAILED_OPERATION;
-      saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
-   }
+	if (ret == NCSCC_RC_FAILURE) {
+		m_LOG_PDRBD_MISC(PDRBD_MISC_AMF_COMP_TERM_SCRIPT_EXEC_FAILED, NCSFL_SEV_ERROR, NULL);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
+	}
 
-   return;
+	return;
 }
-
 
 void pdrbdProxiedAmfInstantiateCallback(SaInvocationT invocation, const SaNameT *compName)
 {
-   SaAisErrorT error=SA_AIS_OK;
+	SaAisErrorT error = SA_AIS_OK;
 
-   saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
+	saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
 }
-
 
 void pdrbdProxiedAmfCleanupCallback(SaInvocationT invocation, const SaNameT *compName)
 {
-   SaAisErrorT error=SA_AIS_OK;
+	SaAisErrorT error = SA_AIS_OK;
 
-   saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
+	saAmfResponse(pseudoCB.proxiedAmfHandle, invocation, error);
 }

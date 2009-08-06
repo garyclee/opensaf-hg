@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -101,8 +100,6 @@
                    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, \
                    EDU_ERR *o_err)
 
-
-
 #define TEST_FUNC_DECLARATION(DS) uns32 \
                          TEST_FUNC(DS)(NCSCONTEXT arg)
 
@@ -142,12 +139,9 @@
    \
    return rc;
 
-
-
 /* DTSv version support */
 #define CPSV_LOG_VERSION 3
 
-#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
+#define m_CPSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
 
-
-#endif  /* CPSV_H */
+#endif   /* CPSV_H */

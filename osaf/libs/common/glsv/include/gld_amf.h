@@ -19,25 +19,16 @@
 #define GLD_AMF_H
 
 void
-gld_amf_CSI_set_callback (SaInvocationT invocation,
-                          const SaNameT  *compName,
-                          SaAmfHAStateT  haState,
-                          SaAmfCSIDescriptorT csiDescriptor);
+gld_amf_CSI_set_callback(SaInvocationT invocation,
+			 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
 void
-gld_amf_health_chk_callback (SaInvocationT invocation,
-                             const SaNameT *compName,
-                             SaAmfHealthcheckKeyT *healthcheckKey);
+gld_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *healthcheckKey);
 
+void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-void 
-gld_amf_comp_terminate_callback(SaInvocationT invocation,
-                                const SaNameT *compName);
-
-void 
+void
 gld_amf_csi_rmv_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         const SaNameT *csiName,
-                         const SaAmfCSIFlagsT csiFlags);
-uns32
-gld_amf_init (GLSV_GLD_CB *gld_cb);
+			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
+uns32 gld_amf_init(GLSV_GLD_CB *gld_cb);
+
 #endif

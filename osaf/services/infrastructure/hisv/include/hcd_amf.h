@@ -29,20 +29,15 @@
 #ifndef HCD_AMF_H
 #define HCD_AMF_H
 
-
-EXTERN_C void hcd_amf_CSI_set_callback (SaInvocationT invocation,
-                          const SaNameT  *compName, SaAmfHAStateT  haState,
-                          SaAmfCSIDescriptorT csiDescriptor);
-EXTERN_C void hcd_amf_health_chk_callback (SaInvocationT invocation,
-                          const SaNameT *compName,
-                          SaAmfHealthcheckKeyT *checkType);
-EXTERN_C void hcd_amf_comp_terminate_callback(SaInvocationT invocation,
-                          const SaNameT *compName);
+EXTERN_C void hcd_amf_CSI_set_callback(SaInvocationT invocation,
+				       const SaNameT *compName, SaAmfHAStateT haState,
+				       SaAmfCSIDescriptorT csiDescriptor);
+EXTERN_C void hcd_amf_health_chk_callback(SaInvocationT invocation,
+					  const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
+EXTERN_C void hcd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 EXTERN_C void hcd_amf_csi_rmv_callback(SaInvocationT invocation,
-                          const SaNameT *compName,
-                          const SaNameT *csiName,
-                          SaAmfCSIFlagsT *csiFlags);
-EXTERN_C uns32 hcd_amf_init (HCD_CB *hcd_cb);
+				       const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT *csiFlags);
+EXTERN_C uns32 hcd_amf_init(HCD_CB *hcd_cb);
 EXTERN_C uns32 hisv_hcd_health_check(SYSF_MBX *mbx);
 
 #endif   /* HCD_AMF_H */

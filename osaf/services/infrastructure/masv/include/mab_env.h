@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
   DESCRIPTION: Common abstractions shared by two or more of the MAB sub-parts,
                being OAC, MAS and MAC.
 
@@ -30,8 +27,6 @@
 
 #ifndef MAB_ENV_H
 #define MAB_ENV_H
-
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -58,21 +53,16 @@
 
 /* mab_mds.c : MAB generic MDS particular encode/decode/copy routines */
 
-EXTERN_C MABCOM_API uns32     mab_mds_enc(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT msg, 
-                               SS_SVC_ID to_svc,     NCS_UBAID* uba,
-                               uns16 msg_fmt_ver);
+EXTERN_C MABCOM_API uns32 mab_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+				      SS_SVC_ID to_svc, NCS_UBAID *uba, uns16 msg_fmt_ver);
 
-EXTERN_C MABCOM_API uns32     mab_mds_dec(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT* msg, 
-                               SS_SVC_ID to_svc,     NCS_UBAID*  uba,
-                               uns16 msg_fmt_ver);
+EXTERN_C MABCOM_API uns32 mab_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg,
+				      SS_SVC_ID to_svc, NCS_UBAID *uba, uns16 msg_fmt_ver);
 
-EXTERN_C MABCOM_API uns32     mab_mds_cpy(MDS_CLIENT_HDL  yr_svc_hdl, NCSCONTEXT  msg,
-                               SS_SVC_ID to_svc,     NCSCONTEXT*  cpy,
-                               NCS_BOOL   last                       );
+EXTERN_C MABCOM_API uns32 mab_mds_cpy(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
+				      SS_SVC_ID to_svc, NCSCONTEXT *cpy, NCS_BOOL last);
 
-EXTERN_C MABCOM_API uns32     mab_mds_snd(MDS_HDL    mds_hdl,    NCSCONTEXT  msg,
-                                          MDS_SVC_ID fr_svc,     MDS_SVC_ID  to_svc,
-                                          MDS_DEST   to_dest);
+EXTERN_C MABCOM_API uns32 mab_mds_snd(MDS_HDL mds_hdl, NCSCONTEXT msg,
+				      MDS_SVC_ID fr_svc, MDS_SVC_ID to_svc, MDS_DEST to_dest);
 
 #endif
-

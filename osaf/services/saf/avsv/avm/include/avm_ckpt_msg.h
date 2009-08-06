@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -37,29 +35,27 @@
 #define AVM_CKPT_MSG_H
 
 /* REO types fro Async updates */
-typedef enum avm_ckpt_msg_reo_type
-{
-   AVM_CKPT_ENT_CFG,
-   AVM_CKPT_ENT_DHCP_CONF_CHG,
-   AVM_CKPT_ENT_DHCP_STATE_CHG,
-   AVM_CKPT_ENT_STATE,
-   AVM_CKPT_ENT_STATE_SENSOR,
-   AVM_CKPT_ENT_ADD_DEPENDENT,
-   AVM_CKPT_ENT_ADM_OP,
-   AVM_CKPT_EVT_ID,
-   AVM_CKPT_EVT_DUMMY,
-   AVM_CKPT_ENT_UPGD_STATE_CHG,
-   AVM_CKPT_MSG_MAX
-}AVM_CKPT_MSG_REO_TYPE;
+typedef enum avm_ckpt_msg_reo_type {
+	AVM_CKPT_ENT_CFG,
+	AVM_CKPT_ENT_DHCP_CONF_CHG,
+	AVM_CKPT_ENT_DHCP_STATE_CHG,
+	AVM_CKPT_ENT_STATE,
+	AVM_CKPT_ENT_STATE_SENSOR,
+	AVM_CKPT_ENT_ADD_DEPENDENT,
+	AVM_CKPT_ENT_ADM_OP,
+	AVM_CKPT_EVT_ID,
+	AVM_CKPT_EVT_DUMMY,
+	AVM_CKPT_ENT_UPGD_STATE_CHG,
+	AVM_CKPT_MSG_MAX
+} AVM_CKPT_MSG_REO_TYPE;
 
 /* REO types for cold synd response */
-typedef enum avm_ckpt_cold_sync_msg_reo_type
-{
-   AVM_CKPT_COLD_SYNC_VALIDATION_INFO,
-   AVM_CKPT_COLD_SYNC_ENT_INFO,
-   AVM_CKPT_COLD_SYNC_ASYNC_UPDT_CNT,
-   AVM_CKPT_COLD_SYNC_HLT_STATUS_DUMMY,
-   AVM_CKPT_COLD_SYNC_MSG_MAX
+typedef enum avm_ckpt_cold_sync_msg_reo_type {
+	AVM_CKPT_COLD_SYNC_VALIDATION_INFO,
+	AVM_CKPT_COLD_SYNC_ENT_INFO,
+	AVM_CKPT_COLD_SYNC_ASYNC_UPDT_CNT,
+	AVM_CKPT_COLD_SYNC_HLT_STATUS_DUMMY,
+	AVM_CKPT_COLD_SYNC_MSG_MAX
 } AVM_COLD_SYNC_MSG_REO_TYPE;
 
 /* Macros for Async updates with diff MBCSv send options */

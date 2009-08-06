@@ -26,7 +26,6 @@ DESCRIPTION: API decleration for PDRBD library.
 /*****************************************************************************
  * SE API used to initiate and create PWE's of PDRBD.
  *****************************************************************************/
-EXTERN_C uns32 pseudoLibReq (NCS_LIB_REQ_INFO *req_info);
+EXTERN_C uns32 pseudoLibReq(NCS_LIB_REQ_INFO *req_info);
 
-#endif /* PDRBD_DL_API_H */
-
+#endif   /* PDRBD_DL_API_H */

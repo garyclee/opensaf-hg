@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,7 +32,6 @@
 #ifndef MAC_PVT_H
 #define MAC_PVT_H
 
-
 /*****************************************************************************
 
   M A C _ I N S T : A MAC instance maps to a virtual router instance. This 
@@ -46,57 +42,55 @@
 
 #define MAC_XCHG_HASH_SIZE  10
 
-#define MAA_MDS_SUB_PART_VERSION 2  /* maa version is increased as ncsmib_arg is changed(handles & ncsmib_rsp changed)*/
-#define MAA_WRT_MAS_SUBPART_VER_AT_MIN_MSG_FMT    1 /* minimum version of MAS supported by MAA */
-#define MAA_WRT_MAS_SUBPART_VER_AT_MAX_MSG_FMT    2 /* maximum version of MAS supported by MAA */
+#define MAA_MDS_SUB_PART_VERSION 2	/* maa version is increased as ncsmib_arg is changed(handles & ncsmib_rsp changed) */
+#define MAA_WRT_MAS_SUBPART_VER_AT_MIN_MSG_FMT    1	/* minimum version of MAS supported by MAA */
+#define MAA_WRT_MAS_SUBPART_VER_AT_MAX_MSG_FMT    2	/* maximum version of MAS supported by MAA */
 
 /* size of the array used to map MAS subpart version to mesage format version */
 #define  MAA_WRT_MAS_SUBPART_VER_RANGE                \
          (MAA_WRT_MAS_SUBPART_VER_AT_MAX_MSG_FMT  -   \
-         MAA_WRT_MAS_SUBPART_VER_AT_MIN_MSG_FMT + 1)   
+         MAA_WRT_MAS_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
-#define MAA_WRT_OAC_SUBPART_VER_AT_MIN_MSG_FMT    1 /* minimum version of OAC supported by MAA */
-#define MAA_WRT_OAC_SUBPART_VER_AT_MAX_MSG_FMT    2 /* maximum version of OAC supported by MAA */
+#define MAA_WRT_OAC_SUBPART_VER_AT_MIN_MSG_FMT    1	/* minimum version of OAC supported by MAA */
+#define MAA_WRT_OAC_SUBPART_VER_AT_MAX_MSG_FMT    2	/* maximum version of OAC supported by MAA */
 
 /* size of the array used to map OAC subpart version to mesage format version */
 #define  MAA_WRT_OAC_SUBPART_VER_RANGE                \
          (MAA_WRT_OAC_SUBPART_VER_AT_MAX_MSG_FMT  -   \
-         MAA_WRT_OAC_SUBPART_VER_AT_MIN_MSG_FMT + 1)   
+         MAA_WRT_OAC_SUBPART_VER_AT_MIN_MSG_FMT + 1)
 
-typedef struct mac_inst
-  {
-  /* Configuration Objects */
+typedef struct mac_inst {
+	/* Configuration Objects */
 
-  NCS_BOOL          mac_enbl;    /* RW ENABLE|DISABLE MAC services           */
-  NCS_BOOL          playback_session;
-  uns16             *plbck_tbl_list;
+	NCS_BOOL mac_enbl;	/* RW ENABLE|DISABLE MAC services           */
+	NCS_BOOL playback_session;
+	uns16 *plbck_tbl_list;
 
-  NCS_LOCK          lock;
+	NCS_LOCK lock;
 
-  /* run-time learned values */
+	/* run-time learned values */
 
-  MDS_DEST         my_vcard;
-  MDS_DEST         mas_vcard;
-  NCS_BOOL         mas_here;
-  
-  MDS_DEST         psr_vcard;
-  NCS_BOOL         psr_here;
+	MDS_DEST my_vcard;
+	MDS_DEST mas_vcard;
+	NCS_BOOL mas_here;
 
-  /* Create time constants */
+	MDS_DEST psr_vcard;
+	NCS_BOOL psr_here;
 
-  char*            logf_name;
-  MDS_HDL          mds_hdl;
-  NCS_VRID         vrid;
-  uns8             hm_poolid;
-  uns32            hm_hdl;
-  NCS_SEL_OBJ      mas_sync_sel; 
-  SYSF_MBX*        mbx;           
-  MAB_LM_CB        lm_cbfnc;
+	/* Create time constants */
 
-  } MAC_INST;
+	char *logf_name;
+	MDS_HDL mds_hdl;
+	NCS_VRID vrid;
+	uns8 hm_poolid;
+	uns32 hm_hdl;
+	NCS_SEL_OBJ mas_sync_sel;
+	SYSF_MBX *mbx;
+	MAB_LM_CB lm_cbfnc;
 
+} MAC_INST;
 
-/* default Env - Id */ 
+/* default Env - Id */
 #define m_MAC_DEFAULT_ENV_ID    1
 
 /************************************************************************
@@ -108,30 +102,30 @@ typedef struct mac_inst
   MAC tasking loop function
 *************************************************************************/
 
-EXTERN_C MABMAC_API void      mac_do_evts     ( SYSF_MBX*     mbx     );
-EXTERN_C uns32     mac_do_evt      ( MAB_MSG*      msg     );
+EXTERN_C MABMAC_API void mac_do_evts(SYSF_MBX *mbx);
+EXTERN_C uns32 mac_do_evt(MAB_MSG *msg);
 
 /************************************************************************
   Basic MAC Layer Management Service entry points off std LM API
 *************************************************************************/
 
-EXTERN_C uns32     mac_svc_create  ( NCSMAC_CREATE* create);
-EXTERN_C uns32     mac_svc_destroy ( NCSMAC_DESTROY* destroy);
-EXTERN_C uns32     mac_svc_get     ( NCSMAC_GET*    get     );
-EXTERN_C uns32     mac_svc_set     ( NCSMAC_SET*    set     );
+EXTERN_C uns32 mac_svc_create(NCSMAC_CREATE *create);
+EXTERN_C uns32 mac_svc_destroy(NCSMAC_DESTROY *destroy);
+EXTERN_C uns32 mac_svc_get(NCSMAC_GET *get);
+EXTERN_C uns32 mac_svc_set(NCSMAC_SET *set);
 
 /***********************************************************************
  MAC callback routine that MAC puts in NCSMIB_ARG structure
 ************************************************************************/
 
-EXTERN_C uns32 mac_mib_response  (MAB_MSG* msg);
-EXTERN_C uns32 mac_playback_start(MAB_MSG* msg);
-EXTERN_C uns32 mac_playback_end  (MAB_MSG* msg);
+EXTERN_C uns32 mac_mib_response(MAB_MSG *msg);
+EXTERN_C uns32 mac_playback_start(MAB_MSG *msg);
+EXTERN_C uns32 mac_playback_end(MAB_MSG *msg);
 
 /************************************************************************
   MDS bindary stuff for MAC
 *************************************************************************/
-EXTERN_C uns32 mac_mds_cb (NCSMDS_CALLBACK_INFO *cbinfo);
+EXTERN_C uns32 mac_mds_cb(NCSMDS_CALLBACK_INFO *cbinfo);
 
 /************************************************************************
 
@@ -142,39 +136,31 @@ EXTERN_C uns32 mac_mds_cb (NCSMDS_CALLBACK_INFO *cbinfo);
 
 *************************************************************************/
 
-
-#if (NCSMAB_USE_LOCK_TYPE==MAB_NO_LOCKS)                  /* NO Locks */
+#if (NCSMAB_USE_LOCK_TYPE==MAB_NO_LOCKS)	/* NO Locks */
 
 #define m_MAC_LK_CREATE(lk)
 #define m_MAC_LK_INIT
-#define m_MAC_LK(lk, perm)  
-#define m_MAC_UNLK(lk, perm) 
-#define m_MAC_LK_DLT(lk) 
-
-#elif (NCSMAB_USE_LOCK_TYPE==MAB_TASK_LOCKS)            /* Task Locks */
+#define m_MAC_LK(lk, perm)
+#define m_MAC_UNLK(lk, perm)
+#define m_MAC_LK_DLT(lk)
+#elif (NCSMAB_USE_LOCK_TYPE==MAB_TASK_LOCKS)	/* Task Locks */
 
 #define m_MAC_LK_CREATE(lk)
 #define m_MAC_LK_INIT            m_INIT_CRITICAL
 #define m_MAC_LK(lk, perm)             m_START_CRITICAL
 #define m_MAC_UNLK(lk, perm)           m_END_CRITICAL
-#define m_MAC_LK_DLT(lk) 
-
-#elif (NCSMAB_USE_LOCK_TYPE==MAB_OBJ_LOCKS)           /* Object Locks */
+#define m_MAC_LK_DLT(lk)
+#elif (NCSMAB_USE_LOCK_TYPE==MAB_OBJ_LOCKS)	/* Object Locks */
 
 #define m_MAC_LK_CREATE(lk)   m_NCS_LOCK_INIT_V2(lk,NCS_SERVICE_ID_MAB, \
                                                  MAC_LOCK_ID)
-#define m_MAC_LK_INIT         
+#define m_MAC_LK_INIT
 #define m_MAC_LK(lk, perm)    m_NCS_LOCK_V2(lk,   perm, \
                                             NCS_SERVICE_ID_MAB, MAC_LOCK_ID)
 #define m_MAC_UNLK(lk, perm)  m_NCS_UNLOCK_V2(lk, perm, \
                                               NCS_SERVICE_ID_MAB, MAC_LOCK_ID)
 #define m_MAC_LK_DLT(lk)      m_NCS_LOCK_DESTROY_V2(lk, NCS_SERVICE_ID_MAB, \
                                                     MAC_LOCK_ID)
+#endif
 
-#endif 
-
-
-
-
-
-#endif /* MAC_PVT_H */
+#endif   /* MAC_PVT_H */

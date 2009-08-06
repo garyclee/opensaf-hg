@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: rde_rda_common.h 
 
 ..............................................................................
@@ -35,7 +34,6 @@
 ** includes
 */
 
-
 /*
 ** Return/error codes
 */
@@ -49,26 +47,22 @@
 /*
 ** Protocal message primitives for RDE-RDA interaction
 */
-typedef enum
-{
-    RDE_RDA_UNKNOWN,
-    RDE_RDA_GET_ROLE_REQ,
-    RDE_RDA_GET_ROLE_RES,
-    RDE_RDA_SET_ROLE_REQ,
-    RDE_RDA_SET_ROLE_ACK,
-    RDE_RDA_SET_ROLE_NACK,
-    RDE_RDA_REG_CB_REQ,
-    RDE_RDA_REG_CB_ACK,
-    RDE_RDA_REG_CB_NACK,
-    RDE_RDA_DISCONNECT_REQ,
-    RDE_RDA_HA_ROLE,
-}RDE_RDA_CMD_TYPE;
-
+typedef enum {
+	RDE_RDA_UNKNOWN,
+	RDE_RDA_GET_ROLE_REQ,
+	RDE_RDA_GET_ROLE_RES,
+	RDE_RDA_SET_ROLE_REQ,
+	RDE_RDA_SET_ROLE_ACK,
+	RDE_RDA_SET_ROLE_NACK,
+	RDE_RDA_REG_CB_REQ,
+	RDE_RDA_REG_CB_ACK,
+	RDE_RDA_REG_CB_NACK,
+	RDE_RDA_DISCONNECT_REQ,
+	RDE_RDA_HA_ROLE,
+} RDE_RDA_CMD_TYPE;
 
 /*
 ** PDU (Protocol Data Units) for the above 
 */
 
-
-#endif /* RDE_RDA_COMMON_H */
-
+#endif   /* RDE_RDA_COMMON_H */

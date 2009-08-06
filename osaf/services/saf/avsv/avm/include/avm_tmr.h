@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,64 +45,58 @@
 /* wait for blade boot-up for 16 Minutes (??) */
 #define AVM_UPGD_SUCC_TMR_INTVL  (96000)
 #define AVM_BOOT_SUCC_TMR_INTVL  (48000)
-#define AVM_DHCP_FAIL_TMR_INTVL  (6000)    
-#define AVM_BIOS_UPGRADE_TMR_INTVL  (15000) /*(48000)*/
+#define AVM_DHCP_FAIL_TMR_INTVL  (6000)
+#define AVM_BIOS_UPGRADE_TMR_INTVL  (15000)	/*(48000) */
 #define AVM_BIOS_FAIL_TMR_INTVL  (18000)
 
 /* IPMC upgrade takes around 4-5 mins                              */
 /* First value below takes care of both ipmc/rtm ipmc upgrade time */
 /* Second value is only for either ipmc or rtm ipmc upgrade        */
-#define AVM_UPGD_IPMC_PLD_TMR_INTVL (60000) 
-#define AVM_UPGD_IPMC_PLD_MOD_TMR_INTVL (30000) 
+#define AVM_UPGD_IPMC_PLD_TMR_INTVL (60000)
+#define AVM_UPGD_IPMC_PLD_MOD_TMR_INTVL (30000)
 
-
-typedef enum avm_tmr_status_type
-{
-   AVM_TMR_RUNNING = 1,
-   AVM_TMR_STOPPED,
-   AVM_TMR_NOT_STARTED,
-   AVM_TMR_EXPIRED,
-   AVM_TMR_INVALID
-}AVM_TMR_STATUS_T;
+typedef enum avm_tmr_status_type {
+	AVM_TMR_RUNNING = 1,
+	AVM_TMR_STOPPED,
+	AVM_TMR_NOT_STARTED,
+	AVM_TMR_EXPIRED,
+	AVM_TMR_INVALID
+} AVM_TMR_STATUS_T;
 /* vivek_avm */
 /* timer type enums */
-typedef enum avm_tmr_type
-{
-   AVM_TMR_INIT_EDA = 1,          /* EDA LIB REQ timer  */ 
-   AVM_TMR_SSU,               /* timer used by SSU */
-   AVM_UPGD_SUCCESS,          /* Upgrade success timer */
-   AVM_BOOT_SUCCESS,          /* Boot Success Timer */
-   AVM_DHCP_FAIL,             /* Dhcp script Fail Timer */
-   AVM_BIOS_UPGRADE,          /* Bios boot up timer */
-   AVM_UPGD_IPMC,             /* IPMC Upgrade Timer */
-   AVM_UPGD_IPMC_MOD,         /* IPMC Single Module Upgrade Timer */
-   AVM_ROLE_CHG_WAIT,         /* When the avm changes the role and if the IPMC upgrade in progress, wait for the FUND to get freed */
-   AVM_BIOS_FAIL,             /* After failover, avm starts the timer, to wait for openhpi initialization                          */
-   AVM_TMR_MAX 
+typedef enum avm_tmr_type {
+	AVM_TMR_INIT_EDA = 1,	/* EDA LIB REQ timer  */
+	AVM_TMR_SSU,		/* timer used by SSU */
+	AVM_UPGD_SUCCESS,	/* Upgrade success timer */
+	AVM_BOOT_SUCCESS,	/* Boot Success Timer */
+	AVM_DHCP_FAIL,		/* Dhcp script Fail Timer */
+	AVM_BIOS_UPGRADE,	/* Bios boot up timer */
+	AVM_UPGD_IPMC,		/* IPMC Upgrade Timer */
+	AVM_UPGD_IPMC_MOD,	/* IPMC Single Module Upgrade Timer */
+	AVM_ROLE_CHG_WAIT,	/* When the avm changes the role and if the IPMC upgrade in progress, wait for the FUND to get freed */
+	AVM_BIOS_FAIL,		/* After failover, avm starts the timer, to wait for openhpi initialization                          */
+	AVM_TMR_MAX
 } AVM_TMR_TYPE_T;
 
-
 /* AVM Timer definition */
-struct avm_tmr
-{   
-   tmr_t                  tmr_id;   
-   AVM_TMR_TYPE_T         type; 
-   uns32                  cb_hdl;      /* cb hdl to retrieve the AvM cb ptr */
-   uns32                  ent_hdl;     /* Entity hdl to retrieve the Entity Info. 
-                                          Will be used only for Upgrade Timer */
-   AVM_TMR_STATUS_T       status;
+struct avm_tmr {
+	tmr_t tmr_id;
+	AVM_TMR_TYPE_T type;
+	uns32 cb_hdl;		/* cb hdl to retrieve the AvM cb ptr */
+	uns32 ent_hdl;		/* Entity hdl to retrieve the Entity Info. 
+				   Will be used only for Upgrade Timer */
+	AVM_TMR_STATUS_T status;
 };
 
-typedef struct avm_time
-{
-   uns32 seconds;
-   uns32 milliseconds; 
-}AVM_TIME_T;
+typedef struct avm_time {
+	uns32 seconds;
+	uns32 milliseconds;
+} AVM_TIME_T;
 
  /* 
   * macro to start the EDA LIB REQ  timer. The cb structure
   * is the input.
- */
+  */
 
 #define m_AVM_INIT_EDA_TMR_START(cb) \
 {\
@@ -194,15 +186,9 @@ typedef struct avm_time
 
 EXTERN_C void avm_tmr_exp(void *);
 
-EXTERN_C uns32 avm_start_tmr(
-                              AVM_CB_T *, 
-                              AVM_TMR_T *,  
-                              SaTimeT
-                            );
+EXTERN_C uns32 avm_start_tmr(AVM_CB_T *, AVM_TMR_T *, SaTimeT
+    );
 
-EXTERN_C void avm_stop_tmr(
-                              AVM_CB_T*, 
-                              AVM_TMR_T*
-                          );
+EXTERN_C void avm_stop_tmr(AVM_CB_T *, AVM_TMR_T *);
 
 #endif

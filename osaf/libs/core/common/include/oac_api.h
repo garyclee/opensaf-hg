@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -58,29 +55,26 @@
  * Create an instance of a OAC service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsoac_create
-  {
-  NCS_VRID        i_vrid;         /* Virtual Rtr; same in MAS, OAC     */
-  SaNameT         i_inst_name;    /* instane name, for which this OAC  */
-                                  /*this getting created */ 
-  SYSF_MBX*       i_mbx;          /* Mail box to receive MAB messages  */
-  MAB_LM_CB       i_lm_cbfnc;     /* layer mgmt callback function ptr  */
-  uns8            i_hm_poolid;    /* Pool Id required for Handle Mgr   */
-  uns32           o_oac_hdl;      /* Handle Manager returned handle    */
+typedef struct ncsoac_create {
+	NCS_VRID i_vrid;	/* Virtual Rtr; same in MAS, OAC     */
+	SaNameT i_inst_name;	/* instane name, for which this OAC  */
+	/*this getting created */
+	SYSF_MBX *i_mbx;	/* Mail box to receive MAB messages  */
+	MAB_LM_CB i_lm_cbfnc;	/* layer mgmt callback function ptr  */
+	uns8 i_hm_poolid;	/* Pool Id required for Handle Mgr   */
+	uns32 o_oac_hdl;	/* Handle Manager returned handle    */
 
-  } NCSOAC_CREATE;
+} NCSOAC_CREATE;
 
 /***************************************************************************
  * Destroy an instance of a OAC service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsoac_destroy
-{
-    uns32           i_oac_hdl;      /* OAC Handle                        */
-    PW_ENV_ID       i_env_id;  /* environement id */ 
-    SaNameT         i_inst_name; /* instance name */ 
+typedef struct ncsoac_destroy {
+	uns32 i_oac_hdl;	/* OAC Handle                        */
+	PW_ENV_ID i_env_id;	/* environement id */
+	SaNameT i_inst_name;	/* instance name */
 } NCSOAC_DESTROY;
-
 
 /***************************************************************************
  * Set or Get configuration data for this virtual router instance
@@ -92,67 +86,58 @@ typedef struct ncsoac_destroy
 /* R- : Read only; can do get operations on this object                    */
 /* -W : Write only; can do set operations on this object                   */
 
-typedef enum {                 /*     V a l u e   E x p r e s s i o n      */
-                               /*------------------------------------------*/
-  NCSOAC_OBJID_LOG_VAL,         /* RW bitmap of log categories to install   */
-  NCSOAC_OBJID_LOG_ON_OFF,      /* RW ENABLE|DISABLE logging                */
-  NCSOAC_OBJID_SUBSYS_ON,       /* RW ENABLE|DISABLE OAC services           */
+typedef enum {			/*     V a l u e   E x p r e s s i o n      */
+			       /*------------------------------------------*/
+	NCSOAC_OBJID_LOG_VAL,	/* RW bitmap of log categories to install   */
+	NCSOAC_OBJID_LOG_ON_OFF,	/* RW ENABLE|DISABLE logging                */
+	NCSOAC_OBJID_SUBSYS_ON,	/* RW ENABLE|DISABLE OAC services           */
 
-  } NCSOAC_OBJID;
+} NCSOAC_OBJID;
 
 /* OAC Configuration 'explanation' structure                              */
 
+typedef struct ncsoac_set {
+	uns32 i_oac_hdl;
+	uns32 i_obj_id;
+	uns32 i_obj_val;
 
-typedef struct ncsoac_set
-  {
-  uns32           i_oac_hdl;
-  uns32           i_obj_id;
-  uns32           i_obj_val;
+} NCSOAC_SET;
 
-  } NCSOAC_SET;
+typedef struct ncsoac_get {
+	uns32 i_oac_hdl;
+	uns32 i_obj_id;
+	uns32 o_obj_val;
 
-
-typedef struct ncsoac_get
-  {
-  uns32           i_oac_hdl;
-  uns32           i_obj_id;
-  uns32           o_obj_val;
-
-  } NCSOAC_GET;
-
-
+} NCSOAC_GET;
 
 /***************************************************************************
  * The operations set that a OAC instance supports
  ***************************************************************************/
 
-typedef enum ncsoac_lm_op
-  {
-  NCSOAC_LM_OP_CREATE,
-  NCSOAC_LM_OP_DESTROY,
-  NCSOAC_LM_OP_GET,
-  NCSOAC_LM_OP_SET,
+typedef enum ncsoac_lm_op {
+	NCSOAC_LM_OP_CREATE,
+	NCSOAC_LM_OP_DESTROY,
+	NCSOAC_LM_OP_GET,
+	NCSOAC_LM_OP_SET,
 
-  } NCSOAC_OP;
+} NCSOAC_OP;
 
 /***************************************************************************
  * The OAC API single entry point for all services
  ***************************************************************************/
 
-typedef struct ncsoac_lm_arg
-  {
-  NCSOAC_OP           i_op;            /* Operation; CREATE,DESTROY,GET,SET */
+typedef struct ncsoac_lm_arg {
+	NCSOAC_OP i_op;		/* Operation; CREATE,DESTROY,GET,SET */
 
-  union 
-    {
-    NCSOAC_CREATE     create;
-    NCSOAC_DESTROY    destroy;
-    NCSOAC_GET        get;
-    NCSOAC_SET        set;
+	union {
+		NCSOAC_CREATE create;
+		NCSOAC_DESTROY destroy;
+		NCSOAC_GET get;
+		NCSOAC_SET set;
 
-    } info;
+	} info;
 
-  } NCSOAC_LM_ARG;
+} NCSOAC_LM_ARG;
 
 /***************************************************************************
  * Per Virtual Router Instance of Layer Management
@@ -162,6 +147,6 @@ typedef struct ncsoac_lm_arg
  * Per Virtual Router Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C MABOAC_API uns32 ncsoac_lm    ( NCSOAC_LM_ARG* arg );
+EXTERN_C MABOAC_API uns32 ncsoac_lm(NCSOAC_LM_ARG *arg);
 
-#endif /* OAC_API_H */
+#endif   /* OAC_API_H */

@@ -43,244 +43,225 @@
 
 #define PARAMDELIM ":"
 
-static SaVersionT immVersion = {'A', 2, 1};
+static SaVersionT immVersion = { 'A', 2, 1 };
 
 /**
  * 
  */
 static void usage(const char *progname)
 {
-    printf("\nNAME\n");
-    printf("\t%s - perform an IMM admin operation\n", progname);
+	printf("\nNAME\n");
+	printf("\t%s - perform an IMM admin operation\n", progname);
 
-    printf("\nSYNOPSIS\n");
-    printf("\t%s [options] <object name> [object name]\n", progname);
+	printf("\nSYNOPSIS\n");
+	printf("\t%s [options] <object name> [object name]\n", progname);
 
-    printf("\nDESCRIPTION\n");
-    printf("\t%s is a IMM OM client used to ....\n", progname);
+	printf("\nDESCRIPTION\n");
+	printf("\t%s is a IMM OM client used to ....\n", progname);
 
-    printf("\nOPTIONS\n");
-    printf("  -h or --help                    this help\n");
-    printf("  -o <id> or --operation-id <id>  numerical operation ID (mandatory)\n");
-    printf("  -p <p> or --parameter <p>       parameter(s) to admin op\n");
-    printf("      Parameter syntax: <name>:<type>:<value>\n");
-    printf("      Value types according to imm.xsd.\n"
-           "      Valid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
-           "         SA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
+	printf("\nOPTIONS\n");
+	printf("  -h or --help                    this help\n");
+	printf("  -o <id> or --operation-id <id>  numerical operation ID (mandatory)\n");
+	printf("  -p <p> or --parameter <p>       parameter(s) to admin op\n");
+	printf("      Parameter syntax: <name>:<type>:<value>\n");
+	printf("      Value types according to imm.xsd.\n"
+	       "      Valid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
+	       "         SA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
 
-    printf("\nEXAMPLE\n");
-    printf("   immadm -o 1 -p saAmfNodeSuFailoverMax:SA_INT32_T:7 \"safAmfNode=Node01,safAmfCluster=1\"\n");
+	printf("\nEXAMPLE\n");
+	printf("   immadm -o 1 -p saAmfNodeSuFailoverMax:SA_INT32_T:7 \"safAmfNode=Node01,safAmfCluster=1\"\n");
 }
 
 static SaImmValueTypeT str2_saImmValueTypeT(const char *str)
 {
-    if (!str)
-        return -1;
+	if (!str)
+		return -1;
 
-    if (strcmp(str, "SA_INT32_T") == 0)
-        return SA_IMM_ATTR_SAINT32T;
-    if (strcmp(str, "SA_UINT32_T") == 0)
-        return SA_IMM_ATTR_SAUINT32T;
-    if (strcmp(str, "SA_INT64_T") == 0)
-        return SA_IMM_ATTR_SAINT64T;
-    if (strcmp(str, "SA_UINT64_T") == 0)
-        return SA_IMM_ATTR_SAUINT64T;
-    if (strcmp(str, "SA_TIME_T") == 0)
-        return SA_IMM_ATTR_SATIMET;
-    if (strcmp(str, "SA_NAME_T") == 0)
-        return SA_IMM_ATTR_SANAMET;
-    if (strcmp(str, "SA_FLOAT_T") == 0)
-        return SA_IMM_ATTR_SAFLOATT;
-    if (strcmp(str, "SA_DOUBLE_T") == 0)
-        return SA_IMM_ATTR_SADOUBLET;
-    if (strcmp(str, "SA_STRING_T") == 0)
-        return SA_IMM_ATTR_SASTRINGT;
-    if (strcmp(str, "SA_ANY_T") == 0)
-        return SA_IMM_ATTR_SAANYT;
+	if (strcmp(str, "SA_INT32_T") == 0)
+		return SA_IMM_ATTR_SAINT32T;
+	if (strcmp(str, "SA_UINT32_T") == 0)
+		return SA_IMM_ATTR_SAUINT32T;
+	if (strcmp(str, "SA_INT64_T") == 0)
+		return SA_IMM_ATTR_SAINT64T;
+	if (strcmp(str, "SA_UINT64_T") == 0)
+		return SA_IMM_ATTR_SAUINT64T;
+	if (strcmp(str, "SA_TIME_T") == 0)
+		return SA_IMM_ATTR_SATIMET;
+	if (strcmp(str, "SA_NAME_T") == 0)
+		return SA_IMM_ATTR_SANAMET;
+	if (strcmp(str, "SA_FLOAT_T") == 0)
+		return SA_IMM_ATTR_SAFLOATT;
+	if (strcmp(str, "SA_DOUBLE_T") == 0)
+		return SA_IMM_ATTR_SADOUBLET;
+	if (strcmp(str, "SA_STRING_T") == 0)
+		return SA_IMM_ATTR_SASTRINGT;
+	if (strcmp(str, "SA_ANY_T") == 0)
+		return SA_IMM_ATTR_SAANYT;
 
-    return -1;
+	return -1;
 }
 
 static int init_param(SaImmAdminOperationParamsT_2 *param, char *arg)
 {
-    int res = 0;
-    char *attrValue;
-    char *tmp = strdup(arg);
+	int res = 0;
+	char *attrValue;
+	char *tmp = strdup(arg);
 
-    if ((param->paramName = strtok(tmp, PARAMDELIM)) == NULL)
-    {
-        res = -1;
-        goto done;
-    }
+	if ((param->paramName = strtok(tmp, PARAMDELIM)) == NULL) {
+		res = -1;
+		goto done;
+	}
 
-    if ((param->paramType = str2_saImmValueTypeT(strtok(NULL, PARAMDELIM))) == -1)
-    {
-        res = -1;
-        goto done;
-    }
+	if ((param->paramType = str2_saImmValueTypeT(strtok(NULL, PARAMDELIM))) == -1) {
+		res = -1;
+		goto done;
+	}
 
-    if ((attrValue = strtok(NULL, PARAMDELIM)) == NULL)
-    {
-        res = -1;
-        goto done;
-    }
+	if ((attrValue = strtok(NULL, PARAMDELIM)) == NULL) {
+		res = -1;
+		goto done;
+	}
 
-    param->paramBuffer = immutil_new_attrValue(param->paramType, attrValue);
+	param->paramBuffer = immutil_new_attrValue(param->paramType, attrValue);
 
-    if (param->paramBuffer == NULL)
-        return -1;
+	if (param->paramBuffer == NULL)
+		return -1;
 
-done:
-    return res;
+ done:
+	return res;
 }
 
 int main(int argc, char *argv[])
 {
-    int c;
-    struct option long_options[] =
-    {
-        {"parameter", required_argument, 0, 'p'},
-        {"operation-id", required_argument, 0, 'o'},
-        {"help", no_argument, 0, 'h'},
-        {0, 0, 0, 0}
-    };
-    SaAisErrorT error;
-    SaImmHandleT immHandle;
-    SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
-    SaImmAdminOwnerHandleT ownerHandle;
-    SaNameT objectName;
-    const SaNameT *objectNames[] = {&objectName, NULL};
-    SaAisErrorT operationReturnValue = -1;
-    SaImmAdminOperationParamsT_2 *param;
-    const SaImmAdminOperationParamsT_2 **params;
-    SaImmAdminOperationIdT operationId = -1;
-    int params_len = 0;
+	int c;
+	struct option long_options[] = {
+		{"parameter", required_argument, 0, 'p'},
+		{"operation-id", required_argument, 0, 'o'},
+		{"help", no_argument, 0, 'h'},
+		{0, 0, 0, 0}
+	};
+	SaAisErrorT error;
+	SaImmHandleT immHandle;
+	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
+	SaImmAdminOwnerHandleT ownerHandle;
+	SaNameT objectName;
+	const SaNameT *objectNames[] = { &objectName, NULL };
+	SaAisErrorT operationReturnValue = -1;
+	SaImmAdminOperationParamsT_2 *param;
+	const SaImmAdminOperationParamsT_2 **params;
+	SaImmAdminOperationIdT operationId = -1;
+	int params_len = 0;
 
-    params = realloc(NULL, sizeof(SaImmAdminOperationParamsT_2*));
-    params[0] = NULL;
+	params = realloc(NULL, sizeof(SaImmAdminOperationParamsT_2 *));
+	params[0] = NULL;
 
-    while (1)
-    {
-        c = getopt_long(argc, argv, "p:o:h", long_options, NULL);
+	while (1) {
+		c = getopt_long(argc, argv, "p:o:h", long_options, NULL);
 
-        if (c == -1) /* have all command-line options have been parsed? */
-            break;
+		if (c == -1)	/* have all command-line options have been parsed? */
+			break;
 
-        switch (c)
-        {
-            case 'o':
-                operationId = strtoll(optarg, (char **)NULL, 10);
-                if ((operationId == 0) && ((errno == EINVAL) || (errno == ERANGE)))
-                {
-                    fprintf(stderr, "Illegal operation ID\n");
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            case 'p':
-                params_len++;
-                params = realloc(params, (params_len + 1) * sizeof(SaImmAdminOperationParamsT_2*));
-                param = malloc(sizeof(SaImmAdminOperationParamsT_2));
-                params[params_len - 1] = param;
-                params[params_len] = NULL;
-                if (init_param(param, optarg) == -1)
-                {
-                    fprintf(stderr, "Illegal parameter: %s\n", optarg);
-                    exit(EXIT_FAILURE);
-                }
-                break;
-            case 'h':
-                usage(basename(argv[0]));
-                exit(EXIT_SUCCESS);
-                break;
-            default:
-                fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
-                exit(EXIT_FAILURE);
-                break;
-        }
-    }
+		switch (c) {
+		case 'o':
+			operationId = strtoll(optarg, (char **)NULL, 10);
+			if ((operationId == 0) && ((errno == EINVAL) || (errno == ERANGE))) {
+				fprintf(stderr, "Illegal operation ID\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'p':
+			params_len++;
+			params = realloc(params, (params_len + 1) * sizeof(SaImmAdminOperationParamsT_2 *));
+			param = malloc(sizeof(SaImmAdminOperationParamsT_2));
+			params[params_len - 1] = param;
+			params[params_len] = NULL;
+			if (init_param(param, optarg) == -1) {
+				fprintf(stderr, "Illegal parameter: %s\n", optarg);
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'h':
+			usage(basename(argv[0]));
+			exit(EXIT_SUCCESS);
+			break;
+		default:
+			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+			exit(EXIT_FAILURE);
+			break;
+		}
+	}
 
-    if (operationId == -1)
-    {
-        fprintf(stderr, "error - must specify numerical operation ID\n");
-        exit(EXIT_FAILURE);
-    }
+	if (operationId == -1) {
+		fprintf(stderr, "error - must specify numerical operation ID\n");
+		exit(EXIT_FAILURE);
+	}
 
-    /* Need at least one object to operate on */
-    if ((argc - optind) == 0)
-    {
-        fprintf(stderr, "error - wrong number of arguments\n");
-        exit(EXIT_FAILURE);
-    }
+	/* Need at least one object to operate on */
+	if ((argc - optind) == 0) {
+		fprintf(stderr, "error - wrong number of arguments\n");
+		exit(EXIT_FAILURE);
+	}
 
-    error = saImmOmInitialize(&immHandle, NULL, &immVersion);
-    if (error != SA_AIS_OK)
-    {
-        fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
-        exit(EXIT_FAILURE);
-    }
+	error = saImmOmInitialize(&immHandle, NULL, &immVersion);
+	if (error != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmInitialize FAILED: %s\n", saf_error(error));
+		exit(EXIT_FAILURE);
+	}
 
-    error = saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
-    if (error != SA_AIS_OK)
-    {
-        fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
-        exit(EXIT_FAILURE);
-    }
+	error = saImmOmAdminOwnerInitialize(immHandle, adminOwnerName, SA_TRUE, &ownerHandle);
+	if (error != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmAdminOwnerInitialize FAILED: %s\n", saf_error(error));
+		exit(EXIT_FAILURE);
+	}
 
-    /* Remaining arguments should be object names on which the admin op should be performed. */
-    while (optind < argc)
-    {
-        strncpy((char *) objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-        objectName.length = strnlen((char *) objectName.value, SA_MAX_NAME_LENGTH);
+	/* Remaining arguments should be object names on which the admin op should be performed. */
+	while (optind < argc) {
+		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
+		objectName.length = strnlen((char *)objectName.value, SA_MAX_NAME_LENGTH);
 
-        error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
-        if (error != SA_AIS_OK)
-        {
-            if (error == SA_AIS_ERR_NOT_EXIST)
-                fprintf(stderr, "error - saImmOmAdminOwnerSet - object '%s' does not exist\n", objectName.value);
-            else
-                fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
-            exit(EXIT_FAILURE);
-        }
+		error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
+		if (error != SA_AIS_OK) {
+			if (error == SA_AIS_ERR_NOT_EXIST)
+				fprintf(stderr, "error - saImmOmAdminOwnerSet - object '%s' does not exist\n",
+					objectName.value);
+			else
+				fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
+			exit(EXIT_FAILURE);
+		}
 
-        error = saImmOmAdminOperationInvoke_2(ownerHandle, &objectName, 0, operationId,
-                                              params, &operationReturnValue, SA_TIME_ONE_SECOND * 10);
-        if ((error != SA_AIS_OK) || (operationReturnValue != SA_AIS_OK))
-        {
-            if (error == SA_AIS_ERR_NOT_EXIST)
-                fprintf(stderr,
-                        "error - saImmOmAdminOperationInvoke_2 - object '%s' has no registered implementer\n",
-                        objectName.value);
-            else
-                fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s, %s\n",
-                        saf_error(error), saf_error(operationReturnValue));
-            exit(EXIT_FAILURE);
-        }
+		error = saImmOmAdminOperationInvoke_2(ownerHandle, &objectName, 0, operationId,
+						      params, &operationReturnValue, SA_TIME_ONE_SECOND * 10);
+		if ((error != SA_AIS_OK) || (operationReturnValue != SA_AIS_OK)) {
+			if (error == SA_AIS_ERR_NOT_EXIST)
+				fprintf(stderr,
+					"error - saImmOmAdminOperationInvoke_2 - object '%s' has no registered implementer\n",
+					objectName.value);
+			else
+				fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s, %s\n",
+					saf_error(error), saf_error(operationReturnValue));
+			exit(EXIT_FAILURE);
+		}
 
-        error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
-        if (error != SA_AIS_OK)
-        {
-            fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
-            exit(EXIT_FAILURE);
-        }
+		error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE);
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
+			exit(EXIT_FAILURE);
+		}
 
-        optind++;
-    }
+		optind++;
+	}
 
+	error = saImmOmAdminOwnerFinalize(ownerHandle);
+	if (SA_AIS_OK != error) {
+		fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
+		exit(EXIT_FAILURE);
+	}
 
-    error = saImmOmAdminOwnerFinalize(ownerHandle);
-    if (SA_AIS_OK != error)
-    {
-        fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n",  saf_error(error));
-        exit(EXIT_FAILURE);
-    }
+	error = saImmOmFinalize(immHandle);
+	if (SA_AIS_OK != error) {
+		fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n", saf_error(error));
+		exit(EXIT_FAILURE);
+	}
 
-    error = saImmOmFinalize(immHandle);
-    if (SA_AIS_OK != error)
-    {
-        fprintf(stderr, "error - saImmOmFinalize FAILED: %s\n",  saf_error(error));
-        exit(EXIT_FAILURE);
-    }
-
-    exit(EXIT_SUCCESS);
+	exit(EXIT_SUCCESS);
 }
-

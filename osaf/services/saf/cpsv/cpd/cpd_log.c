@@ -15,10 +15,8 @@
  *
  */
 
-
 /****************************************************************************
   MODULE: cpd_loc.c
-
 
   DESCRIPTION:
 
@@ -46,19 +44,19 @@
 *****************************************************************************/
 void cpd_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg, 0, sizeof(NCS_DTSV_RQ));
-   reg.i_op = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPD;
-   /* fill version no. */
-   reg.info.bind_svc.version = CPSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "CPSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPD;
+	/* fill version no. */
+	reg.info.bind_svc.version = CPSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "CPSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
-} /* End of cpd_flx_log_reg() */
+	ncs_dtsv_su_req(&reg);
+	return;
+}	/* End of cpd_flx_log_reg() */
 
 /****************************************************************************
  Name          : cpd_flx_log_dereg
@@ -72,14 +70,14 @@ void cpd_flx_log_reg(void)
 \*****************************************************************************/
 void cpd_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg, 0, sizeof(NCS_DTSV_RQ));
-   reg.i_op = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPD;
-   ncs_dtsv_su_req(&reg);
-   return;
-} /* End of cpd_flx_log_dereg() */
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPD;
+	ncs_dtsv_su_req(&reg);
+	return;
+}	/* End of cpd_flx_log_dereg() */
 
 /*****************************************************************************
 
@@ -89,12 +87,11 @@ void cpd_flx_log_dereg(void)
    
   ARGUMENTS       :  hdln_id : Headline ID      
 *****************************************************************************/
-void cpd_headline_log(uns8 hdln_id,  uns8 sev)
+void cpd_headline_log(uns8 hdln_id, uns8 sev)
 {
-   /* Log headlines */
-   ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_HEADLINE, CPD_FC_HDLN, 
-              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
-} /* End of cpd_headline_log() */
+	/* Log headlines */
+	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_HEADLINE, CPD_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
+}	/* End of cpd_headline_log() */
 
 /*****************************************************************************
 
@@ -107,24 +104,23 @@ void cpd_headline_log(uns8 hdln_id,  uns8 sev)
 *****************************************************************************/
 void cpd_db_status_log(uns8 db_id, char *str)
 {
-   uns8  sev = 0;
+	uns8 sev = 0;
 
-   switch(db_id) {
-   case CPD_DB_ADD_FAILED:
-   case CPD_DB_DEL_FAILED:
-   case CPD_DB_UPD_FAILED:
-      sev  = NCSFL_SEV_ERROR;
-      break; 
-      
-   default:
-      sev  = NCSFL_SEV_INFO;
-      break;
-   }
+	switch (db_id) {
+	case CPD_DB_ADD_FAILED:
+	case CPD_DB_DEL_FAILED:
+	case CPD_DB_UPD_FAILED:
+		sev = NCSFL_SEV_ERROR;
+		break;
 
-   /* Log headlines */
-   ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_DB, CPD_FC_DB, 
-              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIC, db_id, str);
-} /* End of cpd_headline_log() */
+	default:
+		sev = NCSFL_SEV_INFO;
+		break;
+	}
+
+	/* Log headlines */
+	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_DB, CPD_FC_DB, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIC, db_id, str);
+}	/* End of cpd_headline_log() */
 
 /*****************************************************************************
 
@@ -135,11 +131,9 @@ void cpd_db_status_log(uns8 db_id, char *str)
 *****************************************************************************/
 void cpd_memfail_log(uns8 mf_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MEMFAIL, CPD_FC_MEMFAIL, 
-               NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, 
-               mf_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MEMFAIL, CPD_FC_MEMFAIL,
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
 }
-
 
 /*****************************************************************************
 
@@ -149,8 +143,7 @@ void cpd_memfail_log(uns8 mf_id)
 
 *****************************************************************************/
 
-
-void cpd_mbcsv_log(uns8 mbcsv_id,uns8 sev)
+void cpd_mbcsv_log(uns8 mbcsv_id, uns8 sev)
 {
-   ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MBCSV,CPD_FC_MBCSV,NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, mbcsv_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MBCSV, CPD_FC_MBCSV, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, mbcsv_id);
 }

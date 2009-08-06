@@ -45,20 +45,19 @@ EDSV_CKPT_COLD_WARM_SYNC_MSG
 
 /* EDS CKPT ENCODE/DECODE DISPATCHER routine definitions*/
 
-EDS_CKPT_HDLR eds_ckpt_data_handler[EDS_CKPT_MSG_MAX - EDS_CKPT_MSG_BASE] = 
-{
-   eds_ckpt_proc_reg_rec,
-   eds_ckpt_proc_finalize_rec,
-   eds_ckpt_proc_chan_rec,
-   eds_ckpt_proc_chan_open_rec,
-   eds_ckpt_proc_chan_rec,
-   eds_ckpt_proc_chan_close_rec,
-   eds_ckpt_proc_chan_unlink_rec,
-   eds_ckpt_proc_reten_rec,
-   eds_ckpt_proc_subscribe_rec,
-   eds_ckpt_proc_unsubscribe_rec,
-   eds_ckpt_proc_ret_time_clr_rec,
-   eds_ckpt_proc_agent_down_rec
+EDS_CKPT_HDLR eds_ckpt_data_handler[EDS_CKPT_MSG_MAX - EDS_CKPT_MSG_BASE] = {
+	eds_ckpt_proc_reg_rec,
+	eds_ckpt_proc_finalize_rec,
+	eds_ckpt_proc_chan_rec,
+	eds_ckpt_proc_chan_open_rec,
+	eds_ckpt_proc_chan_rec,
+	eds_ckpt_proc_chan_close_rec,
+	eds_ckpt_proc_chan_unlink_rec,
+	eds_ckpt_proc_reten_rec,
+	eds_ckpt_proc_subscribe_rec,
+	eds_ckpt_proc_unsubscribe_rec,
+	eds_ckpt_proc_ret_time_clr_rec,
+	eds_ckpt_proc_agent_down_rec
 };
 
 /****************************************************************************
@@ -75,61 +74,57 @@ EDS_CKPT_HDLR eds_ckpt_data_handler[EDS_CKPT_MSG_MAX - EDS_CKPT_MSG_BASE] =
  *****************************************************************************/
 uns32 eds_mbcsv_init(EDS_CB *eds_cb)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  NCS_MBCSV_ARG init_arg, sel_obj_arg;
-  SaAisErrorT error  = SA_AIS_OK;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCS_MBCSV_ARG init_arg, sel_obj_arg;
+	SaAisErrorT error = SA_AIS_OK;
 
 /* Initialize with MBCSv library */
 
 /* init_arg.i_mbcsv_hdl = (NCS_MBCSV_HDL)NULL; */
-  init_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
-  init_arg.info.initialize.i_mbcsv_cb=eds_mbcsv_callback;
-  init_arg.info.initialize.i_version= EDS_MBCSV_VERSION;
-  init_arg.info.initialize.i_service=NCS_SERVICE_ID_EDS;
- 
-  if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&init_arg)))
-  {
-    m_EDSV_DEBUG_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Initialize  FAILED\n");
-    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-    return rc;
-  }
-  m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,1);
-  printf(" eds_mbcsv_init: Mbcsv Initialize  SUCCESS\n");
-  printf(" MBCSV SERVICE VERSION :%d\n",EDS_MBCSV_VERSION);
+	init_arg.i_op = NCS_MBCSV_OP_INITIALIZE;
+	init_arg.info.initialize.i_mbcsv_cb = eds_mbcsv_callback;
+	init_arg.info.initialize.i_version = EDS_MBCSV_VERSION;
+	init_arg.info.initialize.i_service = NCS_SERVICE_ID_EDS;
 
-  /* Store MBCSv handle in our CB */
-  eds_cb->mbcsv_hdl= init_arg.info.initialize.o_mbcsv_hdl;
-  
-  /* We shall open checkpoint only once in our life time.  */
-  if (NCSCC_RC_SUCCESS != (error = eds_mbcsv_open_ckpt(eds_cb)))
-  {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-      printf(" eds_mbcsv_init: eds Mbcsv open ckpt FAILED\n");
-      return rc;
-  }
-  printf(" eds_mbcsv_init: eds Mbcsv open ckpt SUCCESS\n");
- 
-  /* Get MBCSv Selection Object */
-  sel_obj_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
-  sel_obj_arg.i_mbcsv_hdl = eds_cb->mbcsv_hdl;
-  sel_obj_arg.info.sel_obj_get.o_select_obj=0;
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&init_arg))) {
+		m_EDSV_DEBUG_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Initialize  FAILED\n");
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return rc;
+	}
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 1);
+	printf(" eds_mbcsv_init: Mbcsv Initialize  SUCCESS\n");
+	printf(" MBCSV SERVICE VERSION :%d\n", EDS_MBCSV_VERSION);
 
-  if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&sel_obj_arg)))
-  {
-     m_EDSV_DEBUG_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Selection object get FAILED\n");
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-     return rc;
-  }
-  m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,rc,__FILE__,__LINE__,1);
-  printf(" eds_mbcsv_init: Mbcsv Selection object get SUCCESS\n");
+	/* Store MBCSv handle in our CB */
+	eds_cb->mbcsv_hdl = init_arg.info.initialize.o_mbcsv_hdl;
 
-  /* Update the CB with mbcsv selectionobject */
-  eds_cb->mbcsv_sel_obj = sel_obj_arg.info.sel_obj_get.o_select_obj;
-  eds_cb->ckpt_state = COLD_SYNC_IDLE;
-   
-  return rc;
-} /* End eds_mbcsv_init */
+	/* We shall open checkpoint only once in our life time.  */
+	if (NCSCC_RC_SUCCESS != (error = eds_mbcsv_open_ckpt(eds_cb))) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__, __LINE__, 0);
+		printf(" eds_mbcsv_init: eds Mbcsv open ckpt FAILED\n");
+		return rc;
+	}
+	printf(" eds_mbcsv_init: eds Mbcsv open ckpt SUCCESS\n");
 
+	/* Get MBCSv Selection Object */
+	sel_obj_arg.i_op = NCS_MBCSV_OP_SEL_OBJ_GET;
+	sel_obj_arg.i_mbcsv_hdl = eds_cb->mbcsv_hdl;
+	sel_obj_arg.info.sel_obj_get.o_select_obj = 0;
+
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&sel_obj_arg))) {
+		m_EDSV_DEBUG_CONS_PRINTF(" eds_mbcsv_init: Mbcsv Selection object get FAILED\n");
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return rc;
+	}
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, rc, __FILE__, __LINE__, 1);
+	printf(" eds_mbcsv_init: Mbcsv Selection object get SUCCESS\n");
+
+	/* Update the CB with mbcsv selectionobject */
+	eds_cb->mbcsv_sel_obj = sel_obj_arg.info.sel_obj_get.o_select_obj;
+	eds_cb->ckpt_state = COLD_SYNC_IDLE;
+
+	return rc;
+}	/* End eds_mbcsv_init */
 
 /****************************************************************************
  * Name          : eds_mbcsv_open_ckpt 
@@ -144,30 +139,28 @@ uns32 eds_mbcsv_init(EDS_CB *eds_cb)
  *****************************************************************************/
 uns32 eds_mbcsv_open_ckpt(EDS_CB *cb)
 {
-   NCS_MBCSV_ARG     mbcsv_arg;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-   /* Set the checkpoint open arguments */
-   mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
-   mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-   mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
-   mbcsv_arg.info.open.i_client_hdl = gl_eds_hdl; /* Can i take like this ?*/
+	/* Set the checkpoint open arguments */
+	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
+	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	mbcsv_arg.info.open.i_client_hdl = gl_eds_hdl;	/* Can i take like this ? */
 
-   if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg)  ))
-   {
-      m_EDSV_DEBUG_CONS_PRINTF(" MBCSV OPEN FAILED \n");
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,1);
-      return NCSCC_RC_FAILURE;
-   }
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		m_EDSV_DEBUG_CONS_PRINTF(" MBCSV OPEN FAILED \n");
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 1);
+		return NCSCC_RC_FAILURE;
+	}
 
-   cb->mbcsv_ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
-   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
+	cb->mbcsv_ckpt_hdl = mbcsv_arg.info.open.o_ckpt_hdl;
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
-   return NCSCC_RC_SUCCESS;
-}/*End eds_mbcsv_open_ckpt */
-
+	return NCSCC_RC_SUCCESS;
+}	/*End eds_mbcsv_open_ckpt */
 
 /****************************************************************************
  * Name          : eds_mbcsv_change_HA_state 
@@ -186,25 +179,23 @@ uns32 eds_mbcsv_open_ckpt(EDS_CB *cb)
 
 uns32 eds_mbcsv_change_HA_state(EDS_CB *cb)
 {
-   NCS_MBCSV_ARG     mbcsv_arg;
-   uns32             rc = SA_AIS_OK;
-   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc = SA_AIS_OK;
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-   /* Set the mbcsv args */
-   mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
-   mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
-   mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
-   mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
+	/* Set the mbcsv args */
+	mbcsv_arg.i_op = NCS_MBCSV_OP_CHG_ROLE;
+	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	mbcsv_arg.info.chg_role.i_ckpt_hdl = cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
 
-   if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg) ) )
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 
-}/*End eds_mbcsv_change_HA_state*/
-
+}	/*End eds_mbcsv_change_HA_state */
 
 /****************************************************************************
  * Name          : eds_mbcsv_change_HA_state 
@@ -222,25 +213,23 @@ uns32 eds_mbcsv_change_HA_state(EDS_CB *cb)
  *****************************************************************************/
 uns32 eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
 {
-   NCS_MBCSV_ARG     mbcsv_arg;
-   uns32             rc = SA_AIS_OK;
-   /* Set the mbcsv args */
-   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
-   mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
-   mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
-   mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL; /*Revisit this. TBD */
+	NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc = SA_AIS_OK;
+	/* Set the mbcsv args */
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
+	mbcsv_arg.i_mbcsv_hdl = mbcsv_hdl;
+	mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;	/*Revisit this. TBD */
 
-   if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))  )
-   {
-      m_EDSV_DEBUG_CONS_PRINTF(" MBCSV DISPATCH FAILURE\n");
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
-   m_EDSV_DEBUG_CONS_PRINTF(" dispatch success \n");
-   return NCSCC_RC_SUCCESS;
+	if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		m_EDSV_DEBUG_CONS_PRINTF(" MBCSV DISPATCH FAILURE\n");
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	m_EDSV_DEBUG_CONS_PRINTF(" dispatch success \n");
+	return NCSCC_RC_SUCCESS;
 
-}/*End eds_mbcsv_dispatch */
-
+}	/*End eds_mbcsv_dispatch */
 
 /****************************************************************************
  * Name          : eds_mbcsv_callback
@@ -258,56 +247,55 @@ uns32 eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl)
  *****************************************************************************/
 uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-  if (arg == NULL)
-     return NCSCC_RC_FAILURE;
+	if (arg == NULL)
+		return NCSCC_RC_FAILURE;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" MBCSV_CALLBACK INVOKED\n");
+	m_EDSV_DEBUG_CONS_PRINTF(" MBCSV_CALLBACK INVOKED\n");
 
-  switch(arg->i_op)
-  {
-     case NCS_MBCSV_CBOP_ENC:
-            /* Encode Request from MBCSv */
-            rc = eds_ckpt_encode_cbk_handler(arg);
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
-     case NCS_MBCSV_CBOP_DEC:
-            /* Decode Request from MBCSv */
-            rc = eds_ckpt_decode_cbk_handler(arg);
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
-     case NCS_MBCSV_CBOP_PEER:
-            /* EDS Peer info from MBCSv */
-            rc = eds_ckpt_peer_info_cbk_handler(arg);
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
-     case NCS_MBCSV_CBOP_NOTIFY:
-            /* NOTIFY info from EDS peer */
-            rc = eds_ckpt_notify_cbk_handler(arg);
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
-     case NCS_MBCSV_CBOP_ERR_IND:
-            /* Peer error indication info */
-            rc = eds_ckpt_err_ind_cbk_handler(arg);
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
-     default:
-            rc  = NCSCC_RC_FAILURE;
-            if(rc != NCSCC_RC_SUCCESS) 
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            /* Debug Sink here */
-            break;
-  }/*End Switch(i_op)*/
- 
-   return rc;
+	switch (arg->i_op) {
+	case NCS_MBCSV_CBOP_ENC:
+		/* Encode Request from MBCSv */
+		rc = eds_ckpt_encode_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
+	case NCS_MBCSV_CBOP_DEC:
+		/* Decode Request from MBCSv */
+		rc = eds_ckpt_decode_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
+	case NCS_MBCSV_CBOP_PEER:
+		/* EDS Peer info from MBCSv */
+		rc = eds_ckpt_peer_info_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
+	case NCS_MBCSV_CBOP_NOTIFY:
+		/* NOTIFY info from EDS peer */
+		rc = eds_ckpt_notify_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
+	case NCS_MBCSV_CBOP_ERR_IND:
+		/* Peer error indication info */
+		rc = eds_ckpt_err_ind_cbk_handler(arg);
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
+	default:
+		rc = NCSCC_RC_FAILURE;
+		if (rc != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		/* Debug Sink here */
+		break;
+	}			/*End Switch(i_op) */
 
-}/* End eds_mbcsv_callback()*/
+	return rc;
+
+}	/* End eds_mbcsv_callback() */
 
 /****************************************************************************
  * Name          : eds_ckpt_encode_cbk_handler
@@ -324,105 +312,97 @@ uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
 
 uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
- uns32 rc=NCSCC_RC_SUCCESS;
- EDS_CB *cb=NULL;
- uns16 mbcsv_version ;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CB *cb = NULL;
+	uns16 mbcsv_version;
 
-  if (cbk_arg == NULL)
-     return NCSCC_RC_FAILURE;
+	if (cbk_arg == NULL)
+		return NCSCC_RC_FAILURE;
 
-  mbcsv_version = m_NCS_MBCSV_FMT_GET(
-                                 cbk_arg->info.encode.i_peer_version,
-                                 EDS_MBCSV_VERSION,
-                                 EDS_MBCSV_VERSION_MIN);
-  if( 0 == mbcsv_version )
-  {
-    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,
-                         __FILE__,__LINE__,cbk_arg->info.encode.i_peer_version);
-    return NCSCC_RC_FAILURE;
-  }  
+	mbcsv_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.encode.i_peer_version,
+					    EDS_MBCSV_VERSION, EDS_MBCSV_VERSION_MIN);
+	if (0 == mbcsv_version) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+			     __FILE__, __LINE__, cbk_arg->info.encode.i_peer_version);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* Get EDS control block Handle. cbk_arg->arg->i_client_hdl!?*/
-  if (NULL == (cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
-  {
-       m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       return NCSCC_RC_FAILURE;
-  }
+	/* Get EDS control block Handle. cbk_arg->arg->i_client_hdl!? */
+	if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-  ncshm_give_hdl(gl_eds_hdl);
+	ncshm_give_hdl(gl_eds_hdl);
 
-  switch(cbk_arg->info.encode.io_msg_type)
-  {
-     case NCS_MBCSV_MSG_ASYNC_UPDATE:
-               m_EDSV_DEBUG_CONS_PRINTF("ASYNC UPDATE ENCODE CALLED\n"); 
-               /* Encode async update */
-               if((rc=eds_ckpt_encode_async_update(cb,cb->edu_hdl,cbk_arg)) != NCSCC_RC_SUCCESS)
-                   m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-               break;
+	switch (cbk_arg->info.encode.io_msg_type) {
+	case NCS_MBCSV_MSG_ASYNC_UPDATE:
+		m_EDSV_DEBUG_CONS_PRINTF("ASYNC UPDATE ENCODE CALLED\n");
+		/* Encode async update */
+		if ((rc = eds_ckpt_encode_async_update(cb, cb->edu_hdl, cbk_arg)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
 
-     case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-               printf("COLD SYNC REQ ENCODE CALLED\n"); 
-               m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-               break;
+	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+		printf("COLD SYNC REQ ENCODE CALLED\n");
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+		break;
 
-     case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-               printf("COLD SYNC RESPONSE ENCODE CALLED\n"); 
-               /* Encode cold sync response */
-               rc = eds_ckpt_enc_cold_sync_data(cb,cbk_arg,FALSE);
-               if (rc != NCSCC_RC_SUCCESS)
-               {
-                   m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-                   printf(" COLD SYNC ENCODE FAIL....\n");
-               }
-               else
-               {
-                   cb->ckpt_state = COLD_SYNC_COMPLETE;
-                   m_EDSV_DEBUG_CONS_PRINTF(" COLD SYNC RESPONSE SEND SUCCESS....\n");
-                   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-               }
-               break;
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+		printf("COLD SYNC RESPONSE ENCODE CALLED\n");
+		/* Encode cold sync response */
+		rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, FALSE);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			printf(" COLD SYNC ENCODE FAIL....\n");
+		} else {
+			cb->ckpt_state = COLD_SYNC_COMPLETE;
+			m_EDSV_DEBUG_CONS_PRINTF(" COLD SYNC RESPONSE SEND SUCCESS....\n");
+			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+		}
+		break;
 
-     case NCS_MBCSV_MSG_WARM_SYNC_REQ:
-               m_EDSV_DEBUG_CONS_PRINTF("WARM SYNC RESQUEST ENCODE CALLED\n");
-               /* Currently, nothing to be done */
-               m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-               break;
+	case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+		m_EDSV_DEBUG_CONS_PRINTF("WARM SYNC RESQUEST ENCODE CALLED\n");
+		/* Currently, nothing to be done */
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
+		break;
 
-     case NCS_MBCSV_MSG_WARM_SYNC_RESP:
-               m_EDSV_DEBUG_CONS_PRINTF("WARM SYNC RESPONSE ENCODE CALLED\n");
-               /* Encode warm sync 'response' data */
-               if ((rc = eds_ckpt_warm_sync_csum_enc_hdlr(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
-                    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-               else
-                    m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-               
-               break;
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+		m_EDSV_DEBUG_CONS_PRINTF("WARM SYNC RESPONSE ENCODE CALLED\n");
+		/* Encode warm sync 'response' data */
+		if ((rc = eds_ckpt_warm_sync_csum_enc_hdlr(cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		else
+			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 
-     case NCS_MBCSV_MSG_DATA_REQ:
-               m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA REQ DECODE called\n");
-               m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-               break;
+		break;
 
-     case NCS_MBCSV_MSG_DATA_RESP:
-     case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-               m_EDSV_DEBUG_CONS_PRINTF("DATA RESPONSE ENCODE CALLED\n"); 
-               if((rc = eds_ckpt_enc_cold_sync_data(cb,cbk_arg,TRUE)) != NCSCC_RC_SUCCESS)
-                    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-               else
-                    m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,1);
-               break;
-     default:
-               m_EDSV_DEBUG_CONS_PRINTF("INCORRECT ENCODE CALLED\n"); 
-               rc = NCSCC_RC_FAILURE;
-               m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,cbk_arg->info.encode.io_msg_type);
-               m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-               break;
-  } /*End switch(io_msg_type)*/
+	case NCS_MBCSV_MSG_DATA_REQ:
+		m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA REQ DECODE called\n");
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
+		break;
 
+	case NCS_MBCSV_MSG_DATA_RESP:
+	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+		m_EDSV_DEBUG_CONS_PRINTF("DATA RESPONSE ENCODE CALLED\n");
+		if ((rc = eds_ckpt_enc_cold_sync_data(cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		else
+			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
+		break;
+	default:
+		m_EDSV_DEBUG_CONS_PRINTF("INCORRECT ENCODE CALLED\n");
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+			     cbk_arg->info.encode.io_msg_type);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		break;
+	}			/*End switch(io_msg_type) */
 
-  return rc;
+	return rc;
 
-} /*End eds_ckpt_encode_cbk_handler()*/
+}	/*End eds_ckpt_encode_cbk_handler() */
 
 /****************************************************************************
  * Name          : eds_ckpt_enc_cold_sync_data
@@ -450,81 +430,73 @@ uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req)
 {
 
- uns32 rc = NCSCC_RC_SUCCESS;
- /* asynsc Update Count */
- uns8* async_upd_cnt =NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	/* asynsc Update Count */
+	uns8 *async_upd_cnt = NULL;
 
 /* Currently, we shall send all data in one send.
  * This shall avoid "delta data" problems that are associated during
  * multiple sends
  */
-    printf("COLD SYNC ENCODE START........\n");
- /* Encode Registration list */
-    rc = eds_edu_enc_reg_list(eds_cb,&cbk_arg->info.encode.io_uba);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-    }
- /* Encode Channel list */
-    rc = eds_edu_enc_chan_rec(eds_cb,&cbk_arg->info.encode.io_uba);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-    }
+	printf("COLD SYNC ENCODE START........\n");
+	/* Encode Registration list */
+	rc = eds_edu_enc_reg_list(eds_cb, &cbk_arg->info.encode.io_uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	/* Encode Channel list */
+	rc = eds_edu_enc_chan_rec(eds_cb, &cbk_arg->info.encode.io_uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* Encode Channel open list */
-    rc = eds_edu_enc_chan_open_list(eds_cb,&cbk_arg->info.encode.io_uba);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-    }
+	/* Encode Channel open list */
+	rc = eds_edu_enc_chan_open_list(eds_cb, &cbk_arg->info.encode.io_uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* Encode Subscription list */
-    rc = eds_edu_enc_subsc_list(eds_cb,&cbk_arg->info.encode.io_uba);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-    }
+	/* Encode Subscription list */
+	rc = eds_edu_enc_subsc_list(eds_cb, &cbk_arg->info.encode.io_uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* Encode Retained event list */
-    rc = eds_edu_enc_reten_list(eds_cb,&cbk_arg->info.encode.io_uba);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-    }
- 
- /* Encode the Async Update Count at standby*/
+	/* Encode Retained event list */
+	rc = eds_edu_enc_reten_list(eds_cb, &cbk_arg->info.encode.io_uba);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* This will have the count of async updates that have been sent,
-      this will be 0 initially*/
-   async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba,sizeof(uns32));
-   if(async_upd_cnt == NULL)
-   {
-     /* Log this error */
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
-   
-   ncs_encode_32bit(&async_upd_cnt,eds_cb->async_upd_cnt);
-   ncs_enc_claim_space(&cbk_arg->info.encode.io_uba,sizeof(uns32));
+	/* Encode the Async Update Count at standby */
 
+	/* This will have the count of async updates that have been sent,
+	   this will be 0 initially */
+	async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	if (async_upd_cnt == NULL) {
+		/* Log this error */
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-  /* Set response mbcsv msg type to complete */
-  if(data_req == TRUE)
-     cbk_arg->info.encode.io_msg_type=NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
-  else
-     cbk_arg->info.encode.io_msg_type=NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
-  
+	ncs_encode_32bit(&async_upd_cnt, eds_cb->async_upd_cnt);
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
 
-  printf("COLD SYNC ENCODE END........\n");
-  return rc;
+	/* Set response mbcsv msg type to complete */
+	if (data_req == TRUE)
+		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_DATA_RESP_COMPLETE;
+	else
+		cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE;
 
-}/*End  eds_ckpt_enc_cold_sync_data() */
+	printf("COLD SYNC ENCODE END........\n");
+	return rc;
+
+}	/*End  eds_ckpt_enc_cold_sync_data() */
 
 /****************************************************************************
  * Name          : eds_edu_enc_reg_list
@@ -543,66 +515,60 @@ uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS
 
 uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
 {
-  EDA_REG_REC *reg_rec=NULL;
-  EDS_CKPT_REG_MSG *ckpt_reg_rec=NULL;
-  EDU_ERR   ederror=0;
-  uns32     rc=NCSCC_RC_SUCCESS,num_rec=0;
-  uns8 *pheader=NULL;
-  EDS_CKPT_HEADER ckpt_hdr;
+	EDA_REG_REC *reg_rec = NULL;
+	EDS_CKPT_REG_MSG *ckpt_reg_rec = NULL;
+	EDU_ERR ederror = 0;
+	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uns8 *pheader = NULL;
+	EDS_CKPT_HEADER ckpt_hdr;
 
-  /* Prepare reg. structure to encode */
-  ckpt_reg_rec=m_MMGR_ALLOC_EDSV_REG_MSG;
-  if (ckpt_reg_rec == NULL)
-  {
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return (NCSCC_RC_FAILURE);
-  }
+	/* Prepare reg. structure to encode */
+	ckpt_reg_rec = m_MMGR_ALLOC_EDSV_REG_MSG;
+	if (ckpt_reg_rec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
 
-  /*Reserve space for "Checkpoint Header" */
-  pheader = ncs_enc_reserve_space(uba,sizeof(EDS_CKPT_HEADER));
-  if(pheader == NULL)
-  {
-      m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
-      return  (rc=EDU_ERR_MEM_FAIL);
-  }
-  ncs_enc_claim_space(uba,sizeof(EDS_CKPT_HEADER));
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(EDS_CKPT_HEADER));
+	if (pheader == NULL) {
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
-  reg_rec=(EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8 *)0);
+	reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)0);
 
-  /* Walk through the reg list and encode record by record */
-  while(reg_rec != NULL)
-  {
-    m_EDS_COPY_REG_REC(ckpt_reg_rec,reg_rec);
-    rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_reg_rec,uba,
-                               EDP_OP_TYPE_ENC,ckpt_reg_rec,&ederror);
+	/* Walk through the reg list and encode record by record */
+	while (reg_rec != NULL) {
+		m_EDS_COPY_REG_REC(ckpt_reg_rec, reg_rec);
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_reg_rec, uba, EDP_OP_TYPE_ENC, ckpt_reg_rec, &ederror);
 
-    if(rc != NCSCC_RC_SUCCESS)
-    {
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
-      return rc;
-    }
-    ++num_rec;
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
+			return rc;
+		}
+		++num_rec;
 
-    /* length+=eds_edp_ed_reg_rec(reg_rec,o_ub);*/
-    reg_rec=(EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list,(uns8*)&reg_rec->reg_id_Net);
-  }/* End while RegRec */
+		/* length+=eds_edp_ed_reg_rec(reg_rec,o_ub); */
+		reg_rec = (EDA_REG_REC *)ncs_patricia_tree_getnext(&cb->eda_reg_list, (uns8 *)&reg_rec->reg_id_Net);
+	}			/* End while RegRec */
 
-  /* Encode RegHeader */
-   ckpt_hdr.ckpt_rec_type=EDS_CKPT_INITIALIZE_REC;
-   ckpt_hdr.num_ckpt_records=num_rec;
-   ckpt_hdr.data_len=0; /*Not in Use for Cold Sync */
+	/* Encode RegHeader */
+	ckpt_hdr.ckpt_rec_type = EDS_CKPT_INITIALIZE_REC;
+	ckpt_hdr.num_ckpt_records = num_rec;
+	ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
 
-   eds_enc_ckpt_header(pheader,ckpt_hdr);
-   
-   m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
-   return NCSCC_RC_SUCCESS;
+	eds_enc_ckpt_header(pheader, ckpt_hdr);
 
-}/* End eds_edu_enc_reg_list() */
+	m_MMGR_FREE_EDSV_REG_MSG(ckpt_reg_rec);
+	return NCSCC_RC_SUCCESS;
 
+}	/* End eds_edu_enc_reg_list() */
 
 /****************************************************************************
  * Name          : eds_edu_enc_chan_rec
@@ -621,65 +587,61 @@ uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba)
  *                 and channel-open instances on that channel.
  ***************************************************************************/
 
-uns32 eds_edu_enc_chan_rec(EDS_CB *cb,NCS_UBAID *uba)
+uns32 eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba)
 {
-  EDU_ERR ederror=0;
-  uns32 rc=NCSCC_RC_SUCCESS,num_rec=0;
-  uns8 *pheader=NULL;
-  EDS_CKPT_CHAN_MSG *chan_rec=NULL;
-  EDS_CKPT_HEADER ckpt_hdr;
-  EDS_WORKLIST *wp=NULL;
+	EDU_ERR ederror = 0;
+	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uns8 *pheader = NULL;
+	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
+	EDS_CKPT_HEADER ckpt_hdr;
+	EDS_WORKLIST *wp = NULL;
 
-  chan_rec=m_MMGR_ALLOC_EDSV_CHAN_MSG;
-  if(chan_rec == NULL)
-  {
-     m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return (NCSCC_RC_FAILURE);
-  }
-  /*Reserve space for "Checkpoint record header */
-  pheader = ncs_enc_reserve_space(uba,sizeof(EDS_CKPT_HEADER));
-  if(pheader == NULL)
-  {
-      m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      return  (rc=EDU_ERR_MEM_FAIL);
-  }
-  ncs_enc_claim_space(uba,sizeof(EDS_CKPT_HEADER));
-   
-  /* Walk through worklist and encode all channel records */
-  wp=cb->eds_work_list;   /* Get root pointer to worklist */
+	chan_rec = m_MMGR_ALLOC_EDSV_CHAN_MSG;
+	if (chan_rec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
+	/*Reserve space for "Checkpoint record header */
+	pheader = ncs_enc_reserve_space(uba, sizeof(EDS_CKPT_HEADER));
+	if (pheader == NULL) {
+		m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
-  while(wp)
-  {
-    memset(chan_rec,0,sizeof(EDS_CKPT_CHAN_MSG));
-    m_EDS_COPY_CHAN_REC(chan_rec,wp);
-    rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_rec,uba,EDP_OP_TYPE_ENC,chan_rec,&ederror);
-    if(rc != NCSCC_RC_SUCCESS)
-    {
-      m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-    }
-    ++num_rec;
-    wp=wp->next;
+	/* Walk through worklist and encode all channel records */
+	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 
-  }/*End while wp */
-  
-  /* Encode header */
-  ckpt_hdr.ckpt_rec_type=EDS_CKPT_CHAN_REC;
-  ckpt_hdr.num_ckpt_records=num_rec;
-  ckpt_hdr.data_len=0; /*Not in Use for Cold Sync */
-  eds_enc_ckpt_header(pheader,ckpt_hdr);
+	while (wp) {
+		memset(chan_rec, 0, sizeof(EDS_CKPT_CHAN_MSG));
+		m_EDS_COPY_CHAN_REC(chan_rec, wp);
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_rec, uba, EDP_OP_TYPE_ENC, chan_rec, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		++num_rec;
+		wp = wp->next;
 
- /* if (num_rec == 0)
-   ;;* No channels existed */
+	}			/*End while wp */
 
-   m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
-   
-  return rc;
-}/* End eds_edu_enc_chan_rec */
+	/* Encode header */
+	ckpt_hdr.ckpt_rec_type = EDS_CKPT_CHAN_REC;
+	ckpt_hdr.num_ckpt_records = num_rec;
+	ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+	eds_enc_ckpt_header(pheader, ckpt_hdr);
+
+	/* if (num_rec == 0)
+	   ;;* No channels existed */
+
+	m_MMGR_FREE_EDSV_CHAN_MSG(chan_rec);
+
+	return rc;
+}	/* End eds_edu_enc_chan_rec */
 
 /****************************************************************************
  * Name          : eds_edu_enc_chan_open_list
@@ -698,73 +660,68 @@ uns32 eds_edu_enc_chan_rec(EDS_CB *cb,NCS_UBAID *uba)
 
 uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 {
-  CHAN_OPEN_REC *copen_rec=NULL;
-  EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_rec=NULL;
-  EDU_ERR ederror = 0;
-  uns32 rc=NCSCC_RC_SUCCESS,num_rec=0;
-  uns8 *pheader=NULL;
-  EDS_WORKLIST *wp=NULL;
-  EDS_CKPT_HEADER ckpt_hdr;
+	CHAN_OPEN_REC *copen_rec = NULL;
+	EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_rec = NULL;
+	EDU_ERR ederror = 0;
+	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uns8 *pheader = NULL;
+	EDS_WORKLIST *wp = NULL;
+	EDS_CKPT_HEADER ckpt_hdr;
 
-  ckpt_copen_rec=m_MMGR_ALLOC_EDSV_CHAN_OPEN_MSG;
+	ckpt_copen_rec = m_MMGR_ALLOC_EDSV_CHAN_OPEN_MSG;
 
-  if(ckpt_copen_rec == NULL)
-  {
-     m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return (NCSCC_RC_FAILURE);
-  }
- 
-  /*Reserve space for "Checkpoint Header" */
-  pheader = ncs_enc_reserve_space(uba,sizeof(EDS_CKPT_HEADER));
-  if(pheader == NULL)
-  {
-      m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      return  (rc=EDU_ERR_MEM_FAIL);
-  }
-  ncs_enc_claim_space(uba,sizeof(EDS_CKPT_HEADER));
+	if (ckpt_copen_rec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   /* Walk through worklist and encode all channel records */
-  wp = cb->eds_work_list;   /* Get root pointer to worklist */
- 
-  while(wp)
-  {
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(EDS_CKPT_HEADER));
+	if (pheader == NULL) {
+		m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
-    copen_rec=(CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,(uns8*)0);
-    while(copen_rec != NULL)
-    {
-        m_EDS_COPY_CHAN_OPEN_REC(ckpt_copen_rec,copen_rec,wp);
-        rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_open_rec, uba,
-                                          EDP_OP_TYPE_ENC,ckpt_copen_rec, &ederror);
- 
-        if(rc != NCSCC_RC_SUCCESS)
-        {
-          m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-          return rc;
-        }
-       /* length=eds_edp_ed_chan_open_list(chan_open_rec,o_ub); */
-       ++num_rec;
-  
-      copen_rec=(CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-                                                      (uns8*)&copen_rec->copen_id_Net);
-     }/* End while copen_rec */
-    wp=wp->next;
-  } /*Enc while wp */
+	/* Walk through worklist and encode all channel records */
+	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 
-  /* Encode chanopen header */
-   ckpt_hdr.ckpt_rec_type=EDS_CKPT_CHAN_OPEN_REC;
-   ckpt_hdr.num_ckpt_records=num_rec;
-   ckpt_hdr.data_len=0; /*Not in Use for Cold Sync */
-   eds_enc_ckpt_header(pheader,ckpt_hdr);
-  /* rec_count == 0, then no chan open records to checkpoint */
+	while (wp) {
 
-  m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
-  return rc;
-} /* End eds_edu_enc_chan_open_list() */
+		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		while (copen_rec != NULL) {
+			m_EDS_COPY_CHAN_OPEN_REC(ckpt_copen_rec, copen_rec, wp);
+			rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_open_rec, uba,
+					    EDP_OP_TYPE_ENC, ckpt_copen_rec, &ederror);
 
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+				m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+				return rc;
+			}
+			/* length=eds_edp_ed_chan_open_list(chan_open_rec,o_ub); */
+			++num_rec;
+
+			copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
+									       (uns8 *)&copen_rec->copen_id_Net);
+		}		/* End while copen_rec */
+		wp = wp->next;
+	}			/*Enc while wp */
+
+	/* Encode chanopen header */
+	ckpt_hdr.ckpt_rec_type = EDS_CKPT_CHAN_OPEN_REC;
+	ckpt_hdr.num_ckpt_records = num_rec;
+	ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+	eds_enc_ckpt_header(pheader, ckpt_hdr);
+	/* rec_count == 0, then no chan open records to checkpoint */
+
+	m_MMGR_FREE_EDSV_CHAN_OPEN_MSG(ckpt_copen_rec);
+	return rc;
+}	/* End eds_edu_enc_chan_open_list() */
 
 /****************************************************************************
  * Name          : eds_edu_enc_subsc_list
@@ -782,76 +739,70 @@ uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba)
 
 uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
 {
- SUBSC_REC *sub_rec=NULL;
- CHAN_OPEN_REC *copen_rec=NULL;
- EDS_CKPT_SUBSCRIBE_MSG *ckpt_srec=NULL;
- uns32 rc=NCSCC_RC_SUCCESS,num_rec=0;
- uns8 *pheader=NULL;
- EDS_CKPT_HEADER ckpt_hdr;
- EDS_WORKLIST *wp=NULL;
+	SUBSC_REC *sub_rec = NULL;
+	CHAN_OPEN_REC *copen_rec = NULL;
+	EDS_CKPT_SUBSCRIBE_MSG *ckpt_srec = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uns8 *pheader = NULL;
+	EDS_CKPT_HEADER ckpt_hdr;
+	EDS_WORKLIST *wp = NULL;
 
-  ckpt_srec=m_MMGR_ALLOC_EDSV_SUBSCRIBE_EVT_MSG;
-  if(ckpt_srec == NULL)
-  {
-     m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return (NCSCC_RC_FAILURE);
-  }
-  /*Reserve space for "Checkpoint Header" */
-  pheader = ncs_enc_reserve_space(uba,sizeof(EDS_CKPT_HEADER));
-  if(pheader == NULL)
-  {
-      m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      return  (rc=EDU_ERR_MEM_FAIL);
-  }
-  ncs_enc_claim_space(uba,sizeof(EDS_CKPT_HEADER));
+	ckpt_srec = m_MMGR_ALLOC_EDSV_SUBSCRIBE_EVT_MSG;
+	if (ckpt_srec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
+	/*Reserve space for "Checkpoint Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(EDS_CKPT_HEADER));
+	if (pheader == NULL) {
+		m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
- /* Walk through the worklist and encode subscription records */
- 
- wp=cb->eds_work_list;  /* Get root pointer to worklist */
+	/* Walk through the worklist and encode subscription records */
 
- while(wp)
- {
-    copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-                                                                    (uns8*)0);
-    while(copen_rec)
-    {
-        /* First fill the reg_id associated with this copen */
-        ckpt_srec->data.reg_id=copen_rec->reg_id;
+	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 
-        /* From each channel entry, get the subscription record */
-        sub_rec=copen_rec->subsc_rec_head;
-        while(sub_rec)
-        {
-           m_EDS_COPY_SUBSC_REC(ckpt_srec,sub_rec); /*Copy into ckpt msg */
-           rc=eds_ckpt_enc_subscribe_msg(uba,ckpt_srec);
-           if(!rc)
-           { /* Zero bytes. Encode failed. */
-             m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-             m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
-             return (NCSCC_RC_FAILURE);
-           }
-           rc= NCSCC_RC_SUCCESS;
-           ++num_rec;
-           sub_rec=sub_rec->next;
-        }/*End while sub_rec */
-        copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
-                                                    (uns8*)&copen_rec->copen_id_Net);
-    }/*End while co */
-   wp=wp->next;
- } /*End while wp */
+	while (wp) {
+		copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec, (uns8 *)0);
+		while (copen_rec) {
+			/* First fill the reg_id associated with this copen */
+			ckpt_srec->data.reg_id = copen_rec->reg_id;
 
- /* Encode subscription header */
-   ckpt_hdr.ckpt_rec_type=EDS_CKPT_SUBSCRIBE_REC;
-   ckpt_hdr.num_ckpt_records=num_rec;
-   ckpt_hdr.data_len=0; /*Not in Use for Cold Sync */
-   eds_enc_ckpt_header(pheader,ckpt_hdr);
- 
-  m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
-  return rc;
+			/* From each channel entry, get the subscription record */
+			sub_rec = copen_rec->subsc_rec_head;
+			while (sub_rec) {
+				m_EDS_COPY_SUBSC_REC(ckpt_srec, sub_rec);	/*Copy into ckpt msg */
+				rc = eds_ckpt_enc_subscribe_msg(uba, ckpt_srec);
+				if (!rc) {	/* Zero bytes. Encode failed. */
+					m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+						     __FILE__, __LINE__, 0);
+					m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
+					return (NCSCC_RC_FAILURE);
+				}
+				rc = NCSCC_RC_SUCCESS;
+				++num_rec;
+				sub_rec = sub_rec->next;
+			}	/*End while sub_rec */
+			copen_rec = (CHAN_OPEN_REC *)ncs_patricia_tree_getnext(&wp->chan_open_rec,
+									       (uns8 *)&copen_rec->copen_id_Net);
+		}		/*End while co */
+		wp = wp->next;
+	}			/*End while wp */
 
-}/*End eds_edu_enc_subsc_list() */
+	/* Encode subscription header */
+	ckpt_hdr.ckpt_rec_type = EDS_CKPT_SUBSCRIBE_REC;
+	ckpt_hdr.num_ckpt_records = num_rec;
+	ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+	eds_enc_ckpt_header(pheader, ckpt_hdr);
+
+	m_MMGR_FREE_EDSV_SUBSCRIBE_EVT_MSG(ckpt_srec);
+	return rc;
+
+}	/*End eds_edu_enc_subsc_list() */
 
 /****************************************************************************
  * Name          : eds_edu_enc_reten_list
@@ -867,73 +818,67 @@ uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba)
  * Notes         : None.
  ***************************************************************************/
 
-uns32 eds_edu_enc_reten_list(EDS_CB *cb,NCS_UBAID *uba)
+uns32 eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba)
 {
-  EDS_RETAINED_EVT_REC *ret_rec=NULL;
-  EDS_CKPT_RETAIN_EVT_MSG *ckpt_reten_rec=NULL;
-  uns32 rc=NCSCC_RC_SUCCESS,num_rec=0;
-  uns8 *pheader=NULL;
-  EDS_CKPT_HEADER ckpt_hdr;
-  uns32 remaining_time=0;
-  SaUint8T list_iter;
-  EDS_WORKLIST *wp=NULL;
+	EDS_RETAINED_EVT_REC *ret_rec = NULL;
+	EDS_CKPT_RETAIN_EVT_MSG *ckpt_reten_rec = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS, num_rec = 0;
+	uns8 *pheader = NULL;
+	EDS_CKPT_HEADER ckpt_hdr;
+	uns32 remaining_time = 0;
+	SaUint8T list_iter;
+	EDS_WORKLIST *wp = NULL;
 
-  ckpt_reten_rec=m_MMGR_ALLOC_EDSV_RETAIN_EVT_MSG;
-  if(ckpt_reten_rec == NULL)
-  {
-     m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return (NCSCC_RC_FAILURE);
-  }
+	ckpt_reten_rec = m_MMGR_ALLOC_EDSV_RETAIN_EVT_MSG;
+	if (ckpt_reten_rec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   /*Reserve space for "Checkpoint Message Header" */
-  pheader = ncs_enc_reserve_space(uba,sizeof(EDS_CKPT_HEADER));
-  if(pheader == NULL)
-  {
-      m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      return  (rc=EDU_ERR_MEM_FAIL);
-  }
-  ncs_enc_claim_space(uba,sizeof(EDS_CKPT_HEADER));
- 
-  wp = cb->eds_work_list ; /* Get the root pointer of the Worklist */
-  /* Walk through the retained event list and encode retention records */
-  while(wp)
-  {  
-     for(list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY;list_iter++)
-     {
-           ret_rec=wp->ret_evt_list_head[list_iter]; /* calculate new time and encode */
-           while(ret_rec)
-           {
-               m_EDS_COPY_RETEN_REC(ckpt_reten_rec,ret_rec);
-               if(ret_rec->retentionTime == SA_TIME_MAX)
-               {
-                  ckpt_reten_rec->data.retention_time = SA_TIME_MAX;
-               }
-               rc = eds_ckpt_enc_reten_msg(uba,ckpt_reten_rec);
-               if (!rc) /*Encode failed.Zero bytes */
-               {
-                  m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-                  m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
-                  return (NCSCC_RC_FAILURE);
-               }
-               rc = NCSCC_RC_SUCCESS;
-               ++num_rec;
-               ret_rec=ret_rec->next;
-           }/*End while ret_rec */
-     }
-     wp = wp->next;
-  }
-  /* Fill header */
-    ckpt_hdr.ckpt_rec_type=EDS_CKPT_RETEN_REC; /*Same as Retention Record */
-    ckpt_hdr.num_ckpt_records=num_rec;
-    ckpt_hdr.data_len=0; /*Not in Use for Cold Sync */
-    eds_enc_ckpt_header(pheader,ckpt_hdr);
+	/*Reserve space for "Checkpoint Message Header" */
+	pheader = ncs_enc_reserve_space(uba, sizeof(EDS_CKPT_HEADER));
+	if (pheader == NULL) {
+		m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		return (rc = EDU_ERR_MEM_FAIL);
+	}
+	ncs_enc_claim_space(uba, sizeof(EDS_CKPT_HEADER));
 
-  m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
-  return rc;
+	wp = cb->eds_work_list;	/* Get the root pointer of the Worklist */
+	/* Walk through the retained event list and encode retention records */
+	while (wp) {
+		for (list_iter = SA_EVT_HIGHEST_PRIORITY; list_iter <= SA_EVT_LOWEST_PRIORITY; list_iter++) {
+			ret_rec = wp->ret_evt_list_head[list_iter];	/* calculate new time and encode */
+			while (ret_rec) {
+				m_EDS_COPY_RETEN_REC(ckpt_reten_rec, ret_rec);
+				if (ret_rec->retentionTime == SA_TIME_MAX) {
+					ckpt_reten_rec->data.retention_time = SA_TIME_MAX;
+				}
+				rc = eds_ckpt_enc_reten_msg(uba, ckpt_reten_rec);
+				if (!rc) {	/*Encode failed.Zero bytes */
+					m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+						     __FILE__, __LINE__, 0);
+					m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
+					return (NCSCC_RC_FAILURE);
+				}
+				rc = NCSCC_RC_SUCCESS;
+				++num_rec;
+				ret_rec = ret_rec->next;
+			}	/*End while ret_rec */
+		}
+		wp = wp->next;
+	}
+	/* Fill header */
+	ckpt_hdr.ckpt_rec_type = EDS_CKPT_RETEN_REC;	/*Same as Retention Record */
+	ckpt_hdr.num_ckpt_records = num_rec;
+	ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
+	eds_enc_ckpt_header(pheader, ckpt_hdr);
 
-}/* End eds_edu_enc_reten_list */
+	m_MMGR_FREE_EDSV_RETAIN_EVT_MSG(ckpt_reten_rec);
+	return rc;
+
+}	/* End eds_edu_enc_reten_list */
 
 /****************************************************************************
  * Name          : eds_ckpt_encode_async_update
@@ -951,93 +896,77 @@ uns32 eds_edu_enc_reten_list(EDS_CB *cb,NCS_UBAID *uba)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb,EDU_HDL edu_hdl,NCS_MBCSV_CB_ARG *cbk_arg)
+uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg)
 {
- EDS_CKPT_DATA *data=NULL;
- EDU_ERR ederror=0;
- uns32 rc=NCSCC_RC_SUCCESS;
+	EDS_CKPT_DATA *data = NULL;
+	EDU_ERR ederror = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Set reo_hdl from callback arg to ckpt_rec */
-   data=(EDS_CKPT_DATA *)(long)cbk_arg->info.encode.io_reo_hdl;
-   if (data == NULL)
-   {
-       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       return NCSCC_RC_FAILURE;
-   }
-  
-  /* m_EDSV_DEBUG_CONS_PRINTF("ASYNC UPDATE ENCODE CALLED eds_ckpt_encode_async_update \n");*/
-   if (data->header.ckpt_rec_type == EDS_CKPT_SUBSCRIBE_REC)
-   {
-      /* Encode header first */
-      rc = m_NCS_EDU_EXEC(&edu_hdl,eds_edp_ed_header_rec,
-                             &cbk_arg->info.encode.io_uba,
-                             EDP_OP_TYPE_ENC,&data->header,&ederror);
-      if(rc != NCSCC_RC_SUCCESS)
-      {
-          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-         /* m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-          m_EDSV_DEBUG_CONS_PRINTF("SUBSCRIBE REC ENCODE for async update \n");
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-          return rc;
-      }
-      /* Encode subscription data */
-      rc=eds_ckpt_enc_subscribe_msg(&cbk_arg->info.encode.io_uba,
-                     (EDS_CKPT_SUBSCRIBE_MSG *)&data->ckpt_rec.subscribe_rec);
-      if (!rc) /* Encode failed. */
-      {
-        /* m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-      }
-      else
-         rc=NCSCC_RC_SUCCESS;
-   }
-   else if (data->header.ckpt_rec_type == EDS_CKPT_RETEN_REC)
-   {
-     m_EDSV_DEBUG_CONS_PRINTF("RETEN REC ENCODE for async update \n");
-      /* Encode header first */
-      rc = m_NCS_EDU_EXEC(&edu_hdl,eds_edp_ed_header_rec,
-                             &cbk_arg->info.encode.io_uba,
-                             EDP_OP_TYPE_ENC,&data->header,&ederror);
-      if(rc != NCSCC_RC_SUCCESS)
-      {
-          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-         /* m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-          return rc;
-      }
-      /* Encode publish data */
-      rc=eds_ckpt_enc_reten_msg(&cbk_arg->info.encode.io_uba,
-                     (EDS_CKPT_RETAIN_EVT_MSG *)&data->ckpt_rec.retain_evt_rec);
-      if (!rc) /* Encode failed. */
-      {
-         /*m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-         return NCSCC_RC_FAILURE;
-      }
-      else
-         rc=NCSCC_RC_SUCCESS;
-   }
-   else
-   {
-         /* Encode async record,except publish & subscribe */
-         rc = m_NCS_EDU_EXEC(&edu_hdl,eds_edp_ed_ckpt_msg,
-                             &cbk_arg->info.encode.io_uba,
-                             EDP_OP_TYPE_ENC,data,&ederror);
+	/* Set reo_hdl from callback arg to ckpt_rec */
+	data = (EDS_CKPT_DATA *)(long)cbk_arg->info.encode.io_reo_hdl;
+	if (data == NULL) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-         if(rc != NCSCC_RC_SUCCESS)
-         {
-              m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-              /*m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-              return rc;
-         }
-   }
- /* Update the Async Update Count at standby*/
- eds_cb->async_upd_cnt++;
- /*m_MMGR_FREE_EDSV_CKPT_DATA(data);*/
-  return rc;
-}/*End eds_ckpt_encode_async_update()*/
+	/* m_EDSV_DEBUG_CONS_PRINTF("ASYNC UPDATE ENCODE CALLED eds_ckpt_encode_async_update \n"); */
+	if (data->header.ckpt_rec_type == EDS_CKPT_SUBSCRIBE_REC) {
+		/* Encode header first */
+		rc = m_NCS_EDU_EXEC(&edu_hdl, eds_edp_ed_header_rec,
+				    &cbk_arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &data->header, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			/* m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+			m_EDSV_DEBUG_CONS_PRINTF("SUBSCRIBE REC ENCODE for async update \n");
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return rc;
+		}
+		/* Encode subscription data */
+		rc = eds_ckpt_enc_subscribe_msg(&cbk_arg->info.encode.io_uba,
+						(EDS_CKPT_SUBSCRIBE_MSG *)&data->ckpt_rec.subscribe_rec);
+		if (!rc) {	/* Encode failed. */
+			/* m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return NCSCC_RC_FAILURE;
+		} else
+			rc = NCSCC_RC_SUCCESS;
+	} else if (data->header.ckpt_rec_type == EDS_CKPT_RETEN_REC) {
+		m_EDSV_DEBUG_CONS_PRINTF("RETEN REC ENCODE for async update \n");
+		/* Encode header first */
+		rc = m_NCS_EDU_EXEC(&edu_hdl, eds_edp_ed_header_rec,
+				    &cbk_arg->info.encode.io_uba, EDP_OP_TYPE_ENC, &data->header, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			/* m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return rc;
+		}
+		/* Encode publish data */
+		rc = eds_ckpt_enc_reten_msg(&cbk_arg->info.encode.io_uba,
+					    (EDS_CKPT_RETAIN_EVT_MSG *)&data->ckpt_rec.retain_evt_rec);
+		if (!rc) {	/* Encode failed. */
+			/*m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return NCSCC_RC_FAILURE;
+		} else
+			rc = NCSCC_RC_SUCCESS;
+	} else {
+		/* Encode async record,except publish & subscribe */
+		rc = m_NCS_EDU_EXEC(&edu_hdl, eds_edp_ed_ckpt_msg,
+				    &cbk_arg->info.encode.io_uba, EDP_OP_TYPE_ENC, data, &ederror);
+
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			/*m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return rc;
+		}
+	}
+	/* Update the Async Update Count at standby */
+	eds_cb->async_upd_cnt++;
+	/*m_MMGR_FREE_EDSV_CKPT_DATA(data); */
+	return rc;
+}	/*End eds_ckpt_encode_async_update() */
 
 /****************************************************************************
  * Name          : eds_ckpt_decode_cbk_handler
@@ -1056,105 +985,99 @@ uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb,EDU_HDL edu_hdl,NCS_MBCSV_CB_A
 
 uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
 {
- uns32 rc=NCSCC_RC_SUCCESS;
- EDS_CB *cb=NULL;
- uns16 msg_fmt_version;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CB *cb = NULL;
+	uns16 msg_fmt_version;
 
- if (cbk_arg == NULL)
- {
-    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-    return NCSCC_RC_FAILURE;
- }
- msg_fmt_version =  m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
-                                         EDS_MBCSV_VERSION,
-                                         EDS_MBCSV_VERSION_MIN);
- if(0 == msg_fmt_version)
-  {
-    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,
-                         __FILE__,__LINE__,cbk_arg->info.decode.i_peer_version);
-    return NCSCC_RC_FAILURE;
-  }
+	if (cbk_arg == NULL) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	msg_fmt_version = m_NCS_MBCSV_FMT_GET(cbk_arg->info.decode.i_peer_version,
+					      EDS_MBCSV_VERSION, EDS_MBCSV_VERSION_MIN);
+	if (0 == msg_fmt_version) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+			     __FILE__, __LINE__, cbk_arg->info.decode.i_peer_version);
+		return NCSCC_RC_FAILURE;
+	}
 
- /* Get EDS control block Handle */
-   if (NULL == (cb = (NCSCONTEXT) ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl)))
-   {
-       m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       return NCSCC_RC_FAILURE;
-   }
+	/* Get EDS control block Handle */
+	if (NULL == (cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-   ncshm_give_hdl(gl_eds_hdl);
+	ncshm_give_hdl(gl_eds_hdl);
 
- switch(cbk_arg->info.decode.i_msg_type)
- {
-    case NCS_MBCSV_MSG_COLD_SYNC_REQ:
-            printf(" COLD SYNC REQ DECODE called\n"); 
-            m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-            break;
+	switch (cbk_arg->info.decode.i_msg_type) {
+	case NCS_MBCSV_MSG_COLD_SYNC_REQ:
+		printf(" COLD SYNC REQ DECODE called\n");
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__, 1);
+		break;
 
-    case NCS_MBCSV_MSG_COLD_SYNC_RESP:
-    case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
-            printf(" COLD SYNC RESP DECODE called\n"); 
-            if (cb->ckpt_state != COLD_SYNC_COMPLETE)/*this check is needed to handle repeated requests */
-            {
-              if((rc=eds_ckpt_decode_cold_sync(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
-              {
-                 m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-                 printf(" COLD SYNC RESPONSE DECODE FAILED....\n");
-              }
-              else
-              {
-                 m_EDSV_DEBUG_CONS_PRINTF(" COLD SYNC RESPONSE DECODE SUCCESS....\n");
-                 cb->ckpt_state = COLD_SYNC_COMPLETE;
-                 m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,1,__FILE__,__LINE__,1);
-              }
-            }
-            break;
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP:
+	case NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE:
+		printf(" COLD SYNC RESP DECODE called\n");
+		if (cb->ckpt_state != COLD_SYNC_COMPLETE) {	/*this check is needed to handle repeated requests */
+			if ((rc = eds_ckpt_decode_cold_sync(cb, cbk_arg)) != NCSCC_RC_SUCCESS) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+				printf(" COLD SYNC RESPONSE DECODE FAILED....\n");
+			} else {
+				m_EDSV_DEBUG_CONS_PRINTF(" COLD SYNC RESPONSE DECODE SUCCESS....\n");
+				cb->ckpt_state = COLD_SYNC_COMPLETE;
+				m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, 1, __FILE__,
+					     __LINE__, 1);
+			}
+		}
+		break;
 
-    case NCS_MBCSV_MSG_ASYNC_UPDATE:
-            m_EDSV_DEBUG_CONS_PRINTF(" ASYNC UPDATE DECODE called\n");
-            if((rc=eds_ckpt_decode_async_update(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
-                m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
+	case NCS_MBCSV_MSG_ASYNC_UPDATE:
+		m_EDSV_DEBUG_CONS_PRINTF(" ASYNC UPDATE DECODE called\n");
+		if ((rc = eds_ckpt_decode_async_update(cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
 
-    case NCS_MBCSV_MSG_WARM_SYNC_REQ:
-            m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC REQ DECODE called\n");
-            /* Currently, nothing to be done */
-            m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-            break;
+	case NCS_MBCSV_MSG_WARM_SYNC_REQ:
+		m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC REQ DECODE called\n");
+		/* Currently, nothing to be done */
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+		break;
 
-    case NCS_MBCSV_MSG_WARM_SYNC_RESP:
-    case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
-            m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC RESP/COMPLETE DECODE called\n");
-            /* Decode and compare checksums */
-            if((rc=eds_ckpt_warm_sync_csum_dec_hdlr(cb,&cbk_arg->info.decode.i_uba)) != NCSCC_RC_SUCCESS)
-                m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            break;
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP:
+	case NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE:
+		m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC RESP/COMPLETE DECODE called\n");
+		/* Decode and compare checksums */
+		if ((rc = eds_ckpt_warm_sync_csum_dec_hdlr(cb, &cbk_arg->info.decode.i_uba)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		break;
 
-    case NCS_MBCSV_MSG_DATA_REQ:
-            m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA REQ DECODE called\n");
-            m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-            break;
+	case NCS_MBCSV_MSG_DATA_REQ:
+		m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA REQ DECODE called\n");
+		m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+		break;
 
-    case NCS_MBCSV_MSG_DATA_RESP:
-    case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
-           m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA RESP/COMPLETE DECODE called\n"); 
-           if((rc=eds_ckpt_decode_cold_sync(cb,cbk_arg)) != NCSCC_RC_SUCCESS)
-                m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            else
-                m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-           break;
+	case NCS_MBCSV_MSG_DATA_RESP:
+	case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
+		m_EDSV_DEBUG_CONS_PRINTF(" WARM SYNC DATA RESP/COMPLETE DECODE called\n");
+		if ((rc = eds_ckpt_decode_cold_sync(cb, cbk_arg)) != NCSCC_RC_SUCCESS)
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		else
+			m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+		break;
 
-    default:
-            m_EDSV_DEBUG_CONS_PRINTF(" INCORRECT DECODE called\n"); 
-            rc = NCSCC_RC_FAILURE;
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,cbk_arg->info.decode.i_msg_type);
-            m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            break;
- } /*End switch(io_msg_type)*/
+	default:
+		m_EDSV_DEBUG_CONS_PRINTF(" INCORRECT DECODE called\n");
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+			     cbk_arg->info.decode.i_msg_type);
+		m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		break;
+	}			/*End switch(io_msg_type) */
 
-   return rc;
+	return rc;
 
-}/*End eds_ckpt_decode_cbk_handler()*/
+}	/*End eds_ckpt_decode_cbk_handler() */
 
 /****************************************************************************
  * Name          : eds_ckpt_decode_async_update 
@@ -1170,204 +1093,195 @@ uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
+uns32 eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-  uns32                             rc = NCSCC_RC_SUCCESS;
-  EDU_ERR                           ederror=0;
-  EDS_CKPT_DATA                     *ckpt_msg=NULL;
-  EDS_CKPT_HEADER                   *hdr=NULL;
-  EDS_CKPT_REG_MSG                  *reg_rec=NULL;
-  EDS_CKPT_CHAN_MSG                 *chan_rec=NULL;
-  EDS_CKPT_CHAN_CLOSE_MSG           *chan_close=NULL;
-  EDS_CKPT_CHAN_UNLINK_MSG          *chan_unlink=NULL;
-  EDS_CKPT_UNSUBSCRIBE_MSG          *unsubscribe=NULL;
-  EDS_CKPT_RETENTION_TIME_CLEAR_MSG *reten_clear=NULL;
-  EDS_CKPT_FINALIZE_MSG             *finalize=NULL;  
-  MDS_DEST                          *agent_dest=NULL;
-  long                             msg_hdl=0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDU_ERR ederror = 0;
+	EDS_CKPT_DATA *ckpt_msg = NULL;
+	EDS_CKPT_HEADER *hdr = NULL;
+	EDS_CKPT_REG_MSG *reg_rec = NULL;
+	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
+	EDS_CKPT_CHAN_CLOSE_MSG *chan_close = NULL;
+	EDS_CKPT_CHAN_UNLINK_MSG *chan_unlink = NULL;
+	EDS_CKPT_UNSUBSCRIBE_MSG *unsubscribe = NULL;
+	EDS_CKPT_RETENTION_TIME_CLEAR_MSG *reten_clear = NULL;
+	EDS_CKPT_FINALIZE_MSG *finalize = NULL;
+	MDS_DEST *agent_dest = NULL;
+	long msg_hdl = 0;
 
-  /* Allocate memory to hold the checkpoint message */
-  ckpt_msg=m_MMGR_ALLOC_EDSV_CKPT_DATA;
-  memset(ckpt_msg,0,sizeof(EDS_CKPT_DATA));
+	/* Allocate memory to hold the checkpoint message */
+	ckpt_msg = m_MMGR_ALLOC_EDSV_CKPT_DATA;
+	memset(ckpt_msg, 0, sizeof(EDS_CKPT_DATA));
 
-  /* Decode the message header */
-   hdr=&ckpt_msg->header;
-   rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_header_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&hdr,&ederror);
-   if(rc != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-      return rc;
-   }
-   ederror=0;
+	/* Decode the message header */
+	hdr = &ckpt_msg->header;
+	rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_header_rec, &cbk_arg->info.decode.i_uba,
+			    EDP_OP_TYPE_DEC, &hdr, &ederror);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+		return rc;
+	}
+	ederror = 0;
 
-   /* Call decode routines appropriately */
-   switch(hdr->ckpt_rec_type)
-   {
-     case EDS_CKPT_INITIALIZE_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("INITIALIZE REC: AUPDATE");
-          reg_rec=&ckpt_msg->ckpt_rec.reg_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_reg_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&reg_rec,&ederror);
+	/* Call decode routines appropriately */
+	switch (hdr->ckpt_rec_type) {
+	case EDS_CKPT_INITIALIZE_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("INITIALIZE REC: AUPDATE");
+		reg_rec = &ckpt_msg->ckpt_rec.reg_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_reg_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &reg_rec, &ederror);
 
-          if (rc != NCSCC_RC_SUCCESS)
-          {
-             m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-             m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-             m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-             return rc;
-          }
-          break;
-     case EDS_CKPT_FINALIZE_REC: 
-          m_EDSV_DEBUG_CONS_PRINTF("FINALIZE REC: AUPDATE");
-          reg_rec=&ckpt_msg->ckpt_rec.reg_rec;
-          finalize=&ckpt_msg->ckpt_rec.finalize_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_finalize_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&finalize,&ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     ederror);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_FINALIZE_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("FINALIZE REC: AUPDATE");
+		reg_rec = &ckpt_msg->ckpt_rec.reg_rec;
+		finalize = &ckpt_msg->ckpt_rec.finalize_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_finalize_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &finalize, &ederror);
 
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_CHAN_REC: 
-     case EDS_CKPT_CHAN_OPEN_REC:
-     case EDS_CKPT_ASYNC_CHAN_OPEN_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("CHAN OPEN REC: AUPDATE");
-          chan_rec=&ckpt_msg->ckpt_rec.chan_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&chan_rec,&ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     ederror);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_CHAN_REC:
+	case EDS_CKPT_CHAN_OPEN_REC:
+	case EDS_CKPT_ASYNC_CHAN_OPEN_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("CHAN OPEN REC: AUPDATE");
+		chan_rec = &ckpt_msg->ckpt_rec.chan_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &chan_rec, &ederror);
 
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_CHAN_CLOSE_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("CHAN CLOSE REC: AUPDATE");
-          chan_close=&ckpt_msg->ckpt_rec.chan_close_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_close_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&chan_close,&ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     ederror);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_CHAN_CLOSE_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("CHAN CLOSE REC: AUPDATE");
+		chan_close = &ckpt_msg->ckpt_rec.chan_close_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_close_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &chan_close, &ederror);
 
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_CHAN_UNLINK_REC: 
-          m_EDSV_DEBUG_CONS_PRINTF("CHAN UNLINK REC: AUPDATE");
-          chan_unlink=&ckpt_msg->ckpt_rec.chan_unlink_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_ulink_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&chan_unlink,&ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     ederror);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_CHAN_UNLINK_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("CHAN UNLINK REC: AUPDATE");
+		chan_unlink = &ckpt_msg->ckpt_rec.chan_unlink_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_ulink_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &chan_unlink, &ederror);
 
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_SUBSCRIBE_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("SUBSCRIBE REC: AUPDATE");
-          msg_hdl=(long)ckpt_msg;
-          rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE); /* think of passing subsribe rec hdl itself */
-          if(!rc)
-          {
-             m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-             m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-             return NCSCC_RC_FAILURE;
-          }
-          else
-            rc=NCSCC_RC_SUCCESS;
-          break;
-     case EDS_CKPT_RETEN_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("RETEN REC: AUPDATE");
-          msg_hdl=(long)ckpt_msg;
-          rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
-          if(!rc)
-          {
-             m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-             m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-             return NCSCC_RC_FAILURE;
-          }
-          else
-            rc=NCSCC_RC_SUCCESS;
-          break;
-     case EDS_CKPT_UNSUBSCRIBE_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("UNSUBSCRIBE REC: AUPDATE");
-          unsubscribe=&ckpt_msg->ckpt_rec.unsubscribe_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_usubsc_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&unsubscribe,&ederror);
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_RETENTION_TIME_CLR_REC:
-          m_EDSV_DEBUG_CONS_PRINTF("RETEN TIME CLEAR REC: AUPDATE");
-          reten_clear=&ckpt_msg->ckpt_rec.reten_time_clr_rec;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_ret_clr_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&reten_clear,&ederror);
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
-     case EDS_CKPT_AGENT_DOWN:
-          m_EDSV_DEBUG_CONS_PRINTF("AGENT DOWN REC: AUPDATE");
-          agent_dest=&ckpt_msg->ckpt_rec.agent_dest;
-          rc = m_NCS_EDU_EXEC(&cb->edu_hdl,ncs_edp_mds_dest,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&agent_dest,&ederror);
-          if(rc != NCSCC_RC_SUCCESS)
-          {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-            m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-            m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-            return rc;
-          }
-          break;
- 
-     default:
-         rc = NCSCC_RC_FAILURE;
-         m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,hdr->ckpt_rec_type);
-         m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
-       return rc;
-       break;
-   }/*end switch */
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     ederror);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_SUBSCRIBE_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("SUBSCRIBE REC: AUPDATE");
+		msg_hdl = (long)ckpt_msg;
+		rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);	/* think of passing subsribe rec hdl itself */
+		if (!rc) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			return NCSCC_RC_FAILURE;
+		} else
+			rc = NCSCC_RC_SUCCESS;
+		break;
+	case EDS_CKPT_RETEN_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("RETEN REC: AUPDATE");
+		msg_hdl = (long)ckpt_msg;
+		rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+		if (!rc) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			return NCSCC_RC_FAILURE;
+		} else
+			rc = NCSCC_RC_SUCCESS;
+		break;
+	case EDS_CKPT_UNSUBSCRIBE_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("UNSUBSCRIBE REC: AUPDATE");
+		unsubscribe = &ckpt_msg->ckpt_rec.unsubscribe_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_usubsc_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &unsubscribe, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_RETENTION_TIME_CLR_REC:
+		m_EDSV_DEBUG_CONS_PRINTF("RETEN TIME CLEAR REC: AUPDATE");
+		reten_clear = &ckpt_msg->ckpt_rec.reten_time_clr_rec;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_ret_clr_rec, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &reten_clear, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
+	case EDS_CKPT_AGENT_DOWN:
+		m_EDSV_DEBUG_CONS_PRINTF("AGENT DOWN REC: AUPDATE");
+		agent_dest = &ckpt_msg->ckpt_rec.agent_dest;
+		rc = m_NCS_EDU_EXEC(&cb->edu_hdl, ncs_edp_mds_dest, &cbk_arg->info.decode.i_uba,
+				    EDP_OP_TYPE_DEC, &agent_dest, &ederror);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+			m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+			return rc;
+		}
+		break;
 
-   rc = eds_process_ckpt_data(cb, ckpt_msg);
-   /* Update the Async Update Count at standby*/
-   cb->async_upd_cnt++;
-  
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,hdr->ckpt_rec_type);
-      /* log it */
-   }
-   m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+	default:
+		rc = NCSCC_RC_FAILURE;
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+			     hdr->ckpt_rec_type);
+		m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+		return rc;
+		break;
+	}			/*end switch */
 
-   return rc;
-   /* if failure, should an indication be sent to active ? */
-}/*End eds_ckpt_decode_async_update()*/
+	rc = eds_process_ckpt_data(cb, ckpt_msg);
+	/* Update the Async Update Count at standby */
+	cb->async_upd_cnt++;
 
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+			     hdr->ckpt_rec_type);
+		/* log it */
+	}
+	m_MMGR_FREE_EDSV_CKPT_DATA(ckpt_msg);
+
+	return rc;
+	/* if failure, should an indication be sent to active ? */
+}	/*End eds_ckpt_decode_async_update() */
 
 /****************************************************************************
  * Name          : eds_ckpt_decode_cold_sync 
@@ -1393,276 +1307,262 @@ uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
  *                        header->num_records times, 
  *****************************************************************************/
 
-uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg)
+uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDU_ERR ederror=0;
-  EDS_CKPT_DATA *data=NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDU_ERR ederror = 0;
+	EDS_CKPT_DATA *data = NULL;
 /*  NCS_UBAID *uba=NULL; */
-  uns32 num_rec=0;
-  long msg_hdl=0;
-  EDS_CKPT_REG_MSG *reg_rec= NULL;
-  EDS_CKPT_CHAN_MSG *chan_rec=NULL;
-  EDS_CKPT_CHAN_OPEN_MSG *copen_rec=NULL;
-  uns32 num_of_async_upd;
-  uns8* ptr;
-  uns8 data_cnt[16];
+	uns32 num_rec = 0;
+	long msg_hdl = 0;
+	EDS_CKPT_REG_MSG *reg_rec = NULL;
+	EDS_CKPT_CHAN_MSG *chan_rec = NULL;
+	EDS_CKPT_CHAN_OPEN_MSG *copen_rec = NULL;
+	uns32 num_of_async_upd;
+	uns8 *ptr;
+	uns8 data_cnt[16];
 
- /* EDS_CKPT_RETAIN_EVT_MSG *reten_rec=NULL; */
- 
-  /* 
-   * 
-      ----------------------------------------------------------------------------------------
-      | Header|RegRecords1..n|Header|chanRecords1..n|Header|subscRecords1..n|Header|Reten1..n |
-      ----------------------------------------------------------------------------------------
-   */           
- while (1)
- {
- 
-   printf("COLD SYNC DECODE START........\n");
-  /* Allocate memory to hold the checkpoint Data */
-   data=m_MMGR_ALLOC_EDSV_CKPT_DATA;
-   if (data == NULL)
-   {
-       m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-       return NCSCC_RC_FAILURE; /*DBG_SINK */
-   }
-   memset(data, 0, sizeof(EDS_CKPT_DATA));
-  /* Decode the current message header*/
+	/* EDS_CKPT_RETAIN_EVT_MSG *reten_rec=NULL; */
 
-   if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      m_MMGR_FREE_EDSV_CKPT_DATA(data);
-      return NCSCC_RC_FAILURE;
-   } 
-   /* Check if the first in the order of records is reg record */
-   if(data->header.ckpt_rec_type != EDS_CKPT_INITIALIZE_REC)
-   {
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__,0);
-     m_MMGR_FREE_EDSV_CKPT_DATA(data);
-     return NCSCC_RC_FAILURE;
-   }
+	/* 
+	 * 
+	 ----------------------------------------------------------------------------------------
+	 | Header|RegRecords1..n|Header|chanRecords1..n|Header|subscRecords1..n|Header|Reten1..n |
+	 ----------------------------------------------------------------------------------------
+	 */
+	while (1) {
 
-   /* Process the reg_records */
-   num_rec=data->header.num_ckpt_records;
-   while(num_rec)
-   {
-      reg_rec=&data->ckpt_rec.reg_rec;
-      rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_reg_rec,&cbk_arg->info.decode.i_uba,
-                                      EDP_OP_TYPE_DEC,&reg_rec,&ederror);
+		printf("COLD SYNC DECODE START........\n");
+		/* Allocate memory to hold the checkpoint Data */
+		data = m_MMGR_ALLOC_EDSV_CKPT_DATA;
+		if (data == NULL) {
+			m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__,
+				     0);
+			return NCSCC_RC_FAILURE;	/*DBG_SINK */
+		}
+		memset(data, 0, sizeof(EDS_CKPT_DATA));
+		/* Decode the current message header */
 
-     if(rc != NCSCC_RC_SUCCESS)
-     {
-        printf("COLD SYNC DECODE REG REC FAILED........\n");
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-        m_MMGR_FREE_EDSV_CKPT_DATA(data);
-        m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-        return rc;
-     }
-      /* Update our database */
-      rc = eds_process_ckpt_data(cb,data);
-    
-      if(rc != NCSCC_RC_SUCCESS)
-      {
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      }
-      memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
-      --num_rec;
-   }/*End while, reg records */
-  
-   
-   /* Done with reg_records,Now decode channel records. */
-   /*Decode channel records header */
+		if ((rc = eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(data);
+			return NCSCC_RC_FAILURE;
+		}
+		/* Check if the first in the order of records is reg record */
+		if (data->header.ckpt_rec_type != EDS_CKPT_INITIALIZE_REC) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+				     __LINE__, 0);
+			m_MMGR_FREE_EDSV_CKPT_DATA(data);
+			return NCSCC_RC_FAILURE;
+		}
 
-   if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
-   {
-       rc= NCSCC_RC_FAILURE;
-       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       goto err;
-   }
-   /* Check if record type is channel */
-   if(data->header.ckpt_rec_type != EDS_CKPT_CHAN_REC)
-   {
-     rc =  NCSCC_RC_FAILURE;
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,data->header.ckpt_rec_type);
-     goto err;
-   }
+		/* Process the reg_records */
+		num_rec = data->header.num_ckpt_records;
+		while (num_rec) {
+			reg_rec = &data->ckpt_rec.reg_rec;
+			rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_reg_rec, &cbk_arg->info.decode.i_uba,
+					    EDP_OP_TYPE_DEC, &reg_rec, &ederror);
 
-   /* Decode channel records. Realloc data here */
-   num_rec=data->header.num_ckpt_records;
-   while(num_rec)
-   {
-       chan_rec=&data->ckpt_rec.chan_rec;
-       rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&chan_rec,&ederror);
+			if (rc != NCSCC_RC_SUCCESS) {
+				printf("COLD SYNC DECODE REG REC FAILED........\n");
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+				m_MMGR_FREE_EDSV_CKPT_DATA(data);
+				m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+				return rc;
+			}
+			/* Update our database */
+			rc = eds_process_ckpt_data(cb, data);
 
-       if(rc != NCSCC_RC_SUCCESS)
-       {
-          printf("COLD SYNC DECODE CHAN REC FAILED........\n");
-          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-          rc = NCSCC_RC_FAILURE;
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-          goto err;
-       }
-       /* Update our database */
-       rc = eds_process_ckpt_data(cb,data);
-       if(rc != NCSCC_RC_SUCCESS)
-       {
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       }
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+			}
+			memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
+			--num_rec;
+		}		/*End while, reg records */
 
-       memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
-       --num_rec;
-   }/*End while, chan records */
+		/* Done with reg_records,Now decode channel records. */
+		/*Decode channel records header */
 
-   /* Done with chan_records,Now decode channel open records. */
-   /* Decode channel-open records header */
+		if ((rc = eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+			rc = NCSCC_RC_FAILURE;
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			goto err;
+		}
+		/* Check if record type is channel */
+		if (data->header.ckpt_rec_type != EDS_CKPT_CHAN_REC) {
+			rc = NCSCC_RC_FAILURE;
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     data->header.ckpt_rec_type);
+			goto err;
+		}
 
-   if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
-   {
-       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       rc =  NCSCC_RC_FAILURE;
-       goto err;
-   }
-   /* Check if record type is channel open */
-   if(data->header.ckpt_rec_type != EDS_CKPT_CHAN_OPEN_REC)
-   {
-     rc = NCSCC_RC_FAILURE;
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,data->header.ckpt_rec_type);
-     goto err;
-   }
-   /* Decode channel open records. Realloc data here */
-   num_rec=data->header.num_ckpt_records;
-   while(num_rec)
-   {
-       copen_rec=&data->ckpt_rec.chan_open_rec;
-       rc = m_NCS_EDU_EXEC(&cb->edu_hdl,eds_edp_ed_chan_open_rec,&cbk_arg->info.decode.i_uba,
-                               EDP_OP_TYPE_DEC,&copen_rec,&ederror);
-   
-       if(rc != NCSCC_RC_SUCCESS)
-       {
-          printf("COLD SYNC DECODE CHAN OPEN REC FAILED........\n");
-          m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,ederror);
-          rc = NCSCC_RC_FAILURE;
-          goto err;
-       }
-       /* Update our database */
-       rc = eds_process_ckpt_data(cb,data);
-       if(rc != NCSCC_RC_SUCCESS)
-       { 
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       }
-   
-       memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
-       --num_rec;
-   }/*End while, chan_open records */
+		/* Decode channel records. Realloc data here */
+		num_rec = data->header.num_ckpt_records;
+		while (num_rec) {
+			chan_rec = &data->ckpt_rec.chan_rec;
+			rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_rec, &cbk_arg->info.decode.i_uba,
+					    EDP_OP_TYPE_DEC, &chan_rec, &ederror);
 
-   /* Done with channel_records,Now decode subscription records. */
-   if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
-   {
-       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       rc= NCSCC_RC_FAILURE;
-       goto err;
-   }
-   /* Check if record type is Subscribe */
-   if(data->header.ckpt_rec_type != EDS_CKPT_SUBSCRIBE_REC)
-   {
-     rc = NCSCC_RC_FAILURE;
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,data->header.ckpt_rec_type);
-     goto err;
-   }
+			if (rc != NCSCC_RC_SUCCESS) {
+				printf("COLD SYNC DECODE CHAN REC FAILED........\n");
+				m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+				rc = NCSCC_RC_FAILURE;
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, ederror);
+				goto err;
+			}
+			/* Update our database */
+			rc = eds_process_ckpt_data(cb, data);
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+			}
 
-   /* Decode subscription records. Realloc data here */
-   num_rec=data->header.num_ckpt_records;
-   while(num_rec)
-   {
-       msg_hdl=(long)data;
-       rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
-       if(!rc)
-       {
-          printf("COLD SYNC DECODE SUBSCRIBE FAILED........\n");
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-          rc= NCSCC_RC_FAILURE;
-          goto err;
-       }
-       /* Update our database */
-       rc = eds_process_ckpt_data(cb,data);
+			memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
+			--num_rec;
+		}		/*End while, chan records */
 
-       if(rc != NCSCC_RC_SUCCESS)
-       { 
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-       }
-       memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
-       --num_rec;
-   }/*End while, Subscription records */
+		/* Done with chan_records,Now decode channel open records. */
+		/* Decode channel-open records header */
 
-     /*Decode retention records header */
-     if((rc=eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba,&data->header)) != NCSCC_RC_SUCCESS)
-     {
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-        rc =  NCSCC_RC_FAILURE;
-        goto err;
-     }
-     /* Check if record type is retention */
-     if(data->header.ckpt_rec_type != EDS_CKPT_RETEN_REC)
-     {
-       rc = NCSCC_RC_FAILURE;
-       m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,data->header.ckpt_rec_type);
-       goto err;
-     }
-     /* Decode Retention records. Realloc data here */
-     num_rec=data->header.num_ckpt_records;
-     if(num_rec != 0)
-     {
-       while(num_rec)
-       {
-           msg_hdl=(long)data;
-           rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba,msg_hdl,TRUE);
-           if(!rc) /*Encode failed.Zero bytes */
-           {
-              printf("COLD SYNC DECODE PUBLISH FAILED........\n");
-              m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-              m_NCS_EDU_PRINT_ERROR_STRING(ederror);
-              rc =  NCSCC_RC_FAILURE;
-              goto err;
-           }
-           rc = NCSCC_RC_SUCCESS;
-           /* Update our database */
-           eds_process_ckpt_data(cb,data);
-  
-           if(rc != NCSCC_RC_SUCCESS)
-           { 
-             m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-           }
-           memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
-           --num_rec;
-       }/*End while, Retention records */
-      }
+		if ((rc = eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			rc = NCSCC_RC_FAILURE;
+			goto err;
+		}
+		/* Check if record type is channel open */
+		if (data->header.ckpt_rec_type != EDS_CKPT_CHAN_OPEN_REC) {
+			rc = NCSCC_RC_FAILURE;
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     data->header.ckpt_rec_type);
+			goto err;
+		}
+		/* Decode channel open records. Realloc data here */
+		num_rec = data->header.num_ckpt_records;
+		while (num_rec) {
+			copen_rec = &data->ckpt_rec.chan_open_rec;
+			rc = m_NCS_EDU_EXEC(&cb->edu_hdl, eds_edp_ed_chan_open_rec, &cbk_arg->info.decode.i_uba,
+					    EDP_OP_TYPE_DEC, &copen_rec, &ederror);
 
-     /* Get the async update count */
-     ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba,data_cnt,sizeof(uns32));
-     num_of_async_upd = ncs_decode_32bit(&ptr);
-     cb->async_upd_cnt = num_of_async_upd;
-     ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
+			if (rc != NCSCC_RC_SUCCESS) {
+				printf("COLD SYNC DECODE CHAN OPEN REC FAILED........\n");
+				m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, ederror);
+				rc = NCSCC_RC_FAILURE;
+				goto err;
+			}
+			/* Update our database */
+			rc = eds_process_ckpt_data(cb, data);
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+			}
 
-     /* If we reached here, we are through. Good enough for coldsync with ACTIVE */
+			memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
+			--num_rec;
+		}		/*End while, chan_open records */
 
-err:
-     m_MMGR_FREE_EDSV_CKPT_DATA(data); /*Commented this, coz of a sigabort once, revisit!!!*/ 
-     if(rc!= NCSCC_RC_SUCCESS)
-     {
-        /* Clean up all data */
-        printf("COLD SYNC DECODE FAILED CLEANING DATABASE........\n");
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-        eds_remove_reglist_entry(cb, 0, TRUE);
-     }
-     printf("COLD SYNC DECODE END........\n");
-     return rc;
- }/*End while(1) */
+		/* Done with channel_records,Now decode subscription records. */
+		if ((rc = eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			rc = NCSCC_RC_FAILURE;
+			goto err;
+		}
+		/* Check if record type is Subscribe */
+		if (data->header.ckpt_rec_type != EDS_CKPT_SUBSCRIBE_REC) {
+			rc = NCSCC_RC_FAILURE;
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     data->header.ckpt_rec_type);
+			goto err;
+		}
 
-}/*End eds_ckpt_decode_cold_sync()*/
+		/* Decode subscription records. Realloc data here */
+		num_rec = data->header.num_ckpt_records;
+		while (num_rec) {
+			msg_hdl = (long)data;
+			rc = eds_dec_subscribe_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+			if (!rc) {
+				printf("COLD SYNC DECODE SUBSCRIBE FAILED........\n");
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+				rc = NCSCC_RC_FAILURE;
+				goto err;
+			}
+			/* Update our database */
+			rc = eds_process_ckpt_data(cb, data);
+
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__,
+					     __LINE__, 0);
+			}
+			memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
+			--num_rec;
+		}		/*End while, Subscription records */
+
+		/*Decode retention records header */
+		if ((rc = eds_dec_ckpt_header(&cbk_arg->info.decode.i_uba, &data->header)) != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			rc = NCSCC_RC_FAILURE;
+			goto err;
+		}
+		/* Check if record type is retention */
+		if (data->header.ckpt_rec_type != EDS_CKPT_RETEN_REC) {
+			rc = NCSCC_RC_FAILURE;
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__,
+				     data->header.ckpt_rec_type);
+			goto err;
+		}
+		/* Decode Retention records. Realloc data here */
+		num_rec = data->header.num_ckpt_records;
+		if (num_rec != 0) {
+			while (num_rec) {
+				msg_hdl = (long)data;
+				rc = eds_dec_publish_msg(&cbk_arg->info.decode.i_uba, msg_hdl, TRUE);
+				if (!rc) {	/*Encode failed.Zero bytes */
+					printf("COLD SYNC DECODE PUBLISH FAILED........\n");
+					m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+						     __FILE__, __LINE__, 0);
+					m_NCS_EDU_PRINT_ERROR_STRING(ederror);
+					rc = NCSCC_RC_FAILURE;
+					goto err;
+				}
+				rc = NCSCC_RC_SUCCESS;
+				/* Update our database */
+				eds_process_ckpt_data(cb, data);
+
+				if (rc != NCSCC_RC_SUCCESS) {
+					m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc,
+						     __FILE__, __LINE__, 0);
+				}
+				memset(&data->ckpt_rec, 0, sizeof(data->ckpt_rec));
+				--num_rec;
+			}	/*End while, Retention records */
+		}
+
+		/* Get the async update count */
+		ptr = ncs_dec_flatten_space(&cbk_arg->info.decode.i_uba, data_cnt, sizeof(uns32));
+		num_of_async_upd = ncs_decode_32bit(&ptr);
+		cb->async_upd_cnt = num_of_async_upd;
+		ncs_dec_skip_space(&cbk_arg->info.decode.i_uba, 4);
+
+		/* If we reached here, we are through. Good enough for coldsync with ACTIVE */
+
+ err:
+		m_MMGR_FREE_EDSV_CKPT_DATA(data);	/*Commented this, coz of a sigabort once, revisit!!! */
+		if (rc != NCSCC_RC_SUCCESS) {
+			/* Clean up all data */
+			printf("COLD SYNC DECODE FAILED CLEANING DATABASE........\n");
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			eds_remove_reglist_entry(cb, 0, TRUE);
+		}
+		printf("COLD SYNC DECODE END........\n");
+		return rc;
+	}			/*End while(1) */
+
+}	/*End eds_ckpt_decode_cold_sync() */
 
 /****************************************************************************
  * Name          : eds_process_ckpt_data
@@ -1681,31 +1581,26 @@ err:
 
 uns32 eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc=NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-  if ((!cb) || (data == NULL))
-      return (rc=NCSCC_RC_FAILURE);
- 
-  if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED))
-  {
-     if (data->header.ckpt_rec_type >= EDS_CKPT_MSG_MAX)
-           return NCSCC_RC_FAILURE;
-  
-     /* Update the internal database */
-     rc= eds_ckpt_data_handler[data->header.ckpt_rec_type](cb, data);
-     if(rc != NCSCC_RC_SUCCESS)
-     { 
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-     }
-     return rc;
-  }
-  else
-  {
-     /* Log it */
-     return (rc=NCSCC_RC_FAILURE);
-  } 
-}/*End eds_process_ckpt_data()*/
+	if ((!cb) || (data == NULL))
+		return (rc = NCSCC_RC_FAILURE);
 
+	if ((cb->ha_state == SA_AMF_HA_STANDBY) || (cb->ha_state == SA_AMF_HA_QUIESCED)) {
+		if (data->header.ckpt_rec_type >= EDS_CKPT_MSG_MAX)
+			return NCSCC_RC_FAILURE;
+
+		/* Update the internal database */
+		rc = eds_ckpt_data_handler[data->header.ckpt_rec_type] (cb, data);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		}
+		return rc;
+	} else {
+		/* Log it */
+		return (rc = NCSCC_RC_FAILURE);
+	}
+}	/*End eds_process_ckpt_data() */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_reg_rec
@@ -1724,20 +1619,19 @@ uns32 eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data)
 
 uns32 eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_REG_MSG *param=&data->ckpt_rec.reg_rec;
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT INITIALIZE EVENT....\n");
-  if(!param->reg_id)
-  {
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return NCSCC_RC_FAILURE;
-  }
-   /* Add this regid to the registration linked list. */
-  if ((rc = eds_add_reglist_entry(cb, param->eda_client_dest, param->reg_id)) != NCSCC_RC_SUCCESS)
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      
-  return NCSCC_RC_SUCCESS;
-}/*End eds_ckpt_proc_reg_rec */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_REG_MSG *param = &data->ckpt_rec.reg_rec;
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT INITIALIZE EVENT....\n");
+	if (!param->reg_id) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	/* Add this regid to the registration linked list. */
+	if ((rc = eds_add_reglist_entry(cb, param->eda_client_dest, param->reg_id)) != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+
+	return NCSCC_RC_SUCCESS;
+}	/*End eds_ckpt_proc_reg_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_finalize_rec
@@ -1754,23 +1648,22 @@ uns32 eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_finalize_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_FINALIZE_MSG *param=&data->ckpt_rec.finalize_rec;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_FINALIZE_MSG *param = &data->ckpt_rec.finalize_rec;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT FINALIZE EVENT....\n");
-  if(!param->reg_id)
-  { 
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return NCSCC_RC_FAILURE;
-  }
- 
-  if((rc = eds_remove_reglist_entry(cb, param->reg_id, FALSE)) != NCSCC_RC_SUCCESS)
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-     
-  return NCSCC_RC_SUCCESS;
-}/*end eds_ckpt_proc_finalize_rec */
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT FINALIZE EVENT....\n");
+	if (!param->reg_id) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if ((rc = eds_remove_reglist_entry(cb, param->reg_id, FALSE)) != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+
+	return NCSCC_RC_SUCCESS;
+}	/*end eds_ckpt_proc_finalize_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_rec
@@ -1787,41 +1680,36 @@ uns32 eds_ckpt_proc_finalize_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_chan_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_CHAN_MSG *param=&data->ckpt_rec.chan_rec;
-  uns32 reg_id=0; /* It is not used */
-  MDS_DEST chan_opener_dest = 0; /* Not used */
-  
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL OPEN EVENT....\n");
-  if((param->cname_len == 0) || (param->cname_len > SA_MAX_NAME_LENGTH))
-  {
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-     return NCSCC_RC_FAILURE;
-  }
-  if(data->header.ckpt_rec_type != EDS_CKPT_ASYNC_CHAN_OPEN_REC)
-     reg_id=0;
-  else
-  {
-     reg_id=param->reg_id;
-     chan_opener_dest=param->chan_opener_dest;
-  }
-  
-  rc = eds_channel_open(cb,
-                        reg_id,
-                        param->chan_attrib,
-                        param->cname_len,
-                        param->cname,
-                        chan_opener_dest,
-                        &param->chan_id,
-                        &param->last_copen_id,
-                        param->chan_create_time);
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_MSG *param = &data->ckpt_rec.chan_rec;
+	uns32 reg_id = 0;	/* It is not used */
+	MDS_DEST chan_opener_dest = 0;	/* Not used */
 
-  if(rc != NCSCC_RC_SUCCESS)
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-  return NCSCC_RC_SUCCESS;
-} /*end eds_ckpt_proc_chan_rec */
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL OPEN EVENT....\n");
+	if ((param->cname_len == 0) || (param->cname_len > SA_MAX_NAME_LENGTH)) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	if (data->header.ckpt_rec_type != EDS_CKPT_ASYNC_CHAN_OPEN_REC)
+		reg_id = 0;
+	else {
+		reg_id = param->reg_id;
+		chan_opener_dest = param->chan_opener_dest;
+	}
+
+	rc = eds_channel_open(cb,
+			      reg_id,
+			      param->chan_attrib,
+			      param->cname_len,
+			      param->cname,
+			      chan_opener_dest, &param->chan_id, &param->last_copen_id, param->chan_create_time);
+
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
+}	/*end eds_ckpt_proc_chan_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_open_rec
@@ -1838,32 +1726,24 @@ uns32 eds_ckpt_proc_chan_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_open_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_chan_open_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  SaTimeT chan_create_time = 0;
-  EDS_CKPT_CHAN_OPEN_MSG *param=&data->ckpt_rec.chan_open_rec;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaTimeT chan_create_time = 0;
+	EDS_CKPT_CHAN_OPEN_MSG *param = &data->ckpt_rec.chan_open_rec;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL OPEN REC EVENT....\n");
-  if((param->cname_len == 0) || (param->cname_len > SA_MAX_NAME_LENGTH))
-  {
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,NCSCC_RC_FAILURE,__FILE__,__LINE__,param->cname_len);
-     return NCSCC_RC_FAILURE;
-  }
-  rc = eds_channel_open(cb,
-                        param->reg_id,
-                        param->chan_attrib,
-                        param->cname_len,
-                        param->cname,
-                        param->chan_opener_dest,
-                        &param->chan_id,
-                        &param->chan_open_id,
-                        chan_create_time);  /* Here the Chan Creation time is not needed in this flow -
-                                                Channel got already created */
-  if(rc != NCSCC_RC_SUCCESS)
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-  return NCSCC_RC_SUCCESS;
-}/* End eds_ckpt_proc_chan_open_rec */
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL OPEN REC EVENT....\n");
+	if ((param->cname_len == 0) || (param->cname_len > SA_MAX_NAME_LENGTH)) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE, __FILE__,
+			     __LINE__, param->cname_len);
+		return NCSCC_RC_FAILURE;
+	}
+	rc = eds_channel_open(cb, param->reg_id, param->chan_attrib, param->cname_len, param->cname, param->chan_opener_dest, &param->chan_id, &param->chan_open_id, chan_create_time);	/* Here the Chan Creation time is not needed in this flow -
+																							   Channel got already created */
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
+}	/* End eds_ckpt_proc_chan_open_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_close_rec
@@ -1880,27 +1760,22 @@ uns32 eds_ckpt_proc_chan_open_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_close_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_CHAN_CLOSE_MSG *param=&data->ckpt_rec.chan_close_rec;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_CLOSE_MSG *param = &data->ckpt_rec.chan_close_rec;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL CLOSE EVENT....\n");
-  if(!param)
-  {
-    m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-    return NCSCC_RC_FAILURE;
-  }
-  rc = eds_channel_close(cb,
-                         param->reg_id,
-                         param->chan_id,
-                         param->chan_open_id,
-                         FALSE);
-  if(rc != NCSCC_RC_SUCCESS)
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL CLOSE EVENT....\n");
+	if (!param) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	rc = eds_channel_close(cb, param->reg_id, param->chan_id, param->chan_open_id, FALSE);
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 
-  return NCSCC_RC_SUCCESS;
-}/*End eds_ckpt_proc_chan_close_rec */
+	return NCSCC_RC_SUCCESS;
+}	/*End eds_ckpt_proc_chan_close_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_unlink_rec
@@ -1917,22 +1792,20 @@ uns32 eds_ckpt_proc_chan_close_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None.
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_CHAN_UNLINK_MSG *param=&(data->ckpt_rec).chan_unlink_rec;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_UNLINK_MSG *param = &(data->ckpt_rec).chan_unlink_rec;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL UNLINK EVENT....\n");
-  rc = eds_channel_unlink(cb,
-                          param->chan_name.length,
-                          param->chan_name.value);
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT CHANNEL UNLINK EVENT....\n");
+	rc = eds_channel_unlink(cb, param->chan_name.length, param->chan_name.value);
 
-  if(rc != NCSCC_RC_SUCCESS)
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
-}/*End eds_ckpt_proc_chan_unlink_rec */
+}	/*End eds_ckpt_proc_chan_unlink_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_reten_rec
@@ -1951,64 +1824,58 @@ uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  *                 since the time, this event was published .
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_reten_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32         rc = NCSCC_RC_SUCCESS;
-  uns32         copen_id_Net;
-  uns32         retd_evt_chan_open_id=0;
-  SaTimeT       publish_time=0;
-  EDS_WORKLIST  *wp;
-  CHAN_OPEN_REC *co;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 copen_id_Net;
+	uns32 retd_evt_chan_open_id = 0;
+	SaTimeT publish_time = 0;
+	EDS_WORKLIST *wp;
+	CHAN_OPEN_REC *co;
 
-  EDSV_EDA_PUBLISH_PARAM  *param=(EDSV_EDA_PUBLISH_PARAM *)&data->ckpt_rec.retain_evt_rec.data;
+	EDSV_EDA_PUBLISH_PARAM *param = (EDSV_EDA_PUBLISH_PARAM *)&data->ckpt_rec.retain_evt_rec.data;
 
-  m_EDSV_DEBUG_CONS_PRINTF("CKPT RETAINED EVENT.....\n"); 
-   /* Get worklist ptr for this chan */
-   wp = eds_get_worklist_entry(cb->eds_work_list, param->chan_id);
-   if (!wp)
-   { 
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return(NCSCC_RC_FAILURE);
-   }
-   publish_time = data->ckpt_rec.retain_evt_rec.pubtime;
+	m_EDSV_DEBUG_CONS_PRINTF("CKPT RETAINED EVENT.....\n");
+	/* Get worklist ptr for this chan */
+	wp = eds_get_worklist_entry(cb->eds_work_list, param->chan_id);
+	if (!wp) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
+	publish_time = data->ckpt_rec.retain_evt_rec.pubtime;
 
-   /* Grab the chan_open_rec for this id */
-   copen_id_Net = m_NCS_OS_HTONL(param->chan_open_id);
-   if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec,
-                                                            (uns8*)&copen_id_Net)))
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,(long)co,__FILE__,__LINE__,0);
-   }
+	/* Grab the chan_open_rec for this id */
+	copen_id_Net = m_NCS_OS_HTONL(param->chan_open_id);
+	if (NULL == (co = (CHAN_OPEN_REC *)ncs_patricia_tree_get(&wp->chan_open_rec, (uns8 *)&copen_id_Net))) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, (long)co, __FILE__, __LINE__, 0);
+	}
 
-   /* Store the retained event */
-   rc = eds_store_retained_event(cb, wp, co, param, publish_time);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      return(NCSCC_RC_FAILURE);
-   }
-   else
+	/* Store the retained event */
+	rc = eds_store_retained_event(cb, wp, co, param, publish_time);
+	if (rc != NCSCC_RC_SUCCESS) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	} else
       /** store the parent channel's event id 
        **/
-   {
-      if(co)
-         retd_evt_chan_open_id = co->chan_open_id;
-      else
-         retd_evt_chan_open_id = param->chan_open_id;
-   }
+	{
+		if (co)
+			retd_evt_chan_open_id = co->chan_open_id;
+		else
+			retd_evt_chan_open_id = param->chan_open_id;
+	}
 
   /** If this event has been retained
    ** transfer memory ownership here.            
-   **/        
-   if (0 != retd_evt_chan_open_id)               
-   {          
-      param->pattern_array = NULL;
-      param->data_len = 0;
-      param->data = NULL;
-   }
+   **/
+	if (0 != retd_evt_chan_open_id) {
+		param->pattern_array = NULL;
+		param->data_len = 0;
+		param->data = NULL;
+	}
 
-  return NCSCC_RC_SUCCESS;
-}/*End eds_ckpt_proc_reten_rec */
+	return NCSCC_RC_SUCCESS;
+}	/*End eds_ckpt_proc_reten_rec */
 
 /****************************************************************************
  * Name          : eds_ckpt_proc_chan_subscribe_rec
@@ -2026,56 +1893,53 @@ uns32 eds_ckpt_proc_reten_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_subscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_subscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDA_REG_REC   *reglst;
-  SUBSC_REC     *subrec = NULL;
-  EDSV_EDA_SUBSCRIBE_PARAM  *param=&(data->ckpt_rec.subscribe_rec).data;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDA_REG_REC *reglst;
+	SUBSC_REC *subrec = NULL;
+	EDSV_EDA_SUBSCRIBE_PARAM *param = &(data->ckpt_rec.subscribe_rec).data;
 
-  m_EDSV_DEBUG_CONS_PRINTF("CKPT SUBSCRIBE EVENT.....\n"); 
-   /* Make sure this is a valid regID */
-   reglst = eds_get_reglist_entry(cb, param->reg_id);
-   if (reglst == NULL)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return(NCSCC_RC_FAILURE);
-   }
+	m_EDSV_DEBUG_CONS_PRINTF("CKPT SUBSCRIBE EVENT.....\n");
+	/* Make sure this is a valid regID */
+	reglst = eds_get_reglist_entry(cb, param->reg_id);
+	if (reglst == NULL) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   /* Allocate a new Subscription Record */
-   subrec = m_MMGR_ALLOC_EDS_SUBREC(sizeof(SUBSC_REC));
-   if (subrec == NULL)
-   {
-      m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return(NCSCC_RC_FAILURE);
-   }
-   memset(subrec, 0, sizeof(SUBSC_REC));
+	/* Allocate a new Subscription Record */
+	subrec = m_MMGR_ALLOC_EDS_SUBREC(sizeof(SUBSC_REC));
+	if (subrec == NULL) {
+		m_LOG_EDSV_S(EDS_MEM_ALLOC_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
+	memset(subrec, 0, sizeof(SUBSC_REC));
 
-   /* Fill in subscription related data */
-   subrec->reg_list      = reglst;
-   subrec->subscript_id  = param->sub_id;
-   subrec->chan_id       = param->chan_id;
-   subrec->chan_open_id  = param->chan_open_id;
+	/* Fill in subscription related data */
+	subrec->reg_list = reglst;
+	subrec->subscript_id = param->sub_id;
+	subrec->chan_id = param->chan_id;
+	subrec->chan_open_id = param->chan_open_id;
 
-   /* Take ownership of the filters memory.           */
-   /* We'll free it when the subscription is removed. */
-   subrec->filters = param->filter_array;
+	/* Take ownership of the filters memory.           */
+	/* We'll free it when the subscription is removed. */
+	subrec->filters = param->filter_array;
 
-   /* Add the subscription to our internal lists */
-   rc = eds_add_subscription(cb, param->reg_id, subrec);
-   if (rc != NCSCC_RC_SUCCESS)
-   {
-      param->filter_array = NULL;
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      return(NCSCC_RC_FAILURE);
-   }
+	/* Add the subscription to our internal lists */
+	rc = eds_add_subscription(cb, param->reg_id, subrec);
+	if (rc != NCSCC_RC_SUCCESS) {
+		param->filter_array = NULL;
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   /* Transfer memory ownership to the 
-    * subscription record now 
-    */
-   param->filter_array = NULL;
+	/* Transfer memory ownership to the 
+	 * subscription record now 
+	 */
+	param->filter_array = NULL;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2094,22 +1958,18 @@ uns32 eds_ckpt_proc_subscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDSV_EDA_UNSUBSCRIBE_PARAM  *param=&(data->ckpt_rec.unsubscribe_rec).data;
- 
-  m_EDSV_DEBUG_CONS_PRINTF("CKPT UNSUBSCRIBE EVENT.....\n"); 
-   /* Remove subscription from our lists */
-   rc = eds_remove_subscription(cb,
-                                param->reg_id,
-                                param->chan_id,
-                                param->chan_open_id,
-                                param->sub_id);
-  
-   if(rc != NCSCC_RC_SUCCESS)
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-   return NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDSV_EDA_UNSUBSCRIBE_PARAM *param = &(data->ckpt_rec.unsubscribe_rec).data;
+
+	m_EDSV_DEBUG_CONS_PRINTF("CKPT UNSUBSCRIBE EVENT.....\n");
+	/* Remove subscription from our lists */
+	rc = eds_remove_subscription(cb, param->reg_id, param->chan_id, param->chan_open_id, param->sub_id);
+
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -2128,26 +1988,22 @@ uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDSV_EDA_RETENTION_TIME_CLR_PARAM *param=&(data->ckpt_rec.reten_time_clr_rec).data;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDSV_EDA_RETENTION_TIME_CLR_PARAM *param = &(data->ckpt_rec.reten_time_clr_rec).data;
 
-  m_EDSV_DEBUG_CONS_PRINTF(" CKPT RETENTION CLEAR EVENT....\n");
-   /* Lock the EDS_CB */
-   m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-   rc = eds_clear_retained_event(cb,
-                                 param->chan_id,
-                                 param->chan_open_id,
-                                 param->event_id,
-                                 FALSE);
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT RETENTION CLEAR EVENT....\n");
+	/* Lock the EDS_CB */
+	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	rc = eds_clear_retained_event(cb, param->chan_id, param->chan_open_id, param->event_id, FALSE);
 
-   /* Unlock the EDS_CB */
-   m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-   if(rc != NCSCC_RC_SUCCESS)
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
+	/* Unlock the EDS_CB */
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	if (rc != NCSCC_RC_SUCCESS)
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2165,18 +2021,18 @@ uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None 
  ****************************************************************************/
 
-uns32 eds_ckpt_proc_agent_down_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
+uns32 eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data)
 {
-   /*Remove the EDA DOWN REC from the EDA_DOWN_LIST */
-   /* Search for matching EDA in the EDA_DOWN_LIST  */
+	/*Remove the EDA DOWN REC from the EDA_DOWN_LIST */
+	/* Search for matching EDA in the EDA_DOWN_LIST  */
 
-   m_EDSV_DEBUG_CONS_PRINTF(" CKPT AGENT DOWN ASYNC UPDATE....\n");
-   eds_remove_eda_down_rec(cb , data->ckpt_rec.agent_dest);
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT AGENT DOWN ASYNC UPDATE....\n");
+	eds_remove_eda_down_rec(cb, data->ckpt_rec.agent_dest);
 
-   /* Remove this EDA entry from our processing lists */
-   eds_remove_regid_by_mds_dest(cb, data->ckpt_rec.agent_dest);
+	/* Remove this EDA entry from our processing lists */
+	eds_remove_regid_by_mds_dest(cb, data->ckpt_rec.agent_dest);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2198,45 +2054,41 @@ uns32 eds_ckpt_proc_agent_down_rec(EDS_CB* cb, EDS_CKPT_DATA *data)
  * Notes         : None  
  ****************************************************************************/
 
-uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB* cb, NCS_UBAID *uba)
+uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba)
 {
 
 /*warm sync encode routine used before */
-    uns32 num_of_async_upd,rc = NCSCC_RC_SUCCESS;
-    uns8 data[16],*ptr ;
-    NCS_MBCSV_ARG mbcsv_arg;
+	uns32 num_of_async_upd, rc = NCSCC_RC_SUCCESS;
+	uns8 data[16], *ptr;
+	NCS_MBCSV_ARG mbcsv_arg;
 
-    /*TBD check for the validity of eds_cb arg */
+	/*TBD check for the validity of eds_cb arg */
 
-    memset(&mbcsv_arg,'\0',sizeof(NCS_MBCSV_ARG));
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
 
-    ptr = ncs_dec_flatten_space(uba,data,sizeof(int32));
-    num_of_async_upd = ncs_decode_32bit(&ptr);
-    ncs_dec_skip_space(uba, 4);
+	ptr = ncs_dec_flatten_space(uba, data, sizeof(int32));
+	num_of_async_upd = ncs_decode_32bit(&ptr);
+	ncs_dec_skip_space(uba, 4);
 
-    if(cb->async_upd_cnt== num_of_async_upd)
-    {
-       m_EDSV_DEBUG_CONS_PRINTF(" HURRAY, ME AND ACTIVE ARE IN WARM SYNC ...\n");
-       return rc;
-    }
-    else
-    {
-       /* Clean up all data */
-       printf(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request ...\n");
-       eds_remove_reglist_entry(cb, 0, TRUE);
+	if (cb->async_upd_cnt == num_of_async_upd) {
+		m_EDSV_DEBUG_CONS_PRINTF(" HURRAY, ME AND ACTIVE ARE IN WARM SYNC ...\n");
+		return rc;
+	} else {
+		/* Clean up all data */
+		printf(" ME AND ACTIVE ARE NOT IN WARM SYNC: sending data request ...\n");
+		eds_remove_reglist_entry(cb, 0, TRUE);
 
-       /* Compose and send a data request to ACTIVE */ 
-       mbcsv_arg.i_op=NCS_MBCSV_OP_SEND_DATA_REQ;
-       mbcsv_arg.i_mbcsv_hdl=cb->mbcsv_hdl;
-       mbcsv_arg.info.send_data_req.i_ckpt_hdl=(NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-       rc = ncs_mbcsv_svc(&mbcsv_arg);
-       if(rc != NCSCC_RC_SUCCESS)
-       {
-          m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-          return rc;
-       }
-    }
-    return rc;
+		/* Compose and send a data request to ACTIVE */
+		mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_DATA_REQ;
+		mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+		mbcsv_arg.info.send_data_req.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+		rc = ncs_mbcsv_svc(&mbcsv_arg);
+		if (rc != NCSCC_RC_SUCCESS) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+			return rc;
+		}
+	}
+	return rc;
 }
 
 /****************************************************************************
@@ -2258,26 +2110,25 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 
 /*warm sync encode routine used before */
 
-   uns32   rc = NCSCC_RC_SUCCESS;
-   uns8    *wsync_ptr = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns8 *wsync_ptr = NULL;
 
-   /* Reserve space to send the async update counter */
-   m_EDSV_DEBUG_CONS_PRINTF(" CKPT WARM SYNC CSUM ENCODE....\n");
-   wsync_ptr = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba,sizeof(uns32));
-   if(wsync_ptr == NULL)
-   {
-      /* Log this Error*/
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
+	/* Reserve space to send the async update counter */
+	m_EDSV_DEBUG_CONS_PRINTF(" CKPT WARM SYNC CSUM ENCODE....\n");
+	wsync_ptr = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	if (wsync_ptr == NULL) {
+		/* Log this Error */
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* SEND THE ASYNC UPDATE COUNTER */
-   ncs_encode_32bit(&wsync_ptr,cb->async_upd_cnt);
-   ncs_enc_claim_space(&cbk_arg->info.encode.io_uba,sizeof(uns32));
-   /* Done. Return status */
-   cbk_arg->info.encode.io_msg_type= NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
-   m_EDSV_DEBUG_CONS_PRINTF(" WARMSYNC ENCODE SUCCESS\n");
-   return rc;
+	/* SEND THE ASYNC UPDATE COUNTER */
+	ncs_encode_32bit(&wsync_ptr, cb->async_upd_cnt);
+	ncs_enc_claim_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
+	/* Done. Return status */
+	cbk_arg->info.encode.io_msg_type = NCS_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE;
+	m_EDSV_DEBUG_CONS_PRINTF(" WARMSYNC ENCODE SUCCESS\n");
+	return rc;
 
 }
 
@@ -2302,36 +2153,33 @@ uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
  *                 retrieve the record for encoding the same.
  *****************************************************************************/
 
-uns32 send_async_update(EDS_CB *cb,EDS_CKPT_DATA *ckpt_rec,uns32 action)
+uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action)
 {
-  uns32 rc=NCSCC_RC_SUCCESS;
-  NCS_MBCSV_ARG mbcsv_arg;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCS_MBCSV_ARG mbcsv_arg;
 
+	/* Fill mbcsv specific data */
+	memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
+	mbcsv_arg.i_op = NCS_MBCSV_OP_SEND_CKPT;
+	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
+	mbcsv_arg.info.send_ckpt.i_action = action;
+	mbcsv_arg.info.send_ckpt.i_ckpt_hdl = (NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
+	mbcsv_arg.info.send_ckpt.i_reo_hdl = (MBCSV_REO_HDL)(long)(ckpt_rec);	/*Will be used in encode callback */
+	/* Just store the address of the data to be send as an 
+	 * async update record in reo_hdl. The same shall then be 
+	 *dereferenced during encode callback */
 
-   /* Fill mbcsv specific data */
-   memset(&mbcsv_arg, '\0', sizeof(NCS_MBCSV_ARG));
-   mbcsv_arg.i_op=NCS_MBCSV_OP_SEND_CKPT;
-   mbcsv_arg.i_mbcsv_hdl=cb->mbcsv_hdl;
-   mbcsv_arg.info.send_ckpt.i_action=action;
-   mbcsv_arg.info.send_ckpt.i_ckpt_hdl=(NCS_MBCSV_CKPT_HDL)cb->mbcsv_ckpt_hdl;
-   mbcsv_arg.info.send_ckpt.i_reo_hdl=(MBCSV_REO_HDL)(long)(ckpt_rec); /*Will be used in encode callback*/
-   /* Just store the address of the data to be send as an 
-    * async update record in reo_hdl. The same shall then be 
-    *dereferenced during encode callback */
+	mbcsv_arg.info.send_ckpt.i_reo_type = ckpt_rec->header.ckpt_rec_type;
+	mbcsv_arg.info.send_ckpt.i_send_type = NCS_MBCSV_SND_SYNC;
 
-   mbcsv_arg.info.send_ckpt.i_reo_type=ckpt_rec->header.ckpt_rec_type;
-   mbcsv_arg.info.send_ckpt.i_send_type=NCS_MBCSV_SND_SYNC;
-
-   /* Send async update */
-   if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg)) )
-   {
-      m_EDSV_DEBUG_CONS_PRINTF(" MBCSV send data operation failed !!.\n");
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,rc,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-   }
-   return rc;
-}/*End send_async_update() */
-
+	/* Send async update */
+	if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
+		m_EDSV_DEBUG_CONS_PRINTF(" MBCSV send data operation failed !!.\n");
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
+	return rc;
+}	/*End send_async_update() */
 
 /****************************************************************************
  * Name          : eds_ckpt_peer_info_cbk_handler 
@@ -2347,19 +2195,18 @@ uns32 send_async_update(EDS_CB *cb,EDS_CKPT_DATA *ckpt_rec,uns32 action)
  ***************************************************************************/
 uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
-   uns16 peer_version;
+	uns16 peer_version;
 
-   if (arg == NULL)
-   return NCSCC_RC_FAILURE;
-   peer_version = arg->info.peer.i_peer_version;
-   if( peer_version < EDS_MBCSV_VERSION_MIN )
-   {
-     m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,
-                         __FILE__,__LINE__,arg->info.peer.i_peer_version);
-     return NCSCC_RC_FAILURE;
-   }
-   m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-   return NCSCC_RC_SUCCESS;
+	if (arg == NULL)
+		return NCSCC_RC_FAILURE;
+	peer_version = arg->info.peer.i_peer_version;
+	if (peer_version < EDS_MBCSV_VERSION_MIN) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0,
+			     __FILE__, __LINE__, arg->info.peer.i_peer_version);
+		return NCSCC_RC_FAILURE;
+	}
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -2374,14 +2221,13 @@ uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-uns32 eds_ckpt_notify_cbk_handler (NCS_MBCSV_CB_ARG *arg)
+uns32 eds_ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg)
 {
 
-  /* Currently nothing to be done */
-  m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-  return NCSCC_RC_SUCCESS;
-}/* End eds_ckpt_notify_cbk_handler */
-
+	/* Currently nothing to be done */
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
+}	/* End eds_ckpt_notify_cbk_handler */
 
 /****************************************************************************
  * Name          : eds_ckpt_err_ind_cbk_handler 
@@ -2396,12 +2242,12 @@ uns32 eds_ckpt_notify_cbk_handler (NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  ***************************************************************************/
-uns32 eds_ckpt_err_ind_cbk_handler (NCS_MBCSV_CB_ARG *arg)
-{ 
-   /* Currently nothing to be done. */
-  m_LOG_EDSV_S(EDS_MBCSV_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_INFO,1,__FILE__,__LINE__,0);
-  return NCSCC_RC_SUCCESS;
-}/* End eds_ckpt_err_ind_handler */
+uns32 eds_ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg)
+{
+	/* Currently nothing to be done. */
+	m_LOG_EDSV_S(EDS_MBCSV_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 0);
+	return NCSCC_RC_SUCCESS;
+}	/* End eds_ckpt_err_ind_handler */
 
 /****************************************************************************
  * Name          : eds_edp_ed_reg_rec
@@ -2421,47 +2267,39 @@ uns32 eds_ckpt_err_ind_cbk_handler (NCS_MBCSV_CB_ARG *arg)
  *
  * Notes         : None.
  *****************************************************************************/
- 
+
 uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_REG_MSG *ckpt_reg_msg_ptr = NULL, **ckpt_reg_msg_dec_ptr;
-    
-   EDU_INST_SET eds_ckpt_reg_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_reg_rec, 0, 0, 0, sizeof(EDS_CKPT_REG_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG*)0)->reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG*)0)->eda_client_dest, 0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-  };
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_REG_MSG *ckpt_reg_msg_ptr = NULL, **ckpt_reg_msg_dec_ptr;
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_reg_msg_ptr = (EDS_CKPT_REG_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_reg_msg_dec_ptr = (EDS_CKPT_REG_MSG **)ptr;
-        if(*ckpt_reg_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_reg_msg_dec_ptr, '\0', sizeof(EDS_CKPT_REG_MSG));
-        ckpt_reg_msg_ptr = *ckpt_reg_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_reg_msg_ptr = ptr;
-    }
+	EDU_INST_SET eds_ckpt_reg_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_reg_rec, 0, 0, 0, sizeof(EDS_CKPT_REG_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG *)0)->reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_REG_MSG *)0)->eda_client_dest, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_reg_rec_ed_rules, ckpt_reg_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_reg_msg_ptr = (EDS_CKPT_REG_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_reg_msg_dec_ptr = (EDS_CKPT_REG_MSG **)ptr;
+		if (*ckpt_reg_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_reg_msg_dec_ptr, '\0', sizeof(EDS_CKPT_REG_MSG));
+		ckpt_reg_msg_ptr = *ckpt_reg_msg_dec_ptr;
+	} else {
+		ckpt_reg_msg_ptr = ptr;
+	}
 
-}/* End eds_edp_ed_reg_rec */
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_reg_rec_ed_rules, ckpt_reg_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
+
+}	/* End eds_edp_ed_reg_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_chan_rec
@@ -2483,50 +2321,43 @@ uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_CHAN_MSG *ckpt_chan_msg_ptr=NULL, **ckpt_chan_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_MSG *ckpt_chan_msg_ptr = NULL, **ckpt_chan_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_chan_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_chan_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->last_copen_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->chan_attrib,0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0,(long)&((EDS_CKPT_CHAN_MSG*)0)->chan_opener_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns64, 0, 0, 0,(long)&((EDS_CKPT_CHAN_MSG*)0)->chan_create_time, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->cname_len,0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_chan_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_chan_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->chan_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->last_copen_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->chan_attrib, 0, NULL},
+		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->chan_opener_dest, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->chan_create_time, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->cname_len, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_MSG *)0)->cname, SA_MAX_NAME_LENGTH,
+		 NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_chan_msg_ptr = (EDS_CKPT_CHAN_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_chan_msg_dec_ptr = (EDS_CKPT_CHAN_MSG **)ptr;
-        if(*ckpt_chan_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_chan_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_MSG));
-        ckpt_chan_msg_ptr = *ckpt_chan_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_chan_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_chan_rec_ed_rules, ckpt_chan_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
-                                                                                                                             
-}/*End eds_edp_ed_chan_rec*/
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_chan_msg_ptr = (EDS_CKPT_CHAN_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_chan_msg_dec_ptr = (EDS_CKPT_CHAN_MSG **)ptr;
+		if (*ckpt_chan_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_chan_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_MSG));
+		ckpt_chan_msg_ptr = *ckpt_chan_msg_dec_ptr;
+	} else {
+		ckpt_chan_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_chan_rec_ed_rules, ckpt_chan_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
+
+}	/*End eds_edp_ed_chan_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_chan_open_rec
@@ -2548,50 +2379,43 @@ uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_msg_ptr = NULL, **ckpt_copen_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_OPEN_MSG *ckpt_copen_msg_ptr = NULL, **ckpt_copen_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_copen_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_chan_open_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_OPEN_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_attrib, 0, NULL},
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->chan_opener_dest, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname_len,0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG*)0)->cname,SA_MAX_NAME_LENGTH, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_copen_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_chan_open_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_OPEN_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->chan_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->chan_open_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->chan_attrib, 0, NULL},
+		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->chan_opener_dest, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->cname_len, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, (long)&((EDS_CKPT_CHAN_OPEN_MSG *)0)->cname,
+		 SA_MAX_NAME_LENGTH, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_copen_msg_ptr = (EDS_CKPT_CHAN_OPEN_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_copen_msg_dec_ptr = (EDS_CKPT_CHAN_OPEN_MSG **)ptr;
-        if(*ckpt_copen_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_copen_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_OPEN_MSG));
-        ckpt_copen_msg_ptr = *ckpt_copen_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_copen_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_copen_rec_ed_rules, ckpt_copen_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_copen_msg_ptr = (EDS_CKPT_CHAN_OPEN_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_copen_msg_dec_ptr = (EDS_CKPT_CHAN_OPEN_MSG **)ptr;
+		if (*ckpt_copen_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_copen_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_OPEN_MSG));
+		ckpt_copen_msg_ptr = *ckpt_copen_msg_dec_ptr;
+	} else {
+		ckpt_copen_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_copen_rec_ed_rules, ckpt_copen_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
 
-
-}/* End eds_edp_ed_chan_open_rec() */
+}	/* End eds_edp_ed_chan_open_rec() */
 
 /****************************************************************************
  * Name          : eds_edp_ed_chan_close_rec
@@ -2613,45 +2437,38 @@ uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+				NCSCONTEXT ptr, uns32 *ptr_data_len,
+				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_CHAN_CLOSE_MSG *ckpt_cclose_msg_ptr = NULL, **ckpt_cclose_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_CLOSE_MSG *ckpt_cclose_msg_ptr = NULL, **ckpt_cclose_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_cclose_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_chan_close_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_CLOSE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->reg_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG*)0)->chan_open_id,0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_cclose_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_chan_close_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_CLOSE_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG *)0)->reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG *)0)->chan_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_CLOSE_MSG *)0)->chan_open_id, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-   if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_cclose_msg_ptr = (EDS_CKPT_CHAN_CLOSE_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_cclose_msg_dec_ptr = (EDS_CKPT_CHAN_CLOSE_MSG **)ptr;
-        if(*ckpt_cclose_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_cclose_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_CLOSE_MSG));
-        ckpt_cclose_msg_ptr = *ckpt_cclose_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_cclose_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_cclose_rec_ed_rules, ckpt_cclose_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_cclose_msg_ptr = (EDS_CKPT_CHAN_CLOSE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_cclose_msg_dec_ptr = (EDS_CKPT_CHAN_CLOSE_MSG **)ptr;
+		if (*ckpt_cclose_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_cclose_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_CLOSE_MSG));
+		ckpt_cclose_msg_ptr = *ckpt_cclose_msg_dec_ptr;
+	} else {
+		ckpt_cclose_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_cclose_rec_ed_rules, ckpt_cclose_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
 
-} /*End eds_edp_ed_chan_close_rec*/
+}	/*End eds_edp_ed_chan_close_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_chan_ulink_rec
@@ -2673,44 +2490,37 @@ uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+				NCSCONTEXT ptr, uns32 *ptr_data_len,
+				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-  uns32 rc = NCSCC_RC_SUCCESS;
-  EDS_CKPT_CHAN_UNLINK_MSG *ckpt_culink_msg_ptr = NULL, **ckpt_culink_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_CHAN_UNLINK_MSG *ckpt_culink_msg_ptr = NULL, **ckpt_culink_msg_dec_ptr;
 
-  EDU_INST_SET eds_ckpt_culink_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_chan_ulink_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_UNLINK_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG*)0)->chan_name, 0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_culink_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_chan_ulink_rec, 0, 0, 0, sizeof(EDS_CKPT_CHAN_UNLINK_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG *)0)->reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((EDS_CKPT_CHAN_UNLINK_MSG *)0)->chan_name, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-   if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_culink_msg_ptr = (EDS_CKPT_CHAN_UNLINK_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_culink_msg_dec_ptr = (EDS_CKPT_CHAN_UNLINK_MSG **)ptr;
-        if(*ckpt_culink_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_culink_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_UNLINK_MSG));
-        ckpt_culink_msg_ptr = *ckpt_culink_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_culink_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_culink_rec_ed_rules, ckpt_culink_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_culink_msg_ptr = (EDS_CKPT_CHAN_UNLINK_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_culink_msg_dec_ptr = (EDS_CKPT_CHAN_UNLINK_MSG **)ptr;
+		if (*ckpt_culink_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_culink_msg_dec_ptr, '\0', sizeof(EDS_CKPT_CHAN_UNLINK_MSG));
+		ckpt_culink_msg_ptr = *ckpt_culink_msg_dec_ptr;
+	} else {
+		ckpt_culink_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_culink_rec_ed_rules, ckpt_culink_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
 
-}/*End eds_edp_ed_chan_ulink_rec */
+}	/*End eds_edp_ed_chan_ulink_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_ret_clr_rec 
@@ -2732,45 +2542,40 @@ uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_RETENTION_TIME_CLEAR_MSG *ckpt_ret_clr_msg_ptr = NULL, **ckpt_ret_clr_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_RETENTION_TIME_CLEAR_MSG *ckpt_ret_clr_msg_ptr = NULL, **ckpt_ret_clr_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_ret_clr_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_ret_clr_rec, 0, 0, 0, sizeof(EDS_CKPT_RETENTION_TIME_CLEAR_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG*)0)->data.event_id, 0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_ret_clr_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_ret_clr_rec, 0, 0, 0, sizeof(EDS_CKPT_RETENTION_TIME_CLEAR_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG *)0)->data.chan_id, 0,
+		 NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG *)0)->data.chan_open_id,
+		 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_RETENTION_TIME_CLEAR_MSG *)0)->data.event_id, 0,
+		 NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-   if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_ret_clr_msg_ptr = (EDS_CKPT_RETENTION_TIME_CLEAR_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_ret_clr_msg_dec_ptr = (EDS_CKPT_RETENTION_TIME_CLEAR_MSG **)ptr;
-        if(*ckpt_ret_clr_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_ret_clr_msg_dec_ptr, '\0', sizeof(EDS_CKPT_RETENTION_TIME_CLEAR_MSG));
-        ckpt_ret_clr_msg_ptr = *ckpt_ret_clr_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_ret_clr_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_ret_clr_rec_ed_rules, ckpt_ret_clr_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_ret_clr_msg_ptr = (EDS_CKPT_RETENTION_TIME_CLEAR_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_ret_clr_msg_dec_ptr = (EDS_CKPT_RETENTION_TIME_CLEAR_MSG **)ptr;
+		if (*ckpt_ret_clr_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_ret_clr_msg_dec_ptr, '\0', sizeof(EDS_CKPT_RETENTION_TIME_CLEAR_MSG));
+		ckpt_ret_clr_msg_ptr = *ckpt_ret_clr_msg_dec_ptr;
+	} else {
+		ckpt_ret_clr_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_ret_clr_rec_ed_rules, ckpt_ret_clr_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
 
-}/*End eds_edp_ed_ret_clr_rec*/
+}	/*End eds_edp_ed_ret_clr_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_csum_rec 
@@ -2792,45 +2597,37 @@ uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_DATA_CHECKSUM *ckpt_csum_msg_ptr = NULL, **ckpt_csum_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_DATA_CHECKSUM *ckpt_csum_msg_ptr = NULL, **ckpt_csum_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_csum_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_csum_rec, 0, 0, 0, sizeof(EDS_CKPT_DATA_CHECKSUM), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->reg_csum, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->copen_csum,0, NULL},
-        {EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM*)0)->subsc_csum,0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_csum_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_csum_rec, 0, 0, 0, sizeof(EDS_CKPT_DATA_CHECKSUM), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM *)0)->reg_csum, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM *)0)->copen_csum, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns16, 0, 0, 0, (long)&((EDS_CKPT_DATA_CHECKSUM *)0)->subsc_csum, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_csum_msg_ptr = (EDS_CKPT_DATA_CHECKSUM *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_csum_msg_dec_ptr = (EDS_CKPT_DATA_CHECKSUM **)ptr;
-        if(*ckpt_csum_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_csum_msg_dec_ptr, '\0', sizeof(EDS_CKPT_DATA_CHECKSUM));
-        ckpt_csum_msg_ptr = *ckpt_csum_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_csum_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_csum_rec_ed_rules, ckpt_csum_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_csum_msg_ptr = (EDS_CKPT_DATA_CHECKSUM *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_csum_msg_dec_ptr = (EDS_CKPT_DATA_CHECKSUM **)ptr;
+		if (*ckpt_csum_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_csum_msg_dec_ptr, '\0', sizeof(EDS_CKPT_DATA_CHECKSUM));
+		ckpt_csum_msg_ptr = *ckpt_csum_msg_dec_ptr;
+	} else {
+		ckpt_csum_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_csum_rec_ed_rules, ckpt_csum_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
 
-    return rc;
-}/*End eds_edp_ed_csum_rec*/
+	return rc;
+}	/*End eds_edp_ed_csum_rec */
 
 /****************************************************************************
  * Name          : eds_edp_ed_csum_rec 
@@ -2852,46 +2649,38 @@ uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_UNSUBSCRIBE_MSG *ckpt_usubsc_msg_ptr = NULL, **ckpt_usubsc_msg_dec_ptr;
-   EDU_INST_SET eds_ckpt_usubsc_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_usubsc_rec, 0, 0, 0, sizeof(EDS_CKPT_UNSUBSCRIBE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.reg_id,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.chan_open_id, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG*)0)->data.sub_id, 0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_UNSUBSCRIBE_MSG *ckpt_usubsc_msg_ptr = NULL, **ckpt_usubsc_msg_dec_ptr;
+	EDU_INST_SET eds_ckpt_usubsc_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_usubsc_rec, 0, 0, 0, sizeof(EDS_CKPT_UNSUBSCRIBE_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG *)0)->data.reg_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG *)0)->data.chan_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG *)0)->data.chan_open_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_UNSUBSCRIBE_MSG *)0)->data.sub_id, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_usubsc_msg_ptr = (EDS_CKPT_UNSUBSCRIBE_MSG*)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_usubsc_msg_dec_ptr = (EDS_CKPT_UNSUBSCRIBE_MSG**)ptr;
-        if(*ckpt_usubsc_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_usubsc_msg_dec_ptr, '\0', sizeof(EDS_CKPT_UNSUBSCRIBE_MSG));
-        ckpt_usubsc_msg_ptr = *ckpt_usubsc_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_usubsc_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_usubsc_rec_ed_rules, ckpt_usubsc_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_usubsc_msg_ptr = (EDS_CKPT_UNSUBSCRIBE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_usubsc_msg_dec_ptr = (EDS_CKPT_UNSUBSCRIBE_MSG **)ptr;
+		if (*ckpt_usubsc_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_usubsc_msg_dec_ptr, '\0', sizeof(EDS_CKPT_UNSUBSCRIBE_MSG));
+		ckpt_usubsc_msg_ptr = *ckpt_usubsc_msg_dec_ptr;
+	} else {
+		ckpt_usubsc_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_usubsc_rec_ed_rules, ckpt_usubsc_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
 
-    return rc;
+	return rc;
 
-}/*End eds_edp_ed_usubsc_rec()*/
+}	/*End eds_edp_ed_usubsc_rec() */
 
 /****************************************************************************
  * Name          : eds_edp_ed_finalize_rec
@@ -2913,43 +2702,35 @@ uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			      NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_FINALIZE_MSG *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_FINALIZE_MSG *ckpt_final_msg_ptr = NULL, **ckpt_final_msg_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_final_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_finalize_rec, 0, 0, 0, sizeof(EDS_CKPT_FINALIZE_MSG), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_FINALIZE_MSG*)0)->reg_id,0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
+	EDU_INST_SET eds_ckpt_final_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_finalize_rec, 0, 0, 0, sizeof(EDS_CKPT_FINALIZE_MSG), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_FINALIZE_MSG *)0)->reg_id, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_final_msg_ptr = (EDS_CKPT_FINALIZE_MSG*)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_final_msg_dec_ptr = (EDS_CKPT_FINALIZE_MSG**)ptr;
-        if(*ckpt_final_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_final_msg_dec_ptr, '\0', sizeof(EDS_CKPT_FINALIZE_MSG));
-        ckpt_final_msg_ptr = *ckpt_final_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_final_msg_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_final_rec_ed_rules, ckpt_final_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
-                                                                                                                             
-}/* End eds_edp_ed_finalize_rec() */
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_final_msg_ptr = (EDS_CKPT_FINALIZE_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_final_msg_dec_ptr = (EDS_CKPT_FINALIZE_MSG **)ptr;
+		if (*ckpt_final_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_final_msg_dec_ptr, '\0', sizeof(EDS_CKPT_FINALIZE_MSG));
+		ckpt_final_msg_ptr = *ckpt_final_msg_dec_ptr;
+	} else {
+		ckpt_final_msg_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_final_rec_ed_rules, ckpt_final_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
+
+}	/* End eds_edp_ed_finalize_rec() */
 
 /****************************************************************************
  * Name          : eds_edp_ed_header_rec 
@@ -2971,45 +2752,37 @@ uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  *****************************************************************************/
 
 uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_HEADER *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_HEADER *ckpt_header_ptr = NULL, **ckpt_header_dec_ptr;
 
-   EDU_INST_SET eds_ckpt_header_rec_ed_rules[ ] = {
-        {EDU_START,eds_edp_ed_header_rec, 0, 0, 0, sizeof(EDS_CKPT_HEADER), 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->ckpt_rec_type,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->num_ckpt_records,0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER*)0)->data_len,0, NULL},
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-   };
-                                                                                                                             
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_header_ptr = (EDS_CKPT_HEADER*)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_header_dec_ptr = (EDS_CKPT_HEADER**)ptr;
-        if(*ckpt_header_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_header_dec_ptr, '\0', sizeof(EDS_CKPT_HEADER));
-        ckpt_header_ptr = *ckpt_header_dec_ptr;
-    }
-    else
-    {
-        ckpt_header_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_header_rec_ed_rules, ckpt_header_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+	EDU_INST_SET eds_ckpt_header_rec_ed_rules[] = {
+		{EDU_START, eds_edp_ed_header_rec, 0, 0, 0, sizeof(EDS_CKPT_HEADER), 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER *)0)->ckpt_rec_type, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER *)0)->num_ckpt_records, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_HEADER *)0)->data_len, 0, NULL},
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-}/* End eds_edp_ed_header_rec() */
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_header_ptr = (EDS_CKPT_HEADER *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_header_dec_ptr = (EDS_CKPT_HEADER **)ptr;
+		if (*ckpt_header_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_header_dec_ptr, '\0', sizeof(EDS_CKPT_HEADER));
+		ckpt_header_ptr = *ckpt_header_dec_ptr;
+	} else {
+		ckpt_header_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_header_rec_ed_rules, ckpt_header_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
+
+}	/* End eds_edp_ed_header_rec() */
 
 /****************************************************************************
  * Name          : eds_ckpt_msg_test_type
@@ -3034,56 +2807,54 @@ uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 
 int32 eds_ckpt_msg_test_type(NCSCONTEXT arg)
 {
-  typedef enum
-   {
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_REG = 1,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_FINAL,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_OPEN,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_CLOSE,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_UNLINK,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_RETEN_CLR,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_UNSUBSCRIBE,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_CSUM,
-       LCL_TEST_JUMP_OFFSET_EDS_CKPT_AGENT_DOWN
-   }LCL_TEST_JUMP_OFFSET;
+	typedef enum {
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_REG = 1,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_FINAL,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_OPEN,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_CLOSE,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_UNLINK,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_RETEN_CLR,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_UNSUBSCRIBE,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_CSUM,
+		LCL_TEST_JUMP_OFFSET_EDS_CKPT_AGENT_DOWN
+	} LCL_TEST_JUMP_OFFSET;
 
-   EDS_CKPT_DATA_TYPE    ckpt_rec_type;
+	EDS_CKPT_DATA_TYPE ckpt_rec_type;
 
-   if(arg == NULL)
-      return EDU_FAIL;
+	if (arg == NULL)
+		return EDU_FAIL;
 
-   ckpt_rec_type = *(EDS_CKPT_DATA_TYPE *)arg;
-   switch(ckpt_rec_type)
-   {
-   case EDS_CKPT_INITIALIZE_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_REG;
-   case EDS_CKPT_FINALIZE_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_FINAL;
-   case EDS_CKPT_CHAN_REC:
-   case EDS_CKPT_ASYNC_CHAN_OPEN_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN;
-   case EDS_CKPT_CHAN_OPEN_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_OPEN;
-   case EDS_CKPT_CHAN_CLOSE_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_CLOSE;
-   case EDS_CKPT_CHAN_UNLINK_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_UNLINK;
-   case EDS_CKPT_RETENTION_TIME_CLR_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_RETEN_CLR;
-   case EDS_CKPT_UNSUBSCRIBE_REC:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_UNSUBSCRIBE;
-   case EDS_CKPT_WARM_SYNC_CSUM:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CSUM;
-   case EDS_CKPT_AGENT_DOWN:
-      return LCL_TEST_JUMP_OFFSET_EDS_CKPT_AGENT_DOWN;
-   default:
-      return EDU_EXIT;
-      break;
-   }
-   return EDU_FAIL;
+	ckpt_rec_type = *(EDS_CKPT_DATA_TYPE *)arg;
+	switch (ckpt_rec_type) {
+	case EDS_CKPT_INITIALIZE_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_REG;
+	case EDS_CKPT_FINALIZE_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_FINAL;
+	case EDS_CKPT_CHAN_REC:
+	case EDS_CKPT_ASYNC_CHAN_OPEN_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN;
+	case EDS_CKPT_CHAN_OPEN_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_OPEN;
+	case EDS_CKPT_CHAN_CLOSE_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_CLOSE;
+	case EDS_CKPT_CHAN_UNLINK_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CHAN_UNLINK;
+	case EDS_CKPT_RETENTION_TIME_CLR_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_RETEN_CLR;
+	case EDS_CKPT_UNSUBSCRIBE_REC:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_UNSUBSCRIBE;
+	case EDS_CKPT_WARM_SYNC_CSUM:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_CSUM;
+	case EDS_CKPT_AGENT_DOWN:
+		return LCL_TEST_JUMP_OFFSET_EDS_CKPT_AGENT_DOWN;
+	default:
+		return EDU_EXIT;
+		break;
+	}
+	return EDU_FAIL;
 
-}/*End edp test type */
+}	/*End edp test type */
 
 /****************************************************************************
  * Name          : eds_edp_ed_ckpt_msg 
@@ -3109,87 +2880,80 @@ int32 eds_ckpt_msg_test_type(NCSCONTEXT arg)
  *****************************************************************************/
 
 uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err)
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   EDS_CKPT_DATA *ckpt_msg_ptr = NULL, **ckpt_msg_dec_ptr;
-   
-   EDU_INST_SET eds_ckpt_msg_ed_rules[ ] = {
-        {EDU_START, eds_edp_ed_ckpt_msg, 0, 0, 0, sizeof(EDS_CKPT_DATA), 0, NULL},
-        {EDU_EXEC, eds_edp_ed_header_rec, 0, 0, 0, (long)&((EDS_CKPT_DATA*)0)->header,0, NULL},
+	uns32 rc = NCSCC_RC_SUCCESS;
+	EDS_CKPT_DATA *ckpt_msg_ptr = NULL, **ckpt_msg_dec_ptr;
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_DATA*)0)->header, 0, (EDU_EXEC_RTINE )eds_ckpt_msg_test_type},
- 
-        /* Reg Record */
-        {EDU_EXEC, eds_edp_ed_reg_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.reg_rec, 0, NULL},
+	EDU_INST_SET eds_ckpt_msg_ed_rules[] = {
+		{EDU_START, eds_edp_ed_ckpt_msg, 0, 0, 0, sizeof(EDS_CKPT_DATA), 0, NULL},
+		{EDU_EXEC, eds_edp_ed_header_rec, 0, 0, 0, (long)&((EDS_CKPT_DATA *)0)->header, 0, NULL},
 
-        /* Finalize record */
-        {EDU_EXEC, eds_edp_ed_finalize_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.finalize_rec, 0, NULL},
-        
-        /* Channel Create records */
-        {EDU_EXEC, eds_edp_ed_chan_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
+		{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (long)&((EDS_CKPT_DATA *)0)->header, 0,
+		 (EDU_EXEC_RTINE)eds_ckpt_msg_test_type},
 
-        /* Channel open records */
-        {EDU_EXEC, eds_edp_ed_chan_open_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_open_rec, 0, NULL},
- 
-        /* Channel close records */
-        {EDU_EXEC, eds_edp_ed_chan_close_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_close_rec, 0, NULL},
- 
-        /* Channel unlink records */
-        {EDU_EXEC, eds_edp_ed_chan_ulink_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.chan_unlink_rec, 0, NULL},
- 
-        /* Retention time clear records */
-        {EDU_EXEC, eds_edp_ed_ret_clr_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.reten_time_clr_rec, 0, NULL},
+		/* Reg Record */
+		{EDU_EXEC, eds_edp_ed_reg_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.reg_rec, 0, NULL},
 
-        /* UnSubscribe Record */
-        {EDU_EXEC, eds_edp_ed_usubsc_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.unsubscribe_rec, 0, NULL},
+		/* Finalize record */
+		{EDU_EXEC, eds_edp_ed_finalize_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.finalize_rec, 0, NULL},
 
-        /* Warm Sync Checksum on data,record */
-        {EDU_EXEC, eds_edp_ed_csum_rec, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.warm_sync_csum, 0, NULL},
+		/* Channel Create records */
+		{EDU_EXEC, eds_edp_ed_chan_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.chan_open_rec, 0, NULL},
 
-        /* Warm Sync Checksum on data,record */
-        {EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
-            (long)&((EDS_CKPT_DATA*)0)->ckpt_rec.agent_dest, 0, NULL},
+		/* Channel open records */
+		{EDU_EXEC, eds_edp_ed_chan_open_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.chan_open_rec, 0, NULL},
 
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-  };
+		/* Channel close records */
+		{EDU_EXEC, eds_edp_ed_chan_close_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.chan_close_rec, 0, NULL},
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        ckpt_msg_ptr = (EDS_CKPT_DATA *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        ckpt_msg_dec_ptr = (EDS_CKPT_DATA **)ptr;
-        if(*ckpt_msg_dec_ptr == NULL)
-        {
-           *o_err = EDU_ERR_MEM_FAIL;
-           return NCSCC_RC_FAILURE;
-        }
-        memset(*ckpt_msg_dec_ptr, '\0', sizeof(EDS_CKPT_DATA));
-        ckpt_msg_ptr = *ckpt_msg_dec_ptr;
-    }
-    else
-    {
-        ckpt_msg_ptr = ptr;
-    }
+		/* Channel unlink records */
+		{EDU_EXEC, eds_edp_ed_chan_ulink_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.chan_unlink_rec, 0, NULL},
 
-    rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_msg_ed_rules, ckpt_msg_ptr, ptr_data_len,
-        buf_env, op, o_err);
-    return rc;
+		/* Retention time clear records */
+		{EDU_EXEC, eds_edp_ed_ret_clr_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.reten_time_clr_rec, 0, NULL},
 
-} /* End eds_edu_enc_dec_ckpt_msg() */
+		/* UnSubscribe Record */
+		{EDU_EXEC, eds_edp_ed_usubsc_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.unsubscribe_rec, 0, NULL},
+
+		/* Warm Sync Checksum on data,record */
+		{EDU_EXEC, eds_edp_ed_csum_rec, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.warm_sync_csum, 0, NULL},
+
+		/* Warm Sync Checksum on data,record */
+		{EDU_EXEC, ncs_edp_mds_dest, 0, 0, EDU_EXIT,
+		 (long)&((EDS_CKPT_DATA *)0)->ckpt_rec.agent_dest, 0, NULL},
+
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
+
+	if (op == EDP_OP_TYPE_ENC) {
+		ckpt_msg_ptr = (EDS_CKPT_DATA *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		ckpt_msg_dec_ptr = (EDS_CKPT_DATA **)ptr;
+		if (*ckpt_msg_dec_ptr == NULL) {
+			*o_err = EDU_ERR_MEM_FAIL;
+			return NCSCC_RC_FAILURE;
+		}
+		memset(*ckpt_msg_dec_ptr, '\0', sizeof(EDS_CKPT_DATA));
+		ckpt_msg_ptr = *ckpt_msg_dec_ptr;
+	} else {
+		ckpt_msg_ptr = ptr;
+	}
+
+	rc = m_NCS_EDU_RUN_RULES(edu_hdl, edu_tkn, eds_ckpt_msg_ed_rules, ckpt_msg_ptr, ptr_data_len,
+				 buf_env, op, o_err);
+	return rc;
+
+}	/* End eds_edu_enc_dec_ckpt_msg() */
 
 /* Non EDU routines */
 /****************************************************************************
@@ -3206,11 +2970,11 @@ uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
  * Notes         : None.
  *****************************************************************************/
 
-void eds_enc_ckpt_header(uns8 *pdata,EDS_CKPT_HEADER header)
+void eds_enc_ckpt_header(uns8 *pdata, EDS_CKPT_HEADER header)
 {
-   ncs_encode_32bit(&pdata,header.ckpt_rec_type);
-   ncs_encode_32bit(&pdata,header.num_ckpt_records);
-   ncs_encode_32bit(&pdata,header.data_len);
+	ncs_encode_32bit(&pdata, header.ckpt_rec_type);
+	ncs_encode_32bit(&pdata, header.num_ckpt_records);
+	ncs_encode_32bit(&pdata, header.data_len);
 }
 
 /****************************************************************************
@@ -3229,29 +2993,28 @@ void eds_enc_ckpt_header(uns8 *pdata,EDS_CKPT_HEADER header)
 
 uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
 {
-  uns8 *p8;
-  uns8 local_data[256];
+	uns8 *p8;
+	uns8 local_data[256];
 
-  if ((uba == NULL) || (header == NULL))
-  {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return NCSCC_RC_FAILURE;
-  }
+	if ((uba == NULL) || (header == NULL)) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-  p8 = ncs_dec_flatten_space(uba,local_data,4);
-  header->ckpt_rec_type = ncs_decode_32bit(&p8);
-  ncs_dec_skip_space(uba,4);
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	header->ckpt_rec_type = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
 
-  p8 = ncs_dec_flatten_space(uba,local_data,4);
-  header->num_ckpt_records = ncs_decode_32bit(&p8);
-  ncs_dec_skip_space(uba,4);
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	header->num_ckpt_records = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
 
-  p8 = ncs_dec_flatten_space(uba,local_data,4);
-  header->data_len = ncs_decode_32bit(&p8);
-  ncs_dec_skip_space(uba,4);
- 
-  return NCSCC_RC_SUCCESS;
-}/*End eds_dec_ckpt_header */
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	header->data_len = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+
+	return NCSCC_RC_SUCCESS;
+}	/*End eds_dec_ckpt_header */
 
 /****************************************************************************
  * Name          : eds_ckpt_enc_reten_msg
@@ -3266,110 +3029,98 @@ uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba,EDS_CKPT_RETAIN_EVT_MSG *msg)
+uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg)
 {
-   uns8                      *p8=NULL;
-   uns32                     total_bytes = 0;
-   uns32                     x=0;
-   SaEvtEventPatternT        *pattern_ptr;
-   EDSV_EDA_PUBLISH_PARAM    *param = &msg->data;
+	uns8 *p8 = NULL;
+	uns32 total_bytes = 0;
+	uns32 x = 0;
+	SaEvtEventPatternT *pattern_ptr;
+	EDSV_EDA_PUBLISH_PARAM *param = &msg->data;
 
-   if (uba == NULL)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return 0;
-   }
+	if (uba == NULL) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return 0;
+	}
 
    /** encode the contents **/
-   p8 = ncs_enc_reserve_space(uba, 20);
-   if(!p8)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   }
-   
-   ncs_encode_32bit(&p8, param->reg_id);
-   ncs_encode_32bit(&p8, param->chan_id);
-   ncs_encode_32bit(&p8, param->chan_open_id);
-   ncs_encode_64bit(&p8, param->pattern_array->patternsNumber);
-   ncs_enc_claim_space(uba, 20);
-   total_bytes += 20;
+	p8 = ncs_enc_reserve_space(uba, 20);
+	if (!p8) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	}
 
-   /* Encode the patterns */
-   pattern_ptr = param->pattern_array->patterns;
-   for (x=0; x<(uns32)param->pattern_array->patternsNumber; x++)
-   {
-      /* Save room for the patternSize field (8 bytes) */
-      p8 = ncs_enc_reserve_space(uba, 8);
-      if(!p8)
-      {
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      }
-   
-      ncs_encode_64bit(&p8, pattern_ptr->patternSize);
-      ncs_enc_claim_space(uba,8);
-      total_bytes += 8;
+	ncs_encode_32bit(&p8, param->reg_id);
+	ncs_encode_32bit(&p8, param->chan_id);
+	ncs_encode_32bit(&p8, param->chan_open_id);
+	ncs_encode_64bit(&p8, param->pattern_array->patternsNumber);
+	ncs_enc_claim_space(uba, 20);
+	total_bytes += 20;
 
-      /* For zero length patterns, fake encode zero */
-      if (pattern_ptr->patternSize == 0)
-      {
-         p8 = ncs_enc_reserve_space(uba, 4);
-         if(!p8)
-         {
-           m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-         }
-   
-         ncs_encode_32bit(&p8, 0);
-         ncs_enc_claim_space(uba, 4);
-         total_bytes += 4;
-      }
-      else
-      {
-         ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern,
-                                    (uns32)pattern_ptr->patternSize);
-         total_bytes += (uns32)pattern_ptr->patternSize;
-      }
-      pattern_ptr++;
-   }
+	/* Encode the patterns */
+	pattern_ptr = param->pattern_array->patterns;
+	for (x = 0; x < (uns32)param->pattern_array->patternsNumber; x++) {
+		/* Save room for the patternSize field (8 bytes) */
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		}
 
-   p8 = ncs_enc_reserve_space(uba, 11);
-   if(!p8)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   }
-   ncs_encode_8bit(&p8,  param->priority);
-   ncs_encode_64bit(&p8, param->retention_time);
-   ncs_encode_16bit(&p8, param->publisher_name.length);
-   ncs_enc_claim_space(uba, 11);
-   total_bytes += 11;
+		ncs_encode_64bit(&p8, pattern_ptr->patternSize);
+		ncs_enc_claim_space(uba, 8);
+		total_bytes += 8;
 
-   ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, 
-                              (uns32)param->publisher_name.length);
-   total_bytes += (uns32)param->publisher_name.length;
+		/* For zero length patterns, fake encode zero */
+		if (pattern_ptr->patternSize == 0) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
+					     __LINE__, 0);
+			}
 
-   p8 = ncs_enc_reserve_space(uba, 12);
-   if(!p8)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   }
-   ncs_encode_32bit(&p8,  param->event_id);
-   ncs_encode_64bit(&p8, param->data_len);
-   ncs_enc_claim_space(uba, 12);
-   total_bytes += 12;
+			ncs_encode_32bit(&p8, 0);
+			ncs_enc_claim_space(uba, 4);
+			total_bytes += 4;
+		} else {
+			ncs_encode_n_octets_in_uba(uba, pattern_ptr->pattern, (uns32)pattern_ptr->patternSize);
+			total_bytes += (uns32)pattern_ptr->patternSize;
+		}
+		pattern_ptr++;
+	}
 
-   ncs_encode_n_octets_in_uba(uba, param->data, (uns32)param->data_len);
-   total_bytes += (uns32)param->data_len;
+	p8 = ncs_enc_reserve_space(uba, 11);
+	if (!p8) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	}
+	ncs_encode_8bit(&p8, param->priority);
+	ncs_encode_64bit(&p8, param->retention_time);
+	ncs_encode_16bit(&p8, param->publisher_name.length);
+	ncs_enc_claim_space(uba, 11);
+	total_bytes += 11;
 
-   p8 = ncs_enc_reserve_space(uba,8);
-   if(!p8)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   }
-   ncs_encode_64bit(&p8, msg->pubtime);
-   ncs_enc_claim_space(uba,8);
-   total_bytes += 8;
+	ncs_encode_n_octets_in_uba(uba, param->publisher_name.value, (uns32)param->publisher_name.length);
+	total_bytes += (uns32)param->publisher_name.length;
 
-   return total_bytes;
-}/*End eds_ckpt_enc_reten_msg*/
+	p8 = ncs_enc_reserve_space(uba, 12);
+	if (!p8) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	}
+	ncs_encode_32bit(&p8, param->event_id);
+	ncs_encode_64bit(&p8, param->data_len);
+	ncs_enc_claim_space(uba, 12);
+	total_bytes += 12;
+
+	ncs_encode_n_octets_in_uba(uba, param->data, (uns32)param->data_len);
+	total_bytes += (uns32)param->data_len;
+
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	}
+	ncs_encode_64bit(&p8, msg->pubtime);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
+
+	return total_bytes;
+}	/*End eds_ckpt_enc_reten_msg */
 
 /****************************************************************************
  * Name          : eds_ckpt_enc_subscribe_msg
@@ -3385,71 +3136,63 @@ uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba,EDS_CKPT_RETAIN_EVT_MSG *msg)
  * Notes         : None.
  *****************************************************************************/
 
-uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba,EDS_CKPT_SUBSCRIBE_MSG *msg)
+uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg)
 {
-   uns8         *p8=NULL;
-   uns32        x=0;
-   uns32        total_bytes = 0;
-   SaEvtEventFilterT  *filter_ptr;
-   EDSV_EDA_SUBSCRIBE_PARAM *param = &msg->data;
+	uns8 *p8 = NULL;
+	uns32 x = 0;
+	uns32 total_bytes = 0;
+	SaEvtEventFilterT *filter_ptr;
+	EDSV_EDA_SUBSCRIBE_PARAM *param = &msg->data;
 
-   if (uba == NULL)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return 0;
-   }
+	if (uba == NULL) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return 0;
+	}
    /** encode the contents **/
-   p8 = ncs_enc_reserve_space(uba, 24);
-   if(!p8)
-   {
-      m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-   }
-   ncs_encode_32bit(&p8, param->reg_id);
-   ncs_encode_32bit(&p8, param->chan_id);
-   ncs_encode_32bit(&p8, param->chan_open_id);
-   ncs_encode_32bit(&p8, param->sub_id);
-   ncs_encode_64bit(&p8, param->filter_array->filtersNumber);
-   ncs_enc_claim_space(uba, 24);
-   total_bytes += 24;
+	p8 = ncs_enc_reserve_space(uba, 24);
+	if (!p8) {
+		m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+	}
+	ncs_encode_32bit(&p8, param->reg_id);
+	ncs_encode_32bit(&p8, param->chan_id);
+	ncs_encode_32bit(&p8, param->chan_open_id);
+	ncs_encode_32bit(&p8, param->sub_id);
+	ncs_encode_64bit(&p8, param->filter_array->filtersNumber);
+	ncs_enc_claim_space(uba, 24);
+	total_bytes += 24;
 
-   /* Encode the filters */
-   filter_ptr = param->filter_array->filters;
-   for (x=0; x < (uns32)param->filter_array->filtersNumber; x++)
-   {
-      /* Save room for the filterType(4 bytes), patternSize(8 bytes)
-       */
-      p8 = ncs_enc_reserve_space(uba, 12);
-      if(!p8)
-      {
-        m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      }
-      ncs_encode_32bit(&p8, filter_ptr->filterType);
-      ncs_encode_64bit(&p8, filter_ptr->filter.patternSize);
-      ncs_enc_claim_space(uba, 12);
-      total_bytes = 12;
+	/* Encode the filters */
+	filter_ptr = param->filter_array->filters;
+	for (x = 0; x < (uns32)param->filter_array->filtersNumber; x++) {
+		/* Save room for the filterType(4 bytes), patternSize(8 bytes)
+		 */
+		p8 = ncs_enc_reserve_space(uba, 12);
+		if (!p8) {
+			m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		}
+		ncs_encode_32bit(&p8, filter_ptr->filterType);
+		ncs_encode_64bit(&p8, filter_ptr->filter.patternSize);
+		ncs_enc_claim_space(uba, 12);
+		total_bytes = 12;
 
-      /* For zero length filters, fake encode zero */
-      if ((uns32)filter_ptr->filter.patternSize == 0)
-      {
-         p8 = ncs_enc_reserve_space(uba, 4);
-         if(!p8)
-         {
-            m_LOG_EDSV_S(EDS_MBCSV_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-         }
-         ncs_encode_32bit(&p8, 0);
-         ncs_enc_claim_space(uba, 4);
-         total_bytes += 4;
-      }
-      else
-      {
-         ncs_encode_n_octets_in_uba(uba, filter_ptr->filter.pattern,
-                                    (uns32)filter_ptr->filter.patternSize);
-         total_bytes += (uns32)filter_ptr->filter.patternSize;
-      }
-      filter_ptr++;
-   }
+		/* For zero length filters, fake encode zero */
+		if ((uns32)filter_ptr->filter.patternSize == 0) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				m_LOG_EDSV_S(EDS_MBCSV_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
+					     __LINE__, 0);
+			}
+			ncs_encode_32bit(&p8, 0);
+			ncs_enc_claim_space(uba, 4);
+			total_bytes += 4;
+		} else {
+			ncs_encode_n_octets_in_uba(uba, filter_ptr->filter.pattern,
+						   (uns32)filter_ptr->filter.patternSize);
+			total_bytes += (uns32)filter_ptr->filter.patternSize;
+		}
+		filter_ptr++;
+	}
 
-   return total_bytes;
+	return total_bytes;
 
-}/*End eds_ckpt_enc_subscribe_msg */
-
+}	/*End eds_ckpt_enc_subscribe_msg */

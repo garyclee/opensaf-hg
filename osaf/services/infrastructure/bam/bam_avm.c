@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -48,40 +46,35 @@ EXTERN_C uns32 gl_bam_avm_cfg_msg_num;
 ******************************************************************************/
 uns32 bam_avm_snd_message(BAM_AVM_MSG_T *snd_msg)
 {
-   NCSMDS_INFO snd_mds;
-   uns32 rc;
-   NCS_BAM_CB   *bam_cb = NULL;
+	NCSMDS_INFO snd_mds;
+	uns32 rc;
+	NCS_BAM_CB *bam_cb = NULL;
 
-   if((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL)
-   {
-      m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
-      return NCSCC_RC_FAILURE;
-   }
-  
-   memset(&snd_mds,'\0',sizeof(NCSMDS_INFO));
+	if ((bam_cb = (NCS_BAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_BAM, gl_ncs_bam_hdl)) == NULL) {
+		m_LOG_BAM_HEADLINE(BAM_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		return NCSCC_RC_FAILURE;
+	}
 
-   snd_mds.i_mds_hdl = bam_cb->mds_hdl;
-   snd_mds.i_svc_id = NCSMDS_SVC_ID_BAM;
-   snd_mds.i_op = MDS_SEND;
-   snd_mds.info.svc_send.i_msg = (NCSCONTEXT)snd_msg;
-   snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_AVM;
-   snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
-   snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
-   snd_mds.info.svc_send.info.snd.i_to_dest = bam_cb->avm_dest;
-   if( (rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS)
-   {
-      /*m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND);*/
-      return rc;
-   }
+	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 
-   ncshm_give_hdl(gl_ncs_bam_hdl);   
+	snd_mds.i_mds_hdl = bam_cb->mds_hdl;
+	snd_mds.i_svc_id = NCSMDS_SVC_ID_BAM;
+	snd_mds.i_op = MDS_SEND;
+	snd_mds.info.svc_send.i_msg = (NCSCONTEXT)snd_msg;
+	snd_mds.info.svc_send.i_to_svc = NCSMDS_SVC_ID_AVM;
+	snd_mds.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
+	snd_mds.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
+	snd_mds.info.svc_send.info.snd.i_to_dest = bam_cb->avm_dest;
+	if ((rc = ncsmds_api(&snd_mds)) != NCSCC_RC_SUCCESS) {
+		/*m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_SEND); */
+		return rc;
+	}
 
-   /* m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_SEND); */
-   return NCSCC_RC_SUCCESS;
+	ncshm_give_hdl(gl_ncs_bam_hdl);
+
+	/* m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_SEND); */
+	return NCSCC_RC_SUCCESS;
 }
-
-
-
 
 /****************************************************************************
 *  Name          : ncs_bam_avm_send_cfg_done_msg
@@ -97,16 +90,15 @@ uns32 bam_avm_snd_message(BAM_AVM_MSG_T *snd_msg)
 ******************************************************************************/
 void ncs_bam_avm_send_cfg_done_msg()
 {
-   BAM_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_BAM_AVM_MSG;
+	BAM_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_BAM_AVM_MSG;
 
-   /* Fill in the message */
-   memset(snd_msg,'\0',sizeof(BAM_AVM_MSG_T));
-   snd_msg->msg_type = BAM_AVM_CFG_DONE_MSG;
-   snd_msg->msg_info.msg.check_sum = gl_bam_avm_cfg_msg_num;
+	/* Fill in the message */
+	memset(snd_msg, '\0', sizeof(BAM_AVM_MSG_T));
+	snd_msg->msg_type = BAM_AVM_CFG_DONE_MSG;
+	snd_msg->msg_info.msg.check_sum = gl_bam_avm_cfg_msg_num;
 
-   if(bam_avm_snd_message(snd_msg) != NCSCC_RC_SUCCESS)
-   {
-      m_MMGR_FREE_BAM_AVM_MSG(snd_msg);
-   }
-   return;
+	if (bam_avm_snd_message(snd_msg) != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_BAM_AVM_MSG(snd_msg);
+	}
+	return;
 }

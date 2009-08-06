@@ -22,7 +22,6 @@
 
   DESCRIPTION:
 
-
 ******************************************************************************
 */
 #ifndef SCKT_DEFS_H
@@ -47,7 +46,7 @@ extern "C" {
  ****************************************************************************/
 
 /* install SIGPIPE signal handler on socket init */
-uns32 ncs_os_install_sigpipe_handler(void);
+	uns32 ncs_os_install_sigpipe_handler(void);
 
 #define m_NCS_TS_SOCK_CREATE            ncs_os_install_sigpipe_handler()
 
@@ -64,4 +63,4 @@ uns32 ncs_os_install_sigpipe_handler(void);
 }
 #endif
 
-#endif /* SCKT_DEFS_H */
+#endif   /* SCKT_DEFS_H */

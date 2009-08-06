@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,18 +31,17 @@
 #define GLA_MEM_H
 
 /* Service Sub IDs for GLA */
-typedef enum
-{
-   NCS_SERVICE_GLA_SUB_ID_GLA_DEFAULT_VAL = 1,
-   NCS_SERVICE_GLA_SUB_ID_GLA_CB,
-   NCS_SERVICE_GLA_SUB_ID_GLA_PEND_CALLBK,
-   NCS_SERVICE_GLA_SUB_ID_GLA_CALLBACK_INFO,
-   NCS_SERVICE_GLA_SUB_ID_GLA_CLIENT_INFO,
-   NCS_SERVICE_GLA_SUB_ID_GLA_EVT,
-   NCS_SERVICE_GLA_SUB_ID_GLA_RES_ID_INFO,
-   NCS_SERVICE_GLA_SUB_ID_GLA_LOCK_ID_INFO,
-   NCS_SERVICE_GLA_SUB_ID_GLA_CLIENT_RES_INFO,
-   NCS_SERVICE_GLA_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_GLA_SUB_ID_GLA_DEFAULT_VAL = 1,
+	NCS_SERVICE_GLA_SUB_ID_GLA_CB,
+	NCS_SERVICE_GLA_SUB_ID_GLA_PEND_CALLBK,
+	NCS_SERVICE_GLA_SUB_ID_GLA_CALLBACK_INFO,
+	NCS_SERVICE_GLA_SUB_ID_GLA_CLIENT_INFO,
+	NCS_SERVICE_GLA_SUB_ID_GLA_EVT,
+	NCS_SERVICE_GLA_SUB_ID_GLA_RES_ID_INFO,
+	NCS_SERVICE_GLA_SUB_ID_GLA_LOCK_ID_INFO,
+	NCS_SERVICE_GLA_SUB_ID_GLA_CLIENT_RES_INFO,
+	NCS_SERVICE_GLA_SUB_ID_MAX
 } NCS_SERVICE_GLA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -52,7 +49,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_GLA_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -85,7 +81,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLA, \
                                                 NCS_SERVICE_GLA_SUB_ID_GLA_CALLBACK_INFO)
 
-
 #define m_MMGR_ALLOC_GLA_CLIENT_INFO            (GLA_CLIENT_INFO *)m_NCS_MEM_ALLOC(sizeof(GLA_CLIENT_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLA, \
@@ -95,7 +90,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLA, \
                                                 NCS_SERVICE_GLA_SUB_ID_GLA_CLIENT_INFO)
-
 
 #define m_MMGR_ALLOC_GLA_EVT                    (GLSV_GLA_EVT *)m_NCS_MEM_ALLOC(sizeof(GLSV_GLA_EVT), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -136,4 +130,5 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLA, \
                                                 NCS_SERVICE_GLA_SUB_ID_GLA_LOCK_ID_INFO)
-#endif /* !GLA_MEM_H */
+
+#endif   /* !GLA_MEM_H */

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -34,11 +32,10 @@
 #define GLSV_MEM_H
 
 /* Service Sub IDs for GLSV */
-typedef enum
-{
-   NCS_SERVICE_GLSV_SUB_ID_GLND_LOCK_LIST_INFO =1 ,
-   NCS_SERVICE_GLSV_SUB_ID_GLND_DD_INFO_LIST,
-   NCS_SERVICE_GLSV_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_GLSV_SUB_ID_GLND_LOCK_LIST_INFO = 1,
+	NCS_SERVICE_GLSV_SUB_ID_GLND_DD_INFO_LIST,
+	NCS_SERVICE_GLSV_SUB_ID_MAX
 } NCS_SERVICE_GLSV_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -46,7 +43,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_GLSV_GLND_LOCK_LIST_INFO(mem_size,svc_id)       m_NCS_MEM_ALLOC( \
                                                                         mem_size, \
@@ -67,4 +63,5 @@ typedef enum
                                                                         NCS_MEM_REGION_PERSISTENT, \
                                                                         svc_id, \
                                                                         NCS_SERVICE_GLSV_SUB_ID_GLND_DD_INFO_LIST)
-#endif 
+
+#endif

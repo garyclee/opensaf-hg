@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -36,10 +34,8 @@
 #ifndef AVSV_DEFS_H
 #define AVSV_DEFS_H
 
-
 /* leap timers are 10ms timers so divide with 10000000 */
 #define AVSV_NANOSEC_TO_LEAPTM 10000000
-
 
 /* Global known values */
 #define AVSV_AVD_VCARD_ID  (MDS_VDEST_ID)1
@@ -124,72 +120,68 @@
 #define AVSV_MAX_AMSTART 1
 
 /* Define the Ranks for the persistent MIB tables */
-typedef enum
-{
-   AVSV_TBL_RANK_MIN = 20,
-   AVSV_TBL_RANK_NCSSG = AVSV_TBL_RANK_MIN,
-   AVSV_TBL_RANK_AMFSG,
-   AVSV_TBL_RANK_NCSND,
-   AVSV_TBL_RANK_AMFND,
-   AVSV_TBL_RANK_AMFSU,
-   AVSV_TBL_RANK_AMFCOMP,
-   AVSV_TBL_RANK_AMFSI,
-   AVSV_TBL_RANK_AMFSI_DEP,
-   AVSV_TBL_RANK_AMFCSTYPEPARAM,
-   AVSV_TBL_RANK_AMFCSINV,
-   AVSV_TBL_RANK_AMFCSI,
-   AVSV_TBL_RANK_MAX
-}AVSV_TBL_RANK;
-
+typedef enum {
+	AVSV_TBL_RANK_MIN = 20,
+	AVSV_TBL_RANK_NCSSG = AVSV_TBL_RANK_MIN,
+	AVSV_TBL_RANK_AMFSG,
+	AVSV_TBL_RANK_NCSND,
+	AVSV_TBL_RANK_AMFND,
+	AVSV_TBL_RANK_AMFSU,
+	AVSV_TBL_RANK_AMFCOMP,
+	AVSV_TBL_RANK_AMFSI,
+	AVSV_TBL_RANK_AMFSI_DEP,
+	AVSV_TBL_RANK_AMFCSTYPEPARAM,
+	AVSV_TBL_RANK_AMFCSINV,
+	AVSV_TBL_RANK_AMFCSI,
+	AVSV_TBL_RANK_MAX
+} AVSV_TBL_RANK;
 
 /* readiness state definition */
 typedef enum ncs_readiness_state {
-    NCS_OUT_OF_SERVICE = 1,
-    NCS_IN_SERVICE = 2,
-    NCS_STOPPING = 3
+	NCS_OUT_OF_SERVICE = 1,
+	NCS_IN_SERVICE = 2,
+	NCS_STOPPING = 3
 } NCS_READINESS_STATE;
 
 /* comp capability model definition */
 typedef enum ncs_comp_capability_model {
-    NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY= 1,
-    NCS_COMP_CAPABILITY_X_ACTIVE_OR_Y_STANDBY = 2,
-    NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY = 3,
-    NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY = 4,
-    NCS_COMP_CAPABILITY_X_ACTIVE = 5,
-    NCS_COMP_CAPABILITY_1_ACTIVE = 6,
-    NCS_COMP_CAPABILITY_NO_STATE = 7
+	NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY = 1,
+	NCS_COMP_CAPABILITY_X_ACTIVE_OR_Y_STANDBY = 2,
+	NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY = 3,
+	NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY = 4,
+	NCS_COMP_CAPABILITY_X_ACTIVE = 5,
+	NCS_COMP_CAPABILITY_1_ACTIVE = 6,
+	NCS_COMP_CAPABILITY_NO_STATE = 7
 } NCS_COMP_CAPABILITY_MODEL;
 
-typedef enum{
-   NCS_COMP_TYPE_SA_AWARE,
-   NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE,
-   NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE,
-   NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE,
-   NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE,
-   NCS_COMP_TYPE_NON_SAF,
+typedef enum {
+	NCS_COMP_TYPE_SA_AWARE,
+	NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE,
+	NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE,
+	NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE,
+	NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE,
+	NCS_COMP_TYPE_NON_SAF,
 } NCS_COMP_TYPE_VAL;
 
-typedef enum ncs_pres_state_tag
-{
-  NCS_PRES_UNINSTANTIATED = 1,
-  NCS_PRES_INSTANTIATING,
-  NCS_PRES_INSTANTIATED,
-  NCS_PRES_TERMINATING,
-  NCS_PRES_RESTARTING,
-  NCS_PRES_INSTANTIATIONFAILED,
-  NCS_PRES_TERMINATIONFAILED,
-  NCS_PRES_ORPHANED,
-  NCS_PRES_MAX
+typedef enum ncs_pres_state_tag {
+	NCS_PRES_UNINSTANTIATED = 1,
+	NCS_PRES_INSTANTIATING,
+	NCS_PRES_INSTANTIATED,
+	NCS_PRES_TERMINATING,
+	NCS_PRES_RESTARTING,
+	NCS_PRES_INSTANTIATIONFAILED,
+	NCS_PRES_TERMINATIONFAILED,
+	NCS_PRES_ORPHANED,
+	NCS_PRES_MAX
 } NCS_PRES_STATE;
 
 typedef enum {
-    AVSV_SG_RED_MODL_2N = 1,
-    AVSV_SG_RED_MODL_NPM,
-    AVSV_SG_RED_MODL_NWAY,
-    AVSV_SG_RED_MODL_NWAYACTV,
-    AVSV_SG_RED_MODL_NORED
+	AVSV_SG_RED_MODL_2N = 1,
+	AVSV_SG_RED_MODL_NPM,
+	AVSV_SG_RED_MODL_NWAY,
+	AVSV_SG_RED_MODL_NWAYACTV,
+	AVSV_SG_RED_MODL_NORED
 } SaReduntantModelT;
-
 
 /* 
  * SaAmfRecommendedRecoveryT definition does not include escalated recovery
@@ -197,55 +189,51 @@ typedef enum {
  * captures them..
  */
 typedef enum avsv_err_rcvr {
-   /* recovery specified in SaAmfRecommendedRecoveryT */
-   AVSV_AMF_NO_RECOMMENDATION = 1,
-   AVSV_AMF_COMPONENT_RESTART = 2,
-   AVSV_AMF_COMPONENT_FAILOVER = 3,
-   AVSV_AMF_NODE_SWITCHOVER = 4,
-   AVSV_AMF_NODE_FAILOVER = 5,
-   AVSV_AMF_NODE_FAILFAST = 6,
-   AVSV_AMF_CLUSTER_RESET =7,
+	/* recovery specified in SaAmfRecommendedRecoveryT */
+	AVSV_AMF_NO_RECOMMENDATION = 1,
+	AVSV_AMF_COMPONENT_RESTART = 2,
+	AVSV_AMF_COMPONENT_FAILOVER = 3,
+	AVSV_AMF_NODE_SWITCHOVER = 4,
+	AVSV_AMF_NODE_FAILOVER = 5,
+	AVSV_AMF_NODE_FAILFAST = 6,
+	AVSV_AMF_CLUSTER_RESET = 7,
 
-   /* escalated recovery */
-   AVSV_ERR_RCVR_SU_RESTART,
-   AVSV_ERR_RCVR_SU_FAILOVER,
-   AVSV_ERR_RCVR_MAX
+	/* escalated recovery */
+	AVSV_ERR_RCVR_SU_RESTART,
+	AVSV_ERR_RCVR_SU_FAILOVER,
+	AVSV_ERR_RCVR_MAX
 } AVSV_ERR_RCVR;
 
 /* This structure is used by the CSI
  * attribute name value pair.
  */
 typedef struct {
-    SaNameT name;
-    SaNameT value;
+	SaNameT name;
+	SaNameT value;
 } NCS_AVSV_ATTR_NAME_VAL;
-
 
 /* This structure is the list of CSI
  * attribute name value pairs .
  */
 typedef struct {
-    uns32 number;
-    NCS_AVSV_ATTR_NAME_VAL *list;
+	uns32 number;
+	NCS_AVSV_ATTR_NAME_VAL *list;
 } NCS_AVSV_CSI_ATTRS;
-
-
 
 /* The value to toggle a SI.*/
 typedef enum {
-   AVSV_SI_TOGGLE_STABLE,
-   AVSV_SI_TOGGLE_SWITCH
+	AVSV_SI_TOGGLE_STABLE,
+	AVSV_SI_TOGGLE_SWITCH
 } SaToggleState;
 
 /* The value to re adjust a SG.*/
 typedef enum {
-   AVSV_SG_STABLE,
-   AVSV_SG_ADJUST
+	AVSV_SG_STABLE,
+	AVSV_SG_ADJUST
 } SaAdjustState;
 
 /* Macro for AvSv assert */
 #define m_AVSV_ASSERT(condition) if(!(condition)) assert(0)
-
 
 /* Macros for data to MIB arg modification */
 #define m_AVSV_OCTVAL_TO_PARAM(param,buffer,len,val) \

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,82 +33,57 @@
 #ifndef AVM_CKPT_EDU_H
 #define AVM_CKPT_EDU_H
 
-
 /* Function Definitions of avm_ckpt_edu.c */
 extern uns32 avm_compile_ckpt_edp(AVM_CB_T *cb);
 
 extern uns32
-avm_edp_ckpt_validation_info(EDU_HDL       *hdl,
-                               EDU_TKN       *edu_tkn,
-                             NCSCONTEXT     ptr,
-                             uns32         *ptr_data_len,
-                             EDU_BUF_ENV   *buf_env,
-                             EDP_OP_TYPE    op,
-                             EDU_ERR       *o_err
-                           );
+avm_edp_ckpt_validation_info(EDU_HDL *hdl,
+			     EDU_TKN *edu_tkn,
+			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_ent(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
-extern uns32 avm_edp_ckpt_msg_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_ent(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				  NCSCONTEXT ptr, uns32 *data_len,
+				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_evt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				  NCSCONTEXT ptr, uns32 *data_len,
+				  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_evt_id(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_evt_id(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				     NCSCONTEXT ptr, uns32 *data_len,
+				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_dhcp_conf(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_dhcp_conf(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					NCSCONTEXT ptr, uns32 *data_len,
+					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_dhcp_state(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_dhcp_state(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					 NCSCONTEXT ptr, uns32 *data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_evt_list(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_evt_list(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				       NCSCONTEXT ptr, uns32 *data_len,
+				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-extern uns32 avm_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                           NCSCONTEXT ptr, uns32 *data_len, 
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                           EDU_ERR *o_err);
+extern uns32 avm_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+					     NCSCONTEXT ptr, uns32 *data_len,
+					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 extern uns32
-avm_edp_sensor_event(EDU_HDL       *hdl,
-                     EDU_TKN       *edu_tkn,
-                     NCSCONTEXT     ptr,
-                     uns32         *ptr_data_len,
-                     EDU_BUF_ENV   *buf_env,
-                     EDP_OP_TYPE    op,
-                     EDU_ERR       *o_err
-                    );
-extern uns32 
-avm_edp_ckpt_msg_validation_info(
-                            EDU_HDL       *hdl,
-                              EDU_TKN       *edu_tkn,
-                                 NCSCONTEXT     ptr,
-                                 uns32         *ptr_data_len,
-                                 EDU_BUF_ENV   *buf_env,
-                                 EDP_OP_TYPE    op,
-                                 EDU_ERR       *o_err
-                               );
+avm_edp_sensor_event(EDU_HDL *hdl,
+		     EDU_TKN *edu_tkn,
+		     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+extern uns32
+avm_edp_ckpt_msg_validation_info(EDU_HDL *hdl,
+				 EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr,
+				 uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 extern uns32 avm_edp_ckpt_msg_dummy(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                           NCSCONTEXT ptr, uns32 *data_len,
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                           EDU_ERR *o_err);
+				    NCSCONTEXT ptr, uns32 *data_len,
+				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 extern uns32 avm_edp_ckpt_msg_upgd_state(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                           NCSCONTEXT ptr, uns32 *data_len,
-                           EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                           EDU_ERR *o_err);
+					 NCSCONTEXT ptr, uns32 *data_len,
+					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif

@@ -47,48 +47,46 @@
 
 EXTERN_C int raw;
 
-typedef struct hpi_evt_type
-{
-   SaHpiEventT            hpi_event;
-   SaHpiEntityPathT       entity_path;
-   HISV_INV_DATA          inv_data;
-   uns32                  version;      /* versioning; see the macros defined in hpl_msg.h */
-}HPI_EVT_T;
-
+typedef struct hpi_evt_type {
+	SaHpiEventT hpi_event;
+	SaHpiEntityPathT entity_path;
+	HISV_INV_DATA inv_data;
+	uns32 version;		/* versioning; see the macros defined in hpl_msg.h */
+} HPI_EVT_T;
 
 /*############################################################################
                             Global Variables
 ############################################################################*/
 /* EVT Handle */
-SaEvtHandleT          gl_evt_hdl = 0;
+SaEvtHandleT gl_evt_hdl = 0;
 
 /* Channel created/opened in the demo */
-SaNameT               gl_chan_name = {6,EVT_CHANNEL_NAME};
+SaNameT gl_chan_name = { 6, EVT_CHANNEL_NAME };
 
 /* Channel handle of the channel that'll be used */
-SaEvtChannelHandleT   gl_chan_hdl = 0;
+SaEvtChannelHandleT gl_chan_hdl = 0;
 
 /* Event Handle of the event that'll be published */
-SaEvtEventHandleT     gl_chan_pub_event_hdl = 0;
+SaEvtEventHandleT gl_chan_pub_event_hdl = 0;
 
 /* Event id of the to be published event */
-SaEvtEventIdT         gl_chan_pub_event_id = 0;
+SaEvtEventIdT gl_chan_pub_event_id = 0;
 
 /* subscription id of the installed subscription */
-SaEvtSubscriptionIdT  gl_subid = 19428;
+SaEvtSubscriptionIdT gl_subid = 19428;
 
 /* Name of the event publisher */
-SaNameT               gl_pubname = {11,"EDSvToolkit"};
+SaNameT gl_pubname = { 11, "EDSvToolkit" };
 
 /* Data content of the event */
-uns8                  gl_event_data[64] = "  I am a TRAP event";
+uns8 gl_event_data[64] = "  I am a TRAP event";
 
 /* Description of the pattern by which the evt will be published */
 #define TRAP_PATTERN_ARRAY_LEN 3
 static SaEvtEventPatternT gl_trap_pattern_array[TRAP_PATTERN_ARRAY_LEN] = {
-   {13, 13, (SaUint8T *) "trap xyz here"},
-   {0,0,    (SaUint8T *) NULL},
-   {5,5,    (SaUint8T *) "abcde"}
+	{13, 13, (SaUint8T *)"trap xyz here"},
+	{0, 0, (SaUint8T *)NULL},
+	{5, 5, (SaUint8T *)"abcde"}
 };
 
 /* Description of the filter by which the subscription on the TRAP channel
@@ -96,66 +94,59 @@ static SaEvtEventPatternT gl_trap_pattern_array[TRAP_PATTERN_ARRAY_LEN] = {
  */
 #define TRAP_FILTER_ARRAY_LEN 6
 static SaEvtEventFilterT gl_trap_filter_array[TRAP_FILTER_ARRAY_LEN] = {
-   {SA_EVT_PREFIX_FILTER,   {4,4,(SaUint8T *) "trap"}},
-   {SA_EVT_SUFFIX_FILTER,   {0,0,  (SaUint8T *) NULL}},
-   {SA_EVT_SUFFIX_FILTER,   {4,4,(SaUint8T *) "bcde"}},
-   {SA_EVT_SUFFIX_FILTER,   {0,0,  (SaUint8T *) NULL}},
-   {SA_EVT_PASS_ALL_FILTER, {4,4,(SaUint8T *) "fooy"}},
-   {SA_EVT_PASS_ALL_FILTER, {0,0,  (SaUint8T *) NULL}}
+	{SA_EVT_PREFIX_FILTER, {4, 4, (SaUint8T *)"trap"}},
+	{SA_EVT_SUFFIX_FILTER, {0, 0, (SaUint8T *)NULL}},
+	{SA_EVT_SUFFIX_FILTER, {4, 4, (SaUint8T *)"bcde"}},
+	{SA_EVT_SUFFIX_FILTER, {0, 0, (SaUint8T *)NULL}},
+	{SA_EVT_PASS_ALL_FILTER, {4, 4, (SaUint8T *)"fooy"}},
+	{SA_EVT_PASS_ALL_FILTER, {0, 0, (SaUint8T *)NULL}}
 };
 
 /* Pattern Array set for subscribing events */
 static SaEvtEventFilterT hpi_filter_array[TRAP_FILTER_ARRAY_LEN]
- = {
-      {SA_EVT_PASS_ALL_FILTER,
-         {
-            SAHPI_CRITICAL_PATTERN_LEN,
-            SAHPI_CRITICAL_PATTERN_LEN,
-            (SaUint8T *) SAHPI_CRITICAL_PATTERN
-         }
-      },
+    = {
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_CRITICAL_PATTERN_LEN,
+	  SAHPI_CRITICAL_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_CRITICAL_PATTERN}
+	 },
 
-      {SA_EVT_PASS_ALL_FILTER,
-         {
-            SAHPI_MAJOR_PATTERN_LEN,
-            SAHPI_MAJOR_PATTERN_LEN,
-            (SaUint8T *) SAHPI_MAJOR_PATTERN
-         }
-      },
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_MAJOR_PATTERN_LEN,
+	  SAHPI_MAJOR_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_MAJOR_PATTERN}
+	 },
 
-      {SA_EVT_PASS_ALL_FILTER,
-         {
-            SAHPI_MINOR_PATTERN_LEN,
-            SAHPI_MINOR_PATTERN_LEN,
-            (SaUint8T *) SAHPI_MINOR_PATTERN
-         }
-      },
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_MINOR_PATTERN_LEN,
+	  SAHPI_MINOR_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_MINOR_PATTERN}
+	 },
 
-      {SA_EVT_PASS_ALL_FILTER,
-         {
-            SAHPI_INFORMATIONAL_PATTERN_LEN,
-            SAHPI_INFORMATIONAL_PATTERN_LEN,
-            (SaUint8T *) SAHPI_INFORMATIONAL_PATTERN
-         }
-      },
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_INFORMATIONAL_PATTERN_LEN,
+	  SAHPI_INFORMATIONAL_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_INFORMATIONAL_PATTERN}
+	 },
 
-      {SA_EVT_PASS_ALL_FILTER,
-         {
-            SAHPI_OK_PATTERN_LEN,
-            SAHPI_OK_PATTERN_LEN,
-            (SaUint8T *) SAHPI_OK_PATTERN
-         }
-      },
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_OK_PATTERN_LEN,
+	  SAHPI_OK_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_OK_PATTERN}
+	 },
 
-      {SA_EVT_PASS_ALL_FILTER,
-        {
-           SAHPI_DEBUG_PATTERN_LEN,
-           SAHPI_DEBUG_PATTERN_LEN,
-           (SaUint8T *) SAHPI_DEBUG_PATTERN
-        }
-      }
-   };
-
+	{SA_EVT_PASS_ALL_FILTER,
+	 {
+	  SAHPI_DEBUG_PATTERN_LEN,
+	  SAHPI_DEBUG_PATTERN_LEN,
+	  (SaUint8T *)SAHPI_DEBUG_PATTERN}
+	 }
+};
 
 /*############################################################################
                             Macro Definitions
@@ -172,27 +163,19 @@ static SaEvtEventFilterT hpi_filter_array[TRAP_FILTER_ARRAY_LEN]
                        Static Function Decalarations
 ############################################################################*/
 /* Channel open callback that is registered with EVT during saEvtInitialize()*/
-static void edsv_chan_open_callback(SaInvocationT,  
-                                    SaEvtChannelHandleT,
-                                    SaAisErrorT);
+static void edsv_chan_open_callback(SaInvocationT, SaEvtChannelHandleT, SaAisErrorT);
 
 /* Event deliver callback that is registered with EVT during saEvtInitialize()*/
-static void edsv_evt_delv_callback(SaEvtSubscriptionIdT, 
-                                   SaEvtEventHandleT,
-                                   const SaSizeT);
+static void edsv_evt_delv_callback(SaEvtSubscriptionIdT, SaEvtEventHandleT, const SaSizeT);
 
 /* Utilty routine to allocate an empty pattern array */
-static uns32 alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
-                                 uns32 num_patterns, 
-                                 uns32 pattern_size);
+static uns32 alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array, uns32 num_patterns, uns32 pattern_size);
 
 /* Utility routine to free a pattern array */
 static void free_pattern_array(SaEvtEventPatternArrayT *pattern_array);
 
 /* Utility routine to dump a pattern array */
 static void dump_event_patterns(SaEvtEventPatternArrayT *pattern_array);
-
-
 
 /*#############################################################################
                            End Of Declarations
@@ -222,186 +205,171 @@ static void dump_event_patterns(SaEvtEventPatternArrayT *pattern_array);
 uns32 ncs_hisv_run(void)
 {
 
-   SaAisErrorT                 rc;
-   SaTimeT                  timeout = 100000000000ll; /* In nanoseconds */
-   SaTimeT                  retention_time = 10000000000ll; /* 10 sec in NanoSeconds */
-   SaUint8T                 priority = SA_EVT_HIGHEST_PRIORITY;
-   SaEvtChannelOpenFlagsT   chan_open_flags = 0;
-   SaVersionT               ver;
-   SaEvtEventPatternArrayT  pattern_array;
-   SaEvtEventFilterArrayT   filter_array;
-   SaEvtCallbacksT          reg_callback_set; 
-   SaSelectionObjectT       evt_sel_obj;
-   NCS_SEL_OBJ              evt_ncs_sel_obj;
-   NCS_SEL_OBJ_SET          wait_sel_obj;
+	SaAisErrorT rc;
+	SaTimeT timeout = 100000000000ll;	/* In nanoseconds */
+	SaTimeT retention_time = 10000000000ll;	/* 10 sec in NanoSeconds */
+	SaUint8T priority = SA_EVT_HIGHEST_PRIORITY;
+	SaEvtChannelOpenFlagsT chan_open_flags = 0;
+	SaVersionT ver;
+	SaEvtEventPatternArrayT pattern_array;
+	SaEvtEventFilterArrayT filter_array;
+	SaEvtCallbacksT reg_callback_set;
+	SaSelectionObjectT evt_sel_obj;
+	NCS_SEL_OBJ evt_ncs_sel_obj;
+	NCS_SEL_OBJ_SET wait_sel_obj;
 
+	/* this is to allow to establish MDS session with EDSv */
+	m_NCS_TASK_SLEEP(3000);
 
-   /* this is to allow to establish MDS session with EDSv */
-   m_NCS_TASK_SLEEP(3000);
+	/*#########################################################################
+	   Demonstrating the usage of saEvtInitialize()
+	   ######################################################################### */
 
-   /*#########################################################################
-                     Demonstrating the usage of saEvtInitialize()
-   #########################################################################*/
+	/* Fill the callbacks that are to be registered with EVT */
+	memset(&reg_callback_set, 0, sizeof(SaEvtCallbacksT));
 
-   /* Fill the callbacks that are to be registered with EVT */
-   memset(&reg_callback_set, 0, sizeof(SaEvtCallbacksT));
+	reg_callback_set.saEvtChannelOpenCallback = edsv_chan_open_callback;
+	reg_callback_set.saEvtEventDeliverCallback = edsv_evt_delv_callback;
 
-   reg_callback_set.saEvtChannelOpenCallback  = edsv_chan_open_callback;
-   reg_callback_set.saEvtEventDeliverCallback = edsv_evt_delv_callback;
+	/* Fill the EVT version */
+	m_EDSV_EVT_VER_SET(ver);
 
-   /* Fill the EVT version */
-   m_EDSV_EVT_VER_SET(ver);
+	if (SA_AIS_OK != (rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver))) {
+		printf("\n HISv: EDA: SaEvtInitialize() failed. rc=%d \n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   if (SA_AIS_OK != (rc = saEvtInitialize(&gl_evt_hdl, &reg_callback_set, &ver)))
-   {
-      printf("\n HISv: EDA: SaEvtInitialize() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (uns32)gl_evt_hdl);
 
-   printf(
-      "\n HISv: EDA: EVT Initialization Done !!! \n EvtHandle: %x \n", (uns32)gl_evt_hdl);
+	/*#########################################################################
+	   Demonstrating the usage of saEvtSelectionObjectGet()
+	   ######################################################################### */
 
-   /*#########################################################################
-                  Demonstrating the usage of saEvtSelectionObjectGet()
-   #########################################################################*/
+	if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evt_hdl, &evt_sel_obj))) {
+		printf("\n HISv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   if (SA_AIS_OK != (rc = saEvtSelectionObjectGet(gl_evt_hdl, &evt_sel_obj)))
-   {
-      printf("\n HISv: EDA: SaEvtSelectionObjectGet() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: EDA: Obtained Selection Object successfully !!! \n");
 
-   printf("\n HISv: EDA: Obtained Selection Object successfully !!! \n");
+	/*#########################################################################
+	   Demonstrating the usage of saEvtChannelOpen()
+	   ######################################################################### */
 
-  /*#########################################################################
-                  Demonstrating the usage of saEvtChannelOpen()
-   #########################################################################*/
+	m_NCS_TASK_SLEEP(2000);
 
-   m_NCS_TASK_SLEEP(2000);
+	chan_open_flags = SA_EVT_CHANNEL_SUBSCRIBER;
 
-   chan_open_flags = 
-      SA_EVT_CHANNEL_SUBSCRIBER;
+	if (SA_AIS_OK != (rc = saEvtChannelOpen(gl_evt_hdl, &gl_chan_name, chan_open_flags, timeout, &gl_chan_hdl))) {
+		printf("\n HISv: EDA: SaEvtChannelOpen() failed. rc=%d \n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   if (SA_AIS_OK != 
-         (rc = 
-            saEvtChannelOpen(gl_evt_hdl, &gl_chan_name, chan_open_flags, timeout, &gl_chan_hdl)))
-   {
-      printf("\n HISv: EDA: SaEvtChannelOpen() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: Opened HISv EVENTS - Channel successfully !!! \n");
 
-   printf("\n HISv: Opened HISv EVENTS - Channel successfully !!! \n");
+	/*#########################################################################
+	   Demonstrating the usage of SaEvtEventSubscribe()
+	   ######################################################################### */
+	m_NCS_TASK_SLEEP(2000);
 
-  /*#########################################################################
-                  Demonstrating the usage of SaEvtEventSubscribe()
-   #########################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+	filter_array.filtersNumber = TRAP_FILTER_ARRAY_LEN;
+	filter_array.filters = hpi_filter_array;
+	if (SA_AIS_OK != (rc = saEvtEventSubscribe(gl_chan_hdl, &filter_array, gl_subid))) {
+		printf("\n HISv: EDA: SaEvtEventSubscribe() failed. rc=%d \n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   filter_array.filtersNumber = TRAP_FILTER_ARRAY_LEN;
-   filter_array.filters = hpi_filter_array;
-   if (SA_AIS_OK != (rc = saEvtEventSubscribe(gl_chan_hdl, &filter_array, gl_subid)))
-   {
-      printf("\n HISv: EDA: SaEvtEventSubscribe() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: Subscribed for events on HISv EVENTS channel successfully !!! \n");
 
-   printf("\n HISv: Subscribed for events on HISv EVENTS channel successfully !!! \n");
-
-   m_NCS_TASK_SLEEP(2000);
+	m_NCS_TASK_SLEEP(2000);
 
    /***** Now wait (select) on EVT selction object *****/
 
-   /* Reset the wait select objects */
-   m_NCS_SEL_OBJ_ZERO(&wait_sel_obj);
+	/* Reset the wait select objects */
+	m_NCS_SEL_OBJ_ZERO(&wait_sel_obj);
 
-   /* derive the fd for EVT selection object */
-   m_SET_FD_IN_SEL_OBJ((uns32)evt_sel_obj, evt_ncs_sel_obj);
+	/* derive the fd for EVT selection object */
+	m_SET_FD_IN_SEL_OBJ((uns32)evt_sel_obj, evt_ncs_sel_obj);
 
-   /* Set the EVT select object on which HISv sample demo waits */
-   m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
+	/* Set the EVT select object on which HISv sample demo waits */
+	m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
 
-   printf("\n HISv: Waiting on event from the HISv EVENTS channel... \n");
-   while (m_NCS_SEL_OBJ_SELECT(evt_ncs_sel_obj,&wait_sel_obj,NULL,NULL,NULL) != -1)
-   {
-      /* Process HISv evt messages */
-      if (m_NCS_SEL_OBJ_ISSET(evt_ncs_sel_obj, &wait_sel_obj))
-      {
-         /* Dispatch all pending messages */
-         if (raw) {
-            printf("\n HISv: EDA: Dispatching message received on HISv EVENTS channel\n");
-         }
-         
-         /*######################################################################
-                        Demonstrating the usage of saEvtDispatch()
-         ######################################################################*/
-         rc = saEvtDispatch(gl_evt_hdl, SA_DISPATCH_ALL);
+	printf("\n HISv: Waiting on event from the HISv EVENTS channel... \n");
+	while (m_NCS_SEL_OBJ_SELECT(evt_ncs_sel_obj, &wait_sel_obj, NULL, NULL, NULL) != -1) {
+		/* Process HISv evt messages */
+		if (m_NCS_SEL_OBJ_ISSET(evt_ncs_sel_obj, &wait_sel_obj)) {
+			/* Dispatch all pending messages */
+			if (raw) {
+				printf("\n HISv: EDA: Dispatching message received on HISv EVENTS channel\n");
+			}
 
-         if (rc != SA_AIS_OK)
-            printf("\n HISv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
-         
-         /* Rcvd the published event, now loop back to wait on next event. */
-         /* break; */
-      }
+			/*######################################################################
+			   Demonstrating the usage of saEvtDispatch()
+			   ###################################################################### */
+			rc = saEvtDispatch(gl_evt_hdl, SA_DISPATCH_ALL);
 
-      /* Again set EVT select object to wait for another callback */
-      m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
-   }
+			if (rc != SA_AIS_OK)
+				printf("\n HISv: EDA: SaEvtDispatch() failed. rc=%d \n", rc);
 
-   /*######################################################################
-                        Demonstrating the usage of saEvtEventFree()
-   ########################################################################*/
-   m_NCS_TASK_SLEEP(4000);
+			/* Rcvd the published event, now loop back to wait on next event. */
+			/* break; */
+		}
 
-   if (SA_AIS_OK != (rc = saEvtEventFree(gl_chan_pub_event_hdl)))
-   {
-      printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
-      return (NCSCC_RC_FAILURE);
-   }
+		/* Again set EVT select object to wait for another callback */
+		m_NCS_SEL_OBJ_SET(evt_ncs_sel_obj, &wait_sel_obj);
+	}
 
-   printf("\n HISv: Freed the event successfully !!! \n");
+	/*######################################################################
+	   Demonstrating the usage of saEvtEventFree()
+	   ######################################################################## */
+	m_NCS_TASK_SLEEP(4000);
 
-   /*##########################################################################
-                        Demonstrating the usage of saEvtEventUnsubscribe()
-   ############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+	if (SA_AIS_OK != (rc = saEvtEventFree(gl_chan_pub_event_hdl))) {
+		printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   if (SA_AIS_OK != (rc = saEvtEventUnsubscribe(gl_chan_hdl, gl_subid)))
-   {
-      printf("\n HISv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: Freed the event successfully !!! \n");
 
-   printf("\n HISv: Unsubscribed for events successfully !!! \n");
+	/*##########################################################################
+	   Demonstrating the usage of saEvtEventUnsubscribe()
+	   ############################################################################ */
+	m_NCS_TASK_SLEEP(2000);
 
-   /*###########################################################################
-                        Demonstrating the usage of saEvtChannelClose()
-   #############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+	if (SA_AIS_OK != (rc = saEvtEventUnsubscribe(gl_chan_hdl, gl_subid))) {
+		printf("\n HISv: EDA: SaEvtEventUnsubscribe() failed. rc=%d \n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   if (SA_AIS_OK != (rc = saEvtChannelClose(gl_chan_hdl)))
-   {
-      printf("\n HISv: EDA: SaEvtChannelClose() failed. rc=%d\n",rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	printf("\n HISv: Unsubscribed for events successfully !!! \n");
 
-   printf("\n HISv: Closed HISv EVENTS channel successfully !!! \n");
+	/*###########################################################################
+	   Demonstrating the usage of saEvtChannelClose()
+	   ############################################################################# */
+	m_NCS_TASK_SLEEP(2000);
 
-   /*###########################################################################
-                        Demonstrating the usage of SaEvtFinalize()
-   #############################################################################*/
-   m_NCS_TASK_SLEEP(2000);
+	if (SA_AIS_OK != (rc = saEvtChannelClose(gl_chan_hdl))) {
+		printf("\n HISv: EDA: SaEvtChannelClose() failed. rc=%d\n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
 
-   rc = saEvtFinalize(gl_evt_hdl);
+	printf("\n HISv: Closed HISv EVENTS channel successfully !!! \n");
 
-   if (rc != SA_AIS_OK)
-   {
-      printf("\n HISv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
-      return (NCSCC_RC_FAILURE);
-   }
+	/*###########################################################################
+	   Demonstrating the usage of SaEvtFinalize()
+	   ############################################################################# */
+	m_NCS_TASK_SLEEP(2000);
 
-   printf("\n HISv: Finalized with event service successfully !!! \n");
+	rc = saEvtFinalize(gl_evt_hdl);
 
-   return NCSCC_RC_SUCCESS;
+	if (rc != SA_AIS_OK) {
+		printf("\n HISv: EDA: SaEvtFinalize() failed. rc=%d\n", rc);
+		return (NCSCC_RC_FAILURE);
+	}
+
+	printf("\n HISv: Finalized with event service successfully !!! \n");
+
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -422,12 +390,9 @@ uns32 ncs_hisv_run(void)
   Notes         : NONE
 ******************************************************************************/
 
-static void 
-edsv_chan_open_callback(SaInvocationT inv, 
-                        SaEvtChannelHandleT chan_hdl,
-                        SaAisErrorT rc)
+static void edsv_chan_open_callback(SaInvocationT inv, SaEvtChannelHandleT chan_hdl, SaAisErrorT rc)
 {
-   return;
+	return;
 }
 
 /****************************************************************************
@@ -448,526 +413,532 @@ edsv_chan_open_callback(SaInvocationT inv,
   Notes         : NONE
 ******************************************************************************/
 
-static void 
-edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id,
-                       SaEvtEventHandleT event_hdl,
-                       const SaSizeT event_data_size)
+static void
+edsv_evt_delv_callback(SaEvtSubscriptionIdT sub_id, SaEvtEventHandleT event_hdl, const SaSizeT event_data_size)
 {
-   SaEvtEventPatternArrayT  *pattern_array;
-   SaUint8T                  priority;
-   SaTimeT                   retention_time;
-   SaNameT                   publisher_name;
-   SaTimeT                   publish_time;
-   SaEvtEventIdT             event_id;
-   SaUint8T                 *p_data = NULL;
-   SaSizeT                   data_len;
-   uns32                     rc;
-   uns32                     num_patterns;
-   uns32                     pattern_size;
-   HPI_EVT_T                *hpi_event     = NULL;
-   SaUint8T                  hpi_event_type_string[50];
-   SaUint8T                  hpi_event_sev_string[50];
-   SaUint8T                  hpi_hs_state_string[50];
-   SaUint8T                  hpi_sensor_type_string[50];
-   SaUint8T                  hpi_sensor_es_string[50];
-   SaUint8T                  hpi_entity_path_buffer[100];
-   SaUint8T                  hpipower_string[100];
-   SaUint8T                  hpi_entity_path[8][50];
-   uns32                     hpi_entity_path_depth = 0;
-   uns32                     hpi_entity_path_max = 8;
-   SaInt32T		     i;
-   SaInt32T		     hpi_event_slot;
-   uns32                     hisv_power_res = 0;
-   SaUint8T                  hpi_entity_path2[300];
-   NCS_LIB_REQ_INFO          req_info;
-   HPL_CB                    *hpl_cb;
-   NCS_LIB_CREATE            hisv_create_info;
+	SaEvtEventPatternArrayT *pattern_array;
+	SaUint8T priority;
+	SaTimeT retention_time;
+	SaNameT publisher_name;
+	SaTimeT publish_time;
+	SaEvtEventIdT event_id;
+	SaUint8T *p_data = NULL;
+	SaSizeT data_len;
+	uns32 rc;
+	uns32 num_patterns;
+	uns32 pattern_size;
+	HPI_EVT_T *hpi_event = NULL;
+	SaUint8T hpi_event_type_string[50];
+	SaUint8T hpi_event_sev_string[50];
+	SaUint8T hpi_hs_state_string[50];
+	SaUint8T hpi_sensor_type_string[50];
+	SaUint8T hpi_sensor_es_string[50];
+	SaUint8T hpi_entity_path_buffer[100];
+	SaUint8T hpipower_string[100];
+	SaUint8T hpi_entity_path[8][50];
+	uns32 hpi_entity_path_depth = 0;
+	uns32 hpi_entity_path_max = 8;
+	SaInt32T i;
+	SaInt32T hpi_event_slot;
+	uns32 hisv_power_res = 0;
+	SaUint8T hpi_entity_path2[300];
+	NCS_LIB_REQ_INFO req_info;
+	HPL_CB *hpl_cb;
+	NCS_LIB_CREATE hisv_create_info;
 
-   /* Prepare an appropriate-sized data buffer.  */
-   data_len = event_data_size;
-   p_data = m_MMGR_ALLOC_EDSVTM_EVENT_DATA((uns32)data_len+1);
-   if (p_data == NULL)
-      return;
-   memset(&publisher_name,'\0',sizeof(SaNameT));
-   memset(p_data, 0, (size_t)data_len+1);
+	/* Prepare an appropriate-sized data buffer.  */
+	data_len = event_data_size;
+	p_data = m_MMGR_ALLOC_EDSVTM_EVENT_DATA((uns32)data_len + 1);
+	if (p_data == NULL)
+		return;
+	memset(&publisher_name, '\0', sizeof(SaNameT));
+	memset(p_data, 0, (size_t)data_len + 1);
 
-   /* Create an empty patternArray to be filled in by EDA */
-   num_patterns = 8;
-   pattern_size = 128;
+	/* Create an empty patternArray to be filled in by EDA */
+	num_patterns = 8;
+	pattern_size = 128;
 
-   if (NCSCC_RC_SUCCESS != 
-         (rc = alloc_pattern_array(&pattern_array, num_patterns, pattern_size)))
-   {
-      printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
-      return;
-   }
+	if (NCSCC_RC_SUCCESS != (rc = alloc_pattern_array(&pattern_array, num_patterns, pattern_size))) {
+		printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n", rc);
+		return;
+	}
 
-  /*###########################################################################
-                  Demonstrating the usage of saEvtEventAttributesGet()
-   #############################################################################*/
+	/*###########################################################################
+	   Demonstrating the usage of saEvtEventAttributesGet()
+	   ############################################################################# */
 
-   /* Get the event attributes */
-   pattern_array->allocatedNumber=8;
-   rc = saEvtEventAttributesGet(event_hdl, pattern_array,
-                                &priority, &retention_time,
-                                &publisher_name, &publish_time,
-                                &event_id);
-   if (rc != SA_AIS_OK)
-   {
-      printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n",rc);
-      return;
-   }
+	/* Get the event attributes */
+	pattern_array->allocatedNumber = 8;
+	rc = saEvtEventAttributesGet(event_hdl, pattern_array,
+				     &priority, &retention_time, &publisher_name, &publish_time, &event_id);
+	if (rc != SA_AIS_OK) {
+		printf("\n HISv: EDA: SaEvtEventAttributesGet() failed. rc=%d\n", rc);
+		return;
+	}
 
-   if (raw) {
-      printf("\n HISv: Got attributes of the HISv event successfully !!! \n");
-   }
+	if (raw) {
+		printf("\n HISv: Got attributes of the HISv event successfully !!! \n");
+	}
 
-  /*#############################################################################
-                 Demonstrating the usage of SaEvtEventDataGet()
-   #############################################################################*/
+	/*#############################################################################
+	   Demonstrating the usage of SaEvtEventDataGet()
+	   ############################################################################# */
 
-   /* Get the event data */
-   rc = saEvtEventDataGet(event_hdl, p_data, &data_len);
-   if (rc != SA_AIS_OK)
-   {
-      printf("\n HISv: EDA: SaEvtEventDataGet() failed. rc=%d\n",rc);
-      return;
-   }
+	/* Get the event data */
+	rc = saEvtEventDataGet(event_hdl, p_data, &data_len);
+	if (rc != SA_AIS_OK) {
+		printf("\n HISv: EDA: SaEvtEventDataGet() failed. rc=%d\n", rc);
+		return;
+	}
 
-   if (raw) {
-      printf("\n HISv: Got data from the HISv event successfully !!! \n");
-   }
+	if (raw) {
+		printf("\n HISv: Got data from the HISv event successfully !!! \n");
+	}
 
+	/* Say what we received */
+	printf("\n-------------- Received HISv Event ---------------------\n");
 
-   /* Say what we received */
-   printf("\n-------------- Received HISv Event ---------------------\n");
+	if (raw) {
+		printf(" publisherName  =    %s\n", publisher_name.value);
+		printf(" patternArray\n");
+		dump_event_patterns(pattern_array);
+		printf(" priority       =    %d\n", priority);
+		printf(" publishTime    =    %llu\n", (uns64)publish_time);
+		printf(" retentionTime  =    %llu\n", (uns64)retention_time);
+		printf(" eventId        =    %llu\n", (uns64)event_id);
+		printf(" dataLen        =    %d\n", (uns32)data_len);
+		printf(" data           =    %s\n", p_data);
+	}
 
-   if (raw) {
-      printf(" publisherName  =    %s\n", publisher_name.value);
-      printf(" patternArray\n");
-      dump_event_patterns(pattern_array);
-      printf(" priority       =    %d\n", priority);
-      printf(" publishTime    =    %llu\n", (uns64)publish_time);
-      printf(" retentionTime  =    %llu\n", (uns64)retention_time);
-      printf(" eventId        =    %llu\n", (uns64)event_id);
-      printf(" dataLen        =    %d\n", (uns32)data_len);
-      printf(" data           =    %s\n", p_data);
-   }
+	/* hpi_event = m_MMGR_ALLOC_AVM_DEFAULT_VAL(sizeof(HPI_EVT_T)); */
+	hpi_event = malloc(sizeof(HPI_EVT_T));
+	memset(hpi_event, '\0', sizeof(HPI_EVT_T));
+	rc = hpl_decode_hisv_evt((HPI_HISV_EVT_T *)hpi_event, p_data, data_len,
+				 (HISV_SW_VERSION | HISV_EDS_INF_VERSION));
 
-      /* hpi_event = m_MMGR_ALLOC_AVM_DEFAULT_VAL(sizeof(HPI_EVT_T)); */
-      hpi_event = malloc(sizeof(HPI_EVT_T));
-      memset(hpi_event, '\0', sizeof(HPI_EVT_T));
-      rc = hpl_decode_hisv_evt((HPI_HISV_EVT_T *)hpi_event, p_data, data_len, (HISV_SW_VERSION | HISV_EDS_INF_VERSION));
+	/* printf(" hpi rc         =    %d\n", rc); */
+	if (raw) {
+		printf(" hpi prod namel =    %d\n", hpi_event->inv_data.product_name.DataLength);
+		if ((hpi_event->inv_data.product_name.DataLength != 0)
+		    && (hpi_event->inv_data.product_name.DataLength != 255))
+			printf(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
+		else
+			printf(" hpi prod name  = \n");
+		printf(" hpi prod versl =    %d\n", hpi_event->inv_data.product_version.DataLength);
+		if ((hpi_event->inv_data.product_version.DataLength != 0)
+		    && (hpi_event->inv_data.product_version.DataLength != 255))
+			printf(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
+		else
+			printf(" hpi prod vers  = \n");
+		printf(" hpi event res  =    %d\n", hpi_event->hpi_event.Source);
+		printf(" hpi event type =    %d\n", hpi_event->hpi_event.EventType);
+		printf(" hpi event sev  =    %d\n", hpi_event->hpi_event.Severity);
+		printf(" hotswap state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState);
+		printf(" prev hs state  =    %d\n",
+		       hpi_event->hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState);
+		printf(" entity type 0  =    %d\n", hpi_event->entity_path.Entry[0].EntityType);
+		printf(" entity loc  0  =    %d\n", hpi_event->entity_path.Entry[0].EntityLocation);
+		printf(" entity type 1  =    %d\n", hpi_event->entity_path.Entry[1].EntityType);
+		printf(" entity loc  1  =    %d\n", hpi_event->entity_path.Entry[1].EntityLocation);
+		printf(" entity type 2  =    %d\n", hpi_event->entity_path.Entry[2].EntityType);
+		printf(" entity loc  2  =    %d\n", hpi_event->entity_path.Entry[2].EntityLocation);
+		printf(" entity type 3  =    %d\n", hpi_event->entity_path.Entry[3].EntityType);
+		printf(" entity loc  3  =    %d\n", hpi_event->entity_path.Entry[3].EntityLocation);
+	} else {
+		switch (hpi_event->hpi_event.EventType) {
+		case 0:
+			strcpy(hpi_event_type_string, "SAHPI_ET_RESOURCE");
+			break;
+		case 1:
+			strcpy(hpi_event_type_string, "SAHPI_ET_DOMAIN");
+			break;
+		case 2:
+			strcpy(hpi_event_type_string, "SAHPI_ET_SENSOR");
+			break;
+		case 3:
+			strcpy(hpi_event_type_string, "SAHPI_ET_SENSOR_ENABLE_CHANGE");
+			break;
+		case 4:
+			strcpy(hpi_event_type_string, "SAHPI_ET_HOTSWAP");
+			break;
+		case 5:
+			strcpy(hpi_event_type_string, "SAHPI_ET_WATCHDOG");
+			break;
+		case 6:
+			strcpy(hpi_event_type_string, "SAHPI_ET_HPI_SW");
+			break;
+		case 7:
+			strcpy(hpi_event_type_string, "SAHPI_ET_OEM");
+			break;
+		case 8:
+			strcpy(hpi_event_type_string, "SAHPI_ET_USER");
+			break;
+		case 9:
+			strcpy(hpi_event_type_string, "SAHPI_ET_DIMI");
+			break;
+		case 10:
+			strcpy(hpi_event_type_string, "SAHPI_ET_DIMI_UPDATE");
+			break;
+		case 11:
+			strcpy(hpi_event_type_string, "SAHPI_ET_FUMI");
+			break;
+		default:
+			strcpy(hpi_event_type_string, "UNKNOWN");
+			break;
+		}
+		printf("       Event Type : %s\n", hpi_event_type_string);
+		switch (hpi_event->hpi_event.Severity) {
+		case 0:
+			strcpy(hpi_event_sev_string, "SAHPI_CRITICAL");
+			break;
+		case 1:
+			strcpy(hpi_event_sev_string, "SAHPI_MAJOR");
+			break;
+		case 2:
+			strcpy(hpi_event_sev_string, "SAHPI_MINOR");
+			break;
+		case 3:
+			strcpy(hpi_event_sev_string, "SAHPI_INFORMATIONAL");
+			break;
+		case 4:
+			strcpy(hpi_event_sev_string, "SAHPI_OK");
+			break;
+		case 240:
+			strcpy(hpi_event_sev_string, "SAHPI_DEBUG");
+			break;
+		case 255:
+			strcpy(hpi_event_sev_string, "SAHPI_ALL_SEVERITIES");
+			break;
+		default:
+			strcpy(hpi_event_sev_string, "UNKNOWN");
+			break;
+		}
+		printf("   Event Severity : %s\n", hpi_event_sev_string);
+		if (hpi_event->hpi_event.EventType == SAHPI_ET_HOTSWAP) {
+			switch (hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState) {
+			case 0:
+				strcpy(hpi_hs_state_string, "SAHPI_HS_STATE_INACTIVE");
+				break;
+			case 1:
+				strcpy(hpi_hs_state_string, "SAHPI_HS_STATE_INSERTION_PENDING");
+				break;
+			case 2:
+				strcpy(hpi_hs_state_string, "SAHPI_HS_STATE_ACTIVE");
+				break;
+			case 3:
+				strcpy(hpi_hs_state_string, "SAHPI_HS_STATE_EXTRACTION_PENDING");
+				break;
+			case 4:
+				strcpy(hpi_hs_state_string, "SAHPI_HS_STATE_NOT_PRESENT");
+				break;
+			default:
+				strcpy(hpi_hs_state_string, "UNKNOWN");
+				break;
+			}
 
-      /* printf(" hpi rc         =    %d\n", rc); */
-   if (raw) {
-      printf(" hpi prod namel =    %d\n", hpi_event->inv_data.product_name.DataLength);
-      if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
-         printf(" hpi prod name  =    %s\n", hpi_event->inv_data.product_name.Data);
-      else
-         printf(" hpi prod name  = \n");
-      printf(" hpi prod versl =    %d\n", hpi_event->inv_data.product_version.DataLength);
-      if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
-         printf(" hpi prod vers  =    %s\n", hpi_event->inv_data.product_version.Data);
-      else
-         printf(" hpi prod vers  = \n");
-      printf(" hpi event res  =    %d\n", hpi_event->hpi_event.Source);
-      printf(" hpi event type =    %d\n", hpi_event->hpi_event.EventType);
-      printf(" hpi event sev  =    %d\n", hpi_event->hpi_event.Severity);
-      printf(" hotswap state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState);
-      printf(" prev hs state  =    %d\n", hpi_event->hpi_event.EventDataUnion.HotSwapEvent.PreviousHotSwapState);
-      printf(" entity type 0  =    %d\n", hpi_event->entity_path.Entry[0].EntityType);
-      printf(" entity loc  0  =    %d\n", hpi_event->entity_path.Entry[0].EntityLocation);
-      printf(" entity type 1  =    %d\n", hpi_event->entity_path.Entry[1].EntityType);
-      printf(" entity loc  1  =    %d\n", hpi_event->entity_path.Entry[1].EntityLocation);
-      printf(" entity type 2  =    %d\n", hpi_event->entity_path.Entry[2].EntityType);
-      printf(" entity loc  2  =    %d\n", hpi_event->entity_path.Entry[2].EntityLocation);
-      printf(" entity type 3  =    %d\n", hpi_event->entity_path.Entry[3].EntityType);
-      printf(" entity loc  3  =    %d\n", hpi_event->entity_path.Entry[3].EntityLocation);
-   }
-   else {
-      switch (hpi_event->hpi_event.EventType) {
-         case 0:
-            strcpy (hpi_event_type_string, "SAHPI_ET_RESOURCE");
-            break;
-         case 1:
-            strcpy (hpi_event_type_string, "SAHPI_ET_DOMAIN");
-            break;
-         case 2:
-            strcpy (hpi_event_type_string, "SAHPI_ET_SENSOR");
-            break;
-         case 3:
-            strcpy (hpi_event_type_string, "SAHPI_ET_SENSOR_ENABLE_CHANGE");
-            break;
-         case 4:
-            strcpy (hpi_event_type_string, "SAHPI_ET_HOTSWAP");
-            break;
-         case 5:
-            strcpy (hpi_event_type_string, "SAHPI_ET_WATCHDOG");
-            break;
-         case 6:
-            strcpy (hpi_event_type_string, "SAHPI_ET_HPI_SW");
-            break;
-         case 7:
-            strcpy (hpi_event_type_string, "SAHPI_ET_OEM");
-            break;
-         case 8:
-            strcpy (hpi_event_type_string, "SAHPI_ET_USER");
-            break;
-         case 9:
-            strcpy (hpi_event_type_string, "SAHPI_ET_DIMI");
-            break;
-         case 10:
-            strcpy (hpi_event_type_string, "SAHPI_ET_DIMI_UPDATE");
-            break;
-         case 11:
-            strcpy (hpi_event_type_string, "SAHPI_ET_FUMI");
-            break;
-         default:
-            strcpy (hpi_event_type_string, "UNKNOWN");
-            break;
-      }
-      printf("       Event Type : %s\n", hpi_event_type_string);
-      switch (hpi_event->hpi_event.Severity) {
-         case 0:
-            strcpy (hpi_event_sev_string, "SAHPI_CRITICAL");
-            break;
-         case 1:
-            strcpy (hpi_event_sev_string, "SAHPI_MAJOR");
-            break;
-         case 2:
-            strcpy (hpi_event_sev_string, "SAHPI_MINOR");
-            break;
-         case 3:
-            strcpy (hpi_event_sev_string, "SAHPI_INFORMATIONAL");
-            break;
-         case 4:
-            strcpy (hpi_event_sev_string, "SAHPI_OK");
-            break;
-         case 240:
-            strcpy (hpi_event_sev_string, "SAHPI_DEBUG");
-            break;
-         case 255:
-            strcpy (hpi_event_sev_string, "SAHPI_ALL_SEVERITIES");
-            break;
-         default:
-            strcpy (hpi_event_sev_string, "UNKNOWN");
-            break;
-      }
-      printf("   Event Severity : %s\n", hpi_event_sev_string);
-      if (hpi_event->hpi_event.EventType == SAHPI_ET_HOTSWAP) {
-         switch (hpi_event->hpi_event.EventDataUnion.HotSwapEvent.HotSwapState) {
-            case 0:
-               strcpy (hpi_hs_state_string, "SAHPI_HS_STATE_INACTIVE");
-               break;
-            case 1:
-               strcpy (hpi_hs_state_string, "SAHPI_HS_STATE_INSERTION_PENDING");
-               break;
-            case 2:
-               strcpy (hpi_hs_state_string, "SAHPI_HS_STATE_ACTIVE");
-               break;
-            case 3:
-               strcpy (hpi_hs_state_string, "SAHPI_HS_STATE_EXTRACTION_PENDING");
-               break;
-            case 4:
-               strcpy (hpi_hs_state_string, "SAHPI_HS_STATE_NOT_PRESENT");
-               break;
-            default:
-               strcpy (hpi_hs_state_string, "UNKNOWN");
-               break;
-         } 
-  
-         printf("    HotSwap State : %s\n", hpi_hs_state_string);
-      }
-      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
-         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.SensorType) {
-            case 1:
-               strcpy (hpi_sensor_type_string, "SAHPI_TEMPERATURE");
-               break;
-            case 2:
-               strcpy (hpi_sensor_type_string, "SAHPI_VOLTAGE");
-               break;
-            case 3:
-               strcpy (hpi_sensor_type_string, "SAHPI_CURRENT");
-               break;
-            case 4:
-               strcpy (hpi_sensor_type_string, "SAHPI_FAN");
-               break;
-            case 5:
-               strcpy (hpi_sensor_type_string, "SAHPI_PHYSICAL_SECURITY");
-               break;
-            case 6:
-               strcpy (hpi_sensor_type_string, "SAHPI_PLATFORM_VIOLATION");
-               break;
-            case 7:
-               strcpy (hpi_sensor_type_string, "SAHPI_PROCESSOR");
-               break;
-            case 8:
-               strcpy (hpi_sensor_type_string, "SAHPI_POWER_SUPPLY");
-               break;
-            case 9:
-               strcpy (hpi_sensor_type_string, "SAHPI_POWER_UNIT");
-               break;
-            case 10:
-               strcpy (hpi_sensor_type_string, "SAHPI_COOLING_DEVICE");
-               break;
-            case 160:
-               strcpy (hpi_sensor_type_string, "SAHPI_OPERATIONAL");
-               break;
-            default:
-               strcpy (hpi_sensor_type_string, "UNKNOWN");
-               break;
-         } 
-  
-         printf("      Sensor Type : %s\n", hpi_sensor_type_string);
-         if (hpi_event->hpi_event.EventDataUnion.SensorEvent.Assertion == 0) {
-            printf("      Event State : DEASSERTED\n");
-         }
-         else {
-            printf("      Event State : ASSERTED\n");
-         }
-      }
-      if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
-          (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_THRESHOLD)) {
-         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
-            case 1:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_MINOR");
-               break;
-            case 2:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_MAJOR");
-               break;
-            case 4:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_LOWER_CRIT");
-               break;
-            case 8:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_MINOR");
-               break;
-            case 16:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_MAJOR");
-               break;
-            case 32:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_UPPER_CRIT");
-               break;
-            default:
-               strcpy (hpi_sensor_es_string, "UNKNOWN");
-               break;
-         } 
-  
-         printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
-      }
-      if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
-          (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_SEVERITY)) {
-         switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
-            case 1:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_OK");
-               break;
-            case 2:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_OK");
-               break;
-            case 4:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_MAJOR_FROM_LESS");
-               break;
-            case 8:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_CRITICAL_FROM_LESS");
-               break;
-            case 16:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_MORE");
-               break;
-            case 32:
-               strcpy (hpi_sensor_es_string, "SAHPI_MAJOR_FROM_CRITICAL");
-               break;
-            case 64:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_CRITICAL");
-               break;
-            case 128:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_MONITOR");
-               break;
-            case 256:
-               strcpy (hpi_sensor_es_string, "SAHPI_ES_INFORMATIONAL");
-               break;
-            default:
-               strcpy (hpi_sensor_es_string, "UNKNOWN");
-               break;
-         } 
-  
-         printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
-      }
-      for (i = 0; i<hpi_entity_path_max; i++) {
-         hpi_entity_path_depth++;
-         if (hpi_event->entity_path.Entry[i].EntityType == SAHPI_ENT_ROOT)
-            break; 
-      }
+			printf("    HotSwap State : %s\n", hpi_hs_state_string);
+		}
+		if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+			switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.SensorType) {
+			case 1:
+				strcpy(hpi_sensor_type_string, "SAHPI_TEMPERATURE");
+				break;
+			case 2:
+				strcpy(hpi_sensor_type_string, "SAHPI_VOLTAGE");
+				break;
+			case 3:
+				strcpy(hpi_sensor_type_string, "SAHPI_CURRENT");
+				break;
+			case 4:
+				strcpy(hpi_sensor_type_string, "SAHPI_FAN");
+				break;
+			case 5:
+				strcpy(hpi_sensor_type_string, "SAHPI_PHYSICAL_SECURITY");
+				break;
+			case 6:
+				strcpy(hpi_sensor_type_string, "SAHPI_PLATFORM_VIOLATION");
+				break;
+			case 7:
+				strcpy(hpi_sensor_type_string, "SAHPI_PROCESSOR");
+				break;
+			case 8:
+				strcpy(hpi_sensor_type_string, "SAHPI_POWER_SUPPLY");
+				break;
+			case 9:
+				strcpy(hpi_sensor_type_string, "SAHPI_POWER_UNIT");
+				break;
+			case 10:
+				strcpy(hpi_sensor_type_string, "SAHPI_COOLING_DEVICE");
+				break;
+			case 160:
+				strcpy(hpi_sensor_type_string, "SAHPI_OPERATIONAL");
+				break;
+			default:
+				strcpy(hpi_sensor_type_string, "UNKNOWN");
+				break;
+			}
 
-      for (i = 0; i < hpi_entity_path_depth; i++) {
-         switch (hpi_event->entity_path.Entry[i].EntityType) {
-            case SAHPI_ENT_ROOT:
-            sprintf(hpi_entity_path_buffer, "{ROOT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			printf("      Sensor Type : %s\n", hpi_sensor_type_string);
+			if (hpi_event->hpi_event.EventDataUnion.SensorEvent.Assertion == 0) {
+				printf("      Event State : DEASSERTED\n");
+			} else {
+				printf("      Event State : ASSERTED\n");
+			}
+		}
+		if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
+		    (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_THRESHOLD)) {
+			switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
+			case 1:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_LOWER_MINOR");
+				break;
+			case 2:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_LOWER_MAJOR");
+				break;
+			case 4:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_LOWER_CRIT");
+				break;
+			case 8:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_UPPER_MINOR");
+				break;
+			case 16:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_UPPER_MAJOR");
+				break;
+			case 32:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_UPPER_CRIT");
+				break;
+			default:
+				strcpy(hpi_sensor_es_string, "UNKNOWN");
+				break;
+			}
 
-            case SAHPI_ENT_RACK:
-            sprintf(hpi_entity_path_buffer, "{RACK,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+		}
+		if ((hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) &&
+		    (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventCategory == SAHPI_EC_SEVERITY)) {
+			switch (hpi_event->hpi_event.EventDataUnion.SensorEvent.EventState) {
+			case 1:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_OK");
+				break;
+			case 2:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_OK");
+				break;
+			case 4:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_MAJOR_FROM_LESS");
+				break;
+			case 8:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_CRITICAL_FROM_LESS");
+				break;
+			case 16:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_MINOR_FROM_MORE");
+				break;
+			case 32:
+				strcpy(hpi_sensor_es_string, "SAHPI_MAJOR_FROM_CRITICAL");
+				break;
+			case 64:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_CRITICAL");
+				break;
+			case 128:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_MONITOR");
+				break;
+			case 256:
+				strcpy(hpi_sensor_es_string, "SAHPI_ES_INFORMATIONAL");
+				break;
+			default:
+				strcpy(hpi_sensor_es_string, "UNKNOWN");
+				break;
+			}
 
-            case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
-            sprintf(hpi_entity_path_buffer, "{ADVANCEDTCA_CHASSIS,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			printf(" Sensor Evt State : %s\n", hpi_sensor_es_string);
+		}
+		for (i = 0; i < hpi_entity_path_max; i++) {
+			hpi_entity_path_depth++;
+			if (hpi_event->entity_path.Entry[i].EntityType == SAHPI_ENT_ROOT)
+				break;
+		}
 
-            case SAHPI_ENT_SYSTEM_CHASSIS:
-            sprintf(hpi_entity_path_buffer, "{SYSTEM_CHASSIS,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+		for (i = 0; i < hpi_entity_path_depth; i++) {
+			switch (hpi_event->entity_path.Entry[i].EntityType) {
+			case SAHPI_ENT_ROOT:
+				sprintf(hpi_entity_path_buffer, "{ROOT,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_PHYSICAL_SLOT:
-            sprintf(hpi_entity_path_buffer, "{PHYSICAL_SLOT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_RACK:
+				sprintf(hpi_entity_path_buffer, "{RACK,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_PICMG_FRONT_BLADE:
-            sprintf(hpi_entity_path_buffer, "{PICMG_FRONT_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_ADVANCEDTCA_CHASSIS:
+				sprintf(hpi_entity_path_buffer, "{ADVANCEDTCA_CHASSIS,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_SYSTEM_BLADE:
-            sprintf(hpi_entity_path_buffer, "{SYSTEM_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_SYSTEM_CHASSIS:
+				sprintf(hpi_entity_path_buffer, "{SYSTEM_CHASSIS,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_SWITCH_BLADE:
-            sprintf(hpi_entity_path_buffer, "{SWITCH_BLADE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_PHYSICAL_SLOT:
+				sprintf(hpi_entity_path_buffer, "{PHYSICAL_SLOT,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_COOLING_DEVICE:
-            sprintf(hpi_entity_path_buffer, "{COOLING_DEVICE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_PICMG_FRONT_BLADE:
+				sprintf(hpi_entity_path_buffer, "{PICMG_FRONT_BLADE,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_COOLING_UNIT:
-            sprintf(hpi_entity_path_buffer, "{COOLING_UNIT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_SYSTEM_BLADE:
+				sprintf(hpi_entity_path_buffer, "{SYSTEM_BLADE,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_FAN:
-            sprintf(hpi_entity_path_buffer, "{FAN,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_SWITCH_BLADE:
+				sprintf(hpi_entity_path_buffer, "{SWITCH_BLADE,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_DISPLAY_PANEL:
-            sprintf(hpi_entity_path_buffer, "{DISPLAY_PANEL,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_COOLING_DEVICE:
+				sprintf(hpi_entity_path_buffer, "{COOLING_DEVICE,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_POWER_MGMNT:
-            sprintf(hpi_entity_path_buffer, "{POWER_MGMNT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_COOLING_UNIT:
+				sprintf(hpi_entity_path_buffer, "{COOLING_UNIT,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_POWER_SUPPLY:
-            sprintf(hpi_entity_path_buffer, "{POWER_SUPPLY,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_FAN:
+				sprintf(hpi_entity_path_buffer, "{FAN,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_POWER_UNIT:
-            sprintf(hpi_entity_path_buffer, "{POWER_UNIT,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_DISPLAY_PANEL:
+				sprintf(hpi_entity_path_buffer, "{DISPLAY_PANEL,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            case SAHPI_ENT_POWER_MODULE:
-            sprintf(hpi_entity_path_buffer, "{POWER_MODULE,%d}", hpi_event->entity_path.Entry[i].EntityLocation); 
-            break;
+			case SAHPI_ENT_POWER_MGMNT:
+				sprintf(hpi_entity_path_buffer, "{POWER_MGMNT,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-            default:
-            sprintf(hpi_entity_path_buffer, "{UNKNOWN,0}"); 
-            printf("***** Unknown entity type: %d\n", hpi_event->entity_path.Entry[i].EntityType);
-            break; 
-         }
-         strcpy(hpi_entity_path[i], hpi_entity_path_buffer);
-      }
+			case SAHPI_ENT_POWER_SUPPLY:
+				sprintf(hpi_entity_path_buffer, "{POWER_SUPPLY,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-      printf("Entity Path Depth : %d\n", hpi_entity_path_depth);
-      printf("      Entity Path : ");
-      for (i = (hpi_entity_path_depth - 1); i > -1; i--) {
-         if (i == 0)
-            printf("%s\n", hpi_entity_path[i]);
-         else
-            printf("%s", hpi_entity_path[i]);
-      }
-      hpi_event_slot = hpi_event->entity_path.Entry[0].EntityLocation;
-      printf("    Slot Location : %d\n", hpi_event_slot);
+			case SAHPI_ENT_POWER_UNIT:
+				sprintf(hpi_entity_path_buffer, "{POWER_UNIT,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-      /* Make sure we have a good data length before printing product name and version.  */
-      if ((hpi_event->inv_data.product_name.DataLength != 0) && (hpi_event->inv_data.product_name.DataLength != 255))
-         printf("     Product Name : %s\n", hpi_event->inv_data.product_name.Data);
-      if ((hpi_event->inv_data.product_version.DataLength != 0) && (hpi_event->inv_data.product_version.DataLength != 255))
-         printf("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
+			case SAHPI_ENT_POWER_MODULE:
+				sprintf(hpi_entity_path_buffer, "{POWER_MODULE,%d}",
+					hpi_event->entity_path.Entry[i].EntityLocation);
+				break;
 
-      /* Now test to see if we shutdown a blade. Use system call to OpenHPI to shutdown the blade. */
-      if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
-         if ((strcmp(hpi_sensor_type_string, "SAHPI_TEMPERATURE") == 0) &&
-             (strcmp(hpi_event_sev_string, "SAHPI_CRITICAL") == 0)) {
-            printf("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n", hpi_event_slot);
+			default:
+				sprintf(hpi_entity_path_buffer, "{UNKNOWN,0}");
+				printf("***** Unknown entity type: %d\n", hpi_event->entity_path.Entry[i].EntityType);
+				break;
+			}
+			strcpy(hpi_entity_path[i], hpi_entity_path_buffer);
+		}
 
+		printf("Entity Path Depth : %d\n", hpi_entity_path_depth);
+		printf("      Entity Path : ");
+		for (i = (hpi_entity_path_depth - 1); i > -1; i--) {
+			if (i == 0)
+				printf("%s\n", hpi_entity_path[i]);
+			else
+				printf("%s", hpi_entity_path[i]);
+		}
+		hpi_event_slot = hpi_event->entity_path.Entry[0].EntityLocation;
+		printf("    Slot Location : %d\n", hpi_event_slot);
 
-            /* Uncomment these 2 lines to shut off the blade using OpenHPI, or ... */
-            /*
-            sprintf(hpipower_string, "/usr/bin/hpipower -d -b %d > /dev/null", hpi_event_slot);
-            system(hpipower_string);
-            */
+		/* Make sure we have a good data length before printing product name and version.  */
+		if ((hpi_event->inv_data.product_name.DataLength != 0)
+		    && (hpi_event->inv_data.product_name.DataLength != 255))
+			printf("     Product Name : %s\n", hpi_event->inv_data.product_name.Data);
+		if ((hpi_event->inv_data.product_version.DataLength != 0)
+		    && (hpi_event->inv_data.product_version.DataLength != 255))
+			printf("  Product Version : %s\n", hpi_event->inv_data.product_version.Data);
 
+		/* Now test to see if we shutdown a blade. Use system call to OpenHPI to shutdown the blade. */
+		if (hpi_event->hpi_event.EventType == SAHPI_ET_SENSOR) {
+			if ((strcmp(hpi_sensor_type_string, "SAHPI_TEMPERATURE") == 0) &&
+			    (strcmp(hpi_event_sev_string, "SAHPI_CRITICAL") == 0)) {
+				printf("\n*****  TEMP TRIGGER EVENT - SHUTTING DOWN BLADE: %d  *****\n",
+				       hpi_event_slot);
 
-            /* ... uncomment this section of lines to shut off the blade using HISv. */
-            /*
-            rc = hpl_initialize(&hisv_create_info);
-            printf("\n***** hpl_initialize rc = %d\n", rc);
-            */
+				/* Uncomment these 2 lines to shut off the blade using OpenHPI, or ... */
+				/*
+				   sprintf(hpipower_string, "/usr/bin/hpipower -d -b %d > /dev/null", hpi_event_slot);
+				   system(hpipower_string);
+				 */
 
-            /* Need to sleep for a few seconds before calling the HISv APIs. */
-            /*
-            sleep(3);
+				/* ... uncomment this section of lines to shut off the blade using HISv. */
+				/*
+				   rc = hpl_initialize(&hisv_create_info);
+				   printf("\n***** hpl_initialize rc = %d\n", rc);
+				 */
 
-            sprintf(hpi_entity_path2, "{{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,2}}", hpi_event_slot);
-            printf("\n***** Shutting down resource: %s\n", hpi_entity_path2);
-            hisv_power_res = hpl_resource_power_set(2, hpi_entity_path2, HISV_RES_POWER_OFF);
-            printf("\n***** hisv_power_res = %d\n", hisv_power_res);
-            if (hisv_power_res == NCSCC_RC_SUCCESS)
-               printf("\n*****          BLADE SUCCESSFULLY SHUTDOWN          *****\n");
-            else
-               printf("\n*****          BLADE COULD NOT BE SHUTDOWN          *****\n");
-            */
-         }
-      }
-   }
+				/* Need to sleep for a few seconds before calling the HISv APIs. */
+				/*
+				   sleep(3);
 
-   printf("--------------------------------------------------------\n\n");
+				   sprintf(hpi_entity_path2, "{{SYSTEM_BLADE,%d},{SYSTEM_CHASSIS,2}}", hpi_event_slot);
+				   printf("\n***** Shutting down resource: %s\n", hpi_entity_path2);
+				   hisv_power_res = hpl_resource_power_set(2, hpi_entity_path2, HISV_RES_POWER_OFF);
+				   printf("\n***** hisv_power_res = %d\n", hisv_power_res);
+				   if (hisv_power_res == NCSCC_RC_SUCCESS)
+				   printf("\n*****          BLADE SUCCESSFULLY SHUTDOWN          *****\n");
+				   else
+				   printf("\n*****          BLADE COULD NOT BE SHUTDOWN          *****\n");
+				 */
+			}
+		}
+	}
 
-   free(hpi_event);
+	printf("--------------------------------------------------------\n\n");
 
+	free(hpi_event);
 
-  /*#############################################################################
-               Demonstrating the usage of saEvtEventRetentionTimeClear()
-   #############################################################################*/
+	/*#############################################################################
+	   Demonstrating the usage of saEvtEventRetentionTimeClear()
+	   ############################################################################# */
 
-   /* Test clearing the retention timer */
-   if (0 != retention_time)
-   {
-      rc = saEvtEventRetentionTimeClear(gl_chan_hdl, event_id);
-      if (rc != SA_AIS_OK)
-      {
-         printf("\n HISv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n",rc);
-         goto done;
-      }
+	/* Test clearing the retention timer */
+	if (0 != retention_time) {
+		rc = saEvtEventRetentionTimeClear(gl_chan_hdl, event_id);
+		if (rc != SA_AIS_OK) {
+			printf("\n HISv: EDA: saEvtEventRetentionTimeClear() failed. rc=%d\n", rc);
+			goto done;
+		}
 
-      printf("\n HISv: Cleared retention timer successfully !!! \n");
-   }
+		printf("\n HISv: Cleared retention timer successfully !!! \n");
+	}
 
-done:
-   
-   /* Free data storage */
-   if (p_data != NULL)
-      m_MMGR_FREE_EDSVTM_EVENT_DATA(p_data);
+ done:
 
-   /* Free the rcvd event */
-   rc =  saEvtEventFree(event_hdl);
-   if (rc != SA_AIS_OK)
-      printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n",rc);
-   else
-      if (raw) {
-         printf("\n HISv: Freed the Event successfully \n");
-      }
+	/* Free data storage */
+	if (p_data != NULL)
+		m_MMGR_FREE_EDSVTM_EVENT_DATA(p_data);
 
-   /* Free the pattern_array */
-   pattern_array->patternsNumber = 8;
-   free_pattern_array(pattern_array);
+	/* Free the rcvd event */
+	rc = saEvtEventFree(event_hdl);
+	if (rc != SA_AIS_OK)
+		printf("\n HISv: EDA: SaEvtEventFree() failed. rc=%d\n", rc);
+	else if (raw) {
+		printf("\n HISv: Freed the Event successfully \n");
+	}
 
-   return;
+	/* Free the pattern_array */
+	pattern_array->patternsNumber = 8;
+	free_pattern_array(pattern_array);
+
+	return;
 }
 
 /****************************************************************************
@@ -985,38 +956,34 @@ done:
  
   Notes         : NONE
 ******************************************************************************/
-static uns32
-alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
-                    uns32 num_patterns,
-                    uns32 pattern_size)
+static uns32 alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array, uns32 num_patterns, uns32 pattern_size)
 {
-   uns32   x;
-   SaEvtEventPatternArrayT  *array_ptr;
-   SaEvtEventPatternT       *pattern_ptr;
+	uns32 x;
+	SaEvtEventPatternArrayT *array_ptr;
+	SaEvtEventPatternT *pattern_ptr;
 
-   array_ptr = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERN_ARRAY;
-   if (array_ptr == NULL)
-      return(NCSCC_RC_FAILURE);
+	array_ptr = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERN_ARRAY;
+	if (array_ptr == NULL)
+		return (NCSCC_RC_FAILURE);
 
-   array_ptr->patterns = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERNS(num_patterns);
-   if (array_ptr->patterns == NULL)
-      return(NCSCC_RC_FAILURE);
+	array_ptr->patterns = m_MMGR_ALLOC_EDSVTM_EVENT_PATTERNS(num_patterns);
+	if (array_ptr->patterns == NULL)
+		return (NCSCC_RC_FAILURE);
 
-   pattern_ptr = array_ptr->patterns;
-   for (x=0; x<num_patterns; x++)
-   {
-      pattern_ptr->pattern = m_MMGR_ALLOC_EDSVTM_EVENT_DATA(pattern_size);
-      if (pattern_ptr->pattern == NULL)
-         return(NCSCC_RC_FAILURE);
+	pattern_ptr = array_ptr->patterns;
+	for (x = 0; x < num_patterns; x++) {
+		pattern_ptr->pattern = m_MMGR_ALLOC_EDSVTM_EVENT_DATA(pattern_size);
+		if (pattern_ptr->pattern == NULL)
+			return (NCSCC_RC_FAILURE);
 
-      pattern_ptr->patternSize = pattern_size;
-      pattern_ptr->allocatedSize = pattern_size;
-      pattern_ptr++;
-   }
+		pattern_ptr->patternSize = pattern_size;
+		pattern_ptr->allocatedSize = pattern_size;
+		pattern_ptr++;
+	}
 
-   array_ptr->patternsNumber = num_patterns;
-   *pattern_array = array_ptr;
-   return(NCSCC_RC_SUCCESS);
+	array_ptr->patternsNumber = num_patterns;
+	*pattern_array = array_ptr;
+	return (NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -1030,23 +997,21 @@ alloc_pattern_array(SaEvtEventPatternArrayT **pattern_array,
  
   Notes         : NONE
 ******************************************************************************/
-static void
-free_pattern_array(SaEvtEventPatternArrayT *pattern_array)
+static void free_pattern_array(SaEvtEventPatternArrayT *pattern_array)
 {
-   uns32   x;
-   SaEvtEventPatternT *pattern_ptr;
+	uns32 x;
+	SaEvtEventPatternT *pattern_ptr;
 
-   /* Free all the pattern buffers */
-   pattern_ptr = pattern_array->patterns;
-   for (x=0; x<pattern_array->patternsNumber; x++)
-   {
-      m_MMGR_FREE_EDSVTM_EVENT_DATA(pattern_ptr->pattern);
-      pattern_ptr++;
-   }
+	/* Free all the pattern buffers */
+	pattern_ptr = pattern_array->patterns;
+	for (x = 0; x < pattern_array->patternsNumber; x++) {
+		m_MMGR_FREE_EDSVTM_EVENT_DATA(pattern_ptr->pattern);
+		pattern_ptr++;
+	}
 
-   /* Now free the pattern structs */
-   m_MMGR_FREE_EDSVTM_EVENT_PATTERNS(pattern_array->patterns);
-   m_MMGR_FREE_EDSVTM_EVENT_PATTERN_ARRAY(pattern_array);
+	/* Now free the pattern structs */
+	m_MMGR_FREE_EDSVTM_EVENT_PATTERNS(pattern_array->patterns);
+	m_MMGR_FREE_EDSVTM_EVENT_PATTERN_ARRAY(pattern_array);
 }
 
 /****************************************************************************
@@ -1061,25 +1026,22 @@ free_pattern_array(SaEvtEventPatternArrayT *pattern_array)
  
   Notes         : NONE
 ******************************************************************************/
-static void
-dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
+static void dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 {
-   SaEvtEventPatternT  *pEventPattern;
-   int32   x = 0;
-   int8    buf[256];
+	SaEvtEventPatternT *pEventPattern;
+	int32 x = 0;
+	int8 buf[256];
 
-   if (patternArray == NULL)
-      return;
-   if (patternArray->patterns == 0)
-      return;
+	if (patternArray == NULL)
+		return;
+	if (patternArray->patterns == 0)
+		return;
 
-   pEventPattern = patternArray->patterns; /* Point to first pattern */
-   for (x=0; x<(int32)patternArray->patternsNumber; x++) {
-      memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
-      buf[pEventPattern->patternSize] = '\0';
-      printf("     pattern[%ld] =    {%2u, \"%s\"}\n",
-             x, (uns32)pEventPattern->patternSize, buf);
-      pEventPattern++;
-   }
+	pEventPattern = patternArray->patterns;	/* Point to first pattern */
+	for (x = 0; x < (int32)patternArray->patternsNumber; x++) {
+		memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
+		buf[pEventPattern->patternSize] = '\0';
+		printf("     pattern[%ld] =    {%2u, \"%s\"}\n", x, (uns32)pEventPattern->patternSize, buf);
+		pEventPattern++;
+	}
 }
-

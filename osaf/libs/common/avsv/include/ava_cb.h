@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,30 +30,27 @@
 #ifndef AVA_CB_H
 #define AVA_CB_H
 
-
 /* AvA control block */
-typedef struct ava_cb_tag
-{
-   uns32      cb_hdl;    /* CB hdl returned by hdl mngr */
-   EDU_HDL    edu_hdl;   /* EDU handle */
-   uns8       pool_id;   /* pool-id used by hdl mngr */
-   NCS_LOCK   lock;      /* CB lock */
-   uns32      pend_dis;  /* Number of pending dispaches */
-   uns32      pend_fin;  /* Number of pending agent destroy */
+typedef struct ava_cb_tag {
+	uns32 cb_hdl;		/* CB hdl returned by hdl mngr */
+	EDU_HDL edu_hdl;	/* EDU handle */
+	uns8 pool_id;		/* pool-id used by hdl mngr */
+	NCS_LOCK lock;		/* CB lock */
+	uns32 pend_dis;		/* Number of pending dispaches */
+	uns32 pend_fin;		/* Number of pending agent destroy */
 
-   SaNameT    comp_name_net; /* comp-name */
-   uns32      flag;          /* flags */
+	SaNameT comp_name_net;	/* comp-name */
+	uns32 flag;		/* flags */
 
-   /* mds parameters */
-   MDS_HDL     mds_hdl;    /* mds handle */
-   MDS_DEST    ava_dest;   /* AvA absolute address */
-   MDS_DEST    avnd_dest;  /* AvND absolute address */
-   NCS_SEL_OBJ sel_obj;    /* sel obj for mds sync indication */
+	/* mds parameters */
+	MDS_HDL mds_hdl;	/* mds handle */
+	MDS_DEST ava_dest;	/* AvA absolute address */
+	MDS_DEST avnd_dest;	/* AvND absolute address */
+	NCS_SEL_OBJ sel_obj;	/* sel obj for mds sync indication */
 
-   /* AvA handle database */
-   AVA_HDL_DB hdl_db;    
+	/* AvA handle database */
+	AVA_HDL_DB hdl_db;
 } AVA_CB;
-
 
 /* constants for PM_START param */
 #define AVA_PM_START_ALL_DESCENDENTS -1
@@ -72,12 +67,10 @@ typedef struct ava_cb_tag
 #define m_AVA_FLAG_SET(cb, bitmap)    (cb->flag |= bitmap)
 #define m_AVA_FLAG_RESET(cb, bitmap)  (cb->flag &= ~bitmap)
 
-
 /* Macro to validate the AMF version */
 #define m_AVA_VER_IS_VALID(ver) \
               ( (ver->releaseCode == 'B') && \
                 (ver->majorVersion <= 0x01) )
-
 
 /* Macro to validate the dispatch flags */
 #define m_AVA_DISPATCH_FLAG_IS_VALID(flag) \
@@ -101,13 +94,12 @@ typedef struct ava_cb_tag
                ( (SA_AIS_OK == err) || \
                  (SA_AIS_ERR_FAILED_OPERATION == err) )
 
-
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 ava_create (NCS_LIB_CREATE *);
+EXTERN_C uns32 ava_create(NCS_LIB_CREATE *);
 
-EXTERN_C void ava_destroy (NCS_LIB_DESTROY *);
+EXTERN_C void ava_destroy(NCS_LIB_DESTROY *);
 
-EXTERN_C uns32 ava_avnd_msg_prc (AVA_CB *, AVSV_NDA_AVA_MSG *);
+EXTERN_C uns32 ava_avnd_msg_prc(AVA_CB *, AVSV_NDA_AVA_MSG *);
 
-#endif /* !AVA_CB_H */
+#endif   /* !AVA_CB_H */

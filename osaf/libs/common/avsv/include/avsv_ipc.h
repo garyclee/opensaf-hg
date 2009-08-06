@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,8 +30,6 @@
 #ifndef AVSV_IPC_H
 #define AVSV_IPC_H
 
-
-
 /*****************************************************************************
 
   MACRO: m_AVSV_MBX_CREATE    
@@ -43,7 +39,6 @@
    In the sample below, this macro invokes a common macro that actually 
    allocates and/or initializes an IPC mailbox. This macro returns
    success or failure. 
-
 
 ******************************************************************************/
 
@@ -57,7 +52,6 @@
       }\
 
 
-
 /*****************************************************************************
 
   MACRO: m_AVSV_MBX_ATTACH    
@@ -68,12 +62,10 @@
    invoked in order to attach to an IPC mailbox. This macro returns
    success or failure.  
 
-
 ******************************************************************************/
 
 #define m_AVSV_MBX_ATTACH(cb, rc) \
          rc = m_NCS_IPC_ATTACH(cb->mbx)
-
 
 /*****************************************************************************
 
@@ -86,12 +78,10 @@
    with priority specified in msg_priority.This macro returns
    success or failure. 
 
-
 ******************************************************************************/
 
 #define m_AVSV_MBX_SEND(cb, evt, priority, rc) \
       rc = m_NCS_IPC_SEND(&cb->mbx, evt, priority)
-
 
 /*****************************************************************************
    MACRO: m_AVSV_MBX_RECV
@@ -111,7 +101,6 @@
 #define m_AVSV_MBX_RECV(cd, evt, evt_buf)  \
                 evt = m_NCS_IPC_RECEIVE(cd->mbx, evt)
 
-
 /*****************************************************************************
    MACRO: m_AVSV_MBX_DETACH
    Macro to invoke freeing of "events" for an AVD or AVND mailbox.
@@ -122,7 +111,6 @@
 ******************************************************************************/
 #define m_AVSV_MBX_DETACH(cb, func_callbk, rc)  \
               rc = m_NCS_IPC_DETACH(cb->mbx, (NCS_IPC_CB)func_callbk, cb)
-
 
 /*****************************************************************************
    MACRO: m_AVSV_MBX_RELEASE
@@ -139,4 +127,5 @@
 
 
 typedef NCS_IPC_MSG AVSV_MBX_MSG;
-#endif /* !AVSV_IPC_H */
+
+#endif   /* !AVSV_IPC_H */

@@ -15,12 +15,10 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: mqnd_namedb.c
 
   DESCRIPTION: MQND Queue Name Data base Updation routines.
-
 
 ******************************************************************************/
 
@@ -38,17 +36,15 @@
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE** o_qnode)
+void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode)
 {
-   *o_qnode= NULL;
-   if(cb->is_qname_db_up)
-   {
-      if(qname.length)
-        qname.length = m_HTON_SANAMET_LEN(qname.length); 
-      *o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_get(&cb->qname_db,
-                                                   (uns8*)&qname);
-   }
-   return;
+	*o_qnode = NULL;
+	if (cb->is_qname_db_up) {
+		if (qname.length)
+			qname.length = m_HTON_SANAMET_LEN(qname.length);
+		*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_get(&cb->qname_db, (uns8 *)&qname);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -63,21 +59,16 @@ void mqnd_qname_node_get(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE** o_qnode)
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE** o_qnode)
+void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE **o_qnode)
 {
-   if(cb->is_qname_db_up)
-   {
-      if(qname.length)
-      {
-         qname.length = m_HTON_SANAMET_LEN(qname.length);
-         *o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db,
-                                                   (uns8*)&qname);
-      }
-      else
-         *o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db,
-                                                   (uns8*)NULL);
-   }
-   return;
+	if (cb->is_qname_db_up) {
+		if (qname.length) {
+			qname.length = m_HTON_SANAMET_LEN(qname.length);
+			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uns8 *)&qname);
+		} else
+			*o_qnode = (MQND_QNAME_NODE *)ncs_patricia_tree_getnext(&cb->qname_db, (uns8 *)NULL);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -94,14 +85,13 @@ void mqnd_qname_node_getnext(MQND_CB *cb, SaNameT qname, MQND_QNAME_NODE** o_qno
  *****************************************************************************/
 uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
-   qnode->qname.length = m_HTON_SANAMET_LEN(qnode->qname.length);
-   qnode->pnode.key_info = (uns8 *)&qnode->qname;
+	uns32 rc = NCSCC_RC_FAILURE;
+	qnode->qname.length = m_HTON_SANAMET_LEN(qnode->qname.length);
+	qnode->pnode.key_info = (uns8 *)&qnode->qname;
 
-   if(cb->is_qname_db_up)
-      rc = ncs_patricia_tree_add(&cb->qname_db,
-                                        (NCS_PATRICIA_NODE *)qnode);
-   return rc;
+	if (cb->is_qname_db_up)
+		rc = ncs_patricia_tree_add(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);
+	return rc;
 }
 
 /****************************************************************************
@@ -118,13 +108,10 @@ uns32 mqnd_qname_node_add(MQND_CB *cb, MQND_QNAME_NODE *qnode)
  *****************************************************************************/
 uns32 mqnd_qname_node_del(MQND_CB *cb, MQND_QNAME_NODE *qnode)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
-   
-   if(cb->is_qname_db_up && qnode)
-   {
-      rc = ncs_patricia_tree_del(&cb->qname_db,
-                                     (NCS_PATRICIA_NODE *)qnode);
-   }
-   return rc;
-}
+	uns32 rc = NCSCC_RC_FAILURE;
 
+	if (cb->is_qname_db_up && qnode) {
+		rc = ncs_patricia_tree_del(&cb->qname_db, (NCS_PATRICIA_NODE *)qnode);
+	}
+	return rc;
+}

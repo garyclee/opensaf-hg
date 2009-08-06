@@ -28,24 +28,23 @@
  */
 static const char *ha_state_name(SaAmfHAStateT haState)
 {
-    switch (haState)
-    {
-        case SA_AMF_HA_ACTIVE:
-            return "SA_AMF_HA_ACTIVE";
-            break;
-        case SA_AMF_HA_STANDBY:
-            return "SA_AMF_HA_STANDBY";
-            break;
-        case SA_AMF_HA_QUIESCED:
-            return "SA_AMF_HA_QUIESCED";
-            break;
-        case SA_AMF_HA_QUIESCING:
-            return "SA_AMF_HA_QUIESCING";
-            break;
-        default:
-            return "UNKNOWN";
-            break;
-    }
+	switch (haState) {
+	case SA_AMF_HA_ACTIVE:
+		return "SA_AMF_HA_ACTIVE";
+		break;
+	case SA_AMF_HA_STANDBY:
+		return "SA_AMF_HA_STANDBY";
+		break;
+	case SA_AMF_HA_QUIESCED:
+		return "SA_AMF_HA_QUIESCED";
+		break;
+	case SA_AMF_HA_QUIESCING:
+		return "SA_AMF_HA_QUIESCING";
+		break;
+	default:
+		return "UNKNOWN";
+		break;
+	}
 }
 
 /****************************************************************************
@@ -68,12 +67,11 @@ static const char *ha_state_name(SaAmfHAStateT haState)
   RETURNS       : None 
   NOTES         : At present there is only support for a simple liveness check.
 *****************************************************************************/
-static void immd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName,
-                                 SaAmfHealthcheckKeyT *checkType)
+static void immd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-    TRACE_ENTER();
-    saAmfResponse(immd_cb->amf_hdl, invocation, SA_AIS_OK);
-    TRACE_LEAVE();
+	TRACE_ENTER();
+	saAmfResponse(immd_cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -85,15 +83,14 @@ static void immd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compNa
  * Arguments     : invocation - Designates a particular invocation.
  *                 cb         - A pointer to the IMMD control block. 
  *****************************************************************************/
-static SaAisErrorT amf_active_state_handler(IMMD_CB *cb,
-                                            SaInvocationT invocation)
+static SaAisErrorT amf_active_state_handler(IMMD_CB *cb, SaInvocationT invocation)
 {
-    SaAisErrorT error = SA_AIS_OK;
-    LOG_IN("AMF HA ACTIVE request");
+	SaAisErrorT error = SA_AIS_OK;
+	LOG_IN("AMF HA ACTIVE request");
 
-    cb->mds_role = V_DEST_RL_ACTIVE;
+	cb->mds_role = V_DEST_RL_ACTIVE;
 
-    return error;
+	return error;
 }
 
 /****************************************************************************
@@ -108,9 +105,9 @@ static SaAisErrorT amf_active_state_handler(IMMD_CB *cb,
  *****************************************************************************/
 static SaAisErrorT amf_standby_state_handler(IMMD_CB *cb, SaInvocationT invocation)
 {
-    LOG_IN("AMF HA STANDBY request");
-    cb->mds_role = V_DEST_RL_STANDBY;
-    return SA_AIS_OK;
+	LOG_IN("AMF HA STANDBY request");
+	cb->mds_role = V_DEST_RL_STANDBY;
+	return SA_AIS_OK;
 }
 
 /****************************************************************************
@@ -123,12 +120,11 @@ static SaAisErrorT amf_standby_state_handler(IMMD_CB *cb, SaInvocationT invocati
  *                 cb         - A pointer to the IMMD control block. 
  *
  *****************************************************************************/
-static SaAisErrorT amf_quiescing_state_handler(IMMD_CB *cb,
-                                               SaInvocationT invocation)
+static SaAisErrorT amf_quiescing_state_handler(IMMD_CB *cb, SaInvocationT invocation)
 {
-    LOG_IN("AMF HA QUIESCING request");
-    /*anything to close down ? */
-    return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
+	LOG_IN("AMF HA QUIESCING request");
+	/*anything to close down ? */
+	return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
 /****************************************************************************
@@ -140,23 +136,22 @@ static SaAisErrorT amf_quiescing_state_handler(IMMD_CB *cb,
  * Arguments     : invocation - Designates a particular invocation.
  *                 cb         - A pointer to the IMMD control block. 
  *****************************************************************************/
-static SaAisErrorT amf_quiesced_state_handler(IMMD_CB *cb,
-                                              SaInvocationT invocation)
+static SaAisErrorT amf_quiesced_state_handler(IMMD_CB *cb, SaInvocationT invocation)
 {
-    LOG_IN("AMF HA QUIESCED request");
+	LOG_IN("AMF HA QUIESCED request");
 
-    /*
-    ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
-    ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
-    ** cb->ha_state now.
-    */
+	/*
+	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
+	 ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
+	 ** cb->ha_state now.
+	 */
 
-    cb->mds_role = V_DEST_RL_QUIESCED;
-    immd_mds_change_role(cb);
-    cb->amf_invocation = invocation;
-    cb->is_quiesced_set = TRUE; 
-    TRACE_LEAVE();
-    return SA_AIS_OK;
+	cb->mds_role = V_DEST_RL_QUIESCED;
+	immd_mds_change_role(cb);
+	cb->amf_invocation = invocation;
+	cb->is_quiesced_set = TRUE;
+	TRACE_LEAVE();
+	return SA_AIS_OK;
 }
 
 /****************************************************************************\
@@ -182,97 +177,87 @@ static SaAisErrorT amf_quiesced_state_handler(IMMD_CB *cb,
  RETURNS       : Nothing.
 \*****************************************************************************/
 static void immd_saf_csi_set_cb(SaInvocationT invocation,
-                                const SaNameT *compName,
-                                SaAmfHAStateT new_haState,
-                                SaAmfCSIDescriptorT csiDescriptor)
+				const SaNameT *compName, SaAmfHAStateT new_haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-    SaAisErrorT   error  = SA_AIS_OK;
-    SaAmfHAStateT prev_ha_state;
-    NCS_BOOL      role_change = TRUE;
-    uns32         rc = NCSCC_RC_SUCCESS;
-    IMMD_CB      *cb = immd_cb;
+	SaAisErrorT error = SA_AIS_OK;
+	SaAmfHAStateT prev_ha_state;
+	NCS_BOOL role_change = TRUE;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	IMMD_CB *cb = immd_cb;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    prev_ha_state = cb->ha_state;
+	prev_ha_state = cb->ha_state;
 
-    /* Invoke the appropriate state handler routine */
-    switch (new_haState)
-    {
-        case SA_AMF_HA_ACTIVE:
-            error = amf_active_state_handler(cb, invocation);
-            break;
-        case SA_AMF_HA_STANDBY:
-            error = amf_standby_state_handler(cb, invocation);
-            break;
-        case SA_AMF_HA_QUIESCED:
-            /* switch over */
-            error = amf_quiesced_state_handler(cb, invocation);
-            break;
-        case SA_AMF_HA_QUIESCING:
-            /* shut down */
-            error = amf_quiescing_state_handler(cb, invocation);
-            break;
-        default:
-            LOG_WA("invalid state: %d ", new_haState);
-            error = SA_AIS_ERR_FAILED_OPERATION;
-            break;
-    } 
+	/* Invoke the appropriate state handler routine */
+	switch (new_haState) {
+	case SA_AMF_HA_ACTIVE:
+		error = amf_active_state_handler(cb, invocation);
+		break;
+	case SA_AMF_HA_STANDBY:
+		error = amf_standby_state_handler(cb, invocation);
+		break;
+	case SA_AMF_HA_QUIESCED:
+		/* switch over */
+		error = amf_quiesced_state_handler(cb, invocation);
+		break;
+	case SA_AMF_HA_QUIESCING:
+		/* shut down */
+		error = amf_quiescing_state_handler(cb, invocation);
+		break;
+	default:
+		LOG_WA("invalid state: %d ", new_haState);
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		break;
+	}
 
-    if (error != SA_AIS_OK)
-        goto response;
+	if (error != SA_AIS_OK)
+		goto response;
 
-    if (new_haState == SA_AMF_HA_QUIESCED)
-    {
-        /*Note: should we not change state in cb->ha_state here.
-         This is done in immd_mds_quiesced_ack_process */
-        goto done;
-    }
+	if (new_haState == SA_AMF_HA_QUIESCED) {
+		/*Note: should we not change state in cb->ha_state here.
+		   This is done in immd_mds_quiesced_ack_process */
+		goto done;
+	}
 
-    /* Update control block */
-    cb->ha_state = new_haState;
+	/* Update control block */
+	cb->ha_state = new_haState;
 
-    TRACE_5("New-state: %s, prev-state: %s",
-        ha_state_name(new_haState), ha_state_name(prev_ha_state));
+	TRACE_5("New-state: %s, prev-state: %s", ha_state_name(new_haState), ha_state_name(prev_ha_state));
 
-    /* Handle active to active role change. */
-    if (prev_ha_state == new_haState)
-    {
-        TRACE_5("No role change!"); /* bug? */
-        role_change = FALSE;
-    }
+	/* Handle active to active role change. */
+	if (prev_ha_state == new_haState) {
+		TRACE_5("No role change!");	/* bug? */
+		role_change = FALSE;
+	}
 
-    if (role_change)
-    {
-        if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS)
-        {
-            LOG_ER("immd_mds_change_role FAILED");
-            error = SA_AIS_ERR_FAILED_OPERATION;
-            goto response;
-        }
+	if (role_change) {
+		if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("immd_mds_change_role FAILED");
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			goto response;
+		}
 
-        TRACE_5("Inform MBCSV of HA state change to %s",
-            (new_haState== SA_AMF_HA_ACTIVE)?"ACTIVE":"STANDBY");
+		TRACE_5("Inform MBCSV of HA state change to %s",
+			(new_haState == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
-        if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS)
-        {
-            LOG_ER("Failed to change role");
-            error = SA_AIS_ERR_FAILED_OPERATION;
-            goto response;
-        }
+		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to change role");
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			goto response;
+		}
 
-        if (new_haState == SA_AMF_HA_ACTIVE)
-        {
-            /* Change of role to active => We may need to elect new coord */
-            immd_proc_elect_coord(cb, TRUE);
-            immd_db_purge_fevs(cb);
-        }
-    }
+		if (new_haState == SA_AMF_HA_ACTIVE) {
+			/* Change of role to active => We may need to elect new coord */
+			immd_proc_elect_coord(cb, TRUE);
+			immd_db_purge_fevs(cb);
+		}
+	}
 
-  response:
-    saAmfResponse(cb->amf_hdl, invocation, error);
-  done:
-    TRACE_LEAVE();
+ response:
+	saAmfResponse(cb->amf_hdl, invocation, error);
+ done:
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -296,18 +281,17 @@ static void immd_saf_csi_set_cb(SaInvocationT invocation,
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-static void immd_amf_comp_terminate_callback(SaInvocationT invocation,
-                                             const SaNameT *compName)
+static void immd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-    IMMD_CB      *cb = immd_cb;
-    SaAisErrorT    saErr = SA_AIS_OK;
-    LOG_IN("IMMD - AMF Component Termination Callback Invoked, exiting...");
+	IMMD_CB *cb = immd_cb;
+	SaAisErrorT saErr = SA_AIS_OK;
+	LOG_IN("IMMD - AMF Component Termination Callback Invoked, exiting...");
 
-    saAmfResponse(cb->amf_hdl, invocation, saErr);
-    immd_mds_unregister(cb);
-    /* unreg with mbcp also ??*/
-    sleep(1);
-    exit(0);
+	saAmfResponse(cb->amf_hdl, invocation, saErr);
+	immd_mds_unregister(cb);
+	/* unreg with mbcp also ?? */
+	sleep(1);
+	exit(0);
 }
 
 /****************************************************************************
@@ -319,17 +303,15 @@ static void immd_amf_comp_terminate_callback(SaInvocationT invocation,
  * Return Values : None 
  *****************************************************************************/
 static void immd_amf_csi_rmv_callback(SaInvocationT invocation,
-                                      const SaNameT *compName,
-                                      const SaNameT *csiName,
-                                      SaAmfCSIFlagsT csiFlags)
+				      const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
-    IMMD_CB      *cb = immd_cb; 
-    SaAisErrorT    saErr = SA_AIS_OK;
-    TRACE_ENTER();
-    LOG_IN("IMMD - AMF CSI Remove Callback Invoked");
+	IMMD_CB *cb = immd_cb;
+	SaAisErrorT saErr = SA_AIS_OK;
+	TRACE_ENTER();
+	LOG_IN("IMMD - AMF CSI Remove Callback Invoked");
 
-    saAmfResponse(cb->amf_hdl, invocation, saErr);
-    TRACE_LEAVE();
+	saAmfResponse(cb->amf_hdl, invocation, saErr);
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -344,90 +326,76 @@ static void immd_amf_csi_rmv_callback(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 immd_amf_init(IMMD_CB *immd_cb) 
+uns32 immd_amf_init(IMMD_CB *immd_cb)
 {
-    static SaAmfCallbacksT amfCallbacks;
-    SaVersionT amf_version;   
-    SaAisErrorT error;
-    uns32 res = NCSCC_RC_FAILURE;
-    SaAmfHealthcheckKeyT healthy;
-    char *health_key;
+	static SaAmfCallbacksT amfCallbacks;
+	SaVersionT amf_version;
+	SaAisErrorT error;
+	uns32 res = NCSCC_RC_FAILURE;
+	SaAmfHealthcheckKeyT healthy;
+	char *health_key;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    if (amf_comp_name_get_set_from_file(
-        "IMMD_COMP_NAME_FILE", &immd_cb->comp_name) != NCSCC_RC_SUCCESS)
-        goto done;
+	if (amf_comp_name_get_set_from_file("IMMD_COMP_NAME_FILE", &immd_cb->comp_name) != NCSCC_RC_SUCCESS)
+		goto done;
 
-    memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-    amfCallbacks.saAmfHealthcheckCallback = immd_saf_hlth_chk_cb;
-    amfCallbacks.saAmfCSISetCallback      = immd_saf_csi_set_cb;
-    amfCallbacks.saAmfComponentTerminateCallback =
-        immd_amf_comp_terminate_callback;
-    amfCallbacks.saAmfCSIRemoveCallback   = immd_amf_csi_rmv_callback;
+	amfCallbacks.saAmfHealthcheckCallback = immd_saf_hlth_chk_cb;
+	amfCallbacks.saAmfCSISetCallback = immd_saf_csi_set_cb;
+	amfCallbacks.saAmfComponentTerminateCallback = immd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = immd_amf_csi_rmv_callback;
 
-    m_IMMSV_GET_AMF_VER(amf_version);
+	m_IMMSV_GET_AMF_VER(amf_version);
 
-    error = saAmfInitialize(&immd_cb->amf_hdl, &amfCallbacks, &amf_version);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfInitialize failed");
-        goto done;
-    }
+	error = saAmfInitialize(&immd_cb->amf_hdl, &amfCallbacks, &amf_version);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfInitialize failed");
+		goto done;
+	}
 
-    error = saAmfSelectionObjectGet(immd_cb->amf_hdl, &immd_cb->amf_sel_obj);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfSelectionObjectGet failed");
-        goto done;
-    }
+	error = saAmfSelectionObjectGet(immd_cb->amf_hdl, &immd_cb->amf_sel_obj);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfSelectionObjectGet failed");
+		goto done;
+	}
 
-    memset(&healthy,0,sizeof(healthy));
-    health_key = getenv("IMMSV_ENV_HEALTHCHECK_KEY");
-    if (health_key == NULL)
-    {
-        strcpy((char *) healthy.key, "A1B2");
-        healthy.keyLen = strlen((char *) healthy.key);
-    }
-    else
-    {
-        healthy.keyLen = strlen((char *) health_key);
-        if(healthy.keyLen <= SA_MAX_NAME_LENGTH)
-        {
-            strcpy((char *) healthy.key, health_key);
-        } else
-        {
-            LOG_ER("Health check key too long:%u", healthy.keyLen);
-            /* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
-               case. On the other hand, it should be long enough for all
-               reasonable health check keys */
-            goto done;            
-        }
-    }
+	memset(&healthy, 0, sizeof(healthy));
+	health_key = getenv("IMMSV_ENV_HEALTHCHECK_KEY");
+	if (health_key == NULL) {
+		strcpy((char *)healthy.key, "A1B2");
+		healthy.keyLen = strlen((char *)healthy.key);
+	} else {
+		healthy.keyLen = strlen((char *)health_key);
+		if (healthy.keyLen <= SA_MAX_NAME_LENGTH) {
+			strcpy((char *)healthy.key, health_key);
+		} else {
+			LOG_ER("Health check key too long:%u", healthy.keyLen);
+			/* SA_MAX_NAME_LENGTH is an arbitrary length delimiter in this 
+			   case. On the other hand, it should be long enough for all
+			   reasonable health check keys */
+			goto done;
+		}
+	}
 
-    error = saAmfHealthcheckStart(immd_cb->amf_hdl, &immd_cb->comp_name,
-                                  &healthy,
-                                  SA_AMF_HEALTHCHECK_AMF_INVOKED,
-                                  SA_AMF_COMPONENT_FAILOVER);
+	error = saAmfHealthcheckStart(immd_cb->amf_hdl, &immd_cb->comp_name,
+				      &healthy, SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfHealthcheckStart failed");
-        goto done;
-    }
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfHealthcheckStart failed");
+		goto done;
+	}
 
-    error = saAmfComponentRegister(immd_cb->amf_hdl, &immd_cb->comp_name, NULL);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfComponentRegister failed: %u", error);
-        goto done;
-    }
+	error = saAmfComponentRegister(immd_cb->amf_hdl, &immd_cb->comp_name, NULL);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentRegister failed: %u", error);
+		goto done;
+	}
 
-    res = NCSCC_RC_SUCCESS;
+	res = NCSCC_RC_SUCCESS;
 
  done:
-    TRACE_LEAVE2("%u, %s", res, immd_cb->comp_name.value);
-    return res;
+	TRACE_LEAVE2("%u, %s", res, immd_cb->comp_name.value);
+	return res;
 }
-

@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME:  NCS_LOG.H
 
 ..............................................................................
@@ -37,7 +36,6 @@
 
 /************************************************************************
 
-
  M C G   D I S T R I B U T E D    L O G G I N G    S e r v i c e
 
  This File contains all the typedefs necessary to use the Flexlog
@@ -49,13 +47,12 @@
       form, the data can be economically stored, filtered or moved. It
       can also be expanded into its printable form, when desired.
 
-
    2) The 'registration' set of structs allow a subystem to 'explain'
       all of its string formatting information so that flexlog can build
       printable strings for human consumtion.
 
 ************************************************************************/
-typedef char * NCSFL_TYPE;
+typedef char *NCSFL_TYPE;
 
 /************************************************************************
 
@@ -111,95 +108,94 @@ typedef char * NCSFL_TYPE;
 
 ************************************************************************/
 
-
-#define  NCSFL_TYPE_T             "T"     /* tme                                          */
-#define  NCSFL_TYPE_TI            "TI"    /* tme, idx,                                    */
-#define  NCSFL_TYPE_TII           "TII"   /* tme, idx, idx                                */
-#define  NCSFL_TYPE_TIIL          "TIIL"  /* tme, idx, idx, u32                           */
-#define  NCSFL_TYPE_TIII          "TIII"  /* tme, u32, u32, u32                           */
-#define  NCSFL_TYPE_TIIIC         "TIIIC" /* tme, u32, u32, u32, C                        */
-#define  NCSFL_TYPE_TCIC          "TCIC"  /* tme, C,   u32, C                             */
-#define  NCSFL_TYPE_TC            "TC"    /* tme, C                                       */
-#define  NCSFL_TYPE_TIM           "TIM"   /* tme, u32, u16                                */
-#define  NCSFL_TYPE_TIMM          "TIMM"  /* tme, u32, u16, u16                           */
-#define  NCSFL_TYPE_TIL           "TIL"   /* tme, idx, u32                                */
-#define  NCSFL_TYPE_TIA           "TIA"   /* tme, idx, ipa                                */
-#define  NCSFL_TYPE_TIAIA         "TIAIA" /* tme, idx, ipa  idx, ipa                      */
-#define  NCSFL_TYPE_TIAD          "TIAD"  /* tme, idx, ipa, u16                           */
-#define  NCSFL_TYPE_TID           "TID"   /* tme, u32, mem                                */
-#define  NCSFL_TYPE_TIP           "TIP"   /* tme, u32, pdu                                */
-#define  NCSFL_TYPE_ILTI          "ILTI"  /* idx, u32, tme, idx                           */
-#define  NCSFL_TYPE_ILTII         "ILTII" /* idx, u32, tme, idx, idx                      */
-#define  NCSFL_TYPE_ILTIS         "ILTIS" /* idx, u32, tme, idx, u8                       */
-#define  NCSFL_TYPE_ILTIM         "ILTIM" /* idx, u32, tme, idx, u16                      */
-#define  NCSFL_TYPE_ILTIL         "ILTIL" /* idx, u32, tme, idx, u32                      */
-#define  NCSFL_TYPE_ILTIIL        "ILTIIL"/* idx, u32, tme, idx, idx, u32                 */
-#define  NCSFL_TYPE_ILTILL        "ILTILL"/* idx, u32, tme, idx, u32, u32                 */
-#define  NCSFL_TYPE_ILTILLL       "ILTILLL"  /* idx, u32, tme, idx, u32, u32, u32            */
-#define  NCSFL_TYPE_ILTL          "ILTL"     /* idx, u32, tme, u32                         */
-#define  NCSFL_TYPE_ILTCLIL       "ILTCLIL"  /* idx, u32, tme, C,   u32, idx, u32          */
-#define  NCSFL_TYPE_ILTISC        "ILTISC"   /* idx, u8,  tme, idx, u8,  C                 */
-#define  NCSFL_TYPE_ILTISCLC      "ILTISCLC" /* idx, u8,  tme, idx, u8,  C,   u32, C       */
-#define  NCSFL_TYPE_ILTIC         "ILTIC"    /* idx, u32, tme, idx, C,                     */
-#define  NCSFL_TYPE_ILTICL        "ILTICL"   /* idx, u32, tme, idx, C,   u32               */
-#define  NCSFL_TYPE_ILTILI        "ILTILI"   /* idx, u32, tme, idx, u32, idx               */
-#define  NCSFL_TYPE_ILTIILM       "ILTIILM"  /* idx, u32, tme, idx, idx, u32, u16          */
-#define  NCSFL_TYPE_ILTIILL       "ILTIILL"  /* idx, u32, tme, idx, idx, u32, u32          */
-#define  NCSFL_TYPE_ILTIILML      "ILTIILML" /* idx, u32, tme, idx, idx, u32, u16, u32     */
-#define  NCSFL_TYPE_ILTIILLL      "ILTIILLL" /* idx, u32, tme, idx, idx, u32, u32, u32     */
-#define  NCSFL_TYPE_ILTILIL       "ILTILIL"  /* idx, u32, tme, idx, u32, idx, u32,         */
-#define  NCSFL_TYPE_ILTLLLL       "ILTLLLL"  /* idx, u32, tme, u32, u32, u32, u32,         */
-#define  NCSFL_TYPE_ILTILLM       "ILTILLM"  /* idx, u32, tme, idx, u32, u32, u16          */
+#define  NCSFL_TYPE_T             "T"	/* tme                                          */
+#define  NCSFL_TYPE_TI            "TI"	/* tme, idx,                                    */
+#define  NCSFL_TYPE_TII           "TII"	/* tme, idx, idx                                */
+#define  NCSFL_TYPE_TIIL          "TIIL"	/* tme, idx, idx, u32                           */
+#define  NCSFL_TYPE_TIII          "TIII"	/* tme, u32, u32, u32                           */
+#define  NCSFL_TYPE_TIIIC         "TIIIC"	/* tme, u32, u32, u32, C                        */
+#define  NCSFL_TYPE_TCIC          "TCIC"	/* tme, C,   u32, C                             */
+#define  NCSFL_TYPE_TC            "TC"	/* tme, C                                       */
+#define  NCSFL_TYPE_TIM           "TIM"	/* tme, u32, u16                                */
+#define  NCSFL_TYPE_TIMM          "TIMM"	/* tme, u32, u16, u16                           */
+#define  NCSFL_TYPE_TIL           "TIL"	/* tme, idx, u32                                */
+#define  NCSFL_TYPE_TIA           "TIA"	/* tme, idx, ipa                                */
+#define  NCSFL_TYPE_TIAIA         "TIAIA"	/* tme, idx, ipa  idx, ipa                      */
+#define  NCSFL_TYPE_TIAD          "TIAD"	/* tme, idx, ipa, u16                           */
+#define  NCSFL_TYPE_TID           "TID"	/* tme, u32, mem                                */
+#define  NCSFL_TYPE_TIP           "TIP"	/* tme, u32, pdu                                */
+#define  NCSFL_TYPE_ILTI          "ILTI"	/* idx, u32, tme, idx                           */
+#define  NCSFL_TYPE_ILTII         "ILTII"	/* idx, u32, tme, idx, idx                      */
+#define  NCSFL_TYPE_ILTIS         "ILTIS"	/* idx, u32, tme, idx, u8                       */
+#define  NCSFL_TYPE_ILTIM         "ILTIM"	/* idx, u32, tme, idx, u16                      */
+#define  NCSFL_TYPE_ILTIL         "ILTIL"	/* idx, u32, tme, idx, u32                      */
+#define  NCSFL_TYPE_ILTIIL        "ILTIIL"	/* idx, u32, tme, idx, idx, u32                 */
+#define  NCSFL_TYPE_ILTILL        "ILTILL"	/* idx, u32, tme, idx, u32, u32                 */
+#define  NCSFL_TYPE_ILTILLL       "ILTILLL"	/* idx, u32, tme, idx, u32, u32, u32            */
+#define  NCSFL_TYPE_ILTL          "ILTL"	/* idx, u32, tme, u32                         */
+#define  NCSFL_TYPE_ILTCLIL       "ILTCLIL"	/* idx, u32, tme, C,   u32, idx, u32          */
+#define  NCSFL_TYPE_ILTISC        "ILTISC"	/* idx, u8,  tme, idx, u8,  C                 */
+#define  NCSFL_TYPE_ILTISCLC      "ILTISCLC"	/* idx, u8,  tme, idx, u8,  C,   u32, C       */
+#define  NCSFL_TYPE_ILTIC         "ILTIC"	/* idx, u32, tme, idx, C,                     */
+#define  NCSFL_TYPE_ILTICL        "ILTICL"	/* idx, u32, tme, idx, C,   u32               */
+#define  NCSFL_TYPE_ILTILI        "ILTILI"	/* idx, u32, tme, idx, u32, idx               */
+#define  NCSFL_TYPE_ILTIILM       "ILTIILM"	/* idx, u32, tme, idx, idx, u32, u16          */
+#define  NCSFL_TYPE_ILTIILL       "ILTIILL"	/* idx, u32, tme, idx, idx, u32, u32          */
+#define  NCSFL_TYPE_ILTIILML      "ILTIILML"	/* idx, u32, tme, idx, idx, u32, u16, u32     */
+#define  NCSFL_TYPE_ILTIILLL      "ILTIILLL"	/* idx, u32, tme, idx, idx, u32, u32, u32     */
+#define  NCSFL_TYPE_ILTILIL       "ILTILIL"	/* idx, u32, tme, idx, u32, idx, u32,         */
+#define  NCSFL_TYPE_ILTLLLL       "ILTLLLL"	/* idx, u32, tme, u32, u32, u32, u32,         */
+#define  NCSFL_TYPE_ILTILLM       "ILTILLM"	/* idx, u32, tme, idx, u32, u32, u16          */
 
    /* Add new NCSFL_TYPE_ values as new sprintf templates emerge       */
-#define  NCSFL_TYPE_TIALL         "TIALL"  /* tme, idx, u32, u32, u32,                    */
-#define  NCSFL_TYPE_TIALAL        "TIALAL" /* tme, idx, u32, u32, u32, u32                */
-#define  NCSFL_TYPE_ILLLL         "ILLLL"  /* idx, u32, u32, u32, u32                     */
-#define  NCSFL_TYPE_TIMSC         "TIMSC"  /* u32 */ 
-#define  NCSFL_TYPE_TILAL         "TILAL"  /* tme, idx, u32, u32, u32                     */
-#define  NCSFL_TYPE_TILLII        "TILLII" /* tme, idx, u32, u32, idx, idx                */
-#define  NCSFL_TYPE_TILI          "TILI"   /* tme, idx, u32, idx                          */
-#define  NCSFL_TYPE_ILI           "ILI"    /* idx, u32, idx                               */
+#define  NCSFL_TYPE_TIALL         "TIALL"	/* tme, idx, u32, u32, u32,                    */
+#define  NCSFL_TYPE_TIALAL        "TIALAL"	/* tme, idx, u32, u32, u32, u32                */
+#define  NCSFL_TYPE_ILLLL         "ILLLL"	/* idx, u32, u32, u32, u32                     */
+#define  NCSFL_TYPE_TIMSC         "TIMSC"	/* u32 */
+#define  NCSFL_TYPE_TILAL         "TILAL"	/* tme, idx, u32, u32, u32                     */
+#define  NCSFL_TYPE_TILLII        "TILLII"	/* tme, idx, u32, u32, idx, idx                */
+#define  NCSFL_TYPE_TILI          "TILI"	/* tme, idx, u32, idx                          */
+#define  NCSFL_TYPE_ILI           "ILI"	/* idx, u32, idx                               */
 
-#define  NCSFL_TYPE_TIALALLLL     "TIALALLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32             */
-#define  NCSFL_TYPE_TIALALLLLL    "TIALALLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32        */
-#define  NCSFL_TYPE_TIALALLLLLL   "TIALALLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32   */
-#define  NCSFL_TYPE_TIF           "TIF"  /* tme, idx, dbl                                           */
-#define  NCSFL_TYPE_TIN           "TIN"  /* tme, idx, long long                                           */
-#define  NCSFL_TYPE_TIU           "TIU"  /* tme, idx, unsigned long long                                           */
-#define  NCSFL_TYPE_TIX           "TIX"  /* tme, idx, long long (in hex format)                      */
-#define  NCSFL_TYPE_TIFI          "TIFI"  /* tme, idx, dbl, idx                                      */
-#define  NCSFL_TYPE_TIC           "TIC"  /* tme, idx, C                                             */
-#define  NCSFL_TYPE_TICCLLLL      "TICCLLLL"  /* tme, idx, C, C, u32, u32, u32, u32                     */
-#define  NCSFL_TYPE_TIIC          "TIIC"  /* tme, idx, idx, C                                        */
-#define  NCSFL_TYPE_TIICC         "TIICC"  /* tme, idx, idx, C, C                                       */
-#define  NCSFL_TYPE_TILL          "TILL"  /* tme, idx, u32, u23,                                     */
-#define  NCSFL_TYPE_TILLL         "TILLL"  /* tme, idx, u32, u32, u32                                 */
-#define  NCSFL_TYPE_TILLLL        "TILLLL"  /* tme, idx, u32, u32, u32, u32                            */
-#define  NCSFL_TYPE_TILLLLL       "TILLLLL"  /* tme, idx, u32, u32, u32, u32, u32                       */
-#define  NCSFL_TYPE_TILLLLLL      "TILLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32                  */
-#define  NCSFL_TYPE_TILLLLLLL     "TILLLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32             */
-#define  NCSFL_TYPE_TILLLLLLLL    "TILLLLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32        */
-#define  NCSFL_TYPE_TILLLLLLLLL   "TILLLLLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32   */
-#define  NCSFL_TYPE_TILLLLLLLLLL  "TILLLLLLLLLL"  /* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32 */
-#define  NCSFL_TYPE_TICL          "TICL"  /* tme, idx, C, u32                                         */
-#define  NCSFL_TYPE_TICLL         "TICLL"  /* tme, idx, C, u32, u32                                    */
-#define  NCSFL_TYPE_TICLLL        "TICLLL"  /* tme, idx, C, u32, u32, u32                               */
-#define  NCSFL_TYPE_TICLLLL       "TICLLLL"  /* tme, idx, C, u32, u32, u32, u32                          */
-#define  NCSFL_TYPE_TICLLLLL      "TICLLLLL"  /* tme, idx, C, u32, u32, u32, u32, u32                     */
-#define  NCSFL_TYPE_TICLLLLLL     "TICLLLLLL" /* tme, idx, C, u32, u32, u32, u32, u32, u32                */
-#define  NCSFL_TYPE_TICLLLLLLL     "TICLLLLLLL" /* tme, idx, C, u32, u32, u32, u32, u32, u32, u32         */
-#define  NCSFL_TYPE_TIICL         "TIICL"     /* tme, idx, idx, C, uns32                                  */ 
-#define  NCSFL_TYPE_TICI          "TICI"      /* tme, idx, C, idx                                         */ 
-#define  NCSFL_TYPE_TILCL         "TILCL"      /* tme, idx, u32,C,u32  added for mqsv*/
-#define  NCSFL_TYPE_TCLIL         "TCLIL"      /* tme, C,u32,idx, u32  added for mqsv*/
-#define  NCSFL_TYPE_TCLILL        "TCLILL"      /* tme, C,u32,idx, u32,u32  added for edsv*/
-#define  NCSFL_TYPE_TCLILLF       "TCLILLF"     /* tme, C,u32,idx, u32,u32,u64  added for edsv*/
-#define  NCSFL_TYPE_TCLILLLL      "TCLILLLL"    /* tme, C,u32,idx, u32  added for glsv*/
-#define  NCSFL_TYPE_TIDNUX        "TIDNUX"        /*time idx mem_dump long long long long long long(hex) */ 
-#define  NCSFL_TYPE_TINUXD        "TINUXD"        /*time idx long long long long long long(hex) mem_dump*/ 
+#define  NCSFL_TYPE_TIALALLLL     "TIALALLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32             */
+#define  NCSFL_TYPE_TIALALLLLL    "TIALALLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32        */
+#define  NCSFL_TYPE_TIALALLLLLL   "TIALALLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32   */
+#define  NCSFL_TYPE_TIF           "TIF"	/* tme, idx, dbl                                           */
+#define  NCSFL_TYPE_TIN           "TIN"	/* tme, idx, long long                                           */
+#define  NCSFL_TYPE_TIU           "TIU"	/* tme, idx, unsigned long long                                           */
+#define  NCSFL_TYPE_TIX           "TIX"	/* tme, idx, long long (in hex format)                      */
+#define  NCSFL_TYPE_TIFI          "TIFI"	/* tme, idx, dbl, idx                                      */
+#define  NCSFL_TYPE_TIC           "TIC"	/* tme, idx, C                                             */
+#define  NCSFL_TYPE_TICCLLLL      "TICCLLLL"	/* tme, idx, C, C, u32, u32, u32, u32                     */
+#define  NCSFL_TYPE_TIIC          "TIIC"	/* tme, idx, idx, C                                        */
+#define  NCSFL_TYPE_TIICC         "TIICC"	/* tme, idx, idx, C, C                                       */
+#define  NCSFL_TYPE_TILL          "TILL"	/* tme, idx, u32, u23,                                     */
+#define  NCSFL_TYPE_TILLL         "TILLL"	/* tme, idx, u32, u32, u32                                 */
+#define  NCSFL_TYPE_TILLLL        "TILLLL"	/* tme, idx, u32, u32, u32, u32                            */
+#define  NCSFL_TYPE_TILLLLL       "TILLLLL"	/* tme, idx, u32, u32, u32, u32, u32                       */
+#define  NCSFL_TYPE_TILLLLLL      "TILLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32                  */
+#define  NCSFL_TYPE_TILLLLLLL     "TILLLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32             */
+#define  NCSFL_TYPE_TILLLLLLLL    "TILLLLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32        */
+#define  NCSFL_TYPE_TILLLLLLLLL   "TILLLLLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32   */
+#define  NCSFL_TYPE_TILLLLLLLLLL  "TILLLLLLLLLL"	/* tme, idx, u32, u32, u32, u32, u32, u32, u32, u32, u32, u32 */
+#define  NCSFL_TYPE_TICL          "TICL"	/* tme, idx, C, u32                                         */
+#define  NCSFL_TYPE_TICLL         "TICLL"	/* tme, idx, C, u32, u32                                    */
+#define  NCSFL_TYPE_TICLLL        "TICLLL"	/* tme, idx, C, u32, u32, u32                               */
+#define  NCSFL_TYPE_TICLLLL       "TICLLLL"	/* tme, idx, C, u32, u32, u32, u32                          */
+#define  NCSFL_TYPE_TICLLLLL      "TICLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32                     */
+#define  NCSFL_TYPE_TICLLLLLL     "TICLLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32, u32                */
+#define  NCSFL_TYPE_TICLLLLLLL     "TICLLLLLLL"	/* tme, idx, C, u32, u32, u32, u32, u32, u32, u32         */
+#define  NCSFL_TYPE_TIICL         "TIICL"	/* tme, idx, idx, C, uns32                                  */
+#define  NCSFL_TYPE_TICI          "TICI"	/* tme, idx, C, idx                                         */
+#define  NCSFL_TYPE_TILCL         "TILCL"	/* tme, idx, u32,C,u32  added for mqsv */
+#define  NCSFL_TYPE_TCLIL         "TCLIL"	/* tme, C,u32,idx, u32  added for mqsv */
+#define  NCSFL_TYPE_TCLILL        "TCLILL"	/* tme, C,u32,idx, u32,u32  added for edsv */
+#define  NCSFL_TYPE_TCLILLF       "TCLILLF"	/* tme, C,u32,idx, u32,u32,u64  added for edsv */
+#define  NCSFL_TYPE_TCLILLLL      "TCLILLLL"	/* tme, C,u32,idx, u32  added for glsv */
+#define  NCSFL_TYPE_TIDNUX        "TIDNUX"	/*time idx mem_dump long long long long long long(hex) */
+#define  NCSFL_TYPE_TINUXD        "TINUXD"	/*time idx long long long long long long(hex) mem_dump */
 #define  NCSFL_TYPE_TIILLLL       "TIILLLL"
-#define  NCSFL_TYPE_TIIII         "TIIII"  
+#define  NCSFL_TYPE_TIIII         "TIIII"
 /************************************************************************
   FORMAT Structures for easy Memory Overlays
 
@@ -208,21 +204,18 @@ typedef char * NCSFL_TYPE;
 
  ************************************************************************/
 
-typedef struct ncsfl_mem
-{
-   uns16   len;      /* number of bytes of raw data in dump */
-   char*   addr;     /* address to be printed */
-   char*   dump;     /* contains the raw data to be printed */
+typedef struct ncsfl_mem {
+	uns16 len;		/* number of bytes of raw data in dump */
+	char *addr;		/* address to be printed */
+	char *dump;		/* contains the raw data to be printed */
 
 } NCSFL_MEM;
 
-typedef struct ncsfl_pdu
-{
-   uns16   len;
-   char*   dump;     /* dump contains len bytes of raw data */
+typedef struct ncsfl_pdu {
+	uns16 len;
+	char *dump;		/* dump contains len bytes of raw data */
 
 } NCSFL_PDU;
-
 
 /************************************************************************
   SEVERITY
@@ -255,17 +248,16 @@ typedef struct ncsfl_pdu
       2) values are expressed as bit maps for easy multi-severity
          filtering (as per #defines below).
 
-
  ************************************************************************/
 
-#define NCSFL_SEV_EMERGENCY  0x80    /* system is unusable               */
-#define NCSFL_SEV_ALERT      0x40    /* action must be taken immediately */
-#define NCSFL_SEV_CRITICAL   0x20    /* critical condition               */
-#define NCSFL_SEV_ERROR      0x10    /* error conditions                 */
-#define NCSFL_SEV_WARNING    0x08    /* warning condition                */
-#define NCSFL_SEV_NOTICE     0x04    /* normal, but segnificant condition*/
-#define NCSFL_SEV_INFO       0x02    /* informational messages           */
-#define NCSFL_SEV_DEBUG      0x01    /* debug-level messages             */
+#define NCSFL_SEV_EMERGENCY  0x80	/* system is unusable               */
+#define NCSFL_SEV_ALERT      0x40	/* action must be taken immediately */
+#define NCSFL_SEV_CRITICAL   0x20	/* critical condition               */
+#define NCSFL_SEV_ERROR      0x10	/* error conditions                 */
+#define NCSFL_SEV_WARNING    0x08	/* warning condition                */
+#define NCSFL_SEV_NOTICE     0x04	/* normal, but segnificant condition */
+#define NCSFL_SEV_INFO       0x02	/* informational messages           */
+#define NCSFL_SEV_DEBUG      0x01	/* debug-level messages             */
 
 /***********************************************************************
   CATEGORY
@@ -288,23 +280,23 @@ typedef struct ncsfl_pdu
 
 ************************************************************************/
 
-#define NCSFL_LC_API             0x80000000    /* API or Callback invoked         */
-#define NCSFL_LC_HEADLINE        0x40000000    /* Basic noteworthy condition      */
-#define NCSFL_LC_STATE           0x20000000    /* State-transition announcement   */
-#define NCSFL_LC_TIMER           0x10000000    /* Timer stop/start/expire stuff   */
-#define NCSFL_LC_FUNC_ENTRY      0x08000000    /* Function entry point */
-#define NCSFL_LC_EVENT           0x04000000    /* Unusual, often async 'event'    */
-#define NCSFL_LC_DATA            0x02000000    /* data (ex. PDU, memory) info     */
-#define NCSFL_LC_STATE_MCH       0x01000000    /* Finite State Machine stuff      */
-#define NCSFL_LC_SVC_PRVDR       0x00800000    /* reguarding my service providers */
-#define NCSFL_LC_MEMORY          0x00400000    /* Memory related logs */
-#define NCSFL_LC_LOCKS           0x00200000    /* Locks : created/destroyed/locked/release */
-#define NCSFL_LC_INTERFACE       0x00100000    /* Interface: up or down */
-#define NCSFL_LC_FUNC_RET_FAIL   0x00080000    /* Function returning failure */
-#define NCSFL_LC_SYS_CALL_FAIL   0x00040000    /* System call fail */
-#define NCSFL_LC_MSG_FMT_ERROR   0x00020000    /* Log : Message format errors */
-#define NCSFL_LC_MSG_CKPT        0x00010000    /* Checkpointing related errors */
+#define NCSFL_LC_API             0x80000000	/* API or Callback invoked         */
+#define NCSFL_LC_HEADLINE        0x40000000	/* Basic noteworthy condition      */
+#define NCSFL_LC_STATE           0x20000000	/* State-transition announcement   */
+#define NCSFL_LC_TIMER           0x10000000	/* Timer stop/start/expire stuff   */
+#define NCSFL_LC_FUNC_ENTRY      0x08000000	/* Function entry point */
+#define NCSFL_LC_EVENT           0x04000000	/* Unusual, often async 'event'    */
+#define NCSFL_LC_DATA            0x02000000	/* data (ex. PDU, memory) info     */
+#define NCSFL_LC_STATE_MCH       0x01000000	/* Finite State Machine stuff      */
+#define NCSFL_LC_SVC_PRVDR       0x00800000	/* reguarding my service providers */
+#define NCSFL_LC_MEMORY          0x00400000	/* Memory related logs */
+#define NCSFL_LC_LOCKS           0x00200000	/* Locks : created/destroyed/locked/release */
+#define NCSFL_LC_INTERFACE       0x00100000	/* Interface: up or down */
+#define NCSFL_LC_FUNC_RET_FAIL   0x00080000	/* Function returning failure */
+#define NCSFL_LC_SYS_CALL_FAIL   0x00040000	/* System call fail */
+#define NCSFL_LC_MSG_FMT_ERROR   0x00020000	/* Log : Message format errors */
+#define NCSFL_LC_MSG_CKPT        0x00010000	/* Checkpointing related errors */
 
-#define NCSFL_LC_MISC            0x00008000    /* The above categories don't fit  */
+#define NCSFL_LC_MISC            0x00008000	/* The above categories don't fit  */
 
 #endif

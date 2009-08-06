@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
   DESCRIPTION:
 
   This file contains all Public APIs for the Flex Log server (DTA) portion
@@ -43,7 +40,6 @@
 */
 #include "dta.h"
 #include "os_defs.h"
-
 
 DTA_CB dta_cb;
 uns32 dta_hdl;
@@ -68,32 +64,29 @@ NCS_BOOL dts_sync_up_flag = 1;
 
 *****************************************************************************/
 
-uns32 dta_lm(DTA_LM_ARG* arg)
+uns32 dta_lm(DTA_LM_ARG *arg)
 {
-  if(arg == NULL)
-     return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lm: NULL pointer passed");
+	if (arg == NULL)
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lm: NULL pointer passed");
 
-  switch(arg->i_op)
-  {
-  case DTA_LM_OP_CREATE:
-      return dta_svc_create(&arg->info.create);
+	switch (arg->i_op) {
+	case DTA_LM_OP_CREATE:
+		return dta_svc_create(&arg->info.create);
 
-  case DTA_LM_OP_DESTROY:
-    return dta_svc_destroy(&arg->info.destroy);
+	case DTA_LM_OP_DESTROY:
+		return dta_svc_destroy(&arg->info.destroy);
 
-  default:
-    break;
-  }
-  return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lm: Operation type received is wrong");
+	default:
+		break;
+	}
+	return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_lm: Operation type received is wrong");
 }
-
 
 /*#############################################################################
  *
  *                   PRIVATE DTA LAYER MANAGEMENT IMPLEMENTAION
  *
  *############################################################################*/
-
 
 /*****************************************************************************\
 *
@@ -108,83 +101,79 @@ uns32 dta_lm(DTA_LM_ARG* arg)
 *                               for details.
 *
 \*****************************************************************************/
-uns32 dta_svc_create(NCSDTA_CREATE* create)
+uns32 dta_svc_create(NCSDTA_CREATE *create)
 {
-    /* Create a new structure and initialize all its fields */
-    DTA_CB * inst = &dta_cb;
-    NCS_SEL_OBJ_SET  set;
-    uns32 timeout = 300;
-    NCS_PATRICIA_PARAMS pt_params;
+	/* Create a new structure and initialize all its fields */
+	DTA_CB *inst = &dta_cb;
+	NCS_SEL_OBJ_SET set;
+	uns32 timeout = 300;
+	NCS_PATRICIA_PARAMS pt_params;
 
-  
-    m_DTA_LK_INIT;
+	m_DTA_LK_INIT;
 
-    m_DTA_LK_CREATE(&inst->lock);
+	m_DTA_LK_CREATE(&inst->lock);
 
-    m_DTA_LK(&inst->lock);
+	m_DTA_LK(&inst->lock);
 
-    inst->dts_sync_done = FALSE;
-    inst->created = TRUE;
-    inst->dts_exist = FALSE;
-    /* Versioning changes */
-    inst->act_dts_ver = DTA_MIN_ACT_DTS_MDS_SUB_PART_VER;
+	inst->dts_sync_done = FALSE;
+	inst->created = TRUE;
+	inst->dts_exist = FALSE;
+	/* Versioning changes */
+	inst->act_dts_ver = DTA_MIN_ACT_DTS_MDS_SUB_PART_VER;
 
-    m_NCS_SEL_OBJ_CREATE(&inst->dts_sync_sel);
+	m_NCS_SEL_OBJ_CREATE(&inst->dts_sync_sel);
 
-    pt_params.key_size = sizeof(SS_SVC_ID);
+	pt_params.key_size = sizeof(SS_SVC_ID);
 
-    /*Create a Patricia tree for the DTA registration table instead of queue*/
-    if(ncs_patricia_tree_init(&inst->reg_tbl, &pt_params) != NCSCC_RC_SUCCESS)
-    {
-       inst->created = FALSE;
-       m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
-       m_DTA_UNLK(&inst->lock);
-       m_DTA_LK_DLT(&inst->lock);
-       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Patricia tree init failed");    
-    }
+	/*Create a Patricia tree for the DTA registration table instead of queue */
+	if (ncs_patricia_tree_init(&inst->reg_tbl, &pt_params) != NCSCC_RC_SUCCESS) {
+		inst->created = FALSE;
+		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
+		m_DTA_UNLK(&inst->lock);
+		m_DTA_LK_DLT(&inst->lock);
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Patricia tree init failed");
+	}
 
-    /* 
-     * Get ADEST handle and then register with MDS.
-     */
-    if (dta_get_ada_hdl()!= NCSCC_RC_SUCCESS)
-    {
-        inst->created = FALSE;
-        m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel); 
-        ncs_patricia_tree_destroy(&inst->reg_tbl);
-        m_DTA_UNLK(&inst->lock);
-        m_DTA_LK_DLT(&inst->lock);
-        return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Get ADEST handle failed");
-    }
- 
-    /* 3_0_b versioning changes - Subscribe to MDS with dta_mds_version */
-    inst->dta_mds_version = DTA_MDS_SUB_PART_VERSION;
+	/* 
+	 * Get ADEST handle and then register with MDS.
+	 */
+	if (dta_get_ada_hdl() != NCSCC_RC_SUCCESS) {
+		inst->created = FALSE;
+		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
+		ncs_patricia_tree_destroy(&inst->reg_tbl);
+		m_DTA_UNLK(&inst->lock);
+		m_DTA_LK_DLT(&inst->lock);
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: Get ADEST handle failed");
+	}
 
-    if (dta_mds_install_and_subscribe()!= NCSCC_RC_SUCCESS)
-    {
-        inst->created = FALSE;
-        m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
-        ncs_patricia_tree_destroy(&inst->reg_tbl);
-        m_DTA_UNLK(&inst->lock);
-        m_DTA_LK_DLT(&inst->lock);
-        return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: MDS install and subscribe failed");
-    }
+	/* 3_0_b versioning changes - Subscribe to MDS with dta_mds_version */
+	inst->dta_mds_version = DTA_MDS_SUB_PART_VERSION;
 
-    m_NCS_SEL_OBJ_ZERO(&set);
-    m_NCS_SEL_OBJ_SET(inst->dts_sync_sel, &set);
+	if (dta_mds_install_and_subscribe() != NCSCC_RC_SUCCESS) {
+		inst->created = FALSE;
+		m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
+		ncs_patricia_tree_destroy(&inst->reg_tbl);
+		m_DTA_UNLK(&inst->lock);
+		m_DTA_LK_DLT(&inst->lock);
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_create: MDS install and subscribe failed");
+	}
 
-    m_DTA_UNLK(&inst->lock);
+	m_NCS_SEL_OBJ_ZERO(&set);
+	m_NCS_SEL_OBJ_SET(inst->dts_sync_sel, &set);
 
-    if (dts_sync_up_flag){
-    /* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
-    m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
-    }
+	m_DTA_UNLK(&inst->lock);
 
-    m_DTA_LK(&inst->lock); 
-    inst->dts_sync_done = TRUE;
-    m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
-    m_DTA_UNLK(&inst->lock);
+	if (dts_sync_up_flag) {
+		/* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
+		m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
+	}
 
-    return NCSCC_RC_SUCCESS;
+	m_DTA_LK(&inst->lock);
+	inst->dts_sync_done = TRUE;
+	m_NCS_SEL_OBJ_DESTROY(inst->dts_sync_sel);
+	m_DTA_UNLK(&inst->lock);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -201,76 +190,69 @@ uns32 dta_svc_create(NCSDTA_CREATE* create)
 *                               for details.
 *
 *****************************************************************************/
-uns32 dta_svc_destroy(NCSDTA_DESTROY* destroy)
+uns32 dta_svc_destroy(NCSDTA_DESTROY *destroy)
 {
-    DTA_CB *     inst = &dta_cb;
-    uns32         retval = NCSCC_RC_SUCCESS;
-    REG_TBL_ENTRY *svc;
+	DTA_CB *inst = &dta_cb;
+	uns32 retval = NCSCC_RC_SUCCESS;
+	REG_TBL_ENTRY *svc;
 
-    if (inst->created == FALSE)
-        return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: DTA does not exist. First create DTA.");
+	if (inst->created == FALSE)
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: DTA does not exist. First create DTA.");
 
-    m_DTA_LK(&inst->lock);
+	m_DTA_LK(&inst->lock);
 
-    /* Clear the local datastructures */
-    while((svc = (REG_TBL_ENTRY*)ncs_patricia_tree_getnext(&inst->reg_tbl, NULL)) != NULL)   
-    {
-        ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)svc);
-        m_MMGR_FREE_DTA_REG_TBL(svc);
-    } 
+	/* Clear the local datastructures */
+	while ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_getnext(&inst->reg_tbl, NULL)) != NULL) {
+		ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)svc);
+		m_MMGR_FREE_DTA_REG_TBL(svc);
+	}
 
-    /*Destroy the patricia tree created*/
-    ncs_patricia_tree_destroy(&inst->reg_tbl);
+	/*Destroy the patricia tree created */
+	ncs_patricia_tree_destroy(&inst->reg_tbl);
 
-    /* Clear the logs buffered in DTA */
-    {
-        DTA_LOG_BUFFER   *list = &dta_cb.log_buffer;
-        DTA_BUFFERED_LOG *buf;
-        uns32 i, count;
-        DTSV_MSG *msg;
+	/* Clear the logs buffered in DTA */
+	{
+		DTA_LOG_BUFFER *list = &dta_cb.log_buffer;
+		DTA_BUFFERED_LOG *buf;
+		uns32 i, count;
+		DTSV_MSG *msg;
 
-        if((list == NULL) || (list->num_of_logs == 0))
-        {
-           /* Don't print anythig, service users don't like DBG SINKs */
-        }
-        else
-        {
-           count = list->num_of_logs;
-           for(i=0; i<count; i++)
-           {
-               if(!list->head)
-               {
-                  list->tail = NULL;
-                  break;
-               }
-               buf = list->head;
-               list->head = list->head->next;
+		if ((list == NULL) || (list->num_of_logs == 0)) {
+			/* Don't print anythig, service users don't like DBG SINKs */
+		} else {
+			count = list->num_of_logs;
+			for (i = 0; i < count; i++) {
+				if (!list->head) {
+					list->tail = NULL;
+					break;
+				}
+				buf = list->head;
+				list->head = list->head->next;
 
-               msg = buf->buf_msg;
-               if(msg->data.data.msg.log_msg.uba.start != NULL)
-                  m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
-               m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
-               if (0 != msg)
-                  m_MMGR_FREE_DTSV_MSG(msg);
+				msg = buf->buf_msg;
+				if (msg->data.data.msg.log_msg.uba.start != NULL)
+					m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
+				m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+				if (0 != msg)
+					m_MMGR_FREE_DTSV_MSG(msg);
 
-               m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
-               list->num_of_logs--;
-           }/*end of for*/
-        }/*end of else*/
-    }
+				m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
+				list->num_of_logs--;
+			}	/*end of for */
+		}		/*end of else */
+	}
 
-    /* Uninstall DTA from MDS */
-    if (dta_mds_uninstall() != NCSCC_RC_SUCCESS)
-    {
-        retval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: MDS uninstall failed.");
-    }
+	/* Uninstall DTA from MDS */
+	if (dta_mds_uninstall() != NCSCC_RC_SUCCESS) {
+		retval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_svc_destroy: MDS uninstall failed.");
+	}
 
-    inst->created = FALSE;
+	inst->created = FALSE;
 
-    m_DTA_UNLK(&inst->lock);
-    m_DTA_LK_DLT(&inst->lock);
+	m_DTA_UNLK(&inst->lock);
+	m_DTA_LK_DLT(&inst->lock);
 
-    return retval;
+	return retval;
 }
 
 /*****************************************************************************\
@@ -285,21 +267,20 @@ uns32 dta_svc_destroy(NCSDTA_DESTROY* destroy)
 \*****************************************************************************/
 uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg)
 {
-  if(arg == NULL)
-      return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_su_req: NULL pointer passed");
+	if (arg == NULL)
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_su_req: NULL pointer passed");
 
-  switch(arg->i_op)
-  {
-  case NCS_DTSV_OP_BIND:
-    return dta_reg_svc(&arg->info.bind_svc);
+	switch (arg->i_op) {
+	case NCS_DTSV_OP_BIND:
+		return dta_reg_svc(&arg->info.bind_svc);
 
-  case  NCS_DTSV_OP_UNBIND:
-    return dta_dereg_svc(arg->info.unbind_svc.svc_id);
+	case NCS_DTSV_OP_UNBIND:
+		return dta_dereg_svc(arg->info.unbind_svc.svc_id);
 
-  default:
-    break;
-  }
-  return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_su_req: Operation type passed to ncs_dtsv_su_req is wrong");
+	default:
+		break;
+	}
+	return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_su_req: Operation type passed to ncs_dtsv_su_req is wrong");
 }
 
 /*****************************************************************************
@@ -313,11 +294,10 @@ uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg)
 
 *****************************************************************************/
 
-uns32  
-dta_log_msg  (NCSFL_NORMAL*  lmsg)
+uns32 dta_log_msg(NCSFL_NORMAL *lmsg)
 {
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -331,119 +311,112 @@ dta_log_msg  (NCSFL_NORMAL*  lmsg)
 
 *****************************************************************************/
 
-uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
+uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 {
-    DTA_CB *     inst = &dta_cb;
-    DTSV_MSG       msg;
-    REG_TBL_ENTRY  *svc;
-    /*uns32          send_pri;*/
-    SS_SVC_ID      svc_id = bind_svc->svc_id; 
+	DTA_CB *inst = &dta_cb;
+	DTSV_MSG msg;
+	REG_TBL_ENTRY *svc;
+	/*uns32          send_pri; */
+	SS_SVC_ID svc_id = bind_svc->svc_id;
 
-    if (inst->created == FALSE)
-    {
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-            "dta_reg_svc: DTA does not exist. First create DTA before registering your service.", svc_id);
-    }
-   
-    if((strlen(bind_svc->svc_name)+1) > DTSV_SVC_NAME_MAX)
-       return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: Service name supplied in registration is either too long or not properly initialized", svc_id);
- 
-    m_DTA_LK(&inst->lock);
-    
-    /* Search the patricia tree for exisiting entries */    
-    /*if ((svc = (REG_TBL_ENTRY *) ncs_find_item(&inst->reg_tbl, 
-         (NCSCONTEXT)&svc_id, dta_match_service)) != NULL)*/
-    if((svc = (REG_TBL_ENTRY *) ncs_patricia_tree_get(&inst->reg_tbl, 
-         (const uns8*)&svc_id)) != NULL)
-    {
-        m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-            "dta_reg_svc: Service is already registered with DTSv", svc_id);
-    }
+	if (inst->created == FALSE) {
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_reg_svc: DTA does not exist. First create DTA before registering your service.",
+					  svc_id);
+	}
 
-    svc = m_MMGR_ALLOC_DTA_REG_TBL;
-    if(svc == NULL)
-    {
-         m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-           "dta_reg_svc: Memory allocation failed", svc_id);
-    }
-    
-    memset(svc, 0, sizeof(REG_TBL_ENTRY));
-    svc->svc_id = svc_id;
+	if ((strlen(bind_svc->svc_name) + 1) > DTSV_SVC_NAME_MAX)
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_reg_svc: Service name supplied in registration is either too long or not properly initialized",
+					  svc_id);
 
-    svc->version = bind_svc->version;
-    strcpy(svc->svc_name, bind_svc->svc_name); 
- 
-    svc->node.key_info = (uns8 *)&svc->svc_id;
+	m_DTA_LK(&inst->lock);
 
-    /* Add to the patricia tree */
-    if (ncs_patricia_tree_add(&inst->reg_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS)
-    {
-       m_MMGR_FREE_DTA_REG_TBL(svc);
-       m_DTA_UNLK(&inst->lock);
-       return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: Failed to add service registration entry in patricia tree", svc_id);
-    }
-    
-    /* 
-     * Check whether DTS exist. If DTS does not exist then we will send 
-     * registration information to DTS at later time when DTS comes up. 
-     * For buffering of log messages apply defaults and return success. 
-     */
-    if (inst->dts_exist == FALSE)
-    {
-        /* Set defaults for filtering policies */
-        svc->log_msg = TRUE;
-        svc->enable_log = NCS_SNMP_TRUE;
-        /* Restricting bufferring of logs till NOTICE level severity only */
-        svc->severity_bit_map = 0xFC;
-        svc->category_bit_map = 0xFFFFFFFF;
-        m_DTA_UNLK(&inst->lock);
-        return NCSCC_RC_SUCCESS;    
-    }
+	/* Search the patricia tree for exisiting entries */
+	/*if ((svc = (REG_TBL_ENTRY *) ncs_find_item(&inst->reg_tbl, 
+	   (NCSCONTEXT)&svc_id, dta_match_service)) != NULL) */
+	if ((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) != NULL) {
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_reg_svc: Service is already registered with DTSv", svc_id);
+	}
 
-    /* DTA shouldn't send svc reg msg to DTA mailbox.
-     *               Instead it should do a MDS sync send and wait for the 
-     *               svc policy handle returned from DTS */
-    /*msg = m_MMGR_ALLOC_DTSV_MSG;*/
-    /* 
-     * DTS is up ... Send registration message to DTS. 
-     */
-    memset(&msg, '\0', sizeof(DTSV_MSG));
-    dta_fill_reg_msg(&msg, svc_id, svc->version, svc->svc_name, DTA_REGISTER_SVC);
-    
-    m_DTA_UNLK(&inst->lock);
+	svc = m_MMGR_ALLOC_DTA_REG_TBL;
+	if (svc == NULL) {
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: Memory allocation failed", svc_id);
+	}
 
-    if (!dts_sync_up_flag)
-    {
-       if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)
-       {
-           return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-                         "dta_reg_svc: MDS async send failed", svc_id);
-       }
-    }
-    else
-    {
+	memset(svc, 0, sizeof(REG_TBL_ENTRY));
+	svc->svc_id = svc_id;
+
+	svc->version = bind_svc->version;
+	strcpy(svc->svc_name, bind_svc->svc_name);
+
+	svc->node.key_info = (uns8 *)&svc->svc_id;
+
+	/* Add to the patricia tree */
+	if (ncs_patricia_tree_add(&inst->reg_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_DTA_REG_TBL(svc);
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_reg_svc: Failed to add service registration entry in patricia tree",
+					  svc_id);
+	}
+
+	/* 
+	 * Check whether DTS exist. If DTS does not exist then we will send 
+	 * registration information to DTS at later time when DTS comes up. 
+	 * For buffering of log messages apply defaults and return success. 
+	 */
+	if (inst->dts_exist == FALSE) {
+		/* Set defaults for filtering policies */
+		svc->log_msg = TRUE;
+		svc->enable_log = NCS_SNMP_TRUE;
+		/* Restricting bufferring of logs till NOTICE level severity only */
+		svc->severity_bit_map = 0xFC;
+		svc->category_bit_map = 0xFFFFFFFF;
+		m_DTA_UNLK(&inst->lock);
+		return NCSCC_RC_SUCCESS;
+	}
+
+	/* DTA shouldn't send svc reg msg to DTA mailbox.
+	 *               Instead it should do a MDS sync send and wait for the 
+	 *               svc policy handle returned from DTS */
+	/*msg = m_MMGR_ALLOC_DTSV_MSG; */
+	/* 
+	 * DTS is up ... Send registration message to DTS. 
+	 */
+	memset(&msg, '\0', sizeof(DTSV_MSG));
+	dta_fill_reg_msg(&msg, svc_id, svc->version, svc->svc_name, DTA_REGISTER_SVC);
+
+	m_DTA_UNLK(&inst->lock);
+
+	if (!dts_sync_up_flag) {
+		if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS) {
+			return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: MDS async send failed", svc_id);
+		}
+	} else {
 #if (DTA_FLOW == 1)
-       if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
+		if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
 #else
-       if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
+		if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
 #endif
-       {
-           /* Try Again another time */
+		{
+			/* Try Again another time */
 #if (DTA_FLOW == 1)
-           if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
+			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
 #else
-           if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
+			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
 #endif
-           {
-              return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-                         "dta_reg_svc: MDS sync send failed", svc_id);
-           }
-       }
-    }
+			{
+				return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+							  "dta_reg_svc: MDS sync send failed", svc_id);
+			}
+		}
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -459,88 +432,84 @@ uns32 dta_reg_svc  (NCS_BIND_SVC* bind_svc )
 
 uns32 dta_dereg_svc(SS_SVC_ID svc_id)
 {
-    DTA_CB *     inst = &dta_cb;
-    REG_TBL_ENTRY * rmv_svc;
-    DTSV_MSG       *msg;
-    uns32          send_pri;
- 
-    if (inst->created == FALSE)
-    {
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-    "dta_dereg_svc: DTA does not exist. First create DTA before de-registering your service.", svc_id);
-    }
-    
-    m_DTA_LK(&inst->lock);
-            
-    /* If DTS is deregistering from DTS means that DTS is going down,
-     * So don't send any registration message to DTS */
-    if (NCS_SERVICE_ID_DTSV == svc_id)
-    {
-        if((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8*)&svc_id)) == NULL)
-        {
-            m_DTA_UNLK(&inst->lock);
-            return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-          "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree", svc_id);
-        }
+	DTA_CB *inst = &dta_cb;
+	REG_TBL_ENTRY *rmv_svc;
+	DTSV_MSG *msg;
+	uns32 send_pri;
 
-        /* Remove entry from the Patricia tree */
-        ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)rmv_svc);
+	if (inst->created == FALSE) {
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_dereg_svc: DTA does not exist. First create DTA before de-registering your service.",
+					  svc_id);
+	}
 
-        m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
+	m_DTA_LK(&inst->lock);
 
-        m_DTA_UNLK(&inst->lock);
-        return NCSCC_RC_SUCCESS;
-    }
+	/* If DTS is deregistering from DTS means that DTS is going down,
+	 * So don't send any registration message to DTS */
+	if (NCS_SERVICE_ID_DTSV == svc_id) {
+		if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL) {
+			m_DTA_UNLK(&inst->lock);
+			return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+						  "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree",
+						  svc_id);
+		}
 
-    if ((rmv_svc = (REG_TBL_ENTRY *) ncs_patricia_tree_get(&inst->reg_tbl,
-        (const uns8*)&svc_id)) == NULL) 
-    {
-        m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-        "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree", svc_id);
-    }
-   
-    /* Remove entry from the Patricia tree */
-    ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)rmv_svc); 
+		/* Remove entry from the Patricia tree */
+		ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)rmv_svc);
 
-    if (inst->dts_exist  == FALSE)
-    {
-        if (0 != rmv_svc)
-           m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
-        m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-      "dta_dereg_svc: DTS does not exist, de-registration request is not sent to DTS.", svc_id);
-    }
+		m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
 
-    msg = m_MMGR_ALLOC_DTSV_MSG;
-    if(msg == NULL)
-    {
-       if (0 != rmv_svc)
-          m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
-       m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-      "dta_dereg_svc: Mem allocation failed, de-registration request is not sent to DTS.", svc_id);
-    } 
-    memset(msg, '\0', sizeof(DTSV_MSG)); 
-     
-    dta_fill_reg_msg(msg, svc_id, rmv_svc->version, rmv_svc->svc_name, DTA_UNREGISTER_SVC);
+		m_DTA_UNLK(&inst->lock);
+		return NCSCC_RC_SUCCESS;
+	}
 
-    if (0 != rmv_svc)
-        m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
+	if ((rmv_svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL) {
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_dereg_svc: Specified service registration entry doesn't exist in patricia tree",
+					  svc_id);
+	}
 
-    m_DTA_UNLK(&inst->lock);
+	/* Remove entry from the Patricia tree */
+	ncs_patricia_tree_del(&inst->reg_tbl, (NCS_PATRICIA_NODE *)rmv_svc);
 
-    /* Smik - Don't send msg to MDS but to DTA msgbox */
-    send_pri = NCS_IPC_PRIORITY_LOW;
+	if (inst->dts_exist == FALSE) {
+		if (0 != rmv_svc)
+			m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_dereg_svc: DTS does not exist, de-registration request is not sent to DTS.",
+					  svc_id);
+	}
 
-    if(m_DTA_SND_MSG(&gl_dta_mbx, msg, send_pri) != NCSCC_RC_SUCCESS)
-    {   
-        m_MMGR_FREE_DTSV_MSG(msg);
-    /*if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)*/
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-        "dta_dereg_svc: send to DTA msgbox failed", svc_id);
-    }
-    return NCSCC_RC_SUCCESS;
+	msg = m_MMGR_ALLOC_DTSV_MSG;
+	if (msg == NULL) {
+		if (0 != rmv_svc)
+			m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "dta_dereg_svc: Mem allocation failed, de-registration request is not sent to DTS.",
+					  svc_id);
+	}
+	memset(msg, '\0', sizeof(DTSV_MSG));
+
+	dta_fill_reg_msg(msg, svc_id, rmv_svc->version, rmv_svc->svc_name, DTA_UNREGISTER_SVC);
+
+	if (0 != rmv_svc)
+		m_MMGR_FREE_DTA_REG_TBL(rmv_svc);
+
+	m_DTA_UNLK(&inst->lock);
+
+	/* Smik - Don't send msg to MDS but to DTA msgbox */
+	send_pri = NCS_IPC_PRIORITY_LOW;
+
+	if (m_DTA_SND_MSG(&gl_dta_mbx, msg, send_pri) != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_DTSV_MSG(msg);
+		/*if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS) */
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_dereg_svc: send to DTA msgbox failed", svc_id);
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -552,18 +521,17 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
  *          is enabled. If both these conditions satisfies then return success.
  *
  ****************************************************************************/
-uns32 dta_svc_reg_log_en(REG_TBL_ENTRY* svc, NCSFL_NORMAL*  lmsg)
+uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
 {
 
-   if ((svc->log_msg == FALSE) || (svc->enable_log == NCS_SNMP_FALSE) ||
-       ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
-       ((svc->severity_bit_map & lmsg->hdr.severity) != lmsg->hdr.severity))
-   {
-      return NCSCC_RC_FAILURE;
-   }
-   else 
-      return NCSCC_RC_SUCCESS;
+	if ((svc->log_msg == FALSE) || (svc->enable_log == NCS_SNMP_FALSE) ||
+	    ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
+	    ((svc->severity_bit_map & lmsg->hdr.severity) != lmsg->hdr.severity)) {
+		return NCSCC_RC_FAILURE;
+	} else
+		return NCSCC_RC_SUCCESS;
 }
+
 /****************************************************************************
  *
  * Function Name: dta_match_service
@@ -572,19 +540,19 @@ uns32 dta_svc_reg_log_en(REG_TBL_ENTRY* svc, NCSFL_NORMAL*  lmsg)
  *
  ****************************************************************************/
 
-NCS_BOOL dta_match_service(void* key, void* qelem)
-  {
-  SS_SVC_ID * svc_id = (SS_SVC_ID *) key;
-  REG_TBL_ENTRY * svc    = (REG_TBL_ENTRY*) qelem;
+NCS_BOOL dta_match_service(void *key, void *qelem)
+{
+	SS_SVC_ID *svc_id = (SS_SVC_ID *)key;
+	REG_TBL_ENTRY *svc = (REG_TBL_ENTRY *)qelem;
 
-  if(svc == NULL)
-    return FALSE;
+	if (svc == NULL)
+		return FALSE;
 
-  if (*svc_id == svc->svc_id) 
-    return TRUE;
+	if (*svc_id == svc->svc_id)
+		return TRUE;
 
-  return FALSE;
-  }
+	return FALSE;
+}
 
 /*****************************************************************************
 
@@ -597,39 +565,35 @@ NCS_BOOL dta_match_service(void* key, void* qelem)
                      NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 dta_fill_reg_msg(DTSV_MSG  *msg, SS_SVC_ID svc_id, 
-                       const uns16 version, const char *svc_name,
-                       uns8 operation)
+uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 version, const char *svc_name, uns8 operation)
 {
-    DTA_CB * inst = &dta_cb;
+	DTA_CB *inst = &dta_cb;
 
-    msg->vrid = inst->vrid;
-    msg->msg_type = operation;
-    
-    switch(operation)
-    {
-       case DTA_REGISTER_SVC:    
-          msg->data.data.reg.svc_id = svc_id;
-          msg->data.data.reg.version = version;
-          if(svc_name != NULL)
-             strcpy(msg->data.data.reg.svc_name, svc_name);
+	msg->vrid = inst->vrid;
+	msg->msg_type = operation;
 
-          break;
- 
-       case DTA_UNREGISTER_SVC:
-          msg->data.data.unreg.svc_id = svc_id;
-          msg->data.data.unreg.version = version;
+	switch (operation) {
+	case DTA_REGISTER_SVC:
+		msg->data.data.reg.svc_id = svc_id;
+		msg->data.data.reg.version = version;
+		if (svc_name != NULL)
+			strcpy(msg->data.data.reg.svc_name, svc_name);
 
-          if(svc_name != NULL)
-             strcpy(msg->data.data.unreg.svc_name, svc_name);
+		break;
 
-          break;
+	case DTA_UNREGISTER_SVC:
+		msg->data.data.unreg.svc_id = svc_id;
+		msg->data.data.unreg.version = version;
 
-       default:
-          return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-                 "dta_fill_reg_msg: Wrong operation type.", svc_id);
-    }
-    return NCSCC_RC_SUCCESS;
+		if (svc_name != NULL)
+			strcpy(msg->data.data.unreg.svc_name, svc_name);
+
+		break;
+
+	default:
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_fill_reg_msg: Wrong operation type.", svc_id);
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\
@@ -649,26 +613,18 @@ uns32 dta_fill_reg_msg(DTSV_MSG  *msg, SS_SVC_ID svc_id,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg_v2(SS_SVC_ID       svc_id,
-                    uns32           inst_id,
-                    uns8            fmat_id,
-                    uns8            str_table_id,
-                    uns32           category,
-                    uns8            severity,
-                    char*           fmat_type,
-                    ...)
+uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
+		    uns32 inst_id, uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...)
 {
-    uns32          rc = NCSCC_RC_SUCCESS;
-    va_list        argp;
-    va_start(argp,fmat_type);
+	uns32 rc = NCSCC_RC_SUCCESS;
+	va_list argp;
+	va_start(argp, fmat_type);
 
-    rc = ncs_logmsg_int(svc_id, inst_id, fmat_id, str_table_id, 
-                   category, severity, fmat_type, argp);    
+	rc = ncs_logmsg_int(svc_id, inst_id, fmat_id, str_table_id, category, severity, fmat_type, argp);
 
-    va_end(argp);
-    return rc;
+	va_end(argp);
+	return rc;
 }
-
 
 /****************************************************************************\
  * Name          : ncs_logmsg
@@ -686,25 +642,17 @@ uns32 ncs_logmsg_v2(SS_SVC_ID       svc_id,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg(SS_SVC_ID       svc_id,
-                 uns8            fmat_id,
-                 uns8            str_table_id,
-                 uns32           category,
-                 uns8            severity,
-                 char*           fmat_type,
-                 ...)
+uns32 ncs_logmsg(SS_SVC_ID svc_id, uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...)
 {
-    uns32          rc = NCSCC_RC_SUCCESS;
-    va_list        argp;
-    va_start(argp,fmat_type);
+	uns32 rc = NCSCC_RC_SUCCESS;
+	va_list argp;
+	va_start(argp, fmat_type);
 
-    rc = ncs_logmsg_int(svc_id, DEFAULT_INST_ID, fmat_id, str_table_id, 
-                   category, severity, fmat_type, argp);    
+	rc = ncs_logmsg_int(svc_id, DEFAULT_INST_ID, fmat_id, str_table_id, category, severity, fmat_type, argp);
 
-    va_end(argp);
-    return rc;
+	va_end(argp);
+	return rc;
 }
-
 
 /****************************************************************************\
  * Name          : ncs_logmsg_int
@@ -722,549 +670,506 @@ uns32 ncs_logmsg(SS_SVC_ID       svc_id,
  *
  * Notes         : None.
 \*****************************************************************************/
-uns32 ncs_logmsg_int(SS_SVC_ID       svc_id,
-                     uns32           inst_id,
-                     uns8            fmat_id,
-                     uns8            str_table_id,
-                     uns32           category,
-                     uns8            severity,
-                     char*           fmat_type,
-                     va_list         argp)
+uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
+		     uns32 inst_id,
+		     uns8 fmat_id, uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, va_list argp)
 {
-    uns32          i = 0, length = 0;
-    DTA_CB *       inst = &dta_cb;
-    DTSV_MSG       *msg;
-    NCSFL_HDR*     hdr;
-    REG_TBL_ENTRY * svc;
-    NCS_UBAID*     uba = NULL;
-    uns8*         data;
-    uns32         send_pri;
-    int warning_rmval = 0;
+	uns32 i = 0, length = 0;
+	DTA_CB *inst = &dta_cb;
+	DTSV_MSG *msg;
+	NCSFL_HDR *hdr;
+	REG_TBL_ENTRY *svc;
+	NCS_UBAID *uba = NULL;
+	uns8 *data;
+	uns32 send_pri;
+	int warning_rmval = 0;
 
     /*************************************************************************\
     * As different fields of the log-message are encoded, the minimum DTS     
     * required to understand the message may change.
     \*************************************************************************/
-    uns32         act_dts_ver; /* Active dts's version. */ 
-    uns32         min_dts_ver; /* Minimum DTS version that understands message*/
+	uns32 act_dts_ver;	/* Active dts's version. */
+	uns32 min_dts_ver;	/* Minimum DTS version that understands message */
 
-    DTA_LOG_BUFFER   *list = &inst->log_buffer;
-    DTA_BUFFERED_LOG *buf = NULL;
- 
-    /* Check if DTA is created. Continue logging if DTA is created */
-    if (inst->created == FALSE)
-    {
-       return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-           "ncs_logmsg: DTA does not exist. First create DTA before logging.", svc_id);
-    }
+	DTA_LOG_BUFFER *list = &inst->log_buffer;
+	DTA_BUFFERED_LOG *buf = NULL;
 
-    m_DTA_LK(&inst->lock);
+	/* Check if DTA is created. Continue logging if DTA is created */
+	if (inst->created == FALSE) {
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "ncs_logmsg: DTA does not exist. First create DTA before logging.", svc_id);
+	}
 
-    /* 
-     * Check whether DTS exist. If DTS does not exist then there is no 
-     * point in logging message. Return failure.
-     * Changed as of 15th June 2006. 
-     * If FLS doesn't exist & number of buffer msgs is more than DTA_BUF_LIMIT
-     * then drop the message and return failure.
-     */
-    if ((inst->dts_exist == FALSE) && (list->num_of_logs >= DTA_BUF_LIMIT))
-    {
-        m_DTA_UNLK(&inst->lock);
-        return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-            "ncs_logmsg: DTS does not exist & DTA log buffer is full. Log message is dropped.", svc_id);
-    }
+	m_DTA_LK(&inst->lock);
 
-    /*
-     * Check whether the Sevice is registered with the DTSv. If not already
-     * bound return failure.
-     */
-    if (((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl,
-         (const uns8*)&svc_id)) == NULL))
-    {
-       m_DTA_UNLK(&inst->lock);
-       return NCSCC_RC_FAILURE;
-    }
+	/* 
+	 * Check whether DTS exist. If DTS does not exist then there is no 
+	 * point in logging message. Return failure.
+	 * Changed as of 15th June 2006. 
+	 * If FLS doesn't exist & number of buffer msgs is more than DTA_BUF_LIMIT
+	 * then drop the message and return failure.
+	 */
+	if ((inst->dts_exist == FALSE) && (list->num_of_logs >= DTA_BUF_LIMIT)) {
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "ncs_logmsg: DTS does not exist & DTA log buffer is full. Log message is dropped.",
+					  svc_id);
+	}
 
+	/*
+	 * Check whether the Sevice is registered with the DTSv. If not already
+	 * bound return failure.
+	 */
+	if (((svc = (REG_TBL_ENTRY *)ncs_patricia_tree_get(&inst->reg_tbl, (const uns8 *)&svc_id)) == NULL)) {
+		m_DTA_UNLK(&inst->lock);
+		return NCSCC_RC_FAILURE;
+	}
 #if (DTA_FLOW == 1)
-    /* Check whether logging is enabled beyond default level for this service 
-     * i.e. INFO or DEBUG levels are enabled or not. 
-     * If logging levels are increased to INFO/DEBUG, don't apply DTA message
-     * thresholding. Otherwise DTA defines MAX threshold of 2000 messages after
-     * which all messages will be dropped. In such cases, check the rate of 
-     * logging for such processes.
-     */
-    if(svc->severity_bit_map > 0xFC)
-    {
-       /* Don't apply thresholding of messages here */
-    }
-    else
-    {
-       /* Else apply thresholding */
-       if(inst->msg_count > DTA_MAX_THRESHOLD)
-       {
-          m_DTA_UNLK(&inst->lock);
-           warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: DTA queued msgs exceeds 2000. Message will be dropped.");
-          return NCSCC_RC_FAILURE;
-       }
-    }
+	/* Check whether logging is enabled beyond default level for this service 
+	 * i.e. INFO or DEBUG levels are enabled or not. 
+	 * If logging levels are increased to INFO/DEBUG, don't apply DTA message
+	 * thresholding. Otherwise DTA defines MAX threshold of 2000 messages after
+	 * which all messages will be dropped. In such cases, check the rate of 
+	 * logging for such processes.
+	 */
+	if (svc->severity_bit_map > 0xFC) {
+		/* Don't apply thresholding of messages here */
+	} else {
+		/* Else apply thresholding */
+		if (inst->msg_count > DTA_MAX_THRESHOLD) {
+			m_DTA_UNLK(&inst->lock);
+			warning_rmval =
+			    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
+					   "ncs_logmsg: DTA queued msgs exceeds 2000. Message will be dropped.");
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
-    /* Drop INFO/DEBUG messages at source during congestion */
-    if ((inst->dts_congested == TRUE) && (severity < NCSFL_SEV_NOTICE))
-    {
-       m_DTA_UNLK(&inst->lock);
-       return NCSCC_RC_FAILURE;
-    }
+	/* Drop INFO/DEBUG messages at source during congestion */
+	if ((inst->dts_congested == TRUE) && (severity < NCSFL_SEV_NOTICE)) {
+		m_DTA_UNLK(&inst->lock);
+		return NCSCC_RC_FAILURE;
+	}
 #endif
 
-    msg = m_MMGR_ALLOC_DTSV_MSG;
-    if(msg == NULL)
-    {
-       m_DTA_UNLK(&inst->lock);
-       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failer for DTSV_MSG");
-    }
-    memset(msg, '\0', sizeof(DTSV_MSG));
+	msg = m_MMGR_ALLOC_DTSV_MSG;
+	if (msg == NULL) {
+		m_DTA_UNLK(&inst->lock);
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Memory allocation failer for DTSV_MSG");
+	}
+	memset(msg, '\0', sizeof(DTSV_MSG));
 
-    hdr = &msg->data.data.msg.log_msg.hdr;
+	hdr = &msg->data.data.msg.log_msg.hdr;
 
-    hdr->category     = category;
-    hdr->severity     = severity;
-    hdr->fmat_id      = fmat_id;
-    hdr->ss_id        = svc_id;
-    hdr->inst_id      = inst_id;
-    hdr->str_table_id = str_table_id;
+	hdr->category = category;
+	hdr->severity = severity;
+	hdr->fmat_id = fmat_id;
+	hdr->ss_id = svc_id;
+	hdr->inst_id = inst_id;
+	hdr->str_table_id = str_table_id;
 
-    /* Apply the filter Policies. If the logging is disabled
-     * then return success. We are returning success here since it may 
-     * possible that logging is disabled by user.
-     */
-    if(dta_svc_reg_log_en(svc, &msg->data.data.msg.log_msg) == NCSCC_RC_FAILURE)
-    {
-       m_DTA_UNLK(&inst->lock);
-       m_MMGR_FREE_DTSV_MSG(msg);
-       return NCSCC_RC_SUCCESS;
-    }
-        
-    if (NCSCC_RC_SUCCESS != dta_copy_octets(&hdr->fmat_type,
-        fmat_type, (uns16)(1+strlen(fmat_type))))
-    {
-       m_DTA_UNLK(&inst->lock);
-       m_MMGR_FREE_DTSV_MSG(msg);
-       return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg_int: Copy octet failed.");
-    }
+	/* Apply the filter Policies. If the logging is disabled
+	 * then return success. We are returning success here since it may 
+	 * possible that logging is disabled by user.
+	 */
+	if (dta_svc_reg_log_en(svc, &msg->data.data.msg.log_msg) == NCSCC_RC_FAILURE) {
+		m_DTA_UNLK(&inst->lock);
+		m_MMGR_FREE_DTSV_MSG(msg);
+		return NCSCC_RC_SUCCESS;
+	}
 
-    /* Flexlog Agent fills in the TIME STAMP value */
-    m_GET_MSEC_TIME_STAMP(&hdr->time.seconds, &hdr->time.millisecs);
+	if (NCSCC_RC_SUCCESS != dta_copy_octets(&hdr->fmat_type, fmat_type, (uns16)(1 + strlen(fmat_type)))) {
+		m_DTA_UNLK(&inst->lock);
+		m_MMGR_FREE_DTSV_MSG(msg);
+		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg_int: Copy octet failed.");
+	}
 
-    msg->vrid = inst->vrid;
-    msg->msg_type = DTA_LOG_DATA;
-    uba = &msg->data.data.msg.log_msg.uba;
+	/* Flexlog Agent fills in the TIME STAMP value */
+	m_GET_MSEC_TIME_STAMP(&hdr->time.seconds, &hdr->time.millisecs);
 
-    /* act_dts_ver needs to be recorded before inst->lock is unlocked  */
-    act_dts_ver = inst->act_dts_ver; 
-    min_dts_ver = 1; /* DTS should be at least this version to interpret the
-                        encoded message. This directly determines the
-                        message format vesion */
+	msg->vrid = inst->vrid;
+	msg->msg_type = DTA_LOG_DATA;
+	uba = &msg->data.data.msg.log_msg.uba;
 
-    m_DTA_UNLK(&inst->lock);
+	/* act_dts_ver needs to be recorded before inst->lock is unlocked  */
+	act_dts_ver = inst->act_dts_ver;
+	min_dts_ver = 1;	/* DTS should be at least this version to interpret the
+				   encoded message. This directly determines the
+				   message format vesion */
 
-    memset(uba, '\0', sizeof(NCS_UBAID));
+	m_DTA_UNLK(&inst->lock);
 
-    if (ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS)
-    {
-       m_MMGR_FREE_OCT(hdr->fmat_type);
-       m_MMGR_FREE_DTSV_MSG(msg);
-       return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-       "ncs_logmsg: Unable to init user buff", svc_id);
-    }
+	memset(uba, '\0', sizeof(NCS_UBAID));
 
-    while (fmat_type[i] != '\0')
-    {
-        switch (fmat_type[i])
-        {
-        case 'T':
-            {
-                break;
-            }
-        case 'I':
-            {
-                uns32 idx;
-                idx = m_NCSFL_MAKE_IDX((uns32)str_table_id, 
-                    (uns32)va_arg(argp, uns32));
-                data = ncs_enc_reserve_space(uba,sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,idx);
-                ncs_enc_claim_space(uba, sizeof(uns32));
-                break;
-            }
-        case 'L':
-            {
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data, va_arg(argp, uns32));
-                ncs_enc_claim_space(uba, sizeof(uns32));
-                break;
-            }
-            
-        case 'C':
-            {
-                char * str = va_arg(argp, char *);
-                
-                if (NULL == str)
-                {
-                    if(uba->start != NULL)
-                      m_MMGR_FREE_BUFR_LIST(uba->start);
-                    m_MMGR_FREE_OCT(hdr->fmat_type);
-                    m_MMGR_FREE_DTSV_MSG(msg);
-                    return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-                    "ncs_logmsg: NULL string passed for format type 'C'", svc_id);
-                }
-                
-                length = strlen(str) + 1;
+	if (ncs_enc_init_space(uba) != NCSCC_RC_SUCCESS) {
+		m_MMGR_FREE_OCT(hdr->fmat_type);
+		m_MMGR_FREE_DTSV_MSG(msg);
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "ncs_logmsg: Unable to init user buff", svc_id);
+	}
 
-                if (length > (DTS_MAX_SIZE_DATA * 3))
-                {  
-                   if(uba->start != NULL)
-                      m_MMGR_FREE_BUFR_LIST(uba->start);
-                   m_MMGR_FREE_OCT(hdr->fmat_type);
-                   m_MMGR_FREE_DTSV_MSG(msg);
-                   return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-                    "ncs_logmsg: Can not log string with more than 1536 characters", svc_id);
-                }
-                
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,length);
-                ncs_enc_claim_space(uba, sizeof(uns32));
-                
-                ncs_encode_n_octets_in_uba(uba, (uns8*)str, length);
-                
-                break;
-            }
-        case 'M':
-            {
-                data = ncs_enc_reserve_space(uba, sizeof(uns16));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_16bit(&data,(uns16)va_arg(argp, uns32));
-                ncs_enc_claim_space(uba, sizeof(uns16));
-                break;
-            }
-        case 'D':
-            {
-                NCSFL_MEM mem_d = va_arg(argp, NCSFL_MEM);
+	while (fmat_type[i] != '\0') {
+		switch (fmat_type[i]) {
+		case 'T':
+			{
+				break;
+			}
+		case 'I':
+			{
+				uns32 idx;
+				idx = m_NCSFL_MAKE_IDX((uns32)str_table_id, (uns32)va_arg(argp, uns32));
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, idx);
+				ncs_enc_claim_space(uba, sizeof(uns32));
+				break;
+			}
+		case 'L':
+			{
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, va_arg(argp, uns32));
+				ncs_enc_claim_space(uba, sizeof(uns32));
+				break;
+			}
 
-               
-                
-                if (mem_d.len > DTS_MAX_SIZE_DATA)
-                   mem_d.len = DTS_MAX_SIZE_DATA;
+		case 'C':
+			{
+				char *str = va_arg(argp, char *);
 
-                /* Versioning & 64-bit compatibility changes - Encode the msg 
-                 * for format 'D' after checking the version of the current 
-                 * Active DTS.
-                 * If Active DTS has MDS version 1 and DTA arch 64-bit then, 
-                 * encode 32 bits with reserved bit-pattern 0x6464. 
-                 * Else, if DTS has MDS version 2, then encode 64-bits of the 
-                 * address.
-                 * Also fill DTA_LOG_MSG structure with the DTS version as seen
-                 * while encoding.
-                 */
+				if (NULL == str) {
+					if (uba->start != NULL)
+						m_MMGR_FREE_BUFR_LIST(uba->start);
+					m_MMGR_FREE_OCT(hdr->fmat_type);
+					m_MMGR_FREE_DTSV_MSG(msg);
+					return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+								  "ncs_logmsg: NULL string passed for format type 'C'",
+								  svc_id);
+				}
 
-                /* The 'D' message is encoded at version 1 or 2 based on 
-                   whether DTS is at version 1 or higher respectively. 
+				length = strlen(str) + 1;
 
-                */                
-                /* Check for compatibility with receiving DTS version
-                   and set the minimum DTS version required */
-                if(act_dts_ver == 1)
-                {
-                   /* Compatible DTS. Update minimum DTS version required */
-                   if (min_dts_ver < 1)
-                        min_dts_ver = 1;
+				if (length > (DTS_MAX_SIZE_DATA * 3)) {
+					if (uba->start != NULL)
+						m_MMGR_FREE_BUFR_LIST(uba->start);
+					m_MMGR_FREE_OCT(hdr->fmat_type);
+					m_MMGR_FREE_DTSV_MSG(msg);
+					return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+								  "ncs_logmsg: Can not log string with more than 1536 characters",
+								  svc_id);
+				}
 
-                  data = ncs_enc_reserve_space(uba, (sizeof(uns16) + sizeof(uns32)));
-                   if(data == NULL)
-                     goto reserve_error;
-                   ncs_encode_16bit(&data,mem_d.len);
-                   
-                   if(sizeof(inst) == 8) 
-                   {
-                      /* Attempt to print 64-bit address on 32-bit DTS. 
-                       * Print pre-defined bit pattern to indicate error. 
-                       */
-                      ncs_encode_32bit(&data, (uns32)0x6464);
-                   }
-                   else if(sizeof(inst) == 4)
-                   {
-                      /* Do it the old way */
-                      ncs_encode_32bit(&data,NCS_PTR_TO_UNS32_CAST(mem_d.addr));
-                   }
-                   ncs_enc_claim_space(uba,(sizeof(uns16) + sizeof(uns32)));
-                }
-                /* Act DTS on version 2 or higher , then encode all 64-bits */
-                else  
-                {
-                   /* Compatible DTS. Update minimum DTS version required */
-                   if (min_dts_ver < 2)
-                        min_dts_ver = 2;
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, length);
+				ncs_enc_claim_space(uba, sizeof(uns32));
 
-                   data = ncs_enc_reserve_space(uba, (sizeof(uns16) + 
-                                                         sizeof(uns64)));
-                   if(data == NULL)
-                     goto reserve_error;
-                   ncs_encode_16bit(&data,mem_d.len);
-                   ncs_encode_64bit(&data,(uns64)(long)mem_d.addr);
-                   ncs_enc_claim_space(uba,(sizeof(uns16) + sizeof(uns64)));
-                }
-                
-                ncs_encode_n_octets_in_uba(uba,(uns8*)mem_d.dump,
-                    (uns32)mem_d.len);
-                
-                break;
-            }
-        case 'P':
-            {
-                NCSFL_PDU pdu= va_arg(argp, NCSFL_PDU);
-                
-                if (pdu.len > DTS_MAX_SIZE_DATA)
-                   pdu.len = DTS_MAX_SIZE_DATA;
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
 
-                data = ncs_enc_reserve_space(uba,sizeof(uns16));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_16bit(&data,pdu.len);
-                ncs_enc_claim_space(uba, sizeof(uns16));
-                
-                ncs_encode_n_octets_in_uba(uba, (uns8*)pdu.dump,
-                    (uns32)pdu.len);
-                
-                break;
-            }
-        case 'A':
-            {     
-                encode_ip_address(uba, va_arg(argp, NCS_IP_ADDR));
-                break;
-            }
-        case 'S':
-            {
-                data = ncs_enc_reserve_space(uba, sizeof(uns8));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_8bit(&data, (uns8)va_arg(argp, uns32));
-                ncs_enc_claim_space(uba, sizeof(uns8));
-                
-                break;
-            }
-        /* Added code for handling float values */
-        case 'F':
-            {
-                char str[DTS_MAX_DBL_DIGITS]="";
-                sprintf(str, "%f", va_arg(argp, double));
-                if(NULL == str)
-                {
-                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Float to string conversion gives NULL");
-                   goto reserve_error;
-                }
-                length = strlen(str) + 1;
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,length);
-                ncs_enc_claim_space(uba, sizeof(uns32));
+				break;
+			}
+		case 'M':
+			{
+				data = ncs_enc_reserve_space(uba, sizeof(uns16));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_16bit(&data, (uns16)va_arg(argp, uns32));
+				ncs_enc_claim_space(uba, sizeof(uns16));
+				break;
+			}
+		case 'D':
+			{
+				NCSFL_MEM mem_d = va_arg(argp, NCSFL_MEM);
 
-                ncs_encode_n_octets_in_uba(uba, (uns8*)str, length);  
-                break;
-            }
-        case 'N':
-            {
-                char str[DTS_MAX_DBL_DIGITS]="";
+				if (mem_d.len > DTS_MAX_SIZE_DATA)
+					mem_d.len = DTS_MAX_SIZE_DATA;
 
-                /* Check for compatibility with receiving DTS version
-                   and set the minimum DTS version required */
-                if (act_dts_ver == 1)
-                {
-                   /* Incompatible DTS */
-                   goto reserve_error;
-                }
-                else
-                {
-                   /* Compatible DTS. Update minimum DTS version required */
-                   if (min_dts_ver < 2)
-                        min_dts_ver = 2;
-                }
+				/* Versioning & 64-bit compatibility changes - Encode the msg 
+				 * for format 'D' after checking the version of the current 
+				 * Active DTS.
+				 * If Active DTS has MDS version 1 and DTA arch 64-bit then, 
+				 * encode 32 bits with reserved bit-pattern 0x6464. 
+				 * Else, if DTS has MDS version 2, then encode 64-bits of the 
+				 * address.
+				 * Also fill DTA_LOG_MSG structure with the DTS version as seen
+				 * while encoding.
+				 */
 
-                sprintf(str, "%lld", va_arg(argp, long long));
+				/* The 'D' message is encoded at version 1 or 2 based on 
+				   whether DTS is at version 1 or higher respectively. 
 
-                if(NULL == str)
-                {
-                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: long long to string conversion gives NULL");
-                   goto reserve_error;
-                }
+				 */
+				/* Check for compatibility with receiving DTS version
+				   and set the minimum DTS version required */
+				if (act_dts_ver == 1) {
+					/* Compatible DTS. Update minimum DTS version required */
+					if (min_dts_ver < 1)
+						min_dts_ver = 1;
 
-                length = strlen(str) + 1;
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,length);
-                ncs_enc_claim_space(uba, sizeof(uns32));
+					data = ncs_enc_reserve_space(uba, (sizeof(uns16) + sizeof(uns32)));
+					if (data == NULL)
+						goto reserve_error;
+					ncs_encode_16bit(&data, mem_d.len);
 
-                ncs_encode_n_octets_in_uba(uba, (uns8*)str, length);
-                break;
-            }
-        case 'U':
-            {
-                char str[DTS_MAX_DBL_DIGITS]="";
+					if (sizeof(inst) == 8) {
+						/* Attempt to print 64-bit address on 32-bit DTS. 
+						 * Print pre-defined bit pattern to indicate error. 
+						 */
+						ncs_encode_32bit(&data, (uns32)0x6464);
+					} else if (sizeof(inst) == 4) {
+						/* Do it the old way */
+						ncs_encode_32bit(&data, NCS_PTR_TO_UNS32_CAST(mem_d.addr));
+					}
+					ncs_enc_claim_space(uba, (sizeof(uns16) + sizeof(uns32)));
+				}
+				/* Act DTS on version 2 or higher , then encode all 64-bits */
+				else {
+					/* Compatible DTS. Update minimum DTS version required */
+					if (min_dts_ver < 2)
+						min_dts_ver = 2;
 
-                /* Check for compatibility with receiving DTS version
-                   and set the minimum DTS version required */
-                if (act_dts_ver == 1)
-                {
-                   /* Incompatible DTS */
-                   goto reserve_error;
-                }
-                else
-                {
-                   /* Compatible DTS. Update minimum DTS version required */
-                   if (min_dts_ver < 2)
-                        min_dts_ver = 2;
-                }
+					data = ncs_enc_reserve_space(uba, (sizeof(uns16) + sizeof(uns64)));
+					if (data == NULL)
+						goto reserve_error;
+					ncs_encode_16bit(&data, mem_d.len);
+					ncs_encode_64bit(&data, (uns64)(long)mem_d.addr);
+					ncs_enc_claim_space(uba, (sizeof(uns16) + sizeof(uns64)));
+				}
 
-                sprintf(str, "%llu", va_arg(argp, unsigned long long));
-                if(NULL == str)
-                {
-                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: unsigned long long to string conversion gives NULL");
-                   goto reserve_error;
-                }
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)mem_d.dump, (uns32)mem_d.len);
 
-                length = strlen(str) + 1;
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,length);
-                ncs_enc_claim_space(uba, sizeof(uns32));
+				break;
+			}
+		case 'P':
+			{
+				NCSFL_PDU pdu = va_arg(argp, NCSFL_PDU);
 
-                ncs_encode_n_octets_in_uba(uba, (uns8*)str, length);
-                break;
-            }
-        case 'X':
-            {
-                char str[DTS_MAX_DBL_DIGITS]="";
-                
-                /* Check for compatibility with receiving DTS version
-                   and set the minimum DTS version required */
-                if (act_dts_ver == 1)
-                {
-                   /* Incompatible DTS */
-                   goto reserve_error;
-                }
-                else
-                {
-                   /* Compatible DTS. Update minimum DTS version required */
-                   if (min_dts_ver < 2)
-                        min_dts_ver = 2;
-                }
+				if (pdu.len > DTS_MAX_SIZE_DATA)
+					pdu.len = DTS_MAX_SIZE_DATA;
 
-                sprintf(str, "Ox%016llx", va_arg(argp, long long));
+				data = ncs_enc_reserve_space(uba, sizeof(uns16));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_16bit(&data, pdu.len);
+				ncs_enc_claim_space(uba, sizeof(uns16));
 
-                if(NULL == str)
-                {
-                    warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: 64bit hex to string conversion gives NULL");
-                   goto reserve_error;
-                }
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)pdu.dump, (uns32)pdu.len);
 
-                length = strlen(str) + 1;
-                data = ncs_enc_reserve_space(uba, sizeof(uns32));
-                if(data == NULL)
-                  goto reserve_error;
-                ncs_encode_32bit(&data,length);
-                ncs_enc_claim_space(uba, sizeof(uns32));
+				break;
+			}
+		case 'A':
+			{
+				encode_ip_address(uba, va_arg(argp, NCS_IP_ADDR));
+				break;
+			}
+		case 'S':
+			{
+				data = ncs_enc_reserve_space(uba, sizeof(uns8));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_8bit(&data, (uns8)va_arg(argp, uns32));
+				ncs_enc_claim_space(uba, sizeof(uns8));
 
-                ncs_encode_n_octets_in_uba(uba, (uns8*)str, length);
-                break;
-            }
-        default:
-            {
-                if(uba->start != NULL)
-                   m_MMGR_FREE_BUFR_LIST(uba->start);
-                m_MMGR_FREE_OCT(hdr->fmat_type);
-                m_MMGR_FREE_DTSV_MSG(msg);
-                return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-                    "ncs_logmsg: Format Type Not accounted for", svc_id);
-            }
-            
-        }
-        
-        i++;
-    }
- 
-    /* Buffer log messgages if DTS is not up, else send it */
-    if (inst->dts_exist == FALSE)
-    {
-       m_DTA_LK(&inst->lock);
-       buf = m_MMGR_ALLOC_DTA_BUFFERED_LOG;
-       if(!buf)
-       {
-          if(msg->data.data.msg.log_msg.uba.start != NULL)
-             m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
-          m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
-          if (0 != msg)
-             m_MMGR_FREE_DTSV_MSG(msg);
-          m_DTA_UNLK(&inst->lock);
-          return m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
-            "Failed to allocate memory for log buffering");
-       }
+				break;
+			}
+			/* Added code for handling float values */
+		case 'F':
+			{
+				char str[DTS_MAX_DBL_DIGITS] = "";
+				sprintf(str, "%f", va_arg(argp, double));
+				if (NULL == str) {
+					warning_rmval =
+					    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
+							   "ncs_logmsg: Float to string conversion gives NULL");
+					goto reserve_error;
+				}
+				length = strlen(str) + 1;
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, length);
+				ncs_enc_claim_space(uba, sizeof(uns32));
 
-       /* Set the msg format version based on how it is encoded above. 
-          Usually it will be 1, because during DTS initialization, until
-          active DTS shows up (i.e until inst->dts_exist becomes TRUE)
-          active DTS version is assumed to be 1.
-       */
-       msg->data.data.msg.msg_fmat_ver = min_dts_ver;
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				break;
+			}
+		case 'N':
+			{
+				char str[DTS_MAX_DBL_DIGITS] = "";
 
-       memset(buf, '\0', sizeof(DTA_BUFFERED_LOG));
-       buf->buf_msg = msg;
-       buf->next = NULL;
+				/* Check for compatibility with receiving DTS version
+				   and set the minimum DTS version required */
+				if (act_dts_ver == 1) {
+					/* Incompatible DTS */
+					goto reserve_error;
+				} else {
+					/* Compatible DTS. Update minimum DTS version required */
+					if (min_dts_ver < 2)
+						min_dts_ver = 2;
+				}
 
-       if (!list->head)
-          list->head = buf;
-       else
-          list->tail->next = buf;
+				sprintf(str, "%lld", va_arg(argp, long long));
 
-       list->tail = buf;
-       list->num_of_logs++;
-       m_DTA_UNLK(&inst->lock);
-    }
-    else
-    {    
-       send_pri = NCS_IPC_PRIORITY_LOW;
-       
-       /* Set the msg format version to final value of min_dts_ver*/
-       msg->data.data.msg.msg_fmat_ver = min_dts_ver;
- 
-       /* Smik - We don't send the msg to MDS but to DTA's msgbox */
-       if(m_DTA_SND_MSG(&gl_dta_mbx, msg, send_pri) != NCSCC_RC_SUCCESS)
-       {
-          if(uba->start != NULL)
-             m_MMGR_FREE_BUFR_LIST(uba->start);
-          m_MMGR_FREE_OCT(hdr->fmat_type);
-          m_MMGR_FREE_DTSV_MSG(msg);
-          /*if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)*/
-          return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: send to DTA msgbox failed");
-       }
-    }
+				if (NULL == str) {
+					warning_rmval =
+					    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
+							   "ncs_logmsg: long long to string conversion gives NULL");
+					goto reserve_error;
+				}
 
-    return NCSCC_RC_SUCCESS;
+				length = strlen(str) + 1;
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, length);
+				ncs_enc_claim_space(uba, sizeof(uns32));
 
-reserve_error:
-    if(uba->start != NULL)
-       m_MMGR_FREE_BUFR_LIST(uba->start);
-    m_MMGR_FREE_OCT(hdr->fmat_type);
-    m_MMGR_FREE_DTSV_MSG(msg);  
-    return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Unable to reserve space in encode");
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				break;
+			}
+		case 'U':
+			{
+				char str[DTS_MAX_DBL_DIGITS] = "";
+
+				/* Check for compatibility with receiving DTS version
+				   and set the minimum DTS version required */
+				if (act_dts_ver == 1) {
+					/* Incompatible DTS */
+					goto reserve_error;
+				} else {
+					/* Compatible DTS. Update minimum DTS version required */
+					if (min_dts_ver < 2)
+						min_dts_ver = 2;
+				}
+
+				sprintf(str, "%llu", va_arg(argp, unsigned long long));
+				if (NULL == str) {
+					warning_rmval =
+					    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
+							   "ncs_logmsg: unsigned long long to string conversion gives NULL");
+					goto reserve_error;
+				}
+
+				length = strlen(str) + 1;
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, length);
+				ncs_enc_claim_space(uba, sizeof(uns32));
+
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				break;
+			}
+		case 'X':
+			{
+				char str[DTS_MAX_DBL_DIGITS] = "";
+
+				/* Check for compatibility with receiving DTS version
+				   and set the minimum DTS version required */
+				if (act_dts_ver == 1) {
+					/* Incompatible DTS */
+					goto reserve_error;
+				} else {
+					/* Compatible DTS. Update minimum DTS version required */
+					if (min_dts_ver < 2)
+						min_dts_ver = 2;
+				}
+
+				sprintf(str, "Ox%016llx", va_arg(argp, long long));
+
+				if (NULL == str) {
+					warning_rmval =
+					    m_DTA_DBG_SINK(NCSCC_RC_FAILURE,
+							   "ncs_logmsg: 64bit hex to string conversion gives NULL");
+					goto reserve_error;
+				}
+
+				length = strlen(str) + 1;
+				data = ncs_enc_reserve_space(uba, sizeof(uns32));
+				if (data == NULL)
+					goto reserve_error;
+				ncs_encode_32bit(&data, length);
+				ncs_enc_claim_space(uba, sizeof(uns32));
+
+				ncs_encode_n_octets_in_uba(uba, (uns8 *)str, length);
+				break;
+			}
+		default:
+			{
+				if (uba->start != NULL)
+					m_MMGR_FREE_BUFR_LIST(uba->start);
+				m_MMGR_FREE_OCT(hdr->fmat_type);
+				m_MMGR_FREE_DTSV_MSG(msg);
+				return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+							  "ncs_logmsg: Format Type Not accounted for", svc_id);
+			}
+
+		}
+
+		i++;
+	}
+
+	/* Buffer log messgages if DTS is not up, else send it */
+	if (inst->dts_exist == FALSE) {
+		m_DTA_LK(&inst->lock);
+		buf = m_MMGR_ALLOC_DTA_BUFFERED_LOG;
+		if (!buf) {
+			if (msg->data.data.msg.log_msg.uba.start != NULL)
+				m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
+			m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+			if (0 != msg)
+				m_MMGR_FREE_DTSV_MSG(msg);
+			m_DTA_UNLK(&inst->lock);
+			return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "Failed to allocate memory for log buffering");
+		}
+
+		/* Set the msg format version based on how it is encoded above. 
+		   Usually it will be 1, because during DTS initialization, until
+		   active DTS shows up (i.e until inst->dts_exist becomes TRUE)
+		   active DTS version is assumed to be 1.
+		 */
+		msg->data.data.msg.msg_fmat_ver = min_dts_ver;
+
+		memset(buf, '\0', sizeof(DTA_BUFFERED_LOG));
+		buf->buf_msg = msg;
+		buf->next = NULL;
+
+		if (!list->head)
+			list->head = buf;
+		else
+			list->tail->next = buf;
+
+		list->tail = buf;
+		list->num_of_logs++;
+		m_DTA_UNLK(&inst->lock);
+	} else {
+		send_pri = NCS_IPC_PRIORITY_LOW;
+
+		/* Set the msg format version to final value of min_dts_ver */
+		msg->data.data.msg.msg_fmat_ver = min_dts_ver;
+
+		/* Smik - We don't send the msg to MDS but to DTA's msgbox */
+		if (m_DTA_SND_MSG(&gl_dta_mbx, msg, send_pri) != NCSCC_RC_SUCCESS) {
+			if (uba->start != NULL)
+				m_MMGR_FREE_BUFR_LIST(uba->start);
+			m_MMGR_FREE_OCT(hdr->fmat_type);
+			m_MMGR_FREE_DTSV_MSG(msg);
+			/*if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS) */
+			return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: send to DTA msgbox failed");
+		}
+	}
+
+	return NCSCC_RC_SUCCESS;
+
+ reserve_error:
+	if (uba->start != NULL)
+		m_MMGR_FREE_BUFR_LIST(uba->start);
+	m_MMGR_FREE_OCT(hdr->fmat_type);
+	m_MMGR_FREE_DTSV_MSG(msg);
+	return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "ncs_logmsg: Unable to reserve space in encode");
 }
-
 
 /*****************************************************************************
 
@@ -1280,159 +1185,149 @@ reserve_error:
      dta_do_evt       Master Dispatch function and services off DTA work queue
 *****************************************************************************/
 
-
 /*****************************************************************************
    dta_do_evts
 *****************************************************************************/
-void dta_do_evts( SYSF_MBX*  mbx)
+void dta_do_evts(SYSF_MBX *mbx)
 {
-   uns32           status;
-   NCS_IPC_MSG     *msg;
-   int warning_rmval = 0;
- 
-   while((msg = m_NCS_IPC_RECEIVE(mbx,NULL)) != NULL)
-   {
-       status = dta_do_evt((DTSV_MSG *)msg); 
-       if (status != NCSCC_RC_SUCCESS)
-       {
-          /* log the error */
-           warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evts: Error returned");
-       }
-   }/* end of while */
-   /* Deferred indication on destroy sel obj */
-   /* Now raise indication on the destroy selection object and return */
-   if((dta_cb.dta_dest_sel.raise_obj != 0) || (dta_cb.dta_dest_sel.rmv_obj != 0))
-       m_NCS_SEL_OBJ_IND(dta_cb.dta_dest_sel);
+	uns32 status;
+	NCS_IPC_MSG *msg;
+	int warning_rmval = 0;
+
+	while ((msg = m_NCS_IPC_RECEIVE(mbx, NULL)) != NULL) {
+		status = dta_do_evt((DTSV_MSG *)msg);
+		if (status != NCSCC_RC_SUCCESS) {
+			/* log the error */
+			warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evts: Error returned");
+		}
+	}			/* end of while */
+	/* Deferred indication on destroy sel obj */
+	/* Now raise indication on the destroy selection object and return */
+	if ((dta_cb.dta_dest_sel.raise_obj != 0) || (dta_cb.dta_dest_sel.rmv_obj != 0))
+		m_NCS_SEL_OBJ_IND(dta_cb.dta_dest_sel);
 }
 
 /*****************************************************************************
    dta_do_evt
 *****************************************************************************/
-uns32 dta_do_evt( DTSV_MSG* msg)
+uns32 dta_do_evt(DTSV_MSG *msg)
 {
-   DTA_CB            *inst = &dta_cb;
-   uns32             rc = NCSCC_RC_SUCCESS;
-   SS_SVC_ID         svc_id;
-   DTA_LOG_BUFFER    *list = &dta_cb.log_buffer;
-   DTA_BUFFERED_LOG  *buf = NULL;
-   DTSV_MSG          *bmsg = NULL;
-   uns32             i, count;
-   int warning_rmval = 0;
+	DTA_CB *inst = &dta_cb;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SS_SVC_ID svc_id;
+	DTA_LOG_BUFFER *list = &dta_cb.log_buffer;
+	DTA_BUFFERED_LOG *buf = NULL;
+	DTSV_MSG *bmsg = NULL;
+	uns32 i, count;
+	int warning_rmval = 0;
 
-   if(msg == NULL)
-     return NCSCC_RC_SUCCESS;
+	if (msg == NULL)
+		return NCSCC_RC_SUCCESS;
 
-   switch (msg->msg_type)
-   {
-     case DTS_UP_EVT:
-     {
-        count = list->num_of_logs;
-        for(i=0; i<count; i++)
-        {
-           if(!list->head)
-           {
-              list->tail = NULL;
-              break;
-           }
-           buf = list->head;
-           list->head = list->head->next;
-           bmsg = buf->buf_msg;
-           if(bmsg == NULL)
-           {
-             /*Shouldn't hit but still go to the next buffered log*/
-           }
-           else
-           { 
-              /* Send the buffered msg to DTS */
-              svc_id = bmsg->data.data.msg.log_msg.hdr.ss_id;
-              if(dta_mds_async_send(bmsg, inst) != NCSCC_RC_SUCCESS)
-              {
-                  warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
-                 rc = NCSCC_RC_FAILURE;
-              }
-              m_MMGR_FREE_OCT(bmsg->data.data.msg.log_msg.hdr.fmat_type);
-              if((rc == NCSCC_RC_FAILURE)&&(bmsg->data.data.msg.log_msg.uba.start != NULL))
-                 m_MMGR_FREE_BUFR_LIST(bmsg->data.data.msg.log_msg.uba.start);
-              if (0 != bmsg)
-                 m_MMGR_FREE_DTSV_MSG(bmsg);
-           }
-           /* Clear the log buffer datastructures */
-           m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
-           list->num_of_logs--;
-        }/*end of for*/
-        rc = NCSCC_RC_SUCCESS;
-     }
-     break;
+	switch (msg->msg_type) {
+	case DTS_UP_EVT:
+		{
+			count = list->num_of_logs;
+			for (i = 0; i < count; i++) {
+				if (!list->head) {
+					list->tail = NULL;
+					break;
+				}
+				buf = list->head;
+				list->head = list->head->next;
+				bmsg = buf->buf_msg;
+				if (bmsg == NULL) {
+					/*Shouldn't hit but still go to the next buffered log */
+				} else {
+					/* Send the buffered msg to DTS */
+					svc_id = bmsg->data.data.msg.log_msg.hdr.ss_id;
+					if (dta_mds_async_send(bmsg, inst) != NCSCC_RC_SUCCESS) {
+						warning_rmval =
+						    m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+								       "dta_do_evt: MDS async send failed", svc_id);
+						rc = NCSCC_RC_FAILURE;
+					}
+					m_MMGR_FREE_OCT(bmsg->data.data.msg.log_msg.hdr.fmat_type);
+					if ((rc == NCSCC_RC_FAILURE) && (bmsg->data.data.msg.log_msg.uba.start != NULL))
+						m_MMGR_FREE_BUFR_LIST(bmsg->data.data.msg.log_msg.uba.start);
+					if (0 != bmsg)
+						m_MMGR_FREE_DTSV_MSG(bmsg);
+				}
+				/* Clear the log buffer datastructures */
+				m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
+				list->num_of_logs--;
+			}	/*end of for */
+			rc = NCSCC_RC_SUCCESS;
+		}
+		break;
 
-     case DTA_LOG_DATA:
-     {
+	case DTA_LOG_DATA:
+		{
 #if (DTA_FLOW == 1)
 
-        /* Check how many log messages have already been received.
-         * If more than dta congestion log limit, then do MDS_SEND to
-         * DTS to control the flow.
-         */
-        inst->logs_received++;
-        if(inst->logs_received > DTA_CONGESTION_LOG_LIMIT)
-        {
-           DTSV_MSG flow_msg;
+			/* Check how many log messages have already been received.
+			 * If more than dta congestion log limit, then do MDS_SEND to
+			 * DTS to control the flow.
+			 */
+			inst->logs_received++;
+			if (inst->logs_received > DTA_CONGESTION_LOG_LIMIT) {
+				DTSV_MSG flow_msg;
 
-           memset(&flow_msg, '\0', sizeof(DTSV_MSG));
-           flow_msg.msg_type = DTA_FLOW_CONTROL;
-           while(dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS)
-           {
-              /* Set congestion flag */
-              inst->dts_congested = TRUE;
-           }
+				memset(&flow_msg, '\0', sizeof(DTSV_MSG));
+				flow_msg.msg_type = DTA_FLOW_CONTROL;
+				while (dta_mds_sync_send(&flow_msg, inst, 200, FALSE) != NCSCC_RC_SUCCESS) {
+					/* Set congestion flag */
+					inst->dts_congested = TRUE;
+				}
 
-           inst->dts_congested = FALSE;
-           inst->logs_received = 0;
-         }
+				inst->dts_congested = FALSE;
+				inst->logs_received = 0;
+			}
 #endif
 
-        svc_id = msg->data.data.msg.log_msg.hdr.ss_id;
-        if(dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS)
-        {
-            warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
-           /*m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);*/
-           rc = NCSCC_RC_FAILURE;
-        }
- 
-        m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
+			svc_id = msg->data.data.msg.log_msg.hdr.ss_id;
+			if (dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS) {
+				warning_rmval =
+				    m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+				/*m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type); */
+				rc = NCSCC_RC_FAILURE;
+			}
 
-        if((rc == NCSCC_RC_FAILURE)&&(msg->data.data.msg.log_msg.uba.start != NULL))
-           m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
-     }
-     break;
+			m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 
-     case DTA_UNREGISTER_SVC:
-     {
-        svc_id = msg->data.data.unreg.svc_id;
-        if(dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS)
-        {
-            warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
-           rc = NCSCC_RC_FAILURE; 
-        }
-     }
-     break;
+			if ((rc == NCSCC_RC_FAILURE) && (msg->data.data.msg.log_msg.uba.start != NULL))
+				m_MMGR_FREE_BUFR_LIST(msg->data.data.msg.log_msg.uba.start);
+		}
+		break;
 
-     case DTA_DESTROY_EVT:
-        if (0 != msg)
-           m_MMGR_FREE_DTSV_MSG(msg);
-        
-         return dta_cleanup_seq();
+	case DTA_UNREGISTER_SVC:
+		{
+			svc_id = msg->data.data.unreg.svc_id;
+			if (dta_mds_async_send(msg, inst) != NCSCC_RC_SUCCESS) {
+				warning_rmval =
+				    m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+				rc = NCSCC_RC_FAILURE;
+			}
+		}
+		break;
 
-     default:
-     {
-         warning_rmval = m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: Invalid message type in DTA mailbox");
-        rc = NCSCC_RC_FAILURE; 
-     }
-     break;
-   }
+	case DTA_DESTROY_EVT:
+		if (0 != msg)
+			m_MMGR_FREE_DTSV_MSG(msg);
 
-   if (0 != msg)
-      m_MMGR_FREE_DTSV_MSG(msg);
+		return dta_cleanup_seq();
 
-   return rc;
+	default:
+		{
+			warning_rmval =
+			    m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_do_evt: Invalid message type in DTA mailbox");
+			rc = NCSCC_RC_FAILURE;
+		}
+		break;
+	}
+
+	if (0 != msg)
+		m_MMGR_FREE_DTSV_MSG(msg);
+
+	return rc;
 }
-

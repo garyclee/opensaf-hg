@@ -24,7 +24,6 @@
 
   DESCRIPTION: Defines Log register/deregister functions prototype.
 
-
 ******************************************************************************/
 
 #ifndef HISV_LOGSTR_H

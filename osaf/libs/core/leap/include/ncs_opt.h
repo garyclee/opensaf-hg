@@ -31,7 +31,6 @@
 #ifndef NCS_OPT_H
 #define NCS_OPT_H
 
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
 /******************************************************************************
@@ -63,7 +62,6 @@
   #define USE_MMGR_SIGNATURES 0
   #endif
 
-
   The following flag causes a char pointer "Container" field to be created
   within the memory blocks allocated by the m_MMGR_... macros.  Use of this
   field is PORTATION-DEPENDENT.  It MAY BE used to point to the system memory
@@ -86,127 +84,124 @@
  **/
 
 #ifndef NCS_IPV6
-#define NCS_IPV6             0   /* Enable IPV6 */
+#define NCS_IPV6             0	/* Enable IPV6 */
 #endif
 
 #ifndef NCS_SIGL
-#define NCS_SIGL             0   /* UNI Signalling */
+#define NCS_SIGL             0	/* UNI Signalling */
 #endif
 
 #ifndef NCS_SAAL
-#define NCS_SAAL            0   /* SAAL */
+#define NCS_SAAL            0	/* SAAL */
 #endif
 
 #ifndef NCS_LANES_LEC
-#define NCS_LANES_LEC        0   /* LAN Emulation Client */
+#define NCS_LANES_LEC        0	/* LAN Emulation Client */
 #endif
 
 #ifndef NCS_LANES_SERVER
-#define NCS_LANES_SERVER     0   /* LAN Emulation Server Components */
+#define NCS_LANES_SERVER     0	/* LAN Emulation Server Components */
 #endif
 
 #ifndef NCS_ILMI
-#define NCS_ILMI             0   /* ILMI */
+#define NCS_ILMI             0	/* ILMI */
 #endif
 
 #ifndef NCS_PNNI
-#define NCS_PNNI             0   /* PNNI */
+#define NCS_PNNI             0	/* PNNI */
 #endif
 
 #ifndef NCS_IPOA
-#define NCS_IPOA             0   /* IPOA (IP Over ATM) */
+#define NCS_IPOA             0	/* IPOA (IP Over ATM) */
 #endif
 
 #ifndef NCS_FRF8
-#define NCS_FRF8             0   /* FRF8 (FR/ATM PVC Interworking) */
+#define NCS_FRF8             0	/* FRF8 (FR/ATM PVC Interworking) */
 #endif
 
 #ifndef NCS_HPFR
-#define NCS_HPFR             0   /* High Performance Frame Relay */
+#define NCS_HPFR             0	/* High Performance Frame Relay */
 #endif
 
 #ifndef NCS_FRSIGL
-#define NCS_FRSIGL           0   /* Frame Relay Signalling */
+#define NCS_FRSIGL           0	/* Frame Relay Signalling */
 #endif
 
 #ifndef NCS_Q922
-#define NCS_Q922             0   /* Q922 stack */
+#define NCS_Q922             0	/* Q922 stack */
 #endif
 
 #ifndef NCS_FRF5
-#define NCS_FRF5             0   /* FRF5 (FR/ATM PVC Network Interworking) */
+#define NCS_FRF5             0	/* FRF5 (FR/ATM PVC Network Interworking) */
 #endif
 
 #ifndef NCS_MPC
-#define NCS_MPC              0   /* Multiprotocol over ATM Client */
+#define NCS_MPC              0	/* Multiprotocol over ATM Client */
 #endif
 
 #ifndef NCS_MPS
-#define NCS_MPS              0   /* Multiprotocol over ATM Server */
+#define NCS_MPS              0	/* Multiprotocol over ATM Server */
 #endif
 
 #ifndef APS_LMS
-#define APS_LMS              0   /* Label Management System */
+#define APS_LMS              0	/* Label Management System */
 #endif
 
 #ifndef NCS_RMS
-#define NCS_RMS              0   /* Redundancy Management Software Subsystem */
+#define NCS_RMS              0	/* Redundancy Management Software Subsystem */
 #endif
 
 #ifndef NCS_RMS_WBB
-#define NCS_RMS_WBB          0   /* WBB Redundancy Management Software Subsystem */
+#define NCS_RMS_WBB          0	/* WBB Redundancy Management Software Subsystem */
 #endif
 
-
 #ifndef NCS_POWERCODE
-#define NCS_POWERCODE        0   /* PowerCODE Test Tool */
+#define NCS_POWERCODE        0	/* PowerCODE Test Tool */
 #endif
 
 #ifndef NCS_MARS
-#define NCS_MARS             0   /* MARS (RFC2022) */
+#define NCS_MARS             0	/* MARS (RFC2022) */
 #endif
 
 #ifndef NCS_CMS
-#define NCS_CMS              0   /* Connection Management Software Subsystem */
+#define NCS_CMS              0	/* Connection Management Software Subsystem */
 #endif
 
 #ifndef NCS_MDS
-#define NCS_MDS              0   /* Message Dispatch Service */
+#define NCS_MDS              0	/* Message Dispatch Service */
 #endif
 
 #ifndef NCS_RCP
-#define NCS_RCP              0   /* Reliable Connection Protocol (SSCOP) */
+#define NCS_RCP              0	/* Reliable Connection Protocol (SSCOP) */
 #endif
 
 #ifndef APS_IPRP
-#define APS_IPRP             0   /* IPRP Routing Protocol */
-#endif  /* APS_IPRP */
+#define APS_IPRP             0	/* IPRP Routing Protocol */
+#endif   /* APS_IPRP */
 
 /* NCS_CLI flag definition moved to LEAP-private gl_defs.h to ensure 
    it is included after ncsgl_defs.h for the NCS_CLI definition
 */
 
 #ifndef APS_INTF_SUBSYSTEM
-#define APS_INTF_SUBSYSTEM   0   /* Target Services implementation of Interface Subsystem */ 
-#endif 
+#define APS_INTF_SUBSYSTEM   0	/* Target Services implementation of Interface Subsystem */
+#endif
 
 #ifndef NCS_MAB
-#define NCS_MAB              0   /* MIB Access Broker */
+#define NCS_MAB              0	/* MIB Access Broker */
 #endif
 
 #ifndef NCS_A2SIG
-#define NCS_A2SIG            0   /* AAL 2 Signalling */
+#define NCS_A2SIG            0	/* AAL 2 Signalling */
 #endif
 
 #ifndef NCS_LMP
-#define NCS_LMP              0   /* Link Management Protocol */
+#define NCS_LMP              0	/* Link Management Protocol */
 #endif
-
 
 #ifndef NCS_OGI
-#define NCS_OGI              0   /* OUNI to GMPLS interworking */
+#define NCS_OGI              0	/* OUNI to GMPLS interworking */
 #endif
-
 
 /** Based on the above subsystem settings, automatically set the
  ** NCS_ATM_SERVICES compile flag so that ATM common code can be conditionally
@@ -228,16 +223,14 @@
      (NCS_MPC == 1)          || \
      (APS_LMS == 1)          || \
      (NCS_LMP == 1)          || \
-     (NCS_MPS == 1))       /*   || \
-     (NCS_MDS == 1)) */
+     (NCS_MPS == 1))		/*   || \
+				   (NCS_MDS == 1)) */
 
 #define NCS_ATM_SERVICES                 1
 #else
 #define NCS_ATM_SERVICES                 0
 #endif
-
-#endif /* ifndef NCS_ATM_SERVICES */
-
+#endif   /* ifndef NCS_ATM_SERVICES */
 
 /** Based on the above subsystem settings, automatically set the
  ** NCS_FR_SERVICES compile flag so that Frame Relay common code can be
@@ -253,8 +246,7 @@
 #else
 #define NCS_FR_SERVICES                 0
 #endif
-
-#endif /* ifndef NCS_FR_SERVICES */
+#endif   /* ifndef NCS_FR_SERVICES */
 
 /** Set NCS_IP_SERVICES based on APS_LMS set above */
 #ifndef NCS_IP_SERVICES
@@ -264,7 +256,7 @@
 #else
 #define NCS_IP_SERVICES                 0
 #endif
-#endif /* ifndef NCS_IP_SERVICES */
+#endif   /* ifndef NCS_IP_SERVICES */
 
 /** Some 64 bit machines (SPARC) expect allocated memory to start on an
     8 byte boundary. Other processors may have such boundary issues
@@ -303,7 +295,6 @@
 #define TRGT_IS_WBS             0
 #endif
 
-
 /** NetPlane Subsystem products provide typedefs for uns8, uns16, uns32 and 
     other useful data types. If the target system also uses these typedef 
     names or wishes to map these types to target system specific definitions
@@ -322,7 +313,6 @@
 #define USE_TARGET_SYSTEM_TYPEDEFS      0
 #endif
 
-
 /** Some CPUs require that multibyte access operations be addressed on even
     addressed locations. This is significant when our protocol products must
    build or read a traffic frame in memory and are accessing a 16 or 32 byte
@@ -339,7 +329,6 @@
 #ifndef NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT
 #define NCS_CPU_MULTIBYTE_ACCESS_ALIGNMENT      0
 #endif
-
 
 /** This is the new flag to control the version of the CPCS interface that
     is used by Soft-ATM subsystems.  This flag can coexist with the
@@ -359,7 +348,6 @@
 #define ENABLE_CPCS_VERSION_3     1
 #endif
 
-
 /** This flag controls the version of the CPCS interface that is used by
     Soft-ATM subsystems. The "v2" interface supports additional indications
     at the API boundary required by NCS-FRF.5 and NCS-FRF.8 subsystems.
@@ -374,7 +362,6 @@
 #ifndef USE_CPCS_INTERFACE_VER
 #define USE_CPCS_INTERFACE_VER  2
 #endif
-
 
 /** This flag controls the version of the FRDRV interface that
     is used by HPFR subsystems.  Subsystems will use the highest
@@ -421,7 +408,7 @@
 
  **/
 
-#ifndef NCSMDS_OSE_UD 
+#ifndef NCSMDS_OSE_UD
 #define NCSMDS_OSE_UD      0
 #endif
 
@@ -443,14 +430,12 @@
 #define V3_0                1
 #endif
 
-
 /** The support for ATM SAAL/SSCOP  QSAAL.  Set the following option
     to 1 if you wish to include support for QSAAL.
 **/
 #ifndef QSAAL
 #define QSAAL               1
 #endif
-
 
 /** The support for ATM Signalling V3.1.  Set the following option
     to 1 if you wish to include support for V3.1.
@@ -459,7 +444,6 @@
 #define V3_1                1
 #endif
 
-
 /** The support for ATM Signalling V4.0 (UNI4_0).  Set the following option
    to 1 if you wish to include support for UNI4.0
 **/
@@ -467,14 +451,12 @@
 #define UNI4_0              1
 #endif
 
-
 /** The support for ITUT Q.2931/Q2971.  Set the following option
    to 1 if you wish to include support for Q.2931/Q.2971
 **/
 #ifndef Q2931
 #define Q2931              1
 #endif
-
 
 /** The support for ATM Signalling for PNNI1.0.  Set the following option
    to 1 if you wish to include support for PNNI Signalling.
@@ -490,14 +472,12 @@
 #define PNNI_TRACE          0
 #endif
 
-
 /** The support for ATM SAAL/SSCOP as defined in Q2110.  Set the following
     option to 1 if you wish to include support for Q2110.
 **/
 #ifndef Q2110
 #define Q2110               1
 #endif
-
 
 /** The support for the network-side or user-side of ATM UNI signalling is
     optional. For example, a feeder mux may only have UNI user support
@@ -514,7 +494,6 @@
 #define UNI_USER_SIDE_SUPPORT       1
 #endif
 
-
 /** The support for IISP is optional. Set the following option to 1 if you
     wish to include support for IISP. Note that this will automatically
     enable UNI_NETWORK_SIDE_SUPPORT.
@@ -527,7 +506,6 @@
 #define UNI_NETWORK_SIDE_SUPPORT    1
 #endif
 
-
 /** The SSS base code allows the use of "non-standard" cause code values by
     setting this option to 1. A target may use this option to extend the set
     of codepoints allowed in UNI v3.1 (Section 5.4.5.15) to provide additional
@@ -538,7 +516,6 @@
 #ifndef ALLOW_SPL_CAUSE_CODES
 #define ALLOW_SPL_CAUSE_CODES       0
 #endif
-
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -553,22 +530,18 @@
 #define FRSSS_UNI_NETWORK_SIDE_SUPPORT    0
 #endif
 
-
-
-
 /* @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
    REQUIREMENTS FOR MPOA SUBSYSTEMS
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 #if ((NCS_MPC == 1) || (NCS_MPS == 1))
-#define NCS_ECM              1   /* Endsystem Connection Manager */
+#define NCS_ECM              1	/* Endsystem Connection Manager */
 #define NCS_CACHING          1
 #else
-#define NCS_ECM              0   /* Endsystem Connection Manager */
+#define NCS_ECM              0	/* Endsystem Connection Manager */
 #define NCS_CACHING          0
 #endif
-
 
 /** Set the following to 1 if you wish to turn off
  ** optional floating references.  This has no effect
@@ -578,14 +551,11 @@
 #define NCS_NOFLOAT          0
 #endif
 
-
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     SYSMON OPTIONS 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 /* SYSM FLAG ENABLE Rules
  * 
@@ -594,8 +564,8 @@
  * if NCS_USE_SYSMON is ON, other SYSM flags MAY be enabled
  */
 
-#ifndef NCS_USE_SYSMON 
-#define NCS_USE_SYSMON   0   /* The MASTER SWITCH */
+#ifndef NCS_USE_SYSMON
+#define NCS_USE_SYSMON   0	/* The MASTER SWITCH */
 #endif
 
 #if (NCS_USE_SYSMON == 0)
@@ -658,9 +628,7 @@
 
 #undef  NCSSYSM_IPRA_WATCH_ENABLE
 #define NCSSYSM_IPRA_WATCH_ENABLE  0
-
-
-#else /* NCS_USE_SYSMON  is == 1 */
+#else				/* NCS_USE_SYSMON  is == 1 */
 
 /* Here, we allow NCSSYSM flags to be set or overriden via compile line */
 /*                                                                     */
@@ -723,12 +691,11 @@
 #ifndef NCSSYSM_IPRA_WATCH_ENABLE
 #define NCSSYSM_IPRA_WATCH_ENABLE   0
 #endif
-
 #endif
 
 /* NCS_USE_RMT_CNSL defaults to OFF to reduce overhead */
-#ifndef NCS_USE_RMT_CNSL 
-#define NCS_USE_RMT_CNSL   0   
+#ifndef NCS_USE_RMT_CNSL
+#define NCS_USE_RMT_CNSL   0
 #endif
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -736,7 +703,6 @@
     LEAP ENVIRONMENT INITIALIZATION FLAGS 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 /* Init SYSMON */
 #ifndef NCSL_ENV_INIT_SMON
@@ -778,10 +744,10 @@
 #define NCSL_ENV_INIT_MMGR 1
 #endif
 
-/* Init PATRICIA TREE Style */ 
+/* Init PATRICIA TREE Style */
 #ifndef NCS_MTREE_PAT_STYLE_SUPPORTED
-#define NCS_MTREE_PAT_STYLE_SUPPORTED 0 
-#endif 
+#define NCS_MTREE_PAT_STYLE_SUPPORTED 0
+#endif
 
 /* JEA - Changing default SAF option to Disable.
    Having SAF Enabled by default requires the SAF
@@ -793,4 +759,4 @@
 /* #define NCS_SAF 1 */
 #endif
 
-#endif /** NCS_OPT_H **/
+#endif   /** NCS_OPT_H **/

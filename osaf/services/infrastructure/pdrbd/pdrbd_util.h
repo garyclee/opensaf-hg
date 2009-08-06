@@ -17,12 +17,10 @@
 #ifndef PDRBD_UTIL_H
 #define PDRBD_UTIL_H
 
-
 #include "pdrbd.h"
 
-extern uns32 pdrbd_script_execute(PSEUDO_CB *,char *,uns32,uns32,uns32);
-extern uns32 pdrbd_handle_script_resp(PSEUDO_CB *,PDRBD_EVT *);
+extern uns32 pdrbd_script_execute(PSEUDO_CB *, char *, uns32, uns32, uns32);
+extern uns32 pdrbd_handle_script_resp(PSEUDO_CB *, PDRBD_EVT *);
 extern uns32 pdrbd_process_peer_msg(PSEUDO_CB *cb, PDRBD_EVT *evt);
 
-
-#endif /* PDRBD_UTIL_H */
+#endif   /* PDRBD_UTIL_H */

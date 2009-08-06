@@ -22,7 +22,7 @@
 
 struct fma_cb;
 
-#define FMA_FM_SYNC_MSG_DEF_TIMEOUT 1000 /* 10 seconds*/
+#define FMA_FM_SYNC_MSG_DEF_TIMEOUT 1000	/* 10 seconds */
 
 #define FMA_MDS_SUB_PART_VERSION 1
 
@@ -31,12 +31,11 @@ struct fma_cb;
 
 #define FMA_FM_MSG_FMT_VER_1 1
 
-EXTERN_C uns32 fma_mds_reg (struct fma_cb *cb);
-EXTERN_C uns32 fma_mds_dereg (struct fma_cb *cb);
+EXTERN_C uns32 fma_mds_reg(struct fma_cb *cb);
+EXTERN_C uns32 fma_mds_dereg(struct fma_cb *cb);
 EXTERN_C uns32 fma_fm_mds_msg_async_send(struct fma_cb *cb, FMA_FM_MSG *msg);
-EXTERN_C uns32 fma_mds_callback (NCSMDS_CALLBACK_INFO *info);
+EXTERN_C uns32 fma_mds_callback(NCSMDS_CALLBACK_INFO *info);
 EXTERN_C uns32 fma_fm_mds_msg_bcast(struct fma_cb *cb, FMA_FM_MSG *msg);
-EXTERN_C uns32 fma_fm_mds_msg_sync_send(struct fma_cb *cb, FMA_FM_MSG *i_msg, 
-                                        FMA_FM_MSG **o_msg, uns32 timeout);
-#endif
+EXTERN_C uns32 fma_fm_mds_msg_sync_send(struct fma_cb *cb, FMA_FM_MSG *i_msg, FMA_FM_MSG **o_msg, uns32 timeout);
 
+#endif

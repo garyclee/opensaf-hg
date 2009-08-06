@@ -52,18 +52,14 @@
 #include "gl_defs.h"
 #include "ncs_osprm.h"
 
-
 #include "ncs_stree.h"
 #include "sysf_def.h"
-
-
-
 
 /** Set up NCS_LOCK for all S-TREE databases.
  **/
 static NCS_LOCK l_lock;
 
-#define m_LOCAL_LOCK_LEGACY_INIT             
+#define m_LOCAL_LOCK_LEGACY_INIT
 #define m_LOCAL_LOCK_INIT(lock)         m_NCS_LOCK_INIT (lock)
 #define m_LOCAL_LOCK(lock,flag)         m_NCS_LOCK (lock,flag)
 #define m_LOCAL_UNLOCK(lock,flag )      m_NCS_UNLOCK (lock,flag)
@@ -71,62 +67,50 @@ static NCS_LOCK l_lock;
 
 static int LockUseCount = 0;
 
-
-
 /** Utility function to recursively and unconditionally free the Simple
  ** tree elements...
  **/
-static void
-stree_free_tree (NCS_STREE_ENTRY *stree)
+static void stree_free_tree(NCS_STREE_ENTRY *stree)
 {
 
-  if (stree != NULL)
-    {
-      stree_free_tree (stree->child);
-      stree_free_tree (stree->peer);
-      ncs_stree_free_entry (stree);
-    }
+	if (stree != NULL) {
+		stree_free_tree(stree->child);
+		stree_free_tree(stree->peer);
+		ncs_stree_free_entry(stree);
+	}
 
 }
-
-
 
 /** Utility function to recursively and conditionally free the simple
  ** tree target elements to delete 
  **/
-static void
-stree_free_octets( NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
+static void stree_free_octets(NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
 {
-  NCS_STREE_ENTRY *stree;
-  NCS_STREE_ENTRY **pcs;
-  
-  if (trgt_len == 0)
-    return;
+	NCS_STREE_ENTRY *stree;
+	NCS_STREE_ENTRY **pcs;
+
+	if (trgt_len == 0)
+		return;
 
   /** Work our way to the bottom of the octet string
    **/
-  for (stree = *anchor, pcs = anchor;
-       stree != NULL;
-       pcs = &stree->peer, stree = stree->peer)
-    {
+	for (stree = *anchor, pcs = anchor; stree != NULL; pcs = &stree->peer, stree = stree->peer) {
 
       /** Not a match, continue to peer.
        **/
-      if (stree->key != *trgt)
- continue;
+		if (stree->key != *trgt)
+			continue;
 
       /** Descend even further, if you can.
        **/
-      if (stree->child != NULL)
- stree_free_octets (&stree->child, trgt+1,(uns8)(trgt_len-1));
+		if (stree->child != NULL)
+			stree_free_octets(&stree->child, trgt + 1, (uns8)(trgt_len - 1));
 
       /** Free octet string entry if no children and (entry does not
        ** represent another (smaller length) octet string OR the entry
        ** represents the last octet struct for this octet string)...
        **/
-      if ((stree->child == NULL) &&
-   ((stree->result == NULL) || (trgt_len == 1)))
- {
+		if ((stree->child == NULL) && ((stree->result == NULL) || (trgt_len == 1))) {
    /** Reattach upper link to this entry's peer.
     ** If this is the first time through this loop, 
     ** then we are attaching the peer node to the parent of 
@@ -134,20 +118,17 @@ stree_free_octets( NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
     ** Otherwise, we are attaching the peer node to the previous
     ** peer.
     **/
-   *pcs = stree->peer;
+			*pcs = stree->peer;
 
    /** Release the node.
     **/
-   ncs_stree_free_entry (stree);
- }
-      return;
+			ncs_stree_free_entry(stree);
+		}
+		return;
 
-    }
+	}
 
 }
-
-
-
 
 /*****************************************************************************
 
@@ -171,63 +152,55 @@ stree_free_octets( NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
   NOTES:
 
 ****************************************************************************/
-static NCSCONTEXT
-ncs_do_tree_lookup (NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
+static NCSCONTEXT ncs_do_tree_lookup(NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
 {
-  void           *result;
-  NCS_STREE_ENTRY *stree;
-  uns32 lookup_len = 0;
+	void *result;
+	NCS_STREE_ENTRY *stree;
+	uns32 lookup_len = 0;
 
-  result = NULL;  /* Init result */
+	result = NULL;		/* Init result */
 
   /** Sanity check request and database anchor
    **/
-  if (trgt_len == 0)
-    return NULL;
+	if (trgt_len == 0)
+		return NULL;
 
   /** Scan all children at all peer-levels...
    **/
-  for (stree = anchor; (stree != NULL);)
-    {
-      if (stree->key == *trgt)
-        {
-        lookup_len++;
+	for (stree = anchor; (stree != NULL);) {
+		if (stree->key == *trgt) {
+			lookup_len++;
 
-          /** Found a match...update result.
+	  /** Found a match...update result.
            **/
-   result = stree->result;
+			result = stree->result;
 
-          /** If no more to scan, return result...
+	  /** If no more to scan, return result...
            **/
-          if ((stree->child == NULL) || (lookup_len >= trgt_len))
-            {
-       return result;
-            }
+			if ((stree->child == NULL) || (lookup_len >= trgt_len)) {
+				return result;
+			}
 
    /** More children to scan...
     **/
-   stree = stree->child;
-   trgt++;
+			stree = stree->child;
+			trgt++;
 
-        }
-      else
-        {
+		} else {
    /** Terminate search if no hope of finding a match...
     **/
-   if (stree->key > *trgt)
-            {
-       return NULL;
-            }
+			if (stree->key > *trgt) {
+				return NULL;
+			}
 
-          /** Scan the next peer...
+	  /** Scan the next peer...
            **/
-          stree = stree->peer;
-        }
-    }
+			stree = stree->peer;
+		}
+	}
 
-  return result;
+	return result;
 }
-
 
 /*****************************************************************************
 
@@ -253,126 +226,107 @@ ncs_do_tree_lookup (NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
   NOTES:
 
 ****************************************************************************/
-static uns32
-ncs_do_tree_add (NCS_STREE_ENTRY **anchor, 
-       uns8 *trgt, 
-       uns8 trgt_len, 
-       NCSCONTEXT result)
+static uns32 ncs_do_tree_add(NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len, NCSCONTEXT result)
 {
 
-  uns8 clen, stree_count, i;
-  NCS_STREE_ENTRY *stree, **ppstree, *stree_array[20];
-  NCS_STREE_ENTRY *old_stree = NULL;
-  NCS_STREE_ENTRY **pold_stree;
+	uns8 clen, stree_count, i;
+	NCS_STREE_ENTRY *stree, **ppstree, *stree_array[20];
+	NCS_STREE_ENTRY *old_stree = NULL;
+	NCS_STREE_ENTRY **pold_stree;
 
   /****************************
  Error Checking
    ****************************/
-  
+
   /** Sanity check request and database anchor
    **/
-  if ((trgt_len == 0) || (result==NULL))
-    return NCSCC_RC_FAILURE;
+	if ((trgt_len == 0) || (result == NULL))
+		return NCSCC_RC_FAILURE;
 
   /*******************************************
      Install target octet string into the DB
    ******************************************/
-  
+
   /** Spin down the database tree scanning for re-usable octet string entries...
    **/
-  ppstree = anchor;
+	ppstree = anchor;
 
-  for(stree = *ppstree, clen = trgt_len; 
-      (clen > 0) && (stree != NULL);  )
-    {
-       old_stree = stree;  /* used for partial match */ 
+	for (stree = *ppstree, clen = trgt_len; (clen > 0) && (stree != NULL);) {
+		old_stree = stree;	/* used for partial match */
 
-      if (stree->key == *trgt)
- {
+		if (stree->key == *trgt) {
    /** This level already has an approp entry...
     ** Scan the next level.
     **/
-   trgt++;   /* Next octet to match  */
-   clen--;   /* Decr residue count   */
-   ppstree = &stree->child; /* Save append point    */
-   stree = stree->child; /* Move down one level  */
- }
-      else
- {
-   if (stree->key > *trgt) /* Terminate pointless search */
-     break;
+			trgt++;	/* Next octet to match  */
+			clen--;	/* Decr residue count   */
+			ppstree = &stree->child;	/* Save append point    */
+			stree = stree->child;	/* Move down one level  */
+		} else {
+			if (stree->key > *trgt)	/* Terminate pointless search */
+				break;
 
-   ppstree = &stree->peer; /* Save append point */
-   stree = stree->peer;
- }
-    }
+			ppstree = &stree->peer;	/* Save append point */
+			stree = stree->peer;
+		}
+	}
 
   /** Deny duplicate entry...
    **/
-  if (clen == 0)
-    {
-    if ((old_stree->result == NULL) &&
-        ((old_stree->child != NULL) || (old_stree->peer != NULL)))
-       {
-       old_stree->result = result;
-       return NCSCC_RC_SUCCESS;
-       }
-    else
-      {
-      return NCSCC_RC_FAILURE;
-      }
-    }
+	if (clen == 0) {
+		if ((old_stree->result == NULL) && ((old_stree->child != NULL) || (old_stree->peer != NULL))) {
+			old_stree->result = result;
+			return NCSCC_RC_SUCCESS;
+		} else {
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
   /** Save the "old" octet entry at the append point...
    **/
-  pold_stree = ppstree;
-  old_stree = *ppstree;
-
+	pold_stree = ppstree;
+	old_stree = *ppstree;
 
   /** Create new stree entries, if necesary, for remainder of the octet str
    **/
-  for (stree_count = 0, i=0; i < clen; i++)
-    {
-      if ((stree = ncs_stree_alloc_entry()) == NULL)
- {
+	for (stree_count = 0, i = 0; i < clen; i++) {
+		if ((stree = ncs_stree_alloc_entry()) == NULL) {
    /** Allocation failure. Free entries allocated up till now...
     **/
-   for (i=0; i < stree_count; i++)
-     {
-       ncs_stree_free_entry (stree_array[i]);
-     }
+			for (i = 0; i < stree_count; i++) {
+				ncs_stree_free_entry(stree_array[i]);
+			}
 
    /** Restore old link...
     **/
-   *pold_stree = old_stree;
-   
-   return NCSCC_RC_OUT_OF_MEM;
+			*pold_stree = old_stree;
 
- }
+			return NCSCC_RC_OUT_OF_MEM;
+
+		}
 
       /** Save failure recovery info...
        **/
-      stree_array[i] = stree;
-      stree_count++;
+		stree_array[i] = stree;
+		stree_count++;
 
       /** Install NCS_STREE_ENTRY entry...
        ** "ppstree" points to the "append" location.
        **/
-      if (i == 0)
- stree->peer = old_stree;
-      stree->key    = *trgt++;
-      *ppstree      = stree;
-      ppstree       = &stree->child;
-    }
-  
+		if (i == 0)
+			stree->peer = old_stree;
+		stree->key = *trgt++;
+		*ppstree = stree;
+		ppstree = &stree->child;
+	}
+
   /** For the final stree entry, mark the associated data...
    **/
-  stree->result = result;
-  
-  return NCSCC_RC_SUCCESS;
-  
-}
+	stree->result = result;
 
+	return NCSCC_RC_SUCCESS;
+
+}
 
 /*****************************************************************************
 
@@ -397,40 +351,36 @@ ncs_do_tree_add (NCS_STREE_ENTRY **anchor,
   NOTES:
 
 ****************************************************************************/
-uns32
-ncs_stree_del (NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
+uns32 ncs_stree_del(NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
 {
 
   /** for legacy locking paradigm
   **/
-  m_LOCAL_LOCK_LEGACY_INIT;   /* for legacy locking paradigm ................*/
-
+	m_LOCAL_LOCK_LEGACY_INIT;	/* for legacy locking paradigm ................ */
 
   /****************************
  Error Checking
    ****************************/
-  
+
   /** Sanity check request and database anchor
    **/
-  if (trgt_len == 0) 
-    return NCSCC_RC_FAILURE;
+	if (trgt_len == 0)
+		return NCSCC_RC_FAILURE;
 
-  m_LOCAL_LOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(&l_lock, NCS_LOCK_WRITE);
 
   /********************************
      De-Install NCS_STREE_ENTRY
    *******************************/
 
-  if ((anchor != NULL) && (*anchor != NULL))
-    stree_free_octets (anchor, trgt, trgt_len);
+	if ((anchor != NULL) && (*anchor != NULL))
+		stree_free_octets(anchor, trgt, trgt_len);
 
-  m_LOCAL_UNLOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_UNLOCK(&l_lock, NCS_LOCK_WRITE);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
-
 
 /*****************************************************************************
 
@@ -453,42 +403,38 @@ ncs_stree_del (NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
   NOTES:
 
 ****************************************************************************/
-uns32
-ncs_stree_release_db (NCS_STREE_ENTRY **anchor)
+uns32 ncs_stree_release_db(NCS_STREE_ENTRY **anchor)
 {
-  int UseCount;
+	int UseCount;
 
-  if(anchor == NULL)
-   return NCSCC_RC_FAILURE;
+	if (anchor == NULL)
+		return NCSCC_RC_FAILURE;
 
   /** for legacy locking paradigm
   **/
-  m_LOCAL_LOCK_LEGACY_INIT;
+	m_LOCAL_LOCK_LEGACY_INIT;
 
-
-  m_LOCAL_LOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(&l_lock, NCS_LOCK_WRITE);
 
   /** Clear the simple tree database...
    **/
-  stree_free_tree (*anchor);
+	stree_free_tree(*anchor);
 
-  *anchor = NULL;
+	*anchor = NULL;
 
-  UseCount = --LockUseCount;  /* decrement use count... */
+	UseCount = --LockUseCount;	/* decrement use count... */
 
-  m_LOCAL_UNLOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_UNLOCK(&l_lock, NCS_LOCK_WRITE);
 
   /** free lock resources
    **/
-  if (UseCount == 0)
-    {
-      m_LOCAL_LOCK_DESTROY (&l_lock);
-    }
+	if (UseCount == 0) {
+		m_LOCAL_LOCK_DESTROY(&l_lock);
+	}
 
- return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
 
 /*****************************************************************************
 
@@ -497,7 +443,6 @@ ncs_stree_release_db (NCS_STREE_ENTRY **anchor)
   DESCRIPTION:
 
   This function will initialize a NCS_STREE_ENTRY simple tree database.
-
 
   ARGUMENTS:
 
@@ -510,75 +455,65 @@ ncs_stree_release_db (NCS_STREE_ENTRY **anchor)
   NOTES:
 
 ****************************************************************************/
-uns32
-ncs_stree_create_db (NCS_STREE_ENTRY **anchor)
+uns32 ncs_stree_create_db(NCS_STREE_ENTRY **anchor)
 {
 
   /** Create our local lock
    **/
-  if (LockUseCount++ == 0)
-    {
-      m_LOCAL_LOCK_INIT (&l_lock);
-    }
+	if (LockUseCount++ == 0) {
+		m_LOCAL_LOCK_INIT(&l_lock);
+	}
 
   /** Initialize list anchor...
    **/
-  *anchor = NULL;
+	*anchor = NULL;
 
- return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
-
 
 /***************************************************************************/
 /**                                                                        */
 /**   ncs_stree_lookup() add a tree entry                                      */
 /**                                                                        */
 /***************************************************************************/
-NCSCONTEXT ncs_stree_lookup (NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
+NCSCONTEXT ncs_stree_lookup(NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
 {
-   void  *result;
+	void *result;
 
    /** for legacy locking paradigm
  **/
-   m_LOCAL_LOCK_LEGACY_INIT;
-   m_LOCAL_LOCK (&l_lock, NCS_LOCK_WRITE);
-   
-   result = ncs_do_tree_lookup(anchor, trgt, trgt_len);
-   
-   m_LOCAL_UNLOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK_LEGACY_INIT;
+	m_LOCAL_LOCK(&l_lock, NCS_LOCK_WRITE);
 
-   return result;
+	result = ncs_do_tree_lookup(anchor, trgt, trgt_len);
+
+	m_LOCAL_UNLOCK(&l_lock, NCS_LOCK_WRITE);
+
+	return result;
 }
-
 
 /***************************************************************************/
 /**                                                                        */
 /**   ncs_stree_add() add a tree entry                                      */
 /**                                                                        */
 /***************************************************************************/
-uns32 ncs_stree_add (NCS_STREE_ENTRY **anchor, 
-       uns8 *trgt, 
-       uns8 trgt_len, 
-       NCSCONTEXT result)
+uns32 ncs_stree_add(NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len, NCSCONTEXT result)
 {
-   uns32 return_code;   
+	uns32 return_code;
 
    /** for legacy locking paradigm
  **/
-   m_LOCAL_LOCK_LEGACY_INIT;   /* for legacy locking paradigm ................*/
+	m_LOCAL_LOCK_LEGACY_INIT;	/* for legacy locking paradigm ................ */
 
-   m_LOCAL_LOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(&l_lock, NCS_LOCK_WRITE);
 
-   return_code = ncs_do_tree_add(anchor, trgt, trgt_len, result);
-     
-   m_LOCAL_UNLOCK (&l_lock, NCS_LOCK_WRITE);
+	return_code = ncs_do_tree_add(anchor, trgt, trgt_len, result);
 
-   return return_code;
+	m_LOCAL_UNLOCK(&l_lock, NCS_LOCK_WRITE);
+
+	return return_code;
 }
-
-
 
 /*****************************************************************************
 
@@ -597,20 +532,18 @@ uns32 ncs_stree_add (NCS_STREE_ENTRY **anchor,
   NOTES:
 
 ****************************************************************************/
-NCS_STREE_ENTRY *
-ncs_stree_alloc_entry ()
+NCS_STREE_ENTRY *ncs_stree_alloc_entry()
 {
-  NCS_STREE_ENTRY *stree;
+	NCS_STREE_ENTRY *stree;
 
-  if ((stree = (NCS_STREE_ENTRY *)m_MMGR_ALLOC_NCS_STREE_ENTRY) != NULL)
-    {
-      stree->key    = 0;
-      stree->peer   = NULL;
-      stree->child  = NULL;
-      stree->result = NULL;
-    }
+	if ((stree = (NCS_STREE_ENTRY *)m_MMGR_ALLOC_NCS_STREE_ENTRY) != NULL) {
+		stree->key = 0;
+		stree->peer = NULL;
+		stree->child = NULL;
+		stree->result = NULL;
+	}
 
-  return stree;
+	return stree;
 
 }
 
@@ -633,14 +566,11 @@ ncs_stree_alloc_entry ()
   NOTES:
 
 ****************************************************************************/
-void
-ncs_stree_free_entry (NCS_STREE_ENTRY *stree)
+void ncs_stree_free_entry(NCS_STREE_ENTRY *stree)
 {
-  if (stree != NULL)
-    m_MMGR_FREE_NCS_STREE_ENTRY(stree);
+	if (stree != NULL)
+		m_MMGR_FREE_NCS_STREE_ENTRY(stree);
 }
-
-
 
 /*****************************************************************************
 
@@ -657,19 +587,17 @@ ncs_stree_free_entry (NCS_STREE_ENTRY *stree)
 
 ****************************************************************************/
 
-unsigned int
-ncs_stree_lock_stree (void)
+unsigned int ncs_stree_lock_stree(void)
 {
   /** for legacy locking paradigm
    **/
 
-  m_LOCAL_LOCK_LEGACY_INIT;   /* for legacy locking paradigm ................*/
- 
-  m_LOCAL_LOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK_LEGACY_INIT;	/* for legacy locking paradigm ................ */
 
-  return NCSCC_RC_SUCCESS;
+	m_LOCAL_LOCK(&l_lock, NCS_LOCK_WRITE);
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -687,14 +615,12 @@ ncs_stree_lock_stree (void)
 
 ****************************************************************************/
 
-unsigned int
-ncs_stree_unlock_stree(void)
+unsigned int ncs_stree_unlock_stree(void)
 {
-  m_LOCAL_UNLOCK (&l_lock, NCS_LOCK_WRITE);
+	m_LOCAL_UNLOCK(&l_lock, NCS_LOCK_WRITE);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************/
 /**                                                                        */
@@ -702,29 +628,27 @@ ncs_stree_unlock_stree(void)
 /**                                                                        */
 /***************************************************************************/
 
-NCSCONTEXT ncs_mltree_lookup(NCS_LOCK* lock, NCS_STREE_ENTRY* anchor, uns8* trgt, uns32 trgt_len)
+NCSCONTEXT ncs_mltree_lookup(NCS_LOCK * lock, NCS_STREE_ENTRY *anchor, uns8 *trgt, uns32 trgt_len)
 {
-   void* result = NULL;
-   
-   m_LOCAL_LOCK (lock, NCS_LOCK_WRITE);
+	void *result = NULL;
 
-   if(anchor != NULL)
-   {
-      /* Look up entry with zero-length key*/
-      if (trgt_len == 0)
-      {
-         if(trgt == NULL)
-            result = anchor->result;
-      }
+	m_LOCAL_LOCK(lock, NCS_LOCK_WRITE);
 
-      /* Look up normal entry */
-      else
-         result = ncs_do_tree_lookup(anchor->child, trgt, trgt_len);
-   }
-   
-   m_LOCAL_UNLOCK (lock, NCS_LOCK_WRITE);
+	if (anchor != NULL) {
+		/* Look up entry with zero-length key */
+		if (trgt_len == 0) {
+			if (trgt == NULL)
+				result = anchor->result;
+		}
 
-   return result;
+		/* Look up normal entry */
+		else
+			result = ncs_do_tree_lookup(anchor->child, trgt, trgt_len);
+	}
+
+	m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
+
+	return result;
 }
 
 /***************************************************************************/
@@ -732,37 +656,33 @@ NCSCONTEXT ncs_mltree_lookup(NCS_LOCK* lock, NCS_STREE_ENTRY* anchor, uns8* trgt
 /**   ncs_mltree_add() add a tree entry                                     */
 /**                                                                        */
 /***************************************************************************/
-uns32 ncs_mltree_add(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor,uns8* trgt ,uns8 trgt_len,NCSCONTEXT result)
+uns32 ncs_mltree_add(NCS_LOCK * lock, NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len, NCSCONTEXT result)
 {
-   uns32 return_code = NCSCC_RC_FAILURE;   
+	uns32 return_code = NCSCC_RC_FAILURE;
 
-   m_LOCAL_LOCK (lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(lock, NCS_LOCK_WRITE);
 
-   if((anchor != NULL) && (*anchor != NULL))
-   {
-      /* Add entry with zero-length key */
-      if(trgt_len == 0)
-      {
-         /* target must be NULL */
-         if(trgt == NULL)
-         {
-            /* Allow only one entry */
-            if((*anchor)->result == NULL && result != NULL)
-            {
-               (*anchor)->result = result;
-               return_code = NCSCC_RC_SUCCESS;
-            }
-         }
-      }
+	if ((anchor != NULL) && (*anchor != NULL)) {
+		/* Add entry with zero-length key */
+		if (trgt_len == 0) {
+			/* target must be NULL */
+			if (trgt == NULL) {
+				/* Allow only one entry */
+				if ((*anchor)->result == NULL && result != NULL) {
+					(*anchor)->result = result;
+					return_code = NCSCC_RC_SUCCESS;
+				}
+			}
+		}
 
-      /* Add normal entry */
-      else
-         return_code = ncs_do_tree_add(&(*anchor)->child, trgt, trgt_len, result);
-   }
-   
-   m_LOCAL_UNLOCK (lock, NCS_LOCK_WRITE);
+		/* Add normal entry */
+		else
+			return_code = ncs_do_tree_add(&(*anchor)->child, trgt, trgt_len, result);
+	}
 
-   return return_code;
+	m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
+
+	return return_code;
 }
 
 /***************************************************************************/
@@ -770,53 +690,49 @@ uns32 ncs_mltree_add(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor,uns8* trgt ,uns8 t
 /**   ncs_mltree_del() delete a tree entry                                  */
 /**                                                                        */
 /***************************************************************************/
-uns32 ncs_mltree_del(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor,uns8* trgt,uns8 trgt_len)
+uns32 ncs_mltree_del(NCS_LOCK * lock, NCS_STREE_ENTRY **anchor, uns8 *trgt, uns8 trgt_len)
 {
-   m_LOCAL_LOCK (lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(lock, NCS_LOCK_WRITE);
 
-   if((anchor != NULL) && (*anchor != NULL))
-   {
-      /* Delete entry with zero-length key */
-      if(trgt_len == 0)
-      {
-         if(trgt == NULL)
-            (*anchor)->result = NULL;
-      }
+	if ((anchor != NULL) && (*anchor != NULL)) {
+		/* Delete entry with zero-length key */
+		if (trgt_len == 0) {
+			if (trgt == NULL)
+				(*anchor)->result = NULL;
+		}
 
-      /* normal entry */
-      else
-      {
-         stree_free_octets (&(*anchor)->child, trgt, trgt_len);
-      }
-   }
+		/* normal entry */
+		else {
+			stree_free_octets(&(*anchor)->child, trgt, trgt_len);
+		}
+	}
 
-   m_LOCAL_UNLOCK (lock, NCS_LOCK_WRITE);
+	m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************/
 /**                                                                        */
 /**   ncs_mltree_release_db() release the tree batabase                     */
 /**                                                                        */
 /***************************************************************************/
-uns32 ncs_mltree_release_db(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor)
+uns32 ncs_mltree_release_db(NCS_LOCK * lock, NCS_STREE_ENTRY **anchor)
 {
-   if(anchor == NULL)
-    return NCSCC_RC_FAILURE;
+	if (anchor == NULL)
+		return NCSCC_RC_FAILURE;
 
-   m_LOCAL_LOCK (lock, NCS_LOCK_WRITE);
+	m_LOCAL_LOCK(lock, NCS_LOCK_WRITE);
 
    /** Clear the tree database...  **/
-   stree_free_tree (*anchor);
-   *anchor = NULL;
+	stree_free_tree(*anchor);
+	*anchor = NULL;
 
-   m_LOCAL_UNLOCK (lock, NCS_LOCK_WRITE);
+	m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
 
-   m_LOCAL_LOCK_DESTROY (lock);
+	m_LOCAL_LOCK_DESTROY(lock);
 
- return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************/
@@ -824,14 +740,14 @@ uns32 ncs_mltree_release_db(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor)
 /**   ncs_mltree_create_db() Create the tree batabase                       */
 /**                                                                        */
 /***************************************************************************/
-uns32 ncs_mltree_create_db(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor)
+uns32 ncs_mltree_create_db(NCS_LOCK * lock, NCS_STREE_ENTRY **anchor)
 {
-   m_LOCAL_LOCK_INIT (lock);
+	m_LOCAL_LOCK_INIT(lock);
 
-   /* Create the root node for entry with zero-length key */
-   *anchor = ncs_stree_alloc_entry();
+	/* Create the root node for entry with zero-length key */
+	*anchor = ncs_stree_alloc_entry();
 
- return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************/
@@ -839,10 +755,10 @@ uns32 ncs_mltree_create_db(NCS_LOCK* lock, NCS_STREE_ENTRY** anchor)
 /**   ncs_mltree_lock_mltree() Lock the tree lock                           */
 /**                                                                        */
 /***************************************************************************/
-unsigned int  ncs_mltree_lock_mltree(NCS_LOCK* lock)
+unsigned int ncs_mltree_lock_mltree(NCS_LOCK * lock)
 {
-   m_LOCAL_LOCK (lock, NCS_LOCK_WRITE);
-   return NCSCC_RC_SUCCESS;
+	m_LOCAL_LOCK(lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************/
@@ -850,9 +766,8 @@ unsigned int  ncs_mltree_lock_mltree(NCS_LOCK* lock)
 /**   ncs_mltree_unlock_mltree() Unlock the tree lock                       */
 /**                                                                        */
 /***************************************************************************/
-unsigned int  ncs_mltree_unlock_mltree(NCS_LOCK* lock)
+unsigned int ncs_mltree_unlock_mltree(NCS_LOCK * lock)
 {
-   m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
-   return NCSCC_RC_SUCCESS;
+	m_LOCAL_UNLOCK(lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
 }
-

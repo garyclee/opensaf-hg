@@ -41,15 +41,13 @@ extern "C" {
 /** This typedef is being maintained for backward compatibility 
  ** with ech.
  **/
-typedef void *SYSF_THREAD_CB;
-
+	typedef void *SYSF_THREAD_CB;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
              H&J Tasking Definitions
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 /****************************************************************************
  * m_NCS_TASK_CREATE
@@ -79,8 +77,6 @@ typedef void *SYSF_THREAD_CB;
                                                              stack_size, \
                                                              p_t_handle)
 
-
-
 /****************************************************************************
  * m_NCS_TASK_RELEASE
  *
@@ -98,7 +94,6 @@ typedef void *SYSF_THREAD_CB;
  */
 #define m_NCS_TASK_RELEASE(t_handle)           ncs_task_release(t_handle)
 
-
 /****************************************************************************
  * m_NCS_TASK_DETACH    
  *
@@ -114,7 +109,6 @@ typedef void *SYSF_THREAD_CB;
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_TASK_DETACH(t_handle)             ncs_task_detach(t_handle)
-
 
 /****************************************************************************
  * m_NCS_TASK_START      
@@ -133,8 +127,6 @@ typedef void *SYSF_THREAD_CB;
  */
 #define m_NCS_TASK_START(t_handle)             ncs_task_start(t_handle)
 
-
-
 /****************************************************************************
  * m_NCS_TASK_STOP
  *
@@ -152,8 +144,6 @@ typedef void *SYSF_THREAD_CB;
  */
 #define m_NCS_TASK_STOP(t_handle)              ncs_task_stop(t_handle)
 
-
-
 /****************************************************************************
  * m_NCS_TASK_SLEEP
  *
@@ -170,8 +160,6 @@ typedef void *SYSF_THREAD_CB;
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_TASK_SLEEP(delay_ms)   ncs_task_sleep(delay_ms)
-
-
 
 /****************************************************************************
  * m_NCS_TASK_CURRENT
@@ -191,28 +179,23 @@ typedef void *SYSF_THREAD_CB;
  */
 #define m_NCS_TASK_CURRENT(p_t_handle) ncs_task_current(p_t_handle)
 
-
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  
                FUNCTION PROTOTYPES
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
-
-EXTERN_C LEAPDLL_API uns32 ncs_task_create (NCS_OS_CB, void *, char *, unsigned int,
-                               unsigned int, void **);
-EXTERN_C LEAPDLL_API uns32 ncs_task_release (void *);
-EXTERN_C LEAPDLL_API uns32 ncs_task_detach (void *); 
-EXTERN_C LEAPDLL_API uns32 ncs_task_start (void *);
-EXTERN_C LEAPDLL_API uns32 ncs_task_stop (void *);
-EXTERN_C LEAPDLL_API uns32 ncs_task_sleep (unsigned int);
-EXTERN_C LEAPDLL_API uns32 ncs_task_current (void **);
-EXTERN_C LEAPDLL_API int  ncs_task_entry (NCS_OS_TASK* task);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_release(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_detach(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_start(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_stop(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_sleep(unsigned int);
+	EXTERN_C LEAPDLL_API uns32 ncs_task_current(void **);
+	EXTERN_C LEAPDLL_API int ncs_task_entry(NCS_OS_TASK *task);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* NCSSYSF_TSK_H */
+#endif   /* NCSSYSF_TSK_H */

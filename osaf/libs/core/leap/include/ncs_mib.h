@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   
-
 
 ..............................................................................
 
@@ -44,11 +42,10 @@
  *
  ***************************************************************************/
 
-EXTERN_C uns32      mib_sync_response  ( NCSMIB_ARG*    arg);
+EXTERN_C uns32 mib_sync_response(NCSMIB_ARG *arg);
 
-EXTERN_C void       mib_timed_expiry   ( void*         mib_timed);
+EXTERN_C void mib_timed_expiry(void *mib_timed);
 
-EXTERN_C uns32      mib_timed_response ( NCSMIB_ARG*    arg);
+EXTERN_C uns32 mib_timed_response(NCSMIB_ARG *arg);
 
 #endif
-

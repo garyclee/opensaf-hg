@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION: This file contains the Library functions for Shared memory 
@@ -52,20 +51,19 @@ static uns32 mqnd_kernel_msgparams(void);
 
 static uns32 mqnd_kernel_msgparams(void)
 {
- int name[] = {CTL_KERN, KERN_MSGMNI};
- int namelen = 2;
- int oldval[1];  
- size_t len = sizeof(oldval);
- int  error;
- 
- error = sysctl (name, namelen, (void *)oldval, &len,
-                NULL , 0);
+	int name[] = { CTL_KERN, KERN_MSGMNI };
+	int namelen = 2;
+	int oldval[1];
+	size_t len = sizeof(oldval);
+	int error;
 
- if(error)
-   return NCSCC_RC_FAILURE;
- else
-   return oldval[0];
-} 
+	error = sysctl(name, namelen, (void *)oldval, &len, NULL, 0);
+
+	if (error)
+		return NCSCC_RC_FAILURE;
+	else
+		return oldval[0];
+}
 
 /**************************************************************************************************************
  * Name           : mqnd_shm_create
@@ -80,61 +78,60 @@ static uns32 mqnd_kernel_msgparams(void)
 
 uns32 mqnd_shm_create(MQND_CB *cb)
 {
-  NCS_OS_POSIX_SHM_REQ_INFO mqnd_open_req; 
-  uns32 rc = NCSCC_RC_SUCCESS;
-  char shm_name[] = SHM_NAME;
-  MQND_SHM_VERSION   mqnd_shm_version;
-  
-  if((cb->mqnd_shm.max_open_queues = mqnd_kernel_msgparams()) == NCSCC_RC_FAILURE)
-  return NCSCC_RC_FAILURE;
+	NCS_OS_POSIX_SHM_REQ_INFO mqnd_open_req;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	char shm_name[] = SHM_NAME;
+	MQND_SHM_VERSION mqnd_shm_version;
 
-  memset(&mqnd_open_req,'\0',sizeof(mqnd_open_req));
+	if ((cb->mqnd_shm.max_open_queues = mqnd_kernel_msgparams()) == NCSCC_RC_FAILURE)
+		return NCSCC_RC_FAILURE;
 
-  /* Initializing shared memory version */
-  memset(&mqnd_shm_version,'\0',sizeof(mqnd_shm_version));
-  mqnd_shm_version.shm_version = MQSV_MQND_SHM_VERSION;
+	memset(&mqnd_open_req, '\0', sizeof(mqnd_open_req));
 
+	/* Initializing shared memory version */
+	memset(&mqnd_shm_version, '\0', sizeof(mqnd_shm_version));
+	mqnd_shm_version.shm_version = MQSV_MQND_SHM_VERSION;
 
-  mqnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
-  mqnd_open_req.info.open.i_size = sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues;
-  mqnd_open_req.info.open.i_offset = 0;
-  mqnd_open_req.info.open.i_name = shm_name; 
-  mqnd_open_req.info.open.i_map_flags = MAP_SHARED;
-  mqnd_open_req.info.open.o_addr = NULL;
-  mqnd_open_req.info.open.i_flags = O_RDWR;
+	mqnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
+	mqnd_open_req.info.open.i_size = sizeof(MQND_QUEUE_CKPT_INFO) * cb->mqnd_shm.max_open_queues;
+	mqnd_open_req.info.open.i_offset = 0;
+	mqnd_open_req.info.open.i_name = shm_name;
+	mqnd_open_req.info.open.i_map_flags = MAP_SHARED;
+	mqnd_open_req.info.open.o_addr = NULL;
+	mqnd_open_req.info.open.i_flags = O_RDWR;
 
-  rc = ncs_os_posix_shm(&mqnd_open_req);
+	rc = ncs_os_posix_shm(&mqnd_open_req);
 
-  if( rc == NCSCC_RC_FAILURE)
-    {
-      /* INITIALLY IT FAILS SO CREATE A SHARED MEMORY */
-      mqnd_open_req.info.open.i_flags = O_CREAT|O_RDWR; 
-      
-      rc = ncs_os_posix_shm(&mqnd_open_req);
-      if( rc == NCSCC_RC_FAILURE)
-         return rc; 
-      else{
-           memset(mqnd_open_req.info.open.o_addr,0,sizeof(MQND_QUEUE_CKPT_INFO)*(cb->mqnd_shm.max_open_queues));
-           m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME,NCSFL_LC_MQSV_INIT,NCSFL_SEV_INFO,SA_AIS_OK,__FILE__,__LINE__);
-           cb->is_restart_done= TRUE;                    
-           #ifdef NCS_MQND
-            printf("\nFirsttime Openingthe Ckpt\n");
-           #endif
-           cb->is_create_ckpt = TRUE;
-           memcpy(mqnd_open_req.info.open.o_addr,&mqnd_shm_version,sizeof(mqnd_shm_version));
-          }
-    }
-   else
-     cb->is_create_ckpt = FALSE;
+	if (rc == NCSCC_RC_FAILURE) {
+		/* INITIALLY IT FAILS SO CREATE A SHARED MEMORY */
+		mqnd_open_req.info.open.i_flags = O_CREAT | O_RDWR;
 
-  /* Store Shared memory start address which contains MQSV Sharedmemory version */
-  cb->mqnd_shm.shm_start_addr = mqnd_open_req.info.open.o_addr; 
+		rc = ncs_os_posix_shm(&mqnd_open_req);
+		if (rc == NCSCC_RC_FAILURE)
+			return rc;
+		else {
+			memset(mqnd_open_req.info.open.o_addr, 0,
+			       sizeof(MQND_QUEUE_CKPT_INFO) * (cb->mqnd_shm.max_open_queues));
+			m_LOG_MQSV_ND(MQND_RESTART_INIT_FIRST_TIME, NCSFL_LC_MQSV_INIT, NCSFL_SEV_INFO, SA_AIS_OK,
+				      __FILE__, __LINE__);
+			cb->is_restart_done = TRUE;
+#ifdef NCS_MQND
+			printf("\nFirsttime Openingthe Ckpt\n");
+#endif
+			cb->is_create_ckpt = TRUE;
+			memcpy(mqnd_open_req.info.open.o_addr, &mqnd_shm_version, sizeof(mqnd_shm_version));
+		}
+	} else
+		cb->is_create_ckpt = FALSE;
 
-  /* Store Shared memory base address which is used by MQSV to checkpoint queue informaition */
-  cb->mqnd_shm.shm_base_addr  = mqnd_open_req.info.open.o_addr + sizeof(mqnd_shm_version);
+	/* Store Shared memory start address which contains MQSV Sharedmemory version */
+	cb->mqnd_shm.shm_start_addr = mqnd_open_req.info.open.o_addr;
 
-  return rc;
-} 
+	/* Store Shared memory base address which is used by MQSV to checkpoint queue informaition */
+	cb->mqnd_shm.shm_base_addr = mqnd_open_req.info.open.o_addr + sizeof(mqnd_shm_version);
+
+	return rc;
+}
 
 /**************************************************************************************************************
  * Name           : mqnd_shm_destroy
@@ -149,18 +146,17 @@ uns32 mqnd_shm_create(MQND_CB *cb)
 
 uns32 mqnd_shm_destroy(MQND_CB *cb)
 {
-  NCS_OS_POSIX_SHM_REQ_INFO mqnd_dest_req;
-  uns32 rc = NCSCC_RC_SUCCESS;
-  char shm_name[] = SHM_NAME;
+	NCS_OS_POSIX_SHM_REQ_INFO mqnd_dest_req;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	char shm_name[] = SHM_NAME;
 
-  mqnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
-  mqnd_dest_req.info.unlink.i_name =  shm_name;
+	mqnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
+	mqnd_dest_req.info.unlink.i_name = shm_name;
 
-  rc=ncs_os_posix_shm(&mqnd_dest_req);
-  
-  return rc;
-} 
+	rc = ncs_os_posix_shm(&mqnd_dest_req);
 
+	return rc;
+}
 
 /**************************************************************************************************************
  * Name           : mqnd_reset_queue_stats
@@ -173,22 +169,20 @@ uns32 mqnd_shm_destroy(MQND_CB *cb)
  * Notes          : None
 **************************************************************************************************************/
 
-void  mqnd_reset_queue_stats(MQND_CB *cb, uns32 index)
-{ 
- int j;
- MQND_QUEUE_CKPT_INFO *shm_base_addr;
+void mqnd_reset_queue_stats(MQND_CB *cb, uns32 index)
+{
+	int j;
+	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
- shm_base_addr = cb->mqnd_shm.shm_base_addr; 
- for (j=SA_MSG_MESSAGE_HIGHEST_PRIORITY; j <= SA_MSG_MESSAGE_LOWEST_PRIORITY; j++)
-            {
-             shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].queueUsed = 0;
-             shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].numberOfMessages = 0;
-            }
- shm_base_addr[index].QueueStatsShm.totalQueueUsed = 0;
- shm_base_addr[index].QueueStatsShm.totalNumberOfMessages = 0;
-  
+	shm_base_addr = cb->mqnd_shm.shm_base_addr;
+	for (j = SA_MSG_MESSAGE_HIGHEST_PRIORITY; j <= SA_MSG_MESSAGE_LOWEST_PRIORITY; j++) {
+		shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].queueUsed = 0;
+		shm_base_addr[index].QueueStatsShm.saMsgQueueUsage[j].numberOfMessages = 0;
+	}
+	shm_base_addr[index].QueueStatsShm.totalQueueUsed = 0;
+	shm_base_addr[index].QueueStatsShm.totalNumberOfMessages = 0;
+
 }
-
 
 /**************************************************************************************************************
  * Name           : mqnd_find_shm_ckpt_empty_section  
@@ -200,29 +194,26 @@ void  mqnd_reset_queue_stats(MQND_CB *cb, uns32 index)
  * Return Values  : Index value which is the offset to access the queue stats in shared memory
  * Notes          : None
 **************************************************************************************************************/
-   
 
-uns32  mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
+uns32 mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
 {
- int i;
- MQND_QUEUE_CKPT_INFO *shm_base_addr;
- uns32 rc = NCSCC_RC_SUCCESS;
+	int i;
+	MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
- shm_base_addr = cb->mqnd_shm.shm_base_addr; 
+	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
- for(i=0;i < cb->mqnd_shm.max_open_queues;i++)
-    {
-     if(shm_base_addr[i].valid == SHM_QUEUE_INFO_VALID)
-       continue;
-     else  
-       {
-        memset((shm_base_addr+i),'\0',sizeof(MQND_QUEUE_CKPT_INFO));
-        shm_base_addr[i].valid = SHM_QUEUE_INFO_VALID;            
-        *index = i;
-        return rc; 
-       }
-     }
- return NCSCC_RC_FAILURE;
+	for (i = 0; i < cb->mqnd_shm.max_open_queues; i++) {
+		if (shm_base_addr[i].valid == SHM_QUEUE_INFO_VALID)
+			continue;
+		else {
+			memset((shm_base_addr + i), '\0', sizeof(MQND_QUEUE_CKPT_INFO));
+			shm_base_addr[i].valid = SHM_QUEUE_INFO_VALID;
+			*index = i;
+			return rc;
+		}
+	}
+	return NCSCC_RC_FAILURE;
 
 }
 
@@ -241,26 +232,23 @@ uns32  mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index)
  *****************************************************************************/
 uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority)
 {
-   uns32 offset;
+	uns32 offset;
 
-   MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
-   shm_base_addr = cb->mqnd_shm.shm_base_addr; 
+	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
-   offset = qnode->qinfo.shm_queue_index;
-   if(shm_base_addr[offset].valid ==  SHM_QUEUE_INFO_VALID)
-     {
-      shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].queueUsed += size;
-      shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].numberOfMessages+=1;
-      shm_base_addr[offset].QueueStatsShm.totalQueueUsed += size; 
-      shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages+=1;
-     }
-    else
-     {
-      /*log the error*/
-      return NCSCC_RC_FAILURE; 
-     }   
-  return NCSCC_RC_SUCCESS;
+	offset = qnode->qinfo.shm_queue_index;
+	if (shm_base_addr[offset].valid == SHM_QUEUE_INFO_VALID) {
+		shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].queueUsed += size;
+		shm_base_addr[offset].QueueStatsShm.saMsgQueueUsage[priority].numberOfMessages += 1;
+		shm_base_addr[offset].QueueStatsShm.totalQueueUsed += size;
+		shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages += 1;
+	} else {
+		/*log the error */
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -280,24 +268,22 @@ uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSize
 
 uns32 mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
-   SaAisErrorT        err=SA_AIS_OK;
-   uns32 offset;
+	SaAisErrorT err = SA_AIS_OK;
+	uns32 offset;
 
-   MQND_QUEUE_CKPT_INFO *shm_base_addr;
+	MQND_QUEUE_CKPT_INFO *shm_base_addr;
 
-   shm_base_addr = cb->mqnd_shm.shm_base_addr; 
+	shm_base_addr = cb->mqnd_shm.shm_base_addr;
 
-   if(!qnode)
-   {
-      err = SA_AIS_ERR_BAD_HANDLE;
-      return NCSCC_RC_FAILURE;
-   }
+	if (!qnode) {
+		err = SA_AIS_ERR_BAD_HANDLE;
+		return NCSCC_RC_FAILURE;
+	}
 
-   offset = qnode->qinfo.shm_queue_index;
-   if(shm_base_addr[offset].valid ==  SHM_QUEUE_INFO_VALID)
-     {
-       shm_base_addr[offset].valid = SHM_QUEUE_INFO_INVALID;
-       memset((shm_base_addr+offset),'\0',sizeof(MQND_QUEUE_CKPT_INFO));  
-     }
-   return NCSCC_RC_SUCCESS;
+	offset = qnode->qinfo.shm_queue_index;
+	if (shm_base_addr[offset].valid == SHM_QUEUE_INFO_VALID) {
+		shm_base_addr[offset].valid = SHM_QUEUE_INFO_INVALID;
+		memset((shm_base_addr + offset), '\0', sizeof(MQND_QUEUE_CKPT_INFO));
+	}
+	return NCSCC_RC_SUCCESS;
 }

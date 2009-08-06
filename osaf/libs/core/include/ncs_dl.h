@@ -27,7 +27,6 @@
 ******************************************************************************
 */
 
-
 #ifndef NCS_DL_H
 #define NCS_DL_H
 
@@ -39,36 +38,29 @@
 extern "C" {
 #endif
 
-struct ncs_dl_indication_info_tag;
-struct ncs_dl_request_info_tag;
+	struct ncs_dl_indication_info_tag;
+	struct ncs_dl_request_info_tag;
 
 #define SYSF_DL_MAX_LAYER_HANDLE_LEN (sizeof(void *))
 #define SYSF_DL_MAX_CLIENT_HANDLE_LEN (sizeof(void *))
 
-struct ncs_dl_request_info_tag;
-EXTERN_C uns32 sysf_dl_request (struct ncs_dl_request_info_tag *dlr);
+	struct ncs_dl_request_info_tag;
+	EXTERN_C uns32 sysf_dl_request(struct ncs_dl_request_info_tag *dlr);
 
-typedef enum 
-{
-   NCS_DL_TYPE_ETHERNET,
-   NCS_DL_TYPE_MAX = NCS_DL_TYPE_ETHERNET
+	typedef enum {
+		NCS_DL_TYPE_ETHERNET,
+		NCS_DL_TYPE_MAX = NCS_DL_TYPE_ETHERNET
+	} NCS_DL_TYPE;
 
-} NCS_DL_TYPE;
-
-
-typedef struct ncs_l2_addr_tag
-{
-   NCS_DL_TYPE   dl_type;          /* NCS_L2_TYPE */
-   union
-   {
-      uns8 eth[6];                /* Ethernet address */
-      uns32  ppp_unit_num;        /* PPP unit number */
-                                  /* Need entries here for supported DL types */
-      void* generic;              /* For all other dl types */
-   } data;
-} NCS_L2_ADDR;
-
-
+	typedef struct ncs_l2_addr_tag {
+		NCS_DL_TYPE dl_type;	/* NCS_L2_TYPE */
+		union {
+			uns8 eth[6];	/* Ethernet address */
+			uns32 ppp_unit_num;	/* PPP unit number */
+			/* Need entries here for supported DL types */
+			void *generic;	/* For all other dl types */
+		} data;
+	} NCS_L2_ADDR;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -92,7 +84,6 @@ typedef struct ncs_l2_addr_tag
   (4) NCS_DL_INDICATION_INFO This structure defines the information passed 
                             across the interface, for each inication type.
 
-
   (5) NCS_DL_REQUESTS    This enum defines the requests that an DL User can make.
   
   (6) NCS_DL_REQUEST     Function prototype for DL Control requests and 
@@ -107,15 +98,12 @@ typedef struct ncs_l2_addr_tag
   
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
-
 /*****************************************************************************
 
   ENUM NAME:            NCS_DL_INDICATIONS
 
   DESCRIPTION:          This enum defines the types of DL Indications from the
                   DL protocol stack to the DL user.
-
 
   VALUES:
    NCS_DL_CTRL_INDICATION_CONNECT:  The specified DL connection has become 
@@ -131,32 +119,26 @@ typedef struct ncs_l2_addr_tag
    NCS_DL_DATA_INDICATION_RECV_DATA: The provided data has been received
    over this connection.
 
-
   NOTES:
-
 
 *****************************************************************************/
 
-typedef enum
-{
+	typedef enum {
 
-   NCS_DL_INDICATION_MIN,
+		NCS_DL_INDICATION_MIN,
 
-   NCS_DL_CTRL_INDICATION_MIN         = NCS_DL_INDICATION_MIN,
-   NCS_DL_CTRL_INDICATION_CONNECT     = NCS_DL_CTRL_INDICATION_MIN,
-   NCS_DL_CTRL_INDICATION_DISCONNECT,
-   NCS_DL_CTRL_INDICATION_ERROR,
-   NCS_DL_CTRL_INDICATION_MAX         = NCS_DL_CTRL_INDICATION_ERROR,
+		NCS_DL_CTRL_INDICATION_MIN = NCS_DL_INDICATION_MIN,
+		NCS_DL_CTRL_INDICATION_CONNECT = NCS_DL_CTRL_INDICATION_MIN,
+		NCS_DL_CTRL_INDICATION_DISCONNECT,
+		NCS_DL_CTRL_INDICATION_ERROR,
+		NCS_DL_CTRL_INDICATION_MAX = NCS_DL_CTRL_INDICATION_ERROR,
 
-   NCS_DL_DATA_INDICATION_MIN,
-   NCS_DL_DATA_INDICATION_RECV_DATA   = NCS_DL_DATA_INDICATION_MIN,
-   NCS_DL_DATA_INDICATION_MAX         = NCS_DL_DATA_INDICATION_RECV_DATA,
+		NCS_DL_DATA_INDICATION_MIN,
+		NCS_DL_DATA_INDICATION_RECV_DATA = NCS_DL_DATA_INDICATION_MIN,
+		NCS_DL_DATA_INDICATION_MAX = NCS_DL_DATA_INDICATION_RECV_DATA,
 
-   NCS_DL_INDICATION_MAX              = NCS_DL_DATA_INDICATION_MAX
-
-} NCS_DL_INDICATIONS;
-
-
+		NCS_DL_INDICATION_MAX = NCS_DL_DATA_INDICATION_MAX
+	} NCS_DL_INDICATIONS;
 
 /*****************************************************************************
 
@@ -164,7 +146,6 @@ typedef enum
 
   DESCRIPTION:          This enum defines the type of requests that the DL 
                   User can make of the DL protocol stack.
-
 
   VALUES:
    NCS_DL_CTRL_REQUEST_BIND:         Bind client software to the DL 
@@ -183,33 +164,28 @@ typedef enum
    NCS_DL_DATA_REQUEST_SEND_DATA:       Send Raw Ethernet data over an
    existing connection.
 
-
   NOTES:
-
 
 *****************************************************************************/
 
-typedef enum
-{
+	typedef enum {
 
-   NCS_DL_REQUEST_MIN,
+		NCS_DL_REQUEST_MIN,
 
-   NCS_DL_CTRL_REQUEST_MIN       = NCS_DL_REQUEST_MIN,
-   NCS_DL_CTRL_REQUEST_BIND      = NCS_DL_CTRL_REQUEST_MIN,
-   NCS_DL_CTRL_REQUEST_UNBIND,
-   NCS_DL_CTRL_REQUEST_OPEN,
-   NCS_DL_CTRL_REQUEST_MULTICAST_JOIN,
-   NCS_DL_CTRL_REQUEST_MULTICAST_LEAVE,
-   NCS_DL_CTRL_REQUEST_GET_ETH_ADDR,
-   NCS_DL_CTRL_REQUEST_CLOSE,
-   NCS_DL_CTRL_REQUEST_MAX       = NCS_DL_CTRL_REQUEST_CLOSE,
+		NCS_DL_CTRL_REQUEST_MIN = NCS_DL_REQUEST_MIN,
+		NCS_DL_CTRL_REQUEST_BIND = NCS_DL_CTRL_REQUEST_MIN,
+		NCS_DL_CTRL_REQUEST_UNBIND,
+		NCS_DL_CTRL_REQUEST_OPEN,
+		NCS_DL_CTRL_REQUEST_MULTICAST_JOIN,
+		NCS_DL_CTRL_REQUEST_MULTICAST_LEAVE,
+		NCS_DL_CTRL_REQUEST_GET_ETH_ADDR,
+		NCS_DL_CTRL_REQUEST_CLOSE,
+		NCS_DL_CTRL_REQUEST_MAX = NCS_DL_CTRL_REQUEST_CLOSE,
 
-   NCS_DL_DATA_REQUEST_MIN,
-   NCS_DL_DATA_REQUEST_SEND_DATA = NCS_DL_DATA_REQUEST_MIN,
-   NCS_DL_REQUEST_MAX            = NCS_DL_DATA_REQUEST_SEND_DATA
-} NCS_DL_REQUESTS;
-
-
+		NCS_DL_DATA_REQUEST_MIN,
+		NCS_DL_DATA_REQUEST_SEND_DATA = NCS_DL_DATA_REQUEST_MIN,
+		NCS_DL_REQUEST_MAX = NCS_DL_DATA_REQUEST_SEND_DATA
+	} NCS_DL_REQUESTS;
 
 /*****************************************************************************
 
@@ -226,18 +202,15 @@ typedef enum
                         specified protocol (example IP, ARP)
    NCS_DL_TYPE_RAW:      This connection will use another (specified L3 protocol).
 
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_L2_SOCK_TYPE_DGRAM,
-   NCS_L2_SOCK_TYPE_RAW,
-   NCS_L2_SOCK_TYPE_MAX = NCS_L2_SOCK_TYPE_RAW
-} NCS_L2_SOCK_TYPE;
-
+	typedef enum {
+		NCS_L2_SOCK_TYPE_DGRAM,
+		NCS_L2_SOCK_TYPE_RAW,
+		NCS_L2_SOCK_TYPE_MAX = NCS_L2_SOCK_TYPE_RAW
+	} NCS_L2_SOCK_TYPE;
 
 /*****************************************************************************
 
@@ -284,22 +257,20 @@ typedef enum
   NOTES:
 
 *****************************************************************************/
-typedef enum
-{
-   NCSSOCK_ERROR_TYPES_NO_ERROR,
-   NCSSOCK_ERROR_TYPES_DL_DOWN,
-   NCSSOCK_ERROR_TYPES_IP_DOWN,
-   NCSSOCK_ERROR_TYPES_NO_MEM,
-   NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
-   NCSSOCK_ERROR_TYPES_CONN_DOWN,
-   NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
-   NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED,
-   NCSSOCK_ERROR_TYPES_UNKNOWN,           
-   NCSSOCK_ERROR_TYPES_SND_GIVEUP,
-   NCSSOCK_ERROR_TYPES_WOULDBLOCK,
-   NCSSOCK_ERROR_TYPES_MAX = NCSSOCK_ERROR_TYPES_WOULDBLOCK
-} NCSSOCK_ERROR_TYPES;
-
+	typedef enum {
+		NCSSOCK_ERROR_TYPES_NO_ERROR,
+		NCSSOCK_ERROR_TYPES_DL_DOWN,
+		NCSSOCK_ERROR_TYPES_IP_DOWN,
+		NCSSOCK_ERROR_TYPES_NO_MEM,
+		NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
+		NCSSOCK_ERROR_TYPES_CONN_DOWN,
+		NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
+		NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED,
+		NCSSOCK_ERROR_TYPES_UNKNOWN,
+		NCSSOCK_ERROR_TYPES_SND_GIVEUP,
+		NCSSOCK_ERROR_TYPES_WOULDBLOCK,
+		NCSSOCK_ERROR_TYPES_MAX = NCSSOCK_ERROR_TYPES_WOULDBLOCK
+	} NCSSOCK_ERROR_TYPES;
 
 /*****************************************************************************
 
@@ -326,24 +297,20 @@ typedef enum
 
    NCS_DL_ERROR_UNKNOWN:         Unspecified error condition occurred.
 
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_DL_ERROR_NO_ERROR = NCSSOCK_ERROR_TYPES_NO_ERROR,
-   NCS_DL_ERROR_DL_DOWN = NCSSOCK_ERROR_TYPES_DL_DOWN,
-   NCS_DL_ERROR_NO_MEM = NCSSOCK_ERROR_TYPES_NO_MEM,
-   NCS_DL_ERROR_FRAME_TOO_LARGE = NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
-   NCS_DL_ERROR_CONN_DOWN = NCSSOCK_ERROR_TYPES_CONN_DOWN,
-   NCS_DL_ERROR_CONN_UNKNOWN = NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
-   NCS_DL_ERROR_UNKNOWN = NCSSOCK_ERROR_TYPES_UNKNOWN,
-   NCS_DL_ERROR_MAX = NCS_DL_ERROR_UNKNOWN
-} NCS_DL_ERROR;
-
-
+	typedef enum {
+		NCS_DL_ERROR_NO_ERROR = NCSSOCK_ERROR_TYPES_NO_ERROR,
+		NCS_DL_ERROR_DL_DOWN = NCSSOCK_ERROR_TYPES_DL_DOWN,
+		NCS_DL_ERROR_NO_MEM = NCSSOCK_ERROR_TYPES_NO_MEM,
+		NCS_DL_ERROR_FRAME_TOO_LARGE = NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
+		NCS_DL_ERROR_CONN_DOWN = NCSSOCK_ERROR_TYPES_CONN_DOWN,
+		NCS_DL_ERROR_CONN_UNKNOWN = NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
+		NCS_DL_ERROR_UNKNOWN = NCSSOCK_ERROR_TYPES_UNKNOWN,
+		NCS_DL_ERROR_MAX = NCS_DL_ERROR_UNKNOWN
+	} NCS_DL_ERROR;
 
 /*****************************************************************************
  * STRUCTURE NAME:     NCS_DL_LAYER_HANDLE
@@ -363,13 +330,10 @@ typedef enum
  *   if the actual handle value is a pointer.
  *
  ****************************************************************************/
-typedef struct ncs_dl_layer_handle_tag
-{
-   unsigned int len;     /* actual size of handle.  '0' means none. */
-   uns8         data[SYSF_DL_MAX_LAYER_HANDLE_LEN];
-} NCS_DL_LAYER_HANDLE;
-
-
+	typedef struct ncs_dl_layer_handle_tag {
+		unsigned int len;	/* actual size of handle.  '0' means none. */
+		uns8 data[SYSF_DL_MAX_LAYER_HANDLE_LEN];
+	} NCS_DL_LAYER_HANDLE;
 
 /*****************************************************************************
  * STRUCTURE NAME:     NCS_DL_CLIENT_HANDLE
@@ -389,12 +353,10 @@ typedef struct ncs_dl_layer_handle_tag
  *   if the actual handle value is a pointer.
  *
  ****************************************************************************/
-typedef struct ncs_dl_client_handle_tag
-{
-   unsigned int len;     /* actual size of handle.  '0' means none. */
-   uns8         data[SYSF_DL_MAX_CLIENT_HANDLE_LEN];
-} NCS_DL_CLIENT_HANDLE;
-
+	typedef struct ncs_dl_client_handle_tag {
+		unsigned int len;	/* actual size of handle.  '0' means none. */
+		uns8 data[SYSF_DL_MAX_CLIENT_HANDLE_LEN];
+	} NCS_DL_CLIENT_HANDLE;
 
 /*****************************************************************************
 
@@ -416,9 +378,7 @@ typedef struct ncs_dl_client_handle_tag
 
 *****************************************************************************/
 
-typedef uns32 (*NCS_DL_INDICATION) (struct ncs_dl_indication_info_tag *dl_indication);
-
-
+	typedef uns32 (*NCS_DL_INDICATION) (struct ncs_dl_indication_info_tag * dl_indication);
 
 /*****************************************************************************
 
@@ -440,9 +400,7 @@ typedef uns32 (*NCS_DL_INDICATION) (struct ncs_dl_indication_info_tag *dl_indica
 
 *****************************************************************************/
 
-typedef uns32 (*NCS_DL_REQUEST) (struct ncs_dl_request_info_tag *dl_request);
-
-
+	typedef uns32 (*NCS_DL_REQUEST) (struct ncs_dl_request_info_tag * dl_request);
 
 /*****************************************************************************
 
@@ -460,103 +418,89 @@ typedef uns32 (*NCS_DL_REQUEST) (struct ncs_dl_request_info_tag *dl_request);
   Fields prefixed with "i_" are inputs to the request.
   Fields prefixed with "o_" are output from successfully completed requests.
 
-
 *****************************************************************************/
 
-typedef struct ncs_dl_indication_info_tag
-{
+	typedef struct ncs_dl_indication_info_tag {
 
-   NCS_DL_INDICATIONS       i_indication;
+		NCS_DL_INDICATIONS i_indication;
 
-   /* DL protocol stack's opaque handle for the connection */
-   NCSCONTEXT               i_dl_handle;
+		/* DL protocol stack's opaque handle for the connection */
+		NCSCONTEXT i_dl_handle;
 
-   /* The LMS handle */
-   NCSCONTEXT               i_user_handle;
+		/* The LMS handle */
+		NCSCONTEXT i_user_handle;
 
-   /* DL User's opaque handle for the connection */
-   NCSCONTEXT               i_user_connection_handle;
+		/* DL User's opaque handle for the connection */
+		NCSCONTEXT i_user_connection_handle;
 
-   /* This is a union of each indication type. */
-   union
-   {
-      /* This is a union of each control plane indication type */
-      union
-      {
+		/* This is a union of each indication type. */
+		union {
+			/* This is a union of each control plane indication type */
+			union {
 
-         /* This DL Connection is now Active */
-         struct
-         {
-            /* The DL User's DL Address */
-            NCS_L2_ADDR      i_local_addr;
+				/* This DL Connection is now Active */
+				struct {
+					/* The DL User's DL Address */
+					NCS_L2_ADDR i_local_addr;
 
-            /* The destination's DL Address */
-            NCS_L2_ADDR      i_remote_addr;
+					/* The destination's DL Address */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-         } connect;
+				} connect;
 
+				/* This DL Connection is shutdown and disabled */
+				struct {
+					/* The DL User's DL Address */
+					NCS_L2_ADDR i_local_addr;
 
-         /* This DL Connection is shutdown and disabled */
-         struct
-         {
-            /* The DL User's DL Address */
-            NCS_L2_ADDR      i_local_addr;
+					/* The destination's DL Address */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* The destination's DL Address */
-            NCS_L2_ADDR      i_remote_addr;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+				} disconnect;
 
-         } disconnect;
+				struct {
+					/* The DL User's DL Address */
+					NCS_L2_ADDR i_local_addr;
 
-         struct
-         {
-            /* The DL User's DL Address */
-            NCS_L2_ADDR      i_local_addr;
+					/* The destination's DL Address */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* The destination's DL Address */
-            NCS_L2_ADDR      i_remote_addr;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* The error code being reported, one of NCS_DL_ERROR enum */
+					NCS_DL_ERROR i_error;
 
-            /* The error code being reported, one of NCS_DL_ERROR enum */
-            NCS_DL_ERROR       i_error;
+				} error;
 
-         } error;
+			} ctrl;
 
-      } ctrl;
+			/* This is a union of each data plane indication type */
+			union {
+				struct {
+					/* The DL User's DL Address */
+					NCS_L2_ADDR i_local_addr;
 
-      /* This is a union of each data plane indication type */
-      union
-      {
-         struct
-         {
-            /* The DL User's DL Address */
-            NCS_L2_ADDR      i_local_addr;
+					/* The destination's DL Address */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* The destination's DL Address */
-            NCS_L2_ADDR      i_remote_addr;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* The received data frame, as a pointer to a USRBUF chain */
+					USRBUF *i_usrbuf;
 
-            /* The received data frame, as a pointer to a USRBUF chain */
-            USRBUF            *i_usrbuf;
+				} recv_data;
+			} data;
+		} info;
 
-         } recv_data;
-      } data;
-   } info;
-
-} NCS_DL_INDICATION_INFO;
-
-
-
-
+	} NCS_DL_INDICATION_INFO;
 
 /*****************************************************************************
 
@@ -575,196 +519,179 @@ typedef struct ncs_dl_indication_info_tag
 
   NOTES:
 
-
 *****************************************************************************/
 
-typedef struct ncs_dl_request_info_tag
-{
+	typedef struct ncs_dl_request_info_tag {
 
-   /* One of the NCS_DL_REQUESTS enum specify the operation type. */
-   NCS_DL_REQUESTS                i_request;
+		/* One of the NCS_DL_REQUESTS enum specify the operation type. */
+		NCS_DL_REQUESTS i_request;
 
-   NCSCONTEXT                     i_user_handle;
+		NCSCONTEXT i_user_handle;
 
-   /* Extended error information  */
-   NCS_DL_ERROR                   o_xerror;
+		/* Extended error information  */
+		NCS_DL_ERROR o_xerror;
 
-   /* This is a union of each request type. */
-   union
-   {
+		/* This is a union of each request type. */
+		union {
 
-      /* This is a union of each control plane request type */
-      union
-      {
-         /* Bind DL Client to DL protocol stack. */
-         struct
-         {
-            /* Handle to DL protocol stack instance. */
-            NCS_DL_LAYER_HANDLE      i_dl_layer_handle;
+			/* This is a union of each control plane request type */
+			union {
+				/* Bind DL Client to DL protocol stack. */
+				struct {
+					/* Handle to DL protocol stack instance. */
+					NCS_DL_LAYER_HANDLE i_dl_layer_handle;
 
-            /* Return DL stack handle for this DL Client */
-            NCS_DL_CLIENT_HANDLE     o_dl_client_handle;
+					/* Return DL stack handle for this DL Client */
+					NCS_DL_CLIENT_HANDLE o_dl_client_handle;
 
-         } bind;
+				} bind;
 
-         /* Unbind DL Client to DL protocol stack. */
-         struct
-         {
-            /* Handle to DL protocol stack instance. */
-            NCS_DL_LAYER_HANDLE      i_dl_layer_handle;
+				/* Unbind DL Client to DL protocol stack. */
+				struct {
+					/* Handle to DL protocol stack instance. */
+					NCS_DL_LAYER_HANDLE i_dl_layer_handle;
 
-            /* DL stack handle for this DL Client (returned by bind request) */
-            NCS_DL_CLIENT_HANDLE     i_dl_client_handle;
-         } unbind;
+					/* DL stack handle for this DL Client (returned by bind request) */
+					NCS_DL_CLIENT_HANDLE i_dl_client_handle;
+				} unbind;
 
-         struct
-         {
-            /* DL stack handle for this DL Client (returned by bind request) */
-            NCS_DL_CLIENT_HANDLE  i_dl_client_handle;
+				struct {
+					/* DL stack handle for this DL Client (returned by bind request) */
+					NCS_DL_CLIENT_HANDLE i_dl_client_handle;
 
-            /* Type of DL connection, one of NCS_DL_TYPE enum. */
-            NCS_L2_SOCK_TYPE      i_dl_type;
+					/* Type of DL connection, one of NCS_DL_TYPE enum. */
+					NCS_L2_SOCK_TYPE i_dl_type;
 
-            /* DL Protocol, if NCS_DL_TYPE_RAW */
-            uns16                 i_dl_protocol;
+					/* DL Protocol, if NCS_DL_TYPE_RAW */
+					uns16 i_dl_protocol;
 
-            /* DL User's opaque handle for this connection */
-            NCSCONTEXT            i_user_connection_handle;
-            
-            /* The DL User's L2 Address */
-            NCS_L2_ADDR           i_local_addr;
+					/* DL User's opaque handle for this connection */
+					NCSCONTEXT i_user_connection_handle;
 
-            /* The destination's L2 Address. 
-               If this is set to all zeroes, then packets from any
-               L2 address is allowed to be received over this
-               "connection". 
-               If this is non-zero, then packets only from the
-               L2 address specified below will be received */
-             NCS_L2_ADDR           i_remote_addr;
+					/* The DL User's L2 Address */
+					NCS_L2_ADDR i_local_addr;
 
-            /* Interface index to use for connection. 
-               If this is zero, this field is ignored. Instead
-               "i_if_name" is used as the interface */
-             uns32                 i_if_index;
+					/* The destination's L2 Address. 
+					   If this is set to all zeroes, then packets from any
+					   L2 address is allowed to be received over this
+					   "connection". 
+					   If this is non-zero, then packets only from the
+					   L2 address specified below will be received */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* Interface name to use for connection. Used if 
-               "i_if_index is zero */
-            uns8                  i_if_name[NCS_IF_NAMESIZE];
+					/* Interface index to use for connection. 
+					   If this is zero, this field is ignored. Instead
+					   "i_if_name" is used as the interface */
+					uns32 i_if_index;
 
-            /* Client Data indication handler, matching NCS_DL_INDICATION prototype */
-            NCS_DL_INDICATION     i_dl_data_indication;
+					/* Interface name to use for connection. Used if 
+					   "i_if_index is zero */
+					uns8 i_if_name[NCS_IF_NAMESIZE];
 
-            /* Client Control indication handler, matching NCS_DL_INDICATION prototype */
-            NCS_DL_INDICATION     i_dl_ctrl_indication;
+					/* Client Data indication handler, matching NCS_DL_INDICATION prototype */
+					NCS_DL_INDICATION i_dl_data_indication;
 
-            /* If 1, use BIND to Device option - Raw Only */
-            NCS_BOOL              i_bindtodevice;
-                  
-            /* Returned DL protocol stack's opaque handle for this DL connection */
-            NCSCONTEXT            o_dl_handle;
+					/* Client Control indication handler, matching NCS_DL_INDICATION prototype */
+					NCS_DL_INDICATION i_dl_ctrl_indication;
 
-         } open;
+					/* If 1, use BIND to Device option - Raw Only */
+					NCS_BOOL i_bindtodevice;
 
-         struct
-         {
+					/* Returned DL protocol stack's opaque handle for this DL connection */
+					NCSCONTEXT o_dl_handle;
 
-            NCSCONTEXT            i_dl_handle;
+				} open;
 
-         } close;
+				struct {
 
-         struct
-         {
-            /* DL protocol stack's opaque handle for this DL connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_dl_handle;
+					NCSCONTEXT i_dl_handle;
 
-            /* The Multicast Group Address */
-            NCS_L2_ADDR         i_multicast_addr;
+				} close;
 
-         } multicastjoin;
+				struct {
+					/* DL protocol stack's opaque handle for this DL connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_dl_handle;
 
-         struct
-         {
-            /* DL protocol stack's opaque handle for this DL connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_dl_handle;
+					/* The Multicast Group Address */
+					NCS_L2_ADDR i_multicast_addr;
 
-            /* The Multicast Group Address */
-            NCS_L2_ADDR         i_multicast_addr;
+				} multicastjoin;
 
-        } multicastleave;
-        struct
-        {
-             /* Input/Output ifindex - Used only if it is
-                non-NULL and non-zero. If non-NULL but
-                zero, it is treated as an "out" 
-                variable and the if_index is returned
-                based on the if_name - see below 
-             */
-             uns32 *io_if_index;
+				struct {
+					/* DL protocol stack's opaque handle for this DL connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_dl_handle;
 
-             /* Input/Output ifname - Used if "io_if_index" above
-               is NULL or zero. If "io_if_index" is non-zero, then 
-               (a non-NULL) "io_if_name" returns the "io_if_name" 
-               - see above 
-             */
-             char *io_if_name;
+					/* The Multicast Group Address */
+					NCS_L2_ADDR i_multicast_addr;
 
-             /* Output MAC address pointer */
-             uns8      o_mac_addr[6];
+				} multicastleave;
+				struct {
+					/* Input/Output ifindex - Used only if it is
+					   non-NULL and non-zero. If non-NULL but
+					   zero, it is treated as an "out" 
+					   variable and the if_index is returned
+					   based on the if_name - see below 
+					 */
+					uns32 *io_if_index;
 
-        } get_eth_addr;
+					/* Input/Output ifname - Used if "io_if_index" above
+					   is NULL or zero. If "io_if_index" is non-zero, then 
+					   (a non-NULL) "io_if_name" returns the "io_if_name" 
+					   - see above 
+					 */
+					char *io_if_name;
 
-      } ctrl;
+					/* Output MAC address pointer */
+					uns8 o_mac_addr[6];
 
+				} get_eth_addr;
 
-      /* This is a union of each data plane request type */
-      union
-      {
-         struct
-         {
+			} ctrl;
 
-            /* DL protocol stack's opaque handle for this DL connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_dl_handle;
+			/* This is a union of each data plane request type */
+			union {
+				struct {
 
-            /* The destination's Layer 2 Address */
-            NCS_L2_ADDR         i_remote_addr;
+					/* DL protocol stack's opaque handle for this DL connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_dl_handle;
 
-            /* The frame to send, as a pointer to a USRBUF chain. */
-            USRBUF              *i_usrbuf;
+					/* The destination's Layer 2 Address */
+					NCS_L2_ADDR i_remote_addr;
 
-            /* Outgoing if_index */
-            uns32                i_if_index;
-            /* ifindex can be ignored as it is no longer used internally,
-               Actually we are using if-index stored in socket entry
-               */
+					/* The frame to send, as a pointer to a USRBUF chain. */
+					USRBUF *i_usrbuf;
 
-          } send_data;
-      } data;
+					/* Outgoing if_index */
+					uns32 i_if_index;
+					/* ifindex can be ignored as it is no longer used internally,
+					   Actually we are using if-index stored in socket entry
+					 */
 
-   } info;
+				} send_data;
+			} data;
 
-} NCS_DL_REQUEST_INFO;
+		} info;
 
-
+	} NCS_DL_REQUEST_INFO;
 
 /* External functions */
-EXTERN_C uns32 ncs_dl_bind_l2_layer (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_unbind_l2_layer (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_open_l2_layer (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_close_l2_layer (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_send_data_to_l2_layer (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_mcast_join (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_mcast_leave (struct ncs_dl_request_info_tag *dlr);
-EXTERN_C uns32 ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_addr[6]);
+	EXTERN_C uns32 ncs_dl_bind_l2_layer(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_unbind_l2_layer(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_open_l2_layer(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_close_l2_layer(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_send_data_to_l2_layer(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_mcast_join(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_mcast_leave(struct ncs_dl_request_info_tag *dlr);
+	EXTERN_C uns32 ncs_dl_getl2_eth_addr(uns32 *if_index, char if_name[NCS_IF_NAMESIZE], uns8 mac_addr[6]);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

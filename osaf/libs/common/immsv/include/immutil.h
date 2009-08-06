@@ -54,74 +54,72 @@ extern "C" {
  */
 /*@{*/
 
-
 /**
  * Defines the type of the function called when a fatal error
  * occurs.
  */
-typedef void (*ImmutilErrorFnT)(char const* fmt, ...) 
-    __attribute__ ((format (printf,1,2)));
+	typedef void (*ImmutilErrorFnT) (char const *fmt, ...)
+	    __attribute__ ((format(printf, 1, 2)));
 
 /**
  * This function is called when a fatal error occurs. The default is
  * to print the message on "stderr" and to syslog and finally
  * abort the program with a call to "abort()".
  */
-extern ImmutilErrorFnT immutilError;
+	extern ImmutilErrorFnT immutilError;
 
 /**
  * Defines the command operation types.
  */
-enum CcbUtilOperationType {
-    CCBUTIL_CREATE,
-    CCBUTIL_DELETE,
-    CCBUTIL_MODIFY
-};
-
+	enum CcbUtilOperationType {
+		CCBUTIL_CREATE,
+		CCBUTIL_DELETE,
+		CCBUTIL_MODIFY
+	};
 
 /**
  * This structure holds a stored command operation. The stored data is
  * the same as the one passed in the operation call-back functions.
  */
-struct CcbUtilOperationData {
-    struct CcbUtilOperationData* next;
-    void* userData;
-    SaAisErrorT userStatus;
-    enum CcbUtilOperationType operationType;
-    union {
-	struct {
-	    SaImmClassNameT className;
-	    const SaNameT *parentName;
-	    const SaImmAttrValuesT_2 **attrValues;
-	} create;
-	struct {
-	    const SaNameT *objectName;
-	} deleteOp;
-	struct {
-	    const SaNameT *objectName;
-	    const SaImmAttrModificationT_2 **attrMods;
-	} modify;
-    } param;
-};
+	struct CcbUtilOperationData {
+		struct CcbUtilOperationData *next;
+		void *userData;
+		SaAisErrorT userStatus;
+		enum CcbUtilOperationType operationType;
+		union {
+			struct {
+				SaImmClassNameT className;
+				const SaNameT *parentName;
+				const SaImmAttrValuesT_2 **attrValues;
+			} create;
+			struct {
+				const SaNameT *objectName;
+			} deleteOp;
+			struct {
+				const SaNameT *objectName;
+				const SaImmAttrModificationT_2 **attrMods;
+			} modify;
+		} param;
+	};
 
 /**
  * A CCB object, holds the stored operations for a CCB. 
  */
-struct CcbUtilCcbData {
-    struct CcbUtilCcbData* next;
-    SaImmOiCcbIdT id;
-    void* userData;
-    void* memref;
-    struct CcbUtilOperationData* operationListHead;
-    struct CcbUtilOperationData* operationListTail;
-};
+	struct CcbUtilCcbData {
+		struct CcbUtilCcbData *next;
+		SaImmOiCcbIdT id;
+		void *userData;
+		void *memref;
+		struct CcbUtilOperationData *operationListHead;
+		struct CcbUtilOperationData *operationListTail;
+	};
 
 /**
  * Find a CCB object.
  * @param id The CCB identity tag.
  * @return The CCB object or NULL if not found.
  */
-struct CcbUtilCcbData* ccbutil_findCcbData(SaImmOiCcbIdT id);
+	struct CcbUtilCcbData *ccbutil_findCcbData(SaImmOiCcbIdT id);
 
 /**
  * Get a CCB object. The object is created with #ccbutil_createCcbData
@@ -129,38 +127,31 @@ struct CcbUtilCcbData* ccbutil_findCcbData(SaImmOiCcbIdT id);
  * @param id The CCB identity tag.
  * @return The CCB object.
  */
-struct CcbUtilCcbData* ccbutil_getCcbData(SaImmOiCcbIdT id);
+	struct CcbUtilCcbData *ccbutil_getCcbData(SaImmOiCcbIdT id);
 
 /**
  * Delete a CCB object. All memory associated with the CCB is freed.
  * @param id The CCB identity tag.
  */
-void ccbutil_deleteCcbData(struct CcbUtilCcbData* ccb);
+	void ccbutil_deleteCcbData(struct CcbUtilCcbData *ccb);
 
 /**
  * Add a Create operation to a CCB data object.
  */
-void ccbutil_ccbAddCreateOperation(
-    struct CcbUtilCcbData* ccb,
-    const SaImmClassNameT className,
-    const SaNameT *parentName,
-    const SaImmAttrValuesT_2 **attrValues);
+	void ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb,
+					   const SaImmClassNameT className,
+					   const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
 
 /**
  * Add a Delete operation to a CCB data object.
  */
-void ccbutil_ccbAddDeleteOperation(
-    struct CcbUtilCcbData* ccb,
-    const SaNameT *objectName);
+	void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *objectName);
 
 /**
  * Add a Modify operation to a CCB data object.
  */
-void ccbutil_ccbAddModifyOperation(
-    struct CcbUtilCcbData* ccb,
-    const SaNameT *objectName,
-    const SaImmAttrModificationT_2 **attrMods);
-
+	void ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
+					   const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods);
 
 /*@}*/
 /**
@@ -179,16 +170,13 @@ void ccbutil_ccbAddModifyOperation(
  * @return A string duplicate. will be freed automatically when owning
  *	CCB object is deleted.
  */
-char* immutil_strdup(struct CcbUtilCcbData* ccb, char const* source);
+	char *immutil_strdup(struct CcbUtilCcbData *ccb, char const *source);
 
 /**
  * Get the ClassName for an object. Common usage is to get the class
  * of the parent on a CreateOperation.
  */
-char const* immutil_getClassName(
-    struct CcbUtilCcbData* ccb,
-    SaImmHandleT immHandle,
-    const SaNameT *objectName);
+	char const *immutil_getClassName(struct CcbUtilCcbData *ccb, SaImmHandleT immHandle, const SaNameT *objectName);
 
 /**
  * Searches a distinguished name for a numeric value identified by the
@@ -200,7 +188,7 @@ char const* immutil_getClassName(
  * @param name The distinguished name to scan.
  * @return The numeric value or LONG_MIN in case of error.
  */
-long immutil_getNumericValue(char const* key, SaNameT const* name);
+	long immutil_getNumericValue(char const *key, SaNameT const *name);
 
 /**
  * Searches a distinguished name for a string value identified by the
@@ -211,7 +199,7 @@ long immutil_getNumericValue(char const* key, SaNameT const* name);
  * @param name The distinguished name to scan.
  * @return The string value (statically allocated) or NULL in case of error.
  */
-char const* immutil_getStringValue(char const* key, SaNameT const* name);
+	char const *immutil_getStringValue(char const *key, SaNameT const *name);
 
 /**
  * Get the n'th item in a disinguished name as a string.
@@ -219,7 +207,7 @@ char const* immutil_getStringValue(char const* key, SaNameT const* name);
  * @param index The index of the item, 0 is the first.
  * @return The item as a (statically allocated) string or NULL if not found.
  */
-char const* immutil_getDnItem(SaNameT const* dn, unsigned int index);
+	char const *immutil_getDnItem(SaNameT const *dn, unsigned int index);
 
 /**
  * Scans the attributes for an an attribute identified by the passed
@@ -230,8 +218,7 @@ char const* immutil_getDnItem(SaNameT const* dn, unsigned int index);
  * @param index The value index (always 0 for single-value attributes)
  * @return The value or NULL if not found
  */
-const SaNameT* immutil_getNameAttr(
-    const SaImmAttrValuesT_2 **attr, char const* name, unsigned int index);
+	const SaNameT *immutil_getNameAttr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index);
 
 /**
  * Scans the attributes for an an attribute identified by the passed
@@ -242,8 +229,7 @@ const SaNameT* immutil_getNameAttr(
  * @param index The value index (always 0 for single-value attributes)
  * @return The value or NULL if not found
  */
-char const* immutil_getStringAttr(
-    const SaImmAttrValuesT_2** attr, char const* name, unsigned int index);
+	char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index);
 
 /**
  * Scans the attributes for an an attribute identified by the passed
@@ -254,16 +240,14 @@ char const* immutil_getStringAttr(
  * @param index The value index (always 0 for single-value attributes)
  * @return A pointer to the value or NULL if not found
  */
-const SaUint32T* immutil_getUint32Attr(
-    const SaImmAttrValuesT_2 **attr, char const* name, unsigned int index);
+	const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index);
 
 /**
  * Works as "strchr()" but with a length limit. It is provided here
  * since "strnchr()" is not standard, and is useful when scanning
  * SaNameT.
  */
-char const* immutil_strnchr(char const* str, int c, size_t length);
-
+	char const *immutil_strnchr(char const *str, int c, size_t length);
 
 /**
  * Match a name against a regular expression. The "regexec" POSIX
@@ -282,7 +266,7 @@ char const* immutil_strnchr(char const* str, int c, size_t length);
  * @param preg A pre-compiled regular expression (regcomp)
  * @return Return-value from the regexec function (0 if match)
  */
-int immutil_matchName(SaNameT const* name, regex_t const* preg);
+	int immutil_matchName(SaNameT const *name, regex_t const *preg);
 
 /**
  * Update one runtime attribute of the specified object.
@@ -296,12 +280,10 @@ int immutil_matchName(SaNameT const* name, regex_t const* preg);
  * @return SaAisErrorT
  */
 /***/
-extern SaAisErrorT immutil_update_one_rattr(
-    SaImmOiHandleT immOiHandle,
-    const char *dn,
-    SaImmAttrNameT attributeName,
-    SaImmValueTypeT attrValueType,
-    void *value);
+	extern SaAisErrorT immutil_update_one_rattr(SaImmOiHandleT immOiHandle,
+						    const char *dn,
+						    SaImmAttrNameT attributeName,
+						    SaImmValueTypeT attrValueType, void *value);
 
 /**
  * Get class name from object name.
@@ -309,7 +291,7 @@ extern SaAisErrorT immutil_update_one_rattr(
  * 
  * @return SaImmClassNameT
  */
-extern SaImmClassNameT immutil_get_className(SaNameT *objectName);
+	extern SaImmClassNameT immutil_get_className(SaNameT *objectName);
 
 /**
  * Get value type of named attribute for an object. The caller
@@ -321,8 +303,8 @@ extern SaImmClassNameT immutil_get_className(SaNameT *objectName);
  * 
  * @return SaAisErrorT
  */
-extern SaAisErrorT immutil_get_attrValueType(
-    SaNameT *objectName, SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType);
+	extern SaAisErrorT immutil_get_attrValueType(SaNameT *objectName, SaImmAttrNameT attrName,
+						     SaImmValueTypeT *attrValueType);
 
 /**
  * Create attribute value from type and string. The caller must
@@ -332,12 +314,9 @@ extern SaAisErrorT immutil_get_attrValueType(
  * 
  * @return void*
  */
-extern void *immutil_new_attrValue(
-    SaImmValueTypeT attrValueType, const char *str);
-
+	extern void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str);
 
 /*@}*/
-
 
 /**
  * @defgroup ImmCallWrappers IMM call wrappers
@@ -351,124 +330,101 @@ extern void *immutil_new_attrValue(
 /**
  * Controls the behavior of the wrapper functions.
  */
-struct ImmutilWrapperProfile {
-    int errorsAreFatal;		/**< If set the calling program is
+	struct ImmutilWrapperProfile {
+		int errorsAreFatal;
+				/**< If set the calling program is
 				 * aborted on an error return from SAF.  */
-    unsigned int nTries;	/**< Number of tries before we give up.  */
-    unsigned int retryInterval;	/**< Interval in milli-seconds between
+		unsigned int nTries;
+				/**< Number of tries before we give up.  */
+		unsigned int retryInterval;
+				/**< Interval in milli-seconds between
 				 * tries.  */
-};
+	};
 
 /**
  * Default: errorsAreFatal=1, nTries=5, retryInterval=400.
  */
-extern struct ImmutilWrapperProfile immutilWrapperProfile;
+	extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
-extern SaAisErrorT immutil_saImmOiInitialize_2(
-    SaImmOiHandleT *immOiHandle,
-    const SaImmOiCallbacksT_2 *immOiCallbacks,
-    SaVersionT *version);
+	extern SaAisErrorT immutil_saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
+						       const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version);
 
-extern SaAisErrorT immutil_saImmOiSelectionObjectGet(
-    SaImmOiHandleT immOiHandle,
-    SaSelectionObjectT *selectionObject);
+	extern SaAisErrorT immutil_saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle,
+							     SaSelectionObjectT *selectionObject);
 
-extern SaAisErrorT immutil_saImmOiClassImplementerSet(
-    SaImmOiHandleT immOiHandle,
-    const SaImmClassNameT className);
+	extern SaAisErrorT immutil_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle,
+							      const SaImmClassNameT className);
 
-extern SaAisErrorT immutil_saImmOiClassImplementerRelease(
-    SaImmOiHandleT immOiHandle,
-    const SaImmClassNameT className);
+	extern SaAisErrorT immutil_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle,
+								  const SaImmClassNameT className);
 
-extern SaAisErrorT immutil_saImmOiImplementerSet(
-    SaImmOiHandleT immOiHandle,
-    const SaImmOiImplementerNameT implementerName);
+	extern SaAisErrorT immutil_saImmOiImplementerSet(SaImmOiHandleT immOiHandle,
+							 const SaImmOiImplementerNameT implementerName);
 
-extern SaAisErrorT immutil_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
+	extern SaAisErrorT immutil_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
 
-extern SaAisErrorT immutil_saImmOiRtObjectCreate_2(
-    SaImmOiHandleT immOiHandle,
-    const SaImmClassNameT className,
-    const SaNameT *parentName,
-    const SaImmAttrValuesT_2 **attrValues);
+	extern SaAisErrorT immutil_saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
+							   const SaImmClassNameT className,
+							   const SaNameT *parentName,
+							   const SaImmAttrValuesT_2 **attrValues);
 
-extern SaAisErrorT immutil_saImmOiRtObjectDelete(
-    SaImmOiHandleT immOiHandle,
-    const SaNameT *objectName);
+	extern SaAisErrorT immutil_saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *objectName);
 
-extern SaAisErrorT immutil_saImmOiRtObjectUpdate_2(
-    SaImmOiHandleT immOiHandle,
-    const SaNameT *objectName,
-    const SaImmAttrModificationT_2 **attrMods);
+	extern SaAisErrorT immutil_saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
+							   const SaNameT *objectName,
+							   const SaImmAttrModificationT_2 **attrMods);
 
-extern SaAisErrorT immutil_saImmOiAdminOperationResult(
-    SaImmOiHandleT immOiHandle,
-    SaInvocationT invocation,
-    SaAisErrorT result);
+	extern SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
+							       SaInvocationT invocation, SaAisErrorT result);
 
-extern SaAisErrorT immutil_saImmOmInitialize(
-    SaImmHandleT *immHandle,
-    const SaImmCallbacksT *immCallbacks,
-    SaVersionT *version);
+	extern SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle,
+						     const SaImmCallbacksT *immCallbacks, SaVersionT *version);
 
-extern SaAisErrorT immutil_saImmOmFinalize(
-    SaImmHandleT immHandle);
+	extern SaAisErrorT immutil_saImmOmFinalize(SaImmHandleT immHandle);
 
-extern SaAisErrorT immutil_saImmOmAccessorInitialize(
-    SaImmHandleT immHandle,
-    SaImmAccessorHandleT *accessorHandle);
+	extern SaAisErrorT immutil_saImmOmAccessorInitialize(SaImmHandleT immHandle,
+							     SaImmAccessorHandleT *accessorHandle);
 
-extern SaAisErrorT immutil_saImmOmAccessorGet_2(
-    SaImmAccessorHandleT        accessorHandle,
-    const SaNameT               *objectName,
-    const SaImmAttrNameT        *attributeNames,
-    SaImmAttrValuesT_2            ***attributes);
+	extern SaAisErrorT immutil_saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
+							const SaNameT *objectName,
+							const SaImmAttrNameT *attributeNames,
+							SaImmAttrValuesT_2 ***attributes);
 
-extern SaAisErrorT immutil_saImmOmAccessorFinalize(
-    SaImmAccessorHandleT accessorHandle);
+	extern SaAisErrorT immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle);
 
 /**
  * Wrapper for saImmOmSearchInitialize
  * The SA_AIS_ERR_NOT_EXIST error code is not considered an error and
  * is always returned even if "errorsAreFatal" is set.
  */
-extern SaAisErrorT
-immutil_saImmOmSearchInitialize_2(
-    SaImmHandleT		immHandle,
-    const SaNameT*		rootName,
-    SaImmScopeT			scope,
-    SaImmSearchOptionsT		searchOptions,
-    const SaImmSearchParametersT_2* searchParam,
-    const SaImmAttrNameT*	attributeNames,
-    SaImmSearchHandleT*		searchHandle);
+	extern SaAisErrorT
+	 immutil_saImmOmSearchInitialize_2(SaImmHandleT immHandle,
+					   const SaNameT *rootName,
+					   SaImmScopeT scope,
+					   SaImmSearchOptionsT searchOptions,
+					   const SaImmSearchParametersT_2 *searchParam,
+					   const SaImmAttrNameT *attributeNames, SaImmSearchHandleT *searchHandle);
 
 /**
  * Wrapper for saImmOmSearchFinalize
  */
-extern SaAisErrorT
-immutil_saImmOmSearchFinalize(
-     SaImmSearchHandleT		searchHandle);
+	extern SaAisErrorT
+	 immutil_saImmOmSearchFinalize(SaImmSearchHandleT searchHandle);
 
 /**
  * Wrapper for saImmOmSearchNext
  * The SA_AIS_ERR_NOT_EXIST error code is not considered an error and
  * is always returned even if "errorsAreFatal" is set.
  */
-extern SaAisErrorT
-immutil_saImmOmSearchNext_2(
-     SaImmSearchHandleT		searchHandle,
-     SaNameT*			objectName,
-     SaImmAttrValuesT_2***	attributes);
+	extern SaAisErrorT
+	 immutil_saImmOmSearchNext_2(SaImmSearchHandleT searchHandle,
+				     SaNameT *objectName, SaImmAttrValuesT_2 ***attributes);
 
 /**
  * Wrapper for saImmOmAdminOwnerClear
  */
-SaAisErrorT
-immutil_saImmOmAdminOwnerClear(
-    SaImmHandleT immHandle,
-    const SaNameT** objectNames,
-    SaImmScopeT scope);
+	SaAisErrorT
+	 immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objectNames, SaImmScopeT scope);
 
 /*@}*/
 

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file inclused following routines:
@@ -54,10 +52,10 @@
 \****************************************************************************/
 uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 {
-   /*m_HTON_SANAMET_LEN(pNode->info.nodeid); */
-   pNode->node.key_info = (uns8 *)&pNode->info.nodeid;
-   return ncs_patricia_tree_add(&pMqd->node_db, (NCS_PATRICIA_NODE *)&pNode->node);
-} /* End of mqd_red_db_node_add() */
+	/*m_HTON_SANAMET_LEN(pNode->info.nodeid); */
+	pNode->node.key_info = (uns8 *)&pNode->info.nodeid;
+	return ncs_patricia_tree_add(&pMqd->node_db, (NCS_PATRICIA_NODE *)&pNode->node);
+}	/* End of mqd_red_db_node_add() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_red_db_node_del
@@ -72,11 +70,10 @@ uns32 mqd_red_db_node_add(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 \****************************************************************************/
 void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 {
-   /* Remove the object node from the tree */
-   ncs_patricia_tree_del(&pMqd->node_db, (NCS_PATRICIA_NODE *)&pNode->node);
-   m_MMGR_FREE_MQD_ND_DB_NODE(pNode);
-} /* End of mqd_db_node_del() */
-
+	/* Remove the object node from the tree */
+	ncs_patricia_tree_del(&pMqd->node_db, (NCS_PATRICIA_NODE *)&pNode->node);
+	m_MMGR_FREE_MQD_ND_DB_NODE(pNode);
+}	/* End of mqd_db_node_del() */
 
 /****************************************************************************\
    PROCEDURE NAME :  mqd_db_node_create
@@ -92,14 +89,15 @@ void mqd_red_db_node_del(MQD_CB *pMqd, MQD_ND_DB_NODE *pNode)
 \****************************************************************************/
 uns32 mqd_red_db_node_create(MQD_CB *pMqd, MQD_ND_DB_NODE **o_pnode)
 {
-   MQD_ND_DB_NODE *pNode = 0;
+	MQD_ND_DB_NODE *pNode = 0;
 
-   pNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
-   if(!pNode) return NCSCC_RC_FAILURE;
-   memset(pNode, 0, sizeof(MQD_ND_DB_NODE));
+	pNode = m_MMGR_ALLOC_MQD_ND_DB_NODE;
+	if (!pNode)
+		return NCSCC_RC_FAILURE;
+	memset(pNode, 0, sizeof(MQD_ND_DB_NODE));
 
-   *o_pnode = pNode;
-   return NCSCC_RC_SUCCESS;
-} /* End of mqd_red_db_node_create() */
+	*o_pnode = pNode;
+	return NCSCC_RC_SUCCESS;
+}	/* End of mqd_red_db_node_create() */
 
 #endif

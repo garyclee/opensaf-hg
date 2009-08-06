@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: pcs_rda_papi.h
 
 ..............................................................................
@@ -36,7 +35,7 @@
 */
 #include <stdio.h>
 #include <saAmf.h>
-#include "ncsgl_defs.h"  /* uns32 */
+#include "ncsgl_defs.h"		/* uns32 */
 
 /*
 ** Error strings (defined in pcs_rda_test.c)
@@ -47,91 +46,78 @@ extern char *pcsrda_role_str[];
 /*
 ** Return/error codes
 */
-typedef enum
-{
-    PCSRDA_RC_SUCCESS,
-    PCSRDA_RC_TIMEOUT,
-    PCSRDA_RC_INVALID_PARAMETER,
-    PCSRDA_RC_LIB_LOAD_FAILED,
-    PCSRDA_RC_LIB_NOT_INITIALIZED,
-    PCSRDA_RC_LIB_NOT_FOUND,
-    PCSRDA_RC_LIB_SYM_FAILED,
-    PCSRDA_RC_IPC_CREATE_FAILED,
-    PCSRDA_RC_IPC_CONNECT_FAILED,
-    PCSRDA_RC_IPC_SEND_FAILED,
-    PCSRDA_RC_IPC_RECV_FAILED,
-    PCSRDA_RC_TASK_SPAWN_FAILED,
-    PCSRDA_RC_MEM_ALLOC_FAILED,
-    PCSRDA_RC_CALLBACK_REG_FAILED,
-    PCSRDA_RC_CALLBACK_ALREADY_REGD,
-    PCSRDA_RC_LEAP_INIT_FAILED,
-    PCSRDA_RC_FATAL_IPC_CONNECTION_LOST,
-    PCSRDA_RC_ROLE_GET_FAILED,
-    PCSRDA_RC_ROLE_SET_FAILED
-
-}PCSRDA_RETURN_CODE;
-
+typedef enum {
+	PCSRDA_RC_SUCCESS,
+	PCSRDA_RC_TIMEOUT,
+	PCSRDA_RC_INVALID_PARAMETER,
+	PCSRDA_RC_LIB_LOAD_FAILED,
+	PCSRDA_RC_LIB_NOT_INITIALIZED,
+	PCSRDA_RC_LIB_NOT_FOUND,
+	PCSRDA_RC_LIB_SYM_FAILED,
+	PCSRDA_RC_IPC_CREATE_FAILED,
+	PCSRDA_RC_IPC_CONNECT_FAILED,
+	PCSRDA_RC_IPC_SEND_FAILED,
+	PCSRDA_RC_IPC_RECV_FAILED,
+	PCSRDA_RC_TASK_SPAWN_FAILED,
+	PCSRDA_RC_MEM_ALLOC_FAILED,
+	PCSRDA_RC_CALLBACK_REG_FAILED,
+	PCSRDA_RC_CALLBACK_ALREADY_REGD,
+	PCSRDA_RC_LEAP_INIT_FAILED,
+	PCSRDA_RC_FATAL_IPC_CONNECTION_LOST,
+	PCSRDA_RC_ROLE_GET_FAILED,
+	PCSRDA_RC_ROLE_SET_FAILED
+} PCSRDA_RETURN_CODE;
 
 /*
 ** Structure declarations
 */
-typedef enum
-{ 
-    PCS_RDA_LIB_INIT,
-    PCS_RDA_LIB_DESTROY,
-    PCS_RDA_REGISTER_CALLBACK,
-    PCS_RDA_UNREGISTER_CALLBACK,
-    PCS_RDA_SET_ROLE,
-    PCS_RDA_GET_ROLE,
+typedef enum {
+	PCS_RDA_LIB_INIT,
+	PCS_RDA_LIB_DESTROY,
+	PCS_RDA_REGISTER_CALLBACK,
+	PCS_RDA_UNREGISTER_CALLBACK,
+	PCS_RDA_SET_ROLE,
+	PCS_RDA_GET_ROLE,
 
 } PCS_RDA_REQ_TYPE;
 
-typedef enum
-{ 
-    PCS_RDA_ACTIVE,
-    PCS_RDA_STANDBY,
-    PCS_RDA_QUIESCED,
-    PCS_RDA_ASSERTING,
-    PCS_RDA_YIELDING,
-    PCS_RDA_UNDEFINED
-
+typedef enum {
+	PCS_RDA_ACTIVE,
+	PCS_RDA_STANDBY,
+	PCS_RDA_QUIESCED,
+	PCS_RDA_ASSERTING,
+	PCS_RDA_YIELDING,
+	PCS_RDA_UNDEFINED
 } PCS_RDA_ROLE;
 
-typedef enum
-{
-    PCS_RDA_ROLE_CHG_IND,
-    PCS_RDA_CB_TYPE_MAX
+typedef enum {
+	PCS_RDA_ROLE_CHG_IND,
+	PCS_RDA_CB_TYPE_MAX
 } PCS_RDA_CB_TYPE;
 
-typedef struct
-{
-    PCS_RDA_CB_TYPE cb_type;
-    union
-    {
-        PCS_RDA_ROLE    io_role; 
-    } info;
-    
+typedef struct {
+	PCS_RDA_CB_TYPE cb_type;
+	union {
+		PCS_RDA_ROLE io_role;
+	} info;
+
 } PCS_RDA_CB_INFO;
 
 /*
 ** Callback Declaration
 */
-typedef void (* PCS_RDA_CB_PTR)(uns32 callback_handle, 
-                PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code);
+typedef void (*PCS_RDA_CB_PTR) (uns32 callback_handle, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code);
 
-typedef struct  
-{ 
-    PCS_RDA_REQ_TYPE req_type;
-    uns32            callback_handle;
-    union
-    {
-        PCS_RDA_CB_PTR  call_back;  
-        PCS_RDA_ROLE    io_role; 
+typedef struct {
+	PCS_RDA_REQ_TYPE req_type;
+	uns32 callback_handle;
+	union {
+		PCS_RDA_CB_PTR call_back;
+		PCS_RDA_ROLE io_role;
 
-    } info;
+	} info;
 
-}PCS_RDA_REQ;
-
+} PCS_RDA_REQ;
 
 /*
 ** API Declaration
@@ -139,5 +125,4 @@ typedef struct
 int pcs_rda_request(PCS_RDA_REQ *pcs_rda_req);
 extern uns32 rda_get_role(SaAmfHAStateT *ha_state);
 
-#endif /* PCS_RDA_PAPI_H */
-
+#endif   /* PCS_RDA_PAPI_H */

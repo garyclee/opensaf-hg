@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   ..............................................................................
 
   DESCRIPTION:
@@ -31,21 +30,18 @@
 
 /* structure for HPI private library information */
 
-typedef struct his_hpl_info
-{
-   uns32         cb_hdl;     /* CB hdl returned by hdl mngr */
-   uns8          pool_id;    /* pool-id used by hdl mngr */
-   uns32         prc_id;     /* process identifier */
-   MDS_HDL       mds_hdl;    /* mds handle */
-   MDS_DEST      hpl_dest;   /* HPL absoulte address */
-   HAM_INFO     *ham_inst;   /* list of MDS VDEST information of each HAM Instance */
-   NCS_LOCK      cb_lock;    /* Lock for this control Block */
+typedef struct his_hpl_info {
+	uns32 cb_hdl;		/* CB hdl returned by hdl mngr */
+	uns8 pool_id;		/* pool-id used by hdl mngr */
+	uns32 prc_id;		/* process identifier */
+	MDS_HDL mds_hdl;	/* mds handle */
+	MDS_DEST hpl_dest;	/* HPL absoulte address */
+	HAM_INFO *ham_inst;	/* list of MDS VDEST information of each HAM Instance */
+	NCS_LOCK cb_lock;	/* Lock for this control Block */
 } HPL_CB;
-
 
 /**************************************************************************
  * function declarations
  */
 
-#endif /* HPL_CB_H */
-
+#endif   /* HPL_CB_H */

@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   
-
 
 ..............................................................................
 
@@ -40,15 +38,11 @@
 extern "C" {
 #endif
 
-
-
 /***************************************************************************
  *
  *      MIB Memory management MACROS
  *
  ***************************************************************************/
-
-
 
 #define m_MMGR_ALLOC_MIB_TIMED (MIB_TIMED*)                              \
                                 m_NCS_MEM_ALLOC(sizeof(MIB_TIMED),        \
@@ -68,13 +62,11 @@ extern "C" {
                                                NCS_SERVICE_ID_COMMON,     \
                                                2)
 
-
 #define m_MMGR_ALLOC_NCSMIB_ARG  (NCSMIB_ARG*)                             \
                                  m_NCS_MEM_ALLOC(sizeof(NCSMIB_ARG),       \
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_COMMON,     \
                                                3)
-
 
 #define m_MMGR_ALLOC_MIB_INST_IDS(size) (uns32*)                         \
                                   m_NCS_MEM_ALLOC((sizeof(uns32) * size), \
@@ -88,14 +80,13 @@ extern "C" {
                                          NCS_SERVICE_ID_COMMON,           \
                                                5);
 
-
 #define m_MMGR_FREE_MIB_TIMED(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,   \
                                                   NCS_SERVICE_ID_COMMON,       \
-                                                  0) 
+                                                  0)
 
 #define m_MMGR_FREE_NCS_KEY(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,      \
                                                   NCS_SERVICE_ID_COMMON,       \
-                                                  1) 
+                                                  1)
 
 #define m_MMGR_FREE_MIB_OCT(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,     \
                                                   NCS_SERVICE_ID_COMMON,       \
@@ -103,7 +94,7 @@ extern "C" {
 
 #define m_MMGR_FREE_NCSMIB_ARG(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,   \
                                                   NCS_SERVICE_ID_COMMON,       \
-                                                  3) 
+                                                  3)
 
 #define m_MMGR_FREE_MIB_INST_IDS(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,\
                                                   NCS_SERVICE_ID_COMMON,       \
@@ -113,10 +104,8 @@ extern "C" {
                                                   NCS_SERVICE_ID_COMMON,       \
                                                   5)
 
-
 #ifdef  __cplusplus
 }
 #endif
-
 
 #endif

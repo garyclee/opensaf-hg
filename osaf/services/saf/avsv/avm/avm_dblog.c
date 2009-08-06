@@ -18,13 +18,10 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module has all the functionality that deals with
   the DTSv modules agent for logging debug messages.
-
 
 ..............................................................................
 
@@ -32,7 +29,6 @@
 
   avm_flx_log_reg - registers the AVM logging with DTA.
   avm_flx_log_dereg - unregisters the AVM logging with DTA.
-
 
   
 ******************************************************************************
@@ -58,21 +54,20 @@
  *
  * Notes         : None.
  *****************************************************************************/
-void
-avm_flx_log_reg ()
+void avm_flx_log_reg()
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                 = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVM;
-   /* fill version no. */
-   reg.info.bind_svc.version = AVM_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "AVM");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVM;
+	/* fill version no. */
+	reg.info.bind_svc.version = AVM_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "AVM");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -88,16 +83,15 @@ avm_flx_log_reg ()
  *
  * Notes         : None.
  *****************************************************************************/
-void
-avm_flx_log_dereg ()
+void avm_flx_log_dereg()
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_AVM;
-   ncs_dtsv_su_req(&reg);
-   return;
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_AVM;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
-#endif /* (NCS_AVM_LOG == 1) */
+#endif   /* (NCS_AVM_LOG == 1) */

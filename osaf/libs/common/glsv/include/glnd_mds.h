@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -61,28 +59,18 @@
 /********************************************************************/
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 glnd_mds_register (struct glnd_cb_tag *cb);
+EXTERN_C uns32 glnd_mds_register(struct glnd_cb_tag *cb);
 
-EXTERN_C void  glnd_mds_unregister (struct glnd_cb_tag *cb);
+EXTERN_C void glnd_mds_unregister(struct glnd_cb_tag *cb);
 
-uns32 glnd_mds_msg_send_gla (struct glnd_cb_tag   *cb, 
-                             GLSV_GLA_EVT         *i_evt,
-                             MDS_DEST             to_mds_dest);
+uns32 glnd_mds_msg_send_gla(struct glnd_cb_tag *cb, GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest);
 
-uns32 glnd_mds_msg_send_rsp_gla (struct glnd_cb_tag *cb, 
-                                 GLSV_GLA_EVT       *i_evt,
-                                 MDS_DEST           to_mds_dest,
-                                 MDS_SYNC_SND_CTXT  *mds_ctxt);
+uns32 glnd_mds_msg_send_rsp_gla(struct glnd_cb_tag *cb,
+				GLSV_GLA_EVT *i_evt, MDS_DEST to_mds_dest, MDS_SYNC_SND_CTXT *mds_ctxt);
 
+uns32 glnd_mds_msg_send_glnd(struct glnd_cb_tag *cb, GLSV_GLND_EVT *i_evt, MDS_DEST to_mds_dest);
 
-uns32 glnd_mds_msg_send_glnd (struct glnd_cb_tag  *cb, 
-                              GLSV_GLND_EVT       *i_evt,
-                              MDS_DEST            to_mds_dest);
-
-
-uns32 glnd_mds_msg_send_gld (struct glnd_cb_tag  *cb, 
-                             GLSV_GLD_EVT       *i_evt,
-                             MDS_DEST            to_mds_dest);
+uns32 glnd_mds_msg_send_gld(struct glnd_cb_tag *cb, GLSV_GLD_EVT *i_evt, MDS_DEST to_mds_dest);
 
 uns32 glnd_evt_local_send(GLND_CB *cb, GLSV_GLND_EVT *evt, uns32 priority);
 
@@ -100,8 +88,7 @@ do { \
    (m).info.gla_resp_info.param.sync_lock.lockId= lockid; \
    (m).info.gla_resp_info.param.sync_lock.lockStatus  = status; \
    (m).handle = (c_handle); \
-} while (0); 
-
+} while (0);
 
 #define m_GLND_RESOURCE_ASYNC_LCK_GRANT_FILL(m,err,lockid,lcllockid,mode,resid,invocation1,status,c_handle) \
 do { \
@@ -118,8 +105,7 @@ do { \
    (m).info.gla_clbk_info.params.lck_grant.invocation = (invocation1); \
    (m).info.gla_clbk_info.params.lck_grant.lockStatus = (status); \
    (m).handle = (c_handle); \
-} while (0); 
-
+} while (0);
 
 #define m_GLND_RESOURCE_ASYNC_LCK_WAITER_FILL(m,lockid,resid,inv,mode_held,mode_req,c_handle,wait,l_lockid) \
 do { \
@@ -135,7 +121,7 @@ do { \
    (m).info.gla_clbk_info.params.lck_wait.modeRequested = (mode_req); \
    (m).info.gla_clbk_info.params.lck_wait.wait_signal = (wait); \
    (m).handle = (c_handle); \
-} while (0); 
+} while (0);
 
 #define m_GLND_RESOURCE_NODE_LCK_INFO_FILL(evt,evt_type,resid,lcl_resid,hdl_id,lock_id,l_type,l_flag,l_status,waiter_sig,l_held,l_err,l_lockid,l_invocation)\
 do { \
@@ -153,7 +139,7 @@ do { \
    (evt).info.node_lck_info.mode_held = (l_held); \
    (evt).info.node_lck_info.error = (l_err); \
    (evt).info.node_lck_info.invocation = (l_invocation); \
-} while (0); 
+} while (0);
 
 #define m_GLND_RESOURCE_LCK_FILL(l_evt,l_evt_type,rid,is_orphan,l_mode) \
 do { \
@@ -162,7 +148,7 @@ do { \
    (l_evt).info.rsc_details.rsc_id = rid; \
    (l_evt).info.rsc_details.orphan = (is_orphan); \
    (l_evt).info.rsc_details.lck_mode = (l_mode); \
-} while (0); 
+} while (0);
 
 #define m_GLND_RESOURCE_ASYNC_LCK_UNLOCK_FILL(l_evt,l_err,l_inv,l_resid,l_lockid,l_status) \
 do { \
@@ -175,8 +161,6 @@ do { \
    (l_evt).info.gla_clbk_info.params.unlock.resourceId = (l_resid); \
    (l_evt).info.gla_clbk_info.params.unlock.lockStatus = (l_status); \
    (l_evt).info.gla_clbk_info.params.unlock.error = (l_err); \
-} while (0); 
+} while (0);
 
-
- 
-#endif /* !GLND_MDS_H */
+#endif   /* !GLND_MDS_H */

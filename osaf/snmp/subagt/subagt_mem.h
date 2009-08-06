@@ -23,18 +23,17 @@
   
   DESCRIPTION: This file describes the Memory management macros 
   
-  ***************************************************************************/ 
+  ***************************************************************************/
 #ifndef SUBAGT_MEM_H
 #define SUBAGT_MEM_H
 
-typedef enum
-{
-    NCS_SERVICE_SNMPSUBAGT_CB, 
-    NCS_SERVICE_SNMPSUBAGT_OID_DB_ELEM, 
-    NCS_SERVICE_SNMPSUBAGT_OID_DB_NODE, 
-    NCS_SERVICE_SNMPSUBAGT_MBX,
-    NCS_SERVICE_SNMPSUBAGT_MAX 
-}NCS_SERVICE_SNMPSUBAGT_ID;
+typedef enum {
+	NCS_SERVICE_SNMPSUBAGT_CB,
+	NCS_SERVICE_SNMPSUBAGT_OID_DB_ELEM,
+	NCS_SERVICE_SNMPSUBAGT_OID_DB_NODE,
+	NCS_SERVICE_SNMPSUBAGT_MBX,
+	NCS_SERVICE_SNMPSUBAGT_MAX
+} NCS_SERVICE_SNMPSUBAGT_ID;
 
 /* Memory mgmt macros */
 
@@ -66,7 +65,7 @@ typedef enum
    (NCSSA_OID_DATABASE_NODE*)m_NCS_MEM_ALLOC(sizeof(NCSSA_OID_DATABASE_NODE), \
                                              NCS_MEM_REGION_PERSISTENT, \
                                              NCS_SERVICE_ID_SNMPSUBAGT, \
-                                             NCS_SERVICE_SNMPSUBAGT_OID_DB_NODE) 
+                                             NCS_SERVICE_SNMPSUBAGT_OID_DB_NODE)
 #define m_MMGR_NCSSA_OID_DB_NODE_FREE(p) m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_SNMPSUBAGT,\
@@ -78,7 +77,7 @@ typedef enum
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_SNMPSUBAGT, \
                                          NCS_SERVICE_SNMPSUBAGT_MBX)
-    
+
 #define m_MMGR_SNMPSUBAGT_MBX_MSG_FREE(p) m_NCS_MEM_FREE(p, \
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_SNMPSUBAGT, \
@@ -90,12 +89,10 @@ typedef enum
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_SNMPSUBAGT, \
                                          NCS_SERVICE_SNMPSUBAGT_MBX)
-    
+
 #define m_MMGR_SNMPSUBAGT_MIBS_REG_LIST_FREE(p) m_NCS_MEM_FREE(p, \
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_SNMPSUBAGT, \
                                          NCS_SERVICE_SNMPSUBAGT_MBX)
 
 #endif
-
-

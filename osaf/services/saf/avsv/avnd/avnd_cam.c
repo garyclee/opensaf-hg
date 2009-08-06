@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,13 +29,11 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
   
 ******************************************************************************
 */
 
 #include "avnd.h"
-
 
 /****************************************************************************
   Name          : avnd_comp_am_start
@@ -52,39 +48,32 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_am_start (AVND_CB *cb, AVND_COMP *comp)
+uns32 avnd_comp_am_start(AVND_CB *cb, AVND_COMP *comp)
 {
-   AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
-   AVND_ERR_INFO      err;
-   uns32              rc = NCSCC_RC_SUCCESS;
-   
-   /* check if its instantiated state, else exit */
-   if(!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
-      goto done;
+	AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
+	AVND_ERR_INFO err;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* check if its less than max cnt */
-   if(clc_info->am_start_retry_cnt < clc_info->am_start_retry_max)
-   {
-      clc_info->am_start_retry_cnt++;
+	/* check if its instantiated state, else exit */
+	if (!m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
+		goto done;
 
-      /* exec AM_START script */
-      rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTART);
-   }
-   else
-   {
+	/* check if its less than max cnt */
+	if (clc_info->am_start_retry_cnt < clc_info->am_start_retry_max) {
+		clc_info->am_start_retry_cnt++;
+
+		/* exec AM_START script */
+		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTART);
+	} else {
       /*** comp error  processing  ***/
-      err.src = AVND_ERR_SRC_AM;
-      err.rcvr = comp->err_info.def_rec;
-      rc = avnd_err_process(cb, comp, &err); 
-   }
+		err.src = AVND_ERR_SRC_AM;
+		err.rcvr = comp->err_info.def_rec;
+		rc = avnd_err_process(cb, comp, &err);
+	}
 
-done:
-   return rc;
+ done:
+	return rc;
 }
-
-
-
-
 
 /****************************************************************************
   Name          : avnd_comp_am_oper_req_process
@@ -101,20 +90,18 @@ done:
 ******************************************************************************/
 uns32 avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
 {
-   uns32 rc =NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   if(TRUE == comp->is_am_en)
-      rc = avnd_comp_am_start(cb,comp);
-   else
-   {
-      /* check if its instantiated state, else exit */
-     if(m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
-        rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTOP);
-   }
+	if (TRUE == comp->is_am_en)
+		rc = avnd_comp_am_start(cb, comp);
+	else {
+		/* check if its instantiated state, else exit */
+		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
+			rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTOP);
+	}
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_comp_amstart_clc_res_process
@@ -130,30 +117,24 @@ uns32 avnd_comp_am_oper_req_process(AVND_CB *cb, AVND_COMP *comp)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp, 
-                                          NCS_OS_PROC_EXEC_STATUS value)
+uns32 avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
 {
-   uns32 rc =NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* reset the cmd exec context params */
-   comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;
-   comp->clc_info.am_cmd_exec_ctxt = 0;
-  
-   if (NCS_OS_PROC_EXIT_NORMAL == value)
-   {
-      /* do nothing, just reset the count */
-      comp->clc_info.am_start_retry_cnt = 0;
-   }
-   else
-   {
-      /* call amstop */
-      rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTOP);
-   }
+	/* reset the cmd exec context params */
+	comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;
+	comp->clc_info.am_cmd_exec_ctxt = 0;
 
-   return rc;
+	if (NCS_OS_PROC_EXIT_NORMAL == value) {
+		/* do nothing, just reset the count */
+		comp->clc_info.am_start_retry_cnt = 0;
+	} else {
+		/* call amstop */
+		rc = avnd_comp_clc_cmd_execute(cb, comp, AVND_COMP_CLC_CMD_TYPE_AMSTOP);
+	}
+
+	return rc;
 }
-
-
 
 /****************************************************************************
   Name          : avnd_comp_amstop_clc_res_process
@@ -169,41 +150,36 @@ uns32 avnd_comp_amstart_clc_res_process(AVND_CB *cb, AVND_COMP *comp,
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_amstop_clc_res_process(AVND_CB *cb, AVND_COMP *comp, 
-                                          NCS_OS_PROC_EXEC_STATUS value)
+uns32 avnd_comp_amstop_clc_res_process(AVND_CB *cb, AVND_COMP *comp, NCS_OS_PROC_EXEC_STATUS value)
 {
-  AVND_ERR_INFO  err;
-  uns32          rc = NCSCC_RC_SUCCESS;
+	AVND_ERR_INFO err;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-  memset(&err,'\0',sizeof(AVND_ERR_INFO));
+	memset(&err, '\0', sizeof(AVND_ERR_INFO));
 
-   /* reset the cmd exec context params */
-   comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;
-   comp->clc_info.am_cmd_exec_ctxt = 0;
+	/* reset the cmd exec context params */
+	comp->clc_info.am_exec_cmd = AVND_COMP_CLC_CMD_TYPE_MAX;
+	comp->clc_info.am_cmd_exec_ctxt = 0;
 
-  if (NCS_OS_PROC_EXIT_NORMAL == value)
-  {
-    /* check for state, if inst state, call am start, else do nothing */
-    if(m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp) && comp->clc_info.am_start_retry_cnt != 0)
-       rc = avnd_comp_am_start (cb, comp);
-  }
-  else
-  {
-     /* as of now, restart feature of AM_STOP is not implemented 
-        the first failure of AM_STOP is taken as critical and AMF 
-        does error processing for the component.
-        Do not process error, if the comp is already marked faulty,
-     */
+	if (NCS_OS_PROC_EXIT_NORMAL == value) {
+		/* check for state, if inst state, call am start, else do nothing */
+		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp) && comp->clc_info.am_start_retry_cnt != 0)
+			rc = avnd_comp_am_start(cb, comp);
+	} else {
+		/* as of now, restart feature of AM_STOP is not implemented 
+		   the first failure of AM_STOP is taken as critical and AMF 
+		   does error processing for the component.
+		   Do not process error, if the comp is already marked faulty,
+		 */
 
-     if ( !m_AVND_COMP_IS_FAILED(comp))
-     {
+		if (!m_AVND_COMP_IS_FAILED(comp)) {
 
-        /*** process error ***/
-        err.src = AVND_ERR_SRC_AM;
-        err.rcvr = comp->err_info.def_rec;
-        rc = avnd_err_process(cb, comp, &err); 
-     }
-  }
+	/*** process error ***/
+			err.src = AVND_ERR_SRC_AM;
+			err.rcvr = comp->err_info.def_rec;
+			rc = avnd_err_process(cb, comp, &err);
+		}
+	}
 
-   return rc;
+	return rc;
 }

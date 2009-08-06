@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   D E S C R I P T I O N :
@@ -99,13 +97,11 @@
 #ifndef NCS_TASKS_H
 #define NCS_TASKS_H
 
-
 /*************************************************************************
      
        A )    S Y S T E M   S E R V I C E S 
 
 **************************************************************************/
-
 
 /*************************************************************************
 SYSF TIMER
@@ -206,7 +202,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* RCP */
 
 #ifndef NCS_RCP_STACKSIZE
-#define NCS_RCP_STACKSIZE    NCS_STACKSIZE_MEDIUM 
+#define NCS_RCP_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
 #ifndef NCS_RCP_PRIORITY
@@ -272,7 +268,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define NCS_UX_TASKNAME    "UX"
 #endif
 
-
 /* TDS */
 
 #ifndef NCS_TDS_STACKSIZE
@@ -286,7 +281,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #ifndef NCS_TDS_TASKNAME
 #define NCS_TDS_TASKNAME    "TDS"
 #endif
-
 
 /*************************************************************************
 NCS_RMS   
@@ -302,13 +296,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_RMS_PRIORITY
-#define NCS_RMS_PRIORITY   NCS_TASK_PRIORITY_8  
+#define NCS_RMS_PRIORITY   NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_RMS_TASKNAME
 #define NCS_RMS_TASKNAME   "RMS"
 #endif
-
 
 /*************************************************************************
      
@@ -367,8 +360,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_LMS_RSVP_TASKNAME  "RSVP"
 #endif
 
-
-
 /*************************************************************************
 APS_IPRP :
 
@@ -410,15 +401,13 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_BGP_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
-
 #ifndef APS_BGP_PRIORITY
-#define APS_BGP_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_BGP_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_BGP_TASKNAME
 #define APS_BGP_TASKNAME     "BGP"
 #endif
-
 
 /* If BGP is run in multi threaded mode*/
 #ifndef APS_BGP_INTF_STACKSIZE
@@ -426,22 +415,20 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_BGP_INTF_PRIORITY
-#define APS_BGP_INTF_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_BGP_INTF_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_BGP_INTF_TASKNAME
 #define APS_BGP_INTF_TASKNAME     "BGP_INTF"
 #endif
 
-
 #ifndef APS_BGP_ROUTE_STACKSIZE
 #define APS_BGP_ROUTE_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
 #ifndef APS_BGP_ROUTE_PRIORITY
-#define APS_BGP_ROUTE_PRIORITY     NCS_TASK_PRIORITY_6 
+#define APS_BGP_ROUTE_PRIORITY     NCS_TASK_PRIORITY_6
 #endif
-
 
 #ifndef APS_BGP_ROUTE_TASKNAME
 #define APS_BGP_ROUTE_TASKNAME     "BGP_ROUTE"
@@ -452,7 +439,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_BGP_CTRL_PRIORITY
-#define APS_BGP_CTRL_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_BGP_CTRL_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_BGP_CTRL_TASKNAME
@@ -467,15 +454,13 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_OSPF_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
-
 #ifndef APS_OSPF_PRIORITY
-#define APS_OSPF_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_OSPF_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_OSPF_TASKNAME
 #define APS_OSPF_TASKNAME     "OSPF"
 #endif
-
 
 /* OSPF in multi threaded mode */
 
@@ -484,22 +469,20 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_OSPF_INTF_PRIORITY
-#define APS_OSPF_INTF_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_OSPF_INTF_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_OSPF_INTF_TASKNAME
 #define APS_OSPF_INTF_TASKNAME     "OSPF_INTF"
 #endif
 
-
 #ifndef APS_OSPF_RDB_STACKSIZE
 #define APS_OSPF_RDB_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
 #ifndef APS_OSPF_RDB_PRIORITY
-#define APS_OSPF_RDB_PRIORITY     NCS_TASK_PRIORITY_6 
+#define APS_OSPF_RDB_PRIORITY     NCS_TASK_PRIORITY_6
 #endif
-
 
 #ifndef APS_OSPF_RDB_TASKNAME
 #define APS_OSPF_RDB_TASKNAME     "OSPF_RDB"
@@ -510,13 +493,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_OSPF_CTRL_PRIORITY
-#define APS_OSPF_CTRL_PRIORITY     NCS_TASK_PRIORITY_7 
+#define APS_OSPF_CTRL_PRIORITY     NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef APS_OSPF_CTRL_TASKNAME
 #define APS_OSPF_CTRL_TASKNAME     "OSPF_CTRL"
 #endif
-
 
 /* ISIS */
 
@@ -526,15 +508,13 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_ISIS_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
-
 #ifndef APS_ISIS_PRIORITY
-#define APS_ISIS_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_ISIS_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_ISIS_TASKNAME
 #define APS_ISIS_TASKNAME     "ISIS"
 #endif
-
 
 /* ISIS in multi threaded mode */
 
@@ -543,22 +523,20 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_ISIS_INTF_PRIORITY
-#define APS_ISIS_INTF_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_ISIS_INTF_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_ISIS_INTF_TASKNAME
 #define APS_ISIS_INTF_TASKNAME     "ISIS_INTF"
 #endif
 
-
 #ifndef APS_ISIS_RDB_STACKSIZE
 #define APS_ISIS_RDB_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
 #ifndef APS_ISIS_RDB_PRIORITY
-#define APS_ISIS_RDB_PRIORITY     NCS_TASK_PRIORITY_6 
+#define APS_ISIS_RDB_PRIORITY     NCS_TASK_PRIORITY_6
 #endif
-
 
 #ifndef APS_ISIS_RDB_TASKNAME
 #define APS_ISIS_RDB_TASKNAME     "ISIS_RDB"
@@ -569,13 +547,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_ISIS_CTRL_PRIORITY
-#define APS_ISIS_CTRL_PRIORITY     NCS_TASK_PRIORITY_7 
+#define APS_ISIS_CTRL_PRIORITY     NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef APS_ISIS_CTRL_TASKNAME
 #define APS_ISIS_CTRL_TASKNAME     "ISIS_CTRL"
 #endif
-
 
 /* FIBC */
 
@@ -584,7 +561,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_FIBC_PRIORITY
-#define APS_FIBC_PRIORITY    NCS_TASK_PRIORITY_4   
+#define APS_FIBC_PRIORITY    NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_FIBC_TASKNAME
@@ -598,7 +575,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_FIBS_PRIORITY
-#define APS_FIBS_PRIORITY    NCS_TASK_PRIORITY_4 
+#define APS_FIBS_PRIORITY    NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_FIBS_TASKNAME
@@ -611,7 +588,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_POLS_PRIORITY
-#define NCS_POLS_PRIORITY  NCS_TASK_PRIORITY_8 
+#define NCS_POLS_PRIORITY  NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_POLS_TASKNAME
@@ -624,7 +601,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_POLC_PRIORITY
-#define NCS_POLC_PRIORITY    NCS_TASK_PRIORITY_8 
+#define NCS_POLC_PRIORITY    NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_POLC_TASKNAME
@@ -638,7 +615,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_TED_PRIORITY
-#define APS_TED_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_TED_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_TED_TASKNAME
@@ -652,7 +629,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_CSPF_PRIORITY
-#define APS_CSPF_PRIORITY     NCS_TASK_PRIORITY_7 
+#define APS_CSPF_PRIORITY     NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef APS_CSPF_TASKNAME
@@ -667,15 +644,13 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_IGMP_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
-
 #ifndef APS_IGMP_PRIORITY
-#define APS_IGMP_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_IGMP_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_IGMP_TASKNAME
 #define APS_IGMP_TASKNAME     "IGMP"
 #endif
-
 
 /* If IGMP is run in multi threaded mode*/
 #ifndef APS_IGMP_INTF_STACKSIZE
@@ -683,7 +658,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_IGMP_INTF_PRIORITY
-#define APS_IGMP_INTF_PRIORITY     NCS_TASK_PRIORITY_3 
+#define APS_IGMP_INTF_PRIORITY     NCS_TASK_PRIORITY_3
 #endif
 
 #ifndef APS_IGMP_INTF_TASKNAME
@@ -695,13 +670,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_IGMP_MAIN_PRIORITY
-#define APS_IGMP_MAIN_PRIORITY     NCS_TASK_PRIORITY_5 
+#define APS_IGMP_MAIN_PRIORITY     NCS_TASK_PRIORITY_5
 #endif
 
 #ifndef APS_IGMP_MAIN_TASKNAME
 #define APS_IGMP_MAIN_TASKNAME     "IGMP-MAIN"
 #endif
-
 
 /* PIM */
 
@@ -711,15 +685,13 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define APS_PIM_STACKSIZE    NCS_STACKSIZE_MEDIUM
 #endif
 
-
 #ifndef APS_PIM_PRIORITY
-#define APS_PIM_PRIORITY     NCS_TASK_PRIORITY_4 
+#define APS_PIM_PRIORITY     NCS_TASK_PRIORITY_4
 #endif
 
 #ifndef APS_PIM_TASKNAME
 #define APS_PIM_TASKNAME     "PIM"
 #endif
-
 
 /* If PIM is run in multi threaded mode*/
 #ifndef APS_PIM_INTF_STACKSIZE
@@ -727,7 +699,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_PIM_INTF_PRIORITY
-#define APS_PIM_INTF_PRIORITY     NCS_TASK_PRIORITY_5 
+#define APS_PIM_INTF_PRIORITY     NCS_TASK_PRIORITY_5
 #endif
 
 #ifndef APS_PIM_INTF_TASKNAME
@@ -739,7 +711,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef APS_PIM_MAIN_PRIORITY
-#define APS_PIM_MAIN_PRIORITY     NCS_TASK_PRIORITY_5 
+#define APS_PIM_MAIN_PRIORITY     NCS_TASK_PRIORITY_5
 #endif
 
 #ifndef APS_PIM_MAIN_TASKNAME
@@ -760,7 +732,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_LMP_PRIORITY
-#define NCS_LMP_PRIORITY      NCS_TASK_PRIORITY_8  
+#define NCS_LMP_PRIORITY      NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_LMP_TASKNAME
@@ -778,7 +750,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
               here by product family.
 
 **************************************************************************/
-
 
 /*************************************************************************
 NCS_SIGL  ATM Signalling
@@ -799,7 +770,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_SIGL_PRIORITY
-#define NCS_SIGL_PRIORITY  NCS_TASK_PRIORITY_8  
+#define NCS_SIGL_PRIORITY  NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_SIGL_TASKNAME
@@ -835,11 +806,11 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 /* LEC */
 
 #ifndef NCS_LANES_LEC_STACKSIZE
-#define NCS_LANES_LEC_STACKSIZE NCS_STACKSIZE_MEDIUM 
+#define NCS_LANES_LEC_STACKSIZE NCS_STACKSIZE_MEDIUM
 #endif
 
 #ifndef NCS_LANES_LEC_PRIORITY
-#define NCS_LANES_LEC_PRIORITY  NCS_TASK_PRIORITY_8   
+#define NCS_LANES_LEC_PRIORITY  NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_LANES_LEC_TASKNAME
@@ -853,7 +824,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_LANES_LES_PRIORITY
-#define NCS_LANES_LES_PRIORITY  NCS_TASK_PRIORITY_8  
+#define NCS_LANES_LES_PRIORITY  NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_LANES_LES_TASKNAME
@@ -906,7 +877,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* PNNI */
 
-#ifndef NCS_PNNI_STACKSIZE  
+#ifndef NCS_PNNI_STACKSIZE
 #define NCS_PNNI_STACKSIZE      NCS_STACKSIZE_MEDIUM
 #endif
 
@@ -920,7 +891,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* PNNI HELLO */
 
-#ifndef NCS_PNNI_HELLO_STACKSIZE  
+#ifndef NCS_PNNI_HELLO_STACKSIZE
 #define NCS_PNNI_HELLO_STACKSIZE NCS_STACKSIZE_MEDIUM
 #endif
 
@@ -934,7 +905,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* PNNI PGLE */
 
-#ifndef NCS_PNNI_PGLE_STACKSIZE  
+#ifndef NCS_PNNI_PGLE_STACKSIZE
 #define NCS_PNNI_PGLE_STACKSIZE NCS_STACKSIZE_MEDIUM
 #endif
 
@@ -948,7 +919,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* PNNI DB */
 
-#ifndef NCS_PNNI_DB_STACKSIZE  
+#ifndef NCS_PNNI_DB_STACKSIZE
 #define NCS_PNNI_DB_STACKSIZE  NCS_STACKSIZE_MEDIUM
 #endif
 
@@ -962,7 +933,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* PNNI NBR */
 
-#ifndef NCS_PNNI_NBR_STACKSIZE  
+#ifndef NCS_PNNI_NBR_STACKSIZE
 #define NCS_PNNI_NBR_STACKSIZE  NCS_STACKSIZE_MEDIUM
 #endif
 
@@ -1159,7 +1130,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_HPFR_PRIORITY
-#define NCS_HPFR_PRIORITY       NCS_TASK_PRIORITY_8  
+#define NCS_HPFR_PRIORITY       NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_HPFR_TASKNAME
@@ -1173,7 +1144,7 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
 #ifndef NCS_HPFR_LMI_PRIORITY
-#define NCS_HPFR_LMI_PRIORITY   NCS_TASK_PRIORITY_8  
+#define NCS_HPFR_LMI_PRIORITY   NCS_TASK_PRIORITY_8
 #endif
 
 #ifndef NCS_HPFR_LMI_TASKNAME
@@ -1184,7 +1155,6 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
        D )    M A N A G E M E N T   P L A N E   S U B S Y S T E M S
 
 **************************************************************************/
-
 
 /*************************************************************************
 NCS_CLI   
@@ -1201,12 +1171,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 
 /* CLI */
 
-#ifndef NCS_CLI_STACKSIZE      
+#ifndef NCS_CLI_STACKSIZE
 #define NCS_CLI_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_CLI_PRIORITY
-#define NCS_CLI_PRIORITY       NCS_TASK_PRIORITY_7  
+#define NCS_CLI_PRIORITY       NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef NCS_CLI_TASKNAME
@@ -1228,12 +1198,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
    /*    DTS Task    */
-#ifndef NCS_DTS_STACKSIZE      
+#ifndef NCS_DTS_STACKSIZE
 #define NCS_DTS_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_DTS_PRIORITY
-#define NCS_DTS_PRIORITY       NCS_TASK_PRIORITY_7  
+#define NCS_DTS_PRIORITY       NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef NCS_DTS_TASKNAME
@@ -1241,12 +1211,12 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #endif
 
    /*    DTA Task    */
-#ifndef NCS_DTA_STACKSIZE      
+#ifndef NCS_DTA_STACKSIZE
 #define NCS_DTA_STACKSIZE      NCS_STACKSIZE_HUGE
 #endif
 
 #ifndef NCS_DTA_PRIORITY
-#define NCS_DTA_PRIORITY       NCS_TASK_PRIORITY_7  
+#define NCS_DTA_PRIORITY       NCS_TASK_PRIORITY_7
 #endif
 
 #ifndef NCS_DTA_TASKNAME
@@ -1324,5 +1294,4 @@ NOTE: These mnemonics do not yet mapped to this task's creation properties.
 #define NCS_MAB_PSR_TASKNAME  "MAB_PSR"
 #endif
 
-#endif /* NCS_TASKS.H */
-
+#endif   /* NCS_TASKS.H */

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,13 +31,10 @@
 #ifndef MAB_MEM_H
 #define MAB_MEM_H
 
-
 /*******************************************************************************
    M e m o r y   M a n a g e r   P r i m i t i v e s   F o r   M A B
 
-
                   Populate accordingly during portation.
-
 
    The following macros provide the front-end to the target system memory
    manager. These macros must be changed such that the desired operation is
@@ -51,60 +46,59 @@
  Memory Allocation Primitives for NetPlane MIB Access Broker (MAB)
 ********************************************************************************/
 
-typedef enum
-{   
-    MAB_MEM_SUB_ID_MIN,
-    MAB_MEM_MAC_INST,
-    MAB_MEM_MAC_BLK,
-    MAB_MEM_MAC_TBL_BUFR,
-    MAB_MEM_MAS_TBL,
-    MAB_MEM_OAC_TBL,
-    MAB_MEM_OAC_TBL_REC,
-    MAB_MEM_OAC_FLTR,
-    MAB_MEM_PCN_STRING,
-    MAB_MEM_MAB_MSG,
-    MAB_MEM_MAS_ROW_REC,
-    MAB_MEM_MAS_FLTR,
-    MAB_MEM_MAS_CSI_NODE,
-    MAB_MEM_MAB_INST_NODE,
-    MAB_MEM_FLTR_ANCHOR_NODE, 
-    MAB_MEM_PSS_CB,
-    MAB_MEM_PSS_PWE_CB,
-    MAB_MEM_PSS_TBL_INFO,
-    MAB_MEM_PSS_NCSMIB_TBL_INFO, 
-    MAB_MEM_PSS_MIB_TBL_DATA,
-    MAB_MEM_PSS_VAR_INFO,
-    MAB_MEM_PSS_NCSMIB_OCT_OBJ,
-    MAB_MEM_PSS_NCSMIB_INT_OBJ_RANGE,
-    MAB_MEM_PSS_TBL_RNK,
-    MAB_MEM_PSS_PAT_NODE,
-    MAB_MEM_PSS_CLIENT_ENTRY,
-    MAB_MEM_PSS_TBL_REC,
-    MAB_MEM_PSS_DATA,
-    MAB_MEM_PSS_QELEM,
-    MAB_MEM_PSS_OAA_ENTRY,
-    MAB_MEM_PSS_RFRSH_TBL_LIST,
-    MAB_MEM_OAA_PCN_LIST,
-    MAB_MEM_NCSOAC_PSS_TBL_LIST,
-    MAB_MEM_OAA_WBREQ_PEND_LIST,
-    MAB_MEM_OAA_WBREQ_HDL_LIST,
-    MAB_MEM_OAA_BUFR_HASH_LIST,
-    MAB_MEM_PSS_TBL_BIND_EVT,
-    MAB_MEM_PSS_TBL_LIST,
-    MAB_MEM_PSS_WARMBOOT_REQ,
-    MAB_MEM_PSS_WBSORT_ENTRY,
-    MAB_MEM_PSS_ODSORT_ENTRY,
-    MAB_MEM_PSS_ODSORT_TBLREC,
-    MAB_MEM_PSS_OAA_CLT_ID,
-    MAB_MEM_PSS_SPCN_LIST,
-    MAB_MEM_PSS_CSI_NODE,
-    MAB_MEM_PSS_SPCN_WBREQ_PEND_LIST,
-    MAB_MEM_FLTR_WARM_SYNC_CNTXT,  /* used only in NCS_MAS_RED flag */ 
-    MAB_MEM_FLTR_WARM_SYNC_BKT_LIST, /* used only in NCS_MAS_RED flag */ 
-    MAB_MEM_STDBY_PSS_BUFFER_NODE, 
-    MAB_MEM_PSS_TBL_DETAILS_HDR,
-    MAB_MEM_SUB_ID_MAX
-}MAB_MEM_SUB_ID;
+typedef enum {
+	MAB_MEM_SUB_ID_MIN,
+	MAB_MEM_MAC_INST,
+	MAB_MEM_MAC_BLK,
+	MAB_MEM_MAC_TBL_BUFR,
+	MAB_MEM_MAS_TBL,
+	MAB_MEM_OAC_TBL,
+	MAB_MEM_OAC_TBL_REC,
+	MAB_MEM_OAC_FLTR,
+	MAB_MEM_PCN_STRING,
+	MAB_MEM_MAB_MSG,
+	MAB_MEM_MAS_ROW_REC,
+	MAB_MEM_MAS_FLTR,
+	MAB_MEM_MAS_CSI_NODE,
+	MAB_MEM_MAB_INST_NODE,
+	MAB_MEM_FLTR_ANCHOR_NODE,
+	MAB_MEM_PSS_CB,
+	MAB_MEM_PSS_PWE_CB,
+	MAB_MEM_PSS_TBL_INFO,
+	MAB_MEM_PSS_NCSMIB_TBL_INFO,
+	MAB_MEM_PSS_MIB_TBL_DATA,
+	MAB_MEM_PSS_VAR_INFO,
+	MAB_MEM_PSS_NCSMIB_OCT_OBJ,
+	MAB_MEM_PSS_NCSMIB_INT_OBJ_RANGE,
+	MAB_MEM_PSS_TBL_RNK,
+	MAB_MEM_PSS_PAT_NODE,
+	MAB_MEM_PSS_CLIENT_ENTRY,
+	MAB_MEM_PSS_TBL_REC,
+	MAB_MEM_PSS_DATA,
+	MAB_MEM_PSS_QELEM,
+	MAB_MEM_PSS_OAA_ENTRY,
+	MAB_MEM_PSS_RFRSH_TBL_LIST,
+	MAB_MEM_OAA_PCN_LIST,
+	MAB_MEM_NCSOAC_PSS_TBL_LIST,
+	MAB_MEM_OAA_WBREQ_PEND_LIST,
+	MAB_MEM_OAA_WBREQ_HDL_LIST,
+	MAB_MEM_OAA_BUFR_HASH_LIST,
+	MAB_MEM_PSS_TBL_BIND_EVT,
+	MAB_MEM_PSS_TBL_LIST,
+	MAB_MEM_PSS_WARMBOOT_REQ,
+	MAB_MEM_PSS_WBSORT_ENTRY,
+	MAB_MEM_PSS_ODSORT_ENTRY,
+	MAB_MEM_PSS_ODSORT_TBLREC,
+	MAB_MEM_PSS_OAA_CLT_ID,
+	MAB_MEM_PSS_SPCN_LIST,
+	MAB_MEM_PSS_CSI_NODE,
+	MAB_MEM_PSS_SPCN_WBREQ_PEND_LIST,
+	MAB_MEM_FLTR_WARM_SYNC_CNTXT,	/* used only in NCS_MAS_RED flag */
+	MAB_MEM_FLTR_WARM_SYNC_BKT_LIST,	/* used only in NCS_MAS_RED flag */
+	MAB_MEM_STDBY_PSS_BUFFER_NODE,
+	MAB_MEM_PSS_TBL_DETAILS_HDR,
+	MAB_MEM_SUB_ID_MAX
+} MAB_MEM_SUB_ID;
 
 #define m_MMGR_ALLOC_MAS_TBL      (MAS_TBL *)m_NCS_MEM_ALLOC(sizeof(MAS_TBL), \
                                    NCS_MEM_REGION_TRANSIENT, \
@@ -288,7 +282,7 @@ typedef enum
                NCS_MEM_REGION_TRANSIENT, \
                NCS_SERVICE_ID_PSS, MAB_MEM_STDBY_PSS_BUFFER_NODE)
 
-/* allocate memory for ANCHOR value and Fltr-Id pair */ 
+/* allocate memory for ANCHOR value and Fltr-Id pair */
 #define m_MMGR_ALLOC_FLTR_ANCHOR_NODE \
                 (MAB_FLTR_ANCHOR_NODE*)m_NCS_MEM_ALLOC(sizeof(MAB_FLTR_ANCHOR_NODE), \
                                NCS_MEM_REGION_TRANSIENT, \
@@ -299,7 +293,7 @@ typedef enum
                                    NCS_SERVICE_ID_PSS, MAB_MEM_PSS_TBL_DETAILS_HDR)
 
 #if (NCS_MAS_RED == 1)
-/* allocate memory to stroe the data request context */ 
+/* allocate memory to stroe the data request context */
 #define m_MMGR_MAS_WARM_SYNC_CNTXT_ALLOC \
                 (MAS_WARM_SYNC_CNTXT*)m_NCS_MEM_ALLOC(sizeof(MAS_WARM_SYNC_CNTXT), \
                                NCS_MEM_REGION_TRANSIENT, NCS_SERVICE_ID_MAB, \
@@ -310,9 +304,7 @@ typedef enum
                 (uns8*)m_NCS_MEM_ALLOC((sizeof(uns8)*bkt_count), \
                                NCS_MEM_REGION_TRANSIENT, NCS_SERVICE_ID_MAB, \
                                MAB_MEM_FLTR_WARM_SYNC_BKT_LIST)
-
-
-#endif /* (NCS_MAS_RED == 1) */
+#endif   /* (NCS_MAS_RED == 1) */
 
 /*******************************************************************************
  Memory Free Primitives for NetPlane MIB Access Broker (MAB)
@@ -462,16 +454,13 @@ typedef enum
                                     NCS_SERVICE_ID_PSS, MAB_MEM_PSS_TBL_DETAILS_HDR)
 
 #if (NCS_MAS_RED == 1)
-/* free the context information for DATA Request */ 
+/* free the context information for DATA Request */
 #define m_MMGR_MAS_WARM_SYNC_CNTXT_FREE(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_MAB, MAB_MEM_FLTR_WARM_SYNC_CNTXT)
 
-/* to free the list of buckets to be synced with Standby MAS */ 
+/* to free the list of buckets to be synced with Standby MAS */
 #define m_MMGR_MAS_WARM_SYNC_BKT_LIST_FREE(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_MAB, MAB_MEM_FLTR_WARM_SYNC_BKT_LIST)
-
-#endif /* #if (NCS_MAS_RED == 1) */ 
+#endif   /* #if (NCS_MAS_RED == 1) */
 
 #endif
-
-

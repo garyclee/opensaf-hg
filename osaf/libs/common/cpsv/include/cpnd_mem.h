@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,23 +31,22 @@
 #define CPND_MEM_H
 
 /* Service Sub IDs for CPND */
-typedef enum
-{
-   CPND_SVC_SUB_ID_CPND_CB = CPSV_SVC_SUB_ID_MAX+1,
-   CPND_SVC_SUB_ID_CPND_CKPT_CLIST_NODE,
-   CPND_SVC_SUB_ID_CPND_CKPT_LIST_NODE,
-   CPND_SVC_SUB_ID_CPND_CKPT_NODE,
-   CPND_SVC_SUB_ID_CPND_CKPT_CLIENT_NODE,
-   CPND_SVC_SUB_ID_CPND_ALL_REPL_EVT_NODE,
-   CPND_SVC_SUB_ID_CPND_UPDATE_DEST_LIST_NODE,
-   CPND_SVC_SUB_ID_CPSV_CPND_DEST_INFO,
-   CPND_SVC_SUB_ID_CPSV_CPND_UPDATE_DEST_INFO,
-   CPND_SVC_SUB_ID_CPND_CKPT_SECTION_INFO,
-   CPND_SVC_SUB_ID_DEFAULT_VAL,
-   CPND_SVC_SUB_ID_CPND_SYNC_SEND_NODE,
-   CPND_SVC_SUB_ID_CPND_CPD_DEFERRED_REQ_NODE,
-   
-   CPND_SVC_SUB_ID_MAX
+typedef enum {
+	CPND_SVC_SUB_ID_CPND_CB = CPSV_SVC_SUB_ID_MAX + 1,
+	CPND_SVC_SUB_ID_CPND_CKPT_CLIST_NODE,
+	CPND_SVC_SUB_ID_CPND_CKPT_LIST_NODE,
+	CPND_SVC_SUB_ID_CPND_CKPT_NODE,
+	CPND_SVC_SUB_ID_CPND_CKPT_CLIENT_NODE,
+	CPND_SVC_SUB_ID_CPND_ALL_REPL_EVT_NODE,
+	CPND_SVC_SUB_ID_CPND_UPDATE_DEST_LIST_NODE,
+	CPND_SVC_SUB_ID_CPSV_CPND_DEST_INFO,
+	CPND_SVC_SUB_ID_CPSV_CPND_UPDATE_DEST_INFO,
+	CPND_SVC_SUB_ID_CPND_CKPT_SECTION_INFO,
+	CPND_SVC_SUB_ID_DEFAULT_VAL,
+	CPND_SVC_SUB_ID_CPND_SYNC_SEND_NODE,
+	CPND_SVC_SUB_ID_CPND_CPD_DEFERRED_REQ_NODE,
+
+	CPND_SVC_SUB_ID_MAX
 } CPND_SVC_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -72,21 +69,21 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
                                                 CPND_SVC_SUB_ID_CPND_CKPT_NODE)
-                                                
+
 #define m_MMGR_FREE_CPND_CKPT_NODE(p)      m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
                                                 CPND_SVC_SUB_ID_CPND_CKPT_NODE)
-                                                
+
 #define m_MMGR_ALLOC_CPND_CKPT_CLIENT_NODE      (CPND_CKPT_CLIENT_NODE *)m_NCS_MEM_ALLOC(sizeof(CPND_CKPT_CLIENT_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
                                                 CPND_SVC_SUB_ID_CPND_CKPT_CLIENT_NODE)
-                                                
+
 #define m_MMGR_FREE_CPND_CKPT_CLIENT_NODE(p)      m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
-                                                CPND_SVC_SUB_ID_CPND_CKPT_CLIENT_NODE)                                                
+                                                CPND_SVC_SUB_ID_CPND_CKPT_CLIENT_NODE)
 #define m_MMGR_ALLOC_CPND_ALL_REPL_EVT_NODE    (CPSV_CPND_ALL_REPL_EVT_NODE*)m_NCS_MEM_ALLOC(sizeof(CPSV_CPND_ALL_REPL_EVT_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
@@ -95,13 +92,13 @@ typedef enum
 #define m_MMGR_FREE_CPND_ALL_REPL_EVT_NODE(p)      m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPND, \
-                                                CPND_SVC_SUB_ID_CPND_ALL_REPL_EVT_NODE)                                                       
+                                                CPND_SVC_SUB_ID_CPND_ALL_REPL_EVT_NODE)
 
 #define m_MMGR_ALLOC_CPND_CKPT_CLIST_NODE  (CPND_CKPT_CLLIST_NODE *)m_NCS_MEM_ALLOC(sizeof(CPND_CKPT_CLLIST_NODE),\
                                            NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_CKPT_CLIST_NODE)
-                                           
+
 #define m_MMGR_FREE_CPND_CKPT_CLIST_NODE(p)  m_NCS_MEM_FREE(p,\
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_CPND, \
@@ -111,7 +108,7 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPSV_CPND_DEST_INFO)
-                                           
+
 #define m_MMGR_FREE_CPND_DEST_INFO(p)   m_NCS_MEM_FREE(p,\
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
@@ -126,12 +123,12 @@ typedef enum
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPSV_CPND_UPDATE_DEST_INFO)
-                    
+
 #define m_MMGR_ALLOC_CPND_CKPT_LIST_NODE   (CPND_CKPT_CKPT_LIST_NODE *)m_NCS_MEM_ALLOC(sizeof(CPND_CKPT_CKPT_LIST_NODE), \
                                             NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_CKPT_LIST_NODE)
-                                           
+
 #define m_MMGR_FREE_CPND_CKPT_LIST_NODE(p)   m_NCS_MEM_FREE(p,\
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
@@ -146,12 +143,12 @@ typedef enum
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_UPDATE_DEST_LIST_NODE)
-                                           
+
 #define m_MMGR_ALLOC_CPND_CKPT_SECTION_INFO   (CPND_CKPT_SECTION_INFO *)m_NCS_MEM_ALLOC(sizeof(CPND_CKPT_SECTION_INFO), \
                                             NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_CKPT_SECTION_INFO)
-                                           
+
 #define m_MMGR_FREE_CPND_CPND_CKPT_SECTION_INFO(p)   m_NCS_MEM_FREE(p,\
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
@@ -161,7 +158,7 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_SYNC_SEND_NODE)
-                                           
+
 #define m_MMGR_FREE_CPND_SYNC_SEND_NODE(p)   m_NCS_MEM_FREE(p,\
                                                NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
@@ -171,7 +168,7 @@ typedef enum
                                             NCS_MEM_REGION_PERSISTENT, \
                                            NCS_SERVICE_ID_CPND, \
                                            CPND_SVC_SUB_ID_CPND_CPD_DEFERRED_REQ_NODE)
-                                           
+
 #define m_MMGR_FREE_CPND_CPD_DEFERRED_REQ_NODE(p)   m_NCS_MEM_FREE(p,\
                                                        NCS_MEM_REGION_PERSISTENT, \
                                                     NCS_SERVICE_ID_CPND, \
@@ -187,4 +184,4 @@ typedef enum
                                                 NCS_SERVICE_ID_CPND, \
                                                 CPND_SVC_SUB_ID_DEFAULT_VAL)
 
-#endif /* !CPND_MEM_H */
+#endif   /* !CPND_MEM_H */

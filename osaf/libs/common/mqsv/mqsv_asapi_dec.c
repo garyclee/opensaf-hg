@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file includes routines for decoding ASAPi messages:
@@ -75,77 +73,67 @@ static uns32 asapi_obj_info_dec(NCS_UBAID *, ASAPi_OBJECT_INFO *, ASAPi_ERR_INFO
 \****************************************************************************/
 uns32 asapi_msg_dec(NCS_UBAID *pBuff, ASAPi_MSG_INFO **o_pMsg)
 {
-   uns8           *stream = 0;
-   uns8           space[64]; /* sufficient space to decode data */
-   uns32          rc = NCSCC_RC_SUCCESS;
-   ASAPi_MSG_INFO *pMsg = 0;
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ASAPi_MSG_INFO *pMsg = 0;
 
-   *o_pMsg = 0;   
-   pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(asapi.my_svc_id); /* Allocate new MSG envelop */
-   if(!pMsg) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* Memmory failure ... */ 
-   }
-   memset(pMsg, 0, sizeof(ASAPi_MSG_INFO));
-  
-   /* Decode the ASAPi message type */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(uns8));
-   pMsg->msgtype = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(uns8));
+	*o_pMsg = 0;
+	pMsg = m_MMGR_ALLOC_ASAPi_MSG_INFO(asapi.my_svc_id);	/* Allocate new MSG envelop */
+	if (!pMsg) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* Memmory failure ... */
+	}
+	memset(pMsg, 0, sizeof(ASAPi_MSG_INFO));
 
-   if(ASAPi_MSG_REG == pMsg->msgtype) {
-      /* Decode ASAPi Registration message */
-      rc = asapi_reg_dec(pBuff, &pMsg->info.reg);
-   }
-   else if(ASAPi_MSG_REG_RESP == pMsg->msgtype) {
-      /* Decode ASAPi Registration Response message */
-      rc = asapi_reg_resp_dec(pBuff, &pMsg->info.rresp);
-   }
-   else if(ASAPi_MSG_DEREG == pMsg->msgtype) {
-      /* Decode ASAPi De-registration message */
-      rc = asapi_dereg_dec(pBuff, &pMsg->info.dereg);
-   }
-   else if(ASAPi_MSG_DEREG_RESP == pMsg->msgtype) {
-      /* Decode ASAPi De-registration Response message */
-      rc = asapi_dereg_resp_dec(pBuff, &pMsg->info.dresp);
-   }
-   else if(ASAPi_MSG_NRESOLVE == pMsg->msgtype) {
-      /* Decode Name Resolution message */
-      rc = asapi_nreslove_dec(pBuff, &pMsg->info.nresolve);
-   }
-   else if(ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype) {
-      /* Decode Name Resolution Response message */
-      rc = asapi_nreslove_resp_dec(pBuff, &pMsg->info.nresp);
-   }
-   else if(ASAPi_MSG_GETQUEUE == pMsg->msgtype) {
-      /* Decode ASAPi Getqueue queue message */
-      rc = asapi_getqueue_dec(pBuff, &pMsg->info.getqueue);
-   }
-   else if(ASAPi_MSG_GETQUEUE_RESP == pMsg->msgtype) {
-      /* Decode ASAPi Getqueue Queue Response message */
-      rc = asapi_getqueue_resp_dec(pBuff, &pMsg->info.vresp);
-   }
-   else if(ASAPi_MSG_TRACK == pMsg->msgtype) {
-      /* Decode ASAPi Track message */
-      rc = asapi_track_dec(pBuff, &pMsg->info.track);
-   }
-   else if(ASAPi_MSG_TRACK_RESP == pMsg->msgtype) {
-      /* Decode ASAPi Track Response message */
-      rc = asapi_track_resp_dec(pBuff, &pMsg->info.tresp);
-   }
-   else if(ASAPi_MSG_TRACK_NTFY == pMsg->msgtype) {
-      /* Decode ASAPi Track Notification message */
-      rc = asapi_track_ntfy_dec(pBuff, &pMsg->info.tntfy);
-   }
+	/* Decode the ASAPi message type */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(uns8));
+	pMsg->msgtype = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(uns8));
 
-   if(NCSCC_RC_SUCCESS != rc) {      
-      asapi_msg_free(&pMsg); /* Free the message ... */
-      pMsg = 0;
-      return m_ASAPi_DBG_SINK(rc);
-   }
+	if (ASAPi_MSG_REG == pMsg->msgtype) {
+		/* Decode ASAPi Registration message */
+		rc = asapi_reg_dec(pBuff, &pMsg->info.reg);
+	} else if (ASAPi_MSG_REG_RESP == pMsg->msgtype) {
+		/* Decode ASAPi Registration Response message */
+		rc = asapi_reg_resp_dec(pBuff, &pMsg->info.rresp);
+	} else if (ASAPi_MSG_DEREG == pMsg->msgtype) {
+		/* Decode ASAPi De-registration message */
+		rc = asapi_dereg_dec(pBuff, &pMsg->info.dereg);
+	} else if (ASAPi_MSG_DEREG_RESP == pMsg->msgtype) {
+		/* Decode ASAPi De-registration Response message */
+		rc = asapi_dereg_resp_dec(pBuff, &pMsg->info.dresp);
+	} else if (ASAPi_MSG_NRESOLVE == pMsg->msgtype) {
+		/* Decode Name Resolution message */
+		rc = asapi_nreslove_dec(pBuff, &pMsg->info.nresolve);
+	} else if (ASAPi_MSG_NRESOLVE_RESP == pMsg->msgtype) {
+		/* Decode Name Resolution Response message */
+		rc = asapi_nreslove_resp_dec(pBuff, &pMsg->info.nresp);
+	} else if (ASAPi_MSG_GETQUEUE == pMsg->msgtype) {
+		/* Decode ASAPi Getqueue queue message */
+		rc = asapi_getqueue_dec(pBuff, &pMsg->info.getqueue);
+	} else if (ASAPi_MSG_GETQUEUE_RESP == pMsg->msgtype) {
+		/* Decode ASAPi Getqueue Queue Response message */
+		rc = asapi_getqueue_resp_dec(pBuff, &pMsg->info.vresp);
+	} else if (ASAPi_MSG_TRACK == pMsg->msgtype) {
+		/* Decode ASAPi Track message */
+		rc = asapi_track_dec(pBuff, &pMsg->info.track);
+	} else if (ASAPi_MSG_TRACK_RESP == pMsg->msgtype) {
+		/* Decode ASAPi Track Response message */
+		rc = asapi_track_resp_dec(pBuff, &pMsg->info.tresp);
+	} else if (ASAPi_MSG_TRACK_NTFY == pMsg->msgtype) {
+		/* Decode ASAPi Track Notification message */
+		rc = asapi_track_ntfy_dec(pBuff, &pMsg->info.tntfy);
+	}
 
-   *o_pMsg = pMsg; /* OK--Done */
-   return rc;
-} /* End of asapi_msg_dec() */
+	if (NCSCC_RC_SUCCESS != rc) {
+		asapi_msg_free(&pMsg);	/* Free the message ... */
+		pMsg = 0;
+		return m_ASAPi_DBG_SINK(rc);
+	}
+
+	*o_pMsg = pMsg;		/* OK--Done */
+	return rc;
+}	/* End of asapi_msg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_reg_dec
@@ -159,47 +147,47 @@ uns32 asapi_msg_dec(NCS_UBAID *pBuff, ASAPi_MSG_INFO **o_pMsg)
 \****************************************************************************/
 static uns32 asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64], flag = 0; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   NCS_BOOL    gflag = FALSE;
+	uns8 *stream = 0;
+	uns8 space[64], flag = 0;	/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
+	NCS_BOOL gflag = FALSE;
 
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
-   flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(flag));
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
+	flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(flag));
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode Group Information */
-   rc = asapi_ginfo_dec(pBuff, &msg->group, &msg->policy);
-   if(NCSCC_RC_SUCCESS == rc) { 
-      gflag = TRUE; /* Group present */
-   }
+	/* Decode Group Information */
+	rc = asapi_ginfo_dec(pBuff, &msg->group, &msg->policy);
+	if (NCSCC_RC_SUCCESS == rc) {
+		gflag = TRUE;	/* Group present */
+	}
 
-   /* Decode Queue Information */
-   rc = asapi_qinfo_dec(pBuff, &msg->queue);
-   if(NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */      
-      if(gflag) 
-      {
-         msg->objtype = ASAPi_OBJ_GROUP;  
-         rc = NCSCC_RC_SUCCESS;
-      }
-      else return rc;
-   }
-   else {
-      if(gflag) msg->objtype = ASAPi_OBJ_BOTH;
-      else msg->objtype = ASAPi_OBJ_QUEUE;
-   }
-   return rc;
-} /* End of asapi_reg_dec() */
+	/* Decode Queue Information */
+	rc = asapi_qinfo_dec(pBuff, &msg->queue);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+		if (gflag) {
+			msg->objtype = ASAPi_OBJ_GROUP;
+			rc = NCSCC_RC_SUCCESS;
+		} else
+			return rc;
+	} else {
+		if (gflag)
+			msg->objtype = ASAPi_OBJ_BOTH;
+		else
+			msg->objtype = ASAPi_OBJ_QUEUE;
+	}
+	return rc;
+}	/* End of asapi_reg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_reg_resp_dec
@@ -213,55 +201,55 @@ static uns32 asapi_reg_dec(NCS_UBAID *pBuff, ASAPi_REG_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   NCS_BOOL    gflag = FALSE;
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
+	NCS_BOOL gflag = FALSE;
 
-   /* Decode the Error flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
-   msg->err.flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
+	/* Decode the Error flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
+	msg->err.flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode Group Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->group);
-   if(NCSCC_RC_SUCCESS == rc) { 
-      gflag = TRUE; /* Group present */
-   }
+	/* Decode Group Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->group);
+	if (NCSCC_RC_SUCCESS == rc) {
+		gflag = TRUE;	/* Group present */
+	}
 
-   /* Decode Queue Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->queue);
-   if(NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */      
-      if(gflag) 
-      {
-         msg->objtype = ASAPi_OBJ_GROUP;  
-         rc = NCSCC_RC_SUCCESS;
-      }
-      else return rc;
-   }
-   else {
-      if(gflag) msg->objtype = ASAPi_OBJ_BOTH;
-      else msg->objtype = ASAPi_OBJ_QUEUE;
-   }
+	/* Decode Queue Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->queue);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+		if (gflag) {
+			msg->objtype = ASAPi_OBJ_GROUP;
+			rc = NCSCC_RC_SUCCESS;
+		} else
+			return rc;
+	} else {
+		if (gflag)
+			msg->objtype = ASAPi_OBJ_BOTH;
+		else
+			msg->objtype = ASAPi_OBJ_QUEUE;
+	}
 
-   /* Decode Error Information */
-   if(msg->err.flag) {   
-      stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
-      msg->err.errcode = ncs_decode_32bit(&stream);
-      ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));      
-   }
+	/* Decode Error Information */
+	if (msg->err.flag) {
+		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		msg->err.errcode = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
+	}
 
-   return rc;
-} /* End of asapi_reg_resp_dec() */
+	return rc;
+}	/* End of asapi_reg_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_dereg_dec
@@ -275,46 +263,47 @@ static uns32 asapi_reg_resp_dec(NCS_UBAID *pBuff, ASAPi_REG_RESP_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64], flag = 0; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   NCS_BOOL    gflag = FALSE;
+	uns8 *stream = 0;
+	uns8 space[64], flag = 0;	/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
+	NCS_BOOL gflag = FALSE;
 
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
-   flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(flag));
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
+	flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(flag));
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode Group Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->group);
-   if(NCSCC_RC_SUCCESS == rc) {
-      gflag = TRUE; /* Group present */
-   }
+	/* Decode Group Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->group);
+	if (NCSCC_RC_SUCCESS == rc) {
+		gflag = TRUE;	/* Group present */
+	}
 
-   /* Decode Queue Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->queue);
-   if(NCSCC_RC_SUCCESS != rc) {
-      if(gflag) {
-         msg->objtype = ASAPi_OBJ_GROUP;
-         rc = NCSCC_RC_SUCCESS;
-      }  
-      else return rc;
-   }
-   else {
-      if(gflag) msg->objtype = ASAPi_OBJ_BOTH;
-      else msg->objtype = ASAPi_OBJ_QUEUE;
-   }
-   return rc;
-} /* End of asapi_dereg_dec() */
+	/* Decode Queue Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->queue);
+	if (NCSCC_RC_SUCCESS != rc) {
+		if (gflag) {
+			msg->objtype = ASAPi_OBJ_GROUP;
+			rc = NCSCC_RC_SUCCESS;
+		} else
+			return rc;
+	} else {
+		if (gflag)
+			msg->objtype = ASAPi_OBJ_BOTH;
+		else
+			msg->objtype = ASAPi_OBJ_QUEUE;
+	}
+	return rc;
+}	/* End of asapi_dereg_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_dereg_resp_dec
@@ -328,55 +317,55 @@ static uns32 asapi_dereg_dec(NCS_UBAID *pBuff, ASAPi_DEREG_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   NCS_BOOL    gflag = FALSE;
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
+	NCS_BOOL gflag = FALSE;
 
-   /* Decode the Error flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
-   msg->err.flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
+	/* Decode the Error flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
+	msg->err.flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode Group Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->group);
-   if(NCSCC_RC_SUCCESS == rc) { 
-      gflag = TRUE; /* Group present */
-   }
+	/* Decode Group Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->group);
+	if (NCSCC_RC_SUCCESS == rc) {
+		gflag = TRUE;	/* Group present */
+	}
 
-   /* Decode Queue Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->queue);
-   if(NCSCC_RC_SUCCESS != rc) { /* Queue Information doesn't exist */      
-      if(gflag) 
-      {
-          msg->objtype = ASAPi_OBJ_GROUP;  
-          rc = NCSCC_RC_SUCCESS;
-      }
-      else return rc;
-   }
-   else {
-      if(gflag) msg->objtype = ASAPi_OBJ_BOTH;
-      else msg->objtype = ASAPi_OBJ_QUEUE;
-   }
+	/* Decode Queue Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->queue);
+	if (NCSCC_RC_SUCCESS != rc) {	/* Queue Information doesn't exist */
+		if (gflag) {
+			msg->objtype = ASAPi_OBJ_GROUP;
+			rc = NCSCC_RC_SUCCESS;
+		} else
+			return rc;
+	} else {
+		if (gflag)
+			msg->objtype = ASAPi_OBJ_BOTH;
+		else
+			msg->objtype = ASAPi_OBJ_QUEUE;
+	}
 
-   /* Decode Error Information */
-   if(msg->err.flag) {
-      stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
-      msg->err.errcode = ncs_decode_32bit(&stream);
-      ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
-   }
+	/* Decode Error Information */
+	if (msg->err.flag) {
+		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		msg->err.errcode = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
+	}
 
-   return rc;
-} /* End of asapi_dereg_resp_dec() */
+	return rc;
+}	/* End of asapi_dereg_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_nreslove_dec
@@ -390,28 +379,28 @@ static uns32 asapi_dereg_resp_dec(NCS_UBAID *pBuff, ASAPi_DEREG_RESP_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_nreslove_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->track));
-   msg->track = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->track));
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->track));
+	msg->track = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->track));
 
-   /* Decode Object Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->object);
-   return rc;
-} /* End of asapi_nreslove_dec() */
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
+
+	/* Decode Object Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->object);
+	return rc;
+}	/* End of asapi_nreslove_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_nreslove_resp_dec
@@ -425,11 +414,11 @@ static uns32 asapi_nreslove_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_nreslove_resp_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_RESP_INFO *msg)
 {
-   uns32       rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   rc = asapi_obj_info_dec(pBuff, &msg->oinfo, &msg->err);
-   return rc;
-} /* End of asapi_nreslove_resp_dec() */
+	rc = asapi_obj_info_dec(pBuff, &msg->oinfo, &msg->err);
+	return rc;
+}	/* End of asapi_nreslove_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_getqueue_dec
@@ -443,28 +432,28 @@ static uns32 asapi_nreslove_resp_dec(NCS_UBAID *pBuff, ASAPi_NRESOLVE_RESP_INFO 
 \****************************************************************************/
 static uns32 asapi_getqueue_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64], flag = 0; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
-   flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(flag));
+	uns8 *stream = 0;
+	uns8 space[64], flag = 0;	/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
+	flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(flag));
 
-   /* Decode Queue Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->queue);
-   return rc;
-} /* End of asapi_getqueue_dec() */
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
+
+	/* Decode Queue Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->queue);
+	return rc;
+}	/* End of asapi_getqueue_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_getqueue_resp_dec
@@ -478,36 +467,36 @@ static uns32 asapi_getqueue_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   
-   /* Decode the Error flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
-   msg->err.flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
-      
-   /* Decode Queue Information */
-   asapi_qinfo_dec(pBuff, &msg->queue);   
-   
-   /* Decode Error Information */
-   if(msg->err.flag) { 
-      stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
-      msg->err.errcode = ncs_decode_32bit(&stream);
-      ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
-   }
+	/* Decode the Error flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.flag));
+	msg->err.flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->err.flag));
 
-   return rc;
-} /* End of asapi_getqueue_resp_dec() */
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
+
+	/* Decode Queue Information */
+	asapi_qinfo_dec(pBuff, &msg->queue);
+
+	/* Decode Error Information */
+	if (msg->err.flag) {
+		stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->err.errcode));
+		msg->err.errcode = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(pBuff, sizeof(msg->err.errcode));
+	}
+
+	return rc;
+}	/* End of asapi_getqueue_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_dec
@@ -521,30 +510,29 @@ static uns32 asapi_getqueue_resp_dec(NCS_UBAID *pBuff, ASAPi_GETQUEUE_RESP_INFO 
 \****************************************************************************/
 static uns32 asapi_track_dec(NCS_UBAID *pBuff, ASAPi_TRACK_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0;
-   
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0;
 
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->val));
-   msg->val = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->val));
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->val));
+	msg->val = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->val));
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
-     
-   /* Decode Object Name & Length */
-   rc = asapi_name_dec(pBuff, &msg->object);
-   
-   return rc;
-} /* End of asapi_track_dec() */
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
+
+	/* Decode Object Name & Length */
+	rc = asapi_name_dec(pBuff, &msg->object);
+
+	return rc;
+}	/* End of asapi_track_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_resp_dec
@@ -558,12 +546,11 @@ static uns32 asapi_track_dec(NCS_UBAID *pBuff, ASAPi_TRACK_INFO *msg)
 \****************************************************************************/
 static uns32 asapi_track_resp_dec(NCS_UBAID *pBuff, ASAPi_TRACK_RESP_INFO *tresp)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   rc = asapi_obj_info_dec(pBuff, &tresp->oinfo, &tresp->err);
-   return rc;
-} /* End of asapi_track_resp_dec() */
+	uns32 rc = NCSCC_RC_SUCCESS;
 
+	rc = asapi_obj_info_dec(pBuff, &tresp->oinfo, &tresp->err);
+	return rc;
+}	/* End of asapi_track_resp_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_obj_info_dec
@@ -576,59 +563,57 @@ static uns32 asapi_track_resp_dec(NCS_UBAID *pBuff, ASAPi_TRACK_RESP_INFO *tresp
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something. 
 \****************************************************************************/
-static uns32 
-asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err)
+static uns32 asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *err)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0, idx = 0;
-   
-   /* Decode the Error flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(err->flag));
-   err->flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(err->flag));
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0, idx = 0;
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode the Error flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(err->flag));
+	err->flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(err->flag));
 
-   /* Decode Group Info */
-   asapi_ginfo_dec(pBuff, &info->group, &info->policy);   
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode number of Queues */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(info->qcnt));
-   info->qcnt = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(info->qcnt));
+	/* Decode Group Info */
+	asapi_ginfo_dec(pBuff, &info->group, &info->policy);
 
-   /* Allocate Queue Information */
-   if(info->qcnt) {
-      info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(info->qcnt*sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
-      if(!info->qparam) {
-         return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* OOOppps Memory Failure */
-      }
-      memset(info->qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
-   
-      for(idx=0; idx<info->qcnt; idx++)
-      {
-         /* Decode Queue Information */
-         asapi_qinfo_dec(pBuff, &info->qparam[idx]);
-      }
-   }
-   
-   /* Decode Error Information */
-   if(err->flag) {
-      stream  = ncs_dec_flatten_space(pBuff, space, sizeof(err->errcode));
-      err->errcode = ncs_decode_32bit(&stream);
-      ncs_dec_skip_space(pBuff, sizeof(err->errcode));
-   }
+	/* Decode number of Queues */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(info->qcnt));
+	info->qcnt = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(info->qcnt));
 
-   return rc;
-} /* End of asapi_obj_info_dec() */
+	/* Allocate Queue Information */
+	if (info->qcnt) {
+		info->qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(info->qcnt * sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
+		if (!info->qparam) {
+			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* OOOppps Memory Failure */
+		}
+		memset(info->qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
+
+		for (idx = 0; idx < info->qcnt; idx++) {
+			/* Decode Queue Information */
+			asapi_qinfo_dec(pBuff, &info->qparam[idx]);
+		}
+	}
+
+	/* Decode Error Information */
+	if (err->flag) {
+		stream = ncs_dec_flatten_space(pBuff, space, sizeof(err->errcode));
+		err->errcode = ncs_decode_32bit(&stream);
+		ncs_dec_skip_space(pBuff, sizeof(err->errcode));
+	}
+
+	return rc;
+}	/* End of asapi_obj_info_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_track_ntfy_dec
@@ -643,55 +628,54 @@ asapi_obj_info_dec(NCS_UBAID *pBuff, ASAPi_OBJECT_INFO *info, ASAPi_ERR_INFO *er
 \****************************************************************************/
 static uns32 asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *msg)
 {
-   uns8        *stream = 0;
-   uns8        space[64], flag = 0; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-   uns16       len = 0, idx = 0;
-   
-   /* Decode the flag */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
-   flag = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(flag));
+	uns8 *stream = 0;
+	uns8 space[64], flag = 0;	/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns16 len = 0, idx = 0;
 
-   /* Decode message length */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(len));
-   len = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(len));
-   if(!len) {
-      return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE); /* wrong message length */
-   }
+	/* Decode the flag */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(flag));
+	flag = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(flag));
 
-   /* Decode track operation */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->opr));
-   msg->opr = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->opr));
+	/* Decode message length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(len));
+	len = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(len));
+	if (!len) {
+		return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);	/* wrong message length */
+	}
 
-   /* Decode Group Info */
-   asapi_ginfo_dec(pBuff, &msg->oinfo.group, &msg->oinfo.policy);   
+	/* Decode track operation */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->opr));
+	msg->opr = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->opr));
 
-   /* Decode number of Queues */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(msg->oinfo.qcnt));
-   msg->oinfo.qcnt = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(msg->oinfo.qcnt));
+	/* Decode Group Info */
+	asapi_ginfo_dec(pBuff, &msg->oinfo.group, &msg->oinfo.policy);
 
-   /* Allocate Queue Information */
-   if(msg->oinfo.qcnt) {
-      msg->oinfo.qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(msg->oinfo.qcnt*
-         sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
-      if(!msg->oinfo.qparam) {
-         return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-      memset(msg->oinfo.qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
-   
-      for(idx=0; idx<msg->oinfo.qcnt; idx++)
-      {
-         /* Decode Queue Information */
-         asapi_qinfo_dec(pBuff, &msg->oinfo.qparam[idx]);
-      }
-   }
-      
-   return rc;
-} /* End of asapi_track_ntfy_dec() */
+	/* Decode number of Queues */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(msg->oinfo.qcnt));
+	msg->oinfo.qcnt = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(msg->oinfo.qcnt));
+
+	/* Allocate Queue Information */
+	if (msg->oinfo.qcnt) {
+		msg->oinfo.qparam = m_MMGR_ALLOC_ASAPi_DEFAULT_VAL(msg->oinfo.qcnt *
+								   sizeof(ASAPi_QUEUE_PARAM), asapi.my_svc_id);
+		if (!msg->oinfo.qparam) {
+			return m_ASAPi_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+		memset(msg->oinfo.qparam, 0, sizeof(ASAPi_QUEUE_PARAM));
+
+		for (idx = 0; idx < msg->oinfo.qcnt; idx++) {
+			/* Decode Queue Information */
+			asapi_qinfo_dec(pBuff, &msg->oinfo.qparam[idx]);
+		}
+	}
+
+	return rc;
+}	/* End of asapi_track_ntfy_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_ginfo_dec
@@ -705,33 +689,33 @@ static uns32 asapi_track_ntfy_dec(NCS_UBAID *pBuff, ASAPi_TRACK_NTFY_INFO *msg)
    RETURNS        :  SUCCESS - All went well
                      FAILURE - internal processing didn't like something.
 \****************************************************************************/
-static uns32 
-asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy)
+static uns32 asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-  
-   memset(group, 0, sizeof(SaNameT));
- 
-   /* Decode Group Name Length */   
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(group->length));
-   group->length = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(group->length));
-   if(!group->length) return NCSCC_RC_FAILURE; /* Nothin to decode */
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Decode Group Selection Policy */   
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(SaMsgQueueGroupPolicyT));
-   *policy = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(SaMsgQueueGroupPolicyT));
-   
-   /* Decode Group Name */      
-   stream = ncs_dec_flatten_space(pBuff, space, group->length);
-   memcpy(group->value, stream, group->length);
-   ncs_dec_skip_space(pBuff, group->length);
+	memset(group, 0, sizeof(SaNameT));
 
-   return rc; 
-} /* End of asapi_ginfo_dec() */
+	/* Decode Group Name Length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(group->length));
+	group->length = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(group->length));
+	if (!group->length)
+		return NCSCC_RC_FAILURE;	/* Nothin to decode */
+
+	/* Decode Group Selection Policy */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(SaMsgQueueGroupPolicyT));
+	*policy = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(SaMsgQueueGroupPolicyT));
+
+	/* Decode Group Name */
+	stream = ncs_dec_flatten_space(pBuff, space, group->length);
+	memcpy(group->value, stream, group->length);
+	ncs_dec_skip_space(pBuff, group->length);
+
+	return rc;
+}	/* End of asapi_ginfo_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_qinfo_dec
@@ -746,58 +730,58 @@ asapi_ginfo_dec(NCS_UBAID *pBuff, SaNameT *group, SaMsgQueueGroupPolicyT *policy
 \****************************************************************************/
 static uns32 asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS, i;
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS, i;
 
-   /* Decode Queue Name & Length */
-   rc = asapi_name_dec(pBuff, &queue->name);
-   if(NCSCC_RC_SUCCESS != rc) {
-      return rc; /* Queue Info doesn't exist */
-   }
+	/* Decode Queue Name & Length */
+	rc = asapi_name_dec(pBuff, &queue->name);
+	if (NCSCC_RC_SUCCESS != rc) {
+		return rc;	/* Queue Info doesn't exist */
+	}
 
-   /* Decode Queue Handle */   
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->hdl));
-   queue->hdl = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->hdl));
+	/* Decode Queue Handle */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->hdl));
+	queue->hdl = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->hdl));
 
-   /* Decode Registration Life */   
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->retentionTime));
-   queue->retentionTime = ncs_decode_64bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->retentionTime));
+	/* Decode Registration Life */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->retentionTime));
+	queue->retentionTime = ncs_decode_64bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->retentionTime));
 
-   /* Decode MDS param */
-   mds_uba_decode_mds_dest(pBuff, &queue->addr);
+	/* Decode MDS param */
+	mds_uba_decode_mds_dest(pBuff, &queue->addr);
 
-  /* Decode Selection Policy A. Ownership */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->owner));
-   queue->owner = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->owner));
+	/* Decode Selection Policy A. Ownership */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->owner));
+	queue->owner = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->owner));
 
-   /* Decode Selection Policy A. Sending State */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->status));
-   queue->status = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->status));
+	/* Decode Selection Policy A. Sending State */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->status));
+	queue->status = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->status));
 
-   /* Decode the flag which says is_mqnd_down or not */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->is_mqnd_down));
-   queue->is_mqnd_down = ncs_decode_8bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->is_mqnd_down));
+	/* Decode the flag which says is_mqnd_down or not */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->is_mqnd_down));
+	queue->is_mqnd_down = ncs_decode_8bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->is_mqnd_down));
 
-   /* Decode creationFlags */
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->creationFlags));
-   queue->creationFlags = ncs_decode_32bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(queue->creationFlags));
+	/* Decode creationFlags */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->creationFlags));
+	queue->creationFlags = ncs_decode_32bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(queue->creationFlags));
 
-   /* Decode size[] array */
-   for (i = 0; i < SA_MSG_MESSAGE_LOWEST_PRIORITY+1; i++) {
-      stream  = ncs_dec_flatten_space(pBuff, space, sizeof(queue->size[i]));
-      queue->size[i] = ncs_decode_64bit(&stream);
-      ncs_dec_skip_space(pBuff, sizeof(queue->size[i]));
-   }
+	/* Decode size[] array */
+	for (i = 0; i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++) {
+		stream = ncs_dec_flatten_space(pBuff, space, sizeof(queue->size[i]));
+		queue->size[i] = ncs_decode_64bit(&stream);
+		ncs_dec_skip_space(pBuff, sizeof(queue->size[i]));
+	}
 
-   return rc;
-} /* End of asapi_qinfo_dec() */
+	return rc;
+}	/* End of asapi_qinfo_dec() */
 
 /****************************************************************************\
    PROCEDURE NAME :  asapi_name_dec
@@ -812,22 +796,23 @@ static uns32 asapi_qinfo_dec(NCS_UBAID *pBuff, ASAPi_QUEUE_PARAM *queue)
 \****************************************************************************/
 static uns32 asapi_name_dec(NCS_UBAID *pBuff, SaNameT *name)
 {
-   uns8        *stream = 0;
-   uns8        space[64]; /* sufficient space to decode data */
-   uns32       rc = NCSCC_RC_SUCCESS;
-  
-   memset(name, 0, sizeof(SaNameT));
+	uns8 *stream = 0;
+	uns8 space[64];		/* sufficient space to decode data */
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* Decode Name Length */   
-   stream  = ncs_dec_flatten_space(pBuff, space, sizeof(name->length));
-   name->length = ncs_decode_16bit(&stream);
-   ncs_dec_skip_space(pBuff, sizeof(name->length));
-   if(!name->length) return NCSCC_RC_FAILURE; /* Nothin to decode */
+	memset(name, 0, sizeof(SaNameT));
 
-   /* Decode Name */      
-   stream = ncs_dec_flatten_space(pBuff, space, name->length);
-   memcpy(name->value, stream, name->length);
-   ncs_dec_skip_space(pBuff, name->length);
+	/* Decode Name Length */
+	stream = ncs_dec_flatten_space(pBuff, space, sizeof(name->length));
+	name->length = ncs_decode_16bit(&stream);
+	ncs_dec_skip_space(pBuff, sizeof(name->length));
+	if (!name->length)
+		return NCSCC_RC_FAILURE;	/* Nothin to decode */
 
-   return rc;
-} /* End of asapi_name_dec() */
+	/* Decode Name */
+	stream = ncs_dec_flatten_space(pBuff, space, name->length);
+	memcpy(name->value, stream, name->length);
+	ncs_dec_skip_space(pBuff, name->length);
+
+	return rc;
+}	/* End of asapi_name_dec() */

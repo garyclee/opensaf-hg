@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,7 +33,6 @@
 
 #include "cla.h"
 
-
 /****************************************************************************
   Name          : cla_avnd_msg_prc
  
@@ -48,74 +45,70 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 cla_avnd_msg_prc (CLA_CB *cb, AVSV_NDA_CLA_MSG *msg)
+uns32 cla_avnd_msg_prc(CLA_CB *cb, AVSV_NDA_CLA_MSG *msg)
 {
-   CLA_HDL_REC       *hdl_rec = 0;
-   AVSV_CLM_CBK_INFO *cbk_info = 0;
-   uns32             hdl = 0, size=0;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	CLA_HDL_REC *hdl_rec = 0;
+	AVSV_CLM_CBK_INFO *cbk_info = 0;
+	uns32 hdl = 0, size = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* 
-    * CLA receives either AVSV_AVND_CLM_CBK_MSG or AVSV_AVND_CLM_API_RESP_MSG 
-    * from AvND. Response to APIs is handled by synchronous blocking calls. 
-    * Hence, in this flow, the message type can only be AVSV_AVND_CLM_CBK_MSG.
-    */
-   m_AVSV_ASSERT(msg->type == AVSV_AVND_CLM_CBK_MSG);
+	/* 
+	 * CLA receives either AVSV_AVND_CLM_CBK_MSG or AVSV_AVND_CLM_API_RESP_MSG 
+	 * from AvND. Response to APIs is handled by synchronous blocking calls. 
+	 * Hence, in this flow, the message type can only be AVSV_AVND_CLM_CBK_MSG.
+	 */
+	m_AVSV_ASSERT(msg->type == AVSV_AVND_CLM_CBK_MSG);
 
-   /* get the callbk info */
-   cbk_info = m_MMGR_ALLOC_AVSV_CLM_CBK_INFO;
-   if(!cbk_info)
-      return NCSCC_RC_FAILURE;
-   
-   memcpy(cbk_info, &msg->info.cbk_info, sizeof(AVSV_CLM_CBK_INFO));
+	/* get the callbk info */
+	cbk_info = m_MMGR_ALLOC_AVSV_CLM_CBK_INFO;
+	if (!cbk_info)
+		return NCSCC_RC_FAILURE;
 
-   if(cbk_info->type == AVSV_CLM_CBK_TRACK)
-   {
-      cbk_info->param.track.notify.notification = 0;
-      size = (msg->info.cbk_info.param.track.notify.numberOfItems) * 
-                   (sizeof (SaClmClusterNotificationT));
-      cbk_info->param.track.notify.notification = 
-                   (SaClmClusterNotificationT *)malloc(size); 
+	memcpy(cbk_info, &msg->info.cbk_info, sizeof(AVSV_CLM_CBK_INFO));
 
-      if (0 == cbk_info->param.track.notify.notification)
-      {
-         rc = NCSCC_RC_FAILURE;
-         goto done;
-      }
+	if (cbk_info->type == AVSV_CLM_CBK_TRACK) {
+		cbk_info->param.track.notify.notification = 0;
+		size = (msg->info.cbk_info.param.track.notify.numberOfItems) * (sizeof(SaClmClusterNotificationT));
+		cbk_info->param.track.notify.notification = (SaClmClusterNotificationT *)malloc(size);
 
-      memcpy(cbk_info->param.track.notify.notification, 
-                   msg->info.cbk_info.param.track.notify.notification, 
-                   size);
-   }
+		if (0 == cbk_info->param.track.notify.notification) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-   hdl = cbk_info->hdl;
+		memcpy(cbk_info->param.track.notify.notification,
+		       msg->info.cbk_info.param.track.notify.notification, size);
+	}
 
-   /* retrieve the handle record */
-   hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
+	hdl = cbk_info->hdl;
 
-   if(hdl_rec)
-   {
-      /* push the callbk parameters in the pending callbk list */
-      rc = cla_hdl_cbk_param_add(cb, hdl_rec, cbk_info);
-      if (NCSCC_RC_SUCCESS != rc)
-         goto done;
+	/* retrieve the handle record */
+	hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
 
-         /* => the callbk info ptr is used in the pend callbk list */
-         cbk_info = 0;
+	if (hdl_rec) {
+		/* push the callbk parameters in the pending callbk list */
+		rc = cla_hdl_cbk_param_add(cb, hdl_rec, cbk_info);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto done;
 
-      /* return the handle record */
-      ncshm_give_hdl(hdl);
-      return rc;
-   }
+		/* => the callbk info ptr is used in the pend callbk list */
+		cbk_info = 0;
 
-done:
-   /* Free the above allocated mem */
-   if(hdl_rec) ncshm_give_hdl(hdl);
-   
-   if(cbk_info->param.track.notify.notification)
-      free(cbk_info->param.track.notify.notification);
-   
-   if(cbk_info) m_MMGR_FREE_AVSV_CLM_CBK_INFO(cbk_info);
+		/* return the handle record */
+		ncshm_give_hdl(hdl);
+		return rc;
+	}
 
-   return rc;
+ done:
+	/* Free the above allocated mem */
+	if (hdl_rec)
+		ncshm_give_hdl(hdl);
+
+	if (cbk_info->param.track.notify.notification)
+		free(cbk_info->param.track.notify.notification);
+
+	if (cbk_info)
+		m_MMGR_FREE_AVSV_CLM_CBK_INFO(cbk_info);
+
+	return rc;
 }

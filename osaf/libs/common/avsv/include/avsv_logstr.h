@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,6 +45,6 @@ EXTERN_C const NCSFL_STR avsv_cbk_set[];
 EXTERN_C const NCSFL_STR avsv_mbx_set[];
 EXTERN_C const NCSFL_STR avsv_task_set[];
 EXTERN_C const NCSFL_STR avsv_pat_set[];
-#endif /* (NCS_DTS == 1) */
+#endif   /* (NCS_DTS == 1) */
 
-#endif /* AVSV_LOGSTR_H */
+#endif   /* AVSV_LOGSTR_H */

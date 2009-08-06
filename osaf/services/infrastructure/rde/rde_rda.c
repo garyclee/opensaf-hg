@@ -58,9 +58,8 @@
 *****************************************************************************/
 static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
 {
-   uns32 rc= NCSCC_RC_SUCCESS;
-   m_RDE_ENTRY("rde_rda_sock_open");
-
+	uns32 rc = NCSCC_RC_SUCCESS;
+	m_RDE_ENTRY("rde_rda_sock_open");
 
    /***************************************************************\
     *                                                               *
@@ -68,15 +67,14 @@ static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   rde_rda_cb-> fd = socket (AF_UNIX, SOCK_STREAM, 0) ;
+	rde_rda_cb->fd = socket(AF_UNIX, SOCK_STREAM, 0);
 
-   if (rde_rda_cb-> fd < 0)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CREATE_FAIL, errno);
-      return NCSCC_RC_FAILURE;
-   }
+	if (rde_rda_cb->fd < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CREATE_FAIL, errno);
+		return NCSCC_RC_FAILURE;
+	}
 
-   return rc;
+	return rc;
 }
 
 /*****************************************************************************
@@ -99,10 +97,10 @@ static uns32 rde_rda_sock_open(RDE_RDA_CB *rde_rda_cb)
 *****************************************************************************/
 static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
 {
-   struct stat sockStat;
-   int         rc;
+	struct stat sockStat;
+	int rc;
 
-   m_RDE_ENTRY("rde_rda_sock_init");
+	m_RDE_ENTRY("rde_rda_sock_init");
 
    /***************************************************************\
     *                                                               *
@@ -110,19 +108,16 @@ static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
+	rc = stat(rde_rda_cb->sock_address.sun_path, &sockStat);
 
-   rc = stat (rde_rda_cb-> sock_address. sun_path, &sockStat);
+	if (rc == 0) {		/* File exists */
+		rc = remove(rde_rda_cb->sock_address.sun_path);
+		if (rc != 0) {
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_REMOVE_FAIL, errno);
 
-   if (rc == 0)   /* File exists */
-   {
-      rc = remove (rde_rda_cb-> sock_address. sun_path);
-      if (rc != 0)
-      {
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_REMOVE_FAIL, errno);
-
-         return NCSCC_RC_FAILURE;
-      }
-   }
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
    /***************************************************************\
     *                                                               *
@@ -130,15 +125,12 @@ static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   rc = bind (rde_rda_cb->fd,
-              (struct sockaddr *) & rde_rda_cb-> sock_address,
-              sizeof(rde_rda_cb-> sock_address));
+	rc = bind(rde_rda_cb->fd, (struct sockaddr *)&rde_rda_cb->sock_address, sizeof(rde_rda_cb->sock_address));
 
-   if (rc < 0)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_BIND_FAIL, errno);
-      return NCSCC_RC_FAILURE;
-   }
+	if (rc < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_BIND_FAIL, errno);
+		return NCSCC_RC_FAILURE;
+	}
 
    /***************************************************************\
     *                                                               *
@@ -146,9 +138,9 @@ static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   listen(rde_rda_cb->fd, 5);
+	listen(rde_rda_cb->fd, 5);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -171,9 +163,9 @@ static uns32 rde_rda_sock_init(RDE_RDA_CB *rde_rda_cb)
 *****************************************************************************/
 static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
 {
-   int rc;
+	int rc;
 
-   m_RDE_ENTRY("rde_rda_sock_close");
+	m_RDE_ENTRY("rde_rda_sock_close");
 
    /***************************************************************\
     *                                                               *
@@ -181,13 +173,12 @@ static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   rc = close (rde_rda_cb-> fd);
-   if (rc < 0)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CLOSE_FAIL, errno);
+	rc = close(rde_rda_cb->fd);
+	if (rc < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CLOSE_FAIL, errno);
 
-      return NCSCC_RC_FAILURE;
-   }
+		return NCSCC_RC_FAILURE;
+	}
 
    /***************************************************************\
     *                                                               *
@@ -195,15 +186,14 @@ static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   rc = remove(rde_rda_cb-> sock_address. sun_path);
-   if (rc < 0)
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_REMOVE_FAIL, errno);
+	rc = remove(rde_rda_cb->sock_address.sun_path);
+	if (rc < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_REMOVE_FAIL, errno);
 
-      return NCSCC_RC_FAILURE;
-   }
+		return NCSCC_RC_FAILURE;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -224,8 +214,8 @@ static uns32 rde_rda_sock_close(RDE_RDA_CB *rde_rda_cb)
 *****************************************************************************/
 static uns32 rde_rda_write_msg(int fd, char *msg)
 {
-   int         rc         = NCSCC_RC_SUCCESS;
-   int         msg_size   = 0;
+	int rc = NCSCC_RC_SUCCESS;
+	int msg_size = 0;
 
    /***************************************************************\
     *                                                               *
@@ -233,21 +223,19 @@ static uns32 rde_rda_write_msg(int fd, char *msg)
     *                                                               *
    \***************************************************************/
 
-   msg_size = send   (fd, msg, strlen (msg) + 1, 0);
-   if (msg_size < 0)
-   {
-      if (errno != EINTR && errno != EWOULDBLOCK)
-         /* Non-benign error */
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_SEND_FAIL, errno);
+	msg_size = send(fd, msg, strlen(msg) + 1, 0);
+	if (msg_size < 0) {
+		if (errno != EINTR && errno != EWOULDBLOCK)
+			/* Non-benign error */
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_SEND_FAIL, errno);
 
-      return NCSCC_RC_FAILURE;
-   }
+		return NCSCC_RC_FAILURE;
+	}
 
-   m_RDE_LOG_COND_C (RDE_SEV_DEBUG, RDE_COND_RDA_RESPONSE, msg);
+	m_RDE_LOG_COND_C(RDE_SEV_DEBUG, RDE_COND_RDA_RESPONSE, msg);
 
-   return rc;
+	return rc;
 }
-
 
 /*****************************************************************************
 
@@ -267,39 +255,38 @@ static uns32 rde_rda_write_msg(int fd, char *msg)
 *****************************************************************************/
 static uns32 rde_rda_read_msg(int fd, char *msg, int size)
 {
-   int         msg_size  = 0;
+	int msg_size = 0;
 
    /***************************************************************\
     *                                                               *
     *         Read from socket into input buffer                    *
     *                                                               *
    \***************************************************************/
-   msg_size = recv (fd, msg, size, 0);
-   if (msg_size < 0)
-   {
-      if (errno != EINTR && errno != EWOULDBLOCK)
-         /* Non-benign error */
-         m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_RECV_FAIL, errno);
+	msg_size = recv(fd, msg, size, 0);
+	if (msg_size < 0) {
+		if (errno != EINTR && errno != EWOULDBLOCK)
+			/* Non-benign error */
+			m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_RECV_FAIL, errno);
 
-      return NCSCC_RC_FAILURE;
-   }
+		return NCSCC_RC_FAILURE;
+	}
 
-   /*
-   ** Is peer closed?
-   */
-   if (msg_size == 0)
-   {
-      /*
-      ** Yes! disconnect client
-      */
-      sprintf (msg, "%d", RDE_RDA_DISCONNECT_REQ);
-      m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_COND_SOCK_RECV_FAIL, "Connection closed by client (orderly shutdown)");
-      return NCSCC_RC_SUCCESS;
-   }
+	/*
+	 ** Is peer closed?
+	 */
+	if (msg_size == 0) {
+		/*
+		 ** Yes! disconnect client
+		 */
+		sprintf(msg, "%d", RDE_RDA_DISCONNECT_REQ);
+		m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_COND_SOCK_RECV_FAIL,
+				 "Connection closed by client (orderly shutdown)");
+		return NCSCC_RC_SUCCESS;
+	}
 
-   m_RDE_LOG_COND_C (RDE_SEV_DEBUG, RDE_COND_RDA_CMD, msg);
+	m_RDE_LOG_COND_C(RDE_SEV_DEBUG, RDE_COND_RDA_CMD, msg);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -307,7 +294,6 @@ static uns32 rde_rda_read_msg(int fd, char *msg, int size)
   PROCEDURE NAME:       rde_rda_process_get_role
 
   DESCRIPTION:          Process the get role message
-
 
   ARGUMENTS:
      rde_rda_cb   Pointer to RDE  Socket Config structure
@@ -321,18 +307,17 @@ static uns32 rde_rda_read_msg(int fd, char *msg, int size)
   NOTES:
 
 *****************************************************************************/
-static uns32 rde_rda_process_get_role(RDE_RDA_CB  *rde_rda_cb, int index)
+static uns32 rde_rda_process_get_role(RDE_RDA_CB *rde_rda_cb, int index)
 {
-    char               msg [64] = {0};
-    RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
+	char msg[64] = { 0 };
+	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
 
-    sprintf (msg, "%d %d", RDE_RDA_GET_ROLE_RES, rde_cb->ha_role);
-    if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	sprintf(msg, "%d %d", RDE_RDA_GET_ROLE_RES, rde_cb->ha_role);
+	if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -341,7 +326,6 @@ static uns32 rde_rda_process_get_role(RDE_RDA_CB  *rde_rda_cb, int index)
   PROCEDURE NAME:       rde_rda_process_set_role
 
   DESCRIPTION:          Process the get role message
-
 
   ARGUMENTS:
      rde_rda_cb   Pointer to RDE  Socket Config structure
@@ -359,22 +343,21 @@ static uns32 rde_rda_process_get_role(RDE_RDA_CB  *rde_rda_cb, int index)
 static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int role)
 {
 
-    char               msg [64] = {0};
+	char msg[64] = { 0 };
 
-    /*
-    ** Seed role into RDE 
-    */
-    if (rde_rde_set_role (role) != NCSCC_RC_SUCCESS)
-        sprintf (msg, "%d", RDE_RDA_SET_ROLE_NACK);
-    else
-        sprintf (msg, "%d", RDE_RDA_SET_ROLE_ACK);
+	/*
+	 ** Seed role into RDE 
+	 */
+	if (rde_rde_set_role(role) != NCSCC_RC_SUCCESS)
+		sprintf(msg, "%d", RDE_RDA_SET_ROLE_NACK);
+	else
+		sprintf(msg, "%d", RDE_RDA_SET_ROLE_ACK);
 
-    if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -383,11 +366,9 @@ static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int rol
 
   DESCRIPTION:          Process the register callback message
 
-
   ARGUMENTS:
      rde_rda_cb   Pointer to RDE  Socket Config structure
      index        Index to identify the readable client fd
-
 
   RETURNS:
 
@@ -399,27 +380,24 @@ static uns32 rde_rda_process_set_role(RDE_RDA_CB *rde_rda_cb, int index, int rol
 *****************************************************************************/
 static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 {
-    char               msg [64] = {0};
+	char msg[64] = { 0 };
 
-    /*
-    ** Asynchronous callback registered by RDA
-    */
-    rde_rda_cb->clients [index].is_async = TRUE;
+	/*
+	 ** Asynchronous callback registered by RDA
+	 */
+	rde_rda_cb->clients[index].is_async = TRUE;
 
-    /*
-    ** Format ACK
-    */
-    sprintf (msg, "%d", RDE_RDA_REG_CB_ACK);
+	/*
+	 ** Format ACK
+	 */
+	sprintf(msg, "%d", RDE_RDA_REG_CB_ACK);
 
+	if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -427,11 +405,9 @@ static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 
   DESCRIPTION:          Process the register callback message
 
-
   ARGUMENTS:
      rde_rda_cb   Pointer to RDE  Socket Config structure
      index        Index to identify the readable client fd
-
 
   RETURNS:
 
@@ -443,35 +419,33 @@ static uns32 rde_rda_process_reg_cb(RDE_RDA_CB *rde_rda_cb, int index)
 *****************************************************************************/
 static uns32 rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index)
 {
-    int     rc     = 0;
-    int     iter   = 0;
-    int     sockfd = -1;
+	int rc = 0;
+	int iter = 0;
+	int sockfd = -1;
 
-    /*
-    ** Save socket fd
-    */
-    sockfd = rde_rda_cb->clients [index].fd;
+	/*
+	 ** Save socket fd
+	 */
+	sockfd = rde_rda_cb->clients[index].fd;
 
-    /*
-    ** Delete fd from the client list
-    */
-    for (iter = index; iter < rde_rda_cb->client_count - 1; iter++)
-    {
+	/*
+	 ** Delete fd from the client list
+	 */
+	for (iter = index; iter < rde_rda_cb->client_count - 1; iter++) {
 
-        rde_rda_cb->clients [iter] = rde_rda_cb->clients [iter + 1];
+		rde_rda_cb->clients[iter] = rde_rda_cb->clients[iter + 1];
 
-    }
+	}
 
-    rde_rda_cb->client_count--;
+	rde_rda_cb->client_count--;
 
-    rc = close (sockfd);
-    if (rc < 0)
-    {
-        m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CLOSE_FAIL, errno);
-        return NCSCC_RC_FAILURE;
-    }
+	rc = close(sockfd);
+	if (rc < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_CLOSE_FAIL, errno);
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -493,7 +467,7 @@ static uns32 rde_rda_process_disconnect(RDE_RDA_CB *rde_rda_cb, int index)
 *****************************************************************************/
 const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb)
 {
-   return RDE_RDA_SOCK_NAME;
+	return RDE_RDA_SOCK_NAME;
 }
 
 /*****************************************************************************
@@ -515,13 +489,12 @@ const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb)
 uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
 {
 
-   m_RDE_ENTRY("rde_rda_open");
+	m_RDE_ENTRY("rde_rda_open");
 
-   if (sock_name    == NULL || sock_name[0] == '\0')
-   {
-      m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_NULL_NAME, 0);
-      return NCSCC_RC_FAILURE;
-   }
+	if (sock_name == NULL || sock_name[0] == '\0') {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_NULL_NAME, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
    /***************************************************************\
     *                                                               *
@@ -529,10 +502,9 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   strncpy(&rde_rda_cb->sock_address.sun_path, sock_name,
-       sizeof(rde_rda_cb->sock_address.sun_path));
-   rde_rda_cb-> sock_address. sun_family = AF_UNIX ;
-   rde_rda_cb-> fd                       = -1      ;
+	strncpy(&rde_rda_cb->sock_address.sun_path, sock_name, sizeof(rde_rda_cb->sock_address.sun_path));
+	rde_rda_cb->sock_address.sun_family = AF_UNIX;
+	rde_rda_cb->fd = -1;
 
    /***************************************************************\
     *                                                               *
@@ -540,10 +512,9 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   if (rde_rda_sock_open(rde_rda_cb) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	if (rde_rda_sock_open(rde_rda_cb) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
    /***************************************************************\
     *                                                               *
@@ -551,16 +522,14 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
+	if (rde_rda_sock_init(rde_rda_cb) != NCSCC_RC_SUCCESS) {
+		rde_rda_sock_close(rde_rda_cb);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (rde_rda_sock_init(rde_rda_cb) != NCSCC_RC_SUCCESS)
-   {
-      rde_rda_sock_close(rde_rda_cb);
-      return NCSCC_RC_FAILURE;
-   }
+	m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_RDA_SOCK_CREATED, sock_name);
 
-   m_RDE_LOG_COND_C(RDE_SEV_INFO, RDE_COND_RDA_SOCK_CREATED, sock_name);
-
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -582,7 +551,7 @@ uns32 rde_rda_open(const char *sock_name, RDE_RDA_CB *rde_rda_cb)
 uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
 {
 
-   m_RDE_ENTRY("rde_rda_close");
+	m_RDE_ENTRY("rde_rda_close");
 
    /***************************************************************\
     *                                                               *
@@ -590,14 +559,13 @@ uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
     *                                                               *
    \***************************************************************/
 
-   if (rde_rda_sock_close(rde_rda_cb) != NCSCC_RC_SUCCESS)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	if (rde_rda_sock_close(rde_rda_cb) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-   rde_rda_cb-> fd = -1;
+	rde_rda_cb->fd = -1;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -618,23 +586,22 @@ uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb)
 *****************************************************************************/
 uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb)
 {
-   int newsockfd;
+	int newsockfd;
 
-   newsockfd = accept(rde_rda_cb->fd, (struct sockaddr *) NULL, NULL);
-   if (newsockfd < 0)
-   {
-       m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_ACCEPT_FAIL, 0);
-       return NCSCC_RC_FAILURE;
-   }
+	newsockfd = accept(rde_rda_cb->fd, (struct sockaddr *)NULL, NULL);
+	if (newsockfd < 0) {
+		m_RDE_LOG_COND_L(RDE_SEV_ERROR, RDE_COND_SOCK_ACCEPT_FAIL, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-   /*
-   ** Add the new client fd to client-list
-   */
-   rde_rda_cb->clients [rde_rda_cb->client_count].is_async = FALSE;
-   rde_rda_cb->clients [rde_rda_cb->client_count].fd       = newsockfd;
-   rde_rda_cb->client_count++;
+	/*
+	 ** Add the new client fd to client-list
+	 */
+	rde_rda_cb->clients[rde_rda_cb->client_count].is_async = FALSE;
+	rde_rda_cb->clients[rde_rda_cb->client_count].fd = newsockfd;
+	rde_rda_cb->client_count++;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -643,7 +610,6 @@ uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb)
   PROCEDURE NAME:       rde_rda_client_process_msg
 
   DESCRIPTION:          Process the client message on socket
-
 
   ARGUMENTS:
      rde_rda_cb   Pointer to RDE  Socket Config structure
@@ -659,55 +625,50 @@ uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb)
 *****************************************************************************/
 uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index)
 {
-    RDE_RDA_CMD_TYPE   cmd_type;
-    char               msg [256] = {0};
-    uns32              rc        = NCSCC_RC_SUCCESS;
-    int                value;
-    char              *ptr;
+	RDE_RDA_CMD_TYPE cmd_type;
+	char msg[256] = { 0 };
+	uns32 rc = NCSCC_RC_SUCCESS;
+	int value;
+	char *ptr;
 
-    if (rde_rda_read_msg (rde_rda_cb->clients [index].fd, msg, sizeof (msg)) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if (rde_rda_read_msg(rde_rda_cb->clients[index].fd, msg, sizeof(msg)) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    /*
-    ** Parse the message for cmd type and value
-    */
-    ptr = strchr (msg, ' ');
-    if (ptr == NULL)
-    {
-        cmd_type = atoi (msg);
+	/*
+	 ** Parse the message for cmd type and value
+	 */
+	ptr = strchr(msg, ' ');
+	if (ptr == NULL) {
+		cmd_type = atoi(msg);
 
-    }
-    else
-    {
-        *ptr = '\0';
-        cmd_type = atoi (msg);
-        value    = atoi (++ptr);
-    }
+	} else {
+		*ptr = '\0';
+		cmd_type = atoi(msg);
+		value = atoi(++ptr);
+	}
 
-    switch (cmd_type)
-    {
-        case RDE_RDA_GET_ROLE_REQ:
-            rc = rde_rda_process_get_role (rde_rda_cb, index);
-            break;
+	switch (cmd_type) {
+	case RDE_RDA_GET_ROLE_REQ:
+		rc = rde_rda_process_get_role(rde_rda_cb, index);
+		break;
 
-        case RDE_RDA_SET_ROLE_REQ:
-            rc = rde_rda_process_set_role (rde_rda_cb, index, value);
-            break;
+	case RDE_RDA_SET_ROLE_REQ:
+		rc = rde_rda_process_set_role(rde_rda_cb, index, value);
+		break;
 
-        case RDE_RDA_REG_CB_REQ:
-            rc = rde_rda_process_reg_cb (rde_rda_cb, index);
-            break;
+	case RDE_RDA_REG_CB_REQ:
+		rc = rde_rda_process_reg_cb(rde_rda_cb, index);
+		break;
 
-        case RDE_RDA_DISCONNECT_REQ:
-            rc = rde_rda_process_disconnect (rde_rda_cb, index);
-            break;
-        default:
-            ;
-    }
+	case RDE_RDA_DISCONNECT_REQ:
+		rc = rde_rda_process_disconnect(rde_rda_cb, index);
+		break;
+	default:
+		;
+	}
 
-    return rc;
+	return rc;
 
 }
 
@@ -716,7 +677,6 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index)
   PROCEDURE NAME:       rde_rda_send_role
 
   DESCRIPTION:          Send HA role to RDA
-
 
   ARGUMENTS:
      role               HA role to seed into  RDE
@@ -731,42 +691,39 @@ uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index)
 *****************************************************************************/
 uns32 rde_rda_send_role(int role)
 {
-    int                index;
-    char               msg [64]   = {0};
-    RDE_RDA_CB        *rde_rda_cb = NULL;
-    RDE_CONTROL_BLOCK *rde_cb =  rde_get_control_block();
-    char  log[RDE_LOG_MSG_SIZE] = {0};
+	int index;
+	char msg[64] = { 0 };
+	RDE_RDA_CB *rde_rda_cb = NULL;
+	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
+	char log[RDE_LOG_MSG_SIZE] = { 0 };
 
     /** here we are locking as we might be calling this function
      ** from two different threads, so this just make the sent
      ** role serial
      **/
-    m_NCS_LOCK(&rde_cb->lock, NCS_LOCK_WRITE);
+	m_NCS_LOCK(&rde_cb->lock, NCS_LOCK_WRITE);
 
-    rde_rda_cb = &rde_cb->rde_rda_cb;
-    sprintf(log,"Sending role %d to RDA",role);
-    m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
-    /*
-    ** Send role to all async clients
-    */
-    sprintf (msg, "%d %d", RDE_RDA_HA_ROLE, role);
+	rde_rda_cb = &rde_cb->rde_rda_cb;
+	sprintf(log, "Sending role %d to RDA", role);
+	m_RDE_LOG_COND_C(RDE_SEV_NOTICE, RDE_RDE_INFO, log);
+	/*
+	 ** Send role to all async clients
+	 */
+	sprintf(msg, "%d %d", RDE_RDA_HA_ROLE, role);
 
-    for (index = 0; index < rde_rda_cb->client_count; index++)
-    {
-        if (!rde_rda_cb->clients[index].is_async)
-            continue;
+	for (index = 0; index < rde_rda_cb->client_count; index++) {
+		if (!rde_rda_cb->clients[index].is_async)
+			continue;
 
-        /*
-        ** Write message
-        */
-        if (rde_rda_write_msg (rde_rda_cb->clients [index].fd, msg) != NCSCC_RC_SUCCESS)
-        {
-            /* We have nothing to do here */
-        }
+		/*
+		 ** Write message
+		 */
+		if (rde_rda_write_msg(rde_rda_cb->clients[index].fd, msg) != NCSCC_RC_SUCCESS) {
+			/* We have nothing to do here */
+		}
 
-    }
+	}
 
-    m_NCS_UNLOCK(&rde_cb->lock, NCS_LOCK_WRITE);
-    return NCSCC_RC_SUCCESS;
+	m_NCS_UNLOCK(&rde_cb->lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
 }
-

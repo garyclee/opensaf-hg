@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -37,11 +35,9 @@
 #define AVM_LOGSTR_H
 #if (NCS_DTS == 1)
 
-
 EXTERN_C uns32 avm_reg_strings(void);
 EXTERN_C uns32 avm_unreg_strings(void);
 EXTERN_C uns32 avm_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
+#endif   /* (NCS_DTS == 1) */
 
-#endif /* (NCS_DTS == 1) */
-
-#endif /* AVM_LOGSTR_H */
+#endif   /* AVM_LOGSTR_H */

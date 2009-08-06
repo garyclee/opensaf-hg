@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module contains the functions for accessing the scalar MIB  
@@ -73,7 +71,6 @@
                        function as scalars dont have setrow support.
   avd_req_mib_func - MIB request event handler.
 
-
   
 ******************************************************************************
 */
@@ -83,7 +80,6 @@
  */
 
 #include "avd.h"
-
 
 /*****************************************************************************
  * Function: avsvscalars_get
@@ -109,21 +105,19 @@
  * 
  **************************************************************************/
 
-uns32 avsvscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 avsvscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid instance as the system is going down. */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid instance as the system is going down. */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* Fill the cb pointer to the data field and return */
-   *data = (NCSCONTEXT)avd_cb;
-   
-   return NCSCC_RC_SUCCESS;
+	/* Fill the cb pointer to the data field and return */
+	*data = (NCSCONTEXT)avd_cb;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -159,40 +153,35 @@ uns32 avsvscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 avsvscalars_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 avsvscalars_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)data;
-   
-   if (avd_cb == AVD_CL_CB_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)data;
 
-   switch(param->i_param_id)
-   {
-   case ncsAvDHeartbeatSendInt_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avd_cb->snd_hb_intvl);
-      break;
-   case ncsAvDHeartbeatDownInt_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avd_cb->rcv_hb_intvl);
-      break;
-   case ncsCLViewNumber_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avd_cb->cluster_view_number);
-      break;
-   default:
-      /* call the MIBLIB utility routine for standard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
-   return NCSCC_RC_SUCCESS;
+	if (avd_cb == AVD_CL_CB_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	switch (param->i_param_id) {
+	case ncsAvDHeartbeatSendInt_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avd_cb->snd_hb_intvl);
+		break;
+	case ncsAvDHeartbeatDownInt_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avd_cb->rcv_hb_intvl);
+		break;
+	case ncsCLViewNumber_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avd_cb->cluster_view_number);
+		break;
+	default:
+		/* call the MIBLIB utility routine for standard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avsvscalars_set
@@ -220,77 +209,61 @@ uns32 avsvscalars_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 avsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 avsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaTimeT  new_intvl, old_intvl;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaTimeT new_intvl, old_intvl;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid row status object */
-      return NCSCC_RC_INV_VAL;  
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid row status object */
+		return NCSCC_RC_INV_VAL;
+	}
 
-   
-   switch(arg->req.info.set_req.i_param_val.i_param_id)
-   {
-   case ncsAvDHeartbeatSendInt_ID:
-      new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
-      if( (avd_cb->init_state == AVD_CFG_READY ) || 
-          ( (new_intvl < (avd_cb->rcv_hb_intvl / 2)) &&
-            (new_intvl > 10000000)
-          ) 
-        )
-      {
-         if (test_flag == FALSE)
-         {
-            old_intvl = avd_cb->snd_hb_intvl;
-            avd_cb->snd_hb_intvl = new_intvl;
-            /* check the AvD state is config done. send heartbeat info message.
-             */
-            if (avd_cb->init_state >= AVD_CFG_DONE)
-            {
-               if (NCSCC_RC_FAILURE == avd_snd_hbt_info_msg(avd_cb))
-               {
-                  avd_cb->snd_hb_intvl = old_intvl;
-                  return NCSCC_RC_FAILURE;
-               }
-            }
-            
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_cb, AVSV_CKPT_AVD_CB_CONFIG);
-         }
-      }else
-      {
-         return NCSCC_RC_INV_VAL;
-      }
-      break;
-   case ncsAvDHeartbeatDownInt_ID:
-      new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
-      if( (avd_cb->init_state == AVD_CFG_READY ) || 
-          (new_intvl > (avd_cb->snd_hb_intvl * (uns64)2)) )
-      {
-         if (test_flag == FALSE)
-         {
-            avd_cb->rcv_hb_intvl = new_intvl;
-            m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_cb, AVSV_CKPT_AVD_CB_CONFIG);
-         }
-      }else
-      {
-         return NCSCC_RC_INV_VAL;
-      }
-      break;
-   default:
-      return NCSCC_RC_INV_VAL;
-      break;
-      
-   } /* switch(param->i_param_id) */
+	switch (arg->req.info.set_req.i_param_val.i_param_id) {
+	case ncsAvDHeartbeatSendInt_ID:
+		new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+		if ((avd_cb->init_state == AVD_CFG_READY) ||
+		    ((new_intvl < (avd_cb->rcv_hb_intvl / 2)) && (new_intvl > 10000000)
+		    )
+		    ) {
+			if (test_flag == FALSE) {
+				old_intvl = avd_cb->snd_hb_intvl;
+				avd_cb->snd_hb_intvl = new_intvl;
+				/* check the AvD state is config done. send heartbeat info message.
+				 */
+				if (avd_cb->init_state >= AVD_CFG_DONE) {
+					if (NCSCC_RC_FAILURE == avd_snd_hbt_info_msg(avd_cb)) {
+						avd_cb->snd_hb_intvl = old_intvl;
+						return NCSCC_RC_FAILURE;
+					}
+				}
 
-   return NCSCC_RC_SUCCESS;
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_cb, AVSV_CKPT_AVD_CB_CONFIG);
+			}
+		} else {
+			return NCSCC_RC_INV_VAL;
+		}
+		break;
+	case ncsAvDHeartbeatDownInt_ID:
+		new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+		if ((avd_cb->init_state == AVD_CFG_READY) || (new_intvl > (avd_cb->snd_hb_intvl * (uns64)2))) {
+			if (test_flag == FALSE) {
+				avd_cb->rcv_hb_intvl = new_intvl;
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_cb, AVSV_CKPT_AVD_CB_CONFIG);
+			}
+		} else {
+			return NCSCC_RC_INV_VAL;
+		}
+		break;
+	default:
+		return NCSCC_RC_INV_VAL;
+		break;
+
+	}			/* switch(param->i_param_id) */
+
+	return NCSCC_RC_SUCCESS;
 
 }
-
-
 
 /*****************************************************************************
  * Function: avsvscalars_next
@@ -318,14 +291,11 @@ uns32 avsvscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 avsvscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 avsvscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
 
 /*****************************************************************************
  * Function: avsvscalars_setrow
@@ -350,17 +320,12 @@ uns32 avsvscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 avsvscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 avsvscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+			 NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
-
-
 
 /*****************************************************************************
  * Function: avsvscalars_rmvrow
@@ -377,9 +342,8 @@ uns32 avsvscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  **************************************************************************/
 uns32 avsvscalars_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfscalars_get
@@ -405,21 +369,19 @@ uns32 avsvscalars_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-uns32 saamfscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 saamfscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid instance as the system is going down. */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid instance as the system is going down. */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* Fill the cb pointer to the data field and return */
-   *data = (NCSCONTEXT)avd_cb;
+	/* Fill the cb pointer to the data field and return */
+	*data = (NCSCONTEXT)avd_cb;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -455,17 +417,14 @@ uns32 saamfscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfscalars_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 saamfscalars_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)data;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)data;
 
-   if (avd_cb == AVD_CL_CB_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (avd_cb == AVD_CL_CB_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
 /*
   memset(&si_name, '\0', sizeof(SaNameT));
@@ -479,41 +438,36 @@ m_AVSV_OCTVAL_TO_PARAM(param, buffer,si->sg_name.length,
 
  */
 
-
-   switch(param->i_param_id)
-   {
-   case saAmfClusterStartupTimeout_ID:
-       m_AVSV_UNS64_TO_PARAM(param,buffer,avd_cb->amf_init_intvl);
-      break;
-   case saAmfAgentSpecVersion_ID:
-       m_AVSV_OCTVAL_TO_PARAM(param, buffer,19,
-                              "SAI-AIS-AMF-B.01.01");
-       break;
-   case saAmfAgentVendor_ID:
-       m_AVSV_OCTVAL_TO_PARAM(param, buffer,8,
-                              "NET-SNMP");
-       break;
-   case saAmfAgentVendorProductRev_ID:
-       param->i_fmat_id = NCSMIB_FMAT_INT;
-       param->i_length = 1;
-       param->info.i_int = 0;
-       break;
-   case saAmfServiceStartEnabled_ID:
-       param->i_fmat_id = NCSMIB_FMAT_INT;
-       param->i_length = 1;
-       param->info.i_int = 2;
-       break;
-   default:
-      /* call the MIBLIB utility routine for standard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
-   return NCSCC_RC_SUCCESS;
+	switch (param->i_param_id) {
+	case saAmfClusterStartupTimeout_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avd_cb->amf_init_intvl);
+		break;
+	case saAmfAgentSpecVersion_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, 19, "SAI-AIS-AMF-B.01.01");
+		break;
+	case saAmfAgentVendor_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, 8, "NET-SNMP");
+		break;
+	case saAmfAgentVendorProductRev_ID:
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
+		param->info.i_int = 0;
+		break;
+	case saAmfServiceStartEnabled_ID:
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
+		param->info.i_int = 2;
+		break;
+	default:
+		/* call the MIBLIB utility routine for standard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: saamfscalars_set
@@ -541,44 +495,35 @@ m_AVSV_OCTVAL_TO_PARAM(param, buffer,si->sg_name.length,
  * 
  **************************************************************************/
 
-uns32 saamfscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 saamfscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-  AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
-   SaTimeT  new_intvl;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaTimeT new_intvl;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid row status object */
-      return NCSCC_RC_INV_VAL;
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid row status object */
+		return NCSCC_RC_INV_VAL;
+	}
 
+	switch (arg->req.info.set_req.i_param_val.i_param_id) {
+	case saAmfClusterStartupTimeout_ID:
+		new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
+		if (new_intvl > 10000000) {
+			if (test_flag == FALSE)
+				avd_cb->amf_init_intvl = new_intvl;
+		} else {
+			return NCSCC_RC_INV_VAL;
+		}
+		break;
+	default:
+		return NCSCC_RC_INV_VAL;
+		break;
 
-   switch(arg->req.info.set_req.i_param_val.i_param_id)
-   {
-   case saAmfClusterStartupTimeout_ID:
-      new_intvl = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
-      if (new_intvl > 10000000)
-      {
-         if (test_flag == FALSE)
-            avd_cb->amf_init_intvl = new_intvl;
-      }else
-      {
-         return NCSCC_RC_INV_VAL;
-      }
-      break;
-   default:
-      return NCSCC_RC_INV_VAL;
-      break;
+	}			/* switch(param->i_param_id) */
 
-   } /* switch(param->i_param_id) */
+	return NCSCC_RC_SUCCESS;
 
-   return NCSCC_RC_SUCCESS;
-
-}   
-   
-
-
+}
 
 /*****************************************************************************
  * Function: saamfscalars_next
@@ -606,14 +551,11 @@ uns32 saamfscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 saamfscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
 
 /*****************************************************************************
  * Function: saamfscalars_setrow
@@ -638,16 +580,12 @@ uns32 saamfscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 saamfscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 saamfscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+			  NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
-
 
 /*****************************************************************************
  * Function: saamfscalars_rmvrow
@@ -664,10 +602,8 @@ uns32 saamfscalars_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  **************************************************************************/
 uns32 saamfscalars_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: safclmscalarobject_get
@@ -693,21 +629,19 @@ uns32 saamfscalars_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-uns32 safclmscalarobject_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data)
+uns32 safclmscalarobject_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)cb;
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
 
-   if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid instance as the system is going down. */
-      return NCSCC_RC_NO_INSTANCE;  
-   }
+	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid instance as the system is going down. */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   /* Fill the cb pointer to the data field and return */
-   *data = (NCSCONTEXT)avd_cb;
-   
-   return NCSCC_RC_SUCCESS;
+	/* Fill the cb pointer to the data field and return */
+	*data = (NCSCONTEXT)avd_cb;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -743,52 +677,45 @@ uns32 safclmscalarobject_get(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 safclmscalarobject_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer)
+uns32 safclmscalarobject_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVD_CL_CB     *avd_cb = (AVD_CL_CB *)data;
-   
-   if (avd_cb == AVD_CL_CB_NULL)
-   {
-      /* The row was not found */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	AVD_CL_CB *avd_cb = (AVD_CL_CB *)data;
 
-   switch(param->i_param_id)
-   {
-   case saClmClusterInitTime_ID:
-      m_AVSV_UNS64_TO_PARAM(param,buffer,avd_cb->cluster_init_time);
-      break;
-   case saClmAgentSpecVersion_ID:
-       m_AVSV_OCTVAL_TO_PARAM(param, buffer,19,
-                              "SAI-AIS-CLM-B.01.01");
-       break;
-   case saClmAgentVendor_ID:
-       m_AVSV_OCTVAL_TO_PARAM(param, buffer,8,
-                              "NET-SNMP");
-       break;
-   case saClmAgentVendorProductRev_ID:
-       param->i_fmat_id = NCSMIB_FMAT_INT;
-       param->i_length = 1;
-       param->info.i_int = 0;
-       break;
-   case saClmServiceStartEnabled_ID:
-       param->i_fmat_id = NCSMIB_FMAT_INT;
-       param->i_length = 1;
-       param->info.i_int = 1;
-       break;
-   default:
-      /* call the MIBLIB utility routine for standard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-      break;
-   }
-   return NCSCC_RC_SUCCESS;
+	if (avd_cb == AVD_CL_CB_NULL) {
+		/* The row was not found */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	switch (param->i_param_id) {
+	case saClmClusterInitTime_ID:
+		m_AVSV_UNS64_TO_PARAM(param, buffer, avd_cb->cluster_init_time);
+		break;
+	case saClmAgentSpecVersion_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, 19, "SAI-AIS-CLM-B.01.01");
+		break;
+	case saClmAgentVendor_ID:
+		m_AVSV_OCTVAL_TO_PARAM(param, buffer, 8, "NET-SNMP");
+		break;
+	case saClmAgentVendorProductRev_ID:
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
+		param->info.i_int = 0;
+		break;
+	case saClmServiceStartEnabled_ID:
+		param->i_fmat_id = NCSMIB_FMAT_INT;
+		param->i_length = 1;
+		param->info.i_int = 1;
+		break;
+	default:
+		/* call the MIBLIB utility routine for standard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: safclmscalarobject_set
@@ -816,16 +743,12 @@ uns32 safclmscalarobject_extract(NCSMIB_PARAM_VAL* param,
  * 
  **************************************************************************/
 
-uns32 safclmscalarobject_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag)
+uns32 safclmscalarobject_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   
-   
-   /* currently invalid value */
-   return NCSCC_RC_INV_VAL;
+
+	/* currently invalid value */
+	return NCSCC_RC_INV_VAL;
 }
-
-
 
 /*****************************************************************************
  * Function: safclmscalarobject_next
@@ -853,14 +776,12 @@ uns32 safclmscalarobject_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 safclmscalarobject_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len)
+uns32 safclmscalarobject_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+			      NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
 
 /*****************************************************************************
  * Function: safclmscalarobject_setrow
@@ -885,16 +806,13 @@ uns32 safclmscalarobject_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
  * 
  **************************************************************************/
 
-uns32 safclmscalarobject_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag)
+uns32 safclmscalarobject_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				NCSMIB_SETROW_PARAM_VAL *params,
+				struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   /* Invalid instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
-
-
 
 /*****************************************************************************
  * Function: safclmscalarobject_rmvrow
@@ -911,10 +829,8 @@ uns32 safclmscalarobject_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
  **************************************************************************/
 uns32 safclmscalarobject_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /*****************************************************************************
  * Function: avd_req_mib_func
@@ -934,87 +850,75 @@ uns32 safclmscalarobject_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
  * 
  **************************************************************************/
 
-void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_req_mib_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   
-   NCSMIBLIB_REQ_INFO  miblib_req;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_req_mib_func");
-   
-   if (evt->info.mib_req == NULL)
-   {
-      /* log error that a message contents is missing */
-      m_AVD_LOG_INVALID_VAL_ERROR(0);
-      return;
-   }
+	NCSMIBLIB_REQ_INFO miblib_req;
 
-   m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
-   
-   if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE)) 
-   {
-      /* Don't initialise the AvND when the AVD is not
-       * completely initialised with the saved information
-       */
-      
-      /* Log an information message that the AvD is not yet operationally
-       * up to take MIB requests.
-       */
-      avd_log(NCSFL_SEV_WARNING, "invalid avd init_state %u", cb->init_state);
-      evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
-      evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
-      evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
-      return;
-   }
+	m_AVD_LOG_FUNC_ENTRY("avd_req_mib_func");
 
-   if((cb->init_state >= AVD_CFG_DONE) && 
-     (evt->info.mib_req->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME ))
-   {
-   /* On demand PSS playback not supported */
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
-      evt->info.mib_req->rsp.i_status = NCSCC_RC_FAILURE;
-      evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
-      evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
-      return;
-   }
+	if (evt->info.mib_req == NULL) {
+		/* log error that a message contents is missing */
+		m_AVD_LOG_INVALID_VAL_ERROR(0);
+		return;
+	}
 
-   memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO)); 
+	m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
 
-   miblib_req.req = NCSMIBLIB_REQ_MIB_OP; 
-   miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
-   miblib_req.info.i_mib_op_info.cb = cb;
-   
-   if((evt->info.mib_req->i_op == NCSMIB_OP_REQ_GET) ||
-         (evt->info.mib_req->i_op == NCSMIB_OP_REQ_NEXT))
-   {
-      cb->sync_required = FALSE;
-   }
-   else if( (evt->info.mib_req->i_op == NCSMIB_OP_REQ_SET) && 
-           (cb->init_state == AVD_CFG_READY) )
-   {
-      cb->num_cfg_msgs++;
-   }
+	if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE)) {
+		/* Don't initialise the AvND when the AVD is not
+		 * completely initialised with the saved information
+		 */
 
-   /* call the mib routine handler */ 
-   ncsmiblib_process_req(&miblib_req);
+		/* Log an information message that the AvD is not yet operationally
+		 * up to take MIB requests.
+		 */
+		avd_log(NCSFL_SEV_WARNING, "invalid avd init_state %u", cb->init_state);
+		evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
+		evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+		evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+		return;
+	}
 
-  if((m_NCSMIB_PSSV_PLBCK_IS_LAST_EVENT(evt->info.mib_req->i_policy) == TRUE) && 
-     (cb->init_state == AVD_CFG_READY) )
-   {
-      /* stop the cfg_tmr */
-      avd_stop_tmr(cb, &cb->init_phase_tmr.cfg_tmr);
-      cb->init_state = AVD_CFG_DONE;
-   }
+	if ((cb->init_state >= AVD_CFG_DONE) && (evt->info.mib_req->i_policy & NCSMIB_POLICY_PSS_BELIEVE_ME)) {
+		/* On demand PSS playback not supported */
+		m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+		evt->info.mib_req->rsp.i_status = NCSCC_RC_FAILURE;
+		evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+		evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+		return;
+	}
 
+	memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
 
-   /* free the MIB arg structure. This MIB arg is a
-    * copy made by us, Since we have already processed it free it. 
-    */
-   ncsmib_memfree(evt->info.mib_req);
-   evt->info.mib_req = NULL;
-   
-   return;
+	miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
+	miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
+	miblib_req.info.i_mib_op_info.cb = cb;
+
+	if ((evt->info.mib_req->i_op == NCSMIB_OP_REQ_GET) || (evt->info.mib_req->i_op == NCSMIB_OP_REQ_NEXT)) {
+		cb->sync_required = FALSE;
+	} else if ((evt->info.mib_req->i_op == NCSMIB_OP_REQ_SET) && (cb->init_state == AVD_CFG_READY)) {
+		cb->num_cfg_msgs++;
+	}
+
+	/* call the mib routine handler */
+	ncsmiblib_process_req(&miblib_req);
+
+	if ((m_NCSMIB_PSSV_PLBCK_IS_LAST_EVENT(evt->info.mib_req->i_policy) == TRUE) &&
+	    (cb->init_state == AVD_CFG_READY)) {
+		/* stop the cfg_tmr */
+		avd_stop_tmr(cb, &cb->init_phase_tmr.cfg_tmr);
+		cb->init_state = AVD_CFG_DONE;
+	}
+
+	/* free the MIB arg structure. This MIB arg is a
+	 * copy made by us, Since we have already processed it free it. 
+	 */
+	ncsmib_memfree(evt->info.mib_req);
+	evt->info.mib_req = NULL;
+
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_qsd_req_mib_func
@@ -1033,62 +937,55 @@ void avd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_qsd_req_mib_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_qsd_req_mib_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   
 
-   NCSMIBLIB_REQ_INFO  miblib_req;
-   
-   m_AVD_LOG_FUNC_ENTRY("avd_qsd_req_mib_func");
-   
-   if (evt->info.mib_req == NULL)
-   {
-      /* log error that a message contents is missing */
-      m_AVD_LOG_INVALID_VAL_ERROR(0);
-      return;
-   }
+	NCSMIBLIB_REQ_INFO miblib_req;
 
-   m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
-   
-   if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE))
-   {    
-   /* Log an information message that the AvD will not take 
-    * up any new MIB requests in stis state.
-    */
-      m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
-      evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
-      evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
-      evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
-      return;
-    }
+	m_AVD_LOG_FUNC_ENTRY("avd_qsd_req_mib_func");
 
-   memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
+	if (evt->info.mib_req == NULL) {
+		/* log error that a message contents is missing */
+		m_AVD_LOG_INVALID_VAL_ERROR(0);
+		return;
+	}
 
-   miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
-   miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
-   miblib_req.info.i_mib_op_info.cb = cb;
+	m_AVD_LOG_RCVD_VAL(((long)evt->info.mib_req));
 
-   if((evt->info.mib_req->i_op == NCSMIB_OP_REQ_GET) ||
-      (evt->info.mib_req->i_op == NCSMIB_OP_REQ_NEXT))
-   {
-      cb->sync_required = FALSE;
+	if ((cb->init_state != AVD_CFG_READY) && (cb->init_state != AVD_APP_STATE)) {
+		/* Log an information message that the AvD will not take 
+		 * up any new MIB requests in stis state.
+		 */
+		m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+		evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
+		evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+		evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+		return;
+	}
 
-      ncsmiblib_process_req(&miblib_req);
-      ncsmib_memfree(evt->info.mib_req);
-      evt->info.mib_req = NULL;
+	memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
 
-   }
-   else
-   {
-     /* Log an information message that the AvD will not take 
-     * up any new MIB requests other than GET/NEXT in this state.
-     */
-     m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
-     evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
-     evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
-     evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
-   }
+	miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
+	miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
+	miblib_req.info.i_mib_op_info.cb = cb;
 
-   return;    
+	if ((evt->info.mib_req->i_op == NCSMIB_OP_REQ_GET) || (evt->info.mib_req->i_op == NCSMIB_OP_REQ_NEXT)) {
+		cb->sync_required = FALSE;
+
+		ncsmiblib_process_req(&miblib_req);
+		ncsmib_memfree(evt->info.mib_req);
+		evt->info.mib_req = NULL;
+
+	} else {
+		/* Log an information message that the AvD will not take 
+		 * up any new MIB requests other than GET/NEXT in this state.
+		 */
+		m_AVD_LOG_INVALID_VAL_ERROR(cb->init_state);
+		evt->info.mib_req->rsp.i_status = NCSCC_RC_NO_INSTANCE;
+		evt->info.mib_req->i_op = m_NCSMIB_REQ_TO_RSP(evt->info.mib_req->i_op);
+		evt->info.mib_req->i_rsp_fnc(evt->info.mib_req);
+	}
+
+	return;
 
 }

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -92,7 +90,6 @@
 #define m_NCS_EDP_SAINT64T                          ncs_edp_64bit_fail
 #endif
 
-
 #define m_NCS_EDP_SAAMFHEALTHCHECKINVOCATIONT       ncs_edp_uns32
 #define m_NCS_EDP_SAAMFRECOMMENDEDRECOVERYT         ncs_edp_uns32
 #define m_NCS_EDP_SAERRORT                          ncs_edp_uns32
@@ -103,7 +100,7 @@
 #define m_NCS_EDP_SAAMFEXTERNALCOMPONENTACTIONT     ncs_edp_uns32
 #define m_NCS_EDP_SAAMFHANDLET                      m_NCS_EDP_SAUINT64T
 #define m_NCS_EDP_SAAMFPENDINGOPERATIONFLAGST       m_NCS_EDP_SAUINT32T
-#define m_NCS_EDP_SAAMFCSIFLAGST                    m_NCS_EDP_SAUINT32T 
+#define m_NCS_EDP_SAAMFCSIFLAGST                    m_NCS_EDP_SAUINT32T
 #define m_NCS_EDP_SAINVOCATIONT                     m_NCS_EDP_SAUINT64T
 #define m_NCS_EDP_SASIZET                           m_NCS_EDP_SAUINT64T
 #define m_NCS_EDP_SACLMNODEIDT                      m_NCS_EDP_SAUINT32T
@@ -117,42 +114,34 @@
 #define m_NCS_EDP_SABOOLT                           ncs_edp_uns32
 #define m_NCS_EDP_SACLMCLUSTERCHANGEST              ncs_edp_uns32
 
-
-
-LEAPDLL_API uns32 ncs_edp_sanamet(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_sanamet_net(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_saversiont(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
-LEAPDLL_API uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl, 
-                                EDU_TKN *edu_tkn, NCSCONTEXT  ptr, 
-                                uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, 
-                                EDP_OP_TYPE op, EDU_ERR *o_err);
+LEAPDLL_API uns32 ncs_edp_sanamet(EDU_HDL *edu_hdl,
+				  EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+				  uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+LEAPDLL_API uns32 ncs_edp_sanamet_net(EDU_HDL *edu_hdl,
+				      EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+				      uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+LEAPDLL_API uns32 ncs_edp_saversiont(EDU_HDL *edu_hdl,
+				     EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+				     uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+LEAPDLL_API uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *edu_hdl,
+					       EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+					       uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
+					       EDP_OP_TYPE op, EDU_ERR *o_err);
+LEAPDLL_API uns32 ncs_edp_saclmnodeaddresst(EDU_HDL *edu_hdl,
+					    EDU_TKN *edu_tkn, NCSCONTEXT ptr,
+					    uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 LEAPDLL_API uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                EDU_ERR *o_err);
+						      NCSCONTEXT ptr, uns32 *ptr_data_len,
+						      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 LEAPDLL_API uns32 ncs_edp_saamfprotectiongroupnotificationt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                EDU_ERR *o_err);
+							    NCSCONTEXT ptr, uns32 *ptr_data_len,
+							    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 LEAPDLL_API uns32 avsv_edp_saamfprotectiongroupnotificationbuffert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                EDU_ERR *o_err);
+								   NCSCONTEXT ptr, uns32 *ptr_data_len,
+								   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
+								   EDU_ERR *o_err);
 
 /* Utility routines to free data structures malloc'ed by EDU */
 LEAPDLL_API void ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p);
 
-#endif  /* NCS_SAF_EDU_H */
+#endif   /* NCS_SAF_EDU_H */

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
   DESCRIPTION:
 
   This file contains all Public APIs for the Flex Log server (DTS) portion
@@ -36,7 +34,6 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 #include "dts.h"
-
 
 /*static void
 dtsv_clear_registration_table(DTS_CB *inst);*/
@@ -61,29 +58,26 @@ static uns32 dts_create_log_dir_path(char *path);
 
 *****************************************************************************/
 
-uns32 dts_lm( DTS_LM_ARG* arg)
+uns32 dts_lm(DTS_LM_ARG *arg)
 {
-  switch(arg->i_op)
-  {
-  case DTS_LM_OP_CREATE:
-      return dts_svc_create(&arg->info.create);
+	switch (arg->i_op) {
+	case DTS_LM_OP_CREATE:
+		return dts_svc_create(&arg->info.create);
 
-  case  DTS_LM_OP_DESTROY:
-    return dts_svc_destroy(&arg->info.destroy);
+	case DTS_LM_OP_DESTROY:
+		return dts_svc_destroy(&arg->info.destroy);
 
-  default:
-    break;
-  }
-  return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lm: Incorrect operation value passed");
+	default:
+		break;
+	}
+	return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lm: Incorrect operation value passed");
 }
-
 
 /*#############################################################################
  *
  *                   PRIVATE DTS LAYER MANAGEMENT IMPLEMENTAION
  *
  *############################################################################*/
-
 
 /*****************************************************************************
 
@@ -99,191 +93,175 @@ uns32 dts_lm( DTS_LM_ARG* arg)
 
 *****************************************************************************/
 
-uns32 dts_svc_create(DTS_CREATE* create)
+uns32 dts_svc_create(DTS_CREATE *create)
 {
-   /* Initialize all the CB fields */
-   DTS_CB * inst = &dts_cb;
-   NCS_PATRICIA_PARAMS pt_params;
-    
-   m_DTS_LK_INIT;
+	/* Initialize all the CB fields */
+	DTS_CB *inst = &dts_cb;
+	NCS_PATRICIA_PARAMS pt_params;
 
-   memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	m_DTS_LK_INIT;
 
-   m_DTS_LK_CREATE(&inst->lock);
-   
-   m_DTS_LK(&inst->lock);
-   
-   /* inst->created is set to TRUE in dts_mds_reg() */ 
-   inst->created = FALSE;
+	memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   /* review changes ; initialize pt_params to 0 */
-   memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	m_DTS_LK_CREATE(&inst->lock);
 
-   pt_params.key_size = sizeof(SVC_KEY);
+	m_DTS_LK(&inst->lock);
 
-   /* Create Patritia tree which will keep the DTS service registration 
-    * information.*/
-   if(ncs_patricia_tree_init(&inst->svc_tbl, &pt_params) != NCSCC_RC_SUCCESS)
-   {
-       m_DTS_UNLK(&inst->lock);
-       m_DTS_LK_DLT(&inst->lock);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
-   }
+	/* inst->created is set to TRUE in dts_mds_reg() */
+	inst->created = FALSE;
 
-   pt_params.key_size = sizeof(MDS_DEST);
+	/* review changes ; initialize pt_params to 0 */
+	memset(&pt_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   /*  Create Patritia tree which will keep the list of DTAs */
-  if(ncs_patricia_tree_init(&inst->dta_list, &pt_params) != NCSCC_RC_SUCCESS)
-   {
-       ncs_patricia_tree_destroy(&inst->svc_tbl);
-       m_DTS_UNLK(&inst->lock);
-       m_DTS_LK_DLT(&inst->lock);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
-   }
+	pt_params.key_size = sizeof(SVC_KEY);
 
+	/* Create Patritia tree which will keep the DTS service registration 
+	 * information.*/
+	if (ncs_patricia_tree_init(&inst->svc_tbl, &pt_params) != NCSCC_RC_SUCCESS) {
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
+	}
 
-   pt_params.key_size = sizeof(ASCII_SPEC_INDEX);
+	pt_params.key_size = sizeof(MDS_DEST);
 
-    /* create patricia tree to keep ASCII_SPEC table indexed by svc_id */
-   if(ncs_patricia_tree_init(&inst->svcid_asciispec_tree, &pt_params) != NCSCC_RC_SUCCESS)
-   {
-       ncs_patricia_tree_destroy(&inst->svc_tbl);
-       ncs_patricia_tree_destroy(&inst->dta_list);
-       m_DTS_UNLK(&inst->lock);
-       m_DTS_LK_DLT(&inst->lock);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
-   }
- 
-   pt_params.key_size = DTS_MAX_LIBNAME*sizeof(int8);
+	/*  Create Patritia tree which will keep the list of DTAs */
+	if (ncs_patricia_tree_init(&inst->dta_list, &pt_params) != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
+	}
 
-   /* create patricia tree keeping libnames of ASCII SPEC table registered */
-   if(ncs_patricia_tree_init(&inst->libname_asciispec_tree, &pt_params) != NCSCC_RC_SUCCESS)
-   {
-       ncs_patricia_tree_destroy(&inst->svc_tbl);
-       ncs_patricia_tree_destroy(&inst->dta_list);
-       ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
-       m_DTS_UNLK(&inst->lock);
-       m_DTS_LK_DLT(&inst->lock);
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
-   } 
+	pt_params.key_size = sizeof(ASCII_SPEC_INDEX);
 
-   /* Initialize global policy table */
-   dts_global_policy_set(&inst->g_policy);
-   /* Smik - Set cli_bit_map to 0 */
-   inst->cli_bit_map = 0;
-   
-   inst->vrid      = create->i_vrid;
-   inst->dts_enbl  = TRUE;
-   inst->hmpool_id = create->i_hmpool_id;
-   
-   /* Versioning changes - Set the DTS MDS service sub-part version */
-   inst->dts_mds_version = DTS_MDS_SUB_PART_VERSION;
+	/* create patricia tree to keep ASCII_SPEC table indexed by svc_id */
+	if (ncs_patricia_tree_init(&inst->svcid_asciispec_tree, &pt_params) != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		ncs_patricia_tree_destroy(&inst->dta_list);
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
+	}
 
-   /* Intialize the default policy table */
-   dts_default_policy_set(&inst->dflt_plcy);
+	pt_params.key_size = DTS_MAX_LIBNAME * sizeof(int8);
 
-   /* Create new selection object for signal handler */
-   m_NCS_SEL_OBJ_CREATE(&inst->sighdlr_sel_obj);
+	/* create patricia tree keeping libnames of ASCII SPEC table registered */
+	if (ncs_patricia_tree_init(&inst->libname_asciispec_tree, &pt_params) != NCSCC_RC_SUCCESS) {
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		ncs_patricia_tree_destroy(&inst->dta_list);
+		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Patricia tree init failed");
+	}
 
-   /* Register DTS with MDS */
-   if (dts_mds_reg(inst) != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-      ncs_patricia_tree_destroy(&inst->svc_tbl);
-      ncs_patricia_tree_destroy(&inst->dta_list);
-      ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-      ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+	/* Initialize global policy table */
+	dts_global_policy_set(&inst->g_policy);
+	/* Smik - Set cli_bit_map to 0 */
+	inst->cli_bit_map = 0;
 
-      m_DTS_UNLK(&inst->lock);
-      m_DTS_LK_DLT(&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MDS registration failed");
-   }
+	inst->vrid = create->i_vrid;
+	inst->dts_enbl = TRUE;
+	inst->hmpool_id = create->i_hmpool_id;
 
-  /* Initialize DTS version */
-  inst->dts_mbcsv_version = DTS_MBCSV_VERSION; 
-   /* Register DTS with MBCSv */
-  if(dtsv_mbcsv_register(inst) != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-      dts_mds_unreg(inst, TRUE);
-      inst->created = FALSE;
-      ncs_patricia_tree_destroy(&inst->svc_tbl);
-      ncs_patricia_tree_destroy(&inst->dta_list);
-      ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-      ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree); 
+	/* Versioning changes - Set the DTS MDS service sub-part version */
+	inst->dts_mds_version = DTS_MDS_SUB_PART_VERSION;
 
-      m_DTS_UNLK(&inst->lock);
-      m_DTS_LK_DLT(&inst->lock);
+	/* Intialize the default policy table */
+	dts_default_policy_set(&inst->dflt_plcy);
 
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MBCSv registration failed");
-   }
+	/* Create new selection object for signal handler */
+	m_NCS_SEL_OBJ_CREATE(&inst->sighdlr_sel_obj);
 
-   /* Register with OAC and MIB-LIB */
-   if (dts_register_tables(inst) != NCSCC_RC_SUCCESS)
-   {
-      m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-      dtsv_mbcsv_deregister(inst);
-      dts_mds_unreg(inst, TRUE);
-      inst->created = FALSE;
-      ncs_patricia_tree_destroy(&inst->svc_tbl);
-      ncs_patricia_tree_destroy(&inst->dta_list);
-      ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-      ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+	/* Register DTS with MDS */
+	if (dts_mds_reg(inst) != NCSCC_RC_SUCCESS) {
+		m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		ncs_patricia_tree_destroy(&inst->dta_list);
+		ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
+		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
 
-      m_DTS_UNLK(&inst->lock);
-      m_DTS_LK_DLT(&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MIB table registration failed");
-   }
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MDS registration failed");
+	}
 
-  /* DTS PSSv integration changes -  Send playback request to PSR */
-  if(inst->ha_state == SA_AMF_HA_ACTIVE)
-  {
-     if(dts_mab_snd_warmboot_req(inst) != NCSCC_RC_SUCCESS)
-     {
-        m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Failed PSS playback");
-     }
-  }
-   
+	/* Initialize DTS version */
+	inst->dts_mbcsv_version = DTS_MBCSV_VERSION;
+	/* Register DTS with MBCSv */
+	if (dtsv_mbcsv_register(inst) != NCSCC_RC_SUCCESS) {
+		m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
+		dts_mds_unreg(inst, TRUE);
+		inst->created = FALSE;
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		ncs_patricia_tree_destroy(&inst->dta_list);
+		ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
+		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MBCSv registration failed");
+	}
+
+	/* Register with OAC and MIB-LIB */
+	if (dts_register_tables(inst) != NCSCC_RC_SUCCESS) {
+		m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
+		dtsv_mbcsv_deregister(inst);
+		dts_mds_unreg(inst, TRUE);
+		inst->created = FALSE;
+		ncs_patricia_tree_destroy(&inst->svc_tbl);
+		ncs_patricia_tree_destroy(&inst->dta_list);
+		ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
+		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_LK_DLT(&inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MIB table registration failed");
+	}
+
+	/* DTS PSSv integration changes -  Send playback request to PSR */
+	if (inst->ha_state == SA_AMF_HA_ACTIVE) {
+		if (dts_mab_snd_warmboot_req(inst) != NCSCC_RC_SUCCESS) {
+			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Failed PSS playback");
+		}
+	}
 #ifdef __NCSINC_LINUX__
-   {
-       char * env_var;
-       env_var = getenv("NCS_LOG_PATH");
-       
-       if(env_var)
-       {
-           strcpy(inst->log_path, env_var);
-       }   
-       else
-       {
-           strcpy(inst->log_path, LOG_PATH);
-       }   
-       
-       if (dts_create_log_dir_path(inst->log_path) != NCSCC_RC_SUCCESS)
-       {
-           m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj); 
-           dts_unregister_tables(inst);
-           dtsv_mbcsv_deregister(inst);
-           dts_mds_unreg(inst, TRUE);
-           inst->created = FALSE;
-           ncs_patricia_tree_destroy(&inst->svc_tbl);
-           ncs_patricia_tree_destroy(&inst->dta_list);
-           ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-           ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
-     
-           m_DTS_UNLK(&inst->lock);
-           m_DTS_LK_DLT(&inst->lock);
-           
-           return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Log directory path creation failed");
-       }
-   }
+	{
+		char *env_var;
+		env_var = getenv("NCS_LOG_PATH");
 
+		if (env_var) {
+			strcpy(inst->log_path, env_var);
+		} else {
+			strcpy(inst->log_path, LOG_PATH);
+		}
+
+		if (dts_create_log_dir_path(inst->log_path) != NCSCC_RC_SUCCESS) {
+			m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
+			dts_unregister_tables(inst);
+			dtsv_mbcsv_deregister(inst);
+			dts_mds_unreg(inst, TRUE);
+			inst->created = FALSE;
+			ncs_patricia_tree_destroy(&inst->svc_tbl);
+			ncs_patricia_tree_destroy(&inst->dta_list);
+			ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
+			ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+
+			m_DTS_UNLK(&inst->lock);
+			m_DTS_LK_DLT(&inst->lock);
+
+			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Log directory path creation failed");
+		}
+	}
 #else
-   strcpy(inst->log_path, LOG_PATH);
+	strcpy(inst->log_path, LOG_PATH);
 #endif
- 
-   m_DTS_UNLK(&inst->lock);
 
-   return NCSCC_RC_SUCCESS;
+	m_DTS_UNLK(&inst->lock);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 #ifdef __NCSINC_LINUX__
@@ -300,48 +278,42 @@ uns32 dts_svc_create(DTS_CREATE* create)
 *****************************************************************************/
 static uns32 dts_create_log_dir_path(char *path)
 {
-    uns32 retval = NCSCC_RC_SUCCESS;
-    uns32 i= 0, len = 0;
-    char *tmp, tchar[200];
-    
-    if (*path != '/')
-    {
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_create_log_dir_path: NCS_LOG_PATH does not start with /");
-    }
+	uns32 retval = NCSCC_RC_SUCCESS;
+	uns32 i = 0, len = 0;
+	char *tmp, tchar[200];
 
-    len = strlen(path);
+	if (*path != '/') {
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_create_log_dir_path: NCS_LOG_PATH does not start with /");
+	}
 
-    if (path[len-1] != '/')
-    {
-        path[len] = '/';
-        path[len+1] = '\0';
-    }
+	len = strlen(path);
 
-    tmp = path;
-    
-    while(*tmp != '\0')
-    {
-        tchar[i] = *tmp;
-        tmp++;
-        i++;
-        
-        if ((*tmp == '/') || (*tmp == '\0'))
-        {
-            tchar[i] = '\0';
-            if (MKDIR(tchar, 0x3ED) == -1)
-            {
-               if (errno != EEXIST)
-               {
-                   perror("Fail to create directory");
-                   retval = NCSCC_RC_FAILURE;
-                   break;
-               }
-            }
-            tchar[i] = '/';
-        }
-    }
-    printf("\n My log directory path = %s \n", path);
-    return retval;
+	if (path[len - 1] != '/') {
+		path[len] = '/';
+		path[len + 1] = '\0';
+	}
+
+	tmp = path;
+
+	while (*tmp != '\0') {
+		tchar[i] = *tmp;
+		tmp++;
+		i++;
+
+		if ((*tmp == '/') || (*tmp == '\0')) {
+			tchar[i] = '\0';
+			if (MKDIR(tchar, 0x3ED) == -1) {
+				if (errno != EEXIST) {
+					perror("Fail to create directory");
+					retval = NCSCC_RC_FAILURE;
+					break;
+				}
+			}
+			tchar[i] = '/';
+		}
+	}
+	printf("\n My log directory path = %s \n", path);
+	return retval;
 }
 #endif
 /*****************************************************************************
@@ -359,71 +331,66 @@ static uns32 dts_create_log_dir_path(char *path)
 
 uns32 dts_svc_destroy(DTS_DESTROY *destroy)
 {
-    DTS_CB *     inst = &dts_cb;
-    uns32         retval = NCSCC_RC_SUCCESS, i = 0;
+	DTS_CB *inst = &dts_cb;
+	uns32 retval = NCSCC_RC_SUCCESS, i = 0;
 
-    m_DTS_LK(&inst->lock);
+	m_DTS_LK(&inst->lock);
 #if (DTS_LOG == 1)
-    if (dts_log_unbind() != NCSCC_RC_SUCCESS)
-    {
-        m_DTS_UNLK(&inst->lock);
-        m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_destroy: Unable to unbind from DTSv");
-    }
+	if (dts_log_unbind() != NCSCC_RC_SUCCESS) {
+		m_DTS_UNLK(&inst->lock);
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_destroy: Unable to unbind from DTSv");
+	}
 #endif
-   
-    /* Now walk through the sequencing buffer and free all the messages */
-    /* Clear sequencing buffer only if DTS is Act */
-    if ((NCS_SNMP_TRUE == inst->g_policy.g_enable_seq) &&
-        (inst->ha_state == SA_AMF_HA_ACTIVE))
-    {
-        m_NCS_TMR_STOP(inst->tmr);
-        m_NCS_TMR_DESTROY(inst->tmr);
-        for (i = 0; i < inst->s_buffer.num_msgs; i++)
-        {
-            if (0 != inst->s_buffer.arr_ptr[i].msg)
-            {
-               m_MMGR_FREE_DTSV_MSG(inst->s_buffer.arr_ptr[i].msg);
-               inst->s_buffer.arr_ptr[i].msg = NULL;
-            }
-        }
 
-        m_MMGR_FREE_SEQ_BUFF(inst->s_buffer.arr_ptr);
-    }
+	/* Now walk through the sequencing buffer and free all the messages */
+	/* Clear sequencing buffer only if DTS is Act */
+	if ((NCS_SNMP_TRUE == inst->g_policy.g_enable_seq) && (inst->ha_state == SA_AMF_HA_ACTIVE)) {
+		m_NCS_TMR_STOP(inst->tmr);
+		m_NCS_TMR_DESTROY(inst->tmr);
+		for (i = 0; i < inst->s_buffer.num_msgs; i++) {
+			if (0 != inst->s_buffer.arr_ptr[i].msg) {
+				m_MMGR_FREE_DTSV_MSG(inst->s_buffer.arr_ptr[i].msg);
+				inst->s_buffer.arr_ptr[i].msg = NULL;
+			}
+		}
 
-    /* Walk through entire paticia tree and free all the registration nodes */
-    dtsv_clear_registration_table(inst);
+		m_MMGR_FREE_SEQ_BUFF(inst->s_buffer.arr_ptr);
+	}
 
-    /* We no longer needed patricia tree; so destroy it */
-    ncs_patricia_tree_destroy(&inst->svc_tbl);
-    ncs_patricia_tree_destroy(&inst->dta_list);
-    dtsv_clear_asciispec_tree(inst);
-    dtsv_clear_libname_tree(inst);
-    ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
-    ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
+	/* Walk through entire paticia tree and free all the registration nodes */
+	dtsv_clear_registration_table(inst);
 
-    /* Deregister MIB tables from OAC. */
-    retval = dts_unregister_tables(inst);
-    if (retval != NCSCC_RC_SUCCESS)
-        retval = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_destroy: Failed to deregister MIB tables from OAC");
+	/* We no longer needed patricia tree; so destroy it */
+	ncs_patricia_tree_destroy(&inst->svc_tbl);
+	ncs_patricia_tree_destroy(&inst->dta_list);
+	dtsv_clear_asciispec_tree(inst);
+	dtsv_clear_libname_tree(inst);
+	ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
+	ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
 
-    m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
+	/* Deregister MIB tables from OAC. */
+	retval = dts_unregister_tables(inst);
+	if (retval != NCSCC_RC_SUCCESS)
+		retval = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_destroy: Failed to deregister MIB tables from OAC");
 
-    /* Deregister frm AMF */
-    dts_amf_finalize(inst);
+	m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
 
-    /*Un-install DTS from MBCSv */
-    dtsv_mbcsv_deregister(inst);
+	/* Deregister frm AMF */
+	dts_amf_finalize(inst);
 
-    /* Un-install DTS from MDS */
-    dts_mds_unreg(inst, TRUE);
+	/*Un-install DTS from MBCSv */
+	dtsv_mbcsv_deregister(inst);
 
-    inst->created = FALSE;
+	/* Un-install DTS from MDS */
+	dts_mds_unreg(inst, TRUE);
 
-    m_DTS_UNLK(&inst->lock);
+	inst->created = FALSE;
 
-    m_DTS_LK_DLT(&inst->lock);
+	m_DTS_UNLK(&inst->lock);
 
-    return retval;
+	m_DTS_LK_DLT(&inst->lock);
+
+	return retval;
 }
 
 /**************************************************************************
@@ -438,139 +405,131 @@ uns32 dts_svc_destroy(DTS_DESTROY *destroy)
 
  Notes:  
 **************************************************************************/
-void dtsv_clear_registration_table(DTS_CB *inst) 
+void dtsv_clear_registration_table(DTS_CB *inst)
 {
-    SVC_KEY               nt_key;
-    DTS_SVC_REG_TBL       *service = NULL;
-    DTA_DEST_LIST        *dta = NULL, *dta_node = NULL;
-    DTA_ENTRY            *dta_entry = NULL;
-    MDS_DEST              vkey;
-    OP_DEVICE            *device = NULL;
-    SVC_ENTRY            *svc_entry = NULL;
-    SPEC_ENTRY           *spec_entry = NULL;
+	SVC_KEY nt_key;
+	DTS_SVC_REG_TBL *service = NULL;
+	DTA_DEST_LIST *dta = NULL, *dta_node = NULL;
+	DTA_ENTRY *dta_entry = NULL;
+	MDS_DEST vkey;
+	OP_DEVICE *device = NULL;
+	SVC_ENTRY *svc_entry = NULL;
+	SPEC_ENTRY *spec_entry = NULL;
 
-    m_LOG_DTS_API(DTS_REG_TBL_CLEAR);
-    /* Search through registration table.
-     */
-    service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, NULL);
-    while (service != NULL)
-    {
-        /* Setup key for new search */
-        /* Network order key added */
-        nt_key.node      = service->ntwk_key.node;
-        nt_key.ss_svc_id = service->ntwk_key.ss_svc_id;
+	m_LOG_DTS_API(DTS_REG_TBL_CLEAR);
+	/* Search through registration table.
+	 */
+	service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, NULL);
+	while (service != NULL) {
+		/* Setup key for new search */
+		/* Network order key added */
+		nt_key.node = service->ntwk_key.node;
+		nt_key.ss_svc_id = service->ntwk_key.ss_svc_id;
 
-        /* Clear the circular buffer and close the files */
-        dts_circular_buffer_free(&service->device.cir_buffer);
+		/* Clear the circular buffer and close the files */
+		dts_circular_buffer_free(&service->device.cir_buffer);
 
-        if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL))
-        {
-            fclose(service->device.svc_fh);
-            service->device.svc_fh = NULL;
-        }
-        
-        /* Clear the log file datastructure associated with each svc device */
-        device = &service->device;
-        m_DTS_FREE_FILE_LIST(device);
- 
-        /* Cleanup the console devices associated with the node */
-        m_DTS_RMV_ALL_CONS(device);
- 
-        /* For service nodes, walk through the link list and then free entire queue */
-        if (nt_key.ss_svc_id != 0)
-        {
-            dta_entry = service->v_cd_list;
-            while(dta_entry != NULL)
-            {
-                vkey = dta_entry->dta->dta_addr; 
-               
-                /*Free the dta_list patricia tree before releasing memory */
-                if((dta_node = (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list, (const uns8*)&vkey)) == NULL)
-                {
-                   m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_clear_registration_table: DTA entry doesn't exist in dta tree");
-                }
-                /* Adjust the pointer to to_reg with the offset */
-                dta_node = (DTA_DEST_LIST *)((long)dta_node - DTA_DEST_LIST_OFFSET); 
+		if ((service->device.file_open == TRUE) && (service->device.svc_fh != NULL)) {
+			fclose(service->device.svc_fh);
+			service->device.svc_fh = NULL;
+		}
 
-                /*Remove all svc entries from dta's svc_list*/
-                while(dta_node->svc_list != NULL)
-                {
-                    svc_entry = dta_node->svc_list;
-                    dta_node->svc_list = dta_node->svc_list->next_in_dta_entry;
-                    m_MMGR_FREE_DTS_SVC_ENTRY(svc_entry); 
-                }
- 
-                dta_entry = dta_entry->next_in_svc_entry;
-            }/*end of while*/
+		/* Clear the log file datastructure associated with each svc device */
+		device = &service->device;
+		m_DTS_FREE_FILE_LIST(device);
 
-            /* Now remove all entries from service's v_cd_list */
-            while(service->v_cd_list != NULL)
-            {
-                dta_entry = service->v_cd_list;
-                service->v_cd_list = dta_entry->next_in_svc_entry;
-                m_MMGR_FREE_DTS_DTA_ENTRY(dta_entry);     
-            }
+		/* Cleanup the console devices associated with the node */
+		m_DTS_RMV_ALL_CONS(device);
 
-            /* Versioning changes : Remove the spec_entries for the service */
-            while(service->spec_list != NULL)
-            {
-                spec_entry = service->spec_list;
-                service->spec_list = spec_entry->next_spec_entry;
-                /* Decrement the use count of ASCII_SPEC ptr before deletion */
-                if(spec_entry->spec_struct != NULL)
-                   spec_entry->spec_struct->use_count--;
-                /* Decrement the use count for library having the spec */
-                if(spec_entry->lib_struct != NULL)
-                   spec_entry->lib_struct->use_count--;
-                m_MMGR_FREE_DTS_SVC_SPEC(spec_entry); 
-            }
-        }/*end of ss_svc_id != 0*/
+		/* For service nodes, walk through the link list and then free entire queue */
+		if (nt_key.ss_svc_id != 0) {
+			dta_entry = service->v_cd_list;
+			while (dta_entry != NULL) {
+				vkey = dta_entry->dta->dta_addr;
 
-        /*Now remove entry from patricia tree and free the memory */
-        if((service->v_cd_list == NULL) || (service->dta_count == 0))
-        {
-           /* No need of policy handles */
-           /*ncshm_destroy_hdl(NCS_SERVICE_ID_DTSV, service->svc_hdl);*/
-           ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)service);
-           if(service != NULL)
-              m_MMGR_FREE_SVC_REG_TBL(service);
-        }
-        else
-        {
-           m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_clear_registration_table: Failed to delete svc entry, svc_reg->v_cd_list is not empty"); 
-        }
+				/*Free the dta_list patricia tree before releasing memory */
+				if ((dta_node =
+				     (DTA_DEST_LIST *)ncs_patricia_tree_get(&inst->dta_list,
+									    (const uns8 *)&vkey)) == NULL) {
+					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+						       "dtsv_clear_registration_table: DTA entry doesn't exist in dta tree");
+				}
+				/* Adjust the pointer to to_reg with the offset */
+				dta_node = (DTA_DEST_LIST *)((long)dta_node - DTA_DEST_LIST_OFFSET);
 
-       service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8*)&nt_key);
-    }
+				/*Remove all svc entries from dta's svc_list */
+				while (dta_node->svc_list != NULL) {
+					svc_entry = dta_node->svc_list;
+					dta_node->svc_list = dta_node->svc_list->next_in_dta_entry;
+					m_MMGR_FREE_DTS_SVC_ENTRY(svc_entry);
+				}
 
-    /* Now clear the dta patricia tree also, now that there are no dta_ptrs
-     * being referenced by any svc reg entries 
-     */
-    while((dta = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, NULL)) != NULL)
-    {
-       dta = (DTA_DEST_LIST *)((long)dta - DTA_DEST_LIST_OFFSET);
-       /* Delete frm the patricia tree */
-       ncs_patricia_tree_del(&inst->dta_list, (NCS_PATRICIA_NODE *)&dta->node);
-       /* Now free the memory of dta */
-       if(dta != NULL)
-           m_MMGR_FREE_VCARD_TBL(dta);
-    }
+				dta_entry = dta_entry->next_in_svc_entry;
+			}	/*end of while */
 
-    /* Clear the circular buffer for global policy */
-    dts_circular_buffer_free(&inst->g_policy.device.cir_buffer);
-    /* Clear the log file list associated with global policy also */
-    device = &inst->g_policy.device;
-    m_DTS_FREE_FILE_LIST(device);
-    /* Close the global level files if any open */
-    if((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL))
-    {
-       fclose(inst->g_policy.device.svc_fh);
-       inst->g_policy.device.svc_fh = NULL; 
-    }
-    /* Clear all the console devices for global policy */
-    m_DTS_RMV_ALL_CONS(device);
+			/* Now remove all entries from service's v_cd_list */
+			while (service->v_cd_list != NULL) {
+				dta_entry = service->v_cd_list;
+				service->v_cd_list = dta_entry->next_in_svc_entry;
+				m_MMGR_FREE_DTS_DTA_ENTRY(dta_entry);
+			}
 
-    return;
+			/* Versioning changes : Remove the spec_entries for the service */
+			while (service->spec_list != NULL) {
+				spec_entry = service->spec_list;
+				service->spec_list = spec_entry->next_spec_entry;
+				/* Decrement the use count of ASCII_SPEC ptr before deletion */
+				if (spec_entry->spec_struct != NULL)
+					spec_entry->spec_struct->use_count--;
+				/* Decrement the use count for library having the spec */
+				if (spec_entry->lib_struct != NULL)
+					spec_entry->lib_struct->use_count--;
+				m_MMGR_FREE_DTS_SVC_SPEC(spec_entry);
+			}
+		}
+
+		/*end of ss_svc_id != 0 */
+		/*Now remove entry from patricia tree and free the memory */
+		if ((service->v_cd_list == NULL) || (service->dta_count == 0)) {
+			/* No need of policy handles */
+			/*ncshm_destroy_hdl(NCS_SERVICE_ID_DTSV, service->svc_hdl); */
+			ncs_patricia_tree_del(&inst->svc_tbl, (NCS_PATRICIA_NODE *)service);
+			if (service != NULL)
+				m_MMGR_FREE_SVC_REG_TBL(service);
+		} else {
+			m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+				       "dtsv_clear_registration_table: Failed to delete svc entry, svc_reg->v_cd_list is not empty");
+		}
+
+		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl, (const uns8 *)&nt_key);
+	}
+
+	/* Now clear the dta patricia tree also, now that there are no dta_ptrs
+	 * being referenced by any svc reg entries 
+	 */
+	while ((dta = (DTA_DEST_LIST *)ncs_patricia_tree_getnext(&inst->dta_list, NULL)) != NULL) {
+		dta = (DTA_DEST_LIST *)((long)dta - DTA_DEST_LIST_OFFSET);
+		/* Delete frm the patricia tree */
+		ncs_patricia_tree_del(&inst->dta_list, (NCS_PATRICIA_NODE *)&dta->node);
+		/* Now free the memory of dta */
+		if (dta != NULL)
+			m_MMGR_FREE_VCARD_TBL(dta);
+	}
+
+	/* Clear the circular buffer for global policy */
+	dts_circular_buffer_free(&inst->g_policy.device.cir_buffer);
+	/* Clear the log file list associated with global policy also */
+	device = &inst->g_policy.device;
+	m_DTS_FREE_FILE_LIST(device);
+	/* Close the global level files if any open */
+	if ((inst->g_policy.device.file_open == TRUE) && (inst->g_policy.device.svc_fh != NULL)) {
+		fclose(inst->g_policy.device.svc_fh);
+		inst->g_policy.device.svc_fh = NULL;
+	}
+	/* Clear all the console devices for global policy */
+	m_DTS_RMV_ALL_CONS(device);
+
+	return;
 }
 
 /*****************************************************************************
@@ -584,41 +543,43 @@ void dtsv_clear_registration_table(DTS_CB *inst)
 
 *****************************************************************************/
 
-uns32 ncs_dtsv_ascii_spec_api (NCS_DTSV_REG_CANNED_STR* arg)
+uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg)
 {
-    DTS_CB * inst = &dts_cb;
-    uns32 rc = NCSCC_RC_SUCCESS;
-  
-    if(arg == NULL)
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: NULLi pointer passed as argument");
+	DTS_CB *inst = &dts_cb;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    if (inst->created == FALSE)
-    {
-        m_LOG_DTS_DBGSTR(DTS_SERVICE, "DTS is not created. Unable to register/de-register ASCII_SPEC",
-            0, (arg->i_op == NCS_DTSV_OP_ASCII_SPEC_REGISTER)?arg->info.reg_ascii_spec.spec->ss_id:arg->info.dereg_ascii_spec.svc_id);
+	if (arg == NULL)
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: NULLi pointer passed as argument");
 
-        return m_DTS_DBG_SINK_SVC(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: DTS is not created. First create DTS before spec registration", arg->info.dereg_ascii_spec.svc_id);
-    }
+	if (inst->created == FALSE) {
+		m_LOG_DTS_DBGSTR(DTS_SERVICE, "DTS is not created. Unable to register/de-register ASCII_SPEC",
+				 0,
+				 (arg->i_op ==
+				  NCS_DTSV_OP_ASCII_SPEC_REGISTER) ? arg->info.reg_ascii_spec.spec->ss_id : arg->info.
+				 dereg_ascii_spec.svc_id);
 
-    m_DTS_LK(&inst->lock);    
-    switch(arg->i_op)
-    {
-    case NCS_DTSV_OP_ASCII_SPEC_REGISTER:
-        rc = dts_ascii_spec_register(arg->info.reg_ascii_spec.spec);
-        break;
- 
-    case  NCS_DTSV_OP_ASCII_SPEC_DEREGISTER:
-        rc = dts_ascii_spec_deregister(arg->info.dereg_ascii_spec.svc_id, arg->info.dereg_ascii_spec.version);
-        break;
-        
-    default:
-        rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: Wrong operation type passed!!");
-        break;
-    }
-    m_DTS_UNLK(&inst->lock);
-    return rc;
+		return m_DTS_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+					  "ncs_dtsv_ascii_spec_api: DTS is not created. First create DTS before spec registration",
+					  arg->info.dereg_ascii_spec.svc_id);
+	}
+
+	m_DTS_LK(&inst->lock);
+	switch (arg->i_op) {
+	case NCS_DTSV_OP_ASCII_SPEC_REGISTER:
+		rc = dts_ascii_spec_register(arg->info.reg_ascii_spec.spec);
+		break;
+
+	case NCS_DTSV_OP_ASCII_SPEC_DEREGISTER:
+		rc = dts_ascii_spec_deregister(arg->info.dereg_ascii_spec.svc_id, arg->info.dereg_ascii_spec.version);
+		break;
+
+	default:
+		rc = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "ncs_dtsv_ascii_spec_api: Wrong operation type passed!!");
+		break;
+	}
+	m_DTS_UNLK(&inst->lock);
+	return rc;
 }
-
 
 /**************************************************************************
  Function: dtsv_clear_asciispec_tree
@@ -634,17 +595,15 @@ uns32 ncs_dtsv_ascii_spec_api (NCS_DTSV_REG_CANNED_STR* arg)
 **************************************************************************/
 uns32 dtsv_clear_asciispec_tree(DTS_CB *cb)
 {
-  SYSF_ASCII_SPECS *spec_entry;
-  
-  while(NULL != (spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, NULL)))
-  {
-     ncs_patricia_tree_del(&cb->svcid_asciispec_tree, (NCS_PATRICIA_NODE *)spec_entry);
-     m_MMGR_FREE_DTS_SPEC_ENTRY(spec_entry);
-  }
+	SYSF_ASCII_SPECS *spec_entry;
 
-  return NCSCC_RC_SUCCESS;
+	while (NULL != (spec_entry = (SYSF_ASCII_SPECS *)ncs_patricia_tree_getnext(&cb->svcid_asciispec_tree, NULL))) {
+		ncs_patricia_tree_del(&cb->svcid_asciispec_tree, (NCS_PATRICIA_NODE *)spec_entry);
+		m_MMGR_FREE_DTS_SPEC_ENTRY(spec_entry);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /**************************************************************************
  Function: dtsv_clear_libname_tree
@@ -660,16 +619,14 @@ uns32 dtsv_clear_asciispec_tree(DTS_CB *cb)
 **************************************************************************/
 uns32 dtsv_clear_libname_tree(DTS_CB *cb)
 {
-  ASCII_SPEC_LIB   *lib_entry;
+	ASCII_SPEC_LIB *lib_entry;
 
-  while(NULL != (lib_entry = (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, NULL)))
-  {
-     if(lib_entry->lib_hdl != NULL)
-        m_NCS_OS_DLIB_CLOSE(lib_entry->lib_hdl);
-     ncs_patricia_tree_del(&cb->libname_asciispec_tree, (NCS_PATRICIA_NODE *)lib_entry);
-     m_MMGR_FREE_DTS_LIBNAME(lib_entry);
-  }
+	while (NULL != (lib_entry = (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, NULL))) {
+		if (lib_entry->lib_hdl != NULL)
+			m_NCS_OS_DLIB_CLOSE(lib_entry->lib_hdl);
+		ncs_patricia_tree_del(&cb->libname_asciispec_tree, (NCS_PATRICIA_NODE *)lib_entry);
+		m_MMGR_FREE_DTS_LIBNAME(lib_entry);
+	}
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

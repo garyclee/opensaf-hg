@@ -35,16 +35,15 @@
  *
  * Notes         : None 
  *****************************************************************************/
-static SaAisErrorT amf_active_state_handler(ntfs_cb_t *cb,
-                                            SaInvocationT invocation)
+static SaAisErrorT amf_active_state_handler(ntfs_cb_t *cb, SaInvocationT invocation)
 {
-    SaAisErrorT error = SA_AIS_OK;
-    TRACE_ENTER2("HA ACTIVE request");
+	SaAisErrorT error = SA_AIS_OK;
+	TRACE_ENTER2("HA ACTIVE request");
 
-    ntfs_cb->mds_role = V_DEST_RL_ACTIVE;
+	ntfs_cb->mds_role = V_DEST_RL_ACTIVE;
 
-    TRACE_LEAVE();
-    return error;
+	TRACE_LEAVE();
+	return error;
 }
 
 /****************************************************************************
@@ -62,10 +61,10 @@ static SaAisErrorT amf_active_state_handler(ntfs_cb_t *cb,
  *****************************************************************************/
 static SaAisErrorT amf_standby_state_handler(ntfs_cb_t *cb, SaInvocationT invocation)
 {
-    TRACE_ENTER2("HA STANDBY request");
-    cb->mds_role = V_DEST_RL_STANDBY;
-    TRACE_LEAVE();
-    return SA_AIS_OK;
+	TRACE_ENTER2("HA STANDBY request");
+	cb->mds_role = V_DEST_RL_STANDBY;
+	TRACE_LEAVE();
+	return SA_AIS_OK;
 }
 
 /****************************************************************************
@@ -81,11 +80,10 @@ static SaAisErrorT amf_standby_state_handler(ntfs_cb_t *cb, SaInvocationT invoca
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiescing_state_handler(ntfs_cb_t *cb,
-                                               SaInvocationT invocation)
+static SaAisErrorT amf_quiescing_state_handler(ntfs_cb_t *cb, SaInvocationT invocation)
 {
-    TRACE_ENTER2("HA QUIESCING request");
-    return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_ENTER2("HA QUIESCING request");
+	return saAmfCSIQuiescingComplete(cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
 /****************************************************************************
@@ -101,21 +99,20 @@ static SaAisErrorT amf_quiescing_state_handler(ntfs_cb_t *cb,
  *
  * Notes         : None
  *****************************************************************************/
-static SaAisErrorT amf_quiesced_state_handler(ntfs_cb_t *cb,
-                                              SaInvocationT invocation)
+static SaAisErrorT amf_quiesced_state_handler(ntfs_cb_t *cb, SaInvocationT invocation)
 {
-    TRACE_ENTER2("HA AMF QUIESCED STATE request");
-    /*
-    ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
-    ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
-    ** cb->ha_state now.
-    */
+	TRACE_ENTER2("HA AMF QUIESCED STATE request");
+	/*
+	 ** Change the MDS VDSET role to Quiesced. Wait for MDS callback with type
+	 ** MDS_CALLBACK_QUIESCED_ACK. Then change MBCSv role. Don't change
+	 ** cb->ha_state now.
+	 */
 
-    cb->mds_role = V_DEST_RL_QUIESCED;
-    ntfs_mds_change_role(cb);
-    cb->amf_invocation_id = invocation;
-    cb->is_quisced_set = TRUE; 
-    return SA_AIS_OK;
+	cb->mds_role = V_DEST_RL_QUIESCED;
+	ntfs_mds_change_role(cb);
+	cb->amf_invocation_id = invocation;
+	cb->is_quisced_set = TRUE;
+	return SA_AIS_OK;
 }
 
 /****************************************************************************
@@ -134,11 +131,9 @@ static SaAisErrorT amf_quiesced_state_handler(ntfs_cb_t *cb,
  *
  * Notes         : None
  *****************************************************************************/
-static void amf_health_chk_callback(SaInvocationT invocation,
-                                    const SaNameT *compName,
-                                    SaAmfHealthcheckKeyT *checkType)
+static void amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-    saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
+	saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
 }
 
 /****************************************************************************
@@ -168,106 +163,94 @@ static void amf_health_chk_callback(SaInvocationT invocation,
  * Notes         : None.
  *****************************************************************************/
 static void amf_csi_set_callback(SaInvocationT invocation,
-                                 const SaNameT *compName,
-                                 SaAmfHAStateT new_haState,
-                                 SaAmfCSIDescriptorT csiDescriptor)
+				 const SaNameT *compName, SaAmfHAStateT new_haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-    SaAisErrorT error  = SA_AIS_OK;
-    SaAmfHAStateT      prev_haState;
-    NCS_BOOL           role_change = TRUE;
-    uns32              rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error = SA_AIS_OK;
+	SaAmfHAStateT prev_haState;
+	NCS_BOOL role_change = TRUE;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /*
-     *  Handle Active to Active role change.
-     */
-    prev_haState = ntfs_cb->ha_state;
+	/*
+	 *  Handle Active to Active role change.
+	 */
+	prev_haState = ntfs_cb->ha_state;
 
+	if (prev_haState == SA_AMF_HA_STANDBY &&
+	    new_haState == SA_AMF_HA_ACTIVE && ntfs_cb->ckpt_state != COLD_SYNC_COMPLETE) {
+		/* We are not synched and cannot take over */
+		LOG_ER("NTFS cannot take over not cold synched");
+		error = SA_AIS_ERR_FAILED_OPERATION;
+		goto response;
+	}
 
-    if (prev_haState == SA_AMF_HA_STANDBY &&
-        new_haState == SA_AMF_HA_ACTIVE &&
-        ntfs_cb->ckpt_state != COLD_SYNC_COMPLETE)
-    {
-        /* We are not synched and cannot take over */
-        LOG_ER("NTFS cannot take over not cold synched");
-        error = SA_AIS_ERR_FAILED_OPERATION;
-        goto response;
-    }
+	/* Invoke the appropriate state handler routine */
+	switch (new_haState) {
+	case SA_AMF_HA_ACTIVE:
+		error = amf_active_state_handler(ntfs_cb, invocation);
+		break;
+	case SA_AMF_HA_STANDBY:
+		error = amf_standby_state_handler(ntfs_cb, invocation);
+		break;
+	case SA_AMF_HA_QUIESCED:
+		error = amf_quiesced_state_handler(ntfs_cb, invocation);
+		break;
+	case SA_AMF_HA_QUIESCING:
+		error = amf_quiescing_state_handler(ntfs_cb, invocation);
+		break;
+	default:
+		LOG_WA("invalid state: %d ", new_haState);
+		error = SA_AIS_ERR_BAD_OPERATION;
+		break;
+	}
 
-    /* Invoke the appropriate state handler routine */
-    switch (new_haState)
-    {
-    case SA_AMF_HA_ACTIVE:
-        error = amf_active_state_handler(ntfs_cb, invocation);
-        break;
-    case SA_AMF_HA_STANDBY:
-        error = amf_standby_state_handler(ntfs_cb, invocation);
-        break;
-    case SA_AMF_HA_QUIESCED:
-        error = amf_quiesced_state_handler(ntfs_cb, invocation);
-        break;
-    case SA_AMF_HA_QUIESCING: 
-        error = amf_quiescing_state_handler(ntfs_cb, invocation);
-        break;
-    default:
-        LOG_WA("invalid state: %d ", new_haState);
-        error = SA_AIS_ERR_BAD_OPERATION;
-        break;
-    } 
+	if (error != SA_AIS_OK)
+		goto response;
 
-    if (error != SA_AIS_OK)
-        goto response;
+	if (new_haState == SA_AMF_HA_QUIESCED)
+		goto done;
 
-    if (new_haState == SA_AMF_HA_QUIESCED)
-        goto done;
+	/* Update control block */
+	ntfs_cb->ha_state = new_haState;
 
-    /* Update control block */
-    ntfs_cb->ha_state = new_haState;
+	if (ntfs_cb->csi_assigned == FALSE) {
+		ntfs_cb->csi_assigned = TRUE;
+		/* We shall open checkpoint only once in our life time. currently doing at lib init  */
+	} else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY)) {	/* It is a switch over */
+		/* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
+		 * Also, change role of mds, mbcsv during quiesced has to be done after mds
+		 * supports the same.  TBD
+		 */
+	}
 
-    if (ntfs_cb->csi_assigned == FALSE)
-    {
-        ntfs_cb->csi_assigned = TRUE;
-        /* We shall open checkpoint only once in our life time. currently doing at lib init  */
-    }
-    else if ((new_haState == SA_AMF_HA_ACTIVE) || (new_haState == SA_AMF_HA_STANDBY))
-    {  /* It is a switch over */
-        /* NOTE: This behaviour has to be checked later, when scxb redundancy is available 
-         * Also, change role of mds, mbcsv during quiesced has to be done after mds
-         * supports the same.  TBD
-         */
-    }
+	/* Handle active to active role change. */
+	if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
+		role_change = FALSE;
 
-    /* Handle active to active role change. */
-    if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
-        role_change = FALSE;
+	/* Handle Stby to Stby role change. */
+	if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
+		role_change = FALSE;
 
-    /* Handle Stby to Stby role change. */
-    if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
-        role_change = FALSE;
+	if (role_change == TRUE) {
+		if ((rc = ntfs_mds_change_role(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+			TRACE("ntfs_mds_change_role FAILED");
+			error = SA_AIS_ERR_FAILED_OPERATION;
+		}
+	}
 
-    if (role_change == TRUE)
-    {
-        if ((rc = ntfs_mds_change_role(ntfs_cb)) != NCSCC_RC_SUCCESS)
-        {
-            TRACE("ntfs_mds_change_role FAILED");
-            error = SA_AIS_ERR_FAILED_OPERATION;
-        }
-    }
+	/* Inform MBCSV of HA state change */
+	if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(ntfs_cb)))
+		error = SA_AIS_ERR_FAILED_OPERATION;
 
-    /* Inform MBCSV of HA state change */
-    if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(ntfs_cb)))
-        error = SA_AIS_ERR_FAILED_OPERATION;
-
-    response:
-    saAmfResponse(ntfs_cb->amf_hdl, invocation, error);
-    if ((new_haState == SA_AMF_HA_ACTIVE) && (role_change == TRUE))
-    {
-        /* check for unsent notifictions and if notifiction is not logged */
-        checkNotificationList(); 
-    }
-    done:
-    TRACE_LEAVE();
+ response:
+	saAmfResponse(ntfs_cb->amf_hdl, invocation, error);
+	if ((new_haState == SA_AMF_HA_ACTIVE) && (role_change == TRUE)) {
+		/* check for unsent notifictions and if notifiction is not logged */
+		checkNotificationList();
+	}
+ done:
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -291,20 +274,19 @@ static void amf_csi_set_callback(SaInvocationT invocation,
  *
  * Notes         : None
  *****************************************************************************/
-static void amf_comp_terminate_callback(SaInvocationT invocation,
-                                        const SaNameT *compName)
+static void amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    saAmfResponse(ntfs_cb->amf_hdl,invocation, SA_AIS_OK);
+	saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
 
-    /* Detach from IPC */
-    m_NCS_IPC_DETACH(&ntfs_cb->mbx, NULL, ntfs_cb);
+	/* Detach from IPC */
+	m_NCS_IPC_DETACH(&ntfs_cb->mbx, NULL, ntfs_cb);
 
-    /* Disconnect from MDS */
-    ntfs_mds_finalize(ntfs_cb);
-    sleep(1);
-    exit(0);
+	/* Disconnect from MDS */
+	ntfs_mds_finalize(ntfs_cb);
+	sleep(1);
+	exit(0);
 }
 
 /****************************************************************************
@@ -327,13 +309,11 @@ static void amf_comp_terminate_callback(SaInvocationT invocation,
  * Return Values : None 
  *****************************************************************************/
 static void amf_csi_rmv_callback(SaInvocationT invocation,
-                                 const SaNameT *compName,
-                                 const SaNameT *csiName,
-                                 const SaAmfCSIFlagsT csiFlags)
+				 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
 {
-    TRACE_ENTER();
-    saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
-    TRACE_LEAVE();
+	TRACE_ENTER();
+	saAmfResponse(ntfs_cb->amf_hdl, invocation, SA_AIS_OK);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************\
@@ -349,38 +329,34 @@ static void amf_csi_rmv_callback(SaInvocationT invocation,
 \******************************************************************************/
 static SaAisErrorT amf_healthcheck_start(ntfs_cb_t *ntfs_cb)
 {
-    SaAisErrorT          error;
-    SaAmfHealthcheckKeyT healthy;
-    char                 *health_key;
+	SaAisErrorT error;
+	SaAmfHealthcheckKeyT healthy;
+	char *health_key;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
     /** start the AMF health check **/
-    memset(&healthy, 0, sizeof(healthy));
-    health_key = (char*)getenv("NTFSV_ENV_HEALTHCHECK_KEY");
+	memset(&healthy, 0, sizeof(healthy));
+	health_key = (char *)getenv("NTFSV_ENV_HEALTHCHECK_KEY");
 
-    if (health_key == NULL)
-    {
-        strcpy((char *)healthy.key, "F1B2");
-        healthy.keyLen = strlen((const char *)healthy.key);
-    }
-    else
-    {
-        healthy.keyLen = strlen(health_key);
-        if (healthy.keyLen > sizeof(healthy.key))
-          healthy.keyLen = sizeof(healthy.key);
-        strncpy((char *)healthy.key, health_key, healthy.keyLen);    
-    }
-  
-    error = saAmfHealthcheckStart(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, &healthy,
-                                  SA_AMF_HEALTHCHECK_AMF_INVOKED,
-                                  SA_AMF_COMPONENT_FAILOVER);
+	if (health_key == NULL) {
+		strcpy((char *)healthy.key, "F1B2");
+		healthy.keyLen = strlen((const char *)healthy.key);
+	} else {
+		healthy.keyLen = strlen(health_key);
+		if (healthy.keyLen > sizeof(healthy.key))
+			healthy.keyLen = sizeof(healthy.key);
+		strncpy((char *)healthy.key, health_key, healthy.keyLen);
+	}
 
-    if (error != SA_AIS_OK)
-        LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
+	error = saAmfHealthcheckStart(ntfs_cb->amf_hdl, &ntfs_cb->comp_name, &healthy,
+				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 
-    TRACE_LEAVE();
-    return error;
+	if (error != SA_AIS_OK)
+		LOG_ER("saAmfHealthcheckStart FAILED: %u", error);
+
+	TRACE_LEAVE();
+	return error;
 }
 
 /**************************************************************************
@@ -396,62 +372,56 @@ static SaAisErrorT amf_healthcheck_start(ntfs_cb_t *ntfs_cb)
 **************************************************************************/
 SaAisErrorT ntfs_amf_init(ntfs_cb_t *cb)
 {
-    SaAmfCallbacksT amfCallbacks;
-    SaVersionT      amf_version;
-    SaAisErrorT     error;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amf_version;
+	SaAisErrorT error;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /* Initialize AMF callbacks */
-    memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
-    amfCallbacks.saAmfHealthcheckCallback = amf_health_chk_callback;
-    amfCallbacks.saAmfCSISetCallback      = amf_csi_set_callback;
-    amfCallbacks.saAmfComponentTerminateCallback
-    = amf_comp_terminate_callback;
-    amfCallbacks.saAmfCSIRemoveCallback   = amf_csi_rmv_callback;
+	/* Initialize AMF callbacks */
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	amfCallbacks.saAmfHealthcheckCallback = amf_health_chk_callback;
+	amfCallbacks.saAmfCSISetCallback = amf_csi_set_callback;
+	amfCallbacks.saAmfComponentTerminateCallback = amf_comp_terminate_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = amf_csi_rmv_callback;
 
-    amf_version.releaseCode = 'B';
-    amf_version.majorVersion = 0x01;
-    amf_version.minorVersion = 0x01;
+	amf_version.releaseCode = 'B';
+	amf_version.majorVersion = 0x01;
+	amf_version.minorVersion = 0x01;
 
-    /* Initialize the AMF library */
-    error = saAmfInitialize(&cb->amf_hdl, &amfCallbacks, &amf_version);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfInitialize() FAILED: %u", error);
-        goto done;
-    }
+	/* Initialize the AMF library */
+	error = saAmfInitialize(&cb->amf_hdl, &amfCallbacks, &amf_version);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfInitialize() FAILED: %u", error);
+		goto done;
+	}
 
-    /* Obtain the AMF selection object to wait for AMF events */
-    error = saAmfSelectionObjectGet(cb->amf_hdl, &cb->amfSelectionObject);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfSelectionObjectGet() FAILED: %u", error);
-        goto done;
-    }
+	/* Obtain the AMF selection object to wait for AMF events */
+	error = saAmfSelectionObjectGet(cb->amf_hdl, &cb->amfSelectionObject);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfSelectionObjectGet() FAILED: %u", error);
+		goto done;
+	}
 
-    /* Get the component name */
-    error = saAmfComponentNameGet(cb->amf_hdl, &cb->comp_name);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfComponentNameGet() FAILED: %u", error);
-        goto done;
-    }
+	/* Get the component name */
+	error = saAmfComponentNameGet(cb->amf_hdl, &cb->comp_name);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentNameGet() FAILED: %u", error);
+		goto done;
+	}
 
-    /* Register component with AMF */
-    error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT*)NULL);
-    if (error != SA_AIS_OK)
-    {
-        LOG_ER("saAmfComponentRegister() FAILED");
-        goto done;
-    }
+	/* Register component with AMF */
+	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT *)NULL);
+	if (error != SA_AIS_OK) {
+		LOG_ER("saAmfComponentRegister() FAILED");
+		goto done;
+	}
 
-    /* Start AMF healthchecks */
-    if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK)
-        goto done;
+	/* Start AMF healthchecks */
+	if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK)
+		goto done;
 
-    done:
-    TRACE_LEAVE();
-    return error;
+ done:
+	TRACE_LEAVE();
+	return error;
 }
-

@@ -20,7 +20,6 @@
 
   MODULE NAME:  NCS_ENDEC.H
 
-
   REVISION HISTORY:
 
   Date     Version  Name          Description
@@ -103,46 +102,43 @@ extern "C" {
 /*
  * NCS_ENC encode functions
  */
-EXTERN_C LEAPDLL_API USRBUF *ncs_encode_n_octets(USRBUF *, uns8 *, unsigned int);
-EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns8(USRBUF *u, uns8 val8);
-EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16);
-EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32);
-EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64);
-EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int);
-EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns16(USRBUF *u, uns16);
-EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
-EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
-EXTERN_C LEAPDLL_API USRBUF* ncs_encode_float(USRBUF* u, ncsfloat32 obj_val);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_n_octets(USRBUF *, uns8 *, unsigned int);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns8(USRBUF *u, uns8 val8);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns16(USRBUF *u, uns16 val16);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns32(USRBUF *u, uns32 val32);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_uns64(USRBUF *u, uns64 val64);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_n_octets(USRBUF *pbuf, uns8 *os, unsigned int);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns16(USRBUF *u, uns16);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns32(USRBUF *u, uns32);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_prepend_uns64(USRBUF *u, uns64);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_encode_float(USRBUF *u, ncsfloat32 obj_val);
 
-EXTERN_C LEAPDLL_API uns64   ncs_encode_64bit( uns8 **stream, uns64 );
-EXTERN_C LEAPDLL_API uns32   ncs_encode_32bit( uns8 **stream, uns32 );
-EXTERN_C LEAPDLL_API uns32   ncs_encode_24bit( uns8 **stream, uns32 );
-EXTERN_C LEAPDLL_API uns32   ncs_encode_16bit( uns8 **stream, uns32 );
-EXTERN_C LEAPDLL_API uns32   ncs_encode_8bit ( uns8 **stream, uns32);
-EXTERN_C LEAPDLL_API uns32   ncs_encode_key  ( uns8 **stream, NCS_KEY* key);
+	EXTERN_C LEAPDLL_API uns64 ncs_encode_64bit(uns8 **stream, uns64);
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_32bit(uns8 **stream, uns32);
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_24bit(uns8 **stream, uns32);
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_16bit(uns8 **stream, uns32);
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_8bit(uns8 **stream, uns32);
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_key(uns8 **stream, NCS_KEY *key);
 
-EXTERN_C LEAPDLL_API uns32   ncs_encode_octets( uns8 **stream, uns8 *val, uns32 count);
-
+	EXTERN_C LEAPDLL_API uns32 ncs_encode_octets(uns8 **stream, uns8 *val, uns32 count);
 
 /*
  * NCS_DEC decode functions
  */
-EXTERN_C LEAPDLL_API USRBUF *ncs_decode_n_octets(USRBUF *, uns8 *, uns32);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_decode_n_octets(USRBUF *, uns8 *, uns32);
 
-EXTERN_C LEAPDLL_API USRBUF *ncs_skip_n_octets  (USRBUF *, uns32);
-EXTERN_C LEAPDLL_API uns8*   ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count);
+	EXTERN_C LEAPDLL_API USRBUF *ncs_skip_n_octets(USRBUF *, uns32);
+	EXTERN_C LEAPDLL_API uns8 *ncs_flatten_n_octets(USRBUF *u, uns8 *os, uns32 count);
 
-EXTERN_C LEAPDLL_API uns32   ncs_decode_short( uns8 **stream);
-EXTERN_C LEAPDLL_API uns32   ncs_decode_24bit( uns8 **stream);
-EXTERN_C LEAPDLL_API uns32   ncs_decode_32bit( uns8 **stream);
-EXTERN_C LEAPDLL_API uns16   ncs_decode_16bit( uns8 **stream);
-EXTERN_C LEAPDLL_API uns64   ncs_decode_64bit( uns8 **stream);
-EXTERN_C LEAPDLL_API uns8    ncs_decode_8bit ( uns8 **stream);
-EXTERN_C LEAPDLL_API uns32   ncs_decode_key  ( uns8 **stream, NCS_KEY* key);
+	EXTERN_C LEAPDLL_API uns32 ncs_decode_short(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns32 ncs_decode_24bit(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns32 ncs_decode_32bit(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns16 ncs_decode_16bit(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns64 ncs_decode_64bit(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns8 ncs_decode_8bit(uns8 **stream);
+	EXTERN_C LEAPDLL_API uns32 ncs_decode_key(uns8 **stream, NCS_KEY *key);
 
-EXTERN_C LEAPDLL_API ncsfloat32   ncs_decode_float( uns8 **stream);
-
-
+	EXTERN_C LEAPDLL_API ncsfloat32 ncs_decode_float(uns8 **stream);
 
 /*****************************************************************************
  * STRUCTURE NAME:     USRFRAME
@@ -157,14 +153,11 @@ EXTERN_C LEAPDLL_API ncsfloat32   ncs_decode_float( uns8 **stream);
  * sysf_ip and hence, must be located outside of ncs_ip.h
  *
  ****************************************************************************/
-typedef struct
-{
-   unsigned int header_len; /* header length */
-   unsigned int len;     /* length of entire frame including header */
-   char         *bufp;   /* ptr to a (flat) buffer containing the frame */
-} USRFRAME;
-
-
+	typedef struct {
+		unsigned int header_len;	/* header length */
+		unsigned int len;	/* length of entire frame including header */
+		char *bufp;	/* ptr to a (flat) buffer containing the frame */
+	} USRFRAME;
 
 /* encode ncsfloat32 */
 #if defined(__NCSINC_WIN32__)
@@ -182,7 +175,6 @@ typedef struct
          }
 #endif
 #endif
-
 
 /* decode ncsfloat32 */
 #if defined(__NCSINC_WIN32__)
@@ -206,5 +198,3 @@ typedef struct
 #endif
 
 #endif
-
-

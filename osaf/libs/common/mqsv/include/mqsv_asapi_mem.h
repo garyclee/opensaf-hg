@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: ASAPi messages Allocation & Free macros 
@@ -37,14 +35,13 @@
 /******************************************************************************
                            Service Sub IDs for MQSv -ASAPi
 *******************************************************************************/
-typedef enum
-{
-   NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL = 1,   
-   NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO,
-   NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO,
-   NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO, 
-   
-   NCS_SERVICE_MQSV_ASAPi_SUB_ID_MAX       /* This should be the last id */
+typedef enum {
+	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_DEFAULT_VAL = 1,
+	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_CACHE_INFO,
+	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_QUEUE_INFO,
+	NCS_SERVICE_MQSV_ASAPi_SUB_ID_ASAPi_MSG_INFO,
+
+	NCS_SERVICE_MQSV_ASAPi_SUB_ID_MAX	/* This should be the last id */
 } NCS_SERVICE_MQSV_ASAPi_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -34,18 +32,17 @@
 
 /* csi pg node wrapper structure (maintained by csi) */
 typedef struct avd_pg_csi_node {
-   NCS_DB_LINK_LIST_NODE  csi_dll_node; /* csi dll node (key is node ptr) */
+	NCS_DB_LINK_LIST_NODE csi_dll_node;	/* csi dll node (key is node ptr) */
 
-   AVD_AVND  *node; /* ptr to the node */
+	AVD_AVND *node;		/* ptr to the node */
 } AVD_PG_CSI_NODE;
 
 /* node pg csi wrapper structure (maintained by node) */
 typedef struct avd_pg_node_csi {
-   NCS_DB_LINK_LIST_NODE  node_dll_node; /* avnd dll node (key is csi ptr) */
+	NCS_DB_LINK_LIST_NODE node_dll_node;	/* avnd dll node (key is csi ptr) */
 
-   AVD_CSI *csi; /* ptr to the csi */
+	AVD_CSI *csi;		/* ptr to the csi */
 } AVD_PG_NODE_CSI;
-
 
 EXTERN_C void avd_pg_trk_act_func(AVD_CL_CB *, struct avd_evt_tag *);
 
@@ -57,4 +54,4 @@ EXTERN_C void avd_pg_csi_node_del(AVD_CL_CB *, AVD_CSI *, AVD_AVND *);
 EXTERN_C void avd_pg_csi_node_del_all(AVD_CL_CB *, AVD_CSI *);
 EXTERN_C void avd_pg_node_csi_del_all(AVD_CL_CB *, AVD_AVND *);
 
-#endif /* !AVD_PG_H */
+#endif   /* !AVD_PG_H */

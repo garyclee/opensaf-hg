@@ -33,7 +33,6 @@
 #ifndef CLI_OPT_H
 #define CLI_OPT_H
 
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                             Compiler Options 
@@ -45,7 +44,6 @@
 #ifndef NCSCLI_LOG
 #define NCSCLI_LOG 0
 #endif
-
 
 /* This flag is used to enable reading of script file */
 

@@ -35,20 +35,20 @@
 #ifdef  __cplusplus
 extern "C" {
 #endif
-    uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param);
-    uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param);
-    uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
-    uns32 ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
-    uns32 ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
-    uns32 ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
-    uns32 ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param);
-    uns32 ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param);
-    uns32 ntfsv_enc_32bit_msg(NCS_UBAID *uba, uns32 param);
-    uns32 ntfsv_dec_32bit_msg(NCS_UBAID *uba, uns32 *param);
+	uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param);
+	uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param);
+	uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
+	uns32 ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param);
+	uns32 ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
+	uns32 ntfsv_dec_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param);
+	uns32 ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param);
+	uns32 ntfsv_dec_64bit_msg(NCS_UBAID *uba, uns64 *param);
+	uns32 ntfsv_enc_32bit_msg(NCS_UBAID *uba, uns32 param);
+	uns32 ntfsv_dec_32bit_msg(NCS_UBAID *uba, uns32 *param);
 
-    void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes,
-                                     SaUint16T numAttributes);
+	void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes, SaUint16T numAttributes);
 #ifdef  __cplusplus
 }
 #endif
-#endif /* NTFSV_ENC_DEC_H */
+
+#endif   /* NTFSV_ENC_DEC_H */
