@@ -27,13 +27,23 @@ CORE_CPP_DEFINES = \
     -DDTA_FLOW=1 \
     $(DEBUG_FLAG)
 
+CORE_INCLUDES = \
+	-I$(top_srcdir)/osaf/libs/saf/include \
+	-I$(top_srcdir)/osaf/libs/core/include \
+	-I$(top_srcdir)/osaf/libs/core/leap/include \
+	-I$(top_srcdir)/osaf/libs/core/mds/include \
+	-I$(top_srcdir)/osaf/libs/core/common/include
 
 #
 # FIXME: Remove -Werror until we fix all the warnings
 #
 #CFLAGS="$CFLAGS -fPIC -Wall -Wmissing-prototypes -Wno-pointer-sign -Werror"
 #CXXFLAGS="$CXXFLAGS -fPIC -Wall -Wno-deprecated -Wno-write-strings -Werror"
-AM_CPPFLAGS = $(CORE_CPP_DEFINES) -I$(top_srcdir)/include $(all_includes)
+AM_CPPFLAGS = \
+	$(CORE_CPP_DEFINES) \
+	$(CORE_INCLUDES) \
+	$(all_includes)
+
 AM_CFLAGS = -fPIC -Wall
 AM_CXXFLAGS = -fPIC -Wall
 

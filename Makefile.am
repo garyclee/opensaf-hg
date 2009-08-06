@@ -22,7 +22,6 @@ MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.h.in config.sub \
 
 include $(top_srcdir)/Makefile.common
 include $(top_srcdir)/samples/samples.mk
-include $(top_srcdir)/mibs/mibs.mk
 
 ACLOCAL_AMFLAGS = -I m4
 
@@ -80,7 +79,9 @@ configmake.h: Makefile
 	mv $@-t $@
 
 BUILT_SOURCES = configmake.h
+
 CLEANFILES = configmake.h configmake.h-t
+
 
 if ENABLE_SMIDUMP
 
@@ -93,6 +94,12 @@ build_smidump:
 	@$(top_builddir)/tools/smidump/generate_smidump.sh
 
 endif
+
+
+EXTRA_DIST = \
+	$(top_srcdir)/initd/opensafd.initd \
+	$(top_srcdir)/tools/smidump \
+	$(top_srcdir)/tests
 
 
 dist_doc_DATA = \
@@ -115,154 +122,10 @@ dist_pkgdata_DATA =
 
 nobase_dist_pkgdata_DATA = $(samples_sources)
 
-pkginclude_HEADERS = \
-	include/cpsv_papi.h \
-	include/dta_papi.h \
-	include/dts_papi.h \
-	include/hpl_api.h \
-	include/hpl_msg.h \
-	include/ifa_papi.h \
-	include/ifsv_cli_papi.h \
-	include/ifsv_papi.h \
-	include/ip_defs.h \
-	include/ipxs_papi.h \
-	include/mab_penv.h \
-	include/mac_papi.h \
-	include/mbcsv_papi.h \
-	include/mds_papi.h \
-	include/ncs_cli.h \
-	include/ncs_dl.h \
-	include/ncs_edu_pub.h \
-	include/ncsencdec_pub.h \
-	include/ncsgl_defs.h \
-	include/ncs_hdl_pub.h \
-	include/ncs_ip.h \
-	include/ncs_iplib.h \
-	include/ncs_ipprm.h \
-	include/ncs_ipv4.h \
-	include/ncs_ipv6.h \
-	include/ncs_lib.h \
-	include/ncs_log.h \
-	include/ncs_main_papi.h \
-	include/ncs_mda_papi.h \
-	include/ncs_mds_def.h \
-	include/ncsmiblib.h \
-	include/ncsmib_mem.h \
-	include/ncs_mib_pub.h \
-	include/ncs_mtbl.h  \
-	include/ncs_mtree.h \
-	include/ncs_osprm.h \
-	include/ncspatricia.h \
-	include/ncs_posix_tmr.h \
-	include/ncs_queue.h \
-	include/ncs_saf.h \
-	include/ncs_scktprm.h \
-	include/ncs_sprr_papi.h \
-	include/ncs_stack_pub.h \
-	include/ncs_svd.h \
-	include/ncssysf_def.h \
-	include/ncssysf_ipc.h \
-	include/ncssysf_lck.h \
-	include/ncssysf_mem.h \
-	include/ncssysfpool.h \
-	include/ncssysf_sem.h \
-	include/ncssysf_tmr.h \
-	include/ncssysf_tsk.h \
-	include/ncs_tmr.h \
-	include/ncs_trap.h \
-	include/ncs_ubaid.h \
-	include/ncsusrbuf.h \
-	include/ncs_xmtre.h \
-	include/nid_api.h \
-	include/oac_papi.h \
-	include/os_defs.h \
-	include/psr_mib_load.h \
-	include/psr_papi.h \
-	include/rda_papi.h \
-	include/fm_papi.h \
-	include/sckt_defs.h \
-	include/srma_papi.h \
-	include/srmsv_papi.h \
-	include/subagt_mab.h \
-	include/subagt_oid_db.h \
-	include/sysf_ip.h \
-	include/trg_defs.h
 
-include_HEADERS = \
-	include/saAis.h \
-	include/saAmf.h \
-	include/saCkpt.h \
-	include/saClm.h \
-	include/saEvt.h \
-	include/saImm.h \
-	include/saImmOi.h \
-	include/saImmOm.h \
-	include/saLck.h \
-	include/saLog.h \
-	include/saMsg.h \
-	include/saNtf.h
-
-
-BASE_SUBDIRS = \
-	services/leap \
-	services/common \
-	services/mds \
-	services/vds/vda \
-	services/mab/oac \
-	services/dtsv/dta \
-	lib/lib_ncs_core \
-	services/avsv/ava \
-	services/avsv/common \
-	lib/lib_SaAmf \
-	services/cpsv/common \
-	services/cpsv/cpa \
-	lib/lib_SaCkpt \
-	services/avsv/cla \
-	lib/lib_SaClm \
-	services/edsv/common \
-	services/edsv/eda \
-	lib/lib_SaEvt \
-	services/glsv/gla \
-	lib/lib_SaLck \
-	services/immsv/common \
-	services/immsv/imma \
-	lib/lib_SaImm \
-	tests/immsv/management \
-	tests/immsv/implementer \
-	services/logsv/lga \
-	lib/lib_SaLog \
-	tests/logsv \
-	services/ntfsv/ntfa \
-	lib/lib_SaNtf \
-	tests/ntfsv \
-	services/mqsv/common \
-	services/mqsv/mqa \
-	lib/lib_SaMsg \
-	services/mab/mac \
-	services/mbcsv \
-	services/srmsv/srma \
-	services/ifsv/ifa \
-	services/ifsv/common
-
-CONTROLLER_SUBDIRS = \
-	services/dtsv/snmp_integ \
-	services/mab/psr/snmp_integ \
-	services/mqsv/snmp_integ \
-	services/edsv/snmp_integ \
-	services/bam \
-	services/cpsv/snmp_integ \
-	services/glsv/snmp_integ \
-	services/glsv/common \
-	services/ifsv/snmp_integ \
-	services/ifsv/ipxs_snmp_integ \
-	services/ifsv/entp_snmp_integ \
-	services/ifsv/entp_ifsv_ir_snmp_integ \
-	services/rde/rda \
-	services/fm/fma \
-	tools/pdrbd \
-	services
-
-SUBDIRS = $(BASE_SUBDIRS) $(CONTROLLER_SUBDIRS)
+# FIXME Like this until SNMP references removed
+SUBDIRS = osaf/snmp/mapi osaf/snmp/miblib osaf
+#SUBDIRS = osaf
 
 if ENABLE_JAVA
 
@@ -270,27 +133,18 @@ SUBDIRS += java
 
 endif
 
-if ENABLE_HPI
 
-SUBDIRS += tools/hisv
-
-endif
-
-common_pkgsysconf = \
-	$(top_srcdir)/config/imm.conf
-
-controller_pkgsysconf = \
+dist_pkgsysconf_DATA = \
+	$(top_srcdir)/config/imm.conf \
 	$(top_srcdir)/config/AppConfig.xsd \
-	$(top_srcdir)/config/cli_cefslib.conf \
 	$(top_srcdir)/config/NCSConfig.xsd \
 	$(top_srcdir)/config/NCSSystemBOM.xml \
 	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
-	$(top_srcdir)/config/pssv_lib.conf \
-	$(top_srcdir)/config/subagt_lib.conf \
 	$(top_srcdir)/config/ValidationConfig.xml \
 	$(top_srcdir)/config/ValidationConfig.xsd \
 	$(top_srcdir)/config/vipsample.conf \
 	$(top_srcdir)/config/nodeinit.conf.controller \
+	$(top_srcdir)/config/nodeinit.conf.payload \
 	$(top_srcdir)/config/saflog.conf \
 	$(top_srcdir)/config/ntf.conf \
 	$(top_srcdir)/config/rde.conf \
@@ -298,19 +152,12 @@ controller_pkgsysconf = \
 	$(top_srcdir)/config/imm.xml \
 	$(top_srcdir)/config/pdrbd_proxied.conf
 
-payload_pkgsysconf = \
-	$(top_srcdir)/config/nodeinit.conf.payload
-
-dist_pkgsysconf_DATA = \
-	$(common_pkgsysconf) \
-	$(controller_pkgsysconf) \
-	$(payload_pkgsysconf)
-
 nodist_pkgsysconf_DATA = \
 	$(top_builddir)/config/script.conf
 
 dist_sysconf_DATA = \
 	$(top_srcdir)/config/drbd.conf
+
 
 dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/.drbd_sync_state_0 \
@@ -318,8 +165,8 @@ dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/.drbd_sync_state_2 \
 	$(top_srcdir)/config/.drbd_sync_state_3 \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
-	$(top_srcdir)/config/node_ha_state \
-	$(top_srcdir)/config/pssv_spcn.list
+	$(top_srcdir)/config/node_ha_state
+
 
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/opensaf_mem_dump
@@ -328,6 +175,7 @@ nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \
 	$(top_builddir)/scripts/collect_logs_payload \
 	$(top_builddir)/scripts/get_ha_state 
+
 
 dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/drbd_clean \
@@ -343,7 +191,10 @@ dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/opensaf_reboot 
 
 if ENABLE_HPI
-dist_pkglib_SCRIPTS += $(top_srcdir)/scripts/ncs_hisv_clean
+
+dist_pkglib_SCRIPTS += \
+	$(top_srcdir)/scripts/ncs_hisv_clean
+
 endif
 
 nodist_pkglib_SCRIPTS = \
@@ -353,7 +204,6 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/drbd_start \
 	$(top_builddir)/scripts/ncs_drbd_r0_clean \
 	$(top_builddir)/scripts/pdrbdsts \
-	$(top_builddir)/scripts/ip_inst_script \
 	$(top_builddir)/scripts/ncs_cpd_start \
 	$(top_builddir)/scripts/ncs_cpnd_start \
 	$(top_builddir)/scripts/ncs_dts_clean \
@@ -367,7 +217,6 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_ifd_start \
 	$(top_builddir)/scripts/ncs_ifnd_clean \
 	$(top_builddir)/scripts/ncs_ifnd_start \
-	$(top_builddir)/scripts/ncs_ifsv_ip_ins_script \
 	$(top_builddir)/scripts/ncs_mas_clean \
 	$(top_builddir)/scripts/ncs_mas_start \
 	$(top_builddir)/scripts/ncs_mqd_start \
@@ -380,14 +229,9 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_rde_start \
 	$(top_builddir)/scripts/ncs_scap_clean \
 	$(top_builddir)/scripts/ncs_scap_start \
-	$(top_builddir)/scripts/ncs_snmpsubagt_clean \
-	$(top_builddir)/scripts/ncs_snmpsubagt_reload \
-	$(top_builddir)/scripts/ncs_snmpsubagt_start \
 	$(top_builddir)/scripts/ncs_srmnd_start \
 	$(top_builddir)/scripts/ncs_vds_start \
 	$(top_builddir)/scripts/nid_tipc \
-	$(top_builddir)/scripts/nis_snmpd_clean \
-	$(top_builddir)/scripts/nis_snmpd_start \
 	$(top_builddir)/scripts/immd_script \
 	$(top_builddir)/scripts/immnd_script \
 	$(top_builddir)/scripts/opensaf_lgs \
@@ -397,24 +241,21 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/tipc_reset.sh 
 
 if ENABLE_HPI
-nodist_pkglib_SCRIPTS += $(top_builddir)/scripts/ncs_hisv_start
+
+nodist_pkglib_SCRIPTS += \
+	$(top_builddir)/scripts/ncs_hisv_start
+
 endif
 
 if WITH_OPENHPI
+
 nodist_pkglib_SCRIPTS += \
 	$(top_builddir)/scripts/openhpid_clean \
 	$(top_builddir)/scripts/openhpid_start \
 	$(top_builddir)/scripts/openhpisubagt_clean \
 	$(top_builddir)/scripts/openhpisubagt_start
+
 endif
-
-
-EXTRA_DIST = \
-	$(top_srcdir)/config/ncsSnmpSubagt.conf \
-	$(top_srcdir)/initd/opensafd.initd \
-	$(top_srcdir)/tools/smidump \
-	$(top_srcdir)/tests \
-	$(top_srcdir)/mibs
 
 
 if ENABLE_RPM_TARGET
@@ -463,12 +304,7 @@ install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
-	$(mkinstalldirs) $(DESTDIR)$(datadir)/snmp/mibs
 	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
-	$(INSTALL_DATA) $(top_srcdir)/config/ncsSnmpSubagt.conf $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
-	@for file in $(mibs_files); do \
-		$(INSTALL) -m 644 $(top_srcdir)/$$file $(DESTDIR)$(datadir)/snmp/$$file.txt; \
-	done
 
 install-data-hook: set-default-node-config
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
@@ -490,10 +326,6 @@ uninstall-local:
 	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
-	-rm -f $(DESTDIR)$(datadir)/snmp/ncsSnmpSubagt.conf
-	@for file in $(mibs_files); do \
-		rm -f $(DESTDIR)$(datadir)/snmp/$$file.txt; \
-	done
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
@@ -509,4 +341,3 @@ if ENABLE_SMIDUMP
 		make -C $(top_builddir)/tools/smidump/src distclean; \
 	fi
 endif
-
