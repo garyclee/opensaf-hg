@@ -261,8 +261,6 @@ fi
 # TODO Still needed?
 %{_pkglibdir}/ncs_mqnd_clean
 %{_pkglibdir}/ncs_mqnd_start
-%{_pkglibdir}/ncs_vds_clean
-%{_pkglibdir}/ncs_vds_start
 %{_pkglibdir}/nid_tipc
 %if %is_openhpi
 # TODO Still needed?
@@ -335,7 +333,6 @@ fi
 %{_pkglibdir}/ncs_snmpsubagt_clean
 %{_pkglibdir}/ncs_snmpsubagt_reload
 %{_pkglibdir}/ncs_snmpsubagt_start
-%{_pkglibdir}/ncs_vds
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
 %{_pkglibdir}/opensaf_lgs
@@ -413,7 +410,6 @@ fi
 %{_libdir}/%{name}/librde_logstr.so.*
 %{_libdir}/%{name}/libfma_logstr.so.*
 %{_libdir}/%{name}/libsubagt_logstr.so.*
-%{_libdir}/%{name}/libvds_logstr.so.*
 #TODO: To be changed when supporting other HPI
 %if %is_hpi
 %{_libdir}/%{name}/libhisv_logstr.so.*

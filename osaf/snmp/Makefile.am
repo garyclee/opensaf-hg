@@ -25,7 +25,6 @@ pkglib_PROGRAMS = opensaf_snmp_subagt
 opensaf_snmp_subagt_CPPFLAGS = \
 	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_MAC=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 opensaf_snmp_subagt_SOURCES = \

@@ -185,7 +185,6 @@ dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/ncs_glnd_clean \
 	$(top_srcdir)/scripts/ncs_mqd_clean \
 	$(top_srcdir)/scripts/ncs_mqnd_clean \
-	$(top_srcdir)/scripts/ncs_vds_clean \
 	$(top_srcdir)/scripts/opensaf_reboot 
 
 if ENABLE_HPI
@@ -223,7 +222,6 @@ nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/ncs_rde_start \
 	$(top_builddir)/scripts/ncs_scap_clean \
 	$(top_builddir)/scripts/ncs_scap_start \
-	$(top_builddir)/scripts/ncs_vds_start \
 	$(top_builddir)/scripts/nid_tipc \
 	$(top_builddir)/scripts/immd_script \
 	$(top_builddir)/scripts/immnd_script \

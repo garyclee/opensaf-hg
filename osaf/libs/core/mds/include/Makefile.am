@@ -26,4 +26,7 @@ noinst_HEADERS = \
 	mds_dt.h \
 	mds_dt_tipc.h \
 	mds_log.h \
-	mds_pvt.h
+	mds_pvt.h \
+	mda_dl_api.h \
+	mda_mem.h \
+	mda_pvt_api.h

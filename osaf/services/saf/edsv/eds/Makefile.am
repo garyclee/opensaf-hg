@@ -24,7 +24,6 @@ ncs_eds_CPPFLAGS = \
 	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_builddir)/osaf/snmp/mapi/include

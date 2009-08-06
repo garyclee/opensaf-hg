@@ -39,5 +39,4 @@ libopensaf_core_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/mbcsv/libmbca.la \
 	$(top_builddir)/osaf/libs/core/mds/libmds.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/dta/libdta.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/vda/libvda.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/oaa/liboaa.la

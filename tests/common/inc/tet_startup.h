@@ -35,10 +35,6 @@
 #include "md_cfg.h"
 #include "ncs_mds.h"
 
-#if (NCS_VDS == 1)
-#include "vds_dl_api.h"
-#endif
-
 #if (NCS_CLI == 1)
 #include "cli.h"
 #include "ncs_cli.h"

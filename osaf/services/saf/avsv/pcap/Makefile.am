@@ -24,7 +24,6 @@ ncs_pcap_CPPFLAGS = \
 	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_pcap_SOURCES = \

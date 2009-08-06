@@ -18,42 +18,20 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
-  DESCRIPTION:
+  DESCRIPTION:  
 
-  This module contains the extern declaration for string arrays 
-  provided by vds_logstr.c
-  
 ******************************************************************************
 */
+#ifndef MDA_DL_API_H
+#define MDA_DL_API_H
 
-/*
- * Module Inclusion Control...
- */
-#ifndef VDS_LOGSTR_H
-#define VDS_LOGSTR_H
+/***********************************************************************\
+    mda_lib_req :  This API initializes MDA (MDS Destination agent code)
+                   The MDA module implements the ADA/VDA APIs defined
+                   in ncs_mda_papi.h
+\***********************************************************************/
+EXTERN_C LEAPDLL_API uns32 mda_lib_req(NCS_LIB_REQ_INFO *req);
 
-#if (NCS_DTS == 1)
-EXTERN_C const NCSFL_STR vds_mds_set[];
-EXTERN_C const NCSFL_STR vds_lock_set[];
-EXTERN_C const NCSFL_STR vds_mem_set[];
-EXTERN_C const NCSFL_STR vds_pat_set[];
-EXTERN_C const NCSFL_STR vds_cb_set[];
-EXTERN_C const NCSFL_STR vds_hdl_set[];
-EXTERN_C const NCSFL_STR vds_mbx_set[];
-EXTERN_C const NCSFL_STR vds_amf_set[];
-EXTERN_C const NCSFL_STR vds_tim_set[];
-EXTERN_C const NCSFL_STR vds_misc_set[];
-EXTERN_C const NCSFL_STR vds_ckpt_set[];
-EXTERN_C const NCSFL_STR vds_amf_set[];
-EXTERN_C const NCSFL_STR vds_evt_set[];
-
-EXTERN_C uns32 vds_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C uns32 vds_logstr_reg(void);
-EXTERN_C uns32 vds_logstr_unreg(void);
-
-#endif /* (NCS_DTS == 1) */
-#endif /* VDS_LOGSTR_H */
-
+#endif

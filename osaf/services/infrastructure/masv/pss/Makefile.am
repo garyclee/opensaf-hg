@@ -29,7 +29,6 @@ ncs_psr_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/libs/core/mbcsv/include
 
