@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = dta fma maa oaa rda vda
+SUBDIRS = dta fma maa oaa rda

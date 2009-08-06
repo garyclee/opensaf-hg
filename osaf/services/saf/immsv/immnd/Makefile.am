@@ -32,7 +32,6 @@ opensaf_immnd_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 opensaf_immnd_SOURCES =	\

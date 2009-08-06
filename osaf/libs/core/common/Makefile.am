@@ -26,7 +26,6 @@ libopensaf_common_la_CPPFLAGS = \
 	-DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 libopensaf_common_la_LDFLAGS = -static

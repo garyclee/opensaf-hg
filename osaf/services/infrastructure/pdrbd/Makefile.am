@@ -35,7 +35,6 @@ pkglib_PROGRAMS = ncs_pdrbd
 ncs_pdrbd_CPPFLAGS = \
 	-DNCS_PDRBD=1 -DPDRBD_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_pdrbd_SOURCES = \

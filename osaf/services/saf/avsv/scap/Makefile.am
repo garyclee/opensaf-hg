@@ -25,7 +25,6 @@ ncs_scap_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avm/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include
 

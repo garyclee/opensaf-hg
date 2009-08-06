@@ -239,7 +239,7 @@ function ncs_status () {
 
 NCS_MAX_PROCESS=17
 count=0;
-declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_mas ncs_psr ncs_scap ncs_ifnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv ncs_snmp_subagt ncs_vds )
+declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_mas ncs_psr ncs_scap ncs_ifnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv ncs_snmp_subagt )
 
 for k in `ps -e | grep ncs_ | grep -v ncs_tipc.sh | grep -v xterm | grep -v gdb | awk '{print $4}'`; do
 status=false;
@@ -416,7 +416,6 @@ echo "ncs_install"
 function ncs_stop() {
 
 /opt/motorola/ncs/scxb/etc/ncs_cb_initd stop
-pkill ncs_vds
 rm -vf /dev/shm/*
 
 }

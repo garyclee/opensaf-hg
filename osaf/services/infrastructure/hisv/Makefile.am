@@ -34,7 +34,6 @@ ncs_hisv_CPPFLAGS= \
 	-DNCS_HISV=1 -DNCS_HISV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_hisv_SOURCES = \

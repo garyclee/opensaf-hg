@@ -25,7 +25,6 @@ ncs_gld_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_builddir)/osaf/snmp/mapi/include
 

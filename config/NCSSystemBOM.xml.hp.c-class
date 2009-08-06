@@ -1076,67 +1076,6 @@
                                         <enableAM>0</enableAM>
 				</componentPrototype>
 				
-                                <componentPrototype name="safComp=CompT_VDS" finalPrototype="1">
-
-                                        <!--
-                                             All the commands to manage the component life cycle
-                                        -->
-                                        <clcCommands>
-                                                <instantiateCommand>
-                                                        <command>xxLIBDIRxx/ncs_vds_start</command>
-                                                        <timeout>50000</timeout>
-                                                        <numMaxInstantiate>5</numMaxInstantiate>
-                                                </instantiateCommand>
-                                                <terminateCommand>
-                                                        <command>xxLIBDIRxx/ncs_vds_clean</command>
-                                                        <timeout>5000</timeout>
-                                                </terminateCommand>
-                                                <cleanupCommand>
-                                                        <command>xxLIBDIRxx/ncs_vds_clean</command>
-                                                        <timeout>5000</timeout>
-                                                </cleanupCommand>
-                                        </clcCommands>
-                                        <instantiationLevel>9</instantiationLevel>
-
-                                        <!--
-                                             Match the CSI Type specified here with
-                                             the one specified in CSI descriptor under SI
-                                        -->
-                                        <csiPrototypeName>safCsi=Csi_VDS</csiPrototypeName>
-
-                                        <!--
-                                             Make a choice of SA_Aware component/proxied/unproxied
-                                        -->
-                                        <saAwareComponent>
-
-                                                <!--
-                                                     Set the capability supported by the component
-                                                -->
-                                                <capability>1_ACTIVE_OR_1_STANDBY</capability>
-                                                <numMaxActiveCSIs>2</numMaxActiveCSIs>
-                                                <numMaxStandbyCSIs>2</numMaxStandbyCSIs>
-
-                                                <!--
-                                                     Configure the Health check Key here
-                                                -->
-                                                <healthCheck key="B9B9">
-                                                        <period>240000</period>
-                                                        <maxDuration>180000</maxDuration>
-                                                </healthCheck>
-                                                <disableRestart>0</disableRestart>
-                                                <QuiescingDoneTimeout>240000</QuiescingDoneTimeout>
-                                                <terminationTimeout>240000</terminationTimeout>
-                                                <csiSetCallbackTimeout>240000</csiSetCallbackTimeout>
-                                                <csiRmvCallbackTimeout>240000</csiRmvCallbackTimeout>
-                                        </saAwareComponent>
-
-                                        <!--
-                                             Do you want Active Monitoring for this component ?
-                                             Here is the place to configure it.
-                                        -->
-                                        <enableAM>0</enableAM>
-                                </componentPrototype>
-
                                 <!--
                                    The Configuration for NCS proxied (r0) component CompT_REPL0
                                    The SAF standard mandates that the component name should start with &quot;safComp=&quot;
@@ -1563,7 +1502,6 @@
                                                 <componentPrototype>safComp=CompT_HISV</componentPrototype>
 						<componentPrototype>safComp=CompT_IMMD</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SSA</componentPrototype>
-                                                <componentPrototype>safComp=CompT_VDS</componentPrototype>
                                                 <componentPrototype>safComp=CompT_SAFLOG</componentPrototype>
                                                 <componentPrototype>safComp=CompT_NTF</componentPrototype>
 					</componentPrototypeList>
@@ -1887,10 +1825,6 @@
 						</CSIInstance>
                                                 <CSIInstance name="safCsi=Csi_SSA" rank="8">
                                                         <prototypeName>safCsi=Csi_SSA</prototypeName>
-                                                        <CSIAttributes/>
-                                                </CSIInstance>
-                                                <CSIInstance name="safCsi=Csi_VDS" rank="9">
-                                                        <prototypeName>safCsi=Csi_VDS</prototypeName>
                                                         <CSIAttributes/>
                                                 </CSIInstance>
                                                 <CSIInstance name="safCsi=Csi_IMMD" rank="10">

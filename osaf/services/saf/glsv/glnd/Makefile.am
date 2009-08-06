@@ -24,7 +24,6 @@ ncs_glnd_CPPFLAGS = \
 	-DNCS_GLND=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_glnd_SOURCES = \

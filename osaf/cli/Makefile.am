@@ -40,8 +40,7 @@ ncs_cli_maa_CPPFLAGS = \
 	-DNCSCLI_LOG=1 -DMAB_LOG=1 -DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include
+	-I$(top_srcdir)/osaf/libs/common/avsv/include
 
 ncs_cli_maa_LDFLAGS = -Wl,--export-dynamic
 

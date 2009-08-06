@@ -35,7 +35,6 @@ opensaf_saflogd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/logsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 opensaf_saflogd_SOURCES = \
