@@ -22,4 +22,4 @@
 #define LOG_MAJOR_VERSION 2
 #define LOG_MINOR_VERSION 1
 
-#endif /* LGSV_DEFS_H */
+#endif   /* LGSV_DEFS_H */

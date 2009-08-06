@@ -32,52 +32,47 @@
 #include "ncsmiblib.h"
 #include "oac_papi.h"
 
-typedef enum edsv_eds_evt_type
-{
-   EDSV_EDS_EVT_BASE,
-   EDSV_EDS_EDSV_MSG = EDSV_EDS_EVT_BASE,
-   EDSV_EDS_EVT_EDA_UP,
-   EDSV_EDS_EVT_EDA_DOWN,
-   EDSV_EDS_RET_TIMER_EXP,
-   EDSV_EVT_MIB_REQ,
-   EDSV_EVT_QUIESCED_ACK,
-   EDSV_EDS_EVT_MAX
-}EDSV_EDS_EVT_TYPE;
+typedef enum edsv_eds_evt_type {
+	EDSV_EDS_EVT_BASE,
+	EDSV_EDS_EDSV_MSG = EDSV_EDS_EVT_BASE,
+	EDSV_EDS_EVT_EDA_UP,
+	EDSV_EDS_EVT_EDA_DOWN,
+	EDSV_EDS_RET_TIMER_EXP,
+	EDSV_EVT_MIB_REQ,
+	EDSV_EVT_QUIESCED_ACK,
+	EDSV_EDS_EVT_MAX
+} EDSV_EDS_EVT_TYPE;
 
-typedef struct edsv_eds_mds_info_tag
-{
-   uns32       node_id;
-   MDS_DEST    mds_dest_id;
+typedef struct edsv_eds_mds_info_tag {
+	uns32 node_id;
+	MDS_DEST mds_dest_id;
 } EDSV_EDS_MDS_INFO;
 
-typedef struct edsv_eds_evt_tag
-{
-   /* NCS_IPC_MSG       next; */
-   struct edsv_eds_evt_tag *next;
-   uns32             cb_hdl;    
-   MDS_SYNC_SND_CTXT mds_ctxt; /* Relevant when this event has to be responded to
-                                * in a synchronous fashion.
-                                */
-   MDS_DEST          fr_dest;
-   NODE_ID           fr_node_id; 
-   MDS_SEND_PRIORITY_TYPE rcvd_prio; /* Priority of the recvd evt */
-   EDSV_EDS_EVT_TYPE     evt_type;
-   union
-   {
-      EDSV_MSG           msg;
-      EDSV_EDS_MDS_INFO  mds_info;
-      EDS_TMR            tmr_info;
-      NCSMIB_ARG        *mib_req;
-   } info;
-}EDSV_EDS_EVT;
+typedef struct edsv_eds_evt_tag {
+	/* NCS_IPC_MSG       next; */
+	struct edsv_eds_evt_tag *next;
+	uns32 cb_hdl;
+	MDS_SYNC_SND_CTXT mds_ctxt;	/* Relevant when this event has to be responded to
+					 * in a synchronous fashion.
+					 */
+	MDS_DEST fr_dest;
+	NODE_ID fr_node_id;
+	MDS_SEND_PRIORITY_TYPE rcvd_prio;	/* Priority of the recvd evt */
+	EDSV_EDS_EVT_TYPE evt_type;
+	union {
+		EDSV_MSG msg;
+		EDSV_EDS_MDS_INFO mds_info;
+		EDS_TMR tmr_info;
+		NCSMIB_ARG *mib_req;
+	} info;
+} EDSV_EDS_EVT;
 
 #define EDSV_EDS_EVT_NULL ((EDSV_EDS_EVT *)0)
 
 /* These are the function prototypes for event handling */
-typedef uns32 (*EDSV_EDS_EDA_API_MSG_HANDLER) (EDS_CB *, struct edsv_eds_evt_tag *evt);
-typedef uns32 (*EDSV_EDS_EVT_HANDLER) (struct edsv_eds_evt_tag *evt);
-EXTERN_C uns32 eds_process_evt (EDSV_EDS_EVT  *evt);
+typedef uns32 (*EDSV_EDS_EDA_API_MSG_HANDLER) (EDS_CB *, struct edsv_eds_evt_tag * evt);
+typedef uns32 (*EDSV_EDS_EVT_HANDLER) (struct edsv_eds_evt_tag * evt);
+EXTERN_C uns32 eds_process_evt(EDSV_EDS_EVT *evt);
 EXTERN_C void eds_evt_destroy(struct edsv_eds_evt_tag *);
 
-
-#endif /*!EDS_EVT_H */
+#endif   /*!EDS_EVT_H */

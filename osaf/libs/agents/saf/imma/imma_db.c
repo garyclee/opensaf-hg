@@ -31,18 +31,16 @@
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_client_tree_init (IMMA_CB  *cb)
+uns32 imma_client_tree_init(IMMA_CB *cb)
 {
-    NCS_PATRICIA_PARAMS     param;
-    memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-    param.key_size = sizeof(SaImmHandleT);
-    if (ncs_patricia_tree_init(&cb->client_tree, &param) != NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaImmHandleT);
+	if (ncs_patricia_tree_init(&cb->client_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_client_node_get
@@ -53,16 +51,13 @@ uns32 imma_client_tree_init (IMMA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_client_node_get(NCS_PATRICIA_TREE *client_tree, 
-                           SaImmHandleT *cl_hdl,
-                           IMMA_CLIENT_NODE **cl_node)
+uns32 imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node)
 {
-    *cl_node = (IMMA_CLIENT_NODE *)
-               ncs_patricia_tree_get(client_tree, (uns8 *)cl_hdl);
+	*cl_node = (IMMA_CLIENT_NODE *)
+	    ncs_patricia_tree_get(client_tree, (uns8 *)cl_hdl);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_client_node_add
@@ -72,20 +67,17 @@ uns32 imma_client_node_get(NCS_PATRICIA_TREE *client_tree,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, 
-                           IMMA_CLIENT_NODE *cl_node)
+uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node)
 {
-    uns32 rc= NCSCC_RC_FAILURE;
-    /* Store the client_info pointer as msghandle. */
-    cl_node->patnode.key_info = (uns8*)&cl_node->handle;
+	uns32 rc = NCSCC_RC_FAILURE;
+	/* Store the client_info pointer as msghandle. */
+	cl_node->patnode.key_info = (uns8 *)&cl_node->handle;
 
-    if ((rc = ncs_patricia_tree_add (client_tree, &cl_node->patnode)) != 
-        NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if ((rc = ncs_patricia_tree_add(client_tree, &cl_node->patnode)) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -98,23 +90,21 @@ uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree,
 ******************************************************************************/
 uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    if (cl_node == NULL)
-        return NCSCC_RC_FAILURE;
+	if (cl_node == NULL)
+		return NCSCC_RC_FAILURE;
 
-    /* Remove the Node from the client tree */
-    if (ncs_patricia_tree_del(&cb->client_tree,&cl_node->patnode)!=
-        NCSCC_RC_SUCCESS)
-    {
-        rc =   NCSCC_RC_FAILURE;
-    }
+	/* Remove the Node from the client tree */
+	if (ncs_patricia_tree_del(&cb->client_tree, &cl_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
 
-    /* Free the Client Node */
-    if (cl_node)
-        free(cl_node);
+	/* Free the Client Node */
+	if (cl_node)
+		free(cl_node);
 
-    return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -126,14 +116,14 @@ uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 void imma_client_tree_destroy(IMMA_CB *cb)
 {
-    TRACE_ENTER();
-    /* cleanup the client tree */
-    imma_client_tree_cleanup(cb);
+	TRACE_ENTER();
+	/* cleanup the client tree */
+	imma_client_tree_cleanup(cb);
 
-    /* destroy the tree */
-    ncs_patricia_tree_destroy(&cb->client_tree);
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->client_tree);
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -145,27 +135,26 @@ void imma_client_tree_destroy(IMMA_CB *cb)
 ******************************************************************************/
 void imma_client_tree_cleanup(IMMA_CB *cb)
 {
-    IMMA_CLIENT_NODE  * clnode;
-    SaImmHandleT *temp_ptr=0;
-    SaImmHandleT temp_hdl=0;
+	IMMA_CLIENT_NODE *clnode;
+	SaImmHandleT *temp_ptr = 0;
+	SaImmHandleT temp_hdl = 0;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /* scan the entire handle db & delete each record */
-    while ((clnode = (IMMA_CLIENT_NODE *)
-            ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
-    {
-        /* delete the client info */
-        temp_hdl = clnode->handle;
-        temp_ptr = &temp_hdl;
+	/* scan the entire handle db & delete each record */
+	while ((clnode = (IMMA_CLIENT_NODE *)
+		ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
+		/* delete the client info */
+		temp_hdl = clnode->handle;
+		temp_ptr = &temp_hdl;
 
-        /* Destroy the IPC attached to this client */
-        imma_callback_ipc_destroy(clnode);
+		/* Destroy the IPC attached to this client */
+		imma_callback_ipc_destroy(clnode);
 
-        /* Delete the Client Node */
-        imma_client_node_delete(cb, clnode);
-    }
-    return;
+		/* Delete the Client Node */
+		imma_client_node_delete(cb, clnode);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -175,25 +164,23 @@ void imma_client_tree_cleanup(IMMA_CB *cb)
 ******************************************************************************/
 void imma_mark_clients_stale(IMMA_CB *cb)
 {
-    /* We are locked already */
-    IMMA_CLIENT_NODE  * clnode;
-    SaImmHandleT *temp_ptr=0;
-    SaImmHandleT temp_hdl=0;
+	/* We are locked already */
+	IMMA_CLIENT_NODE *clnode;
+	SaImmHandleT *temp_ptr = 0;
+	SaImmHandleT temp_hdl = 0;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /* scan the entire handle db & mark each record */
-    while ((clnode = (IMMA_CLIENT_NODE *)
-            ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
-    {
-        temp_hdl = clnode->handle;
-        temp_ptr = &temp_hdl;
-        clnode->stale = TRUE;
-        imma_proc_stale_dispatch(cb, clnode);
-    }
-    return;
+	/* scan the entire handle db & mark each record */
+	while ((clnode = (IMMA_CLIENT_NODE *)
+		ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
+		temp_hdl = clnode->handle;
+		temp_ptr = &temp_hdl;
+		clnode->stale = TRUE;
+		imma_proc_stale_dispatch(cb, clnode);
+	}
+	return;
 }
-
 
 /****************************************************************************
   Name          : imma_admin_owner_tree_init
@@ -202,18 +189,16 @@ void imma_mark_clients_stale(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_admin_owner_tree_init (IMMA_CB  *cb)
+uns32 imma_admin_owner_tree_init(IMMA_CB *cb)
 {
-    NCS_PATRICIA_PARAMS     param;
-    memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-    param.key_size = sizeof(SaImmAdminOwnerHandleT);
-    if (ncs_patricia_tree_init(&cb->admin_owner_tree, &param)!= NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaImmAdminOwnerHandleT);
+	if (ncs_patricia_tree_init(&cb->admin_owner_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_admin_owner_node_get
@@ -224,16 +209,14 @@ uns32 imma_admin_owner_tree_init (IMMA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree, 
-                                SaImmAdminOwnerHandleT *adm_hdl,
-                                IMMA_ADMIN_OWNER_NODE **adm_node)
+uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
+				SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node)
 {
-    *adm_node = (IMMA_ADMIN_OWNER_NODE *)
-                ncs_patricia_tree_get(admin_owner_tree, (uns8 *)adm_hdl);
+	*adm_node = (IMMA_ADMIN_OWNER_NODE *)
+	    ncs_patricia_tree_get(admin_owner_tree, (uns8 *)adm_hdl);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /******************************************************************************
   Name          : imma_admin_owner_node_getnext
@@ -244,25 +227,18 @@ uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
  
   Notes
 ******************************************************************************/
-void  imma_admin_owner_node_getnext(IMMA_CB *cb,
-                                    SaImmAdminOwnerHandleT *adm_hdl,
-                                    IMMA_ADMIN_OWNER_NODE **adm_node)
+void imma_admin_owner_node_getnext(IMMA_CB *cb, SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node)
 {
-    if (adm_hdl)
-    {
-        *adm_node = (IMMA_ADMIN_OWNER_NODE *) 
-                    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)adm_hdl);
-    }
-    else
-    {
-        *adm_node = (IMMA_ADMIN_OWNER_NODE *) 
-                    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)NULL);
-    }
+	if (adm_hdl) {
+		*adm_node = (IMMA_ADMIN_OWNER_NODE *)
+		    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)adm_hdl);
+	} else {
+		*adm_node = (IMMA_ADMIN_OWNER_NODE *)
+		    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)NULL);
+	}
 
-    return;
+	return;
 }
-
-
 
 /****************************************************************************
   Name          : imma_admin_owner_node_add
@@ -272,20 +248,16 @@ void  imma_admin_owner_node_getnext(IMMA_CB *cb,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                  
 ******************************************************************************/
-uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree,  
-                                IMMA_ADMIN_OWNER_NODE *adm_node)
+uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node)
 {
-    adm_node->patnode.key_info = (uns8*)&adm_node->admin_owner_hdl;
+	adm_node->patnode.key_info = (uns8 *)&adm_node->admin_owner_hdl;
 
-    if (ncs_patricia_tree_add(admin_owner_tree, &adm_node->patnode) !=
-        NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if (ncs_patricia_tree_add(admin_owner_tree, &adm_node->patnode) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_admin_owner_node_delete
@@ -294,28 +266,24 @@ uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree,
                 : IMMA_ADMIN_OWNERNODE *adm_node - Admin Owner Node.
   Notes         : None
 ******************************************************************************/
-uns32
-    imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
+uns32 imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    if (adm_node == NULL)
-        return NCSCC_RC_FAILURE;
+	if (adm_node == NULL)
+		return NCSCC_RC_FAILURE;
 
-    /* Remove the Node from the tree */
-    if (ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode)!=
-        NCSCC_RC_SUCCESS)
-    {
-        rc = NCSCC_RC_FAILURE;
-    }
+	/* Remove the Node from the tree */
+	if (ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
 
-    /* Free the Node */
-    if (adm_node)
-    {
-        free(adm_node);
-    }
+	/* Free the Node */
+	if (adm_node) {
+		free(adm_node);
+	}
 
-    return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -327,24 +295,20 @@ uns32
 ******************************************************************************/
 void imma_admin_owner_tree_cleanup(IMMA_CB *cb)
 {
-    SaImmAdminOwnerHandleT  prev_adm_owner_id=0;
-    IMMA_ADMIN_OWNER_NODE *adm_node;
+	SaImmAdminOwnerHandleT prev_adm_owner_id = 0;
+	IMMA_ADMIN_OWNER_NODE *adm_node;
 
-    /* Get the First Node */
-    adm_node = (IMMA_ADMIN_OWNER_NODE *)
-        ncs_patricia_tree_getnext(&cb->admin_owner_tree, 
-            (uns8*)&prev_adm_owner_id);
-    while (adm_node)
-    {
-        prev_adm_owner_id = adm_node->admin_owner_hdl;
-        imma_admin_owner_node_delete(cb, adm_node);
-        adm_node = (IMMA_ADMIN_OWNER_NODE *)
-            ncs_patricia_tree_getnext(&cb->admin_owner_tree,
-                (uns8*)&prev_adm_owner_id);            
-    }
-    return;
+	/* Get the First Node */
+	adm_node = (IMMA_ADMIN_OWNER_NODE *)
+	    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)&prev_adm_owner_id);
+	while (adm_node) {
+		prev_adm_owner_id = adm_node->admin_owner_hdl;
+		imma_admin_owner_node_delete(cb, adm_node);
+		adm_node = (IMMA_ADMIN_OWNER_NODE *)
+		    ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)&prev_adm_owner_id);
+	}
+	return;
 }
-
 
 /****************************************************************************
   Name          : imma_admin_owner_tree_destroy
@@ -355,13 +319,13 @@ void imma_admin_owner_tree_cleanup(IMMA_CB *cb)
 ******************************************************************************/
 void imma_admin_owner_tree_destroy(IMMA_CB *cb)
 {
-    /* cleanup the admin owner tree */
-    imma_admin_owner_tree_cleanup(cb);
+	/* cleanup the admin owner tree */
+	imma_admin_owner_tree_cleanup(cb);
 
-    /* destroy the tree */
-    ncs_patricia_tree_destroy(&cb->admin_owner_tree);
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->admin_owner_tree);
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -371,18 +335,16 @@ void imma_admin_owner_tree_destroy(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_ccb_tree_init (IMMA_CB  *cb)
+uns32 imma_ccb_tree_init(IMMA_CB *cb)
 {
-    NCS_PATRICIA_PARAMS     param;
-    memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-    param.key_size = sizeof(SaImmCcbHandleT);
-    if (ncs_patricia_tree_init(&cb->ccb_tree, &param)!= NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaImmCcbHandleT);
+	if (ncs_patricia_tree_init(&cb->ccb_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_ccb_node_get
@@ -393,16 +355,13 @@ uns32 imma_ccb_tree_init (IMMA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, 
-                        SaImmCcbHandleT *ccb_hdl,
-                        IMMA_CCB_NODE **ccb_node)
+uns32 imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node)
 {
-    *ccb_node = (IMMA_CCB_NODE *)
-                ncs_patricia_tree_get(ccb_tree, (uns8 *)ccb_hdl);
+	*ccb_node = (IMMA_CCB_NODE *)
+	    ncs_patricia_tree_get(ccb_tree, (uns8 *)ccb_hdl);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /******************************************************************************
   Name          : imma_ccb_node_getnext
@@ -413,25 +372,18 @@ uns32 imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree,
  
   Notes
 ******************************************************************************/
-void  imma_ccb_node_getnext(IMMA_CB *cb,
-                            SaImmCcbHandleT *ccb_hdl,
-                            IMMA_CCB_NODE **ccb_node)
+void imma_ccb_node_getnext(IMMA_CB *cb, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node)
 {
-    if (ccb_hdl)
-    {
-        *ccb_node = (IMMA_CCB_NODE *) 
-                    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)ccb_hdl);
-    }
-    else
-    {
-        *ccb_node = (IMMA_CCB_NODE *) 
-                    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)NULL);
-    }
+	if (ccb_hdl) {
+		*ccb_node = (IMMA_CCB_NODE *)
+		    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)ccb_hdl);
+	} else {
+		*ccb_node = (IMMA_CCB_NODE *)
+		    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)NULL);
+	}
 
-    return;
+	return;
 }
-
-
 
 /****************************************************************************
   Name          : imma_ccb_node_add
@@ -441,20 +393,16 @@ void  imma_ccb_node_getnext(IMMA_CB *cb,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 ******************************************************************************/
-uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree,  
-                        IMMA_CCB_NODE *ccb_node)
+uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node)
 {
-    ccb_node->patnode.key_info = (uns8*)&ccb_node->ccb_hdl;
+	ccb_node->patnode.key_info = (uns8 *)&ccb_node->ccb_hdl;
 
-    if (ncs_patricia_tree_add(ccb_tree, &ccb_node->patnode) !=
-        NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if (ncs_patricia_tree_add(ccb_tree, &ccb_node->patnode) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_ccb_node_delete
@@ -465,25 +413,22 @@ uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree,
 ******************************************************************************/
 uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    if (ccb_node == NULL)
-        return NCSCC_RC_FAILURE;
+	if (ccb_node == NULL)
+		return NCSCC_RC_FAILURE;
 
-    /* Remove the Node from the tree */
-    if (ncs_patricia_tree_del(&cb->ccb_tree, &ccb_node->patnode)!=
-        NCSCC_RC_SUCCESS)
-    {
-        rc = NCSCC_RC_FAILURE;
-    }
+	/* Remove the Node from the tree */
+	if (ncs_patricia_tree_del(&cb->ccb_tree, &ccb_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
 
-    /* Free the Node */
-    if (ccb_node)
-    {
-        free(ccb_node);
-    }
+	/* Free the Node */
+	if (ccb_node) {
+		free(ccb_node);
+	}
 
-    return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -495,24 +440,20 @@ uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 ******************************************************************************/
 void imma_ccb_tree_cleanup(IMMA_CB *cb)
 {
-    SaImmCcbHandleT  prev_ccb_id=0;
-    IMMA_CCB_NODE *ccb_node;
+	SaImmCcbHandleT prev_ccb_id = 0;
+	IMMA_CCB_NODE *ccb_node;
 
-    /* Get the First Node */
-    ccb_node = (IMMA_CCB_NODE *)
-        ncs_patricia_tree_getnext(&cb->ccb_tree, 
-            (uns8*)&prev_ccb_id);
-    while (ccb_node)
-    {
-        prev_ccb_id = ccb_node->ccb_hdl;
-        imma_ccb_node_delete(cb, ccb_node);
-        ccb_node = (IMMA_CCB_NODE *)
-            ncs_patricia_tree_getnext(&cb->ccb_tree,
-                (uns8*)&prev_ccb_id);            
-    }
-    return;
+	/* Get the First Node */
+	ccb_node = (IMMA_CCB_NODE *)
+	    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)&prev_ccb_id);
+	while (ccb_node) {
+		prev_ccb_id = ccb_node->ccb_hdl;
+		imma_ccb_node_delete(cb, ccb_node);
+		ccb_node = (IMMA_CCB_NODE *)
+		    ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)&prev_ccb_id);
+	}
+	return;
 }
-
 
 /****************************************************************************
   Name          : imma_ccb_tree_destroy
@@ -523,13 +464,13 @@ void imma_ccb_tree_cleanup(IMMA_CB *cb)
 ******************************************************************************/
 void imma_ccb_tree_destroy(IMMA_CB *cb)
 {
-    /* cleanup the ccb tree */
-    imma_ccb_tree_cleanup(cb);
+	/* cleanup the ccb tree */
+	imma_ccb_tree_cleanup(cb);
 
-    /* destroy the tree */
-    ncs_patricia_tree_destroy(&cb->ccb_tree);
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->ccb_tree);
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -539,18 +480,16 @@ void imma_ccb_tree_destroy(IMMA_CB *cb)
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None
 ******************************************************************************/
-uns32 imma_search_tree_init (IMMA_CB  *cb)
+uns32 imma_search_tree_init(IMMA_CB *cb)
 {
-    NCS_PATRICIA_PARAMS     param;
-    memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
-    param.key_size = sizeof(SaImmSearchHandleT);
-    if (ncs_patricia_tree_init(&cb->search_tree, &param)!= NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	param.key_size = sizeof(SaImmSearchHandleT);
+	if (ncs_patricia_tree_init(&cb->search_tree, &param) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_search_node_get
@@ -561,16 +500,14 @@ uns32 imma_search_tree_init (IMMA_CB  *cb)
                   NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function 
 ******************************************************************************/
-uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree, 
-                           SaImmSearchHandleT *search_hdl,
-                           IMMA_SEARCH_NODE **search_node)
+uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
+			   SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node)
 {
-    *search_node = (IMMA_SEARCH_NODE *)
-                   ncs_patricia_tree_get(search_tree, (uns8 *)search_hdl);
+	*search_node = (IMMA_SEARCH_NODE *)
+	    ncs_patricia_tree_get(search_tree, (uns8 *)search_hdl);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /******************************************************************************
   Name          : imma_search_node_getnext
@@ -581,22 +518,17 @@ uns32 imma_search_node_get(NCS_PATRICIA_TREE *search_tree,
  
   Notes
 ******************************************************************************/
-void  imma_search_node_getnext(IMMA_CB *cb,
-                               SaImmSearchHandleT *search_hdl,
-                               IMMA_SEARCH_NODE **search_node)
+void imma_search_node_getnext(IMMA_CB *cb, SaImmSearchHandleT *search_hdl, IMMA_SEARCH_NODE **search_node)
 {
-    if (search_hdl)
-    {
-        *search_node = (IMMA_SEARCH_NODE *) 
-                       ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)search_hdl);
-    }
-    else
-    {
-        *search_node = (IMMA_SEARCH_NODE *) 
-                       ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)NULL);
-    }
+	if (search_hdl) {
+		*search_node = (IMMA_SEARCH_NODE *)
+		    ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)search_hdl);
+	} else {
+		*search_node = (IMMA_SEARCH_NODE *)
+		    ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)NULL);
+	}
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -607,18 +539,15 @@ void  imma_search_node_getnext(IMMA_CB *cb,
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function
 ******************************************************************************/
-uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree,  
-                           IMMA_SEARCH_NODE *search_node)
+uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_NODE *search_node)
 {
-    search_node->patnode.key_info = (uns8*)&search_node->search_hdl;
+	search_node->patnode.key_info = (uns8 *)&search_node->search_hdl;
 
-    if (ncs_patricia_tree_add(search_tree, &search_node->patnode) !=
-        NCSCC_RC_SUCCESS)
-    {
-        return NCSCC_RC_FAILURE;
-    }
+	if (ncs_patricia_tree_add(search_tree, &search_node->patnode) != NCSCC_RC_SUCCESS) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -628,28 +557,24 @@ uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree,
                 : IMMA_SEARCH_NODE *search_node - Search Node.
   Notes         : None
 ******************************************************************************/
-uns32
-    imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
+uns32 imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    if (search_node == NULL)
-        return NCSCC_RC_FAILURE;
+	if (search_node == NULL)
+		return NCSCC_RC_FAILURE;
 
-    /* Remove the Node from the tree */
-    if (ncs_patricia_tree_del(&cb->search_tree, &search_node->patnode)!=
-        NCSCC_RC_SUCCESS)
-    {
-        rc = NCSCC_RC_FAILURE;
-    }
+	/* Remove the Node from the tree */
+	if (ncs_patricia_tree_del(&cb->search_tree, &search_node->patnode) != NCSCC_RC_SUCCESS) {
+		rc = NCSCC_RC_FAILURE;
+	}
 
-    /* Free the Node */
-    if (search_node)
-    {
-        free(search_node);
-    }
+	/* Free the Node */
+	if (search_node) {
+		free(search_node);
+	}
 
-    return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -661,25 +586,21 @@ uns32
 ******************************************************************************/
 void imma_search_tree_cleanup(IMMA_CB *cb)
 {
-    SaImmSearchHandleT  prev_search_id=0;
-    IMMA_SEARCH_NODE *search_node;
+	SaImmSearchHandleT prev_search_id = 0;
+	IMMA_SEARCH_NODE *search_node;
 
-    /* Get the First Node */
-    search_node = (IMMA_SEARCH_NODE *)
-        ncs_patricia_tree_getnext(&cb->search_tree, 
-            (uns8*)&prev_search_id);
+	/* Get the First Node */
+	search_node = (IMMA_SEARCH_NODE *)
+	    ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)&prev_search_id);
 
-    while (search_node)
-    {
-        prev_search_id = search_node->search_hdl;
-        imma_search_node_delete(cb, search_node);
-        search_node = (IMMA_SEARCH_NODE *)
-            ncs_patricia_tree_getnext(&cb->search_tree,
-                (uns8*)&prev_search_id);            
-    }
-    return;
+	while (search_node) {
+		prev_search_id = search_node->search_hdl;
+		imma_search_node_delete(cb, search_node);
+		search_node = (IMMA_SEARCH_NODE *)
+		    ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)&prev_search_id);
+	}
+	return;
 }
-
 
 /****************************************************************************
   Name          : imma_search_tree_destroy
@@ -690,13 +611,13 @@ void imma_search_tree_cleanup(IMMA_CB *cb)
 ******************************************************************************/
 void imma_search_tree_destroy(IMMA_CB *cb)
 {
-    /* cleanup the search tree */
-    imma_search_tree_cleanup(cb);
+	/* cleanup the search tree */
+	imma_search_tree_cleanup(cb);
 
-    /* destroy the tree */
-    ncs_patricia_tree_destroy(&cb->search_tree);
+	/* destroy the tree */
+	ncs_patricia_tree_destroy(&cb->search_tree);
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -708,39 +629,34 @@ void imma_search_tree_destroy(IMMA_CB *cb)
 ******************************************************************************/
 uns32 imma_db_init(IMMA_CB *cb)
 {
-    uns32 rc;
+	uns32 rc;
 
-    rc = imma_client_tree_init(cb);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("imma_client_tree_init failed");
-        return rc;
-    }
+	rc = imma_client_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_1("imma_client_tree_init failed");
+		return rc;
+	}
 
-    rc = imma_admin_owner_tree_init(cb);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("imma_admin_owner_tree_init failed");
-        return rc;
-    }
+	rc = imma_admin_owner_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_1("imma_admin_owner_tree_init failed");
+		return rc;
+	}
 
-    rc = imma_ccb_tree_init(cb);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("imma_ccb_tree_init failed");
-        return rc;
-    }
+	rc = imma_ccb_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_1("imma_ccb_tree_init failed");
+		return rc;
+	}
 
-    rc = imma_search_tree_init(cb);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("imma_search_tree_init failed");
-        return rc;
-    }
+	rc = imma_search_tree_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_1("imma_search_tree_init failed");
+		return rc;
+	}
 
-    return NCSCC_RC_SUCCESS;  
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
   Name          : imma_db_destroy 
@@ -751,15 +667,15 @@ uns32 imma_db_init(IMMA_CB *cb)
 ******************************************************************************/
 uns32 imma_db_destroy(IMMA_CB *cb)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    imma_client_tree_destroy(cb);
+	imma_client_tree_destroy(cb);
 
-    imma_admin_owner_tree_destroy(cb);
+	imma_admin_owner_tree_destroy(cb);
 
-    imma_ccb_tree_destroy(cb);
+	imma_ccb_tree_destroy(cb);
 
-    imma_search_tree_destroy(cb);
+	imma_search_tree_destroy(cb);
 
-    return NCSCC_RC_SUCCESS;  
+	return NCSCC_RC_SUCCESS;
 }

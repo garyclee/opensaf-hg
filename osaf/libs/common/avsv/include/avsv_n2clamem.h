@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,12 +30,11 @@
 #ifndef AVSV_N2CLAMEM_H
 #define AVSV_N2CLAMEM_H
 
-typedef enum
-{
-   NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL = 1,
-   NCS_SERVICE_AVSV_N2CLA_SUB_AVSV_NDA_CLA_MSG,
-   NCS_SERVICE_AVSV_N2CLA_SUB_AVSV_CLM_CBK_INFO,
-   NCS_SERVICE_AVSV_N2CLA_SUB_MAX
+typedef enum {
+	NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL = 1,
+	NCS_SERVICE_AVSV_N2CLA_SUB_AVSV_NDA_CLA_MSG,
+	NCS_SERVICE_AVSV_N2CLA_SUB_AVSV_CLM_CBK_INFO,
+	NCS_SERVICE_AVSV_N2CLA_SUB_MAX
 } NCS_SERVICE_AVSV_N2CLA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -45,7 +42,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_AVSV_NDA_CLA_MSG      (AVSV_NDA_CLA_MSG*)m_NCS_MEM_ALLOC(sizeof(AVSV_NDA_CLA_MSG), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -74,6 +70,6 @@ typedef enum
 #define m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(p)    m_NCS_MEM_FREE(p, \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVSV, \
-                                                NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL) 
+                                                NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL)
 
-#endif /* !AVSV_N2CLAMEM_H */
+#endif   /* !AVSV_N2CLAMEM_H */

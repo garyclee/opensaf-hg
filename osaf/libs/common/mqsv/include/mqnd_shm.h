@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -38,7 +37,7 @@
 
 /*defines*/
 #define SHM_QUEUE_INFO_VALID 1
-#define SHM_QUEUE_INFO_INVALID 0 
+#define SHM_QUEUE_INFO_INVALID 0
 #define SHM_NAME "NCS_MQND_QUEUE_CKPT_INFO"
 
 EXTERN_C uns32 mqnd_shm_create(MQND_CB *cb);
@@ -46,6 +45,6 @@ EXTERN_C uns32 mqnd_shm_destroy(MQND_CB *cb);
 EXTERN_C uns32 mqnd_find_shm_ckpt_empty_section(MQND_CB *cb, uns32 *index);
 EXTERN_C uns32 mqnd_send_msg_update_stats_shm(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaSizeT size, SaUint8T priority);
 EXTERN_C uns32 mqnd_shm_queue_ckpt_section_invalidate(MQND_CB *cb, MQND_QUEUE_NODE *qnode);
-EXTERN_C void  mqnd_reset_queue_stats(MQND_CB *cb, uns32 index);
+EXTERN_C void mqnd_reset_queue_stats(MQND_CB *cb, uns32 index);
 
 #endif

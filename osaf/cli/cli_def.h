@@ -32,18 +32,16 @@
 #ifndef CLI_DEF_H
 #define CLI_DEF_H
 
-
 struct ncscli_notify_info_tag;
 /***************************************************************************
                     Mapper structure
 ****************************************************************************/
-typedef struct clikey_to_clicb_map
-{
-    NCS_KEY      key;
-    NCSCONTEXT   cb; 
+typedef struct clikey_to_clicb_map {
+	NCS_KEY key;
+	NCSCONTEXT cb;
 } CLIKEY_TO_CLICB_MAP;
 
-extern CLIKEY_TO_CLICB_MAP   cli_mapper[];
+extern CLIKEY_TO_CLICB_MAP cli_mapper[];
 
 #define CLI_TMR_EXPIRED             "\tUnable to complete CEF with the time period"
 
@@ -60,7 +58,7 @@ extern CLIKEY_TO_CLICB_MAP   cli_mapper[];
    User can type m_NCSCLI_VERIFY_FILE 'script file' to verify commands
    from a file */
 
-#define m_NCSCLI_VERIFY_FILE           '$'  
+#define m_NCSCLI_VERIFY_FILE           '$'
 
 /* The following value is treated as comment in CLI Script files */
 #define m_NCSCLI_COMMENT             '!'
@@ -76,7 +74,6 @@ frpm script files.
 #define m_NCSCLI_FILE_CLOSE      fclose
 #define m_NCSCLI_FILE_EOF        feof
 #define m_NCSCLI_FILE_ERROR      ferror
-
 
 /*****************************************************************************
 
@@ -96,7 +93,6 @@ frpm script files.
           
 *****************************************************************************/
 #define m_NCSCLI_GETCHAR(vr_id)         m_NCS_OS_UNBUF_GETCHAR()
-
 
 /*****************************************************************************
 
@@ -123,7 +119,6 @@ frpm script files.
     putchar(prompt_str[index]);\
 }
 
-
 /*****************************************************************************
 
   MACRO NAME:    m_GET_CONSOLE
@@ -143,7 +138,6 @@ frpm script files.
 *****************************************************************************/
 #define m_GET_CONSOLE(key, console_id)     console_id = 0
 
-
 /*****************************************************************************
 
   MACRO NAME:    m_CLI_VALIDATE_CLI_KEY
@@ -161,7 +155,6 @@ frpm script files.
          
 *****************************************************************************/
 #define m_CLI_VALIDATE_CLI_KEY(cli_key) ((struct cli_cb*) cli_mapper[cli_key.val.num].cb)
-
 
 /*****************************************************************************
 
@@ -183,7 +176,6 @@ frpm script files.
 #define m_CLI_ADD_KEY_TO_CB_MAP(int_key, handle)\
             cli_mapper[int_key].cb = (void*) handle;\
             cli_mapper[int_key].key.val.num = int_key;
-
 
 #if (NCS_CLI == 1) && (NCSCLI_FILE == 1)
 EXTERN_C NCS_BOOL sysf_readln_from_file(int8 *);
@@ -212,18 +204,16 @@ EXTERN_C CLIDLL_API uns32 sysf_getchar(NCS_VRID id);
  * NCSCLI_DEBUG can be enabled in cli_opt,h
  */
 
-
 #if (NCSCLI_DEBUG == 1)
 
-EXTERN_C uns32 cli_dbg_sink (uns32,char*,uns32);
+EXTERN_C uns32 cli_dbg_sink(uns32, char *, uns32);
 
 #define m_CLI_DBG_SINK(r)  cli_dbg_sink(__LINE__,__FILE__,(uns32)r)
 #define m_CLI_DBG_SINK_VOID(r)  cli_dbg_sink(__LINE__,__FILE__,(uns32)r)
-
 #else
 
 #define m_CLI_DBG_SINK(r)  r
 #define m_CLI_DBG_SINK_VOID(r)
-
 #endif
+
 #endif

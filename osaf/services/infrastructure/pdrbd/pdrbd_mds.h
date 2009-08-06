@@ -17,22 +17,16 @@
 #ifndef PDRBD_MDS_H
 #define PDRBD_MDS_H
 
-
-
 #include "pdrbd.h"
-
 
 extern uns32 pdrbd_get_ada_hdl(void);
 extern uns32 pdrbd_mds_install_and_subscribe(void);
-extern uns32 pdrbd_mds_uninstall (void);
-extern uns32 pdrbd_mds_callback(NCSMDS_CALLBACK_INFO * cbinfo);
+extern uns32 pdrbd_mds_uninstall(void);
+extern uns32 pdrbd_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo);
 extern uns32 pdrbd_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg);
-extern void pdrbd_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info,
-                   MDS_CLIENT_HDL  yr_svc_hdl);
-extern uns32 pdrbd_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg,
-                  SS_SVC_ID to_svc,     NCS_UBAID* uba);
-extern uns32 pdrbd_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT* msg,
-                  SS_SVC_ID to_svc,     NCS_UBAID*  uba);
+extern void pdrbd_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl);
+extern uns32 pdrbd_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg, SS_SVC_ID to_svc, NCS_UBAID *uba);
+extern uns32 pdrbd_mds_dec(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT *msg, SS_SVC_ID to_svc, NCS_UBAID *uba);
 extern uns32 pdrbd_mds_async_send(struct pseudo_cb *inst, PDRBD_EVT_TYPE evt_type, uns32 msg_cnt);
 
-#endif /* PDRBD_MDS_H */
+#endif   /* PDRBD_MDS_H */

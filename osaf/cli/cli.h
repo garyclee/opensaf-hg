@@ -32,7 +32,6 @@
 #ifndef CLI_H
 #define CLI_H
 
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                         Netplane Common Include Files.
@@ -104,6 +103,5 @@
 #include "clipar.h"
 #include "clilog.h"
 #include "clictree.h"
-
 
 #endif

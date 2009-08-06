@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This file includes following routines:
@@ -36,7 +34,7 @@
  */
 #include "cpd.h"
 #define NCS_2_0 1
-#if NCS_2_0 /* Required for NCS 2.0 */ 
+#if NCS_2_0			/* Required for NCS 2.0 */
 extern uns32 gl_cpd_cb_hdl;
 
 /****************************************************************************
@@ -59,22 +57,20 @@ extern uns32 gl_cpd_cb_hdl;
   RETURNS       : None 
   NOTES         : At present we are just support a simple liveness check.
 *****************************************************************************/
-void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName,
-                         SaAmfHealthcheckKeyT *checkType)
+void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-   CPD_CB   *cb = 0;
-   SaAisErrorT saErr = SA_AIS_OK;
-   /* Get the COntrol Block Pointer */
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
-   if(cb) {
-      saAmfResponse(cb->amf_hdl, invocation, saErr);
-      ncshm_give_hdl(cb->cpd_hdl);   
-   }
-   else {
-      m_LOG_CPD_CL(CPD_DONOT_EXIST,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-   }
-   return;
-} /* End of cpd_saf_hlth_chk_cb() */
+	CPD_CB *cb = 0;
+	SaAisErrorT saErr = SA_AIS_OK;
+	/* Get the COntrol Block Pointer */
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
+	if (cb) {
+		saAmfResponse(cb->amf_hdl, invocation, saErr);
+		ncshm_give_hdl(cb->cpd_hdl);
+	} else {
+		m_LOG_CPD_CL(CPD_DONOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	}
+	return;
+}	/* End of cpd_saf_hlth_chk_cb() */
 
 /****************************************************************************\
  PROCEDURE NAME : cpd_saf_csi_set_cb
@@ -116,135 +112,125 @@ void cpd_saf_hlth_chk_cb(SaInvocationT invocation, const SaNameT *compName,
 \*****************************************************************************/
 
 void cpd_saf_csi_set_cb(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         SaAmfHAStateT haState,
-                         SaAmfCSIDescriptorT csiDescriptor)
-
+			const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-   CPD_CB      *cb = 0;
-   SaAisErrorT    saErr = SA_AIS_OK;
-   V_DEST_RL   mds_role;
- /*  V_CARD_QA   anchor; */
-   NCSVDA_INFO vda_info;
-   uns32 rc =NCSCC_RC_SUCCESS;
-   CPD_CPND_INFO_NODE *node_info=NULL;  
-   MDS_DEST prev_dest; 
+	CPD_CB *cb = 0;
+	SaAisErrorT saErr = SA_AIS_OK;
+	V_DEST_RL mds_role;
+	/*  V_CARD_QA   anchor; */
+	NCSVDA_INFO vda_info;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	CPD_CPND_INFO_NODE *node_info = NULL;
+	MDS_DEST prev_dest;
 
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);   
-   if(cb) {
-       
-     if ((cb->ha_state == SA_AMF_HA_STANDBY)  && (haState == SA_AMF_HA_ACTIVE)){
-       if (cb->cold_or_warm_sync_on == TRUE)
-        {
-              printf("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
-           saErr=SA_AIS_ERR_TRY_AGAIN;
-            saAmfResponse(cb->amf_hdl, invocation, saErr);
-        ncshm_give_hdl(cb->cpd_hdl);
-        m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-        m_CPSV_DBG_SINK(NCSCC_RC_FAILURE, "cpd_role_change: Failed to send Error report to AMF for Active role assignment during Cold-Sync");
-        return;
-        }
-        }   
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
+	if (cb) {
 
-     if ((cb->ha_state == SA_AMF_HA_ACTIVE)  && (haState == SA_AMF_HA_QUIESCED)){
-       if (cb->cold_or_warm_sync_on == TRUE)
-        {
-              printf("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
-        }
-        }
-     
-       cb->ha_state = haState;
-  
- /*     saAmfResponse(cb->amf_hdl, invocation, saErr); */
-   
+		if ((cb->ha_state == SA_AMF_HA_STANDBY) && (haState == SA_AMF_HA_ACTIVE)) {
+			if (cb->cold_or_warm_sync_on == TRUE) {
+				printf("STANDBY cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+				saErr = SA_AIS_ERR_TRY_AGAIN;
+				saAmfResponse(cb->amf_hdl, invocation, saErr);
+				ncshm_give_hdl(cb->cpd_hdl);
+				m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
+					     __LINE__);
+				m_CPSV_DBG_SINK(NCSCC_RC_FAILURE,
+						"cpd_role_change: Failed to send Error report to AMF for Active role assignment during Cold-Sync");
+				return;
+			}
+		}
+
+		if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
+			if (cb->cold_or_warm_sync_on == TRUE) {
+				printf("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
+			}
+		}
+
+		cb->ha_state = haState;
+
+		/*     saAmfResponse(cb->amf_hdl, invocation, saErr); */
 
       /** Change the MDS role **/
 
-      if(SA_AMF_HA_ACTIVE == cb->ha_state) {
-         mds_role = V_DEST_RL_ACTIVE;
-         printf("ACTIVE STATE\n");
-      /*   anchor   = cb->cpd_anc; */
-      }
-      else if(SA_AMF_HA_QUIESCED == cb->ha_state)
-      {
-         mds_role = V_DEST_RL_QUIESCED;
-         cb->amf_invocation = invocation;
-         cb->is_quiesced_set = TRUE;
-         memset(&vda_info, 0, sizeof(vda_info));
+		if (SA_AMF_HA_ACTIVE == cb->ha_state) {
+			mds_role = V_DEST_RL_ACTIVE;
+			printf("ACTIVE STATE\n");
+			/*   anchor   = cb->cpd_anc; */
+		} else if (SA_AMF_HA_QUIESCED == cb->ha_state) {
+			mds_role = V_DEST_RL_QUIESCED;
+			cb->amf_invocation = invocation;
+			cb->is_quiesced_set = TRUE;
+			memset(&vda_info, 0, sizeof(vda_info));
 
-         vda_info.req = NCSVDA_VDEST_CHG_ROLE;
-         vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
-       /* vda_info.info.vdest_chg_role.i_anc = anchor; */
-         vda_info.info.vdest_chg_role.i_new_role = mds_role;
-         rc = ncsvda_api(&vda_info);
-         if(NCSCC_RC_SUCCESS != rc) 
-         {
-            m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-            m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-            ncshm_give_hdl(cb->cpd_hdl);
-            return;
-         }
-         ncshm_give_hdl(cb->cpd_hdl);
-         m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,"I AM QUIESCED",__FILE__,__LINE__);
-         return;
-      }    
-      else
-      {
-         mds_role = V_DEST_RL_STANDBY;
-         printf("STANDBY STATE\n");
-      /*   anchor   = cb->cpd_anc; */
-      }
-      memset(&vda_info, 0, sizeof(vda_info));
-      
-      vda_info.req = NCSVDA_VDEST_CHG_ROLE;
-      vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
-     /* vda_info.info.vdest_chg_role.i_anc = anchor; */
-      vda_info.info.vdest_chg_role.i_new_role = mds_role;
-      rc = ncsvda_api(&vda_info);
-      if(NCSCC_RC_SUCCESS != rc) {
-         m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-         m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
-         printf("NCSVDA_API RETURNED FAILOVER CHG ROLE %d\n",rc);
-         ncshm_give_hdl(cb->cpd_hdl);
-         return;
-      }
-      if(cpd_mbcsv_chgrole(cb)!=NCSCC_RC_SUCCESS)
-      {
-         printf("CPD_MBCSV_CHGROLE_FAILED\n");
-         m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED,CPD_FC_MBCSV,NCSFL_SEV_ERROR,__FILE__,__LINE__); 
-      }
+			vda_info.req = NCSVDA_VDEST_CHG_ROLE;
+			vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
+			/* vda_info.info.vdest_chg_role.i_anc = anchor; */
+			vda_info.info.vdest_chg_role.i_new_role = mds_role;
+			rc = ncsvda_api(&vda_info);
+			if (NCSCC_RC_SUCCESS != rc) {
+				m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+				m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__,
+					     __LINE__);
+				ncshm_give_hdl(cb->cpd_hdl);
+				return;
+			}
+			ncshm_give_hdl(cb->cpd_hdl);
+			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM QUIESCED",
+				      __FILE__, __LINE__);
+			return;
+		} else {
+			mds_role = V_DEST_RL_STANDBY;
+			printf("STANDBY STATE\n");
+			/*   anchor   = cb->cpd_anc; */
+		}
+		memset(&vda_info, 0, sizeof(vda_info));
+
+		vda_info.req = NCSVDA_VDEST_CHG_ROLE;
+		vda_info.info.vdest_chg_role.i_vdest = cb->cpd_dest_id;
+		/* vda_info.info.vdest_chg_role.i_anc = anchor; */
+		vda_info.info.vdest_chg_role.i_new_role = mds_role;
+		rc = ncsvda_api(&vda_info);
+		if (NCSCC_RC_SUCCESS != rc) {
+			m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			m_LOG_CPD_CL(CPD_VDEST_CHG_ROLE_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			printf("NCSVDA_API RETURNED FAILOVER CHG ROLE %d\n", rc);
+			ncshm_give_hdl(cb->cpd_hdl);
+			return;
+		}
+		if (cpd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
+			printf("CPD_MBCSV_CHGROLE_FAILED\n");
+			m_LOG_CPD_CL(CPD_MBCSV_CHGROLE_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		}
 
       /** Set the CB's anchor value */
 /*      cb->cpd_anc= anchor;  */
-      saAmfResponse(cb->amf_hdl, invocation, saErr);
-      ncshm_give_hdl(cb->cpd_hdl);
- 
-      if(SA_AMF_HA_ACTIVE == cb->ha_state) {
-      cpd_cpnd_info_node_getnext(&cb->cpnd_tree,NULL,&node_info);
-      while(node_info)
-      {
-         prev_dest = node_info->cpnd_dest;
-         if(node_info->timer_state == 2)
-         {
-            printf("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE\n");
-            cpd_process_cpnd_down(cb,&node_info->cpnd_dest);
-         }
-         cpd_cpnd_info_node_getnext(&cb->cpnd_tree,&prev_dest,&node_info);
+		saAmfResponse(cb->amf_hdl, invocation, saErr);
+		ncshm_give_hdl(cb->cpd_hdl);
 
-      }
-      m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,"I AM ACTIVE",__FILE__,__LINE__);
-    }
-    if(SA_AMF_HA_STANDBY == cb->ha_state)
-       m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,"I AM STANDBY",__FILE__,__LINE__);
-       
+		if (SA_AMF_HA_ACTIVE == cb->ha_state) {
+			cpd_cpnd_info_node_getnext(&cb->cpnd_tree, NULL, &node_info);
+			while (node_info) {
+				prev_dest = node_info->cpnd_dest;
+				if (node_info->timer_state == 2) {
+					printf
+					    ("THE TIMER STATE IS 2 MEANS TIMER EXPIRED BUT STILL DID NOT GET ACTIVE STATE\n");
+					cpd_process_cpnd_down(cb, &node_info->cpnd_dest);
+				}
+				cpd_cpnd_info_node_getnext(&cb->cpnd_tree, &prev_dest, &node_info);
 
+			}
+			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM ACTIVE", __FILE__,
+				      __LINE__);
+		}
+		if (SA_AMF_HA_STANDBY == cb->ha_state)
+			m_LOG_CPD_CCL(CPD_CSI_SET_CB_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, "I AM STANDBY",
+				      __FILE__, __LINE__);
 
-   }
-   else {
-      m_LOG_CPD_CL(CPD_DONOT_EXIST,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-   }
-   return;
-} /* End of cpd_saf_csi_set_cb() */
+	} else {
+		m_LOG_CPD_CL(CPD_DONOT_EXIST, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	}
+	return;
+}	/* End of cpd_saf_csi_set_cb() */
 
 /****************************************************************************
  * Name          : cpd_amf_init
@@ -258,34 +244,32 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 cpd_amf_init (CPD_CB *cpd_cb)
+uns32 cpd_amf_init(CPD_CB *cpd_cb)
 {
-   SaAmfCallbacksT amfCallbacks;
-   SaVersionT      amf_version;   
-   SaAisErrorT     error;
-   uns32           res = NCSCC_RC_SUCCESS;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amf_version;
+	SaAisErrorT error;
+	uns32 res = NCSCC_RC_SUCCESS;
 
-   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-   amfCallbacks.saAmfHealthcheckCallback = cpd_saf_hlth_chk_cb;
-   amfCallbacks.saAmfCSISetCallback      = cpd_saf_csi_set_cb;
-   amfCallbacks.saAmfComponentTerminateCallback
-                                         = cpd_amf_comp_terminate_callback;
-   amfCallbacks.saAmfCSIRemoveCallback   = cpd_amf_csi_rmv_callback;
+	amfCallbacks.saAmfHealthcheckCallback = cpd_saf_hlth_chk_cb;
+	amfCallbacks.saAmfCSISetCallback = cpd_saf_csi_set_cb;
+	amfCallbacks.saAmfComponentTerminateCallback = cpd_amf_comp_terminate_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = cpd_amf_csi_rmv_callback;
 
-   m_CPSV_GET_AMF_VER(amf_version);
+	m_CPSV_GET_AMF_VER(amf_version);
 
-   error = saAmfInitialize(&cpd_cb->amf_hdl, &amfCallbacks, &amf_version);
+	error = saAmfInitialize(&cpd_cb->amf_hdl, &amfCallbacks, &amf_version);
 
-   if (error != SA_AIS_OK)
-   {
-      m_LOG_CPD_CL(CPD_AMF_INIT_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      res = NCSCC_RC_FAILURE;
-   }
-   if(error == SA_AIS_OK)
-     m_LOG_CPD_CL(CPD_AMF_INIT_SUCCESS,CPD_FC_HDLN,NCSFL_SEV_NOTICE,__FILE__,__LINE__);
+	if (error != SA_AIS_OK) {
+		m_LOG_CPD_CL(CPD_AMF_INIT_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		res = NCSCC_RC_FAILURE;
+	}
+	if (error == SA_AIS_OK)
+		m_LOG_CPD_CL(CPD_AMF_INIT_SUCCESS, CPD_FC_HDLN, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
-   return (res);
+	return (res);
 }
 
 /****************************************************************************
@@ -299,12 +283,11 @@ uns32 cpd_amf_init (CPD_CB *cpd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-void  cpd_amf_de_init (CPD_CB *cpd_cb)
+void cpd_amf_de_init(CPD_CB *cpd_cb)
 {
-   if(saAmfFinalize(cpd_cb->amf_hdl)!=SA_AIS_OK)
-      m_LOG_CPD_CL(CPD_AMF_DESTROY_FAILED,CPD_FC_HDLN,NCSFL_SEV_ERROR,__FILE__,__LINE__);
+	if (saAmfFinalize(cpd_cb->amf_hdl) != SA_AIS_OK)
+		m_LOG_CPD_CL(CPD_AMF_DESTROY_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 }
-
 
 /****************************************************************************
  * Name          : cpd_amf_register
@@ -317,28 +300,24 @@ void  cpd_amf_de_init (CPD_CB *cpd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32  cpd_amf_register (CPD_CB *cpd_cb)
+uns32 cpd_amf_register(CPD_CB *cpd_cb)
 {
-   SaAisErrorT error;
+	SaAisErrorT error;
 
-   /* get the component name */  
-   error = saAmfComponentNameGet(cpd_cb->amf_hdl,&cpd_cb->comp_name);
-   if (error != SA_AIS_OK)
-   {
-      m_LOG_CPD_CL(CPD_AMF_COMP_NAME_GET_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
+	/* get the component name */
+	error = saAmfComponentNameGet(cpd_cb->amf_hdl, &cpd_cb->comp_name);
+	if (error != SA_AIS_OK) {
+		m_LOG_CPD_CL(CPD_AMF_COMP_NAME_GET_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if(saAmfComponentRegister(cpd_cb->amf_hdl,&cpd_cb->comp_name,(SaNameT*)NULL) == SA_AIS_OK)
-   {
-      m_LOG_CPD_CL(CPD_AMF_COMP_REG_SUCCESS,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,__FILE__,__LINE__);
-      return NCSCC_RC_SUCCESS;
-   }
-   else
-   { 
-      m_LOG_CPD_CL(CPD_AMF_COMP_REG_FAILED,CPD_FC_GENERIC,NCSFL_SEV_ERROR,__FILE__,__LINE__);
-      return NCSCC_RC_FAILURE;
-   }
+	if (saAmfComponentRegister(cpd_cb->amf_hdl, &cpd_cb->comp_name, (SaNameT *)NULL) == SA_AIS_OK) {
+		m_LOG_CPD_CL(CPD_AMF_COMP_REG_SUCCESS, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+		return NCSCC_RC_SUCCESS;
+	} else {
+		m_LOG_CPD_CL(CPD_AMF_COMP_REG_FAILED, CPD_FC_GENERIC, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 }
 
 /****************************************************************************
@@ -352,14 +331,15 @@ uns32  cpd_amf_register (CPD_CB *cpd_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-uns32  cpd_amf_deregister (CPD_CB *cpd_cb)
+uns32 cpd_amf_deregister(CPD_CB *cpd_cb)
 {
-   SaNameT  comp_name = {5,"CPD"};
-   if(saAmfComponentUnregister(cpd_cb->amf_hdl,&comp_name,(SaNameT*)NULL) == SA_AIS_OK)
-      return NCSCC_RC_SUCCESS;
-   else
-      return NCSCC_RC_FAILURE;
+	SaNameT comp_name = { 5, "CPD" };
+	if (saAmfComponentUnregister(cpd_cb->amf_hdl, &comp_name, (SaNameT *)NULL) == SA_AIS_OK)
+		return NCSCC_RC_SUCCESS;
+	else
+		return NCSCC_RC_FAILURE;
 }
+
 /****************************************************************************
  * Name          : cpd_amf_comp_terminate_callback
  *
@@ -381,21 +361,18 @@ uns32  cpd_amf_deregister (CPD_CB *cpd_cb)
  *
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
-void
-cpd_amf_comp_terminate_callback(SaInvocationT invocation,
-                                const SaNameT *compName)
+void cpd_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-   CPD_CB      *cb = 0;
-   SaAisErrorT    saErr = SA_AIS_OK;
+	CPD_CB *cb = 0;
+	SaAisErrorT saErr = SA_AIS_OK;
 
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
-   if(cb)
-   {
-      saAmfResponse(cb->amf_hdl, invocation, saErr);
-      ncshm_give_hdl(cb->cpd_hdl);
-   }
-   m_LOG_CPD_CL(CPD_AMF_COMP_TERM_CB_INVOKED,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,__FILE__,__LINE__);
-   return;
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
+	if (cb) {
+		saAmfResponse(cb->amf_hdl, invocation, saErr);
+		ncshm_give_hdl(cb->cpd_hdl);
+	}
+	m_LOG_CPD_CL(CPD_AMF_COMP_TERM_CB_INVOKED, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
+	return;
 }
 
 /****************************************************************************
@@ -408,23 +385,19 @@ cpd_amf_comp_terminate_callback(SaInvocationT invocation,
  *****************************************************************************/
 void
 cpd_amf_csi_rmv_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         const SaNameT *csiName,
-                         SaAmfCSIFlagsT csiFlags)
+			 const SaNameT *compName, const SaNameT *csiName, SaAmfCSIFlagsT csiFlags)
 {
-   CPD_CB      *cb = 0; 
-   SaAisErrorT    saErr = SA_AIS_OK;
+	CPD_CB *cb = 0;
+	SaAisErrorT saErr = SA_AIS_OK;
 
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
-   if(cb)
-   {
-      saAmfResponse(cb->amf_hdl, invocation, saErr);
-      ncshm_give_hdl(cb->cpd_hdl);
-   }
-   m_LOG_CPD_CL(CPD_AMF_CSI_RMV_CB_INVOKED,CPD_FC_GENERIC,NCSFL_SEV_NOTICE,__FILE__,__LINE__);
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_CPD, gl_cpd_cb_hdl);
+	if (cb) {
+		saAmfResponse(cb->amf_hdl, invocation, saErr);
+		ncshm_give_hdl(cb->cpd_hdl);
+	}
+	m_LOG_CPD_CL(CPD_AMF_CSI_RMV_CB_INVOKED, CPD_FC_GENERIC, NCSFL_SEV_NOTICE, __FILE__, __LINE__);
 
-   return;
+	return;
 }
-
 
 #endif

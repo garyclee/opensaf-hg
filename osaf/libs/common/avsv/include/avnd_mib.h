@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -34,12 +32,10 @@
 
 /* MAB & MIB related routines */
 EXTERN_C uns32 avnd_mab_reg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id,
-                                     SaNameT  *, SaNameT *, SaClmNodeIdT *,
-                                     uns32 *row_hdl, uns32);
+				     SaNameT *, SaNameT *, SaClmNodeIdT *, uns32 *row_hdl, uns32);
 EXTERN_C uns32 avnd_mab_unreg_rows(AVND_CB *cb);
-EXTERN_C uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl,
-                                       uns32);
-EXTERN_C uns32 avnd_miblib_init (AVND_CB *cb);
+EXTERN_C uns32 avnd_mab_unreg_tbl_rows(AVND_CB *cb, NCSMIB_TBL_ID tbl_id, uns32 row_hdl, uns32);
+EXTERN_C uns32 avnd_miblib_init(AVND_CB *cb);
 EXTERN_C uns32 avnd_req_mib_func(struct ncsmib_arg *args);
 EXTERN_C uns32 avnd_tbls_reg_with_mab(AVND_CB *cb);
 EXTERN_C uns32 avnd_tbls_unreg_with_mab(AVND_CB *cb);
@@ -52,6 +48,5 @@ EXTERN_C uns32 ncssndtableentry_tbl_reg(void);
 EXTERN_C uns32 ncsssutableentry_tbl_reg(void);
 EXTERN_C uns32 ncsscomptableentry_tbl_reg(void);
 EXTERN_C uns32 saamfscompcsitableentry_tbl_reg(void);
-                     
-#endif /* !AVND_MIB_H */
 
+#endif   /* !AVND_MIB_H */

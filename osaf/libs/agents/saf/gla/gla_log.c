@@ -26,10 +26,7 @@
       gla_flx_log_reg
       gla_flx_log_unreg
 
-
 ******************************************************************************/
-
-
 
 /*****************************************************************************
 
@@ -40,9 +37,7 @@
 *****************************************************************************/
 void gla_log_headline(uns8 hdln_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_HDLN, GLA_FC_HDLN, 
-               NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, 
-               hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_HDLN, GLA_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
 }
 
 /*****************************************************************************
@@ -54,9 +49,8 @@ void gla_log_headline(uns8 hdln_id, uns8 sev)
 *****************************************************************************/
 void gla_log_memfail(uns8 mf_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_MEMFAIL, GLA_FC_MEMFAIL, 
-               NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, 
-               mf_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_MEMFAIL, GLA_FC_MEMFAIL,
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
 }
 
 /*****************************************************************************
@@ -68,9 +62,7 @@ void gla_log_memfail(uns8 mf_id)
 *****************************************************************************/
 void gla_log_api(uns8 api_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, 
-               NCSFL_LC_API, sev, NCSFL_TYPE_TI, 
-               api_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
 }
 
 /*****************************************************************************
@@ -82,9 +74,7 @@ void gla_log_api(uns8 api_id, uns8 sev)
 *****************************************************************************/
 void gla_log_lockfail(uns8 api_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, 
-               NCSFL_LC_LOCKS , sev, NCSFL_TYPE_TI, 
-               api_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_API, GLA_FC_API, NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TI, api_id);
 }
 
 /*****************************************************************************
@@ -96,9 +86,8 @@ void gla_log_lockfail(uns8 api_id, uns8 sev)
 *****************************************************************************/
 void gla_log_evt(uns8 evt_id, uns32 node)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_EVT, GLA_FC_EVT, 
-        NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TIL, 
-        evt_id, node);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_EVT, GLA_FC_EVT,
+		   NCSFL_LC_EVENT, NCSFL_SEV_INFO, NCSFL_TYPE_TIL, evt_id, node);
 }
 
 /*****************************************************************************
@@ -110,9 +99,8 @@ void gla_log_evt(uns8 evt_id, uns32 node)
 *****************************************************************************/
 void gla_log_sys_call(uns8 id, uns32 node)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_SYS_CALL, GLA_FC_SYS_CALL, 
-        NCSFL_LC_SYS_CALL_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TIL, 
-        id, node);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_SYS_CALL, GLA_FC_SYS_CALL,
+		   NCSFL_LC_SYS_CALL_FAIL, NCSFL_SEV_ERROR, NCSFL_TYPE_TIL, id, node);
 }
 
 /*****************************************************************************
@@ -124,12 +112,9 @@ void gla_log_sys_call(uns8 id, uns32 node)
 *****************************************************************************/
 void gla_log_data_send(uns8 id, uns32 node, uns32 evt_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_DATA_SEND, GLA_FC_DATA_SEND, 
-        NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, 
-        id, node,evt_id);
+	ncs_logmsg(NCS_SERVICE_ID_GLA, GLA_LID_DATA_SEND, GLA_FC_DATA_SEND,
+		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, id, node, evt_id);
 }
-
-
 
 /****************************************************************************
  * Name          : gla_flx_log_reg
@@ -144,21 +129,20 @@ void gla_log_data_send(uns8 id, uns32 node, uns32 evt_id)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-gla_flx_log_reg ()
+void gla_flx_log_reg()
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_GLA;
-   /* fill version no. */
-   reg.info.bind_svc.version = GLSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "GLSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_GLA;
+	/* fill version no. */
+	reg.info.bind_svc.version = GLSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "GLSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -174,15 +158,13 @@ gla_flx_log_reg ()
  *
  * Notes         : None.
  *****************************************************************************/
-void
-gla_flx_log_dereg ()
+void gla_flx_log_dereg()
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_GLA;
-   ncs_dtsv_su_req(&reg);
-   return;
-}
+	NCS_DTSV_RQ reg;
 
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_GLA;
+	ncs_dtsv_su_req(&reg);
+	return;
+}

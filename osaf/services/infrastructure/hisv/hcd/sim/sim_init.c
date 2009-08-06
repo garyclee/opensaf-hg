@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  sim_init.c                                                  *
@@ -51,84 +50,78 @@ uns32 gl_sim_hdl = 0;
 
 uns32 sim_initialize()
 {
-   SIM_CB *sim_cb = NULL;
-   uns32  rc = NCSCC_RC_SUCCESS;
+	SIM_CB *sim_cb = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   m_LOG_HISV_DTS_CONS("sim_initialize: Initializing ShIM...\n");
-   /* allocate SIM cb */
-   if ( NULL == (sim_cb = m_MMGR_ALLOC_SIM_CB))
-   {
-      /* reset the global cb handle */
-      gl_sim_hdl = 0;
-      m_LOG_HISV_DTS_CONS("sim_initialize: error allocating sim_cb\n");
-      return NCSCC_RC_FAILURE;
-   }
-   memset(sim_cb, 0, sizeof(SIM_CB));
+	m_LOG_HISV_DTS_CONS("sim_initialize: Initializing ShIM...\n");
+	/* allocate SIM cb */
+	if (NULL == (sim_cb = m_MMGR_ALLOC_SIM_CB)) {
+		/* reset the global cb handle */
+		gl_sim_hdl = 0;
+		m_LOG_HISV_DTS_CONS("sim_initialize: error allocating sim_cb\n");
+		return NCSCC_RC_FAILURE;
+	}
+	memset(sim_cb, 0, sizeof(SIM_CB));
 
-   /* assign the SIM pool-id (used by hdl-mngr) */
-   sim_cb->pool_id = NCS_HM_POOL_ID_COMMON;
+	/* assign the SIM pool-id (used by hdl-mngr) */
+	sim_cb->pool_id = NCS_HM_POOL_ID_COMMON;
 
-   /* create the association with hdl-mngr */
-   if ( 0 == (sim_cb->cb_hdl = ncshm_create_hdl(sim_cb->pool_id, NCS_SERVICE_ID_HCD,
-                                        (NCSCONTEXT)sim_cb)) )
-   {
-      /* log */
-      m_LOG_HISV_DTS_CONS("sim_initialize: error taking sim_cb handle\n");
-      rc = NCSCC_RC_FAILURE;
-      sim_cb->cb_hdl = 0;
-      goto error;
-   }
-   /* store the cb hdl in the global variable */
-   gl_sim_hdl = sim_cb->cb_hdl;
+	/* create the association with hdl-mngr */
+	if (0 == (sim_cb->cb_hdl = ncshm_create_hdl(sim_cb->pool_id, NCS_SERVICE_ID_HCD, (NCSCONTEXT)sim_cb))) {
+		/* log */
+		m_LOG_HISV_DTS_CONS("sim_initialize: error taking sim_cb handle\n");
+		rc = NCSCC_RC_FAILURE;
+		sim_cb->cb_hdl = 0;
+		goto error;
+	}
+	/* store the cb hdl in the global variable */
+	gl_sim_hdl = sim_cb->cb_hdl;
 
-   /* get the process id */
-   sim_cb->prc_id = getpid();
+	/* get the process id */
+	sim_cb->prc_id = getpid();
 
-   m_LOG_HISV_DTS_CONS("sim_initialize: creating ShIM mbx\n");
+	m_LOG_HISV_DTS_CONS("sim_initialize: creating ShIM mbx\n");
 
-   memset(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
-   /* create the mbx to communicate with the SIM thread */
-   if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&sim_cb->mbx)))
-   {
-      /* Destroy the hdl for this CB */
-      ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
-      gl_sim_hdl = 0;
-      m_LOG_HISV_DTS_CONS("sim_initialize: error creating ShIM mbx\n");
-      /* Free the control block */
-      m_MMGR_FREE_SIM_CB(sim_cb);
-      return NCSCC_RC_FAILURE;
-   }
-   /* Attach the IPC to the created thread */
-   m_NCS_IPC_ATTACH(&sim_cb->mbx);
+	memset(sim_cb->fwprog_done, 0, MAX_NUM_SLOTS);
+	/* create the mbx to communicate with the SIM thread */
+	if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&sim_cb->mbx))) {
+		/* Destroy the hdl for this CB */
+		ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
+		gl_sim_hdl = 0;
+		m_LOG_HISV_DTS_CONS("sim_initialize: error creating ShIM mbx\n");
+		/* Free the control block */
+		m_MMGR_FREE_SIM_CB(sim_cb);
+		return NCSCC_RC_FAILURE;
+	}
+	/* Attach the IPC to the created thread */
+	m_NCS_IPC_ATTACH(&sim_cb->mbx);
 
-   /* initialize the SIM cb lock */
-   m_NCS_LOCK_INIT(&sim_cb->cb_lock);
-   m_LOG_HISV_DTS_CONS("sim_initialize: Done with Initializing ShIM\n");
-   return NCSCC_RC_SUCCESS;
+	/* initialize the SIM cb lock */
+	m_NCS_LOCK_INIT(&sim_cb->cb_lock);
+	m_LOG_HISV_DTS_CONS("sim_initialize: Done with Initializing ShIM\n");
+	return NCSCC_RC_SUCCESS;
 
-error:
-   if (sim_cb != NULL)
-   {
-      /* release the IPC */
-      m_NCS_IPC_RELEASE(&sim_cb->mbx, NULL);
+ error:
+	if (sim_cb != NULL) {
+		/* release the IPC */
+		m_NCS_IPC_RELEASE(&sim_cb->mbx, NULL);
 
-      /* destroy the lock */
-      m_NCS_LOCK_DESTROY(&sim_cb->cb_lock);
+		/* destroy the lock */
+		m_NCS_LOCK_DESTROY(&sim_cb->cb_lock);
 
-      /* remove the association with hdl-mngr */
-      if (sim_cb->cb_hdl != 0)
-         ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, sim_cb->cb_hdl);
+		/* remove the association with hdl-mngr */
+		if (sim_cb->cb_hdl != 0)
+			ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, sim_cb->cb_hdl);
 
-      /* free the control block */
-      m_MMGR_FREE_SIM_CB(sim_cb);
-      m_LOG_HISV_DTS_CONS("sim_initialize: Error with Initializing ShIM\n");
+		/* free the control block */
+		m_MMGR_FREE_SIM_CB(sim_cb);
+		m_LOG_HISV_DTS_CONS("sim_initialize: Error with Initializing ShIM\n");
 
-      /* reset the global cb handle */
-      gl_sim_hdl = 0;
-   }
-   return rc;
+		/* reset the global cb handle */
+		gl_sim_hdl = 0;
+	}
+	return rc;
 }
-
 
 /****************************************************************************
  * Name          : sim_clear_mbx
@@ -145,23 +138,20 @@ error:
  * Notes         : None.
  *****************************************************************************/
 
-static NCS_BOOL
-sim_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
+static NCS_BOOL sim_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-   SIM_EVT  *pEvt = (SIM_EVT *)msg;
-   SIM_EVT  *pnext;
-   pnext = pEvt;
-   m_LOG_HISV_DTS_CONS("sim_clear_mbx: Clearing ShIM mbx\n");
+	SIM_EVT *pEvt = (SIM_EVT *)msg;
+	SIM_EVT *pnext;
+	pnext = pEvt;
+	m_LOG_HISV_DTS_CONS("sim_clear_mbx: Clearing ShIM mbx\n");
 
-   while (pnext)
-   {
-      pnext = (/* (SIM_EVT *)&*/(pEvt->next));
-      m_MMGR_FREE_SIM_EVT(pEvt);
-      pEvt = pnext;
-   }
-   return TRUE;
+	while (pnext) {
+		pnext = ( /* (SIM_EVT *)& */ (pEvt->next));
+		m_MMGR_FREE_SIM_EVT(pEvt);
+		pEvt = pnext;
+	}
+	return TRUE;
 }
-
 
 /****************************************************************************
  * Name          : sim_finalize
@@ -177,45 +167,43 @@ sim_clear_mbx (NCSCONTEXT arg, NCSCONTEXT msg)
  * Notes         : None
  *****************************************************************************/
 
-uns32 sim_finalize ()
+uns32 sim_finalize()
 {
-   SIM_CB *sim_cb = 0;
+	SIM_CB *sim_cb = 0;
 
-   /* retrieve SIM CB */
-   sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
-   m_LOG_HISV_DTS_CONS("sim_finalize: Finalizing ShIM\n");
+	/* retrieve SIM CB */
+	sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
+	m_LOG_HISV_DTS_CONS("sim_finalize: Finalizing ShIM\n");
 
-   if(!sim_cb)
-   {
-      m_LOG_HISV_DTS_CONS("sim_finalize: error taking sim_cb handle in finalizing ShIM\n");
-      return NCSCC_RC_FAILURE;
-   }
-   /* return SIM CB */
-   ncshm_give_hdl(gl_sim_hdl);
+	if (!sim_cb) {
+		m_LOG_HISV_DTS_CONS("sim_finalize: error taking sim_cb handle in finalizing ShIM\n");
+		return NCSCC_RC_FAILURE;
+	}
+	/* return SIM CB */
+	ncshm_give_hdl(gl_sim_hdl);
 
-   /* remove the association with hdl-mngr */
-   ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, sim_cb->cb_hdl);
+	/* remove the association with hdl-mngr */
+	ncshm_destroy_hdl(NCS_SERVICE_ID_HCD, sim_cb->cb_hdl);
 
-   /* stop & kill the created task */
-   m_NCS_TASK_STOP(sim_cb->task_hdl);
-   m_NCS_TASK_RELEASE(sim_cb->task_hdl);
+	/* stop & kill the created task */
+	m_NCS_TASK_STOP(sim_cb->task_hdl);
+	m_NCS_TASK_RELEASE(sim_cb->task_hdl);
 
-      /* Detach from IPC */
-   m_NCS_IPC_DETACH(&sim_cb->mbx, sim_clear_mbx, sim_cb);
+	/* Detach from IPC */
+	m_NCS_IPC_DETACH(&sim_cb->mbx, sim_clear_mbx, sim_cb);
 
-   /* release the IPC */
-   m_NCS_IPC_RELEASE(&sim_cb->mbx, NULL);
+	/* release the IPC */
+	m_NCS_IPC_RELEASE(&sim_cb->mbx, NULL);
 
-   /* destroy the lock */
-   m_NCS_LOCK_DESTROY(&sim_cb->cb_lock);
+	/* destroy the lock */
+	m_NCS_LOCK_DESTROY(&sim_cb->cb_lock);
 
-   /* free the control block */
-   m_MMGR_FREE_SIM_CB(sim_cb);
+	/* free the control block */
+	m_MMGR_FREE_SIM_CB(sim_cb);
 
-   /* reset the global cb handle */
-   gl_sim_hdl = 0;
-   m_LOG_HISV_DTS_CONS("sim_finalize: Done with Finalizing ShIM\n");
+	/* reset the global cb handle */
+	gl_sim_hdl = 0;
+	m_LOG_HISV_DTS_CONS("sim_finalize: Done with Finalizing ShIM\n");
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

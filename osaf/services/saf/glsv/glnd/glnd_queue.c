@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,7 +33,6 @@
 
 #include "glnd.h"
 
-
 /****************************************************************************
   Name          : glnd_evt_backup_queue_add
   
@@ -48,27 +45,25 @@
  
   Notes         : None
 ******************************************************************************/
-void glnd_evt_backup_queue_add (GLND_CB   *glnd_cb, GLSV_GLND_EVT *glnd_evt)
+void glnd_evt_backup_queue_add(GLND_CB *glnd_cb, GLSV_GLND_EVT *glnd_evt)
 {
-   GLSV_GLND_EVT  *evt= m_MMGR_ALLOC_GLND_EVT;
+	GLSV_GLND_EVT *evt = m_MMGR_ALLOC_GLND_EVT;
 
-   if(!evt)
-   {
-      m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
-      return;
-   }
-   memcpy(evt,glnd_evt,sizeof(GLSV_GLND_EVT));
+	if (!evt) {
+		m_LOG_GLND_MEMFAIL(GLND_EVT_ALLOC_FAILED);
+		return;
+	}
+	memcpy(evt, glnd_evt, sizeof(GLSV_GLND_EVT));
 
-   evt->next = NULL;
-   /* add it to the queue */
-   if(glnd_cb->evt_bckup_q == NULL)
-      glnd_cb->evt_bckup_q = evt;
-   else
-   {
-      evt->next = glnd_cb->evt_bckup_q;
-      glnd_cb->evt_bckup_q = evt;
-   }
-   return;
+	evt->next = NULL;
+	/* add it to the queue */
+	if (glnd_cb->evt_bckup_q == NULL)
+		glnd_cb->evt_bckup_q = evt;
+	else {
+		evt->next = glnd_cb->evt_bckup_q;
+		glnd_cb->evt_bckup_q = evt;
+	}
+	return;
 }
 
 /****************************************************************************
@@ -82,38 +77,30 @@ void glnd_evt_backup_queue_add (GLND_CB   *glnd_cb, GLSV_GLND_EVT *glnd_evt)
  
   Notes         : None
 ******************************************************************************/
-uns32 glnd_evt_backup_queue_delete_lock_req (GLND_CB   *glnd_cb, 
-                                            SaLckHandleT hldId,
-                                            SaLckResourceIdT resId,
-                                            SaLckLockModeT type)
+uns32 glnd_evt_backup_queue_delete_lock_req(GLND_CB *glnd_cb,
+					    SaLckHandleT hldId, SaLckResourceIdT resId, SaLckLockModeT type)
 {
-   GLSV_GLND_EVT  *prev,*evt= glnd_cb->evt_bckup_q;
+	GLSV_GLND_EVT *prev, *evt = glnd_cb->evt_bckup_q;
 
-   for(prev=NULL;evt!=NULL;evt=evt->next)
-   {
-      if(evt->type == GLSV_GLND_EVT_LCK_REQ &&
-         evt->info.node_lck_info.lock_type == type &&
-         evt->info.node_lck_info.client_handle_id == hldId &&
-         evt->info.node_lck_info.resource_id == resId)
-      {
-         /* delete the evt */
-         if(prev)
-         {
-            prev->next = evt->next;
-         }
-         else
-         {
-            glnd_cb->evt_bckup_q = evt->next;
-         }
-         /* Delete the shared memory section corresponding to this backup event */
-         glnd_evt_shm_section_invalidate(glnd_cb,evt);
-         glnd_evt_destroy(evt);
-         return NCSCC_RC_SUCCESS;
-      }
-      prev = evt;
-   }
+	for (prev = NULL; evt != NULL; evt = evt->next) {
+		if (evt->type == GLSV_GLND_EVT_LCK_REQ &&
+		    evt->info.node_lck_info.lock_type == type &&
+		    evt->info.node_lck_info.client_handle_id == hldId && evt->info.node_lck_info.resource_id == resId) {
+			/* delete the evt */
+			if (prev) {
+				prev->next = evt->next;
+			} else {
+				glnd_cb->evt_bckup_q = evt->next;
+			}
+			/* Delete the shared memory section corresponding to this backup event */
+			glnd_evt_shm_section_invalidate(glnd_cb, evt);
+			glnd_evt_destroy(evt);
+			return NCSCC_RC_SUCCESS;
+		}
+		prev = evt;
+	}
 
-   return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -127,35 +114,27 @@ uns32 glnd_evt_backup_queue_delete_lock_req (GLND_CB   *glnd_cb,
  
   Notes         : None
 ******************************************************************************/
-void glnd_evt_backup_queue_delete_unlock_req (GLND_CB   *glnd_cb, 
-                                              SaLckLockIdT lockid,
-                                              SaLckHandleT hldId,
-                                              SaLckResourceIdT resId)
+void glnd_evt_backup_queue_delete_unlock_req(GLND_CB *glnd_cb,
+					     SaLckLockIdT lockid, SaLckHandleT hldId, SaLckResourceIdT resId)
 {
-   GLSV_GLND_EVT  *prev,*evt= glnd_cb->evt_bckup_q;
-   
-   for(prev=NULL;evt!=NULL;evt=evt->next)
-   {
-      if(evt->type == GLSV_GLND_EVT_UNLCK_REQ &&
-         evt->info.node_lck_info.lockid == lockid &&
-         evt->info.node_lck_info.client_handle_id == hldId &&
-         evt->info.node_lck_info.resource_id == resId)
-      {
-         /* delete the evt */
-         if(prev)
-         {
-            prev->next = evt->next;
-         }
-         else
-         {
-            glnd_cb->evt_bckup_q = evt->next;
-         }
-         glnd_evt_destroy(evt);
-         break;
-      }
-      prev = evt;
-   }
-   return;
+	GLSV_GLND_EVT *prev, *evt = glnd_cb->evt_bckup_q;
+
+	for (prev = NULL; evt != NULL; evt = evt->next) {
+		if (evt->type == GLSV_GLND_EVT_UNLCK_REQ &&
+		    evt->info.node_lck_info.lockid == lockid &&
+		    evt->info.node_lck_info.client_handle_id == hldId && evt->info.node_lck_info.resource_id == resId) {
+			/* delete the evt */
+			if (prev) {
+				prev->next = evt->next;
+			} else {
+				glnd_cb->evt_bckup_q = evt->next;
+			}
+			glnd_evt_destroy(evt);
+			break;
+		}
+		prev = evt;
+	}
+	return;
 }
 
 /****************************************************************************
@@ -170,18 +149,17 @@ void glnd_evt_backup_queue_delete_unlock_req (GLND_CB   *glnd_cb,
  
   Notes         : None
 ******************************************************************************/
-void glnd_evt_backup_queue_destroy (GLND_CB   *glnd_cb)
+void glnd_evt_backup_queue_destroy(GLND_CB *glnd_cb)
 {
-   GLSV_GLND_EVT  *evt,*del_node;
+	GLSV_GLND_EVT *evt, *del_node;
 
-   for(evt= glnd_cb->evt_bckup_q;evt!=NULL;)
-   {
-      del_node = evt;
-      evt=evt->next;
-      glnd_evt_destroy(del_node);   
-   }
-   glnd_cb->evt_bckup_q = NULL;
-   return;
+	for (evt = glnd_cb->evt_bckup_q; evt != NULL;) {
+		del_node = evt;
+		evt = evt->next;
+		glnd_evt_destroy(del_node);
+	}
+	glnd_cb->evt_bckup_q = NULL;
+	return;
 }
 
 /****************************************************************************
@@ -196,52 +174,45 @@ void glnd_evt_backup_queue_destroy (GLND_CB   *glnd_cb)
  
   Notes         : None
 ******************************************************************************/
-void glnd_re_send_evt_backup_queue (GLND_CB   *glnd_cb)
+void glnd_re_send_evt_backup_queue(GLND_CB *glnd_cb)
 {
-   GLSV_GLND_EVT      *evt,*prev=NULL,*next=NULL;
-   GLND_RESOURCE_INFO *res_info = NULL;
-   
-   
-   for(evt= glnd_cb->evt_bckup_q;evt!=NULL;)
-   {
-      next= evt->next;
-      switch(evt->type)
-      {
-      case GLSV_GLND_EVT_LCK_REQ:
-      case GLSV_GLND_EVT_UNLCK_REQ:
-      case GLSV_GLND_EVT_LCK_PURGE:
-      case GLSV_GLND_EVT_LCK_REQ_CANCEL:
-         if(evt->type != GLSV_GLND_EVT_LCK_PURGE)
-            res_info = glnd_resource_node_find(glnd_cb,evt->info.node_lck_info.resource_id);
-         else
-            res_info = glnd_resource_node_find(glnd_cb,evt->info.rsc_info.resource_id);
-         if(res_info)
-         {
-            if(res_info->status != GLND_RESOURCE_ELECTION_IN_PROGESS)
-            {
-               glnd_mds_msg_send_glnd(glnd_cb,evt,res_info->master_mds_dest);    
-               if(evt == glnd_cb->evt_bckup_q)
-                  glnd_cb->evt_bckup_q = evt->next;
-               glnd_evt_destroy(evt); 
-               if(prev)
-                  prev->next=next;
-            }
-         }
-         else
-         {
-            if(evt == glnd_cb->evt_bckup_q)
-                  glnd_cb->evt_bckup_q = evt->next;
-            glnd_evt_destroy(evt); 
-            if(prev)
-               prev->next=next;
-            
-         }
-         break;
-      default:
-         break;
-      }
-      prev= next;
-      evt= next;
-   }
-   return;
+	GLSV_GLND_EVT *evt, *prev = NULL, *next = NULL;
+	GLND_RESOURCE_INFO *res_info = NULL;
+
+	for (evt = glnd_cb->evt_bckup_q; evt != NULL;) {
+		next = evt->next;
+		switch (evt->type) {
+		case GLSV_GLND_EVT_LCK_REQ:
+		case GLSV_GLND_EVT_UNLCK_REQ:
+		case GLSV_GLND_EVT_LCK_PURGE:
+		case GLSV_GLND_EVT_LCK_REQ_CANCEL:
+			if (evt->type != GLSV_GLND_EVT_LCK_PURGE)
+				res_info = glnd_resource_node_find(glnd_cb, evt->info.node_lck_info.resource_id);
+			else
+				res_info = glnd_resource_node_find(glnd_cb, evt->info.rsc_info.resource_id);
+			if (res_info) {
+				if (res_info->status != GLND_RESOURCE_ELECTION_IN_PROGESS) {
+					glnd_mds_msg_send_glnd(glnd_cb, evt, res_info->master_mds_dest);
+					if (evt == glnd_cb->evt_bckup_q)
+						glnd_cb->evt_bckup_q = evt->next;
+					glnd_evt_destroy(evt);
+					if (prev)
+						prev->next = next;
+				}
+			} else {
+				if (evt == glnd_cb->evt_bckup_q)
+					glnd_cb->evt_bckup_q = evt->next;
+				glnd_evt_destroy(evt);
+				if (prev)
+					prev->next = next;
+
+			}
+			break;
+		default:
+			break;
+		}
+		prev = next;
+		evt = next;
+	}
+	return;
 }

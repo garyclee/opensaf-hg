@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME:  os_defs.c
 
 ..............................................................................
@@ -41,9 +40,9 @@
 ******************************************************************************/
 
 #include "ncs_opt.h"
-#include "gl_defs.h"   /* Global defintions */
+#include "gl_defs.h"		/* Global defintions */
 
-#include "ncs_osprm.h"   /* Req'd for primitive interfaces */
+#include "ncs_osprm.h"		/* Req'd for primitive interfaces */
 
 #include <signal.h>
 #include <sched.h>
@@ -63,8 +62,7 @@
 #include <sysf_exc_scr.h>
 #include <ncssysf_tsk.h>
 
-
-/*FIXME: osprims does not have private header file, hence the declaration here */ 
+/*FIXME: osprims does not have private header file, hence the declaration here */
 
 extern int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int kind);
 NCS_OS_LOCK gl_ncs_atomic_mtx;
@@ -74,28 +72,26 @@ NCS_BOOL gl_ncs_atomic_mtx_initialise = FALSE;
 
 NCS_OS_LOCK ncs_fd_cloexec_lock;
 
-NCS_OS_LOCK * get_cloexec_lock()
-{    
-   static int lock_inited = FALSE;
-   if (!lock_inited)
-   {
-      m_NCS_OS_LOCK(&ncs_fd_cloexec_lock, NCS_OS_LOCK_CREATE,0);
-      lock_inited = TRUE;
-   }
-   return &ncs_fd_cloexec_lock;
-}
-
-void get_msec_time(uns32 * seconds, uns32 * millisec)
+NCS_OS_LOCK *get_cloexec_lock()
 {
-   struct timeval  time_now;
-
-   if( gettimeofday(&time_now, 0) != 0 )
-      printf("gettimeofday failed\n");
-
-   *seconds = time_now.tv_sec;
-   *millisec = time_now.tv_usec/1000;
+	static int lock_inited = FALSE;
+	if (!lock_inited) {
+		m_NCS_OS_LOCK(&ncs_fd_cloexec_lock, NCS_OS_LOCK_CREATE, 0);
+		lock_inited = TRUE;
+	}
+	return &ncs_fd_cloexec_lock;
 }
 
+void get_msec_time(uns32 *seconds, uns32 *millisec)
+{
+	struct timeval time_now;
+
+	if (gettimeofday(&time_now, 0) != 0)
+		printf("gettimeofday failed\n");
+
+	*seconds = time_now.tv_sec;
+	*millisec = time_now.tv_usec / 1000;
+}
 
 /***************************************************************************
  *
@@ -118,38 +114,34 @@ void get_msec_time(uns32 * seconds, uns32 * millisec)
  ****************************************************************************/
 uns32 ncs_get_uptime(uns64 *o_uptime)
 {
-   int result = 0;
-   double i_uptime  = 0;
-   FILE *fp = NULL;
-  
-   if(o_uptime == NULL)
-   {
-      printf("Wrong input ..\n"); 
-      return NCSCC_RC_FAILURE;
-   } 
+	int result = 0;
+	double i_uptime = 0;
+	FILE *fp = NULL;
 
-   fp = ncs_os_fopen ("/proc/uptime", "r");
-   if (fp == NULL)
-   {
-      printf("Unable to open the /proc/uptime \n");
-      return NCSCC_RC_FAILURE;
-   }
+	if (o_uptime == NULL) {
+		printf("Wrong input ..\n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   result = fscanf (fp, "%lf", &i_uptime);
+	fp = ncs_os_fopen("/proc/uptime", "r");
+	if (fp == NULL) {
+		printf("Unable to open the /proc/uptime \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   fclose(fp);
+	result = fscanf(fp, "%lf", &i_uptime);
 
-   if (result != 1)
-   {
-      printf("fscanf failed .. \n");
-      return NCSCC_RC_FAILURE;
-   }
+	fclose(fp);
 
-   *o_uptime = (uns64) (i_uptime * 100);
+	if (result != 1) {
+		printf("fscanf failed .. \n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   return NCSCC_RC_SUCCESS;
-} 
+	*o_uptime = (uns64)(i_uptime * 100);
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /***************************************************************************
  *
@@ -176,34 +168,28 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
 #define NCS_OS_LINUX242        0x2422
 
 uns32 ncs_os_install_sigpipe_handler(void);
-int
-getversion(void)
+int getversion(void)
 {
-    char verstr[128];
-    FILE * fp;
+	char verstr[128];
+	FILE *fp;
 
-    fp = fopen("/proc/sys/kernel/osrelease", "r");
-    if(NULL != fp)
-    {
-        fgets(verstr, 127, fp);
-        verstr[127] = '\0';
-        fclose(fp);
-        if(5 <= strlen(verstr));
-        {
-           if(0 == strncmp("2.4.7", verstr, 5))
-           {
-               return NCS_OS_LINUX247;
-           }
-           if(0 == strncmp("2.4.2", verstr, 5))
-           {
-               return NCS_OS_LINUX242;
-           }
-        }
-    }
-    return NCS_OS_UNSUPPORTED;
+	fp = fopen("/proc/sys/kernel/osrelease", "r");
+	if (NULL != fp) {
+		fgets(verstr, 127, fp);
+		verstr[127] = '\0';
+		fclose(fp);
+		if (5 <= strlen(verstr)) ;
+		{
+			if (0 == strncmp("2.4.7", verstr, 5)) {
+				return NCS_OS_LINUX247;
+			}
+			if (0 == strncmp("2.4.2", verstr, 5)) {
+				return NCS_OS_LINUX242;
+			}
+		}
+	}
+	return NCS_OS_UNSUPPORTED;
 }
-
-
 
 #ifndef CHECK_FOR_ROOT_PRIVLEGES
 #define CHECK_FOR_ROOT_PRIVLEGES    1
@@ -235,30 +221,26 @@ getversion(void)
  ****************************************************************************/
 #if (CHECK_FOR_ROOT_PRIVLEGES == 1)
 #define ROOT_UID 0
- /*  stores user id*/
+ /*  stores user id */
 static uid_t gl_ncs_user_id = -1;
-NCS_BOOL
-ncs_is_root(void)
+NCS_BOOL ncs_is_root(void)
 {
-   if(-1 == gl_ncs_user_id)
-   {
-       gl_ncs_user_id = getuid();
-   }
-   if(ROOT_UID != gl_ncs_user_id)
-   {
-       return FALSE;
-   }
-   else
-   {
-       return TRUE;
-   }
-   return TRUE;
+	if (-1 == gl_ncs_user_id) {
+		gl_ncs_user_id = getuid();
+	}
+	if (ROOT_UID != gl_ncs_user_id) {
+		return FALSE;
+	} else {
+		return TRUE;
+	}
+	return TRUE;
 }
 #else
-NCS_BOOL ncs_is_root(void) { return TRUE; }
+NCS_BOOL ncs_is_root(void)
+{
+	return TRUE;
+}
 #endif
-
-
 
 /***************************************************************************
  *
@@ -281,39 +263,33 @@ NCS_BOOL ncs_is_root(void) { return TRUE; }
  *
  ****************************************************************************/
 
-int
-ncs_dbg_logscreen(const char *fmt,... )
+int ncs_dbg_logscreen(const char *fmt, ...)
 {
-   static int dbg_printf_init = FALSE;
-   int logmessage_length = 0;
-   char *p_op = NULL;
+	static int dbg_printf_init = FALSE;
+	int logmessage_length = 0;
+	char *p_op = NULL;
 
-   if(dbg_printf_init == -1) 
-   {
-     /* if NCS_DBG_PRINTF_ENABLE flag is not exported or 
-        if set to 0 ,dbg_printf_init flag is set to -1 */
-       return 0;
-   }
-   else
-   {
-      if(dbg_printf_init == FALSE)
-      {
-        p_op = (char *)getenv("NCS_DBG_PRINTF_ENABLE");
-        if(p_op == NULL || atoi(p_op) != 1)
-        {
-           dbg_printf_init = -1;    
-           return 0;
-        }
-        dbg_printf_init = TRUE;
-      }
-   }
+	if (dbg_printf_init == -1) {
+		/* if NCS_DBG_PRINTF_ENABLE flag is not exported or 
+		   if set to 0 ,dbg_printf_init flag is set to -1 */
+		return 0;
+	} else {
+		if (dbg_printf_init == FALSE) {
+			p_op = (char *)getenv("NCS_DBG_PRINTF_ENABLE");
+			if (p_op == NULL || atoi(p_op) != 1) {
+				dbg_printf_init = -1;
+				return 0;
+			}
+			dbg_printf_init = TRUE;
+		}
+	}
 
-   va_list args;
-   va_start(args,fmt);
-   logmessage_length = vprintf(fmt,args);
-   va_end(args);
-   fflush(stdout);
-   return logmessage_length;
+	va_list args;
+	va_start(args, fmt);
+	logmessage_length = vprintf(fmt, args);
+	va_end(args);
+	fflush(stdout);
+	return logmessage_length;
 }
 
 /***************************************************************************
@@ -334,19 +310,17 @@ ncs_dbg_logscreen(const char *fmt,... )
  *
  *
  ****************************************************************************/
-uns64
-ncs_os_time_ns(void)  
+uns64 ncs_os_time_ns(void)
 {
-    uns64 retval =0;
-    struct timespec ts;
+	uns64 retval = 0;
+	struct timespec ts;
 
-    if (0 == clock_gettime(CLOCK_REALTIME ,&ts))
-    {
-       retval = ts.tv_sec;
-       retval = ((retval * 1000 * 1000 * 1000) + ts.tv_nsec);
-    }
+	if (0 == clock_gettime(CLOCK_REALTIME, &ts)) {
+		retval = ts.tv_sec;
+		retval = ((retval * 1000 * 1000 * 1000) + ts.tv_nsec);
+	}
 
-    return retval;
+	return retval;
 }
 
 /***************************************************************************
@@ -369,24 +343,19 @@ ncs_os_time_ns(void)
  *   the timezone argument is ununsed by Linux(tm)
  *
  ****************************************************************************/
-int64
-ncs_os_time_ms(void)
+int64 ncs_os_time_ms(void)
 {
-    int64 retval = 0; /* let 0 be an error */
-    struct timeval tv;
+	int64 retval = 0;	/* let 0 be an error */
+	struct timeval tv;
 
-    if(0 == gettimeofday(&tv, 0))
-    {
-        retval = tv.tv_sec;  
-        retval = (retval * 1000) + (tv.tv_usec / 1000);
-    }
-    else
-    {
+	if (0 == gettimeofday(&tv, 0)) {
+		retval = tv.tv_sec;
+		retval = (retval * 1000) + (tv.tv_usec / 1000);
+	} else {
 
-    }
-    return retval;
+	}
+	return retval;
 }
-
 
 /***************************************************************************
  *
@@ -409,27 +378,23 @@ ncs_os_time_ms(void)
  *
  **************************************************************************/
 
-
-
 static
-unsigned int
-ncs_linux_sleep(unsigned int ms_delay)
+unsigned int ncs_linux_sleep(unsigned int ms_delay)
 {
-   struct timeval tv;
-   tv.tv_sec = ms_delay / 1000;
+	struct timeval tv;
+	tv.tv_sec = ms_delay / 1000;
 
-   tv.tv_usec = ((ms_delay % 1000)*1000);
+	tv.tv_usec = ((ms_delay % 1000) * 1000);
 
-   while(select(0, 0, 0, 0, &tv) != 0)
-    if(errno == EINTR) continue;
-    else return(NCSCC_RC_FAILURE);
+	while (select(0, 0, 0, 0, &tv) != 0)
+		if (errno == EINTR)
+			continue;
+		else
+			return (NCSCC_RC_FAILURE);
 
-   return(NCSCC_RC_SUCCESS);
+	return (NCSCC_RC_SUCCESS);
 
 }
-
-
-
 
 /*
 
@@ -446,251 +411,223 @@ os_task_entry(void *arg)
 
 static pthread_t leap_mds_thread_handle = 0;
 static pthread_t timer_dispatch_thread_handle = 0;
-unsigned int
-ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
+unsigned int ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
 {
-   switch( request )
-   {
-      case NCS_OS_TASK_CREATE:
-          {
-            int rc;
+	switch (request) {
+	case NCS_OS_TASK_CREATE:
+		{
+			int rc;
 
 #if (CHECK_FOR_ROOT_PRIVLEGES == 1)
-            int max_prio;
-            int min_prio;
-            int policy = SCHED_RR; /*SCHED_FIFO*/;
-            int policy_temp = 0;
-            char  *p_field;
-              
+			int max_prio;
+			int min_prio;
+			int policy = SCHED_RR; /*SCHED_FIFO */ ;
+			int policy_temp = 0;
+			char *p_field;
 
-            if ( (0 == strncmp("MDTM", task->info.create.i_name, strlen ("MDTM")+1))||
-                 (0 == strncmp("LHCSC", task->info.create.i_name, strlen ("LHCSC")+1))||
-                 (0 == strncmp("NCSDL", task->info.create.i_name, strlen ("NCSDL")+1))||
-                 (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen (NCS_TMR_TASKNAME)+1))||
-                 (0 == strncmp("AVD_HB", task->info.create.i_name, strlen ("AVD_HB")+1)))
-            {
-               task->info.create.i_priority = NCS_OS_TASK_PRIORITY_8;
-            }
-            else
-            {
-               p_field = getenv("LEAP_THREADS_ENABLE_RT"); 
-               if ((p_field != NULL) && (atoi(p_field) == 1))
-               {
-               }else
-               {
-                  /* If  LEAP_THREADS_NON_RT == 1, then force all threads to 
-                  non-real-time */
-                  task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
-               }
-            }
- 
-            /* if we opted for lowest priority then change that process
-               SCHED policy to SCHED_OTHER */ 
-  
-            if(ncs_is_root()== FALSE || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16) 
-               policy = SCHED_OTHER; /* This policy is for normal user*/
+			if ((0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) ||
+			    (0 == strncmp("LHCSC", task->info.create.i_name, strlen("LHCSC") + 1)) ||
+			    (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) ||
+			    (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) ||
+			    (0 == strncmp("AVD_HB", task->info.create.i_name, strlen("AVD_HB") + 1))) {
+				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_8;
+			} else {
+				p_field = getenv("LEAP_THREADS_ENABLE_RT");
+				if ((p_field != NULL) && (atoi(p_field) == 1)) {
+				} else {
+					/* If  LEAP_THREADS_NON_RT == 1, then force all threads to 
+					   non-real-time */
+					task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
+				}
+			}
 
+			/* if we opted for lowest priority then change that process
+			   SCHED policy to SCHED_OTHER */
 
-            pthread_attr_t attr;
-            struct sched_param sp,sp_special;
- 
-            memset(&sp, 0, sizeof(struct sched_param));
+			if (ncs_is_root() == FALSE || task->info.create.i_priority == NCS_OS_TASK_PRIORITY_16)
+				policy = SCHED_OTHER;	/* This policy is for normal user */
 
-            memset(&sp_special, 0, sizeof(struct sched_param));
+			pthread_attr_t attr;
+			struct sched_param sp, sp_special;
 
-            pthread_attr_init(&attr);
-            
-            rc = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-            assert(0 == rc);
+			memset(&sp, 0, sizeof(struct sched_param));
 
-            rc = pthread_attr_setschedpolicy(&attr, policy);
-            assert(0 == rc);
+			memset(&sp_special, 0, sizeof(struct sched_param));
 
-            if (task->info.create.i_stack_nbytes < PTHREAD_STACK_MIN)
-               task->info.create.i_stack_nbytes = PTHREAD_STACK_MIN;
-            rc = pthread_attr_setstacksize(&attr, task->info.create.i_stack_nbytes);
-            if (rc != 0)
-               return NCSCC_RC_INVALID_INPUT;
+			pthread_attr_init(&attr);
 
-            max_prio = sched_get_priority_max(policy);
-            min_prio = sched_get_priority_min(policy);
-            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16 ) 
-               assert(min_prio != 0 && max_prio != 0);
+			rc = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+			assert(0 == rc);
 
-            if(task->info.create.i_priority < min_prio)
-              task->info.create.i_priority = NCS_OS_TASK_PRIORITY_0;
+			rc = pthread_attr_setschedpolicy(&attr, policy);
+			assert(0 == rc);
 
-            if(task->info.create.i_priority > max_prio)
-               task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
+			if (task->info.create.i_stack_nbytes < PTHREAD_STACK_MIN)
+				task->info.create.i_stack_nbytes = PTHREAD_STACK_MIN;
+			rc = pthread_attr_setstacksize(&attr, task->info.create.i_stack_nbytes);
+			if (rc != 0)
+				return NCSCC_RC_INVALID_INPUT;
 
-            sp.sched_priority = max_prio - (task->info.create.i_priority * ((max_prio - min_prio)/17));
-            if(ncs_is_root()== TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16) 
-               assert(min_prio <= task->info.create.i_priority && max_prio >= task->info.create.i_priority);
+			max_prio = sched_get_priority_max(policy);
+			min_prio = sched_get_priority_min(policy);
+			if (ncs_is_root() == TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
+				assert(min_prio != 0 && max_prio != 0);
 
-            
-            if (policy != SCHED_OTHER)
-            {
-                if ( 0 == strncmp("MDTM", task->info.create.i_name, strlen ("MDTM")+1))
-                {
-                    sp.sched_priority = 85;
-                 }else
-                 if ( 0 == strncmp("LHCSC", task->info.create.i_name, strlen ("LHCSC")+1))
-                 {
-                    if(timer_dispatch_thread_handle)
-                    {
-                       if (0 == pthread_getschedparam(timer_dispatch_thread_handle,
-                         &policy_temp,&sp_special))
-                       {
-                          sp_special.sched_priority = 87;
-                          pthread_setschedparam(timer_dispatch_thread_handle,policy_temp,&sp_special);
-                       }
-                    }else
-                       m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			if (task->info.create.i_priority < min_prio)
+				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_0;
 
-                     sp.sched_priority = 87;
-                 }else
-                 if ( 0 == strncmp("NCSDL", task->info.create.i_name, strlen ("NCSDL")+1))
-                 {
-                     sp.sched_priority = 87;
-                 }
-                 if ( 0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen (NCS_TMR_TASKNAME)+1))
-                 {
-                     sp.sched_priority = 85;
-                 }
-                 if ( 0 == strncmp("AVD_HB", task->info.create.i_name, strlen ("AVD_HB")+1))
-                 {
+			if (task->info.create.i_priority > max_prio)
+				task->info.create.i_priority = NCS_OS_TASK_PRIORITY_16;
 
-                     if(leap_mds_thread_handle)
-                       if (0 == pthread_getschedparam(leap_mds_thread_handle,&policy_temp,&sp_special))
-                       {
-                          sp_special.sched_priority = 86;
-                          pthread_setschedparam(leap_mds_thread_handle,policy_temp,&sp_special);         
-                       }
-                     sp.sched_priority = 86;
-                 }
-            }
+			sp.sched_priority = max_prio - (task->info.create.i_priority * ((max_prio - min_prio) / 17));
+			if (ncs_is_root() == TRUE && task->info.create.i_priority != NCS_OS_TASK_PRIORITY_16)
+				assert(min_prio <= task->info.create.i_priority
+				       && max_prio >= task->info.create.i_priority);
 
-            rc = pthread_attr_setschedparam(&attr, &sp);
-            assert(0 == rc);
+			if (policy != SCHED_OTHER) {
+				if (0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) {
+					sp.sched_priority = 85;
+				} else if (0 == strncmp("LHCSC", task->info.create.i_name, strlen("LHCSC") + 1)) {
+					if (timer_dispatch_thread_handle) {
+						if (0 == pthread_getschedparam(timer_dispatch_thread_handle,
+									       &policy_temp, &sp_special)) {
+							sp_special.sched_priority = 87;
+							pthread_setschedparam(timer_dispatch_thread_handle, policy_temp,
+									      &sp_special);
+						}
+					} else
+						m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-            /* this will make the threads created by this process really concurrent */
-            rc = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-            assert(0 == rc);
+					sp.sched_priority = 87;
+				} else if (0 == strncmp("NCSDL", task->info.create.i_name, strlen("NCSDL") + 1)) {
+					sp.sched_priority = 87;
+				}
+				if (0 ==
+				    strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) {
+					sp.sched_priority = 85;
+				}
+				if (0 == strncmp("AVD_HB", task->info.create.i_name, strlen("AVD_HB") + 1)) {
 
-            /* create the new thread object */
-            task->info.create.o_handle = malloc(sizeof(pthread_t));
-            assert(NULL != task->info.create.o_handle);
-          
-          
-            /* 13-Apr-2006: Commenting the PRINTF as it interferes with BBS command functions 
-               viz. lhccmd, switchcmd, etc.*/
-            
-            rc = pthread_create(task->info.create.o_handle,
-                                &attr,
+					if (leap_mds_thread_handle)
+						if (0 ==
+						    pthread_getschedparam(leap_mds_thread_handle, &policy_temp,
+									  &sp_special)) {
+							sp_special.sched_priority = 86;
+							pthread_setschedparam(leap_mds_thread_handle, policy_temp,
+									      &sp_special);
+						}
+					sp.sched_priority = 86;
+				}
+			}
+
+			rc = pthread_attr_setschedparam(&attr, &sp);
+			assert(0 == rc);
+
+			/* this will make the threads created by this process really concurrent */
+			rc = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+			assert(0 == rc);
+
+			/* create the new thread object */
+			task->info.create.o_handle = malloc(sizeof(pthread_t));
+			assert(NULL != task->info.create.o_handle);
+
+			/* 13-Apr-2006: Commenting the PRINTF as it interferes with BBS command functions 
+			   viz. lhccmd, switchcmd, etc. */
+
+			rc = pthread_create(task->info.create.o_handle, &attr,
 #if 1
-                                (void*(*)(void*))task->info.create.i_entry_point,
-                                task->info.create.i_ep_arg);
+					    (void *(*)(void *))task->info.create.i_entry_point,
+					    task->info.create.i_ep_arg);
 #else
-                                os_task_entry,
-                                task);
+					    os_task_entry, task);
 #endif
-             assert(0 == rc);
-             if ( 0 == strncmp("MDTM", task->info.create.i_name, strlen ("MDTM")+1))
-             {
-                 leap_mds_thread_handle = *((pthread_t *)task->info.create.o_handle); 
-             }
-             if ( 0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen (NCS_TMR_TASKNAME)+1))
-             {
-                 timer_dispatch_thread_handle  = *((pthread_t *)task->info.create.o_handle); 
-             }
+			assert(0 == rc);
+			if (0 == strncmp("MDTM", task->info.create.i_name, strlen("MDTM") + 1)) {
+				leap_mds_thread_handle = *((pthread_t *)task->info.create.o_handle);
+			}
+			if (0 == strncmp(NCS_TMR_TASKNAME, task->info.create.i_name, strlen(NCS_TMR_TASKNAME) + 1)) {
+				timer_dispatch_thread_handle = *((pthread_t *)task->info.create.o_handle);
+			}
 
-            rc = pthread_attr_destroy(&attr);
-            assert(0 == rc);
+			rc = pthread_attr_destroy(&attr);
+			assert(0 == rc);
+#else				/* (CHECK_FOR_ROOT_PRIVLEGES == 0) */
 
-#else /* (CHECK_FOR_ROOT_PRIVLEGES == 0) */
+			/* create the new thread object */
 
-            /* create the new thread object */
+			task->info.create.o_handle = malloc(sizeof(pthread_t));
+			assert(NULL != task->info.create.o_handle);
 
-            task->info.create.o_handle = malloc(sizeof(pthread_t));
-            assert(NULL != task->info.create.o_handle);
+			rc = pthread_create(task->info.create.o_handle,
+					    NULL,
+					    (void *(*)(void *))task->info.create.i_entry_point,
+					    task->info.create.i_ep_arg);
 
-            rc = pthread_create(task->info.create.o_handle,
-                                NULL,
-                                (void*(*)(void*))task->info.create.i_entry_point,
-                                task->info.create.i_ep_arg);
+			assert(0 == rc);
+#endif   /* CHECK_FOR_ROOT_PRIVLEGES */
+		}
+		break;
 
-            assert(0 == rc);
-            
-#endif /* CHECK_FOR_ROOT_PRIVLEGES */
-         }
-         break;
+	case NCS_OS_TASK_RELEASE:
+		{
+			void *status = NULL;
+			if (pthread_cancel(*(pthread_t *)task->info.release.i_handle) != 0) {
+				/* Shutdown testing: Even if pthread_cancel() fails
+				   we need to do a thread join. Otherwise, information related
+				   to the destroyed thread (basically the exit-code) is
+				   not completely flushed. Hence, we would soon run out of
+				   the allowed quota of threads per process.
+				 */
+				/* DO NOTHING! Fall through and do a thread-join */
+			}
 
-      case NCS_OS_TASK_RELEASE:
-         {
-            void* status = NULL;  
-            if( pthread_cancel( * (pthread_t *) task->info.release.i_handle) != 0 )
-            {
-               /* Shutdown testing: Even if pthread_cancel() fails
-                  we need to do a thread join. Otherwise, information related
-                  to the destroyed thread (basically the exit-code) is
-                  not completely flushed. Hence, we would soon run out of
-                  the allowed quota of threads per process.
-               */ 
-               /* DO NOTHING! Fall through and do a thread-join */
-            }  
-            
-            if( pthread_join( * (pthread_t *) task->info.release.i_handle,&status) != 0)
-            {
-              free(task->info.release.i_handle);    
-              return(NCSCC_RC_FAILURE);
-            }  
-            
-            free(task->info.release.i_handle);
+			if (pthread_join(*(pthread_t *)task->info.release.i_handle, &status) != 0) {
+				free(task->info.release.i_handle);
+				return (NCSCC_RC_FAILURE);
+			}
 
-            if((status != PTHREAD_CANCELED) && (status != (void*)NCSCC_RC_SUCCESS))
-              return(NCSCC_RC_FAILURE);   
-         }  
-         break;
-         
-      case NCS_OS_TASK_DETACH: 
-         if( pthread_detach( * (pthread_t *) task->info.release.i_handle) != 0)
-         {
-           free(task->info.release.i_handle);
-           return(NCSCC_RC_FAILURE);
-         }
-                                                
-         free(task->info.release.i_handle);
-         break;
-                                                                                         
-      case NCS_OS_TASK_START:
-         break;
+			free(task->info.release.i_handle);
 
-      case NCS_OS_TASK_STOP:
-         break;
+			if ((status != PTHREAD_CANCELED) && (status != (void *)NCSCC_RC_SUCCESS))
+				return (NCSCC_RC_FAILURE);
+		}
+		break;
 
-      case NCS_OS_TASK_SLEEP:
-         if( NCSCC_RC_SUCCESS != ncs_linux_sleep(task->info.sleep.i_delay_in_ms) )
-         {
-            return NCSCC_RC_FAILURE;
-         }
-         break;
+	case NCS_OS_TASK_DETACH:
+		if (pthread_detach(*(pthread_t *)task->info.release.i_handle) != 0) {
+			free(task->info.release.i_handle);
+			return (NCSCC_RC_FAILURE);
+		}
 
-      case NCS_OS_TASK_CURRENT_HANDLE:
-    /* requires a malloc to hold pthread_t;
-       needs a TASK_HANDLE type abstraction */
-         task->info.current_handle.o_handle = NULL;
+		free(task->info.release.i_handle);
+		break;
 
-         break;
+	case NCS_OS_TASK_START:
+		break;
 
-      default:
-         return NCSCC_RC_FAILURE;
+	case NCS_OS_TASK_STOP:
+		break;
 
-   }
+	case NCS_OS_TASK_SLEEP:
+		if (NCSCC_RC_SUCCESS != ncs_linux_sleep(task->info.sleep.i_delay_in_ms)) {
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 
-   return NCSCC_RC_SUCCESS;
+	case NCS_OS_TASK_CURRENT_HANDLE:
+		/* requires a malloc to hold pthread_t;
+		   needs a TASK_HANDLE type abstraction */
+		task->info.current_handle.o_handle = NULL;
+
+		break;
+
+	default:
+		return NCSCC_RC_FAILURE;
+
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /***************************************************************************
  *
@@ -712,88 +649,82 @@ ncs_os_task(NCS_OS_TASK *task, NCS_OS_TASK_REQUEST request)
  * Notes:
  *
  **************************************************************************/
-unsigned int
-ncs_os_sem(NCS_OS_SEM *sem, NCS_OS_SEM_REQUEST request)
+unsigned int ncs_os_sem(NCS_OS_SEM *sem, NCS_OS_SEM_REQUEST request)
 {
    /** Supported Request codes
     **/
-   switch( request )
-   {
-      case NCS_OS_SEM_CREATE:
-         if( (sem->info.create.o_handle = malloc(sizeof(sem_t))) == NULL )
-            return(NCSCC_RC_FAILURE);
-         if( sem_init ((sem_t *) sem->info.create.o_handle, 0, 0) == -1 )
-         {
-            free (sem->info.create.o_handle);
-            return(NCSCC_RC_FAILURE);
-         }
-         break;
+	switch (request) {
+	case NCS_OS_SEM_CREATE:
+		if ((sem->info.create.o_handle = malloc(sizeof(sem_t))) == NULL)
+			return (NCSCC_RC_FAILURE);
+		if (sem_init((sem_t *) sem->info.create.o_handle, 0, 0) == -1) {
+			free(sem->info.create.o_handle);
+			return (NCSCC_RC_FAILURE);
+		}
+		break;
 
-      case NCS_OS_SEM_GIVE:
-         if( sem_post ((sem_t *) sem->info.give.i_handle) == -1 )
-            return(NCSCC_RC_FAILURE);
-         break;
+	case NCS_OS_SEM_GIVE:
+		if (sem_post((sem_t *) sem->info.give.i_handle) == -1)
+			return (NCSCC_RC_FAILURE);
+		break;
 
-      case NCS_OS_SEM_TAKE:
-wait_again:
-         if( sem_wait ((sem_t *) sem->info.take.i_handle) == -1 )
-         {
-             if (errno == EINTR)
-             {
-                 /* System call interrupted by signal */
-                 goto wait_again;
-             }
-            return(NCSCC_RC_FAILURE);
-         }
-         break;
+	case NCS_OS_SEM_TAKE:
+ wait_again:
+		if (sem_wait((sem_t *) sem->info.take.i_handle) == -1) {
+			if (errno == EINTR) {
+				/* System call interrupted by signal */
+				goto wait_again;
+			}
+			return (NCSCC_RC_FAILURE);
+		}
+		break;
 
-      case NCS_OS_SEM_RELEASE:
-         if( sem_destroy ((sem_t *) sem->info.release.i_handle) == -1 )
-            return(NCSCC_RC_FAILURE);
-         free (sem->info.release.i_handle);
-         break;
+	case NCS_OS_SEM_RELEASE:
+		if (sem_destroy((sem_t *) sem->info.release.i_handle) == -1)
+			return (NCSCC_RC_FAILURE);
+		free(sem->info.release.i_handle);
+		break;
 
-      default:
-         return NCSCC_RC_FAILURE;
+	default:
+		return NCSCC_RC_FAILURE;
 
-   }
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
 
 void ncs_os_atomic_init(void)
 {
 #ifndef NDEBUG
-    gl_ncs_atomic_mtx_initialise = TRUE;
+	gl_ncs_atomic_mtx_initialise = TRUE;
 #endif
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_CREATE,0);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_CREATE, 0);
 }
 
 void ncs_os_atomic_inc(void *p_uns32)
-{            
-    assert(gl_ncs_atomic_mtx_initialise); 
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-    ((*(uns32 *)p_uns32)++); 
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
+{
+	assert(gl_ncs_atomic_mtx_initialise);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
+	((*(uns32 *)p_uns32)++);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 }
-
 
 void ncs_os_atomic_dec(void *p_uns32)
 {
-    assert(gl_ncs_atomic_mtx_initialise);
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
-    ((*(uns32 *)p_uns32)--); 
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
+	assert(gl_ncs_atomic_mtx_initialise);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_LOCK, 0);
+	((*(uns32 *)p_uns32)--);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_UNLOCK, 0);
 
 }
 
 void ncs_os_atomic_destroy(void)
 {
 #ifndef NDEBUG
-    gl_ncs_atomic_mtx_initialise = FALSE;
+	gl_ncs_atomic_mtx_initialise = FALSE;
 #endif
-    m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_RELEASE,0);
+	m_NCS_OS_LOCK(&gl_ncs_atomic_mtx, NCS_OS_LOCK_RELEASE, 0);
 }
 
 /***************************************************************************
@@ -816,59 +747,53 @@ void ncs_os_atomic_destroy(void)
  * Notes:
  *
  ****************************************************************************/
-unsigned int
-ncs_os_lock(NCS_OS_LOCK         *lock,
-           NCS_OS_LOCK_REQUEST  request,
-           unsigned int        type)
-
+unsigned int ncs_os_lock(NCS_OS_LOCK * lock, NCS_OS_LOCK_REQUEST request, unsigned int type)
 {
 
-   pthread_mutexattr_t mutex_attr;
+	pthread_mutexattr_t mutex_attr;
 
    /** Supported Request codes
     **/
-   switch( request )
-   {
-      case NCS_OS_LOCK_CREATE:
+	switch (request) {
+	case NCS_OS_LOCK_CREATE:
 
-         if( pthread_mutexattr_init (&mutex_attr) != 0 )
-            return(NCSCC_RC_FAILURE);
+		if (pthread_mutexattr_init(&mutex_attr) != 0)
+			return (NCSCC_RC_FAILURE);
 
-         if(pthread_mutexattr_settype (&mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP) != 0 )
-            return(NCSCC_RC_FAILURE);
+		if (pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE_NP) != 0)
+			return (NCSCC_RC_FAILURE);
 
-         if( pthread_mutex_init (&lock->lock, &mutex_attr) != 0 )
-         {
-            pthread_mutexattr_destroy(&mutex_attr);
-            return(NCSCC_RC_FAILURE);
-         }
+		if (pthread_mutex_init(&lock->lock, &mutex_attr) != 0) {
+			pthread_mutexattr_destroy(&mutex_attr);
+			return (NCSCC_RC_FAILURE);
+		}
 
-         if(pthread_mutexattr_destroy(&mutex_attr) != 0 )
-            return(NCSCC_RC_FAILURE);
+		if (pthread_mutexattr_destroy(&mutex_attr) != 0)
+			return (NCSCC_RC_FAILURE);
 
-         break;
+		break;
 
-      case NCS_OS_LOCK_RELEASE:
-         if( pthread_mutex_destroy (&lock->lock) != 0 )
-            return(NCSCC_RC_FAILURE);
-         break;
+	case NCS_OS_LOCK_RELEASE:
+		if (pthread_mutex_destroy(&lock->lock) != 0)
+			return (NCSCC_RC_FAILURE);
+		break;
 
-      case NCS_OS_LOCK_LOCK:
-         if( pthread_mutex_lock (&lock->lock) != 0 ) /* get the lock */
-            return(NCSCC_RC_FAILURE);
-         break;
+	case NCS_OS_LOCK_LOCK:
+		if (pthread_mutex_lock(&lock->lock) != 0)	/* get the lock */
+			return (NCSCC_RC_FAILURE);
+		break;
 
-      case NCS_OS_LOCK_UNLOCK:
-         if( pthread_mutex_unlock (&lock->lock) != 0 )   /* unlock for all tasks */
-            return(NCSCC_RC_FAILURE);
+	case NCS_OS_LOCK_UNLOCK:
+		if (pthread_mutex_unlock(&lock->lock) != 0)	/* unlock for all tasks */
+			return (NCSCC_RC_FAILURE);
 
-         break;
+		break;
 
-      default:
-         return(NCSCC_RC_FAILURE);
-   }
+	default:
+		return (NCSCC_RC_FAILURE);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -895,125 +820,112 @@ ncs_os_lock(NCS_OS_LOCK         *lock,
 
 uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
 {
-#define NCS_OS_MQ_PROTECTION_FLAGS (0644) /* Note: Octal form of number !! */
-   switch(info->req)
-   {
-   case NCS_OS_MQ_REQ_MSG_SEND:
-   case NCS_OS_MQ_REQ_MSG_SEND_ASYNC:
-      {
-         struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
-         uns32 flags;
-         
-         buf->mtype = info->info.send.i_mtype; /* Fits into the "LL_HDR" of NCS_OS_MQ_MSG struct */ 
+#define NCS_OS_MQ_PROTECTION_FLAGS (0644)	/* Note: Octal form of number !! */
+	switch (info->req) {
+	case NCS_OS_MQ_REQ_MSG_SEND:
+	case NCS_OS_MQ_REQ_MSG_SEND_ASYNC:
+		{
+			struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
+			uns32 flags;
 
-         if (info->req == NCS_OS_MQ_REQ_MSG_SEND_ASYNC)
-           flags=IPC_NOWAIT;
-         else
-           flags=0;
+			buf->mtype = info->info.send.i_mtype;	/* Fits into the "LL_HDR" of NCS_OS_MQ_MSG struct */
 
-         if(msgsnd(info->info.send.i_hdl, 
-            buf, 
-            NCS_OS_MQ_MSG_DATA_OFFSET + info->info.send.i_len, flags) == -1)
-         {
-            /* perror("os_defs.c:send"); */
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      break;
-   case NCS_OS_MQ_REQ_MSG_RECV:
-   case NCS_OS_MQ_REQ_MSG_RECV_ASYNC:
-      {
-         struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
-         uns32 flags;
-         uns32  max_recv = info->info.recv.i_max_recv + 
-            NCS_OS_MQ_MSG_DATA_OFFSET;
-         int32  i_mtype = info->info.recv.i_mtype;
+			if (info->req == NCS_OS_MQ_REQ_MSG_SEND_ASYNC)
+				flags = IPC_NOWAIT;
+			else
+				flags = 0;
 
-         if (max_recv > sizeof(NCS_OS_MQ_MSG))
-            return NCSCC_RC_FAILURE;
+			if (msgsnd(info->info.send.i_hdl,
+				   buf, NCS_OS_MQ_MSG_DATA_OFFSET + info->info.send.i_len, flags) == -1) {
+				/* perror("os_defs.c:send"); */
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
+	case NCS_OS_MQ_REQ_MSG_RECV:
+	case NCS_OS_MQ_REQ_MSG_RECV_ASYNC:
+		{
+			struct msgbuf *buf = (struct msgbuf *)info->info.send.i_msg;
+			uns32 flags;
+			uns32 max_recv = info->info.recv.i_max_recv + NCS_OS_MQ_MSG_DATA_OFFSET;
+			int32 i_mtype = info->info.recv.i_mtype;
 
-         if (info->req == NCS_OS_MQ_REQ_MSG_RECV)
-             flags = 0;
-         else
-             flags = IPC_NOWAIT;
+			if (max_recv > sizeof(NCS_OS_MQ_MSG))
+				return NCSCC_RC_FAILURE;
 
-         while(msgrcv(info->info.recv.i_hdl, buf, 
-            max_recv, i_mtype, flags) == -1) 
-         {
-            if (errno == EINTR)
-                continue;
-            return NCSCC_RC_FAILURE;
-         }
-      }
-      break;
-   case NCS_OS_MQ_REQ_CREATE:
-      {
-         /* Create logic to-be-made more robust: Phani */
-         /* Create flag to-be-changed from 644 to something better: Phani */
-         /* Check to-be-added to validate NCS_OS_MQ_MAX_PAYLOAD limit: Phani*/
-         NCS_OS_MQ_HDL tmp_hdl;
-         
-         info->info.create.o_hdl = msgget(*info->info.create.i_key, 
-            NCS_OS_MQ_PROTECTION_FLAGS | IPC_CREAT | IPC_EXCL);
-         
-         if (info->info.create.o_hdl == -1) 
-         {
-         /*  Queue already exists. We should start with
-         **  a fresh queue. So let us delete this queue 
-            */
-            tmp_hdl = msgget(*info->info.create.i_key, 
-               NCS_OS_MQ_PROTECTION_FLAGS);
+			if (info->req == NCS_OS_MQ_REQ_MSG_RECV)
+				flags = 0;
+			else
+				flags = IPC_NOWAIT;
 
-            if (msgctl(tmp_hdl, IPC_RMID, NULL) != 0)
-            {
-               /* Queue deletion unsuccessful */
-               return NCSCC_RC_FAILURE;
-            }
-            info->info.create.o_hdl = msgget(*info->info.create.i_key, 
-               NCS_OS_MQ_PROTECTION_FLAGS | IPC_CREAT | IPC_EXCL);
-            
-            if (info->info.create.o_hdl == -1) 
-            {
-               return NCSCC_RC_FAILURE;
-            }
-         }
-      }
-      break;
-   case NCS_OS_MQ_REQ_OPEN:
-      {
-         info->info.open.o_hdl = msgget(*info->info.open.i_key, 
-            NCS_OS_MQ_PROTECTION_FLAGS);
-         
-         if (info->info.open.o_hdl == -1)
-            return NCSCC_RC_FAILURE;
-      }
-      break;
-   case NCS_OS_MQ_REQ_DESTROY:
-      {
-         if (msgctl(info->info.destroy.i_hdl, IPC_RMID, NULL) == -1) 
-            return NCSCC_RC_FAILURE;
-      }
-      break;
-   case NCS_OS_MQ_REQ_RESIZE:
-      {
-         struct msqid_ds buf;
+			while (msgrcv(info->info.recv.i_hdl, buf, max_recv, i_mtype, flags) == -1) {
+				if (errno == EINTR)
+					continue;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
+	case NCS_OS_MQ_REQ_CREATE:
+		{
+			/* Create logic to-be-made more robust: Phani */
+			/* Create flag to-be-changed from 644 to something better: Phani */
+			/* Check to-be-added to validate NCS_OS_MQ_MAX_PAYLOAD limit: Phani */
+			NCS_OS_MQ_HDL tmp_hdl;
 
-         if (msgctl(info->info.resize.i_hdl, IPC_STAT, &buf) == -1)
-            return NCSCC_RC_FAILURE;
+			info->info.create.o_hdl = msgget(*info->info.create.i_key,
+							 NCS_OS_MQ_PROTECTION_FLAGS | IPC_CREAT | IPC_EXCL);
 
-         buf.msg_qbytes = info->info.resize.i_newqsize; 
+			if (info->info.create.o_hdl == -1) {
+				/*  Queue already exists. We should start with
+				 **  a fresh queue. So let us delete this queue 
+				 */
+				tmp_hdl = msgget(*info->info.create.i_key, NCS_OS_MQ_PROTECTION_FLAGS);
 
-         if (msgctl(info->info.resize.i_hdl, IPC_SET, &buf) == -1)
-            return NCSCC_RC_FAILURE;
-      }
-      break;
-   default:
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+				if (msgctl(tmp_hdl, IPC_RMID, NULL) != 0) {
+					/* Queue deletion unsuccessful */
+					return NCSCC_RC_FAILURE;
+				}
+				info->info.create.o_hdl = msgget(*info->info.create.i_key,
+								 NCS_OS_MQ_PROTECTION_FLAGS | IPC_CREAT | IPC_EXCL);
+
+				if (info->info.create.o_hdl == -1) {
+					return NCSCC_RC_FAILURE;
+				}
+			}
+		}
+		break;
+	case NCS_OS_MQ_REQ_OPEN:
+		{
+			info->info.open.o_hdl = msgget(*info->info.open.i_key, NCS_OS_MQ_PROTECTION_FLAGS);
+
+			if (info->info.open.o_hdl == -1)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+	case NCS_OS_MQ_REQ_DESTROY:
+		{
+			if (msgctl(info->info.destroy.i_hdl, IPC_RMID, NULL) == -1)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+	case NCS_OS_MQ_REQ_RESIZE:
+		{
+			struct msqid_ds buf;
+
+			if (msgctl(info->info.resize.i_hdl, IPC_STAT, &buf) == -1)
+				return NCSCC_RC_FAILURE;
+
+			buf.msg_qbytes = info->info.resize.i_newqsize;
+
+			if (msgctl(info->info.resize.i_hdl, IPC_SET, &buf) == -1)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+	default:
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /***************************************************************************
  *
@@ -1035,161 +947,151 @@ uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *info)
  *
  ****************************************************************************/
 
-
 uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 {
 
-   switch(req->req)
-   {
-   case NCS_OS_POSIX_MQ_REQ_MSG_SEND:
-   case NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC:
-      {
+	switch (req->req) {
+	case NCS_OS_POSIX_MQ_REQ_MSG_SEND:
+	case NCS_OS_POSIX_MQ_REQ_MSG_SEND_ASYNC:
+		{
 
-         NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req;
 
-         if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_SEND)
-             os_req.req = NCS_OS_MQ_REQ_MSG_SEND;
-         else
-             os_req.req = NCS_OS_MQ_REQ_MSG_SEND_ASYNC;
+			if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_SEND)
+				os_req.req = NCS_OS_MQ_REQ_MSG_SEND;
+			else
+				os_req.req = NCS_OS_MQ_REQ_MSG_SEND_ASYNC;
 
-         os_req.info.send.i_hdl = req->info.send.mqd;
-         os_req.info.send.i_len = req->info.send.datalen;
-         os_req.info.send.i_msg = req->info.send.i_msg;
-         os_req.info.send.i_mtype = req->info.send.i_mtype;
+			os_req.info.send.i_hdl = req->info.send.mqd;
+			os_req.info.send.i_len = req->info.send.datalen;
+			os_req.info.send.i_msg = req->info.send.i_msg;
+			os_req.info.send.i_mtype = req->info.send.i_mtype;
 
-         if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
-             return NCSCC_RC_FAILURE;
-      }
-      break;
+			if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
 
-   case NCS_OS_POSIX_MQ_REQ_MSG_RECV:
-   case NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC:
-      {
+	case NCS_OS_POSIX_MQ_REQ_MSG_RECV:
+	case NCS_OS_POSIX_MQ_REQ_MSG_RECV_ASYNC:
+		{
 
-         NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_REQ_INFO os_req;
 
-         if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_RECV)
-             os_req.req = NCS_OS_MQ_REQ_MSG_RECV;
-         else
-             os_req.req = NCS_OS_MQ_REQ_MSG_RECV_ASYNC;
+			if (req->req == NCS_OS_POSIX_MQ_REQ_MSG_RECV)
+				os_req.req = NCS_OS_MQ_REQ_MSG_RECV;
+			else
+				os_req.req = NCS_OS_MQ_REQ_MSG_RECV_ASYNC;
 
-         os_req.info.recv.i_hdl = req->info.recv.mqd;
-         os_req.info.recv.i_max_recv = req->info.recv.datalen;
-         os_req.info.recv.i_msg = req->info.recv.i_msg;
-         os_req.info.recv.i_mtype = req->info.recv.i_mtype;
+			os_req.info.recv.i_hdl = req->info.recv.mqd;
+			os_req.info.recv.i_max_recv = req->info.recv.datalen;
+			os_req.info.recv.i_msg = req->info.recv.i_msg;
+			os_req.info.recv.i_mtype = req->info.recv.i_mtype;
 
-         if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
-             return NCSCC_RC_FAILURE;
+			if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
 
+		}
+		break;
+	case NCS_OS_POSIX_MQ_REQ_GET_ATTR:
+		{
+			struct msqid_ds buf;
 
-      }
-      break;
-   case NCS_OS_POSIX_MQ_REQ_GET_ATTR:
-      {
-         struct msqid_ds buf;
+			if (msgctl(req->info.attr.i_mqd, IPC_STAT, &buf) == -1)
+				return NCSCC_RC_FAILURE;
 
-          if (msgctl(req->info.attr.i_mqd, IPC_STAT, &buf) == -1)
-             return NCSCC_RC_FAILURE;
+			req->info.attr.o_attr.mq_curmsgs = buf.msg_qnum;	/* No of messages in Q */
+			req->info.attr.o_attr.mq_msgsize = buf.msg_cbytes;	/* Current Q size */
+			req->info.attr.o_attr.mq_stime = buf.msg_stime;
+			req->info.attr.o_attr.mq_maxmsg = buf.msg_qbytes;	/* Maximum Q size */
+		}
+		break;
+	case NCS_OS_POSIX_MQ_REQ_OPEN:
+		{
+			NCS_OS_MQ_REQ_INFO os_req;
+			NCS_OS_MQ_KEY key;
+			NCS_OS_FILE file;
+			char filename[128];
+			uns32 rc;
+			struct msqid_ds buf;
+			void *file_handle;
 
-          req->info.attr.o_attr.mq_curmsgs = buf.msg_qnum;    /* No of messages in Q */
-          req->info.attr.o_attr.mq_msgsize = buf.msg_cbytes;  /* Current Q size */
-          req->info.attr.o_attr.mq_stime = buf.msg_stime;
-          req->info.attr.o_attr.mq_maxmsg = buf.msg_qbytes;   /* Maximum Q size */
-      }
-      break;
-   case NCS_OS_POSIX_MQ_REQ_OPEN:
-      {
-         NCS_OS_MQ_REQ_INFO os_req;
-         NCS_OS_MQ_KEY key;
-         NCS_OS_FILE file;
-         char filename[128];
-         uns32 rc;
-         struct msqid_ds buf;
-         void *file_handle;
+			memset(&buf, 0, sizeof(struct msqid_ds));
 
-         memset(&buf, 0, sizeof(struct msqid_ds));
+			sprintf(filename, "/tmp/%s%d", req->info.open.qname, req->info.open.node);
 
-         sprintf(filename, "/tmp/%s%d", req->info.open.qname, req->info.open.node);
+			if (req->info.open.iflags & O_CREAT) {
+				os_req.req = NCS_OS_MQ_REQ_CREATE;
+				file.info.create.i_file_name = filename;
 
-         if (req->info.open.iflags & O_CREAT)
-         {
-             os_req.req = NCS_OS_MQ_REQ_CREATE;
-             file.info.create.i_file_name = filename;
+				rc = ncs_os_file(&file, NCS_OS_FILE_CREATE);
+				if (rc != NCSCC_RC_SUCCESS)
+					return NCSCC_RC_FAILURE;
 
-             rc = ncs_os_file(&file, NCS_OS_FILE_CREATE);
-             if (rc != NCSCC_RC_SUCCESS)
-                 return NCSCC_RC_FAILURE;
+				key = ftok(filename, 1);
+				os_req.info.create.i_key = &key;
 
-             key = ftok(filename,1);
-             os_req.info.create.i_key = &key;
+				/* Close the file to prevent file descriptor leakage */
+				file_handle = file.info.create.o_file_handle;
+				file.info.close.i_file_handle = file_handle;
 
-             /* Close the file to prevent file descriptor leakage */
-             file_handle = file.info.create.o_file_handle;
-             file.info.close.i_file_handle = file_handle;
+				rc = ncs_os_file(&file, NCS_OS_FILE_CLOSE);
 
-             rc = ncs_os_file(&file, NCS_OS_FILE_CLOSE);
+				if (rc != NCSCC_RC_SUCCESS)
+					return NCSCC_RC_FAILURE;
+			} else {
 
-             if (rc != NCSCC_RC_SUCCESS)
-                 return NCSCC_RC_FAILURE;
-         }
-         else
-         {
+				os_req.req = NCS_OS_MQ_REQ_OPEN;
 
-             os_req.req = NCS_OS_MQ_REQ_OPEN;
+				key = ftok(filename, 1);
+				os_req.info.open.i_key = &key;
+			}
 
-             key = ftok(filename,1);
-             os_req.info.open.i_key = &key;
-         }
+			if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
 
-         if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
-             return NCSCC_RC_FAILURE;
+			if (req->info.open.iflags & O_CREAT) {
+				req->info.open.o_mqd = os_req.info.create.o_hdl;
+				if (msgctl(req->info.open.o_mqd, IPC_STAT, &buf) == -1) {
+					return NCSCC_RC_FAILURE;
+				}
+				buf.msg_qbytes = req->info.open.attr.mq_msgsize;
+				if (msgctl(req->info.open.o_mqd, IPC_SET, &buf) == -1) {
+					return NCSCC_RC_FAILURE;
+				}
+			} else
+				req->info.open.o_mqd = os_req.info.open.o_hdl;
 
-         if (req->info.open.iflags & O_CREAT)
-         {
-             req->info.open.o_mqd = os_req.info.create.o_hdl;
-             if (msgctl(req->info.open.o_mqd, IPC_STAT, &buf) == -1)
-            {
-                return NCSCC_RC_FAILURE;
-            }
-             buf.msg_qbytes = req->info.open.attr.mq_msgsize;
-            if (msgctl(req->info.open.o_mqd, IPC_SET, &buf) == -1)
-            {
-                return NCSCC_RC_FAILURE;
-            }
-         }
-         else
-             req->info.open.o_mqd = os_req.info.open.o_hdl;
+		}
+		break;
+	case NCS_OS_POSIX_MQ_REQ_RESIZE:
+		{
+			NCS_OS_MQ_REQ_INFO os_req;
 
-      }
-      break;
-   case NCS_OS_POSIX_MQ_REQ_RESIZE:
-      {
-         NCS_OS_MQ_REQ_INFO os_req;
+			os_req.req = NCS_OS_MQ_REQ_RESIZE;
+			os_req.info.resize.i_hdl = req->info.resize.mqd;
+			os_req.info.resize.i_newqsize = req->info.resize.i_newqsize;
 
-         os_req.req = NCS_OS_MQ_REQ_RESIZE;
-         os_req.info.resize.i_hdl = req->info.resize.mqd;
-         os_req.info.resize.i_newqsize = req->info.resize.i_newqsize;
+			if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+	case NCS_OS_POSIX_MQ_REQ_CLOSE:
+		{
+			NCS_OS_MQ_REQ_INFO os_req;
 
-         if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
-             return NCSCC_RC_FAILURE;
-      }
-      break;
-   case NCS_OS_POSIX_MQ_REQ_CLOSE:
-      {
-         NCS_OS_MQ_REQ_INFO os_req;
+			os_req.req = NCS_OS_MQ_REQ_DESTROY;
+			os_req.info.destroy.i_hdl = req->info.close.mqd;
 
-         os_req.req = NCS_OS_MQ_REQ_DESTROY;
-         os_req.info.destroy.i_hdl = req->info.close.mqd;
-
-         if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
-             return NCSCC_RC_FAILURE;
-      }
-      break;
-   case NCS_OS_POSIX_MQ_REQ_UNLINK:
-   default:
-      return NCSCC_RC_FAILURE;
-   }
-   return NCSCC_RC_SUCCESS;
+			if (ncs_os_mq(&os_req) != NCSCC_RC_SUCCESS)
+				return NCSCC_RC_FAILURE;
+		}
+		break;
+	case NCS_OS_POSIX_MQ_REQ_UNLINK:
+	default:
+		return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 
 }
 
@@ -1217,128 +1119,124 @@ static int32 ncs_shm_prot_flags(uns32 flags);
 static int32 ncs_shm_prot_flags(uns32 flags)
 {
 
-   int prot_flag=PROT_NONE;
+	int prot_flag = PROT_NONE;
 
-   if ( flags | O_RDONLY ) {
-      prot_flag|=PROT_READ;
-   }
+	if (flags | O_RDONLY) {
+		prot_flag |= PROT_READ;
+	}
 
-   if ( flags | O_WRONLY) {
-      prot_flag |= PROT_WRITE;
-   }
+	if (flags | O_WRONLY) {
+		prot_flag |= PROT_WRITE;
+	}
 
-   if (flags | O_RDWR) {
-      prot_flag |=(PROT_READ | PROT_WRITE);
-   }
+	if (flags | O_RDWR) {
+		prot_flag |= (PROT_READ | PROT_WRITE);
+	}
 
-   if ( flags | O_EXCL ) {
-      prot_flag |= PROT_EXEC;
-   }
+	if (flags | O_EXCL) {
+		prot_flag |= PROT_EXEC;
+	}
 
-   return prot_flag;
+	return prot_flag;
 }
 
 uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
 {
-   uns32 prot_flag;
-   int32 ret_flag;
-   long shm_size;
-   char shm_name[PATH_MAX];
+	uns32 prot_flag;
+	int32 ret_flag;
+	long shm_size;
+	char shm_name[PATH_MAX];
 
-   switch(req->type)
-   {
-      case NCS_OS_POSIX_SHM_REQ_OPEN:     /* opens and mmaps */
+	switch (req->type) {
+	case NCS_OS_POSIX_SHM_REQ_OPEN:	/* opens and mmaps */
 
-         if ( req->info.open.i_name  == NULL )
-         {
-            printf("input validation failed \n");
-            return NCSCC_RC_FAILURE;
-         }
+		if (req->info.open.i_name == NULL) {
+			printf("input validation failed \n");
+			return NCSCC_RC_FAILURE;
+		}
 
-         /* checks i_size is greater than LONG_MAX*/
-         if (req->info.open.i_size > LONG_MAX)
-         {
-             /*ftruncate accepts long int as size ,So we are allowed to pass max value of long int as size */
-             printf("size value for ftruncate exceed max limit\n");
-             return NCSCC_RC_FAILURE;
-         }
-         shm_size = (long)req->info.open.i_size;
-         snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.open.i_name);
-         req->info.open.o_fd=shm_open(shm_name,req->info.open.i_flags,0666);
-         if (req->info.open.o_fd < 0)
-         {
-            return NCSCC_RC_FAILURE;
-         } else {
-            if (ftruncate(req->info.open.o_fd, (off_t)shm_size /* off_t == long */) < 0 ) {
-               printf("ftruncate failed with errno value %d \n",errno);
-               return NCSCC_RC_FAILURE;
-            }
+		/* checks i_size is greater than LONG_MAX */
+		if (req->info.open.i_size > LONG_MAX) {
+			/*ftruncate accepts long int as size ,So we are allowed to pass max value of long int as size */
+			printf("size value for ftruncate exceed max limit\n");
+			return NCSCC_RC_FAILURE;
+		}
+		shm_size = (long)req->info.open.i_size;
+		snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.open.i_name);
+		req->info.open.o_fd = shm_open(shm_name, req->info.open.i_flags, 0666);
+		if (req->info.open.o_fd < 0) {
+			return NCSCC_RC_FAILURE;
+		} else {
+			if (ftruncate(req->info.open.o_fd, (off_t) shm_size /* off_t == long */ ) < 0) {
+				printf("ftruncate failed with errno value %d \n", errno);
+				return NCSCC_RC_FAILURE;
+			}
 
-            prot_flag=ncs_shm_prot_flags(req->info.open.i_flags);
-            req->info.open.o_addr = mmap(req->info.open.o_addr,(size_t)shm_size /* size_t == unsigned long */, \
-                   prot_flag,req->info.open.i_map_flags,req->info.open.o_fd,req->info.open.i_offset);
-            if ( req->info.open.o_addr  == MAP_FAILED )
-            {
-               printf("mmap failed and errno value %d\n",errno);
-               return NCSCC_RC_FAILURE;
-            }
-        }
-        break;
+			prot_flag = ncs_shm_prot_flags(req->info.open.i_flags);
+			req->info.open.o_addr =
+			    mmap(req->info.open.o_addr, (size_t)shm_size /* size_t == unsigned long */ ,
+				 prot_flag, req->info.open.i_map_flags, req->info.open.o_fd, req->info.open.i_offset);
+			if (req->info.open.o_addr == MAP_FAILED) {
+				printf("mmap failed and errno value %d\n", errno);
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
 
-      case NCS_OS_POSIX_SHM_REQ_CLOSE:   /* close is munmap */
+	case NCS_OS_POSIX_SHM_REQ_CLOSE:	/* close is munmap */
 
-          /* checks i_size is greater than LONG_MAX */
-          if (req->info.close.i_size > LONG_MAX)
-          {
-             printf("size value exceed max limit\n");
-             return NCSCC_RC_FAILURE;
-          }  
+		/* checks i_size is greater than LONG_MAX */
+		if (req->info.close.i_size > LONG_MAX) {
+			printf("size value exceed max limit\n");
+			return NCSCC_RC_FAILURE;
+		}
 
-          shm_size = (long)req->info.close.i_size;
-          ret_flag=munmap(req->info.close.i_addr,(size_t)shm_size /* size_t == unsigned long */);
-          if ( ret_flag < 0 )
-          {
-             printf("munmap failed with errno value %d\n",errno);
-             return NCSCC_RC_FAILURE;
-          }
-          if ( req->info.close.i_fd > 0) {
+		shm_size = (long)req->info.close.i_size;
+		ret_flag = munmap(req->info.close.i_addr, (size_t)shm_size /* size_t == unsigned long */ );
+		if (ret_flag < 0) {
+			printf("munmap failed with errno value %d\n", errno);
+			return NCSCC_RC_FAILURE;
+		}
+		if (req->info.close.i_fd > 0) {
 
-             ret_flag=close(req->info.close.i_fd);
-             if ( ret_flag < 0 )
-             {
-                printf("close failed with errno value %d\n",errno);
-                return NCSCC_RC_FAILURE;
-             }
-          }
-         break;
+			ret_flag = close(req->info.close.i_fd);
+			if (ret_flag < 0) {
+				printf("close failed with errno value %d\n", errno);
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
 
-      case NCS_OS_POSIX_SHM_REQ_UNLINK:   /* unlink is shm_unlink */
+	case NCS_OS_POSIX_SHM_REQ_UNLINK:	/* unlink is shm_unlink */
 
-         snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.unlink.i_name);
-         ret_flag=shm_unlink(shm_name);
-         if ( ret_flag < 0 ) {
-            printf("shm_unlink failed with errno value %d\n",errno);
-            return NCSCC_RC_FAILURE;
-         }
-         break;
+		snprintf(shm_name, PATH_MAX, "/opensaf/%s", req->info.unlink.i_name);
+		ret_flag = shm_unlink(shm_name);
+		if (ret_flag < 0) {
+			printf("shm_unlink failed with errno value %d\n", errno);
+			return NCSCC_RC_FAILURE;
+		}
+		break;
 
-      case NCS_OS_POSIX_SHM_REQ_READ:
-         memcpy(req->info.read.i_to_buff,(void *)((char *)req->info.read.i_addr + req->info.read.i_offset),req->info.read.i_read_size);
-         break;
+	case NCS_OS_POSIX_SHM_REQ_READ:
+		memcpy(req->info.read.i_to_buff, (void *)((char *)req->info.read.i_addr + req->info.read.i_offset),
+		       req->info.read.i_read_size);
+		break;
 
-      case NCS_OS_POSIX_SHM_REQ_WRITE:
-         memcpy((void *)((char *)req->info.write.i_addr + req->info.write.i_offset) ,req->info.write.i_from_buff,req->info.write.i_write_size);
-         break;
+	case NCS_OS_POSIX_SHM_REQ_WRITE:
+		memcpy((void *)((char *)req->info.write.i_addr + req->info.write.i_offset), req->info.write.i_from_buff,
+		       req->info.write.i_write_size);
+		break;
 
-     default:
-        printf("Option Not supported %d \n", req->type);
-        return NCSCC_RC_FAILURE;
-        break;
-   }
+	default:
+		printf("Option Not supported %d \n", req->type);
+		return NCSCC_RC_FAILURE;
+		break;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
+
 /***************************************************************************
  *
  * unsigned int
@@ -1359,406 +1257,372 @@ uns32 ncs_os_posix_shm(NCS_OS_POSIX_SHM_REQ_INFO *req)
  * Notes:
  *
  ****************************************************************************/
-unsigned int
-ncs_os_file(NCS_OS_FILE  *pfile,
-           NCS_OS_FILE_REQUEST request)
-
+unsigned int ncs_os_file(NCS_OS_FILE *pfile, NCS_OS_FILE_REQUEST request)
 {
-    int ret;
+	int ret;
 
    /** Supported Request codes
     **/
-    switch( request )
-    {
-    case NCS_OS_FILE_CREATE: /* Create a new file for writing */
-        {
-            FILE *file_handle =
-                fopen ((const char *)pfile->info.create.i_file_name, "w");
-            pfile->info.create.o_file_handle = (void *) file_handle;
-            if (NULL == file_handle)
-                return NCSCC_RC_FAILURE;
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+	switch (request) {
+	case NCS_OS_FILE_CREATE:	/* Create a new file for writing */
+		{
+			FILE *file_handle = fopen((const char *)pfile->info.create.i_file_name, "w");
+			pfile->info.create.o_file_handle = (void *)file_handle;
+			if (NULL == file_handle)
+				return NCSCC_RC_FAILURE;
+			else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_OPEN:
-        {
-            const char * mode;
-            FILE * file_handle;
+	case NCS_OS_FILE_OPEN:
+		{
+			const char *mode;
+			FILE *file_handle;
 
-            switch (pfile->info.open.i_read_write_mask)
-            {
-            case NCS_OS_FILE_PERM_READ:   mode = "rb"; break;
-            case NCS_OS_FILE_PERM_WRITE:  mode = "w+b"; break;
-            case NCS_OS_FILE_PERM_APPEND: mode = "a+"; break;
-            default: return NCSCC_RC_FAILURE;
-            }
+			switch (pfile->info.open.i_read_write_mask) {
+			case NCS_OS_FILE_PERM_READ:
+				mode = "rb";
+				break;
+			case NCS_OS_FILE_PERM_WRITE:
+				mode = "w+b";
+				break;
+			case NCS_OS_FILE_PERM_APPEND:
+				mode = "a+";
+				break;
+			default:
+				return NCSCC_RC_FAILURE;
+			}
 
-            file_handle =
-                fopen ((const char *)pfile->info.open.i_file_name, mode);
+			file_handle = fopen((const char *)pfile->info.open.i_file_name, mode);
 
-            pfile->info.open.o_file_handle = (void *) file_handle;
+			pfile->info.open.o_file_handle = (void *)file_handle;
 
-            if (NULL == file_handle)
-                return NCSCC_RC_FAILURE;
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			if (NULL == file_handle)
+				return NCSCC_RC_FAILURE;
+			else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_CLOSE:
-        {
-            int ret = fclose((FILE *) pfile->info.close.i_file_handle);
+	case NCS_OS_FILE_CLOSE:
+		{
+			int ret = fclose((FILE *)pfile->info.close.i_file_handle);
 
-            if (!ret)
-                return NCSCC_RC_SUCCESS;
-            else
-                return NCSCC_RC_FAILURE;
-        }
-        break;
+			if (!ret)
+				return NCSCC_RC_SUCCESS;
+			else
+				return NCSCC_RC_FAILURE;
+		}
+		break;
 
-    case NCS_OS_FILE_READ:
-        {
-            size_t bytes_read =
-                fread((void *)pfile->info.read.i_buffer,
-                    1, pfile->info.read.i_buf_size,
-                    (FILE *) pfile->info.read.i_file_handle);
+	case NCS_OS_FILE_READ:
+		{
+			size_t bytes_read = fread((void *)pfile->info.read.i_buffer,
+						  1, pfile->info.read.i_buf_size,
+						  (FILE *)pfile->info.read.i_file_handle);
 
-            pfile->info.read.o_bytes_read = bytes_read;
-            if (0 == bytes_read) /* Check if an error has occurred */
-            {
-                if (feof((FILE *) pfile->info.read.i_file_handle))
-                    return NCSCC_RC_SUCCESS;
-                else
-                    return NCSCC_RC_FAILURE;
-            }
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			pfile->info.read.o_bytes_read = bytes_read;
+			if (0 == bytes_read) {	/* Check if an error has occurred */
+				if (feof((FILE *)pfile->info.read.i_file_handle))
+					return NCSCC_RC_SUCCESS;
+				else
+					return NCSCC_RC_FAILURE;
+			}
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_WRITE:
-        {
-            size_t bytes_written =
-                fwrite(pfile->info.write.i_buffer, 1,
-                    pfile->info.write.i_buf_size,
-                    (FILE *) pfile->info.write.i_file_handle);
+	case NCS_OS_FILE_WRITE:
+		{
+			size_t bytes_written = fwrite(pfile->info.write.i_buffer, 1,
+						      pfile->info.write.i_buf_size,
+						      (FILE *)pfile->info.write.i_file_handle);
 
-            pfile->info.write.o_bytes_written = bytes_written;
+			pfile->info.write.o_bytes_written = bytes_written;
 
-            if (bytes_written != pfile->info.write.i_buf_size)
-                return NCSCC_RC_FAILURE;
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			if (bytes_written != pfile->info.write.i_buf_size)
+				return NCSCC_RC_FAILURE;
+			else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_SEEK:
-        {
-            int ret = fseek((FILE *) pfile->info.seek.i_file_handle,
-                            pfile->info.seek.i_offset, SEEK_SET);
+	case NCS_OS_FILE_SEEK:
+		{
+			int ret = fseek((FILE *)pfile->info.seek.i_file_handle,
+					pfile->info.seek.i_offset, SEEK_SET);
 
-            if (ret == 0)
-                return NCSCC_RC_SUCCESS;
-            else
-                return NCSCC_RC_FAILURE;
-        }
-        break;
+			if (ret == 0)
+				return NCSCC_RC_SUCCESS;
+			else
+				return NCSCC_RC_FAILURE;
+		}
+		break;
 
-    case NCS_OS_FILE_COPY:
-        {
-            char command[1024];
+	case NCS_OS_FILE_COPY:
+		{
+			char command[1024];
 
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1,
-                "\\cp -f %s %s", pfile->info.copy.i_file_name,
-                pfile->info.copy.i_new_file_name);
-            ret = system(command);
-            if (ret != 0)
-            {
-                syslog(LOG_ERR, "cp file '%s' to '%s' failed: %d",
-                       pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name, ret);
-                return NCSCC_RC_FAILURE;
-            }
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			memset(command, 0, sizeof(command));
+			snprintf(command, sizeof(command) - 1,
+				 "\\cp -f %s %s", pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name);
+			ret = system(command);
+			if (ret != 0) {
+				syslog(LOG_ERR, "cp file '%s' to '%s' failed: %d",
+				       pfile->info.copy.i_file_name, pfile->info.copy.i_new_file_name, ret);
+				return NCSCC_RC_FAILURE;
+			} else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_RENAME:
-        {
-            int ret = rename((const char *) pfile->info.rename.i_file_name,
-                                    (const char *) pfile->info.rename.i_new_file_name);
+	case NCS_OS_FILE_RENAME:
+		{
+			int ret = rename((const char *)pfile->info.rename.i_file_name,
+					 (const char *)pfile->info.rename.i_new_file_name);
 
-            if (ret == -1)
-                return NCSCC_RC_FAILURE;
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			if (ret == -1)
+				return NCSCC_RC_FAILURE;
+			else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_REMOVE:
-        {
-            int ret = remove((const char*) pfile->info.remove.i_file_name);
+	case NCS_OS_FILE_REMOVE:
+		{
+			int ret = remove((const char *)pfile->info.remove.i_file_name);
 
-            if (ret == -1)
-                return NCSCC_RC_FAILURE;
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			if (ret == -1)
+				return NCSCC_RC_FAILURE;
+			else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_SIZE:
-        {
-            FILE * file_handle;
-            int ret;
-            long size;
+	case NCS_OS_FILE_SIZE:
+		{
+			FILE *file_handle;
+			int ret;
+			long size;
 
-            pfile->info.size.o_file_size = 0;
-            file_handle = fopen ((const char *) pfile->info.size.i_file_name, "r");
-            if (NULL == file_handle)
-                return NCSCC_RC_FAILURE;
+			pfile->info.size.o_file_size = 0;
+			file_handle = fopen((const char *)pfile->info.size.i_file_name, "r");
+			if (NULL == file_handle)
+				return NCSCC_RC_FAILURE;
 
-            ret = fseek (file_handle, 0, SEEK_END);
-            if (ret)
-            {
-                fclose(file_handle);
-                return NCSCC_RC_FAILURE;
-            }
+			ret = fseek(file_handle, 0, SEEK_END);
+			if (ret) {
+				fclose(file_handle);
+				return NCSCC_RC_FAILURE;
+			}
 
-            size = ftell (file_handle);
-            fclose (file_handle);
+			size = ftell(file_handle);
+			fclose(file_handle);
 
-            if (size == -1)
-                return NCSCC_RC_FAILURE;
+			if (size == -1)
+				return NCSCC_RC_FAILURE;
 
-            pfile->info.size.o_file_size = size;
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			pfile->info.size.o_file_size = size;
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_EXISTS:
-        {
-            FILE * file_handle;
+	case NCS_OS_FILE_EXISTS:
+		{
+			FILE *file_handle;
 
-            file_handle = fopen ((const char *) pfile->info.file_exists.i_file_name, "r");
-            if (NULL == file_handle)
-                pfile->info.file_exists.o_file_exists = FALSE;
-            else
-            {
-                pfile->info.file_exists.o_file_exists = TRUE;
-                fclose (file_handle);
-            }
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			file_handle = fopen((const char *)pfile->info.file_exists.i_file_name, "r");
+			if (NULL == file_handle)
+				pfile->info.file_exists.o_file_exists = FALSE;
+			else {
+				pfile->info.file_exists.o_file_exists = TRUE;
+				fclose(file_handle);
+			}
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_DIR_PATH:
-        {
-            memset(pfile->info.dir_path.io_buffer, 0, pfile->info.dir_path.i_buf_size);
-            snprintf((char *) pfile->info.dir_path.io_buffer,
-                pfile->info.dir_path.i_buf_size - 1, "%s/%s",
-                pfile->info.dir_path.i_main_dir,
-                pfile->info.dir_path.i_sub_dir);
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+	case NCS_OS_FILE_DIR_PATH:
+		{
+			memset(pfile->info.dir_path.io_buffer, 0, pfile->info.dir_path.i_buf_size);
+			snprintf((char *)pfile->info.dir_path.io_buffer,
+				 pfile->info.dir_path.i_buf_size - 1, "%s/%s",
+				 pfile->info.dir_path.i_main_dir, pfile->info.dir_path.i_sub_dir);
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_CREATE_DIR:
-        {
-            char command[1024];
+	case NCS_OS_FILE_CREATE_DIR:
+		{
+			char command[1024];
 
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1,
-                "\\mkdir -p %s", pfile->info.create_dir.i_dir_name);
-            ret = system(command);
-            if (ret != 0)
-            {
-                syslog(LOG_ERR, "mkdir '%s' failed: %d", pfile->info.create_dir.i_dir_name, ret);
-                return NCSCC_RC_FAILURE;
-            }
-            else
-                return NCSCC_RC_SUCCESS;
-        }
-        break;
+			memset(command, 0, sizeof(command));
+			snprintf(command, sizeof(command) - 1, "\\mkdir -p %s", pfile->info.create_dir.i_dir_name);
+			ret = system(command);
+			if (ret != 0) {
+				syslog(LOG_ERR, "mkdir '%s' failed: %d", pfile->info.create_dir.i_dir_name, ret);
+				return NCSCC_RC_FAILURE;
+			} else
+				return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_DELETE_DIR:
-        {
-            char command[1024];
+	case NCS_OS_FILE_DELETE_DIR:
+		{
+			char command[1024];
 
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1,
-                "\\rm -f -r %s", pfile->info.delete_dir.i_dir_name);
-            ret = system(command);
-            if (ret != 0)
-            {
-                syslog(LOG_ERR, "rmdir %s failed: %d", pfile->info.delete_dir.i_dir_name, ret);
-                return NCSCC_RC_FAILURE;
-            }
-            else
-                return NCSCC_RC_SUCCESS;
+			memset(command, 0, sizeof(command));
+			snprintf(command, sizeof(command) - 1, "\\rm -f -r %s", pfile->info.delete_dir.i_dir_name);
+			ret = system(command);
+			if (ret != 0) {
+				syslog(LOG_ERR, "rmdir %s failed: %d", pfile->info.delete_dir.i_dir_name, ret);
+				return NCSCC_RC_FAILURE;
+			} else
+				return NCSCC_RC_SUCCESS;
 
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_COPY_DIR:
-        {
-            char command[1024];
+	case NCS_OS_FILE_COPY_DIR:
+		{
+			char command[1024];
 
-            memset(command, 0, sizeof(command));
-            snprintf(command, sizeof(command) - 1,
-                "\\cp -f -r %s %s", pfile->info.copy_dir.i_dir_name,
-                pfile->info.copy_dir.i_new_dir_name);
-            ret = system(command);
-            if (ret != 0)
-            {
-                syslog(LOG_ERR, "cp dir '%s' to '%s' failed: %d",
-                       pfile->info.copy_dir.i_dir_name,
-                       pfile->info.copy_dir.i_new_dir_name, ret);
-                return NCSCC_RC_FAILURE;
-            }
-            else
-                return NCSCC_RC_SUCCESS;
+			memset(command, 0, sizeof(command));
+			snprintf(command, sizeof(command) - 1,
+				 "\\cp -f -r %s %s", pfile->info.copy_dir.i_dir_name,
+				 pfile->info.copy_dir.i_new_dir_name);
+			ret = system(command);
+			if (ret != 0) {
+				syslog(LOG_ERR, "cp dir '%s' to '%s' failed: %d",
+				       pfile->info.copy_dir.i_dir_name, pfile->info.copy_dir.i_new_dir_name, ret);
+				return NCSCC_RC_FAILURE;
+			} else
+				return NCSCC_RC_SUCCESS;
 
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_DIR_EXISTS:
-        {
-            DIR * dir;
+	case NCS_OS_FILE_DIR_EXISTS:
+		{
+			DIR *dir;
 
-            dir = opendir((const char *)pfile->info.dir_exists.i_dir_name);
-            if (dir != NULL)
-            {
-                pfile->info.dir_exists.o_exists = TRUE;
-                closedir(dir);
-                return NCSCC_RC_SUCCESS;
-            }
-            else
-            {
-                if (errno == ENOENT)
-                {
-                    pfile->info.dir_exists.o_exists = FALSE;
-                    return NCSCC_RC_SUCCESS;
-                }
-                else
-                    return NCSCC_RC_FAILURE;
-            }
-        }
-        break;
+			dir = opendir((const char *)pfile->info.dir_exists.i_dir_name);
+			if (dir != NULL) {
+				pfile->info.dir_exists.o_exists = TRUE;
+				closedir(dir);
+				return NCSCC_RC_SUCCESS;
+			} else {
+				if (errno == ENOENT) {
+					pfile->info.dir_exists.o_exists = FALSE;
+					return NCSCC_RC_SUCCESS;
+				} else
+					return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
 
-    case NCS_OS_FILE_GET_NEXT:
-        /* Get a list of files and search in the list */
-        {
-            int i, n;
-            struct dirent ** namelist;
-            NCS_BOOL found = FALSE;
+	case NCS_OS_FILE_GET_NEXT:
+		/* Get a list of files and search in the list */
+		{
+			int i, n;
+			struct dirent **namelist;
+			NCS_BOOL found = FALSE;
 
-            pfile->info.get_next.io_next_file[0] = '\0';
-            if (pfile->info.get_next.i_file_name == NULL)
-                found = TRUE;
+			pfile->info.get_next.io_next_file[0] = '\0';
+			if (pfile->info.get_next.i_file_name == NULL)
+				found = TRUE;
 
-            n = scandir((const char *) pfile->info.get_next.i_dir_name, &namelist, NULL, NULL);
-            if (n < 0)
-                return NCSCC_RC_FAILURE;
+			n = scandir((const char *)pfile->info.get_next.i_dir_name, &namelist, NULL, NULL);
+			if (n < 0)
+				return NCSCC_RC_FAILURE;
 
-            for (i = 0; i < n; i++)
-            {
-                if (found == TRUE)
-                {
-                    found = FALSE;
-                    strncpy((char *)pfile->info.get_next.io_next_file, namelist[i]->d_name,
-                        pfile->info.get_next.i_buf_size);
-                }
+			for (i = 0; i < n; i++) {
+				if (found == TRUE) {
+					found = FALSE;
+					strncpy((char *)pfile->info.get_next.io_next_file, namelist[i]->d_name,
+						pfile->info.get_next.i_buf_size);
+				}
 
-                if (pfile->info.get_next.i_file_name != NULL)
-                {
-                    if (strcmp(namelist[i]->d_name,
-                            (const char *)pfile->info.get_next.i_file_name) == 0)
-                        found = TRUE;
-                }
+				if (pfile->info.get_next.i_file_name != NULL) {
+					if (strcmp(namelist[i]->d_name,
+						   (const char *)pfile->info.get_next.i_file_name) == 0)
+						found = TRUE;
+				}
 
-                free(namelist[i]);
-            }
+				free(namelist[i]);
+			}
 
-            free(namelist);
+			free(namelist);
 
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    case NCS_OS_FILE_GET_LIST:
-        /* Get a list of files */
-        {
-            int i, j, n;
-            struct dirent ** namelist;
-            char **name_list;
+	case NCS_OS_FILE_GET_LIST:
+		/* Get a list of files */
+		{
+			int i, j, n;
+			struct dirent **namelist;
+			char **name_list;
 
-            n = scandir((const char *) pfile->info.get_list.i_dir_name, &namelist, NULL, NULL);
-            if (n < 0)
-                return NCSCC_RC_FAILURE;
+			n = scandir((const char *)pfile->info.get_list.i_dir_name, &namelist, NULL, NULL);
+			if (n < 0)
+				return NCSCC_RC_FAILURE;
 
-            name_list = m_NCS_OS_MEMALLOC((n * sizeof(char*)), NULL);
-            if(name_list == NULL)
-            {
-               for (j = 0; j < n; j++)
-                  free(namelist[j]);
-               free(namelist);
-               return NCSCC_RC_FAILURE;
-            }
+			name_list = m_NCS_OS_MEMALLOC((n * sizeof(char *)), NULL);
+			if (name_list == NULL) {
+				for (j = 0; j < n; j++)
+					free(namelist[j]);
+				free(namelist);
+				return NCSCC_RC_FAILURE;
+			}
 
-            for (i = 0; i < n; i++)
-            {
-               int len = 0;
+			for (i = 0; i < n; i++) {
+				int len = 0;
 
-               len = strlen(namelist[i]->d_name);
-               name_list[i] = m_NCS_OS_MEMALLOC(len + 1, NULL);
-               if(name_list[i] == NULL)
-               {
-                  for (j = 0; j < n; j++)
-                  {
-                     free(namelist[j]);
-                     namelist[j] = NULL;
-                  }
-                  free(namelist);
-                  for (j = 0; j < i; j++)
-                     m_NCS_OS_MEMFREE(name_list[j], NULL);
-                  m_NCS_OS_MEMFREE(name_list, NULL);
-                  return NCSCC_RC_FAILURE;
-               }
-               memset(name_list[i], '\0', len + 1);
-               strcpy(name_list[i], namelist[i]->d_name);
-            }
-            pfile->info.get_list.o_list_count = n;
-            if(pfile->info.get_list.o_list_count == 0)
-            {
-               m_NCS_OS_MEMFREE(name_list, NULL);
-               name_list = NULL;
-            }
-            pfile->info.get_list.o_namelist = name_list;
+				len = strlen(namelist[i]->d_name);
+				name_list[i] = m_NCS_OS_MEMALLOC(len + 1, NULL);
+				if (name_list[i] == NULL) {
+					for (j = 0; j < n; j++) {
+						free(namelist[j]);
+						namelist[j] = NULL;
+					}
+					free(namelist);
+					for (j = 0; j < i; j++)
+						m_NCS_OS_MEMFREE(name_list[j], NULL);
+					m_NCS_OS_MEMFREE(name_list, NULL);
+					return NCSCC_RC_FAILURE;
+				}
+				memset(name_list[i], '\0', len + 1);
+				strcpy(name_list[i], namelist[i]->d_name);
+			}
+			pfile->info.get_list.o_list_count = n;
+			if (pfile->info.get_list.o_list_count == 0) {
+				m_NCS_OS_MEMFREE(name_list, NULL);
+				name_list = NULL;
+			}
+			pfile->info.get_list.o_namelist = name_list;
 
-            for (j = 0; j < n; j++)
-            {
-               free(namelist[j]);
-               namelist[j] = NULL;
-            }
-            free(namelist);
+			for (j = 0; j < n; j++) {
+				free(namelist[j]);
+				namelist[j] = NULL;
+			}
+			free(namelist);
 
-            return NCSCC_RC_SUCCESS;
-        }
-        break;
+			return NCSCC_RC_SUCCESS;
+		}
+		break;
 
-    default:
-        return NCSCC_RC_FAILURE;
-    }
+	default:
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
-
 
 /***************************************************************************
  *
@@ -1779,12 +1643,9 @@ ncs_os_file(NCS_OS_FILE  *pfile,
  * Notes:
  *
  ****************************************************************************/
-void
-ncs_os_start_task_lock ()
+void ncs_os_start_task_lock()
 {
 }
-
-
 
 /***************************************************************************
  *
@@ -1806,12 +1667,9 @@ ncs_os_start_task_lock ()
  * Notes:
  *
  ****************************************************************************/
-void
-ncs_os_end_task_lock ()
+void ncs_os_end_task_lock()
 {
 }
-
-
 
 /***************************************************************************
  *
@@ -1834,62 +1692,58 @@ ncs_os_end_task_lock ()
  ****************************************************************************/
 int ncs_console_status(void)
 {
-   int ret, c;
-   fd_set read_file_descr;
-   struct timeval timeout;
-   int debug_flag;
+	int ret, c;
+	fd_set read_file_descr;
+	struct timeval timeout;
+	int debug_flag;
 
-   /* this could be a global */
-   debug_flag = 0;
+	/* this could be a global */
+	debug_flag = 0;
 
-   /* this macro initializes the file descriptor read_file_descr to to be the empty set */
-   FD_ZERO(&read_file_descr);
+	/* this macro initializes the file descriptor read_file_descr to to be the empty set */
+	FD_ZERO(&read_file_descr);
 
-   /* this macro adds fileno(stdin) to the file descriptor read_file_descr */
-   FD_SET(fileno(stdin), &read_file_descr);
+	/* this macro adds fileno(stdin) to the file descriptor read_file_descr */
+	FD_SET(fileno(stdin), &read_file_descr);
 
-   timeout.tv_sec = 0;
-   timeout.tv_usec = 100;
-   /* int FD_SETSIZE  macro is maximum number of filedescriptors that fd_set can hold */
-   /* function select waits for specified filedescr. to have a signal */
-   /* last argument struct timeval *timeout */
-   ret = select(1, &read_file_descr, NULL, NULL, &timeout);
-   switch( ret ) /* 0 is timeout, -1 error (in errno), 1 = data */
-   {
-      case -1:
-         if( debug_flag )
-            fprintf(stdout, "select returned -1 error\n");
-         ret = 0;
-         break;
-      case 0:
-         if( debug_flag )
-            fprintf(stdout, "select returned 0 timeout\n");
-         ret = 0;
-         break;
-      case 1:
-         if( debug_flag )
-            fprintf(stdout, "SELECT returned=%d input\n", ret);
-         ret = 1;
-         break;
-      default:
-         if( debug_flag )
-            fprintf(stdout, "select returned=%d invalid\n", ret);
-         break;
-   }
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100;
+	/* int FD_SETSIZE  macro is maximum number of filedescriptors that fd_set can hold */
+	/* function select waits for specified filedescr. to have a signal */
+	/* last argument struct timeval *timeout */
+	ret = select(1, &read_file_descr, NULL, NULL, &timeout);
+	switch (ret) {		/* 0 is timeout, -1 error (in errno), 1 = data */
+	case -1:
+		if (debug_flag)
+			fprintf(stdout, "select returned -1 error\n");
+		ret = 0;
+		break;
+	case 0:
+		if (debug_flag)
+			fprintf(stdout, "select returned 0 timeout\n");
+		ret = 0;
+		break;
+	case 1:
+		if (debug_flag)
+			fprintf(stdout, "SELECT returned=%d input\n", ret);
+		ret = 1;
+		break;
+	default:
+		if (debug_flag)
+			fprintf(stdout, "select returned=%d invalid\n", ret);
+		break;
+	}
 
-   /* test if user has data.  this'll eat the first non-CR keys pressed */
-   if( FD_ISSET(fileno(stdin), &read_file_descr) )
-   {
-      c = getc(stdin);
-      if( debug_flag )
-         fprintf(stdout, "USER KEY=%d\n", c);
-      FD_CLR(fileno(stdin), &read_file_descr);
-   }
+	/* test if user has data.  this'll eat the first non-CR keys pressed */
+	if (FD_ISSET(fileno(stdin), &read_file_descr)) {
+		c = getc(stdin);
+		if (debug_flag)
+			fprintf(stdout, "USER KEY=%d\n", c);
+		FD_CLR(fileno(stdin), &read_file_descr);
+	}
 
-   return ret;
-}/* end function console_status */
-
-
+	return ret;
+}	/* end function console_status */
 
 /***************************************************************************
  *
@@ -1914,37 +1768,38 @@ int ncs_console_status(void)
  ****************************************************************************/
 int ncs_unbuf_getch(void)
 {
-    FILE    *input;
-    int      selected;
-    struct termios initial_settings;
-    struct termios new_settings;
+	FILE *input;
+	int selected;
+	struct termios initial_settings;
+	struct termios new_settings;
 
-    if (!isatty(fileno(stdout))) {
-        fprintf(stderr,"You are not a terminal, OK.\n");
-    }
+	if (!isatty(fileno(stdout))) {
+		fprintf(stderr, "You are not a terminal, OK.\n");
+	}
 
-    input = fopen("/dev/tty", "r");
-    if(!input) {
-        fprintf(stderr, "Unable to open /dev/tty\n");
-        exit(1);
-    }
+	input = fopen("/dev/tty", "r");
+	if (!input) {
+		fprintf(stderr, "Unable to open /dev/tty\n");
+		exit(1);
+	}
 
-    tcgetattr(fileno(input),&initial_settings);
-    new_settings = initial_settings;
-    new_settings.c_lflag &= ~ICANON;
-    new_settings.c_lflag &= ~ECHO;
-    new_settings.c_cc[VMIN] = 1;
-    new_settings.c_cc[VTIME] = 0;
-    new_settings.c_lflag &= ~ISIG;
-    if(tcsetattr(fileno(input), TCSANOW, &new_settings) != 0) {
-        fprintf(stderr,"could not set attributes\n");
-    }
-    selected = fgetc(input); 
-    tcsetattr(fileno(input),TCSANOW,&initial_settings);
+	tcgetattr(fileno(input), &initial_settings);
+	new_settings = initial_settings;
+	new_settings.c_lflag &= ~ICANON;
+	new_settings.c_lflag &= ~ECHO;
+	new_settings.c_cc[VMIN] = 1;
+	new_settings.c_cc[VTIME] = 0;
+	new_settings.c_lflag &= ~ISIG;
+	if (tcsetattr(fileno(input), TCSANOW, &new_settings) != 0) {
+		fprintf(stderr, "could not set attributes\n");
+	}
+	selected = fgetc(input);
+	tcsetattr(fileno(input), TCSANOW, &initial_settings);
 
-    fclose(input);
-    return selected;
+	fclose(input);
+	return selected;
 }
+
 /***************************************************************************
  * void
  * ncs_stty_reset()
@@ -1964,33 +1819,32 @@ int ncs_unbuf_getch(void)
 
 void ncs_stty_reset(void)
 {
-    FILE    *input;
-    struct termios initial_settings;
-    struct termios new_settings;
-    if (!isatty(fileno(stdout))) {
-        fprintf(stderr,"You are not a terminal, OK.\n");
-    }
-    input = fopen("/dev/tty", "r");
-    if(!input) {
-        fprintf(stderr, "Unable to open /dev/tty\n");
-        exit(1);
-    }
-    tcgetattr(fileno(input),&initial_settings);
-    new_settings = initial_settings;
-    new_settings.c_lflag |= ICANON;
-    new_settings.c_lflag |= ECHO;
-    new_settings.c_cc[VMIN] = 1;
-    new_settings.c_cc[VTIME] = 0;
-    new_settings.c_lflag |= ISIG;
-    if(tcsetattr(fileno(input), TCSANOW, &new_settings) != 0) {
-        fprintf(stderr,"could not set attributes\n");
-    }
-    /*selected = fgetc(input); */
-    /*tcsetattr(fileno(input),TCSANOW,&initial_settings); */
-    fclose(input);
-    /*return selected; */
+	FILE *input;
+	struct termios initial_settings;
+	struct termios new_settings;
+	if (!isatty(fileno(stdout))) {
+		fprintf(stderr, "You are not a terminal, OK.\n");
+	}
+	input = fopen("/dev/tty", "r");
+	if (!input) {
+		fprintf(stderr, "Unable to open /dev/tty\n");
+		exit(1);
+	}
+	tcgetattr(fileno(input), &initial_settings);
+	new_settings = initial_settings;
+	new_settings.c_lflag |= ICANON;
+	new_settings.c_lflag |= ECHO;
+	new_settings.c_cc[VMIN] = 1;
+	new_settings.c_cc[VTIME] = 0;
+	new_settings.c_lflag |= ISIG;
+	if (tcsetattr(fileno(input), TCSANOW, &new_settings) != 0) {
+		fprintf(stderr, "could not set attributes\n");
+	}
+	/*selected = fgetc(input); */
+	/*tcsetattr(fileno(input),TCSANOW,&initial_settings); */
+	fclose(input);
+	/*return selected; */
 }
-
 
 /***************************************************************************
  *
@@ -2017,13 +1871,12 @@ void ncs_stty_reset(void)
  *
  ****************************************************************************/
 
-void*
-ncs_os_udef_alloc( uns32 size,uns8 pool_id, uns8 pri)
+void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri)
 {
-  USE(pool_id);
-  USE(pri);
+	USE(pool_id);
+	USE(pri);
 
-  return m_NCS_OS_MEMALLOC(size,NULL);
+	return m_NCS_OS_MEMALLOC(size, NULL);
 }
 
 /***************************************************************************
@@ -2049,10 +1902,9 @@ ncs_os_udef_alloc( uns32 size,uns8 pool_id, uns8 pri)
  *
  ****************************************************************************/
 
-void
-ncs_os_udef_free(void *ptr,uns8 pool_id)
+void ncs_os_udef_free(void *ptr, uns8 pool_id)
 {
-  m_NCS_OS_MEMFREE(ptr,NULL);
+	m_NCS_OS_MEMFREE(ptr, NULL);
 }
 
 /***************************************************************************
@@ -2071,12 +1923,11 @@ ncs_os_udef_free(void *ptr,uns8 pool_id)
  *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
  *
  ****************************************************************************/
-uns32
-ncs_cpu_mon_init (void)
+uns32 ncs_cpu_mon_init(void)
 {
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-  
+
 /***************************************************************************
  *
  * uns32
@@ -2093,10 +1944,9 @@ ncs_cpu_mon_init (void)
  *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
  *
  ****************************************************************************/
-uns32
-ncs_cpu_mon_shutdown (void)
+uns32 ncs_cpu_mon_shutdown(void)
 {
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************
@@ -2124,50 +1974,41 @@ ncs_cpu_mon_shutdown (void)
 
 unsigned int os_cur_cpu_usage(void)
 {
-  NCS_OS_TASK     task_sleep_req;
-  FILE*          stats_file;
-  char           buf[80];
-  unsigned long  idle_time[2];
-  unsigned int   sys_time[2];
-  unsigned int   nice_time[2];
-  unsigned int   usr_time[2];
-  unsigned long  uptime[2];
-  int            i;
+	NCS_OS_TASK task_sleep_req;
+	FILE *stats_file;
+	char buf[80];
+	unsigned long idle_time[2];
+	unsigned int sys_time[2];
+	unsigned int nice_time[2];
+	unsigned int usr_time[2];
+	unsigned long uptime[2];
+	int i;
 
-  for(i = 0;i < 2;i++)
-  {
-    if((stats_file = fopen(STATS,"r")) == NULL)
-    {
-      fprintf(stderr,"Cannot open %s.\n",STATS);
-    }   
-    memset(buf,0,80);
-    while(fgets(buf,80,stats_file) != NULL)
-    {
-      if(strncmp(buf,"cpu ",4) == 0)
-      {
-        sscanf(buf + 5,"%u %u %u %lu",
-          &usr_time[i],&nice_time[i],&sys_time[i],&idle_time[i]);
-        uptime[i] = usr_time[i] + nice_time[i] + sys_time[i] + idle_time[i];
-        break;
-      }
-    }
-    if(i == 0)
-    {
-      task_sleep_req.info.sleep.i_delay_in_ms = 100;
-      m_NCS_OS_TASK(&task_sleep_req, NCS_OS_TASK_SLEEP);
-    }
-    else
-    {
-      fclose(stats_file);
-      return (100 - PCNT_VAL(idle_time[1],idle_time[0],uptime[1] - uptime[0]));
-    }
-    
-  }   
-  
-  return 0;
+	for (i = 0; i < 2; i++) {
+		if ((stats_file = fopen(STATS, "r")) == NULL) {
+			fprintf(stderr, "Cannot open %s.\n", STATS);
+		}
+		memset(buf, 0, 80);
+		while (fgets(buf, 80, stats_file) != NULL) {
+			if (strncmp(buf, "cpu ", 4) == 0) {
+				sscanf(buf + 5, "%u %u %u %lu",
+				       &usr_time[i], &nice_time[i], &sys_time[i], &idle_time[i]);
+				uptime[i] = usr_time[i] + nice_time[i] + sys_time[i] + idle_time[i];
+				break;
+			}
+		}
+		if (i == 0) {
+			task_sleep_req.info.sleep.i_delay_in_ms = 100;
+			m_NCS_OS_TASK(&task_sleep_req, NCS_OS_TASK_SLEEP);
+		} else {
+			fclose(stats_file);
+			return (100 - PCNT_VAL(idle_time[1], idle_time[0], uptime[1] - uptime[0]));
+		}
+
+	}
+
+	return 0;
 }
-
-
 
 /*****************************************************************************
  **                                                                         **
@@ -2183,34 +2024,27 @@ static int sigpipe_fired = 0;
 
 static void catch_sigpipe(int sig)
 {
-   printf("info: caught sigpipe\n");
-   sigpipe_fired = 1;
+	printf("info: caught sigpipe\n");
+	sigpipe_fired = 1;
 }
 
-uns32
-ncs_os_install_sigpipe_handler(void)
+uns32 ncs_os_install_sigpipe_handler(void)
 {
-   if(TRUE == firsttime_install_sigpipe_handler)
-   {
-      m_NCS_OS_DBG_PRINTF("info: installing sigpipe handler\n");
-      (void)signal(SIGPIPE, catch_sigpipe);
-      firsttime_install_sigpipe_handler = FALSE;
-   }
-   else
-   {
-      m_NCS_OS_DBG_PRINTF("info: install_sigpipe_handler called muliple times\n");
-   }
+	if (TRUE == firsttime_install_sigpipe_handler) {
+		m_NCS_OS_DBG_PRINTF("info: installing sigpipe handler\n");
+		(void)signal(SIGPIPE, catch_sigpipe);
+		firsttime_install_sigpipe_handler = FALSE;
+	} else {
+		m_NCS_OS_DBG_PRINTF("info: install_sigpipe_handler called muliple times\n");
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
       /** Construct a Filter to accept only multicast on our if_index.
        This filter could be useful when opening a socket that will need
     to receive multicast addressed datagrams.
        **/
-
 
 /*****************************************************************************
  **                                                                         **
@@ -2219,56 +2053,48 @@ ncs_os_install_sigpipe_handler(void)
  ****************************************************************************/
 #if (NCSSYSM_STKTRACE == 1)
 #define NCSSYS_STKTRACE_FRAMES_MAX 128
-void
-ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st)
+void ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st)
 {
-    st->addr_count = backtrace(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
-    return;
+	st->addr_count = backtrace(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
+	return;
 }
 
-void
-ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 * outlen)
+void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 *outlen)
 {
-    int i;
-    char **symbolnames = NULL;
-    symbolnames = backtrace_symbols(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
+	int i;
+	char **symbolnames = NULL;
+	symbolnames = backtrace_symbols(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
 
-    for(i=1; i<(st->addr_count-1); i++)
-    {
-        char *str;
-        strcat(outstr, "| ");
-        str = strrchr(symbolnames[i], NCS_OS_PATHSEPARATOR_CHAR);
-        strcat(outstr, ++str);
-        strcat(outstr, "\n");
-    }
-    *outlen = strlen(outstr);
+	for (i = 1; i < (st->addr_count - 1); i++) {
+		char *str;
+		strcat(outstr, "| ");
+		str = strrchr(symbolnames[i], NCS_OS_PATHSEPARATOR_CHAR);
+		strcat(outstr, ++str);
+		strcat(outstr, "\n");
+	}
+	*outlen = strlen(outstr);
 
-    free(symbolnames);
+	free(symbolnames);
 
-    return;
+	return;
 }
-#endif /* #if (NCSSYSM_STKTRACE == 1) */
-
-
+#endif   /* #if (NCSSYSM_STKTRACE == 1) */
 
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
-unsigned int
-linux_char_normalizer(void)
+unsigned int linux_char_normalizer(void)
 {
-    unsigned int  key = 0x00;
-    unsigned char done = FALSE;
-    unsigned int  chr;
+	unsigned int key = 0x00;
+	unsigned char done = FALSE;
+	unsigned int chr;
 
-    chr = ncs_unbuf_getch();
-    USE(done);
-    return key;
+	chr = ncs_unbuf_getch();
+	USE(done);
+	return key;
 }
-
-
 
 /***************************************************************************
  *
@@ -2288,13 +2114,12 @@ linux_char_normalizer(void)
  *
  **************************************************************************/
 
-unsigned int
-ncs_os_target_init(void)
+unsigned int ncs_os_target_init(void)
 {
 
-   ncs_is_root();
+	ncs_is_root();
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************
@@ -2316,69 +2141,59 @@ ncs_os_target_init(void)
  * Notes:
  *
  **************************************************************************/
-unsigned int ncs_os_process_execute(char *exec_mod,char *argv[], 
-                                    NCS_OS_ENVIRON_ARGS *set_env_args)
+unsigned int ncs_os_process_execute(char *exec_mod, char *argv[], NCS_OS_ENVIRON_ARGS *set_env_args)
 {
-   int count;
-   int status = 0;
-   NCS_OS_ENVIRON_SET_NODE  *node = NULL;
+	int count;
+	int status = 0;
+	NCS_OS_ENVIRON_SET_NODE *node = NULL;
 
-   if(exec_mod == NULL)
-      return NCSCC_RC_FAILURE;
-   if(fopen(exec_mod,"r") == NULL)
-      return NCSCC_RC_FAILURE;
+	if (exec_mod == NULL)
+		return NCSCC_RC_FAILURE;
+	if (fopen(exec_mod, "r") == NULL)
+		return NCSCC_RC_FAILURE;
 
-  if(set_env_args == NULL)
-      count = 0;
-   else
-   {
-      count = set_env_args->num_args;
-      node = set_env_args->env_arg;
-   }
+	if (set_env_args == NULL)
+		count = 0;
+	else {
+		count = set_env_args->num_args;
+		node = set_env_args->env_arg;
+	}
 
-   m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
-   status = fork();
-   if(status == 0)
-   {
-       /*
-       ** Make sure forked processes have default scheduling class
-       ** independent of the callers scheduling class.
-       */
-       struct sched_param param = {.sched_priority = 0};
-       if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
-           syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
+	status = fork();
+	if (status == 0) {
+		/*
+		 ** Make sure forked processes have default scheduling class
+		 ** independent of the callers scheduling class.
+		 */
+		struct sched_param param = {.sched_priority = 0 };
+		if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
+			syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
 
-      /* set the environment variables */
-      for(;count>0;count--)
-      {
-          setenv(node->name,node->value,node->overwrite);
-          node++;
-      }
-      
-      /* child part */
-      if(execvp(exec_mod,argv) == -1)
-      {
-         char buf[256];
-         sprintf(buf, "EXECVP fails for %s ", exec_mod);
-         perror(buf);
-         exit(128);
-      }
-   }
-   else if (status == -1)
-   {
-       /* Fork Failed */
-       /* Unlock and return */
-       m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-       return NCSCC_RC_FAILURE;
-   }
-   else
-   {
-      /* parent*/
-      m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-   }
-   return NCSCC_RC_SUCCESS;
+		/* set the environment variables */
+		for (; count > 0; count--) {
+			setenv(node->name, node->value, node->overwrite);
+			node++;
+		}
+
+		/* child part */
+		if (execvp(exec_mod, argv) == -1) {
+			char buf[256];
+			sprintf(buf, "EXECVP fails for %s ", exec_mod);
+			perror(buf);
+			exit(128);
+		}
+	} else if (status == -1) {
+		/* Fork Failed */
+		/* Unlock and return */
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+		return NCSCC_RC_FAILURE;
+	} else {
+		/* parent */
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /***************************************************************************
  *
@@ -2399,94 +2214,81 @@ unsigned int ncs_os_process_execute(char *exec_mod,char *argv[],
  **************************************************************************/
 uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 {
-   int count;
-   int pid;
-   NCS_OS_ENVIRON_SET_NODE  *node = NULL;
+	int count;
+	int pid;
+	NCS_OS_ENVIRON_SET_NODE *node = NULL;
 
-   if((req->i_script == NULL) || (req->i_cb == NULL))
-      return NCSCC_RC_FAILURE;
+	if ((req->i_script == NULL) || (req->i_cb == NULL))
+		return NCSCC_RC_FAILURE;
 
-  if(req->i_set_env_args == NULL)
-      count = 0;
-   else
-   {
-      count = req->i_set_env_args->num_args;
-      node = req->i_set_env_args->env_arg;
-   }
+	if (req->i_set_env_args == NULL)
+		count = 0;
+	else {
+		count = req->i_set_env_args->num_args;
+		node = req->i_set_env_args->env_arg;
+	}
 
-   m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-    
-   if( module_cb.init != TRUE)
-   {
-      /* this will initializes the execute module control block */
-      if(start_exec_mod_cb()!= NCSCC_RC_SUCCESS)
-      {
-         m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-   }
-                                                               
+	m_NCS_LOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
 
-   m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
+	if (module_cb.init != TRUE) {
+		/* this will initializes the execute module control block */
+		if (start_exec_mod_cb() != NCSCC_RC_SUCCESS) {
+			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+	}
 
-   if((pid = fork()) == 0)
-   {
-       /*
-       ** Make sure forked processes have default scheduling class
-       ** independent of the callers scheduling class.
-       */
-       struct sched_param param = {.sched_priority = 0};
-       if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
-          syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
 
-      if (-1 == nice(10)) 
-      {
-         perror("nice failed");
-      }
+	if ((pid = fork()) == 0) {
+		/*
+		 ** Make sure forked processes have default scheduling class
+		 ** independent of the callers scheduling class.
+		 */
+		struct sched_param param = {.sched_priority = 0 };
+		if (sched_setscheduler(0, SCHED_OTHER, &param) == -1)
+			syslog(LOG_ERR, "Could not setscheduler: %s", strerror(errno));
 
-      /* set the environment variables */
-      for(;count>0;count--)
-      {
-          setenv(node->name,node->value,node->overwrite);
-          node++;
-      }
+		if (-1 == nice(10)) {
+			perror("nice failed");
+		}
 
-      /* child part */
-      if(execvp(req->i_script, req->i_argv) == -1)
-      {
-         char buf[256];
-         sprintf(buf, "EXECVP fails for %s ", req->i_script);
-         perror(buf);
-         exit(128);
-      }
-   }
-   else if (pid > 0)
-   {
-      /* printf("\n PID added %d...........\n", pid); */
-      /* 
-       * Parent - Add new pid in the tree,
-       * start a timer, Wait for a signal from child. 
-       */
+		/* set the environment variables */
+		for (; count > 0; count--) {
+			setenv(node->name, node->value, node->overwrite);
+			node++;
+		}
 
-      m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+		/* child part */
+		if (execvp(req->i_script, req->i_argv) == -1) {
+			char buf[256];
+			sprintf(buf, "EXECVP fails for %s ", req->i_script);
+			perror(buf);
+			exit(128);
+		}
+	} else if (pid > 0) {
+		/* printf("\n PID added %d...........\n", pid); */
+		/* 
+		 * Parent - Add new pid in the tree,
+		 * start a timer, Wait for a signal from child. 
+		 */
 
-      if (NCSCC_RC_SUCCESS != add_new_req_pid_in_list(req, pid))
-      {
-         m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-      }
-   }
-   else
-   {
-      /* ERROR */
-      m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-      perror("Fork call failed");
-      m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-      return NCSCC_RC_FAILURE;
-   }
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
 
-   m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
-   return NCSCC_RC_SUCCESS;
+		if (NCSCC_RC_SUCCESS != add_new_req_pid_in_list(req, pid)) {
+			m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
+			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+	} else {
+		/* ERROR */
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+		perror("Fork call failed");
+		m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
+		return NCSCC_RC_FAILURE;
+	}
+
+	m_NCS_UNLOCK(&module_cb.tree_lock, NCS_LOCK_WRITE);
+	return NCSCC_RC_SUCCESS;
 }
 
 /***************************************************************************
@@ -2509,7 +2311,7 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 
 int ncs_os_process_terminate(unsigned int proc_id)
 {
-   return kill(proc_id,SIGKILL);
+	return kill(proc_id, SIGKILL);
 }
 
 /***************************************************************************
@@ -2532,7 +2334,7 @@ int ncs_os_process_terminate(unsigned int proc_id)
  **************************************************************************/
 sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 {
-   return  signal(signum,handler);
+	return signal(signum, handler);
 }
 
 /***************************************************************************
@@ -2576,372 +2378,344 @@ sighandler_t ncs_os_signal(int signum, sighandler_t handler)
 #define DIAG(x)         printf(x)
 #define DIAG1(x, y)     printf(x, y)
 #define DIAG2(x, y, z)  printf(x, y, z)
-
 #else
 
-#define DIAG(x)         
-#define DIAG1(x, y)         
-#define DIAG2(x, y, z)  
-
+#define DIAG(x)
+#define DIAG1(x, y)
+#define DIAG2(x, y, z)
 #endif
 
-uns32 ncs_sel_obj_create( NCS_SEL_OBJ *o_sel_obj)
+uns32 ncs_sel_obj_create(NCS_SEL_OBJ *o_sel_obj)
 {
-    int s_pair[2];
-    int enable_nbio = 1;
-    int flags = 0;
-    
-    m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
-    if (0!=socketpair(AF_UNIX, SOCK_STREAM, 0, s_pair))
-    {
-        perror("socketpair:");
-        m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-        return NCSCC_RC_FAILURE;
-    }
-   
-    flags = fcntl(s_pair[0], F_GETFD, 0);
-    fcntl(s_pair[0], F_SETFD, (flags | FD_CLOEXEC));
-   
-    flags = fcntl(s_pair[1], F_GETFD, 0);
-    fcntl(s_pair[1], F_SETFD, (flags | FD_CLOEXEC));
+	int s_pair[2];
+	int enable_nbio = 1;
+	int flags = 0;
 
-    m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
+	if (0 != socketpair(AF_UNIX, SOCK_STREAM, 0, s_pair)) {
+		perror("socketpair:");
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+		return NCSCC_RC_FAILURE;
+	}
 
-    if (s_pair[0] > s_pair[1])
-    {
-        /* Ensure s_pair[1] is equal or greater */
-        int temp = s_pair[0];
-        s_pair[0] = s_pair[1];
-        s_pair[1] = temp;
-    }
-    o_sel_obj->raise_obj = s_pair[0];
-    o_sel_obj->rmv_obj = s_pair[1];
-    /* Raising indications should be a non-blocking operation. Otherwise, 
-    it can lead to deadlocks among reader and writer applications. 
-    */
-    ioctl(o_sel_obj->raise_obj, FIONBIO, &enable_nbio);
-    return NCSCC_RC_SUCCESS;
+	flags = fcntl(s_pair[0], F_GETFD, 0);
+	fcntl(s_pair[0], F_SETFD, (flags | FD_CLOEXEC));
+
+	flags = fcntl(s_pair[1], F_GETFD, 0);
+	fcntl(s_pair[1], F_SETFD, (flags | FD_CLOEXEC));
+
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+
+	if (s_pair[0] > s_pair[1]) {
+		/* Ensure s_pair[1] is equal or greater */
+		int temp = s_pair[0];
+		s_pair[0] = s_pair[1];
+		s_pair[1] = temp;
+	}
+	o_sel_obj->raise_obj = s_pair[0];
+	o_sel_obj->rmv_obj = s_pair[1];
+	/* Raising indications should be a non-blocking operation. Otherwise, 
+	   it can lead to deadlocks among reader and writer applications. 
+	 */
+	ioctl(o_sel_obj->raise_obj, FIONBIO, &enable_nbio);
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 ncs_sel_obj_destroy(NCS_SEL_OBJ i_ind_obj)
 {
-    shutdown(i_ind_obj.raise_obj, SHUT_RDWR);
-    close(i_ind_obj.raise_obj);
-    shutdown(i_ind_obj.rmv_obj, SHUT_RDWR);
-    close(i_ind_obj.rmv_obj);
-    return NCSCC_RC_SUCCESS;
+	shutdown(i_ind_obj.raise_obj, SHUT_RDWR);
+	close(i_ind_obj.raise_obj);
+	shutdown(i_ind_obj.rmv_obj, SHUT_RDWR);
+	close(i_ind_obj.rmv_obj);
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 ncs_sel_obj_rmv_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
-    if (i_ind_obj == NULL)
-       return NCSCC_RC_FAILURE;
+	if (i_ind_obj == NULL)
+		return NCSCC_RC_FAILURE;
 
-    if (i_ind_obj->rmv_obj == -1)
-       return NCSCC_RC_FAILURE;
+	if (i_ind_obj->rmv_obj == -1)
+		return NCSCC_RC_FAILURE;
 
-    shutdown(i_ind_obj->rmv_obj, SHUT_RDWR);
-    close(i_ind_obj->rmv_obj);
+	shutdown(i_ind_obj->rmv_obj, SHUT_RDWR);
+	close(i_ind_obj->rmv_obj);
 
-    i_ind_obj->rmv_obj = -1;
+	i_ind_obj->rmv_obj = -1;
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /* This function will make select unblock */
 uns32 ncs_sel_obj_raise_operation_shut(NCS_SEL_OBJ *i_ind_obj)
 {
-    if (i_ind_obj == NULL)
-       return NCSCC_RC_FAILURE;
+	if (i_ind_obj == NULL)
+		return NCSCC_RC_FAILURE;
 
-    if (i_ind_obj->raise_obj == -1)
-       return NCSCC_RC_FAILURE;
-        
-    shutdown(i_ind_obj->raise_obj, SHUT_RDWR);
-    close(i_ind_obj->raise_obj);
+	if (i_ind_obj->raise_obj == -1)
+		return NCSCC_RC_FAILURE;
 
-    i_ind_obj->raise_obj = -1;
+	shutdown(i_ind_obj->raise_obj, SHUT_RDWR);
+	close(i_ind_obj->raise_obj);
 
-    return NCSCC_RC_SUCCESS;
+	i_ind_obj->raise_obj = -1;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 uns32 ncs_sel_obj_ind(NCS_SEL_OBJ i_ind_obj)
 {
-    /* The following call can block, in such a case a failure is returned */
-    if (write(i_ind_obj.raise_obj, "A", 1) != 1)
-        return NCSCC_RC_FAILURE;
-    return NCSCC_RC_SUCCESS;
+	/* The following call can block, in such a case a failure is returned */
+	if (write(i_ind_obj.raise_obj, "A", 1) != 1)
+		return NCSCC_RC_FAILURE;
+	return NCSCC_RC_SUCCESS;
 }
-int ncs_sel_obj_rmv_ind( NCS_SEL_OBJ i_ind_obj, 
-        NCS_BOOL nonblock, 
-        NCS_BOOL one_at_a_time)
+
+int ncs_sel_obj_rmv_ind(NCS_SEL_OBJ i_ind_obj, NCS_BOOL nonblock, NCS_BOOL one_at_a_time)
 {
-    char  tmp[MAX_INDS_AT_A_TIME];
-    int   ind_count, tot_inds_rmvd; 
-    int   num_at_a_time;
+	char tmp[MAX_INDS_AT_A_TIME];
+	int ind_count, tot_inds_rmvd;
+	int num_at_a_time;
 
-    tot_inds_rmvd = 0;
-    num_at_a_time = (one_at_a_time?1:MAX_INDS_AT_A_TIME);
+	tot_inds_rmvd = 0;
+	num_at_a_time = (one_at_a_time ? 1 : MAX_INDS_AT_A_TIME);
 
-    /* If one_at_a_time == FALSE, remove MAX_INDS_AT_A_TIME in a 
-     * non-blocking way and count the number of indications 
-     * so removed using "tot_inds_rmvd"
-     *
-     * If one_at_a_time == TRUE,  then quit the infinite loop 
-     * after removing at most 1 indication.
-     */
-    for(;;)
-    {
-        ind_count=recv(i_ind_obj.rmv_obj, &tmp, num_at_a_time, MSG_DONTWAIT);
-                    
-        DIAG1("RMV_IND:ind_count in nonblock-recv = %d\n", ind_count);
+	/* If one_at_a_time == FALSE, remove MAX_INDS_AT_A_TIME in a 
+	 * non-blocking way and count the number of indications 
+	 * so removed using "tot_inds_rmvd"
+	 *
+	 * If one_at_a_time == TRUE,  then quit the infinite loop 
+	 * after removing at most 1 indication.
+	 */
+	for (;;) {
+		ind_count = recv(i_ind_obj.rmv_obj, &tmp, num_at_a_time, MSG_DONTWAIT);
 
-        if (ind_count > 0)
-        {
-            /* Only one indication should be removed at a time, return immediately */ 
-            if (one_at_a_time)
-            {
-                assert(ind_count == 1);
-                return 1;
-            }
+		DIAG1("RMV_IND:ind_count in nonblock-recv = %d\n", ind_count);
 
-            /* Some indications were removed */
-            tot_inds_rmvd += ind_count;
-        }
-        else if (ind_count <= 0)
-        {
-            if (errno == EAGAIN)
-                /* All queued indications have been removed */
-                break;
-            else if (errno == EINTR)
-                /* recv() call was interrupted. Needs to be invoked again */
-                continue;
-            else
-            {
-                /* Unknown error. */
-                DIAG("RMV_IND1. Returning -1\n");
-                perror("rmv_ind1:");
-                return -1;
-            }
-        }
-    }/* End of infinite loop */
+		if (ind_count > 0) {
+			/* Only one indication should be removed at a time, return immediately */
+			if (one_at_a_time) {
+				assert(ind_count == 1);
+				return 1;
+			}
 
-    /* Reaching here implies that all pending indications have been removed 
-     * and "tot_inds_rmvd" contains a count of indications removed. 
-     *
-     * Now, action to be taken could be one of the following
-     * a) if  (tot_inds_rmvd !=0) : All indications removed, need some 
-     *          processing, so will return "tot_inds_rmvd"
-     *
-     * b) if  (tot_inds_rmvd == 0) and (nonblock) : Caller was just checking
-     *          if any indications were pending, he didn't know that there were
-     *          no indications pending. Simply return 0;
-     *
-     * c) if  (tot_inds_rmvd == 0) and (!nonblock) : There are no indications
-     *          pending but we should not return unless there is an indication
-     *          arrives.  
-     */
-    if ((tot_inds_rmvd != 0) || (nonblock))
-    {
-        /* Case (a) or case (b) above */
-        return tot_inds_rmvd;
-    }
+			/* Some indications were removed */
+			tot_inds_rmvd += ind_count;
+		} else if (ind_count <= 0) {
+			if (errno == EAGAIN)
+				/* All queued indications have been removed */
+				break;
+			else if (errno == EINTR)
+				/* recv() call was interrupted. Needs to be invoked again */
+				continue;
+			else {
+				/* Unknown error. */
+				DIAG("RMV_IND1. Returning -1\n");
+				perror("rmv_ind1:");
+				return -1;
+			}
+		}
+	}			/* End of infinite loop */
 
-    /* Case (c) described above */
-    for(;;)
-    {
-        /* We now block on receive.  */
-        ind_count = recv(i_ind_obj.rmv_obj, &tmp, num_at_a_time, 0); 
-        if (ind_count > 0)
-        {
-            /* Some indication has arrived. */
+	/* Reaching here implies that all pending indications have been removed 
+	 * and "tot_inds_rmvd" contains a count of indications removed. 
+	 *
+	 * Now, action to be taken could be one of the following
+	 * a) if  (tot_inds_rmvd !=0) : All indications removed, need some 
+	 *          processing, so will return "tot_inds_rmvd"
+	 *
+	 * b) if  (tot_inds_rmvd == 0) and (nonblock) : Caller was just checking
+	 *          if any indications were pending, he didn't know that there were
+	 *          no indications pending. Simply return 0;
+	 *
+	 * c) if  (tot_inds_rmvd == 0) and (!nonblock) : There are no indications
+	 *          pending but we should not return unless there is an indication
+	 *          arrives.  
+	 */
+	if ((tot_inds_rmvd != 0) || (nonblock)) {
+		/* Case (a) or case (b) above */
+		return tot_inds_rmvd;
+	}
 
-            /* NOTE: There may be more than "num_at_a_time" indications
-             * queued up. We could do another "tot_inds_rmvd" calculation,
-             * but that's not done here, as it is involves some effort and can
-             * conveniently be postponed till the next invocation of this 
-             * function.
-             */
-            return ind_count;
-        }
-        else if ((ind_count < 0) && (errno != EINTR))
-        {
-             /* Unknown mishap. Should reach here only if
-              * the i_rmv_ind_obj has now become invalid.
-              * Close down and return error.
-              * FIXME: TODO
-              */
-             shutdown(i_ind_obj.rmv_obj, SHUT_RDWR);
-             close(i_ind_obj.rmv_obj);
-             DIAG("RMV_IND2. Returning -1\n");
-             return -1;
-        }
-    }/* End of infinite loop */
+	/* Case (c) described above */
+	for (;;) {
+		/* We now block on receive.  */
+		ind_count = recv(i_ind_obj.rmv_obj, &tmp, num_at_a_time, 0);
+		if (ind_count > 0) {
+			/* Some indication has arrived. */
+
+			/* NOTE: There may be more than "num_at_a_time" indications
+			 * queued up. We could do another "tot_inds_rmvd" calculation,
+			 * but that's not done here, as it is involves some effort and can
+			 * conveniently be postponed till the next invocation of this 
+			 * function.
+			 */
+			return ind_count;
+		} else if ((ind_count < 0) && (errno != EINTR)) {
+			/* Unknown mishap. Should reach here only if
+			 * the i_rmv_ind_obj has now become invalid.
+			 * Close down and return error.
+			 * FIXME: TODO
+			 */
+			shutdown(i_ind_obj.rmv_obj, SHUT_RDWR);
+			close(i_ind_obj.rmv_obj);
+			DIAG("RMV_IND2. Returning -1\n");
+			return -1;
+		}
+	}			/* End of infinite loop */
 }
 
 int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
-                       NCS_SEL_OBJ_SET *rfds,
-                       NCS_SEL_OBJ_SET *wfds,
-                       NCS_SEL_OBJ_SET *efds,
-                       uns32 *timeout_in_10ms)
+		       NCS_SEL_OBJ_SET *rfds, NCS_SEL_OBJ_SET *wfds, NCS_SEL_OBJ_SET *efds, uns32 *timeout_in_10ms)
 {
-    struct timeval tmout_in_tv = {0,0};
-    struct timeval *p_tmout_in_tv;
-    int rc;
-    uns32 rem10ms=0, old_rem10ms = 0;
-    NCS_SEL_OBJ_SET save_rfds, save_wfds, save_efds;
+	struct timeval tmout_in_tv = { 0, 0 };
+	struct timeval *p_tmout_in_tv;
+	int rc;
+	uns32 rem10ms = 0, old_rem10ms = 0;
+	NCS_SEL_OBJ_SET save_rfds, save_wfds, save_efds;
 
-    if (timeout_in_10ms != NULL)
-    {
-       old_rem10ms = *timeout_in_10ms;
-    }
-    if (rfds) save_rfds = *rfds;
-    if (wfds) save_wfds = *wfds;
-    if (efds) save_efds = *efds;
+	if (timeout_in_10ms != NULL) {
+		old_rem10ms = *timeout_in_10ms;
+	}
+	if (rfds)
+		save_rfds = *rfds;
+	if (wfds)
+		save_wfds = *wfds;
+	if (efds)
+		save_efds = *efds;
 
-    do
-    {
-        if (rfds) *rfds = save_rfds; 
-        if (wfds) *wfds = save_wfds;
-        if (efds) *efds = save_efds;
+	do {
+		if (rfds)
+			*rfds = save_rfds;
+		if (wfds)
+			*wfds = save_wfds;
+		if (efds)
+			*efds = save_efds;
 
-        /* STEP: Calculate time to make to select() */
-        if (timeout_in_10ms != NULL)
-        {
-           tmout_in_tv.tv_sec = old_rem10ms/100;
-           tmout_in_tv.tv_usec = ((old_rem10ms)%100)*10000;
-           p_tmout_in_tv = &tmout_in_tv;
-        }
-        else
-           p_tmout_in_tv = NULL;
+		/* STEP: Calculate time to make to select() */
+		if (timeout_in_10ms != NULL) {
+			tmout_in_tv.tv_sec = old_rem10ms / 100;
+			tmout_in_tv.tv_usec = ((old_rem10ms) % 100) * 10000;
+			p_tmout_in_tv = &tmout_in_tv;
+		} else
+			p_tmout_in_tv = NULL;
 
-       rc = select(highest_sel_obj.rmv_obj+1, rfds, wfds, efds, p_tmout_in_tv);
+		rc = select(highest_sel_obj.rmv_obj + 1, rfds, wfds, efds, p_tmout_in_tv);
 
-       if (timeout_in_10ms != NULL)
-       {
-           rem10ms = (tmout_in_tv.tv_sec*100);
-           rem10ms += ((tmout_in_tv.tv_usec+5000)/10000);
+		if (timeout_in_10ms != NULL) {
+			rem10ms = (tmout_in_tv.tv_sec * 100);
+			rem10ms += ((tmout_in_tv.tv_usec + 5000) / 10000);
 
-           if (old_rem10ms < rem10ms)
-           {
-              /* STEP: Gadbad ho gaya */
-              rem10ms = old_rem10ms/10;
-              if (rem10ms == 0)
-              {
-                 rc = 0; /* TIMEOUT */
-                 break;
-              }
-           }
-           old_rem10ms = rem10ms;
-       }
+			if (old_rem10ms < rem10ms) {
+				/* STEP: Gadbad ho gaya */
+				rem10ms = old_rem10ms / 10;
+				if (rem10ms == 0) {
+					rc = 0;	/* TIMEOUT */
+					break;
+				}
+			}
+			old_rem10ms = rem10ms;
+		}
 
-    } while ((rc == -1) && (errno == EINTR));
+	} while ((rc == -1) && (errno == EINTR));
 
-    if (timeout_in_10ms != NULL)
-    {
-       /* Convert <sec,usec> to 10ms units (call it centiseconds=cs, say)
-        * tv_usec is rouded off to closest 10ms(=1cs) multiple. 
-        * (Eg.:94999us ~ 9cs and 95000us ~ 10cs)
-        */
-       *timeout_in_10ms = rem10ms;
-       *timeout_in_10ms = rem10ms;
-    }
-    return rc;
+	if (timeout_in_10ms != NULL) {
+		/* Convert <sec,usec> to 10ms units (call it centiseconds=cs, say)
+		 * tv_usec is rouded off to closest 10ms(=1cs) multiple. 
+		 * (Eg.:94999us ~ 9cs and 95000us ~ 10cs)
+		 */
+		*timeout_in_10ms = rem10ms;
+		*timeout_in_10ms = rem10ms;
+	}
+	return rc;
 }
+
 int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *timeout_in_10ms)
 {
-    struct pollfd   pfd;                  /* Poll struct for user's fd      */
-    int             poll_wait_time_in_ms; /* Total wait time req. by caller */
-    struct timespec poll_start_time;      /* Time when poll() is first called */
+	struct pollfd pfd;	/* Poll struct for user's fd      */
+	int poll_wait_time_in_ms;	/* Total wait time req. by caller */
+	struct timespec poll_start_time;	/* Time when poll() is first called */
 
-    /* Working variables */
-    struct timespec curr_time;            /* current time */
-    long long       diff_time_in_ms;      /* time diff in ms */
-    int             pollres;              /* poll() return code */
-    int             poll_wait_left_in_ms; /* Wait time left in "ms"*/
-    int             save_errno;           /* errno of poll() call */
+	/* Working variables */
+	struct timespec curr_time;	/* current time */
+	long long diff_time_in_ms;	/* time diff in ms */
+	int pollres;		/* poll() return code */
+	int poll_wait_left_in_ms;	/* Wait time left in "ms" */
+	int save_errno;		/* errno of poll() call */
 
-    /* STEP: Setup poll struct */ 
-    pfd.fd = sel_obj.rmv_obj;
-    pfd.events = POLLIN;
-    pfd.revents = 0;
+	/* STEP: Setup poll struct */
+	pfd.fd = sel_obj.rmv_obj;
+	pfd.events = POLLIN;
+	pfd.revents = 0;
 
-    /* STEP: Record start time and determine total wait time  */
-    clock_gettime(CLOCK_REALTIME, &poll_start_time);
-    if ((timeout_in_10ms == NULL) || ((*timeout_in_10ms) < 0))
-    {
-        /* User wants infinite wait */
-        poll_wait_time_in_ms = -1; /* -ve value = infinite wait for POLL */
-    }
-    else
-    {
-        poll_wait_time_in_ms = 10*(*timeout_in_10ms);
-    }
-    poll_wait_left_in_ms = poll_wait_time_in_ms;
+	/* STEP: Record start time and determine total wait time  */
+	clock_gettime(CLOCK_REALTIME, &poll_start_time);
+	if ((timeout_in_10ms == NULL) || ((*timeout_in_10ms) < 0)) {
+		/* User wants infinite wait */
+		poll_wait_time_in_ms = -1;	/* -ve value = infinite wait for POLL */
+	} else {
+		poll_wait_time_in_ms = 10 * (*timeout_in_10ms);
+	}
+	poll_wait_left_in_ms = poll_wait_time_in_ms;
 
-    /* STEP: Start wait loop */
-    while (1)
-    {
-        pollres = poll(&pfd, 1, poll_wait_left_in_ms); 
+	/* STEP: Start wait loop */
+	while (1) {
+		pollres = poll(&pfd, 1, poll_wait_left_in_ms);
 
-        /* Save errno immediately to avoid side-effects */
-        save_errno = errno;
+		/* Save errno immediately to avoid side-effects */
+		save_errno = errno;
 
-        /* Calculate wait time remaining */
-        if (poll_wait_time_in_ms > 0)
-        {
-            clock_gettime(CLOCK_REALTIME, &curr_time);
-            diff_time_in_ms = 
-                ((curr_time.tv_sec)*(1000L) +  curr_time.tv_nsec/(1000*1000)) - 
-                ((poll_start_time.tv_sec)*(1000L) +  poll_start_time.tv_nsec/(1000*1000));
-            poll_wait_left_in_ms = poll_wait_time_in_ms - diff_time_in_ms;
-            if (poll_wait_left_in_ms < 0) 
-                poll_wait_left_in_ms = 0;
+		/* Calculate wait time remaining */
+		if (poll_wait_time_in_ms > 0) {
+			clock_gettime(CLOCK_REALTIME, &curr_time);
+			diff_time_in_ms =
+			    ((curr_time.tv_sec) * (1000L) + curr_time.tv_nsec / (1000 * 1000)) -
+			    ((poll_start_time.tv_sec) * (1000L) + poll_start_time.tv_nsec / (1000 * 1000));
+			poll_wait_left_in_ms = poll_wait_time_in_ms - diff_time_in_ms;
+			if (poll_wait_left_in_ms < 0)
+				poll_wait_left_in_ms = 0;
 
-            /* Update in/out variable */
-            *timeout_in_10ms = poll_wait_left_in_ms/10;
-        }
- 
-        if ((pollres >= 0) || (save_errno != EINTR))
-        {  
+			/* Update in/out variable */
+			*timeout_in_10ms = poll_wait_left_in_ms / 10;
+		}
 
-            if((pollres == 1) && ((pfd.revents == (POLLIN|POLLHUP))))
-            {
-               /* we reach here when one fd is closed */
-                return -1;
-            }
+		if ((pollres >= 0) || (save_errno != EINTR)) {
 
-            assert ((pollres == 0) || 
-                    ((pollres == 1) && (pfd.revents == POLLIN)) ||
-                    ((pollres == -1) && (save_errno != EINTR)));
+			if ((pollres == 1) && ((pfd.revents == (POLLIN | POLLHUP)))) {
+				/* we reach here when one fd is closed */
+				return -1;
+			}
 
-            return pollres;
-        }
+			assert((pollres == 0) ||
+			       ((pollres == 1) && (pfd.revents == POLLIN)) ||
+			       ((pollres == -1) && (save_errno != EINTR)));
 
-        if (poll_wait_left_in_ms == 0)
-        {
-            /* We reach here only as a rare coincidence */
-            assert((pollres == -1) && (save_errno == EINTR));
-            return 0;/* TIMEOUT : Rare coincidence  EINTR + TIMEOUT */
-        }
-    } /* while(1) */
+			return pollres;
+		}
+
+		if (poll_wait_left_in_ms == 0) {
+			/* We reach here only as a rare coincidence */
+			assert((pollres == -1) && (save_errno == EINTR));
+			return 0;	/* TIMEOUT : Rare coincidence  EINTR + TIMEOUT */
+		}
+	}			/* while(1) */
 }
-FILE* ncs_os_fopen(const char* fpath, const char* fmode)
-{
-   FILE *fp = NULL;
-   int flags = 0;
-   m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
-   fp = fopen(fpath, fmode);
-   if (fp == NULL)
-   {
-      m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
-      return NULL;
-   }
-   
-   flags = fcntl(fileno(fp), F_GETFD, 0);
-   fcntl(fileno(fp), F_SETFD, (flags | FD_CLOEXEC));
-   
-   m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
 
-   return fp;
+FILE *ncs_os_fopen(const char *fpath, const char *fmode)
+{
+	FILE *fp = NULL;
+	int flags = 0;
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_LOCK, 0);
+	fp = fopen(fpath, fmode);
+	if (fp == NULL) {
+		m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+		return NULL;
+	}
+
+	flags = fcntl(fileno(fp), F_GETFD, 0);
+	fcntl(fileno(fp), F_SETFD, (flags | FD_CLOEXEC));
+
+	m_NCS_OS_LOCK(get_cloexec_lock(), NCS_OS_LOCK_UNLOCK, 0);
+
+	return fp;
 }

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,20 +31,19 @@
 #define CPD_MEM_H
 
 /* Service Sub IDs for CPD */
-typedef enum
-{
-   CPD_SVC_SUB_ID_CPD_CB = CPSV_SVC_SUB_ID_MAX+1,
-   CPD_SVC_SUB_ID_DEFAULT_VAL,
-   CPD_SVC_SUB_ID_CPD_CKPT_INFO_NODE,
-   CPD_SVC_SUB_ID_CPD_CKPT_MAP_INFO,
-   CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO,
-   CPD_SVC_SUB_ID_CPD_CPND_INFO_NODE,
-   CPD_SVC_SUB_ID_CPSV_CPND_DEST_INFO,
-   CPD_SVC_SUB_ID_CPD_NODE_REF_INFO,
-   CPD_SVC_SUB_ID_CPD_CKPT_REF_INFO,
-   CPD_SVC_SUB_ID_CPD_MBCSV_MSG, 
-   CPD_SVC_SUB_ID_CPD_A2S_CKPT_CREATE,   
-   CPD_SVC_SUB_ID_MAX
+typedef enum {
+	CPD_SVC_SUB_ID_CPD_CB = CPSV_SVC_SUB_ID_MAX + 1,
+	CPD_SVC_SUB_ID_DEFAULT_VAL,
+	CPD_SVC_SUB_ID_CPD_CKPT_INFO_NODE,
+	CPD_SVC_SUB_ID_CPD_CKPT_MAP_INFO,
+	CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO,
+	CPD_SVC_SUB_ID_CPD_CPND_INFO_NODE,
+	CPD_SVC_SUB_ID_CPSV_CPND_DEST_INFO,
+	CPD_SVC_SUB_ID_CPD_NODE_REF_INFO,
+	CPD_SVC_SUB_ID_CPD_CKPT_REF_INFO,
+	CPD_SVC_SUB_ID_CPD_MBCSV_MSG,
+	CPD_SVC_SUB_ID_CPD_A2S_CKPT_CREATE,
+	CPD_SVC_SUB_ID_MAX
 } CPD_SVC_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -84,7 +81,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_INFO_NODE)
-                                                
+
 #define m_MMGR_ALLOC_CPD_CKPT_MAP_INFO  (CPD_CKPT_MAP_INFO*)                  \
                                    m_NCS_MEM_ALLOC(sizeof(CPD_CKPT_MAP_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -95,21 +92,18 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CKPT_MAP_INFO)
-       
 
 #define m_MMGR_ALLOC_CPD_CKPT_REPLOC_INFO (CPD_CKPT_REPLOC_INFO *)          \
                                m_NCS_MEM_ALLOC(sizeof(CPD_CKPT_REPLOC_INFO), \
                                         NCS_MEM_REGION_PERSISTENT, \
                                         NCS_SERVICE_ID_CPD, \
-                                        CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO) 
-                                        
+                                        CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO)
 
 #define m_MMGR_FREE_CPD_CKPT_REPLOC_INFO(p)  m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_CPD, \
                                             CPD_SVC_SUB_ID_CPD_CKPT_REPLOC_INFO)
 
- 
 #define m_MMGR_ALLOC_CPD_CPND_INFO_NODE  (CPD_CPND_INFO_NODE*)                \
                                    m_NCS_MEM_ALLOC(sizeof(CPD_CPND_INFO_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -121,7 +115,6 @@ typedef enum
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_CPND_INFO_NODE)
 
-                                                
 #define m_MMGR_ALLOC_CPSV_CPND_DEST_INFO(cnt)  (CPSV_CPND_DEST_INFO*)        \
                                 m_NCS_MEM_ALLOC(cnt*sizeof(CPSV_CPND_DEST_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT,   \
@@ -143,7 +136,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPD, \
                                                 CPD_SVC_SUB_ID_CPD_NODE_REF_INFO)
-                                                
+
 #define m_MMGR_ALLOC_CPD_CKPT_REF_INFO  (CPD_CKPT_REF_INFO*)        \
                                 m_NCS_MEM_ALLOC(sizeof(CPD_CKPT_REF_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT,   \
@@ -170,14 +163,11 @@ typedef enum
                                    m_NCS_MEM_ALLOC(sizeof(CPD_A2S_CKPT_CREATE),\
                                    NCS_MEM_REGION_PERSISTENT, \
                                    NCS_SERVICE_ID_CPD, \
-                                   CPD_SVC_SUB_ID_CPD_A2S_CKPT_CREATE) 
-                                   
+                                   CPD_SVC_SUB_ID_CPD_A2S_CKPT_CREATE)
+
 #define m_MMGR_FREE_CPD_A2S_CKPT_CREATE(p) m_NCS_MEM_FREE(p,   \
                                               NCS_MEM_REGION_PERSISTENT, \
                                               NCS_SERVICE_ID_CPD, \
                                          CPD_SVC_SUB_ID_CPD_A2S_CKPT_CREATE)
-
-
-
 
 #endif

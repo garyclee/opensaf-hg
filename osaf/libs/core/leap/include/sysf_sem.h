@@ -31,7 +31,7 @@
  **/
 #ifndef SYSF_SEM_H
 #define SYSF_SEM_H
- 
+
 #include "ncssysf_sem.h"
 
-#endif /* SYSF_SEM_H */
+#endif   /* SYSF_SEM_H */

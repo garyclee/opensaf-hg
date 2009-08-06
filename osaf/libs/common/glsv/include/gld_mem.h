@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,21 +30,20 @@
 #ifndef GLD_MEM_H
 #define GLD_MEM_H
 /* Service Sub IDs for GLD */
-typedef enum
-{
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_CB = 1,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_DEFAULT_VAL,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_RSC_INFO,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_NODE_LIST,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_GLND_DETAILS,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_EVT,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_RSC_INFO,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_RSC_DETAILS,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_A2S_NODE_LIST,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_EVT,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_GLND_RSC_REF,
-   NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_RSC_MAP_INFO,
-   NCS_SERVICE_GLD_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_CB = 1,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_DEFAULT_VAL,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_RSC_INFO,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_NODE_LIST,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_GLND_DETAILS,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_EVT,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_RSC_INFO,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_RSC_DETAILS,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_A2S_NODE_LIST,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_A2S_EVT,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_GLND_RSC_REF,
+	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_RSC_MAP_INFO,
+	NCS_SERVICE_GLD_SUB_ID_MAX
 } NCS_SERVICE_GLD_SUB_ID;
 
 #define m_MMGR_ALLOC_GLSV_GLD_DEFAULT(size)     m_NCS_MEM_ALLOC(size, \
@@ -57,7 +54,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLD, \
                                                 NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_DEFAULT_VAL)
-
 
 #define m_MMGR_ALLOC_GLSV_GLD_CB                (GLSV_GLD_CB*)m_NCS_MEM_ALLOC(sizeof(GLSV_GLD_CB), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -85,7 +81,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLD, \
                                                 NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_RSC_MAP_INFO)
-
 
 #define m_MMGR_ALLOC_GLSV_GLD_A2S_RSC_DETAILS  (GLSV_GLD_A2S_RSC_DETAILS *)m_NCS_MEM_ALLOC(sizeof(GLSV_GLD_A2S_RSC_DETAILS), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -152,5 +147,4 @@ typedef enum
                                                 NCS_SERVICE_ID_GLD, \
                                                 NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_GLND_RSC_REF)
 
-
-#endif /* !GLD_MEM_H */
+#endif   /* !GLD_MEM_H */

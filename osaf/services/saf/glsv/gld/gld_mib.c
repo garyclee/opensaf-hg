@@ -15,14 +15,13 @@
  *
  */
 
-
 #include "gld.h"
 
 static uns32 gld_mib_tbl_req(struct ncsmib_arg *args);
 
 extern uns32 gld_reg_with_miblib(void);
-extern uns32  saflckscalarobject_tbl_reg(void); 
-extern uns32  salckresourceentry_tbl_reg(void); 
+extern uns32 saflckscalarobject_tbl_reg(void);
+extern uns32 salckresourceentry_tbl_reg(void);
 
 /******************************************************************************
   Function :  gld_mib_tbl_req
@@ -38,27 +37,27 @@ extern uns32  salckresourceentry_tbl_reg(void);
 
 uns32 gld_mib_tbl_req(struct ncsmib_arg *args)
 {
-   GLSV_GLD_CB        *cb = NULL;
-   uns32              rc = NCSCC_RC_SUCCESS;
-   NCSMIBLIB_REQ_INFO  miblib_req;
+	GLSV_GLD_CB *cb = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCSMIBLIB_REQ_INFO miblib_req;
 
-   cb = ncshm_take_hdl(NCS_SERVICE_ID_GLD, args->i_mib_key);
+	cb = ncshm_take_hdl(NCS_SERVICE_ID_GLD, args->i_mib_key);
 
-   if (cb == NULL)
-       return NCSCC_RC_FAILURE;
+	if (cb == NULL)
+		return NCSCC_RC_FAILURE;
 
-   memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
+	memset(&miblib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
-   miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
-   miblib_req.info.i_mib_op_info.args = args;
-   miblib_req.info.i_mib_op_info.cb = cb;
+	miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
+	miblib_req.info.i_mib_op_info.args = args;
+	miblib_req.info.i_mib_op_info.cb = cb;
 
-   /*  call the mib routine handler  */
-   rc = ncsmiblib_process_req(&miblib_req);
+	/*  call the mib routine handler  */
+	rc = ncsmiblib_process_req(&miblib_req);
 
-   ncshm_give_hdl((uns32)args->i_mib_key);
+	ncshm_give_hdl((uns32)args->i_mib_key);
 
-   return rc;
+	return rc;
 }
 
 /****************************************************************************
@@ -76,37 +75,32 @@ uns32 gld_mib_tbl_req(struct ncsmib_arg *args)
 *****************************************************************************/
 uns32 gld_reg_with_mab(GLSV_GLD_CB *cb)
 {
-   NCSOAC_SS_ARG      mab_arg;
-   NCSMIB_TBL_ID      tbl_id;
+	NCSOAC_SS_ARG mab_arg;
+	NCSMIB_TBL_ID tbl_id;
 
-   memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
-   mab_arg.i_oac_hdl = cb->oac_hdl;
+	memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
+	mab_arg.i_oac_hdl = cb->oac_hdl;
 
-  for(tbl_id = NCSMIB_TBL_GLSV_MIB_BASE;
-       tbl_id <= NCSMIB_TBL_GLSV_RSCTBL;
-       tbl_id ++)
-   {
-       mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
-       mab_arg.i_tbl_id = tbl_id;
-       mab_arg.info.tbl_owned.i_mib_req = gld_mib_tbl_req;
-       mab_arg.info.tbl_owned.i_mib_key = cb->my_hdl;
+	for (tbl_id = NCSMIB_TBL_GLSV_MIB_BASE; tbl_id <= NCSMIB_TBL_GLSV_RSCTBL; tbl_id++) {
+		mab_arg.i_op = NCSOAC_SS_OP_TBL_OWNED;
+		mab_arg.i_tbl_id = tbl_id;
+		mab_arg.info.tbl_owned.i_mib_req = gld_mib_tbl_req;
+		mab_arg.info.tbl_owned.i_mib_key = cb->my_hdl;
 
-       mab_arg.info.tbl_owned.i_ss_id = NCS_SERVICE_ID_GLD;
+		mab_arg.info.tbl_owned.i_ss_id = NCS_SERVICE_ID_GLD;
 
-       if (NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
-           return NCSCC_RC_FAILURE;
-         /* register the Filter for each table */
-          mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
-          mab_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_ANY;
-          mab_arg.info.row_owned.i_fltr.fltr.any.meaningless = 0x123;
+		if (NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
+			return NCSCC_RC_FAILURE;
+		/* register the Filter for each table */
+		mab_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
+		mab_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_ANY;
+		mab_arg.info.row_owned.i_fltr.fltr.any.meaningless = 0x123;
 
-          if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
-            return NCSCC_RC_FAILURE;
-   }
-       return NCSCC_RC_SUCCESS;
+		if (NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
+			return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
-
-
 
 /****************************************************************************
   PROCEDURE NAME:   gld_unreg_with_mab
@@ -123,22 +117,19 @@ uns32 gld_reg_with_mab(GLSV_GLD_CB *cb)
 *****************************************************************************/
 uns32 gld_unreg_with_mab(GLSV_GLD_CB *cb)
 {
-    NCSOAC_SS_ARG      mab_arg;
-    NCSMIB_TBL_ID      tbl_id;
+	NCSOAC_SS_ARG mab_arg;
+	NCSMIB_TBL_ID tbl_id;
 
-    memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
-    mab_arg.i_oac_hdl = cb->my_hdl;
-    mab_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
+	memset(&mab_arg, 0, sizeof(NCSOAC_SS_ARG));
+	mab_arg.i_oac_hdl = cb->my_hdl;
+	mab_arg.i_op = NCSOAC_SS_OP_TBL_GONE;
 
-    for(tbl_id = NCSMIB_TBL_GLSV_MIB_BASE;
-        tbl_id <= NCSMIB_TBL_GLSV_RSCTBL;
-        tbl_id ++)
-    {
-        mab_arg.i_tbl_id = tbl_id;
-        if(NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
-            return NCSCC_RC_FAILURE;
-    }
-    return NCSCC_RC_SUCCESS;
+	for (tbl_id = NCSMIB_TBL_GLSV_MIB_BASE; tbl_id <= NCSMIB_TBL_GLSV_RSCTBL; tbl_id++) {
+		mab_arg.i_tbl_id = tbl_id;
+		if (NCSCC_RC_SUCCESS != ncsoac_ss(&mab_arg))
+			return NCSCC_RC_FAILURE;
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -151,15 +142,15 @@ uns32 gld_unreg_with_mab(GLSV_GLD_CB *cb)
 ****************************************************************************/
 uns32 gld_reg_with_miblib(void)
 {
-   uns32 rc;
+	uns32 rc;
 
-   rc = saflckscalarobject_tbl_reg();
-   if (rc!= NCSCC_RC_SUCCESS)
-      return rc;
+	rc = saflckscalarobject_tbl_reg();
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
 
-   rc = salckresourceentry_tbl_reg();
-   if (rc != NCSCC_RC_SUCCESS)
-       return rc;
+	rc = salckresourceentry_tbl_reg();
+	if (rc != NCSCC_RC_SUCCESS)
+		return rc;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

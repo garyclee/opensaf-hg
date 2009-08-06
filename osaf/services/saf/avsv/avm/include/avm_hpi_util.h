@@ -27,29 +27,23 @@
 ******************************************************************************
 */
 
-
-
-
 #ifndef __AVM_HPI_UTIL_H__
-#define __AVM_HPI_UTIL_H__ 
+#define __AVM_HPI_UTIL_H__
 
 /* macro definitions */
 #define EPATH_BEGIN_CHAR          '{'
 #define EPATH_END_CHAR            '}'
 #define EPATH_SEPARATOR_CHAR      ','
 
-
 /* list of entity path types */
-typedef struct
-{
-   uns8               *etype_str;
-   SaHpiEntityTypeT   etype_val;
+typedef struct {
+	uns8 *etype_str;
+	SaHpiEntityTypeT etype_val;
 
-}HPI_ENTITY_TYPE_LIST;
+} HPI_ENTITY_TYPE_LIST;
 
 extern HPI_ENTITY_TYPE_LIST gl_hpi_ent_type_list[];
 
-extern uns32 
-hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str);
+extern uns32 hpi_convert_entitypath_string(SaHpiEntityPathT *entity_path, uns8 *ent_path_str);
 
-#endif /* __AVM_HPI_UTIL_H__ */
+#endif   /* __AVM_HPI_UTIL_H__ */

@@ -36,7 +36,7 @@
 static uns32 process_api_evt(ntfsv_ntfs_evt_t *evt);
 static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt);
 static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt);
-static uns32 proc_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);        
+static uns32 proc_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_subscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_unsubscribe_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
@@ -45,30 +45,27 @@ static uns32 proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 
-static const 
-NTFSV_NTFS_EVT_HANDLER 
-ntfs_ntfsv_top_level_evt_dispatch_tbl[NTFSV_NTFS_EVT_MAX] =
-{
-    NULL,
-    process_api_evt,
-    proc_ntfa_updn_mds_msg,
-    proc_ntfa_updn_mds_msg,
-    proc_mds_quiesced_ack_msg
+static const
+NTFSV_NTFS_EVT_HANDLER ntfs_ntfsv_top_level_evt_dispatch_tbl[NTFSV_NTFS_EVT_MAX] = {
+	NULL,
+	process_api_evt,
+	proc_ntfa_updn_mds_msg,
+	proc_ntfa_updn_mds_msg,
+	proc_mds_quiesced_ack_msg
 };
 
 /* Dispatch table for NTFA_API realted messages */
 static const
-NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] =
-{
-    NULL,
-    proc_initialize_msg,
-    proc_finalize_msg,
-    proc_subscribe_msg,
-    proc_unsubscribe_msg,
-    proc_send_not_msg,
-    proc_reader_initialize_msg,
-    proc_reader_finalize_msg,
-    proc_read_next_msg,
+NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] = {
+	NULL,
+	proc_initialize_msg,
+	proc_finalize_msg,
+	proc_subscribe_msg,
+	proc_unsubscribe_msg,
+	proc_send_not_msg,
+	proc_reader_initialize_msg,
+	proc_reader_finalize_msg,
+	proc_read_next_msg,
 };
 
 /****************************************************************************
@@ -86,23 +83,22 @@ NTFSV_NTFS_NTFA_API_MSG_HANDLER ntfs_ntfa_api_msg_dispatcher[NTFSV_API_MAX] =
 
 static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    switch (evt->evt_type)
-    {
-    case NTFSV_NTFS_EVT_NTFA_UP:
-        break;
-    case NTFSV_NTFS_EVT_NTFA_DOWN:
-            /* Remove this NTFA entry from our processing lists */
-        clientRemoveMDS(evt->fr_dest);
-        break;
-    default:
-        TRACE("Unknown evt type!!!");
-        break;
-    }
+	switch (evt->evt_type) {
+	case NTFSV_NTFS_EVT_NTFA_UP:
+		break;
+	case NTFSV_NTFS_EVT_NTFA_DOWN:
+		/* Remove this NTFA entry from our processing lists */
+		clientRemoveMDS(evt->fr_dest);
+		break;
+	default:
+		TRACE("Unknown evt type!!!");
+		break;
+	}
 
-    TRACE_LEAVE();   
-    return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -119,20 +115,19 @@ static uns32 proc_ntfa_updn_mds_msg(ntfsv_ntfs_evt_t *evt)
  *****************************************************************************/
 static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 {
-    TRACE_ENTER();
-    if (ntfs_cb->is_quisced_set == TRUE)
-    {
-        ntfs_cb->ha_state = SA_AMF_HA_QUIESCED;
-        /* Inform MBCSV of HA state change */
-        if (ntfs_mbcsv_change_HA_state(ntfs_cb) != NCSCC_RC_SUCCESS)
-            TRACE("ntfs_mbcsv_change_HA_state FAILED");
+	TRACE_ENTER();
+	if (ntfs_cb->is_quisced_set == TRUE) {
+		ntfs_cb->ha_state = SA_AMF_HA_QUIESCED;
+		/* Inform MBCSV of HA state change */
+		if (ntfs_mbcsv_change_HA_state(ntfs_cb) != NCSCC_RC_SUCCESS)
+			TRACE("ntfs_mbcsv_change_HA_state FAILED");
 
-        /* Update control block */
-        saAmfResponse(ntfs_cb->amf_hdl, ntfs_cb->amf_invocation_id, SA_AIS_OK);  
-        ntfs_cb->is_quisced_set = FALSE;
-    }
-    TRACE_LEAVE();
-    return NCSCC_RC_SUCCESS;
+		/* Update control block */
+		saAmfResponse(ntfs_cb->amf_hdl, ntfs_cb->amf_invocation_id, SA_AIS_OK);
+		ntfs_cb->is_quisced_set = FALSE;
+	}
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -150,28 +145,27 @@ static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
  *****************************************************************************/
 uns32 ntfs_cb_init(ntfs_cb_t *ntfs_cb)
 {
-    TRACE_ENTER();
-    /* Assign Initial HA state */
-    ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
-    ntfs_cb->csi_assigned = FALSE; 
-    /* Assign Version. Currently, hardcoded, This will change later */
-    ntfs_cb->ntf_version.releaseCode = NTF_RELEASE_CODE;
-    ntfs_cb->ntf_version.majorVersion = NTF_MAJOR_VERSION;
-    ntfs_cb->ntf_version.minorVersion = NTF_MINOR_VERSION;
-    TRACE_LEAVE();
-    return NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+	/* Assign Initial HA state */
+	ntfs_cb->ha_state = NTFS_HA_INIT_STATE;
+	ntfs_cb->csi_assigned = FALSE;
+	/* Assign Version. Currently, hardcoded, This will change later */
+	ntfs_cb->ntf_version.releaseCode = NTF_RELEASE_CODE;
+	ntfs_cb->ntf_version.majorVersion = NTF_MAJOR_VERSION;
+	ntfs_cb->ntf_version.minorVersion = NTF_MINOR_VERSION;
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 void update_standby(ntfsv_ckpt_msg_t *ckpt, uns32 action)
 {
-    uns32              async_rc = NCSCC_RC_SUCCESS;
+	uns32 async_rc = NCSCC_RC_SUCCESS;
 
-    if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
-    {
-        async_rc = ntfs_send_async_update(ntfs_cb, ckpt, action);
-        if (async_rc != NCSCC_RC_SUCCESS)
-            TRACE("send_async_update FAILED");
-    }
+	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		async_rc = ntfs_send_async_update(ntfs_cb, ckpt, action);
+		if (async_rc != NCSCC_RC_SUCCESS)
+			TRACE("send_async_update FAILED");
+	}
 }
 
 /**
@@ -183,29 +177,25 @@ void update_standby(ntfsv_ckpt_msg_t *ckpt, uns32 action)
  */
 static uns32 proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32              rc = NCSCC_RC_SUCCESS;
-    SaAisErrorT        ais_rc = SA_AIS_OK;
-    SaVersionT        *version;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT ais_rc = SA_AIS_OK;
+	SaVersionT *version;
 
-    TRACE_ENTER2("dest %llx", evt->fr_dest);
+	TRACE_ENTER2("dest %llx", evt->fr_dest);
 
-    /* Validate the version */
-    version = &(evt->info.msg.info.api_info.param.init.version);
-    if (!m_NTF_VER_IS_VALID(version))
-    {
-        ais_rc = SA_AIS_ERR_VERSION;
-        TRACE("version FAILED");
-        client_added_res_lib(ais_rc,
-                             0,
-                             evt->fr_dest,
-                             &evt->mds_ctxt);
-        goto done;
-    }
-    clientAdded(0, evt->fr_dest, &evt->mds_ctxt);
+	/* Validate the version */
+	version = &(evt->info.msg.info.api_info.param.init.version);
+	if (!m_NTF_VER_IS_VALID(version)) {
+		ais_rc = SA_AIS_ERR_VERSION;
+		TRACE("version FAILED");
+		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt);
+		goto done;
+	}
+	clientAdded(0, evt->fr_dest, &evt->mds_ctxt);
 
-done:
-    TRACE_LEAVE();
-    return rc;
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /**
@@ -217,13 +207,13 @@ done:
  */
 static uns32 proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32 client_id = evt->info.msg.info.api_info.param.finalize.client_id;
+	uns32 client_id = evt->info.msg.info.api_info.param.finalize.client_id;
 
-    TRACE_ENTER2("client_id %u", client_id);
-    clientRemoved(client_id);
-    client_removed_res_lib(SA_AIS_OK, client_id, evt->fr_dest, &evt->mds_ctxt);
-    TRACE_LEAVE();
-    return NCSCC_RC_SUCCESS;
+	TRACE_ENTER2("client_id %u", client_id);
+	clientRemoved(client_id);
+	client_removed_res_lib(SA_AIS_OK, client_id, evt->fr_dest, &evt->mds_ctxt);
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -239,21 +229,18 @@ static uns32 proc_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
+static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32  rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
-    ntfsv_subscribe_req_t *subscribe_param =
-    &(evt->info.msg.info.api_info.param.subscribe);
+	TRACE_ENTER();
+	ntfsv_subscribe_req_t *subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
 
-    TRACE_4("subscriptionId: %u", subscribe_param->subscriptionId);
-    subscriptionAdded(subscribe_param->client_id,
-                      subscribe_param->subscriptionId,
-                      &evt->mds_ctxt);
+	TRACE_4("subscriptionId: %u", subscribe_param->subscriptionId);
+	subscriptionAdded(subscribe_param->client_id, subscribe_param->subscriptionId, &evt->mds_ctxt);
 
-    TRACE_LEAVE();
-    return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /**
@@ -265,70 +252,55 @@ static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
  */
 static uns32 proc_unsubscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    ntfsv_unsubscribe_req_t *param =
-    &(evt->info.msg.info.api_info.param.unsubscribe);
+	ntfsv_unsubscribe_req_t *param = &(evt->info.msg.info.api_info.param.unsubscribe);
 
-    TRACE_ENTER2("client_id %u, subscriptionId %u",
-                 param->client_id,
-                 param->subscriptionId);
+	TRACE_ENTER2("client_id %u, subscriptionId %u", param->client_id, param->subscriptionId);
 
-    subscriptionRemoved(param->client_id,
-                        param->subscriptionId,
-                        &evt->mds_ctxt);
+	subscriptionRemoved(param->client_id, param->subscriptionId, &evt->mds_ctxt);
 /* TODO: async update*/
-    TRACE_LEAVE();
-    return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 static void print_header(SaNtfNotificationHeaderT *notificationHeader)
 {
-    SaTimeT totalTime;
-    SaTimeT ntfTime = (SaTimeT)0;
-    char time_str[24];
+	SaTimeT totalTime;
+	SaTimeT ntfTime = (SaTimeT)0;
+	char time_str[24];
 
-    /* Event type */
-    TRACE_1("eventType = %d", (int)*notificationHeader->eventType);  
+	/* Event type */
+	TRACE_1("eventType = %d", (int)*notificationHeader->eventType);
 
-    /* Notification Object */
-    TRACE_1("notificationObject.length = %u\n", 
-            notificationHeader->notificationObject->length);
+	/* Notification Object */
+	TRACE_1("notificationObject.length = %u\n", notificationHeader->notificationObject->length);
 
-    /* Notifying Object */
-    TRACE_1("notifyingObject->length = %u\n", 
-            notificationHeader->notifyingObject->length);
+	/* Notifying Object */
+	TRACE_1("notifyingObject->length = %u\n", notificationHeader->notifyingObject->length);
 
-    /* Notification Class ID */
-    TRACE_1("VendorID = %d\nmajorID = %d\nminorID = %d\n",   
-            notificationHeader->notificationClassId->vendorId,  
-            notificationHeader->notificationClassId->majorId,
-            notificationHeader->notificationClassId->minorId);
+	/* Notification Class ID */
+	TRACE_1("VendorID = %d\nmajorID = %d\nminorID = %d\n",
+		notificationHeader->notificationClassId->vendorId,
+		notificationHeader->notificationClassId->majorId, notificationHeader->notificationClassId->minorId);
 
-    /* Event Time */
-    ntfTime = *notificationHeader->eventTime;        
+	/* Event Time */
+	ntfTime = *notificationHeader->eventTime;
 
-    totalTime = (ntfTime / (SaTimeT) SA_TIME_ONE_SECOND);
-    (void)strftime(time_str, 
-                   sizeof(time_str), 
-                   "%d-%m-%Y %T", 
-                   localtime((const time_t *) &totalTime));
+	totalTime = (ntfTime / (SaTimeT)SA_TIME_ONE_SECOND);
+	(void)strftime(time_str, sizeof(time_str), "%d-%m-%Y %T", localtime((const time_t *)&totalTime));
 
-    TRACE_1("eventTime = %lld = %s\n", (SaTimeT) ntfTime, time_str);
+	TRACE_1("eventTime = %lld = %s\n", (SaTimeT)ntfTime, time_str);
 
-    /* Notification ID */
-    TRACE_1("notificationID = %llu\n",
-            *notificationHeader->notificationId);
+	/* Notification ID */
+	TRACE_1("notificationID = %llu\n", *notificationHeader->notificationId);
 
-    /* Length of Additional text */
-    TRACE_1("lengthadditionalText = %d\n",
-            notificationHeader->lengthAdditionalText);
+	/* Length of Additional text */
+	TRACE_1("lengthadditionalText = %d\n", notificationHeader->lengthAdditionalText);
 
-    /* Additional text */
-    TRACE_1("additionalText = %s\n", 
-            notificationHeader->additionalText);
+	/* Additional text */
+	TRACE_1("additionalText = %s\n", notificationHeader->additionalText);
 }
-
 
 /****************************************************************************
  * Name          : proc_send_not_msg
@@ -344,24 +316,19 @@ static void print_header(SaNtfNotificationHeaderT *notificationHeader)
  *****************************************************************************/
 static uns32 proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32  rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
-    ntfsv_send_not_req_t *param =
-    evt->info.msg.info.api_info.param.send_notification;
+	TRACE_ENTER();
+	ntfsv_send_not_req_t *param = evt->info.msg.info.api_info.param.send_notification;
 
-    notificationReceived(param->client_id,
-                         param->notificationType,
-                         param,
-                         &evt->mds_ctxt);
-    if (param->notificationType == SA_NTF_TYPE_ALARM)
-    {
-        print_header(&param->notification.alarm.notificationHeader);
-    }
+	notificationReceived(param->client_id, param->notificationType, param, &evt->mds_ctxt);
+	if (param->notificationType == SA_NTF_TYPE_ALARM) {
+		print_header(&param->notification.alarm.notificationHeader);
+	}
 
-    /* The allocated resources in ntfsv_enc_dec.c is freed in the destructor in NtfNotification */
-    TRACE_LEAVE();
-    return rc;
+	/* The allocated resources in ntfsv_enc_dec.c is freed in the destructor in NtfNotification */
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -377,20 +344,17 @@ static uns32 proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
+static uns32 proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32  rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
-    ntfsv_reader_init_req_t *reader_initialize_param =
-    &(evt->info.msg.info.api_info.param.reader_init);
+	TRACE_ENTER();
+	ntfsv_reader_init_req_t *reader_initialize_param = &(evt->info.msg.info.api_info.param.reader_init);
 
-    TRACE_4("client_id: %u", reader_initialize_param->client_id);
-    newReader(reader_initialize_param->client_id,
-              reader_initialize_param->searchCriteria,
-              &evt->mds_ctxt);
-    TRACE_LEAVE();
-    return rc;
+	TRACE_4("client_id: %u", reader_initialize_param->client_id);
+	newReader(reader_initialize_param->client_id, reader_initialize_param->searchCriteria, &evt->mds_ctxt);
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -406,18 +370,15 @@ static uns32 proc_reader_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
+static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32  rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
-    ntfsv_reader_finalize_req_t *reader_finalize_param =
-    &(evt->info.msg.info.api_info.param.reader_finalize);
+	TRACE_ENTER();
+	ntfsv_reader_finalize_req_t *reader_finalize_param = &(evt->info.msg.info.api_info.param.reader_finalize);
 
-    TRACE_4("client_id: %u", reader_finalize_param->client_id);
-    deleteReader(reader_finalize_param->client_id,
-                 reader_finalize_param->readerId,
-                 &evt->mds_ctxt);
+	TRACE_4("client_id: %u", reader_finalize_param->client_id);
+	deleteReader(reader_finalize_param->client_id, reader_finalize_param->readerId, &evt->mds_ctxt);
 
 /*  if (ais_rv == SA_AIS_OK)                                                 */
 /*  {                                                                        */
@@ -426,8 +387,8 @@ static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
 /*     if (async_rc != NCSCC_RC_SUCCESS)                                     */
 /*        TRACE("ntfs_send_reader_finalize_async_update failed");          */
 /*  }                                                                        */
-    TRACE_LEAVE();
-    return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -443,19 +404,16 @@ static uns32 proc_reader_finalize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
  * Notes         : None.
  *****************************************************************************/
 
-static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
+static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 {
-    uns32  rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER();
-    ntfsv_read_next_req_t *read_next_param =
-    &(evt->info.msg.info.api_info.param.read_next);
+	TRACE_ENTER();
+	ntfsv_read_next_req_t *read_next_param = &(evt->info.msg.info.api_info.param.read_next);
 
-    TRACE_4("client_id: %u", read_next_param->client_id);
-    readNext(read_next_param->client_id,
-             read_next_param->readerId,
-             read_next_param->searchDirection,
-             &evt->mds_ctxt);
+	TRACE_4("client_id: %u", read_next_param->client_id);
+	readNext(read_next_param->client_id,
+		 read_next_param->readerId, read_next_param->searchDirection, &evt->mds_ctxt);
 /*  if (ais_rv == SA_AIS_OK)                                                 */
 /*  {                                                                        */
 /*     async_rc = ntfs_subscription_initialize_async_update(cb,              */
@@ -463,8 +421,8 @@ static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
 /*     if (async_rc != NCSCC_RC_SUCCESS)                                     */
 /*        TRACE("ntfs_send_read_next_async_update failed");          */
 /*  }                                                                        */
-    TRACE_LEAVE();
-    return rc;
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -482,23 +440,20 @@ static uns32 proc_read_next_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t  *evt)
  *****************************************************************************/
 static uns32 process_api_evt(ntfsv_ntfs_evt_t *evt)
 {
-    if (evt->evt_type == NTFSV_NTFS_NTFSV_MSG)
-    {
-        /* ignore one level... */
-        if ((evt->info.msg.type  >= NTFSV_NTFA_API_MSG) && 
-            (evt->info.msg.type  <  NTFSV_MSG_MAX))
-        {
-            if ((evt->info.msg.info.api_info.type >= NTFSV_INITIALIZE_REQ) && 
-                (evt->info.msg.info.api_info.type <  NTFSV_API_MAX))
-            {
-                if (ntfs_ntfa_api_msg_dispatcher[evt->info.msg.info.api_info.type](ntfs_cb, evt) != NCSCC_RC_SUCCESS)
-                {
-                    TRACE_2("ntfs_ntfa_api_msg_dispatcher FAILED type: %d", (int)evt->info.msg.type);
-                }
-            }
-        }
-    }
-    return NCSCC_RC_SUCCESS;
+	if (evt->evt_type == NTFSV_NTFS_NTFSV_MSG) {
+		/* ignore one level... */
+		if ((evt->info.msg.type >= NTFSV_NTFA_API_MSG) && (evt->info.msg.type < NTFSV_MSG_MAX)) {
+			if ((evt->info.msg.info.api_info.type >= NTFSV_INITIALIZE_REQ) &&
+			    (evt->info.msg.info.api_info.type < NTFSV_API_MAX)) {
+				if (ntfs_ntfa_api_msg_dispatcher[evt->info.msg.info.api_info.type] (ntfs_cb, evt) !=
+				    NCSCC_RC_SUCCESS) {
+					TRACE_2("ntfs_ntfa_api_msg_dispatcher FAILED type: %d",
+						(int)evt->info.msg.type);
+				}
+			}
+		}
+	}
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -516,34 +471,23 @@ static uns32 process_api_evt(ntfsv_ntfs_evt_t *evt)
  *****************************************************************************/
 void ntfs_process_mbx(SYSF_MBX *mbx)
 {
-    ntfsv_ntfs_evt_t *msg;
+	ntfsv_ntfs_evt_t *msg;
 
-    msg = (ntfsv_ntfs_evt_t *) m_NCS_IPC_NON_BLK_RECEIVE(mbx, msg);
-    if (msg != NULL)
-    {
-        if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
-        {
-            if ((msg->evt_type >= NTFSV_NTFS_NTFSV_MSG) && 
-                (msg->evt_type <=  NTFSV_NTFS_EVT_NTFA_DOWN))
-            {
-                ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type](msg);
-            }
-            else if (msg->evt_type == NTFSV_EVT_QUIESCED_ACK)
-            {
-                proc_mds_quiesced_ack_msg(msg);
-            }
-            else
-                TRACE("message type invalid");
-        }
-        else
-        {
-            if (msg->evt_type == NTFSV_NTFS_EVT_NTFA_DOWN)
-            {
-                ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type](msg);
-            }
-        }
+	msg = (ntfsv_ntfs_evt_t *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, msg);
+	if (msg != NULL) {
+		if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE) {
+			if ((msg->evt_type >= NTFSV_NTFS_NTFSV_MSG) && (msg->evt_type <= NTFSV_NTFS_EVT_NTFA_DOWN)) {
+				ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+			} else if (msg->evt_type == NTFSV_EVT_QUIESCED_ACK) {
+				proc_mds_quiesced_ack_msg(msg);
+			} else
+				TRACE("message type invalid");
+		} else {
+			if (msg->evt_type == NTFSV_NTFS_EVT_NTFA_DOWN) {
+				ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+			}
+		}
 
-        ntfs_evt_destroy(msg);
-    }
+		ntfs_evt_destroy(msg);
+	}
 }
-

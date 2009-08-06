@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -69,7 +68,7 @@ do { \
 /*** Extern function declarations ***/
 EXTERN_C uns32 ham_mds_initialize(HAM_CB *ham_cb);
 EXTERN_C uns32 ham_mds_finalize(HAM_CB *ham_cb);
-EXTERN_C uns32 ham_mds_msg_send (HAM_CB  *cb, HISV_MSG  *msg, MDS_DEST *dest,
-                      MDS_SEND_PRIORITY_TYPE prio, uns32 send_type, HISV_EVT *evt);
+EXTERN_C uns32 ham_mds_msg_send(HAM_CB *cb, HISV_MSG *msg, MDS_DEST *dest,
+				MDS_SEND_PRIORITY_TYPE prio, uns32 send_type, HISV_EVT *evt);
 
-#endif /* !HAM_MDS_H */
+#endif   /* !HAM_MDS_H */

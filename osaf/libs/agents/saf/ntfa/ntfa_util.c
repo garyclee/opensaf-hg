@@ -32,42 +32,41 @@ static unsigned int ntfa_use_count;
  */
 static unsigned int ntfa_create(void)
 {
-    unsigned int timeout = 3000;
-    NCS_SEL_OBJ_SET set;
-    unsigned int  rc = NCSCC_RC_SUCCESS;
+	unsigned int timeout = 3000;
+	NCS_SEL_OBJ_SET set;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
-   /* create and init sel obj for mds sync */
-    m_NCS_SEL_OBJ_CREATE(&ntfa_cb.ntfs_sync_sel);
-    m_NCS_SEL_OBJ_ZERO(&set);
-    m_NCS_SEL_OBJ_SET(ntfa_cb.ntfs_sync_sel, &set);
-    pthread_mutex_lock(&ntfa_cb.cb_lock);
-    ntfa_cb.ntfs_sync_awaited = 1;
-    pthread_mutex_unlock(&ntfa_cb.cb_lock);
+	/* create and init sel obj for mds sync */
+	m_NCS_SEL_OBJ_CREATE(&ntfa_cb.ntfs_sync_sel);
+	m_NCS_SEL_OBJ_ZERO(&set);
+	m_NCS_SEL_OBJ_SET(ntfa_cb.ntfs_sync_sel, &set);
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	ntfa_cb.ntfs_sync_awaited = 1;
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
-   /* register with MDS */
-    if ( (NCSCC_RC_SUCCESS != (rc = ntfa_mds_init(&ntfa_cb))))
-    {
-        rc = NCSCC_RC_FAILURE;
-        goto error;
-    }
+	/* register with MDS */
+	if ((NCSCC_RC_SUCCESS != (rc = ntfa_mds_init(&ntfa_cb)))) {
+		rc = NCSCC_RC_FAILURE;
+		goto error;
+	}
 
-   /* Block and wait for indication from MDS meaning NTFS is up */
-    m_NCS_SEL_OBJ_SELECT(ntfa_cb.ntfs_sync_sel, &set, 0 , 0, &timeout);
+	/* Block and wait for indication from MDS meaning NTFS is up */
+	m_NCS_SEL_OBJ_SELECT(ntfa_cb.ntfs_sync_sel, &set, 0, 0, &timeout);
 
-    pthread_mutex_lock(&ntfa_cb.cb_lock);
-    ntfa_cb.ntfs_sync_awaited = 0;
-    pthread_mutex_unlock(&ntfa_cb.cb_lock);
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	ntfa_cb.ntfs_sync_awaited = 0;
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
-   /* No longer needed */
-    m_NCS_SEL_OBJ_DESTROY(ntfa_cb.ntfs_sync_sel);
+	/* No longer needed */
+	m_NCS_SEL_OBJ_DESTROY(ntfa_cb.ntfs_sync_sel);
 
-    return rc;
+	return rc;
 
-error:
-    /* delete the ntfa init instances */
-    ntfa_hdl_list_del(&ntfa_cb.client_list);
+ error:
+	/* delete the ntfa init instances */
+	ntfa_hdl_list_del(&ntfa_cb.client_list);
 
-    return rc;
+	return rc;
 }
 
 /**
@@ -77,11 +76,11 @@ error:
  */
 static void ntfa_destroy(void)
 {
-   /* delete the hdl db */
-    ntfa_hdl_list_del(&ntfa_cb.client_list);
+	/* delete the hdl db */
+	ntfa_hdl_list_del(&ntfa_cb.client_list);
 
-   /* unregister with MDS */
-    ntfa_mds_finalize(&ntfa_cb);
+	/* unregister with MDS */
+	ntfa_mds_finalize(&ntfa_cb);
 }
 
 /****************************************************************************
@@ -99,16 +98,15 @@ static void ntfa_destroy(void)
  *****************************************************************************/
 static NCS_BOOL ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-    ntfsv_msg_t *cbk, *pnext;
+	ntfsv_msg_t *cbk, *pnext;
 
-    pnext = cbk = (ntfsv_msg_t *)msg;
-    while (pnext)
-    {
-        pnext = cbk->next;
-        ntfa_msg_destroy(cbk);
-        cbk = pnext;
-    }
-    return TRUE;
+	pnext = cbk = (ntfsv_msg_t *)msg;
+	while (pnext) {
+		pnext = cbk->next;
+		ntfa_msg_destroy(cbk);
+		cbk = pnext;
+	}
+	return TRUE;
 }
 
 /****************************************************************************
@@ -124,210 +122,153 @@ static NCS_BOOL ntfa_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 ******************************************************************************/
 static void ntfa_notification_hdl_rec_list_del(ntfa_notification_hdl_rec_t **plstr_hdl)
 {
-    ntfa_notification_hdl_rec_t *lstr_hdl;
-    while ((lstr_hdl = *plstr_hdl) != NULL)
-    {
-        *plstr_hdl = lstr_hdl->next;
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, lstr_hdl->notification_hdl);
-        free(lstr_hdl);
-        lstr_hdl = NULL;
-    }
+	ntfa_notification_hdl_rec_t *lstr_hdl;
+	while ((lstr_hdl = *plstr_hdl) != NULL) {
+		*plstr_hdl = lstr_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, lstr_hdl->notification_hdl);
+		free(lstr_hdl);
+		lstr_hdl = NULL;
+	}
 }
 
 static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notification,
-    ntfsv_send_not_req_t *not_cbk,
-    ntfa_client_hdl_rec_t *hdl_rec)
+						    ntfsv_send_not_req_t *not_cbk, ntfa_client_hdl_rec_t *hdl_rec)
 {
-    SaAisErrorT rc = SA_AIS_OK;
-    ntfa_notification_hdl_rec_t *notification_hdl_rec;
-    notification->notificationType = not_cbk->notificationType;
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfa_notification_hdl_rec_t *notification_hdl_rec;
+	notification->notificationType = not_cbk->notificationType;
 
-    switch (not_cbk->notificationType)
-    {
-        case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-            TRACE_2("type: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
-            rc = saNtfObjectCreateDeleteNotificationAllocate(
-                hdl_rec->local_hdl,
-                &notification->notification.
-                objectCreateDeleteNotification,
-                0, /* not supported */
-                not_cbk->notification.objectCreateDelete.
-                notificationHeader.
-                lengthAdditionalText,
-                0, /* not supported */
-                not_cbk->notification.
-                objectCreateDelete.numAttributes,
-                SA_NTF_ALLOC_SYSTEM_LIMIT);
-            if (SA_AIS_OK == rc)
-            {
-                pthread_mutex_lock(&ntfa_cb.cb_lock);
-                notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
-                    notification->notification.
-                    objectCreateDeleteNotification.
-                    notificationHandle);
-                if (notification_hdl_rec == NULL)
-                {
-                    pthread_mutex_unlock(&ntfa_cb.cb_lock);
-                    TRACE("ncshm_take_hdl notificationHandle failed"); 
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    break;
-                }
-            /* to be able to delelte cbk_notification in saNtfNotificationFree */
-                notification_hdl_rec->cbk_notification = notification;
-                ncshm_give_hdl(notification->notification.
-                    objectCreateDeleteNotification.notificationHandle);
-                ntfsv_copy_ntf_obj_cr_del(&notification->notification.objectCreateDeleteNotification,
-                    &not_cbk->notification.objectCreateDelete);
-                pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            }
-            break;
-        case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-            TRACE_2("type: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
-            rc = saNtfAttributeChangeNotificationAllocate(
-                hdl_rec->local_hdl,
-                &notification->notification.
-                attributeChangeNotification,
-                0, /* not supported */
-                not_cbk->notification.attributeChange.
-                notificationHeader.
-                lengthAdditionalText,
-                0, /* not supported */
-                not_cbk->notification.
-                attributeChange.numAttributes,
-                SA_NTF_ALLOC_SYSTEM_LIMIT);
-            if (SA_AIS_OK == rc)
-            {
-                pthread_mutex_lock(&ntfa_cb.cb_lock);
-                notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
-                    notification->notification.
-                    attributeChangeNotification.
-                    notificationHandle);
-                if (notification_hdl_rec == NULL)
-                {
-                    pthread_mutex_unlock(&ntfa_cb.cb_lock);
-                    TRACE("ncshm_take_hdl notificationHandle failed"); 
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    break;
-                }
-            /* to be able to delelte cbk_notification in saNtfNotificationFree */
-                notification_hdl_rec->cbk_notification = notification;
-                ncshm_give_hdl(notification->notification.
-                    attributeChangeNotification.notificationHandle);
-                ntfsv_copy_ntf_attr_change(&notification->notification.attributeChangeNotification,
-                    &not_cbk->notification.attributeChange);
-                pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            }
-            break;
-        case SA_NTF_TYPE_STATE_CHANGE:
-            TRACE_2("type: SA_NTF_TYPE_STATE_CHANGE");
-            rc = saNtfStateChangeNotificationAllocate(
-                hdl_rec->local_hdl,
-                &notification->notification.
-                stateChangeNotification,
-                0, /* not supported */
-                not_cbk->notification.stateChange.
-                notificationHeader.
-                lengthAdditionalText,
-                0, /* not supported */
-                not_cbk->notification.
-                stateChange.numStateChanges,
-                SA_NTF_ALLOC_SYSTEM_LIMIT);
-            if (SA_AIS_OK == rc)
-            {
-                pthread_mutex_lock(&ntfa_cb.cb_lock);
-                notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
-                    notification->notification.
-                    stateChangeNotification.
-                    notificationHandle);
-                if (notification_hdl_rec == NULL)
-                {
-                    pthread_mutex_unlock(&ntfa_cb.cb_lock);
-                    TRACE("ncshm_take_hdl notificationHandle failed"); 
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    break;
-                }
-            /* to be able to delelte cbk_notification in saNtfNotificationFree */
-                notification_hdl_rec->cbk_notification = notification;
-                ncshm_give_hdl(notification->notification.
-                    stateChangeNotification.notificationHandle);
-                ntfsv_copy_ntf_state_change(&notification->notification.stateChangeNotification,
-                    &not_cbk->notification.stateChange);
-                pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            }
-            break;
-        case SA_NTF_TYPE_ALARM:
-            rc = saNtfAlarmNotificationAllocate(
-                hdl_rec->local_hdl,
-                &notification->notification.alarmNotification,
-                not_cbk->notification.alarm.notificationHeader.numCorrelatedNotifications,
-                not_cbk->notification.alarm.notificationHeader.lengthAdditionalText,
-                0, /* not supported */
-                0, /* not supported */
-                0, /* not supported */
-                0, /* not supported */
-                SA_NTF_ALLOC_SYSTEM_LIMIT);
-            if (SA_AIS_OK == rc)
-            {
-                pthread_mutex_lock(&ntfa_cb.cb_lock);
-                notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
-                    notification->notification.
-                    alarmNotification.notificationHandle);
-                if (notification_hdl_rec == NULL)
-                {
-                    pthread_mutex_unlock(&ntfa_cb.cb_lock);
-                    TRACE("ncshm_take_hdl notificationHandle failed"); 
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    break;
-                }
-            /* to be able to delelte cbk_notification in saNtfNotificationFree */
-                notification_hdl_rec->cbk_notification = notification;
-                ncshm_give_hdl(notification->notification.
-                    alarmNotification.notificationHandle);
-                ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification,
-                    &not_cbk->notification.alarm);
-                pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            }
-            break;
-        case SA_NTF_TYPE_SECURITY_ALARM:
-            TRACE_2("type: SA_NTF_TYPE_SECURITY_ALARM");
-            rc = saNtfSecurityAlarmNotificationAllocate(
-                hdl_rec->local_hdl,
-                &notification->notification.securityAlarmNotification,
-                0, /* not supported */
-                not_cbk->notification.securityAlarm.notificationHeader.lengthAdditionalText,
-                0, /* not supported */
-                SA_NTF_ALLOC_SYSTEM_LIMIT);
-            if (SA_AIS_OK == rc)
-            {
-                pthread_mutex_lock(&ntfa_cb.cb_lock);
-                notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
-                    notification->notification.
-                    securityAlarmNotification.
-                    notificationHandle);
-                if (notification_hdl_rec == NULL)
-                {
-                    pthread_mutex_unlock(&ntfa_cb.cb_lock);
-                    TRACE("ncshm_take_hdl notificationHandle failed"); 
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    break;
-                }
-            /* to be able to delelte cbk_notification in saNtfNotificationFree */
-                notification_hdl_rec->cbk_notification = notification;
-                ncshm_give_hdl(notification->notification.
-                    securityAlarmNotification.notificationHandle);
-                ntfsv_copy_ntf_security_alarm(&notification->notification.
-                    securityAlarmNotification,
-                    &not_cbk->notification.securityAlarm);
-                pthread_mutex_unlock(&ntfa_cb.cb_lock);
-            }
-            break;
-        default:
-            LOG_ER("Unkown notification type");
-            rc = SA_AIS_ERR_INVALID_PARAM;
-    }
-    return rc;
+	switch (not_cbk->notificationType) {
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+		TRACE_2("type: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
+		rc = saNtfObjectCreateDeleteNotificationAllocate(hdl_rec->local_hdl, &notification->notification.objectCreateDeleteNotification, 0,	/* not supported */
+								 not_cbk->notification.objectCreateDelete.notificationHeader.lengthAdditionalText, 0,	/* not supported */
+								 not_cbk->notification.objectCreateDelete.numAttributes,
+								 SA_NTF_ALLOC_SYSTEM_LIMIT);
+		if (SA_AIS_OK == rc) {
+			pthread_mutex_lock(&ntfa_cb.cb_lock);
+			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
+							      notification->
+							      notification.objectCreateDeleteNotification.notificationHandle);
+			if (notification_hdl_rec == NULL) {
+				pthread_mutex_unlock(&ntfa_cb.cb_lock);
+				TRACE("ncshm_take_hdl notificationHandle failed");
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				break;
+			}
+			/* to be able to delelte cbk_notification in saNtfNotificationFree */
+			notification_hdl_rec->cbk_notification = notification;
+			ncshm_give_hdl(notification->notification.objectCreateDeleteNotification.notificationHandle);
+			ntfsv_copy_ntf_obj_cr_del(&notification->notification.objectCreateDeleteNotification,
+						  &not_cbk->notification.objectCreateDelete);
+			pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		}
+		break;
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+		TRACE_2("type: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
+		rc = saNtfAttributeChangeNotificationAllocate(hdl_rec->local_hdl, &notification->notification.attributeChangeNotification, 0,	/* not supported */
+							      not_cbk->notification.attributeChange.notificationHeader.lengthAdditionalText, 0,	/* not supported */
+							      not_cbk->notification.attributeChange.numAttributes,
+							      SA_NTF_ALLOC_SYSTEM_LIMIT);
+		if (SA_AIS_OK == rc) {
+			pthread_mutex_lock(&ntfa_cb.cb_lock);
+			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
+							      notification->
+							      notification.attributeChangeNotification.notificationHandle);
+			if (notification_hdl_rec == NULL) {
+				pthread_mutex_unlock(&ntfa_cb.cb_lock);
+				TRACE("ncshm_take_hdl notificationHandle failed");
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				break;
+			}
+			/* to be able to delelte cbk_notification in saNtfNotificationFree */
+			notification_hdl_rec->cbk_notification = notification;
+			ncshm_give_hdl(notification->notification.attributeChangeNotification.notificationHandle);
+			ntfsv_copy_ntf_attr_change(&notification->notification.attributeChangeNotification,
+						   &not_cbk->notification.attributeChange);
+			pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		}
+		break;
+	case SA_NTF_TYPE_STATE_CHANGE:
+		TRACE_2("type: SA_NTF_TYPE_STATE_CHANGE");
+		rc = saNtfStateChangeNotificationAllocate(hdl_rec->local_hdl, &notification->notification.stateChangeNotification, 0,	/* not supported */
+							  not_cbk->notification.stateChange.notificationHeader.lengthAdditionalText, 0,	/* not supported */
+							  not_cbk->notification.stateChange.numStateChanges,
+							  SA_NTF_ALLOC_SYSTEM_LIMIT);
+		if (SA_AIS_OK == rc) {
+			pthread_mutex_lock(&ntfa_cb.cb_lock);
+			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
+							      notification->
+							      notification.stateChangeNotification.notificationHandle);
+			if (notification_hdl_rec == NULL) {
+				pthread_mutex_unlock(&ntfa_cb.cb_lock);
+				TRACE("ncshm_take_hdl notificationHandle failed");
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				break;
+			}
+			/* to be able to delelte cbk_notification in saNtfNotificationFree */
+			notification_hdl_rec->cbk_notification = notification;
+			ncshm_give_hdl(notification->notification.stateChangeNotification.notificationHandle);
+			ntfsv_copy_ntf_state_change(&notification->notification.stateChangeNotification,
+						    &not_cbk->notification.stateChange);
+			pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		}
+		break;
+	case SA_NTF_TYPE_ALARM:
+		rc = saNtfAlarmNotificationAllocate(hdl_rec->local_hdl, &notification->notification.alarmNotification, not_cbk->notification.alarm.notificationHeader.numCorrelatedNotifications, not_cbk->notification.alarm.notificationHeader.lengthAdditionalText, 0,	/* not supported */
+						    0,	/* not supported */
+						    0,	/* not supported */
+						    0,	/* not supported */
+						    SA_NTF_ALLOC_SYSTEM_LIMIT);
+		if (SA_AIS_OK == rc) {
+			pthread_mutex_lock(&ntfa_cb.cb_lock);
+			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
+							      notification->notification.alarmNotification.
+							      notificationHandle);
+			if (notification_hdl_rec == NULL) {
+				pthread_mutex_unlock(&ntfa_cb.cb_lock);
+				TRACE("ncshm_take_hdl notificationHandle failed");
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				break;
+			}
+			/* to be able to delelte cbk_notification in saNtfNotificationFree */
+			notification_hdl_rec->cbk_notification = notification;
+			ncshm_give_hdl(notification->notification.alarmNotification.notificationHandle);
+			ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification,
+					     &not_cbk->notification.alarm);
+			pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		}
+		break;
+	case SA_NTF_TYPE_SECURITY_ALARM:
+		TRACE_2("type: SA_NTF_TYPE_SECURITY_ALARM");
+		rc = saNtfSecurityAlarmNotificationAllocate(hdl_rec->local_hdl, &notification->notification.securityAlarmNotification, 0,	/* not supported */
+							    not_cbk->notification.securityAlarm.notificationHeader.lengthAdditionalText, 0,	/* not supported */
+							    SA_NTF_ALLOC_SYSTEM_LIMIT);
+		if (SA_AIS_OK == rc) {
+			pthread_mutex_lock(&ntfa_cb.cb_lock);
+			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
+							      notification->
+							      notification.securityAlarmNotification.notificationHandle);
+			if (notification_hdl_rec == NULL) {
+				pthread_mutex_unlock(&ntfa_cb.cb_lock);
+				TRACE("ncshm_take_hdl notificationHandle failed");
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				break;
+			}
+			/* to be able to delelte cbk_notification in saNtfNotificationFree */
+			notification_hdl_rec->cbk_notification = notification;
+			ncshm_give_hdl(notification->notification.securityAlarmNotification.notificationHandle);
+			ntfsv_copy_ntf_security_alarm(&notification->notification.securityAlarmNotification,
+						      &not_cbk->notification.securityAlarm);
+			pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		}
+		break;
+	default:
+		LOG_ER("Unkown notification type");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+	}
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : ntfa_hdl_cbk_rec_prc
@@ -343,53 +284,45 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
  
   Notes         : None
 ******************************************************************************/
-static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t         *cb, 
-    ntfsv_msg_t         *msg,
-    ntfa_client_hdl_rec_t *hdl_rec)
+static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t *cb, ntfsv_msg_t *msg, ntfa_client_hdl_rec_t *hdl_rec)
 {
-    SaNtfCallbacksT  *reg_cbk = &hdl_rec->reg_cbk;
-    ntfsv_cbk_info_t *cbk_info = &msg->info.cbk_info;
-    SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-    TRACE_ENTER2("callback type: %d", cbk_info->type);
+	SaNtfCallbacksT *reg_cbk = &hdl_rec->reg_cbk;
+	ntfsv_cbk_info_t *cbk_info = &msg->info.cbk_info;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	TRACE_ENTER2("callback type: %d", cbk_info->type);
 
-    /* invoke the corresponding callback */
-    switch (cbk_info->type)
-    {
-        case NTFSV_NOTIFICATION_CALLBACK:
-            {
-                if (reg_cbk->saNtfNotificationCallback)
-                {
-                    SaNtfNotificationsT *notification;
-                    /* TODO: new notification from decode */
-                    notification = calloc(1,sizeof(SaNtfNotificationsT));
-                    if (notification == NULL)
-                    {
-                        rc = SA_AIS_ERR_NO_MEMORY;
-                        goto done;
-                    }
+	/* invoke the corresponding callback */
+	switch (cbk_info->type) {
+	case NTFSV_NOTIFICATION_CALLBACK:
+		{
+			if (reg_cbk->saNtfNotificationCallback) {
+				SaNtfNotificationsT *notification;
+				/* TODO: new notification from decode */
+				notification = calloc(1, sizeof(SaNtfNotificationsT));
+				if (notification == NULL) {
+					rc = SA_AIS_ERR_NO_MEMORY;
+					goto done;
+				}
 /* TODO: put in handle database when decode */
-                    rc = ntfa_alloc_callback_notification(notification,
-                        cbk_info->notification_cbk,
-                        hdl_rec);
-                    if (rc != SA_AIS_OK)
-                    {
-                            /* not in handle struct*/
-                        free(notification);
-                        goto done;
-                    }
-                    reg_cbk->saNtfNotificationCallback(cbk_info->subscriptionId,
-                        notification);
-                }
-            }
-            break;
-        default:
-            TRACE("unknown callback type: %d", cbk_info->type);
-            rc = SA_AIS_ERR_INVALID_PARAM;
-            break;
-    }
-    done:
-    TRACE_LEAVE();
-    return rc;
+				rc = ntfa_alloc_callback_notification(notification,
+								      cbk_info->notification_cbk, hdl_rec);
+				if (rc != SA_AIS_OK) {
+					/* not in handle struct */
+					free(notification);
+					goto done;
+				}
+				reg_cbk->saNtfNotificationCallback(cbk_info->subscriptionId, notification);
+			}
+		}
+		break;
+	default:
+		TRACE("unknown callback type: %d", cbk_info->type);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		break;
+	}
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -404,33 +337,27 @@ static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t         *cb,
  
   Notes         : None
 ******************************************************************************/
-static SaAisErrorT ntfa_hdl_cbk_dispatch_one(ntfa_cb_t *cb,
-    ntfa_client_hdl_rec_t *hdl_rec)
+static SaAisErrorT ntfa_hdl_cbk_dispatch_one(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
 {
-    ntfsv_msg_t         *cbk_msg;
-    SaAisErrorT rc = SA_AIS_OK;
-    TRACE_ENTER();
-    /* Nonblk receive to obtain the message from priority queue*/
-    while (NULL != (cbk_msg = (ntfsv_msg_t *)
-        m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-    {
-        TRACE_1("In While loop type = %d", (int)cbk_msg->info.cbk_info.type);
-        if ( cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK)
-        {
-            rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-            break;
-        }
-        else
-        {
-            TRACE("Unsupported callback type = %d", 
-                cbk_msg->info.cbk_info.type);
-            rc = SA_AIS_ERR_LIBRARY;
-        }
-        ntfa_msg_destroy(cbk_msg);
-    }
-    TRACE_LEAVE();
-    return rc;
-}  
+	ntfsv_msg_t *cbk_msg;
+	SaAisErrorT rc = SA_AIS_OK;
+	TRACE_ENTER();
+	/* Nonblk receive to obtain the message from priority queue */
+	while (NULL != (cbk_msg = (ntfsv_msg_t *)
+			m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
+		TRACE_1("In While loop type = %d", (int)cbk_msg->info.cbk_info.type);
+		if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
+			rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
+			break;
+		} else {
+			TRACE("Unsupported callback type = %d", cbk_msg->info.cbk_info.type);
+			rc = SA_AIS_ERR_LIBRARY;
+		}
+		ntfa_msg_destroy(cbk_msg);
+	}
+	TRACE_LEAVE();
+	return rc;
+}
 
 /****************************************************************************
   Name          : ntfa_hdl_cbk_dispatch_all
@@ -444,33 +371,27 @@ static SaAisErrorT ntfa_hdl_cbk_dispatch_one(ntfa_cb_t *cb,
  
   Notes         : None
 ******************************************************************************/
-static uns32 ntfa_hdl_cbk_dispatch_all (ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
+static uns32 ntfa_hdl_cbk_dispatch_all(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
 {
-    ntfsv_msg_t   *cbk_msg;
-    uns32       rc = SA_AIS_OK;
+	ntfsv_msg_t *cbk_msg;
+	uns32 rc = SA_AIS_OK;
 
-    /* Recv all the cbk notifications from the queue & process them */
-    do
-    {
-        if (NULL == (cbk_msg = (ntfsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-            break;
-        if ( cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK)
-        {
-            TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
-            rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-        }
-        else
-        {
-            TRACE("unsupported callback type %d", 
-                cbk_msg->info.cbk_info.type);
-        }
-        /* now that we are done with this rec, free the resources */
-        ntfa_msg_destroy(cbk_msg);
-    } while (1);
+	/* Recv all the cbk notifications from the queue & process them */
+	do {
+		if (NULL == (cbk_msg = (ntfsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
+			break;
+		if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
+			TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
+			rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
+		} else {
+			TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
+		}
+		/* now that we are done with this rec, free the resources */
+		ntfa_msg_destroy(cbk_msg);
+	} while (1);
 
-    return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : ntfa_hdl_cbk_dispatch_block
@@ -486,34 +407,27 @@ static uns32 ntfa_hdl_cbk_dispatch_all (ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hd
  
   Notes         : None
 ******************************************************************************/
-static uns32 ntfa_hdl_cbk_dispatch_block (ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
+static uns32 ntfa_hdl_cbk_dispatch_block(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec)
 {
-    ntfsv_msg_t   *cbk_msg;
-    uns32 rc = SA_AIS_OK;
+	ntfsv_msg_t *cbk_msg;
+	uns32 rc = SA_AIS_OK;
 
-    for (;;)
-    {
-        if (NULL != (cbk_msg = (ntfsv_msg_t *)
-            m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-        {
+	for (;;) {
+		if (NULL != (cbk_msg = (ntfsv_msg_t *)
+			     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
 
-            if ( cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK)
-            {
-                TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
-                rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-            }
-            else
-            {
-                TRACE("unsupported callback type %d", 
-                    cbk_msg->info.cbk_info.type);
-            }
-            /* now that we are done with this rec, free the resources */
-            ntfa_msg_destroy(cbk_msg);
-        }
-        else
-            return rc;/* FIX to handle finalize clean up of mbx */
-    }
-    return rc;
+			if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
+				TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
+				rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
+			} else {
+				TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
+			}
+			/* now that we are done with this rec, free the resources */
+			ntfa_msg_destroy(cbk_msg);
+		} else
+			return rc;	/* FIX to handle finalize clean up of mbx */
+	}
+	return rc;
 }
 
 /**
@@ -523,37 +437,31 @@ static uns32 ntfa_hdl_cbk_dispatch_block (ntfa_cb_t *cb, ntfa_client_hdl_rec_t *
  */
 unsigned int ntfa_startup(void)
 {
-    unsigned int rc = NCSCC_RC_SUCCESS;
-    pthread_mutex_lock(&ntfa_lock);
+	unsigned int rc = NCSCC_RC_SUCCESS;
+	pthread_mutex_lock(&ntfa_lock);
 
-    TRACE_ENTER2("ntfa_use_count: %u", ntfa_use_count);
-    if (ntfa_use_count > 0)
-    {
-      /* Already created, just increment the use_count */
-        ntfa_use_count++;
-        goto done;
-    }
-    else
-    {
-        if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS)
-        {
-            TRACE("ncs_agents_startup FAILED");
-            goto done;
-        }
+	TRACE_ENTER2("ntfa_use_count: %u", ntfa_use_count);
+	if (ntfa_use_count > 0) {
+		/* Already created, just increment the use_count */
+		ntfa_use_count++;
+		goto done;
+	} else {
+		if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+			TRACE("ncs_agents_startup FAILED");
+			goto done;
+		}
 
-        if ((rc = ntfa_create()) != NCSCC_RC_SUCCESS)
-        {
-            ncs_agents_shutdown(0, 0);
-            goto done;
-        }
-        else
-            ntfa_use_count = 1;
-    }
+		if ((rc = ntfa_create()) != NCSCC_RC_SUCCESS) {
+			ncs_agents_shutdown(0, 0);
+			goto done;
+		} else
+			ntfa_use_count = 1;
+	}
 
-done:
-    pthread_mutex_unlock(&ntfa_lock);
-    TRACE_LEAVE2("rc: %u, ntfa_use_count: %u", rc, ntfa_use_count);
-    return rc;
+ done:
+	pthread_mutex_unlock(&ntfa_lock);
+	TRACE_LEAVE2("rc: %u, ntfa_use_count: %u", rc, ntfa_use_count);
+	return rc;
 }
 
 /**
@@ -563,26 +471,23 @@ done:
  */
 unsigned int ntfa_shutdown(void)
 {
-    unsigned int rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER2("ntfa_use_count: %u", ntfa_use_count);
-    pthread_mutex_lock(&ntfa_lock);
+	TRACE_ENTER2("ntfa_use_count: %u", ntfa_use_count);
+	pthread_mutex_lock(&ntfa_lock);
 
-    if (ntfa_use_count > 1)
-    {
-        /* Users still exist, just decrement the use count */
-        ntfa_use_count--;
-    }
-    else if (ntfa_use_count == 1)
-    {
-        ntfa_destroy();
-        rc = ncs_agents_shutdown(0, 0);
-        ntfa_use_count = 0;
-    }
+	if (ntfa_use_count > 1) {
+		/* Users still exist, just decrement the use count */
+		ntfa_use_count--;
+	} else if (ntfa_use_count == 1) {
+		ntfa_destroy();
+		rc = ncs_agents_shutdown(0, 0);
+		ntfa_use_count = 0;
+	}
 
-    pthread_mutex_unlock(&ntfa_lock);
-    TRACE_LEAVE2("rc: %u, ntfa_use_count: %u", rc, ntfa_use_count);
-    return rc;
+	pthread_mutex_unlock(&ntfa_lock);
+	TRACE_LEAVE2("rc: %u, ntfa_use_count: %u", rc, ntfa_use_count);
+	return rc;
 }
 
 /****************************************************************************
@@ -598,21 +503,17 @@ unsigned int ntfa_shutdown(void)
  *****************************************************************************/
 void ntfa_msg_destroy(ntfsv_msg_t *msg)
 {
-    if (NTFSV_NTFA_API_MSG == msg->type)
-    {
-        TRACE("NTFSV_NTFA_API_MSG");
-    }
-    else if (NTFSV_NTFS_CBK_MSG == msg->type)
-    {
-        TRACE("NTFSV_NTFS_CBK_MSG dealloc_notification");
-        if ( msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK)
-        {
-           /*       TODO: fix in decode  */
-            ntfsv_dealloc_notification(msg->info.cbk_info.notification_cbk);
-            free(msg->info.cbk_info.notification_cbk);
-        }
-    }
-    free(msg);
+	if (NTFSV_NTFA_API_MSG == msg->type) {
+		TRACE("NTFSV_NTFA_API_MSG");
+	} else if (NTFSV_NTFS_CBK_MSG == msg->type) {
+		TRACE("NTFSV_NTFS_CBK_MSG dealloc_notification");
+		if (msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
+			/*       TODO: fix in decode  */
+			ntfsv_dealloc_notification(msg->info.cbk_info.notification_cbk);
+			free(msg->info.cbk_info.notification_cbk);
+		}
+	}
+	free(msg);
 }
 
 /****************************************************************************
@@ -629,17 +530,14 @@ void ntfa_msg_destroy(ntfsv_msg_t *msg)
 ******************************************************************************/
 ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uns32 client_id)
 {
-    ntfa_client_hdl_rec_t *ntfa_hdl_rec;
+	ntfa_client_hdl_rec_t *ntfa_hdl_rec;
 
-    for (ntfa_hdl_rec = ntfa_cb->client_list; 
-        ntfa_hdl_rec != NULL; 
-        ntfa_hdl_rec = ntfa_hdl_rec->next)
-    {
-        if (ntfa_hdl_rec->ntfs_client_id == client_id)
-            return ntfa_hdl_rec;
-    }
+	for (ntfa_hdl_rec = ntfa_cb->client_list; ntfa_hdl_rec != NULL; ntfa_hdl_rec = ntfa_hdl_rec->next) {
+		if (ntfa_hdl_rec->ntfs_client_id == client_id)
+			return ntfa_hdl_rec;
+	}
 
-    return NULL;
+	return NULL;
 }
 
 /****************************************************************************
@@ -655,20 +553,19 @@ ntfa_client_hdl_rec_t *ntfa_find_hdl_rec_by_client_id(ntfa_cb_t *ntfa_cb, uns32 
 ******************************************************************************/
 void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **p_client_hdl)
 {
-    ntfa_client_hdl_rec_t *client_hdl;
+	ntfa_client_hdl_rec_t *client_hdl;
 
-    while ((client_hdl = *p_client_hdl) != NULL)
-    {
-        *p_client_hdl = client_hdl->next;
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, client_hdl->local_hdl);
-        /** clean up the channel records for this ntfa-client
+	while ((client_hdl = *p_client_hdl) != NULL) {
+		*p_client_hdl = client_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, client_hdl->local_hdl);
+	/** clean up the channel records for this ntfa-client
          **/
-        ntfa_notification_hdl_rec_list_del(&client_hdl->notification_list);
-        /** remove the association with hdl-mngr 
+		ntfa_notification_hdl_rec_list_del(&client_hdl->notification_list);
+	/** remove the association with hdl-mngr 
          **/
-        free(client_hdl);
-        client_hdl = 0;
-    }
+		free(client_hdl);
+		client_hdl = 0;
+	}
 }
 
 /****************************************************************************
@@ -685,44 +582,39 @@ void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head,
-    ntfa_notification_hdl_rec_t *rm_node)
+uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head, ntfa_notification_hdl_rec_t *rm_node)
 {
-    /* Find the channel hdl record in the list of records */
-    ntfa_notification_hdl_rec_t *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	ntfa_notification_hdl_rec_t *list_iter = *list_head;
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
-        /** remove the association with hdl-mngr 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
+	/** remove the association with hdl-mngr 
          **/
-        ncshm_give_hdl(rm_node->notification_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->notification_hdl);
-        free(rm_node);
-        return NCSCC_RC_SUCCESS;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
-                /** remove the association with hdl-mngr 
+		ncshm_give_hdl(rm_node->notification_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->notification_hdl);
+		free(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+		/** remove the association with hdl-mngr 
                  **/
-                ncshm_give_hdl(rm_node->notification_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->notification_hdl);
-                free(rm_node);
-                return NCSCC_RC_SUCCESS;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
+				ncshm_give_hdl(rm_node->notification_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->notification_hdl);
+				free(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
     /** The node couldn't be deleted **/
-    TRACE("The node couldn't be deleted"); 
-    return NCSCC_RC_FAILURE;
+	TRACE("The node couldn't be deleted");
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -739,44 +631,39 @@ uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head,
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head,
-    ntfa_filter_hdl_rec_t *rm_node)
+uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl_rec_t *rm_node)
 {
-    /* Find the channel hdl record in the list of records */
-    ntfa_filter_hdl_rec_t *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	ntfa_filter_hdl_rec_t *list_iter = *list_head;
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
-        /** remove the association with hdl-mngr 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
+	/** remove the association with hdl-mngr 
          **/
-        ncshm_give_hdl(rm_node->filter_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
-        free(rm_node);
-        return NCSCC_RC_SUCCESS;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
-                /** remove the association with hdl-mngr 
+		ncshm_give_hdl(rm_node->filter_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
+		free(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+		/** remove the association with hdl-mngr 
                  **/
-                ncshm_give_hdl(rm_node->filter_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
-                free(rm_node);
-                return NCSCC_RC_SUCCESS;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
+				ncshm_give_hdl(rm_node->filter_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
+				free(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
     /** The node couldn't be deleted **/
-    TRACE("The node couldn't be deleted"); 
-    return NCSCC_RC_FAILURE;
+	TRACE("The node couldn't be deleted");
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -797,66 +684,62 @@ uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head,
 ******************************************************************************/
 uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t *rm_node)
 {
-    uns32 rc = NCSCC_RC_FAILURE;
-    ntfa_client_hdl_rec_t *list_iter = *list_head;
+	uns32 rc = NCSCC_RC_FAILURE;
+	ntfa_client_hdl_rec_t *list_iter = *list_head;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 /* TODO: free all resources allocated by the client */
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
 
-        /** detach & release the IPC 
+	/** detach & release the IPC 
          **/
-        m_NCS_IPC_DETACH(&rm_node->mbx ,ntfa_clear_mbx,NULL);
-        m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+		m_NCS_IPC_DETACH(&rm_node->mbx, ntfa_clear_mbx, NULL);
+		m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-        ncshm_give_hdl(rm_node->local_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->local_hdl);
-        /** Free the channel records off this hdl 
+		ncshm_give_hdl(rm_node->local_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->local_hdl);
+	/** Free the channel records off this hdl 
          **/
-        ntfa_notification_hdl_rec_list_del(&rm_node->notification_list);
+		ntfa_notification_hdl_rec_list_del(&rm_node->notification_list);
 
-        /** free the hdl rec 
+	/** free the hdl rec 
          **/
-        free(rm_node);
-        rc = NCSCC_RC_SUCCESS;
-        goto out;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
+		free(rm_node);
+		rc = NCSCC_RC_SUCCESS;
+		goto out;
+	} else {		/* find the rec */
 
-                /** detach & release the IPC */
-                m_NCS_IPC_DETACH(&rm_node->mbx ,ntfa_clear_mbx, NULL);
-                m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
 
-                ncshm_give_hdl(rm_node->local_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->local_hdl);
-                /** Free the channel records off this ntfa_hdl  */
-                ntfa_notification_hdl_rec_list_del(&rm_node->notification_list);
+		/** detach & release the IPC */
+				m_NCS_IPC_DETACH(&rm_node->mbx, ntfa_clear_mbx, NULL);
+				m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-                /** free the hdl rec */
-                free(rm_node);
+				ncshm_give_hdl(rm_node->local_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->local_hdl);
+		/** Free the channel records off this ntfa_hdl  */
+				ntfa_notification_hdl_rec_list_del(&rm_node->notification_list);
 
-                rc = NCSCC_RC_SUCCESS;
-                goto out;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
-    TRACE("failed");
+		/** free the hdl rec */
+				free(rm_node);
 
-    out:
-    TRACE_LEAVE();
-    return rc;
+				rc = NCSCC_RC_SUCCESS;
+				goto out;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+	TRACE("failed");
+
+ out:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -871,40 +754,38 @@ uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t 
  
   Notes         : None
 ******************************************************************************/
-ntfa_notification_hdl_rec_t * ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t  **hdl_rec)
+ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
 {
-    ntfa_notification_hdl_rec_t *rec = calloc(1, sizeof(ntfa_notification_hdl_rec_t));
+	ntfa_notification_hdl_rec_t *rec = calloc(1, sizeof(ntfa_notification_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        return NULL;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		return NULL;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->notification_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
-        NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        free(rec);
-        return NULL;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->notification_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
+							   NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		free(rec);
+		return NULL;
+	}
 
     /** Initialize the parent handle **/
-    rec->parent_hdl = *hdl_rec;
+	rec->parent_hdl = *hdl_rec;
 
     /** Insert this record into the list of channel hdl records
      **/
-    rec->next = (*hdl_rec)->notification_list;
-    (*hdl_rec)->notification_list = rec;
+	rec->next = (*hdl_rec)->notification_list;
+	(*hdl_rec)->notification_list = rec;
 
-    /* allocated for callback struct */
-    rec->cbk_notification = NULL;
+	/* allocated for callback struct */
+	rec->cbk_notification = NULL;
 
     /** Everything appears fine, so return the 
      ** steam hdl.
      **/
-    return rec;
+	return rec;
 }
 
 /****************************************************************************
@@ -919,38 +800,34 @@ ntfa_notification_hdl_rec_t * ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_
  
   Notes         : None
 ******************************************************************************/
-ntfa_filter_hdl_rec_t * ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t  **hdl_rec)
+ntfa_filter_hdl_rec_t *ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
 {
-    ntfa_filter_hdl_rec_t *rec = calloc(1, sizeof(ntfa_filter_hdl_rec_t));
+	ntfa_filter_hdl_rec_t *rec = calloc(1, sizeof(ntfa_filter_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        return NULL;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		return NULL;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->filter_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
-        NCS_SERVICE_ID_NTFA,
-        (NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        free(rec);
-        return NULL;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->filter_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		free(rec);
+		return NULL;
+	}
 
     /** Initialize the parent handle **/
-    rec->parent_hdl = *hdl_rec;
+	rec->parent_hdl = *hdl_rec;
 
     /** Insert this record into the list of channel hdl records
      **/
-    rec->next = (*hdl_rec)->filter_list;
-    (*hdl_rec)->filter_list = rec;
+	rec->next = (*hdl_rec)->filter_list;
+	(*hdl_rec)->filter_list = rec;
 
     /** Everything appears fine, so return the 
      ** steam hdl.
      **/
-    return rec;
+	return rec;
 }
 
 /****************************************************************************
@@ -966,73 +843,66 @@ ntfa_filter_hdl_rec_t * ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t  **hdl_rec
  
   Notes         : None
 ******************************************************************************/
-ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, 
-    const SaNtfCallbacksT *reg_cbks,
-    uns32 client_id)
+ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *cb, const SaNtfCallbacksT *reg_cbks, uns32 client_id)
 {
-    ntfa_client_hdl_rec_t *rec = calloc(1, sizeof(ntfa_client_hdl_rec_t));
+	ntfa_client_hdl_rec_t *rec = calloc(1, sizeof(ntfa_client_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        goto done;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		goto done;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->local_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, 
-        NCS_SERVICE_ID_NTFA,(NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        goto err_free;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->local_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		goto err_free;
+	}
 
-    /* store the registered callbacks */
-    if (reg_cbks)
-        memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaNtfCallbacksT));
+	/* store the registered callbacks */
+	if (reg_cbks)
+		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaNtfCallbacksT));
 
     /** Associate with the client_id obtained from NTFS
      **/
-    rec->ntfs_client_id = client_id;
+	rec->ntfs_client_id = client_id;
 
     /** Initialize and attach the IPC/Priority queue
      **/
 
-    if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-        TRACE("m_NCS_IPC_CREATE failed");
-        goto err_destroy_hdl;
-    }
+	if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		TRACE("m_NCS_IPC_CREATE failed");
+		goto err_destroy_hdl;
+	}
 
-    if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-        TRACE("m_NCS_IPC_ATTACH failed");
-        goto err_ipc_release;
-    }
+	if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		TRACE("m_NCS_IPC_ATTACH failed");
+		goto err_ipc_release;
+	}
 
     /** Add this to the Link List of 
      ** CLIENT_HDL_RECORDS for this NTFA_CB 
      **/
 
-    pthread_mutex_lock(&cb->cb_lock);
-    /* add this to the start of the list */
-    rec->next = cb->client_list;
-    cb->client_list = rec;
-    pthread_mutex_unlock(&cb->cb_lock);
+	pthread_mutex_lock(&cb->cb_lock);
+	/* add this to the start of the list */
+	rec->next = cb->client_list;
+	cb->client_list = rec;
+	pthread_mutex_unlock(&cb->cb_lock);
 
-    goto done;
+	goto done;
 
-err_ipc_release:
-    (void) m_NCS_IPC_RELEASE(&rec->mbx, NULL);
+ err_ipc_release:
+	(void)m_NCS_IPC_RELEASE(&rec->mbx, NULL);
 
-err_destroy_hdl:
-            ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rec->local_hdl);
+ err_destroy_hdl:
+	ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rec->local_hdl);
 
-err_free:
-        free(rec);
-        rec = NULL;
+ err_free:
+	free(rec);
+	rec = NULL;
 
-done:
-    return rec;
+ done:
+	return rec;
 }
 
 /****************************************************************************
@@ -1049,54 +919,50 @@ done:
  
   Notes         : None
 ******************************************************************************/
-SaAisErrorT ntfa_hdl_cbk_dispatch(ntfa_cb_t *cb,
-    ntfa_client_hdl_rec_t *hdl_rec,
-    SaDispatchFlagsT flags)
+SaAisErrorT ntfa_hdl_cbk_dispatch(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl_rec, SaDispatchFlagsT flags)
 {
-    SaAisErrorT rc;
+	SaAisErrorT rc;
 
-    switch (flags)
-    {
-        case SA_DISPATCH_ONE:
-            rc = ntfa_hdl_cbk_dispatch_one(cb, hdl_rec);
-            break;
+	switch (flags) {
+	case SA_DISPATCH_ONE:
+		rc = ntfa_hdl_cbk_dispatch_one(cb, hdl_rec);
+		break;
 
-        case SA_DISPATCH_ALL:
-            rc = ntfa_hdl_cbk_dispatch_all(cb, hdl_rec);
-            break;
+	case SA_DISPATCH_ALL:
+		rc = ntfa_hdl_cbk_dispatch_all(cb, hdl_rec);
+		break;
 
-        case SA_DISPATCH_BLOCKING:
-            rc = ntfa_hdl_cbk_dispatch_block(cb, hdl_rec);
-            break;
+	case SA_DISPATCH_BLOCKING:
+		rc = ntfa_hdl_cbk_dispatch_block(cb, hdl_rec);
+		break;
 
-        default:
-            TRACE("dispatch flag not valid");
-            rc = SA_AIS_ERR_INVALID_PARAM;
-            break;
-    } /* switch */
+	default:
+		TRACE("dispatch flag not valid");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		break;
+	}			/* switch */
 
-    return rc;
+	return rc;
 }
 
 /*
  * To enable tracing early in saLogInitialize, use a GCC constructor
  */
-__attribute__ ((constructor)) static void logtrace_init_constructor(void)
+__attribute__ ((constructor))
+static void logtrace_init_constructor(void)
 {
-    char *value;
+	char *value;
 
-    /* Initialize trace system first of all so we can see what is going. */
-    if ((value = getenv("NTFSV_TRACE_PATHNAME")) != NULL)
-    {
-        if (logtrace_init("ntfa", value) != 0)
-        {
-            syslog(LOG_WARNING, "NTF lib: logtrace_init FAILED, tracing disabled...");
-            return;
-        }
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("NTFSV_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init("ntfa", value) != 0) {
+			syslog(LOG_WARNING, "NTF lib: logtrace_init FAILED, tracing disabled...");
+			return;
+		}
 
-        /* Do not care about categories now, get all */
-        trace_category_set(CATEGORY_ALL);
-    }
+		/* Do not care about categories now, get all */
+		trace_category_set(CATEGORY_ALL);
+	}
 }
 
 /**
@@ -1105,88 +971,74 @@ __attribute__ ((constructor)) static void logtrace_init_constructor(void)
  */
 void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
 {
-    ntfa_notification_hdl_rec_t *notificationInstance = instance;
+	ntfa_notification_hdl_rec_t *notificationInstance = instance;
 
-    switch (notificationInstance->ntfNotificationType)
-    {
-        case SA_NTF_TYPE_ALARM: 
-            ntfsv_free_alarm(&notificationInstance->ntfNotification.ntfAlarmNotification);
-            break;
+	switch (notificationInstance->ntfNotificationType) {
+	case SA_NTF_TYPE_ALARM:
+		ntfsv_free_alarm(&notificationInstance->ntfNotification.ntfAlarmNotification);
+		break;
 
-        case SA_NTF_TYPE_STATE_CHANGE:
-            ntfsv_free_state_change(&notificationInstance->ntfNotification.\
-                ntfStateChangeNotification);
-            break;
+	case SA_NTF_TYPE_STATE_CHANGE:
+		ntfsv_free_state_change(&notificationInstance->ntfNotification.ntfStateChangeNotification);
+		break;
 
-        case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-            ntfsv_free_obj_create_del(&notificationInstance->ntfNotification.\
-                ntfObjectCreateDeleteNotification);
-            break;
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+		ntfsv_free_obj_create_del(&notificationInstance->ntfNotification.ntfObjectCreateDeleteNotification);
+		break;
 
-        case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-            ntfsv_free_attribute_change(&notificationInstance->ntfNotification.\
-                ntfAttributeChangeNotification);
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+		ntfsv_free_attribute_change(&notificationInstance->ntfNotification.ntfAttributeChangeNotification);
 
-            break;
+		break;
 
-        case SA_NTF_TYPE_SECURITY_ALARM:
-            ntfsv_free_security_alarm(&notificationInstance->ntfNotification.\
-                ntfSecurityAlarmNotification);
-            break;
+	case SA_NTF_TYPE_SECURITY_ALARM:
+		ntfsv_free_security_alarm(&notificationInstance->ntfNotification.ntfSecurityAlarmNotification);
+		break;
 
-        default:
-            TRACE("Invalid Notification Type!");
-            break;
-    }
-    if (NULL != notificationInstance->cbk_notification)
-    {
-        free(notificationInstance->cbk_notification);
-    }
+	default:
+		TRACE("Invalid Notification Type!");
+		break;
+	}
+	if (NULL != notificationInstance->cbk_notification) {
+		free(notificationInstance->cbk_notification);
+	}
 }
 
 /**
  * 
  * @param instance
  */
-void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t 
-    *notificationFilterInstance )
+void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
+				    *notificationFilterInstance)
 {
-    /* TODO!!! Check which notification filter type to use */
+	/* TODO!!! Check which notification filter type to use */
 
-    /* Free all dynamical arrays */
-    /* Header part */
-    if (notificationFilterInstance->ntfNumEventTypes != 0)
-    {
-        free(notificationFilterInstance->ntfEventTypes);
-    }
-    if (notificationFilterInstance->ntfNumNotificationObjects != 0)
-    {
-        free(notificationFilterInstance->ntfNotificationObjects);
-    }
-    if (notificationFilterInstance->ntfNumNotifyingObjects != 0)
-    {
-        free(notificationFilterInstance->ntfNotifyingObjects);
-    }
-    if (notificationFilterInstance->ntfNumNotificationClassIds != 0)
-    {
-        free(notificationFilterInstance->ntfNotificationClassIds);
-    }
+	/* Free all dynamical arrays */
+	/* Header part */
+	if (notificationFilterInstance->ntfNumEventTypes != 0) {
+		free(notificationFilterInstance->ntfEventTypes);
+	}
+	if (notificationFilterInstance->ntfNumNotificationObjects != 0) {
+		free(notificationFilterInstance->ntfNotificationObjects);
+	}
+	if (notificationFilterInstance->ntfNumNotifyingObjects != 0) {
+		free(notificationFilterInstance->ntfNotifyingObjects);
+	}
+	if (notificationFilterInstance->ntfNumNotificationClassIds != 0) {
+		free(notificationFilterInstance->ntfNotificationClassIds);
+	}
 
-    /* Body part*/
-    if (notificationFilterInstance->ntfNumProbableCauses != 0)
-    {
-        free(notificationFilterInstance->ntfProbableCauses);
-    }
-    if (notificationFilterInstance->ntfNumPercievedSeverities != 0)
-    {
-        free(notificationFilterInstance->ntfPerceivedSeverities);
-    }
-    if (notificationFilterInstance->ntfNumTrends != 0)
-    {
-        free(notificationFilterInstance->ntfTrends);
-    }
+	/* Body part */
+	if (notificationFilterInstance->ntfNumProbableCauses != 0) {
+		free(notificationFilterInstance->ntfProbableCauses);
+	}
+	if (notificationFilterInstance->ntfNumPercievedSeverities != 0) {
+		free(notificationFilterInstance->ntfPerceivedSeverities);
+	}
+	if (notificationFilterInstance->ntfNumTrends != 0) {
+		free(notificationFilterInstance->ntfTrends);
+	}
 }
-
 
 /****************************************************************************
   Name          : ntfa_reader_hdl_rec_add
@@ -1200,37 +1052,34 @@ void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
  
   Notes         : None
 ******************************************************************************/
-ntfa_reader_hdl_rec_t * ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t  **hdl_rec)
+ntfa_reader_hdl_rec_t *ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
 {
-    ntfa_reader_hdl_rec_t *rec = calloc(1, sizeof(ntfa_reader_hdl_rec_t));
+	ntfa_reader_hdl_rec_t *rec = calloc(1, sizeof(ntfa_reader_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        return NULL;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		return NULL;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->reader_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
-        NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        free(rec);
-        return NULL;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->reader_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		free(rec);
+		return NULL;
+	}
 
     /** Initialize the parent handle **/
-    rec->parent_hdl = *hdl_rec;
+	rec->parent_hdl = *hdl_rec;
 
     /** Insert this record into the list of channel hdl records
      **/
-    rec->next = (*hdl_rec)->reader_list;
-    (*hdl_rec)->reader_list = rec;
+	rec->next = (*hdl_rec)->reader_list;
+	(*hdl_rec)->reader_list = rec;
 
     /** Everything appears fine, so return the 
      ** steam hdl.
      **/
-    return rec;
+	return rec;
 }
 
 /****************************************************************************
@@ -1247,43 +1096,37 @@ ntfa_reader_hdl_rec_t * ntfa_reader_hdl_rec_add(ntfa_client_hdl_rec_t  **hdl_rec
  
   Notes         : 
 ******************************************************************************/
-uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head,
-    ntfa_reader_hdl_rec_t *rm_node)
+uns32 ntfa_reader_hdl_rec_del(ntfa_reader_hdl_rec_t **list_head, ntfa_reader_hdl_rec_t *rm_node)
 {
-    /* Find the channel hdl record in the list of records */
-    ntfa_reader_hdl_rec_t *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	ntfa_reader_hdl_rec_t *list_iter = *list_head;
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
-        /** remove the association with hdl-mngr 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
+	/** remove the association with hdl-mngr 
          **/
-        ncshm_give_hdl(rm_node->reader_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
-        free(rm_node);
-        return NCSCC_RC_SUCCESS;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
-                /** remove the association with hdl-mngr 
-                 **/
-                ncshm_give_hdl(rm_node->reader_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
-                free(rm_node);
-                return NCSCC_RC_SUCCESS;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
-    /** The node couldn't be deleted **/
-    TRACE("The node couldn't be deleted"); 
-    return NCSCC_RC_FAILURE;
-}
+		ncshm_give_hdl(rm_node->reader_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
+		free(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
 
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+		/** remove the association with hdl-mngr 
+                 **/
+				ncshm_give_hdl(rm_node->reader_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->reader_hdl);
+				free(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+    /** The node couldn't be deleted **/
+	TRACE("The node couldn't be deleted");
+	return NCSCC_RC_FAILURE;
+}

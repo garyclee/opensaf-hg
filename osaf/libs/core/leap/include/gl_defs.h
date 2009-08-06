@@ -32,15 +32,14 @@
 #ifndef GL_DEFS_H
 #define GL_DEFS_H
 
-
 #include "ncsgl_defs.h"
 
 #ifndef NCS_CLI
 #if (NCS_PC_CLI == 1)
-#define NCS_CLI              1   /* PowerCode and Command Line Interpreter */
+#define NCS_CLI              1	/* PowerCode and Command Line Interpreter */
 #else
-#define NCS_CLI              0   /* Command Line Interpreter */
+#define NCS_CLI              0	/* Command Line Interpreter */
 #endif
-#endif /* NCS_CLI */
+#endif   /* NCS_CLI */
 
-#endif          /* ifndef GL_DEFS_H */
+#endif   /* ifndef GL_DEFS_H */

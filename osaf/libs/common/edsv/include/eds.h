@@ -109,7 +109,7 @@
 #include "oac_papi.h"
 #include "edsv_mib.h"
 
-/* Edsv checkpoint header */ 
+/* Edsv checkpoint header */
 #include "eds_ckpt.h"
 
 /* CLM header */
@@ -117,6 +117,5 @@
 
 /* EDS CB global handle declaration */
 EXTERN_C uns32 gl_eds_hdl;
-
 
 #endif   /* _EDS_H */

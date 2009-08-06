@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  eds_util.c                                                  *
@@ -36,100 +35,89 @@
  *         FALSE  On the first miss-match.
  *
  ***************************************************************************/
-NCS_BOOL
-eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
-                  SaEvtEventFilterArrayT  *filterArray)
+NCS_BOOL eds_pattern_match(SaEvtEventPatternArrayT *patternArray, SaEvtEventFilterArrayT *filterArray)
 {
-   uns32                x;
-   uns8                *p = NULL;
-   SaEvtEventFilterT   *filter;
-   SaEvtEventPatternT  *pattern;
-   SaEvtEventPatternT   emptyPattern = {0,0,NULL};
+	uns32 x;
+	uns8 *p = NULL;
+	SaEvtEventFilterT *filter;
+	SaEvtEventPatternT *pattern;
+	SaEvtEventPatternT emptyPattern = { 0, 0, NULL };
 
+	if ((patternArray == NULL) || (filterArray == NULL))
+		return (FALSE);
 
-   if ((patternArray == NULL) || (filterArray == NULL))
-      return(FALSE);
+	pattern = patternArray->patterns;
+	filter = filterArray->filters;
 
+	if (!pattern)
+		pattern = &emptyPattern;
 
-   pattern = patternArray->patterns;
-   filter  = filterArray->filters;
-   
-   if( !pattern )
-       pattern = &emptyPattern;
+	for (x = 1; x <= filterArray->filtersNumber; x++) {
+		switch (filter->filterType) {
+		case SA_EVT_PREFIX_FILTER:
+			/* if either filter or pattern alone is empty, then no match */
+			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+				return (FALSE);
+			if (memcmp(filter->filter.pattern, pattern->pattern, (size_t)filter->filter.patternSize) != 0)
+				return (FALSE);	/* No match */
+			break;
 
-   for (x=1; x <= filterArray->filtersNumber; x++)
-   {
-      switch (filter->filterType) {
-      case SA_EVT_PREFIX_FILTER:
-           /* if either filter or pattern alone is empty, then no match */
-           if((pattern->patternSize == 0) && (filter->filter.patternSize !=0))
-               return(FALSE);
-           if (memcmp(filter->filter.pattern, pattern->pattern,
-                           (size_t)filter->filter.patternSize) != 0)
-              return(FALSE); /* No match */
-         break;
+		case SA_EVT_SUFFIX_FILTER:
+			/* if either filter or pattern alone is empty, then no match */
+			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+				return (FALSE);
 
-      case SA_EVT_SUFFIX_FILTER:
-           /* if either filter or pattern alone is empty, then no match */
-           if((pattern->patternSize == 0) && (filter->filter.patternSize !=0))
-               return(FALSE);
+			/* Pattern must be at least as long as filter for a match */
+			if (pattern->patternSize < filter->filter.patternSize)
+				return (FALSE);
 
-           /* Pattern must be at least as long as filter for a match */
-           if (pattern->patternSize < filter->filter.patternSize)
-               return(FALSE);
+			if ((pattern->patternSize == 0) && (filter->filter.patternSize != 0))
+				return (FALSE);
 
-           if((pattern->patternSize == 0) && (filter->filter.patternSize !=0))
-               return(FALSE);
+			/* Set p to offset into pattern */
+			p = pattern->pattern + ((int)pattern->patternSize - (int)filter->filter.patternSize);
+			if (memcmp(filter->filter.pattern, p, (size_t)filter->filter.patternSize) != 0)
+				return (FALSE);
+			break;
 
-         /* Set p to offset into pattern */
-         p = pattern->pattern +
-            ((int)pattern->patternSize - (int)filter->filter.patternSize);
-         if (memcmp(filter->filter.pattern, p,
-                          (size_t)filter->filter.patternSize) != 0)
-            return(FALSE);
-         break;
+		case SA_EVT_EXACT_FILTER:
+			if ((pattern == NULL) && (filter != NULL))
+				return (FALSE);	/* Fix. More filters than patterns case */
 
-      case SA_EVT_EXACT_FILTER:
-         if ((pattern == NULL) && (filter != NULL))
-                return(FALSE); /* Fix. More filters than patterns case */
+			if (filter->filter.patternSize == pattern->patternSize) {
+				if (memcmp(filter->filter.pattern, pattern->pattern,
+					   (size_t)filter->filter.patternSize) != 0)
+					return (FALSE);
+			} else
+				return FALSE;
+			break;
 
-         if (filter->filter.patternSize == pattern->patternSize)
-         {
-            if (memcmp(filter->filter.pattern, pattern->pattern,
-                             (size_t)filter->filter.patternSize) != 0)
-               return(FALSE);
-         }
-         else
-            return FALSE;
-         break;
+		case SA_EVT_PASS_ALL_FILTER:
+			break;
 
-      case SA_EVT_PASS_ALL_FILTER:
-         break;
+		default:
+			return (FALSE);
+		}
 
-      default:
-         return(FALSE);
-      }
+		/*
+		 * Increment to next filter and pattern.
+		 * If more filters than patterns, set pattern to the empty pattern.
+		 * The remaining filters MUST match the empty pattern.
+		 *
+		 * If more patterns than filters, simply exit the loop assuming a match
+		 * for the remaining patterns (assume filter = SA_EVT_PASS_ALL_FILTER).
+		 */
+		filter++;
 
-      /*
-       * Increment to next filter and pattern.
-       * If more filters than patterns, set pattern to the empty pattern.
-       * The remaining filters MUST match the empty pattern.
-       *
-       * If more patterns than filters, simply exit the loop assuming a match
-       * for the remaining patterns (assume filter = SA_EVT_PASS_ALL_FILTER).
-       */
-      filter++;
+		if (x < patternArray->patternsNumber)
+			pattern++;
+		else
+			pattern = &emptyPattern;
 
-      if (x < patternArray->patternsNumber)
-         pattern++;
-      else
-         pattern = &emptyPattern;
+	}			/* End for */
 
-   } /* End for */
-
-   return(TRUE);
+	return (TRUE);
 }
-
 
 /***************************************************************************
  *
@@ -139,34 +127,28 @@ eds_pattern_match(SaEvtEventPatternArrayT *patternArray,
  * of the structures, then adding in the size of each individual pattern.
  *
  ***************************************************************************/
-uns32
-eds_calc_filter_size(SaEvtEventFilterArrayT  *filterArray)
+uns32 eds_calc_filter_size(SaEvtEventFilterArrayT *filterArray)
 {
-   uns32   size = 0;
-   uns32   x;
-   SaEvtEventFilterT  *filterp;
+	uns32 size = 0;
+	uns32 x;
+	SaEvtEventFilterT *filterp;
 
+	if (filterArray == NULL)
+		return (0);
 
-   if (filterArray == NULL)
-      return(0);
+	/* First compute how much space is needed to hold the structures */
+	size = sizeof(SaEvtEventFilterArrayT) + ((uns32)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
 
+	/*
+	 * Now add in the individual pattern data sizes.
+	 */
 
-   /* First compute how much space is needed to hold the structures */
-   size = sizeof(SaEvtEventFilterArrayT) +
-      ((uns32)filterArray->filtersNumber * sizeof(SaEvtEventFilterT));
+	/* Point to first filter in the array */
+	filterp = filterArray->filters;
+	for (x = 1; x <= filterArray->filtersNumber; x++) {
+		size += (uns32)filterp->filter.patternSize;
+		filterp++;
+	}
 
-
-   /*
-    * Now add in the individual pattern data sizes.
-    */
-
-   /* Point to first filter in the array */
-   filterp = filterArray->filters;
-   for (x=1; x<=filterArray->filtersNumber; x++)
-   {
-      size += (uns32) filterp->filter.patternSize;
-      filterp++;
-   }
-
-   return(size);
+	return (size);
 }

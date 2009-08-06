@@ -20,12 +20,10 @@
 
   MODULE NAME: rde_log_str.h
 
-
 ..............................................................................
 
   DESCRIPTION: Contains function prototypes used for RDE Log messages
     utilizing DLSv services.
-
 
 ******************************************************************************
 */
@@ -33,8 +31,6 @@
 #ifndef RDE_LOG_STR_H
 #define RDE_LOG_STR_H
 
+uns32 rde_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-uns32 rde_log_str_lib_req (NCS_LIB_REQ_INFO *req_info);
-
-#endif /* RDE_LOG_STR_H */
-
+#endif   /* RDE_LOG_STR_H */

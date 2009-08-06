@@ -52,15 +52,13 @@ EXTERN_C uns32 gl_cpd_cb_hdl;
 /*****************************************************************************
  * structure which holds the create information.
  *****************************************************************************/
-typedef struct cpd_create_info
-{
-   uns8       pool_id;   /* Handle manager Pool ID */
-}CPD_CREATE_INFO;
+typedef struct cpd_create_info {
+	uns8 pool_id;		/* Handle manager Pool ID */
+} CPD_CREATE_INFO;
 
 /*****************************************************************************
  * structure which holds the destroy information.
  *****************************************************************************/
-typedef struct cpd_destroy_info
-{
-   uns32    dummy;
-}CPD_DESTROY_INFO;
+typedef struct cpd_destroy_info {
+	uns32 dummy;
+} CPD_DESTROY_INFO;

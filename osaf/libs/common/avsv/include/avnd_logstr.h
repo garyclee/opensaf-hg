@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,9 +33,8 @@
 
 #if (NCS_DTS == 1)
 
-EXTERN_C uns32 avnd_str_reg (void);
-EXTERN_C uns32 avnd_str_unreg (void);
+EXTERN_C uns32 avnd_str_reg(void);
+EXTERN_C uns32 avnd_str_unreg(void);
+#endif   /* (NCS_DTS == 1) */
 
-#endif /* (NCS_DTS == 1) */
-
-#endif /* !AVND_LOGSTR_H */
+#endif   /* !AVND_LOGSTR_H */

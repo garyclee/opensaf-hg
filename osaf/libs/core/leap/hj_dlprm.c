@@ -18,18 +18,13 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: NCS_DLPRM.C
-
-
 
 ..............................................................................
 
   DESCRIPTION:
 
-
   NOTES:
-
 
 -----------------------------------------------------------------------
 ******************************************************************************
@@ -56,8 +51,6 @@
 #define m_SYSF_IP_LOG_INFO(str,num)
 #endif
 
-
-
 #if (NCS_USE_BSD_STYLE_ERROR == 1)
 /***************************************************************************
  *
@@ -75,49 +68,48 @@
  *   Returns NCSCC_RC_SUCCESS if successful, otherwise NCSCC_RC_FAILURE.
  *
  ****************************************************************************/
-NCSSOCK_ERROR_TYPES
-ncs_bsd_sock_error(void)
+NCSSOCK_ERROR_TYPES ncs_bsd_sock_error(void)
 {
 
-   m_SYSF_IP_LOG_INFO("ncs_bsd_sock_error::errno", errno);
+	m_SYSF_IP_LOG_INFO("ncs_bsd_sock_error::errno", errno);
 
-   switch (errno)
-   {
+	switch (errno) {
 #ifdef EPROTO
-   case EPROTO:
-      return NCSSOCK_ERROR_TYPES_IP_DOWN;
+	case EPROTO:
+		return NCSSOCK_ERROR_TYPES_IP_DOWN;
 #endif
-   case ENOMEM:
-   case ENOBUFS:
-      return NCSSOCK_ERROR_TYPES_NO_MEM;
+	case ENOMEM:
+	case ENOBUFS:
+		return NCSSOCK_ERROR_TYPES_NO_MEM;
 
-   case EOPNOTSUPP:
-      return NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED;
+	case EOPNOTSUPP:
+		return NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED;
 
 #ifdef ECONNREFUSED
-   case ECONNREFUSED:
+	case ECONNREFUSED:
 #endif
-   case ECONNRESET:
-   case ECONNABORTED:
-   case ENOTCONN:
-      return NCSSOCK_ERROR_TYPES_CONN_DOWN;
+	case ECONNRESET:
+	case ECONNABORTED:
+	case ENOTCONN:
+		return NCSSOCK_ERROR_TYPES_CONN_DOWN;
 
-   case ENOTSOCK:
+	case ENOTSOCK:
 #ifdef EBADF
-   case EBADF:
+	case EBADF:
 #endif
-      return NCSSOCK_ERROR_TYPES_CONN_UNKNOWN;
+		return NCSSOCK_ERROR_TYPES_CONN_UNKNOWN;
 
 #ifdef EINPROGRESS
-   case EINPROGRESS:
+	case EINPROGRESS:
 #endif
-   case EWOULDBLOCK:
-      return NCSSOCK_ERROR_TYPES_NO_ERROR;
+	case EWOULDBLOCK:
+		return NCSSOCK_ERROR_TYPES_NO_ERROR;
 
-   default:
-      return NCSSOCK_ERROR_TYPES_UNKNOWN;
+	default:
+		return NCSSOCK_ERROR_TYPES_UNKNOWN;
 
-   }
+	}
 
 }
+
 #endif

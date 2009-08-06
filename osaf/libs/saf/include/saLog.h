@@ -46,8 +46,8 @@
 extern "C" {
 #endif
 
-typedef SaUint64T SaLogHandleT;
-typedef SaUint64T SaLogStreamHandleT;
+	typedef SaUint64T SaLogHandleT;
+	typedef SaUint64T SaLogStreamHandleT;
 
 /* Well-known log stream names */
 #define SA_LOG_STREAM_SYSTEM            "safLgStrCfg=saLogSystem,safApp=safLogService"
@@ -63,7 +63,7 @@ typedef SaUint64T SaLogStreamHandleT;
 #define SA_LOG_SEV_NOTICE     5
 #define SA_LOG_SEV_INFO       6
 
-typedef SaUint16T SaLogSeverityT;
+	typedef SaUint16T SaLogSeverityT;
 
 #define SA_LOG_SEV_FLAG_EMERGENCY 0x0001
 #define SA_LOG_SEV_FLAG_ALERT 0x0002
@@ -73,23 +73,23 @@ typedef SaUint16T SaLogSeverityT;
 #define SA_LOG_SEV_FLAG_NOTICE 0x0020
 #define SA_LOG_SEV_FLAG_INFO 0x0040
 
-typedef SaUint16T SaLogSeverityFlagsT;
+	typedef SaUint16T SaLogSeverityFlagsT;
 
-typedef struct {
-    SaSizeT   logBufSize;
-    SaUint8T *logBuf;
-} SaLogBufferT;
+	typedef struct {
+		SaSizeT logBufSize;
+		SaUint8T *logBuf;
+	} SaLogBufferT;
 
-typedef SaUint32T SaLogAckFlagsT;
+	typedef SaUint32T SaLogAckFlagsT;
 
 /* 
  * Indicates if a response to an asynch 
  * log-write is desired.
  */
 
-#define SA_LOG_RECORD_WRITE_ACK   0x1 
+#define SA_LOG_RECORD_WRITE_ACK   0x1
 
-typedef SaUint8T  SaLogStreamOpenFlagsT;
+	typedef SaUint8T SaLogStreamOpenFlagsT;
 
 /* Application Log Stream creation attribute */
 
@@ -104,94 +104,94 @@ typedef SaUint8T  SaLogStreamOpenFlagsT;
 
 /* Notification Identifiers for a Log Service produced Notifications */
 
-typedef enum {
-    SA_LOG_NTF_LOGFILE_PERCENT_FULL = 1
-} SaLogNtfIdentifiersT;
- 
+	typedef enum {
+		SA_LOG_NTF_LOGFILE_PERCENT_FULL = 1
+	} SaLogNtfIdentifiersT;
+
 /* Log Service Object change notifications deliver these attributes */
-typedef enum {
-    SA_LOG_NTF_ATTR_LOG_STREAM_NAME = 1,
-    SA_LOG_NTF_ATTR_LOGFILE_NAME = 2,
-    SA_LOG_NTF_ATTR_LOGFILE_PATH_NAME = 3
-} SaLogNtfAttributesT;      
+	typedef enum {
+		SA_LOG_NTF_ATTR_LOG_STREAM_NAME = 1,
+		SA_LOG_NTF_ATTR_LOGFILE_NAME = 2,
+		SA_LOG_NTF_ATTR_LOGFILE_PATH_NAME = 3
+	} SaLogNtfAttributesT;
 
 /* There are two types of Log Record Headers */
 
-typedef enum {
-    SA_LOG_NTF_HEADER      = 1,
-    SA_LOG_GENERIC_HEADER  = 2
-} SaLogHeaderTypeT;
+	typedef enum {
+		SA_LOG_NTF_HEADER = 1,
+		SA_LOG_GENERIC_HEADER = 2
+	} SaLogHeaderTypeT;
 
 /* 
  * This structure represents the fields specific to a notification/alarm
  * log header. The NTF service is the principal user of this kind of logging.
  */
 
-typedef struct {
-    SaNtfIdentifierT  notificationId;
-    SaNtfEventTypeT   eventType;
-    SaNameT          *notificationObject;
-    SaNameT          *notifyingObject;
-    SaNtfClassIdT    *notificationClassId;
-    SaTimeT           eventTime;
-} SaLogNtfLogHeaderT;
+	typedef struct {
+		SaNtfIdentifierT notificationId;
+		SaNtfEventTypeT eventType;
+		SaNameT *notificationObject;
+		SaNameT *notifyingObject;
+		SaNtfClassIdT *notificationClassId;
+		SaTimeT eventTime;
+	} SaLogNtfLogHeaderT;
 
 /* 
  * This structure illustrates the fields that are specific to the
  * system/application log header.
- */   
+ */
 
-typedef struct {
-    SaNtfClassIdT        *notificationClassId; /* For Internationalization */
-    const SaNameT        *logSvcUsrName;
-    SaLogSeverityT       logSeverity;
-} SaLogGenericLogHeaderT;
+	typedef struct {
+		SaNtfClassIdT *notificationClassId;	/* For Internationalization */
+		const SaNameT *logSvcUsrName;
+		SaLogSeverityT logSeverity;
+	} SaLogGenericLogHeaderT;
 
 /* the union of all possible LogHeader types */
 
-typedef union  {
-    SaLogNtfLogHeaderT       ntfHdr;
-    SaLogGenericLogHeaderT   genericHdr;
-} SaLogHeaderT;
+	typedef union {
+		SaLogNtfLogHeaderT ntfHdr;
+		SaLogGenericLogHeaderT genericHdr;
+	} SaLogHeaderT;
 
 /* the data points of a log record at SaLogWriteLog() time */
 
-typedef struct {
-    SaTimeT          logTimeStamp; /* SA_TIME_UNKNOWN shall be used if 
-                                    * time-stamp can't be determined. This 
-                                    * means the Log Svc shall supply the 
-                                    * time-stamp.
-                                    */
-    SaLogHeaderTypeT logHdrType;
-    SaLogHeaderT     logHeader;
-    SaLogBufferT    *logBuffer;
-} SaLogRecordT;
+	typedef struct {
+		SaTimeT logTimeStamp;	/* SA_TIME_UNKNOWN shall be used if 
+					 * time-stamp can't be determined. This 
+					 * means the Log Svc shall supply the 
+					 * time-stamp.
+					 */
+		SaLogHeaderTypeT logHdrType;
+		SaLogHeaderT logHeader;
+		SaLogBufferT *logBuffer;
+	} SaLogRecordT;
 
 /* Log file full actions */
 
-typedef enum {
-    SA_LOG_FILE_FULL_ACTION_WRAP =   1,
-    SA_LOG_FILE_FULL_ACTION_HALT =   2,
-    SA_LOG_FILE_FULL_ACTION_ROTATE = 3
-} SaLogFileFullActionT;
+	typedef enum {
+		SA_LOG_FILE_FULL_ACTION_WRAP = 1,
+		SA_LOG_FILE_FULL_ACTION_HALT = 2,
+		SA_LOG_FILE_FULL_ACTION_ROTATE = 3
+	} SaLogFileFullActionT;
 
 /* Log file creation attributes */
 
-typedef struct {
-    SaStringT logFileName;
-    SaStringT logFilePathName;
-    SaUint64T maxLogFileSize;
-    SaUint32T maxLogRecordSize;
-    SaBoolT haProperty;
-    SaLogFileFullActionT logFileFullAction;
-    SaUint16T maxFilesRotated;
-    SaStringT logFileFmt;
-} SaLogFileCreateAttributesT_2;
+	typedef struct {
+		SaStringT logFileName;
+		SaStringT logFilePathName;
+		SaUint64T maxLogFileSize;
+		SaUint32T maxLogRecordSize;
+		SaBoolT haProperty;
+		SaLogFileFullActionT logFileFullAction;
+		SaUint16T maxFilesRotated;
+		SaStringT logFileFmt;
+	} SaLogFileCreateAttributesT_2;
 
 /* Admin operation IDs */
-typedef enum {
-    SA_LOG_ADMIN_CHANGE_FILTER = 1
-} saLogAdminOperationIdT;
+	typedef enum {
+		SA_LOG_ADMIN_CHANGE_FILTER = 1
+	} saLogAdminOperationIdT;
 
 /* 
  * This callback is invoked by the Log Svc to convey Log filter 
@@ -200,14 +200,11 @@ typedef enum {
  * one of the application streams.
  */
 
-typedef void 
-(*SaLogFilterSetCallbackT)(SaLogStreamHandleT  logStreamHandle,
-                           SaLogSeverityFlagsT logSeverity);
+	typedef void
+	 (*SaLogFilterSetCallbackT) (SaLogStreamHandleT logStreamHandle, SaLogSeverityFlagsT logSeverity);
 
-typedef void 
-(*SaLogStreamOpenCallbackT)(SaInvocationT invocation,
-                            SaLogStreamHandleT logStreamHandle,
-                            SaAisErrorT error);
+	typedef void
+	 (*SaLogStreamOpenCallbackT) (SaInvocationT invocation, SaLogStreamHandleT logStreamHandle, SaAisErrorT error);
 
 /* 
  * This callback is invoked by the Log Svc in case the asynch 
@@ -215,87 +212,63 @@ typedef void
  * a log record.
  */
 
-typedef void 
-(*SaLogWriteLogCallbackT) (SaInvocationT invocation,
-                           SaAisErrorT error);
+	typedef void
+	 (*SaLogWriteLogCallbackT) (SaInvocationT invocation, SaAisErrorT error);
 
-typedef struct {
-    SaLogFilterSetCallbackT  saLogFilterSetCallback;
-    SaLogStreamOpenCallbackT saLogStreamOpenCallback;
-    SaLogWriteLogCallbackT   saLogWriteLogCallback;
-} SaLogCallbacksT;
+	typedef struct {
+		SaLogFilterSetCallbackT saLogFilterSetCallback;
+		SaLogStreamOpenCallbackT saLogStreamOpenCallback;
+		SaLogWriteLogCallbackT saLogWriteLogCallback;
+	} SaLogCallbacksT;
 
-typedef enum {
-    SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID = 1
-} SaLogLimitIdT;
+	typedef enum {
+		SA_LOG_MAX_NUM_CLUSTER_APP_LOG_STREAMS_ID = 1
+	} SaLogLimitIdT;
 
 /*************************************************/
 /******** LOG API function declarations **********/
 /*************************************************/
 
-extern SaAisErrorT 
-saLogInitialize(
-    SaLogHandleT *logHandle,
-    const SaLogCallbacksT *callbacks,
-    SaVersionT *version);
+	extern SaAisErrorT
+	 saLogInitialize(SaLogHandleT *logHandle, const SaLogCallbacksT *callbacks, SaVersionT *version);
 
-extern SaAisErrorT 
-saLogSelectionObjectGet(
-    SaLogHandleT logHandle,
-    SaSelectionObjectT *selectionObject);
+	extern SaAisErrorT
+	 saLogSelectionObjectGet(SaLogHandleT logHandle, SaSelectionObjectT *selectionObject);
 
-extern SaAisErrorT 
-saLogDispatch(
-    SaLogHandleT logHandle, 
-    SaDispatchFlagsT dispatchFlags);
+	extern SaAisErrorT
+	 saLogDispatch(SaLogHandleT logHandle, SaDispatchFlagsT dispatchFlags);
 
-extern SaAisErrorT 
-saLogFinalize(
-    SaLogHandleT logHandle);
+	extern SaAisErrorT
+	 saLogFinalize(SaLogHandleT logHandle);
 
-extern SaAisErrorT
-saLogStreamOpen_2(
-    SaLogHandleT logHandle,
-    const SaNameT *logStreamName,
-    const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
-    SaLogStreamOpenFlagsT logStreamOpenFlags,
-    SaTimeT timeout,
-    SaLogStreamHandleT *logStreamHandle);
+	extern SaAisErrorT
+	 saLogStreamOpen_2(SaLogHandleT logHandle,
+			   const SaNameT *logStreamName,
+			   const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
+			   SaLogStreamOpenFlagsT logStreamOpenFlags,
+			   SaTimeT timeout, SaLogStreamHandleT *logStreamHandle);
 
-extern SaAisErrorT
-saLogStreamOpenAsync_2(
-    SaLogHandleT logHandle,
-    const SaNameT *logStreamName,
-    const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
-    SaLogStreamOpenFlagsT logStreamOpenFlags,
-    SaInvocationT invocation);
+	extern SaAisErrorT
+	 saLogStreamOpenAsync_2(SaLogHandleT logHandle,
+				const SaNameT *logStreamName,
+				const SaLogFileCreateAttributesT_2 *logFileCreateAttributes,
+				SaLogStreamOpenFlagsT logStreamOpenFlags, SaInvocationT invocation);
 
-extern SaAisErrorT 
-saLogWriteLog(
-    SaLogStreamHandleT logStreamHandle,
-    SaTimeT timeout,
-    const SaLogRecordT *logRecord);
+	extern SaAisErrorT
+	 saLogWriteLog(SaLogStreamHandleT logStreamHandle, SaTimeT timeout, const SaLogRecordT *logRecord);
 
-extern SaAisErrorT 
-saLogWriteLogAsync(
-    SaLogStreamHandleT logStreamHandle,
-    SaInvocationT invocation,
-    SaLogAckFlagsT ackFlags,
-    const SaLogRecordT *logRecord);
+	extern SaAisErrorT
+	 saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
+			    SaInvocationT invocation, SaLogAckFlagsT ackFlags, const SaLogRecordT *logRecord);
 
-extern SaAisErrorT
-saLogStreamClose(
-    SaLogStreamHandleT logStreamHandle);
+	extern SaAisErrorT
+	 saLogStreamClose(SaLogStreamHandleT logStreamHandle);
 
-extern SaAisErrorT 
-saLogLimitGet(
-    SaLogHandleT logHandle,
-    SaLogLimitIdT limitId,
-    SaLimitValueT *limitValue);
+	extern SaAisErrorT
+	 saLogLimitGet(SaLogHandleT logHandle, SaLogLimitIdT limitId, SaLimitValueT *limitValue);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif  /* _SA_LOG_H */
-
+#endif   /* _SA_LOG_H */

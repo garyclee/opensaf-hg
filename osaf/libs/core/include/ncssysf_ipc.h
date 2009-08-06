@@ -42,27 +42,24 @@
 extern "C" {
 #endif
 
-
 /** H&J SYSF_MBX Message Element
  **/
-typedef uns32 SYSF_MBX;
+	typedef uns32 SYSF_MBX;
 
 /** Prototype for "leave on queue" callback functions.  See description of
  ** m_NCS_IPC_FLUSH below for more information.
  **/
-typedef NCS_BOOL (*NCS_IPC_CB)(void *arg, void *msg);
-
+	typedef NCS_BOOL (*NCS_IPC_CB) (void *arg, void *msg);
 
 /** Enumerated values for IPC message priorities.
  **/
-typedef enum ncs_ipc_priority
-{
-  NCS_IPC_PRIORITY_LOW = 1,
-  NCS_IPC_PRIORITY_NORMAL,
-  NCS_IPC_PRIORITY_HIGH,
-  NCS_IPC_PRIORITY_VERY_HIGH,
-  NCS_IPC_PRIORITY_MAX,
-} NCS_IPC_PRIORITY;
+	typedef enum ncs_ipc_priority {
+		NCS_IPC_PRIORITY_LOW = 1,
+		NCS_IPC_PRIORITY_NORMAL,
+		NCS_IPC_PRIORITY_HIGH,
+		NCS_IPC_PRIORITY_VERY_HIGH,
+		NCS_IPC_PRIORITY_MAX,
+	} NCS_IPC_PRIORITY;
 
 #define NCS_IPC_PRIO_LEVELS 4
 
@@ -70,11 +67,9 @@ typedef enum ncs_ipc_priority
  ** Note: this queue element exists to force the requirement that the first
  ** field of the object to be queued must be "next" (void *).
  **/
-typedef struct ncs_ipc_msg
-{
-  struct ncs_ipc_msg *next;
-} NCS_IPC_MSG;
-
+	typedef struct ncs_ipc_msg {
+		struct ncs_ipc_msg *next;
+	} NCS_IPC_MSG;
 
 /****************************************************************************
  * m_NCS_IPC_CREATE
@@ -93,8 +88,6 @@ typedef struct ncs_ipc_msg
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_IPC_CREATE(p_mbx)               ncs_ipc_create(p_mbx)
-
-
 
 /****************************************************************************
  * m_NCS_IPC_RELEASE
@@ -117,8 +110,6 @@ typedef struct ncs_ipc_msg
  */
 #define m_NCS_IPC_RELEASE(p_mbx, callback)  \
           ncs_ipc_release(p_mbx, callback)
-
-
 
 /****************************************************************************
  * m_NCS_IPC_ATTACH
@@ -183,8 +174,6 @@ typedef struct ncs_ipc_msg
 #define m_NCS_IPC_DETACH(p_mbx, callback, context) \
           ncs_ipc_detach(p_mbx, callback, context)
 
-
-
 /****************************************************************************
  * m_NCS_IPC_RECEIVE
  *
@@ -231,7 +220,7 @@ typedef struct ncs_ipc_msg
  * NULL if there is no messages in IPC mailbox.
  */
 #define m_NCS_IPC_NON_BLK_RECEIVE(p_mbx, messagebuf)  ncs_ipc_non_blk_recv(p_mbx)
-#if 0 /* The following macro don't seem to be getting used anywhere:PM */
+#if 0				/* The following macro don't seem to be getting used anywhere:PM */
 #define m_NCS_IPC_NON_BLK_SEND(p_mbx, msg, prio) \
                   ncs_ipc_non_blk_send(p_mbx, (NCS_IPC_MSG *)msg, prio)
 #define m_NCS_IPC_NON_BLK_MAX_MSG_PROC  (10)
@@ -268,7 +257,6 @@ typedef struct ncs_ipc_msg
  */
 #define m_NCS_IPC_GET_SEL_OBJ(p_mbx)  (ncs_ipc_get_sel_obj(p_mbx))
 
-
 /****************************************************************************
  * m_NCS_IPC_SEND
  *
@@ -298,7 +286,6 @@ typedef struct ncs_ipc_msg
  */
 #define m_NCS_IPC_SEND(p_mbx, msg, prio) \
                   ncs_ipc_send(p_mbx, (NCS_IPC_MSG *)msg, prio)
-
 
 /* H&J base code directly ref's this macro, but has been obsoleted, so leave
  * as no definition!
@@ -371,23 +358,21 @@ typedef struct ncs_ipc_msg
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_create(SYSF_MBX *mbx);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
-EXTERN_C LEAPDLL_API NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_attach(SYSF_MBX *mbx);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_attach_ext(SYSF_MBX *mbx,char *task_name);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
-EXTERN_C LEAPDLL_API NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg,
-                                 NCS_IPC_PRIORITY prio);
-EXTERN_C LEAPDLL_API NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg,
-                                 NCS_IPC_PRIORITY prio);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_config_max_msgs(SYSF_MBX *mbx,NCS_IPC_PRIORITY prio,uns32 max_limit);
-EXTERN_C LEAPDLL_API uns32       ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx,NCS_IPC_PRIORITY i_prio,uns32 *i_usr_counter);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_create(SYSF_MBX *mbx);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_release(SYSF_MBX *mbx, NCS_IPC_CB cb);
+	EXTERN_C LEAPDLL_API NCS_SEL_OBJ ncs_ipc_get_sel_obj(SYSF_MBX *mbx);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_attach(SYSF_MBX *mbx);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_attach_ext(SYSF_MBX *mbx, char *task_name);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_detach(SYSF_MBX *mbx, NCS_IPC_CB cb, void *cb_arg);
+	EXTERN_C LEAPDLL_API NCS_IPC_MSG *ncs_ipc_recv(SYSF_MBX *mbx);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	EXTERN_C LEAPDLL_API NCS_IPC_MSG *ncs_ipc_non_blk_recv(SYSF_MBX *mbx);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_non_blk_send(SYSF_MBX *mbx, NCS_IPC_MSG *msg, NCS_IPC_PRIORITY prio);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_config_max_msgs(SYSF_MBX *mbx, NCS_IPC_PRIORITY prio, uns32 max_limit);
+	EXTERN_C LEAPDLL_API uns32 ncs_ipc_config_usr_counters(SYSF_MBX *i_mbx, NCS_IPC_PRIORITY i_prio,
+							       uns32 *i_usr_counter);
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* NCSSYSF_IPC_H */
+#endif   /* NCSSYSF_IPC_H */

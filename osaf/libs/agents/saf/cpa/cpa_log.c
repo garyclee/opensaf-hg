@@ -15,10 +15,8 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: CPA_LOG.C
-
 
   DESCRIPTION: CPA Logging utilities
 
@@ -52,18 +50,18 @@
  *****************************************************************************/
 void cpa_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPA;
-   /* fill version no. */
-   reg.info.bind_svc.version = CPSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "CPSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPA;
+	/* fill version no. */
+	reg.info.bind_svc.version = CPSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "CPSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -81,15 +79,14 @@ void cpa_flx_log_reg(void)
  *****************************************************************************/
 void cpa_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPA;
-   ncs_dtsv_su_req(&reg);
-   return;
-}
+	NCS_DTSV_RQ reg;
 
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPA;
+	ncs_dtsv_su_req(&reg);
+	return;
+}
 
 /*****************************************************************************
 
@@ -100,11 +97,8 @@ void cpa_flx_log_dereg(void)
 *****************************************************************************/
 void cpa_log_headline(uns8 hdln_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_HDLN, CPA_FC_HDLN, 
-               NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, 
-               hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_HDLN, CPA_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
 }
-
 
 /*****************************************************************************
 
@@ -115,9 +109,8 @@ void cpa_log_headline(uns8 hdln_id, uns8 sev)
 *****************************************************************************/
 void cpa_log_memfail(uns8 mf_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_MEMFAIL, CPA_FC_MEMFAIL, 
-               NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, 
-               mf_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_MEMFAIL, CPA_FC_MEMFAIL,
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
 }
 
 /*****************************************************************************
@@ -129,9 +122,7 @@ void cpa_log_memfail(uns8 mf_id)
 *****************************************************************************/
 void cpa_log_api(uns8 api_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_API, CPA_FC_API, 
-               NCSFL_LC_API, sev, NCSFL_TYPE_TI, 
-               api_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_API, CPA_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
 }
 
 /*****************************************************************************
@@ -143,11 +134,9 @@ void cpa_log_api(uns8 api_id, uns8 sev)
 *****************************************************************************/
 void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DATA_SEND, CPA_FC_DATA_SEND, 
-        NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, 
-        id, node,evt_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DATA_SEND, CPA_FC_DATA_SEND,
+		   NCSFL_LC_DATA, NCSFL_SEV_ERROR, NCSFL_TYPE_TILL, id, node, evt_id);
 }
-
 
 /*****************************************************************************
                                                                                 
@@ -158,9 +147,5 @@ void cpa_log_data_send(uns8 id, uns32 node, uns32 evt_id)
 *****************************************************************************/
 void cpa_log_db(uns8 hdln_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DB, CPA_FC_DB,
-               NCSFL_LC_API, sev, NCSFL_TYPE_TI,
-               hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_CPA, CPA_LID_DB, CPA_FC_DB, NCSFL_LC_API, sev, NCSFL_TYPE_TI, hdln_id);
 }
-
-

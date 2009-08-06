@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,17 +31,15 @@
 #define GLD_H
 typedef enum {
 
-  NO_CRD_QA_VAL,
-  V_CARD_QA_1,
-  V_CARD_QA_2,
+	NO_CRD_QA_VAL,
+	V_CARD_QA_1,
+	V_CARD_QA_2,
 
-  } V_CARD_QA;
-
+} V_CARD_QA;
 
 /* Common Headers */
 #include "ncsgl_defs.h"
 #include "t_suite.h"
-
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
@@ -85,4 +81,4 @@ typedef enum {
 #include "cpsv_mem.h"
 #include "cpa_mem.h"
 
-#endif /* !GLD_H */
+#endif   /* !GLD_H */

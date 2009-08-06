@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -42,7 +40,6 @@
 
 #include "avd.h"
 
-
 /*****************************************************************************
  * Function: avd_pg_trk_act_func
  *
@@ -62,62 +59,56 @@
  *        maintains a list of all the CSIs that it tracks. The corresponding 
  *        updation is also done.
  **************************************************************************/
-void avd_pg_trk_act_func(AVD_CL_CB *cb,AVD_EVT *evt)
+void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-   AVSV_N2D_PG_TRACK_ACT_MSG_INFO *info = 
-                             &evt->info.avnd_msg->msg_info.n2d_pg_trk_act;
-   AVD_AVND *node = 0;
-   AVD_CSI *csi = 0;
+	AVSV_N2D_PG_TRACK_ACT_MSG_INFO *info = &evt->info.avnd_msg->msg_info.n2d_pg_trk_act;
+	AVD_AVND *node = 0;
+	AVD_CSI *csi = 0;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_pg_trk_act_func");
+	m_AVD_LOG_FUNC_ENTRY("avd_pg_trk_act_func");
 
-   /* run sanity check on the msg */
-   if ((node = avd_msg_sanity_chk(cb, evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG))
-   == AVD_AVND_NULL)
-      goto done;
+	/* run sanity check on the msg */
+	if ((node = avd_msg_sanity_chk(cb, evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG))
+	    == AVD_AVND_NULL)
+		goto done;
 
-   if ((node->node_state == AVD_AVND_STATE_ABSENT) ||
-      (node->node_state == AVD_AVND_STATE_GO_DOWN)) 
-   {
-      /* log information error that the node is in invalid state */
-      m_AVD_LOG_INVALID_VAL_ERROR(node->node_state);
-      m_AVD_LOG_INVALID_VAL_ERROR(node->rcv_msg_id);
-      goto done;
-   }
- 
-   /* get the node & csi */
-   csi = avd_csi_struc_find(cb, info->csi_name_net, FALSE);
+	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
+		/* log information error that the node is in invalid state */
+		m_AVD_LOG_INVALID_VAL_ERROR(node->node_state);
+		m_AVD_LOG_INVALID_VAL_ERROR(node->rcv_msg_id);
+		goto done;
+	}
 
-   /* update the pg lists maintained on csi & node */
-   if ( csi && (csi->row_status == NCS_ROW_ACTIVE) ) 
-   {
-      switch (info->actn)
-      {
-      case AVSV_PG_TRACK_ACT_START:
-         /* add the relvant recs to the lists */
-         avd_pg_csi_node_add(cb, csi, node);
-         break;
+	/* get the node & csi */
+	csi = avd_csi_struc_find(cb, info->csi_name_net, FALSE);
 
-      case AVSV_PG_TRACK_ACT_STOP:
-         /* delete the relvant recs from the lists */
-         avd_pg_csi_node_del(cb, csi, node);
-         break;
+	/* update the pg lists maintained on csi & node */
+	if (csi && (csi->row_status == NCS_ROW_ACTIVE)) {
+		switch (info->actn) {
+		case AVSV_PG_TRACK_ACT_START:
+			/* add the relvant recs to the lists */
+			avd_pg_csi_node_add(cb, csi, node);
+			break;
 
-      default:
-         m_AVSV_ASSERT(0);
-      } /* switch */
-   }
+		case AVSV_PG_TRACK_ACT_STOP:
+			/* delete the relvant recs from the lists */
+			avd_pg_csi_node_del(cb, csi, node);
+			break;
 
-   /* send back the response */
-   if ( NCSCC_RC_SUCCESS != avd_snd_pg_resp_msg(cb, node, csi, info) )
-      m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
- 
-done:
-   avsv_dnd_msg_free(evt->info.avnd_msg);
-   evt->info.avnd_msg = NULL;
-   return;
+		default:
+			m_AVSV_ASSERT(0);
+		}		/* switch */
+	}
+
+	/* send back the response */
+	if (NCSCC_RC_SUCCESS != avd_snd_pg_resp_msg(cb, node, csi, info))
+		m_AVD_LOG_INVALID_VAL_ERROR(node->node_info.nodeId);
+
+ done:
+	avsv_dnd_msg_free(evt->info.avnd_msg);
+	evt->info.avnd_msg = NULL;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_pg_susi_chg_prc
@@ -136,20 +127,18 @@ done:
  **************************************************************************/
 uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
 {
-   AVD_COMP_CSI_REL *comp_csi = 0;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVD_COMP_CSI_REL *comp_csi = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* scan the comp-csi rel list & generate pg upd for each track req */
-   for (comp_csi = susi->list_of_csicomp; comp_csi; 
-        comp_csi = comp_csi->susi_csicomp_next)
-   {
-      rc = avd_pg_compcsi_chg_prc(cb, comp_csi, FALSE);
-      if ( NCSCC_RC_SUCCESS != rc ) break;
-   }
+	/* scan the comp-csi rel list & generate pg upd for each track req */
+	for (comp_csi = susi->list_of_csicomp; comp_csi; comp_csi = comp_csi->susi_csicomp_next) {
+		rc = avd_pg_compcsi_chg_prc(cb, comp_csi, FALSE);
+		if (NCSCC_RC_SUCCESS != rc)
+			break;
+	}
 
-   return rc;
+	return rc;
 }
-
 
 /*****************************************************************************
  * Function: avd_pg_compcsi_chg_prc
@@ -166,28 +155,22 @@ uns32 avd_pg_susi_chg_prc(AVD_CL_CB *cb, AVD_SU_SI_REL *susi)
  *
  * NOTES: None
  **************************************************************************/
-uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB        *cb, 
-                             AVD_COMP_CSI_REL *comp_csi, 
-                             NCS_BOOL         is_rmv)
+uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *cb, AVD_COMP_CSI_REL *comp_csi, NCS_BOOL is_rmv)
 {
-   AVD_PG_CSI_NODE *csi_node = 0;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVD_PG_CSI_NODE *csi_node = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* generate pg upd for each track req */
-   for (csi_node = 
-           (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&comp_csi->csi->pg_node_list);
-        csi_node;
-        csi_node = 
-           (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&csi_node->csi_dll_node))
-   {
-      rc = avd_snd_pg_upd_msg(cb, csi_node->node, comp_csi, 
-              (TRUE == is_rmv) ? SA_AMF_PROTECTION_GROUP_REMOVED : 
-                                 SA_AMF_PROTECTION_GROUP_ADDED, 0);
-   } /* for */
+	/* generate pg upd for each track req */
+	for (csi_node =
+	     (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&comp_csi->csi->pg_node_list);
+	     csi_node; csi_node = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_NEXT(&csi_node->csi_dll_node)) {
+		rc = avd_snd_pg_upd_msg(cb, csi_node->node, comp_csi,
+					(TRUE == is_rmv) ? SA_AMF_PROTECTION_GROUP_REMOVED :
+					SA_AMF_PROTECTION_GROUP_ADDED, 0);
+	}			/* for */
 
-   return rc;
+	return rc;
 }
-
 
 /*****************************************************************************
  * Function: avd_pg_csi_node_add
@@ -205,36 +188,36 @@ uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB        *cb,
  **************************************************************************/
 uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 {
-   AVD_PG_CSI_NODE *pg_csi_node = 0;
-   AVD_PG_NODE_CSI *pg_node_csi = 0;
+	AVD_PG_CSI_NODE *pg_csi_node = 0;
+	AVD_PG_NODE_CSI *pg_node_csi = 0;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_add");
+	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_add");
 
-   /* alloc the pg-csi-node & pg-node-csi recs */
-   pg_csi_node = m_MMGR_ALLOC_AVD_PG_CSI_NODE;
-   pg_node_csi = m_MMGR_ALLOC_AVD_PG_NODE_CSI;
-   if (!pg_csi_node || !pg_node_csi) 
-   {
-      if (!pg_csi_node) m_AVD_LOG_MEM_FAIL(AVD_PG_CSI_NODE_ALLOC_FAILED);
-      if (!pg_node_csi) m_AVD_LOG_MEM_FAIL(AVD_PG_NODE_CSI_ALLOC_FAILED);
-      return NCSCC_RC_FAILURE;
-   }
+	/* alloc the pg-csi-node & pg-node-csi recs */
+	pg_csi_node = m_MMGR_ALLOC_AVD_PG_CSI_NODE;
+	pg_node_csi = m_MMGR_ALLOC_AVD_PG_NODE_CSI;
+	if (!pg_csi_node || !pg_node_csi) {
+		if (!pg_csi_node)
+			m_AVD_LOG_MEM_FAIL(AVD_PG_CSI_NODE_ALLOC_FAILED);
+		if (!pg_node_csi)
+			m_AVD_LOG_MEM_FAIL(AVD_PG_NODE_CSI_ALLOC_FAILED);
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* add the node to the pg list maintained by csi */
-   memset(pg_csi_node, 0, sizeof(AVD_PG_CSI_NODE));
-   pg_csi_node->node = node;
-   pg_csi_node->csi_dll_node.key = (uns8 *)&pg_csi_node->node;
-   ncs_db_link_list_add(&csi->pg_node_list, &pg_csi_node->csi_dll_node);
+	/* add the node to the pg list maintained by csi */
+	memset(pg_csi_node, 0, sizeof(AVD_PG_CSI_NODE));
+	pg_csi_node->node = node;
+	pg_csi_node->csi_dll_node.key = (uns8 *)&pg_csi_node->node;
+	ncs_db_link_list_add(&csi->pg_node_list, &pg_csi_node->csi_dll_node);
 
-   /* add the csi to the pg list maintained by node */
-   memset(pg_node_csi, 0, sizeof(AVD_PG_NODE_CSI));
-   pg_node_csi->csi = csi;
-   pg_node_csi->node_dll_node.key = (uns8 *)&pg_node_csi->csi;
-   ncs_db_link_list_add(&node->pg_csi_list, &pg_node_csi->node_dll_node);
+	/* add the csi to the pg list maintained by node */
+	memset(pg_node_csi, 0, sizeof(AVD_PG_NODE_CSI));
+	pg_node_csi->csi = csi;
+	pg_node_csi->node_dll_node.key = (uns8 *)&pg_node_csi->csi;
+	ncs_db_link_list_add(&node->pg_csi_list, &pg_node_csi->node_dll_node);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: avd_pg_csi_node_del
@@ -252,22 +235,23 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
  **************************************************************************/
 void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 {
-   AVD_PG_CSI_NODE *pg_csi_node = 0;
-   AVD_PG_NODE_CSI *pg_node_csi = 0;
+	AVD_PG_CSI_NODE *pg_csi_node = 0;
+	AVD_PG_NODE_CSI *pg_node_csi = 0;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del");
+	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del");
 
-   /* free from pg list maintained on csi */
-   pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uns8 *)&node);
-   if (pg_csi_node) m_MMGR_FREE_AVD_PG_CSI_NODE(pg_csi_node);
+	/* free from pg list maintained on csi */
+	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uns8 *)&node);
+	if (pg_csi_node)
+		m_MMGR_FREE_AVD_PG_CSI_NODE(pg_csi_node);
 
-   /* free from pg list maintained on node */
-   pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uns8 *)&csi);
-   if (pg_node_csi) m_MMGR_FREE_AVD_PG_NODE_CSI(pg_node_csi);
+	/* free from pg list maintained on node */
+	pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uns8 *)&csi);
+	if (pg_node_csi)
+		m_MMGR_FREE_AVD_PG_NODE_CSI(pg_node_csi);
 
-   return;
+	return;
 }
-
 
 /*****************************************************************************
  * Function: avd_pg_csi_node_del_all
@@ -285,14 +269,14 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
  **************************************************************************/
 void avd_pg_csi_node_del_all(AVD_CL_CB *cb, AVD_CSI *csi)
 {
-   AVD_PG_CSI_NODE *curr = 0;
+	AVD_PG_CSI_NODE *curr = 0;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del_all");
+	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_del_all");
 
-   while ( 0 != (curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&csi->pg_node_list)) )
-      avd_pg_csi_node_del(cb, csi, curr->node);
+	while (0 != (curr = (AVD_PG_CSI_NODE *)m_NCS_DBLIST_FIND_FIRST(&csi->pg_node_list)))
+		avd_pg_csi_node_del(cb, csi, curr->node);
 
-   return;
+	return;
 }
 
 /*****************************************************************************
@@ -311,13 +295,12 @@ void avd_pg_csi_node_del_all(AVD_CL_CB *cb, AVD_CSI *csi)
  **************************************************************************/
 void avd_pg_node_csi_del_all(AVD_CL_CB *cb, AVD_AVND *node)
 {
-   AVD_PG_NODE_CSI *curr = 0;
+	AVD_PG_NODE_CSI *curr = 0;
 
-   m_AVD_LOG_FUNC_ENTRY("avd_pg_node_csi_del_all");
+	m_AVD_LOG_FUNC_ENTRY("avd_pg_node_csi_del_all");
 
-   while ( 0 != (curr = (AVD_PG_NODE_CSI *)m_NCS_DBLIST_FIND_FIRST(&node->pg_csi_list)) )
-      avd_pg_csi_node_del(cb, curr->csi, node);
+	while (0 != (curr = (AVD_PG_NODE_CSI *)m_NCS_DBLIST_FIND_FIRST(&node->pg_csi_list)))
+		avd_pg_csi_node_del(cb, curr->csi, node);
 
-   return;
+	return;
 }
-

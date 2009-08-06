@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,11 +30,9 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef PSS_DL_API_H
 #define PSS_DL_API_H
 
-
 EXTERN_C MABPSR_API uns32 ncspss_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-#endif /* PSS_DL_API_H */
+#endif   /* PSS_DL_API_H */

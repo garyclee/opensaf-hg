@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,14 +28,11 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
   
 ******************************************************************************
 */
 
 #include "glnd.h"
-
-
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_start_tmr
@@ -57,48 +52,39 @@
 
   NOTES         : None
 *****************************************************************************/
-uns32 glnd_start_tmr (GLND_CB *cb,
-                      GLND_TMR *tmr, 
-                      GLND_TMR_TYPE type, 
-                      SaTimeT period, 
-                      uns32 uarg)
+uns32 glnd_start_tmr(GLND_CB *cb, GLND_TMR *tmr, GLND_TMR_TYPE type, SaTimeT period, uns32 uarg)
 {
-   uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
+	uns32 my_period = (uns32)(m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(period));
 
-   if (GLND_TMR_MAX <= type)
-   {
-      m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL,type);
-      return NCSCC_RC_FAILURE;
-   }
+	if (GLND_TMR_MAX <= type) {
+		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type);
+		return NCSCC_RC_FAILURE;
+	}
 
-   if (tmr->tmr_id == TMR_T_NULL)
-   {
-      tmr->type = type;
-      m_NCS_TMR_CREATE (tmr->tmr_id,my_period , glnd_tmr_exp, (void*)tmr);
-   }
+	if (tmr->tmr_id == TMR_T_NULL) {
+		tmr->type = type;
+		m_NCS_TMR_CREATE(tmr->tmr_id, my_period, glnd_tmr_exp, (void *)tmr);
+	}
 
-   if (tmr->is_active == TRUE)
-   {
-      m_NCS_TMR_STOP (tmr->tmr_id);
-      tmr->is_active = FALSE;
-   }
+	if (tmr->is_active == TRUE) {
+		m_NCS_TMR_STOP(tmr->tmr_id);
+		tmr->is_active = FALSE;
+	}
 
-   tmr->opq_hdl = uarg;
-   tmr->cb_hdl = cb->cb_hdl_id;
-   m_NCS_TMR_START (tmr->tmr_id, my_period, glnd_tmr_exp, (void*)tmr);
-   tmr->is_active = TRUE;
-   
-   if (TMR_T_NULL == tmr->tmr_id)
-   {
-      m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL,type);
-      return NCSCC_RC_FAILURE;
-   }
+	tmr->opq_hdl = uarg;
+	tmr->cb_hdl = cb->cb_hdl_id;
+	m_NCS_TMR_START(tmr->tmr_id, my_period, glnd_tmr_exp, (void *)tmr);
+	tmr->is_active = TRUE;
 
-   m_GLSV_DEBUG_CONS_PRINTF("\n  Started GLND Timer for %d @ %d ticks \n", type, my_period);
+	if (TMR_T_NULL == tmr->tmr_id) {
+		m_LOG_GLND_TIMER(GLND_TIMER_START_FAIL, type);
+		return NCSCC_RC_FAILURE;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	m_GLSV_DEBUG_CONS_PRINTF("\n  Started GLND Timer for %d @ %d ticks \n", type, my_period);
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_stop_tmr
@@ -111,30 +97,27 @@ uns32 glnd_start_tmr (GLND_CB *cb,
 
   NOTES         : None
 *****************************************************************************/
-void glnd_stop_tmr (GLND_TMR *tmr)
+void glnd_stop_tmr(GLND_TMR *tmr)
 {
-   /* If timer type is invalid just return */
-   if (tmr!=NULL && GLND_TMR_MAX <= tmr->type)
-   {  
-      m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL,tmr->type);
-      return;
-   }
+	/* If timer type is invalid just return */
+	if (tmr != NULL && GLND_TMR_MAX <= tmr->type) {
+		m_LOG_GLND_TIMER(GLND_TIMER_STOP_FAIL, tmr->type);
+		return;
+	}
 
-   /* Stop the timer if it is active... */
-   if (tmr->is_active == TRUE)
-   {
-      m_GLSV_DEBUG_CONS_PRINTF("\n  Stopped GLND Timer for %d \n", tmr->type);
-      m_NCS_TMR_STOP (tmr->tmr_id);
-      tmr->is_active = FALSE;
-   }
-   
-   /* Destroy the timer if it exists.. */
-   if (tmr->tmr_id != TMR_T_NULL)
-   {
-      m_NCS_TMR_DESTROY(  tmr->tmr_id);
-      tmr->tmr_id = TMR_T_NULL;
-   }
-   return;
+	/* Stop the timer if it is active... */
+	if (tmr->is_active == TRUE) {
+		m_GLSV_DEBUG_CONS_PRINTF("\n  Stopped GLND Timer for %d \n", tmr->type);
+		m_NCS_TMR_STOP(tmr->tmr_id);
+		tmr->is_active = FALSE;
+	}
+
+	/* Destroy the timer if it exists.. */
+	if (tmr->tmr_id != TMR_T_NULL) {
+		m_NCS_TMR_DESTROY(tmr->tmr_id);
+		tmr->tmr_id = TMR_T_NULL;
+	}
+	return;
 }
 
 /*****************************************************************************
@@ -146,23 +129,21 @@ void glnd_stop_tmr (GLND_TMR *tmr)
 *****************************************************************************/
 static GLSV_GLND_EVT_TYPE glnd_tmr_evt_map(GLND_TMR_TYPE tmr_type)
 {
-   switch(tmr_type)
-   {
-   case GLND_TMR_RES_LOCK_REQ_TIMEOUT:
-      return GLSV_GLND_EVT_RSC_LOCK_TIMEOUT;
-   case GLND_TMR_RES_NM_LOCK_REQ_TIMEOUT:
-      return GLSV_GLND_EVT_NM_RSC_LOCK_TIMEOUT;
-   case GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT:
-      return GLSV_GLND_EVT_NM_RSC_UNLOCK_TIMEOUT;
-   case GLND_TMR_RES_REQ_TIMEOUT:
-      return GLSV_GLND_EVT_RSC_OPEN_TIMEOUT;
-   case GLND_TMR_AGENT_INFO_GET_WAIT:
-      return GLSV_GLND_EVT_AGENT_INFO_GET_TIMEOUT;
-   default :
-      return GLSV_GLND_EVT_MAX;
-   }
+	switch (tmr_type) {
+	case GLND_TMR_RES_LOCK_REQ_TIMEOUT:
+		return GLSV_GLND_EVT_RSC_LOCK_TIMEOUT;
+	case GLND_TMR_RES_NM_LOCK_REQ_TIMEOUT:
+		return GLSV_GLND_EVT_NM_RSC_LOCK_TIMEOUT;
+	case GLND_TMR_RES_NM_UNLOCK_REQ_TIMEOUT:
+		return GLSV_GLND_EVT_NM_RSC_UNLOCK_TIMEOUT;
+	case GLND_TMR_RES_REQ_TIMEOUT:
+		return GLSV_GLND_EVT_RSC_OPEN_TIMEOUT;
+	case GLND_TMR_AGENT_INFO_GET_WAIT:
+		return GLSV_GLND_EVT_AGENT_INFO_GET_TIMEOUT;
+	default:
+		return GLSV_GLND_EVT_MAX;
+	}
 }
-
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_tmr_exp
@@ -176,46 +157,42 @@ static GLSV_GLND_EVT_TYPE glnd_tmr_evt_map(GLND_TMR_TYPE tmr_type)
 
   NOTES         : None
 *****************************************************************************/
-void glnd_tmr_exp (void *uarg)
+void glnd_tmr_exp(void *uarg)
 {
-   uns32         rc = NCSCC_RC_SUCCESS;
-   GLND_CB       *cb=0;
-   GLND_TMR      *tmr = (GLND_TMR *)uarg;
-   GLSV_GLND_EVT *evt=0;
-   
-   /* retrieve GLND CB */
-   cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, tmr->cb_hdl);
-   if (!cb) 
-   {
-      m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED,NCSFL_SEV_ERROR);
-      return;
-   }
+	uns32 rc = NCSCC_RC_SUCCESS;
+	GLND_CB *cb = 0;
+	GLND_TMR *tmr = (GLND_TMR *)uarg;
+	GLSV_GLND_EVT *evt = 0;
 
-   if (tmr->is_active) 
-   {
-      tmr->is_active = FALSE;
+	/* retrieve GLND CB */
+	cb = (GLND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLND, tmr->cb_hdl);
+	if (!cb) {
+		m_LOG_GLND_HEADLINE(GLND_CB_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
+		return;
+	}
 
-     /* create & send the timer event */
-     evt = m_MMGR_ALLOC_GLND_EVT;
-     if (evt)
-     {
-        /* assign the timer evt */
-        evt->type = glnd_tmr_evt_map(tmr->type);
-        evt->info.tmr.opq_hdl = tmr->opq_hdl;
+	if (tmr->is_active) {
+		tmr->is_active = FALSE;
 
-        evt->glnd_hdl = tmr->cb_hdl;
-        rc = glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_HIGH);
-        if (rc != NCSCC_RC_SUCCESS)
-        {
-           m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
-              m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id),evt->type);
-        }
+		/* create & send the timer event */
+		evt = m_MMGR_ALLOC_GLND_EVT;
+		if (evt) {
+			/* assign the timer evt */
+			evt->type = glnd_tmr_evt_map(tmr->type);
+			evt->info.tmr.opq_hdl = tmr->opq_hdl;
 
-     }
-   }
+			evt->glnd_hdl = tmr->cb_hdl;
+			rc = glnd_evt_local_send(cb, evt, NCS_IPC_PRIORITY_HIGH);
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_LOG_GLND_DATA_SEND(GLND_MDS_SEND_FAILURE,
+						     m_NCS_NODE_ID_FROM_MDS_DEST(cb->glnd_mdest_id), evt->type);
+			}
 
-   /* return GLND CB */
-   ncshm_give_hdl(tmr->cb_hdl);
+		}
+	}
 
-   return;
+	/* return GLND CB */
+	ncshm_give_hdl(tmr->cb_hdl);
+
+	return;
 }

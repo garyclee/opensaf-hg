@@ -42,21 +42,19 @@
  * Enumerated type used to arrange the doubly link list in order.
  *****************************************************************************/
 
-typedef enum ncs_db_link_list_order
-{
-   NCS_DBLIST_ASSCEND_ORDER = 1,
-   NCS_DBLIST_DESCEND_ORDER,
-   NCS_DBLIST_ANY_ORDER
-}NCS_DB_LINK_LIST_ORDER;
+typedef enum ncs_db_link_list_order {
+	NCS_DBLIST_ASSCEND_ORDER = 1,
+	NCS_DBLIST_DESCEND_ORDER,
+	NCS_DBLIST_ANY_ORDER
+} NCS_DB_LINK_LIST_ORDER;
 
 /*****************************************************************************
  * This is the doubly link list Node, which stores actuall user data.
  *****************************************************************************/
-typedef struct ncs_db_link_list_node
-{
-   struct ncs_db_link_list_node *next;
-   struct ncs_db_link_list_node *prev;
-   uns8                         *key;
+typedef struct ncs_db_link_list_node {
+	struct ncs_db_link_list_node *next;
+	struct ncs_db_link_list_node *prev;
+	uns8 *key;
 } NCS_DB_LINK_LIST_NODE;
 
 /*****************************************************************************
@@ -66,57 +64,48 @@ typedef struct ncs_db_link_list_node
  *                              (<0)   2, if key2 is greater than key1
  *****************************************************************************/
 
-typedef uns32  (*NCS_DB_LINK_LIST_CMP)(uns8 *key1, uns8 *key2);
+typedef uns32 (*NCS_DB_LINK_LIST_CMP) (uns8 *key1, uns8 *key2);
 
 /*****************************************************************************
  * Typedef for freeing the data which has been stored in the doubly linked 
  * list library.
  *****************************************************************************/
-typedef uns32  (*NCS_DB_LINK_LIST_FREE)(NCS_DB_LINK_LIST_NODE *free_node);
+typedef uns32 (*NCS_DB_LINK_LIST_FREE) (NCS_DB_LINK_LIST_NODE *free_node);
 
 /*****************************************************************************
  * Structure used to store all the important information about the doubly link
  * list nodes.
  *****************************************************************************/
-typedef struct ncs_db_link_list
-{
-   NCS_DB_LINK_LIST_ORDER order;       /* how to arrange the database     */
-   NCS_DB_LINK_LIST_NODE *start_ptr;  /* start pointer of the db linklist*/ 
-   NCS_DB_LINK_LIST_NODE *end_ptr;    /* End pointer of the db linklist  */ 
-   NCS_DB_LINK_LIST_CMP  cmp_cookie; /* func ptr to compare the key     */
-   NCS_DB_LINK_LIST_FREE free_cookie;/* func ptr to free the node       */
-   uns32                 n_nodes;     /* number of nodes present in list */
+typedef struct ncs_db_link_list {
+	NCS_DB_LINK_LIST_ORDER order;	/* how to arrange the database     */
+	NCS_DB_LINK_LIST_NODE *start_ptr;	/* start pointer of the db linklist */
+	NCS_DB_LINK_LIST_NODE *end_ptr;	/* End pointer of the db linklist  */
+	NCS_DB_LINK_LIST_CMP cmp_cookie;	/* func ptr to compare the key     */
+	NCS_DB_LINK_LIST_FREE free_cookie;	/* func ptr to free the node       */
+	uns32 n_nodes;		/* number of nodes present in list */
 } NCS_DB_LINK_LIST;
-
-
-
-
 
 /*****************************************************************************
  * This is the API used to add the node in the doubly linked list. 
  * NOTE: 
  *     Expect user to allocate memory for node_ptr, before calling this API.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr,
-                                            NCS_DB_LINK_LIST_NODE *node_ptr);
+EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to find the node in the doubly linked list.  
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_find(
-                                  NCS_DB_LINK_LIST *list_ptr,  uns8 *key);
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
 
 /*****************************************************************************
  * This is the API used to find the next node for the given key
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_find_next(
-                                      NCS_DB_LINK_LIST *list_ptr, uns8 *prev_key);
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uns8 *prev_key);
 
 /*****************************************************************************
  * This is the API used to find the prev node for the given key
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_find_prev(
-                                    NCS_DB_LINK_LIST *list_ptr, uns8 *pres_key);
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uns8 *pres_key);
 
 /*****************************************************************************
  * This is the API used to delete the node for the given key. This API will use
@@ -127,8 +116,7 @@ EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_find_prev(
  * If you just want to remove the node from the list then call the API 
  * "ncs_db_link_list_remove()".
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, 
-                                                 uns8 *key);
+EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
 
 /*****************************************************************************
  * This is the API used to just delink the node from the doubly linked list 
@@ -136,8 +124,7 @@ EXTERN_C LEAPDLL_API  uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr,
  * NOTE:
        It is the users responsibility to free the node pointer.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_remove(
-                               NCS_DB_LINK_LIST *list_ptr, uns8 *key);
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uns8 *key);
 
 /*****************************************************************************
  * This is the API used to just delink the node from the doubly linked list 
@@ -145,30 +132,26 @@ EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE * ncs_db_link_list_remove(
  * NOTE:
        It is the users responsibility to free the node pointer.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  uns32 ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, 
-                                                    NCS_DB_LINK_LIST_NODE *node);
+EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node);
 
 /*****************************************************************************
  * This is the API used to enqueue the given node to the top of the list.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  uns32 ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr,
-                              NCS_DB_LINK_LIST_NODE *node_ptr);
+EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to dequeue the node from the bottom of the list.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE *  ncs_db_link_list_dequeue(
-                                                  NCS_DB_LINK_LIST *list_ptr);
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_dequeue(NCS_DB_LINK_LIST *list_ptr);
 
 /*****************************************************************************
  * This is the API used to push the given node to the top of the list.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  uns32 ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr,  
-                            NCS_DB_LINK_LIST_NODE *node_ptr);
+EXTERN_C LEAPDLL_API uns32 ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr);
 
 /*****************************************************************************
  * This is the API used to pop the given node from the top of the list.
  *****************************************************************************/
-EXTERN_C LEAPDLL_API  NCS_DB_LINK_LIST_NODE *  ncs_db_link_list_pop(
-                                               NCS_DB_LINK_LIST *list_ptr);
-#endif /* NCSDLIB_H*/
+EXTERN_C LEAPDLL_API NCS_DB_LINK_LIST_NODE *ncs_db_link_list_pop(NCS_DB_LINK_LIST *list_ptr);
+
+#endif   /* NCSDLIB_H */

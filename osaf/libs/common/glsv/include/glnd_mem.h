@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,28 +31,27 @@
 #define GLND_MEM_H
 
 /* Service Sub IDs for GLND */
-typedef enum
-{
-   NCS_SERVICE_GLND_SUB_ID_GLND_DEFAULT_VAL = 1,
-   NCS_SERVICE_GLND_SUB_ID_GLND_CB,
-   NCS_SERVICE_GLND_SUB_ID_GLND_EVT,
-   NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_AGENT_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESOURCE_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LIST,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESOURCE_REQ_LIST,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RES_LOCK_LIST_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RES_MASTER_LIST_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_LOCK_LIST_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LOCK_LIST_REQ,
-   NCS_SERVICE_GLND_SUB_ID_GLND_DD_INFO_LIST,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_CLIENT_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_LOCK_LIST_INFO,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_BACKUP_EVT,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_LIST,
-   NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_BACKUP_EVT_INFO,
-   NCS_SERVICE_GLND_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_GLND_SUB_ID_GLND_DEFAULT_VAL = 1,
+	NCS_SERVICE_GLND_SUB_ID_GLND_CB,
+	NCS_SERVICE_GLND_SUB_ID_GLND_EVT,
+	NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_AGENT_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESOURCE_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LIST,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESOURCE_REQ_LIST,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RES_LOCK_LIST_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RES_MASTER_LIST_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_LOCK_LIST_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LOCK_LIST_REQ,
+	NCS_SERVICE_GLND_SUB_ID_GLND_DD_INFO_LIST,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_CLIENT_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_LOCK_LIST_INFO,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_BACKUP_EVT,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_LIST,
+	NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_BACKUP_EVT_INFO,
+	NCS_SERVICE_GLND_SUB_ID_MAX
 } NCS_SERVICE_GLND_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -62,7 +59,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_GLND_DEFAULT_VAL(mem_size) m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -95,7 +91,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_EVT)
 
-
 #define m_MMGR_ALLOC_GLND_CLIENT_INFO           (GLND_CLIENT_INFO*)m_NCS_MEM_ALLOC(sizeof(GLND_CLIENT_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
@@ -106,7 +101,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_INFO)
 
-
 #define m_MMGR_ALLOC_GLND_AGENT_INFO            (GLND_AGENT_INFO*)m_NCS_MEM_ALLOC(sizeof(GLND_AGENT_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
@@ -116,7 +110,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_AGENT_INFO)
-
 
 #define m_MMGR_ALLOC_GLND_RESOURCE_INFO         (GLND_RESOURCE_INFO*)m_NCS_MEM_ALLOC(sizeof(GLND_RESOURCE_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -133,7 +126,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_INFO)
 
-
 #define m_MMGR_ALLOC_GLND_RESTART_CLIENT_INFO         (GLSV_EVT_RESTART_CLIENT_INFO*)m_NCS_MEM_ALLOC(sizeof(GLSV_EVT_RESTART_CLIENT_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
@@ -149,14 +141,10 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_BACKUP_EVT_INFO)
 
-
 #define m_MMGR_ALLOC_GLND_RESTART_RES_LIST         (GLSV_EVT_RESTART_RES_INFO*)m_NCS_MEM_ALLOC(sizeof(GLSV_EVT_RESTART_RES_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RESTART_RES_LIST)
-
-
-
 
 #define m_MMGR_FREE_GLND_RESOURCE_INFO(p)       m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -172,7 +160,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_CLIENT_RES_LIST)
-
 
 #define m_MMGR_ALLOC_GLND_RESOURCE_REQ_LIST     (GLND_RESOURCE_REQ_LIST*)m_NCS_MEM_ALLOC(sizeof(GLND_RESOURCE_REQ_LIST), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -204,8 +191,6 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RES_LOCK_LIST_INFO)
 
-
-
 #define m_MMGR_ALLOC_GLND_LOCK_LIST_INFO        (GLND_LOCK_LIST_INFO*)m_NCS_MEM_ALLOC(sizeof(GLND_LOCK_LIST_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
@@ -215,7 +200,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_LOCK_LIST_INFO)
-
 
 #define m_MMGR_ALLOC_GLND_CLIENT_RES_LOCK_LIST_REQ     (GLND_CLIENT_LIST_RESOURCE_LOCK_REQ*)m_NCS_MEM_ALLOC(sizeof(GLND_CLIENT_LIST_RESOURCE_LOCK_REQ), \
                                                        NCS_MEM_REGION_PERSISTENT, \
@@ -248,7 +232,4 @@ typedef enum
                                                 NCS_SERVICE_ID_GLND, \
                                                 NCS_SERVICE_GLND_SUB_ID_GLND_RES_MASTER_LIST_INFO)
 
-
-
-
-#endif /* !GLND_MEM_H */
+#endif   /* !GLND_MEM_H */

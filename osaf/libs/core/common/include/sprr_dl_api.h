@@ -18,12 +18,9 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
-
 
 *******************************************************************************/
 
@@ -31,11 +28,9 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef SPRR_DL_API_H
 #define SPRR_DL_API_H
 
+EXTERN_C LEAPDLL_API uns32 sprr_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-EXTERN_C LEAPDLL_API uns32 sprr_lib_req (NCS_LIB_REQ_INFO *req_info);
-
-#endif /* SPRR_DL_API_H */
+#endif   /* SPRR_DL_API_H */

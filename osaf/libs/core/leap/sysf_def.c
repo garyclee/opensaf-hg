@@ -63,14 +63,13 @@
 #include "ncs_mib_pub.h"
 #include "ncsmiblib.h"
 
-time_t
-ncs_time_stamp()
+time_t ncs_time_stamp()
 {
-    time_t timestamp;
+	time_t timestamp;
 
-    m_GET_TIME_STAMP(timestamp);
+	m_GET_TIME_STAMP(timestamp);
 
-    return timestamp;
+	return timestamp;
 }
 
 /*****************************************************************************
@@ -87,7 +86,6 @@ ncs_time_stamp()
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 4-octet unsigned short in the network order.
@@ -96,14 +94,13 @@ ncs_time_stamp()
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns32
-decode_32bitOS_inc( uns8 **stream)
+uns32 decode_32bitOS_inc(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
-  val       = m_NCS_OS_NTOHL_P(*stream);
-  *stream   += sizeof(uns32);
-  return val;
+	uns32 val = 0;		/* Accumulator */
+	val = m_NCS_OS_NTOHL_P(*stream);
+	*stream += sizeof(uns32);
+	return val;
 
 }
 
@@ -121,7 +118,6 @@ decode_32bitOS_inc( uns8 **stream)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 4-octet unsigned long  in the network order.
@@ -130,13 +126,13 @@ decode_32bitOS_inc( uns8 **stream)
   increments the pointer to the datastore
 *****************************************************************************/
 
-uns32
-encode_32bitOS_inc( uns8 **stream, uns32 val)
+uns32 encode_32bitOS_inc(uns8 **stream, uns32 val)
 {
-  m_NCS_OS_HTONL_P(*stream,val);
-  *stream += sizeof(uns32);
-  return 4;
+	m_NCS_OS_HTONL_P(*stream, val);
+	*stream += sizeof(uns32);
+	return 4;
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:    encode_16bitOS_inc
@@ -151,7 +147,6 @@ encode_32bitOS_inc( uns8 **stream, uns32 val)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 2-octet unsigned short in the network order.
@@ -161,12 +156,11 @@ encode_32bitOS_inc( uns8 **stream, uns32 val)
 
 *****************************************************************************/
 
-uns32
-encode_16bitOS_inc( uns8 **stream, uns32 val)
+uns32 encode_16bitOS_inc(uns8 **stream, uns32 val)
 {
-  m_NCS_OS_HTONS_P(*stream, val);     
-  *stream += sizeof(uns16);
-  return 2;
+	m_NCS_OS_HTONS_P(*stream, val);
+	*stream += sizeof(uns16);
+	return 2;
 }
 
 /*****************************************************************************
@@ -183,7 +177,6 @@ encode_16bitOS_inc( uns8 **stream, uns32 val)
 
   RETURNS:
 
-
   NOTES:
 
   "stream" points to the start of 2-octet unsigned short in the network order.
@@ -192,18 +185,15 @@ encode_16bitOS_inc( uns8 **stream, uns32 val)
   increments the pointer to the datastore
 
 *****************************************************************************/
-uns16
-decode_16bitOS_inc( uns8 **stream)
+uns16 decode_16bitOS_inc(uns8 **stream)
 {
 
-  uns32 val = 0;  /* Accumulator */
-  val = m_NCS_OS_NTOHS_P(*stream);
-  *stream += sizeof(uns16); 
-  return (uns16)(val & 0x0000FFFF);
+	uns32 val = 0;		/* Accumulator */
+	val = m_NCS_OS_NTOHS_P(*stream);
+	*stream += sizeof(uns16);
+	return (uns16)(val & 0x0000FFFF);
 
 }
-
-
 
 /*****************************************************************************
 
@@ -233,23 +223,20 @@ decode_16bitOS_inc( uns8 **stream)
 
 *****************************************************************************/
 
-
-uns32 leap_dbg_sink(uns32 l, char* f, long code)
+uns32 leap_dbg_sink(uns32 l, char *f, long code)
 {
 #if (ENABLE_LEAP_DBG == 1)
-  switch(code)
-   {
-   case NCSCC_RC_NO_TO_SVC:
-      printf ("MDS: Destination service is not UP: line %d, file %s\n", (unsigned int) l,f);
-      break;
-   default:
-      printf ("IN LEAP_DBG_SINK: line %d, file %s\n", (unsigned int) l,f);
-      break;
-   }
+	switch (code) {
+	case NCSCC_RC_NO_TO_SVC:
+		printf("MDS: Destination service is not UP: line %d, file %s\n", (unsigned int)l, f);
+		break;
+	default:
+		printf("IN LEAP_DBG_SINK: line %d, file %s\n", (unsigned int)l, f);
+		break;
+	}
 #endif
-  return code;
+	return code;
 }
-
 
 /*****************************************************************************
 
@@ -280,48 +267,44 @@ uns32 leap_dbg_sink(uns32 l, char* f, long code)
 
 /* the array of error strings */
 
-char* gl_fail_str[] = 
-  {
-  "illegal string",              /* You shouldn't see this one */
-  "Double Delete of Memory",
-  "Freeing Null Pointer",
-  "Memory Is Screwed Up!?",
-  "Failed Bottom Marker Test",
-  "Freeing to a NULL pool",
-  "Memory DBG Record corrupted",
-  "Memory ownership rules violated"
-  };
+char *gl_fail_str[] = {
+	"illegal string",	/* You shouldn't see this one */
+	"Double Delete of Memory",
+	"Freeing Null Pointer",
+	"Memory Is Screwed Up!?",
+	"Failed Bottom Marker Test",
+	"Freeing to a NULL pool",
+	"Memory DBG Record corrupted",
+	"Memory ownership rules violated"
+};
 
 /* The function that says it all */
 
-uns32 leap_failure(uns32 l, char* f, uns32 err, uns32 retval)
-  {
-  switch(err)
-    {
-    case NCSFAIL_DOUBLE_DELETE     :
-    case NCSFAIL_FREEING_NULL_PTR  :
-    case NCSFAIL_MEM_SCREWED_UP    :
-    case NCSFAIL_FAILED_BM_TEST    :
-    case NCSFAIL_MEM_NULL_POOL     :
-    case NCSFAIL_MEM_REC_CORRUPTED :
-    case NCSFAIL_OWNER_CONFLICT    :
+uns32 leap_failure(uns32 l, char *f, uns32 err, uns32 retval)
+{
+	switch (err) {
+	case NCSFAIL_DOUBLE_DELETE:
+	case NCSFAIL_FREEING_NULL_PTR:
+	case NCSFAIL_MEM_SCREWED_UP:
+	case NCSFAIL_FAILED_BM_TEST:
+	case NCSFAIL_MEM_NULL_POOL:
+	case NCSFAIL_MEM_REC_CORRUPTED:
+	case NCSFAIL_OWNER_CONFLICT:
 
-#if (NCS_MMGR_ERROR_BEHAVIOR == BANNER_ERR) || (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)        
+#if (NCS_MMGR_ERROR_BEHAVIOR == BANNER_ERR) || (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
 
-      printf ("MEMORY FAILURE: %s line %d, file %s\n", gl_fail_str[err],l,f);
+		printf("MEMORY FAILURE: %s line %d, file %s\n", gl_fail_str[err], l, f);
 
 #if (NCS_MMGR_ERROR_BEHAVIOR == CRASH_ERR)
 
-      assert(0);  /* Policy is to crash! */
+		assert(0);	/* Policy is to crash! */
+#endif   /* CRASH */
+#endif   /* BANNER or CRASH */
 
-#endif /* CRASH */
-#endif /* BANNER or CRASH */
-
-      break;
-    }
-  return retval;
-  }
-
+		break;
+	}
+	return retval;
+}
 
 /*****************************************************************************
 
@@ -341,256 +324,243 @@ uns32 leap_failure(uns32 l, char* f, uns32 err, uns32 retval)
 
 *****************************************************************************/
 
-static  uns32 leap_env_init_count = 0;
+static uns32 leap_env_init_count = 0;
 
 uns32 leap_env_init()
 {
 
-  if(leap_env_init_count++ != 0)
-  {   
-    return NCSCC_RC_SUCCESS;
-  }  
+	if (leap_env_init_count++ != 0) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-  /* 
-  ** Change buffering type for the stdout stream to line buffered.
-  ** Otherwise printf output will be block buffered and not immidiately
-  ** printed to file.
-  ** TODO: to be removed in OpenSAF 4.0
-  */
-  if (setvbuf(stdout, (char *)NULL, _IOLBF, 0) != 0)
-  {
-      fprintf(stderr, "%s:%d - setvbuf failed\n", __FILE__, __LINE__);
-      return NCSCC_RC_FAILURE;
-  }
+	/* 
+	 ** Change buffering type for the stdout stream to line buffered.
+	 ** Otherwise printf output will be block buffered and not immidiately
+	 ** printed to file.
+	 ** TODO: to be removed in OpenSAF 4.0
+	 */
+	if (setvbuf(stdout, (char *)NULL, _IOLBF, 0) != 0) {
+		fprintf(stderr, "%s:%d - setvbuf failed\n", __FILE__, __LINE__);
+		return NCSCC_RC_FAILURE;
+	}
 
-  m_NCS_DBG_PRINTF("\n\n\nINITIALIZING LEAP ENVIRONMENT\n");
+	m_NCS_DBG_PRINTF("\n\n\nINITIALIZING LEAP ENVIRONMENT\n");
 
-  /* initialize OS target */
-  m_NCS_OS_TARGET_INIT;
+	/* initialize OS target */
+	m_NCS_OS_TARGET_INIT;
 
 #if (NCSL_ENV_INIT_MMGR == 1)
-  /* initialize LEAP Memory Manager */
-  if(ncs_mem_create() != NCSCC_RC_SUCCESS)
-  {
-    printf("\nleap_env_init: FAILED to initialize Memory Manager\n");
-    return NCSCC_RC_FAILURE;
-  }
+	/* initialize LEAP Memory Manager */
+	if (ncs_mem_create() != NCSCC_RC_SUCCESS) {
+		printf("\nleap_env_init: FAILED to initialize Memory Manager\n");
+		return NCSCC_RC_FAILURE;
+	}
 #endif
 
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-  /* initialize LEAP Buffer Pool */
-  if(ncs_lbp_create() != NCSCC_RC_SUCCESS)
-  {
-    printf("\nleap_env_init: FAILED to initialize Buffer Pool\n");
+	/* initialize LEAP Buffer Pool */
+	if (ncs_lbp_create() != NCSCC_RC_SUCCESS) {
+		printf("\nleap_env_init: FAILED to initialize Buffer Pool\n");
 
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+		(void)ncs_mem_destroy();
 #endif
-    return NCSCC_RC_FAILURE;
-  }
-#endif /* #if (NCSL_ENV_INIT_LBP == 1) */
+		return NCSCC_RC_FAILURE;
+	}
+#endif   /* #if (NCSL_ENV_INIT_LBP == 1) */
 #endif
 
 #if (NCSL_ENV_INIT_LM == 1)
-  /* initialize LEAP Lock Manager */
-  if(ncs_lock_create_mngr() != NCSCC_RC_SUCCESS)
-  {
-    printf("\nleap_env_init: FAILED to initialize Lock Manager\n");
+	/* initialize LEAP Lock Manager */
+	if (ncs_lock_create_mngr() != NCSCC_RC_SUCCESS) {
+		printf("\nleap_env_init: FAILED to initialize Lock Manager\n");
 
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-    (void)ncs_lbp_destroy();
+		(void)ncs_lbp_destroy();
 #endif
 #endif
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+		(void)ncs_mem_destroy();
 #endif
 
-    return NCSCC_RC_FAILURE;
-  }
-#endif /* #if (NCSL_ENV_INIT_LM == 1) */
+		return NCSCC_RC_FAILURE;
+	}
+#endif   /* #if (NCSL_ENV_INIT_LM == 1) */
 
-  ncs_os_atomic_init();
+	ncs_os_atomic_init();
 
 #if (NCSL_ENV_INIT_TMR == 1)
-  /* initialize LEAP Timer Service */
-  if(sysfTmrCreate() != NCSCC_RC_SUCCESS)
-  {
-    printf("\nleap_env_init: FAILED to initialize Timer Service\n");
+	/* initialize LEAP Timer Service */
+	if (sysfTmrCreate() != NCSCC_RC_SUCCESS) {
+		printf("\nleap_env_init: FAILED to initialize Timer Service\n");
 
 #if (NCSL_ENV_INIT_LM == 1)
-    (void)ncs_lock_destroy_mngr();
+		(void)ncs_lock_destroy_mngr();
 #endif
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-    (void)ncs_lbp_destroy();
+		(void)ncs_lbp_destroy();
 #endif
 #endif
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+		(void)ncs_mem_destroy();
 #endif
 
-    return NCSCC_RC_FAILURE;
-  }
-#endif /* #if (NCSL_ENV_INIT_TMR == 1) */
+		return NCSCC_RC_FAILURE;
+	}
+#endif   /* #if (NCSL_ENV_INIT_TMR == 1) */
 
 #if (NCSL_ENV_INIT_KMS == 1)
-  /* initialize KMS */
-  {
-    NCSKMS_LM_ARG kms_arg;
-    kms_arg.i_op = NCSKMS_LM_CREATE;
-    if(ncskms_lm(&kms_arg) != NCSCC_RC_SUCCESS)
-    {
-      printf("\nleap_env_init: FAILED to initialize KMS\n");
+	/* initialize KMS */
+	{
+		NCSKMS_LM_ARG kms_arg;
+		kms_arg.i_op = NCSKMS_LM_CREATE;
+		if (ncskms_lm(&kms_arg) != NCSCC_RC_SUCCESS) {
+			printf("\nleap_env_init: FAILED to initialize KMS\n");
 
 #if (NCSL_ENV_INIT_TMR == 1)
-     (void)sysfTmrDestroy();
+			(void)sysfTmrDestroy();
 #endif
 #if (NCSL_ENV_INIT_LM == 1)
-    (void)ncs_lock_destroy_mngr();
+			(void)ncs_lock_destroy_mngr();
 #endif
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-    (void)ncs_lbp_destroy();
+			(void)ncs_lbp_destroy();
 #endif
 #endif
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+			(void)ncs_mem_destroy();
 #endif
-      return NCSCC_RC_FAILURE;
-    }
-  }
-#endif /* #if (NCSL_ENV_INIT_KMS == 1) */
+			return NCSCC_RC_FAILURE;
+		}
+	}
+#endif   /* #if (NCSL_ENV_INIT_KMS == 1) */
 
 #if (NCSL_ENV_INIT_MTM == 1)
-  /* initialize MIB Transaction Manager: 
-     needed for NCS_MIB code...
-  */
-  (void)ncsmib_tm_create();
-#endif /* #if (NCSL_ENV_INIT_MTM == 1) */
+	/* initialize MIB Transaction Manager: 
+	   needed for NCS_MIB code...
+	 */
+	(void)ncsmib_tm_create();
+#endif   /* #if (NCSL_ENV_INIT_MTM == 1) */
 
 #if (NCSL_ENV_INIT_HM == 1)
-  /* initialize Handle Manager */
-  if(ncshm_init() != NCSCC_RC_SUCCESS)
-  {
-    printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
+	/* initialize Handle Manager */
+	if (ncshm_init() != NCSCC_RC_SUCCESS) {
+		printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
 
 #if (NCSL_ENV_INIT_MTM == 1)
-    (void)ncsmib_tm_destroy();
+		(void)ncsmib_tm_destroy();
 #endif
 #if (NCSL_ENV_INIT_KMS == 1)
-    {
-    NCSKMS_LM_ARG kms_arg;
-    kms_arg.i_op = NCSKMS_LM_DESTROY;
-    (void)ncskms_lm(&kms_arg);
-    }
+		{
+			NCSKMS_LM_ARG kms_arg;
+			kms_arg.i_op = NCSKMS_LM_DESTROY;
+			(void)ncskms_lm(&kms_arg);
+		}
 #endif
 #if (NCSL_ENV_INIT_TMR == 1)
-     (void)sysfTmrDestroy();
+		(void)sysfTmrDestroy();
 #endif
 #if (NCSL_ENV_INIT_LM == 1)
-    (void)ncs_lock_destroy_mngr();
+		(void)ncs_lock_destroy_mngr();
 #endif
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-    (void)ncs_lbp_destroy();
+		(void)ncs_lbp_destroy();
 #endif
 #endif
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+		(void)ncs_mem_destroy();
 #endif
 
-    return NCSCC_RC_FAILURE;
-  }
-#endif /* #if (NCSL_ENV_INIT_HM == 1) */
+		return NCSCC_RC_FAILURE;
+	}
+#endif   /* #if (NCSL_ENV_INIT_HM == 1) */
 
-#if (NCSL_ENV_INIT_SMON == 1) 
-  /* initialize SYSMON */
+#if (NCSL_ENV_INIT_SMON == 1)
+	/* initialize SYSMON */
 #if (NCS_USE_SYSMON == 1)
-  {
-    NCSSYSM_LM_ARG sm_arg;
-    sm_arg.i_op = NCSSYSM_LM_OP_INIT;
-    sm_arg.i_vrtr_id = 1;
-    if(ncssysm_lm(&sm_arg) != NCSCC_RC_SUCCESS)
-    {    
-      printf("\nleap_env_init: FAILED to initialize SYSMON\n");
+	{
+		NCSSYSM_LM_ARG sm_arg;
+		sm_arg.i_op = NCSSYSM_LM_OP_INIT;
+		sm_arg.i_vrtr_id = 1;
+		if (ncssysm_lm(&sm_arg) != NCSCC_RC_SUCCESS) {
+			printf("\nleap_env_init: FAILED to initialize SYSMON\n");
 
-#if (NCSL_ENV_INIT_HM == 1)      
-    (void)ncshm_delete();
+#if (NCSL_ENV_INIT_HM == 1)
+			(void)ncshm_delete();
 #endif
 #if (NCSL_ENV_INIT_MTM == 1)
-    (void)ncsmib_tm_destroy();
+			(void)ncsmib_tm_destroy();
 #endif
 #if (NCSL_ENV_INIT_KMS == 1)
-    {
-    NCSKMS_LM_ARG kms_arg;
-    kms_arg.i_op = NCSKMS_LM_DESTROY;
-    (void)ncskms_lm(&kms_arg);
-    }
+			{
+				NCSKMS_LM_ARG kms_arg;
+				kms_arg.i_op = NCSKMS_LM_DESTROY;
+				(void)ncskms_lm(&kms_arg);
+			}
 #endif
 #if (NCSL_ENV_INIT_TMR == 1)
-     (void)sysfTmrDestroy();
+			(void)sysfTmrDestroy();
 #endif
 #if (NCSL_ENV_INIT_LM == 1)
-    (void)ncs_lock_destroy_mngr();
+			(void)ncs_lock_destroy_mngr();
 #endif
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-    (void)ncs_lbp_destroy();
+			(void)ncs_lbp_destroy();
 #endif
 #endif
 #if (NCSL_ENV_INIT_MMGR == 1)
-    (void)ncs_mem_destroy();
+			(void)ncs_mem_destroy();
 #endif
-      return NCSCC_RC_FAILURE;
-    }  
-  }
-#endif /* #if (NCS_USE_SYSMON == 1) */
-#endif /* #if (NCSL_ENV_INIT_SMON == 1)  */
+			return NCSCC_RC_FAILURE;
+		}
+	}
+#endif   /* #if (NCS_USE_SYSMON == 1) */
+#endif   /* #if (NCSL_ENV_INIT_SMON == 1)  */
 
-  /* NCS_IPC implementation uses INET sockets on Windows. INET sockets
-  need WSAStartup to done before NCS-IPC creation. - Phani:10/02/04*/
-  if (m_NCSSOCK_CREATE != NCSCC_RC_SUCCESS)
-  {
-     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  }
+	/* NCS_IPC implementation uses INET sockets on Windows. INET sockets
+	   need WSAStartup to done before NCS-IPC creation. - Phani:10/02/04 */
+	if (m_NCSSOCK_CREATE != NCSCC_RC_SUCCESS) {
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 
-  /* NCS MIBLIB is being initialized here. */
-  {
-      NCSMIBLIB_REQ_INFO  miblib_init;
-      uns32 status;
+	/* NCS MIBLIB is being initialized here. */
+	{
+		NCSMIBLIB_REQ_INFO miblib_init;
+		uns32 status;
 
-      /* Initalize miblib */
-      memset(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
+		/* Initalize miblib */
+		memset(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
 
-      /* register with MIBLIB */
-      miblib_init.req = NCSMIBLIB_REQ_INIT_OP;
-      status = ncsmiblib_process_req(&miblib_init);
-      if (status != NCSCC_RC_SUCCESS)
-      {
-         /* Log error */
+		/* register with MIBLIB */
+		miblib_init.req = NCSMIBLIB_REQ_INIT_OP;
+		status = ncsmiblib_process_req(&miblib_init);
+		if (status != NCSCC_RC_SUCCESS) {
+			/* Log error */
 
-         printf("\nleap_env_init: FAILED to initialize MIBLIB\n");
-           
-         return m_LEAP_DBG_SINK(status);
-      }
+			printf("\nleap_env_init: FAILED to initialize MIBLIB\n");
 
-  }
+			return m_LEAP_DBG_SINK(status);
+		}
 
-  /* Initialize script execution control block */
-  if (NCSCC_RC_SUCCESS != init_exec_mod_cb())
-  {
-     /* Log error */
-     printf("\nleap_env_init: FAILED to initialize Execute Module CB \n");
- 
-     return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  }
-  m_NCS_DBG_PRINTF("\nDONE INITIALIZING LEAP ENVIRONMENT\n");
+	}
 
-  return NCSCC_RC_SUCCESS;
+	/* Initialize script execution control block */
+	if (NCSCC_RC_SUCCESS != init_exec_mod_cb()) {
+		/* Log error */
+		printf("\nleap_env_init: FAILED to initialize Execute Module CB \n");
+
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
+	m_NCS_DBG_PRINTF("\nDONE INITIALIZING LEAP ENVIRONMENT\n");
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -610,86 +580,80 @@ uns32 leap_env_init()
 
 *****************************************************************************/
 
-
 uns32 leap_env_destroy()
-{  
-  
-  if(--leap_env_init_count != 0)
-  {   
-     return NCSCC_RC_SUCCESS;
-  }
- 
-  
-  m_NCS_DBG_PRINTF("\n\n\nDESTROYING LEAP ENVIRONMENT\n");
+{
 
-  m_NCSSOCK_DESTROY;
+	if (--leap_env_init_count != 0) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-  /* Destroying  execution control block */
-  exec_mod_cb_destroy();
-  
+	m_NCS_DBG_PRINTF("\n\n\nDESTROYING LEAP ENVIRONMENT\n");
 
-#if (NCSL_ENV_INIT_SMON == 1) 
+	m_NCSSOCK_DESTROY;
+
+	/* Destroying  execution control block */
+	exec_mod_cb_destroy();
+
+#if (NCSL_ENV_INIT_SMON == 1)
 #if (NCS_USE_SYSMON == 1)
-  /* destroying SYSMON */
-  {
-    NCSSYSM_LM_ARG sm_arg;
-    sm_arg.i_op = NCSSYSM_LM_OP_INIT;
-    sm_arg.i_vrtr_id = 1;
+	/* destroying SYSMON */
+	{
+		NCSSYSM_LM_ARG sm_arg;
+		sm_arg.i_op = NCSSYSM_LM_OP_INIT;
+		sm_arg.i_vrtr_id = 1;
 
+		(void)ncssysm_lm(&sm_arg);
+	}
+#endif
+#endif
 
-    (void)ncssysm_lm(&sm_arg);
-  }
-#endif   
-#endif  
-
-#if (NCSL_ENV_INIT_HM == 1)  
-   /* destroying Handle Manager */ 
-    (void)ncshm_delete();
+#if (NCSL_ENV_INIT_HM == 1)
+	/* destroying Handle Manager */
+	(void)ncshm_delete();
 #endif
 
 #if (NCSL_ENV_INIT_MTM == 1)
-  /* destroying MIB Transaction Manager */
-    (void)ncsmib_tm_destroy();
+	/* destroying MIB Transaction Manager */
+	(void)ncsmib_tm_destroy();
 #endif
 
 #if (NCSL_ENV_INIT_KMS == 1)
-  /* destroying KMS */
-    {
-    NCSKMS_LM_ARG kms_arg;
-    kms_arg.i_op = NCSKMS_LM_DESTROY;
-    (void)ncskms_lm(&kms_arg);
-    }
+	/* destroying KMS */
+	{
+		NCSKMS_LM_ARG kms_arg;
+		kms_arg.i_op = NCSKMS_LM_DESTROY;
+		(void)ncskms_lm(&kms_arg);
+	}
 #endif
 
 #if (NCSL_ENV_INIT_TMR == 1)
-  /* destroying LEAP Timer Service */
-     (void)sysfTmrDestroy();
+	/* destroying LEAP Timer Service */
+	(void)sysfTmrDestroy();
 #endif
 
-  ncs_os_atomic_destroy();
+	ncs_os_atomic_destroy();
 
 #if (NCSL_ENV_INIT_LM == 1)
-  /* destroying Lock Manager */
-    (void)ncs_lock_destroy_mngr();
+	/* destroying Lock Manager */
+	(void)ncs_lock_destroy_mngr();
 #endif
 
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
-  /* destroying LEAP Buffer Pool */
-    (void)ncs_lbp_destroy();
+	/* destroying LEAP Buffer Pool */
+	(void)ncs_lbp_destroy();
 #endif
 #endif
 
 #if (NCSL_ENV_INIT_MMGR == 1)
-  /* destroying LEAP Memory Manager */
-    (void)ncs_mem_destroy();
+	/* destroying LEAP Memory Manager */
+	(void)ncs_mem_destroy();
 #endif
 
-  m_NCS_DBG_PRINTF("\nDONE DESTROYING LEAP ENVIRONMENT\n");
+	m_NCS_DBG_PRINTF("\nDONE DESTROYING LEAP ENVIRONMENT\n");
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /**
  * Print message and reboot the system
@@ -697,13 +661,13 @@ uns32 leap_env_destroy()
  */
 void ncs_reboot(const char *reason)
 {
-   struct timeval tv;
-   char time_str[128];
- 
-   gettimeofday(&tv, NULL);
-   strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
-   fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
-   syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
+	struct timeval tv;
+	char time_str[128];
 
-   system(PKGLIBDIR "/opensaf_reboot");
+	gettimeofday(&tv, NULL);
+	strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
+	fprintf(stderr, "%s node rebooting, reason: %s\n", time_str, reason);
+	syslog(LOG_CRIT, "node rebooting, reason: %s", reason);
+
+	system(PKGLIBDIR "/opensaf_reboot");
 }

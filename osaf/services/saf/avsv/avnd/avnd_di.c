@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,14 +30,13 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
   
 ******************************************************************************
 */
 
 #include "avnd.h"
 
-static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt);
+static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt);
 
 /* macro to push the AvD msg parameters (to the end of the list) */
 #define m_AVND_DIQ_REC_PUSH(cb, rec) \
@@ -64,7 +61,6 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt);
    } else (o_rec) = 0; \
 }
 
-
 /****************************************************************************
   Name          : avnd_evt_avd_hlt_updt_on_fover
  
@@ -78,73 +74,62 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt);
  
   Notes         : None.
 ******************************************************************************/
-static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt)
+static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
-   AVSV_HLT_INFO_MSG         *hc_info = 0;
-   AVND_HC                   *hc = 0;
-   uns32                     rc = NCSCC_RC_SUCCESS;
-   AVSV_HLT_KEY      hc_key;
+	AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
+	AVSV_HLT_INFO_MSG *hc_info = 0;
+	AVND_HC *hc = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_HLT_KEY hc_key;
 
-   m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, 
-      AVND_LOG_FOVR_HLT_UPDT , NCSCC_RC_SUCCESS);
+	m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, AVND_LOG_FOVR_HLT_UPDT, NCSCC_RC_SUCCESS);
 
-   info = &evt->info.avd->msg_info.d2n_reg_hlt;
+	info = &evt->info.avd->msg_info.d2n_reg_hlt;
 
-   /* scan the hc list & add each hc to hc-db */
-   for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next)
-   {
-      /* Check whether this health check record exists. If no then create it */
-      if (NULL == (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_info->name)))
-      {
-         hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
+	/* scan the hc list & add each hc to hc-db */
+	for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next) {
+		/* Check whether this health check record exists. If no then create it */
+		if (NULL == (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_info->name))) {
+			hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
 
-         if(NULL != hc)
-         {         
-            m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
-         }
+			if (NULL != hc) {
+				m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
+			}
 
-         m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, 
-          AVND_LOG_FOVR_HLT_UPDT_FAIL , rc);
+			m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_HLT_UPDT_FAIL, rc);
 
-         return rc;
-      }
-      else
-      {
-         /* Since entry is present just update the fields */
-         hc->max_dur = hc_info->max_duration;
-         hc->period  = hc_info->period;
-      }
+			return rc;
+		} else {
+			/* Since entry is present just update the fields */
+			hc->max_dur = hc_info->max_duration;
+			hc->period = hc_info->period;
+		}
 
-      hc->rcvd_on_fover = TRUE;
-   }
+		hc->rcvd_on_fover = TRUE;
+	}
 
-   /* Now walk through all the HC entries and delete those for which update
-    * has not been received */
-   memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
+	/* Now walk through all the HC entries and delete those for which update
+	 * has not been received */
+	memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
 
-   while (NULL != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key)))
-   {
-      hc_key = hc->key;
+	while (NULL != (hc = (AVND_HC *)ncs_patricia_tree_getnext(&cb->hcdb, (uns8 *)&hc_key))) {
+		hc_key = hc->key;
 
-      /* If it was received on f-over message then continue */
-      if (hc->rcvd_on_fover)
-      {
-         hc->rcvd_on_fover = FALSE;
-         continue;
-      }
+		/* If it was received on f-over message then continue */
+		if (hc->rcvd_on_fover) {
+			hc->rcvd_on_fover = FALSE;
+			continue;
+		}
 
-      if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key)))
-      {
-         m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-         /* We have not received this entry on f-over, so delete it */
-         avnd_hcdb_rec_del(cb, &hc_key);
-      }
-   }
+		if (NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key))) {
+			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+			/* We have not received this entry on f-over, so delete it */
+			avnd_hcdb_rec_del(cb, &hc_key);
+		}
+	}
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_reg_hlt_msg
@@ -161,100 +146,91 @@ static uns32 avnd_evt_avd_hlt_updt_on_fover (AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_reg_hlt_msg (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_reg_hlt_msg(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
-   AVSV_HLT_INFO_MSG         *hc_info = 0;
-   AVND_HC                   *hc = 0;
-   AVND_MSG                  msg;
-   uns32                     rc = NCSCC_RC_SUCCESS;
+	AVSV_D2N_REG_HLT_MSG_INFO *info = 0;
+	AVSV_HLT_INFO_MSG *hc_info = 0;
+	AVND_HC *hc = 0;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* dont process unless AvD is up */
-   if ( !m_AVND_CB_IS_AVD_UP(cb) ) goto done;
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb))
+		goto done;
 
+	info = &evt->info.avd->msg_info.d2n_reg_hlt;
 
-   info = &evt->info.avd->msg_info.d2n_reg_hlt;
+	/* Message ID 0 check should be removed in future */
+	if ((info->msg_id != 0) && (info->msg_id != (cb->rcv_msg_id + 1))) {
+		/* Log Error */
+		rc = NCSCC_RC_FAILURE;
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
 
-   /* Message ID 0 check should be removed in future */
-   if ((info->msg_id != 0) && 
-       (info->msg_id != (cb->rcv_msg_id+1)))
-   {
-      /* Log Error */
-      rc = NCSCC_RC_FAILURE;
-      m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, 
-                AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+		goto done;
+	}
 
-      goto done;
-   }
+	cb->rcv_msg_id = info->msg_id;
 
-   cb->rcv_msg_id = info->msg_id;
+	/* 
+	 * Check whether message is sent on fail-over. If yes then it is
+	 * a time to process it specially.
+	 */
+	if (info->msg_on_fover) {
+		rc = avnd_evt_avd_hlt_updt_on_fover(cb, evt);
+		goto done;
+	}
 
-   /* 
-    * Check whether message is sent on fail-over. If yes then it is
-    * a time to process it specially.
-    */
-   if (info->msg_on_fover)
-   {
-      rc = avnd_evt_avd_hlt_updt_on_fover(cb, evt);
-      goto done;
-   }
+	/* scan the hc list & add each hc to hc-db */
+	for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next) {
+		hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
+		if (!hc)
+			break;
+		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
+	}
 
-   /* scan the hc list & add each hc to hc-db */
-   for (hc_info = info->hlt_list; hc_info; hc = 0, hc_info = hc_info->next)
-   {
-      hc = avnd_hcdb_rec_add(cb, hc_info, &rc);
-      if (!hc) break;
-      m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, hc, AVND_CKPT_HLT_CONFIG);
-   }
-
-   /* 
-    * if all the records aren't added, delete those 
-    * records that were successfully added
-    */
-   if (hc_info) /* => add operation stopped in the middle */
-   {
-      for (hc_info = info->hlt_list; hc_info; hc_info = hc_info->next)
-      {
-         if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_info->name)))
-         {
-           m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-           avnd_hcdb_rec_del(cb, &hc_info->name);
-         }
-      }
-   }
+	/* 
+	 * if all the records aren't added, delete those 
+	 * records that were successfully added
+	 */
+	if (hc_info) {		/* => add operation stopped in the middle */
+		for (hc_info = info->hlt_list; hc_info; hc_info = hc_info->next) {
+			if (NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_info->name))) {
+				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+				avnd_hcdb_rec_del(cb, &hc_info->name);
+			}
+		}
+	}
 
    /*** send the response to AvD (if it's sent to me) ***/
-   if (info->nodeid == cb->clmdb.node_info.nodeId)
-   {
-      memset(&msg, 0, sizeof(AVND_MSG));
-      msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
-      if (!msg.info.avd)
-      {
-         rc = NCSCC_RC_FAILURE;
-         goto done;
-      }
+	if (info->nodeid == cb->clmdb.node_info.nodeId) {
+		memset(&msg, 0, sizeof(AVND_MSG));
+		msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
+		if (!msg.info.avd) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_REG_HLT_MSG;
-      msg.info.avd->msg_info.n2d_reg_hlt.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_reg_hlt.node_id = cb->clmdb.node_info.nodeId;
-      if (info->hlt_list)
-         msg.info.avd->msg_info.n2d_reg_hlt.hltchk_name = info->hlt_list->name;
-      msg.info.avd->msg_info.n2d_reg_hlt.error = 
-         (NCSCC_RC_SUCCESS == rc) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
-      
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_REG_HLT_MSG;
+		msg.info.avd->msg_info.n2d_reg_hlt.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_reg_hlt.node_id = cb->clmdb.node_info.nodeId;
+		if (info->hlt_list)
+			msg.info.avd->msg_info.n2d_reg_hlt.hltchk_name = info->hlt_list->name;
+		msg.info.avd->msg_info.n2d_reg_hlt.error =
+		    (NCSCC_RC_SUCCESS == rc) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
-      /* free the contents of avnd message */
-      avnd_msg_content_free(cb, &msg);
-   }
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
 
-done:
-   return rc;
+		/* free the contents of avnd message */
+		avnd_msg_content_free(cb, &msg);
+	}
+
+ done:
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_operation_request_msg
@@ -270,430 +246,441 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_operation_request_msg (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_D2N_OPERATION_REQUEST_MSG_INFO *info;
-   AVSV_PARAM_INFO *param = 0;
-   AVND_MSG        msg;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_D2N_OPERATION_REQUEST_MSG_INFO *info;
+	AVSV_PARAM_INFO *param = 0;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* dont process unless AvD is up */
-   if ( !m_AVND_CB_IS_AVD_UP(cb) ) goto done;
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb))
+		goto done;
 
-   info = &evt->info.avd->msg_info.d2n_op_req;
-   param = &info->param_info;
+	info = &evt->info.avd->msg_info.d2n_op_req;
+	param = &info->param_info;
 
-   if (info->msg_id != (cb->rcv_msg_id+1))
-   {
-      /* Log Error */
-      rc = NCSCC_RC_FAILURE;
-      m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, 
-                AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+	if (info->msg_id != (cb->rcv_msg_id + 1)) {
+		/* Log Error */
+		rc = NCSCC_RC_FAILURE;
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
 
-      goto done;
-   }
+		goto done;
+	}
 
-   cb->rcv_msg_id = info->msg_id;
+	cb->rcv_msg_id = info->msg_id;
 
-   switch (param->table_id)
-   {
-   case NCSMIB_TBL_AVSV_AMF_NODE:
-      {
-         switch (param->act)
-         {
-         case AVSV_OBJ_OPR_MOD:
-            switch (param->obj_id)
-            {
-            case saAmfNodeSuFailoverProb_ID:
-               m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-               cb->su_failover_prob = m_NCS_OS_NTOHLL_P(param->value);
-               break;
+	switch (param->table_id) {
+	case NCSMIB_TBL_AVSV_AMF_NODE:
+		{
+			switch (param->act) {
+			case AVSV_OBJ_OPR_MOD:
+				switch (param->obj_id) {
+				case saAmfNodeSuFailoverProb_ID:
+					m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+					cb->su_failover_prob = m_NCS_OS_NTOHLL_P(param->value);
+					break;
 
-            case saAmfNodeSuFailoverMax_ID:
-               m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
-               cb->su_failover_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
-               break;
+				case saAmfNodeSuFailoverMax_ID:
+					m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
+					cb->su_failover_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+					break;
 
-            default:
-               break;
-            }
-            break;
+				default:
+					break;
+				}
+				break;
 
-         case AVSV_OBJ_OPR_DEL:
-            /* what's to be done here.. initiate self-destruction ??? TBD */
-            break;
+			case AVSV_OBJ_OPR_DEL:
+				/* what's to be done here.. initiate self-destruction ??? TBD */
+				break;
 
-         default:
-            m_AVSV_ASSERT(0);
-         }
-      }
-      break;
+			default:
+				m_AVSV_ASSERT(0);
+			}
+		}
+		break;
 
-   case NCSMIB_TBL_AVSV_AMF_SG:
-      {
-         switch (param->act)
-         {
-         case AVSV_OBJ_OPR_MOD:
-            {
-               AVND_SU *su = 0;
+	case NCSMIB_TBL_AVSV_AMF_SG:
+		{
+			switch (param->act) {
+			case AVSV_OBJ_OPR_MOD:
+				{
+					AVND_SU *su = 0;
 
-               su = m_AVND_SUDB_REC_GET(cb->sudb, param->name_net);
-               if (!su) goto done;
+					su = m_AVND_SUDB_REC_GET(cb->sudb, param->name_net);
+					if (!su)
+						goto done;
 
-               switch (param->obj_id)
-               {
-               case saAmfSGCompRestartProb_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  su->comp_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_PROB);
-                  break;
-                  
-               case saAmfSGCompRestartMax_ID:
-                  m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
-                  su->comp_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
-                  break;
-                  
-               case saAmfSGSuRestartProb_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  su->su_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
-                  break;
-                  
-               case saAmfSGSuRestartMax_ID:
-                  m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
-                  su->su_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
-                  break;
-                  
-               default:
-                  break;
-               }
-               break;
-            }
+					switch (param->obj_id) {
+					case saAmfSGCompRestartProb_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						su->comp_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su,
+										 AVND_CKPT_SU_COMP_RESTART_PROB);
+						break;
 
-         case AVSV_OBJ_OPR_DEL:
-            /* avnd doesnt understand what sg is.. nothing to be done */
-            break;
+					case saAmfSGCompRestartMax_ID:
+						m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
+						su->comp_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_COMP_RESTART_MAX);
+						break;
 
-         default:
-            m_AVSV_ASSERT(0);
-         }
-      }
-      break;
+					case saAmfSGSuRestartProb_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						su->su_restart_prob = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_PROB);
+						break;
 
-   case NCSMIB_TBL_AVSV_AMF_SU:
-      {
-         switch (param->act)
-         {
-         case AVSV_OBJ_OPR_MOD:
-            switch (param->obj_id)
-            {
-            default:
-               break;
-            }
-            break;
+					case saAmfSGSuRestartMax_ID:
+						m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
+						su->su_restart_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_RESTART_MAX);
+						break;
 
-         case AVSV_OBJ_OPR_DEL:
-            {
-               AVND_SU *su = 0;
+					default:
+						break;
+					}
+					break;
+				}
 
-               /* get the record */
-               su = m_AVND_SUDB_REC_GET(cb->sudb, param->name_net);
-               if (su)
-               {
-                  /* unreg the row from mab */
-                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-                  (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
-                  
-                  /* delete the record */
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
-                  rc = avnd_sudb_rec_del(cb, &param->name_net);
-               }
-            }
-            break;
+			case AVSV_OBJ_OPR_DEL:
+				/* avnd doesnt understand what sg is.. nothing to be done */
+				break;
 
-         default:
-            m_AVSV_ASSERT(0);
-         }
-      }
-      break;
+			default:
+				m_AVSV_ASSERT(0);
+			}
+		}
+		break;
 
-   case NCSMIB_TBL_AVSV_AMF_COMP:
-      {
-         switch (param->act)
-         {
-         case AVSV_OBJ_OPR_MOD:
-            {
-               AVND_COMP *comp = 0;
+	case NCSMIB_TBL_AVSV_AMF_SU:
+		{
+			switch (param->act) {
+			case AVSV_OBJ_OPR_MOD:
+				switch (param->obj_id) {
+				default:
+					break;
+				}
+				break;
 
-               comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name_net);
-               if (!comp) goto done;
+			case AVSV_OBJ_OPR_DEL:
+				{
+					AVND_SU *su = 0;
 
-               switch (param->obj_id)
-               {
-               case saAmfCompInstantiateCmd_ID:
-                  memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd, 0, 
-                              sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd));
-                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
-                              param->value, param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len = param->value_len;
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD);
-                  break;
-               case saAmfCompTerminateCmd_ID:
-                  memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd, 0, 
-                              sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd));
-                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
-                              param->value, param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len = param->value_len;
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CMD);
-                  break;
-               case saAmfCompCleanupCmd_ID:
-                  memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 0, 
-                              sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd));
-                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd,
-                              param->value, param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len = param->value_len;
-                  break;
-               case saAmfCompAmStartCmd_ID:
-                  memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 0, 
-                              sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd));
-                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd,
-                              param->value, param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len = param->value_len;
-                  break;
-               case saAmfCompAmStopCmd_ID:
-                  memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 0, 
-                              sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd));
-                  memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd,
-                              param->value, param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len = param->value_len;
-                  break;
-               case saAmfCompInstantiateTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout = 
-                     m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_TIMEOUT);
-                  break;
-                  
-               case saAmfCompDelayBetweenInstantiateAttempts_ID:
-                  break;
+					/* get the record */
+					su = m_AVND_SUDB_REC_GET(cb->sudb, param->name_net);
+					if (su) {
+						/* unreg the row from mab */
+						avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+									(su->su_is_external ? cb->
+									 avnd_mbcsv_mab_hdl : cb->mab_hdl));
 
-               case saAmfCompTerminateTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout = 
-                     m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_TIMEOUT);
-                  break;
-                  
-               case saAmfCompCleanupTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].timeout = 
-                     m_NCS_OS_NTOHLL_P(param->value);
-                  break;
-                  
-               case saAmfCompAmStartTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].timeout = 
-                     m_NCS_OS_NTOHLL_P(param->value);
-                  break;
-                  
-               case saAmfCompAmStopTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].timeout = 
-                     m_NCS_OS_NTOHLL_P(param->value);
-                  break;
-                  
-               case saAmfCompTerminateCallbackTimeOut_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->term_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CBK_TIMEOUT);
-                  break;
+						/* delete the record */
+						m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
+						rc = avnd_sudb_rec_del(cb, &param->name_net);
+					}
+				}
+				break;
 
-               case saAmfCompCSISetCallbackTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->csi_set_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT);
-                  break;
+			default:
+				m_AVSV_ASSERT(0);
+			}
+		}
+		break;
 
-               case saAmfCompQuiescingCompleteTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->quies_complete_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT);
-                  break;
+	case NCSMIB_TBL_AVSV_AMF_COMP:
+		{
+			switch (param->act) {
+			case AVSV_OBJ_OPR_MOD:
+				{
+					AVND_COMP *comp = 0;
 
-               case saAmfCompCSIRmvCallbackTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->csi_rmv_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT);
-                  break;
+					comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name_net);
+					if (!comp)
+						goto done;
 
-               case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->pxied_inst_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT);
-                  break;
+					switch (param->obj_id) {
+					case saAmfCompInstantiateCmd_ID:
+						memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
+						       0,
+						       sizeof(comp->clc_info.
+							      cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd));
+						memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].cmd,
+						       param->value, param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].len =
+						    param->value_len;
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_CMD);
+						break;
+					case saAmfCompTerminateCmd_ID:
+						memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
+						       0,
+						       sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].
+							      cmd));
+						memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].cmd,
+						       param->value, param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].len =
+						    param->value_len;
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_CMD);
+						break;
+					case saAmfCompCleanupCmd_ID:
+						memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd, 0,
+						       sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].
+							      cmd));
+						memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].cmd,
+						       param->value, param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].len =
+						    param->value_len;
+						break;
+					case saAmfCompAmStartCmd_ID:
+						memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd, 0,
+						       sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].
+							      cmd));
+						memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].cmd,
+						       param->value, param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].len =
+						    param->value_len;
+						break;
+					case saAmfCompAmStopCmd_ID:
+						memset(&comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd, 0,
+						       sizeof(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].
+							      cmd));
+						memcpy(comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].cmd,
+						       param->value, param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].len =
+						    param->value_len;
+						break;
+					case saAmfCompInstantiateTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_INSTANTIATE - 1].timeout =
+						    m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_TIMEOUT);
+						break;
 
-               case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  comp->pxied_clean_cbk_timeout= m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT);
-                  break;
-                  
-               case saAmfCompNodeRebootCleanupFail_ID:
-                  break;
-               
-               case saAmfCompRecoveryOnError_ID:
-                  m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
-                  comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_DEFAULT_RECVR);
-                  break;
+					case saAmfCompDelayBetweenInstantiateAttempts_ID:
+						break;
 
-               case saAmfCompNumMaxInstantiate_ID:
-                  m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
-                  comp->clc_info.inst_retry_max = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_INST_RETRY_MAX);
-                  break;
+					case saAmfCompTerminateTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_TERMINATE - 1].timeout =
+						    m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_TERM_TIMEOUT);
+						break;
 
-               case saAmfCompAMEnable_ID:
-                  m_AVSV_ASSERT(1 == param->value_len);
-                  comp->is_am_en = (NCS_BOOL)param->value[0];
-                  comp->clc_info.am_start_retry_cnt = 0;
-                  rc = avnd_comp_am_oper_req_process(cb, comp);
-                  break;
-                  
-               case saAmfCompNumMaxInstantiateWithDelay_ID:
-               case saAmfCompNumMaxAmStartAttempts_ID:
-               case saAmfCompNumMaxAmStopAttempts_ID:
-               default:
-                  break;
-               }
-            }
-            break;
+					case saAmfCompCleanupTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_CLEANUP - 1].timeout =
+						    m_NCS_OS_NTOHLL_P(param->value);
+						break;
 
-         case AVSV_OBJ_OPR_DEL:
-            {
-               AVND_COMP *comp = 0;
+					case saAmfCompAmStartTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTART - 1].timeout =
+						    m_NCS_OS_NTOHLL_P(param->value);
+						break;
 
-               /* get the record */
-               comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name_net);
-               if (comp)
-               {
-                  /* unreg the row from mab */
-                  avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
-                  (comp->su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
-                  
-                  /* delete the record */
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);         
-                  rc = avnd_compdb_rec_del(cb, &param->name_net);
-               }
-            }
-            break;
+					case saAmfCompAmStopTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->clc_info.cmds[AVND_COMP_CLC_CMD_TYPE_AMSTOP - 1].timeout =
+						    m_NCS_OS_NTOHLL_P(param->value);
+						break;
 
-         default:
-            m_AVSV_ASSERT(0);
-         }
-      }
-      break;
+					case saAmfCompTerminateCallbackTimeOut_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->term_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_TERM_CBK_TIMEOUT);
+						break;
 
-   case NCSMIB_TBL_AVSV_AMF_HLT_CHK:
-      {
-         AVSV_HLT_KEY hc_key;
-         uns32 l_num;
+					case saAmfCompCSISetCallbackTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->csi_set_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_CSI_SET_CBK_TIMEOUT);
+						break;
 
-         memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
+					case saAmfCompQuiescingCompleteTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->quies_complete_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_QUIES_CMPLT_CBK_TIMEOUT);
+						break;
 
-         hc_key.comp_name_net.length = param->name_net.length;
-         hc_key.name.keyLen = m_NCS_OS_NTOHS(param->name_sec_net.length);
-         l_num = hc_key.name.keyLen;
-         hc_key.key_len_net = m_NCS_OS_HTONL(l_num);
+					case saAmfCompCSIRmvCallbackTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->csi_rmv_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_CSI_RMV_CBK_TIMEOUT);
+						break;
 
-         memcpy(hc_key.comp_name_net.value, param->name_net.value, 
-                         m_NCS_OS_NTOHS(hc_key.comp_name_net.length));
-         memcpy(hc_key.name.key, param->name_sec_net.value, hc_key.name.keyLen);
+					case saAmfCompProxiedCompInstantiateCallbackTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->pxied_inst_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_PXIED_INST_CBK_TIMEOUT);
+						break;
 
-         switch (param->act)
-         {
-         case AVSV_OBJ_OPR_MOD:
-            {
-               AVND_HC *hc = 0;
+					case saAmfCompProxiedCompCleanupCallbackTimeout_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						comp->pxied_clean_cbk_timeout = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_PXIED_CLEAN_CBK_TIMEOUT);
+						break;
 
-               hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key);
-               if (!hc) goto done;
+					case saAmfCompNodeRebootCleanupFail_ID:
+						break;
 
-               switch (param->obj_id)
-               {
-               case saAmfHealthCheckPeriod_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  hc->period = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
-                  break;
-                  
-               case saAmfHealthCheckMaxDuration_ID:
-                  m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
-                  hc->max_dur = m_NCS_OS_NTOHLL_P(param->value);
-                  m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
-                  break;
-                  
-               default:
-                  break;
-               }
-            }
-            break;
+					case saAmfCompRecoveryOnError_ID:
+						m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
+						comp->err_info.def_rec = m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_DEFAULT_RECVR);
+						break;
 
-         case AVSV_OBJ_OPR_DEL:
-          {
-            AVND_HC *hc = 0;
+					case saAmfCompNumMaxInstantiate_ID:
+						m_AVSV_ASSERT(sizeof(uns32) == param->value_len);
+						comp->clc_info.inst_retry_max =
+						    m_NCS_OS_NTOHL(*(uns32 *)(param->value));
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp,
+										 AVND_CKPT_COMP_INST_RETRY_MAX);
+						break;
 
-            if(NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key)))
-            {
-              m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
-              rc = avnd_hcdb_rec_del(cb, &hc_key);
-            }
-            break;
-          }
-         default:
-            m_AVSV_ASSERT(0);
-         }
-      }
-      break;
+					case saAmfCompAMEnable_ID:
+						m_AVSV_ASSERT(1 == param->value_len);
+						comp->is_am_en = (NCS_BOOL)param->value[0];
+						comp->clc_info.am_start_retry_cnt = 0;
+						rc = avnd_comp_am_oper_req_process(cb, comp);
+						break;
 
-   default:
-      m_AVSV_ASSERT(0);
-   } /* switch */
+					case saAmfCompNumMaxInstantiateWithDelay_ID:
+					case saAmfCompNumMaxAmStartAttempts_ID:
+					case saAmfCompNumMaxAmStopAttempts_ID:
+					default:
+						break;
+					}
+				}
+				break;
 
-   /* 
-    * Send the response to avd.
-    */
-   if (info->node_id == cb->clmdb.node_info.nodeId)
-   {
-      memset(&msg, 0, sizeof(AVND_MSG));
-      msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
-      if (!msg.info.avd) 
-      {
-         rc = NCSCC_RC_FAILURE;
-         goto done;
-      }
-      
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_OPERATION_REQUEST_MSG;
-      msg.info.avd->msg_info.n2d_op_req.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_op_req.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_op_req.param_info = *param;
-      msg.info.avd->msg_info.n2d_op_req.error = rc;
-      
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
+			case AVSV_OBJ_OPR_DEL:
+				{
+					AVND_COMP *comp = 0;
 
-      /* free the contents of avnd message */
-      avnd_msg_content_free(cb, &msg);
-   }
+					/* get the record */
+					comp = m_AVND_COMPDB_REC_GET(cb->compdb, param->name_net);
+					if (comp) {
+						/* unreg the row from mab */
+						avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT,
+									comp->mab_hdl,
+									(comp->su->su_is_external ? cb->
+									 avnd_mbcsv_mab_hdl : cb->mab_hdl));
 
-done:
-   return rc;
+						/* delete the record */
+						m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
+						rc = avnd_compdb_rec_del(cb, &param->name_net);
+					}
+				}
+				break;
+
+			default:
+				m_AVSV_ASSERT(0);
+			}
+		}
+		break;
+
+	case NCSMIB_TBL_AVSV_AMF_HLT_CHK:
+		{
+			AVSV_HLT_KEY hc_key;
+			uns32 l_num;
+
+			memset(&hc_key, 0, sizeof(AVSV_HLT_KEY));
+
+			hc_key.comp_name_net.length = param->name_net.length;
+			hc_key.name.keyLen = m_NCS_OS_NTOHS(param->name_sec_net.length);
+			l_num = hc_key.name.keyLen;
+			hc_key.key_len_net = m_NCS_OS_HTONL(l_num);
+
+			memcpy(hc_key.comp_name_net.value, param->name_net.value,
+			       m_NCS_OS_NTOHS(hc_key.comp_name_net.length));
+			memcpy(hc_key.name.key, param->name_sec_net.value, hc_key.name.keyLen);
+
+			switch (param->act) {
+			case AVSV_OBJ_OPR_MOD:
+				{
+					AVND_HC *hc = 0;
+
+					hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key);
+					if (!hc)
+						goto done;
+
+					switch (param->obj_id) {
+					case saAmfHealthCheckPeriod_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						hc->period = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
+						break;
+
+					case saAmfHealthCheckMaxDuration_ID:
+						m_AVSV_ASSERT(sizeof(SaTimeT) == param->value_len);
+						hc->max_dur = m_NCS_OS_NTOHLL_P(param->value);
+						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
+						break;
+
+					default:
+						break;
+					}
+				}
+				break;
+
+			case AVSV_OBJ_OPR_DEL:
+				{
+					AVND_HC *hc = 0;
+
+					if (NULL != (hc = m_AVND_HCDB_REC_GET(cb->hcdb, hc_key))) {
+						m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+						rc = avnd_hcdb_rec_del(cb, &hc_key);
+					}
+					break;
+				}
+			default:
+				m_AVSV_ASSERT(0);
+			}
+		}
+		break;
+
+	default:
+		m_AVSV_ASSERT(0);
+	}			/* switch */
+
+	/* 
+	 * Send the response to avd.
+	 */
+	if (info->node_id == cb->clmdb.node_info.nodeId) {
+		memset(&msg, 0, sizeof(AVND_MSG));
+		msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
+		if (!msg.info.avd) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_OPERATION_REQUEST_MSG;
+		msg.info.avd->msg_info.n2d_op_req.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_op_req.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_op_req.param_info = *param;
+		msg.info.avd->msg_info.n2d_op_req.error = rc;
+
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+
+		/* free the contents of avnd message */
+		avnd_msg_content_free(cb, &msg);
+	}
+
+ done:
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_hb_info_msg
@@ -709,27 +696,27 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_hb_info_msg (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_hb_info_msg(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVSV_D2N_INFO_HEARTBEAT_MSG_INFO *info = &evt->info.avd->msg_info.d2n_info_hrt_bt;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_D2N_INFO_HEARTBEAT_MSG_INFO *info = &evt->info.avd->msg_info.d2n_info_hrt_bt;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* dont process unless AvD is up */
-   if ( !m_AVND_CB_IS_AVD_UP(cb) ) goto done;
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb))
+		goto done;
 
-   /* update the heartbeat rate */
-   cb->hb_intv = info->snd_hb_intvl;
+	/* update the heartbeat rate */
+	cb->hb_intv = info->snd_hb_intvl;
 
-   /* stop the current hb-tmr */
-   m_AVND_TMR_HB_STOP(cb);
+	/* stop the current hb-tmr */
+	m_AVND_TMR_HB_STOP(cb);
 
-   /* send the heartbeat */
-   rc = avnd_di_hb_send(cb);
+	/* send the heartbeat */
+	rc = avnd_di_hb_send(cb);
 
-done:
-   return rc;
+ done:
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_ack_message
@@ -744,21 +731,20 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_avd_ack_message (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_avd_ack_message(AVND_CB *cb, AVND_EVT *evt)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* dont process unless AvD is up */
-   if ( !m_AVND_CB_IS_AVD_UP(cb) ) goto done;
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb))
+		goto done;
 
-   /* process the ack response */
-   avnd_di_msg_ack_process(cb, 
-      evt->info.avd->msg_info.d2n_ack_info.msg_id_ack);
+	/* process the ack response */
+	avnd_di_msg_ack_process(cb, evt->info.avd->msg_info.d2n_ack_info.msg_id_ack);
 
-done:
-   return rc;
+ done:
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_tmr_snd_hb
@@ -772,16 +758,15 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_snd_hb (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_snd_hb(AVND_CB *cb, AVND_EVT *evt)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* send the heartbeat to AvD */
-   rc = avnd_di_hb_send(cb);
+	/* send the heartbeat to AvD */
+	rc = avnd_di_hb_send(cb);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_tmr_rcv_msg_rsp
@@ -797,24 +782,23 @@ uns32 avnd_evt_tmr_snd_hb (AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_tmr_rcv_msg_rsp (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_tmr_rcv_msg_rsp(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVND_TMR_EVT      *tmr = &evt->info.tmr;
-   AVND_DND_MSG_LIST *rec = 0;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	AVND_TMR_EVT *tmr = &evt->info.tmr;
+	AVND_DND_MSG_LIST *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* retrieve the message record */
-   if ( (0 == (rec = (AVND_DND_MSG_LIST *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl))) )
-      goto done;
+	/* retrieve the message record */
+	if ((0 == (rec = (AVND_DND_MSG_LIST *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->opq_hdl))))
+		goto done;
 
-   rc = avnd_diq_rec_send(cb, rec);
+	rc = avnd_diq_rec_send(cb, rec);
 
-   ncshm_give_hdl(tmr->opq_hdl);
+	ncshm_give_hdl(tmr->opq_hdl);
 
-done:
-   return rc;
+ done:
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_mds_avd_up
@@ -829,40 +813,38 @@ done:
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 {
-   AVND_MSG msg;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
 /* Avd is already UP, reboot the node */
-   if ( m_AVND_CB_IS_AVD_UP(cb) )
-       ncs_reboot("AVD is already up");
-  
-   /* send node up message to AvD */
-   memset(&msg, 0, sizeof(AVND_MSG));
+	if (m_AVND_CB_IS_AVD_UP(cb))
+		ncs_reboot("AVD is already up");
 
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
-      msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_clm_node_up.boot_timestamp = 
-         cb->clmdb.node_info.bootTimestamp;
-      msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
-      
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+	/* send node up message to AvD */
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
+		msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_clm_node_up.boot_timestamp = cb->clmdb.node_info.bootTimestamp;
+		msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
 
-   return rc;
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
+
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_mds_avd_dn
@@ -876,15 +858,14 @@ uns32 avnd_evt_mds_avd_up (AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : What should be done? TBD.
 ******************************************************************************/
-uns32 avnd_evt_mds_avd_dn (AVND_CB *cb, AVND_EVT *evt)
+uns32 avnd_evt_mds_avd_dn(AVND_CB *cb, AVND_EVT *evt)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   ncs_reboot("MDS down received for AVD");
+	ncs_reboot("MDS down received for AVD");
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_hb_send
@@ -897,43 +878,40 @@ uns32 avnd_evt_mds_avd_dn (AVND_CB *cb, AVND_EVT *evt)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_hb_send (AVND_CB *cb)
+uns32 avnd_di_hb_send(AVND_CB *cb)
 {
-   AVND_MSG msg;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* determine if avd heartbeating is on */
-   if ( !m_AVND_IS_AVD_HB_ON(cb) )
-      return rc;
+	/* determine if avd heartbeating is on */
+	if (!m_AVND_IS_AVD_HB_ON(cb))
+		return rc;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* populate the heartbeat msg */
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_HEARTBEAT_MSG;
-      msg.info.avd->msg_info.n2d_hrt_bt.node_id = cb->clmdb.node_info.nodeId;
-      
-      /* send the heartbeat to AvD */
-      rc = avnd_di_msg_send(cb, &msg);
-      
-      /* restart the heartbeat timer */
-      if ( NCSCC_RC_SUCCESS == rc )
-      {
-         m_AVND_TMR_HB_START(cb, rc);
-         msg.info.avd = 0;
-      }
-   }
-   else rc = NCSCC_RC_FAILURE;
+	/* populate the heartbeat msg */
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_HEARTBEAT_MSG;
+		msg.info.avd->msg_info.n2d_hrt_bt.node_id = cb->clmdb.node_info.nodeId;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+		/* send the heartbeat to AvD */
+		rc = avnd_di_msg_send(cb, &msg);
 
-   return rc;
+		/* restart the heartbeat timer */
+		if (NCSCC_RC_SUCCESS == rc) {
+			m_AVND_TMR_HB_START(cb, rc);
+			msg.info.avd = 0;
+		}
+	} else
+		rc = NCSCC_RC_FAILURE;
+
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_oper_send
@@ -949,47 +927,45 @@ uns32 avnd_di_hb_send (AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_oper_send (AVND_CB *cb, AVND_SU *su, uns32 rcvr)
+uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 {
-   AVND_MSG msg;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* populate the oper msg */
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_OPERATION_STATE_MSG;
-      msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_opr_state.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_opr_state.node_oper_state = cb->oper_state;
+	/* populate the oper msg */
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_OPERATION_STATE_MSG;
+		msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_opr_state.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_opr_state.node_oper_state = cb->oper_state;
 
-      if (su) 
-      {
-         msg.info.avd->msg_info.n2d_opr_state.su_name_net = su->name_net;
-         msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
-         
-         /* Console Print to help debugging */
-        if((su->is_ncs == TRUE) && (su->oper == NCS_OPER_STATE_DISABLE)) 
-          m_NCS_DBG_PRINTF("\nAvSv: -%s SU Oper state got disabled\n", su->name_net.value);
-      }
+		if (su) {
+			msg.info.avd->msg_info.n2d_opr_state.su_name_net = su->name_net;
+			msg.info.avd->msg_info.n2d_opr_state.su_oper_state = su->oper;
 
-      msg.info.avd->msg_info.n2d_opr_state.rec_rcvr = rcvr;
-      
-      /* send the msg to AvD */
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+			/* Console Print to help debugging */
+			if ((su->is_ncs == TRUE) && (su->oper == NCS_OPER_STATE_DISABLE))
+				m_NCS_DBG_PRINTF("\nAvSv: -%s SU Oper state got disabled\n", su->name_net.value);
+		}
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+		msg.info.avd->msg_info.n2d_opr_state.rec_rcvr = rcvr;
 
-   return rc;
+		/* send the msg to AvD */
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
+
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_susi_resp_send
@@ -1006,57 +982,54 @@ uns32 avnd_di_oper_send (AVND_CB *cb, AVND_SU *su, uns32 rcvr)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_susi_resp_send (AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
+uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 {
-   AVND_SU_SI_REC *curr_si = 0;
-   AVND_MSG       msg;
-   uns32          rc = NCSCC_RC_SUCCESS;
+	AVND_SU_SI_REC *curr_si = 0;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* get the curr-si */
-   curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
-   m_AVSV_ASSERT(curr_si);
+	/* get the curr-si */
+	curr_si = (si) ? si : (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list);
+	m_AVSV_ASSERT(curr_si);
 
-   /* populate the susi resp msg */
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
-      msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_su_si_assign.msg_act = 
-                 ( m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) || 
-                   m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si) ) ? 
-                    ((!curr_si->prv_state) ? AVSV_SUSI_ACT_ASGN : 
-                                             AVSV_SUSI_ACT_MOD) : AVSV_SUSI_ACT_DEL;
-      msg.info.avd->msg_info.n2d_su_si_assign.su_name_net = su->name_net;
-      if (si) msg.info.avd->msg_info.n2d_su_si_assign.si_name_net = si->name_net;
-      msg.info.avd->msg_info.n2d_su_si_assign.ha_state = 
-         (SA_AMF_HA_QUIESCING == curr_si->curr_state) ? SA_AMF_HA_QUIESCED : 
-                                                        curr_si->curr_state;
-      msg.info.avd->msg_info.n2d_su_si_assign.error = 
-                 ( m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
-                   m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si) ) ? 
-                                  NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
+	/* populate the susi resp msg */
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
+		msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
+		    (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
+		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
+		    ((!curr_si->prv_state) ? AVSV_SUSI_ACT_ASGN : AVSV_SUSI_ACT_MOD) : AVSV_SUSI_ACT_DEL;
+		msg.info.avd->msg_info.n2d_su_si_assign.su_name_net = su->name_net;
+		if (si)
+			msg.info.avd->msg_info.n2d_su_si_assign.si_name_net = si->name_net;
+		msg.info.avd->msg_info.n2d_su_si_assign.ha_state =
+		    (SA_AMF_HA_QUIESCING == curr_si->curr_state) ? SA_AMF_HA_QUIESCED : curr_si->curr_state;
+		msg.info.avd->msg_info.n2d_su_si_assign.error =
+		    (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
+		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_REMOVED(curr_si)) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
-      /* send the msg to AvD */
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
+		/* send the msg to AvD */
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
 
-      /* we have completed the SU SI msg processing */
-      m_AVND_SU_ASSIGN_PEND_RESET(su);
-      m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
-   }
-   else rc = NCSCC_RC_FAILURE;
+		/* we have completed the SU SI msg processing */
+		m_AVND_SU_ASSIGN_PEND_RESET(su);
+		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_mib_upd_send
@@ -1071,35 +1044,34 @@ uns32 avnd_di_susi_resp_send (AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_mib_upd_send (AVND_CB *cb, AVSV_PARAM_INFO *param)
+uns32 avnd_di_mib_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 {
-   AVND_MSG msg;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* populate the msg */
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_DATA_REQUEST_MSG;
-      msg.info.avd->msg_info.n2d_data_req.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_data_req.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_data_req.param_info = *param;
+	/* populate the msg */
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_DATA_REQUEST_MSG;
+		msg.info.avd->msg_info.n2d_data_req.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_data_req.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_data_req.param_info = *param;
 
-      /* send the msg to AvD */
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+		/* send the msg to AvD */
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_pg_act_send
@@ -1115,39 +1087,35 @@ uns32 avnd_di_mib_upd_send (AVND_CB *cb, AVSV_PARAM_INFO *param)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_di_pg_act_send (AVND_CB           *cb, 
-                           SaNameT           *csi_name_net, 
-                           AVSV_PG_TRACK_ACT actn, 
-                           NCS_BOOL          fover)
+uns32 avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name_net, AVSV_PG_TRACK_ACT actn, NCS_BOOL fover)
 {
-   AVND_MSG msg;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* populate the msg */
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_PG_TRACK_ACT_MSG;
-      msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_pg_trk_act.csi_name_net = *csi_name_net;
-      msg.info.avd->msg_info.n2d_pg_trk_act.actn = actn;
-      msg.info.avd->msg_info.n2d_pg_trk_act.msg_on_fover = fover;
+	/* populate the msg */
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_PG_TRACK_ACT_MSG;
+		msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_pg_trk_act.csi_name_net = *csi_name_net;
+		msg.info.avd->msg_info.n2d_pg_trk_act.actn = actn;
+		msg.info.avd->msg_info.n2d_pg_trk_act.msg_on_fover = fover;
 
-      /* send the msg to AvD */
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+		/* send the msg to AvD */
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_msg_send
@@ -1161,49 +1129,42 @@ uns32 avnd_di_pg_act_send (AVND_CB           *cb,
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_di_msg_send (AVND_CB *cb, AVND_MSG *msg)
+uns32 avnd_di_msg_send(AVND_CB *cb, AVND_MSG *msg)
 {
-   AVND_DND_MSG_LIST *rec = 0;
-   uns32             rc = NCSCC_RC_SUCCESS;
+	AVND_DND_MSG_LIST *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* nothing to send */
-   if (!msg) goto done;
+	/* nothing to send */
+	if (!msg)
+		goto done;
 
-   /* Heartbeat and Verify Ack nack and PG track action msgs are not buffered */
-   if ( m_AVSV_N2D_MSG_IS_HB(msg->info.avd) || 
-        m_AVSV_N2D_MSG_IS_PG_TRACK_ACT(msg->info.avd)) 
-   {
-       /*send the response to AvD */
-      rc = avnd_mds_send(cb, msg, &cb->avd_dest, 0);
-      goto done;
-   }
-   else if( m_AVSV_N2D_MSG_IS_VER_ACK_NACK(msg->info.avd))
-   {
-       /*send the response to active AvD (In case MDS has not updated its
-                                                      tables by this time) */
-      rc = avnd_mds_red_send(cb, msg, &cb->avd_dest, &cb->active_avd_adest);
-      goto done;
-   }
+	/* Heartbeat and Verify Ack nack and PG track action msgs are not buffered */
+	if (m_AVSV_N2D_MSG_IS_HB(msg->info.avd) || m_AVSV_N2D_MSG_IS_PG_TRACK_ACT(msg->info.avd)) {
+		/*send the response to AvD */
+		rc = avnd_mds_send(cb, msg, &cb->avd_dest, 0);
+		goto done;
+	} else if (m_AVSV_N2D_MSG_IS_VER_ACK_NACK(msg->info.avd)) {
+		/*send the response to active AvD (In case MDS has not updated its
+		   tables by this time) */
+		rc = avnd_mds_red_send(cb, msg, &cb->avd_dest, &cb->active_avd_adest);
+		goto done;
+	}
 
+	/* add the record to the AvD msg list */
+	if ((0 != (rec = avnd_diq_rec_add(cb, msg)))) {
+		/* send the message */
+		avnd_diq_rec_send(cb, rec);
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* add the record to the AvD msg list */
-   if ((0 != (rec = avnd_diq_rec_add(cb, msg))) )
-   {
-      /* send the message */
-      avnd_diq_rec_send(cb, rec);
-   }
-   else rc = NCSCC_RC_FAILURE;
-
-done:
-   if (NCSCC_RC_SUCCESS != rc && rec)
-   {
-      /* pop & delete */
-      m_AVND_DIQ_REC_FIND_POP(cb, rec);
-      avnd_diq_rec_del(cb, rec);
-   }
-   return rc;
+ done:
+	if (NCSCC_RC_SUCCESS != rc && rec) {
+		/* pop & delete */
+		m_AVND_DIQ_REC_FIND_POP(cb, rec);
+		avnd_diq_rec_del(cb, rec);
+	}
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_ack_nack_msg_send
@@ -1221,49 +1182,46 @@ done:
 ******************************************************************************/
 uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 {
-   AVND_MSG                   msg;
-   uns32        rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
    /*** send the response to AvD ***/
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_VERIFY_ACK_NACK_MSG;
-      msg.info.avd->msg_info.n2d_ack_nack_info.msg_id = (cb->snd_msg_id +1);
-      msg.info.avd->msg_info.n2d_ack_nack_info.node_id = cb->clmdb.node_info.nodeId;
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_VERIFY_ACK_NACK_MSG;
+		msg.info.avd->msg_info.n2d_ack_nack_info.msg_id = (cb->snd_msg_id + 1);
+		msg.info.avd->msg_info.n2d_ack_nack_info.node_id = cb->clmdb.node_info.nodeId;
 
-      if (rcv_id != cb->rcv_msg_id)
-         msg.info.avd->msg_info.n2d_ack_nack_info.ack = FALSE;
-      else
-         msg.info.avd->msg_info.n2d_ack_nack_info.ack = TRUE;
+		if (rcv_id != cb->rcv_msg_id)
+			msg.info.avd->msg_info.n2d_ack_nack_info.ack = FALSE;
+		else
+			msg.info.avd->msg_info.n2d_ack_nack_info.ack = TRUE;
 
-      m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, 
-         AVND_LOG_FOVR_MSG_ID_ACK_NACK, 
-         msg.info.avd->msg_info.n2d_ack_nack_info.ack);
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE,
+				      AVND_LOG_FOVR_MSG_ID_ACK_NACK, msg.info.avd->msg_info.n2d_ack_nack_info.ack);
 
-      if (view_num != cb->clmdb.curr_view_num)
-         msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = FALSE;
-      else
-         msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = TRUE;
+		if (view_num != cb->clmdb.curr_view_num)
+			msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = FALSE;
+		else
+			msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = TRUE;
 
-      m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE, 
-         AVND_LOG_FOVR_VNUM_ACK_NACK, 
-         msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack);
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE,
+				      AVND_LOG_FOVR_VNUM_ACK_NACK, msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack);
 
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_di_reg_su_rsp_snd
@@ -1279,30 +1237,30 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 ******************************************************************************/
 uns32 avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uns32 ret_code)
 {
-   AVND_MSG                 msg;
-   uns32       rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-      memset(&msg, 0, sizeof(AVND_MSG));
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_REG_SU_MSG;
-      msg.info.avd->msg_info.n2d_reg_su.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_reg_su.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_reg_su.su_name_net = *su_name;
-      msg.info.avd->msg_info.n2d_reg_su.error = 
-         (NCSCC_RC_SUCCESS == ret_code)? NCSCC_RC_SUCCESS: NCSCC_RC_FAILURE;
-      
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+	memset(&msg, 0, sizeof(AVND_MSG));
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_REG_SU_MSG;
+		msg.info.avd->msg_info.n2d_reg_su.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_reg_su.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_reg_su.su_name_net = *su_name;
+		msg.info.avd->msg_info.n2d_reg_su.error =
+		    (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   return NCSCC_RC_SUCCESS;
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1319,30 +1277,30 @@ uns32 avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uns32 ret_code)
 ******************************************************************************/
 uns32 avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uns32 ret_code)
 {
-   AVND_MSG                 msg;
-   uns32       rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
-   if ( 0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG) )
-   {
-      memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-      msg.type = AVND_MSG_AVD;
-      msg.info.avd->msg_type = AVSV_N2D_REG_COMP_MSG;
-      msg.info.avd->msg_info.n2d_reg_comp.msg_id = ++(cb->snd_msg_id);
-      msg.info.avd->msg_info.n2d_reg_comp.node_id = cb->clmdb.node_info.nodeId;
-      msg.info.avd->msg_info.n2d_reg_comp.comp_name_net = *comp_name;
-      msg.info.avd->msg_info.n2d_reg_comp.error = 
-            (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
+	memset(&msg, 0, sizeof(AVND_MSG));
+	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_REG_COMP_MSG;
+		msg.info.avd->msg_info.n2d_reg_comp.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_reg_comp.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_reg_comp.comp_name_net = *comp_name;
+		msg.info.avd->msg_info.n2d_reg_comp.error =
+		    (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
 
-      rc = avnd_di_msg_send(cb, &msg);
-      if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
-   }
-   else rc = NCSCC_RC_FAILURE;
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else
+		rc = NCSCC_RC_FAILURE;
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -1359,21 +1317,19 @@ uns32 avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uns32 ret_code)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_di_msg_ack_process (AVND_CB *cb, uns32 mid)
+void avnd_di_msg_ack_process(AVND_CB *cb, uns32 mid)
 {
-   AVND_DND_MSG_LIST *rec = 0;
+	AVND_DND_MSG_LIST *rec = 0;
 
-   /* find & pop the matching record */
-   m_AVND_DIQ_REC_FIND(cb, mid, rec);
-   if (rec)
-   {
-      m_AVND_DIQ_REC_FIND_POP(cb, rec);
-      avnd_diq_rec_del(cb, rec);
-   }
+	/* find & pop the matching record */
+	m_AVND_DIQ_REC_FIND(cb, mid, rec);
+	if (rec) {
+		m_AVND_DIQ_REC_FIND_POP(cb, rec);
+		avnd_diq_rec_del(cb, rec);
+	}
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_diq_del
@@ -1386,23 +1342,22 @@ void avnd_di_msg_ack_process (AVND_CB *cb, uns32 mid)
  
   Notes         : None.
 ******************************************************************************/
-void avnd_diq_del (AVND_CB *cb)
+void avnd_diq_del(AVND_CB *cb)
 {
-   AVND_DND_MSG_LIST *rec = 0;
+	AVND_DND_MSG_LIST *rec = 0;
 
-   do
-   {
-      /* pop the record */
-      m_AVND_DIQ_REC_POP(cb, rec);
-      if (!rec) break;
+	do {
+		/* pop the record */
+		m_AVND_DIQ_REC_POP(cb, rec);
+		if (!rec)
+			break;
 
-      /* delete the record */
-      avnd_diq_rec_del(cb, rec);
-   } while (1);
+		/* delete the record */
+		avnd_diq_rec_del(cb, rec);
+	} while (1);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_diq_rec_add
@@ -1416,36 +1371,35 @@ void avnd_diq_del (AVND_CB *cb)
  
   Notes         : None.
 ******************************************************************************/
-AVND_DND_MSG_LIST *avnd_diq_rec_add (AVND_CB *cb, AVND_MSG *msg)
+AVND_DND_MSG_LIST *avnd_diq_rec_add(AVND_CB *cb, AVND_MSG *msg)
 {
-   AVND_DND_MSG_LIST *rec = 0;
+	AVND_DND_MSG_LIST *rec = 0;
 
-   if ( (0 == (rec = m_MMGR_ALLOC_AVND_DND_MSG_LIST)) )
-      goto error;
+	if ((0 == (rec = m_MMGR_ALLOC_AVND_DND_MSG_LIST)))
+		goto error;
 
-   memset(rec, 0, sizeof(AVND_DND_MSG_LIST));
-   
-   /* create the association with hdl-mngr */
-   if ( (0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND,
-                                          (NCSCONTEXT)rec))) )
-      goto error;
+	memset(rec, 0, sizeof(AVND_DND_MSG_LIST));
 
-   /* store the msg (transfer memory ownership) */
-   rec->msg.type = msg->type;
-   rec->msg.info.avd = msg->info.avd;
-   msg->info.avd = 0;
+	/* create the association with hdl-mngr */
+	if ((0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)rec))))
+		goto error;
 
-   /* push the record to the AvD msg list */
-   m_AVND_DIQ_REC_PUSH(cb, rec);
+	/* store the msg (transfer memory ownership) */
+	rec->msg.type = msg->type;
+	rec->msg.info.avd = msg->info.avd;
+	msg->info.avd = 0;
 
-   return rec;
+	/* push the record to the AvD msg list */
+	m_AVND_DIQ_REC_PUSH(cb, rec);
 
-error:
-   if (rec) avnd_diq_rec_del(cb, rec);
+	return rec;
 
-   return 0;
+ error:
+	if (rec)
+		avnd_diq_rec_del(cb, rec);
+
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : avnd_diq_rec_del
@@ -1459,25 +1413,24 @@ error:
  
   Notes         : None.
 ******************************************************************************/
-void avnd_diq_rec_del (AVND_CB *cb, AVND_DND_MSG_LIST *rec)
+void avnd_diq_rec_del(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
-   /* remove the association with hdl-mngr */
-   if (rec->opq_hdl)
-      ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
+	/* remove the association with hdl-mngr */
+	if (rec->opq_hdl)
+		ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, rec->opq_hdl);
 
-   /* stop the AvD msg response timer */
-   if ( m_AVND_TMR_IS_ACTIVE(rec->resp_tmr) )
-      m_AVND_TMR_MSG_RESP_STOP(cb, *rec);
+	/* stop the AvD msg response timer */
+	if (m_AVND_TMR_IS_ACTIVE(rec->resp_tmr))
+		m_AVND_TMR_MSG_RESP_STOP(cb, *rec);
 
-   /* free the avnd message contents */
-   avnd_msg_content_free(cb, &rec->msg);
+	/* free the avnd message contents */
+	avnd_msg_content_free(cb, &rec->msg);
 
-   /* free the record */
-   m_MMGR_FREE_AVND_DND_MSG_LIST(rec);
+	/* free the record */
+	m_MMGR_FREE_AVND_DND_MSG_LIST(rec);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : avnd_diq_rec_send
@@ -1493,34 +1446,32 @@ void avnd_diq_rec_del (AVND_CB *cb, AVND_DND_MSG_LIST *rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_diq_rec_send (AVND_CB *cb, AVND_DND_MSG_LIST *rec)
+uns32 avnd_diq_rec_send(AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 {
-   AVND_MSG msg;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
+	memset(&msg, 0, sizeof(AVND_MSG));
 
-   /* copy the contents from the record */
-   rc = avnd_msg_copy(cb, &msg, &rec->msg);
-   
-   /* send the message to AvD */
-   if (NCSCC_RC_SUCCESS == rc)
-      rc = avnd_mds_send(cb, &msg, &cb->avd_dest, 0);
+	/* copy the contents from the record */
+	rc = avnd_msg_copy(cb, &msg, &rec->msg);
 
-   /* start the msg response timer */
-   if (NCSCC_RC_SUCCESS == rc)
-   {
-      if (rec->msg.info.avd->msg_type ==  AVSV_N2D_CLM_NODE_UP_MSG)
-         m_AVND_TMR_MSG_RESP_START(cb, *rec, rc);
-      msg.info.avd = 0;
-   } 
+	/* send the message to AvD */
+	if (NCSCC_RC_SUCCESS == rc)
+		rc = avnd_mds_send(cb, &msg, &cb->avd_dest, 0);
 
-   /* free the msg */
-   avnd_msg_content_free(cb, &msg);
+	/* start the msg response timer */
+	if (NCSCC_RC_SUCCESS == rc) {
+		if (rec->msg.info.avd->msg_type == AVSV_N2D_CLM_NODE_UP_MSG)
+			m_AVND_TMR_MSG_RESP_START(cb, *rec, rc);
+		msg.info.avd = 0;
+	}
 
-   return rc;
+	/* free the msg */
+	avnd_msg_content_free(cb, &msg);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_evt_avd_shutdown_app_su_msg
@@ -1536,91 +1487,82 @@ uns32 avnd_diq_rec_send (AVND_CB *cb, AVND_DND_MSG_LIST *rec)
 ******************************************************************************/
 uns32 avnd_evt_avd_shutdown_app_su_msg(AVND_CB *cb, AVND_EVT *evt)
 {
-   uns32         rc = NCSCC_RC_SUCCESS;
-   AVND_SU       *su = 0;
-   NCS_BOOL      empty_sulist = TRUE;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	AVND_SU *su = 0;
+	NCS_BOOL empty_sulist = TRUE;
 
-   AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO *info = &evt->info.avd->msg_info.d2n_shutdown_app_su;
+	AVSV_D2N_SHUTDOWN_APP_SU_MSG_INFO *info = &evt->info.avd->msg_info.d2n_shutdown_app_su;
 
-   if (info->msg_id != (cb->rcv_msg_id+1))
-   {
-      /* Log Error */
-      rc = NCSCC_RC_FAILURE;
-      m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, 
-                AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+	if (info->msg_id != (cb->rcv_msg_id + 1)) {
+		/* Log Error */
+		rc = NCSCC_RC_FAILURE;
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
 
-      goto done;
-   }
+		goto done;
+	}
 
-   cb->rcv_msg_id = info->msg_id;
+	cb->rcv_msg_id = info->msg_id;
 
-   if(cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU)
-   {
-      /* we need not do anything we are already shutting down
-       we will send the responce after shutting down the app su's */
-      goto done;
-   }
+	if (cb->term_state == AVND_TERM_STATE_SHUTTING_APP_SU) {
+		/* we need not do anything we are already shutting down
+		   we will send the responce after shutting down the app su's */
+		goto done;
+	}
 
-   if(cb->term_state == AVND_TERM_STATE_SHUTTING_APP_DONE ||
-         cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU)
-   {
-      /* we are already done with shutdown of APP SU just send an ACK */
-      avnd_snd_shutdown_app_su_msg(cb);
-      goto done;
-   }
-      
-  cb->term_state = AVND_TERM_STATE_SHUTTING_APP_SU;
-   
-   /* dont process unless AvD is up */
-   if ( !m_AVND_CB_IS_AVD_UP(cb) ) 
-      return rc;
+	if (cb->term_state == AVND_TERM_STATE_SHUTTING_APP_DONE || cb->term_state == AVND_TERM_STATE_SHUTTING_NCS_SU) {
+		/* we are already done with shutdown of APP SU just send an ACK */
+		avnd_snd_shutdown_app_su_msg(cb);
+		goto done;
+	}
 
-   su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
+	cb->term_state = AVND_TERM_STATE_SHUTTING_APP_SU;
 
-   /* scan & drive the SU term by PRES_STATE FSM on each su */
-   while(su != 0)
-   {
-      if((su->is_ncs == SA_TRUE) || (TRUE == su->su_is_external))
-      {
-         su = (AVND_SU *)
-              ncs_patricia_tree_getnext(&cb->sudb, (uns8*)&su->name_net);
-         continue;
-      }
+	/* dont process unless AvD is up */
+	if (!m_AVND_CB_IS_AVD_UP(cb))
+		return rc;
 
-      /* to be on safer side lets remove the si's remaining if any */
-      rc = avnd_su_si_remove(cb, su, 0);
+	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 
-      /* delete all the curr info on su & comp */
-      /*rc = avnd_su_curr_info_del(cb, su);*/
+	/* scan & drive the SU term by PRES_STATE FSM on each su */
+	while (su != 0) {
+		if ((su->is_ncs == SA_TRUE) || (TRUE == su->su_is_external)) {
+			su = (AVND_SU *)
+			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+			continue;
+		}
 
-      /* now terminate the su */
-      if(( m_AVND_SU_IS_PREINSTANTIABLE(su) ) && 
-         (su->pres != NCS_PRES_UNINSTANTIATED) &&
-         (su->pres != NCS_PRES_INSTANTIATIONFAILED) &&
-         (su->pres != NCS_PRES_TERMINATIONFAILED) )
-      {
-         empty_sulist = FALSE;
+		/* to be on safer side lets remove the si's remaining if any */
+		rc = avnd_su_si_remove(cb, su, 0);
 
-         /* trigger su termination for pi su */
-         rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_TERM);
-      }
+		/* delete all the curr info on su & comp */
+		/*rc = avnd_su_curr_info_del(cb, su); */
 
-      su = (AVND_SU *)
-              ncs_patricia_tree_getnext(&cb->sudb, (uns8*)&su->name_net);
-   }
+		/* now terminate the su */
+		if ((m_AVND_SU_IS_PREINSTANTIABLE(su)) &&
+		    (su->pres != NCS_PRES_UNINSTANTIATED) &&
+		    (su->pres != NCS_PRES_INSTANTIATIONFAILED) && (su->pres != NCS_PRES_TERMINATIONFAILED)) {
+			empty_sulist = FALSE;
 
-   if(empty_sulist == TRUE)
-   {
-      /* No SUs to be processed for termination.
-      ** send the response message to AVD informing DONE. 
-      */
-      cb->term_state = AVND_TERM_STATE_SHUTTING_APP_DONE;
-      avnd_snd_shutdown_app_su_msg(cb);
-   }
+			/* trigger su termination for pi su */
+			rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_TERM);
+		}
 
-done:
-   return rc;
+		su = (AVND_SU *)
+		    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+	}
+
+	if (empty_sulist == TRUE) {
+		/* No SUs to be processed for termination.
+		 ** send the response message to AVD informing DONE. 
+		 */
+		cb->term_state = AVND_TERM_STATE_SHUTTING_APP_DONE;
+		avnd_snd_shutdown_app_su_msg(cb);
+	}
+
+ done:
+	return rc;
 }
+
 /****************************************************************************
   Name          : avnd_dnd_list_destroy
  
@@ -1634,22 +1576,21 @@ done:
 ******************************************************************************/
 void avnd_dnd_list_destroy(AVND_CB *cb)
 {
-   AVND_DND_LIST *list = &((cb)->dnd_list); 
-   AVND_DND_MSG_LIST *rec = 0;
-   
-   if(list) 
-      rec = list->head;
+	AVND_DND_LIST *list = &((cb)->dnd_list);
+	AVND_DND_MSG_LIST *rec = 0;
 
-   while(rec)
-   {
-      /* find & pop the matching record */
-      m_AVND_DIQ_REC_FIND_POP(cb, rec);
-      avnd_diq_rec_del(cb, rec);
+	if (list)
+		rec = list->head;
 
-      rec = list->head;
-   }
+	while (rec) {
+		/* find & pop the matching record */
+		m_AVND_DIQ_REC_FIND_POP(cb, rec);
+		avnd_diq_rec_del(cb, rec);
 
-   return;
+		rec = list->head;
+	}
+
+	return;
 }
 
 /****************************************************************************
@@ -1668,30 +1609,29 @@ void avnd_dnd_list_destroy(AVND_CB *cb)
 ******************************************************************************/
 void avnd_snd_shutdown_app_su_msg(AVND_CB *cb)
 {
-   AVND_MSG msg;
-   uns32    rc = NCSCC_RC_SUCCESS;
+	AVND_MSG msg;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&msg, 0, sizeof(AVND_MSG));
-   msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
-   if (!msg.info.avd)
-   {
-      rc = NCSCC_RC_FAILURE;
-      goto done;
-   }
+	memset(&msg, 0, sizeof(AVND_MSG));
+	msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG;
+	if (!msg.info.avd) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
-   memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
-   msg.type = AVND_MSG_AVD;
-   msg.info.avd->msg_type = AVSV_N2D_SHUTDOWN_APP_SU_MSG;
-   msg.info.avd->msg_info.n2d_shutdown_app_su.msg_id = ++(cb->snd_msg_id); 
-   msg.info.avd->msg_info.n2d_shutdown_app_su.node_id = 
-                            m_NCS_NODE_ID_FROM_MDS_DEST(cb->avnd_dest);
-   
-   rc = avnd_di_msg_send(cb, &msg);
-   if ( NCSCC_RC_SUCCESS == rc ) msg.info.avd = 0;
+	memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+	msg.type = AVND_MSG_AVD;
+	msg.info.avd->msg_type = AVSV_N2D_SHUTDOWN_APP_SU_MSG;
+	msg.info.avd->msg_info.n2d_shutdown_app_su.msg_id = ++(cb->snd_msg_id);
+	msg.info.avd->msg_info.n2d_shutdown_app_su.node_id = m_NCS_NODE_ID_FROM_MDS_DEST(cb->avnd_dest);
 
-   /* free the contents of avnd message */
-   avnd_msg_content_free(cb, &msg);
+	rc = avnd_di_msg_send(cb, &msg);
+	if (NCSCC_RC_SUCCESS == rc)
+		msg.info.avd = 0;
 
-done:
-   return ;
+	/* free the contents of avnd message */
+	avnd_msg_content_free(cb, &msg);
+
+ done:
+	return;
 }

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: The master include for all MAB and user *.C files.
@@ -51,7 +49,6 @@
 
 #include "mds_papi.h"
 
-
 /* From /base/common/inc */
 
 #include "ncs_svd.h"
@@ -72,13 +69,12 @@
 #if (NCS_MAS == 1)
 #include "saAmf.h"
 #include "ncs_saf.h"
-#endif /* #if (NCS_MAS == 1) */ 
+#endif   /* #if (NCS_MAS == 1) */
 
 /* From targsvcs/common/inc */
 
-#include "mds_papi.h"  
+#include "mds_papi.h"
 #include "sysf_file.h"
-
 
 /* From /base/products/mab/inc and pubinc */
 #include "mab_env.h"
@@ -94,14 +90,14 @@
 #include "app_amf.h"
 #if (NCS_MAS_RED == 1)
 #include "mas_mbcsv.h"
-#endif /* #if (NCS_MAS_RED == 1) */
-#endif /* (NCS_MAS == 1) */
+#endif   /* #if (NCS_MAS_RED == 1) */
+#endif   /* (NCS_MAS == 1) */
 
 #include "mas_api.h"
 #include "mas_pvt.h"
 #if (NCS_MAS ==1)
 #include "mas_amf.h"
-#endif /* (NCS_MAS ==1) */
+#endif   /* (NCS_MAS ==1) */
 
 #include "oac_papi.h"
 #include "oac_dl_api.h"
@@ -109,8 +105,6 @@
 #include "oac_pvt.h"
 
 #include "dta_papi.h"
+#endif   /* (NCS_MAB == 1) */
 
-#endif /* (NCS_MAB == 1) */
-
-#endif /* #ifndef MAB_H */ 
-
+#endif   /* #ifndef MAB_H */

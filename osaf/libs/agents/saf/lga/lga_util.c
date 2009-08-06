@@ -30,40 +30,39 @@ static unsigned int lga_use_count;
  */
 static unsigned int lga_create(void)
 {
-   unsigned int timeout = 3000;
-   NCS_SEL_OBJ_SET set;
-   unsigned int  rc = NCSCC_RC_SUCCESS;
+	unsigned int timeout = 3000;
+	NCS_SEL_OBJ_SET set;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
-   /* create and init sel obj for mds sync */
-   m_NCS_SEL_OBJ_CREATE(&lga_cb.lgs_sync_sel);
-   m_NCS_SEL_OBJ_ZERO(&set);
-   m_NCS_SEL_OBJ_SET(lga_cb.lgs_sync_sel, &set);
-   lga_cb.lgs_sync_awaited = 1;
+	/* create and init sel obj for mds sync */
+	m_NCS_SEL_OBJ_CREATE(&lga_cb.lgs_sync_sel);
+	m_NCS_SEL_OBJ_ZERO(&set);
+	m_NCS_SEL_OBJ_SET(lga_cb.lgs_sync_sel, &set);
+	lga_cb.lgs_sync_awaited = 1;
 
-   /* register with MDS */
-   if ( (NCSCC_RC_SUCCESS != (rc = lga_mds_init(&lga_cb))))
-   {
-      rc = NCSCC_RC_FAILURE;
-      goto error;
-   }
+	/* register with MDS */
+	if ((NCSCC_RC_SUCCESS != (rc = lga_mds_init(&lga_cb)))) {
+		rc = NCSCC_RC_FAILURE;
+		goto error;
+	}
 
-   /* Block and wait for indication from MDS meaning LGS is up */
-   m_NCS_SEL_OBJ_SELECT(lga_cb.lgs_sync_sel, &set, 0 , 0, &timeout);
+	/* Block and wait for indication from MDS meaning LGS is up */
+	m_NCS_SEL_OBJ_SELECT(lga_cb.lgs_sync_sel, &set, 0, 0, &timeout);
 
-   pthread_mutex_lock(&lga_cb.cb_lock);
-   lga_cb.lgs_sync_awaited = 0;
-   pthread_mutex_unlock(&lga_cb.cb_lock);
+	pthread_mutex_lock(&lga_cb.cb_lock);
+	lga_cb.lgs_sync_awaited = 0;
+	pthread_mutex_unlock(&lga_cb.cb_lock);
 
-   /* No longer needed */
-   m_NCS_SEL_OBJ_DESTROY(lga_cb.lgs_sync_sel);
+	/* No longer needed */
+	m_NCS_SEL_OBJ_DESTROY(lga_cb.lgs_sync_sel);
 
-   return rc;
+	return rc;
 
-error:
-    /* delete the lga init instances */
-    lga_hdl_list_del(&lga_cb.client_list);
+ error:
+	/* delete the lga init instances */
+	lga_hdl_list_del(&lga_cb.client_list);
 
-    return rc;
+	return rc;
 }
 
 /**
@@ -73,13 +72,13 @@ error:
  */
 static void lga_destroy(void)
 {
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /* delete the hdl db */
-    lga_hdl_list_del(&lga_cb.client_list);
+	/* delete the hdl db */
+	lga_hdl_list_del(&lga_cb.client_list);
 
-    /* unregister with MDS */
-    lga_mds_finalize(&lga_cb);
+	/* unregister with MDS */
+	lga_mds_finalize(&lga_cb);
 }
 
 /****************************************************************************
@@ -97,16 +96,15 @@ static void lga_destroy(void)
  *****************************************************************************/
 static NCS_BOOL lga_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 {
-    lgsv_msg_t *cbk, *pnext;
+	lgsv_msg_t *cbk, *pnext;
 
-    pnext = cbk = (lgsv_msg_t *)msg;
-    while (pnext)
-    {
-        pnext = cbk->next;
-        lga_msg_destroy(cbk);
-        cbk = pnext;
-    }
-    return TRUE;
+	pnext = cbk = (lgsv_msg_t *)msg;
+	while (pnext) {
+		pnext = cbk->next;
+		lga_msg_destroy(cbk);
+		cbk = pnext;
+	}
+	return TRUE;
 }
 
 /****************************************************************************
@@ -122,16 +120,14 @@ static NCS_BOOL lga_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 ******************************************************************************/
 static void lga_log_stream_hdl_rec_list_del(lga_log_stream_hdl_rec_t **plstr_hdl)
 {
-    lga_log_stream_hdl_rec_t *lstr_hdl;
-    while ((lstr_hdl = *plstr_hdl) != NULL)
-    {
-        *plstr_hdl = lstr_hdl->next;
-        ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, lstr_hdl->log_stream_hdl);
-        free(lstr_hdl);
-        lstr_hdl = NULL;
-    }
+	lga_log_stream_hdl_rec_t *lstr_hdl;
+	while ((lstr_hdl = *plstr_hdl) != NULL) {
+		*plstr_hdl = lstr_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, lstr_hdl->log_stream_hdl);
+		free(lstr_hdl);
+		lstr_hdl = NULL;
+	}
 }
-
 
 /****************************************************************************
   Name          : lga_hdl_cbk_rec_prc
@@ -147,27 +143,23 @@ static void lga_log_stream_hdl_rec_list_del(lga_log_stream_hdl_rec_t **plstr_hdl
  
   Notes         : None
 ******************************************************************************/
-static void lga_hdl_cbk_rec_prc(lga_cb_t         *cb, 
-                                lgsv_msg_t         *msg,
-                                SaLogCallbacksT  *reg_cbk)
+static void lga_hdl_cbk_rec_prc(lga_cb_t *cb, lgsv_msg_t *msg, SaLogCallbacksT *reg_cbk)
 {
-    lgsv_cbk_info_t *cbk_info = &msg->info.cbk_info;
+	lgsv_cbk_info_t *cbk_info = &msg->info.cbk_info;
 
-    /* invoke the corresponding callback */
-    switch (cbk_info->type)
-    {
-        case LGSV_WRITE_LOG_CALLBACK_IND:
-            {
+	/* invoke the corresponding callback */
+	switch (cbk_info->type) {
+	case LGSV_WRITE_LOG_CALLBACK_IND:
+		{
 
-                if (reg_cbk->saLogWriteLogCallback)
-                    reg_cbk->saLogWriteLogCallback(cbk_info->inv,
-                                                   cbk_info->write_cbk.error);
-            }
-            break;
-        default:
-            TRACE("unknown callback type: %d", cbk_info->type);
-            break;
-    }
+			if (reg_cbk->saLogWriteLogCallback)
+				reg_cbk->saLogWriteLogCallback(cbk_info->inv, cbk_info->write_cbk.error);
+		}
+		break;
+	default:
+		TRACE("unknown callback type: %d", cbk_info->type);
+		break;
+	}
 }
 
 /****************************************************************************
@@ -182,32 +174,26 @@ static void lga_hdl_cbk_rec_prc(lga_cb_t         *cb,
  
   Notes         : None
 ******************************************************************************/
-static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb,
-                                            lga_client_hdl_rec_t *hdl_rec)
+static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
-    lgsv_msg_t         *cbk_msg;
-    SaAisErrorT rc = SA_AIS_OK;
+	lgsv_msg_t *cbk_msg;
+	SaAisErrorT rc = SA_AIS_OK;
 
-    /* Nonblk receive to obtain the message from priority queue*/
-    while (NULL != (cbk_msg = (lgsv_msg_t *)
-                    m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-    {
-        if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
-        {
-            lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-            lga_msg_destroy(cbk_msg);
-            break;
-        }
-        else
-        {
-            TRACE("Unsupported callback type = %d", 
-                        cbk_msg->info.cbk_info.type);
-            rc = SA_AIS_ERR_LIBRARY;
-        }
-    }
+	/* Nonblk receive to obtain the message from priority queue */
+	while (NULL != (cbk_msg = (lgsv_msg_t *)
+			m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
+		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+			lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+			lga_msg_destroy(cbk_msg);
+			break;
+		} else {
+			TRACE("Unsupported callback type = %d", cbk_msg->info.cbk_info.type);
+			rc = SA_AIS_ERR_LIBRARY;
+		}
+	}
 
-    return rc;
-}  
+	return rc;
+}
 
 /****************************************************************************
   Name          : lga_hdl_cbk_dispatch_all
@@ -221,33 +207,27 @@ static SaAisErrorT lga_hdl_cbk_dispatch_one(lga_cb_t *cb,
  
   Notes         : None
 ******************************************************************************/
-static uns32 lga_hdl_cbk_dispatch_all (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
+static uns32 lga_hdl_cbk_dispatch_all(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
-    lgsv_msg_t   *cbk_msg;
-    uns32       rc = SA_AIS_OK;
+	lgsv_msg_t *cbk_msg;
+	uns32 rc = SA_AIS_OK;
 
-    /* Recv all the cbk notifications from the queue & process them */
-    do
-    {
-        if (NULL == (cbk_msg = (lgsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-            break;
-        if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
-        {
-            TRACE_2("LGSV_LGS_DELIVER_EVENT");
-            lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-        }
-        else
-        {
-            TRACE("unsupported callback type %d", 
-                        cbk_msg->info.cbk_info.type);
-        }
-        /* now that we are done with this rec, free the resources */
-        lga_msg_destroy(cbk_msg);
-    } while (1);
+	/* Recv all the cbk notifications from the queue & process them */
+	do {
+		if (NULL == (cbk_msg = (lgsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
+			break;
+		if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+			TRACE_2("LGSV_LGS_DELIVER_EVENT");
+			lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+		} else {
+			TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
+		}
+		/* now that we are done with this rec, free the resources */
+		lga_msg_destroy(cbk_msg);
+	} while (1);
 
-    return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : lga_hdl_cbk_dispatch_block
@@ -263,32 +243,25 @@ static uns32 lga_hdl_cbk_dispatch_all (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_r
  
   Notes         : None
 ******************************************************************************/
-static uns32 lga_hdl_cbk_dispatch_block (lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
+static uns32 lga_hdl_cbk_dispatch_block(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec)
 {
-    lgsv_msg_t   *cbk_msg;
-    uns32 rc = SA_AIS_OK;
+	lgsv_msg_t *cbk_msg;
+	uns32 rc = SA_AIS_OK;
 
-    for (;;)
-    {
-        if (NULL != (cbk_msg = (lgsv_msg_t *)
-                     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg)))
-        {
+	for (;;) {
+		if (NULL != (cbk_msg = (lgsv_msg_t *)
+			     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
 
-            if ( cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND)
-            {
-                TRACE_2("LGSV_LGS_DELIVER_EVENT");
-                lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
-            }
-            else
-            {
-                TRACE("unsupported callback type %d", 
-                            cbk_msg->info.cbk_info.type);
-            }
-        }
-        else
-            return rc;/* FIX to handle finalize clean up of mbx */
-    }
-    return rc;
+			if (cbk_msg->info.cbk_info.type == LGSV_WRITE_LOG_CALLBACK_IND) {
+				TRACE_2("LGSV_LGS_DELIVER_EVENT");
+				lga_hdl_cbk_rec_prc(cb, cbk_msg, &hdl_rec->reg_cbk);
+			} else {
+				TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
+			}
+		} else
+			return rc;	/* FIX to handle finalize clean up of mbx */
+	}
+	return rc;
 }
 
 /**
@@ -298,38 +271,32 @@ static uns32 lga_hdl_cbk_dispatch_block (lga_cb_t *cb, lga_client_hdl_rec_t *hdl
  */
 unsigned int lga_startup(void)
 {
-    unsigned int rc = NCSCC_RC_SUCCESS;
-    pthread_mutex_lock(&lga_lock);
+	unsigned int rc = NCSCC_RC_SUCCESS;
+	pthread_mutex_lock(&lga_lock);
 
-    TRACE_ENTER2("lga_use_count: %u", lga_use_count);
-    if (lga_use_count > 0)
-    {
-        /* Already created, just increment the use_count */
-        lga_use_count++;
-        goto done;
-    }
-    else
-    {
-        if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS)
-        {
-            TRACE("ncs_agents_startup FAILED");
-            goto done;
-        }
+	TRACE_ENTER2("lga_use_count: %u", lga_use_count);
+	if (lga_use_count > 0) {
+		/* Already created, just increment the use_count */
+		lga_use_count++;
+		goto done;
+	} else {
+		if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+			TRACE("ncs_agents_startup FAILED");
+			goto done;
+		}
 
-        if ((rc = lga_create()) != NCSCC_RC_SUCCESS)
-        {
-            ncs_agents_shutdown(0, 0);
-            goto done;
-        }
-        else
-            lga_use_count = 1;
-    }
+		if ((rc = lga_create()) != NCSCC_RC_SUCCESS) {
+			ncs_agents_shutdown(0, 0);
+			goto done;
+		} else
+			lga_use_count = 1;
+	}
 
-done:
-    pthread_mutex_unlock(&lga_lock);
+ done:
+	pthread_mutex_unlock(&lga_lock);
 
-    TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
-    return rc;
+	TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
+	return rc;
 }
 
 /**
@@ -339,27 +306,24 @@ done:
  */
 unsigned int lga_shutdown(void)
 {
-    unsigned int rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
-    TRACE_ENTER2("lga_use_count: %u", lga_use_count);
-    pthread_mutex_lock(&lga_lock);
+	TRACE_ENTER2("lga_use_count: %u", lga_use_count);
+	pthread_mutex_lock(&lga_lock);
 
-    if (lga_use_count > 1)
-    {
-        /* Users still exist, just decrement the use count */
-        lga_use_count--;
-    }
-    else if (lga_use_count == 1)
-    {
-        lga_destroy();
-        rc = ncs_agents_shutdown(0, 0);
-        lga_use_count = 0;
-    }
+	if (lga_use_count > 1) {
+		/* Users still exist, just decrement the use count */
+		lga_use_count--;
+	} else if (lga_use_count == 1) {
+		lga_destroy();
+		rc = ncs_agents_shutdown(0, 0);
+		lga_use_count = 0;
+	}
 
-    pthread_mutex_unlock(&lga_lock);
+	pthread_mutex_unlock(&lga_lock);
 
-    TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
-    return rc;
+	TRACE_LEAVE2("rc: %u, lga_use_count: %u", rc, lga_use_count);
+	return rc;
 }
 
 /****************************************************************************
@@ -375,15 +339,14 @@ unsigned int lga_shutdown(void)
  *****************************************************************************/
 void lga_msg_destroy(lgsv_msg_t *msg)
 {
-   if (LGSV_LGA_API_MSG == msg->type)
-   {
-      TRACE("LGSV_LGA_API_MSG");
-   }
+	if (LGSV_LGA_API_MSG == msg->type) {
+		TRACE("LGSV_LGA_API_MSG");
+	}
 
   /** There are no other pointers 
    ** off the evt, so free the evt
-   **/ 
-   free(msg);
+   **/
+	free(msg);
 }
 
 /****************************************************************************
@@ -400,17 +363,14 @@ void lga_msg_destroy(lgsv_msg_t *msg)
 ******************************************************************************/
 lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_id)
 {
-    lga_client_hdl_rec_t *lga_hdl_rec;
+	lga_client_hdl_rec_t *lga_hdl_rec;
 
-    for (lga_hdl_rec = lga_cb->client_list; 
-         lga_hdl_rec != NULL; 
-         lga_hdl_rec = lga_hdl_rec->next)
-    {
-        if (lga_hdl_rec->lgs_client_id == client_id)
-            return lga_hdl_rec;
-    }
+	for (lga_hdl_rec = lga_cb->client_list; lga_hdl_rec != NULL; lga_hdl_rec = lga_hdl_rec->next) {
+		if (lga_hdl_rec->lgs_client_id == client_id)
+			return lga_hdl_rec;
+	}
 
-    return NULL;
+	return NULL;
 }
 
 /****************************************************************************
@@ -426,20 +386,19 @@ lga_client_hdl_rec_t *lga_find_hdl_rec_by_regid(lga_cb_t *lga_cb, uns32 client_i
 ******************************************************************************/
 void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
 {
-    lga_client_hdl_rec_t *client_hdl;
+	lga_client_hdl_rec_t *client_hdl;
 
-    while ((client_hdl = *p_client_hdl) != NULL)
-    {
-        *p_client_hdl = client_hdl->next;
-        ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, client_hdl->local_hdl);
-        /** clean up the channel records for this lga-client
+	while ((client_hdl = *p_client_hdl) != NULL) {
+		*p_client_hdl = client_hdl->next;
+		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, client_hdl->local_hdl);
+	/** clean up the channel records for this lga-client
          **/
-        lga_log_stream_hdl_rec_list_del(&client_hdl->stream_list);
-        /** remove the association with hdl-mngr 
+		lga_log_stream_hdl_rec_list_del(&client_hdl->stream_list);
+	/** remove the association with hdl-mngr 
          **/
-        free(client_hdl);
-        client_hdl = 0;
-    }
+		free(client_hdl);
+		client_hdl = 0;
+	}
 }
 
 /****************************************************************************
@@ -456,44 +415,39 @@ void lga_hdl_list_del(lga_client_hdl_rec_t **p_client_hdl)
  
   Notes         : 
 ******************************************************************************/
-uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head,
-                                 lga_log_stream_hdl_rec_t *rm_node)
+uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head, lga_log_stream_hdl_rec_t *rm_node)
 {
-    /* Find the channel hdl record in the list of records */
-    lga_log_stream_hdl_rec_t *list_iter = *list_head;
+	/* Find the channel hdl record in the list of records */
+	lga_log_stream_hdl_rec_t *list_iter = *list_head;
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
-        /** remove the association with hdl-mngr 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
+	/** remove the association with hdl-mngr 
          **/
-        ncshm_give_hdl(rm_node->log_stream_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
-        free(rm_node);
-        return NCSCC_RC_SUCCESS;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
-                /** remove the association with hdl-mngr 
+		ncshm_give_hdl(rm_node->log_stream_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
+		free(rm_node);
+		return NCSCC_RC_SUCCESS;
+	} else {		/* find the rec */
+
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
+		/** remove the association with hdl-mngr 
                  **/
-                ncshm_give_hdl(rm_node->log_stream_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
-                free(rm_node);
-                return NCSCC_RC_SUCCESS;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
+				ncshm_give_hdl(rm_node->log_stream_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->log_stream_hdl);
+				free(rm_node);
+				return NCSCC_RC_SUCCESS;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
     /** The node couldn't be deleted **/
-    TRACE("The node couldn't be deleted"); 
-    return NCSCC_RC_FAILURE;
+	TRACE("The node couldn't be deleted");
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -514,65 +468,61 @@ uns32 lga_log_stream_hdl_rec_del(lga_log_stream_hdl_rec_t **list_head,
 ******************************************************************************/
 uns32 lga_hdl_rec_del(lga_client_hdl_rec_t **list_head, lga_client_hdl_rec_t *rm_node)
 {
-    uns32 rc = NCSCC_RC_FAILURE;
-    lga_client_hdl_rec_t *list_iter = *list_head;
+	uns32 rc = NCSCC_RC_FAILURE;
+	lga_client_hdl_rec_t *list_iter = *list_head;
 
-    TRACE_ENTER();
+	TRACE_ENTER();
 
-    /* If the to be removed record is the first record */
-    if (list_iter == rm_node)
-    {
-        *list_head = rm_node->next; 
+	/* If the to be removed record is the first record */
+	if (list_iter == rm_node) {
+		*list_head = rm_node->next;
 
-        /** detach & release the IPC 
+	/** detach & release the IPC 
          **/
-        m_NCS_IPC_DETACH(&rm_node->mbx ,lga_clear_mbx,NULL);
-        m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+		m_NCS_IPC_DETACH(&rm_node->mbx, lga_clear_mbx, NULL);
+		m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-        ncshm_give_hdl(rm_node->local_hdl);
-        ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->local_hdl);
-        /** Free the channel records off this hdl 
+		ncshm_give_hdl(rm_node->local_hdl);
+		ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->local_hdl);
+	/** Free the channel records off this hdl 
          **/
-        lga_log_stream_hdl_rec_list_del(&rm_node->stream_list);
+		lga_log_stream_hdl_rec_list_del(&rm_node->stream_list);
 
-        /** free the hdl rec 
+	/** free the hdl rec 
          **/
-        free(rm_node);
-        rc = NCSCC_RC_SUCCESS;
-        goto out;
-    }
-    else /* find the rec */
-    {
-        while (NULL != list_iter)
-        {
-            if (list_iter->next == rm_node)
-            {
-                list_iter->next = rm_node->next;
+		free(rm_node);
+		rc = NCSCC_RC_SUCCESS;
+		goto out;
+	} else {		/* find the rec */
 
-                /** detach & release the IPC */
-                m_NCS_IPC_DETACH(&rm_node->mbx ,lga_clear_mbx, NULL);
-                m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
+		while (NULL != list_iter) {
+			if (list_iter->next == rm_node) {
+				list_iter->next = rm_node->next;
 
-                ncshm_give_hdl(rm_node->local_hdl);
-                ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->local_hdl);
-                /** Free the channel records off this lga_hdl  */
-                lga_log_stream_hdl_rec_list_del(&rm_node->stream_list);
+		/** detach & release the IPC */
+				m_NCS_IPC_DETACH(&rm_node->mbx, lga_clear_mbx, NULL);
+				m_NCS_IPC_RELEASE(&rm_node->mbx, NULL);
 
-                /** free the hdl rec */
-                free(rm_node);
+				ncshm_give_hdl(rm_node->local_hdl);
+				ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rm_node->local_hdl);
+		/** Free the channel records off this lga_hdl  */
+				lga_log_stream_hdl_rec_list_del(&rm_node->stream_list);
 
-                rc = NCSCC_RC_SUCCESS;
-                goto out;
-            }
-            /* move onto the next one */
-            list_iter = list_iter->next;
-        }
-    }
-    TRACE("failed");
+		/** free the hdl rec */
+				free(rm_node);
 
-out:
-    TRACE_LEAVE();
-    return rc;
+				rc = NCSCC_RC_SUCCESS;
+				goto out;
+			}
+			/* move onto the next one */
+			list_iter = list_iter->next;
+		}
+	}
+	TRACE("failed");
+
+ out:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /****************************************************************************
@@ -591,50 +541,44 @@ out:
  
   Notes         : None
 ******************************************************************************/
-lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hdl_rec, 
-                                                      uns32               lstr_id, 
-                                                      uns32               log_stream_open_flags, 
-                                                      const SaNameT       *logStreamName,
-                                                      uns32               log_header_type)
+lga_log_stream_hdl_rec_t *lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t **hdl_rec,
+						     uns32 lstr_id,
+						     uns32 log_stream_open_flags,
+						     const SaNameT *logStreamName, uns32 log_header_type)
 {
-    lga_log_stream_hdl_rec_t *rec = calloc(1, sizeof(lga_log_stream_hdl_rec_t));
+	lga_log_stream_hdl_rec_t *rec = calloc(1, sizeof(lga_log_stream_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        return NULL;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		return NULL;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->log_stream_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON,
-                                                      NCS_SERVICE_ID_LGA, (NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        free(rec);
-        return NULL;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->log_stream_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_LGA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		free(rec);
+		return NULL;
+	}
 
     /** Initialize the known channel attributes at this point
      **/
-    rec->lgs_log_stream_id = lstr_id;
-    rec->open_flags       = log_stream_open_flags;
-    rec->log_stream_name.length = logStreamName->length;
-    memcpy((void*)rec->log_stream_name.value, 
-           (void*)logStreamName->value, 
-           logStreamName->length);
-    rec->log_header_type = log_header_type;
+	rec->lgs_log_stream_id = lstr_id;
+	rec->open_flags = log_stream_open_flags;
+	rec->log_stream_name.length = logStreamName->length;
+	memcpy((void *)rec->log_stream_name.value, (void *)logStreamName->value, logStreamName->length);
+	rec->log_header_type = log_header_type;
     /** Initialize the parent handle **/
-    rec->parent_hdl = *hdl_rec;
+	rec->parent_hdl = *hdl_rec;
 
     /** Insert this record into the list of channel hdl records
      **/
-    rec->next = (*hdl_rec)->stream_list;
-    (*hdl_rec)->stream_list = rec;
+	rec->next = (*hdl_rec)->stream_list;
+	(*hdl_rec)->stream_list = rec;
 
     /** Everything appears fine, so return the 
      ** steam hdl.
      **/
-    return rec;
+	return rec;
 }
 
 /****************************************************************************
@@ -650,72 +594,65 @@ lga_log_stream_hdl_rec_t * lga_log_stream_hdl_rec_add(lga_client_hdl_rec_t  **hd
  
   Notes         : None
 ******************************************************************************/
-lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, 
-                                      const SaLogCallbacksT *reg_cbks,
-                                      uns32 client_id)
+lga_client_hdl_rec_t *lga_hdl_rec_add(lga_cb_t *cb, const SaLogCallbacksT *reg_cbks, uns32 client_id)
 {
-    lga_client_hdl_rec_t *rec = calloc(1, sizeof(lga_client_hdl_rec_t));
+	lga_client_hdl_rec_t *rec = calloc(1, sizeof(lga_client_hdl_rec_t));
 
-    if (rec == NULL)
-    {
-        TRACE("calloc failed");
-        goto out;
-    }
+	if (rec == NULL) {
+		TRACE("calloc failed");
+		goto out;
+	}
 
-    /* create the association with hdl-mngr */
-    if ( 0 == (rec->local_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, 
-                                                 NCS_SERVICE_ID_LGA,(NCSCONTEXT)rec)))
-    {
-        TRACE("ncshm_create_hdl failed");
-        goto err_free;
-    }
+	/* create the association with hdl-mngr */
+	if (0 == (rec->local_hdl = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_LGA, (NCSCONTEXT)rec))) {
+		TRACE("ncshm_create_hdl failed");
+		goto err_free;
+	}
 
-    /* store the registered callbacks */
-    if (reg_cbks != NULL)
-        memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaLogCallbacksT));
+	/* store the registered callbacks */
+	if (reg_cbks != NULL)
+		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaLogCallbacksT));
 
     /** Associate with the client_id obtained from LGS
      **/
-    rec->lgs_client_id = client_id;
+	rec->lgs_client_id = client_id;
 
     /** Initialize and attach the IPC/Priority queue
      **/
-    if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-        TRACE("m_NCS_IPC_CREATE failed");
-        goto err_destroy_hdl;
-    }
+	if (m_NCS_IPC_CREATE(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		TRACE("m_NCS_IPC_CREATE failed");
+		goto err_destroy_hdl;
+	}
 
-    if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS)
-    {
-        TRACE("m_NCS_IPC_ATTACH failed");
-        goto err_ipc_release;
-    }
+	if (m_NCS_IPC_ATTACH(&rec->mbx) != NCSCC_RC_SUCCESS) {
+		TRACE("m_NCS_IPC_ATTACH failed");
+		goto err_ipc_release;
+	}
 
     /** Add this to the Link List of 
      ** CLIENT_HDL_RECORDS for this LGA_CB 
      **/
 
-    pthread_mutex_lock(&cb->cb_lock);
-    /* add this to the start of the list */
-    rec->next = cb->client_list;
-    cb->client_list = rec;
-    pthread_mutex_unlock(&cb->cb_lock);
+	pthread_mutex_lock(&cb->cb_lock);
+	/* add this to the start of the list */
+	rec->next = cb->client_list;
+	cb->client_list = rec;
+	pthread_mutex_unlock(&cb->cb_lock);
 
-    goto out;
+	goto out;
 
-err_ipc_release:
-    (void) m_NCS_IPC_RELEASE(&rec->mbx, NULL);
+ err_ipc_release:
+	(void)m_NCS_IPC_RELEASE(&rec->mbx, NULL);
 
-err_destroy_hdl:
-    (void) ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rec->local_hdl);
+ err_destroy_hdl:
+	(void)ncshm_destroy_hdl(NCS_SERVICE_ID_LGA, rec->local_hdl);
 
-err_free:
-    free(rec);
-    rec = NULL;
+ err_free:
+	free(rec);
+	rec = NULL;
 
-out:
-    return rec;
+ out:
+	return rec;
 }
 
 /****************************************************************************
@@ -732,53 +669,48 @@ out:
  
   Notes         : None
 ******************************************************************************/
-SaAisErrorT lga_hdl_cbk_dispatch(lga_cb_t *cb,
-                                 lga_client_hdl_rec_t *hdl_rec,
-                                 SaDispatchFlagsT flags)
+SaAisErrorT lga_hdl_cbk_dispatch(lga_cb_t *cb, lga_client_hdl_rec_t *hdl_rec, SaDispatchFlagsT flags)
 {
-    SaAisErrorT rc;
+	SaAisErrorT rc;
 
-    switch (flags)
-    {
-        case SA_DISPATCH_ONE:
-            rc = lga_hdl_cbk_dispatch_one(cb, hdl_rec);
-            break;
+	switch (flags) {
+	case SA_DISPATCH_ONE:
+		rc = lga_hdl_cbk_dispatch_one(cb, hdl_rec);
+		break;
 
-        case SA_DISPATCH_ALL:
-            rc = lga_hdl_cbk_dispatch_all(cb, hdl_rec);
-            break;
+	case SA_DISPATCH_ALL:
+		rc = lga_hdl_cbk_dispatch_all(cb, hdl_rec);
+		break;
 
-        case SA_DISPATCH_BLOCKING:
-            rc = lga_hdl_cbk_dispatch_block(cb, hdl_rec);
-            break;
+	case SA_DISPATCH_BLOCKING:
+		rc = lga_hdl_cbk_dispatch_block(cb, hdl_rec);
+		break;
 
-        default:
-            TRACE("dispatch flag not valid");
-            rc = SA_AIS_ERR_INVALID_PARAM;
-            break;
-    } /* switch */
+	default:
+		TRACE("dispatch flag not valid");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		break;
+	}			/* switch */
 
-    return rc;
+	return rc;
 }
 
 /*
  * To enable tracing early in saLogInitialize, use a GCC constructor
  */
-__attribute__ ((constructor)) static void logtrace_init_constructor(void)
+__attribute__ ((constructor))
+static void logtrace_init_constructor(void)
 {
-    char *value;
+	char *value;
 
-    /* Initialize trace system first of all so we can see what is going. */
-    if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL)
-    {
-        if (logtrace_init("lga", value) != 0)
-        {
-            syslog(LOG_WARNING, "LOG lib: logtrace_init FAILED, tracing disabled...");
-            return;
-        }
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init("lga", value) != 0) {
+			syslog(LOG_WARNING, "LOG lib: logtrace_init FAILED, tracing disabled...");
+			return;
+		}
 
-        /* Do not care about categories now, get all */
-        trace_category_set(CATEGORY_ALL);
-    }
+		/* Do not care about categories now, get all */
+		trace_category_set(CATEGORY_ALL);
+	}
 }
-

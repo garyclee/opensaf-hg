@@ -34,7 +34,6 @@
 ******************************************************************************
 */
 
-
 #include "avm.h"
 
 /***********************************************************************
@@ -53,34 +52,27 @@
  * Notes         : None.
  ************************************************************************/
 
-extern uns32 
-avm_avd_node_failover_req(
-                           AVM_CB_T             *avm_cb,
-                           AVM_LIST_HEAD_T      *head, 
-                           AVM_NODE_OPERSTATE_T oper_state
-                          )
+extern uns32 avm_avd_node_failover_req(AVM_CB_T *avm_cb, AVM_LIST_HEAD_T *head, AVM_NODE_OPERSTATE_T oper_state)
 {
-   AVM_AVD_MSG_T *avm_avd; 
-   uns32          rc;
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
-   avm_avd->msg_type = AVM_AVD_NODE_FAILOVER_REQ_MSG;
-   avm_avd->avm_avd_msg.failover_req.head       = *head;
-   avm_avd->avm_avd_msg.failover_req.oper_state = oper_state;
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_NODE_FAILOVER_REQ_MSG;
+	avm_avd->avm_avd_msg.failover_req.head = *head;
+	avm_avd->avm_avd_msg.failover_req.oper_state = oper_state;
 
-   if(AVM_LIST_NODE_NULL == head->node)
-   {
-      m_AVM_LOG_DEBUG("avm_avd_node_failover_req:No nodes in the list", NCSFL_SEV_INFO);
-      return NCSCC_RC_SUCCESS;
-   }
+	if (AVM_LIST_NODE_NULL == head->node) {
+		m_AVM_LOG_DEBUG("avm_avd_node_failover_req:No nodes in the list", NCSFL_SEV_INFO);
+		return NCSCC_RC_SUCCESS;
+	}
 
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
-     
-   return NCSCC_RC_SUCCESS;
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /***********************************************************************
@@ -97,32 +89,26 @@ avm_avd_node_failover_req(
  *
  * Notes         : None.
  ************************************************************************/
-extern uns32 
-avm_avd_node_shutdown_req(
-                           AVM_CB_T          *avm_cb,
-                           AVM_LIST_HEAD_T   *head   
-                         )
+extern uns32 avm_avd_node_shutdown_req(AVM_CB_T *avm_cb, AVM_LIST_HEAD_T *head)
 {
 
-   AVM_AVD_MSG_T *avm_avd; 
-   uns32          rc;
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
-   avm_avd->msg_type = AVM_AVD_NODE_SHUTDOWN_REQ_MSG;
-   avm_avd->avm_avd_msg.shutdown_req.head = *head;
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_NODE_SHUTDOWN_REQ_MSG;
+	avm_avd->avm_avd_msg.shutdown_req.head = *head;
 
-   if(AVM_LIST_NODE_NULL == head->node)
-   {
-      m_AVM_LOG_DEBUG("avm_avd_node_shutdown_req:No nodes in the list", NCSFL_SEV_INFO);
-      return NCSCC_RC_SUCCESS;
-   }
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
+	if (AVM_LIST_NODE_NULL == head->node) {
+		m_AVM_LOG_DEBUG("avm_avd_node_shutdown_req:No nodes in the list", NCSFL_SEV_INFO);
+		return NCSCC_RC_SUCCESS;
+	}
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /***********************************************************************
@@ -140,37 +126,30 @@ avm_avd_node_shutdown_req(
  *
  * Notes         : None.
  ************************************************************************/
-extern uns32 
-avm_avd_node_operstate(
-                        AVM_CB_T             *avm_cb,
-                        AVM_LIST_HEAD_T      *head,
-                        AVM_NODE_OPERSTATE_T operstate
-                      )
+extern uns32 avm_avd_node_operstate(AVM_CB_T *avm_cb, AVM_LIST_HEAD_T *head, AVM_NODE_OPERSTATE_T operstate)
 {
-   AVM_AVD_MSG_T *avm_avd;
-   uns32          rc;
- 
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
-   avm_avd->msg_type = AVM_AVD_NODE_OPERSTATE_MSG;
-   avm_avd->avm_avd_msg.operstate.head       = *head;
-   avm_avd->avm_avd_msg.operstate.oper_state = operstate;
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   if(AVM_LIST_NODE_NULL == head->node)
-   {
-      m_AVM_LOG_DEBUG("avm_avd_node_operstate:No nodes in the list", NCSFL_SEV_INFO);
-      return NCSCC_RC_SUCCESS;
-   }
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_NODE_OPERSTATE_MSG;
+	avm_avd->avm_avd_msg.operstate.head = *head;
+	avm_avd->avm_avd_msg.operstate.oper_state = operstate;
 
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
-  /*Set the head to null */
-   head->count=0;
-   head->node=AVM_LIST_NODE_NULL;
+	if (AVM_LIST_NODE_NULL == head->node) {
+		m_AVM_LOG_DEBUG("avm_avd_node_operstate:No nodes in the list", NCSFL_SEV_INFO);
+		return NCSCC_RC_SUCCESS;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
+	/*Set the head to null */
+	head->count = 0;
+	head->node = AVM_LIST_NODE_NULL;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /***********************************************************************
@@ -188,35 +167,28 @@ avm_avd_node_operstate(
  *
  * Notes         : None.
  ************************************************************************/
-extern uns32 
-avm_avd_fault_domain_resp(
-                           AVM_CB_T          *avm_cb,
-                           AVM_LIST_HEAD_T   *head,
-                           SaNameT           node_name 
-                         )
+extern uns32 avm_avd_fault_domain_resp(AVM_CB_T *avm_cb, AVM_LIST_HEAD_T *head, SaNameT node_name)
 {
-   AVM_AVD_MSG_T  *avm_avd;   
-   uns32           rc;  
-  
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG; 
-   avm_avd->msg_type = AVM_AVD_FAULT_DOMAIN_RESP_MSG;
-   avm_avd->avm_avd_msg.faultdomain_resp.head = *head;
-   memcpy(&avm_avd->avm_avd_msg.faultdomain_resp.node_name, &node_name, sizeof(SaNameT));
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   if(AVM_LIST_NODE_NULL == head->node)
-   {
-      m_AVM_LOG_DEBUG("avm_avd_fault_domain_resp: No nodes in the list", NCSFL_SEV_INFO);
-      return NCSCC_RC_SUCCESS;
-   }
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_FAULT_DOMAIN_RESP_MSG;
+	avm_avd->avm_avd_msg.faultdomain_resp.head = *head;
+	memcpy(&avm_avd->avm_avd_msg.faultdomain_resp.node_name, &node_name, sizeof(SaNameT));
 
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-   
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
+	if (AVM_LIST_NODE_NULL == head->node) {
+		m_AVM_LOG_DEBUG("avm_avd_fault_domain_resp: No nodes in the list", NCSFL_SEV_INFO);
+		return NCSCC_RC_SUCCESS;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
+
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /***********************************************************************
@@ -234,30 +206,24 @@ avm_avd_fault_domain_resp(
  *
  * Notes         : None.
  ************************************************************************/
-extern uns32 
-avm_avd_node_reset_resp( 
-                        AVM_CB_T               *avm_cb,
-                        AVM_NODE_RESET_RESP_T   reset_resp,
-                        SaNameT                 node_name
-                       )
+extern uns32 avm_avd_node_reset_resp(AVM_CB_T *avm_cb, AVM_NODE_RESET_RESP_T reset_resp, SaNameT node_name)
 {
 
-   AVM_AVD_MSG_T  *avm_avd;   
-   uns32           rc;
-    
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
-   avm_avd->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
-   avm_avd->avm_avd_msg.reset_resp.resp = reset_resp;
-   memcpy(&avm_avd->avm_avd_msg.reset_resp.node_name, &node_name, sizeof(SaNameT));
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-     
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
+	avm_avd->avm_avd_msg.reset_resp.resp = reset_resp;
+	memcpy(&avm_avd->avm_avd_msg.reset_resp.node_name, &node_name, sizeof(SaNameT));
 
-   return NCSCC_RC_SUCCESS;
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
+
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /***********************************************************************
@@ -274,30 +240,24 @@ avm_avd_node_reset_resp(
  *
  * Notes         : None.
  ************************************************************************/
-extern uns32 
-avm_avd_role( 
-              AVM_CB_T               *avm_cb,
-              SaAmfHAStateT           role,
-              AVM_ROLE_CHG_CAUSE_T    cause
-            )
+extern uns32 avm_avd_role(AVM_CB_T *avm_cb, SaAmfHAStateT role, AVM_ROLE_CHG_CAUSE_T cause)
 {
 
-   AVM_AVD_MSG_T  *avm_avd;   
-   uns32           rc;
+	AVM_AVD_MSG_T *avm_avd;
+	uns32 rc;
 
-   m_AVM_LOG_FUNC_ENTRY("avm_avd_role");     
+	m_AVM_LOG_FUNC_ENTRY("avm_avd_role");
 
-   avm_avd           = m_MMGR_ALLOC_AVM_AVD_MSG;
-   avm_avd->msg_type = AVM_AVD_SYS_CON_ROLE_MSG;
-   avm_avd->avm_avd_msg.role.role  = role;
-   avm_avd->avm_avd_msg.role.cause = cause;
+	avm_avd = m_MMGR_ALLOC_AVM_AVD_MSG;
+	avm_avd->msg_type = AVM_AVD_SYS_CON_ROLE_MSG;
+	avm_avd->avm_avd_msg.role.role = role;
+	avm_avd->avm_avd_msg.role.cause = cause;
 
-   rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);    
-     
-   if(NCSCC_RC_SUCCESS != rc)
-   {
-      avm_avd_free_msg(&avm_avd);
-   }
+	rc = avm_mds_msg_send(avm_cb, avm_avd, &avm_cb->adest, MDS_SEND_PRIORITY_HIGH);
 
-   return NCSCC_RC_SUCCESS;
+	if (NCSCC_RC_SUCCESS != rc) {
+		avm_avd_free_msg(&avm_avd);
+	}
+
+	return NCSCC_RC_SUCCESS;
 }

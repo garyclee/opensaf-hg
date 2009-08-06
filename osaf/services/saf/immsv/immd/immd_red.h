@@ -15,36 +15,31 @@
  *
  */
 
-
 #ifndef IMMD_RED_H
 #define IMMD_RED_H
 
- typedef enum immd_mbcsv_msg_type
- {
-    IMMD_A2S_MSG_BASE = 1,
-    IMMD_A2S_MSG_FEVS = IMMD_A2S_MSG_BASE,
-    IMMD_A2S_MSG_ADMINIT,
-    IMMD_A2S_MSG_IMPLSET,
-    IMMD_A2S_MSG_CCBINIT,
-    IMMD_A2S_MSG_INTRO_RSP,
-    IMMD_A2S_MSG_SYNC_START,
-    IMMD_A2S_MSG_DUMP_OK,
-    IMMD_A2S_MSG_RESET,
-    IMMD_A2S_MSG_SYNC_ABORT,
-    IMMD_A2S_MSG_MAX_EVT
- }IMMD_MBCSV_MSG_TYPE;
+typedef enum immd_mbcsv_msg_type {
+	IMMD_A2S_MSG_BASE = 1,
+	IMMD_A2S_MSG_FEVS = IMMD_A2S_MSG_BASE,
+	IMMD_A2S_MSG_ADMINIT,
+	IMMD_A2S_MSG_IMPLSET,
+	IMMD_A2S_MSG_CCBINIT,
+	IMMD_A2S_MSG_INTRO_RSP,
+	IMMD_A2S_MSG_SYNC_START,
+	IMMD_A2S_MSG_DUMP_OK,
+	IMMD_A2S_MSG_RESET,
+	IMMD_A2S_MSG_SYNC_ABORT,
+	IMMD_A2S_MSG_MAX_EVT
+} IMMD_MBCSV_MSG_TYPE;
 
-
- typedef struct immd_mbcsv_msg
- {
-   IMMD_MBCSV_MSG_TYPE type;    
-    union
-    {
-      /* Messages for replication to IMMD stby  */
-      IMMSV_FEVS                   fevsReq;
-      uns32                        count;
-      IMMSV_D2ND_CONTROL           ctrl;
-    }info;
- }IMMD_MBCSV_MSG;
+typedef struct immd_mbcsv_msg {
+	IMMD_MBCSV_MSG_TYPE type;
+	union {
+		/* Messages for replication to IMMD stby  */
+		IMMSV_FEVS fevsReq;
+		uns32 count;
+		IMMSV_D2ND_CONTROL ctrl;
+	} info;
+} IMMD_MBCSV_MSG;
 
 #endif

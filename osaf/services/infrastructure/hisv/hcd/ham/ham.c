@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  ham.c                                                       *
@@ -51,60 +50,56 @@ static uns32 ham_process_mbx(SYSF_MBX *mbx);
 
 uns32 hcd_ham()
 {
-   HAM_CB  *ham_cb = 0;
-   SYSF_MBX *mbx;
-   uns32    rc = NCSCC_RC_SUCCESS;
-   NCS_SEL_OBJ_SET     all_sel_obj, temp_all_sel_obj;
-   NCS_SEL_OBJ         mbx_fd;
+	HAM_CB *ham_cb = 0;
+	SYSF_MBX *mbx;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCS_SEL_OBJ_SET all_sel_obj, temp_all_sel_obj;
+	NCS_SEL_OBJ mbx_fd;
 
-   m_LOG_HISV_DTS_CONS("hcd_ham: Initializing HAM\n");
-   /* retrieve HAM CB */
-   ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl);
-   if(!ham_cb)
-   {
-      m_LOG_HISV_DTS_CONS("hcd_ham: Could not get ham_cb handle\n");
-      return NCSCC_RC_FAILURE;
-   }
+	m_LOG_HISV_DTS_CONS("hcd_ham: Initializing HAM\n");
+	/* retrieve HAM CB */
+	ham_cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_ham_hdl);
+	if (!ham_cb) {
+		m_LOG_HISV_DTS_CONS("hcd_ham: Could not get ham_cb handle\n");
+		return NCSCC_RC_FAILURE;
+	}
 
-   /* Get the selection object from the MBX */
-   mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&ham_cb->mbx);
-   mbx = &ham_cb->mbx;
-   m_LOG_HISV_DTS_CONS("hcd_ham: Got HAM mail box\n");
+	/* Get the selection object from the MBX */
+	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&ham_cb->mbx);
+	mbx = &ham_cb->mbx;
+	m_LOG_HISV_DTS_CONS("hcd_ham: Got HAM mail box\n");
 
-   /* Give back the handle */
-   ncshm_give_hdl(gl_ham_hdl);
+	/* Give back the handle */
+	ncshm_give_hdl(gl_ham_hdl);
 
-   /* Set the fd for internal events */
-   m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-   m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
+	/* Set the fd for internal events */
+	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 
    /** HAM thread main processing loop, receives request from HPL.
     **/
-   for(;;)
-   {
-      temp_all_sel_obj = all_sel_obj;
+	for (;;) {
+		temp_all_sel_obj = all_sel_obj;
 
-      m_LOG_HISV_DTS_CONS("hcd_ham: HAM waiting to get request from HPL\n");
-      /* pend on select */
-      if(m_NCS_SEL_OBJ_SELECT(mbx_fd, &temp_all_sel_obj,NULL,NULL,NULL) < 0)
-      {
-         m_LOG_HISV_DTS_CONS("hcd_ham: Its HAM error at selection object\n");
-         rc = NCSCC_RC_FAILURE;
-         /* to break or to sleep and continue?  */
-         m_NCS_TASK_SLEEP(2000);;
-         continue;
-      }
-      m_LOG_HISV_DTS_CONS("hcd_ham: HAM Processing request from HPL\n");
-      /* process the HAM Mail box */
-      if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &temp_all_sel_obj))
-         /* now got the IPC mail box event */
-         ham_process_mbx(mbx);
-      else
-         m_LOG_HISV_DTS_CONS("hcd_ham: BUG:  SELECT returns with empty obj-set\n");
-   }
-   return rc;
+		m_LOG_HISV_DTS_CONS("hcd_ham: HAM waiting to get request from HPL\n");
+		/* pend on select */
+		if (m_NCS_SEL_OBJ_SELECT(mbx_fd, &temp_all_sel_obj, NULL, NULL, NULL) < 0) {
+			m_LOG_HISV_DTS_CONS("hcd_ham: Its HAM error at selection object\n");
+			rc = NCSCC_RC_FAILURE;
+			/* to break or to sleep and continue?  */
+			m_NCS_TASK_SLEEP(2000);;
+			continue;
+		}
+		m_LOG_HISV_DTS_CONS("hcd_ham: HAM Processing request from HPL\n");
+		/* process the HAM Mail box */
+		if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &temp_all_sel_obj))
+			/* now got the IPC mail box event */
+			ham_process_mbx(mbx);
+		else
+			m_LOG_HISV_DTS_CONS("hcd_ham: BUG:  SELECT returns with empty obj-set\n");
+	}
+	return rc;
 }
-
 
 /****************************************************************************
  * Name          : ham_process_mbx
@@ -120,26 +115,20 @@ uns32 hcd_ham()
  * Notes         : None.
  *****************************************************************************/
 
-static uns32
-ham_process_mbx(SYSF_MBX *mbx)
+static uns32 ham_process_mbx(SYSF_MBX *mbx)
 {
-   HISV_EVT *evt = NULL;
+	HISV_EVT *evt = NULL;
 
-   /* receive all the messages delivered on mailbox and process them */
-   while(NULL != (evt = (HISV_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(mbx,evt)))
-   {
-      if (evt != NULL)
-      {
-         /* process the received message */
-         /* m_LOG_HISV_DTS_CONS("Received Message\n"); */
-         ham_process_evt(evt);
-      }
-      else
-      {
-         /* message null */
-         m_LOG_HISV_DTS_CONS("ham_process_mbx: received NULL message\n");
-      }
-   }
-   return NCSCC_RC_SUCCESS;
+	/* receive all the messages delivered on mailbox and process them */
+	while (NULL != (evt = (HISV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
+		if (evt != NULL) {
+			/* process the received message */
+			/* m_LOG_HISV_DTS_CONS("Received Message\n"); */
+			ham_process_evt(evt);
+		} else {
+			/* message null */
+			m_LOG_HISV_DTS_CONS("ham_process_mbx: received NULL message\n");
+		}
+	}
+	return NCSCC_RC_SUCCESS;
 }
-

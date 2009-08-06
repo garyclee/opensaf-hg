@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,7 +30,6 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef CPSV_PAPI_H
 #define CPSV_PAPI_H
 
@@ -43,20 +39,15 @@
 extern "C" {
 #endif
 
-
 /* Temp Place */
 
-typedef void
-(*ncsCkptCkptArrivalCallbackT)(const SaCkptCheckpointHandleT    checkpointHandle,
-                               SaCkptIOVectorElementT   *ioVector,
-                               SaUint32T numberOfElements);
-SaAisErrorT
-ncsCkptRegisterCkptArrivalCallback( SaCkptHandleT               ckptHandle,
-                                    ncsCkptCkptArrivalCallbackT ckptArrivalCallback);
+	typedef void
+	 (*ncsCkptCkptArrivalCallbackT) (const SaCkptCheckpointHandleT checkpointHandle,
+					 SaCkptIOVectorElementT *ioVector, SaUint32T numberOfElements);
+	SaAisErrorT
+	 ncsCkptRegisterCkptArrivalCallback(SaCkptHandleT ckptHandle, ncsCkptCkptArrivalCallbackT ckptArrivalCallback);
 #ifdef  __cplusplus
 }
 #endif
 
-
-#endif /* CPSV_PAPI_H */
-
+#endif   /* CPSV_PAPI_H */

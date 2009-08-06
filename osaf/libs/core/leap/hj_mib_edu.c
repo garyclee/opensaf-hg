@@ -40,48 +40,42 @@
 #include "ncs_edu.h"
 #include "ncs_trap.h"
 
-
 uns32 ncs_tlvsize_for_ncs_trap_get(NCS_TRAP *trap)
 {
-    uns32   tsize = 0;
-    NCS_TRAP_VARBIND *p_varbind = NULL;
+	uns32 tsize = 0;
+	NCS_TRAP_VARBIND *p_varbind = NULL;
 
-    if(trap == NULL)
-        return 0;
+	if (trap == NULL)
+		return 0;
 
-    p_varbind = trap->i_trap_vb;
-    while(p_varbind != NULL)
-    {
-        tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_tbl_id */
-        tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_param_val.i_param_id */
-        tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_param_val.i_fmat_id */
-        tsize += EDU_TLV_HDR_SIZE + 2;  /* for i_param_val.i_length */
-        if(p_varbind->i_param_val.i_fmat_id == NCSMIB_FMAT_INT)
-        {
-            tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_param_val.info.i_int */
-        }
-        else
-        {
-            tsize += EDU_TLV_HDR_SIZE + p_varbind->i_param_val.i_length;
-                /* for i_param_val.info.i_oct */
-            tsize += EDU_TLV_HDR_SIZE + 2;  /* EDU-internal pointer space */
-        }
-        tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_idx.i_inst_len */
-        if(p_varbind->i_idx.i_inst_len != 0)
-        {
-            tsize += EDU_TLV_HDR_SIZE + (p_varbind->i_idx.i_inst_len*4);
-                /* for i_idx.i_inst_ids */
-        }
-        tsize += EDU_TLV_HDR_SIZE + 2;  
-            /* EDU-internal pointer space for i_idx.i_inst_ids */
-        p_varbind = p_varbind->next_trap_varbind;
-    }
-    tsize += EDU_TLV_HDR_SIZE + 2;  
-        /* EDU-internal space for linked-list count */
+	p_varbind = trap->i_trap_vb;
+	while (p_varbind != NULL) {
+		tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_tbl_id */
+		tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_param_val.i_param_id */
+		tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_param_val.i_fmat_id */
+		tsize += EDU_TLV_HDR_SIZE + 2;	/* for i_param_val.i_length */
+		if (p_varbind->i_param_val.i_fmat_id == NCSMIB_FMAT_INT) {
+			tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_param_val.info.i_int */
+		} else {
+			tsize += EDU_TLV_HDR_SIZE + p_varbind->i_param_val.i_length;
+			/* for i_param_val.info.i_oct */
+			tsize += EDU_TLV_HDR_SIZE + 2;	/* EDU-internal pointer space */
+		}
+		tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_idx.i_inst_len */
+		if (p_varbind->i_idx.i_inst_len != 0) {
+			tsize += EDU_TLV_HDR_SIZE + (p_varbind->i_idx.i_inst_len * 4);
+			/* for i_idx.i_inst_ids */
+		}
+		tsize += EDU_TLV_HDR_SIZE + 2;
+		/* EDU-internal pointer space for i_idx.i_inst_ids */
+		p_varbind = p_varbind->next_trap_varbind;
+	}
+	tsize += EDU_TLV_HDR_SIZE + 2;
+	/* EDU-internal space for linked-list count */
 
-    tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_trap_tbl_id */
-    tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_trap_id */
-    tsize += EDU_TLV_HDR_SIZE + 4;  /* for i_inform_mgr */
+	tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_trap_tbl_id */
+	tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_trap_id */
+	tsize += EDU_TLV_HDR_SIZE + 4;	/* for i_inform_mgr */
 
-    return tsize;
+	return tsize;
 }

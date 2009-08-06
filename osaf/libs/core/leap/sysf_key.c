@@ -20,12 +20,9 @@
 
   MODULE NAME: SYSF_KEY.C
 
-
-
 ..............................................................................
 
   DESCRIPTION:
-
 
   NOTES:
   
@@ -41,4 +38,4 @@
 #include "sysf_key.h"
 
 /* Array for storing the Subsystem Key */
-NCS_KEY  subsys_list[NCS_SERVICE_ID_MAX][MAX_VR];
+NCS_KEY subsys_list[NCS_SERVICE_ID_MAX][MAX_VR];

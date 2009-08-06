@@ -58,52 +58,42 @@
  *
  * 
  **************************************************************************/
-EXTERN_C uns32 
-ncsavmscalars_get( NCSCONTEXT     cb, 
-                   NCSMIB_ARG    *arg, 
-                   NCSCONTEXT    *data
-                 )
+EXTERN_C uns32 ncsavmscalars_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVM_CB_T *avm_cb = (AVM_CB_T*)cb;
-   
-   *data = (NCSCONTEXT*)avm_cb;
-   
-   return NCSCC_RC_SUCCESS;
+	AVM_CB_T *avm_cb = (AVM_CB_T *)cb;
+
+	*data = (NCSCONTEXT *)avm_cb;
+
+	return NCSCC_RC_SUCCESS;
 }
 
-EXTERN_C uns32 
-ncsavmscalars_extract(NCSMIB_PARAM_VAL *param, 
-                      NCSMIB_VAR_INFO  *var_info, 
-                      NCSCONTEXT        data,
-                      NCSCONTEXT        buffer
-                     )
+EXTERN_C uns32
+ncsavmscalars_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVM_CB_T *cb = (AVM_CB_T*)data;
-   uns32    rc;
-   
-   if(AVM_CB_NULL == cb)
-   {
-      return NCSCC_RC_NO_INSTANCE;
-   }
-   
-   switch(param->i_param_id)
-   {
-      case ncsAvmAdmSwitch_ID:
-      {
-         param->i_fmat_id  = NCSMIB_FMAT_INT;
-         param->i_length   = 1;
-         param->info.i_int = (cb->adm_switch == TRUE)? TRUE : FALSE;
-         rc = NCSCC_RC_SUCCESS;
-      }
-      break;  
+	AVM_CB_T *cb = (AVM_CB_T *)data;
+	uns32 rc;
 
-      default:
-      {
-         rc = NCSCC_RC_NO_OBJECT;
-      }
-   }
-   
-   return rc;
+	if (AVM_CB_NULL == cb) {
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	switch (param->i_param_id) {
+	case ncsAvmAdmSwitch_ID:
+		{
+			param->i_fmat_id = NCSMIB_FMAT_INT;
+			param->i_length = 1;
+			param->info.i_int = (cb->adm_switch == TRUE) ? TRUE : FALSE;
+			rc = NCSCC_RC_SUCCESS;
+		}
+		break;
+
+	default:
+		{
+			rc = NCSCC_RC_NO_OBJECT;
+		}
+	}
+
+	return rc;
 }
 
 /*****************************************************************************
@@ -132,64 +122,50 @@ ncsavmscalars_extract(NCSMIB_PARAM_VAL *param,
  *
  * 
  *****************************************************************************/
-EXTERN_C uns32 
-ncsavmscalars_set(NCSCONTEXT         cb, 
-                  NCSMIB_ARG        *arg, 
-                  NCSMIB_VAR_INFO   *var_info, 
-                  NCS_BOOL           test_flag
-                 )
+EXTERN_C uns32 ncsavmscalars_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   AVM_CB_T   *avm_cb = AVM_CB_NULL;
-   AVM_EVT_T   evt;
+	AVM_CB_T *avm_cb = AVM_CB_NULL;
+	AVM_EVT_T evt;
 
-   avm_cb = (AVM_CB_T*)cb; 
-   
-   if(SA_AMF_HA_ACTIVE != avm_cb->ha_state)
-   {
-      return NCSCC_RC_INV_VAL;
-   }
+	avm_cb = (AVM_CB_T *)cb;
 
-   if(TRUE == test_flag)
-   {
-      return NCSCC_RC_SUCCESS;
-   }
-   
-   switch(arg->req.info.set_req.i_param_val.i_param_id)
-   {
-      case ncsAvmAdmSwitch_ID:
-      {
-         evt.fsm_evt_type = AVM_ROLE_EVT_ADM_SWITCH;
-         avm_role_fsm_handler(cb, &evt);
-      }
-      break;
+	if (SA_AMF_HA_ACTIVE != avm_cb->ha_state) {
+		return NCSCC_RC_INV_VAL;
+	}
 
-      default:
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(arg->req.info.set_req.i_param_val.i_param_id);
-         return NCSCC_RC_FAILURE;
-      }
-   }
+	if (TRUE == test_flag) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	switch (arg->req.info.set_req.i_param_val.i_param_id) {
+	case ncsAvmAdmSwitch_ID:
+		{
+			evt.fsm_evt_type = AVM_ROLE_EVT_ADM_SWITCH;
+			avm_role_fsm_handler(cb, &evt);
+		}
+		break;
+
+	default:
+		{
+			m_AVM_LOG_INVALID_VAL_FATAL(arg->req.info.set_req.i_param_val.i_param_id);
+			return NCSCC_RC_FAILURE;
+		}
+	}
+
+	return NCSCC_RC_SUCCESS;
 }
 
-EXTERN_C uns32 
-ncsavmscalars_next(NCSCONTEXT        cb, 
-                   NCSMIB_ARG       *arg, 
-                   NCSCONTEXT       *data, 
-                   uns32            *next_inst_id,
-                   uns32            *next_inst_id_len)
+EXTERN_C uns32
+ncsavmscalars_next(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   /* Invalid Instance */
-   return NCSCC_RC_NO_INSTANCE;
+	/* Invalid Instance */
+	return NCSCC_RC_NO_INSTANCE;
 }
 
-EXTERN_C uns32 
-ncsavmscalars_setrow(NCSCONTEXT               cb, 
-                     NCSMIB_ARG              *args,
-                     NCSMIB_SETROW_PARAM_VAL *params,
-                     struct ncsmib_obj_info  *obj_info,
-                     NCS_BOOL                 testrow_flag)
+EXTERN_C uns32
+ncsavmscalars_setrow(NCSCONTEXT cb,
+		     NCSMIB_ARG *args,
+		     NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

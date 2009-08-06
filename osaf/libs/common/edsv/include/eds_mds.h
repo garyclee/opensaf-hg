@@ -41,23 +41,15 @@
 
 EXTERN_C uns32 eds_mds_init(EDS_CB *);
 EXTERN_C uns32 eds_mds_vdest_create(EDS_CB *);
-EXTERN_C uns32 eds_mds_finalize (EDS_CB *cb);
-EXTERN_C uns32 eds_mds_vdest_destroy (EDS_CB *cb);
+EXTERN_C uns32 eds_mds_finalize(EDS_CB *cb);
+EXTERN_C uns32 eds_mds_vdest_destroy(EDS_CB *cb);
 EXTERN_C uns32 eds_mds_change_role(EDS_CB *cb);
-EXTERN_C uns32 eds_mds_msg_send (
-                        EDS_CB            *cb,
-                        EDSV_MSG          *msg,
-                        MDS_DEST          *dest,
-                        MDS_SYNC_SND_CTXT *mds_ctxt,
-                        MDS_SEND_PRIORITY_TYPE prio);
+EXTERN_C uns32 eds_mds_msg_send(EDS_CB *cb,
+				EDSV_MSG *msg,
+				MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);
 
-EXTERN_C uns32 eds_mds_ack_send (
-                        EDS_CB                  *cb,
-                        EDSV_MSG               *msg,
-                        MDS_DEST               dest, 
-                        uns32               timeout,
-                        MDS_SEND_PRIORITY_TYPE prio);
- 
+EXTERN_C uns32 eds_mds_ack_send(EDS_CB *cb, EDSV_MSG *msg, MDS_DEST dest, uns32 timeout, MDS_SEND_PRIORITY_TYPE prio);
+
 EXTERN_C uns32 eds_dec_subscribe_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
 
 EXTERN_C uns32 eds_dec_publish_msg(NCS_UBAID *uba, long msg_hdl, uns8 ckpt_flag);
@@ -94,7 +86,6 @@ do { \
       (m).info.api_resp_info.param.limit_get_rsp.max_ret_time = EDSV_MAX_RETENTION_TIME;\
    } \
 } while (0);
-
 
 /* Macro to populate the 'EVT Channel Open' response message */
 #define m_EDS_EDSV_CHAN_OPEN_SYNC_MSG_FILL(m, rs, chanid, copenid) \
@@ -176,5 +167,5 @@ do { \
 } while (0);
 
 #define m_EDS_GET_NODE_ID_FROM_ADEST(adest) (NODE_ID) ((uns64)adest >> 32)
-#endif /* !EDS_MDS_H */
 
+#endif   /* !EDS_MDS_H */

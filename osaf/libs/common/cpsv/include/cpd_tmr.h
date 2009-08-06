@@ -18,26 +18,23 @@
 #ifndef CPD_TMR_H
 #define CPD_TMR_H
 
-typedef enum cpd_tmr_type
-{
-   CPD_TMR_TYPE_CPND_RETENTION=1,
-   CPD_TMR_TYPE_MAX = CPD_TMR_TYPE_CPND_RETENTION, 
-}CPD_TMR_TYPE;
+typedef enum cpd_tmr_type {
+	CPD_TMR_TYPE_CPND_RETENTION = 1,
+	CPD_TMR_TYPE_MAX = CPD_TMR_TYPE_CPND_RETENTION,
+} CPD_TMR_TYPE;
 
-typedef struct cpd_tmr
-{
-   CPD_TMR_TYPE     type;  
-   tmr_t            tmr_id;     
-   uns32            uarg;
-   NCS_BOOL         is_active;
-   union
-   {
-      MDS_DEST      cpnd_dest;
-   }info;
-}CPD_TMR;
+typedef struct cpd_tmr {
+	CPD_TMR_TYPE type;
+	tmr_t tmr_id;
+	uns32 uarg;
+	NCS_BOOL is_active;
+	union {
+		MDS_DEST cpnd_dest;
+	} info;
+} CPD_TMR;
 
-EXTERN_C uns32 cpd_tmr_start (CPD_TMR *tmr, uns32 duration);
-EXTERN_C void cpd_timer_expiry (NCSCONTEXT uarg);
-EXTERN_C void cpd_tmr_stop (CPD_TMR *tmr);
+EXTERN_C uns32 cpd_tmr_start(CPD_TMR *tmr, uns32 duration);
+EXTERN_C void cpd_timer_expiry(NCSCONTEXT uarg);
+EXTERN_C void cpd_tmr_stop(CPD_TMR *tmr);
 
 #endif

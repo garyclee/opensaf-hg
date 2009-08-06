@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -36,11 +34,10 @@
  * messages. The dnd can grow to a max of 30 after which
  * nda sub ids will start. Also see avsv_n2avamem.h
  */
-typedef enum
-{
-   NCS_SERVICE_AVSV_DND_SUB_ID_DND_MSG_STRUC = 1,
-   NCS_SERVICE_AVSV_DND_SUB_ID_DND_MSG_INFO,
-   NCS_SERVICE_AVSV_DND_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_AVSV_DND_SUB_ID_DND_MSG_STRUC = 1,
+	NCS_SERVICE_AVSV_DND_SUB_ID_DND_MSG_INFO,
+	NCS_SERVICE_AVSV_DND_SUB_ID_MAX
 } NCS_SERVICE_AVSV_DND_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -48,9 +45,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-
-
 
 #define m_MMGR_ALLOC_AVSV_DND_MSG      (AVSV_DND_MSG*)m_NCS_MEM_ALLOC(sizeof(AVSV_DND_MSG), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -71,4 +65,4 @@ typedef enum
                                                 NCS_SERVICE_ID_AVSV, \
                                                 NCS_SERVICE_AVSV_DND_SUB_ID_DND_MSG_INFO)
 
-#endif /* !AVSV_D2NMEM_H */
+#endif   /* !AVSV_D2NMEM_H */

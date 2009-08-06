@@ -62,8 +62,6 @@ extern "C" {
  */
 #define m_NCS_SEM_CREATE(p_s_handle)    ncs_sem_create(p_s_handle)
 
-
-
 /****************************************************************************
  * m_NCS_SEM_RELEASE
  *
@@ -79,8 +77,6 @@ extern "C" {
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_SEM_RELEASE(s_handle)   ncs_sem_release(s_handle)
-
-
 
 /****************************************************************************
  * m_NCS_SEM_GIVE
@@ -98,8 +94,6 @@ extern "C" {
  * <error return>   otherwise (such as NCSCC_RC_FAILURE).
  */
 #define m_NCS_SEM_GIVE(s_handle)      ncs_sem_give(s_handle)
-
-
 
 /****************************************************************************
  * m_NCS_SEM_TAKE
@@ -120,23 +114,19 @@ extern "C" {
  */
 #define m_NCS_SEM_TAKE(s_handle)      ncs_sem_take(s_handle)
 
-
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  
                FUNCTION PROTOTYPES
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
-
-EXTERN_C LEAPDLL_API uns32 ncs_sem_create (void **);
-EXTERN_C LEAPDLL_API uns32 ncs_sem_release (void *);
-EXTERN_C LEAPDLL_API uns32 ncs_sem_give (void *);
-EXTERN_C LEAPDLL_API uns32 ncs_sem_take (void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_sem_create(void **);
+	EXTERN_C LEAPDLL_API uns32 ncs_sem_release(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_sem_give(void *);
+	EXTERN_C LEAPDLL_API uns32 ncs_sem_take(void *);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* NCSSYSF_SEM_H */
+#endif   /* NCSSYSF_SEM_H */

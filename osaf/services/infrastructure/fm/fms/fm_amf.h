@@ -18,7 +18,6 @@
 #ifndef FM_AMF_H
 #define FM_AMF_H
 
-
 /*
  * Macro used to get the AMF version used
  */
@@ -29,40 +28,30 @@
 /*
  * FM AMF control information
  */
-typedef struct fm_amf_cb
-{
-   char                 comp_name [256];
-   SaAmfHandleT         amf_hdl;       /* AMF handle */
-   SaSelectionObjectT   amf_fd;        /* AMF selection fd */
-   NCS_BOOL             is_amf_up;     /* For amf_fd and pipe_fd */
-   NCS_OS_SEM           semaphore;     /* Semaphore for health check */
-   uns32                pipe_fd;       /* To recieve msg from INSTANTIATE script */
-}FM_AMF_CB;
+typedef struct fm_amf_cb {
+	char comp_name[256];
+	SaAmfHandleT amf_hdl;	/* AMF handle */
+	SaSelectionObjectT amf_fd;	/* AMF selection fd */
+	NCS_BOOL is_amf_up;	/* For amf_fd and pipe_fd */
+	NCS_OS_SEM semaphore;	/* Semaphore for health check */
+	uns32 pipe_fd;		/* To recieve msg from INSTANTIATE script */
+} FM_AMF_CB;
 
+FM_AMF_CB *fm_amf_get_cb(void);
 
-FM_AMF_CB* fm_amf_get_cb (void);
+void fm_saf_CSI_set_callback(SaInvocationT invocation,
+			     const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
 
-void  fm_saf_CSI_set_callback(SaInvocationT invocation,
-                              const SaNameT *compName,
-                              SaAmfHAStateT haState,
-                              SaAmfCSIDescriptorT csiDescriptor);
+void fm_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
 
-void  fm_saf_health_chk_callback(SaInvocationT invocation,
-                                const SaNameT *compName,
-                                SaAmfHealthcheckKeyT *checkType);
+void fm_saf_CSI_rem_callback(SaInvocationT invocation,
+			     const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
 
-void  fm_saf_CSI_rem_callback(SaInvocationT invocation,
-                              const SaNameT *compName,
-                              const SaNameT *csiName,
-                              const SaAmfCSIFlagsT csiFlags);
+void fm_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-void  fm_saf_comp_terminate_callback(SaInvocationT invocation,
-                                     const SaNameT *compName);
-
-uns32 fm_amf_open             (FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_close            (FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_pipe_process_msg (FM_AMF_CB *fm_amf_cb);
-uns32 fm_amf_process_msg      (FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_open(FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_close(FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_pipe_process_msg(FM_AMF_CB *fm_amf_cb);
+uns32 fm_amf_process_msg(FM_AMF_CB *fm_amf_cb);
 
 #endif
-

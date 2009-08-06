@@ -42,64 +42,56 @@
 struct ncssysm_buf_rpt_wo;
 struct ncssysm_buf_rpt_wos;
 
-typedef enum ncsub_pool_rpt_op
-{
-  NCSUB_POOL_RPT_OP_WO,
-  NCSUB_POOL_RPT_OP_WOS
-
+typedef enum ncsub_pool_rpt_op {
+	NCSUB_POOL_RPT_OP_WO,
+	NCSUB_POOL_RPT_OP_WOS
 } NCSUB_POOL_RPT_OP;
 
-typedef struct ncsub_pool_rpt_arg
-{
-  NCSUB_POOL_RPT_OP op;
-  union
-  {
-    struct ncssysm_buf_rpt_wo*  wo;
-    struct ncssysm_buf_rpt_wos* wos;
-  } info;
+typedef struct ncsub_pool_rpt_arg {
+	NCSUB_POOL_RPT_OP op;
+	union {
+		struct ncssysm_buf_rpt_wo *wo;
+		struct ncssysm_buf_rpt_wos *wos;
+	} info;
 
 } NCSUB_POOL_RPT_ARG;
 
-typedef  void (*NCSUB_POOL_AGE)(void);
-typedef  void (*NCSUB_POOL_IGNORE)(NCS_BOOL val);
-typedef  void (*NCSUB_POOL_LOC)(void* mem,uns32 svc_id,uns32 sub_id,uns32 line,char* file);
-typedef  uns32 (*NCSUB_POOL_RPT)(NCSUB_POOL_RPT_ARG* arg);
+typedef void (*NCSUB_POOL_AGE) (void);
+typedef void (*NCSUB_POOL_IGNORE) (NCS_BOOL val);
+typedef void (*NCSUB_POOL_LOC) (void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file);
+typedef uns32 (*NCSUB_POOL_RPT) (NCSUB_POOL_RPT_ARG * arg);
 
-
-EXTERN_C LEAPDLL_API void* ncs_buf_dbg_loc(void  *ptr,int svc_id,int sub_id, unsigned int line, char* file);
-
+EXTERN_C LEAPDLL_API void *ncs_buf_dbg_loc(void *ptr, int svc_id, int sub_id, unsigned int line, char *file);
 #endif
 
-EXTERN_C LEAPDLL_API uns32 ncs_lbp_create (void);
+EXTERN_C LEAPDLL_API uns32 ncs_lbp_create(void);
 EXTERN_C LEAPDLL_API uns32 ncs_lbp_destroy(void);
 
-typedef struct ncsub_pool
-{
-  NCS_BOOL         busy;
-  uns8             pool_id;
-  NCS_POOL_MALLOC  mem_alloc;
-  NCS_POOL_MFREE   mem_free;
-  uns32            hdr_reserve;
-  uns32            trlr_reserve;
+typedef struct ncsub_pool {
+	NCS_BOOL busy;
+	uns8 pool_id;
+	NCS_POOL_MALLOC mem_alloc;
+	NCS_POOL_MFREE mem_free;
+	uns32 hdr_reserve;
+	uns32 trlr_reserve;
 
 #if ((NCSSYSM_BUF_STATS_ENABLE == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_WATCH_ENABLE))
-  NCSUB_POOL_AGE    mem_age;
-  NCSUB_POOL_IGNORE mem_ignore;
-  NCSUB_POOL_LOC    mem_loc;
-  NCSUB_POOL_RPT    mem_rpt;
-  NCSUB_POOL_STATS  stats;
+	NCSUB_POOL_AGE mem_age;
+	NCSUB_POOL_IGNORE mem_ignore;
+	NCSUB_POOL_LOC mem_loc;
+	NCSUB_POOL_RPT mem_rpt;
+	NCSUB_POOL_STATS stats;
 #endif
 
-} NCSUB_POOL;  
+} NCSUB_POOL;
 
 /***************************************************************************
  * UB_POOL_MGR is the set of pool entry functions registered w/USRBUF pool.
  ***************************************************************************/
 
-typedef struct ub_pool_mgr
-{
-  NCSUB_POOL      pools[UB_MAX_POOLS];
-  NCS_LOCK        lock;
+typedef struct ub_pool_mgr {
+	NCSUB_POOL pools[UB_MAX_POOLS];
+	NCS_LOCK lock;
 
 } UB_POOL_MGR;
 
@@ -112,14 +104,12 @@ typedef struct ub_pool_mgr
 
 *****************************************************************************/
 
-
 /***************************************************************************
  * NCSMMGR_UB_INIT Put USRBUF pool management svcs in start state
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_init
-{
-  void* i_meaningless;
+typedef struct ncsmmgr_ub_init {
+	void *i_meaningless;
 
 } NCSMMGR_UB_INIT;
 
@@ -127,9 +117,8 @@ typedef struct ncsmmgr_ub_init
  * NCSMMGR_UB_DELETE  Disengage all USRBUF pools and recover resources
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_delete
-{
-  void* i_meaningless;
+typedef struct ncsmmgr_ub_delete {
+	void *i_meaningless;
 
 } NCSMMGR_UB_DELETE;
 
@@ -137,16 +126,15 @@ typedef struct ncsmmgr_ub_delete
  * NCSMMGR_UB_REGISTER register pool properties in USRBUF service area.
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_register
-{
-  uns8             i_pool_id;
-  NCS_POOL_MALLOC   i_mem_alloc;
-  NCS_POOL_MFREE    i_mem_free;
+typedef struct ncsmmgr_ub_register {
+	uns8 i_pool_id;
+	NCS_POOL_MALLOC i_mem_alloc;
+	NCS_POOL_MFREE i_mem_free;
 #if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-  NCSUB_POOL_AGE    i_mem_age;
-  NCSUB_POOL_IGNORE i_mem_ignore;
-  NCSUB_POOL_LOC    i_mem_loc;
-  NCSUB_POOL_RPT    i_mem_rpt;
+	NCSUB_POOL_AGE i_mem_age;
+	NCSUB_POOL_IGNORE i_mem_ignore;
+	NCSUB_POOL_LOC i_mem_loc;
+	NCSUB_POOL_RPT i_mem_rpt;
 #endif
 
 } NCSMMGR_UB_REGISTER;
@@ -155,9 +143,8 @@ typedef struct ncsmmgr_ub_register
  * NCSMMGR_UB_DEREGISTER disengage a particular pool in USRBUF svc area
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_deregister
-{
-  uns8             i_pool_id;
+typedef struct ncsmmgr_ub_deregister {
+	uns8 i_pool_id;
 
 } NCSMMGR_UB_DEREGISTER;
 
@@ -165,30 +152,26 @@ typedef struct ncsmmgr_ub_deregister
  * The NCSMMGR_UB_OP operations set 
  ***************************************************************************/
 
-typedef enum ncsmmgr_ub_op
-  {
-  NCSMMGR_LM_OP_INIT,
-  NCSMMGR_LM_OP_DELETE,
-  NCSMMGR_LM_OP_REGISTER,
-  NCSMMGR_LM_OP_DEREGISTER
-
-  } NCSMMGR_UB_OP;
+typedef enum ncsmmgr_ub_op {
+	NCSMMGR_LM_OP_INIT,
+	NCSMMGR_LM_OP_DELETE,
+	NCSMMGR_LM_OP_REGISTER,
+	NCSMMGR_LM_OP_DEREGISTER
+} NCSMMGR_UB_OP;
 
 /***************************************************************************
  * NCSMMGR_UB_LM_ARG the set of structures that capture all operations
  ***************************************************************************/
 
-typedef struct ncsmmgr_ub_lm_arg
-{
-  NCSMMGR_UB_OP             i_op;
-  union
-    {
-    NCSMMGR_UB_INIT         init;
-    NCSMMGR_UB_REGISTER     reg;
-    NCSMMGR_UB_DEREGISTER   dereg;
-    NCSMMGR_UB_DELETE       del;
+typedef struct ncsmmgr_ub_lm_arg {
+	NCSMMGR_UB_OP i_op;
+	union {
+		NCSMMGR_UB_INIT init;
+		NCSMMGR_UB_REGISTER reg;
+		NCSMMGR_UB_DEREGISTER dereg;
+		NCSMMGR_UB_DELETE del;
 
-    } info;
+	} info;
 
 } NCSMMGR_UB_LM_ARG;
 
@@ -209,12 +192,11 @@ typedef struct ncsmmgr_ub_lm_arg
 
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32          ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG* arg);
-EXTERN_C LEAPDLL_API NCSUB_POOL*     ncsmmgr_ub_getpool(uns8 pool_id);
+EXTERN_C LEAPDLL_API uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
+EXTERN_C LEAPDLL_API NCSUB_POOL *ncsmmgr_ub_getpool(uns8 pool_id);
 
 #define m_NCSMMGR_UB_LM(a)           ncsmmgr_ub_lm(a)
 #define m_NCSMMGR_UB_GETPOOL(id)     ncsmmgr_ub_getpool(id)
-
 
 /************************************************************************
 
@@ -237,34 +219,27 @@ EXTERN_C LEAPDLL_API NCSUB_POOL*     ncsmmgr_ub_getpool(uns8 pool_id);
 #define NCSPMGR_USE_LOCK_TYPE PMGR_NO_LOCKS
 #endif
 
-#if (NCSPMGR_USE_LOCK_TYPE == PMGR_NO_LOCKS)                  /* NO Locks */
+#if (NCSPMGR_USE_LOCK_TYPE == PMGR_NO_LOCKS)	/* NO Locks */
 
 #define m_PMGR_LK_CREATE(lk)
 #define m_PMGR_LK_INIT
-#define m_PMGR_LK(lk) 
-#define m_PMGR_UNLK(lk) 
-#define m_PMGR_LK_DLT(lk) 
-
-#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_TASK_LOCKS)            /* Task Locks */
+#define m_PMGR_LK(lk)
+#define m_PMGR_UNLK(lk)
+#define m_PMGR_LK_DLT(lk)
+#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_TASK_LOCKS)	/* Task Locks */
 
 #define m_PMGR_LK_CREATE(lk)
 #define m_PMGR_LK_INIT            m_INIT_CRITICAL
 #define m_PMGR_LK(lk)             m_START_CRITICAL
 #define m_PMGR_UNLK(lk)           m_END_CRITICAL
-#define m_PMGR_LK_DLT(lk) 
-
-#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_OBJ_LOCKS)           /* Object Locks */
-
+#define m_PMGR_LK_DLT(lk)
+#elif (NCSPMGR_USE_LOCK_TYPE == PMGR_OBJ_LOCKS)	/* Object Locks */
 
 #define m_PMGR_LK_CREATE(lk)      m_NCS_LOCK_INIT_V2(lk,0,0)
 #define m_PMGR_LK_INIT
 #define m_PMGR_LK(lk)             m_NCS_LOCK_V2(lk,   NCS_LOCK_WRITE,0, 0)
 #define m_PMGR_UNLK(lk)           m_NCS_UNLOCK_V2(lk, NCS_LOCK_WRITE, 0, 0)
 #define m_PMGR_LK_DLT(lk)         m_NCS_LOCK_DESTROY_V2(lk, 0, 0)
-
-#endif 
-
-
 #endif
 
-
+#endif

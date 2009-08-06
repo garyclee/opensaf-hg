@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -50,121 +48,117 @@ struct avnd_cb_tag;
  * SU-SI Assign Message contains some message specific parameters that are 
  * not a part of SU-SI parameters. Concealing those params thru this typedef.
  */
-typedef AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO  AVND_SU_SI_PARAM;
+typedef AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO AVND_SU_SI_PARAM;
 
 /* declaration clc event handler */
-typedef uns32 (*AVND_SU_PRES_FSM_FN)(struct avnd_cb_tag *, struct avnd_su_tag *, AVND_COMP *);
+typedef uns32 (*AVND_SU_PRES_FSM_FN) (struct avnd_cb_tag *, struct avnd_su_tag *, AVND_COMP *);
 
 /* su presence state fsm events */
-typedef enum avnd_su_pres_fsm_ev
-{
-   AVND_SU_PRES_FSM_EV_INST = 1,
-   AVND_SU_PRES_FSM_EV_TERM,
-   AVND_SU_PRES_FSM_EV_RESTART,
-   AVND_SU_PRES_FSM_EV_COMP_INSTANTIATED,
-   AVND_SU_PRES_FSM_EV_COMP_INST_FAIL,
-   AVND_SU_PRES_FSM_EV_COMP_RESTARTING,
-   AVND_SU_PRES_FSM_EV_COMP_TERM_FAIL,
-   AVND_SU_PRES_FSM_EV_COMP_UNINSTANTIATED,
-   AVND_SU_PRES_FSM_EV_COMP_TERMINATING,
-   AVND_SU_PRES_FSM_EV_MAX
+typedef enum avnd_su_pres_fsm_ev {
+	AVND_SU_PRES_FSM_EV_INST = 1,
+	AVND_SU_PRES_FSM_EV_TERM,
+	AVND_SU_PRES_FSM_EV_RESTART,
+	AVND_SU_PRES_FSM_EV_COMP_INSTANTIATED,
+	AVND_SU_PRES_FSM_EV_COMP_INST_FAIL,
+	AVND_SU_PRES_FSM_EV_COMP_RESTARTING,
+	AVND_SU_PRES_FSM_EV_COMP_TERM_FAIL,
+	AVND_SU_PRES_FSM_EV_COMP_UNINSTANTIATED,
+	AVND_SU_PRES_FSM_EV_COMP_TERMINATING,
+	AVND_SU_PRES_FSM_EV_MAX
 } AVND_SU_PRES_FSM_EV;
 
 /* SI assignment state type definition */
-typedef enum avnd_su_si_assign_state
-{
-   AVND_SU_SI_ASSIGN_STATE_UNASSIGNED = 1,
-   AVND_SU_SI_ASSIGN_STATE_ASSIGNING,
-   AVND_SU_SI_ASSIGN_STATE_ASSIGNED,
-   AVND_SU_SI_ASSIGN_STATE_REMOVING,
-   AVND_SU_SI_ASSIGN_STATE_REMOVED,
-   AVND_SU_SI_ASSIGN_STATE_MAX,
+typedef enum avnd_su_si_assign_state {
+	AVND_SU_SI_ASSIGN_STATE_UNASSIGNED = 1,
+	AVND_SU_SI_ASSIGN_STATE_ASSIGNING,
+	AVND_SU_SI_ASSIGN_STATE_ASSIGNED,
+	AVND_SU_SI_ASSIGN_STATE_REMOVING,
+	AVND_SU_SI_ASSIGN_STATE_REMOVED,
+	AVND_SU_SI_ASSIGN_STATE_MAX,
 } AVND_SU_SI_ASSIGN_STATE;
 
 /* SI definition */
 typedef struct avnd_su_si_rec {
-   NCS_DB_LINK_LIST_NODE  su_dll_node; /* node in the su-si dll */
-   SaNameT                name_net;   /* si name */
+	NCS_DB_LINK_LIST_NODE su_dll_node;	/* node in the su-si dll */
+	SaNameT name_net;	/* si name */
 
-   SaAmfHAStateT  curr_state; /* current si ha state */
-   SaAmfHAStateT  prv_state;  /* prv si ha state */
+	SaAmfHAStateT curr_state;	/* current si ha state */
+	SaAmfHAStateT prv_state;	/* prv si ha state */
 
-   AVND_SU_SI_ASSIGN_STATE  curr_assign_state; /* si assignment state wrt 
-                                                  current ha state */
-   AVND_SU_SI_ASSIGN_STATE  prv_assign_state;  /* si assignment state wrt 
-                                                  prv ha state */
+	AVND_SU_SI_ASSIGN_STATE curr_assign_state;	/* si assignment state wrt 
+							   current ha state */
+	AVND_SU_SI_ASSIGN_STATE prv_assign_state;	/* si assignment state wrt 
+							   prv ha state */
 
-   NCS_DB_LINK_LIST  csi_list; /* ordered csi list (based on csi rank) */
+	NCS_DB_LINK_LIST csi_list;	/* ordered csi list (based on csi rank) */
 
-   /* links to other entities */
-   struct avnd_su_tag    *su;   /* bk ptr to su */
-   SaNameT                su_name_net;   /* For checkpointing su name*/
+	/* links to other entities */
+	struct avnd_su_tag *su;	/* bk ptr to su */
+	SaNameT su_name_net;	/* For checkpointing su name */
 } AVND_SU_SI_REC;
 
 /* SU-SI buffer record definition */
 typedef struct avnd_su_siq_rec {
-   NCS_DB_LINK_LIST_NODE  su_dll_node; /* node in the siq dll */
-   AVND_SU_SI_PARAM       info; /* su-si param */
+	NCS_DB_LINK_LIST_NODE su_dll_node;	/* node in the siq dll */
+	AVND_SU_SI_PARAM info;	/* su-si param */
 } AVND_SU_SIQ_REC;
-
 
 /*##########################################################################
                       SERVICE UNIT DEFINITION (TOP LEVEL)                   
  ##########################################################################*/
 
-typedef AVSV_SU_INFO_MSG  AVND_SU_PARAM;
+typedef AVSV_SU_INFO_MSG AVND_SU_PARAM;
 
 typedef struct avnd_su_tag {
-   NCS_PATRICIA_NODE  tree_node; /* su tree node (key is su name) */
-   SaNameT            name_net;  /* su name */
+	NCS_PATRICIA_NODE tree_node;	/* su tree node (key is su name) */
+	SaNameT name_net;	/* su name */
 
-   uns32       mab_hdl; /* mab handle for this su */
-   uns32       su_hdl;  /* hdl returned by hdl-mngr */
+	uns32 mab_hdl;		/* mab handle for this su */
+	uns32 su_hdl;		/* hdl returned by hdl-mngr */
 
-   /* su attributes */
-   uns32    flag;        /* su attributes */
+	/* su attributes */
+	uns32 flag;		/* su attributes */
 
-   /* Update received flag, which will normally be FALSE and will be
-    * TRUE if updates are received from the AVD on fail-over.*/
-   NCS_BOOL            avd_updt_flag;
+	/* Update received flag, which will normally be FALSE and will be
+	 * TRUE if updates are received from the AVD on fail-over.*/
+	NCS_BOOL avd_updt_flag;
 
-   /* error recovery escalation params */
-   AVND_ERR_ESC_LEVEL  su_err_esc_level; /* curr escalation level of this su */
-   SaTimeT             comp_restart_prob;/* comp restart probation period (config) */
-   uns32               comp_restart_max; /* max comp restart count (config) */
-   SaTimeT             su_restart_prob;  /* su restart probation period (config) */
-   uns32               su_restart_max;   /* max su restart count (config) */
-   uns32               comp_restart_cnt; /* comp restart counts within comp-prob period */
-   uns32               su_restart_cnt;   /* su restart counts within su-prob period */
-   AVND_TMR            su_err_esc_tmr;   /* su err esc tmr */
+	/* error recovery escalation params */
+	AVND_ERR_ESC_LEVEL su_err_esc_level;	/* curr escalation level of this su */
+	SaTimeT comp_restart_prob;	/* comp restart probation period (config) */
+	uns32 comp_restart_max;	/* max comp restart count (config) */
+	SaTimeT su_restart_prob;	/* su restart probation period (config) */
+	uns32 su_restart_max;	/* max su restart count (config) */
+	uns32 comp_restart_cnt;	/* comp restart counts within comp-prob period */
+	uns32 su_restart_cnt;	/* su restart counts within su-prob period */
+	AVND_TMR su_err_esc_tmr;	/* su err esc tmr */
 
-   /* su states */
-   NCS_OPER_STATE  oper; /* oper state of the su */
-   NCS_PRES_STATE  pres; /* presence state of the su */
+	/* su states */
+	NCS_OPER_STATE oper;	/* oper state of the su */
+	NCS_PRES_STATE pres;	/* presence state of the su */
 
-   /* statistical info */
-   uns32  si_active_cnt;  /* no of active SIs assigned to this su */
-   uns32  si_standby_cnt; /* no of standby SIs assigned to this su */
+	/* statistical info */
+	uns32 si_active_cnt;	/* no of active SIs assigned to this su */
+	uns32 si_standby_cnt;	/* no of standby SIs assigned to this su */
 
-   /* 
-    * Ordered comp list (based on inst level). Note that as the 
-    * lexicographic key (comp-name) & the keys used for 
-    * comparision (inst-level) are different, only a limited number 
-    * of DLL APIs can be used.
-    */
-   NCS_DB_LINK_LIST  comp_list;
+	/* 
+	 * Ordered comp list (based on inst level). Note that as the 
+	 * lexicographic key (comp-name) & the keys used for 
+	 * comparision (inst-level) are different, only a limited number 
+	 * of DLL APIs can be used.
+	 */
+	NCS_DB_LINK_LIST comp_list;
 
-   NCS_DB_LINK_LIST  si_list; /* si list (si-name is the index) */
-   NCS_DB_LINK_LIST  siq;     /* susi msg buf (no index) maintains fifo order */
+	NCS_DB_LINK_LIST si_list;	/* si list (si-name is the index) */
+	NCS_DB_LINK_LIST siq;	/* susi msg buf (no index) maintains fifo order */
 
-   /* To have the knowledge in AvND if this su belongs to NCS_SG */
-   SaBoolT           is_ncs;
-   NCS_BOOL          su_is_external; /*indicates if this SU is external*/
+	/* To have the knowledge in AvND if this su belongs to NCS_SG */
+	SaBoolT is_ncs;
+	NCS_BOOL su_is_external;	/*indicates if this SU is external */
 
 } AVND_SU;
 
 #define AVND_SU_NULL ((AVND_SU *)0)
-
 
 /***************************************************************************
  ******************  M A C R O   D E F I N I T I O N S  ********************
@@ -208,7 +202,6 @@ typedef struct avnd_su_tag {
    if (curr) (are) = FALSE; \
 }
 
-
 /* macros for su oper state */
 #define m_AVND_SU_OPER_STATE_IS_ENABLED(x) \
                       ((NCS_OPER_STATE_ENABLE == (x)->oper))
@@ -249,7 +242,6 @@ typedef struct avnd_su_tag {
 } \
 }
 
-
 /* macros to manage the presence state */
 #define m_AVND_SU_PRES_STATE_SET(x, val)  ((x)->pres = val)
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATED(x) \
@@ -272,11 +264,10 @@ typedef struct avnd_su_tag {
 #define AVND_SU_FLAG_FAILOVER 0x00000200
 #define AVND_SU_FLAG_FAILED   0x00000400
 #define AVND_SU_FLAG_ALL_SI   0x00000800
-#define AVND_SU_ADMN_TERM     0x00001000 /* set; when a admn term req for an SU is received */
-#define AVND_SU_ASSIGN_PEND   0x00002000 /* set; when su si assign starts */
-#define AVND_SU_ALL_TERM      0x00004000 /* set; when all resp for term has come for all comps
-                                            used only in inst failed state*/
-
+#define AVND_SU_ADMN_TERM     0x00001000	/* set; when a admn term req for an SU is received */
+#define AVND_SU_ASSIGN_PEND   0x00002000	/* set; when su si assign starts */
+#define AVND_SU_ALL_TERM      0x00004000	/* set; when all resp for term has come for all comps
+						   used only in inst failed state */
 
 /* macros for checking the su states */
 #define m_AVND_SU_IS_RESTART(x)     (((x)->flag) & AVND_SU_FLAG_RESTART)
@@ -305,7 +296,6 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ASSIGN_PEND_RESET(x) (((x)->flag) &= ~AVND_SU_ASSIGN_PEND)
 #define m_AVND_SU_ALL_TERM_RESET(x)    (((x)->flag) &= ~AVND_SU_ALL_TERM)
 
-
 /* macros for checking the su params */
 #define m_AVND_SU_IS_SU_RESTART_DIS(x)    (((x)->flag) & AVND_SU_FLAG_RESTART_DIS)
 #define m_AVND_SU_IS_PREINSTANTIABLE(x)   (((x)->flag) & AVND_SU_FLAG_PREINSTANTIABLE)
@@ -331,7 +321,6 @@ typedef struct avnd_su_tag {
            ((x)->su_err_esc_level == AVND_ERR_ESC_LEVEL_2)
 
 #define m_AVND_SU_ERR_ESC_LEVEL_SET(x, val)  ((x)->su_err_esc_level = (val))
-
 
 /* macro to get the SU recrod from the SU database */
 #define m_AVND_SUDB_REC_GET(sudb, name_net) \
@@ -363,89 +352,57 @@ typedef struct avnd_su_tag {
 #define m_AVND_SUDB_REC_SI_REM(su, si) \
            ncs_db_link_list_delink(&(su).si_list, &(si).su_dll_node)
 
-
 /***************************************************************************
  ******  E X T E R N A L   F U N C T I O N   D E C L A R A T I O N S  ******
  ***************************************************************************/
 
 struct avnd_cb_tag;
 
-
-EXTERN_C uns32 avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, 
-                                    AVND_COMP *, AVND_SU_PRES_FSM_EV);
+EXTERN_C uns32 avnd_su_pres_fsm_run(struct avnd_cb_tag *, AVND_SU *, AVND_COMP *, AVND_SU_PRES_FSM_EV);
 
 EXTERN_C uns32 avnd_sudb_init(struct avnd_cb_tag *);
 EXTERN_C uns32 avnd_sudb_destroy(struct avnd_cb_tag *);
 EXTERN_C AVND_SU *avnd_sudb_rec_add(struct avnd_cb_tag *, AVND_SU_PARAM *, uns32 *);
 EXTERN_C uns32 avnd_sudb_rec_del(struct avnd_cb_tag *, SaNameT *);
 
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, 
-                                               AVND_SU *, 
-                                               AVND_SU_SI_PARAM *, uns32 *);
-EXTERN_C uns32 avnd_su_si_all_modify(struct avnd_cb_tag *, 
-                                     AVND_SU *, 
-                                     AVND_SU_SI_PARAM *);
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_add (struct avnd_cb_tag *cb,
-                                    AVND_SU  *su,
-                                    AVND_SU_SI_PARAM *param,
-                                    uns32            *rc);
-EXTERN_C uns32 avnd_su_si_rec_del (struct avnd_cb_tag *, 
-                                   SaNameT *, 
-                                   SaNameT *);
-EXTERN_C uns32 avnd_su_si_del (struct avnd_cb_tag *, 
-                              SaNameT *);
-EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_get (struct avnd_cb_tag *, 
-                                             SaNameT *, 
-                                             SaNameT *);
-EXTERN_C uns32 avnd_su_si_msg_prc(struct avnd_cb_tag *, AVND_SU *,
-                                  AVND_SU_SI_PARAM *);
+EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
+EXTERN_C uns32 avnd_su_si_all_modify(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
+EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_add(struct avnd_cb_tag *cb, AVND_SU *su, AVND_SU_SI_PARAM *param, uns32 *rc);
+EXTERN_C uns32 avnd_su_si_rec_del(struct avnd_cb_tag *, SaNameT *, SaNameT *);
+EXTERN_C uns32 avnd_su_si_del(struct avnd_cb_tag *, SaNameT *);
+EXTERN_C AVND_SU_SI_REC *avnd_su_si_rec_get(struct avnd_cb_tag *, SaNameT *, SaNameT *);
+EXTERN_C uns32 avnd_su_si_msg_prc(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
 
-EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_add (struct avnd_cb_tag *, AVND_SU *, 
-                                               AVND_SU_SI_PARAM *, uns32 *);
-EXTERN_C void avnd_su_siq_rec_del (struct avnd_cb_tag *, AVND_SU *, 
-                                   AVND_SU_SIQ_REC *);
-EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(struct avnd_cb_tag *, AVND_SU *,
-                                              AVND_SU_SI_PARAM *);
+EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_add(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *, uns32 *);
+EXTERN_C void avnd_su_siq_rec_del(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SIQ_REC *);
+EXTERN_C AVND_SU_SIQ_REC *avnd_su_siq_rec_buf(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_PARAM *);
 EXTERN_C uns32 avnd_su_siq_prc(struct avnd_cb_tag *, AVND_SU *);
 
-EXTERN_C uns32 avnd_su_si_assign (struct avnd_cb_tag *, AVND_SU *, 
-                                  AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_su_si_remove (struct avnd_cb_tag *, AVND_SU *, 
-                                  AVND_SU_SI_REC *);
-EXTERN_C uns32 avnd_su_si_oper_done (struct avnd_cb_tag *, AVND_SU *,
-                                     AVND_SU_SI_REC *);
+EXTERN_C uns32 avnd_su_si_assign(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+EXTERN_C uns32 avnd_su_si_remove(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
+EXTERN_C uns32 avnd_su_si_oper_done(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
 
 EXTERN_C uns32 avnd_su_si_unmark(struct avnd_cb_tag *, AVND_SU *);
-EXTERN_C uns32 avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *,
-                                     AVND_SU_SI_REC *);
+EXTERN_C uns32 avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI_REC *);
 EXTERN_C uns32 avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
 EXTERN_C uns32 avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-EXTERN_C uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                                  NCSCONTEXT* data);
-EXTERN_C uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL* param, 
-                              NCSMIB_VAR_INFO* var_info, NCSCONTEXT data,
-                              NCSCONTEXT buffer);
-EXTERN_C uns32 ncsssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                         NCSMIB_VAR_INFO* var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncsssutableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg, 
-                           NCSCONTEXT* data, uns32* next_inst_id,
-                           uns32 *next_inst_id_len);
-EXTERN_C uns32 ncsssutableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
-                             NCSMIB_SETROW_PARAM_VAL* params,
-                             struct ncsmib_obj_info* obj_info,
-                             NCS_BOOL testrow_flag);
+EXTERN_C uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
+EXTERN_C uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL *param,
+					NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
+EXTERN_C uns32 ncsssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
+EXTERN_C uns32 ncsssutableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
+				     NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
+EXTERN_C uns32 ncsssutableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
+				       NCSMIB_SETROW_PARAM_VAL *params,
+				       struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
 EXTERN_C uns32 ncsssutableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
 
-EXTERN_C void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL );
-EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add (struct avnd_cb_tag *cb,
-                                           AVND_SU             *su,
-                                           AVND_SU_SI_REC      *si_rec,
-                                           AVND_COMP_CSI_PARAM *param,
-                                           uns32               *rc);
-EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del (struct avnd_cb_tag  *cb,
-                              AVND_SU           *su,
-                              AVND_SU_SI_REC    *si_rec,
-                              AVND_COMP_CSI_REC *csi_rec);
+EXTERN_C void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL);
+EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
+							 AVND_SU *su,
+							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uns32 *rc);
+EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
+					    AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec);
 
 #endif

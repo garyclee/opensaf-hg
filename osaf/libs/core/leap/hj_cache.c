@@ -20,13 +20,11 @@
 
   MODULE NAME:      ncs_cache.c
 
-
   REVISION HISTORY:
 
   Date     Version  Name          Description
   -------- -------  ------------  --------------------------------------------
   07-10-97 1.00A    H&J (BAF)     Original
-
 
 ..............................................................................
 
@@ -39,18 +37,16 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
 *******************************************************************************
 */
 
-#include "ncs_opt.h"                /* Compile time options           */
-#include "gl_defs.h"                /* General definitions            */
+#include "ncs_opt.h"		/* Compile time options           */
+#include "gl_defs.h"		/* General definitions            */
 #include "ncs_osprm.h"
-#include "ncs_cache.h"              /* NCS Cache Facility header file */
+#include "ncs_cache.h"		/* NCS Cache Facility header file */
 #include "ncs_tmr.h"
 
 #if (NCS_CACHING == 1)
-
 
 /*****************************************************************************
 
@@ -78,58 +74,50 @@
 
 CACHE_CTXT
 ncs_create_cache(uns16 hash_size, uns16 num_entries, uns16 size_entry,
-    HASH_FUNC_PTR hash_rtn, CREATE_FUNC_PTR create_rtn,
-    DELETE_FUNC_PTR delete_rtn )
+		 HASH_FUNC_PTR hash_rtn, CREATE_FUNC_PTR create_rtn, DELETE_FUNC_PTR delete_rtn)
 {
-  CACHE     *cache;
-  uns16      i;
+	CACHE *cache;
+	uns16 i;
 
-  if ((cache = m_MMGR_ALLOC_CACHE) == CACHE_CTXT_NULL )
-    {
-      return CACHE_CTXT_NULL;
-    }
+	if ((cache = m_MMGR_ALLOC_CACHE) == CACHE_CTXT_NULL) {
+		return CACHE_CTXT_NULL;
+	}
 
-  if ((cache->hash_tbl = m_MMGR_ALLOC_HASH_TBL(hash_size)) == (CACHE_ENTRY *)0)
-    {
-      m_MMGR_FREE_CACHE(cache);
-      return CACHE_CTXT_NULL;
-    }
+	if ((cache->hash_tbl = m_MMGR_ALLOC_HASH_TBL(hash_size)) == (CACHE_ENTRY *)0) {
+		m_MMGR_FREE_CACHE(cache);
+		return CACHE_CTXT_NULL;
+	}
 
-  m_CREATE_CACHE_LOCK(cache);
-  m_LOCK_CACHE(cache);
+	m_CREATE_CACHE_LOCK(cache);
+	m_LOCK_CACHE(cache);
 
-  for (i = 0; i < hash_size; i++)
-    {
-      cache->hash_tbl[i].next = CACHE_ENTRY_NULL;
-      cache->hash_tbl[i].bucket_num = i;
-    }
+	for (i = 0; i < hash_size; i++) {
+		cache->hash_tbl[i].next = CACHE_ENTRY_NULL;
+		cache->hash_tbl[i].bucket_num = i;
+	}
 
-  cache->size_entry  = size_entry;
-  cache->num_entries = num_entries;
-  cache->hash_func   = hash_rtn;
-  cache->hash_size   = hash_size;
-  cache->create_func = create_rtn;
-  cache->delete_func = delete_rtn;
+	cache->size_entry = size_entry;
+	cache->num_entries = num_entries;
+	cache->hash_func = hash_rtn;
+	cache->hash_size = hash_size;
+	cache->create_func = create_rtn;
+	cache->delete_func = delete_rtn;
 
-  /* The free entries and the entry size must be filled in outside this */
-  /* routine.  It is not necessary to preallocate the cache entries.    */
+	/* The free entries and the entry size must be filled in outside this */
+	/* routine.  It is not necessary to preallocate the cache entries.    */
 
-  cache->free_entries = (CACHE_ENTRY *) 0;
+	cache->free_entries = (CACHE_ENTRY *)0;
 
-  /* Allow for the preallocation of cache entries */
+	/* Allow for the preallocation of cache entries */
 
-  if (m_NCS_CACHE_PREALLOC_ENTRIES(cache) == NCSCC_RC_SUCCESS)
-  {
-   m_UNLOCK_CACHE(cache);
-   return cache;
-  }
-  else
-  {
-   m_UNLOCK_CACHE(cache);
-   return CACHE_CTXT_NULL;
-  }
+	if (m_NCS_CACHE_PREALLOC_ENTRIES(cache) == NCSCC_RC_SUCCESS) {
+		m_UNLOCK_CACHE(cache);
+		return cache;
+	} else {
+		m_UNLOCK_CACHE(cache);
+		return CACHE_CTXT_NULL;
+	}
 }
-
 
 /*****************************************************************************
 
@@ -148,35 +136,31 @@ ncs_create_cache(uns16 hash_size, uns16 num_entries, uns16 size_entry,
 
 *****************************************************************************/
 
-unsigned int
-ncs_delete_cache( CACHE_CTXT cache )
+unsigned int ncs_delete_cache(CACHE_CTXT cache)
 {
-  CACHE_ENTRY *mom, *son;
-  uns16       i;
+	CACHE_ENTRY *mom, *son;
+	uns16 i;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  for (i = 0; i < cache->hash_size; i++)
-  {
-      mom =  &cache->hash_tbl[i];
-      while (mom->next != CACHE_ENTRY_NULL)
-   {
-  son       = mom->next;
-  mom->next = son->next;
-  cache->delete_func( son );
-   }
-  }
+	for (i = 0; i < cache->hash_size; i++) {
+		mom = &cache->hash_tbl[i];
+		while (mom->next != CACHE_ENTRY_NULL) {
+			son = mom->next;
+			mom->next = son->next;
+			cache->delete_func(son);
+		}
+	}
 
-  /* Allow for freeing of preallocated block */
-  m_NCS_CACHE_FREE_PREALLOC_ENTRIES(cache);
+	/* Allow for freeing of preallocated block */
+	m_NCS_CACHE_FREE_PREALLOC_ENTRIES(cache);
 
-  m_MMGR_FREE_HASH_TBL(cache->hash_tbl);
-  m_DELETE_CACHE_LOCK(cache);
-  m_MMGR_FREE_CACHE(cache);
+	m_MMGR_FREE_HASH_TBL(cache->hash_tbl);
+	m_DELETE_CACHE_LOCK(cache);
+	m_MMGR_FREE_CACHE(cache);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -197,26 +181,23 @@ ncs_delete_cache( CACHE_CTXT cache )
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_find_cache_entry( CACHE *cache, void *arg1, void *arg2, void *arg3,
-       void *arg4)
+CACHE_ENTRY *ncs_find_cache_entry(CACHE *cache, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-  CACHE_ENTRY   *mom;
-  CACHE_ENTRY   *ret;
+	CACHE_ENTRY *mom;
+	CACHE_ENTRY *ret;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
-    ret = mom->next;
-  else
- ret = CACHE_ENTRY_NULL;
+	if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
+		ret = mom->next;
+	else
+		ret = CACHE_ENTRY_NULL;
 
-  m_UNLOCK_CACHE(cache);
+	m_UNLOCK_CACHE(cache);
 
-  return(ret);
+	return (ret);
 
 }
-
 
 /*****************************************************************************
 
@@ -236,21 +217,19 @@ ncs_find_cache_entry( CACHE *cache, void *arg1, void *arg2, void *arg3,
 
 *****************************************************************************/
 
-unsigned int
-ncs_add_cache_entry( CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *new_entry)
+unsigned int ncs_add_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *new_entry)
 {
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  new_entry->next = mom->next;           /* insert new entry */
-  mom->next = new_entry;
+	new_entry->next = mom->next;	/* insert new entry */
+	mom->next = new_entry;
 
-  new_entry->bucket_num = mom->bucket_num;
+	new_entry->bucket_num = mom->bucket_num;
 
-  m_UNLOCK_CACHE(cache);
+	m_UNLOCK_CACHE(cache);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -275,54 +254,46 @@ ncs_add_cache_entry( CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *new_entry)
 
 *****************************************************************************/
 
-unsigned int
-ncs_move_cache_entry (CACHE *cache, CACHE_ENTRY *ce,
-                        void *arg1, void *arg2, void *arg3, void *arg4)
+unsigned int ncs_move_cache_entry(CACHE *cache, CACHE_ENTRY *ce, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-    CACHE_ENTRY *temp;
-    CACHE_ENTRY *mom;
+	CACHE_ENTRY *temp;
+	CACHE_ENTRY *mom;
 
-    m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-      /* Remove entry from it's current bucket */
-    if ((temp = cache->hash_tbl[ce->bucket_num].next) == ce)
-    {
-  cache->hash_tbl[ce->bucket_num].next = ce->next;
-    }
-    else
- {
-     while ( temp )
-  {
-   if ( temp->next == ce )
-    break;
-   temp = temp->next;
-  }
-      /* if temp is zero, we didn't find entry */
-  if ( temp )
-     temp->next = ce->next;
-  else
-  {
-     m_UNLOCK_CACHE(cache);
-                          return (unsigned int) m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-  }
-    }
+	/* Remove entry from it's current bucket */
+	if ((temp = cache->hash_tbl[ce->bucket_num].next) == ce) {
+		cache->hash_tbl[ce->bucket_num].next = ce->next;
+	} else {
+		while (temp) {
+			if (temp->next == ce)
+				break;
+			temp = temp->next;
+		}
+		/* if temp is zero, we didn't find entry */
+		if (temp)
+			temp->next = ce->next;
+		else {
+			m_UNLOCK_CACHE(cache);
+			return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+		}
+	}
 
-      /* Put entry into new bucket */
-      /*
-      ** Get the mom by doing a hash lookup.  If we find an entry the
-      ** entry we are trying to put in would be ambiguous, so return failure.
-      */
-    if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
-        return (unsigned int) m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	/* Put entry into new bucket */
+	/*
+	 ** Get the mom by doing a hash lookup.  If we find an entry the
+	 ** entry we are trying to put in would be ambiguous, so return failure.
+	 */
+	if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
+		return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-      /* Have insertion point in mom so add entry */
-    ncs_add_cache_entry ( cache, mom, ce );
+	/* Have insertion point in mom so add entry */
+	ncs_add_cache_entry(cache, mom, ce);
 
-    m_UNLOCK_CACHE(cache);
+	m_UNLOCK_CACHE(cache);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -345,32 +316,26 @@ ncs_move_cache_entry (CACHE *cache, CACHE_ENTRY *ce,
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_find_or_create_cache_entry( CACHE *cache, void *arg1, void *arg2,
-         void *arg3, void *arg4)
+CACHE_ENTRY *ncs_find_or_create_cache_entry(CACHE *cache, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-  CACHE_ENTRY   *mom;
-  CACHE_ENTRY *me;
-  CACHE_ENTRY   *ret;
+	CACHE_ENTRY *mom;
+	CACHE_ENTRY *me;
+	CACHE_ENTRY *ret;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
-    ret = mom->next;
-  else
-  {
-   if ( cache->create_func(cache, &me, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
-   {
-    ncs_add_cache_entry ( cache, mom, me );
-    ret = me;
-   }
-   else
-    ret = CACHE_ENTRY_NULL;
-  }
-  m_UNLOCK_CACHE(cache);
-  return ret;
+	if (cache->hash_func(cache, &mom, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS)
+		ret = mom->next;
+	else {
+		if (cache->create_func(cache, &me, arg1, arg2, arg3, arg4) == NCSCC_RC_SUCCESS) {
+			ncs_add_cache_entry(cache, mom, me);
+			ret = me;
+		} else
+			ret = CACHE_ENTRY_NULL;
+	}
+	m_UNLOCK_CACHE(cache);
+	return ret;
 }
-
 
 /*****************************************************************************
 
@@ -389,49 +354,40 @@ ncs_find_or_create_cache_entry( CACHE *cache, void *arg1, void *arg2,
     NCSCC_RC_FAILURE:          entry was not found
  NCSCC_RC_SUCCESS:          Done!
 
-
 *****************************************************************************/
 
-unsigned int
-ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
+unsigned int ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
 {
-  CACHE_ENTRY *temp;
+	CACHE_ENTRY *temp;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  if ((mom == (CACHE_ENTRY *)0) ||(mom == old_entry) ||
-   (mom->bucket_num != old_entry->bucket_num))
-  {
-      if ((temp = cache->hash_tbl[old_entry->bucket_num].next) == old_entry)
-  cache->hash_tbl[old_entry->bucket_num].next = old_entry->next;
-      else
-   {
-    while ( temp )
-    {
-   if ( temp->next == old_entry )
-    break;
-   temp = temp->next;
-    }
-      /* if temp is zero, we didn't find entry */
-    if ( temp )
-     temp->next = old_entry->next;
-    else
-    {
-     m_UNLOCK_CACHE(cache);
-                          return (unsigned int) m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-    }
-   }
-  }
-  else
-    mom->next = old_entry->next;           /* remove entry from cache */
+	if ((mom == (CACHE_ENTRY *)0) || (mom == old_entry) || (mom->bucket_num != old_entry->bucket_num)) {
+		if ((temp = cache->hash_tbl[old_entry->bucket_num].next) == old_entry)
+			cache->hash_tbl[old_entry->bucket_num].next = old_entry->next;
+		else {
+			while (temp) {
+				if (temp->next == old_entry)
+					break;
+				temp = temp->next;
+			}
+			/* if temp is zero, we didn't find entry */
+			if (temp)
+				temp->next = old_entry->next;
+			else {
+				m_UNLOCK_CACHE(cache);
+				return (unsigned int)m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+			}
+		}
+	} else
+		mom->next = old_entry->next;	/* remove entry from cache */
 
-  cache->delete_func ( old_entry );
+	cache->delete_func(old_entry);
 
-  m_UNLOCK_CACHE(cache);
+	m_UNLOCK_CACHE(cache);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -443,7 +399,6 @@ ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
   ARGUMENTS:
    cache:       Pointer to the Cache
 
-
   RETURNS:
    CACHE_ENTRY: Pointer to the first entry in the Cache
 
@@ -451,27 +406,24 @@ ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_get_first_cache_entry( CACHE * cache )
+CACHE_ENTRY *ncs_get_first_cache_entry(CACHE *cache)
 {
-  unsigned int i;
-  CACHE_ENTRY *ret;
+	unsigned int i;
+	CACHE_ENTRY *ret;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  ret = CACHE_ENTRY_NULL;
+	ret = CACHE_ENTRY_NULL;
 
-  for (i = 0; i < cache->hash_size; i++)
-  {
-      if (cache->hash_tbl[i].next != CACHE_ENTRY_NULL)
-   {
-  ret = cache->hash_tbl[i].next;
-  break;
-   }
-  }
-  m_UNLOCK_CACHE(cache);
+	for (i = 0; i < cache->hash_size; i++) {
+		if (cache->hash_tbl[i].next != CACHE_ENTRY_NULL) {
+			ret = cache->hash_tbl[i].next;
+			break;
+		}
+	}
+	m_UNLOCK_CACHE(cache);
 
-  return ret;
+	return ret;
 }
 
 /*****************************************************************************
@@ -486,7 +438,6 @@ ncs_get_first_cache_entry( CACHE * cache )
    cache:       Pointer to the Cache
    entry:       Last entry returned from the cache
 
-
   RETURNS:
    CACHE_ENTRY: Next entry in the cache or CACHE_ENTRY_NULL if
               that was the last entry in the cache.
@@ -495,40 +446,31 @@ ncs_get_first_cache_entry( CACHE * cache )
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_get_next_cache_entry( CACHE *cache, CACHE_ENTRY *entry )
+CACHE_ENTRY *ncs_get_next_cache_entry(CACHE *cache, CACHE_ENTRY *entry)
 {
-  unsigned int i;
-  CACHE_ENTRY *ret;
+	unsigned int i;
+	CACHE_ENTRY *ret;
 
-  m_LOCK_CACHE(cache);
+	m_LOCK_CACHE(cache);
 
-  if (entry->next == CACHE_ENTRY_NULL)
-  {
-   ret = CACHE_ENTRY_NULL;
+	if (entry->next == CACHE_ENTRY_NULL) {
+		ret = CACHE_ENTRY_NULL;
 
-      for (i = entry->bucket_num+1; i < cache->hash_size; i++)
-   {
-  if (cache->hash_tbl[i].next != CACHE_ENTRY_NULL)
-  {
-   ret = cache->hash_tbl[i].next;
-   break;
-  }
-   }
-   m_UNLOCK_CACHE(cache);
-      return ret;
-  }
-  else
-  {
-   ret = entry->next;
-   m_UNLOCK_CACHE(cache);
-   return ret;
-  }
+		for (i = entry->bucket_num + 1; i < cache->hash_size; i++) {
+			if (cache->hash_tbl[i].next != CACHE_ENTRY_NULL) {
+				ret = cache->hash_tbl[i].next;
+				break;
+			}
+		}
+		m_UNLOCK_CACHE(cache);
+		return ret;
+	} else {
+		ret = entry->next;
+		m_UNLOCK_CACHE(cache);
+		return ret;
+	}
 }
-
 #else
-
-
 
 /*****************************************************************************
 
@@ -545,20 +487,18 @@ ncs_get_next_cache_entry( CACHE *cache, CACHE_ENTRY *entry )
 
 CACHE_CTXT
 ncs_create_cache(uns16 hash_size, uns16 num_entries, uns16 size_entry,
-    HASH_FUNC_PTR hash_rtn, CREATE_FUNC_PTR create_rtn,
-    DELETE_FUNC_PTR delete_rtn )
+		 HASH_FUNC_PTR hash_rtn, CREATE_FUNC_PTR create_rtn, DELETE_FUNC_PTR delete_rtn)
 {
-USE(hash_size);
-USE(num_entries);
-USE(size_entry);
-USE(hash_rtn);
-USE(create_rtn);
-USE(delete_rtn);
+	USE(hash_size);
+	USE(num_entries);
+	USE(size_entry);
+	USE(hash_rtn);
+	USE(create_rtn);
+	USE(delete_rtn);
 
-return CACHE_CTXT_NULL;
+	return CACHE_CTXT_NULL;
 
 }
-
 
 /*****************************************************************************
 
@@ -566,14 +506,12 @@ return CACHE_CTXT_NULL;
 
 *****************************************************************************/
 
-unsigned int
-ncs_delete_cache( CACHE_CTXT cache )
+unsigned int ncs_delete_cache(CACHE_CTXT cache)
 {
-USE(cache);
+	USE(cache);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -581,19 +519,16 @@ USE(cache);
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_find_cache_entry( CACHE *cache, void *arg1, void *arg2, void *arg3,
-       void *arg4)
+CACHE_ENTRY *ncs_find_cache_entry(CACHE *cache, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-USE(cache);
-USE(arg1);
-USE(arg2);
-USE(arg3);
-USE(arg4);
+	USE(cache);
+	USE(arg1);
+	USE(arg2);
+	USE(arg3);
+	USE(arg4);
 
-  return CACHE_ENTRY_NULL;
+	return CACHE_ENTRY_NULL;
 }
-
 
 /*****************************************************************************
 
@@ -601,16 +536,14 @@ USE(arg4);
 
 *****************************************************************************/
 
-unsigned int
-ncs_add_cache_entry( CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *new_entry)
+unsigned int ncs_add_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *new_entry)
 {
-USE(cache);
-USE(mom);
-USE(new_entry);
+	USE(cache);
+	USE(mom);
+	USE(new_entry);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -618,20 +551,17 @@ USE(new_entry);
 
 *****************************************************************************/
 
-unsigned int
-ncs_move_cache_entry (CACHE *cache, CACHE_ENTRY *ce,
-                        void *arg1, void *arg2, void *arg3, void *arg4)
+unsigned int ncs_move_cache_entry(CACHE *cache, CACHE_ENTRY *ce, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-USE(cache);
-USE(ce);
-USE(arg1);
-USE(arg2);
-USE(arg3);
-USE(arg4);
+	USE(cache);
+	USE(ce);
+	USE(arg1);
+	USE(arg2);
+	USE(arg3);
+	USE(arg4);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -639,19 +569,16 @@ USE(arg4);
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_find_or_create_cache_entry( CACHE *cache, void *arg1, void *arg2,
-         void *arg3, void *arg4)
+CACHE_ENTRY *ncs_find_or_create_cache_entry(CACHE *cache, void *arg1, void *arg2, void *arg3, void *arg4)
 {
-USE(cache);
-USE(arg1);
-USE(arg2);
-USE(arg3);
-USE(arg4);
+	USE(cache);
+	USE(arg1);
+	USE(arg2);
+	USE(arg3);
+	USE(arg4);
 
-return CACHE_ENTRY_NULL;
+	return CACHE_ENTRY_NULL;
 }
-
 
 /*****************************************************************************
 
@@ -659,16 +586,14 @@ return CACHE_ENTRY_NULL;
 
 *****************************************************************************/
 
-unsigned int
-ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
+unsigned int ncs_delete_cache_entry(CACHE *cache, CACHE_ENTRY *mom, CACHE_ENTRY *old_entry)
 {
-USE(cache);
-USE(mom);
-USE(old_entry);
+	USE(cache);
+	USE(mom);
+	USE(old_entry);
 
-  return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
 
@@ -676,12 +601,11 @@ USE(old_entry);
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_get_first_cache_entry( CACHE * cache )
+CACHE_ENTRY *ncs_get_first_cache_entry(CACHE *cache)
 {
-USE(cache);
+	USE(cache);
 
-  return CACHE_ENTRY_NULL;
+	return CACHE_ENTRY_NULL;
 }
 
 /*****************************************************************************
@@ -690,13 +614,12 @@ USE(cache);
 
 *****************************************************************************/
 
-CACHE_ENTRY *
-ncs_get_next_cache_entry( CACHE *cache, CACHE_ENTRY *entry )
+CACHE_ENTRY *ncs_get_next_cache_entry(CACHE *cache, CACHE_ENTRY *entry)
 {
-USE(cache);
-USE(entry);
+	USE(cache);
+	USE(entry);
 
-  return CACHE_ENTRY_NULL;
+	return CACHE_ENTRY_NULL;
 }
 
 #endif

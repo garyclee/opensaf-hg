@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -54,60 +51,55 @@
  * Create an instance of a MAS service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsmas_create
-  {
-  MDS_HDL         i_mds_hdl;       /* MDS hdl for 'installing'          */
-  NCS_VRID        i_vrid;          /* Virtual Rtr; same in MAS, OAC     */
-  SYSF_MBX*       i_mbx;           /* Mail box to receive MAB messages  */
-  MAB_LM_CB       i_lm_cbfnc;      /* layer mgmt callback function ptr  */
-  uns8            i_hm_poolid;     /* Pool id for Handle Manager        */
-  uns32           o_mas_hdl;       /* Handle registered with HM         */
+typedef struct ncsmas_create {
+	MDS_HDL i_mds_hdl;	/* MDS hdl for 'installing'          */
+	NCS_VRID i_vrid;	/* Virtual Rtr; same in MAS, OAC     */
+	SYSF_MBX *i_mbx;	/* Mail box to receive MAB messages  */
+	MAB_LM_CB i_lm_cbfnc;	/* layer mgmt callback function ptr  */
+	uns8 i_hm_poolid;	/* Pool id for Handle Manager        */
+	uns32 o_mas_hdl;	/* Handle registered with HM         */
 
-  } NCSMAS_CREATE;
+} NCSMAS_CREATE;
 
 /***************************************************************************
  * Destroy an instance of a MAS service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsmas_destroy
-  {
-  uns32           i_mas_hdl;       /* Handle to MAS instance            */
+typedef struct ncsmas_destroy {
+	uns32 i_mas_hdl;	/* Handle to MAS instance            */
 
-  } NCSMAS_DESTROY;
+} NCSMAS_DESTROY;
 
 /***************************************************************************
  * The operations set that a MAS instance supports
  ***************************************************************************/
 
-typedef enum ncsmas_lm_op
-  {
-  NCSMAS_LM_OP_CREATE = 1,
-  NCSMAS_LM_OP_DESTROY
-  } NCSMAS_OP;
+typedef enum ncsmas_lm_op {
+	NCSMAS_LM_OP_CREATE = 1,
+	NCSMAS_LM_OP_DESTROY
+} NCSMAS_OP;
 
 /***************************************************************************
  * The MAS API single entry point for all services
  ***************************************************************************/
 
-typedef struct ncsmas_arg
-  {
-  NCSMAS_OP           i_op;            /* Operation; CREATE,DESTROY,GET,SET */
+typedef struct ncsmas_arg {
+	NCSMAS_OP i_op;		/* Operation; CREATE,DESTROY,GET,SET */
 
-  union 
-    {
-    NCSMAS_CREATE     create;
-    NCSMAS_DESTROY    destroy;
-    } info;
+	union {
+		NCSMAS_CREATE create;
+		NCSMAS_DESTROY destroy;
+	} info;
 
-  } NCSMAS_LM_ARG;
+} NCSMAS_LM_ARG;
 
 /***************************************************************************
  * Per Virtual Router Instance of Layer Management
  ***************************************************************************/
-EXTERN_C uns32 mas_evt_cb(MAB_LM_EVT* evt);
+EXTERN_C uns32 mas_evt_cb(MAB_LM_EVT *evt);
 
-EXTERN_C MABMAS_API uns32 ncsmas_lm    ( NCSMAS_LM_ARG* arg );
+EXTERN_C MABMAS_API uns32 ncsmas_lm(NCSMAS_LM_ARG *arg);
 
-EXTERN_C MABMAS_API uns32 maslib_request     ( NCS_LIB_REQ_INFO* req );
+EXTERN_C MABMAS_API uns32 maslib_request(NCS_LIB_REQ_INFO *req);
 
-#endif /* MAS_API_H */
+#endif   /* MAS_API_H */

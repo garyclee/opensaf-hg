@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -52,7 +49,7 @@ struct ncsxlim_if_attached_tunn_info_tag;
 
 #define m_OSSVC_MMGR_FREE_NCSIPAE(p)   m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, \
                                                  NCS_SERVICE_ID_COMMON, \
-                                                 0) 
+                                                 0)
 
 #define m_OSSVC_MMGR_ALLOC_NCSXIR (struct ncsxlim_if_rec*)m_NCS_MEM_ALLOC(sizeof(struct ncsxlim_if_rec), \
                                                  NCS_MEM_REGION_PERSISTENT, \
@@ -97,11 +94,7 @@ struct ncscc_call_data;
 struct ncscc_conn_id;
 struct ncs_sar_ctrl_info_tag;
 
-
-
 #define m_NATIVE_PORT_NUM(x)    (unsigned int)((x)->native_ifcb)
-
-
 
 /****************************************************************************
  ****************************************************************************
@@ -122,7 +115,6 @@ struct ncs_sar_ctrl_info_tag;
 #define m_NCS_CACHE_PREALLOC_ENTRIES(c)               NCSCC_RC_SUCCESS
 #define m_NCS_CACHE_FREE_PREALLOC_ENTRIES(c)
 
-
 #if (NCS_CACHING == 1)
 /* Generic Cache Macros */
 
@@ -142,9 +134,7 @@ struct ncs_sar_ctrl_info_tag;
 
 #define m_MMGR_FREE_CACHE_ENTRY(p)  m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT \
                                                   NCS_SERVICE_ID_OS_SVCS, 8)
-
 #endif
-
 
 #define m_MMGR_ALLOC_NCS_STREE_ENTRY \
       (NCS_STREE_ENTRY*)m_NCS_MEM_ALLOC(sizeof(NCS_STREE_ENTRY), \
@@ -152,7 +142,6 @@ struct ncs_sar_ctrl_info_tag;
                                       NCS_SERVICE_ID_OS_SVCS, 7)
 #define m_MMGR_FREE_NCS_STREE_ENTRY(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT, \
                                                     NCS_SERVICE_ID_OS_SVCS, 7)
-
 
 /****************************************************************************
  ****************************************************************************
@@ -177,7 +166,6 @@ struct ncs_sar_ctrl_info_tag;
 
 #define m_MMGR_FREE_NCS_QLINK(p) m_NCS_MEM_FREE(p, NCS_MEM_REGION_PERSISTENT,\
                                               NCS_SERVICE_ID_OS_SVCS, 9)
-
 
 /* Encode/Decode(EDU) Malloc-Free macros */
 #define m_MMGR_ALLOC_EDP_ENTRY  m_NCS_MEM_ALLOC(sizeof(EDP_ENTRY),\
@@ -282,19 +270,17 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_NCSFLOAT32 m_NCS_MEM_ALLOC(sizeof(ncsfloat32),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-
 /* for the SNMP-subagent trap varbind data structure */
 #define m_MMGR_NCS_TRAP_VARBIND_ALLOC\
     (NCS_TRAP_VARBIND*)m_NCS_MEM_ALLOC(sizeof(NCS_TRAP_VARBIND), \
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_OS_SVCS, \
                                          0)
-    
+
 #define m_MMGR_NCS_TRAP_VARBIND_FREE(p) m_NCS_MEM_FREE(p, \
                                          NCS_MEM_REGION_PERSISTENT,\
                                          NCS_SERVICE_ID_OS_SVCS, \
                                          0)
-
 
 /*
  * m_LEAP_FAILURE
@@ -314,12 +300,8 @@ struct ncs_sar_ctrl_info_tag;
 #define NCSFAIL_MEM_REC_CORRUPTED 6
 #define NCSFAIL_OWNER_CONFLICT    7
 
-EXTERN_C uns32 leap_failure(uns32 l, char* f, uns32 e, uns32 ret);
+EXTERN_C uns32 leap_failure(uns32 l, char *f, uns32 e, uns32 ret);
 
 #define m_LEAP_FAILURE(e,r) leap_failure(__LINE__,__FILE__,(uns32)e,(uns32)r)
 
-
-
 #endif
-
-

@@ -18,9 +18,7 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: rde_rda.h
-
 
 ..............................................................................
 
@@ -30,14 +28,11 @@
 
 ..............................................................................
 
-
-
 ******************************************************************************
 */
 
 #ifndef RDE_RDA_H
 #define RDE_RDA_H
-
 
 #include "rde.h"
 #include "rde_cb.h"
@@ -55,14 +50,9 @@
 **
 */
 
-typedef enum
-{
-   RDE_RDA_SOCK_BUFFER_SIZE = 3200
-
-}  RDE_RDA_SOCK_LIMITS;
-
-
-
+typedef enum {
+	RDE_RDA_SOCK_BUFFER_SIZE = 3200
+} RDE_RDA_SOCK_LIMITS;
 
 /*****************************************************************************\
  *                                                                             *
@@ -76,31 +66,27 @@ typedef enum
  * Forward declarations
  */
 
-typedef struct
-{
+typedef struct {
 
-    int        fd;
-    NCS_BOOL   is_async;
+	int fd;
+	NCS_BOOL is_async;
 
-}RDE_RDA_CLIENT;
-
+} RDE_RDA_CLIENT;
 
 /*
  *  Socket Management related information
  */
 
-typedef struct sockaddr_un rde_rda_sock_addr ;
+typedef struct sockaddr_un rde_rda_sock_addr;
 
-typedef struct 
-{
-   struct sockaddr_un  sock_address;
-   int                 fd;             /* File descriptor          */
-   int                 flags;          /* Flags specified for open */
-   int                 client_count;
-   RDE_RDA_CLIENT      clients[256];
+typedef struct {
+	struct sockaddr_un sock_address;
+	int fd;			/* File descriptor          */
+	int flags;		/* Flags specified for open */
+	int client_count;
+	RDE_RDA_CLIENT clients[256];
 
-}RDE_RDA_CB;
-
+} RDE_RDA_CB;
 
 /***************************************************************\
  *                                                               *
@@ -108,12 +94,11 @@ typedef struct
  *                                                               *
 \***************************************************************/
 
-const char *rde_rda_sock_name   (RDE_RDA_CB  * rde_rda_cb);
-uns32 rde_rda_open              (const char *sockname, RDE_RDA_CB  * rde_rda_cb);
-uns32 rde_rda_close             (RDE_RDA_CB  * rde_rda_cb);
-uns32 rde_rda_process_msg       (RDE_RDA_CB  * rde_rda_cb);
-uns32 rde_rda_client_process_msg(RDE_RDA_CB  * rde_rda_cb, int index);
-uns32 rde_rda_send_role         (int role);
+const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb);
+uns32 rde_rda_open(const char *sockname, RDE_RDA_CB *rde_rda_cb);
+uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb);
+uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb);
+uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index);
+uns32 rde_rda_send_role(int role);
 
-#endif      /* RDE_RDA_H */
-
+#endif   /* RDE_RDA_H */

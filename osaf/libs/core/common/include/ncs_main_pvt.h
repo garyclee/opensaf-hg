@@ -20,7 +20,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:  This file declares the main entry point into NCS. 
@@ -47,17 +46,13 @@
 
 #define NCS_DEF_CONFIG_FILEPATH  OSAF_SYSCONFDIR
 
-typedef struct ncs_sys_params
-{
-   NCS_PHY_SLOT_ID slot_id;
-   NCS_CHASSIS_ID shelf_id;
-   NCS_NODE_ID node_id;
-   uns32 cluster_id;   
-   uns32 pcon_id;
+typedef struct ncs_sys_params {
+	NCS_PHY_SLOT_ID slot_id;
+	NCS_CHASSIS_ID shelf_id;
+	NCS_NODE_ID node_id;
+	uns32 cluster_id;
+	uns32 pcon_id;
 } NCS_SYS_PARAMS;
-
-
-
 
 /***********************************************************************\
    
@@ -65,8 +60,6 @@ typedef struct ncs_sys_params
 
 \***********************************************************************/
 int ncspvt_load_config_n_startup(int argc, char *argv[]);
-
-
 
 /***********************************************************************\
    
@@ -98,19 +91,14 @@ uns32 ncspvt_svcs_shutdown(int argc, char *argv[]);
 ****     Utility APIs defined in  ncs_main_pub.c
 ****
 \***********************************************************************/
-char ncs_util_get_char_option  (int argc, 
-                       char *argv[], 
-                       char *arg_prefix);
+char ncs_util_get_char_option(int argc, char *argv[], char *arg_prefix);
 
-char *ncs_util_search_argv_list(int  argc, 
-                       char *argv[], 
-                       char *arg_prefix);
+char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix);
 
 uns32 file_get_word(FILE **fp, char *o_chword);
 uns32 file_get_string(FILE **fp, char *o_chword);
 EXTERN_C char *gl_pargv[NCS_MAIN_MAX_INPUT];
 EXTERN_C uns32 gl_pargc;
-
 
 /***********************************************************************\
    m_NCS_NID_NOTIFY: This function notifies NID about the occurance of 
@@ -126,4 +114,3 @@ uns32 ncs_nid_notify(uns16 status);
 #include "nid_api.h"
 
 #endif
-

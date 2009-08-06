@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,10 +31,9 @@
  * Module Inclusion Control...
  */
 
-
 #ifndef MBCSV_DL_API_H
 #define MBCSV_DL_API_H
 
-EXTERN_C MBCSVDLL_API uns32 mbcsv_lib_req (NCS_LIB_REQ_INFO *req_info);
+EXTERN_C MBCSVDLL_API uns32 mbcsv_lib_req(NCS_LIB_REQ_INFO *req_info);
 
-#endif /* MBCSV_DL_API_H */
+#endif   /* MBCSV_DL_API_H */

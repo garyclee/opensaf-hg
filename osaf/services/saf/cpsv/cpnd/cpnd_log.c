@@ -15,8 +15,6 @@
  *
  */
 
-
-
 #include "cpnd.h"
 
 /*****************************************************************************
@@ -28,10 +26,7 @@
       cpnd_flx_log_reg
       cpnd_flx_log_unreg
 
-
 ******************************************************************************/
-
-
 
 /****************************************************************************
  * Name          : cpnd_flx_log_reg
@@ -46,20 +41,20 @@
  *
  * Notes         : None.
  *****************************************************************************/
-void cpnd_flx_log_reg (void)
+void cpnd_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPND;
-   /* fill version no. */
-   reg.info.bind_svc.version = CPSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "CPSv");
- 
-   ncs_dtsv_su_req(&reg);
-   return;
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CPND;
+	/* fill version no. */
+	reg.info.bind_svc.version = CPSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "CPSv");
+
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -75,15 +70,13 @@ void cpnd_flx_log_reg (void)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-cpnd_flx_log_dereg (void)
+void cpnd_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPND;
-   ncs_dtsv_su_req(&reg);
-   return;
-}
+	NCS_DTSV_RQ reg;
 
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_CPND;
+	ncs_dtsv_su_req(&reg);
+	return;
+}

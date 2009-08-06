@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  sim.c                                                       *
@@ -48,53 +47,50 @@ static uns32 sim_process_mbx(SYSF_MBX *mbx);
 
 uns32 hcd_sim()
 {
-   SIM_CB  *sim_cb = 0;
-   SYSF_MBX *mbx;
-   uns32    rc = NCSCC_RC_SUCCESS;
-   NCS_SEL_OBJ_SET     all_sel_obj, temp_all_sel_obj;
-   NCS_SEL_OBJ         mbx_fd;
+	SIM_CB *sim_cb = 0;
+	SYSF_MBX *mbx;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	NCS_SEL_OBJ_SET all_sel_obj, temp_all_sel_obj;
+	NCS_SEL_OBJ mbx_fd;
 
-   /* retrieve SIM CB */
-   sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
-   if(!sim_cb)
-      return NCSCC_RC_FAILURE;
+	/* retrieve SIM CB */
+	sim_cb = (SIM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, gl_sim_hdl);
+	if (!sim_cb)
+		return NCSCC_RC_FAILURE;
 
-   /* Get the selection object from the MBX */
-   mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&sim_cb->mbx);
-   mbx = &sim_cb->mbx;
+	/* Get the selection object from the MBX */
+	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&sim_cb->mbx);
+	mbx = &sim_cb->mbx;
 
-   /* Give back the handle */
-   ncshm_give_hdl(gl_sim_hdl);
+	/* Give back the handle */
+	ncshm_give_hdl(gl_sim_hdl);
 
-   /* Set the fd for internal events */
-   m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-   m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
+	/* Set the fd for internal events */
+	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
 
    /** SIM thread main processing loop, receives request from HPL.
     **/
-   for(;;)
-   {
-      temp_all_sel_obj = all_sel_obj;
+	for (;;) {
+		temp_all_sel_obj = all_sel_obj;
 
-      /* pend on select */
-      if(m_NCS_SEL_OBJ_SELECT(mbx_fd, &temp_all_sel_obj,NULL,NULL,NULL) < 0)
-      {
-         rc = NCSCC_RC_FAILURE;
-         printf("hcd_sim: error in select\n");
-         m_NCS_TASK_SLEEP(2000);
-         continue;
-      }
-      /* process the SIM Mail box */
-      if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &temp_all_sel_obj))
-         /* now got the IPC mail box event */
-         sim_process_mbx(mbx);
-      else
-         m_LOG_HISV_DEBUG("BUG:  SELECT returns with empty obj-set\n");
+		/* pend on select */
+		if (m_NCS_SEL_OBJ_SELECT(mbx_fd, &temp_all_sel_obj, NULL, NULL, NULL) < 0) {
+			rc = NCSCC_RC_FAILURE;
+			printf("hcd_sim: error in select\n");
+			m_NCS_TASK_SLEEP(2000);
+			continue;
+		}
+		/* process the SIM Mail box */
+		if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &temp_all_sel_obj))
+			/* now got the IPC mail box event */
+			sim_process_mbx(mbx);
+		else
+			m_LOG_HISV_DEBUG("BUG:  SELECT returns with empty obj-set\n");
 
-   }
-   return rc;
+	}
+	return rc;
 }
-
 
 /****************************************************************************
  * Name          : sim_process_mbx
@@ -109,26 +105,20 @@ uns32 hcd_sim()
  * Notes         : None.
  *****************************************************************************/
 
-static uns32
-sim_process_mbx(SYSF_MBX *mbx)
+static uns32 sim_process_mbx(SYSF_MBX *mbx)
 {
-   SIM_EVT *evt = NULL;
+	SIM_EVT *evt = NULL;
 
-   /* receive all the messages delivered on mailbox and process them */
-   while(NULL != (evt = (SIM_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(mbx,evt)))
-   {
-      if (evt != NULL)
-      {
-         /* process the received message */
-         /* m_LOG_HISV_DEBUG("Received Message\n"); */
-         sim_process_evt(evt);
-      }
-      else
-      {
-         /* message null */
-         m_LOG_HISV_DEBUG("received NULL message\n");
-      }
-   }
-   return NCSCC_RC_SUCCESS;
+	/* receive all the messages delivered on mailbox and process them */
+	while (NULL != (evt = (SIM_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
+		if (evt != NULL) {
+			/* process the received message */
+			/* m_LOG_HISV_DEBUG("Received Message\n"); */
+			sim_process_evt(evt);
+		} else {
+			/* message null */
+			m_LOG_HISV_DEBUG("received NULL message\n");
+		}
+	}
+	return NCSCC_RC_SUCCESS;
 }
-

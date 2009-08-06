@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: The master include for all DTS and user *.C files.
@@ -42,13 +40,11 @@
 
 #include "gl_defs.h"
 
-
 /* Get target's suite of header files...*/
 
 #include "t_suite.h"
 
 #include "dts_tgt.h"
-
 
 /* From /base/common/inc */
 
@@ -125,4 +121,3 @@
 #include "dts_ckpt_edu.h"
 
 #endif
-

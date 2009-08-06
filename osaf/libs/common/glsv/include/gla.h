@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,7 +29,6 @@
 
 #ifndef GLA_H
 #define GLA_H
-
 
 /* Common Headers */
 #include "ncsgl_defs.h"
@@ -49,11 +46,10 @@
 /* DTS header file */
 #include "dta_papi.h"
 
-
 /* GLA Porting Include Files */
 #include "glsv_defs.h"
 #include "glsv_lck.h"
-#include "gla_mem.h" 
+#include "gla_mem.h"
 
 #include "gla_dl_api.h"
 #include "gla_callbk.h"
@@ -63,5 +59,4 @@
 #include "gla_mds.h"
 #include "gla_log.h"
 
-#endif /* !GLA_H */
-
+#endif   /* !GLA_H */

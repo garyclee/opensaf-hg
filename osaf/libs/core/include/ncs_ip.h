@@ -20,8 +20,6 @@
 
   MODULE NAME: NCS_IP.H
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -57,7 +55,7 @@
 extern "C" {
 #endif
 
-#define IP_ALL_ROUTERS_ADDR     0xE0000002 /* 224.0.0.2  rfc1700 pg56 */
+#define IP_ALL_ROUTERS_ADDR     0xE0000002	/* 224.0.0.2  rfc1700 pg56 */
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -65,10 +63,8 @@ extern "C" {
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
-
-struct ncs_ip_indication_info_tag;
-struct ncs_ip_request_info_tag;
+	struct ncs_ip_indication_info_tag;
+	struct ncs_ip_request_info_tag;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
@@ -92,7 +88,6 @@ struct ncs_ip_request_info_tag;
                         primitive. 
   (4) NCS_IP_INDICATION_INFO     This structure defines the information passed 
                         across the interface, for each inication type.
-
 
   (5) NCS_IP_REQUESTS            This enum defines the requests that an 
                         IP User can make.
@@ -118,16 +113,10 @@ struct ncs_ip_request_info_tag;
                NCS_IP_REQUEST        ip_data_request,
                NCS_IP_REQUEST        ip_ctrl_request);
 
-
   By invoking this API, the target system binds the LMS's components to the
   specific IP protocol stack (by functions and by opaque handle).  
 
-
-
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
-
-
 
 /*****************************************************************************
 
@@ -135,7 +124,6 @@ struct ncs_ip_request_info_tag;
 
   DESCRIPTION:          This enum defines the types of IP Indications from the
                   IP protocol stack to the IP user.
-
 
   VALUES:
    NCS_IP_CTRL_INDICATION_CONNECT:       The specified IP connection has become 
@@ -154,35 +142,26 @@ struct ncs_ip_request_info_tag;
    NCS_IP_DATA_INDICATION_RECV_DATA: The provided data has been received
    over this connection.
 
-
   NOTES:
-
 
 *****************************************************************************/
 
-typedef enum
-{
+	typedef enum {
 
-   NCS_IP_INDICATION_MIN,
+		NCS_IP_INDICATION_MIN,
 
-   NCS_IP_CTRL_INDICATION_MIN         = NCS_IP_INDICATION_MIN,
-   NCS_IP_CTRL_INDICATION_CONNECT     = NCS_IP_CTRL_INDICATION_MIN,
-   NCS_IP_CTRL_INDICATION_DISCONNECT,
-   NCS_IP_CTRL_INDICATION_ERROR,
-   NCS_IP_CTRL_INDICATION_MAX         = NCS_IP_CTRL_INDICATION_ERROR,
+		NCS_IP_CTRL_INDICATION_MIN = NCS_IP_INDICATION_MIN,
+		NCS_IP_CTRL_INDICATION_CONNECT = NCS_IP_CTRL_INDICATION_MIN,
+		NCS_IP_CTRL_INDICATION_DISCONNECT,
+		NCS_IP_CTRL_INDICATION_ERROR,
+		NCS_IP_CTRL_INDICATION_MAX = NCS_IP_CTRL_INDICATION_ERROR,
 
-   NCS_IP_DATA_INDICATION_MIN,
-   NCS_IP_DATA_INDICATION_RECV_DATA   = NCS_IP_DATA_INDICATION_MIN,
-   NCS_IP_DATA_INDICATION_MAX         = NCS_IP_DATA_INDICATION_RECV_DATA,
+		NCS_IP_DATA_INDICATION_MIN,
+		NCS_IP_DATA_INDICATION_RECV_DATA = NCS_IP_DATA_INDICATION_MIN,
+		NCS_IP_DATA_INDICATION_MAX = NCS_IP_DATA_INDICATION_RECV_DATA,
 
-   NCS_IP_INDICATION_MAX              = NCS_IP_DATA_INDICATION_MAX
-
-} NCS_IP_INDICATIONS;
-
-
-
-
-
+		NCS_IP_INDICATION_MAX = NCS_IP_DATA_INDICATION_MAX
+	} NCS_IP_INDICATIONS;
 
 /*****************************************************************************
 
@@ -190,7 +169,6 @@ typedef enum
 
   DESCRIPTION:          This enum defines the type of requests that the IP 
                   User can make of the IP protocol stack.
-
 
   VALUES:
    NCS_IP_CTRL_REQUEST_BIND:         Bind client software to the IP 
@@ -221,42 +199,35 @@ typedef enum
    NCS_IP_DATA_REQUEST_SEND_DATA:        Send UDP, TCP or Raw IP data over an
    existing connection.
 
-
   NOTES:
-
 
 *****************************************************************************/
 
-typedef enum
-{
+	typedef enum {
 
-   NCS_IP_REQUEST_MIN,
+		NCS_IP_REQUEST_MIN,
 
-   NCS_IP_CTRL_REQUEST_MIN       = NCS_IP_REQUEST_MIN,
-   NCS_IP_CTRL_REQUEST_BIND      = NCS_IP_CTRL_REQUEST_MIN,
-   NCS_IP_CTRL_REQUEST_UNBIND,
-   NCS_IPV6_CTRL_REQUEST_BIND,
-   NCS_IPV6_CTRL_REQUEST_UNBIND,
-   NCS_IP_CTRL_REQUEST_OPEN,
-   NCS_IP_CTRL_REQUEST_OPEN_ESTABLISH,
-   NCS_IP_CTRL_REQUEST_POPEN,
-   NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH,
-   NCS_IP_CTRL_REQUEST_MULTICAST_JOIN,
-   NCS_IP_CTRL_REQUEST_MULTICAST_LEAVE,
-   NCS_IP_CTRL_REQUEST_SET_IPTTL,
-   NCS_IP_CTRL_REQUEST_SET_IPTOS,
-   NCS_IP_CTRL_REQUEST_CLOSE,
-   NCS_IP_CTRL_REQUEST_MAX       = NCS_IP_CTRL_REQUEST_CLOSE,
+		NCS_IP_CTRL_REQUEST_MIN = NCS_IP_REQUEST_MIN,
+		NCS_IP_CTRL_REQUEST_BIND = NCS_IP_CTRL_REQUEST_MIN,
+		NCS_IP_CTRL_REQUEST_UNBIND,
+		NCS_IPV6_CTRL_REQUEST_BIND,
+		NCS_IPV6_CTRL_REQUEST_UNBIND,
+		NCS_IP_CTRL_REQUEST_OPEN,
+		NCS_IP_CTRL_REQUEST_OPEN_ESTABLISH,
+		NCS_IP_CTRL_REQUEST_POPEN,
+		NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH,
+		NCS_IP_CTRL_REQUEST_MULTICAST_JOIN,
+		NCS_IP_CTRL_REQUEST_MULTICAST_LEAVE,
+		NCS_IP_CTRL_REQUEST_SET_IPTTL,
+		NCS_IP_CTRL_REQUEST_SET_IPTOS,
+		NCS_IP_CTRL_REQUEST_CLOSE,
+		NCS_IP_CTRL_REQUEST_MAX = NCS_IP_CTRL_REQUEST_CLOSE,
 
-   NCS_IP_DATA_REQUEST_MIN,
-   NCS_IP_DATA_REQUEST_SEND_DATA = NCS_IP_DATA_REQUEST_MIN,
-   NCS_IP_DATA_REQUEST_PSEND_DATA,
-   NCS_IP_REQUEST_MAX            = NCS_IP_DATA_REQUEST_PSEND_DATA
-} NCS_IP_REQUESTS;
-
-
-
-
+		NCS_IP_DATA_REQUEST_MIN,
+		NCS_IP_DATA_REQUEST_SEND_DATA = NCS_IP_DATA_REQUEST_MIN,
+		NCS_IP_DATA_REQUEST_PSEND_DATA,
+		NCS_IP_REQUEST_MAX = NCS_IP_DATA_REQUEST_PSEND_DATA
+	} NCS_IP_REQUESTS;
 
 /*****************************************************************************
 
@@ -274,21 +245,16 @@ typedef enum
    NCS_IP_TYPE_TCP:      This connection will use the TCP protocol.
    NCS_IP_TYPE_RAW:      This connection will use another (specified IP protocol).
 
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_TYPE_UDP,
-   NCS_IP_TYPE_TCP,
-   NCS_IP_TYPE_RAW,
-   NCS_IP_TYPE_MAX = NCS_IP_TYPE_RAW
-} NCS_IP_TYPE;
-
-
-
+	typedef enum {
+		NCS_IP_TYPE_UDP,
+		NCS_IP_TYPE_TCP,
+		NCS_IP_TYPE_RAW,
+		NCS_IP_TYPE_MAX = NCS_IP_TYPE_RAW
+	} NCS_IP_TYPE;
 
 /*****************************************************************************
 
@@ -302,27 +268,22 @@ typedef enum
 
    The other Value Names correspond in name & value to rfc791.
 
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_TOS_PRECEDENCE_DEFAULT = 0xFF,
-   NCS_IP_TOS_PRECEDENCE_ROUTINE = 0x00,
-   NCS_IP_TOS_PRECEDENCE_PRIORITY = 0x20,
-   NCS_IP_TOS_PRECEDENCE_IMMEDIATE = 0x40,
-   NCS_IP_TOS_PRECEDENCE_FLASH = 0x60,
-   NCS_IP_TOS_PRECEDENCE_FLASHOVERRIDE = 0x80,
-   NCS_IP_TOS_PRECEDENCE_CRITICECP = 0xA0,
-   NCS_IP_TOS_PRECEDENCE_INTERNETWORK_CONTROL = 0xC0,
-   NCS_IP_TOS_PRECEDENCE_NETWORK_CONTROL = 0xE0,
-   NCS_IP_TOS_PRECEDENCE_SENTINEL
-}  NCS_IP_TOS_PRECEDENCE;
-
-
-
+	typedef enum {
+		NCS_IP_TOS_PRECEDENCE_DEFAULT = 0xFF,
+		NCS_IP_TOS_PRECEDENCE_ROUTINE = 0x00,
+		NCS_IP_TOS_PRECEDENCE_PRIORITY = 0x20,
+		NCS_IP_TOS_PRECEDENCE_IMMEDIATE = 0x40,
+		NCS_IP_TOS_PRECEDENCE_FLASH = 0x60,
+		NCS_IP_TOS_PRECEDENCE_FLASHOVERRIDE = 0x80,
+		NCS_IP_TOS_PRECEDENCE_CRITICECP = 0xA0,
+		NCS_IP_TOS_PRECEDENCE_INTERNETWORK_CONTROL = 0xC0,
+		NCS_IP_TOS_PRECEDENCE_NETWORK_CONTROL = 0xE0,
+		NCS_IP_TOS_PRECEDENCE_SENTINEL
+	} NCS_IP_TOS_PRECEDENCE;
 
 /*****************************************************************************
 
@@ -336,22 +297,16 @@ typedef enum
 
    The other Value Names correspond in name & value to rfc791.
 
-
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_TOS_DELAY_DEFAULT = 255,
-   NCS_IP_TOS_DELAY_NORMAL  = 0x00,
-   NCS_IP_TOS_DELAY_LOW = 0x10,
-   NCS_IP_TOS_DELAY_SENTINEL
-}  NCS_IP_TOS_DELAY;
-
-
-
+	typedef enum {
+		NCS_IP_TOS_DELAY_DEFAULT = 255,
+		NCS_IP_TOS_DELAY_NORMAL = 0x00,
+		NCS_IP_TOS_DELAY_LOW = 0x10,
+		NCS_IP_TOS_DELAY_SENTINEL
+	} NCS_IP_TOS_DELAY;
 
 /*****************************************************************************
 
@@ -365,21 +320,15 @@ typedef enum
 
    The other Value Names correspond in name & value to rfc791.
 
-
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_TOS_THROUGHPUT_DEFAULT = 255,
-   NCS_IP_TOS_THROUGHPUT_NORMAL  = 0,
-   NCS_IP_TOS_THROUGHPUT_HIGH = 0x08
-}  NCS_IP_TOS_THROUGHPUT;
-
-
-
+	typedef enum {
+		NCS_IP_TOS_THROUGHPUT_DEFAULT = 255,
+		NCS_IP_TOS_THROUGHPUT_NORMAL = 0,
+		NCS_IP_TOS_THROUGHPUT_HIGH = 0x08
+	} NCS_IP_TOS_THROUGHPUT;
 
 /*****************************************************************************
 
@@ -393,21 +342,15 @@ typedef enum
 
    The other Value Names correspond in name & value to rfc791.
 
-
-
   NOTES:
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_TOS_RELIABILITY_DEFAULT = 255,
-   NCS_IP_TOS_RELIABILITY_NORMAL  = 0,
-   NCS_IP_TOS_RELIABILITY_HIGH = 0x04
-}  NCS_IP_TOS_RELIABILITY;
-
-
-
+	typedef enum {
+		NCS_IP_TOS_RELIABILITY_DEFAULT = 255,
+		NCS_IP_TOS_RELIABILITY_NORMAL = 0,
+		NCS_IP_TOS_RELIABILITY_HIGH = 0x04
+	} NCS_IP_TOS_RELIABILITY;
 
 /*****************************************************************************
 
@@ -447,21 +390,19 @@ typedef enum
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_ERROR_NO_ERROR = NCSSOCK_ERROR_TYPES_NO_ERROR,
-   NCS_IP_ERROR_IP_DOWN = NCSSOCK_ERROR_TYPES_IP_DOWN,
-   NCS_IP_ERROR_NO_MEM = NCSSOCK_ERROR_TYPES_NO_MEM,
-   NCS_IP_ERROR_FRAME_TOO_LARGE = NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
-   NCS_IP_ERROR_CONN_UNSUPPORTED = NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED,
-   NCS_IP_ERROR_CONN_DOWN = NCSSOCK_ERROR_TYPES_CONN_DOWN,
-   NCS_IP_ERROR_CONN_UNKNOWN = NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
-   NCS_IP_ERROR_UNKNOWN = NCSSOCK_ERROR_TYPES_UNKNOWN,
-   NCS_IP_ERROR_SND_GIVEUP = NCSSOCK_ERROR_TYPES_SND_GIVEUP,
-   NCS_IP_ERROR_WOULDBLOCK = NCSSOCK_ERROR_TYPES_WOULDBLOCK,
-   NCS_IP_ERROR_MAX = NCS_IP_ERROR_WOULDBLOCK
-} NCS_IP_ERROR;
-
+	typedef enum {
+		NCS_IP_ERROR_NO_ERROR = NCSSOCK_ERROR_TYPES_NO_ERROR,
+		NCS_IP_ERROR_IP_DOWN = NCSSOCK_ERROR_TYPES_IP_DOWN,
+		NCS_IP_ERROR_NO_MEM = NCSSOCK_ERROR_TYPES_NO_MEM,
+		NCS_IP_ERROR_FRAME_TOO_LARGE = NCSSOCK_ERROR_TYPES_FRAME_TOO_LARGE,
+		NCS_IP_ERROR_CONN_UNSUPPORTED = NCSSOCK_ERROR_TYPES_CONN_UNSUPPORTED,
+		NCS_IP_ERROR_CONN_DOWN = NCSSOCK_ERROR_TYPES_CONN_DOWN,
+		NCS_IP_ERROR_CONN_UNKNOWN = NCSSOCK_ERROR_TYPES_CONN_UNKNOWN,
+		NCS_IP_ERROR_UNKNOWN = NCSSOCK_ERROR_TYPES_UNKNOWN,
+		NCS_IP_ERROR_SND_GIVEUP = NCSSOCK_ERROR_TYPES_SND_GIVEUP,
+		NCS_IP_ERROR_WOULDBLOCK = NCSSOCK_ERROR_TYPES_WOULDBLOCK,
+		NCS_IP_ERROR_MAX = NCS_IP_ERROR_WOULDBLOCK
+	} NCS_IP_ERROR;
 
 /*****************************************************************************
 
@@ -477,11 +418,10 @@ typedef enum
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_SEND_POLICY_BLOCK,
-   NCS_IP_SEND_POLICY_QUEUE
-}  NCS_IP_SEND_POLICY;
+	typedef enum {
+		NCS_IP_SEND_POLICY_BLOCK,
+		NCS_IP_SEND_POLICY_QUEUE
+	} NCS_IP_SEND_POLICY;
 
 /*****************************************************************************
 
@@ -498,12 +438,11 @@ typedef enum
 
 *****************************************************************************/
 
-typedef enum
-{
-   NCS_IP_SEND_PRIORITY_HI,
-   NCS_IP_SEND_PRIORITY_LOW,
-   NCS_IP_SEND_PRIORITY_DROP
-}  NCS_IP_SEND_PRIORITY;
+	typedef enum {
+		NCS_IP_SEND_PRIORITY_HI,
+		NCS_IP_SEND_PRIORITY_LOW,
+		NCS_IP_SEND_PRIORITY_DROP
+	} NCS_IP_SEND_PRIORITY;
 
 /*****************************************************************************
 
@@ -521,11 +460,10 @@ typedef enum
 
 *****************************************************************************/
 
-typedef enum
-{
-            NCS_USRBUF_DATA = 0,
-            NCS_USRFRAME_DATA = 0x7f /* some magic number */
-} NCS_USRDATA_FORMAT;
+	typedef enum {
+		NCS_USRBUF_DATA = 0,
+		NCS_USRFRAME_DATA = 0x7f	/* some magic number */
+	} NCS_USRDATA_FORMAT;
 
 /*****************************************************************************
  * STRUCTURE NAME:     NCS_IP_LAYER_HANDLE
@@ -545,13 +483,10 @@ typedef enum
  *   if the actual handle value is a pointer.
  *
  ****************************************************************************/
-typedef struct ncs_ip_layer_handle_tag
-{
-   unsigned int len;     /* actual size of handle.  '0' means none. */
-   uns8         data[SYSF_IP_MAX_LAYER_HANDLE_LEN];
-} NCS_IP_LAYER_HANDLE;
-
-
+	typedef struct ncs_ip_layer_handle_tag {
+		unsigned int len;	/* actual size of handle.  '0' means none. */
+		uns8 data[SYSF_IP_MAX_LAYER_HANDLE_LEN];
+	} NCS_IP_LAYER_HANDLE;
 
 /*****************************************************************************
  * STRUCTURE NAME:     NCS_IP_CLIENT_HANDLE
@@ -571,12 +506,10 @@ typedef struct ncs_ip_layer_handle_tag
  *   if the actual handle value is a pointer.
  *
  ****************************************************************************/
-typedef struct ncs_ip_client_handle_tag
-{
-   unsigned int len;     /* actual size of handle.  '0' means none. */
-   uns8         data[SYSF_IP_MAX_CLIENT_HANDLE_LEN];
-} NCS_IP_CLIENT_HANDLE;
-
+	typedef struct ncs_ip_client_handle_tag {
+		unsigned int len;	/* actual size of handle.  '0' means none. */
+		uns8 data[SYSF_IP_MAX_CLIENT_HANDLE_LEN];
+	} NCS_IP_CLIENT_HANDLE;
 
 /*****************************************************************************
 
@@ -598,11 +531,7 @@ typedef struct ncs_ip_client_handle_tag
 
 *****************************************************************************/
 
-typedef uns32 (*NCS_IP_INDICATION) (struct ncs_ip_indication_info_tag *ip_indication);
-
-
-
-
+	typedef uns32 (*NCS_IP_INDICATION) (struct ncs_ip_indication_info_tag * ip_indication);
 
 /*****************************************************************************
 
@@ -624,21 +553,16 @@ typedef uns32 (*NCS_IP_INDICATION) (struct ncs_ip_indication_info_tag *ip_indica
 
 *****************************************************************************/
 
-typedef uns32 (*NCS_IP_REQUEST) (struct ncs_ip_request_info_tag *ip_request);
-
-
+	typedef uns32 (*NCS_IP_REQUEST) (struct ncs_ip_request_info_tag * ip_request);
 
 /* this is the strucutre which hold the packet information which we need to 
    get */
-typedef struct ncs_ip_pkt_info_tag
-{
-   NCS_IP_ADDR src_addr;
-   NCS_IP_ADDR dst_addr;
-   uns32      if_index;
-   uns32      TTL_value;
-} NCS_IP_PKT_INFO;
-
-
+	typedef struct ncs_ip_pkt_info_tag {
+		NCS_IP_ADDR src_addr;
+		NCS_IP_ADDR dst_addr;
+		uns32 if_index;
+		uns32 TTL_value;
+	} NCS_IP_PKT_INFO;
 
 /*****************************************************************************
 
@@ -656,149 +580,138 @@ typedef struct ncs_ip_pkt_info_tag
   Fields prefixed with "i_" are inputs to the request.
   Fields prefixed with "o_" are output from successfully completed requests.
 
-
 *****************************************************************************/
 
-typedef struct ncs_ip_indication_info_tag
-{
+	typedef struct ncs_ip_indication_info_tag {
 
-   /* One of the NCS_IP_INDICATIONS enum specify the operation type. */
-   NCS_IP_INDICATIONS       i_indication;
+		/* One of the NCS_IP_INDICATIONS enum specify the operation type. */
+		NCS_IP_INDICATIONS i_indication;
 
-   /* IP protocol stack's opaque handle for the connection */
-   NCSCONTEXT               i_ip_handle;
+		/* IP protocol stack's opaque handle for the connection */
+		NCSCONTEXT i_ip_handle;
 
-   /* The LMS handle */
-   NCSCONTEXT               i_user_handle;
+		/* The LMS handle */
+		NCSCONTEXT i_user_handle;
 
-   /* IP User's opaque handle for the connection */
-   NCSCONTEXT               i_user_connection_handle;
-   NCS_IP_ADDR_TYPE         i_addr_family;
+		/* IP User's opaque handle for the connection */
+		NCSCONTEXT i_user_connection_handle;
+		NCS_IP_ADDR_TYPE i_addr_family;
 
-   /* This is a union of each indication type. */
-   union
-   {
-      /* This is a union of each control plane indication type */
-      union
-      {
+		/* This is a union of each indication type. */
+		union {
+			/* This is a union of each control plane indication type */
+			union {
 
-         /* This IP Connection is now Active */
-         struct
-         {
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR      i_local_addr;
+				/* This IP Connection is now Active */
+				struct {
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-            /* The IP User's UDP/TCP Port */
-            uns16          i_local_port;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR      i_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR   i_ipv6_local_addr;
-            NCS_IPV6_ADDR   i_ipv6_remote_addr;
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
 #endif
 
-            /* The destination's port */
-            uns16          i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-         } connect;
+				} connect;
 
+				/* This IP Connection is shutdown and disabled */
+				struct {
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-         /* This IP Connection is shutdown and disabled */
-         struct
-         {
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR      i_local_addr;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The IP User's UDP/TCP Port */
-            uns16          i_local_port;
-
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR      i_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR    i_ipv6_local_addr;
-            NCS_IPV6_ADDR    i_ipv6_remote_addr;
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
 #endif
 
-            /* The destination's port */
-            uns16          i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-         } disconnect;
+				} disconnect;
 
-         struct
-         {
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR      i_local_addr;
+				struct {
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-            /* The IP User's UDP/TCP Port */
-            uns16          i_local_port;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR      i_remote_addr;
-#if (NCS_IPV6 == 1)            
-            NCS_IPV6_ADDR    i_ipv6_local_addr;
-            NCS_IPV6_ADDR    i_ipv6_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
+#if (NCS_IPV6 == 1)
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
 #endif
 
-            /* The destination's port */
-            uns16          i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* The error code being reported, one of NCS_IP_ERROR enum */
-            NCS_IP_ERROR       i_error;
+					/* The error code being reported, one of NCS_IP_ERROR enum */
+					NCS_IP_ERROR i_error;
 
-         } error;
+				} error;
 
-      } ctrl;
+			} ctrl;
 
-      /* This is a union of each data plane indication type */
-      union
-      {
-         struct
-         {
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR      i_local_addr;
+			/* This is a union of each data plane indication type */
+			union {
+				struct {
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-            /* The IP User's UDP/TCP Port */
-            uns16          i_local_port;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR      i_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR    i_ipv6_local_addr;
-            NCS_IPV6_ADDR    i_ipv6_remote_addr;
-#endif            
-            NCS_IP_PKT_INFO  pkt_info;
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
+#endif
+					NCS_IP_PKT_INFO pkt_info;
 
-            /* The destination's port */
-            uns16          i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32          i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* The received data frame, as a pointer to a USRBUF chain */
-            USRBUF            *i_usrbuf;
+					/* The received data frame, as a pointer to a USRBUF chain */
+					USRBUF *i_usrbuf;
 
-            /* The received data frame, as a pointer to a USRFRAME */
-            USRFRAME          *i_usrframe;
+					/* The received data frame, as a pointer to a USRFRAME */
+					USRFRAME *i_usrframe;
 
-            /* The TTL value received from this packet */
-            uns8              o_ttl_value;
+					/* The TTL value received from this packet */
+					uns8 o_ttl_value;
 
-         } recv_data;
-      } data;
-   } info;
+				} recv_data;
+			} data;
+		} info;
 
-} NCS_IP_INDICATION_INFO;
-
+	} NCS_IP_INDICATION_INFO;
 
 /*****************************************************************************
 
@@ -817,323 +730,304 @@ typedef struct ncs_ip_indication_info_tag
 
   NOTES:
 
-
 *****************************************************************************/
 
-typedef struct ncs_ip_request_info_tag
-{
+	typedef struct ncs_ip_request_info_tag {
 
-   /* One of the NCS_IP_REQUESTS enum specify the operation type. */
-   NCS_IP_REQUESTS                i_request;
+		/* One of the NCS_IP_REQUESTS enum specify the operation type. */
+		NCS_IP_REQUESTS i_request;
 
-   NCSCONTEXT                     i_user_handle;
+		NCSCONTEXT i_user_handle;
 
-   /* Extended error information  */
-   NCS_IP_ERROR                   o_xerror;
+		/* Extended error information  */
+		NCS_IP_ERROR o_xerror;
 
-   /* address family */
-   NCS_IP_ADDR_TYPE               addr_family_type;
+		/* address family */
+		NCS_IP_ADDR_TYPE addr_family_type;
 
-   /* This is a union of each request type. */
-   union
-   {
+		/* This is a union of each request type. */
+		union {
 
-      /* This is a union of each control plane request type */
-      union
-      {
-         /* Bind IP Client to IP protocol stack. */
-         struct
-         {
-            /* Handle to IP protocol stack instance. */
-            NCS_IP_LAYER_HANDLE      i_ip_layer_handle;
+			/* This is a union of each control plane request type */
+			union {
+				/* Bind IP Client to IP protocol stack. */
+				struct {
+					/* Handle to IP protocol stack instance. */
+					NCS_IP_LAYER_HANDLE i_ip_layer_handle;
 
-            /* Return IP stack handle for this IP Client. */
-            NCS_IP_CLIENT_HANDLE     o_ip_client_handle;
+					/* Return IP stack handle for this IP Client. */
+					NCS_IP_CLIENT_HANDLE o_ip_client_handle;
 
-         } bind;
+				} bind;
 
-         /* Unbind IP Client to IP protocol stack. */
-         struct
-         {
-            /* Handle to IP protocol stack instance. */
-            NCS_IP_LAYER_HANDLE      i_ip_layer_handle;
+				/* Unbind IP Client to IP protocol stack. */
+				struct {
+					/* Handle to IP protocol stack instance. */
+					NCS_IP_LAYER_HANDLE i_ip_layer_handle;
 
-            /* IP stack handle for this IP Client (returned by bind request) */
-            NCS_IP_CLIENT_HANDLE     i_ip_client_handle;
-         } unbind;
+					/* IP stack handle for this IP Client (returned by bind request) */
+					NCS_IP_CLIENT_HANDLE i_ip_client_handle;
+				} unbind;
 
-         struct
-         {
-            /* IP stack handle for this IP Client (returned by bind request) */
-            NCS_IP_CLIENT_HANDLE   i_ip_client_handle;
+				struct {
+					/* IP stack handle for this IP Client (returned by bind request) */
+					NCS_IP_CLIENT_HANDLE i_ip_client_handle;
 
-            /* Type of IP connection, one of NCS_IP_TYPE enum. */
-            NCS_IP_TYPE            i_ip_type;
+					/* Type of IP connection, one of NCS_IP_TYPE enum. */
+					NCS_IP_TYPE i_ip_type;
 
-            /* IP Protocol, if NCS_IP_TYPE_RAW. */
-            uns8                  i_ip_protocol;
+					/* IP Protocol, if NCS_IP_TYPE_RAW. */
+					uns8 i_ip_protocol;
 
-            /* IP User's opaque handle for this connection */
-            NCSCONTEXT             i_user_connection_handle;
+					/* IP User's opaque handle for this connection */
+					NCSCONTEXT i_user_connection_handle;
 
-            /* If 1, interface is unnumbered */
-            NCS_BOOL               i_unnumbered;
+					/* If 1, interface is unnumbered */
+					NCS_BOOL i_unnumbered;
 
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR          i_local_addr;
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-            /* The IP User's UDP/TCP Port */
-            uns16                 i_local_port;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR          i_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR          i_ipv6_local_addr;
-            NCS_IPV6_ADDR          i_ipv6_remote_addr;
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
 #endif
 
-            /* The destination's port */
-            uns16                 i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32                 i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* Client Data indication handler, matching NCS_IP_INDICATION prototype */
-            NCS_IP_INDICATION      i_ip_data_indication;
+					/* Client Data indication handler, matching NCS_IP_INDICATION prototype */
+					NCS_IP_INDICATION i_ip_data_indication;
 
-            /* Client Control indication handler, matching NCS_IP_INDICATION prototype */
-            NCS_IP_INDICATION      i_ip_ctrl_indication;
+					/* Client Control indication handler, matching NCS_IP_INDICATION prototype */
+					NCS_IP_INDICATION i_ip_ctrl_indication;
 
-            /* If 1, use IP_HDRINCL option, build complete IP header on sends - Raw Only */
-            uns8                  i_ip_hdrincl;
+					/* If 1, use IP_HDRINCL option, build complete IP header on sends - Raw Only */
+					uns8 i_ip_hdrincl;
 
-            /* If 1, use BIND to Device option - Raw Only */
-            NCS_BOOL               i_bindtodevice;
+					/* If 1, use BIND to Device option - Raw Only */
+					NCS_BOOL i_bindtodevice;
 
-            /* If 1, enable receive with RouterAlert option - Raw Only */
-            NCS_BOOL               i_router_alert;
+					/* If 1, enable receive with RouterAlert option - Raw Only */
+					NCS_BOOL i_router_alert;
 
-            /* If 1, enable receving destination IP, ifindex and hop limit*/
-            NCS_BOOL               i_enb_pkt_info;
+					/* If 1, enable receving destination IP, ifindex and hop limit */
+					NCS_BOOL i_enb_pkt_info;
 
-            /* If 1, enable to open Link Local sockets */
-            NCS_BOOL               i_link_loc_sock;
+					/* If 1, enable to open Link Local sockets */
+					NCS_BOOL i_link_loc_sock;
 
-            /* If 1, enable to process Broadcast pkts */
-            NCS_BOOL               i_broadcast;
+					/* If 1, enable to process Broadcast pkts */
+					NCS_BOOL i_broadcast;
 
-            /* If 1, enable to process multicast pkts */
-            NCS_BOOL               i_multicast;
+					/* If 1, enable to process multicast pkts */
+					NCS_BOOL i_multicast;
 
-            /* If TRUE, enable loopback on this socket */
-            NCS_BOOL               i_mcast_loc_lbk;
+					/* If TRUE, enable loopback on this socket */
+					NCS_BOOL i_mcast_loc_lbk;
 
-      /* The send policy for the new connection.
-         Used for NCS_IP_CTRL_REQUEST_POPEN and
-         NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH requests
-      */
-      NCS_IP_SEND_POLICY     i_send_policy;
+					/* The send policy for the new connection.
+					   Used for NCS_IP_CTRL_REQUEST_POPEN and
+					   NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH requests
+					 */
+					NCS_IP_SEND_POLICY i_send_policy;
 
-            /* The expected format (usrbuf or usrframe) for receive data */
-            NCS_USRDATA_FORMAT             i_rcv_usrdata_format;
+					/* The expected format (usrbuf or usrframe) for receive data */
+					NCS_USRDATA_FORMAT i_rcv_usrdata_format;
 
-            /* Returned IP protocol stack's opaque handle for this IP connection */
-            NCSCONTEXT             o_ip_handle;
+					/* Returned IP protocol stack's opaque handle for this IP connection */
+					NCSCONTEXT o_ip_handle;
 
-         } open;
+				} open;
 
-         struct
-         {
-            /* IP stack handle for this IP Client (returned by bind request) */
-            NCS_IP_CLIENT_HANDLE  i_ip_client_handle;
+				struct {
+					/* IP stack handle for this IP Client (returned by bind request) */
+					NCS_IP_CLIENT_HANDLE i_ip_client_handle;
 
-            /* Type of IP connection, one of NCS_IP_TYPE enum. */
-            NCS_IP_TYPE           i_ip_type;
+					/* Type of IP connection, one of NCS_IP_TYPE enum. */
+					NCS_IP_TYPE i_ip_type;
 
-            /* IP User's opaque handle for this connection */
-            NCSCONTEXT            i_user_connection_handle;
+					/* IP User's opaque handle for this connection */
+					NCSCONTEXT i_user_connection_handle;
 
-            /* If 1, interface is unnumbered */
-            NCS_BOOL               i_unnumbered;
+					/* If 1, interface is unnumbered */
+					NCS_BOOL i_unnumbered;
 
-            /* The IP User's IP Address */
-            NCS_IPV4_ADDR         i_local_addr;
+					/* The IP User's IP Address */
+					NCS_IPV4_ADDR i_local_addr;
 
-            /* The IP User's UDP/TCP Port */
-            uns16                i_local_port;
+					/* The IP User's UDP/TCP Port */
+					uns16 i_local_port;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR         i_remote_addr;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR         i_ipv6_local_addr;
-            NCS_IPV6_ADDR         i_ipv6_remote_addr;
+					NCS_IPV6_ADDR i_ipv6_local_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
 #endif
 
-            /* The destination's port */
-            uns16                i_remote_port;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* Interface index to use for connection. */
-            uns32                i_if_index;
+					/* Interface index to use for connection. */
+					uns32 i_if_index;
 
-            /* Client Data indication handler, matching NCS_IP_INDICATION prototype */
-            NCS_IP_INDICATION     i_ip_data_indication;
+					/* Client Data indication handler, matching NCS_IP_INDICATION prototype */
+					NCS_IP_INDICATION i_ip_data_indication;
 
-            /* Client Control indication handler, matching NCS_IP_INDICATION prototype */
-            NCS_IP_INDICATION     i_ip_ctrl_indication;
+					/* Client Control indication handler, matching NCS_IP_INDICATION prototype */
+					NCS_IP_INDICATION i_ip_ctrl_indication;
 
-      /* The send policy for the new connection.
-         Used for NCS_IP_CTRL_REQUEST_POPEN and
-         NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH requests
-      */
-      NCS_IP_SEND_POLICY     i_send_policy;
+					/* The send policy for the new connection.
+					   Used for NCS_IP_CTRL_REQUEST_POPEN and
+					   NCS_IP_CTRL_REQUEST_POPEN_ESTABLISH requests
+					 */
+					NCS_IP_SEND_POLICY i_send_policy;
 
-            /* Returned IP protocol stack's opaque handle for this IP connection */
-            NCSCONTEXT            o_ip_handle;
+					/* Returned IP protocol stack's opaque handle for this IP connection */
+					NCSCONTEXT o_ip_handle;
 
-         } open_establish;
+				} open_establish;
 
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-         } close;
+				} close;
 
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-            /* The Multicast Group Address */
-            NCS_IPV4_ADDR         i_multicast_addr;
+					/* The Multicast Group Address */
+					NCS_IPV4_ADDR i_multicast_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR         i_ipv6_multicast_addr;
+					NCS_IPV6_ADDR i_ipv6_multicast_addr;
 #endif
 
-         } multicastjoin;
+				} multicastjoin;
 
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-            /* The Multicast Group Address */
-            NCS_IPV4_ADDR         i_multicast_addr;
+					/* The Multicast Group Address */
+					NCS_IPV4_ADDR i_multicast_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR         i_ipv6_multicast_addr;
+					NCS_IPV6_ADDR i_ipv6_multicast_addr;
 #endif
 
-         } multicastleave;
+				} multicastleave;
 
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-            /* The TTL value to be set in all subsequent packets */
-            uns16                i_ttl_value;
+					/* The TTL value to be set in all subsequent packets */
+					uns16 i_ttl_value;
 
-            /* is it the ttl for multicast sends or unicast ? */
-            NCS_BOOL              i_multicast; /* TRUE is multicast ttl */
+					/* is it the ttl for multicast sends or unicast ? */
+					NCS_BOOL i_multicast;	/* TRUE is multicast ttl */
 
-         } setipttl;
+				} setipttl;
 
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-            /* The setting for the precedence bits within the IP Hdr TOS field */
-            NCS_IP_TOS_PRECEDENCE i_precedence;
+					/* The setting for the precedence bits within the IP Hdr TOS field */
+					NCS_IP_TOS_PRECEDENCE i_precedence;
 
-            /* The setting for the delay bit within the IP Hdr TOS field */
-            NCS_IP_TOS_DELAY      i_delay;
+					/* The setting for the delay bit within the IP Hdr TOS field */
+					NCS_IP_TOS_DELAY i_delay;
 
-            /* The setting for the throughput bit within the IP Hdr TOS field */
-            NCS_IP_TOS_THROUGHPUT i_throughput;
+					/* The setting for the throughput bit within the IP Hdr TOS field */
+					NCS_IP_TOS_THROUGHPUT i_throughput;
 
-            /* The setting for the reliability bit within the IP Hdr TOS field */
-            NCS_IP_TOS_RELIABILITY i_reliability;
+					/* The setting for the reliability bit within the IP Hdr TOS field */
+					NCS_IP_TOS_RELIABILITY i_reliability;
 
-         } setiptos;
+				} setiptos;
 
-      } ctrl;
+			} ctrl;
 
+			/* This is a union of each data plane request type */
+			union {
+				struct {
+					/* IP protocol stack's opaque handle for this IP connection 
+					 * as returned by open request 
+					 */
+					NCSCONTEXT i_ip_handle;
 
-      /* This is a union of each data plane request type */
-      union
-      {
-         struct
-         {
-            /* IP protocol stack's opaque handle for this IP connection 
-             * as returned by open request 
-             */
-            NCSCONTEXT            i_ip_handle;
+					/* The destination's IP Address */
+					NCS_IPV4_ADDR i_remote_addr;
 
-            /* The destination's IP Address */
-            NCS_IPV4_ADDR         i_remote_addr;
+					/* The destination's port */
+					uns16 i_remote_port;
 
-            /* The destination's port */
-            uns16                i_remote_port;
+					NCS_USRDATA_FORMAT i_usrdata_format;
 
-            NCS_USRDATA_FORMAT    i_usrdata_format;
+					/* The frame to send, as a pointer to a USRBUF chain. */
+					USRBUF *i_usrbuf;
 
-            /* The frame to send, as a pointer to a USRBUF chain. */
-            USRBUF              *i_usrbuf;
+					/* The frame to send, as a pointer to USRFRAME. */
+					USRFRAME *i_usrframe;
 
-            /* The frame to send, as a pointer to USRFRAME. */
-        USRFRAME        *i_usrframe;
+					/* The TTL value to be set in this packet */
+					uns16 i_ttl_value;
 
-            /* The TTL value to be set in this packet */
-            uns16                i_ttl_value;
+					/* For RAW IP:  Should packet be sent with Router Alert? */
+					NCS_BOOL i_router_alert;
 
-            /* For RAW IP:  Should packet be sent with Router Alert? */
-            NCS_BOOL              i_router_alert;
+					/* Enable to process broadcast pkts */
+					NCS_BOOL i_broadcast;
 
-            /* Enable to process broadcast pkts */
-            NCS_BOOL              i_broadcast;
+					/* The IP source address in HDRINCL option */
+					NCS_IPV4_ADDR i_ip_src_address;
 
-            /* The IP source address in HDRINCL option */
-            NCS_IPV4_ADDR         i_ip_src_address;
-
-            /* The IP Next Hop Address - from routing lookup */
-            NCS_IPV4_ADDR         i_next_hop_ip_addr;
+					/* The IP Next Hop Address - from routing lookup */
+					NCS_IPV4_ADDR i_next_hop_ip_addr;
 #if (NCS_IPV6 == 1)
-            NCS_IPV6_ADDR         i_ipv6_src_addr;
-            NCS_IPV6_ADDR         i_ipv6_remote_addr;
-            NCS_IPV6_ADDR         i_ip_v6_next_hop_ip_addr;
+					NCS_IPV6_ADDR i_ipv6_src_addr;
+					NCS_IPV6_ADDR i_ipv6_remote_addr;
+					NCS_IPV6_ADDR i_ip_v6_next_hop_ip_addr;
 #endif
 
-            /* Outgoing if_index - from routing lookup. */
-            uns32                i_if_index;
+					/* Outgoing if_index - from routing lookup. */
+					uns32 i_if_index;
 
-           /* The send priority.
-              Used for the NCS_IP_DATA_REQUEST_PSEND_DATA request.
-            */
-            NCS_IP_SEND_PRIORITY  i_send_priority;
+					/* The send priority.
+					   Used for the NCS_IP_DATA_REQUEST_PSEND_DATA request.
+					 */
+					NCS_IP_SEND_PRIORITY i_send_priority;
 
+				} send_data;
+			} data;
 
-         } send_data;
-      } data;
+		} info;
 
-   } info;
-
-} NCS_IP_REQUEST_INFO;
-
+	} NCS_IP_REQUEST_INFO;
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

@@ -20,7 +20,6 @@
 
   MODULE NAME:  NCS_ENDEC.H
 
-
   REVISION HISTORY:
 
   Date     Version  Name          Description

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +30,6 @@
 #ifndef AVD_DEF_H
 #define AVD_DEF_H
 
-
 #define NCS_AVD_NAME_STR "AVD"
 #define NCS_AVD_PRIORITY 0
 #define NCS_AVD_STCK_SIZE NCS_STACKSIZE_HUGE
@@ -41,5 +38,4 @@
 #define NCS_AVD_HB_PRIORITY 0
 #define NCS_AVD_HB_STCK_SIZE NCS_STACKSIZE_HUGE
 
-
-#endif /* !AVD_DEF_H */
+#endif   /* !AVD_DEF_H */

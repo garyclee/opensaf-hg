@@ -18,21 +18,17 @@
 /*****************************************************************************
 ..............................................................................
 
-
   REVISION HISTORY:
-
 
 ..............................................................................
 
   DESCRIPTION:
-
 
 ******************************************************************************
 */
 
 #ifndef MAB_OPT_H
 #define MAB_OPT_H
-
 
 #include "ncs_opt.h"
 
@@ -45,7 +41,7 @@
    (Base code does not make use of these flags yet : PHANI : 9/Mar/04)
 
 */
-#define NCS_MAS 0 
+#define NCS_MAS 0
 #endif
 
 #ifndef NCS_PSR
@@ -54,7 +50,7 @@
    (Base code does not make use of these flags yet : PHANI : 9/Mar/04)
 
 */
-#define NCS_PSR 0 
+#define NCS_PSR 0
 #endif
 
 #ifndef NCS_MAC
@@ -62,9 +58,8 @@
    set on the command line or be setting NCS_MAS to 1 below
    (Base code does not make use of these flags yet : PHANI : 9/Mar/04)
 */
-#define NCS_MAC 0 
+#define NCS_MAC 0
 #endif
-
 
 /*
  * NCS_MAB_REV
@@ -77,8 +72,7 @@
  * The #define should appear as:  #define NCS_MAB_REV 200
  */
 
-#define NCS_MAB_REV 100  /* MAB Release 1.00 */
-
+#define NCS_MAB_REV 100		/* MAB Release 1.00 */
 
 /* MAB_LOG 
  **********
@@ -92,7 +86,6 @@
 #define MAB_LOG                 0
 #endif
 
-
 /* MAB_USE_LOCK_TYPE
  *********************
  * This flag describes which locking scheme you wish RMS to use. 
@@ -100,9 +93,9 @@
  * The options are:
  */
 
-#define MAB_NO_LOCKS   1   /* all locks are disabled (no overhead; Safe?) */
-#define MAB_TASK_LOCKS 2   /* As per LEAP docs m_INIT/START/END _CRITICAL */
-#define MAB_OBJ_LOCKS  3   /* As per LEAP docs m_NCS_OBJ_LOCK scheme */
+#define MAB_NO_LOCKS   1	/* all locks are disabled (no overhead; Safe?) */
+#define MAB_TASK_LOCKS 2	/* As per LEAP docs m_INIT/START/END _CRITICAL */
+#define MAB_OBJ_LOCKS  3	/* As per LEAP docs m_NCS_OBJ_LOCK scheme */
 
 /* 
  * Set MAB_USE_LOCK_TYPE to the locking paradigm you want to use. 
@@ -111,7 +104,6 @@
 #ifndef NCSMAB_USE_LOCK_TYPE
 #define NCSMAB_USE_LOCK_TYPE  MAB_OBJ_LOCKS
 #endif
-
 
 /* MAB_MIB_ID_HASH_TBL_SIZE
  **************************
@@ -147,7 +139,4 @@
 #define MAB_TRACE2                 0
 #endif
 
-
-#endif /* #ifndef MAB_OPT_H */
-
-
+#endif   /* #ifndef MAB_OPT_H */

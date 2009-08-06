@@ -32,7 +32,6 @@
 #ifndef SYSF_FILE_H
 #define SYSF_FILE_H
 
-
 /****************************************************************************
  * m_NCS_FILE_OPS
  *
@@ -49,7 +48,6 @@
  */
 #define m_NCS_FILE_OP(file, file_request)    ncs_file_op(file, file_request)
 
-EXTERN_C LEAPDLL_API uns32 ncs_file_op (NCS_OS_FILE * file, NCS_OS_FILE_REQUEST file_request);
+EXTERN_C LEAPDLL_API uns32 ncs_file_op(NCS_OS_FILE *file, NCS_OS_FILE_REQUEST file_request);
 
-#endif /* SYSF_FILE_H */
-
+#endif   /* SYSF_FILE_H */

@@ -124,98 +124,70 @@ extern "C" {
 #define m_NCS_XMTREE_GET_NEXT_WITH_MASK(tree, key, maskLen, bitsize) \
                      xmtree_get_next_key(tree, key, maskLen, bitsize)
 
-
 /* max 32 byte key length can be used, it can be extended. */
 #define NCS_XMTREE_MAX_KEY_BYTE (32)
 #define m_XMTREE_GREATER_VALUE (1)
 #define m_XMTREE_LESSER_VALUE  (2)
 
+	unsigned int
+	 xmtree_init(NCS_MTREE *const pTree);
 
-unsigned int
-xmtree_init(NCS_MTREE                 *const pTree);
+	void
+	 xmtree_dest(NCS_MTREE *const pTree);
 
-void
-xmtree_dest(NCS_MTREE *const pTree);
+	NCS_MTREE_NODE *xmtree_findadd(NCS_MTREE *const pTree,
+				       /*changed pKey to testKey for testing */
+				       const uns32 *const pTargetKey,
+				       const short KeyBitSize,
+				       NCS_MTREE_NODE *(*pFunc) (const void *pTargetKey,
+								 short KeyBitSize, void *Cookie), void *const Cookie);
 
-NCS_MTREE_NODE *
-xmtree_findadd(NCS_MTREE         *const pTree,
-      /*changed pKey to testKey for testing*/
-                  const uns32 *const      pTargetKey,
-                  const short             KeyBitSize,
-                  NCS_MTREE_NODE *         (*pFunc)(const void* pTargetKey, 
-                                                   short KeyBitSize,
-                                                   void *Cookie),
-                  void             *const Cookie);
+	void
+	 xmtree_del(NCS_MTREE *const pTree, NCS_MTREE_NODE *const pNode);
 
+	NCS_MTREE_NODE *xmtree_best(NCS_MTREE *const pTree,
+				    const uns32 *const tempKey, short KeyBitSize, int *const pMoreSpecificExists);
 
-void
-xmtree_del(NCS_MTREE      *const pTree,
-              NCS_MTREE_NODE *const pNode);
+	NCS_MTREE_NODE *xmtree_nextbest(NCS_MTREE *const pTree, const NCS_MTREE_NODE *const pBetterNode);
 
-NCS_MTREE_NODE* 
-xmtree_best(NCS_MTREE *const pTree,
-               const uns32 *const tempKey,
-               short      KeyBitSize,
-               int  *const   pMoreSpecificExists);
+	NCS_MTREE_NODE *xmtree_next(NCS_MTREE *const pTree, const uns32 *const pKey, short KeyBitSize);
 
-NCS_MTREE_NODE*
-xmtree_nextbest(NCS_MTREE *const pTree,
-                   const NCS_MTREE_NODE *const pBetterNode);
+	NCS_MTREE_NODE *xmtree_get_next_key(NCS_MTREE *const pTree,
+					    const uns32 *const pKey, uns32 maskLen, short KeyBitSize);
 
-NCS_MTREE_NODE *
-xmtree_next(NCS_MTREE               *const pTree,
-               const uns32 *const   pKey,
-               short                    KeyBitSize);
+	EXTERN_C LEAPDLL_API unsigned int
+	 ncs_xmtree_init(NCS_MTREE *const pTree, const NCS_MTREE_CFG *const pCfg);
 
-NCS_MTREE_NODE *
-xmtree_get_next_key(NCS_MTREE               *const pTree,
-               const uns32 *const   pKey,
-      uns32                maskLen,
-               short                    KeyBitSize);
+	EXTERN_C LEAPDLL_API void
+	 ncs_xmtree_destroy(NCS_MTREE *const pTree);
 
-EXTERN_C LEAPDLL_API unsigned int
-ncs_xmtree_init(NCS_MTREE                 *const pTree,
-              const NCS_MTREE_CFG       *const pCfg);
+	EXTERN_C LEAPDLL_API unsigned int
+	 ncs_xmtree_add(NCS_MTREE *const pTree, NCS_MTREE_NODE *const pNode);
 
-EXTERN_C LEAPDLL_API void
-ncs_xmtree_destroy(NCS_MTREE *const pTree);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_xmtree_find_add(NCS_MTREE *const pTree,
+								 const void *const pKey,
+								 const short KeyBitSize,
+								 NCS_MTREE_NODE *(*pFunc) (const void *pKey,
+											   short KeyBitSize,
+											   void *Cookie),
+								 void *const Cookie);
 
-EXTERN_C LEAPDLL_API unsigned int
-ncs_xmtree_add(NCS_MTREE      *const pTree,
-             NCS_MTREE_NODE *const pNode);
+	EXTERN_C LEAPDLL_API void
+	 ncs_xmtree_del(NCS_MTREE *const pTree, NCS_MTREE_NODE *const pNode);
 
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_xmtree_find_add(NCS_MTREE         *const pTree,
-                  const void *const       pKey,
-                  const short             KeyBitSize,
-                  NCS_MTREE_NODE *         (*pFunc)(const void* pKey, 
-                  short KeyBitSize,
-                  void *Cookie),
-                  void             *const Cookie);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_xmtree_find_nextbest(NCS_MTREE *const pTree,
+								      const NCS_MTREE_NODE *const pBetterNode);
 
-EXTERN_C LEAPDLL_API void
-ncs_xmtree_del(NCS_MTREE      *const pTree,
-             NCS_MTREE_NODE *const pNode);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_xmtree_find_best(NCS_MTREE *const pTree,
+								  const void *const pKey,
+								  uns16 KeyBitSize, int *const pMoreSpecificExists);
 
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_xmtree_find_nextbest(NCS_MTREE *const pTree,
-                       const NCS_MTREE_NODE *const pBetterNode);
-
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_xmtree_find_best(NCS_MTREE *const pTree,
-                   const void *const  pKey,
-                   uns16      KeyBitSize,
-                   int  *const   pMoreSpecificExists);
-
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_xmtree_next(NCS_MTREE               *const pTree,
-              const void *const       pKey,
-              short                   KeyBitSize);
-
-#endif /*NCS_MTREE_PAT_STYLE_SUPPORTED */
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_xmtree_next(NCS_MTREE *const pTree,
+							     const void *const pKey, short KeyBitSize);
+#endif   /*NCS_MTREE_PAT_STYLE_SUPPORTED */
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /*_NCS_XMTREE_H_*/
+#endif   /*_NCS_XMTREE_H_*/

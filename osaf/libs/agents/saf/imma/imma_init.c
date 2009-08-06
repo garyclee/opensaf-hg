@@ -50,35 +50,34 @@ IMMA_CB imma_cb;
   Cloned from CkpSv. */
 static void imma_sync_with_immnd(IMMA_CB *cb)
 {
-    NCS_SEL_OBJ_SET set;
-    uns32 timeout = 3000;
+	NCS_SEL_OBJ_SET set;
+	uns32 timeout = 3000;
 
-    m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+	m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
 
-    if (cb->is_immnd_up)
-    {
-        m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
-        return;
-    }
+	if (cb->is_immnd_up) {
+		m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
+		return;
+	}
 
-    cb->immnd_sync_awaited = TRUE;
-    m_NCS_SEL_OBJ_CREATE(&cb->immnd_sync_sel);
-    m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+	cb->immnd_sync_awaited = TRUE;
+	m_NCS_SEL_OBJ_CREATE(&cb->immnd_sync_sel);
+	m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
 
-    /* Await indication from MDS saying IMMND is up */
-    m_NCS_SEL_OBJ_ZERO(&set);
-    m_NCS_SEL_OBJ_SET(cb->immnd_sync_sel, &set);
-    m_NCS_SEL_OBJ_SELECT(cb->immnd_sync_sel, &set, 0 , 0, &timeout);
+	/* Await indication from MDS saying IMMND is up */
+	m_NCS_SEL_OBJ_ZERO(&set);
+	m_NCS_SEL_OBJ_SET(cb->immnd_sync_sel, &set);
+	m_NCS_SEL_OBJ_SELECT(cb->immnd_sync_sel, &set, 0, 0, &timeout);
 
-    /* Destroy the sync - object */
-    m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+	/* Destroy the sync - object */
+	m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
 
-    cb->immnd_sync_awaited = FALSE;
-    m_NCS_SEL_OBJ_DESTROY(cb->immnd_sync_sel);
+	cb->immnd_sync_awaited = FALSE;
+	m_NCS_SEL_OBJ_DESTROY(cb->immnd_sync_sel);
 
-    m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
+	m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
 
-    return;
+	return;
 }
 
 /****************************************************************************
@@ -96,71 +95,65 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
 ******************************************************************************/
 static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 {
-    IMMA_CB     *cb=&imma_cb;
-    uns32       rc;
+	IMMA_CB *cb = &imma_cb;
+	uns32 rc;
 
-    /* get the process id */
-    cb->process_id = getpid();
+	/* get the process id */
+	cb->process_id = getpid();
 
-    /* initialize the imma cb lock */
-    if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("Failed to get cb lock");
-        goto lock_init_fail;
-    }
+	/* initialize the imma cb lock */
+	if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS) {
+		TRACE_1("Failed to get cb lock");
+		goto lock_init_fail;
+	}
 
-    /* Initalize the IMMA Trees & Linked lists */
-    rc = imma_db_init(cb);
-    if (rc != NCSCC_RC_SUCCESS)
-    {
-        /* No need to log here, already logged in imma_db_init */
-        goto db_init_fail;
-    }
+	/* Initalize the IMMA Trees & Linked lists */
+	rc = imma_db_init(cb);
+	if (rc != NCSCC_RC_SUCCESS) {
+		/* No need to log here, already logged in imma_db_init */
+		goto db_init_fail;
+	}
 
-    if(cb->sv_id != 0)
-    {
-        /*The assert below seems to occurr sometimes on some systems.*/
-        LOG_ER("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x",
-            cb->sv_id, sv_id);
+	if (cb->sv_id != 0) {
+		/*The assert below seems to occurr sometimes on some systems. */
+		LOG_ER("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x", cb->sv_id, sv_id);
 
-        assert(cb->sv_id == 0);
-    }
+		assert(cb->sv_id == 0);
+	}
 
-    cb->sv_id = sv_id;
+	cb->sv_id = sv_id;
 
-    /* register with MDS */
-    if (imma_mds_register(cb) != NCSCC_RC_SUCCESS)
-    {
-        /* No need to log here, already logged in imma_mds_register  */
-        goto mds_reg_fail;
-    }
+	/* register with MDS */
+	if (imma_mds_register(cb) != NCSCC_RC_SUCCESS) {
+		/* No need to log here, already logged in imma_mds_register  */
+		goto mds_reg_fail;
+	}
 
-    imma_sync_with_immnd(cb); /*ABT: Why is this needed ?*/
+	imma_sync_with_immnd(cb);	/*ABT: Why is this needed ? */
 
-    /* EDU initialisation ABT: Dont exactly know why we need this but... */
-    if (m_NCS_EDU_HDL_INIT(&cb->edu_hdl)  != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("Failed to initialize EDU handle");
-        goto edu_init_fail;
-    }
+	/* EDU initialisation ABT: Dont exactly know why we need this but... */
+	if (m_NCS_EDU_HDL_INIT(&cb->edu_hdl) != NCSCC_RC_SUCCESS) {
+		TRACE_1("Failed to initialize EDU handle");
+		goto edu_init_fail;
+	}
 
-    TRACE("Client agent successfully initialized");
-    return NCSCC_RC_SUCCESS;
+	TRACE("Client agent successfully initialized");
+	return NCSCC_RC_SUCCESS;
 
-edu_init_fail:
-    /*MDS unregister */
-    imma_mds_unregister(cb);
+ edu_init_fail:
+	/*MDS unregister */
+	imma_mds_unregister(cb);
 
-mds_reg_fail:
-    imma_db_destroy(cb);
+ mds_reg_fail:
+	imma_db_destroy(cb);
 
-db_init_fail:
-    /* destroy the lock */
-    m_NCS_LOCK_DESTROY(&cb->cb_lock);
+ db_init_fail:
+	/* destroy the lock */
+	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
-lock_init_fail:
+ lock_init_fail:
 
-    return NCSCC_RC_FAILURE;
+	return NCSCC_RC_FAILURE;
 }
 
 /****************************************************************************
@@ -176,23 +169,23 @@ lock_init_fail:
 ******************************************************************************/
 static uns32 imma_destroy(NCSMDS_SVC_ID sv_id)
 {
-    IMMA_CB *cb = &imma_cb;
-    TRACE_ENTER();
+	IMMA_CB *cb = &imma_cb;
+	TRACE_ENTER();
 
-    /* MDS unregister. */
-    imma_mds_unregister(cb);
+	/* MDS unregister. */
+	imma_mds_unregister(cb);
 
-    m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
+	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl);
 
-    /* Destroy the IMMA database */
-    assert(cb->sv_id == sv_id);
-    cb->sv_id = 0;
-    imma_db_destroy(cb);
+	/* Destroy the IMMA database */
+	assert(cb->sv_id == sv_id);
+	cb->sv_id = 0;
+	imma_db_destroy(cb);
 
-    /* destroy the lock */
-    m_NCS_LOCK_DESTROY(&cb->cb_lock);
+	/* destroy the lock */
+	m_NCS_LOCK_DESTROY(&cb->cb_lock);
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -212,43 +205,37 @@ static uns32 imma_destroy(NCSMDS_SVC_ID sv_id)
 ******************************************************************************/
 unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 {
-    unsigned int rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
-    pthread_mutex_lock(&imma_agent_lock);
-    TRACE_ENTER2("use count %u", imma_use_count);
+	pthread_mutex_lock(&imma_agent_lock);
+	TRACE_ENTER2("use count %u", imma_use_count);
 
-    if (imma_use_count > 0)
-    {
-        /* Already created, so just increment the use_count */
-        imma_use_count++;
-        goto done;
-    }
+	if (imma_use_count > 0) {
+		/* Already created, so just increment the use_count */
+		imma_use_count++;
+		goto done;
+	}
 
-    if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("Agents_startup failed");
-        goto done;
-    }
+	if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+		TRACE_1("Agents_startup failed");
+		goto done;
+	}
 
     /*** Init IMMA ***/
-    if ((rc = imma_create(sv_id)) != NCSCC_RC_SUCCESS)
-    {
-        TRACE_1("Failure in startup of client agent");
-        ncs_agents_shutdown(0,0);
-        goto done;
-    }
-    else
-    {
-        imma_use_count = 1;
-    }
+	if ((rc = imma_create(sv_id)) != NCSCC_RC_SUCCESS) {
+		TRACE_1("Failure in startup of client agent");
+		ncs_agents_shutdown(0, 0);
+		goto done;
+	} else {
+		imma_use_count = 1;
+	}
 
-done:
-    TRACE_LEAVE2("use count %u", imma_use_count);
-    pthread_mutex_unlock(&imma_agent_lock);
+ done:
+	TRACE_LEAVE2("use count %u", imma_use_count);
+	pthread_mutex_unlock(&imma_agent_lock);
 
-    return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          :  imma_shutdown 
@@ -265,297 +252,286 @@ done:
 ******************************************************************************/
 unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    pthread_mutex_lock(&imma_agent_lock);
-    TRACE_ENTER2("use count %u", imma_use_count);
+	pthread_mutex_lock(&imma_agent_lock);
+	TRACE_ENTER2("use count %u", imma_use_count);
 
-    if (imma_use_count > 1)
-    {
-        /* Users still exist, just decrement the use count */
-        imma_use_count--;
-    }
-    else if (imma_use_count == 1)
-    {
-        rc = imma_destroy(sv_id);
-        ncs_agents_shutdown(0,0); 
-        imma_use_count = 0;
-    }
+	if (imma_use_count > 1) {
+		/* Users still exist, just decrement the use count */
+		imma_use_count--;
+	} else if (imma_use_count == 1) {
+		rc = imma_destroy(sv_id);
+		ncs_agents_shutdown(0, 0);
+		imma_use_count = 0;
+	}
 
-    TRACE_LEAVE2("use count %u", imma_use_count);
-    pthread_mutex_unlock(&imma_agent_lock);
+	TRACE_LEAVE2("use count %u", imma_use_count);
+	pthread_mutex_unlock(&imma_agent_lock);
 
-    return rc;
+	return rc;
 }
 
-void imma_freeAttrValue3(SaImmAttrValueT p,
-                    const SaImmValueTypeT attrValueType)
+void imma_freeAttrValue3(SaImmAttrValueT p, const SaImmValueTypeT attrValueType)
 {
-    SaAnyT* saAnyTp=NULL;
-    SaStringT* saStringTp=NULL;
+	SaAnyT *saAnyTp = NULL;
+	SaStringT *saStringTp = NULL;
 
-    switch (attrValueType)
-    {
-        case SA_IMM_ATTR_SAINT32T: 
-        case SA_IMM_ATTR_SAUINT32T: 
-        case SA_IMM_ATTR_SAINT64T: 
-        case SA_IMM_ATTR_SAUINT64T: 
-        case SA_IMM_ATTR_SATIMET:
-        case SA_IMM_ATTR_SAFLOATT:
-        case SA_IMM_ATTR_SADOUBLET:
-        case SA_IMM_ATTR_SANAMET:
-            break;
+	switch (attrValueType) {
+	case SA_IMM_ATTR_SAINT32T:
+	case SA_IMM_ATTR_SAUINT32T:
+	case SA_IMM_ATTR_SAINT64T:
+	case SA_IMM_ATTR_SAUINT64T:
+	case SA_IMM_ATTR_SATIMET:
+	case SA_IMM_ATTR_SAFLOATT:
+	case SA_IMM_ATTR_SADOUBLET:
+	case SA_IMM_ATTR_SANAMET:
+		break;
 
-        case SA_IMM_ATTR_SASTRINGT:
-            saStringTp = (SaStringT *) p;
-            free(*saStringTp);
-            break;
-        case SA_IMM_ATTR_SAANYT:
-            saAnyTp = (SaAnyT *) p;
-            if (saAnyTp->bufferSize)
-            {
-                free(saAnyTp->bufferAddr);
-            }
-            break;
+	case SA_IMM_ATTR_SASTRINGT:
+		saStringTp = (SaStringT *)p;
+		free(*saStringTp);
+		break;
+	case SA_IMM_ATTR_SAANYT:
+		saAnyTp = (SaAnyT *)p;
+		if (saAnyTp->bufferSize) {
+			free(saAnyTp->bufferAddr);
+		}
+		break;
 
-        default:
-            TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
-                   "Did you forget to set the attrValueType member in a "
-                   "SaImmAttrValuesT_2 value ?", attrValueType);
-            assert(0);
-    }
+	default:
+		TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
+			"Did you forget to set the attrValueType member in a "
+			"SaImmAttrValuesT_2 value ?", attrValueType);
+		assert(0);
+	}
 
-    free(p);
+	free(p);
 }
 
-
-void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL* p,
-                   const SaImmValueTypeT attrValueType,
-                   const SaImmAttrValueT attrValue)
+void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueType, const SaImmAttrValueT attrValue)
 {
-    /*
-      Copies ONE attribute value. 
-      Multivalued attributes need to copy each value.
-    */
-    SaUint32T valueSize = 0;
+	/*
+	   Copies ONE attribute value. 
+	   Multivalued attributes need to copy each value.
+	 */
+	SaUint32T valueSize = 0;
 
-    SaAnyT* saAnyTp=0;
-    SaNameT* saNameTp=0;
-    SaStringT* saStringTp=0;
+	SaAnyT *saAnyTp = 0;
+	SaNameT *saNameTp = 0;
+	SaStringT *saStringTp = 0;
 
-    switch (attrValueType)
-    {
-        case SA_IMM_ATTR_SAINT32T: 
-            p->val.saint32 = *((SaInt32T *) attrValue);
-            return;
-        case SA_IMM_ATTR_SAUINT32T: 
-            p->val.sauint32 = *((SaUint32T *) attrValue);
-            return;
-        case SA_IMM_ATTR_SAINT64T: 
-            p->val.saint64 = *((SaInt64T *) attrValue);
-            return;
-        case SA_IMM_ATTR_SAUINT64T: 
-            p->val.sauint64 = *((SaUint64T *) attrValue);
-            return;
-        case SA_IMM_ATTR_SATIMET:
-            p->val.satime = *((SaTimeT *) attrValue);
-            return;
-        case SA_IMM_ATTR_SAFLOATT:
-            p->val.safloat = *((SaFloatT *) attrValue);
-            return;
-        case SA_IMM_ATTR_SADOUBLET:
-            p->val.sadouble = *((SaDoubleT *) attrValue);
-            return;
+	switch (attrValueType) {
+	case SA_IMM_ATTR_SAINT32T:
+		p->val.saint32 = *((SaInt32T *)attrValue);
+		return;
+	case SA_IMM_ATTR_SAUINT32T:
+		p->val.sauint32 = *((SaUint32T *)attrValue);
+		return;
+	case SA_IMM_ATTR_SAINT64T:
+		p->val.saint64 = *((SaInt64T *)attrValue);
+		return;
+	case SA_IMM_ATTR_SAUINT64T:
+		p->val.sauint64 = *((SaUint64T *)attrValue);
+		return;
+	case SA_IMM_ATTR_SATIMET:
+		p->val.satime = *((SaTimeT *)attrValue);
+		return;
+	case SA_IMM_ATTR_SAFLOATT:
+		p->val.safloat = *((SaFloatT *)attrValue);
+		return;
+	case SA_IMM_ATTR_SADOUBLET:
+		p->val.sadouble = *((SaDoubleT *)attrValue);
+		return;
 
-        case SA_IMM_ATTR_SANAMET:
-            saNameTp= (SaNameT *) attrValue;
-            if (saNameTp)
-            {
-                assert(saNameTp->length < SA_MAX_NAME_LENGTH);
-                valueSize = 
-                    strnlen((char *) saNameTp->value, SA_MAX_NAME_LENGTH)+1;
-                if (saNameTp->length +1 < valueSize)
-                {
-                    valueSize = saNameTp->length +1;
-                }
-            }
-            else
-            {
-                valueSize = 0;
-            }
-            break;
+	case SA_IMM_ATTR_SANAMET:
+		saNameTp = (SaNameT *)attrValue;
+		if (saNameTp) {
+			assert(saNameTp->length < SA_MAX_NAME_LENGTH);
+			valueSize = strnlen((char *)saNameTp->value, SA_MAX_NAME_LENGTH) + 1;
+			if (saNameTp->length + 1 < valueSize) {
+				valueSize = saNameTp->length + 1;
+			}
+		} else {
+			valueSize = 0;
+		}
+		break;
 
-        case SA_IMM_ATTR_SASTRINGT:
-            /*TODO: I should have some form of sanity check on length.*/
-            saStringTp = (SaStringT *) attrValue;
-            valueSize = (saStringTp) ? strlen(*(saStringTp))+1 : 0; 
-            break;
+	case SA_IMM_ATTR_SASTRINGT:
+		/*TODO: I should have some form of sanity check on length. */
+		saStringTp = (SaStringT *)attrValue;
+		valueSize = (saStringTp) ? strlen(*(saStringTp)) + 1 : 0;
+		break;
 
-        case SA_IMM_ATTR_SAANYT:
-            saAnyTp = (SaAnyT *) attrValue;
-            valueSize = (saAnyTp) ? saAnyTp->bufferSize : 0;
-            break;
+	case SA_IMM_ATTR_SAANYT:
+		saAnyTp = (SaAnyT *)attrValue;
+		valueSize = (saAnyTp) ? saAnyTp->bufferSize : 0;
+		break;
 
-        default:
-            TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
-                   "Did you forget to set the attrValueType member in a "
-                   "SaImmAttrValuesT_2 value ?\n", attrValueType);
-            assert(0);
-    }
+	default:
+		TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
+			"Did you forget to set the attrValueType member in a "
+			"SaImmAttrValuesT_2 value ?\n", attrValueType);
+		assert(0);
+	}
 
-    p->val.x.size = valueSize;
-    p->val.x.buf = (valueSize)?malloc(valueSize) : NULL;
+	p->val.x.size = valueSize;
+	p->val.x.buf = (valueSize) ? malloc(valueSize) : NULL;
 
-    if (attrValue && valueSize)
-    {
-        switch (attrValueType)
-        {
-            case SA_IMM_ATTR_SASTRINGT:
-                (void)memcpy(p->val.x.buf, *saStringTp,  valueSize);
-                p->val.x.buf[valueSize-1]='\0';
-                break;
-            case SA_IMM_ATTR_SANAMET:
-                (void)memcpy(p->val.x.buf, saNameTp->value, valueSize);
-                p->val.x.buf[valueSize-1]='\0';      
-                break;
-            case SA_IMM_ATTR_SAANYT:
-                (void)memcpy(p->val.x.buf, saAnyTp->bufferAddr, valueSize);
-                break;
-            default:
-                assert(0); /*If I get here then I have introduced a bug 
-                             somewhere above. */
-        }
-    }
-    else
-    {
-        assert(0);
-    }
+	if (attrValue && valueSize) {
+		switch (attrValueType) {
+		case SA_IMM_ATTR_SASTRINGT:
+			(void)memcpy(p->val.x.buf, *saStringTp, valueSize);
+			p->val.x.buf[valueSize - 1] = '\0';
+			break;
+		case SA_IMM_ATTR_SANAMET:
+			(void)memcpy(p->val.x.buf, saNameTp->value, valueSize);
+			p->val.x.buf[valueSize - 1] = '\0';
+			break;
+		case SA_IMM_ATTR_SAANYT:
+			(void)memcpy(p->val.x.buf, saAnyTp->bufferAddr, valueSize);
+			break;
+		default:
+			assert(0);	/*If I get here then I have introduced a bug 
+					   somewhere above. */
+		}
+	} else {
+		assert(0);
+	}
 }
 
-SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, 
-                               IMMSV_EDU_ATTR_VAL* attrValue)
+SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_EDU_ATTR_VAL *attrValue)
 {
-    /*
-      Copies ONE attribute value. 
-      Multivalued attributes need to copy each value.
-      Allocates the root value on the heap. 
-      WARNING!, for dynamic/large sized data (SaStringT, SaAnyT) the buffer
-      is stolen from the attrValue.
-    */
-    size_t valueSize = 0;
-    SaAnyT* saAnyTp=0;
-    SaNameT* saNameTp=0;
-    SaStringT* saStringTp=0;
-    SaImmAttrValueT retVal=NULL;
+	/*
+	   Copies ONE attribute value. 
+	   Multivalued attributes need to copy each value.
+	   Allocates the root value on the heap. 
+	   WARNING!, for dynamic/large sized data (SaStringT, SaAnyT) the buffer
+	   is stolen from the attrValue.
+	 */
+	size_t valueSize = 0;
+	SaAnyT *saAnyTp = 0;
+	SaNameT *saNameTp = 0;
+	SaStringT *saStringTp = 0;
+	SaImmAttrValueT retVal = NULL;
 
-    switch (attrValueType)
-    {
-        case SA_IMM_ATTR_SAINT32T:  valueSize = sizeof(SaInt32T); break;
-        case SA_IMM_ATTR_SAUINT32T: valueSize = sizeof(SaUint32T); break;
-        case SA_IMM_ATTR_SAINT64T:  valueSize = sizeof(SaInt64T); break;
-        case SA_IMM_ATTR_SAUINT64T: valueSize = sizeof(SaUint64T); break;
-        case SA_IMM_ATTR_SATIMET:   valueSize = sizeof(SaTimeT); break;
-        case SA_IMM_ATTR_SAFLOATT:  valueSize = sizeof(SaFloatT); break;
-        case SA_IMM_ATTR_SADOUBLET: valueSize = sizeof(SaDoubleT); break;
-        case SA_IMM_ATTR_SANAMET:   valueSize = sizeof(SaNameT); break;
-        case SA_IMM_ATTR_SASTRINGT: valueSize = sizeof(SaStringT); break;
-        case SA_IMM_ATTR_SAANYT:    valueSize = sizeof(SaAnyT); break;
+	switch (attrValueType) {
+	case SA_IMM_ATTR_SAINT32T:
+		valueSize = sizeof(SaInt32T);
+		break;
+	case SA_IMM_ATTR_SAUINT32T:
+		valueSize = sizeof(SaUint32T);
+		break;
+	case SA_IMM_ATTR_SAINT64T:
+		valueSize = sizeof(SaInt64T);
+		break;
+	case SA_IMM_ATTR_SAUINT64T:
+		valueSize = sizeof(SaUint64T);
+		break;
+	case SA_IMM_ATTR_SATIMET:
+		valueSize = sizeof(SaTimeT);
+		break;
+	case SA_IMM_ATTR_SAFLOATT:
+		valueSize = sizeof(SaFloatT);
+		break;
+	case SA_IMM_ATTR_SADOUBLET:
+		valueSize = sizeof(SaDoubleT);
+		break;
+	case SA_IMM_ATTR_SANAMET:
+		valueSize = sizeof(SaNameT);
+		break;
+	case SA_IMM_ATTR_SASTRINGT:
+		valueSize = sizeof(SaStringT);
+		break;
+	case SA_IMM_ATTR_SAANYT:
+		valueSize = sizeof(SaAnyT);
+		break;
 
-        default:
-            TRACE_1("Illegal value type: %u", attrValueType);
-            assert(0);
-    }
+	default:
+		TRACE_1("Illegal value type: %u", attrValueType);
+		assert(0);
+	}
 
-    retVal = calloc(1, valueSize);
+	retVal = calloc(1, valueSize);
 
-    switch (attrValueType)
-    {
-        case SA_IMM_ATTR_SAINT32T:  
-            *((SaInt32T *)retVal) = attrValue->val.saint32;
-            break;
-        case SA_IMM_ATTR_SAUINT32T: 
-            *((SaUint32T *)retVal) = attrValue->val.sauint32;
-            break;
-        case SA_IMM_ATTR_SAINT64T: 
-            *((SaInt64T *)retVal) = attrValue->val.saint64;
-            break;
-        case SA_IMM_ATTR_SAUINT64T: 
-            *((SaUint64T *)retVal) = attrValue->val.sauint64;
-            break;
-        case SA_IMM_ATTR_SATIMET:   
-            *((SaTimeT *)retVal) = attrValue->val.satime;
-            break;
-        case SA_IMM_ATTR_SAFLOATT:  
-            *((SaFloatT *)retVal) = attrValue->val.safloat;
-            break;
-        case SA_IMM_ATTR_SADOUBLET: 
-            *((SaDoubleT *)retVal) = attrValue->val.sadouble;
-            break;
+	switch (attrValueType) {
+	case SA_IMM_ATTR_SAINT32T:
+		*((SaInt32T *)retVal) = attrValue->val.saint32;
+		break;
+	case SA_IMM_ATTR_SAUINT32T:
+		*((SaUint32T *)retVal) = attrValue->val.sauint32;
+		break;
+	case SA_IMM_ATTR_SAINT64T:
+		*((SaInt64T *)retVal) = attrValue->val.saint64;
+		break;
+	case SA_IMM_ATTR_SAUINT64T:
+		*((SaUint64T *)retVal) = attrValue->val.sauint64;
+		break;
+	case SA_IMM_ATTR_SATIMET:
+		*((SaTimeT *)retVal) = attrValue->val.satime;
+		break;
+	case SA_IMM_ATTR_SAFLOATT:
+		*((SaFloatT *)retVal) = attrValue->val.safloat;
+		break;
+	case SA_IMM_ATTR_SADOUBLET:
+		*((SaDoubleT *)retVal) = attrValue->val.sadouble;
+		break;
 
-        case SA_IMM_ATTR_SANAMET:
-            saNameTp= (SaNameT *) retVal;
-            saNameTp->length = strnlen(attrValue->val.x.buf, 
-                attrValue->val.x.size);
-            assert(saNameTp->length <= SA_MAX_NAME_LENGTH);
-            memcpy(saNameTp->value, attrValue->val.x.buf, 
-                    saNameTp->length);
-            break;
+	case SA_IMM_ATTR_SANAMET:
+		saNameTp = (SaNameT *)retVal;
+		saNameTp->length = strnlen(attrValue->val.x.buf, attrValue->val.x.size);
+		assert(saNameTp->length <= SA_MAX_NAME_LENGTH);
+		memcpy(saNameTp->value, attrValue->val.x.buf, saNameTp->length);
+		break;
 
-        case SA_IMM_ATTR_SASTRINGT:
-            saStringTp = (SaStringT *) retVal; /*pointer TO string-pointer.*/
-            /* Steal the buffer. */
-            if (attrValue->val.x.size)
-            {
-                (*saStringTp) = attrValue->val.x.buf;
-                attrValue->val.x.buf=NULL;
-                attrValue->val.x.size=0;
-            }
-            else
-            {
-                (*saStringTp) = NULL;
-            }
-            break;
+	case SA_IMM_ATTR_SASTRINGT:
+		saStringTp = (SaStringT *)retVal;	/*pointer TO string-pointer. */
+		/* Steal the buffer. */
+		if (attrValue->val.x.size) {
+			(*saStringTp) = attrValue->val.x.buf;
+			attrValue->val.x.buf = NULL;
+			attrValue->val.x.size = 0;
+		} else {
+			(*saStringTp) = NULL;
+		}
+		break;
 
-        case SA_IMM_ATTR_SAANYT:
-            saAnyTp = (SaAnyT *) retVal;
-            /*Steal the value buffer.*/
-            saAnyTp->bufferSize = attrValue->val.x.size;
-            if (attrValue->val.x.size)
-            {
-                /*Steal the buffer.*/
-                saAnyTp->bufferAddr = (SaUint8T *) attrValue->val.x.buf;
-                attrValue->val.x.buf=NULL;
-                attrValue->val.x.size=0;
-            }
-            else
-            {
-                saAnyTp->bufferAddr = NULL;
-            }
-            break;
+	case SA_IMM_ATTR_SAANYT:
+		saAnyTp = (SaAnyT *)retVal;
+		/*Steal the value buffer. */
+		saAnyTp->bufferSize = attrValue->val.x.size;
+		if (attrValue->val.x.size) {
+			/*Steal the buffer. */
+			saAnyTp->bufferAddr = (SaUint8T *)attrValue->val.x.buf;
+			attrValue->val.x.buf = NULL;
+			attrValue->val.x.size = 0;
+		} else {
+			saAnyTp->bufferAddr = NULL;
+		}
+		break;
 
-        default:
-            assert(0);
-    }
-    return retVal;
+	default:
+		assert(0);
+	}
+	return retVal;
 }
 
 /*
  * Enable tracing early in saImmOmInitialize or saImmOiInitialize using 
  * a GCC constructor.
  */
-__attribute__ ((constructor)) static void imma_logtrace_init(void)
+__attribute__ ((constructor))
+static void imma_logtrace_init(void)
 {
-    char *value;
+	char *value;
 
-    /* Initialize trace system first of all so we can see what is going. */
-    if ((value = getenv("IMMA_TRACE_PATHNAME")) != NULL)
-    {
-        if (logtrace_init("imma", value) != 0)
-            /* error, we cannot do anything */
-            return;
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("IMMA_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init("imma", value) != 0)
+			/* error, we cannot do anything */
+			return;
 
-        /* Do not care about categories now, get all */
-        trace_category_set(CATEGORY_ALL);
-    }
+		/* Do not care about categories now, get all */
+		trace_category_set(CATEGORY_ALL);
+	}
 }
-

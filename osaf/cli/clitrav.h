@@ -50,14 +50,12 @@
     else\
         sprintf(argbuf, "%s", (int8 *)argvalue.strval);
 
-
 #define m_TRAVERSE_DATANODE(cmd_Element, dummy_stack, stack_level)\
 {\
     dummy_stack[stack_level] = cmd_Element;\
     stack_level++;\
     cmd_Element = cmd_Element->node_ptr.pDataPtr;\
 }
-
 
 #define m_TRAVERSE_PREV_OPTNODE(cmd_Element, dummy_stack, stack_level)\
 {\
@@ -84,33 +82,29 @@ action associated with the command.
 
 EXTERN_C uns32 cli_check_macaddr(int8 *);
 EXTERN_C uns32 cli_check_community(int8 *);
-EXTERN_C uns32 cli_check_ipv6addr (int8 *);
-EXTERN_C uns32 cli_check_ipv6prefix (int8 *);
-EXTERN_C uns32 cli_check_number (int8 *);
-EXTERN_C uns32 cli_check_ipv4addr (int8 *);
-EXTERN_C uns32 cli_check_ipv4prefix (int8 *);
+EXTERN_C uns32 cli_check_ipv6addr(int8 *);
+EXTERN_C uns32 cli_check_ipv6prefix(int8 *);
+EXTERN_C uns32 cli_check_number(int8 *);
+EXTERN_C uns32 cli_check_ipv4addr(int8 *);
+EXTERN_C uns32 cli_check_ipv4prefix(int8 *);
 EXTERN_C uns32 cli_matchtoken(int8 *, int8 *, CLI_CMD_ERROR *);
-EXTERN_C uns32 cli_check_syntax(CLI_CB *, NCSCLI_ARG_SET *, 
-                                CLI_EXECUTE_PARAM *, CLI_CMD_ERROR *);
+EXTERN_C uns32 cli_check_syntax(CLI_CB *, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, CLI_CMD_ERROR *);
 EXTERN_C uns32 cli_execute_command(CLI_CB *, CLI_EXECUTE_PARAM *, CLI_SESSION_INFO *);
-EXTERN_C void cli_get_helpstr(CLI_CB *, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, 
-                              CLI_SESSION_INFO *);
-EXTERN_C void cli_complete_cmd(CLI_CB *i_cb, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, 
-                               CLI_SESSION_INFO *);
+EXTERN_C void cli_get_helpstr(CLI_CB *, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, CLI_SESSION_INFO *);
+EXTERN_C void cli_complete_cmd(CLI_CB *i_cb, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, CLI_SESSION_INFO *);
 EXTERN_C uns32 cli_ipv4_to_int(int8 *);
 EXTERN_C uns32 cli_get_tokentype(int8 *);
 /*EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *);*/
-EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *, CLI_CB *); /*  ( CLI_CB* argument is added extra) */
+EXTERN_C uns32 cli_set_arg(int8 *, NCSCLI_ARG_SET *, CLI_CB *);	/*  ( CLI_CB* argument is added extra) */
 /*EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *);*/
-EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *,CLI_CB *); /* (CLI_CB* argument is added extra) */
+EXTERN_C uns32 cli_getcommand_tokens(int8 *, NCSCLI_ARG_SET *, CLI_CB *);	/* (CLI_CB* argument is added extra) */
 EXTERN_C uns32 cli_check_token(CLI_CB *, NCSCLI_ARG_VAL *, CLI_CMD_ERROR *);
 EXTERN_C CLI_CMD_NODE *cli_node_change(CLI_CB *);
 EXTERN_C uns32 cli_check_range(CLI_CB *, NCSCLI_ARG_VAL *, CLI_CMD_ERROR *);
-EXTERN_C void cli_add_default_values(CLI_CMD_ELEMENT * i_cmdElement, 
-                                     NCSCLI_ARG_SET *, uns32);
+EXTERN_C void cli_add_default_values(CLI_CMD_ELEMENT *i_cmdElement, NCSCLI_ARG_SET *, uns32);
 EXTERN_C int32 cli_find_errpos(int8 *, int8 *, int32);
 EXTERN_C void cli_modify_cmdargs(NCSCLI_ARG_SET *);
-EXTERN_C uns32 cli_get_help_desc(CLI_CB *, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, 
-                                 CLI_CMD_ERROR *);
-EXTERN_C  int32 cli_to_power(int32, int32);
+EXTERN_C uns32 cli_get_help_desc(CLI_CB *, NCSCLI_ARG_SET *, CLI_EXECUTE_PARAM *, CLI_CMD_ERROR *);
+EXTERN_C int32 cli_to_power(int32, int32);
+
 #endif

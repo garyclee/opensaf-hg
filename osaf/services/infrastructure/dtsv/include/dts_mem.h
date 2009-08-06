@@ -34,7 +34,6 @@
 #ifndef DTS_MEM_H
 #define DTS_MEM_H
 
-
 #define DTSV_MEM_DTS_CB 1
 #define DTS_MEM_DTSV_MSG  2
 #define DTS_MEM_SVC_REG_TBL  3
@@ -141,7 +140,5 @@
 
 #define m_MMGR_FREE_SEQ_BUFF(p)     m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_DTSV, DTS_MEM_SEQ_BUFFER)
-
-
 
 #endif

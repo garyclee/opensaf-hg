@@ -45,22 +45,21 @@
 
 uns32 pdrbd_log_bind(void)
 {
-    NCS_DTSV_RQ        reg;
+	NCS_DTSV_RQ reg;
 
-    reg.i_op = NCS_DTSV_OP_BIND;
-    reg.info.bind_svc.svc_id = NCS_SERVICE_ID_PDRBD;
-    /* fill version no. */
-    reg.info.bind_svc.version = PDRBD_LOG_VERSION;
-    /* fill svc_name */
-    strcpy(reg.info.bind_svc.svc_name, "PDRBD");
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_PDRBD;
+	/* fill version no. */
+	reg.info.bind_svc.version = PDRBD_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "PDRBD");
 
-    if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS)
-    {
-       printf("pdrbd_log_bind: NCS_SERVICE_ID_PDRBD bind failed");
-       return NCSCC_RC_FAILURE;
-    }
+	if (ncs_dtsv_su_req(&reg) != NCSCC_RC_SUCCESS) {
+		printf("pdrbd_log_bind: NCS_SERVICE_ID_PDRBD bind failed");
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -73,22 +72,16 @@ uns32 pdrbd_log_bind(void)
 
 uns32 pdrbd_log_unbind(void)
 {
-    NCS_DTSV_RQ        dereg;
+	NCS_DTSV_RQ dereg;
 
-    dereg.i_op = NCS_DTSV_OP_UNBIND;
-    dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_PDRBD;
-    if (ncs_dtsv_su_req(&dereg) != NCSCC_RC_SUCCESS)
-    {
-       printf("pdrbd_log_bind: Unbind failed for NCS_SERVICE_ID_PDRBD");
-       return NCSCC_RC_FAILURE;
-    }
+	dereg.i_op = NCS_DTSV_OP_UNBIND;
+	dereg.info.unbind_svc.svc_id = NCS_SERVICE_ID_PDRBD;
+	if (ncs_dtsv_su_req(&dereg) != NCSCC_RC_SUCCESS) {
+		printf("pdrbd_log_bind: Unbind failed for NCS_SERVICE_ID_PDRBD");
+		return NCSCC_RC_FAILURE;
+	}
 
-    return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
-#endif/* (PDRBD_LOG == 1) */
-
-
-
-
-
+#endif   /* (PDRBD_LOG == 1) */

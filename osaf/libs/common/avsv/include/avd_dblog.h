@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -40,241 +38,217 @@
 /******************************************************************************
  Logging offset indexes for Headline logging
  ******************************************************************************/
-typedef enum avd_hdln_flex
-{
-   AVD_INVALID_VAL,
-   AVD_UNKNOWN_MSG_RCVD,
-   AVD_MSG_PROC_FAILED,
-   AVD_ENTERED_FUNC,
-   AVD_RCVD_VAL
+typedef enum avd_hdln_flex {
+	AVD_INVALID_VAL,
+	AVD_UNKNOWN_MSG_RCVD,
+	AVD_MSG_PROC_FAILED,
+	AVD_ENTERED_FUNC,
+	AVD_RCVD_VAL
 } AVD_HDLN_FLEX;
-
 
 /******************************************************************************
  Logging offset indexes for Memory Fail logging 
  ******************************************************************************/
 
-typedef enum avd_memfail_flex
-{
-   AVD_CB_ALLOC_FAILED,
-   AVD_MBX_ALLOC_FAILED,
-   AVD_AVND_ALLOC_FAILED,
-   AVD_COMP_ALLOC_FAILED,
-   AVD_CSI_ALLOC_FAILED,
-   AVD_COMPCSI_ALLOC_FAILED,
-   AVD_SG_ALLOC_FAILED,
-   AVD_SI_ALLOC_FAILED,
-   AVD_SUSI_ALLOC_FAILED,
-   AVD_SU_ALLOC_FAILED,
-   AVD_PG_CSI_NODE_ALLOC_FAILED,
-   AVD_PG_NODE_CSI_ALLOC_FAILED,
-   AVD_EVT_ALLOC_FAILED,
-   AVD_HLT_ALLOC_FAILED,
-   AVD_DND_MSG_ALLOC_FAILED,
-   AVD_D2D_MSG_ALLOC_FAILED,
-   AVD_CSI_PARAM_ALLOC_FAILED,
-   AVD_DND_MSG_INFO_ALLOC_FAILED,
-   AVD_SG_OPER_ALLOC_FAILED,
-   AVD_SU_PER_SI_RANK_ALLOC_FAILED,
-   AVD_SG_SI_RANK_ALLOC_FAILED,
-   AVD_SG_SU_RANK_ALLOC_FAILED,
-   AVD_COMP_CS_TYPE_ALLOC_FAILED,
-   AVD_CS_TYPE_PARAM_ALLOC_FAILED,
-   AVD_TRAP_VAR_BIND_ALLOC_FAILED 
+typedef enum avd_memfail_flex {
+	AVD_CB_ALLOC_FAILED,
+	AVD_MBX_ALLOC_FAILED,
+	AVD_AVND_ALLOC_FAILED,
+	AVD_COMP_ALLOC_FAILED,
+	AVD_CSI_ALLOC_FAILED,
+	AVD_COMPCSI_ALLOC_FAILED,
+	AVD_SG_ALLOC_FAILED,
+	AVD_SI_ALLOC_FAILED,
+	AVD_SUSI_ALLOC_FAILED,
+	AVD_SU_ALLOC_FAILED,
+	AVD_PG_CSI_NODE_ALLOC_FAILED,
+	AVD_PG_NODE_CSI_ALLOC_FAILED,
+	AVD_EVT_ALLOC_FAILED,
+	AVD_HLT_ALLOC_FAILED,
+	AVD_DND_MSG_ALLOC_FAILED,
+	AVD_D2D_MSG_ALLOC_FAILED,
+	AVD_CSI_PARAM_ALLOC_FAILED,
+	AVD_DND_MSG_INFO_ALLOC_FAILED,
+	AVD_SG_OPER_ALLOC_FAILED,
+	AVD_SU_PER_SI_RANK_ALLOC_FAILED,
+	AVD_SG_SI_RANK_ALLOC_FAILED,
+	AVD_SG_SU_RANK_ALLOC_FAILED,
+	AVD_COMP_CS_TYPE_ALLOC_FAILED,
+	AVD_CS_TYPE_PARAM_ALLOC_FAILED,
+	AVD_TRAP_VAR_BIND_ALLOC_FAILED
 } AVD_MEMFAIL_FLEX;
-
-
 
 /******************************************************************************
  Logging offset indexes for Message logging 
  ******************************************************************************/
-typedef enum avd_msg_flex
-{
-   AVD_LOG_PROC_MSG,
-   AVD_LOG_RCVD_MSG,
-   AVD_LOG_SND_MSG,
-   AVD_LOG_DND_MSG,
-   AVD_LOG_D2D_MSG,
-   AVD_DUMP_DND_MSG,
-   AVD_DUMP_D2D_MSG
+typedef enum avd_msg_flex {
+	AVD_LOG_PROC_MSG,
+	AVD_LOG_RCVD_MSG,
+	AVD_LOG_SND_MSG,
+	AVD_LOG_DND_MSG,
+	AVD_LOG_D2D_MSG,
+	AVD_DUMP_DND_MSG,
+	AVD_DUMP_D2D_MSG
 } AVD_MSG_FLEX;
 
 /******************************************************************************
  Logging offset indexes for Proxy-Proxied logging
  ******************************************************************************/
-typedef enum avd_log_pxy_pxd_flex
-{
-   AVD_PXY_PXD_SUCC_INFO,
-   AVD_PXY_PXD_ERR_INFO,
-   AVD_PXY_PXD_ENTRY_INFO
+typedef enum avd_log_pxy_pxd_flex {
+	AVD_PXY_PXD_SUCC_INFO,
+	AVD_PXY_PXD_ERR_INFO,
+	AVD_PXY_PXD_ENTRY_INFO
 } AVD_LOG_PXY_PXD_FLEX;
 
 /******************************************************************************
  Logging offset indexes for event logging 
  ******************************************************************************/
-typedef enum avd_evt_flex
-{
-   AVD_SND_TMR_EVENT,
-   AVD_SND_AVD_MSG_EVENT,
-   AVD_SND_AVND_MSG_EVENT,
-   AVD_SND_MAB_EVENT,
-   AVD_RCVD_EVENT,
-   AVD_RCVD_INVLD_EVENT
+typedef enum avd_evt_flex {
+	AVD_SND_TMR_EVENT,
+	AVD_SND_AVD_MSG_EVENT,
+	AVD_SND_AVND_MSG_EVENT,
+	AVD_SND_MAB_EVENT,
+	AVD_RCVD_EVENT,
+	AVD_RCVD_INVLD_EVENT
 } AVD_EVT_FLEX;
-
 
 /******************************************************************************
  Logging offset indexes for Checkpoint event logging 
  ******************************************************************************/
-typedef enum avd_ckpt_flex
-{
-   /* AVD Role change events */
-   AVD_ROLE_CHANGE_ATOS,
-   AVD_ROLE_CHANGE_STOA,
-   AVD_ROLE_CHANGE_ATOQ,
-   AVD_ROLE_CHANGE_QTOS,
-   AVD_ROLE_CHANGE_QTOA,
-   AVD_MBCSV_MSG_ASYNC_UPDATE,
-   AVD_COLD_SYNC_REQ_RCVD,
-   AVD_MBCSV_MSG_COLD_SYNC_RESP,
-   AVD_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
-   AVD_MBCSV_MSG_WARM_SYNC_REQ,
-   AVD_MBCSV_MSG_WARM_SYNC_RESP,
-   AVD_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE,
-   AVD_MBCSV_MSG_DATA_REQ,
-   AVD_MBCSV_MSG_DATA_RESP,
-   AVD_MBCSV_MSG_DATA_RESP_COMPLETE,
-   AVD_MBCSV_ERROR_IND,
-   /* Some failure events now */
-   AVD_MBCSV_MSG_WARM_SYNC_RESP_FAILURE,
-   AVD_MBCSV_MSG_DATA_RSP_DECODE_FAILURE,
-   AVD_MBCSV_MSG_DISPATCH_FAILURE,
-   AVD_STBY_UNAVAIL_FOR_RCHG,
-   AVD_ROLE_CHANGE_FAILURE,
-   AVD_HB_MSG_SND_FAILURE,
+typedef enum avd_ckpt_flex {
+	/* AVD Role change events */
+	AVD_ROLE_CHANGE_ATOS,
+	AVD_ROLE_CHANGE_STOA,
+	AVD_ROLE_CHANGE_ATOQ,
+	AVD_ROLE_CHANGE_QTOS,
+	AVD_ROLE_CHANGE_QTOA,
+	AVD_MBCSV_MSG_ASYNC_UPDATE,
+	AVD_COLD_SYNC_REQ_RCVD,
+	AVD_MBCSV_MSG_COLD_SYNC_RESP,
+	AVD_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
+	AVD_MBCSV_MSG_WARM_SYNC_REQ,
+	AVD_MBCSV_MSG_WARM_SYNC_RESP,
+	AVD_MBCSV_MSG_WARM_SYNC_RESP_COMPLETE,
+	AVD_MBCSV_MSG_DATA_REQ,
+	AVD_MBCSV_MSG_DATA_RESP,
+	AVD_MBCSV_MSG_DATA_RESP_COMPLETE,
+	AVD_MBCSV_ERROR_IND,
+	/* Some failure events now */
+	AVD_MBCSV_MSG_WARM_SYNC_RESP_FAILURE,
+	AVD_MBCSV_MSG_DATA_RSP_DECODE_FAILURE,
+	AVD_MBCSV_MSG_DISPATCH_FAILURE,
+	AVD_STBY_UNAVAIL_FOR_RCHG,
+	AVD_ROLE_CHANGE_FAILURE,
+	AVD_HB_MSG_SND_FAILURE,
 
-   /* AVD HB loss event */
-   AVD_HB_MISS_WITH_PEER,
+	/* AVD HB loss event */
+	AVD_HB_MISS_WITH_PEER,
 
 } AVD_CKPT_FLEX;
 
 /******************************************************************************
  Logging offset inexes for traps gen.
  ******************************************************************************/
-typedef enum avd_trap_flex
-{
-   AVD_TRAP_AMF,
-   AVD_TRAP_CLM,
-   AVD_TRAP_CLUSTER,
-   AVD_TRAP_UNASSIGNED,
-   AVD_TRAP_JOINED,
-   AVD_TRAP_EXITED,
-   AVD_TRAP_RECONFIGURED,
-   AVD_TRAP_EDA_INIT_FAILED,
-   AVD_TRAP_EDA_CHNL_OPEN_FAILED,
-   AVD_TRAP_EDA_EVT_PUBLISH_FAILED,
-   AVD_TRAP_NCS_INIT_SUCCESS,
+typedef enum avd_trap_flex {
+	AVD_TRAP_AMF,
+	AVD_TRAP_CLM,
+	AVD_TRAP_CLUSTER,
+	AVD_TRAP_UNASSIGNED,
+	AVD_TRAP_JOINED,
+	AVD_TRAP_EXITED,
+	AVD_TRAP_RECONFIGURED,
+	AVD_TRAP_EDA_INIT_FAILED,
+	AVD_TRAP_EDA_CHNL_OPEN_FAILED,
+	AVD_TRAP_EDA_EVT_PUBLISH_FAILED,
+	AVD_TRAP_NCS_INIT_SUCCESS,
 
 } AVD_TRAP_FLEX;
 
 /******************************************************************************
  Logging offset inexes for oper state
  ******************************************************************************/
-typedef enum avd_oper_state_flex
-{
-   AVD_TRAP_OPER_STATE_MIN,
-   AVD_TRAP_OPER_STATE_ENABLE,
-   AVD_TRAP_OPER_STATE_DISABLE
-
+typedef enum avd_oper_state_flex {
+	AVD_TRAP_OPER_STATE_MIN,
+	AVD_TRAP_OPER_STATE_ENABLE,
+	AVD_TRAP_OPER_STATE_DISABLE
 } AVD_OPER_STATE_FLEX;
-
 
 /******************************************************************************
  Logging offset inexes for admin state
  ******************************************************************************/
-typedef enum avd_admin_state_flex
-{
-   AVD_TRAP_ADMIN_STATE_MIN,
-   AVD_TRAP_ADMIN_STATE_LOCK,
-   AVD_TRAP_ADMIN_STATE_UNLOCK,
-   AVD_TRAP_ADMIN_STATE_SHUTDOWN
+typedef enum avd_admin_state_flex {
+	AVD_TRAP_ADMIN_STATE_MIN,
+	AVD_TRAP_ADMIN_STATE_LOCK,
+	AVD_TRAP_ADMIN_STATE_UNLOCK,
+	AVD_TRAP_ADMIN_STATE_SHUTDOWN
+} AVD_ADMIN_STATE_FLEX;
 
-}AVD_ADMIN_STATE_FLEX;
+typedef enum avd_ha_state_flex {
+	AVD_TRAP_HA_NONE,
+	AVD_TRAP_HA_ACTIVE,
+	AVD_TRAP_HA_STANDBY,
+	AVD_TRAP_HA_QUIESCED,
+	AVD_TRAP_HA_QUIESCING,
 
-typedef enum avd_ha_state_flex
-{
-   AVD_TRAP_HA_NONE,
-   AVD_TRAP_HA_ACTIVE,
-   AVD_TRAP_HA_STANDBY,
-   AVD_TRAP_HA_QUIESCED,
-   AVD_TRAP_HA_QUIESCING,
-
-}AVD_HA_STATE_FLEX;
-
+} AVD_HA_STATE_FLEX;
 
 /******************************************************************************
  Logging offset indexes for shutdown failure trap
  ******************************************************************************/
 
-typedef enum avd_shutdown_failure_flex
-{
-   AVD_TRAP_NODE_ACTIVE_SYS_CTRL,
-   AVD_TRAP_SUS_SAME_SG,
-   AVD_TRAP_SG_UNSTABLE,
-}AVD_SHUTDOWN_FAILURE_FLEX;
-
+typedef enum avd_shutdown_failure_flex {
+	AVD_TRAP_NODE_ACTIVE_SYS_CTRL,
+	AVD_TRAP_SUS_SAME_SG,
+	AVD_TRAP_SG_UNSTABLE,
+} AVD_SHUTDOWN_FAILURE_FLEX;
 
 /******************************************************************************
  Logging offset indexes for canned constant strings for the ASCII SPEC
  ******************************************************************************/
 
-typedef enum avd_flex_sets
-{
-   AVD_FC_HDLN,
-   AVD_FC_MEMFAIL,
-   AVD_FC_MSG,
-   AVD_FC_EVT,
-   AVSV_FC_SEAPI,
-   AVSV_FC_MDS,
-   AVSV_FC_LOCK,
-   AVSV_FC_MBX,
-   AVSV_FC_CKPT,
-   AVD_FC_TRAP,
-   AVD_FC_OPER,
-   AVD_FC_ADMIN,
-   AVD_FC_SUSI_HA,
-   AVD_FC_PXY_PXD,
-   AVD_FC_SHUTDOWN_FAILURE,
-   AVD_FC_GENLOG,
-}AVD_FLEX_SETS;
+typedef enum avd_flex_sets {
+	AVD_FC_HDLN,
+	AVD_FC_MEMFAIL,
+	AVD_FC_MSG,
+	AVD_FC_EVT,
+	AVSV_FC_SEAPI,
+	AVSV_FC_MDS,
+	AVSV_FC_LOCK,
+	AVSV_FC_MBX,
+	AVSV_FC_CKPT,
+	AVD_FC_TRAP,
+	AVD_FC_OPER,
+	AVD_FC_ADMIN,
+	AVD_FC_SUSI_HA,
+	AVD_FC_PXY_PXD,
+	AVD_FC_SHUTDOWN_FAILURE,
+	AVD_FC_GENLOG,
+} AVD_FLEX_SETS;
 
-typedef enum avd_log_ids
-{
-   AVD_LID_HDLN,
-   AVD_LID_HDLN_VAL,
-   AVD_LID_HDLN_VAL_NAME,   
-   AVD_LID_MEMFAIL,
-   AVD_LID_MEMFAIL_LOC,
-   AVD_LID_MSG_INFO,
-   AVD_LID_MSG_DND_DTL,
-   AVD_LID_FUNC_RETVAL,
-   AVD_LID_EVT_VAL,
-   AVD_LID_EVT_CKPT,
-   AVD_LID_ADMIN,
-   AVD_LID_SI_UNASSIGN,
-   AVD_LID_OPER,
-   AVD_LID_SUSI_HA,
-   AVD_LID_CLM,
-   AVD_LID_TRAP_EVT,
-   AVD_LID_TRAP_NCS_SUCC,
-   AVD_LID_SUSI_HA_CHG_START,
-   AVD_LID_HDLN_SVAL,
-   AVD_PXY_PXD,
-   AVD_LID_SHUTDOWN_FAILURE,
-   AVD_LID_GENLOG,
+typedef enum avd_log_ids {
+	AVD_LID_HDLN,
+	AVD_LID_HDLN_VAL,
+	AVD_LID_HDLN_VAL_NAME,
+	AVD_LID_MEMFAIL,
+	AVD_LID_MEMFAIL_LOC,
+	AVD_LID_MSG_INFO,
+	AVD_LID_MSG_DND_DTL,
+	AVD_LID_FUNC_RETVAL,
+	AVD_LID_EVT_VAL,
+	AVD_LID_EVT_CKPT,
+	AVD_LID_ADMIN,
+	AVD_LID_SI_UNASSIGN,
+	AVD_LID_OPER,
+	AVD_LID_SUSI_HA,
+	AVD_LID_CLM,
+	AVD_LID_TRAP_EVT,
+	AVD_LID_TRAP_NCS_SUCC,
+	AVD_LID_SUSI_HA_CHG_START,
+	AVD_LID_HDLN_SVAL,
+	AVD_PXY_PXD,
+	AVD_LID_SHUTDOWN_FAILURE,
+	AVD_LID_GENLOG,
 } AVD_LOG_IDS;
-
-
 
 #if (NCS_AVD_LOG == 1)
 
@@ -418,8 +392,7 @@ typedef enum avd_log_ids
 
 #define m_AVD_LOG_SHUTDOWN_FAILURE_TRAP(node_name, errcode) \
         avd_log_shutdown_failure(node_name, NCSFL_SEV_NOTICE, errcode)
-
-#else /* (NCS_AVD_LOG == 1) */
+#else				/* (NCS_AVD_LOG == 1) */
 #define m_AVD_LOG_FUNC_ENTRY(func_name)
 #define m_AVD_LOG_INVALID_VAL_ERROR(data)
 #define m_AVD_LOG_INVALID_VAL_FATAL(data)
@@ -437,9 +410,9 @@ typedef enum avd_log_ids
 #define m_AVD_LOG_MDS_CRITICAL(func)
 #define m_AVD_LOG_MDS_SUCC(func)
 #define m_AVD_LOG_LOCK_ERROR(func)
-#define m_AVD_PXY_PXD_SUCC_LOG(info,comp,info1,info2,info3,info4) 
-#define m_AVND_PXY_PXD_ERR_LOG(info,comp,info1,info2,info3,info4) 
-#define m_AVND_PXY_PXD_ENTRY_LOG(info,comp,info1,info2,info3,info4) 
+#define m_AVD_PXY_PXD_SUCC_LOG(info,comp,info1,info2,info3,info4)
+#define m_AVND_PXY_PXD_ERR_LOG(info,comp,info1,info2,info3,info4)
+#define m_AVND_PXY_PXD_ENTRY_LOG(info,comp,info1,info2,info3,info4)
 #define m_AVD_LOG_LOCK_SUCC(func)
 #define m_AVD_LOG_MBX_ERROR(func)
 #define m_AVD_LOG_MBX_SUCC(func)
@@ -460,37 +433,31 @@ typedef enum avd_log_ids
 #define m_AVD_LOG_TRAP_EVT(evt, err)
 #define m_AVD_LOG_NCS_INIT_TRAP(node_id)
 #define m_AVD_LOG_SHUTDOWN_FAILURE_TRAP(node_name, errcode)
-
-#endif /* (NCS_AVD_LOG == 1) */
+#endif   /* (NCS_AVD_LOG == 1) */
 
 #if (NCS_AVD_LOG == 1)
 /* registers the AVD logging with FLA. */
 EXTERN_C void avd_flx_log_reg(void);
 /* unregisters the AVD logging with FLA. */
 EXTERN_C void avd_flx_log_dereg(void);
-#endif /* (NCS_AVD_LOG == 1) */
+#endif   /* (NCS_AVD_LOG == 1) */
 
-EXTERN_C void avd_log_shutdown_failure (SaNameT *node_name_net, uns8 sev,
-                               AVD_SHUTDOWN_FAILURE_FLEX errcode);
+EXTERN_C void avd_log_shutdown_failure(SaNameT *node_name_net, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode);
 
-EXTERN_C void  avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state,
-                                SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void  avd_log_si_unassigned_trap(AVD_TRAP_FLEX state,
-                                SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_si_unassigned_trap(AVD_TRAP_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void  avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state,
-                               SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void  avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op,
-                               SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_susi_ha_traps (AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
-                               SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
+EXTERN_C void avd_log_susi_ha_traps(AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
+				    SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
 void avd_pxy_pxd_log(uns32 sev, uns32 index, uns8 *info, SaNameT *comp_name,
-                     uns32   info1, uns32   info2, uns32   info3, uns32   info4);
+		     uns32 info1, uns32 info2, uns32 info3, uns32 info4);
 
-extern void _avd_log(uns8 severity, const char* function, const char *format, ...);
-extern void _avd_trace(const char* file, unsigned int line, const char *format, ...);
+extern void _avd_log(uns8 severity, const char *function, const char *format, ...);
+extern void _avd_trace(const char *file, unsigned int line, const char *format, ...);
 
-#endif /* AVD_DBLOG_H */
+#endif   /* AVD_DBLOG_H */

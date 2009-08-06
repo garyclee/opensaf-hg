@@ -25,7 +25,6 @@ DESCRIPTION:
 ******************************************************************************
 */
 
- 
 #ifndef FMA_FM_INTF_H
 #define FMA_FM_INTF_H
 
@@ -39,57 +38,45 @@ DESCRIPTION:
    (((msg_fmt_version) > (msg_fmt_array)[(rem_ver_max) - (rem_ver_min)])?\
    0:(((msg_fmt_version) < (msg_fmt_array)[0])?0:1))
 
-
-typedef enum
-{
-   /* following three sent by AVM to FM */
-   FMA_FM_EVT_HB_LOSS,
-   FMA_FM_EVT_HB_RESTORE,
-   FMA_FM_EVT_CAN_SMH_SW,
-   /* sent by AVM to FM and vice-versa */
-   FMA_FM_EVT_NODE_RESET_IND,
-   /* sent by FM to AVM */
-   FMA_FM_EVT_SYSMAN_SWITCH_REQ,
-   FMA_FM_EVT_SMH_SW_RESP,
-   /* Request type MAX */
-   FMA_FM_EVT_MAX
+typedef enum {
+	/* following three sent by AVM to FM */
+	FMA_FM_EVT_HB_LOSS,
+	FMA_FM_EVT_HB_RESTORE,
+	FMA_FM_EVT_CAN_SMH_SW,
+	/* sent by AVM to FM and vice-versa */
+	FMA_FM_EVT_NODE_RESET_IND,
+	/* sent by FM to AVM */
+	FMA_FM_EVT_SYSMAN_SWITCH_REQ,
+	FMA_FM_EVT_SMH_SW_RESP,
+	/* Request type MAX */
+	FMA_FM_EVT_MAX
 } FMA_FM_MSG_TYPE;
 
-
-typedef enum
-{
-   FMA_FM_SMH_CAN_SW,
-   FMA_FM_SMH_CANNOT_SW
+typedef enum {
+	FMA_FM_SMH_CAN_SW,
+	FMA_FM_SMH_CANNOT_SW
 } FMA_FM_SMH_SW_RESP;
 
-
-typedef struct
-{
-   uns8 slot;
-   uns8 site;
+typedef struct {
+	uns8 slot;
+	uns8 site;
 } FMA_FM_PHY_ADDR;
 
-
-typedef struct fma_fm_msg
-{
-   FMA_FM_MSG_TYPE msg_type;
-   union
-   {
-      FMA_FM_SMH_SW_RESP response;
-      FMA_FM_PHY_ADDR    phy_addr;
-   } info;
+typedef struct fma_fm_msg {
+	FMA_FM_MSG_TYPE msg_type;
+	union {
+		FMA_FM_SMH_SW_RESP response;
+		FMA_FM_PHY_ADDR phy_addr;
+	} info;
 } FMA_FM_MSG;
 
-
-typedef struct fma_mbx_evt
-{
-   MDS_DEST   fr_dest;
-   FMA_FM_MSG *msg;
+typedef struct fma_mbx_evt {
+	MDS_DEST fr_dest;
+	FMA_FM_MSG *msg;
 } FMA_MBX_EVT_T;
 
 #define FMA_MBX_EVT_NULL ((FMA_MBX_EVT_T *)0)
 #define FMA_FM_MSG_NULL  ((FMA_FM_MSG *)0)
-
 
 #define FMA_FM_MEM_SUB_ID  1
 
@@ -103,14 +90,11 @@ typedef struct fma_mbx_evt
                                               NCS_SERVICE_ID_FMA_GFM, \
                                               FMA_FM_MEM_SUB_ID)
 
-
 /*****************************************************************************
                        Extern Function Declarations
 *****************************************************************************/
-EXTERN_C  uns32 fma_fm_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info);
-EXTERN_C  uns32 fma_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
-EXTERN_C  uns32 fma_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
+EXTERN_C uns32 fma_fm_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info);
+EXTERN_C uns32 fma_fm_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info);
+EXTERN_C uns32 fma_fm_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info);
 
 #endif
-
-

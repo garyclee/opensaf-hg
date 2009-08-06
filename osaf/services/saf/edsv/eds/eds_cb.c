@@ -29,7 +29,6 @@ This contains the EDS_CB functions.
 */
 #include "eds.h"
 
-
 /****************************************************************************
  * Name          : eds_cb_init
  *
@@ -43,36 +42,35 @@ This contains the EDS_CB functions.
  *
  * Notes         : None.
  *****************************************************************************/
-uns32
-eds_cb_init(EDS_CB *eds_cb)
+uns32 eds_cb_init(EDS_CB *eds_cb)
 {
-   NCS_PATRICIA_PARAMS     reg_param, cname_param ;
-   
-   memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
-   memset(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	NCS_PATRICIA_PARAMS reg_param, cname_param;
 
-   reg_param.key_size = sizeof(uns32);
-   cname_param.key_size = sizeof(SaNameT);
+	memset(&reg_param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&cname_param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   /* Assign Initial HA state */
-   eds_cb->ha_state = EDS_HA_INIT_STATE;
-   eds_cb->csi_assigned = FALSE; 
-   eds_cb->cluster_node_list = NULL;
-   /* Assign Version. Currently, hardcoded, This will change later */
-   m_GET_MY_VERSION(eds_cb->eds_version);
+	reg_param.key_size = sizeof(uns32);
+	cname_param.key_size = sizeof(SaNameT);
 
-   /* Initialize default mib variables */
-   eds_init_mib_objects(eds_cb);
+	/* Assign Initial HA state */
+	eds_cb->ha_state = EDS_HA_INIT_STATE;
+	eds_cb->csi_assigned = FALSE;
+	eds_cb->cluster_node_list = NULL;
+	/* Assign Version. Currently, hardcoded, This will change later */
+	m_GET_MY_VERSION(eds_cb->eds_version);
 
-   /* Initialize patricia tree for reg list*/
-   if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param))
-      return NCSCC_RC_FAILURE;
-   
-   /* Initialize patricia tree for channel name list*/
-   if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param))
-      return NCSCC_RC_FAILURE;
-   
-   return NCSCC_RC_SUCCESS;
+	/* Initialize default mib variables */
+	eds_init_mib_objects(eds_cb);
+
+	/* Initialize patricia tree for reg list */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eda_reg_list, &reg_param))
+		return NCSCC_RC_FAILURE;
+
+	/* Initialize patricia tree for channel name list */
+	if (NCSCC_RC_SUCCESS != ncs_patricia_tree_init(&eds_cb->eds_cname_list, &cname_param))
+		return NCSCC_RC_FAILURE;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -88,14 +86,13 @@ eds_cb_init(EDS_CB *eds_cb)
  *
  * Notes         : None.
  *****************************************************************************/
-void 
-eds_cb_destroy(EDS_CB *eds_cb)
+void eds_cb_destroy(EDS_CB *eds_cb)
 {
-   ncs_patricia_tree_destroy(&eds_cb->eda_reg_list);
-   /* Check if other lists are deleted as well */
-   ncs_patricia_tree_destroy(&eds_cb->eds_cname_list);
-   
-   return;
+	ncs_patricia_tree_destroy(&eds_cb->eda_reg_list);
+	/* Check if other lists are deleted as well */
+	ncs_patricia_tree_destroy(&eds_cb->eds_cname_list);
+
+	return;
 }
 
 /****************************************************************************
@@ -112,18 +109,18 @@ eds_cb_destroy(EDS_CB *eds_cb)
  *****************************************************************************/
 void eds_init_mib_objects(EDS_CB *cb)
 {
-   strcpy(cb->scalar_objects.version.value,"B.03.01");
-   cb->scalar_objects.version.length=strlen("B.03.01");
-   m_GET_MY_VENDOR(cb->scalar_objects.vendor);
-   cb->scalar_objects.prod_rev=2;
-   cb->scalar_objects.svc_status=FALSE;
-   cb->scalar_objects.svc_state=STARTING_UP;
-   cb->scalar_objects.num_patterns=EDS_MAX_NUM_PATTERNS;
-   cb->scalar_objects.max_pattern_size=EDS_MAX_PATTERN_SIZE;
-   cb->scalar_objects.max_data_size=EDS_MAX_EVENT_DATA_SIZE;
-   cb->scalar_objects.max_filter_num=EDS_MAX_NUM_FILTERS;
-   cb->scalar_objects.max_filter_size=EDS_MAX_FILTER_SIZE;
-   cb->scalar_objects.num_channels=0;
+	strcpy(cb->scalar_objects.version.value, "B.03.01");
+	cb->scalar_objects.version.length = strlen("B.03.01");
+	m_GET_MY_VENDOR(cb->scalar_objects.vendor);
+	cb->scalar_objects.prod_rev = 2;
+	cb->scalar_objects.svc_status = FALSE;
+	cb->scalar_objects.svc_state = STARTING_UP;
+	cb->scalar_objects.num_patterns = EDS_MAX_NUM_PATTERNS;
+	cb->scalar_objects.max_pattern_size = EDS_MAX_PATTERN_SIZE;
+	cb->scalar_objects.max_data_size = EDS_MAX_EVENT_DATA_SIZE;
+	cb->scalar_objects.max_filter_num = EDS_MAX_NUM_FILTERS;
+	cb->scalar_objects.max_filter_size = EDS_MAX_FILTER_SIZE;
+	cb->scalar_objects.num_channels = 0;
 }
 
 /****************************************************************************
@@ -139,28 +136,23 @@ void eds_init_mib_objects(EDS_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-static void
-eds_process_mbx(SYSF_MBX *mbx)
+static void eds_process_mbx(SYSF_MBX *mbx)
 {
-   EDSV_EDS_EVT *evt = NULL;
+	EDSV_EDS_EVT *evt = NULL;
 
-   evt = (EDSV_EDS_EVT *) m_NCS_IPC_NON_BLK_RECEIVE(mbx,evt) ;
-   if(evt != NULL)
-   {
-       if  ((evt->evt_type >= EDSV_EDS_EVT_BASE) &&
-            (evt->evt_type < EDSV_EDS_EVT_MAX))
-      {
-            /* This event belongs to EDS main event dispatcher */
-           eds_process_evt(evt);
-      } 
-      else
-      {
-          /* Free the event */
-          m_LOG_EDSV_S(EDS_EVT_UNKNOWN,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,evt->evt_type,__FILE__,__LINE__,0);
-          eds_evt_destroy(evt);
-       }
-   }
-      return;
+	evt = (EDSV_EDS_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt);
+	if (evt != NULL) {
+		if ((evt->evt_type >= EDSV_EDS_EVT_BASE) && (evt->evt_type < EDSV_EDS_EVT_MAX)) {
+			/* This event belongs to EDS main event dispatcher */
+			eds_process_evt(evt);
+		} else {
+			/* Free the event */
+			m_LOG_EDSV_S(EDS_EVT_UNKNOWN, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, evt->evt_type, __FILE__,
+				     __LINE__, 0);
+			eds_evt_destroy(evt);
+		}
+	}
+	return;
 }
 
 /****************************************************************************
@@ -179,166 +171,152 @@ eds_process_mbx(SYSF_MBX *mbx)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-eds_main_process(SYSF_MBX *mbx)
+void eds_main_process(SYSF_MBX *mbx)
 {
-   EDS_CB              *eds_cb = NULL;
-   NCS_SEL_OBJ_SET     all_sel_obj;
-   NCS_SEL_OBJ         mbx_fd, amf_ncs_sel_obj, mbcsv_sel_obj , clm_ncs_sel_obj, numfds;
-   SaAisErrorT         error = SA_AIS_OK;
-   uns32               status;
-   int                 count = 0;
+	EDS_CB *eds_cb = NULL;
+	NCS_SEL_OBJ_SET all_sel_obj;
+	NCS_SEL_OBJ mbx_fd, amf_ncs_sel_obj, mbcsv_sel_obj, clm_ncs_sel_obj, numfds;
+	SaAisErrorT error = SA_AIS_OK;
+	uns32 status;
+	int count = 0;
 
-   if (NULL == (eds_cb = (EDS_CB*) ncshm_take_hdl(NCS_SERVICE_ID_EDS,gl_eds_hdl)))
-   {
-       m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,0,__FILE__,__LINE__,0);
-      return;
-   }
-   
-   /* Set the ServiceState MIB object */
-   eds_cb->scalar_objects.svc_state=RUNNING;
-   mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&eds_cb->mbx);
+	if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
+		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
+		return;
+	}
 
-   /* Give back the handle */
-   ncshm_give_hdl(gl_eds_hdl);
+	/* Set the ServiceState MIB object */
+	eds_cb->scalar_objects.svc_state = RUNNING;
+	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&eds_cb->mbx);
 
-   /* Zero the SelectionObjects */
-   amf_ncs_sel_obj.raise_obj=0;
-   amf_ncs_sel_obj.rmv_obj=0;
+	/* Give back the handle */
+	ncshm_give_hdl(gl_eds_hdl);
 
-   clm_ncs_sel_obj.raise_obj=0;
-   clm_ncs_sel_obj.rmv_obj=0;
- 
-   /* Set the fd for mbcsv events */
-   m_SET_FD_IN_SEL_OBJ(eds_cb->mbcsv_sel_obj, mbcsv_sel_obj);
-   
-   while(1)
-   {
-      /* re-intialize the FDs and count */
-      numfds.raise_obj = 0;
-      numfds.rmv_obj = 0;
-      m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+	/* Zero the SelectionObjects */
+	amf_ncs_sel_obj.raise_obj = 0;
+	amf_ncs_sel_obj.rmv_obj = 0;
 
-      /* Get the selection object from the MBX */
-      /* Set the fd for internal events */
-      m_NCS_SEL_OBJ_SET(mbx_fd,&all_sel_obj);
-      numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
-      
-      /* Set the fd for amf events */
-      if(eds_cb->amfSelectionObject != 0)
-      {
-         m_SET_FD_IN_SEL_OBJ(eds_cb->amfSelectionObject, amf_ncs_sel_obj);
-         m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-         numfds = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, numfds);
-      }
-  
-      /* Set the fd for CLM events */
-      if(eds_cb->clm_sel_obj != 0)
-      {
-         m_SET_FD_IN_SEL_OBJ(eds_cb->clm_sel_obj, clm_ncs_sel_obj);
-         m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
-         numfds = m_GET_HIGHER_SEL_OBJ(clm_ncs_sel_obj, numfds);
-      }
-       
-      /* Add signal hdlr selection obj to readfds */
-      if (eds_cb->sighdlr_sel_obj.rmv_obj != 0)
-      {
-         m_NCS_SEL_OBJ_SET(eds_cb->sighdlr_sel_obj , &all_sel_obj);
-         numfds = m_GET_HIGHER_SEL_OBJ(eds_cb->sighdlr_sel_obj, numfds);
-      }
-       
-       /* set the MBCSv selection object */ 
-       m_NCS_SEL_OBJ_SET(mbcsv_sel_obj, &all_sel_obj);
-       numfds = m_GET_HIGHER_SEL_OBJ(mbcsv_sel_obj, numfds);
+	clm_ncs_sel_obj.raise_obj = 0;
+	clm_ncs_sel_obj.rmv_obj = 0;
+
+	/* Set the fd for mbcsv events */
+	m_SET_FD_IN_SEL_OBJ(eds_cb->mbcsv_sel_obj, mbcsv_sel_obj);
+
+	while (1) {
+		/* re-intialize the FDs and count */
+		numfds.raise_obj = 0;
+		numfds.rmv_obj = 0;
+		m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+
+		/* Get the selection object from the MBX */
+		/* Set the fd for internal events */
+		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
+		numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
+
+		/* Set the fd for amf events */
+		if (eds_cb->amfSelectionObject != 0) {
+			m_SET_FD_IN_SEL_OBJ(eds_cb->amfSelectionObject, amf_ncs_sel_obj);
+			m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
+			numfds = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, numfds);
+		}
+
+		/* Set the fd for CLM events */
+		if (eds_cb->clm_sel_obj != 0) {
+			m_SET_FD_IN_SEL_OBJ(eds_cb->clm_sel_obj, clm_ncs_sel_obj);
+			m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+			numfds = m_GET_HIGHER_SEL_OBJ(clm_ncs_sel_obj, numfds);
+		}
+
+		/* Add signal hdlr selection obj to readfds */
+		if (eds_cb->sighdlr_sel_obj.rmv_obj != 0) {
+			m_NCS_SEL_OBJ_SET(eds_cb->sighdlr_sel_obj, &all_sel_obj);
+			numfds = m_GET_HIGHER_SEL_OBJ(eds_cb->sighdlr_sel_obj, numfds);
+		}
+
+		/* set the MBCSv selection object */
+		m_NCS_SEL_OBJ_SET(mbcsv_sel_obj, &all_sel_obj);
+		numfds = m_GET_HIGHER_SEL_OBJ(mbcsv_sel_obj, numfds);
 
       /** EDS thread main processing loop.
        **/
-      count = m_NCS_SEL_OBJ_SELECT(numfds, &all_sel_obj,0,0,0); 
-      if(count > 0)
-      {
-        m_EDSV_DEBUG_CONS_PRINTF(" SELECT RETURNED\n");
-        /* Signal handler FD is selected*/
-        if(m_NCS_SEL_OBJ_ISSET(eds_cb->sighdlr_sel_obj, &all_sel_obj))
-        {
-            printf(" EDS got SIGUSR1 signal \n");
-            status = eds_amf_register(eds_cb);
-            if(status != NCSCC_RC_SUCCESS)
-            { 
-               m_LOG_EDSV_S(EDS_AMF_REG_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,status,__FILE__,__LINE__,0);
-               printf("eds_main_process : eds_amf_register()- AMF Registration FAILED \n");
-            }
-            else
-            {
-               m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,status,__FILE__,__LINE__,0);
-               printf("eds_main_process: AMF Registration SUCCESS...... \n");
-            }
-            m_NCS_SEL_OBJ_RMV_IND(eds_cb->sighdlr_sel_obj, TRUE, TRUE);
-            m_NCS_SEL_OBJ_CLR(eds_cb->sighdlr_sel_obj, &all_sel_obj);
-            m_NCS_SEL_OBJ_DESTROY(eds_cb->sighdlr_sel_obj);
-            eds_cb->sighdlr_sel_obj.raise_obj = 0;
-            eds_cb->sighdlr_sel_obj.rmv_obj = 0;/* Check whether this is needed or not */
+		count = m_NCS_SEL_OBJ_SELECT(numfds, &all_sel_obj, 0, 0, 0);
+		if (count > 0) {
+			m_EDSV_DEBUG_CONS_PRINTF(" SELECT RETURNED\n");
+			/* Signal handler FD is selected */
+			if (m_NCS_SEL_OBJ_ISSET(eds_cb->sighdlr_sel_obj, &all_sel_obj)) {
+				printf(" EDS got SIGUSR1 signal \n");
+				status = eds_amf_register(eds_cb);
+				if (status != NCSCC_RC_SUCCESS) {
+					m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, status,
+						     __FILE__, __LINE__, 0);
+					printf("eds_main_process : eds_amf_register()- AMF Registration FAILED \n");
+				} else {
+					m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, status,
+						     __FILE__, __LINE__, 0);
+					printf("eds_main_process: AMF Registration SUCCESS...... \n");
+				}
+				m_NCS_SEL_OBJ_RMV_IND(eds_cb->sighdlr_sel_obj, TRUE, TRUE);
+				m_NCS_SEL_OBJ_CLR(eds_cb->sighdlr_sel_obj, &all_sel_obj);
+				m_NCS_SEL_OBJ_DESTROY(eds_cb->sighdlr_sel_obj);
+				eds_cb->sighdlr_sel_obj.raise_obj = 0;
+				eds_cb->sighdlr_sel_obj.rmv_obj = 0;	/* Check whether this is needed or not */
 
-           /* Register for CLM services */
-           status = eds_clm_init(eds_cb);
-           if (status != SA_AIS_OK)
-               m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,status,__FILE__,__LINE__,0);
-           else
-               m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS,NCSFL_LC_EDSV_INIT,NCSFL_SEV_NOTICE,status,__FILE__,__LINE__,0);
-        }
- 
-        /* process all the AMF messages */
-        if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj,&all_sel_obj))
-        {
-           m_EDSV_DEBUG_CONS_PRINTF("AMF EVENT HAS OCCURRED....\n");
-           /* dispatch all the AMF pending function */
-           error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
-           if (error != SA_AIS_OK)
-           {
-              m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE,NCSFL_LC_EDSV_INIT,NCSFL_SEV_ERROR,error,__FILE__,__LINE__,0);
-           }
-        }
-        /* process all mbcsv messages */
-        if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj,&all_sel_obj))
-        {
-           m_EDSV_DEBUG_CONS_PRINTF("MBCSV EVENT HAS OCCURRED....\n");
-           error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
-           if(NCSCC_RC_SUCCESS != error)
-              m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH FAILED...\n");
-           else
-              m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH SUCCESS...\n");
+				/* Register for CLM services */
+				status = eds_clm_init(eds_cb);
+				if (status != SA_AIS_OK)
+					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
+						     status, __FILE__, __LINE__, 0);
+				else
+					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
+						     status, __FILE__, __LINE__, 0);
+			}
+
+			/* process all the AMF messages */
+			if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj)) {
+				m_EDSV_DEBUG_CONS_PRINTF("AMF EVENT HAS OCCURRED....\n");
+				/* dispatch all the AMF pending function */
+				error = saAmfDispatch(eds_cb->amf_hdl, SA_DISPATCH_ALL);
+				if (error != SA_AIS_OK) {
+					m_LOG_EDSV_S(EDS_AMF_DISPATCH_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
+						     error, __FILE__, __LINE__, 0);
+				}
+			}
+			/* process all mbcsv messages */
+			if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj, &all_sel_obj)) {
+				m_EDSV_DEBUG_CONS_PRINTF("MBCSV EVENT HAS OCCURRED....\n");
+				error = eds_mbcsv_dispatch(eds_cb->mbcsv_hdl);
+				if (NCSCC_RC_SUCCESS != error)
+					m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH FAILED...\n");
+				else
+					m_EDSV_DEBUG_CONS_PRINTF("MBCSV DISPATCH SUCCESS...\n");
 /*           mbcsv_prt_inv(); */
-           m_NCS_SEL_OBJ_CLR(mbcsv_sel_obj,&all_sel_obj);
-        }
+				m_NCS_SEL_OBJ_CLR(mbcsv_sel_obj, &all_sel_obj);
+			}
 
-        /* Process the EDS Mail box, if eds is ACTIVE. */
-         if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj))
-         {
-             m_EDSV_DEBUG_CONS_PRINTF("MAILBOX EVENT HAS OCCURRED....\n");
-             /* now got the IPC mail box event */
-             eds_process_mbx(mbx);
-         }
-        
-        /* process the CLM messages */
-        if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj,&all_sel_obj))
-        {
-           m_EDSV_DEBUG_CONS_PRINTF("CLM EVENT HAS OCCURRED....\n");
-           /* dispatch all the AMF pending function */
-           error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
-           if (error != SA_AIS_OK)
-              printf("CLM Dispatch failed, error \n");
-              /* Log it */
-        }
-         /*eds_dump_reglist();
-          eds_dump_worklist();*/
-         
-      }/*End of If */
-      else
-      {
-         printf("eds_main_process: select FAILED ......\n");
-      } 
-    }
+			/* Process the EDS Mail box, if eds is ACTIVE. */
+			if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj)) {
+				m_EDSV_DEBUG_CONS_PRINTF("MAILBOX EVENT HAS OCCURRED....\n");
+				/* now got the IPC mail box event */
+				eds_process_mbx(mbx);
+			}
 
-   return;
-} /* End eds_main_process() */
+			/* process the CLM messages */
+			if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj, &all_sel_obj)) {
+				m_EDSV_DEBUG_CONS_PRINTF("CLM EVENT HAS OCCURRED....\n");
+				/* dispatch all the AMF pending function */
+				error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
+				if (error != SA_AIS_OK)
+					printf("CLM Dispatch failed, error \n");
+				/* Log it */
+			}
+			/*eds_dump_reglist();
+			   eds_dump_worklist(); */
 
+		} /*End of If */
+		else {
+			printf("eds_main_process: select FAILED ......\n");
+		}
+	}
 
+	return;
+}	/* End eds_main_process() */

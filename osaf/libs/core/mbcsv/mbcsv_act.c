@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -73,13 +70,12 @@
 
 *****************************************************************************/
 
-void ncs_mbcsv_null_func( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_null_func(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl, "Illegal Dispatch Event:");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Illegal Dispatch Event:");
 }
-
 
 /*****************************************************************************
 
@@ -96,19 +92,15 @@ void ncs_mbcsv_null_func( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_send_async_update( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_async_update(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "ASYNC UPDATE to be sent"); /* added for testing */
-   
-   peer->okay_to_async_updt = TRUE;
-   
-   /* Handle the case: multiple peers for this primary PEER_INST */
-}
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl, "ASYNC UPDATE to be sent");	/* added for testing */
 
+	peer->okay_to_async_updt = TRUE;
+
+	/* Handle the case: multiple peers for this primary PEER_INST */
+}
 
 /*****************************************************************************
 *
@@ -128,11 +120,11 @@ void ncs_mbcsv_send_async_update( PEER_INST *peer, MBCSV_EVT *evt)
 *****************************************************************************/
 void ncs_mbcsv_send_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Cold Sync Response complete sent.");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Cold Sync Response complete sent.");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_RESP_COMPLETE);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_RESP_COMPLETE);
 }
 
 /*****************************************************************************
@@ -152,15 +144,14 @@ void ncs_mbcsv_send_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 *
 *
 *****************************************************************************/
-void ncs_mbcsv_send_warm_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Warm Sync Response Complete sent.");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Warm Sync Response Complete sent.");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_RESP_COMPLETE);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_RESP_COMPLETE);
 }
-
 
 /*****************************************************************************
 *
@@ -179,13 +170,13 @@ void ncs_mbcsv_send_warm_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
 *
 *
 *****************************************************************************/
-void ncs_mbcsv_send_warm_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Warm Sync Response sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Warm Sync Response sent");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_RESP);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_RESP);
 }
 
 /*****************************************************************************\
@@ -205,15 +196,14 @@ void ncs_mbcsv_send_warm_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
 *
 *
 \*****************************************************************************/
-void ncs_mbcsv_send_data_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_data_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Data Response sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Data Response sent");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_RESP);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_RESP);
 }
-
 
 /*****************************************************************************
 *
@@ -231,13 +221,13 @@ void ncs_mbcsv_send_data_resp( PEER_INST *peer, MBCSV_EVT *evt)
 *
 *
 *****************************************************************************/
-void ncs_mbcsv_send_data_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Data Response Complete sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Data Response Complete sent");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_RESP_COMPLETE);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_RESP_COMPLETE);
 }
 
 /*****************************************************************************
@@ -254,26 +244,22 @@ void ncs_mbcsv_send_data_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_send_data_req( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_data_req(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Data Request sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl, "Data Request sent");
 
-   /* Change state to wait for data response */
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_WAIT_FOR_DATA_RESP); 
-   
-   /* Start the data resp cmplt timer */
-   ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT);
-   
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_REQ);
+	/* Change state to wait for data response */
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_WAIT_FOR_DATA_RESP);
 
-   peer->my_ckpt_inst->data_req_sent = TRUE;
+	/* Start the data resp cmplt timer */
+	ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT);
+
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_DATA_REQ);
+
+	peer->my_ckpt_inst->data_req_sent = TRUE;
 }
-
-
 
 /*****************************************************************************
 
@@ -290,18 +276,15 @@ void ncs_mbcsv_send_data_req( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_send_cold_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_cold_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Cold Sync Request sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Cold Sync Request sent");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_REQ);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_REQ);
 }
-
-
 
 /*****************************************************************************
 
@@ -318,17 +301,15 @@ void ncs_mbcsv_send_cold_sync( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_send_cold_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Cold Sync Response sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Cold Sync Response sent");
 
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_RESP);
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_COLD_SYNC_RESP);
 }
-
 
 /*****************************************************************************
 
@@ -345,18 +326,17 @@ void ncs_mbcsv_send_cold_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_send_warm_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_warm_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
-      peer->my_ckpt_inst->pwe_hdl,  "Warm Sync Request sent");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "Warm Sync Request sent");
 
-   /* Change state to verify warm sync data - since we have it all now */
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_WAIT_TO_WARM_SYNC); 
-   
-   mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_REQ);
+	/* Change state to verify warm sync data - since we have it all now */
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_WAIT_TO_WARM_SYNC);
+
+	mbcsv_send_msg(peer, evt, NCSMBCSV_EVENT_WARM_SYNC_REQ);
 }
 
 /*****************************************************************************
@@ -378,58 +358,49 @@ void ncs_mbcsv_send_warm_sync( PEER_INST *peer, MBCSV_EVT *evt)
 
 *****************************************************************************/
 
-uns32 ncs_mbscv_rcv_decode(PEER_INST* peer, MBCSV_EVT* evt)
+uns32 ncs_mbscv_rcv_decode(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   NCS_MBCSV_CB_ARG parg;
-   uns32 status = NCSCC_RC_FAILURE;
-   MBCSV_REG  *mbc_inst = peer->my_ckpt_inst->my_mbcsv_inst;
+	NCS_MBCSV_CB_ARG parg;
+	uns32 status = NCSCC_RC_FAILURE;
+	MBCSV_REG *mbc_inst = peer->my_ckpt_inst->my_mbcsv_inst;
 
-   parg.i_client_hdl = peer->my_ckpt_inst->client_hdl;
-   parg.i_ckpt_hdl   = peer->my_ckpt_inst->ckpt_hdl;
+	parg.i_client_hdl = peer->my_ckpt_inst->client_hdl;
+	parg.i_ckpt_hdl = peer->my_ckpt_inst->ckpt_hdl;
 
-   if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type)
-   {
-      parg.i_op  = NCS_MBCSV_CBOP_NOTIFY;
-      parg.info.notify.i_uba = evt->info.peer_msg.info.client_msg.uba;
-      parg.info.notify.i_peer_version = peer->version;
-   }
-   else
-   {
-      parg.i_op  = NCS_MBCSV_CBOP_DEC;
-      parg.info.decode.i_msg_type = evt->info.peer_msg.info.client_msg.msg_sub_type;
-      parg.info.decode.i_uba = evt->info.peer_msg.info.client_msg.uba;
-      parg.info.decode.i_msg_type = evt->info.peer_msg.info.client_msg.msg_sub_type;
-      parg.info.decode.i_peer_version = peer->version;
-      parg.info.decode.i_action  = evt->info.peer_msg.info.client_msg.action;
-      parg.info.decode.i_reo_type = evt->info.peer_msg.info.client_msg.reo_type;
-   }
+	if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type) {
+		parg.i_op = NCS_MBCSV_CBOP_NOTIFY;
+		parg.info.notify.i_uba = evt->info.peer_msg.info.client_msg.uba;
+		parg.info.notify.i_peer_version = peer->version;
+	} else {
+		parg.i_op = NCS_MBCSV_CBOP_DEC;
+		parg.info.decode.i_msg_type = evt->info.peer_msg.info.client_msg.msg_sub_type;
+		parg.info.decode.i_uba = evt->info.peer_msg.info.client_msg.uba;
+		parg.info.decode.i_msg_type = evt->info.peer_msg.info.client_msg.msg_sub_type;
+		parg.info.decode.i_peer_version = peer->version;
+		parg.info.decode.i_action = evt->info.peer_msg.info.client_msg.action;
+		parg.info.decode.i_reo_type = evt->info.peer_msg.info.client_msg.reo_type;
+	}
 
-   status = mbc_inst->mbcsv_cb_func(&parg);
-   if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type) 
-   {
-       evt->info.peer_msg.info.client_msg.uba = parg.info.notify.i_uba; 
-   }
-   else
-   {
-       evt->info.peer_msg.info.client_msg.uba = parg.info.decode.i_uba;  
-   }
+	status = mbc_inst->mbcsv_cb_func(&parg);
+	if (NCSMBCSV_EVENT_NOTIFY == evt->info.peer_msg.info.client_msg.msg_sub_type) {
+		evt->info.peer_msg.info.client_msg.uba = parg.info.notify.i_uba;
+	} else {
+		evt->info.peer_msg.info.client_msg.uba = parg.info.decode.i_uba;
+	}
 
-   if (status != NCSCC_RC_SUCCESS)
-   {
-      if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-         m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+	if (status != NCSCC_RC_SUCCESS) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
 
-      return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, 
-         "Decode event failure", mbc_inst->svc_id);
-   }
+		return m_MBCSV_DBG_SINK_SVC(NCSCC_RC_FAILURE, "Decode event failure", mbc_inst->svc_id);
+	}
 
-   /* If message is data request message then copy the data request context */
-   if (NCS_MBCSV_MSG_DATA_REQ == parg.info.decode.i_msg_type)
-   {
-      peer->req_context = parg.info.decode.o_req_context;
-   }
+	/* If message is data request message then copy the data request context */
+	if (NCS_MBCSV_MSG_DATA_REQ == parg.info.decode.i_msg_type) {
+		peer->req_context = parg.info.decode.o_req_context;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -447,31 +418,27 @@ uns32 ncs_mbscv_rcv_decode(PEER_INST* peer, MBCSV_EVT* evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_async_update( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_async_update(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, 
-      peer->my_ckpt_inst->pwe_hdl, "ASYNC UPDATE receivd by Standby");
-   
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
-   else 
-   {
-      if (evt->info.peer_msg.info.client_msg.snd_type == NCS_MBCSV_SND_SYNC)
-      {
-         /* Send response back to the sender */
-         mbcsv_send_msg(peer, evt, NCS_MBCSV_MSG_SYNC_SEND_RSP);
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id,
+			   peer->my_ckpt_inst->pwe_hdl, "ASYNC UPDATE receivd by Standby");
 
-      }
-   }
+	/* Now parse all the IEs */
 
-   /* now check for subscriptions */
-   m_MBCSV_CHK_SUBSCRIPTION(peer, 
-      evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+	else {
+		if (evt->info.peer_msg.info.client_msg.snd_type == NCS_MBCSV_SND_SYNC) {
+			/* Send response back to the sender */
+			mbcsv_send_msg(peer, evt, NCS_MBCSV_MSG_SYNC_SEND_RSP);
+
+		}
+	}
+
+	/* now check for subscriptions */
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
 }
 
 /*****************************************************************************
@@ -489,55 +456,49 @@ void ncs_mbcsv_rcv_async_update( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_cold_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_cold_sync_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Cold Sync Response received successfully by Standby");
-   
-   /* Stop the send cold sync timer */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC); 
 
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of cold sync then return without 
-    * giving decode call-back.
-    */
-   if ((peer->cold_sync_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->cold_sync_dec_fail = FALSE;
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Cold Sync Response received successfully by Standby");
 
-   /* Now parse all the IEs */
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-   {
-      peer->cold_sync_dec_fail = TRUE;
+	/* Stop the send cold sync timer */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
 
-      /* Send Cold sync req and set FSM state to wait to cold sync */
-      m_MBCSV_SEND_CLIENT_MSG(peer, 
-         NCSMBCSV_SEND_COLD_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of cold sync then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->cold_sync_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->cold_sync_dec_fail = FALSE;
 
-      ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
+	/* Now parse all the IEs */
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS) {
+		peer->cold_sync_dec_fail = TRUE;
 
-      /* When we get a cold sync response - this timer will be cancelled */
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
-      
-      /* This timer must be started whenever the cold sync is sent */
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
+		/* Send Cold sync req and set FSM state to wait to cold sync */
+		m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_COLD_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
-      return;
-   }
+		ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
 
-   /* now check for subscriptions */
-   m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+		/* When we get a cold sync response - this timer will be cancelled */
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
+
+		/* This timer must be started whenever the cold sync is sent */
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
+
+		return;
+	}
+
+	/* now check for subscriptions */
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
 }
 
 /*****************************************************************************
@@ -558,65 +519,54 @@ void ncs_mbcsv_rcv_cold_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_cold_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_cold_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Cold Sync Response complete recvd by Standby");
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of cold sync then return without 
-    * giving decode call-back.
-    */
-   if ((peer->cold_sync_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->cold_sync_dec_fail = FALSE;
-   
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);  /* Stop send cold sync timer */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT); /* Stop cold sync cplt timer */
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Cold Sync Response complete recvd by Standby");
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of cold sync then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->cold_sync_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->cold_sync_dec_fail = FALSE;
 
-   
-   /* Now parse all the IEs */
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-   {
-      /* Send Cold sync req and set FSM state to wait to cold sync */
-      m_MBCSV_SEND_CLIENT_MSG(peer, 
-         NCSMBCSV_SEND_COLD_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);	/* Stop send cold sync timer */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);	/* Stop cold sync cplt timer */
 
-      /* When we get a cold sync response - this timer will be cancelled */
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
-      
-      /* This timer must be started whenever the cold sync is sent */
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
+	/* Now parse all the IEs */
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS) {
+		/* Send Cold sync req and set FSM state to wait to cold sync */
+		m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_COLD_SYNC_REQ, NCS_MBCSV_ACT_DONT_CARE);
 
-      return;
-   }
+		/* When we get a cold sync response - this timer will be cancelled */
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_COLD_SYNC);
 
-   peer->cold_sync_done = TRUE;
+		/* This timer must be started whenever the cold sync is sent */
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_COLD_SYNC_CMPLT);
 
-   m_MBCSV_CHK_SUBSCRIPTION(peer, 
-      evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD); /* now check for subscriptions */
-   
-   /* Change state to steady_in_sync */
-   
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC); 
-   
-   /* Start the send warm sync timer --- but ONLY if warm sync is enabled */
-   
-   if ((peer->my_ckpt_inst->warm_sync_on== TRUE) && 
-      (peer->my_ckpt_inst->my_role == SA_AMF_STANDBY))
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
+		return;
+	}
+
+	peer->cold_sync_done = TRUE;
+
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);	/* now check for subscriptions */
+
+	/* Change state to steady_in_sync */
+
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC);
+
+	/* Start the send warm sync timer --- but ONLY if warm sync is enabled */
+
+	if ((peer->my_ckpt_inst->warm_sync_on == TRUE) && (peer->my_ckpt_inst->my_role == SA_AMF_STANDBY))
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
 }
-
-
 
 /*****************************************************************************
 
@@ -633,59 +583,53 @@ void ncs_mbcsv_rcv_cold_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_warm_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_warm_sync_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Warm Sync Response received by Standby");
-   
-   /* Stop the send warm sync timer */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
-   
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of warm sync then return without 
-    * giving decode call-back.
-    */
-   if ((peer->warm_sync_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->warm_sync_dec_fail = FALSE;
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Warm Sync Response received by Standby");
 
-   /* Now parse all the IEs */
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-   {
-      peer->warm_sync_dec_fail = TRUE;
+	/* Stop the send warm sync timer */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
 
-      /* Stop the warm sync response complete timer */
-      ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of warm sync then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->warm_sync_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->warm_sync_dec_fail = FALSE;
 
-      /* Set warm_sync_sent to FALSE since we have received the */
-      /* response for the warm sync request that was sent out   */
-      peer->warm_sync_sent = FALSE;
+	/* Now parse all the IEs */
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS) {
+		peer->warm_sync_dec_fail = TRUE;
 
-      /* Change state to verify warm sync data - since we have it all now */
-      m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
+		/* Stop the warm sync response complete timer */
+		ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
 
-      return;
-   }
-   
-   /* now check for subscriptions */
-   m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
-   
-   /* Set warm_sync_sent to FALSE since we have received the
-   * response for the warm sync request that was sent out */
-   
-   peer->warm_sync_sent = FALSE;
+		/* Set warm_sync_sent to FALSE since we have received the */
+		/* response for the warm sync request that was sent out   */
+		peer->warm_sync_sent = FALSE;
+
+		/* Change state to verify warm sync data - since we have it all now */
+		m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
+
+		return;
+	}
+
+	/* now check for subscriptions */
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+
+	/* Set warm_sync_sent to FALSE since we have received the
+	 * response for the warm sync request that was sent out */
+
+	peer->warm_sync_sent = FALSE;
 }
-
 
 /*****************************************************************************
 
@@ -705,57 +649,51 @@ void ncs_mbcsv_rcv_warm_sync_resp( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_warm_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_warm_sync_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,  peer->my_ckpt_inst->pwe_hdl,
-      "Warm Sync Response complete received by Standby");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Warm Sync Response complete received by Standby");
 
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of warm sync then return without 
-    * giving decode call-back.
-    */
-   if ((peer->warm_sync_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->warm_sync_dec_fail = FALSE;
-   
-   /* Stop send warm sync timer since a resp cmplt also serves as the response */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
-   
-   /* Stop the warm sync response complete timer */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
-   
-   /* Set warm_sync_sent to FALSE since we have received the */
-   /* response for the warm sync request that was sent out   */
-   peer->warm_sync_sent = FALSE;
-   
-   /* Change state to verify warm sync data - since we have it all now */
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
-   
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "The redundant entity is verifying warm sync data...");
-   
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of warm sync then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->warm_sync_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->warm_sync_dec_fail = FALSE;
 
-   m_MBCSV_CHK_SUBSCRIPTION(peer, 
-      evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	/* Stop send warm sync timer since a resp cmplt also serves as the response */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
 
-   m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_ENTITY_IN_SYNC, NCS_MBCSV_ACT_UPDATE);
+	/* Stop the warm sync response complete timer */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_WARM_SYNC_CMPLT);
+
+	/* Set warm_sync_sent to FALSE since we have received the */
+	/* response for the warm sync request that was sent out   */
+	peer->warm_sync_sent = FALSE;
+
+	/* Change state to verify warm sync data - since we have it all now */
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
+
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "The redundant entity is verifying warm sync data...");
+
+	/* Now parse all the IEs */
+
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+
+	m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_ENTITY_IN_SYNC, NCS_MBCSV_ACT_UPDATE);
 }
-
 
 /*****************************************************************************
 
@@ -770,25 +708,23 @@ void ncs_mbcsv_rcv_warm_sync_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_entity_in_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_entity_in_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id,  peer->my_ckpt_inst->pwe_hdl,
-      "Entity in sync event is received. changing FSM state to study in sync.");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Entity in sync event is received. changing FSM state to study in sync.");
 
-   /* Change state to in sync */
-   
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC); 
-   
-   /* Start the send warm sync timer only if warm_sync is enabled  */
-   /* and the current role is Standby                               */
-   
-   if ((peer->my_ckpt_inst->warm_sync_on == TRUE) && 
-      (peer->my_ckpt_inst->my_role == SA_AMF_STANDBY))
-      ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC); 
-   
+	/* Change state to in sync */
+
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_STEADY_IN_SYNC);
+
+	/* Start the send warm sync timer only if warm_sync is enabled  */
+	/* and the current role is Standby                               */
+
+	if ((peer->my_ckpt_inst->warm_sync_on == TRUE) && (peer->my_ckpt_inst->my_role == SA_AMF_STANDBY))
+		ncs_mbcsv_start_timer(peer, NCS_MBCSV_TMR_SEND_WARM_SYNC);
+
 }
 
 /*****************************************************************************
@@ -806,48 +742,42 @@ void ncs_mbcsv_rcv_entity_in_sync( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_data_resp( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_data_resp(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Data Response received by Standby");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Data Response received by Standby");
 
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of data rsp then return without 
-    * giving decode call-back.
-    */
-   if ((peer->data_rsp_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->data_rsp_dec_fail = FALSE;
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of data rsp then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->data_rsp_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->data_rsp_dec_fail = FALSE;
 
-   /* Now parse all the IEs */
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-   {
-      peer->my_ckpt_inst->data_req_sent = FALSE;
-      peer->data_rsp_dec_fail = TRUE;
+	/* Now parse all the IEs */
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS) {
+		peer->my_ckpt_inst->data_req_sent = FALSE;
+		peer->data_rsp_dec_fail = TRUE;
 
-      /* Stop the data resp cmplt timer */
-      ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT); 
-   
-      /* Change state to verify warm sync data */
-      m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
+		/* Stop the data resp cmplt timer */
+		ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT);
 
-      return;
-   }
+		/* Change state to verify warm sync data */
+		m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
 
-   /* now check for subscriptions */
-   m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+		return;
+	}
+
+	/* now check for subscriptions */
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
 }
-
 
 /*****************************************************************************
 
@@ -867,51 +797,45 @@ void ncs_mbcsv_rcv_data_resp( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_data_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_data_resp_cmplt(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Data Response complete recvd by Standby");
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Data Response complete recvd by Standby");
 
-   /* 
-    * Check whether our decode was failed and if this is not a first
-    * message in the sequence of data rsp then return without 
-    * giving decode call-back.
-    */
-   if ((peer->data_rsp_dec_fail == TRUE) &&
-       (evt->info.peer_msg.info.client_msg.first_rsp == FALSE))
-   {
-       if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
-          m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
-       return;
-   }
-   else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
-      peer->data_rsp_dec_fail = FALSE;
-   
-   /* Stop the data resp cmplt timer */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT); 
-   
-   /* Change state to verify warm sync data */
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
+	/* 
+	 * Check whether our decode was failed and if this is not a first
+	 * message in the sequence of data rsp then return without 
+	 * giving decode call-back.
+	 */
+	if ((peer->data_rsp_dec_fail == TRUE) && (evt->info.peer_msg.info.client_msg.first_rsp == FALSE)) {
+		if (evt->info.peer_msg.info.client_msg.uba.ub != NULL)
+			m_MMGR_FREE_BUFR_LIST(evt->info.peer_msg.info.client_msg.uba.ub);
+		return;
+	} else if (evt->info.peer_msg.info.client_msg.first_rsp == TRUE)
+		peer->data_rsp_dec_fail = FALSE;
 
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-   {
-      peer->my_ckpt_inst->data_req_sent = FALSE;
-      return;
-   }
+	/* Stop the data resp cmplt timer */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_DATA_RESP_CMPLT);
 
-   peer->my_ckpt_inst->data_req_sent = FALSE;
+	/* Change state to verify warm sync data */
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_STBY_STATE_VERIFY_WARM_SYNC_DATA);
 
-   /* now check for subscriptions */
-   m_MBCSV_CHK_SUBSCRIPTION(peer, 
-      evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	/* Now parse all the IEs */
 
-   m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_ENTITY_IN_SYNC, NCS_MBCSV_ACT_UPDATE);
-   
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS) {
+		peer->my_ckpt_inst->data_req_sent = FALSE;
+		return;
+	}
+
+	peer->my_ckpt_inst->data_req_sent = FALSE;
+
+	/* now check for subscriptions */
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+
+	m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_ENTITY_IN_SYNC, NCS_MBCSV_ACT_UPDATE);
+
 }
 
 /*****************************************************************************
@@ -929,36 +853,32 @@ void ncs_mbcsv_rcv_data_resp_cmplt( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_cold_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_cold_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   /* COLD_SYNC_REQ tells us that Standby is starting over. */
-   /* If we're in the middle of a call_again sequence, it  */
-   /* should be stopped.                                   */
-   ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_TRANSMIT);
-   peer->new_msg_seq = TRUE;
-   peer->call_again_reo_hdl= 0;
-   peer->call_again_reo_type = 0;
-   
-   
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Cold Sync Request received successfully by Active");
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
-   
-   peer->c_syn_resp_process = TRUE;
+	/* COLD_SYNC_REQ tells us that Standby is starting over. */
+	/* If we're in the middle of a call_again sequence, it  */
+	/* should be stopped.                                   */
+	ncs_mbcsv_stop_timer(peer, NCS_MBCSV_TMR_TRANSMIT);
+	peer->new_msg_seq = TRUE;
+	peer->call_again_reo_hdl = 0;
+	peer->call_again_reo_type = 0;
 
-   /* Change state of the ACTIVE */
-   m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC); 
-   
-   m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);  
-   m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_COLD_SYNC_RESP, NCS_MBCSV_ACT_ADD);
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Cold Sync Request received successfully by Active");
+
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+
+	peer->c_syn_resp_process = TRUE;
+
+	/* Change state of the ACTIVE */
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC);
+
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_COLD_SYNC_RESP, NCS_MBCSV_ACT_ADD);
 }
-
-
 
 /*****************************************************************************
 
@@ -975,32 +895,30 @@ void ncs_mbcsv_rcv_cold_sync( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_warm_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_warm_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Warm Sync Request received successfully by Active");
-   
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
-   
-   peer->new_msg_seq = TRUE;
-   peer->w_syn_resp_process = TRUE;
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Warm Sync Request received successfully by Active");
 
-   /* put a check that if primary receives a warm sync req. in wait_to_cold_sync */
-   /* state change the state to keep_Standby_in_sync                              */
-   
-   if (peer->state == NCS_MBCSV_ACT_STATE_WAIT_FOR_COLD_WARM_SYNC)
-      m_SET_NCS_MBCSV_STATE( peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC);
-   
-   m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
-   m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_WARM_SYNC_RESP, NCS_MBCSV_ACT_UPDATE);
+	/* Now parse all the IEs */
+
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+
+	peer->new_msg_seq = TRUE;
+	peer->w_syn_resp_process = TRUE;
+
+	/* put a check that if primary receives a warm sync req. in wait_to_cold_sync */
+	/* state change the state to keep_Standby_in_sync                              */
+
+	if (peer->state == NCS_MBCSV_ACT_STATE_WAIT_FOR_COLD_WARM_SYNC)
+		m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC);
+
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_WARM_SYNC_RESP, NCS_MBCSV_ACT_UPDATE);
 }
-
 
 /*****************************************************************************
 
@@ -1017,25 +935,24 @@ void ncs_mbcsv_rcv_warm_sync( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_data_req( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_data_req(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "Data Request received successfully by Primary");
-   
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
-   
-   peer->new_msg_seq = TRUE;
-   peer->data_resp_process = TRUE;
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "Data Request received successfully by Primary");
 
-   m_MBCSV_CHK_SUBSCRIPTION(peer,evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+	/* Now parse all the IEs */
 
-   m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_DATA_RESP, NCS_MBCSV_ACT_ADD);
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+
+	peer->new_msg_seq = TRUE;
+	peer->data_resp_process = TRUE;
+
+	m_MBCSV_CHK_SUBSCRIPTION(peer, evt->info.peer_msg.info.client_msg.msg_sub_type, NCS_MBCSV_DIR_RCVD);
+
+	m_MBCSV_SEND_CLIENT_MSG(peer, NCSMBCSV_SEND_DATA_RESP, NCS_MBCSV_ACT_ADD);
 }
 
 /*****************************************************************************
@@ -1052,22 +969,21 @@ void ncs_mbcsv_rcv_data_req( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
 
-void ncs_mbcsv_send_notify( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_send_notify(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   /* added for testing */
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "NOTIFY sent successfully");
-   /*
-   ** Use exchange ID to identify sender's role.  In the case
-   ** of both primary and Standby on the same system, this is
-   ** used by receiver to determine the proper PEER_INST.
-   */
-   
-   peer->okay_to_send_ntfy = TRUE;
+	/* added for testing */
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "NOTIFY sent successfully");
+	/*
+	 ** Use exchange ID to identify sender's role.  In the case
+	 ** of both primary and Standby on the same system, this is
+	 ** used by receiver to determine the proper PEER_INST.
+	 */
+
+	peer->okay_to_send_ntfy = TRUE;
 }
 
 /*****************************************************************************
@@ -1085,21 +1001,19 @@ void ncs_mbcsv_send_notify( PEER_INST *peer, MBCSV_EVT *evt)
 
   NOTES:
 
-
 *****************************************************************************/
-void ncs_mbcsv_rcv_notify( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_rcv_notify(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "NOTIFY received successfully");
-   
-   /* Now parse all the IEs */
-   
-   if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
-      return;
-   
-}
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "NOTIFY received successfully");
 
+	/* Now parse all the IEs */
+
+	if (ncs_mbscv_rcv_decode(peer, evt) != NCSCC_RC_SUCCESS)
+		return;
+
+}
 
 /*****************************************************************************\
 *
@@ -1117,16 +1031,15 @@ void ncs_mbcsv_rcv_notify( PEER_INST *peer, MBCSV_EVT *evt)
 *  NOTES:
 *
 \*****************************************************************************/
-void ncs_mbcsv_state_to_mul_act( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_state_to_mul_act(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "State Transition to Multiple Active State.");
-   
-   m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_MULTIPLE_ACTIVE);
-   
-}
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "State Transition to Multiple Active State.");
 
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_MULTIPLE_ACTIVE);
+
+}
 
 /*****************************************************************************\
 *
@@ -1144,16 +1057,15 @@ void ncs_mbcsv_state_to_mul_act( PEER_INST *peer, MBCSV_EVT *evt)
 *  NOTES:
 *
 \*****************************************************************************/
-void ncs_mbcsv_state_to_wfcs( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_state_to_wfcs(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "State Transition to Wait for Cold Sync State.");
-   
-   m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_WAIT_FOR_COLD_WARM_SYNC);
-   
-}
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "State Transition to Wait for Cold Sync State.");
 
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_WAIT_FOR_COLD_WARM_SYNC);
+
+}
 
 /*****************************************************************************\
 *
@@ -1171,13 +1083,12 @@ void ncs_mbcsv_state_to_wfcs( PEER_INST *peer, MBCSV_EVT *evt)
 *  NOTES:
 *
 \*****************************************************************************/
-void ncs_mbcsv_state_to_kstby_sync( PEER_INST *peer, MBCSV_EVT *evt)
+void ncs_mbcsv_state_to_kstby_sync(PEER_INST *peer, MBCSV_EVT *evt)
 {
-   m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role, 
-      peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
-      "State Transition to Keep Standby in Sync State.");
-   
-   m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC);
-   
-}
+	m_LOG_MBCSV_DBGSTR(peer->my_ckpt_inst->my_role,
+			   peer->my_ckpt_inst->my_mbcsv_inst->svc_id, peer->my_ckpt_inst->pwe_hdl,
+			   "State Transition to Keep Standby in Sync State.");
 
+	m_SET_NCS_MBCSV_STATE(peer, NCS_MBCSV_ACT_STATE_KEEP_STBY_IN_SYNC);
+
+}

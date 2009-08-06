@@ -36,7 +36,7 @@
 #include "ncsgl_defs.h"
 #include "ncs_opt.h"
 #include "ncs_osprm.h"
- 
+
 #include "ncs_svd.h"
 #include "ncs_hdl_pub.h"
 #include "ncssysf_lck.h"
@@ -52,7 +52,7 @@
 #include "ncs_mib_pub.h"
 #include "ncspatricia.h"
 #include "ncs_mds_def.h"
- 
+
 #include "ncs_queue.h"
 #include "ncs_scktprm.h"
 
@@ -66,15 +66,15 @@
 /* SAF Include file. */
 #include "saAis.h"
 #include "saAmf.h"
- 
+
 /* HPI include file. */
 #include <SaHpi.h>
 #include "hpl_api.h"
 #include "hpl_msg.h"
- 
+
 #include "rda_papi.h"
 #include "fm_papi.h"
- 
+
 /* The below files are very specific to fm. */
 #include "fm_amf.h"
 #include "fm_cb.h"
@@ -84,4 +84,3 @@
 #include "fma_fm_intf.h"
 
 #endif
-

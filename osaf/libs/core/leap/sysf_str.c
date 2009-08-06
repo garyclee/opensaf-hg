@@ -35,7 +35,6 @@
  ******************************************************************************
  */
 
-
 #include "ncs_opt.h"
 #include "gl_defs.h"
 #include "ncs_osprm.h"
@@ -52,27 +51,21 @@
   RETURNS:
      index into string where delimiter is left of start position.
 *****************************************************************************/
-int32
-sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
+int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
 {
-    int32 i;
-    int32 j;
-    uns32 rej_len = strlen((char*)reject);
+	int32 i;
+	int32 j;
+	uns32 rej_len = strlen((char *)reject);
 
-    for(i=(int32)start_pos; i>=0; i--)
-    {
-        for(j=0; j<(int32)rej_len; j++)
-        {
-            if(s[i] == reject[j])
-            {
-                return i;
-            }
-        }
-    }
-    return EOF;
+	for (i = (int32)start_pos; i >= 0; i--) {
+		for (j = 0; j < (int32)rej_len; j++) {
+			if (s[i] == reject[j]) {
+				return i;
+			}
+		}
+	}
+	return EOF;
 }
-
-
 
 /****************************************************************************
   PROCEDURE NAME:   sysf_strincmp
@@ -84,36 +77,28 @@ sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject)
   RETURNS:
      index into string where delimiter is left of start position.
 *****************************************************************************/
-int32
-sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n)
+int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n)
 {
-    uns8 c1 = '\0';
-    uns8 c2 = '\0';
+	uns8 c1 = '\0';
+	uns8 c2 = '\0';
 
-    while (n > 0) 
-    {
-        c1 = (unsigned char) *s1++;
-        c2 = (unsigned char) *s2++;
+	while (n > 0) {
+		c1 = (unsigned char)*s1++;
+		c2 = (unsigned char)*s2++;
 
-        if('a' <= c1 && 'z' >= c1)
-        {
-            c1 -= 'a' - 'A';
-        }
+		if ('a' <= c1 && 'z' >= c1) {
+			c1 -= 'a' - 'A';
+		}
 
-        if('a' <= c2 && 'z' >= c2)
-        {
-            c2 -= 'a' - 'A';
-        }
+		if ('a' <= c2 && 'z' >= c2) {
+			c2 -= 'a' - 'A';
+		}
 
-        if (c1 == '\0' || c1 != c2)
-        {
-            return c1 - c2;
-        }
-        n--;
-    }
+		if (c1 == '\0' || c1 != c2) {
+			return c1 - c2;
+		}
+		n--;
+	}
 
-    return c1 - c2;
+	return c1 - c2;
 }
-
-
-

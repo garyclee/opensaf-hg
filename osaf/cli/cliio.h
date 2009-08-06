@@ -131,44 +131,43 @@
     putchar(CLI_CONS_ERR_MARK);\
 }
 
-typedef enum { /* Request types to be made to the CLI LM Routine */
-   CLI_INST_REQ_CREATE,    
-   CLI_INST_REQ_DESTROY,   
-   CLI_INST_REQ_BEGIN,
+typedef enum {			/* Request types to be made to the CLI LM Routine */
+	CLI_INST_REQ_CREATE,
+	CLI_INST_REQ_DESTROY,
+	CLI_INST_REQ_BEGIN,
 } CLI_INST_REQ;
 
 /***************************************************************************\
                   LM  C R E A T E   a CLI instance
 \***************************************************************************/
-typedef struct ncscli_lm_create {  
-   uns32            o_hdl;
-   uns32            i_notify_hdl;   /* Which CLI instance is this? */
-   NCSCLI_NOTIFY    i_notify;       /* CLI hit an issue internally */
-   NCSCLI_GETCHAR   i_read_func;    /* character Input source */
-   NCSCLI_PUTSTR    i_write_func;   /* formatted string output destination */
-   uns8             i_hmpool_id;    /* Handle Manager Pool Id */   
+typedef struct ncscli_lm_create {
+	uns32 o_hdl;
+	uns32 i_notify_hdl;	/* Which CLI instance is this? */
+	NCSCLI_NOTIFY i_notify;	/* CLI hit an issue internally */
+	NCSCLI_GETCHAR i_read_func;	/* character Input source */
+	NCSCLI_PUTSTR i_write_func;	/* formatted string output destination */
+	uns8 i_hmpool_id;	/* Handle Manager Pool Id */
 } CLI_INST_CREATE;
 
 /***************************************************************************\
                   NCSCLI_BEGIN  R E Q U E S T  S T R U C T U R E
 \***************************************************************************/
-typedef struct ncscli_lm_begin {   
-   NCS_VRID  vr_id;    /* its virtual router ID */
+typedef struct ncscli_lm_begin {
+	NCS_VRID vr_id;		/* its virtual router ID */
 } CLI_INST_BEGIN;
 
 /***************************************************************************\
                 I N S T   R E Q U E S T  S T R U C T U R E
 \***************************************************************************/
 typedef struct cli_inst_info {
-   uns32          i_hdl;
-   CLI_INST_REQ   i_req;
-   
-   union {
-      CLI_INST_CREATE  io_create;            
-      CLI_INST_BEGIN   i_begin;   
-   } info;   
-} CLI_INST_INFO;
+	uns32 i_hdl;
+	CLI_INST_REQ i_req;
 
+	union {
+		CLI_INST_CREATE io_create;
+		CLI_INST_BEGIN i_begin;
+	} info;
+} CLI_INST_INFO;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                      ANSI Function Prototypes
@@ -192,7 +191,7 @@ EXTERN_C uns32 cli_move_end_of_line(int8 *, uns32);
 EXTERN_C void cli_read_input(CLI_CB *, NCS_VRID);
 EXTERN_C void cli_set_cmd_into_history(CLI_CB *, int8 *);
 EXTERN_C void cli_get_cmd_from_history(CLI_CB *, int8 *, uns32);
-EXTERN_C void cli_current_mode_exit(CLI_CB *,CLI_SESSION_INFO *, NCS_BOOL *);
+EXTERN_C void cli_current_mode_exit(CLI_CB *, CLI_SESSION_INFO *, NCS_BOOL *);
 EXTERN_C void cli_cef_exp_tmr(void *);
 EXTERN_C uns32 cli_cb_main_lock(CLI_CB *);
 EXTERN_C uns32 cli_cb_main_unlock(CLI_CB *);
@@ -202,13 +201,12 @@ EXTERN_C void cli_clean_history(CLI_CMD_HISTORY *);
 EXTERN_C uns32 cli_clean_mode(CLI_CB *, int8 *);
 EXTERN_C uns32 cli_clean_cmds(CLI_CB *, NCSCLI_DEREG_CMD_LIST *);
 EXTERN_C uns32 cli_lib_shut_except_task_release(void);
-EXTERN_C uns32 cli_timer_start(CLI_CB *); 
-EXTERN_C uns8   ncscli_user_access_level_find(CLI_CB*); 
-EXTERN_C int32  ncscli_user_access_level_authenticate(CLI_CB *pCli); 
+EXTERN_C uns32 cli_timer_start(CLI_CB *);
+EXTERN_C uns8 ncscli_user_access_level_find(CLI_CB *);
+EXTERN_C int32 ncscli_user_access_level_authenticate(CLI_CB *pCli);
 
 #if (NCSCLI_FILE == 1)
-EXTERN_C void 
-cli_exec_cmd_from_file(CLI_CB *, CLI_EXECUTE_PARAM *, CLI_SESSION_INFO *);
-#endif /* NCSCLI_FILE == 1 */
+EXTERN_C void cli_exec_cmd_from_file(CLI_CB *, CLI_EXECUTE_PARAM *, CLI_SESSION_INFO *);
+#endif   /* NCSCLI_FILE == 1 */
 
-#endif /* CLIIO_H */
+#endif   /* CLIIO_H */

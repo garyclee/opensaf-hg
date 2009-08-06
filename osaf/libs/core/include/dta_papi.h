@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +29,6 @@
 /*
  * Module Inclusion Control...
  */
-
 
 #ifndef DTA_PAPI_H
 #define DTA_PAPI_H
@@ -58,73 +54,57 @@
  * De-Register service with dtsv
  ***************************************************************************/
 
-typedef struct ncs_unbind_svc
-  {
-   SS_SVC_ID svc_id;  /* Service ID of the service wants to register with dtsv */
+typedef struct ncs_unbind_svc {
+	SS_SVC_ID svc_id;	/* Service ID of the service wants to register with dtsv */
 
-  } NCS_UNBIND_SVC;
+} NCS_UNBIND_SVC;
 /***************************************************************************
  * Register service with dtsv
  ***************************************************************************/
 
-typedef struct ncs_bind_svc
-  {
-   SS_SVC_ID   svc_id;  /* Service ID of the service wants to register with dtsv */
-   uns16       version; /* version of the ASCII_SPEC service intends to use */
-   char        svc_name[15]; /* Service name as is given in corr ASCII_SPEC table */
+typedef struct ncs_bind_svc {
+	SS_SVC_ID svc_id;	/* Service ID of the service wants to register with dtsv */
+	uns16 version;		/* version of the ASCII_SPEC service intends to use */
+	char svc_name[15];	/* Service name as is given in corr ASCII_SPEC table */
 
-  } NCS_BIND_SVC;
+} NCS_BIND_SVC;
 
 /***************************************************************************
  * The operations set that a DTA instance supports
  ***************************************************************************/
 
-typedef enum ncs_dtsv_op
-  {
-  NCS_DTSV_OP_BIND,
-  NCS_DTSV_OP_UNBIND
-
-  } NCS_DTSV_OP;
+typedef enum ncs_dtsv_op {
+	NCS_DTSV_OP_BIND,
+	NCS_DTSV_OP_UNBIND
+} NCS_DTSV_OP;
 
 /***************************************************************************
  * The DTSV API single entry point for all services
  ***************************************************************************/
-typedef struct ncs_dtsv_rq
-  {
-  NCS_DTSV_OP           i_op;            /* Operation; Bind, Un-Bind, log msg */
+typedef struct ncs_dtsv_rq {
+	NCS_DTSV_OP i_op;	/* Operation; Bind, Un-Bind, log msg */
 
-  union 
-    {
-    NCS_BIND_SVC     bind_svc;
-    NCS_UNBIND_SVC   unbind_svc;
+	union {
+		NCS_BIND_SVC bind_svc;
+		NCS_UNBIND_SVC unbind_svc;
 
-    } info;
+	} info;
 
-  } NCS_DTSV_RQ;
-
+} NCS_DTSV_RQ;
 
 /***************************************************************************
  * DTA public API's for binding service and logging message.
  ***************************************************************************/
 
-EXTERN_C DTADLL_API uns32 ncs_dtsv_su_req ( NCS_DTSV_RQ *arg);
+EXTERN_C DTADLL_API uns32 ncs_dtsv_su_req(NCS_DTSV_RQ *arg);
 
-EXTERN_C DTADLL_API uns32  ncs_logmsg   (SS_SVC_ID       svc_id,
-                                         uns8            fmat_id,
-                                         uns8            str_table_id,
-                                         uns32           category,
-                                         uns8            severity,
-                                         char*           fmat_type,
-                                         ...);
+EXTERN_C DTADLL_API uns32 ncs_logmsg(SS_SVC_ID svc_id,
+				     uns8 fmat_id,
+				     uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);
 
-EXTERN_C DTADLL_API uns32  ncs_logmsg_v2(SS_SVC_ID       svc_id,
-                                         uns32           inst_id,
-                                         uns8            fmat_id,
-                                         uns8            str_table_id,
-                                         uns32           category,
-                                         uns8            severity,
-                                         char*           fmat_type,
-                                         ...);
+EXTERN_C DTADLL_API uns32 ncs_logmsg_v2(SS_SVC_ID svc_id,
+					uns32 inst_id,
+					uns8 fmat_id,
+					uns8 str_table_id, uns32 category, uns8 severity, char *fmat_type, ...);
 
-#endif /* DTA_PAPI_H */
-
+#endif   /* DTA_PAPI_H */

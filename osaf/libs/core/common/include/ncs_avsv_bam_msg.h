@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,30 +33,27 @@
 /* Message format versions  */
 #define AVSV_AVD_BAM_MSG_FMT_VER_1    1
 
-
-typedef enum
-{
-   /* Put all the messages from BAM to AVD first */
-   BAM_AVD_CFG_DONE_MSG, 
-   AVD_BAM_CFG_RDY,
-   AVD_BAM_MSG_RESTART,
-   AVD_BAM_MSG_MAX,
+typedef enum {
+	/* Put all the messages from BAM to AVD first */
+	BAM_AVD_CFG_DONE_MSG,
+	AVD_BAM_CFG_RDY,
+	AVD_BAM_MSG_RESTART,
+	AVD_BAM_MSG_MAX,
 } AVD_BAM_MSG_TYPE;
 
 /* This message will be same for both BAM and PSR */
-typedef struct avsv_avd_cfg_done{
-         uns32                check_sum; /* number of cfg messages sent */
+typedef struct avsv_avd_cfg_done {
+	uns32 check_sum;	/* number of cfg messages sent */
 } AVSV_AVD_CFG_DONE;
 
 /* Message structure used by AVD for communication between
  * the active AVD and BAM.
  */
-typedef struct avd_bam_msg
-{
-   AVD_BAM_MSG_TYPE msg_type;
-   union {
-      AVSV_AVD_CFG_DONE msg;
-   } msg_info;
+typedef struct avd_bam_msg {
+	AVD_BAM_MSG_TYPE msg_type;
+	union {
+		AVSV_AVD_CFG_DONE msg;
+	} msg_info;
 } AVD_BAM_MSG;
 
 #define NCS_SERVICE_BAM_AVD_SUB_ID_DEFAULT_VAL 1
@@ -72,8 +67,5 @@ typedef struct avd_bam_msg
                                      NCS_MEM_REGION_PERSISTENT, \
                                      NCS_SERVICE_ID_BAM_AVD,\
                                      NCS_SERVICE_BAM_AVD_SUB_ID_DEFAULT_VAL)
-                                   
-
 
 #endif
-

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -47,4 +45,4 @@ EXTERN_C NCS_BOOL avsv_sa_name_is_null(SaNameT *);
 /* macro to determine if name is null */
 #define m_AVSV_SA_NAME_IS_NULL(n) avsv_sa_name_is_null(&(n))
 
-#endif /* !AVSV_UTIL_H */
+#endif   /* !AVSV_UTIL_H */

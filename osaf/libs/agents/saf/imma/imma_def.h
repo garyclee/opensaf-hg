@@ -28,8 +28,6 @@
     (ver->majorVersion == IMMA_MAJOR_VERSION || ver->majorVersion == 0xff) && \
      (ver->minorVersion == IMMA_MINOR_VERSION || ver->minorVersion == 0xff) )
 
-#define IMMSV_WAIT_TIME  1000   /* MDS wait time in case of syncronous call */ 
-
-//#define m_IMMSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
+#define IMMSV_WAIT_TIME  1000	/* MDS wait time in case of syncronous call */
 
 #endif

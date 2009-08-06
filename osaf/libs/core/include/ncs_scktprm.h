@@ -20,7 +20,6 @@
 
   MODULE NAME:  NCS_SCKTPRM.H
 
-
 ..............................................................................
 
   DESCRIPTION:This file contains the socket primitives which were previously 
@@ -31,7 +30,6 @@
 
   CONTENTS:
 
-
 ******************************************************************************
 */
 
@@ -40,7 +38,7 @@
 
 #include "ncs_osprm.h"
 #include "ncsgl_defs.h"
-#include "ncssysf_lck.h" /* Steve's code.. Another version of the same Layer V */
+#include "ncssysf_lck.h"	/* Steve's code.. Another version of the same Layer V */
 #include "ncsusrbuf.h"
 #include "ncs_queue.h"
 
@@ -89,7 +87,7 @@ extern "C" {
 
 /* is socket id shared across threads by default ? */
 #ifndef NCS_TS_SOCK_SHAREABLE_SOCKET
-#define NCS_TS_SOCK_SHAREABLE_SOCKET          1   /* yes */
+#define NCS_TS_SOCK_SHAREABLE_SOCKET          1	/* yes */
 #endif
 
 #if (NCS_TS_SOCK_SHAREABLE_SOCKET == 0)
@@ -120,7 +118,6 @@ extern "C" {
    se->old_client_socket  = 0; \
    se->client_task_handle = 0; \
    }
-
 #else
 
 #define m_IP_SVC_SHARE_CL_SOCK(se) (se)->server_socket = (se)->client_socket
@@ -129,7 +126,7 @@ extern "C" {
 #define m_IP_SVC_CLOSE_SHARED_SOCK(se) (se)->server_socket = 0
 #define m_IP_SVC_SAVE_SHARED_SOCK(se)
 #define m_IP_SVC_SHARED_SOCK_CPY_TSK_HDL(src_se,dst_se)
-#define m_IP_SVC_CLOSE_SAVED_SHARED_SOCK(se) 
+#define m_IP_SVC_CLOSE_SAVED_SHARED_SOCK(se)
 #define m_IP_SVC_SE_CLEAR(se) \
 { \
    se->next               = NULL; \
@@ -140,20 +137,17 @@ extern "C" {
    se->client_socket      = 0; \
    se->server_socket      = 0; \
    }
-
 #endif
-
 
 /* must socket be owned by a single thread or process ? */
 #ifndef NCS_TS_SOCK_ONE_OWNER
-#define NCS_TS_SOCK_ONE_OWNER                 0   /* no */
+#define NCS_TS_SOCK_ONE_OWNER                 0	/* no */
 #endif
 
 /* If you use L2 socket, then this below macro should be set to "1" for mcast forwarder */
 #ifndef NCS_USE_L2_MCAST_SOCK
 #define NCS_USE_L2_MCAST_SOCK (0)
 #endif
-
 
 #ifndef NCS_TS_SOCK_ERROR
 #define NCS_TS_SOCK_ERROR                     -1
@@ -225,11 +219,11 @@ extern "C" {
 
 /* Commands used for m_NCS_TS_SOCK_IOCTL: */
 #ifndef m_NCS_TS_SOCK_FIONBIO
-#define m_NCS_TS_SOCK_FIONBIO                 FIONBIO  /* Set blocking mode of socket */
+#define m_NCS_TS_SOCK_FIONBIO                 FIONBIO	/* Set blocking mode of socket */
 #endif
 
 #ifndef m_NCS_TS_SOCK_FIONREAD
-#define m_NCS_TS_SOCK_FIONREAD                FIONREAD /* Get size of next packet in socket */
+#define m_NCS_TS_SOCK_FIONREAD                FIONREAD	/* Get size of next packet in socket */
 #endif
 
 #ifndef m_NCS_TS_SOCK_SETSOCKOPT
@@ -248,18 +242,17 @@ extern "C" {
 #define m_NCS_TS_SOCK_FD_ZERO                 FD_ZERO
 #endif
 
-
 /* Option flag for recv indicating 'PEEK': */
 #ifndef NCS_TS_SOCK_FLAG_MSG_PEEK
 #define NCS_TS_SOCK_FLAG_MSG_PEEK             MSG_PEEK
 #endif
 
 #ifndef m_SYSF_NCS_TS_SOCK_SUPPORT_RECVMSG
-#define m_SYSF_NCS_TS_SOCK_SUPPORT_RECVMSG    0  /* Says 'recvmsg' is not supported. */
+#define m_SYSF_NCS_TS_SOCK_SUPPORT_RECVMSG    0	/* Says 'recvmsg' is not supported. */
 #endif
 
-typedef struct msghdr NCS_TS_SOCK_MSGHDR; /* Needed for 'recvmsg' */
-typedef struct iovec  NCS_TS_SOCK_IOVEC;  /* Needed for 'recvmsg' */
+	typedef struct msghdr NCS_TS_SOCK_MSGHDR;	/* Needed for 'recvmsg' */
+	typedef struct iovec NCS_TS_SOCK_IOVEC;	/* Needed for 'recvmsg' */
 
 /* Set up an iovec element (needed for recvmsg): */
 #ifndef m_NCS_TS_SOCK_SET_IOVEC
@@ -297,7 +290,6 @@ typedef struct iovec  NCS_TS_SOCK_IOVEC;  /* Needed for 'recvmsg' */
 #define NCS_USE_WINSOCK_STYLE_ERROR   0
 #endif
 
-
 /* share socket with another task */
 #ifndef m_NCS_TS_SOCK_SHARE
 #define m_NCS_TS_SOCK_SHARE(s, t)
@@ -307,7 +299,6 @@ typedef struct iovec  NCS_TS_SOCK_IOVEC;  /* Needed for 'recvmsg' */
 #ifndef m_NCS_TS_SOCK_NEW_OWNER
 #define m_NCS_TS_SOCK_NEW_OWNER(s, t)
 #endif
-
 
 #ifndef SOCKET_VAR
 #define SOCKET_VAR
@@ -319,35 +310,31 @@ typedef struct iovec  NCS_TS_SOCK_IOVEC;  /* Needed for 'recvmsg' */
 #define INVALID_SOCKET -1
 #endif
 
-typedef enum
-{
-   NCS_SOCKET_STATE_IDLE,
-   NCS_SOCKET_STATE_LISTENING,
-   NCS_SOCKET_STATE_CONNECTING,
-   NCS_SOCKET_STATE_ACTIVE,
-   NCS_SOCKET_STATE_DISCONNECT,
-   NCS_SOCKET_STATE_CLOSING,
-   NCS_SOCKET_STATE_MAX = NCS_SOCKET_STATE_CLOSING
-} NCS_SOCKET_STATE;
+	typedef enum {
+		NCS_SOCKET_STATE_IDLE,
+		NCS_SOCKET_STATE_LISTENING,
+		NCS_SOCKET_STATE_CONNECTING,
+		NCS_SOCKET_STATE_ACTIVE,
+		NCS_SOCKET_STATE_DISCONNECT,
+		NCS_SOCKET_STATE_CLOSING,
+		NCS_SOCKET_STATE_MAX = NCS_SOCKET_STATE_CLOSING
+	} NCS_SOCKET_STATE;
 
-
-
-typedef enum
-{
-   NCS_SOCKET_EVENT_OPEN,
-   NCS_SOCKET_EVENT_OPEN_ESTABLISH,
-   NCS_SOCKET_EVENT_CLOSE,
-   NCS_SOCKET_EVENT_SET_ROUTER_ALERT,
-   NCS_SOCKET_EVENT_MULTICAST_JOIN,
-   NCS_SOCKET_EVENT_MULTICAST_LEAVE,
-   NCS_SOCKET_EVENT_SET_TTL,
-   NCS_SOCKET_EVENT_SET_TOS,
-   NCS_SOCKET_EVENT_SEND_DATA,
-   NCS_SOCKET_EVENT_READ_INDICATION,
-   NCS_SOCKET_EVENT_WRITE_INDICATION,
-   NCS_SOCKET_EVENT_ERROR_INDICATION,
-   NCS_SOCKET_EVENT_MAX = NCS_SOCKET_EVENT_ERROR_INDICATION
-}NCS_SOCKET_EVENT;
+	typedef enum {
+		NCS_SOCKET_EVENT_OPEN,
+		NCS_SOCKET_EVENT_OPEN_ESTABLISH,
+		NCS_SOCKET_EVENT_CLOSE,
+		NCS_SOCKET_EVENT_SET_ROUTER_ALERT,
+		NCS_SOCKET_EVENT_MULTICAST_JOIN,
+		NCS_SOCKET_EVENT_MULTICAST_LEAVE,
+		NCS_SOCKET_EVENT_SET_TTL,
+		NCS_SOCKET_EVENT_SET_TOS,
+		NCS_SOCKET_EVENT_SEND_DATA,
+		NCS_SOCKET_EVENT_READ_INDICATION,
+		NCS_SOCKET_EVENT_WRITE_INDICATION,
+		NCS_SOCKET_EVENT_ERROR_INDICATION,
+		NCS_SOCKET_EVENT_MAX = NCS_SOCKET_EVENT_ERROR_INDICATION
+	} NCS_SOCKET_EVENT;
 
 #ifdef  __cplusplus
 }

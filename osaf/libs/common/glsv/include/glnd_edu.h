@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,17 +30,14 @@
 #ifndef GLND_EDU_H
 #define GLND_EDU_H
 
-
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, 
-                                 NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                 EDU_ERR *o_err);
+EXTERN_C uns32 glsv_edp_glnd_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				 NCSCONTEXT ptr, uns32 *ptr_data_len,
+				 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-EXTERN_C uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err);
+EXTERN_C uns32 glsv_edp_gld_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
+				NCSCONTEXT ptr, uns32 *ptr_data_len,
+				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif

@@ -20,8 +20,6 @@
 
   MODULE: MQDLOG.C
 
-
-
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
   DESCRIPTION:
@@ -50,20 +48,20 @@
 void mqd_flx_log_reg(void)
 {
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg, 0, sizeof(NCS_DTSV_RQ));
-   reg.i_op = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MQD;
-   /* fill version no. */
-   reg.info.bind_svc.version = MQSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "MQSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_MQD;
+	/* fill version no. */
+	reg.info.bind_svc.version = MQSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "MQSv");
 
-   ncs_dtsv_su_req(&reg);
+	ncs_dtsv_su_req(&reg);
 #endif
-   return;
-} /* End of mqd_flx_log_reg() */
+	return;
+}	/* End of mqd_flx_log_reg() */
 
 /****************************************************************************
  Name          : mqd_flx_log_dereg
@@ -78,15 +76,15 @@ void mqd_flx_log_reg(void)
 void mqd_flx_log_dereg(void)
 {
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg, 0, sizeof(NCS_DTSV_RQ));
-   reg.i_op = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MQD;
-   ncs_dtsv_su_req(&reg);
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_MQD;
+	ncs_dtsv_su_req(&reg);
 #endif
-   return;
-} /* End of mqd_flx_log_dereg() */
+	return;
+}	/* End of mqd_flx_log_dereg() */
 
 #if((NCS_DTA == 1) && (NCS_MQSV_LOG == 1))
 
@@ -104,13 +102,12 @@ void mqd_flx_log_dereg(void)
                      fno  - filenumber 
 *****************************************************************************/
 
-void mqd_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno)
+void mqd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno)
 {
-   
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_MQD, MQD_LID_HDLN, MQD_FC_HDLN,
-              category, sev, NCSFL_TYPE_TCLIL,fname,fno,id,rc);
 
-} /* End of mqd_new_log()  */
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_MQD, MQD_LID_HDLN, MQD_FC_HDLN, category, sev, NCSFL_TYPE_TCLIL, fname, fno, id, rc);
 
-#endif /* (NCS_DTA == 1) && (NCS_MQSV_LOG == 1) */
+}	/* End of mqd_new_log()  */
+
+#endif   /* (NCS_DTA == 1) && (NCS_MQSV_LOG == 1) */

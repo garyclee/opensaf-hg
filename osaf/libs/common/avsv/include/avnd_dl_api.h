@@ -15,12 +15,9 @@
  *
  */
 
-
 #ifndef AVND_API_H
 #define AVND_API_H
 
+EXTERN_C uns32 avnd_lib_req(NCS_LIB_REQ_INFO *);
 
-EXTERN_C uns32 avnd_lib_req (NCS_LIB_REQ_INFO *);
-
-#endif /* !AVND_API_H */
-
+#endif   /* !AVND_API_H */

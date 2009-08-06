@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
  @@@@@  @     @  @@@@@  @@@@@@@         @        @@@@@  @    @          @     @
 @     @  @   @  @     @ @               @       @     @ @   @           @     @
 @         @ @   @       @               @       @       @  @            @     @
@@ -26,8 +25,6 @@
       @    @          @ @               @       @       @  @      @@@   @     @
 @     @    @    @     @ @               @       @     @ @   @     @@@   @     @
  @@@@@     @     @@@@@  @       @@@@@@@ @@@@@@@  @@@@@  @    @    @@@   @     @
-
-
 
 ..............................................................................
 
@@ -98,25 +95,21 @@ extern "C" {
 #define NCS_LOCK_READ    1
 #define NCS_LOCK_WRITE   2
 
-#if (NCSSYSM_LOCK_DBG_ENABLE != 0) /* Debug locks.. Check for existence */
+#if (NCSSYSM_LOCK_DBG_ENABLE != 0)	/* Debug locks.. Check for existence */
 
 #define NCS_LOCK_EXISTS 0xAABBCCDD
 
-typedef struct ncs_lock_dbg
-  {
-  uns32       exists; /* exists marker   */
-  NCS_OS_LOCK  lock;   /* the 'real' lock */
+	typedef struct ncs_lock_dbg {
+		uns32 exists;	/* exists marker   */
+		NCS_OS_LOCK lock;	/* the 'real' lock */
 
-  } NCS_LOCK_DBG;
+	} NCS_LOCK_DBG;
 
 #define NCS_LOCK  NCS_LOCK_DBG
-
 #else
 
 #define NCS_LOCK  NCS_OS_LOCK
-
 #endif
-
 
 /****************************************************************************
  * Initialize a LOCK
@@ -146,7 +139,6 @@ typedef struct ncs_lock_dbg
 #define m_NCS_LOCK_INIT_V2(lock,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_CREATE,0)
 #endif
 
-
 /****************************************************************************
  * Destroy a LOCK 
  *
@@ -174,8 +166,6 @@ typedef struct ncs_lock_dbg
 #define m_NCS_LOCK_DESTROY(lock)            m_NCS_OS_LOCK(lock,NCS_OS_LOCK_RELEASE,0)
 #define m_NCS_LOCK_DESTROY_V2(lock,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_RELEASE,0)
 #endif
-
-
 
 /****************************************************************************
  * LOCK a Resource
@@ -214,7 +204,6 @@ typedef struct ncs_lock_dbg
 #define m_NCS_LOCK_V2(lock,flag,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_LOCK,flag)
 #endif
 
-
 /****************************************************************************
  * UNLOCK a Resource
  *
@@ -243,8 +232,6 @@ Your code
 #define m_NCS_UNLOCK_V2(lock,flag,sid,lid) m_NCS_OS_LOCK(lock,NCS_OS_LOCK_UNLOCK,flag)
 #endif
 
-
-
 /****************************************************************************
  ****************************************************************************
  ****************************************************************************
@@ -268,43 +255,31 @@ Your code
  ****************************************************************************
  ***************************************************************************/
 
-
 #define m_NCS_ATOMIC_INC(c)  m_NCS_OS_ATOMIC_INC(c)
 #define m_NCS_ATOMIC_DEC(c)  m_NCS_OS_ATOMIC_DEC(c)
 
-
 #if (NCSSYSM_LOCK_DBG_ENABLE != 0)
-EXTERN_C LEAPDLL_API unsigned int ncs_lock_init    (NCS_LOCK * lock, 
-                                       NCS_SERVICE_ID service_id,
-                                       unsigned int  local_id,
-                                       unsigned int  line,
-                                       char*         file);
+	EXTERN_C LEAPDLL_API unsigned int ncs_lock_init(NCS_LOCK * lock,
+							NCS_SERVICE_ID service_id,
+							unsigned int local_id, unsigned int line, char *file);
 
-EXTERN_C LEAPDLL_API unsigned int ncs_lock_destroy (NCS_LOCK * lock, 
-                                       NCS_SERVICE_ID service_id,
-                                       unsigned int  local_id,
-                                       unsigned int  line,
-                                       char*         file);
+	EXTERN_C LEAPDLL_API unsigned int ncs_lock_destroy(NCS_LOCK * lock,
+							   NCS_SERVICE_ID service_id,
+							   unsigned int local_id, unsigned int line, char *file);
 
-EXTERN_C LEAPDLL_API unsigned int  ncs_lock        (NCS_LOCK*      lock,
-                                       unsigned int  flag,
-                                       NCS_SERVICE_ID service_id,
-                                       unsigned int  local_id,
-                                       unsigned int  line,
-                                       char*         file);
+	EXTERN_C LEAPDLL_API unsigned int ncs_lock(NCS_LOCK * lock,
+						   unsigned int flag,
+						   NCS_SERVICE_ID service_id,
+						   unsigned int local_id, unsigned int line, char *file);
 
-EXTERN_C LEAPDLL_API unsigned int  ncs_unlock      (NCS_LOCK*      lock,
-                                       unsigned int  flag,
-                                       NCS_SERVICE_ID service_id,
-                                       unsigned int  local_id,
-                                       unsigned int  line,
-                                       char*         file);
-
-
+	EXTERN_C LEAPDLL_API unsigned int ncs_unlock(NCS_LOCK * lock,
+						     unsigned int flag,
+						     NCS_SERVICE_ID service_id,
+						     unsigned int local_id, unsigned int line, char *file);
 #endif
-EXTERN_C LEAPDLL_API uns32 ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
-EXTERN_C LEAPDLL_API uns32 ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
-EXTERN_C LEAPDLL_API void ncs_lock_stats(char * filename);
+	EXTERN_C LEAPDLL_API uns32 ncs_lock_get_init_count(NCS_SERVICE_ID service_id);
+	EXTERN_C LEAPDLL_API uns32 ncs_lock_get_destroy_count(NCS_SERVICE_ID service_id);
+	EXTERN_C LEAPDLL_API void ncs_lock_stats(char *filename);
 
 #ifdef  __cplusplus
 }

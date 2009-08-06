@@ -18,15 +18,13 @@
 #ifndef FM_MEM_H
 #define FM_MEM_H
 
-typedef enum ncs_fm_service_sub_id
-{
-   NCS_FM_SVC_SUB_ID_FM_EVT,
-   NCS_FM_SVC_SUB_ID_FM_CB,
-   NCS_FM_SVC_SUB_ID_FM_EDA,
-   NCS_FM_SVC_SUB_ID_GFM_GFM,
-   NCS_FM_SVC_SUB_ID_DEFAULT_VAL
+typedef enum ncs_fm_service_sub_id {
+	NCS_FM_SVC_SUB_ID_FM_EVT,
+	NCS_FM_SVC_SUB_ID_FM_CB,
+	NCS_FM_SVC_SUB_ID_FM_EDA,
+	NCS_FM_SVC_SUB_ID_GFM_GFM,
+	NCS_FM_SVC_SUB_ID_DEFAULT_VAL
 } NCS_FM_SVC_SUB_ID;
-
 
 #define m_MMGR_ALLOC_FM_CB         (FM_CB*)m_NCS_MEM_ALLOC(sizeof(FM_CB), \
                                    NCS_MEM_REGION_PERSISTENT, \
@@ -57,5 +55,4 @@ typedef enum ncs_fm_service_sub_id
                                    NCS_SERVICE_ID_GFM, \
                                    NCS_FM_SVC_SUB_ID_GFM_GFM)
 
-#endif /** end of FM_MEM_H **/
-
+#endif   /** end of FM_MEM_H **/

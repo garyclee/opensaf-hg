@@ -18,4 +18,3 @@
 #include <saAis.h>
 
 extern char *saf_error(SaAisErrorT error);
-

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,7 +28,6 @@
 
   FUNCTIONS INCLUDED in this module:
 
-
   
 ******************************************************************************
 */
@@ -39,7 +36,6 @@
 #include "avsv_clmparam.h"
 #include "avsv_n2clamsg.h"
 #include "avsv_n2clamem.h"
-
 
 /****************************************************************************
   Name          : avsv_nda_cla_msg_free
@@ -52,38 +48,28 @@
  
   Notes         : None.
 ******************************************************************************/
-void avsv_nda_cla_msg_free (AVSV_NDA_CLA_MSG *msg)
-{ 
-   if(!msg)
-   {
-      return;
-   }
+void avsv_nda_cla_msg_free(AVSV_NDA_CLA_MSG *msg)
+{
+	if (!msg) {
+		return;
+	}
 
-   if(msg->type == AVSV_AVND_CLM_API_RESP_MSG)
-   {
-      if(msg->info.api_resp_info.param.track.num)
-      {
-         m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(msg->info.api_resp_info.param.track.notify);
-      }
-   }
-   else if(msg->type == AVSV_AVND_CLM_CBK_MSG)
-   {
-      if(msg->info.cbk_info.type == AVSV_CLM_CBK_TRACK)
-      {
-         if(msg->info.cbk_info.param.track.mem_num)
-         {
-            m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(msg->info.cbk_info.param.track.notify.notification);
-         }
-      }
-      else if(msg->info.cbk_info.type == AVSV_CLM_NODE_ASYNC_GET)
-      {
-         /* nothing */
-      }
-   }
-   m_MMGR_FREE_AVSV_NDA_CLA_MSG(msg);
-   return;
+	if (msg->type == AVSV_AVND_CLM_API_RESP_MSG) {
+		if (msg->info.api_resp_info.param.track.num) {
+			m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(msg->info.api_resp_info.param.track.notify);
+		}
+	} else if (msg->type == AVSV_AVND_CLM_CBK_MSG) {
+		if (msg->info.cbk_info.type == AVSV_CLM_CBK_TRACK) {
+			if (msg->info.cbk_info.param.track.mem_num) {
+				m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(msg->info.cbk_info.param.track.notify.notification);
+			}
+		} else if (msg->info.cbk_info.type == AVSV_CLM_NODE_ASYNC_GET) {
+			/* nothing */
+		}
+	}
+	m_MMGR_FREE_AVSV_NDA_CLA_MSG(msg);
+	return;
 }
-
 
 /****************************************************************************
   Name          : avsv_nda_cla_msg_copy
@@ -97,11 +83,9 @@ void avsv_nda_cla_msg_free (AVSV_NDA_CLA_MSG *msg)
  
   Notes         : None.
 ******************************************************************************/
-uns32 avsv_nda_cla_msg_copy (AVSV_NDA_CLA_MSG *dmsg, AVSV_NDA_CLA_MSG *smsg)
-{ /* TBD */
-   uns32 rc = NCSCC_RC_SUCCESS;
+uns32 avsv_nda_cla_msg_copy(AVSV_NDA_CLA_MSG *dmsg, AVSV_NDA_CLA_MSG *smsg)
+{				/* TBD */
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   return rc;
+	return rc;
 }
-
-

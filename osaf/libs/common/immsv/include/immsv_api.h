@@ -66,24 +66,18 @@ extern "C" {
 #define SA_IMM_SEARCH_PERSISTENT_ATTRS          0x0010
 #define SA_IMM_SEARCH_SYNC_CACHED_ATTRS        0x0020
 
-
-
 /* These functions are private and nonstandard parts of the IMM client
    (agent) API. They are used by the process that drives the immnd sync.
 */
-SaAisErrorT
-immsv_sync(SaImmHandleT             immHandle,
-	   const SaImmClassNameT    className,
-	   const SaNameT            *objectName,
-	   const SaImmAttrValuesT_2 **atributes);
+	SaAisErrorT
+	 immsv_sync(SaImmHandleT immHandle,
+		    const SaImmClassNameT className, const SaNameT *objectName, const SaImmAttrValuesT_2 **atributes);
 
-SaAisErrorT
-immsv_finalize_sync(SaImmHandleT immHandle);
-
-
+	SaAisErrorT
+	 immsv_finalize_sync(SaImmHandleT immHandle);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* IMMSV_API_H */
+#endif   /* IMMSV_API_H */

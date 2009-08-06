@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:  Contains agent APIs to manage creation, configuration and
@@ -32,7 +31,6 @@
 
 #ifndef NCS_MDA_PAPI_H
 #define NCS_MDA_PAPI_H
-
 
 #include "mds_papi.h"
 
@@ -63,103 +61,99 @@ extern "C" {
 #define m_NCSVDA_SET_VDEST(mds_dest, external_unnamed_value) \
     m_NCS_SET_VDEST_ID_IN_MDS_DEST(mds_dest, external_unnamed_value)
 
-
 /***********************************************************************\
          
 \***********************************************************************/
-typedef enum{
-   NCSVDA_VDEST_CREATE_SPECIFIC,
-   NCSVDA_VDEST_CREATE_NAMED,
-}NCSVDA_VDEST_CREATE_TYPE;
+	typedef enum {
+		NCSVDA_VDEST_CREATE_SPECIFIC,
+		NCSVDA_VDEST_CREATE_NAMED,
+	} NCSVDA_VDEST_CREATE_TYPE;
 
-typedef struct ncsvda_vdest_create_info{
-   /*       
-   This is for obtaining an MDS virtual address against an arbitrary string.
-   
-   When any arbitrary string is provided, VDA will contact a VDS and try
-   to obtain a MDS virtual destination(VDEST) address and an MDS virtual
-   destination anchor.  On receiving such a VDEST address, it will create 
-   that VDEST on the local MDS core, create a PWE 1 on it and return the 
-   handle to that PWE.
+	typedef struct ncsvda_vdest_create_info {
+		/*       
+		   This is for obtaining an MDS virtual address against an arbitrary string.
 
-   When the first time a string is used to get a virtual-address, a unique
-   unused VDEST would be generated. It will be assigned a VDEST anchor
-   value equal to 1. While this VDEST is in use, further VDEST_CREATE calls 
-   with the same string would return the same VDEST but a different anchor
-   value. The "persistent" option will determine whether and till when
-   a VDEST remains associated to a string.
+		   When any arbitrary string is provided, VDA will contact a VDS and try
+		   to obtain a MDS virtual destination(VDEST) address and an MDS virtual
+		   destination anchor.  On receiving such a VDEST address, it will create 
+		   that VDEST on the local MDS core, create a PWE 1 on it and return the 
+		   handle to that PWE.
 
-   If the "persistent" option is TRUE, then a string is permanently
-   attached to a virtual-address. If a process that uses a 
-   certain virtual address were to die, this association will 
-   NOT be removed.  It will be maintained until an explicit
-   VDEST_DESTROY call is made (once for every corresponding VDEST_CREATE 
-   call)
-   
-   If "persistent" option is FALSE, then a virtual address will cease
-   to be associated with a string as soon as all processes using this
-   virtual address either expire or invoke the VDEST_DESTROY API.
+		   When the first time a string is used to get a virtual-address, a unique
+		   unused VDEST would be generated. It will be assigned a VDEST anchor
+		   value equal to 1. While this VDEST is in use, further VDEST_CREATE calls 
+		   with the same string would return the same VDEST but a different anchor
+		   value. The "persistent" option will determine whether and till when
+		   a VDEST remains associated to a string.
 
-   The "i_policy" determines the load-share policy among various 
-   instances of a VDEST. Each VDEST instance is associated with
-   an anchor value, making <VDEST, anchor> a unique address in the
-   system. The load-sharing will be done among those VDEST instances
-   which are running in an ACTIVE role. The load-share will only load-share
-   requests originated locally; MDS will not attempt an exact load-share 
-   on a global basis.
+		   If the "persistent" option is TRUE, then a string is permanently
+		   attached to a virtual-address. If a process that uses a 
+		   certain virtual address were to die, this association will 
+		   NOT be removed.  It will be maintained until an explicit
+		   VDEST_DESTROY call is made (once for every corresponding VDEST_CREATE 
+		   call)
 
-   The 'i_create_oac' determines whether an OAC needs to be created on
-   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
-   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
-   it has the same life and role as this MDS-DESt) then it should set this 
-   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
-   a PWE1 on the MDS-DEST created by this call.
-   
-   NOTE: 
-   1) The "persistent" option should uniformly be either a TRUE or 
-      a FALSE across multiple VDEST_CREATE calls for the same string-name.
-   
-   2) The VDEST_CREATE is a blocking call. The VDA uses the invoker's task 
-      context to contact the VDS and returns only upon getting a response from 
-      VDS.
-   */
-   NCS_BOOL                   i_persistent;
-   NCS_VDEST_TYPE             i_policy;
-   NCS_BOOL                   i_create_oac;/* TRUE if OAC is to be created */
+		   If "persistent" option is FALSE, then a virtual address will cease
+		   to be associated with a string as soon as all processes using this
+		   virtual address either expire or invoke the VDEST_DESTROY API.
 
-   NCSVDA_VDEST_CREATE_TYPE   i_create_type;
-   union
-   {
-      struct{
-         MDS_DEST     i_vdest; /* Caller specified VDEST             */
-      }specified; /* if create_type = NCSVDA_VDEST_CREATE_SPECIFIC   */
+		   The "i_policy" determines the load-share policy among various 
+		   instances of a VDEST. Each VDEST instance is associated with
+		   an anchor value, making <VDEST, anchor> a unique address in the
+		   system. The load-sharing will be done among those VDEST instances
+		   which are running in an ACTIVE role. The load-share will only load-share
+		   requests originated locally; MDS will not attempt an exact load-share 
+		   on a global basis.
 
-      struct{
-         SaNameT      i_name;
-         MDS_DEST     o_vdest; /* VDA allocated VDEST                */
-      }named;       /* if create_type = NCSVDA_VDEST_CREATE_NAMED    */
+		   The 'i_create_oac' determines whether an OAC needs to be created on
+		   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
+		   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
+		   it has the same life and role as this MDS-DESt) then it should set this 
+		   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
+		   a PWE1 on the MDS-DEST created by this call.
 
-   }info;
+		   NOTE: 
+		   1) The "persistent" option should uniformly be either a TRUE or 
+		   a FALSE across multiple VDEST_CREATE calls for the same string-name.
 
-   /* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
-   uns32     o_pwe1_oac_hdl; 
+		   2) The VDEST_CREATE is a blocking call. The VDA uses the invoker's task 
+		   context to contact the VDS and returns only upon getting a response from 
+		   VDS.
+		 */
+		NCS_BOOL i_persistent;
+		NCS_VDEST_TYPE i_policy;
+		NCS_BOOL i_create_oac;	/* TRUE if OAC is to be created */
 
-   MDS_HDL   o_mds_pwe1_hdl; /* Handle to PWE 1 on vdest            */
-   MDS_HDL   o_mds_vdest_hdl;/* Handle to vdest for global services */
+		NCSVDA_VDEST_CREATE_TYPE i_create_type;
+		union {
+			struct {
+				MDS_DEST i_vdest;	/* Caller specified VDEST             */
+			} specified;	/* if create_type = NCSVDA_VDEST_CREATE_SPECIFIC   */
 
-}NCSVDA_VDEST_CREATE_INFO;
+			struct {
+				SaNameT i_name;
+				MDS_DEST o_vdest;	/* VDA allocated VDEST                */
+			} named;	/* if create_type = NCSVDA_VDEST_CREATE_NAMED    */
 
+		} info;
 
-typedef struct ncsvda_vdest_lookup_info{
-   SaNameT                    i_name;
-   MDS_DEST                   o_vdest;
-}NCSVDA_VDEST_LOOKUP_INFO;
+		/* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
+		uns32 o_pwe1_oac_hdl;
 
-typedef struct ncsvda_vdest_chg_role_info{
-   MDS_DEST                   i_vdest;
-   V_DEST_RL                  i_new_role;
-}NCSVDA_VDEST_CHG_ROLE_INFO;
+		MDS_HDL o_mds_pwe1_hdl;	/* Handle to PWE 1 on vdest            */
+		MDS_HDL o_mds_vdest_hdl;	/* Handle to vdest for global services */
 
+	} NCSVDA_VDEST_CREATE_INFO;
+
+	typedef struct ncsvda_vdest_lookup_info {
+		SaNameT i_name;
+		MDS_DEST o_vdest;
+	} NCSVDA_VDEST_LOOKUP_INFO;
+
+	typedef struct ncsvda_vdest_chg_role_info {
+		MDS_DEST i_vdest;
+		V_DEST_RL i_new_role;
+	} NCSVDA_VDEST_CHG_ROLE_INFO;
 
 /* ncsvda_vdest_destroy_info : Destroy a VDEST instance. A VDEST instance is
                                is identified by a <VDEST, anchor>. Additionally,
@@ -170,190 +164,171 @@ typedef struct ncsvda_vdest_chg_role_info{
                                "i_make_vdest_non_persitent" is FALSE, then the 
                                VDEST's persistency is NOT changed.
 */
-typedef struct ncsvda_vdest_destroy_info{
-   NCSVDA_VDEST_CREATE_TYPE   i_create_type; /* The way that this VDEST was created */
-   SaNameT                    i_name;        /* Required iff i_create_type == NCSVDA_VDEST_NAMED */
-   MDS_DEST                   i_vdest; 
-   NCS_BOOL                   i_make_vdest_non_persistent;
-}NCSVDA_VDEST_DESTROY_INFO;
-
-
+	typedef struct ncsvda_vdest_destroy_info {
+		NCSVDA_VDEST_CREATE_TYPE i_create_type;	/* The way that this VDEST was created */
+		SaNameT i_name;	/* Required iff i_create_type == NCSVDA_VDEST_NAMED */
+		MDS_DEST i_vdest;
+		NCS_BOOL i_make_vdest_non_persistent;
+	} NCSVDA_VDEST_DESTROY_INFO;
 
 /* ncsvda_pwe_create_info :    Creates a PWE on a VDEST */
-typedef struct ncsvda_pwe_create_info{
-   /* i_mds_dest_hdl: A virtual MDS-destination handle, obtainable
-   through a NCSVDA_VDEST_CREATE call. */
-   MDS_HDL     i_mds_vdest_hdl; 
+	typedef struct ncsvda_pwe_create_info {
+		/* i_mds_dest_hdl: A virtual MDS-destination handle, obtainable
+		   through a NCSVDA_VDEST_CREATE call. */
+		MDS_HDL i_mds_vdest_hdl;
 
-   /* i_pwe_id: The environement-identifier for the PWE being created */
-   PW_ENV_ID   i_pwe_id;       
+		/* i_pwe_id: The environement-identifier for the PWE being created */
+		PW_ENV_ID i_pwe_id;
 
-   /* i_create_oac: If TRUE, an OAC would be pre-created on the PWE.*/
-   NCS_BOOL    i_create_oac; 
+		/* i_create_oac: If TRUE, an OAC would be pre-created on the PWE. */
+		NCS_BOOL i_create_oac;
 
-   /* Handle to pre-created OAC on this PWE. Set only if 
-   "i_create_oac" is TRUE */
-   uns32       o_pwe_oac_hdl; 
+		/* Handle to pre-created OAC on this PWE. Set only if 
+		   "i_create_oac" is TRUE */
+		uns32 o_pwe_oac_hdl;
 
-   /* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
-   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */
-   MDS_HDL     o_mds_pwe_hdl;
-}NCSVDA_PWE_CREATE_INFO;
-
-
+		/* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
+		   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */
+		MDS_HDL o_mds_pwe_hdl;
+	} NCSVDA_PWE_CREATE_INFO;
 
 /* ncsvda_pwe_destroy_info :   Destroys a PWE on a VDEST. Any services
                                installed on this PWE are also automatically
                                destroyed by MDS. 
 */
-typedef struct ncsvda_pwe_destroy_info{
+	typedef struct ncsvda_pwe_destroy_info {
 
-   /* i_mds_pwe_hdl: Handle to PWE obtained through a NCSVDA_PWE_CREATE
-   request. */
-   MDS_HDL     i_mds_pwe_hdl;
+		/* i_mds_pwe_hdl: Handle to PWE obtained through a NCSVDA_PWE_CREATE
+		   request. */
+		MDS_HDL i_mds_pwe_hdl;
 
-}NCSVDA_PWE_DESTROY_INFO;
+	} NCSVDA_PWE_DESTROY_INFO;
 
+	typedef enum {
+		NCSVDA_VDEST_CREATE,
+		NCSVDA_VDEST_LOOKUP,
+		NCSVDA_VDEST_CHG_ROLE,
+		NCSVDA_VDEST_DESTROY,
+		NCSVDA_PWE_CREATE,
+		NCSVDA_PWE_DESTROY,
 
+	} NCSVDA_REQ_TYPE;
 
-typedef enum
-{
-   NCSVDA_VDEST_CREATE,
-   NCSVDA_VDEST_LOOKUP,
-   NCSVDA_VDEST_CHG_ROLE,
-   NCSVDA_VDEST_DESTROY,
-   NCSVDA_PWE_CREATE,
-   NCSVDA_PWE_DESTROY,
+	typedef struct ncsvda_info {
 
-}NCSVDA_REQ_TYPE;
+		NCSVDA_REQ_TYPE req;
 
+		/* o_result: This will indicate the result of this operation 
+		   (NCSCC_RC_SUCCESS or NCSCC_RC_FAILURE). This will the same the
+		   value returned by the ncsvda_api. */
+		uns32 o_result;
 
-typedef struct ncsvda_info{
+		union {
+			NCSVDA_VDEST_CREATE_INFO vdest_create;
+			NCSVDA_VDEST_LOOKUP_INFO vdest_lookup;
+			NCSVDA_VDEST_CHG_ROLE_INFO vdest_chg_role;
+			NCSVDA_VDEST_DESTROY_INFO vdest_destroy;
+			NCSVDA_PWE_CREATE_INFO pwe_create;
+			NCSVDA_PWE_DESTROY_INFO pwe_destroy;
+		} info;
+	} NCSVDA_INFO;
 
-   NCSVDA_REQ_TYPE      req;
-
-   /* o_result: This will indicate the result of this operation 
-   (NCSCC_RC_SUCCESS or NCSCC_RC_FAILURE). This will the same the
-   value returned by the ncsvda_api.*/
-   uns32                o_result; 
-
-   union
-   {
-      NCSVDA_VDEST_CREATE_INFO   vdest_create;
-      NCSVDA_VDEST_LOOKUP_INFO   vdest_lookup;
-      NCSVDA_VDEST_CHG_ROLE_INFO vdest_chg_role;
-      NCSVDA_VDEST_DESTROY_INFO  vdest_destroy;
-      NCSVDA_PWE_CREATE_INFO     pwe_create;
-      NCSVDA_PWE_DESTROY_INFO    pwe_destroy;
-   }info;
-}NCSVDA_INFO;
-
-
-typedef uns32 (*NCSVDA_API) (NCSVDA_INFO *vda_info);
-EXTERN_C LEAPDLL_API uns32 ncsvda_api(NCSVDA_INFO *vda_info);
+	typedef uns32 (*NCSVDA_API) (NCSVDA_INFO *vda_info);
+	EXTERN_C LEAPDLL_API uns32 ncsvda_api(NCSVDA_INFO *vda_info);
 
 /*************************************************************************
     Absolute-destination-library APIs (requests into LEAP by services)
 **************************************************************************/
 
-typedef enum
-{
-   NCSADA_GET_HDLS,
-   NCSADA_PWE_CREATE,
-   NCSADA_PWE_DESTROY,
+	typedef enum {
+		NCSADA_GET_HDLS,
+		NCSADA_PWE_CREATE,
+		NCSADA_PWE_DESTROY,
 
-}NCSADA_REQ_TYPE;
+	} NCSADA_REQ_TYPE;
 
-typedef struct ncsada_get_hdls_info{
-   /* 
-   This API is provided to MDS services to get a handle to PWE1 on
-   the absolute MDS destination local to an MDS core.  Since an
-   absolute MDS destination is created on an MDS core as soon 
-   as the MDS core is created, there is no explicit request needed
-   to create it.  
+	typedef struct ncsada_get_hdls_info {
+		/* 
+		   This API is provided to MDS services to get a handle to PWE1 on
+		   the absolute MDS destination local to an MDS core.  Since an
+		   absolute MDS destination is created on an MDS core as soon 
+		   as the MDS core is created, there is no explicit request needed
+		   to create it.  
 
-   This API simply creates a PWE1 on the absolute destination, if
-   not already created, and returns the handle to that PWE1.
+		   This API simply creates a PWE1 on the absolute destination, if
+		   not already created, and returns the handle to that PWE1.
 
-   The 'i_create_oac' determines whether an OAC needs to be created on
-   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
-   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
-   it has the same life and role as this MDS-DESt) then it should set this 
-   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
-   a PWE1 on the MDS-DEST created by this call.
+		   The 'i_create_oac' determines whether an OAC needs to be created on
+		   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
+		   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
+		   it has the same life and role as this MDS-DESt) then it should set this 
+		   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
+		   a PWE1 on the MDS-DEST created by this call.
 
-   */
-   NCS_BOOL     i_create_oac;
+		 */
+		NCS_BOOL i_create_oac;
 
-   /* Absolute destination of this core */
-   MDS_DEST     o_adest;
+		/* Absolute destination of this core */
+		MDS_DEST o_adest;
 
-   /* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
-   uns32        o_pwe1_oac_hdl; /* Handle to OAC on PWE1 on adest      */
+		/* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
+		uns32 o_pwe1_oac_hdl;	/* Handle to OAC on PWE1 on adest      */
 
-   MDS_HDL      o_mds_pwe1_hdl; /* Handle to PWE 1 on adest            */
-   MDS_HDL      o_mds_adest_hdl;/* Handle to adest for global services */
+		MDS_HDL o_mds_pwe1_hdl;	/* Handle to PWE 1 on adest            */
+		MDS_HDL o_mds_adest_hdl;	/* Handle to adest for global services */
 
-}NCSADA_GET_HDLS_INFO;
-
+	} NCSADA_GET_HDLS_INFO;
 
 /* ncsada_pwe_create_info :    Creates a PWE on an ADEST */
-typedef struct ncsada_pwe_create_info{
+	typedef struct ncsada_pwe_create_info {
 
-   /* i_mds_dest_hdl: A absolute MDS-destination handle, obtainable
-   through the NCSADA_GET_HDLS_INFO call. */
-   MDS_HDL     i_mds_adest_hdl; 
+		/* i_mds_dest_hdl: A absolute MDS-destination handle, obtainable
+		   through the NCSADA_GET_HDLS_INFO call. */
+		MDS_HDL i_mds_adest_hdl;
 
-   /* i_pwe_id: The environement-identifier for the PWE being created */
-   PW_ENV_ID   i_pwe_id;       
+		/* i_pwe_id: The environement-identifier for the PWE being created */
+		PW_ENV_ID i_pwe_id;
 
-   /* i_create_oac: If TRUE, an OAC would be pre-created on the PWE.*/
-   NCS_BOOL    i_create_oac; 
+		/* i_create_oac: If TRUE, an OAC would be pre-created on the PWE. */
+		NCS_BOOL i_create_oac;
 
-   /* Handle to pre-created OAC on this PWE. Set only if 
-   "i_create_oac" is TRUE */
-   uns32       o_pwe_oac_hdl; 
+		/* Handle to pre-created OAC on this PWE. Set only if 
+		   "i_create_oac" is TRUE */
+		uns32 o_pwe_oac_hdl;
 
-   /* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
-   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */
-   MDS_HDL     o_mds_pwe_hdl;
+		/* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
+		   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */
+		MDS_HDL o_mds_pwe_hdl;
 
-}NCSADA_PWE_CREATE_INFO;
-
-
+	} NCSADA_PWE_CREATE_INFO;
 
 /* ncsada_pwe_destroy_info :   Destroys a PWE on a ADEST. Any services
                                installed on this PWE are also automatically
                                destroyed by MDS. 
 */
-typedef struct ncsada_pwe_destroy_info{
+	typedef struct ncsada_pwe_destroy_info {
 
-   /* i_mds_pwe_hdl: Handle to PWE obtained through a NCSADA_PWE_CREATE
-   request. */
-   MDS_HDL  i_mds_pwe_hdl;
+		/* i_mds_pwe_hdl: Handle to PWE obtained through a NCSADA_PWE_CREATE
+		   request. */
+		MDS_HDL i_mds_pwe_hdl;
 
-}NCSADA_PWE_DESTROY_INFO;
+	} NCSADA_PWE_DESTROY_INFO;
 
+	typedef struct ncsada_info {
 
+		NCSADA_REQ_TYPE req;
+		union {
+			NCSADA_GET_HDLS_INFO adest_get_hdls;
+			NCSADA_PWE_CREATE_INFO pwe_create;
+			NCSADA_PWE_DESTROY_INFO pwe_destroy;
+		} info;
+	} NCSADA_INFO;
 
-typedef struct ncsada_info{
-
-   NCSADA_REQ_TYPE      req;
-   union
-   {
-      NCSADA_GET_HDLS_INFO       adest_get_hdls;
-      NCSADA_PWE_CREATE_INFO     pwe_create;
-      NCSADA_PWE_DESTROY_INFO    pwe_destroy;
-   }info;
-}NCSADA_INFO;
-
-
-typedef uns32 (*NCSADA_API) (NCSADA_INFO *ada_info);
-EXTERN_C LEAPDLL_API uns32 ncsada_api(NCSADA_INFO *ada_info);
+	typedef uns32 (*NCSADA_API) (NCSADA_INFO *ada_info);
+	EXTERN_C LEAPDLL_API uns32 ncsada_api(NCSADA_INFO *ada_info);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

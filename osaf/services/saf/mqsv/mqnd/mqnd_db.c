@@ -15,12 +15,10 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: mqsv_db.c
 
   DESCRIPTION: MQND Data base routines.
-
 
 ******************************************************************************/
 
@@ -38,12 +36,11 @@
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE** o_qnode)
+void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode)
 {
-   if(cb->is_qhdl_db_up)
-      *o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_get(&cb->qhndl_db,
-                                                   (uns8*)&qhdl);
-   return;
+	if (cb->is_qhdl_db_up)
+		*o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_get(&cb->qhndl_db, (uns8 *)&qhdl);
+	return;
 }
 
 /****************************************************************************
@@ -58,18 +55,15 @@ void mqnd_queue_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE** 
  *
  * Notes         : None.
  *****************************************************************************/
-void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE** o_qnode)
+void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NODE **o_qnode)
 {
-   if(cb->is_qhdl_db_up)
-   {
-      if(qhdl)
-         *o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_getnext(&cb->qhndl_db,
-                                                   (uns8*)&qhdl);
-      else
-         *o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_getnext(&cb->qhndl_db,
-                                                   (uns8*)NULL);
-   }
-   return;
+	if (cb->is_qhdl_db_up) {
+		if (qhdl)
+			*o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_getnext(&cb->qhndl_db, (uns8 *)&qhdl);
+		else
+			*o_qnode = (MQND_QUEUE_NODE *)ncs_patricia_tree_getnext(&cb->qhndl_db, (uns8 *)NULL);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -86,15 +80,13 @@ void mqnd_queue_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QUEUE_NOD
  *****************************************************************************/
 uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
+	uns32 rc = NCSCC_RC_FAILURE;
 
+	qnode->pnode.key_info = (uns8 *)&(qnode->qinfo.queueHandle);
 
-   qnode->pnode.key_info = (uns8 *)&(qnode->qinfo.queueHandle);
-
-   if(cb->is_qhdl_db_up)
-      rc = ncs_patricia_tree_add(&cb->qhndl_db,
-                                        (NCS_PATRICIA_NODE *)qnode);
-   return rc;
+	if (cb->is_qhdl_db_up)
+		rc = ncs_patricia_tree_add(&cb->qhndl_db, (NCS_PATRICIA_NODE *)qnode);
+	return rc;
 }
 
 /****************************************************************************
@@ -111,17 +103,15 @@ uns32 mqnd_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
  *****************************************************************************/
 uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
-   
-   if ( !(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT) )
-      mqnd_tmr_stop (&qnode->qinfo.tmr);
+	uns32 rc = NCSCC_RC_FAILURE;
 
-   if(cb->is_qhdl_db_up)
-      rc = ncs_patricia_tree_del(&cb->qhndl_db,
-                                     (NCS_PATRICIA_NODE *)qnode);
-   return rc;
+	if (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))
+		mqnd_tmr_stop(&qnode->qinfo.tmr);
+
+	if (cb->is_qhdl_db_up)
+		rc = ncs_patricia_tree_del(&cb->qhndl_db, (NCS_PATRICIA_NODE *)qnode);
+	return rc;
 }
-
 
 /****************************************************************************
  * Name          : mqnd_qevt_node_get
@@ -137,10 +127,9 @@ uns32 mqnd_queue_node_del(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
  *****************************************************************************/
 void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode)
 {
-   if(cb->is_qevt_hdl_db_up)
-      *o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_get(&cb->q_transfer_evt_db,
-                                                   (uns8*)&qhdl);
-   return;
+	if (cb->is_qevt_hdl_db_up)
+		*o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_get(&cb->q_transfer_evt_db, (uns8 *)&qhdl);
+	return;
 }
 
 /****************************************************************************
@@ -157,16 +146,15 @@ void mqnd_qevt_node_get(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_
  *****************************************************************************/
 void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_EVT_NODE **o_qnode)
 {
-   if(cb->is_qevt_hdl_db_up)
-   {
-      if(qhdl)
-         *o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_getnext(&cb->q_transfer_evt_db,
-                                                   (uns8*)&qhdl);
-      else
-         *o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_getnext(&cb->q_transfer_evt_db,
-                                                   (uns8*)NULL);
-   }
-   return;
+	if (cb->is_qevt_hdl_db_up) {
+		if (qhdl)
+			*o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_getnext(&cb->q_transfer_evt_db,
+											(uns8 *)&qhdl);
+		else
+			*o_qnode = (MQND_QTRANSFER_EVT_NODE *)ncs_patricia_tree_getnext(&cb->q_transfer_evt_db,
+											(uns8 *)NULL);
+	}
+	return;
 }
 
 /****************************************************************************
@@ -183,15 +171,13 @@ void mqnd_qevt_node_getnext(MQND_CB *cb, SaMsgQueueHandleT qhdl, MQND_QTRANSFER_
  *****************************************************************************/
 uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
+	uns32 rc = NCSCC_RC_FAILURE;
 
+	qevt_node->evt.key_info = (uns8 *)&(qevt_node->tmr.qhdl);
 
-   qevt_node->evt.key_info = (uns8 *)&(qevt_node->tmr.qhdl);
-
-   if(cb->is_qevt_hdl_db_up)
-      rc = ncs_patricia_tree_add(&cb->q_transfer_evt_db,
-                                        (NCS_PATRICIA_NODE *)qevt_node);
-   return rc;
+	if (cb->is_qevt_hdl_db_up)
+		rc = ncs_patricia_tree_add(&cb->q_transfer_evt_db, (NCS_PATRICIA_NODE *)qevt_node);
+	return rc;
 }
 
 /****************************************************************************
@@ -208,10 +194,9 @@ uns32 mqnd_qevt_node_add(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
  *****************************************************************************/
 uns32 mqnd_qevt_node_del(MQND_CB *cb, MQND_QTRANSFER_EVT_NODE *qevt_node)
 {
-   uns32 rc=NCSCC_RC_FAILURE;
-   
-   if(cb->is_qevt_hdl_db_up)
-      rc = ncs_patricia_tree_del(&cb->q_transfer_evt_db,
-                                        (NCS_PATRICIA_NODE *)qevt_node);
-   return rc;
+	uns32 rc = NCSCC_RC_FAILURE;
+
+	if (cb->is_qevt_hdl_db_up)
+		rc = ncs_patricia_tree_del(&cb->q_transfer_evt_db, (NCS_PATRICIA_NODE *)qevt_node);
+	return rc;
 }

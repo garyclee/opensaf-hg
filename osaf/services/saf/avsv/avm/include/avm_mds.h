@@ -27,7 +27,6 @@
 ******************************************************************************
 */
 
-
 #ifndef __AVM_MDS_H__
 #define __AVM_MDS_H__
 
@@ -41,19 +40,9 @@
 #define AVM_BAM_SUBPART_VER_MAX   1
 
 extern uns32 avm_mds_initialize(AVM_CB_T *cb);
-extern uns32 avm_mds_finalize (AVM_CB_T *cb);
-extern uns32
-avm_mds_set_vdest_role(AVM_CB_T *cb, SaAmfHAStateT role);
+extern uns32 avm_mds_finalize(AVM_CB_T *cb);
+extern uns32 avm_mds_set_vdest_role(AVM_CB_T *cb, SaAmfHAStateT role);
 
+extern uns32 avm_mds_msg_send(AVM_CB_T *cb, AVM_AVD_MSG_T *msg, MDS_DEST *dest, MDS_SEND_PRIORITY_TYPE prio);
 
-
-extern uns32
-avm_mds_msg_send(
-                  AVM_CB_T                *cb,
-                  AVM_AVD_MSG_T           *msg,
-                  MDS_DEST                *dest,
-                  MDS_SEND_PRIORITY_TYPE  prio
-                );
-
-
-#endif /* __AVM_MDS_H__ */
+#endif   /* __AVM_MDS_H__ */

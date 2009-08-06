@@ -18,9 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,7 +30,6 @@
 
 #ifndef MAB_DEF_H
 #define MAB_DEF_H
-
 
 /* SMM this stuff in this area belongs to os_svcs, mab_ipc.h/c; Move it */
 
@@ -55,6 +51,5 @@
 /* The PSS Send and Recieve mailbox manipulations */
 #define m_PSS_RCV_MSG(mbx,msg) (struct mab_msg*)m_NCS_IPC_NON_BLK_RECEIVE(mbx, NULL)
 #define m_PSS_SND_MSG(mbx,msg)      m_NCS_IPC_SEND(mbx, msg, NCS_IPC_PRIORITY_NORMAL)
-
 
 #endif

@@ -23,20 +23,16 @@
   
   DESCRIPTION: This file describes the Encode/Decode Utility routines 
   
-  ***************************************************************************/ 
+  ***************************************************************************/
 #ifndef SUBAGT_EDU_H
 #define SUBAGT_EDU_H
 
 struct ncs_trap;
 
-/* EDU EDP initialization */ 
-uns32
-snmpsubagt_edu_edp_initialize(EDU_HDL *); 
+/* EDU EDP initialization */
+uns32 snmpsubagt_edu_edp_initialize(EDU_HDL *);
 
 /* decode the trap from the event data */
-uns32 
-subagt_edu_ncs_trap_decode(EDU_HDL  *edu_hdl, 
-                           uns8     *evt_data,
-                           uns32    evt_data_size, 
-                           struct ncs_trap *trap_header);
+uns32 subagt_edu_ncs_trap_decode(EDU_HDL *edu_hdl, uns8 *evt_data, uns32 evt_data_size, struct ncs_trap *trap_header);
+
 #endif

@@ -35,8 +35,7 @@ updates between the ACTIVE and STANDBY EDS peers.
 #include "eds.h"
 
 #define EDS_MBCSV_VERSION 1
-#define EDS_MBCSV_VERSION_MIN 1 
-
+#define EDS_MBCSV_VERSION_MIN 1
 
 /* Checkpoint message types(Used as 'reotype' w.r.t mbcsv)  */
 
@@ -45,88 +44,80 @@ updates between the ACTIVE and STANDBY EDS peers.
  * can be mapped straight with edsv message types
  */
 
-typedef enum edsv_ckpt_rec_type
-{
-  EDS_CKPT_MSG_BASE,
-  EDS_CKPT_INITIALIZE_REC=EDS_CKPT_MSG_BASE,
-  EDS_CKPT_FINALIZE_REC,
-  EDS_CKPT_CHAN_REC,
-  EDS_CKPT_CHAN_OPEN_REC,
-  EDS_CKPT_ASYNC_CHAN_OPEN_REC,
-  EDS_CKPT_CHAN_CLOSE_REC,
-  EDS_CKPT_CHAN_UNLINK_REC,
-  EDS_CKPT_RETEN_REC,
-  EDS_CKPT_SUBSCRIBE_REC,
-  EDS_CKPT_UNSUBSCRIBE_REC,
-  EDS_CKPT_RETENTION_TIME_CLR_REC,
-  EDS_CKPT_AGENT_DOWN,
-  EDS_CKPT_WARM_SYNC_CSUM,
-  EDS_CKPT_MSG_MAX
+typedef enum edsv_ckpt_rec_type {
+	EDS_CKPT_MSG_BASE,
+	EDS_CKPT_INITIALIZE_REC = EDS_CKPT_MSG_BASE,
+	EDS_CKPT_FINALIZE_REC,
+	EDS_CKPT_CHAN_REC,
+	EDS_CKPT_CHAN_OPEN_REC,
+	EDS_CKPT_ASYNC_CHAN_OPEN_REC,
+	EDS_CKPT_CHAN_CLOSE_REC,
+	EDS_CKPT_CHAN_UNLINK_REC,
+	EDS_CKPT_RETEN_REC,
+	EDS_CKPT_SUBSCRIBE_REC,
+	EDS_CKPT_UNSUBSCRIBE_REC,
+	EDS_CKPT_RETENTION_TIME_CLR_REC,
+	EDS_CKPT_AGENT_DOWN,
+	EDS_CKPT_WARM_SYNC_CSUM,
+	EDS_CKPT_MSG_MAX
 } EDS_CKPT_DATA_TYPE;
 /* CHAN_OPEN is used only in cold sync, while CHAN is used in async for both, synch,asynchronous chan_open api */
 
 /* Structures for Checkpoint data(to be replicated at the standby) */
 
 /* Registrationlist checkpoint record, used in cold/warm/async checkpoint updates */
-typedef struct edsv_ckpt_reg_msg
-{
-  uns32       reg_id; /* Registration Id at Active */
-  MDS_DEST    eda_client_dest; /* Handy when an EDA instance goes away */
+typedef struct edsv_ckpt_reg_msg {
+	uns32 reg_id;		/* Registration Id at Active */
+	MDS_DEST eda_client_dest;	/* Handy when an EDA instance goes away */
 } EDS_CKPT_REG_MSG;
 
 /* finalize checkpoint record, used in cold/warm/async checkpoint updates */
-typedef struct edsv_ckpt_finalize_msg
-{
-  uns32       reg_id; /* Registration Id at Active */
+typedef struct edsv_ckpt_finalize_msg {
+	uns32 reg_id;		/* Registration Id at Active */
 } EDS_CKPT_FINALIZE_MSG;
 
 /* Channel records */
-typedef struct edsv_ckpt_chan_msg
-{
-  uns32              reg_id;
-  uns32              chan_id;
-  uns32              last_copen_id; /* Last assigned chan_open_id */
-  uns32              chan_attrib; /* Attributes of this channel */
-  uns16              cname_len;  /* Length of channel name */
-  uns8               cname[SA_MAX_NAME_LENGTH];  /* Channel name. NULL terminated if ascii */
-  MDS_DEST           chan_opener_dest;
-  SaTimeT            chan_create_time; 
-  /* Is it chan_name_len or MAX_SANAME_LEN? */
-}EDS_CKPT_CHAN_MSG;
+typedef struct edsv_ckpt_chan_msg {
+	uns32 reg_id;
+	uns32 chan_id;
+	uns32 last_copen_id;	/* Last assigned chan_open_id */
+	uns32 chan_attrib;	/* Attributes of this channel */
+	uns16 cname_len;	/* Length of channel name */
+	uns8 cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
+	MDS_DEST chan_opener_dest;
+	SaTimeT chan_create_time;
+	/* Is it chan_name_len or MAX_SANAME_LEN? */
+} EDS_CKPT_CHAN_MSG;
 
 /* channel open list checkpoint record */
-typedef struct edsv_ckpt_chan_open_msg
-{
-  uns32                 reg_id;
-  uns32                 chan_id;
-  uns32                 chan_open_id;
-  uns32              chan_attrib; /* Attributes of this channel */
-  MDS_DEST              chan_opener_dest;
-  uns16                 cname_len;  /* Length of channel name */
-  uns8                  cname[SA_MAX_NAME_LENGTH];  /* Channel name. NULL terminated if ascii */
-  SaTimeT               chan_create_time;
+typedef struct edsv_ckpt_chan_open_msg {
+	uns32 reg_id;
+	uns32 chan_id;
+	uns32 chan_open_id;
+	uns32 chan_attrib;	/* Attributes of this channel */
+	MDS_DEST chan_opener_dest;
+	uns16 cname_len;	/* Length of channel name */
+	uns8 cname[SA_MAX_NAME_LENGTH];	/* Channel name. NULL terminated if ascii */
+	SaTimeT chan_create_time;
 } EDS_CKPT_CHAN_OPEN_MSG;
 
 /* channel close checkpoint record */
-typedef struct edsv_ckpt_chan_close_msg
-{
-  uns32                     reg_id;
-  uns32                     chan_id;
-  uns32                     chan_open_id;
+typedef struct edsv_ckpt_chan_close_msg {
+	uns32 reg_id;
+	uns32 chan_id;
+	uns32 chan_open_id;
 } EDS_CKPT_CHAN_CLOSE_MSG;
 
 /* channel unlink checkpoint record */
-typedef struct edsv_ckpt_chan_unlink_msg
-{
-   uns32                     reg_id;
-   SaNameT                   chan_name;
+typedef struct edsv_ckpt_chan_unlink_msg {
+	uns32 reg_id;
+	SaNameT chan_name;
 } EDS_CKPT_CHAN_UNLINK_MSG;
 
 /* retained event list checkpoint record */
-typedef struct edsv_ckpt_retain_evt_msg
-{
-  SaTimeT                  pubtime;
-  EDSV_EDA_PUBLISH_PARAM   data; /* Set retention_time -= elapsed time */
+typedef struct edsv_ckpt_retain_evt_msg {
+	SaTimeT pubtime;
+	EDSV_EDA_PUBLISH_PARAM data;	/* Set retention_time -= elapsed time */
 } EDS_CKPT_RETAIN_EVT_MSG;
 /* A retention event shall be stored in retention event list.
  * After expiry of the timer, in the active, a retention_clear is sent to standby
@@ -134,22 +125,18 @@ typedef struct edsv_ckpt_retain_evt_msg
  */
 
 /* Subscriptionlist checkpoint record */
-typedef struct edsv_ckpt_subscribe_msg
-{
-  EDSV_EDA_SUBSCRIBE_PARAM   data;
+typedef struct edsv_ckpt_subscribe_msg {
+	EDSV_EDA_SUBSCRIBE_PARAM data;
 } EDS_CKPT_SUBSCRIBE_MSG;
 
-typedef struct edsv_ckpt_unsubscribe_msg
-{
-  EDSV_EDA_UNSUBSCRIBE_PARAM   data;
-}EDS_CKPT_UNSUBSCRIBE_MSG;
+typedef struct edsv_ckpt_unsubscribe_msg {
+	EDSV_EDA_UNSUBSCRIBE_PARAM data;
+} EDS_CKPT_UNSUBSCRIBE_MSG;
 
 /* Retention-time clear record */
-typedef struct edsv_ckpt_retention_time_clear_msg
-{
-  EDSV_EDA_RETENTION_TIME_CLR_PARAM   data;
+typedef struct edsv_ckpt_retention_time_clear_msg {
+	EDSV_EDA_RETENTION_TIME_CLR_PARAM data;
 } EDS_CKPT_RETENTION_TIME_CLEAR_MSG;
-
 
 /* Checksum structure sent to the STANDBY during a warm-sync.
  * The STANDBY computes checksum on the individual databases and
@@ -157,45 +144,40 @@ typedef struct edsv_ckpt_retention_time_clear_msg
  * following which the ACTIVE sends that specific database again
  * with a checksum.
 */
-typedef struct eds_ckpt_data_csum
-{
-  uns16 reg_csum;
-  uns16 copen_csum;
+typedef struct eds_ckpt_data_csum {
+	uns16 reg_csum;
+	uns16 copen_csum;
 /*  uns16 reten_csum; */
-  uns16 subsc_csum;
+	uns16 subsc_csum;
 } EDS_CKPT_DATA_CHECKSUM;
-
 
 /* Checkpoint message containing eds data of a particular type.
  * Used during cold, warm sync, and async updates.
  */
-typedef struct edsv_ckpt_header
-{
+typedef struct edsv_ckpt_header {
 /* SaVersionT          version;  Active peer's Version */
-   EDS_CKPT_DATA_TYPE  ckpt_rec_type; /* Type of eds data carried in this checkpoint */
-   uns32               num_ckpt_records; /* =1 for async updates,>=1 for cold/warm sync */
-   uns32               data_len; /* Total length of encoded checkpoint data of this type */
+	EDS_CKPT_DATA_TYPE ckpt_rec_type;	/* Type of eds data carried in this checkpoint */
+	uns32 num_ckpt_records;	/* =1 for async updates,>=1 for cold/warm sync */
+	uns32 data_len;		/* Total length of encoded checkpoint data of this type */
 /* uns16               checksum;  Checksum calculated on the message */
 } EDS_CKPT_HEADER;
 
-typedef struct edsv_ckpt_msg
-{
-   EDS_CKPT_HEADER header;
-   union
-   {
-         EDS_CKPT_REG_MSG                   reg_rec;
-         EDS_CKPT_FINALIZE_MSG              finalize_rec;
-         EDS_CKPT_CHAN_MSG                  chan_rec;
-         EDS_CKPT_CHAN_OPEN_MSG             chan_open_rec;
-         EDS_CKPT_CHAN_CLOSE_MSG            chan_close_rec;
-         EDS_CKPT_CHAN_UNLINK_MSG           chan_unlink_rec;
-         EDS_CKPT_RETAIN_EVT_MSG            retain_evt_rec;
-         EDS_CKPT_SUBSCRIBE_MSG             subscribe_rec;
-         EDS_CKPT_UNSUBSCRIBE_MSG           unsubscribe_rec;
-         EDS_CKPT_RETENTION_TIME_CLEAR_MSG  reten_time_clr_rec;
-         EDS_CKPT_DATA_CHECKSUM             warm_sync_csum;
-         MDS_DEST                           agent_dest;
-   } ckpt_rec;
+typedef struct edsv_ckpt_msg {
+	EDS_CKPT_HEADER header;
+	union {
+		EDS_CKPT_REG_MSG reg_rec;
+		EDS_CKPT_FINALIZE_MSG finalize_rec;
+		EDS_CKPT_CHAN_MSG chan_rec;
+		EDS_CKPT_CHAN_OPEN_MSG chan_open_rec;
+		EDS_CKPT_CHAN_CLOSE_MSG chan_close_rec;
+		EDS_CKPT_CHAN_UNLINK_MSG chan_unlink_rec;
+		EDS_CKPT_RETAIN_EVT_MSG retain_evt_rec;
+		EDS_CKPT_SUBSCRIBE_MSG subscribe_rec;
+		EDS_CKPT_UNSUBSCRIBE_MSG unsubscribe_rec;
+		EDS_CKPT_RETENTION_TIME_CLEAR_MSG reten_time_clr_rec;
+		EDS_CKPT_DATA_CHECKSUM warm_sync_csum;
+		MDS_DEST agent_dest;
+	} ckpt_rec;
 /*   EDS_CKPT_REC        *next;  This may not be needed */
 } EDS_CKPT_DATA;
 
@@ -203,44 +185,40 @@ typedef struct edsv_ckpt_msg
  * To maintain count for published messages, an empty CKPT_MSG shall be sent
  * for all EDS_CKPT_PUBLISH_REC types 
  */
-typedef struct eds_ckpt_message
-{
-   uns32 tot_data_len; /* Combined length of all record types */
-   EDS_CKPT_DATA *ckpt_data; /* Multiple instances of ckpt_data for different eds records */
+typedef struct eds_ckpt_message {
+	uns32 tot_data_len;	/* Combined length of all record types */
+	EDS_CKPT_DATA *ckpt_data;	/* Multiple instances of ckpt_data for different eds records */
 } EDS_CKPT_MSG;
 /* Error codes sent by STANDBY during checkpoint updates */
-typedef enum eds_ckpt_csum_err
-{
-  EDS_REG_REC_CSUM_MISMATCH=0,
-  EDS_CHAN_REC_CSUM_MISMATCH,
-  EDS_RETEN_REC_CSUM_MISMATCH,
-  EDS_SUBSC_REC_CSUM_MISMATCH,
-  EDS_MISC_REC_CSUM_MISMATCH
-}EDS_CKPT_CSUM_MISMATCH;
+typedef enum eds_ckpt_csum_err {
+	EDS_REG_REC_CSUM_MISMATCH = 0,
+	EDS_CHAN_REC_CSUM_MISMATCH,
+	EDS_RETEN_REC_CSUM_MISMATCH,
+	EDS_SUBSC_REC_CSUM_MISMATCH,
+	EDS_MISC_REC_CSUM_MISMATCH
+} EDS_CKPT_CSUM_MISMATCH;
 
-typedef enum eds_ckpt_enc_err
-{
-  EDS_REG_ENC_ERROR=0,
-  EDS_CHAN_OPEN_ENC_ERROR,
-  EDS_RETEN_ENC_ERROR,
-  EDS_SUBSC_ENC_ERROR,
-  EDS_CHAN_CLOSE_ENC_ERROR,
-  EDS_CHAN_UNLINK_ENC_ERROR,
-  EDS_FINALIZE_ENC_ERROR,
-  EDS_RETEN_CLEAR_ENC_ERROR
-}EDS_CKPT_ENC_ERROR;
+typedef enum eds_ckpt_enc_err {
+	EDS_REG_ENC_ERROR = 0,
+	EDS_CHAN_OPEN_ENC_ERROR,
+	EDS_RETEN_ENC_ERROR,
+	EDS_SUBSC_ENC_ERROR,
+	EDS_CHAN_CLOSE_ENC_ERROR,
+	EDS_CHAN_UNLINK_ENC_ERROR,
+	EDS_FINALIZE_ENC_ERROR,
+	EDS_RETEN_CLEAR_ENC_ERROR
+} EDS_CKPT_ENC_ERROR;
 
-typedef enum eds_ckpt_dec_err
-{
-  EDS_REG_DEC_ERROR=0,
-  EDS_CHAN_OPEN_DEC_ERROR,
-  EDS_RETEN_DEC_ERROR,
-  EDS_SUBSC_DEC_ERROR,
-  EDS_CHAN_CLOSE_DEC_ERROR,
-  EDS_CHAN_UNLINK_DEC_ERROR,
-  EDS_FINALIZE_DEC_ERROR,
-  EDS_RETEN_CLEAR_DEC_ERROR
-}EDS_CKPT_DEC_ERROR;
+typedef enum eds_ckpt_dec_err {
+	EDS_REG_DEC_ERROR = 0,
+	EDS_CHAN_OPEN_DEC_ERROR,
+	EDS_RETEN_DEC_ERROR,
+	EDS_SUBSC_DEC_ERROR,
+	EDS_CHAN_CLOSE_DEC_ERROR,
+	EDS_CHAN_UNLINK_DEC_ERROR,
+	EDS_FINALIZE_DEC_ERROR,
+	EDS_RETEN_CLEAR_DEC_ERROR
+} EDS_CKPT_DEC_ERROR;
 
 #define m_EDS_FILL_VERSION(rec) { \
  rec.version.releaseCode='A'; \
@@ -303,7 +281,7 @@ rec->data.data=list->data;\
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDA, \
                                             NCS_SERVICE_SUB_ID_EDSV_CKPT_MSG)
-                                                                                                                             
+
 #define m_MMGR_FREE_EDSV_CKPT_DATA(p)         m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDA, \
@@ -313,7 +291,7 @@ rec->data.data=list->data;\
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDA, \
                                             NCS_SERVICE_SUB_ID_EDSV_CKPT_MSG)
-                                                                                                                             
+
 #define m_MMGR_FREE_EDSV_REG_MSG(p)         m_NCS_MEM_FREE(p, \
                                             NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_EDA, \
@@ -518,103 +496,84 @@ rec->data.data=list->data;\
   ckpt.header.data_len=1;\
   ckpt.ckpt_rec.agent_dest=dest;\
 }
-typedef uns32 (*EDS_CKPT_HDLR)(EDS_CB *cb, EDS_CKPT_DATA *data);
+typedef uns32 (*EDS_CKPT_HDLR) (EDS_CB *cb, EDS_CKPT_DATA *data);
 uns32 eds_mbcsv_init(EDS_CB *eds_cb);
 uns32 eds_mbcsv_open_ckpt(EDS_CB *cb);
 uns32 eds_mbcsv_change_HA_state(EDS_CB *cb);
 uns32 eds_mbcsv_dispatch(NCS_MBCSV_HDL mbcsv_hdl);
 
-uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg); /* Common Callback interface to mbcsv */
+uns32 eds_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);	/* Common Callback interface to mbcsv */
 uns32 eds_ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg,NCS_BOOL data_req);
+uns32 eds_ckpt_enc_cold_sync_data(EDS_CB *eds_cb, NCS_MBCSV_CB_ARG *cbk_arg, NCS_BOOL data_req);
 uns32 eds_edu_enc_reg_list(EDS_CB *cb, NCS_UBAID *uba);
-uns32 eds_edu_enc_chan_rec(EDS_CB *cb,NCS_UBAID *uba);
+uns32 eds_edu_enc_chan_rec(EDS_CB *cb, NCS_UBAID *uba);
 uns32 eds_edu_enc_chan_open_list(EDS_CB *cb, NCS_UBAID *uba);
 uns32 eds_edu_enc_subsc_list(EDS_CB *cb, NCS_UBAID *uba);
-uns32 eds_edu_enc_reten_list(EDS_CB *cb,NCS_UBAID *uba);
-uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb,EDU_HDL edu_hdl,NCS_MBCSV_CB_ARG *cbk_arg);
+uns32 eds_edu_enc_reten_list(EDS_CB *cb, NCS_UBAID *uba);
+uns32 eds_ckpt_encode_async_update(EDS_CB *eds_cb, EDU_HDL edu_hdl, NCS_MBCSV_CB_ARG *cbk_arg);
 uns32 eds_ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 eds_ckpt_decode_async_update(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg);
+uns32 eds_ckpt_decode_async_update(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
+uns32 eds_ckpt_decode_cold_sync(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
 uns32 eds_process_ckpt_data(EDS_CB *cb, EDS_CKPT_DATA *data);
 uns32 eds_ckpt_proc_reg_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_finalize_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_chan_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_chan_open_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_chan_close_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_reten_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_subscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_proc_agent_down_rec(EDS_CB* cb, EDS_CKPT_DATA *data);
-uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB* cb, NCS_UBAID *uba);
+uns32 eds_ckpt_proc_finalize_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_chan_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_chan_open_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_chan_close_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_chan_unlink_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_reten_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_subscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_unsubscribe_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_ret_time_clr_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_proc_agent_down_rec(EDS_CB *cb, EDS_CKPT_DATA *data);
+uns32 eds_ckpt_warm_sync_csum_dec_hdlr(EDS_CB *cb, NCS_UBAID *uba);
 uns32 eds_ckpt_warm_sync_csum_enc_hdlr(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
-uns32 eds_ckpt_enc_warm_sync_csum(EDS_CB *cb,NCS_UBAID *uba);
-uns32 compute_reg_csum(EDS_CB *cb,uns16 *cksum);
-uns32 compute_copen_csum(EDS_CB *cb,uns16 *cksum);
-uns32 compute_subsc_csum(EDS_CB *cb,uns16 *cksum);
-uns32 send_async_update(EDS_CB *cb,EDS_CKPT_DATA *ckpt_rec,uns32 action);
+uns32 eds_ckpt_enc_warm_sync_csum(EDS_CB *cb, NCS_UBAID *uba);
+uns32 compute_reg_csum(EDS_CB *cb, uns16 *cksum);
+uns32 compute_copen_csum(EDS_CB *cb, uns16 *cksum);
+uns32 compute_subsc_csum(EDS_CB *cb, uns16 *cksum);
+uns32 send_async_update(EDS_CB *cb, EDS_CKPT_DATA *ckpt_rec, uns32 action);
 uns32 edsv_ckpt_send_cold_sync(EDS_CB *eds_cb);
 uns32 eds_ckpt_send_async_update(EDS_CB *eds_cb);
 uns32 eds_ckpt_peer_info_cbk_handler(NCS_MBCSV_CB_ARG *arg);
-uns32 eds_ckpt_notify_cbk_handler (NCS_MBCSV_CB_ARG *arg);
-uns32 eds_ckpt_err_ind_cbk_handler (NCS_MBCSV_CB_ARG *arg);
+uns32 eds_ckpt_notify_cbk_handler(NCS_MBCSV_CB_ARG *arg);
+uns32 eds_ckpt_err_ind_cbk_handler(NCS_MBCSV_CB_ARG *arg);
 uns32 eds_edp_ed_ckpt_hdr(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_reg_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			 NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_chan_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_chan_open_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			       NCSCONTEXT ptr, uns32 *ptr_data_len,
+			       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_chan_close_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+				NCSCONTEXT ptr, uns32 *ptr_data_len,
+				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_chan_ulink_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+				NCSCONTEXT ptr, uns32 *ptr_data_len,
+				EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_ret_clr_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			     NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_csum_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_usubsc_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_finalize_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			      NCSCONTEXT ptr, uns32 *ptr_data_len,
+			      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 uns32 eds_edp_ed_header_rec(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
+			    NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 int32 eds_ckpt_msg_test_type(NCSCONTEXT arg);
 uns32 eds_edp_ed_ckpt_msg(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
-                                  NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                  EDU_ERR *o_err);
-void eds_enc_ckpt_header(uns8 *pdata,EDS_CKPT_HEADER header);
-uns32 eds_enc_ckpt_reten_msg(NCS_UBAID *uba,EDS_CKPT_RETAIN_EVT_MSG *msg);
-uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba,EDS_CKPT_SUBSCRIBE_MSG *msg);
-uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba,EDS_CKPT_RETAIN_EVT_MSG *msg);
+			  NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+void eds_enc_ckpt_header(uns8 *pdata, EDS_CKPT_HEADER header);
+uns32 eds_enc_ckpt_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg);
+uns32 eds_ckpt_enc_subscribe_msg(NCS_UBAID *uba, EDS_CKPT_SUBSCRIBE_MSG *msg);
+uns32 eds_ckpt_enc_reten_msg(NCS_UBAID *uba, EDS_CKPT_RETAIN_EVT_MSG *msg);
 
-uns32 eds_ckpt_enc_warm_sync_data(EDS_CB *cb,NCS_MBCSV_CB_ARG *cbk_arg);
+uns32 eds_ckpt_enc_warm_sync_data(EDS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg);
 uns32 mbcsv_cold_sync_driver(EDS_CB *cb);
 uns32 eds_dec_ckpt_header(NCS_UBAID *uba, EDS_CKPT_HEADER *header);
-#endif /* !EDSV_CKPT_H*/
+
+#endif   /* !EDSV_CKPT_H */

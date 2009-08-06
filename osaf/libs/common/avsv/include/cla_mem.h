@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,15 +31,14 @@
 #define CLA_MEM_H
 
 /* Service Sub IDs for CLA */
-typedef enum
-{
-   NCS_SERVICE_CLA_SUB_ID_CLA_DEFAULT_VAL = 1,
-   NCS_SERVICE_CLA_SUB_ID_CLA_CB,
-   NCS_SERVICE_CLA_SUB_ID_CLA_PEND_CBK_REC,
-   NCS_SERVICE_CLA_SUB_ID_CLA_HDL_REC,
-   NCS_SERVICE_CLA_SUB_ID_AVSV_NDA_CLA_MSG,
-   NCS_SERVICE_CLA_SUB_ID_AVSV_CLM_CBK_INFO,
-   NCS_SERVICE_CLA_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_CLA_SUB_ID_CLA_DEFAULT_VAL = 1,
+	NCS_SERVICE_CLA_SUB_ID_CLA_CB,
+	NCS_SERVICE_CLA_SUB_ID_CLA_PEND_CBK_REC,
+	NCS_SERVICE_CLA_SUB_ID_CLA_HDL_REC,
+	NCS_SERVICE_CLA_SUB_ID_AVSV_NDA_CLA_MSG,
+	NCS_SERVICE_CLA_SUB_ID_AVSV_CLM_CBK_INFO,
+	NCS_SERVICE_CLA_SUB_ID_MAX
 } NCS_SERVICE_CLA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -49,7 +46,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_CLA_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -88,4 +84,4 @@ typedef enum
                                                 NCS_SERVICE_ID_CLA, \
                                                 NCS_SERVICE_CLA_SUB_ID_CLA_HDL_REC)
 
-#endif /* !CLA_MEM_H */
+#endif   /* !CLA_MEM_H */

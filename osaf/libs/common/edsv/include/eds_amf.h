@@ -35,80 +35,63 @@
 #define _EDS_AMF_H
 #include "eds.h"
 
-#define EDS_HA_INVALID 0 /*Invalid HA state */
-#define MAX_HA_STATE 4 
+#define EDS_HA_INVALID 0	/*Invalid HA state */
+#define MAX_HA_STATE 4
 
-/*Component file name path */ 
+/*Component file name path */
 #define m_EDS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_eds_comp_name"
 #define EDS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 /*eds.pid file name path */
-#define EDS_PID_FILE               PIDPATH "eds.pid" /* 16 */
+#define EDS_PID_FILE               PIDPATH "eds.pid"	/* 16 */
 #define EDS_PID_FILE_NAME_LEN FILENAME_MAX
 
-typedef uns32 (*eds_HAStateHandler)(EDS_CB *cb,
-                                      SaInvocationT invocation);
+typedef uns32 (*eds_HAStateHandler) (EDS_CB *cb, SaInvocationT invocation);
 
 /* AMF HA state handler routines */
-uns32 eds_invalid_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation);
-uns32 eds_active_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation);
-uns32 eds_standby_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation);
-uns32 eds_quiescing_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation);
-uns32 eds_quiesced_state_handler(EDS_CB *cb,
-                              SaInvocationT invocation);
-struct next_HAState{
-      uns8 nextState1;
-      uns8 nextState2;
-}nextStateInfo; /* AMF HA state can transit to a maximum of the two defined states */
+uns32 eds_invalid_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uns32 eds_active_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uns32 eds_standby_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation);
+uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation);
+struct next_HAState {
+	uns8 nextState1;
+	uns8 nextState2;
+} nextStateInfo;		/* AMF HA state can transit to a maximum of the two defined states */
 
 #define VALIDATE_STATE(curr,next) \
 ((curr > MAX_HA_STATE)||(next > MAX_HA_STATE)) ? EDS_HA_INVALID : \
 (((validStates[curr].nextState1 == next)||(validStates[curr].nextState2 == next))?next: EDS_HA_INVALID)
 
-
-uns32 eds_amf_init (EDS_CB *);
+uns32 eds_amf_init(EDS_CB *);
 
 /* Declarations for the amf callback routines */
-                                                                                                                       
-void
-eds_amf_CSI_set_callback (SaInvocationT invocation,
-                          const SaNameT  *compName,
-                          SaAmfHAStateT  haState,
-                          SaAmfCSIDescriptorT csiDescriptor);
-                                                                                                                       
-void
-eds_amf_health_chk_callback (SaInvocationT invocation,
-                             const SaNameT *compName,
-                             SaAmfHealthcheckKeyT *checkType);
 
 void
-eds_amf_comp_terminate_callback(SaInvocationT invocation,
-                                const SaNameT *compName);
-                                                                                                                       
+eds_amf_CSI_set_callback(SaInvocationT invocation,
+			 const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
+
+void eds_amf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
+
+void eds_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
+
 void
 eds_amf_csi_rmv_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         const SaNameT *csiName,
-                         const SaAmfCSIFlagsT csiFlags);
+			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
 uns32 eds_amf_register(EDS_CB *);
 
 void eds_amf_sigusr1_handler(int i_sig_num);
 
 /*signal handler */
 typedef void
-(*SIG_HANDLR)(int);
+ (*SIG_HANDLR) (int);
 
-int32
-ncs_app_signal_install(int i_sig_num,  SIG_HANDLR i_sig_handler);
+int32 ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
 
-uns32 pcs_rda_get_init_role(EDS_CB* eds_cb);
+uns32 pcs_rda_get_init_role(EDS_CB *eds_cb);
 SaAisErrorT eds_clm_init(EDS_CB *cb);
-void eds_clm_cluster_track_cbk (const SaClmClusterNotificationBufferT *notificationBuffer, \
-                                                SaUint32T numberOfMembers, SaAisErrorT error);
+void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,
+			       SaUint32T numberOfMembers, SaAisErrorT error);
 void send_clm_status_change(EDS_CB *cb, SaClmClusterChangesT cluster_change, NODE_ID node_id);
 
 #endif   /* _EDS_AMF_H */

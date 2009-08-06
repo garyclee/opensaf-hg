@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: NCSDLIB.C
 
@@ -44,9 +43,8 @@
 #include "ncsdlib.h"
 
 static uns32
-db_link_list_insert_node (NCS_DB_LINK_LIST *list_ptr, 
-                          NCS_DB_LINK_LIST_NODE *add_node, 
-                          NCS_DB_LINK_LIST_NODE *found_node);
+db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr,
+			 NCS_DB_LINK_LIST_NODE *add_node, NCS_DB_LINK_LIST_NODE *found_node);
 /****************************************************************************
  * Name          : ncs_db_link_list_remove
  *
@@ -60,27 +58,22 @@ db_link_list_insert_node (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *
-ncs_db_link_list_remove (NCS_DB_LINK_LIST *list_ptr, 
-                         uns8 *key)                         
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_remove(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
 {
-   NCS_DB_LINK_LIST_NODE *del_node;
+	NCS_DB_LINK_LIST_NODE *del_node;
 
-   del_node = ncs_db_link_list_find(list_ptr, key);
+	del_node = ncs_db_link_list_find(list_ptr, key);
 
-   if (del_node == NULL)
-   {
-      return (NULL);
-   }
+	if (del_node == NULL) {
+		return (NULL);
+	}
 
-   if ( ncs_db_link_list_delink(list_ptr, del_node) != NCSCC_RC_SUCCESS )
-   {
-      return (NULL);
-   }
+	if (ncs_db_link_list_delink(list_ptr, del_node) != NCSCC_RC_SUCCESS) {
+		return (NULL);
+	}
 
-   return(del_node);
+	return (del_node);
 }
-
 
 /****************************************************************************
  * Name          : ncs_db_link_list_delink
@@ -96,39 +89,30 @@ ncs_db_link_list_remove (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32
-ncs_db_link_list_delink (NCS_DB_LINK_LIST *list_ptr, 
-                         NCS_DB_LINK_LIST_NODE *del_node)                         
+uns32 ncs_db_link_list_delink(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *del_node)
 {
-   if (del_node == NULL)
-   {
-      return NCSCC_RC_FAILURE;
-   }
+	if (del_node == NULL) {
+		return NCSCC_RC_FAILURE;
+	}
 
-   if(del_node->next)
-   {
-     if((del_node->next->prev = del_node->prev) == NULL)
-     {
-        list_ptr->start_ptr = del_node->next;
-     }
-   }else
-   {
-      list_ptr->end_ptr = del_node->prev;
-   }
+	if (del_node->next) {
+		if ((del_node->next->prev = del_node->prev) == NULL) {
+			list_ptr->start_ptr = del_node->next;
+		}
+	} else {
+		list_ptr->end_ptr = del_node->prev;
+	}
 
-   if(del_node->prev)
-   {
-      if((del_node->prev->next = del_node->next) == NULL)
-         list_ptr->end_ptr = del_node->prev;
-   }else
-   {
-      list_ptr->start_ptr = del_node->next;
-   }
-   list_ptr->n_nodes--;
+	if (del_node->prev) {
+		if ((del_node->prev->next = del_node->next) == NULL)
+			list_ptr->end_ptr = del_node->prev;
+	} else {
+		list_ptr->start_ptr = del_node->next;
+	}
+	list_ptr->n_nodes--;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /****************************************************************************
  * Name          : ncs_db_link_list_del
@@ -144,26 +128,22 @@ ncs_db_link_list_delink (NCS_DB_LINK_LIST *list_ptr,
  *                 callback function. If you just want to remove the node 
  *                 from the list then call the API "ncs_db_link_list_remove()".
  *****************************************************************************/
-uns32 
-ncs_db_link_list_del (NCS_DB_LINK_LIST *list_ptr, uns8 *key)
+uns32 ncs_db_link_list_del(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
 {
-   NCS_DB_LINK_LIST_NODE *del_node = NULL;   
+	NCS_DB_LINK_LIST_NODE *del_node = NULL;
 
-   if (list_ptr->free_cookie == NULL)
-   {
-      return(NCSCC_RC_FAILURE);
-   }   
+	if (list_ptr->free_cookie == NULL) {
+		return (NCSCC_RC_FAILURE);
+	}
 
-   del_node = ncs_db_link_list_remove(list_ptr, key);
+	del_node = ncs_db_link_list_remove(list_ptr, key);
 
-   if (del_node == NULL)
-   {
-      return (NCSCC_RC_FAILURE);
-   }
-   list_ptr->free_cookie(del_node);
-   return (NCSCC_RC_SUCCESS);
+	if (del_node == NULL) {
+		return (NCSCC_RC_FAILURE);
+	}
+	list_ptr->free_cookie(del_node);
+	return (NCSCC_RC_SUCCESS);
 }
-
 
 /****************************************************************************
  * Name          : ncs_db_link_list_find
@@ -177,25 +157,21 @@ ncs_db_link_list_del (NCS_DB_LINK_LIST *list_ptr, uns8 *key)
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE * 
-ncs_db_link_list_find (NCS_DB_LINK_LIST *list_ptr, uns8 *key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find(NCS_DB_LINK_LIST *list_ptr, uns8 *key)
 {
-   NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
+	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
-   if (list_ptr->cmp_cookie == NULL)
-   {
-      return (NULL);
-   }
+	if (list_ptr->cmp_cookie == NULL) {
+		return (NULL);
+	}
 
-   while (start_ptr)
-   {
-      if(list_ptr->cmp_cookie((uns8*)start_ptr->key, key) == 0)
-         break;
-      start_ptr = start_ptr->next;    
-   }
-   return(start_ptr);
+	while (start_ptr) {
+		if (list_ptr->cmp_cookie((uns8 *)start_ptr->key, key) == 0)
+			break;
+		start_ptr = start_ptr->next;
+	}
+	return (start_ptr);
 }
-
 
 /****************************************************************************
  * Name          : db_link_list_add_ascend
@@ -209,36 +185,28 @@ ncs_db_link_list_find (NCS_DB_LINK_LIST *list_ptr, uns8 *key)
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32
-db_link_list_add_ascend (NCS_DB_LINK_LIST *list_ptr, 
-                         NCS_DB_LINK_LIST_NODE *node_ptr)
+static uns32 db_link_list_add_ascend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
 {
-   NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
+	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
-   if (list_ptr->cmp_cookie == NULL)
-   {
-      return (NCSCC_RC_FAILURE);
-   }
-   
-   if (start_ptr == NULL)
-   {
-      /* This is the first node */
-      list_ptr->start_ptr = node_ptr;
-      list_ptr->end_ptr   = node_ptr;
-   } else
-   {
-      while (start_ptr && (list_ptr->cmp_cookie((uns8*)start_ptr->key, 
-         (uns8*)node_ptr->key) == 2))
-      {
-         start_ptr = start_ptr->next;       
-      }
+	if (list_ptr->cmp_cookie == NULL) {
+		return (NCSCC_RC_FAILURE);
+	}
 
-      db_link_list_insert_node(list_ptr, node_ptr, start_ptr);
-   }
-   list_ptr->n_nodes++;
-   return (NCSCC_RC_SUCCESS);   
+	if (start_ptr == NULL) {
+		/* This is the first node */
+		list_ptr->start_ptr = node_ptr;
+		list_ptr->end_ptr = node_ptr;
+	} else {
+		while (start_ptr && (list_ptr->cmp_cookie((uns8 *)start_ptr->key, (uns8 *)node_ptr->key) == 2)) {
+			start_ptr = start_ptr->next;
+		}
+
+		db_link_list_insert_node(list_ptr, node_ptr, start_ptr);
+	}
+	list_ptr->n_nodes++;
+	return (NCSCC_RC_SUCCESS);
 }
-
 
 /****************************************************************************
  * Name          : db_link_list_insert_node
@@ -254,33 +222,27 @@ db_link_list_add_ascend (NCS_DB_LINK_LIST *list_ptr,
  * Notes         : None.
  *****************************************************************************/
 static uns32
-db_link_list_insert_node (NCS_DB_LINK_LIST *list_ptr, 
-                          NCS_DB_LINK_LIST_NODE *add_node, 
-                          NCS_DB_LINK_LIST_NODE *found_node)
+db_link_list_insert_node(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *add_node, NCS_DB_LINK_LIST_NODE *found_node)
 {
-   if (found_node == NULL)
-   {
-      add_node->prev          = list_ptr->end_ptr;
-      if (list_ptr->end_ptr != NULL)
-         list_ptr->end_ptr->next = add_node;
-      list_ptr->end_ptr       = add_node;
-      
-   } else
-   {         
-      if (found_node == list_ptr->start_ptr)
-      {
-         /* First node has been altered */
-         list_ptr->start_ptr = add_node;
-      } else
-      {
-         /* This is the intermediate node, where previous pointer is not NULL */
-         found_node->prev->next = add_node;
-         add_node->prev         = found_node->prev;
-      }
-      found_node->prev = add_node;
-      add_node->next   = found_node;
-   }
-   return (NCSCC_RC_SUCCESS);
+	if (found_node == NULL) {
+		add_node->prev = list_ptr->end_ptr;
+		if (list_ptr->end_ptr != NULL)
+			list_ptr->end_ptr->next = add_node;
+		list_ptr->end_ptr = add_node;
+
+	} else {
+		if (found_node == list_ptr->start_ptr) {
+			/* First node has been altered */
+			list_ptr->start_ptr = add_node;
+		} else {
+			/* This is the intermediate node, where previous pointer is not NULL */
+			found_node->prev->next = add_node;
+			add_node->prev = found_node->prev;
+		}
+		found_node->prev = add_node;
+		add_node->next = found_node;
+	}
+	return (NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -295,36 +257,28 @@ db_link_list_insert_node (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32
-db_link_list_add_descend (NCS_DB_LINK_LIST *list_ptr, 
-                          NCS_DB_LINK_LIST_NODE *node_ptr)
+static uns32 db_link_list_add_descend(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
 {
-   NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
+	NCS_DB_LINK_LIST_NODE *start_ptr = list_ptr->start_ptr;
 
-   if (list_ptr->cmp_cookie == NULL)
-   {
-      return (NCSCC_RC_FAILURE);
-   }
-   
-   if (start_ptr == NULL)
-   {
-      /* This is the first node */
-      list_ptr->start_ptr = node_ptr;
-      list_ptr->end_ptr   = node_ptr;
-   } else
-   {
-      while (start_ptr && (list_ptr->cmp_cookie((uns8*)start_ptr->key,
-         node_ptr->key) == 1))
-      {
-         start_ptr = start_ptr->next;
-      }
+	if (list_ptr->cmp_cookie == NULL) {
+		return (NCSCC_RC_FAILURE);
+	}
 
-      db_link_list_insert_node(list_ptr, node_ptr, start_ptr);
-   }
-   list_ptr->n_nodes++;
-   return (NCSCC_RC_SUCCESS);   
+	if (start_ptr == NULL) {
+		/* This is the first node */
+		list_ptr->start_ptr = node_ptr;
+		list_ptr->end_ptr = node_ptr;
+	} else {
+		while (start_ptr && (list_ptr->cmp_cookie((uns8 *)start_ptr->key, node_ptr->key) == 1)) {
+			start_ptr = start_ptr->next;
+		}
+
+		db_link_list_insert_node(list_ptr, node_ptr, start_ptr);
+	}
+	list_ptr->n_nodes++;
+	return (NCSCC_RC_SUCCESS);
 }
-
 
 /****************************************************************************
  * Name          : db_link_list_add_first
@@ -338,24 +292,19 @@ db_link_list_add_descend (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-static uns32
-db_link_list_add_first (NCS_DB_LINK_LIST *list_ptr, 
-                        NCS_DB_LINK_LIST_NODE *node_ptr)
+static uns32 db_link_list_add_first(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
 {
-   if (list_ptr->start_ptr == NULL)
-   {
-      list_ptr->start_ptr = node_ptr;
-      list_ptr->end_ptr   = node_ptr;
-   } else
-   {
-      list_ptr->start_ptr->prev = node_ptr;
-      node_ptr->next            = list_ptr->start_ptr;
-      list_ptr->start_ptr       = node_ptr; 
-   }
-   list_ptr->n_nodes++;
-   return (NCSCC_RC_SUCCESS);
+	if (list_ptr->start_ptr == NULL) {
+		list_ptr->start_ptr = node_ptr;
+		list_ptr->end_ptr = node_ptr;
+	} else {
+		list_ptr->start_ptr->prev = node_ptr;
+		node_ptr->next = list_ptr->start_ptr;
+		list_ptr->start_ptr = node_ptr;
+	}
+	list_ptr->n_nodes++;
+	return (NCSCC_RC_SUCCESS);
 }
-
 
 /****************************************************************************
  * Name          : ncs_db_link_list_add
@@ -370,31 +319,28 @@ db_link_list_add_first (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 
-ncs_db_link_list_add (NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
-{   
-   uns32 res;
-   
-   if ((list_ptr == NULL) || (node_ptr == NULL))
-   {
-      return (NCSCC_RC_FAILURE);
-   }
+uns32 ncs_db_link_list_add(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
+{
+	uns32 res;
 
-   switch (list_ptr->order)
-   {
-      case NCS_DBLIST_ASSCEND_ORDER:
-         res = db_link_list_add_ascend(list_ptr, node_ptr);
-         break;
+	if ((list_ptr == NULL) || (node_ptr == NULL)) {
+		return (NCSCC_RC_FAILURE);
+	}
 
-      case NCS_DBLIST_DESCEND_ORDER:
-         res = db_link_list_add_descend(list_ptr, node_ptr);
-         break;
+	switch (list_ptr->order) {
+	case NCS_DBLIST_ASSCEND_ORDER:
+		res = db_link_list_add_ascend(list_ptr, node_ptr);
+		break;
 
-      default:
-         res = db_link_list_add_first(list_ptr, node_ptr);
-         break;
-   } 
-   return (res);
+	case NCS_DBLIST_DESCEND_ORDER:
+		res = db_link_list_add_descend(list_ptr, node_ptr);
+		break;
+
+	default:
+		res = db_link_list_add_first(list_ptr, node_ptr);
+		break;
+	}
+	return (res);
 }
 
 /****************************************************************************
@@ -409,16 +355,14 @@ ncs_db_link_list_add (NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_pt
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE * 
-ncs_db_link_list_find_next (NCS_DB_LINK_LIST  *list_ptr, 
-                            uns8 *prev_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_next(NCS_DB_LINK_LIST *list_ptr, uns8 *prev_key)
 {
-   NCS_DB_LINK_LIST_NODE *node_ptr;
+	NCS_DB_LINK_LIST_NODE *node_ptr;
 
-   node_ptr =  ncs_db_link_list_find(list_ptr, prev_key);
-   if (node_ptr == NULL)
-      return (NULL);
-   return (m_NCS_DBLIST_FIND_NEXT(node_ptr));
+	node_ptr = ncs_db_link_list_find(list_ptr, prev_key);
+	if (node_ptr == NULL)
+		return (NULL);
+	return (m_NCS_DBLIST_FIND_NEXT(node_ptr));
 }
 
 /****************************************************************************
@@ -433,16 +377,14 @@ ncs_db_link_list_find_next (NCS_DB_LINK_LIST  *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE * 
-ncs_db_link_list_find_prev (NCS_DB_LINK_LIST  *list_ptr, 
-                            uns8 *pres_key)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_find_prev(NCS_DB_LINK_LIST *list_ptr, uns8 *pres_key)
 {
-   NCS_DB_LINK_LIST_NODE *node_ptr;
-   
-   node_ptr =  ncs_db_link_list_find(list_ptr, pres_key);
-   if (node_ptr == NULL)
-      return (NULL);
-   return (m_NCS_DBLIST_FIND_PREV(node_ptr));
+	NCS_DB_LINK_LIST_NODE *node_ptr;
+
+	node_ptr = ncs_db_link_list_find(list_ptr, pres_key);
+	if (node_ptr == NULL)
+		return (NULL);
+	return (m_NCS_DBLIST_FIND_PREV(node_ptr));
 }
 
 /****************************************************************************
@@ -457,15 +399,13 @@ ncs_db_link_list_find_prev (NCS_DB_LINK_LIST  *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 
-ncs_db_link_list_enqeue (NCS_DB_LINK_LIST *list_ptr,  
-                         NCS_DB_LINK_LIST_NODE *node_ptr)
+uns32 ncs_db_link_list_enqeue(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
 {
-   uns32 res;
+	uns32 res;
 
-   res = db_link_list_add_first(list_ptr, node_ptr);
+	res = db_link_list_add_first(list_ptr, node_ptr);
 
-   return (res);
+	return (res);
 }
 
 /****************************************************************************
@@ -480,15 +420,13 @@ ncs_db_link_list_enqeue (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-uns32 
-ncs_db_link_list_push (NCS_DB_LINK_LIST *list_ptr,  
-                       NCS_DB_LINK_LIST_NODE *node_ptr)
+uns32 ncs_db_link_list_push(NCS_DB_LINK_LIST *list_ptr, NCS_DB_LINK_LIST_NODE *node_ptr)
 {
-   uns32 res;
+	uns32 res;
 
-   res = db_link_list_add_first(list_ptr, node_ptr);
+	res = db_link_list_add_first(list_ptr, node_ptr);
 
-   return (res);
+	return (res);
 }
 
 /****************************************************************************
@@ -502,16 +440,14 @@ ncs_db_link_list_push (NCS_DB_LINK_LIST *list_ptr,
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *  
-ncs_db_link_list_dequeue (NCS_DB_LINK_LIST *list_ptr)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_dequeue(NCS_DB_LINK_LIST *list_ptr)
 {
-   NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
-   
-   if (list_ptr->end_ptr != NULL)
-   {
-      node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->end_ptr->key);
-   }
-   return (node_ptr);
+	NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
+
+	if (list_ptr->end_ptr != NULL) {
+		node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->end_ptr->key);
+	}
+	return (node_ptr);
 }
 
 /****************************************************************************
@@ -525,14 +461,12 @@ ncs_db_link_list_dequeue (NCS_DB_LINK_LIST *list_ptr)
  *
  * Notes         : None.
  *****************************************************************************/
-NCS_DB_LINK_LIST_NODE *  
-ncs_db_link_list_pop (NCS_DB_LINK_LIST *list_ptr)
+NCS_DB_LINK_LIST_NODE *ncs_db_link_list_pop(NCS_DB_LINK_LIST *list_ptr)
 {
-   NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
-   
-   if (list_ptr->start_ptr != NULL)
-   {
-      node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->start_ptr->key);
-   }
-   return (node_ptr);
+	NCS_DB_LINK_LIST_NODE *node_ptr = NULL;
+
+	if (list_ptr->start_ptr != NULL) {
+		node_ptr = ncs_db_link_list_remove(list_ptr, list_ptr->start_ptr->key);
+	}
+	return (node_ptr);
 }

@@ -23,7 +23,7 @@
   
   DESCRIPTION: This file includes the files that the NCS SNMP SubAgent is 
                dependent on. 
-*****************************************************************************/ 
+*****************************************************************************/
 #ifndef SUBAGT_H
 #define SUBAGT_H
 
@@ -59,7 +59,6 @@
 
 /* Net-snmp 5.4 specifics */
 #include "net-snmp/net-snmp-config.h"
-
 #endif
 
 /* SubAgent specifics */
@@ -75,6 +74,3 @@
 #include "subagt_mbx.h"
 
 #endif
-
-
-

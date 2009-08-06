@@ -20,17 +20,13 @@
 /*****************************************************************************
 ..............................................................................
 
-
   MODULE NAME: rde_cb.h
-
 
 ..............................................................................
 
   DESCRIPTION: Contains definitions of the RDE control block sturctures
 
 ..............................................................................
-
-
 
 ******************************************************************************
 */
@@ -43,7 +39,6 @@
 #include "rde_rda.h"
 #include "rda_papi.h"
 #include "rde_rde.h"
-
 
 /*****************************************************************************\
  *                                                                             *
@@ -70,18 +65,15 @@
 **
 */
 
-typedef struct
-{
-   const char        *pid_file        ;
-   uns32              shelf_number    ;
-   uns32              slot_number     ;
-   uns32              site_number     ;
-   uns32              log_level       ;
-   NCS_BOOL           is_daemon       ;
+typedef struct {
+	const char *pid_file;
+	uns32 shelf_number;
+	uns32 slot_number;
+	uns32 site_number;
+	uns32 log_level;
+	NCS_BOOL is_daemon;
 
 } RDE_OPTIONS;
-
-
 
 /*
 **  RDE_CONTROL_BLOCK
@@ -90,26 +82,24 @@ typedef struct
 **
 */
 
-typedef struct
-{
+typedef struct {
 
-   RDE_OPTIONS    options;
-   const char    *prog_name;
-   NCSCONTEXT     task_handle;
-   NCS_BOOL       task_terminate;
-   NCS_BOOL    fabric_interface;
-   NCS_OS_SEM     semaphore;
-   uns32          select_timeout;
+	RDE_OPTIONS options;
+	const char *prog_name;
+	NCSCONTEXT task_handle;
+	NCS_BOOL task_terminate;
+	NCS_BOOL fabric_interface;
+	NCS_OS_SEM semaphore;
+	uns32 select_timeout;
 
-   PCS_RDA_ROLE   ha_role;
+	PCS_RDA_ROLE ha_role;
 
-   RDE_RDA_CB     rde_rda_cb;
-   RDE_AMF_CB     rde_amf_cb;
-   NCS_LOCK      lock;
-   RDE_RDE_CB    rde_rde_cb;
+	RDE_RDA_CB rde_rda_cb;
+	RDE_AMF_CB rde_amf_cb;
+	NCS_LOCK lock;
+	RDE_RDE_CB rde_rde_cb;
 
 } RDE_CONTROL_BLOCK;
-
 
 /*****************************************************************************\
  *                                                                             *
@@ -117,10 +107,7 @@ typedef struct
  *                                                                             *
 \*****************************************************************************/
 
-EXTERN_C     RDE_CONTROL_BLOCK * rde_get_control_block (void);
-EXTERN_C     uns32               rde_get_options       (RDE_CONTROL_BLOCK * context,
-                                                        int                 argc,
-                                                        char              * argv[]) ;
+EXTERN_C RDE_CONTROL_BLOCK *rde_get_control_block(void);
+EXTERN_C uns32 rde_get_options(RDE_CONTROL_BLOCK *context, int argc, char *argv[]);
 
-#endif      /* RDE_CB_H */
-
+#endif   /* RDE_CB_H */

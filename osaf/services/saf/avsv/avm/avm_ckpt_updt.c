@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION: This module contain all the supporting functions for the
@@ -37,97 +35,69 @@
 
 #include "avm.h"
 
-static uns32
-avm_update_dependents(
-            AVM_CB_T       *cb,   
-                      AVM_ENT_INFO_T *dest,
-            AVM_ENT_INFO_T *src
-           );
+static uns32 avm_update_dependents(AVM_CB_T *cb, AVM_ENT_INFO_T *dest, AVM_ENT_INFO_T *src);
 
-static uns32
-avm_enqueue_hpi_evt(
-                     AVM_CB_T  *avm_cb,
-                     AVM_EVT_T *hpi_evt,
-                     uns32      event_id,
-                     NCS_BOOL   bool
-                   );
-static uns32  
-avm_dequeue_hpi_evt(
-                    AVM_CB_T              *cb, 
-                    AVM_EVT_Q_NODE_T      *evt_id
-                  ); 
+static uns32 avm_enqueue_hpi_evt(AVM_CB_T *avm_cb, AVM_EVT_T *hpi_evt, uns32 event_id, NCS_BOOL bool);
+static uns32 avm_dequeue_hpi_evt(AVM_CB_T *cb, AVM_EVT_Q_NODE_T *evt_id);
 
-static uns32
-avm_copy_inv_data(AVM_VALID_INFO_T *dest,
-                  AVM_VALID_INFO_T *src
-                 )
+static uns32 avm_copy_inv_data(AVM_VALID_INFO_T *dest, AVM_VALID_INFO_T *src)
 {
-    uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-    dest->inv_data.product_name.DataLength = src->inv_data.product_name.DataLength;
-    memcpy(dest->inv_data.product_name.Data, src->inv_data.product_name.Data, src->inv_data.product_name.DataLength);
-            
-            
-    dest->inv_data.product_version.DataLength = src->inv_data.product_version.DataLength;
-    memcpy(dest->inv_data.product_version.Data, src->inv_data.product_version.Data, dest->inv_data.product_version.DataLength);
-         
-    return rc;   
-}   
+	dest->inv_data.product_name.DataLength = src->inv_data.product_name.DataLength;
+	memcpy(dest->inv_data.product_name.Data, src->inv_data.product_name.Data,
+	       src->inv_data.product_name.DataLength);
 
-static uns32
-avm_update_dependents(
-                      AVM_CB_T       *cb,   
-                      AVM_ENT_INFO_T *dest,
-                      AVM_ENT_INFO_T *src
-                    )
+	dest->inv_data.product_version.DataLength = src->inv_data.product_version.DataLength;
+	memcpy(dest->inv_data.product_version.Data, src->inv_data.product_version.Data,
+	       dest->inv_data.product_version.DataLength);
+
+	return rc;
+}
+
+static uns32 avm_update_dependents(AVM_CB_T *cb, AVM_ENT_INFO_T *dest, AVM_ENT_INFO_T *src)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   uns32 status = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 status = NCSCC_RC_SUCCESS;
 
-   AVM_ENT_INFO_T      *ent_info;
-   AVM_ENT_INFO_LIST_T *temp_ent_info_list;
-   AVM_ENT_INFO_LIST_T *t_ent_info_list;
-   AVM_ENT_INFO_LIST_T *temp;
-   
+	AVM_ENT_INFO_T *ent_info;
+	AVM_ENT_INFO_LIST_T *temp_ent_info_list;
+	AVM_ENT_INFO_LIST_T *t_ent_info_list;
+	AVM_ENT_INFO_LIST_T *temp;
 
-   dest->dependents = src->dependents;
+	dest->dependents = src->dependents;
 
-   for(temp_ent_info_list = src->dependents; temp_ent_info_list != AVM_ENT_INFO_LIST_NULL; temp_ent_info_list = temp_ent_info_list->next)
-   {
+	for (temp_ent_info_list = src->dependents; temp_ent_info_list != AVM_ENT_INFO_LIST_NULL;
+	     temp_ent_info_list = temp_ent_info_list->next) {
 
-      ent_info = avm_find_ent_str_info(cb, &temp_ent_info_list->ent_info->ep_str ,FALSE);
+		ent_info = avm_find_ent_str_info(cb, &temp_ent_info_list->ent_info->ep_str, FALSE);
 
-      if(AVM_ENT_INFO_NULL == ent_info)   
-      {
-         if(cb->cold_sync)
-         { 
-            for(t_ent_info_list = src->dependents; t_ent_info_list != AVM_ENT_INFO_LIST_NULL;)
-            {
-               m_AVM_ENT_IS_VALID(t_ent_info_list->ent_info, status);
-               if(!status)
-               {
-                  m_MMGR_FREE_AVM_ENT_INFO(t_ent_info_list->ent_info);
-               }
-               temp = t_ent_info_list;
-               t_ent_info_list =  t_ent_info_list->next; 
-               m_MMGR_FREE_AVM_ENT_INFO_LIST(temp); 
-            }
-            dest->dependents = AVM_ENT_INFO_LIST_NULL;
-            m_AVM_LOG_INVALID_VAL_FATAL(0);
-            rc = NCSCC_RC_FAILURE;
-            break;
-         } 
-      }else
-      {
-         m_MMGR_FREE_AVM_ENT_INFO(temp_ent_info_list->ent_info);
-         temp_ent_info_list->ent_info = ent_info;   
-         temp_ent_info_list->ep_str   = &ent_info->ep_str;   
-      }
-   }
-   
-   return rc;
-}      
-         
+		if (AVM_ENT_INFO_NULL == ent_info) {
+			if (cb->cold_sync) {
+				for (t_ent_info_list = src->dependents; t_ent_info_list != AVM_ENT_INFO_LIST_NULL;) {
+					m_AVM_ENT_IS_VALID(t_ent_info_list->ent_info, status);
+					if (!status) {
+						m_MMGR_FREE_AVM_ENT_INFO(t_ent_info_list->ent_info);
+					}
+					temp = t_ent_info_list;
+					t_ent_info_list = t_ent_info_list->next;
+					m_MMGR_FREE_AVM_ENT_INFO_LIST(temp);
+				}
+				dest->dependents = AVM_ENT_INFO_LIST_NULL;
+				m_AVM_LOG_INVALID_VAL_FATAL(0);
+				rc = NCSCC_RC_FAILURE;
+				break;
+			}
+		} else {
+			m_MMGR_FREE_AVM_ENT_INFO(temp_ent_info_list->ent_info);
+			temp_ent_info_list->ent_info = ent_info;
+			temp_ent_info_list->ep_str = &ent_info->ep_str;
+		}
+	}
+
+	return rc;
+}
+
 /****************************************************************************\
  * Function: avm_ckpt_update_valid_db
  *
@@ -145,74 +115,65 @@ avm_update_dependents(
  *
  *
 \**************************************************************************/
-extern uns32
-avm_ckpt_update_valid_info_db( AVM_CB_T             *cb,
-                               AVM_VALID_INFO_T     *valid_info,
-                               NCS_MBCSV_ACT_TYPE    action)
+extern uns32 avm_ckpt_update_valid_info_db(AVM_CB_T *cb, AVM_VALID_INFO_T *valid_info, NCS_MBCSV_ACT_TYPE action)
 {
-   uns32 status = NCSCC_RC_SUCCESS;
-   AVM_VALID_INFO_T  *valid_info_lp;
-   uns32 i = 0;
-   uns32 j = 0;
-   
-   valid_info_lp = avm_find_valid_info(cb, &(valid_info->desc_name));
-   
-   switch(action)
-   {
-      case NCS_MBCSV_ACT_ADD:
-      {
-         if(valid_info_lp == AVM_VALID_INFO_NULL)
-         {
-            valid_info_lp = avm_add_valid_info(cb, &(valid_info->desc_name));
-            if(valid_info_lp == AVM_VALID_INFO_NULL)
-            {
-               return NCSCC_RC_FAILURE;
-            }
-         }
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVM_VALID_INFO_T *valid_info_lp;
+	uns32 i = 0;
+	uns32 j = 0;
 
-         valid_info_lp->is_node = valid_info->is_node;
+	valid_info_lp = avm_find_valid_info(cb, &(valid_info->desc_name));
 
-         avm_copy_inv_data(valid_info_lp, valid_info);  
+	switch (action) {
+	case NCS_MBCSV_ACT_ADD:
+		{
+			if (valid_info_lp == AVM_VALID_INFO_NULL) {
+				valid_info_lp = avm_add_valid_info(cb, &(valid_info->desc_name));
+				if (valid_info_lp == AVM_VALID_INFO_NULL) {
+					return NCSCC_RC_FAILURE;
+				}
+			}
 
-         valid_info_lp->is_node     = valid_info->is_node;
-         valid_info_lp->is_fru      = valid_info->is_fru;
-         valid_info_lp->entity_type = valid_info->entity_type;
-    
-         valid_info_lp->parent_cnt = valid_info->parent_cnt;
-   
-         for(i = 0; i < valid_info->parent_cnt; i++)
-         {
-            valid_info_lp->location[i].parent.length = valid_info->location[i].parent.length; 
-            if(valid_info_lp->location[i].parent.length > NCS_MAX_INDEX_LEN)
-            { 
-               valid_info_lp->location[i].parent.length = NCS_MAX_INDEX_LEN; 
-            }
-         
-            memcpy(valid_info_lp->location[i].parent.name, valid_info->location[i].parent.name, valid_info_lp->location[i].parent.length);
+			valid_info_lp->is_node = valid_info->is_node;
 
-            for(j = 0; j < MAX_POSSIBLE_LOC_RANGES; j++)
-            {
-               valid_info_lp->location[i].range[j].min = valid_info->location[i].range[j].min; 
-               valid_info_lp->location[i].range[j].max = valid_info->location[i].range[j].max; 
-            }
-         }   
-      }
-      break;
-      
-      case NCS_MBCSV_ACT_UPDATE:
-      case NCS_MBCSV_ACT_RMV:
-      default:
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(action);
-         status = NCSCC_RC_FAILURE;
-      }
-      break;
-   }   
-   
-   return status;
-      
+			avm_copy_inv_data(valid_info_lp, valid_info);
+
+			valid_info_lp->is_node = valid_info->is_node;
+			valid_info_lp->is_fru = valid_info->is_fru;
+			valid_info_lp->entity_type = valid_info->entity_type;
+
+			valid_info_lp->parent_cnt = valid_info->parent_cnt;
+
+			for (i = 0; i < valid_info->parent_cnt; i++) {
+				valid_info_lp->location[i].parent.length = valid_info->location[i].parent.length;
+				if (valid_info_lp->location[i].parent.length > NCS_MAX_INDEX_LEN) {
+					valid_info_lp->location[i].parent.length = NCS_MAX_INDEX_LEN;
+				}
+
+				memcpy(valid_info_lp->location[i].parent.name, valid_info->location[i].parent.name,
+				       valid_info_lp->location[i].parent.length);
+
+				for (j = 0; j < MAX_POSSIBLE_LOC_RANGES; j++) {
+					valid_info_lp->location[i].range[j].min = valid_info->location[i].range[j].min;
+					valid_info_lp->location[i].range[j].max = valid_info->location[i].range[j].max;
+				}
+			}
+		}
+		break;
+
+	case NCS_MBCSV_ACT_UPDATE:
+	case NCS_MBCSV_ACT_RMV:
+	default:
+		{
+			m_AVM_LOG_INVALID_VAL_FATAL(action);
+			status = NCSCC_RC_FAILURE;
+		}
+		break;
+	}
+
+	return status;
+
 }
-
 
 /****************************************************************************\
  * Function: avm_ckpt_update_ent_db
@@ -231,139 +192,127 @@ avm_ckpt_update_valid_info_db( AVM_CB_T             *cb,
  *
  *
 \**************************************************************************/
-uns32 avm_ckpt_update_ent_db( 
-                              AVM_CB_T              *cb,
-                              AVM_ENT_INFO_T        *ent_info,
-                              NCS_MBCSV_ACT_TYPE     action,
-                              AVM_ENT_INFO_T       **o_ent_info
-                            )
+uns32 avm_ckpt_update_ent_db(AVM_CB_T *cb,
+			     AVM_ENT_INFO_T *ent_info, NCS_MBCSV_ACT_TYPE action, AVM_ENT_INFO_T **o_ent_info)
 {
-   uns32 status = NCSCC_RC_SUCCESS;
-   AVM_ENT_INFO_T     *ent_info_lp;
-   AVM_NODE_INFO_T    *node_info;
-   AVM_ENT_PATH_STR_T ep;
-   uns32 i;   
-   
-   ent_info_lp = avm_find_ent_info(cb, &ent_info->entity_path);
-   
-   switch(action)
-   {
-      case NCS_MBCSV_ACT_ADD:
-      {
-         if(ent_info_lp == AVM_ENT_INFO_NULL)
-         {
-            ent_info_lp = avm_add_ent_info(cb, &ent_info->entity_path);
-            if(ent_info_lp == AVM_ENT_INFO_NULL)
-            {
-               return NCSCC_RC_FAILURE;
-            }
-            
-            ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
-            memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
-            avm_add_ent_str_info(cb, ent_info_lp, &ep);
-         }
-         
-         (*o_ent_info) = ent_info_lp;
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVM_ENT_INFO_T *ent_info_lp;
+	AVM_NODE_INFO_T *node_info;
+	AVM_ENT_PATH_STR_T ep;
+	uns32 i;
 
-         ent_info_lp->is_node          = ent_info->is_node;
-         ent_info_lp->is_fru           = ent_info->is_fru;
-         ent_info_lp->act_policy       = ent_info->act_policy;
-         ent_info_lp->node_name.length = ent_info->node_name.length;
+	ent_info_lp = avm_find_ent_info(cb, &ent_info->entity_path);
 
-         ent_info_lp->adm_lock      = ent_info->adm_lock;
-         ent_info_lp->adm_shutdown  = ent_info->adm_shutdown;
-         ent_info_lp->adm_req       = ent_info->adm_req;
+	switch (action) {
+	case NCS_MBCSV_ACT_ADD:
+		{
+			if (ent_info_lp == AVM_ENT_INFO_NULL) {
+				ent_info_lp = avm_add_ent_info(cb, &ent_info->entity_path);
+				if (ent_info_lp == AVM_ENT_INFO_NULL) {
+					return NCSCC_RC_FAILURE;
+				}
 
-         memcpy(ent_info_lp->node_name.value, ent_info->node_name.value, SA_MAX_NAME_LENGTH);
-    
-         if(ent_info_lp->is_node)
-         {    
-            node_info = avm_add_node_name_info(cb, ent_info_lp->node_name);
-          
-            if(AVM_NODE_INFO_NULL == node_info) 
-            {
-               m_AVM_LOG_INVALID_VAL_FATAL(0);   
-            }else
-            {
-               node_info->ent_info = ent_info_lp;
-            }
-         }  
-        
-         ent_info_lp->entity_type      = ent_info->entity_type;
-         ent_info_lp->depends_on_valid = ent_info->depends_on_valid;
-         
-         ent_info_lp->dep_ep_str.length = ent_info->dep_ep_str.length;
-         memcpy(ent_info_lp->dep_ep_str.name, ent_info->dep_ep_str.name, AVM_MAX_INDEX_LEN);
- 
-         ent_info_lp->desc_name.length = ent_info->desc_name.length;
-         memcpy(ent_info_lp->desc_name.name, ent_info->desc_name.name, NCS_MAX_INDEX_LEN);
-    
-         ent_info_lp->parent_desc_name.length = ent_info->parent_desc_name.length;
-         memcpy(ent_info_lp->parent_desc_name.name, ent_info->parent_desc_name.name, NCS_MAX_INDEX_LEN);
- 
-         ent_info_lp->valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, ent_info->desc_name.name);
-         ent_info_lp->parent_valid_info = (AVM_VALID_INFO_T*)ncs_patricia_tree_get(&cb->db.valid_info_anchor, ent_info->parent_desc_name.name);
- 
-         ent_info_lp->current_state  = ent_info->current_state;
-         ent_info_lp->previous_state = ent_info->previous_state;
-         ent_info_lp->previous_diff_state = ent_info->previous_diff_state;
- 
-         for(i = 0; i < AVM_MAX_SENSOR_COUNT; i++)
-         {
-            ent_info_lp->sensors[i].SensorType = ent_info->sensors[i].SensorType;
-            ent_info_lp->sensors[i].SensorNum  = ent_info->sensors[i].SensorNum;
-            ent_info_lp->sensors[i].sensor_assert = ent_info->sensors[i].sensor_assert;
-         }
- 
-         ent_info_lp->row_status          = ent_info->row_status;  
-         
-         if(ent_info->dependents)  
-         { 
-            avm_update_dependents(cb, ent_info_lp, ent_info);   
-         }
+				ep.length = m_NCS_OS_NTOHS(ent_info->ep_str.length);
+				memcpy(ep.name, ent_info->ep_str.name, AVM_MAX_INDEX_LEN);
+				avm_add_ent_str_info(cb, ent_info_lp, &ep);
+			}
 
-         /* Update DHCP configuration */
-         avm_decode_ckpt_dhcp_conf_update(&ent_info_lp->dhcp_serv_conf,
-            &ent_info->dhcp_serv_conf);
+			(*o_ent_info) = ent_info_lp;
 
-         avm_decode_ckpt_dhcp_state_update(&ent_info_lp->dhcp_serv_conf,
-            &ent_info->dhcp_serv_conf);
+			ent_info_lp->is_node = ent_info->is_node;
+			ent_info_lp->is_fru = ent_info->is_fru;
+			ent_info_lp->act_policy = ent_info->act_policy;
+			ent_info_lp->node_name.length = ent_info->node_name.length;
 
-         avm_decode_ckpt_upgd_state_update(&ent_info_lp->dhcp_serv_conf,
-            &ent_info->dhcp_serv_conf);
+			ent_info_lp->adm_lock = ent_info->adm_lock;
+			ent_info_lp->adm_shutdown = ent_info->adm_shutdown;
+			ent_info_lp->adm_req = ent_info->adm_req;
 
-         avm_populate_ent_info(cb, ent_info_lp);
-      } 
-      break;
-      
-      case NCS_MBCSV_ACT_UPDATE:
-      {
-          m_AVM_LOG_INVALID_VAL_FATAL(action);
-          return NCSCC_RC_FAILURE;
-      }
-      break;
+			memcpy(ent_info_lp->node_name.value, ent_info->node_name.value, SA_MAX_NAME_LENGTH);
 
-      case NCS_MBCSV_ACT_RMV:
-      {
-         if(AVM_ENT_INFO_NULL != ent_info_lp)
-         {  
-            avm_rmv_ent_info(cb, ent_info_lp);
-            avm_delete_ent_str_info(cb, ent_info_lp);
-            avm_delete_ent_info(cb, ent_info_lp);
-            m_MMGR_FREE_AVM_ENT_INFO(ent_info_lp);
-         }
-      }
-      break;
+			if (ent_info_lp->is_node) {
+				node_info = avm_add_node_name_info(cb, ent_info_lp->node_name);
 
-      default:
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(action);
-         status = NCSCC_RC_FAILURE;
-      }
-      break;
-   }   
+				if (AVM_NODE_INFO_NULL == node_info) {
+					m_AVM_LOG_INVALID_VAL_FATAL(0);
+				} else {
+					node_info->ent_info = ent_info_lp;
+				}
+			}
 
-   return status;
+			ent_info_lp->entity_type = ent_info->entity_type;
+			ent_info_lp->depends_on_valid = ent_info->depends_on_valid;
+
+			ent_info_lp->dep_ep_str.length = ent_info->dep_ep_str.length;
+			memcpy(ent_info_lp->dep_ep_str.name, ent_info->dep_ep_str.name, AVM_MAX_INDEX_LEN);
+
+			ent_info_lp->desc_name.length = ent_info->desc_name.length;
+			memcpy(ent_info_lp->desc_name.name, ent_info->desc_name.name, NCS_MAX_INDEX_LEN);
+
+			ent_info_lp->parent_desc_name.length = ent_info->parent_desc_name.length;
+			memcpy(ent_info_lp->parent_desc_name.name, ent_info->parent_desc_name.name, NCS_MAX_INDEX_LEN);
+
+			ent_info_lp->valid_info =
+			    (AVM_VALID_INFO_T *)ncs_patricia_tree_get(&cb->db.valid_info_anchor,
+								      ent_info->desc_name.name);
+			ent_info_lp->parent_valid_info =
+			    (AVM_VALID_INFO_T *)ncs_patricia_tree_get(&cb->db.valid_info_anchor,
+								      ent_info->parent_desc_name.name);
+
+			ent_info_lp->current_state = ent_info->current_state;
+			ent_info_lp->previous_state = ent_info->previous_state;
+			ent_info_lp->previous_diff_state = ent_info->previous_diff_state;
+
+			for (i = 0; i < AVM_MAX_SENSOR_COUNT; i++) {
+				ent_info_lp->sensors[i].SensorType = ent_info->sensors[i].SensorType;
+				ent_info_lp->sensors[i].SensorNum = ent_info->sensors[i].SensorNum;
+				ent_info_lp->sensors[i].sensor_assert = ent_info->sensors[i].sensor_assert;
+			}
+
+			ent_info_lp->row_status = ent_info->row_status;
+
+			if (ent_info->dependents) {
+				avm_update_dependents(cb, ent_info_lp, ent_info);
+			}
+
+			/* Update DHCP configuration */
+			avm_decode_ckpt_dhcp_conf_update(&ent_info_lp->dhcp_serv_conf, &ent_info->dhcp_serv_conf);
+
+			avm_decode_ckpt_dhcp_state_update(&ent_info_lp->dhcp_serv_conf, &ent_info->dhcp_serv_conf);
+
+			avm_decode_ckpt_upgd_state_update(&ent_info_lp->dhcp_serv_conf, &ent_info->dhcp_serv_conf);
+
+			avm_populate_ent_info(cb, ent_info_lp);
+		}
+		break;
+
+	case NCS_MBCSV_ACT_UPDATE:
+		{
+			m_AVM_LOG_INVALID_VAL_FATAL(action);
+			return NCSCC_RC_FAILURE;
+		}
+		break;
+
+	case NCS_MBCSV_ACT_RMV:
+		{
+			if (AVM_ENT_INFO_NULL != ent_info_lp) {
+				avm_rmv_ent_info(cb, ent_info_lp);
+				avm_delete_ent_str_info(cb, ent_info_lp);
+				avm_delete_ent_info(cb, ent_info_lp);
+				m_MMGR_FREE_AVM_ENT_INFO(ent_info_lp);
+			}
+		}
+		break;
+
+	default:
+		{
+			m_AVM_LOG_INVALID_VAL_FATAL(action);
+			status = NCSCC_RC_FAILURE;
+		}
+		break;
+	}
+
+	return status;
 }
 
 /****************************************************************************\
@@ -381,54 +330,42 @@ uns32 avm_ckpt_update_ent_db(
  *
  *
 \**************************************************************************/
-extern uns32
-avm_enqueue_hpi_evt(
-                     AVM_CB_T  *avm_cb,
-                     AVM_EVT_T *hpi_evt, 
-                     uns32      event_id,
-                     NCS_BOOL   bool
-                   )
+extern uns32 avm_enqueue_hpi_evt(AVM_CB_T *avm_cb, AVM_EVT_T *hpi_evt, uns32 event_id, NCS_BOOL bool)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   if(AVM_EVT_Q_NODE_NULL == avm_cb->evt_q.front)
-   {
-      if(AVM_EVT_Q_NODE_NULL == (avm_cb->evt_q.evt_q = m_MMGR_ALLOC_AVM_EVT_Q_NODE))
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(0);
-         return NCSCC_RC_FAILURE;
-      }else
-      {
-         m_NCS_DBG_PRINTF("\n Event Id of event enqueued in beginning is %u\n", event_id);
-         m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
-         memset((uns8*)avm_cb->evt_q.evt_q, 0, sizeof(AVM_EVT_Q_NODE_T));
+	if (AVM_EVT_Q_NODE_NULL == avm_cb->evt_q.front) {
+		if (AVM_EVT_Q_NODE_NULL == (avm_cb->evt_q.evt_q = m_MMGR_ALLOC_AVM_EVT_Q_NODE)) {
+			m_AVM_LOG_INVALID_VAL_FATAL(0);
+			return NCSCC_RC_FAILURE;
+		} else {
+			m_NCS_DBG_PRINTF("\n Event Id of event enqueued in beginning is %u\n", event_id);
+			m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
+			memset((uns8 *)avm_cb->evt_q.evt_q, 0, sizeof(AVM_EVT_Q_NODE_T));
 
-         avm_cb->evt_q.evt_q->evt_id  = event_id;
-         avm_cb->evt_q.evt_q->is_proc = bool;
-         avm_cb->evt_q.evt_q->evt     = hpi_evt;
-         avm_cb->evt_q.rear = avm_cb->evt_q.front  = avm_cb->evt_q.evt_q;
-         avm_cb->evt_q.evt_q->next = AVM_EVT_Q_NODE_NULL;
-      }
-   }else
-   {
-      if(AVM_EVT_Q_NODE_NULL != (avm_cb->evt_q.rear->next = m_MMGR_ALLOC_AVM_EVT_Q_NODE))
-      {
-         m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
-         avm_cb->evt_q.rear           = avm_cb->evt_q.rear->next;
-         memset((uns8*)avm_cb->evt_q.rear, 0, sizeof(AVM_EVT_Q_NODE_T));
+			avm_cb->evt_q.evt_q->evt_id = event_id;
+			avm_cb->evt_q.evt_q->is_proc = bool;
+			avm_cb->evt_q.evt_q->evt = hpi_evt;
+			avm_cb->evt_q.rear = avm_cb->evt_q.front = avm_cb->evt_q.evt_q;
+			avm_cb->evt_q.evt_q->next = AVM_EVT_Q_NODE_NULL;
+		}
+	} else {
+		if (AVM_EVT_Q_NODE_NULL != (avm_cb->evt_q.rear->next = m_MMGR_ALLOC_AVM_EVT_Q_NODE)) {
+			m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_ENQ, event_id, bool, NCSFL_SEV_INFO);
+			avm_cb->evt_q.rear = avm_cb->evt_q.rear->next;
+			memset((uns8 *)avm_cb->evt_q.rear, 0, sizeof(AVM_EVT_Q_NODE_T));
 
-         avm_cb->evt_q.rear->evt_id   = event_id;
-         avm_cb->evt_q.rear->is_proc = bool;
-         avm_cb->evt_q.rear->evt     = hpi_evt;
-         avm_cb->evt_q.rear->next     = AVM_EVT_Q_NODE_NULL;
-      }else
-      {
-         m_AVM_LOG_INVALID_VAL_FATAL(0);  
-         return NCSCC_RC_FAILURE;
-      }
-   }
+			avm_cb->evt_q.rear->evt_id = event_id;
+			avm_cb->evt_q.rear->is_proc = bool;
+			avm_cb->evt_q.rear->evt = hpi_evt;
+			avm_cb->evt_q.rear->next = AVM_EVT_Q_NODE_NULL;
+		} else {
+			m_AVM_LOG_INVALID_VAL_FATAL(0);
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
-   return rc;
+	return rc;
 }
 
 /****************************************************************************\
@@ -447,51 +384,44 @@ avm_enqueue_hpi_evt(
  *
 \**************************************************************************/
 
-extern uns32
-avm_dequeue_hpi_evt(AVM_CB_T            *cb,
-                    AVM_EVT_Q_NODE_T    *deq)
+extern uns32 avm_dequeue_hpi_evt(AVM_CB_T *cb, AVM_EVT_Q_NODE_T *deq)
 {
-   AVM_EVT_Q_NODE_T *node = AVM_EVT_Q_NODE_NULL;
-   AVM_EVT_Q_NODE_T *temp = AVM_EVT_Q_NODE_NULL;
+	AVM_EVT_Q_NODE_T *node = AVM_EVT_Q_NODE_NULL;
+	AVM_EVT_Q_NODE_T *temp = AVM_EVT_Q_NODE_NULL;
 
-   m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_DEQ, deq->evt_id, deq->is_proc, NCSFL_SEV_INFO);
+	m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_DEQ, deq->evt_id, deq->is_proc, NCSFL_SEV_INFO);
 
-   for(node = cb->evt_q.front; deq != node; )
-   {
-      temp = node->next;
-      m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_DEQ, deq->evt_id, deq->is_proc, NCSFL_SEV_INFO);
+	for (node = cb->evt_q.front; deq != node;) {
+		temp = node->next;
+		m_AVM_LOG_CKPT_EVT_Q(AVM_LOG_EVT_Q_DEQ, deq->evt_id, deq->is_proc, NCSFL_SEV_INFO);
 
-      if(node->evt != AVM_EVT_NULL)
-      {
-         m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
-         m_MMGR_FREE_AVM_EVT(node->evt);
-      }
-      m_MMGR_FREE_AVM_EVT_Q_NODE(node);
-      node = temp;
-   }
-  
-   if(AVM_EVT_Q_NODE_NULL != node)
-   {
-      cb->evt_q.front = node->next;
-      if(node->evt != AVM_EVT_NULL)
-      {
-         m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
-         m_MMGR_FREE_AVM_EVT(node->evt);
-      }
-      m_MMGR_FREE_AVM_EVT_Q_NODE(node);
-      if(AVM_EVT_Q_NODE_NULL == cb->evt_q.front)
-      { 
-        cb->evt_q.rear  = cb->evt_q.front;
-        cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
-      }
-            
-   }else
-   {
-      cb->evt_q.front = AVM_EVT_Q_NODE_NULL;
-      cb->evt_q.rear  = AVM_EVT_Q_NODE_NULL;
-   }
-   return NCSCC_RC_SUCCESS;
+		if (node->evt != AVM_EVT_NULL) {
+			m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
+			m_MMGR_FREE_AVM_EVT(node->evt);
+		}
+		m_MMGR_FREE_AVM_EVT_Q_NODE(node);
+		node = temp;
+	}
+
+	if (AVM_EVT_Q_NODE_NULL != node) {
+		cb->evt_q.front = node->next;
+		if (node->evt != AVM_EVT_NULL) {
+			m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
+			m_MMGR_FREE_AVM_EVT(node->evt);
+		}
+		m_MMGR_FREE_AVM_EVT_Q_NODE(node);
+		if (AVM_EVT_Q_NODE_NULL == cb->evt_q.front) {
+			cb->evt_q.rear = cb->evt_q.front;
+			cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
+		}
+
+	} else {
+		cb->evt_q.front = AVM_EVT_Q_NODE_NULL;
+		cb->evt_q.rear = AVM_EVT_Q_NODE_NULL;
+	}
+	return NCSCC_RC_SUCCESS;
 }
+
 /**************************************************************\
  * Function: avm_updt_evt_q
  *
@@ -512,47 +442,37 @@ avm_dequeue_hpi_evt(AVM_CB_T            *cb,
  *
  \***********************************************************/
 
-
-extern uns32 
-avm_updt_evt_q(AVM_CB_T   *cb,
-               AVM_EVT_T  *hpi_evt,
-               uns32       event_id,
-               NCS_BOOL    bool)
+extern uns32 avm_updt_evt_q(AVM_CB_T *cb, AVM_EVT_T *hpi_evt, uns32 event_id, NCS_BOOL bool)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   
-   AVM_EVT_Q_NODE_T *node;
-   
-   for(node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL; node = node->next)
-   {
-      if(node->evt_id == event_id)
-      {
-         /* node->is_proc != bool would be sufficient but to
-            avoid any further crashes  */
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-         /* If active has already sent ack, dequeue the event */
-         if( ((TRUE == node->is_proc) && (FALSE == bool)) || 
-             ((FALSE == node->is_proc) && (TRUE == bool)))
-         {
-            avm_dequeue_hpi_evt(cb, node);
-            if(AVM_EVT_NULL != hpi_evt)
-            {
-               m_MMGR_FREE_AVM_DEFAULT_VAL(hpi_evt->evt.hpi_evt);
-               m_MMGR_FREE_AVM_EVT(hpi_evt);
-            }  
-            return NCSCC_RC_SUCCESS;
-         }else
-         {
-            m_NCS_DBG_PRINTF("\n most unlikely to happen");
-            return NCSCC_RC_SUCCESS;
-         }
-      }
-   }
+	AVM_EVT_Q_NODE_T *node;
 
-   /* If active has already not yest sent ack, enqueue the event */
-   rc = avm_enqueue_hpi_evt(cb, hpi_evt,  event_id, bool);
-   return rc;
-} 
+	for (node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL; node = node->next) {
+		if (node->evt_id == event_id) {
+			/* node->is_proc != bool would be sufficient but to
+			   avoid any further crashes  */
+
+			/* If active has already sent ack, dequeue the event */
+			if (((TRUE == node->is_proc) && (FALSE == bool)) ||
+			    ((FALSE == node->is_proc) && (TRUE == bool))) {
+				avm_dequeue_hpi_evt(cb, node);
+				if (AVM_EVT_NULL != hpi_evt) {
+					m_MMGR_FREE_AVM_DEFAULT_VAL(hpi_evt->evt.hpi_evt);
+					m_MMGR_FREE_AVM_EVT(hpi_evt);
+				}
+				return NCSCC_RC_SUCCESS;
+			} else {
+				m_NCS_DBG_PRINTF("\n most unlikely to happen");
+				return NCSCC_RC_SUCCESS;
+			}
+		}
+	}
+
+	/* If active has already not yest sent ack, enqueue the event */
+	rc = avm_enqueue_hpi_evt(cb, hpi_evt, event_id, bool);
+	return rc;
+}
 
 /**************************************************************\
  * Function: avm_proc_evt_q
@@ -570,42 +490,38 @@ avm_updt_evt_q(AVM_CB_T   *cb,
  *
  *
  \***********************************************************/
-extern uns32
-avm_proc_evt_q(AVM_CB_T *cb)
+extern uns32 avm_proc_evt_q(AVM_CB_T *cb)
 {
-   uns32 rc  = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   AVM_EVT_Q_NODE_T *node;
-   AVM_EVT_Q_NODE_T *temp;
-   AVM_EVT_ID_T      evt_id;
-   
-   for(node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL; )
-   {
-      if(node->is_proc != TRUE)
-      {
-         node->evt->ssu_evt_id.evt_id = node->evt_id;
-         node->evt->ssu_evt_id.src    = AVM_EVT_HPI;
+	AVM_EVT_Q_NODE_T *node;
+	AVM_EVT_Q_NODE_T *temp;
+	AVM_EVT_ID_T evt_id;
 
-         rc = avm_msg_handler(cb, node->evt);
-        
-         m_NCS_DBG_PRINTF("\n SSU tmr status is %d", cb->ssu_tmr.status); 
-         if(AVM_TMR_EXPIRED == cb->ssu_tmr.status)
-         {
-            evt_id.evt_id = node->evt_id;
-            evt_id.src    = AVM_EVT_HPI;
-            m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, &evt_id, AVM_CKPT_EVT_ID);
-         }
-         m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
-         m_MMGR_FREE_AVM_EVT(node->evt);
-      }
+	for (node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL;) {
+		if (node->is_proc != TRUE) {
+			node->evt->ssu_evt_id.evt_id = node->evt_id;
+			node->evt->ssu_evt_id.src = AVM_EVT_HPI;
 
-      temp = node->next;
-      m_MMGR_FREE_AVM_EVT_Q_NODE(node);
-      node = temp;
-   }
+			rc = avm_msg_handler(cb, node->evt);
 
-   cb->evt_q.front = cb->evt_q.rear = cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
-   return rc;
+			m_NCS_DBG_PRINTF("\n SSU tmr status is %d", cb->ssu_tmr.status);
+			if (AVM_TMR_EXPIRED == cb->ssu_tmr.status) {
+				evt_id.evt_id = node->evt_id;
+				evt_id.src = AVM_EVT_HPI;
+				m_AVM_SEND_CKPT_UPDT_SYNC_UPDT(cb, &evt_id, AVM_CKPT_EVT_ID);
+			}
+			m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
+			m_MMGR_FREE_AVM_EVT(node->evt);
+		}
+
+		temp = node->next;
+		m_MMGR_FREE_AVM_EVT_Q_NODE(node);
+		node = temp;
+	}
+
+	cb->evt_q.front = cb->evt_q.rear = cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
+	return rc;
 }
 
 /**************************************************************\
@@ -621,29 +537,26 @@ avm_proc_evt_q(AVM_CB_T *cb)
  *
  *
  \***********************************************************/
-extern uns32
-avm_empty_evt_q(AVM_CB_T *cb)
+extern uns32 avm_empty_evt_q(AVM_CB_T *cb)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   AVM_EVT_Q_NODE_T *node;
-   AVM_EVT_Q_NODE_T *temp;
-   
-   for(node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL; )
-   {
-      if(node->is_proc != TRUE)
-      {
-         m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
-         m_MMGR_FREE_AVM_EVT(node->evt);
-      }
+	AVM_EVT_Q_NODE_T *node;
+	AVM_EVT_Q_NODE_T *temp;
 
-      temp = node->next;
-      m_MMGR_FREE_AVM_EVT_Q_NODE(node);
-      node = temp;
-   }
+	for (node = cb->evt_q.front; node != AVM_EVT_Q_NODE_NULL;) {
+		if (node->is_proc != TRUE) {
+			m_MMGR_FREE_AVM_DEFAULT_VAL(node->evt->evt.hpi_evt);
+			m_MMGR_FREE_AVM_EVT(node->evt);
+		}
 
-   cb->evt_q.front = cb->evt_q.rear = cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
-   return rc;
+		temp = node->next;
+		m_MMGR_FREE_AVM_EVT_Q_NODE(node);
+		node = temp;
+	}
+
+	cb->evt_q.front = cb->evt_q.rear = cb->evt_q.evt_q = AVM_EVT_Q_NODE_NULL;
+	return rc;
 }
 
 /****************************************************************************\
@@ -659,65 +572,56 @@ avm_empty_evt_q(AVM_CB_T *cb)
  *
  *
 \**************************************************************************/
-extern uns32 avm_cleanup_db(AVM_CB_T   *cb)
+extern uns32 avm_cleanup_db(AVM_CB_T *cb)
 {
-   uns32 rc =  NCSCC_RC_SUCCESS;
-  
-   AVM_ENT_INFO_T      *ent_info;
-   AVM_VALID_INFO_T    *valid_info; 
-   AVM_ENT_DESC_NAME_T desc_name;
-   
-   SaHpiEntityPathT   entity_path;
-  
-   memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));  
-   for(ent_info = avm_find_next_ent_info(cb, &entity_path); 
-       ent_info != AVM_ENT_INFO_NULL; 
-       ent_info = avm_find_next_ent_info(cb, &entity_path))
-   {
-      memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-      avm_rmv_ent_info(cb, ent_info);
-      avm_delete_ent_info(cb, ent_info);
-      avm_delete_ent_str_info(cb, ent_info);
+	AVM_ENT_INFO_T *ent_info;
+	AVM_VALID_INFO_T *valid_info;
+	AVM_ENT_DESC_NAME_T desc_name;
 
-      m_MMGR_FREE_AVM_ENT_INFO(ent_info);
-      ent_info =  AVM_ENT_INFO_NULL;
-   }
+	SaHpiEntityPathT entity_path;
 
-   memset(desc_name.name, 0, NCS_MAX_INDEX_LEN);  
- 
-   for(valid_info  = avm_find_next_valid_info(cb, &desc_name);
-       valid_info != AVM_VALID_INFO_NULL;
-       valid_info  = avm_find_next_valid_info(cb, &desc_name))
-   {
-      
-      memcpy(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
-      avm_delete_valid_info(cb, valid_info);
-      m_MMGR_FREE_AVM_VALID_INFO(valid_info);
-      valid_info = AVM_VALID_INFO_NULL; 
-   } 
+	memset(entity_path.Entry, 0, sizeof(SaHpiEntityPathT));
+	for (ent_info = avm_find_next_ent_info(cb, &entity_path);
+	     ent_info != AVM_ENT_INFO_NULL; ent_info = avm_find_next_ent_info(cb, &entity_path)) {
+		memcpy(entity_path.Entry, ent_info->entity_path.Entry, sizeof(SaHpiEntityPathT));
 
-   return rc;
+		avm_rmv_ent_info(cb, ent_info);
+		avm_delete_ent_info(cb, ent_info);
+		avm_delete_ent_str_info(cb, ent_info);
+
+		m_MMGR_FREE_AVM_ENT_INFO(ent_info);
+		ent_info = AVM_ENT_INFO_NULL;
+	}
+
+	memset(desc_name.name, 0, NCS_MAX_INDEX_LEN);
+
+	for (valid_info = avm_find_next_valid_info(cb, &desc_name);
+	     valid_info != AVM_VALID_INFO_NULL; valid_info = avm_find_next_valid_info(cb, &desc_name)) {
+
+		memcpy(desc_name.name, valid_info->desc_name.name, valid_info->desc_name.length);
+		avm_delete_valid_info(cb, valid_info);
+		m_MMGR_FREE_AVM_VALID_INFO(valid_info);
+		valid_info = AVM_VALID_INFO_NULL;
+	}
+
+	return rc;
 }
 
-extern uns32
-avm_update_sensors(AVM_ENT_INFO_T *dest,
-                   AVM_ENT_INFO_T *src
-                  )
+extern uns32 avm_update_sensors(AVM_ENT_INFO_T *dest, AVM_ENT_INFO_T *src)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
-   uns32 index;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 index;
 
-   for(index = 0; index < AVM_MAX_SENSOR_COUNT; index++)
-   {
-      dest->sensors[index].SensorType = src->sensors[index].SensorType;
-      dest->sensors[index].SensorNum  = src->sensors[index].SensorNum;
-      dest->sensors[index].sensor_assert = src->sensors[index].sensor_assert;
-   }
-   
-   return rc;
+	for (index = 0; index < AVM_MAX_SENSOR_COUNT; index++) {
+		dest->sensors[index].SensorType = src->sensors[index].SensorType;
+		dest->sensors[index].SensorNum = src->sensors[index].SensorNum;
+		dest->sensors[index].sensor_assert = src->sensors[index].sensor_assert;
+	}
+
+	return rc;
 }
-
 
 /**************************************************************\
  * Function: avm_dhcp_conf_per_label_update
@@ -733,22 +637,17 @@ avm_update_sensors(AVM_ENT_INFO_T *dest,
  *
  \***********************************************************/
 
-extern uns32
-avm_dhcp_conf_per_label_update(
-                               AVM_PER_LABEL_CONF *dhcp_label,
-                               AVM_PER_LABEL_CONF *temp_label
-                              )
+extern uns32 avm_dhcp_conf_per_label_update(AVM_PER_LABEL_CONF *dhcp_label, AVM_PER_LABEL_CONF *temp_label)
 {
-   memcpy(&dhcp_label->name, &temp_label->name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   m_NCS_DBG_PRINTF("\n Label Name = %s",dhcp_label->name.name);
-   memcpy(&dhcp_label->file_name, &temp_label->file_name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   memcpy(&dhcp_label->sw_version, &temp_label->sw_version, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   memcpy(&dhcp_label->install_time, &temp_label->install_time, AVM_TIME_STR_LEN);
-   dhcp_label->conf_chg = temp_label->conf_chg;
+	memcpy(&dhcp_label->name, &temp_label->name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+	m_NCS_DBG_PRINTF("\n Label Name = %s", dhcp_label->name.name);
+	memcpy(&dhcp_label->file_name, &temp_label->file_name, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+	memcpy(&dhcp_label->sw_version, &temp_label->sw_version, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+	memcpy(&dhcp_label->install_time, &temp_label->install_time, AVM_TIME_STR_LEN);
+	dhcp_label->conf_chg = temp_label->conf_chg;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /**************************************************************\
  * Function: avm_decode_ckpt_dhcp_conf_update
@@ -764,29 +663,24 @@ avm_dhcp_conf_per_label_update(
  *
  \***********************************************************/
 
-extern uns32
-avm_decode_ckpt_dhcp_conf_update(
-                        AVM_ENT_DHCP_CONF *dhcp_conf,
-                        AVM_ENT_DHCP_CONF *temp_conf
-                        )
+extern uns32 avm_decode_ckpt_dhcp_conf_update(AVM_ENT_DHCP_CONF *dhcp_conf, AVM_ENT_DHCP_CONF *temp_conf)
 {
-   uns32 i;
-   /* copy the mac addresses */
-   for (i=0; i<AVM_MAX_MAC_ENTRIES; i++)
-      memcpy(dhcp_conf->mac_address[i], temp_conf->mac_address[i], AVM_MAC_DATA_LEN);
+	uns32 i;
+	/* copy the mac addresses */
+	for (i = 0; i < AVM_MAX_MAC_ENTRIES; i++)
+		memcpy(dhcp_conf->mac_address[i], temp_conf->mac_address[i], AVM_MAC_DATA_LEN);
 
-   /* netboot and tftpserver */
-   dhcp_conf->net_boot = temp_conf->net_boot;
-   memcpy(dhcp_conf->tftp_serve_ip, temp_conf->tftp_serve_ip, 4);
+	/* netboot and tftpserver */
+	dhcp_conf->net_boot = temp_conf->net_boot;
+	memcpy(dhcp_conf->tftp_serve_ip, temp_conf->tftp_serve_ip, 4);
 
-   /* preferred label, label1 and label2 */
-   memcpy(&dhcp_conf->pref_label, &temp_conf->pref_label, sizeof(AVM_DHCP_CONF_NAME_TYPE));
-   avm_dhcp_conf_per_label_update(&dhcp_conf->label1, &temp_conf->label1);
-   avm_dhcp_conf_per_label_update(&dhcp_conf->label2, &temp_conf->label2);
+	/* preferred label, label1 and label2 */
+	memcpy(&dhcp_conf->pref_label, &temp_conf->pref_label, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+	avm_dhcp_conf_per_label_update(&dhcp_conf->label1, &temp_conf->label1);
+	avm_dhcp_conf_per_label_update(&dhcp_conf->label2, &temp_conf->label2);
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /**************************************************************\
  * Function: avm_decode_ckpt_dhcp_state_update
@@ -802,56 +696,40 @@ avm_decode_ckpt_dhcp_conf_update(
  *
  \***********************************************************/
 
-extern uns32
-avm_decode_ckpt_dhcp_state_update(
-                        AVM_ENT_DHCP_CONF *dhcp_conf,
-                        AVM_ENT_DHCP_CONF *temp_conf
-                        )
+extern uns32 avm_decode_ckpt_dhcp_state_update(AVM_ENT_DHCP_CONF *dhcp_conf, AVM_ENT_DHCP_CONF *temp_conf)
 {
-   /* set default label */
-   if (temp_conf->def_label_num == AVM_DEFAULT_LABEL_1)
-   {
-      dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
-      dhcp_conf->default_label = &dhcp_conf->label1;
-   }
-   else
-   if (temp_conf->def_label_num == AVM_DEFAULT_LABEL_2)
-   {
-      dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
-      dhcp_conf->default_label = &dhcp_conf->label2;
-   }
-   else
-   {
-      dhcp_conf->def_label_num  = AVM_DEFAULT_LABEL_NULL;
-      dhcp_conf->default_label = NULL;
-   }
+	/* set default label */
+	if (temp_conf->def_label_num == AVM_DEFAULT_LABEL_1) {
+		dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_1;
+		dhcp_conf->default_label = &dhcp_conf->label1;
+	} else if (temp_conf->def_label_num == AVM_DEFAULT_LABEL_2) {
+		dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_2;
+		dhcp_conf->default_label = &dhcp_conf->label2;
+	} else {
+		dhcp_conf->def_label_num = AVM_DEFAULT_LABEL_NULL;
+		dhcp_conf->default_label = NULL;
+	}
 
-   dhcp_conf->default_chg = temp_conf->default_chg;
-   dhcp_conf->upgd_prgs = temp_conf->upgd_prgs;
+	dhcp_conf->default_chg = temp_conf->default_chg;
+	dhcp_conf->upgd_prgs = temp_conf->upgd_prgs;
 
-   /* set current active label */
-   if (temp_conf->cur_act_label_num == AVM_CUR_ACTIVE_LABEL_1)
-   {
-      dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_1;
-      dhcp_conf->curr_act_label = &dhcp_conf->label1;
-   }
-   else
-   if (temp_conf->cur_act_label_num == AVM_CUR_ACTIVE_LABEL_2)
-   {
-      dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_2;
-      dhcp_conf->curr_act_label = &dhcp_conf->label2;
-   }
-   else
-   {
-      dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_NULL;
-      dhcp_conf->curr_act_label = NULL;
-   }
+	/* set current active label */
+	if (temp_conf->cur_act_label_num == AVM_CUR_ACTIVE_LABEL_1) {
+		dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_1;
+		dhcp_conf->curr_act_label = &dhcp_conf->label1;
+	} else if (temp_conf->cur_act_label_num == AVM_CUR_ACTIVE_LABEL_2) {
+		dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_2;
+		dhcp_conf->curr_act_label = &dhcp_conf->label2;
+	} else {
+		dhcp_conf->cur_act_label_num = AVM_CUR_ACTIVE_LABEL_NULL;
+		dhcp_conf->curr_act_label = NULL;
+	}
 
-   /* update the status */
-   dhcp_conf->label1.status = temp_conf->label1.status;
-   dhcp_conf->label2.status = temp_conf->label2.status;
+	/* update the status */
+	dhcp_conf->label1.status = temp_conf->label1.status;
+	dhcp_conf->label2.status = temp_conf->label2.status;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
 
 /**************************************************************\
@@ -868,23 +746,19 @@ avm_decode_ckpt_dhcp_state_update(
  *
  \***********************************************************/
 
-extern uns32
-avm_decode_ckpt_upgd_state_update(
-                        AVM_ENT_DHCP_CONF *dhcp_conf,
-                        AVM_ENT_DHCP_CONF *temp_conf
-                        )
+extern uns32 avm_decode_ckpt_upgd_state_update(AVM_ENT_DHCP_CONF *dhcp_conf, AVM_ENT_DHCP_CONF *temp_conf)
 {
-   memcpy(&dhcp_conf->ipmc_helper_node, &temp_conf->ipmc_helper_node, sizeof(AVM_DHCP_CONF_NAME_TYPE));
+	memcpy(&dhcp_conf->ipmc_helper_node, &temp_conf->ipmc_helper_node, sizeof(AVM_DHCP_CONF_NAME_TYPE));
 
-   dhcp_conf->ipmc_helper_ent_path.length = temp_conf->ipmc_helper_ent_path.length;
-   memcpy(dhcp_conf->ipmc_helper_ent_path.name, temp_conf->ipmc_helper_ent_path.name, AVM_MAX_INDEX_LEN);
+	dhcp_conf->ipmc_helper_ent_path.length = temp_conf->ipmc_helper_ent_path.length;
+	memcpy(dhcp_conf->ipmc_helper_ent_path.name, temp_conf->ipmc_helper_ent_path.name, AVM_MAX_INDEX_LEN);
 
-   dhcp_conf->upgrade_type        = temp_conf->upgrade_type;
-   dhcp_conf->ipmb_addr           = temp_conf->ipmb_addr;
-   dhcp_conf->ipmc_upgd_state     = temp_conf->ipmc_upgd_state;
-   dhcp_conf->pld_bld_ipmc_status = temp_conf->pld_bld_ipmc_status;
-   dhcp_conf->pld_rtm_ipmc_status = temp_conf->pld_rtm_ipmc_status; 
-   dhcp_conf->bios_upgd_state     = temp_conf->bios_upgd_state;
+	dhcp_conf->upgrade_type = temp_conf->upgrade_type;
+	dhcp_conf->ipmb_addr = temp_conf->ipmb_addr;
+	dhcp_conf->ipmc_upgd_state = temp_conf->ipmc_upgd_state;
+	dhcp_conf->pld_bld_ipmc_status = temp_conf->pld_bld_ipmc_status;
+	dhcp_conf->pld_rtm_ipmc_status = temp_conf->pld_rtm_ipmc_status;
+	dhcp_conf->bios_upgd_state = temp_conf->bios_upgd_state;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

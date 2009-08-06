@@ -18,10 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -30,7 +26,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-
 
   
 ******************************************************************************/
@@ -51,13 +46,12 @@
 *****************************************************************************/
 GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest)
 {
-   GLND_AGENT_INFO   *agent_info;
-   
-   /* search for the agent id */
-   agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_agent_tree,(uns8 *)&agent_mds_dest);
-   return agent_info;
-}
+	GLND_AGENT_INFO *agent_info;
 
+	/* search for the agent id */
+	agent_info = (GLND_AGENT_INFO *)ncs_patricia_tree_get(&glnd_cb->glnd_agent_tree, (uns8 *)&agent_mds_dest);
+	return agent_info;
+}
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_agent_node_add
@@ -74,39 +68,32 @@ GLND_AGENT_INFO *glnd_agent_node_find(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest)
 
   NOTES         : None
 *****************************************************************************/
-GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB    *glnd_cb, 
-                                     MDS_DEST   agent_mds_dest,
-                                     uns32      process_id)
+GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB *glnd_cb, MDS_DEST agent_mds_dest, uns32 process_id)
 {
-   GLND_AGENT_INFO *agent_info;
+	GLND_AGENT_INFO *agent_info;
 
-   agent_info = glnd_agent_node_find(glnd_cb,agent_mds_dest);
+	agent_info = glnd_agent_node_find(glnd_cb, agent_mds_dest);
 
-   if(!agent_info)
-   {
-      /* create new agent info and put it into the tree */
-      if((agent_info = m_MMGR_ALLOC_GLND_AGENT_INFO) == NULL)
-      {
-         m_LOG_GLND_MEMFAIL(GLND_AGENT_ALLOC_FAILED);
-         return NULL;
-      }
-      agent_info->agent_mds_id = agent_mds_dest;
-      agent_info->process_id = process_id;
-      agent_info->patnode.key_info = (uns8*)&agent_info->agent_mds_id;
-      if(ncs_patricia_tree_add (&glnd_cb->glnd_agent_tree, &agent_info->patnode) != NCSCC_RC_SUCCESS)
-      {
-         m_LOG_GLND_API(GLND_AGENT_TREE_ADD_FAILED,NCSFL_SEV_ERROR);
-         /* free and return */
-         m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
-         return NULL;
-      }
-      return agent_info;
-   }  
-      
+	if (!agent_info) {
+		/* create new agent info and put it into the tree */
+		if ((agent_info = m_MMGR_ALLOC_GLND_AGENT_INFO) == NULL) {
+			m_LOG_GLND_MEMFAIL(GLND_AGENT_ALLOC_FAILED);
+			return NULL;
+		}
+		agent_info->agent_mds_id = agent_mds_dest;
+		agent_info->process_id = process_id;
+		agent_info->patnode.key_info = (uns8 *)&agent_info->agent_mds_id;
+		if (ncs_patricia_tree_add(&glnd_cb->glnd_agent_tree, &agent_info->patnode) != NCSCC_RC_SUCCESS) {
+			m_LOG_GLND_API(GLND_AGENT_TREE_ADD_FAILED, NCSFL_SEV_ERROR);
+			/* free and return */
+			m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
+			return NULL;
+		}
+		return agent_info;
+	}
 
-   return (GLND_AGENT_INFO *)NULL;
+	return (GLND_AGENT_INFO *)NULL;
 }
-
 
 /*****************************************************************************
   PROCEDURE NAME : glnd_agent_node_del
@@ -121,27 +108,25 @@ GLND_AGENT_INFO *glnd_agent_node_add(GLND_CB    *glnd_cb,
 
   NOTES         : 
 *****************************************************************************/
-void glnd_agent_node_del(GLND_CB  *glnd_cb, GLND_AGENT_INFO *agent_info)
+void glnd_agent_node_del(GLND_CB *glnd_cb, GLND_AGENT_INFO *agent_info)
 {
-   GLND_CLIENT_INFO     *client_info;
-   SaLckHandleT         handle_id =0;
+	GLND_CLIENT_INFO *client_info;
+	SaLckHandleT handle_id = 0;
 
-   /* detach it from the tree */
-   if(ncs_patricia_tree_del(&glnd_cb->glnd_agent_tree, (NCS_PATRICIA_NODE *)&agent_info->patnode)
-      !=NCSCC_RC_SUCCESS)
-   {
-      m_LOG_GLND_API(GLND_AGENT_TREE_DEL_FAILED,NCSFL_SEV_ERROR);
-      return;
-   }
+	/* detach it from the tree */
+	if (ncs_patricia_tree_del(&glnd_cb->glnd_agent_tree, (NCS_PATRICIA_NODE *)&agent_info->patnode)
+	    != NCSCC_RC_SUCCESS) {
+		m_LOG_GLND_API(GLND_AGENT_TREE_DEL_FAILED, NCSFL_SEV_ERROR);
+		return;
+	}
 
-   /* clean up all the client info that has been part of the agent */
-   while((client_info = glnd_client_node_find_next(glnd_cb,handle_id,agent_info->agent_mds_id)))
-   {
-      handle_id = client_info->app_handle_id;
-      /* delete the client info */
-      glnd_client_node_del(glnd_cb,client_info);
-   }
+	/* clean up all the client info that has been part of the agent */
+	while ((client_info = glnd_client_node_find_next(glnd_cb, handle_id, agent_info->agent_mds_id))) {
+		handle_id = client_info->app_handle_id;
+		/* delete the client info */
+		glnd_client_node_del(glnd_cb, client_info);
+	}
 
-   /* free the memory */
-   m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
+	/* free the memory */
+	m_MMGR_FREE_GLND_AGENT_INFO(agent_info);
 }

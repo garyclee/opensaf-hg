@@ -15,7 +15,6 @@
  *
  */
 
- 
 #ifndef NCS_POSIX_TMR_H
 #define NCS_POSIX_TMR_H
 
@@ -36,19 +35,16 @@ extern "C" {
 
 #define NCS_MAX_TMRS 64
 
-typedef void (*ncs_ptmr_notify_t)();
+	typedef void (*ncs_ptmr_notify_t) ();
 
-int ncs_ptmr_create(ncs_ptmr_notify_t cb);
-int ncs_ptmr_settime(timer_t timerid, const struct itimerspec *timeout);
-int ncs_ptmr_stop(timer_t timerid);
-int ncs_ptmr_delete(timer_t timerid);
+	int ncs_ptmr_create(ncs_ptmr_notify_t cb);
+	int ncs_ptmr_settime(timer_t timerid, const struct itimerspec *timeout);
+	int ncs_ptmr_stop(timer_t timerid);
+	int ncs_ptmr_delete(timer_t timerid);
 
 #ifdef  __cplusplus
 }
 #endif
-
 #endif
 
-#endif /*NCS_POSIX_TMR*/
-
-
+#endif   /*NCS_POSIX_TMR */

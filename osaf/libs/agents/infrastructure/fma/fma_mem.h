@@ -18,24 +18,22 @@
 #ifndef FMA_MEM_H
 #define FMA_MEM_H
 
-typedef enum
-{
-   FMA_SVC_SUB_ID_FMA_CB,
-   FMA_SVC_SUB_ID_EVT,
-   FMA_SVC_SUB_ID_FMA_HDL_REC,
-   FMA_SVC_SUB_ID_FMA_PEND_CBK_REC,
-   FMA_SVC_SUB_ID_FMA_CBK_INFO,
-   FMA_SVC_SUB_ID_MAX
+typedef enum {
+	FMA_SVC_SUB_ID_FMA_CB,
+	FMA_SVC_SUB_ID_EVT,
+	FMA_SVC_SUB_ID_FMA_HDL_REC,
+	FMA_SVC_SUB_ID_FMA_PEND_CBK_REC,
+	FMA_SVC_SUB_ID_FMA_CBK_INFO,
+	FMA_SVC_SUB_ID_MAX
 } FMA_SVC_SUB_ID;
-   
 
 /** Memory Allocation and Release Macros **/
-   
+
 #define m_MMGR_ALLOC_FMA_CB               (FMA_CB *)m_NCS_MEM_ALLOC(sizeof(FMA_CB), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_FMA, \
                                                 FMA_SVC_SUB_ID_FMA_CB)
- 
+
 #define m_MMGR_FREE_FMA_CB(p)             m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_FMA, \
@@ -45,7 +43,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_FMA, \
                                                 FMA_SVC_SUB_ID_EVT)
- 
+
 #define m_MMGR_FREE_FMA_MBX_EVT(p)        m_NCS_MEM_FREE(p,\
                                               NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_FMA, \
@@ -81,4 +79,3 @@ typedef enum
                                                 FMA_SVC_SUB_ID_FMA_CBK_INFO)
 
 #endif
-

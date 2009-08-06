@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +30,6 @@
  * Module Inclusion Control...
  */
 
-
 #include "bam_log.h"
 
 /*****************************************************************************
@@ -44,9 +41,7 @@
 *****************************************************************************/
 void bam_log_headline(uns8 hdln_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_HDLN, BAM_FC_HDLN, 
-               NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, 
-               hdln_id);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_HDLN, BAM_FC_HDLN, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, hdln_id);
 }
 
 /*****************************************************************************
@@ -58,9 +53,8 @@ void bam_log_headline(uns8 hdln_id, uns8 sev)
 *****************************************************************************/
 void bam_log_memfail(uns8 mf_id)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MEMFAIL, BAM_FC_MEMFAIL, 
-               NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, 
-               mf_id);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MEMFAIL, BAM_FC_MEMFAIL,
+		   NCSFL_LC_MEMORY, NCSFL_SEV_ERROR, NCSFL_TYPE_TI, mf_id);
 }
 
 /*****************************************************************************
@@ -72,9 +66,7 @@ void bam_log_memfail(uns8 mf_id)
 *****************************************************************************/
 void bam_log_api(uns8 api_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_API, BAM_FC_API, 
-               NCSFL_LC_API, sev, NCSFL_TYPE_TI, 
-               api_id);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_API, BAM_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TI, api_id);
 }
 
 /*****************************************************************************
@@ -86,9 +78,7 @@ void bam_log_api(uns8 api_id, uns8 sev)
 *****************************************************************************/
 void bam_log_msg(uns8 msg_id, uns8 sev, uns32 node)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG, BAM_FC_MSG, 
-        NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIL, 
-        msg_id, node);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG, BAM_FC_MSG, NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIL, msg_id, node);
 }
 
 /*****************************************************************************
@@ -100,9 +90,7 @@ void bam_log_msg(uns8 msg_id, uns8 sev, uns32 node)
 *****************************************************************************/
 void bam_log_msg_TIL(uns8 msg_id, uns8 sev, uns32 info)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIL, BAM_FC_INFO, 
-        NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIL, 
-        msg_id, info);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIL, BAM_FC_INFO, NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIL, msg_id, info);
 }
 
 /****************************************************************************
@@ -121,9 +109,8 @@ void bam_log_msg_TIL(uns8 msg_id, uns8 sev, uns32 info)
 void bam_log_msg_TIC(uns8 msg_id, uns8 sev, char *string1)
 {
 
-   ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIC, BAM_FC_INFO,
-        NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIC,
-        msg_id, string1);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIC, BAM_FC_INFO,
+		   NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIC, msg_id, string1);
 }
 
 /*****************************************************************************
@@ -135,9 +122,8 @@ void bam_log_msg_TIC(uns8 msg_id, uns8 sev, char *string1)
 *****************************************************************************/
 void bam_log_svc_prvdr(uns8 sp_id, uns8 sev)
 {
-    ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_SVC_PRVDR, BAM_FC_SVC_PRVDR, 
-               NCSFL_LC_SVC_PRVDR, sev, NCSFL_TYPE_TI, 
-               sp_id);
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_SVC_PRVDR, BAM_FC_SVC_PRVDR,
+		   NCSFL_LC_SVC_PRVDR, sev, NCSFL_TYPE_TI, sp_id);
 }
 
 /****************************************************************************
@@ -155,22 +141,19 @@ void bam_log_svc_prvdr(uns8 sp_id, uns8 sev)
  *
  * Notes         : None.
  *****************************************************************************/
-char *bam_concatenate_twin_string (char *string1,char *string2, char *o_str)
+char *bam_concatenate_twin_string(char *string1, char *string2, char *o_str)
 {
-    if(string1)
-    {
-        strncpy(o_str,string1, 255);
-        strncat(o_str,",", 255-strlen(o_str));
-    }
+	if (string1) {
+		strncpy(o_str, string1, 255);
+		strncat(o_str, ",", 255 - strlen(o_str));
+	}
 
-    if(string2) 
-    {
-        strncat(o_str,string2, 255-strlen(o_str));
-    }
-   
-    return (o_str);
+	if (string2) {
+		strncat(o_str, string2, 255 - strlen(o_str));
+	}
+
+	return (o_str);
 }
-
 
 /****************************************************************************
  * Name          : bam_log_TICL_fmt_2string
@@ -187,11 +170,11 @@ char *bam_concatenate_twin_string (char *string1,char *string2, char *o_str)
 
 void bam_log_TICL_fmt_2string(uns8 msg_id, uns8 sev, char *string1, char *string2)
 {
-   char log_info[256]; /* TBD Fix me */
+	char log_info[256];	/* TBD Fix me */
 
-   ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIC, BAM_FC_MSG, 
-        NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIC, 
-        msg_id, bam_concatenate_twin_string(string1,string2,log_info));
+	ncs_logmsg(NCS_SERVICE_ID_BAM, BAM_LID_MSG_TIC, BAM_FC_MSG,
+		   NCSFL_LC_EVENT, sev, NCSFL_TYPE_TIC,
+		   msg_id, bam_concatenate_twin_string(string1, string2, log_info));
 }
 
 /****************************************************************************
@@ -207,21 +190,20 @@ void bam_log_TICL_fmt_2string(uns8 msg_id, uns8 sev, char *string1, char *string
  *
  * Notes         : None.
  *****************************************************************************/
-void
-bam_flx_log_reg(void)
+void bam_flx_log_reg(void)
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_BAM;
-   /* fill version no. */
-   reg.info.bind_svc.version = BAM_LOG_VERSION;
-   /* fill svc_name */
-   strncpy(reg.info.bind_svc.svc_name, "BAM", sizeof(reg.info.bind_svc.svc_name)-1);
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_BAM;
+	/* fill version no. */
+	reg.info.bind_svc.version = BAM_LOG_VERSION;
+	/* fill svc_name */
+	strncpy(reg.info.bind_svc.svc_name, "BAM", sizeof(reg.info.bind_svc.svc_name) - 1);
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -237,15 +219,13 @@ bam_flx_log_reg(void)
  *
  * Notes         : None.
  *****************************************************************************/
-void
-bam_flx_log_dereg(void)
+void bam_flx_log_dereg(void)
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_BAM;
-   ncs_dtsv_su_req(&reg);
-   return;
-}
+	NCS_DTSV_RQ reg;
 
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_BAM;
+	ncs_dtsv_su_req(&reg);
+	return;
+}

@@ -18,19 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
-
 ..............................................................................
 
   DESCRIPTION: What ncs_qptrs.h says.
 
-
 ******************************************************************************
 */
-
-
 
 /** Get compile time options...
  **/
@@ -59,18 +52,15 @@
 
 *****************************************************************************/
 
-
-void  ncs_qspace_construct(NCS_QSPACE* qs)
-  {
-  qs->front = 0;
-  qs->back  = 0;
-  qs->slots = 0;
-  qs->f_idx = 0;
-  qs->b_idx = 0;
-  qs->count = 0;
-  }
-
-
+void ncs_qspace_construct(NCS_QSPACE *qs)
+{
+	qs->front = 0;
+	qs->back = 0;
+	qs->slots = 0;
+	qs->f_idx = 0;
+	qs->b_idx = 0;
+	qs->count = 0;
+}
 
 /*****************************************************************************
 
@@ -82,13 +72,11 @@ void  ncs_qspace_construct(NCS_QSPACE* qs)
 
 *****************************************************************************/
 
-void  ncs_circ_qspace_construct(NCS_QSPACE* qs, int32 max_size)
+void ncs_circ_qspace_construct(NCS_QSPACE *qs, int32 max_size)
 {
-  qs->max_size = max_size;
-  ncs_qspace_construct(qs);
+	qs->max_size = max_size;
+	ncs_qspace_construct(qs);
 }
-
-
 
 /*****************************************************************************
 
@@ -101,20 +89,20 @@ void  ncs_circ_qspace_construct(NCS_QSPACE* qs, int32 max_size)
 
 *****************************************************************************/
 
-void  ncs_qspace_init(NCS_QSPACE* qs)
-  {
-  ncs_qspace_delete(qs);                 /* free stale information first */
+void ncs_qspace_init(NCS_QSPACE *qs)
+{
+	ncs_qspace_delete(qs);	/* free stale information first */
 
-  qs->front = (NCS_QLINK*) m_MMGR_ALLOC_NCS_QLINK;
-  m_QSPACE_STUFF_OWNER(qs,qs->front);
+	qs->front = (NCS_QLINK *)m_MMGR_ALLOC_NCS_QLINK;
+	m_QSPACE_STUFF_OWNER(qs, qs->front);
 
-  qs->front->next = NCS_QLINK_NULL;
-  qs->back  = qs->front;
-  qs->slots = (sizeof(NCS_QLINK) - sizeof (NCS_QLINK*)) / sizeof(void*);
-  qs->f_idx = 0;
-  qs->b_idx = 0;
-  qs->count = 0;
-  }
+	qs->front->next = NCS_QLINK_NULL;
+	qs->back = qs->front;
+	qs->slots = (sizeof(NCS_QLINK) - sizeof(NCS_QLINK *)) / sizeof(void *);
+	qs->f_idx = 0;
+	qs->b_idx = 0;
+	qs->count = 0;
+}
 
 /*****************************************************************************
 
@@ -127,20 +115,19 @@ void  ncs_qspace_init(NCS_QSPACE* qs)
 
 *****************************************************************************/
 
-void ncs_qspace_enq(NCS_QSPACE* qs, void* q_it)
-  {
-  if (qs->b_idx == qs->slots)
-    {
-    qs->back->next = (NCS_QLINK*) m_MMGR_ALLOC_NCS_QLINK;
-    m_QSPACE_STUFF_OWNER(qs,qs->back->next);
-    qs->back       = qs->back->next;
-    qs->back->next = NCS_QLINK_NULL;
-    qs->b_idx      = 0;
-    }
-  qs->back->slot[qs->b_idx++] = (uns32*)q_it;
-  qs->count++;
-  }
-   
+void ncs_qspace_enq(NCS_QSPACE *qs, void *q_it)
+{
+	if (qs->b_idx == qs->slots) {
+		qs->back->next = (NCS_QLINK *)m_MMGR_ALLOC_NCS_QLINK;
+		m_QSPACE_STUFF_OWNER(qs, qs->back->next);
+		qs->back = qs->back->next;
+		qs->back->next = NCS_QLINK_NULL;
+		qs->b_idx = 0;
+	}
+	qs->back->slot[qs->b_idx++] = (uns32 *)q_it;
+	qs->count++;
+}
+
 /*****************************************************************************
 
   PROCEDURE NAME:    ncs_qspace_deq
@@ -154,28 +141,27 @@ void ncs_qspace_enq(NCS_QSPACE* qs, void* q_it)
 
 *****************************************************************************/
 
-void* ncs_qspace_deq(NCS_QSPACE* qs)
-  {
-  void     *retval;
-  NCS_QLINK *temp;
+void *ncs_qspace_deq(NCS_QSPACE *qs)
+{
+	void *retval;
+	NCS_QLINK *temp;
 
-  if ((qs->front == qs->back) && (qs->f_idx == qs->b_idx))
-    return (void*) 0; /* the queue is empty */
+	if ((qs->front == qs->back) && (qs->f_idx == qs->b_idx))
+		return (void *)0;	/* the queue is empty */
 
-  if (qs->f_idx == qs->slots)
-    {
-    temp = qs->front->next;
-    m_MMGR_FREE_NCS_QLINK(qs->front);    
-    qs->front = temp;
-    qs->f_idx = 0;
-    }
+	if (qs->f_idx == qs->slots) {
+		temp = qs->front->next;
+		m_MMGR_FREE_NCS_QLINK(qs->front);
+		qs->front = temp;
+		qs->f_idx = 0;
+	}
 
-  qs->count--;
-  if ((retval = (void*)qs->front->slot[qs->f_idx++]) == (void*)NCS_QSPACE_DEAD)
-    return ncs_qspace_deq(qs);
-  else
-    return retval;
-  }
+	qs->count--;
+	if ((retval = (void *)qs->front->slot[qs->f_idx++]) == (void *)NCS_QSPACE_DEAD)
+		return ncs_qspace_deq(qs);
+	else
+		return retval;
+}
 
 /*****************************************************************************
 
@@ -188,30 +174,27 @@ void* ncs_qspace_deq(NCS_QSPACE* qs)
 
 *****************************************************************************/
 
-NCS_BOOL ncs_qspace_hunt(NCS_QSPACE* qs, void* tgt)
-  {
-  NCS_QLINK *qlink   = qs->front;
-  int32     st_loop = qs->f_idx;
-  int32     bk_loop = qs->slots;
-  int32     i;
-  
-  while (qlink != (NCS_QLINK*) 0)
-    {
-    if (qlink == qs->back)          /* figure out how big the loop can be */
-      bk_loop = qs->b_idx;
+NCS_BOOL ncs_qspace_hunt(NCS_QSPACE *qs, void *tgt)
+{
+	NCS_QLINK *qlink = qs->front;
+	int32 st_loop = qs->f_idx;
+	int32 bk_loop = qs->slots;
+	int32 i;
 
-    for(i = st_loop; i < bk_loop; i++)                  /* now go hunting */
-      {
-      if (qlink->slot[i] == tgt)
-        return TRUE;                        /* found a match; return TRUE */
-      }
-    qlink = qlink->next;
-    st_loop = 0;   /* OK, past first one, now start with zero-eth element */
-    }
-  return FALSE;  /* no match */
-  }
+	while (qlink != (NCS_QLINK *)0) {
+		if (qlink == qs->back)	/* figure out how big the loop can be */
+			bk_loop = qs->b_idx;
 
-  
+		for (i = st_loop; i < bk_loop; i++) {	/* now go hunting */
+			if (qlink->slot[i] == tgt)
+				return TRUE;	/* found a match; return TRUE */
+		}
+		qlink = qlink->next;
+		st_loop = 0;	/* OK, past first one, now start with zero-eth element */
+	}
+	return FALSE;		/* no match */
+}
+
 /*****************************************************************************
 
   PROCEDURE NAME:    ncs_qspace_remove
@@ -234,35 +217,32 @@ NCS_BOOL ncs_qspace_hunt(NCS_QSPACE* qs, void* tgt)
 
 *****************************************************************************/
 
-NCS_BOOL ncs_qspace_remove(NCS_QSPACE* qs, void* tgt, NCS_BOOL find_all)
-  {
-  NCS_QLINK *qlink   = qs->front;
-  NCS_BOOL   code    = FALSE;  /* default to not found */
-  int32     st_loop = qs->f_idx;
-  int32     bk_loop = qs->slots;
-  int32     i;
+NCS_BOOL ncs_qspace_remove(NCS_QSPACE *qs, void *tgt, NCS_BOOL find_all)
+{
+	NCS_QLINK *qlink = qs->front;
+	NCS_BOOL code = FALSE;	/* default to not found */
+	int32 st_loop = qs->f_idx;
+	int32 bk_loop = qs->slots;
+	int32 i;
 
-  while (qlink != (NCS_QLINK*) 0)
-    {
-    if (qlink == qs->back)          /* figure out how big the loop can be */
-      bk_loop = qs->b_idx;
-    
-    for(i = st_loop; i < bk_loop; i++)                  /* now go hunting */
-      {
-      if (qlink->slot[i] == (uns32*)tgt)
-        {
-        qlink->slot[i] = (uns32*)NCS_QSPACE_DEAD;
-        if (find_all == FALSE)
-          return TRUE;                      /* found a match; return TRUE */
-        else
-          code = TRUE;                 /* found a match, but keep looking */
-        }
-      }
-    qlink = qlink->next;
-    st_loop = 0;   /* OK, past first one, now start with zero-eth element */
-    }
-  return code;                                    /* report what we found */
-  }
+	while (qlink != (NCS_QLINK *)0) {
+		if (qlink == qs->back)	/* figure out how big the loop can be */
+			bk_loop = qs->b_idx;
+
+		for (i = st_loop; i < bk_loop; i++) {	/* now go hunting */
+			if (qlink->slot[i] == (uns32 *)tgt) {
+				qlink->slot[i] = (uns32 *)NCS_QSPACE_DEAD;
+				if (find_all == FALSE)
+					return TRUE;	/* found a match; return TRUE */
+				else
+					code = TRUE;	/* found a match, but keep looking */
+			}
+		}
+		qlink = qlink->next;
+		st_loop = 0;	/* OK, past first one, now start with zero-eth element */
+	}
+	return code;		/* report what we found */
+}
 
 /*****************************************************************************
 
@@ -274,23 +254,20 @@ NCS_BOOL ncs_qspace_remove(NCS_QSPACE* qs, void* tgt, NCS_BOOL find_all)
         by the passed NCS_QSPACE..
 
 *****************************************************************************/
-    
-void ncs_qspace_delete(NCS_QSPACE* qs)
-  {
-  NCS_QLINK *temp;
-  NCS_QLINK *qlink = qs->front;
 
-  while (qlink != 0)
-    {
-    temp = qlink->next;
-    m_MMGR_FREE_NCS_QLINK(qlink);
-    qlink = temp;
-    }
+void ncs_qspace_delete(NCS_QSPACE *qs)
+{
+	NCS_QLINK *temp;
+	NCS_QLINK *qlink = qs->front;
 
-  ncs_qspace_construct(qs);      /* put it back to constructor start-state */
-  }
+	while (qlink != 0) {
+		temp = qlink->next;
+		m_MMGR_FREE_NCS_QLINK(qlink);
+		qlink = temp;
+	}
 
-
+	ncs_qspace_construct(qs);	/* put it back to constructor start-state */
+}
 
 /*****************************************************************************
 
@@ -305,19 +282,15 @@ void ncs_qspace_delete(NCS_QSPACE* qs)
 
 uns32 ncs_circ_qspace_set_maxsize(NCS_QSPACE *qs, int32 new_max_size)
 {
-    uns32 retval = NCSCC_RC_FAILURE;
+	uns32 retval = NCSCC_RC_FAILURE;
 
-    if(qs->count < new_max_size)
-    {
-        qs->max_size = new_max_size;
-        retval = NCSCC_RC_SUCCESS;
-    }
+	if (qs->count < new_max_size) {
+		qs->max_size = new_max_size;
+		retval = NCSCC_RC_SUCCESS;
+	}
 
-    return retval;
+	return retval;
 }
-
-
-
 
 /*****************************************************************************
 
@@ -325,42 +298,35 @@ uns32 ncs_circ_qspace_set_maxsize(NCS_QSPACE *qs, int32 new_max_size)
 
   DESCRIPTION:
 
-
 *****************************************************************************/
 
-void* ncs_qspace_peek(NCS_QSPACE *qs, int32 index)
+void *ncs_qspace_peek(NCS_QSPACE *qs, int32 index)
 {
-    NCS_QLINK *qlink   = qs->front;
-    int32     st_loop = qs->f_idx;
-    int32     bk_loop = qs->slots;
-    int32     i;
-    int32     local_index = 0;
-    void     *retval = NULL;
+	NCS_QLINK *qlink = qs->front;
+	int32 st_loop = qs->f_idx;
+	int32 bk_loop = qs->slots;
+	int32 i;
+	int32 local_index = 0;
+	void *retval = NULL;
 
-    while (qlink != (NCS_QLINK*) 0)
-    {
-        if (qlink == qs->back)          /* figure out how big the loop can be */
-        {
-            bk_loop = qs->b_idx;
-        }
+	while (qlink != (NCS_QLINK *)0) {
+		if (qlink == qs->back) {	/* figure out how big the loop can be */
+			bk_loop = qs->b_idx;
+		}
 
-        for(i = st_loop; i < bk_loop; i++)                  /* now go hunting */
-        {
-            
-            if (local_index == index)
-            {
-                retval = qlink->slot[i];                        /* found a match */
-            }
-            local_index++;
-        }
-        qlink = qlink->next;
-        st_loop = 0;   /* OK, past first one, now start with zero-eth element */
-    }
+		for (i = st_loop; i < bk_loop; i++) {	/* now go hunting */
 
-    return retval;
+			if (local_index == index) {
+				retval = qlink->slot[i];	/* found a match */
+			}
+			local_index++;
+		}
+		qlink = qlink->next;
+		st_loop = 0;	/* OK, past first one, now start with zero-eth element */
+	}
+
+	return retval;
 }
-
-
 
 /*****************************************************************************
 
@@ -371,46 +337,35 @@ void* ncs_qspace_peek(NCS_QSPACE *qs, int32 index)
 
 *****************************************************************************/
 
-void *ncs_qspace_pop(NCS_QSPACE* qs)
+void *ncs_qspace_pop(NCS_QSPACE *qs)
 {
-    void     *retval;
+	void *retval;
 
-    qs->b_idx--;
-    qs->count--;
-    retval = qs->back->slot[qs->b_idx];
+	qs->b_idx--;
+	qs->count--;
+	retval = qs->back->slot[qs->b_idx];
 
-    if (0 == qs->b_idx)
-    {
-        /* find prev ncs_qlink */
-        NCS_QLINK *thisql = qs->front;
-        NCS_QLINK *prevql = NULL;
-        NCS_QLINK *delql  = NULL;
-        do
-        {
-            if(thisql == qs->back)
-            {
-                delql = thisql;
-                if(NULL == prevql)
-                {
-                    qs->front = delql->next;
-                }
-                else
-                {
-                    prevql->next = delql->next;
-                }
-                thisql = thisql->next;
-                m_MMGR_FREE_NCS_QLINK(delql);
-            }
-            else
-            {
-                prevql = thisql;
-                thisql = thisql->next;
-            }
-        } while(NULL != thisql);
-    }
+	if (0 == qs->b_idx) {
+		/* find prev ncs_qlink */
+		NCS_QLINK *thisql = qs->front;
+		NCS_QLINK *prevql = NULL;
+		NCS_QLINK *delql = NULL;
+		do {
+			if (thisql == qs->back) {
+				delql = thisql;
+				if (NULL == prevql) {
+					qs->front = delql->next;
+				} else {
+					prevql->next = delql->next;
+				}
+				thisql = thisql->next;
+				m_MMGR_FREE_NCS_QLINK(delql);
+			} else {
+				prevql = thisql;
+				thisql = thisql->next;
+			}
+		} while (NULL != thisql);
+	}
 
-    return retval;
+	return retval;
 }
-
-
-

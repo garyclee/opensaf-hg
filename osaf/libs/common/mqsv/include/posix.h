@@ -15,7 +15,6 @@
  *
  */
 
-
 /****************************************************************************
  * POSIX Message-queues Primitive definition
  * The actual function ncs_os_posix_mq must be resolved in the os_defs.h file.
@@ -29,4 +28,3 @@
  *   NCSCC_RC_FAILURE - interface call failed.
  *
  ***************************************************************************/
-

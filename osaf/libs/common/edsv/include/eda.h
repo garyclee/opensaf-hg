@@ -103,7 +103,7 @@ EXTERN_C uns32 gl_eda_hdl;
 /*Length of a default publisher name */
 #define EDSV_DEF_NAME_LEN 4
 
-/*Max limit for reserved events (from 0 - 1000)*/  
-#define MAX_RESERVED_EVENTID 1000  
+/*Max limit for reserved events (from 0 - 1000)*/
+#define MAX_RESERVED_EVENTID 1000
 
-#endif /* !EDA_H */
+#endif   /* !EDA_H */

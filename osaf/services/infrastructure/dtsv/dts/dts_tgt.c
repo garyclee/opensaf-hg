@@ -19,7 +19,6 @@
 ..............................................................................
 
 
-
 */
 
 /** H&J Includes...
@@ -55,64 +54,61 @@
 
 #if ((DTS_DEBUG == 1) || (DTS_LOG == 1))
 
-uns32 dts_dbg_sink(uns32 l, char* f, uns32 code, char *str)
+uns32 dts_dbg_sink(uns32 l, char *f, uns32 code, char *str)
 {
 #if (DTS_DEBUG == 1)
-   printf ("IN DTS_DBG_SINK: line %d, file %s\n",l,f);
+	printf("IN DTS_DBG_SINK: line %d, file %s\n", l, f);
 #endif
-   
-   if (NULL != str)
-   {
+
+	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-      printf ("Reason : %s \n", str);
+		printf("Reason : %s \n", str);
 #endif
-      
+
 #if (DTS_LOG == 1)
-      m_LOG_DTS_DBGSTRL(DTS_IGNORE, str, f, l);
+		m_LOG_DTS_DBGSTRL(DTS_IGNORE, str, f, l);
 #endif
-   }
-   
-   return code;
+	}
+
+	return code;
 }
 
-uns32 dts_dbg_sink_svc(uns32 l, char* f, uns32 code, char *str, uns32 svc)
+uns32 dts_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc)
 {
 #if (DTS_DEBUG == 1)
-   printf ("IN DTS_DBG_SINK: SVC = %d, line %d, file %s\n", svc, l,f);
+	printf("IN DTS_DBG_SINK: SVC = %d, line %d, file %s\n", svc, l, f);
 #endif
-   
-   if (NULL != str)
-   {
+
+	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-      printf ("Reason : %s \n", str);
+		printf("Reason : %s \n", str);
 #endif
-      
+
 #if (DTS_LOG == 1)
-      m_LOG_DTS_DBGSTRL_SVC(DTS_IGNORE, str, f, l, svc);
+		m_LOG_DTS_DBGSTRL_SVC(DTS_IGNORE, str, f, l, svc);
 #endif
-      
-   }
-   return code;
+
+	}
+	return code;
 }
 
-uns32 dts_dbg_sink_svc_name(uns32 l, char* f, uns32 code, char *str, char * svc)
+uns32 dts_dbg_sink_svc_name(uns32 l, char *f, uns32 code, char *str, char *svc)
 {
 #if (DTS_DEBUG == 1)
-   printf ("IN DTS_DBG_SINK: SVC = %s, line %d, file %s\n", svc, l,f);
+	printf("IN DTS_DBG_SINK: SVC = %s, line %d, file %s\n", svc, l, f);
 #endif
 
-   if (NULL != str)
-   {
+	if (NULL != str) {
 #if (DTS_DEBUG == 1)
-      printf ("Reason : %s \n", str);
+		printf("Reason : %s \n", str);
 #endif
 
 #if (DTS_LOG == 1)
-      m_LOG_DTS_DBGSTRL_SVC_NAME(DTS_IGNORE, str, f, l, svc);
+		m_LOG_DTS_DBGSTRL_SVC_NAME(DTS_IGNORE, str, f, l, svc);
 #endif
 
-   }
-   return code;
+	}
+	return code;
 }
 #endif
 
@@ -133,8 +129,7 @@ uns32 dts_dbg_sink_svc_name(uns32 l, char* f, uns32 code, char *str, char * svc)
 
 /* For DTS validation */
 
-void* sysf_dts_validate(uns32 k)
-  {
-  return (void *)ncshm_take_hdl(NCS_SERVICE_ID_DTSV, k);
-  }
-
+void *sysf_dts_validate(uns32 k)
+{
+	return (void *)ncshm_take_hdl(NCS_SERVICE_ID_DTSV, k);
+}

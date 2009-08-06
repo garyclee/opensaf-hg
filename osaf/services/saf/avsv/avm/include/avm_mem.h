@@ -32,26 +32,25 @@
 #define AVM_MEM_H
 
 /* Service Sub IDs for AVM */
-typedef enum
-{
-   NCS_SERVICE_AVM_SUB_ID_DEFAULT_VAL = 1,
-   NCS_SERVICE_AVM_SUB_ID_CB,
-   NCS_SERVICE_AVM_SUB_ID_EVT,
-   NCS_SERVICE_AVM_SUB_ID_HPI_EVT,
-   NCS_SERVICE_AVM_SUB_ID_ENTITY_PATH,
-   NCS_SERVICE_AVM_SUB_ID_INV_DATA_REC,
-   NCS_SERVICE_AVM_SUB_ID_LIST_NODE,
-   NCS_SERVICE_AVM_SUB_ID_FAULT_DOMAIN,
-   NCS_SERVICE_AVM_SUB_ID_ENT_INFO,
-   NCS_SERVICE_AVM_SUB_ID_VALID_INFO,
-   NCS_SERVICE_AVM_SUB_ID_NODE_INFO,
-   NCS_SERVICE_AVM_SUB_ID_ENT_INFO_LIST,
-   NCS_SERVICE_AVM_SUB_ID_PATTERN_ARRAY,
-   NCS_SERVICE_AVM_SUB_ID_PATTERN,
-   NCS_SERVICE_AVM_SUB_ID_EVT_Q_NODE,
-   NCS_SERVICE_AVM_SUB_ID_TRAP_VB,
-   NCS_SERVICE_AVM_SUB_ID_EDA_TLV_SIZE,
-   NCS_SERVICE_AVM_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_AVM_SUB_ID_DEFAULT_VAL = 1,
+	NCS_SERVICE_AVM_SUB_ID_CB,
+	NCS_SERVICE_AVM_SUB_ID_EVT,
+	NCS_SERVICE_AVM_SUB_ID_HPI_EVT,
+	NCS_SERVICE_AVM_SUB_ID_ENTITY_PATH,
+	NCS_SERVICE_AVM_SUB_ID_INV_DATA_REC,
+	NCS_SERVICE_AVM_SUB_ID_LIST_NODE,
+	NCS_SERVICE_AVM_SUB_ID_FAULT_DOMAIN,
+	NCS_SERVICE_AVM_SUB_ID_ENT_INFO,
+	NCS_SERVICE_AVM_SUB_ID_VALID_INFO,
+	NCS_SERVICE_AVM_SUB_ID_NODE_INFO,
+	NCS_SERVICE_AVM_SUB_ID_ENT_INFO_LIST,
+	NCS_SERVICE_AVM_SUB_ID_PATTERN_ARRAY,
+	NCS_SERVICE_AVM_SUB_ID_PATTERN,
+	NCS_SERVICE_AVM_SUB_ID_EVT_Q_NODE,
+	NCS_SERVICE_AVM_SUB_ID_TRAP_VB,
+	NCS_SERVICE_AVM_SUB_ID_EDA_TLV_SIZE,
+	NCS_SERVICE_AVM_SUB_ID_MAX
 } NCS_SERVICE_AVM_SUB_ID;
 
 /*----------------------------------------------------------------------
@@ -59,7 +58,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 ----------------------------------------------------------------------*/
-
 
 #define m_MMGR_ALLOC_AVM_DEFAULT_VAL(size)  m_NCS_MEM_ALLOC( \
                                                 size, \
@@ -112,7 +110,6 @@ typedef enum
                                                 NCS_SERVICE_ID_AVM, \
                                                 NCS_SERVICE_AVM_SUB_ID_ENTITY_PATH)
 
-
 #define m_MMGR_ALLOC_AVM_INV_DATA_REC     (SaHpiInventoryRecT*)m_NCS_MEM_ALLOC(sizeof(SaHpiInventoryRecT), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVM, \
@@ -142,7 +139,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVM, \
                                                 NCS_SERVICE_AVM_SUB_ID_FAULT_DOMAIN)
-
 
 #define m_MMGR_ALLOC_AVM_ENT_INFO         (AVM_ENT_INFO_T*)m_NCS_MEM_ALLOC(sizeof(AVM_ENT_INFO_T), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -199,21 +195,19 @@ typedef enum
                                                 m_NCS_MEM_ALLOC(p * sizeof(SaEvtEventPatternT), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVM, \
-                                                NCS_SERVICE_AVM_SUB_ID_PATTERN)   
-
+                                                NCS_SERVICE_AVM_SUB_ID_PATTERN)
 
 #define m_MMGR_FREE_AVM_EVENT_PATTERNS(p)      m_NCS_MEM_FREE(p, \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVM, \
-                                                NCS_SERVICE_AVM_SUB_ID_PATTERN)   
+                                                NCS_SERVICE_AVM_SUB_ID_PATTERN)
 
 #define m_MMGR_ALLOC_AVM_EVT_Q_NODE       (AVM_EVT_Q_NODE_T*)\
                                                m_NCS_MEM_ALLOC(sizeof(AVM_EVT_Q_NODE_T), \
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
                                                NCS_SERVICE_AVM_SUB_ID_EVT_Q_NODE)
-                                                                                
-                                                                                
+
 #define m_MMGR_FREE_AVM_EVT_Q_NODE(p)      m_NCS_MEM_FREE(p, \
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
@@ -224,8 +218,7 @@ typedef enum
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
                                                NCS_SERVICE_AVM_SUB_ID_TRAP_VB)
-                                                                                
-                                                                                
+
 #define m_MMGR_FREE_AVM_TRAP_VB(p)      m_NCS_MEM_FREE(p, \
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
@@ -236,11 +229,10 @@ typedef enum
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
                                                NCS_SERVICE_AVM_SUB_ID_TRAP_VB)
-                                                                                
-                                                                                
+
 #define m_MMGR_FREE_AVM_EDA_TLV_SIZE(p)      m_NCS_MEM_FREE(p, \
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_AVM, \
                                                NCS_SERVICE_AVM_SUB_ID_TRAP_VB)
 
-#endif /*__AVM_MEM_H__ */
+#endif   /*__AVM_MEM_H__ */

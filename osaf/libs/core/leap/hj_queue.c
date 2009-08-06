@@ -18,18 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
-
 ..............................................................................
 
   DESCRIPTION:
 
-
 ******************************************************************************
 */
-
-
 
 /** Get compile time options...
  **/
@@ -40,14 +34,12 @@
 #include "gl_defs.h"
 #include "ncs_osprm.h"
 
-
 /** Get NCS Queue Facility header file.
  **/
 #include "ncs_queue.h"
 
 #include "ncssysfpool.h"
 #include "ncssysf_lck.h"
-
 
 /****************************************************************************
 
@@ -67,31 +59,29 @@
 
 *****************************************************************************/
 
-unsigned int
-ncs_enqueue (NCS_QUEUE *queue, void *item)
+unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item)
 {
 
-  NCS_QELEM *qelem;
-  
-  qelem = (NCS_QELEM*) item;
+	NCS_QELEM *qelem;
 
-  m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	qelem = (NCS_QELEM *)item;
 
-  if (queue->tail != NCS_QELEM_NULL)
-    queue->tail->next  = qelem;
-  else
-    queue->head = qelem;
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
 
-  queue->count++;
-  queue->tail = qelem;
-  qelem->next = NCS_QELEM_NULL;
+	if (queue->tail != NCS_QELEM_NULL)
+		queue->tail->next = qelem;
+	else
+		queue->head = qelem;
 
-  m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	queue->count++;
+	queue->tail = qelem;
+	qelem->next = NCS_QELEM_NULL;
 
-  return NCSCC_RC_SUCCESS;
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+
+	return NCSCC_RC_SUCCESS;
 
 }
-
 
 /****************************************************************************
 
@@ -110,29 +100,27 @@ ncs_enqueue (NCS_QUEUE *queue, void *item)
    NOTES:
             
 *****************************************************************************/
-unsigned int
-ncs_enqueue_head (NCS_QUEUE *queue, void *item)
+unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item)
 {
-   
-   NCS_QELEM *qelem;
-   
-   qelem = (NCS_QELEM*) item;
-   
-   m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-   
-   qelem->next = queue->head;
-   queue->head = qelem;
-   if (queue->tail == NCS_QELEM_NULL)
-      queue->tail  = qelem;
-   
-   queue->count++;
-   
-   m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-   
-   return NCSCC_RC_SUCCESS;
-   
+
+	NCS_QELEM *qelem;
+
+	qelem = (NCS_QELEM *)item;
+
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+
+	qelem->next = queue->head;
+	queue->head = qelem;
+	if (queue->tail == NCS_QELEM_NULL)
+		queue->tail = qelem;
+
+	queue->count++;
+
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+
+	return NCSCC_RC_SUCCESS;
+
 }
- 
 
 /****************************************************************************
 
@@ -152,29 +140,25 @@ ncs_enqueue_head (NCS_QUEUE *queue, void *item)
 
 *****************************************************************************/
 
-void *
-ncs_dequeue(NCS_QUEUE *queue)
+void *ncs_dequeue(NCS_QUEUE *queue)
 {
-  NCS_QELEM *qelem;                           /* K100316 */
+	NCS_QELEM *qelem;	/* K100316 */
 
-  qelem = NCS_QELEM_NULL;
+	qelem = NCS_QELEM_NULL;
 
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	if (queue->count) {
+		queue->count--;
+		if ((qelem = queue->head) != NCS_QELEM_NULL) {
+			if ((queue->head = qelem->next) == NCS_QELEM_NULL)
+				queue->tail = NCS_QELEM_NULL;
+			qelem->next = NCS_QELEM_NULL;
+		}
+	}
 
-  m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-  if (queue->count)
-  {
-      queue->count--;
-      if ((qelem = queue->head) != NCS_QELEM_NULL)
-   {
-      if ((queue->head = qelem->next) == NCS_QELEM_NULL)
-         queue->tail = NCS_QELEM_NULL;
-      qelem->next = NCS_QELEM_NULL;
-   }
-  }
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
 
-  m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-
-  return ((void *)qelem);
+	return ((void *)qelem);
 
 }
 
@@ -198,41 +182,37 @@ ncs_dequeue(NCS_QUEUE *queue)
 
 *****************************************************************************/
 
+void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
+{
+	NCS_QELEM *front = queue->head;
+	NCS_QELEM *behind = (NCS_QELEM *)&queue->head;
 
-void*
-ncs_remove_item (NCS_QUEUE *queue, void* key, NCSQ_MATCH match)
-  {
-  NCS_QELEM* front  =  queue->head;
-  NCS_QELEM* behind = (NCS_QELEM*)&queue->head;
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	while (front != NCS_QELEM_NULL) {
+		if (match(key, front) == TRUE) {
+			behind->next = front->next;
 
-  m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-  while(front != NCS_QELEM_NULL)
-    {
-    if (match(key,front) == TRUE)
-      {
-      behind->next = front->next;
+			queue->count--;
 
-      queue->count--;
+			/* 
+			 * Check if the number of elements in the queue are zero then only 
+			 * set the tail to NULL else tail should point to the last element 
+			 * of the queue.
+			 */
+			if (queue->count == 0)
+				queue->tail = NCS_QELEM_NULL;
+			else if (front->next == NCS_QELEM_NULL)
+				queue->tail = behind;
 
-      /* 
-       * Check if the number of elements in the queue are zero then only 
-       * set the tail to NULL else tail should point to the last element 
-       * of the queue.
-       */
-      if (queue->count == 0)
-        queue->tail = NCS_QELEM_NULL;
-      else if (front->next == NCS_QELEM_NULL)
-          queue->tail = behind;
-
-      m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-      return front;
-      }
-    behind = front;
-    front  = front->next;
-    }
-  m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-  return NULL;
-  }
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+			return front;
+		}
+		behind = front;
+		front = front->next;
+	}
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	return NULL;
+}
 
 /****************************************************************************
 
@@ -254,28 +234,24 @@ ncs_remove_item (NCS_QUEUE *queue, void* key, NCSQ_MATCH match)
 
 *****************************************************************************/
 
+void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match)
+{
+	NCS_QELEM *front = queue->head;
+	NCS_QELEM *behind = (NCS_QELEM *)&queue->head;
 
-void*
-ncs_find_item (NCS_QUEUE *queue, void* key, NCSQ_MATCH match)
-  {
-  NCS_QELEM* front  =  queue->head;
-  NCS_QELEM* behind = (NCS_QELEM*)&queue->head;
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	while (front != NCS_QELEM_NULL) {
+		if (match(key, front) == TRUE) {
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+			return front;
+		}
 
-  m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-  while(front != NCS_QELEM_NULL)
-    {
-    if (match(key,front) == TRUE)
-      {
-      m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-      return front;
-      }
-
-    behind = front;
-    front  = front->next;
-    }
-  m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
-  return NULL;
-  }
+		behind = front;
+		front = front->next;
+	}
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 22);
+	return NULL;
+}
 
 /****************************************************************************
 
@@ -294,20 +270,18 @@ ncs_find_item (NCS_QUEUE *queue, void* key, NCSQ_MATCH match)
 
 *****************************************************************************/
 
-void *
-ncs_peek_queue(NCS_QUEUE *queue)
+void *ncs_peek_queue(NCS_QUEUE *queue)
 {
-  NCS_QELEM *qelem;
+	NCS_QELEM *qelem;
 
-  qelem = NCS_QELEM_NULL;
+	qelem = NCS_QELEM_NULL;
 
+	m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+	if (queue->count)
+		qelem = queue->head;
+	m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
 
-  m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-  if (queue->count)
-    qelem = queue->head;
-  m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-
-  return ((void *)qelem);
+	return ((void *)qelem);
 
 }
 
@@ -335,32 +309,27 @@ ncs_peek_queue(NCS_QUEUE *queue)
 
 *****************************************************************************/
 
-void*
-ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR* itr)
-  {
-  NCS_QELEM *qelem;
+void *ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR *itr)
+{
+	NCS_QELEM *qelem;
 
-  if (itr->state == NULL)             /* first time in, prime the pump */
-    {
-    if (queue->head)
-      {
-      m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-      return (itr->state = queue->head);
-      }
-    else
-      return NULL;
-    }
+	if (itr->state == NULL) {	/* first time in, prime the pump */
+		if (queue->head) {
+			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			return (itr->state = queue->head);
+		} else
+			return NULL;
+	}
 
-  qelem = (NCS_QELEM*)itr->state;            /* now its routine walking */
-  if (qelem->next != NULL)
-    return (itr->state = qelem->next);
-  else                                      /* hit the end of the line */
-    {
-    m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-    return NULL;
-    }
-  }
+	qelem = (NCS_QELEM *)itr->state;	/* now its routine walking */
+	if (qelem->next != NULL)
+		return (itr->state = qelem->next);
+	else {			/* hit the end of the line */
 
+		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		return NULL;
+	}
+}
 
 /****************************************************************************
 
@@ -380,36 +349,30 @@ ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR* itr)
                        
 *****************************************************************************/
 
-void*
-ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR* itr)
+void *ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR *itr)
 {
-  NCS_QELEM *qelem;
+	NCS_QELEM *qelem;
 
-  if (itr->state == NULL)             /* first time in, prime the pump */
-  {
-    if (queue->head)
-    {
-       m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-       itr->state = queue->head;
-       m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-       return (itr->state);
-    }
-    else
-      return NULL;
-  }
+	if (itr->state == NULL) {	/* first time in, prime the pump */
+		if (queue->head) {
+			m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			itr->state = queue->head;
+			m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+			return (itr->state);
+		} else
+			return NULL;
+	}
 
-  qelem = (NCS_QELEM*)itr->state;            /* now its routine walking */
-  if (qelem->next != NULL)
-  {
-    m_NCS_LOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-    itr->state = qelem->next;
-    m_NCS_UNLOCK_V2(&queue->queue_lock,NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
-    return(itr->state);
-  }
-  else                                      /* hit the end of the line */
-  {
-    return NULL;
-  }
+	qelem = (NCS_QELEM *)itr->state;	/* now its routine walking */
+	if (qelem->next != NULL) {
+		m_NCS_LOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		itr->state = qelem->next;
+		m_NCS_UNLOCK_V2(&queue->queue_lock, NCS_LOCK_READ, NCS_SERVICE_ID_COMMON, 22);
+		return (itr->state);
+	} else {		/* hit the end of the line */
+
+		return NULL;
+	}
 }
 
 /*****************************************************************************
@@ -428,15 +391,13 @@ ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR* itr)
 
   NOTES:
 *****************************************************************************/
-void
-ncs_create_queue (NCS_QUEUE *queue)
+void ncs_create_queue(NCS_QUEUE *queue)
 {
-   queue->count = 0;
-   queue->head  = NCS_QELEM_NULL;
-   queue->tail  = NCS_QELEM_NULL;
-   m_NCS_LOCK_INIT_V2(&queue->queue_lock, NCS_SERVICE_ID_COMMON, 22);
+	queue->count = 0;
+	queue->head = NCS_QELEM_NULL;
+	queue->tail = NCS_QELEM_NULL;
+	m_NCS_LOCK_INIT_V2(&queue->queue_lock, NCS_SERVICE_ID_COMMON, 22);
 }
-
 
 /*****************************************************************************
 
@@ -454,10 +415,7 @@ ncs_create_queue (NCS_QUEUE *queue)
 
   NOTES:
 *****************************************************************************/
-void
-ncs_destroy_queue (NCS_QUEUE *queue)
+void ncs_destroy_queue(NCS_QUEUE *queue)
 {
-   m_NCS_LOCK_DESTROY_V2(&queue->queue_lock, NCS_SERVICE_ID_COMMON, 22);
+	m_NCS_LOCK_DESTROY_V2(&queue->queue_lock, NCS_SERVICE_ID_COMMON, 22);
 }
-
-

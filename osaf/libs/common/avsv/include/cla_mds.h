@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,7 +30,6 @@
 #ifndef CLA_MDS_H
 #define CLA_MDS_H
 
-
 /* In Service upgrade support */
 #define CLA_MDS_SUB_PART_VERSION   1
 
@@ -43,20 +40,17 @@
  * Wrapper structure that encapsulates communication 
  * semantics for communication with AvND
  */
-typedef struct cla_avnd_intf_tag
-{
-   MDS_HDL    mds_hdl;       /* mds handle */
-   MDS_DEST   cla_mds_dest;  /* CLA absolute address */
-   MDS_DEST   avnd_mds_dest; /* AvND absolute address */
-   NCS_BOOL   avnd_up;
+typedef struct cla_avnd_intf_tag {
+	MDS_HDL mds_hdl;	/* mds handle */
+	MDS_DEST cla_mds_dest;	/* CLA absolute address */
+	MDS_DEST avnd_mds_dest;	/* AvND absolute address */
+	NCS_BOOL avnd_up;
 } CLA_AVND_INTF;
-
 
 /* Macro to validate the CLM version */
 #define m_CLA_VER_IS_VALID(ver) \
    ( (ver->releaseCode == 'B') && \
      (ver->majorVersion <= 0x1) )
-
 
 /* Macro to validate the dispatch flags */
 #define m_CLA_DISPATCH_FLAG_IS_VALID(flag) \
@@ -130,16 +124,14 @@ typedef struct cla_avnd_intf_tag
    (m).info.api_info.param.node_async_get.node_id = (nid); \
 }
 
-
 /*** Extern function declarations ***/
 struct cla_cb_tag;
-EXTERN_C uns32 cla_mds_reg (struct cla_cb_tag *);
+EXTERN_C uns32 cla_mds_reg(struct cla_cb_tag *);
 
-EXTERN_C uns32 cla_mds_unreg (struct cla_cb_tag *);
+EXTERN_C uns32 cla_mds_unreg(struct cla_cb_tag *);
 
-EXTERN_C uns32 cla_mds_cbk (NCSMDS_CALLBACK_INFO *);
+EXTERN_C uns32 cla_mds_cbk(NCSMDS_CALLBACK_INFO *);
 
-EXTERN_C uns32 cla_mds_send (struct cla_cb_tag *, AVSV_NDA_CLA_MSG *, 
-                             AVSV_NDA_CLA_MSG **, uns32 timeout);
+EXTERN_C uns32 cla_mds_send(struct cla_cb_tag *, AVSV_NDA_CLA_MSG *, AVSV_NDA_CLA_MSG **, uns32 timeout);
 
-#endif /* !CLA_MDS_H */
+#endif   /* !CLA_MDS_H */

@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
 *                                                                            *
 *  MODULE NAME:  nid_api.c                                                   *
@@ -46,53 +45,57 @@
  ***************************************************************************/
 uns32 nid_notify(char *service, uns32 status, uns32 *error)
 {
-   uns32 scode;
-   char msg[250];
-   int32 fd = -1;
-   uns32 retry=3;
-   char strbuff[256];
-                                                                                                         
-   scode = status;
-   
-                                                       
-   if((scode < 0)  ){
-      if(error != NULL) *error = NID_INV_PARAM;
-      return NCSCC_RC_FAILURE;
-   }
-                                                                                                         
-   while(retry){
-        if(nid_open_ipc(&fd,strbuff) != NCSCC_RC_SUCCESS){
-          retry--;
-        }else break;
-   }
-                                                                                                         
-   if((fd < 0) && (retry == 0)){
-     if(error != NULL) *error = NID_OFIFO_ERR;
-     return NCSCC_RC_FAILURE;
-   }
-                                                                                                         
+	uns32 scode;
+	char msg[250];
+	int32 fd = -1;
+	uns32 retry = 3;
+	char strbuff[256];
+
+	scode = status;
+
+	if ((scode < 0)) {
+		if (error != NULL)
+			*error = NID_INV_PARAM;
+		return NCSCC_RC_FAILURE;
+	}
+
+	while (retry) {
+		if (nid_open_ipc(&fd, strbuff) != NCSCC_RC_SUCCESS) {
+			retry--;
+		} else
+			break;
+	}
+
+	if ((fd < 0) && (retry == 0)) {
+		if (error != NULL)
+			*error = NID_OFIFO_ERR;
+		return NCSCC_RC_FAILURE;
+	}
+
    /************************************************************
    *    Prepare the message to be sent                         *
    ************************************************************/
-   sprintf(msg,"%x:%s:%d",NID_MAGIC,service,scode);                                                                                                       
+	sprintf(msg, "%x:%s:%d", NID_MAGIC, service, scode);
    /************************************************************
    *    Send the message                                       *
    ************************************************************/
-   retry=3;
-   while(retry){
-        if(write(fd,msg,strlen(msg)) == strlen(msg)) break;
-        else retry--;
-   }
-                                                                                                         
-   if(retry == 0){
-     if(error != NULL) *error = NID_WFIFO_ERR;
-     return NCSCC_RC_FAILURE;
-   }
-                 
-   nid_close_ipc();
-   return NCSCC_RC_SUCCESS;
-}
+	retry = 3;
+	while (retry) {
+		if (write(fd, msg, strlen(msg)) == strlen(msg))
+			break;
+		else
+			retry--;
+	}
 
+	if (retry == 0) {
+		if (error != NULL)
+			*error = NID_WFIFO_ERR;
+		return NCSCC_RC_FAILURE;
+	}
+
+	nid_close_ipc();
+	return NCSCC_RC_SUCCESS;
+}
 
 /****************************************************************************
  * Name          : nis_notify                                               *
@@ -108,41 +111,46 @@ uns32 nid_notify(char *service, uns32 status, uns32 *error)
  ***************************************************************************/
 uns32 nis_notify(char *status, uns32 *error)
 {
-   int32 fd = -1;
-   uns32 retry=3;
-   char strbuff[256];
-                                                                                                         
-   if( status == NULL ){ 
-      if(error != NULL) *error = NID_INV_PARAM;
-      return NCSCC_RC_FAILURE;
-   }
-                                                                                                         
-   while(retry){
-        if(nid_open_ipc(&fd,strbuff) != NCSCC_RC_SUCCESS){
-          retry--;
-        }else break;
-   }
-                                                                                                         
-   if((fd < 0) && (retry == 0)){
-     if(error != NULL) *error = NID_OFIFO_ERR;
-     return NCSCC_RC_FAILURE;
-   }
-                                                                                                         
+	int32 fd = -1;
+	uns32 retry = 3;
+	char strbuff[256];
+
+	if (status == NULL) {
+		if (error != NULL)
+			*error = NID_INV_PARAM;
+		return NCSCC_RC_FAILURE;
+	}
+
+	while (retry) {
+		if (nid_open_ipc(&fd, strbuff) != NCSCC_RC_SUCCESS) {
+			retry--;
+		} else
+			break;
+	}
+
+	if ((fd < 0) && (retry == 0)) {
+		if (error != NULL)
+			*error = NID_OFIFO_ERR;
+		return NCSCC_RC_FAILURE;
+	}
+
    /************************************************************
    *    Send the message                                       *
    ************************************************************/
-   retry=3;
-   while(retry){
-        if(write(fd,status,strlen(status)) == strlen(status)) break;
-        else retry--;
-   }
-                                                                                                         
-   if(retry == 0){
-     if(error != NULL) *error = NID_WFIFO_ERR;
-     return NCSCC_RC_FAILURE;
-   }
-                 
-   nid_close_ipc();
-   return NCSCC_RC_SUCCESS;
-}
+	retry = 3;
+	while (retry) {
+		if (write(fd, status, strlen(status)) == strlen(status))
+			break;
+		else
+			retry--;
+	}
 
+	if (retry == 0) {
+		if (error != NULL)
+			*error = NID_WFIFO_ERR;
+		return NCSCC_RC_FAILURE;
+	}
+
+	nid_close_ipc();
+	return NCSCC_RC_SUCCESS;
+}

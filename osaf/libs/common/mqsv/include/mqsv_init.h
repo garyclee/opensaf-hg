@@ -26,7 +26,6 @@
   This file consists of constats, enums and data structs used by mdnd_init.c
 ******************************************************************************/
 
-
 /**** Macro to get the component name for the component type ****/
 #define m_MQND_TASKNAME "MQND"
 
@@ -36,21 +35,16 @@
 /**** Macro for IFSV task stack size ****/
 #define m_MQND_STACKSIZE NCS_STACKSIZE_HUGE
 
-
-
-
 /*****************************************************************************
  * structure which holds the create information.
  *****************************************************************************/
-typedef struct mqsv_create_info
-{
-   uns8       pool_id;   /* Handle manager Pool ID */
-}MQSV_CREATE_INFO;
+typedef struct mqsv_create_info {
+	uns8 pool_id;		/* Handle manager Pool ID */
+} MQSV_CREATE_INFO;
 
 /*****************************************************************************
  * structure which holds the destroy information.
  *****************************************************************************/
-typedef struct mqsv_destroy_info
-{
-   MDS_VDEST_ID i_vcard_id;
-}MQSV_DESTROY_INFO;
+typedef struct mqsv_destroy_info {
+	MDS_VDEST_ID i_vcard_id;
+} MQSV_DESTROY_INFO;

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -31,7 +29,6 @@
 /*
  * Module Inclusion Control...
  */
-
 
 #ifndef DTS_API_H
 #define DTS_API_H
@@ -47,65 +44,56 @@
 
 *******************************************************************************/
 
-typedef struct dts_create
-  {
-  NCS_VRID         i_vrid;          /* Virtual Router    */
-  uns8             i_hmpool_id;     /* Handle Manager Pool Id                      */
-  NCSCONTEXT       task_handle;
-  NCS_BOOL         reg_with_amf;
-  } DTS_CREATE;
+typedef struct dts_create {
+	NCS_VRID i_vrid;	/* Virtual Router    */
+	uns8 i_hmpool_id;	/* Handle Manager Pool Id                      */
+	NCSCONTEXT task_handle;
+	NCS_BOOL reg_with_amf;
+} DTS_CREATE;
 
 /***************************************************************************
  * Destroy an instance of a DTS service instance (one per virtual router)
  ***************************************************************************/
 
-typedef struct ncsdts_destroy
-  {
-  void*           i_meaningless;     /* place holder struct; do nothing */
+typedef struct ncsdts_destroy {
+	void *i_meaningless;	/* place holder struct; do nothing */
 
-  } DTS_DESTROY;
-
+} DTS_DESTROY;
 
 /***************************************************************************
  * The operations set that a DTS instance supports
  ***************************************************************************/
 
-typedef enum dts_lm_op
-  {
-  DTS_LM_OP_CREATE,
-  DTS_LM_OP_DESTROY,
+typedef enum dts_lm_op {
+	DTS_LM_OP_CREATE,
+	DTS_LM_OP_DESTROY,
 
-  } DTS_OP;
+} DTS_OP;
 
 /***************************************************************************
  * The DTS API single entry point for all services
  ***************************************************************************/
 
-typedef struct ncsdts_arg
-  {
-  DTS_OP           i_op;            /* Operation; CREATE,DESTROY,GET,SET */
+typedef struct ncsdts_arg {
+	DTS_OP i_op;		/* Operation; CREATE,DESTROY,GET,SET */
 
-  union 
-    {
-    DTS_CREATE     create;
-    DTS_DESTROY    destroy;
-    } info;
+	union {
+		DTS_CREATE create;
+		DTS_DESTROY destroy;
+	} info;
 
-  } DTS_LM_ARG;
-
+} DTS_LM_ARG;
 
 /* New structure to act as index for loaded ASCII_SPEC library patricia tree */
-typedef struct ascii_spec_index
-{
-   SS_SVC_ID         svc_id; /* The service id corres. to the spec */
-   uns16             ss_ver; /* The version id of the spec */
-}ASCII_SPEC_INDEX;
-
+typedef struct ascii_spec_index {
+	SS_SVC_ID svc_id;	/* The service id corres. to the spec */
+	uns16 ss_ver;		/* The version id of the spec */
+} ASCII_SPEC_INDEX;
 
 /***************************************************************************
  * Global Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C DTSDLL_API uns32 dts_lm    ( DTS_LM_ARG* arg );
+EXTERN_C DTSDLL_API uns32 dts_lm(DTS_LM_ARG *arg);
 
-#endif /* DTS_API_H */
+#endif   /* DTS_API_H */

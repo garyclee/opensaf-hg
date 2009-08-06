@@ -40,14 +40,12 @@
 
 #define NCS_SERVICE_ID_EDSVTM  (UD_SERVICE_ID_END + 2)
 
-typedef enum
-{
-   NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA = 1,
-   NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY,
-   NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS,
-   NCS_SERVICE_SNMPTM_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_EDSVTM_SUB_ID_SNMPTM_EVT_DATA = 1,
+	NCS_SERVICE_EDSVTM_SUB_ID_EVT_PAT_ARRAY,
+	NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS,
+	NCS_SERVICE_SNMPTM_SUB_ID_MAX
 } NCS_SERVICE_EDSVTM_SUB_ID;
-
 
 /* Top level routine to run HISv demo */
 /* This demo uses EDSv to read the    */
@@ -87,5 +85,4 @@ EXTERN_C uns32 ncs_hisv_run(void);
                                                        NCS_SERVICE_ID_EDSVTM, \
                                                        NCS_SERVICE_EDSVTM_SUB_ID_EVT_PATTERNS)
 
-#endif /* !HISV_EVENTS_DEMO_APP_H */
-
+#endif   /* !HISV_EVENTS_DEMO_APP_H */

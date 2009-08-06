@@ -39,9 +39,6 @@ extern uns32 gl_mds_log_level;
 #define NCSMDS_LC_INFO           4
 #define NCSMDS_LC_DBG            5
 
-
-
-
 #define m_MDS_LOG_CRITICAL  if (gl_mds_log_level < NCSMDS_LC_CRITICAL) {} else log_mds_critical
 
 #define m_MDS_LOG_ERR if (gl_mds_log_level < NCSMDS_LC_ERR) {} else log_mds_err
@@ -52,12 +49,10 @@ extern uns32 gl_mds_log_level;
 
 #define m_MDS_LOG_DBG if (gl_mds_log_level < NCSMDS_LC_DBG) {} else log_mds_dbg
 
-
-extern void log_mds_dbg  ( char *fmt, ...);
+extern void log_mds_dbg(char *fmt, ...);
 extern void log_mds_info(char *fmt, ...);
 extern void log_mds_notify(char *fmt, ...);
-extern void log_mds_err ( char *fmt, ...);
+extern void log_mds_err(char *fmt, ...);
 extern void log_mds_critical(char *fmt, ...);
-
 
 #endif

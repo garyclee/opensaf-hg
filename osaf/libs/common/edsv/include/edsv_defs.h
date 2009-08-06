@@ -23,7 +23,7 @@
 #define EDS_TASK_PRIORITY     5
 #define EDS_STACKSIZE         NCS_STACKSIZE_HUGE
 
-#define EDA_POOL_ID           1 
+#define EDA_POOL_ID           1
 
 #define EDSV_RELEASE_CODE 'B'
 #define EDSV_MAJOR_VERSION 0x03
@@ -39,11 +39,11 @@
 
 #define m_IS_B03_CLIENT(version)  \
    (version->releaseCode == 'B') && (version->majorVersion >= 0x03)
-    
+
 #define m_EDA_FILL_VERSION(ver) \
          ver->releaseCode = EDSV_RELEASE_CODE;\
          ver->majorVersion = EDSV_MAJOR_VERSION;\
-         ver->minorVersion = EDSV_MINOR_VERSION; 
+         ver->minorVersion = EDSV_MINOR_VERSION;
 
 /* Macro to validate the dispatch flags */
 #define m_EDA_DISPATCH_FLAG_IS_VALID(flag) \
@@ -65,17 +65,17 @@
 #define m_EDA_CHAN_OPEN_FLAG_IS_VALID(flag) \
    ( (SA_EVT_CHANNEL_CREATE     & flag) ||  \
      (SA_EVT_CHANNEL_PUBLISHER  & flag) ||  \
-     (SA_EVT_CHANNEL_SUBSCRIBER & flag) )  
+     (SA_EVT_CHANNEL_SUBSCRIBER & flag) )
 
 /**** Verbose macro definitions for EDSv ****/
 #ifndef NCS_EDSV_DEBUG
 #define NCS_EDSV_DEBUG  0
-#endif 
+#endif
 
 #if(NCS_EDSV_DEBUG == 1)
-#define m_EDSV_DEBUG_CONS_PRINTF   printf 
+#define m_EDSV_DEBUG_CONS_PRINTF   printf
 #else
-#define m_EDSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func  
+#define m_EDSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func
 #endif
 
 #define EDSV_NANOSEC_TO_LEAPTM 10000000
@@ -107,5 +107,6 @@
 #define EDSV_MAX_PATTERNS        255
 
 /* EDSv maximum event retention time */
-#define EDSV_MAX_RETENTION_TIME  100000000000000.0 /* Revisit This */
-#endif /* EDSV_DEFS_H */
+#define EDSV_MAX_RETENTION_TIME  100000000000000.0	/* Revisit This */
+
+#endif   /* EDSV_DEFS_H */

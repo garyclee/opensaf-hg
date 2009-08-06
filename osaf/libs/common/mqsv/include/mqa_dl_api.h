@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -38,4 +37,4 @@ EXTERN_C MQADLL_API uns32 mqa_lib_req(NCS_LIB_REQ_INFO *);
 EXTERN_C unsigned int ncs_mqa_startup(void);
 EXTERN_C unsigned int ncs_mqa_shutdown(void);
 
-#endif /* MQA_DL_API_H */
+#endif   /* MQA_DL_API_H */

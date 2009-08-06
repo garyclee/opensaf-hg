@@ -20,8 +20,6 @@
 
   MODULE NAME: NCSFT.H  (Harris & Jeffries Fault Tolerance.h)
 
-
-
   REVISION HISTORY:
 
   Date     Version  Name          Description
@@ -44,7 +42,7 @@
 #define NCSFT_H
 
 typedef uns32
-(*TRIGGER_CALLBACK)(uns16 svc_id, uns32 signal, void* entity_handle, void* api_ctxt);
+ (*TRIGGER_CALLBACK) (uns16 svc_id, uns32 signal, void *entity_handle, void *api_ctxt);
 
 /*
  ***********************
@@ -52,13 +50,12 @@ typedef uns32
  ***********************
  */
 #define NCSFT_ROLE_INIT                  0
-#define NCSFT_ROLE_PRIMARY               1 
+#define NCSFT_ROLE_PRIMARY               1
 #define NCSFT_ROLE_BACKUP                2
-#define NCSFT_ROLE_WARM_BOOT_BACKUP    3 
-#define NCSFT_ROLE_STANDALONE_ACTIVE     4 
+#define NCSFT_ROLE_WARM_BOOT_BACKUP    3
+#define NCSFT_ROLE_STANDALONE_ACTIVE     4
 
 #define NCSFT_ROLE_UNDEFINED             99
-
 
 /*
  ***********************
@@ -66,12 +63,11 @@ typedef uns32
  ***********************
  */
 
-typedef enum ncsft_backup_policy
-{
-  NCSFT_DO_NOTHING = 1,
-  NCSFT_PENT_UP,
-  NCSFT_PIGGY_BACK,
-  NCSFT_SIDE_EFFECT 
+typedef enum ncsft_backup_policy {
+	NCSFT_DO_NOTHING = 1,
+	NCSFT_PENT_UP,
+	NCSFT_PIGGY_BACK,
+	NCSFT_SIDE_EFFECT
 } NCS_FT_BACKUP_POLICY;
 
 #endif

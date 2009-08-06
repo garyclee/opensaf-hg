@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,38 +30,35 @@
 #ifndef BAMHWENTITIES_H
 #define BAMHWENTITIES_H
 
-
 #include <SaHpi.h>
 #include "bam.h"
 #include "ncs_bam_avm.h"
 
-typedef struct bam_ent_deploy_desc
-{
-   NCS_PATRICIA_NODE  tree_node;
-   char               desc_name[NCS_MAX_INDEX_LEN];
-   char               ent_name[NCS_MAX_INDEX_LEN];
-   char               parent_ent_name[NCS_MAX_INDEX_LEN];
-   uns8               location;
-   char               ncs_node_name[NCS_MAX_INDEX_LEN];
-   char               ent_path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
-   char               depends_on_for_act[NCS_MAX_INDEX_LEN];
-   uns8               isActivationSourceNCS;
-   uns8               netBoot;
-   char               tftpServIp[NCS_MAX_INDEX_LEN];
-   char               label1Name[NCS_MAX_INDEX_LEN];
-   char               label1FileName[NCS_MAX_INDEX_LEN];
-   char               label2Name[NCS_MAX_INDEX_LEN];
-   char               label2FileName[NCS_MAX_INDEX_LEN];
-   char               preferredLabel[NCS_MAX_INDEX_LEN];
-   SaHpiEntityTypeT   ent_type;
+typedef struct bam_ent_deploy_desc {
+	NCS_PATRICIA_NODE tree_node;
+	char desc_name[NCS_MAX_INDEX_LEN];
+	char ent_name[NCS_MAX_INDEX_LEN];
+	char parent_ent_name[NCS_MAX_INDEX_LEN];
+	uns8 location;
+	char ncs_node_name[NCS_MAX_INDEX_LEN];
+	char ent_path[SAHPI_MAX_TEXT_BUFFER_LENGTH];
+	char depends_on_for_act[NCS_MAX_INDEX_LEN];
+	uns8 isActivationSourceNCS;
+	uns8 netBoot;
+	char tftpServIp[NCS_MAX_INDEX_LEN];
+	char label1Name[NCS_MAX_INDEX_LEN];
+	char label1FileName[NCS_MAX_INDEX_LEN];
+	char label2Name[NCS_MAX_INDEX_LEN];
+	char label2FileName[NCS_MAX_INDEX_LEN];
+	char preferredLabel[NCS_MAX_INDEX_LEN];
+	SaHpiEntityTypeT ent_type;
 
-}BAM_ENT_DEPLOY_DESC;
+} BAM_ENT_DEPLOY_DESC;
 
-typedef struct bam_ent_deploy_desc_list_node
-{
-   BAM_ENT_DEPLOY_DESC *node;
-   struct bam_ent_deploy_desc_list_node *next;
-}BAM_ENT_DEPLOY_DESC_LIST_NODE;
+typedef struct bam_ent_deploy_desc_list_node {
+	BAM_ENT_DEPLOY_DESC *node;
+	struct bam_ent_deploy_desc_list_node *next;
+} BAM_ENT_DEPLOY_DESC_LIST_NODE;
 
 /* External function declarations */
 EXTERN_C SaHpiEntityTypeT get_entity_type_from_text(char *);

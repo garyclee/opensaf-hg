@@ -18,8 +18,8 @@
 #ifndef CLA_DL_API_H
 #define CLA_DL_API_H
 
-EXTERN_C LEAPDLL_API uns32 cla_lib_req (NCS_LIB_REQ_INFO *);
+EXTERN_C LEAPDLL_API uns32 cla_lib_req(NCS_LIB_REQ_INFO *);
 EXTERN_C unsigned int ncs_cla_startup(void);
 EXTERN_C unsigned int ncs_cla_shutdown(void);
 
-#endif /* !CLA_DL_API_H */
+#endif   /* !CLA_DL_API_H */

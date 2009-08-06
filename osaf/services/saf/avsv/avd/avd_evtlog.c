@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:This module does the initialisation of EVDs and provides
@@ -27,13 +25,11 @@
   to package the event information to the local event structure for
   processing by AvD.
 
-
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
 
   avd_evd_init - initializes event distribution system.
-
 
   
 ******************************************************************************
@@ -44,7 +40,6 @@
  */
 
 #include "avd.h"
-
 
 /****************************************************************************
   Name          : avd_evd_init
@@ -57,8 +52,8 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_evd_init (AVD_CL_CB *cb)
+uns32 avd_evd_init(AVD_CL_CB *cb)
 {
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }

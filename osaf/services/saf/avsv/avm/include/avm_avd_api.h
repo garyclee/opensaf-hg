@@ -28,45 +28,20 @@
 ******************************************************************************
 */
 
-#ifndef __AVM_AVD_API_H__ 
+#ifndef __AVM_AVD_API_H__
 #define __AVM_AVD_API_H__
 
+/*AVM APIS*/
+extern uns32 avm_avd_node_failover_req(AVM_CB_T *, AVM_LIST_HEAD_T *, AVM_NODE_OPERSTATE_T
+    );
+extern uns32 avm_avd_node_shutdown_req(AVM_CB_T *, AVM_LIST_HEAD_T *);
+extern uns32 avm_avd_node_operstate(AVM_CB_T *, AVM_LIST_HEAD_T *, AVM_NODE_OPERSTATE_T
+    );
+extern uns32 avm_avd_fault_domain_resp(AVM_CB_T *, AVM_LIST_HEAD_T *, SaNameT
+    );
+extern uns32 avm_avd_node_reset_resp(AVM_CB_T *, AVM_NODE_RESET_RESP_T, SaNameT
+    );
 
-/*AVM APIS*/ 
-extern uns32 
-avm_avd_node_failover_req(
-                           AVM_CB_T*, 
-                           AVM_LIST_HEAD_T*, 
-                           AVM_NODE_OPERSTATE_T
-                         );
-extern uns32 
-avm_avd_node_shutdown_req(
-                           AVM_CB_T*, 
-                           AVM_LIST_HEAD_T*
-                         );
-extern uns32 
-avm_avd_node_operstate(
-                        AVM_CB_T*, 
-                        AVM_LIST_HEAD_T*, 
-                        AVM_NODE_OPERSTATE_T
-                      );
-extern uns32 
-avm_avd_fault_domain_resp(
-                           AVM_CB_T*, 
-                           AVM_LIST_HEAD_T*, 
-                           SaNameT
-                        );
-extern uns32 
-avm_avd_node_reset_resp(
-                           AVM_CB_T*, 
-                           AVM_NODE_RESET_RESP_T, 
-                           SaNameT
-                       );
+extern uns32 avm_avd_role(AVM_CB_T *avm_cb, SaAmfHAStateT role, AVM_ROLE_CHG_CAUSE_T cause);
 
-extern uns32 
-avm_avd_role( 
-              AVM_CB_T               *avm_cb,
-              SaAmfHAStateT           role,
-              AVM_ROLE_CHG_CAUSE_T    cause
-            );
-#endif /* __AVM_AVD_API_H__ */
+#endif   /* __AVM_AVD_API_H__ */

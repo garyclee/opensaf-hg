@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -34,9 +32,8 @@
 #define MQSV_LITTLE_ENDIAN 0
 #define MQSV_BIG_ENDIAN    1
 
-#define MQSV_DSEND_EVENT 1   /*Direct Send Event*/
-#define MQSV_NOT_DSEND_EVENT 0 /*Not a Direct Send Event */
-
+#define MQSV_DSEND_EVENT 1	/*Direct Send Event */
+#define MQSV_NOT_DSEND_EVENT 0	/*Not a Direct Send Event */
 
 #define m_MQSV_REVERSE_ENDIAN_LL(p8, endianness) (        \
    (!endianness ? (                            \
@@ -61,7 +58,6 @@
      )                                        \
    ))
 
-
 #define m_MQSV_REVERSE_ENDIAN_L(p8, endianness) (        \
    (!endianness ? (                            \
       ((uns32)((uns8*)(p8))[0] <<24) |        \
@@ -77,7 +73,6 @@
      )                                        \
    ))
 
-
 #define m_MQSV_REVERSE_ENDIAN_S(p8, endianness) (        \
    (!endianness ? (                            \
       ((uns16)((uns8*)(p8))[0] <<8 ) |        \
@@ -91,15 +86,15 @@
 
 EXTERN_C uns32 machineEndianness(void);
 EXTERN_C uns32 mqsv_listenerq_msg_send(SaMsgQueueHandleT listenerhandle);
-EXTERN_C NCS_PHY_SLOT_ID  mqsv_get_phy_slot_id(MDS_DEST dest);
-typedef  unsigned int MSG_FRMT_VER;
+EXTERN_C NCS_PHY_SLOT_ID mqsv_get_phy_slot_id(MDS_DEST dest);
+typedef unsigned int MSG_FRMT_VER;
 
-#define m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
+#define m_MQSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
 /* New categories Specific to MQSV Logging Used by MQA/MQD/MQND */
-#define NCSFL_LC_MQSV_INIT       0x00008000    /* MQSV Liblifecycle logging */
-#define NCSFL_LC_MQSV_Q_MGMT     0x00004000    /* MQSV Send Receive flow logging */
-#define NCSFL_LC_MQSV_QGRP_MGMT  0x00002000    /* MQSV Group Apis flows */
-#define NCSFL_LC_MQSV_SEND_RCV   0x00001000    /* MQSV New Logs */
+#define NCSFL_LC_MQSV_INIT       0x00008000	/* MQSV Liblifecycle logging */
+#define NCSFL_LC_MQSV_Q_MGMT     0x00004000	/* MQSV Send Receive flow logging */
+#define NCSFL_LC_MQSV_QGRP_MGMT  0x00002000	/* MQSV Group Apis flows */
+#define NCSFL_LC_MQSV_SEND_RCV   0x00001000	/* MQSV New Logs */
 
 /* DTSv versioning support */
 #define MQSV_LOG_VERSION 4

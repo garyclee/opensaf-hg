@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,18 +31,17 @@
 #define CPA_MEM_H
 
 /* Service Sub IDs for CPA */
-typedef enum
-{
-   CPA_SVC_SUB_ID_CPA_CB = CPSV_SVC_SUB_ID_MAX+1,
-   CPA_SVC_SUB_ID_DEFAULT_VAL,
-   CPA_SVC_SUB_ID_CPA_CLIENT_NODE,
-   CPA_SVC_SUB_ID_CPA_LOCAL_CKPT_NODE,
-   CPA_SVC_SUB_ID_CPA_SECT_ITER_NODE,
-   CPA_SVC_SUB_ID_CPA_GLOBAL_CKPT_NODE,
-   CPA_SVC_SUB_ID_CPA_CALLBACK_INFO,
-   CPA_SVC_SUB_ID_SaCkptIOVectorElementT,
-   
-   CPA_SVC_SUB_ID_MAX
+typedef enum {
+	CPA_SVC_SUB_ID_CPA_CB = CPSV_SVC_SUB_ID_MAX + 1,
+	CPA_SVC_SUB_ID_DEFAULT_VAL,
+	CPA_SVC_SUB_ID_CPA_CLIENT_NODE,
+	CPA_SVC_SUB_ID_CPA_LOCAL_CKPT_NODE,
+	CPA_SVC_SUB_ID_CPA_SECT_ITER_NODE,
+	CPA_SVC_SUB_ID_CPA_GLOBAL_CKPT_NODE,
+	CPA_SVC_SUB_ID_CPA_CALLBACK_INFO,
+	CPA_SVC_SUB_ID_SaCkptIOVectorElementT,
+
+	CPA_SVC_SUB_ID_MAX
 } CPA_SVC_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -72,7 +69,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
                                                 CPA_SVC_SUB_ID_DEFAULT_VAL)
-                                                
+
 #define m_MMGR_ALLOC_CPA_CLIENT_NODE  m_NCS_MEM_ALLOC(sizeof(CPA_CLIENT_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
@@ -81,8 +78,8 @@ typedef enum
 #define m_MMGR_FREE_CPA_CLIENT_NODE(p)        m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
-                                                CPA_SVC_SUB_ID_CPA_CLIENT_NODE) 
-                                                
+                                                CPA_SVC_SUB_ID_CPA_CLIENT_NODE)
+
 #define m_MMGR_ALLOC_CPA_LOCAL_CKPT_NODE  m_NCS_MEM_ALLOC(sizeof(CPA_LOCAL_CKPT_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
@@ -92,7 +89,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
                                                 CPA_SVC_SUB_ID_CPA_LOCAL_CKPT_NODE)
-                                                
+
 #define m_MMGR_ALLOC_CPA_GLOBAL_CKPT_NODE   m_NCS_MEM_ALLOC(sizeof(CPA_GLOBAL_CKPT_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
@@ -101,7 +98,7 @@ typedef enum
 #define m_MMGR_FREE_CPA_GLOBAL_CKPT_NODE(p)  m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
-                                                CPA_SVC_SUB_ID_CPA_GLOBAL_CKPT_NODE)                                                
+                                                CPA_SVC_SUB_ID_CPA_GLOBAL_CKPT_NODE)
 
 #define m_MMGR_ALLOC_CPA_SECT_ITER_NODE  m_NCS_MEM_ALLOC(sizeof(CPA_SECT_ITER_NODE), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -112,7 +109,7 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
                                                 CPA_SVC_SUB_ID_CPA_SECT_ITER_NODE)
-                                                
+
 #define m_MMGR_ALLOC_CPA_CALLBACK_INFO  m_NCS_MEM_ALLOC(sizeof(CPA_CALLBACK_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
@@ -121,7 +118,7 @@ typedef enum
 #define m_MMGR_FREE_CPA_CALLBACK_INFO(p)        m_NCS_MEM_FREE(p,\
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
-                                                CPA_SVC_SUB_ID_CPA_CALLBACK_INFO)                                                
+                                                CPA_SVC_SUB_ID_CPA_CALLBACK_INFO)
 #define m_MMGR_ALLOC_SaCkptIOVectorElementT(n) (SaCkptIOVectorElementT *)m_NCS_MEM_ALLOC((n) * sizeof(SaCkptIOVectorElementT), \
                                              NCS_MEM_REGION_PERSISTENT, \
                                             NCS_SERVICE_ID_CPA, \
@@ -131,6 +128,5 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_CPA, \
                                                 CPA_SVC_SUB_ID_SaCkptIOVectorElementT)
-                                      
 
-#endif /* !CPA_MEM_H */
+#endif   /* !CPA_MEM_H */

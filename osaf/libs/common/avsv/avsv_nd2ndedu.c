@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -29,7 +27,6 @@
 ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
-
 
   
 ******************************************************************************
@@ -60,71 +57,61 @@ int avsv_nd_nd_test_type_fnc(NCSCONTEXT arg);
   RETURNS:          NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
 
 *****************************************************************************/
-uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn, 
-                                NCSCONTEXT ptr, uns32 *ptr_data_len, 
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, 
-                                EDU_ERR *o_err)
+uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+			NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err)
 {
-    uns32               rc = NCSCC_RC_SUCCESS;
-    AVSV_ND2ND_AVND_MSG *struct_ptr = NULL, **d_ptr = NULL;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_ND2ND_AVND_MSG *struct_ptr = NULL, **d_ptr = NULL;
 
-    EDU_INST_SET avsv_ndnd_msg_rules[ ] = {
-        {EDU_START, avsv_edp_ndnd_msg, 0, 0, 0, 
-                    sizeof(AVSV_ND2ND_AVND_MSG), 0, NULL},
+	EDU_INST_SET avsv_ndnd_msg_rules[] = {
+		{EDU_START, avsv_edp_ndnd_msg, 0, 0, 0,
+		 sizeof(AVSV_ND2ND_AVND_MSG), 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns8, 0, 0, 0, 
-                    (long)&((AVSV_ND2ND_AVND_MSG*)0)->mds_ctxt.length, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0, 
-                    (long)&((AVSV_ND2ND_AVND_MSG*)0)->mds_ctxt.data, 
-                     MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
+		{EDU_EXEC, ncs_edp_uns8, 0, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->mds_ctxt.length, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns8, EDQ_ARRAY, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->mds_ctxt.data,
+		 MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
 
-        {EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0, 
-            (long)&((AVSV_ND2ND_AVND_MSG*)0)->comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->comp_name, 0, NULL},
 
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
-            (long)&((AVSV_ND2ND_AVND_MSG*)0)->type, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->type, 0, NULL},
 
-        {EDU_TEST, ncs_edp_uns32, 0, 0, 0,
-                    (long)&((AVSV_ND2ND_AVND_MSG*)0)->type, 0,
-                                avsv_nd_nd_test_type_fnc},
+		{EDU_TEST, ncs_edp_uns32, 0, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->type, 0,
+		 avsv_nd_nd_test_type_fnc},
 
-        {EDU_EXEC, avsv_edp_nda_msg, EDQ_POINTER, 0, EDU_EXIT, 
-            (long)&((AVSV_ND2ND_AVND_MSG*)0)->info.msg, 0, NULL},
+		{EDU_EXEC, avsv_edp_nda_msg, EDQ_POINTER, 0, EDU_EXIT,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.msg, 0, NULL},
 
-        {EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-            (long)&((AVSV_ND2ND_AVND_MSG*)0)->info.cbk_del.comp_name, 0, NULL},
-        {EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
-            (long)&((AVSV_ND2ND_AVND_MSG*)0)->info.cbk_del.opq_hdl, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.cbk_del.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.cbk_del.opq_hdl, 0, NULL},
 
-        {EDU_END, 0, 0, 0, 0, 0, 0, NULL},
-    };
+		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
+	};
 
-    if(op == EDP_OP_TYPE_ENC)
-    {
-        struct_ptr = (AVSV_ND2ND_AVND_MSG *)ptr;
-    }
-    else if(op == EDP_OP_TYPE_DEC)
-    {
-        d_ptr = (AVSV_ND2ND_AVND_MSG **)ptr;
-        if(*d_ptr == NULL)
-        {
-            *d_ptr = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG;
-            if(*d_ptr == NULL)
-            {
-                *o_err = EDU_ERR_MEM_FAIL;
-                return NCSCC_RC_FAILURE;
-            }
-        }
-        memset(*d_ptr, '\0', sizeof(AVSV_ND2ND_AVND_MSG));
-        struct_ptr = *d_ptr;
-    }
-    else
-    {
-        struct_ptr = ptr;
-    }
-    rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ndnd_msg_rules, struct_ptr, 
-            ptr_data_len, buf_env, op, o_err);
-    return rc;
+	if (op == EDP_OP_TYPE_ENC) {
+		struct_ptr = (AVSV_ND2ND_AVND_MSG *)ptr;
+	} else if (op == EDP_OP_TYPE_DEC) {
+		d_ptr = (AVSV_ND2ND_AVND_MSG **)ptr;
+		if (*d_ptr == NULL) {
+			*d_ptr = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG;
+			if (*d_ptr == NULL) {
+				*o_err = EDU_ERR_MEM_FAIL;
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		memset(*d_ptr, '\0', sizeof(AVSV_ND2ND_AVND_MSG));
+		struct_ptr = *d_ptr;
+	} else {
+		struct_ptr = ptr;
+	}
+	rc = m_NCS_EDU_RUN_RULES(hdl, edu_tkn, avsv_ndnd_msg_rules, struct_ptr, ptr_data_len, buf_env, op, o_err);
+	return rc;
 }
 
 /*****************************************************************************
@@ -141,28 +128,27 @@ uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 *****************************************************************************/
 int avsv_nd_nd_test_type_fnc(NCSCONTEXT arg)
 {
-    typedef enum {
-        LCL_JMP_OFFSET_AVSV_N2N_AVA_INFO = 1,
-        LCL_JMP_OFFSET_AVSV_N2N_CBK_DEL_INFO = 2,
-    }LCL_JMP_OFFSET_;
+	typedef enum {
+		LCL_JMP_OFFSET_AVSV_N2N_AVA_INFO = 1,
+		LCL_JMP_OFFSET_AVSV_N2N_CBK_DEL_INFO = 2,
+	} LCL_JMP_OFFSET_;
 
-   AVND_AVND_EVT_TYPE   type;
+	AVND_AVND_EVT_TYPE type;
 
-   if(arg == NULL)
-      return EDU_FAIL;
+	if (arg == NULL)
+		return EDU_FAIL;
 
-    type = *(AVND_AVND_EVT_TYPE*)arg;
+	type = *(AVND_AVND_EVT_TYPE *)arg;
 
-    switch(type)
-    {
-     case AVND_AVND_AVA_MSG:
-        return LCL_JMP_OFFSET_AVSV_N2N_AVA_INFO;
-        break;
-     case AVND_AVND_CBK_DEL:
-        return LCL_JMP_OFFSET_AVSV_N2N_CBK_DEL_INFO;
-        break;
-     default:
-        break;
-    }
-return EDU_FAIL;
+	switch (type) {
+	case AVND_AVND_AVA_MSG:
+		return LCL_JMP_OFFSET_AVSV_N2N_AVA_INFO;
+		break;
+	case AVND_AVND_CBK_DEL:
+		return LCL_JMP_OFFSET_AVSV_N2N_CBK_DEL_INFO;
+		break;
+	default:
+		break;
+	}
+	return EDU_FAIL;
 }

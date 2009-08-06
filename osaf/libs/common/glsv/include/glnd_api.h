@@ -18,9 +18,10 @@
 #ifndef GLND_API_H
 #define GLND_API_H
 
-EXTERN_C  uns32 glnd_se_lib_create (uns8 pool_id);
-EXTERN_C  uns32 glnd_se_lib_destroy (void);
-EXTERN_C  void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx);
+EXTERN_C uns32 glnd_se_lib_create(uns8 pool_id);
+EXTERN_C uns32 glnd_se_lib_destroy(void);
+EXTERN_C void glnd_process_mbx(GLND_CB *cb, SYSF_MBX *mbx);
 
 EXTERN_C GLND_RESOURCE_INFO *glnd_resource_node_find(GLND_CB *glnd_cb, SaLckResourceIdT res_id);
+
 #endif

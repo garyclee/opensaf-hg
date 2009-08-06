@@ -23,4 +23,3 @@ EXTERN_C unsigned int ncs_gla_startup(void);
 EXTERN_C unsigned int ncs_gla_shutdown(void);
 
 #endif
-

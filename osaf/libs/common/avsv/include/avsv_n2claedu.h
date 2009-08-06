@@ -17,8 +17,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -35,8 +33,7 @@
 #include "ncs_saf_edu.h"
 
 EXTERN_C uns32 avsv_edp_nd_cla_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-                                NCSCONTEXT ptr, uns32 *ptr_data_len,
-                                EDU_BUF_ENV *buf_env, EDP_OP_TYPE op,
-                                EDU_ERR *o_err);
+				   NCSCONTEXT ptr, uns32 *ptr_data_len,
+				   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-#endif  /* AVSV_N2CLAEDU_H */
+#endif   /* AVSV_N2CLAEDU_H */

@@ -53,45 +53,41 @@
 #include "ncssysfpool.h"
 /* Fix Ends */
 
-typedef enum sysf_exec_info_type
-{
-   SYSF_EXEC_INFO_SIG_CHLD,
-   SYSF_EXEC_INFO_TIME_OUT
-}SYSF_EXEC_INFO_TYPE;
+typedef enum sysf_exec_info_type {
+	SYSF_EXEC_INFO_SIG_CHLD,
+	SYSF_EXEC_INFO_TIME_OUT
+} SYSF_EXEC_INFO_TYPE;
 
-typedef struct sysf_pid_list
-{
-   NCS_PATRICIA_NODE             pat_node;
-   uns32                         pid;
+typedef struct sysf_pid_list {
+	NCS_PATRICIA_NODE pat_node;
+	uns32 pid;
 
-   NCS_EXEC_USR_HDL              usr_hdl;
-   NCS_OS_PROC_EXECUTE_CB        exec_cb;
-   NCS_EXEC_HDL                  exec_hdl;
+	NCS_EXEC_USR_HDL usr_hdl;
+	NCS_OS_PROC_EXECUTE_CB exec_cb;
+	NCS_EXEC_HDL exec_hdl;
 
-   /* Timer Params */
-   tmr_t                         tmr_id;
-   uns32                         timeout_in_ms;
-   int                           exec_info_type;
+	/* Timer Params */
+	tmr_t tmr_id;
+	uns32 timeout_in_ms;
+	int exec_info_type;
 
-}SYSF_PID_LIST;
+} SYSF_PID_LIST;
 
-typedef struct exec_mod_info
-{
-   int    pid;
-   int    status;
-   int    type;
-}EXEC_MOD_INFO;
+typedef struct exec_mod_info {
+	int pid;
+	int status;
+	int type;
+} EXEC_MOD_INFO;
 
-typedef struct sysf_execute_module_cb
-{
+typedef struct sysf_execute_module_cb {
 
-   NCS_LOCK            tree_lock;
-   NCSCONTEXT          em_task_handle;
-   NCS_PATRICIA_TREE   pid_list;
-   int                 read_fd;
-   int                 write_fd;
-   NCS_BOOL            init;               
-}SYSF_EXECUTE_MODULE_CB;
+	NCS_LOCK tree_lock;
+	NCSCONTEXT em_task_handle;
+	NCS_PATRICIA_TREE pid_list;
+	int read_fd;
+	int write_fd;
+	NCS_BOOL init;
+} SYSF_EXECUTE_MODULE_CB;
 
 #define m_MMGR_ALLOC_PRO_EXC      (SYSF_PID_LIST*) m_NCS_MEM_ALLOC(sizeof(SYSF_PID_LIST),\
                                                NCS_MEM_REGION_PERSISTENT, \
@@ -103,19 +99,17 @@ typedef struct sysf_execute_module_cb
                                                NCS_SERVICE_ID_COMMON,       \
                                                0)
 
+extern SYSF_EXECUTE_MODULE_CB module_cb;
 
-extern SYSF_EXECUTE_MODULE_CB   module_cb;
-
-extern void ncs_exc_mdl_start_timer( SYSF_PID_LIST *exec_pid);
+extern void ncs_exc_mdl_start_timer(SYSF_PID_LIST *exec_pid);
 extern void ncs_exc_mdl_stop_timer(SYSF_PID_LIST *exec_pid);
 extern void ncs_exec_module_signal_hdlr(int signal);
 extern void ncs_exec_module_timer_hdlr(void *uarg);
 extern void ncs_exec_mod_hdlr(void);
 extern uns32 add_new_req_pid_in_list(NCS_OS_PROC_EXECUTE_TIMED_INFO *req, uns32 pid);
 extern uns32 init_exec_mod_cb(void);
-extern uns32 start_exec_mod_cb(void); 
+extern uns32 start_exec_mod_cb(void);
 extern uns32 exec_mod_cb_destroy(void);
 extern void give_exec_mod_cb(int pid, uns32 stat, int type);
-#endif /* SYSF_EXC_SCR_H */
 
-
+#endif   /* SYSF_EXC_SCR_H */

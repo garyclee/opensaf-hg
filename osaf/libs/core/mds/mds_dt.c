@@ -20,13 +20,11 @@
 
 #define MDS_OVER_TIPC 1
 
-
 /*********************************************************
 
   Function NAME: mds_mdtm_init
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -37,12 +35,12 @@
 uns32 mds_mdtm_init(NODE_ID node_id, uns32 *mds_tipc_ref)
 {
 
-  /* INit all transports */
+	/* INit all transports */
 #if MDS_OVER_TIPC
-      mdtm_tipc_init(node_id, mds_tipc_ref);
+	mdtm_tipc_init(node_id, mds_tipc_ref);
 #endif
-   
-   return NCSCC_RC_SUCCESS;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*********************************************************
@@ -50,7 +48,6 @@ uns32 mds_mdtm_init(NODE_ID node_id, uns32 *mds_tipc_ref)
   Function NAME: mds_mdtm_destroy
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -61,21 +58,19 @@ uns32 mds_mdtm_init(NODE_ID node_id, uns32 *mds_tipc_ref)
 /* Destroying the MDTM Module*/
 uns32 mds_mdtm_destroy(void)
 {
-  /* Destroy all transports */
+	/* Destroy all transports */
 #if MDS_OVER_TIPC
-      mdtm_tipc_destroy();
+	mdtm_tipc_destroy();
 #endif
-      
-   return NCSCC_RC_SUCCESS;
-}
 
+	return NCSCC_RC_SUCCESS;
+}
 
 /*********************************************************
 
   Function NAME: mds_mdtm_svc_subscribe
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -85,13 +80,13 @@ uns32 mds_mdtm_destroy(void)
 *********************************************************/
 /* Subscribing to services */
 uns32 mds_mdtm_svc_subscribe(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-                                        MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+			     MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
-    /* We will need to subscribe on all domains.
-       Not just over TIPC
-    */
+	/* We will need to subscribe on all domains.
+	   Not just over TIPC
+	 */
 #if MDS_OVER_TIPC
-      return mds_mdtm_svc_subscribe_tipc(pwe_id, svc_id, install_scope, svc_hdl, subtn_ref_val);
+	return mds_mdtm_svc_subscribe_tipc(pwe_id, svc_id, install_scope, svc_hdl, subtn_ref_val);
 #endif
 }
 
@@ -100,7 +95,6 @@ uns32 mds_mdtm_svc_subscribe(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_T
   Function NAME: mds_mdtm_svc_unsubscribe
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -111,11 +105,11 @@ uns32 mds_mdtm_svc_subscribe(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_T
 /* Unsubscribing to services */
 uns32 mds_mdtm_svc_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
-    /* We will need to subscribe on all domains.
-       Not just over TIPC
-    */
+	/* We will need to subscribe on all domains.
+	   Not just over TIPC
+	 */
 #if MDS_OVER_TIPC
-      return mds_mdtm_svc_unsubscribe_tipc(subtn_ref_val);
+	return mds_mdtm_svc_unsubscribe_tipc(subtn_ref_val);
 #endif
 }
 
@@ -125,7 +119,6 @@ uns32 mds_mdtm_svc_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
 
   DESCRIPTION:
 
-
   ARGUMENTS:
 
   RETURNS:  1 - NCSCC_RC_SUCCESS
@@ -134,24 +127,22 @@ uns32 mds_mdtm_svc_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
 *********************************************************/
 /* Installing services */
 uns32 mds_mdtm_svc_install(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-                                    V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-                                    MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
+			   V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+			   MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
-    /* We will need to subscribe on all domains.
-       Not just over TIPC
-    */
+	/* We will need to subscribe on all domains.
+	   Not just over TIPC
+	 */
 #if MDS_OVER_TIPC
-      return mds_mdtm_svc_install_tipc(pwe_id, svc_id, install_scope, role, vdest_id, vdest_policy, mds_svc_pvt_ver);
+	return mds_mdtm_svc_install_tipc(pwe_id, svc_id, install_scope, role, vdest_id, vdest_policy, mds_svc_pvt_ver);
 #endif
 }
-
 
 /*********************************************************
 
   Function NAME: mds_mdtm_svc_uninstall
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -161,14 +152,15 @@ uns32 mds_mdtm_svc_install(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYP
 *********************************************************/
 /* Uninstalling the services */
 uns32 mds_mdtm_svc_uninstall(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_TYPE install_scope,
-                                    V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
-                                    MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
+			     V_DEST_RL role, MDS_VDEST_ID vdest_id, NCS_VDEST_TYPE vdest_policy,
+			     MDS_SVC_PVT_SUB_PART_VER mds_svc_pvt_ver)
 {
-    /* We will need to subscribe on all domains.
-       Not just over TIPC
-    */
+	/* We will need to subscribe on all domains.
+	   Not just over TIPC
+	 */
 #if MDS_OVER_TIPC
-       return mds_mdtm_svc_uninstall_tipc(pwe_id, svc_id, install_scope, role, vdest_id, vdest_policy, mds_svc_pvt_ver);
+	return mds_mdtm_svc_uninstall_tipc(pwe_id, svc_id, install_scope, role, vdest_id, vdest_policy,
+					   mds_svc_pvt_ver);
 #endif
 }
 
@@ -177,7 +169,6 @@ uns32 mds_mdtm_svc_uninstall(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_T
   Function NAME: mds_mdtm_vdest_install
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -188,7 +179,7 @@ uns32 mds_mdtm_svc_uninstall(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SCOPE_T
 uns32 mds_mdtm_vdest_install(MDS_VDEST_ID vdest_id)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_vdest_install_tipc(vdest_id);
+	return mds_mdtm_vdest_install_tipc(vdest_id);
 #endif
 }
 
@@ -197,7 +188,6 @@ uns32 mds_mdtm_vdest_install(MDS_VDEST_ID vdest_id)
   Function NAME: mds_mdtm_vdest_uninstall
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -208,7 +198,7 @@ uns32 mds_mdtm_vdest_install(MDS_VDEST_ID vdest_id)
 uns32 mds_mdtm_vdest_uninstall(MDS_VDEST_ID vdest_id)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_vdest_uninstall_tipc(vdest_id);
+	return mds_mdtm_vdest_uninstall_tipc(vdest_id);
 #endif
 }
 
@@ -217,7 +207,6 @@ uns32 mds_mdtm_vdest_uninstall(MDS_VDEST_ID vdest_id)
   Function NAME: mds_mdtm_vdest_subscribe
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -228,7 +217,7 @@ uns32 mds_mdtm_vdest_uninstall(MDS_VDEST_ID vdest_id)
 uns32 mds_mdtm_vdest_subscribe(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_ref_val)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_vdest_subscribe_tipc(vdest_id, subtn_ref_val);
+	return mds_mdtm_vdest_subscribe_tipc(vdest_id, subtn_ref_val);
 #endif
 }
 
@@ -237,7 +226,6 @@ uns32 mds_mdtm_vdest_subscribe(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_r
   Function NAME: mds_mdtm_vdest_unsubscribe
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -248,7 +236,7 @@ uns32 mds_mdtm_vdest_subscribe(MDS_VDEST_ID vdest_id, MDS_SUBTN_REF_VAL *subtn_r
 uns32 mds_mdtm_vdest_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_vdest_unsubscribe_tipc(subtn_ref_val);
+	return mds_mdtm_vdest_unsubscribe_tipc(subtn_ref_val);
 #endif
 }
 
@@ -257,7 +245,6 @@ uns32 mds_mdtm_vdest_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
   Function NAME: mds_mdtm_tx_hdl_register
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -268,7 +255,7 @@ uns32 mds_mdtm_vdest_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
 uns32 mds_mdtm_tx_hdl_register(MDS_DEST adest)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_tx_hdl_register_tipc(adest);
+	return mds_mdtm_tx_hdl_register_tipc(adest);
 #endif
 }
 
@@ -277,7 +264,6 @@ uns32 mds_mdtm_tx_hdl_register(MDS_DEST adest)
   Function NAME: mds_mdtm_tx_hdl_unregister
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -288,7 +274,7 @@ uns32 mds_mdtm_tx_hdl_register(MDS_DEST adest)
 uns32 mds_mdtm_tx_hdl_unregister(MDS_DEST adest)
 {
 #if MDS_OVER_TIPC
-       return mds_mdtm_tx_hdl_unregister_tipc(adest);
+	return mds_mdtm_tx_hdl_unregister_tipc(adest);
 #endif
 }
 
@@ -297,7 +283,6 @@ uns32 mds_mdtm_tx_hdl_unregister(MDS_DEST adest)
   Function NAME: mds_mdtm_send
 
   DESCRIPTION:
-
 
   ARGUMENTS:
 
@@ -308,8 +293,6 @@ uns32 mds_mdtm_tx_hdl_unregister(MDS_DEST adest)
 uns32 mds_mdtm_send(MDTM_SEND_REQ *req)
 {
 #if MDS_OVER_TIPC
-        return mds_mdtm_send_tipc(req);
+	return mds_mdtm_send_tipc(req);
 #endif
 }
-
-

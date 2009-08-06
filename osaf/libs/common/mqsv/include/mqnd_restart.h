@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -29,18 +27,14 @@
 ******************************************************************************
 */
 
-
 #ifndef MQND_RESTART_H
 #define MQND_RESTART_H
 
 EXTERN_C uns32 mqnd_restart_init(MQND_CB *cb);
 EXTERN_C uns32 mqnd_add_node_to_mqalist(MQND_CB *cb, MDS_DEST dest);
-EXTERN_C uns32 mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node,uns32 index);
+EXTERN_C uns32 mqnd_ckpt_queue_info_write(MQND_CB *cb, MQND_QUEUE_CKPT_INFO *queue_ckpt_node, uns32 index);
 
+EXTERN_C void mqnd_cpy_qnodeinfo_to_ckptinfo(MQND_CB *cb, MQND_QUEUE_NODE *queue_info,
+					     MQND_QUEUE_CKPT_INFO *ckpt_queue_info);
 
-EXTERN_C void mqnd_cpy_qnodeinfo_to_ckptinfo(MQND_CB *cb, MQND_QUEUE_NODE *queue_info,MQND_QUEUE_CKPT_INFO *ckpt_queue_info);
-
-#endif /* MQND_RESTART_H */
-
-
-
+#endif   /* MQND_RESTART_H */

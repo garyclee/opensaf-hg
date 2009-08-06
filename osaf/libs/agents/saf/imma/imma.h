@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -40,22 +39,15 @@ extern IMMA_CB imma_cb;
 
 EXTERN_C unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id);
 EXTERN_C unsigned int imma_startup(NCSMDS_SVC_ID sv_id);
-EXTERN_C void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL* p,
-    const SaImmValueTypeT attrValueType,
-    const SaImmAttrValueT attrValue);
-EXTERN_C SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, 
-    IMMSV_EDU_ATTR_VAL* attrValue);
-EXTERN_C void imma_freeAttrValue(IMMSV_EDU_ATTR_VAL* p,
-    const SaImmValueTypeT attrValueType);
-EXTERN_C void imma_freeAttrValue3(SaImmAttrValueT attrValue, 
-    const SaImmValueTypeT attrValueType);
-EXTERN_C void imma_freeSearchAttrs(SaImmAttrValuesT_2** attr);
+EXTERN_C void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p,
+				 const SaImmValueTypeT attrValueType, const SaImmAttrValueT attrValue);
+EXTERN_C SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_EDU_ATTR_VAL *attrValue);
+EXTERN_C void imma_freeAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueType);
+EXTERN_C void imma_freeAttrValue3(SaImmAttrValueT attrValue, const SaImmValueTypeT attrValueType);
+EXTERN_C void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr);
 EXTERN_C SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
-    IMMSV_EVT *i_evt, 
-    IMMSV_EVT **o_evt,
-    uns32  timeout,
-    SaImmHandleT immHandle,
-    NCS_BOOL* locked,
-    NCS_BOOL checkWritable);
+				       IMMSV_EVT *i_evt,
+				       IMMSV_EVT **o_evt,
+				       uns32 timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable);
 
-#endif  /* IMMA_H */
+#endif   /* IMMA_H */

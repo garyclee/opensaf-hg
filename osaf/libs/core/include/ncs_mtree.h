@@ -82,7 +82,7 @@ before any longer ones.  Thus using IPv4 Addresses as an example,
 /*
  * Module Inclusion Control...
  */
- 
+
 #ifndef _NCS_MTREE_H_
 #define _NCS_MTREE_H_
 
@@ -96,97 +96,82 @@ extern "C" {
   
 ************************************************************************/
 
-
 /********* Structures **************************************/
 
-
 /*** NCS_MTREE_NODE:  defines a node in the best-match tree */
-typedef struct ncs_mtree_node
-{
-   /* The following fields are set by user-code before a node is
-    * added to the tree.  These fields must not be modified by user-code
-    * while the MATCHNODE is part of the MATCHTREE.
-    */
-   const void* pKey;               /* Set by caller before 'add':
-                * Must point to area of size 
-                * 'KeyOctetSize'
-                */
-   short       KeyBitSize;         /* Set by caller before 'add' */
+	typedef struct ncs_mtree_node {
+		/* The following fields are set by user-code before a node is
+		 * added to the tree.  These fields must not be modified by user-code
+		 * while the MATCHNODE is part of the MATCHTREE.
+		 */
+		const void *pKey;	/* Set by caller before 'add':
+					 * Must point to area of size 
+					 * 'KeyOctetSize'
+					 */
+		short KeyBitSize;	/* Set by caller before 'add' */
 
-   /* The following fields are for INTERNAL USE by the library, and
-    * must not be accessed by user-code.
-    */
-   union
-   {
-      struct  /* for style 'patricia_uns32' */
-      {
-         short            Bit;
+		/* The following fields are for INTERNAL USE by the library, and
+		 * must not be accessed by user-code.
+		 */
+		union {
+			struct {	/* for style 'patricia_uns32' */
+				short Bit;
 
-         struct ncs_mtree_node *pLeft;  /* during search, follow this if bit is '0' */
-         struct ncs_mtree_node *pRight; /* during search, follow this if bit is '1' */
-         struct ncs_mtree_node *pDownToMe;    /* node with 'Bit' < ours which points to us via Left or Right */
-         struct ncs_mtree_node *pLessSpecific;  /* Ptr to node with equal key which supplies less-specific match */
-         struct ncs_mtree_node *pMoreSpecific;  /* Ptr to node with equal key which supplies more-specific match */
-      } p32;
-#if (NCS_MTREE_PAT_STYLE_SUPPORTED != 0) 
-      struct  /* for style 'patricia' */
-      {
-         short            Bit;
+				struct ncs_mtree_node *pLeft;	/* during search, follow this if bit is '0' */
+				struct ncs_mtree_node *pRight;	/* during search, follow this if bit is '1' */
+				struct ncs_mtree_node *pDownToMe;	/* node with 'Bit' < ours which points to us via Left or Right */
+				struct ncs_mtree_node *pLessSpecific;	/* Ptr to node with equal key which supplies less-specific match */
+				struct ncs_mtree_node *pMoreSpecific;	/* Ptr to node with equal key which supplies more-specific match */
+			} p32;
+#if (NCS_MTREE_PAT_STYLE_SUPPORTED != 0)
+			struct {	/* for style 'patricia' */
+				short Bit;
 
-         struct ncs_mtree_node *pLeft;  /* during search, follow this if bit is '0' */
-         struct ncs_mtree_node *pRight; /* during search, follow this if bit is '1' */
-         struct ncs_mtree_node *pDownToMe;    /* node with 'Bit' < ours which points to us via Left or Right */
-         struct ncs_mtree_node *pLessSpecific;  /* Ptr to node with equal key which supplies less-specific match */
-         struct ncs_mtree_node *pMoreSpecific;  /* Ptr to node with equal key which supplies more-specific match */
-      } Pat;
+				struct ncs_mtree_node *pLeft;	/* during search, follow this if bit is '0' */
+				struct ncs_mtree_node *pRight;	/* during search, follow this if bit is '1' */
+				struct ncs_mtree_node *pDownToMe;	/* node with 'Bit' < ours which points to us via Left or Right */
+				struct ncs_mtree_node *pLessSpecific;	/* Ptr to node with equal key which supplies less-specific match */
+				struct ncs_mtree_node *pMoreSpecific;	/* Ptr to node with equal key which supplies more-specific match */
+			} Pat;
 #endif
-   } Style;
-} NCS_MTREE_NODE;
+		} Style;
+	} NCS_MTREE_NODE;
 
 #define NCS_MTREE_NODE_NULL ((NCS_MTREE_NODE*) NULL)
 
 /* NCS_MTREE_STYLE:  In future, we may have different styles. */
-typedef enum ncs_mtree_style
-{
-   NCS_MTREE_STYLE_PATRICIA_UNS32,
-#if (NCS_MTREE_PAT_STYLE_SUPPORTED != 0)   
-   NCS_MTREE_STYLE_PATRICIA,   /* Modified patricia tree */
-#endif /* (NCS_MTREE_PAT_STYLE_SUPPORTED != 0) */
+	typedef enum ncs_mtree_style {
+		NCS_MTREE_STYLE_PATRICIA_UNS32,
+#if (NCS_MTREE_PAT_STYLE_SUPPORTED != 0)
+		NCS_MTREE_STYLE_PATRICIA,	/* Modified patricia tree */
+#endif   /* (NCS_MTREE_PAT_STYLE_SUPPORTED != 0) */
 
-   NCS_MTREE_STYLE_MAX         /* Must be last. */
-} NCS_MTREE_STYLE;
-
+		NCS_MTREE_STYLE_MAX	/* Must be last. */
+	} NCS_MTREE_STYLE;
 
 /* NCS_MATCHTREE_CFG:  Used when creating a MATCHTREE. */
 
-typedef struct ncs_mtree_cfg
-{
-   uns16          KeyOctetSize;       /* All keys must occupy this length */
-   short          MaxKeyBitSize;      /* Max #bits in key (max_bits <= 8*octet_size) */
-   NCS_MTREE_STYLE Style;
-} NCS_MTREE_CFG;
+	typedef struct ncs_mtree_cfg {
+		uns16 KeyOctetSize;	/* All keys must occupy this length */
+		short MaxKeyBitSize;	/* Max #bits in key (max_bits <= 8*octet_size) */
+		NCS_MTREE_STYLE Style;
+	} NCS_MTREE_CFG;
 
-
-
-typedef struct ncs_mtree
-{
-   NCS_MTREE_CFG           Cfg;
-   union
-   {
-      struct 
-      {
-         NCS_MTREE_NODE          Root;  /* A tree always has a root node. */
-         NCS_MTREE_NODE          *pRoot; 
-      } p32;
+	typedef struct ncs_mtree {
+		NCS_MTREE_CFG Cfg;
+		union {
+			struct {
+				NCS_MTREE_NODE Root;	/* A tree always has a root node. */
+				NCS_MTREE_NODE *pRoot;
+			} p32;
 #if (NCS_MTREE_PAT_STYLE_SUPPORTED != 0)
-      struct 
-      {
-         NCS_MTREE_NODE          Root;  /* A tree always has a root node. */
-         NCS_MTREE_NODE          *pRoot;
-      } Pat;
-#endif /* (NCS_MTREE_PAT_STYLE_SUPPORTED != 0) */
-   }Style;
-} NCS_MTREE;
+			struct {
+				NCS_MTREE_NODE Root;	/* A tree always has a root node. */
+				NCS_MTREE_NODE *pRoot;
+			} Pat;
+#endif   /* (NCS_MTREE_PAT_STYLE_SUPPORTED != 0) */
+		} Style;
+	} NCS_MTREE;
 
 #define NCS_MTREE_NULL ((NCS_MTREE*) NULL)
 
@@ -207,10 +192,8 @@ typedef struct ncs_mtree
  *
  * Returns:   NCSCC_RC_SUCCESS if success.
  ***************************************************************/
-EXTERN_C LEAPDLL_API unsigned int
-ncs_mtree_init(NCS_MTREE                 *const pTree,
-               const NCS_MTREE_CFG       *const pCfg); 
-
+	EXTERN_C LEAPDLL_API unsigned int
+	 ncs_mtree_init(NCS_MTREE *const pTree, const NCS_MTREE_CFG *const pCfg);
 
 /***************************************************************
  * Function:  ncs_mtree_destroy()
@@ -222,9 +205,8 @@ ncs_mtree_init(NCS_MTREE                 *const pTree,
  * Returns:   nothing.
  *****************************************************************/
 
-EXTERN_C LEAPDLL_API void
-ncs_mtree_destroy(NCS_MTREE *const pTree);
-
+	EXTERN_C LEAPDLL_API void
+	 ncs_mtree_destroy(NCS_MTREE *const pTree);
 
 /*****************************************************************
  * Function:  ncs_mtree_add()
@@ -236,9 +218,8 @@ ncs_mtree_destroy(NCS_MTREE *const pTree);
  * Returns:  NCSCC_RC_SUCCESS:  all went okay
  *           anything else:    node not inserted
  ******************************************************************/
-EXTERN_C LEAPDLL_API  unsigned int
-ncs_mtree_add(NCS_MTREE      *const pTree,
-              NCS_MTREE_NODE *const pNode);
+	EXTERN_C LEAPDLL_API unsigned int
+	 ncs_mtree_add(NCS_MTREE *const pTree, NCS_MTREE_NODE *const pNode);
 
 /******************************************************************
  * Function:  ncs_mtree_del()
@@ -249,9 +230,8 @@ ncs_mtree_add(NCS_MTREE      *const pTree,
  *
  * Returns:  nothing.
  ******************************************************************/
-EXTERN_C LEAPDLL_API void
-ncs_mtree_del(NCS_MTREE      *const pTree,
-              NCS_MTREE_NODE *const pNode);
+	EXTERN_C LEAPDLL_API void
+	 ncs_mtree_del(NCS_MTREE *const pTree, NCS_MTREE_NODE *const pNode);
 
 /******************************************************************
  * Function:  ncs_mtree_find_best()
@@ -273,11 +253,9 @@ ncs_mtree_del(NCS_MTREE      *const pTree,
  *
  * Returns:   NCS_MNODE*:  NULL means 'no match'
  *******************************************************************/
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_mtree_find_best(NCS_MTREE * const pTree,
-                    const void *const       pKey,
-                    uns16      KeyBitSize,
-                    int  *const   pMoreSpecificExists);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_mtree_find_best(NCS_MTREE *const pTree,
+								 const void *const pKey,
+								 uns16 KeyBitSize, int *const pMoreSpecificExists);
 
 /*******************************************************************
  * Function:  ncs_mtree_find_nextbest
@@ -291,9 +269,8 @@ ncs_mtree_find_best(NCS_MTREE * const pTree,
  *                        (with a shorter bit-length key),
  *                        NULL if none is found.
  *******************************************************************/
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_mtree_find_nextbest(NCS_MTREE *const pTree,
-                       const NCS_MTREE_NODE *const pBetterNode);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_mtree_find_nextbest(NCS_MTREE *const pTree,
+								     const NCS_MTREE_NODE *const pBetterNode);
 
 /*******************************************************************
  * Function:  ncs_mtree_find_add()
@@ -314,14 +291,13 @@ ncs_mtree_find_nextbest(NCS_MTREE *const pTree,
  *
  * Returns:    NCS_MNODE*:  NULL means 'not found'.
  *******************************************************************/
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_mtree_find_add(NCS_MTREE         *const pMTree,
-                  const void *const       pKey,
-                  const short             KeyBitSize,
-                  NCS_MTREE_NODE *         (*pFunc)(const void* pKey, 
-                                                   short KeyBitSize,
-                                                   void *Cookie),
-                  void             *const Cookie);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_mtree_find_add(NCS_MTREE *const pMTree,
+								const void *const pKey,
+								const short KeyBitSize,
+								NCS_MTREE_NODE *(*pFunc) (const void *pKey,
+											  short KeyBitSize,
+											  void *Cookie),
+								void *const Cookie);
 
 /*********************************************************************
  * Function:  ncs_mtree_next()
@@ -336,14 +312,11 @@ ncs_mtree_find_add(NCS_MTREE         *const pMTree,
  *
  * Returns:   NCS_MNODE*:  NULL means end-of-list or error.
  ***********************************************************************/
-EXTERN_C LEAPDLL_API NCS_MTREE_NODE *
-ncs_mtree_next(NCS_MTREE               *const pTree,
-              const void *const       pKey,
-              short                   KeyBitSize);
+	EXTERN_C LEAPDLL_API NCS_MTREE_NODE *ncs_mtree_next(NCS_MTREE *const pTree,
+							    const void *const pKey, short KeyBitSize);
 
 #ifdef  __cplusplus
 }
 #endif
 
-#endif /* _NCS_MTREE_H_ */
-
+#endif   /* _NCS_MTREE_H_ */

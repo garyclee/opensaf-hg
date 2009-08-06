@@ -18,6 +18,6 @@
 #ifndef GLND_DL_API_H
 #define GLND_DL_API_H
 
-EXTERN_C GLNDDLL_API uns32 glnd_lib_req (NCS_LIB_REQ_INFO *req_info);
+EXTERN_C GLNDDLL_API uns32 glnd_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif

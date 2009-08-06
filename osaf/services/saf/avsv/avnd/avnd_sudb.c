@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
    Vinay Khanna
 
 ..............................................................................
@@ -38,7 +37,6 @@
 
 #include "avnd.h"
 
-
 /****************************************************************************
   Name          : avnd_sudb_init
  
@@ -52,23 +50,20 @@
 ******************************************************************************/
 uns32 avnd_sudb_init(AVND_CB *cb)
 {
-   NCS_PATRICIA_PARAMS params;
-   uns32               rc = NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS params;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   params.key_size = sizeof(SaNameT);
-   rc = ncs_patricia_tree_init(&cb->sudb, &params);
-   if (NCSCC_RC_SUCCESS == rc)
-      m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_SUCCESS, 
-                       0, 0, NCSFL_SEV_INFO);
-   else
-      m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_FAILURE, 
-                       0, 0, NCSFL_SEV_CRITICAL);
+	params.key_size = sizeof(SaNameT);
+	rc = ncs_patricia_tree_init(&cb->sudb, &params);
+	if (NCSCC_RC_SUCCESS == rc)
+		m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+	else
+		m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_CREATE, AVND_LOG_SU_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_sudb_destroy
@@ -84,40 +79,37 @@ uns32 avnd_sudb_init(AVND_CB *cb)
 ******************************************************************************/
 uns32 avnd_sudb_destroy(AVND_CB *cb)
 {
-   AVND_SU *su = 0;
-   uns32   rc = NCSCC_RC_SUCCESS;
+	AVND_SU *su = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* scan & delete each su */
-   while ( 0 != (su = 
-            (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0)) )
-   {
-      /* unreg the row from mab */
-      avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-                     (su->su_is_external?cb->avnd_mbcsv_mab_hdl:cb->mab_hdl));
+	/* scan & delete each su */
+	while (0 != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0))) {
+		/* unreg the row from mab */
+		avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
+					(su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
 
-      /* delete the record 
-      m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
-      AvND is going down, but don't send any async update even for 
-      external components, otherwise external components will be deleted
-      from ACT.*/
-      rc = avnd_sudb_rec_del(cb, &su->name_net);
-      if ( NCSCC_RC_SUCCESS != rc ) goto err;
-   }
+		/* delete the record 
+		   m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
+		   AvND is going down, but don't send any async update even for 
+		   external components, otherwise external components will be deleted
+		   from ACT. */
+		rc = avnd_sudb_rec_del(cb, &su->name_net);
+		if (NCSCC_RC_SUCCESS != rc)
+			goto err;
+	}
 
-   /* finally destroy patricia tree */
-   rc = ncs_patricia_tree_destroy(&cb->sudb);
-   if ( NCSCC_RC_SUCCESS != rc ) goto err;
+	/* finally destroy patricia tree */
+	rc = ncs_patricia_tree_destroy(&cb->sudb);
+	if (NCSCC_RC_SUCCESS != rc)
+		goto err;
 
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_SUCCESS, 
-                    0, 0, NCSFL_SEV_INFO);
-   return rc;
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_SUCCESS, 0, 0, NCSFL_SEV_INFO);
+	return rc;
 
-err:
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_FAILURE, 
-                    0, 0, NCSFL_SEV_CRITICAL);
-   return rc;
+ err:
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_DESTROY, AVND_LOG_SU_DB_FAILURE, 0, 0, NCSFL_SEV_CRITICAL);
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : avnd_sudb_rec_add
@@ -136,106 +128,98 @@ err:
 ******************************************************************************/
 AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 {
-   AVND_SU *su = 0;
+	AVND_SU *su = 0;
 
-   /* verify if this su is already present in the db */
-   if ( 0 != m_AVND_SUDB_REC_GET(cb->sudb, info->name_net) )
-   {
-      *rc = AVND_ERR_DUP_SU;
-      goto err;
-   }
+	/* verify if this su is already present in the db */
+	if (0 != m_AVND_SUDB_REC_GET(cb->sudb, info->name_net)) {
+		*rc = AVND_ERR_DUP_SU;
+		goto err;
+	}
 
-   /* a fresh su... */
-   su = m_MMGR_ALLOC_AVND_SU;
-   if (!su)
-   {
-      *rc = AVND_ERR_NO_MEMORY;
-      goto err;
-   }
+	/* a fresh su... */
+	su = m_MMGR_ALLOC_AVND_SU;
+	if (!su) {
+		*rc = AVND_ERR_NO_MEMORY;
+		goto err;
+	}
 
-   memset(su, 0, sizeof(AVND_SU));
+	memset(su, 0, sizeof(AVND_SU));
 
-   /*
-    * Update the config parameters.
-    */
-   /* update the su-name (patricia key) */
-   memcpy(&su->name_net, &info->name_net, sizeof(SaNameT));
+	/*
+	 * Update the config parameters.
+	 */
+	/* update the su-name (patricia key) */
+	memcpy(&su->name_net, &info->name_net, sizeof(SaNameT));
 
-   /* update error recovery escalation parameters */
-   su->comp_restart_prob = info->comp_restart_prob;
-   su->comp_restart_max = info->comp_restart_max;
-   su->su_restart_prob = info->su_restart_prob;
-   su->su_restart_max = info->su_restart_max;
-   su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
+	/* update error recovery escalation parameters */
+	su->comp_restart_prob = info->comp_restart_prob;
+	su->comp_restart_max = info->comp_restart_max;
+	su->su_restart_prob = info->su_restart_prob;
+	su->su_restart_max = info->su_restart_max;
+	su->su_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 
-   /* update the NCS flag */
-   su->is_ncs = info->is_ncs;
-   su->su_is_external = info->su_is_external;
+	/* update the NCS flag */
+	su->is_ncs = info->is_ncs;
+	su->su_is_external = info->su_is_external;
 
-   /*
-    * Update the rest of the parameters with default values.
-    */
-   m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
-   su->pres = NCS_PRES_UNINSTANTIATED;
-   su->avd_updt_flag = FALSE;
+	/*
+	 * Update the rest of the parameters with default values.
+	 */
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+	su->pres = NCS_PRES_UNINSTANTIATED;
+	su->avd_updt_flag = FALSE;
 
-   /* 
-    * Initialize the comp-list.
-    */
-   su->comp_list.order = NCS_DBLIST_ASSCEND_ORDER;
-   su->comp_list.cmp_cookie = avsv_dblist_uns32_cmp;
-   su->comp_list.free_cookie = 0;
+	/* 
+	 * Initialize the comp-list.
+	 */
+	su->comp_list.order = NCS_DBLIST_ASSCEND_ORDER;
+	su->comp_list.cmp_cookie = avsv_dblist_uns32_cmp;
+	su->comp_list.free_cookie = 0;
 
-   /* 
-    * Initialize the si-list.
-    */
-   su->si_list.order = NCS_DBLIST_ASSCEND_ORDER;
-   su->si_list.cmp_cookie = avsv_dblist_saname_cmp;
-   su->si_list.free_cookie = 0;
+	/* 
+	 * Initialize the si-list.
+	 */
+	su->si_list.order = NCS_DBLIST_ASSCEND_ORDER;
+	su->si_list.cmp_cookie = avsv_dblist_saname_cmp;
+	su->si_list.free_cookie = 0;
 
-   /* 
-    * Initialize the siq.
-    */
-   su->siq.order = NCS_DBLIST_ANY_ORDER;
-   su->siq.cmp_cookie = 0;
-   su->siq.free_cookie = 0;
+	/* 
+	 * Initialize the siq.
+	 */
+	su->siq.order = NCS_DBLIST_ANY_ORDER;
+	su->siq.cmp_cookie = 0;
+	su->siq.free_cookie = 0;
 
-   /* create the association with hdl-mngr */
-   if ( (0 == (su->su_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND,
-                                             (NCSCONTEXT)su))) )
-   {
-      *rc = AVND_ERR_HDL;
-      goto err;
-   }
+	/* create the association with hdl-mngr */
+	if ((0 == (su->su_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)su)))) {
+		*rc = AVND_ERR_HDL;
+		goto err;
+	}
 
-   /* 
-    * Add to the patricia tree.
-    */
-   su->tree_node.bit = 0;
-   su->tree_node.key_info = (uns8*)&su->name_net;
-   *rc = ncs_patricia_tree_add(&cb->sudb, &su->tree_node);
-   if ( NCSCC_RC_SUCCESS != *rc )
-   {
-      *rc = AVND_ERR_TREE;
-      goto err;
-   }
+	/* 
+	 * Add to the patricia tree.
+	 */
+	su->tree_node.bit = 0;
+	su->tree_node.key_info = (uns8 *)&su->name_net;
+	*rc = ncs_patricia_tree_add(&cb->sudb, &su->tree_node);
+	if (NCSCC_RC_SUCCESS != *rc) {
+		*rc = AVND_ERR_TREE;
+		goto err;
+	}
 
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_SUCCESS, 
-                    &info->name_net, 0, NCSFL_SEV_INFO);
-   return su;
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_SUCCESS, &info->name_net, 0, NCSFL_SEV_INFO);
+	return su;
 
-err:
-   if (su) 
-   {
-      if (su->su_hdl) ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
-      m_MMGR_FREE_AVND_SU(su);
-   }
+ err:
+	if (su) {
+		if (su->su_hdl)
+			ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
+		m_MMGR_FREE_AVND_SU(su);
+	}
 
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_FAILURE, 
-                    &info->name_net, 0, NCSFL_SEV_CRITICAL);
-   return 0;
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_ADD, AVND_LOG_SU_DB_FAILURE, &info->name_net, 0, NCSFL_SEV_CRITICAL);
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : avnd_sudb_rec_del
@@ -253,45 +237,40 @@ err:
 ******************************************************************************/
 uns32 avnd_sudb_rec_del(AVND_CB *cb, SaNameT *name_net)
 {
-   AVND_SU *su = 0;
-   uns32   rc = NCSCC_RC_SUCCESS;
+	AVND_SU *su = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* get the su record */
-   su = m_AVND_SUDB_REC_GET(cb->sudb, *name_net);
-   if (!su)
-   {
-      rc = AVND_ERR_NO_SU;
-      goto err;
-   }
+	/* get the su record */
+	su = m_AVND_SUDB_REC_GET(cb->sudb, *name_net);
+	if (!su) {
+		rc = AVND_ERR_NO_SU;
+		goto err;
+	}
 
-   /* su should not have any comp or si attached to it */
-   m_AVSV_ASSERT( (!su->comp_list.n_nodes) && (!su->si_list.n_nodes) );
+	/* su should not have any comp or si attached to it */
+	m_AVSV_ASSERT((!su->comp_list.n_nodes) && (!su->si_list.n_nodes));
 
-   /* remove from the patricia tree */
-   rc = ncs_patricia_tree_del(&cb->sudb, &su->tree_node);
-   if ( NCSCC_RC_SUCCESS != rc )
-   {
-      rc = AVND_ERR_TREE;
-      goto err;
-   }
+	/* remove from the patricia tree */
+	rc = ncs_patricia_tree_del(&cb->sudb, &su->tree_node);
+	if (NCSCC_RC_SUCCESS != rc) {
+		rc = AVND_ERR_TREE;
+		goto err;
+	}
 
-   /* remove the association with hdl mngr */
-   ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
+	/* remove the association with hdl mngr */
+	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, su->su_hdl);
 
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_SUCCESS, 
-                    name_net, 0, NCSFL_SEV_INFO);
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_SUCCESS, name_net, 0, NCSFL_SEV_INFO);
 
-   /* free the memory */
-   m_MMGR_FREE_AVND_SU(su);
+	/* free the memory */
+	m_MMGR_FREE_AVND_SU(su);
 
-   return rc;
+	return rc;
 
-err:
-   m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_FAILURE, 
-                    name_net, 0, NCSFL_SEV_CRITICAL);
-   return rc;
+ err:
+	m_AVND_LOG_SU_DB(AVND_LOG_SU_DB_REC_DEL, AVND_LOG_SU_DB_FAILURE, name_net, 0, NCSFL_SEV_CRITICAL);
+	return rc;
 }
-
 
 /*****************************************************************************
  * Function: ncsssutableentry_get
@@ -316,42 +295,38 @@ err:
  *
  * 
  **************************************************************************/
-uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data)
+uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
 {
-   AVND_CB *avnd_cb = (AVND_CB *)cb;
-   AVND_SU *su = NULL;
-   SaNameT su_name;
-   uns32   i;
+	AVND_CB *avnd_cb = (AVND_CB *)cb;
+	AVND_SU *su = NULL;
+	SaNameT su_name;
+	uns32 i;
 
+	if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-   if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;
-   }
+	memset(&su_name, 0, sizeof(SaNameT));
 
-   memset(&su_name, 0, sizeof(SaNameT));
-   
-   su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-   for (i = 0; i < su_name.length; i++)
-   {
-      su_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-   }
-    
-   /* Check if an SU with this name exists */
-   su_name.length = m_NCS_OS_HTONS(su_name.length);
-   su = m_AVND_SUDB_REC_GET(avnd_cb->sudb, su_name);
-   su_name.length = m_NCS_OS_NTOHS(su_name.length);
+	su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	for (i = 0; i < su_name.length; i++) {
+		su_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+	}
 
-   if (su == AVND_SU_NULL)
-   {
-      /* Row not exists */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-                      
-   *data = (NCSCONTEXT)su;      
-                                
-   return NCSCC_RC_SUCCESS;
+	/* Check if an SU with this name exists */
+	su_name.length = m_NCS_OS_HTONS(su_name.length);
+	su = m_AVND_SUDB_REC_GET(avnd_cb->sudb, su_name);
+	su_name.length = m_NCS_OS_NTOHS(su_name.length);
+
+	if (su == AVND_SU_NULL) {
+		/* Row not exists */
+		return NCSCC_RC_NO_INSTANCE;
+	}
+
+	*data = (NCSCONTEXT)su;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************
@@ -386,33 +361,27 @@ uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT* data)
  *
  * 
  **************************************************************************/
-uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL *param, 
-                               NCSMIB_VAR_INFO *var_info,
-                               NCSCONTEXT data,
-                               NCSCONTEXT buffer)
+uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
 {
-   AVND_SU *su = (AVND_SU *)data;
+	AVND_SU *su = (AVND_SU *)data;
 
-   if (su == AVND_SU_NULL)
-   {
-      /* Row doesn't exists */
-      return NCSCC_RC_NO_INSTANCE;
-   }
+	if (su == AVND_SU_NULL) {
+		/* Row doesn't exists */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   switch(param->i_param_id)
-   {
-   default:
-       /* call the MIBLIB utility routine for standard object types */
-      if ((var_info != NULL) && (var_info->offset != 0))
-         return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-      else
-         return NCSCC_RC_NO_OBJECT;
-       break;
-   }
+	switch (param->i_param_id) {
+	default:
+		/* call the MIBLIB utility routine for standard object types */
+		if ((var_info != NULL) && (var_info->offset != 0))
+			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
+		else
+			return NCSCC_RC_NO_OBJECT;
+		break;
+	}
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncsssutableentry_set
@@ -440,16 +409,11 @@ uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL *param,
  *
  * 
  **************************************************************************/
-uns32 ncsssutableentry_set(NCSCONTEXT cb,
-                           NCSMIB_ARG *arg, 
-                           NCSMIB_VAR_INFO *var_info,
-                           NCS_BOOL test_flag)
+uns32 ncsssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
 {
-   /* This table has only read-only objects */ 
-   return NCSCC_RC_INV_VAL;
+	/* This table has only read-only objects */
+	return NCSCC_RC_INV_VAL;
 }
-
-
 
 /*****************************************************************************
  * Function: ncsssutableentry_next
@@ -480,58 +444,50 @@ uns32 ncsssutableentry_set(NCSCONTEXT cb,
  * 
  **************************************************************************/
 uns32 ncsssutableentry_next(NCSCONTEXT cb,
-                            NCSMIB_ARG *arg, 
-                            NCSCONTEXT* data, 
-                            uns32* next_inst_id,
-                            uns32 *next_inst_id_len)
+			    NCSMIB_ARG *arg, NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
 {
-   AVND_CB *avnd_cb = (AVND_CB *)cb;
-   AVND_SU *su = NULL;
-   SaNameT su_name;
-   uns32   i;
+	AVND_CB *avnd_cb = (AVND_CB *)cb;
+	AVND_SU *su = NULL;
+	SaNameT su_name;
+	uns32 i;
 
-   if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK)
-   {
-      /* Invalid operation */
-      return NCSCC_RC_INV_VAL;
-   }
+	if (avnd_cb->admin_state != NCS_ADMIN_STATE_UNLOCK) {
+		/* Invalid operation */
+		return NCSCC_RC_INV_VAL;
+	}
 
-   memset(&su_name, 0, sizeof(SaNameT));
-  
-   /* Prepare the SU name from the instant ID */
-   if (arg->i_idx.i_inst_len != 0)
-   { 
-       su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-       for (i = 0; i < su_name.length; i++)
-       {
-          su_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i+1]);
-       }
-   }
-    
-   /* Check if an SU with this name exists */
-   su_name.length = m_NCS_OS_HTONS(su_name.length);
-   su = m_AVND_SUDB_REC_GET_NEXT(avnd_cb->sudb, su_name);
-   if (su == AVND_SU_NULL)
-   {
-      /* Row not exists */
-      return NCSCC_RC_NO_INSTANCE;
-   }
-   
-   /* Prepare the instant ID from the su name */
-   su_name = su->name_net;
-   su_name.length = m_NCS_OS_NTOHS(su_name.length);
+	memset(&su_name, 0, sizeof(SaNameT));
 
-   *next_inst_id_len = su_name.length + 1;
+	/* Prepare the SU name from the instant ID */
+	if (arg->i_idx.i_inst_len != 0) {
+		su_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
+		for (i = 0; i < su_name.length; i++) {
+			su_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
+		}
+	}
 
-   next_inst_id[0] = su_name.length;
-   for(i = 0; i < su_name.length; i++)
-      next_inst_id[i + 1] = (uns32)(su_name.value[i]);
+	/* Check if an SU with this name exists */
+	su_name.length = m_NCS_OS_HTONS(su_name.length);
+	su = m_AVND_SUDB_REC_GET_NEXT(avnd_cb->sudb, su_name);
+	if (su == AVND_SU_NULL) {
+		/* Row not exists */
+		return NCSCC_RC_NO_INSTANCE;
+	}
 
-   *data = (NCSCONTEXT)su;      
-                                
-   return NCSCC_RC_SUCCESS;
+	/* Prepare the instant ID from the su name */
+	su_name = su->name_net;
+	su_name.length = m_NCS_OS_NTOHS(su_name.length);
+
+	*next_inst_id_len = su_name.length + 1;
+
+	next_inst_id[0] = su_name.length;
+	for (i = 0; i < su_name.length; i++)
+		next_inst_id[i + 1] = (uns32)(su_name.value[i]);
+
+	*data = (NCSCONTEXT)su;
+
+	return NCSCC_RC_SUCCESS;
 }
-
 
 /*****************************************************************************
  * Function: ncsssutableentry_setrow
@@ -562,13 +518,11 @@ uns32 ncsssutableentry_next(NCSCONTEXT cb,
  * 
  **************************************************************************/
 uns32 ncsssutableentry_setrow(NCSCONTEXT cb,
-                              NCSMIB_ARG* args,
-                              NCSMIB_SETROW_PARAM_VAL* params,
-                              struct ncsmib_obj_info* obj_info,
-                              NCS_BOOL testrow_flag)
+			      NCSMIB_ARG *args,
+			      NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
 {
-   /* This table has only read-only objects */ 
-   return NCSCC_RC_INV_VAL;
+	/* This table has only read-only objects */
+	return NCSCC_RC_INV_VAL;
 }
 
 /*****************************************************************************
@@ -586,6 +540,5 @@ uns32 ncsssutableentry_setrow(NCSCONTEXT cb,
  **************************************************************************/
 uns32 ncsssutableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
 {
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 }
-

@@ -51,86 +51,79 @@
 
 uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 {
-    uns32 status = NCSCC_RC_SUCCESS;
+	uns32 status = NCSCC_RC_SUCCESS;
 
-    if (svc_to_mds_info == NULL)
-    {
-        m_MDS_LOG_ERR("MDS_PAPI : Input svc_to_mds_info = NULL in ncsmds_api()");
-        return NCSCC_RC_FAILURE;
-    }
+	if (svc_to_mds_info == NULL) {
+		m_MDS_LOG_ERR("MDS_PAPI : Input svc_to_mds_info = NULL in ncsmds_api()");
+		return NCSCC_RC_FAILURE;
+	}
 
-    m_MDS_LOCK(mds_lock(),NCS_LOCK_WRITE);
-    if (gl_mds_mcm_cb == NULL)
-    {
-        m_MDS_LOG_ERR("MDS_PAPI : ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
-        m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-        return NCSCC_RC_FAILURE;
-    }
+	m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
+	if (gl_mds_mcm_cb == NULL) {
+		m_MDS_LOG_ERR("MDS_PAPI : ncsmds_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+		return NCSCC_RC_FAILURE;
+	}
 
-    /* Vailidate pwe hdl */
-    if (svc_to_mds_info->i_op == MDS_SEND || svc_to_mds_info->i_op == MDS_DIRECT_SEND)
-    {
-        /* Don't validate pwe hdl */
-    }
-    else
-    {
-        status = mds_validate_pwe_hdl((MDS_PWE_HDL)svc_to_mds_info->i_mds_hdl);
-        if (status == NCSCC_RC_FAILURE)
-        {
-            m_MDS_LOG_ERR("MDS_PAPI : Invalid pwe hdl in ncsmds_api()");
-            m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-            return NCSCC_RC_FAILURE;
-        }
-    }
+	/* Vailidate pwe hdl */
+	if (svc_to_mds_info->i_op == MDS_SEND || svc_to_mds_info->i_op == MDS_DIRECT_SEND) {
+		/* Don't validate pwe hdl */
+	} else {
+		status = mds_validate_pwe_hdl((MDS_PWE_HDL)svc_to_mds_info->i_mds_hdl);
+		if (status == NCSCC_RC_FAILURE) {
+			m_MDS_LOG_ERR("MDS_PAPI : Invalid pwe hdl in ncsmds_api()");
+			m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+			return NCSCC_RC_FAILURE;
+		}
+	}
 
-    switch (svc_to_mds_info->i_op)
-    {
-    case MDS_INSTALL:
-        status = mds_mcm_svc_install(svc_to_mds_info);
-        break;
+	switch (svc_to_mds_info->i_op) {
+	case MDS_INSTALL:
+		status = mds_mcm_svc_install(svc_to_mds_info);
+		break;
 
-    case MDS_UNINSTALL:
-        status = mds_mcm_svc_uninstall(svc_to_mds_info);
-        break;
+	case MDS_UNINSTALL:
+		status = mds_mcm_svc_uninstall(svc_to_mds_info);
+		break;
 
-    case MDS_SUBSCRIBE:
-    case MDS_RED_SUBSCRIBE:
-        status = mds_mcm_svc_subscribe(svc_to_mds_info);
-        break;
+	case MDS_SUBSCRIBE:
+	case MDS_RED_SUBSCRIBE:
+		status = mds_mcm_svc_subscribe(svc_to_mds_info);
+		break;
 
-    case MDS_CANCEL:
-        status = mds_mcm_svc_unsubscribe(svc_to_mds_info);
-        break;
+	case MDS_CANCEL:
+		status = mds_mcm_svc_unsubscribe(svc_to_mds_info);
+		break;
 /*
     case MDS_SYS_SUBSCRIBE:
         status = mds_sys_subscribe(svc_to_mds_info);
         break;
 */
-    case MDS_SEND:
-    case MDS_DIRECT_SEND:
-        status = mds_send(svc_to_mds_info);
-        break;
+	case MDS_SEND:
+	case MDS_DIRECT_SEND:
+		status = mds_send(svc_to_mds_info);
+		break;
 
-    case MDS_RETRIEVE:
-        status = mds_retrieve(svc_to_mds_info);
-        break;
+	case MDS_RETRIEVE:
+		status = mds_retrieve(svc_to_mds_info);
+		break;
 
-    case MDS_QUERY_DEST:
-        status = mds_mcm_dest_query(svc_to_mds_info);
-        break;
+	case MDS_QUERY_DEST:
+		status = mds_mcm_dest_query(svc_to_mds_info);
+		break;
 
-    case MDS_QUERY_PWE:
-        status = mds_mcm_pwe_query(svc_to_mds_info);
-        break;
+	case MDS_QUERY_PWE:
+		status = mds_mcm_pwe_query(svc_to_mds_info);
+		break;
 
-    default:
-        m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_api()");
-        status = NCSCC_RC_FAILURE;
-        break;
-    }
+	default:
+		m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_api()");
+		status = NCSCC_RC_FAILURE;
+		break;
+	}
 
-    m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-    return status;
+	m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+	return status;
 }
 
 /****************************************************************************
@@ -145,61 +138,58 @@ uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
  *
  ****************************************************************************/
 
-uns32 ncsmds_adm_api(NCSMDS_ADMOP_INFO * mds_adm)
+uns32 ncsmds_adm_api(NCSMDS_ADMOP_INFO *mds_adm)
 {
-    uns32  status = NCSCC_RC_SUCCESS;
+	uns32 status = NCSCC_RC_SUCCESS;
 
-    if (mds_adm == NULL)
-    {
-        m_MDS_LOG_ERR("MDS_PAPI : Invalid Input mds_adm = NULL in ncsmds_adm_api()");
-        return NCSCC_RC_FAILURE;
-    }
-    m_MDS_LOCK(mds_lock(),NCS_LOCK_WRITE);
-    if (gl_mds_mcm_cb == NULL)
-    {
-        m_MDS_LOG_ERR("MDS_PAPI : ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
-        m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-        return NCSCC_RC_FAILURE;
-    }
+	if (mds_adm == NULL) {
+		m_MDS_LOG_ERR("MDS_PAPI : Invalid Input mds_adm = NULL in ncsmds_adm_api()");
+		return NCSCC_RC_FAILURE;
+	}
+	m_MDS_LOCK(mds_lock(), NCS_LOCK_WRITE);
+	if (gl_mds_mcm_cb == NULL) {
+		m_MDS_LOG_ERR("MDS_PAPI : ncsmds_adm_api() : MDS is not initialized gl_mds_mcm_cb = NULL ");
+		m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+		return NCSCC_RC_FAILURE;
+	}
 
-    switch (mds_adm->i_op)
-    {
-    case MDS_ADMOP_VDEST_CREATE:
-        status = mds_mcm_vdest_create(mds_adm);
-        break;
+	switch (mds_adm->i_op) {
+	case MDS_ADMOP_VDEST_CREATE:
+		status = mds_mcm_vdest_create(mds_adm);
+		break;
 
-    case MDS_ADMOP_VDEST_CONFIG:
-        status = mds_mcm_vdest_chg_role(mds_adm);
-        break;
+	case MDS_ADMOP_VDEST_CONFIG:
+		status = mds_mcm_vdest_chg_role(mds_adm);
+		break;
 
-    case MDS_ADMOP_VDEST_DESTROY:
-        status = mds_mcm_vdest_destroy(mds_adm);
-        break;
+	case MDS_ADMOP_VDEST_DESTROY:
+		status = mds_mcm_vdest_destroy(mds_adm);
+		break;
 
-    case MDS_ADMOP_VDEST_QUERY:
-        status = mds_mcm_vdest_query(mds_adm);
-        break;
+	case MDS_ADMOP_VDEST_QUERY:
+		status = mds_mcm_vdest_query(mds_adm);
+		break;
 
-    case MDS_ADMOP_PWE_CREATE:
-        status = mds_mcm_pwe_create(mds_adm);
-        break;
+	case MDS_ADMOP_PWE_CREATE:
+		status = mds_mcm_pwe_create(mds_adm);
+		break;
 
-    case MDS_ADMOP_PWE_DESTROY:
-        status = mds_mcm_pwe_destroy(mds_adm);
-        break;
+	case MDS_ADMOP_PWE_DESTROY:
+		status = mds_mcm_pwe_destroy(mds_adm);
+		break;
 
-    case MDS_ADMOP_PWE_QUERY:
-        status = mds_mcm_adm_pwe_query(mds_adm);
-        break;
+	case MDS_ADMOP_PWE_QUERY:
+		status = mds_mcm_adm_pwe_query(mds_adm);
+		break;
 
-    default:
-        m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_adm_api()");
-        status = NCSCC_RC_FAILURE;
-        break;
-    }
+	default:
+		m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_adm_api()");
+		status = NCSCC_RC_FAILURE;
+		break;
+	}
 
-    m_MDS_UNLOCK(mds_lock(),NCS_LOCK_WRITE);
-    return status;
+	m_MDS_UNLOCK(mds_lock(), NCS_LOCK_WRITE);
+	return status;
 }
 
 /****************************************************************************
@@ -214,8 +204,8 @@ uns32 ncsmds_adm_api(NCSMDS_ADMOP_INFO * mds_adm)
 
 MDS_DEST mds_fetch_qa()
 {
-    /* phani : todo */
-    return m_MDS_GET_ADEST;
+	/* phani : todo */
+	return m_MDS_GET_ADEST;
 }
 
 /****************************************************************************
@@ -229,7 +219,7 @@ MDS_DEST mds_fetch_qa()
  ****************************************************************************/
 MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
 {
-    return (MDS_VDEST_ID)(m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest)==0?mdsdest:0);
+	return (MDS_VDEST_ID)(m_NCS_NODE_ID_FROM_MDS_DEST(mdsdest) == 0 ? mdsdest : 0);
 }
 
 /****************************************************************************
@@ -252,15 +242,13 @@ MDS_VDEST_ID ncs_get_vdest_id_from_mds_dest(MDS_DEST mdsdest)
                                                   MDS_DIRECT_BUFF_AL)
 MDS_DIRECT_BUFF mds_alloc_direct_buff(uns16 size)
 {
-   if(size>MDS_DIRECT_BUF_MAXSIZE)
-   {
-      m_MDS_LOG_ERR("MDS_PAPI : Requested Memory allocation for direct buff is greater than the Max Direct buff send size\n");       
-      return NULL;
-   }
-   else
-      return (MDS_DIRECT_BUFF)(m_MMGR_ALLOC_DIRECT_BUFF(size));
+	if (size > MDS_DIRECT_BUF_MAXSIZE) {
+		m_MDS_LOG_ERR
+		    ("MDS_PAPI : Requested Memory allocation for direct buff is greater than the Max Direct buff send size\n");
+		return NULL;
+	} else
+		return (MDS_DIRECT_BUFF)(m_MMGR_ALLOC_DIRECT_BUFF(size));
 }
-
 
 /****************************************************************************
  *
@@ -271,17 +259,14 @@ MDS_DIRECT_BUFF mds_alloc_direct_buff(uns16 size)
  * Return Value:  None
  *
  ****************************************************************************/
-void  mds_free_direct_buff(MDS_DIRECT_BUFF buff)
+void mds_free_direct_buff(MDS_DIRECT_BUFF buff)
 {
-   if(buff!=NULL)
-   {
-      m_MMGR_FREE_DIRECT_BUFF(buff);
-      buff=NULL; /* Safer check */
-   }
-   else
-   {
-      m_MDS_LOG_ERR("MDS_PAPI : Trying to free the direct buffer with pointer as NULL\n");       
-   }
+	if (buff != NULL) {
+		m_MMGR_FREE_DIRECT_BUFF(buff);
+		buff = NULL;	/* Safer check */
+	} else {
+		m_MDS_LOG_ERR("MDS_PAPI : Trying to free the direct buffer with pointer as NULL\n");
+	}
 }
 
 /****************************************************************************
@@ -296,28 +281,25 @@ void  mds_free_direct_buff(MDS_DIRECT_BUFF buff)
  ****************************************************************************/
 uns32 mds_node_link_reset(NCS_NODE_ID node_id)
 {
-    char buffer[50];
-    int status;
-    /* Fix for the multi shelf support, Here we will check whether the destination node is in our shelf or not */
-    if((node_id & 0x00ff0000) != (m_NCS_GET_NODE_ID & 0x00ff0000))
-    {
-        m_MDS_LOG_ERR("MDS_PAPI: Node_id Passed to the TIPC reset script is out of range of shelf ,Node=0x%08x",node_id);
-        return NCSCC_RC_FAILURE;
-    }
+	char buffer[50];
+	int status;
+	/* Fix for the multi shelf support, Here we will check whether the destination node is in our shelf or not */
+	if ((node_id & 0x00ff0000) != (m_NCS_GET_NODE_ID & 0x00ff0000)) {
+		m_MDS_LOG_ERR("MDS_PAPI: Node_id Passed to the TIPC reset script is out of range of shelf ,Node=0x%08x",
+			      node_id);
+		return NCSCC_RC_FAILURE;
+	}
 
-    sprintf(buffer, "sh %s/tipc_reset.sh %x &", PKGLIBDIR, node_id);
-    status=system(buffer);
-    if(status ==0)
-    {
-        m_MDS_LOG_NOTIFY("MDS_PAPI: Successfully executed the TIPC reset script for Node=0x%08x",node_id);
-        status=NCSCC_RC_SUCCESS;
-    }
-    else
-    { 
-        m_MDS_LOG_ERR("MDS_PAPI: Failed to execute the TIPC reset script for Node=0x%08x",node_id);    
-        status=NCSCC_RC_FAILURE;
-    }
-    return status;
+	sprintf(buffer, "sh %s/tipc_reset.sh %x &", PKGLIBDIR, node_id);
+	status = system(buffer);
+	if (status == 0) {
+		m_MDS_LOG_NOTIFY("MDS_PAPI: Successfully executed the TIPC reset script for Node=0x%08x", node_id);
+		status = NCSCC_RC_SUCCESS;
+	} else {
+		m_MDS_LOG_ERR("MDS_PAPI: Failed to execute the TIPC reset script for Node=0x%08x", node_id);
+		status = NCSCC_RC_FAILURE;
+	}
+	return status;
 }
 
-#endif /* (NCS_MDS == 1) */
+#endif   /* (NCS_MDS == 1) */

@@ -26,9 +26,7 @@
       eda_flx_log_reg
       eda_flx_log_dereg
 
-
 ******************************************************************************/
-
 
 /*****************************************************************************
 
@@ -45,14 +43,14 @@
                      dataa - Miscellineousdata
 *****************************************************************************/
 
-void eda_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno,uns32 data)
+void eda_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 data)
 {
 
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_EDA, EDA_LID_HDLN, EDA_FC_HDLN,
-              category, sev, NCSFL_TYPE_TCLILL,fname,fno,id,rc,data);
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_EDA, EDA_LID_HDLN, EDA_FC_HDLN,
+		   category, sev, NCSFL_TYPE_TCLILL, fname, fno, id, rc, data);
 
-} /* End of eda_log()  */
+}	/* End of eda_log()  */
 
 /*****************************************************************************
 
@@ -70,16 +68,14 @@ void eda_log(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno,uns3
                      handle - uns64 handle
 *****************************************************************************/
 
-EXTERN_C void eda_log_f(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns32 fno,uns32 dataa,uns64 handle)
+EXTERN_C void eda_log_f(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno, uns32 dataa, uns64 handle)
 {
 
-   /* Log New type logs */
-   ncs_logmsg(NCS_SERVICE_ID_EDA, EDA_LID_HDLNF, EDA_FC_HDLNF,
-              category, sev, NCSFL_TYPE_TCLILLF,fname,fno,id,rc,dataa,(double)handle);
+	/* Log New type logs */
+	ncs_logmsg(NCS_SERVICE_ID_EDA, EDA_LID_HDLNF, EDA_FC_HDLNF,
+		   category, sev, NCSFL_TYPE_TCLILLF, fname, fno, id, rc, dataa, (double)handle);
 
-} /* End of eda_log_f()  */
-
-
+}	/* End of eda_log_f()  */
 
 /****************************************************************************
  * Name          : eda_flx_log_reg
@@ -94,21 +90,20 @@ EXTERN_C void eda_log_f(uns8 id,uns32 category,uns8 sev,uns32 rc,char *fname,uns
  *
  * Notes         : None.
  *****************************************************************************/
-void
-eda_flx_log_reg ()
+void eda_flx_log_reg()
 {
-   NCS_DTSV_RQ            reg;
+	NCS_DTSV_RQ reg;
 
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                = NCS_DTSV_OP_BIND;
-   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_EDA;
-   /* fill version no. */
-   reg.info.bind_svc.version = EDSV_LOG_VERSION;
-   /* fill svc_name */
-   strcpy(reg.info.bind_svc.svc_name, "EDSv");
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_BIND;
+	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_EDA;
+	/* fill version no. */
+	reg.info.bind_svc.version = EDSV_LOG_VERSION;
+	/* fill svc_name */
+	strcpy(reg.info.bind_svc.svc_name, "EDSv");
 
-   ncs_dtsv_su_req(&reg);
-   return;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
 
 /****************************************************************************
@@ -124,17 +119,13 @@ eda_flx_log_reg ()
  *
  * Notes         : None.
  *****************************************************************************/
-void
-eda_flx_log_dereg ()
+void eda_flx_log_dereg()
 {
-   NCS_DTSV_RQ        reg;
-   
-   memset(&reg,0,sizeof(NCS_DTSV_RQ));
-   reg.i_op                   = NCS_DTSV_OP_UNBIND;
-   reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_EDA;
-   ncs_dtsv_su_req(&reg);
-   return;
+	NCS_DTSV_RQ reg;
+
+	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+	reg.i_op = NCS_DTSV_OP_UNBIND;
+	reg.info.unbind_svc.svc_id = NCS_SERVICE_ID_EDA;
+	ncs_dtsv_su_req(&reg);
+	return;
 }
-
-
-

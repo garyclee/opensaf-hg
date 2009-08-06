@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
       return NULL;
   }
@@ -72,7 +70,7 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "saCkpt.h"
 
 /* events includes */
-#include "gla_evt.h" 
+#include "gla_evt.h"
 #include "gld_evt.h"
 #include "glnd_evt.h"
 
@@ -85,5 +83,4 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "cpa_mem.h"
 */
 
-
-#endif /* !GLND_H */
+#endif   /* !GLND_H */

@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -33,23 +31,22 @@
 #define MQA_MEM_H
 
 /* Service Sub IDs for MQA */
-typedef enum
-{
-   NCS_SERVICE_MQA_SUB_ID_MQA_DEFAULT_VAL = 1,
-   NCS_SERVICE_MQA_SUB_ID_MQA_CB,
-   NCS_SERVICE_MQA_SUB_ID_MQA_PEND_CALLBK,
-   NCS_SERVICE_MQA_SUB_ID_MQA_CALLBACK_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQA_CLIENT_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQA_TRACK_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQA_TRACK_BUFFER_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQA_QUEUE_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQA_SENDERID_INFO,
-   NCS_SERVICE_MQA_SUB_ID_MQSV_EVT,
-   NCS_SERVICE_MQA_SUB_ID_MQA_TMR_NODE,
-   NCS_SERVICE_MQA_SUB_ID_MQA_MQSV_MESSAGE,
-   NCS_SERVICE_MQA_SUB_ID_MQA_MQP_CANCEL_REQ,
-   NCS_SERVICE_MQA_SUB_ID_MQA_MQP_OPEN_RSP,
-   NCS_SERVICE_MQA_SUB_ID_MAX
+typedef enum {
+	NCS_SERVICE_MQA_SUB_ID_MQA_DEFAULT_VAL = 1,
+	NCS_SERVICE_MQA_SUB_ID_MQA_CB,
+	NCS_SERVICE_MQA_SUB_ID_MQA_PEND_CALLBK,
+	NCS_SERVICE_MQA_SUB_ID_MQA_CALLBACK_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQA_CLIENT_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQA_TRACK_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQA_TRACK_BUFFER_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQA_QUEUE_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQA_SENDERID_INFO,
+	NCS_SERVICE_MQA_SUB_ID_MQSV_EVT,
+	NCS_SERVICE_MQA_SUB_ID_MQA_TMR_NODE,
+	NCS_SERVICE_MQA_SUB_ID_MQA_MQSV_MESSAGE,
+	NCS_SERVICE_MQA_SUB_ID_MQA_MQP_CANCEL_REQ,
+	NCS_SERVICE_MQA_SUB_ID_MQA_MQP_OPEN_RSP,
+	NCS_SERVICE_MQA_SUB_ID_MAX
 } NCS_SERVICE_MQA_SUB_ID;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -57,7 +54,6 @@ typedef enum
                         Memory Allocation and Release Macros 
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
-
 
 #define m_MMGR_ALLOC_MQA_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
                                                 mem_size, \
@@ -69,7 +65,6 @@ typedef enum
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_MQA, \
                                                 NCS_SERVICE_MQA_SUB_ID_MQA_DEFAULT_VAL)
-
 
 #define m_MMGR_ALLOC_MQA_CLIENT_INFO                     (MQA_CLIENT_INFO*)m_NCS_MEM_ALLOC(sizeof(MQA_CLIENT_INFO), \
                                                 NCS_MEM_REGION_PERSISTENT, \
@@ -121,7 +116,6 @@ typedef enum
                                                 NCS_SERVICE_ID_MQA, \
                                                 NCS_SERVICE_MQA_SUB_ID_MQA_SENDERID_INFO)
 
-
 #define m_MMGR_ALLOC_MQP_ASYNC_RSP_MSG          (MQP_ASYNC_RSP_MSG *)m_NCS_MEM_ALLOC(sizeof(MQP_ASYNC_RSP_MSG), \
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_MQA, \
@@ -133,7 +127,6 @@ typedef enum
                                                 NCS_SERVICE_MQA_SUB_ID_MQA_PEND_CALLBK)
 
 #define m_MMGR_ALLOC_MQA_EVT                    m_MMGR_ALLOC_MQSV_EVT(NCS_SERVICE_ID_MQA)
-                                                
 
 #define m_MMGR_FREE_MQA_EVT(p)                  if (p) m_MMGR_FREE_MQSV_EVT(p, NCS_SERVICE_ID_MQA)
 
@@ -177,5 +170,4 @@ typedef enum
                                                 NCS_SERVICE_ID_MQA, \
                                                 NCS_SERVICE_MQA_SUB_ID_MQA_MQP_OPEN_RSP)
 
-
-#endif /* !MQA_MEM_H */
+#endif   /* !MQA_MEM_H */

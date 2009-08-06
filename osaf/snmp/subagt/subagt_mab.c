@@ -47,50 +47,40 @@
 #include "subagt_mab.h"
 
 /* Globals and static function 
-used only in this file - only for Logging */ 
-typedef struct snmpsa_log_tbl_info
-{ 
-    uns32   req_type; 
-    uns32   table;
-}SNMPSA_LOG_TBL_INFO; 
+used only in this file - only for Logging */
+typedef struct snmpsa_log_tbl_info {
+	uns32 req_type;
+	uns32 table;
+} SNMPSA_LOG_TBL_INFO;
 
+typedef struct snmpsa_log_param_info {
+	uns32 param_id;
+	uns32 fmt_id;
+	uns32 i_len;
+	uns32 status;
+} SNMPSA_LOG_PARAM_INFO;
 
-typedef struct snmpsa_log_param_info
-{ 
-   uns32 param_id; 
-   uns32 fmt_id; 
-   uns32 i_len; 
-   uns32   status; 
-}SNMPSA_LOG_PARAM_INFO; 
+typedef struct snmpsa_log_octet_info {
+	uns8 *octet_info;
+} SNMPSA_LOG_OCTETS;
 
-typedef struct snmpsa_log_octet_info
-{ 
-      uns8* octet_info; 
-}SNMPSA_LOG_OCTETS; 
+typedef struct snmpsa_log_int_info {
+	uns32 int_info;
+} SNMPSA_LOG_INT_INFO;
 
-typedef struct snmpsa_log_int_info
-{
-       uns32 int_info; 
-}SNMPSA_LOG_INT_INFO; 
- 
-static void snmpsa_log_ncsmib_arg(NCSMIB_ARG *mib_arg); 
+static void snmpsa_log_ncsmib_arg(NCSMIB_ARG *mib_arg);
 
 static uns32
-snmpsubagt_mab_getnext_column_process(NCSMIB_ARG        *io_mib_arg, 
-                                      NCSMEM_AID        *ma, 
-                                      uns8              *space, 
-                                      uns32             space_size,
-                                      uns32             i_time_val,
-                                      uns32             i_tbl_id, 
-                                      uns32             cur_column, 
-                                      struct variable   *obj_details, 
-                                      uns32             num_of_objs,
-                                      NCS_BOOL          is_sparse_table); 
+snmpsubagt_mab_getnext_column_process(NCSMIB_ARG *io_mib_arg,
+				      NCSMEM_AID *ma,
+				      uns8 *space,
+				      uns32 space_size,
+				      uns32 i_time_val,
+				      uns32 i_tbl_id,
+				      uns32 cur_column,
+				      struct variable *obj_details, uns32 num_of_objs, NCS_BOOL is_sparse_table);
 
-static uns32
-snmpsubagt_mab_getnext_column(uns32             cur_column, 
-                              struct variable   *obj_details, 
-                              uns32             num_objs);
+static uns32 snmpsubagt_mab_getnext_column(uns32 cur_column, struct variable *obj_details, uns32 num_objs);
 
 /******************************************************************************
  *  Name:          snmpsubagt_mab_mib_param_fill
@@ -107,89 +97,79 @@ snmpsubagt_mab_getnext_column(uns32             cur_column,
  *  NOTE: 
  *****************************************************************************/
 uns32
-snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
-                            NCSMIB_PARAM_ID     i_param_id, 
-                            uns32               i_param_type,
-                            void                *i_set_val, 
-                            uns32               i_set_val_len, 
-                            uns8                *counter64_in_octs)
+snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL *io_param_val,
+			      NCSMIB_PARAM_ID i_param_id,
+			      uns32 i_param_type, void *i_set_val, uns32 i_set_val_len, uns8 *counter64_in_octs)
 {
-    uns32 status  = NCSCC_RC_SUCCESS;
-    long long   llong = 0; 
-    U64         *pCounter64 = NULL;  
-    
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_PARAM_FILL);
+	uns32 status = NCSCC_RC_SUCCESS;
+	long long llong = 0;
+	U64 *pCounter64 = NULL;
 
-    if (io_param_val == NULL)
-    {
-        /* log the error */
-        return NCSCC_RC_FAILURE; 
-    }
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_PARAM_FILL);
 
-    /* update the param id */
-    io_param_val->i_param_id = i_param_id;
+	if (io_param_val == NULL) {
+		/* log the error */
+		return NCSCC_RC_FAILURE;
+	}
 
-    /* update the format id */
-    io_param_val->i_fmat_id  = snmpsubagt_mab_param_type_get(i_param_type);
+	/* update the param id */
+	io_param_val->i_param_id = i_param_id;
 
-    /* update the length */
-    io_param_val->i_length = i_set_val_len;
+	/* update the format id */
+	io_param_val->i_fmat_id = snmpsubagt_mab_param_type_get(i_param_type);
 
-    /* update the value */
-    switch(io_param_val->i_fmat_id)
-    {
-        /* add all the other formats like OID, COUNTER64  */
-        case NCSMIB_FMAT_INT:
-            io_param_val->info.i_int = *((uns32*)(i_set_val));
-            break;
+	/* update the length */
+	io_param_val->i_length = i_set_val_len;
 
-        case NCSMIB_FMAT_OCT:
-            if (i_param_type == ASN_COUNTER64)
-            {
-                /* convert the given long long into octet string */
-                pCounter64 = (U64*)(i_set_val);
-                llong = pCounter64->high;
-                llong = ((llong << 32)|(pCounter64->low));
-                m_NCS_OS_HTONLL_P(counter64_in_octs, llong); 
-                io_param_val->info.i_oct =  counter64_in_octs; 
-                io_param_val->i_length = 8;
-            }
-            else if (i_param_type == ASN_OBJECT_ID)
-            {
-                /* take a temporary array, into which we can buffer the encoded OIDs */ 
-                uns8    oid_in_nw_order[128*4]; 
-                uns8    *temp_oid = oid_in_nw_order;
-                uns32   *temp_oid_str=(uns32*)i_set_val;
-                uns8    *temp_oid_in_nw_order;
-                uns32   i; 
+	/* update the value */
+	switch (io_param_val->i_fmat_id) {
+		/* add all the other formats like OID, COUNTER64  */
+	case NCSMIB_FMAT_INT:
+		io_param_val->info.i_int = *((uns32 *)(i_set_val));
+		break;
 
-                temp_oid_in_nw_order = malloc(i_set_val_len); 
-                if (temp_oid_in_nw_order == NULL)
-                    return NCSCC_RC_OUT_OF_MEM;
+	case NCSMIB_FMAT_OCT:
+		if (i_param_type == ASN_COUNTER64) {
+			/* convert the given long long into octet string */
+			pCounter64 = (U64 *)(i_set_val);
+			llong = pCounter64->high;
+			llong = ((llong << 32) | (pCounter64->low));
+			m_NCS_OS_HTONLL_P(counter64_in_octs, llong);
+			io_param_val->info.i_oct = counter64_in_octs;
+			io_param_val->i_length = 8;
+		} else if (i_param_type == ASN_OBJECT_ID) {
+			/* take a temporary array, into which we can buffer the encoded OIDs */
+			uns8 oid_in_nw_order[128 * 4];
+			uns8 *temp_oid = oid_in_nw_order;
+			uns32 *temp_oid_str = (uns32 *)i_set_val;
+			uns8 *temp_oid_in_nw_order;
+			uns32 i;
 
-                memset(oid_in_nw_order, 0, sizeof(oid_in_nw_order)); 
-                memset(temp_oid_in_nw_order, 0, i_set_val_len); 
+			temp_oid_in_nw_order = malloc(i_set_val_len);
+			if (temp_oid_in_nw_order == NULL)
+				return NCSCC_RC_OUT_OF_MEM;
 
-                /* encode the data in network order */ 
-                for (i=0; i<(i_set_val_len/4); i++)
-                    ncs_encode_32bit(&temp_oid, temp_oid_str[i]);
+			memset(oid_in_nw_order, 0, sizeof(oid_in_nw_order));
+			memset(temp_oid_in_nw_order, 0, i_set_val_len);
 
-                memcpy(temp_oid_in_nw_order, oid_in_nw_order, i_set_val_len);     
-                io_param_val->info.i_oct = temp_oid_in_nw_order;
-            }
-            else
-            {
-                 io_param_val->info.i_oct = (uns8*)(i_set_val);
-            }
-            break;
+			/* encode the data in network order */
+			for (i = 0; i < (i_set_val_len / 4); i++)
+				ncs_encode_32bit(&temp_oid, temp_oid_str[i]);
 
-        default:
-           status = NCSCC_RC_FAILURE;
-           break;
-    }
-    
-    return status;
+			memcpy(temp_oid_in_nw_order, oid_in_nw_order, i_set_val_len);
+			io_param_val->info.i_oct = temp_oid_in_nw_order;
+		} else {
+			io_param_val->info.i_oct = (uns8 *)(i_set_val);
+		}
+		break;
+
+	default:
+		status = NCSCC_RC_FAILURE;
+		break;
+	}
+
+	return status;
 }
 
 /******************************************************************************
@@ -216,106 +196,94 @@ snmpsubagt_mab_mib_param_fill(NCSMIB_PARAM_VAL  *io_param_val,
  *****************************************************************************/
 /* Function to send the message to MAC */
 uns32
-snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
-                           uns32        i_table_id,
-                           uns32        *i_inst,
-                           uns32        i_inst_len,
-                           uns32        i_param_id, 
-                           uns32        i_param_type,
-                           uns32        i_req_type,
-                           void         *i_set_val, 
-                           uns32        i_set_val_len,
-                           uns32        i_time_val,
-                           NCSMEM_AID   *ma, 
-                           uns8         *space, 
-                           uns32        space_size,
-                           struct       variable *obj_details, 
-                           uns32        obj_count,
-                           NCS_BOOL     is_sparse_table)
+snmpsubagt_mab_mac_msg_send(NCSMIB_ARG *io_mib_arg,
+			    uns32 i_table_id,
+			    uns32 *i_inst,
+			    uns32 i_inst_len,
+			    uns32 i_param_id,
+			    uns32 i_param_type,
+			    uns32 i_req_type,
+			    void *i_set_val,
+			    uns32 i_set_val_len,
+			    uns32 i_time_val,
+			    NCSMEM_AID *ma,
+			    uns8 *space,
+			    uns32 space_size, struct variable *obj_details, uns32 obj_count, NCS_BOOL is_sparse_table)
 {
-    uns32       status = NCSCC_RC_SUCCESS;
-    uns8        counter64_in_octs[I64CHARSZ+1] = {0};  /* I64CHARSZ, defined in net-snmp package */
-    uns8        *temp_oid_ptr = NULL;
+	uns32 status = NCSCC_RC_SUCCESS;
+	uns8 counter64_in_octs[I64CHARSZ + 1] = { 0 };	/* I64CHARSZ, defined in net-snmp package */
+	uns8 *temp_oid_ptr = NULL;
 
-    /* Log the Function Entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_MAB_MAC_MSG_SEND);
+	/* Log the Function Entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_MAB_MAC_MSG_SEND);
 
-    /* validate the inputs */
-    if (io_mib_arg == NULL)
-    {
-        return NCSCC_RC_FAILURE; 
-    }
+	/* validate the inputs */
+	if (io_mib_arg == NULL) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    /* set the NCSMIB_ARG */
-    memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));
-    ncsmib_init(io_mib_arg);
+	/* set the NCSMIB_ARG */
+	memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));
+	ncsmib_init(io_mib_arg);
 
-    /* Fill in the NCSMIB_ARG */
-    io_mib_arg->i_op = i_req_type;
-    io_mib_arg->i_tbl_id = i_table_id;
-    io_mib_arg->i_rsp_fnc = NULL;
-    io_mib_arg->i_idx.i_inst_ids = i_inst;
-    io_mib_arg->i_idx.i_inst_len = i_inst_len;
+	/* Fill in the NCSMIB_ARG */
+	io_mib_arg->i_op = i_req_type;
+	io_mib_arg->i_tbl_id = i_table_id;
+	io_mib_arg->i_rsp_fnc = NULL;
+	io_mib_arg->i_idx.i_inst_ids = i_inst;
+	io_mib_arg->i_idx.i_inst_len = i_inst_len;
 
-    /* set the param details based on the type of the request */
-    switch(i_req_type)
-    {
-        case NCSMIB_OP_REQ_GET:
-               io_mib_arg->req.info.get_req.i_param_id = i_param_id;
-               break;
-        case NCSMIB_OP_REQ_NEXT:
-               io_mib_arg->req.info.next_req.i_param_id = i_param_id;
-               break;
-        case NCSMIB_OP_REQ_SET:
-        case NCSMIB_OP_REQ_TEST:
-               /* update the param */
-               status = snmpsubagt_mab_mib_param_fill(
-                       &io_mib_arg->req.info.set_req.i_param_val,
-                       i_param_id,
-                       i_param_type,
-                       i_set_val, i_set_val_len,counter64_in_octs);
-               if (status != NCSCC_RC_SUCCESS)
-                   return status; 
-               if (i_param_type == ASN_OBJECT_ID)
-               {
-                  /* set the address of the temporary pointer to be freed */
-                  temp_oid_ptr = (uns8 *)io_mib_arg->req.info.set_req.i_param_val.info.i_oct;
-               }
-               break;
-        default:
-            return NCSCC_RC_FAILURE;
-    }
+	/* set the param details based on the type of the request */
+	switch (i_req_type) {
+	case NCSMIB_OP_REQ_GET:
+		io_mib_arg->req.info.get_req.i_param_id = i_param_id;
+		break;
+	case NCSMIB_OP_REQ_NEXT:
+		io_mib_arg->req.info.next_req.i_param_id = i_param_id;
+		break;
+	case NCSMIB_OP_REQ_SET:
+	case NCSMIB_OP_REQ_TEST:
+		/* update the param */
+		status = snmpsubagt_mab_mib_param_fill(&io_mib_arg->req.info.set_req.i_param_val,
+						       i_param_id,
+						       i_param_type, i_set_val, i_set_val_len, counter64_in_octs);
+		if (status != NCSCC_RC_SUCCESS)
+			return status;
+		if (i_param_type == ASN_OBJECT_ID) {
+			/* set the address of the temporary pointer to be freed */
+			temp_oid_ptr = (uns8 *)io_mib_arg->req.info.set_req.i_param_val.info.i_oct;
+		}
+		break;
+	default:
+		return NCSCC_RC_FAILURE;
+	}
 
-    /* send the request to MAB */
-    /* Fill in the Key  */
-    io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET; 
-    io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET; 
+	/* send the request to MAB */
+	/* Fill in the Key  */
+	io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET;
+	io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET;
 
+	/* LOG MIBARG Data */
+	snmpsa_log_ncsmib_arg(io_mib_arg);
+	status = ncsmib_sync_request(io_mib_arg, ncsmac_mib_request, i_time_val, ma);
+	/* after processing the request, free the memory */
+	if (temp_oid_ptr != NULL) {
+		free(temp_oid_ptr);
+		temp_oid_ptr = NULL;
+	}
 
-    /* LOG MIBARG Data */ 
-    snmpsa_log_ncsmib_arg(io_mib_arg); 
-    status = ncsmib_sync_request(io_mib_arg, 
-                                ncsmac_mib_request, 
-                                i_time_val, ma);
-    /* after processing the request, free the memory */
-    if (temp_oid_ptr != NULL)
-    {
-       free(temp_oid_ptr);
-       temp_oid_ptr = NULL;
-    }
-    
-    /* LOG MIBARG Data after receiving response. */ 
-    snmpsa_log_ncsmib_arg(io_mib_arg); 
+	/* LOG MIBARG Data after receiving response. */
+	snmpsa_log_ncsmib_arg(io_mib_arg);
 
-    if ((status == NCSCC_RC_SUCCESS) &&
-        (i_req_type == NCSMIB_OP_REQ_NEXT) && 
-        ((io_mib_arg->rsp.i_status == NCSCC_RC_NO_INSTANCE) || (io_mib_arg->rsp.i_status == NCSCC_RC_FAILURE)))
-    {
-         status = snmpsubagt_mab_getnext_column_process(io_mib_arg, ma, space, space_size, i_time_val, 
-                                                i_table_id, i_param_id, obj_details,obj_count,is_sparse_table);
-    }
-   
-    return status;
+	if ((status == NCSCC_RC_SUCCESS) &&
+	    (i_req_type == NCSMIB_OP_REQ_NEXT) &&
+	    ((io_mib_arg->rsp.i_status == NCSCC_RC_NO_INSTANCE) || (io_mib_arg->rsp.i_status == NCSCC_RC_FAILURE))) {
+		status = snmpsubagt_mab_getnext_column_process(io_mib_arg, ma, space, space_size, i_time_val,
+							       i_table_id, i_param_id, obj_details, obj_count,
+							       is_sparse_table);
+	}
+
+	return status;
 }
 
 /******************************************************************************
@@ -332,47 +300,45 @@ snmpsubagt_mab_mac_msg_send(NCSMIB_ARG   *io_mib_arg,
                                         0 is returned
  *  NOTE: 
  *****************************************************************************/
-NCSMIB_FMAT_ID
-snmpsubagt_mab_param_type_get(uns32 i_param_type)
+NCSMIB_FMAT_ID snmpsubagt_mab_param_type_get(uns32 i_param_type)
 {
-    NCSMIB_FMAT_ID   mab_param_type;
+	NCSMIB_FMAT_ID mab_param_type;
 
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_PARAM_TYPE_GET);
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_PARAM_TYPE_GET);
 
-    /* get the appropriate MAB supported type */
-    switch(i_param_type)
-    {
-        case ASN_BOOLEAN:
-        /* Universal Integer based types */
-        case ASN_INTEGER:
-        /* Application Integer based types */
-        case ASN_COUNTER:
-        case ASN_GAUGE:
-        /*case ASN_UNSIGNED: */ /* same as of GAUGE */
-        case ASN_TIMETICKS:
-            mab_param_type = NCSMIB_FMAT_INT;
-            break;
-        /* Universal types */
-        case ASN_OCTET_STR:
-        case ASN_BIT_STR:
-        case ASN_OBJECT_ID:
-        /* Application types */
-        case ASN_IPADDRESS:
-        case ASN_OPAQUE:
-            mab_param_type = NCSMIB_FMAT_OCT;
-            break;
+	/* get the appropriate MAB supported type */
+	switch (i_param_type) {
+	case ASN_BOOLEAN:
+		/* Universal Integer based types */
+	case ASN_INTEGER:
+		/* Application Integer based types */
+	case ASN_COUNTER:
+	case ASN_GAUGE:
+		/*case ASN_UNSIGNED: */	/* same as of GAUGE */
+	case ASN_TIMETICKS:
+		mab_param_type = NCSMIB_FMAT_INT;
+		break;
+		/* Universal types */
+	case ASN_OCTET_STR:
+	case ASN_BIT_STR:
+	case ASN_OBJECT_ID:
+		/* Application types */
+	case ASN_IPADDRESS:
+	case ASN_OPAQUE:
+		mab_param_type = NCSMIB_FMAT_OCT;
+		break;
 
-        case ASN_COUNTER64:
-            mab_param_type = NCSMIB_FMAT_OCT;
-            break;
-        
-        default:
-            /* Log that, this type is not supported in the MAB */
-                mab_param_type = 0;
-                break;
-    }
-    return mab_param_type;
+	case ASN_COUNTER64:
+		mab_param_type = NCSMIB_FMAT_OCT;
+		break;
+
+	default:
+		/* Log that, this type is not supported in the MAB */
+		mab_param_type = 0;
+		break;
+	}
+	return mab_param_type;
 }
 
 /******************************************************************************
@@ -392,63 +358,52 @@ snmpsubagt_mab_param_type_get(uns32 i_param_type)
  *  NOTE: This API is used in case of old_api helper of NET-SNMP only. 
  *****************************************************************************/
 uns32
-snmpsubagt_mab_index_extract(oid    *i_name,
-                            uns32   i_name_len,
-                            oid     *base_oid,
-                            uns32   base_oid_len,
-                            uns32   *o_instance,
-                            uns32   *o_instance_len)
+snmpsubagt_mab_index_extract(oid *i_name,
+			     uns32 i_name_len,
+			     oid *base_oid, uns32 base_oid_len, uns32 *o_instance, uns32 *o_instance_len)
 {
-    int32 i=0;
+	int32 i = 0;
 
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_INDEX_EXTRACT);
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_INDEX_EXTRACT);
 
-    /* do the inut and output validations */
-    if ((i_name == NULL) ||
-        (i_name_len == 0) ||
-        (base_oid == NULL) ||
-        (base_oid_len == 0) ||
-        (o_instance == NULL) ||
-        (o_instance_len == 0))
-    {
-        return NCSCC_RC_FAILURE; 
-    }
+	/* do the inut and output validations */
+	if ((i_name == NULL) ||
+	    (i_name_len == 0) ||
+	    (base_oid == NULL) || (base_oid_len == 0) || (o_instance == NULL) || (o_instance_len == 0)) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    /* compare whether the base-oid is matching in the 
-     * user given name(oid)
-     */
-    if (base_oid_len > i_name_len)
-    {
-        /* there will be nothing to extract */
-        return NCSCC_RC_SUCCESS; 
-    }
+	/* compare whether the base-oid is matching in the 
+	 * user given name(oid)
+	 */
+	if (base_oid_len > i_name_len) {
+		/* there will be nothing to extract */
+		return NCSCC_RC_SUCCESS;
+	}
 
-    for (i=0; i<base_oid_len; i++)
-    {
-        if (i_name[i] != base_oid[i])
-        {
-            *o_instance = 0; 
-            *o_instance_len = 0; 
-            return NCSCC_RC_SUCCESS; 
-        }
-    }
+	for (i = 0; i < base_oid_len; i++) {
+		if (i_name[i] != base_oid[i]) {
+			*o_instance = 0;
+			*o_instance_len = 0;
+			return NCSCC_RC_SUCCESS;
+		}
+	}
 
-    /* initialize the instance and length to 0 */
-    *o_instance = 0; 
-    *o_instance_len = 0; 
+	/* initialize the instance and length to 0 */
+	*o_instance = 0;
+	*o_instance_len = 0;
 
-    /* get rid of the base oid, extract the instance from rmaining oid */
-    for (i=0; i < (int32)(i_name_len - (base_oid_len + 1)); i++)
-    {
-        /* extract the instance from oid; skip the column id */
-        o_instance[i] = i_name[base_oid_len+i+1];
-    }
-    
-    /* set the instance length */
-    *o_instance_len = (uns32)i;
+	/* get rid of the base oid, extract the instance from rmaining oid */
+	for (i = 0; i < (int32)(i_name_len - (base_oid_len + 1)); i++) {
+		/* extract the instance from oid; skip the column id */
+		o_instance[i] = i_name[base_oid_len + i + 1];
+	}
 
-    return NCSCC_RC_SUCCESS;
+	/* set the instance length */
+	*o_instance_len = (uns32)i;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /******************************************************************************
@@ -466,77 +421,66 @@ snmpsubagt_mab_index_extract(oid    *i_name,
  *                 NCSCC_RC_FAILURE   -  failure
  *  NOTE: 
  *****************************************************************************/
-uns32    
-snmpsubagt_mab_oid_compose(oid             *io_oid,
-                        size_t             *io_oid_length, 
-                        oid                *i_base_oid, 
-                        uns32             i_base_oid_len, 
-                        NCSMIB_NEXT_RSP    *i_next_rsp)
+uns32
+snmpsubagt_mab_oid_compose(oid *io_oid,
+			   size_t *io_oid_length, oid *i_base_oid, uns32 i_base_oid_len, NCSMIB_NEXT_RSP *i_next_rsp)
 {
-    uns32    i = 0; 
-    uns32   new_inst_len = 0;
-    uns32   inst_len = 0;
+	uns32 i = 0;
+	uns32 new_inst_len = 0;
+	uns32 inst_len = 0;
 
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_OID_COMPOSE); 
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_OID_COMPOSE);
 
-    /* input validation */
-    if ((io_oid == NULL) ||
-        (io_oid_length == NULL) ||
-        (i_next_rsp == NULL))
-    {
-        return NCSCC_RC_FAILURE; 
-    }
+	/* input validation */
+	if ((io_oid == NULL) || (io_oid_length == NULL) || (i_next_rsp == NULL)) {
+		return NCSCC_RC_FAILURE;
+	}
 
-    if (i_next_rsp->i_next.i_inst_len == 0)
-    {
-        inst_len = 1; 
-    }
-    else
-    {
-        inst_len = i_next_rsp->i_next.i_inst_len; 
-    }
+	if (i_next_rsp->i_next.i_inst_len == 0) {
+		inst_len = 1;
+	} else {
+		inst_len = i_next_rsp->i_next.i_inst_len;
+	}
 
-    /* Get the new instance length */
-    new_inst_len = (i_base_oid_len + 1 + inst_len);
+	/* Get the new instance length */
+	new_inst_len = (i_base_oid_len + 1 + inst_len);
 
-    /* for re-allocation for the new index */
-    if (new_inst_len > MAX_OID_LEN)    
-    {
-        /* if the user given OID's length is less than MAX_OID_LEN, io_oid is an array.  
-         * No reallocation can be done in this case. 
-         * For more information on this, please refer to the snmp_set_var_objid() definition 
-         * in snmp_api.c file
-         */ 
-        /* log a headline for this specific case */
-        return NCSCC_RC_OUT_OF_MEM; 
-    }    
+	/* for re-allocation for the new index */
+	if (new_inst_len > MAX_OID_LEN) {
+		/* if the user given OID's length is less than MAX_OID_LEN, io_oid is an array.  
+		 * No reallocation can be done in this case. 
+		 * For more information on this, please refer to the snmp_set_var_objid() definition 
+		 * in snmp_api.c file
+		 */
+		/* log a headline for this specific case */
+		return NCSCC_RC_OUT_OF_MEM;
+	}
 
-    /* modify the ioutput length if it is not same */
-    *io_oid_length = new_inst_len;
+	/* modify the ioutput length if it is not same */
+	*io_oid_length = new_inst_len;
 
-    memset(io_oid, 0, (*io_oid_length)*(sizeof(oid)));
-    
-    /* we have enough memory, compose the new instance */
-    memcpy(io_oid, i_base_oid, i_base_oid_len*sizeof(oid));
-    
-    /* 1. Move to update the column id */
-    io_oid = io_oid+i_base_oid_len/*+1*/;
-    
-    /* 2. Append the Column id */
-    *io_oid = (oid)i_next_rsp->i_param_val.i_param_id;
-    io_oid++;
+	memset(io_oid, 0, (*io_oid_length) * (sizeof(oid)));
 
-    /* 3. update the instance */
-    *io_oid = 0; 
-    for(i = 0; i < i_next_rsp->i_next.i_inst_len; i++)
-    {
-        *io_oid = (oid)(*(i_next_rsp->i_next.i_inst_ids));
-        io_oid++; 
-        i_next_rsp->i_next.i_inst_ids++;
-    }
-    /* Everything went fine */
-    return NCSCC_RC_SUCCESS; 
+	/* we have enough memory, compose the new instance */
+	memcpy(io_oid, i_base_oid, i_base_oid_len * sizeof(oid));
+
+	/* 1. Move to update the column id */
+	io_oid = io_oid + i_base_oid_len /*+1 */ ;
+
+	/* 2. Append the Column id */
+	*io_oid = (oid)i_next_rsp->i_param_val.i_param_id;
+	io_oid++;
+
+	/* 3. update the instance */
+	*io_oid = 0;
+	for (i = 0; i < i_next_rsp->i_next.i_inst_len; i++) {
+		*io_oid = (oid)(*(i_next_rsp->i_next.i_inst_ids));
+		io_oid++;
+		i_next_rsp->i_next.i_inst_ids++;
+	}
+	/* Everything went fine */
+	return NCSCC_RC_SUCCESS;
 }
 
 /******************************************************************************
@@ -553,84 +497,70 @@ snmpsubagt_mab_oid_compose(oid             *io_oid,
  *                  NULL            - Something went wrong
  *  NOTE: 
  *****************************************************************************/
-unsigned char*
-snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL    *i_rsp_param_val, 
-                            size_t              *io_var_len, 
-                            uns32               i_param_type)
+unsigned char *snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL *i_rsp_param_val,
+						  size_t *io_var_len, uns32 i_param_type)
 {
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_RESP_PROCESS);
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_RESP_PROCESS);
 
-    /* validate the input parameters */ 
-    if ((i_rsp_param_val == NULL) ||
-        (io_var_len == NULL))
-    {
-        return NULL;
-    }
-    
-    /* fill in the response, based on the type of Object */
-    switch(i_rsp_param_val->i_fmat_id)
-    {
-        /* Extend the other format ids  */
-        /* return the address of a global variable, danger */
-        case NCSMIB_FMAT_INT:
-        case NCSMIB_FMAT_BOOL:
-            if (i_rsp_param_val->i_length == 0)
-            {
-                /* All the applications may not fill this value
-                 * If this value is not filled, NET-SNMP library
-                 * does not know how many bytes to read 
-                 */    
-                *io_var_len = 4; 
-            }
-            else
-            {
-                *io_var_len = i_rsp_param_val->i_length;
-            }
-            return (unsigned char *) &(i_rsp_param_val->info.i_int);
-            
-        case NCSMIB_FMAT_OCT:
-            if (i_param_type == ASN_COUNTER64)
-            {
-                long long llong = 0;
-                *io_var_len = sizeof(g_counter64);
-                
-                /* convert the data into 64 bit value */
-                memset(&g_counter64, 0, sizeof(g_counter64));
-                llong = m_NCS_OS_NTOHLL_P(i_rsp_param_val->info.i_oct);
-                g_counter64.low = (u_long)(llong)&(0xFFFFFFFF);
-                g_counter64.high = (u_long)(llong>>32)&(0xFFFFFFFF);
-                return(unsigned char *)(&g_counter64);
-            }
-            else if (i_param_type == ASN_OBJECT_ID)
-            {
-                uns8    *temp; 
-                uns32   *p_int; 
-                uns32   i; 
+	/* validate the input parameters */
+	if ((i_rsp_param_val == NULL) || (io_var_len == NULL)) {
+		return NULL;
+	}
 
-                temp = (uns8 *)i_rsp_param_val->info.i_oct; 
-                p_int = (uns32*)i_rsp_param_val->info.i_oct; 
+	/* fill in the response, based on the type of Object */
+	switch (i_rsp_param_val->i_fmat_id) {
+		/* Extend the other format ids  */
+		/* return the address of a global variable, danger */
+	case NCSMIB_FMAT_INT:
+	case NCSMIB_FMAT_BOOL:
+		if (i_rsp_param_val->i_length == 0) {
+			/* All the applications may not fill this value
+			 * If this value is not filled, NET-SNMP library
+			 * does not know how many bytes to read 
+			 */
+			*io_var_len = 4;
+		} else {
+			*io_var_len = i_rsp_param_val->i_length;
+		}
+		return (unsigned char *)&(i_rsp_param_val->info.i_int);
 
-                /* put in the host order */ 
-                for (i = 0; i<(i_rsp_param_val->i_length/4); i++)
-                    p_int[i] = ncs_decode_32bit(&temp);
+	case NCSMIB_FMAT_OCT:
+		if (i_param_type == ASN_COUNTER64) {
+			long long llong = 0;
+			*io_var_len = sizeof(g_counter64);
 
-                *io_var_len = i_rsp_param_val->i_length;
-                return (unsigned char *) (i_rsp_param_val->info.i_oct);
-            }
-            else
-            {
-                *io_var_len = i_rsp_param_val->i_length;
-                return (unsigned char *) (i_rsp_param_val->info.i_oct);
-            }
-            break;
-            
-        default:
-        break;
-    }
-    return (unsigned char *)NULL;
+			/* convert the data into 64 bit value */
+			memset(&g_counter64, 0, sizeof(g_counter64));
+			llong = m_NCS_OS_NTOHLL_P(i_rsp_param_val->info.i_oct);
+			g_counter64.low = (u_long)(llong) & (0xFFFFFFFF);
+			g_counter64.high = (u_long)(llong >> 32) & (0xFFFFFFFF);
+			return (unsigned char *)(&g_counter64);
+		} else if (i_param_type == ASN_OBJECT_ID) {
+			uns8 *temp;
+			uns32 *p_int;
+			uns32 i;
+
+			temp = (uns8 *)i_rsp_param_val->info.i_oct;
+			p_int = (uns32 *)i_rsp_param_val->info.i_oct;
+
+			/* put in the host order */
+			for (i = 0; i < (i_rsp_param_val->i_length / 4); i++)
+				p_int[i] = ncs_decode_32bit(&temp);
+
+			*io_var_len = i_rsp_param_val->i_length;
+			return (unsigned char *)(i_rsp_param_val->info.i_oct);
+		} else {
+			*io_var_len = i_rsp_param_val->i_length;
+			return (unsigned char *)(i_rsp_param_val->info.i_oct);
+		}
+		break;
+
+	default:
+		break;
+	}
+	return (unsigned char *)NULL;
 }
-
 
 /******************************************************************************
  *  Name:           snmpsa_log_ncsmibarg 
@@ -646,123 +576,114 @@ snmpsubagt_mab_mibarg_resp_process(NCSMIB_PARAM_VAL    *i_rsp_param_val,
  *  NOTE: 
  *****************************************************************************/
 
-static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
+static void snmpsa_log_ncsmib_arg(NCSMIB_ARG *io_mib_arg)
 {
-        NCSFL_MEM              log_mem_dump; 
-        SNMPSA_LOG_TBL_INFO    tbl_info; 
-        SNMPSA_LOG_PARAM_INFO  param_info; 
-        SNMPSA_LOG_OCTETS      oct_info; 
-        SNMPSA_LOG_INT_INFO    int_info;
-        NCSMIB_PARAM_VAL       l_param_val;
-        
+	NCSFL_MEM log_mem_dump;
+	SNMPSA_LOG_TBL_INFO tbl_info;
+	SNMPSA_LOG_PARAM_INFO param_info;
+	SNMPSA_LOG_OCTETS oct_info;
+	SNMPSA_LOG_INT_INFO int_info;
+	NCSMIB_PARAM_VAL l_param_val;
 
-        memset(&tbl_info, 0, sizeof(SNMPSA_LOG_TBL_INFO));  
-        memset(&param_info, 0, sizeof(SNMPSA_LOG_PARAM_INFO)); 
-        memset(&log_mem_dump,   0, sizeof(NCSFL_MEM));
-        memset(&oct_info,       0, sizeof(SNMPSA_LOG_OCTETS));
-        memset(&int_info,       0, sizeof(SNMPSA_LOG_INT_INFO));
-        memset(&l_param_val,    0, sizeof(NCSMIB_PARAM_VAL)); 
+	memset(&tbl_info, 0, sizeof(SNMPSA_LOG_TBL_INFO));
+	memset(&param_info, 0, sizeof(SNMPSA_LOG_PARAM_INFO));
+	memset(&log_mem_dump, 0, sizeof(NCSFL_MEM));
+	memset(&oct_info, 0, sizeof(SNMPSA_LOG_OCTETS));
+	memset(&int_info, 0, sizeof(SNMPSA_LOG_INT_INFO));
+	memset(&l_param_val, 0, sizeof(NCSMIB_PARAM_VAL));
 
-        /* LOG Table and Object Data */ 
-        tbl_info.req_type = io_mib_arg->i_op; 
-        tbl_info.table    = io_mib_arg->i_tbl_id; 
-        log_mem_dump.len  = sizeof(SNMPSA_LOG_TBL_INFO); 
-        log_mem_dump.dump = log_mem_dump.addr = (char *)&tbl_info;   
-        m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_TBL_DUMP, log_mem_dump);
-  
-        /* LOG Instance Ids */ 
-        if (io_mib_arg->i_idx.i_inst_len != 0) 
-        {
-            memset(&log_mem_dump, 0, sizeof(log_mem_dump));  
-            if (io_mib_arg->i_op == NCSMIB_OP_RSP_NEXT)
-            {
-               log_mem_dump.len = (io_mib_arg->rsp.info.next_rsp.i_next.i_inst_len)*sizeof(uns32);  
-               log_mem_dump.dump = log_mem_dump.addr = (char *)io_mib_arg->rsp.info.next_rsp.i_next.i_inst_ids;  
-            }
-            else
-            {
-               log_mem_dump.len = (io_mib_arg->i_idx.i_inst_len)*sizeof(uns32);  
-               log_mem_dump.dump = log_mem_dump.addr = (char *)io_mib_arg->i_idx.i_inst_ids;  
-            }
-            m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
-        }
+	/* LOG Table and Object Data */
+	tbl_info.req_type = io_mib_arg->i_op;
+	tbl_info.table = io_mib_arg->i_tbl_id;
+	log_mem_dump.len = sizeof(SNMPSA_LOG_TBL_INFO);
+	log_mem_dump.dump = log_mem_dump.addr = (char *)&tbl_info;
+	m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_TBL_DUMP, log_mem_dump);
 
-        /* LOG parameter id's */ 
-       memset(&log_mem_dump, 0, sizeof(log_mem_dump));
-       switch(io_mib_arg->i_op)
-       {
-          case  NCSMIB_OP_REQ_GET:
-                param_info.param_id = (uns32)io_mib_arg->req.info.get_req.i_param_id;
-          break; 
+	/* LOG Instance Ids */
+	if (io_mib_arg->i_idx.i_inst_len != 0) {
+		memset(&log_mem_dump, 0, sizeof(log_mem_dump));
+		if (io_mib_arg->i_op == NCSMIB_OP_RSP_NEXT) {
+			log_mem_dump.len = (io_mib_arg->rsp.info.next_rsp.i_next.i_inst_len) * sizeof(uns32);
+			log_mem_dump.dump = log_mem_dump.addr = (char *)io_mib_arg->rsp.info.next_rsp.i_next.i_inst_ids;
+		} else {
+			log_mem_dump.len = (io_mib_arg->i_idx.i_inst_len) * sizeof(uns32);
+			log_mem_dump.dump = log_mem_dump.addr = (char *)io_mib_arg->i_idx.i_inst_ids;
+		}
+		m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_INSTID_DUMP, log_mem_dump);
+	}
 
-          case NCSMIB_OP_RSP_GET:
-                param_info.param_id = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_param_id;
-                param_info.fmt_id =(uns32) io_mib_arg->rsp.info.get_rsp.i_param_val.i_fmat_id;
-                param_info.i_len = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_length;  
-                memcpy(&l_param_val, &io_mib_arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
-                param_info.status   = io_mib_arg->rsp.i_status; 
-          break; 
+	/* LOG parameter id's */
+	memset(&log_mem_dump, 0, sizeof(log_mem_dump));
+	switch (io_mib_arg->i_op) {
+	case NCSMIB_OP_REQ_GET:
+		param_info.param_id = (uns32)io_mib_arg->req.info.get_req.i_param_id;
+		break;
 
-          case  NCSMIB_OP_REQ_NEXT:
-                param_info.param_id = (uns32)io_mib_arg->req.info.next_req.i_param_id;
-          break; 
-       
-          case NCSMIB_OP_RSP_NEXT:
-                param_info.param_id = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_param_id;
-                param_info.fmt_id =(uns32) io_mib_arg->rsp.info.next_rsp.i_param_val.i_fmat_id;
-                param_info.i_len = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_length;  
-                memcpy(&l_param_val, &io_mib_arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
-                param_info.status   = io_mib_arg->rsp.i_status; 
-          break; 
- 
-          case  NCSMIB_OP_REQ_SET:
-          case  NCSMIB_OP_REQ_TEST:
-                param_info.param_id = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_param_id;
-                param_info.fmt_id =(uns32) io_mib_arg->req.info.set_req.i_param_val.i_fmat_id;
-                param_info.i_len = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_length;  
-                memcpy(&l_param_val, &io_mib_arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
-          break;
-          
-          case  NCSMIB_OP_RSP_SET:
-          case  NCSMIB_OP_RSP_TEST:
-                param_info.param_id = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_param_id;
-                param_info.fmt_id =(uns32) io_mib_arg->rsp.info.set_rsp.i_param_val.i_fmat_id;
-                param_info.i_len = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_length;  
-                memcpy(&l_param_val, &io_mib_arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
-                param_info.status   = io_mib_arg->rsp.i_status; 
-          break;
-  
-  
-          default:
-                 param_info.param_id = 0xFFFF; /* strange value indicating error */ 
-          break; 
-      }
+	case NCSMIB_OP_RSP_GET:
+		param_info.param_id = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_param_id;
+		param_info.fmt_id = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_fmat_id;
+		param_info.i_len = (uns32)io_mib_arg->rsp.info.get_rsp.i_param_val.i_length;
+		memcpy(&l_param_val, &io_mib_arg->rsp.info.get_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+		param_info.status = io_mib_arg->rsp.i_status;
+		break;
 
-        log_mem_dump.len = sizeof(SNMPSA_LOG_PARAM_INFO);   
-        log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;  
-        m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);
+	case NCSMIB_OP_REQ_NEXT:
+		param_info.param_id = (uns32)io_mib_arg->req.info.next_req.i_param_id;
+		break;
 
-        /* Dump INT param value */ 
+	case NCSMIB_OP_RSP_NEXT:
+		param_info.param_id = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_param_id;
+		param_info.fmt_id = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_fmat_id;
+		param_info.i_len = (uns32)io_mib_arg->rsp.info.next_rsp.i_param_val.i_length;
+		memcpy(&l_param_val, &io_mib_arg->rsp.info.next_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+		param_info.status = io_mib_arg->rsp.i_status;
+		break;
 
-    if (l_param_val.i_fmat_id == NCSMIB_FMAT_INT)
-      {
-        int_info.int_info = (uns32)l_param_val.info.i_int; 
-        log_mem_dump.len = sizeof(SNMPSA_LOG_INT_INFO);   
-        log_mem_dump.dump = log_mem_dump.addr = (char *)&int_info.int_info;  
-        m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_INT_INFO_DUMP, log_mem_dump);
-      } 
-        
-    if (l_param_val.i_fmat_id == NCSMIB_FMAT_OCT)
-    { 
-       oct_info.octet_info = (uns8 *)l_param_val.info.i_oct; 
-       log_mem_dump.len = (uns32)l_param_val.i_length;   
-       log_mem_dump.dump = log_mem_dump.addr = (char *)oct_info.octet_info;  
-       m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_OCT_INFO_DUMP, log_mem_dump);
-    } 
+	case NCSMIB_OP_REQ_SET:
+	case NCSMIB_OP_REQ_TEST:
+		param_info.param_id = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_param_id;
+		param_info.fmt_id = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_fmat_id;
+		param_info.i_len = (uns32)io_mib_arg->req.info.set_req.i_param_val.i_length;
+		memcpy(&l_param_val, &io_mib_arg->req.info.set_req.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+		break;
 
-    return; 
- 
-} 
+	case NCSMIB_OP_RSP_SET:
+	case NCSMIB_OP_RSP_TEST:
+		param_info.param_id = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_param_id;
+		param_info.fmt_id = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_fmat_id;
+		param_info.i_len = (uns32)io_mib_arg->rsp.info.set_rsp.i_param_val.i_length;
+		memcpy(&l_param_val, &io_mib_arg->rsp.info.set_rsp.i_param_val, sizeof(NCSMIB_PARAM_VAL));
+		param_info.status = io_mib_arg->rsp.i_status;
+		break;
+
+	default:
+		param_info.param_id = 0xFFFF;	/* strange value indicating error */
+		break;
+	}
+
+	log_mem_dump.len = sizeof(SNMPSA_LOG_PARAM_INFO);
+	log_mem_dump.dump = log_mem_dump.addr = (char *)&param_info;
+	m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_PARAM_INFO_DUMP, log_mem_dump);
+
+	/* Dump INT param value */
+
+	if (l_param_val.i_fmat_id == NCSMIB_FMAT_INT) {
+		int_info.int_info = (uns32)l_param_val.info.i_int;
+		log_mem_dump.len = sizeof(SNMPSA_LOG_INT_INFO);
+		log_mem_dump.dump = log_mem_dump.addr = (char *)&int_info.int_info;
+		m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_INT_INFO_DUMP, log_mem_dump);
+	}
+
+	if (l_param_val.i_fmat_id == NCSMIB_FMAT_OCT) {
+		oct_info.octet_info = (uns8 *)l_param_val.info.i_oct;
+		log_mem_dump.len = (uns32)l_param_val.i_length;
+		log_mem_dump.dump = log_mem_dump.addr = (char *)oct_info.octet_info;
+		m_SNMPSUBAGT_MEMDUMP_LOG(SNMPSUBAGT_NCSMIB_ARG_OCT_INFO_DUMP, log_mem_dump);
+	}
+
+	return;
+
+}
 
 /*****************************************************************************
  * Function:    snmpsubagt_given_oid_validate
@@ -787,26 +708,22 @@ static void snmpsa_log_ncsmib_arg (NCSMIB_ARG* io_mib_arg)
  ********************************************************************************/
 uns32
 snmpsubagt_given_oid_validate(struct variable *vp,
-               oid * name,
-               size_t * length,
-               int exact, size_t * var_len, WriteMethod ** write_method)
+			      oid *name, size_t *length, int exact, size_t *var_len, WriteMethod **write_method)
 {
-    oid             newname[MAX_OID_LEN];
-    int             result;
+	oid newname[MAX_OID_LEN];
+	int result;
 
-    memcpy((char *) newname, (char *) vp->name,
-           (int) vp->namelen * sizeof(oid));
-    newname[vp->namelen] = 0;
-    result = snmp_oid_compare(name, *length, newname, vp->namelen + 1);
-    if ((exact && (result != 0)) || (!exact && (result >= 0)))
-        return (NCSCC_RC_FAILURE);
-    memcpy((char *) name, (char *) newname,
-           ((int) vp->namelen + 1) * sizeof(oid));
-    *length = vp->namelen + 1;
+	memcpy((char *)newname, (char *)vp->name, (int)vp->namelen * sizeof(oid));
+	newname[vp->namelen] = 0;
+	result = snmp_oid_compare(name, *length, newname, vp->namelen + 1);
+	if ((exact && (result != 0)) || (!exact && (result >= 0)))
+		return (NCSCC_RC_FAILURE);
+	memcpy((char *)name, (char *)newname, ((int)vp->namelen + 1) * sizeof(oid));
+	*length = vp->namelen + 1;
 
-    *write_method = 0;
-    *var_len = sizeof(long);    /* default to 'long' results */
-    return (NCSCC_RC_SUCCESS);
+	*write_method = 0;
+	*var_len = sizeof(long);	/* default to 'long' results */
+	return (NCSCC_RC_SUCCESS);
 }
 
 /*****************************************************************************
@@ -819,73 +736,70 @@ snmpsubagt_given_oid_validate(struct variable *vp,
  *    error             Error code as understood by the NET-SNMP 
  *
  ********************************************************************************/
-unsigned char
-snmpsubagt_mab_error_code_map(uns32 mab_err_code, uns32 req_type)
+unsigned char snmpsubagt_mab_error_code_map(uns32 mab_err_code, uns32 req_type)
 {
-    unsigned char error = SNMP_ERR_NOERROR;   
+	unsigned char error = SNMP_ERR_NOERROR;
 
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_ERROR_CODE_MAP);
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_ERROR_CODE_MAP);
 
-   /* set the error code and return/continue on to the next varbind?? */
-   switch (mab_err_code)
-    {
-       case NCSCC_RC_NO_OBJECT:
-       case NCSCC_RC_NO_SUCH_TBL:
-            if ((req_type == MODE_SET_RESERVE1)|| (req_type == MODE_SET_ACTION))
-               error = SNMP_ERR_NOTWRITABLE;
-            else
-               error = SNMP_NOSUCHOBJECT;
-       break;
+	/* set the error code and return/continue on to the next varbind?? */
+	switch (mab_err_code) {
+	case NCSCC_RC_NO_OBJECT:
+	case NCSCC_RC_NO_SUCH_TBL:
+		if ((req_type == MODE_SET_RESERVE1) || (req_type == MODE_SET_ACTION))
+			error = SNMP_ERR_NOTWRITABLE;
+		else
+			error = SNMP_NOSUCHOBJECT;
+		break;
 
-       case NCSCC_RC_NO_INSTANCE:
-       case NCSCC_RC_NOSUCHNAME:
-            if ((req_type == MODE_SET_RESERVE1) || (req_type == MODE_SET_ACTION))
-               error = SNMP_ERR_NOCREATION; 
-            else /* get or get-next */
-               error = SNMP_NOSUCHINSTANCE; 
-       break; 
+	case NCSCC_RC_NO_INSTANCE:
+	case NCSCC_RC_NOSUCHNAME:
+		if ((req_type == MODE_SET_RESERVE1) || (req_type == MODE_SET_ACTION))
+			error = SNMP_ERR_NOCREATION;
+		else	/* get or get-next */
+			error = SNMP_NOSUCHINSTANCE;
+		break;
 
-       case NCSCC_RC_NOT_WRITABLE:
-            error = SNMP_ERR_NOTWRITABLE;  
-       break;
+	case NCSCC_RC_NOT_WRITABLE:
+		error = SNMP_ERR_NOTWRITABLE;
+		break;
 
-       case NCSCC_RC_NO_CREATION:
-            error = SNMP_ERR_NOCREATION;
-       break;
+	case NCSCC_RC_NO_CREATION:
+		error = SNMP_ERR_NOCREATION;
+		break;
 
-       case NCSCC_RC_INCONSISTENT_NAME:
-            error = SNMP_ERR_INCONSISTENTNAME;
-       break;
+	case NCSCC_RC_INCONSISTENT_NAME:
+		error = SNMP_ERR_INCONSISTENTNAME;
+		break;
 
-       case NCSCC_RC_INV_VAL:
-            error = SNMP_ERR_WRONGVALUE; 
-       break; 
-            
-       case NCSCC_RC_INV_SPECIFIC_VAL:
-            error = SNMP_ERR_INCONSISTENTVALUE;  
-       break; 
+	case NCSCC_RC_INV_VAL:
+		error = SNMP_ERR_WRONGVALUE;
+		break;
 
-       case NCSCC_RC_NO_ACCESS:
-            error = SNMP_ERR_NOACCESS;  
-       break; 
+	case NCSCC_RC_INV_SPECIFIC_VAL:
+		error = SNMP_ERR_INCONSISTENTVALUE;
+		break;
 
-       case NCSCC_RC_REQ_TIMOUT:        
-       case NCSCC_RC_OUT_OF_MEM:
-       case NCSCC_RC_RESOURCE_UNAVAILABLE:
-            if ((req_type == MODE_SET_RESERVE1) || (req_type == MODE_SET_ACTION))
-               error = SNMP_ERR_RESOURCEUNAVAILABLE;
-            else
-               error = SNMP_ERR_GENERR;
-       break;
+	case NCSCC_RC_NO_ACCESS:
+		error = SNMP_ERR_NOACCESS;
+		break;
 
-       default:
-            error = SNMP_ERR_GENERR;
-       break;
-    } /* end of switch */
-    return error; 
+	case NCSCC_RC_REQ_TIMOUT:
+	case NCSCC_RC_OUT_OF_MEM:
+	case NCSCC_RC_RESOURCE_UNAVAILABLE:
+		if ((req_type == MODE_SET_RESERVE1) || (req_type == MODE_SET_ACTION))
+			error = SNMP_ERR_RESOURCEUNAVAILABLE;
+		else
+			error = SNMP_ERR_GENERR;
+		break;
+
+	default:
+		error = SNMP_ERR_GENERR;
+		break;
+	}			/* end of switch */
+	return error;
 }
-
 
 /*****************************************************************************
  * Function:    snmpsubagt_mab_unregister_mib
@@ -903,17 +817,15 @@ snmpsubagt_mab_error_code_map(uns32 mab_err_code, uns32 req_type)
  *              netsnmp_unregister_handler().  
  *
  ********************************************************************************/
-int32   
-snmpsubagt_mab_unregister_mib(netsnmp_handler_registration *reginfo)
+int32 snmpsubagt_mab_unregister_mib(netsnmp_handler_registration *reginfo)
 {
-    /* Log the function entry */
-    m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_UNREGISTER_MIB);
+	/* Log the function entry */
+	m_SNMPSUBAGT_FUNC_ENTRY_LOG(SNMPSUBAGT_FUNC_ENTRY_UNREGISTER_MIB);
 
-    return unregister_mib_context(reginfo->rootoid, reginfo->rootoid_len,
-                                  reginfo->priority, reginfo->range_subid, 
-                                  reginfo->range_ubound, reginfo->contextName);
+	return unregister_mib_context(reginfo->rootoid, reginfo->rootoid_len,
+				      reginfo->priority, reginfo->range_subid,
+				      reginfo->range_ubound, reginfo->contextName);
 }
-
 
 /*******************************************************************************
   Function : snmpsubagt_mab_getnext_column_process 
@@ -935,79 +847,69 @@ snmpsubagt_mab_unregister_mib(netsnmp_handler_registration *reginfo)
               NCSCC_RC_FAILURE  - Something went wrong/send failed
 *******************************************************************************/
 static uns32
-snmpsubagt_mab_getnext_column_process(NCSMIB_ARG        *io_mib_arg, 
-                                      NCSMEM_AID        *ma, 
-                                      uns8              *space, 
-                                      uns32             space_size,
-                                      uns32             i_time_val,
-                                      uns32             i_tbl_id, 
-                                      uns32             cur_column, 
-                                      struct variable   *obj_details, 
-                                      uns32             num_of_objs,
-                                      NCS_BOOL          is_sparse_table)          
+snmpsubagt_mab_getnext_column_process(NCSMIB_ARG *io_mib_arg,
+				      NCSMEM_AID *ma,
+				      uns8 *space,
+				      uns32 space_size,
+				      uns32 i_time_val,
+				      uns32 i_tbl_id,
+				      uns32 cur_column,
+				      struct variable *obj_details, uns32 num_of_objs, NCS_BOOL is_sparse_table)
 {
-    uns32   next_column = 0;     
-    uns32   still_columns = TRUE;
-    uns32   ret_code = NCSCC_RC_FAILURE; 
+	uns32 next_column = 0;
+	uns32 still_columns = TRUE;
+	uns32 ret_code = NCSCC_RC_FAILURE;
 
-    /* there are some more columns in this table */
-    while (still_columns)
-    {
-        /* get the next column from the var_info */ 
-        if ((next_column = snmpsubagt_mab_getnext_column(cur_column, 
-                                          obj_details, num_of_objs)) == 0)
-            break;
-        /* clean up the vehicle */        
-        memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));    
-        ncsmib_init(io_mib_arg);
-        
-        /* clean up the temporary data required in getting the response to io_mib_arg */
-        memset(space, 0, space_size);
-        ncsmem_aid_init(ma, space, space_size);
-        
-        /* ask the required */
-        io_mib_arg->i_op = NCSMIB_OP_REQ_NEXT;
-        io_mib_arg->i_tbl_id = i_tbl_id; 
-        io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET; 
-        io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET; 
-        io_mib_arg->req.info.next_req.i_param_id = next_column; 
-        io_mib_arg->i_idx.i_inst_len = 0; 
-        io_mib_arg->i_idx.i_inst_ids = NULL; 
+	/* there are some more columns in this table */
+	while (still_columns) {
+		/* get the next column from the var_info */
+		if ((next_column = snmpsubagt_mab_getnext_column(cur_column, obj_details, num_of_objs)) == 0)
+			break;
+		/* clean up the vehicle */
+		memset(io_mib_arg, 0, sizeof(NCSMIB_ARG));
+		ncsmib_init(io_mib_arg);
 
-        m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_JUMP_TO_NEXT_COLUMN);
+		/* clean up the temporary data required in getting the response to io_mib_arg */
+		memset(space, 0, space_size);
+		ncsmem_aid_init(ma, space, space_size);
 
-        /* LOG MIBARG Response before sending request. */ 
-        snmpsa_log_ncsmib_arg(io_mib_arg); 
+		/* ask the required */
+		io_mib_arg->i_op = NCSMIB_OP_REQ_NEXT;
+		io_mib_arg->i_tbl_id = i_tbl_id;
+		io_mib_arg->i_mib_key = m_SUBAGT_MAC_HDL_GET;
+		io_mib_arg->i_usr_key = m_SUBAGT_MAC_HDL_GET;
+		io_mib_arg->req.info.next_req.i_param_id = next_column;
+		io_mib_arg->i_idx.i_inst_len = 0;
+		io_mib_arg->i_idx.i_inst_ids = NULL;
 
-        /* send the getnext request on the new column to get the first instance */ 
-        ret_code = ncsmib_sync_request(io_mib_arg, 
-                                ncsmac_mib_request, 
-                                i_time_val, ma);
-        
-        /* LOG MIBARG Response after receiving response. */ 
-        snmpsa_log_ncsmib_arg(io_mib_arg); 
+		m_SNMPSUBAGT_HEADLINE_LOG(SNMPSUBAGT_JUMP_TO_NEXT_COLUMN);
 
-        /* if the response from application is success, then break */
-        if ((ret_code != NCSCC_RC_SUCCESS) ||
-            (io_mib_arg->rsp.i_status == NCSCC_RC_SUCCESS))
+		/* LOG MIBARG Response before sending request. */
+		snmpsa_log_ncsmib_arg(io_mib_arg);
 
-            break;
-         
-        /* if the response is no such instance and this is not a sparse table */ 
-        /* return the no such instance/next column to zero */
-        if ((io_mib_arg->rsp.i_status != NCSCC_RC_SUCCESS) && (is_sparse_table == FALSE))
-        {
-            next_column = 0;
-            break;
-        }
-        else if ((io_mib_arg->rsp.i_status != NCSCC_RC_SUCCESS) && (is_sparse_table == TRUE))   
-        {
-            /* make this as current column and send the GETNEXT request */
-            cur_column = next_column; 
-        }
-     }
+		/* send the getnext request on the new column to get the first instance */
+		ret_code = ncsmib_sync_request(io_mib_arg, ncsmac_mib_request, i_time_val, ma);
 
-     return ret_code; 
+		/* LOG MIBARG Response after receiving response. */
+		snmpsa_log_ncsmib_arg(io_mib_arg);
+
+		/* if the response from application is success, then break */
+		if ((ret_code != NCSCC_RC_SUCCESS) || (io_mib_arg->rsp.i_status == NCSCC_RC_SUCCESS))
+
+			break;
+
+		/* if the response is no such instance and this is not a sparse table */
+		/* return the no such instance/next column to zero */
+		if ((io_mib_arg->rsp.i_status != NCSCC_RC_SUCCESS) && (is_sparse_table == FALSE)) {
+			next_column = 0;
+			break;
+		} else if ((io_mib_arg->rsp.i_status != NCSCC_RC_SUCCESS) && (is_sparse_table == TRUE)) {
+			/* make this as current column and send the GETNEXT request */
+			cur_column = next_column;
+		}
+	}
+
+	return ret_code;
 }
 
 /****************************************************************************
@@ -1024,27 +926,19 @@ snmpsubagt_mab_getnext_column_process(NCSMIB_ARG        *io_mib_arg,
  
   Notes    :  
 ****************************************************************************/
-static uns32
-snmpsubagt_mab_getnext_column(uns32             cur_column, 
-                              struct variable   *obj_details, 
-                              uns32             num_objs)
+static uns32 snmpsubagt_mab_getnext_column(uns32 cur_column, struct variable *obj_details, uns32 num_objs)
 {
-    uns32   next_column = 0; 
-    uns32   i = 0;     
+	uns32 next_column = 0;
+	uns32 i = 0;
 
-    for (i = 0; i <num_objs; i++)
-    {
-        if (obj_details[i].magic > cur_column)
-        {
-            /* check for the access permissions */
-            if ((obj_details[i].acl == RONLY) || (obj_details[i].acl == RWRITE))
-            {
-                next_column = obj_details[i].magic;
-                break;
-            }
-        }
-    }
-    return next_column; 
+	for (i = 0; i < num_objs; i++) {
+		if (obj_details[i].magic > cur_column) {
+			/* check for the access permissions */
+			if ((obj_details[i].acl == RONLY) || (obj_details[i].acl == RWRITE)) {
+				next_column = obj_details[i].magic;
+				break;
+			}
+		}
+	}
+	return next_column;
 }
-
-

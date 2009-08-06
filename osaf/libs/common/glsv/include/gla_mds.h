@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -32,19 +30,15 @@
 #ifndef GLA_MDS_H
 #define GLA_MDS_H
 
-
 /*** Extern function declarations ***/
 
-EXTERN_C uns32 gla_mds_register (struct gla_cb_tag *cb);
+EXTERN_C uns32 gla_mds_register(struct gla_cb_tag *cb);
 
-EXTERN_C void  gla_mds_unregister (struct gla_cb_tag *cb);
+EXTERN_C void gla_mds_unregister(struct gla_cb_tag *cb);
 
-EXTERN_C uns32 gla_mds_msg_sync_send (struct gla_cb_tag *cb, 
-                                      GLSV_GLND_EVT   *i_evt,
-                                      GLSV_GLA_EVT    **o_evt,
-                                      uns32  timeout);
+EXTERN_C uns32 gla_mds_msg_sync_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt, GLSV_GLA_EVT **o_evt, uns32 timeout);
 
-EXTERN_C uns32 gla_mds_msg_async_send (struct gla_cb_tag *cb, GLSV_GLND_EVT   *i_evt);
+EXTERN_C uns32 gla_mds_msg_async_send(struct gla_cb_tag *cb, GLSV_GLND_EVT *i_evt);
 
 EXTERN_C void glsv_gla_evt_free(GLSV_GLA_EVT *gla_evt);
 
@@ -52,7 +46,7 @@ EXTERN_C uns32 gla_agent_register(GLA_CB *cb);
 EXTERN_C uns32 gla_agent_unregister(GLA_CB *cb);
 /*****************************************************************************/
 
-#define GLA_PVT_SUBPART_VERSION 1 
+#define GLA_PVT_SUBPART_VERSION 1
 
 /********************Service Sub part Versions*********************************/
 /* GLA - GLND */
@@ -64,6 +58,4 @@ EXTERN_C uns32 gla_agent_unregister(GLA_CB *cb);
 
 /********************************************************************************/
 
-
-#endif /* !GLA_MDS_H */
-
+#endif   /* !GLA_MDS_H */

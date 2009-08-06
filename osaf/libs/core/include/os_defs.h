@@ -46,20 +46,19 @@
 #include <malloc.h>
 #include <unistd.h>
 #include <time.h>
-#include <grp.h> 
+#include <grp.h>
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/ipc.h>    /* Added for message-queues : PM : 28/10/03 */
-#include <sys/msg.h>    /* Added for message-queues : PM : 28/10/03 */
+#include <sys/ipc.h>		/* Added for message-queues : PM : 28/10/03 */
+#include <sys/msg.h>		/* Added for message-queues : PM : 28/10/03 */
 #include <syslog.h>
-#ifndef __USE_GNU 
-struct msgbuf
-{
-   long int mtype;
-   char mtext[1];
+#ifndef __USE_GNU
+struct msgbuf {
+	long int mtype;
+	char mtext[1];
 };
-#endif /* else defined in <sys/msg.h> */
+#endif   /* else defined in <sys/msg.h> */
 #include <sys/time.h>
 #include <sys/file.h>
 #include <sys/fcntl.h>
@@ -122,7 +121,6 @@ struct msgbuf
 extern "C" {
 #endif
 
-
 /*****************************************************************************
 
                      DECLARATIONS USED BY H&J BASE CODE
@@ -157,33 +155,32 @@ extern "C" {
 #define NCS_64BIT_DATA_TYPE_SUPPORT 1
 #define NCS_UNS64_DEFINED 1
 
-extern void ncs_os_atomic_init(void);
-extern void ncs_os_atomic_destroy(void);
+	extern void ncs_os_atomic_init(void);
+	extern void ncs_os_atomic_destroy(void);
 
 #ifndef m_NCS_OS_DBG_PRINTF
-EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str , ...); 
+	EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str, ...);
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
 #endif
 
 #ifndef m_NCS_OS_ATOMIC_INC
-extern void ncs_os_atomic_inc(void *puns32);
+	extern void ncs_os_atomic_inc(void *puns32);
 #define m_NCS_OS_ATOMIC_INC(p_uns32) ncs_os_atomic_inc(p_uns32);
 #endif
 
-
 #ifndef m_NCS_OS_ATOMIC_DEC
-extern void ncs_os_atomic_dec(void *p_uns32);
+	extern void ncs_os_atomic_dec(void *p_uns32);
 #define m_NCS_OS_ATOMIC_DEC(p_uns32) ncs_os_atomic_dec(p_uns32);
 #endif
 
-extern void get_msec_time(uns32 * seconds, uns32 * millisec);
+	extern void get_msec_time(uns32 *seconds, uns32 *millisec);
 
-#ifndef m_NCS_OS_GET_UPTIME 
-extern uns32 ncs_get_uptime(uns64 *o_uptime);
+#ifndef m_NCS_OS_GET_UPTIME
+	extern uns32 ncs_get_uptime(uns64 *o_uptime);
 #define m_NCS_OS_GET_UPTIME(p_uptime)  ncs_get_uptime(p_uptime)
 #endif
 
-extern NCS_BOOL ncs_is_root(void);
+	extern NCS_BOOL ncs_is_root(void);
 #define m_GET_MSEC_TIME_STAMP(seconds, millisec) get_msec_time(seconds, millisec)
 
 #define NCS_MKDIR_DEFINED
@@ -194,11 +191,11 @@ extern NCS_BOOL ncs_is_root(void);
  **                                                                         **
  ****************************************************************************/
 
-int getversion(void);
+	int getversion(void);
 
-int ncs_console_status(void);
-int ncs_unbuf_getch(void);
-void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
+	int ncs_console_status(void);
+	int ncs_unbuf_getch(void);
+	void ncs_stty_reset(void);	/* developed as a part of fxing the bug 58609 */
 
 /*****************************************************************************
  **                                                                         **
@@ -207,11 +204,11 @@ void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
  ****************************************************************************/
 
 #define NCS_OS_MQ_KEY         key_t
-#define NCS_OS_MQ_HDL         int  
-#define NCS_OS_MQ_MSG_LL_HDR  long /* The "header" part of <struct msgbuf> */
-#define NCS_OS_MQ_MAX_PAYLOAD 4500 /* This is actually dependant on 
-                                      configuration. Usual defaults in LINUX
-                                      are about 8192. : Phani:28/10/03 */
+#define NCS_OS_MQ_HDL         int
+#define NCS_OS_MQ_MSG_LL_HDR  long	/* The "header" part of <struct msgbuf> */
+#define NCS_OS_MQ_MAX_PAYLOAD 4500	/* This is actually dependant on 
+					   configuration. Usual defaults in LINUX
+					   are about 8192. : Phani:28/10/03 */
 
 /*****************************************************************************
  **                                                                         **
@@ -220,7 +217,7 @@ void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
  ****************************************************************************/
 
 #define NCS_OS_POSIX_MQD      uns32
-#define NCS_OS_POSIX_TIMESPEC struct timespec 
+#define NCS_OS_POSIX_TIMESPEC struct timespec
 
 /*****************************************************************************
  **                                                                         **
@@ -230,7 +227,7 @@ void ncs_stty_reset(void);   /* developed as a part of fxing the bug 58609 */
 
 #define m_NCS_OS_UNBUF_GETCHAR           ncs_unbuf_getch
 
-unsigned int linux_char_normalizer(void);
+	unsigned int linux_char_normalizer(void);
 #define m_NCS_OS_NORMALIZE_CHR           linux_char_normalizer
 
 #define __NCSINC_LINUX__
@@ -243,13 +240,10 @@ unsigned int linux_char_normalizer(void);
  **                                                                         **
  ****************************************************************************/
 
-
-
-
-int64 ncs_os_time_ms(void);  
+	int64 ncs_os_time_ms(void);
 #define m_NCS_OS_GET_TIME_MS   ncs_os_time_ms()
 
-uns64 ncs_os_time_ns(void); 
+	uns64 ncs_os_time_ns(void);
 #define m_NCS_OS_GET_TIME_NS   ncs_os_time_ns()
 
 /* Over riding macros for linux */
@@ -288,10 +282,9 @@ uns64 ncs_os_time_ns(void);
 }
 
 /******* Macros for DLL's ********/
-#ifndef NCS_USE_DLIB 
+#ifndef NCS_USE_DLIB
 #define NCS_USE_DLIB (1)
 #endif
-
 
 #if (NCS_USE_DLIB == 1)
 #define NCS_OS_DLIB_HDL                        void *
@@ -302,25 +295,24 @@ uns64 ncs_os_time_ns(void);
 #define m_NCS_OS_DLIB_CLOSE(lib_hdl)           dlclose(lib_hdl)
 #endif
 
-
 /****************************************************************************
  *
  * POSIX Locks - override OS_PRIMS default
  *
  ***************************************************************************/
 
-typedef struct posixlock {
-  pthread_mutex_t  lock;
-  unsigned long    count;
-  pthread_t        tid;
-} POSIXLOCK;
+	typedef struct posixlock {
+		pthread_mutex_t lock;
+		unsigned long count;
+		pthread_t tid;
+	} POSIXLOCK;
 
 #define NCS_OS_LOCK POSIXLOCK
 
-extern NCS_OS_LOCK * get_cloexec_lock(void);
+	extern NCS_OS_LOCK *get_cloexec_lock(void);
 
 /* Extern defenition for sysf_fopen */
-extern FILE * ncs_os_fopen(const char* fpath, const char* fmode);
+	extern FILE *ncs_os_fopen(const char *fpath, const char *fmode);
 
 #ifndef m_NCS_OS_LOG_FOPEN
 #define m_NCS_OS_LOG_FOPEN(fname,fmode) ncs_os_fopen(fname,fmode)
@@ -329,7 +321,6 @@ extern FILE * ncs_os_fopen(const char* fpath, const char* fmode);
 #define m_NCS_OS_NTOHL_P(p8) (uns32)((*(uns8*)p8<<24)|(*(uns8*)(p8+1)<<16)| \
     (*(uns8*)(p8+2)<<8)|(*(uns8*)(p8+3)))
 #define m_NCS_OS_NTOHS_P(p8) (uns16)((*(uns8*)p8<<8)|*((uns8*)(p8+1)))
-
 
 #define m_NCS_OS_HTONL_P(p8,v32) { \
    *p8     = (uns8)(v32>>24); \
@@ -341,7 +332,6 @@ extern FILE * ncs_os_fopen(const char* fpath, const char* fmode);
    *p8     = (uns8)(v16>>8); \
    *(p8+1) = (uns8)v16; }
 
-
 /*****************************************************************************
  **                                                                         **
  **                              Stack Trace                                **
@@ -349,21 +339,19 @@ extern FILE * ncs_os_fopen(const char* fpath, const char* fmode);
  ****************************************************************************/
 #if (NCSSYSM_STKTRACE == 1)
 #define NCSSYS_STKTRACE_FRAMES_MAX 128
-typedef struct ncs_os_stktrace_info
-{
-    uns32   flags;            /* fetched=1, */
-    struct  ncs_os_stktrace_info *next;
-    uns32   ticks;
-    int     addr_count;       /* number of addresses in stack trace (dwarray) */
-    void   *addr_array[128];  /* array of function addresses */
-} NCS_OS_STKTRACE_ENTRY;
+	typedef struct ncs_os_stktrace_info {
+		uns32 flags;	/* fetched=1, */
+		struct ncs_os_stktrace_info *next;
+		uns32 ticks;
+		int addr_count;	/* number of addresses in stack trace (dwarray) */
+		void *addr_array[128];	/* array of function addresses */
+	} NCS_OS_STKTRACE_ENTRY;
 
-void ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st);
-void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 * outlen);
+	void ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st);
+	void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 *outlen);
 
 #define m_NCS_OS_STACKTRACE_GET     ncs_os_stacktrace_get
 #define m_NCS_OS_STACKTRACE_EXPAND  ncs_os_stacktrace_expand
-
 #endif
 
 /****************************************************************************
@@ -377,9 +365,7 @@ void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 * 
  *
  ***************************************************************************/
 #define m_NCS_OS_TARGET_INIT ncs_os_target_init()
-extern unsigned int ncs_os_target_init(void);
-
-
+	extern unsigned int ncs_os_target_init(void);
 
 /*****************************************************************************
  **                                                                         **
@@ -403,9 +389,6 @@ extern unsigned int ncs_os_target_init(void);
 #define NCS_OS_TASK_PRIORITY_15         15
 #define NCS_OS_TASK_PRIORITY_16         16
 
-
-
-
 /*****************************************************************************
  **                                                                         **
  **                                                                         **
@@ -418,11 +401,11 @@ extern unsigned int ncs_os_target_init(void);
 #ifndef NCS_SEL_OBJ_DEFINED
 #define NCS_SEL_OBJ_DEFINED
 #endif
-typedef struct ncs_sel_obj{ 
-   int raise_obj; 
-   int rmv_obj; 
-}NCS_SEL_OBJ;
-typedef fd_set NCS_SEL_OBJ_SET;
+	typedef struct ncs_sel_obj {
+		int raise_obj;
+		int rmv_obj;
+	} NCS_SEL_OBJ;
+	typedef fd_set NCS_SEL_OBJ_SET;
 
 #ifdef  __cplusplus
 }

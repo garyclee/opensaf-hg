@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
   FILE NAME: dts_amf.C
 
@@ -39,25 +38,17 @@
 #define DTS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 static void dts_saf_CSI_set_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         SaAmfHAStateT haState,
-                         SaAmfCSIDescriptorT csiDescriptor);
+				     const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
 
 static void
-dts_saf_health_chk_callback (SaInvocationT invocation,
-                             const SaNameT *compName,
-                             SaAmfHealthcheckKeyT *checkType);
+dts_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
 
-static void dts_saf_CSI_rem_callback (SaInvocationT invocation,
-                               const SaNameT *compName,
-                               const SaNameT *csiName,
-                               const SaAmfCSIFlagsT csiFlags);
+static void dts_saf_CSI_rem_callback(SaInvocationT invocation,
+				     const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
 
-static void dts_saf_comp_terminate_callback (SaInvocationT invocation,
-                                      const SaNameT *compName);
+static void dts_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
 
-static uns32 
-dts_healthcheck_start(DTS_CB *cb);
+static uns32 dts_healthcheck_start(DTS_CB *cb);
 
 /****************************************************************************
  * Name          : dts_amf_init
@@ -72,44 +63,36 @@ dts_healthcheck_start(DTS_CB *cb);
  * Notes         : Changed the function to do intialize of callbacks & selection 
  *                 objects. Called from dts_amf_register. 
  *****************************************************************************/
-uns32
-dts_amf_init (DTS_CB *dts_cb_inst)
+uns32 dts_amf_init(DTS_CB *dts_cb_inst)
 {
-   SaAmfCallbacksT amfCallbacks;
-   SaVersionT      amf_version;   
-   SaAisErrorT     error;
+	SaAmfCallbacksT amfCallbacks;
+	SaVersionT amf_version;
+	SaAisErrorT error;
 
-   memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
+	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
 
-   amfCallbacks.saAmfHealthcheckCallback = dts_saf_health_chk_callback;
-   amfCallbacks.saAmfCSISetCallback = dts_saf_CSI_set_callback;
-   amfCallbacks.saAmfCSIRemoveCallback= 
-      dts_saf_CSI_rem_callback;
-   amfCallbacks.saAmfComponentTerminateCallback= 
-      dts_saf_comp_terminate_callback;
+	amfCallbacks.saAmfHealthcheckCallback = dts_saf_health_chk_callback;
+	amfCallbacks.saAmfCSISetCallback = dts_saf_CSI_set_callback;
+	amfCallbacks.saAmfCSIRemoveCallback = dts_saf_CSI_rem_callback;
+	amfCallbacks.saAmfComponentTerminateCallback = dts_saf_comp_terminate_callback;
 
-   m_DTS_GET_AMF_VER(amf_version);
+	m_DTS_GET_AMF_VER(amf_version);
 
-   error = saAmfInitialize((SaAmfHandleT *)&dts_cb_inst->amf_hdl, &amfCallbacks, &amf_version);
-   
-   if (error != SA_AIS_OK)
-   {         
-      /* Log */
-      return  m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-         "dts_amf_init: DTS AMF Initialization fails.");
-   }
+	error = saAmfInitialize((SaAmfHandleT *)&dts_cb_inst->amf_hdl, &amfCallbacks, &amf_version);
 
-   /* get the communication Handle */
-   error = saAmfSelectionObjectGet(dts_cb_inst->amf_hdl, 
-                               &dts_cb_inst->dts_amf_sel_obj); 
-   if (error != SA_AIS_OK)
-   {
-      /* log the error */ 
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-            "dts_amf_init: DTS AMF get selection object get failed.");
-   }
+	if (error != SA_AIS_OK) {
+		/* Log */
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_init: DTS AMF Initialization fails.");
+	}
 
-   return (NCSCC_RC_SUCCESS);
+	/* get the communication Handle */
+	error = saAmfSelectionObjectGet(dts_cb_inst->amf_hdl, &dts_cb_inst->dts_amf_sel_obj);
+	if (error != SA_AIS_OK) {
+		/* log the error */
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_init: DTS AMF get selection object get failed.");
+	}
+
+	return (NCSCC_RC_SUCCESS);
 }
 
  /*****************************************************************************\
@@ -124,51 +107,41 @@ dts_amf_init (DTS_CB *dts_cb_inst)
  *  NOTE: 
  \*****************************************************************************/
 /* Unregistration and Finalization with AMF Library */
-uns32 dts_amf_finalize(DTS_CB *dts_cb_inst) 
-{ 
-    SaAisErrorT status = SA_AIS_OK; 
+uns32 dts_amf_finalize(DTS_CB *dts_cb_inst)
+{
+	SaAisErrorT status = SA_AIS_OK;
 
-    /* delete the fd from the select list */ 
-    memset(&dts_cb_inst->dts_amf_sel_obj, 0, sizeof(SaSelectionObjectT));
+	/* delete the fd from the select list */
+	memset(&dts_cb_inst->dts_amf_sel_obj, 0, sizeof(SaSelectionObjectT));
 
-    /* Disable the health monitoring */ 
-    status = saAmfHealthcheckStop(dts_cb_inst->amf_hdl, 
-                                &dts_cb_inst->comp_name, 
-                                &dts_cb_inst->health_chk_key);
+	/* Disable the health monitoring */
+	status = saAmfHealthcheckStop(dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, &dts_cb_inst->health_chk_key);
 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */
-        m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-           "dts_amf_finalize: Helath Check stop failed");
-        /* continue finalization */
-    }
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_finalize: Helath Check stop failed");
+		/* continue finalization */
+	}
 
-    /* Unregister with AMF */ 
-    status = saAmfComponentUnregister(dts_cb_inst->amf_hdl, 
-                                    &dts_cb_inst->comp_name, 
-                                    NULL); 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */
-        m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-           "dts_amf_finalize: Component unregistered failed!!");
-        /* continue finalization */
-    } 
-    
-    /* Finalize */ 
-    status = saAmfFinalize(dts_cb_inst->amf_hdl); 
-    if (status != SA_AIS_OK)
-    {
-        /* log the error */
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-           "dts_amf_finalize: Component Finalized failed!!");
-    } 
+	/* Unregister with AMF */
+	status = saAmfComponentUnregister(dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, NULL);
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_finalize: Component unregistered failed!!");
+		/* continue finalization */
+	}
 
-    dts_cb_inst->amf_init = FALSE;
-    m_LOG_DTS_API(DTS_AMF_FINALIZE);
+	/* Finalize */
+	status = saAmfFinalize(dts_cb_inst->amf_hdl);
+	if (status != SA_AIS_OK) {
+		/* log the error */
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_finalize: Component Finalized failed!!");
+	}
 
-    return NCSCC_RC_SUCCESS; 
+	dts_cb_inst->amf_init = FALSE;
+	m_LOG_DTS_API(DTS_AMF_FINALIZE);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /**************************************************************************\
@@ -186,90 +159,79 @@ uns32 dts_amf_finalize(DTS_CB *dts_cb_inst)
 \**************************************************************************/
 uns32 dts_amf_register(DTS_CB *inst)
 {
-   SaAisErrorT    error;
-   char    comp_name[256] = {0};
-   char    compfilename[DTS_COMP_FILE_NAME_LEN] = {0};
-   FILE    *fp;
+	SaAisErrorT error;
+	char comp_name[256] = { 0 };
+	char compfilename[DTS_COMP_FILE_NAME_LEN] = { 0 };
+	FILE *fp;
 
-   m_DTS_LK(&inst->lock);
-   m_LOG_DTS_LOCK(DTS_LK_LOCKED,&inst->lock);
+	m_DTS_LK(&inst->lock);
+	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
 
-   /* Read the component name file now, AMF should have populated it by now */
-   assert(sprintf(compfilename, "%s", m_DTS_COMP_NAME_FILE) < sizeof(compfilename));
+	/* Read the component name file now, AMF should have populated it by now */
+	assert(sprintf(compfilename, "%s", m_DTS_COMP_NAME_FILE) < sizeof(compfilename));
 
-   fp = fopen(compfilename, "r");/*OSAF_LOCALSTATEDIR/ncs_dts_comp_name */
-   if(fp == NULL)
-   {
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register:Unable to open file");
-   }
+	fp = fopen(compfilename, "r");	/*OSAF_LOCALSTATEDIR/ncs_dts_comp_name */
+	if (fp == NULL) {
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register:Unable to open file");
+	}
 
-   if(fscanf(fp, "%s", comp_name) != 1)
-   {
-      fclose(fp);
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register:Unable to retrieve component name");
-   }
+	if (fscanf(fp, "%s", comp_name) != 1) {
+		fclose(fp);
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register:Unable to retrieve component name");
+	}
 
-   if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1)
-   {
-      fclose(fp);
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register:Unable to set SA_AMF_COMPONENT_NAME enviroment variable");
-   }
-   fclose(fp);
-   fp = NULL;
-   
-   if (NCSCC_RC_SUCCESS != dts_amf_init(inst))
-   {
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register: AMF Initialization failed.");
-   }
-  
-   /* Get component name */
-   error = saAmfComponentNameGet(inst->amf_hdl,  
-                              &inst->comp_name); 
-   if (error != SA_AIS_OK)
-   {
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-            "dts_amf_register: Component name get failed.");
+	if (setenv("SA_AMF_COMPONENT_NAME", comp_name, 1) == -1) {
+		fclose(fp);
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+				      "dts_amf_register:Unable to set SA_AMF_COMPONENT_NAME enviroment variable");
+	}
+	fclose(fp);
+	fp = NULL;
 
-   }
+	if (NCSCC_RC_SUCCESS != dts_amf_init(inst)) {
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register: AMF Initialization failed.");
+	}
 
-   /* register DTS component with AvSv */
-   error = saAmfComponentRegister(inst->amf_hdl,
-               &inst->comp_name, (SaNameT*)NULL);
-   if (error != SA_AIS_OK)
-   {
-      /* log the error */
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-            "dts_amf_register: DTS AMF Component registration failed.");
-   }
+	/* Get component name */
+	error = saAmfComponentNameGet(inst->amf_hdl, &inst->comp_name);
+	if (error != SA_AIS_OK) {
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register: Component name get failed.");
 
-   if (NCSCC_RC_SUCCESS != dts_healthcheck_start(inst))
-   {
-      m_DTS_UNLK(&inst->lock);
-      m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
-      return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-            "dts_amf_register: Health check start fail.");
-   }
+	}
 
-   m_LOG_DTS_API(DTS_AMF_INIT_SUCCESS);
+	/* register DTS component with AvSv */
+	error = saAmfComponentRegister(inst->amf_hdl, &inst->comp_name, (SaNameT *)NULL);
+	if (error != SA_AIS_OK) {
+		/* log the error */
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register: DTS AMF Component registration failed.");
+	}
 
-  inst->amf_init = TRUE;
+	if (NCSCC_RC_SUCCESS != dts_healthcheck_start(inst)) {
+		m_DTS_UNLK(&inst->lock);
+		m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_register: Health check start fail.");
+	}
 
-  m_DTS_UNLK(&inst->lock);
-  m_LOG_DTS_LOCK(DTS_LK_UNLOCKED,&inst->lock);
+	m_LOG_DTS_API(DTS_AMF_INIT_SUCCESS);
 
-  return NCSCC_RC_SUCCESS;
+	inst->amf_init = TRUE;
+
+	m_DTS_UNLK(&inst->lock);
+	m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -314,78 +276,64 @@ uns32 dts_amf_register(DTS_CB *inst)
  * Notes         : None.
  *****************************************************************************/
 static void dts_saf_CSI_set_callback(SaInvocationT invocation,
-                         const SaNameT *compName,
-                         SaAmfHAStateT haState,
-                         SaAmfCSIDescriptorT csiDescriptor)
+				     const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor)
 {
-   DTS_CB *dts_cb_inst = &dts_cb;
-   SaAisErrorT error = SA_AIS_OK;
-   SaAmfHAStateT prev_haState=dts_cb_inst->ha_state;
+	DTS_CB *dts_cb_inst = &dts_cb;
+	SaAisErrorT error = SA_AIS_OK;
+	SaAmfHAStateT prev_haState = dts_cb_inst->ha_state;
 
+	if (((SA_AMF_CSI_ADD_ONE == csiDescriptor.csiFlags) &&
+	     (dts_cb_inst->csi_set == TRUE)) ||
+	    (((SA_AMF_CSI_ADD_ONE != csiDescriptor.csiFlags) && (dts_cb_inst->csi_set == FALSE)))) {
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: ERROR in operation!!");
+		return;
+	} else {
+		if (FALSE == dts_cb_inst->csi_set) {
+			dts_cb_inst->csi_set = TRUE;
+		}
 
-    if(((SA_AMF_CSI_ADD_ONE == csiDescriptor.csiFlags) && 
-        (dts_cb_inst->csi_set == TRUE)) ||
-       (((SA_AMF_CSI_ADD_ONE != csiDescriptor.csiFlags) && 
-        (dts_cb_inst->csi_set == FALSE))))
-    {
-        m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-           "dts_saf_CSI_set_callback: ERROR in operation!!");
-        return;
-    }
-    else
-    {
-       if (FALSE == dts_cb_inst->csi_set)
-       {
-          dts_cb_inst->csi_set = TRUE;
-       }
+		/* Store CSI set cb invocation hdl to dts_cb for use of giving 
+		 * SaAmfResponse for Act to Quiesced transition */
+		dts_cb_inst->csi_cb_invocation = invocation;
 
-       /* Store CSI set cb invocation hdl to dts_cb for use of giving 
-        * SaAmfResponse for Act to Quiesced transition */
-       dts_cb_inst->csi_cb_invocation = invocation;
- 
-       /* Invoke dts_role_change to do valid role change action */
-       if(dts_role_change(dts_cb_inst, haState) != NCSCC_RC_SUCCESS)
-       {
-          m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: Role change failed");
-          saAmfResponse(dts_cb_inst->amf_hdl,invocation, SA_AIS_ERR_FAILED_OPERATION);
-          return;
-       }
+		/* Invoke dts_role_change to do valid role change action */
+		if (dts_role_change(dts_cb_inst, haState) != NCSCC_RC_SUCCESS) {
+			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: Role change failed");
+			saAmfResponse(dts_cb_inst->amf_hdl, invocation, SA_AIS_ERR_FAILED_OPERATION);
+			return;
+		}
 
-       /* Change ha_state of dts_cb now. Change now done in dts_role_change */ 
-       /*dts_cb_inst->ha_state = haState;*/
- 
-       /* Smik - Need to verify if saAmfResponse shud be sent before or
-        *        after msg is dispatched to DTS mbx.
-        * Also check whether the transition is frm Act to Quiesced. For this
-        * case don't send SaAmfResponse now. 
-        */
-       if((dts_cb_inst->ha_state == SA_AMF_HA_ACTIVE) && 
-          (haState == SA_AMF_HA_QUIESCED))
-       {    
-           /* No SaAmfResponse. Do nothing. Usually it would be the same.*/
-       }
-       else 
-       {
-           saAmfResponse(dts_cb_inst->amf_hdl,invocation, error);
-           m_LOG_DTS_API(DTS_CSI_SET_CB_RESP);
-       }
-       if( ((prev_haState == SA_AMF_HA_STANDBY) ||
-        (prev_haState == SA_AMF_HA_QUIESCED)) && (haState == SA_AMF_HA_ACTIVE))
-       { 
+		/* Change ha_state of dts_cb now. Change now done in dts_role_change */
+		/*dts_cb_inst->ha_state = haState; */
 
-           if(dts_stby_update_dta_config() != NCSCC_RC_SUCCESS)                                      
-           {
-               if(saAmfComponentErrorReport(dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, 0, SA_AMF_COMPONENT_RESTART, 0) != SA_AIS_OK)
-                 m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_set_callback: Failed to send Error report to AMF");
-                 return;
-           }
+		/* Smik - Need to verify if saAmfResponse shud be sent before or
+		 *        after msg is dispatched to DTS mbx.
+		 * Also check whether the transition is frm Act to Quiesced. For this
+		 * case don't send SaAmfResponse now. 
+		 */
+		if ((dts_cb_inst->ha_state == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
+			/* No SaAmfResponse. Do nothing. Usually it would be the same. */
+		} else {
+			saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
+			m_LOG_DTS_API(DTS_CSI_SET_CB_RESP);
+		}
+		if (((prev_haState == SA_AMF_HA_STANDBY) ||
+		     (prev_haState == SA_AMF_HA_QUIESCED)) && (haState == SA_AMF_HA_ACTIVE)) {
 
-       }
-    }
-   
-   return;
+			if (dts_stby_update_dta_config() != NCSCC_RC_SUCCESS) {
+				if (saAmfComponentErrorReport
+				    (dts_cb_inst->amf_hdl, &dts_cb_inst->comp_name, 0, SA_AMF_COMPONENT_RESTART,
+				     0) != SA_AIS_OK)
+					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+						       "dts_saf_CSI_set_callback: Failed to send Error report to AMF");
+				return;
+			}
+
+		}
+	}
+
+	return;
 }
-
 
 /****************************************************************************
  * Name          : dts_saf_health_chk_callback
@@ -409,28 +357,21 @@ static void dts_saf_CSI_set_callback(SaInvocationT invocation,
  * Notes         : At present we are just support a simple liveness check.
  *****************************************************************************/
 static void
-dts_saf_health_chk_callback (SaInvocationT invocation,
-                             const SaNameT *compName,
-                             SaAmfHealthcheckKeyT *checkType)
+dts_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType)
 {
-   DTS_CB *dts_cb_inst = &dts_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	DTS_CB *dts_cb_inst = &dts_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   if(dts_cb_inst->created == FALSE)
-   {
-      m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-         "dts_saf_health_chk_callback: DTS does not exist");
-      return;
-   }
-   else
-   {
-      saAmfResponse(dts_cb_inst->amf_hdl,invocation, error);
-   }
+	if (dts_cb_inst->created == FALSE) {
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_health_chk_callback: DTS does not exist");
+		return;
+	} else {
+		saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
+	}
 
-   ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_API, DTS_FC_API,
-               NCSFL_LC_API, NCSFL_SEV_INFO, "TI",
-               DTS_AMF_HEALTH_CHECK);
-   return;
+	ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_API, DTS_FC_API,
+		   NCSFL_LC_API, NCSFL_SEV_INFO, "TI", DTS_AMF_HEALTH_CHECK);
+	return;
 }
 
 /****************************************************************************
@@ -464,29 +405,23 @@ dts_saf_health_chk_callback (SaInvocationT invocation,
  *
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
-static void dts_saf_CSI_rem_callback (SaInvocationT invocation,
-                               const SaNameT *compName,
-                               const SaNameT *csiName,
-                               const SaAmfCSIFlagsT csiFlags)
+static void dts_saf_CSI_rem_callback(SaInvocationT invocation,
+				     const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags)
 {
-   DTS_CB *dts_cb_inst = &dts_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	DTS_CB *dts_cb_inst = &dts_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   if(dts_cb_inst->created == FALSE)
-   {
-      m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-         "dts_saf_CSI_rem_callback : DTS does not exist");
-      return;
-   }
-   else
-   {
-     dts_cb_inst->csi_set = FALSE;
-     saAmfResponse(dts_cb_inst->amf_hdl,invocation, error);
+	if (dts_cb_inst->created == FALSE) {
+		m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_saf_CSI_rem_callback : DTS does not exist");
+		return;
+	} else {
+		dts_cb_inst->csi_set = FALSE;
+		saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
 
-     m_LOG_DTS_API(DTS_CSI_RMV_CB_RESP); 
-   }
+		m_LOG_DTS_API(DTS_CSI_RMV_CB_RESP);
+	}
 
-   return;
+	return;
 }
 
 /****************************************************************************
@@ -509,19 +444,18 @@ static void dts_saf_CSI_rem_callback (SaInvocationT invocation,
  *
  * Notes         : This is not completed - TBD.
  *****************************************************************************/
-static void dts_saf_comp_terminate_callback (SaInvocationT invocation,
-                                      const SaNameT *compName)
+static void dts_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName)
 {
-   DTS_CB *dts_cb_inst = &dts_cb;
-   SaAisErrorT error = SA_AIS_OK;
+	DTS_CB *dts_cb_inst = &dts_cb;
+	SaAisErrorT error = SA_AIS_OK;
 
-   m_LOG_DTS_API(DTS_CSI_TERM_CB);
-   /*Send response before amf_handle is destroyed */
-   saAmfResponse(dts_cb_inst->amf_hdl,invocation, error);
-   /* Now destroy dts lib */ 
-   dts_lib_destroy();
+	m_LOG_DTS_API(DTS_CSI_TERM_CB);
+	/*Send response before amf_handle is destroyed */
+	saAmfResponse(dts_cb_inst->amf_hdl, invocation, error);
+	/* Now destroy dts lib */
+	dts_lib_destroy();
 
-   return;
+	return;
 }
 
 /*****************************************************************************\
@@ -535,32 +469,26 @@ static void dts_saf_comp_terminate_callback (SaInvocationT invocation,
  *                 NCSCC_RC_FAILURE   -  failure                              *
  *  NOTE:                                                                     * 
 \******************************************************************************/
-static uns32 
-dts_healthcheck_start(DTS_CB *cb) 
+static uns32 dts_healthcheck_start(DTS_CB *cb)
 {
-    SaAisErrorT     saf_status = SA_AIS_OK; 
+	SaAisErrorT saf_status = SA_AIS_OK;
 
-    if (cb->healthCheckStarted == TRUE)
-    {
-        return NCSCC_RC_SUCCESS; 
-    }
+	if (cb->healthCheckStarted == TRUE) {
+		return NCSCC_RC_SUCCESS;
+	}
 
-    /* start the healthcheck */ 
-    saf_status = saAmfHealthcheckStart(cb->amf_hdl,
-                                      &cb->comp_name,
-                                      &cb->health_chk_key,
-                                      cb->invocationType,
-                                      cb->recommendedRecovery);
-    if (saf_status != SA_AIS_OK) 
-    {
-        /* log the error */
-        return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, 
-            "dts_healthcheck_start: Failed to start health check."); 
-    }
-   
-    cb->healthCheckStarted = TRUE; 
+	/* start the healthcheck */
+	saf_status = saAmfHealthcheckStart(cb->amf_hdl,
+					   &cb->comp_name,
+					   &cb->health_chk_key, cb->invocationType, cb->recommendedRecovery);
+	if (saf_status != SA_AIS_OK) {
+		/* log the error */
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_healthcheck_start: Failed to start health check.");
+	}
 
-    return NCSCC_RC_SUCCESS; 
+	cb->healthCheckStarted = TRUE;
+
+	return NCSCC_RC_SUCCESS;
 }
 
 /*****************************************************************************\
@@ -576,19 +504,18 @@ dts_healthcheck_start(DTS_CB *cb)
 /* signal from AMF, time to register with AMF */
 void dts_amf_sigusr1_handler(int i_sig_num)
 {
-    DTS_CB *inst = &dts_cb;
-    /* ignore the signal */
-    signal(SIGUSR1, SIG_IGN);
+	DTS_CB *inst = &dts_cb;
+	/* ignore the signal */
+	signal(SIGUSR1, SIG_IGN);
 
-    /* Just raise an indication on the selection object here */
-    m_NCS_SEL_OBJ_IND(inst->sighdlr_sel_obj);
+	/* Just raise an indication on the selection object here */
+	m_NCS_SEL_OBJ_IND(inst->sighdlr_sel_obj);
 
-    /*if (NCSCC_RC_SUCCESS != dts_amf_init(inst))
-    {
-       return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_sigusr1_handler: AMF Initialization failed.");
-    }
+	/*if (NCSCC_RC_SUCCESS != dts_amf_init(inst))
+	   {
+	   return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_amf_sigusr1_handler: AMF Initialization failed.");
+	   }
 
-   inst->amf_init = TRUE;*/
+	   inst->amf_init = TRUE; */
 
 }
-

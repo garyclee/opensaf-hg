@@ -18,21 +18,17 @@
 /*****************************************************************************
 ..............................................................................
 
-
   REVISION HISTORY:
-
 
 ..............................................................................
 
   DESCRIPTION:
-
 
 ******************************************************************************
 */
 
 #ifndef DTS_OPT_H
 #define DTS_OPT_H
-
 
 #include "ncs_opt.h"
 
@@ -47,8 +43,7 @@
  * The #define should appear as:  #define NCS_DTS_REV 200
  */
 
-#define NCS_DTS_REV 100  /* DTS Release 1.00 */
-
+#define NCS_DTS_REV 100		/* DTS Release 1.00 */
 
 /* DTS_LOG 
  **********
@@ -62,7 +57,6 @@
 #define DTS_LOG                 0
 #endif
 
-
 /* DTS_USE_LOCK_TYPE
  *********************
  * This flag describes which locking scheme you wish RMS to use. 
@@ -70,9 +64,9 @@
  * The options are:
  */
 
-#define DTS_NO_LOCKS   1   /* all locks are disabled (no overhead; Safe?) */
-#define DTS_TASK_LOCKS 2   /* As per LEAP docs m_INIT/START/END _CRITICAL */
-#define DTS_OBJ_LOCKS  3   /* As per LEAP docs m_NCS_OBJ_LOCK scheme */
+#define DTS_NO_LOCKS   1	/* all locks are disabled (no overhead; Safe?) */
+#define DTS_TASK_LOCKS 2	/* As per LEAP docs m_INIT/START/END _CRITICAL */
+#define DTS_OBJ_LOCKS  3	/* As per LEAP docs m_NCS_OBJ_LOCK scheme */
 
 /* 
  * Set DTS_USE_LOCK_TYPE to the locking paradigm you want to use. 
@@ -81,7 +75,6 @@
 #ifndef NCSDTS_USE_LOCK_TYPE
 #define NCSDTS_USE_LOCK_TYPE  DTS_OBJ_LOCKS
 #endif
-
 
 /* 
  * DTS_DEBUG
@@ -107,7 +100,4 @@
 #define DTS_TRACE2                 0
 #endif
 
-
-#endif /* #ifndef DTS_OPT_H */
-
-
+#endif   /* #ifndef DTS_OPT_H */

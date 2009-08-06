@@ -111,7 +111,6 @@
 #ifndef NCS_REGX_H
 #define NCS_REGX_H
 
-
 #define  T_PATTERN_SIZE  300
 #define  C_PATTERN_SIZE  500
 #define  BITTAB_DIM      8
@@ -121,7 +120,7 @@
 /*************************************************************************** 
  * Required Memory Management Macros for Regular Expression
  ***************************************************************************/
-      
+
 #define m_MMGR_ALLOC_REGX      (NCS_REGX*) m_NCS_MEM_ALLOC(sizeof(NCS_REGX),\
                                                NCS_MEM_REGION_PERSISTENT, \
                                                NCS_SERVICE_ID_COMMON,     \
@@ -133,72 +132,65 @@
                                                NCS_MEM_REGION_PERSISTENT,   \
                                                NCS_SERVICE_ID_COMMON,       \
                                                0)
-   
+
 /*************************************************************************** 
  * Storage for the original regular expression (t_pattern) and the 
  * compiled version of the regular expression (c_pattern).
  ***************************************************************************/
-   
-typedef struct t_alist_s
-  {
-  char            t_pattern[T_PATTERN_SIZE];
-  char            c_pattern[C_PATTERN_SIZE];
-  
-  } T_ALIST;
+
+typedef struct t_alist_s {
+	char t_pattern[T_PATTERN_SIZE];
+	char c_pattern[C_PATTERN_SIZE];
+
+} T_ALIST;
 
 /*************************************************************************** 
  * Substring storage for matched substring parts.
  ***************************************************************************/
 
-typedef struct subs 
-  {
-  char*           s_cp;
-  unsigned int    s_len;
-  
-  } SUBS;
+typedef struct subs {
+	char *s_cp;
+	unsigned int s_len;
+
+} SUBS;
 
 /*************************************************************************** 
  * The master NCS_REGX data structure...
  ***************************************************************************/
 
-typedef struct ncs_regx
-  {
-  uns16   exists;
-  SUBS    subspace[NBRA];
-  SUBS*   subsp;
+typedef struct ncs_regx {
+	uns16 exists;
+	SUBS subspace[NBRA];
+	SUBS *subsp;
 
-  T_ALIST t_alist;
-      
-  char*    braslist[NBRA];
-  char*    braelist[NBRA];
-  int      ebra;
-  int      nbra;
-  char*    loc1;
-  char*    loc2;
-  char*    locs;
-  int      nodelim;
-  
-  int      low;
-  int      size;
-  
-  } NCS_REGX;
+	T_ALIST t_alist;
+
+	char *braslist[NBRA];
+	char *braelist[NBRA];
+	int ebra;
+	int nbra;
+	char *loc1;
+	char *loc2;
+	char *locs;
+	int nodelim;
+
+	int low;
+	int size;
+
+} NCS_REGX;
 
 /****************************************************************************
  *   H J _ R E G X      P U B L I C   F U N C T I O N S
  ****************************************************************************/
- 
-void*   ncs_regx_init      (char*  pattern);
-uns32   ncs_regx_destroy   (void*  regx_hdl);  
 
-uns32   ncs_regx_match     (void*  regx_hdl, 
-                           char*  src);
+void *ncs_regx_init(char *pattern);
+uns32 ncs_regx_destroy(void *regx_hdl);
 
-uns32   ncs_regx_get_count (void*  regx_hdl); 
-NCS_BOOL ncs_regx_get_result(void*  regx_hdl, 
-                           uns32  idx, 
-                           char*  space, 
-                           uns32  len);
+uns32 ncs_regx_match(void *regx_hdl, char *src);
 
-uns32   ncs_regx_get_length(void*  regx_hdl);
+uns32 ncs_regx_get_count(void *regx_hdl);
+NCS_BOOL ncs_regx_get_result(void *regx_hdl, uns32 idx, char *space, uns32 len);
+
+uns32 ncs_regx_get_length(void *regx_hdl);
 
 #endif

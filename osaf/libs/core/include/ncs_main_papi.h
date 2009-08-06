@@ -18,15 +18,12 @@
 /*****************************************************************************
 ..............................................................................
 
-
 ..............................................................................
 
   DESCRIPTION:  This file declares the main entry point into NCS. 
 
 ******************************************************************************
 */
-
-
 
 #ifndef NCS_MAIN_PAPI_H
 #define NCS_MAIN_PAPI_H
@@ -56,36 +53,35 @@ extern "C" {
                     (etc.)
 
 \***********************************************************************/
-EXTERN_C unsigned int ncs_agents_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_agents_startup(int argc, char *argv[]);
 
 /***********************************************************************\
    ncs_agents_shutdown: This function shutdown agents. 
 \***********************************************************************/
-EXTERN_C unsigned int ncs_agents_shutdown(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_agents_shutdown(int argc, char *argv[]);
 
 /***********************************************************************\
    Individual agents startup and shutdown functions  
 \***********************************************************************/
-EXTERN_C unsigned int ncs_core_agents_startup(int argc, char *argv[]);
-EXTERN_C unsigned int ncs_mbca_startup(int argc, char *argv[]);
-EXTERN_C unsigned int ncs_maa_startup(int argc, char *argv[]);
-EXTERN_C unsigned int ncs_hisv_hpl_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_core_agents_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_mbca_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_maa_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_hisv_hpl_startup(int argc, char *argv[]);
 
-EXTERN_C unsigned int ncs_leap_startup(int argc, char *argv[]);
-EXTERN_C unsigned int ncs_mds_startup(int argc, char *argv[]);
-EXTERN_C unsigned  int ncs_oac_startup(int argc, char *argv[]);
-EXTERN_C unsigned int ncs_dta_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_leap_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_mds_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_oac_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_dta_startup(int argc, char *argv[]);
 
-EXTERN_C unsigned int ncs_mbca_shutdown(void);
-EXTERN_C unsigned int ncs_maa_shutdown(void);
-EXTERN_C unsigned int ncs_core_agents_shutdown(void);
-EXTERN_C unsigned int ncs_hisv_hpl_shutdown(void);
+	EXTERN_C unsigned int ncs_mbca_shutdown(void);
+	EXTERN_C unsigned int ncs_maa_shutdown(void);
+	EXTERN_C unsigned int ncs_core_agents_shutdown(void);
+	EXTERN_C unsigned int ncs_hisv_hpl_shutdown(void);
 
-EXTERN_C void ncs_oac_shutdown(void);
-EXTERN_C void ncs_dta_shutdown(void);
-EXTERN_C void ncs_mds_shutdown(void);
-EXTERN_C void ncs_leap_shutdown(void);
-
+	EXTERN_C void ncs_oac_shutdown(void);
+	EXTERN_C void ncs_dta_shutdown(void);
+	EXTERN_C void ncs_mds_shutdown(void);
+	EXTERN_C void ncs_leap_shutdown(void);
 
 #define m_NCS_GET_CHASSIS_TYPE(i_max_len, o_chassis_type )\
                          ncs_get_chassis_type( i_max_len, o_chassis_type )
@@ -123,12 +119,10 @@ Description:
              characters comprising the chassis-type string followed by a  
              newline character.)
 \***********************************************************************/
-EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type);
+	EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len, char *o_chassis_type);
 
 /* Excluding null character byte for string termination */
-#define NCS_MAX_CHASSIS_TYPE_LEN  (40)   
- 
-
+#define NCS_MAX_CHASSIS_TYPE_LEN  (40)
 
 /***********************************************************************\
    m_NCS_GET_NODE_ID: This function returns a node-id (in the SAF sense).
@@ -140,14 +134,13 @@ EXTERN_C uns32 ncs_get_chassis_type(uns32 i_max_len , char *o_chassis_type);
           ncs_agents_startup or function ncs_core_agents_startup only
  
 \***********************************************************************/
-NCS_NODE_ID ncs_get_node_id(void);
+	NCS_NODE_ID ncs_get_node_id(void);
 #define m_NCS_GET_NODE_ID ncs_get_node_id()
-
 
 #define m_NCS_GET_NODE_ID_FROM_PHYINFO( i_chassis_id,  i_phy_slot_id ,\
                                         i_sub_slot_id,  o_node_id)\
                                         ncs_get_node_id_from_phyinfo( i_chassis_id ,\
-                                        i_phy_slot_id, i_sub_slot_id, o_node_id) 
+                                        i_phy_slot_id, i_sub_slot_id, o_node_id)
 
 /****************************************************************************
  Name          :  ncs_get_node_id_from_phyinfo
@@ -165,16 +158,14 @@ NCS_NODE_ID ncs_get_node_id(void);
 
  Notes         :  None.
  ******************************************************************************/
- 
-EXTERN_C uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id,
-                                            NCS_PHY_SLOT_ID i_phy_slot_id,
-                                            NCS_SUB_SLOT_ID i_sub_slot_id , 
-                                            NCS_NODE_ID *o_node_id);
 
+	EXTERN_C uns8 ncs_get_node_id_from_phyinfo(NCS_CHASSIS_ID i_chassis_id,
+						   NCS_PHY_SLOT_ID i_phy_slot_id,
+						   NCS_SUB_SLOT_ID i_sub_slot_id, NCS_NODE_ID *o_node_id);
 
 #define m_NCS_GET_PHYINFO_FROM_NODE_ID( i_node_id, o_chassis_id, o_phy_slot_id ,\
                                         o_sub_slot_id) ncs_get_phyinfo_from_node_id( i_node_id,\
-                                        o_chassis_id , o_phy_slot_id, o_sub_slot_id) 
+                                        o_chassis_id , o_phy_slot_id, o_sub_slot_id)
 /****************************************************************************
   Name          :  ncs_get_node_id_from_phyinfo
 
@@ -191,15 +182,12 @@ EXTERN_C uns8 ncs_get_node_id_from_phyinfo( NCS_CHASSIS_ID i_chassis_id,
 
   Notes         :  None.
 ******************************************************************************/
-EXTERN_C uns8 ncs_get_phyinfo_from_node_id( NCS_NODE_ID i_node_id ,
-                                            NCS_CHASSIS_ID *o_chassis_id,
-                                            NCS_PHY_SLOT_ID  *o_phy_slot_id,
-                                            NCS_SUB_SLOT_ID *o_sub_slot_id);
-
+	EXTERN_C uns8 ncs_get_phyinfo_from_node_id(NCS_NODE_ID i_node_id,
+						   NCS_CHASSIS_ID *o_chassis_id,
+						   NCS_PHY_SLOT_ID *o_phy_slot_id, NCS_SUB_SLOT_ID *o_sub_slot_id);
 
 #ifdef  __cplusplus
 }
 #endif
 
 #endif
-

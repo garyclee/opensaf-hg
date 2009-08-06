@@ -23,7 +23,7 @@
   
   DESCRIPTION: This file describes the EDA Interface
   
-  ***************************************************************************/ 
+  ***************************************************************************/
 #ifndef SUBAGT_EDA_H
 #define SUBAGT_EDA_H
 
@@ -41,40 +41,31 @@ struct ncsSa_cb;
 /* Event Channel Name */
 #define m_SNMPSUBAGT_EDA_EVT_CHANNEL_NAME m_SNMP_EDA_EVT_CHANNEL_NAME
 
-#define m_SNMPSUBAGT_EDA_TIMEOUT          3000000000U /* 3 sec in nano seconds */
-#define m_SNMPSUBAGT_EDA_TIMEOUT_IN_SEC   (m_SNMPSUBAGT_EDA_TIMEOUT/1000000000) 
+#define m_SNMPSUBAGT_EDA_TIMEOUT          3000000000U	/* 3 sec in nano seconds */
+#define m_SNMPSUBAGT_EDA_TIMEOUT_IN_SEC   (m_SNMPSUBAGT_EDA_TIMEOUT/1000000000)
 #define m_SNMPSUBAGT_SNMPD_TIMEOUT_IN_SEC  1
 
 #define m_SNMPSUBAGT_EDA_INIT_NOT_STARTED  0
 #define m_SNMPSUBAGT_EDA_INIT_RETRY        1
 #define m_SNMPSUBAGT_EDA_INIT_COMPLETED    2
 
-
 /* to initialize the EDA coommunication, register the callback etc.. */
-EXTERN_C SaAisErrorT
-snmpsubagt_eda_initialize(struct ncsSa_cb  *pSacb);
+EXTERN_C SaAisErrorT snmpsubagt_eda_initialize(struct ncsSa_cb *pSacb);
 
 /* Finalize the session with the EDA */
-EXTERN_C uns32
-snmpsubagt_eda_finalize(struct ncsSa_cb  *pSacb);
-
+EXTERN_C uns32 snmpsubagt_eda_finalize(struct ncsSa_cb *pSacb);
 
 /* Forward declaration for the event handling callback routine */
 EXTERN_C void
-snmpsubagt_eda_callback( SaEvtSubscriptionIdT       subscriptionid,
-                        SaEvtEventHandleT           eventHandle, 
-                        const SaSizeT               eventDataSize); 
+snmpsubagt_eda_callback(SaEvtSubscriptionIdT subscriptionid,
+			SaEvtEventHandleT eventHandle, const SaSizeT eventDataSize);
 
 /* Function to convert the event to trap and send it to the Agent */
-EXTERN_C uns32
-snmpsubagt_eda_trapevt_to_agentxtrap_populate(EDU_HDL *edu_hdl,
-                        NCS_PATRICIA_TREE *oid_db,/*in */
-                        uns8    *evtData, /* in */
-                        uns32   evtDataSize); /* in */
+EXTERN_C uns32 snmpsubagt_eda_trapevt_to_agentxtrap_populate(EDU_HDL *edu_hdl, NCS_PATRICIA_TREE *oid_db,	/*in */
+							     uns8 *evtData,	/* in */
+							     uns32 evtDataSize);	/* in */
 
 /* Function to start the timer to retry the eda initialisation. */
-EXTERN_C uns32 snmpsubagt_eda_init_timer_start (struct ncsSa_cb *pSacb);
+EXTERN_C uns32 snmpsubagt_eda_init_timer_start(struct ncsSa_cb *pSacb);
 
 #endif
-
-

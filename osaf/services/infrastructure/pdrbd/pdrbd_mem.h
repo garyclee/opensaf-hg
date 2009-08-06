@@ -25,16 +25,13 @@
 ******************************************************************************
 */
 
-
 /*
  * Module Inclusion Control...
  */
 #ifndef PDRBD_MEM_H
 #define PDRBD_MEM_H
 
-
 #include "pdrbd.h"
-
 
 #define MBCSV_MEM_PDRBD_EVT     1
 
@@ -46,5 +43,4 @@
 #define m_MMGR_FREE_PDRBD_EVT(p)     m_NCS_MEM_FREE(p, NCS_MEM_REGION_TRANSIENT, \
                                    NCS_SERVICE_ID_PDRBD, MBCSV_MEM_PDRBD_EVT)
 
-
-#endif /*PDRBD_MEM_H*/
+#endif   /*PDRBD_MEM_H */

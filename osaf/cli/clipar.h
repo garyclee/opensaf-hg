@@ -20,7 +20,6 @@
 
  MODULE NAME:  CLIPAR.H
 
-
 ..............................................................................
 
   DESCRIPTION:
@@ -40,7 +39,6 @@
 
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                         NCL FLEX MACRO/FUNCTION
@@ -57,7 +55,6 @@ to tokinse the commands specified in Netplane Command Language(NCL).
 #define yydebug cli_debug
 #define yynerrs cli_nerrs
 
-
 /*****************************************************************************
   MACRO NAME:    YY_INPUT(int8 *, int32, int32)
 
@@ -66,7 +63,6 @@ to tokinse the commands specified in Netplane Command Language(NCL).
                  modified the macro to read it from the Netplane Command buffer
                  instead of a file. The default implementation that is provided
                  by Flex reads the input from the file.
-
 
   ARGUMENTS:
    int8*         The input buffer that is required by the Flex.
@@ -125,4 +121,5 @@ EXTERN_C void cli_pcb_set(CLI_CB *);
 EXTERN_C void cli_lcb_set(CLI_CB *);
 EXTERN_C void cli_set_token_attrib(CLI_CB *, CLI_CMD_ELEMENT *, CLI_TOKEN_ATTRIB, int8 *);
 EXTERN_C void par_log_error(uns32 sel);
+
 #endif

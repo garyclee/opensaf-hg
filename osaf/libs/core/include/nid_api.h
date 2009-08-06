@@ -40,7 +40,6 @@
 #include "ncs_scktprm.h"
 #include "ncssysf_tsk.h"
 
-
 /* API Error Codes */
 #define NID_INV_PARAM    11
 #define NID_OFIFO_ERR    22
@@ -48,31 +47,28 @@
 
 #define NID_MAGIC       0xAAB49DAA
 
-#define NID_MAXSNAME                30 
+#define NID_MAXSNAME                30
 
 #define NODE_HA_STATE  OSAF_LOCALSTATEDIR "node_ha_state"
-
 
 /****************************************************************
  *       Message format used by nodeinitd and spawned services  *
  *       for communicating initialization status.               *
  ****************************************************************/
-typedef struct nid_fifo_msg
-{
-    uns32 nid_magic_no;   /* Magic number */
-    char  nid_serv_name[NID_MAXSNAME];  /* Identifies the spawned service uniquely*/
-    uns32 nid_stat_code;  /* Identifies the initialization status */
-}NID_FIFO_MSG;
+typedef struct nid_fifo_msg {
+	uns32 nid_magic_no;	/* Magic number */
+	char nid_serv_name[NID_MAXSNAME];	/* Identifies the spawned service uniquely */
+	uns32 nid_stat_code;	/* Identifies the initialization status */
+} NID_FIFO_MSG;
 
 /**********************************************************************
  *    Exported finctions by NID_API                                    *
  **********************************************************************/
-EXTERN_C LEAPDLL_API uns32 nid_notify(char *, uns32, uns32 *);  
-EXTERN_C LEAPDLL_API uns32 nis_notify(char *, uns32 *);  
+EXTERN_C LEAPDLL_API uns32 nid_notify(char *, uns32, uns32 *);
+EXTERN_C LEAPDLL_API uns32 nis_notify(char *, uns32 *);
 EXTERN_C uns32 nid_create_ipc(char *);
 EXTERN_C uns32 nid_open_ipc(int32 *fd, char *);
 EXTERN_C void nid_close_ipc(void);
 EXTERN_C uns32 nid_is_ipcopen(void);
-#endif /*NID_API_H*/
 
-
+#endif   /*NID_API_H */

@@ -18,7 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
   ..............................................................................
 
   FUNCTIONS INCLUDED in this module:
@@ -52,18 +51,18 @@
   code    - just echo'ed back 
 
 *****************************************************************************/
-uns32 mbcsv_dbg_sink(uns32 l, char* f, long code, char *str)
+uns32 mbcsv_dbg_sink(uns32 l, char *f, long code, char *str)
 {
 
-   m_LOG_MBCSV_DBG_SNK(str, f, l);
+	m_LOG_MBCSV_DBG_SNK(str, f, l);
 
-   return code;
+	return code;
 }
 
-uns32 mbcsv_dbg_sink_svc(uns32 l, char* f, uns32 code, char *str, uns32 svc_id)
+uns32 mbcsv_dbg_sink_svc(uns32 l, char *f, uns32 code, char *str, uns32 svc_id)
 {
 
-   m_LOG_MBCSV_DBG_SNK_SVC(str, svc_id, f, l);
+	m_LOG_MBCSV_DBG_SNK_SVC(str, svc_id, f, l);
 
-   return code;
+	return code;
 }

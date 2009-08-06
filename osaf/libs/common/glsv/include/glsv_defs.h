@@ -18,7 +18,6 @@
 #ifndef GLSV_DEFS_H
 #define GLSV_DEFS_H
 
-
 /* this needs to be defined */
 
 #define GLSV_LOCK_OPEN_CBK_REG   0x01
@@ -32,14 +31,14 @@
 #define m_GLND_TASK_PRIORITY   (5)
 #define m_GLND_STACKSIZE      NCS_STACKSIZE_HUGE
 
-#define m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000) /* 10^7 */
+#define m_GLSV_CONVERT_SATIME_TEN_MILLI_SEC(t)      (t)/(10000000)	/* 10^7 */
 
 #define m_ASSIGN_LCK_HANDLE_ID(handle_id)       handle_id
 
 /* time out for synchronous blocking calls */
-#define GLA_API_RESP_TIME   500  /* 5 secs */ 
+#define GLA_API_RESP_TIME   500	/* 5 secs */
 
-typedef unsigned int  GLSV_TIMER_ID;   
+typedef unsigned int GLSV_TIMER_ID;
 
 /* Version Constants */
 #define REQUIRED_RELEASECODE    'B'
@@ -55,39 +54,34 @@ typedef unsigned int  GLSV_TIMER_ID;
 #define m_GLSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 
 /* Enumerators needed by the Global Lock Service */
-typedef enum glsv_call_type_tag
-{
-   GLSV_SYNC_CALL = 1,
-   GLSV_ASYNC_CALL
-}GLSV_CALL_TYPE;
+typedef enum glsv_call_type_tag {
+	GLSV_SYNC_CALL = 1,
+	GLSV_ASYNC_CALL
+} GLSV_CALL_TYPE;
 
-typedef enum
-{
-   GLND_RESOURCE_NOT_INITIALISED = 0,
-   GLND_RESOURCE_ACTIVE_MASTER,
-   GLND_RESOURCE_ACTIVE_NON_MASTER,
-   GLND_RESOURCE_ELECTION_IN_PROGESS,
-   GLND_RESOURCE_MASTER_RESTARTED,
-   GLND_RESOURCE_MASTER_OPERATIONAL,
-   GLND_RESOURCE_ELECTION_COMPLETED
-}GLND_RESOURCE_STATUS;
-
+typedef enum {
+	GLND_RESOURCE_NOT_INITIALISED = 0,
+	GLND_RESOURCE_ACTIVE_MASTER,
+	GLND_RESOURCE_ACTIVE_NON_MASTER,
+	GLND_RESOURCE_ELECTION_IN_PROGESS,
+	GLND_RESOURCE_MASTER_RESTARTED,
+	GLND_RESOURCE_MASTER_OPERATIONAL,
+	GLND_RESOURCE_ELECTION_COMPLETED
+} GLND_RESOURCE_STATUS;
 
 /* typedef enums */
-typedef enum
-{
-   GLND_CLIENT_INFO_GET_STATE = 1,
-   GLND_RESTART_STATE,
-   GLND_OPERATIONAL_STATE,
-   GLND_DOWN_STATE
-}GLND_NODE_STATUS;
-
+typedef enum {
+	GLND_CLIENT_INFO_GET_STATE = 1,
+	GLND_RESTART_STATE,
+	GLND_OPERATIONAL_STATE,
+	GLND_DOWN_STATE
+} GLND_NODE_STATUS;
 
 /* DEBUG and LOG info that are scattered in the code */
 #if(NCS_GLSV_DEBUG == 1)
-#define m_GLSV_DEBUG_CONS_PRINTF   printf 
+#define m_GLSV_DEBUG_CONS_PRINTF   printf
 #else
-#define m_GLSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func  
+#define m_GLSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func
 #endif
 
 typedef SaUint32T SaLckResourceIdT;
@@ -109,4 +103,4 @@ typedef SaUint32T SaLckResourceIdT;
 /* DTSv versioning support */
 #define GLSV_LOG_VERSION 3
 
-#endif /* GLSV_DEFS_H */
+#endif   /* GLSV_DEFS_H */

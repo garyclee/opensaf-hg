@@ -19,23 +19,18 @@
 ..............................................................................
 
 
-
 */
 
 /** H&J Includes...
  **/
 
-
 #include "mab.h"
 
 #if (NCS_MAB == 1)
 
-SYSF_MBX        gl_mac_mbx;
-SYSF_MBX        gl_mas_mbx;
-SYSF_MBX        gl_oac_mbx;
-SYSF_MBX        gl_psr_mbx;
+SYSF_MBX gl_mac_mbx;
+SYSF_MBX gl_mas_mbx;
+SYSF_MBX gl_oac_mbx;
+SYSF_MBX gl_psr_mbx;
 
-
-#endif 
-
-
+#endif

@@ -23,7 +23,7 @@
   
   DESCRIPTION: This file includes the files that the NCS SNMP SubAgent is 
                dependent on. 
-*****************************************************************************/ 
+*****************************************************************************/
 #ifndef SUBAGT_MAC_H
 #define SUBAGT_MAC_H
 
@@ -39,14 +39,11 @@ EXTERN_C uns32 g_subagt_mac_hdl;
 /* to set the MAC Handle */
 #define     m_SUBAGT_MAC_HDL_SET(hdl)\
             g_subagt_mac_hdl = hdl
-            
-EXTERN_C uns32
-snmpsubagt_mac_initialize(void); 
 
-EXTERN_C uns32
-snmpsubagt_mac_finalize(void);
+EXTERN_C uns32 snmpsubagt_mac_initialize(void);
+
+EXTERN_C uns32 snmpsubagt_mac_finalize(void);
 
 EXTERN_C NCSCONTEXT gl_mds_hdl;
 
 #endif
-

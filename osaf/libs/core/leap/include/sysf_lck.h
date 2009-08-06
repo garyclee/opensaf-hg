@@ -34,8 +34,6 @@
 #include "ncssysf_lck.h"
 #include "ncs_svd.h"
 
-
-
 EXTERN_C unsigned int ncs_lock_create_mngr(void);
 EXTERN_C unsigned int ncs_lock_destroy_mngr(void);
 

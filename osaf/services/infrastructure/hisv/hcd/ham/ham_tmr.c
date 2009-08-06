@@ -15,7 +15,6 @@
  *
  */
 
-
 /*****************************************************************************
  *                                                                           *
  *  MODULE NAME:  ham_tmr.c                                                  *
@@ -31,7 +30,6 @@
  *****************************************************************************/
 
 #include "hcd.h"
-
 
 /*****************************************************************************
  * Name            : ham_start_tmr
@@ -49,25 +47,23 @@
  * Notes           : None
  ****************************************************************************/
 
-uns32 ham_start_tmr (HAM_CB *cb, SaTimeT period)
+uns32 ham_start_tmr(HAM_CB *cb, SaTimeT period)
 {
 
-   /* create the timer (if not already created */
-   if (cb->tmr_id == TMR_T_NULL)
-   {
-      m_NCS_TMR_CREATE (cb->tmr_id, period , ham_tmr_exp, (void*)((long)cb->cb_hdl));
-   }
+	/* create the timer (if not already created */
+	if (cb->tmr_id == TMR_T_NULL) {
+		m_NCS_TMR_CREATE(cb->tmr_id, period, ham_tmr_exp, (void *)((long)cb->cb_hdl));
+	}
 
-   /* start the timer to execure ham_tmr_exp routine after expiry */
-   m_NCS_TMR_START (cb->tmr_id, (uns32)period, ham_tmr_exp, (void*)((long)cb->cb_hdl));
+	/* start the timer to execure ham_tmr_exp routine after expiry */
+	m_NCS_TMR_START(cb->tmr_id, (uns32)period, ham_tmr_exp, (void *)((long)cb->cb_hdl));
 
-   if (TMR_T_NULL == cb->tmr_id)
-      return NCSCC_RC_FAILURE;
+	if (TMR_T_NULL == cb->tmr_id)
+		return NCSCC_RC_FAILURE;
 
-   return NCSCC_RC_SUCCESS;
+	return NCSCC_RC_SUCCESS;
 
 }
-
 
 /*****************************************************************************
  * Name           : ham_stop_tmr
@@ -82,20 +78,19 @@ uns32 ham_start_tmr (HAM_CB *cb, SaTimeT period)
  * Notes          : None
  ****************************************************************************/
 
-void ham_stop_tmr (HAM_CB *cb)
+void ham_stop_tmr(HAM_CB *cb)
 {
 
-   /* Stop the timer */
-   m_NCS_TMR_STOP (cb->tmr_id);
+	/* Stop the timer */
+	m_NCS_TMR_STOP(cb->tmr_id);
 
-   /* Destroy the timer if it exists. */
-   if (cb->tmr_id != TMR_T_NULL)
-   {
-      m_NCS_TMR_DESTROY(cb->tmr_id);
-      cb->tmr_id = TMR_T_NULL;
-   }
+	/* Destroy the timer if it exists. */
+	if (cb->tmr_id != TMR_T_NULL) {
+		m_NCS_TMR_DESTROY(cb->tmr_id);
+		cb->tmr_id = TMR_T_NULL;
+	}
 
-   return;
+	return;
 }
 
 /*****************************************************************************
@@ -112,51 +107,45 @@ void ham_stop_tmr (HAM_CB *cb)
  * Notes          : None
  ****************************************************************************/
 
-void ham_tmr_exp (void *uarg)
+void ham_tmr_exp(void *uarg)
 {
-   HISV_EVT * hisv_evt;
-   HAM_CB  *cb = NULL;
-   uns32 ham_cb_hdl = (long)uarg;
+	HISV_EVT *hisv_evt;
+	HAM_CB *cb = NULL;
+	uns32 ham_cb_hdl = (long)uarg;
 
-  /* clearing SEL is affecting other functionality of HPI so
-   * for now, just return here
-   */
-   return;
+	/* clearing SEL is affecting other functionality of HPI so
+	 * for now, just return here
+	 */
+	return;
 
-   /* retrieve HAM CB */
-   cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, ham_cb_hdl);
-   if (cb == NULL)
-   {
-      /* return HAM CB handle */
-      ncshm_give_hdl(ham_cb_hdl);
-      return;
-   }
-   if (NULL == (hisv_evt = m_MMGR_ALLOC_HISV_EVT))
-   {
-      /* restart the timer */
-      ham_start_tmr(cb, HPI_SYS_LOG_CLEAR_INTERVAL);
-      /* return HAM CB handle */
-      ncshm_give_hdl(ham_cb_hdl);
-      return;
-   }
-   /* create the request message to clear system event log */
-   m_HAM_HISV_LOG_CMD_MSG_FILL(hisv_evt->msg, HISV_TMR_SEL_CLR);
+	/* retrieve HAM CB */
+	cb = (HAM_CB *)ncshm_take_hdl(NCS_SERVICE_ID_HCD, ham_cb_hdl);
+	if (cb == NULL) {
+		/* return HAM CB handle */
+		ncshm_give_hdl(ham_cb_hdl);
+		return;
+	}
+	if (NULL == (hisv_evt = m_MMGR_ALLOC_HISV_EVT)) {
+		/* restart the timer */
+		ham_start_tmr(cb, HPI_SYS_LOG_CLEAR_INTERVAL);
+		/* return HAM CB handle */
+		ncshm_give_hdl(ham_cb_hdl);
+		return;
+	}
+	/* create the request message to clear system event log */
+	m_HAM_HISV_LOG_CMD_MSG_FILL(hisv_evt->msg, HISV_TMR_SEL_CLR);
 
-   /* send the request to HAM mailbox */
-   if(m_NCS_IPC_SEND(&cb->mbx, hisv_evt, NCS_IPC_PRIORITY_NORMAL)
-                     == NCSCC_RC_FAILURE)
-   {
-      m_LOG_HISV_DEBUG("failed to deliver msg on mail-box\n");
-      hisv_evt_destroy(hisv_evt);
-   }
+	/* send the request to HAM mailbox */
+	if (m_NCS_IPC_SEND(&cb->mbx, hisv_evt, NCS_IPC_PRIORITY_NORMAL)
+	    == NCSCC_RC_FAILURE) {
+		m_LOG_HISV_DEBUG("failed to deliver msg on mail-box\n");
+		hisv_evt_destroy(hisv_evt);
+	}
 
-   /* restart the timer */
-   ham_start_tmr(cb, HPI_SYS_LOG_CLEAR_INTERVAL);
-   /* return HAM CB handle*/
-   ncshm_give_hdl(ham_cb_hdl);
+	/* restart the timer */
+	ham_start_tmr(cb, HPI_SYS_LOG_CLEAR_INTERVAL);
+	/* return HAM CB handle */
+	ncshm_give_hdl(ham_cb_hdl);
 
-   return;
+	return;
 }
-
-
-

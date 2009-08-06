@@ -18,8 +18,6 @@
 /*****************************************************************************
 ..............................................................................
 
-
-
 ..............................................................................
 
   DESCRIPTION:
@@ -38,8 +36,7 @@
 static uns32 cla_hdl_cbk_dispatch_one(CLA_CB **, CLA_HDL_REC **);
 static uns32 cla_hdl_cbk_dispatch_all(CLA_CB **, CLA_HDL_REC **);
 static uns32 cla_hdl_cbk_dispatch_block(CLA_CB **, CLA_HDL_REC **);
-static void cla_hdl_cbk_rec_prc (AVSV_CLM_CBK_INFO *, SaClmCallbacksT *);
-
+static void cla_hdl_cbk_rec_prc(AVSV_CLM_CBK_INFO *, SaClmCallbacksT *);
 
 /****************************************************************************
   Name          : cla_hdl_init
@@ -52,24 +49,23 @@ static void cla_hdl_cbk_rec_prc (AVSV_CLM_CBK_INFO *, SaClmCallbacksT *);
  
   Notes         : None
 ******************************************************************************/
-uns32 cla_hdl_init (CLA_HDL_DB *hdl_db)
+uns32 cla_hdl_init(CLA_HDL_DB *hdl_db)
 {
-   NCS_PATRICIA_PARAMS param;
-   uns32               rc = NCSCC_RC_SUCCESS;
+	NCS_PATRICIA_PARAMS param;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
+	memset(&param, 0, sizeof(NCS_PATRICIA_PARAMS));
 
-   /* init the hdl db tree */
-   param.key_size = sizeof(uns32);
-   param.info_size = 0;
+	/* init the hdl db tree */
+	param.key_size = sizeof(uns32);
+	param.info_size = 0;
 
-   rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
-   if (NCSCC_RC_SUCCESS == rc)
-      hdl_db->num = 0;
+	rc = ncs_patricia_tree_init(&hdl_db->hdl_db_anchor, &param);
+	if (NCSCC_RC_SUCCESS == rc)
+		hdl_db->num = 0;
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_del
@@ -82,27 +78,25 @@ uns32 cla_hdl_init (CLA_HDL_DB *hdl_db)
  
   Notes         : None
 ******************************************************************************/
-void cla_hdl_del (CLA_CB *cb)
+void cla_hdl_del(CLA_CB *cb)
 {
-   CLA_HDL_DB  *hdl_db = &cb->hdl_db;
-   CLA_HDL_REC *hdl_rec = 0;
+	CLA_HDL_DB *hdl_db = &cb->hdl_db;
+	CLA_HDL_REC *hdl_rec = 0;
 
-   /* scan the entire handle db & delete each record */
-   while( (hdl_rec = (CLA_HDL_REC *)
-                     ncs_patricia_tree_getnext(&hdl_db->hdl_db_anchor, 0) ) )
-   {      
-      cla_hdl_rec_del(cb, hdl_db, hdl_rec);
-   }
+	/* scan the entire handle db & delete each record */
+	while ((hdl_rec = (CLA_HDL_REC *)
+		ncs_patricia_tree_getnext(&hdl_db->hdl_db_anchor, 0))) {
+		cla_hdl_rec_del(cb, hdl_db, hdl_rec);
+	}
 
-   /* there shouldn't be any record left */
-   m_AVSV_ASSERT(!hdl_db->num);
+	/* there shouldn't be any record left */
+	m_AVSV_ASSERT(!hdl_db->num);
 
-   /* destroy the hdl db tree */
-   ncs_patricia_tree_destroy(&hdl_db->hdl_db_anchor);
+	/* destroy the hdl db tree */
+	ncs_patricia_tree_destroy(&hdl_db->hdl_db_anchor);
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_rec_del
@@ -120,41 +114,38 @@ void cla_hdl_del (CLA_CB *cb)
                   removed. This is to disallow the waiting thread to access 
                   the hdl rec while other thread executes saClmFinalize on it.
 ******************************************************************************/
-void cla_hdl_rec_del (CLA_CB *cb, CLA_HDL_DB *hdl_db, CLA_HDL_REC *hdl_rec)
+void cla_hdl_rec_del(CLA_CB *cb, CLA_HDL_DB *hdl_db, CLA_HDL_REC *hdl_rec)
 {
-   uns32 hdl = 0; 
-   hdl = hdl_rec->hdl;
+	uns32 hdl = 0;
+	hdl = hdl_rec->hdl;
 
-   /* pop the hdl rec */
-   ncs_patricia_tree_del(&hdl_db->hdl_db_anchor, &hdl_rec->hdl_node);
+	/* pop the hdl rec */
+	ncs_patricia_tree_del(&hdl_db->hdl_db_anchor, &hdl_rec->hdl_node);
 
-   /* clean the pend callbk list */
-   cla_hdl_cbk_list_del(cb, hdl_rec);
+	/* clean the pend callbk list */
+	cla_hdl_cbk_list_del(cb, hdl_rec);
 
-   /* clean the track notification buffer TBD */
+	/* clean the track notification buffer TBD */
 
-   /* destroy the selection object */
-   if (m_GET_FD_FROM_SEL_OBJ(hdl_rec->sel_obj))
-   {
-      m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(&hdl_rec->sel_obj);
-     
-      /* remove the association with hdl-mngr */
-      ncshm_destroy_hdl(NCS_SERVICE_ID_CLA, hdl_rec->hdl);
-     
-      m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&hdl_rec->sel_obj);
-   }
-   /* free the hdl rec */
-   m_MMGR_FREE_CLA_HDL_REC(hdl_rec);
+	/* destroy the selection object */
+	if (m_GET_FD_FROM_SEL_OBJ(hdl_rec->sel_obj)) {
+		m_NCS_SEL_OBJ_RAISE_OPERATION_SHUT(&hdl_rec->sel_obj);
 
-   /* update the no of records */
-   hdl_db->num--;
+		/* remove the association with hdl-mngr */
+		ncshm_destroy_hdl(NCS_SERVICE_ID_CLA, hdl_rec->hdl);
 
-   m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_DEL, CLA_LOG_HDL_DB_SUCCESS, 
-                    hdl, NCSFL_SEV_INFO);
+		m_NCS_SEL_OBJ_RMV_OPERATION_SHUT(&hdl_rec->sel_obj);
+	}
+	/* free the hdl rec */
+	m_MMGR_FREE_CLA_HDL_REC(hdl_rec);
 
-   return;
+	/* update the no of records */
+	hdl_db->num--;
+
+	m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_DEL, CLA_LOG_HDL_DB_SUCCESS, hdl, NCSFL_SEV_INFO);
+
+	return;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_list_del
@@ -169,42 +160,40 @@ void cla_hdl_rec_del (CLA_CB *cb, CLA_HDL_DB *hdl_db, CLA_HDL_REC *hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-void cla_hdl_cbk_list_del (CLA_CB *cb, CLA_HDL_REC *hdl_rec )
+void cla_hdl_cbk_list_del(CLA_CB *cb, CLA_HDL_REC *hdl_rec)
 {
-   CLA_PEND_CBK *list = NULL;
-   CLA_PEND_CBK_REC *rec = 0;
+	CLA_PEND_CBK *list = NULL;
+	CLA_PEND_CBK_REC *rec = 0;
 
-   if(hdl_rec == NULL)
-      return;
+	if (hdl_rec == NULL)
+		return;
 
-   list = &hdl_rec->pend_cbk;
+	list = &hdl_rec->pend_cbk;
 
-   /* pop & delete all the records */
-   do
-   {
-      m_CLA_HDL_PEND_CBK_POP(list, rec);
-      if (!rec) break;
+	/* pop & delete all the records */
+	do {
+		m_CLA_HDL_PEND_CBK_POP(list, rec);
+		if (!rec)
+			break;
 
-      /* remove the selection object indication */
-      if ( -1 == m_NCS_SEL_OBJ_RMV_IND(hdl_rec->sel_obj, TRUE, TRUE) )
-      {
-         /* log */
-         m_AVSV_ASSERT(0);
-      }
+		/* remove the selection object indication */
+		if (-1 == m_NCS_SEL_OBJ_RMV_IND(hdl_rec->sel_obj, TRUE, TRUE)) {
+			/* log */
+			m_AVSV_ASSERT(0);
+		}
 
-      /* clean the record */
-      m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info); /* clean the notify buffer too TBD */
+		/* clean the record */
+		m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info);	/* clean the notify buffer too TBD */
 
-      /* delete the record */
-      m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
-   } while (1);
+		/* delete the record */
+		m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+	} while (1);
 
-   /* there shouldn't be any record left */
-   m_AVSV_ASSERT((!list->num) && (!list->head) && (!list->tail));
+	/* there shouldn't be any record left */
+	m_AVSV_ASSERT((!list->num) && (!list->head) && (!list->tail));
 
-   return;
+	return;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_rec_add
@@ -219,63 +208,56 @@ void cla_hdl_cbk_list_del (CLA_CB *cb, CLA_HDL_REC *hdl_rec )
  
   Notes         : None
 ******************************************************************************/
-CLA_HDL_REC *cla_hdl_rec_add (CLA_CB *cb, 
-                              CLA_HDL_DB *hdl_db, 
-                              const SaClmCallbacksT *reg_cbks)
+CLA_HDL_REC *cla_hdl_rec_add(CLA_CB *cb, CLA_HDL_DB *hdl_db, const SaClmCallbacksT *reg_cbks)
 {
-   CLA_HDL_REC *rec = 0;
+	CLA_HDL_REC *rec = 0;
 
-   /* allocate the hdl rec */
-   if ( !(rec = m_MMGR_ALLOC_CLA_HDL_REC) )
-       goto error;
+	/* allocate the hdl rec */
+	if (!(rec = m_MMGR_ALLOC_CLA_HDL_REC))
+		goto error;
 
-   memset(rec, 0, sizeof(CLA_HDL_REC));
+	memset(rec, 0, sizeof(CLA_HDL_REC));
 
-   /* create the association with hdl-mngr */
-   if ( !(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CLA, 
-                                      (NCSCONTEXT)rec)) )
-      goto error;
+	/* create the association with hdl-mngr */
+	if (!(rec->hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_CLA, (NCSCONTEXT)rec)))
+		goto error;
 
-   /* create the selection object & store it in hdl rec */
-   m_NCS_SEL_OBJ_CREATE(&rec->sel_obj);
-   if (!m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
-      goto error;
-   
-   /* store the registered callbacks */
-   if (reg_cbks)
-       memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, 
-                       sizeof(SaClmCallbacksT));
+	/* create the selection object & store it in hdl rec */
+	m_NCS_SEL_OBJ_CREATE(&rec->sel_obj);
+	if (!m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
+		goto error;
 
-   /* add the record to the hdl db */
-   rec->hdl_node.key_info = (uns8 *)&rec->hdl;
-   if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
-       != NCSCC_RC_SUCCESS)
-       goto error;
+	/* store the registered callbacks */
+	if (reg_cbks)
+		memcpy((void *)&rec->reg_cbk, (void *)reg_cbks, sizeof(SaClmCallbacksT));
 
-   /* update the no of records */
-   hdl_db->num++;
+	/* add the record to the hdl db */
+	rec->hdl_node.key_info = (uns8 *)&rec->hdl;
+	if (ncs_patricia_tree_add(&hdl_db->hdl_db_anchor, &rec->hdl_node)
+	    != NCSCC_RC_SUCCESS)
+		goto error;
 
-   m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_ADD, CLA_LOG_HDL_DB_SUCCESS, 
-                    rec->hdl, NCSFL_SEV_INFO);
+	/* update the no of records */
+	hdl_db->num++;
 
-   return rec;
+	m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_ADD, CLA_LOG_HDL_DB_SUCCESS, rec->hdl, NCSFL_SEV_INFO);
 
-error:
-   if (rec) 
-   {
-     /* remove the association with hdl-mngr */
-      if (rec->hdl)
-         ncshm_destroy_hdl(NCS_SERVICE_ID_CLA, rec->hdl);
+	return rec;
 
-      /* destroy the selection object */
-      if (m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
-         m_NCS_SEL_OBJ_DESTROY(rec->sel_obj);
+ error:
+	if (rec) {
+		/* remove the association with hdl-mngr */
+		if (rec->hdl)
+			ncshm_destroy_hdl(NCS_SERVICE_ID_CLA, rec->hdl);
 
-      m_MMGR_FREE_CLA_HDL_REC(rec);
-   }
-   return 0;
+		/* destroy the selection object */
+		if (m_GET_FD_FROM_SEL_OBJ(rec->sel_obj))
+			m_NCS_SEL_OBJ_DESTROY(rec->sel_obj);
+
+		m_MMGR_FREE_CLA_HDL_REC(rec);
+	}
+	return 0;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_param_add
@@ -292,43 +274,38 @@ error:
   Notes         : This routine reuses the callback info ptr that is received 
                   from MDS thus avoiding an extra copy.
 ******************************************************************************/
-uns32 cla_hdl_cbk_param_add (CLA_CB *cb, CLA_HDL_REC *hdl_rec, 
-                             AVSV_CLM_CBK_INFO *cbk_info)
+uns32 cla_hdl_cbk_param_add(CLA_CB *cb, CLA_HDL_REC *hdl_rec, AVSV_CLM_CBK_INFO *cbk_info)
 {
-   CLA_PEND_CBK_REC *rec = 0;
-   uns32            rc = NCSCC_RC_SUCCESS;
+	CLA_PEND_CBK_REC *rec = 0;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   /* allocate the callbk rec */
-   if ( !(rec = m_MMGR_ALLOC_CLA_PEND_CBK_REC) )
-   {
-      rc = NCSCC_RC_FAILURE; /* Need to define RC enums TBD */
-      goto done;
-   }
-   memset(rec, 0, sizeof(CLA_PEND_CBK_REC));
+	/* allocate the callbk rec */
+	if (!(rec = m_MMGR_ALLOC_CLA_PEND_CBK_REC)) {
+		rc = NCSCC_RC_FAILURE;	/* Need to define RC enums TBD */
+		goto done;
+	}
+	memset(rec, 0, sizeof(CLA_PEND_CBK_REC));
 
-   /* populate the callbk parameters */
-   rec->cbk_info = cbk_info;
+	/* populate the callbk parameters */
+	rec->cbk_info = cbk_info;
 
-   /* now push it to the pending list */
-   m_CLA_HDL_PEND_CBK_PUSH(&(hdl_rec->pend_cbk), rec);
+	/* now push it to the pending list */
+	m_CLA_HDL_PEND_CBK_PUSH(&(hdl_rec->pend_cbk), rec);
 
-   /* send an indication to the application */
-   if ( NCSCC_RC_SUCCESS != (rc = m_NCS_SEL_OBJ_IND(hdl_rec->sel_obj)) )
-   {
-      /* log */
-      m_AVSV_ASSERT(0);
-   }
+	/* send an indication to the application */
+	if (NCSCC_RC_SUCCESS != (rc = m_NCS_SEL_OBJ_IND(hdl_rec->sel_obj))) {
+		/* log */
+		m_AVSV_ASSERT(0);
+	}
 
-done:
-   if ( (NCSCC_RC_SUCCESS != rc) && rec )
-      m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+ done:
+	if ((NCSCC_RC_SUCCESS != rc) && rec)
+		m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
 
-   m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_CBK_ADD, CLA_LOG_HDL_DB_SUCCESS, 
-                    hdl_rec->hdl, NCSFL_SEV_INFO);
+	m_CLA_LOG_HDL_DB(CLA_LOG_HDL_DB_REC_CBK_ADD, CLA_LOG_HDL_DB_SUCCESS, hdl_rec->hdl, NCSFL_SEV_INFO);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_dispatch
@@ -344,33 +321,29 @@ done:
  
   Notes         : None
 ******************************************************************************/
-uns32 cla_hdl_cbk_dispatch (CLA_CB           **cb, 
-                            CLA_HDL_REC      **hdl_rec, 
-                            SaDispatchFlagsT flags)
+uns32 cla_hdl_cbk_dispatch(CLA_CB **cb, CLA_HDL_REC **hdl_rec, SaDispatchFlagsT flags)
 {
-   uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   switch (flags)
-   {
-   case SA_DISPATCH_ONE:
-       rc = cla_hdl_cbk_dispatch_one(cb, hdl_rec);
-      break;
+	switch (flags) {
+	case SA_DISPATCH_ONE:
+		rc = cla_hdl_cbk_dispatch_one(cb, hdl_rec);
+		break;
 
-   case SA_DISPATCH_ALL:
-       rc = cla_hdl_cbk_dispatch_all(cb, hdl_rec);
-      break;
+	case SA_DISPATCH_ALL:
+		rc = cla_hdl_cbk_dispatch_all(cb, hdl_rec);
+		break;
 
-   case SA_DISPATCH_BLOCKING:
-       rc = cla_hdl_cbk_dispatch_block(cb, hdl_rec);
-      break;
+	case SA_DISPATCH_BLOCKING:
+		rc = cla_hdl_cbk_dispatch_block(cb, hdl_rec);
+		break;
 
-   default:
-      m_AVSV_ASSERT(0);
-   } /* switch */
+	default:
+		m_AVSV_ASSERT(0);
+	}			/* switch */
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_dispatch_one
@@ -384,46 +357,43 @@ uns32 cla_hdl_cbk_dispatch (CLA_CB           **cb,
  
   Notes         : None
 ******************************************************************************/
-uns32 cla_hdl_cbk_dispatch_one (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
+uns32 cla_hdl_cbk_dispatch_one(CLA_CB **cb, CLA_HDL_REC **hdl_rec)
 {
-   CLA_PEND_CBK     *list = &(*hdl_rec)->pend_cbk;
-   CLA_PEND_CBK_REC *rec = 0;
-   uns32 hdl = (*hdl_rec)->hdl;
-   SaClmCallbacksT reg_cbk;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	CLA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
+	CLA_PEND_CBK_REC *rec = 0;
+	uns32 hdl = (*hdl_rec)->hdl;
+	SaClmCallbacksT reg_cbk;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+	memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaClmCallbacksT));
 
-   /* pop the rec from the list */
-   m_CLA_HDL_PEND_CBK_POP(list, rec);
-   if (rec)
-   {
-       /* remove the selection object indication */
-      if ( -1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE) )
-      {
-         /* log */
-         m_AVSV_ASSERT(0);
-      }
+	/* pop the rec from the list */
+	m_CLA_HDL_PEND_CBK_POP(list, rec);
+	if (rec) {
+		/* remove the selection object indication */
+		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE)) {
+			/* log */
+			m_AVSV_ASSERT(0);
+		}
 
-     /* release the cb lock & return the hdls to the hdl-mngr */
-      m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-      ncshm_give_hdl(hdl);
-                        
-      /* process the callback list record */
-      cla_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+		/* release the cb lock & return the hdls to the hdl-mngr */
+		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(hdl);
 
-      /* now that we are done with this rec, free the resources */
-      m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info); /* clean the notify buffer too TBD */
-      m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+		/* process the callback list record */
+		cla_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
 
-      m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-      *hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
-   }
+		/* now that we are done with this rec, free the resources */
+		m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info);	/* clean the notify buffer too TBD */
+		m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
 
-   return rc;
+		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
+	}
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_dispatch_all
@@ -437,52 +407,50 @@ uns32 cla_hdl_cbk_dispatch_one (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 cla_hdl_cbk_dispatch_all (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
+uns32 cla_hdl_cbk_dispatch_all(CLA_CB **cb, CLA_HDL_REC **hdl_rec)
 {
-   CLA_PEND_CBK     *list = &(*hdl_rec)->pend_cbk;
-   CLA_PEND_CBK_REC *rec = 0;
-   uns32 hdl = (*hdl_rec)->hdl;
-   SaClmCallbacksT reg_cbk;
-   uns32 rc = NCSCC_RC_SUCCESS;
+	CLA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
+	CLA_PEND_CBK_REC *rec = 0;
+	uns32 hdl = (*hdl_rec)->hdl;
+	SaClmCallbacksT reg_cbk;
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+	memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaClmCallbacksT));
 
-   /* pop all the records from the list & process them */
-   do
-   {
-      m_CLA_HDL_PEND_CBK_POP(list, rec);
-      if (!rec) break;
+	/* pop all the records from the list & process them */
+	do {
+		m_CLA_HDL_PEND_CBK_POP(list, rec);
+		if (!rec)
+			break;
 
-      /* remove the selection object indication */
-      if ( -1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE) )
-      {
-         /* log */
-         m_AVSV_ASSERT(0);
-      }
+		/* remove the selection object indication */
+		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE)) {
+			/* log */
+			m_AVSV_ASSERT(0);
+		}
 
-      /* release the cb lock & return the hdls to the hdl-mngr */
-      m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-      ncshm_give_hdl(hdl);
+		/* release the cb lock & return the hdls to the hdl-mngr */
+		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		ncshm_give_hdl(hdl);
 
-      /* process the callback list record */
-      cla_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+		/* process the callback list record */
+		cla_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
 
-      /* now that we are done with this rec, free the resources */
-      m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info); /* clean the notify buffer too TBD */
-      m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+		/* now that we are done with this rec, free the resources */
+		m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info);	/* clean the notify buffer too TBD */
+		m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
 
-      m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
-      /* is it finalized ? */
-      if(!(*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl)))
-         break;
+		/* is it finalized ? */
+		if (!(*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl)))
+			break;
 
-   } while (1);
+	} while (1);
 
-   return rc;
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_dispatch_block
@@ -498,90 +466,83 @@ uns32 cla_hdl_cbk_dispatch_all (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-uns32 cla_hdl_cbk_dispatch_block (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
+uns32 cla_hdl_cbk_dispatch_block(CLA_CB **cb, CLA_HDL_REC **hdl_rec)
 {
-   CLA_PEND_CBK     *list = &(*hdl_rec)->pend_cbk;
-   uns32            hdl = (*hdl_rec)->hdl;
-   CLA_PEND_CBK_REC *rec = 0;
-   NCS_SEL_OBJ_SET  all_sel_obj;
-   NCS_SEL_OBJ      sel_obj = (*hdl_rec)->sel_obj;
-   SaClmCallbacksT  reg_cbk;
-   uns32            rc = SA_AIS_OK;
+	CLA_PEND_CBK *list = &(*hdl_rec)->pend_cbk;
+	uns32 hdl = (*hdl_rec)->hdl;
+	CLA_PEND_CBK_REC *rec = 0;
+	NCS_SEL_OBJ_SET all_sel_obj;
+	NCS_SEL_OBJ sel_obj = (*hdl_rec)->sel_obj;
+	SaClmCallbacksT reg_cbk;
+	uns32 rc = SA_AIS_OK;
 
-   m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-   m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj); 
-   
-   memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
-   memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk,sizeof(SaClmCallbacksT));
+	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
+	m_NCS_SEL_OBJ_SET(sel_obj, &all_sel_obj);
 
-   /* release all lock and handle - we are abt to go into deep sleep */
-   m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+	memset(&reg_cbk, 0, sizeof(SaClmCallbacksT));
+	memcpy(&reg_cbk, &(*hdl_rec)->reg_cbk, sizeof(SaClmCallbacksT));
 
-   while(m_NCS_SEL_OBJ_SELECT(sel_obj,&all_sel_obj,0,0,0) != -1)
-   {
-      ncshm_give_hdl(hdl);
-      m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-    
-      /* get all handle and lock */
-      *hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
-   
-      if(!(*hdl_rec))
-      {
-         m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-         break;
-      }
-   
-      if (!m_NCS_SEL_OBJ_ISSET(sel_obj,&all_sel_obj))
-      {
-         rc = SA_AIS_ERR_LIBRARY;
-         m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-         break;
-      }
+	/* release all lock and handle - we are abt to go into deep sleep */
+	m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
-      /* pop rec */
-      m_CLA_HDL_PEND_CBK_POP(list, rec);
-      if (!rec) 
-      {
-         m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-         break;
-      }
+	while (m_NCS_SEL_OBJ_SELECT(sel_obj, &all_sel_obj, 0, 0, 0) != -1) {
+		ncshm_give_hdl(hdl);
+		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
 
-      /* remove the selection object indication */
-      if ( -1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE) )
-         m_AVSV_ASSERT(0);
-         
-      /* release the cb lock & return the hdls to the hdl-mngr */
-      ncshm_give_hdl(hdl);
-      m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		/* get all handle and lock */
+		*hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
 
-      /* process the callback list record */
-      cla_hdl_cbk_rec_prc(rec->cbk_info,&reg_cbk);
+		if (!(*hdl_rec)) {
+			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+			break;
+		}
 
-      /* now that we are done with this rec, free the resources */
-      m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info); /* clean the notify buffer too TBD */
-      m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+		if (!m_NCS_SEL_OBJ_ISSET(sel_obj, &all_sel_obj)) {
+			rc = SA_AIS_ERR_LIBRARY;
+			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+			break;
+		}
 
-      m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-      *hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
-      if(*hdl_rec)
-      {
-         m_NCS_SEL_OBJ_SET(sel_obj,&all_sel_obj);
-      }else
-      {
-         m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-         break;
-      }
-      m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-   }/*while*/
-   if(*hdl_rec) 
-      ncshm_give_hdl(hdl); 
+		/* pop rec */
+		m_CLA_HDL_PEND_CBK_POP(list, rec);
+		if (!rec) {
+			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+			break;
+		}
 
-   m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
-   *hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
+		/* remove the selection object indication */
+		if (-1 == m_NCS_SEL_OBJ_RMV_IND((*hdl_rec)->sel_obj, TRUE, TRUE))
+			m_AVSV_ASSERT(0);
 
-   return rc;
+		/* release the cb lock & return the hdls to the hdl-mngr */
+		ncshm_give_hdl(hdl);
+		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+
+		/* process the callback list record */
+		cla_hdl_cbk_rec_prc(rec->cbk_info, &reg_cbk);
+
+		/* now that we are done with this rec, free the resources */
+		m_MMGR_FREE_AVSV_CLM_CBK_INFO(rec->cbk_info);	/* clean the notify buffer too TBD */
+		m_MMGR_FREE_CLA_PEND_CBK_REC(rec);
+
+		m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+		*hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
+		if (*hdl_rec) {
+			m_NCS_SEL_OBJ_SET(sel_obj, &all_sel_obj);
+		} else {
+			m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+			break;
+		}
+		m_NCS_UNLOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+	}			/*while */
+	if (*hdl_rec)
+		ncshm_give_hdl(hdl);
+
+	m_NCS_LOCK(&(*cb)->lock, NCS_LOCK_WRITE);
+	*hdl_rec = (CLA_HDL_REC *)ncshm_take_hdl(NCS_SERVICE_ID_CLA, hdl);
+
+	return rc;
 }
-
 
 /****************************************************************************
   Name          : cla_hdl_cbk_rec_prc
@@ -597,38 +558,33 @@ uns32 cla_hdl_cbk_dispatch_block (CLA_CB **cb, CLA_HDL_REC **hdl_rec)
  
   Notes         : None
 ******************************************************************************/
-void cla_hdl_cbk_rec_prc ( AVSV_CLM_CBK_INFO *info, SaClmCallbacksT  *reg_cbk)
+void cla_hdl_cbk_rec_prc(AVSV_CLM_CBK_INFO *info, SaClmCallbacksT *reg_cbk)
 {
 
-   /* invoke the corresponding callback */
-   switch (info->type)
-   {
-   case AVSV_CLM_CBK_TRACK:
-      {
-         AVSV_CLM_CBK_TRACK_PARAM *track = &info->param.track;
+	/* invoke the corresponding callback */
+	switch (info->type) {
+	case AVSV_CLM_CBK_TRACK:
+		{
+			AVSV_CLM_CBK_TRACK_PARAM *track = &info->param.track;
 
-         if (reg_cbk->saClmClusterTrackCallback)
-             reg_cbk->saClmClusterTrackCallback(&track->notify, 
-                                                track->mem_num,
-                                                track->err);
-      }
-      break;
+			if (reg_cbk->saClmClusterTrackCallback)
+				reg_cbk->saClmClusterTrackCallback(&track->notify, track->mem_num, track->err);
+		}
+		break;
 
-   case AVSV_CLM_CBK_NODE_ASYNC_GET:
-      {
-         AVSV_CLM_CBK_NODE_ASYNC_GET_PARAM *node_get = &info->param.node_get;
+	case AVSV_CLM_CBK_NODE_ASYNC_GET:
+		{
+			AVSV_CLM_CBK_NODE_ASYNC_GET_PARAM *node_get = &info->param.node_get;
 
-         if (reg_cbk->saClmClusterNodeGetCallback)
-             reg_cbk->saClmClusterNodeGetCallback(node_get->inv,
-                                                  &node_get->node,
-                                                  node_get->err);
-      }
-      break;
+			if (reg_cbk->saClmClusterNodeGetCallback)
+				reg_cbk->saClmClusterNodeGetCallback(node_get->inv, &node_get->node, node_get->err);
+		}
+		break;
 
-   default:
-      m_AVSV_ASSERT(0);
-      break;
-   } /* switch */
+	default:
+		m_AVSV_ASSERT(0);
+		break;
+	}			/* switch */
 
-   return;
+	return;
 }

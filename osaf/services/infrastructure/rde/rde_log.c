@@ -20,14 +20,11 @@
 
   MODULE NAME: rde_log.c
 
-
 ..............................................................................
 
   DESCRIPTION:
 
-
   FUNCTIONS INCLUDED in this module:
-
 
   *******************************************************************************
   */
@@ -42,7 +39,6 @@
 
     I n d e x   M a n i p u l a t i o n   M a c r o s
 
-
   One of the key types in Flexlog is the Index value, which leads to a
   canned printable string. This value is as follows:
 
@@ -55,7 +51,6 @@
   ************************************************************************/
 
 #define m_NCSFL_MAKE_IDX(i,j)   (uns16)((i<<8)|j)
-
 
 /*****************************************************************************
 
@@ -72,21 +67,20 @@
   
 *****************************************************************************/
 
-const char *
-rde_get_log_level_str (uns32 log_level)
+const char *rde_get_log_level_str(uns32 log_level)
 {
-   char *rde_log_level_str[]={
-      "EMERGENCY", 
-      "ALERT", 
-      "CRITICAL",
-      "ERROR", 
-      "WARNING", 
-      "NOTICE", 
-      "INFO", 
-      "DEBUG"
-   };
+	char *rde_log_level_str[] = {
+		"EMERGENCY",
+		"ALERT",
+		"CRITICAL",
+		"ERROR",
+		"WARNING",
+		"NOTICE",
+		"INFO",
+		"DEBUG"
+	};
 
-   return rde_log_level_str[log_level];
+	return rde_log_level_str[log_level];
 }
 
 /*****************************************************************************
@@ -97,35 +91,49 @@ rde_get_log_level_str (uns32 log_level)
            
 *****************************************************************************/
 
-void rdeSysLog (uns32 severity, char * logMessage)
+void rdeSysLog(uns32 severity, char *logMessage)
 {
-   uns32   syslogPriority;
-   
+	uns32 syslogPriority;
 
-   /* filter based on priority
-    */
+	/* filter based on priority
+	 */
 
-   /* Convert Flexlog severity into Syslog priority
-    */
+	/* Convert Flexlog severity into Syslog priority
+	 */
 
-   switch (severity)
-   {
-   case NCSFL_SEV_EMERGENCY: syslogPriority = LOG_EMERG;   break;
-   case NCSFL_SEV_ALERT:     syslogPriority = LOG_ALERT;   break;
-   case NCSFL_SEV_CRITICAL:  syslogPriority = LOG_CRIT;    break;
-   case NCSFL_SEV_ERROR:     syslogPriority = LOG_ERR;     break;
-   case NCSFL_SEV_WARNING:   syslogPriority = LOG_WARNING; break;
-   case NCSFL_SEV_NOTICE:    syslogPriority = LOG_NOTICE;  break;
-   case NCSFL_SEV_INFO:      syslogPriority = LOG_INFO;    break;
-   case NCSFL_SEV_DEBUG:     syslogPriority = LOG_DEBUG;   break;
-   default:                  syslogPriority = LOG_NOTICE;  break;
-   }
+	switch (severity) {
+	case NCSFL_SEV_EMERGENCY:
+		syslogPriority = LOG_EMERG;
+		break;
+	case NCSFL_SEV_ALERT:
+		syslogPriority = LOG_ALERT;
+		break;
+	case NCSFL_SEV_CRITICAL:
+		syslogPriority = LOG_CRIT;
+		break;
+	case NCSFL_SEV_ERROR:
+		syslogPriority = LOG_ERR;
+		break;
+	case NCSFL_SEV_WARNING:
+		syslogPriority = LOG_WARNING;
+		break;
+	case NCSFL_SEV_NOTICE:
+		syslogPriority = LOG_NOTICE;
+		break;
+	case NCSFL_SEV_INFO:
+		syslogPriority = LOG_INFO;
+		break;
+	case NCSFL_SEV_DEBUG:
+		syslogPriority = LOG_DEBUG;
+		break;
+	default:
+		syslogPriority = LOG_NOTICE;
+		break;
+	}
 
-   syslog(syslogPriority, "%s", logMessage);
+	syslog(syslogPriority, "%s", logMessage);
 
 }
-
-
 
 /*****************************************************************************
 
@@ -136,24 +144,19 @@ void rdeSysLog (uns32 severity, char * logMessage)
 
 *****************************************************************************/
 
-void 
-rde_log_headline (
-   uns32        line, 
-   const char * file, 
-   const char * func,
-   uns8         hdln_id
-   )
+void rde_log_headline(uns32 line, const char *file, const char *func, uns8 hdln_id)
 {
 
-   ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-              /* format ID    */ RDE_FMT_HEADLINE,
-              /* str tbl ID   */ RDE_FC_HEADLINE,
-              /* category     */ NCSFL_LC_HEADLINE,
-              /* severity     */ NCSFL_SEV_NOTICE,
-              /* format type  */ NCSFL_TYPE_TI,
-              /* va_arg (...) */ hdln_id);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* format ID    */ RDE_FMT_HEADLINE,
+		   /* str tbl ID   */ RDE_FC_HEADLINE,
+		   /* category     */ NCSFL_LC_HEADLINE,
+		   /* severity     */ NCSFL_SEV_NOTICE,
+		   /* format type  */ NCSFL_TYPE_TI,
+		   /* va_arg (...) */ hdln_id);
 
 }
+
 /*****************************************************************************
 
   PROCEDURE NAME:    rde_log_condition
@@ -162,25 +165,18 @@ rde_log_headline (
 
 *****************************************************************************/
 
-void rde_log_condition (
-   uns32        line, 
-   const char * file, 
-   const char * func,
-   uns8         sev,
-   uns8         hdln_id
-   )
+void rde_log_condition(uns32 line, const char *file, const char *func, uns8 sev, uns8 hdln_id)
 {
 
-   ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-              /* format ID    */ RDE_FMT_HEADLINE,
-              /* str tbl ID   */ RDE_FC_CONDITION,
-              /* category     */ NCSFL_LC_HEADLINE,
-              /* severity     */ sev,
-              /* format type  */ NCSFL_TYPE_TI,
-              /* va_arg (...) */ hdln_id);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* format ID    */ RDE_FMT_HEADLINE,
+		   /* str tbl ID   */ RDE_FC_CONDITION,
+		   /* category     */ NCSFL_LC_HEADLINE,
+		   /* severity     */ sev,
+		   /* format type  */ NCSFL_TYPE_TI,
+		   /* va_arg (...) */ hdln_id);
 
 }
-
 
 /*****************************************************************************
 
@@ -190,23 +186,17 @@ void rde_log_condition (
 
 *****************************************************************************/
 
-void rde_log_condition_int (
-   uns32        line, 
-   const char * file, 
-   const char * func,
-   uns8         sev,
-   uns8         hdln_id,
-   uns32        val)
+void rde_log_condition_int(uns32 line, const char *file, const char *func, uns8 sev, uns8 hdln_id, uns32 val)
 {
 
-   ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-              /* format ID    */ RDE_FMT_HEADLINE_NUM,
-              /* str tbl ID   */ RDE_FC_CONDITION,
-              /* category     */ NCSFL_LC_HEADLINE,
-              /* severity     */ sev,
-              /* format type  */ NCSFL_TYPE_TIL,
-              /* va_arg (...) */ hdln_id, 
-              val);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* format ID    */ RDE_FMT_HEADLINE_NUM,
+		   /* str tbl ID   */ RDE_FC_CONDITION,
+		   /* category     */ NCSFL_LC_HEADLINE,
+		   /* severity     */ sev,
+		   /* format type  */ NCSFL_TYPE_TIL,
+		   /* va_arg (...) */ hdln_id,
+		   val);
 
 }
 
@@ -218,22 +208,16 @@ void rde_log_condition_int (
 
 *****************************************************************************/
 
-void rde_log_condition_float (
-   uns32        line, 
-   const char * file, 
-   const char * func,
-   uns8         sev,
-   uns8         hdln_id,
-   DOUBLE       val)
+void rde_log_condition_float(uns32 line, const char *file, const char *func, uns8 sev, uns8 hdln_id, DOUBLE val)
 {
-   ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-              /* format ID    */ RDE_FMT_HEADLINE_TIME,
-              /* str tbl ID   */ RDE_FC_CONDITION,
-              /* category     */ NCSFL_LC_HEADLINE,
-              /* severity     */ sev,
-              /* format type  */ NCSFL_TYPE_TIF,
-              /* va_arg (...) */ hdln_id,
-              val);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* format ID    */ RDE_FMT_HEADLINE_TIME,
+		   /* str tbl ID   */ RDE_FC_CONDITION,
+		   /* category     */ NCSFL_LC_HEADLINE,
+		   /* severity     */ sev,
+		   /* format type  */ NCSFL_TYPE_TIF,
+		   /* va_arg (...) */ hdln_id,
+		   val);
 
 }
 
@@ -248,25 +232,17 @@ void rde_log_condition_float (
 
 *****************************************************************************/
 
-void rde_log_condition_string  (
-   uns32        line, 
-   const char * file, 
-   const char * func,
-   uns8         sev,
-   uns8         hdln_id,
-   const char * str
-   )
+void rde_log_condition_string(uns32 line, const char *file, const char *func, uns8 sev, uns8 hdln_id, const char *str)
 {
-   ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-              /* fomat ID     */ RDE_FMT_HEADLINE_STR,
-              /* str tbl ID   */ RDE_FC_CONDITION,
-              /* category     */ NCSFL_LC_HEADLINE,
-              /* severity     */ sev,
-              /* format type  */ NCSFL_TYPE_TIC,
-              /* va_arg (...) */ hdln_id,
-              str);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* fomat ID     */ RDE_FMT_HEADLINE_STR,
+		   /* str tbl ID   */ RDE_FC_CONDITION,
+		   /* category     */ NCSFL_LC_HEADLINE,
+		   /* severity     */ sev,
+		   /* format type  */ NCSFL_TYPE_TIC,
+		   /* va_arg (...) */ hdln_id,
+		   str);
 }
-
 
 /*****************************************************************************
 
@@ -276,25 +252,15 @@ void rde_log_condition_string  (
 
 *****************************************************************************/
 
-void rde_log_mem_fail (
-uns32  line, 
-   const char * file, 
-   const char * func,
-   uns8   id)
-         
+void rde_log_mem_fail(uns32 line, const char *file, const char *func, uns8 id)
 {
- ncs_logmsg(/* service ID   */ NCS_SERVICE_ID_RDE,
-            /* fomat ID     */ RDE_FMT_MEM_FAIL,
-            /* str tbl ID   */ RDE_FC_MEM_FAIL,
-            /* category     */ NCSFL_LC_EVENT,
-            /* severity     */ NCSFL_SEV_ERROR,
-            /* format type  */ NCSFL_TYPE_TI,
-            /* va_arg (...) */ id);
+	ncs_logmsg( /* service ID   */ NCS_SERVICE_ID_RDE,
+		   /* fomat ID     */ RDE_FMT_MEM_FAIL,
+		   /* str tbl ID   */ RDE_FC_MEM_FAIL,
+		   /* category     */ NCSFL_LC_EVENT,
+		   /* severity     */ NCSFL_SEV_ERROR,
+		   /* format type  */ NCSFL_TYPE_TI,
+		   /* va_arg (...) */ id);
 
- return;
+	return;
 }
-
-
-
-
-
