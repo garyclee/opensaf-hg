@@ -99,22 +99,7 @@ const NCSFL_STR avsv_edu_set[] =
    { 0,0 }
 };
 
-/******************************************************************************
-                          Canned string for SRM
- ******************************************************************************/
-const NCSFL_STR avsv_srm_set[] = 
-{
-   { AVSV_LOG_SRM_REG,       "SRM Reg"      },
-   { AVSV_LOG_SRM_FINALIZE,  "SRM Finalize" },
-   { AVSV_LOG_SRM_UNREG,     "SRM Unreg"    },     
-   { AVSV_LOG_SRM_MON_START, "SRM Start"    },
-   { AVSV_LOG_SRM_MON_STOP,  "SRM Stop"     },
-   { AVSV_LOG_SRM_CALLBACK,  "SRM callback" },
-   { AVSV_LOG_SRM_DISPATCH,  "SRM Dispatch" },
-   { AVSV_LOG_SRM_SUCCESS,   "Success"      },
-   { AVSV_LOG_SRM_FAILURE,   "Failure"      },
-   { 0,0 }
-};
+
 /******************************************************************************
                           Canned string for LOCK
  ******************************************************************************/

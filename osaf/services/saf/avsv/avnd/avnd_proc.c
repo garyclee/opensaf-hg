@@ -154,11 +154,9 @@ void avnd_main_process (void *arg)
    NCS_SEL_OBJ_SET    wait_sel_objs;
    NCS_SEL_OBJ        mbx_sel_obj;
    NCS_SEL_OBJ        highest_sel_obj;
-   NCS_SEL_OBJ        ncs_srm_sel_obj;
 #ifdef NCS_AVND_MBCSV_CKPT
    NCS_SEL_OBJ        avnd_mbcsv_sel_obj;
 #endif
-   SaSelectionObjectT srm_sel_obj;
    NCS_BOOL           avnd_exit = FALSE;
 
    /* Only change scheduling class to real time on payload nodes. */
@@ -191,16 +189,9 @@ void avnd_main_process (void *arg)
 
    /* get the EDSv select object - TBD in future */
 
-   /* get srm sel obj */
-   srm_sel_obj = cb->srm_sel_obj;
-   m_SET_FD_IN_SEL_OBJ((uns32)srm_sel_obj,ncs_srm_sel_obj);
-
-
-
    /* set all the select objects on which avnd waits */
    m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
    /*m_NCS_SEL_OBJ_SET(edsv_sel_obj, &wait_sel_objs);*/
-   m_NCS_SEL_OBJ_SET(ncs_srm_sel_obj, &wait_sel_objs);
 
 #ifdef NCS_AVND_MBCSV_CKPT
    m_SET_FD_IN_SEL_OBJ((uns32)cb->avnd_mbcsv_sel_obj, avnd_mbcsv_sel_obj);
@@ -208,7 +199,6 @@ void avnd_main_process (void *arg)
 #endif
 
    /* get the highest select object in the set */
-   highest_sel_obj = m_GET_HIGHER_SEL_OBJ(mbx_sel_obj, ncs_srm_sel_obj);
 #ifdef NCS_AVND_MBCSV_CKPT
    highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, avnd_mbcsv_sel_obj);
 #endif
@@ -239,14 +229,8 @@ void avnd_main_process (void *arg)
       }/* if (m_NCS_SEL_OBJ_ISSET (mbcsv_sel_obj, &wait_sel_objs))*/
 #endif
 
-      /* srmsv event processing */
-      if( m_NCS_SEL_OBJ_ISSET(ncs_srm_sel_obj, &wait_sel_objs) )
-         avnd_srm_process(cb_hdl);
-
-
       /* again set all the wait select objs */
       m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
-      m_NCS_SEL_OBJ_SET(ncs_srm_sel_obj, &wait_sel_objs);
 #ifdef NCS_AVND_MBCSV_CKPT
       m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
 #endif

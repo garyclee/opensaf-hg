@@ -438,7 +438,6 @@ typedef enum avnd_log_avnd_avnd_flex
 typedef enum avnd_flex_sets {
    AVND_FC_SEAPI,
    AVND_FC_MDS,
-   AVND_FC_SRM,
    AVND_FC_EDU,
    AVND_FC_LOCK,
    AVND_FC_CB,
@@ -466,7 +465,6 @@ typedef enum avnd_flex_sets {
 typedef enum avnd_log_ids {
    AVND_LID_SEAPI,
    AVND_LID_MDS,
-   AVND_LID_SRM,
    AVND_LID_EDU,
    AVND_LID_LOCK,
    AVND_LID_CB,
@@ -511,7 +509,6 @@ typedef enum avnd_log_ids {
 
 #define m_AVND_LOG_SEAPI(op, st, sev)       avnd_log_seapi(op, st, sev)
 #define m_AVND_LOG_MDS(op, st, sev)         avnd_log_mds(op, st, sev)
-#define m_AVND_LOG_SRM(op, st, sev)         avnd_log_srm(op, st, sev)
 #define m_AVND_LOG_EDU(op, st, sev)         avnd_log_edu(op, st, sev)
 #define m_AVND_LOG_LOCK(op, st, sev)        avnd_log_lock(op, st, sev)
 #define m_AVND_LOG_CB(op, st, sev)          avnd_log_cb(op, st, sev)
@@ -661,7 +658,6 @@ typedef enum avnd_log_ids {
 
 #define m_AVND_LOG_SEAPI(op, st, sev)
 #define m_AVND_LOG_MDS(op, st, sev)
-#define m_AVND_LOG_SRM(op, st, sev)
 #define m_AVND_LOG_EDU(op, st, sev)
 #define m_AVND_LOG_LOCK(op, st, sev)
 #define m_AVND_LOG_CB(op, st, sev)
@@ -715,7 +711,6 @@ EXTERN_C uns32 avnd_log_unreg (void);
 
 EXTERN_C void avnd_log_seapi (AVSV_LOG_SEAPI, AVSV_LOG_SEAPI, uns8);
 EXTERN_C void avnd_log_mds (AVSV_LOG_MDS, AVSV_LOG_MDS, uns8);
-EXTERN_C void avnd_log_srm (AVSV_LOG_SRM, AVSV_LOG_SRM, uns8);
 EXTERN_C void avnd_log_edu (AVSV_LOG_EDU, AVSV_LOG_EDU, uns8);
 EXTERN_C void avnd_log_lock (AVSV_LOG_LOCK, AVSV_LOG_LOCK, uns8);
 EXTERN_C void avnd_log_cb (AVSV_LOG_CB, AVSV_LOG_CB, uns8);

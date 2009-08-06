@@ -69,8 +69,6 @@ typedef struct avnd_cb_tag {
    uns32              hpi_hdl;      /* hpi hdl */
    SaEvtHandleT       *eds_hdl;     /* edsv hdl */
    SaSelectionObjectT *eds_sel_obj; /* edsv selection object */
-   uns32              srm_hdl;      /* srmsv handle*/
-   SaSelectionObjectT srm_sel_obj; /* srmsv selection object */
 
    /* node states */
    NCS_ADMIN_STATE  admin_state; /* node admin state */
@@ -101,9 +99,6 @@ typedef struct avnd_cb_tag {
    NCS_PATRICIA_TREE  nodeid_mdsdest_db;   /* pg db */
    NCS_PATRICIA_TREE  internode_avail_comp_db;   /* Internode components, whose node is UP*/
    MDS_DEST           cntlr_avnd_vdest; /* Controller AvND Vdest addr */
-
-   /* srmsv resource request mapping list (res mon hdl is the key) */
-   NCS_DB_LINK_LIST   srm_req_list;
 
    MDS_DEST       active_avd_adest;
    uns32          rcv_msg_id; /* Message ID of the last message received */

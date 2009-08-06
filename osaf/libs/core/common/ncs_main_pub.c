@@ -96,13 +96,6 @@
 #include "ifnd_dl_api.h"
 #endif
 
-#if (NCS_SRMA == 1)
-#include "srma_dl_api.h"
-#endif
-#if (NCS_SRMND == 1)
-#include "srmnd_dl_api.h"
-#endif
-
 #if (NCS_MQA == 1)
 #include "mqa_dl_api.h"
 #endif
@@ -154,11 +147,6 @@
 #include "avd_logstr.h"
 #include "avnd_logstr.h"
 #include "ava_logstr.h"
-#endif
-
-#if (NCS_SRMSV_LOG == 1)
-#include "srmnd_logstr.h"
-#include "srma_logstr.h"
 #endif
 
 #if (NCS_GLSV_LOG == 1)

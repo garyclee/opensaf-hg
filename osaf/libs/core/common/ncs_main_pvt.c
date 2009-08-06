@@ -109,13 +109,6 @@
 #include "cpnd_dl_api.h"
 #endif
 
-#if (NCS_SRMA == 1)
-#include "srma_dl_api.h"
-#endif
-#if (NCS_SRMND == 1)
-#include "srmnd_dl_api.h"
-#endif
-
 #if ((NCS_IFA == 1) || (NCS_IFD == 1) || (NCS_IFND == 1))
 #include "ifsv_papi.h"
 #endif
@@ -175,12 +168,6 @@
 #include "avnd_logstr.h"
 #include "ava_logstr.h"
 #include "avm_logstr.h"
-#endif
-
-#if (NCS_SRMSV_LOG == 1)
-#include "srmsv_logstr.h"
-#include "srmnd_logstr.h"
-#include "srma_logstr.h"
 #endif
 
 #if (NCS_GLSV_LOG == 1)
@@ -412,20 +399,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
          return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
       }
       m_NCS_DBG_PRINTF("\n AvM thread created");
-#endif
-   }
-
-    /*** Init SRMND ***/
-   if ('n' != ncs_util_get_char_option(argc, argv, "SRMSV="))
-   {
-#if (NCS_SRMND == 1)
-      m_NCS_DBG_PRINTF("\nSRMSV:SRMND:ON");
-      if (srmnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS)
-      {
-         m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-         printf("SRMND lib request failed\n");
-         return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);    
-      }
 #endif
    }
 

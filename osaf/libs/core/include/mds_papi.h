@@ -146,7 +146,7 @@ typedef enum ncsmds_svc_id
   {
     NCSMDS_SVC_ID_NCSMIN = 1,
     /* BEGIN: These are NCS internal use service-id definitions */
-    NCSMDS_SVC_ID_OAC = NCSMDS_SVC_ID_NCSMIN,    /*  1 */
+    NCSMDS_SVC_ID_OAC = NCSMDS_SVC_ID_NCSMIN,
     NCSMDS_SVC_ID_MAS,
     NCSMDS_SVC_ID_MAC,
     NCSMDS_SVC_ID_DTS,
@@ -155,7 +155,7 @@ typedef enum ncsmds_svc_id
     NCSMDS_SVC_ID_IFND,
     NCSMDS_SVC_ID_IFA,
     NCSMDS_SVC_ID_IFDRV,
-    NCSMDS_SVC_ID_GLA,         /* 10 */
+    NCSMDS_SVC_ID_GLA,
     NCSMDS_SVC_ID_GLND,
     NCSMDS_SVC_ID_GLD,
     NCSMDS_SVC_ID_SPA_OBSOLETE,
@@ -165,7 +165,7 @@ typedef enum ncsmds_svc_id
     NCSMDS_SVC_ID_VDA,
     NCSMDS_SVC_ID_EDS,
     NCSMDS_SVC_ID_EDA,
-    NCSMDS_SVC_ID_PSS, /* 20 */       
+    NCSMDS_SVC_ID_PSS,       
     NCSMDS_SVC_ID_MQA,
     NCSMDS_SVC_ID_MQND,
     NCSMDS_SVC_ID_MQD, 
@@ -175,17 +175,15 @@ typedef enum ncsmds_svc_id
     NCSMDS_SVC_ID_AVND,
     NCSMDS_SVC_ID_AVA,
     NCSMDS_SVC_ID_BAM,
-    NCSMDS_SVC_ID_AVM, /* 30 */      
+    NCSMDS_SVC_ID_AVM,      
     NCSMDS_SVC_ID_CLA,
     NCSMDS_SVC_ID_CPD,
     NCSMDS_SVC_ID_CPND,
     NCSMDS_SVC_ID_CPA,
     NCSMDS_SVC_ID_MBCSV,
-    NCSMDS_SVC_ID_SRMND,
-    NCSMDS_SVC_ID_SRMA,
     NCSMDS_SVC_ID_LFM,
     NCSMDS_SVC_ID_PDRBD,
-    NCSMDS_SVC_ID_SUND,      /* 40 */
+    NCSMDS_SVC_ID_SUND,
     NCSMDS_SVC_ID_LGS,
     NCSMDS_SVC_ID_LGA,
     NCSMDS_SVC_ID_AVND_CNTLR,

@@ -10,7 +10,6 @@ include $(top_srcdir)/samples/masv/masv.mk
 include $(top_srcdir)/samples/mbcsv/mbcsv.mk
 include $(top_srcdir)/samples/mds/mds.mk
 include $(top_srcdir)/samples/mqsv/mqsv.mk
-include $(top_srcdir)/samples/srmsv/srmsv.mk
 include $(top_srcdir)/samples/subagt/subagt.mk
 
 samples_sources = \
@@ -26,5 +25,4 @@ samples_sources = \
    $(mbcsv_sources) \
    $(mds_sources) \
    $(mqsv_sources) \
-   $(srmsv_sources) \
    $(subagt_sources)

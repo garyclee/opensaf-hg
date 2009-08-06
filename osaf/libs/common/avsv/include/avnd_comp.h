@@ -34,7 +34,6 @@
 struct avnd_cb_tag;
 struct avnd_su_si_rec;
 struct avnd_su_tag;
-struct avnd_srm_req_tag;
 
 /***************************************************************************
  **********  S T R U C T U R E / E N U M  D E F I N I T I O N S  ***********
@@ -250,7 +249,6 @@ typedef struct avnd_hc_rec_tag {
 typedef struct avnd_pm_rec {
    NCS_DB_LINK_LIST_NODE  comp_dll_node; /* node in the comp-pm dll  */
    SaUint64T  pid;     /* pid of the prc that is being monitored (index) */
-   uns32      rsrc_hdl; /* hdl returned by srmsv for this request */
    SaAmfHandleT req_hdl; /* AMF handle value */
 
    /* pm info */
@@ -868,15 +866,6 @@ EXTERN_C uns32 saamfscompcsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG* args,
 EXTERN_C uns32 avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, AVND_COMP *,
                                 AVND_COMP_CLC_CMD_TYPE );
 EXTERN_C uns32 saamfscompcsitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
-
-EXTERN_C uns32 avnd_srm_req_list_init( struct avnd_cb_tag * );
-EXTERN_C uns32 avnd_srm_req_list_destroy(struct avnd_cb_tag *);
-EXTERN_C struct avnd_srm_req_tag * avnd_srm_req_add (struct avnd_cb_tag *,
-                                                 uns32, struct avnd_pm_rec *);
-EXTERN_C uns32 avnd_srm_req_del(struct avnd_cb_tag*, uns32);
-EXTERN_C struct avnd_srm_req_tag *avnd_srm_req_get(struct avnd_cb_tag*, uns32);
-EXTERN_C uns32 avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *);
 
 EXTERN_C void avnd_pm_list_init(AVND_COMP *);
 EXTERN_C uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *);

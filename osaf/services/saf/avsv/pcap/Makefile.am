@@ -21,12 +21,11 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_PROGRAMS = ncs_pcap
 
 ncs_pcap_CPPFLAGS = \
-	-DNCS_AVND=1 -DNCS_SRMA=1 \
+	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/vds/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/srmsv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_pcap_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
@@ -34,6 +33,5 @@ ncs_pcap_SOURCES = \
 ncs_pcap_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/libs/agents/infrastructure/srma/libsrma.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_pld.la \
 	$(top_builddir)/osaf/snmp/miblib/avsv/avnd/libavnd_miblib.la

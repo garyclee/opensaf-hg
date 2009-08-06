@@ -45,9 +45,6 @@ extern void tet_cpsv_startup() ;
 #ifdef TET_IFSV 
 extern void tet_ifsv_startup();
 #endif
-#ifdef TET_SRMSV
- extern void    tet_srmsv_startup();
-#endif
 #ifdef TET_MDS_TDS 
 extern void    tet_mds_tds_startup ();
 #endif
@@ -312,9 +309,6 @@ void tet_svcs_startup()
         sleep(5000);
     }
 
-#endif
-#ifdef TET_SRMSV
-    tet_srmsv_startup();
 #endif
 
     return;

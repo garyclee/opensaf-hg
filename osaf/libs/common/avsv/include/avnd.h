@@ -72,7 +72,6 @@
 #include "avnd_cb.h"
 #include "avnd_log.h"
 #include "avnd_mib.h"
-#include "avnd_srm.h"
 #include "ncs_trap.h"
 #include "avnd_trap.h"
 #include "avnd_proxy.h"

@@ -40,7 +40,6 @@
 EXTERN_C uns32 avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info);
 EXTERN_C const NCSFL_STR avsv_seapi_set[];
 EXTERN_C const NCSFL_STR avsv_mds_set[];
-EXTERN_C const NCSFL_STR avsv_srm_set[];
 EXTERN_C const NCSFL_STR avsv_edu_set[];
 EXTERN_C const NCSFL_STR avsv_lock_set[];
 EXTERN_C const NCSFL_STR avsv_cb_set[];
