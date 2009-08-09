@@ -46,6 +46,8 @@ ncs_psr_SOURCES = \
 	pss_mbcsv.c \
 	psr_rfmt.c
 
+ncs_psr_LDFLAGS = -Wl,--export-dynamic
+
 ncs_psr_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
  	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \

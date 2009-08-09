@@ -329,7 +329,7 @@ fi
 %{_pkglibdir}/ncs_scap
 %{_pkglibdir}/ncs_scap_clean
 %{_pkglibdir}/ncs_scap_start
-%{_pkglibdir}/opensaf_snmp_subagt
+%{_pkglibdir}/ncs_snmp_subagt
 %{_pkglibdir}/ncs_snmpsubagt_clean
 %{_pkglibdir}/ncs_snmpsubagt_reload
 %{_pkglibdir}/ncs_snmpsubagt_start
@@ -402,7 +402,7 @@ fi
 %{_libdir}/%{name}/libmbcsv_logstr.so.*
 %{_libdir}/%{name}/libmqsv_logstr.so.*
 %{_libdir}/%{name}/libmqsv_subagt.so.*
-%{_libdir}/%{name}/libopensaf_snmp_subagt.so.*
+%{_libdir}/%{name}/libncs_snmp_subagt.so.*
 %{_libdir}/%{name}/libpdrbd_logstr.so.*
 %{_libdir}/%{name}/libpsr_clicef.so.*
 %{_libdir}/%{name}/libpssv_logstr.so.*

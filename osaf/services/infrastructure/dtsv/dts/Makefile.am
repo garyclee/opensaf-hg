@@ -49,6 +49,8 @@ ncs_dts_SOURCES = \
 	dts_tgt.c \
 	sysf_log.c
 
+ncs_dts_LDFLAGS = -Wl,--export-dynamic
+
 ncs_dts_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \

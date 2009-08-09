@@ -20,17 +20,17 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = config mibs pssv scripts subagt
 
-pkglib_PROGRAMS = opensaf_snmp_subagt
+pkglib_PROGRAMS = ncs_snmp_subagt
 
-opensaf_snmp_subagt_CPPFLAGS = \
+ncs_snmp_subagt_CPPFLAGS = \
 	-DNCS_SNMPSUBAGT=1 -DNCS_SNMPSUBAGT_LOG=1 -DNCS_MAC=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
-opensaf_snmp_subagt_SOURCES = \
+ncs_snmp_subagt_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
-opensaf_snmp_subagt_LDADD = \
+ncs_snmp_subagt_LDADD = \
 	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la
