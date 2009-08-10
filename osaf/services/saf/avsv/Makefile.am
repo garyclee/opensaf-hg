@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = logstr avm avd avnd pcap scap
+SUBDIRS = config logstr avm avd avnd pcap scap

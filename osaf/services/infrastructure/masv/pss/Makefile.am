@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = logstr
+SUBDIRS = logstr scripts
 
 pkglib_PROGRAMS = ncs_psr
 

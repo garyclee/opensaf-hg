@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = scripts
+
 noinst_HEADERS = \
 	ntfs_com.h \
 	ntfs_cb.h \

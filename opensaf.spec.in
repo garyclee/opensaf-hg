@@ -340,10 +340,6 @@ fi
 %{_pkglibdir}/immload
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
-# TODO Still needed?
-%{_pkglibdir}/dhclnt_start
-# TODO Still needed?
-%{_pkglibdir}/dhclnt_clean
 %{_pkglibdir}/drbd_clean
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start

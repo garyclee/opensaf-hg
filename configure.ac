@@ -692,28 +692,58 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/dtsv/include/Makefile
         osaf/services/infrastructure/dtsv/logstr/Makefile
         osaf/services/infrastructure/dtsv/dts/Makefile
+        osaf/services/infrastructure/dtsv/dts/scripts/Makefile
+        osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_clean
+        osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_start
         osaf/services/infrastructure/fm/Makefile
         osaf/services/infrastructure/fm/include/Makefile
         osaf/services/infrastructure/fm/fms/Makefile
+        osaf/services/infrastructure/fm/config/Makefile
+        osaf/services/infrastructure/fm/fms/scripts/Makefile
+        osaf/services/infrastructure/fm/fms/scripts/opensaf_fms
         osaf/services/infrastructure/hisv/Makefile
         osaf/services/infrastructure/hisv/hcd/Makefile
         osaf/services/infrastructure/hisv/hpl/Makefile
         osaf/services/infrastructure/hisv/include/Makefile
         osaf/services/infrastructure/hisv/logstr/Makefile
+        osaf/services/infrastructure/hisv/scripts/Makefile
+        osaf/services/infrastructure/hisv/scripts/ncs_hisv_start
         osaf/services/infrastructure/masv/Makefile
         osaf/services/infrastructure/masv/include/Makefile
         osaf/services/infrastructure/masv/logstr/Makefile
         osaf/services/infrastructure/masv/mas/Makefile
+        osaf/services/infrastructure/masv/mas/scripts/Makefile
+        osaf/services/infrastructure/masv/mas/scripts/ncs_mas_clean
+        osaf/services/infrastructure/masv/mas/scripts/ncs_mas_start
         osaf/services/infrastructure/masv/pss/Makefile
         osaf/services/infrastructure/masv/pss/logstr/Makefile
+        osaf/services/infrastructure/masv/pss/scripts/Makefile
+        osaf/services/infrastructure/masv/pss/scripts/ncs_pss_clean
+        osaf/services/infrastructure/masv/pss/scripts/ncs_pss_start
         osaf/services/infrastructure/nid/Makefile
+        osaf/services/infrastructure/nid/config/Makefile
+        osaf/services/infrastructure/nid/scripts/Makefile
+        osaf/services/infrastructure/nid/scripts/nid_tipc
         osaf/services/infrastructure/pdrbd/Makefile
+        osaf/services/infrastructure/pdrbd/config/Makefile
         osaf/services/infrastructure/pdrbd/logstr/Makefile
+        osaf/services/infrastructure/pdrbd/scripts/Makefile
+        osaf/services/infrastructure/pdrbd/scripts/drbd_start
+        osaf/services/infrastructure/pdrbd/scripts/drbdctrl
+        osaf/services/infrastructure/pdrbd/scripts/pdrbdsts
+        osaf/services/infrastructure/pdrbd/scripts/ncs_drbd_r0_clean
+        osaf/services/infrastructure/pdrbd/scripts/pdrbdctrl
         osaf/services/infrastructure/rde/Makefile
+        osaf/services/infrastructure/rde/config/Makefile
         osaf/services/infrastructure/rde/logstr/Makefile
         osaf/services/infrastructure/rde/include/Makefile
+        osaf/services/infrastructure/rde/scripts/Makefile
+        osaf/services/infrastructure/rde/scripts/ncs_rde_clean
+        osaf/services/infrastructure/rde/scripts/ncs_rde_start
+        osaf/services/infrastructure/rde/scripts/rde_script
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
+        osaf/services/saf/avsv/config/Makefile
         osaf/services/saf/avsv/logstr/Makefile
         osaf/services/saf/avsv/avm/Makefile
         osaf/services/saf/avsv/avm/include/Makefile
@@ -721,29 +751,61 @@ AC_CONFIG_FILES([
         osaf/services/saf/avsv/avd/Makefile
         osaf/services/saf/avsv/avnd/Makefile
         osaf/services/saf/avsv/pcap/Makefile
+        osaf/services/saf/avsv/pcap/scripts/Makefile
+        osaf/services/saf/avsv/pcap/scripts/ncs_pcap_clean
+        osaf/services/saf/avsv/pcap/scripts/ncs_pcap_start
         osaf/services/saf/avsv/scap/Makefile
+        osaf/services/saf/avsv/scap/scripts/Makefile
+        osaf/services/saf/avsv/scap/scripts/ncs_scap_clean
+        osaf/services/saf/avsv/scap/scripts/ncs_scap_start
         osaf/services/saf/immsv/Makefile
+        osaf/services/saf/immsv/config/Makefile
         osaf/services/saf/immsv/immd/Makefile
         osaf/services/saf/immsv/immnd/Makefile
+        osaf/services/saf/immsv/immd/scripts/Makefile
+        osaf/services/saf/immsv/immd/scripts/immd_script
+        osaf/services/saf/immsv/immnd/scripts/Makefile
+        osaf/services/saf/immsv/immnd/scripts/immnd_script
         osaf/services/saf/logsv/Makefile
+        osaf/services/saf/logsv/config/Makefile
         osaf/services/saf/logsv/lgs/Makefile
+        osaf/services/saf/logsv/lgs/scripts/Makefile
+        osaf/services/saf/logsv/lgs/scripts/opensaf_lgs
         osaf/services/saf/ntfsv/Makefile
+        osaf/services/saf/ntfsv/config/Makefile
         osaf/services/saf/ntfsv/ntfs/Makefile
+        osaf/services/saf/ntfsv/ntfs/scripts/Makefile
+        osaf/services/saf/ntfsv/ntfs/scripts/opensaf_ntfs
         osaf/services/saf/cpsv/Makefile
         osaf/services/saf/cpsv/logstr/Makefile
         osaf/services/saf/cpsv/cpd/Makefile
         osaf/services/saf/cpsv/cpnd/Makefile
+        osaf/services/saf/cpsv/cpd/scripts/Makefile
+        osaf/services/saf/cpsv/cpd/scripts/ncs_cpd_start
+        osaf/services/saf/cpsv/cpnd/scripts/Makefile
+        osaf/services/saf/cpsv/cpnd/scripts/ncs_cpnd_start
         osaf/services/saf/edsv/Makefile
         osaf/services/saf/edsv/logstr/Makefile
         osaf/services/saf/edsv/eds/Makefile
+        osaf/services/saf/edsv/eds/scripts/Makefile
+        osaf/services/saf/edsv/eds/scripts/ncs_eds_clean
+        osaf/services/saf/edsv/eds/scripts/ncs_eds_start
         osaf/services/saf/glsv/Makefile
         osaf/services/saf/glsv/logstr/Makefile
         osaf/services/saf/glsv/gld/Makefile
         osaf/services/saf/glsv/glnd/Makefile
+        osaf/services/saf/glsv/gld/scripts/Makefile
+        osaf/services/saf/glsv/gld/scripts/ncs_gld_start
+        osaf/services/saf/glsv/glnd/scripts/Makefile
+        osaf/services/saf/glsv/glnd/scripts/ncs_glnd_start
         osaf/services/saf/mqsv/Makefile
         osaf/services/saf/mqsv/logstr/Makefile
         osaf/services/saf/mqsv/mqd/Makefile
         osaf/services/saf/mqsv/mqnd/Makefile
+        osaf/services/saf/mqsv/mqd/scripts/Makefile
+        osaf/services/saf/mqsv/mqd/scripts/ncs_mqd_start
+        osaf/services/saf/mqsv/mqnd/scripts/Makefile
+        osaf/services/saf/mqsv/mqnd/scripts/ncs_mqnd_start
         osaf/tools/Makefile
         osaf/tools/hisv_events_demo/Makefile
         osaf/tools/hisv_power_set_util/Makefile
@@ -774,46 +836,11 @@ AC_CONFIG_FILES([
         pkgconfig/opensaf-ntf.pc
         scripts/collect_logs_controller
         scripts/collect_logs_payload
-        scripts/dhclnt_clean
-        scripts/dhclnt_start
-        scripts/drbd_start
-        scripts/drbdctrl
-        scripts/pdrbdsts
-        scripts/ncs_drbd_r0_clean
         scripts/get_ha_state
-        scripts/ncs_cpd_start
-        scripts/ncs_cpnd_start
-        scripts/ncs_dts_clean
-        scripts/ncs_dts_start
-        scripts/ncs_eds_clean
-        scripts/ncs_eds_start
-        scripts/ncs_gld_start
-        scripts/ncs_glnd_start
-        scripts/ncs_hisv_start
-        scripts/ncs_mas_clean
-        scripts/ncs_mas_start
-        scripts/ncs_mqd_start
-        scripts/ncs_mqnd_start
-        scripts/ncs_pcap_clean
-        scripts/ncs_pcap_start
-        scripts/ncs_pss_clean
-        scripts/ncs_pss_start
-        scripts/ncs_rde_clean
-        scripts/ncs_rde_start
-        scripts/opensaf_fms
-        scripts/ncs_scap_clean
-        scripts/ncs_scap_start
-        scripts/nid_tipc
         scripts/openhpid_clean
         scripts/openhpid_start
         scripts/openhpisubagt_clean
         scripts/openhpisubagt_start
-        scripts/immd_script
-        scripts/immnd_script
-        scripts/opensaf_lgs
-        scripts/opensaf_ntfs
-        scripts/pdrbdctrl
-        scripts/rde_script
         scripts/tipc_reset.sh])
         #tests/immsv/implementer/Makefile
         #tests/immsv/management/Makefile
