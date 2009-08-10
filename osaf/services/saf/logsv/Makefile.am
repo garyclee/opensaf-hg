@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = README
 
-SUBDIRS = lgs
+SUBDIRS = config lgs

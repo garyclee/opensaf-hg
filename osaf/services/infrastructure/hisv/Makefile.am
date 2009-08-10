@@ -20,13 +20,13 @@ MAINTAINERCLEANFILES = Makefile.in
 
 if ENABLE_HPI
 
-SUBDIRS = include hcd hpl logstr
+SUBDIRS = include scripts hcd hpl logstr
 
 pkglib_PROGRAMS = ncs_hisv
 
 else
 
-SUBDIRS = include hpl
+SUBDIRS = include scripts hpl
 
 endif
 

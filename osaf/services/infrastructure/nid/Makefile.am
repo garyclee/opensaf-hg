@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = config scripts
+
 noinst_HEADERS = \
 	node_init.h
 

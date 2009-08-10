@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = scripts
+
 pkglib_PROGRAMS = ncs_scap
 
 ncs_scap_CPPFLAGS = \

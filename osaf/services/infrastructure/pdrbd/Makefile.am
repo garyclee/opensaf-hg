@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = logstr
+SUBDIRS = config scripts logstr
 
 noinst_HEADERS = \
 	pdrbd_amf.h \

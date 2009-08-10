@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = README
 
-SUBDIRS = ntfs
+SUBDIRS = config ntfs

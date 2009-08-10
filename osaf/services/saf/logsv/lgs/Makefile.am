@@ -19,6 +19,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = scripts
+
 noinst_HEADERS = \
 	lgs_cb.h \
 	lgs_fmt.h \

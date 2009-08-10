@@ -134,28 +134,8 @@ SUBDIRS += java
 endif
 
 
-dist_pkgsysconf_DATA = \
-	$(top_srcdir)/config/imm.conf \
-	$(top_srcdir)/config/AppConfig.xsd \
-	$(top_srcdir)/config/NCSConfig.xsd \
-	$(top_srcdir)/config/NCSSystemBOM.xml \
-	$(top_srcdir)/config/NCSSystemBOM.xml.hp.c-class \
-	$(top_srcdir)/config/ValidationConfig.xml \
-	$(top_srcdir)/config/ValidationConfig.xsd \
-	$(top_srcdir)/config/nodeinit.conf.controller \
-	$(top_srcdir)/config/nodeinit.conf.payload \
-	$(top_srcdir)/config/saflog.conf \
-	$(top_srcdir)/config/ntf.conf \
-	$(top_srcdir)/config/rde.conf \
-	$(top_srcdir)/config/fms.conf \
-	$(top_srcdir)/config/imm.xml \
-	$(top_srcdir)/config/pdrbd_proxied.conf
-
 nodist_pkgsysconf_DATA = \
 	$(top_builddir)/config/script.conf
-
-dist_sysconf_DATA = \
-	$(top_srcdir)/config/drbd.conf
 
 
 dist_pkglocalstate_DATA = \
@@ -177,66 +157,11 @@ nodist_bin_SCRIPTS = \
 
 
 dist_pkglib_SCRIPTS = \
-	$(top_srcdir)/scripts/drbd_clean \
 	$(top_srcdir)/scripts/find_pid \
-	$(top_srcdir)/scripts/ncs_cpd_clean \
-	$(top_srcdir)/scripts/ncs_cpnd_clean \
-	$(top_srcdir)/scripts/ncs_gld_clean \
-	$(top_srcdir)/scripts/ncs_glnd_clean \
-	$(top_srcdir)/scripts/ncs_mqd_clean \
-	$(top_srcdir)/scripts/ncs_mqnd_clean \
 	$(top_srcdir)/scripts/opensaf_reboot 
 
-if ENABLE_HPI
-
-dist_pkglib_SCRIPTS += \
-	$(top_srcdir)/scripts/ncs_hisv_clean
-
-endif
-
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/scripts/dhclnt_clean \
-	$(top_builddir)/scripts/dhclnt_start \
-	$(top_builddir)/scripts/drbdctrl \
-	$(top_builddir)/scripts/drbd_start \
-	$(top_builddir)/scripts/ncs_drbd_r0_clean \
-	$(top_builddir)/scripts/pdrbdsts \
-	$(top_builddir)/scripts/ncs_cpd_start \
-	$(top_builddir)/scripts/ncs_cpnd_start \
-	$(top_builddir)/scripts/ncs_dts_clean \
-	$(top_builddir)/scripts/ncs_dts_start \
-	$(top_builddir)/scripts/ncs_eds_clean \
-	$(top_builddir)/scripts/ncs_eds_start \
-	$(top_builddir)/scripts/opensaf_fms \
-	$(top_builddir)/scripts/ncs_gld_start \
-	$(top_builddir)/scripts/ncs_glnd_start \
-	$(top_builddir)/scripts/ncs_mas_clean \
-	$(top_builddir)/scripts/ncs_mas_start \
-	$(top_builddir)/scripts/ncs_mqd_start \
-	$(top_builddir)/scripts/ncs_mqnd_start \
-	$(top_builddir)/scripts/ncs_pcap_clean \
-	$(top_builddir)/scripts/ncs_pcap_start \
-	$(top_builddir)/scripts/ncs_pss_clean \
-	$(top_builddir)/scripts/ncs_pss_start \
-	$(top_builddir)/scripts/ncs_rde_clean \
-	$(top_builddir)/scripts/ncs_rde_start \
-	$(top_builddir)/scripts/ncs_scap_clean \
-	$(top_builddir)/scripts/ncs_scap_start \
-	$(top_builddir)/scripts/nid_tipc \
-	$(top_builddir)/scripts/immd_script \
-	$(top_builddir)/scripts/immnd_script \
-	$(top_builddir)/scripts/opensaf_lgs \
-	$(top_builddir)/scripts/opensaf_ntfs \
-	$(top_builddir)/scripts/pdrbdctrl \
-	$(top_builddir)/scripts/rde_script \
 	$(top_builddir)/scripts/tipc_reset.sh 
-
-if ENABLE_HPI
-
-nodist_pkglib_SCRIPTS += \
-	$(top_builddir)/scripts/ncs_hisv_start
-
-endif
 
 if WITH_OPENHPI
 
@@ -284,26 +209,18 @@ update-pkgconfig:
 	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
 	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
 
-set-default-node-config:
-	@echo "*** Setting default controller node configuration ***"
-	echo "2" > $(DESTDIR)$(pkgsysconfdir)/chassis_id
-	echo "1" > $(DESTDIR)$(pkgsysconfdir)/slot_id
-	echo "15" > $(DESTDIR)$(pkgsysconfdir)/subslot_id
-	echo "controller" > $(DESTDIR)$(pkgsysconfdir)/node_type
-
 install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
 	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
 
-install-data-hook: set-default-node-config
+install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxPIDPATHxx|$(localstatedir)/run/$(PACKAGE_NAME)|g' "$$i"; \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 	done
-	cd $(DESTDIR)$(pkgsysconfdir) && $(LN_S) -f nodeinit.conf.controller nodeinit.conf
 
 uninstall-local:
 	-rm -rf $(DESTDIR)$(pkgsysconfdir)

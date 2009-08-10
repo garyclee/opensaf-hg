@@ -1,8 +1,6 @@
-#!/bin/bash 
-#
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -13,25 +11,13 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson Network Power
+# Author(s): Wind River Systems
 #
-#
 
-source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+include $(top_srcdir)/Makefile.common
 
-compName="$SA_AMF_COMPONENT_NAME"
+MAINTAINERCLEANFILES = Makefile.in
 
-echo "EXECUTING DHCLIENT $PIDPATH$compName$EXTN CLEAN at `date`" >> /dhc
-
-if [ -z $compName ]; then
-    $ECHO "NO ENVIRONMENT VARIABLE OF DHCLNT COMPONENT NAME SET" >> $DBGFILE;
-    exit -1;
-fi
-
-killall -q -2 dhclient;
-sleep 1
-killall -q -9 dhclient;
-
-rm -f "$PIDPATH$compName$EXTN"
-$ECHO "DHCLNT STOP SUCCESS" >> $DBGFILE
-exit 0;
+nodist_pkglib_SCRIPTS = \
+	$(top_builddir)/osaf/services/infrastructure/masv/mas/scripts/ncs_mas_clean \
+	$(top_builddir)/osaf/services/infrastructure/masv/mas/scripts/ncs_mas_start
