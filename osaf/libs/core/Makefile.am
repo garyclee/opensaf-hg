@@ -22,7 +22,7 @@ SUBDIRS = include common leap mbcsv mds
 
 LIB_VERSION = 0:0:0
 
-lib_LTLIBRARIES = libopensaf_core.la
+pkglib_LTLIBRARIES = libopensaf_core.la
 
 libopensaf_core_la_SOURCES =
 

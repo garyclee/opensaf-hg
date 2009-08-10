@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libcpsv_common.la
+pkglib_LTLIBRARIES = libcpsv_common.la
 
 libcpsv_common_la_CPPFLAGS = \
 	-DNCS_CPND=1 -DNCS_CPD=1 \

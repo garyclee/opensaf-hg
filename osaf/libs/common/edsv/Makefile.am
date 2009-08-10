@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libedsv_common.la
+pkglib_LTLIBRARIES = libedsv_common.la
 
 libedsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

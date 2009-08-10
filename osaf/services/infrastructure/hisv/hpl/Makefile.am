@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-lib_LTLIBRARIES = libhpl.la
+pkglib_LTLIBRARIES = libhpl.la
 
 libhpl_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

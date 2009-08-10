@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libmqsv_common.la
+pkglib_LTLIBRARIES = libmqsv_common.la
 
 libmqsv_common_la_CPPFLAGS = \
 	-DNCS_MQA=1 -DNCS_MQSV_LOG=1 \

@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libntfsv_common.la
+pkglib_LTLIBRARIES = libntfsv_common.la
 
 libntfsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
