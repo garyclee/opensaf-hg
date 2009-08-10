@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = logstr
 
-lib_LTLIBRARIES = libfma.la
+pkglib_LTLIBRARIES = libfma.la
 
 noinst_HEADERS = \
 	fma_cb.h \

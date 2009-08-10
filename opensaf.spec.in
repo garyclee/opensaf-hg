@@ -253,23 +253,17 @@ fi
 %{_sysconfdir}/init.d/opensafd
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
-# TODO Still needed?
 %{_pkglibdir}/ncs_cpnd_clean
 %{_pkglibdir}/ncs_cpnd_start
 %{_pkglibdir}/ncs_glnd_clean
 %{_pkglibdir}/ncs_glnd_start
-# TODO Still needed?
 %{_pkglibdir}/ncs_mqnd_clean
 %{_pkglibdir}/ncs_mqnd_start
 %{_pkglibdir}/nid_tipc
 %if %is_openhpi
-# TODO Still needed?
 %{_pkglibdir}/openhpid_clean
-# TODO Still needed?
 %{_pkglibdir}/openhpid_start
-# TODO Still needed?
 %{_pkglibdir}/openhpisubagt_clean
-# TODO Still needed?
 %{_pkglibdir}/openhpisubagt_start
 %endif
 %{_pkglibdir}/immnd_script
@@ -379,40 +373,40 @@ fi
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_4
 %{_localstatedir}/lib/%{name}/node_ha_state
 %{_localstatedir}/lib/%{name}/pssv_spcn.list
-%{_libdir}/%{name}/libavm_logstr.so.*
-%{_libdir}/%{name}/libavm_pssv.so.*
-%{_libdir}/%{name}/libavm_subagt.so.*
-%{_libdir}/%{name}/libavsv_clicef.so.*
-%{_libdir}/%{name}/libavsv_logstr.so.*
-%{_libdir}/%{name}/libavsv_pssv.so.*
-%{_libdir}/%{name}/libavsv_subagt.so.*
-%{_libdir}/%{name}/libbam_logstr.so.*
-%{_libdir}/%{name}/libcli_logstr.so.*
-%{_libdir}/%{name}/libcpsv_logstr.so.*
-%{_libdir}/%{name}/libcpsv_subagt.so.*
-%{_libdir}/%{name}/libdts_clicef.so.*
-%{_libdir}/%{name}/libdts_logstr.so.*
-%{_libdir}/%{name}/libdts_pssv.so.*
-%{_libdir}/%{name}/libdtsv_subagt.so.*
-%{_libdir}/%{name}/libedsv_logstr.so.*
-%{_libdir}/%{name}/libedsv_subagt.so.*
-%{_libdir}/%{name}/libglsv_logstr.so.*
-%{_libdir}/%{name}/libglsv_subagt.so.*
-%{_libdir}/%{name}/libmab_logstr.so.*
-%{_libdir}/%{name}/libmbcsv_logstr.so.*
-%{_libdir}/%{name}/libmqsv_logstr.so.*
-%{_libdir}/%{name}/libmqsv_subagt.so.*
-%{_libdir}/%{name}/libncs_snmp_subagt.so.*
-%{_libdir}/%{name}/libpdrbd_logstr.so.*
-%{_libdir}/%{name}/libpsr_clicef.so.*
-%{_libdir}/%{name}/libpssv_logstr.so.*
-%{_libdir}/%{name}/libpssv_subagt.so.*
-%{_libdir}/%{name}/librde_logstr.so.*
-%{_libdir}/%{name}/libfma_logstr.so.*
-%{_libdir}/%{name}/libsubagt_logstr.so.*
+%{_pkglibdir}/libavm_logstr.so.*
+%{_pkglibdir}/libavm_pssv.so.*
+%{_pkglibdir}/libavm_subagt.so.*
+%{_pkglibdir}/libavsv_clicef.so.*
+%{_pkglibdir}/libavsv_logstr.so.*
+%{_pkglibdir}/libavsv_pssv.so.*
+%{_pkglibdir}/libavsv_subagt.so.*
+%{_pkglibdir}/libbam_logstr.so.*
+%{_pkglibdir}/libcli_logstr.so.*
+%{_pkglibdir}/libcpsv_logstr.so.*
+%{_pkglibdir}/libcpsv_subagt.so.*
+%{_pkglibdir}/libdts_clicef.so.*
+%{_pkglibdir}/libdts_logstr.so.*
+%{_pkglibdir}/libdts_pssv.so.*
+%{_pkglibdir}/libdtsv_subagt.so.*
+%{_pkglibdir}/libedsv_logstr.so.*
+%{_pkglibdir}/libedsv_subagt.so.*
+%{_pkglibdir}/libglsv_logstr.so.*
+%{_pkglibdir}/libglsv_subagt.so.*
+%{_pkglibdir}/libmab_logstr.so.*
+%{_pkglibdir}/libmbcsv_logstr.so.*
+%{_pkglibdir}/libmqsv_logstr.so.*
+%{_pkglibdir}/libmqsv_subagt.so.*
+%{_pkglibdir}/libncs_snmp_subagt.so.*
+%{_pkglibdir}/libpdrbd_logstr.so.*
+%{_pkglibdir}/libpsr_clicef.so.*
+%{_pkglibdir}/libpssv_logstr.so.*
+%{_pkglibdir}/libpssv_subagt.so.*
+%{_pkglibdir}/librde_logstr.so.*
+%{_pkglibdir}/libfma_logstr.so.*
+%{_pkglibdir}/libsubagt_logstr.so.*
 #TODO: To be changed when supporting other HPI
 %if %is_hpi
-%{_libdir}/%{name}/libhisv_logstr.so.*
+%{_pkglibdir}/libhisv_logstr.so.*
 %endif
 
 
@@ -436,7 +430,6 @@ fi
 %files libs
 %defattr(-,root,root)
 %{_sysconfdir}/ld.so.conf.d/%{name}-%{_host_cpu}.conf
-# TODO split of SAF / non-SAF libs
 %{_libdir}/libSaAmf.so.*
 %{_libdir}/libSaCkpt.so.*
 %{_libdir}/libSaClm.so.*
@@ -447,18 +440,18 @@ fi
 %{_libdir}/libSaLog.so.*
 %{_libdir}/libSaNtf.so.*
 %{_libdir}/libSaMsg.so.*
-%{_libdir}/libopensaf_core.so.*
-%{_libdir}/libavsv_common.so.*
-%{_libdir}/libcpsv_common.so.*
-%{_libdir}/libedsv_common.so.*
-%{_libdir}/libglsv_common.so.*
-%{_libdir}/libimmsv_common.so.*
-%{_libdir}/libmqsv_common.so.*
-%{_libdir}/libntfsv_common.so.*
-%{_libdir}/libmaa.so.*
-%{_libdir}/librda.so.*
-%{_libdir}/libfma.so.*
-%{_libdir}/libhpl.so.*
+%{_pkglibdir}/libopensaf_core.so.*
+%{_pkglibdir}/libavsv_common.so.*
+%{_pkglibdir}/libcpsv_common.so.*
+%{_pkglibdir}/libedsv_common.so.*
+%{_pkglibdir}/libglsv_common.so.*
+%{_pkglibdir}/libimmsv_common.so.*
+%{_pkglibdir}/libmqsv_common.so.*
+%{_pkglibdir}/libntfsv_common.so.*
+%{_pkglibdir}/libmaa.so.*
+%{_pkglibdir}/librda.so.*
+%{_pkglibdir}/libfma.so.*
+%{_pkglibdir}/libhpl.so.*
 
 
 %files devel

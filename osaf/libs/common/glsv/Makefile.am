@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libglsv_common.la
+pkglib_LTLIBRARIES = libglsv_common.la
 
 libglsv_common_la_CPPFLAGS = \
 	-DNCS_GLSV_LOG=1 \

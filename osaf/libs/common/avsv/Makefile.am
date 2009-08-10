@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libavsv_common.la
+pkglib_LTLIBRARIES = libavsv_common.la
 
 libavsv_common_la_CPPFLAGS = \
 	-DNCS_EDU=1 \

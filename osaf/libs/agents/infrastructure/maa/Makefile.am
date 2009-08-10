@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-lib_LTLIBRARIES = libmaa.la
+pkglib_LTLIBRARIES = libmaa.la
 
 libmaa_la_CPPFLAGS = \
 	-DNCS_MAC=1 -DMAB_LOG=1 -DNCS_MAB=1 -DNCS_CLI_MAA=1 \

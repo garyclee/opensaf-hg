@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include
 
-lib_LTLIBRARIES = libimmsv_common.la
+pkglib_LTLIBRARIES = libimmsv_common.la
 
 libimmsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \

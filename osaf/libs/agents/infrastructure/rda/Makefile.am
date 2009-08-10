@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-lib_LTLIBRARIES = librda.la
+pkglib_LTLIBRARIES = librda.la
 
 noinst_HEADERS = \
 	rda.h
