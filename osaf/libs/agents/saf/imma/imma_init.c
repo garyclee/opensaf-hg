@@ -207,7 +207,14 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
 
-	pthread_mutex_lock(&imma_agent_lock);
+	int pt_err = pthread_mutex_lock(&imma_agent_lock);
+    if(pt_err) {
+        LOG_ER("Could not obtain mutex lock error(%u):%s", 
+            pt_err, strerror(pt_err));
+        rc = NCSCC_RC_FAILURE;
+        goto done_nolock;
+    }
+
 	TRACE_ENTER2("use count %u", imma_use_count);
 
 	if (imma_use_count > 0) {
@@ -232,8 +239,14 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 
  done:
 	TRACE_LEAVE2("use count %u", imma_use_count);
-	pthread_mutex_unlock(&imma_agent_lock);
+	pt_err = pthread_mutex_unlock(&imma_agent_lock);
+    if(pt_err) {
+        LOG_ER("Could not release mutex lock error(%u):%s",
+            pt_err, strerror(pt_err));
+        rc = NCSCC_RC_FAILURE;
+    }
 
+done_nolock:
 	return rc;
 }
 
@@ -254,7 +267,14 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	pthread_mutex_lock(&imma_agent_lock);
+	int pt_err = pthread_mutex_lock(&imma_agent_lock);
+    if(pt_err) {
+        LOG_ER("Could not obtain mutex lock error(%u):%s", 
+            pt_err, strerror(pt_err));
+        rc = NCSCC_RC_FAILURE;
+        goto done_nolock;
+    }
+
 	TRACE_ENTER2("use count %u", imma_use_count);
 
 	if (imma_use_count > 1) {
@@ -267,8 +287,14 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 	}
 
 	TRACE_LEAVE2("use count %u", imma_use_count);
-	pthread_mutex_unlock(&imma_agent_lock);
+	pt_err = pthread_mutex_unlock(&imma_agent_lock);
+    if(pt_err) {
+        LOG_ER("Could not release mutex lock error(%u):%s",
+            pt_err, strerror(pt_err));
+        rc = NCSCC_RC_FAILURE;
+    }
 
+done_nolock:
 	return rc;
 }
 
