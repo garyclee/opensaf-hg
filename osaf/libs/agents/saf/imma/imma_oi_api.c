@@ -224,7 +224,11 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 			if ((stale_node != NULL) && stale_node->stale) {
 				TRACE_2("Removing stale client");
 				imma_finalize_proc(cb, stale_node);
-				imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
+				proc_rc = imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
+                if(proc_rc != NCSCC_RC_SUCCESS) {
+                    TRACE_2("Call to imma_shutdown FAILED");
+                    return SA_AIS_ERR_LIBRARY;
+                }
 				TRACE_2("Retrying add of client node");
 				proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
 			}
@@ -294,7 +298,12 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
  end:
 	if (rc != SA_AIS_OK) {
-		imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
+		if(NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
+            /* Oh boy. Failure in imma_shutdown when we already have
+               some other problem. */
+            TRACE_1("Call to imma_shutdown failed, prior error %u", rc);
+            rc = SA_AIS_ERR_LIBRARY;
+        }
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -555,7 +564,10 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 
  lock_fail:
 	if (rc == SA_AIS_OK) {
-		imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
+		if(NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
+            TRACE_1("Call to imma_shutdown failed");
+            rc = SA_AIS_ERR_LIBRARY;
+        }
 	}
 	return rc;
 }
