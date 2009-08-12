@@ -176,21 +176,14 @@ void avnd_main_process(void *arg)
 	m_NCS_SEL_OBJ_ZERO(&wait_sel_objs);
 
 	/* get the mbx select object */
-	mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(mbx);
-
-	/* get the EDSv select object - TBD in future */
+	highest_sel_obj = mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(mbx);
 
 	/* set all the select objects on which avnd waits */
 	m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
-	/*m_NCS_SEL_OBJ_SET(edsv_sel_obj, &wait_sel_objs); */
 
 #ifdef NCS_AVND_MBCSV_CKPT
 	m_SET_FD_IN_SEL_OBJ((uns32)cb->avnd_mbcsv_sel_obj, avnd_mbcsv_sel_obj);
 	m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
-#endif
-
-	/* get the highest select object in the set */
-#ifdef NCS_AVND_MBCSV_CKPT
 	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, avnd_mbcsv_sel_obj);
 #endif
 	/* before waiting, return avnd cb */
