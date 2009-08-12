@@ -145,6 +145,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 	imma_mds_unregister(cb);
 
  mds_reg_fail:
+    cb->sv_id = 0;
 	imma_db_destroy(cb);
 
  db_init_fail:
