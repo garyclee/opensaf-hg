@@ -18,8 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-OILIB_VERSION = 0:1:1
-OMLIB_VERSION = 0:1:1
+OILIB_VERSION = 0:1:2
+OMLIB_VERSION = 0:1:2
 
 EXTRA_DIST = \
 	libSaImmOi.version \
