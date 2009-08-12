@@ -17,7 +17,7 @@
 #
 #
 
-arch=$(arch)
+arch=$(uname -m)
 if [ $arch = x86_64 ]; then
     lib_dir=lib64
 else

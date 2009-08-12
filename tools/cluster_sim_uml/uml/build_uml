@@ -25,7 +25,7 @@ bbver=${BBVER:-1.9.1}
 bburl="http://busybox.net/downloads/busybox-$bbver.tar.bz2"
 umlutilsver=20070815
 umlutilsurl="http://user-mode-linux.sourceforge.net/uml_utilities_$umlutilsver.tar.bz2"
-arch=$(arch)
+arch=$(uname -m)
 gid=$(id -g)
 
 test -x ./uml/build_uml || exit 1
