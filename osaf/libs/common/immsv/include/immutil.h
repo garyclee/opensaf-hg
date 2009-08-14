@@ -347,7 +347,7 @@ extern "C" {
 	extern struct ImmutilWrapperProfile immutilWrapperProfile;
 
 	extern SaAisErrorT immutil_saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
-						       const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version);
+						       const SaImmOiCallbacksT_2 *immOiCallbacks, const SaVersionT *version);
 
 	extern SaAisErrorT immutil_saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle,
 							     SaSelectionObjectT *selectionObject);
@@ -378,7 +378,7 @@ extern "C" {
 							       SaInvocationT invocation, SaAisErrorT result);
 
 	extern SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle,
-						     const SaImmCallbacksT *immCallbacks, SaVersionT *version);
+						     const SaImmCallbacksT *immCallbacks, const SaVersionT *version);
 
 	extern SaAisErrorT immutil_saImmOmFinalize(SaImmHandleT immHandle);
 
