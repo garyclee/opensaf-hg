@@ -26,7 +26,8 @@
 
 #include <immutil.h>
 
-static SaVersionT immVersion = { 'A', 2, 1 };
+static const SaVersionT immVersion = { 'A', 2, 1 };
+size_t strnlen(const char *s, size_t maxlen);
 
 /* Memory handling functions */
 #define CHUNK	4000
@@ -697,13 +698,19 @@ static void *clistMalloc(struct Chunk *clist, size_t size)
 struct ImmutilWrapperProfile immutilWrapperProfile = { 1, 25, 400 };
 
 SaAisErrorT immutil_saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
-					const SaImmOiCallbacksT_2 *immOiCallbacks, SaVersionT *version)
+    const SaImmOiCallbacksT_2 *immOiCallbacks, 
+    const SaVersionT *version)
 {
-	SaAisErrorT rc = saImmOiInitialize_2(immOiHandle, immOiCallbacks, version);
+    /* Version parameter is in/out i.e. must be mutable and should not be
+       re-used from previous call in a retry loop. */
+    SaVersionT localVer = *version; 
+
+	SaAisErrorT rc = saImmOiInitialize_2(immOiHandle, immOiCallbacks, &localVer);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOiInitialize_2(immOiHandle, immOiCallbacks, version);
+        localVer = *version;
+		rc = saImmOiInitialize_2(immOiHandle, immOiCallbacks, &localVer);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
@@ -841,13 +848,18 @@ SaAisErrorT immutil_saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle,
 	return rc;
 }
 
-SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, SaVersionT *version)
+SaAisErrorT immutil_saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *immCallbacks, const SaVersionT *version)
 {
-	SaAisErrorT rc = saImmOmInitialize(immHandle, immCallbacks, version);
+    /* Version parameter is in/out i.e. must be mutable and should not be
+       re-used from previous call in a retry loop. */
+    SaVersionT localVer = *version;
+
+	SaAisErrorT rc = saImmOmInitialize(immHandle, immCallbacks, &localVer);
 	unsigned int nTries = 1;
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries) {
 		usleep(immutilWrapperProfile.retryInterval * 1000);
-		rc = saImmOmInitialize(immHandle, immCallbacks, version);
+        localVer = *version;
+		rc = saImmOmInitialize(immHandle, immCallbacks, &localVer);
 		nTries++;
 	}
 	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
