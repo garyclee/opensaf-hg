@@ -94,8 +94,6 @@ void ncs_qspace_init(NCS_QSPACE *qs)
 	ncs_qspace_delete(qs);	/* free stale information first */
 
 	qs->front = (NCS_QLINK *)m_MMGR_ALLOC_NCS_QLINK;
-	m_QSPACE_STUFF_OWNER(qs, qs->front);
-
 	qs->front->next = NCS_QLINK_NULL;
 	qs->back = qs->front;
 	qs->slots = (sizeof(NCS_QLINK) - sizeof(NCS_QLINK *)) / sizeof(void *);
@@ -119,7 +117,6 @@ void ncs_qspace_enq(NCS_QSPACE *qs, void *q_it)
 {
 	if (qs->b_idx == qs->slots) {
 		qs->back->next = (NCS_QLINK *)m_MMGR_ALLOC_NCS_QLINK;
-		m_QSPACE_STUFF_OWNER(qs, qs->back->next);
 		qs->back = qs->back->next;
 		qs->back->next = NCS_QLINK_NULL;
 		qs->b_idx = 0;

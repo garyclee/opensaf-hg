@@ -50,7 +50,6 @@ libleap_la_SOURCES = \
 	sysf_file.c \
 	nid_ipc.c \
 	hj_ipcstats.c \
-	sysfpool.c \
 	hj_xmtre.c \
 	hj_qptrs.c \
 	sysfsysm.c \

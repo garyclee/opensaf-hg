@@ -923,10 +923,6 @@ void ncs_lbp_free(void *free_me)
  ****************************************************************************/
 void ncs_ub_dbg_loc(USRBUF *ub, uns32 l, char *f)
 {
-	while (ub != NULL) {
-		ncs_mem_dbg_loc(ub, l, f);
-		ub = ub->next;
-	}
 }
 
 /****************************************************************************
@@ -941,23 +937,6 @@ void ncs_ub_dbg_loc(USRBUF *ub, uns32 l, char *f)
 
 void *ncs_buf_dbg_loc(void *ptr, int svc_id, int sub_id, unsigned int line, char *file)
 {
-	NCS_MPOOL_ENTRY *me;
-
-	if ((me = (NCS_MPOOL_ENTRY *)(((char *)ptr) - sizeof(NCS_MPOOL_ENTRY))) == NULL)
-		return ptr;
-	me->loc_line = line;
-	me->loc_file = file;
-	me->prev_svc_id = me->service_id;
-	me->service_id = svc_id;
-	me->prev_sub_id = me->sub_id;
-	me->sub_id = sub_id;
-
-	if (gl_ub_pool_mgr.pools[(((USRBUF *)ptr)->pool_ops->pool_id)].mem_loc != NULL)
-		gl_ub_pool_mgr.pools[(((USRBUF *)ptr)->pool_ops->pool_id)].mem_loc((((USRBUF *)ptr)->payload), svc_id,
-										   sub_id, line, file);
-
-	if (((USRBUF *)ptr)->next != NULL)
-		ncs_buf_dbg_loc(((USRBUF *)ptr)->next, svc_id, sub_id, line, file);
 	return ptr;
 }
 #endif
@@ -3062,3 +3041,33 @@ extern void my_free(void *mem_p)
 }
 
 #endif
+
+    /****************************************************************************
+    *
+    * Function Name: ncs_fname
+    *
+    * Purpose:       isolate just the file name out of a file path string.
+    *
+  ****************************************************************************/
+char *ncs_fname(char *fpath)
+{
+	char *str;
+	int len;
+
+	if (fpath == NULL)
+		return "<NONE>";
+
+	/* What we do to get pretty output SM */
+
+	len = strlen(fpath);
+	str = fpath + (len - 3);	/* '.c' assumed */
+
+	while ((*str >= 'A' && *str <= 'Z') ||
+	       (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || (*str == '_')) {
+		str--;
+		if (str < fpath)	/* in case preceeding memory has (coincidental) chars */
+			break;
+	}
+	return ++str;
+}
+

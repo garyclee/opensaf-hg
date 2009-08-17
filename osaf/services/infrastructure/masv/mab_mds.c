@@ -194,7 +194,6 @@ uns32 mab_mds_enc(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg, SS_SVC_ID to_svc, N
 				ncs_enc_claim_space(uba, sizeof(uns16));
 
 				if (mm->data.data.plbck_start.i_ub != NULL) {
-					m_NCS_MEM_DBG_LOC(mm->data.data.plbck_start.i_ub);	/* Mem Leak assist */
 #if 1
 					/* To fix the leak introduced to fix the crash in MDS broadcast processing to multiple receivers. */
 					lcl_ub = m_MMGR_DITTO_BUFR(mm->data.data.plbck_start.i_ub);

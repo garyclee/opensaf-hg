@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include common leap mbcsv mds
 
-LIB_VERSION = 0:0:0
+LIB_VERSION = 0:1:0
 
 pkglib_LTLIBRARIES = libopensaf_core.la
 
@@ -31,7 +31,7 @@ libopensaf_core_la_CPPFLAGS = \
 
 libopensaf_core_la_LDFLAGS = \
 	-lpthread -ldl -lrt \
-	-version-info $(LIB_VERSION)
+	-version-number $(LIB_VERSION)
 
 libopensaf_core_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/common/libopensaf_common.la \

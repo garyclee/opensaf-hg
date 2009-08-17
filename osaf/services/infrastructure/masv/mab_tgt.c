@@ -843,7 +843,6 @@ static uns32 pssts_get_next_profile(NCS_PSSTS_CB *inst, NCS_PSSTS_ARG_GET_NEXT_P
 	if (ncs_patricia_tree_init(&lcl_db.tree, &lcl_db.params) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;
 	}
-	m_NCS_MEM_DBG_LOC(lcl_db.tree.root_node.key_info);
 
 	memset(&file, '\0', sizeof(file));
 	file.info.get_list.i_dir_name = inst->root_dir;

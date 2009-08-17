@@ -349,23 +349,12 @@ uns32 leap_env_init()
 	/* initialize OS target */
 	m_NCS_OS_TARGET_INIT;
 
-#if (NCSL_ENV_INIT_MMGR == 1)
-	/* initialize LEAP Memory Manager */
-	if (ncs_mem_create() != NCSCC_RC_SUCCESS) {
-		printf("\nleap_env_init: FAILED to initialize Memory Manager\n");
-		return NCSCC_RC_FAILURE;
-	}
-#endif
-
 #if (NCS_USE_SYSMON == 1)
 #if (NCSL_ENV_INIT_LBP == 1)
 	/* initialize LEAP Buffer Pool */
 	if (ncs_lbp_create() != NCSCC_RC_SUCCESS) {
 		printf("\nleap_env_init: FAILED to initialize Buffer Pool\n");
 
-#if (NCSL_ENV_INIT_MMGR == 1)
-		(void)ncs_mem_destroy();
-#endif
 		return NCSCC_RC_FAILURE;
 	}
 #endif   /* #if (NCSL_ENV_INIT_LBP == 1) */
@@ -380,9 +369,6 @@ uns32 leap_env_init()
 #if (NCSL_ENV_INIT_LBP == 1)
 		(void)ncs_lbp_destroy();
 #endif
-#endif
-#if (NCSL_ENV_INIT_MMGR == 1)
-		(void)ncs_mem_destroy();
 #endif
 
 		return NCSCC_RC_FAILURE;
@@ -403,9 +389,6 @@ uns32 leap_env_init()
 #if (NCSL_ENV_INIT_LBP == 1)
 		(void)ncs_lbp_destroy();
 #endif
-#endif
-#if (NCSL_ENV_INIT_MMGR == 1)
-		(void)ncs_mem_destroy();
 #endif
 
 		return NCSCC_RC_FAILURE;
@@ -430,9 +413,6 @@ uns32 leap_env_init()
 #if (NCSL_ENV_INIT_LBP == 1)
 			(void)ncs_lbp_destroy();
 #endif
-#endif
-#if (NCSL_ENV_INIT_MMGR == 1)
-			(void)ncs_mem_destroy();
 #endif
 			return NCSCC_RC_FAILURE;
 		}
@@ -472,9 +452,6 @@ uns32 leap_env_init()
 		(void)ncs_lbp_destroy();
 #endif
 #endif
-#if (NCSL_ENV_INIT_MMGR == 1)
-		(void)ncs_mem_destroy();
-#endif
 
 		return NCSCC_RC_FAILURE;
 	}
@@ -513,9 +490,6 @@ uns32 leap_env_init()
 #if (NCSL_ENV_INIT_LBP == 1)
 			(void)ncs_lbp_destroy();
 #endif
-#endif
-#if (NCSL_ENV_INIT_MMGR == 1)
-			(void)ncs_mem_destroy();
 #endif
 			return NCSCC_RC_FAILURE;
 		}
@@ -643,11 +617,6 @@ uns32 leap_env_destroy()
 	/* destroying LEAP Buffer Pool */
 	(void)ncs_lbp_destroy();
 #endif
-#endif
-
-#if (NCSL_ENV_INIT_MMGR == 1)
-	/* destroying LEAP Memory Manager */
-	(void)ncs_mem_destroy();
 #endif
 
 	m_NCS_DBG_PRINTF("\nDONE DESTROYING LEAP ENVIRONMENT\n");
