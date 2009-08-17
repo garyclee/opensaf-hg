@@ -750,7 +750,6 @@ uns32 pss_process_oac_warmboot(MAB_MSG *msg)
 						pss_destroy_wbsort_db(&lcl_sort_db);
 						continue;
 					}
-					m_NCS_MEM_DBG_LOC(lcl_uba.start);	/* Mem Leak assist */
 				}
 			} else {
 				NCS_BOOL add_entry = FALSE;
@@ -808,7 +807,6 @@ uns32 pss_process_oac_warmboot(MAB_MSG *msg)
 						pss_destroy_wbsort_db(&lcl_sort_db);
 						continue;
 					}
-					m_NCS_MEM_DBG_LOC(lcl_uba.start);	/* Mem Leak assist */
 				}
 			}
 			if (retval != NCSCC_RC_SUCCESS) {

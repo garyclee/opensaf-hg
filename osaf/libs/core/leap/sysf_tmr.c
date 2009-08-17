@@ -613,15 +613,6 @@ NCS_BOOL sysfTmrCreate(void)
 		m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);
 		return FALSE;
 	}
-#if ((NCS_MMGR_DEBUG  == 1) || (NCSSYSM_MEM_DBG_ENABLE == 1) || (NCSSYSM_MEM_STATS_ENABLE == 1))
-
-	/* Tmr maintains its own memory pool. It will get its memory from  */
-	/* sysfpool.c. If MEM DBG stuff is enabled, we do not want TMR mem */
-	/* to appear as a LEAK from sysfpool's point of view, so we will   */
-	/* permenently ignore/hide all mem allocated by the TMR 'subsystem' */
-
-	ncs_mem_ignore_subsystem(TRUE, NCS_SERVICE_ID_LEAP_TMR);
-#endif
 	return TRUE;
 }
 
@@ -677,13 +668,6 @@ NCS_BOOL sysfTmrDestroy(void)
 
 	ncs_patricia_tree_destroy(&gl_tcb.tmr_pat_tree);
 	m_NCS_SEL_OBJ_DESTROY(gl_tcb.sel_obj);
-
-	/* Now we tell the memmgr to no longer ignore the memory.......... */
-
-#if ((NCS_MMGR_DEBUG  == 1) || (NCSSYSM_MEM_DBG_ENABLE == 1) || (NCSSYSM_MEM_STATS_ENABLE == 1))
-
-	ncs_mem_ignore_subsystem(FALSE, NCS_SERVICE_ID_LEAP_TMR);
-#endif
 
 	/* Stop the dedicated thread that runs out of ncs_tmr_wait() */
 
@@ -770,9 +754,6 @@ tmr_t ncs_tmr_alloc(char *file, uns32 line)
 		TMR_DBG_SET(tmr->dbg, file, line);
 #endif
 
-#if ((NCS_MMGR_DEBUG == 1) && (NCS_TMR_DBG_ENABLE == 1))
-		ncs_mem_dbg_loc(tmr, line, file);	/* put owner in sysfpool record */
-#endif
 	}
 
 	ncslpg_give(&gl_tcb.persist, 0);

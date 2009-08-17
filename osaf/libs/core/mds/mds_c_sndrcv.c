@@ -1180,7 +1180,6 @@ static uns32 mcm_msg_cpy_send(uns8 to, MDS_SVC_INFO *svc_cb, SEND_MSG *to_msg,
 						      svc_cb->svc_id);
 					return NCSCC_RC_FAILURE;
 				}
-				m_NCS_MEM_DBG_LOC(req.msg.data.fullenc_uba.start);	/* Mem Leak assist */
 
 			} else {
 				cbinfo.i_op = MDS_CALLBACK_COPY;
@@ -1372,14 +1371,12 @@ static uns32 mcm_msg_encode_full_or_flat_and_send(uns8 to, SEND_MSG *to_msg,
 			m_MDS_LOG_ERR("MDS_SND_RCV: encode full init failed svc_id=%d\n", svc_cb->svc_id);
 			return NCSCC_RC_FAILURE;
 		}
-		m_NCS_MEM_DBG_LOC(msg_send.msg.data.fullenc_uba.start);	/* Mem Leak assist */
 	} else {
 		msg_send.msg.encoding = MDS_ENC_TYPE_FLAT;
 		if (ncs_enc_init_space_pp(&msg_send.msg.data.flat_uba, NCSUB_MDS_POOL, 0) != NCSCC_RC_SUCCESS) {
 			m_MDS_LOG_ERR("MDS_SND_RCV: encode flat init failed svc_id=%d\n", svc_cb->svc_id);
 			return NCSCC_RC_FAILURE;
 		}
-		m_NCS_MEM_DBG_LOC(msg_send.msg.data.flat_uba.start);	/* Mem Leak assist */
 	}
 	msg_send.adest = adest;
 
@@ -2008,7 +2005,6 @@ static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RES
 				m_MDS_LOG_ERR("MDS_SND_RCV: encode full init failed svc_id=%d\n", svc_cb->svc_id);
 				return NCSCC_RC_FAILURE;
 			}
-			m_NCS_MEM_DBG_LOC(req.msg.data.fullenc_uba.start);	/* Mem Leak assist */
 			req.msg.data.fullenc_uba.start = m_MMGR_DITTO_BUFR(bcast_ptr->bcast_enc);
 			req.msg_fmt_ver = bcast_ptr->msg_fmt_ver;
 			req.msg_arch_word = MDS_SVC_ARCHWORD_TYPE_UNSPECIFIED;
@@ -2032,7 +2028,6 @@ static uns32 mcm_process_await_active(MDS_SVC_INFO *svc_cb, MDS_SUBSCRIPTION_RES
 				return NCSCC_RC_FAILURE;
 			}
 
-			m_NCS_MEM_DBG_LOC(cbinfo.info.enc.io_uba->start);	/* Mem Leak assist */
 			status = svc_cb->cback_ptr(&cbinfo);
 			if (status != NCSCC_RC_SUCCESS) {
 				m_MDS_LOG_ERR("MDS_SND_RCV: CALLBACK ENC failed for svc_id=%d\n", svc_cb->svc_id);

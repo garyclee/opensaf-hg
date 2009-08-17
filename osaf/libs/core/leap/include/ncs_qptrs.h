@@ -123,6 +123,4 @@ EXTERN_C LEAPDLL_API uns32 ncs_circ_qspace_set_maxsize(NCS_QSPACE *qs, int32 max
                                       (q)->line = __LINE__; \
                                       ncs_qspace_init(q);
 
-#define m_QSPACE_STUFF_OWNER(qs,a)  ncs_mem_dbg_loc(a,qs->line,qs->file)
-
 #endif   /* NCS_QPTR_H */

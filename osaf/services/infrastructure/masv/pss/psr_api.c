@@ -848,7 +848,6 @@ uns32 pss_pwe_cb_init(uns32 pss_cb_handle, PSS_PWE_CB *pwe_cb, PW_ENV_ID envid)
 		ncshm_give_hdl(pss_cb_handle);
 		return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-	m_NCS_MEM_DBG_LOC(pwe_cb->client_table.root_node.key_info);
 
 	/* Create the oaa_tree, which hosts the MDS_DESTs from where the applications 
 	   register their MIBs with PSS. */
@@ -861,7 +860,6 @@ uns32 pss_pwe_cb_init(uns32 pss_cb_handle, PSS_PWE_CB *pwe_cb, PW_ENV_ID envid)
 		ncshm_give_hdl(pss_cb_handle);
 		return m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-	m_NCS_MEM_DBG_LOC(pwe_cb->oaa_tree.root_node.key_info);
 
 	ncshm_give_hdl(pss_cb_handle);
 
