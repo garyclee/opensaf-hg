@@ -304,6 +304,7 @@ static void *imm_reinit_thread(void *_cb)
 {
 	SaAisErrorT error;
 	lgs_cb_t *cb = (lgs_cb_t *)_cb;
+	lgsv_lgs_evt_t *lgsv_evt;
 
 	TRACE_ENTER();
 
@@ -319,6 +320,21 @@ static void *imm_reinit_thread(void *_cb)
 	TRACE("New IMM fd: %llu", cb->immSelectionObject);
 	fds[FD_IMM].fd = cb->immSelectionObject;
 	nfds = FD_IMM + 1;
+
+	/* Wake up the main thread so it discovers the new imm descriptor. */
+	lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t));
+	assert(lgsv_evt);
+	lgsv_evt->evt_type = LGSV_EVT_NO_OP;
+	if(m_NCS_IPC_SEND(&cb->mbx, lgsv_evt, NCS_IPC_PRIORITY_HIGH) !=
+		NCSCC_RC_SUCCESS) {
+		LOG_WA("imm_reinit_thread failed to send IPC message to main thread");
+		/* Se no reason why thos would happen. But if it does at least there
+			is something in the syslog. The main thread should still pick up
+			the new imm FD when there is a healthcheck, but it could take
+			minutes.
+		*/
+		free(lgsv_evt);
+	}
 
 	TRACE_LEAVE();
 	return NULL;
@@ -431,7 +447,13 @@ int main(int argc, char *argv[])
 				 ** locations. E.g. giving TRY_AGAIN responses to a create and
 				 ** close app stream requests. That is needed since the IMM OI
 				 ** is used in context of these functions.
+				 ** 
+				 ** Also closing the handle. Finalize is ok with a bad handle
+				 ** that is bad because it is stale and this actually clears
+				 ** the handle from internal agent structures.  In any case
+				 ** we ignore the return value from Finalize here.
 				 */
+				saImmOiFinalize(lgs_cb->immOiHandle);
 				lgs_cb->immOiHandle = 0;
 
 				/* 
