@@ -985,6 +985,8 @@ void lgs_process_mbx(SYSF_MBX *mbx)
 				lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
 			} else if (msg->evt_type == LGSV_EVT_QUIESCED_ACK) {
 				proc_mds_quiesced_ack_msg(msg);
+			} else if (msg->evt_type == LGSV_EVT_NO_OP) {
+				TRACE("Jolted the main thread so it picks up the new IMM FD");
 			} else
 				LOG_ER("message type invalid");
 		} else {

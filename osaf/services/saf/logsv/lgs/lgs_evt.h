@@ -23,6 +23,7 @@ typedef enum lgsv_lgs_evt_type {
 	LGSV_LGS_EVT_LGA_UP = 1,
 	LGSV_LGS_EVT_LGA_DOWN = 2,
 	LGSV_EVT_QUIESCED_ACK = 3,
+	LGSV_EVT_NO_OP = 4,
 	LGSV_LGS_EVT_MAX
 } LGSV_LGS_EVT_TYPE;
 
