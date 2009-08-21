@@ -315,6 +315,63 @@ char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr, char const *n
 	return NULL;
 }
 
+/* note: SA_IMM_ATTR_SASTRINGT is intentionally not supported */
+SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
+    SaImmAttrValuesT_2 **attr, SaUint32T index, void *param)
+{
+        SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
+        int i;
+
+        if (attr == NULL || attr[0] == NULL)
+                return SA_AIS_ERR_INVALID_PARAM;
+
+        for (i = 0; attr[i] != NULL; i++) {
+                if (strcmp(attr[i]->attrName, attrName) == 0) {
+                        if ((index >= attr[i]->attrValuesNumber) || (attr[i]->attrValues == NULL)) {
+                                error = SA_AIS_ERR_INVALID_PARAM;
+                                goto done;
+                        }
+                        
+                        switch (attr[i]->attrValueType) {
+                                case SA_IMM_ATTR_SAINT32T:
+                                        *((SaInt32T*) param) = *((SaInt32T*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SAUINT32T:
+                                        *((SaUint32T*) param) = *((SaUint32T*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SAINT64T:
+                                        *((SaInt64T*) param) = *((SaInt64T*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SAUINT64T:
+                                        *((SaUint64T*) param) = *((SaUint64T*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SATIMET:
+                                        *((SaTimeT*) param) = *((SaTimeT*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SANAMET:
+                                        *((SaNameT*) param) = *((SaNameT*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SAFLOATT:
+                                        *((SaFloatT*) param) = *((SaFloatT*) attr[i]->attrValues[index]);
+                                        break;
+                                case SA_IMM_ATTR_SADOUBLET:
+                                        *((SaDoubleT*) param) = *((SaDoubleT*) attr[i]->attrValues[index]);
+                                        break;
+                                default:
+                                        error = SA_AIS_ERR_INVALID_PARAM;
+                                        goto done;
+                                        break;
+                        }
+                        
+                        error = SA_AIS_OK;
+                        break;
+                }
+        }
+        
+ done:
+        return error;
+}
+
 const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index)
 {
 	unsigned int i;
@@ -350,7 +407,7 @@ SaAisErrorT immutil_update_one_rattr(SaImmOiHandleT immOiHandle,
 	SaNameT objectName;
 
 	strncpy((char *)objectName.value, dn, SA_MAX_NAME_LENGTH);
-	objectName.length = strnlen((char *)objectName.value, SA_MAX_NAME_LENGTH);
+	objectName.length = strlen((char *)objectName.value);
 
 	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod.modAttr.attrName = attributeName;
@@ -370,7 +427,8 @@ SaImmClassNameT immutil_get_className(SaNameT *objectName)
 
 	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
-	(void)immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes);
+        if (immutil_saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, &attributes) != SA_AIS_OK)
+                return NULL;
 	className = strdup(*((char **)attributes[0]->attrValues[0]));
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 	(void)immutil_saImmOmFinalize(omHandle);
@@ -388,7 +446,10 @@ SaAisErrorT immutil_get_attrValueType(SaNameT *objectName, SaImmAttrNameT attrNa
 	SaImmClassNameT className = immutil_get_className(objectName);
 	int i = 0;
 
-	(void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
+        if (className == NULL)
+                return SA_AIS_ERR_NOT_EXIST;
+
+        (void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
 	(void)saImmOmClassDescriptionGet_2(omHandle, className, &classCategory, &attrDefinitions);
 
 	while ((attrDef = attrDefinitions[i++]) != NULL) {
@@ -449,7 +510,7 @@ void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str)
 		{
 			SaNameT *mynamet;
 			attrValue = mynamet = malloc(sizeof(SaNameT));
-			mynamet->length = strnlen(str, SA_MAX_NAME_LENGTH);
+			mynamet->length = strlen(str);
 			strncpy((char *)mynamet->value, str, SA_MAX_NAME_LENGTH);
 			break;
 		}
@@ -906,7 +967,8 @@ SaAisErrorT immutil_saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 		rc = saImmOmAccessorGet_2(accessorHandle, objectName, attributeNames, attributes);
 		nTries++;
 	}
-	if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+	if ((rc != SA_AIS_OK) && (rc != SA_AIS_ERR_NOT_EXIST) &&
+            immutilWrapperProfile.errorsAreFatal)
 		immutilError("saImmOmAccessorGet FAILED, rc = %d", (int)rc);
 	return rc;
 }

@@ -503,7 +503,11 @@ static SaAisErrorT stream_create_and_configure(const char *dn, log_stream_t **in
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Get all attributes of the object */
-	(void)immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes);
+        if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
+                LOG_ER("Configuration for %s not found", objectName.value);
+		rc = SA_AIS_ERR_NOT_EXIST;
+		goto done;
+        }
 
 	while ((attribute = attributes[i++]) != NULL) {
 		void *value;
