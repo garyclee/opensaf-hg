@@ -243,6 +243,24 @@ extern "C" {
 	const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index);
 
 /**
+ * Return the value for a named attribute from the supplied
+ * attribute array. Convert the returned value to the specified
+ * type and store in the supplied parameter.
+ *
+ * @param attrName name of attribute for which the value should
+ *                 be returned
+ * @param attr     attribute array as returned from e.g.
+ *              saImmOmSearchNext
+ * @param index    array index of the value to be returned
+ *              (support for multi value attributes)
+ * @param param [out] attribute value stored here
+ *
+ * @return SaAisErrorT SA_AIS_OK when conversion was successful
+ */
+        extern SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
+            SaImmAttrValuesT_2 **attr, SaUint32T index, void *param);
+
+/**
  * Works as "strchr()" but with a length limit. It is provided here
  * since "strnchr()" is not standard, and is useful when scanning
  * SaNameT.
