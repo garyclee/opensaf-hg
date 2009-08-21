@@ -684,9 +684,12 @@ static void *imm_impl_set(void *_cb)
 void lgs_imm_impl_set(lgs_cb_t *cb)
 {
 	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	TRACE_ENTER();
-	if (pthread_create(&thread, NULL, imm_impl_set, cb) != 0) {
+	if (pthread_create(&thread, &attr, imm_impl_set, cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
