@@ -348,9 +348,12 @@ static void *imm_reinit_thread(void *_cb)
 static void imm_reinit_bg(lgs_cb_t *cb)
 {
 	pthread_t thread;
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	TRACE_ENTER();
-	if (pthread_create(&thread, NULL, imm_reinit_thread, cb) != 0) {
+	if (pthread_create(&thread, &attr, imm_reinit_thread, cb) != 0) {
 		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
