@@ -55,11 +55,12 @@ static void usage(const char *progname)
 	printf("\t%s is an IMM OM client used to print attributes of IMM objects.\n", progname);
 
 	printf("\nOPTIONS\n");
-	printf("  -h or --help  this help\n");
+	printf("\t-h, --help\n");
+	printf("\t\tthis help\n");
 
 	printf("\nEXAMPLE\n");
-	printf("   immlist safApp=myApp\n");
-	printf("   immlist safApp=myApp safApp=myApp2\n");
+	printf("\timmlist safApp=myApp\n");
+	printf("\timmlist safApp=myApp safApp=myApp2\n");
 }
 
 static void print_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValue)
@@ -201,7 +202,7 @@ int main(int argc, char *argv[])
 		int i = 0, j;
 		SaImmAttrValuesT_2 *attr;
 		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		objectName.length = strnlen((char *)objectName.value, SA_MAX_NAME_LENGTH);
+		objectName.length = strlen((char *)objectName.value);
 
 		error = saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes);
 		if (SA_AIS_OK != error) {

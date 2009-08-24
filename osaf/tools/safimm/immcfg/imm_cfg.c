@@ -41,9 +41,14 @@
 
 #include "saf_error.h"
 
-#define PARAMDELIM "="
-
 static SaVersionT immVersion = { 'A', 2, 1 };
+
+typedef enum {
+	INVALID = 0,
+	CREATE = 1,
+	DELETE = 2,
+	MODIFY
+} op_t;
 
 /**
  * 
@@ -51,53 +56,83 @@ static SaVersionT immVersion = { 'A', 2, 1 };
 static void usage(const char *progname)
 {
 	printf("\nNAME\n");
-	printf("\t%s - configure attribute(s) for an IMM object\n", progname);
+	printf("\t%s - create, delete or modify IMM configuration object(s)\n", progname);
 
 	printf("\nSYNOPSIS\n");
-	printf("\t%s [options] <object name>\n", progname);
+	printf("\t%s [options] [object DN]...\n", progname);
 
 	printf("\nDESCRIPTION\n");
-	printf("\t%s is an IMM OM client used to configure attribute(s) for an IMM object\n", progname);
+	printf("\t%s is an IMM OM client used to create, delete an IMM or modify attribute(s) for IMM object(s)\n", progname);
+	printf("\tThe default operation if none specified is modify.\n");
+	printf("\tWhen creating or modifying several objects, they have to be of the same class.");
 
 	printf("\nOPTIONS\n");
-	printf("  -h or --help                    this help\n");
-	printf("  -i  or -- <object name> )\n");
-	printf("  -a name=value or --attribute name=value <object name> )\n");
+	printf("\t-a, --attribute name=value [object DN]... \n");
+	printf("\t-c, --create <class name> [object DN]... \n");
+	printf("\t-d, --delete [object DN]... \n");
+	printf("\t-h, --help                    this help\n");
+	printf("\t-m, --modify [object DN]... \n");
 
 	printf("\nEXAMPLE\n");
-	printf("   immcfg -a saAmfNodeSuFailoverMax=7 \"safAmfNode=Node01,safAmfCluster=1\"\n");
+	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
+	printf("\t\tchange one attribute for one object\n");
+	printf("\timmcfg -c SaAmfApplication -a saAmfAppType=Test safApp=myTestApp1\n");
+	printf("\t\tcreate one object setting one initialized attribute\n");
+	printf("\timmcfg -d safAmfNode=Node01,safAmfCluster=1\n");
+	printf("\t\tdelete one object\n");
+	printf("\timmcfg -d safAmfNode=Node01,safAmfCluster=1 safAmfNode=Node02,safAmfCluster=1\n");
+	printf("\t\tdelete two objects\n");
 }
 
-static SaImmAttrModificationT_2 *new_attrMod(SaNameT *objectName, char *arg)
+/**
+ * Alloc SaImmAttrModificationT_2 object and initialize its attributes from nameval (x=y)
+ * @param objectName
+ * @param nameval
+ * 
+ * @return SaImmAttrModificationT_2*
+ */
+static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *nameval)
 {
 	int res = 0;
-	char *tmp = strdup(arg);
+	char *tmp = strdup(nameval);
 	char *name, *value;
 	SaImmAttrModificationT_2 *attrMod;
+	SaImmClassNameT className = immutil_get_className(objectName);
+	SaAisErrorT error;
+
+	if (className == NULL) {
+		res = -1;
+		goto done;
+	}
 
 	attrMod = malloc(sizeof(SaImmAttrModificationT_2));
 
-	if ((name = strtok(tmp, PARAMDELIM)) == NULL) {
+	if ((name = strtok(tmp, "=")) == NULL) {
 		res = -1;
 		goto done;
 	}
 
 	attrMod->modType = SA_IMM_ATTR_VALUES_REPLACE;
 	attrMod->modAttr.attrName = strdup(name);
-	if (immutil_get_attrValueType(objectName, attrMod->modAttr.attrName, &attrMod->modAttr.attrValueType) !=
-	    SA_AIS_OK) {
-		fprintf(stderr, "Invalid attribute name: %s\n", name);
-		free(attrMod);
-		attrMod = NULL;
+
+	error = immutil_get_attrValueType(className, attrMod->modAttr.attrName, &attrMod->modAttr.attrValueType);
+	if (error == SA_AIS_ERR_NOT_EXIST) {
+		fprintf(stderr, "Class '%s' does not exist\n", className);
+		res = -1;
+		goto done;
+	}
+
+	if (error != SA_AIS_OK) {
+		fprintf(stderr, "Attribute '%s' does not exist in class '%s'\n", name, className);
+		res = -1;
 		goto done;
 	}
 
 	attrMod->modAttr.attrValuesNumber = 1;
 
-	if ((value = strtok(NULL, PARAMDELIM)) == NULL) {
-		fprintf(stderr, "Attribute value missing for: %s\n", arg);
-		free(attrMod);
-		attrMod = NULL;
+	if ((value = strtok(NULL, "=")) == NULL) {
+		fprintf(stderr, "Attribute value missing for: %s\n", nameval);
+		res = -1;
 		goto done;
 	}
 
@@ -105,8 +140,309 @@ static SaImmAttrModificationT_2 *new_attrMod(SaNameT *objectName, char *arg)
 	attrMod->modAttr.attrValues[0] = immutil_new_attrValue(attrMod->modAttr.attrValueType, value);
 
  done:
+	free(className);
 	free(tmp);
+	if (res != 0) {
+		free(attrMod);
+		attrMod = NULL;
+	}
 	return attrMod;
+}
+
+/**
+ * Alloc SaImmAttrValuesT_2 object and initialize its attributes from nameval (x=y)
+ * @param className
+ * @param nameval
+ * 
+ * @return SaImmAttrValuesT_2*
+ */
+static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval)
+{
+	int res = 0;
+	char *tmp = strdup(nameval);
+	char *name, *value;
+	SaImmAttrValuesT_2 *attrValue;
+	SaAisErrorT error;
+
+	attrValue = malloc(sizeof(SaImmAttrValuesT_2));
+
+	if ((name = strtok(tmp, "=")) == NULL) {
+		res = -1;
+		goto done;
+	}
+
+	attrValue->attrName = strdup(name);
+
+	error = immutil_get_attrValueType(className, attrValue->attrName, &attrValue->attrValueType);
+
+	if (error == SA_AIS_ERR_NOT_EXIST) {
+		fprintf(stderr, "Class '%s' does not exist\n", className);
+		res = -1;
+		goto done;
+	}
+
+	if (error != SA_AIS_OK) {
+		fprintf(stderr, "Attribute '%s' does not exist in class '%s'\n", name, className);
+		res = -1;
+		goto done;
+	}
+
+	attrValue->attrValuesNumber = 1;
+
+	if ((value = strtok(NULL, "=")) == NULL) {
+		fprintf(stderr, "Attribute value missing for: %s\n", nameval);
+		res = -1;
+		goto done;
+	}
+
+	attrValue->attrValues = malloc(sizeof(SaImmAttrValueT *));
+	attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, value);
+
+ done:
+	free(tmp);
+	if (res != 0) {
+		free(attrValue);
+		attrValue = NULL;
+	}
+
+	return attrValue;
+}
+
+/**
+ * Create object(s) of the specified class, initialize attributes with values from optarg.
+ * 
+ * @param objectNames
+ * @param className
+ * @param ownerHandle
+ * @param optargs
+ * @param optargs_len
+ * 
+ * @return int
+ */
+int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
+	SaImmAdminOwnerHandleT ownerHandle, char **optargs, int optargs_len)
+{
+	SaAisErrorT error;
+	int i;
+	SaImmAttrValuesT_2 *attrValue;
+	SaImmAttrValuesT_2 **attrValues = NULL;
+	int attr_len = 1;
+	int rc = EXIT_FAILURE;
+	char *parent = NULL;
+	SaNameT parentName;
+	char *rdn, *rdnTag;
+	const SaNameT *parentNames[] = {&parentName, NULL};
+	SaImmCcbHandleT ccbHandle;
+
+	for (i = 0; i < optargs_len; i++) {
+		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
+		if ((attrValue = new_attr_value(className, optargs[i])) == NULL)
+			goto done;
+		
+		attrValues[attr_len - 1] = attrValue;
+		attrValues[attr_len] = NULL;
+		attr_len++;
+	}
+
+	if ((error = saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
+	i = 0;
+	while (objectNames[i] != NULL) {
+		parent = strchr((char*)objectNames[i]->value, ',');
+		rdn = strdup((char*)objectNames[i]->value);
+
+		if (parent) {
+			parent++; /* step past the comma ',' */
+			parentName.length = sprintf((char*)parentName.value, "%s", parent);
+			if ((error = saImmOmAdminOwnerSet(ownerHandle, parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
+				if (error == SA_AIS_ERR_NOT_EXIST)
+					fprintf(stderr, "error - parent '%s' does not exist\n", parentName.value);
+				else
+					fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
+				goto done;
+			}
+			rdn = strtok(rdn, ",");
+		}
+
+		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
+		attrValue = malloc(sizeof(SaImmAttrValuesT_2));
+		attrValue->attrValueType = SA_IMM_ATTR_SASTRINGT;
+		attrValue->attrValuesNumber = 1;
+		attrValue->attrValues = malloc(sizeof(SaImmAttrValueT *));
+		attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, rdn);
+		if (strchr(rdn, '=') == NULL) {
+			fprintf(stderr, "error - malformed object RDN\n");
+			goto done;
+		}
+		if ((rdnTag = strtok(rdn, "=")) == NULL) {
+			fprintf(stderr, "error - malformed RDN\n");
+			goto done;
+		}
+		attrValue->attrName = rdnTag;
+		attrValues[attr_len - 1] = attrValue;
+		attrValues[attr_len] = NULL;
+
+		if ((error = saImmOmCcbObjectCreate_2(ccbHandle, className, &parentName,
+			(const SaImmAttrValuesT_2**)attrValues)) != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbObjectCreate_2 FAILED with %s\n",
+				saf_error(error));
+			goto done;
+		}
+		i++;
+	}
+
+	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		goto done_release;
+	}
+
+	if ((error = saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+		goto done_release;
+	}
+
+ done_release:
+	if (parent && (error = saImmOmAdminOwnerRelease(
+		ownerHandle, (const SaNameT **)objectNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
+	rc = 0;
+done:
+	return rc;
+}
+
+/**
+ * Modify object(s) with the attributes specifed in the optargs array
+ * 
+ * @param objectNames
+ * @param ownerHandle
+ * @param optargs
+ * @param optargs_len
+ * 
+ * @return int
+ */
+int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandle, char **optargs, int optargs_len)
+{
+	SaAisErrorT error;
+	int i;
+	int attr_len = 1;
+	int rc = EXIT_FAILURE;
+	SaImmAttrModificationT_2 *attrMod;
+	SaImmAttrModificationT_2 **attrMods = NULL;
+	SaImmCcbHandleT ccbHandle;
+
+	for (i = 0; i < optargs_len; i++) {
+		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
+		if ((attrMod = new_attr_mod(objectNames[0], optargs[i])) == NULL)
+			exit(EXIT_FAILURE);
+		
+		attrMods[attr_len - 1] = attrMod;
+		attrMods[attr_len] = NULL;
+		attr_len++;
+	}
+
+	if ((error = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
+		if (error == SA_AIS_ERR_NOT_EXIST)
+			fprintf(stderr, "error - object '%s' does not exist\n", objectNames[0]->value);
+		else
+			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
+		
+		goto done;
+	}
+
+	if ((error = saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+		goto done_release;
+	}
+
+	i = 0;
+	while (objectNames[i] != NULL) {
+		if ((error = saImmOmCcbObjectModify_2(ccbHandle, objectNames[i],
+			(const SaImmAttrModificationT_2 **)attrMods)) != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbObjectModify_2 FAILED: %s\n", saf_error(error));
+			goto done_release;
+		}
+		i++;
+	}
+
+	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		goto done_release;
+	}
+
+	if ((error = saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+		goto done_release;
+	}
+
+	rc = 0;
+
+ done_release:
+	if ((error = saImmOmAdminOwnerRelease(ownerHandle, (const SaNameT **)objectNames, SA_IMM_ONE)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+ done:
+	return rc;
+}
+
+/**
+ * Delete object(s) in the NULL terminated array using one CCB.
+ * @param objectNames
+ * @param ownerHandle
+ * 
+ * @return int
+ */
+int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandle)
+{
+	SaAisErrorT error;
+	int rc = EXIT_FAILURE;
+	SaImmCcbHandleT ccbHandle;
+	int i = 0;
+
+	if ((error = saImmOmAdminOwnerSet(ownerHandle, (const SaNameT **)objectNames,
+		SA_IMM_SUBTREE)) != SA_AIS_OK) {
+
+		if (error == SA_AIS_ERR_NOT_EXIST)
+			fprintf(stderr, "error - object does not exist\n");
+		else
+			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
+		
+		goto done;
+	}
+
+	if ((error = saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
+	while (objectNames[i] != NULL) {
+		if ((error = saImmOmCcbObjectDelete(ccbHandle, objectNames[i])) != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmCcbObjectDelete for '%s' FAILED: %s\n",
+				objectNames[i]->value, saf_error(error));
+			goto done;
+		}
+		i++;
+	}
+
+	if ((error = saImmOmCcbApply(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
+	if ((error = saImmOmCcbFinalize(ccbHandle)) != SA_AIS_OK) {
+		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
+		goto done;
+	}
+
+	rc = 0;
+done:
+	return rc;
 }
 
 int main(int argc, char *argv[])
@@ -115,26 +451,26 @@ int main(int argc, char *argv[])
 	int c;
 	struct option long_options[] = {
 		{"attribute", required_argument, 0, 'a'},
+		{"create", required_argument, 0, 'c'},
+		{"delete", no_argument, 0, 'd'},
 		{"help", no_argument, 0, 'h'},
+		{"modify", no_argument, 0, 'm'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
 	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
 	SaImmAdminOwnerHandleT ownerHandle;
-	SaNameT objectName;
-	const SaNameT *objectNames[] = { &objectName, NULL };
-	SaImmCcbFlagsT ccbFlags = SA_IMM_CCB_REGISTERED_OI;
-	SaImmCcbHandleT ccbHandle;
-	int i;
+	SaNameT **objectNames = NULL;
+	int objectNames_len = 1;
+	SaNameT *objectName;
 	int optargs_len = 0;	/* one off */
 	char **optargs = NULL;
-	SaImmAttrModificationT_2 *attrMod;
-	SaImmAttrModificationT_2 **attrMods = NULL;
-	int attrMods_len = 1;
+        SaImmClassNameT className = NULL;
+	op_t op = INVALID;
 
 	while (1) {
-		c = getopt_long(argc, argv, "a:h", long_options, NULL);
+		c = getopt_long(argc, argv, "a:c:dhm", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -144,10 +480,37 @@ int main(int argc, char *argv[])
 			optargs = realloc(optargs, ++optargs_len * sizeof(char *));
 			optargs[optargs_len - 1] = strdup(optarg);
 			break;
+		case 'c':
+			className = optarg;
+			if (op == INVALID)
+				op = CREATE;
+			else {
+				fprintf(stderr, "error - only one operation at a time supported\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		case 'd': {
+			if (op == INVALID)
+				op = DELETE;
+			else {
+				fprintf(stderr, "error - only one operation at a time supported\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		}
 		case 'h':
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
+		case 'm': {
+			if (op == INVALID)
+				op = MODIFY;
+			else {
+				fprintf(stderr, "error - only one operation at a time supported\n");
+				exit(EXIT_FAILURE);
+			}
+			break;
+		}
 		default:
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
 			exit(EXIT_FAILURE);
@@ -155,23 +518,21 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	/* Can only handle one object currently */
-	if ((argc - optind) != 1) {
-		fprintf(stderr, "error - wrong number of arguments\n");
+	/* Modify is default */
+	if (op == INVALID)
+		op = MODIFY;
+
+	/* Remaining arguments should be object names. Need at least one... */
+	if ((argc - optind) < 1) {
+		fprintf(stderr, "error - specify at least one object\n");
 		exit(EXIT_FAILURE);
 	}
 
-	strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-	objectName.length = strnlen((char *)objectName.value, SA_MAX_NAME_LENGTH);
-
-	for (i = 0; i < optargs_len; i++) {
-		attrMods = realloc(attrMods, (attrMods_len + 1) * sizeof(SaImmAttrModificationT_2 *));
-		if ((attrMod = new_attrMod(&objectName, optargs[i])) == NULL)
-			exit(EXIT_FAILURE);
-
-		attrMods[attrMods_len - 1] = attrMod;
-		attrMods[attrMods_len] = NULL;
-		attrMods_len++;
+	while (optind < argc) {
+		objectNames = realloc(objectNames, (objectNames_len + 1) * sizeof(SaNameT*));
+		objectName = objectNames[objectNames_len - 1] = malloc(sizeof(SaNameT));
+		objectNames[objectNames_len++] = NULL;
+		objectName->length = snprintf((char*)objectName->value, SA_MAX_NAME_LENGTH, "%s", argv[optind++]);
 	}
 
 	(void)immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
@@ -183,56 +544,26 @@ int main(int argc, char *argv[])
 		goto done_om_finalize;
 	}
 
-	error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
-	if (error != SA_AIS_OK) {
-		if (error == SA_AIS_ERR_NOT_EXIST)
-			fprintf(stderr, "error - object '%s' does not exist\n", objectName.value);
-		else
-			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
-
-		rc = EXIT_FAILURE;
-		goto done_admin_owner_finalize;
+	switch (op) {
+	case CREATE:
+		rc = object_create((const SaNameT **)objectNames, className, ownerHandle, optargs, optargs_len);
+		break;
+	case DELETE:
+		rc = object_delete((const SaNameT **)objectNames, ownerHandle);
+		break;
+	case MODIFY:
+		rc = object_modify((const SaNameT **)objectNames, ownerHandle, optargs, optargs_len);
+		break;
+	default:
+		fprintf(stderr, "error - no operation specified\n");
+		break;
 	}
 
-	error = saImmOmCcbInitialize(ownerHandle, ccbFlags, &ccbHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbInitialize FAILED: %s\n", saf_error(error));
-		rc = EXIT_FAILURE;
-		goto done_admin_owner_release;
-	}
-
-	error = saImmOmCcbObjectModify_2(ccbHandle, &objectName, (const SaImmAttrModificationT_2 **)attrMods);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbObjectModify_2 FAILED: %s\n", saf_error(error));
-		rc = EXIT_FAILURE;
-		goto done_ccb_finalize;
-	}
-
-	error = saImmOmCcbApply(ccbHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbApply FAILED: %s\n", saf_error(error));
-		exit(EXIT_FAILURE);
-	}
-
- done_ccb_finalize:
-	error = saImmOmCcbFinalize(ccbHandle);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmCcbFinalize FAILED: %s\n", saf_error(error));
-		exit(EXIT_FAILURE);
-	}
-
- done_admin_owner_release:
-	error = saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_SUBTREE);
-	if (error != SA_AIS_OK) {
-		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
-		exit(EXIT_FAILURE);
-	}
-
- done_admin_owner_finalize:
 	error = saImmOmAdminOwnerFinalize(ownerHandle);
 	if (SA_AIS_OK != error) {
 		fprintf(stderr, "error - saImmOmAdminOwnerFinalize FAILED: %s\n", saf_error(error));
-		exit(EXIT_FAILURE);
+		rc = EXIT_FAILURE;
+		goto done_om_finalize;
 	}
 
  done_om_finalize:

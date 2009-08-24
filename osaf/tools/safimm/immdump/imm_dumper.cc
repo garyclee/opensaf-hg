@@ -30,6 +30,7 @@
 #include <limits.h>
 #include <libxml/parser.h>
 #include <logtrace.h>
+#include <getopt.h>
 
 #define XML_VERSION "1.0"
 
@@ -56,9 +57,33 @@ static void typeToXML(SaImmAttrDefinitionT_2*, xmlNodePtr);
 static std::map<std::string, std::string> cacheRDNs(SaImmHandleT);
 static std::list<std::string> getClassNames(SaImmHandleT);
 
+static void usage(const char *progname)
+{
+	printf("\nNAME\n");
+	printf("\t%s - dump IMM model to file\n", progname);
+
+	printf("\nSYNOPSIS\n");
+	printf("\t%s <file name>\n", progname);
+
+	printf("\nDESCRIPTION\n");
+	printf("\t%s is an IMM OM client used to dump, write the IMM model to file\n", progname);
+
+	printf("\nOPTIONS\n");
+	printf("\t-h, --help\n");
+	printf("\t\tthis help\n");
+
+	printf("\nEXAMPLE\n");
+	printf("\timmdump /tmp/imm.xml\n");
+}
+
 /* Functions */
 int main(int argc, char* argv[])
 {
+    int c;
+    struct option long_options[] = {
+        {"help", no_argument, 0, 'h'},
+	{0, 0, 0, 0}
+    };
     SaImmHandleT           immHandle;
     SaAisErrorT            errorCode;
     SaVersionT             version;
@@ -67,6 +92,28 @@ int main(int argc, char* argv[])
     std::string filename;
     const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/immnd_trace";
     const char* logPath;
+
+    if (argc != 2)
+    {
+        printf("Usage: %s <dumpfile>\n", argv[0]);
+        exit(1);
+    }
+
+    while (1) {
+	    if ((c = getopt_long(argc, argv, "h", long_options, NULL)) == -1)
+		    break;
+
+	    switch (c) {
+	    case 'h':
+		    usage(basename(argv[0]));
+		    exit(EXIT_SUCCESS);
+		    break;
+	    default:
+		    fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
+		    exit(EXIT_FAILURE);
+		    break;
+	    }
+    }
 
     if ((logPath = getenv("IMMND_TRACE_PATHNAME")) == NULL)
     {
@@ -87,12 +134,6 @@ int main(int argc, char* argv[])
         {
             LOG_ER("Failed to initialize tracing!");
         }
-    }
-
-    if (argc != 2)
-    {
-        printf("Usage: %s <dumpfile>\n", argv[0]);
-        exit(1);
     }
 
     filename.append(argv[1]);

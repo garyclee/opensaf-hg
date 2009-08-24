@@ -45,29 +45,41 @@ static SaVersionT immVersion = { 'A', 2, 1 };
 static void usage(const char *progname)
 {
 	printf("\nNAME\n");
-	printf("\t%s - find IMM objects\n", progname);
+	printf("\t%s - search for IMM objects\n", progname);
 
 	printf("\nSYNOPSIS\n");
 	printf("\t%s [path ...] [options]\n", progname);
 
 	printf("\nDESCRIPTION\n");
-	printf("\t%s is a IMM OM client used to find IMM objects.\n", progname);
+	printf("\t%s is an IMM OM client used to find IMM objects.\n", progname);
+	printf("\tAll objects or objects of a certain class can be searched for.\n");
 
 	printf("\nOPTIONS\n");
-	printf("  -s <scope> or --scope <sublevel|subtree>  specify search scope\n");
-	printf("  -h or --help                              this help\n");
+	printf("\t-c, --class=NAME\n");
+	printf("\t\tonly search for objects of the specified class\n");
+	printf("\t-s, --scope=SCOPE\n");
+	printf("\t\tspecify search scope, valid scopes: sublevel subtree\n");
+	printf("\t-h, --help\n");
+	printf("\t\tthis help\n");
 
 	printf("\nEXAMPLE\n");
-	printf("   immfind\n");
-	printf("   immfind safApp=myApp\n");
-	printf("   immfind safApp=myApp -s sublevel\n");
-	printf("   immfind safApp=myApp --scope subtree\n");
+	printf("\timmfind\n");
+	printf("\t\tsearch for all objects\n");
+	printf("\timmfind safApp=myApp\n");
+	printf("\t\tsearch for all objects rooted under safApp=myApp\n");
+	printf("\timmfind safApp=myApp -s sublevel\n");
+	printf("\t\tsearch for all objects rooted under safApp=myApp scope sublevel\n");
+	printf("\timmfind safApp=myApp --scope subtree\n");
+	printf("\t\tsearch for all objects rooted under safApp=myApp scope subtree\n");
+	printf("\timmfind -c SaAmfApplication\n");
+	printf("\t\tsearch for all objects of class SaAmfApplication\n");
 }
 
 int main(int argc, char *argv[])
 {
 	int c;
 	struct option long_options[] = {
+		{"class", required_argument, 0, 'c'},
 		{"scope", required_argument, 0, 's'},
 		{"help", no_argument, 0, 'h'},
 		{0, 0, 0, 0}
@@ -80,14 +92,19 @@ int main(int argc, char *argv[])
 	SaImmAttrValuesT_2 **attributes;
 	SaNameT rootName = { 0, "" };
 	SaImmScopeT scope = SA_IMM_SUBTREE;	/* default search scope */
+	char classNameBuf[SA_MAX_NAME_LENGTH] = {0};
+	const char *className = classNameBuf;
 
 	while (1) {
-		c = getopt_long(argc, argv, "s:h", long_options, NULL);
+		c = getopt_long(argc, argv, "c:s:h", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
+		case 'c':
+			strncpy(classNameBuf, optarg, SA_MAX_NAME_LENGTH);
+			break;
 		case 's':
 			if (strcmp(optarg, "sublevel") == 0)
 				scope = SA_IMM_SUBLEVEL;
@@ -116,7 +133,7 @@ int main(int argc, char *argv[])
 
 	if (optind < argc) {
 		strncpy((char *)rootName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		rootName.length = strnlen((char *)rootName.value, SA_MAX_NAME_LENGTH);
+		rootName.length = strlen((char *)rootName.value);
 	}
 
 	error = saImmOmInitialize(&immHandle, NULL, &immVersion);
@@ -125,8 +142,15 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	searchParam.searchOneAttr.attrName = NULL;
-	searchParam.searchOneAttr.attrValue = NULL;
+	if (className[0] != 0) {
+		searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+		searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+		searchParam.searchOneAttr.attrValue = &className;
+	} else {
+		searchParam.searchOneAttr.attrName = NULL;
+		searchParam.searchOneAttr.attrValue = NULL;
+	}
+
 	error = saImmOmSearchInitialize_2(immHandle, &rootName, scope,
 					  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &searchParam, NULL,
 					  &searchHandle);
@@ -159,3 +183,4 @@ int main(int argc, char *argv[])
 
 	exit(EXIT_SUCCESS);
 }
+

@@ -417,7 +417,7 @@ SaAisErrorT immutil_update_one_rattr(SaImmOiHandleT immOiHandle,
 	return immutil_saImmOiRtObjectUpdate_2(immOiHandle, &objectName, attrMods);
 }
 
-SaImmClassNameT immutil_get_className(SaNameT *objectName)
+SaImmClassNameT immutil_get_className(const SaNameT *objectName)
 {
 	SaImmHandleT omHandle;
 	SaImmClassNameT className;
@@ -436,22 +436,22 @@ SaImmClassNameT immutil_get_className(SaNameT *objectName)
 	return className;
 }
 
-SaAisErrorT immutil_get_attrValueType(SaNameT *objectName, SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType)
+SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
+	SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType)
 {
-	SaAisErrorT rc = SA_AIS_ERR_INVALID_PARAM;
+	SaAisErrorT rc;
 	SaImmHandleT omHandle;
 	SaImmClassCategoryT classCategory;
 	SaImmAttrDefinitionT_2 *attrDef;
 	SaImmAttrDefinitionT_2 **attrDefinitions;
-	SaImmClassNameT className = immutil_get_className(objectName);
 	int i = 0;
 
-        if (className == NULL)
-                return SA_AIS_ERR_NOT_EXIST;
-
         (void)immutil_saImmOmInitialize(&omHandle, NULL, &immVersion);
-	(void)saImmOmClassDescriptionGet_2(omHandle, className, &classCategory, &attrDefinitions);
 
+	if ((rc = saImmOmClassDescriptionGet_2(omHandle, className, &classCategory, &attrDefinitions)) != SA_AIS_OK)
+		return rc;
+
+	rc = SA_AIS_ERR_INVALID_PARAM;
 	while ((attrDef = attrDefinitions[i++]) != NULL) {
 		if (!strcmp(attrName, attrDef->attrName)) {
 			*attrValueType = attrDef->attrValueType;
@@ -461,7 +461,7 @@ SaAisErrorT immutil_get_attrValueType(SaNameT *objectName, SaImmAttrNameT attrNa
 	}
 
 	(void)saImmOmClassDescriptionMemoryFree_2(omHandle, attrDefinitions);
-	free(className);
+	(void)immutil_saImmOmFinalize(omHandle);
 	return rc;
 }
 
