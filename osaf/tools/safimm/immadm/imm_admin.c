@@ -54,22 +54,25 @@ static void usage(const char *progname)
 	printf("\t%s - perform an IMM admin operation\n", progname);
 
 	printf("\nSYNOPSIS\n");
-	printf("\t%s [options] <object name> [object name]\n", progname);
+	printf("\t%s [options] [object DN]...\n", progname);
 
 	printf("\nDESCRIPTION\n");
 	printf("\t%s is a IMM OM client used to ....\n", progname);
 
 	printf("\nOPTIONS\n");
-	printf("  -h or --help                    this help\n");
-	printf("  -o <id> or --operation-id <id>  numerical operation ID (mandatory)\n");
-	printf("  -p <p> or --parameter <p>       parameter(s) to admin op\n");
-	printf("      Parameter syntax: <name>:<type>:<value>\n");
-	printf("      Value types according to imm.xsd.\n"
-	       "      Valid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
-	       "         SA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
+	printf("\t-h, --help\n");
+	printf("\t\tthis help\n");
+	printf("\t-o, --operation-id <id>\n");
+	printf("\t\tnumerical operation ID (mandatory)\n");
+	printf("\t-p, --parameter <p>\n");
+	printf("\t\tparameter(s) to admin op\n");
+	printf("\t\tParameter syntax: <name>:<type>:<value>\n");
+	printf("\t\tValue types according to imm.xsd.\n"
+	       "\t\tValid types: SA_INT32_T, SA_UINT32_T, SA_INT64_T, SA_UINT64_T\n"
+	       "\t\t\tSA_TIME_T, SA_NAME_T, SA_FLOAT_T, SA_DOUBLE_T, SA_STRING_T\n");
 
 	printf("\nEXAMPLE\n");
-	printf("   immadm -o 1 -p saAmfNodeSuFailoverMax:SA_INT32_T:7 \"safAmfNode=Node01,safAmfCluster=1\"\n");
+	printf("\timmadm -o 1 -p saAmfNodeSuFailoverMax:SA_INT32_T:7 safAmfNode=Node01,safAmfCluster=1\n");
 }
 
 static SaImmValueTypeT str2_saImmValueTypeT(const char *str)
@@ -217,7 +220,7 @@ int main(int argc, char *argv[])
 	/* Remaining arguments should be object names on which the admin op should be performed. */
 	while (optind < argc) {
 		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
-		objectName.length = strnlen((char *)objectName.value, SA_MAX_NAME_LENGTH);
+		objectName.length = strlen((char *)objectName.value);
 
 		error = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
 		if (error != SA_AIS_OK) {

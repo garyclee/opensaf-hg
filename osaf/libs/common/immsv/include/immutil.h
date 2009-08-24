@@ -309,7 +309,7 @@ extern "C" {
  * 
  * @return SaImmClassNameT
  */
-	extern SaImmClassNameT immutil_get_className(SaNameT *objectName);
+	extern SaImmClassNameT immutil_get_className(const SaNameT *objectName);
 
 /**
  * Get value type of named attribute for an object. The caller
@@ -321,8 +321,8 @@ extern "C" {
  * 
  * @return SaAisErrorT
  */
-	extern SaAisErrorT immutil_get_attrValueType(SaNameT *objectName, SaImmAttrNameT attrName,
-						     SaImmValueTypeT *attrValueType);
+	extern SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
+		SaImmAttrNameT attrName, SaImmValueTypeT *attrValueType);
 
 /**
  * Create attribute value from type and string. The caller must
