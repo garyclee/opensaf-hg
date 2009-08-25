@@ -61,4 +61,5 @@ opensaf_ntfd_SOURCES = \
 opensaf_ntfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la \
-	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la 

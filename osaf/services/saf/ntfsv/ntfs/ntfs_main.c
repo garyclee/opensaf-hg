@@ -29,6 +29,8 @@
 #include <poll.h>
 #include <configmake.h>
 #include <ncs_main_pvt.h>
+#include <rda_papi.h>
+
 #include "ntfs.h"
 
 /* ========================================================================
@@ -36,6 +38,7 @@
  * ========================================================================
  */
 
+#define FD_USR1 0
 #define FD_AMF 0
 #define FD_MBCSV 1
 #define FD_MBX 2
@@ -50,12 +53,11 @@
  *   DATA DECLARATIONS
  * ========================================================================
  */
-
 static ntfs_cb_t _ntfs_cb;
 ntfs_cb_t *ntfs_cb = &_ntfs_cb;
 
 static int category_mask;
-
+static NCS_SEL_OBJ usr1_sel_obj;
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
@@ -63,11 +65,27 @@ static int category_mask;
 extern void initAdmin(void);
 extern void printAdminInfo();
 extern void logEvent();
+
+/**
+ * USR1 signal is used when AMF wants instantiate us as a
+ * component. Wake up the main thread so it can register with
+ * AMF.
+ * 
+ * @param i_sig_num
+ */
+static void sigusr1_handler(int sig)
+{
+	(void) sig;
+	signal(SIGUSR1, SIG_IGN);
+	ncs_sel_obj_ind(usr1_sel_obj);
+	TRACE("Got USR1 signal");
+}
+
 /**
  * USR1 signal handler to enable/disable trace (toggle)
  * @param sig
  */
-static void usr1_sig_handler(int sig)
+static void sigusr2_handler(int sig)
 {
 	if (category_mask == 0) {
 		category_mask = CATEGORY_ALL;
@@ -82,10 +100,10 @@ static void usr1_sig_handler(int sig)
 }
 
 /**
- * USR2 signal handler to dump information from all data structures
+ *  dump information from all data structures
  * @param sig
  */
-static void usr2_sig_handler(int sig)
+static void dump_sig_handler(int sig)
 {
 	int old_category_mask = category_mask;
 
@@ -114,18 +132,13 @@ static void usr2_sig_handler(int sig)
  */
 static uns32 initialize(const char *progname)
 {
-	uns32 rc;
+	uns32 rc = NCSCC_RC_SUCCESS;;
 	FILE *fp = NULL;
 	char path[NAME_MAX + 32];
+	char *value;
+	char *ntfd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 
 	TRACE_ENTER();
-
-	/* Initialize ntfs control block */
-	if (ntfs_cb_init(ntfs_cb) != NCSCC_RC_SUCCESS) {
-		TRACE("ntfs_cb_init FAILED");
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
 
 	/* Create pidfile */
 	sprintf(path, PIDPATH "%s.pid", basename(progname));
@@ -144,6 +157,36 @@ static uns32 initialize(const char *progname)
 	}
 	fclose(fp);
 
+	if ((value = getenv("NTFSV_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init(basename(progname), value) != 0) {
+			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
+			goto done;
+		}
+
+		if ((value = getenv("NTFSV_TRACE_CATEGORIES")) != NULL) {
+			/* Do not care about categories now, get all */
+			category_mask = CATEGORY_ALL;
+			trace_category_set(category_mask);
+		}
+	}
+
+	if (ncspvt_svcs_startup(2, ntfd_argv, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncspvt_svcs_startup failed");
+		goto done;
+	}
+
+	/* Initialize ntfs control block */
+	if (ntfs_cb_init(ntfs_cb) != NCSCC_RC_SUCCESS) {
+		TRACE("ntfs_cb_init FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if ((rc = rda_get_role(&ntfs_cb->ha_state)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
+
 	m_NCS_EDU_HDL_INIT(&ntfs_cb->edu_hdl);
 
 	/* Create the mailbox used for communication with NTFS */
@@ -158,20 +201,40 @@ static uns32 initialize(const char *progname)
 		goto done;
 	}
 
-	if ((rc = ntfs_amf_init(ntfs_cb)) != SA_AIS_OK) {
-		TRACE("ntfs_amf_init FAILED %d", rc);
-		goto done;
-	}
-
 	if ((rc = ntfs_mds_init(ntfs_cb)) != NCSCC_RC_SUCCESS) {
 		TRACE("ntfs_mds_init FAILED %d", rc);
 		return rc;
 	}
 
-	if ((rc = ntfs_mbcsv_init(ntfs_cb)) != NCSCC_RC_SUCCESS)
+	if ((rc = ntfs_mbcsv_init(ntfs_cb)) != NCSCC_RC_SUCCESS) {
 		TRACE("ntfs_mbcsv_init FAILED");
+		return rc;
+	}
 
+	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS)
+	{
+		LOG_ER("ncs_sel_obj_create failed");
+		goto done;
+	}
+
+	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+		LOG_ER("signal USR1 failed: %s", strerror(errno));
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		LOG_ER("signal USR2 failed: %s", strerror(errno));
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	initAdmin();
  done:
+	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		rc = NCSCC_RC_FAILURE;
+	}
 	TRACE_LEAVE();
 	return (rc);
 }
@@ -180,7 +243,7 @@ static uns32 initialize(const char *progname)
  * Forever wait on events on AMF, MBCSV & NTFS Mailbox file descriptors
  * and process them.
  */
-static void main_process(void)
+int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error;
@@ -189,11 +252,16 @@ static void main_process(void)
 
 	TRACE_ENTER();
 
+	if (initialize(argv[0]) != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "initialize in ntfs  FAILED, exiting...");
+		goto done;
+	}
+
 	mbx_fd = ncs_ipc_get_sel_obj(&ntfs_cb->mbx);
 
 	/* Set up all file descriptors to listen to */
-	fds[FD_AMF].fd = ntfs_cb->amfSelectionObject;
-	fds[FD_AMF].events = POLLIN;
+	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
+	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = ntfs_cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
@@ -215,9 +283,25 @@ static void main_process(void)
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
-			error = saAmfDispatch(ntfs_cb->amf_hdl, SA_DISPATCH_ALL);
-			if (error != SA_AIS_OK)
-				LOG_ER("saAmfDispatch FAILED: %u", error);
+
+			if (ntfs_cb->amf_hdl != 0) {
+				if ((error = saAmfDispatch(ntfs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u", error);
+					break;
+				}
+			} else {
+
+				TRACE("SIGUSR1 event rec");
+				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
+				ncs_sel_obj_destroy(usr1_sel_obj);
+
+				if (ntfs_amf_init(ntfs_cb) != NCSCC_RC_SUCCESS)
+					break;
+
+				TRACE("AMF Initialization SUCCESS......");
+				fds[FD_AMF].fd = ntfs_cb->amfSelectionObject;
+			}
+
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
@@ -234,48 +318,10 @@ static void main_process(void)
 		if (fds[FD_LOG].revents & POLLIN)
 			logEvent();
 	}
-}
 
-/**
- * The main routine for the ntfs daemon.
- * @param argc
- * @param argv
- * 
- * @return int
- */
-int main(int argc, char *argv[])
-{
-	char *value;
-
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((value = getenv("NTFSV_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(argv[0]), value) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			goto done;
-		}
-
-		if ((value = getenv("NTFSV_TRACE_CATEGORIES")) != NULL) {
-			/* Do not care about categories now, get all */
-			category_mask = CATEGORY_ALL;
-			trace_category_set(category_mask);
-		}
-	}
-
-	if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS)
-		goto done;
-
-	if (initialize(argv[0]) != NCSCC_RC_SUCCESS)
-		goto done;
-
-	if (signal(SIGUSR1, usr1_sig_handler) == SIG_ERR)
-		goto done;
-
-	if (signal(SIGUSR2, usr2_sig_handler) == SIG_ERR)
-		goto done;
-
-	initAdmin();
-	main_process();
  done:
-	LOG_ER("ntfs initialization failed, exiting...");
+	LOG_ER("Failed, exiting...");
+	TRACE_LEAVE();
 	exit(1);
+
 }

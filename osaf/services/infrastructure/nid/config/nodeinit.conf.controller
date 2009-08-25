@@ -63,6 +63,7 @@ xxLIBDIRxx/ncs_mas_start:MASV:S:xxLIBDIRxx/ncs_mas_clean:4000:4:2:1:start:
 xxLIBDIRxx/immd_script:IMMD:S:xxLIBDIRxx/immd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/immnd_script:IMMND:S:xxLIBDIRxx/immnd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_lgs:LOGD:S:xxLIBDIRxx/opensaf_lgs:4000:4:2:1:start:stop
+xxLIBDIRxx/opensaf_ntfs:NTFD:S:xxLIBDIRxx/opensaf_ntfs:4000:4:2:1:start:stop
 xxLIBDIRxx/ncs_pss_start:PSSV:S:xxLIBDIRxx/ncs_pss_clean:4000:4:2:1:start:
 xxLIBDIRxx/ncs_eds_start:EDSV:S:xxLIBDIRxx/ncs_eds_clean:5000:4:2:1:start:
 xxLIBDIRxx/ncs_snmpsubagt_start:SUBAGT:S:xxLIBDIRxx/ncs_snmpsubagt_clean:5000:4:2:1:start:
