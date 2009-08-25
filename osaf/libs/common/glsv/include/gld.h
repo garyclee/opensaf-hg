@@ -50,7 +50,6 @@ typedef enum {
 #include "ncs_edu_pub.h"
 #include "ncsencdec.h"
 #include "mbcsv_papi.h"
-#include "ncsmiblib.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"
 #include "ncs_util.h"
@@ -74,11 +73,12 @@ typedef enum {
 #include "gld_edu.h"
 #include "gld_tmr.h"
 #include "gld_mbcsv.h"
-#include "oac_papi.h"
-#include "glsv_mapi.h"
-#include "gld_mib.h"
 
 #include "cpsv_mem.h"
 #include "cpa_mem.h"
+
+/* IMM Headers */
+#include "saImmOi.h"
+#include "immutil.h"
 
 #endif   /* !GLD_H */

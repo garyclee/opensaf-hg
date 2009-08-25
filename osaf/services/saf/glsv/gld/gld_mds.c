@@ -513,7 +513,6 @@ uns32 gld_mds_vdest_create(GLSV_GLD_CB *cb)
 		return rc;
 	}
 	cb->mds_handle = arg.info.vdest_create.o_mds_pwe1_hdl;
-	cb->oac_hdl = arg.info.vdest_create.o_pwe1_oac_hdl;
 
 	return rc;
 }
@@ -713,10 +712,8 @@ uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb)
 				while (glnd_rsc) {
 					gld_rsc_rmv_node_ref(gld_cb, glnd_rsc->rsc_info, glnd_rsc, node_details,
 							     glnd_rsc->rsc_info->can_orphan);
-					glnd_rsc =
-					    (GLSV_GLD_GLND_RSC_REF *)ncs_patricia_tree_getnext(&node_details->
-											       rsc_info_tree,
-											       (uns8 *)&rsc_id);
+					glnd_rsc = (GLSV_GLD_GLND_RSC_REF *)
+					    ncs_patricia_tree_getnext(&node_details->rsc_info_tree, (uns8 *)&rsc_id);
 					if (glnd_rsc)
 						rsc_id = glnd_rsc->rsc_id;
 				}

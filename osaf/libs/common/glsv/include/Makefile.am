@@ -38,8 +38,8 @@ noinst_HEADERS = \
 	gld_mbcsv.h \
 	gld_mds.h \
 	gld_mem.h \
-	gld_mib.h \
 	gld_tmr.h \
+	gld_imm.h \
 	glnd_api.h \
 	glnd_cb.h \
 	glnd_client.h \

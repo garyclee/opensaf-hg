@@ -18,6 +18,8 @@
 #ifndef GLD_LOG_H
 #define GLD_LOG_H
 
+#define gld_log(severity, format, args...) _gld_log((severity), __FUNCTION__, (format), ##args)
+
 /******************************************************************************
  Logging offset indexes for Headline logging
  ******************************************************************************/
@@ -191,7 +193,8 @@ typedef enum gld_flex_sets {
 	GLD_FC_SVC_PRVDR,
 	GLD_FC_LCK_OPER,
 	GLD_FC_MBCSV,
-	GLD_FC_TIMER
+	GLD_FC_TIMER,
+	GLD_FC_GENLOG
 } GLD_FLEX_SETS;
 
 typedef enum gld_log_ids {
@@ -202,7 +205,8 @@ typedef enum gld_log_ids {
 	GLD_LID_SVC_PRVDR,
 	GLD_LID_LCK_OPER,
 	GLD_LID_MBCSV,
-	GLD_LID_TIMER
+	GLD_LID_TIMER,
+	GLD_LID_GENLOG
 } GLD_LOG_IDS;
 
 #if (NCS_GLSV_LOG)

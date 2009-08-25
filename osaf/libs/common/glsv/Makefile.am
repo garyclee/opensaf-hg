@@ -27,7 +27,7 @@ libglsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 libglsv_common_la_SOURCES = \

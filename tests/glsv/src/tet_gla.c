@@ -237,9 +237,9 @@ void init_glsv_test_env()
 
    glsv_fill_lck_version(&gl_gla_env.version,'B',1,1);
 
-   glsv_fill_res_names(&gl_gla_env.res1,"resource1",inst_char);
-   glsv_fill_res_names(&gl_gla_env.res2,"resource2",inst_char);
-   glsv_fill_res_names(&gl_gla_env.res3,"resource3",inst_char);
+   glsv_fill_res_names(&gl_gla_env.res1,"safLock=resource1,safApp=safLockService",inst_char);
+   glsv_fill_res_names(&gl_gla_env.res2,"safLock=resource2,safApp=safLockService",inst_char);
+   glsv_fill_res_names(&gl_gla_env.res3,"safLock=resource3,safApp=safLockService",inst_char);
 }
 
 void glsv_print_testcase(char *string)

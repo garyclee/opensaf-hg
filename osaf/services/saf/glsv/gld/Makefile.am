@@ -27,26 +27,26 @@ ncs_gld_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 ncs_gld_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	gld_amf.c \
 	gld_api.c \
 	gld_evt.c \
 	gld_log.c \
 	gld_mbcsv.c \
 	gld_mds.c \
-	gld_mib.c \
 	gld_red.c \
 	gld_rsc.c \
-	gld_scalar.c \
 	gld_standby.c \
-	gld_tbl.c \
-	gld_tmr.c
+	gld_tmr.c \
+	gld_imm.c
 
 ncs_gld_LDADD =  \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/common/glsv/libglsv_common.la \
-	$(top_builddir)/osaf/snmp/miblib/glsv/gld/libgld_miblib.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la 

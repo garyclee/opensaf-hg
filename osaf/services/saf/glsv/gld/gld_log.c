@@ -182,6 +182,20 @@ void gld_log_timer(uns8 id, uns32 type)
 	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_TIMER, GLD_FC_TIMER,
 		   NCSFL_LC_TIMER, NCSFL_SEV_ERROR, NCSFL_TYPE_TIL, id, type);
 }
+
+void _gld_log(uns8 severity, const char *function, const char *format, ...)
+{
+	char preamble[128];
+	char str[128];
+	va_list ap;
+
+	va_start(ap, format);
+	snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+	vsnprintf(str, sizeof(str), preamble, ap);
+	va_end(ap);
+
+	ncs_logmsg(NCS_SERVICE_ID_GLD, GLD_LID_GENLOG, GLD_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
+}
 #else
 extern int dummy;
 
