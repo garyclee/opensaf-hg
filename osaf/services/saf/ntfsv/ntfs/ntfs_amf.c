@@ -18,7 +18,7 @@
  * The AMF callback functions except a number of exported functions from
  * other modules.
  */
-
+#include <nid_start_util.h>
 #include "ntfs.h"
 #include "ntfs_com.h"
 
@@ -377,6 +377,9 @@ SaAisErrorT ntfs_amf_init(ntfs_cb_t *cb)
 	SaAisErrorT error;
 
 	TRACE_ENTER();
+
+	if (amf_comp_name_get_set_from_file("NTFD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+		goto done;
 
 	/* Initialize AMF callbacks */
 	memset(&amfCallbacks, 0, sizeof(SaAmfCallbacksT));
