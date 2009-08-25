@@ -540,6 +540,14 @@ SaAisErrorT saLckResourceOpen(SaLckHandleT lckHandle,
 		goto done;
 	}
 
+	/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LCK-A.02.01 
+	   Section 3.5.1 saLckResourceOpen() and saLckResourceOpenAsync(), Return Values */
+	if (strncmp((const char *)lockResourceName->value, "safLock=", 8) != 0) {
+		m_GLSV_DEBUG_CONS_PRINTF("\"safLock=\" is missing in ResourceName");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
 	m_GLSV_MEMSET_SANAME(lockResourceName);
 
 	if (!(resourceFlags == SA_LCK_RESOURCE_CREATE || resourceFlags == 0)) {
@@ -679,6 +687,14 @@ SaAisErrorT saLckResourceOpenAsync(SaLckHandleT lckHandle,
 	/* validate the inputs */
 	if (lockResourceName == NULL) {
 		/* shashi --- #8 INVALID PARAM */
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* SA_AIS_ERR_INVALID_PARAM, bullet 5 in SAI-AIS-LCK-A.02.01 
+	   Section 3.5.1 saLckResourceOpen() and saLckResourceOpenAsync(), Return Values */
+	if (strncmp((const char *)lockResourceName->value, "safLock=", 8) != 0) {
+		m_GLSV_DEBUG_CONS_PRINTF("\"safLock=\" is missing in ResourceName");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}

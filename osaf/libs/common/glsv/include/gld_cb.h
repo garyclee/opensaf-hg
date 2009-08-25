@@ -18,7 +18,8 @@
 #ifndef GLD_CB_H
 #define GLD_CB_H
 
-# include "gld_tmr.h"
+#include "gld_tmr.h"
+#include "saImmOi.h"
 
 #define m_GLSV_UNS64_TO_PARAM(param,buffer,val64) \
 {\
@@ -91,7 +92,6 @@ typedef struct glsv_gld_cb_tag {
 	uns32 clm_hdl;		/* Handle manager handle                     */
 	NCS_MBCSV_HDL mbcsv_handle;
 	NCS_MBCSV_CKPT_HDL o_ckpt_hdl;
-	uns32 oac_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;
 	uns32 gld_async_cnt;
 	V_DEST_QA my_anc;
@@ -115,12 +115,9 @@ typedef struct glsv_gld_cb_tag {
 	SaInvocationT invocation;
 	uns32 is_quiasced;
 
-	/* MIB scalar elements */
-	SaNameT saf_spec_ver;
-	SaNameT saf_agent_vend;
-	uns32 saf_agent_vend_prod;
-	NCS_BOOL saf_serv_state_enabled;
-	uns32 saf_serv_state;
+	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
+	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
+					   IMM events */
 } GLSV_GLD_CB;
 
 #define GLD_CB_NULL  ((GLSV_GLD_CB *)0)
@@ -154,9 +151,6 @@ EXTERN_C uns32 gld_rsc_ref_set_orphan(GLSV_GLD_GLND_DETAILS *node_details, SaLck
 				      SaLckLockModeT lck_mode);
 EXTERN_C GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLckResourceIdT rsc_id,
 					     SaAisErrorT *error);
-EXTERN_C uns32 gld_reg_with_mab(GLSV_GLD_CB *cb);
-EXTERN_C uns32 gld_unreg_with_mab(GLSV_GLD_CB *cb);
-EXTERN_C uns32 gld_reg_with_miblib();
 EXTERN_C uns32 gld_process_node_down_evts(GLSV_GLD_CB *gld_cb);
 
 #endif

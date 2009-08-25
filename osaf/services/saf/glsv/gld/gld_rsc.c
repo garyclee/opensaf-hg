@@ -16,6 +16,9 @@
  */
 
 #include "gld.h"
+#include "gld_log.h"
+#include "gld_imm.h"
+
 /*****************************************************************************
   FILE NAME: GLD_RSC.C
 
@@ -77,6 +80,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 {
 	GLSV_GLD_RSC_INFO *rsc_info;
 	GLSV_GLD_RSC_MAP_INFO *rsc_map_info;
+	SaAisErrorT err = SA_AIS_OK;
 	SaTimeT creation_time;
 
 	rsc_info = m_MMGR_ALLOC_GLSV_GLD_RSC_INFO;
@@ -88,7 +92,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 	memcpy(&rsc_info->lck_name, &rsc_name, sizeof(SaNameT));
 	memset(&creation_time, '\0', sizeof(SaTimeT));
 	rsc_info->saf_rsc_no_of_users = 1;
-	rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time);
+	rsc_info->saf_rsc_creation_time = m_GET_TIME_STAMP(creation_time) * SA_TIME_ONE_SECOND;
 
 	if (rsc_id)
 		rsc_info->rsc_id = rsc_id;
@@ -136,6 +140,25 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
 		m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
 		*error = SA_AIS_ERR_LIBRARY;
+		return NULL;
+	}
+
+	/*Add the imm runtime object */
+	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
+		err = create_runtime_object(rsc_name.value, rsc_info->saf_rsc_creation_time, gld_cb->immOiHandle);
+
+	if (err != SA_AIS_OK) {
+		gld_log(NCSFL_SEV_ERROR, "create_runtime_object failed %u\n", err);
+		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {
+			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR);
+			return NULL;
+		}
+		if (ncs_patricia_tree_del(&gld_cb->rsc_info_id, (NCS_PATRICIA_NODE *)rsc_info) != NCSCC_RC_SUCCESS) {
+			m_LOG_GLD_HEADLINE(GLD_PATRICIA_TREE_DEL_FAILED, NCSFL_SEV_ERROR);
+			return NULL;
+		}
+		m_MMGR_FREE_GLSV_GLD_RSC_MAP_INFO(rsc_map_info);
+		m_MMGR_FREE_GLSV_GLD_RSC_INFO(rsc_info);
 		return NULL;
 	}
 
@@ -203,7 +226,7 @@ GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
 	*error = SA_AIS_OK;
 
 	while (rsc_info != NULL) {
-		if (!memcmp(&rsc_name, &rsc_info->lck_name, sizeof(SaNameT)))
+		if (m_CMP_HORDER_SANAMET(rsc_name, rsc_info->lck_name) == 0)
 			break;
 		rsc_info = rsc_info->next;
 	}
@@ -227,7 +250,7 @@ GLSV_GLD_RSC_INFO *gld_find_add_rsc_name(GLSV_GLD_CB *gld_cb,
 /****************************************************************************
  * Name          : gld_free_rsc_info
  *
- * Description   : This is function is invoked to create or retrieve a resource
+ * Description   : This function is invoked to free a resource
  *                 by its name.
  *
  * Arguments     : gld_cb        - control block
@@ -241,8 +264,10 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 {
 	GLSV_GLD_RSC_MAP_INFO *rsc_map_info = NULL;
 	SaNameT lck_name;
+	SaNameT immObj_name;
 
 	memset(&lck_name, '\0', sizeof(SaNameT));
+	memset(&immObj_name, '\0', sizeof(SaNameT));
 
 	/* Some node is still referring to this resource, so backout */
 	if (rsc_info->node_list != NULL)
@@ -259,6 +284,14 @@ void gld_free_rsc_info(GLSV_GLD_CB *gld_cb, GLSV_GLD_RSC_INFO *rsc_info)
 	memcpy(&lck_name, &rsc_info->lck_name, sizeof(SaNameT));
 	lck_name.length = m_NCS_OS_HTONS(lck_name.length);
 
+	memcpy(&immObj_name, &rsc_info->lck_name, sizeof(SaNameT));
+	/* delete imm runtime object */
+	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE) {
+		if (immutil_saImmOiRtObjectDelete(gld_cb->immOiHandle, &immObj_name) != SA_AIS_OK) {
+			gld_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", lck_name.value);
+			return;
+		}
+	}
 	rsc_map_info = (GLSV_GLD_RSC_MAP_INFO *)ncs_patricia_tree_get(&gld_cb->rsc_map_info, (uns8 *)(uns8 *)&lck_name);
 	if (rsc_map_info) {
 		if (ncs_patricia_tree_del(&gld_cb->rsc_map_info, (NCS_PATRICIA_NODE *)rsc_map_info) != NCSCC_RC_SUCCESS) {

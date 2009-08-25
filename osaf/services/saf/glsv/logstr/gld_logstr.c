@@ -222,6 +222,7 @@ NCSFL_FMAT gld_fmat_set[] = {
 	{GLD_LID_LCK_OPER, NCSFL_TYPE_TICLL, "%s GLD LCK OPER: %s <rsc name:%s> <rsc id:%ld> <rcvd frm:%ld>\n"},
 	{GLD_LID_MBCSV, NCSFL_TYPE_TI, "%s GLD MBCSV: %s\n"},
 	{GLD_LID_TIMER, NCSFL_TYPE_TIL, "%s GLD TIMER: %s type :%ld \n"},
+	{GLD_LID_GENLOG, NCSFL_TYPE_TC, "%s %s\n"},
 	{0, 0, 0}
 };
 

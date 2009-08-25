@@ -25,9 +25,20 @@
 ******************************************************************************/
 
 #include "gld.h"
+#include "gld_log.h"
+#include <poll.h>
 GLDDLL_API uns32 gl_gld_hdl;
 
 static void gld_main_process(SYSF_MBX *mbx);
+
+#define FD_AMF 0
+#define FD_MBCSV 1
+#define FD_MBX 2
+#define FD_IMM 3		/* Must be the last in the fds array */
+
+static struct pollfd fds[4];
+static nfds_t nfds = 4;
+
 /****************************************************************************
  * Name          : ncs_glsv_gld_lib_req
  *
@@ -140,21 +151,6 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	} else
 		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_SUCCESS, NCSFL_SEV_INFO);
 
-	/* Register with MIBLIB */
-	if ((gld_reg_with_miblib()) != NCSCC_RC_SUCCESS) {
-		m_LOG_GLD_SVC_PRVDR(GLD_MIBLIB_REGISTER_FAIL, NCSFL_SEV_ERROR);
-		return NCSCC_RC_FAILURE;
-	} else
-		m_LOG_GLD_SVC_PRVDR(GLD_MIBLIB_REGISTER_SUCCESS, NCSFL_SEV_INFO);
-
-	strcpy(gld_cb->saf_spec_ver.value, "B.01.01");
-	gld_cb->saf_spec_ver.length = strlen("B.01.01");
-	strcpy(gld_cb->saf_agent_vend.value, "OpenSAF");
-	gld_cb->saf_agent_vend.length = strlen("OpenSAF");
-	gld_cb->saf_agent_vend_prod = 2;
-	gld_cb->saf_serv_state_enabled = FALSE;
-	gld_cb->saf_serv_state = 1;
-
 	/*   Initialise with the MBCSV service  */
 	if (glsv_gld_mbcsv_register(gld_cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR);
@@ -172,8 +168,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 			       &gld_cb->mbx, "GLD", m_GLD_TASK_PRIORITY,
 			       m_GLD_STACKSIZE,
 			       &gld_cb->task_hdl) != NCSCC_RC_SUCCESS) ||
-	    (m_NCS_TASK_START(gld_cb->task_hdl) != NCSCC_RC_SUCCESS))
-	{
+	    (m_NCS_TASK_START(gld_cb->task_hdl) != NCSCC_RC_SUCCESS)) {
 		m_LOG_GLD_HEADLINE(GLD_IPC_TASK_INIT, NCSFL_SEV_ERROR);
 		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
@@ -182,6 +177,11 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 
 	m_NCS_EDU_HDL_INIT(&gld_cb->edu_hdl);
+
+	/* register glsv with imm */
+	amf_error = gld_imm_init(gld_cb);
+	if (amf_error != SA_AIS_OK)
+		gld_log(NCSFL_SEV_ERROR, "Imm Init Failed %u\n", amf_error);
 
 	/* register GLD component with AvSv */
 	amf_error = saAmfComponentRegister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
@@ -422,57 +422,58 @@ void gld_process_mbx(SYSF_MBX *mbx)
  *****************************************************************************/
 static void gld_main_process(SYSF_MBX *mbx)
 {
-	NCS_SEL_OBJ mbx_fd = m_NCS_IPC_GET_SEL_OBJ(mbx);
+	NCS_SEL_OBJ mbx_fd;
+	SaAisErrorT error = SA_AIS_OK;
 	GLSV_GLD_CB *gld_cb = NULL;
-
-	NCS_SEL_OBJ_SET all_sel_obj;
-	NCS_SEL_OBJ amf_ncs_sel_obj;
-	NCS_SEL_OBJ mbcsv_ncs_sel_obj;
 	NCS_MBCSV_ARG mbcsv_arg;
-	NCS_SEL_OBJ high_sel_obj;
 	SaSelectionObjectT amf_sel_obj;
-	SaAmfHandleT amf_hdl;
-	SaAisErrorT amf_error;
 
 	if ((gld_cb = (GLSV_GLD_CB *)ncshm_take_hdl(NCS_SERVICE_ID_GLD, gl_gld_hdl))
 	    == NULL) {
 		m_LOG_GLD_HEADLINE(GLD_TAKE_HANDLE_FAILED, NCSFL_SEV_ERROR);
 		return;
 	}
+	mbx_fd = ncs_ipc_get_sel_obj(&gld_cb->mbx);
+	error = saAmfSelectionObjectGet(gld_cb->amf_hdl, &amf_sel_obj);
 
-	amf_hdl = gld_cb->amf_hdl;
-	ncshm_give_hdl(gl_gld_hdl);
-
-	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-
-	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
-
-	if (amf_error != SA_AIS_OK) {
+	if (error != SA_AIS_OK) {
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_SEL_OBJ_GET_ERROR, NCSFL_SEV_ERROR);
 		return;
 	}
-	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
 
-	m_SET_FD_IN_SEL_OBJ((uns32)gld_cb->mbcsv_sel_obj, mbcsv_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(mbcsv_ncs_sel_obj, &all_sel_obj);
+	/* Set up all file descriptors to listen to */
+	fds[FD_AMF].fd = amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_MBCSV].fd = gld_cb->mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_IMM].fd = gld_cb->imm_sel_obj;
+	fds[FD_IMM].events = POLLIN;
 
-	high_sel_obj = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, mbx_fd);
-	high_sel_obj = m_GET_HIGHER_SEL_OBJ(high_sel_obj, mbcsv_ncs_sel_obj);
+	while (1) {
+		int ret = poll(fds, nfds, -1);
 
-	while (m_NCS_SEL_OBJ_SELECT(high_sel_obj, &all_sel_obj, 0, 0, 0) != -1) {
-		/* process all the AMF messages */
-		if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj)) {
-			/* dispatch all the AMF pending function */
-			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
-			if (amf_error != SA_AIS_OK) {
-				m_LOG_GLD_SVC_PRVDR(GLD_AMF_DISPATCH_ERROR, NCSFL_SEV_ERROR);
-			}
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+
+			gld_log(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			break;
 		}
 
-		/* Process all the MBCSV messages  */
-		if (m_NCS_SEL_OBJ_ISSET(mbcsv_ncs_sel_obj, &all_sel_obj)) {
+		if (fds[FD_AMF].revents & POLLIN) {
+			if (gld_cb->amf_hdl != 0) {
+				/* dispatch all the AMF pending function */
+				error = saAmfDispatch(gld_cb->amf_hdl, SA_DISPATCH_ALL);
+				if (error != SA_AIS_OK) {
+					m_LOG_GLD_SVC_PRVDR(GLD_AMF_DISPATCH_ERROR, NCSFL_SEV_ERROR);
+				}
+			} else
+				gld_log(NCSFL_SEV_ERROR, "gld_cb->amf_hdl == 0");
+		}
+
+		if (fds[FD_MBCSV].revents & POLLIN) {
 			/* dispatch all the MBCSV pending callbacks */
 			mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
 			mbcsv_arg.i_mbcsv_hdl = gld_cb->mbcsv_handle;
@@ -482,17 +483,48 @@ static void gld_main_process(SYSF_MBX *mbx)
 			}
 		}
 
-		/* process the GLSv Mail box */
-		if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj)) {
-			/* now got the IPC mail box event */
+		if (fds[FD_MBX].revents & POLLIN)
 			gld_process_mbx(mbx);
-		}
 
-      /*** set the fd's again ***/
-		m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-		m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(mbcsv_ncs_sel_obj, &all_sel_obj);
+		/* process the IMM messages */
+		if (gld_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
+			/* dispatch all the IMM pending function */
+			error = saImmOiDispatch(gld_cb->immOiHandle, SA_DISPATCH_ONE);
+
+			/*
+			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
+			 ** reinitialize the IMM OI API in a background thread and let 
+			 ** this thread do business as usual especially handling write 
+			 ** requests.
+			 **
+			 ** All other errors are treated as non-recoverable (fatal) and will
+			 ** cause an exit of the process.
+			 */
+			if (error == SA_AIS_ERR_BAD_HANDLE) {
+				gld_log(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE %u", error);
+
+				/* 
+				 ** Invalidate the IMM OI handle, this info is used in other
+				 ** locations. E.g. giving TRY_AGAIN responses to a create and
+				 ** close resource requests. That is needed since the IMM OI
+				 ** is used in context of these functions.
+				 */
+				gld_cb->immOiHandle = 0;
+				nfds = FD_IMM;
+				/* Reinitiate IMM */
+				error = gld_imm_init(gld_cb);
+				if (error == SA_AIS_OK) {
+					/* If this is the active server, become implementer again. */
+					if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
+						gld_imm_declare_implementer(gld_cb);
+				}
+				fds[FD_IMM].fd = gld_cb->imm_sel_obj;
+				nfds = FD_IMM + 1;
+			} else if (error != SA_AIS_OK) {
+				gld_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", error);
+				break;
+			}
+		}
 
 	}
 	return;

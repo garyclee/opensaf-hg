@@ -24,6 +24,7 @@
 ******************************************************************************/
 
 #include "gld.h"
+#include "gld_log.h"
 
 /****************************************************************************
  * Name          : gld_amf_CSI_set_callback
@@ -81,6 +82,13 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 
 			gld_cb->invocation = invocation;
 			gld_cb->is_quiasced = TRUE;
+
+			/* Give up our IMM OI implementer role */
+			error = immutil_saImmOiImplementerClear(gld_cb->immOiHandle);
+			if (error != SA_AIS_OK) {
+				gld_log(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %d", error);
+			}
+
 			gld_mds_change_role(gld_cb, mds_role);
 
 			return;
@@ -89,17 +97,14 @@ gld_amf_CSI_set_callback(SaInvocationT invocation,
 
 		/* Call into MDS to set the role TBD. */
 		if (gld_cb->ha_state == SA_AMF_HA_ACTIVE) {
+			/* If this is the active Director, become implementer */
+			gld_imm_declare_implementer(gld_cb);
+
 			mds_role = V_DEST_RL_ACTIVE;
 		} else {
 			mds_role = V_DEST_RL_STANDBY;
 		}
 		gld_mds_change_role(gld_cb, mds_role);
-
-		if ((gld_reg_with_mab(gld_cb)) != NCSCC_RC_SUCCESS) {
-			m_LOG_GLD_SVC_PRVDR(GLD_MASV_REGISTER_FAIL, NCSFL_SEV_ERROR);
-
-		} else
-			m_LOG_GLD_SVC_PRVDR(GLD_MASV_REGISTER_SUCCESS, NCSFL_SEV_INFO);
 
 		if (glsv_gld_mbcsv_chgrole(gld_cb) != NCSCC_RC_SUCCESS) {
 			m_LOG_GLD_MBCSV(GLD_MBCSV_CHGROLE_FAILED, NCSFL_SEV_ERROR);
@@ -193,9 +198,6 @@ void gld_amf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *co
 
 		/* Unregister with MBCSv */
 		glsv_gld_mbcsv_unregister(gld_cb);
-
-		/* Unregister with MIB */
-		gld_unreg_with_mab(gld_cb);
 
 		/* Disconnect from MDS */
 		gld_mds_shut(gld_cb);

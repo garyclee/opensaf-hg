@@ -223,12 +223,46 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 	</class>
+	<class name="SaLckResource">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safLock</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saLckResourceCreationTimeStamp</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+                       <name>saLckResourceNumOpeners</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saLckResourceIsOrphaned</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saLckResourceStrippedCount</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+	</class>
+
         <object class="SaAmfApplication">
                 <dn>safApp=safImmService</dn>
         </object>
         <object class="SaImmMngt">
                 <dn>safRdn=immManagement,safApp=safImmService</dn>
         </object>
+	<object class="SaAmfApplication">
+        	<dn>safApp=safLockService</dn>
+	</object>
 	<object class="SaAmfApplication">
         	<dn>safApp=safLogService</dn>
 	</object>
