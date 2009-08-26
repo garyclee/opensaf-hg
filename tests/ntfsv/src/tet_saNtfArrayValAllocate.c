@@ -203,7 +203,7 @@ void saNtfArrayAllocateTest_05(void)
 
     safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 
-    test_validate(rc, SA_AIS_ERR_BAD_HANDLE);
+    test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 __attribute__ ((constructor)) static void saNtfNotificationCallbackT_constructor(void)

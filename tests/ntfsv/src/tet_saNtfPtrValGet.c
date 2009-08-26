@@ -204,7 +204,8 @@ void saNtfPtrGetTest_common_prep(void)
     struct pollfd fds[1];
     int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
-    SaStringT destPtr;
+	 void* destPtr;
+	 SaStringT charPtr;
 
     subscriptionId = 1;
 
@@ -256,7 +257,7 @@ void saNtfPtrGetTest_common_prep(void)
 			ntfHandle,
 			&myAlarmNotification,
 			0,
-			0,
+			sizeof(DEFAULT_ADDITIONAL_TEXT),
 			0,
 			0,
 			0,
@@ -273,18 +274,26 @@ void saNtfPtrGetTest_common_prep(void)
     *(myAlarmNotification.perceivedSeverity) = SA_NTF_SEVERITY_WARNING;
 
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_STRING;
+
+	 myAlarmNotification.notificationHeader.notificationObject->length = 4;
+	 myAlarmNotification.notificationHeader.notifyingObject->length = 4;
+	 strncpy(myAlarmNotification.notificationHeader.notificationObject->value,
+			  "nno", 4);
+	 strncpy(myAlarmNotification.notificationHeader.notifyingObject->value,
+			 "ngo", 4);
+	 strncpy(myAlarmNotification.notificationHeader.additionalText,
+			DEFAULT_ADDITIONAL_TEXT, sizeof(DEFAULT_ADDITIONAL_TEXT));
+
     if(!safassertNice((rc = saNtfPtrValAllocate(
     		myAlarmNotification.notificationHandle,
     		(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
-    		(void**) destPtr,
+    		&destPtr,
     		&(myAlarmNotification.proposedRepairActions[0].actionValue))), SA_AIS_OK))
     {
+		charPtr = (char*)destPtr;
     	/* Copy the actual value */
-    	strncpy(destPtr, DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT));
-    	*(destPtr + strlen(DEFAULT_ADDITIONAL_TEXT)) = '\0';
-
+    	strncpy(charPtr, DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT)+ 1);
     	if(!safassertNice(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK)) {
-
     		sleep(1);
 
     		fds[0].fd = (int) selectionObject;
@@ -295,7 +304,6 @@ void saNtfPtrGetTest_common_prep(void)
 
     	}
     }
-
     safassert(saNtfNotificationFree(myAlarmNotification.notificationHandle) , SA_AIS_OK);
     safassert(saNtfNotificationFilterFree(myAlarmFilter.notificationFilterHandle), SA_AIS_OK);
     safassert(saNtfNotificationUnsubscribe(subscriptionId), SA_AIS_OK);

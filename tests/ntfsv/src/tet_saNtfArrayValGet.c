@@ -51,7 +51,7 @@ static void resetCounters()
 void test1ArrayValGet_value_ok(SaNtfSubscriptionIdT subscriptionId,
 		const SaNtfNotificationsT *notification)
 {
-	SaStringT *srcPtr;
+	char *srcPtr;
 	SaUint16T numElements;
 	SaUint16T elementSize;
 
@@ -87,9 +87,10 @@ void test1ArrayValGet_value_ok(SaNtfSubscriptionIdT subscriptionId,
 
 				for(jCount = 0; jCount < numElements; jCount++)
 				{
-					if(assertvalue(strncmp(srcPtr[jCount], DEFAULT_ADDITIONAL_TEXT, elementSize) == 0)) {
+					if(assertvalue(strncmp(srcPtr, DEFAULT_ADDITIONAL_TEXT, elementSize) == 0)) {
 						errors += 1;
 					}
+					srcPtr += elementSize;
 				}
 			}
 		}
@@ -225,7 +226,7 @@ void saNtfArrayGetTest_common_prep(void)
     struct pollfd fds[1];
     int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
-    SaStringT *destPtr;
+    SaStringT destPtr;
 
     subscriptionId = 1;
 
@@ -277,7 +278,7 @@ void saNtfArrayGetTest_common_prep(void)
 			ntfHandle,
 			&myAlarmNotification,
 			0,
-			0,
+			sizeof(DEFAULT_ADDITIONAL_TEXT),  
 			0,
 			0,
 			0,
@@ -293,19 +294,27 @@ void saNtfArrayGetTest_common_prep(void)
     *(myAlarmNotification.probableCause) = SA_NTF_BANDWIDTH_REDUCED;
     *(myAlarmNotification.perceivedSeverity) = SA_NTF_SEVERITY_WARNING;
 
+	myAlarmNotification.notificationHeader.notificationObject->length = 4;
+	myAlarmNotification.notificationHeader.notifyingObject->length = 4;
+	strncpy(myAlarmNotification.notificationHeader.notificationObject->value,
+			 "nno", 4);
+	strncpy(myAlarmNotification.notificationHeader.notifyingObject->value,
+			"ngo", 4);
+	strncpy(myAlarmNotification.notificationHeader.additionalText,
+		  DEFAULT_ADDITIONAL_TEXT, sizeof(DEFAULT_ADDITIONAL_TEXT));
+
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_ARRAY;
     if(!safassertNice((rc = saNtfArrayValAllocate(
     		myAlarmNotification.notificationHandle,
     		2,
     		(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
-    		(void**) destPtr,
+    		(void**)&destPtr,
     		&(myAlarmNotification.proposedRepairActions[0].actionValue))), SA_AIS_OK))
     {
     	/* Copy the actual value */
-    	strncpy(destPtr[0], DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT));
-    	*(destPtr[0] + strlen(DEFAULT_ADDITIONAL_TEXT)) = '\0';
-    	strncpy(destPtr[1], DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT));
-    	*(destPtr[1] + strlen(DEFAULT_ADDITIONAL_TEXT)) = '\0';
+    	strncpy(destPtr, DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT) + 1);
+		destPtr += strlen(DEFAULT_ADDITIONAL_TEXT) + 1; /* move to next string */
+    	strncpy(destPtr, DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT) + 1);
 
     	if(!safassertNice(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK)) {
 
@@ -316,7 +325,6 @@ void saNtfArrayGetTest_common_prep(void)
     		ret = poll(fds, 1, 10000);
     		assert(ret > 0);
     		safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
     	}
     }
 
@@ -358,9 +366,4 @@ __attribute__ ((constructor)) static void saNtfArrayValGet_constructor(void)
     test_suite_add(29, "Consumer API ");
     test_case_add(29, saNtfArrayGetTest_01, "saNtfArrayValGet SA_AIS_OK");
     test_case_add(29, saNtfArrayGetTest_02, "saNtfArrayValGet provoke SA_AIS_ERR_BAD_HANDLE/SA_AIS_ERR_INVLID_PARAM");
-#if 0
-    test_case_add(29, saNtfArrayGetTest_03, "saNtfArrayValGet handle freed SA_AIS_ERR_BAD_HANDLE");
-    test_case_add(29, saNtfArrayGetTest_04, "saNtfArrayValGet bad dataPtr SA_AIS_ERR_INVLID_PARAM");
-    test_case_add(29, saNtfArrayGetTest_05, "saNtfArrayValGet bad value pointer SA_AIS_ERR_INVLID_PARAM");
-#endif
 }
