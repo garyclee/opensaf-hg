@@ -8,7 +8,6 @@ mibs_files = \
    ESMI-SAF-CKPT-MIB \
    ESMI-SAF-CLM-MIB \
    ESMI-SAF-EVT-MIB \
-   ESMI-SAF-LCK-MIB \
    ESMI-SAF-MSG-MIB \
    NCS-AVM-MIB \
    NCS-AVSV-MIB \
@@ -19,6 +18,5 @@ mibs_files = \
    SAF-CKPT-MIB \
    SAF-CLM-MIB \
    SAF-EVT-MIB \
-   SAF-LCK-MIB \
    SAF-MSG-MIB \
    SAF-TC-MIB
