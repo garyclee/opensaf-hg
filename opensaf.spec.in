@@ -387,7 +387,6 @@ fi
 %{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/libedsv_subagt.so.*
 %{_pkglibdir}/libglsv_logstr.so.*
-%{_pkglibdir}/libglsv_subagt.so.*
 %{_pkglibdir}/libmab_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libmqsv_logstr.so.*
