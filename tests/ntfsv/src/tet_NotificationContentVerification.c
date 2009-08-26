@@ -287,16 +287,19 @@ void alarmNotificationTest2(void)
                                          SA_AIS_OK);
 
     /* Create a notification and send it */
+    myAlarmNotification.notificationHeader.numCorrelatedNotifications = 2;
+    myAlarmNotification.notificationHeader.numAdditionalInfo = 5;
 	safassert(saNtfAlarmNotificationAllocate(
 			ntfHandle,
 			&myAlarmNotification,
-			2,
+			myAlarmNotification.notificationHeader.numCorrelatedNotifications,
 			(SaUint16T)(strlen(DEFAULT_ADDITIONAL_TEXT) + 1),
-			2,
-			3,
-			2,
-			3,
-			SA_NTF_ALLOC_SYSTEM_LIMIT), SA_AIS_OK);
+			myAlarmNotification.notificationHeader.numAdditionalInfo,
+			3, /*  SaUint16T numSpecificProblems,       */
+			2, /*  SaUint16T numMonitoredAttributes,    */
+			2, /*  SaUint16T numProposedRepairActions,  */
+			SA_NTF_ALLOC_SYSTEM_LIMIT), /*  SaInt16T variableDataSize  */
+              SA_AIS_OK);
 
 	fillHeader(&myAlarmNotification.notificationHeader);
 
@@ -330,9 +333,9 @@ void alarmNotificationTest2(void)
     myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_INT16;
     myAlarmNotification.proposedRepairActions[0].actionValue.int16Val = 456;
 
-    myAlarmNotification.proposedRepairActions[0].actionId = 4;
-    myAlarmNotification.proposedRepairActions[0].actionValueType = SA_NTF_VALUE_INT32;
-    myAlarmNotification.proposedRepairActions[0].actionValue.int32Val = 456;
+    myAlarmNotification.proposedRepairActions[1].actionId = 4;
+    myAlarmNotification.proposedRepairActions[1].actionValueType = SA_NTF_VALUE_INT32;
+    myAlarmNotification.proposedRepairActions[1].actionValue.int32Val = 456;
 
     for (i = 0; i < myAlarmNotification.numSpecificProblems; i++)
     {
@@ -356,6 +359,9 @@ void alarmNotificationTest2(void)
     myAlarmNotification.thresholdInformation->thresholdHysteresis.uint32Val = 100;
     myAlarmNotification.thresholdInformation->observedValue.uint32Val = 567;
     myAlarmNotification.thresholdInformation->armTime = SA_TIME_UNKNOWN;
+
+    myAlarmNotification.notificationHeader.correlatedNotifications[0] = 1999;
+    myAlarmNotification.notificationHeader.correlatedNotifications[1] = 1984;
 
     safassert(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK);
 
