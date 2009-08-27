@@ -56,8 +56,19 @@ extern "C" {
 					const SaNtfAttributeChangeNotificationT *src);
 	void ntfsv_copy_ntf_state_change(SaNtfStateChangeNotificationT *dest, const SaNtfStateChangeNotificationT *src);
 
-	void ntfsv_alloc_and_copy_not(ntfsv_send_not_req_t *dest, const ntfsv_send_not_req_t *src);
+	SaAisErrorT ntfsv_alloc_and_copy_not(ntfsv_send_not_req_t *dest, const ntfsv_send_not_req_t *src);
 	void ntfsv_get_ntf_header(ntfsv_send_not_req_t *notif, SaNtfNotificationHeaderT **ntfHeader);
+
+	SaAisErrorT ntfsv_variable_data_init(v_data * vd, SaInt32T max_data_size, SaUint32T ntfsv_var_data_limit);
+	SaAisErrorT ntfsv_ptr_val_alloc(v_data * vd, SaNtfValueT *nv, SaUint16T data_size, void **data_ptr);
+	SaAisErrorT ntfsv_ptr_val_get(v_data * vd, const SaNtfValueT *nv, void **data_ptr, SaUint16T *data_size);
+	SaAisErrorT ntfsv_array_val_alloc(v_data * vd,
+					  SaNtfValueT *nv,
+					  SaUint16T numElements, SaUint16T elementSize, void **array_ptr);
+	SaAisErrorT ntfsv_array_val_get(v_data * vd,
+					const SaNtfValueT *nv,
+					void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize);
+	SaAisErrorT ntfsv_v_data_cp(v_data * dest, const v_data * src);
 #ifdef  __cplusplus
 }
 #endif

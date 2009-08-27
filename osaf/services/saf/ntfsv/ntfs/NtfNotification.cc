@@ -75,7 +75,7 @@ NtfNotification::NtfNotification(const NtfNotification& old)
     {
         TRACE_3("Notification type ok");
         this->subscriptionList = old.subscriptionList;
-        sendNotInfo_ = (ntfsv_send_not_req_t*)malloc(sizeof(ntfsv_send_not_req_t));
+        sendNotInfo_ = (ntfsv_send_not_req_t*)calloc(1, sizeof(ntfsv_send_not_req_t));
         if (sendNotInfo_ == NULL)
         {
             TRACE_2("sendNotInfo_ == NULL");
@@ -123,7 +123,12 @@ void NtfNotification::setData (SaNtfIdentifierT notificationId,
     notificationType_ = notificationType;
     sendNotInfo_->notificationType = sendNotInfo->notificationType;
     sendNotInfo_->subscriptionId = sendNotInfo->subscriptionId;
-    ntfsv_alloc_and_copy_not(sendNotInfo_, sendNotInfo);
+    SaAisErrorT rc = ntfsv_alloc_and_copy_not(sendNotInfo_, sendNotInfo);
+    if (rc != SA_AIS_OK)
+    {    
+        LOG_ER("Copy notification failed rc = %u", rc);
+        assert(0);
+    }
 
     SaNtfNotificationHeaderT *header;
     ntfsv_get_ntf_header(sendNotInfo_, &header);

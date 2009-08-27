@@ -101,10 +101,6 @@ static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificati
 		TRACE_1("Invalid eventType value");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
-	if (notification->numAttributes > MAX_NUMBER_OF_CHANGED_ATTRIBUTES) {
-		TRACE_1("Bad numAttributes");
-		return SA_AIS_ERR_INVALID_PARAM;
-	}
 	return checkHeader(&notification->notificationHeader);
 }
 
@@ -114,11 +110,6 @@ static SaAisErrorT checkObjectCreateDeleteParameters(SaNtfObjectCreateDeleteNoti
 	if (*notification->notificationHeader.eventType < SA_NTF_OBJECT_NOTIFICATIONS_START ||
 	    *notification->notificationHeader.eventType > SA_NTF_OBJECT_DELETION) {
 		TRACE_1("Invalid eventType value");
-		return SA_AIS_ERR_INVALID_PARAM;
-	}
-
-	if (notification->numAttributes > MAX_NUMBER_OF_OBJECT_ATTRIBUTES) {
-		TRACE_1("Bad numAttributes");
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 	return checkHeader(&notification->notificationHeader);
@@ -548,7 +539,7 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
     /** Allocate an ntfa_LOG_STREAM_HDL_REC structure and insert this
      *  into the list of channel hdl record.
      **/
-	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
+	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -561,7 +552,6 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_ALARM;
 	notification_hdl_rec->ntfNotification.ntfAlarmNotification.notificationHandle =
 	    (SaUint64T)notification_hdl_rec->notification_hdl;
-	notification_hdl_rec->ntfNotificationVariableDataSize = variableDataSize;
 	notification_hdl_rec->parent_hdl = hdl_rec;
 
 	/* Allocate all data fields in the header */
@@ -770,6 +760,7 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		goto done_give_hdls;
 	}
+	send_param->variable_data = notification_hdl_rec->variable_data;
 
 	/* Send a sync MDS message to obtain a notification id */
 	mds_rc = ntfa_mds_msg_sync_send(&ntfa_cb, &msg, &o_msg, timeout);
@@ -1045,7 +1036,7 @@ saNtfObjectCreateDeleteNotificationAllocate(SaNtfHandleT ntfHandle,
     /**                 Lock ntfa_CB                 **/
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 
-	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
+	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -1058,7 +1049,6 @@ saNtfObjectCreateDeleteNotificationAllocate(SaNtfHandleT ntfHandle,
 	    (SaUint64T)notification_hdl_rec->notification_hdl;
 	notification_hdl_rec->parent_hdl = hdl_rec;
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_OBJECT_CREATE_DELETE;
-	notification_hdl_rec->ntfNotificationVariableDataSize = variableDataSize;
 
 	/* Allocate all data fields in the header */
 	rc = ntfsv_alloc_ntf_header(&notification_hdl_rec->ntfNotification.ntfObjectCreateDeleteNotification.
@@ -1122,7 +1112,7 @@ saNtfAttributeChangeNotificationAllocate(SaNtfHandleT ntfHandle,
     /**                 Lock ntfa_CB                 **/
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 
-	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
+	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -1136,7 +1126,6 @@ saNtfAttributeChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 	    (SaUint64T)notification_hdl_rec->notification_hdl;
 	notification_hdl_rec->parent_hdl = hdl_rec;
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_ATTRIBUTE_CHANGE;
-	notification_hdl_rec->ntfNotificationVariableDataSize = variableDataSize;
 
 	/* Allocate all data fields in the header */
 	rc = ntfsv_alloc_ntf_header(&notification_hdl_rec->ntfNotification.ntfAttributeChangeNotification.
@@ -1198,7 +1187,7 @@ saNtfStateChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 
     /**                 Lock ntfa_CB                 **/
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
-	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
+	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -1212,7 +1201,6 @@ saNtfStateChangeNotificationAllocate(SaNtfHandleT ntfHandle,
 	    (SaUint64T)notification_hdl_rec->notification_hdl;
 	notification_hdl_rec->parent_hdl = hdl_rec;
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_STATE_CHANGE;
-	notification_hdl_rec->ntfNotificationVariableDataSize = variableDataSize;
 
 	/* Allocate all data fields in the header */
 	rc = ntfsv_alloc_ntf_header(&notification_hdl_rec->ntfNotification.ntfStateChangeNotification.
@@ -1271,7 +1259,7 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	}
     /**                 Lock ntfa_CB                 **/
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
-	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec);
+	notification_hdl_rec = ntfa_notification_hdl_rec_add(&hdl_rec, variableDataSize, &rc);
 	if (notification_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
 		rc = SA_AIS_ERR_NO_MEMORY;
@@ -1285,7 +1273,6 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 	    (SaUint64T)notification_hdl_rec->notification_hdl;
 	notification_hdl_rec->parent_hdl = hdl_rec;
 	notification_hdl_rec->ntfNotificationType = SA_NTF_TYPE_SECURITY_ALARM;
-	notification_hdl_rec->ntfNotificationVariableDataSize = variableDataSize;
 
 	/* Allocate all data fields in the header */
 	rc = ntfsv_alloc_ntf_header(&notification_hdl_rec->ntfNotification.ntfSecurityAlarmNotification.
@@ -1320,14 +1307,76 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 SaAisErrorT saNtfPtrValAllocate(SaNtfNotificationHandleT notificationHandle,
 				SaUint16T dataSize, void **dataPtr, SaNtfValueT *value)
 {
-	return SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
+	unsigned int client_handle;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_notification_hdl_rec_t *notification_hdl_rec;
+	TRACE_ENTER();
+	if (dataPtr == NULL || value == NULL) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
+	if (notification_hdl_rec == NULL) {
+		TRACE("ncshm_take_hdl notificationHandle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
+	/* retrieve client hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl client_handle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done_give_hdl;
+	}
+
+	rc = ntfsv_ptr_val_alloc(&notification_hdl_rec->variable_data, value, dataSize, dataPtr);
+	ncshm_give_hdl(client_handle);
+ done_give_hdl:
+	ncshm_give_hdl(notificationHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*  3.14.7	saNtfArrayValAllocate()  */
 SaAisErrorT saNtfArrayValAllocate(SaNtfNotificationHandleT notificationHandle,
 				  SaUint16T numElements, SaUint16T elementSize, void **arrayPtr, SaNtfValueT *value)
 {
-	return SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
+	unsigned int client_handle;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_notification_hdl_rec_t *notification_hdl_rec;
+	TRACE_ENTER();
+	if (arrayPtr == NULL || value == NULL) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
+	if (notification_hdl_rec == NULL) {
+		TRACE("ncshm_take_hdl notificationHandle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
+	/* retrieve client hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl client_handle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done_give_hdl;
+	}
+
+	rc = ntfsv_array_val_alloc(&notification_hdl_rec->variable_data, value, numElements, elementSize, arrayPtr);
+	ncshm_give_hdl(client_handle);
+ done_give_hdl:
+	ncshm_give_hdl(notificationHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*  3.15	Consumer Operations  */
@@ -1348,14 +1397,88 @@ SaAisErrorT saNtfLocalizedMessageFree(SaStringT message)
 SaAisErrorT saNtfPtrValGet(SaNtfNotificationHandleT notificationHandle,
 			   SaNtfValueT *value, void **dataPtr, SaUint16T *dataSize)
 {
-	return SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
+	unsigned int client_handle;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_notification_hdl_rec_t *notification_hdl_rec;
+	TRACE_ENTER();
+	if (notificationHandle == 0) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	if (dataPtr == NULL || value == NULL || dataSize == 0 || value->ptrVal.dataSize == 0) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
+	if (notification_hdl_rec == NULL) {
+		TRACE("ncshm_take_hdl notificationHandle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
+	/* retrieve client hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl client_handle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done_give_hdl;
+	}
+
+	rc = ntfsv_ptr_val_get(&notification_hdl_rec->variable_data, value, dataPtr, dataSize);
+	ncshm_give_hdl(client_handle);
+ done_give_hdl:
+	ncshm_give_hdl(notificationHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*  3.15.2.4	saNtfArrayValGet()  */
 SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 			     SaNtfValueT *value, void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize)
 {
-	return SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
+	unsigned int client_handle;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_notification_hdl_rec_t *notification_hdl_rec;
+	TRACE_ENTER();
+	if (notificationHandle == 0) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+	if (arrayPtr == NULL || value == NULL ||
+	    numElements == NULL || elementSize == NULL ||
+	    value->arrayVal.elementSize == 0 || value->arrayVal.numElements == 0) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+	notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, notificationHandle);
+	if (notification_hdl_rec == NULL) {
+		TRACE("ncshm_take_hdl notificationHandle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	client_handle = notification_hdl_rec->parent_hdl->local_hdl;
+	/* retrieve client hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, client_handle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl client_handle failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done_give_hdl;
+	}
+
+	rc = ntfsv_array_val_get(&notification_hdl_rec->variable_data, value, arrayPtr, numElements, elementSize);
+	ncshm_give_hdl(client_handle);
+ done_give_hdl:
+	ncshm_give_hdl(notificationHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /* 3.15.2.5  saNtfObjectCreateDeleteNotificationFilterAllocate() */
