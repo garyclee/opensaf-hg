@@ -20,12 +20,13 @@ found in the current directory (./tools/devel/indent) as 'cindent'.
 
 The script accepts 2 parameters:
 
-        Usage:  cindent typedefs file [...]
+        Usage:  cindent {typedefs} {files} [...]
 
-Where 'file' is the subdirectory you want to parse recursively.
-
-And where 'typedefs' is a dictionary file of all the typedefs found in the OpenSAF
+Where 'typedefs' is a dictionary file of all the typedefs found in the OpenSAF
 codebase. This file can be produced by the 'find_typedef' script (./tools/devel)
+
+And where 'file' is the file mask or subdirectory that you want to parse
+recursively.
 
 A pregenerated copy can be found at:
 
@@ -48,4 +49,4 @@ Using this dictionary, the script passes each of the listed typedef as a '-T
 astyle for ANSI C++
 ===================
 
-A script will be created oon for the C++ code.
+A script will be created soon for the C++ code.

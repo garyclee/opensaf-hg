@@ -4,12 +4,11 @@
 # Source: http://anoncvs.postgresql.org/cvsweb.cgi/pgsql/src/tools/
 
 if [ "$#" -lt 2 ]; then
-	echo "Usage:  $(basename $0) typedefs file [...]" 1>&2
+	echo "Usage: $(basename $0) {typedefs} {files} [...]" 1>&2
 	exit 1
 fi
 
-TYPEDEFS="$1"
-shift
+TYPEDEFS=$1
 
 trap "rm -f /tmp/$$ /tmp/$$a" 0 1 2 3 15
 
@@ -28,7 +27,7 @@ for f in $(find $2 -iname "*.[chyl]"); do
 # Indent using the Linux Kernel Codying Style, with flexed line wrapping
 # http://lxr.linux.no/linux/Documentation/CodingStyle
 	indent -linux -l120 \
-		`cat "$TYPEDEFS" | sed -e '/^$/d' -e 's/.*/-T & /'` \
+		`cat $TYPEDEFS | sed -e '/^$/d' -e 's/.*/-T & /'` \
 		/tmp/$$a >/tmp/$$ 2>&1
 
 	if [ "$?" -ne 0 -o -s /tmp/$$ ]; then
