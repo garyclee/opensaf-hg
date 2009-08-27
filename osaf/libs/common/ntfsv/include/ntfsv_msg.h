@@ -34,15 +34,6 @@ extern "C" {
 #define MAX_ADDITIONAL_TEXT_LENGTH 1024
 #define MAX_DISCARDED_NOTIFICATIONS 1024
 
-/* SaNtfXxxNotification specific limits */
-#define MAX_NUMBER_OF_SPECIFIC_PROBLEMS 5
-#define MAX_NUMBER_OF_MONITORED_ATTRIBUTES 5
-#define MAX_NUMBER_OF_PROPOSED_REPAIR_ACTIONS 5
-/* TODO: decide max values ??*/
-#define MAX_NUMBER_OF_STATE_CHANGES 1000
-#define MAX_NUMBER_OF_CHANGED_ATTRIBUTES 1000
-#define MAX_NUMBER_OF_OBJECT_ATTRIBUTES  1000
-
 /* Message type enums */
 	typedef enum {
 		NTFSV_NTFA_API_MSG = 1,
@@ -93,6 +84,13 @@ extern "C" {
 /*** API Parameter definitions ***/
 
 /* Notification message structs */
+
+	typedef struct variable_data {
+		void *p_base;
+		size_t size;
+		SaUint32T max_data_size;
+	} v_data;
+
 	struct ntfsv_send_not_req {
 		SaNtfNotificationTypeT notificationType;
 
@@ -109,6 +107,7 @@ extern "C" {
 		SaNtfSubscriptionIdT subscriptionId;
 
 		uns32 client_id;
+		v_data variable_data;
 	};
 	typedef struct ntfsv_send_not_req ntfsv_send_not_req_t;
 

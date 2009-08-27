@@ -35,8 +35,8 @@ void ntfsv_print_object_attributes(SaNtfAttributeT *objectAttributes, SaUint16T 
 	}
 }
 
-static uns32 encodeSaNtfValueT(NCS_UBAID *uba,
-			       uns8 *p8, uns32 total_bytes, SaNtfValueTypeT attributeType, SaNtfValueT *ntfAttr)
+static uns32 encodeSaNtfValueT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNtfValueTypeT attributeType,
+			       SaNtfValueT *ntfAttr)
 {
 
 	switch (attributeType) {
@@ -144,11 +144,36 @@ static uns32 encodeSaNtfValueT(NCS_UBAID *uba,
 	case SA_NTF_VALUE_STRING:
 	case SA_NTF_VALUE_IPADDRESS:
 	case SA_NTF_VALUE_BINARY:
+		TRACE_2("enc type: %d offset: %hu size: %hu",
+			(int)attributeType, ntfAttr->ptrVal.dataOffset, ntfAttr->ptrVal.dataSize);
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_16bit(&p8, ntfAttr->ptrVal.dataOffset);
+		ncs_encode_16bit(&p8, ntfAttr->ptrVal.dataSize);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
+		break;
 	case SA_NTF_VALUE_ARRAY:
-		TRACE_2("attributeType %d not implemented", (int)attributeType);
+		TRACE_2("enc type SA_NTF_VALUE_ARRAY: %d offset: %hu nelem: %hu esize: %hu",
+			(int)attributeType,
+			ntfAttr->arrayVal.arrayOffset, ntfAttr->arrayVal.numElements, ntfAttr->arrayVal.elementSize);
+		p8 = ncs_enc_reserve_space(uba, 6);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_16bit(&p8, ntfAttr->arrayVal.arrayOffset);
+		ncs_encode_16bit(&p8, ntfAttr->arrayVal.numElements);
+		ncs_encode_16bit(&p8, ntfAttr->arrayVal.elementSize);
+		ncs_enc_claim_space(uba, 6);
+		total_bytes += 6;
 		break;
 	default:
 		TRACE_2("attributeType %d not valid", (int)attributeType);
+		return 0;
 	}
 	return total_bytes;
 }
@@ -258,8 +283,24 @@ static uns32 decodeNtfValueT(NCS_UBAID *uba, uns32 total_bytes, SaNtfValueTypeT 
 	case SA_NTF_VALUE_STRING:
 	case SA_NTF_VALUE_IPADDRESS:
 	case SA_NTF_VALUE_BINARY:
+		p8 = ncs_dec_flatten_space(uba, local_data, 4);
+		ntfAttr->ptrVal.dataOffset = ncs_decode_16bit(&p8);
+		ntfAttr->ptrVal.dataSize = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 4);
+		total_bytes += 4;
+		TRACE_2("dec type: %d offset: %hu size: %hu",
+			(int)attributeType, ntfAttr->ptrVal.dataOffset, ntfAttr->ptrVal.dataSize);
+		break;
 	case SA_NTF_VALUE_ARRAY:
-		TRACE_2("attributeType %d not implemented", (int)attributeType);
+		p8 = ncs_dec_flatten_space(uba, local_data, 6);
+		ntfAttr->arrayVal.arrayOffset = ncs_decode_16bit(&p8);
+		ntfAttr->arrayVal.numElements = ncs_decode_16bit(&p8);
+		ntfAttr->arrayVal.elementSize = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 6);
+		total_bytes += 6;
+		TRACE_2("enc type: %d offset: %hu nelem: %hu esize: %hu",
+			(int)attributeType,
+			ntfAttr->arrayVal.arrayOffset, ntfAttr->arrayVal.numElements, ntfAttr->arrayVal.elementSize);
 		break;
 	default:
 		TRACE_2("attributeType %d not valid", (int)attributeType);
@@ -339,6 +380,7 @@ static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 {
 	uns8 *p8;
 	uns32 total_bytes = 0;
+	int i;
 
 	/* additional text */
 	p8 = ncs_enc_reserve_space(uba, 10);
@@ -392,6 +434,31 @@ static uns32 ntfsv_enc_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 	ncs_encode_n_octets_in_uba(uba, (uns8 *)param->additionalText, (uns32)param->lengthAdditionalText);
 	total_bytes += (uns32)param->lengthAdditionalText;
 
+	for (i = 0; i < param->numCorrelatedNotifications; i++) {
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8)
+			goto error_done;
+		ncs_encode_64bit(&p8, param->correlatedNotifications[i]);
+		ncs_enc_claim_space(uba, 8);
+		total_bytes += 8;
+	}
+
+	TRACE_2("enc : param->numAdditionalInfo %hu\n", param->numAdditionalInfo);
+	for (i = 0; i < param->numAdditionalInfo; i++) {
+		TRACE_2("enc additionalInfo Type: %d\n", param->additionalInfo[i].infoType);
+		p8 = ncs_enc_reserve_space(uba, 4);
+		if (!p8)
+			goto error_done;
+		ncs_encode_16bit(&p8, param->additionalInfo[i].infoId);
+		ncs_encode_16bit(&p8, param->additionalInfo[i].infoType);
+		ncs_enc_claim_space(uba, 4);
+		total_bytes += 4;
+		total_bytes += encodeSaNtfValueT(uba,
+						 p8,
+						 total_bytes,
+						 param->additionalInfo[i].infoType,
+						 &param->additionalInfo[i].infoValue);
+	}
 	return total_bytes;
  error_done:
 	TRACE("p8 NULL");
@@ -406,7 +473,7 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	TRACE_ENTER();
 	assert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -422,15 +489,113 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	case SA_NTF_TYPE_ALARM:
 		TRACE("enc SA_NTF_TYPE_ALARM");
 		ntfsv_enc_not_header(uba, &param->notification.alarm.notificationHeader);
-		p8 = ncs_enc_reserve_space(uba, 8);
+		p8 = ncs_enc_reserve_space(uba, 6);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_16bit(&p8, param->notification.alarm.numSpecificProblems);
+		ncs_encode_16bit(&p8, param->notification.alarm.numMonitoredAttributes);
+		ncs_encode_16bit(&p8, param->notification.alarm.numProposedRepairActions);
+		ncs_enc_claim_space(uba, 6);
+		total_bytes += 6;
+		p8 = ncs_enc_reserve_space(uba, 10);
 		if (!p8) {
 			TRACE("p8 NULL!!!");
 			return 0;
 		}
 		ncs_encode_32bit(&p8, *param->notification.alarm.probableCause);
 		ncs_encode_32bit(&p8, *param->notification.alarm.perceivedSeverity);
-		ncs_enc_claim_space(uba, 8);
-		total_bytes += 8;
+		ncs_encode_16bit(&p8, *param->notification.alarm.trend);
+		ncs_enc_claim_space(uba, 10);
+		total_bytes += 10;
+		p8 = ncs_enc_reserve_space(uba, 12);
+		if (!p8) {
+			TRACE("p8 NULL!!!");
+			return 0;
+		}
+		ncs_encode_16bit(&p8, param->notification.alarm.thresholdInformation->thresholdId);
+		ncs_encode_16bit(&p8, param->notification.alarm.thresholdInformation->thresholdValueType);
+		ncs_encode_64bit(&p8, param->notification.alarm.thresholdInformation->armTime);
+		ncs_enc_claim_space(uba, 12);
+		total_bytes += 12;
+		TRACE("thresholdInformation->thresholdValueType %hu",
+		      param->notification.alarm.thresholdInformation->thresholdValueType);
+		total_bytes += encodeSaNtfValueT(uba,
+						 p8,
+						 total_bytes,
+						 param->notification.alarm.thresholdInformation->thresholdValueType,
+						 &param->notification.alarm.thresholdInformation->thresholdValue);
+		total_bytes += encodeSaNtfValueT(uba,
+						 p8,
+						 total_bytes,
+						 param->notification.alarm.thresholdInformation->thresholdValueType,
+						 &param->notification.alarm.thresholdInformation->thresholdHysteresis);
+		total_bytes += encodeSaNtfValueT(uba,
+						 p8,
+						 total_bytes,
+						 param->notification.alarm.thresholdInformation->thresholdValueType,
+						 &param->notification.alarm.thresholdInformation->observedValue);
+
+		TRACE("thresholdInformation->numSpecificProblems %hu", param->notification.alarm.numSpecificProblems);
+		for (i = 0; i < param->notification.alarm.numSpecificProblems; i++) {
+			p8 = ncs_enc_reserve_space(uba, 12);
+			if (!p8) {
+				TRACE("p8 NULL!!!");
+				return 0;
+			}
+			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemId);
+			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.majorId);
+			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.minorId);
+			ncs_encode_32bit(&p8, param->notification.alarm.specificProblems[i].problemClassId.vendorId);
+			ncs_encode_16bit(&p8, param->notification.alarm.specificProblems[i].problemType);
+			ncs_enc_claim_space(uba, 12);
+			total_bytes += 12;
+			total_bytes += encodeSaNtfValueT(uba,
+							 p8,
+							 total_bytes,
+							 param->notification.alarm.specificProblems[i].problemType,
+							 &param->notification.alarm.specificProblems[i].problemValue);
+		}
+		TRACE("thresholdInformation->numMonitoredAttributes %hu",
+		      param->notification.alarm.numMonitoredAttributes);
+		for (i = 0; i < param->notification.alarm.numMonitoredAttributes; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				TRACE("p8 NULL!!!");
+				return 0;
+			}
+			ncs_encode_16bit(&p8, param->notification.alarm.monitoredAttributes[i].attributeId);
+			ncs_encode_16bit(&p8, param->notification.alarm.monitoredAttributes[i].attributeType);
+			ncs_enc_claim_space(uba, 4);
+			total_bytes += 4;
+			total_bytes += encodeSaNtfValueT(uba,
+							 p8,
+							 total_bytes,
+							 param->notification.alarm.monitoredAttributes[i].attributeType,
+							 &param->notification.alarm.monitoredAttributes[i].
+							 attributeValue);
+		}
+		TRACE("thresholdInformation->numProposedRepairActions %hu",
+		      param->notification.alarm.numProposedRepairActions);
+		for (i = 0; i < param->notification.alarm.numProposedRepairActions; i++) {
+			p8 = ncs_enc_reserve_space(uba, 4);
+			if (!p8) {
+				TRACE("p8 NULL!!!");
+				return 0;
+			}
+			ncs_encode_16bit(&p8, param->notification.alarm.proposedRepairActions[i].actionId);
+			ncs_encode_16bit(&p8, param->notification.alarm.proposedRepairActions[i].actionValueType);
+			ncs_enc_claim_space(uba, 4);
+			total_bytes += 4;
+			total_bytes += encodeSaNtfValueT(uba,
+							 p8,
+							 total_bytes,
+							 param->notification.alarm.proposedRepairActions[i].
+							 actionValueType,
+							 &param->notification.alarm.proposedRepairActions[i].
+							 actionValue);
+		}
 		break;
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
 		TRACE("enc SA_NTF_TYPE_OBJECT_CREATE_DELETE");
@@ -578,6 +743,16 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		return 0;
 		break;
 	}
+	p8 = ncs_enc_reserve_space(uba, 4);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	ncs_encode_32bit(&p8, param->variable_data.size);
+	ncs_enc_claim_space(uba, 4);
+	total_bytes += 4;
+	if (param->variable_data.size)
+		ncs_encode_n_octets_in_uba(uba, param->variable_data.p_base, param->variable_data.size);
 
  done:
 	TRACE_LEAVE();
@@ -593,6 +768,7 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	uns8 local_data[10];
+	int i;
 	/* SaNtfNotificationHeaderT size params */
 	SaUint16T numCorrelatedNotifications;
 	SaUint16T lengthAdditionalText;
@@ -606,6 +782,7 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 	numAdditionalInfo = ncs_decode_16bit(&p8);
 	ncs_dec_skip_space(uba, 6);
 	total_bytes += 6;
+
 	ntfsv_alloc_ntf_header(param, numCorrelatedNotifications, lengthAdditionalText, numAdditionalInfo);
 
 	p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -631,13 +808,30 @@ static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *para
 	*param->notificationId = ncs_decode_64bit(&p8);
 	ncs_dec_skip_space(uba, 8);
 	total_bytes += 8;
-	TRACE_2("DEC: Not ptr %p: %llu", param->notificationId, *param->notificationId);
 
 	if (param->lengthAdditionalText > 0) {
 		/* dealloc in ntfs_evt.c: proc_send_not_msg */
 		ncs_decode_n_octets_from_uba(uba, (uns8 *)param->additionalText, (uns32)param->lengthAdditionalText);
 		total_bytes += (uns32)param->lengthAdditionalText;
 		param->additionalText[param->lengthAdditionalText - 1] = '\0';
+	}
+
+	for (i = 0; i < param->numCorrelatedNotifications; i++) {
+		p8 = ncs_dec_flatten_space(uba, local_data, 8);
+		param->correlatedNotifications[i] = ncs_decode_64bit(&p8);
+		ncs_dec_skip_space(uba, 8);
+		total_bytes += 8;
+	}
+	for (i = 0; i < param->numAdditionalInfo; i++) {
+		p8 = ncs_dec_flatten_space(uba, local_data, 4);
+		param->additionalInfo[i].infoId = ncs_decode_16bit(&p8);
+		param->additionalInfo[i].infoType = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 4);
+		total_bytes += 4;
+		total_bytes = decodeNtfValueT(uba, total_bytes,
+					      param->additionalInfo[i].infoType, &param->additionalInfo[i].infoValue);
+		TRACE_2("dec additionalInfo Type: %d\n", param->additionalInfo[i].infoType);
+		TRACE_2("dec additionaInfo Value int32: %d\n", param->additionalInfo[i].infoValue.int32Val);
 	}
 	TRACE_LEAVE();
 	return total_bytes;
@@ -666,12 +860,68 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	case SA_NTF_TYPE_ALARM:
 		TRACE("dec SA_NTF_TYPE_ALARM");
 		total_bytes += ntfsv_dec_not_header(uba, &param->notification.alarm.notificationHeader);
-		p8 = ncs_dec_flatten_space(uba, local_data, 8);
-		ntfsv_alloc_ntf_alarm(&param->notification.alarm, 0, 0, 0);
+		p8 = ncs_dec_flatten_space(uba, local_data, 16);
+		param->notification.alarm.numSpecificProblems = ncs_decode_16bit(&p8);
+		param->notification.alarm.numMonitoredAttributes = ncs_decode_16bit(&p8);
+		param->notification.alarm.numProposedRepairActions = ncs_decode_16bit(&p8);
+		ntfsv_alloc_ntf_alarm(&param->notification.alarm,
+				      param->notification.alarm.numSpecificProblems,
+				      param->notification.alarm.numMonitoredAttributes,
+				      param->notification.alarm.numProposedRepairActions);
 		*param->notification.alarm.probableCause = ncs_decode_32bit(&p8);
 		*param->notification.alarm.perceivedSeverity = ncs_decode_32bit(&p8);
-		ncs_dec_skip_space(uba, 8);
-		total_bytes += 8;
+		*param->notification.alarm.trend = ncs_decode_16bit(&p8);
+		ncs_dec_skip_space(uba, 16);
+		total_bytes += 16;
+		p8 = ncs_dec_flatten_space(uba, local_data, 12);
+		param->notification.alarm.thresholdInformation->thresholdId = ncs_decode_16bit(&p8);
+		param->notification.alarm.thresholdInformation->thresholdValueType = ncs_decode_16bit(&p8);
+		param->notification.alarm.thresholdInformation->armTime = ncs_decode_64bit(&p8);
+		ncs_dec_skip_space(uba, 12);
+		total_bytes += 12;
+		total_bytes = decodeNtfValueT(uba, total_bytes,
+					      param->notification.alarm.thresholdInformation->thresholdValueType,
+					      &param->notification.alarm.thresholdInformation->thresholdValue);
+		total_bytes = decodeNtfValueT(uba, total_bytes,
+					      param->notification.alarm.thresholdInformation->thresholdValueType,
+					      &param->notification.alarm.thresholdInformation->thresholdHysteresis);
+		total_bytes = decodeNtfValueT(uba, total_bytes,
+					      param->notification.alarm.thresholdInformation->thresholdValueType,
+					      &param->notification.alarm.thresholdInformation->observedValue);
+		for (i = 0; i < param->notification.alarm.numSpecificProblems; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 12);
+			param->notification.alarm.specificProblems[i].problemId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i].problemClassId.majorId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i].problemClassId.minorId = ncs_decode_16bit(&p8);
+			param->notification.alarm.specificProblems[i].problemClassId.vendorId = ncs_decode_32bit(&p8);
+			param->notification.alarm.specificProblems[i].problemType = ncs_decode_16bit(&p8);
+			ncs_dec_skip_space(uba, 12);
+			total_bytes += 12;
+			total_bytes = decodeNtfValueT(uba, total_bytes,
+						      param->notification.alarm.specificProblems[i].problemType,
+						      &param->notification.alarm.specificProblems[i].problemValue);
+		}
+		for (i = 0; i < param->notification.alarm.numMonitoredAttributes; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			param->notification.alarm.monitoredAttributes[i].attributeId = ncs_decode_16bit(&p8);
+			param->notification.alarm.monitoredAttributes[i].attributeType = ncs_decode_16bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			total_bytes += 4;
+			total_bytes = decodeNtfValueT(uba, total_bytes,
+						      param->notification.alarm.monitoredAttributes[i].attributeType,
+						      &param->notification.alarm.monitoredAttributes[i].attributeValue);
+		}
+		for (i = 0; i < param->notification.alarm.numProposedRepairActions; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 4);
+			param->notification.alarm.proposedRepairActions[i].actionId = ncs_decode_16bit(&p8);
+			param->notification.alarm.proposedRepairActions[i].actionValueType = ncs_decode_16bit(&p8);
+			ncs_dec_skip_space(uba, 4);
+			total_bytes += 4;
+			total_bytes = decodeNtfValueT(uba, total_bytes,
+						      param->notification.alarm.proposedRepairActions[i].
+						      actionValueType,
+						      &param->notification.alarm.proposedRepairActions[i].actionValue);
+		}
 		break;
 
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
@@ -786,11 +1036,6 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 					      param->notification.securityAlarm.securityAlarmDetector->valueType,
 					      &param->notification.securityAlarm.securityAlarmDetector->value);
 		p8 = ncs_dec_flatten_space(uba, local_data, 2);
-		TRACE_2("dec Security Alarm Detector Type: %d\n",
-			param->notification.securityAlarm.securityAlarmDetector->valueType);
-		TRACE_2("dec Security Alarm Detector Value: %d\n",
-			param->notification.securityAlarm.securityAlarmDetector->value.int32Val);
-
 		param->notification.securityAlarm.serviceUser->valueType = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 2);
 		total_bytes += 2;
@@ -811,7 +1056,16 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		return 0;
 		break;
 	}
-
+	p8 = ncs_dec_flatten_space(uba, local_data, 4);
+	param->variable_data.size = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 4);
+	total_bytes += 4;
+	if (param->variable_data.size) {
+		/* freed in ntfsv_dealloc_notification */
+		param->variable_data.p_base = calloc(1, param->variable_data.size);
+		TRACE("alloc v_data.p_base %p", param->variable_data.p_base);
+		ncs_decode_n_octets_from_uba(uba, param->variable_data.p_base, param->variable_data.size);
+	}
 	TRACE_LEAVE();
 	return total_bytes;
 }
@@ -824,7 +1078,7 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	TRACE_ENTER();
 	assert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -868,7 +1122,7 @@ uns32 ntfsv_enc_64bit_msg(NCS_UBAID *uba, uns64 param)
 	TRACE_ENTER();
 	assert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -904,7 +1158,7 @@ uns32 ntfsv_enc_32bit_msg(NCS_UBAID *uba, uns32 param)
 	TRACE_ENTER();
 	assert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 4);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
@@ -938,7 +1192,7 @@ uns32 ntfsv_enc_unsubscribe_msg(NCS_UBAID *uba, ntfsv_unsubscribe_req_t *param)
 	uns32 total_bytes = 0;
 	assert(uba != NULL);
 
-    /** encode the contents **/
+	/** encode the contents **/
 	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");

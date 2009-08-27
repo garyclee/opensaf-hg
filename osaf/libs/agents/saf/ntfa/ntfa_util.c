@@ -60,6 +60,8 @@ static unsigned int ntfa_create(void)
 	/* No longer needed */
 	m_NCS_SEL_OBJ_DESTROY(ntfa_cb.ntfs_sync_sel);
 
+	/* TODO: fix env variable */
+	ntfa_cb.ntf_var_data_limit = NTFA_VARIABLE_DATA_LIMIT;
 	return rc;
 
  error:
@@ -158,6 +160,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.objectCreateDeleteNotification.notificationHandle);
 			ntfsv_copy_ntf_obj_cr_del(&notification->notification.objectCreateDeleteNotification,
 						  &not_cbk->notification.objectCreateDelete);
@@ -183,6 +186,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.attributeChangeNotification.notificationHandle);
 			ntfsv_copy_ntf_attr_change(&notification->notification.attributeChangeNotification,
 						   &not_cbk->notification.attributeChange);
@@ -208,6 +212,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.stateChangeNotification.notificationHandle);
 			ntfsv_copy_ntf_state_change(&notification->notification.stateChangeNotification,
 						    &not_cbk->notification.stateChange);
@@ -215,10 +220,15 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 		}
 		break;
 	case SA_NTF_TYPE_ALARM:
-		rc = saNtfAlarmNotificationAllocate(hdl_rec->local_hdl, &notification->notification.alarmNotification, not_cbk->notification.alarm.notificationHeader.numCorrelatedNotifications, not_cbk->notification.alarm.notificationHeader.lengthAdditionalText, 0,	/* not supported */
-						    0,	/* not supported */
-						    0,	/* not supported */
-						    0,	/* not supported */
+		rc = saNtfAlarmNotificationAllocate(hdl_rec->local_hdl,
+						    &notification->notification.alarmNotification,
+						    not_cbk->notification.alarm.notificationHeader.
+						    numCorrelatedNotifications,
+						    not_cbk->notification.alarm.notificationHeader.lengthAdditionalText,
+						    not_cbk->notification.alarm.notificationHeader.numAdditionalInfo,
+						    not_cbk->notification.alarm.numSpecificProblems,
+						    not_cbk->notification.alarm.numMonitoredAttributes,
+						    not_cbk->notification.alarm.numProposedRepairActions,
 						    SA_NTF_ALLOC_SYSTEM_LIMIT);
 		if (SA_AIS_OK == rc) {
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
@@ -233,6 +243,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.alarmNotification.notificationHandle);
 			ntfsv_copy_ntf_alarm(&notification->notification.alarmNotification,
 					     &not_cbk->notification.alarm);
@@ -257,6 +268,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 			}
 			/* to be able to delelte cbk_notification in saNtfNotificationFree */
 			notification_hdl_rec->cbk_notification = notification;
+			rc = ntfsv_v_data_cp(&notification_hdl_rec->variable_data, &not_cbk->variable_data);
 			ncshm_give_hdl(notification->notification.securityAlarmNotification.notificationHandle);
 			ntfsv_copy_ntf_security_alarm(&notification->notification.securityAlarmNotification,
 						      &not_cbk->notification.securityAlarm);
@@ -267,6 +279,7 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 		LOG_ER("Unkown notification type");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 	}
+
 	return rc;
 }
 
@@ -754,11 +767,13 @@ uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **list_head, ntfa_client_hdl_rec_t 
  
   Notes         : None
 ******************************************************************************/
-ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec)
+ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec,
+							   SaInt16T variableDataSize, SaAisErrorT *rc)
 {
 	ntfa_notification_hdl_rec_t *rec = calloc(1, sizeof(ntfa_notification_hdl_rec_t));
-
+	*rc = SA_AIS_OK;
 	if (rec == NULL) {
+		*rc = SA_AIS_ERR_NO_MEMORY;
 		TRACE("calloc failed");
 		return NULL;
 	}
@@ -768,23 +783,26 @@ ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t
 							   NCS_SERVICE_ID_NTFA, (NCSCONTEXT)rec))) {
 		TRACE("ncshm_create_hdl failed");
 		free(rec);
+		*rc = SA_AIS_ERR_NO_MEMORY;
+		return NULL;
+	}
+	*rc = ntfsv_variable_data_init(&rec->variable_data, variableDataSize, ntfa_cb.ntf_var_data_limit);
+	if (*rc != SA_AIS_OK) {
+		free(rec);
 		return NULL;
 	}
 
     /** Initialize the parent handle **/
 	rec->parent_hdl = *hdl_rec;
 
-    /** Insert this record into the list of channel hdl records
-     **/
+    /** Insert this record into the list of notification records */
 	rec->next = (*hdl_rec)->notification_list;
 	(*hdl_rec)->notification_list = rec;
 
 	/* allocated for callback struct */
 	rec->cbk_notification = NULL;
 
-    /** Everything appears fine, so return the 
-     ** steam hdl.
-     **/
+    /** Everything appears fine, so return the notification hdl. */
 	return rec;
 }
 
@@ -1002,6 +1020,10 @@ void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
 	if (NULL != notificationInstance->cbk_notification) {
 		free(notificationInstance->cbk_notification);
 	}
+	TRACE_1("free v_data.p_base %p", notificationInstance->variable_data.p_base);
+	free(notificationInstance->variable_data.p_base);
+	notificationInstance->variable_data.p_base = NULL;
+	notificationInstance->variable_data.size = 0;
 }
 
 /**

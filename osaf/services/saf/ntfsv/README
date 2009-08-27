@@ -133,7 +133,7 @@ Ntf server traces are by default disabled. To enable/disable ntf server traces
 in a running system, send signal USR1 to the ntfd process. Every time the 
 trace state is toggled. Example:
 
-$  pkill -USR1 opensaf_ntfd
+$  pkill -USR2 opensaf_ntfd
 
 Traces are written to the file:
 
@@ -146,13 +146,6 @@ To enable traces from the very start of the ntf server, uncomment the line:
 in ntf.conf (see CONFIGURATION above) and restart the cluster.
 
 For fatal errors syslog is used.
-
-To dump the internal ntf server data base, send signal USR2 to the ntfd
-process, example:
-
-$ pkill -USR2 ntfd
-
-The dump is done to the trace file no matter if trace is enabled or not.
 
 To enable traces in the NTF library, export the variable NTFSV_TRACE_PATHNAME
 with a valid pathname before starting the application using the NTF library.
@@ -193,35 +186,6 @@ Internationalization
 -saNtfLocalizedMessageFree
 
 Reader API from SAFLog records
-
-Support all params in structs: 
--SaNtfNotificationHeaderT
- numCorrelatedNotifications
- numAdditionalInfo
- *correlatedNotifiations
- *additionalInfo
-
--SaNtfAlarmNotificationT
- numSpecificProblems
- numMonitoredAttributes
- numProposedRepairActions
- *specificProblems
- *trend
- *thresholdInformation
- *monitoredAttributes
- *proposedRepairActions
-
--SaNtfAttribute
- SA_NTF_VALUE_LDAP_NAME
- SA_NTF_VALUE_STRING
- SA_NTF_VALUE_IPADDRESS
- SA_NTF_VALUE_BINARY
- SA_NTF_VALUE_ARRAY
- corresponding help functions:
-  saNtfPtrValGet 
-  saNtfArrayValGet
-  saNtfPtrValAllocate
-  saNtfArrayValAllocate
 
 Discarded notification API
 -problem to make test case for this functionality because not consumed callbacks

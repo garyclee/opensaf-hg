@@ -39,12 +39,14 @@
 #define NTFA_WRT_NTFS_SUBPART_VER_RANGE             \
         (NTFA_WRT_NTFS_SUBPART_VER_AT_MAX_MSG_FMT - \
          NTFA_WRT_NTFS_SUBPART_VER_AT_MIN_MSG_FMT + 1)
+
+#define NTFA_VARIABLE_DATA_LIMIT (SHRT_MAX)
+
 /*
  * Data associated with a notification
  */
 typedef struct ntfa_notification_hdl_rec {
 	SaNtfNotificationTypeT ntfNotificationType;
-	SaInt16T ntfNotificationVariableDataSize;
 	unsigned int notification_hdl;	/* notifiction stream HDL from handle mgr */
 
 	union {
@@ -57,6 +59,7 @@ typedef struct ntfa_notification_hdl_rec {
 	struct ntfa_notification_hdl_rec *next;	/* next pointer for the list in ntfa_client_hdl_rec_t */
 	struct ntfa_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
 	SaNtfNotificationsT *cbk_notification;
+	v_data variable_data;
 } ntfa_notification_hdl_rec_t;
 
 /*
@@ -138,6 +141,7 @@ typedef struct {
 	/* NTFS NTFA sync params */
 	int ntfs_sync_awaited;
 	NCS_SEL_OBJ ntfs_sync_sel;
+	SaUint32T ntf_var_data_limit;	/* max allowed variableDataSize */
 } ntfa_cb_t;
 
 /* ntfa_saf_api.c */
@@ -160,7 +164,8 @@ extern unsigned int ntfa_shutdown(void);
 /* ntfa_hdl.c */
 extern SaAisErrorT ntfa_hdl_cbk_dispatch(ntfa_cb_t *, ntfa_client_hdl_rec_t *, SaDispatchFlagsT);
 extern ntfa_client_hdl_rec_t *ntfa_hdl_rec_add(ntfa_cb_t *ntfa_cb, const SaNtfCallbacksT *reg_cbks, uns32 client_id);
-extern ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
+extern ntfa_notification_hdl_rec_t *ntfa_notification_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec,
+								  SaInt16T variableDataSize, SaAisErrorT *rc);
 extern ntfa_filter_hdl_rec_t *ntfa_filter_hdl_rec_add(ntfa_client_hdl_rec_t **hdl_rec);
 extern void ntfa_hdl_list_del(ntfa_client_hdl_rec_t **);
 extern uns32 ntfa_hdl_rec_del(ntfa_client_hdl_rec_t **, ntfa_client_hdl_rec_t *);
