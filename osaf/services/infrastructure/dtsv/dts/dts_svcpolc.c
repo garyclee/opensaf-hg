@@ -775,8 +775,6 @@ uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg)
 	if (ncs_enc_init_space(&rsp_uba) != NCSCC_RC_SUCCESS)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_global_conf_console: userbuf init failed");
 
-	m_BUFR_STUFF_OWNER(rsp_uba.start);
-
 	if (cons_ptr == NULL) {
 		/* encode number of devices(which is 1 in this case) */
 		buff_ptr = ncs_enc_reserve_space(&rsp_uba, sizeof(uns8));

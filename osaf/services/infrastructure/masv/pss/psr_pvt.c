@@ -3349,7 +3349,6 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn, PSS_TBL_REC 
 					retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 					goto cleanup;
 				}
-				m_BUFR_STUFF_OWNER(mib_arg.req.info.setrow_req.i_usrbuf);
 
 				m_PSS_LOG_NCSMIB_ARG(&mib_arg);
 
@@ -3412,7 +3411,6 @@ uns32 pss_oac_warmboot_process_tbl(PSS_PWE_CB *pwe_cb, char *p_pcn, PSS_TBL_REC 
 						 tbl_rec->tbl_id);
 		}
 		mib_arg.i_tbl_id = tbl_rec->tbl_id;
-		m_BUFR_STUFF_OWNER(ub);
 		mib_arg.req.info.setallrows_req.i_usrbuf = ub;
 		ub = NULL;
 		mib_arg.i_usr_key = pwe_cb->hm_hdl;

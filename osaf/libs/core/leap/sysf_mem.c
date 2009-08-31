@@ -909,37 +909,6 @@ void ncs_lbp_free(void *free_me)
 
 }
 
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-
-/****************************************************************************
- *
- * Function Name: ncs_ub_dbg_loc
- *
- * Purpose:       This function is invoked through the macro m_BUFR_STUFF_OWNER.
- *                Each UserBuf in its UserBuf chain will be stuffed with the
- *                file and line that this macro is called from
- *                It is intended to assist in solving memory leak bugs.
- *
- ****************************************************************************/
-void ncs_ub_dbg_loc(USRBUF *ub, uns32 l, char *f)
-{
-}
-
-/****************************************************************************
- *
- * Function Name: ncs_buf_dbg_loc
- *
- * Purpose:       This function is invoked through the macro m_NCS_BUF_DBG_LOC.
- *                It marks the file and line that this macro is called from.
- *                It is intended to assist in solving memory leak bugs.
- *
- ****************************************************************************/
-
-void *ncs_buf_dbg_loc(void *ptr, int svc_id, int sub_id, unsigned int line, char *file)
-{
-	return ptr;
-}
-#endif
 #endif   /* #if (NCS_USE_SYSMON == 1) */
 
 /*************************************************************************************/
@@ -1447,9 +1416,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 			}
 #endif
 
-			/* STUFFing owner corrupts OSE alloc'ed mem; must comment out next line */
-			/* m_BUFR_STUFF_OWNER(ud, line, file); */
-
 			/* Set up data fields... */
 			ud->RefCnt = 1;
 
@@ -1467,10 +1433,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 #endif
 
 			ub->start = gl_ub_pool_mgr.pools[pool_id].hdr_reserve;
-
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-			m_BUFR_STUFF_OWNER(ub);
-#endif
 		}
 	}
 	return ub;

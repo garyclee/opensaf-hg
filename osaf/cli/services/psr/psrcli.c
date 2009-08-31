@@ -353,7 +353,6 @@ uns32 pss_cef_set_playback_option_from_xml_config(NCSCLI_ARG_SET *arg_list, NCSC
 		pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	m_BUFR_STUFF_OWNER(lcl_uba.start);
 
 	str_ptr = arg_list->i_arg_record[2].cmd.strval;
 	str_len = strlen(str_ptr);
@@ -448,7 +447,6 @@ uns32 pss_cef_dump_profile(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 		pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	m_BUFR_STUFF_OWNER(lcl_uba.start);
 
 	buff_ptr = ncs_enc_reserve_space(&lcl_uba, sizeof(uns16));
 	if (buff_ptr == NULL) {
@@ -552,7 +550,6 @@ uns32 pss_cef_show_profile_clients(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *ce
 		pss_cli_done(cef_data->i_bindery->i_cli_hdl, NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-	m_BUFR_STUFF_OWNER(lcl_uba.start);
 
 	str_ptr = arg_list->i_arg_record[2].cmd.strval;
 	str_len = strlen(str_ptr) + 1;

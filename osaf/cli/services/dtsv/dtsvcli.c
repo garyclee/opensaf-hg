@@ -1538,7 +1538,6 @@ uns32 dtsv_cef_cnf_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 		dtsv_cli_display(cli_hdl, "\nUserbuf init failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_BUFR_STUFF_OWNER(cli_uba.start);
 
 	/* Parse the CLI CEF data */
 	if (pArgv->i_arg_type == NCSCLI_KEYWORD) {
@@ -1832,7 +1831,6 @@ uns32 dtsv_cef_disp_console(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_data)
 		dtsv_cli_display(cli_hdl, "\nUserbuf init failed");
 		return NCSCC_RC_FAILURE;
 	}
-	m_BUFR_STUFF_OWNER(cli_uba.start);
 
 	/* Parse the CLI CEF data */
 	if (pArgv->i_arg_type == NCSCLI_KEYWORD) {
