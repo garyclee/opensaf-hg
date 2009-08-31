@@ -87,15 +87,6 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-#define m_BUFR_STUFF_OWNER(p)  if (NULL != p)\
-                                 ncs_ub_dbg_loc(p,__LINE__,__FILE__)
-
-	LEAPDLL_API void ncs_ub_dbg_loc(USRBUF *ub, uns32 l, char *f);
-#else
-#define m_BUFR_STUFF_OWNER(p)
-#endif
-
 /** Macro to allocate a USRBUF (packet buffer) from a particular pool
  ** at a particular priority. Subsystems that are 'USRBUF pool ready' will
  ** invoke this macro rather than m_MMGR_ALLOC_BUFR. 
@@ -127,14 +118,6 @@ extern "C" {
 /** Macro to free a USRBUF (packet buffer)...
  **/
 #define m_MMGR_FREE_BUFR(ub)  (sysf_free_pkt(ub))	/* Free short-term buffer */
-
- /** Macro to mark a USRBUF with owner svc_id,sub_id,file, and line ...
- **/
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-#define m_NCS_BUF_DBG_LOC(ptr,svc_id,sub_id) ncs_buf_dbg_loc(ptr,svc_id,sub_id,__LINE__,__FILE__)
-#else
-#define m_NCS_BUF_DBG_LOC(ptr,svc_id,sub_id)
-#endif
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @

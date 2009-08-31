@@ -252,7 +252,6 @@ static uns32 snmptm_pack_tblone_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BOO
             return NCSCC_RC_FAILURE;
          }
 
-         m_BUFR_STUFF_OWNER(buff);
          buff_ptr = m_MMGR_RESERVE_AT_END(&buff,
                                           SNMPTM_HDR_SIZE,
                                           uns8*);
@@ -343,7 +342,6 @@ static uns32 snmptm_pack_tblfive_data(SNMPTM_CB *snmptm, NCSMIB_ARG *arg, NCS_BO
             return NCSCC_RC_FAILURE;
          }
 
-         m_BUFR_STUFF_OWNER(buff);
          buff_ptr = m_MMGR_RESERVE_AT_END(&buff,
                                           SNMPTM_HDR_SIZE,
                                           uns8*);

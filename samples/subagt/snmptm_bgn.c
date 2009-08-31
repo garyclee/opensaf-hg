@@ -605,7 +605,6 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
 
          /* Compose USRBUF */
          arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
-         m_BUFR_STUFF_OWNER(arg.req.info.setrow_rsp.i_usrbuf);
 
          memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
@@ -652,7 +651,6 @@ static void snmptm_exec_test1(SNMPTM_CB *cb)
       arg.i_idx.i_inst_len = 1;
       arg.i_op = NCSMIB_OP_RSP_SETALLROWS;
       arg.rsp.info.setallrows_rsp.i_usrbuf = ncssetallrows_enc_done(&ra);
-      m_BUFR_STUFF_OWNER(arg.rsp.info.setallrows_rsp.i_usrbuf);
       arg.i_idx.i_inst_len = idx.i_inst_len;
       arg.i_idx.i_inst_ids = idx.i_inst_ids;
 
@@ -821,7 +819,6 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    ncsparm_enc_init(&pa);
    ncsparm_enc_param(&pa, &pv);
    arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
-   m_BUFR_STUFF_OWNER(arg.rsp.info.setrow_rsp.i_usrbuf);
 
    memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
@@ -861,7 +858,6 @@ static void snmptm_exec_test3(SNMPTM_CB *cb)
    arg.i_xch_id = xch_id;
    arg.i_op = NCSMIB_OP_RSP_SETALLROWS;
    arg.rsp.info.setallrows_rsp.i_usrbuf = ncssetallrows_enc_done(&ra);
-   m_BUFR_STUFF_OWNER(arg.rsp.info.setallrows_rsp.i_usrbuf);
 
    memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
    mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
@@ -953,7 +949,6 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
 
          /* Compose USRBUF */
          arg.rsp.info.setrow_rsp.i_usrbuf = ncsparm_enc_done(&pa);
-         m_BUFR_STUFF_OWNER(arg.req.info.setrow_rsp.i_usrbuf);
 
          memset(&mab_arg,0,sizeof(NCSOAC_SS_ARG));
          mab_arg.i_op = NCSOAC_SS_OP_PUSH_MIBARG_DATA_TO_PSSV;
@@ -991,7 +986,6 @@ static void snmptm_exec_test5(SNMPTM_CB *cb)
       arg.i_idx.i_inst_len = 2;
       arg.i_op = NCSMIB_OP_RSP_SETALLROWS;
       arg.rsp.info.setallrows_rsp.i_usrbuf = ncssetallrows_enc_done(&ra);
-      m_BUFR_STUFF_OWNER(arg.rsp.info.setallrows_rsp.i_usrbuf);
       arg.i_idx.i_inst_len = idx.i_inst_len;
       arg.i_idx.i_inst_ids = idx.i_inst_ids;
 

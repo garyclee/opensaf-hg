@@ -168,7 +168,6 @@ uns32 snmptm_cef_tbl_create_row(NCSCLI_ARG_SET *arg_list, NCSCLI_CEF_DATA *cef_d
       return NCSCC_RC_FAILURE; 
    }
 
-   m_BUFR_STUFF_OWNER(buff);
    buff_ptr = m_MMGR_RESERVE_AT_END(&buff,
                                     sizeof(uns32),
                                     uns8*);

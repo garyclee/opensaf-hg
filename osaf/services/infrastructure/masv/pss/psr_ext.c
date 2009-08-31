@@ -1762,7 +1762,6 @@ uns32 pss_on_demand_playback(PSS_CB *inst, PSS_CSI_NODE *csi_list, uns8 *profile
             retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
             goto cleanup; \
         } \
-        m_BUFR_STUFF_OWNER(ub); \
         retval = pss_send_remrow_request(pwe_cb, ub, tbl, &first_idx); \
         ub = NULL; \
         if (retval != NCSCC_RC_SUCCESS) \
@@ -1778,7 +1777,6 @@ uns32 pss_on_demand_playback(PSS_CB *inst, PSS_CSI_NODE *csi_list, uns8 *profile
         *rra_inited = FALSE; \
         if (ub == NULL) \
             return m_MAB_DBG_SINK(NCSCC_RC_FAILURE); \
-        m_BUFR_STUFF_OWNER(ub); \
         retval = pss_send_remrow_request(pwe_cb, ub, tbl, first_idx); \
         ub = NULL; \
         if (retval != NCSCC_RC_SUCCESS) \
@@ -3201,7 +3199,6 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
 						retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 						goto cleanup;
 					}
-					m_BUFR_STUFF_OWNER(mib_arg.req.info.setrow_req.i_usrbuf);
 
 					m_PSS_LOG_NCSMIB_ARG(&mib_arg);
 
@@ -3285,7 +3282,6 @@ uns32 pss_playback_process_queue(PSS_PWE_CB *pwe_cb,
 			retval = m_MAB_DBG_SINK(NCSCC_RC_FAILURE);
 			goto cleanup;
 		}
-		m_BUFR_STUFF_OWNER(ub);
 
 		/* Now send the mib request */
 		{

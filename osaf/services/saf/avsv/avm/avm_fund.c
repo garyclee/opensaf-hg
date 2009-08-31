@@ -64,8 +64,6 @@ uns32 avm_gen_fund_mib_set(AVM_CB_T *avm_cb, AVM_ENT_INFO_T *ent_info, uns32 cmd
 		return NCSCC_RC_FAILURE;
 	}
 
-	m_BUFR_STUFF_OWNER(buff);
-
 	buff_ptr = m_MMGR_RESERVE_AT_END(&buff, sizeof(AVM_FUND_USR_BUF), uns8 *);
 	if (buff_ptr == NULL) {
 		snprintf(str, AVM_LOG_STR_MAX_LEN - 1, "AVM-SSU: Payload blade %s: USRBUF reserve at end failed",
