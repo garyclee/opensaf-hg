@@ -142,9 +142,7 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	/* Bind to MDS */
 	if (gld_mds_init(gld_cb) != NCSCC_RC_SUCCESS) {
-		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
-		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
-		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
+		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		m_LOG_GLD_SVC_PRVDR(GLD_MDS_INSTALL_FAIL, NCSFL_SEV_ERROR);
 		return NCSCC_RC_FAILURE;
@@ -154,11 +152,25 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	/*   Initialise with the MBCSV service  */
 	if (glsv_gld_mbcsv_register(gld_cb) != NCSCC_RC_SUCCESS) {
 		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_FAILED, NCSFL_SEV_ERROR);
+		gld_mds_shut(gld_cb);
+		saAmfFinalize(gld_cb->amf_hdl);
+		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 
 	} else {
 		m_LOG_GLD_MBCSV(GLD_MBCSV_INIT_SUCCESS, NCSFL_SEV_INFO);
 
+	}
+
+	/* register glsv with imm */
+	amf_error = gld_imm_init(gld_cb);
+	if (amf_error != SA_AIS_OK) {
+		glsv_gld_mbcsv_unregister(gld_cb);
+		gld_mds_shut(gld_cb);
+		saAmfFinalize(gld_cb->amf_hdl);
+		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
+		gld_log(NCSFL_SEV_ERROR, "Imm Init Failed %u\n", amf_error);
+		return NCSCC_RC_FAILURE;
 	}
 
 	/* TASK CREATION AND INITIALIZING THE MAILBOX */
@@ -170,6 +182,10 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 			       &gld_cb->task_hdl) != NCSCC_RC_SUCCESS) ||
 	    (m_NCS_TASK_START(gld_cb->task_hdl) != NCSCC_RC_SUCCESS)) {
 		m_LOG_GLD_HEADLINE(GLD_IPC_TASK_INIT, NCSFL_SEV_ERROR);
+		saImmOiFinalize(gld_cb->immOiHandle);
+		glsv_gld_mbcsv_unregister(gld_cb);
+		gld_mds_shut(gld_cb);
+		saAmfFinalize(gld_cb->amf_hdl);
 		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
@@ -178,20 +194,17 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	m_NCS_EDU_HDL_INIT(&gld_cb->edu_hdl);
 
-	/* register glsv with imm */
-	amf_error = gld_imm_init(gld_cb);
-	if (amf_error != SA_AIS_OK)
-		gld_log(NCSFL_SEV_ERROR, "Imm Init Failed %u\n", amf_error);
-
 	/* register GLD component with AvSv */
 	amf_error = saAmfComponentRegister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
 	if (amf_error != SA_AIS_OK) {
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_REG_ERROR, NCSFL_SEV_ERROR);
-		saAmfFinalize(gld_cb->amf_hdl);
-		gld_mds_shut(gld_cb);
+		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
 		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
 		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
-		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
+		saImmOiFinalize(gld_cb->immOiHandle);
+		glsv_gld_mbcsv_unregister(gld_cb);
+		gld_mds_shut(gld_cb);
+		saAmfFinalize(gld_cb->amf_hdl);
 		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 		return NCSCC_RC_FAILURE;
 	} else
@@ -212,6 +225,15 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
 	if (amf_error != SA_AIS_OK) {
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_FAIL, NCSFL_SEV_ERROR);
+		saAmfComponentUnregister(gld_cb->amf_hdl, &gld_cb->comp_name, (SaNameT *)NULL);
+		m_NCS_EDU_HDL_FLUSH(&gld_cb->edu_hdl);
+		m_NCS_TASK_RELEASE(gld_cb->task_hdl);
+		m_NCS_IPC_RELEASE(&gld_cb->mbx, NULL);
+		saImmOiFinalize(gld_cb->immOiHandle);
+		glsv_gld_mbcsv_unregister(gld_cb);
+		gld_mds_shut(gld_cb);
+		saAmfFinalize(gld_cb->amf_hdl);
+		m_MMGR_FREE_GLSV_GLD_CB(gld_cb);
 	} else
 		m_LOG_GLD_SVC_PRVDR(GLD_AMF_HLTH_CHK_START_DONE, NCSFL_SEV_INFO);
 
