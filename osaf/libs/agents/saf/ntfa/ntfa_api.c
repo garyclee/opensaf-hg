@@ -1482,44 +1482,6 @@ SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
 	return rc;
 }
 
-/* 3.15.2.5  saNtfObjectCreateDeleteNotificationFilterAllocate() */
-SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle,
-							      SaNtfObjectCreateDeleteNotificationFilterT
-							      *notificationFilter, SaUint16T numEventTypes,
-							      SaUint16T numNotificationObjects,
-							      SaUint16T numNotifyingObjects,
-							      SaUint16T numNotificationClassIds,
-							      SaUint16T numSourceIndicators)
-{
-	return SA_AIS_ERR_NOT_SUPPORTED;
-}
-
-/*  3.15.2.6	saNtfAttributeChangeNotificationFilterAllocate()  */
-SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
-							   SaNtfAttributeChangeNotificationFilterT *notificationFilter,
-							   SaUint16T numEventTypes,
-							   SaUint16T numNotificationObjects,
-							   SaUint16T numNotifyingObjects,
-							   SaUint16T numNotificationClassIds,
-							   SaUint32T numSourceIndicators)
-{
-	return SA_AIS_ERR_NOT_SUPPORTED;
-}
-
-/*  3.15.2.7	saNtfStateChangeNotificationFilterAllocate()  */
-SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
-						       SaNtfStateChangeNotificationFilterT *notificationFilter,
-						       SaUint16T numEventTypes,
-						       SaUint16T numNotificationObjects,
-						       SaUint16T numNotifyingObjects,
-						       SaUint16T numNotificationClassIds,
-						       SaUint32T numSourceIndicators, SaUint32T numChangedStates)
-{
-	return SA_AIS_ERR_NOT_SUPPORTED;
-}
-
-/* END DUMMY for not implemented */
-
 static SaAisErrorT filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
 													SaUint16T numEventTypes,
 													SaUint16T numNotificationObjects,
@@ -1586,6 +1548,287 @@ error_free:
 	free(header->notifyingObjects);
 	free(header->notificationClassIds);
 	goto done;
+}
+
+/* 3.15.2.5  saNtfObjectCreateDeleteNotificationFilterAllocate() */
+SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							      SaNtfObjectCreateDeleteNotificationFilterT
+							      *notificationFilter, SaUint16T numEventTypes,
+							      SaUint16T numNotificationObjects,
+							      SaUint16T numNotifyingObjects,
+							      SaUint16T numNotificationClassIds,
+							      SaUint16T numSourceIndicators)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_filter_hdl_rec_t *filter_hdl_rec;
+	SaNtfObjectCreateDeleteNotificationFilterT *new_filter;
+	SaNtfNotificationFilterHeaderT *new_header;
+	TRACE_ENTER();
+	if (notificationFilter == NULL) {
+		TRACE_1("notificationFilter == NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* retrieve hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	 /**                 Lock ntfa_CB                 **/
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+
+	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
+	if (filter_hdl_rec == NULL) {
+		pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		TRACE_1("ntfa_filter_hdl_rec_add failed");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done_give_hdl;
+	}
+	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	 /**                  UnLock ntfa_CB            **/
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	/* Set the instance handle */
+	filter_hdl_rec->ntfHandle = ntfHandle;
+	filter_hdl_rec->ntfType = SA_NTF_TYPE_OBJECT_CREATE_DELETE;
+
+	new_filter = &(filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter);
+	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_header = &(filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter.notificationFilterHeader);
+	new_filter->sourceIndicators = NULL;
+
+	/* Allocate memory */
+	rc = filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
+	}
+
+	/* Body part */
+	new_filter->numSourceIndicators = numSourceIndicators;
+	if (numSourceIndicators != 0) {
+		new_filter->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+		if (new_filter->sourceIndicators == NULL) {
+			TRACE_1("Out of memory in SourceIndicators field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+	/* initialize the Client struct data */
+	*notificationFilter = *new_filter;
+
+ done_give_hdl:
+	ncshm_give_hdl(ntfHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
+
+ done_rec_del:
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	if (NCSCC_RC_SUCCESS != ntfa_filter_hdl_rec_del(&client_rec->filter_list, filter_hdl_rec)) {
+		TRACE("Unable to delete notifiction record");
+		rc = SA_AIS_ERR_LIBRARY;
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	free(new_filter->sourceIndicators);
+	TRACE("ERROR, rc = %d!!!", rc);
+	goto done_give_hdl;
+}
+
+/*  3.15.2.6	saNtfAttributeChangeNotificationFilterAllocate()  */
+SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+							   SaNtfAttributeChangeNotificationFilterT *notificationFilter,
+							   SaUint16T numEventTypes,
+							   SaUint16T numNotificationObjects,
+							   SaUint16T numNotifyingObjects,
+							   SaUint16T numNotificationClassIds,
+							   SaUint32T numSourceIndicators)
+{
+ SaAisErrorT rc = SA_AIS_OK;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_filter_hdl_rec_t *filter_hdl_rec;
+	SaNtfAttributeChangeNotificationFilterT *new_filter;
+	SaNtfNotificationFilterHeaderT *new_header;
+	TRACE_ENTER();
+	if (notificationFilter == NULL) {
+		TRACE_1("notificationFilter == NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* retrieve hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	 /**                 Lock ntfa_CB                 **/
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+
+	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
+	if (filter_hdl_rec == NULL) {
+		pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		TRACE_1("ntfa_filter_hdl_rec_add failed");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done_give_hdl;
+	}
+	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	 /**                  UnLock ntfa_CB            **/
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	/* Set the instance handle */
+	filter_hdl_rec->ntfHandle = ntfHandle;
+	filter_hdl_rec->ntfType = SA_NTF_TYPE_ATTRIBUTE_CHANGE;
+
+	new_filter = &(filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter);
+	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_header = &(filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter.notificationFilterHeader);
+	new_filter->sourceIndicators = NULL;
+
+	/* Allocate memory */
+	rc = filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
+	}
+
+	/* Body part */
+	new_filter->numSourceIndicators = numSourceIndicators;
+	  if (numSourceIndicators != 0) {
+		  new_filter->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+		  if (new_filter->sourceIndicators == NULL) {
+			  TRACE_1("Out of memory in SourceIndicators field");
+			  rc = SA_AIS_ERR_NO_MEMORY;
+			  goto done_rec_del;
+		  }
+	  }
+	/* initialize the Client struct data */
+	*notificationFilter = *new_filter;
+
+ done_give_hdl:
+	ncshm_give_hdl(ntfHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
+
+ done_rec_del:
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	if (NCSCC_RC_SUCCESS != ntfa_filter_hdl_rec_del(&client_rec->filter_list, filter_hdl_rec)) {
+		TRACE("Unable to delete notifiction record");
+		rc = SA_AIS_ERR_LIBRARY;
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	free(new_filter->sourceIndicators);
+	TRACE("ERROR, rc = %d!!!", rc);
+	goto done_give_hdl;
+}
+
+/*  3.15.2.7	saNtfStateChangeNotificationFilterAllocate()  */
+SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
+						       SaNtfStateChangeNotificationFilterT *notificationFilter,
+						       SaUint16T numEventTypes,
+						       SaUint16T numNotificationObjects,
+						       SaUint16T numNotifyingObjects,
+						       SaUint16T numNotificationClassIds,
+						       SaUint32T numSourceIndicators, SaUint32T numChangedStates)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_filter_hdl_rec_t *filter_hdl_rec;
+	SaNtfStateChangeNotificationFilterT *new_filter;
+	SaNtfNotificationFilterHeaderT *new_header;
+	TRACE_ENTER();
+	if (notificationFilter == NULL) {
+		TRACE_1("notificationFilter == NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* retrieve hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	 /**                 Lock ntfa_CB                 **/
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+
+	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
+	if (filter_hdl_rec == NULL) {
+		pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		TRACE_1("ntfa_filter_hdl_rec_add failed");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done_give_hdl;
+	}
+	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	 /**                  UnLock ntfa_CB            **/
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	/* Set the instance handle */
+	filter_hdl_rec->ntfHandle = ntfHandle;
+	filter_hdl_rec->ntfType = SA_NTF_TYPE_STATE_CHANGE;
+
+	new_filter = &(filter_hdl_rec->notificationFilter.stateChangeNotificationfilter);
+	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_header = &(filter_hdl_rec->notificationFilter.stateChangeNotificationfilter.notificationFilterHeader);
+	new_filter->sourceIndicators = NULL;
+
+	/* Allocate memory */
+	rc = filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
+	}
+
+	/* Body part */
+	new_filter->numSourceIndicators = numSourceIndicators;
+	if (numSourceIndicators != 0) {
+		new_filter->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+		if (new_filter->sourceIndicators == NULL) {
+			TRACE_1("Out of memory in SourceIndicators field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+
+	new_filter->numStateChanges = numChangedStates;
+	  if (numChangedStates != 0) {
+		  new_filter->changedStates = (SaNtfStateChangeT*) malloc(numChangedStates * sizeof(SaNtfStateChangeT));
+		  if (new_filter->changedStates == NULL) {
+			  TRACE_1("Out of memory in StateChanges field");
+			  rc = SA_AIS_ERR_NO_MEMORY;
+			  goto done_rec_del;
+		  }
+	  }
+	/* initialize the Client struct data */
+	*notificationFilter = *new_filter;
+
+ done_give_hdl:
+	ncshm_give_hdl(ntfHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
+
+ done_rec_del:
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	if (NCSCC_RC_SUCCESS != ntfa_filter_hdl_rec_del(&client_rec->filter_list, filter_hdl_rec)) {
+		TRACE("Unable to delete notifiction record");
+		rc = SA_AIS_ERR_LIBRARY;
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	free(new_filter->sourceIndicators);
+	free(new_filter->changedStates);
+	TRACE("ERROR, rc = %d!!!", rc);
+	goto done_give_hdl;
 }
 
 /*  3.15.2.8	saNtfAlarmNotificationFilterAllocate()  */
@@ -1718,7 +1961,131 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 							 SaUint32T numSecurityAlarmDetectors,
 							 SaUint32T numServiceUsers, SaUint32T numServiceProviders)
 {
-	return SA_AIS_ERR_NOT_SUPPORTED;
+	SaAisErrorT rc = SA_AIS_OK;
+	ntfa_client_hdl_rec_t *client_rec;
+	ntfa_filter_hdl_rec_t *filter_hdl_rec;
+	SaNtfSecurityAlarmNotificationFilterT *new_filter;
+	SaNtfNotificationFilterHeaderT *new_header;
+	TRACE_ENTER();
+	if (notificationFilter == NULL) {
+		TRACE_1("notificationFilter == NULL");
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		goto done;
+	}
+
+	/* retrieve hdl rec */
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_rec == NULL) {
+		TRACE("ncshm_take_hdl failed");
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
+	 /**                 Lock ntfa_CB                 **/
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+
+	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
+	if (filter_hdl_rec == NULL) {
+		pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		TRACE_1("ntfa_filter_hdl_rec_add failed");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done_give_hdl;
+	}
+	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	 /**                  UnLock ntfa_CB            **/
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	/* Set the instance handle */
+	filter_hdl_rec->ntfHandle = ntfHandle;
+	filter_hdl_rec->ntfType = SA_NTF_TYPE_SECURITY_ALARM;
+
+	new_filter = &(filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter);
+	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_header = &(filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter.notificationFilterHeader);
+	new_filter->probableCauses = NULL;
+	new_filter->severities = NULL;
+	new_filter->securityAlarmDetectors = NULL;
+	new_filter->serviceUsers = NULL;
+	new_filter->serviceProviders = NULL;
+
+	/* Allocate memory */
+	rc = filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
+	}
+
+	/* Body part */
+	new_filter->numProbableCauses = numProbableCauses;
+	new_filter->numSeverities = numSeverities;
+	new_filter->numSecurityAlarmDetectors = numSecurityAlarmDetectors;
+	new_filter->numServiceUsers = numServiceUsers;
+	new_filter ->numServiceProviders = numServiceProviders;
+
+	if (numProbableCauses != 0) {
+		new_filter->probableCauses = (SaNtfProbableCauseT *) malloc(numProbableCauses * sizeof(SaNtfProbableCauseT));
+		if (new_filter->probableCauses == NULL) {
+			TRACE_1("Out of memory in probableCauses field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+	if (numSeverities != 0) {
+		new_filter->severities = (SaNtfSeverityT *) malloc(numSeverities * sizeof(SaNtfSeverityT));
+		if (new_filter->severities == NULL) {
+			TRACE_1("Out of memory in perceivedSeverities field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+	if (numSecurityAlarmDetectors != 0) {
+		new_filter->securityAlarmDetectors = (SaNtfSecurityAlarmDetectorT *) malloc(numSecurityAlarmDetectors * sizeof(SaNtfSecurityAlarmDetectorT));
+		if (new_filter->securityAlarmDetectors == NULL) {
+			TRACE_1("Out of memory in securityAlarmDetector field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+	if (numServiceUsers != 0) {
+		new_filter->serviceUsers = (SaNtfServiceUserT *) malloc(numServiceUsers * sizeof(SaNtfServiceUserT));
+		if (new_filter->serviceUsers == NULL) {
+			TRACE_1("Out of memory in ServiceUsers field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+	}
+	if (numServiceProviders != 0) {
+		new_filter->serviceProviders = (SaNtfServiceUserT *) malloc(numServiceProviders * sizeof(SaNtfServiceUserT));
+		if (new_filter->serviceProviders == NULL) {
+			TRACE_1("Out of memory in ServiceProviders field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done_rec_del;
+		}
+}
+
+	/* initialize the Client struct data */
+	*notificationFilter = *new_filter;
+
+ done_give_hdl:
+	ncshm_give_hdl(ntfHandle);
+ done:
+	TRACE_LEAVE();
+	return rc;
+
+ done_rec_del:
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	if (NCSCC_RC_SUCCESS != ntfa_filter_hdl_rec_del(&client_rec->filter_list, filter_hdl_rec)) {
+		TRACE("Unable to delete notifiction record");
+		rc = SA_AIS_ERR_LIBRARY;
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	free(new_filter->probableCauses);
+	free(new_filter->severities);
+	free(new_filter->securityAlarmDetectors);
+	free(new_filter->serviceProviders);
+	free(new_filter->serviceUsers);
+	TRACE("ERROR, rc = %d!!!", rc);
+	goto done_give_hdl;
 }
 
 /*  3.15.2.10	saNtfNotificationFilterFree()  */
