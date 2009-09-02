@@ -32,6 +32,9 @@
 #ifndef EDS_CB_H
 #define EDS_CB_H
 
+/* IMMSV header */
+#include "saImmOi.h"
+
 /* global variables */
 EXTERN_C EDSDLL_API uns32 gl_eds_hdl;
 
@@ -171,21 +174,6 @@ typedef struct eda_reg_list_tag {
 	MDS_DEST eda_client_dest;	/* Handy when an EDA instance goes away */
 	CHAN_OPEN_LIST *chan_open_list;	/* channels corresponding to this reg_id only */
 } EDA_REG_REC;
-
-typedef struct eds_mib_scalar {
-	SaNameT version;
-	SaNameT vendor;
-	uns32 prod_rev;
-	uns32 svc_status;	/* Check this. Its truth value, should it be uns32 or uns8 ? TBD */
-	uns32 svc_state;
-	uns32 num_patterns;
-	uns32 max_pattern_size;
-	uns32 max_data_size;
-	uns32 max_filter_num;
-	uns32 max_filter_size;
-	uns32 num_channels;
-} EDS_MIB_SCALAR;
-
 typedef struct eds_mib_chan_tbl {
 	SaTimeT create_time;
 	uns32 num_users;
@@ -259,7 +247,6 @@ typedef struct eds_cb_tag {
 	EDA_DOWN_LIST *eda_down_list_head;	/* EDA down reccords - Fix for Failover missed 
 						   down events Processing */
 	EDA_DOWN_LIST *eda_down_list_tail;
-	EDS_MIB_SCALAR scalar_objects;	/* EDS mib info for scalar objects           */
 	SaNameT comp_name;	/* Components's name EDS                     */
 	SaAmfHandleT amf_hdl;	/* AMF handle, obtained thru AMF init        */
 	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
@@ -283,9 +270,10 @@ typedef struct eds_cb_tag {
 	SaClmHandleT clm_hdl;	/* CLM handle */
 	SaSelectionObjectT clm_sel_obj;	/* Selection object to wait for CLM events */
 	NODE_INFO *cluster_node_list;
+	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
+	SaSelectionObjectT imm_sel_obj;	/* Selection object to wait for IMM events */
 } EDS_CB;
 
-#define EDS_MIB_SCALAR_NULL ((EDS_MIB_SCALAR *)0)
 #define EDS_MIB_CHAN_TBL_NULL ((EDS_WORKLIST *)0)
 #define EDS_INIT_MIB_CHAN_TBL(wp,chan_create_time) \
       wp->chan_row.create_time=chan_create_time;  \
@@ -354,6 +342,11 @@ EXTERN_C void update_node_db(EDS_CB *, NODE_ID, SaClmClusterChangesT);
 EXTERN_C void send_clm_status_change(EDS_CB *, SaClmClusterChangesT, NODE_ID);
 
 EXTERN_C NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
+
+EXTERN_C EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
+EXTERN_C SaAisErrorT eds_imm_init(EDS_CB *cb);
+EXTERN_C SaAisErrorT eds_imm_declare_implementer(SaImmOiHandleT OiHandle);
+
 void eds_init_mib_objects(EDS_CB *cb);
 
 #endif

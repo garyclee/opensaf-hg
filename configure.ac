@@ -580,7 +580,6 @@ AC_CONFIG_FILES([
         osaf/snmp/mapi/avsv/Makefile
         osaf/snmp/mapi/avsv/avm/Makefile
         osaf/snmp/mapi/cpsv/Makefile
-        osaf/snmp/mapi/edsv/Makefile
         osaf/snmp/mapi/mqsv/Makefile
         osaf/snmp/miblib/Makefile
         osaf/snmp/miblib/avsv/Makefile
@@ -591,8 +590,6 @@ AC_CONFIG_FILES([
         osaf/snmp/miblib/cpsv/cpd/Makefile
         osaf/snmp/miblib/dtsv/Makefile
         osaf/snmp/miblib/dtsv/dts/Makefile
-        osaf/snmp/miblib/edsv/Makefile
-        osaf/snmp/miblib/edsv/eds/Makefile
         osaf/snmp/miblib/mqsv/Makefile
         osaf/snmp/miblib/mqsv/mqd/Makefile
         osaf/snmp/miblib/mqsv/mqnd/Makefile
@@ -618,7 +615,6 @@ AC_CONFIG_FILES([
         osaf/snmp/subagt/services/avsv/avm/Makefile
         osaf/snmp/subagt/services/cpsv/Makefile
         osaf/snmp/subagt/services/dtsv/Makefile
-        osaf/snmp/subagt/services/edsv/Makefile
         osaf/snmp/subagt/services/mqsv/Makefile
         osaf/snmp/subagt/services/pssv/Makefile
         osaf/libs/Makefile

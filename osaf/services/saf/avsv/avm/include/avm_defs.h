@@ -63,7 +63,7 @@
 #define AVM_MAX_EP_OCTET_STRING      100
 #define AVM_HPI_EVT_RETENTION_TIME   ((SaTimeT)9000000000LL)
 #define AVM_SWITCH_TRAP_RETENTION_TIME ((SaTimeT)3000000000LL)
-#define AVM_HPI_EVT_CHANNEL_NAME     "EVENTS"
+#define AVM_HPI_EVT_CHANNEL_NAME     "safChnl=saChnlEvents,safApp=safEvtService"
 #define AVM_SAF_VERSION              ((SaVersionT){'B', 1, 1})
 
 #define AVM_FAULT_EVENTS_SUB_ID      13

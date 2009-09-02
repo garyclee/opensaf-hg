@@ -46,7 +46,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	EDS_CB *eds_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT error;
 	FILE *fp = NULL;
 	char pidfilename[EDS_PID_FILE_NAME_LEN] = { 0 };
 
@@ -240,45 +239,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 	m_LOG_EDSV_S(EDS_MAIN_PROCESS_START_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
 	printf("eds_se_lib_init: EDS MAIN PROCESS START SUCCESS\n");
 
-	/* Register with MAB */
-	rc = edsv_mab_register(eds_cb);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_MAB_REGISTER_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		eds_mds_finalize(eds_cb);
-		/* stop the already started task */
-		m_NCS_TASK_STOP(eds_cb->task_hdl);
-		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
-		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
-		/* Release EDU handle */
-		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		printf("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-	m_LOG_EDSV_S(EDS_MAB_REGISTER_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init:edsv_mab_register() EDS MAB REGISTER SUCCESS\n");
-
-	if ((rc = edsv_table_register()) != NCSCC_RC_SUCCESS) {
-		m_LOG_EDSV_S(EDS_TABLE_REGISTER_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		eds_mds_finalize(eds_cb);
-		error = edsv_mab_unregister(eds_cb);	/*Unregister with MAB */
-		/* stop the already started task */
-		m_NCS_TASK_STOP(eds_cb->task_hdl);
-		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
-		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
-		/* Release EDU handle */
-		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		printf("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-	m_LOG_EDSV_S(EDS_TBL_REGISTER_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init: edsv_table_register() EDS TABLE REGISTER SUCCESS\n");
-
 	return (rc);
 }
 
@@ -335,8 +295,6 @@ static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
        **/
 		m_NCS_LOCK(&eds_cb->cb_lock, NCS_LOCK_WRITE);
 
-		eds_cb->scalar_objects.svc_state = SHUTTING_DOWN;
-
 		/* deregister from AMF */
 		status = saAmfComponentUnregister(eds_cb->amf_hdl, &eds_cb->comp_name, NULL);
 
@@ -362,12 +320,7 @@ static uns32 eds_se_lib_destroy(NCS_LIB_REQ_INFO *req_info)
 		/* Disconnect from MDS */
 		eds_mds_finalize(eds_cb);
 
-		if ((status = edsv_mab_unregister(eds_cb)) != NCSCC_RC_SUCCESS)
-			m_EDSV_DEBUG_CONS_PRINTF(" MAB UNREGISTER FAILED\n");
-				/* Log it */ ;
-				/*Unregister with MAB */
 		/* stop & kill the created task */
-
 		m_NCS_TASK_STOP(eds_cb->task_hdl);
 		m_NCS_TASK_RELEASE(eds_cb->task_hdl);
 

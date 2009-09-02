@@ -51,7 +51,7 @@ extern "C" {
 #define m_SNMP_TRAP_FILTER_PATTERN_LEN (strlen(m_SNMP_TRAP_FILTER_PATTERN))
 
 /* Channel Name for SNMP Traps*/
-#define m_SNMP_EDA_EVT_CHANNEL_NAME    "NCS_TRAP"
+#define m_SNMP_EDA_EVT_CHANNEL_NAME    "safChnl=saChnlTraps,safApp=safEvtService"
 
 /* version of the NCS_TRAP data structure */
 #define m_NCS_TRAP_VERSION 1

@@ -69,6 +69,46 @@
               <flag>SA_CACHED</flag>
           </attr>
         </class>
+        <class name="SaEvtChannel">
+                <category>SA_RUNTIME</category>
+                <rdn>
+                        <name>safChnl</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </rdn>
+                <attr>
+                        <name>saEvtChannelCreationTimeStamp</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saEvtChannelNumOpeners</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saEvtChannelNumSubscribers</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saEvtChannelNumPublishers</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saEvtChannelNumRetainedEvents</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saEvtChannelLostEventsEventCount</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+        </class>
 	<class name="SaLogStream">
 		<category>SA_RUNTIME</category>
 		<rdn>
@@ -262,6 +302,9 @@
         </object>
 	<object class="SaAmfApplication">
         	<dn>safApp=safLockService</dn>
+	</object>
+	<object class="SaAmfApplication">
+        	<dn>safApp=safEvtService</dn>
 	</object>
 	<object class="SaAmfApplication">
         	<dn>safApp=safLogService</dn>

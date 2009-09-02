@@ -38,6 +38,5 @@ noinst_HEADERS = \
 	edsv_defs.h \
 	edsv_logstr.h \
 	edsv_mem.h \
-	edsv_mib.h \
 	edsv_msg.h \
 	edsv_util.h
