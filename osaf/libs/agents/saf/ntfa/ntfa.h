@@ -67,31 +67,19 @@ typedef struct ntfa_notification_hdl_rec {
  * Data associated with a notification filter
  */
 typedef struct ntfa_filter_hdl_rec {
-	SaNtfNotificationFilterHandleT filter_hdl;
+   SaNtfNotificationFilterHandleT filter_hdl;
+	SaNtfNotificationTypeT ntfType;
 
-	/* Array specific data */
-	/* =================== */
-
-	/* Notification filter header */
-	SaNtfEventTypeT *ntfEventTypes;
-	SaUint16T ntfNumEventTypes;
-	SaNameT *ntfNotificationObjects;
-	SaUint16T ntfNumNotificationObjects;
-	SaNameT *ntfNotifyingObjects;
-	SaUint16T ntfNumNotifyingObjects;
-	SaNtfClassIdT *ntfNotificationClassIds;
-	SaUint16T ntfNumNotificationClassIds;
-
-	/* Notification filter body */
-	SaNtfProbableCauseT *ntfProbableCauses;
-	SaUint32T ntfNumProbableCauses;
-	SaNtfSeverityT *ntfPerceivedSeverities;
-	SaUint32T ntfNumPercievedSeverities;
-	SaNtfSeverityTrendT *ntfTrends;
-	SaUint32T ntfNumTrends;
+	union {
+		SaNtfObjectCreateDeleteNotificationFilterT objectCreateDeleteNotificationfilter;
+		SaNtfAttributeChangeNotificationFilterT attributeChangeNotificationfilter;
+		SaNtfStateChangeNotificationFilterT stateChangeNotificationfilter;
+		SaNtfAlarmNotificationFilterT alarmNotificationfilter;
+		SaNtfSecurityAlarmNotificationFilterT securityAlarmNotificationfilter;
+	} notificationFilter; 
 
 	SaNtfHandleT ntfHandle;
-
+	 
 	struct ntfa_filter_hdl_rec *next;	/* next pointer */
 	struct ntfa_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
 } ntfa_filter_hdl_rec_t;
