@@ -646,14 +646,13 @@ uns32 ntfa_notification_hdl_rec_del(ntfa_notification_hdl_rec_t **list_head, ntf
 ******************************************************************************/
 uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl_rec_t *rm_node)
 {
-	/* Find the channel hdl record in the list of records */
+	/* Find the filter hdl record in the list of records */
 	ntfa_filter_hdl_rec_t *list_iter = *list_head;
 
 	/* If the to be removed record is the first record */
 	if (list_iter == rm_node) {
 		*list_head = rm_node->next;
-	/** remove the association with hdl-mngr 
-         **/
+	/* remove the association with hdl-mngr */
 		ncshm_give_hdl(rm_node->filter_hdl);
 		ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
 		free(rm_node);
@@ -663,8 +662,7 @@ uns32 ntfa_filter_hdl_rec_del(ntfa_filter_hdl_rec_t **list_head, ntfa_filter_hdl
 		while (NULL != list_iter) {
 			if (list_iter->next == rm_node) {
 				list_iter->next = rm_node->next;
-		/** remove the association with hdl-mngr 
-                 **/
+		/* remove the association with hdl-mngr */
 				ncshm_give_hdl(rm_node->filter_hdl);
 				ncshm_destroy_hdl(NCS_SERVICE_ID_NTFA, rm_node->filter_hdl);
 				free(rm_node);
@@ -1030,36 +1028,58 @@ void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
  * 
  * @param instance
  */
-void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t
-				    *notificationFilterInstance)
+void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t *filter_rec)
 {
-	/* TODO!!! Check which notification filter type to use */
+	SaNtfAlarmNotificationFilterT *alarm_filter;
+	SaNtfObjectCreateDeleteNotificationFilterT *obj_cr_del_filter;
+	SaNtfAttributeChangeNotificationFilterT *att_ch_filter;
+	SaNtfStateChangeNotificationFilterT *sta_ch_filter;
+	SaNtfSecurityAlarmNotificationFilterT *sec_alarm_filter;
 
-	/* Free all dynamical arrays */
+	SaNtfNotificationFilterHeaderT *header_filter; 
+
+	switch (filter_rec->ntfType) {
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+	 obj_cr_del_filter = &filter_rec->notificationFilter.objectCreateDeleteNotificationfilter;
+	 header_filter = &filter_rec->notificationFilter.objectCreateDeleteNotificationfilter.notificationFilterHeader;
+		 free(obj_cr_del_filter->sourceIndicators);
+		 break;
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+	 att_ch_filter = &filter_rec->notificationFilter.attributeChangeNotificationfilter;
+	 header_filter = &filter_rec->notificationFilter.attributeChangeNotificationfilter.notificationFilterHeader;
+		free(att_ch_filter->sourceIndicators);
+		break;
+	case SA_NTF_TYPE_STATE_CHANGE:
+	 sta_ch_filter = &filter_rec->notificationFilter.stateChangeNotificationfilter;
+	 header_filter = &filter_rec->notificationFilter.stateChangeNotificationfilter.notificationFilterHeader;
+		free(sta_ch_filter->changedStates);
+		free(sta_ch_filter->sourceIndicators);
+		break;
+	case SA_NTF_TYPE_SECURITY_ALARM:
+	 sec_alarm_filter = &filter_rec->notificationFilter.securityAlarmNotificationfilter;
+	 header_filter = &filter_rec->notificationFilter.securityAlarmNotificationfilter.notificationFilterHeader;
+		free(sec_alarm_filter->probableCauses);
+		free(sec_alarm_filter->securityAlarmDetectors);
+		free(sec_alarm_filter->serviceProviders);
+		free(sec_alarm_filter->serviceUsers);
+		free(sec_alarm_filter->severities);
+		break;
+	case SA_NTF_TYPE_ALARM:
+	 alarm_filter = &filter_rec->notificationFilter.alarmNotificationfilter;
+	header_filter = &filter_rec->notificationFilter.alarmNotificationfilter.notificationFilterHeader;
+		free(alarm_filter->probableCauses);
+		free(alarm_filter->perceivedSeverities);
+		free(alarm_filter->trends);
+		break;
+	default:
+		assert(0);
+	}
+
 	/* Header part */
-	if (notificationFilterInstance->ntfNumEventTypes != 0) {
-		free(notificationFilterInstance->ntfEventTypes);
-	}
-	if (notificationFilterInstance->ntfNumNotificationObjects != 0) {
-		free(notificationFilterInstance->ntfNotificationObjects);
-	}
-	if (notificationFilterInstance->ntfNumNotifyingObjects != 0) {
-		free(notificationFilterInstance->ntfNotifyingObjects);
-	}
-	if (notificationFilterInstance->ntfNumNotificationClassIds != 0) {
-		free(notificationFilterInstance->ntfNotificationClassIds);
-	}
-
-	/* Body part */
-	if (notificationFilterInstance->ntfNumProbableCauses != 0) {
-		free(notificationFilterInstance->ntfProbableCauses);
-	}
-	if (notificationFilterInstance->ntfNumPercievedSeverities != 0) {
-		free(notificationFilterInstance->ntfPerceivedSeverities);
-	}
-	if (notificationFilterInstance->ntfNumTrends != 0) {
-		free(notificationFilterInstance->ntfTrends);
-	}
+	free(header_filter->eventTypes);
+	free(header_filter->notificationObjects);
+	free(header_filter->notifyingObjects);
+	free(header_filter->notificationClassIds);
 }
 
 /****************************************************************************

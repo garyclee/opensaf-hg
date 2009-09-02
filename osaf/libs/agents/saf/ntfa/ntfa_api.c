@@ -1293,7 +1293,7 @@ SaAisErrorT saNtfSecurityAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
  error_put:
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 	if (NCSCC_RC_SUCCESS != ntfa_notification_hdl_rec_del(&hdl_rec->notification_list, notification_hdl_rec)) {
-		TRACE("Unable to delete notifiction record");
+		TRACE("Unable to delete notification record");
 	}
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1520,6 +1520,74 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 
 /* END DUMMY for not implemented */
 
+static SaAisErrorT filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
+													SaUint16T numEventTypes,
+													SaUint16T numNotificationObjects,
+													SaUint16T numNotifyingObjects,
+													SaUint16T numNotificationClassIds)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	header->eventTypes = NULL;
+	header->notificationObjects = NULL;
+	header->notifyingObjects = NULL;
+	header->notificationClassIds = NULL;
+
+	header->numNotificationClassIds = numNotificationClassIds;
+	header->numEventTypes = numEventTypes;
+	header->numNotificationObjects = numNotificationObjects;
+	header->numNotifyingObjects = numNotifyingObjects;
+
+	/* Event types */
+	if (numEventTypes != 0) {
+		header->eventTypes = (SaNtfEventTypeT *) malloc(numEventTypes * sizeof(SaNtfEventTypeT));
+		if (header->eventTypes == NULL) {
+			TRACE_1("Out of memory eventTypes");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	/* Notification objects */
+	if (numNotificationObjects != 0) {
+
+		header->notificationObjects = (SaNameT *)malloc(numNotificationObjects * sizeof(SaNameT));
+		if (header->notificationObjects == NULL) {
+			TRACE_1("Out of memory notificationObjects");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+
+	/* Notifying objects */
+	if (numNotifyingObjects != 0) {
+		header->notifyingObjects = (SaNameT *)malloc(numNotifyingObjects * sizeof(SaNameT));
+		if (header->notifyingObjects == NULL) {
+			TRACE_1("Out of memory notifyingObjects");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+
+	/* Notification class Id:s */
+	if (numNotificationClassIds != 0) {
+		header->notificationClassIds = (SaNtfClassIdT *) malloc(numNotificationClassIds * sizeof(SaNtfClassIdT));
+		if (header->notificationClassIds == NULL) {
+			TRACE_1("Out of memory notificationClassIds");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+done:
+	 return rc;
+
+error_free:
+	free(header->eventTypes);
+	free(header->notificationObjects);
+	free(header->notifyingObjects);
+	free(header->notificationClassIds);
+	goto done;
+}
+
 /*  3.15.2.8	saNtfAlarmNotificationFilterAllocate()  */
 SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 						 SaNtfAlarmNotificationFilterT *notificationFilter,
@@ -1531,33 +1599,32 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 						 SaUint32T numPerceivedSeverities, SaUint32T numTrends)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	ntfa_client_hdl_rec_t *hdl_rec;
+	ntfa_client_hdl_rec_t *client_rec;
 	ntfa_filter_hdl_rec_t *filter_hdl_rec;
-
+	SaNtfAlarmNotificationFilterT *new_filter;
+	SaNtfNotificationFilterHeaderT *new_header;
 	TRACE_ENTER();
 	if (notificationFilter == NULL) {
-		TRACE_1("NULL pointer in notificationFilter inparameter to \
-               saNtfAlarmNotificationFilterAllocate");
+		TRACE_1("notificationFilter == NULL");
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
 	/* retrieve hdl rec */
-	hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
-	if (hdl_rec == NULL) {
+	client_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, ntfHandle);
+	if (client_rec == NULL) {
 		TRACE("ncshm_take_hdl failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
 
-	TRACE_1("Creating notificationFilterHandle!");
-
     /**                 Lock ntfa_CB                 **/
 	pthread_mutex_lock(&ntfa_cb.cb_lock);
 
-	filter_hdl_rec = ntfa_filter_hdl_rec_add(&hdl_rec);
+	filter_hdl_rec = ntfa_filter_hdl_rec_add(&client_rec);
 	if (filter_hdl_rec == NULL) {
 		pthread_mutex_unlock(&ntfa_cb.cb_lock);
+		TRACE_1("ntfa_filter_hdl_rec_add failed");
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
@@ -1567,149 +1634,76 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 
 	/* Set the instance handle */
 	filter_hdl_rec->ntfHandle = ntfHandle;
+	filter_hdl_rec->ntfType = SA_NTF_TYPE_ALARM;
 
-	/* Set filter handle in instance struct */
-	notificationFilter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_filter = &(filter_hdl_rec->notificationFilter.alarmNotificationfilter);
+	new_filter->notificationFilterHandle = filter_hdl_rec->filter_hdl;
+	new_header = &(filter_hdl_rec->notificationFilter.alarmNotificationfilter.notificationFilterHeader);
+	new_filter->probableCauses = NULL;
+	new_filter->perceivedSeverities = NULL;
+	new_filter->trends = NULL;
 
-	/* Set the pointers for the client */
-
-	/* Header part */
-	/* Event types */
-	if (numEventTypes != 0) {
-		filter_hdl_rec->ntfEventTypes = (SaNtfEventTypeT *)
-		    malloc(numEventTypes * sizeof(SaNtfEventTypeT));
-		if (filter_hdl_rec->ntfEventTypes == NULL) {
-			TRACE_1("Out of memory in eventTypes field");
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put;
-		}
-	} else {
-		filter_hdl_rec->ntfEventTypes = NULL;
+	/* Allocate memory */
+	rc = filter_header_alloc(new_header, numEventTypes, numNotificationObjects, numNotifyingObjects, numNotificationClassIds);
+	if (rc != SA_AIS_OK) {
+		goto done_rec_del;
 	}
-	filter_hdl_rec->ntfNumEventTypes = numEventTypes;
-	notificationFilter->notificationFilterHeader.eventTypes = filter_hdl_rec->ntfEventTypes;
-
-	/* Notification objects */
-	if (numNotificationObjects != 0) {
-
-		filter_hdl_rec->ntfNotificationObjects = (SaNameT *)malloc(numNotificationObjects * sizeof(SaNameT));
-		if (filter_hdl_rec->ntfNotificationObjects == NULL) {
-			TRACE_1("Out of memory in notificationObjects field");
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
-		}
-	} else {
-		filter_hdl_rec->ntfNotificationObjects = NULL;
-	}
-	filter_hdl_rec->ntfNumNotificationObjects = numNotificationObjects;
-	notificationFilter->notificationFilterHeader.notificationObjects = filter_hdl_rec->ntfNotificationObjects;
-
-	/* Notifying objects */
-	if (numNotifyingObjects != 0) {
-
-		filter_hdl_rec->ntfNotifyingObjects = (SaNameT *)malloc(numNotifyingObjects * sizeof(SaNameT));
-		if (filter_hdl_rec->ntfNotifyingObjects == NULL) {
-			TRACE_1("Out of memory in notifyingObjects field");
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
-		}
-	} else {
-		filter_hdl_rec->ntfNotifyingObjects = NULL;
-	}
-	filter_hdl_rec->ntfNumNotifyingObjects = numNotifyingObjects;
-	notificationFilter->notificationFilterHeader.notifyingObjects = filter_hdl_rec->ntfNotifyingObjects;
-
-	/* Notification class Id:s */
-	if (numNotificationClassIds != 0) {
-
-		filter_hdl_rec->ntfNotificationClassIds = (SaNtfClassIdT *)
-		    malloc(numNotificationClassIds * sizeof(SaNtfClassIdT));
-		if (filter_hdl_rec->ntfNotificationClassIds == NULL) {
-			TRACE_1("Out of memory in notificationClassIds field");
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
-		}
-	} else {
-		filter_hdl_rec->ntfNotificationClassIds = NULL;
-	}
-	filter_hdl_rec->ntfNumNotificationClassIds = numNotificationClassIds;
-	notificationFilter->notificationFilterHeader.notificationClassIds = filter_hdl_rec->ntfNotificationClassIds;
 
 	/* Body part */
+	new_filter->numProbableCauses = numProbableCauses;
+	new_filter->numPerceivedSeverities = numPerceivedSeverities;
+	new_filter->numTrends = numTrends;
+
 	/* Probable causes */
 	if (numProbableCauses != 0) {
 
-		filter_hdl_rec->ntfProbableCauses = (SaNtfProbableCauseT *)
-		    malloc(numProbableCauses * sizeof(SaNtfProbableCauseT));
-		if (filter_hdl_rec->ntfProbableCauses == NULL) {
+		new_filter->probableCauses = (SaNtfProbableCauseT *) malloc(numProbableCauses * sizeof(SaNtfProbableCauseT));
+		if (new_filter->probableCauses == NULL) {
 			TRACE_1("Out of memory in probableCauses field");
 			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
+			goto done_rec_del;
 		}
-	} else {
-		filter_hdl_rec->ntfProbableCauses = NULL;
 	}
-	filter_hdl_rec->ntfNumProbableCauses = numProbableCauses;
-	notificationFilter->probableCauses = filter_hdl_rec->ntfProbableCauses;
-
 	/* Percieved severities */
 	if (numPerceivedSeverities != 0) {
-
-		filter_hdl_rec->ntfPerceivedSeverities = (SaNtfSeverityT *)
-		    malloc(numPerceivedSeverities * sizeof(SaNtfSeverityT));
-		if (filter_hdl_rec->ntfPerceivedSeverities == NULL) {
+		new_filter->perceivedSeverities = (SaNtfSeverityT *) malloc(numPerceivedSeverities * sizeof(SaNtfSeverityT));
+		if (new_filter->perceivedSeverities == NULL) {
 			TRACE_1("Out of memory in perceivedSeverities field");
 			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
+			goto done_rec_del;
 		}
-	} else {
-		filter_hdl_rec->ntfPerceivedSeverities = NULL;
 	}
-	filter_hdl_rec->ntfNumPercievedSeverities = numPerceivedSeverities;
-	notificationFilter->perceivedSeverities = filter_hdl_rec->ntfPerceivedSeverities;
-
 	/* Severity trends */
 	if (numTrends != 0) {
-
-		filter_hdl_rec->ntfTrends = (SaNtfSeverityTrendT *)
-		    malloc(numTrends * sizeof(SaNtfSeverityTrendT));
-		if (filter_hdl_rec->ntfTrends == NULL) {
+		new_filter->trends = (SaNtfSeverityTrendT *) malloc(numTrends * sizeof(SaNtfSeverityTrendT));
+		if (new_filter->trends == NULL) {
 			TRACE_1("Out of memory in trends field");
 			rc = SA_AIS_ERR_NO_MEMORY;
-			goto error_put_dealloc;
+			goto done_rec_del;
 		}
-	} else {
-		filter_hdl_rec->ntfTrends = NULL;
 	}
-	filter_hdl_rec->ntfNumTrends = numTrends;
-	notificationFilter->trends = filter_hdl_rec->ntfTrends;
-
 	/* initialize the Client struct data */
-	/* ================================= */
+	*notificationFilter = *new_filter;
 
-	/* Header part */
-	notificationFilter->notificationFilterHeader.numEventTypes = numEventTypes;
-	notificationFilter->notificationFilterHeader.numNotificationObjects = numNotificationObjects;
-	notificationFilter->notificationFilterHeader.numNotifyingObjects = numNotifyingObjects;
-	notificationFilter->notificationFilterHeader.numNotificationClassIds = numNotificationClassIds;
-
-	/* Body part */
-	notificationFilter->numProbableCauses = (SaUint16T)numProbableCauses;
-	notificationFilter->numPerceivedSeverities = (SaUint16T)numPerceivedSeverities;
-	notificationFilter->numTrends = (SaUint16T)numTrends;
-
-	goto done_give_hdl;
-
- error_put_dealloc:
-/* TODO: free here */
- error_put:
-	TRACE("ERROR, rc = %d!!!", rc);
  done_give_hdl:
 	ncshm_give_hdl(ntfHandle);
  done:
 	TRACE_LEAVE();
 	return rc;
 
+ done_rec_del:
+	pthread_mutex_lock(&ntfa_cb.cb_lock);
+	if (NCSCC_RC_SUCCESS != ntfa_filter_hdl_rec_del(&client_rec->filter_list, filter_hdl_rec)) {
+		TRACE("Unable to delete notifiction record");
+		rc = SA_AIS_ERR_LIBRARY;
+	}
+	pthread_mutex_unlock(&ntfa_cb.cb_lock);
+
+	free(new_filter->probableCauses);
+	free(new_filter->perceivedSeverities);
+	free(new_filter->trends);
+	TRACE("ERROR, rc = %d!!!", rc);
+	goto done_give_hdl;
 }
 
 /*  3.15.2.9	saNtfSecurityAlarmNotificationFilterAllocate()  */
