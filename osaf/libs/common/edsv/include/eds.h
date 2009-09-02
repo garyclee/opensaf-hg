@@ -82,6 +82,10 @@
 /* MBCSV header */
 #include "mbcsv_papi.h"
 
+/* IMMSV header */
+#include "saImmOi.h"
+#include "immutil.h"
+
 /* EDU header */
 #include "ncs_edu_pub.h"
 #include "ncs_saf_edu.h"
@@ -103,17 +107,14 @@
 #include "edsv_defs.h"
 #include "edsv_util.h"
 
-/** EDSV miblib gen files */
-#include "edsv_mapi.h"
-#include "ncsmiblib.h"
-#include "oac_papi.h"
-#include "edsv_mib.h"
-
 /* Edsv checkpoint header */
 #include "eds_ckpt.h"
 
 /* CLM header */
 #include "saClm.h"
+
+/* IMM Headers */
+#include "saImmOi.h"
 
 /* EDS CB global handle declaration */
 EXTERN_C uns32 gl_eds_hdl;

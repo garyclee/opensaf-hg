@@ -81,10 +81,11 @@ uns32 eds_quiescing_state_handler(EDS_CB *cb, SaInvocationT invocation)
 uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 {
 	V_DEST_RL mds_role;
+	SaAisErrorT error = SA_AIS_OK;
 
 	mds_role = V_DEST_RL_QUIESCED;
 
-   /** set the CB's anchor value & mds role */
+	/** set the CB's anchor value & mds role */
 
 	cb->mds_role = mds_role;
 	eds_mds_change_role(cb);
@@ -92,6 +93,12 @@ uns32 eds_quiesced_state_handler(EDS_CB *cb, SaInvocationT invocation)
 
 	cb->is_quisced_set = TRUE;
 	printf("I AM IN HA AMF QUIESCED STATE\n");
+
+	/* Give up our implementer role */
+	error = immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if (error != SA_AIS_OK)
+		printf("saImmOiImplementerClear failed: err = %d", error);
+
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -258,6 +265,13 @@ eds_amf_CSI_set_callback(SaInvocationT invocation,
 				m_LOG_EDSV_S(EDS_MDS_CSI_ROLE_CHANGE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, rc,
 					     __FILE__, __LINE__, eds_cb->mds_role);
 				printf(" eds_amf_CSI_set_callback: MDS role change to %d SUCCESS\n", eds_cb->mds_role);
+				/* Declare as Implementer if state changed only from STANDBY to ACTIVE, 
+				 * Need to check for transition from QUEISCED back to ACTIVE 
+				 */
+				if (eds_cb->ha_state == SA_AMF_HA_ACTIVE) {
+					if (eds_imm_declare_implementer(eds_cb->immOiHandle) != SA_AIS_OK)
+						printf("ClassImplementer Set Failed\n");
+				}
 			}
 		}
 		/* Inform MBCSV of HA state change */
@@ -405,7 +419,7 @@ static uns32 eds_healthcheck_start(EDS_CB *eds_cb)
 {
 	SaAisErrorT error;
 	SaAmfHealthcheckKeyT Healthy;
-	int8 *health_key = 0;
+	char *health_key = 0;
 
 	if (eds_cb->healthCheckStarted == TRUE) {
 		return NCSCC_RC_SUCCESS;
@@ -415,12 +429,12 @@ static uns32 eds_healthcheck_start(EDS_CB *eds_cb)
 	memset(&Healthy, 0, sizeof(Healthy));
 	health_key = getenv("EDSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL || strlen(health_key) > SA_AMF_HEALTHCHECK_KEY_MAX) {
-		strcpy(Healthy.key, "E5F6");
+		strcpy((char *)Healthy.key, "E5F6");
 		/* Log it */
 	} else {
-		strncpy(Healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX);
+		strncpy((char *)Healthy.key, health_key, SA_AMF_HEALTHCHECK_KEY_MAX);
 	}
-	Healthy.keyLen = strlen(Healthy.key);
+	Healthy.keyLen = strlen((char *)Healthy.key);
 
 	error = saAmfHealthcheckStart(eds_cb->amf_hdl, &eds_cb->comp_name, &Healthy,
 				      SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);

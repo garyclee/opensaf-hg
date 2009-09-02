@@ -38,7 +38,6 @@ typedef enum edsv_eds_evt_type {
 	EDSV_EDS_EVT_EDA_UP,
 	EDSV_EDS_EVT_EDA_DOWN,
 	EDSV_EDS_RET_TIMER_EXP,
-	EDSV_EVT_MIB_REQ,
 	EDSV_EVT_QUIESCED_ACK,
 	EDSV_EDS_EVT_MAX
 } EDSV_EDS_EVT_TYPE;
@@ -63,7 +62,6 @@ typedef struct edsv_eds_evt_tag {
 		EDSV_MSG msg;
 		EDSV_EDS_MDS_INFO mds_info;
 		EDS_TMR tmr_info;
-		NCSMIB_ARG *mib_req;
 	} info;
 } EDSV_EDS_EVT;
 

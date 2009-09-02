@@ -122,6 +122,51 @@
  *
  *
  ***************************************************************************/
+static SaAisErrorT create_runtime_object(char *cname, SaTimeT create_time, SaImmOiHandleT immOiHandle)
+{
+	char *dndup = strdup(cname);
+	char *parent_name = strchr(cname, ',');
+	char *rdnstr;
+	SaNameT parentName;
+	SaAisErrorT rc = SA_AIS_OK;
+
+	memset(&parentName, 0, sizeof(parentName));
+	if (parent_name != NULL) {
+		rdnstr = strtok(dndup, ",");
+		parent_name++;
+		strcpy((char *)parentName.value, parent_name);
+		parentName.length = strlen((char *)parent_name);
+	} else
+		rdnstr = cname;
+	void *arr1[] = { &rdnstr };
+	const SaImmAttrValuesT_2 attr_safChnl = {
+		.attrName = "safChnl",
+		.attrValueType = SA_IMM_ATTR_SASTRINGT,
+		.attrValuesNumber = 1,
+		.attrValues = arr1
+	};
+	void *arr2[] = { &create_time };
+
+	const SaImmAttrValuesT_2 attr_saEvtChannelCreationTimeStamp = {
+		.attrName = "saEvtChannelCreationTimeStamp",
+		.attrValueType = SA_IMM_ATTR_SATIMET,
+		.attrValuesNumber = 1,
+		.attrValues = arr2
+	};
+
+	const SaImmAttrValuesT_2 *attrValues[] = {
+		&attr_safChnl,
+		&attr_saEvtChannelCreationTimeStamp,
+		NULL
+	};
+
+	rc = immutil_saImmOiRtObjectCreate_2(immOiHandle, "SaEvtChannel", &parentName, attrValues);
+
+	free(dndup);
+
+	return rc;
+
+}	/* End create_runtime_object() */
 
 /****************************************************************************
  *
@@ -1259,6 +1304,13 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		/* Update MIB - channel Table objects with default values & creation time stamp */
 		EDS_INIT_MIB_CHAN_TBL(wp, chan_create_time);
 
+		/* Create an IMM runtime object */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			if (create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle) !=
+			    SA_AIS_OK)
+				printf("create_runtime_object failed\n");
+		}
+
 		/* Initialize the channel open record patricia tree */
 		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS) {
 			m_LOG_EDSV_S(EDS_LL_PROCESING_FAILURE, NCSFL_LC_EDSV_DATA, NCSFL_SEV_ERROR, SA_AIS_ERR_LIBRARY,
@@ -1381,6 +1433,13 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		/* Update MIB channel Table object */
 		EDS_INIT_MIB_CHAN_TBL(wp, chan_create_time);
 
+/* Create an IMM runtime object */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			if (create_runtime_object((char *)wp->cname, wp->chan_row.create_time, cb->immOiHandle) !=
+			    SA_AIS_OK)
+				printf("create_runtime_object failed\n");
+		}
+
 		/* Initialize the channel open record patricia tree */
 		if (eds_copen_patricia_init(wp) != NCSCC_RC_SUCCESS)
 			return (SA_AIS_ERR_LIBRARY);
@@ -1450,6 +1509,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 	CHAN_OPEN_REC *co;
 	SUBSC_REC *subrec;
 	SUBSC_REC *next;
+	SaNameT chan_name;
 
 	/* Get worklist ptr for this chan_id */
 	wp = eds_get_worklist_entry(cb->eds_work_list, chan_id);
@@ -1484,9 +1544,15 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 
 	/* If no one else interested in this channel, remove it completely */
 	if (wp->use_cnt == 0) {
+		chan_name.length = strlen((char *)wp->cname);
+		strncpy((char *)chan_name.value, (char *)wp->cname, chan_name.length);
 		if ((wp->chan_attrib & CHANNEL_UNLINKED) || (TRUE == forced)) {
 			if ((TRUE == forced) && (!(wp->chan_attrib & CHANNEL_UNLINKED)))
 				eds_remove_cname_rec(cb, wp);
+			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &chan_name) != SA_AIS_OK) {
+				printf("Deleting runtime object %s FAILED", chan_name.value);
+				return NCSCC_RC_FAILURE;
+			}
 			eds_remove_worklist_entry(cb, wp->chan_id);
 		}
 	}
@@ -1512,6 +1578,7 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uns8 *chan_name)
 {
 	EDS_WORKLIST *wp;
+	SaNameT channel_name;
 
 	wp = cb->eds_work_list;	/* Get root pointer to worklist */
 	while (wp) {
@@ -1522,8 +1589,15 @@ uns32 eds_channel_unlink(EDS_CB *cb, uns32 chan_name_len, uns8 *chan_name)
 			/* If no one else interested in this channel, remove it completely */
 			eds_remove_cname_rec(cb, wp);
 
-			if (wp->use_cnt == 0)
+			if (wp->use_cnt == 0) {
+				channel_name.length = strlen((char *)wp->cname);
+				strncpy((char *)channel_name.value, (char *)wp->cname, channel_name.length);
+				if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &channel_name) != SA_AIS_OK) {
+					printf("Deleting runtime object %s FAILED", channel_name.value);
+					return NCSCC_RC_FAILURE;
+				}
 				eds_remove_worklist_entry(cb, wp->chan_id);
+			}
 
 			return (SA_AIS_OK);
 		}

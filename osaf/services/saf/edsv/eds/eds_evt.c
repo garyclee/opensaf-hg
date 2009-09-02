@@ -49,7 +49,6 @@ static uns32 eds_proc_limit_get_msg(EDS_CB *, EDSV_EDS_EVT *);
 static uns32 eds_proc_eda_updn_mds_msg(EDSV_EDS_EVT *evt);
 static uns32 eds_process_api_evt(EDSV_EDS_EVT *evt);
 static uns32 eds_proc_ret_tmr_exp_evt(EDSV_EDS_EVT *evt);
-static uns32 eds_proc_mib_request_evt(EDSV_EDS_EVT *evt);
 static uns32 eds_proc_quiesced_ack_evt(EDSV_EDS_EVT *evt);
 
 #if (NCS_EDSV_LOG == 1)
@@ -63,7 +62,6 @@ EDSV_EDS_EVT_HANDLER eds_edsv_top_level_evt_dispatch_tbl[EDSV_EDS_EVT_MAX - EDSV
 	eds_proc_eda_updn_mds_msg,
 	eds_proc_eda_updn_mds_msg,
 	eds_proc_ret_tmr_exp_evt,
-	eds_proc_mib_request_evt,
 	eds_proc_quiesced_ack_evt
 };
 
@@ -296,7 +294,7 @@ static uns32 eds_proc_chan_open_sync_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	m_NCS_OS_GET_TIME_STAMP(time_of_day);
 
 	/* convert time_t to SaTimeT */
-	chan_create_time = (SaTimeT)time_of_day;
+	chan_create_time = (SaTimeT)time_of_day *SA_TIME_ONE_SECOND;
 
 	rs = eds_channel_open(cb,
 			      open_sync_param->reg_id,
@@ -366,7 +364,7 @@ static uns32 eds_proc_chan_open_async_msg(EDS_CB *cb, EDSV_EDS_EVT *evt)
 	m_NCS_OS_GET_TIME_STAMP(time_of_day);
 
 	/* convert time_t to SaTimeT */
-	chan_create_time = (SaTimeT)time_of_day;
+	chan_create_time = (SaTimeT)time_of_day *SA_TIME_ONE_SECOND;
 
 	rs = eds_channel_open(cb,
 			      open_async_param->reg_id,
@@ -1149,16 +1147,12 @@ static uns32 eds_proc_eda_api_msg(EDSV_EDS_EVT *evt)
 				      __LINE__, 0, evt->fr_dest);
 			return NCSCC_RC_FAILURE;
 		}
-		if (cb->scalar_objects.svc_state != STOPPED) {
 
-			if (eds_eda_api_msg_dispatcher[evt->info.msg.info.api_info.type] (cb, evt) != NCSCC_RC_SUCCESS) {
-				ncshm_give_hdl(evt->cb_hdl);
-				return NCSCC_RC_FAILURE;
-			}
-		} else {
+		if (eds_eda_api_msg_dispatcher[evt->info.msg.info.api_info.type] (cb, evt) != NCSCC_RC_SUCCESS) {
 			ncshm_give_hdl(evt->cb_hdl);
 			return NCSCC_RC_FAILURE;
 		}
+
 		/* Give the cb handle back */
 		ncshm_give_hdl(evt->cb_hdl);
 
@@ -1194,61 +1188,6 @@ static uns32 eds_process_api_evt(EDSV_EDS_EVT *evt)
 
 	return NCSCC_RC_SUCCESS;
 }
-
-/****************************************************************************
- * Name          : eds_proc_mib_request_evt
- *
- * Description   : This is the function which is called when eds receives an
- *                 mib request event from MAB(MIB Access Broker). 
- *
- * Arguments     : evt  - Message that was posted to the EDS Mail box.
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * Notes         : None.
- *****************************************************************************/
-
-static uns32 eds_proc_mib_request_evt(EDSV_EDS_EVT *evt)
-{
-	NCSMIBLIB_REQ_INFO miblib_req;
-	EDS_CB *eds_cb;
-
-	if (evt->evt_type == EDSV_EVT_MIB_REQ) {
-		/* Retrieve the cb handle */
-		if (NULL == (eds_cb = (EDS_CB *)ncshm_take_hdl(NCS_SERVICE_ID_EDS, evt->cb_hdl))) {
-			m_LOG_EDSV_SF(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-				      __LINE__, 0, evt->fr_dest);
-			return NCSCC_RC_FAILURE;
-		}
-
-		if (evt->info.mib_req == NULL) {
-			m_LOG_EDSV_SF(EDS_EVENT_PROCESSING_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-				      __LINE__, 0, evt->fr_dest);
-			return NCSCC_RC_FAILURE;
-		}
-
-		memset(&miblib_req, '\0', sizeof(NCSMIBLIB_REQ_INFO));
-
-		miblib_req.req = NCSMIBLIB_REQ_MIB_OP;
-		miblib_req.info.i_mib_op_info.args = evt->info.mib_req;
-		miblib_req.info.i_mib_op_info.cb = eds_cb;
-
-		ncsmiblib_process_req(&miblib_req);
-
-		/* Give the cb handle back */
-		ncshm_give_hdl(evt->cb_hdl);
-
-		ncsmib_memfree(evt->info.mib_req);
-		evt->info.mib_req = NULL;
-
-		return NCSCC_RC_SUCCESS;
-	} else {
-		m_LOG_EDSV_SF(EDS_EVENT_PROCESSING_FAILED, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, 0, __FILE__,
-			      __LINE__, 0, evt->fr_dest);
-		return NCSCC_RC_FAILURE;
-	}
-
-}	/*End eds_proc_mib_request */
 
 /****************************************************************************
  * Name          : eds_proc_quiesced_ack_evt
@@ -1314,7 +1253,7 @@ uns32 eds_process_evt(EDSV_EDS_EVT *evt)
 	}
 
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if ((evt->evt_type >= EDSV_EDS_EVT_BASE) && (evt->evt_type <= EDSV_EVT_MIB_REQ)) {
+		if ((evt->evt_type >= EDSV_EDS_EVT_BASE) && (evt->evt_type <= EDSV_EDS_RET_TIMER_EXP)) {
 	  /** Invoke the evt dispatcher **/
 			eds_edsv_top_level_evt_dispatch_tbl[evt->evt_type] (evt);
 		} else if (evt->evt_type == EDSV_EVT_QUIESCED_ACK) {
@@ -1397,14 +1336,14 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 {
 	uns32 x;
 	uns32 is_ascii;
-	int8 *ptr;
-	int8 str[524] = { 0 };
+	char *ptr;
+	char str[524] = { 0 };
 
 	/* See if the channel name is a printable string.
 	 * If not, just give the length for now.
 	 */
 	is_ascii = TRUE;
-	ptr = (int8 *)wp->cname;
+	ptr = (char *)wp->cname;
 	for (x = 0; x < wp->cname_len; x++) {
 		if (isascii(*ptr++))
 			continue;
@@ -1430,7 +1369,7 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 	 * If not, just say it's binary of some length.
 	 */
 	is_ascii = TRUE;
-	ptr = (int8 *)publish_param->publisher_name.value;
+	ptr = (char *)publish_param->publisher_name.value;
 	for (x = 0; x < publish_param->publisher_name.length; x++) {
 		if (isascii(*ptr++))
 			continue;
@@ -1448,7 +1387,7 @@ static void eds_publish_log_event(EDS_WORKLIST *wp, EDSV_EDA_PUBLISH_PARAM *publ
 			 publish_param->publisher_name.length);
 
 	m_LOG_EDS_EVENT(EDS_EVENT_HDR_LOG,
-			str,
+			(int8 *)str,
 			(uns32)publish_param->event_id,
 			(uns32)publish_time, (uns32)publish_param->priority, (uns32)publish_param->retention_time);
 }

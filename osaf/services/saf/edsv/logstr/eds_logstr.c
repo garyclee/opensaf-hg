@@ -116,9 +116,6 @@ const NCSFL_STR eds_hdln_set[] = {
 	/* MBCSV RElated logs * */
 	{EDS_MBCSV_SUCCESS, "Mbcsv Success"},
 	{EDS_MBCSV_FAILURE, "Mbcsv Failure "},
-	/* MIB Related logs */
-	{EDS_MIB_SUCCESS, "Mib Success"},
-	{EDS_MIB_FAILURE, "Mib Failed "},
 	/* MDS Related logs */
 	{EDS_MDS_SUCCESS, "MDS Processing Success"},
 	{EDS_MDS_FAILURE, "MDS Processing Failed "},

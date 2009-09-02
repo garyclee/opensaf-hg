@@ -51,7 +51,7 @@ void eds_dump_event_patterns(SaEvtEventPatternArrayT *patternArray)
 	for (x = 0; x < (int32)patternArray->patternsNumber; x++) {
 		memcpy(buf, pEventPattern->pattern, (uns32)pEventPattern->patternSize);
 		buf[pEventPattern->patternSize] = '\0';
-		printf("     pattern[%ld] =    {%2u, \"%s\"}\n", x, (uns32)pEventPattern->patternSize, buf);
+		printf("     pattern[%d] =    {%2u, \"%s\"}\n", x, (uns32)pEventPattern->patternSize, buf);
 		pEventPattern++;
 	}
 }
@@ -162,9 +162,9 @@ void eds_dump_reglist()
 	uns32 num_subscriptions = 0;
 	CHAN_OPEN_LIST *co = NULL;
 	SUBSC_LIST *s = NULL;
-	int8 *bp;
+	char *bp;
 	EDA_REG_REC *rl;
-	int8 buff[60];
+	char buff[60];
 	EDS_CB *cb = NULL;
 	uns32 temp;
 	EDA_DOWN_LIST *down_rec = NULL;
@@ -241,8 +241,8 @@ void eds_dump_worklist()
 	CHAN_OPEN_REC *co = NULL;
 	SUBSC_REC *s = NULL;
 	EDS_RETAINED_EVT_REC *retd_evt_rec = NULL;
-	int8 *bp;
-	int8 buff[BUFF_SIZE_80];
+	char *bp;
+	char buff[BUFF_SIZE_80];
 	SaUint8T list_iter;
 	EDS_CB *eds_cb = NULL;
 	EDS_WORKLIST *wp = NULL;
@@ -316,13 +316,13 @@ void eds_dump_worklist()
 
 	printf("\nTotal Channel IDs:%d   Total Subscriptions:%d\n", num_events, num_subscriptions);
 
-/* Code for MIB DUMP */
-	printf("\nMIB DATA BASE \n");
+/* Code for CB DUMP */
+	printf("\nEDS DATA BASE \n");
 	cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)NULL);
 
 	while (cn) {
 		if (cn->wp_rec)
-			printf("\nMib : %s                 Actual: %s", cn->chan_name.value, (cn->wp_rec)->cname);
+			printf("\nDB : %s                 Actual: %s", cn->chan_name.value, (cn->wp_rec)->cname);
 		cn = (EDS_CNAME_REC *)ncs_patricia_tree_getnext(&eds_cb->eds_cname_list, (uns8 *)&cn->chan_name);
 	}
 

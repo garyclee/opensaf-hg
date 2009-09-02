@@ -31,6 +31,13 @@
 #define EDSV_BASE_MAJOR_VERSION 0x01
 #define EDSV_BASE_MINOR_VERSION 0x01
 
+/* IMMSv Defs */
+#define EDSV_IMM_RELEASE_CODE 'A'
+#define EDSV_IMM_MAJOR_VERSION 0x02
+#define EDSV_IMM_MINOR_VERSION 0x01
+
+#define EDSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safEvtService"
+
 /* Macro to validate the EVT version */
 #define m_EDA_VER_IS_VALID(ver)   \
        (ver->releaseCode  == EDSV_RELEASE_CODE) && \
@@ -83,12 +90,6 @@
 #define m_EDSV_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
 
 #define m_EDSV_GET_CLM_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x01;
-
-#define m_EDSV_UNS64_TO_VB(param,buffer,value)\
-   param->i_fmat_id = NCSMIB_FMAT_OCT; \
-   param->i_length = 8; \
-   param->info.i_oct = (uns8 *)buffer; \
-   m_NCS_OS_HTONLL_P(param->info.i_oct,value); \
 
 /* DTSv versioning support */
 #define EDSV_LOG_VERSION 3
