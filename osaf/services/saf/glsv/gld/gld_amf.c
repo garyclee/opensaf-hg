@@ -25,6 +25,7 @@
 
 #include "gld.h"
 #include "gld_log.h"
+#include "gld_imm.h"
 
 /****************************************************************************
  * Name          : gld_amf_CSI_set_callback

@@ -33,6 +33,6 @@
 #ifndef NCS_DUMMY_H
 #define NCS_DUMMY_H
 
-EXTERN_C LEAPDLL_API int ncs_dummy_var_arg_func(const int8 *format, ...);
+EXTERN_C LEAPDLL_API int ncs_dummy_var_arg_func(const char *format, ...);
 
 #endif

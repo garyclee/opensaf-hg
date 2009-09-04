@@ -16,7 +16,6 @@
  */
 
 #include "gld.h"
-#include "gld_log.h"
 #include "gld_imm.h"
 
 /*****************************************************************************
@@ -145,7 +144,7 @@ GLSV_GLD_RSC_INFO *gld_add_rsc_info(GLSV_GLD_CB *gld_cb, SaNameT rsc_name, SaLck
 
 	/*Add the imm runtime object */
 	if (gld_cb->ha_state == SA_AMF_HA_ACTIVE)
-		err = create_runtime_object(rsc_name.value, rsc_info->saf_rsc_creation_time, gld_cb->immOiHandle);
+		err = create_runtime_object((char *)rsc_name.value, rsc_info->saf_rsc_creation_time, gld_cb->immOiHandle);
 
 	if (err != SA_AIS_OK) {
 		gld_log(NCSFL_SEV_ERROR, "create_runtime_object failed %u\n", err);

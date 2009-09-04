@@ -142,14 +142,14 @@ GLND_CB *glnd_cb_create(uns32 pool_id)
 
 	memset(&healthy, 0, sizeof(healthy));
 
-	health_key = getenv("GLSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8 *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
-		strcpy(healthy.key, "A1B2");
+		strcpy((char *)healthy.key, "A1B2");
 		/* TBD Log the info */
 	} else {
-		strcpy(healthy.key, health_key);
+		strcpy((char *)healthy.key, (char *)health_key);
 	}
-	healthy.keyLen = strlen(healthy.key);
+	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(glnd_cb->amf_hdl, &glnd_cb->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_RESTART);

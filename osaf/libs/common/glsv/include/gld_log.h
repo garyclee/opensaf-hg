@@ -19,6 +19,7 @@
 #define GLD_LOG_H
 
 #define gld_log(severity, format, args...) _gld_log((severity), __FUNCTION__, (format), ##args)
+void _gld_log(uns8 severity, const char *function, const char *format, ...);
 
 /******************************************************************************
  Logging offset indexes for Headline logging
