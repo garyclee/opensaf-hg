@@ -72,7 +72,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[])
 	glnd_open_req.type = NCS_OS_POSIX_SHM_REQ_OPEN;
 	glnd_open_req.info.open.i_size = shm_size;
 	glnd_open_req.info.open.i_offset = 0;
-	glnd_open_req.info.open.i_name = shm_name;
+	glnd_open_req.info.open.i_name = (int8 *)shm_name;
 	glnd_open_req.info.open.i_map_flags = MAP_SHARED;
 	glnd_open_req.info.open.o_addr = NULL;
 	glnd_open_req.info.open.i_flags = O_RDWR;
@@ -81,7 +81,7 @@ static uns32 glnd_shm_open(GLND_CB *cb, char shm_name[])
 
 	if (rc == NCSCC_RC_FAILURE) {
 		/* Initially Shared memory open fails so create a shared memory */
-		glnd_open_req.info.open.i_flags = O_CREAT | O_RDWR;
+		glnd_open_req.info.open.i_flags = (unsigned int)O_CREAT | O_RDWR;
 
 		rc = ncs_os_posix_shm(&glnd_open_req);
 		if (rc == NCSCC_RC_FAILURE) {
@@ -195,7 +195,7 @@ uns32 glnd_shm_destroy(GLND_CB *cb, char shm_name[])
 
 	glnd_dest_req.type = NCS_OS_POSIX_SHM_REQ_UNLINK;
 
-	glnd_dest_req.info.unlink.i_name = shm_name;
+	glnd_dest_req.info.unlink.i_name = (int8 *)shm_name;
 	rc = ncs_os_posix_shm(&glnd_dest_req);
 
 	return rc;

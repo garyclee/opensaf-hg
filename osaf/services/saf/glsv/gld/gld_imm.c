@@ -19,7 +19,6 @@
 #include "gld_imm.h"
 #include "immutil.h"
 #include "saImm.h"
-#include "gld_log.h"
 
 #define GLSV_IMM_IMPLEMENTER_NAME (SaImmOiImplementerNameT) "safLckService"
 
@@ -69,14 +68,14 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	GLSV_GLD_RSC_INFO *rsc_info;
 	GLSV_GLD_RSC_MAP_INFO *map;
 	SaNameT rsc_name;
-	SaUint32T attr1, attr2, attr3;
+	SaUint32T num_users, is_orphan, stripped_cnt;
 	SaImmAttrNameT attributeName;
 	SaImmAttrModificationT_2 attr_output[3];
-	SaImmAttrModificationT_2 *attrMods[4];
+	const SaImmAttrModificationT_2 *attrMods[4];
 
-	const SaImmAttrValueT attrUpdateValues1[] = { &attr1 };
-	const SaImmAttrValueT attrUpdateValues2[] = { &attr2 };
-	const SaImmAttrValueT attrUpdateValues3[] = { &attr3 };
+	SaImmAttrValueT attrUpdateValues1[] = { &num_users };
+	SaImmAttrValueT attrUpdateValues2[] = { &is_orphan };
+	SaImmAttrValueT attrUpdateValues3[] = { &stripped_cnt };
 
 	/* Get GLD CB Handle. */
 	gld_cb = m_GLSV_GLD_RETRIEVE_GLD_CB;
@@ -93,7 +92,7 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 				while ((attributeName = attributeNames[i]) != NULL) {
 
 					if (strcmp(attributeName, "saLckResourceNumOpeners") == 0) {
-						attr1 = rsc_info->saf_rsc_no_of_users;
+						num_users = rsc_info->saf_rsc_no_of_users;
 						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 						attr_output[attr_count].modAttr.attrName = attributeName;
 						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
@@ -102,7 +101,7 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						attrMods[attr_count] = &attr_output[attr_count];
 						++attr_count;
 					} else if (strcmp(attributeName, "saLckResourceIsOrphaned") == 0) {
-						attr2 = rsc_info->can_orphan;
+						is_orphan = rsc_info->can_orphan;
 						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 						attr_output[attr_count].modAttr.attrName = attributeName;
 						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
@@ -111,7 +110,7 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 						attrMods[attr_count] = &attr_output[attr_count];
 						++attr_count;
 					} else if (strcmp(attributeName, "saLckResourceStrippedCount") == 0) {
-						attr3 = rsc_info->saf_rsc_stripped_cnt;
+						stripped_cnt = rsc_info->saf_rsc_stripped_cnt;
 						attr_output[attr_count].modType = SA_IMM_ATTR_VALUES_REPLACE;
 						attr_output[attr_count].modAttr.attrName = attributeName;
 						attr_output[attr_count].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
@@ -125,7 +124,7 @@ SaAisErrorT gld_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 				}	/*End while attributesNames() */
 
 				attrMods[attr_count] = NULL;
-				saImmOiRtObjectUpdate_2(gld_cb->immOiHandle, objectName, &attrMods);
+				saImmOiRtObjectUpdate_2(gld_cb->immOiHandle, objectName, attrMods);
 				return SA_AIS_OK;
 			}	/* End if  m_CMP_HORDER_SANAMET */
 		}		/* end of if (rsc_info != NULL) */
@@ -154,7 +153,8 @@ SaAisErrorT create_runtime_object(SaStringT rname, SaTimeT create_time, SaImmOiH
 	char *parent_name = strchr(rname, ',');
 	char *rdnstr;
 	SaImmAttrValueT arr1[1], arr2[1];
-	SaImmAttrValuesT_2 attr_lckrsc, attr_LckRscCreationTimeStamp, *attrValues[3];
+	SaImmAttrValuesT_2 attr_lckrsc, attr_LckRscCreationTimeStamp;
+	const SaImmAttrValuesT_2 *attrValues[3];
 
 	if (parent_name != NULL) {
 		rdnstr = strtok(dndup, ",");
@@ -221,7 +221,7 @@ SaAisErrorT gld_imm_init(GLSV_GLD_CB *cb)
  *
  * Notes         : None.
  *****************************************************************************/
-void _gld_imm_declare_implementer(void *cb)
+void *_gld_imm_declare_implementer(void *cb)
 {
 	SaAisErrorT error = SA_AIS_OK;
 	GLSV_GLD_CB *gld_cb = (GLSV_GLD_CB *)cb;
@@ -236,6 +236,7 @@ void _gld_imm_declare_implementer(void *cb)
 		gld_log(NCSFL_SEV_ERROR, "saImmOiImplementerSet FAILED, rc = %u", error);
 		exit(EXIT_FAILURE);
 	}
+	return NULL;
 }
 
 /**

@@ -27,7 +27,7 @@
 #include "ncs_osprm.h"
 #include "ncs_dummy.h"
 
-int ncs_dummy_var_arg_func(const int8 *format, ...)
+int ncs_dummy_var_arg_func(const char *format, ...)
 {
 	return 0;
 }

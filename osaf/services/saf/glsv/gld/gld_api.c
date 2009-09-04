@@ -25,7 +25,7 @@
 ******************************************************************************/
 
 #include "gld.h"
-#include "gld_log.h"
+#include "gld_imm.h"
 #include <poll.h>
 GLDDLL_API uns32 gl_gld_hdl;
 
@@ -212,14 +212,14 @@ uns32 gld_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
    /** start the AMF health check **/
 	memset(&Healthy, 0, sizeof(Healthy));
-	health_key = getenv("GLSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8 *)getenv("GLSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
-		strcpy(Healthy.key, "A1B2");
+		strcpy((char *)Healthy.key, "A1B2");
 		m_LOG_GLD_HEADLINE(GLD_HEALTH_KEY_DEFAULT_SET, NCSFL_SEV_INFO);
 	} else {
-		strcpy(Healthy.key, health_key);
+		strcpy((char *)Healthy.key, (char *)health_key);
 	}
-	Healthy.keyLen = strlen(Healthy.key);
+	Healthy.keyLen = strlen((char *)Healthy.key);
 
 	amf_error = saAmfHealthcheckStart(gld_cb->amf_hdl, &gld_cb->comp_name, &Healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
