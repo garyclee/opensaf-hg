@@ -179,26 +179,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	printf("eds_se_lib_init : eds_mbcsv_init() EDS MBCSV INIT SUCCESS \n");
 
-	/* initialize the signal handler */
-	if ((ncs_app_signal_install(SIGUSR1, eds_amf_sigusr1_handler)) == -1) {
-		m_LOG_EDSV_S(EDS_INSTALL_SIGHDLR_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
-		eds_mds_finalize(eds_cb);
-		printf("eds_se_lib_init : INSTALL SIGNAL HANDLER FAILED\n");
-		m_NCS_IPC_RELEASE(&eds_cb->mbx, NULL);
-		/* Release EDU handle */
-		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		/* clean up the CB */
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Create the selection object associated with USR1 signal handler */
-	m_NCS_SEL_OBJ_CREATE(&eds_cb->sighdlr_sel_obj);
-
-	m_LOG_EDSV_S(EDS_INSTALL_SIGHDLR_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-
 	/* Create EDS's thread */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_TASK_CREATE((NCS_OS_CB)eds_main_process,
 							&eds_cb->mbx,

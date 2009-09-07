@@ -597,61 +597,6 @@ uns32 eds_amf_register(EDS_CB *eds_cb)
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************\
- *  Name:          eds_amf_sigusr1_handler                                    * 
- *                                                                            *
- *  Description:   Raise selection object to register with AMF      *
- *                                                                            *
- *  Arguments:     int i_sug_num -  Signal received                           *
- *                                                                            * 
- *  Returns:       Nothing                                                    *  
- *  NOTE:                                                                     * 
-\*****************************************************************************/
-/* signal from AMF, time to register with AMF */
-void eds_amf_sigusr1_handler(int i_sig_num)
-{
-	EDS_CB *eds_cb;
-	if (NULL == (eds_cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl))) {
-		m_LOG_EDSV_S(EDS_CB_TAKE_HANDLE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__, __LINE__, 0);
-		printf("eds_amf_sigusr1_handler : eds_cb take FAILED...... \n");
-		return;
-	} else {
-		/* uninstall the signal handler */
-		m_NCS_SIGNAL(SIGUSR1, SIG_IGN);
-		m_NCS_SEL_OBJ_IND(eds_cb->sighdlr_sel_obj);
-		ncshm_give_hdl(gl_eds_hdl);
-	}
-	return;
-}
-
-/*****************************************************************************\
- *  Name:          ncs_app_signal_install                                     * 
- *                                                                            *
- *  Description:   to install a singnal handler for a given signal            *
- *                                                                            *
- *  Arguments:     int i_sig_num - for which signal?                          *
- *                 SIG_HANDLR    - Handler to hanlde the signal               *
- *                                                                            * 
- *  Returns:       0  - everything is OK                                      *
- *                 -1 - failure                                               *
- *  NOTE:                                                                     * 
-\*****************************************************************************/
-/* install the signal handler */
-int32 ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler)
-{
-	struct sigaction sig_act;
-
-	if ((i_sig_num <= 0) || (i_sig_num > 32) ||	/* not the real time signals */
-	    (i_sig_handler == NULL))
-		return -1;
-
-	/* now say that, we are interested in this signal */
-	memset(&sig_act, 0, sizeof(struct sigaction));
-	sig_act.sa_handler = i_sig_handler;
-	return sigaction(i_sig_num, &sig_act, NULL);
-
-}
-
 /**************************************************************************
  * Function: eds_clm_init
  *

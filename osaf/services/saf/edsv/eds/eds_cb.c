@@ -54,7 +54,7 @@ static void sigusr1_handler(int sig)
 	(void)sig;
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(usr1_sel_obj);
-	printf("Got USR1 signal");
+	m_EDSV_DEBUG_CONS_PRINTF("Received USR1 signal");
 }
 
 /****************************************************************************
@@ -186,27 +186,18 @@ void eds_main_process(SYSF_MBX *mbx)
 	/* Give back the handle */
 	ncshm_give_hdl(gl_eds_hdl);
 
-	/* Register for CLM services */
-	error = eds_clm_init(eds_cb);
-	if (error != SA_AIS_OK)
-		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error, __FILE__,
-			     __LINE__, 0);
-	else
-		m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, error, __FILE__,
-			     __LINE__, 0);
-
 	/* Initialize with IMM */
 	if (eds_imm_init(eds_cb) == SA_AIS_OK) {
 		if (eds_cb->ha_state == SA_AMF_HA_ACTIVE) {
 			if (eds_imm_declare_implementer(eds_cb->immOiHandle) != SA_AIS_OK)
-				printf("Implementer Set Failed\n");
+				m_EDSV_DEBUG_CONS_PRINTF("Implementer Set Failed\n");
 		}
 	} else
-		printf("Imm Init Failed \n");
+		m_EDSV_DEBUG_CONS_PRINTF("Imm Init Failed \n");
 
 	/* Create a selection object */
 	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
-		printf("ncs_sel_obj_create failed");
+		m_EDSV_DEBUG_CONS_PRINTF("ncs_sel_obj_create failed");
 		exit(1);
 	}
 
@@ -215,7 +206,7 @@ void eds_main_process(SYSF_MBX *mbx)
 	 ** The signal is sent from our script when AMF does instantiate.
 	 */
 	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
-		printf("signal USR1 failed: %s", strerror(errno));
+		m_EDSV_DEBUG_CONS_PRINTF("signal USR1 failed: %s", strerror(errno));
 		exit(1);
 	}
 
@@ -224,8 +215,6 @@ void eds_main_process(SYSF_MBX *mbx)
 	fds[FD_USR1].events = POLLIN;
 	fds[FD_MBCSV].fd = eds_cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
-	fds[FD_CLM].fd = eds_cb->clm_sel_obj;
-	fds[FD_CLM].events = POLLIN;
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = eds_cb->imm_sel_obj;
@@ -238,7 +227,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			if (errno == EINTR)
 				continue;
 
-			printf("poll failed - %s", strerror(errno));
+			m_EDSV_DEBUG_CONS_PRINTF("poll failed - %s", strerror(errno));
 			break;
 		}
 		/* process all the AMF messages */
@@ -257,16 +246,29 @@ void eds_main_process(SYSF_MBX *mbx)
 				if (error != NCSCC_RC_SUCCESS) {
 					m_LOG_EDSV_S(EDS_AMF_REG_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, error,
 						     __FILE__, __LINE__, 0);
-					printf("eds_main_process : eds_amf_register()- AMF Registration FAILED \n");
+					m_EDSV_DEBUG_CONS_PRINTF("AMF Init failed: Exiting.\n");
+					exit(1);
 				} else {
 					m_LOG_EDSV_S(EDS_AMF_REG_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE, error,
 						     __FILE__, __LINE__, 0);
-					printf("eds_main_process: AMF Registration SUCCESS...... \n");
 					fds[FD_AMF].fd = eds_cb->amfSelectionObject;
 				}
-			}
-		} 
+				error = eds_clm_init(eds_cb);
+				if (error != SA_AIS_OK) {
+					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR,
+						     error, __FILE__, __LINE__, 0);
+					m_EDSV_DEBUG_CONS_PRINTF("CLM Init failed: Exiting.\n");
+					exit(1);
+				} else {
+					m_LOG_EDSV_S(EDS_CLM_REGISTRATION_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_NOTICE,
+						     error, __FILE__, __LINE__, 0);
+				}
+				fds[FD_CLM].fd = eds_cb->clm_sel_obj;
+				fds[FD_CLM].events = POLLIN;
+			}	/* Else Amf-Clm register */
+		}
 
+		/* End-if FD_AMF events */
 		/* process all mbcsv messages */
 		if (fds[FD_MBCSV].revents & POLLIN) {
 			m_EDSV_DEBUG_CONS_PRINTF("MBCSV EVENT HAS OCCURRED....\n");
@@ -291,8 +293,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			/* dispatch all the AMF pending callbacks */
 			error = saClmDispatch(eds_cb->clm_hdl, SA_DISPATCH_ALL);
 			if (error != SA_AIS_OK)
-				printf("CLM Dispatch failed, error \n");
-			/* Log it */
+				m_EDSV_DEBUG_CONS_PRINTF("CLM Dispatch failed, error \n");
 		}
 
 		/* process the IMM messages */
@@ -313,7 +314,7 @@ void eds_main_process(SYSF_MBX *mbx)
 			 */
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				printf("saImmOiDispatch returned BAD_HANDLE %u", error);
+				m_EDSV_DEBUG_CONS_PRINTF("saImmOiDispatch returned BAD_HANDLE %u", error);
 
 				/* Invalidate the IMM OI handle. */
 				eds_cb->immOiHandle = 0;
@@ -328,12 +329,13 @@ void eds_main_process(SYSF_MBX *mbx)
 					/* If this is the active server, become implementer again. */
 					if (eds_cb->ha_state == SA_AMF_HA_ACTIVE)
 						eds_imm_declare_implementer(eds_cb->immOiHandle);
+					m_EDSV_DEBUG_CONS_PRINTF("eds_imm_init successful\n");
 				}
-
+			
 				fds[FD_IMM].fd = eds_cb->imm_sel_obj;
 				nfds = FD_IMM + 1;
 			} else if (error != SA_AIS_OK) {
-				printf("saImmOiDispatch FAILED: %u", error);
+				m_EDSV_DEBUG_CONS_PRINTF("saImmOiDispatch FAILED: %u", error);
 				break;
 			}
 
