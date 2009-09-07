@@ -187,7 +187,8 @@ SaAisErrorT saNtfInitialize(SaNtfHandleT *ntfHandle, const SaNtfCallbacksT *ntfC
 	}
 
 	/* validate the version */
-	if ((version->releaseCode == NTF_RELEASE_CODE) && (version->majorVersion <= NTF_MAJOR_VERSION)) {
+	if ((version->releaseCode == NTF_RELEASE_CODE) && (version->majorVersion <= NTF_MAJOR_VERSION) && 
+		 (0 < version->majorVersion)) {
 		version->majorVersion = NTF_MAJOR_VERSION;
 		version->minorVersion = NTF_MINOR_VERSION;
 	} else {

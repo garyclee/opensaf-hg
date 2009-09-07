@@ -38,6 +38,7 @@ extern void tet_result(int result);
 #define TET_NORESULT	7
 
 
+extern const SaVersionT refVersion;
 extern SaVersionT ntfVersion;
 extern SaAisErrorT rc;
 extern SaNtfHandleT ntfHandle;

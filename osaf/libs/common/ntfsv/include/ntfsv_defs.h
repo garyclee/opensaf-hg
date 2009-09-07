@@ -19,7 +19,7 @@
 #define NTFSV_DEFS_H
 
 #define NTF_RELEASE_CODE 'A'
-#define NTF_MAJOR_VERSION 2
+#define NTF_MAJOR_VERSION 1
 #define NTF_MINOR_VERSION 1
 
 #endif   /* NTFSV_DEFS_H */
