@@ -21,10 +21,6 @@
 #include "ntfs.h"
 #include "ntfsv_enc_dec.h"
 
-/* Macro to validate the version */
-#define m_NTF_VER_IS_VALID(ver)   \
-   ( (ver->releaseCode == NTF_RELEASE_CODE) && \
-     (ver->majorVersion == NTF_MAJOR_VERSION || ver->minorVersion == NTF_MINOR_VERSION))
 
 #define m_NTFSV_FILL_ASYNC_UPDATE_FINALIZE(ckpt,client_id){ \
   ckpt.header.ckpt_rec_type=NTFS_CKPT_FINALIZE_REC; \
@@ -44,6 +40,19 @@ static uns32 proc_send_not_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_reader_initialize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_reader_finalize_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
 static uns32 proc_read_next_msg(ntfs_cb_t *, ntfsv_ntfs_evt_t *evt);
+
+static int ntf_version_is_valid(SaVersionT *ver) {
+/* TODO: remove after upgrade to version A.02.01 */       
+/* To be backward compatible during upgrade due to ticket (#544)(#634) */
+	const SaVersionT alloved_ver = {'A', 0x02, 0x01};
+	if (ver->releaseCode == alloved_ver.releaseCode &&
+		ver->minorVersion == alloved_ver.minorVersion &&
+		ver->majorVersion == alloved_ver.majorVersion)
+		return 1;
+
+	return((ver->releaseCode == NTF_RELEASE_CODE) && (0 < ver->majorVersion) && 
+			 (ver->majorVersion <= NTF_MAJOR_VERSION));
+}
 
 static const
 NTFSV_NTFS_EVT_HANDLER ntfs_ntfsv_top_level_evt_dispatch_tbl[NTFSV_NTFS_EVT_MAX] = {
@@ -185,7 +194,7 @@ static uns32 proc_initialize_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 
 	/* Validate the version */
 	version = &(evt->info.msg.info.api_info.param.init.version);
-	if (!m_NTF_VER_IS_VALID(version)) {
+	if (!ntf_version_is_valid(version)) {
 		ais_rc = SA_AIS_ERR_VERSION;
 		TRACE("version FAILED");
 		client_added_res_lib(ais_rc, 0, evt->fr_dest, &evt->mds_ctxt);

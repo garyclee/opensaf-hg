@@ -19,7 +19,11 @@
 #include "tet_ntf.h"
 #include "test.h"
 
-SaVersionT ntfVersion = {'A', 0x02, 0x01};
+/* Change this to current highest supported version */
+#define NTF_HIGHEST_SUPPORTED_VERSION {'A', 0x01, 0x01}
+
+const SaVersionT refVersion = NTF_HIGHEST_SUPPORTED_VERSION;
+SaVersionT ntfVersion = NTF_HIGHEST_SUPPORTED_VERSION;
 SaAisErrorT rc;
 SaNtfHandleT ntfHandle;
 SaNtfCallbacksT ntfCallbacks = {NULL, NULL};

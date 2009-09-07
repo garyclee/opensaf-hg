@@ -17,9 +17,21 @@
 #include "tet_ntf.h"
 #include "test.h"
 
+
+SaAisErrorT checkReturnedVersion(SaVersionT rVersion)
+{
+	if (rVersion.releaseCode == refVersion.releaseCode &&
+		 rVersion.minorVersion == refVersion.minorVersion &&
+		 rVersion.majorVersion == refVersion.majorVersion) {
+			  return SA_AIS_OK;
+	}
+	return SA_AIS_ERR_VERSION;
+}
+
 void saNtfInitialize_01(void)
 {
     rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &ntfVersion);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
     safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
     test_validate(rc, SA_AIS_OK);
 }
@@ -53,31 +65,67 @@ void saNtfInitialize_06(void)
 {
     SaVersionT version = {0, 0, 0};
     rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
     test_validate(rc, SA_AIS_ERR_VERSION);
 }
 
 void saNtfInitialize_07(void)
 {
     SaVersionT version = {'B', 1, 1};
-
     rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
     test_validate(rc, SA_AIS_ERR_VERSION);
 }
 
 void saNtfInitialize_08(void)
 {
-    SaVersionT version = {'A', 2, 1};
-
+	 SaVersionT version = refVersion;
+	 version.minorVersion++;
     rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
     test_validate(rc, SA_AIS_OK);
     safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
 }
 
 void saNtfInitialize_09(void)
 {
-    SaVersionT version = {'A', 3, 0};
+    SaVersionT version = refVersion;
+	 version.majorVersion++;
+    rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
+    test_validate(rc, SA_AIS_ERR_VERSION);
+}
+void saNtfInitialize_10(void)
+{
+    SaVersionT version = refVersion;
+	 version.minorVersion--;
 
     rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+    test_validate(rc, SA_AIS_OK);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
+    safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+}
+void saNtfInitialize_11(void)
+{
+	 SaVersionT version = refVersion;
+	 version.majorVersion--;
+	 SaUint8T zeroVersion = 0;
+
+    rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
+	 if (version.majorVersion <= zeroVersion) {
+				test_validate(rc, SA_AIS_OK);
+				safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
+	 } else {
+				test_validate(rc, SA_AIS_ERR_VERSION);
+	 }
+}
+
+void saNtfInitialize_12(void)
+{
+    SaVersionT version = {'A', 0, 0};
+    rc = saNtfInitialize(&ntfHandle, &ntfCallbacks, &version);
+	 safassert(checkReturnedVersion(ntfVersion), SA_AIS_OK);
     test_validate(rc, SA_AIS_ERR_VERSION);
 }
 
@@ -91,7 +139,10 @@ __attribute__ ((constructor)) static void saNtfInitialize_constructor(void)
     test_case_add(1, saNtfInitialize_05, "saNtfInitialize with uninitialized handle");
     test_case_add(1, saNtfInitialize_06, "saNtfInitialize with uninitialized version");
     test_case_add(1, saNtfInitialize_07, "saNtfInitialize with too high release level");
-    test_case_add(1, saNtfInitialize_08, "saNtfInitialize with minor version set to 1");
-    test_case_add(1, saNtfInitialize_09, "saNtfInitialize with major version set to 3");
+    test_case_add(1, saNtfInitialize_08, "saNtfInitialize with minor version set too high");
+    test_case_add(1, saNtfInitialize_09, "saNtfInitialize with major version set too high");
+    test_case_add(1, saNtfInitialize_10, "saNtfInitialize with minor version set to lower");
+    test_case_add(1, saNtfInitialize_11, "saNtfInitialize with major version set to lower");
+    test_case_add(1, saNtfInitialize_12, "saNtfInitialize with version A.0.0");
 }
 
