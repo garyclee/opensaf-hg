@@ -80,14 +80,6 @@ eds_amf_csi_rmv_callback(SaInvocationT invocation,
 			 const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
 uns32 eds_amf_register(EDS_CB *);
 
-void eds_amf_sigusr1_handler(int i_sig_num);
-
-/*signal handler */
-typedef void
- (*SIG_HANDLR) (int);
-
-int32 ncs_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
-
 uns32 pcs_rda_get_init_role(EDS_CB *eds_cb);
 SaAisErrorT eds_clm_init(EDS_CB *cb);
 void eds_clm_cluster_track_cbk(const SaClmClusterNotificationBufferT *notificationBuffer,

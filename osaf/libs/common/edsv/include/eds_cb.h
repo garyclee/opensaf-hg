@@ -252,7 +252,6 @@ typedef struct eds_cb_tag {
 	SaInvocationT amf_invocation_id;	/* AMF InvocationID - needed to handle Quiesed state */
 	NCS_BOOL is_quisced_set;
 	SaSelectionObjectT amfSelectionObject;	/*Selection Object to wait for amf events */
-	NCS_SEL_OBJ sighdlr_sel_obj;
 	NCS_BOOL healthCheckStarted;	/* Flag to check Health Check started or not */
 	SaAmfHAStateT ha_state;	/* present AMF HA state of the component     */
 	NCS_LOCK cb_lock;	/* Lock for this control Block               */
