@@ -841,18 +841,19 @@ SaAisErrorT saNtfNotificationSend(SaNtfNotificationHandleT notificationHandle)
 
 /*  3.15.3	Subscriber Operations   */
 /*  3.15.3.1	saNtfNotificationSubscribe()  */
-SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
-				       SaNtfSubscriptionIdT subscriptionId)
+SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles, SaNtfSubscriptionIdT subscriptionId)
 {
 	SaAisErrorT rc = SA_AIS_ERR_NOT_SUPPORTED;
-
+	int i;
 	ntfa_subscriber_list_t *listPtr;
 	ntfa_subscriber_list_t *listPtrNext;
 	ntfa_subscriber_list_t *ntfSubscriberList;
 
 	ntfa_filter_hdl_rec_t *filter_hdl_rec;
-	ntfa_client_hdl_rec_t *client_hdl_rec;
-	SaNtfNotificationFilterHandleT filterHndl;
+	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
+	SaNtfNotificationFilterHandleT filterHndl[5];
+	ntfa_filter_ptrs_rec_t filters;
+	SaNtfHandleT firstHandle;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
 	ntfsv_subscribe_req_t *send_param;
@@ -875,27 +876,61 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		}
 	}
 
-	if (notificationFilterHandles->alarmFilterHandle != SA_NTF_FILTER_HANDLE_NULL) {
-		filterHndl = notificationFilterHandles->alarmFilterHandle;
-
-		TRACE_1("Getting notificationFilterHandle!");
-
-		/* retrieve notification filter hdl rec */
-		filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl);
-		if (filter_hdl_rec == NULL) {
-			TRACE_1("ncshm_take_hdl failed");
-			TRACE_LEAVE();
-			return SA_AIS_ERR_BAD_HANDLE;
-		}
-
-		/* retrieve client hdl rec */
-		client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
-		if (client_hdl_rec == NULL) {
-			TRACE_1("ncshm_take_hdl failed");
-			ncshm_give_hdl(filterHndl);
-			TRACE_LEAVE();
-			return SA_AIS_ERR_BAD_HANDLE;
-		}
+	filterHndl[0] = notificationFilterHandles->attributeChangeFilterHandle;
+	filterHndl[1] = notificationFilterHandles->objectCreateDeleteFilterHandle;
+	filterHndl[2] = notificationFilterHandles->securityAlarmFilterHandle;
+	filterHndl[3] = notificationFilterHandles->stateChangeFilterHandle; 
+	filterHndl[4] = notificationFilterHandles->alarmFilterHandle;
+	for (i = 0; i < 5; i++) {
+			  if (filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL) {
+						 TRACE_1("Get FilterHandle");
+						 /* retrieve notification filter hdl rec */
+						 filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
+						 if (filter_hdl_rec == NULL) {
+									TRACE_1("ncshm_take_hdl failed");
+									TRACE_LEAVE();
+									return SA_AIS_ERR_BAD_HANDLE;
+						 }
+						 if (client_hdl_rec == NULL) {
+							 /* retrieve client hdl rec */
+							 client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
+							 if (client_hdl_rec == NULL) {
+								 int max_i = i;
+								 TRACE_1("ncshm_take_hdl failed");
+								 for (i=0; i < max_i; i++) {
+											ncshm_give_hdl(filterHndl[i]);
+								 }
+								 TRACE_LEAVE();
+								 return SA_AIS_ERR_BAD_HANDLE;
+							 }
+							 firstHandle = filter_hdl_rec->ntfHandle;
+						 }
+						 filters.alarm_filter = filter_hdl_rec;
+						 if (firstHandle != filter_hdl_rec->ntfHandle) {
+									TRACE_1("client_hdl_rec differs");
+									return SA_AIS_ERR_BAD_HANDLE;
+						 }
+						 switch (i) {
+									case 0:
+											  filters.att_ch_filter = filter_hdl_rec;
+											  break;
+									case 1:
+											  filters.obj_cr_del_filter = filter_hdl_rec;
+											  break;
+									case 2:
+											  filters.sec_al_filter = filter_hdl_rec;
+											  break;
+									case 3:
+											  filters.sta_ch_filter = filter_hdl_rec;
+											  break;
+									case 4:
+											  filters.alarm_filter = filter_hdl_rec;
+											  break;
+									default:
+											  return SA_AIS_ERR_INVALID_PARAM;
+						 }
+			  }
+	}
 
 		/* Check earlier subscriptions in subscriber list */
 		if (NULL != subscriberNoList) {
@@ -904,10 +939,8 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 			     listPtr != NULL; listPtr = listPtrNext, listPtrNext = listPtr->next) {
 				TRACE_1("listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
 				if (listPtr->subscriberListSubscriptionId == subscriptionId) {
-					ncshm_give_hdl(filter_hdl_rec->ntfHandle);
-					ncshm_give_hdl(filterHndl);
-					TRACE_LEAVE();
-					return SA_AIS_ERR_EXIST;
+					rc = SA_AIS_ERR_EXIST;
+					goto done;
 				}
 				if (listPtrNext == NULL) {
 					break;
@@ -919,15 +952,14 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		ntfSubscriberList = malloc(sizeof(ntfa_subscriber_list_t));
 		if (!ntfSubscriberList) {
 			LOG_ER("Out of memory in ntfSubscriberList");
-			ncshm_give_hdl(filter_hdl_rec->ntfHandle);
-			ncshm_give_hdl(filterHndl);
 			TRACE_LEAVE();
-			return SA_AIS_ERR_NO_MEMORY;
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
 		}
 		/* Add ntfHandle and subscriptionId into list */
 		ntfSubscriberList->subscriberListNtfHandle = filter_hdl_rec->ntfHandle;
 		ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
-
+		
 		if (NULL == subscriberNoList) {
 			subscriberNoList = ntfSubscriberList;
 			subscriberNoList->prev = NULL;
@@ -978,13 +1010,13 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		}
 		if (o_msg)
 			ntfa_msg_destroy(o_msg);
+ done:
 		ncshm_give_hdl(filter_hdl_rec->ntfHandle);
-		ncshm_give_hdl(filterHndl);
-	} else {
-		TRACE_1("No filter except the alarm filter supported!");
-		rc = SA_AIS_ERR_NOT_SUPPORTED;
-	}
-
+		for (i=0; i < 5; i++) {
+			if(filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL){
+					  ncshm_give_hdl(filterHndl[i]);
+			}
+		}
 	TRACE_LEAVE();
 	return rc;
 }
