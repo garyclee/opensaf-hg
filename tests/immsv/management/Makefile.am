@@ -58,4 +58,4 @@ immomtest_SOURCES = \
 	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOperationContinue.c
 
 immomtest_LDADD = \
-	$(top_builddir)/lib/lib_SaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

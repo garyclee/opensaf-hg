@@ -833,11 +833,11 @@ AC_CONFIG_FILES([
         scripts/openhpid_start
         scripts/openhpisubagt_clean
         scripts/openhpisubagt_start
-        scripts/tipc_reset.sh])
-        #tests/immsv/implementer/Makefile
-        #tests/immsv/management/Makefile
-        #tests/logsv/Makefile
-        #tests/ntfsv/Makefile])
+        scripts/tipc_reset.sh
+        tests/immsv/implementer/Makefile
+        tests/immsv/management/Makefile
+        tests/logsv/Makefile
+        tests/ntfsv/Makefile])
 
 AC_OUTPUT
 
