@@ -49,5 +49,5 @@ immoitest_SOURCES = \
 	$(top_srcdir)/tests/immsv/implementer/test_SaImmOiAdminOperation.c
 
 immoitest_LDADD = \
-	$(top_builddir)/lib/lib_SaImm/libSaImmOi.la \
-	$(top_builddir)/lib/lib_SaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

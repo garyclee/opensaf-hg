@@ -28,7 +28,7 @@ ntftest_CPPFLAGS = \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 ntftest_SOURCES = \
-	$(top_srcdir)/services/common/logtrace.c \
+	$(top_srcdir)/osaf/libs/core/common/logtrace.c \
 	$(top_srcdir)/tests/ntfsv/src/tet_ntf_main.c \
 	$(top_srcdir)/tests/ntfsv/src/sa_error.c \
 	$(top_srcdir)/tests/ntfsv/src/tet_ntf_common.c \
@@ -64,4 +64,4 @@ ntftest_SOURCES = \
 	$(top_srcdir)/tests/ntfsv/src/util.c
 
 ntftest_LDADD = \
-	$(top_builddir)/lib/lib_SaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la

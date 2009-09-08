@@ -46,4 +46,4 @@ logtest_SOURCES = \
 	$(top_srcdir)/tests/logsv/src/tet_LogOiOps.c
 
 logtest_LDADD = \
-	$(top_builddir)/lib/lib_SaLog/libSaLog.la
+	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la
