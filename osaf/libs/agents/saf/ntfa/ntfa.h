@@ -20,6 +20,7 @@
 
 #include <pthread.h>
 #include <assert.h>
+#include <limits.h>
 #include <saNtf.h>
 
 #include <ncs_main_papi.h>
