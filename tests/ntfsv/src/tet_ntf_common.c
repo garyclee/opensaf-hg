@@ -622,6 +622,7 @@ SaAisErrorT createAlarmNotification(SaNtfHandleT ntfHandle,
 
     /* set probable cause*/
     *(myAlarmNotification->probableCause) = SA_NTF_BANDWIDTH_REDUCED;
+	 *(myAlarmNotification->trend) = SA_NTF_TREND_MORE_SEVERE;
 
     return SA_AIS_OK;
 }
@@ -860,7 +861,7 @@ void createAttributeChangeNotification(SaNtfHandleT ntfHandle,
 	head->additionalInfo[1].infoId = 7;
 	head->additionalInfo[1].infoType = SA_NTF_VALUE_INT16;
 	head->additionalInfo[1].infoValue.int16Val = 77;
-
+	head->correlatedNotifications[0] = 45ull;
 	myAttrChangeNotification->changedAttributes[0].attributeId = 1;
 	myAttrChangeNotification->changedAttributes[0].attributeType = SA_NTF_VALUE_INT32;
 	myAttrChangeNotification->changedAttributes[0].newAttributeValue.int32Val = 32;
@@ -981,10 +982,10 @@ void createStateChangeNotification(SaNtfHandleT ntfHandle,
 	myStateChangeNotification->changedStates[0].newState = 3;
 	myStateChangeNotification->changedStates[0].oldState = 5;
 
-	myStateChangeNotification->changedStates[0].stateId = 77;
-	myStateChangeNotification->changedStates[0].oldStatePresent = SA_TRUE;
-	myStateChangeNotification->changedStates[0].oldState = 78;
-	myStateChangeNotification->changedStates[0].newState = 79;
+	myStateChangeNotification->changedStates[1].stateId = 77;
+	myStateChangeNotification->changedStates[1].oldStatePresent = SA_TRUE;
+	myStateChangeNotification->changedStates[1].oldState = 78;
+	myStateChangeNotification->changedStates[1].newState = 79;
 
 }
 

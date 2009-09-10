@@ -85,6 +85,14 @@ extern "C" {
 
 /* Notification message structs */
 
+	typedef struct ntfsv_filter_ptrs {
+		SaNtfObjectCreateDeleteNotificationFilterT *obj_cr_del_filter;
+	   SaNtfAttributeChangeNotificationFilterT *att_ch_filter;
+		SaNtfStateChangeNotificationFilterT *sta_ch_filter;
+		SaNtfAlarmNotificationFilterT *alarm_filter;
+		SaNtfSecurityAlarmNotificationFilterT *sec_al_filter;
+	} ntfsv_filter_ptrs_t;
+
 	typedef struct variable_data {
 		void *p_base;
 		size_t size;
@@ -138,6 +146,7 @@ extern "C" {
 	typedef struct {
 		uns32 client_id;
 		SaNtfSubscriptionIdT subscriptionId;
+		ntfsv_filter_ptrs_t f_rec;
 	} ntfsv_subscribe_req_t;
 
 	typedef struct {

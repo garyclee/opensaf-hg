@@ -84,22 +84,12 @@ typedef struct ntfa_filter_hdl_rec {
 	struct ntfa_client_hdl_rec *parent_hdl;	/* Back Pointer to the client instantiation */
 } ntfa_filter_hdl_rec_t;
 
-/* */
-typedef struct ntfa_filter_ptrs_rec {
-		ntfa_filter_hdl_rec_t *obj_cr_del_filter;
-	   ntfa_filter_hdl_rec_t *att_ch_filter;
-		ntfa_filter_hdl_rec_t *sta_ch_filter;
-		ntfa_filter_hdl_rec_t *alarm_filter;
-		ntfa_filter_hdl_rec_t *sec_al_filter;
-} ntfa_filter_ptrs_rec_t;
-
 /*
  * List of subscriptions made for filter handles of an ntf service instance
  */
 typedef struct subscriberList {
 	SaNtfHandleT subscriberListNtfHandle;
 	SaNtfSubscriptionIdT subscriberListSubscriptionId;
-	ntfa_filter_ptrs_rec_t filter;
 	struct subscriberList *prev;
 	struct subscriberList *next;
 } ntfa_subscriber_list_t;
