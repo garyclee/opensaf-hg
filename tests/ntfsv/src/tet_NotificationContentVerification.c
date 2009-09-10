@@ -844,12 +844,10 @@ __attribute__ ((constructor)) static void notificationContentVerification_constr
     test_suite_add(30, "Notification Content Verification");
     test_case_add(30, alarmNotificationTest, "AlarmNotification");
     test_case_add(30, alarmNotificationTest2, "AlarmNotification values");
-#if 0
     test_case_add(30, objectCreateDeleteNotificationTest, "ObjectCreateDeleteNotification");
     test_case_add(30, attributeChangeNotificationTest, "AttributeChangeNotification");
     test_case_add(30, stateChangeNotificationTest, "StateChangeNotification");
     test_case_add(30, securityAlarmNotificationTest, "SecurityAlarmNotification");
     test_case_add(30, miscellaneousNotificationTest, "MiscellaneousNotification");
     test_case_add(30, allNotificationTest, "All Notifications at once");
-#endif
 }

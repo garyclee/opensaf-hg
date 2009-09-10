@@ -546,7 +546,7 @@ SaAisErrorT saNtfAlarmNotificationAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("notification_hdl_rec = %u", notification_hdl_rec->notification_hdl);
+	TRACE_1("notification_hdl = %u", notification_hdl_rec->notification_hdl);
     /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -852,7 +852,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	ntfa_filter_hdl_rec_t *filter_hdl_rec;
 	ntfa_client_hdl_rec_t *client_hdl_rec = NULL;
 	SaNtfNotificationFilterHandleT filterHndl[5];
-	ntfa_filter_ptrs_rec_t filters;
+	ntfsv_filter_ptrs_t filters;
 	SaNtfHandleT firstHandle;
 
 	ntfsv_msg_t msg, *o_msg = NULL;
@@ -884,13 +884,16 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 	for (i = 0; i < 5; i++) {
 			  if (filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL) {
 						 TRACE_1("Get FilterHandle");
+
 						 /* retrieve notification filter hdl rec */
 						 filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
+						 TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 						 if (filter_hdl_rec == NULL) {
 									TRACE_1("ncshm_take_hdl failed");
 									TRACE_LEAVE();
 									return SA_AIS_ERR_BAD_HANDLE;
 						 }
+						 TRACE_1("filter_hdl[%d] = %llu", i, filter_hdl_rec->filter_hdl);
 						 if (client_hdl_rec == NULL) {
 							 /* retrieve client hdl rec */
 							 client_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filter_hdl_rec->ntfHandle);
@@ -905,26 +908,26 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 							 }
 							 firstHandle = filter_hdl_rec->ntfHandle;
 						 }
-						 filters.alarm_filter = filter_hdl_rec;
+
 						 if (firstHandle != filter_hdl_rec->ntfHandle) {
-									TRACE_1("client_hdl_rec differs");
+									TRACE_1("filter handles refers to different clients");
 									return SA_AIS_ERR_BAD_HANDLE;
 						 }
 						 switch (i) {
 									case 0:
-											  filters.att_ch_filter = filter_hdl_rec;
+											  filters.att_ch_filter = &filter_hdl_rec->notificationFilter.attributeChangeNotificationfilter;
 											  break;
 									case 1:
-											  filters.obj_cr_del_filter = filter_hdl_rec;
+											  filters.obj_cr_del_filter = &filter_hdl_rec->notificationFilter.objectCreateDeleteNotificationfilter;
 											  break;
 									case 2:
-											  filters.sec_al_filter = filter_hdl_rec;
+											  filters.sec_al_filter = &filter_hdl_rec->notificationFilter.securityAlarmNotificationfilter;
 											  break;
 									case 3:
-											  filters.sta_ch_filter = filter_hdl_rec;
+											  filters.sta_ch_filter = &filter_hdl_rec->notificationFilter.stateChangeNotificationfilter;
 											  break;
 									case 4:
-											  filters.alarm_filter = filter_hdl_rec;
+											  filters.alarm_filter = &filter_hdl_rec->notificationFilter.alarmNotificationfilter;
 											  break;
 									default:
 											  return SA_AIS_ERR_INVALID_PARAM;
@@ -959,7 +962,6 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		/* Add ntfHandle and subscriptionId into list */
 		ntfSubscriberList->subscriberListNtfHandle = filter_hdl_rec->ntfHandle;
 		ntfSubscriberList->subscriberListSubscriptionId = subscriptionId;
-		
 		if (NULL == subscriberNoList) {
 			subscriberNoList = ntfSubscriberList;
 			subscriberNoList->prev = NULL;
@@ -972,9 +974,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		}
 		TRACE_1("ADD: subscriberNoList->SubscriptionId %d", subscriberNoList->subscriberListSubscriptionId);
 
-	/**
-             ** Populate a sync MDS message
-         **/
+		/*	Populate a sync MDS message  */	
 		memset(&msg, 0, sizeof(ntfsv_msg_t));
 		msg.type = NTFSV_NTFA_API_MSG;
 		msg.info.api_info.type = NTFSV_SUBSCRIBE_REQ;
@@ -982,7 +982,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 
 		send_param->client_id = client_hdl_rec->ntfs_client_id;
 		send_param->subscriptionId = ntfSubscriberList->subscriberListSubscriptionId;
-
+		send_param->f_rec = filters;
 		/* Check whether NTFS is up or not */
 		if (ntfa_cb.ntfs_up) {
 			/* Send a sync MDS message to obtain a log stream id */
@@ -1011,7 +1011,7 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 		if (o_msg)
 			ntfa_msg_destroy(o_msg);
  done:
-		ncshm_give_hdl(filter_hdl_rec->ntfHandle);
+		ncshm_give_hdl(firstHandle);
 		for (i=0; i < 5; i++) {
 			if(filterHndl[i] != SA_NTF_FILTER_HANDLE_NULL){
 					  ncshm_give_hdl(filterHndl[i]);
@@ -1621,7 +1621,7 @@ SaAisErrorT saNtfObjectCreateDeleteNotificationFilterAllocate(SaNtfHandleT ntfHa
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 	 /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1711,7 +1711,7 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 	 /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1801,7 +1801,7 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 	 /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -1903,7 +1903,7 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
     /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -2023,7 +2023,7 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto done_give_hdl;
 	}
-	TRACE_1("filter_hdl_rec = %llu", filter_hdl_rec->filter_hdl);
+	TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 	 /**                  UnLock ntfa_CB            **/
 	pthread_mutex_unlock(&ntfa_cb.cb_lock);
 
@@ -2092,7 +2092,7 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 			rc = SA_AIS_ERR_NO_MEMORY;
 			goto done_rec_del;
 		}
-}
+	}
 
 	/* initialize the Client struct data */
 	*notificationFilter = *new_filter;

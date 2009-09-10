@@ -141,12 +141,16 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 	notification->notificationType = not_cbk->notificationType;
 
 	switch (not_cbk->notificationType) {
-	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		TRACE_2("type: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
-		rc = saNtfObjectCreateDeleteNotificationAllocate(hdl_rec->local_hdl, &notification->notification.objectCreateDeleteNotification, 0,	/* not supported */
-								 not_cbk->notification.objectCreateDelete.notificationHeader.lengthAdditionalText, 0,	/* not supported */
-								 not_cbk->notification.objectCreateDelete.numAttributes,
-								 SA_NTF_ALLOC_SYSTEM_LIMIT);
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:  
+			  TRACE_2("type: SA_NTF_TYPE_OBJECT_CREATE_DELETE");
+			  rc = saNtfObjectCreateDeleteNotificationAllocate(
+						 hdl_rec->local_hdl,
+						 &notification->notification.objectCreateDeleteNotification,
+						 not_cbk->notification.objectCreateDelete.notificationHeader.numCorrelatedNotifications,
+						 not_cbk->notification.objectCreateDelete.notificationHeader.lengthAdditionalText,
+						 not_cbk->notification.objectCreateDelete.notificationHeader.numAdditionalInfo,
+						 not_cbk->notification.objectCreateDelete.numAttributes,
+						 SA_NTF_ALLOC_SYSTEM_LIMIT);
 		if (SA_AIS_OK == rc) {
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
@@ -169,10 +173,13 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
 		TRACE_2("type: SA_NTF_TYPE_ATTRIBUTE_CHANGE");
-		rc = saNtfAttributeChangeNotificationAllocate(hdl_rec->local_hdl, &notification->notification.attributeChangeNotification, 0,	/* not supported */
-							      not_cbk->notification.attributeChange.notificationHeader.lengthAdditionalText, 0,	/* not supported */
-							      not_cbk->notification.attributeChange.numAttributes,
-							      SA_NTF_ALLOC_SYSTEM_LIMIT);
+		rc = saNtfAttributeChangeNotificationAllocate(
+				  hdl_rec->local_hdl, &notification->notification.attributeChangeNotification,
+				  not_cbk->notification.attributeChange.notificationHeader.numCorrelatedNotifications,
+				  not_cbk->notification.attributeChange.notificationHeader.lengthAdditionalText,
+				  not_cbk->notification.attributeChange.notificationHeader.numAdditionalInfo,
+				  not_cbk->notification.attributeChange.numAttributes,
+				  SA_NTF_ALLOC_SYSTEM_LIMIT);
 		if (SA_AIS_OK == rc) {
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
@@ -195,10 +202,13 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
 		TRACE_2("type: SA_NTF_TYPE_STATE_CHANGE");
-		rc = saNtfStateChangeNotificationAllocate(hdl_rec->local_hdl, &notification->notification.stateChangeNotification, 0,	/* not supported */
-							  not_cbk->notification.stateChange.notificationHeader.lengthAdditionalText, 0,	/* not supported */
-							  not_cbk->notification.stateChange.numStateChanges,
-							  SA_NTF_ALLOC_SYSTEM_LIMIT);
+		rc = saNtfStateChangeNotificationAllocate(
+				  hdl_rec->local_hdl, &notification->notification.stateChangeNotification,
+				  not_cbk->notification.stateChange.notificationHeader.numCorrelatedNotifications,
+				  not_cbk->notification.stateChange.notificationHeader.lengthAdditionalText,
+				  not_cbk->notification.stateChange.notificationHeader.numAdditionalInfo,
+				  not_cbk->notification.stateChange.numStateChanges,
+				  SA_NTF_ALLOC_SYSTEM_LIMIT);
 		if (SA_AIS_OK == rc) {
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
@@ -252,9 +262,13 @@ static SaAisErrorT ntfa_alloc_callback_notification(SaNtfNotificationsT *notific
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
 		TRACE_2("type: SA_NTF_TYPE_SECURITY_ALARM");
-		rc = saNtfSecurityAlarmNotificationAllocate(hdl_rec->local_hdl, &notification->notification.securityAlarmNotification, 0,	/* not supported */
-							    not_cbk->notification.securityAlarm.notificationHeader.lengthAdditionalText, 0,	/* not supported */
-							    SA_NTF_ALLOC_SYSTEM_LIMIT);
+		rc = saNtfSecurityAlarmNotificationAllocate(
+				  hdl_rec->local_hdl,
+				  &notification->notification.securityAlarmNotification,
+				  not_cbk->notification.securityAlarm.notificationHeader.numCorrelatedNotifications,
+				  not_cbk->notification.securityAlarm.notificationHeader.lengthAdditionalText,
+				  not_cbk->notification.securityAlarm.notificationHeader.numAdditionalInfo,
+				  SA_NTF_ALLOC_SYSTEM_LIMIT);
 		if (SA_AIS_OK == rc) {
 			pthread_mutex_lock(&ntfa_cb.cb_lock);
 			notification_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA,
