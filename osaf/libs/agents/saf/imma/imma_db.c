@@ -47,16 +47,12 @@ uns32 imma_client_tree_init(IMMA_CB *cb)
   Description   : This routine finds the client node.
   Arguments     : client_tree - Client Tree.
                   cl_hdl - Client Handle
-  Return Values : cl_node - Client Node
-                  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node)
+void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node)
 {
 	*cl_node = (IMMA_CLIENT_NODE *)
 	    ncs_patricia_tree_get(client_tree, (uns8 *)cl_hdl);
-
-	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************
@@ -159,12 +155,16 @@ void imma_client_tree_cleanup(IMMA_CB *cb)
 
 /****************************************************************************
   Name          : imma_mark_clients_stale
-  Description   : When we get IMMND DOWN over MDS, then mark all handles stale.
+  Description   : If we have lost contact with IMMND over MDS, then mark all
+                  handles stale. In addition, if handle is exposed
+                  (i.e. not possible to resurrect) AND has a selection object,
+                  then dispatch on the selection object NOW generating
+                  BAD_HANDLE.
   Arguments     : IMMA_CB *cb - IMMA Control Block.
 ******************************************************************************/
 void imma_mark_clients_stale(IMMA_CB *cb)
 {
-	/* We are locked already */
+	/* We are LOCKED already */
 	IMMA_CLIENT_NODE *clnode;
 	SaImmHandleT *temp_ptr = 0;
 	SaImmHandleT temp_hdl = 0;
@@ -176,10 +176,125 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 		ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
 		temp_hdl = clnode->handle;
 		temp_ptr = &temp_hdl;
+        if(clnode->exposed) {continue;} /* No need to stale dispatched on this
+                                           handle when already exposed.
+                                        */
 		clnode->stale = TRUE;
-		imma_proc_stale_dispatch(cb, clnode);
+		TRACE("Stale marked client cl:%u node:%u",
+            m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
+            m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
+		if(isExposed(cb, clnode)  && clnode->selObjUsable) {
+            /* If we have a selection object, then we assume someone is
+               dispatching on it. If the connection is already exposed, then
+               inform the user (dispatch on it) now.
+               This will cause a BAD_HANDLE return from the dispatch.
+               If the user is not dispatching on the selection object,
+               then the client will remain stale marked, until the user
+               uses the handle in some way.
+            */
+            imma_proc_stale_dispatch(cb, clnode);
+		}
 	}
-	return;
+    TRACE_LEAVE();
+}
+
+/****************************************************************************
+  Name          : imma_process_stale_clients
+  Description   : We have lost contact (IMMND DOWN earlier) with IMMND, 
+                  then all handles are stale.  Now we have regained contact
+                  (IMMND UP). For handles that are NOT exposed
+                  (i.e. possible to resurrect) and that have a selection
+                  object, dispatch on the selection object. The dispatch tries
+                  to resurrect the client handle. If resurrection fails then we
+                  fall back on the BAD_HANDLE solution, exposing to the client
+                  by exiting their dispatch.
+  Arguments     : IMMA_CB *cb - IMMA Control Block.
+******************************************************************************/
+void imma_process_stale_clients(IMMA_CB *cb)
+{
+    /* We are LOCKED already */
+    IMMA_CLIENT_NODE  * clnode;
+    SaImmHandleT *temp_ptr=0;
+    SaImmHandleT temp_hdl=0;
+
+    TRACE_ENTER();
+
+    /* scan the entire handle db & check each record */
+    while ((clnode = (IMMA_CLIENT_NODE *)
+            ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
+    {
+        temp_hdl = clnode->handle;
+        temp_ptr = &temp_hdl;
+        if(!clnode->stale) {continue;}
+        TRACE("Stale client to process cl:%u node:%u",
+            m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
+            m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
+
+        if(clnode->selObjUsable) {
+            /* If we have a selection object, then we assume someone is
+               dispatching on it. Inform the user (dispatch on it) now. 
+               This will cause either a resurrection or a BAD_HANDLE 
+               return from the dispatch. If the user is not dispatching
+               on the selection object, then the client will remain stale
+               marked, until the user uses the handle in some way. 
+            */
+            imma_proc_stale_dispatch(cb, clnode);
+        } 
+    }
+
+    TRACE_LEAVE();
+}
+        
+/****************************************************************************
+  Name          : isExposed
+  Description   : Determine if a client is already, or SHOULD be exposed.
+                  If the client has already seen the handle as bad, then
+                  we can not resurrect it (actively or reactively).
+  Arguments     : IMMA_CB *cb - IMMA Control Block.
+                  IMMA_CLIENT_NODE  *clnode a client node.
+******************************************************************************/
+int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
+{
+    /* Must be LOCKED. */
+    TRACE_ENTER();
+    if(!clnode->exposed) {	/*If we are already exposed then skip checks*/
+		/* Check if we are currently blocked => exposed. */
+		if(clnode->replyPending) {
+			clnode->exposed = 1;
+		}	
+
+
+        if(clnode->isOm) {
+            TRACE("OM CLIENT");
+            
+            /* Check for Iterator handles. Invalidate these by removing node
+               We must of course not be blocked. 
+            */
+
+            /* Check for associated admin owners. If releaseOnFinalize is set
+               then we are exposed. */
+
+            /* Check for associated CCBs. 
+               If any CCB is nonempty, then we are exposed. 
+               On OM side go via CCB-handle. On OM-side I have to keep
+               track of on-going ccbs. If more than one concurrently 
+               set exposed. 
+            */
+
+            /* Check if on-going async admin OM op => Exposed. */
+
+            /* For now, all OM handles are regarded as exposed. */
+            clnode->exposed = 1;
+        } else { /* OI client. */
+            TRACE("OI CLIENT");
+			if(clnode->criticalCcbs) { 
+				clnode->exposed = 1;
+			}
+        }
+    }
+    TRACE("isExposed Returning Exposed:%u", clnode->exposed);
+    TRACE_LEAVE();
+    return clnode->exposed;
 }
 
 /****************************************************************************

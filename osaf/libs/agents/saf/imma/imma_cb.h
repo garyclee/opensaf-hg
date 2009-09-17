@@ -28,14 +28,19 @@ typedef struct imma_client_node {
 		SaImmOiCallbacksT iCallbk1;
 #endif
 	} o;
-	SaUint32T mImplementerId;	//Only used for OI.
+	SaUint32T mImplementerId;	/*Only used for OI.*/
 	SaBoolT isOm;		/*If true => then this is an OM client */
+	SaImmOiImplementerNameT  mImplementerName; /* needed for active resurrect*/
 #ifdef IMM_A_01_01
 	SaBoolT isOiA1;
 #endif
-	SaBoolT stale;		/*Loss of connection with immnd 
-				   will set this to true permanently
-				   for the node/connection. */
+	uns8 stale;		/*Loss of connection with immnd 
+					  will set this to true for the 
+					  connection. A resurrect can remove it.*/
+	uns8 exposed;    /* Exposed => stale is irreversible */
+	uns8 selObjUsable; /* Active resurrect possible for this client */
+	uns8 replyPending; /* Syncronous call made towards IMMND */
+	uns8 criticalCcbs; /* Number of critical ccbs towards this client. */
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;
 
@@ -45,6 +50,7 @@ typedef struct imma_admin_owner_node {
 	SaImmAdminOwnerHandleT admin_owner_hdl;	/* locally generated handle */
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaUint32T mAdminOwnerId;
+	uns8 mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
 } IMMA_ADMIN_OWNER_NODE;
 
 /* Node to store Ccb info */
@@ -80,9 +86,7 @@ typedef struct imma_continuation_record {
 typedef struct imma_cb {
 	/* Identification Information about the IMMA */
 	uns32 process_id;
-	uns8 *process_name;
 	uns32 agent_handle_id;
-	uns8 pool_id;
 	uns32 imma_mds_hdl;
 	MDS_DEST imma_mds_dest;
 	NCSMDS_SVC_ID sv_id;
@@ -92,6 +96,8 @@ typedef struct imma_cb {
 	/* Information about IMMND */
 	MDS_DEST immnd_mds_dest;
 	NCS_BOOL is_immnd_up;
+    uns16    dispatch_clients_to_resurrect;  /* Nrof clients pending
+                                               active resurrect.  */
 
 	/* IMMA data */	/* Used for both OM and OI */
 	NCS_PATRICIA_TREE client_tree;	/* IMMA_CLIENT_NODE - node */
@@ -111,11 +117,6 @@ typedef struct imma_cb {
 	/*Used for matching async reply to saImmOmAdminOperationInvokeAsync */
 	IMMA_CONTINUATION_RECORD *imma_continuations;
 
-	/* Sync up with IMMND ( MDS ) */	/* THESE ARE NOT ACTUALY USED? */
-	NCS_LOCK immnd_sync_lock;
-	NCS_BOOL immnd_sync_awaited;
-	NCS_SEL_OBJ immnd_sync_sel;
-
 } IMMA_CB;
 
 #define m_IMMSV_SET_SANAMET(name) \
@@ -131,12 +132,13 @@ EXTERN_C uns32 imma_db_destroy(IMMA_CB *cb);
 
 /*client tree*/
 EXTERN_C uns32 imma_client_tree_init(IMMA_CB *cb);
-EXTERN_C uns32 imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
+EXTERN_C  void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
 EXTERN_C uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node);
 EXTERN_C uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 EXTERN_C void imma_client_tree_destroy(IMMA_CB *cb);
 EXTERN_C void imma_client_tree_cleanup(IMMA_CB *cb);
 EXTERN_C void imma_mark_clients_stale(IMMA_CB *cb);
+EXTERN_C int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
 
 /*admin_owner tree*/
 EXTERN_C uns32 imma_admin_owner_tree_init(IMMA_CB *cb);
@@ -167,6 +169,8 @@ EXTERN_C uns32 imma_search_node_add(NCS_PATRICIA_TREE *search_tree, IMMA_SEARCH_
 EXTERN_C uns32 imma_search_node_delete(IMMA_CB *cb, IMMA_SEARCH_NODE *search_node);
 EXTERN_C void imma_search_tree_destroy(IMMA_CB *cb);
 EXTERN_C void imma_search_tree_cleanup(IMMA_CB *cb);
+
+EXTERN_C void imma_process_stale_clients(IMMA_CB *cb);
 
 /*30B Versioning Changes */
 #define IMMA_MDS_PVT_SUBPART_VERSION 1
