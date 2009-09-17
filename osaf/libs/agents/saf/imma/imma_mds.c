@@ -387,29 +387,50 @@ static uns32 imma_mds_rcv(IMMA_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 {
+    NCS_BOOL locked = FALSE;
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
-		TRACE("immnd down");
-		m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-		cb->is_immnd_up = FALSE;
-		m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-
-		m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		TRACE("IMMND DOWN");
+		cb->is_immnd_up = FALSE; /*Dont wait for lock to block mds usage*/
+        cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
+		if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
+            LOG_ER("Locking failed");
+            assert(0);
+        }
+        locked = TRUE;
 		imma_mark_clients_stale(cb);
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        locked = FALSE;
 		break;
 
 	case NCSMDS_UP:
-		TRACE("immnd up");
-		m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
+		TRACE("IMMND UP");
+		if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
+            LOG_ER("Locking failed");
+            assert(0);
+        }
+        locked = TRUE;
 		cb->is_immnd_up = TRUE;
 		cb->immnd_mds_dest = svc_evt->i_dest;
+        /* Check again if some clients have been exposed during down time. 
+           Also determine if there are candidates for active resurrection.
+           Inform IMMND of highest used client id. Increases chances of success
+           in resurrections. 
+         */
+        imma_determine_clients_to_resurrect(cb, &locked);
+        if(!locked) {
+            if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+                LOG_ER("Locking failed");
+                assert(0);
+            }
+            locked = TRUE;
+        }
+        imma_process_stale_clients(cb);
 
-		if (cb->immnd_sync_awaited == TRUE)
-			m_NCS_SEL_OBJ_IND(cb->immnd_sync_sel);
-
-		m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
+        m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
+        locked = FALSE;
 		break;
+
 	default:
 		break;
 	}

@@ -70,6 +70,12 @@ EXTERN_C uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 
 EXTERN_C void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *clnd);
 
+EXTERN_C void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked);
+EXTERN_C uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm);
+
+EXTERN_C void imma_proc_increment_blocked(IMMA_CLIENT_NODE *clnd);
+EXTERN_C void imma_proc_decrement_blocked(IMMA_CLIENT_NODE *clnd);
+
 /* callback prototypes */
 EXTERN_C IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *clnd);
 EXTERN_C uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);

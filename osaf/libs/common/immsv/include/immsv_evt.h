@@ -75,6 +75,8 @@ typedef enum imma_evt_type {
 	IMMA_EVT_ND2A_IMM_SYNC_RSP = 21,
 
 	IMMA_EVT_CB_DUMP = 22,
+	IMMA_EVT_ND2A_IMM_RESURRECT_RSP = 23,
+
 	IMMA_EVT_MAX
 } IMMA_EVT_TYPE;
 
@@ -158,6 +160,10 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_D2ND_RESET = 65,	/* Force all IMMNDs to start from scratch. */
 
 	IMMND_EVT_CB_DUMP = 66,
+
+	IMMND_EVT_A2ND_IMM_OM_RESURRECT = 67,	/* Request resurrect of OM handle */
+	IMMND_EVT_A2ND_IMM_OI_RESURRECT = 68,	/* Request resurrect of OI handle */
+	IMMND_EVT_A2ND_IMM_CLIENTHIGH = 69,  /* Highest client id IMMA knows */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -523,7 +529,7 @@ EXTERN_C void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST *p);
 
 /* Macros to pack and unpack imm handles */
 #define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | low)
-#define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) ((imm_handle) >> 32)
-#define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) ((imm_handle) & 0x00000000ffffffff)
+#define  m_IMMSV_UNPACK_HANDLE_HIGH(imm_handle) (SaUint32T) ((imm_handle) >> 32)
+#define  m_IMMSV_UNPACK_HANDLE_LOW(imm_handle) (SaUint32T) ((imm_handle) & 0x00000000ffffffff)
 
 #endif

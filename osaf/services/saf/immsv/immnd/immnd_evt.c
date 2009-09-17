@@ -30,6 +30,8 @@
 static uns32 immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
+static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
+static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt);
 
 static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -444,6 +446,18 @@ void immnd_process_evt(void)
 		rc = immnd_evt_proc_imm_finalize(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
 		break;
 
+	case IMMND_EVT_A2ND_IMM_OM_RESURRECT:
+		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, SA_TRUE);
+		break;
+
+	case IMMND_EVT_A2ND_IMM_OI_RESURRECT:
+		rc = immnd_evt_proc_imm_resurrect(cb, &evt->info.immnd, &evt->sinfo, SA_FALSE);
+		break;
+
+	case IMMND_EVT_A2ND_IMM_CLIENTHIGH:
+		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd);
+		break;
+
 	case IMMND_EVT_A2ND_SYNC_FINALIZE:
 		rc = immnd_evt_proc_sync_finalize(cb, &evt->info.immnd, &evt->sinfo);
 		break;
@@ -611,9 +625,9 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	clientId = cb->cli_id_gen++;
 	if (cb->cli_id_gen == 0xffffffff) {
 		cb->cli_id_gen = 1;
-		/* TODO: counter wrap arround causes risk (low) for collisions
-		   symtom would be that this client alloaction would fail in node_add
-		   below. This is why we change the error code to try-again.
+		/* Counter wrap arround causes risk (low) for collisions.
+		   Symtom would be that this client node_add would fail below.
+		   This is why we change the error code to try-again.
 		 */
 	}
 
@@ -630,7 +644,7 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	cl_node->sv_id = (isOm) ? NCSMDS_SVC_ID_IMMA_OM : NCSMDS_SVC_ID_IMMA_OI;
 
 	if (immnd_client_node_add(cb, cl_node) != NCSCC_RC_SUCCESS) {
-		LOG_ER("IMMND - Client Tree Add Failed , cli_hdl");
+		LOG_WA("IMMND - Client Tree Add Failed client id wrap-arround?");
 		free(cl_node);
 		error = SA_AIS_ERR_TRY_AGAIN;	/* cl-id wraparround collision? */
 		goto agent_rsp;
@@ -1447,6 +1461,136 @@ static uns32 immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 	return rc;
 }
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_imm_resurrect
+ *
+ * Description   : Function to attempt to resurrect an IMMA client_id after an
+ *                 IMMND restart. This to try to make the restart transparent
+ *                 towards the clients. 
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *                 SaBoolT isOm - TRUE=> OM resurrect, FALSE => OI resurrect.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb,
+    IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo,
+    SaBoolT isOm)
+{
+    /* Note: parameter isOm is ignored, should be noted in cl_node*/
+    IMMSV_EVT               send_evt;
+    uns32                   rc = NCSCC_RC_SUCCESS;
+    SaAisErrorT error = SA_AIS_OK;
+    IMMND_IMM_CLIENT_NODE   *cl_node=NULL;
+    SaUint32T clientId = 
+        m_IMMSV_UNPACK_HANDLE_HIGH(evt->info.finReq.client_hdl);
+    SaUint32T nodeId = 
+        m_IMMSV_UNPACK_HANDLE_LOW(evt->info.finReq.client_hdl);
+
+    memset(&send_evt,'\0', sizeof(IMMSV_EVT));
+
+    TRACE_2("resurect for handle: %llx", evt->info.finReq.client_hdl);
+
+    /* First check that no one else grabbed the old handle value before us. */
+    immnd_client_node_get(cb,evt->info.finReq.client_hdl,&cl_node);
+    if ( cl_node != NULL ) {
+        LOG_ER("IMMND - Client Node already occupied for handle %llu",
+            evt->info.finReq.client_hdl);
+        error=SA_AIS_ERR_EXIST;
+        goto agent_rsp;
+    }
+ 
+    int load_pid = immModel_getLoader(cb);
+
+    if(load_pid != 0) {
+        TRACE_2("Rejecting OM client resurrect if sync not complete");
+        error = SA_AIS_ERR_TRY_AGAIN;
+        goto agent_rsp;
+    }
+
+    /* Go ahead and create the client object using the old handle value. */
+
+    cl_node=calloc(1, sizeof(IMMND_IMM_CLIENT_NODE));
+    if( cl_node == NULL)
+    {
+        LOG_ER("IMMND - Client Alloc Failed");
+        error=SA_AIS_ERR_NO_MEMORY;
+        goto agent_rsp;
+    }
+
+    if((cb->cli_id_gen <= clientId) &&
+        (clientId < 0x000f0000))
+    {
+        cb->cli_id_gen = clientId+1;
+    }
+    
+    if(cb->node_id != nodeId) {
+        LOG_ER("Rejecting OM client resurrect from wrong node! %x", nodeId);
+        error = SA_AIS_ERR_FAILED_OPERATION;
+        goto agent_rsp;
+    }
+
+    cl_node->imm_app_hdl = m_IMMSV_PACK_HANDLE(clientId, cb->node_id);
+    cl_node->agent_mds_dest=sinfo->dest;
+    /*cl_node->version= .. TODO correct version (not used today)*/
+    cl_node->client_pid = 0; /* TODO correct PID (not important here) */
+    cl_node->sv_id = (isOm)?NCSMDS_SVC_ID_IMMA_OM:NCSMDS_SVC_ID_IMMA_OI;
+
+    if (immnd_client_node_add(cb,cl_node) != NCSCC_RC_SUCCESS)
+    {
+        LOG_ER("IMMND - Client Tree Add Failed , cli_hdl");
+        free(cl_node);
+        error=SA_AIS_ERR_FAILED_OPERATION; 
+        goto agent_rsp;
+    }
+
+    TRACE_2("Added client with id: %llx <node:%x, count:%u>", 
+        cl_node->imm_app_hdl, cb->node_id, (SaUint32T) clientId);
+
+    error=SA_AIS_OK;
+
+ agent_rsp:
+    send_evt.type=IMMSV_EVT_TYPE_IMMA;
+    send_evt.info.imma.type=IMMA_EVT_ND2A_IMM_RESURRECT_RSP;
+    send_evt.info.imma.info.errRsp.error=error;
+    rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+    return rc;
+}
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_imm_client_high
+ *
+ * Description   : Function to bump up the clientId counter after 
+ *                 IMMND restart. The clientId would be bumped up by
+ *                 client_high messages from all pre-existing IMMAgents.
+ *                 This is an attempt to increase the chances of successfull
+ *                 client resurrections, when client_high is a low number.
+ *
+ *                 The counter does wrap arround, but a restarted IMMND will
+ *                 restart the counter from zero, causing high risk for 
+ *                 collision and failed resurrects.
+ *                 We skip bumping up the counter if the clientHigh is too
+ *                 high.
+ *
+ *****************************************************************************/
+static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt)
+{
+    SaUint32T clientHigh = evt->info.initReq.client_pid;
+        TRACE_2("Client high after restarted IMMND: %x", clientHigh);
+
+    if((cb->cli_id_gen <= clientHigh) &&
+        (clientHigh < 0x000f0000))
+    {
+        cb->cli_id_gen = evt->info.initReq.client_pid+1;
+    }
+
+    return NCSCC_RC_SUCCESS;
+}
+
 
 /****************************************************************************
  * Name          : immnd_evt_proc_admowner_init

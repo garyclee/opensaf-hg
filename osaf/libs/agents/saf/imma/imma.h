@@ -46,8 +46,11 @@ EXTERN_C void imma_freeAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT at
 EXTERN_C void imma_freeAttrValue3(SaImmAttrValueT attrValue, const SaImmValueTypeT attrValueType);
 EXTERN_C void imma_freeSearchAttrs(SaImmAttrValuesT_2 **attr);
 EXTERN_C SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
-				       IMMSV_EVT *i_evt,
+                       IMMSV_EVT *i_evt,
 				       IMMSV_EVT **o_evt,
 				       uns32 timeout, SaImmHandleT immHandle, NCS_BOOL *locked, NCS_BOOL checkWritable);
+EXTERN_C SaAisErrorT imma_proc_check_stale(IMMA_CB *cb, SaImmHandleT immHandle,
+    SaAisErrorT defaultEr);
+
 
 #endif   /* IMMA_H */

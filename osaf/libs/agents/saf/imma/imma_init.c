@@ -40,46 +40,6 @@ static uns32 imma_use_count = 0;
 
 IMMA_CB imma_cb;
 
-/********************************************************************
- Name    :  imma_sync_with_immnd
-
- Description : This is for IMMA to sync with IMMND when it gets MDS callback
- 
-**********************************************************************/
-/*NOTE: ABT dont quite understand why this is needed. 
-  Cloned from CkpSv. */
-static void imma_sync_with_immnd(IMMA_CB *cb)
-{
-	NCS_SEL_OBJ_SET set;
-	uns32 timeout = 3000;
-
-	m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-
-	if (cb->is_immnd_up) {
-		m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-		return;
-	}
-
-	cb->immnd_sync_awaited = TRUE;
-	m_NCS_SEL_OBJ_CREATE(&cb->immnd_sync_sel);
-	m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-
-	/* Await indication from MDS saying IMMND is up */
-	m_NCS_SEL_OBJ_ZERO(&set);
-	m_NCS_SEL_OBJ_SET(cb->immnd_sync_sel, &set);
-	m_NCS_SEL_OBJ_SELECT(cb->immnd_sync_sel, &set, 0, 0, &timeout);
-
-	/* Destroy the sync - object */
-	m_NCS_LOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-
-	cb->immnd_sync_awaited = FALSE;
-	m_NCS_SEL_OBJ_DESTROY(cb->immnd_sync_sel);
-
-	m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
-
-	return;
-}
-
 /****************************************************************************
   Name          : imma_create
  
@@ -128,8 +88,6 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 		/* No need to log here, already logged in imma_mds_register  */
 		goto mds_reg_fail;
 	}
-
-	imma_sync_with_immnd(cb);	/*ABT: Why is this needed ? */
 
 	/* EDU initialisation ABT: Dont exactly know why we need this but... */
 	if (m_NCS_EDU_HDL_INIT(&cb->edu_hdl) != NCSCC_RC_SUCCESS) {

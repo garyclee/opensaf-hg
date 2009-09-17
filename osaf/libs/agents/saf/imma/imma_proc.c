@@ -206,6 +206,13 @@ uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		}
 	}
 
+    /* Remove any implementer name associated with handle */
+    if(cl_node->mImplementerName) {
+        free(cl_node->mImplementerName);
+        cl_node->mImplementerName = NULL;
+        cl_node->mImplementerId = 0;
+    }
+
 	imma_callback_ipc_destroy(cl_node);
 
 	imma_client_node_delete(cb, cl_node);	/*Will free the node also */
@@ -226,8 +233,6 @@ uns32 imma_finalize_proc(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 {
 	TRACE_ENTER();
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -248,7 +253,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &immHandleCont, &cl_node);
+	imma_client_node_get(&cb->client_tree, &immHandleCont, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Failed to find client node");
@@ -257,9 +262,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OM_ADMIN_OP_RSP;
 		callback->lcl_imm_hdl = immHandleCont;
@@ -276,7 +279,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 		}
 
 		/* Send the event */
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void) m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 	}
 
 	/* Release The Lock */
@@ -334,8 +337,6 @@ static SaImmAdminOperationParamsT_2 **imma_proc_get_params(IMMSV_ADMIN_OPERATION
 ******************************************************************************/
 static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -349,7 +350,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Failed to find client node");
@@ -358,9 +359,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OM_ADMIN_OP;
 		callback->lcl_imm_hdl = implHandle;
@@ -380,23 +379,144 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->params = imma_proc_get_params(evt->info.admOpReq.params);
 		evt->info.admOpReq.params = NULL;
 		/* Send the event */
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void) m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 	}
 
 	/* Release The Lock */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 }
 
+/****************************************************************************
+  Name          : imma_determine_clients_to_resurrect
+  Description   : Attempts to determine how many clients to attempt active
+                  resurrection for. Active resurrection can only be done
+                  when there is a selection object to generate an up-call on.
+
+                  Re-active resurrection is also possible, but that is done
+                  as a side effect when a stale handle is used in a blocking
+                  IMM API call. 
+                  
+  Arguments     : cb - IMMA CB.
+******************************************************************************/
+void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
+{
+    /* We are LOCKED already, but we may unlock here => locked will be false*/
+    IMMA_CLIENT_NODE  * clnode;
+    SaImmHandleT *temp_ptr=0;
+    SaImmHandleT temp_hdl=0;
+    SaUint32T clientHigh=0;
+    IMMSV_EVT clientHigh_evt;
+
+    TRACE_ENTER();
+    assert(locked && *locked);  /* We must be entering locked. */
+
+    /* Determine clientHigh count and if there are any clients with
+       selection objects that can be resurrected */
+
+    if(cb->dispatch_clients_to_resurrect) {
+        /* 
+           Resurrections alredy in progress, possibly due to repeated
+           init/close of IMMA library (first/last handle).
+        */
+
+        TRACE("Active resurrection of %u clients already ongoing",
+            cb->dispatch_clients_to_resurrect);
+        return;
+    } 
+
+    while ((clnode = (IMMA_CLIENT_NODE *)
+            ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr)))
+    {
+        temp_hdl = clnode->handle;
+        temp_ptr = &temp_hdl;
+        SaUint32T clientId = m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle);
+        SaUint32T nodeId = m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle);
+        if(clientId > clientHigh) {
+            clientHigh = clientId;
+        }
+
+        if(!clnode->stale) {
+            LOG_WA("Found NON stale handle <%u, %u> when analyzing handles, "
+                "bailing from attempt to actively resurrect.", 
+                clientId, nodeId);
+
+            /* This case means we must have gotten IMMND DOWN/UP at least 
+               twice in quick succession.
+             */
+
+            cb->dispatch_clients_to_resurrect = 0; /* Reset. */
+            goto done;
+        }
+
+        if(isExposed(cb, clnode)) {continue;}
+        if(!clnode->selObjUsable) {continue;}
+        ++(cb->dispatch_clients_to_resurrect);
+        /* Only clients with selection objects can be resurrected actively.
+           If selObjUsable is false then it means an attempt to actively 
+           resurrect has already started. 
+         */
+    }
+
+    if(clientHigh) 
+    {
+        /* Inform the IMMND of highest used client ID. */
+        memset(&clientHigh_evt, 0, sizeof(IMMSV_EVT));
+        clientHigh_evt.type = IMMSV_EVT_TYPE_IMMND;
+        clientHigh_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_CLIENTHIGH;
+        clientHigh_evt.info.immnd.info.initReq.client_pid = clientHigh;
+        TRACE("ClientHigh message high %u", clientHigh);
+        /* Unlock before MDS Send */
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+        *locked = FALSE;
+        clnode = NULL;
+
+        if (cb->is_immnd_up == FALSE)
+        {
+            TRACE_2("IMMND is DOWN - clientHigh attempt failed. ");
+            goto done;
+        }
+
+        /* send the clientHigh message to the IMMND asyncronously */
+        if(imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, 
+               &clientHigh_evt, NCSMDS_SVC_ID_IMMND) != NCSCC_RC_SUCCESS)
+        {
+            /* Failure to send clientHigh simply means the risk is higher that
+               resurrects will fail, exposing the handle as BAD to the client.
+            */
+            TRACE_1("imma_determine_clients_to_resurrect: send failed");
+        }
+    }
+
+ done:
+    TRACE_LEAVE();
+}
+
+
+/****************************************************************************
+  Name          : imma_proc_stale_dispatch
+  Description   : Dispatch a stale-handle callback for a particular client.
+
+******************************************************************************/
 void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
-	/* We are locked already */
-	IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	assert(callback);
+    TRACE_ENTER();
+	/* We are LOCKED already */
+    if(cl_node->selObjUsable) {
+        IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+        assert(callback);
+        callback->type = IMMA_CALLBACK_STALE_HANDLE;
 
-	callback->type = IMMA_CALLBACK_STALE_HANDLE;
+        if(m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
+               NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+            LOG_WA("Failed to dispatch stale handle message");
+        }
 
-	/*assert( */
-	m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_HIGH) /* == NCSCC_RC_SUCCESS) */ ;
+        /*Avoid redoing this dispatch for the same stale connection*/
+        cl_node->selObjUsable=FALSE; 
+        /*If a resurrect succeds cl_node->selObjUsable will be set back to TRUE
+        */
+    }
+    TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -410,8 +530,6 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 ******************************************************************************/
 static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -427,7 +545,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Failed to find client node");
@@ -437,9 +555,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OI_RT_ATTR_UPDATE;
 		callback->lcl_imm_hdl = implHandle;
@@ -464,7 +580,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 
 		/* Send the event */
 		TRACE("Posting RT UPDATE CALLBACK to IPC mailbox");
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void) m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 	}
 
 	/* Release The Lock */
@@ -483,8 +599,6 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -497,7 +611,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -506,9 +620,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OI_CCB_COMPLETED;
 		callback->lcl_imm_hdl = implHandle;
@@ -517,10 +629,13 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->inv = evt->info.ccbCompl.invocation;
 
 		/* Send the event */
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void) m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_COMPLETED");
 	}
 
+	if(cl_node->criticalCcbs< 0xff) {
+		cl_node->criticalCcbs++;
+	}
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 }
 
@@ -535,8 +650,6 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -547,7 +660,7 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -555,16 +668,14 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.ccbCompl.ccbId;
 		callback->implId = evt->info.ccbCompl.implId;
 		callback->inv = evt->info.ccbCompl.invocation;
 
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_APPLY");
 	}
 
@@ -582,8 +693,6 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -594,7 +703,7 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -602,15 +711,13 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.ccbCompl.ccbId;
 		callback->implId = evt->info.ccbCompl.implId;
 
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_ABORT");
 	}
 
@@ -627,8 +734,6 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -639,7 +744,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		return;
 	}
 
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -647,9 +752,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		callback->type = IMMA_CALLBACK_OI_CCB_DELETE;
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.objDelete.ccbId;
@@ -663,7 +766,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		evt->info.objDelete.objectName.size = 0;
 
 		/* Send the event */
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_DELETE");
 	}
 
@@ -681,8 +784,6 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
@@ -695,7 +796,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -704,9 +805,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OI_CCB_CREATE;
 		callback->lcl_imm_hdl = implHandle;
@@ -730,7 +829,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		evt->info.objCreate.attrValues = NULL;	/*steal attrValues list */
 
 		/* Send the event */
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE");
 	}
 
@@ -748,8 +847,6 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 ******************************************************************************/
 static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 {
-	uns32 proc_rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CALLBACK_INFO *callback;
 	IMMA_CLIENT_NODE *cl_node = NULL;
 	TRACE_ENTER();
@@ -764,7 +861,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 	}
 
 	/* Get the Client info */
-	rc = imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
+	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		TRACE_1("Could not find client node");
@@ -774,9 +871,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* Allocate the Callback info */
 	callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-	if (!callback) {
-		proc_rc = NCSCC_RC_OUT_OF_MEM;
-	} else {
+	if (callback) {
 		/* Fill the Call Back Info */
 		callback->type = IMMA_CALLBACK_OI_CCB_MODIFY;
 		callback->lcl_imm_hdl = implHandle;
@@ -797,7 +892,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 
 		/* Send the event */
 		TRACE("Posting IMMA_CALLBACK_OI_CCB_MODIFY");
-		proc_rc = m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
+		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted");
 	}
 
@@ -962,6 +1057,176 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
 	return cb_info;
 }
 
+
+/****************************************************************************
+  Name          : imma_proc_resurrect_client
+ 
+  Description   : Try to resurrect the provided handle. That is re-use
+                  the same handle value (which could be stored by the
+                  application) and the same client node. Above all the
+                  same IPC MBX which the user may be selecting/polling on.
+
+                  Resurrecting the handle is done with a newly restarted IMMND.
+                  If the client was attached as an implementer, then
+                  the implementer also needs to be re-attached, but that 
+                  is  done elsewhere (e.g. saImmOiDispatch stale-handling) 
+                  since it is only relevant for OI clients. 
+
+                  This function is used for both active and re-active
+                  resurrection.
+
+                  The cb_lock should NOT be locked on entry here.
+ 
+  Return Values : TRUE => resurrect succeeded. FALSE => BAD_HANDLE
+ 
+  Notes         : None
+******************************************************************************/
+uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
+{
+    TRACE_ENTER();
+    IMMA_CLIENT_NODE    *cl_node=NULL;
+    IMMSV_EVT resurrect_evt;
+    IMMSV_EVT *out_evt=NULL;
+    NCS_BOOL locked = FALSE;
+    SaAisErrorT err;
+    unsigned int sleep_delay_ms = 800;
+    unsigned int max_waiting_time_ms = 6 * 1000; /* 6 secs */
+    unsigned int msecs_waited = 0;
+
+    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+    {
+        TRACE_1("Lock failure");
+        goto lock_fail;
+    }
+    locked = TRUE;
+
+    imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+    if(cl_node == NULL || (cl_node->stale && cl_node->exposed))
+    {
+        LOG_WA("Client not found or already exposed - cant resurrect");
+        goto failure;
+    }
+	
+	if(!cl_node->stale) {
+		LOG_WA("imma_proc_resurrect_client: Handle %llx was not stale, "
+			"resurrected by another thread ?", immHandle);
+		goto skip_resurrect;
+	}
+
+    /* populate the structure */
+    memset(&resurrect_evt, 0, sizeof(IMMSV_EVT));
+    resurrect_evt.type = IMMSV_EVT_TYPE_IMMND;
+    resurrect_evt.info.immnd.type = (isOm)?IMMND_EVT_A2ND_IMM_OM_RESURRECT:
+        IMMND_EVT_A2ND_IMM_OI_RESURRECT;
+    resurrect_evt.info.immnd.info.finReq.client_hdl = immHandle;
+    TRACE_1("Resurrect message for immHandle: %llx isOm: %u",
+        immHandle, isOm);
+    /* Unlock before MDS Send */
+    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+    locked = FALSE;
+    cl_node = NULL;
+
+    if (cb->is_immnd_up == FALSE)
+    {
+        TRACE_2("IMMND is DOWN - resurrect attempt failed. ");
+        goto exposed;
+    }
+
+    err = SA_AIS_ERR_TRY_AGAIN;
+    while((err == SA_AIS_ERR_TRY_AGAIN) && 
+        (msecs_waited < max_waiting_time_ms))
+    {
+        /* send the request to the IMMND */
+        if(imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), 
+               &resurrect_evt,&out_evt, IMMSV_WAIT_TIME) !=  NCSCC_RC_SUCCESS)
+        {
+            TRACE_2("Failure in MDS send");
+            goto exposed;
+        }
+
+        if(!out_evt) 
+        {
+            TRACE_2("Empty reply");
+            goto exposed;
+        }
+
+        err = out_evt->info.imma.info.errRsp.error;
+        if(err == SA_AIS_ERR_TRY_AGAIN)
+        {
+            usleep(sleep_delay_ms * 1000);
+            msecs_waited += sleep_delay_ms;
+        }
+    }
+
+    if(err != SA_AIS_OK)
+    {
+        LOG_WA("Recieved negative reply from IMMND %u", err);
+        goto exposed;
+    }
+
+    TRACE("OK reply from IMMND on resurrect of handle %llx", immHandle);
+
+    /* OK reply */
+    free(out_evt);
+
+    /* Take the lock again. */
+    if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
+    {
+        TRACE_1("Lock failure");
+        goto lock_fail;
+    }
+    locked = TRUE;
+
+    /* Look up the client node again. */
+    imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+    if (cl_node == NULL)
+    {
+        TRACE("Client node missing after reply");
+        goto failure;
+    }
+
+    if(cl_node->exposed)
+    {
+        TRACE("Client node got exposed DURING resurrect attempt");
+        /* Could happen in a separate thread trying to use the same handle */
+        goto failure;
+    }
+
+    /* Clear away stale marking */
+    cl_node->stale = FALSE;
+
+    /*cl_node->selObjUsable = TRUE;   Done in OM/OI dispatch if relevant. */
+
+ skip_resurrect:
+    if(locked) {
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+    }
+
+    TRACE_LEAVE();
+    return TRUE;
+
+ exposed: 
+    /* Try to mark client as exposed */
+    if(locked || 
+        (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)) {
+        locked = TRUE;
+        imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+        if (cl_node != NULL && cl_node->stale) 
+        {
+            cl_node->exposed = TRUE; 
+        }
+    }
+
+ failure:
+    if(locked) {
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+    }
+
+ lock_fail:
+    TRACE_LEAVE();
+    return FALSE;
+}
+
 /****************************************************************************
   Name          : imma_hdl_callbk_dispatch_one
  
@@ -969,7 +1234,6 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
  
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - IMM OM service handle
-                  SaBoolT  - SA_TRUE => OM, SA_FALSE => OI
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -996,12 +1260,12 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 	while ((callback = imma_callback_ipc_rcv(cl_node))) {
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
-
-			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			if (cl_node->stale) {
+                cl_node->exposed = TRUE;
+                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
-
+            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			imma_process_callback_info(cb, cl_node, callback);
 			return SA_AIS_OK;
 		} else {
@@ -1021,7 +1285,6 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
  
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - IMM OM service handle
-                  SaBoolT - isOm  SA_TRUE => OM, SA_FALSE => OI
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1047,11 +1310,13 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 	while ((callback = imma_callback_ipc_rcv(cl_node))) {
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (cl_node) {
-			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			if (cl_node->stale) {
+                cl_node->exposed = TRUE;
+                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
 
+			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 			imma_process_callback_info(cb, cl_node, callback);
 		} else {
 			imma_proc_free_callback(callback);
@@ -1083,7 +1348,6 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
                   when there are no more
   Arguments     : cb      - ptr to the IMMA control block
                   immHandle - immsv handle
-                  isOm      - SA_TRUE => OM, SA_FALSE => OI.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -1124,11 +1388,13 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 
 		if (callback) {
 			if (client_info) {
-				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				if (client_info->stale) {
+                    client_info->exposed = TRUE;
+                    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 					return SA_AIS_ERR_BAD_HANDLE;
 				}
 
+                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 				imma_process_callback_info(cb, client_info, callback);
 			} else {
 				/* Another thread called Finalize? */
@@ -1212,7 +1478,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 		break;
 
 	case IMMA_CALLBACK_STALE_HANDLE:
-		TRACE("Stale handle indication received");
+        TRACE("Stale handle upcall received on OM handle");
+        /* Do nothing. */
 		break;
 	default:
 		TRACE_1("Unrecognized OM callback type:%u", callback->type);
@@ -1321,6 +1588,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 			locked = TRUE;
 			/*async  fevs */
+			
 			localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 
 			if (locked) {
@@ -1362,6 +1630,22 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				TRACE_2("saImmOiCcbApplyCallback is not implemented, yet "
 					"implementer is registered and CCBs are used. " "Ccb will commit in any case");
 			}
+			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+			/* Look up the client node again. */
+			imma_client_node_get(&cb->client_tree, &(cl_node->handle), &cl_node);
+			if(cl_node) {
+				if(cl_node->criticalCcbs) {
+					if(cl_node->criticalCcbs < 0xff) {
+						cl_node->criticalCcbs--;
+					}
+				} else {
+					/* Lost track of concurrent ccbs. 
+					   This can happen with aborts before completed upcall.
+					 */
+					cl_node->criticalCcbs = 0xff;
+				}
+			}
+			assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		} while (0);
 
 		break;
@@ -1806,6 +2090,22 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				TRACE_2("saImmOiCcbAbortCallback is not implemented, yet "
 					"implementer is registered and CCBs are used. " "Ccb will abort anyway");
 			}
+			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+			/* Look up the client node again. */
+			imma_client_node_get(&cb->client_tree, &(cl_node->handle), &cl_node);
+			if(cl_node) {
+				if(cl_node->criticalCcbs) {
+					if(cl_node->criticalCcbs < 0xff) {
+						cl_node->criticalCcbs--;
+					}
+				} else {
+					/* Lost track of concurrent ccbs.
+					   This can happen with aborts before completed upcall.
+					*/
+					cl_node->criticalCcbs = 0xff;
+				}
+			}
+			assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		} while (0);
 
 		break;
@@ -1918,7 +2218,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 		break;
 
 	case IMMA_CALLBACK_STALE_HANDLE:
-		TRACE("Stale handle indication received on OM handle");
+		TRACE("Stale handle indication received on OI handle");
+        /* Do nothing. */
 		break;
 
 	default:
@@ -1969,6 +2270,38 @@ static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback)
 	}
 
 	free(callback);
+}
+
+/*******************************************************************
+ * imma_proc_check_stale internal function
+ *     Checks if the imma handle has turned stale, e.g. on timeout
+ *     return from a syncronous call towards IMMND.
+ *     Note the timeout could be a "normal" timeout caused say by an
+ *     object-implementer not responding. In that case the input
+ *     defaultErr will be returned. But if the client is stale
+ *     it indicates that the IMMND crashed during the call and we
+ *     return ERR_BAD_HANDLE since the handle can not be recovered.
+ * NOTE: The CB must be UNLOCKED on entry of this function!!
+ *******************************************************************/
+SaAisErrorT imma_proc_check_stale(IMMA_CB *cb, 
+                                   SaImmHandleT immHandle,
+                                   SaAisErrorT defaultEr)
+{
+    SaAisErrorT err = defaultEr;
+    if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS)
+    {
+        IMMA_CLIENT_NODE  *cl_node=0;
+        imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
+        if(cl_node && cl_node->stale)
+        {
+            cl_node->exposed = TRUE; /* Ensure the handle is not resurrected.*/
+            err = SA_AIS_ERR_BAD_HANDLE;
+            LOG_WA("Client handle turned bad, IMMND restarted ?");
+        }
+        m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+    }
+
+    return err;
 }
 
 /*******************************************************************
@@ -2048,7 +2381,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	case NCSCC_RC_SUCCESS:
 		break;
 	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
+		rc = imma_proc_check_stale(cb, immHandle, SA_AIS_ERR_TIMEOUT);
 		break;
 
 	default:
@@ -2069,4 +2402,37 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	}
 
 	return rc;
+}
+
+void
+imma_proc_increment_blocked(IMMA_CLIENT_NODE *cl_node)
+{
+	if(cl_node->replyPending < 0xff) {
+		cl_node->replyPending++;
+	} else {
+		TRACE_2("More than 255 concurrent BLOCKED users of handle!");
+	}
+}
+
+void
+imma_proc_decrement_blocked(IMMA_CLIENT_NODE *cl_node)
+{
+	if(cl_node->replyPending) {
+		if(cl_node->replyPending < 0xff) {
+			cl_node->replyPending--;
+		} else {
+			/* If reply Pending has reached 255 then we stop keeping track.
+			   The consequence is: in case of IMMND restart we will not be
+			   able to resurrect this handle. The client will be forced to
+			   deal with an SA_AIS_ERR_BAD_HANDLE.
+			 */
+			TRACE_2("Lost track of concurrent blockers for handle %llu.",
+				cl_node->handle);
+		}
+	} else {
+		/* Reaching 255 is sticky. */
+		TRACE_2("Will not decrement zero blocked count for handle %llu",
+			cl_node->handle);
+		cl_node->replyPending = 0xff;
+	}
 }
