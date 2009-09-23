@@ -446,7 +446,7 @@ uns32 avnd_evt_ava_resp(AVND_CB *cb, AVND_EVT *evt)
 	case AVSV_AMF_PXIED_COMP_CLEAN:
 		/* trigger comp-fsm & delete the record */
 		if (SA_AIS_OK != resp->err)
-			avnd_gen_comp_clean_failed_trap(cb, comp);
+			avnd_gen_comp_clean_failed_ntf(cb, comp);
 
 		rc = avnd_comp_clc_fsm_run(cb, comp, (SA_AIS_OK == resp->err) ?
 					   AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_SUCC :

@@ -165,7 +165,7 @@ AVND_SU *avnd_sudb_rec_add(AVND_CB *cb, AVND_SU_PARAM *info, uns32 *rc)
 	/*
 	 * Update the rest of the parameters with default values.
 	 */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 	su->pres = NCS_PRES_UNINSTANTIATED;
 	su->avd_updt_flag = FALSE;
 

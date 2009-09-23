@@ -34,4 +34,5 @@ ncs_pcap_SOURCES = \
 ncs_pcap_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
-	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_pld.la
+	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_pld.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la

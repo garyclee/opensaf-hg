@@ -102,7 +102,7 @@ uns32 avnd_evt_avd_reg_comp_msg(AVND_CB *cb, AVND_EVT *evt)
 		if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 			m_AVND_SU_PREINSTANTIABLE_SET(comp->su);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_DISABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_DISABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 		}
 
@@ -145,7 +145,7 @@ uns32 avnd_evt_avd_reg_comp_msg(AVND_CB *cb, AVND_EVT *evt)
 		if (comp) {
 			m_AVND_SU_PREINSTANTIABLE_RESET(comp->su);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_ENABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_ENABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 		}
 	}
@@ -198,7 +198,7 @@ static uns32 avnd_avd_comp_updt_on_fover(AVND_CB *cb, AVSV_D2N_REG_COMP_MSG_INFO
 			if (m_AVND_COMP_TYPE_IS_PREINSTANTIABLE(comp)) {
 				m_AVND_SU_PREINSTANTIABLE_SET(comp->su);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_FLAG_CHANGE);
-				m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_DISABLE);
+				m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_DISABLE);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 			}
 
@@ -894,7 +894,7 @@ uns32 avnd_comp_reg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp, AVSV_
 		/* update su oper state */
 		m_AVND_SU_IS_ENABLED(comp->su, su_is_enabled);
 		if (TRUE == su_is_enabled) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_ENABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_ENABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 			/* inform AvD */
@@ -1008,7 +1008,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 	if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
 
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(comp))
-			avnd_gen_comp_proxied_orphaned_trap(cb, comp);
+			avnd_gen_comp_proxied_orphaned_ntf(cb, comp);
 
 		/*remove the component from the list of proxied of its proxy */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
@@ -1034,7 +1034,7 @@ uns32 avnd_comp_unreg_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP *pxy_comp)
 
 		/* update su oper state */
 		if (m_AVND_SU_OPER_STATE_IS_ENABLED(comp->su)) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_DISABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_DISABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 			/* inform AvD */
@@ -1757,7 +1757,7 @@ uns32 avnd_comp_csi_qscd_assign_fail_prc(AVND_CB *cb, AVND_COMP *comp, AVND_COMP
 
 	/* update su oper state */
 	if (m_AVND_SU_OPER_STATE_IS_ENABLED(comp->su)) {
-		m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su, NCS_OPER_STATE_DISABLE);
+		m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su, NCS_OPER_STATE_DISABLE);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 
 		/* inform AvD */
@@ -2382,7 +2382,7 @@ uns32 avnd_comp_proxy_unreg(AVND_CB *cb, AVND_COMP *comp)
 		/* if(m_AVND_COMP_TYPE_IS_INTER_NODE)  */
  /*************************   Section  1 Ends Here **************************/
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(rec->pxied_comp))
-			avnd_gen_comp_proxied_orphaned_trap(cb, rec->pxied_comp);
+			avnd_gen_comp_proxied_orphaned_ntf(cb, rec->pxied_comp);
 
 		/* process proxied comp unregistration */
 		if (m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(rec->pxied_comp))

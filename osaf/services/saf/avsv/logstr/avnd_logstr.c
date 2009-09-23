@@ -315,19 +315,16 @@ const NCSFL_STR avnd_fovr_set[] = {
 };
 
 /******************************************************************************
-                      Canned string for Traps
+                      Canned string for Ntfs
  ******************************************************************************/
-const NCSFL_STR avnd_trap_set[] = {
-	{AVND_LOG_TRAP_INSTANTIATION, "Instantiation"},
-	{AVND_LOG_TRAP_TERMINATION, "Termination"},
-	{AVND_LOG_TRAP_CLEANUP, "Cleanup"},
-	{AVND_LOG_TRAP_OPER_STATE, "Oper State"},
-	{AVND_LOG_TRAP_PRES_STATE, "Pres State"},
-	{AVND_LOG_TRAP_ORPHANED, "Orphaned"},
-	{AVND_LOG_TRAP_FAILED, "Failed"},
-	{AVND_LOG_EDA_INIT_FAILED, "EDA Library intitialization Failed Error:"},
-	{AVND_LOG_EDA_CHNL_OPEN_FAILED, "EDA Trap Channel Open Failed Error:"},
-	{AVND_LOG_EDA_EVT_PUBLISH_FAILED, "EDA Trap Event Publish Failed Error:"},
+const NCSFL_STR avnd_ntf_set[] = {
+	{AVND_LOG_NTFS_INSTANTIATION, "Instantiation"},
+	{AVND_LOG_NTFS_TERMINATION, "Termination"},
+	{AVND_LOG_NTFS_CLEANUP, "Cleanup"},
+	{AVND_LOG_NTFS_OPER_STATE, "Oper State"},
+	{AVND_LOG_NTFS_PRES_STATE, "Pres State"},
+	{AVND_LOG_NTFS_ORPHANED, "Orphaned"},
+	{AVND_LOG_NTFS_FAILED, "Failed"},
 
 	{0, 0}
 };
@@ -336,9 +333,9 @@ const NCSFL_STR avnd_trap_set[] = {
                       Canned string for Oper State
  ******************************************************************************/
 const NCSFL_STR avnd_oper_set[] = {
-	{AVND_LOG_TRAP_OPER_STATE_MIN, "do not use"},
-	{AVND_LOG_TRAP_OPER_STATE_ENABLE, "Enable"},
-	{AVND_LOG_TRAP_OPER_STATE_DISABLE, "Disable"},
+	{AVND_LOG_NTF_OPER_STATE_MIN, "do not use"},
+	{AVND_LOG_NTF_OPER_STATE_ENABLE, "Enable"},
+	{AVND_LOG_NTF_OPER_STATE_DISABLE, "Disable"},
 
 	{0, 0}
 };
@@ -348,15 +345,15 @@ const NCSFL_STR avnd_oper_set[] = {
 
  ******************************************************************************/
 const NCSFL_STR avnd_pres_set[] = {
-	{AVND_LOG_TRAP_PRES_STATE_MIN, "do not use"},
-	{AVND_LOG_TRAP_PRES_STATE_UNINSTANTIATED, "Uninstantiated"},
-	{AVND_LOG_TRAP_PRES_STATE_INSTANTIATING, "Instantiating"},
-	{AVND_LOG_TRAP_PRES_STATE_INSTANTIATED, "Instantiated"},
-	{AVND_LOG_TRAP_PRES_STATE_TERMINATING, "Terminating"},
-	{AVND_LOG_TRAP_PRES_STATE_RESTARTING, "Restarting"},
-	{AVND_LOG_TRAP_PRES_STATE_INSTANTIATIONFAILED, "Instantiationfailed"},
-	{AVND_LOG_TRAP_PRES_STATE_TERMINATIONFAILED, "Terminationfailed"},
-	{AVND_LOG_TRAP_PRES_STATE_ORPHANED, "Orphaned"},
+	{AVND_LOG_NTF_PRES_STATE_MIN, "do not use"},
+	{AVND_LOG_NTF_PRES_STATE_UNINSTANTIATED, "Uninstantiated"},
+	{AVND_LOG_NTF_PRES_STATE_INSTANTIATING, "Instantiating"},
+	{AVND_LOG_NTF_PRES_STATE_INSTANTIATED, "Instantiated"},
+	{AVND_LOG_NTF_PRES_STATE_TERMINATING, "Terminating"},
+	{AVND_LOG_NTF_PRES_STATE_RESTARTING, "Restarting"},
+	{AVND_LOG_NTF_PRES_STATE_INSTANTIATIONFAILED, "Instantiationfailed"},
+	{AVND_LOG_NTF_PRES_STATE_TERMINATIONFAILED, "Terminationfailed"},
+	{AVND_LOG_NTF_PRES_STATE_ORPHANED, "Orphaned"},
 
 	{0, 0}
 };
@@ -407,7 +404,7 @@ NCSFL_SET avnd_str_set[] = {
 	{AVND_FC_ERR, 0, (NCSFL_STR *)avnd_err_set},
 	{AVND_FC_MISC, 0, (NCSFL_STR *)avnd_misc_set},
 	{AVND_FC_FOVR, 0, (NCSFL_STR *)avnd_fovr_set},
-	{AVND_FC_TRAP, 0, (NCSFL_STR *)avnd_trap_set},
+	{AVND_FC_NTF, 0, (NCSFL_STR *)avnd_ntf_set},
 	{AVND_FC_OPER, 0, (NCSFL_STR *)avnd_oper_set},
 	{AVND_FC_PRES, 0, (NCSFL_STR *)avnd_pres_set},
 	{AVND_FC_HDLN, 0, (NCSFL_STR *)avnd_hdln_set},
@@ -490,25 +487,24 @@ NCSFL_FMAT avnd_fmat_set[] = {
 	{AVND_LID_FOVER, NCSFL_TYPE_TICLL, "[%s] Role Change Event %s %s %ld %ld\n"},
 
 	/* COMPONENT /Instantiation/Termination/Cleanup Failed */
-	{AVND_LID_TRAP_CLC, "TCII", "[%s] %s %s %s\n"},
+	{AVND_LID_NTFS_CLC, "TCII", "[%s] %s %s %s\n"},
 
 	/* SU Oper State Changed to .. */
-	{AVND_LID_TRAP_OPER_STAT, "TCI", "[%s] %s Oper State Changed To %s\n"},
+	{AVND_LID_NTFS_OPER_STAT, "TCI", "[%s] %s Oper State Changed To %s\n"},
 
 	/* SU Pres State Changed to .. */
-	{AVND_LID_TRAP_PRES_STAT, "TCI", "[%s] %s Pres State Changed To %s\n"},
+	{AVND_LID_NTFS_PRES_STAT, "TCI", "[%s] %s Pres State Changed To %s\n"},
 
 	/* Proxy Component Failed Proxied Component Orphaned */
-	{AVND_LID_TRAP_PROXIED, "TCICI", "[%s] %s %s %s %s\n"},
+	{AVND_LID_NTFS_PROXIED, "TCICI", "[%s] %s %s %s %s\n"},
 
-	{AVND_LID_TRAP_EVT, "TIL", "[%s] AvND: %s %ld\n"},
-
-	{AVND_LID_TRAP_COMP_FAIL, "TCLI", "[%s] %s Failed on Node Id:  0x%08lx Error Src: %s\n"},
+	{AVND_LID_NTFS_COMP_FAIL, "TCLI", "[%s] %s Failed on Node Id:  0x%08lx Error Src: %s\n"},
 	{AVND_LID_HDLN, "TIC", "[%s] TRACE INFO : %s %s\n"},
 	{AVND_LID_HDLN_VAL, "TICLL", "[%s] TRACE INFO : %s at %s:%ld val %ld\n"},
 	{AVND_LID_HDLN_VAL_NAME, "TICLP", "[%s] TRACE INFO : %s at %s:%ld val %s\n"},
 	{AVND_LID_HDLN_STRING, "TICLC", "[%s] TRACE INFO : %s at %s:%ld val %s\n"},
 	{AVND_AVND_MSG, "TICCLLLL", "[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},
+	{AVND_LID_GENLOG, "TC", "%s %s\n"},
 	{0, 0, 0}
 };
 

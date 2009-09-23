@@ -42,9 +42,9 @@
 #if (NCS_AVD_LOG == 1)
 
 /****************************************************************************
-  Name          : avd_log_admin_state_traps
+  Name          : avd_log_admin_state_ntfs
 
-  Description   : This routine logs the admin state related traps.
+  Description   : This routine logs the admin state related ntfs.
 
   Arguments     : State    - Admin State
                   name_net - ptr to the name (node/su/sg/si name)
@@ -54,7 +54,7 @@
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev)
 {
 	char name[SA_MAX_NAME_LENGTH];
 
@@ -70,9 +70,9 @@ void avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, un
 }
 
 /****************************************************************************
-  Name          : avd_log_si_unassigned_trap
+  Name          : avd_log_si_unassigned_ntfs
 
-  Description   : This routine logs the si unassigned related traps.
+  Description   : This routine logs the si unassigned related ntfs.
 
   Arguments     : State    - State
                   name_net - ptr to the si name
@@ -82,7 +82,7 @@ void avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, un
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_si_unassigned_trap(AVD_TRAP_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_si_unassigned_ntfs(AVD_NTF_FLEX state, SaNameT *name_net, uns8 sev)
 {
 	char name[SA_MAX_NAME_LENGTH];
 
@@ -92,15 +92,15 @@ void avd_log_si_unassigned_trap(AVD_TRAP_FLEX state, SaNameT *name_net, uns8 sev
 	if (name_net)
 		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SI_UNASSIGN, AVD_FC_TRAP, NCSFL_LC_HEADLINE, sev, "TCI", name, state);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SI_UNASSIGN, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCI", name, state);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avd_log_oper_state_traps
+  Name          : avd_log_oper_state_ntfs
 
-  Description   : This routine logs the oper state related traps.
+  Description   : This routine logs the oper state related ntfs.
 
   Arguments     : State    - oper State
                   name_net - ptr to the name 
@@ -110,7 +110,7 @@ void avd_log_si_unassigned_trap(AVD_TRAP_FLEX state, SaNameT *name_net, uns8 sev
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev)
 {
 	char name[SA_MAX_NAME_LENGTH];
 
@@ -126,9 +126,9 @@ void avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8
 }
 
 /****************************************************************************
-  Name          : avd_log_clm_node_traps
+  Name          : avd_log_clm_node_ntfs
 
-  Description   : This routine logs the clm node related traps.
+  Description   : This routine logs the clm node related ntfs.
 
   Arguments     : op    - Operation
                   cl    - "Cluster"
@@ -139,7 +139,7 @@ void avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op, SaNameT *name_net, uns8 sev)
+void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, uns8 sev)
 {
 	char name[SA_MAX_NAME_LENGTH];
 
@@ -149,29 +149,29 @@ void avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op, SaNameT *name_ne
 	if (name_net)
 		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_CLM, AVD_FC_TRAP, NCSFL_LC_HEADLINE, sev, "TCII", name, op, cl);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_CLM, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCII", name, op, cl);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avd_log_susi_ha_traps
+  Name          : avd_log_susi_ha_ntfs
 
-  Description   : This routine logs the SUSI HA related traps.
+  Description   : This routine logs the SUSI HA related ntfs.
 
   Arguments     : state         - HA State
                   su_name_net   - ptr to the su name
                   si_name_net   - ptr to the si name
                   sev           - severity
                   isStateChanged- Flag to specify that this routine is called in context of 
-                                  HA State changed or HA Sate changing trap.
+                                  HA State changed or HA Sate changing ntfs.
 
   Return Values : None
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_susi_ha_traps(AVD_HA_STATE_FLEX state,
-			   SaNameT *su_name_net, SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged)
+void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state,
+			  SaNameT *su_name_net, SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged)
 {
 	char su_name[SA_MAX_NAME_LENGTH];
 	char si_name[SA_MAX_NAME_LENGTH];
@@ -200,7 +200,7 @@ void avd_log_susi_ha_traps(AVD_HA_STATE_FLEX state,
 /****************************************************************************
   Name          : avd_log_shutdown_failure
 
-  Description   : This routine logs the failure of shutdown traps.
+  Description   : This routine logs the failure of shutdown ntfs.
 
   Arguments     : node_name_net - Node name
                   sev           - severity

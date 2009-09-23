@@ -347,7 +347,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	       "Component '%s' faulted due to '%s' - rcvr=%u",
 	       comp->name_net.value, g_comp_err[err_info->src], esc_rcvr);
 
-	avnd_gen_comp_fail_on_node_trap(cb, err_info->src, comp);
+	avnd_gen_comp_fail_on_node_ntf(cb, err_info->src, comp);
 
 	/* execute the recovery */
 	rc = avnd_err_recover(cb, comp->su, comp, esc_rcvr);
@@ -635,7 +635,7 @@ uns32 avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 		goto done;
 
 	/* change the comp & su oper state to disabled */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 	m_AVND_COMP_OPER_STATE_SET(failed_comp, NCS_OPER_STATE_DISABLE);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
@@ -708,7 +708,7 @@ uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 	}
 
 	/* update su oper state */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform AvD */
@@ -779,7 +779,7 @@ uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 
 	/* transition the su & node oper state to disabled */
 	cb->oper_state = NCS_OPER_STATE_DISABLE;
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, failed_su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, NCS_OPER_STATE_DISABLE);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform avd */
@@ -865,7 +865,7 @@ uns32 avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		m_AVND_SU_IS_ENABLED(su, is_en);
 		if (TRUE == is_en) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			rc = avnd_di_oper_send(cb, su, 0);
 			if (NCSCC_RC_SUCCESS != rc)
@@ -1272,7 +1272,7 @@ uns32 avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 
 	/* transition the su & node oper state to disabled */
 	cb->oper_state = NCS_OPER_STATE_DISABLE;
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, failed_su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, NCS_OPER_STATE_DISABLE);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform avd */

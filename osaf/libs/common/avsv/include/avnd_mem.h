@@ -51,7 +51,6 @@ typedef enum {
 	NCS_SERVICE_AVND_SUB_ID_AVND_PG_TRK,
 	NCS_SERVICE_AVND_SUB_ID_AVND_DND_MSG_LIST,
 	NCS_SERVICE_AVND_SUB_ID_AVSV_CLM_TRK_INFO,
-	NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG,
 	NCS_SERVICE_AVND_SUB_ID_AVND_NODEID_TO_MDSDEST,
 	NCS_SERVICE_AVND_SUB_ID_REG_REQ_PENDING,
 	NCS_SERVICE_AVND_SUB_ID_AVND_ASYNC_UPDT,
@@ -234,16 +233,6 @@ typedef enum {
                                                 NCS_MEM_REGION_PERSISTENT, \
                                                 NCS_SERVICE_ID_AVND, \
                                                 NCS_SERVICE_AVND_SUB_ID_AVND_COMP_PXIED_REC)
-
-#define m_MMGR_ALLOC_AVND_EDA_TLV_MSG(p)  (uns8*)m_NCS_MEM_ALLOC(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVND, \
-                                                NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG)
-
-#define m_MMGR_FREE_AVND_EDA_TLV_MSG(p)  m_NCS_MEM_FREE(p,\
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVND, \
-                                                NCS_SERVICE_AVND_SUB_ID_EDA_TLV_MSG)
 
 #define m_MMGR_ALLOC_AVND_NODEID_MDSDEST  (AVND_NODEID_TO_MDSDEST_MAP *)m_NCS_MEM_ALLOC(sizeof(AVND_NODEID_TO_MDSDEST_MAP), \
                                                 NCS_MEM_REGION_PERSISTENT, \

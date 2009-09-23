@@ -452,9 +452,6 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				/* Start Heart Beating with the peer */
 				avd_init_heartbeat(cb);
 
-				/* Initialize the eda and open the trap channel
-				   to speed up switch over */
-				avd_eda_initialize(cb);
 			}
 
 			cb->synced_reo_type = arg->info.decode.i_reo_type;

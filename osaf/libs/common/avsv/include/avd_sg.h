@@ -193,7 +193,7 @@ typedef struct avd_sg_tag {
 #define m_AVD_SET_SG_ADMIN(cb,sg,state) {\
 sg->admin_state = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_ADMIN_STATE);\
-avd_gen_sg_admin_state_changed_trap(cb, sg);\
+avd_gen_sg_admin_state_changed_ntf(cb, sg);\
 }
 
 #define m_AVD_SET_SG_ADJUST(cb,sg,state) {\

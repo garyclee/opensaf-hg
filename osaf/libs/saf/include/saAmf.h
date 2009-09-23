@@ -21,6 +21,16 @@ extern "C" {
 #define SA_AMF_PM_NON_ZERO_EXIT 0x2
 #define SA_AMF_PM_ABNORMAL_END 0x4
 
+	typedef enum {
+		SA_AMF_READINESS_STATE = 1,
+		SA_AMF_HA_STATE = 2,
+		SA_AMF_PRESENCE_STATE = 3,
+		SA_AMF_OP_STATE = 4,
+		SA_AMF_ADMIN_STATE = 5,
+		SA_AMF_ASSIGNMENT_STATE = 6,
+		SA_AMF_PROXY_STATUS = 7
+	} SaAmfStateT;
+
 	typedef SaUint32T SaAmfPmErrorsT;
 
 	typedef enum {

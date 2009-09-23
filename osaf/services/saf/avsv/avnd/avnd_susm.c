@@ -882,7 +882,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 			/* determine the su oper state. if enabled, inform avd. */
 			m_AVND_SU_IS_ENABLED(su, is_en);
 			if (TRUE == is_en) {
-				m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+				m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 				rc = avnd_di_oper_send(cb, su, 0);
 				if (NCSCC_RC_SUCCESS != rc)
@@ -896,7 +896,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 			if (m_AVND_SU_IS_FAILED(su)) {
 				m_AVND_SU_FAILED_RESET(su);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
-				m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+				m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			}
 
@@ -925,7 +925,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 			/* determine su oper state. if enabled, inform avd. */
 			m_AVND_SU_IS_ENABLED(su, is_en);
 			if (TRUE == is_en) {
-				m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+				m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 				rc = avnd_di_oper_send(cb, su, 0);
 				if (NCSCC_RC_SUCCESS != rc)
@@ -961,7 +961,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 		    (NCS_PRES_INSTANTIATIONFAILED == final_st)) {
 			/* send the su-oper state msg (to indicate that instantiation failed) */
 			if (m_AVND_SU_OPER_STATE_IS_ENABLED(su)) {
-				m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+				m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
 				m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 				rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
 				if (NCSCC_RC_SUCCESS != rc)
@@ -999,7 +999,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
 			/* npi su is disabled in inst-fail state */
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_DISABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 			rc = avnd_di_oper_send(cb, su, AVSV_ERR_RCVR_SU_FAILOVER);
@@ -1022,7 +1022,7 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, NCS_PRES_STATE prv_st, 
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 
 			/* npi su is enabled in uninstantiated state */
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, su, NCS_OPER_STATE_ENABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			rc = avnd_di_oper_send(cb, su, 0);
 		}
@@ -1116,7 +1116,7 @@ uns32 avnd_su_pres_uninst_suinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp
 	}
 
 	/* transition to instantiating state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATING);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATING);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
  done:
@@ -1167,7 +1167,7 @@ uns32 avnd_su_pres_insting_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 	}			/* for */
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_TERMINATING);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_TERMINATING);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
  done:
@@ -1243,7 +1243,7 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 		/* determine su presence state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (TRUE == is) {
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
@@ -1269,7 +1269,7 @@ uns32 avnd_su_pres_insting_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 				goto done;
 		} else {
 			/* => si assignment done */
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
@@ -1308,7 +1308,7 @@ uns32 avnd_su_pres_insting_compinstfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* transition to inst-failed state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATIONFAILED);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATIONFAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 	m_AVND_SU_ALL_TERM_RESET(su);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
@@ -1423,7 +1423,7 @@ uns32 avnd_su_pres_inst_suterm_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp)
 	}
 
 	/* transition to terminating state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_TERMINATING);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_TERMINATING);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
  done:
@@ -1491,7 +1491,7 @@ uns32 avnd_su_pres_inst_surestart_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *com
 	}
 
 	/* transition to restarting state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_RESTARTING);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_RESTARTING);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
  done:
@@ -1540,7 +1540,7 @@ uns32 avnd_su_pres_inst_compterming_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		if (m_AVND_SU_IS_FAILED(su)) {
 			/* transition to terminating state */
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_TERMINATING);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_TERMINATING);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
@@ -1576,7 +1576,7 @@ uns32 avnd_su_pres_terming_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 		/* determine if su can be transitioned to instantiated state */
 		m_AVND_SU_IS_INSTANTIATED(su, is);
 		if (TRUE == is) {
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
@@ -1661,7 +1661,7 @@ uns32 avnd_su_pres_terming_comptermfail_hdler(AVND_CB *cb, AVND_SU *su, AVND_COM
 	}
 
 	/* transition to term-failed state */
-	m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_TERMINATIONFAILED);
+	m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_TERMINATIONFAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
 	if (TRUE == su->is_ncs) {
@@ -1748,7 +1748,7 @@ uns32 avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP 
 		 * transition to terminate state.
 		 */
 		if (!curr_comp) {
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_UNINSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_UNINSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
 			/* Now check if in the context of shutdown all app SUs 
@@ -1787,7 +1787,7 @@ uns32 avnd_su_pres_terming_compuninst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP 
 				goto done;
 		} else {
 			/* => si assignment done */
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_UNINSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_UNINSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 
 			/* Now check if in the context of shutdown all app SUs 
@@ -1906,7 +1906,7 @@ uns32 avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 
 		/* OK, all are instantiated */
 		if (all_inst == TRUE) {
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}
@@ -1932,7 +1932,7 @@ uns32 avnd_su_pres_restart_compinst_hdler(AVND_CB *cb, AVND_SU *su, AVND_COMP *c
 				goto done;
 		} else {
 			/* => si assignment done */
-			m_AVND_SU_PRES_STATE_SET_AND_SEND_TRAP(cb, su, NCS_PRES_INSTANTIATED);
+			m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, NCS_PRES_INSTANTIATED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_PRES_STATE);
 		}
 	}

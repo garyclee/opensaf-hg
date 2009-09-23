@@ -21,6 +21,10 @@ extern "C" {
 #define SA_CLM_MAX_ADDRESS_LENGTH 64
 
 	typedef enum {
+		SA_CLM_CLUSTER_CHANGE_STATUS = 1
+	} SaClmStateT;
+
+	typedef enum {
 		SA_CLM_AF_INET = 1,
 		SA_CLM_AF_INET6 = 2
 	} SaClmNodeAddressFamilyT;

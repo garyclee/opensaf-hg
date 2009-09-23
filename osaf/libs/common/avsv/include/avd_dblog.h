@@ -74,8 +74,7 @@ typedef enum avd_memfail_flex {
 	AVD_SG_SI_RANK_ALLOC_FAILED,
 	AVD_SG_SU_RANK_ALLOC_FAILED,
 	AVD_COMP_CS_TYPE_ALLOC_FAILED,
-	AVD_CS_TYPE_PARAM_ALLOC_FAILED,
-	AVD_TRAP_VAR_BIND_ALLOC_FAILED
+	AVD_CS_TYPE_PARAM_ALLOC_FAILED
 } AVD_MEMFAIL_FLEX;
 
 /******************************************************************************
@@ -147,59 +146,56 @@ typedef enum avd_ckpt_flex {
 } AVD_CKPT_FLEX;
 
 /******************************************************************************
- Logging offset inexes for traps gen.
+ Logging offset inexes for ntfs gen.
  ******************************************************************************/
-typedef enum avd_trap_flex {
-	AVD_TRAP_AMF,
-	AVD_TRAP_CLM,
-	AVD_TRAP_CLUSTER,
-	AVD_TRAP_UNASSIGNED,
-	AVD_TRAP_JOINED,
-	AVD_TRAP_EXITED,
-	AVD_TRAP_RECONFIGURED,
-	AVD_TRAP_EDA_INIT_FAILED,
-	AVD_TRAP_EDA_CHNL_OPEN_FAILED,
-	AVD_TRAP_EDA_EVT_PUBLISH_FAILED,
-	AVD_TRAP_NCS_INIT_SUCCESS,
+typedef enum avd_ntf_flex {
+	AVD_NTFS_AMF,
+	AVD_NTFS_CLM,
+	AVD_NTFS_CLUSTER,
+	AVD_NTFS_UNASSIGNED,
+	AVD_NTFS_JOINED,
+	AVD_NTFS_EXITED,
+	AVD_NTFS_RECONFIGURED,
+	AVD_NTFS_NCS_INIT_SUCCESS,
 
-} AVD_TRAP_FLEX;
+} AVD_NTF_FLEX;
 
 /******************************************************************************
  Logging offset inexes for oper state
  ******************************************************************************/
 typedef enum avd_oper_state_flex {
-	AVD_TRAP_OPER_STATE_MIN,
-	AVD_TRAP_OPER_STATE_ENABLE,
-	AVD_TRAP_OPER_STATE_DISABLE
+	AVD_NTF_OPER_STATE_MIN,
+	AVD_NTF_OPER_STATE_ENABLE,
+	AVD_NTF_OPER_STATE_DISABLE
 } AVD_OPER_STATE_FLEX;
 
 /******************************************************************************
  Logging offset inexes for admin state
  ******************************************************************************/
 typedef enum avd_admin_state_flex {
-	AVD_TRAP_ADMIN_STATE_MIN,
-	AVD_TRAP_ADMIN_STATE_LOCK,
-	AVD_TRAP_ADMIN_STATE_UNLOCK,
-	AVD_TRAP_ADMIN_STATE_SHUTDOWN
+	AVD_NTF_ADMIN_STATE_MIN,
+	AVD_NTF_ADMIN_STATE_LOCK,
+	AVD_NTF_ADMIN_STATE_UNLOCK,
+	AVD_NTF_ADMIN_STATE_SHUTDOWN
 } AVD_ADMIN_STATE_FLEX;
 
 typedef enum avd_ha_state_flex {
-	AVD_TRAP_HA_NONE,
-	AVD_TRAP_HA_ACTIVE,
-	AVD_TRAP_HA_STANDBY,
-	AVD_TRAP_HA_QUIESCED,
-	AVD_TRAP_HA_QUIESCING,
+	AVD_NTF_HA_NONE,
+	AVD_NTF_HA_ACTIVE,
+	AVD_NTF_HA_STANDBY,
+	AVD_NTF_HA_QUIESCED,
+	AVD_NTF_HA_QUIESCING,
 
 } AVD_HA_STATE_FLEX;
 
 /******************************************************************************
- Logging offset indexes for shutdown failure trap
+ Logging offset indexes for shutdown failure ntf
  ******************************************************************************/
 
 typedef enum avd_shutdown_failure_flex {
-	AVD_TRAP_NODE_ACTIVE_SYS_CTRL,
-	AVD_TRAP_SUS_SAME_SG,
-	AVD_TRAP_SG_UNSTABLE,
+	AVD_NTF_NODE_ACTIVE_SYS_CTRL,
+	AVD_NTF_SUS_SAME_SG,
+	AVD_NTF_SG_UNSTABLE,
 } AVD_SHUTDOWN_FAILURE_FLEX;
 
 /******************************************************************************
@@ -216,7 +212,7 @@ typedef enum avd_flex_sets {
 	AVSV_FC_LOCK,
 	AVSV_FC_MBX,
 	AVSV_FC_CKPT,
-	AVD_FC_TRAP,
+	AVD_FC_NTF,
 	AVD_FC_OPER,
 	AVD_FC_ADMIN,
 	AVD_FC_SUSI_HA,
@@ -241,8 +237,7 @@ typedef enum avd_log_ids {
 	AVD_LID_OPER,
 	AVD_LID_SUSI_HA,
 	AVD_LID_CLM,
-	AVD_LID_TRAP_EVT,
-	AVD_LID_TRAP_NCS_SUCC,
+	AVD_LID_NTFS_NCS_SUCC,
 	AVD_LID_SUSI_HA_CHG_START,
 	AVD_LID_HDLN_SVAL,
 	AVD_PXY_PXD,
@@ -370,28 +365,6 @@ typedef enum avd_log_ids {
 
 #define m_AVD_LOG_CKPT_EVT(evt, sev, v) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_EVT_CKPT, AVSV_FC_CKPT, NCSFL_LC_MSG_CKPT, sev, NCSFL_TYPE_TIL, evt, v)
 
-#define m_AVD_LOG_ADMIN_STATE_TRAPS(state, name_net) \
-        avd_log_admin_state_traps(state, name_net, NCSFL_SEV_NOTICE)
-
-#define m_AVD_LOG_SI_UNASSIGNED_TRAP( name_net) \
-        avd_log_si_unassigned_trap(AVD_TRAP_UNASSIGNED, name_net, NCSFL_SEV_NOTICE)
-
-#define m_AVD_LOG_OPER_STATE_TRAPS(state, name_net) \
-        avd_log_oper_state_traps(state, name_net, NCSFL_SEV_NOTICE)
-
-#define m_AVD_LOG_SUSI_HA_TRAPS(state, su_name_net, si_name_net, is_state_changed) \
-        avd_log_susi_ha_traps(state, su_name_net, si_name_net, NCSFL_SEV_NOTICE, is_state_changed)
-
-#define m_AVD_LOG_CLM_NODE_TRAPS(name_net, op) \
-        avd_log_clm_node_traps(AVD_TRAP_CLUSTER, op, name_net,  NCSFL_SEV_NOTICE)
-
-#define m_AVD_LOG_TRAP_EVT(evt, err) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_TRAP_EVT, AVD_FC_TRAP, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, "TIL", evt, err)
-
-#define m_AVD_LOG_NCS_INIT_TRAP(node_id) \
-        ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_TRAP_NCS_SUCC, AVD_FC_TRAP, NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, "TIL", AVD_TRAP_NCS_INIT_SUCCESS, node_id)
-
-#define m_AVD_LOG_SHUTDOWN_FAILURE_TRAP(node_name, errcode) \
-        avd_log_shutdown_failure(node_name, NCSFL_SEV_NOTICE, errcode)
 #else				/* (NCS_AVD_LOG == 1) */
 #define m_AVD_LOG_FUNC_ENTRY(func_name)
 #define m_AVD_LOG_INVALID_VAL_ERROR(data)
@@ -425,14 +398,6 @@ typedef enum avd_log_ids {
 #define m_AVD_LOG_RCVD_NAME_VAL(addrs,lent)
 #define m_AVD_LOG_RCVD_NAME_NET_VAL(addrs,lent_net)
 #define m_AVD_LOG_CKPT_EVT(evt, sev, v)
-#define m_AVD_LOG_ADMIN_STATE_TRAPS(state, name_net)
-#define m_AVD_LOG_SI_UNASSIGNED_TRAP( name_net)
-#define m_AVD_LOG_OPER_STATE_TRAPS(state, name_net)
-#define m_AVD_LOG_SUSI_HA_TRAPS(state, su_name_net, si_name_net, is_state_changed)
-#define m_AVD_LOG_CLM_NODE_TRAPS(name_net, op)
-#define m_AVD_LOG_TRAP_EVT(evt, err)
-#define m_AVD_LOG_NCS_INIT_TRAP(node_id)
-#define m_AVD_LOG_SHUTDOWN_FAILURE_TRAP(node_name, errcode)
 #endif   /* (NCS_AVD_LOG == 1) */
 
 #if (NCS_AVD_LOG == 1)
@@ -444,16 +409,16 @@ EXTERN_C void avd_flx_log_dereg(void);
 
 EXTERN_C void avd_log_shutdown_failure(SaNameT *node_name_net, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode);
 
-EXTERN_C void avd_log_admin_state_traps(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_si_unassigned_trap(AVD_TRAP_FLEX state, SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_si_unassigned_ntfs(AVD_NTF_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_oper_state_traps(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_clm_node_traps(AVD_TRAP_FLEX cl, AVD_TRAP_FLEX op, SaNameT *name_net, uns8 sev);
+EXTERN_C void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_susi_ha_traps(AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
-				    SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
+EXTERN_C void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
+				   SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
 void avd_pxy_pxd_log(uns32 sev, uns32 index, uns8 *info, SaNameT *comp_name,
 		     uns32 info1, uns32 info2, uns32 info3, uns32 info4);
 

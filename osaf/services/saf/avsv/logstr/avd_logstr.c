@@ -78,7 +78,6 @@ const NCSFL_STR avd_memfail_set[] = {
 	{AVD_SG_SU_RANK_ALLOC_FAILED, "AVD_SG_SU_RANK STRUCTURE ALLOC FAILED"},
 	{AVD_COMP_CS_TYPE_ALLOC_FAILED, "AVD_COMP_CS_TYPE STRUCTURE ALLOC FAILED"},
 	{AVD_CS_TYPE_PARAM_ALLOC_FAILED, "AVD_CS_TYPE_PARAM STRUCTURE ALLOC FAILED"},
-	{AVD_TRAP_VAR_BIND_ALLOC_FAILED, "NCS_TRAP_VARBIND STRUCTURE ALLOC FAILED"},
 	{0, 0}
 };
 
@@ -145,20 +144,17 @@ const NCSFL_STR avsv_ckpt_set[] = {
 };
 
 /******************************************************************************
- Logging stuff for Traps 
+ Logging stuff for Ntfs 
  ******************************************************************************/
-const NCSFL_STR avd_trap_set[] = {
-	{AVD_TRAP_AMF, "AMF"},
-	{AVD_TRAP_CLM, "CLM"},
-	{AVD_TRAP_CLUSTER, "Cluster"},
-	{AVD_TRAP_UNASSIGNED, "Unassigned"},
-	{AVD_TRAP_JOINED, "Joined"},
-	{AVD_TRAP_EXITED, "Exited"},
-	{AVD_TRAP_RECONFIGURED, "Reconfigured"},
-	{AVD_TRAP_EDA_INIT_FAILED, "EDA Library intitialization Failed Error:"},
-	{AVD_TRAP_EDA_CHNL_OPEN_FAILED, "EDA Trap Channel Open Failed Error:"},
-	{AVD_TRAP_EDA_EVT_PUBLISH_FAILED, "EDA Trap Event Publish Failed Error:"},
-	{AVD_TRAP_NCS_INIT_SUCCESS, "NCS Initialization Successful on Node Id :"},
+const NCSFL_STR avd_ntf_set[] = {
+	{AVD_NTFS_AMF, "AMF"},
+	{AVD_NTFS_CLM, "CLM"},
+	{AVD_NTFS_CLUSTER, "Cluster"},
+	{AVD_NTFS_UNASSIGNED, "Unassigned"},
+	{AVD_NTFS_JOINED, "Joined"},
+	{AVD_NTFS_EXITED, "Exited"},
+	{AVD_NTFS_RECONFIGURED, "Reconfigured"},
+	{AVD_NTFS_NCS_INIT_SUCCESS, "NCS Initialization Successful on Node Id :"},
 
 	{0, 0}
 };
@@ -167,9 +163,9 @@ const NCSFL_STR avd_trap_set[] = {
  Logging stuff for oper state
  ******************************************************************************/
 const NCSFL_STR avd_oper_set[] = {
-	{AVD_TRAP_OPER_STATE_MIN, "do not use"},
-	{AVD_TRAP_OPER_STATE_ENABLE, "Enable"},
-	{AVD_TRAP_OPER_STATE_DISABLE, "Disable"},
+	{AVD_NTF_OPER_STATE_MIN, "do not use"},
+	{AVD_NTF_OPER_STATE_ENABLE, "Enable"},
+	{AVD_NTF_OPER_STATE_DISABLE, "Disable"},
 
 	{0, 0}
 };
@@ -188,10 +184,10 @@ const NCSFL_STR avd_pxy_pxd_set[] = {
  Logging stuff for admin state
  ******************************************************************************/
 const NCSFL_STR avd_admin_set[] = {
-	{AVD_TRAP_ADMIN_STATE_MIN, "do not use"},
-	{AVD_TRAP_ADMIN_STATE_LOCK, "Locked"},
-	{AVD_TRAP_ADMIN_STATE_UNLOCK, "Unlocked"},
-	{AVD_TRAP_ADMIN_STATE_SHUTDOWN, "Shuttingdown"},
+	{AVD_NTF_ADMIN_STATE_MIN, "do not use"},
+	{AVD_NTF_ADMIN_STATE_LOCK, "Locked"},
+	{AVD_NTF_ADMIN_STATE_UNLOCK, "Unlocked"},
+	{AVD_NTF_ADMIN_STATE_SHUTDOWN, "Shuttingdown"},
 
 	{0, 0}
 };
@@ -200,11 +196,11 @@ const NCSFL_STR avd_admin_set[] = {
  Logging stuff for HA state
  ******************************************************************************/
 const NCSFL_STR avd_ha_state_set[] = {
-	{AVD_TRAP_HA_NONE, "None"},
-	{AVD_TRAP_HA_ACTIVE, "Active"},
-	{AVD_TRAP_HA_STANDBY, "StandBy"},
-	{AVD_TRAP_HA_QUIESCED, "Quiesced"},
-	{AVD_TRAP_HA_QUIESCING, "Quiescing"},
+	{AVD_NTF_HA_NONE, "None"},
+	{AVD_NTF_HA_ACTIVE, "Active"},
+	{AVD_NTF_HA_STANDBY, "StandBy"},
+	{AVD_NTF_HA_QUIESCED, "Quiesced"},
+	{AVD_NTF_HA_QUIESCING, "Quiescing"},
 
 	{0, 0}
 };
@@ -213,9 +209,9 @@ const NCSFL_STR avd_ha_state_set[] = {
  Logging stuff for failure of shutdown
  ******************************************************************************/
 const NCSFL_STR avd_shutdown_failure[] = {
-	{AVD_TRAP_NODE_ACTIVE_SYS_CTRL, "Node is the Active system controller"},
-	{AVD_TRAP_SUS_SAME_SG, "SUs are in same SG on the node"},
-	{AVD_TRAP_SG_UNSTABLE, "the SG is unstable"},
+	{AVD_NTF_NODE_ACTIVE_SYS_CTRL, "Node is the Active system controller"},
+	{AVD_NTF_SUS_SAME_SG, "SUs are in same SG on the node"},
+	{AVD_NTF_SG_UNSTABLE, "the SG is unstable"},
 
 	{0, 0}
 };
@@ -234,7 +230,7 @@ NCSFL_SET avd_str_set[] = {
 	{AVSV_FC_LOCK, 0, (NCSFL_STR *)avsv_lock_set},
 	{AVSV_FC_MBX, 0, (NCSFL_STR *)avsv_mbx_set},
 	{AVSV_FC_CKPT, 0, (NCSFL_STR *)avsv_ckpt_set},
-	{AVD_FC_TRAP, 0, (NCSFL_STR *)avd_trap_set},
+	{AVD_FC_NTF, 0, (NCSFL_STR *)avd_ntf_set},
 	{AVD_FC_OPER, 0, (NCSFL_STR *)avd_oper_set},
 	{AVD_FC_ADMIN, 0, (NCSFL_STR *)avd_admin_set},
 	{AVD_FC_SUSI_HA, 0, (NCSFL_STR *)avd_ha_state_set},
@@ -260,8 +256,7 @@ NCSFL_FMAT avd_fmat_set[] = {
 	{AVD_LID_OPER, "TCI", "%s AVD: %s Oper State Changed to %s\n"},
 	{AVD_LID_SUSI_HA, "TCCI", "%s AVD: %s %s HA State Changed to %s\n"},
 	{AVD_LID_CLM, "TCII", "%s AVD: %s %s %s\n"},
-	{AVD_LID_TRAP_EVT, "TIL", "%s AVD: %s %ld\n"},
-	{AVD_LID_TRAP_NCS_SUCC, "TIL", "%s AVD: %s 0x%08lx\n"},
+	{AVD_LID_NTFS_NCS_SUCC, "TIL", "%s AVD: %s 0x%08lx\n"},
 	{AVD_LID_SUSI_HA_CHG_START, "TCCI", "%s AVD: %s %s HA State Changing to %s\n"},
 	{AVD_LID_HDLN_SVAL, "TICLC", "%s AVD: %s at %s:%ld val %s\n"},
 	{AVD_PXY_PXD, "TICCLLLL", "[%s]: %s : %s: (%s, %ld, %ld, %ld, %ld)\n"},
