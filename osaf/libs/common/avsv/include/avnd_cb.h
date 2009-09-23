@@ -107,17 +107,9 @@ typedef struct avnd_cb_tag {
 	AVND_LED_STATE led_state;
 	NCS_BOOL destroy;
 
-   /********** EDA related params      ***********/
+   /********** NTF related params      ***********/
 
-	SaVersionT safVersion;	/* version info of the SAF implementation */
-
-	SaEvtHandleT evtHandle;	/* EDA Handle */
-
-	SaNameT publisherName;	/* Publisher name */
-
-	SaNameT evtChannelName;	/* EDA Channel Name */
-
-	SaEvtChannelHandleT evtChannelHandle;	/* EDA Channel Handle */
+	SaNtfHandleT ntfHandle;
 
 	uns32 avnd_mbcsv_mab_hdl;	/* MAB handle returned during 
 					   initilisation. */

@@ -186,7 +186,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_SWITCH);\
 #define m_AVD_SET_SI_ADMIN(cb,si,state) {\
 si->admin_state = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_ADMIN_STATE);\
-avd_gen_si_admin_state_chg_trap(cb,si);\
+avd_gen_si_admin_state_chg_ntf(cb,si);\
 }
 
 EXTERN_C AVD_SI *avd_si_struc_crt(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL ckpt);

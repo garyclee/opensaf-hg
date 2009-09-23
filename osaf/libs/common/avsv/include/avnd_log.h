@@ -353,41 +353,37 @@ typedef enum avnd_log_fovr {
 	AVND_LOG_FOVR_MAX
 } AVND_LOG_FOVR;
 
-typedef enum avnd_log_trap {
-	AVND_LOG_TRAP_INSTANTIATION,
-	AVND_LOG_TRAP_TERMINATION,
-	AVND_LOG_TRAP_CLEANUP,
-	AVND_LOG_TRAP_OPER_STATE,
-	AVND_LOG_TRAP_PRES_STATE,
-	AVND_LOG_TRAP_ORPHANED,
-	AVND_LOG_TRAP_FAILED,
-	AVND_LOG_EDA_INIT_FAILED,
-	AVND_LOG_EDA_CHNL_OPEN_FAILED,
-	AVND_LOG_EDA_EVT_PUBLISH_FAILED,
-
-	AVND_LOG_TRAP_MAX
-} AVND_LOG_TRAP;
+typedef enum avnd_log_ntf {
+	AVND_LOG_NTFS_INSTANTIATION,
+	AVND_LOG_NTFS_TERMINATION,
+	AVND_LOG_NTFS_CLEANUP,
+	AVND_LOG_NTFS_OPER_STATE,
+	AVND_LOG_NTFS_PRES_STATE,
+	AVND_LOG_NTFS_ORPHANED,
+	AVND_LOG_NTFS_FAILED,
+	AVND_LOG_NTF_MAX
+} AVND_LOG_NTF;
 
 typedef enum avnd_log_oper_state {
-	AVND_LOG_TRAP_OPER_STATE_MIN,
-	AVND_LOG_TRAP_OPER_STATE_ENABLE,
-	AVND_LOG_TRAP_OPER_STATE_DISABLE,
+	AVND_LOG_NTF_OPER_STATE_MIN,
+	AVND_LOG_NTF_OPER_STATE_ENABLE,
+	AVND_LOG_NTF_OPER_STATE_DISABLE,
 
-	AVND_LOG_TRAP_OPER_STATE_MAX
+	AVND_LOG_NTF_OPER_STATE_MAX
 } AVND_LOG_OPER_STATE;
 
 typedef enum avnd_log_pres_state {
-	AVND_LOG_TRAP_PRES_STATE_MIN,
-	AVND_LOG_TRAP_PRES_STATE_UNINSTANTIATED,
-	AVND_LOG_TRAP_PRES_STATE_INSTANTIATING,
-	AVND_LOG_TRAP_PRES_STATE_INSTANTIATED,
-	AVND_LOG_TRAP_PRES_STATE_TERMINATING,
-	AVND_LOG_TRAP_PRES_STATE_RESTARTING,
-	AVND_LOG_TRAP_PRES_STATE_INSTANTIATIONFAILED,
-	AVND_LOG_TRAP_PRES_STATE_TERMINATIONFAILED,
-	AVND_LOG_TRAP_PRES_STATE_ORPHANED,
+	AVND_LOG_NTF_PRES_STATE_MIN,
+	AVND_LOG_NTF_PRES_STATE_UNINSTANTIATED,
+	AVND_LOG_NTF_PRES_STATE_INSTANTIATING,
+	AVND_LOG_NTF_PRES_STATE_INSTANTIATED,
+	AVND_LOG_NTF_PRES_STATE_TERMINATING,
+	AVND_LOG_NTF_PRES_STATE_RESTARTING,
+	AVND_LOG_NTF_PRES_STATE_INSTANTIATIONFAILED,
+	AVND_LOG_NTF_PRES_STATE_TERMINATIONFAILED,
+	AVND_LOG_NTF_PRES_STATE_ORPHANED,
 
-	AVND_LOG_TRAP_PRES_STATE_MAX
+	AVND_LOG_NTF_PRES_STATE_MAX
 } AVND_LOG_PRES_STATE;
 
 /******************************************************************************
@@ -434,11 +430,12 @@ typedef enum avnd_flex_sets {
 	AVND_FC_ERR,
 	AVND_FC_MISC,
 	AVND_FC_FOVR,
-	AVND_FC_TRAP,
+	AVND_FC_NTF,
 	AVND_FC_OPER,
 	AVND_FC_PRES,
 	AVND_FC_HDLN,
-	AVND_FC_AVND_MSG
+	AVND_FC_AVND_MSG,
+	AVND_FC_GENLOG
 } AVND_FLEX_SETS;
 
 typedef enum avnd_log_ids {
@@ -466,17 +463,17 @@ typedef enum avnd_log_ids {
 	AVND_LID_MISC1,
 	AVND_LID_MISC2,
 	AVND_LID_FOVER,
-	AVND_LID_TRAP_CLC,
-	AVND_LID_TRAP_OPER_STAT,
-	AVND_LID_TRAP_PRES_STAT,
-	AVND_LID_TRAP_PROXIED,
-	AVND_LID_TRAP_EVT,
-	AVND_LID_TRAP_COMP_FAIL,
+	AVND_LID_NTFS_CLC,
+	AVND_LID_NTFS_OPER_STAT,
+	AVND_LID_NTFS_PRES_STAT,
+	AVND_LID_NTFS_PROXIED,
+	AVND_LID_NTFS_COMP_FAIL,
 	AVND_LID_HDLN,
 	AVND_LID_HDLN_VAL,
 	AVND_LID_HDLN_VAL_NAME,
 	AVND_LID_HDLN_STRING,
 	AVND_AVND_MSG,
+	AVND_LID_GENLOG,
 } AVND_LOG_IDS;
 
 /*****************************************************************************
@@ -485,6 +482,8 @@ typedef enum avnd_log_ids {
 
 #if ( NCS_AVND_LOG == 1 )
 
+#define avnd_log(severity, format, args...) _avnd_log((severity), __FUNCTION__, (format), ##args)
+#define avnd_trace(format, args...) _avnd_trace(__FILE__, __LINE__, (format), ##args)
 #define m_AVND_LOG_SEAPI(op, st, sev)       avnd_log_seapi(op, st, sev)
 #define m_AVND_LOG_MDS(op, st, sev)         avnd_log_mds(op, st, sev)
 #define m_AVND_LOG_EDU(op, st, sev)         avnd_log_edu(op, st, sev)
@@ -529,25 +528,6 @@ typedef enum avnd_log_ids {
    ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_FOVER, AVND_FC_FOVR, \
                  NCSFL_LC_EVENT, sev, NCSFL_TYPE_TICLL,  \
                  ev,__FILE__, __LINE__, val)
-
-#define m_AVND_LOG_CLC_TRAPS(op, cn) \
-        avnd_log_clc_traps(op, AVND_LOG_TRAP_FAILED, cn, NCSFL_SEV_NOTICE)
-
-#define m_AVND_LOG_PROXIED_ORPHANED_TRAP(cn, pxy_cn) \
-        avnd_log_proxied_orphaned_trap(AVND_LOG_TRAP_ORPHANED, AVND_LOG_TRAP_FAILED, cn, pxy_cn, NCSFL_SEV_NOTICE)
-
-#define m_AVND_LOG_SU_OPER_STATE_TRAP(state, sn) \
-        avnd_log_su_oper_state_trap(state, sn, NCSFL_SEV_NOTICE)
-
-#define m_AVND_LOG_SU_PRES_STATE_TRAP(state, sn) \
-        avnd_log_su_pres_state_trap(state, sn, NCSFL_SEV_NOTICE)
-
-#define m_AVND_LOG_TRAP_EVT(evt, err)\
-        ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_EVT, AVND_FC_TRAP,\
-              NCSFL_LC_HEADLINE, NCSFL_SEV_NOTICE, "TIL", evt, err)
-
-#define m_AVND_LOG_COMP_FAIL_TRAP(node_id, comp_name, errSrc)\
-        avnd_log_comp_failed_trap(node_id, comp_name, errSrc-1, NCSFL_SEV_NOTICE)
 
 /* debugging logs */
 #define m_AVND_LOG_INVALID_VAL_ERROR(data)\
@@ -652,12 +632,6 @@ typedef enum avnd_log_ids {
 #define m_AVND_LOG_COMP_FSM(op, st, ev, name, sev)
 #define m_AVND_LOG_FOVER_EVTS(sev, ev, val)
 #define m_AVND_LOG_ERR(name, src, rec, sev)
-#define m_AVND_LOG_CLC_TRAPS(op, cn)
-#define m_AVND_LOG_PROXIED_ORPHANED_TRAP(cn, pxy_cn)
-#define m_AVND_LOG_SU_OPER_STATE_TRAP(state, sn)
-#define m_AVND_LOG_SU_PRES_STATE_TRAP(state, sn)
-#define m_AVND_LOG_TRAP_EVT(evt, err)
-#define m_AVND_LOG_COMP_FAIL_TRAP(node_id, comp_name, errSrc)
 #define m_AVND_LOG_INVALID_VAL_ERROR(data)
 #define m_AVND_LOG_INVALID_VAL_FATAL(data)
 #define m_AVND_LOG_INVALID_STRING_ERROR(data)
@@ -702,17 +676,20 @@ EXTERN_C void avnd_log_comp_fsm(AVND_LOG_COMP_FSM, NCS_PRES_STATE, AVND_COMP_CLC
 EXTERN_C void avnd_log_err(AVND_LOG_ERR, AVND_LOG_ERR, SaNameT *, uns8);
 EXTERN_C void avnd_log_misc(AVND_LOG_MISC, SaNameT *, uns8);
 
-EXTERN_C void avnd_log_clc_traps(AVND_LOG_TRAP op, AVND_LOG_TRAP status, SaNameT *comp_name, uns8 sev);
+EXTERN_C void avnd_log_clc_ntfs(AVND_LOG_NTF op, AVND_LOG_NTF status, SaNameT *comp_name, uns8 sev);
 
-EXTERN_C void avnd_log_su_oper_state_trap(AVND_LOG_OPER_STATE state, SaNameT *su_name, uns8 sev);
+EXTERN_C void avnd_log_su_oper_state_ntfs(AVND_LOG_OPER_STATE state, SaNameT *su_name, uns8 sev);
 
-EXTERN_C void avnd_log_su_pres_state_trap(AVND_LOG_PRES_STATE state, SaNameT *su_name, uns8 sev);
+EXTERN_C void avnd_log_su_pres_state_ntfs(AVND_LOG_PRES_STATE state, SaNameT *su_name, uns8 sev);
 
-EXTERN_C void avnd_log_proxied_orphaned_trap(AVND_LOG_TRAP status,
-					     AVND_LOG_TRAP pxy_status, SaNameT *comp_name,
+EXTERN_C void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
+					     AVND_LOG_NTF pxy_status, SaNameT *comp_name,
 					     SaNameT *pxy_comp_name, uns8 sev);
 
-EXTERN_C void avnd_log_comp_failed_trap(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev);
+EXTERN_C void avnd_log_comp_failed_ntfs(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev);
+EXTERN_C void _avnd_log(uns8 severity, const char *function, const char *format, ...);
+EXTERN_C void _avnd_trace(const char *file, unsigned int line, const char *format, ...);
+
 #endif   /* NCS_AVND_LOG == 1 */
 
 #endif   /* !AVND_LOG_H */

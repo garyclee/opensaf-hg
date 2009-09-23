@@ -285,17 +285,9 @@ typedef struct cl_cb_tag {
 	MDS_DEST bam_mds_dest;
 	MDS_DEST avm_mds_dest;
 
-  /********** EDA related params      ***********/
+   /********** NTF related params      ***********/
 
-	SaVersionT safVersion;	/* version info of the SAF implementation */
-
-	SaEvtHandleT evtHandle;	/* EDA Handle */
-
-	SaNameT publisherName;	/* Publisher name */
-
-	SaNameT evtChannelName;	/* EDA Channel Name */
-
-	SaEvtChannelHandleT evtChannelHandle;	/* EDA Channel Handle */
+	SaNtfHandleT ntfHandle;
 
  /********Peer AvD Heart Beat related*********************/
 	NCS_BOOL avd_hrt_beat_rcvd;	/* True value of this boolean Indicate 

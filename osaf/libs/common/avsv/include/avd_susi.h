@@ -133,8 +133,8 @@ typedef struct avd_sus_per_si_rank_tag {
    avd_susi_struc_del(cb,susi,FALSE);\
    if ((l_si != AVD_SI_NULL) && (l_si->list_of_sisu == AVD_SU_SI_REL_NULL))\
    {\
-      avd_gen_si_unassigned_trap(cb,l_si);\
-      avd_gen_si_oper_state_chg_trap(cb,l_si);\
+      avd_gen_si_unassigned_ntf(cb,l_si);\
+      avd_gen_si_oper_state_chg_ntf(cb,l_si);\
    }\
 }
 

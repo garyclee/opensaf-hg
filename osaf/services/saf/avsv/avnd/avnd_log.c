@@ -35,6 +35,37 @@
 #include "avnd.h"
 
 #if ( NCS_AVND_LOG == 1 )
+
+void _avnd_log(uns8 severity, const char *function, const char *format, ...)
+{
+        char preamble[128];
+        char str[128];
+        va_list ap;
+
+        va_start(ap, format);
+        snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+        vsnprintf(str, sizeof(str), preamble, ap);
+        va_end(ap);
+
+        ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_GENLOG, AVND_FC_GENLOG,
+		   NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
+}
+
+void _avnd_trace(const char *file, unsigned int line, const char *format, ...)
+{
+        char preamble[64];
+        char str[128];
+        va_list ap;
+
+        va_start(ap, format);
+        snprintf(preamble, sizeof(preamble), "%s:%04u %s", file, line, format);
+        vsnprintf(str, sizeof(str), preamble, ap);
+        va_end(ap);
+
+        ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_GENLOG, AVND_FC_GENLOG,
+		   NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSFL_TYPE_TC, str);
+}
+
 /****************************************************************************
   Name          : avnd_log_seapi
  
@@ -564,9 +595,9 @@ void avnd_log_misc(AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
 }
 
 /****************************************************************************
-  Name          : avnd_log_clc_traps
+  Name          : avnd_log_clc_ntfs
 
-  Description   : This routine logs the clc related traps.
+  Description   : This routine logs the clc related ntfs.
 
   Arguments     : op        - operation (Instantiation/Termination/Cleanup)
                   status    - status of the operation (Failed)
@@ -577,7 +608,7 @@ void avnd_log_misc(AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_clc_traps(AVND_LOG_TRAP op, AVND_LOG_TRAP status, SaNameT *comp_name, uns8 sev)
+void avnd_log_clc_ntfs(AVND_LOG_NTF op, AVND_LOG_NTF status, SaNameT *comp_name, uns8 sev)
 {
 	uns8 comp[SA_MAX_NAME_LENGTH];
 
@@ -587,16 +618,16 @@ void avnd_log_clc_traps(AVND_LOG_TRAP op, AVND_LOG_TRAP status, SaNameT *comp_na
 	if (comp_name)
 		strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_CLC, AVND_FC_TRAP,
+	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_CLC, AVND_FC_NTF,
 		   NCSFL_LC_HEADLINE, sev, "TCII", comp, op, status);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avnd_log_su_oper_state_trap
+  Name          : avnd_log_su_oper_state_ntfs
 
-  Description   : This routine logs the su oper related traps.
+  Description   : This routine logs the su oper related ntfs.
 
   Arguments     : State   - SU Oper State
                   su_name - ptr to the su name
@@ -606,7 +637,7 @@ void avnd_log_clc_traps(AVND_LOG_TRAP op, AVND_LOG_TRAP status, SaNameT *comp_na
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_su_oper_state_trap(AVND_LOG_OPER_STATE state, SaNameT *su_name, uns8 sev)
+void avnd_log_su_oper_state_ntfs(AVND_LOG_OPER_STATE state, SaNameT *su_name, uns8 sev)
 {
 	uns8 su[SA_MAX_NAME_LENGTH];
 
@@ -616,16 +647,16 @@ void avnd_log_su_oper_state_trap(AVND_LOG_OPER_STATE state, SaNameT *su_name, un
 	if (su_name)
 		strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_OPER_STAT, AVND_FC_OPER,
+	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_OPER_STAT, AVND_FC_OPER,
 		   NCSFL_LC_HEADLINE, sev, "TCI", su, state);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avnd_log_su_pres_state_trap
+  Name          : avnd_log_su_pres_state_ntfs
 
-  Description   : This routine logs the su pres related traps.
+  Description   : This routine logs the su pres related ntfs.
 
   Arguments     : State   - SU Pres State
                   su_name - ptr to the su name
@@ -635,7 +666,7 @@ void avnd_log_su_oper_state_trap(AVND_LOG_OPER_STATE state, SaNameT *su_name, un
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_su_pres_state_trap(AVND_LOG_PRES_STATE state, SaNameT *su_name, uns8 sev)
+void avnd_log_su_pres_state_ntfs(AVND_LOG_PRES_STATE state, SaNameT *su_name, uns8 sev)
 {
 	uns8 su[SA_MAX_NAME_LENGTH];
 
@@ -645,16 +676,16 @@ void avnd_log_su_pres_state_trap(AVND_LOG_PRES_STATE state, SaNameT *su_name, un
 	if (su_name)
 		strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_PRES_STAT, AVND_FC_PRES,
+	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_PRES_STAT, AVND_FC_PRES,
 		   NCSFL_LC_HEADLINE, sev, "TCI", su, state);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avnd_log_proxied_orphaned_trap
+  Name          : avnd_log_proxied_orphaned_ntfs
 
-  Description   : This routine logs the proxied orphaned trap.
+  Description   : This routine logs the proxied orphaned ntfs.
 
                   status        - status of proxied component(Orphaned)
                   pxy_status    - status of proxy component  (Failed)
@@ -666,8 +697,8 @@ void avnd_log_su_pres_state_trap(AVND_LOG_PRES_STATE state, SaNameT *su_name, un
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_proxied_orphaned_trap(AVND_LOG_TRAP status,
-				    AVND_LOG_TRAP pxy_status, SaNameT *comp_name, SaNameT *pxy_comp_name, uns8 sev)
+void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
+				    AVND_LOG_NTF pxy_status, SaNameT *comp_name, SaNameT *pxy_comp_name, uns8 sev)
 {
 	uns8 comp[SA_MAX_NAME_LENGTH];
 	uns8 pxy_comp[SA_MAX_NAME_LENGTH];
@@ -682,16 +713,16 @@ void avnd_log_proxied_orphaned_trap(AVND_LOG_TRAP status,
 	if (pxy_comp_name)
 		strncpy(pxy_comp, pxy_comp_name->value, m_NCS_OS_NTOHS(pxy_comp_name->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_PROXIED, AVND_FC_TRAP,
+	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_PROXIED, AVND_FC_NTF,
 		   NCSFL_LC_HEADLINE, sev, "TCICI", comp, status, pxy_comp, pxy_status);
 
 	return;
 }
 
 /****************************************************************************
-  Name          : avnd_log_comp_failed_trap
+  Name          : avnd_log_comp_failed_ntfs
 
-  Description   : This routine logs the component failed trap.
+  Description   : This routine logs the component failed ntfs.
 
   Arguments     : node_id  - Node Id
                   name_net - Comp name
@@ -702,7 +733,7 @@ void avnd_log_proxied_orphaned_trap(AVND_LOG_TRAP status,
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_comp_failed_trap(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev)
+void avnd_log_comp_failed_ntfs(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev)
 {
 	uns8 name[SA_MAX_NAME_LENGTH];
 
@@ -712,7 +743,7 @@ void avnd_log_comp_failed_trap(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR er
 	if (name_net)
 		strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
 
-	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_TRAP_COMP_FAIL, AVND_FC_ERR,
+	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_COMP_FAIL, AVND_FC_ERR,
 		   NCSFL_LC_HEADLINE, sev, "TCLI", name, node_id, errSrc);
 
 	return;

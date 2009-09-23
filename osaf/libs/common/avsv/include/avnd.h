@@ -71,7 +71,7 @@
 #include "avnd_log.h"
 #include "avnd_mib.h"
 #include "ncs_trap.h"
-#include "avnd_trap.h"
+#include "avnd_ntf.h"
 #include "avnd_proxy.h"
 #include "avnd_ckpt_updt.h"
 #include "avnd_ckpt_msg.h"

@@ -86,6 +86,6 @@
 
 #include "avd_avm.h"
 #include "ncs_trap.h"
-#include "avd_trap.h"
+#include "avd_ntf.h"
 
 #endif

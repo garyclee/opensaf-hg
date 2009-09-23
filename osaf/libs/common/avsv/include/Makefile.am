@@ -58,7 +58,7 @@ noinst_HEADERS = \
    avd_su.h \
    avd_susi.h \
    avd_tmr.h \
-   avd_trap.h \
+   avd_ntf.h \
    avnd_cb.h \
    avnd_clm.h \
    avnd_comp.h \
@@ -79,7 +79,7 @@ noinst_HEADERS = \
    avnd_proc.h \
    avnd_su.h \
    avnd_tmr.h \
-   avnd_trap.h \
+   avnd_ntf.h \
    avnd_util.h \
    avsv_amfparam.h \
    avsv_clmparam.h \

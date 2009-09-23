@@ -45,4 +45,5 @@ ncs_scap_LDADD = \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_ctrl.la \
 	$(top_builddir)/osaf/services/saf/avsv/avm/libavm.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la \
-	$(top_builddir)/osaf/services/infrastructure/bam/libbam.la
+	$(top_builddir)/osaf/services/infrastructure/bam/libbam.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la

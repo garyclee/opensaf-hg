@@ -132,8 +132,8 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	if (avnd->type == AVSV_AVND_CARD_SYS_CON) {
 		if ((cb->node_id_avd == avnd->node_info.nodeId) && (cb->avail_state_avd == SA_AMF_HA_ACTIVE)) {
-			/* Send shutdown failure trap */
-			avd_node_shutdown_failure_trap(cb, avnd, 1);
+			/* Send shutdown failure ntf */
+			avd_node_shutdown_failure_ntf(cb, avnd, 1);
 			return SA_FALSE;
 		}
 	}
@@ -153,8 +153,8 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 				if ((i_su != i_su_sg) &&
 				    (i_su_node_ptr == i_su_sg_node_ptr) &&
 				    (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL)) {
-					/* Send shutdown failure trap */
-					avd_node_shutdown_failure_trap(cb, avnd, 2);
+					/* Send shutdown failure ntf */
+					avd_node_shutdown_failure_ntf(cb, avnd, 2);
 					return SA_FALSE;
 				}
 
@@ -170,8 +170,8 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 				/* Dont go ahead as a SG that is undergoing transition is
 				 * there related to this node.
 				 */
-				/* Send shutdown failure trap */
-				avd_node_shutdown_failure_trap(cb, avnd, 3);
+				/* Send shutdown failure ntf */
+				avd_node_shutdown_failure_ntf(cb, avnd, 3);
 				return SA_FALSE;
 			}
 

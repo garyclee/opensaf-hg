@@ -71,7 +71,7 @@ libavd_la_SOURCES = \
 	avd_su.c \
 	avd_susi.c \
 	avd_tmr.c \
-	avd_trap.c \
+	avd_ntf.c \
 	avd_utilmsg.c
 
 libavd_la_LIBADD = \

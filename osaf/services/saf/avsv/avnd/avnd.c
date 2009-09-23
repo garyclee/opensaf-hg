@@ -238,6 +238,9 @@ uns32 avnd_destroy()
 AVND_CB *avnd_cb_create()
 {
 	AVND_CB *cb = 0;
+        uns32 rc = NCSCC_RC_SUCCESS;
+        SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+        SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 
 	/* allocate AvND cb */
 	if ((0 == (cb = m_MMGR_ALLOC_AVND_CB))) {
@@ -308,6 +311,14 @@ AVND_CB *avnd_cb_create()
 
 	/* everything went off well.. store the cb hdl in the global variable */
 	gl_avnd_hdl = cb->cb_hdl;
+
+        /* NTFA Initialization */
+        rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
+        if (rc != SA_AIS_OK) {
+                /* log the error code here */
+		avnd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)",rc);
+                goto err;
+        }
 
 	return cb;
 
@@ -564,7 +575,7 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	/* destroy available internode comp db */
 	if (NCSCC_RC_SUCCESS != (rc = avnd_internode_avail_comp_db_destroy(cb)))
 		goto done;
-
+        
 	/* destroy DND list */
 	avnd_dnd_list_destroy(cb);
 
@@ -684,8 +695,12 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 #endif
 	/* TBD Later */
 	/* unregister HPI */
-	/* unregister EDS */
-	rc = avnd_eda_finalize(cb);
+	/* NTFA Finalize */
+        rc = saNtfFinalize(cb->ntfHandle);
+        if (rc != SA_AIS_OK) {
+                /* log the error code here */
+		avnd_log(NCSFL_SEV_ERROR,"saNtfFinalize Failed (%u)",rc);
+        }
 
  done:
 	return rc;

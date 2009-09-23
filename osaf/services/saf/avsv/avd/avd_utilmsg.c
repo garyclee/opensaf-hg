@@ -115,13 +115,13 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 			fprintf(fp, "%s | Node %s Joined the cluster.\n", asc_lt, avnd->node_info.nodeName.value);
 		}
 		syslog(LOG_INFO, "Node %s Joined the cluster.", avnd->node_info.nodeName.value);
-		avd_clm_node_join_trap(cb, avnd);
+		avd_clm_node_join_ntf(cb, avnd);
 	} else {
 		if (fp) {
 			fprintf(fp, "%s | Node %s Left the cluster.\n", asc_lt, avnd->node_info.nodeName.value);
 		}
 		syslog(LOG_INFO, "Node %s Left the cluster.", avnd->node_info.nodeName.value);
-		avd_clm_node_exit_trap(cb, avnd);
+		avd_clm_node_exit_ntf(cb, avnd);
 	}
 	if (fp) {
 		fflush(fp);
@@ -2176,7 +2176,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		return NCSCC_RC_FAILURE;
 	}
 
-	avd_gen_ncs_init_success_trap(cb, avnd);
+	avd_gen_ncs_init_success_ntf(cb, avnd);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 

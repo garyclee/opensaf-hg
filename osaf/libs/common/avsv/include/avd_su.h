@@ -181,7 +181,7 @@ typedef struct avd_sg_su_rank_tag {
 #define m_AVD_SET_SU_ADMIN(cb,su,state) {\
 su->admin_state = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_ADMIN_STATE);\
-avd_gen_su_admin_state_changed_trap(cb,su);\
+avd_gen_su_admin_state_changed_ntf(cb,su);\
 }
 
 #define m_AVD_SET_SU_TERM(cb,su,state) {\

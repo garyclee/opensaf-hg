@@ -127,6 +127,9 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
 	NCS_SEL_OBJ mbx_sel_obj;
 	NCS_SEL_OBJ hb_mbx_sel_obj;
 	NCS_SEL_OBJ mbcsv_ncs_sel_obj;
+        uns32 status = NCSCC_RC_FAILURE;
+        SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+        SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 
 	m_AVD_LOG_FUNC_ENTRY("avd_init_proc");
 
@@ -504,6 +507,31 @@ static void avd_init_proc(uns32 *avd_hdl_ptr)
 		return;
 	}
 
+        status = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
+        if (status != SA_AIS_OK) {
+                ncs_patricia_tree_destroy(&cb->node_list);
+                ncs_patricia_tree_destroy(&cb->hlt_anchor);
+                ncs_patricia_tree_destroy(&cb->csi_anchor);
+                ncs_patricia_tree_destroy(&cb->comp_anchor);
+                ncs_patricia_tree_destroy(&cb->si_anchor);
+                ncs_patricia_tree_destroy(&cb->su_anchor);
+                ncs_patricia_tree_destroy(&cb->sg_anchor);
+                ncs_patricia_tree_destroy(&cb->avnd_anchor_name);
+                ncs_patricia_tree_destroy(&cb->avnd_anchor);
+                ncs_patricia_tree_destroy(&cb->su_per_si_rank_anchor);
+                ncs_patricia_tree_destroy(&cb->sg_si_rank_anchor);
+                ncs_patricia_tree_destroy(&cb->comp_cs_type_anchor);
+                ncs_patricia_tree_destroy(&cb->sg_su_rank_anchor);
+                ncs_patricia_tree_destroy(&cb->cs_type_param_anchor);
+                ncs_patricia_tree_destroy(&cb->si_dep.spons_anchor);
+                ncs_patricia_tree_destroy(&cb->si_dep.dep_anchor);
+                ncshm_give_hdl(*avd_hdl_ptr);
+                m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
+                /* log the error code here */
+		avd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)", status);
+                return;
+        }
+
 	/* get the node id of the node on which the AVD is running.
 	 */
 	cb->node_id_avd = m_NCS_GET_NODE_ID;
@@ -659,6 +687,7 @@ static uns32 avd_initialize(NCS_LIB_REQ_INFO *req_info)
 	}
 
 	m_AVD_LOG_SEAPI_INIT_INFO(AVSV_LOG_SEAPI_SUCCESS);
+
 	return NCSCC_RC_SUCCESS;
 
 }

@@ -864,7 +864,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 				o_susi->state = SA_AMF_HA_ACTIVE;
 				o_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, o_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, o_susi);
 				if (avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
 					/* log fatal error */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)o_susi));
@@ -875,7 +875,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 					o_susi->state = old_state;
 					o_susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SU_SI_REL);
-					avd_gen_su_ha_state_changed_trap(cb, o_susi);
+					avd_gen_su_ha_state_changed_ntf(cb, o_susi);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -902,7 +902,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 			o_susi->state = SA_AMF_HA_ACTIVE;
 			o_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SU_SI_REL);
-			avd_gen_su_ha_state_changed_trap(cb, o_susi);
+			avd_gen_su_ha_state_changed_ntf(cb, o_susi);
 			if (avd_snd_susi_msg(cb, o_susi->su, o_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
 				/* log fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)o_susi));
@@ -912,7 +912,7 @@ static uns32 avd_sg_2n_su_fault_si_oper(AVD_CL_CB *cb, AVD_SU *su)
 								     o_susi->si->name_net.length);
 				o_susi->state = old_state;
 				o_susi->fsm = old_fsm_state;
-				avd_gen_su_ha_state_changed_trap(cb, o_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, o_susi);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_susi, AVSV_CKPT_AVD_SU_SI_REL);
 				return NCSCC_RC_FAILURE;
 			}
@@ -1901,7 +1901,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				su->list_of_susi->state = SA_AMF_HA_ACTIVE;
 				su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su->list_of_susi), AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, su->list_of_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, su->list_of_susi);
 
 				avd_snd_susi_msg(cb, su->list_of_susi->su, su->list_of_susi, AVSV_SUSI_ACT_MOD);
 			}
@@ -1949,7 +1949,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				s_susi->state = SA_AMF_HA_STANDBY;
 				s_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, s_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, s_susi);
 				if (avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_MOD)
 				    == NCSCC_RC_FAILURE) {
 					/* Log fatal error */
@@ -1961,7 +1961,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 					s_susi->state = old_state;
 					s_susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SU_SI_REL);
-					avd_gen_su_ha_state_changed_trap(cb, s_susi);
+					avd_gen_su_ha_state_changed_ntf(cb, s_susi);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -1999,7 +1999,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				su->list_of_susi->state = SA_AMF_HA_STANDBY;
 				su->list_of_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su->list_of_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, su->list_of_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, su->list_of_susi);
 
 				avd_snd_susi_msg(cb, su, su->list_of_susi, AVSV_SUSI_ACT_MOD);
 
@@ -2063,7 +2063,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 				s_susi->state = SA_AMF_HA_ACTIVE;
 				s_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, s_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, s_susi);
 				if (avd_snd_susi_msg(cb, s_susi->su, s_susi, AVSV_SUSI_ACT_MOD)
 				    == NCSCC_RC_FAILURE) {
 					/* Log fatal error */
@@ -2075,7 +2075,7 @@ static uns32 avd_sg_2n_susi_sucss_si_oper(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_R
 					s_susi->state = old_state;
 					s_susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, s_susi, AVSV_CKPT_AVD_SU_SI_REL);
-					avd_gen_su_ha_state_changed_trap(cb, s_susi);
+					avd_gen_su_ha_state_changed_ntf(cb, s_susi);
 					return NCSCC_RC_FAILURE;
 				}
 
@@ -3587,7 +3587,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			a_susi->state = SA_AMF_HA_QUIESCED;
 			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-			avd_gen_su_ha_state_changed_trap(cb, a_susi);
+			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
 				/* loga fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)a_susi));
@@ -3598,7 +3598,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 				a_susi->state = old_state;
 				a_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, a_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -3633,7 +3633,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			a_susi->state = SA_AMF_HA_QUIESCING;
 			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-			avd_gen_su_ha_state_changed_trap(cb, a_susi);
+			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
 				/* loga fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)a_susi));
@@ -3644,7 +3644,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 				a_susi->state = old_state;
 				a_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, a_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 				return NCSCC_RC_FAILURE;
 			}
 
@@ -3677,7 +3677,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 			a_susi->state = SA_AMF_HA_QUIESCED;
 			a_susi->fsm = AVD_SU_SI_STATE_MODIFY;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-			avd_gen_su_ha_state_changed_trap(cb, a_susi);
+			avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 			if (avd_snd_susi_msg(cb, a_susi->su, a_susi, AVSV_SUSI_ACT_MOD) == NCSCC_RC_FAILURE) {
 				/* loga fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)a_susi));
@@ -3688,7 +3688,7 @@ uns32 avd_sg_2n_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 				a_susi->state = old_state;
 				a_susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, a_susi, AVSV_CKPT_AVD_SU_SI_REL);
-				avd_gen_su_ha_state_changed_trap(cb, a_susi);
+				avd_gen_su_ha_state_changed_ntf(cb, a_susi);
 				return NCSCC_RC_FAILURE;
 			}
 

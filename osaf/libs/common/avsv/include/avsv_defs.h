@@ -103,16 +103,6 @@
 /* Max value for a handle given by avsv to APP */
 #define AVSV_UNS32_HDL_MAX 0xffffffff
 
-/* Trap retention timeout */
-#define AVSV_TRAP_RETENTION_TIMEOUT  200000000
-
-/* Trap channel open timeout */
-#define AVSV_TRAP_CHANNEL_OPEN_TIMEOUT 200000000
-
-/* Trap pattern array lengths */
-#define AVSV_TRAP_PATTERN_ARRAY_LEN  2
-#define AVD_SHUT_FAIL_TRAP_PATTERN_ARRAY_LEN 1
-
 /* Maximum number for component instantiation */
 #define AVSV_MAX_INST 1
 

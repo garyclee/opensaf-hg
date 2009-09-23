@@ -139,7 +139,7 @@ typedef struct avd_avnd_tag {
 #define m_AVD_SET_AVND_SU_ADMIN(cb,node,state) {\
 node->su_admin_state = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_SU_ADMIN_STATE);\
-avd_gen_node_admin_state_changed_trap(cb,node);\
+avd_gen_node_admin_state_changed_ntf(cb,node);\
 }
 
 #define m_AVD_SET_AVND_OPER(cb,node,state) {\

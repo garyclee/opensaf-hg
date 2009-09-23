@@ -316,7 +316,7 @@ uns32 avnd_evt_clc_resp(AVND_CB *cb, AVND_EVT *evt)
 	}			/* if */
 
 	if (ev == AVND_COMP_CLC_PRES_FSM_EV_CLEANUP_FAIL)
-		avnd_gen_comp_clean_failed_trap(cb, comp);
+		avnd_gen_comp_clean_failed_ntf(cb, comp);
 
 	/* run the fsm */
 	if (AVND_COMP_CLC_PRES_FSM_EV_MAX != ev)
@@ -845,7 +845,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *cb, AVND_COMP *comp, NCS_PRES_STATE prv
 				if (!comp->csi_list.n_nodes) {
 					m_AVND_SU_IS_ENABLED(comp->su, is_en);
 					if (TRUE == is_en) {
-						m_AVND_SU_OPER_STATE_SET_AND_SEND_TRAP(cb, comp->su,
+						m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, comp->su,
 										       NCS_OPER_STATE_ENABLE);
 						m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp->su, AVND_CKPT_SU_OPER_STATE);
 						rc = avnd_di_oper_send(cb, comp->su, 0);
@@ -1379,7 +1379,7 @@ uns32 avnd_comp_clc_xxxing_cleansucc_hdler(AVND_CB *cb, AVND_COMP *comp)
 		/* => retries over... transition to inst-failed state */
 		m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_INSTANTIATIONFAILED);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
-		avnd_gen_comp_inst_failed_trap(cb, comp);
+		avnd_gen_comp_inst_failed_ntf(cb, comp);
 	}
 
 	return rc;
@@ -1405,7 +1405,7 @@ uns32 avnd_comp_clc_insting_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* nothing can be done now.. just transition to inst-failed state */
 	m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_INSTANTIATIONFAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
-	avnd_gen_comp_inst_failed_trap(cb, comp);
+	avnd_gen_comp_inst_failed_ntf(cb, comp);
 
 	return rc;
 }
@@ -1762,7 +1762,7 @@ uns32 avnd_comp_clc_terming_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* just transition to 'term-failed' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_TERMINATIONFAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
-	avnd_gen_comp_term_failed_trap(cb, comp);
+	avnd_gen_comp_term_failed_ntf(cb, comp);
 
 	return rc;
 }
@@ -1912,7 +1912,7 @@ uns32 avnd_comp_clc_restart_termfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	if (NCSCC_RC_SUCCESS == rc) {
 		m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_TERMINATIONFAILED);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
-		avnd_gen_comp_term_failed_trap(cb, comp);
+		avnd_gen_comp_term_failed_ntf(cb, comp);
 	}
 
 	return rc;
@@ -1986,7 +1986,7 @@ uns32 avnd_comp_clc_restart_cleanfail_hdler(AVND_CB *cb, AVND_COMP *comp)
 	/* transition to 'term-failed' state */
 	m_AVND_COMP_PRES_STATE_SET(comp, NCS_PRES_TERMINATIONFAILED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
-	avnd_gen_comp_term_failed_trap(cb, comp);
+	avnd_gen_comp_term_failed_ntf(cb, comp);
 
 	return rc;
 }

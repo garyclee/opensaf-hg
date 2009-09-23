@@ -49,7 +49,7 @@ COMMON_SRC = \
 	avnd_susm.c \
 	avnd_term.c \
 	avnd_tmr.c \
-	avnd_trap.c \
+	avnd_ntf.c \
 	avnd_util.c \
 	avnd_verify.c \
 	avnd_avnd.c \
