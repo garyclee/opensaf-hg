@@ -17,7 +17,6 @@ ncs_install
 ncs_stop
 ncs_start
 ncs_scxb_role
-ncs_cpsv_walk
 ncs_scxb_mem_ign
 ncs_pld_mem_ign
 ncs_scxb_mem_dump
@@ -158,22 +157,6 @@ function ncs_scxb_role() {
 grep -in "avd_avm_role_rsp" /var/opt/opensaf/stdouts/ncs_scap.log | sort
 
 }
-
-function ncs_cpsv_walk () {
-if [ $# -lt 1 ] ; then
-                                                                                                                         
-   echo "Usage: [Active IP address] ";
-   return;
-fi
-                                                                                                                         
-echo "SNMP WALK FOR CKPT SERVICE";
-export MIBDIRS=/usr/share/snmp/mibs/
-export SNMPCONFPATH=/usr/share/snmp/
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptCheckpointTable
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-CKPT-MIB $1 saCkptNodeReplicaLocTable
-}
-                                                                                                                         
-
 
 function ncs_avsv_walk () {
 

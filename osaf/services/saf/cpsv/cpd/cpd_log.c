@@ -147,3 +147,24 @@ void cpd_mbcsv_log(uns8 mbcsv_id, uns8 sev)
 {
 	ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_MBCSV, CPD_FC_MBCSV, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, mbcsv_id);
 }
+
+/*****************************************************************************
+
+  PROCEDURE NAME:    cpd_log
+
+  DESCRIPTION:       cpd failure logging info
+
+*****************************************************************************/
+void _cpd_log(uns8 severity, const char *function, const char *format, ...)
+{
+      char preamble[128];
+       char str[128];
+       va_list ap;
+
+       va_start(ap, format);
+       snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+       vsnprintf(str, sizeof(str), preamble, ap);
+       va_end(ap);
+
+       ncs_logmsg(NCS_SERVICE_ID_CPD, CPD_LID_GENLOG, CPD_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
+}

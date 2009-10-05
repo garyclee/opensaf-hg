@@ -221,7 +221,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 					reploc_info->rep_type = REP_NOTACTIVE;
 			}
 
-			cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info);
+			cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
 
 		}
 		cref_info = m_MMGR_ALLOC_CPD_CKPT_REF_INFO;
@@ -233,7 +233,7 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 	}
 
 	/* filling up the ckpt_node database */
-	if (cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node) != NCSCC_RC_SUCCESS) {
+	if (cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle) != NCSCC_RC_SUCCESS) {
 		m_LOG_CPD_FCL(CPD_STANDBY_CREATE_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR, ckpt_node->ckpt_id,
 			      __FILE__, __LINE__);
 		goto cpd_ckpt_node_add_fail;
@@ -344,7 +344,7 @@ uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
 		if (rep_info) {
-			cpd_ckpt_reploc_node_delete(cb, rep_info);
+			cpd_ckpt_reploc_node_delete(cb, rep_info,ckpt_node->is_unlink_set);
 		}
 	} else {
 		m_LOG_CPD_FCL(CPD_STANDBY_DESTDEL_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_ERROR,
@@ -554,7 +554,7 @@ uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 				reploc_info->rep_type = REP_NOTACTIVE;
 		}
 
-		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info);
+		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			m_LOG_CPD_CL(CPD_STANDBY_DESTADD_EVT_FAILED, CPD_FC_MBCSV, NCSFL_SEV_INFO, __FILE__, __LINE__);
 			/*  goto free_mem; */

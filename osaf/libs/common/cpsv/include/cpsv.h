@@ -37,12 +37,9 @@
 
 #include "t_suite.h"
 #include "ncs_saf.h"
-#include "ncs_mib.h"
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 #include "ncs_main_pvt.h"
 
 #if ( (NCS_CPD_LOG == 1) || (NCS_CPND_LOG == 1) || (NCS_CPA_LOG ==1) || (NCS_CPSV_LOG == 1) )

@@ -25,6 +25,8 @@
 ******************************************************************************/
 
 #include "cpd.h"
+#include "cpd_log.h"
+
 uns32 cpd_evt_proc_cb_dump(CPD_CB *cb);
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
 static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);
@@ -531,6 +533,15 @@ static uns32 cpd_evt_proc_ckpt_unlink(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *
 		proc_rc = cpd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_CPND);
 		m_LOG_CPD_CFCL(CPD_EVT_UNLINK_SUCCESS, CPD_FC_HDLN, NCSFL_SEV_INFO,
 			       evt->info.ckpt_ulink.ckpt_name.value, sinfo->dest, __FILE__, __LINE__);
+
+		/* delete imm ckpt runtime object */
+		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &ckpt_node->ckpt_name) != SA_AIS_OK) {
+				cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED",
+					ckpt_node->ckpt_name.value);
+				/* Free the Client Node */
+			}
+		}
 	}
 
 	return proc_rc;
@@ -1158,8 +1169,8 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 							while (nref_info) {
 								if (m_CPD_IS_LOCAL_NODE
 								    (cb->cpd_self_id,
-								     cpd_get_slot_sub_id_from_mds_dest(nref_info->
-												       dest))) {
+								     cpd_get_slot_sub_id_from_mds_dest
+								     (nref_info->dest))) {
 									flag = TRUE;
 								}
 								nref_info = nref_info->next;
@@ -1169,8 +1180,7 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 										      &ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
-												      &cb->
-												      loc_cpnd_dest,
+												      &cb->loc_cpnd_dest,
 												      ckpt_node,
 												      map_info);
 								}
@@ -1195,8 +1205,8 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 							while (nref_info) {
 								if (m_CPD_IS_LOCAL_NODE
 								    (cb->cpd_remote_id,
-								     cpd_get_slot_sub_id_from_mds_dest(nref_info->
-												       dest))) {
+								     cpd_get_slot_sub_id_from_mds_dest
+								     (nref_info->dest))) {
 									flag = TRUE;
 								}
 								nref_info = nref_info->next;
@@ -1206,8 +1216,7 @@ static uns32 cpd_evt_proc_mds_evt(CPD_CB *cb, CPD_EVT *evt)
 										      &ckpt_node->ckpt_name, &map_info);
 								if (map_info) {
 									cpd_noncolloc_ckpt_rep_create(cb,
-												      &cb->
-												      rem_cpnd_dest,
+												      &cb->rem_cpnd_dest,
 												      ckpt_node,
 												      map_info);
 

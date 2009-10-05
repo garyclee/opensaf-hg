@@ -25,6 +25,7 @@
 ******************************************************************************/
 
 #include "cpd.h"
+#include "cpd_log.h"
 
 /****************************************************************************
  * Name          : cpd_noncolloc_ckpt_rep_create
@@ -137,7 +138,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 	CPD_CKPT_REF_INFO *cref_info = NULL;
 	uns32 proc_rc = NCSCC_RC_SUCCESS;
 	SaCkptCheckpointHandleT ckpt_id = 0;
-	NCS_BOOL add_flag = TRUE;
+	NCS_BOOL add_flag = TRUE, create_reploc_node = FALSE;;
 	SaClmClusterNodeT cluster_node;
 	NODE_ID key;
 	SaClmNodeIdT node_id;
@@ -247,12 +248,7 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 			}
 
 		}
-
-		proc_rc = cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info);
-		if (proc_rc != NCSCC_RC_SUCCESS) {
-			/* goto reploc_node_add_fail; */
-			m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		}
+		create_reploc_node = TRUE;
 	}
 
 	if (*io_map_info) {
@@ -316,11 +312,19 @@ uns32 cpd_ckpt_db_entry_update(CPD_CB *cb,
 			else
 				ckpt_node->ckpt_on_scxb2 = (uns32)cpd_get_slot_sub_id_from_mds_dest(*cpnd_dest);
 		}
-		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node);
+		proc_rc = cpd_ckpt_node_add(&cb->ckpt_tree, ckpt_node, cb->ha_state, cb->immOiHandle);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			m_LOG_CPD_FCL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, ckpt_node->ckpt_id, __FILE__,
 				      __LINE__);
 			goto ckpt_node_add_fail;
+		}
+		if (reploc_info && create_reploc_node) {
+			proc_rc =
+			    cpd_ckpt_reploc_node_add(&cb->ckpt_reploc_tree, reploc_info, cb->ha_state, cb->immOiHandle);
+			if (proc_rc != NCSCC_RC_SUCCESS) {
+				/* goto reploc_node_add_fail; */
+				m_LOG_CPD_CL(CPD_DB_ADD_FAILED, CPD_FC_DB, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+			}
 		}
 
 		*io_map_info = map_info;
@@ -437,7 +441,7 @@ uns32 cpd_noncolloc_ckpt_rep_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node, C
 		/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
 		if (rep_info) {
-			cpd_ckpt_reploc_node_delete(cb, rep_info);
+			cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
 		}
 
 		m_MMGR_FREE_CPD_NODE_REF_INFO(nref_info);
@@ -600,6 +604,15 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
 		}
 	}
 
+	/* This is to delete the node from reploc_tree */
+	key_info.ckpt_name = ckpt_name;
+	key_info.node_name = node_name;
+	/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
+	cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
+	if (rep_info) {
+		cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
+	}
+
 	if (ckpt_node->dest_cnt == 0) {
 		*o_ckpt_node_deleted = FALSE;
 		*o_is_active_changed = FALSE;
@@ -611,14 +624,6 @@ uns32 cpd_process_ckpt_delete(CPD_CB *cb,
 		if (map_info) {
 			cpd_ckpt_map_node_delete(cb, map_info);
 		}
-	}
-	/* This is to delete the node from reploc_tree */
-	key_info.ckpt_name = ckpt_name;
-	key_info.node_name = node_name;
-	/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
-	cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
-	if (rep_info) {
-		cpd_ckpt_reploc_node_delete(cb, rep_info);
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -841,7 +846,7 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 		/* This is to delete the node from reploc_tree */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
 		if (rep_info) {
-			cpd_ckpt_reploc_node_delete(cb, rep_info);
+			cpd_ckpt_reploc_node_delete(cb, rep_info, ckpt_node->is_unlink_set);
 		}
 
 		m_MMGR_FREE_CPD_CKPT_REF_INFO(cref_info);
@@ -1110,7 +1115,7 @@ void cpd_cb_dump(void)
 					printf("\n creationFlags: %d, ", (uns32)ckpt_node->attributes.creationFlags);
 					printf("\n retentionDuration: %d, ",
 					       (uns32)ckpt_node->attributes.retentionDuration);
-					printf("\n maxSections: %ld, ", ckpt_node->attributes.maxSections);
+					printf("\n maxSections: %u, ", ckpt_node->attributes.maxSections);
 					printf("\n maxSectionSize: %d, ", (uns32)ckpt_node->attributes.maxSectionSize);
 					printf("\n maxSectionIdSize: %d, ",
 					       (uns32)ckpt_node->attributes.maxSectionIdSize);
@@ -1171,7 +1176,7 @@ void cpd_cb_dump(void)
 				printf("\n creationFlags: %d, ", (uns32)ckpt_map_node->attributes.creationFlags);
 				printf("\n retentionDuration: %d, ",
 				       (uns32)ckpt_map_node->attributes.retentionDuration);
-				printf("\n maxSections: %ld, ", ckpt_map_node->attributes.maxSections);
+				printf("\n maxSections: %u, ", ckpt_map_node->attributes.maxSections);
 				printf("\n maxSectionSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionSize);
 				printf("\n maxSectionIdSize: %d, ", (uns32)ckpt_map_node->attributes.maxSectionIdSize);
 				ckpt_map_node =
@@ -1186,4 +1191,31 @@ void cpd_cb_dump(void)
 	printf("\n\n");
 /* #endif    */
 	return;
+}
+
+/****************************************************************************
+  Name          : cpd_ckpt_reploc_imm_object_delete
+  Description   : This routine deletes the Checkpoint node object from IMMSV
+  Arguments     : CPD_CB *cb - CPD Control Block.
+                : CPD_CKPT_REPLOC_INFO  *ckpt_reploc_node - Local Ckeckpoint Node.
+  Return Values : NCSCC_RC_FAILURE /NCSCC_RC_SUCCESS
+  Notes         : None
+******************************************************************************/
+uns32 cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
+{
+
+	SaNameT replica;
+	memset(&replica, 0, sizeof(replica));
+	/* delete imm runtime object */
+	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (is_unlink_set != TRUE)) {
+		strcpy((char *)replica.value, "safReplica=");
+		strcat((char *)replica.value, (char *)ckpt_reploc_node->rep_key.node_name.value);
+		strcat((char *)replica.value, ",");
+		strcat((char *)replica.value, (char *)ckpt_reploc_node->rep_key.ckpt_name.value);
+		replica.length = strlen((char *)replica.value);
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &replica) != SA_AIS_OK) {
+			cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica.value);
+			return NCSCC_RC_FAILURE;
+		}
+	}
 }

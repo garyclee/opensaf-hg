@@ -294,6 +294,107 @@
                 </attr>
 	</class>
 
+	<class name="SaCkptCheckpoint">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safCkpt</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saCkptCheckpointCreationTimestamp</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointUsedSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointCreationFlags</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointRetDuration</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointMaxSections</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointMaxSectionSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointMaxSectionIdSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumOpeners</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumReaders</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumWriters</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumReplicas</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumSections</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saCkptCheckpointNumCorruptSections</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+	</class>
+
+	<class name="SaCkptReplica">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safReplica</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saCkptReplicaIsActive</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>			
+		</attr>
+	</class>
+
+
         <object class="SaAmfApplication">
                 <dn>safApp=safImmService</dn>
         </object>
@@ -305,6 +406,9 @@
 	</object>
 	<object class="SaAmfApplication">
         	<dn>safApp=safEvtService</dn>
+	</object>
+	<object class="SaAmfApplication">
+        	<dn>safApp=safCkptService</dn>
 	</object>
 	<object class="SaAmfApplication">
         	<dn>safApp=safLogService</dn>

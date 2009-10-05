@@ -245,6 +245,7 @@ NCSFL_FMAT cpd_fmat_set[] = {
 	{CPD_LID_TICCL, NCSFL_TYPE_TICCL, "CPSv %s : %s : %s : %s:%lu\n"},
 	{CPD_LID_TIFFCL, NCSFL_TYPE_TIFFCL, "CPSv %s : %s : %s : %s : %s:%lu\n"},
 	{CPD_LID_TICFFCL, NCSFL_TYPE_TICFFCL, "CPSv %s :%s : %s : %s : %s : %s:%lu\n"},
+	{CPD_LID_GENLOG, NCSFL_TYPE_TC, "CPSv %s %s\n"},
 	{0, 0, 0}
 };
 

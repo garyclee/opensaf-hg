@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = include
 
-SUBDIRS = avsv cpsv mqsv
+SUBDIRS = avsv mqsv

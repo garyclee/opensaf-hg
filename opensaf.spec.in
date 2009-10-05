@@ -379,7 +379,6 @@ fi
 %{_pkglibdir}/libbam_logstr.so.*
 %{_pkglibdir}/libcli_logstr.so.*
 %{_pkglibdir}/libcpsv_logstr.so.*
-%{_pkglibdir}/libcpsv_subagt.so.*
 %{_pkglibdir}/libdts_clicef.so.*
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libdts_pssv.so.*

@@ -28,7 +28,18 @@
 ******************************************************************************/
 
 #include "cpd.h"
+#include "cpd_imm.h"
+#include "cpd_log.h"
+#include <poll.h>
 
+#define FD_AMF 0
+#define FD_CLM 1
+#define FD_MBCSV 2
+#define FD_MBX 3
+#define FD_IMM 4		/* Must be the last in the fds array */
+
+static struct pollfd fds[5];
+static nfds_t nfds = 5;
 uns32 gl_cpd_cb_hdl = 0;
 
 /* Static Function Declerations */
@@ -249,13 +260,10 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 		goto cpd_clm_fail;
 	}
 
-	strcpy(cb->safSpecVer.value, "B.02.02");
-	cb->safSpecVer.length = strlen("B.02.02");
-	strcpy(cb->safAgtVen.value, "OpenSAF");
-	cb->safAgtVen.length = strlen("OpenSAF");
-	cb->safAgtVenPro = 2;
-	cb->serv_enabled = 2;
-	cb->serv_state = 1;
+	if (cpd_imm_init(cb) != SA_AIS_OK) {
+		m_LOG_CPD_CL(CPD_CLM_CLUSTER_TRACK_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+		goto cpd_imm_fail;
+	}
 
 	/* Create the task for CPD */
 	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB)cpd_main_process,
@@ -271,19 +279,6 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 		m_LOG_CPD_CL(CPD_TASK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("CPD_TASK_START_FAIL\n");
 		goto cpd_task_start_fail;
-	}
-
-	/* Register with MIBLIB */
-	if ((rc = cpd_reg_with_miblib()) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MIBLIB_REGISTER_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_MIBLIB_REGISTER_FAILED\n");
-		goto cpd_mab_fail;
-	}
-	/* Register with MASv */
-	if ((rc = cpd_reg_with_mab(cb)) != NCSCC_RC_SUCCESS) {
-		m_LOG_CPD_CL(CPD_MASV_REGISTER_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
-		printf("CPD_MASV_REGISTER_FAILED\n");
-		goto cpd_mab_fail;
 	}
 
 	/* Register with CLM */
@@ -313,6 +308,7 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	m_LOG_CPD_HEADLINE(CPD_INIT_SUCCESS, NCSFL_SEV_INFO);
 	return NCSCC_RC_SUCCESS;
 
+ cpd_imm_fail:
  cpd_mab_fail:
 	cpd_mds_unregister(cb);
  cpd_clm_fail:
@@ -468,59 +464,60 @@ static NCS_BOOL cpd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 static void cpd_main_process(NCSCONTEXT info)
 {
 	CPD_CB *cb = (CPD_CB *)info;
-	NCS_SEL_OBJ_SET all_sel_obj;
+	CPSV_EVT *evt = NULL;
 	NCS_SEL_OBJ mbx_fd;
 	SYSF_MBX mbx = cb->cpd_mbx;
-	CPSV_EVT *evt = NULL;
-	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
-	SaAmfHandleT amf_hdl;
-	SaAisErrorT amf_error;
-	NCS_SEL_OBJ mbcsv_ncs_sel_obj, amf_ncs_sel_obj, highest_sel_obj, clm_ncs_sel_obj;
 	NCS_MBCSV_ARG mbcsv_arg;
+	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
+	SaAisErrorT error = SA_AIS_OK;
+	char *trace_file;
 
-	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&cb->cpd_mbx);
-	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-
-	amf_hdl = cb->amf_hdl;
-	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
-
-	if (amf_error != SA_AIS_OK) {
-		m_LOG_CPD_CL(CPD_AMF_GET_SEL_OBJ_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
+	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
+	if (saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj) != SA_AIS_OK) {
+		cpd_log(NCSFL_SEV_ERROR, "saAmfSelectionObjectGet Failed error = %u\n", error);
 		return;
 	}
-	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-
-	m_SET_FD_IN_SEL_OBJ((uns32)cb->mbcsv_sel_obj, mbcsv_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(mbcsv_ncs_sel_obj, &all_sel_obj);
-
 	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
 		m_LOG_CPD_CL(CPD_CLM_GET_SEL_OBJ_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 		printf("CLM Selection Object Get failed\n");
 		return;
 	}
 
-	m_SET_FD_IN_SEL_OBJ((uns32)clm_sel_obj, clm_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+	/* Set up all file descriptors to listen to */
+	fds[FD_AMF].fd = amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_CLM].fd = clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
+	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_IMM].fd = cb->imm_sel_obj;
+	fds[FD_IMM].events = POLLIN;
 
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, mbx_fd);
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, mbcsv_ncs_sel_obj);
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, clm_ncs_sel_obj);
-	while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj, &all_sel_obj, 0, 0, 0) != -1) {
+	while (1) {
+		int ret = poll(fds, nfds, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+
+			cpd_log(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			break;
+		}
 
 		/* process all the AMF messages */
-		if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj)) {
+		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
-			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
-			if (amf_error != SA_AIS_OK) {
+			error = saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
+			if (error != SA_AIS_OK) {
 				m_LOG_CPD_CL(CPD_AMF_DISPATCH_FAILURE, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__,
 					     __LINE__);
 			}
 		}
 
 		/* Process all Clm Messages */
-		if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj, &all_sel_obj)) {
+		if (fds[FD_CLM].revents & POLLIN) {
 			/* dispatch all the CLM pending function */
 			if (saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL) != SA_AIS_OK) {
 				m_LOG_CPD_HEADLINE(CPD_CLM_DISPATCH_FAILURE, NCSFL_SEV_ERROR);
@@ -528,7 +525,7 @@ static void cpd_main_process(NCSCONTEXT info)
 		}
 
 		/* Process all the MBCSV messages  */
-		if (m_NCS_SEL_OBJ_ISSET(mbcsv_ncs_sel_obj, &all_sel_obj)) {
+		if (fds[FD_MBCSV].revents & POLLIN) {
 			/* dispatch all the MBCSV pending callbacks */
 			mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
 			mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_handle;
@@ -540,18 +537,51 @@ static void cpd_main_process(NCSCONTEXT info)
 		}
 
 		/* process the CPD Mail box */
-		if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj)) {
-
+		if (fds[FD_MBX].revents & POLLIN) {
 			if (NULL != (evt = (CPSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&mbx, evt))) {
 				/* now got the IPC mail box event */
 				cpd_process_evt(evt);
 			}
 		}
+		/* process the IMM messages */
+		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
+			/* dispatch all the IMM pending function */
+			error = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
 
-		m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(mbcsv_ncs_sel_obj, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+			/*
+			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
+			 ** reinitialize the IMM OI API in a background thread and let 
+			 ** this thread do business as usual especially handling write 
+			 ** requests.
+			 **
+			 ** All other errors are treated as non-recoverable (fatal) and will
+			 ** cause an exit of the process.
+			 */
+			if (error == SA_AIS_ERR_BAD_HANDLE) {
+				cpd_log(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE %u", error);
+
+				/* 
+				 ** Invalidate the IMM OI handle, this info is used in other
+				 ** locations. E.g. giving TRY_AGAIN responses to a create and
+				 ** close resource requests. That is needed since the IMM OI
+				 ** is used in context of these functions.
+				 */
+				cb->immOiHandle = 0;
+				nfds = FD_IMM;
+				/* Reinitiate IMM */
+				error = cpd_imm_init(cb);
+				if (error == SA_AIS_OK) {
+					/* If this is the active server, become implementer again. */
+					if (cb->ha_state == SA_AMF_HA_ACTIVE)
+						cpd_imm_declare_implementer(cb);
+				}
+				fds[FD_IMM].fd = cb->imm_sel_obj;
+				nfds = FD_IMM + 1;
+			} else if (error != SA_AIS_OK) {
+				cpd_log(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED: %u", error);
+				break;
+			}
+		}
 	}
 	return;
 }
