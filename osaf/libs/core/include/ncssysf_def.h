@@ -232,7 +232,6 @@ extern "C" {
  ****************************************************************************/
 #define NCSSOCK_ERROR                       NCS_TS_SOCK_ERROR
 #define NCSSOCK_INVALID                     NCS_TS_SOCK_INVALID
-#define m_NCSSOCK_CREATE                    m_NCS_TS_SOCK_CREATE
 #define m_NCSSOCK_DESTROY                   m_NCS_TS_SOCK_DESTROY
 #define m_NCSSOCK_SOCKET              m_NCS_TS_SOCK_SOCKET
 #define m_NCSSOCK_BIND                      m_NCS_TS_SOCK_BIND

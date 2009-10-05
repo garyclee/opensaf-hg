@@ -497,12 +497,6 @@ uns32 leap_env_init()
 #endif   /* #if (NCS_USE_SYSMON == 1) */
 #endif   /* #if (NCSL_ENV_INIT_SMON == 1)  */
 
-	/* NCS_IPC implementation uses INET sockets on Windows. INET sockets
-	   need WSAStartup to done before NCS-IPC creation. - Phani:10/02/04 */
-	if (m_NCSSOCK_CREATE != NCSCC_RC_SUCCESS) {
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-
 	/* NCS MIBLIB is being initialized here. */
 	{
 		NCSMIBLIB_REQ_INFO miblib_init;
