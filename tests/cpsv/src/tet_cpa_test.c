@@ -305,21 +305,21 @@ void fill_testcase_data()
    fill_ckpt_attri(&tcd.invalid_collocated,SA_CKPT_CHECKPOINT_COLLOCATED|SA_CKPT_WR_ACTIVE_REPLICA,140,100,2,85,3);
    fill_ckpt_attri(&tcd.my_app,SA_CKPT_CHECKPOINT_COLLOCATED|SA_CKPT_WR_ALL_REPLICAS,140,SA_TIME_END,2,85,3);
 
-   fill_ckpt_name(&tcd.all_replicas_ckpt,"all replicas ckpt");
-   fill_ckpt_name(&tcd.active_replica_ckpt,"active replica ckpt");
-   fill_ckpt_name(&tcd.weak_replica_ckpt,"weak replica ckpt");
-   fill_ckpt_name(&tcd.collocated_ckpt,"collocated ckpt");
-   fill_ckpt_name(&tcd.async_all_replicas_ckpt,"async all ckpt");
-   fill_ckpt_name(&tcd.async_active_replica_ckpt,"async active ckpt");
-   fill_ckpt_name(&tcd.smoketest_ckpt,"active ckpt test");
-   fill_ckpt_name(&tcd.all_collocated_ckpt,"all collocated ckpt");
-   fill_ckpt_name(&tcd.weak_collocated_ckpt,"weak collocated ckpt");
-   fill_ckpt_name(&tcd.non_existing_ckpt,"nonexisting ckpt");
-   fill_ckpt_name(&tcd.multi_vector_ckpt,"multi vector ckpt");
-   fill_ckpt_name(&tcd.all_replicas_ckpt_large,"all replicas large ckpt");
-   fill_ckpt_name(&tcd.active_replica_ckpt_large,"active replica large ckpt");
-   fill_ckpt_name(&tcd.weak_replica_ckpt_large,"weak replica large ckpt");
-   fill_ckpt_name(&tcd.collocated_ckpt_large,"collocated large ckpt");
+   fill_ckpt_name(&tcd.all_replicas_ckpt,"safCkpt=all replicas ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.active_replica_ckpt,"safCkpt=active replica ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.weak_replica_ckpt,"safCkpt=weak replica ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.collocated_ckpt,"safCkpt=collocated ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.async_all_replicas_ckpt,"safCkpt=async all ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.async_active_replica_ckpt,"safCkpt=async active ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.smoketest_ckpt,"safCkpt=active ckpt test,safApp=safCkptService");
+   fill_ckpt_name(&tcd.all_collocated_ckpt,"safCkpt=all collocated ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.weak_collocated_ckpt,"safCkpt=weak collocated ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.non_existing_ckpt,"safCkpt=nonexisting ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.multi_vector_ckpt,"safCkpt=multi vector ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.all_replicas_ckpt_large,"safCkpt=all replicas large ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.active_replica_ckpt_large,"safCkpt=active replica large ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.weak_replica_ckpt_large,"safCkpt=weak replica large ckpt,safApp=safCkptService");
+   fill_ckpt_name(&tcd.collocated_ckpt_large,"safCkpt=collocated large ckpt,safApp=safCkptService");
 
    /* Variables for sec create */
    tcd.sec_id1 = 11;

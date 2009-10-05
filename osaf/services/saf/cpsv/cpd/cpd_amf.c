@@ -33,6 +33,9 @@
  * Module Inclusion Control...
  */
 #include "cpd.h"
+#include "immutil.h"
+#include "cpd_imm.h"
+#include "cpd_log.h"
 #define NCS_2_0 1
 #if NCS_2_0			/* Required for NCS 2.0 */
 extern uns32 gl_cpd_cb_hdl;
@@ -144,6 +147,12 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 			if (cb->cold_or_warm_sync_on == TRUE) {
 				printf("ACTIVE cpd_saf_csi_set_cb -cb->cold_or_warm_sync_on == TRUE \n");
 			}
+
+			/* Give up our IMM OI implementer role */
+			saErr = immutil_saImmOiImplementerClear(cb->immOiHandle);
+			if (saErr != SA_AIS_OK) {
+				cpd_log(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %d", saErr);
+			}
 		}
 
 		cb->ha_state = haState;
@@ -155,6 +164,11 @@ void cpd_saf_csi_set_cb(SaInvocationT invocation,
 		if (SA_AMF_HA_ACTIVE == cb->ha_state) {
 			mds_role = V_DEST_RL_ACTIVE;
 			printf("ACTIVE STATE\n");
+
+			/* If this is the active server, become implementer again. */
+			if (cb->ha_state == SA_AMF_HA_ACTIVE) {
+				cpd_imm_declare_implementer(cb);
+			}
 			/*   anchor   = cb->cpd_anc; */
 		} else if (SA_AMF_HA_QUIESCED == cb->ha_state) {
 			mds_role = V_DEST_RL_QUIESCED;

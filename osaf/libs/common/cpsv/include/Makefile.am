@@ -35,18 +35,17 @@ noinst_HEADERS = \
 	cpd_log.h \
 	cpd_mds.h \
 	cpd_mem.h \
-	cpd_mib.h \
 	cpd_proc.h \
 	cpd_red.h \
 	cpd_sbedu.h \
 	cpd_tmr.h \
+	cpd_imm.h \
 	cpnd_cb.h \
 	cpnd_dl_api.h \
 	cpnd.h \
 	cpnd_init.h \
 	cpnd_log.h \
 	cpnd_mem.h \
-	cpnd_mib.h \
 	cpnd_tmr.h \
 	cpsv_evt.h \
 	cpsv.h \

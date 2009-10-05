@@ -27,28 +27,27 @@ ncs_cpd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 ncs_cpd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	cpd_amf.c \
-	cpd_ckptentry.c \
-	cpd_ckptscalar.c \
 	cpd_db.c \
 	cpd_evt.c \
 	cpd_init.c \
 	cpd_log.c \
 	cpd_mbcsv.c \
 	cpd_mds.c \
-	cpd_mib.c \
 	cpd_proc.c \
 	cpd_red.c \
-	cpd_reploc.c \
 	cpd_sbevt.c \
-	cpd_tmr.c
+	cpd_tmr.c \
+	cpd_imm.c
 
 ncs_cpd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/common/cpsv/libcpsv_common.la \
-	$(top_builddir)/osaf/snmp/miblib/cpsv/cpd/libcpd_miblib.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la 

@@ -44,12 +44,9 @@
 #include "cpd_log.h"
 #include "cpd_proc.h"
 #include "cpd_mds.h"
-#include "oac_papi.h"
 #include "cpd_red.h"
-#include "cpd_mib.h"
 #include "cpd_sbedu.h"
 #include "saClm.h"
-#include "cpsv_mapi.h"
 #include "ncs_mda_pvt.h"
 
 #endif   /* CPD_H */

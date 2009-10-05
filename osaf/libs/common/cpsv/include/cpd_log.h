@@ -35,6 +35,8 @@
 #ifndef CPD_LOG_H
 #define CPD_LOG_H
 
+#define cpd_log(severity, format, args...) _cpd_log((severity), __FUNCTION__, (format), ##args)
+
 /******************************************************************************\
             Logging offset indexes for Headline logging
 \******************************************************************************/
@@ -223,7 +225,8 @@ typedef enum cpd_flex_sets {
 	CPD_FC_DB,
 	CPD_FC_MEMFAIL,
 	CPD_FC_MBCSV,
-	CPD_FC_GENERIC
+	CPD_FC_GENERIC,
+	CPD_FC_GENLOG
 } CPD_FLEX_SETS;
 
 typedef enum cpd_log_ids {
@@ -238,7 +241,8 @@ typedef enum cpd_log_ids {
 	CPD_LID_TILLCL,
 	CPD_LID_TICCL,
 	CPD_LID_TIFFCL,
-	CPD_LID_TICFFCL
+	CPD_LID_TICFFCL,
+	CPD_LID_GENLOG
 } CPD_LOG_IDS;
 
 #define NCSFL_TYPE_TIFCL "TIFCL"

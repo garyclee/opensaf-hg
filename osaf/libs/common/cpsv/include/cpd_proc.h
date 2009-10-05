@@ -99,5 +99,5 @@ EXTERN_C uns32 cpd_mbcsv_finalize(CPD_CB *cb);
 EXTERN_C uns32 cpd_mbcsv_enc_async_update(CPD_CB *cb, NCS_MBCSV_CB_ARG *arg);
 EXTERN_C uns32 cpd_mbcsv_close(CPD_CB *cb);
 EXTERN_C NCS_BOOL cpd_is_noncollocated_replica_present_on_payload(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
-
+EXTERN_C uns32 cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb,  CPD_CKPT_REPLOC_INFO *ckpt_reploc_node ,NCS_BOOL is_unlink_set);
 #endif

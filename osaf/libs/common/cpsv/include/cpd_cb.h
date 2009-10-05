@@ -57,6 +57,8 @@
 #define CPSV_CPD_MBCSV_VERSION_MIN 1
 #define CPSV_CPD_MBCSV_VERSION 1
 
+#include "saImmOi.h"
+
 typedef enum rep_type {
 	REP_ACTIVE = 1,
 	REP_NOTACTIVE,
@@ -96,7 +98,7 @@ typedef struct cpd_ckpt_info_node {
 	uns32 num_readers;
 	uns32 num_writers;
 
-	/* for mib */
+	/* for imm */
 	SaUint32T ckpt_used_size;
 	SaTimeT create_time;
 	uns32 num_sections;
@@ -125,7 +127,7 @@ typedef struct cpd_cpnd_info_node {
 	NODE_ID cpnd_key;
 	uns32 timer_state;
 	NCS_BOOL ckpt_cpnd_scxb_exist;
-	/* for mib */
+	/* for imm */
 	SaNameT node_name;
 	SaNameT ckpt_name;
 	uns32 rep_type;
@@ -208,12 +210,9 @@ typedef struct cpd_cb_tag {
 	SaInvocationT amf_invocation;
 
 	NCS_BOOL cold_or_warm_sync_on;
-	/* for mib */
-	SaNameT safSpecVer;
-	SaNameT safAgtVen;
-	uns32 safAgtVenPro;
-	NCS_BOOL serv_enabled;
-	uns32 serv_state;
+
+	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
+	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for IMM events */
 
 } CPD_CB;
 
@@ -231,7 +230,7 @@ EXTERN_C uns32 cpd_ckpt_node_get(NCS_PATRICIA_TREE *ckpt_tree,
 EXTERN_C void cpd_ckpt_node_getnext(NCS_PATRICIA_TREE *ckpt_tree,
 				    SaCkptCheckpointHandleT *ckpt_hdl, CPD_CKPT_INFO_NODE **ckpt_node);
 
-EXTERN_C uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node);
+EXTERN_C uns32 cpd_ckpt_node_add(NCS_PATRICIA_TREE *ckpt_tree, CPD_CKPT_INFO_NODE *ckpt_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
 EXTERN_C uns32 cpd_ckpt_node_delete(CPD_CB *cb, CPD_CKPT_INFO_NODE *ckpt_node);
 EXTERN_C void cpd_ckpt_tree_cleanup(CPD_CB *cb);
 EXTERN_C void cpd_ckpt_tree_destroy(CPD_CB *cb);
@@ -242,8 +241,8 @@ EXTERN_C uns32 cpd_ckpt_reploc_get(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				   CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
 EXTERN_C void cpd_ckpt_reploc_getnext(NCS_PATRICIA_TREE *ckpt_reploc_tree,
 				      CPD_REP_KEY_INFO *key_info, CPD_CKPT_REPLOC_INFO **ckpt_reploc_node);
-EXTERN_C uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node);
-EXTERN_C uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node);
+EXTERN_C uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle);
+EXTERN_C uns32 cpd_ckpt_reploc_node_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set);
 EXTERN_C void cpd_ckpt_reploc_cleanup(CPD_CB *cb);
 EXTERN_C void cpd_ckpt_reploc_tree_destroy(CPD_CB *cb);
 

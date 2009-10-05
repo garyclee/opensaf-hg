@@ -47,8 +47,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include "cpsv_shm.h"
-#include "cpsv_mapi.h"
 #include "cpsv_evt.h"
-#include "cpnd_mib.h"
 
 #endif   /* CPND_H */
