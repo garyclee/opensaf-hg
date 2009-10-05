@@ -45,11 +45,6 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-/* install SIGPIPE signal handler on socket init */
-	uns32 ncs_os_install_sigpipe_handler(void);
-
-#define m_NCS_TS_SOCK_CREATE            ncs_os_install_sigpipe_handler()
-
 #define m_NCS_TS_SOCK_SETSOCKOPT(sock,lvl,opt,optval,optlen)  \
                 setsockopt((int)sock,(int)lvl,(int)opt,(const void *)optval,(socklen_t)optlen)
 

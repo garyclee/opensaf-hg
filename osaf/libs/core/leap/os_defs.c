@@ -167,7 +167,6 @@ uns32 ncs_get_uptime(uns64 *o_uptime)
 #define NCS_OS_LINUX247        0x2470
 #define NCS_OS_LINUX242        0x2422
 
-uns32 ncs_os_install_sigpipe_handler(void);
 int getversion(void)
 {
 	char verstr[128];
@@ -2018,28 +2017,6 @@ unsigned int os_cur_cpu_usage(void)
  **                                                                         **
  ****************************************************************************/
 
-/** use the window's winsock init mechanism to install a signal trap */
-static int firsttime_install_sigpipe_handler = TRUE;
-static int sigpipe_fired = 0;
-
-static void catch_sigpipe(int sig)
-{
-	printf("info: caught sigpipe\n");
-	sigpipe_fired = 1;
-}
-
-uns32 ncs_os_install_sigpipe_handler(void)
-{
-	if (TRUE == firsttime_install_sigpipe_handler) {
-		m_NCS_OS_DBG_PRINTF("info: installing sigpipe handler\n");
-		(void)signal(SIGPIPE, catch_sigpipe);
-		firsttime_install_sigpipe_handler = FALSE;
-	} else {
-		m_NCS_OS_DBG_PRINTF("info: install_sigpipe_handler called muliple times\n");
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
 
       /** Construct a Filter to accept only multicast on our if_index.
        This filter could be useful when opening a socket that will need
