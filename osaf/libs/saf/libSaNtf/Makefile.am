@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-LIB_VERSION=0:0:0
+LIB_VERSION=0:0:2
 
 EXTRA_DIST = \
 	libSaNtf.version
@@ -32,7 +32,7 @@ libSaNtf_la_CPPFLAGS = \
 
 libSaNtf_la_LDFLAGS = \
 	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaNtf/libSaNtf.version \
-	-version-info $(LIB_VERSION)
+	-version-number $(LIB_VERSION)
 
 libSaNtf_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
