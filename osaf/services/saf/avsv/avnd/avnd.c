@@ -238,9 +238,9 @@ uns32 avnd_destroy()
 AVND_CB *avnd_cb_create()
 {
 	AVND_CB *cb = 0;
-        uns32 rc = NCSCC_RC_SUCCESS;
-        SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
-        SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
 
 	/* allocate AvND cb */
 	if ((0 == (cb = m_MMGR_ALLOC_AVND_CB))) {
@@ -268,6 +268,9 @@ AVND_CB *avnd_cb_create()
 	/* initialize the AvND cb lock */
 	m_NCS_LOCK_INIT(&cb->lock);
 	m_AVND_LOG_LOCK(AVSV_LOG_LOCK_INIT, AVSV_LOG_LOCK_SUCCESS, NCSFL_SEV_INFO);
+
+	/* initialize the PID monitor lock */
+	m_NCS_LOCK_INIT(&cb->mon_lock);
 
 	/* iniialize the error escaltion paramaets */
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
@@ -301,6 +304,9 @@ AVND_CB *avnd_cb_create()
 	if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
 		goto err;
 
+	/* initialize pid_mon list */
+	avnd_pid_mon_list_init(cb);
+
 	/* initialize nodeid to mdsdest mapping db */
 	if (NCSCC_RC_SUCCESS != avnd_nodeid_to_mdsdest_map_db_init(cb))
 		goto err;
@@ -312,13 +318,13 @@ AVND_CB *avnd_cb_create()
 	/* everything went off well.. store the cb hdl in the global variable */
 	gl_avnd_hdl = cb->cb_hdl;
 
-        /* NTFA Initialization */
-        rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
-        if (rc != SA_AIS_OK) {
-                /* log the error code here */
-		avnd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)",rc);
-                goto err;
-        }
+	/* NTFA Initialization */
+	rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
+	if (rc != SA_AIS_OK) {
+		/* log the error code here */
+		avnd_log(NCSFL_SEV_ERROR, "saNtfInitialize Failed (%u)", rc);
+		goto err;
+	}
 
 	return cb;
 
@@ -568,6 +574,9 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != (rc = avnd_pgdb_destroy(cb)))
 		goto done;
 
+	/* Clean PID monitoring list */
+	avnd_pid_mon_list_destroy(cb);
+
 	/* destroy nodeid to mds dest db */
 	if (NCSCC_RC_SUCCESS != (rc = avnd_nodeid_to_mdsdest_map_db_destroy(cb)))
 		goto done;
@@ -575,13 +584,16 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	/* destroy available internode comp db */
 	if (NCSCC_RC_SUCCESS != (rc = avnd_internode_avail_comp_db_destroy(cb)))
 		goto done;
-        
+
 	/* destroy DND list */
 	avnd_dnd_list_destroy(cb);
 
 	/* destroy the lock */
 	m_NCS_LOCK_DESTROY(&cb->lock);
 	m_AVND_LOG_LOCK(AVSV_LOG_LOCK_FINALIZE, AVSV_LOG_LOCK_SUCCESS, NCSFL_SEV_INFO);
+
+	/* destroy the PID monitor lock */
+	m_NCS_LOCK_DESTROY(&cb->mon_lock);
 
 	/* return AvND CB */
 	ncshm_give_hdl(gl_avnd_hdl);
@@ -696,11 +708,11 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 	/* TBD Later */
 	/* unregister HPI */
 	/* NTFA Finalize */
-        rc = saNtfFinalize(cb->ntfHandle);
-        if (rc != SA_AIS_OK) {
-                /* log the error code here */
-		avnd_log(NCSFL_SEV_ERROR,"saNtfFinalize Failed (%u)",rc);
-        }
+	rc = saNtfFinalize(cb->ntfHandle);
+	if (rc != SA_AIS_OK) {
+		/* log the error code here */
+		avnd_log(NCSFL_SEV_ERROR, "saNtfFinalize Failed (%u)", rc);
+	}
 
  done:
 	return rc;

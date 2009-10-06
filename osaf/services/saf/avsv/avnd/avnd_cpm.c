@@ -107,8 +107,15 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 	if (NCSCC_RC_SUCCESS != rc)
 		return rc;
 
+	/* add the record to the mon req list */
+	if(avnd_mon_req_add(cb, rec) == NULL) {
+		ncs_db_link_list_remove(&comp->pm_list, rec->comp_dll_node.key);
+		return NCSCC_RC_FAILURE;
+	}
+
 	return rc;
 }
+
 
 /****************************************************************************
   Name          : avnd_comp_pm_rec_del
@@ -127,6 +134,7 @@ uns32 avnd_comp_pm_rec_add(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaUint64T pid = rec->pid;
 
 	/* delete the PM_REC from pm_list */
 	rc = ncs_db_link_list_del(&comp->pm_list, (uns8 *)&rec->pid);
@@ -135,6 +143,11 @@ void avnd_comp_pm_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_PM_REC *rec)
 		;
 	}
 	rec = NULL;		/* rec is no more, dont use it */
+
+	/* remove the corresponding element from mon_req list */
+	rc = avnd_mon_req_del(cb, pid);
+	if (NCSCC_RC_SUCCESS != rc)
+		assert(0);
 
 	return;
 }
@@ -212,8 +225,8 @@ uns32 avnd_comp_pm_stop_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_STOP_P
 /****************************************************************************
   Name          : avnd_comp_pm_start_process
  
-  Description   : This routine checks the param and either starts a new srm req  
-                  or modify an existing srm req.
+  Description   : This routine checks the param and either starts a new mon req  
+                  or modify an existing mon req.
  
   Arguments     : cb        - ptr to the AvND control block
                   comp      - ptr the the component
@@ -245,7 +258,7 @@ uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START
 			return rc;	/* nothing to be done */
 	}
 
-	/* no previous rec found, its a fresh srm mon request */
+	/* no previous rec found, its a fresh mon request */
 	rec = (AVND_COMP_PM_REC *)avnd_comp_new_rsrc_mon(cb, comp, pm_start, sa_err);
 	if (!rec)
 		rc = NCSCC_RC_FAILURE;
@@ -257,7 +270,7 @@ uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START
   Name          : avnd_comp_pmstart_modify
  
   Description   : This routine modifies pm record for the component and calls
-                  modify the srm mon req
+                  modify the mon req
   Arguments     : cb        - ptr to the AvND control block
                   pm_start  - ptr to the pm start parameters
                   rec       - ptr to the PM_REC 
@@ -267,10 +280,9 @@ uns32 avnd_comp_pm_start_process(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_comp_pmstart_modify(AVND_CB *cb,
-			       AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec, SaAisErrorT *sa_err)
+uns32 avnd_comp_pmstart_modify(AVND_CB *cb, AVSV_AMF_PM_START_PARAM *pm_start, AVND_COMP_PM_REC *rec,
+			       SaAisErrorT *sa_err)
 {
-
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* check whether the hdl for start & modify match */
@@ -302,8 +314,8 @@ uns32 avnd_comp_pmstart_modify(AVND_CB *cb,
  
   Notes         : None.
 ******************************************************************************/
-AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb,
-					 AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start, SaAisErrorT *sa_err)
+AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_PM_START_PARAM *pm_start,
+					 SaAisErrorT *sa_err)
 {
 
 	AVND_COMP_PM_REC *rec = 0;
@@ -403,7 +415,7 @@ uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
 	/* validate the pm start message */
 	avnd_comp_pm_param_val(cb, AVSV_AMF_PM_START, (uns8 *)pm_start, &comp, 0, &amf_rc);
 
-	/* try starting the srmsv monitor */
+	/* try starting the monitor */
 	if (SA_AIS_OK == amf_rc)
 		rc = avnd_comp_pm_start_process(cb, comp, pm_start, &amf_rc);
 
@@ -577,7 +589,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
   Name          : avnd_comp_pm_finalize
  
   Description   : This routine stops all pm req made by this comp
-                  via this hdl and del the PM_REC and SRM_REQ.
+                  via this hdl and del the PM_REC and MON_REQ.
                   if the hld is the reg hdl of the given comp, it
                   stops all PM associated with this comp.
  

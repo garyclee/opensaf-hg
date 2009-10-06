@@ -39,6 +39,7 @@
 
 #include <sched.h>
 #include "avnd.h"
+#include "avnd_mon.h"
 
 static NCS_BOOL avnd_mbx_process(SYSF_MBX *);
 static void avnd_evt_process(AVND_EVT *);
@@ -125,7 +126,8 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 
 	/* internal event types */
 	avnd_evt_comp_pres_fsm_ev,	/* AVND_EVT_COMP_PRES_FSM_EV */
-	avnd_evt_last_step_term	/* AVND_EVT_LAST_STEP_TERM */
+	avnd_evt_last_step_term,	/* AVND_EVT_LAST_STEP_TERM */
+	avnd_evt_pid_exit_evt	/* AVND_EVT_PID_EXIT */
 };
 
 /****************************************************************************

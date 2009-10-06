@@ -54,6 +54,7 @@ typedef struct avnd_cb_tag {
 	/* cb related params */
 	uns32 cb_hdl;		/* hdl returned by hdl mngr */
 	NCS_LOCK lock;		/* cb lock */
+	NCS_LOCK mon_lock;	/* PID monitor lock */
 
 	/* external interface related params */
 	uns8 pool_id;		/* pool-id used by hdl mngr */
@@ -130,6 +131,7 @@ typedef struct avnd_cb_tag {
 	/* Queue for keeping async update messages  on Standby */
 	AVND_ASYNC_UPDT_MSG_QUEUE_LIST async_updt_msgs;
 	NCS_BOOL is_quisced_set;
+	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 
 } AVND_CB;
 

@@ -79,6 +79,12 @@ export IMMSV_ENV_HEALTHCHECK_KEY="A1B2"
 
 export NID_MAGIC=AAB49DAA
 
+#####################################################
+# Rate at which Passive Monitoring monitors the PIDs.
+# Default is 1 sec (1000 ms)
+#####################################################
+export AVND_PM_MONITORING_RATE=1000
+
 #########################################
 # DRBD Configuration
 #########################################

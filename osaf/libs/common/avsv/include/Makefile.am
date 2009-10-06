@@ -75,6 +75,7 @@ noinst_HEADERS = \
    avnd_mds.h \
    avnd_mem.h \
    avnd_mib.h \
+   avnd_mon.h \
    avnd_pg.h \
    avnd_proc.h \
    avnd_su.h \
