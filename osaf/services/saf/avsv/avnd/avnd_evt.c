@@ -180,6 +180,10 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		/* nothing to be copied, evt type should do. */
 		break;
 
+	case AVND_EVT_PID_EXIT:
+		evt->info.pm_evt.pm_rec = (AVND_COMP_PM_REC *)info;
+		break;
+
 	default:
 		m_AVSV_ASSERT(0);
 	}
@@ -307,6 +311,10 @@ void avnd_evt_destroy(AVND_EVT *evt)
 
 		/* last step of termination */
 	case AVND_EVT_LAST_STEP_TERM:
+		break;
+
+		/* PID exist event */
+	case AVND_EVT_PID_EXIT:
 		break;
 
 	default:

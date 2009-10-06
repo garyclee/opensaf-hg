@@ -40,6 +40,7 @@ COMMON_SRC = \
 	avnd_log.c \
 	avnd_mab.c \
 	avnd_mds.c \
+	avnd_mon.c \
 	avnd_pg.c \
 	avnd_pgdb.c \
 	avnd_proc.c \
