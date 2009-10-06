@@ -99,7 +99,8 @@ static void usage(void)
 	printf("  -s or --perceivedSeverity=0...5           severity numeric value\n");
 	printf("                                            (clear=0,ind,warn,min,maj,crit=5)\n");
 	printf("  -r or --repeatSends=NUM                   send the same notifification NUM times\n");
-	printf("  -b or --burstTimeout=TIME                        sleep (usec) between burst of repeatSends\n");
+	printf("  -b or --burstTimeout=TIME                 send burst of NUM repeatSends [default: 1] and sleep TIME (usec)\n"
+               "                                            between each burst, will continue for ever\n");
 	printf("  -h or --help                              this help\n");
 	exit(EXIT_FAILURE);
 }

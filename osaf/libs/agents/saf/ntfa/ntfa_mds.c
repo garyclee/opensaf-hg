@@ -1061,6 +1061,7 @@ uns32 ntfa_mds_msg_sync_send(ntfa_cb_t *cb, ntfsv_msg_t *i_msg, ntfsv_msg_t **o_
 
 	assert(cb != NULL && i_msg != NULL && o_msg != NULL);
 
+	*o_msg = NULL;
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = cb->mds_hdl;
 	mds_info.i_svc_id = NCSMDS_SVC_ID_NTFA;
