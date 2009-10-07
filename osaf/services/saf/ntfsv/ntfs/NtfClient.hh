@@ -51,8 +51,7 @@ public:
                                 MDS_SYNC_SND_CTXT *mdsCtxt,
                                 MDS_DEST mdsDest);
     void confirmNotificationLogged(SaNtfIdentifierT notificationId);
-    void confirmNtfSubscribe(SaNtfSubscriptionIdT subscriptionId,
-                             MDS_SYNC_SND_CTXT *mds_ctxt);
+    void confirmNtfSubscribe(SaNtfSubscriptionIdT subscriptionId, MDS_SYNC_SND_CTXT *mds_ctxt);
     void confirmNtfUnsubscribe(SaNtfSubscriptionIdT subscriptionId,
                                MDS_SYNC_SND_CTXT *mdsCtxt);
 

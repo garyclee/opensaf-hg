@@ -119,33 +119,21 @@ void NtfAdmin::clientAdded(unsigned int clientId,
  * This method creates a subscription object and pass it to the
  * client object associated with the clientId. 
  *
- * @param clientId unique id for the client that made the 
- *                 subscription.
- * @param subscriptionId
- *                 Client-wide unique id for the subscription that was made.
+ * @param ntfsv_subscribe_req_t contains subscribtions and 
+ *                              filter information
  */
-void NtfAdmin::subscriptionAdded(unsigned int clientId,
-                                 SaNtfSubscriptionIdT subscriptionId,
-                                 MDS_SYNC_SND_CTXT *mdsCtxt)
+void NtfAdmin::subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-
-        // create filter
-        // deleted in NtfSubscription::~NtfSubscription()
-        // TODO: Filter information should be passed in the filter constructor
-        //      later. Hardcoded to Alarm but not used.
-    NtfFilter* filter = new NtfFilter(SA_NTF_TYPE_ALARM);
-
         // create subscription
         // deleted in different methods depending on if object exists or not:
         // NtfAdmin::subscriptionAdded
         // NtfClient::subscriptionAdded
         // NtfClient::subscriptionRemoved
         // NtfClient::~NtfClient()
-    NtfSubscription* subscription = new NtfSubscription(subscriptionId,
-                                                        filter);
+    NtfSubscription* subscription = new NtfSubscription(&s);
         // find client
     ClientMap::iterator pos;
-    pos = clientMap.find(clientId);
+    pos = clientMap.find(s.client_id);
     if (pos != clientMap.end())
     {
             // client found
@@ -154,7 +142,7 @@ void NtfAdmin::subscriptionAdded(unsigned int clientId,
     }
     else
     {
-        LOG_ER("NtfAdmin::subscriptionAdded client %u not found", clientId);
+        LOG_ER("NtfAdmin::subscriptionAdded client %u not found", s.client_id);
         delete subscription;
     }
 }
@@ -923,16 +911,10 @@ void clientAdded(unsigned int clientId,
     NtfAdmin::theNtfAdmin->clientAdded(clientId, mdsDest, mdsCtxt);
 }
 
-void subscriptionAdded(
-                      unsigned int clientId,
-                      SaNtfSubscriptionIdT subscriptionId,
-                      MDS_SYNC_SND_CTXT *mdsCtxt)
+void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt)
 {
     assert(NtfAdmin::theNtfAdmin != NULL);
-    NtfAdmin::theNtfAdmin->subscriptionAdded(
-                                            clientId,
-                                            subscriptionId,
-                                            mdsCtxt);
+    NtfAdmin::theNtfAdmin->subscriptionAdded(s, mdsCtxt);
 }
 
 void notificationReceived(unsigned int clientId,

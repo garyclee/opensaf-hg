@@ -363,12 +363,14 @@ int sendNoOfSubscriptions(uns32 num_rec, NCS_UBAID *uba)
 	return enc_ckpt_reserv_header(uba, NTFS_CKPT_SUBSCRIBE, num_rec, 0);
 }
 
-int sendNewSubscription(unsigned int connectionId, unsigned int subscriptionId, NCS_UBAID *uba)
+int sendNewSubscription(ntfsv_subscribe_req_t *s, NCS_UBAID *uba)
 {
 	ntfsv_subscribe_req_t s_rec;
 
-	s_rec.client_id = connectionId;
-	s_rec.subscriptionId = subscriptionId;
+	s_rec.client_id = s->client_id;
+	s_rec.subscriptionId = s->subscriptionId;
+	s_rec.f_rec = s->f_rec;
+	 
 	if (0 == ntfsv_enc_subscribe_msg(uba, &s_rec))
 		return 0;
 	return 1;
@@ -401,7 +403,7 @@ void sendMapSubscriptionToNotification(unsigned int clientId, unsigned int subsc
 	return;
 }
 
-void sendSubscriptionUpdate(unsigned int connectionId, unsigned int subscriptionId)
+void sendSubscriptionUpdate(ntfsv_subscribe_req_t* s)
 {
 	ntfsv_ckpt_msg_t ckpt;
 
@@ -409,8 +411,7 @@ void sendSubscriptionUpdate(unsigned int connectionId, unsigned int subscription
 	ckpt.header.ckpt_rec_type = NTFS_CKPT_SUBSCRIBE;
 	ckpt.header.num_ckpt_records = 1;
 	ckpt.header.data_len = 1;
-	ckpt.ckpt_rec.subscribe.arg.client_id = connectionId;
-	ckpt.ckpt_rec.subscribe.arg.subscriptionId = subscriptionId;
+	ckpt.ckpt_rec.subscribe.arg = *s;
 	update_standby(&ckpt, NCS_MBCSV_ACT_ADD);
 }
 

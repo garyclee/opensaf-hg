@@ -113,35 +113,30 @@ void test2_bad_return(SaNtfSubscriptionIdT subscriptionId,
 		for(iCount = 0; iCount < ntfAlarm->numProposedRepairActions; iCount++)
 		{
 			/* NULL in notificationHandle */
-			fprintf(stderr,"\t\tNULL in notificationHandle\n");
 			if(safassertNice((rc = saNtfPtrValGet((SaNtfNotificationHandleT)NULL,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
 					&dataSize)), SA_AIS_ERR_BAD_HANDLE)) errors += 1;
 
 			/* NULL in *value */
-			fprintf(stderr,"\t\tNULL in value\n");
 			if(safassertNice((rc = saNtfPtrValGet(ntfAlarm->notificationHandle,
 					NULL,
 					(void **)&srcPtr,
 					&dataSize)), SA_AIS_ERR_INVALID_PARAM))	errors += 1;
 
 			/* NULL **dataPtr */
-			fprintf(stderr,"\t\tNULL in dataPrt\n");
 			if(safassertNice((rc = saNtfPtrValGet(ntfAlarm->notificationHandle,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					NULL,
 					&dataSize)), SA_AIS_ERR_INVALID_PARAM))	errors += 1;
 
 			/* NULL *dataSize */
-			fprintf(stderr,"\t\tNULL in dataSize\n");
 			if(safassertNice((rc = saNtfPtrValGet(ntfAlarm->notificationHandle,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
 					NULL)), SA_AIS_ERR_INVALID_PARAM)) errors += 1;
 
 			/* actionValue not from notification */
-			fprintf(stderr,"\t\t*value not from notification\n");
 			if(safassertNice((rc = saNtfPtrValGet(ntfAlarm->notificationHandle,
 					&myValue,
 					(void **)&srcPtr,

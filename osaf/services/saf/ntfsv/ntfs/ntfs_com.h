@@ -50,7 +50,7 @@ extern "C" {
 	void initAdmin(void);
 	void startSendSync(void);
 	void clientAdded(unsigned int clientId, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
-	void subscriptionAdded(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, MDS_SYNC_SND_CTXT *mdsCtxt);
+	void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsCtxt);
 
 	void notificationReceived(unsigned int clientId,
 				  SaNtfNotificationTypeT notificationType,
@@ -122,13 +122,13 @@ extern "C" {
 	int sendSyncGlobals(const struct NtfGlobals *ntfGlobals, NCS_UBAID *uba);
 	int sendNewNotification(unsigned int connId, ntfsv_send_not_req_t *notificationInfo, NCS_UBAID *uba);
 	int sendNewClient(unsigned int clientId, MDS_DEST mdsDest, NCS_UBAID *uba);
-	int sendNewSubscription(unsigned int clientId, unsigned int subscriptionId, NCS_UBAID *uba);
+	int sendNewSubscription(ntfsv_subscribe_req_t *s, NCS_UBAID *uba);
 
 	void sendMapNoOfSubscriptionToNotification(unsigned int noOfSubcriptions, NCS_UBAID *uba);
 	void sendMapSubscriptionToNotification(unsigned int clientId, unsigned int subscriptionId, NCS_UBAID *uba);
 
 	int syncLoggedConfirm(unsigned int logged, NCS_UBAID *uba);
-	void sendSubscriptionUpdate(unsigned int clientId, unsigned int subscriptionId);
+	void sendSubscriptionUpdate(ntfsv_subscribe_req_t *s);
 	void sendUnsubscribeUpdate(unsigned int clientId, unsigned int subscriptionId);
 	void sendNotificationUpdate(unsigned int clientId, ntfsv_send_not_req_t *notification);
 	void sendLoggedConfirmUpdate(SaNtfIdentifierT notificationId);

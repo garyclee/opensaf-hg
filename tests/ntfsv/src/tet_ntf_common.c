@@ -330,6 +330,7 @@ void fillInDefaultValues(
     notificationFilterAllocationParams->numSecurityAlarmDetectos = 0;
     notificationFilterAllocationParams->numServiceUsers = 0;
     notificationFilterAllocationParams->numServiceProviders = 0;
+	 notificationFilterAllocationParams->numChangedStates = 0;
 
     /* Default notification parameters */
     notificationParams->additionalText =

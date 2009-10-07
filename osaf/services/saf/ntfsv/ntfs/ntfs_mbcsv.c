@@ -561,8 +561,7 @@ static uns32 ckpt_encode_async_update(ntfs_cb_t *ntfs_cb, EDU_HDL edu_hdl, NCS_M
 		ckpt_hdr.data_len = 0;	/*Not in Use for Cold Sync */
 		enc_ckpt_header(pheader, ckpt_hdr);
 
-		subscribe_rec.arg.client_id = data->ckpt_rec.subscribe.arg.client_id;
-		subscribe_rec.arg.subscriptionId = data->ckpt_rec.subscribe.arg.subscriptionId;
+		subscribe_rec.arg = data->ckpt_rec.subscribe.arg;
 		num_bytes = enc_mbcsv_subscribe_msg(uba, &subscribe_rec.arg);
 		if (num_bytes == 0) {
 			return NCSCC_RC_FAILURE;
@@ -994,7 +993,7 @@ static uns32 ckpt_decode_cold_sync(ntfs_cb_t *cb, NCS_MBCSV_CB_ARG *cbk_arg)
 				rc = NCSCC_RC_FAILURE;
 				goto done;
 			}
-			subscriptionAdded(subscribe_rec.client_id, subscribe_rec.subscriptionId, NULL);
+			subscriptionAdded(subscribe_rec, NULL);
 			num_rec--;
 		}
 		num_clients--;
@@ -1247,7 +1246,7 @@ uns32 ckpt_proc_subscribe(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 		TRACE_LEAVE();
 		return NCSCC_RC_FAILURE;
 	}
-	subscriptionAdded(param->client_id, param->subscriptionId, NULL);
+	subscriptionAdded(*param, NULL);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }

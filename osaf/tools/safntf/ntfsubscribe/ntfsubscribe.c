@@ -56,6 +56,15 @@ static void exitIfFalse(int expression)
 	}
 }
 
+static struct s_filters_T {
+	int all; 
+	int alarm;
+ 	int obj_cr_del;
+	int att_ch;
+	int st_ch;
+	int sec_al;
+} used_filters = {1,0,0,0,0,0};
+
 static const char *sa_probable_cause_list[] = {
 	"SA_NTF_ADAPTER_ERROR",
 	"SA_NTF_APPLICATION_SUBSYSTEM_FAILURE",
@@ -577,8 +586,25 @@ static void usage(void)
 	printf("\t%s is a SAF NTF client used to subscribe for all incoming notifications.\n", progname);
 	printf("\nOPTIONS\n");
 	printf("  -t or --timeout=TIME                      timeout (sec) waiting for notification\n");
+	printf("  -a or --alarm                             subscribe for only alarm notifications\n");
+	printf("  -o or --objectCreateDelete                subscribe for only objectCreateDelete notifications\n");
+	printf("  -c or --attributeChange                   subscribe for only attributeChange notifications\n");
+	printf("  -s or --stateChange                       subscribe for only stateChange notifications\n");
+	printf("  -y or --securityAlarm                     subscribe for only securityAlarm notifications\n");
 	printf("  -h or --help                              this help\n");
 	exit((int)SA_AIS_ERR_INVALID_PARAM);
+}
+
+static void freeNtfFilter(SaNtfNotificationFilterHandleT *fh_ptr)
+{
+	SaAisErrorT errorCode = SA_AIS_OK;
+	if (*fh_ptr != SA_NTF_FILTER_HANDLE_NULL) {  
+		errorCode = saNtfNotificationFilterFree(*fh_ptr);
+		if (SA_AIS_OK != errorCode) {
+			fprintf(stderr, "saNtfNotificationFilterFree failed - %s\n", error_output(errorCode));
+			exit(EXIT_FAILURE);
+		}
+	}
 }
 
 /* Subscribe */
@@ -587,45 +613,116 @@ static SaAisErrorT subscribeForNotifications(const saNotificationFilterAllocatio
 {
 	SaAisErrorT errorCode = SA_AIS_OK;
 	SaNtfAlarmNotificationFilterT myAlarmFilter;
+	SaNtfAttributeChangeNotificationFilterT attChFilter;
+	SaNtfStateChangeNotificationFilterT stChFilter;
+	SaNtfObjectCreateDeleteNotificationFilterT objCrDelFilter;
+	SaNtfSecurityAlarmNotificationFilterT secAlarmFilter;
+	
+	SaNtfNotificationFilterHandleT *fh_ptr;
 	SaNtfNotificationTypeFilterHandlesT notificationFilterHandles;
-
-	errorCode = saNtfAlarmNotificationFilterAllocate(ntfHandle,
-							 &myAlarmFilter,
-							 notificationFilterAllocationParams->numEventTypes,
-							 notificationFilterAllocationParams->numNotificationObjects,
-							 notificationFilterAllocationParams->numNotifyingObjects,
-							 notificationFilterAllocationParams->numNotificationClassIds,
-							 notificationFilterAllocationParams->numProbableCauses,
-							 notificationFilterAllocationParams->numPerceivedSeverities,
-							 notificationFilterAllocationParams->numTrends);
-
-	if (errorCode != SA_AIS_OK) {
-		fprintf(stderr, "saNtfAlarmNotificationFilterAllocate failed - %s\n", error_output(errorCode));
-		return errorCode;
-	}
-
-	/* Set perceived severities */
-	myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
-	myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
-
-	/* Initialize filter handles */
-	notificationFilterHandles.alarmFilterHandle = myAlarmFilter.notificationFilterHandle;
+	notificationFilterHandles.alarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.attributeChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.objectCreateDeleteFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.securityAlarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.stateChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
+	int i;
+	
+	if (used_filters.all || used_filters.alarm) {
+		errorCode = saNtfAlarmNotificationFilterAllocate(ntfHandle,
+								 &myAlarmFilter,
+								 notificationFilterAllocationParams->numEventTypes,
+								 notificationFilterAllocationParams->numNotificationObjects,
+								 notificationFilterAllocationParams->numNotifyingObjects,
+								 notificationFilterAllocationParams->numNotificationClassIds,
+								 notificationFilterAllocationParams->numProbableCauses,
+								 notificationFilterAllocationParams->numPerceivedSeverities,
+								 notificationFilterAllocationParams->numTrends);
+	
+		if (errorCode != SA_AIS_OK) {
+			fprintf(stderr, "saNtfAlarmNotificationFilterAllocate failed - %s\n", error_output(errorCode));
+			return errorCode;
+		}
+		notificationFilterHandles.alarmFilterHandle = myAlarmFilter.notificationFilterHandle;
+	
+		/* Set perceived severities */
+		myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
+		myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
+	}
+	
+	if (used_filters.all || used_filters.att_ch) {
+		errorCode = saNtfAttributeChangeNotificationFilterAllocate(ntfHandle,
+			&attChFilter,
+			notificationFilterAllocationParams->numEventTypes,
+			notificationFilterAllocationParams->numNotificationObjects,
+			notificationFilterAllocationParams->numNotifyingObjects,
+			notificationFilterAllocationParams->numNotificationClassIds,
+			0);
 
+		if (errorCode != SA_AIS_OK) {
+			fprintf(stderr, "saNtfAttributeChangeNotificationFilterAllocate failed - %s\n", error_output(errorCode));
+			return errorCode;
+		}
+		notificationFilterHandles.attributeChangeFilterHandle = attChFilter.notificationFilterHandle;
+	}
+	
+	if (used_filters.all || used_filters.obj_cr_del) {
+		errorCode = saNtfObjectCreateDeleteNotificationFilterAllocate(ntfHandle,
+			&objCrDelFilter,
+			notificationFilterAllocationParams->numEventTypes,
+			notificationFilterAllocationParams->numNotificationObjects,
+			notificationFilterAllocationParams->numNotifyingObjects,
+			notificationFilterAllocationParams->numNotificationClassIds,
+			0);
+
+		if (errorCode != SA_AIS_OK) {
+			fprintf(stderr, "saNtfObjectCreateDeleteNotificationFilterAllocate failed - %s\n", error_output(errorCode));
+			return errorCode;
+		}
+		notificationFilterHandles.objectCreateDeleteFilterHandle = objCrDelFilter.notificationFilterHandle;
+	}
+
+	if (used_filters.all || used_filters.st_ch) {
+		errorCode = saNtfStateChangeNotificationFilterAllocate(ntfHandle,
+			&stChFilter,
+			notificationFilterAllocationParams->numEventTypes,
+			notificationFilterAllocationParams->numNotificationObjects,
+			notificationFilterAllocationParams->numNotifyingObjects,
+			notificationFilterAllocationParams->numNotificationClassIds,
+			0,
+			0);
+		if (errorCode != SA_AIS_OK) {
+			fprintf(stderr, "saNtfStateChangeNotificationFilterAllocate failed - %s\n", error_output(errorCode));
+			return errorCode;
+		}
+		notificationFilterHandles.stateChangeFilterHandle = stChFilter.notificationFilterHandle;
+	}
+	
+	if (used_filters.all || used_filters.sec_al) {
+		errorCode = saNtfSecurityAlarmNotificationFilterAllocate(ntfHandle,
+			&secAlarmFilter,
+			notificationFilterAllocationParams->numEventTypes,
+			notificationFilterAllocationParams->numNotificationObjects,
+			notificationFilterAllocationParams->numNotifyingObjects,
+			notificationFilterAllocationParams->numNotificationClassIds,
+			0,0,0,0,0);
+		if (errorCode != SA_AIS_OK) {
+			fprintf(stderr, "saNtfSecurityAlarmNotificationFilterAllocate failed - %s\n", error_output(errorCode));
+			return errorCode;
+		}
+		notificationFilterHandles.securityAlarmFilterHandle = secAlarmFilter.notificationFilterHandle;
+	}
+
+	
 	errorCode = saNtfNotificationSubscribe(&notificationFilterHandles, subscriptionId);
 	if (SA_AIS_OK != errorCode) {
 		fprintf(stderr, "saNtfNotificationSubscribe failed - %s\n", error_output(errorCode));
 		return errorCode;
 	}
-
-	errorCode = saNtfNotificationFilterFree(notificationFilterHandles.alarmFilterHandle);
-	if (SA_AIS_OK != errorCode) {
-		fprintf(stderr, "saNtfNotificationFilterFree failed - %s\n", error_output(errorCode));
-		return errorCode;
-	}
+	freeNtfFilter (&notificationFilterHandles.alarmFilterHandle);
+	freeNtfFilter (&notificationFilterHandles.attributeChangeFilterHandle);
+	freeNtfFilter (&notificationFilterHandles.objectCreateDeleteFilterHandle);
+	freeNtfFilter (&notificationFilterHandles.stateChangeFilterHandle);
+	freeNtfFilter (&notificationFilterHandles.securityAlarmFilterHandle);
 
 	return errorCode;
 }
@@ -638,6 +735,12 @@ int main(int argc, char *argv[])
 	saNotificationFilterAllocationParamsT notificationFilterAllocationParams;
 	SaNtfSubscriptionIdT subscriptionId = 1;
 	struct option long_options[] = {
+		{"alarm", no_argument, 0, 'a'},
+		{"attributeChange", no_argument, 0, 'c'},
+		{"objectCreateDelete", no_argument, 0, 'o'},
+		{"stateChange", no_argument, 0, 's'},
+		{"securityAlarm", no_argument, 0, 'y'},
+		{"help", no_argument, 0, 'h'},
 		{"timeout", required_argument, 0, 't'},
 		{0, 0, 0, 0}
 	};
@@ -654,11 +757,31 @@ int main(int argc, char *argv[])
 
 	/* Check options */
 	while (1) {
-		c = getopt_long(argc, argv, "ht:", long_options, NULL);
+		c = getopt_long(argc, argv, "acosyht:", long_options, NULL);
 		if (c == -1)
 			break;
 
 		switch (c) {
+		case 'a':
+			used_filters.all = 0;
+			used_filters.alarm = 1;
+			break;
+		case 'o':
+			used_filters.all = 0;
+			used_filters.obj_cr_del = 1;
+			break;
+		case 'c':
+			used_filters.all = 0;
+			used_filters.att_ch = 1;
+			break;
+		case 's':
+			used_filters.all = 0;
+			used_filters.st_ch = 1;
+			break;
+		case 'y':
+			used_filters.all = 0;
+			used_filters.sec_al = 1;
+			break;
 		case 't':
 			timeout = atoi(optarg) * 1000;
 			break;

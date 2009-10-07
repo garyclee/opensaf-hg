@@ -465,37 +465,32 @@ SaAisErrorT send_obj_cr_del(saNotificationAllocationParamsT *myNotificationAlloc
    struct pollfd fds[1];
    int ret;
 
-   SaNtfAlarmNotificationFilterT myAlarmFilter;
+	SaNtfObjectCreateDeleteNotificationFilterT myObjCreDelFilter;
    SaNtfNotificationTypeFilterHandlesT myNotificationFilterHandles;
 
 	safassert(saNtfInitialize(&ntfHandle, &dummyCallbacks, &ntfVersion), SA_AIS_OK);
 	safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject), SA_AIS_OK);
-   safassert(saNtfAlarmNotificationFilterAllocate(
-       ntfHandle,
-       &myAlarmFilter,
-       myNotificationFilterAllocationParams->numEventTypes,
-       myNotificationFilterAllocationParams->numNotificationObjects,
-       myNotificationFilterAllocationParams->numNotifyingObjects,
-       myNotificationFilterAllocationParams->numNotificationClassIds,
-       myNotificationFilterAllocationParams->numProbableCauses,
-       myNotificationFilterAllocationParams->numPerceivedSeverities,
-       myNotificationFilterAllocationParams->numTrends), SA_AIS_OK);
-   /* Set perceived severities */
-   myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
-   myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
+
+	safassert(saNtfObjectCreateDeleteNotificationFilterAllocate(
+		ntfHandle,
+		&myObjCreDelFilter,
+		0,
+		0,
+		0,
+		0,
+		0), SA_AIS_OK);
 
    /* Initialize filter handles */
-   myNotificationFilterHandles.alarmFilterHandle =
-       myAlarmFilter.notificationFilterHandle;
+   myNotificationFilterHandles.alarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
    myNotificationFilterHandles.attributeChangeFilterHandle =
        SA_NTF_FILTER_HANDLE_NULL;
    myNotificationFilterHandles.objectCreateDeleteFilterHandle =
-       SA_NTF_FILTER_HANDLE_NULL;
+       myObjCreDelFilter.notificationFilterHandle;
    myNotificationFilterHandles.securityAlarmFilterHandle =
        SA_NTF_FILTER_HANDLE_NULL;
    myNotificationFilterHandles.stateChangeFilterHandle =
        SA_NTF_FILTER_HANDLE_NULL;
-   rc = saNtfNotificationSubscribe(&myNotificationFilterHandles, 4);
+   safassert(saNtfNotificationSubscribe(&myNotificationFilterHandles, 4), SA_AIS_OK);
 
    SaNtfObjectCreateDeleteNotificationT myNotification;
    safassert(saNtfObjectCreateDeleteNotificationAllocate(
@@ -617,9 +612,9 @@ __attribute__ ((constructor)) static void saNtfNotificationSend_constructor(
 			"saNtfNotificationSend SecurityAlarm");
 	test_case_add(8, saNtfNotificationSend_06,
 			"saNtfNotificationSend Miscellaneous");
-   test_case_add(8, saNtfNotificationSend_07,
-                 "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length=0");
-   test_case_add(8, saNtfNotificationSend_08,
-                 "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length too large");
+	test_case_add(8, saNtfNotificationSend_07,
+					  "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length=0");
+	test_case_add(8, saNtfNotificationSend_08,
+					  "saNtfNotificationSend ObjectCreateDeleteNotification  SaNameT length too large");
 }
 

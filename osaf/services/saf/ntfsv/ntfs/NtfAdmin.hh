@@ -46,9 +46,7 @@ public:
     void clientAdded(unsigned int clientId,
                      MDS_DEST mdsDest,
                      MDS_SYNC_SND_CTXT *mdsCtxt);
-    void subscriptionAdded(unsigned int clientId,
-                           SaNtfSubscriptionIdT subscriptionId,
-                           MDS_SYNC_SND_CTXT *mdsDest);
+    void subscriptionAdded(ntfsv_subscribe_req_t s, MDS_SYNC_SND_CTXT *mdsDest);
     void notificationReceived(unsigned int clientId,
                               SaNtfNotificationTypeT notificationType,
                               ntfsv_send_not_req_t* sendNotInfo,
