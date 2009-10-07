@@ -55,12 +55,52 @@ static void usage(const char *progname)
 	printf("\t%s is an IMM OM client used to print attributes of IMM objects.\n", progname);
 
 	printf("\nOPTIONS\n");
-	printf("\t-h, --help\n");
-	printf("\t\tthis help\n");
+	printf("\t-a, --attribute=NAME \n");
+	printf("\t-h, --help - display this help and exit\n");
+	printf("\t-p, --pretty-print=<yes|no> - select pretty print, default yes\n");
 
 	printf("\nEXAMPLE\n");
-	printf("\timmlist safApp=myApp\n");
-	printf("\timmlist safApp=myApp safApp=myApp2\n");
+	printf("\timmlist -a saAmfSUPresenceState safApp=OpenSAF\n");
+	printf("\timmlist safApp=myApp1 safApp=myApp2\n");
+	printf("\timmlist --pretty-print=no saAmfSUPresenceState safApp=OpenSAF\n");
+}
+
+static void print_attr_value_raw(SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValue)
+{
+    switch (attrValueType) {
+	case SA_IMM_ATTR_SAINT32T:
+		printf("%d", *((SaInt32T *)attrValue));
+		break;
+	case SA_IMM_ATTR_SAUINT32T:
+		printf("%u", *((SaUint32T *)attrValue));
+		break;
+	case SA_IMM_ATTR_SAINT64T:
+		printf("%lld", *((SaInt64T *)attrValue));
+		break;
+	case SA_IMM_ATTR_SAUINT64T:
+		printf("%llu", *((SaUint64T *)attrValue));
+		break;
+	case SA_IMM_ATTR_SATIMET:
+		printf("%llu",  *((SaTimeT *)attrValue));
+		break;
+	case SA_IMM_ATTR_SAFLOATT:
+		printf("%f", *((SaFloatT *)attrValue));
+		break;
+	case SA_IMM_ATTR_SADOUBLET:
+		printf("%lf", *((SaDoubleT *)attrValue));
+		break;
+	case SA_IMM_ATTR_SANAMET: {
+		SaNameT *myNameT = (SaNameT *)attrValue;
+		printf("%s", myNameT->value);
+		break;
+	}
+	case SA_IMM_ATTR_SASTRINGT:
+		printf("%s", *((char **)attrValue));
+		break;
+	default:
+		printf("Unknown");
+		break;
+	}
 }
 
 static void print_attr_value(SaImmValueTypeT attrValueType, SaImmAttrValueT *attrValue)
@@ -152,7 +192,9 @@ int main(int argc, char *argv[])
 {
 	int c;
 	struct option long_options[] = {
+		{"attribute", required_argument, 0, 'a'},
 		{"help", no_argument, 0, 'h'},
+		{"pretty-print", required_argument, 0, 'p'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -160,17 +202,30 @@ int main(int argc, char *argv[])
 	SaNameT objectName;
 	SaImmAccessorHandleT accessorHandle;
 	SaImmAttrValuesT_2 **attributes;
+	int len = 1;
+	SaImmAttrNameT *attributeNames = NULL;
+	int pretty_print = 1;
 
 	while (1) {
-		c = getopt_long(argc, argv, "h", long_options, NULL);
+		c = getopt_long(argc, argv, "a:p:h", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
+		case 'a':
+			attributeNames = realloc(attributeNames, ++len * sizeof(SaImmAttrNameT));
+			attributeNames[len - 2] = strdup(optarg);
+			attributeNames[len - 1] = NULL;
+			pretty_print = 0;
+			break;
 		case 'h':
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
+			break;
+		case 'p':
+			if (!strcasecmp(optarg, "no"))
+				pretty_print = 0;
 			break;
 		default:
 			fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
@@ -204,28 +259,43 @@ int main(int argc, char *argv[])
 		strncpy((char *)objectName.value, argv[optind], SA_MAX_NAME_LENGTH);
 		objectName.length = strlen((char *)objectName.value);
 
-		error = saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes);
+		error = saImmOmAccessorGet_2(accessorHandle, &objectName, attributeNames, &attributes);
 		if (SA_AIS_OK != error) {
 			if (error == SA_AIS_ERR_NOT_EXIST)
-				fprintf(stderr, "error - object '%s' does not exist\n", objectName.value);
+				fprintf(stderr, "error - object or attribute does not exist\n");
 			else
 				fprintf(stderr, "error - saImmOmAccessorGet_2 FAILED: %s\n", saf_error(error));
 
 			exit(EXIT_FAILURE);
 		}
 
-		printf("%-50s %-12s Value(s)\n", "Name", "Type");
-		printf("========================================================================");
-		while ((attr = attributes[i++]) != NULL) {
-			printf("\n%-50s %-12s ", attr->attrName, get_attr_type_name(attr->attrValueType));
-			if (attr->attrValuesNumber > 0) {
-				for (j = 0; j < attr->attrValuesNumber; j++)
-					print_attr_value(attr->attrValueType, attr->attrValues[j]);
-			} else
-				printf("<Empty>");
+		if (pretty_print) {
+			printf("%-50s %-12s Value(s)\n", "Name", "Type");
+			printf("========================================================================");
+			while ((attr = attributes[i++]) != NULL) {
+				printf("\n%-50s %-12s ", attr->attrName, get_attr_type_name(attr->attrValueType));
+				if (attr->attrValuesNumber > 0) {
+					for (j = 0; j < attr->attrValuesNumber; j++)
+						print_attr_value(attr->attrValueType, attr->attrValues[j]);
+				} else
+					printf("<Empty>");
+			}
+			printf("\n\n");
+		} else {
+			while ((attr = attributes[i++]) != NULL) {
+				printf("%s=", attr->attrName);
+				if (attr->attrValuesNumber > 0) {
+					for (j = 0; j < attr->attrValuesNumber; j++) {
+						print_attr_value_raw(attr->attrValueType, attr->attrValues[j]);
+						if ((j + 1) < attr->attrValuesNumber)
+							printf(":");
+					}
+					printf("\n");
+				} else
+					printf("<Empty>\n");
+			}
 		}
 
-		printf("\n\n");
 		optind++;
 	}
 
