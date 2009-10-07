@@ -69,6 +69,34 @@ extern "C" {
 					const SaNtfValueT *nv,
 					void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize);
 	SaAisErrorT ntfsv_v_data_cp(v_data * dest, const v_data * src);
+
+	SaAisErrorT ntfsv_filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
+											  SaUint16T numEventTypes,
+											  SaUint16T numNotificationObjects,
+											  SaUint16T numNotifyingObjects,
+											  SaUint16T numNotificationClassIds);
+	SaAisErrorT ntfsv_filter_obj_cr_del_alloc(SaNtfObjectCreateDeleteNotificationFilterT *filter,
+															SaUint16T numSourceIndicators);
+	SaAisErrorT ntfsv_filter_attr_change_alloc(SaNtfAttributeChangeNotificationFilterT *filter,
+															 SaUint16T numSourceIndicators);
+	SaAisErrorT ntfsv_filter_state_ch_alloc(SaNtfStateChangeNotificationFilterT *f, SaUint32T numSourceIndicators, SaUint32T numChangedStates);
+	SaAisErrorT ntfsv_filter_alarm_alloc(SaNtfAlarmNotificationFilterT *filter, SaUint32T numProbableCauses,
+													 SaUint32T numPerceivedSeverities,
+													 SaUint32T numTrends);
+	SaAisErrorT ntfsv_filter_sec_alarm_alloc(SaNtfSecurityAlarmNotificationFilterT *filter,
+														  SaUint32T numProbableCauses,
+														  SaUint32T numSeverities,
+														  SaUint32T numSecurityAlarmDetectors,
+														  SaUint32T numServiceUsers,
+														  SaUint32T numServiceProviders);
+
+	void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header);
+	void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter);
+	void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter);
+	void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f);
+	void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f);
+	void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f);
+
 #ifdef  __cplusplus
 }
 #endif

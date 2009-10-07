@@ -129,10 +129,9 @@ void NtfClient::subscriptionAdded(NtfSubscription* subscription,
 
         if (activeController())
         {
-            sendSubscriptionUpdate(clientId_,
-                                   subscription->getSubscriptionId());
-            confirmNtfSubscribe(subscription->getSubscriptionId(),
-                                mdsCtxt);
+			  /*TODO: add filter info */
+			  sendSubscriptionUpdate(subscription->getSubscriptionInfo());
+			  confirmNtfSubscribe(subscription->getSubscriptionId(), mdsCtxt);
         }
     }
 }
@@ -270,9 +269,7 @@ void NtfClient::syncRequest(NCS_UBAID *uba)
         NtfSubscription* subscription = pos->second;
         TRACE_3("NtfClient::syncRequest sending info about subscription %u for "
                 "client %u", subscription->getSubscriptionId(), clientId_);
-        int retval = sendNewSubscription(clientId_,
-                                         subscription->getSubscriptionId(),
-                                         uba);
+        int retval = sendNewSubscription(subscription->getSubscriptionInfo(), uba);
         if (retval != 1)
         {
             LOG_ER(
@@ -425,8 +422,7 @@ void NtfClient::sendNotConfirmedNotification(NtfNotification* notification)
  * @param subscriptionId Client-wide unique id of the subscription that should
  *                       be confirmed.
  */
-void NtfClient::confirmNtfSubscribe(SaNtfSubscriptionIdT subscriptionId,
-                                    MDS_SYNC_SND_CTXT *mds_ctxt)
+void NtfClient::confirmNtfSubscribe(SaNtfSubscriptionIdT subscriptionId, MDS_SYNC_SND_CTXT *mds_ctxt)
 {
 
     TRACE_2("NtfClient::confirmNtfSubscribe subscribe_res_lib called, "

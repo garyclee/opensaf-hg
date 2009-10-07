@@ -22,13 +22,13 @@
 #define FILTER_H
 
 #include "saNtf.h"
+#include "NtfNotification.hh"
 
 class NtfFilter{
 public:
-
     NtfFilter(SaNtfNotificationTypeT filterType);
     virtual ~NtfFilter();
-    void checkFilter();
+	 virtual bool checkFilter(const NtfNotification *notif);
     SaNtfNotificationTypeT type();
 
 private:
@@ -36,4 +36,53 @@ private:
     SaNtfNotificationTypeT filterType_;
 };
 
+class NtfAlarmFilter:public NtfFilter
+{
+public:
+	NtfAlarmFilter(SaNtfAlarmNotificationFilterT *f);
+	~NtfAlarmFilter();
+private:
+	SaNtfAlarmNotificationFilterT *filter_;	
+};
+
+class NtfSecurityAlarmFilter: public NtfFilter
+{
+public:
+	NtfSecurityAlarmFilter(SaNtfSecurityAlarmNotificationFilterT *f);
+	~NtfSecurityAlarmFilter();
+private:
+	SaNtfSecurityAlarmNotificationFilterT *filter_;
+};
+
+class NtfObjectCreateDeleteFilter: public NtfFilter
+{
+public:
+	NtfObjectCreateDeleteFilter(SaNtfObjectCreateDeleteNotificationFilterT *f);
+	~NtfObjectCreateDeleteFilter();
+private:
+	SaNtfObjectCreateDeleteNotificationFilterT *filter_;
+};
+
+class NtfStateChangeFilter: public NtfFilter
+{
+public:
+	NtfStateChangeFilter(SaNtfStateChangeNotificationFilterT *f);
+	~NtfStateChangeFilter();
+private:
+	SaNtfStateChangeNotificationFilterT *filter_;
+};
+
+class NtfAttributeChangeFilter: public NtfFilter
+{
+public:
+	NtfAttributeChangeFilter(SaNtfAttributeChangeNotificationFilterT *f);
+	~NtfAttributeChangeFilter();
+private:
+	SaNtfAttributeChangeNotificationFilterT *filter_;
+};
+
 #endif // FILTER_H
+
+
+		
+

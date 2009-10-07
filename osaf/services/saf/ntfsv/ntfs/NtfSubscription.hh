@@ -29,19 +29,19 @@
 class NtfSubscription{
 
 public:
-
-    NtfSubscription(SaNtfSubscriptionIdT subscriptionId, NtfFilter* filter);
+    NtfSubscription(ntfsv_subscribe_req_t* s);
     virtual ~NtfSubscription();
     bool checkSubscription(const NtfNotification* notification);
     void confirmNtfSend();
-    SaNtfSubscriptionIdT getSubscriptionId() const;
+	 SaNtfSubscriptionIdT getSubscriptionId() const;
+	 ntfsv_subscribe_req_t* getSubscriptionInfo();
     void printInfo();
     typedef std::map<SaNtfNotificationTypeT,NtfFilter*> FilterMap;
-    FilterMap filterMap;
 
 private:
-
-    SaNtfSubscriptionIdT subscriptionId_;
+	FilterMap filterMap;
+	SaNtfSubscriptionIdT subscriptionId_;
+	ntfsv_subscribe_req_t s_info_;
 };
 
 #endif // SUBSCRIPTION_H

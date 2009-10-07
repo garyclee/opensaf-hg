@@ -123,7 +123,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 		{
 
 			/* NULL in notificationHandle */
-			fprintf(stderr,"\t\tNULL in notificationHandle\n");
 			if(safassertNice((rc = saNtfArrayValGet((SaNtfNotificationHandleT)NULL,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
@@ -131,7 +130,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 					&elementSize)), SA_AIS_ERR_BAD_HANDLE)) errors +=1;
 
 			/* NULL in *value */
-			fprintf(stderr,"\t\tNULL in value\n");
 			if(safassertNice((rc = saNtfArrayValGet(ntfAlarm->notificationHandle,
 					NULL,
 					(void **)&srcPtr,
@@ -139,7 +137,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 					&elementSize)), SA_AIS_ERR_INVALID_PARAM)) errors +=1;
 
 			/* NULL **arrayPtr */
-			fprintf(stderr,"\t\tNULL in arrayPrt\n");
 			if(safassertNice((rc = saNtfArrayValGet(ntfAlarm->notificationHandle,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					NULL,
@@ -147,7 +144,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 					&elementSize)), SA_AIS_ERR_INVALID_PARAM)) errors +=1;
 
 			/* NULL *numElements */
-			fprintf(stderr,"\t\tNULL in numElements\n");
 			if(safassertNice((rc = saNtfArrayValGet(ntfAlarm->notificationHandle,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
@@ -155,7 +151,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 					&elementSize)), SA_AIS_ERR_INVALID_PARAM)) errors +=1;
 
 			/* NULL *elementSize */
-			fprintf(stderr,"\t\tNULL in dataSize\n");
 			if(safassertNice((rc = saNtfArrayValGet(ntfAlarm->notificationHandle,
 					&ntfAlarm->proposedRepairActions[iCount].actionValue,
 					(void **)&srcPtr,
@@ -163,7 +158,6 @@ void test2ArrayValGet_bad_return(SaNtfSubscriptionIdT subscriptionId,
 					NULL)), SA_AIS_ERR_INVALID_PARAM)) errors +=1;
 
 			/* actionValue not from notification */
-			fprintf(stderr,"\t\t*value not from notification\n");
 			if(safassertNice((rc = saNtfArrayValGet(ntfAlarm->notificationHandle,
 					&myValue,
 					(void **)&srcPtr,

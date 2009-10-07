@@ -1044,56 +1044,25 @@ void ntfa_hdl_rec_destructor(ntfa_notification_hdl_rec_t *instance)
  */
 void ntfa_filter_hdl_rec_destructor(ntfa_filter_hdl_rec_t *filter_rec)
 {
-	SaNtfAlarmNotificationFilterT *alarm_filter;
-	SaNtfObjectCreateDeleteNotificationFilterT *obj_cr_del_filter;
-	SaNtfAttributeChangeNotificationFilterT *att_ch_filter;
-	SaNtfStateChangeNotificationFilterT *sta_ch_filter;
-	SaNtfSecurityAlarmNotificationFilterT *sec_alarm_filter;
-
-	SaNtfNotificationFilterHeaderT *header_filter; 
-
 	switch (filter_rec->ntfType) {
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-	 obj_cr_del_filter = &filter_rec->notificationFilter.objectCreateDeleteNotificationfilter;
-	 header_filter = &filter_rec->notificationFilter.objectCreateDeleteNotificationfilter.notificationFilterHeader;
-		 free(obj_cr_del_filter->sourceIndicators);
-		 break;
+		ntfsv_filter_obj_cr_del_free(&filter_rec->notificationFilter.objectCreateDeleteNotificationfilter);
+		break;
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-	 att_ch_filter = &filter_rec->notificationFilter.attributeChangeNotificationfilter;
-	 header_filter = &filter_rec->notificationFilter.attributeChangeNotificationfilter.notificationFilterHeader;
-		free(att_ch_filter->sourceIndicators);
+		ntfsv_filter_attr_ch_free(&filter_rec->notificationFilter.attributeChangeNotificationfilter);
 		break;
 	case SA_NTF_TYPE_STATE_CHANGE:
-	 sta_ch_filter = &filter_rec->notificationFilter.stateChangeNotificationfilter;
-	 header_filter = &filter_rec->notificationFilter.stateChangeNotificationfilter.notificationFilterHeader;
-		free(sta_ch_filter->changedStates);
-		free(sta_ch_filter->sourceIndicators);
+		ntfsv_filter_state_ch_free(&filter_rec->notificationFilter.stateChangeNotificationfilter);
 		break;
 	case SA_NTF_TYPE_SECURITY_ALARM:
-	 sec_alarm_filter = &filter_rec->notificationFilter.securityAlarmNotificationfilter;
-	 header_filter = &filter_rec->notificationFilter.securityAlarmNotificationfilter.notificationFilterHeader;
-		free(sec_alarm_filter->probableCauses);
-		free(sec_alarm_filter->securityAlarmDetectors);
-		free(sec_alarm_filter->serviceProviders);
-		free(sec_alarm_filter->serviceUsers);
-		free(sec_alarm_filter->severities);
+		ntfsv_filter_sec_alarm_free(&filter_rec->notificationFilter.securityAlarmNotificationfilter);
 		break;
 	case SA_NTF_TYPE_ALARM:
-	 alarm_filter = &filter_rec->notificationFilter.alarmNotificationfilter;
-	header_filter = &filter_rec->notificationFilter.alarmNotificationfilter.notificationFilterHeader;
-		free(alarm_filter->probableCauses);
-		free(alarm_filter->perceivedSeverities);
-		free(alarm_filter->trends);
+		ntfsv_filter_alarm_free(&filter_rec->notificationFilter.alarmNotificationfilter);
 		break;
 	default:
 		assert(0);
 	}
-
-	/* Header part */
-	free(header_filter->eventTypes);
-	free(header_filter->notificationObjects);
-	free(header_filter->notifyingObjects);
-	free(header_filter->notificationClassIds);
 }
 
 /****************************************************************************

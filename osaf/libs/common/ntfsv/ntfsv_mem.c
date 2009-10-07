@@ -907,3 +907,306 @@ SaAisErrorT ntfsv_v_data_cp(v_data * dest, const v_data * src)
 		     dest->max_data_size, dest->size, dest->p_base);
 	return SA_AIS_OK;
 }
+
+SaAisErrorT ntfsv_filter_header_alloc(SaNtfNotificationFilterHeaderT *header,
+													SaUint16T numEventTypes,
+													SaUint16T numNotificationObjects,
+													SaUint16T numNotifyingObjects,
+													SaUint16T numNotificationClassIds)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	header->eventTypes = NULL;
+	header->notificationObjects = NULL;
+	header->notifyingObjects = NULL;
+	header->notificationClassIds = NULL;
+
+	header->numNotificationClassIds = numNotificationClassIds;
+	header->numEventTypes = numEventTypes;
+	header->numNotificationObjects = numNotificationObjects;
+	header->numNotifyingObjects = numNotifyingObjects;
+
+	/* Event types */
+	if (numEventTypes != 0) {
+		header->eventTypes = (SaNtfEventTypeT *) malloc(numEventTypes * sizeof(SaNtfEventTypeT));
+		if (header->eventTypes == NULL) {
+			TRACE_1("Out of memory eventTypes");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	/* Notification objects */
+	if (numNotificationObjects != 0) {
+
+		header->notificationObjects = (SaNameT *)malloc(numNotificationObjects * sizeof(SaNameT));
+		if (header->notificationObjects == NULL) {
+			TRACE_1("Out of memory notificationObjects");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+
+	/* Notifying objects */
+	if (numNotifyingObjects != 0) {
+		header->notifyingObjects = (SaNameT *)malloc(numNotifyingObjects * sizeof(SaNameT));
+		if (header->notifyingObjects == NULL) {
+			TRACE_1("Out of memory notifyingObjects");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+
+	/* Notification class Id:s */
+	if (numNotificationClassIds != 0) {
+		header->notificationClassIds = (SaNtfClassIdT *) malloc(numNotificationClassIds * sizeof(SaNtfClassIdT));
+		if (header->notificationClassIds == NULL) {
+			TRACE_1("Out of memory notificationClassIds");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+done:
+	 return rc;
+
+error_free:
+	ntfsv_filter_header_free(header);
+	goto done;
+}
+
+SaAisErrorT ntfsv_filter_obj_cr_del_alloc(SaNtfObjectCreateDeleteNotificationFilterT *filter,
+														SaUint16T numSourceIndicators)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	filter->sourceIndicators = NULL;
+	filter->numSourceIndicators = numSourceIndicators;
+	if (numSourceIndicators != 0) {
+	filter->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+	if (filter->sourceIndicators == NULL) {
+		TRACE_1("Out of memory in SourceIndicators field");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		}
+	}
+	return rc;
+}
+
+SaAisErrorT ntfsv_filter_attr_change_alloc(SaNtfAttributeChangeNotificationFilterT *filter,
+														SaUint16T numSourceIndicators)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	filter->sourceIndicators = NULL;
+	filter->numSourceIndicators = numSourceIndicators;
+	if (numSourceIndicators != 0) {
+	filter->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+	if (filter->sourceIndicators == NULL) {
+		TRACE_1("Out of memory in SourceIndicators field");
+		rc = SA_AIS_ERR_NO_MEMORY;
+		}
+	}
+	return rc;
+}
+
+SaAisErrorT ntfsv_filter_state_ch_alloc(SaNtfStateChangeNotificationFilterT *f, SaUint32T numSourceIndicators,
+	SaUint32T numChangedStates)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	f->sourceIndicators = NULL;
+	f->changedStates = NULL;
+
+	f->numSourceIndicators = numSourceIndicators;
+	if (numSourceIndicators != 0) {
+		f->sourceIndicators = (SaNtfSourceIndicatorT *) malloc(numSourceIndicators * sizeof(SaNtfSourceIndicatorT));
+		if (f->sourceIndicators == NULL) {
+			TRACE_1("Out of memory in SourceIndicators field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	f->numStateChanges = numChangedStates;
+	  if (numChangedStates != 0) {
+		  f->changedStates = (SaNtfStateChangeT*) malloc(numChangedStates * sizeof(SaNtfStateChangeT));
+		  if (f->changedStates == NULL) {
+			  TRACE_1("Out of memory in StateChanges field");
+			  rc = SA_AIS_ERR_NO_MEMORY;  
+		  }
+	  }
+done: 
+	return rc;
+}
+
+SaAisErrorT ntfsv_filter_alarm_alloc(SaNtfAlarmNotificationFilterT *filter,
+	SaUint32T numProbableCauses,
+	SaUint32T numPerceivedSeverities,
+	SaUint32T numTrends)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	filter->probableCauses = NULL;
+	filter->perceivedSeverities = NULL;
+	filter->trends = NULL;
+
+	filter->numProbableCauses = numProbableCauses;
+	filter->numPerceivedSeverities = numPerceivedSeverities;
+	filter->numTrends = numTrends;
+
+	/* Probable causes */
+	if (numProbableCauses != 0) {
+		filter->probableCauses = (SaNtfProbableCauseT *) malloc(numProbableCauses * sizeof(SaNtfProbableCauseT));
+		if (filter->probableCauses == NULL) {
+			TRACE_1("Out of memory in probableCauses field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	/* Percieved severities */
+	if (numPerceivedSeverities != 0) {
+		filter->perceivedSeverities = (SaNtfSeverityT *) malloc(numPerceivedSeverities * sizeof(SaNtfSeverityT));
+		if (filter->perceivedSeverities == NULL) {
+			TRACE_1("Out of memory in perceivedSeverities field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	/* Severity trends */
+	if (numTrends != 0) {
+		filter->trends = (SaNtfSeverityTrendT *) malloc(numTrends * sizeof(SaNtfSeverityTrendT));
+		if (filter->trends == NULL) {
+			TRACE_1("Out of memory in trends field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+ done:
+	return rc;
+ error_free:
+	ntfsv_filter_alarm_free(filter);
+	goto done;
+}
+
+SaAisErrorT ntfsv_filter_sec_alarm_alloc(SaNtfSecurityAlarmNotificationFilterT *filter,
+													  SaUint32T numProbableCauses,
+													  SaUint32T numSeverities,
+													  SaUint32T numSecurityAlarmDetectors,
+													  SaUint32T numServiceUsers,
+													  SaUint32T numServiceProviders)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+
+	filter->probableCauses = NULL;
+	filter->severities = NULL;
+	filter->securityAlarmDetectors = NULL;
+	filter->serviceUsers = NULL;
+	filter->serviceProviders = NULL;
+
+	filter->numProbableCauses = numProbableCauses;
+	filter->numSeverities = numSeverities;
+	filter->numSecurityAlarmDetectors = numSecurityAlarmDetectors;
+	filter->numServiceUsers = numServiceUsers;
+	filter->numServiceProviders = numServiceProviders;
+
+	if (numProbableCauses != 0) {
+		filter->probableCauses = (SaNtfProbableCauseT *) malloc(numProbableCauses * sizeof(SaNtfProbableCauseT));
+		if (filter->probableCauses == NULL) {
+			TRACE_1("Out of memory in probableCauses field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	if (numSeverities != 0) {
+		filter->severities = (SaNtfSeverityT *) malloc(numSeverities * sizeof(SaNtfSeverityT));
+		if (filter->severities == NULL) {
+			TRACE_1("Out of memory in perceivedSeverities field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	if (numSecurityAlarmDetectors != 0) {
+		filter->securityAlarmDetectors = (SaNtfSecurityAlarmDetectorT *) malloc(numSecurityAlarmDetectors * sizeof(SaNtfSecurityAlarmDetectorT));
+		if (filter->securityAlarmDetectors == NULL) {
+			TRACE_1("Out of memory in securityAlarmDetector field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	if (numServiceUsers != 0) {
+		filter->serviceUsers = (SaNtfServiceUserT *) malloc(numServiceUsers * sizeof(SaNtfServiceUserT));
+		if (filter->serviceUsers == NULL) {
+			TRACE_1("Out of memory in ServiceUsers field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+	if (numServiceProviders != 0) {
+		filter->serviceProviders = (SaNtfServiceUserT *) malloc(numServiceProviders * sizeof(SaNtfServiceUserT));
+		if (filter->serviceProviders == NULL) {
+			TRACE_1("Out of memory in ServiceProviders field");
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto error_free;
+		}
+	}
+done:
+	return rc;  
+error_free:
+	ntfsv_filter_sec_alarm_free(filter);
+	goto done;
+}
+
+
+
+void ntfsv_filter_header_free(SaNtfNotificationFilterHeaderT *header)
+{
+	free(header->eventTypes);
+	free(header->notificationObjects);
+	free(header->notifyingObjects);
+	free(header->notificationClassIds);
+}
+
+void ntfsv_filter_sec_alarm_free(SaNtfSecurityAlarmNotificationFilterT *s_filter)
+{
+	if (s_filter) {
+		free(s_filter->probableCauses);
+		free(s_filter->securityAlarmDetectors);
+		free(s_filter->serviceProviders);
+		free(s_filter->serviceUsers);
+		free(s_filter->severities);
+		ntfsv_filter_header_free(&s_filter->notificationFilterHeader);
+	}
+}
+
+void ntfsv_filter_alarm_free(SaNtfAlarmNotificationFilterT *a_filter)
+{
+	if (a_filter) {
+		free(a_filter->probableCauses);
+		free(a_filter->perceivedSeverities);
+		free(a_filter->trends);
+		ntfsv_filter_header_free(&a_filter->notificationFilterHeader);
+	}
+}
+
+void ntfsv_filter_state_ch_free(SaNtfStateChangeNotificationFilterT *f)
+{
+	if (f) {
+		free(f->changedStates);
+		free(f->sourceIndicators);
+		ntfsv_filter_header_free(&f->notificationFilterHeader);
+	}
+}
+void ntfsv_filter_obj_cr_del_free(SaNtfObjectCreateDeleteNotificationFilterT *f)
+{
+	if (f) {
+		free(f->sourceIndicators);
+		ntfsv_filter_header_free(&f->notificationFilterHeader);
+	}
+
+}
+void ntfsv_filter_attr_ch_free(SaNtfAttributeChangeNotificationFilterT *f)
+{
+	if (f) {
+		free(f->sourceIndicators);
+		ntfsv_filter_header_free(&f->notificationFilterHeader);
+	}
+}
+

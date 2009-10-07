@@ -246,7 +246,7 @@ static uns32 proc_subscribe_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 	ntfsv_subscribe_req_t *subscribe_param = &(evt->info.msg.info.api_info.param.subscribe);
 
 	TRACE_4("subscriptionId: %u", subscribe_param->subscriptionId);
-	subscriptionAdded(subscribe_param->client_id, subscribe_param->subscriptionId, &evt->mds_ctxt);
+	subscriptionAdded(*subscribe_param, &evt->mds_ctxt);
 
 	TRACE_LEAVE();
 	return rc;
