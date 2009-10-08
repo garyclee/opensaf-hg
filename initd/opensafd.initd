@@ -45,8 +45,6 @@ fi
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
 NIDPIDFILE="$PIDPATH/nodeinit.pid"
-INITTIMEOUT=1000
-TERMTIMEOUT=5
 NISSTATUS="NONE"
 STATUS=0
 
