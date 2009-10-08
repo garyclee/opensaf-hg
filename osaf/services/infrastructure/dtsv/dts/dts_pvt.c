@@ -1192,7 +1192,7 @@ uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_t
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 					      "dtsv_log_msg: Unbale to dump message. Either file handle is NULL or file is not opened properly");
 		}
-		device->cur_file_size += (CARRIAGE_RETURN + fprintf(device->svc_fh, str));
+		device->cur_file_size += (CARRIAGE_RETURN + fwrite(str, 1, len, device->svc_fh));
 
 		fflush(device->svc_fh);
 	}
