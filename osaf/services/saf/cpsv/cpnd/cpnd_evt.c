@@ -2966,19 +2966,19 @@ static uns32 cpnd_evt_proc_nd2nd_ckpt_active_data_access_rsp(CPND_CB *cb, CPND_E
 				/*Set the response flag of the dest in dest list from where the response has come */
 				CPSV_CPND_UPDATE_DEST *cpnd_mdest_trav = evt_node->cpnd_update_dest_list;
 
-				if (cpnd_mdest_trav == NULL) {
-					rc = NCSCC_RC_FAILURE;
-					m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
-						      __FILE__, __LINE__);
-					goto error;
-				}
-
 				while (cpnd_mdest_trav) {
 					if (m_NCS_NODE_ID_FROM_MDS_DEST(cpnd_mdest_trav->dest) ==
 					    m_NCS_NODE_ID_FROM_MDS_DEST(sinfo->dest))
 						break;
 					else
 						cpnd_mdest_trav = cpnd_mdest_trav->next;
+				}
+
+				if (cpnd_mdest_trav == NULL) {
+					rc = NCSCC_RC_FAILURE;
+					m_LOG_CPND_CL(CPND_CKPT_ALLOC_FAILED, CPND_FC_MEMFAIL, NCSFL_SEV_ERROR,
+						      __FILE__, __LINE__);
+					goto error;
 				}
 
 				cpnd_mdest_trav->write_rsp_flag = TRUE;
