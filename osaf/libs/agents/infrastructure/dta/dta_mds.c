@@ -427,7 +427,15 @@ uns32 dta_mds_rcv(MDS_CLIENT_HDL yr_svc_hdl, NCSCONTEXT msg)
 
 	switch (((DTSV_MSG *)msg)->msg_type) {
 	case DTS_SVC_REG_CONF:
-		status = dta_svc_reg_config(inst, (DTSV_MSG *)msg);
+		/* Send indication to DTA mbx to send buffered logs to DTS now */
+		if(m_DTA_SND_MSG(&gl_dta_mbx, msg, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+			m_DTA_UNLK(&inst->lock);
+			m_MMGR_FREE_DTSV_MSG(msg);
+			fprintf(stderr, "dta_mds_evt: Send to DTA msgbox failed");
+			break;
+		} 
+		m_DTA_UNLK(&inst->lock);
+		return NCSCC_RC_SUCCESS;;
 		break;
 
 	case DTS_SVC_MSG_FLTR:

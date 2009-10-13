@@ -43,7 +43,6 @@
 
 DTA_CB dta_cb;
 uns32 dta_hdl;
-NCS_BOOL dts_sync_up_flag = 1;
 
 /*****************************************************************************
 
@@ -163,10 +162,10 @@ uns32 dta_svc_create(NCSDTA_CREATE *create)
 
 	m_DTA_UNLK(&inst->lock);
 
-	if (dts_sync_up_flag) {
-		/* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
-		m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
-	}
+#ifndef NCS_DTS /* Only DTA should wait */
+	/* Ignore return value of m_NCS_SEL_OBJ_SELECT   */
+	m_NCS_SEL_OBJ_SELECT(inst->dts_sync_sel, &set, 0, 0, &timeout);
+#endif
 
 	m_DTA_LK(&inst->lock);
 	inst->dts_sync_done = TRUE;
@@ -349,7 +348,11 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 
 	memset(svc, 0, sizeof(REG_TBL_ENTRY));
 	svc->svc_id = svc_id;
-
+	svc->log_msg = FALSE;
+	svc->enable_log = NCS_SNMP_TRUE;
+	/* Restricting bufferring of logs till NOTICE level severity only */
+	svc->severity_bit_map = 0xFC;
+	svc->category_bit_map = 0xFFFFFFFF;
 	svc->version = bind_svc->version;
 	strcpy(svc->svc_name, bind_svc->svc_name);
 
@@ -370,51 +373,19 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	 * For buffering of log messages apply defaults and return success. 
 	 */
 	if (inst->dts_exist == FALSE) {
-		/* Set defaults for filtering policies */
-		svc->log_msg = TRUE;
-		svc->enable_log = NCS_SNMP_TRUE;
-		/* Restricting bufferring of logs till NOTICE level severity only */
-		svc->severity_bit_map = 0xFC;
-		svc->category_bit_map = 0xFFFFFFFF;
 		m_DTA_UNLK(&inst->lock);
 		return NCSCC_RC_SUCCESS;
 	}
 
-	/* DTA shouldn't send svc reg msg to DTA mailbox.
-	 *               Instead it should do a MDS sync send and wait for the 
-	 *               svc policy handle returned from DTS */
-	/*msg = m_MMGR_ALLOC_DTSV_MSG; */
-	/* 
-	 * DTS is up ... Send registration message to DTS. 
-	 */
 	memset(&msg, '\0', sizeof(DTSV_MSG));
 	dta_fill_reg_msg(&msg, svc_id, svc->version, svc->svc_name, DTA_REGISTER_SVC);
 
 	m_DTA_UNLK(&inst->lock);
 
-	if (!dts_sync_up_flag) {
-		if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS) {
-			return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_reg_svc: MDS async send failed", svc_id);
-		}
-	} else {
-#if (DTA_FLOW == 1)
-		if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
-#else
-		if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
-#endif
-		{
-			/* Try Again another time */
-#if (DTA_FLOW == 1)
-			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT, TRUE) != NCSCC_RC_SUCCESS)
-#else
-			if (dta_mds_sync_send(&msg, inst, DTA_MDS_SEND_TIMEOUT) != NCSCC_RC_SUCCESS)
-#endif
-			{
-				return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-							  "dta_reg_svc: MDS sync send failed", svc_id);
-			}
-		}
-	}
+	/* Always register async */
+	if (dta_mds_async_send(&msg, inst) != NCSCC_RC_SUCCESS)
+		return m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
+			"dta_reg_svc: MDS async send failed", svc_id);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -523,8 +494,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
  ****************************************************************************/
 uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
 {
-
-	if ((svc->log_msg == FALSE) || (svc->enable_log == NCS_SNMP_FALSE) ||
+	if ((svc->enable_log == NCS_SNMP_FALSE) ||
 	    ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
 	    ((svc->severity_bit_map & lmsg->hdr.severity) != lmsg->hdr.severity)) {
 		return NCSCC_RC_FAILURE;
@@ -1111,8 +1081,8 @@ uns32 ncs_logmsg_int(SS_SVC_ID svc_id,
 		i++;
 	}
 
-	/* Buffer log messgages if DTS is not up, else send it */
-	if (inst->dts_exist == FALSE) {
+	/* Buffer log messgages if DTS is not up _or_ registration is not confirmed */
+	if ((inst->dts_exist == FALSE) || (svc->log_msg == FALSE)) {
 		m_DTA_LK(&inst->lock);
 		buf = m_MMGR_ALLOC_DTA_BUFFERED_LOG;
 		if (!buf) {
@@ -1207,6 +1177,57 @@ void dta_do_evts(SYSF_MBX *mbx)
 		m_NCS_SEL_OBJ_IND(dta_cb.dta_dest_sel);
 }
 
+/****************************************************************************\
+ * Name          : send_buffered_logs
+ *
+ * Description   : This function flushes buffered log messages to the DTS server
+ *
+ * Arguments     : -
+ * Return Values : -
+ *
+ * Notes         : None.
+\*****************************************************************************/
+static void send_buffered_logs(void)
+{
+	DTA_CB            *inst = &dta_cb;
+	uns32             rc = NCSCC_RC_SUCCESS;
+	SS_SVC_ID         svc_id;
+	DTA_LOG_BUFFER    *list = &dta_cb.log_buffer;
+	DTA_BUFFERED_LOG  *buf = NULL;
+	DTSV_MSG          *bmsg = NULL;
+	uns32             i, count;
+	int warning_rmval = 0;
+
+	count = list->num_of_logs;
+	for (i=0; i<count; i++) {
+		if (!list->head) {
+			list->tail = NULL;
+			break;
+		}
+		buf = list->head;
+		list->head = list->head->next;
+		bmsg = buf->buf_msg;
+		if (bmsg == NULL) {
+			/*Shouldn't hit but still go to the next buffered log*/
+		} else {
+			/* Send the buffered msg to DTS */
+			svc_id = bmsg->data.data.msg.log_msg.hdr.ss_id;
+			if (dta_mds_async_send(bmsg, inst) != NCSCC_RC_SUCCESS) {
+				warning_rmval = m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE, "dta_do_evt: MDS async send failed", svc_id);
+				rc = NCSCC_RC_FAILURE;
+			}
+			m_MMGR_FREE_OCT(bmsg->data.data.msg.log_msg.hdr.fmat_type);
+			if ((rc == NCSCC_RC_FAILURE)&&(bmsg->data.data.msg.log_msg.uba.start != NULL))
+				m_MMGR_FREE_BUFR_LIST(bmsg->data.data.msg.log_msg.uba.start);
+			if (0 != bmsg)
+				m_MMGR_FREE_DTSV_MSG(bmsg);
+		}
+		/* Clear the log buffer datastructures */
+		m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
+		list->num_of_logs--;
+	}/*end of for*/
+}
+
 /*****************************************************************************
    dta_do_evt
 *****************************************************************************/
@@ -1215,10 +1236,6 @@ uns32 dta_do_evt(DTSV_MSG *msg)
 	DTA_CB *inst = &dta_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SS_SVC_ID svc_id;
-	DTA_LOG_BUFFER *list = &dta_cb.log_buffer;
-	DTA_BUFFERED_LOG *buf = NULL;
-	DTSV_MSG *bmsg = NULL;
-	uns32 i, count;
 	int warning_rmval = 0;
 
 	if (msg == NULL)
@@ -1227,36 +1244,7 @@ uns32 dta_do_evt(DTSV_MSG *msg)
 	switch (msg->msg_type) {
 	case DTS_UP_EVT:
 		{
-			count = list->num_of_logs;
-			for (i = 0; i < count; i++) {
-				if (!list->head) {
-					list->tail = NULL;
-					break;
-				}
-				buf = list->head;
-				list->head = list->head->next;
-				bmsg = buf->buf_msg;
-				if (bmsg == NULL) {
-					/*Shouldn't hit but still go to the next buffered log */
-				} else {
-					/* Send the buffered msg to DTS */
-					svc_id = bmsg->data.data.msg.log_msg.hdr.ss_id;
-					if (dta_mds_async_send(bmsg, inst) != NCSCC_RC_SUCCESS) {
-						warning_rmval =
-						    m_DTA_DBG_SINK_SVC(NCSCC_RC_FAILURE,
-								       "dta_do_evt: MDS async send failed", svc_id);
-						rc = NCSCC_RC_FAILURE;
-					}
-					m_MMGR_FREE_OCT(bmsg->data.data.msg.log_msg.hdr.fmat_type);
-					if ((rc == NCSCC_RC_FAILURE) && (bmsg->data.data.msg.log_msg.uba.start != NULL))
-						m_MMGR_FREE_BUFR_LIST(bmsg->data.data.msg.log_msg.uba.start);
-					if (0 != bmsg)
-						m_MMGR_FREE_DTSV_MSG(bmsg);
-				}
-				/* Clear the log buffer datastructures */
-				m_MMGR_FREE_DTA_BUFFERED_LOG(buf);
-				list->num_of_logs--;
-			}	/*end of for */
+			send_buffered_logs();
 			rc = NCSCC_RC_SUCCESS;
 		}
 		break;
@@ -1316,6 +1304,11 @@ uns32 dta_do_evt(DTSV_MSG *msg)
 			m_MMGR_FREE_DTSV_MSG(msg);
 
 		return dta_cleanup_seq();
+
+	case DTS_SVC_REG_CONF:
+		dta_svc_reg_config(inst, msg);
+		send_buffered_logs();
+		break;
 
 	default:
 		{

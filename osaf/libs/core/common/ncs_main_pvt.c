@@ -209,8 +209,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[]);
 static uns32 ncs_d_nd_svr_shutdown(int argc, char *argv[]);
 static uns32 mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp);
 
-EXTERN_C NCS_BOOL dts_sync_up_flag;
-
 #if (NCS_AVND == 1)
 NCSCONTEXT avnd_sem;
 static void main_avnd_usr1_signal_hdlr(int signal);
@@ -227,7 +225,7 @@ uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type, char *i_
 \***************************************************************************/
 uns32 ncs_nid_notify(uns16 status)
 {
-	int error;
+	uns32 error;
 	uns32 nid_stat_code;
 
 	/* NID is OFF */
@@ -255,12 +253,6 @@ uns32 ncs_nid_notify(uns16 status)
 \***************************************************************************/
 uns32 ncspvt_svcs_startup(int argc, char *argv[], FILE *fp)
 {
-#if (NCS_DTS == 1)
-	dts_sync_up_flag = 0;
-#else
-	dts_sync_up_flag = 1;
-#endif
-
    /*** Init NCS core agents (Leap, NCS-Common, MDS, ADA/VDA, DTA, OAA ***/
 	if (ncs_core_agents_startup(argc, argv) != NCSCC_RC_SUCCESS)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -1051,11 +1043,6 @@ int ncspvt_load_config_n_startup(int argc, char *argv[])
 			}
 		}
 	}
-#if (NCS_DTS == 1)
-	dts_sync_up_flag = 0;
-#else
-	dts_sync_up_flag = 1;
-#endif
 
    /** start up the node **/
 	if (ncspvt_svcs_startup(argc, argv, fp) != NCSCC_RC_SUCCESS) {
