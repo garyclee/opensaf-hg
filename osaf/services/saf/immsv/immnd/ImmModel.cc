@@ -3461,9 +3461,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         }
     }
     
-    p = req->attrMods;
-    
-    while(p) {
+    for (p = req->attrMods; p; p=p->next) {
         sz = strnlen((char *) p->attrValue.attrName.buf,
             (size_t) p->attrValue.attrName.size);
         std::string attrName((const char *) p->attrValue.attrName.buf, sz);
@@ -3614,8 +3612,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         if(err != SA_AIS_OK) {
             break; //out of for-loop
         }
-        p = p->next;
-    }//while(p)
+    }//for (p = ....)
     
     // Prepare for call on object implementor 
     // and add implementer to ccb.
