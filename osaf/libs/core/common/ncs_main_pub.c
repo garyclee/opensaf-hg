@@ -232,8 +232,6 @@ static NCS_MAIN_PUB_CB gl_ncs_main_pub_cb;
 char *gl_pargv[NCS_MAIN_MAX_INPUT];
 uns32 gl_pargc = 0;
 
-EXTERN_C NCS_BOOL dts_sync_up_flag;
-
 /* Agent specific LOCKs */
 #define m_NCS_AGENT_LOCK                                 \
    if (!gl_ncs_main_pub_cb.lock_create++)                \
@@ -292,7 +290,6 @@ unsigned int ncs_agents_shutdown(int argc, char *argv[])
 unsigned int ncs_leap_startup(int argc, char *argv[])
 {
 	NCS_LIB_REQ_INFO lib_create;
-	char *p_field;
 
 	m_NCS_AGENT_LOCK;
 
@@ -328,16 +325,6 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
 		NCSMAINPUB_TRACE1_ARG1("\nERROR: SPRR lib_req failed \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
-	}
-
-   /****** DTSV SYNC flag *******/
-	p_field = ncs_util_search_argv_list(argc, argv, "DTSV_SYNC_UP=");
-	if (p_field != NULL) {
-		if (sscanf(p_field + strlen("DTSV_SYNC_UP="), "%d", &dts_sync_up_flag) != 1) {
-			NCSMAINPUB_TRACE1_ARG1("ERROR:Problem in dts_sync_up argument\n");
-			m_NCS_AGENT_UNLOCK;
-			return NCSCC_RC_FAILURE;
-		}
 	}
 
 	gl_ncs_main_pub_cb.leap_use_count = 1;
