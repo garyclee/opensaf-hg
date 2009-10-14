@@ -82,6 +82,11 @@ void dts_do_evts(SYSF_MBX *mbx)
 	SaAisErrorT saf_status = SA_AIS_OK;
 	int count;
 
+	ncs_amf_sel_obj.raise_obj = 0;
+	ncs_amf_sel_obj.rmv_obj = 0;
+	ncs_mbcsv_sel_obj.raise_obj = 0;
+	ncs_mbcsv_sel_obj.rmv_obj = 0;
+
 	/*numfds = dts_cb.numfds;
 	   readfds = dts_cb.readfds; */
 
