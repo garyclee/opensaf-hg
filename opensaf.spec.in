@@ -10,6 +10,7 @@
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
 
 %define _pkglibdir %{_libdir}/%{name}
+%define _initddir @initscriptdir@
 
 # TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
 # and stack-protector by default which catches buffer overflows in
@@ -250,7 +251,7 @@ fi
 %config(noreplace) %{_sysconfdir}/%{name}/node_type
 %config %{_sysconfdir}/%{name}/script.conf
 %{_sysconfdir}/%{name}/nodeinit.conf
-%{_sysconfdir}/init.d/opensafd
+%{_initddir}/opensafd
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/ncs_cpnd_clean

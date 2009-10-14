@@ -128,6 +128,27 @@ AC_SUBST([SMIDUMP_ENABLED], ["$enable_smidump"])
 
 
 #
+# Many distros use different init.d directory depending on their LSB compliance
+# support. Use this option to point to the init.d directory used by your distro.
+# Default to /etc/init.d
+#
+AC_ARG_WITH([initscriptdir],
+        [AS_HELP_STRING([--with-initscriptdir=@<:@DIR@:>@],
+                [use DIR as the directory containing the init.d scripts.
+		 [default=/etc/init.d]])],
+        [
+        if test -d $withval; then
+                with_initscriptdir=$withval
+        else
+                AC_ERROR([$withval is an invalid path])
+        fi
+        ],
+        [with_initscriptdir=/etc/init.d])
+
+AC_SUBST([initscriptdir], ["$with_initscriptdir"])
+
+
+#
 # By default MIBDIRS rely on net-snmp-config to get the system value, some
 # distro provide a broken value for 'net-snmp-config --default-mibdirs', if it's
 # your case, force it manually.
@@ -712,6 +733,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/nid/config/Makefile
         osaf/services/infrastructure/nid/scripts/Makefile
         osaf/services/infrastructure/nid/scripts/nid_tipc
+        osaf/services/infrastructure/nid/scripts/opensafd
         osaf/services/infrastructure/pdrbd/Makefile
         osaf/services/infrastructure/pdrbd/config/Makefile
         osaf/services/infrastructure/pdrbd/logstr/Makefile

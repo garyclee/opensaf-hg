@@ -97,7 +97,6 @@ endif
 
 
 EXTRA_DIST = \
-	$(top_srcdir)/initd/opensafd.initd \
 	$(top_srcdir)/tools/smidump \
 	$(top_srcdir)/tests
 
@@ -212,8 +211,6 @@ update-pkgconfig:
 install-data-local: update-ldconfig update-pkgconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
-	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/init.d
-	$(INSTALL) -m 755 $(top_srcdir)/initd/opensafd.initd $(DESTDIR)$(sysconfdir)/init.d/opensafd
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
@@ -231,7 +228,6 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(pkglocalstatedir)
 	-rm -rf $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
-	-rm -f $(DESTDIR)$(sysconfdir)/init.d/opensafd
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
 

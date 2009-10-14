@@ -20,3 +20,6 @@ MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/osaf/services/infrastructure/nid/scripts/nid_tipc
+
+dist_initd_SCRIPTS = \
+	$(top_builddir)/osaf/services/infrastructure/nid/scripts/opensafd
