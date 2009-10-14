@@ -344,7 +344,6 @@ fi
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
-%config(noreplace) %{_sysconfdir}/drbd.conf
 %config %{_sysconfdir}/%{name}/AppConfig.xsd
 %config %{_sysconfdir}/%{name}/cli_cefslib.conf
 %config %{_sysconfdir}/%{name}/imm.xml
