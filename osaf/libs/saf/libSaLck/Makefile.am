@@ -20,6 +20,8 @@ MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION = 0:0:0
 
+SUBDIRS = pkgconfig
+
 lib_LTLIBRARIES = libSaLck.la
 
 libSaLck_la_SOURCES =

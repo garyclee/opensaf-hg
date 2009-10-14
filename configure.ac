@@ -684,14 +684,32 @@ AC_CONFIG_FILES([
         osaf/libs/saf/Makefile
         osaf/libs/saf/include/Makefile
         osaf/libs/saf/libSaAmf/Makefile
+        osaf/libs/saf/libSaAmf/pkgconfig/Makefile
+        osaf/libs/saf/libSaAmf/pkgconfig/opensaf-amf.pc
         osaf/libs/saf/libSaImm/Makefile
+        osaf/libs/saf/libSaImm/pkgconfig/Makefile
+        osaf/libs/saf/libSaImm/pkgconfig/opensaf-imm.pc
         osaf/libs/saf/libSaLog/Makefile
+        osaf/libs/saf/libSaLog/pkgconfig/Makefile
+        osaf/libs/saf/libSaLog/pkgconfig/opensaf-log.pc
         osaf/libs/saf/libSaNtf/Makefile
+        osaf/libs/saf/libSaNtf/pkgconfig/Makefile
+        osaf/libs/saf/libSaNtf/pkgconfig/opensaf-ntf.pc
         osaf/libs/saf/libSaClm/Makefile
+        osaf/libs/saf/libSaClm/pkgconfig/Makefile
+        osaf/libs/saf/libSaClm/pkgconfig/opensaf-clm.pc
         osaf/libs/saf/libSaCkpt/Makefile
+        osaf/libs/saf/libSaCkpt/pkgconfig/Makefile
+        osaf/libs/saf/libSaCkpt/pkgconfig/opensaf-ckpt.pc
         osaf/libs/saf/libSaEvt/Makefile
+        osaf/libs/saf/libSaEvt/pkgconfig/Makefile
+        osaf/libs/saf/libSaEvt/pkgconfig/opensaf-evt.pc
         osaf/libs/saf/libSaLck/Makefile
+        osaf/libs/saf/libSaLck/pkgconfig/Makefile
+        osaf/libs/saf/libSaLck/pkgconfig/opensaf-lck.pc
         osaf/libs/saf/libSaMsg/Makefile
+        osaf/libs/saf/libSaMsg/pkgconfig/Makefile
+        osaf/libs/saf/libSaMsg/pkgconfig/opensaf-msg.pc
         osaf/services/Makefile
         osaf/services/infrastructure/Makefile
         osaf/services/infrastructure/bam/Makefile
@@ -834,16 +852,8 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/include/Makefile
         osaf/tools/safntf/ntfsend/Makefile
         osaf/tools/safntf/ntfsubscribe/Makefile
+        pkgconfig/Makefile
         pkgconfig/opensaf.pc
-        pkgconfig/opensaf-amf.pc
-        pkgconfig/opensaf-ckpt.pc
-        pkgconfig/opensaf-clm.pc
-        pkgconfig/opensaf-evt.pc
-        pkgconfig/opensaf-imm.pc
-        pkgconfig/opensaf-lck.pc
-        pkgconfig/opensaf-log.pc
-        pkgconfig/opensaf-msg.pc
-        pkgconfig/opensaf-ntf.pc
         scripts/collect_logs_controller
         scripts/collect_logs_payload
         scripts/get_ha_state

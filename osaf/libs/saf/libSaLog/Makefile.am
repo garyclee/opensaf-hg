@@ -19,10 +19,11 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = libSaLog.version
+
 LIB_VERSION=1:0:0
 
-EXTRA_DIST = \
-	libSaLog.version
+SUBDIRS = pkgconfig
 
 lib_LTLIBRARIES = libSaLog.la
 
