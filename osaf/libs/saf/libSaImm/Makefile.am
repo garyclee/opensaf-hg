@@ -18,12 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = libSaImmOi.version libSaImmOm.version
+
 OILIB_VERSION = 0:1:2
 OMLIB_VERSION = 0:1:2
 
-EXTRA_DIST = \
-	libSaImmOi.version \
-	libSaImmOm.version
+SUBDIRS = pkgconfig
 
 lib_LTLIBRARIES = libSaImmOi.la libSaImmOm.la
 

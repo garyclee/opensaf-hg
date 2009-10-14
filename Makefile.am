@@ -123,8 +123,7 @@ nobase_dist_pkgdata_DATA = $(samples_sources)
 
 
 # FIXME Like this until SNMP references removed
-SUBDIRS = osaf/snmp/mapi osaf/snmp/miblib osaf
-#SUBDIRS = osaf
+SUBDIRS = osaf/snmp/mapi osaf/snmp/miblib osaf pkgconfig
 
 if ENABLE_JAVA
 
@@ -204,11 +203,7 @@ update-ldconfig:
 	$(mkinstalldirs) $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 
-update-pkgconfig:
-	$(mkinstalldirs) $(DESTDIR)$(libdir)/pkgconfig
-	$(INSTALL_DATA) $(top_builddir)/pkgconfig/opensaf-*.pc $(DESTDIR)$(libdir)/pkgconfig
-
-install-data-local: update-ldconfig update-pkgconfig
+install-data-local: update-ldconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 
@@ -229,7 +224,6 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
 	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
-	-rm -f $(DESTDIR)$(libdir)/pkgconfig/opensaf-*.pc
 
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz

@@ -20,6 +20,8 @@ MAINTAINERCLEANFILES = Makefile.in
 
 LIB_VERSION = 1:0:1
 
+SUBDIRS = pkgconfig
+
 lib_LTLIBRARIES = libSaMsg.la
 
 libSaMsg_la_SOURCES =

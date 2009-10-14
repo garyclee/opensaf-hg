@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,21 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-LIB_VERSION = 1:0:1
-
-SUBDIRS = pkgconfig
-
-lib_LTLIBRARIES = libSaEvt.la
-
-libSaEvt_la_SOURCES =
-
-libSaEvt_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DNCS_EDA=1 -DNCS_EDSV_LOG=1
-
-libSaEvt_la_LDFLAGS = -version-info $(LIB_VERSION)
-
-libSaEvt_la_LIBADD = \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/agents/saf/eda/libeda.la \
-	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la
+pkgconfig_DATA = opensaf-ntf.pc

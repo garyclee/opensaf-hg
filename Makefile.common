@@ -48,6 +48,7 @@ AM_CXXFLAGS = -fPIC -Wall
 #
 pkgsysconfdir = $(sysconfdir)/$(PACKAGE_NAME)
 pkglocalstatedir = $(localstatedir)/lib/$(PACKAGE_NAME)
+pkgconfigdir = $(libdir)/pkgconfig
 docdir = $(datadir)/doc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)
 javadir = $(datadir)/java
 javadocdir = $(datadir)/javadoc

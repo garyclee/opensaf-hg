@@ -9,6 +9,7 @@ localstatedir=@localstatedir@
 pkglocalstatedir=@localstatedir@/lib/@PACKAGE_NAME@
 includedir=@includedir@
 pkgincludedir=@includedir@/@PACKAGE_NAME@
+datarootdir = @datarootdir@
 datadir=@datadir@
 pkgdatadir=@datadir@/@PACKAGE_NAME@
 docdir=@datadir@/doc/@PACKAGE_NAME@-@PACKAGE_VERSION@
