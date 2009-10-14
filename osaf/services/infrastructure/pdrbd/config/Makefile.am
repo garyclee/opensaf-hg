@@ -18,8 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = \
+	$(top_srcdir)/osaf/services/infrastructure/pdrbd/config/drbd.conf
+
 dist_pkgsysconf_DATA = \
 	$(top_srcdir)/osaf/services/infrastructure/pdrbd/config/pdrbd_proxied.conf
-
-dist_sysconf_DATA = \
-	$(top_srcdir)/osaf/services/infrastructure/pdrbd/config/drbd.conf
