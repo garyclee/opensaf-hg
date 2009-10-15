@@ -6299,12 +6299,6 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         goto rtObjectCreateExit;
     }
     
-    if(objectName.find(',') != std::string::npos) {
-        TRACE_7( "Can not tollerate ',' in RDN");
-        err = SA_AIS_ERR_INVALID_PARAM;     
-        goto rtObjectCreateExit;
-    }
-    
     if(!nameCheck(objectName)) {
         if(nameToInternal(objectName)) {
             nameCorrected = true;
@@ -6315,7 +6309,13 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             goto rtObjectCreateExit;
         }
     }
-    
+
+    if(objectName.find(',') != std::string::npos) {
+        TRACE_7( "Can not tolerate ',' in RDN: '%s'", objectName.c_str());
+        err = SA_AIS_ERR_INVALID_PARAM;     
+        goto rtObjectCreateExit;
+    }
+
     if (parent) {
         objectName.append(",");
         objectName.append(parentName);
