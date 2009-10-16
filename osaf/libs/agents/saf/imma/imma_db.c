@@ -96,9 +96,14 @@ uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		rc = NCSCC_RC_FAILURE;
 	}
 
-	/* Free the Client Node */
-	if (cl_node)
-		free(cl_node);
+	/* Remove any implementer name associated with handle */
+    if (cl_node->mImplementerName) {
+        free(cl_node->mImplementerName);
+        cl_node->mImplementerName = NULL;
+        cl_node->mImplementerId = 0;
+    }
+
+	free(cl_node);
 
 	return rc;
 }
@@ -165,25 +170,61 @@ void imma_client_tree_cleanup(IMMA_CB *cb)
 void imma_mark_clients_stale(IMMA_CB *cb)
 {
 	/* We are LOCKED already */
-	IMMA_CLIENT_NODE *clnode;
-	SaImmHandleT *temp_ptr = 0;
-	SaImmHandleT temp_hdl = 0;
+	IMMA_CLIENT_NODE *clnode = NULL;
+	SaImmHandleT temp_hdl = 0LL;
+	SaImmHandleT *temp_ptr = NULL;
+
+	IMMA_CCB_NODE *ccb_node = NULL;
+	SaImmCcbHandleT ccb_temp_hdl = 0LL;
+	SaImmCcbHandleT *ccb_temp_ptr = NULL;
+
+	IMMA_SEARCH_NODE *search_node = NULL;
+	SaImmSearchHandleT search_tmp_hdl = 0LL;
+	SaImmSearchHandleT *search_tmp_ptr = NULL;
 
 	TRACE_ENTER();
 
 	/* scan the entire handle db & mark each record */
 	while ((clnode = (IMMA_CLIENT_NODE *)
-		ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
+			   ncs_patricia_tree_getnext(&cb->client_tree, (uns8 *)temp_ptr))) {
 		temp_hdl = clnode->handle;
 		temp_ptr = &temp_hdl;
-        if(clnode->exposed) {continue;} /* No need to stale dispatched on this
+
+
+		while ((ccb_node = (IMMA_CCB_NODE *)
+				   ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)ccb_temp_ptr))) {
+			ccb_temp_hdl = ccb_node->ccb_hdl;
+			ccb_temp_ptr = &ccb_temp_hdl;
+
+			if ((ccb_node->mImmHandle == clnode->handle) &&
+				!(ccb_node->mApplying) && !(ccb_node->mApplied) &&
+				!(ccb_node->mAborted)) {
+				TRACE("CCb:%u for handle %llx aborted in non critical state", 
+					ccb_node->mCcbId, clnode->handle);
+				ccb_node->mAborted = TRUE;
+			}
+		}
+
+		while ((search_node = (IMMA_SEARCH_NODE *)
+				   ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)search_tmp_ptr))) {
+			search_tmp_hdl = search_node->search_hdl;
+			search_tmp_ptr = &search_tmp_hdl;
+			if ((search_node->mImmHandle == clnode->handle) &&
+				search_node->mSearchId) {
+				TRACE("Search id %u for handle %llx closed for stale imm-handle",
+					search_node->mSearchId,  clnode->handle);
+				search_node->mSearchId = 0;
+			}
+		}
+		
+        if (clnode->exposed) {continue;} /* No need to stale dispatched on this
                                            handle when already exposed.
                                         */
 		clnode->stale = TRUE;
-		TRACE("Stale marked client cl:%u node:%u",
+		TRACE("Stale marked client cl:%u node:%x",
             m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
             m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
-		if(isExposed(cb, clnode)  && clnode->selObjUsable) {
+		if (isExposed(cb, clnode)  && clnode->selObjUsable) {
             /* If we have a selection object, then we assume someone is
                dispatching on it. If the connection is already exposed, then
                inform the user (dispatch on it) now.
@@ -195,6 +236,8 @@ void imma_mark_clients_stale(IMMA_CB *cb)
             imma_proc_stale_dispatch(cb, clnode);
 		}
 	}
+
+
     TRACE_LEAVE();
 }
 
@@ -225,12 +268,12 @@ void imma_process_stale_clients(IMMA_CB *cb)
     {
         temp_hdl = clnode->handle;
         temp_ptr = &temp_hdl;
-        if(!clnode->stale) {continue;}
-        TRACE("Stale client to process cl:%u node:%u",
+        if (!clnode->stale) {continue;}
+        TRACE("Stale client to process cl:%u node:%x",
             m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
             m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
 
-        if(clnode->selObjUsable) {
+        if (clnode->selObjUsable) {
             /* If we have a selection object, then we assume someone is
                dispatching on it. Inform the user (dispatch on it) now. 
                This will cause either a resurrection or a BAD_HANDLE 
@@ -257,38 +300,52 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 {
     /* Must be LOCKED. */
     TRACE_ENTER();
-    if(!clnode->exposed) {	/*If we are already exposed then skip checks*/
-		/* Check if we are currently blocked => exposed. */
-		if(clnode->replyPending) {
-			clnode->exposed = 1;
+    if (!clnode->exposed) {	/*If we are already exposed then skip checks*/
+		/* Check if we are currently blocked => exposed. 
+		   In the future we could for some cases avoid declaring exposure,
+		   despite being blocked. 
+
+		   A trivial example is handle finalize calls, which should not reply
+		   with BAD_HANDLE just because the handle turned stale during the call.
+		   On the other hand you dont want to resurrect such handles, which are being
+		   finalized!.
+
+		   Another example would be CcbApply. if we implement ccb recovery then
+		   the imm-handle could in some cases be resurrected.
+		   
+		 */
+		if (clnode->replyPending) {
+            /* Catches on-going async admin OM op as well as blocked calls */
+			clnode->exposed = TRUE;
 		}	
 
 
-        if(clnode->isOm) {
+        if (clnode->isOm) {	
+			/* Check for associated admin owners. If releaseOnFinalize is set
+			   for anyone, then this handle is doomed, i.e. exposed. */
+			IMMA_ADMIN_OWNER_NODE *adm_node = NULL;
+			SaImmAdminOwnerHandleT temp_hdl = 0LL;
+			SaImmAdminOwnerHandleT *temp_ptr = NULL;
             TRACE("OM CLIENT");
-            
-            /* Check for Iterator handles. Invalidate these by removing node
-               We must of course not be blocked. 
-            */
 
-            /* Check for associated admin owners. If releaseOnFinalize is set
-               then we are exposed. */
+			while ((adm_node = (IMMA_ADMIN_OWNER_NODE *)
+					   ncs_patricia_tree_getnext(&cb->admin_owner_tree, (uns8 *)temp_ptr))) {
+				temp_hdl = adm_node->admin_owner_hdl;
+				temp_ptr = &temp_hdl;
 
-            /* Check for associated CCBs. 
-               If any CCB is nonempty, then we are exposed. 
-               On OM side go via CCB-handle. On OM-side I have to keep
-               track of on-going ccbs. If more than one concurrently 
-               set exposed. 
-            */
-
-            /* Check if on-going async admin OM op => Exposed. */
-
-            /* For now, all OM handles are regarded as exposed. */
-            clnode->exposed = 1;
+				if ((adm_node->mImmHandle == clnode->handle) && 
+					(adm_node->mReleaseOnFinalize)) {
+					clnode->exposed = TRUE;
+				}
+			}
         } else { /* OI client. */
             TRACE("OI CLIENT");
-			if(clnode->criticalCcbs) { 
-				clnode->exposed = 1;
+			if (clnode->criticalCcbs) { 
+				clnode->exposed = TRUE;
+				/* Instead of marking critical ccb clients as exposed 
+				   I should resurrect them and generate the appropriate
+				   up-call.
+				*/
 			}
         }
     }
@@ -381,24 +438,40 @@ uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_
                 : IMMA_ADMIN_OWNERNODE *adm_node - Admin Owner Node.
   Notes         : None
 ******************************************************************************/
-uns32 imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
+void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	SaImmCcbHandleT ccb_temp_hdl, *ccb_temp_ptr = NULL;
+	IMMA_CCB_NODE *ccb_node = NULL;
 
-	if (adm_node == NULL)
-		return NCSCC_RC_FAILURE;
+	assert(adm_node);
+
+	/* Remove any ccb nodes opened by the client using this admin-owner */
+	while ((ccb_node = (IMMA_CCB_NODE *)
+		ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)ccb_temp_ptr))) {
+		ccb_temp_hdl = ccb_node->ccb_hdl;
+		ccb_temp_ptr = &ccb_temp_hdl;
+
+		if (ccb_node->mAdminOwnerHdl == adm_node->admin_owner_hdl) {
+			if (ccb_node->mExclusive) {
+				TRACE("imma_admin_owner_node_delete: associated ccb (%u) in exclusive mode"
+					  " - ccb is orphaned.", ccb_node->mCcbId);
+			} else  {
+				assert(imma_ccb_node_delete(cb, ccb_node) == NCSCC_RC_SUCCESS);
+				ccb_temp_ptr = NULL;	/*Redo iteration from start after delete. */
+			}
+		}
+	}
 
 	/* Remove the Node from the tree */
-	if (ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode) != NCSCC_RC_SUCCESS) {
-		rc = NCSCC_RC_FAILURE;
+	assert(ncs_patricia_tree_del(&cb->admin_owner_tree, &adm_node->patnode) == NCSCC_RC_SUCCESS);
+
+	if (adm_node->mAdminOwnerName) {
+		free(adm_node->mAdminOwnerName);
+		adm_node->mAdminOwnerName = NULL;
+		adm_node->mAdminOwnerId = 0;
 	}
 
-	/* Free the Node */
-	if (adm_node) {
-		free(adm_node);
-	}
-
-	return rc;
+	free(adm_node);
 }
 
 /****************************************************************************
@@ -467,15 +540,12 @@ uns32 imma_ccb_tree_init(IMMA_CB *cb)
   Arguments     : ccb_tree - Ccb Tree.
                   adm_hdl - Ccb Handle
   Return Values : ccb_node - Ccb Node
-                  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
-uns32 imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node)
+void imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node)
 {
 	*ccb_node = (IMMA_CCB_NODE *)
 	    ncs_patricia_tree_get(ccb_tree, (uns8 *)ccb_hdl);
-
-	return NCSCC_RC_SUCCESS;
 }
 
 /******************************************************************************
@@ -535,13 +605,14 @@ uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node)
 
 	/* Remove the Node from the tree */
 	if (ncs_patricia_tree_del(&cb->ccb_tree, &ccb_node->patnode) != NCSCC_RC_SUCCESS) {
+		TRACE("Failure in deleting ccb_node! handle %llx ccbid %u",
+			ccb_node->ccb_hdl, ccb_node->mCcbId);
 		rc = NCSCC_RC_FAILURE;
 	}
+	
 
-	/* Free the Node */
-	if (ccb_node) {
-		free(ccb_node);
-	}
+	TRACE("Freeing ccb_node handle %llx ccbid %u", ccb_node->ccb_hdl, ccb_node->mCcbId);
+	free(ccb_node);
 
 	return rc;
 }

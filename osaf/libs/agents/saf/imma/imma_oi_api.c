@@ -28,7 +28,7 @@ static const char *sysaClName = SA_IMM_ATTR_CLASS_NAME;
 static const char *sysaAdmName = SA_IMM_ATTR_ADMIN_OWNER_NAME;
 static const char *sysaImplName = SA_IMM_ATTR_IMPLEMENTER_NAME;
 
-static int imma_oi_reactive_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE **cl_node, NCS_BOOL *locked);
+static int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, NCS_BOOL *locked);
 
 /****************************************************************************
   Name          :  SaImmOiInitialize
@@ -223,7 +223,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 		cl_node->handle = out_evt->info.imma.info.initRsp.immHandle;
 
-		TRACE_2("Trying to add OI client id:%u node:%u",
+		TRACE_2("Trying to add OI client id:%u node:%x",
             m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
             m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle));
 		proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
@@ -233,11 +233,12 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 			if ((stale_node != NULL) && stale_node->stale) {
 				TRACE_2("Removing stale client");
-				imma_finalize_proc(cb, stale_node);
+				imma_finalize_client(cb, stale_node);
 				proc_rc = imma_shutdown(NCSMDS_SVC_ID_IMMA_OI);
-                if(proc_rc != NCSCC_RC_SUCCESS) {
+                if (proc_rc != NCSCC_RC_SUCCESS) {
                     TRACE_2("Call to imma_shutdown FAILED");
-                    return SA_AIS_ERR_LIBRARY;
+                    rc = SA_AIS_ERR_LIBRARY;
+					goto node_add_fail;
                 }
 				TRACE_2("Retrying add of client node");
 				proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
@@ -308,7 +309,7 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
  end:
 	if (rc != SA_AIS_OK) {
-		if(NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
+		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
             /* Oh boy. Failure in imma_shutdown when we already have
                some other problem. */
             TRACE_1("Call to imma_shutdown failed, prior error %u", rc);
@@ -338,6 +339,7 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = 0;
 	NCS_BOOL locked = TRUE;
+	TRACE_ENTER();
 
 	if (!selectionObject)
 		return SA_AIS_ERR_INVALID_PARAM;
@@ -369,16 +371,16 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
 	if (!cl_node || cl_node->isOm) {
-		TRACE_2("Bad handle %llu", immOiHandle);
+		TRACE_2("Bad handle %llx", immOiHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto node_not_found;
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -387,14 +389,14 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto resurrect_failed;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 
@@ -405,11 +407,11 @@ SaAisErrorT saImmOiSelectionObjectGet(SaImmOiHandleT immOiHandle, SaSelectionObj
 
  node_not_found:
  resurrect_failed:
-	if(locked)
+	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
-
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -433,7 +435,7 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 	SaAisErrorT rc = SA_AIS_OK;
 	IMMA_CB *cb = &imma_cb;
 	IMMA_CLIENT_NODE *cl_node = 0;
-    SaBoolT isStale=FALSE;
+	NCS_BOOL locked = FALSE;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -447,215 +449,75 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 		rc = SA_AIS_ERR_LIBRARY;
 		goto fail;
 	}
+	locked = TRUE;
 
 	/* get the client_info */
 	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		TRACE_2("client_node_get failed");
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		goto fail;
 	}
 
-    isStale = cl_node->stale;
-    /* Unlock & do the dispatch to avoid deadlock in arrival callback. */
-    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-    cl_node = NULL; /*Prevent unsafe use.*/
-	if (isStale) {
-        TRACE_2("Handle %llu is stale, trying to resurrect it.", immOiHandle);
-        if(cb->dispatch_clients_to_resurrect &&
-            imma_proc_resurrect_client(cb, immOiHandle, FALSE))
-        {
-            SaImmOiImplementerNameT implName;
+	if (cl_node->stale) {
+        TRACE_2("Handle %llx is stale, trying to resurrect it.", immOiHandle);
 
-            LOG_NO("Successfully resurrected OI handle <c:%u, n:%u>",
-                m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
-                m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
+        if (cb->dispatch_clients_to_resurrect == 0) {
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			cl_node->exposed = TRUE;
+			goto fail;
+		} 
 
-            if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                TRACE_1("Lock failure");
-                rc = SA_AIS_ERR_LIBRARY;
-                goto fail;
-            }
+		--(cb->dispatch_clients_to_resurrect);
+		TRACE_2("Remaining clients to acively resurrect: %d",
+			cb->dispatch_clients_to_resurrect);
 
-            /* Locked */
-            if(cb->dispatch_clients_to_resurrect > 0) {
-                --(cb->dispatch_clients_to_resurrect);
-            }
-            TRACE_2("Remaining clients to acively resurrect: %d",
-                cb->dispatch_clients_to_resurrect);
-
-            /* get the client again. */
-            imma_client_node_get(&cb->client_tree, &immOiHandle,&cl_node);
-            if (!cl_node|| cl_node->isOm)
-            {
-                TRACE_2("client_node_get failed AFTER resurrect attempt");
-                rc = SA_AIS_ERR_BAD_HANDLE;
-                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-                goto fail;
-            }
-            cl_node->selObjUsable = TRUE;
-            implName = cl_node->mImplementerName;
-            cl_node->mImplementerName = NULL;
-            cl_node->mImplementerId=0;
-
-            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-            cl_node=NULL;
-
-            /* Handle successfully resurrected, but we may still need
-               to re-attach as implementer. This is done here since it is
-               OI specific (not relevant for OM handles).
-            */
-            if(implName)
-            {
-                SaAisErrorT err;
-                unsigned int sleep_delay_ms = 500;
-                unsigned int max_waiting_time_ms = 3 * 1000;	/* 3 secs */
-                unsigned int msecs_waited = 0;
-                /* We should normally not need to wait for sync of THIS node
-                   because the handle resurrect could not have succeeded
-                   until after sync was complete. But another node could
-                   have straggled in and caused additional syncs.
-                */
-
-                TRACE("saImmOiImplementerSet invoked for %s", implName);
-                err = saImmOiImplementerSet(immOiHandle, implName);
-                TRACE("saImmOiImplementerSet returned %u", err);
-
-                while((err == SA_AIS_ERR_TRY_AGAIN)&&
-                    (msecs_waited < max_waiting_time_ms))
-                {
-                    usleep(sleep_delay_ms * 1000);
-                    msecs_waited += sleep_delay_ms;
-                    err = saImmOiImplementerSet(immOiHandle, implName);
-                    TRACE("saImmOiImplementerSet returned %u", err);
-                }
-                free(implName);
-
-                /*We dont need to set class/object implementer again 
-                  because that association is still maintained by the 
-                  distributed IMMSv over IMMND crashes. 
-                */
-
-                if(err != SA_AIS_OK)
-                {
-                    IMMSV_EVT  finalize_evt, *out_evt1 = NULL;
-                    LOG_NO("Failed to set implementer for resurrected "
-                        "handle - resurrection failed");
-
-                    memset(&finalize_evt, 0, sizeof(IMMSV_EVT));
-                    finalize_evt.type = IMMSV_EVT_TYPE_IMMND;
-                    finalize_evt.info.immnd.type = 
-                        IMMND_EVT_A2ND_IMM_OI_FINALIZE;
-                    finalize_evt.info.immnd.info.finReq.client_hdl = 
-                        immOiHandle;
-
-                    /* send a finalize handle req to the IMMND.
-                       Dont bother checking the answer. This is just
-                       an attempt to deallocate the useless resurrected
-                       handle on the server side. 
-                    */
-                    if(cb->is_immnd_up) 
-                    {
-                        imma_mds_msg_sync_send(cb->imma_mds_hdl, 
-                            &(cb->immnd_mds_dest),&finalize_evt,&out_evt1,
-                            IMMSV_WAIT_TIME);
-
-                        if (out_evt1) {free(out_evt1);}
-                    }
-                    if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
-                        NCSCC_RC_SUCCESS) 
-                    {
-                        TRACE_1("Lock failure");
-                        rc = SA_AIS_ERR_LIBRARY;
-                        goto fail;
-                    }
-                    imma_client_node_get(&cb->client_tree, &immOiHandle,
-                        &cl_node);
-
-                    if (cl_node && !cl_node->isOm)
-                    {
-                        cl_node->stale = TRUE;
-                        cl_node->exposed = TRUE;
-                    } else {
-                        TRACE_2("client_node_get failed");
-                    }
-
-					/* Even though we finalized the resurrected handle towards IMMND,
-					   we dont remove the client_node because this is just a dispatch.
-					   Instead we leave it to the application to explicitly finalize its
-					   handle.
-					*/
-
-                    m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-                    rc = SA_AIS_ERR_BAD_HANDLE;
-                    goto fail;
-                } /* if(err != SA_AIS_OK .. failed to set implementer. */
-                /* unlocked*/
-            } /* if(implName.... set implementer */
-            /* unlocked */
-        } /* if(client resurrect...*/
-        else {
-            /*Unlocked*/
-            LOG_NO("Failed to resurrect stale OI handle <c:%u, n:%u>",
+		if (!imma_oi_resurrect(cb, cl_node, &locked)) {
+            LOG_NO("Failed to resurrect stale OI handle <c:%u, n:%x>",
                 m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
                 m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
             rc = SA_AIS_ERR_BAD_HANDLE;
+			goto fail;
+		}
 
-            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
-            {
-                TRACE_1("LOCK failed");
-                rc = SA_AIS_ERR_LIBRARY;
-                goto fail;
-            }
-            /* Locked */
+		LOG_NO("Successfully resurrected OI handle <c:%u, n:%x>",
+			m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
+			m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
 
-            if(cb->dispatch_clients_to_resurrect > 0) {
-                --(cb->dispatch_clients_to_resurrect);
-            }
-            TRACE_2("Remaining clients to actively resurrect: %d", 
-                cb->dispatch_clients_to_resurrect);
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS){
+			TRACE_1("Lock failure");
+			rc = SA_AIS_ERR_LIBRARY;
+			goto fail;
+		}
+		locked = TRUE;
 
-            /* get the client again. */
-            imma_client_node_get(&cb->client_tree, &immOiHandle,&cl_node);
-            if (!cl_node|| cl_node->isOm)
-            {
-                TRACE_2("client_node_get failed AFTER resurrect attempt");
-                rc = SA_AIS_ERR_BAD_HANDLE;
-                m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-                goto fail;
-            }
+		/* get the client again. */
+		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+		if (!cl_node|| cl_node->isOm)
+		{
+			TRACE_2("client_node_get failed AFTER successfull  resurrect!");
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			goto fail;
+		}
 
-            cl_node->exposed = TRUE;
+		if (cl_node->stale) {
+			TRACE_2("client became stale AGAIN after successfull resurrect!");
+			cl_node->exposed = TRUE;
+			rc = SA_AIS_ERR_BAD_HANDLE;
+			goto fail;
+		}
 
-            /* We could remove this client node here and now.
-               But the policy for now is to have the user explicitly
-               do a finalize. The reason is the risk of the user having 
-               handle copies in their code. Indeed that could be the case
-               even if they have done a finalize on the handle. But at
-               least that could be declared an obvious application bug. 
-
-               The situation here is that the dispatch returns BAD_HANDLE
-               which formaly means the application has been made aware of
-               the handle being bad. But the application could be 
-               multithreaded and having another thread still not aware of
-               the bad handle. If the application does a finalize on a
-               handle then we can assume it does this in a way that is
-               safe for all its threads.
-            */
-            m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-        } /*else {failed to actively resurrect...*/
-        /*unlocked*/
-	}	/*if(isStale....*/
-
-    /* unlocked */
-
-    if(rc != SA_AIS_OK  ) {
-        goto fail;
-    }
+		cl_node->selObjUsable = TRUE; /* success */
+	}
 
     /* Back to normal case of non stale (possibly resurrected) handle. */
+    /* Unlock & do the dispatch to avoid deadlock in arrival callback. */
+	if (locked) {
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = FALSE;
+    }
+    cl_node = NULL; /*Prevent unsafe use.*/
+	/* unlocked */
 
 	switch (dispatchFlags) {
 	case SA_DISPATCH_ONE:
@@ -676,6 +538,8 @@ SaAisErrorT saImmOiDispatch(SaImmOiHandleT immOiHandle, SaDispatchFlagsT dispatc
 	}			/* switch */
 
  fail:
+	if (locked)
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	TRACE_LEAVE();
 	return rc;
@@ -703,6 +567,8 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	IMMA_CLIENT_NODE *cl_node = 0;
 	uns32 proc_rc = NCSCC_RC_SUCCESS;
 	NCS_BOOL locked = TRUE;
+	TRACE_ENTER();
+
 
 	if (cb->sv_id == 0) {
 		TRACE_2("No initialized handle exists!");
@@ -728,10 +594,10 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	/*Increment before stale check to get uniform stale handling 
 	  before and after send (see stale_handle:)
 	*/
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale", immOiHandle);
 		rc = SA_AIS_OK;	/* Dont punish the client for closing stale handle */
 		/* Dont try to resurrect since this is finalize. */
 		cl_node->exposed = TRUE;
@@ -767,6 +633,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	case NCSCC_RC_SUCCESS:
 		break;
 	case NCSCC_RC_REQ_TIMOUT:
+		LOG_WA("Got ERR_TIMEOUT in saImmOiFinalize - ignoring");
         /* Yes could be a stale handle, but this is handle finalize.
            Dont cause unnecessary problems by returning an error code. 
            If this is a true timeout caused by an unusually sluggish but
@@ -778,7 +645,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 	default:
 		TRACE_1("MDS returned unexpected error code %u", proc_rc);
 		rc = SA_AIS_ERR_LIBRARY;
-		/* We lose the blocked count in this case but ERR_LIBRARY dominates. */
+		/* We lose the pending reply count in this case but ERR_LIBRARY dominates. */
 		goto mds_send_fail; 
 	}
 
@@ -801,7 +668,7 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 			NCSCC_RC_SUCCESS) {
 			rc = SA_AIS_ERR_LIBRARY;
-			/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+			/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 			TRACE_1("LOCK failed");
 			goto lock_fail1;
 		}
@@ -811,19 +678,20 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 		/* get the client_info */
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 		if (!cl_node || cl_node->isOm) {
-			rc = SA_AIS_ERR_BAD_HANDLE;
+			/*rc = SA_AIS_ERR_BAD_HANDLE; This is finalize*/
 			TRACE_2("client_node_get failed");
 			goto node_not_found;
 		}
 
 		if (cl_node->stale) {
-			TRACE_2("Handle %llu is stale", immOiHandle);
-			rc = SA_AIS_OK;	/*Dont punish the client for closing stale handle*/
-			cl_node->exposed = TRUE;
+			TRACE_2("Handle %llx is stale", immOiHandle);
+			/*Dont punish the client for closing stale handle rc == SA_AIS_OK */
+
+			cl_node->exposed = TRUE; /* But dont resurrect it either. */
 		}
 
-		imma_proc_decrement_blocked(cl_node);
-		imma_finalize_proc(cb, cl_node);
+		imma_proc_decrement_pending_reply(cl_node);
+		imma_finalize_client(cb, cl_node);
 	}
 
  lock_fail1:
@@ -834,11 +702,12 @@ SaAisErrorT saImmOiFinalize(SaImmOiHandleT immOiHandle)
 
  lock_fail:
 	if (rc == SA_AIS_OK) {
-		if(NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
+		if (NCSCC_RC_SUCCESS != imma_shutdown(NCSMDS_SVC_ID_IMMA_OI)) {
             TRACE_1("Call to imma_shutdown failed");
             rc = SA_AIS_ERR_LIBRARY;
         }
 	}
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -889,10 +758,10 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -901,14 +770,14 @@ SaAisErrorT saImmOiAdminOperationResult(SaImmOiHandleT immOiHandle, SaInvocation
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
 		}
 
-		TRACE_1("Reactive ressurect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive ressurect of handle %llx succeeded", immOiHandle);
 	}
 
 	/* Note NOT unsigned since negative means async invoc. */
@@ -1016,7 +885,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 	if (nameLen >= SA_MAX_NAME_LENGTH) {
 		TRACE_1("Implementer name too long, size: %u max:%u", nameLen, SA_MAX_NAME_LENGTH);
-		return SA_AIS_ERR_LIBRARY;
+		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
 	if (cb->is_immnd_up == FALSE) {
@@ -1048,10 +917,10 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1060,14 +929,14 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	/* Populate & Send the Open Event to IMMND */
@@ -1078,7 +947,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	evt.info.immnd.info.implSet.impl_name.size = nameLen;
 	evt.info.immnd.info.implSet.impl_name.buf = implementerName;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	/* Unlock before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1107,7 +976,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 	default:
 		rc = SA_AIS_ERR_LIBRARY;
 		TRACE_1("MDS returned unexpected error code %u", proc_rc);
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		goto bad_handle;
 		break; 
 	}
@@ -1116,7 +985,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("Lock failed");
 		goto lock_fail;
 	}
@@ -1129,12 +998,18 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale after successfull call", immOiHandle);
+		/* This is implementer set => user expects this to be 
+		   upheld, handle is stale but implementorship SURVIVES
+		   resurrection. But we can not reply ok on this call since
+		   we should make the user aware that they are actually detached
+		   from the implementership that this call could have established
+		 */
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		cl_node->exposed =TRUE;
+		cl_node->exposed = TRUE;
 		goto bad_handle;
 	}
 
@@ -1142,7 +1017,7 @@ SaAisErrorT saImmOiImplementerSet(SaImmOiHandleT immOiHandle, const SaImmOiImple
 		/* Process the received Event */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMPLSET_RSP);
-		if(rc == SA_AIS_OK) {
+		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.implSetRsp.error;
 			if (rc == SA_AIS_OK) {
 				cl_node->mImplementerId = out_evt->info.imma.info.implSetRsp.implId;
@@ -1213,8 +1088,15 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		goto bad_handle;
 	}
 
+	if (cl_node->mImplementerId == 0) {
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		/* Yes BAD_HANDLE and not ERR_EXIST, see standard. */
+		TRACE_2("No implementer is set for this handle");
+		goto bad_handle;
+	}
+
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale", immOiHandle);
 		/* Note that this is implementer clear. We dont want a resurrect to
 		   set implementer, just so we can clear it right after!
 		   Instead we try to only resurrect, but avoid setting implementer,
@@ -1224,9 +1106,9 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		free(cl_node->mImplementerName);
 		cl_node->mImplementerName = NULL;
 
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1235,22 +1117,15 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 		goto skip_impl_clear; /* Implementer already cleared by stale => resurrect */
-	}
-
-	if (cl_node->mImplementerId == 0) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		/* Yes BAD_HANDLE and not ERR_EXIST, see standard. */
-		TRACE_2("No implementer is set for this handle");
-		goto bad_handle;
 	}
 
 	/* Populate & Send the Open Event to IMMND */
@@ -1260,7 +1135,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 	evt.info.immnd.info.implSet.client_hdl = immOiHandle;
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -1269,7 +1144,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto lock_fail;
 	}
@@ -1282,18 +1157,23 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto skip_impl_clear;
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		cl_node->exposed = TRUE;
-		goto bad_handle;
+		TRACE_2("Handle %llx is stale after successfull call - ignoring", 
+			immOiHandle);
+		/*
+		  This is implementer clear => a relaxation
+		  => not necessary to expose when the call succeeded.
+		  rc = SA_AIS_ERR_BAD_HANDLE;
+		  cl_node->exposed = TRUE;
+		  goto bad_handle;
+		*/
 	}
 
 	assert(out_evt);
@@ -1314,7 +1194,7 @@ SaAisErrorT saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 	if (locked) 
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
-	if(out_evt) 
+	if (out_evt) 
 		free(out_evt);
 
  lock_fail:
@@ -1383,10 +1263,10 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1395,14 +1275,14 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -1420,7 +1300,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	evt.info.immnd.info.implSet.impl_name.buf = className;
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -1431,7 +1311,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto lock_fail;
 	}
@@ -1445,17 +1325,22 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto fevs_error;
 	}
 
 	if (cl_node->stale) {
+		TRACE_2("Handle %llx is stale after successfull call", 
+			immOiHandle);
+
+		/* This is class implementer set => user expects this to be 
+		   upheld, but handle is stale => exposed.
+		 */		
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
 		goto bad_handle;
 	}
 
@@ -1471,7 +1356,7 @@ SaAisErrorT saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmCl
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	return rc;
@@ -1539,10 +1424,10 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1551,14 +1436,14 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -1576,7 +1461,7 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	evt.info.immnd.info.implSet.impl_name.buf = className;
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -1587,7 +1472,7 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto lock_fail;
 	}
@@ -1601,18 +1486,23 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto fevs_error;
 	}
 
 	if (cl_node->stale) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		goto bad_handle;
+		TRACE_2("Handle %llx is stale after successfull call - ignoring", 
+			immOiHandle);
+		/*
+		  This is a class implementer release => a relaxation
+		  => not necessary to expose when the call succeeded.
+		  rc = SA_AIS_ERR_BAD_HANDLE;
+		  cl_node->exposed = TRUE;
+		  goto bad_handle;
+		*/
 	}
 
 	assert(out_evt);
@@ -1628,7 +1518,7 @@ SaAisErrorT saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaI
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 	return rc;
 
@@ -1702,10 +1592,10 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1714,14 +1604,14 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -1743,7 +1633,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 	evt.info.immnd.info.implSet.scope = scope;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -1755,7 +1645,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto lock_fail;
 	}
@@ -1769,17 +1659,23 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto fevs_error;
 	}
 
 	if (cl_node->stale) {
+		TRACE_2("Handle %llx is stale after successfull call", 
+			immOiHandle);
+
+		/* This is an object implementer set => user expects this to be 
+		   upheld, but handle is stale => exposed.
+		   
+		 */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
 		goto bad_handle;
 	}
 
@@ -1794,7 +1690,7 @@ SaAisErrorT saImmOiObjectImplementerSet(SaImmOiHandleT immOiHandle, const SaName
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	return rc;
@@ -1873,10 +1769,10 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -1885,14 +1781,14 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -1912,7 +1808,7 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	evt.info.immnd.info.implSet.impl_id = cl_node->mImplementerId;
 	evt.info.immnd.info.implSet.scope = scope;
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -1924,7 +1820,7 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto lock_fail;
 	}
@@ -1938,20 +1834,24 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto fevs_error;
 	}
 
 	if (cl_node->stale) {
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		goto bad_handle;
+		TRACE_2("Handle %llx is stale after successfull call - ignoring", 
+			immOiHandle);
+		/*
+		  This is object implementer release => a relaxation
+		  => not necessary to expose when the call succeeded.
+		  rc = SA_AIS_ERR_BAD_HANDLE;
+		  cl_node->exposed = TRUE;
+		  goto bad_handle;
+		*/
 	}
-
 
 	assert(out_evt);
 	assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
@@ -1964,7 +1864,7 @@ SaAisErrorT saImmOiObjectImplementerRelease(SaImmOiHandleT immOiHandle, const Sa
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	return rc;
@@ -2030,10 +1930,10 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -2042,14 +1942,14 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -2137,7 +2037,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	   return of the upcall is the signal that the new values are ready, not
 	   the invocation of this update call. */
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	/* Release the CB lock Before MDS Send */
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -2163,7 +2063,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	default:
 		TRACE_1("MDS returned unexpected error code %u", proc_rc);
 		rc = SA_AIS_ERR_LIBRARY;
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		goto bad_handle;
 	}
 
@@ -2171,7 +2071,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("Lock failed");
 		goto lock_fail;
 	}
@@ -2184,21 +2084,20 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 		goto bad_handle;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale", immOiHandle);
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed =TRUE;
 		goto bad_handle;
 	}
 
-
 	if (out_evt) {
 		/* Process the outcome, note this is after a blocking call. */
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
-		if(rc == SA_AIS_OK) {
+		if (rc == SA_AIS_OK) {
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
 	}
@@ -2241,7 +2140,7 @@ SaAisErrorT saImmOiRtObjectUpdate_2(SaImmOiHandleT immOiHandle,
 	}
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	TRACE_LEAVE();
@@ -2309,10 +2208,10 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -2321,14 +2220,14 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -2434,7 +2333,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		evt.info.immnd.info.objCreate.attrValues = p;
 	}
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -2443,7 +2342,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto mds_send_fail;
 	}
@@ -2457,9 +2356,9 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 		goto mds_send_fail;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto mds_send_fail;
 	}
@@ -2467,7 +2366,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	if (cl_node->stale) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale", immOiHandle);
 		goto mds_send_fail;
 	}
 
@@ -2516,7 +2415,7 @@ extern SaAisErrorT saImmOiRtObjectCreate_2(SaImmOiHandleT immOiHandle,
 	}
 
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	TRACE_LEAVE();
@@ -2568,10 +2467,10 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("Handle %llu is stale", immOiHandle);
-		NCS_BOOL resurrected = imma_oi_reactive_resurrect(cb, &cl_node, &locked);
+		TRACE_2("Handle %llx is stale", immOiHandle);
+		NCS_BOOL resurrected = imma_oi_resurrect(cb, cl_node, &locked);
 
-		if(!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 			TRACE_1("LOCK failed");
 			rc = SA_AIS_ERR_LIBRARY;
 			goto lock_fail;
@@ -2580,14 +2479,14 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 
 		imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
 
-		if(!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
-			TRACE_1("Reactive ressurect of handle %llu failed", immOiHandle);
-			if(cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
+		if (!resurrected || !cl_node || cl_node->isOm || cl_node->stale) {
+			TRACE_1("Reactive ressurect of handle %llx failed", immOiHandle);
+			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
 		}
 
-		TRACE_1("Reactive resurrect of handle %llu succeeded", immOiHandle);
+		TRACE_1("Reactive resurrect of handle %llx succeeded", immOiHandle);
 	}
 
 	if (cl_node->mImplementerId == 0) {
@@ -2616,7 +2515,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 		(char *)objectName->value, evt.info.immnd.info.objDelete.objectName.size);
 	evt.info.immnd.info.objDelete.objectName.buf[evt.info.immnd.info.objDelete.objectName.size - 1] = '\0';
 
-	imma_proc_increment_blocked(cl_node);
+	imma_proc_increment_pending_reply(cl_node);
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, TRUE);
 
@@ -2625,7 +2524,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != 
 		NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY; /* Overwrites any error from fake_evs() */
-		/* Losing track of the blocked count, but ERR_LIBRARY dominates*/
+		/* Losing track of the pending reply count, but ERR_LIBRARY dominates*/
 		TRACE_1("LOCK failed");
 		goto cleanup;
 	}
@@ -2639,9 +2538,9 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 		goto cleanup;
 	}
 
-	imma_proc_decrement_blocked(cl_node);
+	imma_proc_decrement_pending_reply(cl_node);
 
-	if(rc != SA_AIS_OK) {
+	if (rc != SA_AIS_OK) {
 		/* fake_evs returned error */
 		goto cleanup;
 	}
@@ -2649,7 +2548,7 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (cl_node->stale) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		cl_node->exposed = TRUE;
-		TRACE_2("Handle %llu is stale", immOiHandle);
+		TRACE_2("Handle %llx is stale", immOiHandle);
 		goto cleanup;
 	}
 
@@ -2668,72 +2567,174 @@ SaAisErrorT saImmOiRtObjectDelete(SaImmOiHandleT immOiHandle, const SaNameT *obj
 	if (locked)
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
  lock_fail:
-	if(out_evt)
+	if (out_evt)
 		free(out_evt);
 
 	return rc;
 }
 
-int imma_oi_reactive_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE **cl_node, NCS_BOOL *locked)
+/* Tries to set implementer for resurrected handle.
+   If it fails, then resurrection must be reverted
+   and stale+exposed must be set on client node by
+   invoking code.
+
+   cb_lock must NOT be locked on entry.
+*/
+static SaBoolT imma_implementer_set(IMMA_CB *cb, SaImmOiHandleT immOiHandle)
 {
-	SaImmOiHandleT immOiHandle;
+	SaAisErrorT err = SA_AIS_OK;
+	unsigned int sleep_delay_ms = 500;
+	unsigned int max_waiting_time_ms = 3 * 1000;	/* 3 secs */
+	unsigned int msecs_waited = 0;
 	SaImmOiImplementerNameT implName;
+	IMMA_CLIENT_NODE *cl_node = NULL;
+	SaBoolT locked = SA_FALSE;
 	TRACE_ENTER();
-	assert(locked && *locked);
-	assert(cl_node && *cl_node && (*cl_node)->stale);
-	immOiHandle = (*cl_node)->handle;
-	implName = (*cl_node)->mImplementerName;
-	(*cl_node)->mImplementerName = NULL;
-	(*cl_node)->mImplementerId = 0;
-	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-	*locked = FALSE;
-	*cl_node = NULL;
-	if(imma_proc_resurrect_client(cb, immOiHandle, FALSE)) {
-		TRACE_1("Successfully resurrected OI handle <c:%u, n:%u>",
-			m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
-			m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
 
-		/* Set implementer if needed. */
-		if(implName) {
-			SaAisErrorT err = SA_AIS_OK;
-			unsigned int sleep_delay_ms = 500;
-			unsigned int max_waiting_time_ms = 3 * 1000;	/* 3 secs */
-			unsigned int msecs_waited = 0;
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_2("Lock failure");
+		goto fail;
+	}
+	locked = TRUE;
 
-			err = saImmOiImplementerSet(immOiHandle, implName);
-			TRACE("saImmOiImplementerSet returned %u", err);
-
-			while((err == SA_AIS_ERR_TRY_AGAIN)&&
-				(msecs_waited < max_waiting_time_ms))
-			{
-				usleep(sleep_delay_ms * 1000);
-				msecs_waited += sleep_delay_ms;
-				err = saImmOiImplementerSet(immOiHandle, implName);
-				TRACE("saImmOiImplementerSet returned %u", err);
-			}
-			free(implName);
-			/*We dont need to set class/object implementer again 
-			  because that association is still maintained by the 
-			  distributed IMMSv over IMMND crashes. 
-			*/
-
-			if(err != SA_AIS_OK) {
-				TRACE_1("Failed to set implementer");
-				goto fail;
-			}
-		}
-	} else {
-		TRACE_1("Failed to resurrect OI handle <c:%u, n:%u>",
-			m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
-			m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
-		
+	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+	if (!cl_node || cl_node->isOm || cl_node->stale) {
+		TRACE_2("client_node_get failed");
 		goto fail;
 	}
 
+	implName = cl_node->mImplementerName;
+	cl_node->mImplementerName = NULL;
+	cl_node->mImplementerId = 0;
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	locked = FALSE;
+	cl_node=NULL;
+
+	if (!implName) {
+		/* No implementer to re-connect with. */
+		goto success;
+	}
+
+	err = saImmOiImplementerSet(immOiHandle, implName);
+	TRACE("saImmOiImplementerSet returned %u", err);
+
+	while ((err == SA_AIS_ERR_TRY_AGAIN)&&
+		(msecs_waited < max_waiting_time_ms)) {
+		usleep(sleep_delay_ms * 1000);
+		msecs_waited += sleep_delay_ms;
+		err = saImmOiImplementerSet(immOiHandle, implName);
+		TRACE("saImmOiImplementerSet returned %u", err);
+	}
+	free(implName);
+	/*We dont need to set class/object implementer again 
+	  because that association is still maintained by the 
+	  distributed IMMSv over IMMND crashes. 
+	*/
+
+	if (err != SA_AIS_OK) {
+		/* Note: cl_node->mImplementerName is now NULL
+		   The failed implementer-set was then destructive
+		   on the handle. But the resurrect shall now be
+		   reverted (handle finalized towards IMMND) and
+		   cl_node->stale/exposed both set to TRUE.
+		 */
+		goto fail;
+	}
+
+ success:
+	assert(!locked);
 	TRACE_LEAVE();
-	return 1;
+	return SA_TRUE;
+
+ fail:
+	if (locked) {m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);}
+	TRACE_LEAVE();
+	return SA_FALSE;
+}
+
+int imma_oi_resurrect(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, NCS_BOOL *locked)
+{
+	IMMSV_EVT  finalize_evt, *out_evt = NULL;
+	TRACE_ENTER();
+	assert(locked && *locked);
+	assert(cl_node && cl_node->stale);
+	SaImmOiHandleT immOiHandle = cl_node->handle;
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	*locked = FALSE;
+	cl_node = NULL;
+	if (!imma_proc_resurrect_client(cb, immOiHandle, FALSE)) {
+		TRACE_1("Failed to resurrect OI handle <c:%u, n:%x>",
+			m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
+			m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
+		goto fail;
+	}
+
+	TRACE_1("Successfully resurrected OI handle <c:%u, n:%x>",
+		m_IMMSV_UNPACK_HANDLE_HIGH(immOiHandle),
+		m_IMMSV_UNPACK_HANDLE_LOW(immOiHandle));
+
+	/* Set implementer if needed. */
+	if (imma_implementer_set(cb, immOiHandle)) {
+		goto success;
+	}
+
+	LOG_NO("Failed to set implementer for resurrected "
+		"OI handle - reverting resurrection");
+
+	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+		TRACE_1("Lock failure");
+		goto fail;
+	}
+	*locked = TRUE;
+
+	imma_client_node_get(&cb->client_tree, &immOiHandle, &cl_node);
+	if (cl_node && !cl_node->isOm) {
+		cl_node->stale = TRUE;
+		cl_node->exposed = TRUE;
+	} else {
+		TRACE_2("client_node_get failed");
+	}
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	*locked = FALSE;
+	cl_node = NULL;
+
+	/* Finalize the just resurrected handle ! */
+	memset(&finalize_evt, 0, sizeof(IMMSV_EVT));
+	finalize_evt.type = IMMSV_EVT_TYPE_IMMND;
+	finalize_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_OI_FINALIZE;
+	finalize_evt.info.immnd.info.finReq.client_hdl = immOiHandle;
+
+	/* send a finalize handle req to the IMMND.
+	   Dont bother checking the answer. This is just
+	   an attempt to deallocate the useless resurrected
+	   handle on the server side. 
+	*/
+
+	if (cb->is_immnd_up)  {
+		imma_mds_msg_sync_send(cb->imma_mds_hdl, 
+			&(cb->immnd_mds_dest),&finalize_evt,&out_evt,
+			IMMSV_WAIT_TIME);
+
+		/* Dont care about the response on finalize. */
+		if (out_evt) {free(out_evt);}
+	}
+
+	/* Even though we finalized the resurrected handle towards IMMND,
+	   we dont remove the client_node because this is just a dispatch.
+	   Instead we leave it to the application to explicitly finalize its
+	   handle.
+	*/
 
  fail:
 	TRACE_LEAVE();
+	/* may be locked or unlocked as reflected in *locked */
 	return 0;
+
+ success:
+	TRACE_LEAVE();
+	/* may be locked or unlocked as reflected in *locked */
+	return 1;
 }

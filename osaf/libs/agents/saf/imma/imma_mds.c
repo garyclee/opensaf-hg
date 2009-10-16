@@ -111,7 +111,7 @@ uns32 imma_mds_register(IMMA_CB *cb)
 	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("mds register failed");
+		TRACE_1("mds register A failed rc:%u", rc);
 		return rc;
 	}
 	cb->imma_mds_dest = svc_info.info.svc_install.o_dest;
@@ -123,7 +123,7 @@ uns32 imma_mds_register(IMMA_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = &subs_id[0];
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("mds register failed");
+		TRACE_1("mds register B failed rc:%u", rc);
 		goto error;
 	}
 
@@ -393,7 +393,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		TRACE("IMMND DOWN");
 		cb->is_immnd_up = FALSE; /*Dont wait for lock to block mds usage*/
         cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
-		if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
+		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
             LOG_ER("Locking failed");
             assert(0);
         }
@@ -405,7 +405,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
 	case NCSMDS_UP:
 		TRACE("IMMND UP");
-		if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
+		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
             LOG_ER("Locking failed");
             assert(0);
         }
@@ -418,8 +418,8 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
            in resurrections. 
          */
         imma_determine_clients_to_resurrect(cb, &locked);
-        if(!locked) {
-            if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+        if (!locked) {
+            if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
                 LOG_ER("Locking failed");
                 assert(0);
             }

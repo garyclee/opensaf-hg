@@ -39,8 +39,8 @@ typedef struct imma_client_node {
 					  connection. A resurrect can remove it.*/
 	uns8 exposed;    /* Exposed => stale is irreversible */
 	uns8 selObjUsable; /* Active resurrect possible for this client */
-	uns8 replyPending; /* Syncronous call made towards IMMND */
-	uns8 criticalCcbs; /* Number of critical ccbs towards this client. */
+	uns8 replyPending; /* Syncronous or asyncronous call made towards IMMND */
+	uns8 criticalCcbs; /* Number of critical ccbs towards this (OI) client. */
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;
 
@@ -50,6 +50,7 @@ typedef struct imma_admin_owner_node {
 	SaImmAdminOwnerHandleT admin_owner_hdl;	/* locally generated handle */
 	SaImmHandleT mImmHandle;	/* The immOm handle */
 	SaUint32T mAdminOwnerId;
+	SaImmAdminOwnerNameT mAdminOwnerName; /* Needed for OM resurrect. */
 	uns8 mReleaseOnFinalize; /* Release on finalize set, stale irreversible*/
 } IMMA_ADMIN_OWNER_NODE;
 
@@ -61,7 +62,11 @@ typedef struct imma_ccb_node {
 	SaImmAdminOwnerHandleT mAdminOwnerHdl;
 	SaImmCcbFlagsT mCcbFlags;
 	SaUint32T mCcbId;
-	SaBoolT mTerminated;
+	uns8 mExclusive;   /* 1 => Ccb-id being created, applied or finalized */
+	uns8 mApplying;    /* Critical (apply invoked), IMMND contact lost => 
+						  timeout => Ccb-outcome to be recovered. */
+	uns8 mApplied;     /* Current mCcbId applied&terminated */
+	uns8 mAborted;     /* Current mCcbId aborted */
 } IMMA_CCB_NODE;
 
 /* Node to store Search info */
@@ -147,13 +152,13 @@ EXTERN_C uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
 EXTERN_C void imma_admin_owner_node_getnext(IMMA_CB *cb,
 					    SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node);
 EXTERN_C uns32 imma_admin_owner_node_add(NCS_PATRICIA_TREE *admin_owner_tree, IMMA_ADMIN_OWNER_NODE *adm_node);
-EXTERN_C uns32 imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node);
+EXTERN_C void imma_admin_owner_node_delete(IMMA_CB *cb, IMMA_ADMIN_OWNER_NODE *adm_node);
 EXTERN_C void imma_admin_owner_tree_destroy(IMMA_CB *cb);
 EXTERN_C void imma_admin_owner_tree_cleanup(IMMA_CB *cb);
 
 /*ccb tree */
 EXTERN_C uns32 imma_ccb_tree_init(IMMA_CB *cb);
-EXTERN_C uns32 imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
+EXTERN_C void imma_ccb_node_get(NCS_PATRICIA_TREE *ccb_tree, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
 EXTERN_C void imma_ccb_node_getnext(IMMA_CB *cb, SaImmCcbHandleT *ccb_hdl, IMMA_CCB_NODE **ccb_node);
 EXTERN_C uns32 imma_ccb_node_add(NCS_PATRICIA_TREE *ccb_tree, IMMA_CCB_NODE *ccb_node);
 EXTERN_C uns32 imma_ccb_node_delete(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node);

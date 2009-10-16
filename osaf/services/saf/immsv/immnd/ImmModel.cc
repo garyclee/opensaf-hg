@@ -2104,7 +2104,7 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     info->mWaitStartTime = 0;
     sCcbVector.push_back(info);
     
-    TRACE_5("CCB %u created", info->mId);
+    TRACE_5("CCB %u created with admo %u", info->mId, adminOwnerId);
     
     TRACE_LEAVE();
     return err;
@@ -3292,11 +3292,12 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         (size_t)req->objectName.size);
     std::string objectName((const char*)req->objectName.buf, sz);
     
-    TRACE_2("Modify objectName:%s\n", objectName.c_str());
-    
     SaUint32T ccbId = req->ccbId;
     SaUint32T ccbIdOfObj = 0;
     SaUint32T adminOwnerId = req->adminOwnerId;
+
+    TRACE_2("Modify objectName:%s ccbId:%u admoId:%u\n", 
+		objectName.c_str(), ccbId, adminOwnerId);
     
     CcbInfo* ccb = 0;
     AdminOwnerInfo* adminOwner = 0;
@@ -3355,7 +3356,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     assert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
-        LOG_WA("Inconsistency between Ccb and AdminOwner");
+        LOG_WA("Inconsistency between Ccb-admoId:%u and AdminOwnerId:%u",
+			adminOwner->mId, ccb->mAdminOwnerId);
         err = SA_AIS_ERR_LIBRARY;
         goto ccbObjectModifyExit;
     }
@@ -3880,7 +3882,8 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     if(oi->second->mClassInfo->mCategory != SA_IMM_CLASS_CONFIG) {
         TRACE_7("object '%s' is not a configuration object", 
             oi->first.c_str());
-        return SA_AIS_ERR_INVALID_PARAM;
+        /*return SA_AIS_ERR_INVALID_PARAM;*/
+        return SA_AIS_ERR_BAD_OPERATION;
     }
     
     if(!(oi->second->mImplementer && oi->second->mImplementer->mNodeId) &&
