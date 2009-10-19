@@ -131,6 +131,15 @@ SUBDIRS += java
 
 endif
 
+if ENABLE_TESTS
+
+SUBDIRS += \
+	tests/logsv \
+	tests/ntfsv \
+	tests/immsv/implementer \
+	tests/immsv/management
+endif
+
 
 nodist_pkgsysconf_DATA = \
 	$(top_builddir)/config/script.conf

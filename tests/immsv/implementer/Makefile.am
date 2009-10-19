@@ -23,7 +23,6 @@ bin_PROGRAMS = immoitest
 
 immoitest_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/services/common/inc \
 	-I$(top_srcdir)/tests/immsv/common \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
@@ -31,22 +30,22 @@ immoitest_SOURCES = \
 	$(top_srcdir)/tests/unit_test_fw/src/util.c \
 	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
 	$(top_srcdir)/tests/immsv/common/immtest.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiInitialize_2.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiSelectionObjectGet.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiDispatch.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiFinalize.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiImplementerSet.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiImplementerClear.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiClassImplementerSet.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiClassImplementerRelease.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiObjectImplementerSet.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiObjectImplementerRelease.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiRtObjectCreate_2.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiRtObjectDelete.c \
-	$(top_srcdir)/tests/immsv/implementer/test_saImmOiRtObjectUpdate_2.c \
-	$(top_srcdir)/tests/immsv/implementer/test_SaImmOiRtAttrUpdateCallbackT.c \
-	$(top_srcdir)/tests/immsv/implementer/test_SaImmOiCcb.c \
-	$(top_srcdir)/tests/immsv/implementer/test_SaImmOiAdminOperation.c
+	test_saImmOiInitialize_2.c \
+	test_saImmOiSelectionObjectGet.c \
+	test_saImmOiDispatch.c \
+	test_saImmOiFinalize.c \
+	test_saImmOiImplementerSet.c \
+	test_saImmOiImplementerClear.c \
+	test_saImmOiClassImplementerSet.c \
+	test_saImmOiClassImplementerRelease.c \
+	test_saImmOiObjectImplementerSet.c \
+	test_saImmOiObjectImplementerRelease.c \
+	test_saImmOiRtObjectCreate_2.c \
+	test_saImmOiRtObjectDelete.c \
+	test_saImmOiRtObjectUpdate_2.c \
+	test_SaImmOiRtAttrUpdateCallbackT.c \
+	test_SaImmOiCcb.c \
+	test_SaImmOiAdminOperation.c
 
 immoitest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \

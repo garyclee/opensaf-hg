@@ -22,7 +22,6 @@ bin_PROGRAMS = immomtest
 
 immomtest_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/services/common/inc \
 	-I$(top_srcdir)/tests/immsv/common \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
@@ -30,32 +29,32 @@ immomtest_SOURCES = \
 	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
 	$(top_srcdir)/tests/unit_test_fw/src/util.c \
 	$(top_srcdir)/tests/immsv/common/immtest.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmInitialize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmSelectionObjectGet.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmDispatch.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmFinalize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAccessorInitialize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAccessorGet_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAccessorFinalize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmClassCreate_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmClassDescriptionGet_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmClassDescriptionMemoryFree_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmClassDelete.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmSearchInitialize_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmSearchNext_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmSearchFinalize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOwnerInitialize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOwnerSet.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOwnerRelease.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOwnerFinalize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOwnerClear.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbInitialize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbObjectCreate_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbObjectDelete.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbObjectModify_2.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbApply.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmCcbFinalize.c \
-	$(top_srcdir)/tests/immsv/management/test_saImmOmAdminOperationContinue.c
+	test_saImmOmInitialize.c \
+	test_saImmOmSelectionObjectGet.c \
+	test_saImmOmDispatch.c \
+	test_saImmOmFinalize.c \
+	test_saImmOmAccessorInitialize.c \
+	test_saImmOmAccessorGet_2.c \
+	test_saImmOmAccessorFinalize.c \
+	test_saImmOmClassCreate_2.c \
+	test_saImmOmClassDescriptionGet_2.c \
+	test_saImmOmClassDescriptionMemoryFree_2.c \
+	test_saImmOmClassDelete.c \
+	test_saImmOmSearchInitialize_2.c \
+	test_saImmOmSearchNext_2.c \
+	test_saImmOmSearchFinalize.c \
+	test_saImmOmAdminOwnerInitialize.c \
+	test_saImmOmAdminOwnerSet.c \
+	test_saImmOmAdminOwnerRelease.c \
+	test_saImmOmAdminOwnerFinalize.c \
+	test_saImmOmAdminOwnerClear.c \
+	test_saImmOmCcbInitialize.c \
+	test_saImmOmCcbObjectCreate_2.c \
+	test_saImmOmCcbObjectDelete.c \
+	test_saImmOmCcbObjectModify_2.c \
+	test_saImmOmCcbApply.c \
+	test_saImmOmCcbFinalize.c \
+	test_saImmOmAdminOperationContinue.c
 
 immomtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

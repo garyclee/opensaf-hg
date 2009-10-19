@@ -259,6 +259,19 @@ AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 
 
 #
+# Enable/disable building the OpenSAF tests
+#
+AC_ARG_ENABLE([tests],
+        [AS_HELP_STRING([--enable-tests],
+                [enable building the OpenSAF testing programs [default=no]])],
+        [],
+        [enable_tests=no])
+
+AM_CONDITIONAL([ENABLE_TESTS], [test "$enable_tests" = yes])
+AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
+
+
+#
 # unless explicitly set, drop previx from sysconfdir
 # and localstatedir
 #
