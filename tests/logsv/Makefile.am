@@ -20,30 +20,32 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = logtest
 
+noinst_HEADERS = \
+	logtest.h
+
 logtest_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/services/common/inc \
 	-I$(top_srcdir)/tests/immsv/common \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 logtest_SOURCES = \
 	$(top_srcdir)/tests/unit_test_fw/src/utest.c \
 	$(top_srcdir)/tests/unit_test_fw/src/util.c \
-	$(top_srcdir)/tests/logsv/src/logtest.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogInitialize.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogSelectionObjectGet.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogDispatch.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogFinalize.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogStreamOpen_2.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogStreamOpenAsync_2.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogStreamOpenCallbackT.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogWriteLog.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogWriteLogAsync.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogWriteLogCallbackT.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogFilterSetCallbackT.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogStreamClose.c \
-	$(top_srcdir)/tests/logsv/src/tet_saLogLimitGet.c \
-	$(top_srcdir)/tests/logsv/src/tet_LogOiOps.c
+	logtest.c \
+	tet_saLogInitialize.c \
+	tet_saLogSelectionObjectGet.c \
+	tet_saLogDispatch.c \
+	tet_saLogFinalize.c \
+	tet_saLogStreamOpen_2.c \
+	tet_saLogStreamOpenAsync_2.c \
+	tet_saLogStreamOpenCallbackT.c \
+	tet_saLogWriteLog.c \
+	tet_saLogWriteLogAsync.c \
+	tet_saLogWriteLogCallbackT.c \
+	tet_saLogFilterSetCallbackT.c \
+	tet_saLogStreamClose.c \
+	tet_saLogLimitGet.c \
+	tet_LogOiOps.c
 
 logtest_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la

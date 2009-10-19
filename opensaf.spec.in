@@ -8,6 +8,7 @@
 %define is_hpi %(test "@HPI_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_openhpi %(test "@OPENHPI_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_tests %(test "@TESTS_ENABLED@" = "yes" && echo 1 || echo 0)
 
 %define _pkglibdir %{_libdir}/%{name}
 %define _initddir @initscriptdir@
@@ -151,6 +152,17 @@ Requires: openhpi
 
 %description tools
 Optional miscellaneous tools and utilities for use with OpenSAF
+
+
+%if %is_tests
+%package tests
+Group: Development/Libraries
+Summary: The OpenSAF tests programs
+Requires: %{name}-controller = %{version}-%{release}
+
+%description tests
+The OpenSAF tests programs
+%endif
 
 
 %prep
@@ -469,16 +481,22 @@ fi
 
 
 %files tools
+%defattr(-,root,root)
 %if %is_hpi
 %{_bindir}/hisv_events_demo
 %{_bindir}/hisv_power_set_util
 %endif
-# FIXME bundle tests in its own package
-#%{_bindir}/immomtest
-#%{_bindir}/immoitest
-#%{_bindir}/logtest
-#%{_bindir}/ntftest
 %{_bindir}/opensaf_mem_dump
+
+
+%if %is_tests
+%files tests
+%defattr(-,root,root)
+%{_bindir}/immomtest
+%{_bindir}/immoitest
+%{_bindir}/logtest
+%{_bindir}/ntftest
+%endif
 
 
 %if %is_java
@@ -487,6 +505,7 @@ fi
 %{_libdir}/libjava_ais_api_native.so.*
 %{_javadir}/opensaf_ais_api.jar
 %endif
+
 
 %changelog
 * Sun Mar 8 2009 Hans Feldt <hans.feldt@ericsson.com>
