@@ -62,7 +62,7 @@ uns32 imma_version_validate(SaVersionT *version)
 #endif
 		return SA_AIS_OK;
 	} else {
-		TRACE_1("IMMA - Version Incompatible");
+		TRACE_2("ERR_VERSION: IMMA - Version Incompatible");
 
 		/* Implementation is supporting the required release code */
 		if (IMMA_RELEASE_CODE > version->releaseCode) {
@@ -98,7 +98,7 @@ uns32 imma_callback_ipc_init(IMMA_CLIENT_NODE *client_info)
 			return NCSCC_RC_SUCCESS;
 		}
 		m_NCS_IPC_RELEASE(&client_info->callbk_mbx, NULL);
-		TRACE_1("Failed to initialize callback queue");
+		TRACE_3("Failed to initialize callback queue");
 	}
 	return rc;
 }
@@ -224,13 +224,13 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/*NOTE: should get handle from immnd also and verify. */
 	if (!popAsyncAdmOpContinuation(cb, inv, &immHandleCont, &userInvoc)) {
-		TRACE_1("Missmatch on continuation for " "SaImmOmAdminOperationInvokeCallbackT");
+		TRACE_3("Missmatch on continuation for SaImmOmAdminOperationInvokeCallbackT");
 		return;
 	}
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
@@ -238,7 +238,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &immHandleCont, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Failed to find client node");
+		TRACE_3("Failed to find client node");
 		return;
 	}
 
@@ -251,7 +251,7 @@ static void imma_proc_admin_op_async_rsp(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->type = IMMA_CALLBACK_OM_ADMIN_OP_RSP;
 		callback->lcl_imm_hdl = immHandleCont;
 
-		TRACE("Creating callback for async admop inv:%llx rslt:%u err:%u",
+		TRACE_1("Creating callback for async admop inv:%llx rslt:%u err:%u",
 		      userInvoc, evt->info.admOpRsp.result, evt->info.admOpRsp.error);
 
 		callback->invocation = userInvoc;
@@ -329,7 +329,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
@@ -337,7 +337,7 @@ static void imma_proc_admop(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Failed to find client node");
+		TRACE_3("Failed to find client node");
 		return;
 	}
 
@@ -403,7 +403,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
            init/close of IMMA library (first/last handle).
         */
 
-        TRACE("Active resurrection of %u clients already ongoing",
+        TRACE_3("Active resurrection of %u clients already ongoing",
             cb->dispatch_clients_to_resurrect);
         return;
     } 
@@ -420,7 +420,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
         }
 
         if (!clnode->stale) {
-            LOG_WA("Found NON stale handle <%u, %x> when analyzing handles, "
+            TRACE_3("Found NON stale handle <%u, %x> when analyzing handles, "
                 "bailing from attempt to actively resurrect.", 
                 clientId, nodeId);
 
@@ -448,7 +448,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
         clientHigh_evt.type = IMMSV_EVT_TYPE_IMMND;
         clientHigh_evt.info.immnd.type = IMMND_EVT_A2ND_IMM_CLIENTHIGH;
         clientHigh_evt.info.immnd.info.initReq.client_pid = clientHigh;
-        TRACE("ClientHigh message high %u", clientHigh);
+        TRACE_1("ClientHigh message high %u", clientHigh);
         /* Unlock before MDS Send */
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
         *locked = FALSE;
@@ -456,7 +456,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
 
         if (cb->is_immnd_up == FALSE)
         {
-            TRACE_2("IMMND is DOWN - clientHigh attempt failed. ");
+            TRACE_3("IMMND is DOWN - clientHigh attempt failed. ");
             goto done;
         }
 
@@ -467,7 +467,7 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
             /* Failure to send clientHigh simply means the risk is higher that
                resurrects will fail, exposing the handle as BAD to the client.
             */
-            TRACE_1("imma_determine_clients_to_resurrect: send failed");
+            TRACE_3("imma_determine_clients_to_resurrect: send failed");
         }
     }
 
@@ -492,7 +492,7 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 
         if (m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
                NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
-            LOG_WA("Failed to dispatch stale handle message");
+            TRACE_3("Failed to dispatch stale handle message");
         }
 
         /*Avoid redoing this dispatch for the same stale connection*/
@@ -523,7 +523,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		TRACE_LEAVE();
 		return;
 	}
@@ -532,7 +532,7 @@ static void imma_proc_rt_attr_update(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Failed to find client node");
+		TRACE_3("Failed to find client node");
 		TRACE_LEAVE();
 		return;
 	}
@@ -590,7 +590,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
@@ -598,7 +598,7 @@ static void imma_proc_ccb_completed(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		return;
 	}
 
@@ -637,14 +637,14 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 	SaImmOiHandleT implHandle = evt->info.ccbCompl.immHandle;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		return;
 	}
 
@@ -680,14 +680,14 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 	SaImmOiHandleT implHandle = evt->info.ccbCompl.immHandle;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		return;
 	}
 
@@ -721,14 +721,14 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 	SaImmOiHandleT implHandle = evt->info.objDelete.immHandle;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		return;
 	}
 
@@ -772,7 +772,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return;
 	}
 
@@ -780,7 +780,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		return;
 	}
 
@@ -836,7 +836,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 
 	/* get the CB Lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		TRACE_LEAVE();
 		return;
 	}
@@ -845,7 +845,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 	imma_client_node_get(&cb->client_tree, &implHandle, &cl_node);
 	if (!cl_node || cl_node->isOm) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-		TRACE_1("Could not find client node");
+		TRACE_3("Could not find client node");
 		TRACE_LEAVE();
 		return;
 	}
@@ -954,7 +954,7 @@ void imma_proc_free_pointers(IMMA_CB *cb, IMMA_EVT *evt)
 		break;
 
 	default:
-		TRACE("Unknown event type %u", evt->type);
+		TRACE_4("Unknown event type %u", evt->type);
 		break;
 	}
 	TRACE_LEAVE();
@@ -1010,7 +1010,7 @@ void imma_process_evt(IMMA_CB *cb, IMMSV_EVT *evt)
 		break;
 
 	default:
-		TRACE("Unknown event type %u", evt->info.imma.type);
+		TRACE_4("Unknown event type %u", evt->info.imma.type);
 		break;
 	}
 	imma_proc_free_pointers(cb, &evt->info.imma);
@@ -1076,7 +1076,7 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
-        TRACE_1("Lock failure");
+        TRACE_3("Lock failure");
         goto lock_fail;
     }
     locked = TRUE;
@@ -1084,12 +1084,12 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
     if (cl_node == NULL || (cl_node->stale && cl_node->exposed))
     {
-        LOG_WA("Client not found or already exposed - cant resurrect");
+        TRACE_3("Client not found or already exposed - cant resurrect");
         goto failure;
     }
 	
 	if (!cl_node->stale) {
-		LOG_WA("imma_proc_resurrect_client: Handle %llx was not stale, "
+		TRACE_3("imma_proc_resurrect_client: Handle %llx was not stale, "
 			"resurrected by another thread ?", immHandle);
 		goto skip_resurrect;
 	}
@@ -1109,7 +1109,7 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 
     if (cb->is_immnd_up == FALSE)
     {
-        TRACE_2("IMMND is DOWN - resurrect attempt failed. ");
+        TRACE_3("IMMND is DOWN - resurrect attempt failed. ");
         goto exposed;
     }
 
@@ -1121,13 +1121,13 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
         if (imma_mds_msg_sync_send(cb->imma_mds_hdl, &(cb->immnd_mds_dest), 
                &resurrect_evt,&out_evt, IMMSV_WAIT_TIME) !=  NCSCC_RC_SUCCESS)
         {
-            TRACE_2("Failure in MDS send");
+            TRACE_3("Failure in MDS send");
             goto exposed;
         }
 
         if (!out_evt) 
         {
-            TRACE_2("Empty reply");
+            TRACE_3("Empty reply");
             goto exposed;
         }
 
@@ -1141,7 +1141,7 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 
     if (err != SA_AIS_OK)
     {
-        LOG_WA("Recieved negative reply from IMMND %u", err);
+        TRACE_3("Recieved negative reply from IMMND %u", err);
         goto exposed;
     }
 
@@ -1153,7 +1153,7 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     /* Take the lock again. */
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
     {
-        TRACE_1("Lock failure");
+        TRACE_3("Lock failure");
         goto lock_fail;
     }
     locked = TRUE;
@@ -1162,13 +1162,13 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
     if (cl_node == NULL)
     {
-        TRACE("Client node missing after reply");
+        TRACE_3("Client node missing after reply");
         goto failure;
     }
 
     if (cl_node->exposed)
     {
-        TRACE("Client node got exposed DURING resurrect attempt");
+        TRACE_3("Client node got exposed DURING resurrect attempt");
         /* Could happen in a separate thread trying to use the same handle */
         goto failure;
     }
@@ -1226,7 +1226,7 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -1277,7 +1277,7 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 	IMMA_CLIENT_NODE *cl_node = NULL;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -1305,7 +1305,7 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 		}
 
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			TRACE_1("Lock failure");
+			TRACE_3("Lock failure");
 			return SA_AIS_ERR_LIBRARY;
 		}
 
@@ -1341,7 +1341,7 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 	IMMA_CLIENT_NODE *client_info = NULL;
 
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Lock failure");
+		TRACE_3("Lock failure");
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -1361,7 +1361,7 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 	while (1) {
 		/* Take the CB Lock */
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-			TRACE_1("Lock failure");
+			TRACE_3("Lock failure");
 			return SA_AIS_ERR_LIBRARY;
 		}
 
@@ -1379,7 +1379,7 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 				imma_process_callback_info(cb, client_info, callback);
 			} else {
 				/* Another thread called Finalize? */
-				TRACE("Client dead?");
+				TRACE_3("Client dead?");
 
 				imma_proc_free_callback(callback);
 				m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -1419,7 +1419,7 @@ static int popAsyncAdmOpContinuation(IMMA_CB *cb,	//in
 		prevCr = &(cr->next);
 		cr = cr->next;
 	}
-	TRACE("POP continuation %i not found", invocation);
+	TRACE_3("POP continuation %i not found", invocation);
 	return 0;
 }
 
@@ -1452,7 +1452,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 			cl_node->o.mCallbk.saImmOmAdminOperationInvokeCallback(callback->invocation,
 									       callback->retval, callback->sa_err);
 		} else {
-			TRACE_1("No callback to deliver AdminOperationInvokeAsync - invoc:%llx ret:%u err:%u",
+			TRACE_3("No callback to deliver AdminOperationInvokeAsync - invoc:%llx ret:%u err:%u",
 				callback->invocation, callback->retval, callback->sa_err);
 		}
 
@@ -1463,7 +1463,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
         /* Do nothing. */
 		break;
 	default:
-		TRACE_1("Unrecognized OM callback type:%u", callback->type);
+		TRACE_3("Unrecognized OM callback type:%u", callback->type);
 		break;
 	}
 #endif
@@ -1502,10 +1502,10 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 									   callback->invocation,
 									   SA_AIS_ERR_FAILED_OPERATION);
 			if (localErr == SA_AIS_OK) {
-				TRACE("Object %s has implementer but "
+				TRACE_3("Object %s has implementer but "
 				      "saImmOiAdminOperationCallback is set to NULL", callback->name.value);
 			} else {
-				TRACE("Object %s has implementer but "
+				TRACE_3("Object %s has implementer but "
 				      "saImmOiAdminOperationCallback is set to NULL "
 				      "and could not send error result, error: %u", callback->name.value, localErr);
 			}
@@ -1537,7 +1537,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("Illegal return value from "
+					TRACE_3("Illegal return value from "
 						"saImmOiCcbCompletedCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
@@ -1552,8 +1552,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   a registered implementer, then that implementer must 
 				   implement the completed callback, for the callback to succeed
 				 */
-				TRACE_2("saImmOiCcbCompletedCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. " "Ccb will fail");
+				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbCompletedCallback is not implemented, yet "
+					"implementer is registered and CCBs are used. Ccb will fail");
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
 
@@ -1590,7 +1590,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 			}
 			if (localEr != NCSCC_RC_SUCCESS) {
 				/*Cant do anything but log error and drop this reply. */
-				TRACE_1("CcbCompletedCallback: send reply to IMMND failed");
+				TRACE_3("CcbCompletedCallback: send reply to IMMND failed");
 			}
 		} while (0);
 
@@ -1620,8 +1620,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   commited already. It also makes sense that some applications
 				   may want to ignore the apply upcall.
 				 */
-				TRACE_2("saImmOiCcbApplyCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. " "Ccb will commit in any case");
+				TRACE_3("saImmOiCcbApplyCallback is not implemented, yet "
+					"implementer is registered and CCBs are used. Ccb will commit in any case");
 			}
 			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 			/* Look up the client node again. */
@@ -1744,7 +1744,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("Illegal return value from "
+					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
 						"saImmOiCcbObjectCreateCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
@@ -1782,8 +1782,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   implementer must implement the create callback, for the
 				   callback to succeed.
 				 */
-				TRACE_2("saImmOiCcbObjectCreateCallback is not implemented, "
-					"yet implementer is registered and CCBs are used. " "Ccb will fail");
+				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectCreateCallback is not implemented, "
+					"yet implementer is registered and CCBs are used. Ccb will fail");
 
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
@@ -1809,7 +1809,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 
 			if (localEr != NCSCC_RC_SUCCESS) {
 				/*Cant do anything but log error and drop this reply. */
-				TRACE_1("CcbObjectCreatedCallback: " "send reply to IMMND failed");
+				TRACE_3("CcbObjectCreatedCallback: send reply to IMMND failed");
 			}
 		} while (0);
 
@@ -1845,7 +1845,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("Illegal return value from "
+					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
 						"saImmOiCcbObjectDeleteCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
@@ -1860,8 +1860,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   a registered implementer, then that implementer must 
 				   implement the delete callback, for the callback to succeed
 				 */
-				TRACE_2("saImmOiCcbObjectDeleteCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. " "Ccb will fail");
+				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectDeleteCallback is not implemented, yet "
+					"implementer is registered and CCBs are used. Ccb will fail");
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
 
@@ -1885,7 +1885,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 			}
 			if (localEr != NCSCC_RC_SUCCESS) {
 				/*Cant do anything but log error and drop this reply. */
-				TRACE_1("CcbObjectDeleteCallback: send reply to IMMND failed");
+				TRACE_3("CcbObjectDeleteCallback: send reply to IMMND failed");
 			}
 		} while (0);
 
@@ -1988,7 +1988,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
-					TRACE_2("Illegal return value from "
+					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
 						"saImmOiCcbObjectModifyCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
@@ -2023,8 +2023,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   implementer must implement the create callback, for the
 				   callback to succeed.
 				 */
-				TRACE_2("saImmOiCcbObjectModifyCallback is not implemented, "
-					"yet implementer is registered and CCBs are used. " "Ccb will fail");
+				TRACE_2("ERR_FAILED_OPERATION: saImmOiCcbObjectModifyCallback is not implemented, "
+					"yet implementer is registered and CCBs are used. Ccb will fail");
 
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 				/*Change to BAD_OP if only aborting modify and not ccb. */
@@ -2050,7 +2050,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 
 			if (localEr != NCSCC_RC_SUCCESS) {
 				/*Cant do anything but log error and drop this reply. */
-				TRACE_1("CcbObjectModifyCallback: send reply to IMMND failed");
+				TRACE_3("CcbObjectModifyCallback: send reply to IMMND failed");
 			}
 		} while (0);
 
@@ -2080,8 +2080,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   commited already. It also makes sense that some applications
 				   may want to ignore the abort upcall.
 				 */
-				TRACE_2("saImmOiCcbAbortCallback is not implemented, yet "
-					"implementer is registered and CCBs are used. " "Ccb will abort anyway");
+				TRACE_3("saImmOiCcbAbortCallback is not implemented, yet "
+					"implementer is registered and CCBs are used. Ccb will abort anyway");
 			}
 			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 			/* Look up the client node again. */
@@ -2150,7 +2150,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_FAILED_OPERATION)) {
-					TRACE_2("Illegal return value from "
+					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
 						"saImmOiCcbObjectModifyCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
@@ -2168,8 +2168,8 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				   implementer must implement the callback, for the
 				   callback to succeed.
 				 */
-				TRACE_2("saImmOiRtAttrUpdateCallback is not implemented, "
-					"yet implementer is registered and pure runtime attrs " "are fetched.");
+				TRACE_2("ERR_FAILED_OPERATION: saImmOiRtAttrUpdateCallback is not implemented, "
+					"yet implementer is registered and pure runtime attrs are fetched.");
 
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
@@ -2195,14 +2195,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 
 			if (cb->is_immnd_up == FALSE) {
 				proc_rc = SA_AIS_ERR_NO_RESOURCES;
-				TRACE_2("IMMND_DOWN");
+				TRACE_2("ERR_NO_RESOURCES: IMMND_DOWN");
 			} else {
 				/* send the reply to the IMMND asyncronously */
 				proc_rc = imma_mds_msg_send(cb->imma_mds_hdl, &cb->immnd_mds_dest,
 							    &rtAttrUpdRpl, NCSMDS_SVC_ID_IMMND);
 				if (proc_rc != NCSCC_RC_SUCCESS) {
 					/*Cant do anything but log error and drop this reply. */
-					TRACE_1("oiRtAttrUpdateCallback: send reply to IMMND failed");
+					TRACE_3("oiRtAttrUpdateCallback: send reply to IMMND failed");
 				}
 			}
 
@@ -2216,7 +2216,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 		break;
 
 	default:
-		TRACE_1("Unrecognized OI callback type: %u", callback->type);
+		TRACE_3("Unrecognized OI callback type: %u", callback->type);
 		break;
 	}
 #endif   /* ifdef IMMA_OI */
@@ -2289,7 +2289,7 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
         {
             cl_node->exposed = TRUE; /* Ensure the handle is not resurrected.*/
             err = SA_AIS_ERR_BAD_HANDLE;
-            LOG_WA("Client handle turned bad, IMMND restarted ?");
+            TRACE_3("Client handle turned bad, IMMND restarted ?");
         }
         m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
     }
@@ -2321,16 +2321,16 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 
 	if (ncs_enc_init_space(&uba) != NCSCC_RC_SUCCESS) {
 		uba.start = NULL;
-		TRACE_1("Failed init ubaid");
-		return SA_AIS_ERR_NO_RESOURCES;
+		TRACE_2("ERR_LIBRARY: Failed init ubaid");
+		return SA_AIS_ERR_LIBRARY;
 	}
 
 	/* Encode non-flat since we broadcast to unknown receivers. */
 	rc = immsv_evt_enc(i_evt, &uba);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("Failed to pre-pack");
-		return SA_AIS_ERR_NO_RESOURCES;
+		TRACE_2("ERR_LIBRARY: Failed to pre-pack");
+		return SA_AIS_ERR_LIBRARY;
 	}
 
 	int32 size = uba.ttl;
@@ -2356,7 +2356,7 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 	/* IMMND GOES DOWN */
 	if (cb->is_immnd_up == FALSE) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("IMMND is DOWN");
+		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto fail;
 	}
 
@@ -2378,8 +2378,8 @@ SaAisErrorT imma_evt_fake_evs(IMMA_CB *cb,
 		break;
 
 	default:
-		rc = SA_AIS_ERR_NO_RESOURCES;
-		TRACE_1("MDS returned unexpected error code %u", proc_rc);
+		rc = SA_AIS_ERR_LIBRARY;
+		TRACE_1("ERR_LIBRARY: MDS returned unexpected error code %u", proc_rc);
 		break;
 	}
 
@@ -2403,7 +2403,7 @@ imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *cl_node)
 	if (cl_node->replyPending < 0xff) {
 		cl_node->replyPending++;
 	} else {
-		TRACE_2("More than 255 concurrent PENDING replies on handle!");
+		TRACE_3("More than 255 concurrent PENDING replies on handle!");
 	}
 }
 
@@ -2419,12 +2419,12 @@ imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *cl_node)
 			   able to resurrect this handle. The client will be forced to
 			   deal with an SA_AIS_ERR_BAD_HANDLE.
 			 */
-			TRACE_2("Lost track of concurrent pending replies on handle %llx.",
+			TRACE_3("Lost track of concurrent pending replies on handle %llx.",
 				cl_node->handle);
 		}
 	} else {
 		/* Reaching 255 is sticky. */
-		TRACE_2("Will not decrement zero pending reply count for handle %llx",
+		TRACE_3("Will not decrement zero pending reply count for handle %llx",
 			cl_node->handle);
 		cl_node->replyPending = 0xff;
 	}

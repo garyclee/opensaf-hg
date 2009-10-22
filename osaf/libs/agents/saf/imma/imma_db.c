@@ -123,7 +123,7 @@ void imma_client_tree_destroy(IMMA_CB *cb)
 
 	/* destroy the tree */
 	ncs_patricia_tree_destroy(&cb->client_tree);
-
+	TRACE_LEAVE();
 	return;
 }
 
@@ -155,6 +155,7 @@ void imma_client_tree_cleanup(IMMA_CB *cb)
 		/* Delete the Client Node */
 		imma_client_node_delete(cb, clnode);
 	}
+	TRACE_LEAVE();
 	return;
 }
 
@@ -819,25 +820,25 @@ uns32 imma_db_init(IMMA_CB *cb)
 
 	rc = imma_client_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("imma_client_tree_init failed");
+		TRACE_3("imma_client_tree_init failed");
 		return rc;
 	}
 
 	rc = imma_admin_owner_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("imma_admin_owner_tree_init failed");
+		TRACE_3("imma_admin_owner_tree_init failed");
 		return rc;
 	}
 
 	rc = imma_ccb_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("imma_ccb_tree_init failed");
+		TRACE_3("imma_ccb_tree_init failed");
 		return rc;
 	}
 
 	rc = imma_search_tree_init(cb);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("imma_search_tree_init failed");
+		TRACE_3("imma_search_tree_init failed");
 		return rc;
 	}
 
@@ -862,6 +863,6 @@ uns32 imma_db_destroy(IMMA_CB *cb)
 	imma_ccb_tree_destroy(cb);
 
 	imma_search_tree_destroy(cb);
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
