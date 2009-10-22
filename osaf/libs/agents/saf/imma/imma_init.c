@@ -63,7 +63,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 
 	/* initialize the imma cb lock */
 	if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Failed to get cb lock");
+		TRACE_3("Failed to get cb lock");
 		goto lock_init_fail;
 	}
 
@@ -76,7 +76,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 
 	if (cb->sv_id != 0) {
 		/*The assert below seems to occurr sometimes on some systems. */
-		LOG_ER("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x", cb->sv_id, sv_id);
+		TRACE_4("cb->sv_id is NOT ZERO (%x) on first time entry IMMA svid:%x", cb->sv_id, sv_id);
 
 		assert(cb->sv_id == 0);
 	}
@@ -91,7 +91,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 
 	/* EDU initialisation ABT: Dont exactly know why we need this but... */
 	if (m_NCS_EDU_HDL_INIT(&cb->edu_hdl) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Failed to initialize EDU handle");
+		TRACE_3("Failed to initialize EDU handle");
 		goto edu_init_fail;
 	}
 
@@ -168,7 +168,7 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 
 	int pt_err = pthread_mutex_lock(&imma_agent_lock);
     if(pt_err) {
-        LOG_ER("Could not obtain mutex lock error(%u):%s", 
+        TRACE_4("Could not obtain mutex lock error(%u):%s", 
             pt_err, strerror(pt_err));
         rc = NCSCC_RC_FAILURE;
         goto done_nolock;
@@ -183,13 +183,13 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 	}
 
 	if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Agents_startup failed");
+		TRACE_3("Agents_startup failed");
 		goto done;
 	}
 
     /*** Init IMMA ***/
 	if ((rc = imma_create(sv_id)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("Failure in startup of client agent");
+		TRACE_3("Failure in startup of client agent");
 		ncs_agents_shutdown(0, 0);
 		goto done;
 	} else {
@@ -200,7 +200,7 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 	TRACE_LEAVE2("use count %u", imma_use_count);
 	pt_err = pthread_mutex_unlock(&imma_agent_lock);
     if(pt_err) {
-        LOG_ER("Could not release mutex lock error(%u):%s",
+        TRACE_4("Could not release mutex lock error(%u):%s",
             pt_err, strerror(pt_err));
         rc = NCSCC_RC_FAILURE;
     }
@@ -228,7 +228,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 
 	int pt_err = pthread_mutex_lock(&imma_agent_lock);
     if(pt_err) {
-        LOG_ER("Could not obtain mutex lock error(%u):%s", 
+        TRACE_4("Could not obtain mutex lock error(%u):%s", 
             pt_err, strerror(pt_err));
         rc = NCSCC_RC_FAILURE;
         goto done_nolock;
@@ -248,7 +248,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 	TRACE_LEAVE2("use count %u", imma_use_count);
 	pt_err = pthread_mutex_unlock(&imma_agent_lock);
     if(pt_err) {
-        LOG_ER("Could not release mutex lock error(%u):%s",
+        TRACE_4("Could not release mutex lock error(%u):%s",
             pt_err, strerror(pt_err));
         rc = NCSCC_RC_FAILURE;
     }
@@ -285,7 +285,7 @@ void imma_freeAttrValue3(SaImmAttrValueT p, const SaImmValueTypeT attrValueType)
 		break;
 
 	default:
-		TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
+		TRACE_4("Incorrect value for SaImmValueTypeT:%u. "
 			"Did you forget to set the attrValueType member in a "
 			"SaImmAttrValuesT_2 value ?", attrValueType);
 		assert(0);
@@ -354,7 +354,7 @@ void imma_copyAttrValue(IMMSV_EDU_ATTR_VAL *p, const SaImmValueTypeT attrValueTy
 		break;
 
 	default:
-		TRACE_1("Incorrect value for SaImmValueTypeT:%u. "
+		TRACE_4("Incorrect value for SaImmValueTypeT:%u. "
 			"Did you forget to set the attrValueType member in a "
 			"SaImmAttrValuesT_2 value ?\n", attrValueType);
 		assert(0);
@@ -433,7 +433,7 @@ SaImmAttrValueT imma_copyAttrValue3(const SaImmValueTypeT attrValueType, IMMSV_E
 		break;
 
 	default:
-		TRACE_1("Illegal value type: %u", attrValueType);
+		TRACE_4("Illegal value type: %u", attrValueType);
 		assert(0);
 	}
 

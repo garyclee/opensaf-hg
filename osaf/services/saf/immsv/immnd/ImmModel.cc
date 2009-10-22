@@ -1408,12 +1408,12 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
     }
     
     if(!nameCheck(className)) {
-        TRACE_7( "Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ClassMap::iterator i = sClassMap.find(className);
         if (i != sClassMap.end()) {
-            TRACE_7( "class '%s' exist", className.c_str());
+            TRACE_7("ERR_EXIST: class '%s' exist", className.c_str());
             err = SA_AIS_ERR_EXIST;
         } else {
             TRACE_5("CREATE CLASS '%s' category:%u", className.c_str(),
@@ -1438,7 +1438,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                 
                 if((attr->attrFlags & SA_IMM_ATTR_CONFIG) &&
                     (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
-                    TRACE_7("Attribute '%s' can not be both SA_IMM_ATTR_CONFIG "
+                    LOG_NO("ERR_INVALID_PARAM: Attribute '%s' can not be both SA_IMM_ATTR_CONFIG "
                         "and SA_IMM_ATTR_RUNTIME", attNm);
                     illegal = 1;
                 }
@@ -1446,19 +1446,19 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                 if(attr->attrFlags & SA_IMM_ATTR_CONFIG) {
                     
                     if(req->classCategory == SA_IMM_CLASS_RUNTIME) {
-                        TRACE_7("Runtime objects can not have config attributes '%s'",
+                        LOG_NO("ERR_INVALID_PARAM: Runtime objects can not have config attributes '%s'",
                             attNm);
                         illegal = 1;		
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_PERSISTENT) {
-                        TRACE_7("Config attribute '%s' can not be declared "
+                        LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
                             "SA_IMM_ATTR_PERSISTENT", attNm);
                         illegal = 1;		
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_CACHED) {
-                        TRACE_7("Config attribute '%s' can not be declared "
+                        LOG_NO("ERR_INVALID_PARAM: Config attribute '%s' can not be declared "
                             "SA_IMM_ATTR_CACHED", attNm);
                         illegal = 1;
                     }
@@ -1473,13 +1473,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
-                        TRACE_7("Runtime attribute '%s' can not be declared "
+                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
                             "SA_IMM_ATTR_WRITABLE", attNm);
                         illegal = 1;		
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
-                        TRACE_7("Runtime attribute '%s' can not be declared "
+                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' can not be declared "
                             "SA_IMM_ATTR_INITIALIZED", attNm);
                         illegal = 1;		
                     }
@@ -1495,7 +1495,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                         }
                     }
                 } else {
-                    TRACE_7("Attribute '%s' is neither SA_IMM_ATTR_CONFIG nor "
+                    LOG_NO("ERR_INVALID_PARAM: Attribute '%s' is neither SA_IMM_ATTR_CONFIG nor "
                         "SA_IMM_ATTR_RUNTIME", attNm);
                     illegal = 1;
                 }
@@ -1505,32 +1505,32 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                     
                     if(!(attr->attrValueType & SA_IMM_ATTR_SANAMET ||
                            attr->attrValueType & SA_IMM_ATTR_SASTRINGT)) {
-                         TRACE_7("RDN '%s' must be of type SaNameT or SaStringT", attNm);
+                         LOG_NO("ERR_INVALID_PARAM: RDN '%s' must be of type SaNameT or SaStringT", attNm);
                         illegal = 1;
                     }
 
                     
                     if(attr->attrFlags & SA_IMM_ATTR_MULTI_VALUE) {
-                        TRACE_7("RDN '%s' can not be multivalued", attNm);
+                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' can not be multivalued", attNm);
                         illegal = 1;
                     }
                     
                     if((req->classCategory == SA_IMM_CLASS_CONFIG) &&
                         (attr->attrFlags & SA_IMM_ATTR_RUNTIME)) {
-                        TRACE_7("RDN '%s' of a configuration object "
+                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a configuration object "
                             "can not be a runtime attribute", attNm);
                         illegal = 1;
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_WRITABLE) {
-                        TRACE_7("RDN attribute '%s' can not be SA_IMM_ATTR_WRITABLE",
+                        LOG_NO("ERR_INVALID_PARAM: RDN attribute '%s' can not be SA_IMM_ATTR_WRITABLE",
                             attNm);
                         illegal = 1;
                     }
                     
                     if((req->classCategory == SA_IMM_CLASS_RUNTIME) &&
                         !(attr->attrFlags & SA_IMM_ATTR_CACHED)) {
-                        TRACE_7("RDN '%s' of a runtime object must be declared cached",
+                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' of a runtime object must be declared cached",
                             attNm);
                         illegal = 1;
                     }
@@ -1538,7 +1538,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                 
                 if(attr->attrDefaultValue) {
                     if(attr->attrFlags & SA_IMM_ATTR_RDN) {
-                        TRACE_7("RDN '%s' can not have a default", attNm);
+                        LOG_NO("ERR_INVALID_PARAM: RDN '%s' can not have a default", attNm);
                         illegal = 1;
                     }
                     
@@ -1546,13 +1546,13 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
                         !(attr->attrFlags & SA_IMM_ATTR_CACHED) && 
                         !(attr->attrFlags & SA_IMM_ATTR_PERSISTENT))
                     {
-                        TRACE_7("Runtime attribute '%s' is neither cached nor "
+                        LOG_NO("ERR_INVALID_PARAM: Runtime attribute '%s' is neither cached nor "
                             "persistent => can not have a default", attNm);
                         illegal = 1;
                     }
                     
                     if(attr->attrFlags & SA_IMM_ATTR_INITIALIZED) {
-                        TRACE_7("Attribute %s declared as SA_IMM_ATTR_INITIALIZED "
+                        LOG_NO("ERR_INVALID_PARAM: Attribute %s declared as SA_IMM_ATTR_INITIALIZED "
                             "inconsistent with having default", attNm);
                         illegal = 1;
                     }
@@ -1565,19 +1565,19 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
             }
             
             if(persistentRt && !persistentRdn) {
-                TRACE_7("Class for persistent runtime object requires "
+                LOG_NO("ERR_INVALID_PARAM: Class for persistent runtime object requires "
                     "persistent RDN");
                 illegal = 1;
             }
             
             if(rdns != 1) {
-                TRACE_7("ONE and only ONE RDN attribute must be defined!");
+                LOG_NO("ERR_INVALID_PARAM: ONE and only ONE RDN attribute must be defined!");
                 illegal = 1;
             }
             
             if(illegal) {
                 
-                TRACE_7("Problem with class '%s'", className.c_str());
+                LOG_NO("ERR_INVALID_PARAM: Problem with class '%s'", className.c_str());
                 
                 err = SA_AIS_ERR_INVALID_PARAM;
 
@@ -1616,16 +1616,16 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req)
     if(immNotWritable()) {
         err = SA_AIS_ERR_TRY_AGAIN;
     } else if(!nameCheck(className)) {
-        TRACE_7( "Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ClassMap::iterator i = sClassMap.find(className);
         if (i == sClassMap.end()) {
-            TRACE_7( "class '%s' does not exist", 
+            TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
                 className.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
         } else if (i->second->mRefCount > 0) {
-            TRACE_7( "class '%s' busy, refCount:%u", 
+            TRACE_7("ERR_BUSY: class '%s' busy, refCount:%u", 
                 className.c_str(), i->second->mRefCount);
             err = SA_AIS_ERR_BUSY;
         } else {
@@ -1661,13 +1661,14 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr)
     
     
     if(!nameCheck(attrName)) {
-        TRACE_7( "Not a proper attribute name: %s", 
+        LOG_NO("ERR_INVALID_PARAM: Not a proper attribute name: %s", 
             attrName.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         AttrMap::iterator i = classInfo->mAttrMap.find(attrName);
         if (i != classInfo->mAttrMap.end()) {
-            TRACE_7( "attr '%s' exist", attrName.c_str());
+            LOG_NO("ERR_INVALID_PARAM: attr def for '%s' is duplicated",
+				attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
         } else {
             TRACE_5("create attribute '%s'", attrName.c_str());
@@ -1736,12 +1737,12 @@ ImmModel::classDescriptionGet(const IMMSV_OCTET_STRING* clName,
     SaAisErrorT err = SA_AIS_OK;
     
     if(!nameCheck(className)) {
-        TRACE_7( "Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ClassMap::iterator i = sClassMap.find(className);
         if (i == sClassMap.end()) {
-            TRACE_7("class '%s' does not exist", className.c_str());
+            TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
         } else {
             ClassInfo* classInfo = i->second;
@@ -1806,7 +1807,7 @@ ImmModel::adminOwnerCreate(const ImmsvOmAdminOwnerInitialize* req,
     if(strncmp("IMMLOADER", (const char *) req->adminOwnerName.value,
 	       (size_t) req->adminOwnerName.length) == 0) {
         if(sImmNodeState != IMM_NODE_LOADING) {
-            TRACE_7("Admin Owner 'IMMLOADER' only allowed for loading");
+            LOG_NO("ERR_INVALID_PARAM: Admin Owner 'IMMLOADER' only allowed for loading");
             TRACE_LEAVE();
             return SA_AIS_ERR_INVALID_PARAM; 
         }
@@ -1851,7 +1852,7 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
     
     i = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), IdIs(ownerId));
     if (i == sOwnerVector.end()) {
-        TRACE_7("Admin owner %u does not exist", ownerId);
+        LOG_IN("ERR_BAD_HANDLE: Admin owner %u does not exist", ownerId);
         err = SA_AIS_ERR_BAD_HANDLE;
     } else {
         unsigned int loopCount=0;
@@ -1977,7 +1978,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
     }
     
     if(ownerId && (i == sOwnerVector.end())) {
-        TRACE_7("admin owner %u does not exist", ownerId);
+        LOG_IN("ERR_BAD_HANDLE: admin owner %u does not exist", ownerId);
         err = SA_AIS_ERR_BAD_HANDLE;
     } else {
         TRACE_5("%s admin owner '%s'", 
@@ -1998,7 +1999,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                 
                 ObjectMap::iterator i1 = sObjectMap.find(objectName);
                 if (i1 == sObjectMap.end()) {
-                    TRACE_7("object '%s' does not exist", objectName.c_str());
+                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
                     return SA_AIS_ERR_NOT_EXIST;
                 } else {
                     SaUint32T ccbIdOfObj;
@@ -2013,7 +2014,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                         i2 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
                             CcbIdIs(ccbIdOfObj));
                         if (i2 != sCcbVector.end()) {
-                            TRACE_7("ccb id %u is active on object %s", 
+                            TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
                                 ccbIdOfObj, objectName.c_str());
                             TRACE_LEAVE();
                             return SA_AIS_ERR_BUSY;
@@ -2046,7 +2047,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                                                 sCcbVector.end(),
                                                 CcbIdIs(ccbIdOfObj));
                                             if (i2 != sCcbVector.end()) {
-                                                TRACE_7("ccb id %u is active on"
+                                                TRACE_7("ERR_BUSY: ccb id %u is active on"
                                                     "object %s", ccbIdOfObj,
                                                     subObjName.c_str());
                                                 TRACE_LEAVE();
@@ -2128,7 +2129,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
     AdminOwnerVector::iterator i2;
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i == sCcbVector.end()) {
-        TRACE_7( "CCB %u does not exist", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: CCB %u does not exist", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
     } else {
         CcbInfo* ccb = (*i);
@@ -2139,14 +2140,14 @@ ImmModel::ccbApply(SaUint32T ccbId,
             TRACE_5("Attempt to use dead admin owner in ccbApply");
         }
         if (i2 == sOwnerVector.end()) {
-            TRACE_7("Admin owner id %u does not exist", 
+            LOG_IN("ERR_BAD_HANDLE: Admin owner id %u does not exist", 
                 ccb->mAdminOwnerId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
         } else if(ccb->mState > IMM_CCB_READY) {
-            TRACE_7("Ccb is not in correct state (%u) for Apply", ccb->mState);
+            TRACE_7("ERR_FAILED_OPERATION: Ccb is not in correct state (%u) for Apply", ccb->mState);
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         } else if(reqConn && (ccb->mOriginatingConn != reqConn)) {
-            TRACE_7("Missmatch on connection for ccb id %u", ccbId);
+            LOG_IN("ERR_BAD_HANDLE: Missmatch on connection for ccb id %u", ccbId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
         }
         
@@ -2473,7 +2474,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
     ObjectMap::iterator oi;
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i == sCcbVector.end()) {
-        TRACE_7( "CCB %u does not exist", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: CCB %u does not exist", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
     } else {
         TRACE_5("terminate the CCB %u", (*i)->mId);
@@ -2490,30 +2491,30 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "reply from implementer on create-op", ccbId);
                 TRACE_LEAVE();
-                return SA_AIS_ERR_LIBRARY;
+                return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_MODIFY_OP:
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "reply from implementers on modify-op", ccbId);
                 TRACE_LEAVE();
-                return SA_AIS_ERR_LIBRARY;
+                return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_DELETE_OP:
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "replies from implementers on delete-op", ccbId);
                 TRACE_LEAVE();
-                return SA_AIS_ERR_LIBRARY;
+                return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_PREPARE:
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "replies from implementers on completed ack", ccbId);
                 TRACE_LEAVE();
-                return SA_AIS_ERR_LIBRARY;
+                return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_CRITICAL:
                 LOG_WA("Will not terminate ccb %u in critical state ",  ccbId);
                 TRACE_LEAVE();
-                return SA_AIS_ERR_LIBRARY;
+                return SA_AIS_ERR_TRY_AGAIN;
             default:
                 LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
                 assert(0);
@@ -2727,7 +2728,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         if(nameToInternal(parentName)) {
             nameCorrected = true;
         } else {
-            TRACE_7("Not a proper parent name:%s size:%u", 
+            LOG_NO("ERR_INVALID_PARAM: Not a proper parent name:%s size:%u", 
                 parentName.c_str(), (unsigned int) parentName.size());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto ccbObjectCreateExit;
@@ -2735,37 +2736,37 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if(!nameCheck(className)) {
-        TRACE_7("Not a proper class name:%s", className.c_str());
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
     }
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i1 == sCcbVector.end()) {
-        TRACE_7( "ccb id %u does not exist", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: ccb id %u does not exist", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectCreateExit;
     }
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ccb %u is in an error state "
+        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectCreate operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
     }
     
     if(ccb->mState > IMM_CCB_READY) {
-        LOG_ER("ccb %u is not in an expected state:%u "
+        LOG_ER("ERR_FAILED_OPERATION: ccb %u is not in an expected state:%u "
             "rejecting ccbObjectCreate operation ", ccbId, ccb->mState);
-        err = SA_AIS_ERR_LIBRARY;
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
     }
     
     i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
         IdIs(adminOwnerId));
     if (i2 == sOwnerVector.end()) {
-        TRACE_7("admin owner id %u does not exist", 
+        LOG_IN("ERR_BAD_HANDLE: admin owner id %u does not exist", 
             adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectCreateExit;
@@ -2775,13 +2776,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     assert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
-        LOG_WA("Inconsistency between Ccb and AdminOwner");
-        err = SA_AIS_ERR_LIBRARY;
+        LOG_WA("Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
+			adminOwner->mId, ccb->mAdminOwnerId);
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
     }
     
     if (i3 == sClassMap.end()) {
-        TRACE_7("class '%s' does not exist", className.c_str());
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectCreateExit;
     }
@@ -2791,7 +2793,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     if((classInfo->mCategory != SA_IMM_CLASS_CONFIG) && !isLoading) {
         //If class is not config and isloading==true, then a check that only 
         //accepts persistent RT attributes is enforced below. Se ***.
-        TRACE_7("class '%s' is not a configuration class", 
+        LOG_NO("ERR_INVALID_PARAM: class '%s' is not a configuration class", 
             className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
@@ -2801,13 +2803,13 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         i5 = sObjectMap.find(parentName);
         if (i5 == sObjectMap.end()) {
             if(isLoading) {
-                TRACE_7("parent object '%s' does not exist..yet", 
+                TRACE_7("Parent object '%s' does not exist..yet", 
                     parentName.c_str());
                 //Save parentName in sMissingParents. Remove when loaded.
                 //Check at end of loading that sMissingParents is empty.
                 sMissingParents.insert(parentName);
             } else {
-                TRACE_7("parent object '%s' does not exist", 
+                TRACE_7("ERR_NOT_EXIST: parent object '%s' does not exist", 
                     parentName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 goto ccbObjectCreateExit;
@@ -2816,14 +2818,14 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             parent = i5->second;
             if((parent->mObjFlags & IMM_CREATE_LOCK) && 
                 (parent->mCcbId != ccbId)) {
-                TRACE_7("Parent object '%s' is being created in a different "
+                TRACE_7("ERR_NOT_EXIST: Parent object '%s' is being created in a different "
                     "ccb %u from the ccb for this create %u", 
                     parentName.c_str(), parent->mCcbId, ccbId);
                 err = SA_AIS_ERR_NOT_EXIST;
                 goto ccbObjectCreateExit;
             }
             if(parent->mObjFlags & IMM_DELETE_LOCK) {
-                TRACE_7("Parent object '%s' is locked for delete in ccb: %u. "
+                TRACE_7("ERR_NOT_EXIST: Parent object '%s' is locked for delete in ccb: %u. "
                     "Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -2831,7 +2833,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             }
             if(parent->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
                 if(classInfo->mCategory == SA_IMM_CLASS_CONFIG) {
-                    TRACE_7("Parent object '%s' is a runtime object."
+                    LOG_IN("ERR_NOT_EXIST: Parent object '%s' is a runtime object."
                         "Will not allow create of config sub-object.",
                         parentName.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
@@ -2855,7 +2857,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         parent->getAdminOwnerName(&parentAdminOwnerName);
         if((parentAdminOwnerName != adminOwner->mAdminOwnerName) && 
             !isLoading) {
-            TRACE_7("parent object not owned by '%s'", 
+            TRACE_7("ERR_BAD_OPERATION: parent object not owned by '%s'", 
                 adminOwner->mAdminOwnerName.c_str());
             err = SA_AIS_ERR_BAD_OPERATION;
             goto ccbObjectCreateExit;
@@ -2866,7 +2868,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_ER("No RDN attribute found in class!");
-        err = SA_AIS_ERR_LIBRARY;     //Should never happen!
+        err = SA_AIS_ERR_FAILED_OPERATION;     //Should never happen!
         goto ccbObjectCreateExit;
     }
     
@@ -2880,7 +2882,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         if (attrName == i4->first) { //Match on name for RDN attribute
             if((attrValues->n.attrValueType != SA_IMM_ATTR_SANAMET) &&
                 (attrValues->n.attrValueType != SA_IMM_ATTR_SASTRINGT)) {
-                LOG_ER("Value type for RDN attribute is "
+                LOG_NO("ERR_INVALID_PARAM: Value type for RDN attribute is "
                     "neither SaNameT nor SaStringT");
                 err = SA_AIS_ERR_INVALID_PARAM;
                 goto ccbObjectCreateExit;
@@ -2889,7 +2891,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             if(((size_t)attrValues->n.attrValue.val.x.size > 64) &&
                 (i4->second->mValueType == SA_IMM_ATTR_SASTRINGT))
             {
-                TRACE_7("RDN attribute is too large: %u. Max length is 64 "
+                LOG_NO("ERR_INVALID_PARAM: RDN attribute is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.size);
                 err = SA_AIS_ERR_INVALID_PARAM;     
                 goto ccbObjectCreateExit;
@@ -2916,7 +2918,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if (objectName.empty()) {
-        TRACE_7("no RDN attribute found or value is empty");
+        LOG_NO("ERR_INVALID_PARAM: no RDN attribute found or value is empty");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto ccbObjectCreateExit;
     }
@@ -2925,7 +2927,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         if(nameToInternal(objectName)) {
             nameCorrected = true;
         } else {
-            TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
+            LOG_NO("ERR_INVALID_PARAM: Not a proper RDN (%s, %u)", objectName.c_str(),
                 (unsigned int) objectName.length());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto ccbObjectCreateExit;
@@ -2933,7 +2935,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if(objectName.find(',') != std::string::npos) {
-        TRACE_7("Can not tollerate ',' in RDN");
+        LOG_NO("ERR_INVALID_PARAM: Can not tollerate ',' in RDN");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto ccbObjectCreateExit;
     }
@@ -2944,7 +2946,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if (objectName.size() >= SA_MAX_NAME_LENGTH) {
-        TRACE_7("DN is too long, size:%u, max size is:%u",
+        TRACE_7("ERR_NAME_TOO_LONG: DN is too long, size:%u, max size is:%u",
             (unsigned int) objectName.size(), SA_MAX_NAME_LENGTH);
         err = SA_AIS_ERR_NAME_TOO_LONG;
         goto ccbObjectCreateExit;
@@ -2952,11 +2954,11 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("object '%s' is already registered "
+            TRACE_7("ERR_EXIST: object '%s' is already registered "
                 "for creation in a ccb, but not applied yet", 
                 objectName.c_str());
         } else {
-            TRACE_7("object '%s' exists", objectName.c_str());
+            TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
         }
         err = SA_AIS_ERR_EXIST;
         goto ccbObjectCreateExit;
@@ -3023,7 +3025,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             i6 = object->mAttrValueMap.find(attrName);
             
             if (i6 == object->mAttrValueMap.end()) {
-                TRACE_7("attr '%s' not defined", attrName.c_str());
+                TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
             }
@@ -3035,7 +3037,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             if(attr->mValueType != 
                 (unsigned int) p->n.attrValueType) {
 
-                TRACE_7("attr '%s' type missmatch", attrName.c_str());
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
             }
@@ -3045,7 +3047,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                     (attr->mFlags & SA_IMM_ATTR_PERSISTENT))) {
                 //*** Reject non-persistent rt attributes from 
                 //being loaded.
-                TRACE_7("attr '%s' is a runtime attribute => "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is a runtime attribute => "
                     "can not be assigned over OM-API.", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
@@ -3062,7 +3064,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                   int extraValues = p->n.attrValuesNumber - 1;
                 */
                 if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                    TRACE_7("attr '%s' is not multivalued yet "
+                    LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued yet "
                         "multiple values provided in create call", 
                         attrName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
@@ -3139,7 +3141,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             
             if((attr->mFlags & SA_IMM_ATTR_INITIALIZED) && 
                 attrValue->empty()) {
-                TRACE_7("attr '%s' must be initialized "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' must be initialized "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;	  
@@ -3195,7 +3197,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 ccb->mWaitStartTime = time(NULL);
             } else if(ccb->mCcbFlags & 
                 SA_IMM_CCB_REGISTERED_OI) {
-                TRACE_7("object '%s' does not have an implementer yet "
+                TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer yet "
                     "flag SA_IMM_CCB_REGISTERED_OI is set", 
                     objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -3317,37 +3319,37 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     immsv_attr_mods_list* p = req->attrMods;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7( "Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectModifyExit;
     }
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i1 == sCcbVector.end()) {
-        TRACE_7( "ccb id %u does not exist", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: ccb id %u does not exist", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectModifyExit;
     }
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ccb %u is in an error state "
+        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectModify operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectModifyExit;
     }
     
     if(ccb->mState > IMM_CCB_READY) {
-        LOG_ER("ccb %u is not in an expected state: %u "
+        LOG_ER("ERR_FAILED_OPERATION: ccb %u is not in an expected state: %u "
             "rejecting ccbObjectModify operation ", ccbId, ccb->mState);
-        err = SA_AIS_ERR_LIBRARY;
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectModifyExit;
     }
     
     i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
         IdIs(adminOwnerId));
     if (i2 == sOwnerVector.end()) {
-        TRACE_7("admin owner id %u does not exist", adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: admin owner id %u does not exist", adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectModifyExit;
     }
@@ -3356,21 +3358,21 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     assert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
-        LOG_WA("Inconsistency between Ccb-admoId:%u and AdminOwnerId:%u",
-			adminOwner->mId, ccb->mAdminOwnerId);
-        err = SA_AIS_ERR_LIBRARY;
+        LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb-admoId:%u and "
+			"AdminOwnerId:%u",	adminOwner->mId, ccb->mAdminOwnerId);
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectModifyExit;
     }
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN attribute value");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto ccbObjectModifyExit;
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' does not exist", objectName.c_str());
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectModifyExit;
     }
@@ -3380,7 +3382,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     object->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
-        TRACE_7("Mismatch on administrative owner %s != %s", 
+        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
             objAdminOwnerName.c_str(),
             adminOwner->mAdminOwnerName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
@@ -3391,7 +3393,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
         CcbIdIs(ccbIdOfObj));
     if ((i1 != sCcbVector.end()) && (ccbIdOfObj != ccbId)) {
-        TRACE_7("ccb id %u differs from active ccb id on object %u", 
+        TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
             ccbId, ccbIdOfObj);
         err = SA_AIS_ERR_BUSY;
         goto ccbObjectModifyExit;
@@ -3401,7 +3403,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     assert(classInfo);
     
     if(classInfo->mCategory != SA_IMM_CLASS_CONFIG) {
-        TRACE_7("object '%s' is not a configuration object", 
+        LOG_NO("ERR_INVALID_PARAM: object '%s' is not a configuration object", 
             objectName.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectModifyExit;
@@ -3411,7 +3413,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     if(omuti != ccb->mMutations.end()) {
         oMut = omuti->second;
         if(oMut->mOpType == IMM_DELETE) {
-            TRACE_7("object '%s' is scheduled for delete", objectName.c_str());
+            TRACE_7("ERR_NOT_EXIST: object '%s' is scheduled for delete", objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto ccbObjectModifyExit;
         } else if(oMut->mOpType == IMM_CREATE) {
@@ -3470,7 +3472,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         
         i4 = classInfo->mAttrMap.find(attrName);
         if(i4==classInfo->mAttrMap.end()) {
-            TRACE_7("attr '%s' does not exist in object %s",
+            TRACE_7("ERR_NOT_EXIST: attr '%s' does not exist in object %s",
                 attrName.c_str(), objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             break; //out of for-loop
@@ -3478,14 +3480,14 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         AttrInfo* attr = i4->second;
         
         if(attr->mValueType != (unsigned int) p->attrValue.attrValueType) {
-            TRACE_7("attr '%s' type missmatch", 
+            LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", 
                 attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
             break; //out of for-loop
         }
         
         if(attr->mFlags & SA_IMM_ATTR_RUNTIME) {
-            TRACE_7( "attr '%s' is a runtime attribute => "
+            LOG_NO("ERR_INVALID_PARAM: attr '%s' is a runtime attribute => "
                 "can not be modified over OM-API.", 
                 attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
@@ -3493,7 +3495,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         }
         
         if(!(attr->mFlags & SA_IMM_ATTR_WRITABLE)) {
-            TRACE_7("attr '%s' is not a writable attribute",
+            LOG_NO("ERR_INVALID_PARAM: attr '%s' is not a writable attribute",
                 attrName.c_str());
             err = SA_AIS_ERR_INVALID_PARAM;
             break; //out of for-loop
@@ -3503,12 +3505,9 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             afim->mAttrValueMap.find(attrName);
         
         if (i5 == afim->mAttrValueMap.end()) {
-            TRACE_7("attr '%s' not defined", attrName.c_str());
-            //NOTE: This should probably be ERR_LIBRARY or even assert as the
-            //attribute SHOULD exist. attrName was found in the class. 
-            //See above!
-            err = SA_AIS_ERR_NOT_EXIST;
-            break; //out of for-loop
+			LOG_ER("Attr '%s' defined in class yet missing from existing object %s", 
+				attrName.c_str(), objectName.c_str());
+			assert(0); 
         }
         
         ImmAttrValue* attrValue = i5->second;
@@ -3526,7 +3525,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             case SA_IMM_ATTR_VALUES_ADD:
                 
                 if(p->attrValue.attrValuesNumber == 0) {
-                    TRACE_7("Empty value used for adding to attribute %s",
+                    LOG_NO("ERR_INVALID_PARAM: Empty value used for adding to attribute %s",
                         attrName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
                     break;
@@ -3539,7 +3538,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                     attrValue->setValue(tmpos);
                 } else {
                     if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                        TRACE_7("attr '%s' is not multivalued, yet "
+                        LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                             "multiple values attempted", attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break; //out of switch
@@ -3552,7 +3551,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 
                 if(p->attrValue.attrValuesNumber > 1) {
                     if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                        TRACE_7("attr '%s' is not multivalued, yet "
+                        LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                             "multiple values provided in modify call", 
                             attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
@@ -3577,7 +3576,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             case SA_IMM_ATTR_VALUES_DELETE:
                 //Delete all values that match that provided by invoker.
                 if(p->attrValue.attrValuesNumber == 0) {
-                    TRACE_7("Empty value used for deleting from attribute %s",
+                    LOG_NO("ERR_INVALID_PARAM: Empty value used for deleting from attribute %s",
                         attrName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
                     break;
@@ -3606,7 +3605,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 
             default:
                 err = SA_AIS_ERR_INVALID_PARAM;
-                TRACE_7("Illegal value for SaImmAttrModificationTypeT: %u", 
+                LOG_NO("ERR_INVALID_PARAM: Illegal value for SaImmAttrModificationTypeT: %u", 
                     p->attrModType);
                 break;
         }
@@ -3669,7 +3668,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             
             ccb->mWaitStartTime = time(NULL);
         } else if(ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI) {
-            TRACE_7("object '%s' does not have an implementer yet "
+            TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer yet "
                 "flag SA_IMM_CCB_REGISTERED_OI is set", 
                 objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
@@ -3750,35 +3749,35 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ObjectMap::iterator oi, oi2;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7( "Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectDeleteExit;
     } 
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if (i1 == sCcbVector.end()) {
-        TRACE_7("ccb id %u does not exist", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: ccb id %u does not exist", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectDeleteExit;
     }
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ccb %u is in an error state "
+        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectDelete operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectDeleteExit;
     }
     
     if(ccb->mState > IMM_CCB_READY) {
-        LOG_ER("ccb %u is not in an expected state:%u "
+        LOG_ER("ERR_FAILED_OPERATION: ccb %u is not in an expected state:%u "
             "rejecting ccbObjectDelete operation ", ccbId, ccb->mState);
-        err = SA_AIS_ERR_LIBRARY;
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectDeleteExit;
     }
     
     if(reqConn && (ccb->mOriginatingConn != reqConn)) {
-        TRACE_7("Missmatch on connection for ccb id %u", ccbId);
+        LOG_IN("ERR_BAD_HANDLE: Missmatch on connection for ccb id %u", ccbId);
         err = SA_AIS_ERR_BAD_HANDLE;
         //Abort the CCB ??
         goto ccbObjectDeleteExit;
@@ -3787,7 +3786,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     i2 = std::find_if(sOwnerVector.begin(), sOwnerVector.end(), 
         IdIs(adminOwnerId));
     if (i2 == sOwnerVector.end()) {
-        TRACE_7("admin owner id %u does not exist", adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: admin owner id %u does not exist", adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto ccbObjectDeleteExit;
     }
@@ -3795,20 +3794,20 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     assert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
-        LOG_WA("Inconsistency between Ccb and AdminOwner");
-        err = SA_AIS_ERR_LIBRARY;
+        LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb and AdminOwner");
+        err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectDeleteExit;
     }
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN attribute value");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto ccbObjectDeleteExit;
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' does not exist", objectName.c_str());
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectDeleteExit;
     }
@@ -3864,7 +3863,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     
     oi->second->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName) {
-        TRACE_7("Mismatch on administrative owner %s != %s", 
+        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
             objAdminOwnerName.c_str(),
             adminOwner->mAdminOwnerName.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
@@ -3874,13 +3873,13 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
         CcbIdIs(ccbIdOfObj));
     if ((i1 != sCcbVector.end()) && (ccbIdOfObj != ccb->mId)) {
-        TRACE_7("ccb id %u differs from active ccb id on object %u", 
+        TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
             ccb->mId, ccbIdOfObj);
         return SA_AIS_ERR_BUSY;
     }
     
     if(oi->second->mClassInfo->mCategory != SA_IMM_CLASS_CONFIG) {
-        TRACE_7("object '%s' is not a configuration object", 
+        TRACE_7("ERR_BAD_OPERATION: object '%s' is not a configuration object", 
             oi->first.c_str());
         /*return SA_AIS_ERR_INVALID_PARAM;*/
         return SA_AIS_ERR_BAD_OPERATION;
@@ -3888,7 +3887,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     
     if(!(oi->second->mImplementer && oi->second->mImplementer->mNodeId) &&
         (ccb->mCcbFlags & SA_IMM_CCB_REGISTERED_OI)) {
-        TRACE_7("object '%s' has no implementer yet flag "
+        TRACE_7("ERR_NOT_EXIST: object '%s' has no implementer yet flag "
             "SA_IMM_CCB_REGISTERED_OI is set in ccb", 
             oi->first.c_str());
         return SA_AIS_ERR_NOT_EXIST;
@@ -3900,7 +3899,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
         //TODO: fix to allow delete on top of modify. Possibly also delete on 
         //create. Delete on create is dangerous, must check if there are children
         //creates.
-        TRACE_7("Object '%s' already subject of another operation in same "
+        TRACE_7("ERR_BAD_OPERATION: Object '%s' already subject of another operation in same "
             "ccb. can not handle chained delete in same ccb currently", 
             oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
@@ -4246,7 +4245,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Validate object name
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7( "Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto accessorExit;
     }
@@ -4254,11 +4253,11 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     if (objectName.length() > 0) {
         i = sObjectMap.find(objectName);
         if (i == sObjectMap.end()) {
-            TRACE_7("Object '%s' does not exist", objectName.c_str());
+            TRACE_7("ERR_NOT_EXIST: Object '%s' does not exist", objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
         } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("Object '%s' is being created, but ccb not yet applied", 
+            TRACE_7("ERR_NOT_EXIST: Object '%s' is being created, but ccb not yet applied", 
                 objectName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto accessorExit;
@@ -4267,8 +4266,8 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Validate scope
     if (scope != SA_IMM_ONE) {
-        TRACE_7("invalid search scope");
-        err = SA_AIS_ERR_LIBRARY;
+        LOG_NO("ERR_INVALID_PARAM: invalid search scope");
+        err = SA_AIS_ERR_INVALID_PARAM;
         goto accessorExit;
     }
     
@@ -4276,7 +4275,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     if ((searchOptions & SA_IMM_SEARCH_ONE_ATTR) == 0) {
         //This should never happen as this value is set by imm-code and 
         //not user.
-        LOG_WA("invalid search criteria");
+        LOG_ER("ERR_LIBRARY: Invalid search criteria - library problem ?");
         err = SA_AIS_ERR_LIBRARY;
         goto accessorExit;
     }
@@ -4287,7 +4286,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         case SA_IMM_SEARCH_GET_ALL_ATTR: break;
         case SA_IMM_SEARCH_GET_SOME_ATTR: break;
         default:
-            LOG_WA("invalid search option");
+            LOG_WA("ERR_LIBRARY: Invalid search option - library problem ?");
             err = SA_AIS_ERR_LIBRARY;
             goto accessorExit;
     }
@@ -4387,7 +4386,7 @@ ImmModel::accessorGet(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     if((searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR) &&
         (matchedAttributes != soughtAttributes)) {
-        TRACE_7("Some attributeNames did not exist in Object '%s' "
+        LOG_IN("ERR_NOT_EXIST: Some attributeNames did not exist in Object '%s' "
             "(nrof names:%u matched:%u)", objectName.c_str(),
             soughtAttributes, matchedAttributes);
         err = SA_AIS_ERR_NOT_EXIST;
@@ -4445,10 +4444,10 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
         //attribute as part of getNext, then check if the fetched attribute
         //does match.
         //If it does not match then simply discard the search object.
-        LOG_WA("Attribute %s is a non-cached runtime attribute in object %s "
-            "=> can not handle search with match on such attributes "
-            "currently.", attrName.c_str(), objName);
-        err = SA_AIS_ERR_LIBRARY;
+        LOG_WA("ERR_NO_RESOURCES: Attribute %s is a non-cached runtime "
+			"attribute in object %s => can not handle search with match "
+			"on such attributes currently.", attrName.c_str(), objName);
+        err = SA_AIS_ERR_NO_RESOURCES;
         //TRACE_LEAVE();
         return false;
     }
@@ -4507,7 +4506,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Validate root name
     if(! (nameCheck(rootName)||nameToInternal(rootName)) ) {
-        TRACE_7( "Not a proper root name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper root name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
     }
@@ -4515,11 +4514,11 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     if (rootName.length() > 0) {
         i = sObjectMap.find(rootName);
         if (i == sObjectMap.end()) {
-            TRACE_7("root object '%s' does not exist", rootName.c_str());
+            TRACE_7("ERR_NOT_EXIST: root object '%s' does not exist", rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
         } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("Root object '%s' is being created, "
+            TRACE_7("ERR_NOT_EXIST: Root object '%s' is being created, "
                 "but ccb not yet applied", rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
@@ -4528,7 +4527,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Validate scope
     if((scope != SA_IMM_SUBLEVEL) && (scope != SA_IMM_SUBTREE)) {
-        TRACE_7( "invalid search scope");
+        LOG_NO("ERR_INVALID_PARAM: invalid search scope");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
     }
@@ -4537,7 +4536,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     
     // Validate searchOptions
     if (filter && ((searchOptions & SA_IMM_SEARCH_ONE_ATTR) == 0)) {
-        TRACE_7( "The SA_IMM_SEARCH_ONE_ATTR flag "
+        LOG_NO("ERR_INVALID_PARAM: The SA_IMM_SEARCH_ONE_ATTR flag "
             "must be set in the searchOptions parameter");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto searchInitializeExit;
@@ -4550,7 +4549,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
         case SA_IMM_SEARCH_GET_NO_ATTR:  break;
         case SA_IMM_SEARCH_GET_SOME_ATTR: break;
         default:
-            TRACE_7("invalid search option");
+            LOG_NO("ERR_INVALID_PARAM: invalid search option");
             err = SA_AIS_ERR_INVALID_PARAM;
             goto searchInitializeExit;
     }
@@ -4744,7 +4743,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     std::string objAdminOwnerName;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7( "Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         TRACE_LEAVE();
         return SA_AIS_ERR_INVALID_PARAM;
     }
@@ -4756,21 +4755,21 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         TRACE_5("Attempt to use dead admin owner in adminOperationInvoke");
     }
     if (i2 == sOwnerVector.end()) {
-        TRACE_7("admin owner id %u does not exist", adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: admin owner id %u does not exist", adminOwnerId);
         TRACE_LEAVE();
         return SA_AIS_ERR_BAD_HANDLE;
     }
     adminOwner = *i2;
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN attribute value");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
         TRACE_LEAVE();
         return SA_AIS_ERR_INVALID_PARAM;     
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' does not exist", objectName.c_str());
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
         TRACE_LEAVE();
         return SA_AIS_ERR_NOT_EXIST;
     }
@@ -4780,7 +4779,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
-        TRACE_7("Mismatch on administrative owner %s/%u != %s/%u", 
+        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s/%u != %s/%u", 
             objAdminOwnerName.c_str(), 
             (unsigned int) objAdminOwnerName.size(),
             adminOwner->mAdminOwnerName.c_str(),
@@ -4795,7 +4794,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
 			CcbIdIs(ccbIdOfObj));
         if (i3 != sCcbVector.end()) {
-            TRACE_7("ccb id %u is active on object %s", 
+            TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
                 ccbIdOfObj, objectName.c_str());
             TRACE_LEAVE();
             return SA_AIS_ERR_BUSY;
@@ -4844,7 +4843,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
             }
         }
     } else {
-        TRACE_7("object '%s' does not have an implementer", 
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not have an implementer", 
             objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
     }
@@ -5092,7 +5091,7 @@ ImmModel::findConnForImplementerOfObject(std::string objectDn)
     ObjectMap::iterator oi;
     oi = sObjectMap.find(objectDn);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' %u does not exist", objectDn.c_str(), 
+        TRACE_7("Object '%s' %u does not exist", objectDn.c_str(), 
             (unsigned int) objectDn.size());
         return 0;
     }
@@ -5448,7 +5447,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     std::string implName((const char*)implementerName->buf, sz);
     
     if(!nameCheck(implName)) {
-        TRACE_7("Not a proper implementer name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper implementer name");
         err = SA_AIS_ERR_INVALID_PARAM; 
         return err;
         //This return code not formally allowed here according to IMM standard.
@@ -5457,7 +5456,7 @@ ImmModel::implementerSet(const IMMSV_OCTET_STRING* implementerName,
     ImplementerInfo* info = findImplementer(implName);
     if(info) {
         if(info->mId) { 
-            TRACE_7("Registered implementer already exists: %s", 
+            TRACE_7("ERR_EXIST: Registered implementer already exists: %s", 
                 implName.c_str());
             err = SA_AIS_ERR_EXIST;
             TRACE_LEAVE();
@@ -5530,16 +5529,16 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     std::string className((const char *)req->impl_name.buf, sz);
     
     if(!nameCheck(className)) {
-        TRACE_7( "Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ImplementerInfo* info = findImplementer(req->impl_id);
         if(!info) {
-            TRACE_7("Not a correct implementer handle %u", req->impl_id);
+            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
             err = SA_AIS_ERR_BAD_HANDLE;
         } else {
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                TRACE_7("Not a correct implementer handle "
+                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle "
                     "conn:%u nodeId:%x", conn, nodeId);
                 err = SA_AIS_ERR_BAD_HANDLE;	
             } else {
@@ -5550,20 +5549,20 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                 
                 ClassMap::iterator i1 = sClassMap.find(className);
                 if (i1 == sClassMap.end()) {
-                    TRACE_7( "class '%s' does not exist", 
+                    TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", 
                         className.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
                 } else {
                     ClassInfo* classInfo = i1->second;
                     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        TRACE_7( "Class '%s' is a runtime class, "
+                        TRACE_7("ERR_BAD_OPERATION: Class '%s' is a runtime class, "
                             "not allowed to set class implementer.", 
                             className.c_str());
                         err = SA_AIS_ERR_BAD_OPERATION;
                     } else {
                         if(classInfo->mImplementer && 
                             (classInfo->mImplementer != info)) {
-                            TRACE_7("Class '%s' already has class implementer "
+                            TRACE_7("ERR_EXIST: Class '%s' already has class implementer "
                                 "%s != %s", className.c_str(), 
                                 classInfo->mImplementer->
                                 mImplementerName.c_str(),
@@ -5577,7 +5576,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                                 if(obj->mClassInfo == classInfo) {
                                     if(obj->mImplementer &&
                                         obj->mImplementer != info) {
-                                        TRACE_7("Object '%s' already has implementer "
+                                        TRACE_7("ERR_EXIST: Object '%s' already has implementer "
                                             "%s != %s", oi->first.c_str(), 
                                             obj->mImplementer->mImplementerName.c_str(),
                                             info->mImplementerName.c_str());
@@ -5646,16 +5645,16 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     std::string className((const char *)req->impl_name.buf, sz);
     
     if(!nameCheck(className)) {
-        TRACE_7("Not a proper class name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ImplementerInfo* info = findImplementer(req->impl_id);
         if(!info) {
-            TRACE_7("Not a correct implementer handle %u", req->impl_id);
+            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
             err = SA_AIS_ERR_BAD_HANDLE;
         } else {
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                TRACE_7("Not a correct implementer handle conn:%u nodeId:%x", 
+                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                     conn, nodeId);
                 err = SA_AIS_ERR_BAD_HANDLE;	
             } else {
@@ -5666,21 +5665,21 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                 
                 ClassMap::iterator i1 = sClassMap.find(className);
                 if (i1 == sClassMap.end()) {
-                    TRACE_7("class '%s' does not exist", className.c_str());
+                    TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
                 } else {
                     ClassInfo* classInfo = i1->second;
                     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        TRACE_7("Class '%s' is a runtime class.", 
+                        TRACE_7("ERR_BAD_OPERATION: Class '%s' is a runtime class.", 
                             className.c_str());
                         err = SA_AIS_ERR_BAD_OPERATION;
                     } else {
                         if(!classInfo->mImplementer) {
-                            TRACE_7("Class '%s' has no implementer", 
+                            TRACE_7("ERR_NOT_EXIST: Class '%s' has no implementer", 
                                 className.c_str());
                             err = SA_AIS_ERR_NOT_EXIST;
                         } else if(classInfo->mImplementer != info) {
-                            TRACE_7("Class '%s' has implementer %s != %s",
+                            TRACE_7("ERR_NOT_EXIST: Class '%s' has implementer %s != %s",
                                 className.c_str(), 
                                 classInfo->mImplementer->
                                 mImplementerName.c_str(),
@@ -5743,16 +5742,16 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
     std::string objectName((const char *)req->impl_name.buf, sz);
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7("Not a proper object DN");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object DN");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ImplementerInfo* info = findImplementer(req->impl_id);
         if(!info) {
-            TRACE_7("Not a correct implementer handle %u", req->impl_id);
+            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
             err = SA_AIS_ERR_BAD_HANDLE;
         } else {
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                TRACE_7("Not a correct implementer handle conn:%u nodeId:%x", 
+                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                     conn, nodeId);
                 err = SA_AIS_ERR_BAD_HANDLE;
             } else {
@@ -5767,7 +5766,7 @@ SaAisErrorT ImmModel::objectImplementerSet(const struct ImmsvOiImplSetReq* req,
                 
                 ObjectMap::iterator i1 = sObjectMap.find(objectName);
                 if (i1 == sObjectMap.end()) {
-                    TRACE_7("object '%s' does not exist", objectName.c_str());
+                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
                 } else {
                     ObjectInfo* rootObj = i1->second;
@@ -5827,16 +5826,16 @@ SaAisErrorT ImmModel::objectImplementerRelease(
     std::string objectName((const char *)req->impl_name.buf, sz);
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7("Not a proper object DN");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object DN");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
         ImplementerInfo* info = findImplementer(req->impl_id);
         if(!info) {
-            TRACE_7("Not a correct implementer handle %u", req->impl_id);
+            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->impl_id);
             err = SA_AIS_ERR_BAD_HANDLE;
         } else {
             if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-                TRACE_7("Not a correct implementer handle conn:%u nodeId:%x", 
+                LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                     conn, nodeId);
                 err = SA_AIS_ERR_BAD_HANDLE;
             } else {
@@ -5851,7 +5850,7 @@ SaAisErrorT ImmModel::objectImplementerRelease(
                 
                 ObjectMap::iterator i1 = sObjectMap.find(objectName);
                 if (i1 == sObjectMap.end()) {
-                    TRACE_7("object '%s' does not exist", objectName.c_str());
+                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
                     err = SA_AIS_ERR_NOT_EXIST;
                 } else {
                     ObjectInfo* rootObj = i1->second;
@@ -5904,7 +5903,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
         assert(!doIt);
-        TRACE_7("Object '%s' is a runtime object, "
+        TRACE_7("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to set object implementer.", 
             objectName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
@@ -5912,7 +5911,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
         if(obj->mImplementer && 
             (obj->mImplementer != info)) {
             assert(!doIt);
-            TRACE_7("Object '%s' already has implementer %s != %s",
+            TRACE_7("ERR_EXIST: Object '%s' already has implementer %s != %s",
                 objectName.c_str(), 
                 obj->mImplementer->mImplementerName.c_str(),
                 info->mImplementerName.c_str());
@@ -5942,7 +5941,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
         assert(!doIt);
-        TRACE_7("Object '%s' is a runtime object, "
+        TRACE_7("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to release object implementer.", 
             objectName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
@@ -5950,7 +5949,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
         if(obj->mImplementer && 
             (obj->mImplementer != info)) {
             assert(!doIt);
-            TRACE_7("Object '%s' has different implementer %s != %s",
+            TRACE_7("ERR_NOT_EXIST: Object '%s' has different implementer %s != %s",
                 objectName.c_str(), 
                 obj->mImplementer->mImplementerName.c_str(),
                 info->mImplementerName.c_str());
@@ -5996,7 +5995,7 @@ ImmModel::adminOwnerSet(std::string objectName, ObjectInfo* obj,
             }
         }
     } else if(oldOwner != adm->mAdminOwnerName) {
-        TRACE_7("Object '%s' has different administative owner %s != %s",
+        TRACE_7("ERR_EXIST: Object '%s' has different administative owner %s != %s",
             objectName.c_str(), 
             oldOwner.c_str(), 
             adm->mAdminOwnerName.c_str());
@@ -6061,7 +6060,7 @@ SaAisErrorT ImmModel::adminOwnerRelease(std::string objectName,
                     adm->mAdminOwnerName.c_str());
             } else {
                 //Error case
-                TRACE_7("Object '%s' has different administative "
+                TRACE_7("ERR_NOT_EXIST: Object '%s' has different administative "
                     "owner %s != %s", objectName.c_str(), 
                     oldOwner.c_str(), adm->mAdminOwnerName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -6093,13 +6092,13 @@ ImmModel::implementerClear(const struct ImmsvOiImplSetReq* req,
     
     ImplementerInfo* info = findImplementer(req->impl_id);
     if(!info) {
-        TRACE_7("Not a correct implementer handle? %llu id:%u", 
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle? %llu id:%u", 
             req->client_hdl,
             req->impl_id);
         err = SA_AIS_ERR_BAD_HANDLE;
     } else {
         if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-            TRACE_7("Not a correct implementer handle conn:%u nodeId:%x", 
+            LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
                 conn, nodeId);
             err = SA_AIS_ERR_BAD_HANDLE;	
         } else {
@@ -6155,13 +6154,13 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     ImplementerInfo* info = findImplementer(req->adminOwnerId);
     if(!info) {
-        TRACE_7("Not a correct implementer handle %u", req->adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectCreateExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        TRACE_7("Not a correct implementer handle conn:%u nodeId:%x", 
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle conn:%u nodeId:%x", 
             conn, nodeId);
         err = SA_AIS_ERR_BAD_HANDLE;	
         goto rtObjectCreateExit;
@@ -6178,7 +6177,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         if(nameToInternal(parentName)) {
             nameCorrected = true;
         } else {
-            TRACE_7("Not a proper parent name:%s size:%u",
+            LOG_NO("ERR_INVALID_PARAM: Not a proper parent name:%s size:%u",
                 parentName.c_str(), (unsigned int) parentName.size());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto rtObjectCreateExit;
@@ -6186,21 +6185,21 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if(!nameCheck(className)) {
-        TRACE_7("Not a proper class name:%s", className.c_str());
+        LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectCreateExit;
     }
     
     i3 = sClassMap.find(className);
     if (i3 == sClassMap.end()) {
-        TRACE_7("class '%s' does not exist", className.c_str());
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectCreateExit;
     }
     classInfo = i3->second;
     
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
-        TRACE_7("class '%s' is not a runtime class", className.c_str());
+        LOG_NO("ERR_INVALID_PARAM: class '%s' is not a runtime class", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectCreateExit;
     }
@@ -6208,13 +6207,13 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     if (parentName.length() > 0) {
         ObjectMap::iterator i = sObjectMap.find(parentName);
         if (i == sObjectMap.end()) {
-            TRACE_7("parent object '%s' does not exist", parentName.c_str());
+            TRACE_7("ERR_NOT_EXIST: parent object '%s' does not exist", parentName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto rtObjectCreateExit;
         } else {
             parent = i->second;
             if(parent->mObjFlags & IMM_CREATE_LOCK) {
-                TRACE_7("parent object '%s' is being created "
+                TRACE_7("ERR_NOT_EXIST: parent object '%s' is being created "
                     "in a ccb %u that has not yet been applied.", 
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -6222,7 +6221,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             }
             
             if(parent->mObjFlags & IMM_DELETE_LOCK) {
-                TRACE_7("parent object '%s' is registered for delete in ccb: "
+                TRACE_7("ERR_NOT_EXIST: parent object '%s' is registered for delete in ccb: "
                     "%u. Will not allow create of subobject.",
                     parentName.c_str(), parent->mCcbId);
                 err = SA_AIS_ERR_NOT_EXIST;
@@ -6236,8 +6235,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
         LOG_ER("No RDN attribute found in class!");
-        err = SA_AIS_ERR_LIBRARY;     //Should never happen!
-        goto rtObjectCreateExit;
+		assert(0); 
     }
     
     attrValues = req->attrValues;
@@ -6251,7 +6249,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             /* Sloppy type check, supplied value should EQUAL type in class */
             if((attrValues->n.attrValueType != SA_IMM_ATTR_SANAMET) &&
                 (attrValues->n.attrValueType != SA_IMM_ATTR_SASTRINGT)) {
-                LOG_ER("Value type for RDN attribute is "
+                LOG_NO("ERR_INVALID_PARAM:  value type for RDN attribute is "
                     "neither SaNameT nor SaStringT");
                 err = SA_AIS_ERR_INVALID_PARAM;
                 goto rtObjectCreateExit;
@@ -6260,7 +6258,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             if(((size_t)attrValues->n.attrValue.val.x.size > 64) &&
                 (attrValues->n.attrValueType == SA_IMM_ATTR_SASTRINGT))
             {
-                TRACE_7("RDN attribute is too large: %u. Max length is 64 "
+                LOG_NO("ERR_INVALID_PARAM: RDN attribute is too large: %u. Max length is 64 "
                     "for SaStringT", attrValues->n.attrValue.val.x.size);
                 err = SA_AIS_ERR_INVALID_PARAM;     
                 goto rtObjectCreateExit;
@@ -6279,7 +6277,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 assert(i44 != parent->mClassInfo->mAttrMap.end());
                 
                 if(!(i44->second->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                    TRACE_7("Parent object '%s' is a non-persistent runtime "
+                    LOG_NO("ERR_INVALID_PARAM: Parent object '%s' is a non-persistent runtime "
                         "object. Will not allow create of persistent "
                         "sub-object.", parentName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
@@ -6297,7 +6295,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if (objectName.empty()) {
-        TRACE_7("No RDN attribute found or value is empty");
+        LOG_NO("ERR_INVALID_PARAM: No RDN attribute found or value is empty");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto rtObjectCreateExit;
     }
@@ -6306,7 +6304,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         if(nameToInternal(objectName)) {
             nameCorrected = true;
         } else {
-            TRACE_7("Not a proper RDN (%s, %u)", objectName.c_str(),
+            LOG_NO("ERR_INVALID_PARAM: Not a proper RDN (%s, %u)", objectName.c_str(),
                 (unsigned int) objectName.length());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto rtObjectCreateExit;
@@ -6314,7 +6312,8 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
 
     if(objectName.find(',') != std::string::npos) {
-        TRACE_7( "Can not tolerate ',' in RDN: '%s'", objectName.c_str());
+        LOG_NO("ERR_INVALID_PARAM: Can not tolerate ',' in RDN: '%s'", 
+			objectName.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto rtObjectCreateExit;
     }
@@ -6325,7 +6324,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     }
     
     if (objectName.size() >= SA_MAX_NAME_LENGTH) {
-        TRACE_7("DN is too long, size:%u, max size is:%u", 
+        TRACE_7("ERR_NAME_TOO_LONG: DN is too long, size:%u, max size is:%u", 
             (unsigned int) objectName.size(), SA_MAX_NAME_LENGTH);
         err = SA_AIS_ERR_NAME_TOO_LONG;     
         goto rtObjectCreateExit;
@@ -6333,11 +6332,11 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     
     if((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("object '%s' is already registered "
+            TRACE_7("ERR_EXIST: object '%s' is already registered "
                 "for creation in a ccb, but not applied yet", 
                 objectName.c_str());
         } else {
-            TRACE_7("Object '%s' already exists", objectName.c_str());
+            TRACE_7("ERR_EXIST: Object '%s' already exists", objectName.c_str());
         }
         err = SA_AIS_ERR_EXIST;
         goto rtObjectCreateExit;
@@ -6396,7 +6395,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             i6 = object->mAttrValueMap.find(attrName);
             
             if (i6 == object->mAttrValueMap.end()) {
-                TRACE_7("attr '%s' not defined", attrName.c_str());
+                TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
             }
@@ -6406,19 +6405,19 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != (unsigned int) p->n.attrValueType) {
-                TRACE_7("attr '%s' type missmatch", attrName.c_str());
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_CONFIG) {
-                TRACE_7("attr '%s' is a config attribute => "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is a config attribute => "
                     "can not be assigned over OI-API.", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
             } else 	if(!(attr->mFlags & SA_IMM_ATTR_CACHED)) {
-                TRACE_7("attr '%s' is a non-cached runtime attribute => "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is a non-cached runtime attribute => "
                     "can not be assigned in rtObjectCreate (see spec).", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
@@ -6435,7 +6434,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                   int extraValues = p->attrValuesNumber - 1;
                 */
                 if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                    TRACE_7("attr '%s' is not multivalued yet "
+                    LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued yet "
                         "multiple values provided in create call", 
                         attrName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
@@ -6492,7 +6491,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             AttrInfo* attr = i4->second;
             
             if((attr->mFlags & SA_IMM_ATTR_CACHED) && attrValue->empty()) {
-                TRACE_7("attr '%s' is cached "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is cached "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;	  
@@ -6561,20 +6560,20 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     if(wasLocal) {assert(conn);}  //Assert may be a bit too strong here
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7("Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectUpdateExit;
     }
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN value");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN value");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto rtObjectUpdateExit;
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' does not exist", objectName.c_str());
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectUpdateExit;
     }
@@ -6583,14 +6582,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
     if(!info) {
-        TRACE_7("Not a correct implementer handle %u", req->adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectUpdateExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        TRACE_7("The provided implementer handle %u does not correspond to "
-            "the actual connection <%u, %x> != <%u, %x>",
+        TRACE_7("ERR_BAD_OPERATION: The provided implementer handle %u does not "
+			"correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectUpdateExit;
@@ -6605,8 +6604,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     if(!object->mImplementer ||
         (object->mImplementer->mConn != conn) || 
         (object->mImplementer->mNodeId != nodeId)) {
-        TRACE_7("Not a correct implementer handle or object not handled by "
-            "the implementer conn:%u nodeId:%x object->mImplementer:%p", 
+        TRACE_7("ERR_BAD_OPERATION: Not a correct implementer handle or object not "
+			"handled by the implementer conn:%u nodeId:%x object->mImplementer:%p", 
             conn, nodeId, object->mImplementer);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectUpdateExit;
@@ -6648,7 +6647,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             
             if (i5 == object->mAttrValueMap.end()) {
                 assert(!doIt);
-                TRACE_7("attr '%s' not defined", attrName.c_str());
+                TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
             }
@@ -6661,14 +6660,14 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             
             if(attr->mValueType != (unsigned int) p->attrValue.attrValueType) {
                 assert(!doIt);
-                TRACE_7("attr '%s' type missmatch", attrName.c_str());
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
             }
             
             if(attr->mFlags & SA_IMM_ATTR_CONFIG) {
                 assert(!doIt);
-                TRACE_7("attr '%s' is a config attribute => "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is a config attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
@@ -6676,7 +6675,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
             
             if(attr->mFlags & SA_IMM_ATTR_RDN) {
                 assert(!doIt);
-                TRACE_7("attr '%s' is the RDN attribute => "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' is the RDN attribute => "
                     "can not be modified over OI-API.", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
@@ -6730,7 +6729,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     TRACE_3("SA_IMM_ATTR_VALUES_ADD");
                     if(p->attrValue.attrValuesNumber == 0) {
                         assert(!doIt);
-                        TRACE_7("Empty value used for adding to attribute %s",
+                        LOG_NO("ERR_INVALID_PARAM: Empty value used for adding to attribute %s",
                             attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break;
@@ -6758,7 +6757,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     } else {
                         if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
                             assert(!doIt);
-                            TRACE_7("attr '%s' is not multivalued, yet "
+                            LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                                 "multiple values attempted", attrName.c_str());
                             err = SA_AIS_ERR_INVALID_PARAM;
                             break; //out of switch
@@ -6777,7 +6776,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         */
                         if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
                             assert(!doIt);
-                            TRACE_7("attr '%s' is not multivalued, yet "
+                            LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued, yet "
                                 "multiple values provided in modify call", 
                                 attrName.c_str());
                             err = SA_AIS_ERR_INVALID_PARAM;
@@ -6807,7 +6806,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     //Delete all values that match that provided by invoker.
                     if(p->attrValue.attrValuesNumber == 0) {
                         assert(!doIt);
-                        TRACE_7("Empty value used for deleting from "
+                        LOG_NO("ERR_INVALID_PARAM: Empty value used for deleting from "
                             "attribute %s", attrName.c_str());
                         err = SA_AIS_ERR_INVALID_PARAM;
                         break;
@@ -6842,7 +6841,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     
                 default:
                     err = SA_AIS_ERR_INVALID_PARAM;
-                    TRACE_7("Illegal value for SaImmAttrModificationTypeT: %u",
+                    LOG_NO("ERR_INVALID_PARAM: Illegal value for SaImmAttrModificationTypeT: %u",
                         p->attrModType);
                     break;
             }
@@ -6886,20 +6885,20 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ObjectMap::iterator oi, oi2;
     
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-        TRACE_7("Not a proper object name");
+        LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectDeleteExit;
     }
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN attribute value");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN attribute value");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto rtObjectDeleteExit;
     }
     
     oi = sObjectMap.find(objectName);
     if (oi == sObjectMap.end()) {
-        TRACE_7("object '%s' does not exist", objectName.c_str());
+        TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto rtObjectDeleteExit;
     }
@@ -6908,14 +6907,14 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
     if(!info) {
-        TRACE_7("Not a correct implementer handle %u", req->adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectDeleteExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        TRACE_7("The provided implementer handle %u does not correspond to "
-            "the actual connection <%u, %x> != <%u, %x>",
+        TRACE_7("ERR_BAD_OPERATION: The provided implementer handle %u does not "
+			"correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectDeleteExit;
@@ -6970,7 +6969,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     
     if(!object->mImplementer ||
         object->mImplementer != info) {
-        TRACE_7("Not a correct implementer handle "
+        TRACE_7("ERR_BAD_OPERATION: Not a correct implementer handle "
             "or object %s is not handled by the provided implementer " 
             "named %s (!=%p <name:'%s' conn:%u, node:%x>)", 
             oi->first.c_str(), info->mImplementerName.c_str(),
@@ -6983,7 +6982,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     }
     
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
-        TRACE_7("object '%s' is not a runtime object",
+        TRACE_7("ERR_BAD_OPERATION: object '%s' is not a runtime object",
             oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
@@ -7069,7 +7068,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         if(nameToInternal(objectName)) {
             nameCorrected = true;
         } else {
-            TRACE_7("Not a proper object name:%s size:%u", 
+            LOG_NO("ERR_INVALID_PARAM: Not a proper object name:%s size:%u", 
                 objectName.c_str(), (unsigned int) objectName.size());
             err = SA_AIS_ERR_INVALID_PARAM;
             goto objectSyncExit;
@@ -7077,7 +7076,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     }
     
     if (i3 == sClassMap.end()) {
-        TRACE_7("class '%s' does not exist", className.c_str());
+        TRACE_7("ERR_NOT_EXIST: class '%s' does not exist", className.c_str());
         err = SA_AIS_ERR_NOT_EXIST;
         goto objectSyncExit;
     }
@@ -7085,17 +7084,17 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     classInfo = i3->second;
     
     if (objectName.empty()) {
-        TRACE_7("Empty DN is not allowed");
+        LOG_NO("ERR_INVALID_PARAM: Empty DN is not allowed");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto objectSyncExit;
     }
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("object '%s' is already registered for creation in a ccb, "
-                "but not applied yet", objectName.c_str());
+            TRACE_7("ERR_EXIST: object '%s' is already registered for creation "
+				"in a ccb, but not applied yet", objectName.c_str());
         } else {
-            TRACE_7("object '%s' exists", objectName.c_str());
+			TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
         }
         err = SA_AIS_ERR_EXIST;
         goto objectSyncExit;
@@ -7158,7 +7157,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                 object->mAttrValueMap.find(attrName);
             
             if (i5 == object->mAttrValueMap.end()) {
-                TRACE_7("attr '%s' not defined", attrName.c_str());
+                TRACE_7("ERR_NOT_EXIST: attr '%s' not defined", attrName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
                 break; //out of for-loop
             }
@@ -7168,7 +7167,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
             AttrInfo* attr = i4->second;
             
             if(attr->mValueType != (unsigned int) p->n.attrValueType) {
-                TRACE_7("attr '%s' type missmatch", attrName.c_str());
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' type missmatch", attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;
                 break; //out of for-loop
             }
@@ -7185,7 +7184,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
                   int extraValues = p->n.attrValuesNumber - 1;
                 */
                 if(!(attr->mFlags & SA_IMM_ATTR_MULTI_VALUE)) {
-                    TRACE_7("attr '%s' is not multivalued yet "
+                    LOG_NO("ERR_INVALID_PARAM: attr '%s' is not multivalued yet "
                         "multiple values provided in create call", 
                         attrName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
@@ -7232,7 +7231,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
             AttrInfo* attr = i4->second;
             
             if((attr->mFlags & SA_IMM_ATTR_INITIALIZED) && attrValue->empty()){
-                TRACE_7("attr '%s' must be initialized "
+                LOG_NO("ERR_INVALID_PARAM: attr '%s' must be initialized "
                     "yet no value provided in the object create call", 
                     attrName.c_str());
                 err = SA_AIS_ERR_INVALID_PARAM;	  
@@ -7242,7 +7241,7 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
         if(err == SA_AIS_OK) {
             sObjectMap[objectName] = object; 
             classInfo->mRefCount++;
-            TRACE_7("object '%s' was synced ", objectName.c_str());
+            TRACE_7("Object '%s' was synced ", objectName.c_str());
         } else {
             //err != SA_AIS_OK
             //Delete object and its attributes

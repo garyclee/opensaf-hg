@@ -431,12 +431,12 @@ in imm.conf and restart the cluster.
 Errors, warnings and notice level messages are logged to the syslog.
 
 
-To enable traces in the IMM library, export the variable IMMSV_TRACE_PATHNAME
+To enable traces in the IMM library, export the variable IMMA_TRACE_PATHNAME
 with a valid pathname before starting the application using the IMM library.
 
 For example:
 
-$ export IMMSV_TRACE_PATHNAME=/tmp/imm.trace
+$ export IMMA_TRACE_PATHNAME=/tmp/imm.trace
 $ ./immomtest
 $ cat /tmp/imm.trace
 

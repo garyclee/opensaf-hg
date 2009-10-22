@@ -61,7 +61,7 @@ uns32 imma_mds_get_handle(IMMA_CB *cb)
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("Failed to get mds handle");
+		TRACE_3("Failed to get mds handle");
 		return rc;
 	}
 	cb->imma_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
@@ -111,7 +111,7 @@ uns32 imma_mds_register(IMMA_CB *cb)
 	svc_info.info.svc_install.i_mds_q_ownership = FALSE;
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("mds register A failed rc:%u", rc);
+		TRACE_3("mds register A failed rc:%u", rc);
 		return rc;
 	}
 	cb->imma_mds_dest = svc_info.info.svc_install.o_dest;
@@ -123,7 +123,7 @@ uns32 imma_mds_register(IMMA_CB *cb)
 	svc_info.info.svc_subscribe.i_svc_ids = &subs_id[0];
 
 	if ((rc = ncsmds_api(&svc_info)) != NCSCC_RC_SUCCESS) {
-		TRACE_1("mds register B failed rc:%u", rc);
+		TRACE_3("mds register B failed rc:%u", rc);
 		goto error;
 	}
 
@@ -162,7 +162,7 @@ void imma_mds_unregister(IMMA_CB *cb)
 	rc = ncsmds_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("MDS unregister failed");
+		TRACE_3("MDS unregister failed");
 	}
 	return;
 }
@@ -228,7 +228,7 @@ uns32 imma_mds_callback(struct ncsmds_callback_info *info)
 		break;
 
 	default:
-		TRACE_1("Invalid MDS callback");
+		TRACE_3("Invalid MDS callback");
 		break;
 	}
 
@@ -274,7 +274,7 @@ static uns32 imma_mds_enc_flat(IMMA_CB *cb, MDS_CALLBACK_ENC_FLAT_INFO *info)
 		evt = (IMMSV_EVT *)info->i_msg;
 		rc = immsv_evt_enc_flat( /*&cb->edu_hdl, */ evt, uba);
 		if (rc != NCSCC_RC_SUCCESS) {
-			TRACE_1("Mds encode flat failed rc:%u", rc);
+			TRACE_3("Mds encode flat failed rc:%u", rc);
 		}
 		return rc;
 	}
@@ -324,7 +324,7 @@ static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 	if (info->i_fr_svc_id == NCSMDS_SVC_ID_IMMND || info->i_fr_svc_id == NCSMDS_SVC_ID_IMMD) {
 		evt = (IMMSV_EVT *)calloc(1, sizeof(IMMSV_EVT));
 		if (evt == NULL) {
-			TRACE_1("Memory allocation failed");
+			TRACE_3("Memory allocation failed");
 			return NCSCC_RC_OUT_OF_MEM;
 		}
 		info->o_msg = evt;
@@ -336,7 +336,7 @@ static uns32 imma_mds_dec_flat(IMMA_CB *cb, MDS_CALLBACK_DEC_FLAT_INFO *info)
 		return rc;
 	}
 
-	TRACE_1("IMMA MDS received messsage from unexpected sender");
+	TRACE_3("IMMA MDS received messsage from unexpected sender");
 	return NCSCC_RC_FAILURE;
 }
 
@@ -390,11 +390,11 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
     NCS_BOOL locked = FALSE;
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
-		TRACE("IMMND DOWN");
+		TRACE_3("IMMND DOWN");
 		cb->is_immnd_up = FALSE; /*Dont wait for lock to block mds usage*/
         cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
-            LOG_ER("Locking failed");
+            TRACE_4("Locking failed");
             assert(0);
         }
         locked = TRUE;
@@ -404,9 +404,9 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 		break;
 
 	case NCSMDS_UP:
-		TRACE("IMMND UP");
+		TRACE_3("IMMND UP");
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
-            LOG_ER("Locking failed");
+            TRACE_4("Locking failed");
             assert(0);
         }
         locked = TRUE;
@@ -420,7 +420,7 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
         imma_determine_clients_to_resurrect(cb, &locked);
         if (!locked) {
             if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-                LOG_ER("Locking failed");
+                TRACE_4("Locking failed");
                 assert(0);
             }
             locked = TRUE;

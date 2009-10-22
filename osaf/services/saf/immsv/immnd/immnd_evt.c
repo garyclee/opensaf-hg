@@ -2410,7 +2410,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 		TRACE_2("CCB COMPLETED: TERMINATING CCB:%u", evt->info.ccbUpcallRsp.ccbId);
 		err = immModel_ccbDelete(cb, evt->info.ccbUpcallRsp.ccbId);
 		if (err != SA_AIS_OK) {
-			LOG_ER("Failure in termination of CCB:%u - ignoring!", evt->info.ccbUpcallRsp.ccbId);
+			LOG_WA("Failure in termination of CCB:%u - ignoring!", evt->info.ccbUpcallRsp.ccbId);
 			/* There is really not much we can do here. */
 		}
 	}			//if(!immModel_ccbWait
@@ -4788,7 +4788,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 			immnd_evt_ccb_abort(cb, idArr[ix], SA_FALSE, NULL);
 			err = immModel_ccbDelete(cb, idArr[ix]);
 			if (err != SA_AIS_OK) {
-				LOG_ER("Failed to remove Ccb %u - ignoring", idArr[ix]);
+				LOG_WA("Failed to remove Ccb %u - ignoring", idArr[ix]);
 			}
 		}
 		free(idArr);
