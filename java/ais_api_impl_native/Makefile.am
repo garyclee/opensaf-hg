@@ -42,7 +42,7 @@ noinst_HEADERS = \
 	tracer.h
 
 libjava_ais_api_native_la_CPPFLAGS = \
-	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I $(JAVA_HOME)/include \
 	-I $(JAVA_HOME)/include/linux
 
@@ -66,8 +66,8 @@ libjava_ais_api_native_la_SOURCES = \
 	$(top_srcdir)/java/ais_api_impl_native/tracer.c
 
 libjava_ais_api_native_la_LIBADD = \
-	$(top_builddir)/lib/lib_SaAmf/libSaAmf.la \
-	$(top_builddir)/lib/lib_SaClm/libSaClm.la
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
 
 libjava_ais_api_native_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
 
