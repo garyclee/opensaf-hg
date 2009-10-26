@@ -539,7 +539,7 @@ static std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
             ost << *((unsigned long long *) value);
             break;
         case SA_IMM_ATTR_SATIMET:   
-            ost << *((unsigned int *) value);
+            ost << *((unsigned long long *) value);
             break;
         case SA_IMM_ATTR_SAFLOATT:  
             ost << *((float *) value);
