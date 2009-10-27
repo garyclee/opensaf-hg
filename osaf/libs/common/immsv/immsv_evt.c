@@ -24,7 +24,7 @@
 
 #include "immsv.h"
 
-#define IMMSV_MAX_DEPTH 64
+#define IMMSV_MAX_ATTRIBUTES 128
 #define IMMSV_MAX_CLASSES 1000
 #define IMMSV_MAX_IMPLEMENTERS 3000
 #define IMMSV_MAX_ADMINOWNERS 2000
@@ -545,11 +545,11 @@ static void immsv_evt_dec_attrmods(NCS_UBAID *i_ub, IMMSV_ATTR_MODS_LIST **p)
 		ncs_dec_skip_space(i_ub, 1);
 		p = &((*p)->next);
 		++depth;
-	} while (c8 && (depth < IMMSV_MAX_DEPTH));
+	} while (c8 && (depth < IMMSV_MAX_ATTRIBUTES));
 
-	if (depth >= IMMSV_MAX_DEPTH) {
+	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
-		assert(depth < IMMSV_MAX_DEPTH);
+		assert(depth < IMMSV_MAX_ATTRIBUTES);
 	}
 }
 
@@ -604,11 +604,11 @@ static void immsv_evt_dec_attributes(NCS_UBAID *i_ub, IMMSV_ATTR_VALUES_LIST **p
 		ncs_dec_skip_space(i_ub, 1);
 		p = &((*p)->next);
 		++depth;
-	} while (c8 && (depth < IMMSV_MAX_DEPTH));
+	} while (c8 && (depth < IMMSV_MAX_ATTRIBUTES));
 
-	if (depth >= IMMSV_MAX_DEPTH) {
+	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY attributes line:%u", __LINE__);
-		assert(depth < IMMSV_MAX_DEPTH);
+		assert(depth < IMMSV_MAX_ATTRIBUTES);
 	}
 }
 
@@ -1011,9 +1011,9 @@ static uns32 immsv_evt_dec_attrNames(NCS_UBAID *i_ub, IMMSV_ATTR_NAME_LIST **p)
 		ncs_dec_skip_space(i_ub, 1);
 		p = &((*p)->next);
 		++depth;
-	} while (c8 && (depth < IMMSV_MAX_DEPTH));
+	} while (c8 && (depth < IMMSV_MAX_ATTRIBUTES));
 
-	if (depth >= IMMSV_MAX_DEPTH) {
+	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY attrNames");
 		return NCSCC_RC_OUT_OF_MEM;
 	}
@@ -1120,8 +1120,8 @@ static uns32 immsv_evt_dec_attr_def(NCS_UBAID *i_ub, IMMSV_ATTR_DEF_LIST **adp)
 		ncs_dec_skip_space(i_ub, 1);
 		adp = &((*adp)->next);
 		++depth;
-	} while (c8 && (depth < IMMSV_MAX_DEPTH));
-	if (depth >= IMMSV_MAX_DEPTH) {
+	} while (c8 && (depth < IMMSV_MAX_ATTRIBUTES));
+	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY ATTR DEFS line:%u", __LINE__);
 		return NCSCC_RC_OUT_OF_MEM;
 	}
@@ -1157,8 +1157,8 @@ static uns32 immsv_evt_dec_admop_param(NCS_UBAID *i_ub, IMMSV_ADMIN_OPERATION_PA
 		ncs_dec_skip_space(i_ub, 1);
 		opp = &((*opp)->next);
 		++depth;
-	} while (c8 && (depth < IMMSV_MAX_DEPTH));
-	if (depth >= IMMSV_MAX_DEPTH) {
+	} while (c8 && (depth < IMMSV_MAX_ATTRIBUTES));
+	if (depth >= IMMSV_MAX_ATTRIBUTES) {
 		LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
 		return NCSCC_RC_OUT_OF_MEM;
 	}
@@ -1189,12 +1189,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			int depth = 0;
 			/*Encode attribute definitions. */
 			IMMSV_ATTR_DEF_LIST *ad = i_evt->info.imma.info.classDescr.attrDefinitions;
-			while (ad && (depth < IMMSV_MAX_DEPTH)) {
+			while (ad && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attr_def(o_ub, ad);
 				ad = ad->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("Class description: TOO MANY ATTR DEFS");
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1221,8 +1221,8 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					immsv_evt_enc_attribute(o_ub, al);
 					al = al->next;
 					++depth;
-				} while (al && (depth < IMMSV_MAX_DEPTH));
-				if (depth >= IMMSV_MAX_DEPTH) {
+				} while (al && (depth < IMMSV_MAX_ATTRIBUTES));
+				if (depth >= IMMSV_MAX_ATTRIBUTES) {
 					LOG_ER("Search next: TOO MANY ATTR DEFS line:%u", __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}
@@ -1244,12 +1244,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attributes */
 			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.imma.info.objCreate.attrValues;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attribute(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attributes line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1263,12 +1263,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.imma.info.objModify.attrMods;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attr_mod(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1284,12 +1284,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/*Encode the param list */
 			IMMSV_ADMIN_OPERATION_PARAM *op = i_evt->info.imma.info.admOpReq.params;
-			while (op && (depth < IMMSV_MAX_DEPTH)) {
+			while (op && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_admop_param(o_ub, op);
 				op = op->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1302,13 +1302,13 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.imma.info.searchRemote.attributeNames;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attrName(o_ub, p);
 				p = p->next;
 				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute names line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1330,12 +1330,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.immd.info.objModify.attrMods;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attr_mod(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1362,12 +1362,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/*Encode the param list */
 			IMMSV_ADMIN_OPERATION_PARAM *op = i_evt->info.immnd.info.admOpReq.params;
-			while (op && (depth < IMMSV_MAX_DEPTH)) {
+			while (op && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_admop_param(o_ub, op);
 				op = op->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY PARAMS line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1384,12 +1384,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			/*Encode attribute definitions. */
 			IMMSV_ATTR_DEF_LIST *ad = i_evt->info.immnd.info.classDescr.attrDefinitions;
-			while (ad && (depth < IMMSV_MAX_DEPTH)) {
+			while (ad && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attr_def(o_ub, ad);
 				ad = ad->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY ATTR DEFS line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1408,12 +1408,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attributes */
 			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.immnd.info.objCreate.attrValues;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attribute(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attributes line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1428,12 +1428,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute modifications */
 			IMMSV_ATTR_MODS_LIST *p = i_evt->info.immnd.info.objModify.attrMods;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attr_mod(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute modifications line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1456,12 +1456,12 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attributes */
 			IMMSV_ATTR_VALUES_LIST *p = i_evt->info.immnd.info.obj_sync.attrValues;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attribute(o_ub, p);
 				p = p->next;
 				++depth;
 			}
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attributes line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1539,13 +1539,13 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.immnd.info.searchInit.attributeNames;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attrName(o_ub, p);
 				p = p->next;
 				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute names line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1559,13 +1559,13 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.immnd.info.rtAttUpdRpl.sr.attributeNames;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attrName(o_ub, p);
 				p = p->next;
 				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute names line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1578,13 +1578,13 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			/*Encode the list of attribute names */
 			IMMSV_ATTR_NAME_LIST *p = i_evt->info.immnd.info.searchRemote.attributeNames;
 
-			while (p && (depth < IMMSV_MAX_DEPTH)) {
+			while (p && (depth < IMMSV_MAX_ATTRIBUTES)) {
 				immsv_evt_enc_attrName(o_ub, p);
 				p = p->next;
 				++depth;
 			}
 
-			if (depth >= IMMSV_MAX_DEPTH) {
+			if (depth >= IMMSV_MAX_ATTRIBUTES) {
 				LOG_ER("TOO MANY attribute names line:%u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
 			}
@@ -1611,8 +1611,8 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 					immsv_evt_enc_attribute(o_ub, al);
 					al = al->next;
 					++depth;
-				} while (al && (depth < IMMSV_MAX_DEPTH));
-				if (depth >= IMMSV_MAX_DEPTH) {
+				} while (al && (depth < IMMSV_MAX_ATTRIBUTES));
+				if (depth >= IMMSV_MAX_ATTRIBUTES) {
 					LOG_ER("Search next: TOO MANY ATTR DEFS line:%u", __LINE__);
 					return NCSCC_RC_OUT_OF_MEM;
 				}
