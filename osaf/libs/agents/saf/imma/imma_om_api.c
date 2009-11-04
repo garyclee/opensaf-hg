@@ -1180,6 +1180,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	rc = imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: Admin owner handle not valid");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
@@ -1723,9 +1724,9 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
+			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto done;
 	}
 
@@ -2110,9 +2111,9 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
+			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto done;
 	}
 
@@ -2404,9 +2405,9 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
+			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto done;
 	}
 
@@ -2621,6 +2622,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 				*/
 				TRACE_3("Ok reply from server on ccb-apply overrides stale handle");
 			} else {
+				TRACE_2("ERR_BAD_HANDLE: client_node is stale after call return");
 				rc = SA_AIS_ERR_BAD_HANDLE; /* is converted to ERR_TIMEOUT below*/
 				cl_node->exposed = TRUE;
 			}
@@ -2806,6 +2808,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	/* Get the Admin Owner info  */
 	proc_rc = imma_admin_owner_node_get(&cb->admin_owner_tree, &ownerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto ao_not_found;
 	}
@@ -3121,6 +3124,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	/* Get the Admin Owner info  */
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &ownerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto ao_not_found;
 	}
@@ -3439,6 +3443,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
 	}
@@ -3771,6 +3776,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
 	}
@@ -4256,6 +4262,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
 	}
@@ -4382,6 +4389,7 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -4466,6 +4474,7 @@ SaAisErrorT saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle)
 	imma_search_node_get(&cb->search_tree, &accessorHandle, &search_node);
 
 	if (!search_node) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -4543,6 +4552,7 @@ SaAisErrorT saImmOmAccessorGet_2(SaImmAccessorHandleT accessorHandle,
 	proc_rc = imma_search_node_get(&cb->search_tree, &accessorHandle, &search_node);
 
 	if (!search_node) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -4644,6 +4654,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto client_not_found;
 	}
@@ -4977,6 +4988,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5014,6 +5026,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		/*Look up search handle */
 		imma_search_node_get(&cb->search_tree, searchHandle, &search_node);
 		if ((!search_node) || (search_node->mImmHandle != immHandle)) {
+			TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto release_lock;
 		}
@@ -5152,7 +5165,9 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_SEARCHINIT_RSP);
 		rc = out_evt->info.imma.info.searchInitRsp.error;
-		free(out_evt);
+	} else {
+		TRACE_4("ERR_LIBRARY: Empty return message from IMMND");
+		rc = SA_AIS_ERR_LIBRARY;
 	}
 
  mds_send_fail:
@@ -5186,6 +5201,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5194,11 +5210,13 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	
 	imma_search_node_get(&cb->search_tree, &tmpSearchHandle, &search_node);
 	if ((!search_node) || (search_node->mImmHandle != immHandle)) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
 
 	if (rc == SA_AIS_OK) {
+		assert(out_evt);
 		search_node->mSearchId = out_evt->info.imma.info.searchInitRsp.searchId;
 		if (*searchHandle) {
 			assert(*searchHandle == search_node->search_hdl);
@@ -5226,6 +5244,10 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
  release_lock:
 	if (locked) {
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+	}
+
+	if(out_evt) {
+		free(out_evt);
 	}
 
  release_cb:
@@ -5284,6 +5306,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	imma_search_node_get(&cb->search_tree, &searchHandle, &search_node);
 
 	if (!search_node) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5313,6 +5336,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	}
 
 	if (search_node->mSearchId == 0) {
+		TRACE_2("ERR_BAD_HANDLE: Search id is zero");
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5373,6 +5397,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 
 	imma_search_node_get(&cb->search_tree, &searchHandle, &search_node);
 	if (!search_node) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5532,6 +5557,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	imma_search_node_get(&cb->search_tree, &searchHandle, &search_node);
 
 	if (!search_node) {
+		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5672,6 +5698,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
@@ -5850,6 +5877,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
@@ -5969,6 +5997,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 			/* Override all errors with BAD_HANDLE, but dont override AIS_OK 
 			   because this is an admin owner release, i.e. relaxation call.
 			 */
+			TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
 		TRACE_3("client_node_get failed");
@@ -6030,6 +6059,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
+		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}
@@ -6120,8 +6150,8 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 			   because this is an admin owner clear, i.e. relaxation call.
 			 */
 			rc = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		}
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		goto done;
 	}
 
@@ -6165,6 +6195,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 	if (!ao_node) {
+		TRACE_2("ERR_BAD_HANDLE: Admin owner node is missing");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
 	}

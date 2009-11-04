@@ -59,6 +59,7 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
 {
     NCS_SEL_OBJ_SET set;
     uns32 timeout = 3000;
+	TRACE_ENTER();
 
     m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
 
@@ -67,7 +68,7 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
         m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
         return;
     }
-
+	TRACE("Blocking first client");
     cb->immnd_sync_awaited = TRUE;
     m_NCS_SEL_OBJ_CREATE(&cb->immnd_sync_sel);
     m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
@@ -76,6 +77,7 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
     m_NCS_SEL_OBJ_ZERO(&set);
     m_NCS_SEL_OBJ_SET(cb->immnd_sync_sel, &set);
     m_NCS_SEL_OBJ_SELECT(cb->immnd_sync_sel, &set, 0 , 0, &timeout);
+	TRACE("Blocking wait released");
 
     /* Destroy the sync - object */
     m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
@@ -85,6 +87,7 @@ static void imma_sync_with_immnd(IMMA_CB *cb)
 
     m_NCS_UNLOCK(&cb->immnd_sync_lock, NCS_LOCK_WRITE);
 
+	TRACE_LEAVE();
     return;
 }
 
@@ -112,7 +115,7 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 
 	/* initialize the imma cb lock */
 	if (m_NCS_LOCK_INIT(&cb->cb_lock) != NCSCC_RC_SUCCESS) {
-		TRACE_3("Failed to get cb lock");
+		TRACE_4("Failed to get cb lock");
 		goto lock_init_fail;
 	}
 
@@ -131,6 +134,11 @@ static uns32 imma_create(NCSMDS_SVC_ID sv_id)
 	}
 
 	cb->sv_id = sv_id;
+
+	if (m_NCS_LOCK_INIT(&cb->immnd_sync_lock) != NCSCC_RC_SUCCESS) {
+		TRACE_4("Failed to get immnd_sync_lock lock");
+		goto mds_reg_fail;
+	}
 
 	/* register with MDS */
 	if (imma_mds_register(cb) != NCSCC_RC_SUCCESS) {
