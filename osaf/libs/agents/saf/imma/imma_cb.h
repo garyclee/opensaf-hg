@@ -122,6 +122,11 @@ typedef struct imma_cb {
 	/*Used for matching async reply to saImmOmAdminOperationInvokeAsync */
 	IMMA_CONTINUATION_RECORD *imma_continuations;
 
+	/* Sync up with IMMND ( MDS ) see imma_sync_with_immnd() in imma_init.c */
+    NCS_LOCK             immnd_sync_lock;
+    NCS_BOOL             immnd_sync_awaited;
+    NCS_SEL_OBJ          immnd_sync_sel; 
+
 } IMMA_CB;
 
 #define m_IMMSV_SET_SANAMET(name) \

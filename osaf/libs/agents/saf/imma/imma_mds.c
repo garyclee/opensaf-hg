@@ -391,7 +391,10 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 	switch (svc_evt->i_change) {
 	case NCSMDS_DOWN:
 		TRACE_3("IMMND DOWN");
-		cb->is_immnd_up = FALSE; /*Dont wait for lock to block mds usage*/
+		m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+		cb->is_immnd_up = FALSE; 
+		m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);
+
         cb->dispatch_clients_to_resurrect = 0; /* Stop active resurrections */
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS) {
             TRACE_4("Locking failed");
@@ -405,13 +408,18 @@ static uns32 imma_mds_svc_evt(IMMA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 
 	case NCSMDS_UP:
 		TRACE_3("IMMND UP");
+		m_NCS_LOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
+		cb->is_immnd_up = TRUE;
+		cb->immnd_mds_dest = svc_evt->i_dest;
+		if (cb->immnd_sync_awaited == TRUE)
+			m_NCS_SEL_OBJ_IND(cb->immnd_sync_sel);
+		m_NCS_UNLOCK(&cb->immnd_sync_lock,NCS_LOCK_WRITE);/*special sync lock*/
+
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE)!=NCSCC_RC_SUCCESS){
             TRACE_4("Locking failed");
             assert(0);
         }
         locked = TRUE;
-		cb->is_immnd_up = TRUE;
-		cb->immnd_mds_dest = svc_evt->i_dest;
         /* Check again if some clients have been exposed during down time. 
            Also determine if there are candidates for active resurrection.
            Inform IMMND of highest used client id. Increases chances of success
