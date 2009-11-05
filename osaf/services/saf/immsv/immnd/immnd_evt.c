@@ -2408,7 +2408,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			}
 		}
 		TRACE_2("CCB COMPLETED: TERMINATING CCB:%u", evt->info.ccbUpcallRsp.ccbId);
-		err = immModel_ccbDelete(cb, evt->info.ccbUpcallRsp.ccbId);
+		err = immModel_ccbFinalize(cb, evt->info.ccbUpcallRsp.ccbId);
 		if (err != SA_AIS_OK) {
 			LOG_WA("Failure in termination of CCB:%u - ignoring!", evt->info.ccbUpcallRsp.ccbId);
 			/* There is really not much we can do here. */
@@ -3862,7 +3862,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 
 	assert(evt);
 	immnd_evt_ccb_abort(cb, evt->info.ccbId, SA_FALSE, &client);
-	err = immModel_ccbDelete(cb, evt->info.ccbId);
+	err = immModel_ccbFinalize(cb, evt->info.ccbId);
 	TRACE_2("ccb aborted and deleted err:%u", err);
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
@@ -4023,7 +4023,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			assert(!client || originatedAtThisNd);
 		}
 		TRACE_2("CCB APPLY TERMINATING CCB: %u", evt->info.ccbId);
-		immModel_ccbDelete(cb, evt->info.ccbId);
+		immModel_ccbFinalize(cb, evt->info.ccbId);
 
 		if (originatedAtThisNd) {
 			immnd_client_node_get(cb, clnt_hdl, &cl_node);
@@ -4786,7 +4786,7 @@ static void immnd_evt_proc_discard_node(IMMND_CB *cb,
 		for (ix = 0; ix < arrSize; ++ix) {
 			LOG_WA("Detected crash at node %x, abort ccbId  %u", evt->info.ctrl.nodeId, idArr[ix]);
 			immnd_evt_ccb_abort(cb, idArr[ix], SA_FALSE, NULL);
-			err = immModel_ccbDelete(cb, idArr[ix]);
+			err = immModel_ccbFinalize(cb, idArr[ix]);
 			if (err != SA_AIS_OK) {
 				LOG_WA("Failed to remove Ccb %u - ignoring", idArr[ix]);
 			}

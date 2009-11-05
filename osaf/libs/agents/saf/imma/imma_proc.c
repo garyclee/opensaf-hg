@@ -1050,8 +1050,11 @@ IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *cl_node)
                   Resurrecting the handle is done with a newly restarted IMMND.
                   If the client was attached as an implementer, then
                   the implementer also needs to be re-attached, but that 
-                  is  done elsewhere (e.g. saImmOiDispatch stale-handling) 
+                  is  done elsewhere (in imma_oi_resurrect in imma-oi_api.c).
                   since it is only relevant for OI clients. 
+                  If the client was attached via the OM interface, then
+                  it may be necessary to re-attach to admin-owner, but that
+                  is done elsewhere (imma_om_resurrect in in imma_om_api.c). 
 
                   This function is used for both active and re-active
                   resurrection.

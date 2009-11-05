@@ -182,7 +182,7 @@ struct ObjectMutation
 typedef std::map<std::string, ObjectMutation*> ObjectMutationMap;  
 
 typedef enum {
-    IMM_CCB_EMPTY = 1,      //State after creation or restart
+    IMM_CCB_EMPTY = 1,      //State after creation 
     IMM_CCB_READY = 2,      //Ready for new ops, or commit or abort.
     IMM_CCB_CREATE_OP = 3,  //Ongoing create (pending implementer calls/replies)
     IMM_CCB_MODIFY_OP = 4,  //Ongoing modify (pending implementer calls/replies)
@@ -191,15 +191,17 @@ typedef enum {
     IMM_CCB_CRITICAL = 7,   //Commit(apply) has started on nodes.
     IMM_CCB_COMMITED = 8,   //Commited at nodes pending implementer apply calls
     IMM_CCB_ABORTED = 9,    //READY->ABORTED PREPARE->ABORTED
-    IMM_CCB_ILLEGAL = 10    //????
+    IMM_CCB_ILLEGAL = 10    //CCB has been removed.
 } ImmCcbState;
 
 struct CcbInfo
 {
     bool isOk() {return mVeto == SA_AIS_OK;}
+    bool isActive() {return (mState < IMM_CCB_COMMITED);}
     SaUint32T         mId;
     SaUint32T         mAdminOwnerId;
     SaUint32T         mCcbFlags;
+
     SaUint32T         mOriginatingConn; //If !NULL then originating at this node
     //with this conn.
     unsigned int      mOriginatingNode;  //Needed for node crash Ccb GC
@@ -705,7 +707,7 @@ immModel_ccbCommit(IMMND_CB *cb,
 }
 
 SaAisErrorT
-immModel_ccbDelete(IMMND_CB *cb, 
+immModel_ccbFinalize(IMMND_CB *cb, 
     SaUint32T ccbId)
 {
     return ImmModel::instance(&cb->immModel)->ccbTerminate(ccbId);
@@ -986,9 +988,9 @@ immModel_syncComplete(IMMND_CB *cb)
 }
 
 SaBoolT 
-immModel_ccbsEmpty(IMMND_CB *cb)
+immModel_ccbsTerminated(IMMND_CB *cb)
 {
-    return (SaBoolT) ImmModel::instance(&cb->immModel)->ccbsEmpty();
+    return (SaBoolT) ImmModel::instance(&cb->immModel)->ccbsTerminated();
 }
 
 SaBoolT
@@ -2019,7 +2021,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                         //or different => will be caught in adminOwnerSet()
                         i2 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
                             CcbIdIs(ccbIdOfObj));
-                        if (i2 != sCcbVector.end()) {
+                        if (i2 != sCcbVector.end() && (*i2)->isActive()) {
                             TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
                                 ccbIdOfObj, objectName.c_str());
                             TRACE_LEAVE();
@@ -2052,7 +2054,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                                             i2=std::find_if(sCcbVector.begin(),
                                                 sCcbVector.end(),
                                                 CcbIdIs(ccbIdOfObj));
-                                            if (i2 != sCcbVector.end()) {
+                                            if (i2 != sCcbVector.end() && (*i2)->isActive()) {
                                                 TRACE_7("ERR_BUSY: ccb id %u is active on"
                                                     "object %s", ccbIdOfObj,
                                                     subObjName.c_str());
@@ -2430,7 +2432,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
             return;
             
         case IMM_CCB_COMMITED:
-            LOG_WA("CCB %u is already commited, can not abort", ccbId);
+            TRACE_5("CCB %u was commited", ccbId);
             TRACE_LEAVE();
             return;
             
@@ -2442,6 +2444,7 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
     
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+	ccb->mWaitStartTime = 0;
     
     CcbImplementerMap::iterator isi;
     for(isi = ccb->mImplementers.begin();
@@ -2608,7 +2611,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
         }//for each mutation
         ccb->mMutations.clear();
         if(ccb->mImplementers.size()) {
-            LOG_ER("Ccb destroyed without notifying some implementers.");
+            LOG_WA("Ccb destroyed without notifying some implementers from IMMND.");
             CcbImplementerMap::iterator ix;
             for(ix=ccb->mImplementers.begin(); 
                 ix != ccb->mImplementers.end(); ++ix) {
@@ -2617,12 +2620,15 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
             }
             ccb->mImplementers.clear();
         }
-        ccb->mState = IMM_CCB_ILLEGAL;
-        delete ccb;
-        sCcbVector.erase(i); 
-        //TODO should probably remember id+result in some transaction log
-        //Or quarantine the ccb instead of deleting it here.
-        //One posibility is to store ccb outcomes in the OpenSafImm object.
+		/*  ABT OCT 2009 Retain the ccb info to allow ccb result recovery. */
+
+		if(ccb->mWaitStartTime == 0)  {
+			ccb->mWaitStartTime = time(NULL); 
+			TRACE_5("Ccb Wait-time for GC set. State: %u/%s", ccb->mState,
+				(ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+				((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+		}
+        //TODO(?) Would be neat to store ccb outcomes in the OpenSafImm object.
     }
     
     TRACE_LEAVE();
@@ -3396,15 +3402,17 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
     
     ccbIdOfObj = object->mCcbId;
-    i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
-        CcbIdIs(ccbIdOfObj));
-    if ((i1 != sCcbVector.end()) && (ccbIdOfObj != ccbId)) {
-        TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
-            ccbId, ccbIdOfObj);
-        err = SA_AIS_ERR_BUSY;
-        goto ccbObjectModifyExit;
-    }
-    
+	if(ccbIdOfObj != ccbId) {
+		i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
+			CcbIdIs(ccbIdOfObj));
+		if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
+			TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
+				ccbId, ccbIdOfObj);
+			err = SA_AIS_ERR_BUSY;
+			goto ccbObjectModifyExit;
+		}
+	}
+
     classInfo = object->mClassInfo;
     assert(classInfo);
     
@@ -3876,13 +3884,16 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     }
     
     ccbIdOfObj = oi->second->mCcbId;
-    i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
-        CcbIdIs(ccbIdOfObj));
-    if ((i1 != sCcbVector.end()) && (ccbIdOfObj != ccb->mId)) {
-        TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
-            ccb->mId, ccbIdOfObj);
-        return SA_AIS_ERR_BUSY;
-    }
+	if(ccbIdOfObj != ccb->mId) {
+		i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
+			CcbIdIs(ccbIdOfObj));
+		if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
+			TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
+				ccb->mId, ccbIdOfObj);
+			return SA_AIS_ERR_BUSY;
+		}
+	}
+
     
     if(oi->second->mClassInfo->mCategory != SA_IMM_CLASS_CONFIG) {
         TRACE_7("ERR_BAD_OPERATION: object '%s' is not a configuration object", 
@@ -3965,8 +3976,8 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err)
     TRACE_ENTER();
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if(i1 == sCcbVector.end()) {
-        LOG_WA("CCb %u lost during ccbCompleted processing, "
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("CCb %u terminated during ccbCompleted processing, "
             "ccb must be aborted", ccbId);
         return false;
     }
@@ -3998,8 +4009,8 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err)
     TRACE_ENTER();
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if(i1 == sCcbVector.end()) {
-        LOG_WA("CCb %u lost during ccbCompleted processing, "
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("CCb %u terminated during ccbCompleted processing, "
             "ccb must be aborted", ccbId);
         return false;
     }
@@ -4036,8 +4047,8 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     CcbVector::iterator i1;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if (i1 == sCcbVector.end()) {
-        LOG_WA("ccb id %u missing - aborted ?", ccbId);
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("ccb id %u missing or terminated", ccbId);
         TRACE_LEAVE();
         return;
     }
@@ -4083,8 +4094,8 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     CcbVector::iterator i1;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if (i1 == sCcbVector.end()) {
-        LOG_WA("ccb id %u missing - aborted ?", ccbId);
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("ccb id %u missing or terminated", ccbId);
         TRACE_LEAVE();
         return;
     }
@@ -4122,8 +4133,8 @@ ImmModel::ccbObjCreateContinuation(SaUint32T ccbId, SaUint32T invocation,
     CcbVector::iterator i1;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if (i1 == sCcbVector.end()) {
-        LOG_WA("ccb id %u missing - aborted ?", ccbId);
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("ccb id %u missing or terminated", ccbId);
         TRACE_LEAVE();
         return;
     }
@@ -4179,8 +4190,8 @@ ImmModel::ccbObjModifyContinuation(SaUint32T ccbId, SaUint32T invocation,
     CcbVector::iterator i1;
     
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
-    if (i1 == sCcbVector.end()) {
-        LOG_WA("ccb id %u missing - aborted ?", ccbId);
+    if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
+        LOG_WA("ccb id %u missing or terminated", ccbId);
         TRACE_LEAVE();
         return;
     }
@@ -4799,7 +4810,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     if(ccbIdOfObj) {//check for ccb interference
         i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
 			CcbIdIs(ccbIdOfObj));
-        if (i3 != sCcbVector.end()) {
+        if (i3 != sCcbVector.end() && (*i3)->isActive()) {
             TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
                 ccbIdOfObj, objectName.c_str());
             TRACE_LEAVE();
@@ -5328,10 +5339,23 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
     }
 }
 
+
+/* Are all ccbs terminated ? */
 bool
-ImmModel::ccbsEmpty()
+ImmModel::ccbsTerminated()
 {
-    return sCcbVector.empty();
+	CcbVector::iterator i;
+
+    if(sCcbVector.empty()) {return true;}
+
+	for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
+		if((*i)->mState < IMM_CCB_COMMITED) {
+			return false;
+		}
+	}
+
+
+	return true;
 }
 
 void
@@ -5366,6 +5390,8 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
 {
     time_t now = time(NULL);
     ContinuationMap2::iterator ci2;
+	CcbVector::iterator i3;
+	CcbVector ccbsToGc;
     
     for(ci2=sAdmReqContinuationMap.begin(); 
         ci2!=sAdmReqContinuationMap.end();
@@ -5403,19 +5429,44 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     //Conclusion: I should add cleanup logic here anyway, since it is easy to
     //do and solves the problem. 
     
-    if(iAmCoord) {
-        //Fetch CcbIds for Ccbs that have waited too long on an implementer
-        CcbVector::iterator i3;
-        for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
-            //TODO the timeout should not be hardwired, but for now it is.
-            if((*i3)->mWaitStartTime &&
-                (now - (*i3)->mWaitStartTime >= 6)) {
-                TRACE_5("Timeout on CCB %u "
-                    "while waiting for implementer reply", (*i3)->mId);
-                ccbs.push_back((*i3)->mId);
-            }
-        }
-    }
+	for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
+		if((*i3)->mState > IMM_CCB_CRITICAL) {
+			/* Garbage Collect ccbInfo more than one minute old */
+			TRACE("Checking terminated ccb %u for gc ripe age %u", (*i3)->mId,
+				(unsigned int) (now - (*i3)->mWaitStartTime));
+			if((*i3)->mWaitStartTime &&
+				(now - (*i3)->mWaitStartTime >= 60)) {
+				TRACE_5("Removing CCB %u terminated more than 60 secs ago", 
+					(*i3)->mId);
+				(*i3)->mState = IMM_CCB_ILLEGAL;
+				ccbsToGc.push_back(*i3);
+			}
+		} else if(iAmCoord) {
+			//Fetch CcbIds for Ccbs that have waited too long on an implementer
+			//TODO the timeout should not be hardwired, but for now it is.
+			TRACE("Checking active ccb %u for deadlock or blocked implementer", (*i3)->mId);
+			if((*i3)->mWaitStartTime &&
+				(now - (*i3)->mWaitStartTime >= 6)) {
+				TRACE_5("Timeout on CCB %u "
+					"while waiting for implementer reply", (*i3)->mId);
+				ccbs.push_back((*i3)->mId);
+			}
+		}
+	}
+
+	while((i3 = ccbsToGc.begin()) != ccbsToGc.end()) {
+		CcbInfo* ccb = (*i3);
+		TRACE("Deleting ccb %u from ccbsToGc", ccb->mId);
+		ccbsToGc.erase(i3);
+		i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccb->mId));
+		assert(i3 != sCcbVector.end());
+		TRACE("Deleting ccb %u from sCcbsVector", ccb->mId);
+		sCcbVector.erase(i3);
+		TRACE("Delete ccb %u", ccb->mId);
+		delete (ccb);
+		TRACE("After delete");
+	}
+
     /*
       ImplementerVector::iterator i;
       for(i = sImplementerVector.begin(); i != sImplementerVector.end(); ++i) {

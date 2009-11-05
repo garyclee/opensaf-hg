@@ -139,7 +139,7 @@ extern "C" {
 	SaBoolT immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err);
 
 	void immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
-	SaAisErrorT immModel_ccbDelete(IMMND_CB *cb, SaUint32T ccbId);
+	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
 
 	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp);
 
@@ -220,7 +220,7 @@ extern "C" {
 
 	SaBoolT immModel_syncComplete(IMMND_CB *cb);
 
-	SaBoolT immModel_ccbsEmpty(IMMND_CB *cb);
+	SaBoolT immModel_ccbsTerminated(IMMND_CB *cb);
 
 	void immModel_prepareForSync(IMMND_CB *cb, SaBoolT isJoining);
 

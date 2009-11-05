@@ -284,7 +284,7 @@ public:
     void              recognizedIsolated();
     bool              syncComplete(bool isJoining);
     void              abortSync();
-    bool              ccbsEmpty();
+    bool              ccbsTerminated();
     void              getNonCriticalCcbs(IdVector& cv);
     bool              immNotWritable();
     SaUint32T         findConnForImplementerOfObject(std::string objectDn);
