@@ -1407,6 +1407,8 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	if (ccb_node->mAborted) {
+		TRACE_2("ERR_FAILED_OPERATION: CCB %u has already been aborted",
+			ccb_node->mCcbId);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
@@ -1424,8 +1426,18 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
+
 		/* Why do we bother trying resurrect? See ##1## above. */
 		
+		if(!(ccb_node->mApplied)) {
+			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+				"in active but non-critical state");
+			ccb_node->mAborted = TRUE;
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			/* We drop the resurrect task since this ccb is doomed. */
+			goto done;
+		}
+
 		NCS_BOOL resurrected = imma_om_resurrect(cb, cl_node, &locked);
 		cl_node = NULL;
 		ccb_node = NULL;
@@ -1519,6 +1531,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* The above is safe because we know the ccb WAS terminated*/
 			ccb_node->mCcbId = 0;
+			ccb_node->mAborted = TRUE;
 			goto done;
 		}
 	}
@@ -1732,6 +1745,14 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	imma_proc_decrement_pending_reply(cl_node);
 
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {	
+		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		/* BAD_HANDLE overrides any other return code already assigned. */
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) { 
 			/* Became stale during the blocked call yet the call
@@ -1739,7 +1760,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			   We know the ccb is aborted. So we dont need to expose
 			   the stale handle.
 			*/
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx is stale", immHandle);
+
+			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+				"during the down-call",  immHandle);
+			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
 	}
@@ -1750,9 +1774,10 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		   phase. Better then to handle this as FAILED_OPERATION, since this
 		   can avoid exposing the immHandle as BAD_HANDLE.
 		 */
-		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
-			"in ccbObjectCreate in IMMA");
+		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
+			"FAILED_OPERATION in ccbObjectCreate in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = TRUE;
 	}
 
  done:
@@ -1856,6 +1881,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	if (ccb_node->mAborted) {
+		TRACE_2("ERR_FAILED_OPERATION: CCB %u has already been aborted",
+			ccb_node->mCcbId);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
@@ -1873,6 +1900,16 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
+
+		if(!(ccb_node->mApplied)) {
+			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+				"in active but non-critical state");
+			ccb_node->mAborted = TRUE;
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			/* We drop the resurrect task since this ccb is doomed. */
+			goto done;
+		}
+
 		/* Why do we bother trying resurrect? See ##1## above. */
 
 		NCS_BOOL resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -1968,6 +2005,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* We know the ccb WAS terminated*/
 			ccb_node->mCcbId = 0;
+			ccb_node->mAborted = TRUE;
 			goto done;
 		}
 	}
@@ -2119,6 +2157,14 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	imma_proc_decrement_pending_reply(cl_node);
 
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {	
+		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		/* BAD_HANDLE overrides any other return code already assigned. */
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) {
 			/* Became stale during the blocked call yet the call
@@ -2126,7 +2172,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			   We know the ccb is aborted. So we dont need to expose
 			   the stale handle.
 			*/
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx is stale", immHandle);
+
+			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+				"during the down-call",  immHandle);
+			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
 	}
@@ -2137,9 +2186,10 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		   phase. Better then to handle this as FAILED_OPERATION, since this
 		   can avoid exposing the immHandle as BAD_HANDLE.
 		 */
-		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
-			"in ccbObjectCreate in IMMA");
+		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
+			"FAILED_OPERATION in ccbObjectCreate in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = TRUE;
 	}
 
  done:
@@ -2225,6 +2275,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	}
 
 	if (ccb_node->mAborted) {
+		TRACE_2("ERR_FAILED_OPERATION: CCB %u already aborted", 
+			ccb_node->mCcbId);
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		goto done;
 	}
@@ -2242,6 +2294,16 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	if (cl_node->stale) {
 		TRACE_1("IMM Handle %llx is stale", immHandle);
+
+		if(!(ccb_node->mApplied)) {
+			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+				"in active but non-critical state");
+			ccb_node->mAborted = TRUE;
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+			/* We drop the resurrect task since this ccb is doomed. */
+			goto done;
+		}
+
 		/* Why do we bother trying resurrect? See ##1## above. */
 
 		NCS_BOOL resurrected = imma_om_resurrect(cb, cl_node, &locked);
@@ -2337,6 +2399,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* We know the ccb WAS terminated*/
 			ccb_node->mCcbId = 0;
+			ccb_node->mAborted = TRUE;
 			goto done;
 		}
 	}
@@ -2413,6 +2476,14 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	imma_proc_decrement_pending_reply(cl_node);
 
+	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+	if (!ccb_node) {	
+		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		/* BAD_HANDLE overrides any other return code already assigned. */
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		goto done;
+	}
+
 	if (rc == SA_AIS_OK) {
 		if (cl_node->stale) {
 			/* Became stale during the blocked call yet the call
@@ -2420,7 +2491,9 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			   We know the ccb is aborted. So we dont need to expose
 			   the stale handle.
 			*/
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx is stale", immHandle);
+			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+				"during the down-call", immHandle);
+			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 		}
 	}
@@ -2434,6 +2507,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
 			"in ccbObjectCreate in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
+		ccb_node->mAborted = TRUE;
 	}
 
  done:
@@ -2470,7 +2544,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
-		TRACE_2("ERR_BAD_HANDLE: No initialized handle exists!");
+		TRACE_2("ERR_BAD_HANDLE :No initialized handle exists!");
 		return SA_AIS_ERR_BAD_HANDLE;
 	}
 
@@ -2519,13 +2593,17 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   (actually aborted) ccb with its operations. 
 		 */
 		rc = SA_AIS_ERR_FAILED_OPERATION;
-		TRACE_2("ERR_FAILED_OPERATION: Ccb %u has already been aborted", ccb_node->mCcbId);
+		TRACE_2("ERR_FAILED_OPERATION: Ccb %u has already been aborted", 
+			ccb_node->mCcbId);
 		goto done;
 	}
 
 	if (ccb_node->mApplied) {
+		ccb_node->mApplied = FALSE;
+		ccb_node->mAborted = TRUE;
 		rc = SA_AIS_ERR_FAILED_OPERATION;
-		TRACE_2("ERR_FAILED_OPERATION: Ccb has already been applied");
+		TRACE_2("ERR_FAILED_OPERATION: Ccb %u has already been applied",
+			ccb_node->mCcbId);
 		goto done;
 	}
 
@@ -2539,8 +2617,9 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	}
 
 	if (cl_node->stale || !(cb->is_immnd_up)) {
-		TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN and/or IMM Handle %llx is stale"
-			" - Ccb has to be aborted.", ccb_node->mImmHandle);
+		TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN and/or IMM Handle %llx "
+			"is stale - Ccb %u has to be aborted.", 
+			ccb_node->mImmHandle, ccb_node->mCcbId);
 		/* No point in resurrecting here since we know the ccb-id failed.
 		   But we can avoid exposing with BAD_HANDLE because the ccb-id
 		   failed in non critical phase. Instead discard the ccb-id and
@@ -2574,22 +2653,26 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		assert(out_evt->type == IMMSV_EVT_TYPE_IMMA);
 		assert(out_evt->info.imma.type == IMMA_EVT_ND2A_IMM_ERROR);
 		if (rc != SA_AIS_OK) {
-			TRACE_4("Ccb-apply: Error return from fevs!:%u, "
+			TRACE_4("CCB-APPLY - Error return from fevs!:%u, "
 				"yet reply message also received (?) with error %u", rc,
 				out_evt->info.imma.info.errRsp.error);
+			assert(out_evt->info.imma.info.errRsp.error != SA_AIS_OK);
 		} else {
 			rc = out_evt->info.imma.info.errRsp.error;
+			TRACE_1("CCB APPLY - completed return from IMMND rc:%u", rc);
 		}
 
 		free(out_evt);
 	} else if (rc == SA_AIS_OK) {
-		TRACE_4("ERR_TIMEOUT: Got OK from fake_evs but no reply message, in CcbApply(?) "
-			"Converting to ERR_TIMEOUT to convey the unknown outcomme");
+		TRACE_4("CCB_APPLY - ERR_TIMEOUT: Got OK from fake_evs but no "
+			"reply message!, from IMMND. Converting to ERR_TIMEOUT "
+			"to convey the unknown outcomme!");
 		rc = SA_AIS_ERR_TIMEOUT;
 	}
 
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
-		TRACE_4("ERR_LIBRARY: Lock failed");
+		TRACE_4("CCB APPLY - ERR_LIBRARY: Lock failed");
+		/* Error library overrides any existing rc including OK!*/
 		rc = SA_AIS_ERR_LIBRARY;
 		goto lock_fail;
 	}
@@ -2597,21 +2680,23 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
-		TRACE_3("CcbApply: client node gone on return from downcall");
+		TRACE_3("CCB APPLY - client node gone on return from IMMND!");
 		/* Client node removed during the blocked call. */
 		if (rc == SA_AIS_OK) {
 			/* yet the call succeeded! This should be very rare.
 			   OK reply from ccbApply is precious. 
 			   Ignore the nonexistent client_node for now. 
 			*/
-			TRACE_3("Ok reply from server on ccb-apply, but immHandle was closed"
-				"on return. OK on CCB overrides immHandle problem.");
-		}
+			TRACE_3("CCB APPLY - OK reply from IMMND on ccb-apply, but "
+				"immHandle was closed on return. OK on CCB overrides "
+				"immHandle problem.");
+		} 
 	} else {
 		/* Normal case, cl_node still exists. */
 		imma_proc_decrement_pending_reply(cl_node);
 		if (cl_node->stale) {
-			TRACE_1("Handle %llx is stale", immHandle);
+			TRACE_3("CCB APPLY - Handle %llx is stale on return",
+				immHandle);
 			/* Became stale during the blocked call */
 			if (rc == SA_AIS_OK) {
 				/* yet the call succeeded! This should be very rare.
@@ -2620,10 +2705,13 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 				   It may get resurrected since there will be no active ccb-id
 				   associated with the ccb-handle.
 				*/
-				TRACE_3("Ok reply from server on ccb-apply overrides stale handle");
-			} else {
-				TRACE_2("ERR_BAD_HANDLE: client_node is stale after call return");
-				rc = SA_AIS_ERR_BAD_HANDLE; /* is converted to ERR_TIMEOUT below*/
+				TRACE_3("CCB APPLY - Ok reply from IMMND overrides"
+					"stale handle");
+			} else if(rc != SA_AIS_ERR_TIMEOUT) {
+				TRACE_3("CCB APPLY - ERR_BAD_HANDLE(%u) overrides rc %u",
+					SA_AIS_ERR_BAD_HANDLE, rc);
+				rc = SA_AIS_ERR_BAD_HANDLE;
+				/* is converted to ERR_TIMEOUT below*/
 				cl_node->exposed = TRUE;
 			}
 		}
@@ -2633,17 +2721,21 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			ccb_node->mExclusive = FALSE;
 			ccb_node->mApplying = FALSE;
 			if (rc == SA_AIS_OK) {
-				ccb_node->mApplied = TRUE;  /* Normal termination of ccb-apply. */
+				ccb_node->mApplied = TRUE;  
+				TRACE_1("CCB APPLY - Successfull Apply for ccb id %u", 
+					ccb_node->mCcbId);
 			}
 		} else {
 			/*This branch should not be possible if ccb_node->mExclusive is respected. */
-			TRACE_4("Ccb-handle closed on return from ccb-apply - should not be possible");
+			TRACE_4("CCB APPLY - Ccb-handle closed on return from "
+				"ccb-apply down-call. Should not be possible!");
 			if (rc == SA_AIS_OK) {
-				TRACE_3("Ok reply from server on ccb-apply, but ccbHandle was closed"
-					"on return. OK on CCB overrides ccbHandle problem.");
+				TRACE_3("CCB APPLY - Ok reply from server on ccb-apply, "
+					"but ccbHandle was closed on return. OK on CCB "
+					"overrides ccbHandle problem.");
 			} else {
-				TRACE_3("CcbHandle no longer valid on return, Error %u already set", rc);
-
+				TRACE_3("CCB APPLY - CcbHandle no longer valid on "
+					"return, Error %u already set", rc);
 			}
 		}
 	}
@@ -2656,7 +2748,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 
 	if (rc == SA_AIS_ERR_TRY_AGAIN) {
 		TRACE_3("CCB APPLY: Error in send/receive of ccb-apply message! "
-			"converting ERR_TRY_AGAIN to ERR_FAILED_OPERATION");
+			"converting ERR_TRY_AGAIN to ...");
 		/* No point in returning TRY_AGAIN for ccb-apply.
 		   We KNOW the ccb is aborted.
 		   TRY_AGAIN could only have come from imma_evt_fake_evs 
@@ -2665,31 +2757,51 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   Convert ERR_TRY_AGAIN to FAILED_OPERATION !
 		   Handle will also be stale, but that is taken care of later.
 		*/
-		rc = SA_AIS_ERR_FAILED_OPERATION;
+		if(ccb_node) {
+			TRACE_3("CCB APPLY - .... ERR_FAILED_OPERATION");
+			assert(!(ccb_node->mApplied));
+			ccb_node->mAborted = TRUE;
+			rc = SA_AIS_ERR_FAILED_OPERATION;
+		} else {
+			TRACE_4("CCB APPLY - .... ERR_BAD_HANDLE: ccb-node removed "
+				"during down call!");
+			rc = SA_AIS_ERR_BAD_HANDLE;
+		}
 	}
-	else if (rc == SA_AIS_ERR_BAD_HANDLE) {
-		TRACE_3("CCB APPLY: Error in send/receive of ccb-apply message! "
-			"converting ERR_BAD_HANDLE to ERR_TIMEOUT");
+
+	if (rc == SA_AIS_ERR_BAD_HANDLE) {
+		TRACE_3("CCB APPLY - ERR_TIMEOUT: Error during execution of "
+			"ccb-apply! converting ERR_BAD_HANDLE to ERR_TIMEOUT");
 		/* For the special case of ccb-apply we convert ERR_BAD_HANDLE to ERR_TIMEOUT.
 		   This to converge all error handling for UNKNOWN OUTCOME of a ccb to a 
 		   single error code. Unknown outcomme for a ccb is what the user least of all
 		   wants to deal with from apply, but it can happen.
 
-		   ERR_BAD_HANDLE >>here<< has to mean IMMND went down during processing of 
-		   the apply down call.
-
-		   But there is a small risk that the ccb managed to be applied just before
-		   the IMMND crashed. This is particularly the case for CCBs that do not 
-		   invovle implementers, since they commit independently at all IMMNDs. 
+		   ERR_BAD_HANDLE >>here<< means either IMMND went down during
+		   processing of the apply down call, OR that the client-node or
+		   ccb-node was removed by another thread in this client during
+		   the down call.
+		   
+		   There is a small risk that the ccb managed to be applied
+		   just before an IMMND crash. This is particularly the case for 
+		   CCBs that do not invovle implementers, since they commit
+		   independently at all IMMNDs. 
 		   ERR_TIMEOUT is in fact converted *to* ERR_BAD_HANDLE by 
 		   fevs/imma_proc_check_stale. This is OK for all other calls, 
 		   but not for ccb-apply!.
 
-		   The typical client would interpret ERR_BAD_HANDLE from ccb-apply as if the 
-		   CCB was not applied, but that could be wrong. 
+		   For the case of client_node or ccb_node removed the CCB
+		   outcome should definitely be that the CCB was not applied.
+		   But for simplicity we converge also these cases of ERR_BAD_HANDLE
+		   to ERR_TIMEOUT.
+
+		   The typical client would interpret ERR_BAD_HANDLE from
+		   ccb-apply as if the CCB has not applied, but that could 
+		   be wrong. 
 
 		   Therefore we convert ERR_BAD_HANDLE back ERR_TIMEOUT here,
-		   to convey the honest uncertatinty of the ccb outcomme towards the client. 
+		   to convey the honest uncertatinty of the ccb outcomme towards
+		   the client. 
 
 		   Recovery of the ccb outcome may in turn be attempted next.
 		*/

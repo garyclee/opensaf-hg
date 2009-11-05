@@ -759,7 +759,7 @@ static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 		return SA_FALSE;
 	}
 
-	if (immModel_ccbsEmpty(cb)) {
+	if (immModel_ccbsTerminated(cb)) {
 		return SA_TRUE;
 	}
 
@@ -913,14 +913,16 @@ uns32 immnd_proc_server(uns32 *timeout)
 
 	switch (cb->mState) {
 	case IMM_SERVER_ANONYMOUS:	/*send introduceMe msg. */
-		TRACE_5("IMM_SERVER_ANONYMOUS");
+		/*TRACE_5("IMM_SERVER_ANONYMOUS");*/
 		if (immnd_introduceMe(cb) == NCSCC_RC_SUCCESS) {
 			cb->mTimer = 0;
 			LOG_NO("SERVER STATE: IMM_SERVER_ANONYMOUS --> " "IMM_SERVER_CLUSTER_WAITING");
 			cb->mState = IMM_SERVER_CLUSTER_WAITING;
 		}
 
-		TRACE_5("IMMD IS UP?:%s", cb->is_immd_up ? "YES" : "NO");
+		if(cb->is_immd_up) {
+			TRACE("IMMD IS UP");
+		}
 
 		break;
 
