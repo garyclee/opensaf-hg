@@ -186,7 +186,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 	cl_node = (IMMA_CLIENT_NODE *)calloc(1, sizeof(IMMA_CLIENT_NODE));
 
 	if (cl_node == NULL) {
-		TRACE_2("ERR_NO_MEMORY: IMMA_CLIENT_NODE alloc failed");
+		TRACE_4("ERR_NO_MEMORY: IMMA_CLIENT_NODE alloc failed");
 		rc = SA_AIS_ERR_NO_MEMORY;
 		goto cnode_alloc_fail;
 	}
@@ -216,7 +216,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 	if (FALSE == cb->is_immnd_up) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_fail;
 	}
 
@@ -225,15 +225,15 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 	/* Error Handling */
 	switch (proc_rc) {
-	case NCSCC_RC_SUCCESS:
-		break;
-	case NCSCC_RC_REQ_TIMOUT:
-		rc = SA_AIS_ERR_TIMEOUT;
-		goto mds_fail;
-	default:
-		TRACE_4("ERR_LIBRARY: Mds returned unexpected error code: %u", proc_rc);
-		rc = SA_AIS_ERR_LIBRARY;
-		goto mds_fail;
+		case NCSCC_RC_SUCCESS:
+			break;
+		case NCSCC_RC_REQ_TIMOUT:
+			rc = SA_AIS_ERR_TIMEOUT;
+			goto mds_fail;
+		default:
+			TRACE_4("ERR_LIBRARY: Mds returned unexpected error code: %u", proc_rc);
+			rc = SA_AIS_ERR_LIBRARY;
+			goto mds_fail;
 	}
 
 	if (out_evt) {
@@ -254,7 +254,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		if (FALSE == cb->is_immnd_up) {
 			/*IMMND went down during THIS call! */
 			rc = SA_AIS_ERR_TRY_AGAIN;
-			TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+			TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 			goto rsp_not_ok;
 		}
 
@@ -316,6 +316,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 						 &(cb->immnd_mds_dest), &finalize_evt, &out_evt1, IMMSV_WAIT_TIME);
 		if (out_evt1) {
 			free(out_evt1);
+			out_evt1 =NULL;
 		}
 	}
 
@@ -327,8 +328,10 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 		imma_callback_ipc_destroy(cl_node);
 
  ipc_init_fail:
-	if (rc != SA_AIS_OK)
+	if (rc != SA_AIS_OK) {
 		free(cl_node);
+		cl_node=NULL;
+	}
 
  cnode_alloc_fail:
 	if (locked)
@@ -338,6 +341,7 @@ SaAisErrorT saImmOmInitialize(SaImmHandleT *immHandle, const SaImmCallbacksT *im
 
 	if (out_evt) {
 		free(out_evt);
+		out_evt=NULL;
 	}
 
 	if (rc == SA_AIS_OK) {
@@ -392,7 +396,7 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 		   then it is highly likely that immOiHandle is stale marked. 
 		   The reactive resurrect will fail as long as IMMND is down. 
 		*/
-		TRACE_2("ERR_TRY_AGAIN: IMMND_DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND_DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -434,7 +438,7 @@ SaAisErrorT saImmOmSelectionObjectGet(SaImmHandleT immHandle, SaSelectionObjectT
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -518,7 +522,7 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 			cb->dispatch_clients_to_resurrect);
 
 		if (!imma_om_resurrect(cb, cl_node, &locked)) {
-			TRACE_2("ERR_BAD_HANDLE: Failed to resurrect stale OM handle <c:%u, n:%x>",
+			TRACE_3("ERR_BAD_HANDLE: Failed to resurrect stale OM handle <c:%u, n:%x>",
                 m_IMMSV_UNPACK_HANDLE_HIGH(immHandle),
                 m_IMMSV_UNPACK_HANDLE_LOW(immHandle));
             rc = SA_AIS_ERR_BAD_HANDLE;
@@ -539,13 +543,13 @@ SaAisErrorT saImmOmDispatch(SaImmHandleT immHandle, SaDispatchFlagsT dispatchFla
 		/* get the client again. */
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (!(cl_node && cl_node->isOm)) {
-			TRACE_2("ERR_BAD_HANDLE: client_node_get failed AFTER successfull resurrect!");
+			TRACE_3("ERR_BAD_HANDLE: client_node_get failed AFTER successful resurrect!");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto fail;
 		}
 
 		if (cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: client became stale AGAIN after successfull resurrect!");
+			TRACE_3("ERR_BAD_HANDLE: client became stale AGAIN after successful resurrect!");
 			cl_node->exposed = TRUE;
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto fail;
@@ -644,7 +648,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 		TRACE_1("Handle %llx is stale", immHandle);
 		rc = SA_AIS_OK;	/*Dont punish the client for closing stale handle */
 		/* Dont try to resurrect since this is finalize. */
-		/*cl_node->exposed = TRUE;   returning OK => not exposed. */
+		cl_node->exposed = TRUE; /* But dont allow anyone else to resurrect it either */
 		goto stale_handle;
 	}
 
@@ -697,6 +701,7 @@ SaAisErrorT saImmOmFinalize(SaImmHandleT immHandle)
 	if (out_evt) {
 		rc = out_evt->info.imma.info.errRsp.error;
 		free(out_evt);
+		out_evt = NULL;
 	} else {
 		/* rc = SA_AIS_ERR_LIBRARY;
 		   This is a finalize, no point in disturbing the user with
@@ -845,7 +850,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto bad_handle;
@@ -858,7 +863,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	ao_node = (IMMA_ADMIN_OWNER_NODE *)calloc(1, sizeof(IMMA_ADMIN_OWNER_NODE));
 	if (ao_node == NULL) {
 		rc = SA_AIS_ERR_NO_MEMORY;
-		TRACE_2("ERR_MEMORY: Memory allocation error");
+		TRACE_4("ERR_MEMORY: Memory allocation error");
 		goto ao_node_alloc_fail;
 	}
 
@@ -895,7 +900,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 
 	if (cb->is_immnd_up == FALSE) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_send_fail;
 	}
 
@@ -927,16 +932,27 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);	
 	if (!(cl_node && cl_node->isOm)) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+		TRACE_3("ERR_BAD_HANDLE: client_node_get failed after down-call");
 		goto  admin_owner_node_free;
 	}
 
 	imma_proc_decrement_pending_reply(cl_node);
 
 	if (cl_node->stale) {
-		TRACE_2("ERR_BAD_HANDLE: Handle %llx is stale", immHandle);
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		cl_node->exposed =TRUE;
+		if (isExposed(cb, cl_node)) {
+			TRACE_3("ERR_BAD_HANDLE: Handle %llx became stale and exposed", immHandle);
+			rc = SA_AIS_ERR_BAD_HANDLE;
+		} else {
+			TRACE_3("ERR_TRY_AGAIN: Handle %llx became stale but possible to resurrect", 
+				immHandle);
+			/* Can override BAD_HANDLE/TIMEOUT set by check_stale */
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+		goto admin_owner_node_free;
+	}
+
+	if(rc != SA_AIS_OK) {
+		TRACE_2("Error already set %u", rc);
 		goto admin_owner_node_free;
 	}
 
@@ -973,6 +989,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	free(out_evt);
+	out_evt = NULL;
 
 	TRACE_1("Admin owner init successful");
 	TRACE_LEAVE();
@@ -983,6 +1000,7 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
  admin_owner_node_free:
 	if (ao_node != NULL) {
 		free(ao_node);
+		ao_node=NULL;
 	}
 
  ao_node_alloc_fail:
@@ -1006,7 +1024,12 @@ SaAisErrorT saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
  * NOTE: The CB must be LOCKED on entry of this function!!
  *       It will normally be locked on exit, as reflected in the 'locked' 
  *       in/out parameter. If SA_AIS_OK is returned, then ccb_node
- *       is still valid.
+ *       is still valid and locked is TRUE.
+ *       The ccb_node must be in state mApplied == TRUE, that is it must
+ *       either be a pristine ccb_node or an old ccb_node where the previous
+ *       CCB was successfully applied. If the previous CCB was aborted
+ *       by the system (ERR_FAILED_OPERATION), then ccb-chaining is no 
+ *       longer possible with the same ccb_node/ccbHandle. 
  *******************************************************************/
 static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	SaUint32T adminOwnerId, NCS_BOOL *locked)
@@ -1086,22 +1109,23 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 	ccbId = out_evt->info.imma.info.ccbInitRsp.ccbId;
 	/* Free the out event */
 	free(out_evt);
+	out_evt = NULL;
 
  mds_send_fail:
-
 	/* Take the CB lock */
 	if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
 		TRACE_4("ERR_LIBRARY: Lock failed");
-		free(out_evt);
+		if(out_evt) {free(out_evt); out_evt=NULL;}
 		goto fail;
 	}
 	*locked = TRUE;
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {
-		TRACE_2("ERR_BAD_HANDLE: Ccb node gone, finalize on ccb-handle %llx ny another thread ?", ccbHandle);
-		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_4("ERR_LIBRARY: Ccb node gone, ccb_node->mExclusive not respected by "
+			"another thread ?");
+		rc = SA_AIS_ERR_LIBRARY;
 		goto fail;
 	}
 
@@ -1114,7 +1138,6 @@ static SaAisErrorT imma_newCcbId(IMMA_CB *cb, IMMA_CCB_NODE *ccb_node,
 		ccb_node->mApplied = FALSE;
 		ccb_node->mCcbId = ccbId;
 		TRACE("CcbId:%u admin ownerId:%u\n", ccb_node->mCcbId, adminOwnerId);
-
 	}
 
  fail:
@@ -1166,7 +1189,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	*ccbHandle = 0LL; /* User may have forgotten to initialize to zero */
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -1213,7 +1236,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -1221,12 +1244,13 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 
-		/* Look up admin owner again since successfull resurrect implies
+		/* Look up admin owner again since successful resurrect implies
 		   new admin-owner-id ! */
 		imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 		if (!ao_node) {
-			TRACE_2("ERR_BAD_HANDLE: Admin owner node dissapeared during resurrect");
-			rc = SA_AIS_ERR_BAD_HANDLE;
+			TRACE_3("ERR_LIBRARY: Admin owner node dissapeared during resurrect");
+			rc = SA_AIS_ERR_LIBRARY;
+			/* Very strange case, resurrect succeeded yet admin owner node is gone.  */
 			goto done;
 		}
 		TRACE_1("Admin-owner-id should have changed(?) Before: %u After: %u",
@@ -1240,7 +1264,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 	ccb_node = (IMMA_CCB_NODE *)calloc(1, sizeof(IMMA_CCB_NODE));
 	if (ccb_node == NULL) {
 		rc = SA_AIS_ERR_NO_MEMORY;
-		TRACE_2("ERR_NO_MEMORY: Memory allocation failure");
+		TRACE_4("ERR_NO_MEMORY: Memory allocation failure");
 		goto done;
 	}
 
@@ -1252,7 +1276,7 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	if (proc_rc != NCSCC_RC_SUCCESS) {
 		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: Faild to add ccb-node to ccb-tree");
+		TRACE_4("ERR_LIBRARY: Failed to add ccb-node to ccb-tree");
 		goto ccb_node_add_fail;
 	}
 
@@ -1263,10 +1287,13 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 	imma_proc_increment_pending_reply(cl_node);
 	rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
-	/* ccb_node still valid if rc == SA_AIS_OK. */
-	assert(!(rc == SA_AIS_OK && ccb_node->mExclusive));
-
 	cl_node=NULL;
+	if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
+	/* ccb_node still valid if rc == SA_AIS_OK. */
+	if(rc == SA_AIS_OK) {
+		assert(!(ccb_node->mExclusive));
+		assert(locked);
+	}
 
 	if (!locked) {
 		if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -1278,25 +1305,37 @@ SaAisErrorT saImmOmCcbInitialize(SaImmAdminOwnerHandleT adminOwnerHandle,
 		locked = SA_TRUE;
 	}
 
+
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
-		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: No client associated with Admin Owner");
-		goto done;
-	}
+		rc = SA_AIS_ERR_BAD_HANDLE;
+		TRACE_3("ERR_BAD_HANDLE: Client node not found after down call");
+		goto remove_ccb_node;
+	} 
 
 	imma_proc_decrement_pending_reply(cl_node);
 
 	if (cl_node->stale) {
-		TRACE_2("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
-		cl_node->exposed = TRUE;
-		rc = SA_AIS_ERR_BAD_HANDLE;
-		goto done;
+		if (isExposed(cb, cl_node)) {
+			TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx became stale during down-call", 
+				immHandle);
+			rc = SA_AIS_ERR_BAD_HANDLE;
+		} else {
+			TRACE_3("ERR_TRY_AGAIN: Handle %llx became stale but possible to resurrect", 
+				immHandle);
+			/* Can override BAD_HANDLE/TIMEOUT set in check_stale 
+			   A retry attempt may succeed in resurrecting immhandle/adminowner
+			   and obtain a fresh ccb-id.
+			*/
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
 	}
 
+ remove_ccb_node:
 	if (rc == SA_AIS_OK) {
 		*ccbHandle = ccb_node->ccb_hdl;
 	} else {
+		assert(rc != SA_AIS_ERR_LIBRARY) ;
 		imma_ccb_node_delete(cb, ccb_node);	/*Remove node from tree and free it. */
 		ccb_node = NULL;
 	}
@@ -1373,7 +1412,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		/* ##1## Any on going ccb has been aborted and this will be detected
 		   in resurrect processing. But this could be the first operation
 		   attempted for a new ccb-id, i.e. there is no on-going ccb-id.
@@ -1401,7 +1440,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	if (ccb_node->mExclusive) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
 		goto done;
 	}
@@ -1420,7 +1459,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
+		TRACE_4("ERR_LIBRARY: SaImmHandleT associated with Ccb is not valid");
 		goto done;
 	}
 
@@ -1430,7 +1469,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		/* Why do we bother trying resurrect? See ##1## above. */
 		
 		if(!(ccb_node->mApplied)) {
-			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+			TRACE_3("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
 				"in active but non-critical state");
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -1452,7 +1491,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -1464,18 +1503,21 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 		if (!ccb_node) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+			TRACE_3("ERR_BAD_HANDLE: Ccb handle not valid after successful resurrect - "
+					"ccb closed in some other thread?");
 			goto done;
 		}
 
 		if (ccb_node->mExclusive) {
 			rc = SA_AIS_ERR_TRY_AGAIN;
-			TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+			TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 				ccb_node->mCcbId);
 			goto done;
 		}
 
 		if (ccb_node->mAborted) {
+			TRACE_3("ERR_FAILED_OPERATION: Ccb-id %u aborted in another thread?",
+				ccb_node->mCcbId);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		}
@@ -1496,9 +1538,13 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	if (ccb_node->mApplied) { /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
-		/* ccb_node still valid if rc == SA_AIS_OK. */
-		assert(!(rc == SA_AIS_OK && ccb_node->mExclusive));
 		cl_node = NULL;
+		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
+		/* ccb_node still valid if rc == SA_AIS_OK. */
+		if(rc == SA_AIS_OK) {
+			assert(!(ccb_node->mExclusive));
+			assert(locked);
+		}
 
 		if (!locked) {
 			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -1522,11 +1568,11 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			goto done;
 		}
 
-		/* successfuly obtained new ccb-id */
+		/* successfully obtained new ccb-id */
 
 		if (cl_node->stale) {
 			/* Became stale AFTER we successfully obtained new ccb-id ! */
-			TRACE_2("ERR_FAILED_OPERATION: IMM Handle %llx is stale", immHandle);
+			TRACE_3("ERR_FAILED_OPERATION: IMM Handle %llx became stale", immHandle);
 			
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* The above is safe because we know the ccb WAS terminated*/
@@ -1640,6 +1686,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			TRACE_2("ERR_INVALID_PARAM: Attribute name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
+			p=NULL;
 			goto mds_send_fail;
 		}
 
@@ -1689,6 +1736,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		/* Free the out event */
 		/*Will free the root event only, not any pointer structures. */
 		free(out_evt);
+		out_evt = NULL;
 	}
 
  mds_send_fail:
@@ -1725,6 +1773,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 		p->next = NULL;
 		free(p);	/*free-3 */
+		p=NULL;
 	}
 
 	if (!locked && m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -1737,7 +1786,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
-			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+			TRACE_3("ERR_BAD_HANDLE: client_node gone on return from down-call");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
 		goto done;
@@ -1747,7 +1796,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
-		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		TRACE_3("ERR_BAD_HANDLE: ccb-node gone on return from down call");
 		/* BAD_HANDLE overrides any other return code already assigned. */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -1761,7 +1810,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 			   the stale handle.
 			*/
 
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+			TRACE_3("ERR_FAILED_OPERATION: Handle %llx became stale "
 				"during the down-call",  immHandle);
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -1774,7 +1823,7 @@ SaAisErrorT saImmOmCcbObjectCreate_2(SaImmCcbHandleT ccbHandle,
 		   phase. Better then to handle this as FAILED_OPERATION, since this
 		   can avoid exposing the immHandle as BAD_HANDLE.
 		 */
-		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
+		TRACE_3("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
 			"FAILED_OPERATION in ccbObjectCreate in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ccb_node->mAborted = TRUE;
@@ -1847,7 +1896,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		/* ##1## Any on going ccb has been aborted and this will be detected
 		   in resurrect processing. But this could be the first operation
 		   attempted for a new ccb-id, i.e. there is no on-going ccb-id,
@@ -1875,7 +1924,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	if (ccb_node->mExclusive) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
 		goto done;
 	}
@@ -1902,7 +1951,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		TRACE_1("IMM Handle %llx is stale", immHandle);
 
 		if(!(ccb_node->mApplied)) {
-			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+			TRACE_3("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
 				"in active but non-critical state");
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -1926,7 +1975,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -1938,18 +1987,19 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 		if (!ccb_node) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+			TRACE_3("ERR_BAD_HANDLE: Ccb handle not valid after successful resurrect");
 			goto done;
 		}
 
 		if (ccb_node->mExclusive) {
 			rc = SA_AIS_ERR_TRY_AGAIN;
-			TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
-				ccb_node->mCcbId);
+			TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, "
+				"in another thread", ccb_node->mCcbId);
 			goto done;
 		}
 
 		if (ccb_node->mAborted) {
+			TRACE_3("ERR_FAILED_OPERATION: Ccb-id %u was aborted", ccb_node->mCcbId);
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			goto done;
 		}
@@ -1970,9 +2020,13 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
-		/* ccb_node still valid if rc == SA_AIS_OK. */
-		assert(!(rc == SA_AIS_OK && ccb_node->mExclusive));
 		cl_node = NULL;
+		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
+		/* ccb_node still valid if rc == SA_AIS_OK. */
+		if(rc == SA_AIS_OK) {
+			assert(!(ccb_node->mExclusive));
+			assert(locked);
+		}
 
 		if (!locked) {
 			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -1996,11 +2050,11 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			goto done;
 		}
 
-		/* successfuly obtained new ccb-id */
+		/* successfully obtained new ccb-id */
 
 		if (cl_node->stale) {
 			/* Became stale AFTER we successfully obtained new ccb-id ! */
-			TRACE_2("ERR_FAILED_OPERATION: IMM Handle %llx is stale", immHandle);
+			TRACE_3("ERR_FAILED_OPERATION: IMM Handle %llx became stale", immHandle);
 
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* We know the ccb WAS terminated*/
@@ -2102,6 +2156,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
 		free(out_evt);
+		out_evt = NULL;
 	}
 
  mds_send_fail:
@@ -2149,7 +2204,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
-			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+			TRACE_3("ERR_BAD_HANDLE: client_node gone on return from down-call");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
 		goto done;
@@ -2159,7 +2214,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
-		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		TRACE_3("ERR_BAD_HANDLE: ccb-node gone on return from down-call");
 		/* BAD_HANDLE overrides any other return code already assigned. */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -2173,7 +2228,7 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 			   the stale handle.
 			*/
 
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+			TRACE_3("ERR_FAILED_OPERATION: Handle %llx became stale "
 				"during the down-call",  immHandle);
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -2186,8 +2241,8 @@ SaAisErrorT saImmOmCcbObjectModify_2(SaImmCcbHandleT ccbHandle,
 		   phase. Better then to handle this as FAILED_OPERATION, since this
 		   can avoid exposing the immHandle as BAD_HANDLE.
 		 */
-		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
-			"FAILED_OPERATION in ccbObjectCreate in IMMA");
+		TRACE_3("ERR_FAILED_OPERATION: Converting TRY_AGAIN to "
+			"FAILED_OPERATION in ccbObjectModify in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ccb_node->mAborted = TRUE;
 	}
@@ -2241,7 +2296,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		/* ##1## Any on going ccb has been aborted and this will be detected
 		   in resurrect processing. But this could be the first operation
 		   attempted for a new ccb-id, i.e. there is no on-going ccb-id,
@@ -2269,7 +2324,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	if (ccb_node->mExclusive) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
 		goto done;
 	}
@@ -2293,10 +2348,10 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	}
 
 	if (cl_node->stale) {
-		TRACE_1("IMM Handle %llx is stale", immHandle);
+		TRACE_1("IMM Handle %llx is stale exposed?:%u", immHandle, cl_node->exposed);
 
 		if(!(ccb_node->mApplied)) {
-			TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
+			TRACE_3("ERR_FAILED_OPERATION: IMMND DOWN discards ccb "
 				"in active but non-critical state");
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -2320,7 +2375,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -2332,19 +2387,20 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 		if (!ccb_node) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
+			TRACE_3("ERR_BAD_HANDLE: Ccb handle not valid after successful resurrect");
 			goto done;
 		}
 
 		if (ccb_node->mExclusive) {
 			rc = SA_AIS_ERR_TRY_AGAIN;
-			TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
-				ccb_node->mCcbId);
+			TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, "
+				"in another thread", ccb_node->mCcbId);
 			goto done;
 		}
 
 		if (ccb_node->mAborted) {
 			rc = SA_AIS_ERR_FAILED_OPERATION;
+			TRACE_3("ERR_FAILED_OPERATION: Ccb-id %u was already aborted", ccb_node->mCcbId);
 			goto done;
 		}
 	}
@@ -2364,9 +2420,13 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	if (ccb_node->mApplied) {  /* Current ccb-id is closed, get a new one.*/
 		imma_proc_increment_pending_reply(cl_node);
 		rc = imma_newCcbId(cb, ccb_node, adminOwnerId, &locked);
-		/* ccb_node still valid if rc == SA_AIS_OK. */
-		assert(!(rc == SA_AIS_OK && ccb_node->mExclusive));
 		cl_node = NULL;
+		if(rc == SA_AIS_ERR_LIBRARY) {goto done;}
+		/* ccb_node still valid if rc == SA_AIS_OK. */
+		if(rc == SA_AIS_OK) {
+			assert(!(ccb_node->mExclusive));
+			assert(locked);
+		}
 
 		if (!locked) {
 			if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
@@ -2390,11 +2450,11 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			goto done;
 		}
 
-		/* successfuly obtained new ccb-id */
+		/* successfully obtained new ccb-id */
 
 		if (cl_node->stale) {
 			/* Became stale AFTER we successfully obtained new ccb-id ! */
-			TRACE_2("ERR_FAILED_OPERATION: IMM Handle %llx is stale", immHandle);
+			TRACE_3("ERR_FAILED_OPERATION: IMM Handle %llx became stale", immHandle);
 
 			rc = SA_AIS_ERR_FAILED_OPERATION;
 			/* We know the ccb WAS terminated*/
@@ -2448,6 +2508,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_send_fail:
@@ -2468,7 +2529,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		if (rc == SA_AIS_OK) {
-			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+			TRACE_3("ERR_BAD_HANDLE: client_node gone on return from down-call");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
 		goto done;
@@ -2478,7 +2539,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 
 	imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
 	if (!ccb_node) {	
-		TRACE_3("ERR_BAD_HANDLE: ccb-node removed during call!");
+		TRACE_3("ERR_BAD_HANDLE: ccb-node gone on return from down-call");
 		/* BAD_HANDLE overrides any other return code already assigned. */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto done;
@@ -2491,7 +2552,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 			   We know the ccb is aborted. So we dont need to expose
 			   the stale handle.
 			*/
-			TRACE_2("ERR_FAILED_OPERATION: Handle %llx became stale "
+			TRACE_3("ERR_FAILED_OPERATION: Handle %llx became stale "
 				"during the down-call", immHandle);
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -2504,8 +2565,8 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		   phase. Better then to handle this as FAILED_OPERATION, since this
 		   can avoid exposing the immHandle as BAD_HANDLE.
 		 */
-		TRACE_2("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
-			"in ccbObjectCreate in IMMA");
+		TRACE_3("ERR_FAILED_OPERATION: Converting TRY_AGAIN to FAILED_OPERATION "
+			"in ccbObjectDelete in IMMA");
 		rc = SA_AIS_ERR_FAILED_OPERATION;
 		ccb_node->mAborted = TRUE;
 	}
@@ -2515,6 +2576,7 @@ SaAisErrorT saImmOmCcbObjectDelete(SaImmCcbHandleT ccbHandle, const SaNameT *obj
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
  lock_fail:
+	TRACE("objectDelete really RETURNING:%u", rc);
 	TRACE_LEAVE();
 	return rc;
 }
@@ -2541,6 +2603,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	IMMA_CCB_NODE *ccb_node = NULL;
 	NCS_BOOL locked = FALSE;
 	SaImmHandleT immHandle=0LL;
+	SaUint32T ccbId = 0;
 	TRACE_ENTER();
 
 	if (cb->sv_id == 0) {
@@ -2568,11 +2631,11 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		TRACE_2("ERR_BAD_HANDLE: Ccb handle not valid");
 		goto done;
 	}
-	TRACE_1("CCb node found for ccbhandle %llx ccbid:%u", ccbHandle, ccb_node->mCcbId);
+	TRACE("CCb node found for ccbhandle %llx ccbid:%u", ccbHandle, ccb_node->mCcbId);
 
 	if (ccb_node->mExclusive) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
 		goto done;
 	}
@@ -2580,7 +2643,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	if (ccb_node->mAborted)  {
 		/* mApplied must only be set to true when the current
 		   ccb-id has been EXPLICITLY applied by the user. 
-		   This can only be done by a successfull explicit 
+		   This can only be done by a successful explicit 
 		   saImmOmCcbApply. A ccb-handle with an aborted ccb-id
 		   can not be used any more. Only finalize is allowed on handle.
 
@@ -2612,12 +2675,13 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		rc = SA_AIS_ERR_LIBRARY;
-		TRACE_4("ERR_LIBRARY: No valid SaImmHandleT associated with Ccb");
+		TRACE_4("ERR_LIBRARY: SaImmHandleT associated with Ccb %u is not valid",
+			ccb_node->mCcbId);
 		goto done;
 	}
 
 	if (cl_node->stale || !(cb->is_immnd_up)) {
-		TRACE_2("ERR_FAILED_OPERATION: IMMND DOWN and/or IMM Handle %llx "
+		TRACE_3("ERR_FAILED_OPERATION: IMMND DOWN and/or IMM Handle %llx "
 			"is stale - Ccb %u has to be aborted.", 
 			ccb_node->mImmHandle, ccb_node->mCcbId);
 		/* No point in resurrecting here since we know the ccb-id failed.
@@ -2641,6 +2705,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	imma_proc_increment_pending_reply(cl_node);
 	ccb_node->mExclusive = TRUE; 
 	ccb_node->mApplying = TRUE;
+	ccbId = ccb_node->mCcbId;
 
 	rc = imma_evt_fake_evs(cb, &evt, &out_evt, IMMSV_WAIT_TIME, cl_node->handle, &locked, FALSE);
 	cl_node = NULL;
@@ -2663,10 +2728,11 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		}
 
 		free(out_evt);
+		out_evt=NULL;
 	} else if (rc == SA_AIS_OK) {
 		TRACE_4("CCB_APPLY - ERR_TIMEOUT: Got OK from fake_evs but no "
-			"reply message!, from IMMND. Converting to ERR_TIMEOUT "
-			"to convey the unknown outcomme!");
+			"reply message!, from IMMND. Raising ERR_TIMEOUT "
+			"to convey the unknown result from cb-apply!");
 		rc = SA_AIS_ERR_TIMEOUT;
 	}
 
@@ -2695,8 +2761,8 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		/* Normal case, cl_node still exists. */
 		imma_proc_decrement_pending_reply(cl_node);
 		if (cl_node->stale) {
-			TRACE_3("CCB APPLY - Handle %llx is stale on return",
-				immHandle);
+			TRACE_3("CCB APPLY - Handle %llx is stale on return, exposed:%u",
+				immHandle, cl_node->exposed);
 			/* Became stale during the blocked call */
 			if (rc == SA_AIS_OK) {
 				/* yet the call succeeded! This should be very rare.
@@ -2707,12 +2773,12 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 				*/
 				TRACE_3("CCB APPLY - Ok reply from IMMND overrides"
 					"stale handle");
-			} else if(rc != SA_AIS_ERR_TIMEOUT) {
+			} else if((rc != SA_AIS_ERR_TIMEOUT) && (rc != SA_AIS_ERR_BAD_HANDLE)) {
 				TRACE_3("CCB APPLY - ERR_BAD_HANDLE(%u) overrides rc %u",
 					SA_AIS_ERR_BAD_HANDLE, rc);
 				rc = SA_AIS_ERR_BAD_HANDLE;
-				/* is converted to ERR_TIMEOUT below*/
-				cl_node->exposed = TRUE;
+				/* is converted to ERR_TIMEOUT below */
+				/* Dont set exposed just yet */
 			}
 		}
 
@@ -2722,7 +2788,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			ccb_node->mApplying = FALSE;
 			if (rc == SA_AIS_OK) {
 				ccb_node->mApplied = TRUE;  
-				TRACE_1("CCB APPLY - Successfull Apply for ccb id %u", 
+				TRACE_1("CCB APPLY - Successful Apply for ccb id %u", 
 					ccb_node->mCcbId);
 			}
 		} else {
@@ -2757,15 +2823,16 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   Convert ERR_TRY_AGAIN to FAILED_OPERATION !
 		   Handle will also be stale, but that is taken care of later.
 		*/
+
 		if(ccb_node) {
-			TRACE_3("CCB APPLY - .... ERR_FAILED_OPERATION");
 			assert(!(ccb_node->mApplied));
 			ccb_node->mAborted = TRUE;
 			rc = SA_AIS_ERR_FAILED_OPERATION;
+			TRACE_3("CCB APPLY - .... ERR_FAILED_OPERATION");
 		} else {
-			TRACE_4("CCB APPLY - .... ERR_BAD_HANDLE: ccb-node removed "
-				"during down call!");
-			rc = SA_AIS_ERR_BAD_HANDLE;
+			rc = SA_AIS_ERR_LIBRARY;
+			TRACE_4("CCB APPLY - .... ERR_LIBRARY: ccb-node removed during ccb-apply, "
+					"ccb_node->mExclusive violated");
 		}
 	}
 
@@ -2774,7 +2841,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			"ccb-apply! converting ERR_BAD_HANDLE to ERR_TIMEOUT");
 		/* For the special case of ccb-apply we convert ERR_BAD_HANDLE to ERR_TIMEOUT.
 		   This to converge all error handling for UNKNOWN OUTCOME of a ccb to a 
-		   single error code. Unknown outcomme for a ccb is what the user least of all
+		   single error code. Unknown result for a ccb is what the user least of all
 		   wants to deal with from apply, but it can happen.
 
 		   ERR_BAD_HANDLE >>here<< means either IMMND went down during
@@ -2787,7 +2854,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   CCBs that do not invovle implementers, since they commit
 		   independently at all IMMNDs. 
 		   ERR_TIMEOUT is in fact converted *to* ERR_BAD_HANDLE by 
-		   fevs/imma_proc_check_stale. This is OK for all other calls, 
+		   fevs/imma_proc_check_stale. This is preferred for most other calls, 
 		   but not for ccb-apply!.
 
 		   For the case of client_node or ccb_node removed the CCB
@@ -2800,7 +2867,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 		   be wrong. 
 
 		   Therefore we convert ERR_BAD_HANDLE back ERR_TIMEOUT here,
-		   to convey the honest uncertatinty of the ccb outcomme towards
+		   to convey the honest uncertatinty of the ccb result towards
 		   the client. 
 
 		   Recovery of the ccb outcome may in turn be attempted next.
@@ -2810,12 +2877,58 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 	}
 
 	if (rc == SA_AIS_ERR_TIMEOUT) {
-		/*TODO: Try to contact IMMND when up again and recover the outcomme 
-		  of the ccb. Impacts sync since ccb outcome has to be regenerated in 
-		  the restarted IMMND. 
+		/* Try to contact IMMND when up again and recover the result
+		  of the ccb. If we fail here also then remove the ccb-node since
+		  we dont want it to indicate aborted, nor applied, nor active.
 		*/
-		goto done;
-	}
+		TRACE_3("client_node %p exposed :%u", cl_node, cl_node ? (cl_node->exposed) : 0);
+
+		/* Release the CB lock Before MDS Send */
+		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+		locked = FALSE;
+
+		rc = imma_proc_recover_ccb_result(cb, ccbId);
+
+		if(ccb_node) { 
+			/* ccb_node existed before recover_ccb_outcome downcall, try to
+			   obtain it again.
+			*/
+			if(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS) {
+				TRACE_4("CCB APPLY - ERR_LIBRARY: Lock failed");
+				/* Error library overrides any existing rc including OK!*/
+				rc = SA_AIS_ERR_LIBRARY;
+				goto lock_fail;
+			} 
+			locked = TRUE;
+
+			imma_ccb_node_get(&cb->ccb_tree, &ccbHandle, &ccb_node);
+		}
+
+		if(rc == SA_AIS_OK) {
+			TRACE_3("CCB APPLY - SA_AIS_OK: CCB result recovery SUCCEEDED - "
+				"Apply/Commit for ccb id %u result was OK", ccbId);
+			if (ccb_node) {
+				ccb_node->mApplied = TRUE;  
+			}
+			goto done;
+		} 
+
+		if(rc == SA_AIS_ERR_TIMEOUT) {
+			TRACE_4("CCB APPLY: CCB result recovery FAILED for "
+				"ccb id %u returning ERR_TIMEOUT", ccbId);
+			if (ccb_node) {
+				ccb_node->mExclusive = TRUE;
+				imma_ccb_node_delete(cb, ccb_node);
+				ccb_node = NULL;
+			}
+			goto done;
+		}
+
+		assert(rc == SA_AIS_ERR_FAILED_OPERATION);
+		TRACE_3("CCB APPLY: CCB result recovery SUCCEEDED - "
+				"ABORT for ccb id %u", ccbId);
+
+	} /*if(rc == SA_AIS_ERR_TIMEOUT)*/
 
 	if (ccb_node) {
 		ccb_node->mAborted = TRUE;
@@ -2902,7 +3015,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -2920,7 +3033,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	/* Get the Admin Owner info  */
 	proc_rc = imma_admin_owner_node_get(&cb->admin_owner_tree, &ownerHandle, &ao_node);
 	if (!ao_node) {
-		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with handle!");
+		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with admin owner handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto ao_not_found;
 	}
@@ -2953,7 +3066,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -3022,6 +3135,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 			TRACE_2("ERR_INVALID_PARAM: Param name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
+			p=NULL;
 			goto mds_send_fail;
 		}
 		/*alloc-3 */
@@ -3063,6 +3177,7 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		}
 
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_send_fail:
@@ -3099,7 +3214,9 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 	locked = TRUE;
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);	
-	if (!(cl_node && cl_node->isOm)) {
+	if (cl_node && cl_node->isOm) {
+		imma_proc_decrement_pending_reply(cl_node);
+	} else {
 		/*rc = SA_AIS_ERR_BAD_HANDLE;*/
 		TRACE_3("client_node_get failed. Handle closed during admop call");
 		/* Ignore the lost client node. The admop as such has 
@@ -3108,7 +3225,22 @@ SaAisErrorT saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
 		*/
 	}
 
-	imma_proc_decrement_pending_reply(cl_node);
+	if(rc == SA_AIS_ERR_BAD_HANDLE && cl_node && cl_node->stale) {
+		/* This ERR_BAD_HANDLE would have come from imma_fake_evs 
+		   and check_stale_handle (immnd crash => timeout => bad_handle) if IMMND
+		   crashed during the down call.
+		   We can not convert this to TRY_AGAIN because the admin-op may actually
+		   have been performed at some other IMMND where the receiving OI resides.
+		   But we can convert it back to TIMEOUT, which could allow a resurrect.
+		 */
+		TRACE_3("Client became stale during down call");
+
+		if(!cl_node->exposed) {
+			TRACE_3("ADMIN_OP - ERR_TIMEOUT: converting BAD_HANDLE to TIMEOUT");
+			rc = SA_AIS_ERR_TIMEOUT;
+		}
+	}
+
 	
 
  ao_not_found:
@@ -3221,7 +3353,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -3236,7 +3368,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 	/* Get the Admin Owner info  */
 	imma_admin_owner_node_get(&cb->admin_owner_tree, &ownerHandle, &ao_node);
 	if (!ao_node) {
-		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with handle!");
+		TRACE_2("ERR_BAD_HANDLE: No admin owner associated with admin owner handle!");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto ao_not_found;
 	}
@@ -3269,7 +3401,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -3334,6 +3466,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 			TRACE_2("ERR_INVALID_PARAM: Param name too long");
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
+			p=NULL;
 			goto mds_send_fail;
 		}
 
@@ -3412,6 +3545,7 @@ SaAisErrorT saImmOmAdminOperationInvokeAsync_2(SaImmAdminOwnerHandleT ownerHandl
 		immsv_evt_free_att_val(&(p->paramBuffer), p->paramType);	/*free-4 */
 		p->next = NULL;
 		free(p);	/*free-2 */
+		p=NULL;
 	}
 
 	/* Note the imma_proc_decrement_pending_reply is done in the OM upcall
@@ -3574,7 +3708,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -3634,6 +3768,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 			TRACE("Zero length attribute name in class %s def, not allowed.",
 			      evt.info.immnd.info.classDescr.className.buf);
 			free(p);
+			p=NULL;
 			goto mds_send_fail;
 		}
 		p->d.attrName.buf = malloc(p->d.attrName.size);	/* alloc-3 */
@@ -3647,6 +3782,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 			free(p->d.attrName.buf);	/* free-3 */
 			p->d.attrName.buf = NULL;
 			free(p);	/* free-2 */
+			p=NULL;
 			goto mds_send_fail;
 		}
 		p->d.attrFlags = attr->attrFlags;
@@ -3758,6 +3894,7 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 		rc = out_evt->info.imma.info.errRsp.error;
 		TRACE("Return code:%u", rc);
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_send_fail:
@@ -3788,9 +3925,11 @@ SaAisErrorT saImmOmClassCreate_2(SaImmHandleT immHandle,
 
 	imma_proc_decrement_pending_reply(cl_node);
 
-	/* Dont bother checking if the cl_node is stale. The class create
-	   call is done. It either succeeded or not as reflected in the rc. 
-	*/
+	if ((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale) {
+		/* BAD_HANDLE from imma_proc_check_stale */
+		/* ABT: We could possibly convert back to TIMEOUT to allow a resurrect?*/
+		cl_node->exposed = TRUE;
+	}
 
  client_not_found:
  stale_handle:
@@ -3874,7 +4013,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}	
 
@@ -3907,7 +4046,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -3937,7 +4076,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 	/* IMMND GOES DOWN */
 	if (FALSE == cb->is_immnd_up) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_send_fail;
 	}
 
@@ -4044,9 +4183,9 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 						assert(0);
 					}	/*switch */
 
-					SaNameT *namep;
-					SaAnyT *anyp;
-					SaStringT *strp;
+					SaNameT *namep = NULL;
+					SaAnyT *anyp = NULL;
+					SaStringT *strp = NULL;
 					SaImmAttrValueT copyv;
 					copyv = (SaImmAttrValueT)	/*alloc-4 */
 					    malloc(size);
@@ -4094,7 +4233,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 					case SA_IMM_ATTR_SAANYT:
 						anyp = (SaAnyT *)copyv;
-						memset(namep, 0, sizeof(SaAnyT));
+						memset(anyp, 0, sizeof(SaAnyT));
 						anyp->bufferSize = q->attrDefaultValue->val.x.size;
 						anyp->bufferAddr = (SaUint8T *)
 						    malloc(anyp->bufferSize);	/*alloc-5 */
@@ -4115,6 +4254,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 				p = p->next;
 				prev->next = NULL;
 				free(prev);
+				prev=NULL;
 			}
 			attr[noOfAttributes] = 0;
 
@@ -4132,6 +4272,7 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 		/* We dont need the lock here */
 
 		free(out_evt);
+		out_evt=NULL;
 	}
 	/*if (out_evt) */
  mds_send_fail:
@@ -4158,9 +4299,10 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 
 	imma_proc_decrement_pending_reply(cl_node);
 
-	/* Dont bother checking if the cl_node is stale. The class descr get
-	   call is done. It either succeeded or not as reflected in the rc. 
-	*/
+	if((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale){
+		/* BAD_HANDLE from imma_proc_check_stale */
+		cl_node->exposed = TRUE;
+	}
 
  client_not_found:
  stale_handle:
@@ -4282,7 +4424,7 @@ SaAisErrorT saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle, SaImmAtt
 	}
 
 	if (cl_node->stale) {
-		TRACE_1("IMM Handle %llx is stale", immHandle);
+		TRACE_1("IMM Handle %llx is stale - ignoring", immHandle);
 		/*return SA_AIS_ERR_BAD_HANDLE;*/
 		/* Dont let a stale handle prevent the deallocation. */
 	}
@@ -4360,7 +4502,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}	
 
@@ -4393,7 +4535,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto stale_handle;
@@ -4429,6 +4571,7 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 		/* We dont need the lock here */
 
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_send_fail:
@@ -4452,9 +4595,11 @@ SaAisErrorT saImmOmClassDelete(SaImmHandleT immHandle, const SaImmClassNameT cla
 
 	imma_proc_decrement_pending_reply(cl_node);
 
-	/* Dont bother checking if the cl_node is stale. The class delete
-	   call is done. It either succeeded or not as reflected in the rc. 
-	*/
+	if ((rc == SA_AIS_ERR_BAD_HANDLE) && cl_node->stale) {
+		/* BAD_HANDLE from imma_proc_check_stale */
+		/* ABT: We could possibly convert back to TIMEOUT to allow a resurrect?*/
+		cl_node->exposed = TRUE;
+	}
 
  stale_handle:
  client_not_found:
@@ -4520,7 +4665,7 @@ SaAisErrorT saImmOmAccessorInitialize(SaImmHandleT immHandle, SaImmAccessorHandl
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto release_lock;
@@ -4772,7 +4917,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
+		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
 		/* Dont bother resurrecting. This is a sync operation !! */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto stale_handle;
@@ -4827,6 +4972,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 			TRACE_2("ERR_INVALID_PARAM: Attribute name too long: %u", p->n.attrName.size);
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			free(p);
+			p=NULL;
 			goto mds_send_fail;
 		}
 
@@ -4874,6 +5020,7 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 		/* We dont need the lock here */
 
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  error_exit_1:
@@ -4956,7 +5103,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
+		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
 		/* Dont bother resurrecting. This is a sync operation !! */
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto stale_handle;
@@ -4975,7 +5122,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 	/* IMMND GOES DOWN */
 	if (cb->is_immnd_up == FALSE) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_send_fail;
 	}
 
@@ -5011,6 +5158,7 @@ SaAisErrorT immsv_finalize_sync(SaImmHandleT immHandle)
 		}
 
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_send_fail:
@@ -5086,7 +5234,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -5120,7 +5268,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto release_lock;
@@ -5250,7 +5398,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	/* IMMND GOES DOWN */
 	if (cb->is_immnd_up == FALSE) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_send_fail;
 	}
 
@@ -5313,7 +5461,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
-		TRACE_2("ERR_BAD_HANDLE: Client node is missing");
+		TRACE_3("ERR_BAD_HANDLE: Client node is gone after down call");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5322,9 +5470,21 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 	
 	imma_search_node_get(&cb->search_tree, &tmpSearchHandle, &search_node);
 	if ((!search_node) || (search_node->mImmHandle != immHandle)) {
-		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
+		TRACE_3("ERR_BAD_HANDLE: Search node is missing after down call");
 		rc = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
+	}
+
+	if (cl_node->stale) {
+		if (isExposed(cb, cl_node)) {
+			TRACE_2("ERR_BAD_HANDLE: client is stale after down call and exposed");
+			rc = SA_AIS_ERR_BAD_HANDLE;
+		} else {
+			TRACE_2("ERR_TRY_AGAIN: Handle %llx is stale after down call but "
+				"possible to resurrect", immHandle);
+			/* Can override BAD_HANDLE/TIMEOUT set in check_stale */
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
 	}
 
 	if (rc == SA_AIS_OK) {
@@ -5360,6 +5520,7 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 
 	if(out_evt) {
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  release_cb:
@@ -5434,7 +5595,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	}
 
 	if (cl_node->stale) {
-		TRACE_2("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
+		TRACE_3("ERR_BAD_HANDLE: IMM Handle %llx is stale", immHandle);
 		cl_node->exposed = TRUE;
 		error = SA_AIS_ERR_BAD_HANDLE;
 		/* We dont want to resurrect here because we know the search has failed. */
@@ -5448,7 +5609,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	}
 
 	if (search_node->mSearchId == 0) {
-		TRACE_2("ERR_BAD_HANDLE: Search id is zero");
+		TRACE_3("ERR_BAD_HANDLE: Search id is zero");
 		error = SA_AIS_ERR_BAD_HANDLE;
 		goto release_lock;
 	}
@@ -5470,7 +5631,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	/* IMMND GOES DOWN */
 	if (cb->is_immnd_up == FALSE) {
 		error = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto release_cb;
 	}
 
@@ -5502,19 +5663,51 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 	if (!(cl_node && cl_node->isOm)) {
 		error = SA_AIS_ERR_LIBRARY;
 		TRACE_4("ERR_LIBRARY: Invalid SaImmHandleT related to search handle");
-		goto release_lock;
+		goto release_evt;
 	}
 
 	imma_proc_decrement_pending_reply(cl_node);
 
 	imma_search_node_get(&cb->search_tree, &searchHandle, &search_node);
 	if (!search_node) {
-		TRACE_2("ERR_BAD_HANDLE: Search node is missing");
+		TRACE_3("ERR_BAD_HANDLE: Search node is gone after down-call");
 		error = SA_AIS_ERR_BAD_HANDLE;
-		goto release_lock;
+		goto release_evt;
 	}
 
-	if (out_evt) {
+	if (cl_node->stale) {
+		cl_node->exposed = TRUE;
+		error = SA_AIS_ERR_BAD_HANDLE;		
+		TRACE_3("ERR_BAD_HANDLE: client is stale and exposed");
+		/* 
+		   Unfortunately, searchNext is one of the few IMM API operations that is
+		   the most difficult to provide transparency for. Even more unfortunate is
+		   that we dont have any suitable return code to communicate that only the
+		   searchHandle is BAD. The principle is that the immHandle is not exposed
+		   as long as we can avoid returning BAD_HANDLE for an operation using it.
+		   But here we have to return BAD_HANDLE for an operation using a sub-handle
+		   (the search handle) to the innHandle. 
+
+		   We can compare with CCBs and ccbHandles. For a ccb operation we can always
+		   return FAILED_OPERATION which just indicates that the CCB is failed/aborted, 
+		   without giving away the whole game that the immHandle may be stale.
+		   But there is no corresponding return code for searchNext. 
+
+		   For searchInitialize and accessor operations, we can hide the stalenes
+		   of a handle by returning TRY_AGAIN, which gives resurrect a chance to make
+		   a retry truly possible. But we can not return a TRY_AGAIN on a searchNext
+		   to mask a stale handle, because a searchNext is a continuation operation.
+		   What we need is a return code telling the user to restart the iteration 
+		   from scratch (re initialize). There is no such return code. 
+
+		   TIMEOUT and NO_RESOURCES could be returned here, but the user is not likely to 
+		   react to these codes by restarting the iteration, despite that this would
+		   be an allowed reaction and quite likley to succeed when it was just a stale
+		   immHandle that was resurrect'able. 
+		*/
+	}
+
+	if (out_evt && error == SA_AIS_OK) {
 		int noOfAttributes = 0;
 		int i = 0;
 		size_t attrDataSize = 0;
@@ -5587,7 +5780,11 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 		   to protect the search_node->mLastAttributes structure from being removed
 		   while the user is still using it (lock released).
 		*/
+	}
 
+ release_evt:
+
+	if (out_evt) {
 		/* Free the search_next structure. */
 		if (out_evt->info.imma.info.searchNextRsp) {
 			free(out_evt->info.imma.info.searchNextRsp->objectName.buf);
@@ -5599,6 +5796,7 @@ SaAisErrorT saImmOmSearchNext_2(SaImmSearchHandleT searchHandle, SaNameT *object
 			out_evt->info.imma.info.searchNextRsp = NULL;
 		}
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  release_lock:
@@ -5719,7 +5917,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 	/* IMMND GOES DOWN */
 	if (cb->is_immnd_up == FALSE) {
 		error = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		goto mds_failed;
 	}
 
@@ -5751,6 +5949,7 @@ SaAisErrorT saImmOmSearchFinalize(SaImmSearchHandleT searchHandle)
 			error = out_evt->info.imma.info.errRsp.error;
 		}
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  mds_failed:
@@ -5798,7 +5997,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -5848,7 +6047,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -5856,11 +6055,11 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 
-		/* Look up admin owner again since successfull resurrect implies
+		/* Look up admin owner again since successful resurrect implies
 		   new admin-owner-id ! */
 		imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 		if (!ao_node) {
-			TRACE_2("ERR_BAD_HANDLE: Admin owner node dissapeared during resurrect");
+			TRACE_3("ERR_BAD_HANDLE: Admin owner node dissapeared during resurrect");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
 		}
@@ -5904,6 +6103,7 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
 		free(out_evt);
+		out_evt=NULL;
 	}
 
 	while (admo_set_evt.info.immnd.info.admReq.objectNames != NULL) {
@@ -5927,11 +6127,13 @@ SaAisErrorT saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT adminOwnerHandle,
 	imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 	if (!(cl_node && cl_node->isOm)) {
 		rc = SA_AIS_ERR_BAD_HANDLE;
-		TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
+		TRACE_3("ERR_BAD_HANDLE: client_node gone after down-call");
 		goto done;
 	}
 
 	imma_proc_decrement_pending_reply(cl_node);
+
+	/* Ignore possibly stale handle, will be discovered in next op. */
 
  done:
 	if (locked)
@@ -5977,7 +6179,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -6027,7 +6229,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -6035,11 +6237,11 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 
 		TRACE_1("Reactive resurrect of handle %llx succeeded", immHandle);
 
-		/* Look up admin owner again since successfull resurrect implies
+		/* Look up admin owner again since successful resurrect implies
 		   new admin-owner-id ! */
 		imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHandle, &ao_node);
 		if (!ao_node) {
-			TRACE_2("ERR_BAD_HANDLE: Admin owner node dissapeared during resurrect");
+			TRACE_3("ERR_BAD_HANDLE: Admin owner node dissapeared during resurrect");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
 		}
@@ -6083,6 +6285,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 			rc = out_evt->info.imma.info.errRsp.error;
 		}
 		free(out_evt);
+		out_evt=NULL;
 	}
 
 	while (admo_set_evt.info.immnd.info.admReq.objectNames != NULL) {
@@ -6109,7 +6312,7 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 			/* Override all errors with BAD_HANDLE, but dont override AIS_OK 
 			   because this is an admin owner release, i.e. relaxation call.
 			 */
-			TRACE_2("ERR_BAD_HANDLE: Client node is missing");
+			TRACE_3("ERR_BAD_HANDLE: Client node is gone after down-call");
 			rc = SA_AIS_ERR_BAD_HANDLE;
 		}
 		TRACE_3("client_node_get failed");
@@ -6117,6 +6320,8 @@ SaAisErrorT saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT adminOwnerHandle,
 	}
 
 	imma_proc_decrement_pending_reply(cl_node);
+
+	/* Ignore possibly stale handle */
 
 
  done:
@@ -6159,7 +6364,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 	}
 
 	if (cb->is_immnd_up == FALSE) {
-		TRACE_2("ERR_TRY_AGAIN: IMMND is DOWN");
+		TRACE_3("ERR_TRY_AGAIN: IMMND is DOWN");
 		return SA_AIS_ERR_TRY_AGAIN;
 	}
 
@@ -6191,7 +6396,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
 
 		if (!resurrected || !cl_node || !(cl_node->isOm) || cl_node->stale) {
-			TRACE_2("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
+			TRACE_3("ERR_BAD_HANDLE: Reactive ressurect of handle %llx failed", immHandle);
 			if (cl_node && cl_node->stale) {cl_node->exposed = TRUE;}
 			rc = SA_AIS_ERR_BAD_HANDLE;
 			goto done;
@@ -6235,6 +6440,7 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 		}
 		/* We dont need the lock here  */
 		free(out_evt);
+		out_evt=NULL;
 	}
 
 	while (admo_set_evt.info.immnd.info.admReq.objectNames != NULL) {
@@ -6261,13 +6467,15 @@ SaAisErrorT saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objec
 			/* Override all errors with BAD_HANDLE, but dont override AIS_OK 
 			   because this is an admin owner clear, i.e. relaxation call.
 			 */
+			TRACE_3("ERR_BAD_HANDLE: client_node_get failed");
 			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_2("ERR_BAD_HANDLE: client_node_get failed");
 		}
 		goto done;
 	}
 
 	imma_proc_decrement_pending_reply(cl_node);
+
+	/* Ignore possibly stale handle */
 
  done:
 	if (locked)
@@ -6368,6 +6576,7 @@ SaAisErrorT saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT adminOwnerHandle)
 		TRACE("AdminOwnerFinalize returned: %u", rc);
 		
 		free(out_evt);
+		out_evt=NULL;
 	}
 
  done:
@@ -6418,7 +6627,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 		ccbHandle, ccb_node->mCcbId);
 	if (ccb_node->mExclusive) {
 		rc = SA_AIS_ERR_TRY_AGAIN;
-		TRACE_2("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
+		TRACE_3("ERR_TRY_AGAIN: Ccb-id %u being created or in critical phase, in another thread",
 			ccb_node->mCcbId);
 		goto done;
 	}
@@ -6439,7 +6648,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 		imma_admin_owner_node_get(&cb->admin_owner_tree, &adminOwnerHdl, &ao_node);
 		if (!ao_node) {
 			rc = SA_AIS_ERR_BAD_HANDLE;
-			TRACE_2("ERR_BAD_HANDLE: No Amin-Owner associated with Ccb");
+			TRACE_3("ERR_BAD_HANDLE: Amin-Owner node associated with Ccb is missing");
 			goto done;
 		}
 
@@ -6480,6 +6689,7 @@ SaAisErrorT saImmOmCcbFinalize(SaImmCcbHandleT ccbHandle)
 			TRACE("CcbFinalize returned %u", rc);
 
 			free(out_evt);
+			out_evt=NULL;
 		}
 	}
 

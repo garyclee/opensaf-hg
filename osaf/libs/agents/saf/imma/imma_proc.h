@@ -76,6 +76,8 @@ EXTERN_C uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, i
 EXTERN_C void imma_proc_increment_pending_reply(IMMA_CLIENT_NODE *clnd);
 EXTERN_C void imma_proc_decrement_pending_reply(IMMA_CLIENT_NODE *clnd);
 
+EXTERN_C SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId);
+
 /* callback prototypes */
 EXTERN_C IMMA_CALLBACK_INFO *imma_callback_ipc_rcv(IMMA_CLIENT_NODE *clnd);
 EXTERN_C uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle);

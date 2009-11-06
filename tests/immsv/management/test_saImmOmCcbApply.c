@@ -58,12 +58,11 @@ void saImmOmCcbApply_01(void)
     const SaNameT *objectNames[] = {&parentName, NULL};
     const SaNameT objectName =
         {strlen("Obj1,opensafImm=opensafImm,safApp=safImmService"), "Obj1,opensafImm=opensafImm,safApp=safImmService"};
-
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion),
         SA_AIS_OK);
     safassert(config_class_create(immOmHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerInitialize(immOmHandle, adminOwnerName,
-        SA_TRUE, &ownerHandle), SA_AIS_OK);
+				  /*SA_TRUE*/SA_FALSE, &ownerHandle), SA_AIS_OK);
     safassert(saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE), 
         SA_AIS_OK);
     safassert(saImmOmCcbInitialize(ownerHandle, 0, &ccbHandle), SA_AIS_OK);
@@ -76,6 +75,8 @@ void saImmOmCcbApply_01(void)
     safassert(saImmOmCcbApply(ccbHandle), SA_AIS_OK);
     safassert(saImmOmCcbFinalize(ccbHandle), SA_AIS_OK);
     safassert(saImmOmClassDelete(immOmHandle, testConfigClassName), SA_AIS_OK);
+    safassert(saImmOmAdminOwnerRelease(ownerHandle, objectNames, SA_IMM_ONE),
+		SA_AIS_OK);
     safassert(saImmOmAdminOwnerFinalize(ownerHandle), SA_AIS_OK);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }

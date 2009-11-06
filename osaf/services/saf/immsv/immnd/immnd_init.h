@@ -259,6 +259,8 @@ extern "C" {
 				    const struct ImmsvOmCcbObjectModify *req,
 				    SaUint32T implConn, SaClmNodeIdT implNodeId, unsigned int *isPureLocal);
 
+	SaAisErrorT immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId);
+
 #ifdef __cplusplus
 }
 #endif

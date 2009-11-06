@@ -284,6 +284,7 @@ public:
     void              recognizedIsolated();
     bool              syncComplete(bool isJoining);
     void              abortSync();
+    SaAisErrorT       ccbResult(SaUint32T ccbId);
     bool              ccbsTerminated();
     void              getNonCriticalCcbs(IdVector& cv);
     bool              immNotWritable();

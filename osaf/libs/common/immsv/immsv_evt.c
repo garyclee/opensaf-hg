@@ -29,6 +29,7 @@
 #define IMMSV_MAX_IMPLEMENTERS 3000
 #define IMMSV_MAX_ADMINOWNERS 2000
 #define IMMSV_MAX_OBJECTS 10000
+#define IMMSV_MAX_CCBS 1000
 
 /* This array must match IMMD_EVT_TYPE */
 static const char *immd_evt_names[] = {
@@ -49,7 +50,7 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_OI_OBJ_MODIFY",
 	"IMMD_EVT_ND2D_DISCARD_IMPL",
 	"IMMD_EVT_ND2D_ABORT_CCB",
-	"IMMD_EVT_ND2D_ADMO_HARD_FINALIZE2",
+	"IMMD_EVT_ND2D_ADMO_HARD_FINALIZE",
 	"IMMD_EVT_CB_DUMP",
 	"IMMD_EVT_MDS_QUIESCED_ACK_RSP",
 };
@@ -134,6 +135,8 @@ static const char *immnd_evt_names[] = {
     "IMMND_EVT_A2ND_IMM_OM_RESURRECT",
     "IMMND_EVT_A2ND_IMM_OI_RESURRECT",
     "IMMND_EVT_A2ND_IMM_CLIENTHIGH",
+	"IMMND_EVT_ND2ND_SYNC_FINALIZE_2",
+	"IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME",
 };
 
 static const char *immsv_get_immnd_evt_name(unsigned int id)
@@ -774,6 +777,16 @@ void immsv_evt_free_classList(IMMSV_CLASS_LIST *p)
 		free(tmp->classImplName.buf);
 		tmp->classImplName.buf = NULL;
 		tmp->classImplName.size = 0;
+		free(tmp);
+	}
+}
+
+void immsv_evt_free_ccbOutcomeList(IMMSV_CCB_OUTCOME_LIST *o)
+{
+	while(o) {
+		IMMSV_CCB_OUTCOME_LIST *tmp = o;
+		o = o->next;
+		tmp->next =NULL;
 		free(tmp);
 	}
 }
@@ -1469,9 +1482,10 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
 			   (i_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_CLEAR)) {
 			return immsv_evt_enc_name_list(o_ub, i_evt->info.immnd.info.admReq.objectNames);
-
-		} else if (i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) {
+		} else if ((i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) ||
+			(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2)) {
 			int depth = 0;
+			uns8 *p8;
 
 			IMMSV_ADMO_LIST *p = i_evt->info.immnd.info.finSync.adminOwners;
 			while (p && (depth < IMMSV_MAX_ADMINOWNERS)) {
@@ -1489,6 +1503,7 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 			depth = 0;
 			IMMSV_IMPL_LIST *q = i_evt->info.immnd.info.finSync.implementers;
+
 			while (q && (depth < IMMSV_MAX_IMPLEMENTERS)) {
 				immsv_evt_enc_impl(o_ub, q);
 				q = q->next;
@@ -1511,6 +1526,32 @@ static uns32 immsv_evt_enc_sublevels(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			if (depth >= IMMSV_MAX_CLASSES) {
 				LOG_ER("TOO MANY classes line: %u", __LINE__);
 				return NCSCC_RC_OUT_OF_MEM;
+			}
+
+			if(i_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
+				TRACE("Encoding SUB level for IMMND_EVT_ND2ND_SYNC_FINALIZE_2");
+				depth = 1;
+				IMMSV_CCB_OUTCOME_LIST* ol = i_evt->info.immnd.info.finSync.ccbResults;
+				/*Encode start marker*/
+				p8 = ncs_enc_reserve_space(o_ub, 1);
+				ncs_encode_8bit(&p8, ol ? 1 : 0);
+				ncs_enc_claim_space(o_ub, 1);
+
+				while(ol && (depth < IMMSV_MAX_CCBS)) {
+					++depth;
+					p8 = ncs_enc_reserve_space(o_ub, 4);
+					ncs_encode_32bit(&p8, ol->ccbId);
+					ncs_enc_claim_space(o_ub, 4);
+
+					p8 = ncs_enc_reserve_space(o_ub, 4);
+					ncs_encode_32bit(&p8, ol->ccbState);
+					ncs_enc_claim_space(o_ub, 4);
+
+					ol = ol->next;
+					p8 = ncs_enc_reserve_space(o_ub, 1);
+					ncs_encode_8bit(&p8, (ol && (depth < IMMSV_MAX_CCBS))? 1 : 0);
+					ncs_enc_claim_space(o_ub, 1);
+				}
 			}
 		} else if (i_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
 			int depth = 0;
@@ -1843,8 +1884,8 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_RELEASE) ||
 			   (o_evt->info.immnd.type == IMMND_EVT_A2ND_ADMO_CLEAR)) {
 			immsv_evt_dec_name_list(i_ub, &(o_evt->info.immnd.info.admReq.objectNames));
-
-		} else if (o_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) {
+		} else if ((o_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) ||
+			(o_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2)) {
 			IMMSV_ADMO_LIST *p = o_evt->info.immnd.info.finSync.adminOwners;
 			if (p) {
 				immsv_evt_dec_admo(i_ub, &p);
@@ -1861,6 +1902,41 @@ static uns32 immsv_evt_dec_sublevels(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 			if (r) {
 				immsv_evt_dec_class(i_ub, &r);
 				o_evt->info.immnd.info.finSync.classes = r;
+			}
+
+			if (o_evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
+				int depth = 1;
+				uns8 *p8;
+				uns8 local_data[8];
+				uns8 c8;
+				TRACE("Decoding SUB level for IMMND_EVT_ND2ND_SYNC_FINALIZE_2");
+				o_evt->info.immnd.info.finSync.ccbResults = NULL;
+
+				p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+				c8 = ncs_decode_8bit(&p8);
+				ncs_dec_skip_space(i_ub, 1);
+
+				while(c8 && (depth < IMMSV_MAX_CCBS)) {
+					IMMSV_CCB_OUTCOME_LIST* ol = (IMMSV_CCB_OUTCOME_LIST *) 
+						calloc(1, sizeof(IMMSV_CCB_OUTCOME_LIST));
+
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+					ol->ccbId = ncs_decode_32bit(&p8);
+					ncs_dec_skip_space(i_ub, 4);
+					
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
+					ol->ccbState = ncs_decode_32bit(&p8);
+					ncs_dec_skip_space(i_ub, 4);
+					
+					ol->next = o_evt->info.immnd.info.finSync.ccbResults;
+					o_evt->info.immnd.info.finSync.ccbResults = ol;
+
+					p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+					c8 = ncs_decode_8bit(&p8);
+					ncs_dec_skip_space(i_ub, 1);
+
+					++depth;
+				}
 			}
 		} else if (o_evt->info.immnd.type == IMMND_EVT_A2ND_SEARCHINIT) {
 			/*Decode the rootName */
@@ -2710,6 +2786,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 
 		case IMMND_EVT_A2ND_CCB_APPLY:	/* saImmOmCcbApply */
 		case IMMND_EVT_A2ND_CCB_FINALIZE:	/* saImmOmCcbFinalize */
+		case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.ccbId);
 			ncs_enc_claim_space(o_ub, 4);
@@ -2888,6 +2965,7 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			break;
 
 		case IMMND_EVT_ND2ND_SYNC_FINALIZE:	/* Sync finalize from coord over fevs */
+		case IMMND_EVT_ND2ND_SYNC_FINALIZE_2:
 
 			p8 = ncs_enc_reserve_space(o_ub, 4);
 			ncs_encode_32bit(&p8, immndevt->info.finSync.lastContinuationId);
@@ -2904,6 +2982,12 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			p8 = ncs_enc_reserve_space(o_ub, 1);
 			ncs_encode_8bit(&p8, (immndevt->info.finSync.classes) ? 1 : 0);
 			ncs_enc_claim_space(o_ub, 1);
+
+			if(immndevt->type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
+				TRACE("Encoding top level for IMMND_EVT_ND2ND_SYNC_FINALIZE_2");
+				/* Start marker always explicitly encoded*/
+			}
+
 			break;
 
 		case IMMND_EVT_ND2ND_SEARCH_REMOTE:	/* Forward search request from impl ND */
@@ -3866,6 +3950,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 		case IMMND_EVT_A2ND_CCB_APPLY:	/* saImmOmCcbApply */
 		case IMMND_EVT_A2ND_CCB_FINALIZE:	/* saImmOmCcbFinalize */
+		case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 			immndevt->info.ccbId = ncs_decode_32bit(&p8);
 			ncs_dec_skip_space(i_ub, 4);
@@ -4053,6 +4138,7 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 			break;
 
+		case IMMND_EVT_ND2ND_SYNC_FINALIZE_2:
 		case IMMND_EVT_ND2ND_SYNC_FINALIZE:	/* Sync finalize from coord over fevs */
 
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
@@ -4082,6 +4168,11 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 				immndevt->info.finSync.classes = (void *)0x1;
 			}
 			ncs_dec_skip_space(i_ub, 1);
+
+			if(immndevt->type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
+				TRACE("Decoding top level for IMMND_EVT_ND2ND_SYNC_FINALIZE_2");
+				/*Start marker always explicitly decoded. */
+			}
 			break;
 
 		case IMMND_EVT_ND2ND_SEARCH_REMOTE:	/* Forward search request from impl ND */

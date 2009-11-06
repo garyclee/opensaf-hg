@@ -164,6 +164,8 @@ typedef enum immnd_evt_type {
 	IMMND_EVT_A2ND_IMM_OM_RESURRECT = 67,	/* Request resurrect of OM handle */
 	IMMND_EVT_A2ND_IMM_OI_RESURRECT = 68,	/* Request resurrect of OI handle */
 	IMMND_EVT_A2ND_IMM_CLIENTHIGH = 69,  /* Highest client id IMMA knows */
+	IMMND_EVT_ND2ND_SYNC_FINALIZE_2 = 70,	/* Sync finalize from coord over fevs version 2*/
+	IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME = 71,/* Fetch ccb outcome OK/FAILED_OP given ccb-id. */
 	IMMND_EVT_MAX
 } IMMND_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMND_EVT_TYPE enum. */
@@ -526,6 +528,7 @@ EXTERN_C void immsv_evt_free_attrNames(IMMSV_ATTR_NAME_LIST *p);
 EXTERN_C void immsv_free_attrvalues_list(IMMSV_ATTR_VALUES_LIST *avl);
 EXTERN_C void immsv_free_attrdefs_list(IMMSV_ATTR_DEF_LIST *adp);
 EXTERN_C void immsv_evt_free_name_list(IMMSV_OBJ_NAME_LIST *p);
+EXTERN_C void immsv_evt_free_ccbOutcomeList(IMMSV_CCB_OUTCOME_LIST *o);
 
 /* Macros to pack and unpack imm handles */
 #define m_IMMSV_PACK_HANDLE(high, low) ((((SaUint64T) high) << 32) | low)

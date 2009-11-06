@@ -265,6 +265,12 @@ static std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 
 
+SaAisErrorT 
+immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId)
+{
+	return ImmModel::instance(&cb->immModel)->ccbResult(ccbId);
+}
+
 void
 immModel_abortSync(IMMND_CB *cb)
 {
@@ -2119,6 +2125,55 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     return err;
 }
 
+SaAisErrorT
+ImmModel::ccbResult(SaUint32T ccbId)
+{
+    SaAisErrorT err = SA_AIS_OK;
+	CcbVector::iterator i;
+	i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
+	if(i == sCcbVector.end()) {
+        LOG_WA("CCB %u does not exist- probably removed already", ccbId);
+        err = SA_AIS_ERR_NO_RESOURCES;
+    } else {
+		switch ((*i)->mState) {
+
+			case IMM_CCB_ABORTED:
+				TRACE_5("Fetch ccb result: CCB %u was aborted", ccbId);
+				err = SA_AIS_ERR_FAILED_OPERATION;
+				break; //Normal
+
+			case IMM_CCB_COMMITED:
+				TRACE_5("Fetch ccb result: CCB %u was commited", ccbId);
+				err = SA_AIS_OK;
+				break; //Normal
+ 
+			case IMM_CCB_EMPTY:
+			case IMM_CCB_READY:
+			case IMM_CCB_CREATE_OP:
+			case IMM_CCB_MODIFY_OP:
+			case IMM_CCB_DELETE_OP:
+				LOG_WA("ccbResult: CCB %u is active! state:%u.", ccbId, (*i)->mState);
+				err = SA_AIS_ERR_TRY_AGAIN;
+				break; //Unusual
+
+			case IMM_CCB_PREPARE:
+				LOG_WA("ccbResult: CCB %u in prepare! Commit/abort in progress?", 
+					ccbId);
+				err = SA_AIS_ERR_TRY_AGAIN;
+				break; //Unusual
+
+        case IMM_CCB_CRITICAL:
+				LOG_WA("ccbResult: CCB %u in critical state! Commit/apply in progress?", ccbId);
+				err = SA_AIS_ERR_TRY_AGAIN;
+				break; //Extremely Unusual
+
+        default:
+            LOG_ER("ccbResult: Illegal state %u in ccb %u", (*i)->mState, ccbId);
+            assert(0);
+		}
+	}
+	return err;
+}
 /** 
  * Commits a CCB
  */
@@ -2379,7 +2434,10 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     //(memory of outcome).
     //This is not the same as a ccb in critical phase.
     //Critical means retained locks. 
-    if(true /*conVector.empty()*/) {ccb->mState = IMM_CCB_COMMITED;}
+    if(true /*conVector.empty()*/) {
+		ccb->mState = IMM_CCB_COMMITED;
+		LOG_NO("Ccb %u COMMITED", ccb->mId);
+	}
 }
 
 void
@@ -2400,7 +2458,6 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
     switch(ccb->mState) {
         case IMM_CCB_EMPTY:
         case IMM_CCB_READY:
-        case IMM_CCB_ABORTED:
             break; //OK
         case IMM_CCB_CREATE_OP:
             LOG_WA("Aborting ccb %u while waiting for "
@@ -2432,16 +2489,22 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
             return;
             
         case IMM_CCB_COMMITED:
-            TRACE_5("CCB %u was commited", ccbId);
+            TRACE_5("CCB %u was already commited", ccbId);
             TRACE_LEAVE();
             return;
             
+        case IMM_CCB_ABORTED:
+            TRACE_5("CCB %u was already aborted", ccbId);
+			TRACE_LEAVE();
+			return;
+
         default:
             LOG_ER("Illegal state %u in ccb %u", ccb->mState, ccbId);
             assert(0);
     }
     
     
+	TRACE_5("Ccb %u ABORTED", ccb->mId);
     ccb->mState = IMM_CCB_ABORTED;
     ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
 	ccb->mWaitStartTime = 0;
@@ -4973,7 +5036,7 @@ ImmModel::nameCheck(const std::string& name, bool strict) const
         unsigned char chr = name.at(pos);
         
         if((((chr == ',') || (strict && (chr == '#'))) && 
-               (prev_chr == '\\')) || 
+			   (prev_chr == '\\')) || 
             !isgraph(chr) && !(chr == '\0' && pos == len - 1))
         {
             TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());
@@ -5220,7 +5283,7 @@ ImmModel::discardNode(unsigned int deadNode, IdVector& cv)
     //Fetch CcbIds for Ccbs originating at the departed node.
     CcbVector::iterator i3;
     for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
-        if((*i3)->mOriginatingNode == deadNode) {
+        if(((*i3)->mOriginatingNode == deadNode) && ((*i3)->isActive())) {
             cv.push_back((*i3)->mId);
             assert((*i3)->mOriginatingConn == 0); //Dead node can not be us!!
         }
@@ -5330,7 +5393,7 @@ ImmModel::getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv)
 {
     CcbVector::iterator i;
     for(i=sCcbVector.begin(); i!=sCcbVector.end(); ++i) {
-        if((*i)->mOriginatingConn == dead) {
+        if(((*i)->mOriginatingConn == dead) && ((*i)->isActive())) {
             cv.push_back((*i)->mId);
             /* Do not set: (*i)->mOriginatingConn = 0; 
                because stale client handling requires repeated invocation
@@ -5432,8 +5495,6 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
 	for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
 		if((*i3)->mState > IMM_CCB_CRITICAL) {
 			/* Garbage Collect ccbInfo more than one minute old */
-			TRACE("Checking terminated ccb %u for gc ripe age %u", (*i3)->mId,
-				(unsigned int) (now - (*i3)->mWaitStartTime));
 			if((*i3)->mWaitStartTime &&
 				(now - (*i3)->mWaitStartTime >= 60)) {
 				TRACE_5("Removing CCB %u terminated more than 60 secs ago", 
@@ -7374,6 +7435,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
     }
     
     if(isCoord) {//Produce the checkpoint 
+		CcbVector::iterator ccbItr;
         this->setSync(0);
         
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
@@ -7504,9 +7566,32 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             ioci->next = req->classes;
             req->classes = ioci;
         }
-        
-        LOG_IN("finalizeSync message contains %u class meta-info records", 
+
+        LOG_IN("finalizeSync message contains %u class info records", 
             (unsigned int) sClassMap.size());
+
+		for(ccbItr=sCcbVector.begin(); ccbItr!=sCcbVector.end(); ++ccbItr) {
+			if((*ccbItr)->isActive()) {
+				LOG_ER("FinalizeSync: Found active transaction %u, "
+					"sync should not have started!", (*ccbItr)->mId);
+				err = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+
+			/*
+		    TRACE("Encode CCB-ID:%u outcome:(%u)%s", (*ccbItr)->mId, (*ccbItr)->mState,
+				((*ccbItr)->mState == IMM_CCB_COMMITED)?"COMMITED":
+				(((*ccbItr)->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+			*/
+				
+			ImmsvCcbOutcomeList* ol = (ImmsvCcbOutcomeList *)
+				calloc(1, sizeof(ImmsvCcbOutcomeList));
+			ol->ccbId = (*ccbItr)->mId;
+			ol->ccbState = (*ccbItr)->mState;
+			ol->next = req->ccbResults;
+			req->ccbResults = ol;
+        }
+        
     } else {
         //SyncFinalize received by all cluster members, old and new-joining.
         //Joiners will copy the finalize state.
@@ -7620,12 +7705,37 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             }
             LOG_IN("Synced %u classes", classCount);
             assert(sClassMap.size() == classCount);
+
+			ImmsvCcbOutcomeList* ol = req->ccbResults;
+			while(ol) {
+				CcbInfo* newCcb = new CcbInfo;
+				newCcb->mId = ol->ccbId;
+
+				newCcb->mAdminOwnerId = 0;
+				newCcb->mCcbFlags = 0;
+				newCcb->mOriginatingNode = 0;
+				newCcb->mOriginatingConn = 0;
+				newCcb->mVeto = SA_AIS_OK;
+				newCcb->mState = (ImmCcbState) ol->ccbState;
+				newCcb->mWaitStartTime = time(NULL);
+				sCcbVector.push_back(newCcb);
+    
+				TRACE_5("CCB %u state %s", newCcb->mId, 
+					(newCcb->mState == IMM_CCB_COMMITED)?"COMMITED":
+					((newCcb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+				assert(!(newCcb->isActive()));
+				ol = ol->next;
+            }
+
+			TRACE_5("Synced %u CCB-outcomes", (unsigned int) sCcbVector.size());
             
             this->setLoader(0); 
             //Opens for OM and OI connections to this node.
             //immnd must also set cb->mAccepted=SA_TRUE
         } else {
+			CcbVector::iterator ccbItr;
             //verify the checkpoint
+
             
             sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
             LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);
@@ -7776,11 +7886,38 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ++classCount;
                 ioci = ioci->next;
             }
-            
+
+			//Verify CCB outcomes.
+			ImmsvCcbOutcomeList* ol = req->ccbResults;
+			unsigned int verified = 0;
+			unsigned int gone = 0;
+			while(ol) {
+				CcbVector::iterator i1 = 
+					std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ol->ccbId));
+				if(i1 == sCcbVector.end()) {
+					++gone;
+				} else {
+					CcbInfo* ccb = *i1;
+					assert(ccb->mState == (ImmCcbState) ol->ccbState);
+					++verified;
+					/*
+					TRACE_5("CCB %u verified with state %s", ccb->mId, 
+						(ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+						((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+					*/
+				}
+				ol = ol->next;
+            }
+			TRACE_5("Verified %u CCBs, %u gone", verified, gone);
+			if(sCcbVector.size() != verified + gone) {
+				LOG_WA("sCcbVector.size()/%u != verified/%u + gone/%u",
+					sCcbVector.size(), verified, gone);
+			}   
             //Old member passed verification.
         }
     }
-    
+
+ done:
     TRACE_LEAVE();
     return err;
 }

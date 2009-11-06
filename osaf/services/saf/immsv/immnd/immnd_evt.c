@@ -32,6 +32,7 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 static uns32 immnd_evt_proc_imm_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_imm_resurrect(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);
 static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt);
+static uns32 immnd_evt_proc_recover_ccb_result(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
 static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo);
 
@@ -321,13 +322,18 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line)
 
 		immsv_evt_free_attrNames(evt->info.immnd.info.searchInit.attributeNames);
 		evt->info.immnd.info.searchInit.attributeNames = NULL;
-	} else if (evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) {
+	} else if ((evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE) ||
+		(evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2)) {
 		immsv_evt_free_admo(evt->info.immnd.info.finSync.adminOwners);
 		evt->info.immnd.info.finSync.adminOwners = NULL;
 		immsv_evt_free_impl(evt->info.immnd.info.finSync.implementers);
 		evt->info.immnd.info.finSync.implementers = NULL;
 		immsv_evt_free_classList(evt->info.immnd.info.finSync.classes);
 		evt->info.immnd.info.finSync.classes = NULL;
+		if(evt->info.immnd.type == IMMND_EVT_ND2ND_SYNC_FINALIZE_2) {
+			immsv_evt_free_ccbOutcomeList(evt->info.immnd.info.finSync.ccbResults);
+			evt->info.immnd.info.finSync.ccbResults = NULL;
+		}
 	} else if ((evt->info.immnd.type == IMMND_EVT_A2ND_OBJ_CREATE) ||
 		   (evt->info.immnd.type == IMMND_EVT_A2ND_OI_OBJ_CREATE)) {
 		free(evt->info.immnd.info.objCreate.className.buf);
@@ -458,6 +464,10 @@ void immnd_process_evt(void)
 		rc = immnd_evt_proc_imm_client_high(cb, &evt->info.immnd);
 		break;
 
+	case IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME:
+		rc = immnd_evt_proc_recover_ccb_result(cb, &evt->info.immnd, &evt->sinfo);
+		break;
+
 	case IMMND_EVT_A2ND_SYNC_FINALIZE:
 		rc = immnd_evt_proc_sync_finalize(cb, &evt->info.immnd, &evt->sinfo);
 		break;
@@ -561,11 +571,15 @@ void immnd_process_evt(void)
 		break;
 
 	default:
+		LOG_ER("UNPACK FAILURE, unrecognized message type: %u", evt->info.immnd.type);
 		rc = NCSCC_RC_FAILURE;
 		break;
 	}
 
-	/* TODO? handle if(rc != OK) */
+	if(rc != NCSCC_RC_SUCCESS) {
+		LOG_WA("Error code %u returned for message type %u - ignoring", 
+			rc, evt->info.immnd.type);
+	}
 
 	/* Free the Event */
 	immnd_evt_destroy(evt, SA_TRUE, __LINE__);
@@ -688,7 +702,7 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 {
 	IMMSV_EVT send_evt;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	SaAisErrorT error;
+	SaAisErrorT error = SA_AIS_OK;
 	void *searchOp = NULL;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 
@@ -1588,6 +1602,53 @@ static uns32 immnd_evt_proc_imm_client_high(IMMND_CB *cb, IMMND_EVT *evt)
         cb->cli_id_gen = evt->info.initReq.client_pid+1;
     }
 
+    return NCSCC_RC_SUCCESS;
+}
+
+
+/****************************************************************************
+ * Name          : immnd_evt_proc_recover_ccb_result
+ *
+ * Description   : Function attempts to obtain the result of a terminated CCB.
+ *                 This is used in IMMA resurrect (both OM and OI side) to hide
+ *                 the effects of losing contact with IMMND during a CCB in progress.
+ *                 Of particular importance is resolving the outcome of a ccb-apply.
+ *
+ *                 The possible replies to IMMA are:
+ *                 SA_AIS_ERR_TRY_AGAIN - If this IMMND is not in sync (not sent from here).
+ *                 SA_AIS_OK - The CCB id was commited.
+ *                 SA_AIS_ERR_FAILED_OPERATION - The CCB id was aborted.
+ *                 SA_AIS_ERR_NO_RESOURCES - The CCB id is unknown (too old) or 
+ *                                        in progress (should not be possible).
+ * 
+ *****************************************************************************/
+static uns32 immnd_evt_proc_recover_ccb_result(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo)
+{
+	IMMSV_EVT send_evt;
+	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
+
+	memset(&send_evt,'\0', sizeof(IMMSV_EVT));
+	send_evt.type = IMMSV_EVT_TYPE_IMMA;
+    send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
+
+    int load_pid = immModel_getLoader(cb);
+
+    if(load_pid != 0) {
+        TRACE_2("Rejecting OM client resurrect if sync not complete");
+            send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TRY_AGAIN;
+    } else {
+		send_evt.info.imma.info.errRsp.error =  
+			immModel_ccbResult(cb, evt->info.ccbId);
+	}
+
+    rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
+
+	if (rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to send response to IMMA over MDS rc:%u", rc);
+	}
+
+	TRACE_LEAVE();
     return NCSCC_RC_SUCCESS;
 }
 
@@ -3001,7 +3062,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		assert(cb->mIsCoord);
 		memset(&send_evt, 0, sizeof(IMMSV_EVT));	/*No pointers=>no leak */
 		send_evt.type = IMMSV_EVT_TYPE_IMMND;
-		send_evt.info.immnd.type = IMMND_EVT_ND2ND_SYNC_FINALIZE;
+		send_evt.info.immnd.type = IMMND_EVT_ND2ND_SYNC_FINALIZE_2;
 
 #if 0				/* Enable this code only to test failure of sync-process during sync */
 		if (cb->mMyEpoch == 4) {
@@ -3863,7 +3924,7 @@ static void immnd_evt_proc_ccb_finalize(IMMND_CB *cb,
 	assert(evt);
 	immnd_evt_ccb_abort(cb, evt->info.ccbId, SA_FALSE, &client);
 	err = immModel_ccbFinalize(cb, evt->info.ccbId);
-	TRACE_2("ccb aborted and deleted err:%u", err);
+	TRACE_2("ccb aborted and finalized err:%u", err);
 
 	if (originatedAtThisNd) {	/*Send reply to client from this ND. */
 		TRACE_2("ccbFinalize originated at this node => Send reply");
@@ -3933,6 +3994,13 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 	SaUint32T *ctnArr = NULL;
 	SaUint32T arrSize = 0;
 	SaBoolT delayedReply = SA_FALSE;
+
+#if 0 /* Ticket #496  testcase immomtest 6 22 */
+	if((evt->info.ccbId == 10)&&(originatedAtThisNd)) {
+		LOG_ER("FAULT INJECTION CRASH IN APPLY OF CCB 10");
+		abort();
+	}
+#endif
 
 	err = immModel_ccbApply(cb, evt->info.ccbId, originatedAtThisNd ? conn : 0,
 				&arrSize, &implConnArr, &implIdArr, &ctnArr);
@@ -4050,7 +4118,8 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
 {
 	if (cb->mSync) {
-		if (id == IMMND_EVT_A2ND_CLASS_CREATE || id == IMMND_EVT_A2ND_OBJ_SYNC || id == IMMND_EVT_ND2ND_SYNC_FINALIZE ||	/*probably not over fevs? */
+		if (id == IMMND_EVT_A2ND_CLASS_CREATE || id == IMMND_EVT_A2ND_OBJ_SYNC || 
+			id == IMMND_EVT_ND2ND_SYNC_FINALIZE ||	id == IMMND_EVT_ND2ND_SYNC_FINALIZE_2 || 
 		    id == IMMND_EVT_D2ND_SYNC_ABORT) {	/*probably not over fevs */
 			return 1;
 		}
@@ -4263,6 +4332,10 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		immnd_evt_proc_finalize_sync(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
 
+	case IMMND_EVT_ND2ND_SYNC_FINALIZE_2:
+		immnd_evt_proc_finalize_sync(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
+		break;
+
 	case IMMND_EVT_A2ND_CCB_COMPLETED_RSP:
 		immnd_evt_proc_ccb_compl_rsp(cb, &frwrd_evt.info.immnd, originatedAtThisNd, clnt_hdl, reply_dest);
 		break;
@@ -4280,7 +4353,7 @@ immnd_evt_proc_fevs_dispatch(IMMND_CB *cb, IMMSV_OCTET_STRING *msg,
 		break;
 
 	default:
-		LOG_ER("UNPACK FAILURE, unrecognized message type: %u", frwrd_evt.info.immnd.type);
+		LOG_ER("UNPACK FAILURE, unrecognized message type: %u over FEVS", frwrd_evt.info.immnd.type);
 		break;
 	}
 
@@ -4542,6 +4615,13 @@ static uns32 immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		TRACE_2("prepareForLoading non-coord variant. fevsMsgCount reset to %llu", cb->highestProcessed);
 		cb->highestProcessed = evt->info.ctrl.fevsMsgStart;
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
+		if(!(cb->mAccepted)) {
+			assert(cb->mState == IMM_SERVER_LOADING_PENDING);
+			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> " "IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
+			cb->mState = IMM_SERVER_LOADING_CLIENT;
+			cb->mTimer = 0;
+			cb->mAccepted = TRUE;
+		}
 	} else if (cb->mState == IMM_SERVER_LOADING_SERVER) {
 		assert(cb->mMyEpoch == cb->mRulingEpoch);
 		immModel_prepareForLoading(cb);
