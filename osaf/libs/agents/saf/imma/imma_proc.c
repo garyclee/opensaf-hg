@@ -48,7 +48,6 @@ static int popAsyncAdmOpContinuation(IMMA_CB *cb,
  
   Notes         : None
 ******************************************************************************/
-/* NOTE ABT: Need to update this validation to the proper version. */
 uns32 imma_version_validate(SaVersionT *version)
 {
 	if ((version->releaseCode == IMMA_RELEASE_CODE) && (version->majorVersion <= IMMA_MAJOR_VERSION)) {
@@ -503,6 +502,77 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
     TRACE_LEAVE();
 }
 
+SaAisErrorT imma_proc_recover_ccb_result(IMMA_CB *cb, SaUint32T ccbId)
+{
+	IMMSV_EVT evt;
+	IMMSV_EVT *out_evt = NULL;
+	uns32 proc_rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT err = SA_AIS_ERR_TIMEOUT;
+	unsigned int sleep_delay_ms = 500;
+	unsigned int max_waiting_time_ms = 10 * 1000;	/* 10 secs */
+	unsigned int msecs_waited = 0;
+
+	TRACE_ENTER();
+	/* We are NOT locked on entry. */
+	memset(&evt, 0, sizeof(IMMSV_EVT));
+	evt.type = IMMSV_EVT_TYPE_IMMND;
+	evt.info.immnd.type = IMMND_EVT_A2ND_RECOVER_CCB_OUTCOME;
+	evt.info.immnd.info.ccbId = ccbId;
+
+	do {
+		if(err == SA_AIS_ERR_TRY_AGAIN)  {
+			usleep(sleep_delay_ms * 1000);
+			msecs_waited += sleep_delay_ms;
+			err = SA_AIS_ERR_TIMEOUT;
+			proc_rc = NCSCC_RC_SUCCESS;
+		}
+
+		if (cb->is_immnd_up == FALSE) {
+			err = SA_AIS_ERR_TRY_AGAIN;
+			continue;
+		} 
+
+		proc_rc = imma_mds_msg_sync_send(cb->imma_mds_hdl, &cb->immnd_mds_dest, &evt, 
+			&out_evt, IMMSV_WAIT_TIME);
+
+		if(proc_rc != NCSCC_RC_SUCCESS) {
+			if(proc_rc != SA_AIS_ERR_TIMEOUT) {
+				TRACE_4("ERR_TRY_AGAIN: Mds returned unexpected error code: %u", proc_rc);
+			}
+			err = SA_AIS_ERR_TRY_AGAIN;
+		}
+
+		if(!out_evt) {
+			TRACE("No out_evt");
+			err = SA_AIS_ERR_TRY_AGAIN;
+		} else {
+			err = out_evt->info.imma.info.errRsp.error;
+			free(out_evt);
+			out_evt = NULL;
+			if((err != SA_AIS_OK) && 
+				(err != SA_AIS_ERR_FAILED_OPERATION) &&
+				(err != SA_AIS_ERR_TRY_AGAIN)) {
+				/* We have a problem, abandon the effort.*/
+				/* ERR_NO_RESOURCES is IMMND saying it cant find the ccb-id*/
+				if(err != SA_AIS_ERR_NO_RESOURCES) {
+					TRACE_4("ERR_TIMEOUT: Received unexpected error %u from IMMND, "
+						"returning ERR_TIMEOUT", err);
+				}
+				err = SA_AIS_ERR_TIMEOUT;
+			}
+		}
+
+		if(msecs_waited >= max_waiting_time_ms) {
+			err = SA_AIS_ERR_TIMEOUT;
+		}
+
+	} while (err == SA_AIS_ERR_TRY_AGAIN);
+	TRACE_5("imma_proc_recover_ccb_result returning err %u after waiting %u secs",
+		err, msecs_waited/1000);
+
+    TRACE_LEAVE();
+	return err;
+}
 /****************************************************************************
   Name          : imma_proc_rt_attr_update
   Description   : This function will generate the SaImmOiRtAttrUpdateCallbackT
@@ -1087,7 +1157,8 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
     if (cl_node == NULL || (cl_node->stale && cl_node->exposed))
     {
-        TRACE_3("Client not found or already exposed - cant resurrect");
+        TRACE_3("Client not found %p or already exposed %u - cant resurrect", cl_node,
+			cl_node?cl_node->exposed:0);
         goto failure;
     }
 	
@@ -1095,6 +1166,13 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
 		TRACE_3("imma_proc_resurrect_client: Handle %llx was not stale, "
 			"resurrected by another thread ?", immHandle);
 		goto skip_resurrect;
+	}
+
+	if (cl_node->replyPending) {
+		TRACE_4("Can not resurrect client with pending replies, client now exposed");
+		/* Catches on-going async admin OM op as well as blocked calls */
+		cl_node->exposed = TRUE;
+		goto failure;
 	}
 
     /* populate the structure */
@@ -2290,7 +2368,7 @@ SaAisErrorT imma_proc_check_stale(IMMA_CB *cb,
         imma_client_node_get(&cb->client_tree, &immHandle, &cl_node);
         if (cl_node && cl_node->stale)
         {
-            cl_node->exposed = TRUE; /* Ensure the handle is not resurrected.*/
+            /* We dont set exposed here because we are not exposed yet. */
             err = SA_AIS_ERR_BAD_HANDLE;
             TRACE_3("Client handle turned bad, IMMND restarted ?");
         }

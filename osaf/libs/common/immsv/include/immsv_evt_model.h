@@ -239,11 +239,18 @@ extern "C" {
 		struct ImmsvClassList *next;
 	} IMMSV_CLASS_LIST;
 
+	typedef struct ImmsvCcbOutcomeList {
+		SaUint32T ccbId;
+		SaUint32T ccbState;
+		struct ImmsvCcbOutcomeList *next;
+	} IMMSV_CCB_OUTCOME_LIST;
+
 	typedef struct ImmsvOmFinalizeSync {
 		SaUint32T lastContinuationId;
 		IMMSV_ADMO_LIST *adminOwners;
 		IMMSV_IMPL_LIST *implementers;
 		IMMSV_CLASS_LIST *classes;
+		IMMSV_CCB_OUTCOME_LIST *ccbResults;
 	} IMMSV_OM_FINALIZE_SYNC;
 
 	typedef struct ImmsvOiImplSetReq	//used for both implSet & classImplSet

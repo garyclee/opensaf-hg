@@ -270,9 +270,10 @@ void imma_process_stale_clients(IMMA_CB *cb)
         temp_hdl = clnode->handle;
         temp_ptr = &temp_hdl;
         if (!clnode->stale) {continue;}
-        TRACE("Stale client to process cl:%u node:%x",
+        TRACE("Stale client to process cl:%u node:%x exposed:%u",
             m_IMMSV_UNPACK_HANDLE_HIGH(clnode->handle),
-            m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle));
+            m_IMMSV_UNPACK_HANDLE_LOW(clnode->handle),
+			clnode->exposed);
 
         if (clnode->selObjUsable) {
             /* If we have a selection object, then we assume someone is
@@ -315,11 +316,14 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 		   the imm-handle could in some cases be resurrected.
 		   
 		 */
-		if (clnode->replyPending) {
-            /* Catches on-going async admin OM op as well as blocked calls */
-			clnode->exposed = TRUE;
-		}	
-
+	
+		/* Check of replyPending moved forward to imma_proc_resurrect_client (imma_proc.c)
+		   That is, we only get exposed if some thread tries to resurrect during the 
+		   blocked call. 
+		   if (clnode->replyPending) {
+		       clnode->exposed = TRUE;
+		   }	
+		*/
 
         if (clnode->isOm) {	
 			/* Check for associated admin owners. If releaseOnFinalize is set
@@ -336,6 +340,7 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 
 				if ((adm_node->mImmHandle == clnode->handle) && 
 					(adm_node->mReleaseOnFinalize)) {
+					TRACE_3("Client gets exposed because releaseOnFinalize set for admin owner");
 					clnode->exposed = TRUE;
 				}
 			}
