@@ -19,15 +19,8 @@
 #include "test.h"
 #include "util.h"
 
-#include <poll.h>
-#include <unistd.h>
-#include <pthread.h>
-
-static SaNtfIdentifierT cb_notId[8];
-static SaNtfSubscriptionIdT cb_subId[8];
-static int cb_index = 0;
-
 extern int verbose;
+
 static saNotificationParamsT myNotificationParams;
 static saNotificationAllocationParamsT myNotificationAllocationParams;
 
@@ -46,21 +39,12 @@ static SaNtfSecurityAlarmNotificationT mySecAlarmNotification;
 
 static void resetCounters()
 {
-    int i;
     errors = 0;
-
     ntfRecieved.alarmFilterHandle = 0;
     ntfRecieved.attributeChangeFilterHandle = 0;
     ntfRecieved.objectCreateDeleteFilterHandle = 0;
     ntfRecieved.securityAlarmFilterHandle = 0;
     ntfRecieved.stateChangeFilterHandle = 0;
-
-    for(i=0; i<8;i++)
-    {
-        cb_notId[i]=0;
-        cb_subId[0]=0;
-    }
-    cb_index=0;
 }
 
 
@@ -72,7 +56,6 @@ static void saNtfNotificationCallbackT(
     SaNtfSubscriptionIdT subscriptionId,
     const SaNtfNotificationsT *notification)
 {
-
     switch(notification->notificationType)
     {
 		case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
@@ -119,7 +102,7 @@ static void saNtfNotificationCallbackT(
 			errors +=1;
 			break;
     }
-
+	 last_not_id = get_ntf_id(notification);
     if(verbose) {
         newNotification(subscriptionId, notification);
     }
@@ -139,8 +122,6 @@ static SaNtfCallbacksT ntfCbTest = {
  */
 void alarmNotificationTest(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
     subscriptionId = 1;
 
@@ -209,15 +190,7 @@ void alarmNotificationTest(void)
     myAlarmNotification.thresholdInformation->armTime = SA_TIME_UNKNOWN;
 
     safassert(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK);
-
-    sleep(1);
-
-    fds[0].fd = (int) selectionObject;
-    fds[0].events = POLLIN;
-    ret = poll(fds, 1, 10000);
-    assert(ret > 0);
-    safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
+	 poll_until_received(ntfHandle, *myAlarmNotification.notificationHeader.notificationId);
     if(ntfRecieved.alarmFilterHandle != 1 ||
     		ntfRecieved.attributeChangeFilterHandle != 0 ||
     		ntfRecieved.objectCreateDeleteFilterHandle !=0 ||
@@ -243,8 +216,6 @@ void alarmNotificationTest(void)
  */
 void alarmNotificationTest2(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
     subscriptionId = 1;
     int i;
@@ -364,16 +335,9 @@ void alarmNotificationTest2(void)
     myAlarmNotification.notificationHeader.correlatedNotifications[1] = 1984;
 
     safassert(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK);
+	 poll_until_received(ntfHandle, *myAlarmNotification.notificationHeader.notificationId);
 
-    sleep(1);
-
-    fds[0].fd = (int) selectionObject;
-    fds[0].events = POLLIN;
-    ret = poll(fds, 1, 10000);
-    assert(ret > 0);
-    safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
-    if(ntfRecieved.alarmFilterHandle != 1 ||
+	 if(ntfRecieved.alarmFilterHandle != 1 ||
     		ntfRecieved.attributeChangeFilterHandle != 0 ||
     		ntfRecieved.objectCreateDeleteFilterHandle !=0 ||
     		ntfRecieved.securityAlarmFilterHandle != 0 ||
@@ -399,8 +363,6 @@ void alarmNotificationTest2(void)
  */
 void objectCreateDeleteNotificationTest(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfObjectCreateDeleteNotificationFilterT myFilter;
 
     subscriptionId = 2;
@@ -413,7 +375,7 @@ void objectCreateDeleteNotificationTest(void)
     if(!safassertNice((rc = saNtfObjectCreateDeleteNotificationFilterAllocate(
     		ntfHandle,
     		&myFilter,
-    		0, 0, 0, 1, 0)), SA_AIS_OK)) {
+    		0, 0, 0, 0, 0)), SA_AIS_OK)) {
 
     	/* Initialize filter handles */
     	myNotificationFilterHandles.alarmFilterHandle =
@@ -435,14 +397,7 @@ void objectCreateDeleteNotificationTest(void)
     	safassert(saNtfNotificationSend(myObjCrDelNotfification.notificationHandle), SA_AIS_OK);
 
     	/* Delay to let the notification slip through */
-    	sleep(1);
-
-    	fds[0].fd = (int) selectionObject;
-    	fds[0].events = POLLIN;
-    	ret = poll(fds, 1, 10000);
-    	assert(ret > 0);
-    	safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
+		poll_until_received(ntfHandle, *myObjCrDelNotfification.notificationHeader.notificationId);
     	if(ntfRecieved.alarmFilterHandle != 0 ||
     			ntfRecieved.attributeChangeFilterHandle != 0 ||
     			ntfRecieved.objectCreateDeleteFilterHandle !=1 ||
@@ -453,6 +408,7 @@ void objectCreateDeleteNotificationTest(void)
     	safassert(saNtfNotificationFilterFree(myFilter.notificationFilterHandle), SA_AIS_OK);
     }
 
+	 safassert(saNtfNotificationUnsubscribe(subscriptionId), SA_AIS_OK);		
     safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
     if(errors && rc == SA_AIS_OK) rc = SA_AIS_ERR_FAILED_OPERATION;
 
@@ -467,8 +423,6 @@ void objectCreateDeleteNotificationTest(void)
 void attributeChangeNotificationTest(void)
 {
     SaNtfAttributeChangeNotificationFilterT myFilter;
-    struct pollfd fds[1];
-    int ret;
     subscriptionId = 3;
 
     resetCounters();
@@ -478,7 +432,7 @@ void attributeChangeNotificationTest(void)
     if(!safassertNice((rc = saNtfAttributeChangeNotificationFilterAllocate(
     		ntfHandle,
     		&myFilter,
-    		0, 0, 0, 1, 0)), SA_AIS_OK)) {
+    		0, 0, 0, 0, 0)), SA_AIS_OK)) {
 
     	/* Initialize filter handles */
     	myNotificationFilterHandles.alarmFilterHandle =
@@ -501,14 +455,7 @@ void attributeChangeNotificationTest(void)
     	safassert(saNtfNotificationSend(myAttrChangeNotification.notificationHandle), SA_AIS_OK);
 
     	/* Delay to let the notification slip through */
-    	sleep(1);
-
-    	fds[0].fd = (int) selectionObject;
-    	fds[0].events = POLLIN;
-    	ret = poll(fds, 1, 10000);
-    	assert(ret > 0);
-    	safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
+		poll_until_received(ntfHandle, *myAttrChangeNotification.notificationHeader.notificationId);
     	if(ntfRecieved.alarmFilterHandle != 0 ||
     			ntfRecieved.attributeChangeFilterHandle != 1 ||
     			ntfRecieved.objectCreateDeleteFilterHandle !=0 ||
@@ -518,7 +465,7 @@ void attributeChangeNotificationTest(void)
     	safassert(saNtfNotificationFree(myAttrChangeNotification.notificationHandle), SA_AIS_OK);
     	safassert(saNtfNotificationFilterFree(myFilter.notificationFilterHandle), SA_AIS_OK);
     }
-
+	 safassert(saNtfNotificationUnsubscribe(subscriptionId), SA_AIS_OK);		
     safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
 
     if(errors && rc == SA_AIS_OK) rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -532,8 +479,6 @@ void attributeChangeNotificationTest(void)
  */
 void stateChangeNotificationTest(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfStateChangeNotificationFilterT myFilter;
 
     subscriptionId = 4;
@@ -545,7 +490,7 @@ void stateChangeNotificationTest(void)
     if(!safassertNice((rc = saNtfStateChangeNotificationFilterAllocate(
     		ntfHandle,
     		&myFilter,
-    		0, 0, 0, 1, 0, 0)), SA_AIS_OK)) {
+    		0, 0, 0, 0, 0, 0)), SA_AIS_OK)) {
 
     	/* Initialize filter handles */
     	myNotificationFilterHandles.alarmFilterHandle =
@@ -568,14 +513,7 @@ void stateChangeNotificationTest(void)
     	safassert(saNtfNotificationSend(myStateChangeNotification.notificationHandle), SA_AIS_OK);
 
     	/* Delay to let the notification slip through */
-    	sleep(1);
-
-    	fds[0].fd = (int) selectionObject;
-    	fds[0].events = POLLIN;
-    	ret = poll(fds, 1, 10000);
-    	assert(ret > 0);
-    	safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
+		poll_until_received(ntfHandle, *myStateChangeNotification.notificationHeader.notificationId);
     	if(ntfRecieved.alarmFilterHandle != 0 ||
     			ntfRecieved.attributeChangeFilterHandle != 0 ||
     			ntfRecieved.objectCreateDeleteFilterHandle !=0 ||
@@ -585,7 +523,7 @@ void stateChangeNotificationTest(void)
     	safassert(saNtfNotificationFree(myStateChangeNotification.notificationHandle), SA_AIS_OK);
     	safassert(saNtfNotificationFilterFree(myFilter.notificationFilterHandle), SA_AIS_OK);
     }
-
+	 safassert(saNtfNotificationUnsubscribe(subscriptionId), SA_AIS_OK);		
     safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
 
     if(errors && rc == SA_AIS_OK) rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -599,8 +537,6 @@ void stateChangeNotificationTest(void)
  */
 void securityAlarmNotificationTest(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfSecurityAlarmNotificationFilterT myFilter;
 
     subscriptionId = 5;
@@ -612,7 +548,7 @@ void securityAlarmNotificationTest(void)
     if(!safassertNice((rc = saNtfSecurityAlarmNotificationFilterAllocate(
     		ntfHandle,
     		&myFilter,
-    		0, 0, 0, 1, 0,0,0,0,0)), SA_AIS_OK)) {
+    		0, 0, 0, 0, 0,0,0,0,0)), SA_AIS_OK)) {
 
     	/* Initialize filter handles */
     	myNotificationFilterHandles.alarmFilterHandle =
@@ -635,14 +571,7 @@ void securityAlarmNotificationTest(void)
     	safassert(saNtfNotificationSend(mySecAlarmNotification.notificationHandle), SA_AIS_OK);
 
     	/* Delay to let the notification slip through */
-    	sleep(1);
-
-    	fds[0].fd = (int) selectionObject;
-    	fds[0].events = POLLIN;
-    	ret = poll(fds, 1, 10000);
-    	assert(ret > 0);
-    	safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
-
+		poll_until_received(ntfHandle, *mySecAlarmNotification.notificationHeader.notificationId);
     	if(ntfRecieved.alarmFilterHandle != 0 ||
     			ntfRecieved.attributeChangeFilterHandle != 0 ||
     			ntfRecieved.objectCreateDeleteFilterHandle !=0 ||
@@ -653,6 +582,7 @@ void securityAlarmNotificationTest(void)
     	safassert(saNtfNotificationFilterFree(myFilter.notificationFilterHandle), SA_AIS_OK);
     }
 
+	 safassert(saNtfNotificationUnsubscribe(subscriptionId), SA_AIS_OK);		
     safassert(saNtfFinalize(ntfHandle) , SA_AIS_OK);
 
     if(errors && rc == SA_AIS_OK) rc = SA_AIS_ERR_FAILED_OPERATION;
@@ -680,8 +610,6 @@ void miscellaneousNotificationTest(void)
  */
 void allNotificationTest(void)
 {
-    struct pollfd fds[1];
-    int ret;
     rc = SA_AIS_OK;
     saNotificationFilterAllocationParamsT  myNotificationFilterAllocationParams;
 
@@ -699,8 +627,6 @@ void allNotificationTest(void)
                         &myNotificationParams);
 
     safassert(saNtfInitialize(&ntfHandle, &ntfCbTest, &ntfVersion) , SA_AIS_OK);
-    safassert(saNtfSelectionObjectGet(ntfHandle, &selectionObject) , SA_AIS_OK);
-
 
     if(!safassertNice(saNtfAlarmNotificationFilterAllocate(
     		ntfHandle,
@@ -793,21 +719,21 @@ void allNotificationTest(void)
     					safassert(saNtfNotificationSend(mySecAlarmNotification.notificationHandle), SA_AIS_OK);
 
     					/* TODO: add MiscellaneousNotification */
-
-    					/* Delay to let the notification slip through */
-    					sleep(1);
-
-    					fds[0].fd = (int) selectionObject;
-    					fds[0].events = POLLIN;
-    					ret = poll(fds, 1, 10000);
-    					assert(ret > 0);
-    					safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
+						poll_until_received(ntfHandle, *mySecAlarmNotification.notificationHeader.notificationId);
 
     					if(ntfRecieved.alarmFilterHandle != 1 ||
     							ntfRecieved.attributeChangeFilterHandle != 1 ||
     							ntfRecieved.objectCreateDeleteFilterHandle !=1 ||
     							ntfRecieved.securityAlarmFilterHandle != 1 ||
-    							ntfRecieved.stateChangeFilterHandle != 1) safassertNice(SA_AIS_ERR_BAD_FLAGS, SA_AIS_OK);
+    							ntfRecieved.stateChangeFilterHandle != 1){ 
+							fprintf(stderr, "ntfreceived fh: a: %llu, att: %llu, o: %llu, se: %llu, st: %llu \n",
+								ntfRecieved.alarmFilterHandle,
+								ntfRecieved.attributeChangeFilterHandle,
+								ntfRecieved.objectCreateDeleteFilterHandle,
+								ntfRecieved.securityAlarmFilterHandle,
+								ntfRecieved.stateChangeFilterHandle);
+								safassertNice(SA_AIS_ERR_BAD_FLAGS, SA_AIS_OK);
+						}
 
     					safassert(saNtfNotificationFree(myAlarmNotification.notificationHandle) , SA_AIS_OK);
     					safassert(saNtfNotificationFree(myObjCrDelNotfification.notificationHandle), SA_AIS_OK);

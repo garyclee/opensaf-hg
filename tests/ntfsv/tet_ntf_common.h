@@ -130,6 +130,7 @@ typedef struct {
 } saNotificationParamsT;
 
 typedef SaUint16T       saNotificationFlagsT;
+extern SaNtfIdentifierT last_not_id;
 
 extern SaNtfCallbacksT ntfSendCallbacks;
 
@@ -147,6 +148,7 @@ extern int cmpSaNtfValueT(const SaNtfValueTypeT type,
 
 
 extern void fillHeader(SaNtfNotificationHeaderT *head);
+extern void fillFilterHeader(SaNtfNotificationFilterHeaderT *head);
 
 extern int verifyNotificationHeader( const SaNtfNotificationHeaderT *head1,
 		const SaNtfNotificationHeaderT *head2);
@@ -181,5 +183,7 @@ extern int verifySecurityAlarmNotification(const SaNtfSecurityAlarmNotificationT
 void newNotification(
     SaNtfSubscriptionIdT subscriptionId,
     const SaNtfNotificationsT *notification);
+extern SaNtfIdentifierT get_ntf_id(const SaNtfNotificationsT *notif);
+void poll_until_received(SaNtfHandleT ntfHandle, SaNtfIdentifierT wanted_id);
 
 #endif

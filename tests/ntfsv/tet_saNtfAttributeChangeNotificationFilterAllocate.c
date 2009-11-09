@@ -121,7 +121,7 @@ void saNtfAttributeChangeNotificationFilterAllocate_04(void)
 __attribute__ ((constructor)) static void
 saNtfAttributeChangeNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter");
+    test_suite_add(7, "Consumer operations - filter allocate");
     test_case_add(7,saNtfAttributeChangeNotificationFilterAllocate_01, "saNtfAttributeChangeNotificationFilterAllocate - SA_AIS_OK");
     test_case_add(7,saNtfAttributeChangeNotificationFilterAllocate_02, "saNtfAttributeChangeNotificationFilterAllocate - handle NULL SA_AIS_ERR_BAD_HANDLE");
     test_case_add(7,saNtfAttributeChangeNotificationFilterAllocate_03, "saNtfAttributeChangeNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");

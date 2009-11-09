@@ -202,6 +202,7 @@ static void saNtfNotificationCallbackT(
 			errors +=1;
 			break;
     }
+	 last_not_id = get_ntf_id(notification);
 }
 
 
@@ -217,8 +218,6 @@ static SaNtfCallbacksT ntfCbTest = {
  */
 void saNtfArrayGetTest_common_prep(void)
 {
-    struct pollfd fds[1];
-    int ret;
     SaNtfAlarmNotificationFilterT          myAlarmFilter;
     SaStringT destPtr;
 
@@ -290,9 +289,9 @@ void saNtfArrayGetTest_common_prep(void)
 
 	myAlarmNotification.notificationHeader.notificationObject->length = 4;
 	myAlarmNotification.notificationHeader.notifyingObject->length = 4;
-	strncpy(myAlarmNotification.notificationHeader.notificationObject->value,
+	strncpy((char*)myAlarmNotification.notificationHeader.notificationObject->value,
 			 "nno", 4);
-	strncpy(myAlarmNotification.notificationHeader.notifyingObject->value,
+	strncpy((char*)myAlarmNotification.notificationHeader.notifyingObject->value,
 			"ngo", 4);
 	strncpy(myAlarmNotification.notificationHeader.additionalText,
 		  DEFAULT_ADDITIONAL_TEXT, sizeof(DEFAULT_ADDITIONAL_TEXT));
@@ -311,14 +310,7 @@ void saNtfArrayGetTest_common_prep(void)
     	strncpy(destPtr, DEFAULT_ADDITIONAL_TEXT, strlen(DEFAULT_ADDITIONAL_TEXT) + 1);
 
     	if(!safassertNice(saNtfNotificationSend(myAlarmNotification.notificationHandle), SA_AIS_OK)) {
-
-    		sleep(1);
-
-    		fds[0].fd = (int) selectionObject;
-    		fds[0].events = POLLIN;
-    		ret = poll(fds, 1, 10000);
-    		assert(ret > 0);
-    		safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
+			poll_until_received(ntfHandle, *myAlarmNotification.notificationHeader.notificationId);
     	}
     }
 
