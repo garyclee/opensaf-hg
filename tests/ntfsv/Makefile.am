@@ -66,6 +66,7 @@ ntftest_SOURCES = \
 	tet_saNtfPtrValAllocate.c \
 	tet_saNtfArrayValGet.c \
 	tet_saNtfPtrValGet.c \
+	test_ntfFilterVerification.c \
 	test.c \
 	util.c
 

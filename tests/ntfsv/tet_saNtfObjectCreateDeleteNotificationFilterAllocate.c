@@ -99,7 +99,7 @@ void saNtfObjectCreateDeleteNotificationFilterAllocate_04(void)
 __attribute__ ((constructor)) static void
 saNtfObjectCreateDeleteNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter");
+    test_suite_add(7, "Consumer operations - filter allocate");
     test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_01,
     		"saNtfObjectCreateDeleteNotificationFilterAllocate - SA_AIS_OK");
     test_case_add(7,saNtfObjectCreateDeleteNotificationFilterAllocate_02,

@@ -109,7 +109,7 @@ void saNtfStateChangeNotificationFilterAllocate_04(void)
 __attribute__ ((constructor)) static void
 saNtfStateChangeNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter");
+    test_suite_add(7, "Consumer operations - filter allocate");
     test_case_add(7,saNtfStateChangeNotificationFilterAllocate_01, "saNtfStateChangeNotificationFilterAllocate - SA_AIS_OK");
     test_case_add(7,saNtfStateChangeNotificationFilterAllocate_02, "saNtfStateChangeNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
     test_case_add(7,saNtfStateChangeNotificationFilterAllocate_03, "saNtfStateChangeNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");

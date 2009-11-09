@@ -116,7 +116,7 @@ void saNtfSecurityAlarmNotificationFilterAllocate_04(void)
 __attribute__ ((constructor)) static void
 saNtfSecurityAlarmNotificationFilterAllocate_constructor(void)
 {
-    test_suite_add(7, "Consumer operations - filter");
+    test_suite_add(7, "Consumer operations - filter allocate");
     test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_01, "saNtfSecurityAlarmNotificationFilterAllocate - SA_AIS_OK");
     test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_02, "saNtfSecurityAlarmNotificationFilterAllocate - handle null SA_AIS_ERR_BAD_HANDLE");
     test_case_add(7,saNtfSecurityAlarmNotificationFilterAllocate_03, "saNtfSecurityAlarmNotificationFilterAllocate - handle returned SA_AIS_ERR_BAD_HANDLE");

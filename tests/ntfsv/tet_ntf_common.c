@@ -21,9 +21,59 @@
 #include "tet_ntf.h"
 #include "tet_ntf_common.h"
 #include "util.h"
+#include <poll.h>
+#include <unistd.h>
 
 #define CALLBACK_USED 1
 
+SaNtfIdentifierT last_not_id = SA_NTF_IDENTIFIER_UNUSED;
+
+extern SaNtfIdentifierT get_ntf_id(const SaNtfNotificationsT *notif)
+{
+	switch (notif->notificationType) {
+	case SA_NTF_TYPE_ALARM:
+		return *notif->notification.alarmNotification.notificationHeader.notificationId;
+		break;
+	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
+		return *notif->notification.objectCreateDeleteNotification.notificationHeader.notificationId;
+		break;
+	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
+		return *notif->notification.attributeChangeNotification.notificationHeader.notificationId;
+		break;
+	case SA_NTF_TYPE_STATE_CHANGE:
+		return *notif->notification.stateChangeNotification.notificationHeader.notificationId;
+		break;
+	case SA_NTF_TYPE_SECURITY_ALARM:
+		return *notif->notification.securityAlarmNotification.notificationHeader.notificationId;
+		break;
+	default:
+		assert(0);
+	}
+}
+
+void poll_until_received(SaNtfHandleT ntfHandle, SaNtfIdentifierT wanted_id)
+{
+	struct pollfd fds[1]; 
+	int ret;
+
+	SaSelectionObjectT so;
+	safassert(saNtfSelectionObjectGet(ntfHandle, &so) , SA_AIS_OK);
+
+	fds[0].fd = (int) so;
+	do {
+		fds[0].events = POLLIN;
+		ret = poll(fds, 1, 10000);
+		if (ret <= 0) {
+			if (ret == 0) 
+				perror("timeout");				
+			else
+				perror(NULL);
+			safassertNice(0,SA_AIS_OK);
+			break;
+		}
+		safassert(saNtfDispatch(ntfHandle, SA_DISPATCH_ALL) , SA_AIS_OK);
+	} 	while (last_not_id != wanted_id); 
+}
 
 static void print_header(SaNtfNotificationHeaderT *notificationHeader,
                          SaNtfSubscriptionIdT subscriptionId,
@@ -342,12 +392,12 @@ void fillInDefaultValues(
                   DEFAULT_ADDITIONAL_TEXT,
                   notificationAllocationParams->lengthAdditionalText);
     notificationParams->notificationObject.length =
-        sizeof (DEFAULT_NOTIFICATION_OBJECT);
+        strlen(DEFAULT_NOTIFICATION_OBJECT);
     (void)memcpy(notificationParams->notificationObject.value,
                  DEFAULT_NOTIFICATION_OBJECT,
                  notificationParams->notificationObject.length);
     notificationParams->notifyingObject.length =
-        sizeof (DEFAULT_NOTIFYING_OBJECT);
+        strlen(DEFAULT_NOTIFYING_OBJECT);
     (void)memcpy(notificationParams->notifyingObject.value,
                  DEFAULT_NOTIFYING_OBJECT,
                  notificationParams->notifyingObject.length);
@@ -457,25 +507,25 @@ int cmpSaNtfValueT(const SaNtfValueTypeT type,
 	switch(type)
 	{
 		case SA_NTF_VALUE_UINT8:
-			return assertvalue(val1->uint8Val == val1->uint8Val);
+			return assertvalue(val1->uint8Val == val2->uint8Val);
 		case SA_NTF_VALUE_INT8:
-			return assertvalue(val1->int8Val == val1->int8Val);
+			return assertvalue(val1->int8Val == val2->int8Val);
 		case SA_NTF_VALUE_UINT16:
-			return assertvalue(val1->uint16Val == val1->uint16Val);
+			return assertvalue(val1->uint16Val == val2->uint16Val);
 		case SA_NTF_VALUE_INT16:
-			return assertvalue(val1->int16Val == val1->int16Val);
+			return assertvalue(val1->int16Val == val2->int16Val);
 		case SA_NTF_VALUE_UINT32:
-			return assertvalue(val1->uint32Val == val1->uint32Val);
+			return assertvalue(val1->uint32Val == val2->uint32Val);
 		case SA_NTF_VALUE_INT32:
-			return assertvalue(val1->int32Val == val1->int32Val);
+			return assertvalue(val1->int32Val == val2->int32Val);
 		case SA_NTF_VALUE_FLOAT:
-			return assertvalue(val1->floatVal == val1->floatVal);
+			return assertvalue(val1->floatVal == val2->floatVal);
 		case SA_NTF_VALUE_UINT64:
-			return assertvalue(val1->uint64Val == val1->uint64Val);
+			return assertvalue(val1->uint64Val == val2->uint64Val);
 		case SA_NTF_VALUE_INT64:
-			return assertvalue(val1->int64Val == val1->uint64Val);
+			return assertvalue(val1->int64Val == val2->int64Val);
 		case SA_NTF_VALUE_DOUBLE:
-			return assertvalue(val1->doubleVal == val1->doubleVal);
+			return assertvalue(val1->doubleVal == val2->doubleVal);
 
 			/* TODO: Not supported yet */
 		case SA_NTF_VALUE_LDAP_NAME:
@@ -499,19 +549,19 @@ int cmpSaNtfValueT(const SaNtfValueTypeT type,
  * @params *head
  */
 void fillHeader(SaNtfNotificationHeaderT *head) {
-        int i;
+	int i;
 
 	*(head->eventType) = SA_NTF_ALARM_COMMUNICATION;
 	*(head->eventTime) = SA_TIME_UNKNOWN;
 
 	head->notificationObject->length =
-		sizeof (DEFAULT_NOTIFICATION_OBJECT);
+		strlen(DEFAULT_NOTIFICATION_OBJECT);
 	(void)memcpy(head->notificationObject->value,
 			DEFAULT_NOTIFICATION_OBJECT,
 			head->notificationObject->length);
 
 	head->notifyingObject->length =
-		sizeof (DEFAULT_NOTIFYING_OBJECT);
+		strlen(DEFAULT_NOTIFYING_OBJECT);
 	(void)memcpy(head->notifyingObject->value,
 			DEFAULT_NOTIFYING_OBJECT,
 			head->notifyingObject->length);
@@ -537,6 +587,29 @@ void fillHeader(SaNtfNotificationHeaderT *head) {
     }
 }
 
+/**
+ * Fills the filter header with default data.
+ *
+ * @params *head
+ */
+void fillFilterHeader(SaNtfNotificationFilterHeaderT *head) {
+	assert(head->numEventTypes == 1);
+	assert(head->numNotificationClassIds == 1);
+	assert(head->numNotificationObjects == 1);
+	assert(head->numNotifyingObjects == 1);
+
+	head->eventTypes[0] = SA_NTF_ALARM_COMMUNICATION;
+
+	head->notificationObjects[0].length = strlen(DEFAULT_NOTIFICATION_OBJECT);
+	memcpy(head->notificationObjects[0].value, DEFAULT_NOTIFICATION_OBJECT, head->notificationObjects[0].length);
+
+	head->notifyingObjects[0].length = strlen(DEFAULT_NOTIFYING_OBJECT);
+	memcpy(head->notifyingObjects[0].value, DEFAULT_NOTIFYING_OBJECT, head->notifyingObjects[0].length);
+	
+	head->notificationClassIds[0].vendorId = ERICSSON_VENDOR_ID;
+	head->notificationClassIds[0].majorId = 92;
+	head->notificationClassIds[0].minorId = 12;
+}
 
 /*
  * Verify the contents between two header
@@ -750,8 +823,8 @@ void createObjectCreateDeleteNotification(SaNtfHandleT ntfHandle,
 	head->notificationClassId->vendorId = ERICSSON_VENDOR_ID;
 
 	/* sub id of this notification class within "name space" of vendor ID */
-	head->notificationClassId->majorId = 0;
-	head->notificationClassId->minorId = 0;
+	head->notificationClassId->majorId = 92;
+	head->notificationClassId->minorId = 12;
 
 	/* set additional text and additional info */
 	(void) strncpy(head->additionalText,
@@ -841,16 +914,16 @@ void createAttributeChangeNotification(SaNtfHandleT ntfHandle,
 	head->notificationClassId->vendorId = ERICSSON_VENDOR_ID;
 
 	/* sub id of this notification class within "name space" of vendor ID */
-	head->notificationClassId->majorId = 0;
-	head->notificationClassId->minorId = 0;
+	head->notificationClassId->majorId = 92;
+	head->notificationClassId->minorId = 12;
 
-	head->notificationObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFICATION_OBJECT));
+	head->notificationObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFICATION_OBJECT));
 	(void) memcpy(head->notificationObject->value,
 			DEFAULT_NOTIFICATION_OBJECT,
 			head->notificationObject->length);
 
 	/* Set Notifying Object */
-	head->notifyingObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFYING_OBJECT));
+	head->notifyingObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFYING_OBJECT));
 	(void) memcpy(head->notifyingObject->value,
 			DEFAULT_NOTIFYING_OBJECT,
 			head->notifyingObject->length);
@@ -953,16 +1026,16 @@ void createStateChangeNotification(SaNtfHandleT ntfHandle,
 	head->notificationClassId->vendorId = ERICSSON_VENDOR_ID;
 
 	/* sub id of this notification class within "name space" of vendor ID */
-	head->notificationClassId->majorId = 0;
-	head->notificationClassId->minorId = 0;
+	head->notificationClassId->majorId = 92;
+	head->notificationClassId->minorId = 12;
 
-	head->notificationObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFICATION_OBJECT));
+	head->notificationObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFICATION_OBJECT));
 	(void) memcpy(head->notificationObject->value,
 			DEFAULT_NOTIFICATION_OBJECT,
 			head->notificationObject->length);
 
 	/* Set Notifying Object */
-	head->notifyingObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFYING_OBJECT));
+	head->notifyingObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFYING_OBJECT));
 	(void) memcpy(head->notifyingObject->value,
 			DEFAULT_NOTIFYING_OBJECT,
 			head->notifyingObject->length);
@@ -1057,16 +1130,16 @@ void createSecurityAlarmNotification(SaNtfHandleT ntfHandle,
 	head->notificationClassId->vendorId = ERICSSON_VENDOR_ID;
 
 	/* sub id of this notification class within "name space" of vendor ID */
-	head->notificationClassId->majorId = 0;
-	head->notificationClassId->minorId = 0;
+	head->notificationClassId->majorId = 92;
+	head->notificationClassId->minorId = 12;
 
-	head->notificationObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFICATION_OBJECT));
+	head->notificationObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFICATION_OBJECT));
 	(void) memcpy(head->notificationObject->value,
 			DEFAULT_NOTIFICATION_OBJECT,
 			head->notificationObject->length);
 
 	/* Set Notifying Object */
-	head->notifyingObject->length = (SaUint16T)(sizeof(DEFAULT_NOTIFYING_OBJECT));
+	head->notifyingObject->length = (SaUint16T)(strlen(DEFAULT_NOTIFYING_OBJECT));
 	(void) memcpy(head->notifyingObject->value,
 			DEFAULT_NOTIFYING_OBJECT,
 			head->notifyingObject->length);
@@ -1089,6 +1162,8 @@ void createSecurityAlarmNotification(SaNtfHandleT ntfHandle,
 	mySecAlarmNotification->serviceProvider->valueType = SA_NTF_VALUE_INT32;
 	mySecAlarmNotification->serviceProvider->value.int32Val = 789;
 
+	mySecAlarmNotification->securityAlarmDetector->valueType = SA_NTF_VALUE_UINT64;
+	mySecAlarmNotification->securityAlarmDetector->value.uint64Val = 123412341234llu;	
 }
 
 /**
@@ -1117,6 +1192,11 @@ int verifySecurityAlarmNotification(const SaNtfSecurityAlarmNotificationT *aNtf1
 		errors += cmpSaNtfValueT(aNtf1->serviceProvider->valueType,
 				&aNtf1->serviceProvider->value,
 				&aNtf2->serviceProvider->value);
+	}
+	if((errors += assertvalue(aNtf1->securityAlarmDetector->valueType == aNtf2->securityAlarmDetector->valueType)) == 0) {
+		errors += cmpSaNtfValueT(aNtf1->securityAlarmDetector->valueType,
+				&aNtf1->securityAlarmDetector->value,
+				&aNtf2->securityAlarmDetector->value);
 	}
 	return errors;
 }
