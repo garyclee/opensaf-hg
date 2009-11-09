@@ -41,7 +41,7 @@ Parts of the library implementations and the base for the 'ntfsend' and
 'ntfsubscribe' commands are also taken from an earlier implementation.
 
 Only a limited version of the Reader API is implemented which reads from a 
-cache of 100 notification. Filter is not implemented.
+cache of 100 notification. Filter is not implemented for the Reader API.
 
 DEPENDENCIES
 ntfsv depends of the following other OpenSAF services:
@@ -49,15 +49,17 @@ ntfsv depends of the following other OpenSAF services:
 - MDS
 - LEAP
 - logtrace
-  
+
 DIRECTORY STRUCTURE
-services/ntfsv/inc	Common header files used by both ntfa and ntfs
-services/ntfsv/ntfa	ntf library implementation
-services/ntfsv/ntfs	ntf server
-services/ntfsv/common	implementation used by both server and library.
-services/ntfsv/utils	ntfsend, ntfsubscribe commands
-lib/lib_SaNtf		NTF library staging
-tests/ntfsv/src		Test suite
+
+osaf/libs/common/ntfsv/include/	Common header files used by both ntfa and ntfs,
+                                implementation used by both server and library.
+osaf/libs/agents/saf/ntfa	ntf library implementation
+osaf/services/saf/ntfsv/ntfs	ntf server
+osaf/tools/safntf/ntfsend	ntfsend ntfsubscribe command
+osaf/tools/safntf/ntfsubscribe	ntfsubscribe command
+osaf/libs/saf/libSaNtf 		NTF library staging
+tests/ntfsv			Test suite
 
 MAIN FILES
 ntfs:
@@ -159,7 +161,7 @@ $ cat /tmp/ntf.trace
 
 TEST
 
-Currently a simple unit test can be found in 'tests/ntfsv/src'. The test suite
+Currently a simple unit test can be found in 'tests/ntfsv'. The test suite
 is built by the main make system and is either install by 'make install' or by
 installing the tools rpm.
 
@@ -173,26 +175,19 @@ Cleanup:
 
 Make NTF to fully A.01.01 compliant 
 ===================================
-Filter:
--NotificationFilterAllocate functions:
-  saNtfObjectCreateDelete  
-  saNtfAttributeChange 
-  saNtfStateChange 
-  saNtfSecurityAlarm 
--saNtfNotificationFilterFree
-
 Internationalization
 -saNtfLocalizedMessageGet
 -saNtfLocalizedMessageFree
 
-Reader API from SAFLog records
+Reader API
+- read from SAFLog records
+- filter
 
 Discarded notification API
 -problem to make test case for this functionality because not consumed callbacks
 will be stored in a queue in library.
 
 CONTRIBUTORS/MAINTAINERS
-Kenneth Andersson <kenneth.k.andersson@ericsson.com>
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>
 Hans Feldt
 

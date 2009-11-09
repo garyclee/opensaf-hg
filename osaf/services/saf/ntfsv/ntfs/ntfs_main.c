@@ -99,6 +99,7 @@ static void sigusr2_handler(int sig)
 		printf("trace_category_set failed");
 }
 
+#if 0
 /**
  *  dump information from all data structures
  * @param sig
@@ -124,6 +125,7 @@ static void dump_sig_handler(int sig)
 	if (trace_category_set(old_category_mask) == -1)
 		printf("trace_category_set failed");
 }
+#endif
 
 /**
  * Initialize ntfs

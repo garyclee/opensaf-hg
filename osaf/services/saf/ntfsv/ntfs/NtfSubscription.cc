@@ -125,7 +125,7 @@ ntfsv_subscribe_req_t* NtfSubscription::getSubscriptionInfo()
  * @return true if the subscription matches the notification
  *         false if the subscription does not match the notification
  */
-bool NtfSubscription::checkSubscription(const NtfNotification* notification)
+bool NtfSubscription::checkSubscription(NtfNotification* notification)
 {
 	bool rv = false;
    

@@ -1317,15 +1317,6 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 			ncs_encode_32bit(&p8, param->f_rec.obj_cr_del_filter->sourceIndicators[i]);
 			ncs_enc_claim_space(uba, 4);
 		}
-		
-		for (i = 0; i < param->f_rec.obj_cr_del_filter->numSourceIndicators; i++) {
-			p8 = ncs_enc_reserve_space(uba, 4);
-			if (!p8) {
-				return 0;
-			}
-			ncs_encode_32bit(&p8, param->f_rec.obj_cr_del_filter->sourceIndicators[i]);
-			ncs_enc_claim_space(uba, 4);
-		}
 	} else {
 		p8 = ncs_enc_reserve_space(uba, 4);
 		if (!p8)

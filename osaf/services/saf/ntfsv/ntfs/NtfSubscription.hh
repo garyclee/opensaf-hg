@@ -31,7 +31,7 @@ class NtfSubscription{
 public:
     NtfSubscription(ntfsv_subscribe_req_t* s);
     virtual ~NtfSubscription();
-    bool checkSubscription(const NtfNotification* notification);
+    bool checkSubscription(NtfNotification* notification);
     void confirmNtfSend();
 	 SaNtfSubscriptionIdT getSubscriptionId() const;
 	 ntfsv_subscribe_req_t* getSubscriptionInfo();
