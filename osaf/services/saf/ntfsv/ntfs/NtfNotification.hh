@@ -63,7 +63,7 @@ public:
     void resetSubscriptionIdList();
     SaAisErrorT getNextSubscription(UniqueSubscriptionId& subId);
     void printInfo();
-
+	 SaNtfNotificationHeaderT* header();
     ntfsv_send_not_req_t *sendNotInfo_;
     bool loggFromCallback_;
 

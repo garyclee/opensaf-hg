@@ -791,7 +791,7 @@ SaAisErrorT ntfsv_ptr_val_alloc(v_data * vd, SaNtfValueT *nv, SaUint16T data_siz
 	if ((vd->size + data_size) <= vd->max_data_size) {
 		void *p;
 		/* realloc */
-		TRACE("realloc base=%p, size=%d, data_size=%d\n", vd->p_base, vd->size, data_size);
+		TRACE("realloc base=%p, size=%zd, data_size=%hu\n", vd->p_base, vd->size, data_size);
 		p = realloc(vd->p_base, vd->size + data_size);
 		if (p == NULL) {
 			rc = SA_AIS_ERR_NO_MEMORY;
@@ -814,7 +814,7 @@ SaAisErrorT ntfsv_ptr_val_alloc(v_data * vd, SaNtfValueT *nv, SaUint16T data_siz
 SaAisErrorT ntfsv_ptr_val_get(v_data * vd, const SaNtfValueT *nv, void **data_ptr, SaUint16T *data_size)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	TRACE("vd->size=%u, nv:dataOffset = %u, nv:dataSize = %u, p_base= %p\n",
+	TRACE("vd->size=%zd, nv:dataOffset = %u, nv:dataSize = %u, p_base= %p\n",
 	      vd->size, nv->ptrVal.dataOffset, nv->ptrVal.dataSize, vd->p_base);
 	if (vd->size < nv->ptrVal.dataOffset || vd->p_base == NULL) {
 		rc = SA_AIS_ERR_LIBRARY;
@@ -839,7 +839,7 @@ SaAisErrorT ntfsv_array_val_alloc(v_data * vd,
 	}
 	addedSize = (numElements) * (elementSize);
 
-	TRACE("ptrAlloc base=%p, size=%d, numElements=%u, elementSize=%u,"
+	TRACE("ptrAlloc base=%p, size=%zd, numElements=%u, elementSize=%hu,"
 	      "addedSize=%llu\n", vd->p_base, vd->size, numElements, elementSize, addedSize);
 
 	if ((vd->size + addedSize) <= vd->max_data_size) {

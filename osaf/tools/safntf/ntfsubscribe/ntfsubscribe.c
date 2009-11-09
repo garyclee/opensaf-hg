@@ -618,15 +618,13 @@ static SaAisErrorT subscribeForNotifications(const saNotificationFilterAllocatio
 	SaNtfObjectCreateDeleteNotificationFilterT objCrDelFilter;
 	SaNtfSecurityAlarmNotificationFilterT secAlarmFilter;
 	
-	SaNtfNotificationFilterHandleT *fh_ptr;
 	SaNtfNotificationTypeFilterHandlesT notificationFilterHandles;
 	notificationFilterHandles.alarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.attributeChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.objectCreateDeleteFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.securityAlarmFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
 	notificationFilterHandles.stateChangeFilterHandle = SA_NTF_FILTER_HANDLE_NULL;
-	int i;
-	
+
 	if (used_filters.all || used_filters.alarm) {
 		errorCode = saNtfAlarmNotificationFilterAllocate(ntfHandle,
 								 &myAlarmFilter,

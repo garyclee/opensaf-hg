@@ -401,3 +401,11 @@ void NtfNotification::printInfo()
         pos++;
     }
 }
+
+SaNtfNotificationHeaderT* NtfNotification::header()
+{
+	SaNtfNotificationHeaderT *header; 
+	ntfsv_get_ntf_header(this->getNotInfo(), &header);
+	return header;
+}
+
