@@ -2151,7 +2151,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_FAILED_OPERATION)) {
 					TRACE_2("ERR_FAILED_OPERATION: Illegal return value from "
-						"saImmOiCcbObjectModifyCallback %u. "
+						"saImmOiRtAttrUpdateCallback %u. "
 						"Allowed are %u %u %u %u", localEr, SA_AIS_OK,
 						SA_AIS_ERR_NO_MEMORY, SA_AIS_ERR_NO_RESOURCES,
 						SA_AIS_ERR_FAILED_OPERATION);
