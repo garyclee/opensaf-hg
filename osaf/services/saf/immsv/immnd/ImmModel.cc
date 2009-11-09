@@ -1997,6 +1997,12 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                     release?(ownerId?"Release":"Clear"):"Set", 
                     objectName.c_str());
                 
+				if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
+					LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
+					assert(!doIt);
+					return SA_AIS_ERR_INVALID_PARAM;
+				}
+
                 ObjectMap::iterator i1 = sObjectMap.find(objectName);
                 if (i1 == sObjectMap.end()) {
                     TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
@@ -5089,6 +5095,12 @@ ImmModel::findConnForImplementerOfObject(std::string objectDn)
 {
     ObjectInfo* object;
     ObjectMap::iterator oi;
+
+    if(! (nameCheck(objectDn)||nameToInternal(objectDn)) ) {
+        LOG_ER("Invalid object name %s sent internally", objectDn.c_str());
+		assert(0);
+    }
+
     oi = sObjectMap.find(objectDn);
     if (oi == sObjectMap.end()) {
         TRACE_7("Object '%s' %u does not exist", objectDn.c_str(), 
