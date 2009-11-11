@@ -49,6 +49,7 @@ static uns32 immd_evt_proc_admo_hard_finalize(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_
 static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt);
 
 static uns32 immd_evt_mds_quiesced_ack_rsp(IMMD_CB *cb, IMMD_EVT *evt, IMMSV_SEND_INFO *sinfo);
+static uns32 immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt);
 
 /****************************************************************************
  * Name          : immd_process_evt
@@ -141,6 +142,9 @@ void immd_process_evt(void)
 
 	case IMMD_EVT_CB_DUMP:
 		rc = immd_evt_proc_cb_dump(cb);
+		break;
+	case IMMD_EVT_LGA_CB:
+		rc = immd_evt_proc_lga_callback(cb, &evt->info.immd);
 		break;
 	default:
 		/* Log the error TBD */
@@ -1664,6 +1668,48 @@ uns32 immd_evt_proc_cb_dump(IMMD_CB *cb)
 
 	immd_cb_dump();
 	return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************
+ * Name          : immd_evt_proc_lga_callback
+ *
+ * Description   : Function process the role change message from RDA
+ *
+ * Arguments     : IMMND_CB *cb - IMMND CB pointer
+ *                 IMMSV_EVT *evt - Received Event structure
+ *
+ * Return Values : NCSCC_RC_SUCCESS/Error.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 immd_evt_proc_lga_callback(IMMD_CB *cb, IMMD_EVT *evt)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+		cb->mds_role = V_DEST_RL_ACTIVE;
+		cb->ha_state = SA_AMF_HA_ACTIVE;
+
+		LOG_NO("ACTIVE request");
+
+		if ((rc = immd_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("immd_mds_change_role FAILED");
+			goto done;
+		}
+
+		if (immd_mbcsv_chgrole(cb) != NCSCC_RC_SUCCESS) {
+			LOG_ER("immd_mbcsv_chgrole FAILED");
+			goto done;
+		}
+
+		/* Change of role to active => We may need to elect new coord */
+		immd_proc_elect_coord(cb, TRUE);
+		immd_db_purge_fevs(cb);
+	}
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /**

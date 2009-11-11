@@ -53,6 +53,7 @@ static const char *immd_evt_names[] = {
 	"IMMD_EVT_ND2D_ADMO_HARD_FINALIZE",
 	"IMMD_EVT_CB_DUMP",
 	"IMMD_EVT_MDS_QUIESCED_ACK_RSP",
+	"IMMD_EVT_LGA_CB"
 };
 
 static const char *immsv_get_immd_evt_name(unsigned int id)
