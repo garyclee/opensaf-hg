@@ -278,11 +278,11 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			LOG_ER("lgs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
-	}
 
-	/* Inform MBCSV of HA state change */
-	if (NCSCC_RC_SUCCESS != (error = lgs_mbcsv_change_HA_state(lgs_cb)))
-		error = SA_AIS_ERR_FAILED_OPERATION;
+		/* Inform MBCSV of HA state change */
+		if (NCSCC_RC_SUCCESS != (error = lgs_mbcsv_change_HA_state(lgs_cb)))
+			error = SA_AIS_ERR_FAILED_OPERATION;
+	}
 
  response:
 	saAmfResponse(lgs_cb->amf_hdl, invocation, error);

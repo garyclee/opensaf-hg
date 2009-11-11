@@ -71,6 +71,36 @@ static NCS_SEL_OBJ usr1_sel_obj;
  */
 
 /**
+ * Callback from RDA. Post a message/event to the lgs mailbox.
+ * @param cb_hdl
+ * @param cb_info
+ * @param error_code
+ */
+static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+{
+	uns32 rc;
+	lgsv_lgs_evt_t *evt;
+
+	TRACE_ENTER();
+
+	evt = calloc(1, sizeof(lgsv_lgs_evt_t));
+	if (NULL == evt) {
+		LOG_ER("calloc failed");
+		goto done;
+	}
+
+	evt->evt_type = LGSV_EVT_RDA;
+	evt->info.rda_info.io_role = cb_info->info.io_role;
+
+	rc = ncs_ipc_send(&lgs_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("IPC send failed %d", rc);
+
+done:
+	TRACE_LEAVE();
+}
+
+/**
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
@@ -211,6 +241,11 @@ static uns32 log_initialize(const char *progname)
 		goto done;
 	}
 
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
+		goto done;
+	}
+
 	/*
 	 ** Get LOGSV root directory path. All created log files will be stored
 	 ** relative to this directory as described in spec.
@@ -280,7 +315,10 @@ static uns32 log_initialize(const char *progname)
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
+		LOG_NO("I am ACTIVE");
 	}
+	else
+		LOG_NO("I am STANDBY");
 
  done:
 	if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {

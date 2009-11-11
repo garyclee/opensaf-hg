@@ -345,6 +345,46 @@ static uns32 proc_mds_quiesced_ack_msg(lgsv_lgs_evt_t *evt)
 	return NCSCC_RC_SUCCESS;
 }
 
+static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
+{
+	log_stream_t *stream;
+	uns32 rc;
+
+	TRACE_ENTER();
+
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+		LOG_NO("ACTIVE request");
+		lgs_cb->mds_role = V_DEST_RL_ACTIVE;
+		if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("lgs_mds_change_role FAILED %u", rc);
+			goto done;
+		}
+
+		lgs_cb->ha_state = SA_AMF_HA_ACTIVE;
+		if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("lgs_mds_change_role FAILED %u", rc);
+			goto done;
+		}
+
+		/* Open all streams */
+		stream = log_stream_getnext_by_name(NULL);
+		if (!stream)
+			LOG_ER("No streams exist!");
+		while (stream != NULL) {
+			if (log_stream_open(stream) != SA_AIS_OK)
+				goto done;
+			
+			stream = log_stream_getnext_by_name(stream->name);
+		}
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
 /****************************************************************************
  * Name          : lgs_cb_init
  *
@@ -410,6 +450,7 @@ static uns32 send_write_log_ack(lgs_cb_t *cb, lgsv_lgs_evt_t *evt, SaAisErrorT e
 	if (rc != NCSCC_RC_SUCCESS) {
 		TRACE("send failed");	/* TODO: find out why ev. retry? */
 	}
+
 	TRACE_LEAVE();
 	return (rc);
 }
@@ -463,7 +504,7 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	msg.info.api_resp_info.param.init_rsp.client_id = client->client_id;
 	rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 
-	TRACE_LEAVE();
+	TRACE_LEAVE2("client_id %u", client->client_id);
 	return rc;
 }
 
@@ -992,6 +1033,9 @@ void lgs_process_mbx(SYSF_MBX *mbx)
 		} else {
 			if (msg->evt_type == LGSV_LGS_EVT_LGA_DOWN) {
 				lgs_lgsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+			}
+			if (msg->evt_type == LGSV_EVT_RDA) {
+				proc_rda_cb_msg(msg);
 			}
 		}
 

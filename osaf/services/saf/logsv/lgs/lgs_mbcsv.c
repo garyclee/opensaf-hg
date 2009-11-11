@@ -167,7 +167,9 @@ uns32 lgs_mbcsv_init(lgs_cb_t *cb)
 		goto done;
 	}
 
- done:
+	rc = lgs_mbcsv_change_HA_state(cb);
+
+done:
 	TRACE_LEAVE();
 	return rc;
 }
