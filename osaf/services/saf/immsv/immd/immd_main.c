@@ -50,6 +50,37 @@ static int category_mask;
  */
 
 /**
+ * Callback from RDA. Post a message/event to the IMMD mailbox.
+ * @param cb_hdl
+ * @param cb_info
+ * @param error_code
+ */
+static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+{
+	uns32 rc;
+	IMMSV_EVT *evt;
+
+	TRACE_ENTER();
+
+	evt = calloc(1, sizeof(IMMSV_EVT));
+	if (NULL == evt) {
+		LOG_ER("calloc failed");
+		goto done;
+	}
+
+	evt->type = IMMSV_EVT_TYPE_IMMD;
+	evt->info.immd.type = IMMD_EVT_LGA_CB;
+	evt->info.immd.info.rda_info.io_role = cb_info->info.io_role;
+
+	rc = ncs_ipc_send(&immd_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("IPC send failed %d", rc);
+
+done:
+	TRACE_LEAVE();
+}
+
+/**
  * USR2 signal handler to dump information from all data structures
  * @param sig
  */
@@ -129,6 +160,11 @@ static uns32 immd_initialize(const char *progname)
 
 	if ((rc = rda_get_role(&immd_cb->ha_state)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
+
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
 		goto done;
 	}
 

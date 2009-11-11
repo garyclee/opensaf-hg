@@ -30,6 +30,7 @@
 #ifndef IMMSV_EVT_H
 #define IMMSV_EVT_H
 
+#include <rda_papi.h>
 #include "immsv_evt_model.h"
 
 #define IMMSV_LOADERNAME "IMMLOADER"
@@ -197,6 +198,7 @@ typedef enum immd_evt_type {
 
 	IMMD_EVT_CB_DUMP = 18,
 	IMMD_EVT_MDS_QUIESCED_ACK_RSP = 19,
+	IMMD_EVT_LGA_CB = 20,
 	IMMD_EVT_MAX
 } IMMD_EVT_TYPE;
 /* Make sure the string array in immsv_evt.c matches the IMMD_EVT_TYPE enum. */
@@ -464,6 +466,10 @@ typedef struct immd_tmr_info {
 	} info;
 } IMMD_TMR_INFO;
 
+typedef struct {
+	PCS_RDA_ROLE io_role;
+} IMMSV_RDA_INFO;
+
 /******************************************************************************
  IMMD Event Data Structures
  ******************************************************************************/
@@ -483,6 +489,7 @@ typedef struct immd_evt {
 
 		IMMD_TMR_INFO tmr_info;
 		IMMSV_MDS_INFO mds_info;
+		IMMSV_RDA_INFO rda_info;
 	} info;
 } IMMD_EVT;
 
