@@ -154,7 +154,7 @@ void NtfClient::notificationReceived(unsigned int clientId,
                                      NtfNotification* notification,
                                      MDS_SYNC_SND_CTXT *mdsCtxt)
 {
-    TRACE_ENTER();
+    TRACE_ENTER2("%u %u", clientId_, clientId);
     // send acknowledgement
     if (clientId_ == clientId)
     {

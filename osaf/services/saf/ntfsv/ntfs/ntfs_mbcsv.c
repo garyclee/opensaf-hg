@@ -148,6 +148,8 @@ uns32 ntfs_mbcsv_init(ntfs_cb_t *cb)
 		goto done;
 	}
 
+	rc = ntfs_mbcsv_change_HA_state(ntfs_cb);
+
  done:
 	TRACE_LEAVE();
 	return rc;
