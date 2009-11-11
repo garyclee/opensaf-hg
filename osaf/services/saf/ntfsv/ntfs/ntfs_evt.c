@@ -140,6 +140,53 @@ static uns32 proc_mds_quiesced_ack_msg(ntfsv_ntfs_evt_t *evt)
 }
 
 /****************************************************************************
+ * Name          : proc_rda_cb_msg
+ *
+ * Description   : This function processes the role change message from RDE.
+ *                 It will change role to active if requested to.
+ *
+ * Arguments     : evt  - Message that was posted to the NTFS Mail box.
+ *
+ * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static uns32 proc_rda_cb_msg(ntfsv_ntfs_evt_t *evt)
+{
+	uns32 rc;
+
+	TRACE_ENTER();
+
+	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
+		SaAmfHAStateT old_ha_state = ntfs_cb->ha_state;
+		LOG_NO("ACTIVE request");
+
+		ntfs_cb->mds_role = V_DEST_RL_ACTIVE;
+		if ((rc = ntfs_mds_change_role(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("ntfs_mds_change_role FAILED %u", rc);
+			goto done;
+		}
+
+		ntfs_cb->ha_state = SA_AMF_HA_ACTIVE;
+		if ((rc = ntfs_mbcsv_change_HA_state(ntfs_cb)) != NCSCC_RC_SUCCESS) {
+			LOG_ER("ntfs_mbcsv_change_HA_state FAILED %u", rc);
+			goto done;
+		}
+
+		if (old_ha_state == SA_AMF_HA_STANDBY) {
+			/* check for unsent notifictions and if notifiction is not logged */
+			checkNotificationList();
+		}
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/****************************************************************************
  * Name          : ntfs_cb_init
  *
  * Description   : This function initializes the NTFS_CB including the 
@@ -494,6 +541,9 @@ void ntfs_process_mbx(SYSF_MBX *mbx)
 		} else {
 			if (msg->evt_type == NTFSV_NTFS_EVT_NTFA_DOWN) {
 				ntfs_ntfsv_top_level_evt_dispatch_tbl[msg->evt_type] (msg);
+			}
+			if (msg->evt_type == NTFSV_EVT_RDA) {
+				proc_rda_cb_msg(msg);
 			}
 		}
 

@@ -67,6 +67,36 @@ extern void printAdminInfo();
 extern void logEvent();
 
 /**
+ * Callback from RDA. Post a message/event to the ntfs mailbox.
+ * @param cb_hdl
+ * @param cb_info
+ * @param error_code
+ */
+static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+{
+	uns32 rc;
+	ntfsv_ntfs_evt_t *evt;
+
+	TRACE_ENTER();
+
+	evt = calloc(1, sizeof(ntfsv_ntfs_evt_t));
+	if (NULL == evt) {
+		LOG_ER("calloc failed");
+		goto done;
+	}
+
+	evt->evt_type = NTFSV_EVT_RDA;
+	evt->info.rda_info.io_role = cb_info->info.io_role;
+
+	rc = ncs_ipc_send(&ntfs_cb->mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_VERY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS)
+		LOG_ER("IPC send failed %d", rc);
+
+done:
+	TRACE_LEAVE();
+}
+
+/**
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
@@ -189,6 +219,11 @@ static uns32 initialize(const char *progname)
 		goto done;
 	}
 
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
+		goto done;
+	}
+
 	m_NCS_EDU_HDL_INIT(&ntfs_cb->edu_hdl);
 
 	/* Create the mailbox used for communication with NTFS */
@@ -232,6 +267,12 @@ static uns32 initialize(const char *progname)
 	}
 
 	initAdmin();
+
+	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
+		LOG_NO("I am ACTIVE");
+	if (ntfs_cb->ha_state == SA_AMF_HA_STANDBY)
+		LOG_NO("I am STANDBY");
+
  done:
 	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");

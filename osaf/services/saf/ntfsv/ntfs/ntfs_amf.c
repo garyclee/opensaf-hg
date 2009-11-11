@@ -237,11 +237,11 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 			TRACE("ntfs_mds_change_role FAILED");
 			error = SA_AIS_ERR_FAILED_OPERATION;
 		}
-	}
 
-	/* Inform MBCSV of HA state change */
-	if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(ntfs_cb)))
-		error = SA_AIS_ERR_FAILED_OPERATION;
+		/* Inform MBCSV of HA state change */
+		if (NCSCC_RC_SUCCESS != (error = ntfs_mbcsv_change_HA_state(ntfs_cb)))
+			error = SA_AIS_ERR_FAILED_OPERATION;
+	}
 
  response:
 	saAmfResponse(ntfs_cb->amf_hdl, invocation, error);
