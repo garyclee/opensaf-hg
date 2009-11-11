@@ -39,8 +39,9 @@ typedef struct imma_callback_info {
 	struct imma_callback_info *next;	/* This is required, as this struct 
 						   is posted to mailbox */
 	IMMA_CALLBACK_TYPE type;
-	/*Note: We should perhaps have a union here. On the logic for de-allocation
-	   is much simpler when we dont need a big switch on callback type.
+	/*Note: We should perhaps have a union here. But the logic for 
+	  de-allocation is much simpler when we dont need a big switch on 
+	  callback type.
 	 */
 	SaImmHandleT lcl_imm_hdl;
 	SaInvocationT invocation;	//ABT: Warning, overloaded use

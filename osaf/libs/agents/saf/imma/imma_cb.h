@@ -18,6 +18,13 @@
 #ifndef IMMA_CB_H
 #define IMMA_CB_H
 
+struct imma_oi_ccb_record {
+	struct imma_oi_ccb_record *next;
+	SaUint32T ccbId;
+	uns8 isStale;    /* 1 => ccb was terminated by IMMND down. */
+	uns8 isCritical; /* 1 => OI has replied OK on completed callback but not */
+};                   /*      received abort-callback or apply-callback.      */
+
 typedef struct imma_client_node {
 	NCS_PATRICIA_NODE patnode;	/* index for the tree */
 	SaImmHandleT handle;
@@ -40,7 +47,7 @@ typedef struct imma_client_node {
 	uns8 exposed;    /* Exposed => stale is irreversible */
 	uns8 selObjUsable; /* Active resurrect possible for this client */
 	uns8 replyPending; /* Syncronous or asyncronous call made towards IMMND */
-	uns8 criticalCcbs; /* Number of critical ccbs towards this (OI) client. */
+	struct imma_oi_ccb_record *activeOiCcbs; /* For ccb termination on IMMND down.*/
 	SYSF_MBX callbk_mbx;	/*Mailbox Queue for clnt messages */
 } IMMA_CLIENT_NODE;
 
@@ -149,6 +156,10 @@ EXTERN_C void imma_client_tree_destroy(IMMA_CB *cb);
 EXTERN_C void imma_client_tree_cleanup(IMMA_CB *cb);
 EXTERN_C void imma_mark_clients_stale(IMMA_CB *cb);
 EXTERN_C int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
+void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
+int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
+int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
+
 
 /*admin_owner tree*/
 EXTERN_C uns32 imma_admin_owner_tree_init(IMMA_CB *cb);
