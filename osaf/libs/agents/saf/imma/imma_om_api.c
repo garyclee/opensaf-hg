@@ -2724,7 +2724,7 @@ SaAisErrorT saImmOmCcbApply(SaImmCcbHandleT ccbHandle)
 			assert(out_evt->info.imma.info.errRsp.error != SA_AIS_OK);
 		} else {
 			rc = out_evt->info.imma.info.errRsp.error;
-			TRACE_1("CCB APPLY - completed return from IMMND rc:%u", rc);
+			TRACE_1("CCB APPLY - reply received from IMMND rc:%u", rc);
 		}
 
 		free(out_evt);

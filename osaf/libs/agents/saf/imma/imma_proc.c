@@ -30,7 +30,8 @@
    It does not help to include string.h */
 size_t strnlen(const char *s, size_t maxlen);
 
-static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO *callback);
+static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, 
+	IMMA_CALLBACK_INFO *callback, SaImmHandleT immHandle);
 
 static void imma_proc_free_callback(IMMA_CALLBACK_INFO *callback);
 
@@ -188,8 +189,10 @@ uns32 imma_finalize_client(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 		search_tmp_hdl = search_node->search_hdl;
 		search_tmp_ptr = &search_tmp_hdl;
 		if (search_node->mImmHandle == cl_node->handle) {
-			assert(imma_search_node_delete(cb, search_node)
-				== NCSCC_RC_SUCCESS);
+			if(imma_search_node_delete(cb, search_node)!= NCSCC_RC_SUCCESS) {
+				TRACE_4("ERROR imma_finalize_client could not delete search_node");
+				break;
+			}
 			search_tmp_ptr = NULL;	/*Redo iteration from start after delete. */
 		}
 	}
@@ -474,6 +477,69 @@ void imma_determine_clients_to_resurrect(IMMA_CB *cb, NCS_BOOL* locked)
     TRACE_LEAVE();
 }
 
+void imma_proc_terminate_critical_oi_ccbs(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
+{
+    TRACE_ENTER();
+	/* We are NOT LOCKED */
+	struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
+
+	assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+
+	while (oiCcb != NULL) {
+		SaAisErrorT err = SA_AIS_ERR_TIMEOUT;
+		struct imma_oi_ccb_record *nextOiCcb = oiCcb->next;
+		if (!(oiCcb->isStale)) {
+			oiCcb = nextOiCcb;
+			continue; /* Already processed or CCB created after resurrect. */
+		}
+
+		if (oiCcb->isCritical) {
+			err = imma_proc_recover_ccb_result(cb, oiCcb->ccbId);
+		} else {
+			/* We expected non-critical stales to have been terminated by abort in 
+			   imma_proc_stale_dispatch() */
+			TRACE_3("WARNING: Discovered non critical and stale oi_ccb_record %u in "
+				"imma_proc_terminate_critical_oi_ccbs", oiCcb->ccbId);
+			err = SA_AIS_ERR_FAILED_OPERATION;
+		}
+
+		IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+		assert(callback);
+		if (err == SA_AIS_OK) {
+			callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
+		} else if (err == SA_AIS_ERR_FAILED_OPERATION) {
+			callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
+		} else {
+			TRACE_3("WARNING: Failed to recover ccb outcome for critical oi ccb %u err:%u",
+				oiCcb->ccbId, err);
+			free(callback);
+			callback = NULL;
+			assert(err == SA_AIS_ERR_TIMEOUT);
+			continue;
+		}
+
+		callback->lcl_imm_hdl = cl_node->handle;
+		callback->ccbID = oiCcb->ccbId;
+
+		if (m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
+				NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+			/* Cant make it high priority because it could bypass a normal
+			   ccb-op upcall. That would confuse the OI! */
+			TRACE_4("Failed to post ccb %u stale-terminate ipc-message", oiCcb->ccbId);
+		} else {TRACE_3("Posted ccb %u stale-terminate ipc-message: %s", oiCcb->ccbId,
+					(err == SA_AIS_OK)?"APPLY":"ABORT");}
+		oiCcb->isStale = FALSE; /* Avoid sending the abort message again. */
+
+		TRACE_3("imma_proc_terminate_critical_oi_ccbs: oi_ccb_record for %u terminated",
+			oiCcb->ccbId);
+		assert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
+		oiCcb = nextOiCcb;
+		callback = NULL;
+	}
+
+	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
+    TRACE_LEAVE();
+}
 
 /****************************************************************************
   Name          : imma_proc_stale_dispatch
@@ -484,20 +550,66 @@ void imma_proc_stale_dispatch(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
 {
     TRACE_ENTER();
 	/* We are LOCKED already */
+	IMMA_CALLBACK_INFO *callback = NULL;
     if (cl_node->selObjUsable) {
-        IMMA_CALLBACK_INFO *callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
-        assert(callback);
-        callback->type = IMMA_CALLBACK_STALE_HANDLE;
+		struct imma_oi_ccb_record *oiCcb = cl_node->activeOiCcbs;
 
-        if (m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
-               NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
-            TRACE_3("Failed to dispatch stale handle message");
-        }
+		/* Send the stale handle triggering ipc-message */
+		callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+		assert(callback);
+        callback->type = IMMA_CALLBACK_STALE_HANDLE;
+		callback->lcl_imm_hdl = 0LL;
+		callback->ccbID = 0;
+
+		if (m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
+				NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
+			TRACE_4("Failed to post stale handle ipc-message");
+		} else {TRACE_3("Posted stale handle ipc-message");} 
 
         /*Avoid redoing this dispatch for the same stale connection*/
         cl_node->selObjUsable=FALSE; 
         /*If a resurrect succeds cl_node->selObjUsable will be set back to TRUE
         */
+
+		/* Abort any active but non-critical OI CCBs */
+		while (oiCcb != NULL) {
+			struct imma_oi_ccb_record *nextOiCcb = oiCcb->next;
+			if (!(oiCcb->isStale)) {
+				TRACE_4("ERROR?: Discovered non stale oi_ccb_record %u in stale dispatch",
+					oiCcb->ccbId);
+				oiCcb = nextOiCcb;
+				continue;
+			} 
+
+			if (oiCcb->isCritical) {
+				TRACE_3("Postponing termination upcall apply/abort for critical CCB %u",
+					oiCcb->ccbId);
+				oiCcb = nextOiCcb;
+				continue;
+			} 
+
+			/* Non critical & stale CCB must have been aborted by server side. 
+			   Generate abort upcall immediately, i.e. no need to wait for resurrect. 
+			 */
+			callback = calloc(1, sizeof(IMMA_CALLBACK_INFO));
+			assert(callback);
+			callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
+			callback->lcl_imm_hdl = cl_node->handle;
+			callback->ccbID = oiCcb->ccbId;
+			if (m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback,
+					NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+				/* Cant make it high priority because it could bypass a normal
+				   ccb-op upcall. That would confuse the OI! */
+				TRACE_4("Failed to post ccb stale abort ipc-message");
+			} else {TRACE_3("Posted ccb %u stale abort ipc-message", oiCcb->ccbId);}
+			oiCcb->isStale = FALSE; /* Avoid sending the abort message again. */
+
+			TRACE_3("imma_proc_stale_dispatch: oi_ccb_record for %u terminated",
+				oiCcb->ccbId);
+			assert(imma_oi_ccb_record_terminate(cl_node, oiCcb->ccbId));
+			oiCcb = nextOiCcb;
+			callback = NULL;
+		}
     }
     TRACE_LEAVE();
 }
@@ -723,11 +835,19 @@ static void imma_proc_ccb_apply(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->type = IMMA_CALLBACK_OI_CCB_APPLY;
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.ccbCompl.ccbId;
-		callback->implId = evt->info.ccbCompl.implId;
-		callback->inv = evt->info.ccbCompl.invocation;
+		/*callback->implId = evt->info.ccbCompl.implId;*/
+		/*callback->inv = evt->info.ccbCompl.invocation;*/
 
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_APPLY");
+	}
+
+	if (imma_oi_ccb_record_terminate(cl_node, evt->info.ccbCompl.ccbId)) {
+		TRACE_2("CCB-APPLY-UC for %u received from IMMND - oi_ccb_record terminated",
+			evt->info.ccbCompl.ccbId);
+	} else {
+		TRACE_4("ERROR: CCB-APPLY-UC - CCB record non existentfor ccb %u",
+			evt->info.ccbCompl.ccbId);
 	}
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -766,10 +886,17 @@ static void imma_proc_ccb_abort(IMMA_CB *cb, IMMA_EVT *evt)
 		callback->type = IMMA_CALLBACK_OI_CCB_ABORT;
 		callback->lcl_imm_hdl = implHandle;
 		callback->ccbID = evt->info.ccbCompl.ccbId;
-		callback->implId = evt->info.ccbCompl.implId;
+		/*callback->implId = evt->info.ccbCompl.implId;*/
 
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
-		TRACE("Posted IMMA_CALLBACK_OI_CCB_ABORT");
+		TRACE("Posted IMMA_CALLBACK_OI_CCB_ABORT for ccb %u", evt->info.ccbCompl.ccbId);
+		if (imma_oi_ccb_record_terminate(cl_node, evt->info.ccbCompl.ccbId)) {
+			TRACE_2("CCB-ABORT-UC: oi_ccb_record for %u terminated", 
+				evt->info.ccbCompl.ccbId);
+		} else {
+			TRACE_4("ERROR: CCB-ABORT-UC - CCB record for ccb %u non existent", 
+				evt->info.ccbCompl.ccbId);
+		}
 	}
 
 	m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
@@ -818,7 +945,8 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
-		TRACE("Posted IMMA_CALLBACK_OI_CCB_DELETE");
+		TRACE("Posted IMMA_CALLBACK_OI_CCB_DELETE for ccb %u", evt->info.objDelete.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objDelete.ccbId);
 	}
 
 	/* Release The Lock */
@@ -881,7 +1009,8 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
-		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE");
+		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId);
 	}
 
 	/* Release The Lock */
@@ -942,9 +1071,9 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		evt->info.objModify.attrMods = NULL;	/*steal attrMods list */
 
 		/* Send the event */
-		TRACE("Posting IMMA_CALLBACK_OI_CCB_MODIFY");
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
-		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted");
+		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId);
 	}
 
 	/* Release The Lock */
@@ -1218,6 +1347,8 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
             usleep(sleep_delay_ms * 1000);
             msecs_waited += sleep_delay_ms;
         }
+		free(out_evt);
+		out_evt = NULL;
     }
 
     if (err != SA_AIS_OK)
@@ -1229,7 +1360,6 @@ uns32 imma_proc_resurrect_client(IMMA_CB *cb, SaImmHandleT immHandle, int isOm)
     TRACE("OK reply from IMMND on resurrect of handle %llx", immHandle);
 
     /* OK reply */
-    free(out_evt);
 
     /* Take the lock again. */
     if (m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) != NCSCC_RC_SUCCESS)
@@ -1328,7 +1458,7 @@ uns32 imma_hdl_callbk_dispatch_one(IMMA_CB *cb, SaImmHandleT immHandle)
 				return SA_AIS_ERR_BAD_HANDLE;
 			}
             m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-			imma_process_callback_info(cb, cl_node, callback);
+			imma_process_callback_info(cb, cl_node, callback, immHandle);
 			return SA_AIS_OK;
 		} else {
 			imma_proc_free_callback(callback);
@@ -1379,7 +1509,7 @@ uns32 imma_hdl_callbk_dispatch_all(IMMA_CB *cb, SaImmHandleT immHandle)
 			}
 
 			m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-			imma_process_callback_info(cb, cl_node, callback);
+			imma_process_callback_info(cb, cl_node, callback, immHandle);
 		} else {
 			imma_proc_free_callback(callback);
 			break;
@@ -1457,7 +1587,7 @@ uns32 imma_hdl_callbk_dispatch_block(IMMA_CB *cb, SaImmHandleT immHandle)
 				}
 
                 m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
-				imma_process_callback_info(cb, client_info, callback);
+				imma_process_callback_info(cb, client_info, callback, immHandle);
 			} else {
 				/* Another thread called Finalize? */
 				TRACE_3("Client dead?");
@@ -1512,15 +1642,18 @@ static int popAsyncAdmOpContinuation(IMMA_CB *cb,	//in
   Arguments     : cb  - ptr to the IMMA control block
                   cl_node - Client Node
                   callback - ptr to the registered callbacks
-                  isOm - SA_TRUE => OM, SA_FALSE => OI
+                  immHandle - handle used to re-fetch cl_node if necessary.
  
   Return Values : None
  
   Notes         : None
 ******************************************************************************/
-static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, IMMA_CALLBACK_INFO *callback)
+static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, 
+	IMMA_CALLBACK_INFO *callback, SaImmHandleT immHandle)
 {
-	/* No locking */
+	/* Not locked => the use of cl_node is a bit unsafe here. 
+	   We should at least have a dont-delete marking in the client node.
+	 */
 	TRACE_ENTER();
 	/* invoke the corresponding callback */
 #ifdef IMMA_OM
@@ -1543,6 +1676,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
         TRACE("Stale OM handle upcall completed");
         /* Do nothing. */
 		break;
+
 	default:
 		TRACE_3("Unrecognized OM callback type:%u", callback->type);
 		break;
@@ -1652,18 +1786,35 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 			/*async  fevs */
 
 			if (localEr == SA_AIS_OK)  {
-				/* replying OK => entering critical phase. 
+				/* replying OK => entering critical phase for this OI and this CCB.
 				   There can be many simultaneous OM clients starting CCBs that impact the same OI. 
 				   Some OIs may not accept this and may reject overlapping CCBs, but we can not
 				   assume this in the IMMSv implementation. 
 				*/
-				imma_client_node_get(&cb->client_tree, &(callback->lcl_imm_hdl), &cl_node);
-				if (cl_node && (cl_node->criticalCcbs< 0xff)) {
-					cl_node->criticalCcbs++;
+				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
+				if (cl_node && imma_oi_ccb_record_set_critical(cl_node, callback->ccbID)) {
+					TRACE_2("Sending normal OK response on completed for ccb %u. "
+						"The oi_ccb_record now marked as critical.", callback->ccbID);
+
+					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, 
+						&locked, FALSE);
+				} else {
+					TRACE_4("ERROR: Client node gone (%p), or CCB record for %u non existent. "
+						"Overiding OK response from ccb-completed with ERR_FAILED_OPERATION", 
+						cl_node, callback->ccbID);
+					ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result = 
+						SA_AIS_ERR_FAILED_OPERATION;
+
+					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, 
+						&locked, FALSE);
 				}
+			} else {
+				TRACE_2("Sending normal FAILED_OP response on completed. for ccb %u.",
+					callback->ccbID);
+				localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, 
+					&locked, FALSE);
 			}
 
-			localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, &locked, FALSE);
 
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
@@ -1704,22 +1855,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				TRACE_3("saImmOiCcbApplyCallback is not implemented, yet "
 					"implementer is registered and CCBs are used. Ccb will commit in any case");
 			}
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			/* Look up the client node again. */
-			imma_client_node_get(&cb->client_tree, &(cl_node->handle), &cl_node);
-			if (cl_node) {
-				if (cl_node->criticalCcbs) {
-					if (cl_node->criticalCcbs < 0xff) {
-						cl_node->criticalCcbs--;
-					}
-				} else {
-					/* Lost track of concurrent ccbs. 
-					   This can happen with aborts before apply upcall.
-					 */
-					cl_node->criticalCcbs = 0xff;
-				}
-			}
-			assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		} while (0);
 
 		break;
@@ -1923,6 +2058,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 					    cl_node->o.iCallbk.saImmOiCcbObjectDeleteCallback(callback->lcl_imm_hdl,
 											      ccbid, &(callback->name));
 
+				TRACE("ccb-object-delete callback returned RC:%u", localEr);
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
 				      localEr == SA_AIS_ERR_NO_RESOURCES || localEr == SA_AIS_ERR_BAD_OPERATION)) {
@@ -2064,7 +2200,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 #ifdef IMM_A_01_01
 				}
 #endif
-
 				TRACE("ccb-object-modify callback returned RC:%u", localEr);
 				if (!(localEr == SA_AIS_OK ||
 				      localEr == SA_AIS_ERR_NO_MEMORY ||
@@ -2164,22 +2299,6 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 				TRACE_3("saImmOiCcbAbortCallback is not implemented, yet "
 					"implementer is registered and CCBs are used. Ccb will abort anyway");
 			}
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			/* Look up the client node again. */
-			imma_client_node_get(&cb->client_tree, &(cl_node->handle), &cl_node);
-			if (cl_node) {
-				if (cl_node->criticalCcbs) {
-					if (cl_node->criticalCcbs < 0xff) {
-						cl_node->criticalCcbs--;
-					}
-				} else {
-					/* Lost track of concurrent ccbs.
-					   This can happen with aborts before completed upcall.
-					*/
-					cl_node->criticalCcbs = 0xff;
-				}
-			}
-			assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 		} while (0);
 
 		break;
@@ -2293,7 +2412,7 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node, I
 
 	case IMMA_CALLBACK_STALE_HANDLE:
         TRACE("Stale OI handle upcall completed");
-        /* Do nothing. */
+		imma_proc_terminate_critical_oi_ccbs(cb, cl_node);
 		break;
 
 	default:

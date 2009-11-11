@@ -240,9 +240,9 @@ SaAisErrorT saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
 
 		cl_node->handle = out_evt->info.imma.info.initRsp.immHandle;
 
-		TRACE_1("Trying to add OI client id:%u node:%x",
+		TRACE_1("Trying to add OI client id:%u node:%x handle:%llx",
             m_IMMSV_UNPACK_HANDLE_HIGH(cl_node->handle),
-            m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle));
+            m_IMMSV_UNPACK_HANDLE_LOW(cl_node->handle), cl_node->handle);
 		proc_rc = imma_client_node_add(&cb->client_tree, cl_node);
 		if (proc_rc != NCSCC_RC_SUCCESS) {
 			IMMA_CLIENT_NODE *stale_node = NULL;

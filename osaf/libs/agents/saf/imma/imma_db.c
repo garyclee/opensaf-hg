@@ -76,6 +76,9 @@ uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_
 	return NCSCC_RC_SUCCESS;
 }
 
+
+int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
+
 /****************************************************************************
   Name          : imma_client_node_delete
   Description   : This routine deletes the client from the client tree
@@ -101,6 +104,12 @@ uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node)
         free(cl_node->mImplementerName);
         cl_node->mImplementerName = NULL;
         cl_node->mImplementerId = 0;
+    }
+
+	/* Remove any ccb_records. */
+
+	while(cl_node->activeOiCcbs) {
+		imma_oi_ccb_record_delete(cl_node, cl_node->activeOiCcbs->ccbId);
     }
 
 	free(cl_node);
@@ -160,6 +169,113 @@ void imma_client_tree_cleanup(IMMA_CB *cb)
 }
 
 /****************************************************************************
+  Name          : imma_oi_ccb_record_find/add/terminate/delete
+  Description   : When OI receives a ccb related upcall, we add a record
+                  to the client structure keeping track of ccbId and if the ccb
+                  has reached critical state. This simplifies recovery processing
+                  in the case of IMMND crash. Non critical CCBs can then be aborted 
+                  autonomously by the IMMA because it knows the CCB had to be aborted.
+                  For critical ccbs, it has to recover ccb-outcomes from the
+                  restarted IMMND. 
+
+  Arguments     : IMMA_CLIENT_NODE *cl_node - client node.
+                : SaUint32T ccbId - the ccbId.
+
+******************************************************************************/
+struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	TRACE_ENTER();
+	struct imma_oi_ccb_record *tmp = cl_node->activeOiCcbs;
+	while (tmp && (tmp->ccbId != ccbId)) {
+		tmp = tmp->next;
+	}
+
+	if(tmp) TRACE("Record for ccbid:%u handle:%llx client:%p found", 
+		ccbId, cl_node->handle, cl_node);
+	else    TRACE("Record for ccbid:%u handle:%llx client:%p NOT found", 
+		ccbId, cl_node->handle, cl_node);
+
+	TRACE_LEAVE();
+	return tmp;
+}
+
+void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	TRACE_ENTER();
+	if(imma_oi_ccb_record_find(cl_node, ccbId)) return;
+
+	struct imma_oi_ccb_record *new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
+	new_ccb->ccbId = ccbId;
+	new_ccb->next = cl_node->activeOiCcbs;
+	cl_node->activeOiCcbs = new_ccb;
+	TRACE("Record for ccbid:%u handle:%llx client:%p added", 
+		ccbId, cl_node->handle, cl_node);
+	TRACE_LEAVE();
+}
+
+int imma_oi_ccb_record_delete(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	TRACE_ENTER();
+   	struct imma_oi_ccb_record **tmpp = &(cl_node->activeOiCcbs);
+	while ((*tmpp) && ((*tmpp)->ccbId != ccbId)) {
+		tmpp = &((*tmpp)->next);
+	}
+
+	if(*tmpp) {
+		struct imma_oi_ccb_record *to_delete = (*tmpp);
+		assert(to_delete->ccbId == ccbId);
+		if(to_delete->isCritical) {
+			TRACE_3("WARNING: Removing imma_oi_ccb_record ccb:%u handle:%llx client:%p in CRITICAL state", 
+				ccbId, cl_node->handle, cl_node);
+		} else {
+			TRACE_2("Removing imma_oi_ccb_record ccb:%u handle:%llx client:%p in non-critical state", 
+				ccbId, cl_node->handle, cl_node);
+		}
+		(*tmpp) = to_delete->next;
+		to_delete->next = NULL;
+		to_delete->ccbId = 0;
+		free(to_delete);
+		TRACE_LEAVE();
+		return 1;
+	}
+
+	TRACE_LEAVE();
+	return 0;
+}
+
+int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	TRACE_ENTER();
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp) {
+		tmp->isCritical = 0;
+		rs = imma_oi_ccb_record_delete(cl_node, ccbId);
+	}
+
+	TRACE_LEAVE();
+	return rs;
+}
+
+int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+{
+	TRACE_ENTER();
+	int rs = 0;
+	struct imma_oi_ccb_record *tmp = imma_oi_ccb_record_find(cl_node, ccbId);
+
+	if(tmp) {
+		assert(!tmp->isCritical);
+		tmp->isCritical = 1;
+		rs = 1;
+		TRACE("Record for ccbid:%u %llx %p set to critical", ccbId, cl_node->handle, cl_node);
+	}
+
+	TRACE_LEAVE();
+	return rs;
+}
+
+/****************************************************************************
   Name          : imma_mark_clients_stale
   Description   : If we have lost contact with IMMND over MDS, then mark all
                   handles stale. In addition, if handle is exposed
@@ -179,6 +295,8 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 	SaImmCcbHandleT ccb_temp_hdl = 0LL;
 	SaImmCcbHandleT *ccb_temp_ptr = NULL;
 
+	struct imma_oi_ccb_record *oiCcb = NULL;
+
 	IMMA_SEARCH_NODE *search_node = NULL;
 	SaImmSearchHandleT search_tmp_hdl = 0LL;
 	SaImmSearchHandleT *search_tmp_ptr = NULL;
@@ -191,7 +309,7 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 		temp_hdl = clnode->handle;
 		temp_ptr = &temp_hdl;
 
-
+		/* Process OM side CCBs */
 		while ((ccb_node = (IMMA_CCB_NODE *)
 				   ncs_patricia_tree_getnext(&cb->ccb_tree, (uns8 *)ccb_temp_ptr))) {
 			ccb_temp_hdl = ccb_node->ccb_hdl;
@@ -206,6 +324,14 @@ void imma_mark_clients_stale(IMMA_CB *cb)
 			}
 		}
 
+		/* Process OI side CCBs */
+		oiCcb = clnode->activeOiCcbs;
+		while (oiCcb) {
+			oiCcb->isStale = TRUE;
+			oiCcb = oiCcb->next;
+		}
+
+		/* Invalidate search handles */
 		while ((search_node = (IMMA_SEARCH_NODE *)
 				   ncs_patricia_tree_getnext(&cb->search_tree, (uns8 *)search_tmp_ptr))) {
 			search_tmp_hdl = search_node->search_hdl;
@@ -346,13 +472,7 @@ int isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode)
 			}
         } else { /* OI client. */
             TRACE("OI CLIENT");
-			if (clnode->criticalCcbs) { 
-				clnode->exposed = TRUE;
-				/* Instead of marking critical ccb clients as exposed 
-				   I should resurrect them and generate the appropriate
-				   up-call.
-				*/
-			}
+			/* No sematic checks for OI client exposed, currently. */
         }
     }
     TRACE("isExposed Returning Exposed:%u", clnode->exposed);
@@ -388,7 +508,7 @@ uns32 imma_admin_owner_tree_init(IMMA_CB *cb)
   Notes         : The caller takes the cb lock before calling this function                 
 ******************************************************************************/
 uns32 imma_admin_owner_node_get(NCS_PATRICIA_TREE *admin_owner_tree,
-				SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node)
+	              SaImmAdminOwnerHandleT *adm_hdl, IMMA_ADMIN_OWNER_NODE **adm_node)
 {
 	*adm_node = (IMMA_ADMIN_OWNER_NODE *)
 	    ncs_patricia_tree_get(admin_owner_tree, (uns8 *)adm_hdl);
