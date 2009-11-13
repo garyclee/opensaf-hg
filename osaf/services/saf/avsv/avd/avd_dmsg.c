@@ -100,14 +100,12 @@ void avd_mds_d_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_d_dec");
 
-	d2d_msg = m_MMGR_ALLOC_D2D_MSG;
+	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
 	if (d2d_msg == AVD_D2D_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_D2D_MSG_ALLOC_FAILED);
 		return;
 	}
-
-	memset(d2d_msg, '\0', sizeof(AVD_D2D_MSG));
 
 	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uns32));
 	d2d_msg->msg_type = ncs_decode_32bit(&data);
@@ -182,7 +180,7 @@ uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
 uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = AVD_CL_CB_NULL;
+	AVD_CL_CB *cb = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_d2d_msg_rcv");
 
@@ -193,7 +191,7 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 	}
 
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -202,15 +200,13 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(evt, '\0', sizeof(AVD_EVT));
-
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
 	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log error */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		/* free the message and return */
 		avsv_d2d_msg_free(rcv_msg);
 		return NCSCC_RC_FAILURE;
@@ -231,7 +227,7 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 		avsv_d2d_msg_free(rcv_msg);
 		evt->info.avd_msg = NULL;
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 
 		return NCSCC_RC_FAILURE;
 	}
@@ -260,5 +256,5 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 
 void avsv_d2d_msg_free(AVD_D2D_MSG *d2d_msg)
 {
-	m_MMGR_FREE_D2D_MSG(d2d_msg);
+	free(d2d_msg);
 }

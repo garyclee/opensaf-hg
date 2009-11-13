@@ -67,7 +67,7 @@ typedef struct avnd_pg_mem {
 /* pg declaration */
 typedef struct avnd_pg {
 	NCS_PATRICIA_NODE tree_node;	/* pg tree node (key is csi name) */
-	SaNameT csi_name_net;	/* pg identifier (csi name) */
+	SaNameT csi_name;	/* pg identifier (csi name) */
 
 	NCS_BOOL is_exist;	/* indicates if this csi exists in the cluster */
 	NCS_DB_LINK_LIST mem_list;	/* current members that belong to this pg */

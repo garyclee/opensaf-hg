@@ -81,11 +81,13 @@ extern "C" {
  * This structure holds a stored command operation. The stored data is
  * the same as the one passed in the operation call-back functions.
  */
-	struct CcbUtilOperationData {
+	typedef struct CcbUtilOperationData {
 		struct CcbUtilOperationData *next;
 		void *userData;
 		SaAisErrorT userStatus;
 		enum CcbUtilOperationType operationType;
+		SaNameT objectName;
+		SaImmOiCcbIdT ccbId;
 		union {
 			struct {
 				SaImmClassNameT className;
@@ -93,26 +95,26 @@ extern "C" {
 				const SaImmAttrValuesT_2 **attrValues;
 			} create;
 			struct {
-				const SaNameT *objectName;
+				const SaNameT *objectName; // redundant, can be removed
 			} deleteOp;
 			struct {
-				const SaNameT *objectName;
+				const SaNameT *objectName; // redundant, can be removed
 				const SaImmAttrModificationT_2 **attrMods;
 			} modify;
 		} param;
-	};
+	} CcbUtilOperationData_t;
 
 /**
  * A CCB object, holds the stored operations for a CCB. 
  */
-	struct CcbUtilCcbData {
+	typedef struct CcbUtilCcbData {
 		struct CcbUtilCcbData *next;
-		SaImmOiCcbIdT id;
+		SaImmOiCcbIdT ccbId;
 		void *userData;
 		void *memref;
 		struct CcbUtilOperationData *operationListHead;
 		struct CcbUtilOperationData *operationListTail;
-	};
+	} CcbUtilCcbData_t;
 
 /**
  * Find a CCB object.
@@ -138,7 +140,7 @@ extern "C" {
 /**
  * Add a Create operation to a CCB data object.
  */
-	void ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb,
+	CcbUtilOperationData_t *ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb,
 					   const SaImmClassNameT className,
 					   const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues);
 
@@ -146,12 +148,28 @@ extern "C" {
  * Add a Delete operation to a CCB data object.
  */
 	void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *objectName);
+	
+/**
+ * Add a Modify operation to a CCB data object. Modify of an object that is beeing created in the
+ * same CCB is not allowed.
+ * @param ccb The owning CCB object
+ * @param objectName DN
+ * @param attrMods modifications
+ * @return 0 if OK, -1 otherwise
+ */
+	int ccbutil_ccbAddModifyOperation(CcbUtilCcbData_t *ccb,
+		const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods);
+
+CcbUtilOperationData_t *ccbutil_getNextCcbOp(SaImmOiCcbIdT id, CcbUtilOperationData_t *opData);
 
 /**
- * Add a Modify operation to a CCB data object.
+ * Find a CCB operation using DN
+ * @param id
+ * @param dn
+ * 
+ * @return CcbUtilOperationData_t*
  */
-	void ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
-					   const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods);
+CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT id, const SaNameT *dn);
 
 /*@}*/
 /**
@@ -243,6 +261,17 @@ extern "C" {
 	const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index);
 
 /**
+ * Return how many values a named attribute has
+ * @param attrName
+ * @param attr
+ * @param attrValuesNumber
+ * 
+ * @return SaAisErrorT
+ */
+extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
+	const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber);
+
+/**
  * Return the value for a named attribute from the supplied
  * attribute array. Convert the returned value to the specified
  * type and store in the supplied parameter.
@@ -258,7 +287,7 @@ extern "C" {
  * @return SaAisErrorT SA_AIS_OK when conversion was successful
  */
         extern SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
-            SaImmAttrValuesT_2 **attr, SaUint32T index, void *param);
+		const SaImmAttrValuesT_2 **attr, SaUint32T index, void *param);
 
 /**
  * Works as "strchr()" but with a length limit. It is provided here

@@ -31,7 +31,7 @@ miblib:
 		touch miblib.gen; \
 	fi)
 
-SUBDIRS = avd avm avnd
+SUBDIRS = avm
 
 CLEANFILES = \
 	TEMP_ESMI_DUMP.MIB \

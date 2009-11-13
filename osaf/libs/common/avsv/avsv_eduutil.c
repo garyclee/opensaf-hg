@@ -37,7 +37,6 @@
 #include "avsv.h"
 #include "ncs_saf_edu.h"
 #include "avsv_eduutil.h"
-#include "avsv_d2nmem.h"
 
 /*****************************************************************************
 

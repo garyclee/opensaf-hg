@@ -34,8 +34,9 @@
 #ifndef AVD_SUSI_H
 #define AVD_SUSI_H
 
-struct avd_comp_csi_rel_tag;
-struct avd_csi_tag;
+#include <avd_su.h>
+#include <avd_si.h>
+#include <avd_ntf.h>
 
 typedef enum {
 	AVD_SU_SI_STATE_ABSENT = 1,
@@ -69,10 +70,8 @@ typedef struct avd_su_si_rel_tag {
 /* SusperSiRank table index structure */
 typedef struct avd_sus_per_si_rank_index_tag {
 
-	SaNameT si_name_net;	/* Name of the SI with the length
-				 * field in the network order. */
-	uns32 su_rank_net;	/* The rank of the SU for that SI
-				 * In the network order */
+	SaNameT si_name;
+	uns32 su_rank;	/* The rank of the SU */
 
 } AVD_SUS_PER_SI_RANK_INDX;
 
@@ -85,7 +84,8 @@ typedef struct avd_sus_per_si_rank_tag {
 	NCS_PATRICIA_NODE tree_node;	/* key will be the SI name and Rank */
 	AVD_SUS_PER_SI_RANK_INDX indx;	/* Table index */
 	SaNameT su_name;	/* name of the SU as SaNameT */
-	NCS_ROW_STATUS row_status;	/* row status of this MIB row */
+	struct avd_si_tag *sus_per_si_rank_on_si;
+	struct avd_sus_per_si_rank_tag *sus_per_si_rank_list_si_next;
 
 } AVD_SUS_PER_SI_RANK;
 
@@ -129,8 +129,8 @@ typedef struct avd_sus_per_si_rank_tag {
 #define m_AVD_SU_SI_TRG_DEL(cb,susi) \
 {\
    AVD_SI *l_si=susi->si;\
-   m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, susi, AVSV_CKPT_AVD_SU_SI_REL);\
-   avd_susi_struc_del(cb,susi,FALSE);\
+   m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, susi, AVSV_CKPT_AVD_SI_ASS);\
+   avd_susi_delete(cb,susi,FALSE);\
    if ((l_si != AVD_SI_NULL) && (l_si->list_of_sisu == AVD_SU_SI_REL_NULL))\
    {\
       avd_gen_si_unassigned_ntf(cb,l_si);\
@@ -138,46 +138,16 @@ typedef struct avd_sus_per_si_rank_tag {
    }\
 }
 
-EXTERN_C AVD_SU_SI_REL *avd_susi_struc_crt(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su);
-EXTERN_C AVD_SU_SI_REL *avd_susi_struc_find(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name, NCS_BOOL host_order);
-EXTERN_C AVD_SU_SI_REL *avd_su_susi_struc_find(AVD_CL_CB *cb, AVD_SU *su, SaNameT si_name, NCS_BOOL host_order);
-EXTERN_C AVD_SU_SI_REL *avd_susi_struc_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name, NCS_BOOL host_order);
-EXTERN_C uns32 avd_susi_struc_del(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt);
-EXTERN_C uns32 saamfsusitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfsusitableentry_extract(NCSMIB_PARAM_VAL *param,
-					   NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfsusitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfsusitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfsusitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					  NCSMIB_SETROW_PARAM_VAL *params,
-					  struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+EXTERN_C AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHAStateT state);
+EXTERN_C AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaNameT *si_name);
+extern void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT *su_dn);
 
-EXTERN_C uns32 saamfsusitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
-EXTERN_C AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_crt(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
-
-EXTERN_C AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
-
-EXTERN_C AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
-EXTERN_C AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank_struc_find_valid_next(AVD_CL_CB *, AVD_SUS_PER_SI_RANK_INDX,
-									AVD_SU **);
-
-EXTERN_C uns32 avd_sus_per_si_rank_struc_del(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *rank_elt);
-
-EXTERN_C uns32 saamfsuspersirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-
-EXTERN_C uns32 saamfsuspersirankentry_extract(NCSMIB_PARAM_VAL *param,
-					      NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-
-EXTERN_C uns32 saamfsuspersirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					  NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-
-EXTERN_C uns32 saamfsuspersirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					   NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-
-EXTERN_C uns32 saamfsuspersirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					     NCSMIB_SETROW_PARAM_VAL *params,
-					     struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+EXTERN_C AVD_SU_SI_REL *avd_su_susi_find(AVD_CL_CB *cb, AVD_SU *su, const SaNameT *si_name);
+EXTERN_C AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_name);
+EXTERN_C uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt);
+extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
+	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su);
+extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
+extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
 
 #endif

@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -14,16 +14,15 @@
 # Author(s): Wind River Systems
 #
 
-PROG = avsv_demo
+PROG = amf_demo
 
-SRCS = avsv_amf.c avsv_app.c avsv_ckpt.c avsv_main.c
-OBJS = avsv_amf.o avsv_app.o avsv_ckpt.o avsv_main.o
+SRCS = amf_demo.c
+OBJS = amf_demo.o
 
 CC = gcc
 CFLAGS = -g -O2 -Wall -fPIC
 INCLUDES = -I. -I/usr/include/opensaf
-CPPFLAGS = -DNCS_SAF=1
-LDFLAGS = -lSaAmf -lsaf_common -lavsv_common -lSaCkpt
+LDFLAGS = -lSaAmf -lavsv_common -lopensaf_core
 
 all: $(PROG)
 
@@ -37,4 +36,4 @@ depend:
 	makedepend ${INCLUDES} ${SRCS}
 
 clean:
-	rm -f *.o core *~ $(PROG)
+	rm -f *.o core *~ $(PROG) *.tgz

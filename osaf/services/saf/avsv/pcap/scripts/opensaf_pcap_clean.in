@@ -18,9 +18,9 @@
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-XTERM=""
-echo "Cleanup PCAP..."
-killall ncs_pcap
-rm -f "$PIDPATH/ncs_pcap.pid"
+DAEMON=opensaf_pcap
+echo "Cleanup $DAEMON..."
+killall $DAEMON
+rm -f "$PIDPATH/$DAEMON.pid"
 exit 0
 

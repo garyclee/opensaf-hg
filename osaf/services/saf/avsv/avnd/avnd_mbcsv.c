@@ -374,8 +374,8 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				if (arg->info.decode.i_reo_type < AVND_CKPT_MSG_MAX)
 					status =
 					    avnd_dec_ckpt_data_func_list[arg->info.decode.i_reo_type] (cb,
-												       &arg->info.
-												       decode);
+												       &arg->
+												       info.decode);
 				else {
 					m_AVND_LOG_INVALID_VAL_FATAL(arg->info.decode.i_reo_type);
 					status = NCSCC_RC_FAILURE;
@@ -416,8 +416,7 @@ static uns32 avnd_mbcsv_process_dec_cb(AVND_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * as in sync. 
 			 */
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
-			    (NCSCC_RC_SUCCESS == status))
-			{
+			    (NCSCC_RC_SUCCESS == status)) {
 
 				cb->stby_sync_state = AVND_STBY_IN_SYNC;
 				m_AVND_AVND_SUCC_LOG("avnd_mbcsv_process_dec_cb: Cold Sync Completed",
@@ -884,7 +883,7 @@ uns32 avnd_send_ckpt_data(AVND_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, uns3
 		break;
 
 	case AVND_CKPT_CSI_REC:
-	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME:
 	case AVND_CKPT_COMP_CSI_TRANS_DESC:
 	case AVND_CKPT_COMP_CSI_STANDBY_RANK:
 	case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
@@ -1043,13 +1042,11 @@ static uns32 avnd_enqueue_async_update_msgs(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
-	if (NULL == (updt_msg = m_MMGR_ALLOC_AVND_ASYNC_UPDT)) {
+	if (NULL == (updt_msg = calloc(1, sizeof(AVND_ASYNC_UPDT_MSG_QUEUE)))) {
 		/* Log error */
 		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(updt_msg, '\0', sizeof(AVND_ASYNC_UPDT_MSG_QUEUE));
 
 	updt_msg->dec = *dec;
 
@@ -1099,7 +1096,7 @@ uns32 avnd_dequeue_async_update_msgs(AVND_CB *cb, NCS_BOOL pr_or_fr)
 		if (pr_or_fr)
 			status = avnd_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
 
-		m_MMGR_FREE_AVND_ASYNC_UPDT(updt_msg);
+		free(updt_msg);
 	}
 
 	/* All messages are dequeued. Set tail to NULL */
@@ -1245,7 +1242,7 @@ static uns32 avnd_validate_reo_type_in_csync(AVND_CB *cb, uns32 reo_type)
 		break;
 
 	case AVND_CKPT_CSI_REC:
-	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME:
 	case AVND_CKPT_COMP_CSI_TRANS_DESC:
 	case AVND_CKPT_COMP_CSI_STANDBY_RANK:
 	case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
@@ -1484,7 +1481,7 @@ uns32 avnd_ckpt_for_ext(AVND_CB *cb, MBCSV_REO_HDL reo_hdl, uns32 reo_type)
 		break;
 
 	case AVND_CKPT_CSI_REC:
-	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME_NET:
+	case AVND_CKPT_COMP_CSI_ACT_COMP_NAME:
 	case AVND_CKPT_COMP_CSI_TRANS_DESC:
 	case AVND_CKPT_COMP_CSI_STANDBY_RANK:
 	case AVND_CKPT_COMP_CSI_CURR_ASSIGN_STATE:
@@ -1638,7 +1635,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 				}
 
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 		}		/* while(su != 0) */
 	}
 /******************  Starting SU Timers ends here *******************************/
@@ -1711,7 +1708,7 @@ uns32 avnd_ha_state_act_hdlr(AVND_CB *cb)
 
 			}	/* if(TRUE == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
-			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 		}		/* while(comp != 0) */
 	}
 /******************  Starting Component Timers ends here ********************/

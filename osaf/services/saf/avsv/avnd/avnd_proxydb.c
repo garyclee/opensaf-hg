@@ -52,7 +52,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 				    NULL, mds_dest, node_id, 0, 0);
 		return NCSCC_RC_FAILURE;
 	} else {
-		rec = m_MMGR_ALLOC_AVND_NODEID_MDSDEST;
+		rec = malloc(sizeof(AVND_NODEID_TO_MDSDEST_MAP));
 
 		if (rec == NULL) {
 			return NCSCC_RC_FAILURE;
@@ -68,7 +68,7 @@ uns32 avnd_nodeid_mdsdest_rec_add(AVND_CB *cb, MDS_DEST mds_dest)
 				m_AVND_AVND_ERR_LOG
 				    ("Couldn't add nodeid_mdsdest rec, patricia add failed: MdsDest and NodeId are",
 				     NULL, mds_dest, node_id, 0, 0);
-				m_MMGR_FREE_AVND_NODEID_MDSDEST(rec);
+				free(rec);
 				return res;
 			}
 
@@ -119,7 +119,7 @@ uns32 avnd_nodeid_mdsdest_rec_del(AVND_CB *cb, MDS_DEST mds_dest)
 
 	}			/* Else of if(rec == NULL) */
 
-	m_MMGR_FREE_AVND_NODEID_MDSDEST(rec);
+	free(rec);
 
 	m_AVND_AVND_SUCC_LOG("nodeid_mdsdest rec deleted: MdsDest and NodeId are", NULL, mds_dest, node_id, 0, 0);
 	return res;
@@ -200,7 +200,7 @@ uns32 avnd_nodeid_to_mdsdest_map_db_destroy(AVND_CB *cb)
 	while (0 != (mapping =
 		     (AVND_NODEID_TO_MDSDEST_MAP *)ncs_patricia_tree_getnext(&cb->nodeid_mdsdest_db, (uns8 *)0))) {
 		/* delete the record */
-		rc = avnd_nodeid_mdsdest_rec_del(cb, mapping->node_id);
+		rc = avnd_nodeid_mdsdest_rec_del(cb, mapping->mds_dest);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto err;
 	}
@@ -267,7 +267,7 @@ uns32 avnd_internode_avail_comp_db_destroy(AVND_CB *cb)
 	while (0 != (comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)0))) {
 		/* delete the record */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
-		rc = avnd_internode_comp_del(cb, &cb->internode_avail_comp_db, &comp->name_net);
+		rc = avnd_internode_comp_del(cb, &cb->internode_avail_comp_db, &comp->name);
 		if (NCSCC_RC_SUCCESS != rc)
 			goto err;
 	}
@@ -322,18 +322,16 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	}
 
 	/* a fresh comp... */
-	comp = m_MMGR_ALLOC_AVND_COMP;
+	comp = calloc(1, sizeof(AVND_COMP));
 	if (!comp) {
 		*rc = SA_AIS_ERR_NO_MEMORY;
 		goto err;
 	}
 
-	memset(comp, 0, sizeof(AVND_COMP));
-
 	/* update the comp-name (patricia key) */
-	memcpy(&comp->name_net, name, sizeof(SaNameT));
+	memcpy(&comp->name, name, sizeof(SaNameT));
 
-	comp->pres = NCS_PRES_UNINSTANTIATED;
+	comp->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
 
 	if (0 == node_id) {
 		/* This means this is an external component. */
@@ -359,7 +357,7 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 
 	/* Add to the patricia tree. */
 	comp->tree_node.bit = 0;
-	comp->tree_node.key_info = (uns8 *)&comp->name_net;
+	comp->tree_node.key_info = (uns8 *)&comp->name;
 	*rc = ncs_patricia_tree_add(ptree, &comp->tree_node);
 	if (NCSCC_RC_SUCCESS != *rc) {
 		*rc = SA_AIS_ERR_NO_MEMORY;
@@ -367,13 +365,13 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
 	}
 
 	m_AVND_AVND_DEBUG_LOG("avnd_internode_comp_add:Comp, nodeid, pxy_for_ext_comp and comp_is_proxy",
-			      &comp->name_net, node_id, pxy_for_ext_comp, comp_is_proxy, 0);
+			      &comp->name, node_id, pxy_for_ext_comp, comp_is_proxy, 0);
 	return comp;
 
  err:
 
 	if (comp) {
-		m_MMGR_FREE_AVND_COMP(comp);
+		free(comp);
 	}
 
 	m_AVND_AVND_ERR_LOG("avnd_internode_comp_add failed. Comp and NodeId are", name, node_id, 0, 0, 0);
@@ -387,28 +385,28 @@ AVND_COMP *avnd_internode_comp_add(NCS_PATRICIA_TREE *ptree, SaNameT *name,
   Description   : This routine deletes an internode component from internode_avail_comp_db.
  
   Arguments     : ptree  - ptr to the patricia tree of data base.
-                  name_net - ptr to the component name.
+                  name - ptr to the component name.
                         
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name_net)
+uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *name)
 {
 	AVND_COMP *comp = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_COMP_CBK *cbk_rec = NULL, *temp_cbk_ptr = NULL;
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(*ptree, *name_net);
+	comp = m_AVND_COMPDB_REC_GET(*ptree, *name);
 	if (!comp) {
 		rc = AVND_ERR_NO_COMP;
-		m_AVND_AVND_ERR_LOG("internode_comp_del failed. Rec doesn't exist. Comp is", name_net, 0, 0, 0, 0);
+		m_AVND_AVND_ERR_LOG("internode_comp_del failed. Rec doesn't exist. Comp is", name, 0, 0, 0, 0);
 		goto err;
 	}
 	m_AVND_AVND_ENTRY_LOG("avnd_internode_comp_del:Comp, nodeid and comp_type",
-			      &comp->name_net, comp->node_id, comp->comp_type, 0, 0);
+			      &comp->name, comp->node_id, comp->comp_type, 0, 0);
 
 /*  Delete the callbacks if any. */
 	cbk_rec = comp->cbk_list;
@@ -430,16 +428,16 @@ uns32 avnd_internode_comp_del(AVND_CB *cb, NCS_PATRICIA_TREE *ptree, SaNameT *na
 
 	/* free the memory */
 	if (comp)
-		m_MMGR_FREE_AVND_COMP(comp);
+		free(comp);
 	return rc;
 
  err:
 
 	/* free the memory */
 	if (comp)
-		m_MMGR_FREE_AVND_COMP(comp);
+		free(comp);
 
-	m_AVND_AVND_ERR_LOG("internode_comp_del failed. Comp and rc are", name_net, rc, 0, 0, 0);
+	m_AVND_AVND_ERR_LOG("internode_comp_del failed. Comp and rc are", name, rc, 0, 0, 0);
 
 	return rc;
 

@@ -33,7 +33,9 @@
 #ifndef AVD_DBLOG_H
 #define AVD_DBLOG_H
 
-#include "avsv_log.h"
+#include <saAis.h>
+#include <avsv_log.h>
+#include <dta_papi.h>
 
 /******************************************************************************
  Logging offset indexes for Headline logging
@@ -245,8 +247,6 @@ typedef enum avd_log_ids {
 	AVD_LID_GENLOG,
 } AVD_LOG_IDS;
 
-#if (NCS_AVD_LOG == 1)
-
 #define avd_log(severity, format, args...) _avd_log((severity), __FUNCTION__, (format), ##args)
 #define avd_trace(format, args...) _avd_trace(__FILE__, __LINE__, (format), ##args)
 
@@ -272,22 +272,6 @@ typedef enum avd_log_ids {
 {\
    NCSFL_PDU nam_val;\
    nam_val.len = lent;\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL_NAME, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_EMERGENCY, "TICLP",AVD_INVALID_VAL,__FILE__, __LINE__,nam_val);\
-}
-
-#define m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL_NAME, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_ERROR, "TICLP",AVD_INVALID_VAL,__FILE__, __LINE__,nam_val);\
-}
-
-#define m_AVD_LOG_INVALID_NAME_NET_VAL_FATAL(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
    nam_val.dump = (char *)addrs;\
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL_NAME, AVD_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL, NCSFL_SEV_EMERGENCY, "TICLP",AVD_INVALID_VAL,__FILE__, __LINE__,nam_val);\
 }
@@ -355,59 +339,14 @@ typedef enum avd_log_ids {
    ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL_NAME, AVD_FC_HDLN, NCSFL_LC_DATA, NCSFL_SEV_DEBUG, "TICLP",AVD_RCVD_VAL,__FILE__, __LINE__,nam_val);\
 }
 
-#define m_AVD_LOG_RCVD_NAME_NET_VAL(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_HDLN_VAL_NAME, AVD_FC_HDLN, NCSFL_LC_DATA, NCSFL_SEV_DEBUG, "TICLP",AVD_RCVD_VAL,__FILE__, __LINE__,nam_val);\
-}
-
 #define m_AVD_LOG_CKPT_EVT(evt, sev, v) ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_EVT_CKPT, AVSV_FC_CKPT, NCSFL_LC_MSG_CKPT, sev, NCSFL_TYPE_TIL, evt, v)
 
-#else				/* (NCS_AVD_LOG == 1) */
-#define m_AVD_LOG_FUNC_ENTRY(func_name)
-#define m_AVD_LOG_INVALID_VAL_ERROR(data)
-#define m_AVD_LOG_INVALID_VAL_FATAL(data)
-#define m_AVD_LOG_INVALID_SVAL_ERROR(data)
-#define m_AVD_LOG_INVALID_SVAL_FATAL(data)
-#define m_AVD_LOG_INVALID_NAME_VAL_ERROR(addrs,lent)
-#define m_AVD_LOG_INVALID_NAME_VAL_FATAL(addrs,lent)
-#define m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(addrs,lent_net)
-#define m_AVD_LOG_INVALID_NAME_NET_VAL_FATAL(addrs,lent_net)
-#define m_AVD_LOG_MEM_FAIL(memtype)
-#define m_AVD_LOG_MEM_FAIL_LOC(memtype)
-#define m_AVD_LOG_SEAPI_INIT_INFO(flag)
-#define m_AVD_LOG_SEAPI_DSTR_INFO(flag)
-#define m_AVD_LOG_MDS_ERROR(func)
-#define m_AVD_LOG_MDS_CRITICAL(func)
-#define m_AVD_LOG_MDS_SUCC(func)
-#define m_AVD_LOG_LOCK_ERROR(func)
-#define m_AVD_PXY_PXD_SUCC_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_PXY_PXD_ERR_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_PXY_PXD_ENTRY_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVD_LOG_LOCK_SUCC(func)
-#define m_AVD_LOG_MBX_ERROR(func)
-#define m_AVD_LOG_MBX_SUCC(func)
-#define m_AVD_LOG_EVT_INFO(evttyp,evtval)
-#define m_AVD_LOG_EVT_INVAL(evtval)
-#define m_AVD_LOG_MSG_DND_SND_INFO(msgtype,node)
-#define m_AVD_LOG_MSG_DND_RCV_INFO(act,msgptr,node)
-#define m_AVD_LOG_MSG_DND_DUMP(sev,addrs,lent,mem)
-#define m_AVD_LOG_RCVD_VAL(data)
-#define m_AVD_LOG_RCVD_NAME_VAL(addrs,lent)
-#define m_AVD_LOG_RCVD_NAME_NET_VAL(addrs,lent_net)
-#define m_AVD_LOG_CKPT_EVT(evt, sev, v)
-#endif   /* (NCS_AVD_LOG == 1) */
-
-#if (NCS_AVD_LOG == 1)
 /* registers the AVD logging with FLA. */
 EXTERN_C void avd_flx_log_reg(void);
 /* unregisters the AVD logging with FLA. */
 EXTERN_C void avd_flx_log_dereg(void);
-#endif   /* (NCS_AVD_LOG == 1) */
 
-EXTERN_C void avd_log_shutdown_failure(SaNameT *node_name_net, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode);
+EXTERN_C void avd_log_shutdown_failure(SaNameT *node_name, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode);
 
 EXTERN_C void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev);
 
@@ -417,12 +356,12 @@ EXTERN_C void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name_n
 
 EXTERN_C void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, uns8 sev);
 
-EXTERN_C void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state, SaNameT *su_name_net,
+EXTERN_C void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state, SaNameT *su_name,
 				   SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged);
-void avd_pxy_pxd_log(uns32 sev, uns32 index, uns8 *info, SaNameT *comp_name,
+void avd_pxy_pxd_log(uns32 sev, uns32 index, char *info, SaNameT *comp_name,
 		     uns32 info1, uns32 info2, uns32 info3, uns32 info4);
 
-extern void _avd_log(uns8 severity, const char *function, const char *format, ...);
-extern void _avd_trace(const char *file, unsigned int line, const char *format, ...);
+extern void _avd_log(uns8 severity, const char *function, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+extern void _avd_trace(const char *file, unsigned int line, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
 #endif   /* AVD_DBLOG_H */

@@ -189,7 +189,7 @@ static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 	}
 
 	/* Get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, arg->i_client_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, arg->i_client_hdl)) == NULL) {
 		/* Log error and free the received UBA */
 		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
@@ -442,16 +442,14 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * as in sync. 
 			 */
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
-			    (NCSCC_RC_SUCCESS == status))
-			{
+			    (NCSCC_RC_SUCCESS == status)) {
 				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE,
-						   NCSFL_SEV_INFO, arg->info.decode.i_reo_type);
+						   NCSFL_SEV_NOTICE, arg->info.decode.i_reo_type);
 
 				cb->stby_sync_state = AVD_STBY_IN_SYNC;
 
 				/* Start Heart Beating with the peer */
 				avd_init_heartbeat(cb);
-
 			}
 
 			cb->synced_reo_type = arg->info.decode.i_reo_type;
@@ -613,25 +611,37 @@ static uns32 avsv_mbcsv_process_err_ind(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 {
 	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_process_err_ind");
 
-	avd_log(NCSFL_SEV_WARNING, "%u", arg->info.error.i_code);
-
 	switch (arg->info.error.i_code) {
 	case NCS_MBCSV_COLD_SYNC_TMR_EXP:
+		avd_log(NCSFL_SEV_WARNING, "cold sync tmr exp");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_TMR_EXP:
+		avd_log(NCSFL_SEV_WARNING, "warm sync tmr exp");
 		break;
 
 	case NCS_MBCSV_DATA_RSP_CMPLT_TMR_EXP:
+		avd_log(NCSFL_SEV_WARNING, "data rsp cmplt tmr exp");
 		break;
 
 	case NCS_MBCSV_COLD_SYNC_CMPL_TMR_EXP:
+		avd_log(NCSFL_SEV_WARNING, "cold sync cmpl tmr exp");
 		break;
 
 	case NCS_MBCSV_WARM_SYNC_CMPL_TMR_EXP:
+		avd_log(NCSFL_SEV_WARNING, "warm sync cmpl tmr exp");
 		break;
 
 	case NCS_MBCSV_DATA_RESP_TERMINATED:
+		avd_log(NCSFL_SEV_WARNING, "data rsp term");
+		break;
+
+	case NCS_MBCSV_COLD_SYNC_RESP_TERMINATED:
+		avd_log(NCSFL_SEV_WARNING, "cold sync rsp term");
+		break;
+
+	case NCS_MBCSV_WARM_SYNC_RESP_TERMINATED:
+		avd_log(NCSFL_SEV_WARNING, "warm sync rsp term");
 		break;
 
 	default:
@@ -780,22 +790,20 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 
 	/* It may happen that this function has been called before AvND has come
 	   up, so just return SUCCESS. Send the role change when AvND comes up. */
-	if ((avnd = avd_avnd_struc_find_nodeid(cb, node_id)
+	if ((avnd = avd_node_find_nodeid(node_id)
 	    ) == AVD_AVND_NULL) {
 		m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change: avnd is NULL. Comp,node_id and role are",
 				      NULL, node_id, role, 0, 0);
 		goto done;
 	}
 
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	d2n_msg->msg_type = AVSV_D2N_ROLE_CHANGE_MSG;
 	d2n_msg->msg_info.d2n_role_change_info.msg_id = ++(avnd->snd_msg_id);
@@ -816,8 +824,7 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 
-	m_AVD_PXY_PXD_SUCC_LOG("avd_avnd_send_role_change: Role sent SUCC. Comp, node_id and role are",
-			       NULL, node_id, role, 0, 0);
+	avd_log(NCSFL_SEV_NOTICE, "Role sent SUCC. node_id=%x, role=%u", node_id, role);
 
 	/*avsv_dnd_msg_free(d2n_msg); */
 
@@ -945,15 +952,19 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 		cb->async_updt_cnt.cb_updt++;
 		break;
 
-	case AVSV_CKPT_AVD_AVND_CONFIG:
+	case AVSV_CKPT_AVD_NODE_CONFIG:
 	case AVSV_CKPT_AVND_NODE_UP_INFO:
-	case AVSV_CKPT_AVND_SU_ADMIN_STATE:
+	case AVSV_CKPT_AVND_ADMIN_STATE:
 	case AVSV_CKPT_AVND_OPER_STATE:
 	case AVSV_CKPT_AVND_NODE_STATE:
 	case AVSV_CKPT_AVND_RCV_MSG_ID:
 	case AVSV_CKPT_AVND_SND_MSG_ID:
 	case AVSV_CKPT_AVND_AVM_OPER_STATE:
-		cb->async_updt_cnt.avnd_updt++;
+		cb->async_updt_cnt.node_updt++;
+		break;
+
+	case AVSV_CKPT_AVD_APP_CONFIG:
+		cb->async_updt_cnt.app_updt++;
 		break;
 
 	case AVSV_CKPT_AVD_SG_CONFIG:
@@ -974,7 +985,7 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 	case AVSV_CKPT_SU_SWITCH:
 	case AVSV_CKPT_SU_OPER_STATE:
 	case AVSV_CKPT_SU_PRES_STATE:
-	case AVSV_CKPT_SU_REDINESS_STATE:
+	case AVSV_CKPT_SU_READINESS_STATE:
 	case AVSV_CKPT_SU_ACT_STATE:
 	case AVSV_CKPT_SU_PREINSTAN:
 		cb->async_updt_cnt.su_updt++;
@@ -997,42 +1008,24 @@ uns32 avsv_send_ckpt_data(AVD_CL_CB *cb, uns32 action, MBCSV_REO_HDL reo_hdl, un
 		break;
 
 	case AVSV_CKPT_AVD_COMP_CONFIG:
-	case AVSV_CKPT_COMP_PROXY_COMP_NAME_NET:
+	case AVSV_CKPT_COMP_CURR_PROXY_NAME:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_STBY:
 	case AVSV_CKPT_COMP_OPER_STATE:
+	case AVSV_CKPT_COMP_READINESS_STATE:
 	case AVSV_CKPT_COMP_PRES_STATE:
 	case AVSV_CKPT_COMP_RESTART_COUNT:
 		cb->async_updt_cnt.comp_updt++;
 		break;
-
-	case AVSV_CKPT_AVD_CSI_CONFIG:
-		cb->async_updt_cnt.csi_updt++;
-		break;
-
-	case AVSV_CKPT_AVD_SU_SI_REL:
-		cb->async_updt_cnt.su_si_rel_updt++;
+	case AVSV_CKPT_AVD_SI_ASS:
+		cb->async_updt_cnt.siass_updt++;
 		break;
 
 	case AVSV_SYNC_COMMIT:
 		break;
 
-		/* case AVSV_CKPT_AVD_CSI_PARAM_LIST: not req: updated with CSI */
-		/* case AVSV_CKPT_AVD_COMP_CSI_REL:  - is not require */
-	case AVSV_CKPT_AVD_HLT_CONFIG:
-		cb->async_updt_cnt.hlt_updt++;
-		break;
-
-	case AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG:
-		cb->async_updt_cnt.sus_per_si_rank_updt++;
-		break;
-
 	case AVSV_CKPT_AVD_COMP_CS_TYPE_CONFIG:
-		cb->async_updt_cnt.comp_cs_type_sup_updt++;
-		break;
-
-	case AVSV_CKPT_AVD_CS_TYPE_PARAM_CONFIG:
-		cb->async_updt_cnt.cs_type_param_updt++;
+		cb->async_updt_cnt.compcstype_updt++;
 		break;
 
 	default:
@@ -1172,13 +1165,11 @@ static uns32 avsv_enqueue_async_update_msgs(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	/*
 	 * This is a FIFO queue. Add message at the tail of the queue.
 	 */
-	if (NULL == (updt_msg = m_MMGR_ALLOC_ASYNC_UPDT)) {
+	if (NULL == (updt_msg = calloc(1, sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE)))) {
 		/* Log error */
 		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(updt_msg, '\0', sizeof(AVSV_ASYNC_UPDT_MSG_QUEUE));
 
 	updt_msg->dec = *dec;
 
@@ -1228,7 +1219,7 @@ uns32 avsv_dequeue_async_update_msgs(AVD_CL_CB *cb, NCS_BOOL pr_or_fr)
 		if (pr_or_fr)
 			status = avsv_dec_ckpt_data_func_list[updt_msg->dec.i_reo_type] (cb, &updt_msg->dec);
 
-		m_MMGR_FREE_ASYNC_UPDT(updt_msg);
+		free(updt_msg);
 	}
 
 	/* All messages are dequeued. Set tail to NULL */
@@ -1306,15 +1297,20 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 		break;
 
 		/* AVND Async Update messages */
-	case AVSV_CKPT_AVD_AVND_CONFIG:
+	case AVSV_CKPT_AVD_NODE_CONFIG:
 	case AVSV_CKPT_AVND_NODE_UP_INFO:
-	case AVSV_CKPT_AVND_SU_ADMIN_STATE:
+	case AVSV_CKPT_AVND_ADMIN_STATE:
 	case AVSV_CKPT_AVND_OPER_STATE:
 	case AVSV_CKPT_AVND_NODE_STATE:
 	case AVSV_CKPT_AVND_RCV_MSG_ID:
 	case AVSV_CKPT_AVND_SND_MSG_ID:
 	case AVSV_CKPT_AVND_AVM_OPER_STATE:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_AVND_CONFIG)
+		if (cb->synced_reo_type >= AVSV_CKPT_AVD_NODE_CONFIG)
+			status = NCSCC_RC_SUCCESS;
+		break;
+
+	case AVSV_CKPT_AVD_APP_CONFIG:
+		if (cb->synced_reo_type >= AVSV_CKPT_AVD_APP_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
 
@@ -1339,7 +1335,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 	case AVSV_CKPT_SU_SWITCH:
 	case AVSV_CKPT_SU_OPER_STATE:
 	case AVSV_CKPT_SU_PRES_STATE:
-	case AVSV_CKPT_SU_REDINESS_STATE:
+	case AVSV_CKPT_SU_READINESS_STATE:
 	case AVSV_CKPT_SU_ACT_STATE:
 	case AVSV_CKPT_SU_PREINSTAN:
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SU_CONFIG)
@@ -1368,7 +1364,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 
 		/* COMP Async Update messages */
 	case AVSV_CKPT_AVD_COMP_CONFIG:
-	case AVSV_CKPT_COMP_PROXY_COMP_NAME_NET:
+	case AVSV_CKPT_COMP_CURR_PROXY_NAME:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_ACTV:
 	case AVSV_CKPT_COMP_CURR_NUM_CSI_STBY:
 	case AVSV_CKPT_COMP_OPER_STATE:
@@ -1377,25 +1373,8 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 		if (cb->synced_reo_type >= AVSV_CKPT_AVD_COMP_CONFIG)
 			status = NCSCC_RC_SUCCESS;
 		break;
-
-		/* CSI Async Update messages */
-	case AVSV_CKPT_AVD_CSI_CONFIG:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_CSI_CONFIG)
-			status = NCSCC_RC_SUCCESS;
-		break;
-
-	case AVSV_CKPT_AVD_SU_SI_REL:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SU_SI_REL)
-			status = NCSCC_RC_SUCCESS;
-		break;
-
-	case AVSV_CKPT_AVD_HLT_CONFIG:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_HLT_CONFIG)
-			status = NCSCC_RC_SUCCESS;
-		break;
-
-	case AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SUS_PER_SI_RANK_CONFIG)
+	case AVSV_CKPT_AVD_SI_ASS:
+		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_ASS)
 			status = NCSCC_RC_SUCCESS;
 		break;
 
@@ -1404,17 +1383,7 @@ static uns32 avsv_validate_reo_type_in_csync(AVD_CL_CB *cb, uns32 reo_type)
 			status = NCSCC_RC_SUCCESS;
 		break;
 
-	case AVSV_CKPT_AVD_CS_TYPE_PARAM_CONFIG:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_CS_TYPE_PARAM_CONFIG)
-			status = NCSCC_RC_SUCCESS;
-		break;
-
-	case AVSV_CKPT_AVD_SI_DEP_CONFIG:
-		if (cb->synced_reo_type >= AVSV_CKPT_AVD_SI_DEP_CONFIG)
-			status = NCSCC_RC_SUCCESS;
-		break;
 	}
-
 	return status;
 }
 

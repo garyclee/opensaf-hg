@@ -35,12 +35,10 @@
 #include "avsv.h"
 #include "avsv_amfparam.h"
 #include "avsv_d2nmsg.h"
-#include "avsv_d2nmem.h"
 
 /* AVD-AVND common EDPs */
 #include "avsv_d2nedu.h"
 #include "avsv_eduutil.h"
-#include "avsv_n2avamem.h"
 #include "avsv_n2avaedu.h"
 #include "avsv_nd2ndmsg.h"
 
@@ -73,7 +71,7 @@ uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->mds_ctxt.data,
 		 MDS_SYNC_SND_CTXT_LEN_MAX, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
 		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->comp_name, 0, NULL},
 
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0,
@@ -86,7 +84,7 @@ uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, avsv_edp_nda_msg, EDQ_POINTER, 0, EDU_EXIT,
 		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.msg, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
 		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.cbk_del.comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_ND2ND_AVND_MSG *)0)->info.cbk_del.opq_hdl, 0, NULL},
@@ -99,7 +97,7 @@ uns32 avsv_edp_ndnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else if (op == EDP_OP_TYPE_DEC) {
 		d_ptr = (AVSV_ND2ND_AVND_MSG **)ptr;
 		if (*d_ptr == NULL) {
-			*d_ptr = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG;
+			*d_ptr = malloc(sizeof(AVSV_ND2ND_AVND_MSG));
 			if (*d_ptr == NULL) {
 				*o_err = EDU_ERR_MEM_FAIL;
 				return NCSCC_RC_FAILURE;

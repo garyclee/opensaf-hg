@@ -51,7 +51,6 @@
 
 #include "avsv.h"
 #include "avsv_d2nmsg.h"
-#include "avsv_d2nmem.h"
 
 /*****************************************************************************
  * Function: avsv_free_d2n_node_up_msg_info
@@ -75,7 +74,7 @@ void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg)
 	while (node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes != NULL) {
 		node = node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes;
 		node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes = node->next;
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(node);
+		free(node);
 	}
 
 	return;
@@ -104,7 +103,7 @@ void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg)
 	while (node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes != NULL) {
 		node = node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
 		node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes = node->next;
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(node);
+		free(node);
 	}
 
 	return;
@@ -142,7 +141,7 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG
 	/* the copied list needs to maintain the order */
 
 	while (s_node_info != NULL) {
-		d_node_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_CLM_INFO_MSG));
+		d_node_info = malloc(sizeof(AVSV_CLM_INFO_MSG));
 		if (d_node_info == NULL) {
 			avsv_free_d2n_clm_node_fover_info(d_node_up_msg);
 			return NCSCC_RC_FAILURE;
@@ -192,7 +191,7 @@ uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node
 	/* the copied list needs to maintain the order */
 
 	while (s_node_info != NULL) {
-		d_node_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_CLM_INFO_MSG));
+		d_node_info = malloc(sizeof(AVSV_CLM_INFO_MSG));
 		if (d_node_info == NULL) {
 			avsv_free_d2n_node_up_msg_info(d_node_up_msg);
 			return NCSCC_RC_FAILURE;
@@ -232,7 +231,7 @@ void avsv_free_d2n_hlth_msg_info(AVSV_DND_MSG *hlth_msg)
 	while (hlth_msg->msg_info.d2n_reg_hlt.hlt_list != NULL) {
 		hlth_info = hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
 		hlth_msg->msg_info.d2n_reg_hlt.hlt_list = hlth_info->next;
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(hlth_info);
+		free(hlth_info);
 	}
 
 	return;
@@ -266,7 +265,7 @@ uns32 avsv_cpy_d2n_hlth_msg(AVSV_DND_MSG *d_hlth_msg, AVSV_DND_MSG *s_hlth_msg)
 	s_hlth_info = s_hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
 
 	while (s_hlth_info != NULL) {
-		d_hlth_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_HLT_INFO_MSG));
+		d_hlth_info = malloc(sizeof(AVSV_HLT_INFO_MSG));
 		if (d_hlth_info == NULL) {
 			avsv_free_d2n_hlth_msg_info(d_hlth_msg);
 			return NCSCC_RC_FAILURE;
@@ -305,7 +304,7 @@ void avsv_free_d2n_su_msg_info(AVSV_DND_MSG *su_msg)
 	while (su_msg->msg_info.d2n_reg_su.su_list != NULL) {
 		su_info = su_msg->msg_info.d2n_reg_su.su_list;
 		su_msg->msg_info.d2n_reg_su.su_list = su_info->next;
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(su_info);
+		free(su_info);
 	}
 
 	return;
@@ -339,7 +338,7 @@ uns32 avsv_cpy_d2n_su_msg(AVSV_DND_MSG *d_su_msg, AVSV_DND_MSG *s_su_msg)
 	s_su_info = s_su_msg->msg_info.d2n_reg_su.su_list;
 
 	while (s_su_info != NULL) {
-		d_su_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_SU_INFO_MSG));
+		d_su_info = malloc(sizeof(AVSV_SU_INFO_MSG));
 		if (d_su_info == NULL) {
 			avsv_free_d2n_su_msg_info(d_su_msg);
 			return NCSCC_RC_FAILURE;
@@ -378,7 +377,7 @@ void avsv_free_d2n_comp_msg_info(AVSV_DND_MSG *comp_msg)
 	while (comp_msg->msg_info.d2n_reg_comp.list != NULL) {
 		comp_info = comp_msg->msg_info.d2n_reg_comp.list;
 		comp_msg->msg_info.d2n_reg_comp.list = comp_info->next;
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(comp_info);
+		free(comp_info);
 	}
 
 	return;
@@ -413,7 +412,7 @@ uns32 avsv_cpy_d2n_comp_msg(AVSV_DND_MSG *d_comp_msg, AVSV_DND_MSG *s_comp_msg)
 	s_comp_info = s_comp_msg->msg_info.d2n_reg_comp.list;
 
 	while (s_comp_info != NULL) {
-		d_comp_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_COMP_INFO_MSG));
+		d_comp_info = malloc(sizeof(AVSV_COMP_INFO_MSG));
 		if (d_comp_info == NULL) {
 			avsv_free_d2n_comp_msg_info(d_comp_msg);
 			return NCSCC_RC_FAILURE;
@@ -454,10 +453,10 @@ void avsv_free_d2n_susi_msg_info(AVSV_DND_MSG *susi_msg)
 		compcsi_info = susi_msg->msg_info.d2n_su_si_assign.list;
 		susi_msg->msg_info.d2n_su_si_assign.list = compcsi_info->next;
 		if (compcsi_info->attrs.list != NULL) {
-			m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(compcsi_info->attrs.list);
+			free(compcsi_info->attrs.list);
 			compcsi_info->attrs.list = NULL;
 		}
-		m_MMGR_FREE_AVSV_DND_MSG_INFO(compcsi_info);
+		free(compcsi_info);
 	}
 
 	return;
@@ -491,7 +490,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
 	s_compcsi_info = s_susi_msg->msg_info.d2n_su_si_assign.list;
 
 	while (s_compcsi_info != NULL) {
-		d_compcsi_info = m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_SUSI_ASGN));
+		d_compcsi_info = malloc(sizeof(AVSV_SUSI_ASGN));
 		if (d_compcsi_info == NULL) {
 			avsv_free_d2n_susi_msg_info(d_susi_msg);
 			return NCSCC_RC_FAILURE;
@@ -499,9 +498,7 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
 
 		memcpy(d_compcsi_info, s_compcsi_info, sizeof(AVSV_SUSI_ASGN));
 		if (s_compcsi_info->attrs.list != NULL) {
-			d_compcsi_info->attrs.list =
-			    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL((s_compcsi_info->attrs.number *
-								  sizeof(AVSV_SUSI_ASGN)));
+			d_compcsi_info->attrs.list = malloc((s_compcsi_info->attrs.number * sizeof(AVSV_SUSI_ASGN)));
 			if (d_compcsi_info->attrs.list == NULL) {
 				avsv_free_d2n_susi_msg_info(d_susi_msg);
 				return NCSCC_RC_FAILURE;
@@ -539,7 +536,7 @@ void avsv_free_d2n_pg_msg_info(AVSV_DND_MSG *pg_msg)
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO *info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
 	if (info->mem_list.numberOfItems)
-		m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(info->mem_list.notification);
+		free(info->mem_list.notification);
 
 	info->mem_list.notification = 0;
 	info->mem_list.numberOfItems = 0;
@@ -577,8 +574,7 @@ uns32 avsv_cpy_d2n_pg_msg(AVSV_DND_MSG *d_pg_msg, AVSV_DND_MSG *s_pg_msg)
 	/* alloc the memory for the notify buffer */
 	d_info->mem_list.notification = 0;
 	d_info->mem_list.notification = (SaAmfProtectionGroupNotificationT *)
-	    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(sizeof(SaAmfProtectionGroupNotificationT) *
-						 s_info->mem_list.numberOfItems);
+	    malloc(sizeof(SaAmfProtectionGroupNotificationT) * s_info->mem_list.numberOfItems);
 	if (!d_info->mem_list.notification)
 		return NCSCC_RC_FAILURE;
 
@@ -638,7 +634,7 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 	}
 
 	/* free the message */
-	m_MMGR_FREE_AVSV_DND_MSG(msg);
+	free(msg);
 
 	return;
 }

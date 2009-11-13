@@ -43,8 +43,8 @@ struct cl_cb_tag;
  * SU SI Relationship checkpoint encode/decode message structure..
  */
 typedef struct avsv_su_si_rel_ckpt_msg {
-	SaNameT su_name_net;
-	SaNameT si_name_net;
+	SaNameT su_name;
+	SaNameT si_name;
 	SaAmfHAStateT state;
 	uns32 fsm;		/* The SU SI FSM state */
 } AVSV_SU_SI_REL_CKPT_MSG;
@@ -68,21 +68,17 @@ typedef struct avsv_async_updt_msg_queue_list {
  */
 typedef struct avsv_async_updt_cnt {
 	uns32 cb_updt;
-	uns32 avnd_updt;
+	uns32 node_updt;
+	uns32 app_updt;
 	uns32 sg_updt;
 	uns32 su_updt;
 	uns32 si_updt;
 	uns32 sg_su_oprlist_updt;
 	uns32 sg_admin_si_updt;
-	uns32 su_si_rel_updt;
+	uns32 siass_updt;
 	uns32 comp_updt;
 	uns32 csi_updt;
-	uns32 csi_parm_list_updt;
-	uns32 hlt_updt;
-	uns32 sus_per_si_rank_updt;
-	uns32 comp_cs_type_sup_updt;
-	uns32 cs_type_param_updt;
-	uns32 si_dep_updt;
+	uns32 compcstype_updt;
 } AVSV_ASYNC_UPDT_CNT;
 
 /*

@@ -31,13 +31,13 @@
 #define CLA_H
 
 #include "avsv.h"
+#include "ncs_log.h"
+#include "dta_papi.h"
 #include "avnd.h"
 #include "cla_dl_api.h"
 
 /* Porting Include Files */
-#include "avsv_n2clamem.h"
 #include "cla_def.h"
-#include "cla_mem.h"
 
 #include "avsv_clmparam.h"
 #include "avsv_n2clamsg.h"

@@ -16,23 +16,11 @@
 # Author(s): Emerson Network Power
 #
 
-COMP_PID_MAP_FILE="/etc/opt/opensaf/avsv_demo_comp_pid_map"
-PATTERN=$SA_AMF_COMPONENT_NAME
- 
-echo "Executing Component Terminate/Cleanup Script"
-echo "CompName: $SA_AMF_COMPONENT_NAME"
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-for line in $(cat $COMP_PID_MAP_FILE)
-do
-   comp_name=`echo "$line" | cut -d: -f1`
-   pid=`echo "$line" | cut -d: -f2`
-   if [ $comp_name  ==  $PATTERN ]
-   then
-      sed -e "/$PATTERN/ d" -i $COMP_PID_MAP_FILE
-      echo "Killing Comp:\"$comp_name\" with PID: $pid"
-      kill -9 $pid
-   fi
-done
-
+DAEMON=opensaf_scap
+echo "Cleanup $DAEMON..."
+killall $DAEMON
+rm -f "$PIDPATH/$DAEMON.pid"
 exit 0
 

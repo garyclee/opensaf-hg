@@ -35,40 +35,22 @@
 
 /* temporary compilation flags setting that will go away */
 #if (NCS_AVSV_LOG == 1)
-#define NCS_AVD_LOG 1
-#define NCS_AVND_LOG 1
 #define NCS_AVA_LOG 1
 #define NCS_CLA_LOG 1
 #else				/* NCS_AVSV_LOG == 1 */
-#define NCS_AVD_LOG 0
-#define NCS_AVND_LOG 0
 #define NCS_AVA_LOG 0
 #define NCS_CLA_LOG 0
 #endif   /* NCS_AVSV_LOG == 1 */
 
 #include "ncsgl_defs.h"
-
 #include "t_suite.h"
 #include "ncsdlib.h"
 #include "ncs_saf.h"
-#include "ncs_mib.h"
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_edu_pub.h"
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 #include "ncs_main_pvt.h"
-
-#if ( (NCS_AVD_LOG == 1) || (NCS_AVND_LOG == 1) || (NCS_AVA_LOG ==1) || (NCS_CLA_LOG == 1) )
-#include "ncs_log.h"
-#include "dta_papi.h"
-#endif
-
-#include "oac_papi.h"
-#include "oac_api.h"
-
-#include "avsv_mapi.h"
 #include "avsv_log.h"
 #include "avsv_defs.h"
 #include "avsv_util.h"

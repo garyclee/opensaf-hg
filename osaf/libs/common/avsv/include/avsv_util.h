@@ -37,6 +37,7 @@ EXTERN_C uns32 avsv_cpy_SI_DN_from_DN(SaNameT *, SaNameT *);
 
 EXTERN_C uns32 avsv_dblist_uns32_cmp(uns8 *, uns8 *);
 EXTERN_C uns32 avsv_dblist_uns64_cmp(uns8 *, uns8 *);
+EXTERN_C uns32 avsv_dblist_saname_net_cmp(uns8 *, uns8 *);
 EXTERN_C uns32 avsv_dblist_saname_cmp(uns8 *, uns8 *);
 EXTERN_C uns32 avsv_dblist_sahckey_cmp(uns8 *, uns8 *);
 

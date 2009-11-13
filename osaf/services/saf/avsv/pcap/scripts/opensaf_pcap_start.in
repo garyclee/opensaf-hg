@@ -20,36 +20,38 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 XTERM=""
 
-#XTERM="xterm -T OpenSAF-SCAP -e "
-#XTERM="xterm -T OpenSAF-SCAP -e /usr/bin/gdb "
+#XTERM="xterm -T OpenSAF-PCAP -e "
+#XTERM="xterm -T OpenSAF-PCAP -e /usr/bin/gdb "
 # Set this if debugging required. If you start in gdb,
 # NOTE: Ensure you pass $2 -> ROLE & $3 -> NID_SVC_NAME as cmd. line arguments,
-# which NID passes to this (ncs_scap_start) script.
+# which NID passes to this (ncs_pcap_start) script.
 # i.e. from gdb Typically, the cmd would be  "run ROLE=1\2 NID_SVC_NAME=21"
 
-DAEMON=ncs_scap
+DAEMON=opensaf_pcap
 
-echo "Executing SCAP init-script..."
+
+echo "Executing PCAP init-script..."
+
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 #Function to start/spawn a service.
 start()
 {
 
-    echo "Starting SCAP..."
+    echo "Starting $DAEMON..."
     #Check if daemon is installed.
     if [ ! -x "$LIBPATH/$DAEMON" ]; then
        echo -n -e "Unable to find daemon: $LIBPATH/$DAEMON     \n"
-       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
+       echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > $NIDFIFO
        exit 1
     fi
-    killall ncs_scap
-    $XTERM "$LIBPATH/ncs_scap" "$*" >"$NCS_STDOUTS_PATH/ncs_scap.log" 2>&1 &
+    killall $DAEMON
+    $XTERM "$LIBPATH/$DAEMON" "$*" >"$NCS_STDOUTS_PATH/$DAEMON.log" 2>&1 &
     echo "Starting $DESC: $LIBPATH/$DAEMON";
 
     if [ $? -ne 0 ] ; then
 	echo -n -e "Failed to start $DAEMON.    \n"
-	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > $NIDFIFO
+	echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > "$NIDFIFO"
 	exit 0
      else
          echo "Started $DESC: $LIBPATH/$DAEMON";
@@ -62,7 +64,7 @@ case "$1" in
    start)
    shift
    start $*
-   # Don't Report Status to NID. Scap will notify NID.
+   # Don't Report Status to NID. PCAP will notify NID.
 	echo "."
         ;;
 esac;

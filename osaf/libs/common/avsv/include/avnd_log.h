@@ -480,8 +480,6 @@ typedef enum avnd_log_ids {
                           Macros for Logging
 *****************************************************************************/
 
-#if ( NCS_AVND_LOG == 1 )
-
 #define avnd_log(severity, format, args...) _avnd_log((severity), __FUNCTION__, (format), ##args)
 #define avnd_trace(format, args...) _avnd_trace(__FILE__, __LINE__, (format), ##args)
 #define m_AVND_LOG_SEAPI(op, st, sev)       avnd_log_seapi(op, st, sev)
@@ -564,24 +562,6 @@ typedef enum avnd_log_ids {
          NCSFL_SEV_EMERGENCY, "TICLP",AVND_INVALID_VAL,__FILE__, __LINE__,nam_val);\
 }
 
-#define m_AVND_LOG_INVALID_NAME_NET_VAL_ERROR(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HDLN_VAL_NAME, AVND_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL,\
-         NCSFL_SEV_ERROR, "TICLP",AVND_INVALID_VAL,__FILE__, __LINE__,nam_val);\
-}
-
-#define m_AVND_LOG_INVALID_NAME_NET_VAL_FATAL(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HDLN_VAL_NAME, AVND_FC_HDLN, NCSFL_LC_FUNC_RET_FAIL,\
-         NCSFL_SEV_EMERGENCY, "TICLP",AVND_INVALID_VAL,__FILE__, __LINE__,nam_val);\
-}
-
 #define m_AVND_LOG_RCVD_VAL(data)\
         ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HDLN_VAL, AVND_FC_HDLN, NCSFL_LC_DATA,\
               NCSFL_SEV_DEBUG, NCSFL_TYPE_TICLL,AVND_RCVD_VAL,__FILE__, __LINE__,data)
@@ -595,62 +575,13 @@ typedef enum avnd_log_ids {
          NCSFL_SEV_DEBUG, "TICLP",AVND_RCVD_VAL,__FILE__, __LINE__,nam_val);\
 }
 
-#define m_AVND_LOG_RCVD_NAME_NET_VAL(addrs,lent_net) \
-{\
-   NCSFL_PDU nam_val;\
-   nam_val.len = m_NCS_OS_NTOHS(lent_net);\
-   nam_val.dump = (char *)addrs;\
-   ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HDLN_VAL_NAME, AVND_FC_HDLN, NCSFL_LC_DATA,\
-         NCSFL_SEV_DEBUG, "TICLP",AVND_RCVD_VAL,__FILE__, __LINE__,nam_val);\
-}
-
 #define m_AVND_LOG_FUNC_ENTRY(func_name)\
         ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HDLN, AVND_FC_HDLN, NCSFL_LC_FUNC_ENTRY,\
               NCSFL_SEV_DEBUG, NCSFL_TYPE_TIC,AVND_ENTERED_FUNC,func_name)
-#else				/* NCS_AVND_LOG == 1 */
-
-#define m_AVND_LOG_SEAPI(op, st, sev)
-#define m_AVND_LOG_MDS(op, st, sev)
-#define m_AVND_LOG_EDU(op, st, sev)
-#define m_AVND_LOG_LOCK(op, st, sev)
-#define m_AVND_LOG_CB(op, st, sev)
-#define m_AVND_LOG_MBX(op, st, sev)
-#define m_AVND_LOG_TASK(op, st, sev)
-#define m_AVND_LOG_TMR(ty, op, st, sev)
-#define m_AVND_LOG_EVT(ty, op, st, sev)
-#define m_AVND_LOG_CLM_DB(op, st, nid, sev)
-#define m_AVND_LOG_PG_DB(op, st, nid, sev)
-#define m_AVND_LOG_SU_DB(op, st, sun, sin, sev)
-#define m_AVND_LOG_HC_DB(op, st, key, sev)
-#define m_AVND_LOG_MISC(op, name, sev)
-#define m_AVND_LOG_COMP_DB(op, st, cn, csin, sev)
-#define m_AVND_AVND_SUCC_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_AVND_ERR_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_AVND_ENTRY_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_AVND_DEBUG_LOG(info,comp,info1,info2,info3,info4)
-#define m_AVND_LOG_SU_FSM(op, st, ev, name, sev)
-#define m_AVND_LOG_COMP_FSM(op, st, ev, name, sev)
-#define m_AVND_LOG_FOVER_EVTS(sev, ev, val)
-#define m_AVND_LOG_ERR(name, src, rec, sev)
-#define m_AVND_LOG_INVALID_VAL_ERROR(data)
-#define m_AVND_LOG_INVALID_VAL_FATAL(data)
-#define m_AVND_LOG_INVALID_STRING_ERROR(data)
-#define m_AVND_LOG_INVALID_STRING_FATAL(data)
-#define m_AVND_LOG_INVALID_NAME_VAL_ERROR(addrs,lent)
-#define m_AVND_LOG_INVALID_NAME_VAL_FATAL(addrs,lent)
-#define m_AVND_LOG_INVALID_NAME_NET_VAL_ERROR(addrs,lent_net)
-#define m_AVND_LOG_INVALID_NAME_NET_VAL_FATAL(addrs,lent_net)
-#define m_AVND_LOG_RCVD_VAL(data)
-#define m_AVND_LOG_RCVD_NAME_VAL(addrs,lent)
-#define m_AVND_LOG_RCVD_NAME_NET_VAL(addrs,lent_net)
-#define m_AVND_LOG_FUNC_ENTRY(func_name)
-#endif   /* NCS_AVND_LOG == 1 */
 
 /*****************************************************************************
                        Extern Function Declarations
 *****************************************************************************/
-
-#if ( NCS_AVND_LOG == 1 )
 
 EXTERN_C uns32 avnd_log_reg(void);
 EXTERN_C uns32 avnd_log_unreg(void);
@@ -668,11 +599,11 @@ EXTERN_C void avnd_log_clm_db(AVND_LOG_CLM_DB, AVND_LOG_CLM_DB, SaClmNodeIdT, un
 EXTERN_C void avnd_log_pg_db(AVND_LOG_PG_DB, AVND_LOG_PG_DB, SaNameT *, uns8);
 EXTERN_C void avnd_log_su_db(AVND_LOG_SU_DB, AVND_LOG_SU_DB, SaNameT *, SaNameT *, uns8);
 EXTERN_C void avnd_log_comp_db(AVND_LOG_COMP_DB, AVND_LOG_COMP_DB, SaNameT *, SaNameT *, uns8);
-EXTERN_C void avnd_pxy_pxd_log(uns32, uns32, uns8 *, SaNameT *, uns32, uns32, uns32, uns32);
+EXTERN_C void avnd_pxy_pxd_log(uns32, uns32, char *, SaNameT *, uns32, uns32, uns32, uns32);
 
 EXTERN_C void avnd_log_hc_db(AVND_LOG_HC_DB, AVND_LOG_HC_DB, SaAmfHealthcheckKeyT *, uns8);
-EXTERN_C void avnd_log_su_fsm(AVND_LOG_SU_FSM, NCS_PRES_STATE, AVND_SU_PRES_FSM_EV, SaNameT *, uns8);
-EXTERN_C void avnd_log_comp_fsm(AVND_LOG_COMP_FSM, NCS_PRES_STATE, AVND_COMP_CLC_PRES_FSM_EV, SaNameT *, uns8);
+EXTERN_C void avnd_log_su_fsm(AVND_LOG_SU_FSM, SaAmfPresenceStateT, int evt, SaNameT *, uns8);
+EXTERN_C void avnd_log_comp_fsm(AVND_LOG_COMP_FSM, SaAmfPresenceStateT, int evt, SaNameT *, uns8);
 EXTERN_C void avnd_log_err(AVND_LOG_ERR, AVND_LOG_ERR, SaNameT *, uns8);
 EXTERN_C void avnd_log_misc(AVND_LOG_MISC, SaNameT *, uns8);
 
@@ -687,9 +618,7 @@ EXTERN_C void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
 					     SaNameT *pxy_comp_name, uns8 sev);
 
 EXTERN_C void avnd_log_comp_failed_ntfs(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev);
-EXTERN_C void _avnd_log(uns8 severity, const char *function, const char *format, ...);
-EXTERN_C void _avnd_trace(const char *file, unsigned int line, const char *format, ...);
-
-#endif   /* NCS_AVND_LOG == 1 */
+EXTERN_C void _avnd_log(uns8 severity, const char *function, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
+EXTERN_C void _avnd_trace(const char *file, unsigned int line, const char *format, ...) __attribute__ ((format(printf, 3, 4)));
 
 #endif   /* !AVND_LOG_H */

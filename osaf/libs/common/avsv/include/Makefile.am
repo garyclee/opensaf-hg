@@ -27,29 +27,28 @@ noinst_HEADERS = \
    ava_log.h \
    ava_logstr.h \
    ava_mds.h \
-   ava_mem.h \
+   avd_app.h \
    avd_avm.h \
-   avd_avnd.h \
+   avd_node.h \
    avd_bam.h \
    avd_cb.h \
    avd_ckp.h \
    avd_ckpt_edu.h \
    avd_ckpt_msg.h \
    avd_ckpt_updt.h \
+   avd_cluster.h \
    avd_comp.h \
    avd_csi.h \
    avd_dblog.h \
    avd_def.h \
    avd_dl_api.h \
    avd_evt.h \
-   avd_fail.h \
    avd.h \
    avd_hb.h \
    avd_hlt.h \
+   avd_imm.h \
    avd_logstr.h \
    avd_mds.h \
-   avd_mem.h \
-   avd_mibtbl.h \
    avd_msg.h \
    avd_pg.h \
    avd_proc.h \
@@ -58,6 +57,7 @@ noinst_HEADERS = \
    avd_su.h \
    avd_susi.h \
    avd_tmr.h \
+   avd_util.h \
    avd_ntf.h \
    avnd_cb.h \
    avnd_clm.h \
@@ -73,8 +73,6 @@ noinst_HEADERS = \
    avnd_log.h \
    avnd_logstr.h \
    avnd_mds.h \
-   avnd_mem.h \
-   avnd_mib.h \
    avnd_mon.h \
    avnd_pg.h \
    avnd_proc.h \
@@ -85,7 +83,6 @@ noinst_HEADERS = \
    avsv_amfparam.h \
    avsv_clmparam.h \
    avsv_d2nedu.h \
-   avsv_d2nmem.h \
    avsv_d2nmsg.h \
    avsv_defs.h \
    avsv_eduutil.h \
@@ -94,10 +91,8 @@ noinst_HEADERS = \
    avsv_log.h \
    avsv_logstr.h \
    avsv_n2avaedu.h \
-   avsv_n2avamem.h \
    avsv_n2avamsg.h \
    avsv_n2claedu.h \
-   avsv_n2clamem.h \
    avsv_n2clamsg.h \
    avsv_util.h \
    cla_cb.h \
@@ -108,7 +103,6 @@ noinst_HEADERS = \
    cla_log.h \
    cla_logstr.h \
    cla_mds.h \
-   cla_mem.h \
    avd_si_dep.h \
    avnd_ckpt_edu.h \
    avnd_ckpt_msg.h \

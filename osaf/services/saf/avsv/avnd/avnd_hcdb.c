@@ -23,8 +23,7 @@
   DESCRIPTION:
   
   This module deals with the creation, accessing and deletion of the health 
-  check database on the AVND. It also deals with all the MIB operations
-  like get,getnext etc related to the Health Check Table.
+  check database on the AVND.
 
 ..............................................................................
 
@@ -35,6 +34,12 @@
 */
 
 #include "avnd.h"
+#include <saImmOm.h>
+#include <immutil.h>
+
+static SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn);
+
+static NCS_PATRICIA_TREE hctypedb;	/* healthcheck type db */
 
 /****************************************************************************
   Name          : avnd_hcdb_init
@@ -47,21 +52,18 @@
  
   Notes         : None.
 ******************************************************************************/
-uns32 avnd_hcdb_init(AVND_CB *cb)
+void avnd_hcdb_init(AVND_CB *cb)
 {
 	NCS_PATRICIA_PARAMS params;
-	uns32 rc = NCSCC_RC_SUCCESS;
+	uns32 rc;
 
 	memset(&params, 0, sizeof(NCS_PATRICIA_PARAMS));
+	params.key_size = sizeof(SaNameT);
 
-	params.key_size = (sizeof(AVSV_HLT_KEY) - sizeof(SaUint16T));
 	rc = ncs_patricia_tree_init(&cb->hcdb, &params);
-	if (NCSCC_RC_SUCCESS == rc)
-		m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_CREATE, AVND_LOG_HC_DB_SUCCESS, 0, NCSFL_SEV_INFO);
-	else
-		m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_CREATE, AVND_LOG_HC_DB_FAILURE, 0, NCSFL_SEV_CRITICAL);
-
-	return rc;
+	assert(rc == NCSCC_RC_SUCCESS);
+	rc = ncs_patricia_tree_init(&hctypedb, &params);
+	assert(rc == NCSCC_RC_SUCCESS);
 }
 
 /****************************************************************************
@@ -104,6 +106,26 @@ uns32 avnd_hcdb_destroy(AVND_CB *cb)
 	return rc;
 }
 
+AVND_HC *avnd_hcdb_rec_get(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
+{
+	SaNameT dn;
+
+	memset(&dn, 0, sizeof(dn));
+	dn.length = snprintf((char *)dn.value, SA_MAX_NAME_LENGTH, "safHealthcheckKey=%s,%s",
+		hc_key->name.key, hc_key->comp_name.value);
+	return (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&dn);
+}
+
+AVND_HCTYPE *avnd_hctypedb_rec_get(const SaNameT *comp_type_dn, const SaAmfHealthcheckKeyT *key)
+{
+	SaNameT dn;
+
+	memset(&dn, 0, sizeof(dn));
+	dn.length = snprintf((char *)dn.value, SA_MAX_NAME_LENGTH, "safHealthcheckKey=%s,%s",
+			     key->key, comp_type_dn->value);
+	return (AVND_HCTYPE *)ncs_patricia_tree_get(&hctypedb, (uns8 *)&dn);
+}
+
 /****************************************************************************
   Name          : avnd_hcdb_rec_add
  
@@ -127,19 +149,17 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
 	*rc = NCSCC_RC_SUCCESS;
 
 	/* verify if this healthcheck is already present in the db */
-	if (0 != m_AVND_HCDB_REC_GET(cb->hcdb, info->name)) {
+	if (0 != avnd_hcdb_rec_get(cb, &info->name)) {
 		*rc = AVND_ERR_DUP_HC;
 		goto err;
 	}
 
 	/* a fresh healthcheck record... */
-	hc = m_MMGR_ALLOC_AVND_HC;
+	hc = calloc(1, sizeof(AVND_HC));
 	if (!hc) {
 		*rc = AVND_ERR_NO_MEMORY;
 		goto err;
 	}
-
-	memset(hc, 0, sizeof(AVND_HC));
 
 	/* Update the config parameters */
 	memcpy(&hc->key, &info->name, sizeof(AVSV_HLT_KEY));
@@ -161,7 +181,7 @@ AVND_HC *avnd_hcdb_rec_add(AVND_CB *cb, AVND_HC_PARAM *info, uns32 *rc)
 
  err:
 	if (hc)
-		m_MMGR_FREE_AVND_HC(hc);
+		free(hc);
 
 	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_ADD, AVND_LOG_HC_DB_FAILURE, &info->name.name, NCSFL_SEV_CRITICAL);
 	return 0;
@@ -186,7 +206,7 @@ uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* get the healthcheck record */
-	hc = m_AVND_HCDB_REC_GET(cb->hcdb, *hc_key);
+	hc = avnd_hcdb_rec_get(cb, hc_key);
 	if (!hc) {
 		rc = AVND_ERR_NO_HC;
 		goto err;
@@ -202,7 +222,7 @@ uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_DEL, AVND_LOG_HC_DB_SUCCESS, &hc_key->name, NCSFL_SEV_INFO);
 
 	/* free the memory */
-	m_MMGR_FREE_AVND_HC(hc);
+	free(hc);
 
 	return rc;
 
@@ -210,3 +230,204 @@ uns32 avnd_hcdb_rec_del(AVND_CB *cb, AVSV_HLT_KEY *hc_key)
 	m_AVND_LOG_HC_DB(AVND_LOG_HC_DB_REC_DEL, AVND_LOG_HC_DB_FAILURE, &hc_key->name, NCSFL_SEV_CRITICAL);
 	return rc;
 }
+
+static AVND_HC *hc_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+{
+	int rc = -1;
+	AVND_HC *hc = NULL;
+  
+	if ((hc = calloc(1, sizeof(AVND_HC))) == NULL)
+		goto done;
+
+	if (immutil_getAttr("saAmfHealthcheckPeriod", attributes, 0, &hc->period) != SA_AIS_OK) {
+		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHealthcheckPeriod FAILED for '%s'", dn->value);
+		goto done;
+	}
+
+	if (immutil_getAttr("saAmfHealthcheckMaxDuration", attributes, 0, &hc->max_dur) != SA_AIS_OK) {
+		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHealthcheckMaxDuration FAILED for '%s'", dn->value);
+		goto done;
+	}
+
+	memset(&hc->name, 0, sizeof(hc->name));
+	memcpy(hc->name.value, dn->value, dn->length);
+	hc->name.length = dn->length;
+	hc->tree_node.key_info = (uns8 *)&hc->name;
+	rc = ncs_patricia_tree_add(&cb->hcdb, &hc->tree_node);
+
+ done:
+	if (rc != NCSCC_RC_SUCCESS) {
+		free(hc);
+		hc = NULL;
+	}
+
+	return hc;
+}
+
+SaAisErrorT avnd_hc_config_get(AVND_COMP* comp)
+{
+	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT hc_name;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfHealthcheck";
+	SaNameT comp_dn = comp->name;
+	comp_dn.length = comp_dn.length;
+
+	avnd_hctype_config_get(&comp->saAmfCompType);
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, &comp_dn,
+		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
+		&searchParam, NULL, &searchHandle);
+
+	if (SA_AIS_OK != error) {
+		avnd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &hc_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+
+		avnd_log(NCSFL_SEV_NOTICE, "'%s'", hc_name.value);
+
+		if (hc_create(avnd_cb, &hc_name, attributes) == NULL)
+			goto done2;
+	}
+
+	error = SA_AIS_OK;
+
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+
+	return error;
+}
+
+static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+{
+	int rc = -1;
+	AVND_HCTYPE *hc;
+
+	if ((hc = calloc(1, sizeof(*hc))) == NULL)
+		goto done;
+
+	hc->name = *dn;
+
+	if (immutil_getAttr("saAmfHctDefPeriod", attributes, 0, &hc->saAmfHctDefPeriod) != SA_AIS_OK) {
+		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHctDefPeriod FAILED for '%s'", dn->value);
+		goto done;
+	}
+
+	if (immutil_getAttr("saAmfHctDefMaxDuration", attributes, 0, &hc->saAmfHctDefMaxDuration) != SA_AIS_OK) {
+		avnd_log(NCSFL_SEV_ERROR, "Get saAmfHctDefMaxDuration FAILED for '%s'", dn->value);
+		goto done;
+	}
+
+	hc->tree_node.key_info = (uns8 *)&hc->name;
+	rc = ncs_patricia_tree_add(&hctypedb, &hc->tree_node);
+
+ done:
+	if (rc != NCSCC_RC_SUCCESS) {
+		free(hc);
+		hc = NULL;
+	}
+
+	return hc;
+}
+
+static SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
+{
+	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT hc_name;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfHealthcheckType";
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, comptype_dn,
+		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
+		&searchParam, NULL, &searchHandle);
+
+	if (SA_AIS_OK != error) {
+		avnd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &hc_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+
+		avnd_log(NCSFL_SEV_NOTICE, "'%s'", hc_name.value);
+
+		if (hctype_create(avnd_cb, &hc_name, attributes) == NULL)
+			goto done2;
+	}
+
+	error = SA_AIS_OK;
+
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+	return error;
+}
+
+uns32 avnd_hc_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
+{
+	uns32 rc = NCSCC_RC_FAILURE;
+
+	avnd_log(NCSFL_SEV_NOTICE, "'%s' (%u)", param->name.value, param->name.length);
+	
+	switch (param->act) {
+	case AVSV_OBJ_OPR_MOD: {
+		AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
+		if (!hc) {
+			avnd_log(NCSFL_SEV_ERROR, "failed to get '%s'",	param->name.value);
+			goto done;
+		}
+
+		switch (param->attr_id) {
+		case saAmfHealthcheckPeriod_ID:
+			assert(sizeof(SaTimeT) == param->value_len);
+			hc->period = *((SaTimeT *)param->value);
+			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_PERIOD);
+			break;
+
+		case saAmfHealthcheckMaxDuration_ID:
+			assert(sizeof(SaTimeT) == param->value_len);
+			hc->max_dur = *((SaTimeT *)param->value);
+			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, hc, AVND_CKPT_HC_MAX_DUR);
+			break;
+
+		default:
+			break;
+		}
+	}
+	break;
+
+	case AVSV_OBJ_OPR_DEL: {
+#if 0
+		AVND_HC *hc = (AVND_HC *)ncs_patricia_tree_get(&cb->hcdb, (uns8 *)&param->name);
+		
+		if (NULL != hc) {
+			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, hc, AVND_CKPT_HLT_CONFIG);
+			rc = avnd_hcdb_rec_del(cb, &hc_key);
+		}
+#endif
+		assert(0);
+		break;
+	}
+	default:
+		assert(0);
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+done:
+	return rc;
+}
+

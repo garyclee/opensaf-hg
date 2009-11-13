@@ -75,7 +75,7 @@ uns32 avnd_evt_cla_finalize(AVND_CB *cb, AVND_EVT *evt)
 
 	/* Free the node */
 	if (trk_info)
-		m_MMGR_FREE_AVND_CLM_TRK_INFO(trk_info);
+		free(trk_info);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -122,10 +122,8 @@ uns32 avnd_evt_cla_track_start(AVND_CB *cb, AVND_EVT *evt)
 
 	/* The Entry doesnt exist. Create and Add to the list */
 	/* alloc the memory, initialize/fill the node and add to the list */
-	trk_info = m_MMGR_ALLOC_AVND_CLM_TRK_INFO;
+	trk_info = calloc(1, sizeof(AVND_CLM_TRK_INFO));
 	if (trk_info) {
-		memset(trk_info, 0, sizeof(AVND_CLM_TRK_INFO));
-
 		trk_info->req_hdl = api_info->param.track_start.hdl;
 		trk_info->track_flag = api_info->param.track_start.flags;
 		trk_info->mds_dest = cla_evt.mds_dest;
@@ -164,12 +162,11 @@ uns32 avnd_evt_cla_track_stop(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	AVSV_NDA_CLA_MSG *cla_msg = 0;
 
-	cla_msg = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+	cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
 	if (!cla_msg) {
 		/* Log an error . This is low memory situation need not continue */
 		return NCSCC_RC_FAILURE;
 	}
-	memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
 	cla_evt = evt->info.cla;
 
@@ -192,8 +189,7 @@ uns32 avnd_evt_cla_track_stop(AVND_CB *cb, AVND_EVT *evt)
 		cla_msg->type = AVSV_AVND_CLM_API_RESP_MSG;
 		cla_msg->info.api_resp_info.type = AVSV_CLM_TRACK_STOP;
 		cla_msg->info.api_resp_info.rc = SA_AIS_OK;
-	} else
-	{
+	} else {
 		cla_msg->type = AVSV_AVND_CLM_API_RESP_MSG;
 		cla_msg->info.api_resp_info.type = AVSV_CLM_TRACK_STOP;
 		cla_msg->info.api_resp_info.rc = SA_AIS_ERR_NOT_EXIST;
@@ -229,12 +225,11 @@ uns32 avnd_evt_cla_node_get(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	AVSV_NDA_CLA_MSG *cla_msg = 0;
 
-	cla_msg = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+	cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
 	if (!cla_msg) {
 		/* Log an error . This is low memory situation need not continue */
 		return NCSCC_RC_FAILURE;
 	}
-	memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
 	cla_evt = evt->info.cla;
 
@@ -259,8 +254,8 @@ uns32 avnd_evt_cla_node_get(AVND_CB *cb, AVND_EVT *evt)
 	if (rec) {
 		clusterNode.nodeId = rec->info.node_id;
 		clusterNode.nodeAddress = rec->info.node_address;
-		clusterNode.nodeName = rec->info.node_name_net;
-		clusterNode.nodeName.length = m_NCS_OS_NTOHS(rec->info.node_name_net.length);
+		clusterNode.nodeName = rec->info.node_name;
+		clusterNode.nodeName.length = rec->info.node_name.length;
 		clusterNode.member = rec->info.member;
 		clusterNode.bootTimestamp = rec->info.boot_timestamp;
 		clusterNode.initialViewNumber = rec->info.view_number;
@@ -307,12 +302,11 @@ uns32 avnd_evt_cla_node_async_get(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	AVSV_NDA_CLA_MSG *cla_msg = 0;
 
-	cla_msg = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+	cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
 	if (!cla_msg) {
 		/* Log an error . This is low memory situation need not continue */
 		return NCSCC_RC_FAILURE;
 	}
-	memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
 	cla_evt = evt->info.cla;
 
@@ -337,8 +331,8 @@ uns32 avnd_evt_cla_node_async_get(AVND_CB *cb, AVND_EVT *evt)
 	if (rec) {
 		clusterNode.nodeId = rec->info.node_id;
 		clusterNode.nodeAddress = rec->info.node_address;
-		clusterNode.nodeName = rec->info.node_name_net;
-		clusterNode.nodeName.length = m_NCS_OS_NTOHS(rec->info.node_name_net.length);
+		clusterNode.nodeName = rec->info.node_name;
+		clusterNode.nodeName.length = rec->info.node_name.length;
 		clusterNode.member = rec->info.member;
 		clusterNode.bootTimestamp = rec->info.boot_timestamp;
 		clusterNode.initialViewNumber = rec->info.view_number;
@@ -486,13 +480,13 @@ uns32 avnd_evt_avd_node_update_msg(AVND_CB *cb, AVND_EVT *evt)
    component related to this Node on this node.*/
 		if (rec) {
 			AVND_COMP *comp = NULL;
-			SaNameT name_net;
+			SaNameT name;
 			AVND_COMP_PXIED_REC *pxd_rec = 0, *curr_rec = 0;
-			memset(&name_net, 0, sizeof(SaNameT));
+			memset(&name, 0, sizeof(SaNameT));
 
-			for (comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net);
-			     comp; comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name_net)) {
-				name_net = comp->name_net;
+			for (comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name);
+			     comp; comp = m_AVND_COMPDB_REC_GET_NEXT(cb->internode_avail_comp_db, name)) {
+				name = comp->name;
 				/* Check the node id */
 				if (comp->node_id == rec->info.node_id) {
 					if (m_AVND_COMP_TYPE_IS_PROXIED(comp)) {
@@ -505,7 +499,7 @@ uns32 avnd_evt_avd_node_update_msg(AVND_CB *cb, AVND_EVT *evt)
 						/* Delete the proxied component */
 						m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
 						rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db),
-									     &(comp->name_net));
+									     &(comp->name));
 					} /* if(m_AVND_COMP_TYPE_IS_PROXIED(comp)) */
 					else if (m_AVND_COMP_TYPE_IS_PROXY(comp)) {
 						/* We need to delete the proxy component and make
@@ -516,14 +510,14 @@ uns32 avnd_evt_avd_node_update_msg(AVND_CB *cb, AVND_EVT *evt)
 						while (pxd_rec) {
 							curr_rec = pxd_rec;
 							pxd_rec =
-							    (AVND_COMP_PXIED_REC *)m_NCS_DBLIST_FIND_NEXT(&pxd_rec->
-													  comp_dll_node);
+							    (AVND_COMP_PXIED_REC *)
+							    m_NCS_DBLIST_FIND_NEXT(&pxd_rec->comp_dll_node);
 							rc = avnd_comp_unreg_prc(cb, curr_rec->pxied_comp, comp);
 
 							if (NCSCC_RC_SUCCESS != rc) {
 								m_AVND_AVND_ERR_LOG
 								    ("avnd_evt_avd_node_update_msg:Unreg failed:Comp is",
-								     &curr_rec->pxied_comp->name_net, 0, 0, 0, 0);
+								     &curr_rec->pxied_comp->name, 0, 0, 0, 0);
 							}
 						}	/* while */
 					}	/* else if(m_AVND_COMP_TYPE_IS_PROXY(comp)) */
@@ -583,8 +577,8 @@ uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 		/* update the latest view number */
 		if (rec->info.node_id == cb->clmdb.node_info.nodeId) {
 			cb->clmdb.curr_view_num = curr->clm_info.view_number;
-			cb->clmdb.node_info.nodeName = curr->clm_info.node_name_net;
-			cb->clmdb.node_info.nodeName.length = m_NCS_OS_NTOHS(cb->clmdb.node_info.nodeName.length);
+			cb->clmdb.node_info.nodeName = curr->clm_info.node_name;
+			cb->clmdb.node_info.nodeName.length = cb->clmdb.node_info.nodeName.length;
 		}
 	}
 
@@ -611,11 +605,6 @@ uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 
 	/* set the AvD up flag */
 	m_AVND_CB_AVD_UP_SET(cb);
-
-	/* register this row with mab */
-	rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_NODE_STAT, 0, 0,
-				   &cb->clmdb.node_info.nodeId, &cb->mab_node_hdl, cb->mab_hdl);
-
  done:
 	return rc;
 }
@@ -670,13 +659,13 @@ uns32 avnd_evt_mds_cla_dn(AVND_CB *cb, AVND_EVT *evt)
 			if (i_ptr == db->clm_trk_info) {
 				/* first node */
 				db->clm_trk_info = i_ptr->next;
-				m_MMGR_FREE_AVND_CLM_TRK_INFO(i_ptr);
+				free(i_ptr);
 				i_ptr = db->clm_trk_info;
 				prev_ptr = i_ptr;
 				continue;
 			} else {
 				prev_ptr->next = i_ptr->next;
-				m_MMGR_FREE_AVND_CLM_TRK_INFO(i_ptr);
+				free(i_ptr);
 				i_ptr = prev_ptr->next;
 				continue;
 			}
@@ -723,7 +712,7 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
 	 */
 	if (num) {
 		notify = (SaClmClusterNotificationT *)
-		    m_MMGR_ALLOC_AVSV_CLA_DEFAULT_VAL(num * sizeof(SaClmClusterNotificationT));
+		    calloc(num, sizeof(SaClmClusterNotificationT));
 
 		if (!notify) {
 			rc = NCSCC_RC_FAILURE;
@@ -733,7 +722,6 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
-	memset(notify, 0, num * sizeof(SaClmClusterNotificationT));
 
 	/* Fill the notify buffer with the node info */
 	rec = (AVND_CLM_REC *)m_NCS_DBLIST_FIND_FIRST(&cb->clmdb.clm_list);
@@ -741,8 +729,8 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
 		do {
 			notify[i].clusterNode.nodeId = rec->info.node_id;
 			notify[i].clusterNode.nodeAddress = rec->info.node_address;
-			notify[i].clusterNode.nodeName = rec->info.node_name_net;
-			notify[i].clusterNode.nodeName.length = m_NCS_OS_NTOHS(rec->info.node_name_net.length);
+			notify[i].clusterNode.nodeName = rec->info.node_name;
+			notify[i].clusterNode.nodeName.length = rec->info.node_name.length;
 			notify[i].clusterNode.member = rec->info.member;
 			notify[i].clusterNode.bootTimestamp = rec->info.boot_timestamp;
 			notify[i].clusterNode.initialViewNumber = rec->info.view_number;
@@ -756,12 +744,11 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
 	}
 
 	/* stick the notification buffer into the message */
-	cla_msg = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+	cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
 	if (!cla_msg) {
 		rc = NCSCC_RC_FAILURE;
 		goto error;
 	}
-	memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
 	/* Fill the cla msg and make sure everything is linked */
 	if (is_sync_api == TRUE) {
@@ -796,10 +783,10 @@ uns32 avnd_clm_track_current_resp(AVND_CB *cb,
 
  error:
 	if (cla_msg)
-		m_MMGR_FREE_AVSV_NDA_CLA_MSG(cla_msg);
+		free(cla_msg);
 
 	if (notify)
-		m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(notify);
+		free(notify);
 
 	return rc;
 }
@@ -855,15 +842,15 @@ void avnd_clm_snd_track_changes(AVND_CB *cb, AVND_CLM_REC *current_rec, SaClmClu
 	while (trk_info) {
 		if (m_AVND_CLM_IS_TRACK_CHANGES_ONLY(trk_info)) {
 			/* Allocate memory for just one record, the rec which got changed ONLY */
-			notify = m_MMGR_ALLOC_AVSV_CLA_DEFAULT_VAL(sizeof(SaClmClusterNotificationT));
+			notify = malloc(sizeof(SaClmClusterNotificationT));
 			if (!notify) {
 				/* Log an error . This is low memory situation need not continue */
 				return;
 			}
 			notify->clusterNode.nodeId = current_rec->info.node_id;
 			notify->clusterNode.nodeAddress = current_rec->info.node_address;
-			notify->clusterNode.nodeName = current_rec->info.node_name_net;
-			notify->clusterNode.nodeName.length = m_NCS_OS_NTOHS(current_rec->info.node_name_net.length);
+			notify->clusterNode.nodeName = current_rec->info.node_name;
+			notify->clusterNode.nodeName.length = current_rec->info.node_name.length;
 
 			/* If a node leaves the cluster, member field should be false */
 			if (change == SA_CLM_NODE_LEFT)
@@ -877,12 +864,11 @@ void avnd_clm_snd_track_changes(AVND_CB *cb, AVND_CLM_REC *current_rec, SaClmClu
 		} else if (m_AVND_CLM_IS_TRACK_CHANGES(trk_info)) {
 			/* alloc the notify buffer */
 			if (num)
-				notify = m_MMGR_ALLOC_AVSV_CLA_DEFAULT_VAL(num * sizeof(SaClmClusterNotificationT));
+				notify = calloc(num, sizeof(SaClmClusterNotificationT));
 			if (!notify) {
 				/* Log an error . This is low memory situation need not continue */
 				return;
 			}
-			memset(notify, 0, num * sizeof(SaClmClusterNotificationT));
 
 			i = 0;
 			rec = (AVND_CLM_REC *)m_NCS_DBLIST_FIND_FIRST(&cb->clmdb.clm_list);
@@ -895,9 +881,9 @@ void avnd_clm_snd_track_changes(AVND_CB *cb, AVND_CLM_REC *current_rec, SaClmClu
 
 					notify[i].clusterNode.nodeId = rec->info.node_id;
 					notify[i].clusterNode.nodeAddress = rec->info.node_address;
-					notify[i].clusterNode.nodeName = rec->info.node_name_net;
+					notify[i].clusterNode.nodeName = rec->info.node_name;
 					notify[i].clusterNode.nodeName.length =
-					    m_NCS_OS_NTOHS(rec->info.node_name_net.length);
+						rec->info.node_name.length;
 
 					/* If a node leaves the cluster, member field should be false */
 					if ((change == SA_CLM_NODE_LEFT) && (rec == current_rec))
@@ -919,13 +905,12 @@ void avnd_clm_snd_track_changes(AVND_CB *cb, AVND_CLM_REC *current_rec, SaClmClu
 		}
 
 		/* stick the notification buffer into the message */
-		cla_msg = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+		cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
 		if (!cla_msg) {
 			if (notify)
-				m_MMGR_FREE_AVSV_CLA_DEFAULT_VAL(notify);
+				free(notify);
 			continue;
 		}
-		memset(cla_msg, 0, sizeof(AVSV_NDA_CLA_MSG));
 
 		/* Fill the cla msg and make sure everything is linked */
 		cla_msg->type = AVSV_AVND_CLM_CBK_MSG;

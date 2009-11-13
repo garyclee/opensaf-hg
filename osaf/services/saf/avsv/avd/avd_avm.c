@@ -72,10 +72,10 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* first set the oper_state to disable */
-	avnd->oper_state = NCS_OPER_STATE_DISABLE;
+	avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_DISABLED);
 
-	avnd->node_state = AVD_AVND_STATE_ABSENT;
-	avnd->avm_oper_state = NCS_OPER_STATE_ENABLE;
+	avd_node_state_set(avnd, AVD_AVND_STATE_ABSENT);
+	avnd->avm_oper_state = SA_AMF_OPERATIONAL_ENABLED;
 
 	avnd->node_info.bootTimestamp = 0;
 	memset(&(avnd->node_info.nodeAddress), '\0', sizeof(SaClmNodeAddressT));
@@ -96,7 +96,7 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* Increment node failfast counter */
 	cb->nodes_exit_cnt++;
 
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
 
 	/* Broadcast the node update to all the node directors only
@@ -132,28 +132,28 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	if (avnd->type == AVSV_AVND_CARD_SYS_CON) {
 		if ((cb->node_id_avd == avnd->node_info.nodeId) && (cb->avail_state_avd == SA_AMF_HA_ACTIVE)) {
-			/* Send shutdown failure ntf */
+			/* Send shutdown failure trap */
 			avd_node_shutdown_failure_ntf(cb, avnd, 1);
 			return SA_FALSE;
 		}
 	}
 
 	i_su = avnd->list_of_su;
-	while (i_su != AVD_SU_NULL) {
+	while (i_su != NULL) {
 
 		/* verify that two assigned SUs belonging to the same SG are not
 		 * on this node
 		 */
 		if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 			i_su_sg = i_su->sg_of_su->list_of_su;
-			while (i_su_sg != AVD_SU_NULL) {
+			while (i_su_sg != NULL) {
 				m_AVD_GET_SU_NODE_PTR(cb, i_su, i_su_node_ptr);
 				m_AVD_GET_SU_NODE_PTR(cb, i_su_sg, i_su_sg_node_ptr);
 
 				if ((i_su != i_su_sg) &&
 				    (i_su_node_ptr == i_su_sg_node_ptr) &&
 				    (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL)) {
-					/* Send shutdown failure ntf */
+					/* Send shutdown failure trap */
 					avd_node_shutdown_failure_ntf(cb, avnd, 2);
 					return SA_FALSE;
 				}
@@ -170,7 +170,7 @@ static SaBoolT avd_chk_nd_shutdown_valid(AVD_CL_CB *cb, AVD_AVND *avnd)
 				/* Dont go ahead as a SG that is undergoing transition is
 				 * there related to this node.
 				 */
-				/* Send shutdown failure ntf */
+				/* Send shutdown failure trap */
 				avd_node_shutdown_failure_ntf(cb, avnd, 3);
 				return SA_FALSE;
 			}
@@ -209,7 +209,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
 	AVD_AVND *avnd = AVD_AVND_NULL;
 	NCS_BOOL failover_pending = FALSE;
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	uns32 count = 0;
 
 	if (evt->info.avm_msg == NULL) {
@@ -247,7 +247,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_avnd_struc_find(cb, tmpNode->node_name);
+		avnd = avd_node_find(&tmpNode->node_name);
 
 		if (avnd == AVD_AVND_NULL) {
 			/* LOG an error ? */
@@ -271,7 +271,8 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
 			}
 			/* Mark the Node as Shutting Down */
-			avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN;
+			avd_node_state_set(avnd, AVD_AVND_STATE_SHUTTING_DOWN);
+
 			/*Mark the Node as Absent */
 			avd_avm_mark_nd_absent(cb, avnd);
 
@@ -286,8 +287,8 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		/* Check if this node is in semantics of node going down */
 		if (avnd->node_state == AVD_AVND_STATE_GO_DOWN) {
-			avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN;
-			avnd->avm_oper_state = NCS_OPER_STATE_DISABLE;
+			avd_node_state_set(avnd, AVD_AVND_STATE_SHUTTING_DOWN);
+			avnd->avm_oper_state = SA_AMF_OPERATIONAL_DISABLED;
 			tmpNode = tmpNode->next;
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_AVM_OPER_STATE);
@@ -309,7 +310,8 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		/* Check if this node is already in the context of node failover */
-		if ((avnd->avm_oper_state == NCS_OPER_STATE_DISABLE) && (avnd->node_state == AVD_AVND_STATE_PRESENT)) {
+		if ((avnd->avm_oper_state == SA_AMF_OPERATIONAL_DISABLED) &&
+		    (avnd->node_state == AVD_AVND_STATE_PRESENT)) {
 			/* check for the susi list and if not empty just change the node_state
 			 ** and continue. coz the failover semantics are still on.
 			 **
@@ -319,7 +321,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			failover_pending = FALSE;
 			i_su = avnd->list_of_su;
 
-			while (i_su != AVD_SU_NULL) {
+			while (i_su != NULL) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					failover_pending = TRUE;
 					break;
@@ -327,12 +329,12 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				i_su = i_su->avnd_list_su_next;
 			}
 
+			avd_node_state_set(avnd, AVD_AVND_STATE_SHUTTING_DOWN);
+
 			if (failover_pending == TRUE) {
-				avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 			} else {
-				avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN;
-				avnd->avm_oper_state = NCS_OPER_STATE_DISABLE;
+				avnd->avm_oper_state = SA_AMF_OPERATIONAL_DISABLED;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_AVM_OPER_STATE);
 				avd_snd_shutdown_app_su_msg(cb, avnd);
@@ -342,8 +344,8 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			continue;
 		}
 
-		avnd->node_state = AVD_AVND_STATE_SHUTTING_DOWN;
-		avnd->avm_oper_state = NCS_OPER_STATE_DISABLE;
+		avd_node_state_set(avnd, AVD_AVND_STATE_SHUTTING_DOWN);
+		avnd->avm_oper_state = SA_AMF_OPERATIONAL_DISABLED;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_AVM_OPER_STATE);
 		avd_handle_nd_failover_shutdown(cb, avnd, SA_FALSE);
@@ -371,7 +373,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_ncs)
 {
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	NCS_BOOL assign_list_empty = TRUE;
 
 	if (avnd == AVD_AVND_NULL) {
@@ -388,57 +390,56 @@ void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_
 	else
 		i_su = avnd->list_of_su;
 
-	while (i_su != AVD_SU_NULL) {
-
-		m_AVD_SET_SU_REDINESS(cb, i_su, NCS_OUT_OF_SERVICE);
+	while (i_su != NULL) {
+		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 		if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 			/* Since assignments exists call the SG FSM.
 			 */
 			assign_list_empty = FALSE;
 
-			switch (i_su->sg_of_su->su_redundancy_model) {
-			case AVSV_SG_RED_MODL_2N:
+			switch (i_su->sg_of_su->sg_redundancy_model) {
+			case SA_AMF_2N_REDUNDANCY_MODEL:
 				if (avd_sg_2n_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(i_su->name_net.value,
-									     i_su->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
 					return;
 				}
 				break;
 
-			case AVSV_SG_RED_MODL_NWAY:
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 				if (avd_sg_nway_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(i_su->name_net.value,
-									     i_su->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
 					return;
 				}
 				break;
 
-			case AVSV_SG_RED_MODL_NWAYACTV:
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 				if (avd_sg_nacvred_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(i_su->name_net.value,
-									     i_su->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
 					return;
 				}
 				break;
 
-			case AVSV_SG_RED_MODL_NPM:
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
 				if (avd_sg_npm_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(i_su->name_net.value,
-									     i_su->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
 					return;
 				}
 				break;
 
-			case AVSV_SG_RED_MODL_NORED:
+			case SA_AMF_NO_REDUNDANCY_MODEL:
 			default:
 				if (avd_sg_nored_su_fault_func(cb, i_su) == NCSCC_RC_FAILURE) {
 					/* log error about the failure */
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(i_su->name_net.value,
-									     i_su->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+									     i_su->name.length);
 					return;
 				}
 				break;
@@ -474,18 +475,18 @@ void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_
 
 void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs)
 {
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	/* check for avm_oper_state if its disable we are in context of 
 	 ** failover or shutdown 
 	 */
-	if (avnd->avm_oper_state == NCS_OPER_STATE_ENABLE)
+	if (avnd->avm_oper_state == SA_AMF_OPERATIONAL_ENABLED)
 		return;
 
 	if (is_ncs == SA_FALSE) {
 
 		i_su = avnd->list_of_su;
 
-		while (i_su != AVD_SU_NULL) {
+		while (i_su != NULL) {
 			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 				/* More susi removal pending on this SU nothing to be
 				 ** done now.
@@ -521,7 +522,7 @@ void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs
 		 */
 		i_su = avnd->list_of_ncs_su;
 
-		while (i_su != AVD_SU_NULL) {
+		while (i_su != NULL) {
 			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 				/* More susi removal pending on this SU nothing to  be
 				 ** done now.
@@ -568,7 +569,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
 	AVD_AVND *avnd = AVD_AVND_NULL;
 	NCS_BOOL failover_pending = FALSE;
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 
 	if (evt->info.avm_msg == NULL) {
 		/* log error that a message contents is missing */
@@ -605,7 +606,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_avnd_struc_find(cb, tmpNode->node_name);
+		avnd = avd_node_find(&tmpNode->node_name);
 
 		if (avnd == AVD_AVND_NULL) {
 			/* LOG an error ? */
@@ -615,7 +616,8 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		/* Check if this node is already in the context of node failover */
-		if ((avnd->avm_oper_state == NCS_OPER_STATE_DISABLE) && (avnd->node_state == AVD_AVND_STATE_PRESENT)) {
+		if ((avnd->avm_oper_state == SA_AMF_OPERATIONAL_DISABLED) &&
+		    (avnd->node_state == AVD_AVND_STATE_PRESENT)) {
 			/* check for the susi list and if not empty just change the node_state
 			 ** and continue. coz the failover semantics are still on.
 			 **
@@ -625,7 +627,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			failover_pending = FALSE;
 			i_su = avnd->list_of_su;
 
-			while (i_su != AVD_SU_NULL) {
+			while (i_su != NULL) {
 				if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
 					failover_pending = TRUE;
 					break;
@@ -634,7 +636,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			}
 
 			if (failover_pending == FALSE) {
-				avnd->avm_oper_state = NCS_OPER_STATE_DISABLE;
+				avnd->avm_oper_state = SA_AMF_OPERATIONAL_DISABLED;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_AVM_OPER_STATE);
 				/* call the func handle_nd_shutdown the context will
 				 ** take care of failover semantics 
@@ -646,7 +648,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		}
 
-		avnd->avm_oper_state = NCS_OPER_STATE_DISABLE;
+		avnd->avm_oper_state = SA_AMF_OPERATIONAL_DISABLED;
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_AVM_OPER_STATE);
 
 		avd_handle_nd_failover_shutdown(cb, avnd, SA_FALSE);
@@ -721,7 +723,7 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* first get the avnd structure from the name in message */
-	avnd = avd_avnd_struc_find(cb, msg->avm_avd_msg.reset_resp.node_name);
+	avnd = avd_node_find(&msg->avm_avd_msg.reset_resp.node_name);
 
 	if (avnd == AVD_AVND_NULL) {
 		/* LOG an error ? */
@@ -768,7 +770,7 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
 	AVD_AVND *avnd = AVD_AVND_NULL;
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 
 	if (evt->info.avm_msg == NULL) {
@@ -806,7 +808,7 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_avnd_struc_find(cb, tmpNode->node_name);
+		avnd = avd_node_find(&tmpNode->node_name);
 
 		if (avnd == AVD_AVND_NULL) {
 			/* LOG an error ? */
@@ -845,36 +847,36 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 			if (avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN) {
 
-				avnd->avm_oper_state = NCS_OPER_STATE_ENABLE;
+				avnd->avm_oper_state = SA_AMF_OPERATIONAL_ENABLED;
 
 				/* For each of the SUs calculate the readiness state. 
 				 ** call the SG FSM with the new readiness state.
 				 */
 
 				i_su = avnd->list_of_su;
-				while (i_su != AVD_SU_NULL) {
+				while (i_su != NULL) {
 					m_AVD_GET_SU_NODE_PTR(cb, i_su, su_node_ptr);
 
 					if (m_AVD_APP_SU_IS_INSVC(i_su, su_node_ptr)) {
-						i_su->readiness_state = NCS_IN_SERVICE;
-						switch (i_su->sg_of_su->su_redundancy_model) {
-						case AVSV_SG_RED_MODL_2N:
+                                                avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
+						switch (i_su->sg_of_su->sg_redundancy_model) {
+						case SA_AMF_2N_REDUNDANCY_MODEL:
 							avd_sg_2n_su_insvc_func(cb, i_su);
 							break;
 
-						case AVSV_SG_RED_MODL_NWAY:
+						case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 							avd_sg_nway_su_insvc_func(cb, i_su);
 							break;
 
-						case AVSV_SG_RED_MODL_NWAYACTV:
+						case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 							avd_sg_nacvred_su_insvc_func(cb, i_su);
 							break;
 
-						case AVSV_SG_RED_MODL_NPM:
+						case SA_AMF_NPM_REDUNDANCY_MODEL:
 							avd_sg_npm_su_insvc_func(cb, i_su);
 							break;
 
-						case AVSV_SG_RED_MODL_NORED:
+						case SA_AMF_NO_REDUNDANCY_MODEL:
 						default:
 							avd_sg_nored_su_insvc_func(cb, i_su);
 							break;
@@ -939,7 +941,7 @@ void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 
-	if ((avnd = avd_avnd_struc_find_nodeid(cb, n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == AVD_AVND_NULL) {
 		/* log error that the node id is invalid */
 		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
 		avsv_dnd_msg_free(n2d_msg);

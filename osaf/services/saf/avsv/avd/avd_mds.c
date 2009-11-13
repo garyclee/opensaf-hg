@@ -157,7 +157,6 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_VDEST_CRT);
 
 	/* store the info returned by MDS */
-	cb->mab_hdl = vda_info.info.vdest_create.o_pwe1_oac_hdl;
 	cb->vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
 	cb->vaddr_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
 
@@ -319,22 +318,6 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 				return rc;
 			}
 		}
-		/* check that BAM sent this
-		 ** message to the director if not return error.
-		 */
-		else if ((info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_BAM) &&
-			 (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD)) {
-			m_AVD_LOG_MSG_MDS_RCV_INFO(AVD_LOG_RCVD_MSG,
-						   ((AVD_BAM_MSG *)info->info.receive.i_msg),
-						   info->info.receive.i_node_id);
-
-			rc = avd_bam_msg_rcv(cb_hdl, (AVD_BAM_MSG *)info->info.receive.i_msg);
-			info->info.receive.i_msg = (NCSCONTEXT)0;
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
-				return rc;
-			}
-		}
 		/* check if AvM sent this
 		 ** message to the director if not return error.
 		 */
@@ -382,17 +365,6 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 		break;
 	case MDS_CALLBACK_COPY:
 		{
-			if ((info->i_yr_svc_id == NCSMDS_SVC_ID_AVD) &&
-			    (info->info.cpy.i_to_svc_id == NCSMDS_SVC_ID_BAM)) {
-				info->info.cpy.o_msg_fmt_ver =
-				    avd_bam_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver - 1];
-
-				rc = avd_bam_mds_cpy(&info->info.cpy);
-				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_CPY_CBK);
-				}
-				return rc;
-			}
 			if ((info->i_yr_svc_id == NCSMDS_SVC_ID_AVD) &&
 			    (info->info.cpy.i_to_svc_id == NCSMDS_SVC_ID_AVM)) {
 				info->info.cpy.o_msg_fmt_ver =
@@ -535,7 +507,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
 	AVD_CL_CB *cb;
 
 	/* get the CB from the handle manager */
-	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, *cb_hdl)) == AVD_CL_CB_NULL)
+	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, *cb_hdl)) == NULL)
 		return NCSCC_RC_FAILURE;
 
 	switch (evt_info->i_change) {
@@ -560,7 +532,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
 
 		case NCSMDS_SVC_ID_BAM:
 		default:
-			m_AVSV_ASSERT(0);
+			assert(0);
 		}
 		break;
 
@@ -587,7 +559,7 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
 
 		case NCSMDS_SVC_ID_BAM:
 		default:
-			m_AVSV_ASSERT(0);
+			assert(0);
 		}
 		break;
 
@@ -616,12 +588,12 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
 static uns32 avd_mds_qsd_ack_evt(uns32 cb_hdl, MDS_CALLBACK_QUIESCED_ACK_INFO *evt_info)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = AVD_CL_CB_NULL;
+	AVD_CL_CB *cb = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_qsd_ack_evt");
 
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -631,10 +603,10 @@ static uns32 avd_mds_qsd_ack_evt(uns32 cb_hdl, MDS_CALLBACK_QUIESCED_ACK_INFO *e
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
 	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log error */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -650,7 +622,7 @@ static uns32 avd_mds_qsd_ack_evt(uns32 cb_hdl, MDS_CALLBACK_QUIESCED_ACK_INFO *e
 		ncshm_give_hdl(cb_hdl);
 		/* log error */
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 
 		return NCSCC_RC_FAILURE;
 	}

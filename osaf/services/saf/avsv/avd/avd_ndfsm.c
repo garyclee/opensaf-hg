@@ -45,7 +45,8 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <avd.h>
+#include <avd_cluster.h>
 
 /*****************************************************************************
  * Macro: m_AVD_UNDO_UP_CHNG
@@ -242,22 +243,6 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
-	/* upload all the data from director to node director. By sending all the
-	 * information messages.
-	 */
-
-	if (avd_snd_hlt_msg(cb, avnd, AVD_HLT_NULL, FALSE, FALSE) != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		/* we are in a bad shape. Restart the node for recovery */
-
-		/* call the routine to failover all the effected nodes
-		 * due to restarting this node
-		 */
-
-		avd_node_down_func(cb, avnd);
-		return;
-	}
-
 	if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, FALSE) != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
 		/* we are in a bad shape. Restart the node for recovery */
@@ -276,7 +261,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * is not present.
 	 */
 	if (comp_sent == TRUE) {
-		avnd->node_state = AVD_AVND_STATE_NO_CONFIG;
+		avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 	} else
 		avd_nd_reg_comp_evt_hdl(cb, avnd);
@@ -407,9 +392,9 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	if (cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
+	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		/* log error that a cluster is admin down */
-		m_AVD_LOG_INVALID_VAL_ERROR(cb->cluster_admin_state);
+		m_AVD_LOG_INVALID_VAL_ERROR(avd_cluster->saAmfClusterAdminState);
 		return;
 	}
 
@@ -427,7 +412,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	syslog(LOG_WARNING, "AVD: Heart Beat missed with node director on %x", evt->info.tmr.node_id);
 
 	/* get avnd ptr to call avd_avm_mark_nd_absent */
-	if ((avnd = avd_avnd_struc_find_nodeid(cb, evt->info.tmr.node_id)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(evt->info.tmr.node_id)) == AVD_AVND_NULL) {
 		/* we can't do anything without getting avnd ptr. just return */
 		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
 		return;
@@ -487,10 +472,10 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* Check the AvND structure to see if any NCS SUs exist on the node.
 	 * If none exist change the FSM state present*/
-	if ((ncs_su = avnd->list_of_ncs_su) == AVD_SU_NULL) {
+	if ((ncs_su = avnd->list_of_ncs_su) == NULL) {
 		/* now change the state to present */
-		avnd->node_state = AVD_AVND_STATE_PRESENT;
-		avnd->oper_state = NCS_OPER_STATE_ENABLE;
+		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
+		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
 
 		cb->cluster_num_nodes++;
 
@@ -515,20 +500,19 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_sg_app_node_su_inst_func(cb, avnd);
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_OPER_STATE);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
 
 		return;
 	}
 
-	avnd->node_state = AVD_AVND_STATE_NCS_INIT;
+	avd_node_state_set(avnd, AVD_AVND_STATE_NCS_INIT);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 
 	/* Instantiate all the NCS SUs on this node by sending the presence state
 	 * message for each of the SUs whose components have all been configured.
 	 */
-	while (ncs_su != AVD_SU_NULL) {
-		if ((ncs_su->row_status != NCS_ROW_ACTIVE) || (ncs_su->num_of_comp != ncs_su->curr_num_comp)) {
+	while (ncs_su != NULL) {
+		if (ncs_su->num_of_comp != ncs_su->curr_num_comp) {
 			/* skip these incomplete SUs. */
 			ncs_su = ncs_su->avnd_list_su_next;
 			continue;
@@ -573,8 +557,8 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	ncs_su = avnd->list_of_ncs_su;
 
-	while (ncs_su != AVD_SU_NULL) {
-		if ((ncs_su->row_status != NCS_ROW_ACTIVE) || (ncs_su->num_of_comp != ncs_su->curr_num_comp)) {
+	while (ncs_su != NULL) {
+		if (ncs_su->num_of_comp != ncs_su->curr_num_comp) {
 			/* skip these incomplete SUs. */
 			ncs_su = ncs_su->avnd_list_su_next;
 			continue;
@@ -591,8 +575,8 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* All the NCS SUs are assigned now change the state to present */
 	if (avnd->node_state != AVD_AVND_STATE_PRESENT) {
-		avnd->node_state = AVD_AVND_STATE_PRESENT;
-		avnd->oper_state = NCS_OPER_STATE_ENABLE;
+		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
+		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
 
 		cb->cluster_num_nodes++;
 
@@ -621,10 +605,7 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* if (avnd->node_state != AVD_AVND_STATE_PRESENT) */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_OPER_STATE);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
-
-	return;
 }
 
 /*****************************************************************************
@@ -730,7 +711,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 	cb->cluster_num_nodes = 0;
 
 	/* Walk through all the nodes and send verify message to them. */
-	while (NULL != (avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor, (uns8 *)&node_id))) {
+	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
 		node_id = avnd->node_info.nodeId;
 
 		/* lets calculate the number of nodes in cluster */
@@ -777,12 +758,10 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 			}
 
 			/* Add this node in our fail-over node list */
-			if (NULL == (node_to_add = m_MMGR_ALLOC_CLM_NODE_ID)) {
+			if (NULL == (node_to_add = calloc(1, sizeof(AVD_FAIL_OVER_NODE)))) {
 				/* Log Error */
 				return;
 			}
-
-			memset((char *)node_to_add, '\0', sizeof(AVD_FAIL_OVER_NODE));
 
 			node_to_add->node_id = avnd->node_info.nodeId;
 			node_to_add->tree_node_id_node.key_info = (uns8 *)&(node_to_add->node_id);
@@ -792,7 +771,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 
 			if (ncs_patricia_tree_add(&cb->node_list, &node_to_add->tree_node_id_node) != NCSCC_RC_SUCCESS) {
 				/* log an error */
-				m_MMGR_FREE_CLM_NODE_ID(node_to_add);
+				free(node_to_add);
 				return;
 			}
 		} else {
@@ -843,7 +822,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 								 (uns8 *)&evt->info.avnd_msg->msg_info.
 								 n2d_ack_nack_info.node_id))) {
 		ncs_patricia_tree_del(&cb->node_list, &node_fovr->tree_node_id_node);
-		m_MMGR_FREE_CLM_NODE_ID(node_fovr);
+		free(node_fovr);
 	} else {
 		/* do i need to log an error */
 		avsv_dnd_msg_free(n2d_msg);
@@ -854,7 +833,7 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 	/*
 	 * Check if AVND is in the present state. If No then drop this event.
 	 */
-	if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, evt->info.avnd_msg->msg_info.n2d_ack_nack_info.node_id))) {
+	if (NULL == (avnd = avd_node_find_nodeid(evt->info.avnd_msg->msg_info.n2d_ack_nack_info.node_id))) {
 		/* Not an error? Log information will be helpful */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -902,21 +881,6 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 	 * Log information that we received NACK.
 	 */
 	if (FALSE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
-		/* Log Information */
-		if (avd_snd_hlt_msg(cb, avnd, AVD_HLT_NULL, TRUE, FALSE) != NCSCC_RC_SUCCESS) {
-			m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-			/* we are in a bad shape. Restart the node for recovery */
-
-			/* call the routine to failover all the effected nodes
-			 * due to restarting this node
-			 */
-
-			avd_node_down_func(cb, avnd);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
-		}
-
 		if (avd_snd_su_comp_msg(cb, avnd, &comp_sent, TRUE) != NCSCC_RC_SUCCESS) {
 			m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
 			/* we are in a bad shape. Restart the node for recovery */
@@ -943,14 +907,15 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
 					/* log a fatal error that a message couldn't be sent */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(su_ptr->name_net.value,
-									     su_ptr->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su_ptr->name.value,
+									     su_ptr->name.length);
 				}
 			}
 		}
 
 		/* check the LED status and send a msg if required */
-		if (avnd->node_state == AVD_AVND_STATE_PRESENT && avnd->oper_state == NCS_OPER_STATE_ENABLE) {
+		if (avnd->node_state == AVD_AVND_STATE_PRESENT
+		    && avnd->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) {
 			/* We can now set the LEDS */
 			avd_snd_set_leds_msg(cb, avnd);
 		}
@@ -964,9 +929,9 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 				continue;
 
 			/* if SG is 2n,N+M,N-way active and susi is modifying send susi relation */
-			if ((su_ptr->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_2N) ||
-			    (su_ptr->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_NPM) ||
-			    (su_ptr->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_NWAYACTV)) {
+			if ((su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) ||
+			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_NPM_REDUNDANCY_MODEL) ||
+			    (su_ptr->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL)) {
 				if (AVD_SU_SI_STATE_MODIFY == su_ptr->list_of_susi->fsm) {
 					avd_snd_susi_msg(cb, su_ptr, AVD_SU_SI_REL_NULL, AVSV_SUSI_ACT_MOD);
 					continue;
@@ -980,8 +945,8 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (avd_snd_susi_msg(cb, su_ptr, rel_ptr, rel_ptr->fsm) != NCSCC_RC_SUCCESS) {
 					/* log a fatal error that a message couldn't be sent */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)su_ptr));
-					m_AVD_LOG_INVALID_NAME_NET_VAL_ERROR(su_ptr->name_net.value,
-									     su_ptr->name_net.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su_ptr->name.value,
+									     su_ptr->name.length);
 				}
 			}
 		}
@@ -1012,15 +977,9 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_node_down");
 
-	if ((avnd = avd_avnd_struc_find_nodeid(cb, node_id)
+	if ((avnd = avd_node_find_nodeid(node_id)
 	    ) == AVD_AVND_NULL) {
 		/* log error that the node id is invalid */
-		m_AVD_LOG_INVALID_VAL_FATAL(node_id);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (avnd->row_status != NCS_ROW_ACTIVE) {
-		/* log error that the node is not valid */
 		m_AVD_LOG_INVALID_VAL_FATAL(node_id);
 		return NCSCC_RC_FAILURE;
 	}

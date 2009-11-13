@@ -78,7 +78,7 @@ static uns32 avnd_err_restart_esc_level_2(AVND_CB *, AVND_SU *, AVND_ERR_ESC_LEV
 
 /* LSB Changes. Strings to represent source of component Error */
 
-static const unsigned char *g_comp_err[AVND_ERR_SRC_MAX] = {
+static const char *g_comp_err[] = {
 	"noError(0)",
 	"errorReport(1)",
 	"healthCheckFailed(2)",
@@ -95,7 +95,7 @@ static const unsigned char *g_comp_err[AVND_ERR_SRC_MAX] = {
 	"csiRemovecallbackFailed(13)"
 };
 
-static const unsigned char *g_comp_rcvr[AVSV_ERR_RCVR_MAX - 1] = {
+static const char *g_comp_rcvr[] = {
 	"noRecommendation(1)",
 	"componentRestart(2)",
 	"componentFailover(3)",
@@ -146,7 +146,7 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_rep->err_comp_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_rep->err_comp);
 
 	/* determine the error code, if any */
 	if (!comp)
@@ -191,7 +191,7 @@ uns32 avnd_evt_ava_err_rep(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_err_rep():Comp,Hdl and rec_rcvr are",
-				    &err_rep->err_comp_net, err_rep->hdl, err_rep->rec_rcvr, 0, 0);
+				    &err_rep->err_comp, err_rep->hdl, err_rep->rec_rcvr, 0, 0);
 	}
 
 	return rc;
@@ -235,7 +235,7 @@ uns32 avnd_evt_ava_err_clear(AVND_CB *cb, AVND_EVT *evt)
 	}
 
 	/* get the comp */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_clear->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, err_clear->comp_name);
 
 	/* determine the error code, if any */
 	if (!comp || !m_AVND_COMP_IS_REG(comp) ||
@@ -259,7 +259,7 @@ uns32 avnd_evt_ava_err_clear(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_err_clear():Comp and Hdl are",
-				    &err_clear->comp_name_net, err_clear->hdl, 0, 0, 0);
+				    &err_clear->comp_name, err_clear->hdl, 0, 0, 0);
 	}
 
 	return rc;
@@ -323,21 +323,21 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		goto done;
 
 	/* log the failure details (placeholder for sending EDSv events) */
-	m_AVND_LOG_ERR(err_info->src, esc_rcvr, &comp->name_net, NCSFL_SEV_NOTICE);
+	m_AVND_LOG_ERR(err_info->src, esc_rcvr, &comp->name, NCSFL_SEV_NOTICE);
 
 	/* Console Print to help debugging */
 	if (((comp->su->is_ncs == TRUE) && (esc_rcvr != SA_AMF_COMPONENT_RESTART)) || esc_rcvr == SA_AMF_NODE_FAILFAST) {
 		m_NCS_DBG_PRINTF("\nAvSv: Card going for reboot -%s faulted due to %d -rcvr=%d\n",
-				 comp->name_net.value, comp->err_info.src, esc_rcvr);
+				 comp->name.value, comp->err_info.src, esc_rcvr);
 		syslog(LOG_ERR, "NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
-		       comp->name_net.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
+		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 	}
 	fp = fopen(NODE_HA_STATE, "a");
 	if (fp) {
 		/* Get the ascii local time stamp */
 		asc_lt[0] = '\0';
 		m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
-		fprintf(fp, "%s | The component %s failed due to : %s\n", asc_lt, comp->name_net.value,
+		fprintf(fp, "%s | The component %s failed due to : %s\n", asc_lt, comp->name.value,
 			g_comp_err[err_info->src]);
 		fflush(fp);
 		fclose(fp);
@@ -345,7 +345,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 
 	syslog(LOG_INFO,
 	       "Component '%s' faulted due to '%s' - rcvr=%u",
-	       comp->name_net.value, g_comp_err[err_info->src], esc_rcvr);
+	       comp->name.value, g_comp_err[err_info->src], esc_rcvr);
 
 	avnd_gen_comp_fail_on_node_ntf(cb, err_info->src, comp);
 
@@ -376,8 +376,8 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 uns32 avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR *io_esc_rcvr)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	if (comp->pres == NCS_PRES_UNINSTANTIATED ||
-	    comp->pres == NCS_PRES_INSTANTIATIONFAILED || comp->pres == NCS_PRES_TERMINATIONFAILED)
+	if (comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED ||
+	    comp->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED || comp->pres == SA_AMF_PRESENCE_TERMINATION_FAILED)
 		return NCSCC_RC_FAILURE;
 
 	/* use default recovery if nothing is recommended */
@@ -406,7 +406,7 @@ uns32 avnd_err_escalate(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR
 
 	case AVSV_ERR_RCVR_SU_RESTART:
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 		break;
 	}			/* switch */
 
@@ -431,13 +431,13 @@ uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR 
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	if (comp->pres == NCS_PRES_INSTANTIATING) {
+	if (comp->pres == SA_AMF_PRESENCE_INSTANTIATING) {
 		/* mark the comp failed */
 		m_AVND_COMP_FAILED_SET(comp);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 		/* update comp oper state */
-		m_AVND_COMP_OPER_STATE_SET(comp, NCS_OPER_STATE_DISABLE);
+		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
@@ -448,14 +448,15 @@ uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR 
 	}
 
 	/* if we are already inst-failed,  do nothing */
-	if ((su->pres == NCS_PRES_INSTANTIATIONFAILED) &&
-	    (comp->pres == NCS_PRES_TERMINATING) && (rcvr != SA_AMF_NODE_FAILOVER) && (rcvr != SA_AMF_NODE_FAILFAST)) {
+	if ((su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED) &&
+	    (comp->pres == SA_AMF_PRESENCE_TERMINATING) && (rcvr != SA_AMF_NODE_FAILOVER)
+	    && (rcvr != SA_AMF_NODE_FAILFAST)) {
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		return rc;
 	}
 
 	/* if we are already terminating do nothing */
-	if ((comp->pres == NCS_PRES_TERMINATING) && (rcvr == SA_AMF_COMPONENT_RESTART)) {
+	if ((comp->pres == SA_AMF_PRESENCE_TERMINATING) && (rcvr == SA_AMF_COMPONENT_RESTART)) {
 		rc = avnd_comp_clc_fsm_run(cb, comp, AVND_COMP_CLC_PRES_FSM_EV_CLEANUP);
 		return rc;
 	}
@@ -463,14 +464,14 @@ uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR 
 	/* We need not service any error other than node failover, when SU is 
 	 * already terminating. We will just clean the component.
 	 */
-	if ((su->pres == NCS_PRES_TERMINATING) && (rcvr != SA_AMF_NODE_FAILOVER)
+	if ((su->pres == SA_AMF_PRESENCE_TERMINATING) && (rcvr != SA_AMF_NODE_FAILOVER)
 	    && (rcvr != SA_AMF_NODE_FAILFAST)) {
 		/* mark the comp failed */
 		m_AVND_COMP_FAILED_SET(comp);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 		/* update comp oper state */
-		m_AVND_COMP_OPER_STATE_SET(comp, NCS_OPER_STATE_DISABLE);
+		m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 		m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 		if (NCSCC_RC_SUCCESS != rc)
 			return rc;
@@ -525,7 +526,7 @@ uns32 avnd_err_recover(AVND_CB *cb, AVND_SU *su, AVND_COMP *comp, AVSV_ERR_RCVR 
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 		break;
 	}
 
@@ -583,7 +584,7 @@ uns32 avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 	}
 
 	/* change the comp oper state to disabled */
-	m_AVND_COMP_OPER_STATE_SET(comp, NCS_OPER_STATE_DISABLE);
+	m_AVND_COMP_OPER_STATE_SET(comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
@@ -635,9 +636,9 @@ uns32 avnd_err_rcvr_su_restart(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp)
 		goto done;
 
 	/* change the comp & su oper state to disabled */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
-	m_AVND_COMP_OPER_STATE_SET(failed_comp, NCS_OPER_STATE_DISABLE);
+	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
@@ -695,7 +696,7 @@ uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* update comp oper state */
-	m_AVND_COMP_OPER_STATE_SET(failed_comp, NCS_OPER_STATE_DISABLE);
+	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
@@ -708,7 +709,7 @@ uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 	}
 
 	/* update su oper state */
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform AvD */
@@ -721,7 +722,7 @@ uns32 avnd_err_rcvr_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
 	avnd_comp_cmplete_all_assignment(cb, failed_comp);
 
 	/* We are now in the context of failover, forget the restart */
-	if (su->pres == NCS_PRES_RESTARTING || m_AVND_SU_IS_RESTART(su)) {
+	if (su->pres == SA_AMF_PRESENCE_RESTARTING || m_AVND_SU_IS_RESTART(su)) {
 		m_AVND_SU_RESTART_RESET(su);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
@@ -765,7 +766,7 @@ uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_comp, AVND_CKPT_COMP_FLAG_CHANGE);
 
 	/* update comp oper state */
-	m_AVND_COMP_OPER_STATE_SET(failed_comp, NCS_OPER_STATE_DISABLE);
+	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
@@ -778,8 +779,8 @@ uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 	}
 
 	/* transition the su & node oper state to disabled */
-	cb->oper_state = NCS_OPER_STATE_DISABLE;
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, NCS_OPER_STATE_DISABLE);
+	cb->oper_state = SA_AMF_OPERATIONAL_DISABLED;
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform avd */
@@ -792,7 +793,7 @@ uns32 avnd_err_rcvr_node_failover(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 	avnd_comp_cmplete_all_assignment(cb, failed_comp);
 
 	/* We are now in the context of failover, forget the restart */
-	if (failed_su->pres == NCS_PRES_RESTARTING || m_AVND_SU_IS_RESTART(failed_su)) {
+	if (failed_su->pres == SA_AMF_PRESENCE_RESTARTING || m_AVND_SU_IS_RESTART(failed_su)) {
 		m_AVND_SU_RESTART_RESET(failed_su);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_FLAG_CHANGE);
 	}
@@ -832,10 +833,10 @@ uns32 avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	NCS_BOOL is_en;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVSV_ASSERT(m_AVND_SU_IS_FAILED(su));
+	assert(m_AVND_SU_IS_FAILED(su));
 
 	/* If the SU is in inst-failed state, do nothing */
-	if (su->pres == NCS_PRES_INSTANTIATIONFAILED)
+	if (su->pres == SA_AMF_PRESENCE_INSTANTIATION_FAILED)
 		return rc;
 
 	/* scan & instantiate failed pi comps */
@@ -865,7 +866,7 @@ uns32 avnd_err_su_repair(AVND_CB *cb, AVND_SU *su)
 	if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
 		m_AVND_SU_IS_ENABLED(su, is_en);
 		if (TRUE == is_en) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_ENABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_ENABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 			rc = avnd_di_oper_send(cb, su, 0);
 			if (NCSCC_RC_SUCCESS != rc)
@@ -947,7 +948,7 @@ uns32 avnd_err_restart_esc_level_0(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL 
 {
 
 	uns32 rc = NCSCC_RC_SUCCESS;
-	*esc_rcvr = AVSV_AMF_COMPONENT_RESTART;
+	*esc_rcvr = SA_AMF_COMPONENT_RESTART;
 
 	/* first time in this level */
 	if (su->comp_restart_cnt == 0) {
@@ -1018,7 +1019,8 @@ uns32 avnd_err_restart_esc_level_1(AVND_CB *cb, AVND_SU *su, AVND_ERR_ESC_LEVEL 
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* If the SU is still instantiating, do jump to next level */
-	if (su->pres == NCS_PRES_INSTANTIATING || su->pres == NCS_PRES_RESTARTING || m_AVND_SU_IS_ASSIGN_PEND(su)) {
+	if (su->pres == SA_AMF_PRESENCE_INSTANTIATING || su->pres == SA_AMF_PRESENCE_RESTARTING
+	    || m_AVND_SU_IS_ASSIGN_PEND(su)) {
 		/* go to the next possible level, get escalted recovery and modify count */
 		if ((cb->su_failover_max != 0) || (TRUE == su->su_is_external)) {
 			/* External component should not contribute to NODE FAILOVER of cluster
@@ -1252,7 +1254,7 @@ uns32 avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_FLAG_CHANGE);
 
 	/* update comp oper state */
-	m_AVND_COMP_OPER_STATE_SET(failed_comp, NCS_OPER_STATE_DISABLE);
+	m_AVND_COMP_OPER_STATE_SET(failed_comp, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(cb, failed_comp, rc);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
@@ -1271,8 +1273,8 @@ uns32 avnd_err_rcvr_node_failfast(AVND_CB *cb, AVND_SU *failed_su, AVND_COMP *fa
 	}
 
 	/* transition the su & node oper state to disabled */
-	cb->oper_state = NCS_OPER_STATE_DISABLE;
-	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, NCS_OPER_STATE_DISABLE);
+	cb->oper_state = SA_AMF_OPERATIONAL_DISABLED;
+	m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, failed_su, SA_AMF_OPERATIONAL_DISABLED);
 	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, failed_su, AVND_CKPT_SU_OPER_STATE);
 
 	/* inform avd */

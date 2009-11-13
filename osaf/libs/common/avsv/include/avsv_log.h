@@ -35,6 +35,8 @@
 #ifndef AVSV_LOG_H
 #define AVSV_LOG_H
 
+#include <ncs_log.h>
+
 /******************************************************************************
                       Logging offset indices for SE-API
  ******************************************************************************/
@@ -69,6 +71,22 @@ typedef enum avsv_log_mds {
 	AVSV_LOG_MDS_FAILURE,
 	AVSV_LOG_MDS_MAX
 } AVSV_LOG_MDS;
+
+/******************************************************************************
+                      Logging offset indices for SRM
+ ******************************************************************************/
+typedef enum avsv_log_srm {
+	AVSV_LOG_SRM_REG,
+	AVSV_LOG_SRM_FINALIZE,
+	AVSV_LOG_SRM_UNREG,
+	AVSV_LOG_SRM_MON_START,
+	AVSV_LOG_SRM_MON_STOP,
+	AVSV_LOG_SRM_CALLBACK,
+	AVSV_LOG_SRM_DISPATCH,
+	AVSV_LOG_SRM_SUCCESS,
+	AVSV_LOG_SRM_FAILURE,
+	AVSV_LOG_SRM_MAX
+} AVSV_LOG_SRM;
 
 /******************************************************************************
                         Logging offset indices for EDU

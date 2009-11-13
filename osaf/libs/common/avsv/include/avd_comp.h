@@ -34,13 +34,27 @@
 #ifndef AVD_COMP_H
 #define AVD_COMP_H
 
-/* Availability directors Component structure(AVD_COMP): 
- * This data structure lives in the AvD and reflects data points
- * associated with the component on the AvD.
- */
-typedef struct avd_cmp_tag {
+#include <saAmf.h>
+#include <saImm.h>
+#include <ncspatricia.h>
+#include <avsv_d2nmsg.h>
+#include <avd_su.h>
+
+/* AMF Class SaAmfCompGlobalAttributes */
+typedef struct {
+	SaUint32T saAmfNumMaxInstantiateWithoutDelay;
+	SaUint32T saAmfNumMaxInstantiateWithDelay;
+	SaUint32T saAmfNumMaxAmStartAttempts;
+	SaUint32T saAmfNumMaxAmStopAttempts;
+	SaTimeT saAmfDelayBetweenInstantiateAttempts;
+} AVD_COMP_GLOBALATTR;
+
+/* AMF Class SaAmfCompType */
+typedef struct avd_comp_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be the component name */
+	SaNameT saAmfCompType;
+
 	/* Detailed as in data structure definition */
 	AVSV_COMP_INFO comp_info;	/* component name field with 
 					 * the length field in the 
@@ -63,12 +77,6 @@ typedef struct avd_cmp_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	AVD_SU *su;		/* SU to which this component belongs */
-
-	NCS_ROW_STATUS row_status;	/* row status of this MIB row 
-					 * Checkpointing - Sent as a one time update.
-					 */
-
 	SaUint32T max_num_csi_actv;	/* number of CSI relationships that can be
 					 * assigned active to this component 
 					 * Checkpointing - Sent as a one time update.
@@ -88,95 +96,130 @@ typedef struct avd_cmp_tag {
 					 * been assigned standby to this component
 					 * Checkpointing - Sent update independently.
 					 */
+	SaNameT comp_proxy_csi;
+	SaNameT comp_container_csi;
 
-	NCS_OPER_STATE oper_state;	/* component operational state
-					 * Checkpointing - Sent update independently.
-					 */
-	NCS_READINESS_STATE readiness_state;	/* component readiness state */
-
-	NCS_PRES_STATE pres_state;	/* component presence state.
-					 * Checkpointing - Sent update independently.
-					 */
-
-	struct avd_cmp_tag *su_comp_next;	/* the next component in list of  components
-						 * in this SU */
-	SaNameT proxy_comp_name_net;	/* Name of the current proxy component.
-					 * only valid if the component is proxied 
-					 * component,the len field is in n/w order */
-
-	uns32 restart_cnt;	/* The number times the 
-				 * component restarted.
-				 * Checkpointing - Sent update independently.
-				 */
+	/* runtime attributes */
+	SaAmfOperationalStateT saAmfCompOperState;	
+	SaAmfReadinessStateT   saAmfCompReadinessState;
+	SaAmfPresenceStateT    saAmfCompPresenceState;
+	SaUint32T              saAmfCompRestartCount;
+	SaNameT                saAmfCompCurrProxyName;
+	SaNameT              **saAmfCompCurrProxiedNames;
 
 	NCS_BOOL assign_flag;	/* Flag used while assigning. to mark this
 				 * comp has been assigned a CSI from
 				 * current SI being assigned
 				 */
+	struct avd_amf_comp_type_tag *comp_type;
+	struct avd_comp_tag *comp_type_list_comp_next;
+	struct avd_su_tag *su;		/* SU to which this component belongs */
+	struct avd_comp_tag *su_comp_next;	/* the next component in list of  components
+						 * in this SU */
+	struct avd_comp_cs_type_tag *compcstype_list;
 
 } AVD_COMP;
 
-typedef struct avd_comp_cs_type_indx_tag {
+/* AMF Class SaAmfCompType */
+typedef struct avd_amf_comp_type_tag {
 
-	SaNameT comp_name_net;	/* component name field with 
-				 * the length field in the 
-				 * network order is used as the
-				 * primary index. */
-	SaNameT csi_type_name_net;	/* CSI Type name field with 
-					 * the length field in the 
-					 * network order is used as the
-					 * secondary index. */
-} AVD_COMP_CS_TYPE_INDX;
+	NCS_PATRICIA_NODE tree_node;	/* name is key */
+	SaNameT name;
+	SaUint32T saAmfCtCompCategory;
+	SaNameT saAmfCtSwBundle;
+	char saAmfCtDefCmdEnv[AVSV_MISC_STR_MAX_SIZE];
+	SaTimeT saAmfCtDefClcCliTimeout;
+	SaTimeT saAmfCtDefCallbackTimeout;
+	char saAmfCtRelPathInstantiateCmd[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtDefInstantiateCmdArgv[AVSV_MISC_STR_MAX_SIZE];
+	SaUint32T saAmfCtDefInstantiationLevel;
+	char saAmfCtRelPathTerminateCmd[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtDefTerminateCmdArgv[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtRelPathCleanupCmd[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtDefCleanupCmdArgv[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtRelPathAmStartCmd[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtDefAmStartCmdArgv[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtRelPathAmStopCmd[AVSV_MISC_STR_MAX_SIZE];
+	char saAmfCtDefAmStopCmdArgv[AVSV_MISC_STR_MAX_SIZE];
+	SaTimeT saAmfCompQuiescingCompleteTimeout;
+	SaAmfRecommendedRecoveryT saAmfCtDefRecoveryOnError;
+	SaBoolT saAmfCtDefDisableRestart;
 
+	struct avd_comp_tag *list_of_comp;
+
+} AVD_COMP_TYPE;
+
+/* AMF Class SaAmfCompCsType */
 typedef struct avd_comp_cs_type_tag {
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be the component name and 
-					 * CSI Type Name */
-	AVD_COMP_CS_TYPE_INDX indx;	/* Index */
-	NCS_ROW_STATUS row_status;	/* row status of this MIB row */
+	NCS_PATRICIA_NODE tree_node;	/* name is key */
+	SaNameT name;
+	SaUint32T saAmfCompNumMaxActiveCSIs;
+	SaUint32T saAmfCompNumMaxStandbyCSIs;
+	SaUint32T saAmfCompNumCurrActiveCSIs;
+	SaUint32T saAmfCompNumCurrStandbyCSIs;
+	SaNameT **saAmfCompAssignedCsi;
+	AVD_COMP *comp;
+	struct avd_comp_cs_type_tag *comp_list_compcstype_next;
+} AVD_COMPCS_TYPE;
 
-} AVD_COMP_CS_TYPE;
+/* AMF Class SaAmfCtCsType */
+typedef struct {
+	NCS_PATRICIA_NODE tree_node;	/* name is key */
+	SaNameT name;
+	saAmfCompCapabilityModelT saAmfCtCompCapability;
+	SaUint32T saAmfCtDefNumMaxActiveCSIs;
+	SaUint32T saAmfCtDefNumMaxStandbyCSIs;
+	AVD_COMP_TYPE *comptype;
+} AVD_CTCS_TYPE;
 
-#define AVD_COMP_CS_TYPE_NULL  ((AVD_COMP_CS_TYPE *)0)
+extern AVD_COMP_GLOBALATTR avd_comp_global_attrs;
 
-#define AVD_COMP_NULL ((AVD_COMP *)0)
+/**
+ * Set the presence state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param pres_state
+ */
+extern void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state);
 
-EXTERN_C AVD_COMP *avd_comp_struc_crt(AVD_CL_CB *cb, SaNameT comp_name, NCS_BOOL ckpt);
-EXTERN_C AVD_COMP *avd_comp_struc_find(AVD_CL_CB *cb, SaNameT comp_name, NCS_BOOL host_order);
-EXTERN_C AVD_COMP *avd_comp_struc_find_next(AVD_CL_CB *cb, SaNameT comp_name, NCS_BOOL host_order);
-EXTERN_C uns32 avd_comp_struc_del(AVD_CL_CB *cb, AVD_COMP *comp);
-EXTERN_C void avd_comp_del_su_list(AVD_CL_CB *cb, AVD_COMP *comp);
-EXTERN_C uns32 saamfcomptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfcomptableentry_extract(NCSMIB_PARAM_VAL *param,
-					   NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfcomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfcomptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfcomptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					  NCSMIB_SETROW_PARAM_VAL *params,
-					  struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+/**
+ * Set the operational state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param oper_state
+ */
+extern void avd_comp_oper_state_set(AVD_COMP *comp, SaAmfOperationalStateT oper_state);
+
+/**
+ * Set the readindess state of the specified component, log, update IMM & check point to peer
+ * @param comp
+ * @param readiness_state
+ */
+extern void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness_state);
+
+extern AVD_COMP *avd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes);
+extern void avd_comp_delete(AVD_COMP *comp);
+EXTERN_C AVD_COMP *avd_comp_find(const SaNameT *comp_name);
+EXTERN_C AVD_COMP *avd_comp_getnext(const SaNameT *comp_name);
+EXTERN_C void avd_su_del_comp(AVD_COMP* comp);
 EXTERN_C void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg);
+extern SaAisErrorT avd_comp_config_get(const SaNameT* su_name, struct avd_su_tag* su);
+extern void avd_comp_constructor(void);
 
-EXTERN_C AVD_COMP_CS_TYPE *avd_comp_cs_type_struc_crt(AVD_CL_CB *cb, AVD_COMP_CS_TYPE_INDX indx);
+extern AVD_COMPCS_TYPE *avd_compcstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
+extern AVD_COMPCS_TYPE *avd_compcstype_find(const SaNameT *dn);
+extern AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn);
+extern uns32 avd_compcstype_find_match(const struct avd_csi_tag *csi, const AVD_COMP *comp);
+extern void avd_compcstype_constructor(void);
 
-EXTERN_C AVD_COMP_CS_TYPE *avd_comp_cs_type_struc_find(AVD_CL_CB *cb, AVD_COMP_CS_TYPE_INDX indx);
 
-EXTERN_C AVD_COMP_CS_TYPE *avd_comp_cs_type_struc_find_next(AVD_CL_CB *cb, AVD_COMP_CS_TYPE_INDX indx);
+extern SaAisErrorT avd_comptype_config_get(void);
+extern AVD_COMP_TYPE *avd_comptype_find(const SaNameT *comp_type_name);
+extern void avd_comptype_add_comp_list(AVD_COMP *comp);
+extern void avd_comptype_delete_comp_list(AVD_COMP *comp);
+extern void avd_comptype_constructor(void);
 
-EXTERN_C uns32 avd_comp_cs_type_struc_del(AVD_CL_CB *cb, AVD_COMP_CS_TYPE *cst);
-
-EXTERN_C uns32 avd_comp_cs_type_find_match(AVD_CL_CB *cb, struct avd_csi_tag *csi, AVD_COMP *comp);
-
-EXTERN_C uns32 saamfcompcstypesupportedtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfcompcstypesupportedtableentry_extract(NCSMIB_PARAM_VAL *param,
-							  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data,
-							  NCSCONTEXT buffer);
-EXTERN_C uns32 saamfcompcstypesupportedtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-						      NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfcompcstypesupportedtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-						       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfcompcstypesupportedtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-							 NCSMIB_SETROW_PARAM_VAL *params,
-							 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+extern SaAisErrorT avd_compglobalattrs_config_get(void);
+extern AVD_CTCS_TYPE *avd_ctcstype_find(const SaNameT *dn);
+extern void avd_ctcstype_constructor(void);
 
 #endif

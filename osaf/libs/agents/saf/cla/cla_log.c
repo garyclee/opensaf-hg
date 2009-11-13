@@ -18,6 +18,8 @@
 /*****************************************************************************
 ..............................................................................
 
+
+
 ..............................................................................
 
   DESCRIPTION:
@@ -33,6 +35,7 @@
 
 #include "cla.h"
 
+
 #if ( NCS_CLA_LOG == 1 )
 /****************************************************************************
   Name          : cla_log_seapi
@@ -47,12 +50,14 @@
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_seapi(AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
+void cla_log_seapi (AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_SEAPI, CLA_FC_SEAPI, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_SEAPI, CLA_FC_SEAPI, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : cla_log_mds
@@ -67,12 +72,15 @@ void cla_log_seapi(AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_mds(AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
+void cla_log_mds (AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_MDS, CLA_FC_MDS, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_MDS, CLA_FC_MDS, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : cla_log_edu
@@ -87,12 +95,15 @@ void cla_log_mds(AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_edu(AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
+void cla_log_edu (AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_EDU, CLA_FC_EDU, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_EDU, CLA_FC_EDU, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : cla_log_lock
@@ -107,12 +118,15 @@ void cla_log_edu(AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_lock(AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
+void cla_log_lock (AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_LOCK, CLA_FC_LOCK, NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_LOCK, CLA_FC_LOCK, 
+              NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : cla_log_cb
@@ -127,12 +141,15 @@ void cla_log_lock(AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_cb(AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
+void cla_log_cb (AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_CB, CLA_FC_CB, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_CB, CLA_FC_CB, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : cla_log_cbk
@@ -146,12 +163,15 @@ void cla_log_cb(AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_cbk(AVSV_CLM_CBK_TYPE type, uns8 sev)
+void cla_log_cbk (AVSV_CLM_CBK_TYPE type, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_CBK, CLA_FC_CBK, NCSFL_LC_API, sev, NCSFL_TYPE_TI, type - 1);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_CBK, CLA_FC_CBK, 
+              NCSFL_LC_API, sev, NCSFL_TYPE_TI, type - 1);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : cla_log_sel_obj
@@ -166,13 +186,14 @@ void cla_log_cbk(AVSV_CLM_CBK_TYPE type, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_sel_obj(CLA_LOG_SEL_OBJ op, CLA_LOG_SEL_OBJ status, uns8 sev)
+void cla_log_sel_obj (CLA_LOG_SEL_OBJ op, CLA_LOG_SEL_OBJ status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_SEL_OBJ, CLA_FC_SEL_OBJ,
-		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_SEL_OBJ, CLA_FC_SEL_OBJ, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : cla_log_api
@@ -187,12 +208,16 @@ void cla_log_sel_obj(CLA_LOG_SEL_OBJ op, CLA_LOG_SEL_OBJ status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_api(CLA_LOG_API type, CLA_LOG_API status, uns8 sev)
+void cla_log_api (CLA_LOG_API   type, 
+                  CLA_LOG_API   status, 
+                  uns8          sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_API, CLA_FC_API, NCSFL_LC_API, sev, NCSFL_TYPE_TII, type, status);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_API, CLA_FC_API, 
+              NCSFL_LC_API, sev, NCSFL_TYPE_TII, type, status);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : cla_log_hdl_db
@@ -208,13 +233,17 @@ void cla_log_api(CLA_LOG_API type, CLA_LOG_API status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_hdl_db(CLA_LOG_HDL_DB op, CLA_LOG_HDL_DB status, uns32 hdl, uns8 sev)
+void cla_log_hdl_db (CLA_LOG_HDL_DB op, 
+                     CLA_LOG_HDL_DB status, 
+                     uns32          hdl, 
+                     uns8           sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_HDL_DB, CLA_FC_HDL_DB,
-		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIL, op, status, hdl);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_HDL_DB, CLA_FC_HDL_DB, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIL, op, status, hdl);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : cla_log_misc
@@ -228,12 +257,14 @@ void cla_log_hdl_db(CLA_LOG_HDL_DB op, CLA_LOG_HDL_DB status, uns32 hdl, uns8 se
  
   Notes         : None.
  *****************************************************************************/
-void cla_log_misc(CLA_LOG_MISC op, uns8 sev)
+void cla_log_misc (CLA_LOG_MISC op, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_MISC, CLA_FC_MISC, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, op);
+   ncs_logmsg(NCS_SERVICE_ID_CLA, CLA_LID_MISC, CLA_FC_MISC, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, op);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : cla_log_reg
@@ -246,24 +277,25 @@ void cla_log_misc(CLA_LOG_MISC op, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-uns32 cla_log_reg()
+uns32 cla_log_reg ()
 {
-	NCS_DTSV_RQ reg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+   NCS_DTSV_RQ reg;
+   uns32       rc = NCSCC_RC_SUCCESS;
 
-	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
-	reg.i_op = NCS_DTSV_OP_BIND;
-	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CLA;
-	/* fill version no. */
-	reg.info.bind_svc.version = AVSV_LOG_VERSION;
-	/* fill svc_name */
-	strcpy(reg.info.bind_svc.svc_name, "AvSv");
+   reg.i_op = NCS_DTSV_OP_BIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CLA;
+   /* fill version no. */
+   reg.info.bind_svc.version = AVSV_LOG_VERSION;
+   /* fill svc_name */
+   strcpy(reg.info.bind_svc.svc_name, "AvSv");
 
-	rc = ncs_dtsv_su_req(&reg);
+   rc = ncs_dtsv_su_req(&reg);
 
-	return rc;
+   return rc;
 }
+
 
 /****************************************************************************
   Name          : cla_log_unreg
@@ -276,19 +308,20 @@ uns32 cla_log_reg()
  
   Notes         : None.
  *****************************************************************************/
-uns32 cla_log_unreg()
+uns32 cla_log_unreg ()
 {
-	NCS_DTSV_RQ reg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+   NCS_DTSV_RQ reg;
+   uns32       rc = NCSCC_RC_SUCCESS;
 
-	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
-	reg.i_op = NCS_DTSV_OP_UNBIND;
-	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CLA;
+   reg.i_op = NCS_DTSV_OP_UNBIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_CLA;
 
-	rc = ncs_dtsv_su_req(&reg);
+   rc = ncs_dtsv_su_req(&reg);
 
-	return rc;
+   return rc;
 }
+#endif /* NCS_CLA_LOG == 1 */
 
-#endif   /* NCS_CLA_LOG == 1 */
+

@@ -46,11 +46,11 @@ uns32 avnd_gen_comp_inst_failed_ntf(AVND_CB *avnd_cb, AVND_COMP *comp)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	/* Log the componet insantiation failed info */
-	avnd_log_clc_ntfs(AVND_LOG_NTFS_INSTANTIATION, AVND_LOG_NTFS_FAILED, &(comp->name_net), NCSFL_SEV_NOTICE);
+	avnd_log_clc_ntfs(AVND_LOG_NTFS_INSTANTIATION, AVND_LOG_NTFS_FAILED, &(comp->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->name_net.length);
-	(void)memcpy(comp_name.value, comp->name_net.value, comp_name.length);
+	comp_name.length = comp->name.length;
+	(void)memcpy(comp_name.value, comp->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Instentiation Of Component %s Failed", comp_name.value);
@@ -84,11 +84,11 @@ uns32 avnd_gen_comp_term_failed_ntf(AVND_CB *avnd_cb, AVND_COMP *comp)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	/* Log the componet termination failed info */
-	avnd_log_clc_ntfs(AVND_LOG_NTFS_TERMINATION, AVND_LOG_NTFS_FAILED, &(comp->name_net), NCSFL_SEV_NOTICE);
+	avnd_log_clc_ntfs(AVND_LOG_NTFS_TERMINATION, AVND_LOG_NTFS_FAILED, &(comp->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->name_net.length);
-	(void)memcpy(comp_name.value, comp->name_net.value, comp_name.length);
+	comp_name.length = comp->name.length;
+	(void)memcpy(comp_name.value, comp->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Termination Of Component %s Failed", comp_name.value);
@@ -122,11 +122,11 @@ uns32 avnd_gen_comp_clean_failed_ntf(AVND_CB *avnd_cb, AVND_COMP *comp)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	/* Log the cleanup insantiation failed info */
-	avnd_log_clc_ntfs(AVND_LOG_NTFS_CLEANUP, AVND_LOG_NTFS_FAILED, &(comp->name_net), NCSFL_SEV_NOTICE);
+	avnd_log_clc_ntfs(AVND_LOG_NTFS_CLEANUP, AVND_LOG_NTFS_FAILED, &(comp->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->name_net.length);
-	(void)memcpy(comp_name.value, comp->name_net.value, comp_name.length);
+	comp_name.length = comp->name.length;
+	(void)memcpy(comp_name.value, comp->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Cleanup Of Component %s Failed", comp_name.value);
@@ -163,13 +163,13 @@ uns32 avnd_gen_comp_proxied_orphaned_ntf(AVND_CB *avnd_cb, AVND_COMP *comp)
 	if (comp->pxy_comp)
 		avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTFS_ORPHANED,
 					       AVND_LOG_NTFS_FAILED,
-					       &(comp->name_net),
-					       &(comp->pxy_comp->name_net),
+					       &(comp->name),
+					       &(comp->pxy_comp->name),
 					       NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->name_net.length);
-	(void)memcpy(comp_name.value, comp->name_net.value, comp_name.length);
+	comp_name.length = comp->name.length;
+	(void)memcpy(comp_name.value, comp->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Component %s become orphan", comp_name.value);
@@ -203,11 +203,11 @@ uns32 avnd_gen_su_oper_state_chg_ntf(AVND_CB *avnd_cb, AVND_SU *su)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	/* Log the SU oper state  */
-	avnd_log_su_oper_state_ntfs(su->oper, &(su->name_net), NCSFL_SEV_NOTICE);
+	avnd_log_su_oper_state_ntfs(su->oper, &(su->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(su->name_net.length);
-	(void)memcpy(comp_name.value, su->name_net.value, comp_name.length);
+	comp_name.length = su->name.length;
+	(void)memcpy(comp_name.value, su->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Oper state of SU %s changed", comp_name.value);
@@ -241,11 +241,11 @@ uns32 avnd_gen_su_pres_state_chg_ntf(AVND_CB *avnd_cb, AVND_SU *su)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	/* Log the SU oper state  */
-	avnd_log_su_pres_state_ntfs(su->pres, &(su->name_net), NCSFL_SEV_NOTICE);
+	avnd_log_su_pres_state_ntfs(su->pres, &(su->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(su->name_net.length);
-	(void)memcpy(comp_name.value, su->name_net.value, comp_name.length);
+	comp_name.length = su->name.length;
+	(void)memcpy(comp_name.value, su->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Present state of SU %s changed", comp_name.value);
@@ -279,11 +279,11 @@ uns32 avnd_gen_comp_fail_on_node_ntf(AVND_CB *avnd_cb, AVND_ERR_SRC errSrc, AVND
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	avnd_log_comp_failed_ntfs(avnd_cb->clmdb.node_info.nodeId, &(comp->name_net), errSrc-1, NCSFL_SEV_NOTICE);
+	avnd_log_comp_failed_ntfs(avnd_cb->clmdb.node_info.nodeId, &(comp->name), errSrc-1, NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->name_net.length);
-	(void)memcpy(comp_name.value, comp->name_net.value, comp_name.length);
+	comp_name.length = comp->name.length;
+	(void)memcpy(comp_name.value, comp->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Component %s Failed on node", comp_name.value);

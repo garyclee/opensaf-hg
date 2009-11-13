@@ -154,7 +154,7 @@ const NCSFL_STR avd_ntf_set[] = {
 	{AVD_NTFS_JOINED, "Joined"},
 	{AVD_NTFS_EXITED, "Exited"},
 	{AVD_NTFS_RECONFIGURED, "Reconfigured"},
-	{AVD_NTFS_NCS_INIT_SUCCESS, "NCS Initialization Successful on Node Id :"},
+	{AVD_NTFS_NCS_INIT_SUCCESS, "Initialization Successful on Node Id :"},
 
 	{0, 0}
 };

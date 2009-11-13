@@ -38,12 +38,16 @@ EXTERN_C uns32 avd_compile_ckpt_edp(AVD_CL_CB *cb);
 EXTERN_C uns32 avsv_edp_ckpt_msg_cb(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uns32 *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_avd_hlt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					 NCSCONTEXT ptr, uns32 *ptr_data_len,
-					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_avnd_config(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+EXTERN_C uns32 avsv_edp_ckpt_msg_cluster(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	NCSCONTEXT ptr, uns32 *ptr_data_len,
+	EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+
+EXTERN_C uns32 avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					     NCSCONTEXT ptr, uns32 *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
+EXTERN_C uns32 avsv_edp_ckpt_msg_app(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+				    NCSCONTEXT ptr, uns32 *ptr_data_len,
+				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 EXTERN_C uns32 avsv_edp_ckpt_msg_sg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				    NCSCONTEXT ptr, uns32 *ptr_data_len,
 				    EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
@@ -62,13 +66,7 @@ EXTERN_C uns32 avsv_edp_ckpt_msg_su_admin_si(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 EXTERN_C uns32 avsv_edp_ckpt_msg_comp(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				      NCSCONTEXT ptr, uns32 *ptr_data_len,
 				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_csi(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-				     NCSCONTEXT ptr, uns32 *ptr_data_len,
-				     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_csi_param_list(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						NCSCONTEXT ptr, uns32 *ptr_data_len,
-						EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_su_si_rel(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+EXTERN_C uns32 avsv_edp_ckpt_msg_siass(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					   NCSCONTEXT ptr, uns32 *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 EXTERN_C uns32 avsv_edp_ckpt_msg_async_updt_cnt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
@@ -80,11 +78,5 @@ EXTERN_C uns32 avsv_edp_ckpt_msg_sus_per_si_rank(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 EXTERN_C uns32 avsv_edp_ckpt_msg_comp_cs_type(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					      NCSCONTEXT ptr, uns32 *ptr_data_len,
 					      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_cs_type_param(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					       NCSCONTEXT ptr, uns32 *ptr_data_len,
-					       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-EXTERN_C uns32 avsv_edp_ckpt_msg_si_dep(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					NCSCONTEXT ptr, uns32 *ptr_data_len,
-					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #endif

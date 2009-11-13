@@ -616,9 +616,7 @@ AC_CONFIG_FILES([
         osaf/snmp/mapi/mqsv/Makefile
         osaf/snmp/miblib/Makefile
         osaf/snmp/miblib/avsv/Makefile
-        osaf/snmp/miblib/avsv/avd/Makefile
         osaf/snmp/miblib/avsv/avm/Makefile
-        osaf/snmp/miblib/avsv/avnd/Makefile
         osaf/snmp/miblib/dtsv/Makefile
         osaf/snmp/miblib/dtsv/dts/Makefile
         osaf/snmp/miblib/mqsv/Makefile
@@ -793,12 +791,12 @@ AC_CONFIG_FILES([
         osaf/services/saf/avsv/avnd/Makefile
         osaf/services/saf/avsv/pcap/Makefile
         osaf/services/saf/avsv/pcap/scripts/Makefile
-        osaf/services/saf/avsv/pcap/scripts/ncs_pcap_clean
-        osaf/services/saf/avsv/pcap/scripts/ncs_pcap_start
+        osaf/services/saf/avsv/pcap/scripts/opensaf_pcap_clean
+        osaf/services/saf/avsv/pcap/scripts/opensaf_pcap_start
         osaf/services/saf/avsv/scap/Makefile
         osaf/services/saf/avsv/scap/scripts/Makefile
-        osaf/services/saf/avsv/scap/scripts/ncs_scap_clean
-        osaf/services/saf/avsv/scap/scripts/ncs_scap_start
+        osaf/services/saf/avsv/scap/scripts/opensaf_scap_clean
+        osaf/services/saf/avsv/scap/scripts/opensaf_scap_start
         osaf/services/saf/immsv/Makefile
         osaf/services/saf/immsv/config/Makefile
         osaf/services/saf/immsv/immd/Makefile

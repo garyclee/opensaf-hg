@@ -57,12 +57,12 @@ static uns32 avnd_send_pg_start_on_fover(AVND_CB *cb)
 	memset(&csi_name, '\0', sizeof(SaNameT));
 
 	while (NULL != (pg = m_AVND_PGDB_REC_GET_NEXT(cb->pgdb, csi_name))) {
-		rc = avnd_di_pg_act_send(cb, &pg->csi_name_net, AVSV_PG_TRACK_ACT_START, TRUE);
+		rc = avnd_di_pg_act_send(cb, &pg->csi_name, AVSV_PG_TRACK_ACT_START, TRUE);
 
 		if (NCSCC_RC_SUCCESS != rc)
 			break;
 
-		csi_name = pg->csi_name_net;
+		csi_name = pg->csi_name;
 	}
 	return rc;
 }

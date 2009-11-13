@@ -35,27 +35,28 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <avd.h>
+#include <avd_cluster.h>
 
 /* Declaration of async update functions */
 static uns32 avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avd_csi_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avd_hlt_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_cb_cl_view_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avnd_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avnd_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avnd_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avnd_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avnd_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avnd_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avnd_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
@@ -77,37 +78,31 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_comp_proxy_comp_name_net(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avd_sus_per_si_rank_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_ckpt_avd_cs_type_param_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
 /* Declaration of static cold sync decode functions */
 static uns32 avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avsv_decode_cold_sync_rsp_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uns32 avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uns32 avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
+static uns32 avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_sg_su_oper_list(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avsv_decode_cold_sync_rsp_avd_csi_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avsv_decode_cold_sync_rsp_avd_hlt_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_async_updt_cnt(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config(AVD_CL_CB *cb,
-								  NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 static uns32 avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-static uns32 avsv_decode_cold_sync_rsp_avd_cs_type_param_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
-
-static uns32 avsv_decode_ckpt_avd_si_dep_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec);
-static uns32 avsv_decode_cold_sync_rsp_avd_si_dep_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj);
 
 /*
  * Function list for decoding the async data.
@@ -115,21 +110,19 @@ static uns32 avsv_decode_cold_sync_rsp_avd_si_dep_config(AVD_CL_CB *cb, NCS_MBCS
  * in the decode argument.
  */
 
-const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CKPT_MSG_MAX] = {
+const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[] = {
 	avsv_decode_ckpt_avd_cb_config,
-	avsv_decode_ckpt_avd_avnd_config,
+	avsv_decode_ckpt_avd_cluster_config,
+	avsv_decode_ckpt_avd_node_config,
+	avsv_decode_ckpt_avd_app_config,
 	avsv_decode_ckpt_avd_sg_config,
 	avsv_decode_ckpt_avd_su_config,
 	avsv_decode_ckpt_avd_si_config,
 	avsv_decode_ckpt_avd_oper_su,
 	avsv_decode_ckpt_avd_sg_admin_si,
 	avsv_decode_ckpt_avd_comp_config,
-	avsv_decode_ckpt_avd_cs_type_param_config,
-	avsv_decode_ckpt_avd_csi_config,
 	avsv_decode_ckpt_avd_comp_cs_type_config,
 	avsv_decode_ckpt_avd_su_si_rel,
-	avsv_decode_ckpt_avd_hlt_config,
-	avsv_decode_ckpt_avd_sus_per_si_rank_config,
 
 	/* 
 	 * Messages to update independent fields.
@@ -139,12 +132,12 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CKPT_MSG_
 	avsv_decode_ckpt_cb_cl_view_num,
 
 	/* AVND Async Update messages */
+	avsv_decode_ckpt_node_admin_state,
+	avsv_decode_ckpt_node_oper_state,
 	avsv_decode_ckpt_avnd_node_up_info,
-	avsv_decode_ckpt_avnd_su_admin_state,
-	avsv_decode_ckpt_avnd_oper_state,
-	avsv_decode_ckpt_avnd_node_state,
-	avsv_decode_ckpt_avnd_rcv_msg_id,
-	avsv_decode_ckpt_avnd_snd_msg_id,
+	avsv_decode_ckpt_node_state,
+	avsv_decode_ckpt_node_rcv_msg_id,
+	avsv_decode_ckpt_node_snd_msg_id,
 	avsv_decode_ckpt_avnd_avm_oper_state,
 
 	/* SG Async Update messages */
@@ -168,20 +161,21 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CKPT_MSG_
 	avsv_decode_ckpt_su_preinstan,
 
 	/* SI Async Update messages */
+	avsv_decode_ckpt_si_admin_state,
+	avsv_decode_ckpt_si_assignment_state,
 	avsv_decode_ckpt_si_su_curr_active,
 	avsv_decode_ckpt_si_su_curr_stby,
 	avsv_decode_ckpt_si_switch,
-	avsv_decode_ckpt_si_admin_state,
 
 	/* COMP Async Update messages */
-	avsv_decode_ckpt_comp_proxy_comp_name_net,
+	avsv_decode_ckpt_comp_proxy_comp_name,
 	avsv_decode_ckpt_comp_curr_num_csi_actv,
 	avsv_decode_ckpt_comp_curr_num_csi_stby,
 	avsv_decode_ckpt_comp_oper_state,
+	avsv_decode_ckpt_comp_readiness_state,
 	avsv_decode_ckpt_comp_pres_state,
 	avsv_decode_ckpt_comp_restart_count,
 	NULL,			/* AVSV_SYNC_COMMIT */
-	avsv_decode_ckpt_avd_si_dep_config
 };
 
 /*
@@ -191,21 +185,18 @@ const AVSV_DECODE_CKPT_DATA_FUNC_PTR avsv_dec_ckpt_data_func_list[AVSV_CKPT_MSG_
  */
 const AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_dec_cold_sync_rsp_data_func_list[] = {
 	avsv_decode_cold_sync_rsp_avd_cb_config,
-	avsv_decode_cold_sync_rsp_avd_avnd_config,
+	avsv_decode_cold_sync_rsp_avd_cluster_config,
+	avsv_decode_cold_sync_rsp_avd_node_config,
+	avsv_decode_cold_sync_rsp_avd_app_config,
 	avsv_decode_cold_sync_rsp_avd_sg_config,
 	avsv_decode_cold_sync_rsp_avd_su_config,
 	avsv_decode_cold_sync_rsp_avd_si_config,
 	avsv_decode_cold_sync_rsp_avd_sg_su_oper_list,
 	avsv_decode_cold_sync_rsp_avd_sg_admin_si,
 	avsv_decode_cold_sync_rsp_avd_comp_config,
-	avsv_decode_cold_sync_rsp_avd_cs_type_param_config,
-	avsv_decode_cold_sync_rsp_avd_csi_config,
 	avsv_decode_cold_sync_rsp_avd_comp_cs_type_config,
 	avsv_decode_cold_sync_rsp_avd_su_si_rel,
-	avsv_decode_cold_sync_rsp_avd_hlt_config,
-	avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config,
-	avsv_decode_cold_sync_rsp_avd_async_updt_cnt,
-	avsv_decode_cold_sync_rsp_avd_si_dep_config	/* not been called for now */
+	avsv_decode_cold_sync_rsp_avd_async_updt_cnt
 };
 
 /****************************************************************************\
@@ -251,7 +242,7 @@ static uns32 avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC 
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avd_avnd_config
+ * Function: avsv_decode_cold_sync_rsp_avd_avnd_config
  *
  * Purpose:  Decode entire AVD_AVND data..
  *
@@ -264,7 +255,42 @@ static uns32 avsv_decode_ckpt_avd_cb_config(AVD_CL_CB *cb_ptr, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status;
+	EDU_ERR ederror = 0;
+	AVD_CLUSTER dec_cluster;
+	AVD_CLUSTER *cluster = &dec_cluster;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cluster_config");
+
+	assert(dec->i_action == NCS_MBCSV_ACT_UPDATE);
+
+	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
+		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
+		dec->i_peer_version);
+	assert(status == NCSCC_RC_SUCCESS);
+
+	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
+
+	return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_avd_node_config
+ *
+ * Purpose:  Decode entire AVD_AVND data..
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -285,14 +311,14 @@ static uns32 avsv_decode_ckpt_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror,
 					    dec->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 1, 1);
 		break;
 
@@ -308,11 +334,67 @@ static uns32 avsv_decode_ckpt_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	status = avsv_ckpt_add_rmv_updt_avnd(cb, avnd_ptr, dec->i_action);
+	status = avd_ckpt_node(cb, avnd_ptr, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.avnd_updt++;
+		cb->async_updt_cnt.node_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_avd_app_config
+ *
+ * Purpose:  Decode entire AVD_APP data..
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_APP _app;
+	AVD_APP *app = &_app;
+	EDU_ERR ederror = 0;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_app_config");
+
+	/* 
+	 * Check for the action type (whether it is add, rmv or update) and act
+	 * accordingly. If it is add then create new element, if it is update
+	 * request then just update data structure, and if it is remove then 
+	 * remove entry from the list.
+	 */
+	switch (dec->i_action) {
+	case NCS_MBCSV_ACT_ADD:
+	case NCS_MBCSV_ACT_UPDATE:
+		/* Send entire data */
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
+					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror,
+					    dec->i_peer_version);
+		break;
+
+	default:
+		assert(0);
+	}
+
+	if (status != NCSCC_RC_SUCCESS) {
+		/* Encode failed!!! */
+		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		return status;
+	}
+
+	status = avd_ckpt_app(cb, app, dec->i_action);
+
+	if (NCSCC_RC_SUCCESS == status)
+		cb->async_updt_cnt.app_updt++;
 
 	return status;
 }
@@ -357,16 +439,8 @@ static uns32 avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 					    dec->i_peer_version);
 		break;
 
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 1, 1);
-		break;
-
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -375,7 +449,7 @@ static uns32 avsv_decode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	status = avsv_ckpt_add_rmv_updt_sg_data(cb, sg_ptr, dec->i_action);
+	status = avd_ckpt_sg(cb, sg_ptr, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -423,17 +497,8 @@ static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror,
 					    dec->i_peer_version);
 		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 1, 1);
-		break;
-
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -442,77 +507,11 @@ static uns32 avsv_decode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	status = avsv_ckpt_add_rmv_updt_su_data(cb, su_ptr, dec->i_action);
+	status = avd_ckpt_su(cb, su_ptr, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.su_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_avd_si_dep_config
- *
- * Purpose:  Decode entire AVD_SI_SI_DEP data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_si_dep_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SI_SI_DEP *si_ptr_dec;
-	AVD_SI_SI_DEP dec_si_dep;
-	EDU_ERR ederror = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_si_dep_config");
-
-	si_ptr_dec = &dec_si_dep;
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_dep,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI_SI_DEP **)&si_ptr_dec, &ederror,
-					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si_dep,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI_SI_DEP **)&si_ptr_dec, &ederror, 1, 1);
-		break;
-
-	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_si_dep_data(cb, si_ptr_dec, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.si_dep_updt++;
 
 	return status;
 }
@@ -575,7 +574,7 @@ static uns32 avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	status = avsv_ckpt_add_rmv_updt_si_data(cb, si_ptr_dec, dec->i_action);
+	status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -604,7 +603,7 @@ static uns32 avsv_decode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_sg_admin_si");
 
-	status = avsv_update_sg_admin_si(cb, &dec->i_uba, dec->i_action);
+	status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -646,14 +645,14 @@ static uns32 avsv_decode_ckpt_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	switch (dec->i_action) {
 	case NCS_MBCSV_ACT_ADD:
 	case NCS_MBCSV_ACT_UPDATE:
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su_si_rel,
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
 					    &ederror, dec->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su_si_rel, &dec->i_uba,
+		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_siass, &dec->i_uba,
 				      EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt, &ederror, 2, 1, 2);
 		break;
 
@@ -668,11 +667,11 @@ static uns32 avsv_decode_ckpt_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
 	}
 
-	avsv_updt_su_si_rel(cb, su_si_ckpt, dec->i_action);
+	avd_ckpt_siass(cb, su_si_ckpt, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.su_si_rel_updt++;
+		cb->async_updt_cnt.siass_updt++;
 
 	return status;
 }
@@ -734,145 +733,11 @@ static uns32 avsv_decode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	status = avsv_ckpt_add_rmv_updt_comp_data(cb, comp_ptr, dec->i_action);
+	status = avd_ckpt_comp(cb, comp_ptr, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
 		cb->async_updt_cnt.comp_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_avd_csi_config
- *
- * Purpose:  Decode entire AVD_CSI data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_csi_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_CSI *csi_ptr_dec;
-	AVD_CSI dec_csi;
-	EDU_ERR ederror = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_csi_config");
-
-	csi_ptr_dec = &dec_csi;
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_csi,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CSI **)&csi_ptr_dec, &ederror,
-					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_csi,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CSI **)&csi_ptr_dec, &ederror, 1, 1);
-		break;
-
-	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_csi_data(cb, csi_ptr_dec, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.csi_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_avd_hlt_config
- *
- * Purpose:  Decode entire AVD_HLT data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_hlt_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_HLT *hlt_ptr;
-	AVD_HLT dec_hlt;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_hlt_config");
-
-	hlt_ptr = &dec_hlt;
-
-	/* 
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then 
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_UPDATE:
-	case NCS_MBCSV_ACT_ADD:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_avd_hlt,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_HLT **)&hlt_ptr, &ederror,
-					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avd_hlt,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_HLT **)&hlt_ptr, &ederror, 3, 1, 2, 3);
-		break;
-
-	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_hlt_data(cb, hlt_ptr, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.hlt_updt++;
 
 	return status;
 }
@@ -927,7 +792,7 @@ static uns32 avsv_decode_ckpt_avd_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	status = avsv_decode_add_rmv_su_oper_list(cb, su_ptr, dec->i_action);
+	status = avd_ckpt_su_oper_list(cb, su_ptr, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
@@ -1005,7 +870,7 @@ static uns32 avsv_decode_ckpt_avnd_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 6, 1, 2, 4, 5, 6, 7);
 
 	if (status != NCSCC_RC_SUCCESS) {
@@ -1014,7 +879,7 @@ static uns32 avsv_decode_ckpt_avnd_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -1027,12 +892,12 @@ static uns32 avsv_decode_ckpt_avnd_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	avnd_struct->node_info.initialViewNumber = avnd_ptr->node_info.initialViewNumber;
 	avnd_struct->adest = avnd_ptr->adest;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avnd_su_admin_state
+ * Function: avsv_decode_ckpt_node_admin_state
  *
  * Purpose:  Decode avnd su admin state info.
  *
@@ -1045,7 +910,7 @@ static uns32 avsv_decode_ckpt_avnd_node_up_info(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avnd_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_node_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1060,31 +925,27 @@ static uns32 avsv_decode_ckpt_avnd_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 8);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->su_admin_state = avnd_ptr->su_admin_state;
+	avnd_struct->saAmfNodeAdminState = avnd_ptr->saAmfNodeAdminState;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avnd_oper_state
+ * Function: avsv_decode_ckpt_node_oper_state
  *
  * Purpose:  Decode avnd oper state info.
  *
@@ -1097,7 +958,7 @@ static uns32 avsv_decode_ckpt_avnd_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avnd_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_node_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1112,33 +973,29 @@ static uns32 avsv_decode_ckpt_avnd_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 9);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	avnd_struct->oper_state = avnd_ptr->oper_state;
+	avnd_struct->saAmfNodeOperState = avnd_ptr->saAmfNodeOperState;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avnd_node_state
+ * Function: avsv_decode_ckpt_node_state
  *
- * Purpose:  Decode avnd node state info.
+ * Purpose:  Decode node state info.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -1149,7 +1006,7 @@ static uns32 avsv_decode_ckpt_avnd_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avnd_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1164,16 +1021,12 @@ static uns32 avsv_decode_ckpt_avnd_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 11);
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 10);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -1182,12 +1035,12 @@ static uns32 avsv_decode_ckpt_avnd_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* Update the fields received in this checkpoint message */
 	avnd_struct->node_state = avnd_ptr->node_state;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_avnd_rcv_msg_id
+ * Function: avsv_decode_ckpt_node_rcv_msg_id
  *
  * Purpose:  Decode avnd receive message ID.
  *
@@ -1200,7 +1053,7 @@ static uns32 avsv_decode_ckpt_avnd_node_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avnd_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_node_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1215,16 +1068,12 @@ static uns32 avsv_decode_ckpt_avnd_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 15);
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 12);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -1233,7 +1082,7 @@ static uns32 avsv_decode_ckpt_avnd_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* Update the fields received in this checkpoint message */
 	avnd_struct->rcv_msg_id = avnd_ptr->rcv_msg_id;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 
 	return status;
 }
@@ -1252,7 +1101,7 @@ static uns32 avsv_decode_ckpt_avnd_rcv_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_avnd_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_node_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd_ptr;
@@ -1267,16 +1116,12 @@ static uns32 avsv_decode_ckpt_avnd_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 16);
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 13);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -1285,7 +1130,7 @@ static uns32 avsv_decode_ckpt_avnd_snd_msg_id(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	/* Update the fields received in this checkpoint message */
 	avnd_struct->snd_msg_id = avnd_ptr->snd_msg_id;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 
 	return status;
 }
@@ -1319,8 +1164,8 @@ static uns32 avsv_decode_ckpt_avnd_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 17);
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror, 2, 1, 14);
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
@@ -1328,7 +1173,7 @@ static uns32 avsv_decode_ckpt_avnd_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 		return status;
 	}
 
-	if (NULL == (avnd_struct = avd_avnd_struc_find_nodeid(cb, avnd_ptr->node_info.nodeId))) {
+	if (NULL == (avnd_struct = avd_node_find_nodeid(avnd_ptr->node_info.nodeId))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -1337,7 +1182,7 @@ static uns32 avsv_decode_ckpt_avnd_avm_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 	/* Update the fields received in this checkpoint message */
 	avnd_struct->avm_oper_state = avnd_ptr->avm_oper_state;
 
-	cb->async_updt_cnt.avnd_updt++;
+	cb->async_updt_cnt.node_updt++;
 
 	return status;
 }
@@ -1372,76 +1217,17 @@ static uns32 avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 10);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 2);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	sg_struct->admin_state = sg_ptr->admin_state;
+	sg_struct->saAmfSGAdminState = sg_ptr->saAmfSGAdminState;
 
 	cb->async_updt_cnt.sg_updt++;
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_sg_adjust_state
- *
- * Purpose:  Decode SG adjust state.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SG *sg_ptr;
-	AVD_SG dec_sg;
-	EDU_ERR ederror = 0;
-	AVD_SG *sg_struct;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_adjust_state");
-
-	sg_ptr = &dec_sg;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 11);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	sg_struct->adjust_state = sg_ptr->adjust_state;
-
-	cb->async_updt_cnt.sg_updt++;
-
 	return status;
 }
 
@@ -1475,22 +1261,15 @@ static uns32 avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 18);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 3);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	sg_struct->su_assigned_num = sg_ptr->su_assigned_num;
+	sg_struct->saAmfSGNumCurrAssignedSUs = sg_ptr->saAmfSGNumCurrAssignedSUs;
 
 	cb->async_updt_cnt.sg_updt++;
 
@@ -1527,22 +1306,15 @@ static uns32 avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 19);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 4);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	sg_struct->su_spare_num = sg_ptr->su_spare_num;
+	sg_struct->saAmfSGNumCurrInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrInstantiatedSpareSUs;
 
 	cb->async_updt_cnt.sg_updt++;
 
@@ -1579,22 +1351,60 @@ static uns32 avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 20);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 5);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	sg_struct->su_uninst_num = sg_ptr->su_uninst_num;
+	sg_struct->saAmfSGNumCurrNonInstantiatedSpareSUs = sg_ptr->saAmfSGNumCurrNonInstantiatedSpareSUs;
+
+	cb->async_updt_cnt.sg_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_sg_adjust_state
+ *
+ * Purpose:  Decode SG adjust state.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SG *sg_ptr;
+	AVD_SG dec_sg;
+	EDU_ERR ederror = 0;
+	AVD_SG *sg_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_sg_adjust_state");
+
+	sg_ptr = &dec_sg;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 6);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	sg_struct->adjust_state = sg_ptr->adjust_state;
 
 	cb->async_updt_cnt.sg_updt++;
 
@@ -1631,19 +1441,12 @@ static uns32 avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 21);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror, 2, 1, 7);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_struc_find(cb, sg_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
 	sg_struct->sg_fsm_state = sg_ptr->sg_fsm_state;
@@ -1654,9 +1457,9 @@ static uns32 avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_si_curr_active
+ * Function: avsv_decode_ckpt_su_preinstan
  *
- * Purpose:  Decode SU Current number of Active SI.
+ * Purpose:  Decode SU preinstatible object.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -1667,7 +1470,7 @@ static uns32 avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1675,7 +1478,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_active");
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_preinstan");
 
 	su_ptr = &dec_su;
 
@@ -1683,31 +1486,25 @@ static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 6);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 2);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	su_struct->si_curr_active = su_ptr->si_curr_active;
+	su_struct->saAmfSUPreInstantiable = su_ptr->saAmfSUPreInstantiable;
 
 	cb->async_updt_cnt.su_updt++;
+
 	return status;
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_si_curr_stby
+ * Function: avsv_decode_ckpt_su_oper_state
  *
- * Purpose:  Decode SU Current number of Standby SI.
+ * Purpose:  Decode SU Operation state.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -1718,7 +1515,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_SU *su_ptr;
@@ -1726,7 +1523,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	EDU_ERR ederror = 0;
 	AVD_SU *su_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_stby");
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_oper_state");
 
 	su_ptr = &dec_su;
 
@@ -1734,22 +1531,15 @@ static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 7);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 3);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	su_struct->si_curr_standby = su_ptr->si_curr_standby;
+	su_struct->saAmfSUOperState = su_ptr->saAmfSUOperState;
 
 	cb->async_updt_cnt.su_updt++;
 
@@ -1786,22 +1576,194 @@ static uns32 avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 9);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 4);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	su_struct->admin_state = su_ptr->admin_state;
+	su_struct->saAmfSUAdminState = su_ptr->saAmfSUAdminState;
+
+	cb->async_updt_cnt.su_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_su_rediness_state
+ *
+ * Purpose:  Decode SU Rediness state.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_su_rediness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SU *su_ptr;
+	AVD_SU dec_su;
+	EDU_ERR ederror = 0;
+	AVD_SU *su_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_rediness_state");
+
+	su_ptr = &dec_su;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 5);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	su_struct->saAmfSuReadinessState = su_ptr->saAmfSuReadinessState;
+
+	cb->async_updt_cnt.su_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_su_pres_state
+ *
+ * Purpose:  Decode SU Presdece state.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SU *su_ptr;
+	AVD_SU dec_su;
+	EDU_ERR ederror = 0;
+	AVD_SU *su_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_pres_state");
+
+	su_ptr = &dec_su;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 6);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	su_struct->saAmfSUPresenceState = su_ptr->saAmfSUPresenceState;
+
+	cb->async_updt_cnt.su_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_su_si_curr_active
+ *
+ * Purpose:  Decode SU Current number of Active SI.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SU *su_ptr;
+	AVD_SU dec_su;
+	EDU_ERR ederror = 0;
+	AVD_SU *su_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_active");
+
+	su_ptr = &dec_su;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 8);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	su_struct->saAmfSUNumCurrActiveSIs = su_ptr->saAmfSUNumCurrActiveSIs;
+
+	cb->async_updt_cnt.su_updt++;
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_su_si_curr_stby
+ *
+ * Purpose:  Decode SU Current number of Standby SI.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SU *su_ptr;
+	AVD_SU dec_su;
+	EDU_ERR ederror = 0;
+	AVD_SU *su_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_si_curr_stby");
+
+	su_ptr = &dec_su;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 9);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	su_struct->saAmfSUNumCurrStandbySIs = su_ptr->saAmfSUNumCurrStandbySIs;
 
 	cb->async_updt_cnt.su_updt++;
 
@@ -1838,19 +1800,12 @@ static uns32 avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 10);
+	   &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 11);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->term_state = su_ptr->term_state;
@@ -1889,178 +1844,15 @@ static uns32 avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 11);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 12);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->su_switch = su_ptr->su_switch;
-
-	cb->async_updt_cnt.su_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_su_oper_state
- *
- * Purpose:  Decode SU Operation state.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = 0;
-	AVD_SU *su_struct;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_oper_state");
-
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 12);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->oper_state = su_ptr->oper_state;
-
-	cb->async_updt_cnt.su_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_su_pres_state
- *
- * Purpose:  Decode SU Presdece state.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = 0;
-	AVD_SU *su_struct;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_pres_state");
-
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 13);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->pres_state = su_ptr->pres_state;
-
-	cb->async_updt_cnt.su_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_su_rediness_state
- *
- * Purpose:  Decode SU Rediness state.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_su_rediness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
-	EDU_ERR ederror = 0;
-	AVD_SU *su_struct;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_rediness_state");
-
-	su_ptr = &dec_su;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 15);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	su_struct->readiness_state = su_ptr->readiness_state;
 
 	cb->async_updt_cnt.su_updt++;
 
@@ -2097,19 +1889,12 @@ static uns32 avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 17);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 13);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
 	su_struct->su_act_state = su_ptr->su_act_state;
@@ -2120,9 +1905,9 @@ static uns32 avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_su_preinstan
+ * Function: avsv_decode_ckpt_si_admin_state
  *
- * Purpose:  Decode SU preinstatible object.
+ * Purpose:  Decode SI admin state.
  *
  * Input: cb - CB pointer.
  *        dec - Decode arguments passed by MBCSV.
@@ -2133,40 +1918,78 @@ static uns32 avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SU *su_ptr;
-	AVD_SU dec_su;
+	AVD_SI *si_ptr_dec;
+	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
-	AVD_SU *su_struct;
+	AVD_SI *si_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_su_preinstan");
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_admin_state");
 
-	su_ptr = &dec_su;
+	si_ptr_dec = &dec_si;
 
 	/* 
 	 * Action in this case is just to update.
 	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror, 2, 1, 18);
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 2);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_struc_find(cb, su_ptr->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	su_struct->su_preinstan = su_ptr->su_preinstan;
+	si_struct->saAmfSIAdminState = si_ptr_dec->saAmfSIAdminState;
 
-	cb->async_updt_cnt.su_updt++;
+	cb->async_updt_cnt.si_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_si_assignment_state
+ *
+ * Purpose:  Decode SI admin state.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_SI *si_ptr_dec;
+	AVD_SI dec_si;
+	EDU_ERR ederror = 0;
+	AVD_SI *si_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_admin_state");
+
+	si_ptr_dec = &dec_si;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 3);
+
+	assert(status == NCSCC_RC_SUCCESS);
+
+	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+		assert(0);
+
+	/* Update the fields received in this checkpoint message */
+	si_struct->saAmfSIAssignmentState = si_ptr_dec->saAmfSIAssignmentState;
+
+	cb->async_updt_cnt.si_updt++;
 
 	return status;
 }
@@ -2201,22 +2024,15 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 4);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 4);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_struc_find(cb, si_ptr_dec->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	si_struct->su_curr_active = si_ptr_dec->su_curr_active;
+	si_struct->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
 
 	cb->async_updt_cnt.si_updt++;
 
@@ -2253,22 +2069,15 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 5);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 5);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_struc_find(cb, si_ptr_dec->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	si_struct->su_curr_standby = si_ptr_dec->su_curr_standby;
+	si_struct->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
 
 	cb->async_updt_cnt.si_updt++;
 
@@ -2305,19 +2114,12 @@ static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 8);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 6);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_struc_find(cb, si_ptr_dec->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
 	si_struct->si_switch = si_ptr_dec->si_switch;
@@ -2328,59 +2130,7 @@ static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 }
 
 /****************************************************************************\
- * Function: avsv_decode_ckpt_si_admin_state
- *
- * Purpose:  Decode SI admin state.
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_SI *si_ptr_dec;
-	AVD_SI dec_si;
-	EDU_ERR ederror = 0;
-	AVD_SI *si_struct;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_admin_state");
-
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Action in this case is just to update.
-	 */
-	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_si,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror, 2, 1, 9);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	if (NULL == (si_struct = avd_si_struc_find(cb, si_ptr_dec->name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Update the fields received in this checkpoint message */
-	si_struct->admin_state = si_ptr_dec->admin_state;
-
-	cb->async_updt_cnt.si_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_comp_proxy_comp_name_net
+ * Function: avsv_decode_ckpt_comp_proxy_comp_name
  *
  * Purpose:  Decode COMP proxy compnent name.
  *
@@ -2393,7 +2143,7 @@ static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_ckpt_comp_proxy_comp_name_net(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_COMP *comp_ptr;
@@ -2401,7 +2151,7 @@ static uns32 avsv_decode_ckpt_comp_proxy_comp_name_net(AVD_CL_CB *cb, NCS_MBCSV_
 	EDU_ERR ederror = 0;
 	AVD_COMP *comp_struct;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_proxy_comp_name_net");
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_proxy_comp_name");
 
 	comp_ptr = &dec_comp;
 
@@ -2409,22 +2159,16 @@ static uns32 avsv_decode_ckpt_comp_proxy_comp_name_net(AVD_CL_CB *cb, NCS_MBCSV_
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 23);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 23);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	if (status != NCSCC_RC_SUCCESS)
+		assert(0);
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
-		/* Log Error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name)))
+		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	comp_struct->proxy_comp_name_net = comp_ptr->proxy_comp_name_net;
+	comp_struct->saAmfCompCurrProxyName = comp_ptr->saAmfCompCurrProxyName;
 
 	cb->async_updt_cnt.comp_updt++;
 
@@ -2461,15 +2205,12 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 32);
+	      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 32);
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	if (status != NCSCC_RC_SUCCESS)
+		assert(0);
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2521,7 +2262,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2565,7 +2306,7 @@ static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 34);
+		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 2);
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
@@ -2573,14 +2314,66 @@ static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	comp_struct->oper_state = comp_ptr->oper_state;
+	comp_struct->saAmfCompOperState = comp_ptr->saAmfCompOperState;
+
+	cb->async_updt_cnt.comp_updt++;
+
+	return status;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_ckpt_comp_readiness_state
+ *
+ * Purpose:  Decode COMP Readiness State.
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	AVD_COMP *comp_ptr;
+	AVD_COMP dec_comp;
+	EDU_ERR ederror = 0;
+	AVD_COMP *comp_struct;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_comp_readiness_state");
+
+	comp_ptr = &dec_comp;
+
+	/* 
+	 * Action in this case is just to update.
+	 */
+	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
+		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 3);
+
+	if (status != NCSCC_RC_SUCCESS) {
+		/* Encode failed!!! */
+		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
+		return status;
+	}
+
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+		/* Log Error */
+		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
+		return NCSCC_RC_FAILURE;
+	}
+
+	/* Update the fields received in this checkpoint message */
+	comp_struct->saAmfCompReadinessState = comp_ptr->saAmfCompReadinessState;
 
 	cb->async_updt_cnt.comp_updt++;
 
@@ -2617,7 +2410,7 @@ static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 35);
+		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 4);
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
@@ -2625,14 +2418,14 @@ static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	comp_struct->pres_state = comp_ptr->pres_state;
+	comp_struct->saAmfCompPresenceState = comp_ptr->saAmfCompPresenceState;
 
 	cb->async_updt_cnt.comp_updt++;
 
@@ -2669,7 +2462,7 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 	 * Action in this case is just to update.
 	 */
 	status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp,
-			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 36);
+			      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP **)&comp_ptr, &ederror, 2, 1, 5);
 
 	if (status != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
@@ -2677,14 +2470,14 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_struc_find(cb, comp_ptr->comp_info.name_net, FALSE))) {
+	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* Update the fields received in this checkpoint message */
-	comp_struct->restart_cnt = comp_ptr->restart_cnt;
+	comp_struct->saAmfCompRestartCount = comp_ptr->saAmfCompRestartCount;
 
 	cb->async_updt_cnt.comp_updt++;
 
@@ -2707,10 +2500,9 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 \**************************************************************************/
 uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj;
 	uns8 *ptr;
-	uns8 logbuff[SA_MAX_NAME_LENGTH];
+	char logbuff[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp");
 
@@ -2731,13 +2523,7 @@ uns32 avsv_decode_cold_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 dec->i_reo_type, num_of_obj);
 	m_AVD_LOG_FUNC_ENTRY(logbuff);
 
-	if (dec->i_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG) {
-		status = avsv_decode_cold_sync_rsp_avd_si_dep_config(cb, dec, num_of_obj);
-	} else {
-		status = avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
-	}
-
-	return status;
+	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 
 /****************************************************************************\
@@ -2768,12 +2554,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 	 */
 	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cb, &dec->i_uba,
 				    EDP_OP_TYPE_DEC, (AVD_CL_CB **)&cb_ptr, &ederror, dec->i_peer_version);
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
+	assert(status == NCSCC_RC_SUCCESS);
 
 	return status;
 }
@@ -2792,7 +2573,41 @@ static uns32 avsv_decode_cold_sync_rsp_avd_cb_config(AVD_CL_CB *cb, NCS_MBCSV_CB
  *
  * 
 \**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+static uns32 avsv_decode_cold_sync_rsp_avd_cluster_config(AVD_CL_CB *cb,
+	NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+{
+	uns32 status;
+	EDU_ERR ederror = 0;
+	AVD_CLUSTER dec_cluster;
+	AVD_CLUSTER *cluster = &dec_cluster;
+
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cluster_config");
+	avd_log(NCSFL_SEV_NOTICE, "%u", num_of_obj);
+
+	status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster,
+		&dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CLUSTER **)&cluster, &ederror,
+		dec->i_peer_version);
+	assert(status == NCSCC_RC_SUCCESS);
+	avd_cluster->saAmfClusterAdminState = cluster->saAmfClusterAdminState;
+
+	return NCSCC_RC_SUCCESS;
+}
+
+/****************************************************************************\
+ * Function: avsv_decode_cold_sync_rsp_avd_avnd_config
+ *
+ * Purpose:  Decode entire AVD_AVND data..
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_cold_sync_rsp_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 count = 0;
@@ -2800,7 +2615,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_
 	AVD_AVND *avnd_ptr;
 	AVD_AVND dec_avnd;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_avnd_config");
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_node_config");
 
 	avnd_ptr = &dec_avnd;
 
@@ -2808,21 +2623,51 @@ static uns32 avsv_decode_cold_sync_rsp_avd_avnd_config(AVD_CL_CB *cb, NCS_MBCSV_
 	 * Walk through the entire list and decode the entire AVND data received.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_avnd_config,
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_AVND **)&avnd_ptr, &ederror,
 					    dec->i_peer_version);
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_node(cb, avnd_ptr, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
+	}
 
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
+	return status;
+}
 
-		status = avsv_ckpt_add_rmv_updt_avnd(cb, avnd_ptr, NCS_MBCSV_ACT_ADD);
+/****************************************************************************\
+ * Function: avsv_decode_cold_sync_rsp_avd_app_config
+ *
+ * Purpose:  Decode entire AVD_SG data..
+ *
+ * Input: cb - CB pointer.
+ *        dec - Decode arguments passed by MBCSV.
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ * 
+\**************************************************************************/
+static uns32 avsv_decode_cold_sync_rsp_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
+{
+	uns32 status = NCSCC_RC_SUCCESS;
+	uns32 count = 0;
+	EDU_ERR ederror = 0;
+	AVD_APP _app;
+	AVD_APP *app = &_app;
 
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_app_config");
+
+	/* 
+	 * Walk through the entire list and send the entire list data.
+	 */
+	for (count = 0; count < num_of_obj; count++) {
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app,
+					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_APP **)&app, &ederror,
+					    dec->i_peer_version);
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_app(cb, app, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2861,18 +2706,9 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SG **)&sg_ptr, &ederror,
 					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_sg_data(cb, sg_ptr, dec->i_action);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_sg(cb, sg_ptr, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -2911,68 +2747,9 @@ static uns32 avsv_decode_cold_sync_rsp_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SU **)&su_ptr, &ederror,
 					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_su_data(cb, su_ptr, dec->i_action);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-	}
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_si_dep_config
- *
- * Purpose:  Decode entire AVD_SI data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_si_dep_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 count = 0;
-	AVD_SI_SI_DEP *si_ptr_dec;
-	AVD_SI_SI_DEP dec_si;
-	EDU_ERR ederror = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_si_dep_config");
-
-	si_ptr_dec = &dec_si;
-
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si_dep,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI_SI_DEP **)&si_ptr_dec, &ederror,
-					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_si_dep_data(cb, si_ptr_dec, dec->i_action);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_su(cb, su_ptr, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -3012,17 +2789,9 @@ static uns32 avsv_decode_cold_sync_rsp_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SI **)&si_ptr_dec, &ederror,
 					    dec->i_peer_version);
 
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_si_data(cb, si_ptr_dec, dec->i_action);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_si(cb, si_ptr_dec, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
@@ -3085,7 +2854,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_
 	 * Walk through the entire list and send the entire list data.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = avsv_update_sg_admin_si(cb, &dec->i_uba, NCS_MBCSV_ACT_ADD);
+		status = avd_ckpt_sg_admin_si(cb, &dec->i_uba, dec->i_action);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
@@ -3129,7 +2898,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB
 	 * in the same update.
 	 */
 	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su_si_rel,
+		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
 					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVSV_SU_SI_REL_CKPT_MSG **)&su_si_ckpt,
 					    &ederror, dec->i_peer_version);
 		if (status != NCSCC_RC_SUCCESS) {
@@ -3137,7 +2906,7 @@ static uns32 avsv_decode_cold_sync_rsp_avd_su_si_rel(AVD_CL_CB *cb, NCS_MBCSV_CB
 			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
 		}
 
-		status = avsv_updt_su_si_rel(cb, su_si_ckpt, NCS_MBCSV_ACT_ADD);
+		status = avd_ckpt_siass(cb, su_si_ckpt, dec->i_action);
 
 		if (status != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
@@ -3186,107 +2955,8 @@ static uns32 avsv_decode_cold_sync_rsp_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_
 			return status;
 		}
 
-		status = avsv_ckpt_add_rmv_updt_comp_data(cb, comp_ptr, NCS_MBCSV_ACT_ADD);
+		status = avd_ckpt_comp(cb, comp_ptr, dec->i_action);
 
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-
-	}
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_csi_config
- *
- * Purpose:  Decode entire AVD_CSI data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_csi_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_CSI *csi_ptr_dec;
-	AVD_CSI dec_csi;
-	EDU_ERR ederror = 0;
-	uns32 count = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_csi_config");
-
-	csi_ptr_dec = &dec_csi;
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_csi,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CSI **)&csi_ptr_dec, &ederror,
-					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_csi_data(cb, csi_ptr_dec, NCS_MBCSV_ACT_ADD);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-	}
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_hlt_config
- *
- * Purpose:  Decode entire AVD_HLT data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- * 
-\**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_hlt_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_HLT *hlt_ptr;
-	AVD_HLT dec_hlt;
-	uns32 count = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_hlt_config");
-
-	hlt_ptr = &dec_hlt;
-
-	/* 
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_avd_hlt,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_HLT **)&hlt_ptr, &ederror,
-					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_hlt_data(cb, hlt_ptr, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
 		}
@@ -3354,7 +3024,7 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVSV_ASYNC_UPDT_CNT *updt_cnt;
 	AVSV_ASYNC_UPDT_CNT dec_updt_cnt;
 	EDU_ERR ederror = 0;
-	uns8 logbuff[SA_MAX_NAME_LENGTH];
+	char logbuff[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_warm_sync_rsp");
 
@@ -3374,22 +3044,21 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
-		 "\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d, sus=%d, ccstype=%d, cspar=%d \n",
-		 updt_cnt->cb_updt, updt_cnt->avnd_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt,
-		 updt_cnt->sg_su_oprlist_updt, updt_cnt->sg_admin_si_updt, updt_cnt->su_si_rel_updt,
-		 updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->csi_parm_list_updt, updt_cnt->hlt_updt,
-		 updt_cnt->sus_per_si_rank_updt, updt_cnt->comp_cs_type_sup_updt, updt_cnt->cs_type_param_updt);
+		 "\nUPDATE CNTS RCVD(Active -> Standby): cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, "
+		 "rel=%d, co=%d, cs=%d, sus=%d\n",
+		 updt_cnt->cb_updt, updt_cnt->node_updt, updt_cnt->sg_updt, updt_cnt->su_updt, updt_cnt->si_updt,
+		 updt_cnt->sg_su_oprlist_updt, updt_cnt->sg_admin_si_updt, updt_cnt->siass_updt,
+		 updt_cnt->comp_updt, updt_cnt->csi_updt, updt_cnt->compcstype_updt);
 	m_AVD_LOG_FUNC_ENTRY(logbuff);
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
-		 "\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, cs=%d, pl=%d, hlt=%d sus=%d, ccstype=%d, cspar=%d \n",
-		 cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.avnd_updt, cb->async_updt_cnt.sg_updt,
+		 "\nUPDATE CNTS AT STANDBY: cb=%d, avnd=%d, sg=%d, su=%d, si=%d, ol=%d, \n as=%d, rel=%d, co=%d, "
+		 "csi=%d, ccstype=%d\n",
+		 cb->async_updt_cnt.cb_updt, cb->async_updt_cnt.node_updt, cb->async_updt_cnt.sg_updt,
 		 cb->async_updt_cnt.su_updt, cb->async_updt_cnt.si_updt, cb->async_updt_cnt.sg_su_oprlist_updt,
-		 cb->async_updt_cnt.sg_admin_si_updt, cb->async_updt_cnt.su_si_rel_updt, cb->async_updt_cnt.comp_updt,
-		 cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.csi_parm_list_updt, cb->async_updt_cnt.hlt_updt,
-		 cb->async_updt_cnt.sus_per_si_rank_updt, cb->async_updt_cnt.comp_cs_type_sup_updt,
-		 cb->async_updt_cnt.cs_type_param_updt);
+		 cb->async_updt_cnt.sg_admin_si_updt, cb->async_updt_cnt.siass_updt, cb->async_updt_cnt.comp_updt,
+		 cb->async_updt_cnt.csi_updt, cb->async_updt_cnt.compcstype_updt);
 	m_AVD_LOG_FUNC_ENTRY(logbuff);
 
 	/*
@@ -3440,10 +3109,9 @@ uns32 avsv_decode_warm_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 \**************************************************************************/
 uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 num_of_obj;
 	uns8 *ptr;
-	uns8 logbuff[SA_MAX_NAME_LENGTH];
+	char logbuff[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_data_sync_rsp");
 
@@ -3465,13 +3133,7 @@ uns32 avsv_decode_data_sync_rsp(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	 */
 	dec->i_action = NCS_MBCSV_ACT_ADD;
 
-	if (dec->i_reo_type == AVSV_CKPT_AVD_SI_DEP_CONFIG) {
-		status = avsv_decode_cold_sync_rsp_avd_si_dep_config(cb, dec, num_of_obj);
-	} else {
-		status = avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
-	}
-
-	return status;
+	return avsv_dec_cold_sync_rsp_data_func_list[dec->i_reo_type] (cb, dec, num_of_obj);
 }
 
 /****************************************************************************\
@@ -3545,80 +3207,12 @@ static uns32 avsv_decode_oper_su(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 			return status;
 		}
 
-		status = avsv_decode_add_rmv_su_oper_list(cb, su_ptr, dec->i_action);
+		status = avd_ckpt_su_oper_list(cb, su_ptr, dec->i_action);
 		if (status != NCSCC_RC_SUCCESS) {
 			m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 			return status;
 		}
 	}
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_avd_sus_per_si_rank_config
- *
- * Purpose:  Decode entire AVD_SUS_PER_SI_RANK data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_sus_per_si_rank_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_SUS_PER_SI_RANK *su_si_rank;
-	AVD_SUS_PER_SI_RANK su_si;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_sus_per_si_rank_config");
-
-	su_si_rank = &su_si;
-
-	/*
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_UPDATE:
-	case NCS_MBCSV_ACT_ADD:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sus_per_si_rank,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SUS_PER_SI_RANK **)&su_si_rank, &ederror,
-					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_sus_per_si_rank,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SUS_PER_SI_RANK **)&su_si_rank, &ederror, 2, 1,
-				      2);
-		break;
-
-	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_sus_per_si_rank_data(cb, su_si_rank, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.sus_per_si_rank_updt++;
 
 	return status;
 }
@@ -3641,8 +3235,8 @@ static uns32 avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_C
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	AVD_COMP_CS_TYPE *comp_cs;
-	AVD_COMP_CS_TYPE comp_cs_type;
+	AVD_COMPCS_TYPE *comp_cs;
+	AVD_COMPCS_TYPE comp_cs_type;
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_comp_cs_type_config");
 
@@ -3659,154 +3253,22 @@ static uns32 avsv_decode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	case NCS_MBCSV_ACT_ADD:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP_CS_TYPE **)&comp_cs, &ederror,
+					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs, &ederror,
 					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP_CS_TYPE **)&comp_cs, &ederror, 2, 1, 2);
 		break;
 
 	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
+		assert(0);
 	}
 
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_comp_cs_type_data(cb, comp_cs, dec->i_action);
+	assert(status == NCSCC_RC_SUCCESS);
+	status = avd_ckpt_compcstype(cb, comp_cs, dec->i_action);
 
 	/* If update is successful, update async update count */
 	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.comp_cs_type_sup_updt++;
+		cb->async_updt_cnt.compcstype_updt++;
 
 	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_ckpt_avd_cs_type_param_config
- *
- * Purpose:  Decode entire AVD_CS_TYPE_PARAM data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 avsv_decode_ckpt_avd_cs_type_param_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_CS_TYPE_PARAM *cs_param;
-	AVD_CS_TYPE_PARAM cs_type_param;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_cs_type_param_config");
-
-	cs_param = &cs_type_param;
-
-	/*
-	 * Check for the action type (whether it is add, rmv or update) and act
-	 * accordingly. If it is add then create new element, if it is update
-	 * request then just update data structure, and if it is remove then
-	 * remove entry from the list.
-	 */
-	switch (dec->i_action) {
-	case NCS_MBCSV_ACT_UPDATE:
-	case NCS_MBCSV_ACT_ADD:
-		/* Send entire data */
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cs_type_param,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CS_TYPE_PARAM **)&cs_param, &ederror,
-					    dec->i_peer_version);
-		break;
-
-	case NCS_MBCSV_ACT_RMV:
-		/* Send only key information */
-		status = ncs_edu_exec(&cb->edu_hdl, avsv_edp_ckpt_msg_cs_type_param,
-				      &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CS_TYPE_PARAM **)&cs_param, &ederror, 2, 1, 2);
-		break;
-
-	default:
-		/* Log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Encode failed!!! */
-		m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-		return status;
-	}
-
-	status = avsv_ckpt_add_rmv_updt_cs_type_param_data(cb, cs_param, dec->i_action);
-
-	/* If update is successful, update async update count */
-	if (NCSCC_RC_SUCCESS == status)
-		cb->async_updt_cnt.cs_type_param_updt++;
-
-	return status;
-}
-
-/****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config
- *
- * Purpose:  Decode entire AVD_SUS_PER_SI_RANK data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config(AVD_CL_CB *cb,
-								  NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_SUS_PER_SI_RANK *su_si_ptr;
-	AVD_SUS_PER_SI_RANK dec_su_si;
-	uns32 count = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_sus_per_si_rank_config");
-
-	su_si_ptr = &dec_su_si;
-
-	/*
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sus_per_si_rank,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_SUS_PER_SI_RANK **)&su_si_ptr, &ederror,
-					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_sus_per_si_rank_data(cb, su_si_ptr, dec->i_action);
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-
-	}
-
-	return status;
-
 }
 
 /****************************************************************************\
@@ -3827,84 +3289,22 @@ static uns32 avsv_decode_cold_sync_rsp_avd_comp_cs_type_config(AVD_CL_CB *cb, NC
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	AVD_COMP_CS_TYPE *comp_cs_ptr;
-	AVD_COMP_CS_TYPE dec_comp_cs;
-	uns32 count = 0;
+	AVD_COMPCS_TYPE dec_comp_cs;
+	AVD_COMPCS_TYPE *comp_cs_ptr = &dec_comp_cs;
+	uns32 count;
 
 	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_comp_cs_type_config");
 
-	comp_cs_ptr = &dec_comp_cs;
-
-	/*
-	 * Walk through the entire list and send the entire list data.
-	 */
 	for (count = 0; count < num_of_obj; count++) {
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMP_CS_TYPE **)&comp_cs_ptr, &ederror,
+					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_COMPCS_TYPE **)&comp_cs_ptr, &ederror,
 					    dec->i_peer_version);
 
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_comp_cs_type_data(cb, comp_cs_ptr, dec->i_action);
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-
+		assert(status == NCSCC_RC_SUCCESS);
+		status = avd_ckpt_compcstype(cb, comp_cs_ptr, dec->i_action);
+		assert(status == NCSCC_RC_SUCCESS);
 	}
 
 	return status;
 }
 
-/****************************************************************************\
- * Function: avsv_decode_cold_sync_rsp_avd_cs_type_param_config
- *
- * Purpose:  Decode entire AVD_CS_TYPE_PARAM data..
- *
- * Input: cb - CB pointer.
- *        dec - Decode arguments passed by MBCSV.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-static uns32 avsv_decode_cold_sync_rsp_avd_cs_type_param_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec, uns32 num_of_obj)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	EDU_ERR ederror = 0;
-	AVD_CS_TYPE_PARAM *cs_param_ptr;
-	AVD_CS_TYPE_PARAM dec_cs_param;
-	uns32 count = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_cold_sync_rsp_avd_cs_type_param_config");
-
-	cs_param_ptr = &dec_cs_param;
-
-	/*
-	 * Walk through the entire list and send the entire list data.
-	 */
-	for (count = 0; count < num_of_obj; count++) {
-		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cs_type_param,
-					    &dec->i_uba, EDP_OP_TYPE_DEC, (AVD_CS_TYPE_PARAM **)&cs_param_ptr, &ederror,
-					    dec->i_peer_version);
-
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Encode failed!!! */
-			m_AVD_LOG_INVALID_VAL_FATAL(ederror);
-			return status;
-		}
-
-		status = avsv_ckpt_add_rmv_updt_cs_type_param_data(cb, cs_param_ptr, dec->i_action);
-		if (status != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-
-	}
-
-	return status;
-}

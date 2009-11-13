@@ -80,7 +80,7 @@ typedef enum avnd_su_si_assign_state {
 /* SI definition */
 typedef struct avnd_su_si_rec {
 	NCS_DB_LINK_LIST_NODE su_dll_node;	/* node in the su-si dll */
-	SaNameT name_net;	/* si name */
+	SaNameT name;	/* si name */
 
 	SaAmfHAStateT curr_state;	/* current si ha state */
 	SaAmfHAStateT prv_state;	/* prv si ha state */
@@ -94,7 +94,7 @@ typedef struct avnd_su_si_rec {
 
 	/* links to other entities */
 	struct avnd_su_tag *su;	/* bk ptr to su */
-	SaNameT su_name_net;	/* For checkpointing su name */
+	SaNameT su_name;	/* For checkpointing su name */
 } AVND_SU_SI_REC;
 
 /* SU-SI buffer record definition */
@@ -111,9 +111,8 @@ typedef AVSV_SU_INFO_MSG AVND_SU_PARAM;
 
 typedef struct avnd_su_tag {
 	NCS_PATRICIA_NODE tree_node;	/* su tree node (key is su name) */
-	SaNameT name_net;	/* su name */
+	SaNameT name;	/* su name */
 
-	uns32 mab_hdl;		/* mab handle for this su */
 	uns32 su_hdl;		/* hdl returned by hdl-mngr */
 
 	/* su attributes */
@@ -134,8 +133,8 @@ typedef struct avnd_su_tag {
 	AVND_TMR su_err_esc_tmr;	/* su err esc tmr */
 
 	/* su states */
-	NCS_OPER_STATE oper;	/* oper state of the su */
-	NCS_PRES_STATE pres;	/* presence state of the su */
+	SaAmfOperationalStateT oper;	/* oper state of the su */
+	SaAmfPresenceStateT pres;	/* presence state of the su */
 
 	/* statistical info */
 	uns32 si_active_cnt;	/* no of active SIs assigned to this su */
@@ -204,9 +203,9 @@ typedef struct avnd_su_tag {
 
 /* macros for su oper state */
 #define m_AVND_SU_OPER_STATE_IS_ENABLED(x) \
-                      ((NCS_OPER_STATE_ENABLE == (x)->oper))
+                      ((SA_AMF_OPERATIONAL_ENABLED == (x)->oper))
 #define m_AVND_SU_OPER_STATE_IS_DISABLED(x) \
-                      ((NCS_OPER_STATE_DISABLE == (x)->oper))
+                      ((SA_AMF_OPERATIONAL_DISABLED == (x)->oper))
 #define m_AVND_SU_OPER_STATE_SET(x, val)  (((x)->oper= val))
 
 #define m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, x, val)\
@@ -245,9 +244,9 @@ typedef struct avnd_su_tag {
 /* macros to manage the presence state */
 #define m_AVND_SU_PRES_STATE_SET(x, val)  ((x)->pres = val)
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATED(x) \
-           ( NCS_PRES_INSTANTIATED == (x)->pres )
+           ( SA_AMF_PRESENCE_INSTANTIATED == (x)->pres )
 #define m_AVND_SU_PRES_STATE_IS_INSTANTIATING(x) \
-           ( NCS_PRES_INSTANTIATING == (x)->pres )
+           ( SA_AMF_PRESENCE_INSTANTIATING == (x)->pres )
 #define m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, x, val)\
 {\
    m_AVND_SU_PRES_STATE_SET(x,val);\
@@ -323,12 +322,12 @@ typedef struct avnd_su_tag {
 #define m_AVND_SU_ERR_ESC_LEVEL_SET(x, val)  ((x)->su_err_esc_level = (val))
 
 /* macro to get the SU recrod from the SU database */
-#define m_AVND_SUDB_REC_GET(sudb, name_net) \
-           (AVND_SU *)ncs_patricia_tree_get(&(sudb), (uns8 *)&(name_net))
+#define m_AVND_SUDB_REC_GET(sudb, name) \
+           (AVND_SU *)ncs_patricia_tree_get(&(sudb), (uns8 *)&(name))
 
 /* macro to get the next SU recrod from the SU database */
-#define m_AVND_SUDB_REC_GET_NEXT(sudb, name_net) \
-           (AVND_SU *)ncs_patricia_tree_getnext(&(sudb), (uns8 *)&(name_net))
+#define m_AVND_SUDB_REC_GET_NEXT(sudb, name) \
+           (AVND_SU *)ncs_patricia_tree_getnext(&(sudb), (uns8 *)&(name))
 
 /* macro to add a component to the su-comp list */
 #define m_AVND_SUDB_REC_COMP_ADD(su, comp, rc) \
@@ -344,7 +343,7 @@ typedef struct avnd_su_tag {
 /* macro to add a si record to the su-si list */
 #define m_AVND_SUDB_REC_SI_ADD(su, si, rc) \
 { \
-   (si).su_dll_node.key = (uns8 *)&(si).name_net; \
+   (si).su_dll_node.key = (uns8 *)&(si).name; \
    (rc) = ncs_db_link_list_add(&(su).si_list, &(si).su_dll_node); \
 };
 
@@ -387,22 +386,12 @@ EXTERN_C uns32 avnd_su_si_rec_unmark(struct avnd_cb_tag *, AVND_SU *, AVND_SU_SI
 EXTERN_C uns32 avnd_su_si_reassign(struct avnd_cb_tag *, AVND_SU *);
 EXTERN_C uns32 avnd_su_curr_info_del(struct avnd_cb_tag *, AVND_SU *);
 
-EXTERN_C uns32 ncsssutableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 ncsssutableentry_extract(NCSMIB_PARAM_VAL *param,
-					NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 ncsssutableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncsssutableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				     NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 ncsssutableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				       NCSMIB_SETROW_PARAM_VAL *params,
-				       struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
-EXTERN_C uns32 ncsssutableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
 EXTERN_C void avnd_check_su_shutdown_done(struct avnd_cb_tag *, NCS_BOOL);
 EXTERN_C AVND_COMP_CSI_REC *avnd_mbcsv_su_si_csi_rec_add(struct avnd_cb_tag *cb,
 							 AVND_SU *su,
 							 AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_PARAM *param, uns32 *rc);
 EXTERN_C uns32 avnd_mbcsv_su_si_csi_rec_del(struct avnd_cb_tag *cb,
 					    AVND_SU *su, AVND_SU_SI_REC *si_rec, AVND_COMP_CSI_REC *csi_rec);
+EXTERN_C uns32 avnd_su_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
 
 #endif

@@ -34,7 +34,8 @@
 #ifndef AVD_HB_H
 #define AVD_HB_H
 
-struct avd_evt_tag;
+#include <avd_cb.h>
+#include <avd_evt.h>
 
 EXTERN_C uns32 avd_init_heartbeat(AVD_CL_CB *cb);
 EXTERN_C void avd_rcv_heartbeat(void);

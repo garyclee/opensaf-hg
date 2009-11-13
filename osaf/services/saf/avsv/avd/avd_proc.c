@@ -38,8 +38,17 @@
 /*
  * Module Inclusion Control...
  */
+#include <poll.h>
+#include <avd.h>
+#include <avd_imm.h>
+#include <avd_cluster.h>
 
-#include "avd.h"
+#define FD_MBX   0
+#define FD_MBCSV 1
+#define FD_IMM   2
+
+static nfds_t nfds = FD_IMM + 1;
+static struct pollfd fds[FD_IMM + 1];
 
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt);
 static void avd_invalid_func(AVD_CL_CB *cb, AVD_EVT *evt);
@@ -61,7 +70,7 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 
 	/* active AvD message events processing */
 	avd_node_up_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_reg_hlth_func,	/* AVD_EVT_REG_HLT_MSG */
+	NULL,	/* AVD_EVT_REG_HLT_MSG */
 	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
 	avd_nd_heartbeat_msg_func,	/* AVD_EVT_HEARTBEAT_MSG */
@@ -79,11 +88,8 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_tmr_rcv_hb_d_func,	/* AVD_EVT_TMR_RCV_HB_D */
 	avd_tmr_rcv_hb_nd_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
-	avd_tmr_cl_init_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_tmr_cfg_exp_func,	/* AVD_EVT_TMR_CFG */
+	avd_cluster_tmr_init_func,	/* AVD_EVT_TMR_CL_INIT */
 	avd_tmr_si_dep_tol_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
-	/* active AvD MIB events processing */
-	avd_req_mib_func,	/* AVD_EVT_MIB_REQ */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
@@ -93,7 +99,7 @@ static const AVD_EVT_HDLR g_avd_actv_list[AVD_EVT_MAX] = {
 	avd_mds_qsd_role_func,	/* AVD_EVT_MDS_QSD_ACK */
 
 	/* active AvD BAM events processing */
-	avd_bam_cfg_done_func,	/* AVD_EVT_INIT_CFG_DONE_MSG */
+	avd_invalid_func,	/* TODO */
 	avd_restart,		/* AVD_EVT_RESTART */
 
 	avd_avm_nd_shutdown_func,	/* AVD_EVT_ND_SHUTDOWN */
@@ -139,10 +145,7 @@ static const AVD_EVT_HDLR g_avd_stndby_list[AVD_EVT_MAX] = {
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_tmr_rcv_hb_init_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_CFG */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
-	/* standby AvD MIB events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_MIB_REQ */
 
 	/* standby AvD MDS events processing */
 	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
@@ -196,11 +199,7 @@ static const AVD_EVT_HDLR g_avd_init_list[AVD_EVT_MAX] = {
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_standby_invalid_func,	/* AVD_EVT_TMR_CFG */
 	avd_standby_invalid_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
-
-	/* standby AvD MIB events processing */
-	avd_standby_invalid_func,	/* AVD_EVT_MIB_REQ */
 
 	/* standby AvD MDS events processing */
 	avd_standby_invalid_func,	/* AVD_EVT_MDS_AVD_UP */
@@ -235,7 +234,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 
 	/* active AvD message events processing */
 	avd_qsd_ignore_func,	/* AVD_EVT_NODE_UP_MSG */
-	avd_reg_hlth_func,	/* AVD_EVT_REG_HLT_MSG */
+	NULL,	/* AVD_EVT_REG_HLT_MSG */
 	avd_reg_su_func,	/* AVD_EVT_REG_SU_MSG */
 	avd_reg_comp_func,	/* AVD_EVT_REG_COMP_MSG */
 	avd_nd_heartbeat_msg_func,	/* AVD_EVT_HEARTBEAT_MSG */
@@ -254,11 +253,7 @@ static const AVD_EVT_HDLR g_avd_quiesc_list[AVD_EVT_MAX] = {
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_RCV_HB_ND */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_RCV_HB_INIT */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_CL_INIT */
-	avd_qsd_ignore_func,	/* AVD_EVT_TMR_CFG */
 	avd_qsd_ignore_func,	/* AVD_EVT_TMR_SI_DEP_TOL */
-
-	/* active AvD MIB events processing */
-	avd_qsd_req_mib_func,	/* AVD_EVT_MIB_REQ */
 
 	/* active AvD MDS events processing */
 	avd_mds_avd_up_func,	/* AVD_EVT_MDS_AVD_UP */
@@ -451,6 +446,61 @@ static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /*****************************************************************************
+ * Function: avd_imm_reinit_thread
+ * 
+ * Purpose: This function waits a while on IMM and initialize, sel obj get &
+ *          implementer set.
+ *
+ * Input: cb  - AVD control block
+ * 
+ * Returns: Void pointer.
+ *
+ * NOTES: None.
+ *
+ **************************************************************************/
+static void *avd_imm_reinit_thread(void *_cb)
+{
+	AVD_CL_CB *cb = (AVD_CL_CB *)_cb;
+#if 0
+	SaAisErrorT error;
+	if ((error = avd_imm_init(cb)) != SA_AIS_OK) {
+		avd_log(NCSFL_SEV_ERROR, " FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+#endif
+	/* If this is the active server, become implementer again. */
+	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE)
+		avd_imm_impl_set_task_create();
+
+	fds[FD_IMM].fd = cb->imm_sel_obj;
+	nfds = FD_IMM + 1;
+
+	return NULL;
+}
+
+/*****************************************************************************
+ * Function: avd_imm_reinit_bg
+ *
+ * Purpose: This function start a background thread to do IMM reinitialization
+ *
+ * Input: cb  - AVD control block
+ *
+ * Returns: None. 
+ *
+ * NOTES: None.
+ *
+ **************************************************************************/
+static void avd_imm_reinit_bg(AVD_CL_CB *cb)
+{
+	pthread_t thread;
+
+	if (pthread_create(&thread, NULL, avd_imm_reinit_thread, cb) != 0) {
+		avd_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+}
+
+/*****************************************************************************
  * Function: avd_main_proc
  *
  * Purpose: This is the main infinite loop in which both the active and
@@ -467,45 +517,47 @@ static void avd_qsd_ignore_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-void avd_main_proc(AVD_CL_CB *cb)
+void avd_main_proc(void *null)
 {
-	uns32 cb_hdl;
-	NCS_SEL_OBJ_SET sel_obj_set;
-	NCS_SEL_OBJ sel_high, mbx_sel_obj, mbcsv_sel_obj;
-	AVD_CL_CB *cb_now;
+	AVD_CL_CB *cb = avd_cb;
 	AVD_EVT *evt;
-	uns32 msg;
-
-	USE(msg);
-	cb_hdl = cb->cb_handle;
-	mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->avd_mbx);
-	sel_high = cb->sel_high;
-	sel_obj_set = cb->sel_obj_set;
-	m_SET_FD_IN_SEL_OBJ(cb->mbcsv_sel_obj, mbcsv_sel_obj);
+	NCS_SEL_OBJ mbx_fd;
+	SaAisErrorT error = SA_AIS_OK;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_main_proc");
 
-	/* start of the infinite loop */
+	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
+		avd_log(NCSFL_SEV_ERROR, "avd_init_proc failed");
+		exit(EXIT_FAILURE);
+	}
 
-	/* Do a wait(select) for one of the different modules to send
-	 * a message to work
-	 */
-	while (m_NCS_SEL_OBJ_SELECT(sel_high, &sel_obj_set, NULL, NULL, NULL) != -1) {
-		/* get the CB from the handle manager */
-		if ((cb_now = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
-			/* log the problem */
-			m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-			continue;
+	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_mbx);
+
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_IMM].fd = cb->imm_sel_obj;
+	fds[FD_IMM].events = POLLIN;
+	nfds = FD_IMM + 1;
+
+	while (1) {
+		int ret = poll(fds, 3, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR) {
+				continue;
+			}
+
+			avd_log(NCSFL_SEV_ERROR, "AVD poll failed - %s", strerror(errno));
+			break;
 		}
 
-		m_AVD_LOG_RCVD_VAL((long)cb_now);
+		if (fds[FD_MBX].revents & POLLIN) {
+			evt = (AVD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->avd_mbx, msg);
 
-		if (m_NCS_SEL_OBJ_ISSET(mbx_sel_obj, &sel_obj_set)) {
-			evt = (AVD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb_now->avd_mbx, msg);
-
-			if ((cb_now->avd_fover_state) && (evt != AVD_EVT_NULL) &&
-			    (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)
-			    && (evt->cb_hdl == cb_now->cb_handle)) {
+			if ((cb->avd_fover_state) && (evt != AVD_EVT_NULL) &&
+			    (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
 				/* 
 				 * We are in fail-over, so process only 
 				 * verify ack/nack and timer expiry events. Enqueue
@@ -515,14 +567,13 @@ void avd_main_proc(AVD_CL_CB *cb)
 				    (evt->rcv_evt == AVD_EVT_HEARTBEAT_MSG) ||
 				    (evt->rcv_evt == AVD_EVT_VERIFY_ACK_NACK_MSG)) {
 					/* Process the event */
-					avd_process_event(cb_now, evt);
+					avd_process_event(cb, evt);
 				} else {
 					AVD_EVT_QUEUE *queue_evt;
 					/* Enqueue this event */
-					if (NULL != (queue_evt = m_MMGR_ALLOC_EVT_ENTRY)) {
-						memset(queue_evt, '\0', sizeof(AVD_EVT_QUEUE));
+					if (NULL != (queue_evt = calloc(1, sizeof(AVD_EVT_QUEUE)))) {
 						queue_evt->evt = evt;
-						m_AVD_EVT_QUEUE_ENQUEUE(cb_now, queue_evt);
+						m_AVD_EVT_QUEUE_ENQUEUE(cb, queue_evt);
 					} else {
 						/* Log Error */
 					}
@@ -535,36 +586,35 @@ void avd_main_proc(AVD_CL_CB *cb)
 
 						if (NULL != (node_fovr =
 							     (AVD_FAIL_OVER_NODE *)ncs_patricia_tree_get(&cb->node_list,
-													 (uns8 *)&evt->
-													 info.tmr.
+													 (uns8 *)
+													 &evt->info.tmr.
 													 node_id))) {
 							ncs_patricia_tree_del(&cb->node_list,
 									      &node_fovr->tree_node_id_node);
-							m_MMGR_FREE_CLM_NODE_ID(node_fovr);
+							free(node_fovr);
 						}
 					}
 				}
 
-				if (cb_now->node_list.n_nodes == 0) {
+				if (cb->node_list.n_nodes == 0) {
 					AVD_EVT_QUEUE *queue_evt;
 
 					/* We have received the info from all the nodes. */
-					cb_now->avd_fover_state = FALSE;
+					cb->avd_fover_state = FALSE;
 
 					/* Dequeue, all the messages from the queue
 					   and process them now */
-					m_AVD_EVT_QUEUE_DEQUEUE(cb_now, queue_evt);
+					m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 
 					while (NULL != queue_evt) {
-						avd_process_event(cb_now, queue_evt->evt);
-						m_MMGR_FREE_EVT_ENTRY(queue_evt);
-						m_AVD_EVT_QUEUE_DEQUEUE(cb_now, queue_evt);
+						avd_process_event(cb, queue_evt->evt);
+						free(queue_evt);
+						m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 					}
 				}
-			} else if ((FALSE == cb_now->avd_fover_state) && (evt != AVD_EVT_NULL) &&
-				   (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)
-				   && (evt->cb_hdl == cb_now->cb_handle)) {
-				avd_process_event(cb_now, evt);
+			} else if ((FALSE == cb->avd_fover_state) && (evt != AVD_EVT_NULL) &&
+				   (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
+				avd_process_event(cb, evt);
 			} else if (evt == AVD_EVT_NULL) {
 				/* log fatal error that a NULL event was returned. */
 				m_AVD_LOG_INVALID_VAL_FATAL(0);
@@ -574,12 +624,12 @@ void avd_main_proc(AVD_CL_CB *cb)
 				m_AVD_LOG_RCVD_VAL(((long)evt));
 				m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
 				m_AVD_LOG_EVT_INVAL(evt->rcv_evt);
-				m_MMGR_FREE_AVD_EVT(evt);
+				free(evt);
 			}
 
 		}
-		/* if (m_NCS_SEL_OBJ_ISSET (mbx_sel_obj, &sel_obj_set)) */
-		if (m_NCS_SEL_OBJ_ISSET(mbcsv_sel_obj, &sel_obj_set)) {
+
+		if (fds[FD_MBCSV].revents & POLLIN) {
 			if (NCSCC_RC_SUCCESS != avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL)) {
 				/* 
 				 * Log error; but continue with our loop.
@@ -588,25 +638,53 @@ void avd_main_proc(AVD_CL_CB *cb)
 			}
 		}
 
-		/* if (m_NCS_SEL_OBJ_ISSET (mbcsv_sel_obj, &sel_obj_set)) */
-		/* reinitialize the selection object list and the highest
-		 * selection object value from the CB
-		 */
-		sel_high = cb_now->sel_high;
-		sel_obj_set = cb_now->sel_obj_set;
+		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 
-		/* give back the handle */
-		ncshm_give_hdl(cb_hdl);
+			error = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ALL);
 
-	}			/* end of the infinite loop */
+			/*
+			 ** BAD_HANDLE is interpreted as an IMM service restart. Try
+			 ** reinitialize the IMM OI API in a background thread and let
+			 ** this thread do business as usual especially handling write
+			 ** requests.
+			 **
+			 ** All other errors are treated as non-recoverable (fatal) and will
+			 ** cause an exit of the process.
+			 */
+			if (error == SA_AIS_ERR_BAD_HANDLE) {
+				avd_log(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE");
 
-	m_AVD_LOG_INVALID_VAL_FATAL(0);
-	syslog(LOG_CRIT, "NCS_AvSv: Avd-Functional Thread Failed");
+				/*
+				 ** Invalidate the IMM OI handle, this info is used in other
+				 ** locations. E.g. giving TRY_AGAIN responses to a create and
+				 ** close app stream requests. That is needed since the IMM OI
+				 ** is used in context of these functions.
+				 */
+				cb->immOiHandle = 0;
 
-	sleep(3);		/*Let the DTSV log be Printed */
-	exit(0);
+				/*
+				 ** Skip the IMM file descriptor in next poll(), IMM fd must
+				 ** be the last in the fd array.
+				 */
+				nfds = FD_MBCSV + 1;
 
-}	/* avd_main_proc */
+				/* Initiate IMM reinitializtion in the background */
+				avd_imm_reinit_bg(cb);
+			} else if (error != SA_AIS_OK) {
+				avd_log(NCSFL_SEV_ERROR, "saImmOiDispatch failed %u", error);
+				break;
+			}
+			else {
+				/* flush messages possibly queued in the callback */
+				avd_d2n_msg_dequeue(cb);
+			}
+		}		/* End of if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN)  */
+	}
+
+	syslog(LOG_CRIT, "AVD Thread Failed");
+	sleep(3);		/* Allow logs to be printed */
+	exit(EXIT_FAILURE);
+}
 
 /*****************************************************************************
  * Function: avd_process_event 
@@ -649,6 +727,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_STANDBY) {
 		/* if standby call g_avd_stndby_list functions */
 		g_avd_stndby_list[evt->rcv_evt] (cb_now, evt);
+		avd_d2n_msg_dequeue(cb_now);
 	} else if (cb_now->avail_state_avd == SA_AMF_HA_QUIESCED) {
 		/* if quiesced call g_avd_quiesc_list functions */
 		g_avd_quiesc_list[evt->rcv_evt] (cb_now, evt);
@@ -670,7 +749,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	/* reset the sync falg */
 	cb_now->sync_required = TRUE;
 
-	m_MMGR_FREE_AVD_EVT(evt);
+	free(evt);
 
 }
 
@@ -715,6 +794,6 @@ void avd_process_hb_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_now->avail_state_avd);
 	}
 
-	m_MMGR_FREE_AVD_EVT(evt);
+	free(evt);
 
 }

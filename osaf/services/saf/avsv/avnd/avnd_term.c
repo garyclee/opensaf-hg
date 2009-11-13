@@ -73,7 +73,7 @@ static void avnd_last_step_clean(AVND_CB *cb)
 		}
 
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 	}
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
@@ -83,9 +83,9 @@ static void avnd_last_step_clean(AVND_CB *cb)
 	 */
 	while (su != 0) {
 		if (FALSE == su->su_is_external) {
-			avnd_su_si_del(cb, &su->name_net);
+			avnd_su_si_del(cb, &su->name);
 		}
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}			/* end while SU */
 
 	if (m_AVND_IS_AVD_HB_ON(cb)) {
@@ -148,7 +148,7 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 			if ((su->is_ncs == SA_FALSE) || (TRUE == su->su_is_external)) {
 				/* Don't process external components */
 				su = (AVND_SU *)
-				    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+				    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 				continue;
 			}
 
@@ -160,8 +160,9 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 
 			/* now terminate the su */
 			if ((m_AVND_SU_IS_PREINSTANTIABLE(su)) &&
-			    (su->pres != NCS_PRES_UNINSTANTIATED) &&
-			    (su->pres != NCS_PRES_INSTANTIATIONFAILED) && (su->pres != NCS_PRES_TERMINATIONFAILED)) {
+			    (su->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+			    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
+			    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 				empty_sulist = FALSE;
 
 				/* trigger su termination for pi su */
@@ -169,7 +170,7 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 			}
 
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 		}
 
 		if (empty_sulist == TRUE) {
@@ -220,19 +221,20 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 	while (su != 0) {
 		if (su->is_ncs != is_ncs) {
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 			continue;
 		}
 
 		/* Check the state of the SU if they are in final state */
-		if ((su->pres != NCS_PRES_UNINSTANTIATED) &&
-		    (su->pres != NCS_PRES_INSTANTIATIONFAILED) && (su->pres != NCS_PRES_TERMINATIONFAILED)) {
+		if ((su->pres != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+		    (su->pres != SA_AMF_PRESENCE_INSTANTIATION_FAILED)
+		    && (su->pres != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
 			/* There are still some SUs to be terminated. We are not done 
 			 ** so just return */
 			return;
 		}
 		su = (AVND_SU *)
-		    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}
 
 	if (is_ncs == TRUE) {

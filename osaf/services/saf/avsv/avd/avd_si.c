@@ -12,42 +12,14 @@
  * licensing terms.
  *
  * Author(s): Emerson Network Power
+ *            Ericsson AB
  *
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION:This module deals with the creation, accessing and deletion of
-  the SI database and SU SI relationship list on the AVD. It also deals with
-  all the MIB operations like set,get,getnext etc related to the 
-  Service instance table and service unit service instance relationship table.
-
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  avd_si_struc_crt - creates and adds SI structure to database.
-  avd_si_struc_find - Finds SI structure from the database.
-  avd_si_struc_find_next - Finds the next SI structure from the database.  
-  avd_si_struc_del - deletes and frees SI structure from database.
-  avd_si_del_sg_list - deletes SI structure from SG list of SIs.
-  saamfsitableentry_get - This function is one of the get processing
-                        routines for objects in SA_AMF_S_I_TABLE_ENTRY_ID table.
-  saamfsitableentry_extract - This function is one of the get processing
-                            function for objects in SA_AMF_S_I_TABLE_ENTRY_ID
-                            table.
-  saamfsitableentry_set - This function is the set processing for objects in
-                         SA_AMF_S_I_TABLE_ENTRY_ID table.
-  saamfsitableentry_next - This function is the next processing for objects in
-                         SA_AMF_S_I_TABLE_ENTRY_ID table.
-  saamfsitableentry_setrow - This function is the setrow processing for
-                           objects in SA_AMF_S_I_TABLE_ENTRY_ID table.
-  ncssitableentry_rmvrow- This function is the setrow processing for
-                           objects in SA_AMF_S_I_TABLE_ENTRY_ID table.
-
+  the SI database and SU SI relationship list on the AVD.
   
 ******************************************************************************
 */
@@ -56,91 +28,76 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <avd_si.h>
+#include <avd_dblog.h>
+#include <saImmOm.h>
+#include <immutil.h>
+#include <avd_app.h>
+#include <avd_cluster.h>
+#include <avd_imm.h>
+#include <avd_susi.h>
+#include <avd_csi.h>
+#include <avd_proc.h>
+
+static NCS_PATRICIA_TREE avd_si_db;
+static NCS_PATRICIA_TREE avd_svctype_db;
+static NCS_PATRICIA_TREE avd_svctypecstypes_db;
+
+static SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
 
 /*****************************************************************************
- * Function: avd_si_struc_crt
+ * Function: avd_svctype_find
  *
- * Purpose:  This function will create and add a AVD_SI structure to the
- * tree if an element with si_name key value doesn't exist in the tree.
+ * Purpose:  This function will find a AVD_SVC_TYPE structure in the
+ *           tree with svc_type_name value as key.
  *
- * Input: cb - the AVD control block
- *        si_name - The SI name of the service instance that needs to be
- *                    added.
- *        ckpt - TRUE - Create is called from ckpt update.
- *               FALSE - Create is called from AVD mib set.
+ * Input: dn - The name of the svc_type_name.
+ *        
+ * Returns: The pointer to AVD_SVC_TYPE structure found in the tree.
  *
- * Returns: The pointer to AVD_SI structure allocated and added. 
+ * NOTES:
+ *
+ *
+ **************************************************************************/
+static AVD_SVC_TYPE *avd_svctype_find(const SaNameT *dn)
+{
+	SaNameT tmp = {0};
+
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
+
+	return (AVD_SVC_TYPE *)ncs_patricia_tree_get(&avd_svctype_db, (uns8 *)&tmp);
+}
+
+/*****************************************************************************
+ * Function: avd_svctype_delete
+ *
+ * Purpose:  This function will delete a AVD_SVC_TYPE structure from the
+ *           tree. 
+ *
+ * Input: svc_type - The svc_type structure that needs to be deleted.
+ *
+ * Returns: Ok/Error.
  *
  * NOTES:
  *
  * 
  **************************************************************************/
-
-AVD_SI *avd_si_struc_crt(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL ckpt)
+static void avd_svctype_delete(AVD_SVC_TYPE *svc_type)
 {
-	AVD_SI *si;
-
-	if ((si_name.length <= 6) || (strncmp(si_name.value, "safSi=", 6) != 0)) {
-		return AVD_SI_NULL;
-	}
-
-	/* Allocate a new block structure now
-	 */
-	if ((si = m_MMGR_ALLOC_AVD_SI) == AVD_SI_NULL) {
-		/* log an error */
-		m_AVD_LOG_MEM_FAIL(AVD_SI_ALLOC_FAILED);
-		return AVD_SI_NULL;
-	}
-
-	memset((char *)si, '\0', sizeof(AVD_SI));
-
-	if (ckpt) {
-		memcpy(si->name_net.value, si_name.value, m_NCS_OS_NTOHS(si_name.length));
-		si->name_net.length = si_name.length;
-	} else {
-		memcpy(si->name_net.value, si_name.value, si_name.length);
-		si->name_net.length = m_HTON_SANAMET_LEN(si_name.length);
-
-		si->row_status = NCS_ROW_NOT_READY;
-		si->si_switch = AVSV_SI_TOGGLE_STABLE;
-		si->admin_state = NCS_ADMIN_STATE_UNLOCK;
-		si->su_config_per_si = 1;
-	}
-
-	/* init pointers */
-	si->list_of_csi = AVD_CSI_NULL;
-	si->list_of_sisu = AVD_SU_SI_REL_NULL;
-	si->sg_list_of_si_next = AVD_SI_NULL;
-	si->sg_of_si = AVD_SG_NULL;
-	si->si_dep_state = AVD_SI_NO_DEPENDENCY;
-
-	si->tree_node.key_info = (uns8 *)&(si->name_net);
-	si->tree_node.bit = 0;
-	si->tree_node.left = NCS_PATRICIA_NODE_NULL;
-	si->tree_node.right = NCS_PATRICIA_NODE_NULL;
-
-	if (ncs_patricia_tree_add(&cb->si_anchor, &si->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log an error */
-		m_MMGR_FREE_AVD_SI(si);
-		return AVD_SI_NULL;
-	}
-
-	return si;
-
+	unsigned int rc = ncs_patricia_tree_del(&avd_svctype_db, &svc_type->tree_node);
+	assert(rc == NCSCC_RC_SUCCESS);
+	free(svc_type);
 }
 
 /*****************************************************************************
- * Function: avd_si_struc_find
+ * Function: avd_si_find
  *
  * Purpose:  This function will find a AVD_SI structure in the
  * tree with si_name value as key.
  *
- * Input: cb - the AVD control block
- *        si_name - The name of the service instance.
- *        host_order - Flag indicating if the length is host order
- *
+ * Input: dn - The name of the service instance.
+ *        
  * Returns: The pointer to AVD_SI structure found in the tree.
  *
  * NOTES:
@@ -148,31 +105,24 @@ AVD_SI *avd_si_struc_crt(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL ckpt)
  * 
  **************************************************************************/
 
-AVD_SI *avd_si_struc_find(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order)
+AVD_SI *avd_si_find(const SaNameT *dn)
 {
-	AVD_SI *si;
-	SaNameT lsi_name;
+	SaNameT tmp = {0};
 
-	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-	lsi_name.length = (host_order == FALSE) ? si_name.length : m_HTON_SANAMET_LEN(si_name.length);
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
 
-	memcpy(lsi_name.value, si_name.value, m_NCS_OS_NTOHS(lsi_name.length));
-
-	si = (AVD_SI *)ncs_patricia_tree_get(&cb->si_anchor, (uns8 *)&lsi_name);
-
-	return si;
+	return (AVD_SI *)ncs_patricia_tree_get(&avd_si_db, (uns8 *)&tmp);
 }
 
 /*****************************************************************************
- * Function: avd_si_struc_find_next
+ * Function: avd_si_getnext
  *
  * Purpose:  This function will find the next AVD_SI structure in the
  * tree whose si_name value is next of the given si_name value.
  *
- * Input: cb - the AVD control block
- *        si_name - The name of the service instance.
- *        host_order - Flag indicating if the length is host order
- *
+ * Input: dn - The name of the service instance.
+ *        
  * Returns: The pointer to AVD_SI structure found in the tree. 
  *
  * NOTES:
@@ -180,1602 +130,1226 @@ AVD_SI *avd_si_struc_find(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order)
  * 
  **************************************************************************/
 
-AVD_SI *avd_si_struc_find_next(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order)
+AVD_SI *avd_si_getnext(const SaNameT *dn)
 {
-	AVD_SI *si;
-	SaNameT lsi_name;
+	SaNameT tmp = {0};
 
-	memset((char *)&lsi_name, '\0', sizeof(SaNameT));
-	lsi_name.length = (host_order == FALSE) ? si_name.length : m_HTON_SANAMET_LEN(si_name.length);
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
 
-	memcpy(lsi_name.value, si_name.value, m_NCS_OS_NTOHS(lsi_name.length));
-
-	si = (AVD_SI *)ncs_patricia_tree_getnext(&cb->si_anchor, (uns8 *)&lsi_name);
-
-	return si;
+	return (AVD_SI *)ncs_patricia_tree_getnext(&avd_si_db, (uns8 *)&tmp);
 }
 
 /*****************************************************************************
- * Function: avd_si_struc_del
+ * Function: avd_si_delete
  *
  * Purpose:  This function will delete and free AVD_SI structure from 
  * the tree.
  *
- * Input: cb - the AVD control block
- *        si - The SI structure that needs to be deleted.
+ * Input: si - The SI structure that needs to be deleted.
  *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
+ * Returns: None
  *
  * NOTES:
  *
  * 
  **************************************************************************/
 
-uns32 avd_si_struc_del(AVD_CL_CB *cb, AVD_SI *si)
+void avd_si_delete(AVD_SI *si)
 {
-	if (si == AVD_SI_NULL)
-		return NCSCC_RC_FAILURE;
+	unsigned int rc;
 
-	if (ncs_patricia_tree_del(&cb->si_anchor, &si->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log error */
-		return NCSCC_RC_FAILURE;
-	}
+	avd_app_del_si(si->si_on_app, si);
+	avd_sg_del_si(si->sg_of_si, si);
+	rc = ncs_patricia_tree_del(&avd_si_db, &si->tree_node);
+	assert(rc == NCSCC_RC_SUCCESS);
 
-	m_MMGR_FREE_AVD_SI(si);
-	return NCSCC_RC_SUCCESS;
+	free(si);
 }
 
 /*****************************************************************************
- * Function: avd_si_del_sg_list
+ * Function: avd_si_add_to_model
+ * 
+ * Purpose: This routine adds SaAmfSI objects to Patricia tree.
+ * 
  *
- * Purpose:  This function will del the given SI from the SG list, and fill
- * the SIs pointer with NULL
+ * Input  : Ccb Util Oper Data.
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static void avd_si_add_to_model(AVD_SI *si)
+{
+	assert(si != NULL);
+
+	/* Add SI to SvcType */
+	si->si_list_svc_type_next = si->si_on_svc_type->list_of_si;
+	si->si_on_svc_type->list_of_si = si;
+
+	/* Add SI to App */
+	avd_app_add_si(si->si_on_app, si);
+
+	/* Add SI to SG */
+	avd_sg_add_si(si->sg_of_si, si);
+}
+
+/**
+ * Validate configuration attributes for an AMF SI object
+ * @param si
+ * 
+ * @return int
+ */
+static int avd_si_config_validate(const AVD_SI *si)
+{
+	if (si->saAmfSIProtectedbySG.length > 0) {
+		if (avd_sg_find(&si->saAmfSIProtectedbySG) == NULL) {
+			avd_log(NCSFL_SEV_ERROR, "SG '%s' does not exist", si->saAmfSIProtectedbySG.value);
+			return -1;
+		}
+	}
+
+	if (si->si_on_svc_type == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "SvcType '%s' does not exist", si->saAmfSvcType.value);
+		return -1;
+	}
+
+	return 0;
+}
+
+AVD_SI *avd_si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes)
+{
+	int i, rc = -1;
+	AVD_SI *si;
+	SaUint32T attrValuesNumber;
+	AVD_APP *app;
+	SaNameT app_name;
+	char *p;
+
+	/*
+	** If called from cold sync, attributes==NULL.
+	** If called at new active at failover, the object is found in the DB
+	** but needs to get configuration attributes initialized.
+	*/
+	if (NULL == (si = avd_si_find(si_name))) {
+		if ((si = calloc(1, sizeof(AVD_SI))) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
+			return NULL;
+		}
+
+		memcpy(si->name.value, si_name->value, si_name->length);
+		si->name.length = si_name->length;
+		si->tree_node.key_info = (uns8 *)&si->name;
+		si->si_switch = AVSV_SI_TOGGLE_STABLE;
+		si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
+		si->si_dep_state = AVD_SI_NO_DEPENDENCY;
+		si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;
+	}
+
+	/* If no attributes supplied, go direct and add to DB */
+	if (NULL == attributes)
+		goto add_to_db;
+
+	memset(&app_name, 0, sizeof(app_name));
+	p = strstr((char*)si->name.value, "safApp");
+	app_name.length = strlen(p);
+	memcpy(app_name.value, p, app_name.length);
+	app = avd_app_find(&app_name);
+	si->si_on_app = app;
+
+	if (immutil_getAttr("saAmfSvcType", attributes, 0, &si->saAmfSvcType) != SA_AIS_OK) {
+		avd_log(NCSFL_SEV_ERROR, "Get saAmfSvcType FAILED for '%s'", si_name->value);
+		goto done;
+	}
+
+	/* Optional, strange... */
+	(void)immutil_getAttr("saAmfSIProtectedbySG", attributes, 0, &si->saAmfSIProtectedbySG);
+
+	if (immutil_getAttr("saAmfSIRank", attributes, 0, &si->saAmfSIRank) != SA_AIS_OK) {
+		/* Empty, assign default value */
+		si->saAmfSIRank = 0;
+	}
+
+	/* Optional, [0..*] */
+	if (immutil_getAttrValuesNumber("saAmfSIActiveWeight", attributes, &attrValuesNumber) == SA_AIS_OK) {
+		si->saAmfSIActiveWeight = malloc(attrValuesNumber * sizeof(char *));
+		for (i = 0; i < attrValuesNumber; i++) {
+			si->saAmfSIActiveWeight[i] =
+			    strdup(immutil_getStringAttr(attributes, "saAmfSIActiveWeight", i));
+		}
+	} else {
+		/*  TODO */
+	}
+
+	/* Optional, [0..*] */
+	if (immutil_getAttrValuesNumber("saAmfSIStandbyWeight", attributes, &attrValuesNumber) == SA_AIS_OK) {
+		si->saAmfSIStandbyWeight = malloc(attrValuesNumber * sizeof(char *));
+		for (i = 0; i < attrValuesNumber; i++) {
+			si->saAmfSIStandbyWeight[i] =
+			    strdup(immutil_getStringAttr(attributes, "saAmfSIStandbyWeight", i));
+		}
+	} else {
+		/*  TODO */
+	}
+
+	if (immutil_getAttr("saAmfSIPrefActiveAssignments", attributes, 0,
+			    &si->saAmfSIPrefActiveAssignments) != SA_AIS_OK) {
+
+		/* Empty, assign default value */
+		si->saAmfSIPrefActiveAssignments = 1;
+	}
+
+	if (immutil_getAttr("saAmfSIPrefStandbyAssignments", attributes, 0,
+			    &si->saAmfSIPrefStandbyAssignments) != SA_AIS_OK) {
+
+		/* Empty, assign default value */
+		si->saAmfSIPrefStandbyAssignments = 1;
+	}
+
+	if (immutil_getAttr("saAmfSIAdminState", attributes, 0, &si->saAmfSIAdminState) != SA_AIS_OK) {
+		/* Empty, assign default value */
+		si->saAmfSIAdminState = SA_AMF_ADMIN_UNLOCKED;
+	}
+
+	si->si_on_svc_type = avd_svctype_find(&si->saAmfSvcType);
+	si->si_on_app = app;
+	if (si->saAmfSIProtectedbySG.length > 0)
+		si->sg_of_si = avd_sg_find(&si->saAmfSIProtectedbySG);
+
+add_to_db:
+	(void)ncs_patricia_tree_add(&avd_si_db, &si->tree_node);
+	rc = 0;
+
+done:
+	if (rc != 0) {
+		avd_si_delete(si);
+		si = NULL;
+	}
+
+	return si;
+}
+
+/**
+ * Get configuration for all AMF SI objects from IMM and create
+ * AVD internal objects.
+ * 
+ * @param cb
+ * @param app
+ * 
+ * @return int
+ */
+SaAisErrorT avd_si_config_get(AVD_APP *app)
+{
+	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT si_name;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfSI";
+	AVD_SI *si;
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, &app->name, SA_IMM_SUBTREE,
+	      SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+	      NULL, &searchHandle) != SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_ERROR, "No objects found (1)");
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &si_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_NOTICE, "'%s'", si_name.value);
+
+		if ((si = avd_si_create(&si_name, attributes)) == NULL)
+			goto done2;
+
+		if (avd_si_config_validate(si) != 0) {
+			avd_si_delete(si);
+			goto done2;
+		}
+
+		avd_si_add_to_model(si);
+
+		if (avd_sirankedsu_config_get(&si_name, si) != SA_AIS_OK)
+			goto done2;
+
+		if (avd_csi_config_get(&si_name, si) != SA_AIS_OK)
+			goto done2;
+	}
+
+	error = SA_AIS_OK;
+
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+
+	return error;
+}
+
+/*****************************************************************************
+ * Function: avd_si_del_svc_type_list
+ *
+ * Purpose:  This function will del the given si from svc_type list.
  *
  * Input: cb - the AVD control block
- *        si - The SI pointer
+ *        si - The si pointer
  *
- * Returns: None. 
+ * Returns: None.
  *
  * NOTES: None
  *
- * 
+ *
  **************************************************************************/
-
-void avd_si_del_sg_list(AVD_CL_CB *cb, AVD_SI *si)
+void avd_si_del_svc_type_list(AVD_CL_CB *cb, AVD_SI *si)
 {
-	AVD_SI *i_si = AVD_SI_NULL;
-	AVD_SI *prev_si = AVD_SI_NULL;
+	AVD_SI *i_si = NULL;
+	AVD_SI *prev_si = NULL;
 
-	if (si->sg_of_si != AVD_SG_NULL) {
-		/* remove SI from SG */
-		i_si = si->sg_of_si->list_of_si;
+	if (si->si_on_svc_type != NULL) {
+		i_si = si->si_on_svc_type->list_of_si;
 
-		while ((i_si != AVD_SI_NULL) && (i_si != si)) {
+		while ((i_si != NULL) && (i_si != si)) {
 			prev_si = i_si;
-			i_si = i_si->sg_list_of_si_next;
+			i_si = i_si->si_list_svc_type_next;
 		}
 
 		if (i_si != si) {
 			/* Log a fatal error */
 		} else {
-			if (prev_si == AVD_SI_NULL) {
-				si->sg_of_si->list_of_si = i_si->sg_list_of_si_next;
+			if (prev_si == NULL) {
+				si->si_on_svc_type->list_of_si = si->si_list_svc_type_next;
 			} else {
-				prev_si->sg_list_of_si_next = si->sg_list_of_si_next;
+				prev_si->si_list_svc_type_next = si->si_list_svc_type_next;
 			}
 		}
 
-		si->sg_list_of_si_next = AVD_SI_NULL;
-		si->sg_of_si = AVD_SG_NULL;
+		si->si_list_svc_type_next = NULL;
+		si->si_on_svc_type = NULL;
 	}
-	/* if (si->sg_of_si != AVD_SG_NULL) */
-	return;
 }
 
 /*****************************************************************************
- * Function: avd_si_add_sg_list
+ * Function: avd_si_del_app_list
  *
- * Purpose:  This function will add the given SI to the SG list, and fill
- * the SIs pointers. 
+ * Purpose:  This function will del the given si from app list.
  *
  * Input: cb - the AVD control block
- *        si - The SI pointer
+ *        si - The si pointer
  *
- * Returns: None. 
+ * Returns: None.
  *
  * NOTES: None
  *
- * 
+ *
  **************************************************************************/
-
-void avd_si_add_sg_list(AVD_CL_CB *cb, AVD_SI *si)
+void avd_si_del_app_list(AVD_CL_CB *cb, AVD_SI *si)
 {
-	AVD_SI *i_si = AVD_SI_NULL;
-	AVD_SI *prev_si = AVD_SI_NULL;
+	AVD_SI *i_si = NULL;
+	AVD_SI *prev_si = NULL;
 
-	if ((si == AVD_SI_NULL) || (si->sg_of_si == AVD_SG_NULL))
-		return;
+	if (si->si_on_app != NULL) {
+		i_si = si->si_on_app->list_of_si;
 
-	i_si = si->sg_of_si->list_of_si;
-
-	while ((i_si != AVD_SI_NULL) && (i_si->rank < si->rank)) {
-		prev_si = i_si;
-		i_si = i_si->sg_list_of_si_next;
-	}
-
-	if (prev_si == AVD_SI_NULL) {
-		si->sg_list_of_si_next = si->sg_of_si->list_of_si;
-		si->sg_of_si->list_of_si = si;
-	} else {
-		prev_si->sg_list_of_si_next = si;
-		si->sg_list_of_si_next = i_si;
-	}
-	return;
-}
-
-/*****************************************************************************
- * Function: saamfsitableentry_get
- *
- * Purpose:  This function is one of the get processing routines for objects
- * in SA_AMF_S_I_TABLE_ENTRY_ID table. This is the SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function finds the corresponding data structure for the given
- * instance and returns the pointer to the structure.
- *
- * Input:  cb        - AVD control block.
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- * NOTES: This function works in conjunction with extract function to provide the
- * get functionality.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *si;
-	SaNameT si_name;
-	uns32 i;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset(&si_name, '\0', sizeof(SaNameT));
-
-	/* Prepare the service instance database key from the instant ID */
-	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-	for (i = 0; i < si_name.length; i++) {
-		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-
-	si = avd_si_struc_find(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	*data = (NCSCONTEXT)si;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsitableentry_extract
- *
- * Purpose:  This function is one of the get processing function for objects in
- * SA_AMF_S_I_TABLE_ENTRY_ID table. This is the SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after calling the get call to get data structure.
- * This function fills the value information in the param filed structure. For
- * octate information the buffer field will be used for filling the information.
- * MIBLIB will provide the memory and pointer to the buffer. For only objects that
- * have a direct value(i.e their offset is not 0 in VAR INFO) in the structure
- * the data field is filled using the VAR INFO provided by MIBLIB, for others based
- * on the OID the value is filled accordingly.
- *
- * Input:  param     -  param->i_param_id indicates the parameter to extract
- *                      The remaining elements of the param need to be filled
- *                      by the subystem's extract function
- *         var_info  - Pointer to the var_info structure for the param.
- *         data      - The pointer to the data-structure containing the object
- *                     value which we have already provided to MIBLIB from get call.
- *         buffer    - The buffer pointer provided by MIBLIB for filling the octate
- *                     type data.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- *
- * NOTES:  This function works in conjunction with other functions to provide the
- * get,getnext and getrow functionality.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsitableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
-{
-	AVD_SI *si = (AVD_SI *)data;
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	switch (param->i_param_id) {
-	case saAmfSIParentSGName_ID:
-		m_AVSV_OCTVAL_TO_PARAM(param, buffer, si->sg_name.length, si->sg_name.value);
-		break;
-	case saAmfSIOperState_ID:
-
-		param->i_fmat_id = NCSMIB_FMAT_INT;
-		param->i_length = 1;
-
-		if (si->list_of_sisu != AVD_SU_SI_REL_NULL)
-			param->info.i_int = NCS_OPER_STATE_ENABLE;
-		else
-			param->info.i_int = NCS_OPER_STATE_DISABLE;
-
-		break;
-
-	default:
-		/* call the MIBLIB utility routine for standfard object types */
-		if ((var_info != NULL) && (var_info->offset != 0))
-			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-		else
-			return NCSCC_RC_NO_OBJECT;
-		break;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsitableentry_set
- *
- * Purpose:  This function is the set processing for objects in
- * SA_AMF_S_I_TABLE_ENTRY_ID table. This is the SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for the objects that are settable. This same function can be used for test
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         var_info  - The VAR INFO structure pointer generated by MIBLIB for
- *                     the objects in this table.
- *         test_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *si;
-	SaNameT si_name;
-	SaNameT temp_name;
-	uns32 i;
-	NCSMIBLIB_REQ_INFO temp_mib_req;
-	NCS_BOOL val_same_flag = FALSE;
-	uns32 rc;
-	NCS_ADMIN_STATE back_val;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_INV_VAL;
-	}
-
-	memset(&si_name, '\0', sizeof(SaNameT));
-
-	/* Prepare the service instance database key from the instant ID */
-	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-	for (i = 0; i < si_name.length; i++) {
-		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-
-	si = avd_si_struc_find(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID)
-		    && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)) {
-			/* Invalid row status object */
-			return NCSCC_RC_INV_VAL;
+		while ((i_si != NULL) && (i_si != si)) {
+			prev_si = i_si;
+			i_si = i_si->si_list_app_next;
 		}
 
-		if (test_flag == TRUE) {
-			return NCSCC_RC_SUCCESS;
-		}
-
-		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-		si = avd_si_struc_crt(avd_cb, si_name, FALSE);
-
-		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-
-		if (si == AVD_SI_NULL) {
-			/* Invalid instance object */
-			return NCSCC_RC_NO_INSTANCE;
-		}
-
-	} else {		/* if (si == AVD_SI_NULL) */
-
-		/* The record is already available */
-
-		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSIRowStatus_ID) {
-			/* This is a row status operation */
-			if (arg->req.info.set_req.i_param_val.info.i_int == (uns32)si->row_status) {
-				/* row status object is same so nothing to be done. */
-				return NCSCC_RC_SUCCESS;
-			}
-
-			switch (arg->req.info.set_req.i_param_val.info.i_int) {
-			case NCS_ROW_ACTIVE:
-				/* validate the structure to see if the row can be made active */
-
-				if ((si->su_config_per_si == 0) || (si->max_num_csi == 0) || (si->rank == 0)) {
-					/* log information error */
-					return NCSCC_RC_INV_VAL;
-				}
-
-				/* check that the SG is present and is active.
-				 */
-
-				if (si->sg_name.length == 0) {
-					/* log information error */
-					return NCSCC_RC_INV_VAL;
-				}
-				if ((si->sg_of_si = avd_sg_struc_find(avd_cb, si->sg_name, TRUE)) == AVD_SG_NULL) {
-					return NCSCC_RC_INV_VAL;
-				}
-
-				if (si->sg_of_si->row_status != NCS_ROW_ACTIVE) {
-					si->sg_of_si = AVD_SG_NULL;
-					return NCSCC_RC_INV_VAL;
-				}
-
-				if (test_flag == TRUE) {
-					return NCSCC_RC_SUCCESS;
-				}
-
-				/* add to SG-SI Rank Table */
-				if (avd_sg_si_rank_add_row(avd_cb, si) == AVD_SG_SI_RANK_NULL) {
-					return NCSCC_RC_INV_VAL;
-				}
-
-				/* add to the list of SG  */
-				avd_si_add_sg_list(avd_cb, si);
-
-				/* set the value, checkpoint the entire record.
-				 */
-				si->row_status = NCS_ROW_ACTIVE;
-
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-
-				return NCSCC_RC_SUCCESS;
-				break;
-
-			case NCS_ROW_NOT_IN_SERVICE:
-			case NCS_ROW_DESTROY:
-
-				/* check if it is active currently */
-
-				if (si->row_status == NCS_ROW_ACTIVE) {
-
-					/* Check to see that the SI is in admin locked state before
-					 * making the row status as not in service or delete 
-					 */
-
-					if (si->admin_state != NCS_ADMIN_STATE_LOCK) {
-						/* log information error */
-						return NCSCC_RC_INV_VAL;
-					}
-
-					/* Check to see that no CSI or SUSI exists on this SI */
-					if ((si->list_of_csi != AVD_CSI_NULL) ||
-					    (si->list_of_sisu != AVD_SU_SI_REL_NULL)) {
-						/* log information error */
-						return NCSCC_RC_INV_VAL;
-					}
-
-					if (test_flag == TRUE) {
-						return NCSCC_RC_SUCCESS;
-					}
-
-					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-					/* remove the SI from the SG list if present.
-					 */
-
-					avd_si_del_sg_list(avd_cb, si);
-
-					avd_sg_si_rank_del_row(avd_cb, si);
-
-					/* Delete the SI-SI dep records corresponding to this SI */
-					avd_si_dep_delete(avd_cb, si);
-
-					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-					/* we need to delete this avnd structure on the
-					 * standby AVD.
-					 */
-
-					/* check point to the standby AVD that this
-					 * record need to be deleted
-					 */
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-
-				}
-
-				if (test_flag == TRUE) {
-					return NCSCC_RC_SUCCESS;
-				}
-
-				if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY) {
-					/* delete and free the structure */
-					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-					/* remove the SI from the SG list if present.
-					 */
-
-					avd_si_del_sg_list(avd_cb, si);
-
-					avd_si_struc_del(avd_cb, si);
-
-					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-
-					return NCSCC_RC_SUCCESS;
-
-				}
-				/* if(arg->req.info.set_req.i_param_val.info.i_int
-				   == NCS_ROW_DESTROY) */
-				si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-				return NCSCC_RC_SUCCESS;
-
-				break;
-			default:
-				m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
-				/* Invalid row status object */
-				return NCSCC_RC_INV_VAL;
-				break;
-			}	/* switch(arg->req.info.set_req.i_param_val.info.i_int) */
-
-		}
-		/* if(arg->req.info.set_req.i_param_val.i_param_id == ncsSISiRowStatus_ID) */
-	}			/* if (si == AVD_SI_NULL) */
-
-	/* We now have the si block */
-	if (test_flag == TRUE) {
-		return NCSCC_RC_SUCCESS;
-	}
-
-	if (si->row_status == NCS_ROW_ACTIVE) {
-		if (avd_cb->init_state != AVD_APP_STATE) {
-			return NCSCC_RC_INV_VAL;
-		}
-
-		switch (arg->req.info.set_req.i_param_val.i_param_id) {
-		case saAmfSINumCSIs_ID:
-			if (si->admin_state == NCS_ADMIN_STATE_LOCK) {
-				si->max_num_csi = arg->req.info.set_req.i_param_val.info.i_int;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-			}
-			break;
-		case saAmfSIPrefNumAssignments_ID:
-			si->su_config_per_si = arg->req.info.set_req.i_param_val.info.i_int;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
-			break;
-		case saAmfSIAdminState_ID:
-			if (arg->req.info.set_req.i_param_val.info.i_int == si->admin_state)
-				return NCSCC_RC_SUCCESS;
-
-			if (si->sg_of_si->sg_ncs_spec == SA_TRUE)
-				return NCSCC_RC_INV_VAL;
-
-			if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_UNLOCK) {
-				m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_UNLOCK);
-
-				if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-					return NCSCC_RC_INV_VAL;
-				}
-
-				if (si->max_num_csi == si->num_csi) {
-					switch (si->sg_of_si->su_redundancy_model) {
-					case AVSV_SG_RED_MODL_2N:
-						if (avd_sg_2n_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
-							return NCSCC_RC_INV_VAL;
-						}
-						break;
-
-					case AVSV_SG_RED_MODL_NWAYACTV:
-						if (avd_sg_nacvred_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
-							return NCSCC_RC_INV_VAL;
-						}
-						break;
-
-					case AVSV_SG_RED_MODL_NWAY:
-						if (avd_sg_nway_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
-							return NCSCC_RC_INV_VAL;
-						}
-						break;
-
-					case AVSV_SG_RED_MODL_NPM:
-						if (avd_sg_npm_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SI_ADMIN(avd_cb, si, NCS_ADMIN_STATE_LOCK);
-							return NCSCC_RC_INV_VAL;
-						}
-						break;
-
-					case AVSV_SG_RED_MODL_NORED:
-					default:
-						if (avd_sg_nored_si_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-							m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_LOCK);
-							return NCSCC_RC_INV_VAL;
-						}
-						break;
-					}
-				}
-				return NCSCC_RC_SUCCESS;
+		if (i_si != si) {
+			/* Log a fatal error */
+		} else {
+			if (prev_si == NULL) {
+				si->si_on_app->list_of_si = si->si_list_app_next;
 			} else {
-				if ((si->admin_state == NCS_ADMIN_STATE_LOCK) &&
-				    (arg->req.info.set_req.i_param_val.info.i_int == NCS_ADMIN_STATE_SHUTDOWN))
-					return NCSCC_RC_INV_VAL;
+				prev_si->si_list_app_next = si->si_list_app_next;
+			}
+		}
 
-				if (si->list_of_sisu == AVD_SU_SI_REL_NULL) {
-					m_AVD_SET_SI_ADMIN(cb, si, NCS_ADMIN_STATE_LOCK);
-					return NCSCC_RC_SUCCESS;
+		si->si_list_app_next = NULL;
+		si->si_on_app = NULL;
+	}
+}
+
+/*****************************************************************************
+ * Function: avd_si_ccb_completed_modify_hdlr
+ *
+ * Purpose: This routine handles modify operations on SaAmfSI objects.
+ *
+ *
+ * Input  : Control Block, Ccb Util Oper Data.
+ *
+ * Returns: None.
+ *
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static SaAisErrorT avd_si_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	AVD_SI *si;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
+
+	si = avd_si_find(&opdata->objectName);
+	assert(si != NULL);
+
+	/* Modifications can only be done for these attributes. */
+	i = 0;
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+
+		if (strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments") &&
+		    strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
+			avd_log(NCSFL_SEV_ERROR, "Modification of attribute %s is not supported", attribute->attrName);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			break;
+		}
+	}
+
+	return rc;
+}
+
+/*****************************************************************************
+ * Function: avd_si_admin_op_cb
+ *
+ * Purpose: This routine handles admin Oper on SaAmfSI objects.
+ *
+ *
+ * Input  : ...
+ *
+ * Returns: None.
+ *
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static void avd_si_admin_op_cb(SaImmOiHandleT immOiHandle,
+			       SaInvocationT invocation,
+			       const SaNameT *objectName,
+			       SaImmAdminOperationIdT operationId, const SaImmAdminOperationParamsT_2 **params)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	AVD_SI *avd_si;
+	SaAmfAdminStateT adm_state = 0;
+	SaAmfAdminStateT back_val;
+
+	avd_log(NCSFL_SEV_NOTICE, "'%s', op %llu", objectName->value, operationId);
+
+	avd_si = avd_si_find(objectName);
+
+	if (avd_si->sg_of_si->sg_ncs_spec == SA_TRUE) {
+		avd_log(NCSFL_SEV_ERROR, "Admin operations of OpenSAF MW is not supported");
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	switch (operationId) {
+	case SA_AMF_ADMIN_UNLOCK:
+		if (SA_AMF_ADMIN_UNLOCKED == avd_si->saAmfSIAdminState) {
+			avd_log(NCSFL_SEV_ERROR, "already unlocked");
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState) {
+			avd_log(NCSFL_SEV_ERROR, "locked instantiation");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		if (avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+			avd_log(NCSFL_SEV_ERROR, "SG of SI is not in stable state");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		if (avd_si->max_num_csi == avd_si->num_csi) {
+			switch (avd_si->sg_of_si->sg_redundancy_model) {
+			case SA_AMF_2N_REDUNDANCY_MODEL:
+				if (avd_sg_2n_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+					avd_log(NCSFL_SEV_ERROR, "avd_sg_2n_si_func failed");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
 				}
+				break;
 
-				/* SI lock should not be done, this SI is been DISABLED because
-				   of SI-SI dependency */
-				if ((si->si_dep_state != AVD_SI_ASSIGNED) &&
-				    (si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
-					return NCSCC_RC_INV_VAL;
+			case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+				if (avd_sg_nacvred_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+					avd_log(NCSFL_SEV_ERROR, "avd_sg_nacvred_si_func failed");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
 				}
+				break;
 
-				/* Check if other semantics are happening for other SUs. If yes
-				 * return an error.
-				 */
-				if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
-					if ((si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
-					    (si->admin_state != NCS_ADMIN_STATE_SHUTDOWN) ||
-					    (arg->req.info.set_req.i_param_val.info.i_int != NCS_ADMIN_STATE_LOCK)) {
-						return NCSCC_RC_INV_VAL;
-					}
+			case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+				if (avd_sg_nway_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+					avd_log(NCSFL_SEV_ERROR, "avd_sg_nway_si_func failed");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
 				}
+				break;
 
-				/*if (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) */
-				back_val = si->admin_state;
-				m_AVD_SET_SI_ADMIN(cb, si, (arg->req.info.set_req.i_param_val.info.i_int));
-
-				switch (si->sg_of_si->su_redundancy_model) {
-				case AVSV_SG_RED_MODL_2N:
-					if (avd_sg_2n_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-						m_AVD_SET_SI_ADMIN(cb, si, back_val);
-						return NCSCC_RC_INV_VAL;
-					}
-					break;
-
-				case AVSV_SG_RED_MODL_NWAY:
-					if (avd_sg_nway_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-						m_AVD_SET_SI_ADMIN(cb, si, back_val);
-						return NCSCC_RC_INV_VAL;
-					}
-					break;
-
-				case AVSV_SG_RED_MODL_NWAYACTV:
-					if (avd_sg_nacvred_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-						m_AVD_SET_SI_ADMIN(cb, si, back_val);
-						return NCSCC_RC_INV_VAL;
-					}
-					break;
-
-				case AVSV_SG_RED_MODL_NPM:
-					if (avd_sg_npm_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-						m_AVD_SET_SI_ADMIN(cb, si, back_val);
-						return NCSCC_RC_INV_VAL;
-					}
-					break;
-
-				case AVSV_SG_RED_MODL_NORED:
-				default:
-					if (avd_sg_nored_si_admin_down(avd_cb, si) != NCSCC_RC_SUCCESS) {
-						m_AVD_SET_SI_ADMIN(cb, si, back_val);
-						return NCSCC_RC_INV_VAL;
-					}
-					break;
+			case SA_AMF_NPM_REDUNDANCY_MODEL:
+				if (avd_sg_npm_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+					avd_log(NCSFL_SEV_ERROR, "avd_sg_npm_si_func failed");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
 				}
-				return NCSCC_RC_SUCCESS;
+				break;
+
+			case SA_AMF_NO_REDUNDANCY_MODEL:
+			default:
+				if (avd_sg_nored_si_func(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+					avd_log(NCSFL_SEV_ERROR, "avd_sg_nored_si_func failed");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+				break;
+			}
+		}
+
+		break;
+
+	case SA_AMF_ADMIN_SHUTDOWN:
+		if (SA_AMF_ADMIN_SHUTTING_DOWN == avd_si->saAmfSIAdminState) {
+			avd_log(NCSFL_SEV_ERROR, "already shutting down");
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		if ((SA_AMF_ADMIN_LOCKED == avd_si->saAmfSIAdminState) ||
+		    (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState)) {
+			avd_log(NCSFL_SEV_ERROR, "is locked (instantiation)");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+		adm_state = SA_AMF_ADMIN_SHUTTING_DOWN;
+
+		/* Don't break */
+
+	case SA_AMF_ADMIN_LOCK:
+		if (0 == adm_state)
+			adm_state = SA_AMF_ADMIN_LOCKED;
+
+		if (SA_AMF_ADMIN_LOCKED == avd_si->saAmfSIAdminState) {
+			avd_log(NCSFL_SEV_ERROR, "already locked");
+			rc = SA_AIS_ERR_NO_OP;
+			goto done;
+		}
+
+		if (SA_AMF_ADMIN_LOCKED_INSTANTIATION == avd_si->saAmfSIAdminState) {
+			avd_log(NCSFL_SEV_ERROR, "locked instantiation");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		if (avd_si->list_of_sisu == AVD_SU_SI_REL_NULL) {
+			m_AVD_SET_SI_ADMIN(avd_cb, avd_si, SA_AMF_ADMIN_LOCKED);
+			avd_log(NCSFL_SEV_WARNING, "SI has no assignments");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		/* SI lock should not be done, this SI is been DISABLED because
+		   of SI-SI dependency */
+		if ((avd_si->si_dep_state != AVD_SI_ASSIGNED) && (avd_si->si_dep_state != AVD_SI_TOL_TIMER_RUNNING)) {
+			avd_log(NCSFL_SEV_WARNING, "DISABLED because of SI-SI dependency");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+
+		/* Check if other semantics are happening for other SUs. If yes
+		 * return an error.
+		 */
+		if (avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) {
+			avd_log(NCSFL_SEV_WARNING, "'%s' SG is not STABLE", objectName->value);
+			if ((avd_si->sg_of_si->sg_fsm_state != AVD_SG_FSM_SI_OPER) ||
+			    (avd_si->saAmfSIAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
+			    (adm_state != SA_AMF_ADMIN_LOCKED)) {
+				avd_log(NCSFL_SEV_WARNING, "'%s' other semantics...", objectName->value);
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+		}
+
+		back_val = avd_si->saAmfSIAdminState;
+		m_AVD_SET_SI_ADMIN(avd_cb, avd_si, (adm_state));
+
+		switch (avd_si->sg_of_si->sg_redundancy_model) {
+		case SA_AMF_2N_REDUNDANCY_MODEL:
+			if (avd_sg_2n_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+				avd_log(NCSFL_SEV_ERROR, "avd_sg_2n_si_admin_down failed");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
 			}
 			break;
+
+		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+			if (avd_sg_nway_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+				avd_log(NCSFL_SEV_ERROR, "avd_sg_nway_si_admin_down failed");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			break;
+
+		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+			if (avd_sg_nacvred_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+				avd_log(NCSFL_SEV_ERROR, "avd_sg_nacvred_si_admin_down failed");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			break;
+
+		case SA_AMF_NPM_REDUNDANCY_MODEL:
+			if (avd_sg_npm_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+				avd_log(NCSFL_SEV_ERROR, "avd_sg_npm_si_admin_down failed");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
+			}
+			break;
+
+		case SA_AMF_NO_REDUNDANCY_MODEL:
 		default:
-
-			/* when row status is active we don't allow any other MIB object to be
-			 * modified.
-			 */
-
-			return NCSCC_RC_INV_VAL;
-		}
-		return NCSCC_RC_SUCCESS;
-	}
-
-	switch (arg->req.info.set_req.i_param_val.i_param_id) {
-	case saAmfSIRowStatus_ID:
-		/* fill the row status value */
-		if (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT) {
-			si->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-		}
-		break;
-	case saAmfSIParentSGName_ID:
-
-		/* fill the SG name value */
-		temp_name.length = arg->req.info.set_req.i_param_val.i_length;
-		memcpy(temp_name.value, arg->req.info.set_req.i_param_val.info.i_oct, temp_name.length);
-
-		/* check if already This SI is part of a SG */
-		if (si->sg_of_si != AVD_SG_NULL) {
-			if (temp_name.length == si->sg_of_si->name_net.length) {
-				if (memcmp(si->sg_of_si->name_net.value, temp_name.value, temp_name.length) == 0) {
-					return NCSCC_RC_SUCCESS;
-				}
+			if (avd_sg_nored_si_admin_down(avd_cb, avd_si) != NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SI_ADMIN(avd_cb, avd_si, back_val);
+				avd_log(NCSFL_SEV_ERROR, "avd_sg_nored_si_admin_down failed");
+				rc = SA_AIS_ERR_BAD_OPERATION;
+				goto done;
 			}
-
-			/* delete the SI from the prev SG list */
-			avd_si_del_sg_list(avd_cb, si);
+			break;
 		}
-
-		si->sg_name.length = arg->req.info.set_req.i_param_val.i_length;
-		memcpy(si->sg_name.value, arg->req.info.set_req.i_param_val.info.i_oct, si->sg_name.length);
 		break;
-
+	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
+	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
+	case SA_AMF_ADMIN_RESTART:
 	default:
-		memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
-
-		temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
-		temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-		temp_mib_req.info.i_set_util_info.var_info = var_info;
-		temp_mib_req.info.i_set_util_info.data = si;
-		temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
-
-		/* call the mib routine handler */
-		if ((rc = ncsmiblib_process_req(&temp_mib_req)) != NCSCC_RC_SUCCESS) {
-			return rc;
-		}
+		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		break;
-	}			/* switch(arg->req.info.set_req.i_param_val.i_param_id) */
+	}
 
-	return NCSCC_RC_SUCCESS;
+ done:
+	avd_log(NCSFL_SEV_NOTICE, "'%s', op %llu, result %d", objectName->value, operationId, rc);
+	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+}
+
+static SaAisErrorT avd_si_rt_attr_cb(SaImmOiHandleT immOiHandle,
+				     const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+{
+	AVD_SI *si = avd_si_find(objectName);
+	SaImmAttrNameT attributeName;
+	int i = 0;
+
+	avd_trace("%s", objectName->value);
+	assert(si != NULL);
+
+	while ((attributeName = attributeNames[i++]) != NULL) {
+		if (!strcmp("saAmfSINumCurrActiveAssignments", attributeName)) {
+			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
+						       SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrActiveAssignments);
+		} else if (!strcmp("saAmfSINumCurrStandbyAssignments", attributeName)) {
+			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
+						       SA_IMM_ATTR_SAUINT32T, &si->saAmfSINumCurrStandbyAssignments);
+		} else
+			assert(0);
+	}
+
+	return SA_AIS_OK;
 }
 
 /*****************************************************************************
- * Function: saamfsitableentry_next
- *
- * Purpose:  This function is the next processing for objects in
- * SA_AMF_S_I_TABLE_ENTRY_ID table. This is the SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function gets the next valid instance and its data structure
- * and it passes to the MIBLIB the values.
- *
- * Input: cb        - AVD control block.
- *        arg       - The pointer to the MIB arg that was provided by the caller.
- *        data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *     next_inst_id - The next instance id will be filled in this buffer
- *                     and returned by reference.
- * next_inst_id_len - The next instance id length.
- *
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context
- *
- * NOTES: This function works in conjunction with extract function to provide the
- * getnext functionality.
- *
+ * Function: avd_si_ccb_completed_cb
  * 
+ * Purpose: This routine handles all CCB operations on SaAmfSI objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
  **************************************************************************/
-
-uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-			     NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
+static SaAisErrorT avd_si_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SI *si;
-	SaNameT si_name;
-	uns32 i;
+	AVD_APP *app;
 
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	memset(&si_name, '\0', sizeof(SaNameT));
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		app = avd_app_find(opdata->param.create.parentName);
 
-	/* Prepare the service instance database key from the instant ID */
-	if (arg->i_idx.i_inst_len != 0) {
-		si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-		for (i = 0; i < si_name.length; i++) {
-			si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-		}
-	}
-
-	si = avd_si_struc_find_next(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	/* Prepare the instant ID from the SI name */
-
-	*next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
-
-	next_inst_id[0] = *next_inst_id_len - 1;
-	for (i = 0; i < next_inst_id[0]; i++) {
-		next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
-	}
-
-	*data = (NCSCONTEXT)si;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsitableentry_setrow
- *
- * Purpose:  This function is the setrow processing for objects in
- * SA_AMF_S_I_TABLE_ENTRY_ID table. This is the SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for all the objects that are settable as part of the setrow operation. 
- * This same function can be used for test row
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         args      - The pointer to the MIB arg that was provided by the caller.
- *         params    - The List of object ids and their values.
- *         obj_info  - The VAR INFO structure array pointer generated by MIBLIB for
- *                     the objects in this table.
- *      testrow_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-			       NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
-{
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_rmvrow
- *
- * Purpose:  This function is one of the RMVROW processing routines for objects
- * in NCS_CLM_TABLE_ENTRY_ID table. 
- *
- * Input:  cb        - AVD control block.
- *         idx       - pointer to NCSMIB_IDX 
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- **************************************************************************/
-uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
-{
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_get
- *
- * Purpose:  This function is one of the get processing routines for objects
- * in NCS_S_I_TABLE_ENTRY_ID table. This is the properitary SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function finds the corresponding data structure for the given
- * instance and returns the pointer to the structure.
- *
- * Input:  cb        - AVD control block.
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- * NOTES: This function works in conjunction with extract function to provide the
- * get functionality.
- *
- * 
- **************************************************************************/
-
-uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *si;
-	SaNameT si_name;
-	uns32 i;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset(&si_name, '\0', sizeof(SaNameT));
-
-	/* Prepare the service instance database key from the instant ID */
-	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-	for (i = 0; i < si_name.length; i++) {
-		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-
-	si = avd_si_struc_find(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	*data = (NCSCONTEXT)si;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_extract
- *
- * Purpose:  This function is one of the get processing function for objects in
- * NCS_S_I_TABLE_ENTRY_ID table. This is the properitary SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after calling the get call to get data structure.
- * This function fills the value information in the param filed structure. For
- * octate information the buffer field will be used for filling the information.
- * MIBLIB will provide the memory and pointer to the buffer. For only objects that
- * have a direct value(i.e their offset is not 0 in VAR INFO) in the structure
- * the data field is filled using the VAR INFO provided by MIBLIB, for others based
- * on the OID the value is filled accordingly.
- *
- * Input:  param     -  param->i_param_id indicates the parameter to extract
- *                      The remaining elements of the param need to be filled
- *                      by the subystem's extract function
- *         var_info  - Pointer to the var_info structure for the param.
- *         data      - The pointer to the data-structure containing the object
- *                     value which we have already provided to MIBLIB from get call.
- *         buffer    - The buffer pointer provided by MIBLIB for filling the octate
- *                     type data.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- *
- * NOTES:  This function works in conjunction with other functions to provide the
- * get,getnext and getrow functionality.
- *
- * 
- **************************************************************************/
-
-uns32 ncssitableentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
-{
-	AVD_SI *si = (AVD_SI *)data;
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	/* call the MIBLIB utility routine for standfard object types */
-	if ((var_info != NULL) && (var_info->offset != 0))
-		return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-	else
-		return NCSCC_RC_NO_OBJECT;
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_set
- *
- * Purpose:  This function is the set processing for objects in
- * NCS_S_I_TABLE_ENTRY_ID table. This is the properitary SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for the objects that are settable. This same function can be used for test
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         var_info  - The VAR INFO structure pointer generated by MIBLIB for
- *                     the objects in this table.
- *         test_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *si;
-	SaNameT si_name;
-	uns32 i;
-	NCSMIBLIB_REQ_INFO temp_mib_req;
-	NCS_BOOL val_same_flag = FALSE;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_INV_VAL;
-	}
-
-	memset(&si_name, '\0', sizeof(SaNameT));
-
-	/* Prepare the service instance database key from the instant ID */
-	si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-	for (i = 0; i < si_name.length; i++) {
-		si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-
-	si = avd_si_struc_find(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		/* Invalid instance object */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	if (si->row_status != NCS_ROW_ACTIVE)
-		return NCSCC_RC_INV_VAL;
-
-	if (si->sg_of_si->sg_ncs_spec)
-		return NCSCC_RC_INV_VAL;
-
-	if (avd_cb->init_state != AVD_APP_STATE) {
-		return NCSCC_RC_INV_VAL;
-	}
-
-	if (test_flag == TRUE) {
-		return NCSCC_RC_SUCCESS;
-	}
-
-	/* We now have the si block */
-
-	if (arg->req.info.set_req.i_param_val.i_param_id == ncsSISwitchState_ID) {
-		if ((arg->req.info.set_req.i_param_val.info.i_int != AVSV_SI_TOGGLE_SWITCH)
-		    || si->si_switch == AVSV_SI_TOGGLE_SWITCH) {
-			return NCSCC_RC_INV_VAL;
+		if ((si = avd_si_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
 		}
 
-		m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_SWITCH);
-
-		switch (si->sg_of_si->su_redundancy_model) {
-		case AVSV_SG_RED_MODL_2N:
-			if (avd_sg_2n_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
-				return NCSCC_RC_INV_VAL;
-			}
-			break;
-
-		case AVSV_SG_RED_MODL_NWAY:
-			if (avd_sg_nway_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				si->si_switch = AVSV_SI_TOGGLE_STABLE;
-				return NCSCC_RC_INV_VAL;
-			}
-			break;
-
-		case AVSV_SG_RED_MODL_NPM:
-			if (avd_sg_npm_siswitch_func(avd_cb, si) != NCSCC_RC_SUCCESS) {
-				si->si_switch = AVSV_SI_TOGGLE_STABLE;
-				return NCSCC_RC_INV_VAL;
-			}
-			break;
-
-		case AVSV_SG_RED_MODL_NWAYACTV:
-		case AVSV_SG_RED_MODL_NORED:
-		default:
-			m_AVD_SET_SI_SWITCH(cb, si, AVSV_SI_TOGGLE_STABLE);
-			return NCSCC_RC_INV_VAL;
-			break;
+		if (avd_si_config_validate(si) != 0) {
+			avd_log(NCSFL_SEV_ERROR, "AMF SI '%s' validation error", opdata->objectName.value);
+			avd_si_delete(si);
+			goto done;
 		}
 
-		return NCSCC_RC_SUCCESS;
+		opdata->userData = si;	/* Save for later use in apply */
+		rc = SA_AIS_OK;
 
-	}
-
-	memset(&temp_mib_req, 0, sizeof(NCSMIBLIB_REQ_INFO));
-
-	temp_mib_req.req = NCSMIBLIB_REQ_SET_UTIL_OP;
-	temp_mib_req.info.i_set_util_info.param = &(arg->req.info.set_req.i_param_val);
-	temp_mib_req.info.i_set_util_info.var_info = var_info;
-	temp_mib_req.info.i_set_util_info.data = si;
-	temp_mib_req.info.i_set_util_info.same_value = &val_same_flag;
-
-	/* call the mib routine handler */
-	return ncsmiblib_process_req(&temp_mib_req);
-
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_next
- *
- * Purpose:  This function is the next processing for objects in
- * NCS_S_I_TABLE_ENTRY_ID table. This is the properitary SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function gets the next valid instance and its data structure
- * and it passes to the MIBLIB the values.
- *
- * Input: cb        - AVD control block.
- *        arg       - The pointer to the MIB arg that was provided by the caller.
- *        data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *     next_inst_id - The next instance id will be filled in this buffer
- *                     and returned by reference.
- * next_inst_id_len - The next instance id length.
- *
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context
- *
- * NOTES: This function works in conjunction with extract function to provide the
- * getnext functionality.
- *
- * 
- **************************************************************************/
-
-uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-			   NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *si;
-	SaNameT si_name;
-	uns32 i;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset(&si_name, '\0', sizeof(SaNameT));
-
-	/* Prepare the service instance database key from the instant ID */
-	if (arg->i_idx.i_inst_len != 0) {
-		si_name.length = (SaUint16T)arg->i_idx.i_inst_ids[0];
-		for (i = 0; i < si_name.length; i++) {
-			si_name.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-		}
-	}
-
-	si = avd_si_struc_find_next(avd_cb, si_name, TRUE);
-
-	if (si == AVD_SI_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	/* Prepare the instant ID from the SI name */
-
-	*next_inst_id_len = m_NCS_OS_NTOHS(si->name_net.length) + 1;
-
-	next_inst_id[0] = *next_inst_id_len - 1;
-	for (i = 0; i < next_inst_id[0]; i++) {
-		next_inst_id[i + 1] = (uns32)(si->name_net.value[i]);
-	}
-
-	*data = (NCSCONTEXT)si;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: ncssitableentry_setrow
- *
- * Purpose:  This function is the setrow processing for objects in
- * NCS_S_I_TABLE_ENTRY_ID table. This is the properitary SI table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for all the objects that are settable as part of the setrow operation. 
- * This same function can be used for test row
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         args      - The pointer to the MIB arg that was provided by the caller.
- *         params    - The List of object ids and their values.
- *         obj_info  - The VAR INFO structure array pointer generated by MIBLIB for
- *                     the objects in this table.
- *      testrow_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-			     NCSMIB_SETROW_PARAM_VAL *params, struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
-{
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_sg_si_rank_add_row
- *
- * Purpose:  This function will create and add a AVD_SG_SI_RANK structure to the
- * tree if an element with given index value doesn't exist in the tree.
- *
- * Input: cb - the AVD control block
- *        si - Pointer to service instance row 
- *
- * Returns: The pointer to AVD_SG_SI_RANK structure allocated and added.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SG_SI_RANK *avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si)
-{
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
-
-	/* Allocate a new block structure now
-	 */
-	if ((rank_elt = m_MMGR_ALLOC_AVD_SG_SI_RANK) == AVD_SG_SI_RANK_NULL) {
-		/* log an error */
-		m_AVD_LOG_MEM_FAIL(AVD_SG_SI_RANK_ALLOC_FAILED);
-		return AVD_SG_SI_RANK_NULL;
-	}
-
-	memset((char *)rank_elt, '\0', sizeof(AVD_SG_SI_RANK));
-
-	rank_elt->indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
-
-	memcpy(rank_elt->indx.sg_name_net.value, si->sg_name.value, si->sg_name.length);
-
-	rank_elt->indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
-
-	rank_elt->tree_node.key_info = (uns8 *)(&rank_elt->indx);
-	rank_elt->tree_node.bit = 0;
-	rank_elt->tree_node.left = NCS_PATRICIA_NODE_NULL;
-	rank_elt->tree_node.right = NCS_PATRICIA_NODE_NULL;
-
-	if (ncs_patricia_tree_add(&cb->sg_si_rank_anchor, &rank_elt->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log an error */
-		m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
-		return AVD_SG_SI_RANK_NULL;
-	}
-
-	rank_elt->si_name.length = m_NCS_OS_NTOHS(si->name_net.length);
-	memcpy(rank_elt->si_name.value, si->name_net.value, rank_elt->si_name.length);
-
-	return rank_elt;
-
-}
-
-/*****************************************************************************
- * Function: avd_sg_si_rank_struc_find
- *
- * Purpose:  This function will find a AVD_SG_SI_RANK structure in the
- * tree with indx value as key.
- *
- * Input: cb - the AVD control block
- *        indx - The key.
- *
- * Returns: The pointer to AVD_SG_SI_RANK structure found in the tree.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SG_SI_RANK *avd_sg_si_rank_struc_find(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
-{
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
-
-	rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_get(&cb->sg_si_rank_anchor, (uns8 *)&indx);
-
-	return rank_elt;
-}
-
-/*****************************************************************************
- * Function: avd_sg_si_rank_struc_find_next
- *
- * Purpose:  This function will find the next AVD_SG_SI_RANK structure in the
- * tree whose key value is next of the given key value.
- *
- * Input: cb - the AVD control block
- *        indx - The key value.
- *
- * Returns: The pointer to AVD_SG_SI_RANK structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SG_SI_RANK *avd_sg_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx)
-{
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
-
-	rank_elt = (AVD_SG_SI_RANK *)ncs_patricia_tree_getnext(&cb->sg_si_rank_anchor, (uns8 *)&indx);
-
-	return rank_elt;
-}
-
-/*****************************************************************************
- * Function: avd_sg_si_rank_del_row
- *
- * Purpose:  This function will delete and free AVD_SG_SI_RANK structure from 
- * the tree.
- *
- * Input: cb - The AVD control block
- *        si - Pointer to service instance row 
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE  
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si)
-{
-	AVD_SG_SI_RANK_INDX indx;
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
-
-	if (si == AVD_SI_NULL)
-		return NCSCC_RC_FAILURE;
-
-	memset((char *)&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
-
-	indx.sg_name_net.length = m_NCS_OS_HTONS(si->sg_name.length);
-
-	memcpy(indx.sg_name_net.value, si->sg_name.value, si->sg_name.length);
-
-	indx.si_rank_net = m_NCS_OS_HTONL(si->rank);
-
-	rank_elt = avd_sg_si_rank_struc_find(cb, indx);
-
-	/* Row not found */
-	if (rank_elt == AVD_SG_SI_RANK_NULL) {
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (ncs_patricia_tree_del(&cb->sg_si_rank_anchor, &rank_elt->tree_node)
-	    != NCSCC_RC_SUCCESS) {
-		/* log error */
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_MMGR_FREE_AVD_SG_SI_RANK(rank_elt);
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsgsirankentry_get
- *
- * Purpose:  This function is one of the get processing routines for objects
- * in SA_AMF_S_G_S_I_RANK_ENTRY_ID table. This is the SG-SI Rank table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function finds the corresponding data structure for the given
- * instance and returns the pointer to the structure.
- *
- * Input:  cb        - AVD control block.
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- * 
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- * NOTES: This function works in conjunction with extract function to provide the
- * get functionality.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
-{
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SG_SI_RANK_INDX indx;
-	uns16 len;
-	uns32 i;
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
-
-	/* Prepare the SuperSiRank database key from the instant ID */
-	len = (SaUint16T)arg->i_idx.i_inst_ids[0];
-
-	indx.sg_name_net.length = m_NCS_OS_HTONS(len);
-
-	for (i = 0; i < len; i++) {
-		indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-	if (arg->i_idx.i_inst_len > len + 1) {
-		indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
-	}
-
-	rank_elt = avd_sg_si_rank_struc_find(avd_cb, indx);
-
-	if (rank_elt == AVD_SG_SI_RANK_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	*data = (NCSCONTEXT)rank_elt;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsgsirankentry_extract
- *
- * Purpose:  This function is one of the get processing function for objects in
- * SA_AMF_S_G_S_I_RANK_ENTRY_ID table. This is the SG-SI Rank table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after calling the get call to get data structure.
- * This function fills the value information in the param filed structure. For
- * octate information the buffer field will be used for filling the information.
- * MIBLIB will provide the memory and pointer to the buffer. For only objects that
- * have a direct value(i.e their offset is not 0 in VAR INFO) in the structure
- * the data field is filled using the VAR INFO provided by MIBLIB, for others based
- * on the OID the value is filled accordingly.
- *
- * Input:  param     -  param->i_param_id indicates the parameter to extract
- *                      The remaining elements of the param need to be filled
- *                      by the subystem's extract function
- *         var_info  - Pointer to the var_info structure for the param.
- *         data      - The pointer to the data-structure containing the object
- *                     value which we have already provided to MIBLIB from get call.
- *         buffer    - The buffer pointer provided by MIBLIB for filling the octate
- *                     type data.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- *
- * NOTES:  This function works in conjunction with other functions to provide the
- * get,getnext and getrow functionality.
- *
- * 
- **************************************************************************/
-
-uns32 saamfsgsirankentry_extract(NCSMIB_PARAM_VAL *param, NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
-{
-	AVD_SG_SI_RANK *rank_elt = (AVD_SG_SI_RANK *)data;
-
-	if (rank_elt == AVD_SG_SI_RANK_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	switch (param->i_param_id) {
-
-	case saAmfSGSIRankSIName_ID:
-		m_AVSV_OCTVAL_TO_PARAM(param, buffer, rank_elt->si_name.length, rank_elt->si_name.value);
 		break;
-
+	case CCBUTIL_MODIFY:
+		rc = avd_si_ccb_completed_modify_hdlr(opdata);
+		break;
+	case CCBUTIL_DELETE:
+		si = avd_si_find(&opdata->objectName);
+		if ((NULL != si->list_of_csi) || (NULL != si->list_of_csi)) {
+			avd_log(NCSFL_SEV_ERROR, "SaAmfSI is in use");
+			goto done;
+		}
+		rc = SA_AIS_OK;
+		break;
 	default:
-		/* call the MIBLIB utility routine for standfard object types */
-		if ((var_info != NULL) && (var_info->offset != 0))
-			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-		else
-			return NCSCC_RC_NO_OBJECT;
+		assert(0);
 		break;
-
 	}
-
-	return NCSCC_RC_SUCCESS;
-
+ done:
+	return rc;
 }
 
 /*****************************************************************************
- * Function: saamfsgsirankentry_next
- *
- * Purpose:  This function is the next processing for objects in
- * SA_AMF_S_G_S_I_RANK_ENTRY_ID table. This is the SG-SIRank table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function gets the next valid instance and its data structure
- * and it passes to the MIBLIB the values.
- *
- * Input: cb        - AVD control block.
- *        arg       - The pointer to the MIB arg that was provided by the caller.
- *        data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *     next_inst_id - The next instance id will be filled in this buffer
- *                     and returned by reference.
- * next_inst_id_len - The next instance id length.
- *
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context
- *
- * NOTES: This function works in conjunction with extract function to provide the
- * getnext functionality.
- *
+ * Function: avd_si_ccb_apply_delete_hdlr
  * 
- **************************************************************************/
-
-uns32 saamfsgsirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-			      NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
+ * Purpose: This routine handles delete operations on SaAmfSvcType objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: None.
+ *  
+ ****************************************************************************/
+static void avd_si_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SG_SI_RANK_INDX indx;
-	uns16 len;
-	uns32 i;
-	AVD_SG_SI_RANK *rank_elt = AVD_SG_SI_RANK_NULL;
+	AVD_SI *si;
 
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
+	si = avd_si_find(&opdata->objectName);
+	assert(si != NULL);
 
-	memset(&indx, '\0', sizeof(AVD_SG_SI_RANK_INDX));
+	avd_si_delete(si);
+}
 
-	if (arg->i_idx.i_inst_len != 0) {
+/*****************************************************************************
+ * Function: avd_si_ccb_apply_modify_hdlr
+ * 
+ * Purpose: This routine handles delete operations on SaAmfSI objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: None.
+ *  
+ ****************************************************************************/
+static void avd_si_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	AVD_SI *si;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
 
-		/* Prepare the SuperSiRank database key from the instant ID */
-		len = (SaUint16T)arg->i_idx.i_inst_ids[0];
+	si = avd_si_find(&opdata->objectName);
+	assert(si != NULL);
 
-		indx.sg_name_net.length = m_NCS_OS_HTONS(len);
+	/* Modifications can be done for any parameters. */
+	i = 0;
+	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		void *value;
+		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
 
-		for (i = 0; i < len; i++) {
-			indx.sg_name_net.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-		}
-		if (arg->i_idx.i_inst_len > len + 1) {
-			indx.si_rank_net = m_NCS_OS_HTONL((SaUint32T)arg->i_idx.i_inst_ids[len + 1]);
+		value = attribute->attrValues[0];
+
+		if (!strcmp(attribute->attrName, "saAmfSIPrefActiveAssignments")) {
+			si->saAmfSIPrefActiveAssignments = *((SaUint32T *)value);
+		} else if (!strcmp(attribute->attrName, "saAmfSIPrefStandbyAssignments")) {
+			si->saAmfSIPrefStandbyAssignments = *((SaUint32T *)value);
+		} else {
+			assert(0);
 		}
 	}
+}
 
-	rank_elt = avd_sg_si_rank_struc_find_next(avd_cb, indx);
+/*****************************************************************************
+ * Function: avd_si_ccb_apply_cb
+ * 
+ * Purpose: This routine handles all CCB apply operations on SaAmfSI objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data 
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static void avd_si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+{
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	if (rank_elt == AVD_SG_SI_RANK_NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		avd_si_add_to_model(opdata->userData);
+		break;
+	case CCBUTIL_DELETE:
+		avd_si_ccb_apply_delete_hdlr(opdata);
+		break;
+	case CCBUTIL_MODIFY:
+		avd_si_ccb_apply_modify_hdlr(opdata);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+}
+
+#if 0
+/*****************************************************************************
+ * Function: avd_svc_type_cs_type_del_si_list
+ *
+ * Purpose:  This function will del the given svc_type_cs_type from si list.
+ *
+ * Input: cb - the AVD control block
+ *        svc_type_cs_type - The svc_type_cs_type pointer
+ *
+ * Returns: None.
+ *
+ * NOTES: None
+ *
+ *
+ **************************************************************************/
+static void avd_svctype_cstype_del_si_list(AVD_CL_CB *cb, AVD_SVC_TYPE_CS_TYPE *svc_type_cs_type)
+{
+	AVD_SVC_TYPE_CS_TYPE *i_svc_type_cs_type = NULL;
+	AVD_SVC_TYPE_CS_TYPE *prev_svc_type_cs_type = NULL;
+
+	if (svc_type_cs_type->cs_type_on_svc_type != NULL) {
+		i_svc_type_cs_type = svc_type_cs_type->cs_type_on_svc_type->list_of_cs_type;
+
+		while ((i_svc_type_cs_type != NULL) && (i_svc_type_cs_type != svc_type_cs_type)) {
+			prev_svc_type_cs_type = i_svc_type_cs_type;
+			i_svc_type_cs_type = i_svc_type_cs_type->cs_type_list_svc_type_next;
+		}
+
+		if (i_svc_type_cs_type == svc_type_cs_type) {
+			if (prev_svc_type_cs_type == NULL) {
+				svc_type_cs_type->cs_type_on_svc_type->list_of_cs_type =
+				    svc_type_cs_type->cs_type_list_svc_type_next;
+			} else {
+				prev_svc_type_cs_type->cs_type_list_svc_type_next =
+				    svc_type_cs_type->cs_type_list_svc_type_next;
+			}
+
+			svc_type_cs_type->cs_type_list_svc_type_next = NULL;
+			svc_type_cs_type->cs_type_on_svc_type = NULL;
+		}
+	}
+}
+#endif
+/*****************************************************************************
+ * Function: avd_svctype_create
+ * 
+ * Purpose: This routine creates new SaAmfSvcType objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: Pointer to Svc Type structure.
+ *  
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+static AVD_SVC_TYPE *avd_svctype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+{
+	int i;
+	AVD_SVC_TYPE *svct;
+	SaUint32T attrValuesNumber;
+
+	if ((svct = calloc(1, sizeof(AVD_SVC_TYPE))) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
+		return NULL;
 	}
 
-	*data = (NCSCONTEXT)rank_elt;
+	memcpy(svct->name.value, dn->value, dn->length);
+	svct->name.length = dn->length;
+	svct->tree_node.key_info = (uns8 *)&svct->name;
 
-	/* Prepare the instant ID from the SI name and SU rank */
-	len = m_NCS_OS_NTOHS(rank_elt->indx.sg_name_net.length);
-
-	*next_inst_id_len = len + 1 + 1;
-
-	next_inst_id[0] = len;
-
-	for (i = 0; i < len; i++) {
-		next_inst_id[i + 1] = (uns32)(rank_elt->indx.sg_name_net.value[i]);
+	/* Optional, [0..*] */
+	if (immutil_getAttrValuesNumber("saAmfSvcDefActiveWeight", attributes, &attrValuesNumber) == SA_AIS_OK) {
+		svct->saAmfSvcDefActiveWeight = malloc((attrValuesNumber + 1) * sizeof(char *));
+		for (i = 0; i < attrValuesNumber; i++) {
+			svct->saAmfSvcDefActiveWeight[i] =
+			    strdup(immutil_getStringAttr(attributes, "saAmfSvcDefActiveWeight", i));
+		}
+		svct->saAmfSvcDefActiveWeight[i] = NULL;
 	}
 
-	next_inst_id[len + 1] = m_NCS_OS_NTOHL(rank_elt->indx.si_rank_net);
+	/* Optional, [0..*] */
+	if (immutil_getAttrValuesNumber("saAmfSvcDefStandbyWeight", attributes, &attrValuesNumber) == SA_AIS_OK) {
+		svct->saAmfSvcDefStandbyWeight = malloc((attrValuesNumber + 1) * sizeof(char *));
+		for (i = 0; i < attrValuesNumber; i++) {
+			svct->saAmfSvcDefStandbyWeight[i] =
+			    strdup(immutil_getStringAttr(attributes, "saAmfSvcDefStandbyWeight", i));
+		}
+		svct->saAmfSvcDefStandbyWeight[i] = NULL;
+	}
 
-	*data = (NCSCONTEXT)rank_elt;
+	i = ncs_patricia_tree_add(&avd_svctype_db, &svct->tree_node);
+	assert (i == NCSCC_RC_SUCCESS);
 
-	return NCSCC_RC_SUCCESS;
+	return svct;
 }
 
 /*****************************************************************************
- * Function: saamfsgsirankentry_set
- *
- * Purpose:  This function is the set processing for objects in
- * SA_AMF_S_G_S_I_RANK_ENTRY_ID table. This is the SG-SIRank table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for the objects that are settable. This same function can be used for test
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         var_info  - The VAR INFO structure pointer generated by MIBLIB for
- *                     the objects in this table.
- *         test_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
+ * Function: avd_svctype_ccb_completed_cb
  * 
+ * Purpose: This routine handles all CCB operations on SaAmfSvcType objects.
+ * 
+ *
+ * Input  : Ccb Util Oper Data
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
  **************************************************************************/
-
-uns32 saamfsgsirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
+static SaAisErrorT avd_svctype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	return NCSCC_RC_FAILURE;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	AVD_SVC_TYPE *svc_type;
+
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		if ((svc_type = avd_svctype_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+
+		rc = SA_AIS_OK;
+		break;
+	case CCBUTIL_MODIFY:
+		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfSvcType not supported");
+		break;
+	case CCBUTIL_DELETE:
+		svc_type = avd_svctype_find(&opdata->objectName);
+		if ((NULL != svc_type->list_of_si) || (NULL != svc_type->list_of_cs_type)) {
+			avd_log(NCSFL_SEV_ERROR, "SaAmfSvcType is in use");
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			goto done;
+		}
+		rc = SA_AIS_OK;
+		break;
+	default:
+		assert(0);
+		break;
+	}
+ done:
+
+	return rc;
 }
 
 /*****************************************************************************
- * Function: saamfsgsirankentry_setrow
- *
- * Purpose:  This function is the setrow processing for objects in
- * SA_AMF_S_G_S_I_RANK_ENTRY_ID table. This is the SG-SIRank table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for all the objects that are settable as part of the setrow operation. 
- * This same function can be used for test row
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         args      - The pointer to the MIB arg that was provided by the caller.
- *         params    - The List of object ids and their values.
- *         obj_info  - The VAR INFO structure array pointer generated by MIBLIB for
- *                     the objects in this table.
- *      testrow_flag - The flag that indicates if this is set or test.
+ * Function: avd_svctype_ccb_apply_cb
  * 
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
+ * Purpose: This routine handles all CCB apply operations on SaAmfSvcType objects.
  * 
+ *
+ * Input  : Ccb Util Oper Data 
+ *  
+ * Returns: None.
+ *  
+ * NOTES  : None.
+ *
+ *
  **************************************************************************/
-
-uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				NCSMIB_SETROW_PARAM_VAL *params,
-				struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
+static void avd_svctype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	return NCSCC_RC_SUCCESS;
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		break;
+	case CCBUTIL_DELETE: {
+		AVD_SVC_TYPE *svct = avd_svctype_find(&opdata->objectName);
+		avd_svctype_delete(svct);
+		break;
+	}
+	default:
+		assert(0);
+		break;
+	}
 }
 
-/*****************************************************************************
- * Function: saamfsgsirankentry_rmvrow 
- *
- * Purpose:  This function is one of the RMVROW processing routines for objects
- * in NCS_CLM_TABLE_ENTRY_ID table. 
- *
- * Input:  cb        - AVD control block.
- *         idx       - pointer to NCSMIB_IDX 
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- **************************************************************************/
-uns32 saamfsgsirankentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx)
+static int avd_svctype_config_validate(AVD_SVC_TYPE *svc_type)
 {
-	return NCSCC_RC_SUCCESS;
+	char *parent;
+	char *dn = (char *)svc_type->name.value;
+
+	if ((parent = strchr(dn, ',')) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
+		return -1;
+	}
+
+	parent++;
+
+	/* Should be children to the SvcBasetype */
+	if (strncmp(parent, "safSvcType=", 11) != 0) {
+		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", parent, dn);
+		return -1;
+	}
+
+	return 0;
 }
+
+/**
+ * Get configuration for all SaAmfSvcType objects from IMM and 
+ * create AVD internal objects. 
+ * 
+ * @param cb
+ * @param app
+ * 
+ * @return int
+ */
+SaAisErrorT avd_svctype_config_get(void)
+{
+	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT dn;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfSvcType";
+	AVD_SVC_TYPE *svc_type;
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if (immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		NULL, &searchHandle) != SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_ERROR, "No objects found (1)");
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
+
+		if ((svc_type = avd_svctype_create(&dn, attributes)) == NULL)
+			goto done2;
+
+		if (avd_svctype_config_validate(svc_type) != 0)
+			goto done2;
+
+		if (avd_svctypecstypes_config_get(&dn) != SA_AIS_OK)
+			goto done2;
+	}
+
+	error = SA_AIS_OK;
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+
+	return error;
+}
+
+static AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+{
+	uns32 rc;
+	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
+
+	if ((svctypecstype = calloc(1, sizeof(AVD_SVC_TYPE_CS_TYPE))) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "calloc failed");
+		return NULL;
+	}
+
+	memcpy(svctypecstype->name.value, dn->value, dn->length);
+	svctypecstype->name.length = dn->length;
+	svctypecstype->tree_node.key_info = (uns8 *)&(svctypecstype->name);
+
+	if (immutil_getAttr("saAmfSvcMaxNumCSIs", attributes, 0, &svctypecstype->saAmfSvcMaxNumCSIs) != SA_AIS_OK)
+		svctypecstype->saAmfSvcMaxNumCSIs = -1; /* no limit */
+
+	rc = ncs_patricia_tree_add(&avd_svctypecstypes_db, &svctypecstype->tree_node);
+	assert(rc == NCSCC_RC_SUCCESS);
+
+	return svctypecstype;
+}
+
+static void avd_svctypecstypes_delete(AVD_SVC_TYPE_CS_TYPE *svctypecstype)
+{
+	uns32 rc;
+
+	rc = ncs_patricia_tree_del(&avd_svctypecstypes_db, &svctypecstype->tree_node);
+	assert(rc == NCSCC_RC_SUCCESS);
+	free(svctypecstype);
+}
+
+AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_find(const SaNameT *dn)
+{
+	SaNameT tmp = {0};
+
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
+
+	return (AVD_SVC_TYPE_CS_TYPE*)ncs_patricia_tree_get(&avd_svctypecstypes_db, (uns8 *)&tmp);
+}
+
+/**
+ * Get configuration for all SaAmfSvcTypeCSTypes objects from 
+ * IMM and create AVD internal objects. 
+ * 
+ * @param sutype_name 
+ * @param sut 
+ * 
+ * @return SaAisErrorT 
+ */
+static SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
+{
+	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
+	SaAisErrorT error;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT dn;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfSvcTypeCSTypes";
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, svctype_name, SA_IMM_SUBTREE,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		NULL, &searchHandle);
+	
+	if (SA_AIS_OK != error) {
+		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_NOTICE, "'%s' (%u)", dn.value, dn.length);
+
+		if ((svctypecstype = avd_svctypecstypes_create(&dn, attributes)) == NULL) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			goto done2;
+		}
+	}
+
+	error = SA_AIS_OK;
+
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+	return error;
+}
+
+/**
+ * Handles the CCB Completed operation for the 
+ * SaAmfSvcTypeCSTypes class.
+ * 
+ * @param opdata 
+ */
+static SaAisErrorT avd_svctypecstypes_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
+
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		if ((svctypecstype = avd_svctypecstypes_create(&opdata->objectName,
+			opdata->param.create.attrValues)) == NULL) {
+			goto done;
+		}
+
+		rc = SA_AIS_OK;
+		break;
+	case CCBUTIL_MODIFY:
+		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfSvcTypeCSTypes not supported");
+		break;
+	case CCBUTIL_DELETE:
+		svctypecstype = avd_svctypecstypes_find(&opdata->objectName);
+		if (svctypecstype->curr_num_csis == 0) {
+			rc = SA_AIS_OK;
+		}
+		break;
+	default:
+		assert(0);
+		break;
+	}
+
+ done:
+	return rc;
+}
+
+/**
+ * Handles the CCB Apply operation for the SaAmfSvcTypeCSTypes 
+ * class. 
+ * 
+ * @param opdata 
+ */
+static void avd_svctypecstypes_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+{
+	AVD_SVC_TYPE_CS_TYPE *svctypecstype;
+
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		break;
+	case CCBUTIL_DELETE:
+		svctypecstype = avd_svctypecstypes_find(&opdata->objectName);
+		avd_svctypecstypes_delete(svctypecstype);
+		break;
+	default:
+		assert(0);
+		break;
+	}
+}
+
+void avd_si_constructor(void)
+{
+	NCS_PATRICIA_PARAMS patricia_params;
+
+	patricia_params.key_size = sizeof(SaNameT);
+
+	assert(ncs_patricia_tree_init(&avd_si_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&avd_svctype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&avd_svctypecstypes_db, &patricia_params) == NCSCC_RC_SUCCESS);
+
+	avd_class_impl_set("SaAmfSI", avd_si_rt_attr_cb,
+	       avd_si_admin_op_cb, avd_si_ccb_completed_cb, avd_si_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSvcType", NULL, NULL, avd_svctype_ccb_completed_cb, avd_svctype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSvcBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSvcTypeCSTypes", NULL, NULL,
+	       avd_svctypecstypes_ccb_completed_cb, avd_svctypecstypes_ccb_apply_cb);
+}
+

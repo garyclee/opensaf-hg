@@ -20,24 +20,26 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_scap
+pkglib_PROGRAMS = opensaf_scap
 
-ncs_scap_CPPFLAGS = \
-	-DNCS_MAC=1 -DNCS_BAM=1 -DNCS_AVD=1 -DNCS_AVND=1 -DNCS_AVM=1 \
+opensaf_scap_CPPFLAGS = \
+	-DNCS_MAC=1 -DNCS_BAM=1 \
 	$(AM_CPPFLAGS) \
+	-DNCS_MAIN_EXTERNAL \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avm/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include
 
-ncs_scap_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+opensaf_scap_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
-ncs_scap_SOURCES = \
+opensaf_scap_SOURCES = \
+	opensaf_scap.c \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
-ncs_scap_LDFLAGS = @XERCESC_LIB@
+opensaf_scap_LDFLAGS = @XERCESC_LIB@
 
-ncs_scap_LDADD = \
+opensaf_scap_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \
@@ -46,4 +48,6 @@ ncs_scap_LDADD = \
 	$(top_builddir)/osaf/services/saf/avsv/avm/libavm.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la \
 	$(top_builddir)/osaf/services/infrastructure/bam/libbam.la \
-	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

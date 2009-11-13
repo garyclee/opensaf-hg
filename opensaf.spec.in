@@ -333,9 +333,9 @@ fi
 %{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
-%{_pkglibdir}/ncs_scap
-%{_pkglibdir}/ncs_scap_clean
-%{_pkglibdir}/ncs_scap_start
+%{_pkglibdir}/opensaf_scap
+%{_pkglibdir}/opensaf_scap_clean
+%{_pkglibdir}/opensaf_scap_start
 %{_pkglibdir}/ncs_snmp_subagt
 %{_pkglibdir}/ncs_snmpsubagt_clean
 %{_pkglibdir}/ncs_snmpsubagt_reload
@@ -421,9 +421,9 @@ fi
 %{_pkglibdir}/ncs_glnd
 %{_pkglibdir}/ncs_mqnd
 %{_pkglibdir}/ncs_nid
-%{_pkglibdir}/ncs_pcap
-%{_pkglibdir}/ncs_pcap_clean
-%{_pkglibdir}/ncs_pcap_start
+%{_pkglibdir}/opensaf_pcap
+%{_pkglibdir}/opensaf_pcap_clean
+%{_pkglibdir}/opensaf_pcap_start
 %{_pkglibdir}/opensaf_immnd
 %{_bindir}/saflogger
 %{_bindir}/ntfsend
@@ -487,6 +487,9 @@ fi
 %{_bindir}/hisv_power_set_util
 %endif
 %{_bindir}/opensaf_mem_dump
+%{_bindir}/amf-adm
+%{_bindir}/amf-find
+%{_bindir}/amf-state
 
 
 %if %is_tests

@@ -12,6 +12,7 @@
  * licensing terms.
  *
  * Author(s): Emerson Network Power
+ *            Ericsson
  *
  */
 
@@ -23,8 +24,7 @@
   DESCRIPTION: 
   
   This module deals with the creation, accessing and deletion of the SI-SI
-  dependency database. It also deals with all the MIB operations like set, 
-  get, getnext etc related to the SI-SI Dep instance table.
+  dependency database.
 
 ..............................................................................
 
@@ -37,7 +37,13 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <saImmOm.h>
+#include <immutil.h>
+#include <avd_dblog.h>
+#include <avd_imm.h>
+#include <avd_si_dep.h>
+#include <avd_susi.h>
+#include <avd_proc.h>
 
 /* static function prototypes */
 static uns32 avd_check_si_dep_sponsors(AVD_CL_CB *cb, AVD_SI *si, NCS_BOOL take_action);
@@ -48,7 +54,6 @@ static uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si);
 static uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep_idx);
 static void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep,
 					 AVD_SI_DEP_SPONSOR_SI_STATE spons_state);
-static void avd_si_si_dep_get_indx(NCSMIB_ARG *arg, AVD_SI_SI_DEP_INDX *indx);
 static uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
 static void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt);
 
@@ -110,7 +115,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_del");
 
 	/* Dependent SI row Status should be active, if not return error */
-	if ((dep_si = avd_si_struc_find(cb, si_dep_rec->indx_mib.si_name_sec, FALSE))
+	if ((dep_si = avd_si_find(&si_dep_rec->indx_mib.si_name_sec))
 	    == AVD_SI_NULL) {
 		/* LOG the message */
 		return;
@@ -125,12 +130,12 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	spons_si_node = dep_si->spons_si_list;
 
 	/* Check if the sponsor is the first node of the list */
-	if (m_CMP_NORDER_SANAMET(dep_si->spons_si_list->si->name_net, si_dep_rec->indx_mib.si_name_prim) == 0) {
+	if (m_CMP_HORDER_SANAMET(dep_si->spons_si_list->si->name, si_dep_rec->indx_mib.si_name_prim) == 0) {
 		dep_si->spons_si_list = spons_si_node->next;
-		m_MMGR_FREE_AVD_SPONS_SI_LIST(spons_si_node);
+		free(spons_si_node);
 	} else {
 		while (spons_si_node->next != NULL) {
-			if (m_CMP_NORDER_SANAMET(spons_si_node->next->si->name_net,
+			if (m_CMP_HORDER_SANAMET(spons_si_node->next->si->name,
 						 si_dep_rec->indx_mib.si_name_prim) != 0) {
 				spons_si_node = spons_si_node->next;
 				continue;
@@ -139,7 +144,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 			/* Matched spons si node found, then delete */
 			del_spons_si_node = spons_si_node->next;
 			spons_si_node->next = spons_si_node->next->next;
-			m_MMGR_FREE_AVD_SPONS_SI_LIST(del_spons_si_node);
+			free(del_spons_si_node);
 			break;
 		}
 	}
@@ -168,12 +173,10 @@ uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, AVD_SI *dep_si, AVD_SI *spons
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_add");
 
-	spons_si_node = m_MMGR_ALLOC_AVD_SPONS_SI_LIST;
+	spons_si_node = calloc(1, sizeof(AVD_SPONS_SI_NODE));
 	if (spons_si_node == NULL) {
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(spons_si_node, '\0', sizeof(AVD_SPONS_SI_NODE));
 
 	spons_si_node->si = spons_si;
 
@@ -207,14 +210,14 @@ void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, AVD_SI *si)
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_stop_tol_timer");
 
 	memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-	indx.si_name_sec.length = si->name_net.length;
-	memcpy(indx.si_name_sec.value, si->name_net.value, m_NCS_OS_NTOHS(si->name_net.length));
+	indx.si_name_sec.length = si->name.length;
+	memcpy(indx.si_name_sec.value, si->name.value, si->name.length);
 
 	while (spons_si_node) {
 		/* Need to stop the tolerance timer */
-		indx.si_name_prim.length = spons_si_node->si->name_net.length;
-		memcpy(indx.si_name_prim.value, spons_si_node->si->name_net.value,
-		       m_NCS_OS_NTOHS(spons_si_node->si->name_net.length));
+		indx.si_name_prim.length = spons_si_node->si->name.length;
+		memcpy(indx.si_name_prim.value, spons_si_node->si->name.value,
+		       spons_si_node->si->name.length);
 
 		if ((rec = avd_si_si_dep_find(cb, &indx, TRUE)) != NULL) {
 			if (rec->si_dep_timer.is_active == TRUE) {
@@ -262,13 +265,13 @@ uns32 avd_si_dep_si_unassigned(AVD_CL_CB *cb, AVD_SI *si)
 		if ((susi->state == SA_AMF_HA_ACTIVE) || (susi->state == SA_AMF_HA_QUIESCING)) {
 			old_fsm_state = susi->fsm;
 			susi->fsm = AVD_SU_SI_STATE_UNASGN;
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SU_SI_REL);
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 
 			rc = avd_snd_susi_msg(cb, susi->su, susi, AVSV_SUSI_ACT_DEL);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* LOG the erro */
 				susi->fsm = old_fsm_state;
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SU_SI_REL);
+				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				return rc;
 			}
 
@@ -311,33 +314,33 @@ uns32 avd_sg_red_si_process_assignment(AVD_CL_CB *cb, AVD_SI *si)
 	}
 
 	if ((si->max_num_csi == si->num_csi) &&
-	    (si->admin_state == NCS_ADMIN_STATE_UNLOCK) && (cb->init_state == AVD_APP_STATE)) {
-		switch (si->sg_of_si->su_redundancy_model) {
-		case AVSV_SG_RED_MODL_2N:
+	    (si->saAmfSIAdminState == SA_AMF_ADMIN_UNLOCKED) && (cb->init_state == AVD_APP_STATE)) {
+		switch (si->sg_of_si->sg_redundancy_model) {
+		case SA_AMF_2N_REDUNDANCY_MODEL:
 			if (avd_sg_2n_si_func(cb, si) != NCSCC_RC_SUCCESS) {
 				return NCSCC_RC_FAILURE;
 			}
 			break;
 
-		case AVSV_SG_RED_MODL_NWAYACTV:
+		case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
 			if (avd_sg_nacvred_si_func(cb, si) != NCSCC_RC_SUCCESS) {
 				return NCSCC_RC_FAILURE;
 			}
 			break;
 
-		case AVSV_SG_RED_MODL_NWAY:
+		case SA_AMF_N_WAY_REDUNDANCY_MODEL:
 			if (avd_sg_nway_si_func(cb, si) != NCSCC_RC_SUCCESS) {
 				return NCSCC_RC_FAILURE;
 			}
 			break;
 
-		case AVSV_SG_RED_MODL_NPM:
+		case SA_AMF_NPM_REDUNDANCY_MODEL:
 			if (avd_sg_npm_si_func(cb, si) != NCSCC_RC_SUCCESS) {
 				return NCSCC_RC_FAILURE;
 			}
 			break;
 
-		case AVSV_SG_RED_MODL_NORED:
+		case SA_AMF_NO_REDUNDANCY_MODEL:
 		default:
 			if (avd_sg_nored_si_func(cb, si) != NCSCC_RC_SUCCESS) {
 				return NCSCC_RC_FAILURE;
@@ -378,22 +381,22 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 
 	/* Get the sponsor index */
 	memset((char *)&spons_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-	spons_indx.si_name_prim.length = si->name_net.length;
-	memcpy(spons_indx.si_name_prim.value, si->name_net.value, m_NCS_OS_NTOHS(si->name_net.length));
+	spons_indx.si_name_prim.length = si->name.length;
+	memcpy(spons_indx.si_name_prim.value, si->name.value, si->name.length);
 
 	memset((char *)&dep_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-	dep_indx.si_name_sec.length = si->name_net.length;
-	memcpy(dep_indx.si_name_sec.value, si->name_net.value, m_NCS_OS_NTOHS(si->name_net.length));
+	dep_indx.si_name_sec.length = si->name.length;
+	memcpy(dep_indx.si_name_sec.value, si->name.value, si->name.length);
 
 	rec = avd_si_si_dep_find_next(cb, &spons_indx, TRUE);
 	while (rec != NULL) {
-		if (m_CMP_NORDER_SANAMET(rec->indx_mib.si_name_prim, spons_indx.si_name_prim) != 0) {
+		if (m_CMP_HORDER_SANAMET(rec->indx_mib.si_name_prim, spons_indx.si_name_prim) != 0) {
 			break;
 		}
 
 		dep_indx.si_name_prim.length = spons_indx.si_name_sec.length;
 		memcpy(dep_indx.si_name_prim.value, spons_indx.si_name_sec.value,
-		       m_NCS_OS_NTOHS(spons_indx.si_name_sec.length));
+		       spons_indx.si_name_sec.length);
 
 		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_mib)
 		    != NCSCC_RC_SUCCESS) {
@@ -409,7 +412,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 		}
 
 		/* Since the SI Dep. is been removed, adjust the dependent SI dep state accordingly */
-		si = avd_si_struc_find(cb, rec->indx.si_name_prim, FALSE);
+		si = avd_si_find(&rec->indx.si_name_prim);
 		if (si == AVD_SI_NULL)
 			return;
 
@@ -423,7 +426,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 		avd_screen_sponsor_si_state(cb, si, TRUE);
 
 		if (rec)
-			m_MMGR_FREE_AVD_SI_SI_DEP(rec);
+			free(rec);
 
 		rec = avd_si_si_dep_find_next(cb, &spons_indx, TRUE);
 	}
@@ -452,13 +455,11 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_state_evt");
 
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(evt, '\0', sizeof(AVD_EVT));
 
 	/* Update evt struct, using tmr field even though this field is not
 	 * relevant for this event, but it accommodates the required data.
@@ -473,8 +474,8 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 		m_AVD_SET_SI_DEP_STATE(cb, si, AVD_SI_READY_TO_UNASSIGN);
 	} else {		/* For ASSIGN evt, just enough to feed SI name */
 
-		evt->info.tmr.spons_si_name.length = si->name_net.length;
-		memcpy(evt->info.tmr.spons_si_name.value, si->name_net.value, m_NCS_OS_NTOHS(si->name_net.length));
+		evt->info.tmr.spons_si_name.length = si->name.length;
+		memcpy(evt->info.tmr.spons_si_name.value, si->name.value, si->name.length);
 	}
 
 	m_AVD_LOG_RCVD_VAL(((long)evt));
@@ -483,7 +484,7 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
 	    != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -518,13 +519,15 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	si = avd_si_struc_find(cb, evt->info.tmr.dep_si_name, FALSE);
-	spons_si = avd_si_struc_find(cb, evt->info.tmr.spons_si_name, FALSE);
+	si = avd_si_find(&evt->info.tmr.dep_si_name);
+	spons_si = avd_si_find(&evt->info.tmr.spons_si_name);
 
 	if ((si == NULL) || (spons_si == NULL)) {
 		/* Nothing to do here as SI/spons-SI itself lost their existence */
 		return;
 	}
+
+	avd_log(NCSFL_SEV_NOTICE, "'%s'", si->name.value);
 
 	/* Since the tol-timer is been expired, can decrement tol_timer_count of 
 	 * the SI. 
@@ -759,7 +762,7 @@ void avd_process_si_dep_state_evt(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if (evt->info.tmr.dep_si_name.length == 0) {
 		/* Its an ASSIGN evt */
-		si = avd_si_struc_find(cb, evt->info.tmr.spons_si_name, FALSE);
+		si = avd_si_find(&evt->info.tmr.spons_si_name);
 		if (si != NULL) {
 			avd_screen_sponsor_si_state(cb, si, TRUE);
 		}
@@ -792,8 +795,8 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_start_unassign");
 
-	si = avd_si_struc_find(cb, evt->info.tmr.dep_si_name, FALSE);
-	spons_si = avd_si_struc_find(cb, evt->info.tmr.spons_si_name, FALSE);
+	si = avd_si_find(&evt->info.tmr.dep_si_name);
+	spons_si = avd_si_find(&evt->info.tmr.spons_si_name);
 
 	if ((!si) || (!spons_si)) {
 		/* Log the ERROR message */
@@ -858,7 +861,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 
 	switch (dep_si->si_dep_state) {
 	case AVD_SI_ASSIGNED:
-		if (si_dep_rec->tolerance_time > 0) {
+		if (si_dep_rec->saAmfToleranceTime > 0) {
 			/* Start the tolerance timer */
 			m_AVD_SET_SI_DEP_STATE(cb, dep_si, AVD_SI_TOL_TIMER_RUNNING);
 
@@ -878,7 +881,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 
 	case AVD_SI_TOL_TIMER_RUNNING:
 	case AVD_SI_READY_TO_UNASSIGN:
-		if (si_dep_rec->tolerance_time > 0) {
+		if (si_dep_rec->saAmfToleranceTime > 0) {
 			if (si_dep_rec->si_dep_timer.is_active != TRUE) {
 				/* Start the tolerance timer */
 				m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec);
@@ -939,8 +942,8 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_state_modif");
 
 	memset((char *)&si_indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-	si_indx.si_name_prim.length = si->name_net.length;
-	memcpy(si_indx.si_name_prim.value, si->name_net.value, m_NCS_OS_NTOHS(si_indx.si_name_prim.length));
+	si_indx.si_name_prim.length = si->name.length;
+	memcpy(si_indx.si_name_prim.value, si->name.value, si_indx.si_name_prim.length);
 
 	/* If si_dep is NULL, means adjust the SI dep states for all depended 
 	 * SIs of the sponsor SI.
@@ -948,15 +951,14 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 	if (si_dep == NULL) {
 		si_dep_rec = avd_si_si_dep_find_next(cb, &si_indx, TRUE);
 		while (si_dep_rec != NULL) {
-			if (m_CMP_NORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0) {
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0) {
 				/* Seems no more node exists in spons_anchor tree with 
 				 * "si_indx.si_name_prim" as primary key 
 				 */
 				break;
 			}
 
-			dep_si = (AVD_SI *)ncs_patricia_tree_get(&cb->si_anchor,
-								 (uns8 *)&si_dep_rec->indx_mib.si_name_sec);
+			dep_si = avd_si_find(&si_dep_rec->indx_mib.si_name_sec);
 			if (dep_si == NULL) {
 				/* No corresponding SI node?? some thing wrong */
 				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_mib, TRUE);
@@ -979,56 +981,18 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 			return;
 
 		/* Frame the index completely to the associated si_dep_rec */
-		si_indx.si_name_sec.length = si_dep->name_net.length;
-		memcpy(si_indx.si_name_sec.value, si_dep->name_net.value, m_NCS_OS_NTOHS(si_dep->name_net.length));
+		si_indx.si_name_sec.length = si_dep->name.length;
+		memcpy(si_indx.si_name_sec.value, si_dep->name.value, si_dep->name.length);
 
 		si_dep_rec = avd_si_si_dep_find(cb, &si_indx, TRUE);
 
 		if (si_dep_rec != NULL) {
 			/* se_dep_rec primary key should match with sponsor SI name */
-			if (m_CMP_NORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0)
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0)
 				return;
 
 			avd_update_si_dep_state_for_spons_unassign(cb, si_dep, si_dep_rec);
 		}
-	}
-
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_si_si_dep_get_indx
- *
- * Purpose:  This function gets the index data from the instanceID of the MIB
- *           arg structure
- *
- * Input: arg - ptr to the MIB arg structure
- *        indx - Index to retrieve. 
- *
- * Returns: nothing 
- *
- * NOTES:
- *
- **************************************************************************/
-void avd_si_si_dep_get_indx(NCSMIB_ARG *arg, AVD_SI_SI_DEP_INDX *indx)
-{
-	uns32 p_idx_len = 0;
-	uns32 s_idx_len = 0;
-	uns32 i = 0;
-
-	/* Prepare the si-si dependency database key from the instant ID */
-	p_idx_len = (SaUint16T)arg->i_idx.i_inst_ids[0];
-	indx->si_name_sec.length = m_NCS_OS_HTONS(p_idx_len);
-
-	for (i = 0; i < p_idx_len; i++) {
-		indx->si_name_sec.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-	}
-
-	s_idx_len = (SaUint16T)arg->i_idx.i_inst_ids[p_idx_len + 1];
-	indx->si_name_prim.length = m_NCS_OS_HTONS(s_idx_len);
-
-	for (i = 0; i < s_idx_len; i++) {
-		indx->si_name_prim.value[i] = (uns8)(arg->i_idx.i_inst_ids[p_idx_len + 1 + 1 + i]);
 	}
 
 	return;
@@ -1052,20 +1016,18 @@ void avd_si_si_dep_get_indx(NCSMIB_ARG *arg, AVD_SI_SI_DEP_INDX *indx)
 AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
-	uns32 si_prim_len = m_NCS_OS_NTOHS(indx->si_name_prim.length);
-	uns32 si_sec_len = m_NCS_OS_NTOHS(indx->si_name_sec.length);
+	uns32 si_prim_len = indx->si_name_prim.length;
+	uns32 si_sec_len = indx->si_name_sec.length;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_struc_crt");
 
 	/* Allocate a new block structure for mib rec now */
-	if ((rec = m_MMGR_ALLOC_AVD_SI_SI_DEP) == NULL) {
+	if ((rec = calloc(1, sizeof(AVD_SI_SI_DEP))) == NULL) {
 		/* log an error 
 		   m_AVD_LOG_MEM_FAIL(AVD_SI_SI_DEP_ALLOC_FAILED);
 		 */
 		return NULL;
 	}
-
-	memset(rec, '\0', sizeof(AVD_SI_SI_DEP));
 
 	rec->indx_mib.si_name_prim.length = indx->si_name_prim.length;
 	memcpy(rec->indx_mib.si_name_prim.value, indx->si_name_prim.value, si_prim_len);
@@ -1078,8 +1040,6 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	rec->indx.si_name_sec.length = indx->si_name_prim.length;
 	memcpy(rec->indx.si_name_sec.value, indx->si_name_prim.value, si_prim_len);
-
-	rec->row_status = NCS_ROW_NOT_READY;
 
 	rec->tree_node_mib.key_info = (uns8 *)&(rec->indx_mib);
 	rec->tree_node_mib.bit = 0;
@@ -1094,7 +1054,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	if (ncs_patricia_tree_add(&cb->si_dep.spons_anchor, &rec->tree_node_mib)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
-		m_MMGR_FREE_AVD_SI_SI_DEP(rec);
+		free(rec);
 		return NULL;
 	}
 
@@ -1102,7 +1062,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
 		ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_mib);
-		m_MMGR_FREE_AVD_SI_SI_DEP(rec);
+		free(rec);
 		return NULL;
 	}
 
@@ -1225,7 +1185,7 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 	}
 
 	if (si_dep_rec)
-		m_MMGR_FREE_AVD_SI_SI_DEP(si_dep_rec);
+		free(si_dep_rec);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1256,14 +1216,14 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_cyclic_dep_find");
 
-	if (m_CMP_NORDER_SANAMET(indx->si_name_prim, indx->si_name_sec) == 0) {
+	if (m_CMP_HORDER_SANAMET(indx->si_name_prim, indx->si_name_sec) == 0) {
 		/* dependent SI and Sponsor SI can not be same 
 		   Cyclic dependency found return sucess
 		 */
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if ((start = m_MMGR_ALLOC_AVD_SI_NAME_LIST) == NULL) {
+	if ((start = malloc(sizeof(AVD_SI_DEP_NAME_LIST))) == NULL) {
 		/*Insufficient memory, record can not be added */
 		return NCSCC_RC_SUCCESS;
 	} else {
@@ -1276,12 +1236,12 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		memset((char *)&idx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
 
 		idx.si_name_prim.length = last->si_name.length;
-		memcpy(idx.si_name_prim.value, last->si_name.value, m_NCS_OS_NTOHS(last->si_name.length));
+		memcpy(idx.si_name_prim.value, last->si_name.value, last->si_name.length);
 
 		rec = avd_si_si_dep_find_next(cb, &idx, FALSE);
 
-		while ((rec != NULL) && (m_CMP_NORDER_SANAMET(rec->indx.si_name_prim, idx.si_name_prim) == 0)) {
-			if (m_CMP_NORDER_SANAMET(indx->si_name_sec, rec->indx.si_name_sec) == 0) {
+		while ((rec != NULL) && (m_CMP_HORDER_SANAMET(rec->indx.si_name_prim, idx.si_name_prim) == 0)) {
+			if (m_CMP_HORDER_SANAMET(indx->si_name_sec, rec->indx.si_name_sec) == 0) {
 				/* Cyclic dependency found */
 				rc = NCSCC_RC_SUCCESS;
 				break;
@@ -1289,15 +1249,15 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 			/* Search if this SI name already exist in the list */
 			temp = start;
-			if (m_CMP_NORDER_SANAMET(temp->si_name, rec->indx.si_name_sec) != 0) {
+			if (m_CMP_HORDER_SANAMET(temp->si_name, rec->indx.si_name_sec) != 0) {
 				while ((temp->next != NULL) &&
-				       (m_CMP_NORDER_SANAMET(temp->next->si_name, rec->indx.si_name_sec) != 0)) {
+				       (m_CMP_HORDER_SANAMET(temp->next->si_name, rec->indx.si_name_sec) != 0)) {
 					temp = temp->next;
 				}
 
 				/* SI Name not found in the list, add it */
 				if (temp->next == NULL) {
-					if ((temp->next = m_MMGR_ALLOC_AVD_SI_NAME_LIST) == NULL) {
+					if ((temp->next = malloc(sizeof(AVD_SI_DEP_NAME_LIST))) == NULL) {
 						/* Insufficient memory space */
 						rc = NCSCC_RC_SUCCESS;
 						break;
@@ -1321,473 +1281,201 @@ uns32 avd_si_si_dep_cyclic_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	/* Free the allocated SI name list */
 	while (start) {
 		temp = start->next;
-		m_MMGR_FREE_AVD_SI_NAME_LIST(start);
+		free(start);
 		start = temp;
 	}
 
 	return rc;
 }
 
-/*****************************************************************************
- * Function: saamfsisideptableentry_get
- *
- * Purpose:  This function is one of the get processing routines for objects
- * in SA_AMF_S_I_S_I_DEP_TABLE_ENTRY_ID table. This is the SI SI dependency table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function finds the corresponding data structure for the given
- * instance and returns the pointer to the structure.
- *
- * Input:  cb        - AVD control block.
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- * NOTES: This function works in conjunction with extract function to provide the
- * get functionality.
- *
- * 
- **************************************************************************/
-uns32 saamfsisideptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data)
+static void avd_sidep_indx_init(const SaNameT *sidep_name, AVD_SI_SI_DEP_INDX *indx)
 {
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI_SI_DEP *rec = NULL;
-	AVD_SI_SI_DEP_INDX indx;
+	char *p;
+	SaNameT tmp = *sidep_name;
+	int i;
 
-	m_AVD_LOG_FUNC_ENTRY("saamfsisideptableentry_get");
+	/* The second existence of 'safSi=' should be dependent, secondary SI */
 
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
+	/* find first occurence and step past it */
+	p = strstr((char *)tmp.value, "safSi=") + 1;
+	assert(p);
+
+	/* find second occurence, an error if not found */
+	p = strstr(p, "safSi=");
+	assert(p);
+
+	*(p - 1) = '\0';	/* null terminate at comma before SI */
+
+	indx->si_name_sec.length = snprintf((char *)indx->si_name_sec.value, SA_MAX_NAME_LENGTH, "%s", p);
+
+	/* Skip past the RDN tag */
+	p = strchr((char *)tmp.value, '=') + 1;
+	assert(p);
+
+	/*
+	 ** Example DN, need to copy to get rid of back slash escaped commas.
+	 ** 'safDepend=safSi=SC2-NoRed\,safApp=OpenSAF,safSi=SC-2N,safApp=OpenSAF'
+	 */
+
+	/* Copy the RDN value which is a DN with escaped commas */
+	i = 0;
+	while (*p) {
+		if (*p != '\\')
+			indx->si_name_prim.value[i++] = *p;
+
+		p++;
 	}
 
-	memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-
-	/* Get the indx data from the MIB arg */
-	avd_si_si_dep_get_indx(arg, &indx);
-
-	rec = avd_si_si_dep_find(avd_cb, &indx, TRUE);
-
-	if (rec == NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	*data = (NCSCONTEXT)rec;
-
-	return NCSCC_RC_SUCCESS;
+	indx->si_name_prim.length = strlen((char *)indx->si_name_prim.value);
 }
 
-/*****************************************************************************
- * Function: saamfsisideptableentry_extract
- *
- * Purpose:  This function is one of the get processing function for objects in
- * SA_AMF_S_I_S_I_DEP_TABLE_ENTRY_ID table. This is the SI SI dependency table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after calling the get call to get data structure.
- * This function fills the value information in the param filed structure. For
- * octate information the buffer field will be used for filling the information.
- * MIBLIB will provide the memory and pointer to the buffer. For only objects that
- * have a direct value(i.e their offset is not 0 in VAR INFO) in the structure
- * the data field is filled using the VAR INFO provided by MIBLIB, for others based
- * on the OID the value is filled accordingly.
- *
- * Input:  param     -  param->i_param_id indicates the parameter to extract
- *                      The remaining elements of the param need to be filled
- *                      by the subystem's extract function
- *         var_info  - Pointer to the var_info structure for the param.
- *         data      - The pointer to the data-structure containing the object
- *                     value which we have already provided to MIBLIB from get call.
- *         buffer    - The buffer pointer provided by MIBLIB for filling the octate
- *                     type data.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *                   to set the args->rsp.i_status field before returning the
- *                   NCSMIB_ARG to the caller's context
- *
- * NOTES:  This function works in conjunction with other functions to provide the
- * get,getnext and getrow functionality.
- *
- * 
- **************************************************************************/
-uns32 saamfsisideptableentry_extract(NCSMIB_PARAM_VAL *param,
-				     NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer)
+static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **attributes)
 {
-	AVD_SI_SI_DEP *rec = (AVD_SI_SI_DEP *)data;
+	int rc = -1;
+	AVD_SI_SI_DEP *sidep;
+	AVD_SI_SI_DEP_INDX indx;
 
-	m_AVD_LOG_FUNC_ENTRY("saamfsisideptableentry_extract");
+	avd_sidep_indx_init(sidep_name, &indx);
 
-	if (rec == NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
+	/* Sponsor SI need to exist */
+	if (avd_si_find(&indx.si_name_prim) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "avd_si_struc_find failed for '%s'", indx.si_name_prim.value);
+		goto done;
 	}
 
-	switch (param->i_param_id) {
-	case saAmfSISIDepToltime_ID:
-		m_AVSV_UNS64_TO_PARAM(param, buffer, rec->tolerance_time);
-		break;
+	if (avd_si_si_dep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
+		/* Return value that record cannot be added due to cyclic dependency */
+		avd_log(NCSFL_SEV_ERROR, "cyclic dependency for '%s'", sidep_name->value);
+		goto done;
+	}
 
+	if ((sidep = avd_si_si_dep_struc_crt(avd_cb, &indx)) == NULL)
+		goto done;
+
+	if (immutil_getAttr("saAmfToleranceTime", attributes, 0, &sidep->saAmfToleranceTime) != SA_AIS_OK) {
+		/* Empty, assign default value */
+		sidep->saAmfToleranceTime = 0;
+	}
+
+	rc = 0;
+
+ done:
+	if (rc != 0) {
+		avd_si_si_dep_struc_crt(avd_cb, &indx);
+		sidep = NULL;
+	}
+	return sidep;
+}
+
+/**
+ * Get configuration for all AMF SI dependency objects from IMM
+ * and create AVD internal objects.
+ * 
+ * @return int
+ */
+SaAisErrorT avd_sidep_config_get(void)
+{
+	SaAisErrorT error;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT sidep_name;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfSIDependency";
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		NULL, &searchHandle);
+
+	if (SA_AIS_OK != error) {
+		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize failed: %u", error);
+		goto done1;
+	}
+
+	while (immutil_saImmOmSearchNext_2(searchHandle, &sidep_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+		avd_log(NCSFL_SEV_NOTICE, "'%s'", sidep_name.value);
+
+		if (sidep_new(&sidep_name, attributes) == NULL) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
+			goto done2;
+		}
+	}
+
+	error = SA_AIS_OK;
+
+ done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+ done1:
+
+	return error;
+}
+
+static SaAisErrorT avd_sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	AVD_SI_SI_DEP *sidep;
+
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		if ((sidep = sidep_new(&opdata->objectName, opdata->param.create.attrValues)) == NULL)
+			goto done;
+
+		rc = SA_AIS_OK;
+		break;
+	case CCBUTIL_DELETE:
+		rc = SA_AIS_OK;
+		break;
+	case CCBUTIL_MODIFY:
+		rc = SA_AIS_OK;
+		break;
 	default:
-		/* call the MIBLIB utility routine for standard object types */
-		if ((var_info != NULL) && (var_info->offset != 0))
-			return ncsmiblib_get_obj_val(param, var_info, data, buffer);
-		else
-			return NCSCC_RC_NO_OBJECT;
+		assert(0);
 		break;
 	}
 
-	return NCSCC_RC_SUCCESS;
+done:
+	return rc;
 }
 
-/*****************************************************************************
- * Function: saamfsisideptableentry_set
- *
- * Purpose:  This function is the set processing for objects in
- * SA_AMF_S_I_S_I_DEP_TABLE_ENTRY_ID table. This is the SI SI dependency table. 
- * the name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for the objects that are settable. This same function can be used for test
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         arg       - The pointer to the MIB arg that was provided by the caller.
- *         var_info  - The VAR INFO structure pointer generated by MIBLIB for
- *                     the objects in this table.
- *         test_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- * 
- **************************************************************************/
-uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag)
+static void avd_sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI *spons_si = AVD_SI_NULL;
-	AVD_SI *dep_si = AVD_SI_NULL;
-	AVD_SI_SI_DEP *rec = NULL;
+	AVD_SI_SI_DEP *sidep;
 	AVD_SI_SI_DEP_INDX indx;
+	const SaImmAttrModificationT_2 *attr_mod;
+	int i = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("saamfsisideptableentry_set");
+	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	/* Only ACTIVE AvD should process this function */
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-
-	/* Get the indx data from the MIB arg */
-	avd_si_si_dep_get_indx(arg, &indx);
-
-	/* Sponsor SI row Status should be ACTIVE, if not return error */
-	if ((spons_si = avd_si_struc_find(avd_cb, indx.si_name_prim, FALSE)) == AVD_SI_NULL) {
-		return NCSCC_RC_INV_VAL;
-	}
-
-	if (spons_si->row_status != NCS_ROW_ACTIVE) {
-		return NCSCC_RC_INV_VAL;
-	}
-
-	/* Dependent SI row Status should be ACTIVE, if not return error */
-	if ((dep_si = avd_si_struc_find(avd_cb, indx.si_name_sec, FALSE)) == AVD_SI_NULL) {
-		return NCSCC_RC_INV_VAL;
-	}
-
-	if (dep_si->row_status != NCS_ROW_ACTIVE) {
-		return NCSCC_RC_INV_VAL;
-	}
-
-	/* Search if this record already exist */
-	rec = avd_si_si_dep_find(avd_cb, &indx, TRUE);
-
-	/* Record not found then need to be created */
-	if (rec == NULL) {
-		if ((arg->req.info.set_req.i_param_val.i_param_id == saAmfSISIDepRowStatus_ID)
-		    && (arg->req.info.set_req.i_param_val.info.i_int != NCS_ROW_CREATE_AND_WAIT)) {
-			/* Invalid row status object */
-			return NCSCC_RC_INV_VAL;
-		}
-
-		/* Check addition of this record should not create the cyclic 
-		 * dependencies among SIs 
-		 */
-		if (avd_si_si_dep_cyclic_dep_find(avd_cb, &indx) == NCSCC_RC_SUCCESS) {
-			/* Return value that record cannot be added due to cyclic dependency
-			 * or insufficient buffer 
-			 */
-			return NCSCC_RC_INV_VAL;
-		}
-
-		if (test_flag == TRUE)
-			return NCSCC_RC_SUCCESS;
-
-		m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-		/* Add the record */
-		rec = avd_si_si_dep_struc_crt(avd_cb, &indx);
-
-		m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-
-		if (rec == NULL) {
-			/* Invalid instance object */
-			return NCSCC_RC_NO_INSTANCE;
-		}
-
-		/* Add the spons si to the spons_si_list of dependent SI */
-		if (avd_si_dep_spons_list_add(avd_cb, dep_si, spons_si) == NCSCC_RC_FAILURE) {
-			/* Delete the created SI dep records */
-			avd_si_si_dep_del_row(avd_cb, rec);
-
-			/* Invalid instance object */
-			return NCSCC_RC_NO_INSTANCE;
-		}
-	} else {
-		if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSISIDepRowStatus_ID) {
-			switch (arg->req.info.set_req.i_param_val.info.i_int) {
-			case NCS_ROW_ACTIVE:
-
-				if (test_flag == TRUE) {
-					return NCSCC_RC_SUCCESS;
-				}
-
-				/* set the value, checkpoint the entire record. */
-				rec->row_status = NCS_ROW_ACTIVE;
-
-				/* Only update if peer AVD version is >= 2 */
-				if (avd_cb->avd_peer_ver >= 2) {
-					/* Checkpoint the data to standby */
-					m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
-				}
-
-				/* Move the dependent SI to appropriate state, if the configured 
-				 * sponsor is not in assigned state. Not required to check with
-				 * the remaining states of SI Dep states, as they are kind of 
-				 * intermittent states towards SPONSOR_UNASSIGNED/ASSIGNED states. 
-				 */
-				if ((avd_cb->init_state == AVD_APP_STATE) &&
-				    ((spons_si->si_dep_state == AVD_SI_NO_DEPENDENCY) ||
-				     (spons_si->si_dep_state == AVD_SI_SPONSOR_UNASSIGNED))) {
-					avd_si_dep_spons_state_modif(avd_cb, spons_si, dep_si,
-								     AVD_SI_DEP_SPONSOR_UNASSIGNED);
-				}
-
-				return NCSCC_RC_SUCCESS;
-				break;
-
-			case NCS_ROW_NOT_IN_SERVICE:
-			case NCS_ROW_DESTROY:
-
-				if (test_flag == TRUE) {
-					return NCSCC_RC_SUCCESS;
-				}
-
-				if (arg->req.info.set_req.i_param_val.info.i_int == NCS_ROW_DESTROY) {
-					/* check if it is active currently */
-					if (rec->row_status == NCS_ROW_ACTIVE) {
-						/* Only update if peer AVD version is >= 2 */
-						if (avd_cb->avd_peer_ver >= 2) {
-							/* checkpoint to the standby as this row will be deleted */
-							m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, rec,
-											AVSV_CKPT_AVD_SI_DEP_CONFIG);
-						}
-					}
-
-					/* If SI is in tolerance timer running state because of this
-					 * SI-SI dep cfg, then stop the tolerance timer.
-					 */
-					if (rec->si_dep_timer.is_active == TRUE) {
-						avd_stop_tmr(cb, &rec->si_dep_timer);
-
-						if (dep_si->tol_timer_count > 0)
-							dep_si->tol_timer_count--;
-					}
-
-					m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-					avd_si_dep_spons_list_del(avd_cb, rec);
-
-					avd_si_si_dep_del_row(avd_cb, rec);
-
-					m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
-
-					/* Update the SI according to its existing sponsors state */
-					avd_screen_sponsor_si_state(cb, dep_si, TRUE);
-
-					return NCSCC_RC_SUCCESS;
-				}
-
-				rec->row_status = arg->req.info.set_req.i_param_val.info.i_int;
-				return NCSCC_RC_SUCCESS;
-
-				break;
-
-			default:
-				m_AVD_LOG_INVALID_VAL_ERROR(arg->req.info.set_req.i_param_val.info.i_int);
-
-				/* Invalid row status value */
-				return NCSCC_RC_INV_VAL;
-				break;
+	switch (opdata->operationType) {
+	case CCBUTIL_CREATE:
+		break;
+	case CCBUTIL_DELETE:
+		avd_sidep_indx_init(&opdata->objectName, &indx);
+		sidep = avd_si_si_dep_find(avd_cb, &indx, FALSE);
+		avd_si_si_dep_del_row(avd_cb, sidep);
+		break;
+	case CCBUTIL_MODIFY:
+		avd_sidep_indx_init(&opdata->objectName, &indx);
+		sidep = avd_si_si_dep_find(avd_cb, &indx, FALSE);
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+			if (!strcmp(attr_mod->modAttr.attrName, "saAmfToleranceTime")) {
+				sidep->saAmfToleranceTime = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			}
 		}
+		break;
+	default:
+		assert(0);
+		break;
 	}
-
-	/* We now have the si-si dep block */
-	if (test_flag == TRUE) {
-		return NCSCC_RC_SUCCESS;
-	}
-
-	if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSISIDepToltime_ID) {
-		rec->tolerance_time = m_NCS_OS_NTOHLL_P(arg->req.info.set_req.i_param_val.info.i_oct);
-		if (rec->row_status == NCS_ROW_ACTIVE) {
-			/* Only update if peer AVD version is >= 2 */
-			if (avd_cb->avd_peer_ver >= 2) {
-				/* Checkpoint the data to standby */
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, rec, AVSV_CKPT_AVD_SI_DEP_CONFIG);
-			}
-		}
-	} else if (arg->req.info.set_req.i_param_val.i_param_id == saAmfSISIDepRowStatus_ID) {
-		/* Nothing to do here, This condition is only to avoid the use of miblib 
-		 * utility routine
-		 */
-	} else {
-		return NCSCC_RC_NO_OBJECT;
-	}
-
-	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: saamfsisideptableentry_next
- *
- * Purpose:  This function is the next processing for objects in
- * SA_AMF_S_I_S_I_DEP_TABLE_ENTRY_ID table. This is the SI SI dependency table. 
- * the name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function gets the next valid instance and its data structure
- * and it passes to the MIBLIB the values.
- *
- * Input: cb        - AVD control block.
- *        arg       - The pointer to the MIB arg that was provided by the caller.
- *        data      - The pointer to the data-structure containing the object
- *                     value is returned by reference.
- *     next_inst_id - The next instance id will be filled in this buffer
- *                     and returned by reference.
- * next_inst_id_len - The next instance id length.
- *
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context
- *
- * NOTES: This function works in conjunction with extract function to provide 
- * the getnext functionality.
- * 
- **************************************************************************/
-uns32 saamfsisideptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				  NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len)
+void avd_sidep_constructor(void)
 {
-	AVD_CL_CB *avd_cb = (AVD_CL_CB *)cb;
-	AVD_SI_SI_DEP *rec = NULL;
-	AVD_SI_SI_DEP_INDX indx;
-	uns32 p_idx_len = 0;
-	uns32 s_idx_len = 0;
-	uns32 i = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("saamfsisideptableentry_next");
-
-	if (avd_cb->cluster_admin_state != NCS_ADMIN_STATE_UNLOCK) {
-		/* Invalid operation */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	memset((char *)&indx, '\0', sizeof(AVD_SI_SI_DEP_INDX));
-
-	if (arg->i_idx.i_inst_len != 0) {
-		/* Prepare the si-si dependency database key from the instant ID */
-		p_idx_len = (SaUint16T)arg->i_idx.i_inst_ids[0];
-		indx.si_name_prim.length = m_NCS_OS_HTONS(p_idx_len);
-
-		for (i = 0; i < p_idx_len; i++) {
-			indx.si_name_prim.value[i] = (uns8)(arg->i_idx.i_inst_ids[i + 1]);
-		}
-
-		if ((SaUint16T)arg->i_idx.i_inst_len > p_idx_len + 1) {
-			s_idx_len = (SaUint16T)arg->i_idx.i_inst_ids[p_idx_len + 1];
-			indx.si_name_sec.length = m_NCS_OS_HTONS(s_idx_len);
-
-			for (i = 0; i < s_idx_len; i++) {
-				indx.si_name_sec.value[i] = (uns8)(arg->i_idx.i_inst_ids[p_idx_len + 1 + 1 + i]);
-			}
-		}
-	}
-
-	rec = avd_si_si_dep_find_next(avd_cb, &indx, TRUE);
-
-	if (rec == NULL) {
-		/* The row was not found */
-		return NCSCC_RC_NO_INSTANCE;
-	}
-
-	/* Prepare the instant ID from the sponser si name and dependent si name */
-
-	p_idx_len = m_NCS_OS_NTOHS(rec->indx_mib.si_name_prim.length);
-	s_idx_len = m_NCS_OS_NTOHS(rec->indx_mib.si_name_sec.length);
-
-	*next_inst_id_len = p_idx_len + 1 + s_idx_len + 1;
-
-	next_inst_id[0] = p_idx_len;
-	for (i = 0; i < p_idx_len; i++) {
-		next_inst_id[i + 1] = (uns32)(rec->indx_mib.si_name_prim.value[i]);
-	}
-
-	next_inst_id[p_idx_len + 1] = s_idx_len;
-	for (i = 0; i < s_idx_len; i++) {
-		next_inst_id[p_idx_len + 1 + i + 1] = (uns32)(rec->indx_mib.si_name_sec.value[i]);
-	}
-
-	*data = (NCSCONTEXT)rec;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: saamfsisideptableentry_setrow
- *
- * Purpose:  This function is the setrow processing for objects in
- * SA_AMF_S_I_S_I_DEP_TABLE_ENTRY_ID table. This is the SI SI dependency table. The
- * name of this function is generated by the MIBLIB tool. This function
- * will be called by MIBLIB after validating the arg information.
- * This function does the set of the object and the corresponding actions
- * for all the objects that are settable as part of the setrow operation. 
- * This same function can be used for test row
- * operation also.
- *
- * Input:  cb        - AVD control block
- *         args      - The pointer to the MIB arg that was provided by the caller.
- *         params    - The List of object ids and their values.
- *         obj_info  - The VAR INFO structure array pointer generated by MIBLIB for
- *                     the objects in this table.
- *      testrow_flag - The flag that indicates if this is set or test.
- *
- * Returns: The status returned by the operation. MIB lib will use it
- *          to set the args->rsp.i_status field before returning the
- *          NCSMIB_ARG to the caller's context.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-uns32 saamfsisideptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				    NCSMIB_SETROW_PARAM_VAL *params,
-				    struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag)
-{
-	return NCSCC_RC_FAILURE;
+	avd_class_impl_set("SaAmfSIDependency", NULL, NULL,
+		avd_sidep_ccb_completed_cb, avd_sidep_ccb_apply_cb);
 }

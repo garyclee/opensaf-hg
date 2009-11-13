@@ -35,7 +35,6 @@
 #include "avsv.h"
 #include "avsv_amfparam.h"
 #include "avsv_n2avamsg.h"
-#include "avsv_n2avamem.h"
 #include "avsv_nd2ndmsg.h"
 
 /****************************************************************************
@@ -58,7 +57,7 @@ void avsv_nda_ava_msg_free(AVSV_NDA_AVA_MSG *msg)
 	avsv_nda_ava_msg_content_free(msg);
 
 	/* free the message */
-	m_MMGR_FREE_AVSV_NDA_AVA_MSG(msg);
+	free(msg);
 
 	return;
 }
@@ -84,7 +83,7 @@ void avsv_nd2nd_avnd_msg_free(AVSV_ND2ND_AVND_MSG *msg)
 		avsv_nda_ava_msg_free(msg->info.msg);
 	}
 	/* free the message */
-	m_MMGR_FREE_AVSV_ND2ND_AVND_MSG(msg);
+	free(msg);
 
 	return;
 }
@@ -189,7 +188,7 @@ uns32 avsv_nda_ava_msg_copy(AVSV_NDA_AVA_MSG *dmsg, AVSV_NDA_AVA_MSG *smsg)
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}
 
  done:
@@ -216,7 +215,7 @@ uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 		return NCSCC_RC_FAILURE;
 
 	/* allocate the dest cbk-info */
-	*o_dcbk = m_MMGR_ALLOC_AVSV_AMF_CBK_INFO;
+	*o_dcbk = malloc(sizeof(AVSV_AMF_CBK_INFO));
 	if (!(*o_dcbk)) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -240,8 +239,7 @@ uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 		/* copy the notify buffer, if any */
 		if (scbk->param.pg_track.buf.numberOfItems) {
 			(*o_dcbk)->param.pg_track.buf.notification =
-			    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(sizeof(SaAmfProtectionGroupNotificationT) *
-								 scbk->param.pg_track.buf.numberOfItems);
+			    malloc(sizeof(SaAmfProtectionGroupNotificationT) * scbk->param.pg_track.buf.numberOfItems);
 			if (!(*o_dcbk)->param.pg_track.buf.notification) {
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -262,8 +260,7 @@ uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 		/* copy the avsv csi attr list */
 		if (scbk->param.csi_set.attrs.number) {
 			(*o_dcbk)->param.csi_set.attrs.list =
-			    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(sizeof(NCS_AVSV_ATTR_NAME_VAL) *
-								 scbk->param.csi_set.attrs.number);
+			    malloc(sizeof(NCS_AVSV_ATTR_NAME_VAL) * scbk->param.csi_set.attrs.number);
 			if (!(*o_dcbk)->param.csi_set.attrs.list) {
 				rc = NCSCC_RC_FAILURE;
 				goto done;
@@ -284,7 +281,7 @@ uns32 avsv_amf_cbk_copy(AVSV_AMF_CBK_INFO **o_dcbk, AVSV_AMF_CBK_INFO *scbk)
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}
 
  done:
@@ -321,13 +318,13 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 	case AVSV_AMF_PG_TRACK:
 		/* free the notify buffer */
 		if (cbk_info->param.pg_track.buf.numberOfItems)
-			m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(cbk_info->param.pg_track.buf.notification);
+			free(cbk_info->param.pg_track.buf.notification);
 		break;
 
 	case AVSV_AMF_CSI_SET:
 		/* free the avsv csi attr list */
 		if (cbk_info->param.csi_set.attrs.number)
-			m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(cbk_info->param.csi_set.attrs.list);
+			free(cbk_info->param.csi_set.attrs.list);
 
 		/* free the amf csi attr list */
 		avsv_amf_csi_attr_list_free(&cbk_info->param.csi_set.csi_desc.csiAttr);
@@ -338,7 +335,7 @@ void avsv_amf_cbk_free(AVSV_AMF_CBK_INFO *cbk_info)
 	}
 
 	/* free the cbk-info ptr */
-	m_MMGR_FREE_AVSV_AMF_CBK_INFO(cbk_info);
+	free(cbk_info);
 
 	return;
 }
@@ -363,7 +360,7 @@ uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttribu
 	if (!dattr || !sattr)
 		goto done;
 
-	dattr->attr = m_MMGR_ALLOC_AVSV_NDA_INFO(sizeof(SaAmfCSIAttributeT) * sattr->number);
+	dattr->attr = malloc(sizeof(SaAmfCSIAttributeT) * sattr->number);
 	if (!dattr->attr) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -371,16 +368,16 @@ uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttribu
 
 	for (cnt = 0; cnt < sattr->number; cnt++) {
 		/* alloc memory for attr name & value */
-		dattr->attr[cnt].attrName = m_MMGR_ALLOC_AVSV_NDA_INFO(strlen(sattr->attr[cnt].attrName));
+		dattr->attr[cnt].attrName = malloc(strlen(sattr->attr[cnt].attrName));
 		if (!dattr->attr[cnt].attrName) {
-			m_MMGR_FREE_AVSV_NDA_INFO(dattr->attr[cnt].attrName);
+			free(dattr->attr[cnt].attrName);
 			goto done;
 		}
 
-		dattr->attr[cnt].attrValue = m_MMGR_ALLOC_AVSV_NDA_INFO(strlen(sattr->attr[cnt].attrValue));
+		dattr->attr[cnt].attrValue = malloc(strlen(sattr->attr[cnt].attrValue));
 		if (!dattr->attr[cnt].attrValue) {
-			m_MMGR_FREE_AVSV_NDA_INFO(dattr->attr[cnt].attrName);
-			m_MMGR_FREE_AVSV_NDA_INFO(dattr->attr[cnt].attrValue);
+			free(dattr->attr[cnt].attrName);
+			free(dattr->attr[cnt].attrValue);
 			goto done;
 		}
 
@@ -422,13 +419,13 @@ void avsv_amf_csi_attr_list_free(SaAmfCSIAttributeListT *attrs)
 
 	/* free the attr name-val pair */
 	for (cnt = 0; cnt < attrs->number; cnt++) {
-		m_MMGR_FREE_AVSV_NDA_INFO(attrs->attr[cnt].attrName);
-		m_MMGR_FREE_AVSV_NDA_INFO(attrs->attr[cnt].attrValue);
+		free(attrs->attr[cnt].attrName);
+		free(attrs->attr[cnt].attrValue);
 	}			/* for */
 
 	/* finally free the attr list ptr */
 	if (attrs->attr)
-		m_MMGR_FREE_AVSV_NDA_INFO(attrs->attr);
+		free(attrs->attr);
 
 	return;
 }
@@ -462,7 +459,7 @@ uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 	if (!avsv_attrs->number)
 		goto done;
 
-	amf_attrs->attr = m_MMGR_ALLOC_AVSV_NDA_INFO(sizeof(SaAmfCSIAttributeT) * avsv_attrs->number);
+	amf_attrs->attr = malloc(sizeof(SaAmfCSIAttributeT) * avsv_attrs->number);
 	if (!amf_attrs->attr) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -470,16 +467,16 @@ uns32 avsv_amf_csi_attr_convert(AVSV_AMF_CBK_INFO *cbk_info)
 
 	for (cnt = 0; cnt < avsv_attrs->number; cnt++) {
 		/* alloc memory for attr name & value */
-		amf_attrs->attr[cnt].attrName = m_MMGR_ALLOC_AVSV_NDA_INFO(avsv_attrs->list[cnt].name.length + 1);
+		amf_attrs->attr[cnt].attrName = malloc(avsv_attrs->list[cnt].name.length + 1);
 		if (!amf_attrs->attr[cnt].attrName) {
-			m_MMGR_FREE_AVSV_NDA_INFO(amf_attrs->attr[cnt].attrName);
+			free(amf_attrs->attr[cnt].attrName);
 			goto done;
 		}
 
-		amf_attrs->attr[cnt].attrValue = m_MMGR_ALLOC_AVSV_NDA_INFO(avsv_attrs->list[cnt].value.length + 1);
+		amf_attrs->attr[cnt].attrValue = malloc(avsv_attrs->list[cnt].value.length + 1);
 		if (!amf_attrs->attr[cnt].attrValue) {
-			m_MMGR_FREE_AVSV_NDA_INFO(amf_attrs->attr[cnt].attrName);
-			m_MMGR_FREE_AVSV_NDA_INFO(amf_attrs->attr[cnt].attrValue);
+			free(amf_attrs->attr[cnt].attrName);
+			free(amf_attrs->attr[cnt].attrValue);
 			goto done;
 		}
 

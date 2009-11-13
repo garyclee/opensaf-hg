@@ -148,7 +148,7 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 void avd_tmr_exp(void *uarg)
 {
 
-	AVD_CL_CB *cb = AVD_CL_CB_NULL;
+	AVD_CL_CB *cb = NULL;
 	AVD_TMR *tmr = (AVD_TMR *)uarg;
 	AVD_EVT *evt = AVD_EVT_NULL;
 	uns32 cb_hdl;
@@ -158,7 +158,7 @@ void avd_tmr_exp(void *uarg)
 
 	/* retrieve AvD CB */
 	cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, tmr->cb_hdl);
-	if (cb == AVD_CL_CB_NULL)
+	if (cb == NULL)
 		return;
 
 	cb_hdl = tmr->cb_hdl;
@@ -171,9 +171,8 @@ void avd_tmr_exp(void *uarg)
 		tmr->is_active = FALSE;
 
 		/* create & send the timer event */
-		evt = m_MMGR_ALLOC_AVD_EVT;
+		evt = calloc(1, sizeof(AVD_EVT));
 		if (evt != AVD_EVT_NULL) {
-			memset(evt, '\0', sizeof(AVD_EVT));
 			evt->cb_hdl = tmr->cb_hdl;
 			evt->info.tmr = *tmr;
 			evt->rcv_evt = (tmr->type - AVD_TMR_SND_HB) + AVD_EVT_TMR_SND_HB;
@@ -185,7 +184,7 @@ void avd_tmr_exp(void *uarg)
 				    != NCSCC_RC_SUCCESS) {
 					/* log */
 					m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-					m_MMGR_FREE_AVD_EVT(evt);
+					free(evt);
 				}
 				m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
@@ -194,11 +193,11 @@ void avd_tmr_exp(void *uarg)
 				    != NCSCC_RC_SUCCESS) {
 					/* log */
 					m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-					m_MMGR_FREE_AVD_EVT(evt);
+					free(evt);
 				}
 				m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 			} else {
-				m_MMGR_FREE_AVD_EVT(evt);
+				free(evt);
 			}
 		} else {
 			m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);

@@ -278,6 +278,7 @@ extern AVM_NODE_INFO_T *avm_add_node_name_info(AVM_CB_T *avm_cb, SaNameT node_na
 
 	m_AVM_LOG_PATRICIA_OP(AVM_LOG_PAT_ADD, node_name.value, SA_MAX_NAME_LENGTH, AVM_LOG_PAT_SUCCESS,
 			      NCSFL_SEV_INFO);
+	syslog(LOG_NOTICE, "%s - %s", __FUNCTION__, node_name.value);
 	return node_info;
 
 }

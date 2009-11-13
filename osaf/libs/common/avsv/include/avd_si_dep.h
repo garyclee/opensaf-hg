@@ -31,7 +31,8 @@
 #ifndef AVD_SI_DEP_H
 #define AVD_SI_DEP_H
 
-struct avd_si_tag;
+#include <avd_si.h>
+#include <avd_sg.h>
 
 typedef enum {
 	AVD_SI_DEP_SPONSOR_ASSIGNED = 1,
@@ -82,8 +83,7 @@ typedef struct avd_si_si_dep {
 	AVD_SI_SI_DEP_INDX indx;
 
 	uns32 si_dep_hdl;
-	SaTimeT tolerance_time;
-	NCS_ROW_STATUS row_status;
+	SaTimeT saAmfToleranceTime;
 	AVD_TMR si_dep_timer;	/* SI-SI dep. tol timer */
 	NCS_BOOL unassign_event;
 } AVD_SI_SI_DEP;
@@ -109,18 +109,9 @@ EXTERN_C void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_si_dep_spons_unassign(AVD_CL_CB *cb, struct avd_si_tag *si, struct avd_si_tag *si_dep);
 EXTERN_C void avd_process_si_dep_state_evt(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_screen_sponsor_si_state(AVD_CL_CB *cb, struct avd_si_tag *si, NCS_BOOL start_assignment);
-EXTERN_C void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, AVD_SG *sg);
-
-EXTERN_C uns32 saamfsisideptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfsisideptableentry_extract(NCSMIB_PARAM_VAL *param,
-					      NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfsisideptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					  NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfsisideptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					   NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfsisideptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					     NCSMIB_SETROW_PARAM_VAL *params,
-					     struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+EXTERN_C void avd_sg_screen_si_si_dependencies(AVD_CL_CB *cb, struct avd_sg_tag *sg);
 EXTERN_C void avd_si_dep_stop_tol_timer(AVD_CL_CB *cb, struct avd_si_tag *si);
+extern SaAisErrorT avd_sidep_config_get(void);
+extern void avd_sidep_constructor(void);
 
 #endif
