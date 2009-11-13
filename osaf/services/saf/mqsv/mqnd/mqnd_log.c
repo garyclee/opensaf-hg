@@ -103,3 +103,18 @@ void mqnd_flx_log_dereg(void)
 	ncs_dtsv_su_req(&reg);
 	return;
 }
+
+void _mqnd_genlog(uns8 severity, const char *function, const char *format, ...)
+{
+	char preamble[128];
+	char str[128];
+	va_list ap;
+
+	va_start(ap, format);
+	snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+	vsnprintf(str, sizeof(str), preamble, ap);
+	va_end(ap);
+
+	ncs_logmsg(NCS_SERVICE_ID_MQND, MQND_LID_GENLOG, MQND_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC,
+		   str);
+}

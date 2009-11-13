@@ -31,6 +31,7 @@
 #define MQD_DB_H
 
 /******************** Service Sub part Versions ******************************/
+#include "saImmOi.h"
 
 #define MQSV_MQD_MBCSV_VERSION  1
 #define MQSV_MQD_MBCSV_VERSION_MIN 1
@@ -147,7 +148,6 @@ typedef struct mqd_cb {
 
 	SYSF_MBX mbx;		/* Mail box of this Service Part */
 	uns32 hdl;		/* CB Struct Handle */
-	uns32 oac_hdl;		/* OAC Handle */
 	NCS_BOOL active;	/* Component Active Flag */
 	EDU_HDL edu_hdl;	/* Edu Handle */
 	uns8 hmpool;		/* Handle Manager Pool ID for this Service Part */
@@ -162,6 +162,9 @@ typedef struct mqd_cb {
 	/* For handling the Quisced state */
 	SaInvocationT invocation;
 	NCS_BOOL is_quisced_set;
+	SaImmOiHandleT immOiHandle;	/* IMM OI Handle */
+	SaSelectionObjectT imm_sel_obj;	/*Selection object to wait for 
+					   IMM events */
 } MQD_CB;
 
 #define MQD_CB_NULL  ((MQD_CB *)0)

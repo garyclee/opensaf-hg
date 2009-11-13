@@ -44,7 +44,6 @@
 #include "ncs_log.h"
 #include "dta_papi.h"
 
-#include "ncsmiblib.h"
 #include "ncs_svd.h"
 #include "usrbuf.h"
 #include "ncs_ubaid.h"

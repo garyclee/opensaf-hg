@@ -110,4 +110,18 @@ void mqd_log(uns8 id, uns32 category, uns8 sev, uns32 rc, char *fname, uns32 fno
 
 }	/* End of mqd_new_log()  */
 
+void _mqd_genlog(uns8 severity, const char *function, const char *format, ...)
+{
+	char preamble[128];
+	char str[128];
+	va_list ap;
+
+	va_start(ap, format);
+	snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+	vsnprintf(str, sizeof(str), preamble, ap);
+	va_end(ap);
+
+	ncs_logmsg(NCS_SERVICE_ID_MQD, MQD_LID_GENLOG, MQD_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
+}
+
 #endif   /* (NCS_DTA == 1) && (NCS_MQSV_LOG == 1) */

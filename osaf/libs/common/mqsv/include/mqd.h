@@ -39,13 +39,10 @@
 #include "mqd_mem.h"
 #include "mqd_dl_api.h"
 #include "mqd_api.h"
-#include "oac_papi.h"
 #include "mqd_saf.h"
 #include "mqd_clm.h"
 #include "mqd_log.h"
 #include "saClm.h"
-#include "mqsv_mapi.h"
-#include "mqd_mib.h"
 #include "ncssysf_lck.h"
 #include "ncs_mda_pvt.h"
 

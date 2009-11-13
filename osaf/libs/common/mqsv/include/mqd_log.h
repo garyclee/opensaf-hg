@@ -35,6 +35,7 @@
 #ifndef MQD_LOG_H
 #define MQD_LOG_H
 
+#define mqd_genlog(severity, format, args...) _mqd_genlog((severity), __FUNCTION__, (format), ##args)
 /******************************************************************************\
             Logging offset indexes for Headline logging
 \******************************************************************************/
@@ -241,10 +242,12 @@ typedef enum mqd_hdln_flex {
 \******************************************************************************/
 typedef enum mqd_flex_sets {
 	MQD_FC_HDLN,
+	MQD_FC_GENLOG
 } MQD_FLEX_SETS;
 
 typedef enum mqd_log_ids {
 	MQD_LID_HDLN,
+	MQD_LID_GENLOG
 } MQD_LOG_IDS;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@

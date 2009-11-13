@@ -246,6 +246,7 @@ NCSFL_SET mqnd_str_set[] = {
 
 NCSFL_FMAT mqnd_fmat_set[] = {
 	{MQND_LID_HDLN, NCSFL_TYPE_TCLIL, "MQSv %s %14s:%5lu:%s:%lu\n"},
+	{MQND_LID_GENLOG, NCSFL_TYPE_TC, "%s %s\n"},
 	{0, 0, 0}
 };
 

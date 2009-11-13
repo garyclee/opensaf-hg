@@ -28,10 +28,17 @@
 ******************************************************************************/
 
 #include "mqnd.h"
-
+#include "mqnd_imm.h"
+#include <poll.h>
 #define MQND_SAF_ACCEPT_TIME 1000
 uns32 gl_mqnd_cb_hdl = 0;
 
+#define FD_AMF 0
+#define FD_CLM 1
+#define FD_MBX 2
+#define FD_IMM 3		/* Must be the last in the fds array */
+static struct pollfd fds[4];
+static nfds_t nfds = 4;
 /* Static Function Declerations */
 static uns32 mqnd_extract_create_info(int argc, char *argv[], MQSV_CREATE_INFO *create_info);
 static uns32 mqnd_extract_destroy_info(int argc, char *argv[], MQSV_DESTROY_INFO *destroy_info);
@@ -336,15 +343,17 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 	/* Bind with ASAPi */
 	mqnd_asapi_bind(cb);
 
-	if (NCSCC_RC_SUCCESS != mqnd_reg_with_miblib()) {
-		m_LOG_MQSV_ND(MQND_REG_WITH_MIBLIB_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+	/* Imm Initialization */
+	amf_error = mqnd_imm_initialize(cb);
+	if (amf_error != SA_AIS_OK) {
+		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization  Failed %u\n", amf_error); */
+		mqnd_genlog(NCSFL_SEV_ERROR, "mqnd_imm_initialize Failed: %u \n", amf_error);
 		goto amf_reg_err;
 	}
 
-	if (NCSCC_RC_SUCCESS != mqnd_reg_with_mab(cb)) {
-		m_LOG_MQSV_ND(MQND_REG_WITH_MAB_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		goto amf_reg_err;
-	}
+	/* IMM Declare the Implementor */
+	mqnd_imm_declare_implementer(cb);
+
 	/* Code for No Redundancy Support */
 	/*   start the AMF Health Check  */
 	memset(&healthy, 0, sizeof(healthy));
@@ -427,6 +436,7 @@ static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 	MQND_CB *cb;
 	uns32 mqnd_hdl;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT saErr;
 
 	mqnd_hdl = m_MQND_GET_HDL();
 	if ((cb = (NCSCONTEXT)ncshm_take_hdl(NCS_SERVICE_ID_MQND, mqnd_hdl))
@@ -455,6 +465,11 @@ static uns32 mqnd_lib_destroy(MQSV_DESTROY_INFO *info)
 	mqnd_mds_unregister(cb);
 
 	mqnd_asapi_unbind();
+
+	saErr = immutil_saImmOiImplementerClear(cb->immOiHandle);
+	if (saErr != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %u \n", saErr);
+	}
 
 	ncshm_give_hdl(cb->cb_hdl);
 
@@ -566,13 +581,6 @@ static uns32 mqnd_cb_db_destroy(MQND_CB *cb)
 
 		/* Request the ASAPi */
 		asapi_opr_hdlr(&opr);
-		if (qnode) {
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++)
-				mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-						   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-		}
 
 		/* Delete the Queue Node */
 		mqnd_queue_node_del(cb, qnode);
@@ -743,67 +751,63 @@ static NCS_BOOL mqnd_clear_mbx(NCSCONTEXT arg, NCSCONTEXT msg)
 static void mqnd_main_process(NCSCONTEXT info)
 {
 	MQND_CB *cb = 0;
-	NCS_SEL_OBJ_SET all_sel_obj;
 	NCS_SEL_OBJ mbx_fd;
-	SYSF_MBX mbx;
 	MQSV_EVT *evt = NULL;
 	MQSV_DSEND_EVT *dsend_evt = NULL;
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
-	SaAmfHandleT amf_hdl;
-	SaAisErrorT amf_error, clm_error;
-	NCS_SEL_OBJ amf_ncs_sel_obj, highest_sel_obj, clm_ncs_sel_obj;
+	SaAisErrorT clm_error, err;
 
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_MQND, ((long)info));
 	if (!cb) {
 		return;
 	}
 
-	mbx = cb->mbx;
+	mbx_fd = ncs_ipc_get_sel_obj(&cb->mbx);
+	err = saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj);
 
-	mbx_fd = m_NCS_IPC_GET_SEL_OBJ(&cb->mbx);
-	m_NCS_SEL_OBJ_ZERO(&all_sel_obj);
-	m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-
-	amf_hdl = cb->amf_hdl;
-	amf_error = saAmfSelectionObjectGet(amf_hdl, &amf_sel_obj);
-
-	if (amf_error != SA_AIS_OK) {
-		m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, amf_error, __FILE__,
+	if (err != SA_AIS_OK) {
+		m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, err, __FILE__,
 			      __LINE__);
 		return;
 	}
-	m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, amf_error, __FILE__,
-		      __LINE__);
-	m_SET_FD_IN_SEL_OBJ((uns32)amf_sel_obj, amf_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(amf_ncs_sel_obj, mbx_fd);
+	m_LOG_MQSV_ND(MQND_AMF_GET_SEL_OBJ_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, err, __FILE__, __LINE__);
 
 	if (saClmSelectionObjectGet(cb->clm_hdl, &clm_sel_obj) != SA_AIS_OK) {
 		printf("CLM Selection Object Get failed\n");
 		return;
 	}
 
-	m_SET_FD_IN_SEL_OBJ((uns32)clm_sel_obj, clm_ncs_sel_obj);
-	m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+	fds[FD_AMF].fd = amf_sel_obj;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_CLM].fd = clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_IMM].fd = cb->imm_sel_obj;
+	fds[FD_IMM].events = POLLIN;
 
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, clm_ncs_sel_obj);
+	while (1) {
+		int ret = poll(fds, nfds, -1);
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 
-	while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj, &all_sel_obj, 0, 0, 0) != -1) {
-
-		/* process all the AMF messages */
-		if (m_NCS_SEL_OBJ_ISSET(amf_ncs_sel_obj, &all_sel_obj)) {
-			/* dispatch all the AMF pending function */
-			amf_error = saAmfDispatch(amf_hdl, SA_DISPATCH_ALL);
-			if (amf_error != SA_AIS_OK) {
-				m_LOG_MQSV_ND(MQND_AMF_DISPATCH_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, amf_error,
-					      __FILE__, __LINE__);
-			}
+			mqnd_genlog(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			break;
 		}
 
-		/* Process all Clm Messages */
-		if (m_NCS_SEL_OBJ_ISSET(clm_ncs_sel_obj, &all_sel_obj)) {
-			/* dispatch all the CLM pending function */
+		if (fds[FD_AMF].revents & POLLIN) {
+			if (cb->amf_hdl != 0) {
+				err = saAmfDispatch(cb->amf_hdl, SA_DISPATCH_ALL);
+				if (err != SA_AIS_OK) {
+					m_LOG_MQSV_ND(MQND_AMF_DISPATCH_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR,
+						      err, __FILE__, __LINE__);
+				}
+			} else
+				mqnd_genlog(NCSFL_SEV_ERROR, "cb->amf_hdl == 0");
+		}
+
+		if (fds[FD_CLM].revents & POLLIN) {
 			clm_error = saClmDispatch(cb->clm_hdl, SA_DISPATCH_ALL);
 			if (clm_error != SA_AIS_OK) {
 				m_LOG_MQSV_ND(MQND_CLM_DISPATCH_FAILURE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, clm_error,
@@ -811,10 +815,8 @@ static void mqnd_main_process(NCSCONTEXT info)
 			}
 		}
 
-		/* process the MQND Mail box */
-		if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &all_sel_obj)) {
-
-			if (NULL != (evt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&mbx, evt))) {
+		if (fds[FD_MBX].revents & POLLIN) {
+			if (NULL != (evt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->mbx, evt))) {
 				if (evt->evt_type == MQSV_NOT_DSEND_EVENT)
 					mqnd_process_evt(evt);	/* now got the IPC mail box event */
 				else if (evt->evt_type == MQSV_DSEND_EVENT) {
@@ -826,10 +828,36 @@ static void mqnd_main_process(NCSCONTEXT info)
 
 			}
 		}
-		m_NCS_SEL_OBJ_SET(amf_ncs_sel_obj, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(mbx_fd, &all_sel_obj);
-		m_NCS_SEL_OBJ_SET(clm_ncs_sel_obj, &all_sel_obj);
+
+		if (fds[FD_IMM].revents & POLLIN) {
+			err = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ONE);
+			if (err == SA_AIS_ERR_BAD_HANDLE) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE %u \n", err);
+				/*
+				 ** Invalidate the IMM OI handle, this info is used in other
+				 ** locations. E.g. giving TRY_AGAIN responses to a create and
+				 ** close resource requests. That is needed since the IMM OI
+				 ** is used in context of these functions.
+				 */
+				cb->immOiHandle = 0;
+				nfds = FD_IMM;
+				/* Reinitiate IMM */
+				err = mqnd_imm_initialize(cb);
+				if (err == SA_AIS_OK) {
+					/* If this is the active server, become implementer again. */
+					if (cb->ha_state == SA_AMF_HA_ACTIVE)
+						mqnd_imm_declare_implementer(cb);
+				}
+				fds[FD_IMM].fd = cb->imm_sel_obj;
+				nfds = FD_IMM + 1;
+			} else if (err != SA_AIS_OK) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "saImmOiDispatch FAILED:%u  \n", err);
+				break;
+			}
+		}
 	}
+	sleep(1);
+	exit(EXIT_FAILURE);
 	return;
 }
 

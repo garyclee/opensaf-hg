@@ -75,7 +75,6 @@ static uns32 mqnd_mds_get_handle(MQND_CB *cb)
 		return rc;
 	}
 	cb->my_mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
-	cb->oac_hdl = arg.info.adest_get_hdls.o_pwe1_oac_hdl;
 	m_LOG_MQSV_ND(MQND_MDS_GET_HDL_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
 	return rc;
@@ -521,12 +520,13 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
 								     endianness);
 				} else {
 					pEvt->info.snd_msg.messageInfo.sender.sender_context.sender_dest =
-					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.sender.
-								     sender_context.sender_dest, endianness);
+					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.
+								     sender.sender_context.sender_dest, endianness);
 
 					pEvt->info.snd_msg.messageInfo.sender.sender_context.reply_buffer_size =
-					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.sender.
-								     sender_context.reply_buffer_size, endianness);
+					    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.snd_msg.messageInfo.
+								     sender.sender_context.reply_buffer_size,
+								     endianness);
 				}
 
 				pEvt->info.snd_msg.message.type =
@@ -569,8 +569,8 @@ static uns32 mqnd_mds_direct_rcv(MQND_CB *pMqnd, MDS_CALLBACK_DIRECT_RECEIVE_INF
 							    endianness);
 
 				pEvt->info.sndMsgAsync.SendMsg.messageInfo.sender.senderId =
-				    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.sndMsgAsync.SendMsg.messageInfo.sender.
-							     senderId, endianness);
+				    m_MQSV_REVERSE_ENDIAN_LL(&pEvt->info.sndMsgAsync.SendMsg.messageInfo.
+							     sender.senderId, endianness);
 
 				pEvt->info.sndMsgAsync.SendMsg.message.type =
 				    m_MQSV_REVERSE_ENDIAN_L(&pEvt->info.sndMsgAsync.SendMsg.message.type, endianness);

@@ -18,6 +18,7 @@
 #ifndef MQND_LOG_H
 #define MQND_LOG_H
 
+#define mqnd_genlog(severity, format, args...) _mqnd_genlog((severity), __FUNCTION__, (format), ##args)
 /******************************************************************************
  Logging offset indexes for MQA Headline logging
  ******************************************************************************/
@@ -223,14 +224,16 @@ typedef enum mqnd_hdln_log_flex {
 
 typedef enum mqnd_flex_sets {
 	MQND_FC_HDLN,
+	MQND_FC_GENLOG,
 	MQND_FC_MEMFAIL,
-	MQND_FC_EVT,
+	MQND_FC_EVT
 } MQND_FLEX_SETS;
 
 typedef enum mqnd_log_ids {
 	MQND_LID_HDLN,
+	MQND_LID_GENLOG,
 	MQND_LID_MEMFAIL,
-	MQND_LID_EVT,
+	MQND_LID_EVT
 } MQND_LOG_IDS;
 
 EXTERN_C uns32 mqnd_log_ascii_reg(void);

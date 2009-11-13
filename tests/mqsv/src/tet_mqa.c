@@ -383,12 +383,11 @@ void init_mqsv_test_env()
 
    mqsv_fill_msg_version(&gl_mqa_env.version,'B',3,1);
 
-   mqsv_fill_q_grp_names(&gl_mqa_env.pers_q,"pers_queue",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.non_pers_q,"non_pers_queue",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.zero_q,"zero_queue",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.pers_q2,"pers_queue2",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.non_pers_q2,"non_pers_queue2",inst_char);
-
+   mqsv_fill_q_grp_names(&gl_mqa_env.pers_q,"safMq=pers_queue",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.non_pers_q,"safMq=non_pers_queue",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.zero_q,"safMq=zero_queue",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.pers_q2,"safMq=pers_queue2",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.non_pers_q2,"safMq=non_pers_queue2",",safApp=safMsgService");
 
    mqsv_fill_q_cr_attribs(&gl_mqa_env.pers_cr_attribs,SA_MSG_QUEUE_PERSISTENT,1024,1024,
                           1024,1024,gl_queue_ret_time);
@@ -403,9 +402,9 @@ void init_mqsv_test_env()
    mqsv_fill_q_cr_attribs(&gl_mqa_env.zero_ret_time_cr_attribs,SA_MSG_QUEUE_NON_PERSISTENT,100,
                           100,100,100,0);
 
-   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup1,"group1",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup2,"group2",inst_char);
-   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup3,"group3",inst_char);
+   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup1,"safMqg=group1",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup2,"safMqg=group2",",safApp=safMsgService");
+   mqsv_fill_q_grp_names(&gl_mqa_env.qgroup3,"safMqg=group3",",safApp=safMsgService");	
 
    mqsv_fill_grp_notif_buffer(&gl_mqa_env.buffer_null_notif,3,NULL);
    notification = (SaMsgQueueGroupNotificationT *)calloc(1,sizeof(SaMsgQueueGroupNotificationT));

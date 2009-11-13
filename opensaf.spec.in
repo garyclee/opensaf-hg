@@ -400,7 +400,6 @@ fi
 %{_pkglibdir}/libmab_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libmqsv_logstr.so.*
-%{_pkglibdir}/libmqsv_subagt.so.*
 %{_pkglibdir}/libncs_snmp_subagt.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/libpsr_clicef.so.*

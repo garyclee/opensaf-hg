@@ -30,6 +30,7 @@
 #ifndef MQND_DB_H
 #define MQND_DB_H
 
+#include "saImmOi.h"
 /* Decleration for global variable */
 EXTERN_C uns32 gl_mqnd_cb_hdl;
 
@@ -174,7 +175,6 @@ typedef struct mqnd_cb {
 
 	EDU_HDL edu_hdl;	/* Handle used in EDU operations */
 
-	uns32 oac_hdl;		/* OAC Handle */
 	NCS_PATRICIA_TREE qhndl_db;	/* Stores MQND_QUEUE_NODE */
 	NCS_BOOL is_qhdl_db_up;	/* TRUE/FALSE */
 	NCS_BOOL is_qevt_hdl_db_up;	/* TRUE/FALSE */
@@ -200,6 +200,8 @@ typedef struct mqnd_cb {
 	uns32 gl_msg_max_msg_size;
 	uns32 gl_msg_max_no_of_q;
 	uns32 gl_msg_max_prio_q_size;
+	SaImmOiHandleT immOiHandle;
+	SaSelectionObjectT imm_sel_obj;
 } MQND_CB;
 
 #define MQND_QUEUE_INFO_NULL ((MQND_QUEUE_INFO *)0)

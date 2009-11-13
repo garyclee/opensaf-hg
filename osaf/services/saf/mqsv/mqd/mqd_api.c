@@ -44,9 +44,15 @@
  */
 #define NCS_2_0 1
 #include "mqd.h"
-
+#include <poll.h>
 MQDDLL_API MQDLIB_INFO gl_mqdinfo;
 
+#define FD_AMF 0
+#define FD_MBCSV 1
+#define FD_MBX 2
+
+static struct pollfd fds[3];
+static nfds_t nfds = 3;
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 mqd_lib_init(void);
 static void mqd_lib_destroy(void);
@@ -252,26 +258,16 @@ static uns32 mqd_lib_init(void)
 #endif
 	m_LOG_MQSV_D(MQD_REG_COMP_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 
-	if (NCSCC_RC_SUCCESS != mqd_reg_with_miblib()) {
-		rc = NCSCC_RC_FAILURE;
+	/* MQD Imm Initialization */
+	saErr = mqd_imm_initialize(pMqd);
+	if (saErr != SA_AIS_OK) {
 /*      mqd_clm_shut(pMqd);*/
+		mqd_genlog(NCSFL_SEV_ERROR, "MQD Imm Initialization Failed %u\n", saErr);
 		mqd_mbcsv_finalize(pMqd);
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		}
-		saAmfFinalize(pMqd->amf_hdl);
-		ncshm_give_hdl(pMqd->hdl);
-		mqd_cb_shut(pMqd);
-		return rc;
-	}
 
-	if (NCSCC_RC_SUCCESS != mqd_reg_with_mab(pMqd)) {
-		rc = NCSCC_RC_FAILURE;
-/*      mqd_clm_shut(pMqd);*/
-		mqd_mbcsv_finalize(pMqd);
-		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		}
 		saAmfFinalize(pMqd->amf_hdl);
 		ncshm_give_hdl(pMqd->hdl);
 		mqd_cb_shut(pMqd);
@@ -298,7 +294,7 @@ static uns32 mqd_lib_init(void)
 		m_LOG_MQSV_D(MQD_AMF_HEALTH_CHECK_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, amf_error,
 			     __FILE__, __LINE__);
 		rc = NCSCC_RC_FAILURE;
-		mqd_unreg_with_mab(pMqd);
+		saImmOiFinalize(pMqd->immOiHandle);
 		mqd_asapi_unbind();
 /*      mqd_clm_shut(pMqd);*/
 		mqd_mbcsv_finalize(pMqd);
@@ -407,14 +403,11 @@ static void mqd_lib_destroy(void)
 static void mqd_main_process(NCSCONTEXT hdl)
 {
 	MQD_CB *pMqd = NULL;
-	NCS_SEL_OBJ_SET selObjSet;
-	NCS_SEL_OBJ mbxFd, highSelObj, ncsAmfSelObj, ncsMBCSvSelObj;
+	NCS_SEL_OBJ mbxFd;
 	MQSV_EVT *pEvt = NULL;
-#if 1				/* Required for NCS 2.0 */
 	SaAisErrorT err = SA_AIS_OK;
 	NCS_MBCSV_ARG mbcsv_arg;
 	SaSelectionObjectT amfSelObj;
-#endif
 	uns32 rc = NCSCC_RC_SUCCESS;
 	/* Get the controll block */
 	pMqd = ncshm_take_hdl(NCS_SERVICE_ID_MQD, *((uns32 *)hdl));
@@ -424,53 +417,41 @@ static void mqd_main_process(NCSCONTEXT hdl)
 		return;
 	}
 
-	m_NCS_SEL_OBJ_ZERO(&selObjSet);
+	mbxFd = ncs_ipc_get_sel_obj(&pMqd->mbx);
 
-	mbxFd = m_NCS_IPC_GET_SEL_OBJ(&pMqd->mbx);
-	m_NCS_SEL_OBJ_SET(mbxFd, &selObjSet);
-
-#if 1				/* Required for NCS 2.0 */
 	err = saAmfSelectionObjectGet(pMqd->amf_hdl, &amfSelObj);
 	if (SA_AIS_OK != err) {
 		ncshm_give_hdl(pMqd->hdl);
 		return;
 	}
 
-	m_SET_FD_IN_SEL_OBJ((uns32)amfSelObj, ncsAmfSelObj);
-	m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);
-	m_SET_FD_IN_SEL_OBJ((uns32)pMqd->mbcsv_sel_obj, ncsMBCSvSelObj);
-	m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj, &selObjSet);
+	/* Set up all file descriptors to listen to */
+	fds[FD_AMF].fd = amfSelObj;
+	fds[FD_AMF].events = POLLIN;
+	fds[FD_MBCSV].fd = pMqd->mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_MBX].fd = mbxFd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
 
-	highSelObj = m_GET_HIGHER_SEL_OBJ(ncsAmfSelObj, mbxFd);
-/*   highSelObj = m_GET_HIGHER_SEL_OBJ(highSelObj, ncsClmSelObj);*/
-	highSelObj = m_GET_HIGHER_SEL_OBJ(highSelObj, ncsMBCSvSelObj);
-#else
-	highSelObj = mbxFd;
-#endif
+	while (1) {
+		int ret = poll(fds, nfds, -1);
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 
-	while (m_NCS_SEL_OBJ_SELECT(highSelObj, &selObjSet, 0, 0, 0) != -1) {
-#if 1				/* Required for NCS 2.0 */
-		/* Process all the AMF messages */
-		if (m_NCS_SEL_OBJ_ISSET(ncsAmfSelObj, &selObjSet)) {
-
-			/* Dispatch all the AMF pending function */
-			err = saAmfDispatch(pMqd->amf_hdl, SA_DISPATCH_ALL);
-			if (SA_AIS_OK != err) {
-				/* Log Error */
-			}
+			mqd_genlog(NCSFL_SEV_ERROR, "poll failed - %s", strerror(errno));
+			break;
 		}
-#endif
-		/* Process all the CLM messages */
-/*
-      if(m_NCS_SEL_OBJ_ISSET(ncsClmSelObj, &selObjSet)) {
-         err = saClmDispatch(pMqd->clm_hdl, SA_DISPATCH_ALL);
-         if(SA_AIS_OK != err) {
-         }
-      }
-*/
-		/* Process all the MBCSV messages  */
-		if (m_NCS_SEL_OBJ_ISSET(ncsMBCSvSelObj, &selObjSet)) {
-			/* dispatch all the MBCSV pending callbacks */
+
+		/* Dispatch all the AMF pending function */
+		if (fds[FD_AMF].revents & POLLIN) {
+			err = saAmfDispatch(pMqd->amf_hdl, SA_DISPATCH_ALL);
+			if (SA_AIS_OK != err)
+				/* Log Error */
+				mqd_genlog(NCSFL_SEV_ERROR, "saAmfDispatch FAILED : %u \n", err);
+		}
+		/* dispatch all the MBCSV pending callbacks */
+		if (fds[FD_MBCSV].revents & POLLIN) {
 			mbcsv_arg.i_op = NCS_MBCSV_OP_DISPATCH;
 			mbcsv_arg.i_mbcsv_hdl = pMqd->mbcsv_hdl;
 			mbcsv_arg.info.dispatch.i_disp_flags = SA_DISPATCH_ALL;
@@ -480,8 +461,8 @@ static void mqd_main_process(NCSCONTEXT hdl)
 		}
 
 		/* process the MQSv Mail box */
-		if (m_NCS_SEL_OBJ_ISSET(mbxFd, &selObjSet)) {
-			/* Now got the IPC mail box event */
+		/* Now got the IPC mail box event */
+		if (fds[FD_MBX].revents & POLLIN) {
 			if (0 != (pEvt = (MQSV_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&pMqd->mbx, pEvt))) {
 				if ((pEvt->type >= MQSV_EVT_BASE) && (pEvt->type <= MQSV_EVT_MAX)) {
 					/* Process Event */
@@ -493,13 +474,9 @@ static void mqd_main_process(NCSCONTEXT hdl)
 			}
 		}
 
-      /*** set the fd's again ***/
-		m_NCS_SEL_OBJ_ZERO(&selObjSet);
-		m_NCS_SEL_OBJ_SET(ncsAmfSelObj, &selObjSet);
-/*      m_NCS_SEL_OBJ_SET(ncsClmSelObj, &selObjSet);*/
-		m_NCS_SEL_OBJ_SET(mbxFd, &selObjSet);
-		m_NCS_SEL_OBJ_SET(ncsMBCSvSelObj, &selObjSet);
 	}
+	sleep(1);
+	exit(EXIT_FAILURE);
 	ncshm_give_hdl(pMqd->hdl);
 	return;
 }	/* End of mqd_main_process() */

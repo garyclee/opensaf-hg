@@ -259,6 +259,7 @@ NCSFL_SET mqd_str_set[] = {
 NCSFL_FMAT mqd_fmat_set[] = {
 /*    {MQD_LID_HDLN, NCSFL_TYPE_TILCL, "MQSv %s : %s : %u:%s:%u\n"},*/
 	{MQD_LID_HDLN, NCSFL_TYPE_TCLIL, "MQSv %s %14s:%5lu:%s:%lu\n"},
+	{MQD_LID_GENLOG, NCSFL_TYPE_TC, "%s %s\n"},
 	{0, 0, 0}
 };
 

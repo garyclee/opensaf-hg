@@ -28,10 +28,11 @@ ncs_mqd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/mqsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 ncs_mqd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mqd_sbevt.c \
 	mqd_mbcsv.c \
 	mqd_mbedu.c \
@@ -42,15 +43,13 @@ ncs_mqd_SOURCES = \
 	mqd_evt.c \
 	mqd_log.c \
 	mqd_mds.c \
-	mqd_mib.c \
 	mqd_red.c \
 	mqd_saf.c \
 	mqd_tmr.c \
-	mqd_qgrpmemsentry.c \
-	mqd_grpentry.c \
-	mqd_scalarentry.c
+	mqd_imm.c
 
 ncs_mqd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/common/mqsv/libmqsv_common.la \
-	$(top_builddir)/osaf/snmp/miblib/mqsv/mqd/libmqd_miblib.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+        $(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la	

@@ -433,7 +433,6 @@ static uns32 mqd_cb_dump(void)
 	printf("MBCSV Opened Checkpoint Handle is :%u \n", pMqd->o_ckpt_hdl);
 	printf("MBCSV Selection Object is :%llu \n", pMqd->mbcsv_sel_obj);
 	printf("CB Structure Handle is :%u \n", pMqd->hdl);
-	printf("OAC Handle is          :%u \n", pMqd->oac_hdl);
 	printf("Component Active flag is:%u \n", pMqd->active);
 	printf(" Invocation of Quisced State is:%llu \n", pMqd->invocation);
 	printf(" IS the invocation from the Quisced state set :%u \n", pMqd->is_quisced_set);

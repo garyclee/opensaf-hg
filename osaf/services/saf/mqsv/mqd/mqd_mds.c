@@ -228,7 +228,6 @@ static uns32 mqd_mds_vdest_create(MQD_CB *pMqd)
 	}
 
 	pMqd->my_mds_hdl = arg.info.vdest_create.o_mds_pwe1_hdl;
-	pMqd->oac_hdl = arg.info.vdest_create.o_pwe1_oac_hdl;
 
 	return rc;
 }	/* End of mqd_mds_vdest_create() */

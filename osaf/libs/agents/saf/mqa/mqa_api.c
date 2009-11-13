@@ -160,11 +160,10 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 	*msgHandle = 0;
 
 	/* Validate the version */
-	if (!
-	    ((version->releaseCode == MQA_RELEASE_CODE)
-	     && (((version->majorVersion == MQA_MAJOR_VERSION) && (version->minorVersion == MQA_MINOR_VERSION))
-		 || ((version->majorVersion == MQA_BASE_MAJOR_VERSION)
-		     && (version->minorVersion == MQA_BASE_MINOR_VERSION))))) {
+	if (!((version->releaseCode == MQA_RELEASE_CODE)
+	      && (((version->majorVersion == MQA_MAJOR_VERSION) && (version->minorVersion == MQA_MINOR_VERSION))
+		  || ((version->majorVersion == MQA_BASE_MAJOR_VERSION)
+		      && (version->minorVersion == MQA_BASE_MINOR_VERSION))))) {
 		m_LOG_MQSV_A(MQA_VERSION_INCOMPATIBLE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 
 		/* Implimentation is supporting the required release code */
@@ -724,6 +723,11 @@ saMsgQueueOpen(SaMsgHandleT msgHandle,
 		return rc;
 	}
 
+	if (strncmp((const char *)queueName->value, "safMq=", 6) != 0) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
+		return rc;
+	}
+
 	m_MQSV_SET_SANAMET(queueName);
 
 	if (m_NCS_SA_IS_VALID_TIME_DURATION(timeout) == FALSE) {
@@ -998,6 +1002,11 @@ saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 	if (queueName == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		m_LOG_MQSV_A(MQA_INVALID_PARAM, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+		return rc;
+	}
+
+	if (strncmp((const char *)queueName->value, "safMq=", 6) != 0) {
+		rc = SA_AIS_ERR_INVALID_PARAM;
 		return rc;
 	}
 

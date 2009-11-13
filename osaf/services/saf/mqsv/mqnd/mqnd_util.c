@@ -56,6 +56,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	uns32 counter = 0;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
 	NCS_BOOL is_q_reopen = FALSE;
+	SaAisErrorT error;
 
 	qnode = m_MMGR_ALLOC_MQND_QUEUE_NODE;
 	if (!qnode) {
@@ -95,6 +96,18 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	qnode->qinfo.sendingState = MSG_QUEUE_AVAILABLE;
 	qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
 
+	/* Immsv Runtime Object Create  */
+	error = mqnd_create_runtime_MsgQobject(qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode, cb->immOiHandle);
+	if (error != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);   
+		return NCSCC_RC_FAILURE; 
+	}
+	error = mqnd_create_runtime_MsgQPriorityobject(qnode->qinfo.queueName.value, qnode, cb->immOiHandle);
+	if (error != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);     
+		return NCSCC_RC_FAILURE;
+	}
+
 	/* Open the Message Queue */
 	rc = mqnd_mq_create(&qnode->qinfo);
 	if (rc != NCSCC_RC_SUCCESS) {
@@ -120,7 +133,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 	}
 
 	qnode->qinfo.shm_queue_index = index;
-	m_GET_TIME_STAMP(qnode->qinfo.creationTime);
+	m_GET_TIME_STAMP(qnode->qinfo.creationTime) * SA_TIME_ONE_SECOND;
 
 	if (transfer_rsp)
 		qnode->qinfo.creationTime = transfer_rsp->creationTime;	/* When queue transfer happens, old creation time is retained */
@@ -168,22 +181,6 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 			      __LINE__);
 		goto qname_destroy;
 	}
-	/* MIB stuff */
-	rc = mqsv_reg_mqndmib_queue_tbl_row(cb, qnode->qinfo.queueName, &qnode->qinfo.mab_rec_row_hdl);
-	if (rc != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_Q_ROW_REG_WITH_MIB_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
-	}
-
-	for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; counter++) {
-		rc = mqsv_reg_mqndmib_queue_priority_tbl_row(cb, qnode->qinfo.queueName, counter,
-							     &qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-		if (rc != NCSCC_RC_SUCCESS) {
-			m_LOG_MQSV_ND(MQND_QPR_TBL_ROW_REG_WITH_MIB_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-				      __FILE__, __LINE__);
-		}
-	}
-
 	*qhdl = qnode->qinfo.queueHandle;
 	m_LOG_MQSV_ND(MQND_QUEUE_CREATE_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 	return NCSCC_RC_SUCCESS;
@@ -352,172 +349,5 @@ uns32 mqnd_queue_reg_with_mqd(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *
 	if (opr.info.msg.resp)
 		asapi_msg_free(&opr.info.msg.resp);
 
-	return rc;
-}
-
-/***************************************************************************
- * Function :  mqsv_reg_mqndmib_queue_tbl_row
- *
- * Purpose  :  This function registers MQND MIB table rows with MAB.
- *
- * Input    :  cb         MQND Control Block.
- *             mqindex_name    Index name.
- *             row_hdl    The row handle returned by MAB.
- *
- * Returns  :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES    :  If NCSCC_RC_SUCCESS row_hdl will contain the handle
- *             returned by MAB.
- *
- **************************************************************************/
-
-uns32 mqsv_reg_mqndmib_queue_tbl_row(MQND_CB *cb, SaNameT mqindex_name, uns32 *row_hdl)
-{
-	NCSOAC_SS_ARG mqnd_oac_arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	NCSMAB_EXACT *exact = 0;
-	uns32 *index_name = 0;
-	uns32 i;
-
-	index_name = (uns32 *)m_MMGR_ALLOC_MQND_DEFAULT((mqindex_name.length + 1) * sizeof(uns32));
-	if (!index_name) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_MEM_ALLOC_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		return rc;
-	}
-
-	index_name[0] = mqindex_name.length;
-	for (i = 0; i < mqindex_name.length; i++) {
-		index_name[i + 1] = (uns32)mqindex_name.value[i];
-	}
-
-	memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
-
-	/* Register for MQND table rows */
-	mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;
-	mqnd_oac_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
-	mqnd_oac_arg.i_tbl_id = NCSMIB_TBL_MQSV_MSGQTBL;
-
-	mqnd_oac_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_EXACT;
-	mqnd_oac_arg.info.row_owned.i_fltr.is_move_row_fltr = FALSE;
-	exact = &mqnd_oac_arg.info.row_owned.i_fltr.fltr.exact;
-	exact->i_idx_len = mqindex_name.length + 1;
-	exact->i_bgn_idx = 0;
-	exact->i_exact_idx = index_name;
-	mqnd_oac_arg.info.row_owned.i_ss_cb = (NCSOAC_SS_CB)NULL;
-	mqnd_oac_arg.info.row_owned.i_ss_hdl = cb->cb_hdl;
-
-	if ((rc = ncsoac_ss(&mqnd_oac_arg)) != NCSCC_RC_SUCCESS)
-		m_LOG_MQSV_ND(MQND_MSGQ_TBL_EXACT_FLTR_REGISTER_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__);
-	else
-		m_LOG_MQSV_ND(MQND_MSGQ_TBL_EXACT_FLTR_REGISTER_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-			      __FILE__, __LINE__);
-
-	*row_hdl = mqnd_oac_arg.info.row_owned.o_row_hdl;
-	if (index_name)
-		m_MMGR_FREE_MQND_DEFAULT(index_name);
-	return rc;
-}
-
-/***************************************************************************
- * Function :  mqnd_unreg_mib_row
- *
- * Purpose  :  This function unregisters MQND MIB table rows with MAB.
- *
- * Input    :  MQND Control Block.
- *             tbl_id Table id to unregister             
- *             The row handle of the row that needs to be deleted.
- *
- * Returns  :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES    :  None.
- *
- **************************************************************************/
-uns32 mqnd_unreg_mib_row(MQND_CB *cb, uns32 tbl_id, uns32 row_hdl)
-{
-	NCSOAC_SS_ARG mqnd_oac_arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
-
-	/* Unregister for MQND table rows */
-	mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;
-	mqnd_oac_arg.i_op = NCSOAC_SS_OP_ROW_GONE;
-	mqnd_oac_arg.i_tbl_id = tbl_id;
-	mqnd_oac_arg.info.row_gone.i_row_hdl = row_hdl;
-
-	if ((rc = ncsoac_ss(&mqnd_oac_arg)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MSGQ_TBL_EXACT_FLTR_UNREGISTER_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__);
-	} else
-		m_LOG_MQSV_ND(MQND_MSGQ_TBL_EXACT_FLTR_UNREGISTER_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_INFO, rc,
-			      __FILE__, __LINE__);
-
-	return rc;
-}
-
-/***************************************************************************
- * Function :  mqsv_reg_mqndmib_queue_priority_tbl_row
- *
- * Purpose  :  This function registers MQND MIB table rows with MAB.
- *
- * Input    :  cb         MQND Control Block.
- *             mqindex_name    Index name.
- *             row_hdl    The row handle returned by MAB.
- *
- * Returns  :  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES    :  If NCSCC_RC_SUCCESS row_hdl will contain the handle
- *             returned by MAB.
- *
- **************************************************************************/
-
-uns32 mqsv_reg_mqndmib_queue_priority_tbl_row(MQND_CB *cb, SaNameT mqindex_name, uns32 priority_index, uns32 *row_hdl)
-{
-	NCSOAC_SS_ARG mqnd_oac_arg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-	NCSMAB_EXACT *exact = 0;
-	uns32 *index_name = 0;
-	uns32 i;
-
-	index_name = (uns32 *)m_MMGR_ALLOC_MQND_DEFAULT((mqindex_name.length + 2) * sizeof(uns32));
-	if (!index_name) {
-		rc = NCSCC_RC_FAILURE;
-		m_LOG_MQSV_ND(MQND_MEM_ALLOC_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		return rc;
-	}
-	index_name[0] = mqindex_name.length;
-	for (i = 0; i < mqindex_name.length; i++) {
-		index_name[i + 1] = (uns32)mqindex_name.value[i];
-	}
-	index_name[i + 1] = priority_index;
-
-	memset(&mqnd_oac_arg, 0, sizeof(NCSOAC_SS_ARG));
-
-	/* Register for MQND table rows */
-	mqnd_oac_arg.i_oac_hdl = cb->oac_hdl;
-	mqnd_oac_arg.i_op = NCSOAC_SS_OP_ROW_OWNED;
-	mqnd_oac_arg.i_tbl_id = NCSMIB_TBL_MQSV_MSGQPRTBL;
-
-	mqnd_oac_arg.info.row_owned.i_fltr.type = NCSMAB_FLTR_EXACT;
-	mqnd_oac_arg.info.row_owned.i_fltr.is_move_row_fltr = FALSE;
-	exact = &mqnd_oac_arg.info.row_owned.i_fltr.fltr.exact;
-	exact->i_idx_len = mqindex_name.length + 2;
-	exact->i_bgn_idx = 0;
-	exact->i_exact_idx = index_name;
-	mqnd_oac_arg.info.row_owned.i_ss_cb = (NCSOAC_SS_CB)NULL;
-	mqnd_oac_arg.info.row_owned.i_ss_hdl = cb->cb_hdl;
-
-	if ((rc = ncsoac_ss(&mqnd_oac_arg)) != NCSCC_RC_SUCCESS) {
-		m_LOG_MQSV_ND(MQND_MSGQPR_TBL_EXACT_FLTR_REGISTER_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc,
-			      __FILE__, __LINE__);
-	} else
-		m_LOG_MQSV_ND(MQND_MSGQPR_TBL_EXACT_FLTR_REGISTER_SUCCESS, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_NOTICE, rc,
-			      __FILE__, __LINE__);
-
-	*row_hdl = mqnd_oac_arg.info.row_owned.o_row_hdl;
-	if (index_name)
-		m_MMGR_FREE_MQND_DEFAULT(index_name);
 	return rc;
 }
