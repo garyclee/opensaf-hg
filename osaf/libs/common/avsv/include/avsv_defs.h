@@ -103,6 +103,16 @@
 /* Max value for a handle given by avsv to APP */
 #define AVSV_UNS32_HDL_MAX 0xffffffff
 
+/* Trap retention timeout */
+#define AVSV_TRAP_RETENTION_TIMEOUT  200000000
+
+/* Trap channel open timeout */
+#define AVSV_TRAP_CHANNEL_OPEN_TIMEOUT 200000000
+
+/* Trap pattern array lengths */
+#define AVSV_TRAP_PATTERN_ARRAY_LEN  2
+#define AVD_SHUT_FAIL_TRAP_PATTERN_ARRAY_LEN 1
+
 /* Maximum number for component instantiation */
 #define AVSV_MAX_INST 1
 
@@ -126,13 +136,6 @@ typedef enum {
 	AVSV_TBL_RANK_MAX
 } AVSV_TBL_RANK;
 
-/* readiness state definition */
-typedef enum ncs_readiness_state {
-	NCS_OUT_OF_SERVICE = 1,
-	NCS_IN_SERVICE = 2,
-	NCS_STOPPING = 3
-} NCS_READINESS_STATE;
-
 /* comp capability model definition */
 typedef enum ncs_comp_capability_model {
 	NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY = 1,
@@ -153,26 +156,6 @@ typedef enum {
 	NCS_COMP_TYPE_NON_SAF,
 } NCS_COMP_TYPE_VAL;
 
-typedef enum ncs_pres_state_tag {
-	NCS_PRES_UNINSTANTIATED = 1,
-	NCS_PRES_INSTANTIATING,
-	NCS_PRES_INSTANTIATED,
-	NCS_PRES_TERMINATING,
-	NCS_PRES_RESTARTING,
-	NCS_PRES_INSTANTIATIONFAILED,
-	NCS_PRES_TERMINATIONFAILED,
-	NCS_PRES_ORPHANED,
-	NCS_PRES_MAX
-} NCS_PRES_STATE;
-
-typedef enum {
-	AVSV_SG_RED_MODL_2N = 1,
-	AVSV_SG_RED_MODL_NPM,
-	AVSV_SG_RED_MODL_NWAY,
-	AVSV_SG_RED_MODL_NWAYACTV,
-	AVSV_SG_RED_MODL_NORED
-} SaReduntantModelT;
-
 /* 
  * SaAmfRecommendedRecoveryT definition does not include escalated recovery
  * actions like su-restart, su-failover etc. The following enum definition
@@ -180,16 +163,8 @@ typedef enum {
  */
 typedef enum avsv_err_rcvr {
 	/* recovery specified in SaAmfRecommendedRecoveryT */
-	AVSV_AMF_NO_RECOMMENDATION = 1,
-	AVSV_AMF_COMPONENT_RESTART = 2,
-	AVSV_AMF_COMPONENT_FAILOVER = 3,
-	AVSV_AMF_NODE_SWITCHOVER = 4,
-	AVSV_AMF_NODE_FAILOVER = 5,
-	AVSV_AMF_NODE_FAILFAST = 6,
-	AVSV_AMF_CLUSTER_RESET = 7,
-
 	/* escalated recovery */
-	AVSV_ERR_RCVR_SU_RESTART,
+	AVSV_ERR_RCVR_SU_RESTART = SA_AMF_CONTAINER_RESTART + 1,
 	AVSV_ERR_RCVR_SU_FAILOVER,
 	AVSV_ERR_RCVR_MAX
 } AVSV_ERR_RCVR;
@@ -222,8 +197,146 @@ typedef enum {
 	AVSV_SG_ADJUST
 } SaAdjustState;
 
-/* Macro for AvSv assert */
-#define m_AVSV_ASSERT(condition) if(!(condition)) assert(0)
+/* This enums represent classes defined in AMF Spec B.04.01, sorted from table 21 ch 8.4 */
+typedef enum {
+	AVSV_SA_AMF_CLASS_INVALID = 0,
+	AVSV_SA_AMF_CONFIG_CLASS_BASE = 1,
+	AVSV_SA_AMF_APP_BASE_TYPE = 1,
+	AVSV_SA_AMF_APP = 2,
+	AVSV_SA_AMF_APP_TYPE = 3,
+	AVSV_SA_AMF_CLUSTER = 4,
+	AVSV_SA_AMF_COMP = 5,
+	AVSV_SA_AMF_COMP_BASE_TYPE = 6,
+	AVSV_SA_AMF_COMP_CS_TYPE = 7,
+	AVSV_SA_AMF_COMP_GLOBAL_ATTR = 8,
+	AVSV_SA_AMF_COMP_TYPE = 9,
+	AVSV_SA_AMF_CS_BASE_TYPE = 10,
+	AVSV_SA_AMF_CSI = 11,
+	AVSV_SA_AMF_CSI_ASSIGNMENT = 12,
+	AVSV_SA_AMF_CSI_ATTRIBUTE = 13,
+	AVSV_SA_AMF_CS_TYPE = 14,
+	AVSV_SA_AMF_CT_CS_TYPE = 15,
+	AVSV_SA_AMF_HEALTH_CHECK = 16,
+	AVSV_SA_AMF_HEALTH_CHECK_TYPE = 17,
+	AVSV_SA_AMF_NODE = 18,
+	AVSV_SA_AMF_NODE_GROUP = 19,
+	AVSV_SA_AMF_NODE_SW_BUNDLE = 20,
+	AVSV_SA_AMF_SG = 21,
+	AVSV_SA_AMF_SG_BASE_TYPE = 22,
+	AVSV_SA_AMF_SG_TYPE = 23,
+	AVSV_SA_AMF_SI = 24,
+	AVSV_SA_AMF_SI_ASSIGNMENT = 25,
+	AVSV_SA_AMF_SI_DEPENDENCY = 26,
+	AVSV_SA_AMF_SI_RANKED_SU = 27,
+	AVSV_SA_AMF_SU = 28,
+	AVSV_SA_AMF_SU_BASE_TYPE = 29,
+	AVSV_SA_AMF_SU_TYPE = 30,
+	AVSV_SA_AMF_SUT_COMP_TYPE = 31,
+	AVSV_SA_AMF_SVC_BASE_TYPE = 32,
+	AVSV_SA_AMF_SVC_TYPE = 33,
+	AVSV_SA_AMF_SVC_TYPE_CS_TYPES = 34,
+	AVSV_SA_AMF_CLASS_MAX
+} AVSV_AMF_CLASS_ID;
+
+/* Attribute ID enum for the saAmfNode class */
+typedef enum
+{
+   saAmfNodeName_ID = 1,
+   saAmfNodeSuFailoverProb_ID = 2,
+   saAmfNodeSuFailoverMax_ID = 3,
+   saAmfNodeAdminState_ID = 4,
+} SA_AMF_NODE_ATTR_ID; 
+
+/* Attribute ID enum for the saAmfSG class */
+typedef enum
+{
+   saAmfSGName_ID = 1,
+   saAmfSGRedModel_ID = 2,
+   saAmfSGFailbackOption_ID = 3,
+   saAmfSGNumPrefActiveSUs_ID = 4,
+   saAmfSGNumPrefStandbySUs_ID = 5,
+   saAmfSGNumPrefInserviceSUs_ID = 6,
+   saAmfSGNumPrefAssignedSUs_ID = 7,
+   saAmfSGMaxActiveSIsperSU_ID = 8,
+   saAmfSGMaxStandbySIsperSU_ID = 9,
+   saAmfSGAdminState_ID = 10,
+   saAmfSGCompRestartProb_ID = 11,
+   saAmfSGCompRestartMax_ID = 12,
+   saAmfSGSuRestartProb_ID = 13,
+   saAmfSGSuRestartMax_ID = 14,
+   saAmfSGNumCurrAssignedSU_ID = 15,
+   saAmfSGNumCurrNonInstantiatedSpareSU_ID = 16,
+   saAmfSGNumCurrSpareSU_ID = 17,
+} SA_AMF_SG_ATTR_ID; 
+
+/* Attribute ID enum for the saAmfSU class */
+typedef enum
+{
+   saAmfSUName_ID = 1,
+   saAmfSURank_ID = 2,
+   saAmfSUNumComponents_ID = 3,
+   saAmfSUNumCurrActiveSIs_ID = 4,
+   saAmfSUNumCurrStandbySIs_ID = 5,
+   saAmfSUAdminState_ID = 6,
+   saAmfSUFailOver_ID = 7,
+   saAmfSUReadinessState_ID = 8,
+   saAmfSUOperState_ID = 9,
+   saAmfSUPresenceState_ID = 10,
+   saAmfSUPreInstantiable_ID = 11,
+   saAmfSUParentSGName_ID = 12,
+   saAmfSUIsExternal_ID = 13,
+} SA_AMF_SU_ATTR_ID; 
+
+/* Attribute ID enum for the saAmfComp class */
+typedef enum
+{
+   saAmfCompName_ID = 1,
+   saAmfCompCapability_ID = 2,
+   saAmfCompCategory_ID = 3,
+   saAmfCompInstantiateCmd_ID = 4,
+   saAmfCompTerminateCmd_ID = 5,
+   saAmfCompCleanupCmd_ID = 6,
+   saAmfCompAmStartCmd_ID = 7,
+   saAmfCompAmStopCmd_ID = 8,
+   saAmfCompInstantiationLevel_ID = 9,
+   saAmfCompInstantiateTimeout_ID = 10,
+   saAmfCompDelayBetweenInstantiateAttempts_ID = 11,
+   saAmfCompTerminateTimeout_ID = 12,
+   saAmfCompCleanupTimeout_ID = 13,
+   saAmfCompAmStartTimeout_ID = 14,
+   saAmfCompAmStopTimeout_ID = 15,
+   saAmfCompTerminateCallbackTimeOut_ID = 16,
+   saAmfCompCSISetCallbackTimeout_ID = 17,
+   saAmfCompQuiescingCompleteTimeout_ID = 18,
+   saAmfCompCSIRmvCallbackTimeout_ID = 19,
+   saAmfCompProxiedCompInstantiateCallbackTimeout_ID = 20,
+   saAmfCompProxiedCompCleanupCallbackTimeout_ID = 21,
+   saAmfCompNodeRebootCleanupFail_ID = 22,
+   saAmfCompRecoveryOnError_ID = 23,
+   saAmfCompNumMaxInstantiate_ID = 24,
+   saAmfCompNumMaxInstantiateWithDelay_ID = 25,
+   saAmfCompNumMaxAmStartAttempts_ID = 26,
+   saAmfCompNumMaxAmStopAttempts_ID = 27,
+   saAmfCompDisableRestart_ID = 28,
+   saAmfCompNumMaxActiveCsi_ID = 29,
+   saAmfCompNumMaxStandbyCsi_ID = 30,
+   saAmfCompNumCurrActiveCsi_ID = 31,
+   saAmfCompNumCurrStandbyCsi_ID = 32,
+   saAmfCompOperState_ID = 33,
+   saAmfCompReadinessState_ID = 34,
+   saAmfCompPresenceState_ID = 35,
+   saAmfCompRestartCount_ID = 36,
+   saAmfCompCurrProxyName_ID = 37,
+   saAmfCompAMEnable_ID = 38,
+   saAmfCompType_ID,
+} SA_AMF_COMP_ATTR_ID; 
+
+/* Attribute ID enum for the SaAmfHealthcheck class */
+typedef enum
+{
+   saAmfHealthcheckPeriod_ID = 1,
+   saAmfHealthcheckMaxDuration_ID = 2,
+} SA_AMF_HEALTHCHECK_ATTR_ID; 
 
 /* Macros for data to MIB arg modification */
 #define m_AVSV_OCTVAL_TO_PARAM(param,buffer,len,val) \
@@ -246,18 +359,7 @@ m_AVSV_OCTVAL_TO_PARAM(param,buffer,saname.length,saname.value)
    m_NCS_OS_HTONLL_P(param->info.i_oct,val64); \
 }
 
-/* Macros for allocating and freeing memory in different sub modules of avsv */
-
 #define NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL 1
-
-#define m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(mem_size)  m_NCS_MEM_ALLOC( \
-                                                mem_size, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVSV, \
-                                                NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL)
-#define m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(p)  m_NCS_MEM_FREE(p, \
-                                                NCS_MEM_REGION_PERSISTENT, \
-                                                NCS_SERVICE_ID_AVSV, \
-                                                NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL)
+#define SA_AMF_PRESENCE_ORPHANED (SA_AMF_PRESENCE_TERMINATION_FAILED+1)
 
 #endif

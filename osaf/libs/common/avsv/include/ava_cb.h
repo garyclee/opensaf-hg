@@ -39,7 +39,7 @@ typedef struct ava_cb_tag {
 	uns32 pend_dis;		/* Number of pending dispaches */
 	uns32 pend_fin;		/* Number of pending agent destroy */
 
-	SaNameT comp_name_net;	/* comp-name */
+	SaNameT comp_name;	/* comp-name */
 	uns32 flag;		/* flags */
 
 	/* mds parameters */

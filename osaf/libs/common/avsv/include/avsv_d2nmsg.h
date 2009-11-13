@@ -34,6 +34,10 @@
 #ifndef AVSV_D2NMSG_H
 #define AVSV_D2NMSG_H
 
+#include <saClm.h>
+#include <mds_papi.h>
+#include <avsv_defs.h>
+
 /* In Service upgrade support */
 #define AVND_MDS_SUB_PART_VERSION   2
 
@@ -90,7 +94,7 @@ typedef enum {
 typedef struct avsv_clm_info {
 	SaClmNodeIdT node_id;	/* node id */
 	SaClmNodeAddressT node_address;	/* node address */
-	SaNameT node_name_net;	/* node name with length in network order */
+	SaNameT node_name;	/* node name */
 	SaBoolT member;		/* indicates if node is a 
 				   member of the cluster */
 	SaTimeT boot_timestamp;	/* node boot timestamp  */
@@ -104,13 +108,11 @@ typedef struct avsv_clm_info_msg {
 } AVSV_CLM_INFO_MSG;
 
 typedef struct avsv_hlt_key_tag {
-	SaNameT comp_name_net;
-
-	uns32 key_len_net;	/* healthCheckKey length in
-				 * network order. */
+	SaNameT comp_name;
+	uns32 key_len; 	                /* healthCheckKey length */
 	SaAmfHealthcheckKeyT name;	/* name of the health check key.
 					 * This field should be
-					 * immediatly after key_len_net */
+					 * immediatly after key_len */
 } AVSV_HLT_KEY;
 
 typedef struct avsv_hlt_info_msg {
@@ -122,7 +124,7 @@ typedef struct avsv_hlt_info_msg {
 } AVSV_HLT_INFO_MSG;
 
 typedef struct avsv_su_info_msg {
-	SaNameT name_net;	/* The length field is in network order */
+	SaNameT name;
 	uns32 num_of_comp;
 	SaTimeT comp_restart_prob;
 	uns32 comp_restart_max;
@@ -134,12 +136,9 @@ typedef struct avsv_su_info_msg {
 } AVSV_SU_INFO_MSG;
 
 typedef struct avsv_comp_info_tag {
-	SaNameT name_net;	/* component name with the length
-				 * field in the network order.
-				 * Checkpointing - Sent as a one time update.
-				 */
+	SaNameT name;	/* component name */
 
-	NCS_COMP_CAPABILITY_MODEL cap;	/* component capability. See sec 4.6 of
+	saAmfCompCapabilityModelT cap;	/* component capability. See sec 4.6 of
 					 * Saf AIS 
 					 * Checkpointing - Sent as a one time update.
 					 */
@@ -156,10 +155,11 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns8 init_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for
+	char init_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for
 						 * initialization of component 
 						 * Checkpointing - Sent as a one time update.
 						 */
+	char init_cmd_arg_info[AVSV_MISC_STR_MAX_SIZE];
 
 	SaTimeT init_time;	/* Time interval within which
 				 * instantiate command should
@@ -172,10 +172,11 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns8 term_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for
+	char term_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for
 						 * termination of component 
 						 * Checkpointing - Sent as a one time update.
 						 */
+	char term_cmd_arg_info[AVSV_MISC_STR_MAX_SIZE];
 
 	SaTimeT term_time;	/* Time interval within which
 				 * terminate command should
@@ -188,10 +189,11 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns8 clean_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for cleanup
+	char clean_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII string of information for cleanup
 							 * of component 
 							 * Checkpointing - Sent as a one time update.
 							 */
+	char clean_cmd_arg_info[AVSV_MISC_STR_MAX_SIZE];
 
 	SaTimeT clean_time;	/* Time interval within which
 				 * cleanup command should
@@ -204,11 +206,12 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns8 amstart_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII 
+	char amstart_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII 
 							 * string of information for
 							 * AM start of a component
 							 * Checkpointing - Sent as a one time update.
 							 */
+	char amstart_cmd_arg_info[AVSV_MISC_STR_MAX_SIZE];
 
 	SaTimeT amstart_time;	/* Time interval within which
 				 * AM start command should
@@ -221,11 +224,12 @@ typedef struct avsv_comp_info_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	uns8 amstop_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII 
+	char amstop_info[AVSV_MISC_STR_MAX_SIZE];	/* ASCII 
 							 * string of information for
 							 * AM start of a component.
 							 * Checkpointing - Sent as a one time update.
 							 */
+	char amstop_cmd_arg_info[AVSV_MISC_STR_MAX_SIZE];
 
 	SaTimeT amstop_time;	/* Time interval within which
 				 * AM stop command should
@@ -289,6 +293,7 @@ typedef struct avsv_comp_info_tag {
 				 * recovery.
 				 * Checkpointing - Sent as a one time update.
 				 */
+	char comp_cmd_env_info[AVSV_MISC_STR_MAX_SIZE];
 
 } AVSV_COMP_INFO;
 
@@ -298,9 +303,9 @@ typedef struct avsv_comp_info_msg {
 } AVSV_COMP_INFO_MSG;
 
 typedef struct avsv_susi_asgn {
-	SaNameT comp_name_net;	/* The length field is in network order */
-	SaNameT csi_name_net;	/* The length field is in network order */
-	SaNameT active_comp_name_net;	/* The length field is in network order */
+	SaNameT comp_name;
+	SaNameT csi_name;
+	SaNameT active_comp_name;
 	uns32 csi_rank;		/* The rank of the CSI in the SI */
 	uns32 stdby_rank;
 	SaAmfCSITransitionDescriptorT active_comp_dsc;
@@ -310,18 +315,18 @@ typedef struct avsv_susi_asgn {
 } AVSV_SUSI_ASGN;
 
 typedef enum {
-	AVSV_OBJ_OPR_MOD,
+	AVSV_OBJ_OPR_MOD = 1,
 	AVSV_OBJ_OPR_DEL
 } AVSV_OBJ_OPR_ACT;
 
 typedef struct avsv_param_info {
-	uns32 table_id;
-	uns32 obj_id;
-	SaNameT name_net;	/* The length field is in network order */
-	SaNameT name_sec_net;
+	uns32 class_id; /* value from enum AVSV_AMF_CLASS_ID */
+	uns32 attr_id;
+	SaNameT name;	/* The length field is in network order */
+	SaNameT name_sec;
 	AVSV_OBJ_OPR_ACT act;
 	uns32 value_len;
-	uns8 value[AVSV_MISC_STR_MAX_SIZE];
+	char value[AVSV_MISC_STR_MAX_SIZE];
 } AVSV_PARAM_INFO;
 
 /*
@@ -360,15 +365,15 @@ typedef struct avsv_n2d_reg_hlt_msg_info_tag {
 typedef struct avsv_n2d_comp_validation_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaNameT comp_name_net;	/* comp name */
+	SaNameT comp_name;	/* comp name */
 
    /****************************************************************
-          The following attributes : hdl, proxy_comp_name_net, mds_dest and mds_ctxt 
+          The following attributes : hdl, proxy_comp_name, mds_dest and mds_ctxt 
           wouldn't be sent to AvD, these are just to maintain the information in the 
           AvD message list when the validation response comes back.
           ***************************************************************/
 	SaAmfHandleT hdl;
-	SaNameT proxy_comp_name_net;
+	SaNameT proxy_comp_name;
 	MDS_DEST mds_dest;	/* we need to have mds_dest and mds_ctxt to send 
 				   response back to ava, when AvD responds. */
 	MDS_SYNC_SND_CTXT mds_ctxt;
@@ -379,14 +384,14 @@ typedef struct avsv_n2d_comp_validation_msg_info_tag {
 typedef struct avsv_n2d_reg_su_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaNameT su_name_net;	/* The length field is in network order */
+	SaNameT su_name;
 	uns32 error;
 } AVSV_N2D_REG_SU_MSG_INFO;
 
 typedef struct avsv_n2d_reg_comp_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaNameT comp_name_net;	/* The length field is in network order */
+	SaNameT comp_name;
 	uns32 error;
 } AVSV_N2D_REG_COMP_MSG_INFO;
 
@@ -398,17 +403,17 @@ typedef struct avsv_n2d_operation_state_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_ERR_RCVR rec_rcvr;
-	NCS_OPER_STATE node_oper_state;
-	SaNameT su_name_net;	/* The length field is in network order */
-	NCS_OPER_STATE su_oper_state;
+	SaAmfOperationalStateT node_oper_state;
+	SaNameT su_name;
+	SaAmfOperationalStateT su_oper_state;
 } AVSV_N2D_OPERATION_STATE_MSG_INFO;
 
 typedef struct avsv_n2d_info_su_si_assign_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_SUSI_ACT msg_act;
-	SaNameT su_name_net;	/* The length field is in network order */
-	SaNameT si_name_net;	/* The length field is in network order */
+	SaNameT su_name;
+	SaNameT si_name;
 	SaAmfHAStateT ha_state;
 	uns32 error;
 } AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO;
@@ -419,7 +424,7 @@ typedef struct avsv_n2d_pg_track_act_msg_info_tag {
 	NCS_BOOL msg_on_fover;	/* If TRUE indicates that message is sent on 
 				 * fail-over. So AVD should process it in
 				 * a special manner */
-	SaNameT csi_name_net;
+	SaNameT csi_name;
 	AVSV_PG_TRACK_ACT actn;
 } AVSV_N2D_PG_TRACK_ACT_MSG_INFO;
 
@@ -498,9 +503,8 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
 	AVSV_SUSI_ACT msg_act;
-	SaNameT su_name_net;	/* The length field is in network order */
-	SaNameT si_name_net;	/* The length field is in network order. This
-				 * field is filled if the action is for a
+	SaNameT su_name;
+	SaNameT si_name;	/* This field is filled if the action is for a
 				 * particulat SUSI. if action is for 
 				 * all SIs of this SU only the SU name field
 				 * is filled. */
@@ -523,14 +527,14 @@ typedef struct avsv_d2n_pg_track_act_rsp_msg_info_tag {
 				 * fail-over. So AVND should process it in
 				 * a special manner */
 	AVSV_PG_TRACK_ACT actn;	/* determines if rsp is sent for start/stop action */
-	SaNameT csi_name_net;
+	SaNameT csi_name;
 	NCS_BOOL is_csi_exist;	/* indicates if the csi exists */
 	SaAmfProtectionGroupNotificationBufferT mem_list;	/* current member list */
 } AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO;
 
 typedef struct avsv_d2n_pg_upd_msg_info_tag {
 	SaClmNodeIdT node_id;
-	SaNameT csi_name_net;
+	SaNameT csi_name;
 	NCS_BOOL is_csi_del;	/* indicates if the csi is deleted */
 	SaAmfProtectionGroupNotificationT mem;	/* updated member */
 } AVSV_D2N_PG_UPD_MSG_INFO;
@@ -548,7 +552,7 @@ typedef struct avsv_d2n_info_heartbeat_msg_info_tag {
 typedef struct avsv_d2n_presence_su_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaNameT su_name_net;	/* The length field is in network order */
+	SaNameT su_name;
 	NCS_BOOL term_state;
 } AVSV_D2N_PRESENCE_SU_MSG_INFO;
 
@@ -586,7 +590,7 @@ typedef struct avsv_d2n_set_leds_msg_info_tag {
 typedef struct avsv_d2n_comp_validation_resp_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaNameT comp_name_net;	/* comp name */
+	SaNameT comp_name;
 	AVSV_COMP_VALIDATION_RESULT_TYPE result;
 } AVSV_D2N_COMP_VALIDATION_RESP_INFO;
 

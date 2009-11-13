@@ -114,43 +114,39 @@ uns32 avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 
 	switch (smsg->type) {
 	case AVND_MSG_AVD:
-		if (0 == (dmsg->info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
+		if (0 == (dmsg->info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		memset(dmsg->info.avd, 0, sizeof(AVSV_DND_MSG));
 		rc = avsv_dnd_msg_copy(dmsg->info.avd, smsg->info.avd);
 		break;
 
 	case AVND_MSG_AVND:
-		if (0 == (dmsg->info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG)) {
+		if (0 == (dmsg->info.avnd = calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		memset(dmsg->info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
 		rc = avsv_ndnd_avnd_msg_copy(dmsg->info.avnd, smsg->info.avnd);
 		break;
 
 	case AVND_MSG_AVA:
-		if (0 == (dmsg->info.ava = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG)) {
+		if (0 == (dmsg->info.ava = calloc(1, sizeof(AVSV_NDA_AVA_MSG)))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		memset(dmsg->info.ava, 0, sizeof(AVSV_NDA_AVA_MSG));
 		rc = avsv_nda_ava_msg_copy(dmsg->info.ava, smsg->info.ava);
 		break;
 
 	case AVND_MSG_CLA:
-		if (0 == (dmsg->info.cla = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG)) {
+		if (0 == (dmsg->info.cla = calloc(1, sizeof(AVSV_NDA_CLA_MSG)))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
-		memset(dmsg->info.cla, 0, sizeof(AVSV_NDA_CLA_MSG));
 		rc = avsv_nda_cla_msg_copy(dmsg->info.cla, smsg->info.cla);
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}
 
  done:

@@ -18,6 +18,8 @@
 /*****************************************************************************
 ..............................................................................
 
+
+
 ..............................................................................
 
   DESCRIPTION:
@@ -33,6 +35,7 @@
 
 #include "ava.h"
 
+
 #if ( NCS_AVA_LOG == 1 )
 /****************************************************************************
   Name          : ava_log_seapi
@@ -47,12 +50,14 @@
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_seapi(AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
+void ava_log_seapi (AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_SEAPI, AVA_FC_SEAPI, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_SEAPI, AVA_FC_SEAPI, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : ava_log_mds
@@ -67,12 +72,15 @@ void ava_log_seapi(AVSV_LOG_SEAPI op, AVSV_LOG_SEAPI status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_mds(AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
+void ava_log_mds (AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_MDS, AVA_FC_MDS, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_MDS, AVA_FC_MDS, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : ava_log_edu
@@ -87,12 +95,15 @@ void ava_log_mds(AVSV_LOG_MDS op, AVSV_LOG_MDS status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_edu(AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
+void ava_log_edu (AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_EDU, AVA_FC_EDU, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_EDU, AVA_FC_EDU, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : ava_log_lock
@@ -107,12 +118,15 @@ void ava_log_edu(AVSV_LOG_EDU op, AVSV_LOG_EDU status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_lock(AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
+void ava_log_lock (AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_LOCK, AVA_FC_LOCK, NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_LOCK, AVA_FC_LOCK, 
+              NCSFL_LC_LOCKS, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : ava_log_cb
@@ -127,12 +141,15 @@ void ava_log_lock(AVSV_LOG_LOCK op, AVSV_LOG_LOCK status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_cb(AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
+void ava_log_cb (AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CB, AVA_FC_CB, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CB, AVA_FC_CB, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : ava_log_cbk
@@ -147,20 +164,23 @@ void ava_log_cb(AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_cbk(AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
+void ava_log_cbk (AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+   uns8 name[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
-	/* convert comp-name into string format */
-	if (comp_name)
-		strncpy(name, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+   /* convert comp-name into string format */
+   if (comp_name) 
+      strncpy(name, comp_name->value, comp_name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CBK, AVA_FC_CBK, NCSFL_LC_API, sev, NCSFL_TYPE_TIC, type - 1, name);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CBK, AVA_FC_CBK, 
+              NCSFL_LC_API, sev, NCSFL_TYPE_TIC, type - 1, name);
 
-	return;
+   return;
 }
+
+
 
 /****************************************************************************
   Name          : ava_log_sel_obj
@@ -175,13 +195,14 @@ void ava_log_cbk(AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_sel_obj(AVA_LOG_SEL_OBJ op, AVA_LOG_SEL_OBJ status, uns8 sev)
+void ava_log_sel_obj (AVA_LOG_SEL_OBJ op, AVA_LOG_SEL_OBJ status, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_SEL_OBJ, AVA_FC_SEL_OBJ,
-		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_SEL_OBJ, AVA_FC_SEL_OBJ, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TII, op, status);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : ava_log_api
@@ -197,21 +218,25 @@ void ava_log_sel_obj(AVA_LOG_SEL_OBJ op, AVA_LOG_SEL_OBJ status, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_api(AVA_LOG_API type, AVA_LOG_API status, const SaNameT *comp_name, uns8 sev)
+void ava_log_api (AVA_LOG_API   type, 
+                  AVA_LOG_API   status, 
+                  const SaNameT *comp_name, 
+                  uns8          sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+   uns8 name[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+   memset(name, '\0', SA_MAX_NAME_LENGTH);
 
-	/* convert comp-name into string format */
-	if (comp_name)
-		strncpy(name, comp_name->value, comp_name->length);
+   /* convert comp-name into string format */
+   if (comp_name) 
+      strncpy(name, comp_name->value, comp_name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_API, AVA_FC_API,
-		   NCSFL_LC_API, sev, NCSFL_TYPE_TIIC, type - 1, status, name);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_API, AVA_FC_API, 
+              NCSFL_LC_API, sev, NCSFL_TYPE_TIIC, type-1, status, name);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : ava_log_hdl_db
@@ -227,13 +252,17 @@ void ava_log_api(AVA_LOG_API type, AVA_LOG_API status, const SaNameT *comp_name,
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_hdl_db(AVA_LOG_HDL_DB op, AVA_LOG_HDL_DB status, uns32 hdl, uns8 sev)
+void ava_log_hdl_db (AVA_LOG_HDL_DB op, 
+                     AVA_LOG_HDL_DB status, 
+                     uns32          hdl, 
+                     uns8           sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_HDL_DB, AVA_FC_HDL_DB,
-		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIL, op, status, hdl);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_HDL_DB, AVA_FC_HDL_DB, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIL, op, status, hdl);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : ava_log_misc
@@ -247,12 +276,14 @@ void ava_log_hdl_db(AVA_LOG_HDL_DB op, AVA_LOG_HDL_DB status, uns32 hdl, uns8 se
  
   Notes         : None.
  *****************************************************************************/
-void ava_log_misc(AVA_LOG_MISC op, uns8 sev)
+void ava_log_misc (AVA_LOG_MISC op, uns8 sev)
 {
-	ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_MISC, AVA_FC_MISC, NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, op);
+   ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_MISC, AVA_FC_MISC, 
+              NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TI, op);
 
-	return;
+   return;
 }
+
 
 /****************************************************************************
   Name          : ava_log_reg
@@ -265,22 +296,23 @@ void ava_log_misc(AVA_LOG_MISC op, uns8 sev)
  
   Notes         : None.
  *****************************************************************************/
-uns32 ava_log_reg(void)
+uns32 ava_log_reg (void)
 {
-	NCS_DTSV_RQ reg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+   NCS_DTSV_RQ reg;
+   uns32       rc = NCSCC_RC_SUCCESS;
 
-	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
-	reg.i_op = NCS_DTSV_OP_BIND;
-	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
-	reg.info.bind_svc.version = AVSV_LOG_VERSION;
-	strcpy(reg.info.bind_svc.svc_name, "AvSv");
+   reg.i_op = NCS_DTSV_OP_BIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
+   reg.info.bind_svc.version = AVSV_LOG_VERSION;
+   strcpy(reg.info.bind_svc.svc_name, "AvSv"); 
 
-	rc = ncs_dtsv_su_req(&reg);
+   rc = ncs_dtsv_su_req(&reg);
 
-	return rc;
+   return rc;
 }
+
 
 /****************************************************************************
   Name          : ava_log_unreg
@@ -293,19 +325,20 @@ uns32 ava_log_reg(void)
  
   Notes         : None.
  *****************************************************************************/
-uns32 ava_log_unreg(void)
+uns32 ava_log_unreg (void)
 {
-	NCS_DTSV_RQ reg;
-	uns32 rc = NCSCC_RC_SUCCESS;
+   NCS_DTSV_RQ reg;
+   uns32       rc = NCSCC_RC_SUCCESS;
 
-	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
+   memset(&reg,0,sizeof(NCS_DTSV_RQ));
 
-	reg.i_op = NCS_DTSV_OP_UNBIND;
-	reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
+   reg.i_op = NCS_DTSV_OP_UNBIND;
+   reg.info.bind_svc.svc_id = NCS_SERVICE_ID_AVA;
 
-	rc = ncs_dtsv_su_req(&reg);
+   rc = ncs_dtsv_su_req(&reg);
 
-	return rc;
+   return rc;
 }
+#endif /* NCS_AVA_LOG == 1 */
 
-#endif   /* NCS_AVA_LOG == 1 */
+

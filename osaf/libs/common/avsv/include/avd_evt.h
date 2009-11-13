@@ -34,6 +34,10 @@
 #ifndef AVD_EVT_H
 #define AVD_EVT_H
 
+#include <avsv_ipc.h>
+#include <avm_avd.h>
+#include <avd_util.h>
+
 /* event type enums */
 typedef enum avd_evt_type {
 	/* all the message events should be in this range */
@@ -57,11 +61,9 @@ typedef enum avd_evt_type {
 	AVD_EVT_TMR_RCV_HB_ND,
 	AVD_EVT_TMR_RCV_HB_INIT,
 	AVD_EVT_TMR_CL_INIT,
-	AVD_EVT_TMR_CFG_EXP,
 	AVD_EVT_TMR_SI_DEP_TOL,
 	AVD_EVT_TMR_MAX,
-	AVD_EVT_MIB_REQ = AVD_EVT_TMR_MAX,
-	AVD_EVT_MDS_AVD_UP,
+	AVD_EVT_MDS_AVD_UP = AVD_EVT_TMR_MAX,
 	AVD_EVT_MDS_AVD_DOWN,
 	AVD_EVT_MDS_AVND_UP,
 	AVD_EVT_MDS_AVND_DOWN,
@@ -92,8 +94,6 @@ typedef struct avd_evt_tag {
 		AVD_DND_MSG *avnd_msg;
 		AVD_D2D_MSG *avd_msg;
 		AVD_TMR tmr;
-		NCSMIB_ARG *mib_req;
-		AVD_BAM_MSG *bam_msg;
 		AVM_AVD_MSG_T *avm_msg;
 	} info;
 

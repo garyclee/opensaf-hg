@@ -66,34 +66,34 @@ static void defaultImmutilError(char const *fmt, ...)
 	abort();
 }
 
-static struct CcbUtilCcbData *ccbutil_createCcbData(SaImmOiCcbIdT id)
+static struct CcbUtilCcbData *ccbutil_createCcbData(SaImmOiCcbIdT ccbId)
 {
 	struct Chunk *clist = newChunk(NULL, CHUNK);
 	struct CcbUtilCcbData *obj = (struct CcbUtilCcbData *)
 	    clistMalloc(clist, sizeof(struct CcbUtilCcbData));
-	obj->id = id;
+	obj->ccbId = ccbId;
 	obj->memref = clist;
 	obj->next = ccbList;
 	ccbList = obj;
 	return obj;
 }
 
-struct CcbUtilCcbData *ccbutil_findCcbData(SaImmOiCcbIdT id)
+struct CcbUtilCcbData *ccbutil_findCcbData(SaImmOiCcbIdT ccbId)
 {
 	struct CcbUtilCcbData *ccbitem = ccbList;
 	while (ccbitem != NULL) {
-		if (ccbitem->id == id)
+		if (ccbitem->ccbId == ccbId)
 			return ccbitem;
 		ccbitem = ccbitem->next;
 	}
 	return NULL;
 }
 
-struct CcbUtilCcbData *ccbutil_getCcbData(SaImmOiCcbIdT id)
+struct CcbUtilCcbData *ccbutil_getCcbData(SaImmOiCcbIdT ccbId)
 {
-	struct CcbUtilCcbData *ccbitem = ccbutil_findCcbData(id);
+	struct CcbUtilCcbData *ccbitem = ccbutil_findCcbData(ccbId);
 	if (ccbitem == NULL)
-		ccbitem = ccbutil_createCcbData(id);
+		ccbitem = ccbutil_createCcbData(ccbId);
 	return ccbitem;
 }
 
@@ -104,7 +104,7 @@ void ccbutil_deleteCcbData(struct CcbUtilCcbData *ccb)
 	if (ccb == NULL)
 		return;
 	while (item != NULL) {
-		if (ccb->id == item->id) {
+		if (ccb->ccbId == item->ccbId) {
 			if (prev == NULL) {
 				ccbList = item->next;
 			} else {
@@ -131,18 +131,23 @@ static struct CcbUtilOperationData *newOperationData(struct CcbUtilCcbData *ccb,
 		ccb->operationListTail->next = operation;
 		ccb->operationListTail = operation;
 	}
+
+	operation->ccbId = ccb->ccbId;
 	return operation;
 }
 
-void ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb,
-				   const SaImmClassNameT className,
-				   const SaNameT *parentName, const SaImmAttrValuesT_2 **attrValues)
+CcbUtilOperationData_t *ccbutil_ccbAddCreateOperation(struct CcbUtilCcbData *ccb,
+	const SaImmClassNameT className,
+	const SaNameT *parentName,
+	const SaImmAttrValuesT_2 **attrValues)
 {
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation = newOperationData(ccb, CCBUTIL_CREATE);
 	operation->param.create.className = dupSaImmClassNameT(clist, className);
 	operation->param.create.parentName = dupSaNameT(clist, parentName);
 	operation->param.create.attrValues = dupSaImmAttrValuesT_array(clist, attrValues);
+	operation->objectName.length = 0;
+	return operation;
 }
 
 void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *objectName)
@@ -150,15 +155,50 @@ void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *ob
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
 	struct CcbUtilOperationData *operation = newOperationData(ccb, CCBUTIL_DELETE);
 	operation->param.deleteOp.objectName = dupSaNameT(clist, objectName);
+	operation->objectName = *objectName;
 }
 
-void ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
+int ccbutil_ccbAddModifyOperation(struct CcbUtilCcbData *ccb,
 				   const SaNameT *objectName, const SaImmAttrModificationT_2 **attrMods)
 {
 	struct Chunk *clist = (struct Chunk *)ccb->memref;
-	struct CcbUtilOperationData *operation = newOperationData(ccb, CCBUTIL_MODIFY);
+	struct CcbUtilOperationData *operation;
+
+	/* Do not allow multiple operations on object in same CCB */
+	if (ccbutil_getCcbOpDataByDN(ccb->ccbId, objectName) != NULL)
+		return -1;
+
+	operation = newOperationData(ccb, CCBUTIL_MODIFY);
 	operation->param.modify.objectName = dupSaNameT(clist, objectName);
+	operation->objectName = *objectName;
 	operation->param.modify.attrMods = dupSaImmAttrModificationT_array(clist, attrMods);
+
+	return 0;
+}
+
+CcbUtilOperationData_t *ccbutil_getNextCcbOp(SaImmOiCcbIdT ccbId, CcbUtilOperationData_t *opData)
+{
+        if (opData == NULL) {
+                CcbUtilCcbData_t *ccb = ccbutil_getCcbData(ccbId);
+                return ccb->operationListHead;
+        }
+        else
+                return opData->next;
+}
+
+CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT ccbId, const SaNameT *dn)
+{
+        CcbUtilOperationData_t *opData = ccbutil_getNextCcbOp(ccbId, NULL);
+
+        while (opData != NULL) {
+                if ((dn->length == opData->objectName.length) &&
+                    (memcmp(dn->value, opData->objectName.value, dn->length) == 0))
+                        break;
+
+                opData = ccbutil_getNextCcbOp(ccbId, opData);
+        }
+
+        return opData;
 }
 
 /* ----------------------------------------------------------------------
@@ -315,9 +355,29 @@ char const *immutil_getStringAttr(const SaImmAttrValuesT_2 **attr, char const *n
 	return NULL;
 }
 
+SaAisErrorT immutil_getAttrValuesNumber(
+	const SaImmAttrNameT attrName, const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber)
+{
+        SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
+        int i;
+
+        if (attr == NULL || attr[0] == NULL)
+                return SA_AIS_ERR_INVALID_PARAM;
+
+        for (i = 0; attr[i] != NULL; i++) {
+                if (strcmp(attr[i]->attrName, attrName) == 0) {
+			*attrValuesNumber = attr[i]->attrValuesNumber;
+                        error = SA_AIS_OK;
+                        break;
+                }
+        }
+
+	return error;
+}
+
 /* note: SA_IMM_ATTR_SASTRINGT is intentionally not supported */
 SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
-    SaImmAttrValuesT_2 **attr, SaUint32T index, void *param)
+	const SaImmAttrValuesT_2 **attr, SaUint32T index, void *param)
 {
         SaAisErrorT error = SA_AIS_ERR_NAME_NOT_FOUND;
         int i;
@@ -359,6 +419,7 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
                                         break;
                                 default:
                                         error = SA_AIS_ERR_INVALID_PARAM;
+					assert(0);
                                         goto done;
                                         break;
                         }
@@ -581,7 +642,7 @@ static SaImmClassNameT dupSaImmClassNameT(struct Chunk *clist, const SaImmClassN
 
 static void copySaImmAttrValuesT(struct Chunk *clist, SaImmAttrValuesT_2 *copy, const SaImmAttrValuesT_2 *original)
 {
-	size_t valueSize;
+	size_t valueSize = 0;
 	unsigned int i, valueCount = original->attrValuesNumber;
 	char *databuffer;
 	copy->attrName = dupStr(clist, (const char *)original->attrName);

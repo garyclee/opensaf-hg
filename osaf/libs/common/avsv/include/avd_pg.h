@@ -30,6 +30,11 @@
 #ifndef AVD_PG_H
 #define AVD_PG_H
 
+#include <avd_node.h>
+#include <avd_csi.h>
+#include <ncsdlib.h>
+#include <avd_susi.h>
+
 /* csi pg node wrapper structure (maintained by csi) */
 typedef struct avd_pg_csi_node {
 	NCS_DB_LINK_LIST_NODE csi_dll_node;	/* csi dll node (key is node ptr) */

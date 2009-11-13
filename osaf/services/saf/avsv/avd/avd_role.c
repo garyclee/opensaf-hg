@@ -34,7 +34,12 @@
  * Module Inclusion Control...
  */
 
+#include <immutil.h>
+
 #include "avd.h"
+#include "avd_imm.h"
+#include "avd_app.h"
+#include "avd_cluster.h"
 
 #define PRINT_ROLE(role)\
 {\
@@ -213,7 +218,7 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 \**************************************************************************/
 static uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uns32 status = NCSCC_RC_FAILURE;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_init_role_set");
 	PRINT_ROLE(role);
@@ -241,18 +246,94 @@ static uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 	cb->avail_state_avd = role;
 	cb->role_set = TRUE;
 
-	if (cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
-		status = avd_mab_snd_warmboot_req(cb);
-		cb->init_phase_tmr.cfg_tmr.cb_hdl = cb->cb_handle;
-		cb->init_phase_tmr.cfg_tmr.is_active = FALSE;
-		cb->init_phase_tmr.cfg_tmr.type = AVD_TMR_CFG;
-		avd_start_tmr(cb, &cb->init_phase_tmr.cfg_tmr, AVD_CFG_TMR_INTVL);
+	if ((role == SA_AMF_HA_ACTIVE) &&
+	    ((status = avd_imm_config_get()) == NCSCC_RC_SUCCESS) &&
+	    (avd_imm_impl_set() == SA_AIS_OK)) {
+		cb->init_state = AVD_CFG_DONE;
+		{
+			SaNameT su_name;
+                        AVD_SU  *avd_su = NULL;
+			memset(&su_name, '\0', sizeof(SaNameT));
+			/* Set runtime cached attributes. */
+			/* saAmfSUPreInstantiable and saAmfSUHostedByNode. */
+			avd_su = avd_su_getnext(&su_name);
+			while (avd_su != NULL) {
+				avd_saImmOiRtObjectUpdate(&avd_su->name,
+						"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T, 
+						&avd_su->saAmfSUPreInstantiable);
 
-		cb->init_state = AVD_CFG_READY;
-		cb->num_cfg_msgs = 0;
+				avd_saImmOiRtObjectUpdate(&avd_su->name,
+						"saAmfSUHostedByNode", SA_IMM_ATTR_SANAMET, 
+						&avd_su->saAmfSUHostedByNode);
+
+				avd_saImmOiRtObjectUpdate(&avd_su->name,
+						"saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T, 
+						&avd_su->saAmfSUPresenceState);
+
+				avd_saImmOiRtObjectUpdate(&avd_su->name,
+						"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T, 
+						&avd_su->saAmfSUOperState);
+
+				avd_saImmOiRtObjectUpdate(&avd_su->name,
+						"saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T, 
+						&avd_su->saAmfSuReadinessState);
+
+				avd_su = avd_su_getnext(&avd_su->name);
+			}
+		}
+
+		{
+			SaNameT comp_name;
+                        AVD_COMP  *avd_comp = NULL;
+			memset(&comp_name, '\0', sizeof(SaNameT));
+			/* Set Component Class runtime cached attributes. */
+			avd_comp = avd_comp_getnext(&comp_name);
+			while (avd_comp != NULL) {
+				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
+						"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompReadinessState);
+
+				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
+						"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompOperState);
+
+				avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
+						"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompPresenceState);
+
+				avd_comp = avd_comp_getnext(&avd_comp->comp_info.name);
+			}
+
+		}
+
+		{
+			SaNameT node_name;
+                        AVD_AVND  *avd_avnd = NULL;
+			memset(&node_name, '\0', sizeof(SaNameT));
+			/* Set Node Class runtime cached attributes. */
+			avd_avnd = avd_node_getnext(&node_name);
+			while (avd_avnd != NULL) {
+				avd_saImmOiRtObjectUpdate(&avd_avnd->node_info.nodeName, "saAmfNodeOperState",
+						SA_IMM_ATTR_SAUINT32T, &avd_avnd->saAmfNodeOperState);
+
+				avd_avnd = avd_node_getnext(&avd_avnd->node_info.nodeName);
+			}
+		}
+
+		{
+			SaNameT si_name;
+                        AVD_SI  *avd_si = NULL;
+			memset(&si_name, '\0', sizeof(SaNameT));
+			/* Set Node Class runtime cached attributes. */
+			avd_si = avd_si_getnext(&si_name);
+			while (avd_si != NULL) {
+				avd_saImmOiRtObjectUpdate(&avd_si->name, "saAmfSIAssignmentState",
+						SA_IMM_ATTR_SAUINT32T, &avd_si->saAmfSIAssignmentState);
+
+				avd_si = avd_si_getnext(&avd_si->name);
+			}
+		}
+
 	}
 
- done:
+done:
 	return status;
 }
 
@@ -274,7 +355,7 @@ static uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 \**************************************************************************/
 static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	AVD_AVND *avnd = AVD_AVND_NULL;
 	AVD_AVND *avnd_other = AVD_AVND_NULL;
 	SaClmNodeIdT node_id = 0;
@@ -289,13 +370,13 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 	}
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd))) {
+	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd_other = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other))) {
+	if (AVD_AVND_NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 		m_AVD_LOG_INVALID_VAL_ERROR(cb->node_id_avd_other);
 		return NCSCC_RC_FAILURE;
 	}
@@ -319,7 +400,7 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 	cb->avail_state_avd = SA_AMF_HA_QUIESCED;
 
 	/* if no NCS Su's are present, go ahead and set mds role */
-	if (avnd->list_of_ncs_su == AVD_SU_NULL) {
+	if (avnd->list_of_ncs_su == NULL) {
 		uns32 rc = NCSCC_RC_SUCCESS;
 		if (NCSCC_RC_SUCCESS != (rc = avd_mds_set_vdest_role(cb, SA_AMF_HA_QUIESCED))) {
 			m_AVD_LOG_INVALID_VAL_FATAL(rc);
@@ -337,14 +418,19 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 	}
 
 	/*  Send Quiesced to all Active NCS Su's having 2N redun model, present in this node */
-	for (i_su = avnd->list_of_ncs_su; i_su != AVD_SU_NULL; i_su = i_su->avnd_list_su_next) {
+	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 		if ((i_su->list_of_susi != 0) && (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE) &&
-		    (i_su->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_2N))
+		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL))
 			avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_QUIESCED);
 	}
 
+	/* Give up our IMM OI implementer role */
+	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
+	cb->impl_set = FALSE;
+
+
 	/* Walk through all the nodes and stop AvND rcv HeartBeat. */
-	while (NULL != (avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor, (uns8 *)&node_id))) {
+	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
 		node_id = avnd->node_info.nodeId;
 
 		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
@@ -395,7 +481,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (AVD_AVND_NULL == (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd))) {
+	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, DB not found\n");
 		syslog(LOG_ERR, "NCS_AvSv: FAILOVER StandBy --> Active FAILED, DB not found");
@@ -459,6 +545,12 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	cb->node_id_avd_other = 0;
 
+	if (avd_imm_config_get() != NCSCC_RC_SUCCESS)
+		return NCSCC_RC_FAILURE;
+
+	if (avd_imm_impl_set() != SA_AIS_OK)
+		return NCSCC_RC_FAILURE;
+
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -504,7 +596,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (AVD_AVND_NULL == (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd))) {
+	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 		m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, DB not found\n");
 		syslog(LOG_ERR, "NCS_AvSv: FAILOVER Quiesced --> Active FAILED, DB not found");
@@ -544,7 +636,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			cb->avail_state_avd = role;
 			avd_role_switch_ncs_su(cb, &evt);
 
-			if (AVD_AVND_NULL != (avnd_other = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other))) {
+			if (AVD_AVND_NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				/* We are successfully changed role to Active.
 				   do node down processing for other node */
 				avd_avm_mark_nd_absent(cb, avnd_other);
@@ -597,7 +689,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Post an evt on mailbox to set active role to all NCS SU */
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -618,7 +710,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
 		/* log error */
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED\n");
 		syslog(LOG_ERR, "NCS_AvSv: FAILOVER Quiesced --> Active FAILED, IPC SEND FAILED");
 
@@ -632,6 +724,11 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	avd_avm_node_reset_rsp(cb, cb->node_id_avd_other);
 
 	cb->node_id_avd_other = 0;
+
+	if (avd_imm_config_get() != NCSCC_RC_SUCCESS)
+		return NCSCC_RC_FAILURE;
+
+	avd_imm_impl_set_task_create();
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -654,19 +751,19 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = AVD_AVND_NULL;
-	AVD_SU *i_su = AVD_SU_NULL;
+	AVD_SU *i_su = NULL;
 	AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO assign;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_role_switch_ncs_su");
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd))) {
+	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		return;
 	}
 
 	/* if we are not having any NCS SU's just jump to next level */
-	if ((avnd->list_of_ncs_su == AVD_SU_NULL) && (cb->role_switch == SA_TRUE)) {
+	if ((avnd->list_of_ncs_su == NULL) && (cb->role_switch == SA_TRUE)) {
 		memset(&assign, 0, sizeof(AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO));
 		assign.ha_state = SA_AMF_HA_ACTIVE;
 		assign.error = NCSCC_RC_SUCCESS;
@@ -674,9 +771,9 @@ void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	for (i_su = avnd->list_of_ncs_su; i_su != AVD_SU_NULL; i_su = i_su->avnd_list_su_next) {
+	for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 		if ((i_su->list_of_susi != 0) &&
-		    (i_su->sg_of_su->su_redundancy_model == AVSV_SG_RED_MODL_2N) &&
+		    (i_su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
 		    (i_su->list_of_susi->state != SA_AMF_HA_ACTIVE)) {
 			if (cb->role_switch == SA_TRUE) {
 				avd_sg_su_si_mod_snd(cb, i_su, SA_AMF_HA_ACTIVE);
@@ -779,7 +876,7 @@ static uns32 avd_role_switch_stdby_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Post an evt on mailbox to set active role to all NCS SU */
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -800,7 +897,7 @@ static uns32 avd_role_switch_stdby_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
 		/* log error */
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 
 		m_NCS_DBG_PRINTF("\nAvSv: Switchover Standby --> Active FAILED, IPC send failed\n");
 		syslog(LOG_ERR, "NCS_AvSv: Switchover Standby --> Active FAILED, IPC send failed");
@@ -887,7 +984,7 @@ static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB *cb, SaAmfHAStateT role)
 	node_id = 0;
 
 	/* Walk through all the nodes and  free PG records. */
-	while (NULL != (avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&cb->avnd_anchor, (uns8 *)&node_id))) {
+	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
 		node_id = avnd->node_info.nodeId;
 		avd_pg_node_csi_del_all(cb, avnd);
 	}

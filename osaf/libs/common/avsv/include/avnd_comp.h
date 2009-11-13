@@ -33,6 +33,7 @@
 struct avnd_cb_tag;
 struct avnd_su_si_rec;
 struct avnd_su_tag;
+struct avnd_srm_req_tag;
 
 /***************************************************************************
  **********  S T R U C T U R E / E N U M  D E F I N I T I O N S  ***********
@@ -83,7 +84,7 @@ typedef enum avnd_comp_clc_cmd_type {
 
 /* clc command parameter definition */
 typedef struct avnd_comp_clc_param {
-	uns8 cmd[SAAMF_CLC_LEN];	/* cmd ascii string */
+	char cmd[SAAMF_CLC_LEN];	/* cmd ascii string */
 	SaTimeT timeout;	/* cmd timeout value */
 	uns32 len;		/* cmd len */
 } AVND_COMP_CLC_CMD_PARAM;
@@ -99,6 +100,8 @@ typedef struct avnd_comp_clc_info {
 
 	uns32 am_start_retry_max;	/* configured no of AM_START retry attempts */
 	uns32 am_start_retry_cnt;	/* curr no of AM_START retry attempts */
+
+	uns32 saAmfCompNumMaxAmStopAttempts;
 
 	/* 
 	 * current command execution info (note that a comp has only 
@@ -138,7 +141,7 @@ typedef struct avnd_cbk_tag {
 	/* link to other elements */
 	struct avnd_comp_tag *comp;	/* bk ptr to the comp */
 	struct avnd_cbk_tag *next;
-	SaNameT comp_name_net;	/* For checkpointing */
+	SaNameT comp_name;	/* For checkpointing */
 } AVND_COMP_CBK;
 
 /*##########################################################################
@@ -162,13 +165,11 @@ typedef AVSV_SUSI_ASGN AVND_COMP_CSI_PARAM;
 typedef struct avnd_comp_csi_rec {
 	NCS_DB_LINK_LIST_NODE si_dll_node;	/* node in the si dll */
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-csi dll */
-	SaNameT name_net;	/* csi name */
+	SaNameT name;	/* csi name */
 	uns32 rank;		/* csi rank */
 
-	uns32 mab_hdl;		/* mab hdl for this csi */
-
 	/* state info */
-	SaNameT act_comp_name_net;	/* active comp name */
+	SaNameT act_comp_name;	/* active comp name */
 	SaAmfCSITransitionDescriptorT trans_desc;	/* transition descriptor */
 	uns32 standby_rank;	/* standby rank */
 	NCS_AVSV_CSI_ATTRS attrs;	/* list of attributes */
@@ -180,9 +181,9 @@ typedef struct avnd_comp_csi_rec {
 	/* links to other entities */
 	struct avnd_comp_tag *comp;	/* bk ptr to the comp */
 	struct avnd_su_si_rec *si;	/* bk ptr to the si record */
-	SaNameT comp_name_net;	/* For Checkpointing */
-	SaNameT si_name_net;	/* For Checkpointing */
-	SaNameT su_name_net;	/* For Checkpointing */
+	SaNameT comp_name;	/* For Checkpointing */
+	SaNameT si_name;	/* For Checkpointing */
+	SaNameT su_name;	/* For Checkpointing */
 
 } AVND_COMP_CSI_REC;
 
@@ -231,13 +232,14 @@ typedef struct avnd_hc_rec_tag {
 
 	struct avnd_comp_tag *comp;	/* back ptr to the comp */
 	struct avnd_hc_rec_tag *next;
-	SaNameT comp_name_net;	/* For checkpoiting */
+	SaNameT comp_name;	/* For checkpoiting */
 } AVND_COMP_HC_REC;
 
 /* Passive Monitoring Info */
 typedef struct avnd_pm_rec {
 	NCS_DB_LINK_LIST_NODE comp_dll_node;	/* node in the comp-pm dll  */
 	SaUint64T pid;		/* pid of the prc that is being monitored (index) */
+	uns32 rsrc_hdl;		/* hdl returned by srmsv for this request */
 	SaAmfHandleT req_hdl;	/* AMF handle value */
 
 	/* pm info */
@@ -273,16 +275,16 @@ typedef struct avnd_comp_tag {
 	NCS_PATRICIA_NODE tree_node;	/* comp tree node (key is comp name) */
 	NCS_DB_LINK_LIST_NODE su_dll_node;	/* su dll node (key is inst-level) */
 
-	SaNameT name_net;	/* comp name */
+	SaNameT name;	/* comp name */
+	SaNameT saAmfCompType;
 	uns32 inst_level;	/* comp instantiation level */
 
-	uns32 mab_hdl;		/* mab handle for this comp */
 	uns32 comp_hdl;		/* hdl returned by hdl-mngr */
 
 	/* component attributes */
 	uns32 flag;		/* comp attributes */
 	NCS_BOOL is_restart_en;	/* flag to indicate if comp-restart is allowed */
-	NCS_COMP_CAPABILITY_MODEL cap;	/* comp capability model */
+	saAmfCompCapabilityModelT cap;	/* comp capability model */
 	NCS_BOOL is_am_en;
 
 	/* clc info */
@@ -297,8 +299,8 @@ typedef struct avnd_comp_tag {
 	MDS_DEST reg_dest;	/* mds dest of the registering prc */
 
 	/* component states */
-	NCS_OPER_STATE oper;	/* operational state */
-	NCS_PRES_STATE pres;	/* presence state */
+	SaAmfOperationalStateT oper;	/* operational state */
+	SaAmfPresenceStateT pres;	/* presence state */
 
 	/* 
 	 * component request info (healthcheck, passive 
@@ -338,7 +340,7 @@ typedef struct avnd_comp_tag {
 	MDS_SYNC_SND_CTXT mds_ctxt;
 	NCS_BOOL reg_resp_pending;	/* If the reg resp is pending from 
 					   proxied comp AvND, it TRUE. */
-	SaNameT proxy_comp_name_net;	/* Used for Checkpointing. */
+	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
 
 } AVND_COMP;
 
@@ -350,29 +352,29 @@ typedef struct avnd_comp_tag {
 
 /* macros for comp oper state */
 #define m_AVND_COMP_OPER_STATE_IS_ENABLED(x) \
-                      ((NCS_OPER_STATE_ENABLE == (x)->oper))
+                      ((SA_AMF_OPERATIONAL_ENABLED == (x)->oper))
 #define m_AVND_COMP_OPER_STATE_IS_DISABLED(x) \
-                      ((NCS_OPER_STATE_DISABLE == (x)->oper))
+                      ((SA_AMF_OPERATIONAL_DISABLED == (x)->oper))
 #define m_AVND_COMP_OPER_STATE_SET(x, val)  (((x)->oper = val))
 
 /* macros to manage the presence state */
 #define m_AVND_COMP_PRES_STATE_SET(x, val)  ((x)->pres = val)
 #define m_AVND_COMP_PRES_STATE_IS_UNINSTANTIATED(x) \
-           ( NCS_PRES_UNINSTANTIATED == (x)->pres )
+           ( SA_AMF_PRESENCE_UNINSTANTIATED == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_INSTANTIATED(x) \
-           ( NCS_PRES_INSTANTIATED == (x)->pres )
+           ( SA_AMF_PRESENCE_INSTANTIATED == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_INSTANTIATING(x) \
-           ( NCS_PRES_INSTANTIATING == (x)->pres )
+           ( SA_AMF_PRESENCE_INSTANTIATING == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_RESTARTING(x) \
-           ( NCS_PRES_RESTARTING == (x)->pres )
+           ( SA_AMF_PRESENCE_RESTARTING == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_ORPHANED(x) \
-           ( NCS_PRES_ORPHANED == (x)->pres )
+           ( SA_AMF_PRESENCE_ORPHANED == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_TERMINATING(x) \
-           ( NCS_PRES_TERMINATING == (x)->pres )
+           ( SA_AMF_PRESENCE_TERMINATING == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_INSTANTIATIONFAILED(x) \
-           ( NCS_PRES_INSTANTIATIONFAILED == (x)->pres )
+           ( SA_AMF_PRESENCE_INSTANTIATION_FAILED == (x)->pres )
 #define m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(x) \
-           ( NCS_PRES_TERMINATIONFAILED == (x)->pres )
+           ( SA_AMF_PRESENCE_TERMINATION_FAILED == (x)->pres )
 
 /* pre-configured comp type values */
 #define AVND_COMP_TYPE_LOCAL           0x00000001
@@ -522,17 +524,17 @@ typedef struct avnd_comp_tag {
             ( (x) ? ((AVND_COMP_CSI_REC *)(((uns8 *)(x)) - m_AVND_CSI_COMP_DLL_NODE_OFFSET)) : 0 )
 
 /* macro to get a component record from comp-db */
-#define m_AVND_COMPDB_REC_GET(compdb, name_net) \
-   (AVND_COMP *)ncs_patricia_tree_get(&(compdb), (uns8 *)&(name_net))
+#define m_AVND_COMPDB_REC_GET(compdb, name) \
+   (AVND_COMP *)ncs_patricia_tree_get(&(compdb), (uns8 *)&(name))
 
 /* macro to get the next component record from comp-db */
-#define m_AVND_COMPDB_REC_GET_NEXT(compdb, name_net) \
-   (AVND_COMP *)ncs_patricia_tree_getnext(&(compdb), (uns8 *)&(name_net))
+#define m_AVND_COMPDB_REC_GET_NEXT(compdb, name) \
+   (AVND_COMP *)ncs_patricia_tree_getnext(&(compdb), (uns8 *)&(name))
 
 /* macro to add a csi record to the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_ADD(comp, csi, rc) \
 { \
-   (csi).comp_dll_node.key = (uns8 *)&(csi).name_net; \
+   (csi).comp_dll_node.key = (uns8 *)&(csi).name; \
    (rc) = ncs_db_link_list_add(&(comp).csi_list, &(csi).comp_dll_node); \
 };
 
@@ -541,9 +543,9 @@ typedef struct avnd_comp_tag {
            ncs_db_link_list_delink(&(comp).csi_list, &(csi).comp_dll_node);
 
 /* macro to get a csi record from the comp-csi list */
-#define m_AVND_COMPDB_REC_CSI_GET(comp, csi_name_net) \
+#define m_AVND_COMPDB_REC_CSI_GET(comp, csi_name) \
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET(ncs_db_link_list_find(&(comp).csi_list, \
-                                                 (uns8 *)&(csi_name_net)))
+                                                 (uns8 *)&(csi_name)))
 
 /* macro to get the first csi record from the comp-csi list */
 #define m_AVND_COMPDB_REC_CSI_GET_FIRST(comp) \
@@ -554,7 +556,7 @@ typedef struct avnd_comp_tag {
            m_AVND_CSI_REC_FROM_COMP_DLL_NODE_GET( \
               m_NCS_DBLIST_FIND_NEXT( \
                  ncs_db_link_list_find(&(comp).csi_list, \
-                                       (uns8 *)&((csi).name_net)) \
+                                       (uns8 *)&((csi).name)) \
                                     ) \
                                            )
 
@@ -587,13 +589,13 @@ typedef struct avnd_comp_tag {
 { \
    AVSV_PARAM_INFO param; \
    memset(&param, 0, sizeof(AVSV_PARAM_INFO)); \
-   param.table_id = NCSMIB_TBL_AVSV_AMF_COMP; \
-   param.obj_id = saAmfCompOperState_ID; \
-   param.name_net = (comp)->name_net; \
+   param.class_id = AVSV_SA_AMF_COMP; \
+   param.attr_id = saAmfCompOperState_ID; \
+   param.name = (comp)->name; \
    param.act = AVSV_OBJ_OPR_MOD; \
    *((uns32 *)param.value) = m_NCS_OS_HTONL((comp)->oper); \
    param.value_len = sizeof(uns32); \
-   (o_rc) = avnd_di_mib_upd_send((cb), &param); \
+   (o_rc) = avnd_di_object_upd_send((cb), &param); \
 };
 
 /* macro to parse the clc cmd string */
@@ -631,7 +633,7 @@ typedef struct avnd_comp_tag {
 #define m_AVND_AMF_HC_CBK_FILL(cbk, cn, hck) \
 { \
    (cbk).type = AVSV_AMF_HC; \
-   (cbk).param.hc.comp_name_net = (cn); \
+   (cbk).param.hc.comp_name = (cn); \
    (cbk).param.hc.hc_key = (hck); \
 }
 
@@ -639,14 +641,14 @@ typedef struct avnd_comp_tag {
 #define m_AVND_AMF_COMP_TERM_CBK_FILL(cbk, cn) \
 { \
    (cbk).type = AVSV_AMF_COMP_TERM; \
-   (cbk).param.comp_term.comp_name_net = (cn); \
+   (cbk).param.comp_term.comp_name = (cn); \
 }
 
 /* macro to populate the 'csi set' callback params */
 #define m_AVND_AMF_CSI_SET_CBK_FILL(cbk, cn, has, csid, at) \
 { \
    (cbk).type = AVSV_AMF_CSI_SET; \
-   (cbk).param.csi_set.comp_name_net = (cn); \
+   (cbk).param.csi_set.comp_name = (cn); \
    (cbk).param.csi_set.ha = (has); \
    (cbk).param.csi_set.csi_desc = (csid); \
    (cbk).param.csi_set.attrs = (at); \
@@ -656,8 +658,8 @@ typedef struct avnd_comp_tag {
 #define m_AVND_AMF_CSI_REM_CBK_FILL(cbk, cn, csn, csf) \
 { \
    (cbk).type = AVSV_AMF_CSI_REM; \
-   (cbk).param.csi_rem.comp_name_net = (cn); \
-   (cbk).param.csi_rem.csi_name_net = (csn); \
+   (cbk).param.csi_rem.comp_name = (cn); \
+   (cbk).param.csi_rem.csi_name = (csn); \
    (cbk).param.csi_rem.csi_flags = (csf); \
 }
 
@@ -665,14 +667,14 @@ typedef struct avnd_comp_tag {
 #define m_AVND_AMF_PXIED_COMP_INST_CBK_FILL(cbk, cn) \
 { \
    (cbk).type = AVSV_AMF_PXIED_COMP_INST; \
-   (cbk).param.comp_term.comp_name_net = (cn); \
+   (cbk).param.comp_term.comp_name = (cn); \
 }
 
 /* macro to populate the 'proxied cleanup' callback params */
 #define m_AVND_AMF_PXIED_COMP_CLEAN_CBK_FILL(cbk, cn) \
 { \
    (cbk).type = AVSV_AMF_PXIED_COMP_CLEAN; \
-   (cbk).param.comp_term.comp_name_net = (cn); \
+   (cbk).param.comp_term.comp_name = (cn); \
 }
 
 /*****************************************************************************
@@ -796,30 +798,15 @@ EXTERN_C uns32 avnd_comp_csi_qscd_assign_fail_prc(struct avnd_cb_tag *, AVND_COM
 
 EXTERN_C uns32 avnd_comp_curr_info_del(struct avnd_cb_tag *, AVND_COMP *);
 
-EXTERN_C uns32 ncsscomptableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 ncsscomptableentry_extract(NCSMIB_PARAM_VAL *param,
-					  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 ncsscomptableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncsscomptableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 ncsscomptableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					 NCSMIB_SETROW_PARAM_VAL *params,
-					 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
-EXTERN_C uns32 ncsscomptableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
-EXTERN_C uns32 saamfscompcsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfscompcsitableentry_extract(NCSMIB_PARAM_VAL *param,
-					       NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfscompcsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					   NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfscompcsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					    NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfscompcsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					      NCSMIB_SETROW_PARAM_VAL *params,
-					      struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
 
 EXTERN_C uns32 avnd_comp_clc_cmd_execute(struct avnd_cb_tag *, AVND_COMP *, AVND_COMP_CLC_CMD_TYPE);
-EXTERN_C uns32 saamfscompcsitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
+
+EXTERN_C uns32 avnd_srm_req_list_init(struct avnd_cb_tag *);
+EXTERN_C uns32 avnd_srm_req_list_destroy(struct avnd_cb_tag *);
+EXTERN_C struct avnd_srm_req_tag *avnd_srm_req_add(struct avnd_cb_tag *, uns32, struct avnd_pm_rec *);
+EXTERN_C uns32 avnd_srm_req_del(struct avnd_cb_tag *, uns32);
+EXTERN_C struct avnd_srm_req_tag *avnd_srm_req_get(struct avnd_cb_tag *, uns32);
+EXTERN_C uns32 avnd_srm_req_free(NCS_DB_LINK_LIST_NODE *);
 
 EXTERN_C void avnd_pm_list_init(AVND_COMP *);
 EXTERN_C uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *);
@@ -856,5 +843,8 @@ EXTERN_C AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,
 						      AVND_COMP *comp,
 						      AVSV_AMF_HC_START_PARAM *hc_start, MDS_DEST *dest);
 EXTERN_C void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
+
+extern uns32 avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
+extern SaAisErrorT avnd_comp_config_get_su(struct avnd_su_tag *su);
 
 #endif   /* !AVND_COMP_H */

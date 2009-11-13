@@ -34,8 +34,6 @@
 
 #include "avnd.h"
 
-#if ( NCS_AVND_LOG == 1 )
-
 void _avnd_log(uns8 severity, const char *function, const char *format, ...)
 {
         char preamble[128];
@@ -302,13 +300,13 @@ void avnd_log_clm_db(AVND_LOG_CLM_DB op, AVND_LOG_CLM_DB status, SaClmNodeIdT no
  *****************************************************************************/
 void avnd_log_pg_db(AVND_LOG_PG_DB op, AVND_LOG_PG_DB status, SaNameT *csi_name, uns8 sev)
 {
-	uns8 csi[SA_MAX_NAME_LENGTH];
+	char csi[SA_MAX_NAME_LENGTH];
 
 	memset(csi, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (csi_name)
-		strncpy(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
+		strncpy(csi, (char*)csi_name->value, csi_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_PG_DB, AVND_FC_PG_DB,
 		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIC, op, status, csi);
@@ -333,18 +331,18 @@ void avnd_log_pg_db(AVND_LOG_PG_DB op, AVND_LOG_PG_DB status, SaNameT *csi_name,
  *****************************************************************************/
 void avnd_log_su_db(AVND_LOG_SU_DB op, AVND_LOG_SU_DB status, SaNameT *su_name, SaNameT *si_name, uns8 sev)
 {
-	uns8 su[SA_MAX_NAME_LENGTH];
-	uns8 si[SA_MAX_NAME_LENGTH];
+	char su[SA_MAX_NAME_LENGTH];
+	char si[SA_MAX_NAME_LENGTH];
 
 	memset(su, '\0', SA_MAX_NAME_LENGTH);
 	memset(si, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (su_name)
-		strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+		strncpy(su, (char*)su_name->value, su_name->length);
 
 	if (si_name)
-		strncpy(si, si_name->value, m_NCS_OS_NTOHS(si_name->length));
+		strncpy(si, (char*)si_name->value, si_name->length);
 
 	if ((AVND_LOG_SU_DB_SI_ADD == op) ||
 	    (AVND_LOG_SU_DB_SI_DEL == op) || (AVND_LOG_SU_DB_SI_ASSIGN == op) || (AVND_LOG_SU_DB_SI_REMOVE == op)) {
@@ -375,18 +373,18 @@ void avnd_log_su_db(AVND_LOG_SU_DB op, AVND_LOG_SU_DB status, SaNameT *su_name, 
  *****************************************************************************/
 void avnd_log_comp_db(AVND_LOG_COMP_DB op, AVND_LOG_COMP_DB status, SaNameT *comp_name, SaNameT *csi_name, uns8 sev)
 {
-	uns8 comp[SA_MAX_NAME_LENGTH];
-	uns8 csi[SA_MAX_NAME_LENGTH];
+	char comp[SA_MAX_NAME_LENGTH];
+	char csi[SA_MAX_NAME_LENGTH];
 
 	memset(comp, '\0', SA_MAX_NAME_LENGTH);
 	memset(csi, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (comp_name)
-		strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+		strncpy(comp, (char*)comp_name->value, comp_name->length);
 
 	if (csi_name)
-		strncpy(csi, csi_name->value, m_NCS_OS_NTOHS(csi_name->length));
+		strncpy(csi, (char*)csi_name->value, csi_name->length);
 
 	if ((AVND_LOG_COMP_DB_CSI_ADD == op) ||
 	    (AVND_LOG_COMP_DB_CSI_DEL == op) ||
@@ -420,15 +418,17 @@ void avnd_log_comp_db(AVND_LOG_COMP_DB op, AVND_LOG_COMP_DB status, SaNameT *com
   Notes         : None.
  *****************************************************************************/
 void avnd_pxy_pxd_log(uns32 sev,
-		      uns32 index, uns8 *info, SaNameT *comp_name, uns32 info1, uns32 info2, uns32 info3, uns32 info4)
+		      uns32 index, char *info, SaNameT *comp_name, uns32 info1, uns32 info2, uns32 info3, uns32 info4)
 {
-	uns8 comp[SA_MAX_NAME_LENGTH];
+	char comp[SA_MAX_NAME_LENGTH];
 
 	memset(comp, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (comp_name)
-		strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+	if (comp_name) {
+		assert(comp_name->length <= SA_MAX_NAME_LENGTH);
+		strncpy(comp, (char*)comp_name->value, SA_MAX_NAME_LENGTH);
+	}
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, (uns8)AVND_AVND_MSG, (uns8)AVND_FC_AVND_MSG,
 		   NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info, comp, info1, info2, info3, info4);
@@ -451,13 +451,13 @@ void avnd_pxy_pxd_log(uns32 sev,
  *****************************************************************************/
 void avnd_log_hc_db(AVND_LOG_HC_DB op, AVND_LOG_HC_DB status, SaAmfHealthcheckKeyT *hc_key, uns8 sev)
 {
-	uns8 key[SA_AMF_HEALTHCHECK_KEY_MAX];
+	char key[SA_AMF_HEALTHCHECK_KEY_MAX];
 
 	memset(key, '\0', SA_AMF_HEALTHCHECK_KEY_MAX);
 
 	/* convert key into string format */
 	if (hc_key)
-		strncpy(key, hc_key->key, hc_key->keyLen);
+		strncpy(key, (char*)hc_key->key, hc_key->keyLen);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_HC_DB, AVND_FC_HC_DB,
 		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIC, op, status, key);
@@ -473,22 +473,22 @@ void avnd_log_hc_db(AVND_LOG_HC_DB op, AVND_LOG_HC_DB status, SaAmfHealthcheckKe
   Arguments     : op          - fsm operation
                   st          - fsm state
                   ev          - fsm event
-                  su_name_net - ptr to the su name
+                  su_name - ptr to the su name
                   sev         - severity
  
   Return Values : None
  
   Notes         : None.
  *****************************************************************************/
-void avnd_log_su_fsm(AVND_LOG_SU_FSM op, NCS_PRES_STATE st, AVND_SU_PRES_FSM_EV ev, SaNameT *su_name_net, uns8 sev)
+void avnd_log_su_fsm(AVND_LOG_SU_FSM op, SaAmfPresenceStateT st, int ev, SaNameT *su_name, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+	char name[SA_MAX_NAME_LENGTH];
 
 	memset(name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (su_name_net)
-		strncpy(name, su_name_net->value, m_NCS_OS_NTOHS(su_name_net->length));
+	if (su_name)
+		strncpy(name, (char*)su_name->value, su_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_SU_FSM, AVND_FC_SU_FSM,
 		   NCSFL_LC_STATE_MCH, sev, NCSFL_TYPE_TIIIC, op, (st - 1),
@@ -505,7 +505,7 @@ void avnd_log_su_fsm(AVND_LOG_SU_FSM op, NCS_PRES_STATE st, AVND_SU_PRES_FSM_EV 
   Arguments     : op            - fsm operation
                   st            - fsm state
                   ev            - fsm event
-                  comp_name_net - ptr to the comp name
+                  comp_name - ptr to the comp name
                   sev           - severity
  
   Return Values : None
@@ -513,15 +513,15 @@ void avnd_log_su_fsm(AVND_LOG_SU_FSM op, NCS_PRES_STATE st, AVND_SU_PRES_FSM_EV 
   Notes         : None.
  *****************************************************************************/
 void avnd_log_comp_fsm(AVND_LOG_COMP_FSM op,
-		       NCS_PRES_STATE st, AVND_COMP_CLC_PRES_FSM_EV ev, SaNameT *comp_name_net, uns8 sev)
+		       SaAmfPresenceStateT st, int ev, SaNameT *comp_name, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+	char name[SA_MAX_NAME_LENGTH];
 
 	memset(name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (comp_name_net)
-		strncpy(name, comp_name_net->value, m_NCS_OS_NTOHS(comp_name_net->length));
+	if (comp_name)
+		strncpy(name, (char*)comp_name->value, comp_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_COMP_FSM, AVND_FC_COMP_FSM,
 		   NCSFL_LC_STATE_MCH, sev, NCSFL_TYPE_TIIIC, op, (st - 1),
@@ -537,22 +537,22 @@ void avnd_log_comp_fsm(AVND_LOG_COMP_FSM op,
                   
   Arguments     : src          - source 
                   rec          - recovery
-                  comp_name_net - ptr to the comp name
+                  comp_name - ptr to the comp name
                   sev           - severity
  
   Return Values : None
  
   Notes         : None.
  *****************************************************************************/
-void avnd_log_err(AVND_LOG_ERR src, AVND_LOG_ERR rec, SaNameT *comp_name_net, uns8 sev)
+void avnd_log_err(AVND_LOG_ERR src, AVND_LOG_ERR rec, SaNameT *comp_name, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+	char name[SA_MAX_NAME_LENGTH];
 
 	memset(name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (comp_name_net)
-		strncpy(name, comp_name_net->value, m_NCS_OS_NTOHS(comp_name_net->length));
+	if (comp_name)
+		strncpy(name, (char*)comp_name->value, comp_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_ERR, AVND_FC_ERR,
 		   NCSFL_LC_HEADLINE, sev, NCSFL_TYPE_TIIC, src, rec, name);
@@ -575,13 +575,13 @@ void avnd_log_err(AVND_LOG_ERR src, AVND_LOG_ERR rec, SaNameT *comp_name_net, un
  *****************************************************************************/
 void avnd_log_misc(AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+	char name[SA_MAX_NAME_LENGTH];
 
 	memset(name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (sa_name)
-		strncpy(name, sa_name->value, m_NCS_OS_NTOHS(sa_name->length));
+		strncpy(name, (char*)sa_name->value, sa_name->length);
 
 	if (!sa_name) {
 		ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_MISC1, AVND_FC_MISC,
@@ -610,13 +610,13 @@ void avnd_log_misc(AVND_LOG_MISC op, SaNameT *sa_name, uns8 sev)
  *****************************************************************************/
 void avnd_log_clc_ntfs(AVND_LOG_NTF op, AVND_LOG_NTF status, SaNameT *comp_name, uns8 sev)
 {
-	uns8 comp[SA_MAX_NAME_LENGTH];
+	char comp[SA_MAX_NAME_LENGTH];
 
 	memset(comp, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (comp_name)
-		strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+		strncpy(comp, (char*)comp_name->value, comp_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_CLC, AVND_FC_NTF,
 		   NCSFL_LC_HEADLINE, sev, "TCII", comp, op, status);
@@ -639,13 +639,13 @@ void avnd_log_clc_ntfs(AVND_LOG_NTF op, AVND_LOG_NTF status, SaNameT *comp_name,
  *****************************************************************************/
 void avnd_log_su_oper_state_ntfs(AVND_LOG_OPER_STATE state, SaNameT *su_name, uns8 sev)
 {
-	uns8 su[SA_MAX_NAME_LENGTH];
+	char su[SA_MAX_NAME_LENGTH];
 
 	memset(su, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (su_name)
-		strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+		strncpy(su, (char*)su_name->value, su_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_OPER_STAT, AVND_FC_OPER,
 		   NCSFL_LC_HEADLINE, sev, "TCI", su, state);
@@ -668,13 +668,13 @@ void avnd_log_su_oper_state_ntfs(AVND_LOG_OPER_STATE state, SaNameT *su_name, un
  *****************************************************************************/
 void avnd_log_su_pres_state_ntfs(AVND_LOG_PRES_STATE state, SaNameT *su_name, uns8 sev)
 {
-	uns8 su[SA_MAX_NAME_LENGTH];
+	char su[SA_MAX_NAME_LENGTH];
 
 	memset(su, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (su_name)
-		strncpy(su, su_name->value, m_NCS_OS_NTOHS(su_name->length));
+		strncpy(su, (char*)su_name->value, su_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_PRES_STAT, AVND_FC_PRES,
 		   NCSFL_LC_HEADLINE, sev, "TCI", su, state);
@@ -700,18 +700,18 @@ void avnd_log_su_pres_state_ntfs(AVND_LOG_PRES_STATE state, SaNameT *su_name, un
 void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
 				    AVND_LOG_NTF pxy_status, SaNameT *comp_name, SaNameT *pxy_comp_name, uns8 sev)
 {
-	uns8 comp[SA_MAX_NAME_LENGTH];
-	uns8 pxy_comp[SA_MAX_NAME_LENGTH];
+	char comp[SA_MAX_NAME_LENGTH];
+	char pxy_comp[SA_MAX_NAME_LENGTH];
 
 	memset(comp, '\0', SA_MAX_NAME_LENGTH);
 	memset(pxy_comp, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
 	if (comp_name)
-		strncpy(comp, comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+		strncpy(comp, (char*)comp_name->value, comp_name->length);
 
 	if (pxy_comp_name)
-		strncpy(pxy_comp, pxy_comp_name->value, m_NCS_OS_NTOHS(pxy_comp_name->length));
+		strncpy(pxy_comp, (char*)pxy_comp_name->value, pxy_comp_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_PROXIED, AVND_FC_NTF,
 		   NCSFL_LC_HEADLINE, sev, "TCICI", comp, status, pxy_comp, pxy_status);
@@ -725,7 +725,7 @@ void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
   Description   : This routine logs the component failed ntfs.
 
   Arguments     : node_id  - Node Id
-                  name_net - Comp name
+                  name - Comp name
                   errSrc   - Error Source
                   sev      - severity
 
@@ -733,18 +733,18 @@ void avnd_log_proxied_orphaned_ntfs(AVND_LOG_NTF status,
 
   Notes         : None.
  *****************************************************************************/
-void avnd_log_comp_failed_ntfs(uns32 node_id, SaNameT *name_net, AVND_LOG_ERR errSrc, uns8 sev)
+void avnd_log_comp_failed_ntfs(uns32 node_id, SaNameT *name, AVND_LOG_ERR errSrc, uns8 sev)
 {
-	uns8 name[SA_MAX_NAME_LENGTH];
+	char lname[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lname, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (name_net)
-		strncpy(name, name_net->value, m_NCS_OS_NTOHS(name_net->length));
+	if (name)
+		strncpy(lname, (char*)name->value, name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVND, AVND_LID_NTFS_COMP_FAIL, AVND_FC_ERR,
-		   NCSFL_LC_HEADLINE, sev, "TCLI", name, node_id, errSrc);
+		   NCSFL_LC_HEADLINE, sev, "TCLI", lname, node_id, errSrc);
 
 	return;
 }
@@ -805,4 +805,3 @@ uns32 avnd_log_unreg()
 	return rc;
 }
 
-#endif   /* NCS_AVND_LOG == 1 */

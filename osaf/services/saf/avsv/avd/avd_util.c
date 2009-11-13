@@ -43,7 +43,32 @@
 /*
  * Module Inclusion Control...
  */
-#include "avd.h"
+#include <string.h>
+#include <avd.h>
+
+const char *avd_pres_state_name[] = {
+	"INVALID",
+	"UNINSTANTIATED",
+	"INSTANTIATING",
+	"INSTANTIATED",
+	"TERMINATING",
+	"RESTARTING",
+	"INSTANTIATION_FAILED",
+	"TERMINATION_FAILED"
+};
+
+const char *avd_oper_state_name[] = {
+	"INVALID",
+	"ENABLED",
+	"DISABLED"
+};
+
+const char *avd_readiness_state_name[] = {
+	"INVALID",
+	"OUT_OF_SERVICE",
+	"IN_SERVICE",
+	"STOPPING"
+};
 
 /*****************************************************************************
  * Function: avd_snd_node_update_msg
@@ -83,15 +108,13 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* prepare the node update message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	/* prepare the node update notification message */
 	d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UPDATE_MSG;
@@ -108,7 +131,7 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if (avnd->node_info.member == SA_TRUE) {
 		d2n_msg->msg_info.d2n_clm_node_update.clm_info.boot_timestamp = avnd->node_info.bootTimestamp;
 		d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_address = avnd->node_info.nodeAddress;
-		d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_name_net = avnd->node_info.nodeName;
+		d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_name = avnd->node_info.nodeName;
 		d2n_msg->msg_info.d2n_clm_node_update.clm_info.view_number = avnd->node_info.initialViewNumber;
 
 		if (fp) {
@@ -133,12 +156,12 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		/* log error that the director is not able to broad cast */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
 		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		m_MMGR_FREE_AVSV_DND_MSG(d2n_msg);
+		free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-	m_MMGR_FREE_AVSV_DND_MSG(d2n_msg);
+	free(d2n_msg);
 
 	/* done sending the message return success */
 	return NCSCC_RC_SUCCESS;
@@ -169,20 +192,18 @@ static uns32 avd_prep_node_info(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_DND_MSG *node
 
 	m_AVD_LOG_FUNC_ENTRY("avd_prep_node_info");
 
-	node_info = (AVSV_CLM_INFO_MSG *)m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_CLM_INFO_MSG));
+	node_info = calloc(1, sizeof(AVSV_CLM_INFO_MSG));
 
 	if (node_info == NULL) {
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(node_info, '\0', sizeof(AVSV_CLM_INFO_MSG));
-
 	node_info->clm_info.boot_timestamp = avnd->node_info.bootTimestamp;
 	node_info->clm_info.member = SA_TRUE;
 	node_info->clm_info.node_address = avnd->node_info.nodeAddress;
 	node_info->clm_info.node_id = avnd->node_info.nodeId;
-	node_info->clm_info.node_name_net = avnd->node_info.nodeName;
+	node_info->clm_info.node_name = avnd->node_info.nodeName;
 	node_info->clm_info.view_number = avnd->node_info.initialViewNumber;
 
 	if (verify) {
@@ -235,7 +256,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -244,7 +265,6 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 	}
 
 	/* prepare the message */
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 	d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
 	d2n_msg->msg_info.d2n_ack_info.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id;
@@ -300,7 +320,7 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -309,15 +329,14 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* prepare the message */
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 	d2n_msg->msg_type = AVSV_D2N_DATA_VERIFY_MSG;
 	d2n_msg->msg_info.d2n_data_verify.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_data_verify.rcv_id_cnt = avnd->rcv_msg_id;
 	d2n_msg->msg_info.d2n_data_verify.snd_id_cnt = avnd->snd_msg_id;
 	d2n_msg->msg_info.d2n_data_verify.view_number = cb->cluster_view_number;
 	d2n_msg->msg_info.d2n_data_verify.snd_hb_intvl = cb->snd_hb_intvl;
-	d2n_msg->msg_info.d2n_data_verify.su_failover_prob = avnd->su_failover_prob;
-	d2n_msg->msg_info.d2n_data_verify.su_failover_max = avnd->su_failover_max;
+	d2n_msg->msg_info.d2n_data_verify.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
+	d2n_msg->msg_info.d2n_data_verify.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 
 	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_DATA_VERIFY_MSG, avnd->node_info.nodeId);
 
@@ -372,7 +391,7 @@ uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -381,18 +400,14 @@ uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* prepare the message */
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 	d2n_msg->msg_type = AVSV_D2N_NODE_ON_FOVER;
 	d2n_msg->msg_info.d2n_clm_node_fover.dest_node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_clm_node_fover.view_number = cb->cluster_view_number;
 
 	/* put all the other nodes in the clusters information into the message.
 	 */
-	while ((i_avnd = avd_avnd_struc_find_next_nodeid(cb, i_nodeid)) != AVD_AVND_NULL) {
+	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != AVD_AVND_NULL) {
 		i_nodeid = i_avnd->node_info.nodeId;
-
-		if (i_avnd->row_status != NCS_ROW_ACTIVE)
-			continue;
 
 		if (i_avnd->node_info.member != SA_TRUE)
 			continue;
@@ -459,7 +474,7 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 		return NCSCC_RC_FAILURE;
 	}
 
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -468,21 +483,17 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	}
 
 	/* prepare the message */
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 	d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UP_MSG;
 	d2n_msg->msg_info.d2n_clm_node_up.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_clm_node_up.node_type = avnd->type;
 	d2n_msg->msg_info.d2n_clm_node_up.snd_hb_intvl = cb->snd_hb_intvl;
-	d2n_msg->msg_info.d2n_clm_node_up.su_failover_max = avnd->su_failover_max;
-	d2n_msg->msg_info.d2n_clm_node_up.su_failover_prob = avnd->su_failover_prob;
+	d2n_msg->msg_info.d2n_clm_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
+	d2n_msg->msg_info.d2n_clm_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 
 	/* put all the other nodes in the clusters information into the message.
 	 */
-	while ((i_avnd = avd_avnd_struc_find_next_nodeid(cb, i_nodeid)) != AVD_AVND_NULL) {
+	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != AVD_AVND_NULL) {
 		i_nodeid = i_avnd->node_info.nodeId;
-
-		if (i_avnd->row_status != NCS_ROW_ACTIVE)
-			continue;
 
 		if (i_avnd->node_info.member != SA_TRUE)
 			continue;
@@ -534,14 +545,12 @@ uns32 avd_snd_hbt_info_msg(AVD_CL_CB *cb)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_hbt_info_msg");
 
 	/* prepare the heartbeat info message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	/* prepare the heartbeat info message */
 	d2n_msg->msg_type = AVSV_D2N_INFO_HEARTBEAT_MSG;
@@ -552,12 +561,12 @@ uns32 avd_snd_hbt_info_msg(AVD_CL_CB *cb)
 	if (avd_d2n_msg_bcast(cb, d2n_msg) != NCSCC_RC_SUCCESS) {
 		/* log error that the director is not able to broad cast */
 		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		m_MMGR_FREE_AVSV_DND_MSG(d2n_msg);
+		free(d2n_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-	m_MMGR_FREE_AVSV_DND_MSG(d2n_msg);
+	free(d2n_msg);
 
 	/* done sending the message return success */
 	return NCSCC_RC_SUCCESS;
@@ -599,15 +608,13 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	}
 
 	/* prepare the node operation state ack message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	d2n_msg->msg_type = AVSV_D2N_DATA_ACK_MSG;
 	d2n_msg->msg_info.d2n_ack_info.msg_id_ack = msg_id_ack;
@@ -658,7 +665,7 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_presence_msg");
 
 	/* Verify if the SU structure pointer is valid. */
-	if (su == AVD_SU_NULL) {
+	if (su == NULL) {
 		/* This is a invalid situation as the SU record
 		 * needs to be mentioned.
 		 */
@@ -669,7 +676,7 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 	}
 
 	/* prepare the node update message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -677,13 +684,11 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
-
 	/* prepare the SU presence state change notification message */
 	d2n_msg->msg_type = AVSV_D2N_PRESENCE_SU_MSG;
 	d2n_msg->msg_info.d2n_prsc_su.msg_id = ++(su_node_ptr->snd_msg_id);
 	d2n_msg->msg_info.d2n_prsc_su.node_id = su_node_ptr->node_info.nodeId;
-	d2n_msg->msg_info.d2n_prsc_su.su_name_net = su->name_net;
+	d2n_msg->msg_info.d2n_prsc_su.su_name = su->name;
 	d2n_msg->msg_info.d2n_prsc_su.term_state = term_state;
 
 	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PRESENCE_SU_MSG, su_node_ptr->node_info.nodeId);
@@ -770,7 +775,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 		return NCSCC_RC_FAILURE;
 	}
 
-	op_req_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	op_req_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (op_req_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -778,11 +783,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 	}
 
 	/* prepare the operation request message. */
-
-	memset(op_req_msg, '\0', sizeof(AVD_DND_MSG));
-
 	op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
-
 	memcpy(&op_req_msg->msg_info.d2n_op_req.param_info, param_info, sizeof(AVSV_PARAM_INFO));
 
 	if (avnd == AVD_AVND_NULL) {
@@ -803,7 +804,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 
 		/* done sending the message, free the message. 
 		 */
-		m_MMGR_FREE_AVSV_DND_MSG(op_req_msg);
+		free(op_req_msg);
 		return rc;
 
 	}
@@ -814,7 +815,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 	    (avnd->node_state == AVD_AVND_STATE_GO_DOWN) || (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)) {
 		/* log error that the director is not able to send message */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_MMGR_FREE_AVSV_DND_MSG(op_req_msg);
+		free(op_req_msg);
 		return NCSCC_RC_SUCCESS;
 	}
 
@@ -836,164 +837,6 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_SND_MSG_ID);
 	return rc;
-}
-
- /*****************************************************************************
- * Function: avd_prep_hlth_info
- *
- * Purpose:  This function prepares the health check
- * information for the given health check record and adds it to the message. 
- *
- * Input: cb - Pointer to the AVD control block
- *        hlt_chk - Pointer to the health check related to which the message
- *                  needs to be sent.
- *        hlth_msg - Pointer to the health check message being prepared.
- *        is_ext   - Whether the hc is for external component.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-static uns32 avd_prep_hlth_info(AVD_CL_CB *cb, AVD_HLT *hlt_chk, AVD_DND_MSG *hlth_msg, NCS_BOOL is_ext)
-{
-	AVSV_HLT_INFO_MSG *hlt_info;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_hlth_info");
-
-	hlt_info = (AVSV_HLT_INFO_MSG *)m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_HLT_INFO_MSG));
-	if (hlt_info == NULL) {
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
-	}
-
-	memset(hlt_info, '\0', sizeof(AVSV_HLT_INFO_MSG));
-
-	/*  Now fill and add the health check information
-	 * the health check message at the top of the list
-	 */
-	hlt_info->max_duration = hlt_chk->max_duration;
-	hlt_info->name = hlt_chk->key_name;
-	hlt_info->period = hlt_chk->period;
-	hlt_info->is_ext = is_ext;
-
-	hlt_info->next = hlth_msg->msg_info.d2n_reg_hlt.hlt_list;
-	hlth_msg->msg_info.d2n_reg_hlt.hlt_list = hlt_info;
-	hlth_msg->msg_info.d2n_reg_hlt.num_hltchk++;
-
-	return NCSCC_RC_SUCCESS;
-
-}
-
-/*****************************************************************************
- * Function: avd_snd_hlt_msg
- *
- * Purpose:  This function prepares the health check database record/records 
- * message for the given health check record or all the health check records
- * in the system. It then sends the message with all the health check
- * records to Node director on the node that has come up. A particular
- * health check record will be sent to all the node directors in the system.
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the AVND info for the node that needs to be sent
- *               the message. Non NULL if all the records need to be sent.
- *     hlt_chk - Pointer to the Health check related to which the message
- *               need to be sent. valid if avnd is NULL. If NULL it means
- *               that all the health check info need to be sent to a node
- *     is_ext    Tell whether hc is for external component if hlt_chk is
- *               not NULL.        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_snd_hlt_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_HLT *hlt_chk, NCS_BOOL fail_over, NCS_BOOL is_ext)
-{
-
-	AVD_HLT *i_hlt_chk = AVD_HLT_NULL;
-	AVD_DND_MSG *hlth_msg;
-	NCS_BOOL ext_comp_hlth_is_added = FALSE;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_hlt_msg");
-
-	/* prepare the health check message. */
-	hlth_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
-	if (hlth_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
-	}
-
-	memset(hlth_msg, '\0', sizeof(AVD_DND_MSG));
-
-	/* prepare the messages */
-	hlth_msg->msg_type = AVSV_D2N_REG_HLT_MSG;
-
-	/* process the entire database send case to a node */
-	hlth_msg->msg_info.d2n_reg_hlt.nodeid = avnd->node_info.nodeId;
-	hlth_msg->msg_info.d2n_reg_hlt.msg_on_fover = fail_over;
-
-	if (hlt_chk == AVD_HLT_NULL) {
-		i_hlt_chk = avnd->list_of_hlt;
- ext_comp:
-		while (i_hlt_chk != NULL) {
-			/* Add information about this health check to the message */
-			if (avd_prep_hlth_info(cb, i_hlt_chk, hlth_msg, ext_comp_hlth_is_added) == NCSCC_RC_FAILURE) {
-				avsv_dnd_msg_free(hlth_msg);
-				return NCSCC_RC_FAILURE;
-			}
-			i_hlt_chk = i_hlt_chk->next_hlt_on_node;
-		}
-
-		/* Done with the cluster component, now add health check for external
-		   component for Controller AvND. */
-		if ((avnd->node_info.nodeId == cb->node_id_avd) && (FALSE == ext_comp_hlth_is_added)) {
-			if (NULL != cb->ext_comp_info.ext_comp_hlt_check) {
-				/* There is at least one external conponent configured. */
-				i_hlt_chk = cb->ext_comp_info.ext_comp_hlt_check->list_of_hlt;
-				ext_comp_hlth_is_added = TRUE;
-				goto ext_comp;
-			}
-		}
-	} else {
-		/* Add information about this health check to the message */
-		if (avd_prep_hlth_info(cb, hlt_chk, hlth_msg, is_ext) == NCSCC_RC_FAILURE) {
-			avsv_dnd_msg_free(hlth_msg);
-			return NCSCC_RC_FAILURE;
-		}
-	}
-
-	/* Check if atleast one health check record is present if not
-	 * dont send the message.
-	 */
-
-	if (hlth_msg->msg_info.d2n_reg_hlt.hlt_list == NULL) {
-		m_MMGR_FREE_AVSV_DND_MSG(hlth_msg);
-		return NCSCC_RC_SUCCESS;
-	}
-
-	hlth_msg->msg_info.d2n_reg_hlt.msg_id = ++(avnd->snd_msg_id);
-
-	/* send the health check message */
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_REG_HLT_MSG, avnd->node_info.nodeId);
-
-	if (avd_d2n_msg_snd(cb, avnd, hlth_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send message */
-		--(avnd->snd_msg_id);
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, hlth_msg, sizeof(AVD_DND_MSG), hlth_msg);
-		avsv_dnd_msg_free(hlth_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* done sending the message return success */
-	return NCSCC_RC_SUCCESS;
-
 }
 
  /*****************************************************************************
@@ -1019,23 +862,21 @@ static uns32 avd_prep_su_info(AVD_CL_CB *cb, AVD_SU *su, AVD_DND_MSG *su_msg)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_prep_su_info");
 
-	su_info = (AVSV_SU_INFO_MSG *)m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_SU_INFO_MSG));
+	su_info = calloc(1, sizeof(AVSV_SU_INFO_MSG));
 	if (su_info == NULL) {
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(su_info, '\0', sizeof(AVSV_SU_INFO_MSG));
-
 	/* fill and add the SU into
 	 * the SU message at the top of the list
 	 */
-	su_info->name_net = su->name_net;
+	su_info->name = su->name;
 	su_info->num_of_comp = su->num_of_comp;
-	su_info->comp_restart_max = su->sg_of_su->comp_restart_max;
-	su_info->comp_restart_prob = su->sg_of_su->comp_restart_prob;
-	su_info->su_restart_max = su->sg_of_su->su_restart_max;
-	su_info->su_restart_prob = su->sg_of_su->su_restart_prob;
+	su_info->comp_restart_max = su->sg_of_su->saAmfSGCompRestartMax;
+	su_info->comp_restart_prob = su->sg_of_su->saAmfSGCompRestartProb;
+	su_info->su_restart_max = su->sg_of_su->saAmfSGSuRestartMax;
+	su_info->su_restart_prob = su->sg_of_su->saAmfSGSuRestartProb;
 	su_info->is_ncs = su->sg_of_su->sg_ncs_spec;
 	su_info->su_is_external = su->su_is_external;
 
@@ -1072,14 +913,13 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp
 
 	m_AVD_LOG_FUNC_ENTRY("avd_prep_comp_info");
 
-	comp_info = (AVSV_COMP_INFO_MSG *)m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_COMP_INFO_MSG));
+	comp_info = calloc(1, sizeof(AVSV_COMP_INFO_MSG));
 	if (comp_info == NULL) {
 		/* log that the avD is in degraded state */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(comp_info, '\0', sizeof(AVSV_COMP_INFO_MSG));
 	memcpy(&comp_info->comp_info, &comp->comp_info, sizeof(AVSV_COMP_INFO));
 
 	/* add it at the head of the list in the message */
@@ -1113,18 +953,16 @@ static uns32 avd_prep_comp_info(AVD_CL_CB *cb, AVD_COMP *comp, AVD_DND_MSG *comp
 
 uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over)
 {
-
-	AVD_SU *i_su = AVD_SU_NULL;
-	AVD_COMP *i_comp = AVD_COMP_NULL;
+	AVD_SU *i_su = NULL;
 	AVD_DND_MSG *su_msg, *comp_msg;
 	uns32 i, count = 0;
-	SaNameT temp_su_name;
+	SaNameT temp_su_name = {0};
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_su_comp_msg");
 
 	*comp_sent = FALSE;
 
-	su_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (su_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -1132,8 +970,7 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 		return NCSCC_RC_FAILURE;
 	}
 
-	comp_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
-
+	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (comp_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -1141,16 +978,12 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 
 		/* free all the messages and return error */
 
-		m_MMGR_FREE_AVSV_DND_MSG(su_msg);
+		free(su_msg);
 		return NCSCC_RC_FAILURE;
 
 	}
 
-	memset(su_msg, '\0', sizeof(AVD_DND_MSG));
-	memset(comp_msg, '\0', sizeof(AVD_DND_MSG));
-
 	/* prepare the SU and Component messages. */
-
 	su_msg->msg_type = AVSV_D2N_REG_SU_MSG;
 	comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
 
@@ -1178,34 +1011,15 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 			/* For external component, we don't have any node attached to it. 
 			   So, get the first external SU. */
 			temp_su_name.length = 0;
-			while (NULL != (i_su = avd_su_struc_find_next(cb, temp_su_name, FALSE))) {
+			while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
 				if (TRUE == i_su->su_is_external)
 					break;
 
-				temp_su_name = i_su->name_net;
+				temp_su_name = i_su->name;
 			}
 		}
 
-		while (i_su != AVD_SU_NULL) {
-			if (i_su->row_status != NCS_ROW_ACTIVE) {
-				/* the SU is not a valid component skip the SU */
-
-				/* get the next SU in the node */
-				if ((0 == i) || (1 == i))
-					i_su = i_su->avnd_list_su_next;
-				else {
-					/* Get the next external SU. */
-					temp_su_name = i_su->name_net;
-					while (NULL != (i_su = avd_su_struc_find_next(cb, temp_su_name, FALSE))) {
-						if (TRUE == i_su->su_is_external)
-							break;
-
-						temp_su_name = i_su->name_net;
-					}
-				}
-				continue;
-			}
-
+		while (i_su != NULL) {
 			/* Add information about this SU to the message */
 			if (avd_prep_su_info(cb, i_su, su_msg) == NCSCC_RC_FAILURE) {
 				/* Free all the messages and return error */
@@ -1215,42 +1029,17 @@ uns32 avd_snd_su_comp_msg(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_BOOL *comp_sent, NC
 				return NCSCC_RC_FAILURE;
 			}
 
-			i_comp = i_su->list_of_comp;
-
-			while (i_comp != AVD_COMP_NULL) {
-				if (i_comp->row_status != NCS_ROW_ACTIVE) {
-					/* the component is not a valid component skip the component */
-
-					/* get the next component in the SU */
-					i_comp = i_comp->su_comp_next;
-					continue;
-				}
-
-				/* Add information about this SU to the message */
-				if (avd_prep_comp_info(cb, i_comp, comp_msg) == NCSCC_RC_FAILURE) {
-					/* Free all the messages and return error */
-					avsv_dnd_msg_free(su_msg);
-					avsv_dnd_msg_free(comp_msg);
-					m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-					return NCSCC_RC_FAILURE;
-				}
-
-				/* get the next component in the SU */
-				i_comp = i_comp->su_comp_next;
-
-			}	/* while(i_comp != AVD_COMP_NULL) */
-
 			/* get the next SU in the node */
 			if ((0 == i) || (1 == i))
 				i_su = i_su->avnd_list_su_next;
 			else {
 				/* Get the next external SU. */
-				temp_su_name = i_su->name_net;
-				while (NULL != (i_su = avd_su_struc_find_next(cb, temp_su_name, FALSE))) {
+				temp_su_name = i_su->name;
+				while (NULL != (i_su = avd_su_getnext(&temp_su_name))) {
 					if (TRUE == i_su->su_is_external)
 						break;
 
-					temp_su_name = i_su->name_net;
+					temp_su_name = i_su->name;
 				}
 			}
 
@@ -1348,7 +1137,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_su_msg");
 
-	if (su == AVD_SU_NULL) {
+	if (su == NULL) {
 		/* This is a invalid situation as the SU
 		 * needs to be mentioned.
 		 */
@@ -1360,15 +1149,13 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-	su_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	su_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (su_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(su_msg, '\0', sizeof(AVD_DND_MSG));
 
 	/* prepare the SU  message. */
 
@@ -1380,7 +1167,7 @@ uns32 avd_snd_su_msg(AVD_CL_CB *cb, AVD_SU *su)
 	if (avd_prep_su_info(cb, su, su_msg) == NCSCC_RC_FAILURE) {
 		/* Free the messages and return error */
 		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
-		m_MMGR_FREE_AVSV_DND_MSG(su_msg);
+		free(su_msg);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -1430,7 +1217,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_msg");
 
-	if (comp == AVD_COMP_NULL) {
+	if (comp == NULL) {
 		/* This is a invalid situation as the comp
 		 * needs to be mentioned.
 		 */
@@ -1442,8 +1229,7 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 
 	m_AVD_GET_SU_NODE_PTR(cb, comp->su, su_node_ptr);
 
-	comp_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
-
+	comp_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (comp_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -1452,17 +1238,14 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 
 	}
 
-	memset(comp_msg, '\0', sizeof(AVD_DND_MSG));
-
 	/* prepare the Component messages. */
-
 	comp_msg->msg_type = AVSV_D2N_REG_COMP_MSG;
 	comp_msg->msg_info.d2n_reg_comp.node_id = su_node_ptr->node_info.nodeId;
 
 	/* Add information about this comp to the message */
 	if (avd_prep_comp_info(cb, comp, comp_msg) == NCSCC_RC_FAILURE) {
 		/* Free all the messages and return error */
-		m_MMGR_FREE_AVSV_DND_MSG(comp_msg);
+		free(comp_msg);
 		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
@@ -1511,18 +1294,17 @@ uns32 avd_snd_comp_msg(AVD_CL_CB *cb, AVD_COMP *comp)
 static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info, AVD_COMP_CSI_REL *compcsi)
 {
 	NCS_AVSV_ATTR_NAME_VAL *i_ptr;
-	AVD_CSI_PARAM *attr_ptr;
+	AVD_CSI_ATTR *attr_ptr;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_prep_csi_attr_info");
 
 	/* Allocate the memory for the array of structures for the attributes. */
-	if (compcsi->csi->num_active_params == 0) {
+	if (compcsi->csi->num_attributes == 0) {
 		/* No CSI attribute parameters available for the CSI. Return success. */
 		return NCSCC_RC_SUCCESS;
 	}
 
-	compcsi_info->attrs.list = (NCS_AVSV_ATTR_NAME_VAL *)
-	    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL((compcsi->csi->num_active_params * sizeof(NCS_AVSV_ATTR_NAME_VAL)));
+	compcsi_info->attrs.list = calloc(1, compcsi->csi->num_attributes * sizeof(NCS_AVSV_ATTR_NAME_VAL));
 	if (compcsi_info->attrs.list == NULL) {
 		/* log that the avD is in degraded state */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
@@ -1533,21 +1315,15 @@ static uns32 avd_prep_csi_attr_info(AVD_CL_CB *cb, AVSV_SUSI_ASGN *compcsi_info,
 	 * message content. 
 	 */
 	i_ptr = compcsi_info->attrs.list;
-	memset(i_ptr, '\0', (compcsi->csi->num_active_params * sizeof(NCS_AVSV_ATTR_NAME_VAL)));
-	attr_ptr = compcsi->csi->list_param;
+	attr_ptr = compcsi->csi->list_attributes;
 	compcsi_info->attrs.number = 0;
 
 	/* Scan the list of attributes for the CSI and add it to the message */
-	while ((attr_ptr != NULL) && (compcsi_info->attrs.number < compcsi->csi->num_active_params)) {
-		if (attr_ptr->row_status != NCS_ROW_ACTIVE) {
-			attr_ptr = attr_ptr->param_next;
-			continue;
-		}
-
-		memcpy(i_ptr, &attr_ptr->param, sizeof(NCS_AVSV_ATTR_NAME_VAL));
+	while ((attr_ptr != NULL) && (compcsi_info->attrs.number < compcsi->csi->num_attributes)) {
+		memcpy(i_ptr, &attr_ptr->name_value, sizeof(NCS_AVSV_ATTR_NAME_VAL));
 		compcsi_info->attrs.number++;
 		i_ptr = i_ptr + 1;
-		attr_ptr = attr_ptr->param_next;
+		attr_ptr = attr_ptr->attr_next;
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -1586,7 +1362,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_susi_msg");
 
-	if (su == AVD_SU_NULL) {
+	if (su == NULL) {
 		/* This is a invalid situation as the SU
 		 * needs to be mentioned.
 		 */
@@ -1609,7 +1385,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 	trans_dsc = SA_AMF_CSI_NEW_ASSIGN;
 
 	/* prepare the SU SI message. */
-	susi_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	susi_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (susi_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -1617,11 +1393,9 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(susi_msg, '\0', sizeof(AVD_DND_MSG));
-
 	susi_msg->msg_type = AVSV_D2N_INFO_SU_SI_ASSIGN_MSG;
 	susi_msg->msg_info.d2n_su_si_assign.node_id = avnd->node_info.nodeId;
-	susi_msg->msg_info.d2n_su_si_assign.su_name_net = su->name_net;
+	susi_msg->msg_info.d2n_su_si_assign.su_name = su->name;
 	susi_msg->msg_info.d2n_su_si_assign.msg_act = actn;
 
 	switch (actn) {
@@ -1630,7 +1404,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			/* Means we need to delete only this SU SI assignment for 
 			 * this SU.
 			 */
-			susi_msg->msg_info.d2n_su_si_assign.si_name_net = susi->si->name_net;
+			susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 
 		}
 		break;		/* case AVSV_SUSI_ACT_DEL */
@@ -1679,14 +1453,14 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			/* use this SU SI modification information to fill the message.
 			 */
 
-			susi_msg->msg_info.d2n_su_si_assign.ha_state = l_susi->state;
 
+			susi_msg->msg_info.d2n_su_si_assign.ha_state = l_susi->state;
 		} else {	/* if (susi == AVD_SU_SI_REL_NULL) */
 
 			/* for modifications of a SU SI fill the SI name.
 			 */
 
-			susi_msg->msg_info.d2n_su_si_assign.si_name_net = susi->si->name_net;
+			susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 			susi_msg->msg_info.d2n_su_si_assign.ha_state = susi->state;
 
 			l_susi = susi;
@@ -1709,7 +1483,7 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		/* for new assignments of a SU SI fill the SI name.
 		 */
 
-		susi_msg->msg_info.d2n_su_si_assign.si_name_net = susi->si->name_net;
+		susi_msg->msg_info.d2n_su_si_assign.si_name = susi->si->name;
 		susi_msg->msg_info.d2n_su_si_assign.ha_state = susi->state;
 
 		/* Fill the SU SI pointer to l_susi which will be used from now
@@ -1764,8 +1538,8 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 		/* For only these options fill the comp CSI values. */
 		l_compcsi = l_susi->list_of_csicomp;
 
-		while (l_compcsi != AVD_COMP_CSI_REL_NULL) {
-			compcsi_info = (AVSV_SUSI_ASGN *)m_MMGR_ALLOC_AVSV_DND_MSG_INFO(sizeof(AVSV_SUSI_ASGN));
+		while (l_compcsi != NULL) {
+			compcsi_info = calloc(1, sizeof(AVSV_SUSI_ASGN));
 			if (compcsi_info == NULL) {
 				/* log error that the director is in degraded situation */
 				m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
@@ -1773,10 +1547,9 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 				avsv_dnd_msg_free(susi_msg);
 				return NCSCC_RC_FAILURE;
 			}
-			memset(compcsi_info, '\0', sizeof(AVSV_SUSI_ASGN));
 
-			compcsi_info->comp_name_net = l_compcsi->comp->comp_info.name_net;
-			compcsi_info->csi_name_net = l_compcsi->csi->name_net;
+			compcsi_info->comp_name = l_compcsi->comp->comp_info.name;
+			compcsi_info->csi_name = l_compcsi->csi->name;
 			compcsi_info->csi_rank = l_compcsi->csi->rank;
 			compcsi_info->active_comp_dsc = trans_dsc;
 
@@ -1793,24 +1566,25 @@ uns32 avd_snd_susi_msg(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, AVSV_SUSI
 			/* fill the quiesced and active component name info */
 			if (!((actn == AVSV_SUSI_ACT_ASGN) &&
 			      (susi_msg->msg_info.d2n_su_si_assign.ha_state == SA_AMF_HA_ACTIVE))) {
-				if (l_compcsi->csi_csicomp_next == AVD_COMP_CSI_REL_NULL) {
-					if ((l_compcsi->csi->list_compcsi != AVD_COMP_CSI_REL_NULL) &&
+				if (l_compcsi->csi_csicomp_next == NULL) {
+					if ((l_compcsi->csi->list_compcsi != NULL) &&
 					    (l_compcsi->csi->list_compcsi != l_compcsi)) {
-						compcsi_info->active_comp_name_net =
-						    l_compcsi->csi->list_compcsi->comp->comp_info.name_net;
+						compcsi_info->active_comp_name =
+						    l_compcsi->csi->list_compcsi->comp->comp_info.name;
 
 						if ((trans_dsc == SA_AMF_CSI_QUIESCED) &&
-						    (l_compcsi->csi->list_compcsi->comp->oper_state
-						     == NCS_OPER_STATE_DISABLE)) {
+						    (l_compcsi->csi->list_compcsi->comp->saAmfCompOperState
+						     == SA_AMF_OPERATIONAL_DISABLED)) {
 							compcsi_info->active_comp_dsc = SA_AMF_CSI_NOT_QUIESCED;
 						}
 					}
 				} else {
-					compcsi_info->active_comp_name_net =
-					    l_compcsi->csi_csicomp_next->comp->comp_info.name_net;
+					compcsi_info->active_comp_name =
+					    l_compcsi->csi_csicomp_next->comp->comp_info.name;
 
 					if ((trans_dsc == SA_AMF_CSI_QUIESCED) &&
-					    (l_compcsi->csi_csicomp_next->comp->oper_state == NCS_OPER_STATE_DISABLE)) {
+					    (l_compcsi->csi_csicomp_next->comp->saAmfCompOperState
+					     == SA_AMF_OPERATIONAL_DISABLED)) {
 						compcsi_info->active_comp_dsc = SA_AMF_CSI_NOT_QUIESCED;
 					}
 				}
@@ -1880,15 +1654,13 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	}
 
 	/* prepare the node operation state ack message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	d2n_msg->msg_type = AVSV_D2N_SHUTDOWN_APP_SU_MSG;
 	d2n_msg->msg_info.d2n_shutdown_app_su.node_id = avnd->node_info.nodeId;
@@ -1940,19 +1712,17 @@ static uns32 avd_prep_pg_mem_list(AVD_CL_CB *cb, AVD_CSI *csi, SaAmfProtectionGr
 
 	if (csi->compcsi_cnt) {
 		/* alloc the memory for the notify buffer */
-		mem_list->notification = (SaAmfProtectionGroupNotificationT *)
-		    m_MMGR_ALLOC_AVSV_COMMON_DEFAULT_VAL(sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt);
+		mem_list->notification = calloc(1, sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt);
 		if (!mem_list->notification) {
 			m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
 			return NCSCC_RC_FAILURE;
 		}
-		memset(mem_list->notification, 0, sizeof(SaAmfProtectionGroupNotificationT) * csi->compcsi_cnt);
 
 		/* copy the contents */
 		for (curr = csi->list_compcsi; curr; curr = curr->csi_csicomp_next, i++) {
-			mem_list->notification[i].member.compName = curr->comp->comp_info.name_net;
+			mem_list->notification[i].member.compName = curr->comp->comp_info.name;
 			mem_list->notification[i].member.haState = curr->susi->state;
-			mem_list->notification[i].member.rank = curr->comp->su->rank;
+			mem_list->notification[i].member.rank = curr->comp->su->saAmfSURank;
 			mem_list->notification[i].change = SA_AMF_PROTECTION_GROUP_NO_CHANGE;
 			mem_list->numberOfItems++;
 		}		/* for */
@@ -1985,21 +1755,20 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_pg_resp_msg");
 
 	/* alloc the response msg */
-	pg_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (!pg_msg) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-	memset(pg_msg, '\0', sizeof(AVD_DND_MSG));
 
 	pg_msg_info = &pg_msg->msg_info.d2n_pg_track_act_rsp;
 
 	/* fill the common fields */
 	pg_msg->msg_type = AVSV_D2N_PG_TRACK_ACT_RSP_MSG;
 	pg_msg_info->actn = n2d_msg->actn;
-	pg_msg_info->csi_name_net = n2d_msg->csi_name_net;
+	pg_msg_info->csi_name = n2d_msg->csi_name;
 	pg_msg_info->msg_id_ack = n2d_msg->msg_id;
 	pg_msg_info->node_id = n2d_msg->node_id;
 	pg_msg_info->msg_on_fover = n2d_msg->msg_on_fover;
@@ -2008,7 +1777,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 	switch (n2d_msg->actn) {
 	case AVSV_PG_TRACK_ACT_START:
 		{
-			if (csi && (csi->row_status == NCS_ROW_ACTIVE)) {
+			if (csi != NULL) {
 				pg_msg_info->is_csi_exist = TRUE;
 				rc = avd_prep_pg_mem_list(cb, csi, &pg_msg_info->mem_list);
 				if (NCSCC_RC_SUCCESS != rc)
@@ -2023,7 +1792,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}			/* switch */
 
 	/* send the msg to avnd */
@@ -2051,7 +1820,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
  *           comp_csi     - ptr to the comp-csi relationship (valid only
  *                          when CSI is not deleted)
  *           change       - change wrt this member
- *           csi_name_net - ptr to the csi-name (valid only when csi is 
+ *           csi_name - ptr to the csi-name (valid only when csi is 
  *                          deleted)
  *
  * Returns:  NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
@@ -2060,7 +1829,7 @@ uns32 avd_snd_pg_resp_msg(AVD_CL_CB *cb, AVD_AVND *node, AVD_CSI *csi, AVSV_N2D_
  **************************************************************************/
 uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 			 AVD_AVND *node,
-			 AVD_COMP_CSI_REL *comp_csi, SaAmfProtectionGroupChangesT change, SaNameT *csi_name_net)
+			 AVD_COMP_CSI_REL *comp_csi, SaAmfProtectionGroupChangesT change, SaNameT *csi_name)
 {
 	AVD_DND_MSG *pg_msg = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -2069,29 +1838,28 @@ uns32 avd_snd_pg_upd_msg(AVD_CL_CB *cb,
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_pg_upd_msg");
 
 	/* alloc the update msg */
-	pg_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	pg_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (!pg_msg) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-	memset(pg_msg, '\0', sizeof(AVD_DND_MSG));
 
 	pg_msg_info = &pg_msg->msg_info.d2n_pg_upd;
 
 	/* populate the msg */
 	pg_msg->msg_type = AVSV_D2N_PG_UPD_MSG;
 	pg_msg_info->node_id = node->node_info.nodeId;
-	pg_msg_info->is_csi_del = (csi_name_net) ? TRUE : FALSE;
+	pg_msg_info->is_csi_del = (csi_name) ? TRUE : FALSE;
 	if (FALSE == pg_msg_info->is_csi_del) {
-		pg_msg_info->csi_name_net = comp_csi->csi->name_net;
-		pg_msg_info->mem.member.compName = comp_csi->comp->comp_info.name_net;
+		pg_msg_info->csi_name = comp_csi->csi->name;
+		pg_msg_info->mem.member.compName = comp_csi->comp->comp_info.name;
 		pg_msg_info->mem.member.haState = comp_csi->susi->state;
-		pg_msg_info->mem.member.rank = comp_csi->comp->su->rank;
+		pg_msg_info->mem.member.rank = comp_csi->comp->su->saAmfSURank;
 		pg_msg_info->mem.change = change;
 	} else
-		pg_msg_info->csi_name_net = *csi_name_net;
+		pg_msg_info->csi_name = *csi_name;
 
 	/* send the msg to avnd */
 	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_PG_UPD_MSG, node->node_info.nodeId);
@@ -2144,19 +1912,17 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	if ((cb->node_id_avd_other == avnd->node_info.nodeId) && (avnd->type != AVSV_AVND_CARD_SYS_CON)) {
 		avnd->type = AVSV_AVND_CARD_SYS_CON;
 		/* checkpoint this information */
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_AVND_CONFIG);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);
 	}
 
 	/* prepare the message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
 
 	d2n_msg->msg_type = AVSV_D2N_SET_LEDS_MSG;
 	d2n_msg->msg_info.d2n_set_leds.node_id = avnd->node_info.nodeId;
@@ -2212,15 +1978,13 @@ uns32 avd_snd_hb_msg(AVD_CL_CB *cb)
 	}
 
 	/* prepare the message. */
-	d2d_msg = m_MMGR_ALLOC_D2D_MSG;
+	d2d_msg = calloc(1, sizeof(AVD_D2D_MSG));
 	if (d2d_msg == AVD_D2D_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_D2D_MSG_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(d2d_msg, '\0', sizeof(AVD_D2D_MSG));
 
 	d2d_msg->msg_type = AVD_D2D_HEARTBEAT_MSG;
 	d2d_msg->msg_info.d2d_hrt_bt.node_id = cb->node_id_avd;
@@ -2267,7 +2031,7 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_comp_validation_resp");
 
 	/* prepare the component validation message. */
-	d2n_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -2275,12 +2039,10 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 		return NCSCC_RC_FAILURE;
 	}
 
-	memset(d2n_msg, '\0', sizeof(AVD_DND_MSG));
-
 	/* prepare the componenet validation response message */
 	d2n_msg->msg_type = AVSV_D2N_COMP_VALIDATION_RESP_MSG;
 
-	d2n_msg->msg_info.d2n_comp_valid_resp_info.comp_name_net = n2d_msg->msg_info.n2d_comp_valid_info.comp_name_net;
+	d2n_msg->msg_info.d2n_comp_valid_resp_info.comp_name = n2d_msg->msg_info.n2d_comp_valid_info.comp_name;
 	d2n_msg->msg_info.d2n_comp_valid_resp_info.msg_id = n2d_msg->msg_info.n2d_comp_valid_info.msg_id;
 	if (NULL == comp_ptr) {
 		/* We don't have the component, so node id is unavailable. */
@@ -2322,4 +2084,222 @@ uns32 avd_snd_comp_validation_resp(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_COMP *comp
 
 	return NCSCC_RC_SUCCESS;
 
+}
+
+int avd_admin_state_is_valid(SaAmfAdminStateT state)
+{
+	return ((SA_AMF_ADMIN_UNLOCKED <= state) && (state <= SA_AMF_ADMIN_SHUTTING_DOWN));
+}
+
+/*****************************************************************************
+ * Function: avd_object_name_create
+ *
+ * Purpose: This routine generates obj name using class name and parent name.
+ *
+ *
+ * Input  : Rdn Attribute Value, Parent Name.
+ *
+ * Output  : Object name.
+ *
+ * Returns: Ok/Failure.
+ *
+ * NOTES  : None.
+ *
+ *
+ **************************************************************************/
+SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name)
+{
+	SaAisErrorT rc = SA_AIS_OK;
+	uns32 name_length = 0;
+
+	memset(object_name, 0, sizeof(SaNameT));
+	object_name->length = rdn_attr_value->length;
+
+	if (object_name->length > SA_MAX_NAME_LENGTH)
+		return SA_AIS_ERR_INVALID_PARAM;
+
+	strcat((char *)&object_name->value[0], (char *)&rdn_attr_value->value[0]);
+	strcat((char *)&object_name->value[0], ",");
+
+	name_length = strlen((char *)&parentName->value[0]);
+	object_name->length += name_length;
+
+	if (object_name->length > SA_MAX_NAME_LENGTH)
+		return SA_AIS_ERR_INVALID_PARAM;
+
+	strncat((char *)&object_name->value[0], (char *)&parentName->value[0], name_length);
+
+	return rc;
+}
+
+/**
+ * Search for "needle" in the "haystack" and create a DN from the result
+ * @param haystack
+ * @param out
+ * @param needle
+ */
+void avsv_sanamet_init(const SaNameT *haystack, SaNameT *out, const char *needle)
+{
+	char *p;
+
+	memset(out, 0, sizeof(SaNameT));
+	p = strstr((char*)haystack->value, needle);
+	assert(p);
+	out->length = strlen(p);
+	memcpy(out->value, p, out->length);
+}
+
+/**
+ * Create a DN for an association class. Escape commas in the child DN.
+ * @param child_dn
+ * @param parent_dn
+ * @param rdn_tag
+ * @param dn
+ */
+void avd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
+	const char *rdn_tag, SaNameT *dn)
+{
+	char *p = (char*) dn->value;
+	int i;
+
+	memset(dn, 0, sizeof(SaNameT));
+
+	p += sprintf((char*)dn->value, "%s=", rdn_tag);
+
+	/* copy child DN and escape commas */
+	for (i = 0; i < child_dn->length; i++) {
+		if (child_dn->value[i] == ',')
+			*p++ = 0x5c; /* backslash */
+
+		*p++ = child_dn->value[i];
+	}
+
+	if (parent_dn != NULL) {
+		*p++ = ',';
+		strcpy(p, (char*)parent_dn->value);
+	}
+
+	dn->length = strlen((char*)dn->value);
+}
+
+/**
+ * Call this function from GDB to dump the AVD state. Example 
+ * below.
+ * 
+ * @param path 
+ */
+/* gdb --pid=`pgrep ncs_scap` -ex 'call	avd_file_dump("/tmp/avd.dump")'	/usr/local/lib/opensaf/ncs_scap */
+void avd_file_dump(const char *path)
+{
+	SaNameT dn = {0};
+	FILE *f = fopen(path, "w");
+
+	if (!f) {
+		fprintf(stderr, "Could not open %s - %s\n", path, strerror(errno));
+		return;
+	}
+
+	AVD_AVND *node;
+	SaClmNodeIdT node_id = 0;
+	while (NULL != (node = avd_node_getnext_nodeid(node_id))) {
+		fprintf(f, "%s\n", node->node_info.nodeName.value);
+		fprintf(f, "\tsaAmfNodeAdminState=%u\n", node->saAmfNodeAdminState);
+		fprintf(f, "\tsaAmfNodeOperState=%u\n", node->saAmfNodeOperState);
+		fprintf(f, "\tnode_state=%u\n", node->node_state);
+		fprintf(f, "\ttype=%u\n", node->type);
+		fprintf(f, "\tadest=%llx\n", node->adest);
+		fprintf(f, "\trcv_msg_id=%u\n", node->rcv_msg_id);
+		fprintf(f, "\tsnd_msg_id=%u\n", node->snd_msg_id);
+		fprintf(f, "\tavm_oper_state=%u\n", node->avm_oper_state);
+		fprintf(f, "\tnodeId=%x\n", node->node_info.nodeId);
+		node_id = node->node_info.nodeId;
+	}
+
+	AVD_APP *app;
+	dn.length = 0;
+	for (app = avd_app_getnext(&dn); app != NULL; app = avd_app_getnext(&dn)) {
+		fprintf(f, "%s\n", app->name.value);
+		fprintf(f, "\tsaAmfApplicationAdminState=%u\n", app->saAmfApplicationAdminState);
+		fprintf(f, "\tsaAmfApplicationCurrNumSGs=%u\n", app->saAmfApplicationCurrNumSGs);
+		dn = app->name;
+	}
+
+	AVD_SG *sg;
+	dn.length = 0;
+	for (sg = avd_sg_getnext(&dn); sg != NULL; sg = avd_sg_getnext(&dn)) {
+		fprintf(f, "%s\n", sg->name.value);
+		fprintf(f, "\tsaAmfSGAdminState=%u\n", sg->saAmfSGAdminState);
+		fprintf(f, "\tsaAmfSGNumCurrAssignedSUs=%u\n", sg->saAmfSGNumCurrAssignedSUs);
+		fprintf(f, "\tsaAmfSGNumCurrInstantiatedSpareSUs=%u\n", sg->saAmfSGNumCurrInstantiatedSpareSUs);
+		fprintf(f, "\tsaAmfSGNumCurrNonInstantiatedSpareSUs=%u\n", sg->saAmfSGNumCurrNonInstantiatedSpareSUs);
+		fprintf(f, "\tadjust_state=%u\n", sg->adjust_state);
+		fprintf(f, "\tsg_fsm_state=%u\n", sg->sg_fsm_state);
+		dn = sg->name;
+	}
+
+	AVD_SU *su;
+	dn.length = 0;
+	for (su = avd_su_getnext(&dn); su != NULL; su = avd_su_getnext(&dn)) {
+		fprintf(f, "%s\n", su->name.value);
+		fprintf(f, "\tsaAmfSUPreInstantiable=%u\n", su->saAmfSUPreInstantiable);
+		fprintf(f, "\tsaAmfSUOperState=%u\n", su->saAmfSUOperState);
+		fprintf(f, "\tsaAmfSUAdminState=%u\n", su->saAmfSUAdminState);
+		fprintf(f, "\tsaAmfSuReadinessState=%u\n", su->saAmfSuReadinessState);
+		fprintf(f, "\tsaAmfSUPresenceState=%u\n", su->saAmfSUPresenceState);
+		fprintf(f, "\tsaAmfSUHostedByNode=%s\n", su->saAmfSUHostedByNode.value);
+		fprintf(f, "\tsaAmfSUNumCurrActiveSIs=%u\n", su->saAmfSUNumCurrActiveSIs);
+		fprintf(f, "\tsaAmfSUNumCurrStandbySIs=%u\n", su->saAmfSUNumCurrStandbySIs);
+		fprintf(f, "\tsaAmfSURestartCount=%u\n", su->saAmfSURestartCount);
+		fprintf(f, "\tterm_state=%u\n", su->term_state);
+		fprintf(f, "\tsu_switch=%u\n", su->su_switch);
+		fprintf(f, "\tsu_act_state=%u\n", su->su_act_state);
+		dn = su->name;
+	}
+
+	AVD_COMP *comp;
+	dn.length = 0;
+	for (comp = avd_comp_getnext(&dn); comp != NULL; comp = avd_comp_getnext(&dn)) {
+		fprintf(f, "%s\n", comp->comp_info.name.value);
+		fprintf(f, "\tsaAmfCompOperState=%u\n", comp->saAmfCompOperState);
+		fprintf(f, "\tsaAmfCompReadinessState=%u\n", comp->saAmfCompReadinessState);
+		fprintf(f, "\tsaAmfCompPresenceState=%u\n", comp->saAmfCompPresenceState);
+		fprintf(f, "\tsaAmfCompRestartCount=%u\n", comp->saAmfCompRestartCount);
+		fprintf(f, "\tsaAmfCompOperState=%s\n", comp->saAmfCompCurrProxyName.value);
+		dn = comp->comp_info.name;
+	}
+
+	AVD_SI *si;
+	dn.length = 0;
+	for (si = avd_si_getnext(&dn); si != NULL; si = avd_si_getnext(&dn)) {
+		fprintf(f, "%s\n", si->name.value);
+		fprintf(f, "\tsaAmfSIAdminState=%u\n", si->saAmfSIAdminState);
+		fprintf(f, "\tsaAmfSIAssignmentStatee=%u\n", si->saAmfSIAssignmentState);
+		fprintf(f, "\tsaAmfSINumCurrActiveAssignments=%u\n", si->saAmfSINumCurrActiveAssignments);
+		fprintf(f, "\tsaAmfSINumCurrStandbyAssignments=%u\n", si->saAmfSINumCurrStandbyAssignments);
+		fprintf(f, "\tsi_switch=%u\n", si->si_switch);
+		dn = si->name;
+	}
+
+	AVD_SU_SI_REL *rel;
+	dn.length = 0;
+	for (su = avd_su_getnext(&dn); su != NULL; su = avd_su_getnext(&dn)) {
+		for (rel = su->list_of_susi; rel != NULL; rel = rel->su_next) {
+			fprintf(f, "%s,%s\n", rel->su->name.value, rel->si->name.value);
+			fprintf(f, "\thastate=%u\n", rel->state);
+			fprintf(f, "\tfsm=%u\n", rel->fsm);
+		}
+		dn = su->name;
+	}
+
+	dn.length = 0;
+	AVD_COMPCS_TYPE *compcstype;
+	for (compcstype = avd_compcstype_getnext(&dn); compcstype != NULL;
+	     compcstype = avd_compcstype_getnext(&dn)) {
+		fprintf(f, "%s\n", compcstype->name.value);
+		fprintf(f, "\tsaAmfCompNumCurrActiveCSIs=%u\n", compcstype->saAmfCompNumCurrActiveCSIs);
+		fprintf(f, "\tsaAmfCompNumCurrStandbyCSIs=%u\n", compcstype->saAmfCompNumCurrStandbyCSIs);
+		dn = compcstype->name;
+	}
+
+	fclose(f);
 }

@@ -141,7 +141,7 @@ uns32 avnd_evt_avnd_avnd_api_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			SaAisErrorT amf_rc = SA_AIS_OK;
 			NCS_BOOL msg_from_avnd = TRUE;
 
-			comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name_net);
+			comp = m_AVND_COMPDB_REC_GET(cb->compdb, reg->comp_name);
 			if (NULL == comp)
 				return NCSCC_RC_FAILURE;
 
@@ -250,7 +250,7 @@ uns32 avnd_evt_avnd_avnd_api_resp_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, o_comp, AVND_CKPT_COMP_PROXY_PROXIED_DEL);
 			res = avnd_comp_proxied_del(cb, o_comp, o_comp->pxy_comp, FALSE, NULL);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, o_comp, AVND_CKPT_COMP_CONFIG);
-			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name_net));
+			res = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(o_comp->name));
 		}
 	}
 
@@ -314,18 +314,18 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 	/* Get the component pointer. */
 
-	if (0 == (comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, cbk_info->param.hc.comp_name_net))) {
+	if (0 == (comp = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, cbk_info->param.hc.comp_name))) {
 		/* 
 		   NOTE : The component name has been taken from health check callback structure,
 		   this will not make any difference to other types of callback structures,
 		   such as comp_term, csi_set, csi_rem, etc. We can take name from any one
 		   of them as the name is the same in all the structures. Like we can use
-		   cbk_info->param.csi_set.comp_name_net or 
-		   cbk_info->param.pxied_comp_inst.comp_name_net.
+		   cbk_info->param.csi_set.comp_name or 
+		   cbk_info->param.pxied_comp_inst.comp_name.
 		 */
 		rc = NCSCC_RC_FAILURE;
 		m_AVND_AVND_ERR_LOG("Couldn't find comp in Inter/Ext Comp DB:Comp,Type,Hdl and Inv are",
-				    &cbk_info->param.hc.comp_name_net, cbk_info->type, cbk_info->hdl, cbk_info->inv, 0);
+				    &cbk_info->param.hc.comp_name, cbk_info->type, cbk_info->hdl, cbk_info->inv, 0);
 		/* free the callback info */
 		if (cbk_rec)
 			avsv_amf_cbk_free(cbk_rec);
@@ -355,13 +355,13 @@ uns32 avnd_evt_avnd_avnd_cbk_msg_hdl(AVND_CB *cb, AVND_EVT *evt)
 
 		if (NCSCC_RC_SUCCESS != rc) {
 			m_AVND_AVND_ERR_LOG("Comp Cbk Rec Send Failed:Comp,Type,Hdl,Inv and Dest are",
-					    &comp->name_net, cbk_info->type,
+					    &comp->name, cbk_info->type,
 					    cbk_info->hdl, cbk_info->inv, comp->reg_dest);
 		}
 	} else {
 		rc = NCSCC_RC_FAILURE;
 		m_AVND_AVND_ERR_LOG("Comp Cbk Rec Add Failed:Comp,Type,Hdl,Inv and Dest are",
-				    &comp->name_net, cbk_info->type, cbk_info->hdl, cbk_info->inv, comp->reg_dest);
+				    &comp->name, cbk_info->type, cbk_info->hdl, cbk_info->inv, comp->reg_dest);
 	}
 
 	if (NCSCC_RC_SUCCESS != rc && rec) {
@@ -420,6 +420,16 @@ uns32 avnd_evt_ha_state_change(AVND_CB *cb, AVND_EVT *evt)
 uns32 avnd_evt_avd_role_change_msg(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
+	AVSV_D2N_ROLE_CHANGE_INFO *info = &evt->info.avd->msg_info.d2n_role_change_info;
+
+	if ((info->msg_id != 0) && (info->msg_id != (cb->rcv_msg_id + 1))) {
+		/* Log Error */
+		rc = NCSCC_RC_FAILURE;
+		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_MSG_ID_MISMATCH, info->msg_id);
+		return rc;
+	}
+
+	cb->rcv_msg_id = info->msg_id;
 	return rc;
 }
 

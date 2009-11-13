@@ -37,9 +37,76 @@
  * Module Inclusion Control...
  */
 
+#include <poll.h>
 #include <sched.h>
 #include "avnd.h"
 #include "avnd_mon.h"
+
+#define FD_MBX   0
+#define FD_MBCSV 1
+
+char *avnd_evt_type_name[] = {
+	"AVND_EVT_INVALID",
+	"AVND_EVT_AVD_NODE_UPDATE_MSG",
+	"AVND_EVT_AVD_NODE_UP_MSG",
+	"AVND_EVT_AVD_REG_HLT_MSG",
+	"AVND_EVT_AVD_REG_SU_MSG",
+	"AVND_EVT_AVD_REG_COMP_MSG",
+	"AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG",
+	"AVND_EVT_AVD_NODE_ON_FOVER",
+	"AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG",
+	"AVND_EVT_AVD_PG_UPD_MSG",
+	"AVND_EVT_AVD_OPERATION_REQUEST_MSG",
+	"AVND_EVT_AVD_HB_INFO_MSG",
+	"AVND_EVT_AVD_SU_PRES_MSG",
+	"AVND_EVT_AVD_VERIFY_MSG",
+	"AVND_EVT_AVD_ACK_MSG",
+	"AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG",
+	"AVND_EVT_AVD_SET_LEDS_MSG",
+	"AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG",
+	"AVND_EVT_AVD_ROLE_CHANGE_MSG",
+	"AVND_EVT_AVA_FINALIZE",
+	"AVND_EVT_AVA_COMP_REG",
+	"AVND_EVT_AVA_COMP_UNREG",
+	"AVND_EVT_AVA_PM_START",
+	"AVND_EVT_AVA_PM_STOP",
+	"AVND_EVT_AVA_HC_START",
+	"AVND_EVT_AVA_HC_STOP",
+	"AVND_EVT_AVA_HC_CONFIRM",
+	"AVND_EVT_AVA_CSI_QUIESCING_COMPL",
+	"AVND_EVT_AVA_HA_GET",
+	"AVND_EVT_AVA_PG_START",
+	"AVND_EVT_AVA_PG_STOP",
+	"AVND_EVT_AVA_ERR_REP",
+	"AVND_EVT_AVA_ERR_CLEAR",
+	"AVND_EVT_AVA_RESP",
+	"AVND_EVT_CLA_FINALIZE",
+	"AVND_EVT_CLA_TRACK_START",
+	"AVND_EVT_CLA_TRACK_STOP",
+	"AVND_EVT_CLA_NODE_GET",
+	"AVND_EVT_CLA_NODE_ASYNC_GET",
+	"AVND_EVT_TMR_HC",
+	"AVND_EVT_TMR_CBK_RESP",
+	"AVND_EVT_TMR_SND_HB",
+	"AVND_EVT_TMR_RCV_MSG_RSP",
+	"AVND_EVT_TMR_CLC_COMP_REG",
+	"AVND_EVT_TMR_SU_ERR_ESC",
+	"AVND_EVT_TMR_NODE_ERR_ESC",
+	"AVND_EVT_TMR_CLC_PXIED_COMP_INST",
+	"AVND_EVT_TMR_CLC_PXIED_COMP_REG",
+	"AVND_EVT_MDS_AVD_UP",
+	"AVND_EVT_MDS_AVD_DN",
+	"AVND_EVT_MDS_AVA_DN",
+	"AVND_EVT_MDS_CLA_DN",
+	"AVND_EVT_MDS_AVND_DN",
+	"AVND_EVT_MDS_AVND_UP",
+	"AVND_EVT_HA_STATE_CHANGE",
+	"AVND_EVT_CLC_RESP",
+	"AVND_EVT_AVND_AVND_MSG",
+	"AVND_EVT_COMP_PRES_FSM_EV",
+	"AVND_EVT_LAST_STEP_TERM",
+	"AVND_EVT_PID_EXIT",
+};
 
 static NCS_BOOL avnd_mbx_process(SYSF_MBX *);
 static void avnd_evt_process(AVND_EVT *);
@@ -55,7 +122,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	/* AvD message event types */
 	avnd_evt_avd_node_update_msg,	/* AVND_EVT_AVD_NODE_UPDATE_MSG */
 	avnd_evt_avd_node_up_msg,	/* AVND_EVT_AVD_NODE_UP_MSG */
-	avnd_evt_avd_reg_hlt_msg,	/* AVND_EVT_AVD_REG_HLT_MSG */
+	NULL,				/* AVND_EVT_AVD_REG_HLT_MSG */
 	avnd_evt_avd_reg_su_msg,	/* AVND_EVT_AVD_REG_SU_MSG */
 	avnd_evt_avd_reg_comp_msg,	/* AVND_EVT_AVD_REG_COMP_MSG */
 	avnd_evt_avd_info_su_si_assign_msg,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
@@ -143,18 +210,12 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 ******************************************************************************/
 void avnd_main_process(void *arg)
 {
-	AVND_CB *cb = 0;
-	SYSF_MBX *mbx;
-	uns32 cb_hdl;
-	NCS_SEL_OBJ_SET wait_sel_objs;
-	NCS_SEL_OBJ mbx_sel_obj;
-	NCS_SEL_OBJ highest_sel_obj;
-#ifdef NCS_AVND_MBCSV_CKPT
-	NCS_SEL_OBJ avnd_mbcsv_sel_obj;
-#endif
+	NCS_SEL_OBJ mbx_fd;
 	NCS_BOOL avnd_exit = FALSE;
+	struct pollfd fds[2];
+	nfds_t nfds = 1;
 
-	/* Only change scheduling class to real time on payload nodes. */
+	/* Change scheduling class to real time only on payload nodes. */
 	if (getenv("AVD") == NULL) {
 		struct sched_param param = {.sched_priority = 79 };
 
@@ -162,71 +223,53 @@ void avnd_main_process(void *arg)
 			syslog(LOG_ERR, "Could not set scheduling class for avnd: %s", strerror(errno));
 	}
 
-	/* get cb-hdl */
-	cb_hdl = *((uns32 *)arg);
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, cb_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		return;
-	}
-
-	/* get the mbx */
-	mbx = &cb->mbx;
-
-	/* reset the wait select objects */
-	m_NCS_SEL_OBJ_ZERO(&wait_sel_objs);
-
-	/* get the mbx select object */
-	highest_sel_obj = mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(mbx);
-
-	/* set all the select objects on which avnd waits */
-	m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
+	mbx_fd = ncs_ipc_get_sel_obj(&avnd_cb->mbx);
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
 
 #ifdef NCS_AVND_MBCSV_CKPT
-	m_SET_FD_IN_SEL_OBJ((uns32)cb->avnd_mbcsv_sel_obj, avnd_mbcsv_sel_obj);
-	m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
-	highest_sel_obj = m_GET_HIGHER_SEL_OBJ(highest_sel_obj, avnd_mbcsv_sel_obj);
+	fds[FD_MBCSV].fd = avnd_cb->avnd_mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
+	nfds++;
 #endif
-	/* before waiting, return avnd cb */
-	ncshm_give_hdl(cb_hdl);
 
 	/* now wait forever */
-	while (m_NCS_SEL_OBJ_SELECT(highest_sel_obj, &wait_sel_objs, NULL, NULL, NULL) != -1) {
-		/* avnd mbx processing */
-		if (m_NCS_SEL_OBJ_ISSET(mbx_sel_obj, &wait_sel_objs)) {
-			avnd_exit = avnd_mbx_process(mbx);
+	while (1) {
+		int ret = poll(fds, nfds, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR) {
+				continue;
+			}
+
+			syslog(LOG_ERR, "%s: poll failed - %s", __FUNCTION__, strerror(errno));
+			break;
+		}
+
+		if (fds[FD_MBX].revents & POLLIN) {
+			avnd_exit = avnd_mbx_process(&avnd_cb->mbx);
 			if (TRUE == avnd_exit)
 				break;
 		}
+
 #ifdef NCS_AVND_MBCSV_CKPT
-		if (m_NCS_SEL_OBJ_ISSET(avnd_mbcsv_sel_obj, &wait_sel_objs)) {
-			if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(cb, SA_DISPATCH_ALL)) {
-				/*
-				 * Log error; but continue with our loop.
-				 */
-				syslog(LOG_ERR, "avnd_mbcsv_dispatch Failed");
+		if (fds[FD_MBCSV].revents & POLLIN) {
+			avnd_log(NCSFL_SEV_NOTICE, "%u", __LINE__);
+			if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(avnd_cb, SA_DISPATCH_ALL)) {
+				/* Log error; but continue with our loop. */
+				syslog(LOG_ERR, "%s: avnd_mbcsv_dispatch failed", __FUNCTION__);
 			}
-		}		/* if (m_NCS_SEL_OBJ_ISSET (mbcsv_sel_obj, &wait_sel_objs)) */
-#endif
-
-		/* again set all the wait select objs */
-		m_NCS_SEL_OBJ_SET(mbx_sel_obj, &wait_sel_objs);
-#ifdef NCS_AVND_MBCSV_CKPT
-		m_NCS_SEL_OBJ_SET(avnd_mbcsv_sel_obj, &wait_sel_objs);
+			avnd_log(NCSFL_SEV_NOTICE, "%u", __LINE__);
+		}
 #endif
 	}
 
-	if (FALSE == avnd_exit) {
-		m_AVND_LOG_INVALID_VAL_ERROR(0);
-		syslog(LOG_ERR, "NCS_AvSv: Avnd Func. Thread Exited");
-	}
+	if (FALSE == avnd_exit)
+		syslog(LOG_ERR, "%s: Thread Exited", __FUNCTION__);
 
 	/* Give some time for cleanup and reboot scipts */
 	sleep(5);
 	exit(0);
-
-	return;
 }
 
 /****************************************************************************
@@ -249,9 +292,10 @@ NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
 	AVND_CB *cb = 0;
 
 	/* process each event */
-	while (0 != (evt = (AVND_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, evt))) {
+	while (0 != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(mbx))) {
 		cb_hdl = evt->cb_hdl;
 
+//		avnd_log(NCSFL_SEV_NOTICE, "%s", avnd_evt_type_name[evt->type]);
 		avnd_evt_process(evt);
 
 		/* retrieve avnd cb */
@@ -362,7 +406,7 @@ static uns32 avnd_evt_invalid_func(AVND_CB *cb, AVND_EVT *evt)
 	/* This function should never be called
 	 * log the event to the debug log and return
 	 */
-	m_AVSV_ASSERT(0);
+	assert(0);
 
 	return NCSCC_RC_SUCCESS;
 }

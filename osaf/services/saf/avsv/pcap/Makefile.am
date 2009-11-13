@@ -20,19 +20,23 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_pcap
+pkglib_PROGRAMS = opensaf_pcap
 
-ncs_pcap_CPPFLAGS = \
+opensaf_pcap_CPPFLAGS = \
 	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
+	-DNCS_MAIN_EXTERNAL \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
-ncs_pcap_SOURCES = \
+opensaf_pcap_SOURCES = \
+	opensaf_pcap.c \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
-ncs_pcap_LDADD = \
+opensaf_pcap_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_pld.la \
-	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

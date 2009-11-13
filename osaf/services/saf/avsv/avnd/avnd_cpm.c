@@ -34,6 +34,7 @@
 */
 
 #include "avnd.h"
+#include "avnd_mon.h"
 
 /*****************************************************************************
  *                                                                           *
@@ -78,7 +79,7 @@ uns32 avnd_pm_rec_free(NCS_DB_LINK_LIST_NODE *node)
 {
 	AVND_COMP_PM_REC *pm_rec = (AVND_COMP_PM_REC *)node;
 
-	m_MMGR_FREE_AVND_COMP_PM_REC(pm_rec);
+	free(pm_rec);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -322,10 +323,8 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 	uns32 rc = NCSCC_RC_SUCCESS;
 	*sa_err = SA_AIS_OK;
 
-	if ((0 == (rec = m_MMGR_ALLOC_AVND_COMP_PM_REC)))
+	if ((0 == (rec = calloc(1, sizeof(AVND_COMP_PM_REC)))))
 		return rec;
-
-	memset(rec, 0, sizeof(AVND_COMP_PM_REC));
 
 	/* assign the pm params */
 	rec->desc_tree_depth = pm_start->desc_tree_depth;
@@ -339,7 +338,7 @@ AVND_COMP_PM_REC *avnd_comp_new_rsrc_mon(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_
 	/* add the rec to comp's PM_REC */
 	rc = avnd_comp_pm_rec_add(cb, comp, rec);
 	if (NCSCC_RC_SUCCESS != rc) {
-		m_MMGR_FREE_AVND_COMP_PM_REC(rec);
+		free(rec);
 		rec = 0;
 	}
 
@@ -425,7 +424,7 @@ uns32 avnd_evt_ava_pm_start(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_start():Comp,Hdl,pid,desc_tree_depth and pm_err are",
-				    &pm_start->comp_name_net, pm_start->hdl, pm_start->pid,
+				    &pm_start->comp_name, pm_start->hdl, pm_start->pid,
 				    pm_start->desc_tree_depth, pm_start->pm_err);
 	}
 
@@ -482,7 +481,7 @@ uns32 avnd_evt_ava_pm_stop(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_pm_stop():Comp,Hdl,pid,stop_qual and pm_err are",
-				    &pm_stop->comp_name_net, pm_stop->hdl, pm_stop->pid,
+				    &pm_stop->comp_name, pm_stop->hdl, pm_stop->pid,
 				    pm_stop->stop_qual, pm_stop->pm_err);
 	}
 
@@ -518,7 +517,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			AVSV_AMF_PM_START_PARAM *pm_start = (AVSV_AMF_PM_START_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_start->comp_name_net))) {
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_start->comp_name))) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -548,7 +547,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 			AVSV_AMF_PM_STOP_PARAM *pm_stop = (AVSV_AMF_PM_STOP_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_stop->comp_name_net))) {
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, pm_stop->comp_name))) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -579,7 +578,7 @@ void avnd_comp_pm_param_val(AVND_CB *cb,
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}			/* switch */
 
 	return;

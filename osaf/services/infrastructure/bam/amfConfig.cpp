@@ -151,9 +151,9 @@ static uns32 get_admstate_val(char *val)
 {
 /* Admin state at the intial time can have only two values LOCK and UNLOCK  */ 
    if(strcmp(val, "locked") == 0)
-         return SA_AMF_LOCK;
+         return SA_AMF_ADMIN_LOCKED;
    else
-        return SA_AMF_UNLOCK;
+        return SA_AMF_ADMIN_UNLOCK;
 }
 
 static SaAisErrorT

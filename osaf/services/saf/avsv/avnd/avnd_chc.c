@@ -111,7 +111,7 @@ uns32 avnd_evt_ava_hc_start(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_start():Comp,Hdl,InvType and Err Rcvr are",
-				    &hc_start->comp_name_net, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr, 0);
+				    &hc_start->comp_name, hc_start->hdl, hc_start->inv_type, hc_start->rec_rcvr, 0);
 	}
 	return rc;
 }
@@ -166,7 +166,7 @@ uns32 avnd_evt_ava_hc_stop(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_stop():Comp and Hdl are",
-				    &hc_stop->comp_name_net, hc_stop->hdl, 0, 0, 0);
+				    &hc_stop->comp_name, hc_stop->hdl, 0, 0, 0);
 	}
 	return rc;
 }
@@ -222,7 +222,7 @@ uns32 avnd_evt_ava_hc_confirm(AVND_CB *cb, AVND_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_hc_confirm():Comp, Hdl and hc_res are",
-				    &hc_confirm->comp_name_net, hc_confirm->hdl, hc_confirm->hc_res, 0, 0);
+				    &hc_confirm->comp_name, hc_confirm->hdl, hc_confirm->hc_res, 0, 0);
 	}
 	return rc;
 }
@@ -301,7 +301,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_start = (AVSV_AMF_HC_START_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_start->comp_name_net))) {
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_start->comp_name))) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
@@ -316,27 +316,30 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_NORDER_SANAMET(hc_start->comp_name_net, hc_start->proxy_comp_name_net)) {
+			if (m_CMP_HORDER_SANAMET(hc_start->comp_name, hc_start->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_NORDER_SANAMET((*o_comp)->pxy_comp->name_net,
-							    hc_start->proxy_comp_name_net)) {
+				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
+							    hc_start->proxy_comp_name)) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
-			memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value,
-			       m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+			hlt_chk.comp_name.length = hc_start->comp_name.length;
+			memcpy(hlt_chk.comp_name.value, hc_start->comp_name.value,
+				hlt_chk.comp_name.length);
 			l_num = hc_start->hc_key.keyLen;
-			hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
+			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
 			hlt_chk.name.keyLen = hc_start->hc_key.keyLen;
 
 			/* get the record from healthcheck database */
-			if (0 == m_AVND_HCDB_REC_GET(cb->hcdb, hlt_chk)) {
-				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
-				return;
+			if (0 == avnd_hcdb_rec_get(cb, &hlt_chk)) {
+				/* HC instance did not exist, look for HC type */
+				if (NULL == avnd_hctypedb_rec_get(&(*o_comp)->saAmfCompType, &hc_start->hc_key)) {
+					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
+					return;
+				}
 			}
 
 			memset(&tmp_hc_rec, '\0', sizeof(AVND_COMP_HC_REC));
@@ -357,26 +360,26 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_stop = (AVSV_AMF_HC_STOP_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_stop->comp_name_net))) {
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_stop->comp_name))) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_NORDER_SANAMET(hc_stop->comp_name_net, hc_stop->proxy_comp_name_net)) {
+			if (m_CMP_HORDER_SANAMET(hc_stop->comp_name, hc_stop->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_NORDER_SANAMET((*o_comp)->pxy_comp->name_net,
-							    hc_stop->proxy_comp_name_net)) {
+				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
+							    hc_stop->proxy_comp_name)) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name_net.length = hc_stop->comp_name_net.length;
-			memcpy(hlt_chk.comp_name_net.value, hc_stop->comp_name_net.value,
-			       m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+			hlt_chk.comp_name.length = hc_stop->comp_name.length;
+			memcpy(hlt_chk.comp_name.value, hc_stop->comp_name.value,
+			       hlt_chk.comp_name.length);
 			l_num = hc_stop->hc_key.keyLen;
-			hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
+			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_stop->hc_key.key, hc_stop->hc_key.keyLen);
 			hlt_chk.name.keyLen = hc_stop->hc_key.keyLen;
 
@@ -398,26 +401,26 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 			hc_confirm = (AVSV_AMF_HC_CONFIRM_PARAM *)param;
 
 			/* get the comp */
-			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_confirm->comp_name_net))) {
+			if (0 == (*o_comp = m_AVND_COMPDB_REC_GET(cb->compdb, hc_confirm->comp_name))) {
 				*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 				return;
 			}
 
 			/* non proxy component should not start/stop/confirm health check for any other component */
-			if (m_CMP_NORDER_SANAMET(hc_confirm->comp_name_net, hc_confirm->proxy_comp_name_net)) {
+			if (m_CMP_HORDER_SANAMET(hc_confirm->comp_name, hc_confirm->proxy_comp_name)) {
 				if (!m_AVND_COMP_TYPE_IS_PROXIED(*o_comp)
-				    || m_CMP_NORDER_SANAMET((*o_comp)->pxy_comp->name_net,
-							    hc_confirm->proxy_comp_name_net)) {
+				    || m_CMP_HORDER_SANAMET((*o_comp)->pxy_comp->name,
+							    hc_confirm->proxy_comp_name)) {
 					*o_amf_rc = SA_AIS_ERR_NOT_EXIST;
 					return;
 				}
 			}
 			memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-			hlt_chk.comp_name_net.length = hc_confirm->comp_name_net.length;
-			memcpy(hlt_chk.comp_name_net.value, hc_confirm->comp_name_net.value,
-			       m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+			hlt_chk.comp_name.length = hc_confirm->comp_name.length;
+			memcpy(hlt_chk.comp_name.value, hc_confirm->comp_name.value,
+			       hlt_chk.comp_name.length);
 			l_num = hc_confirm->hc_key.keyLen;
-			hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
+			hlt_chk.key_len = l_num;
 			memcpy(hlt_chk.name.key, hc_confirm->hc_key.key, hc_confirm->hc_key.keyLen);
 			hlt_chk.name.keyLen = hc_confirm->hc_key.keyLen;
 
@@ -439,7 +442,7 @@ void avnd_comp_hc_param_val(AVND_CB *cb,
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}			/* switch */
 
 	/* npi comps dont interact with amf */
@@ -474,32 +477,37 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 	uns32 rc = NCSCC_RC_SUCCESS;
 	uns32 l_num;
 
-	if ((0 == (rec = m_MMGR_ALLOC_AVND_COMP_HC_REC)))
+	if ((0 == (rec = calloc(1, sizeof(AVND_COMP_HC_REC)))))
 		goto err;
-
-	memset(rec, 0, sizeof(AVND_COMP_HC_REC));
 
 	/* create the association with hdl-mngr */
 	if ((0 == (rec->opq_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)rec))))
 		goto err;
 
 	memset(&hlt_chk, 0, sizeof(AVSV_HLT_KEY));
-	hlt_chk.comp_name_net.length = hc_start->comp_name_net.length;
-	memcpy(hlt_chk.comp_name_net.value, hc_start->comp_name_net.value,
-	       m_NCS_OS_NTOHS(hlt_chk.comp_name_net.length));
+	hlt_chk.comp_name.length = hc_start->comp_name.length;
+	memcpy(hlt_chk.comp_name.value, hc_start->comp_name.value,
+		hlt_chk.comp_name.length);
 	l_num = hc_start->hc_key.keyLen;
-	hlt_chk.key_len_net = m_NCS_OS_HTONL(l_num);
+	hlt_chk.key_len = l_num;
 	memcpy(hlt_chk.name.key, hc_start->hc_key.key, hc_start->hc_key.keyLen);
 	hlt_chk.name.keyLen = hc_start->hc_key.keyLen;
 
 	/* get the record from hc db */
-	hc = m_AVND_HCDB_REC_GET(cb->hcdb, hlt_chk);
-	m_AVSV_ASSERT(hc);	/* already thru with validation */
+	if ((hc = avnd_hcdb_rec_get(cb, &hlt_chk)) != NULL) {
+		rec->period = hc->period;
+		rec->max_dur = hc->max_dur;
+	} else {
+		/* HC instance did not exist, look for HC type */
+		AVND_HCTYPE *hctype = avnd_hctypedb_rec_get(&comp->saAmfCompType, &hc_start->hc_key);
+		if (hctype != NULL) {
+			rec->period = hctype->saAmfHctDefPeriod;
+			rec->max_dur = hctype->saAmfHctDefMaxDuration;
+		} else
+			assert(hctype);	/* already thru with validation */
+	}
 
-	/* assign the hc params */
-	rec->key = hc->key.name;
-	rec->period = hc->period;
-	rec->max_dur = hc->max_dur;
+	rec->key = hc_start->hc_key;
 
 	/* store the params sent by the component */
 	rec->inv = hc_start->inv_type;
@@ -509,7 +517,7 @@ AVND_COMP_HC_REC *avnd_comp_hc_rec_add(AVND_CB *cb, AVND_COMP *comp, AVSV_AMF_HC
 
 	/* store the comp bk ptr */
 	rec->comp = comp;
-	rec->comp_name_net = comp->name_net;
+	rec->comp_name = comp->name;
 
 	rec->status = AVND_COMP_HC_STATUS_STABLE;
 
@@ -554,9 +562,7 @@ void avnd_comp_hc_rec_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec)
 	m_AVND_COMPDB_REC_HC_REM(*comp, *rec);
 
 	/* free the record */
-	m_MMGR_FREE_AVND_COMP_HC_REC(rec);
-
-	return;
+	free(rec);
 }
 
 /****************************************************************************
@@ -621,7 +627,7 @@ uns32 avnd_comp_hc_rec_process(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 		break;
 	}
 
@@ -731,7 +737,7 @@ uns32 avnd_comp_hc_rec_confirm(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_HC_REC *r
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* it has to be comp-initiated healthcheck */
-	m_AVSV_ASSERT(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
+	assert(m_AVND_COMP_HC_REC_IS_COMP_INITIATED(rec));
 
 	if (SA_AIS_OK == res) {
 		/* restart the periodic timer */

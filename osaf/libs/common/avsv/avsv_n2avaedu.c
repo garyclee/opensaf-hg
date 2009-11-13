@@ -41,7 +41,6 @@
 */
 #include "avsv.h"
 #include "avsv_amfparam.h"
-#include "avsv_n2avamem.h"
 #include "avsv_n2avamsg.h"
 #include "avsv_n2avaedu.h"
 #include "avsv_eduutil.h"
@@ -95,16 +94,16 @@ uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->type, 0,
 		 avsv_cbq_info_test_type_fnc},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.hc.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.hc.comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_saamfhealthcheckkeyt, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.hc.hc_key, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.comp_term.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.comp_term.comp_name, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_set.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_set.comp_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_set.ha, 0, NULL},
 
@@ -132,15 +131,15 @@ uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_set.csi_desc.csiStateDescriptor.standbyDescriptor.
 		 standbyRank, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_rem.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_rem.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_rem.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_rem.csi_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFCSIFLAGST, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.csi_rem.csi_flags, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pg_track.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pg_track.csi_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAUINT32T, 0, 0, 0,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pg_track.mem_num, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, 0,
@@ -148,11 +147,11 @@ uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, avsv_edp_saamfprotectiongroupnotificationbuffert, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pg_track.buf, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pxied_comp_inst.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pxied_comp_inst.comp_name, 0, NULL},
 
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pxied_comp_clean.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_CBK_INFO *)0)->param.pxied_comp_clean.comp_name, 0, NULL},
 
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
@@ -162,7 +161,7 @@ uns32 avsv_edp_cbq_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else if (op == EDP_OP_TYPE_DEC) {
 		d_ptr = (AVSV_AMF_CBK_INFO **)ptr;
 		if (*d_ptr == NULL) {
-			*d_ptr = m_MMGR_ALLOC_AVSV_AMF_CBK_INFO;
+			*d_ptr = malloc(sizeof(AVSV_AMF_CBK_INFO));
 
 			if (*d_ptr == NULL) {
 				*o_err = EDU_ERR_MEM_FAIL;
@@ -212,10 +211,10 @@ uns32 avsv_edp_api_resp_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.csi_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_API_RESP_INFO *)0)->param.ha_get.ha, 0, NULL},
 
@@ -269,27 +268,27 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.finalize.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.finalize.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.finalize.comp_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.reg.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.reg.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.reg.proxy_comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.reg.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.reg.proxy_comp_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.unreg.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.unreg.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.unreg.proxy_comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.unreg.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.unreg.proxy_comp_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_start.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_start.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_start.comp_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_start.pid, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAINT32T, 0, 0, 0,
@@ -301,8 +300,8 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_stop.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_stop.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_stop.comp_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFPMSTOPQUALIFIERT, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pm_stop.stop_qual, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0,
@@ -312,10 +311,10 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.proxy_comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.proxy_comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_saamfhealthcheckkeyt, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_start.hc_key, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHEALTHCHECKINVOCATIONT, 0, 0, 0,
@@ -325,19 +324,19 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.proxy_comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.proxy_comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_saamfhealthcheckkeyt, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_stop.hc_key, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.proxy_comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.proxy_comp_name, 0, NULL},
 		{EDU_EXEC, ncs_edp_saamfhealthcheckkeyt, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.hc_confirm.hc_key, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, EDU_EXIT,
@@ -349,22 +348,22 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.csiq_compl.inv, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.csiq_compl.err, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.csiq_compl.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.csiq_compl.comp_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.comp_name_net, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.csi_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.ha_get.ha, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_start.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_start.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_start.csi_name, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAUINT8T, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_start.flags, 0, NULL},
 		{EDU_EXEC, ncs_edp_ncs_bool, 0, 0, EDU_EXIT,
@@ -372,13 +371,13 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_stop.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_stop.csi_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.pg_stop.csi_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_rep.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_rep.err_comp_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_rep.err_comp, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_rep.detect_time, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFRECOMMENDEDRECOVERYT, 0, 0, EDU_EXIT,
@@ -386,8 +385,8 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_clear.hdl, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_clear.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.err_clear.comp_name, 0, NULL},
 
 		{EDU_EXEC, m_NCS_EDP_SAAMFHANDLET, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.resp.hdl, 0, NULL},
@@ -395,8 +394,8 @@ uns32 avsv_edp_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.resp.inv, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAERRORT, 0, 0, 0,
 		 (long)&((AVSV_AMF_API_INFO *)0)->param.resp.err, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, EDU_EXIT,
-		 (long)&((AVSV_AMF_API_INFO *)0)->param.resp.comp_name_net, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, EDU_EXIT,
+		 (long)&((AVSV_AMF_API_INFO *)0)->param.resp.comp_name, 0, NULL},
 
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
@@ -461,7 +460,7 @@ uns32 avsv_edp_nda_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else if (op == EDP_OP_TYPE_DEC) {
 		d_ptr = (AVSV_NDA_AVA_MSG **)ptr;
 		if (*d_ptr == NULL) {
-			*d_ptr = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG;
+			*d_ptr = malloc(sizeof(AVSV_NDA_AVA_MSG));
 			if (*d_ptr == NULL) {
 				*o_err = EDU_ERR_MEM_FAIL;
 				return NCSCC_RC_FAILURE;

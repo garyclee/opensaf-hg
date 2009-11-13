@@ -42,10 +42,11 @@
 ******************************************************************************
 */
 #include "avsv.h"
-#include "avsv_n2clamem.h"
 #include "avsv_clmparam.h"
 #include "avsv_n2clamsg.h"
 #include "avsv_n2claedu.h"
+
+#define NCS_SERVICE_AVSV_N2CLA_SUB_DEFAULT_VAL 1
 
 static uns32 avsv_edp_cla_api_info(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				   NCSCONTEXT ptr, uns32 *ptr_data_len,
@@ -118,7 +119,7 @@ uns32 avsv_edp_nd_cla_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	} else if (op == EDP_OP_TYPE_DEC) {
 		d_ptr = (AVSV_NDA_CLA_MSG **)ptr;
 		if (*d_ptr == NULL) {
-			*d_ptr = m_MMGR_ALLOC_AVSV_NDA_CLA_MSG;
+			*d_ptr = malloc(sizeof(AVSV_NDA_CLA_MSG));
 			if (*d_ptr == NULL) {
 				*o_err = EDU_ERR_MEM_FAIL;
 				return NCSCC_RC_FAILURE;

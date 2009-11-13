@@ -19,5 +19,5 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/avsv/scap/scripts/ncs_scap_clean \
-	$(top_builddir)/osaf/services/saf/avsv/scap/scripts/ncs_scap_start
+	$(top_builddir)/osaf/services/saf/avsv/scap/scripts/opensaf_scap_clean \
+	$(top_builddir)/osaf/services/saf/avsv/scap/scripts/opensaf_scap_start

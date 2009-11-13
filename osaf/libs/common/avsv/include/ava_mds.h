@@ -54,7 +54,7 @@
    (m).info.api_info.type = AVSV_AMF_FINALIZE; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.finalize.hdl = (hd); \
-   (m).info.api_info.param.finalize.comp_name_net = (cn); \
+   (m).info.api_info.param.finalize.comp_name = (cn); \
 }
 
 /* Macro to populate the 'component register' message */
@@ -64,12 +64,12 @@
    (m).info.api_info.type = AVSV_AMF_COMP_REG; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.reg.hdl = (hd); \
-   memcpy((m).info.api_info.param.reg.comp_name_net.value, \
+   memcpy((m).info.api_info.param.reg.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.reg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.reg.proxy_comp_name_net.value, \
+   (m).info.api_info.param.reg.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.reg.proxy_comp_name.value, \
                    (pcn).value, (pcn).length); \
-   (m).info.api_info.param.reg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
+   (m).info.api_info.param.reg.proxy_comp_name.length = (pcn).length; \
 }
 
 /* Macro to populate the 'component unregister' message */
@@ -79,12 +79,12 @@
    (m).info.api_info.type = AVSV_AMF_COMP_UNREG; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.unreg.hdl = (hd); \
-   memcpy((m).info.api_info.param.unreg.comp_name_net.value, \
+   memcpy((m).info.api_info.param.unreg.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.unreg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.unreg.proxy_comp_name_net.value, \
+   (m).info.api_info.param.unreg.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.unreg.proxy_comp_name.value, \
                    (pcn).value, (pcn).length); \
-   (m).info.api_info.param.unreg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
+   (m).info.api_info.param.unreg.proxy_comp_name.length = (pcn).length; \
 }
 
 /* Macro to populate the 'healthcheck start' message */
@@ -94,12 +94,12 @@
    (m).info.api_info.type = AVSV_AMF_HC_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_start.hdl = (hd); \
-   memcpy((m).info.api_info.param.hc_start.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_start.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.hc_start.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.hc_start.proxy_comp_name_net.value, \
-                   (pcn).value, m_NCS_OS_NTOHS((pcn).length)); \
-   (m).info.api_info.param.hc_start.proxy_comp_name_net.length = (pcn).length; \
+   (m).info.api_info.param.hc_start.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.hc_start.proxy_comp_name.value, \
+                   (pcn).value, (pcn).length); \
+   (m).info.api_info.param.hc_start.proxy_comp_name.length = (pcn).length; \
    memcpy((m).info.api_info.param.hc_start.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_start.hc_key.keyLen = (hck).keyLen; \
@@ -114,12 +114,12 @@
    (m).info.api_info.type = AVSV_AMF_HC_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_stop.hdl = (hd); \
-   memcpy((m).info.api_info.param.hc_stop.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_stop.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.hc_stop.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.hc_stop.proxy_comp_name_net.value, \
-                   (pcn).value,  m_NCS_OS_NTOHS((pcn).length)); \
-   (m).info.api_info.param.hc_stop.proxy_comp_name_net.length = (pcn).length; \
+   (m).info.api_info.param.hc_stop.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.hc_stop.proxy_comp_name.value, \
+                   (pcn).value,  (pcn).length); \
+   (m).info.api_info.param.hc_stop.proxy_comp_name.length = (pcn).length; \
    memcpy((m).info.api_info.param.hc_stop.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_stop.hc_key.keyLen = (hck).keyLen; \
@@ -132,12 +132,12 @@
    (m).info.api_info.type = AVSV_AMF_HC_CONFIRM; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_confirm.hdl = (hd); \
-   memcpy((m).info.api_info.param.hc_confirm.comp_name_net.value, \
+   memcpy((m).info.api_info.param.hc_confirm.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.hc_confirm.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.hc_confirm.proxy_comp_name_net.value, \
-                   (pcn).value,  m_NCS_OS_NTOHS((pcn).length)); \
-   (m).info.api_info.param.hc_confirm.proxy_comp_name_net.length = (pcn).length; \
+   (m).info.api_info.param.hc_confirm.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.hc_confirm.proxy_comp_name.value, \
+                   (pcn).value,  (pcn).length); \
+   (m).info.api_info.param.hc_confirm.proxy_comp_name.length = (pcn).length; \
    memcpy((m).info.api_info.param.hc_confirm.hc_key.key, \
                    (hck).key, (hck).keyLen); \
    (m).info.api_info.param.hc_confirm.hc_key.keyLen = (hck).keyLen; \
@@ -151,9 +151,9 @@
    (m).info.api_info.type = AVSV_AMF_PM_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.hc_start.hdl = (hd); \
-   memcpy((m).info.api_info.param.pm_start.comp_name_net.value, \
+   memcpy((m).info.api_info.param.pm_start.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.pm_start.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
+   (m).info.api_info.param.pm_start.comp_name.length = (cn).length; \
    (m).info.api_info.param.pm_start.pid = (processId); \
    (m).info.api_info.param.pm_start.desc_tree_depth = (depth); \
    (m).info.api_info.param.pm_start.pm_err = (pmErr); \
@@ -167,9 +167,9 @@
    (m).info.api_info.type = AVSV_AMF_PM_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pm_stop.hdl = (hd); \
-   memcpy((m).info.api_info.param.pm_stop.comp_name_net.value, \
+   memcpy((m).info.api_info.param.pm_stop.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.pm_stop.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
+   (m).info.api_info.param.pm_stop.comp_name.length = (cn).length; \
    (m).info.api_info.param.pm_stop.stop_qual = (stop); \
    (m).info.api_info.param.pm_stop.pid = (processId); \
    (m).info.api_info.param.pm_stop.pm_err = (pmErr); \
@@ -182,12 +182,12 @@
    (m).info.api_info.type = AVSV_AMF_HA_STATE_GET; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.ha_get.hdl = (hd); \
-   memcpy((m).info.api_info.param.ha_get.comp_name_net.value, \
+   memcpy((m).info.api_info.param.ha_get.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.ha_get.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).info.api_info.param.ha_get.csi_name_net.value, \
+   (m).info.api_info.param.ha_get.comp_name.length = (cn).length; \
+   memcpy((m).info.api_info.param.ha_get.csi_name.value, \
                    (csi).value, (csi).length); \
-   (m).info.api_info.param.ha_get.csi_name_net.length = m_NCS_OS_HTONS((csi).length); \
+   (m).info.api_info.param.ha_get.csi_name.length = (csi).length; \
 }
 
 /* Macro to populate the 'pg track start' message */
@@ -197,9 +197,9 @@
    (m).info.api_info.type = AVSV_AMF_PG_START; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pg_start.hdl = (hd); \
-   memcpy((m).info.api_info.param.pg_start.csi_name_net.value, \
+   memcpy((m).info.api_info.param.pg_start.csi_name.value, \
                    (csin).value, (csin).length); \
-   (m).info.api_info.param.pg_start.csi_name_net.length = m_NCS_OS_HTONS((csin).length); \
+   (m).info.api_info.param.pg_start.csi_name.length = (csin).length; \
    (m).info.api_info.param.pg_start.flags = (fl); \
    (m).info.api_info.param.pg_start.is_syn = (syn); \
 }
@@ -211,9 +211,9 @@
    (m).info.api_info.type = AVSV_AMF_PG_STOP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.pg_stop.hdl = (hd); \
-   memcpy((m).info.api_info.param.pg_stop.csi_name_net.value, \
+   memcpy((m).info.api_info.param.pg_stop.csi_name.value, \
                    (csin).value, (csin).length); \
-   (m).info.api_info.param.pg_stop.csi_name_net.length = m_NCS_OS_HTONS((csin).length); \
+   (m).info.api_info.param.pg_stop.csi_name.length = (csin).length; \
 }
 
 /* Macro to populate the 'error report' message */
@@ -223,9 +223,9 @@
    (m).info.api_info.type = AVSV_AMF_ERR_REP; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.err_rep.hdl = (hd); \
-   memcpy((m).info.api_info.param.err_rep.err_comp_net.value, \
+   memcpy((m).info.api_info.param.err_rep.err_comp.value, \
                    (ec).value, (ec).length); \
-   (m).info.api_info.param.err_rep.err_comp_net.length = m_NCS_OS_HTONS((ec).length); \
+   (m).info.api_info.param.err_rep.err_comp.length = (ec).length; \
    (m).info.api_info.param.err_rep.detect_time = (et); \
    (m).info.api_info.param.err_rep.rec_rcvr = (rr); \
 }
@@ -237,9 +237,9 @@
    (m).info.api_info.type = AVSV_AMF_ERR_CLEAR; \
    (m).info.api_info.dest = (dst); \
    (m).info.api_info.param.err_clear.hdl = (hd); \
-   memcpy((m).info.api_info.param.err_clear.comp_name_net.value, \
+   memcpy((m).info.api_info.param.err_clear.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).info.api_info.param.err_clear.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
+   (m).info.api_info.param.err_clear.comp_name.length = (cn).length; \
 }
 
 /* Macro to populate the 'AMF response' message */
@@ -251,7 +251,7 @@
    (m).info.api_info.param.resp.hdl = (hd); \
    (m).info.api_info.param.resp.inv = (in); \
    (m).info.api_info.param.resp.err = (er); \
-   (m).info.api_info.param.resp.comp_name_net = (cn); \
+   (m).info.api_info.param.resp.comp_name = (cn); \
 }
 
 /* Macro to populate the 'AMF response' message */
@@ -263,7 +263,7 @@
    (m).info.api_info.param.csiq_compl.hdl = (hd); \
    (m).info.api_info.param.csiq_compl.inv = (in); \
    (m).info.api_info.param.csiq_compl.err = (er); \
-   (m).info.api_info.param.csiq_compl.comp_name_net = (cn); \
+   (m).info.api_info.param.csiq_compl.comp_name = (cn); \
 }
 
 /*** Extern function declarations ***/

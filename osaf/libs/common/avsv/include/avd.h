@@ -34,12 +34,12 @@
 #define AVD_H
 
 #include "avsv.h"
+#include "ncs_log.h"
+#include "dta_papi.h"
 #include "avsv_d2nmsg.h"
 
 /* Porting Include Files */
-#include "avsv_d2nmem.h"
 #include "avd_def.h"
-#include "avd_mem.h"
 #include "avsv_ipc.h"
 
 /* AVD-AVND common EDPs */
@@ -53,30 +53,18 @@
 
 /* AvD specific include files */
 #include "avd_tmr.h"
-#include "avd_msg.h"
+#include "avd_util.h"
 #include "avd_cb.h"
-#include "avd_hlt.h"
-#include "avd_avnd.h"
-#include "avd_sg.h"
-#include "avd_su.h"
-#include "avd_si_dep.h"
-#include "avd_si.h"
-#include "avd_comp.h"
-#include "avd_csi.h"
-#include "avd_susi.h"
 #include "avd_pg.h"
 
 #include "ncs_avsv_bam_msg.h"
 #include "avm_avd.h"
 
 #include "avd_dblog.h"
-#include "avd_fail.h"
 #include "avd_evt.h"
 #include "avd_proc.h"
 #include "avd_hb.h"
-#include "avd_mibtbl.h"
 
-#include "avd_bam.h"
 #include "avd_mds.h"
 
 /* Checkpointing specific include files */
@@ -86,6 +74,5 @@
 
 #include "avd_avm.h"
 #include "ncs_trap.h"
-#include "avd_ntf.h"
 
 #endif

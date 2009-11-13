@@ -80,10 +80,10 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* get the node & csi */
-	csi = avd_csi_struc_find(cb, info->csi_name_net, FALSE);
+	csi = avd_csi_find(&info->csi_name);
 
 	/* update the pg lists maintained on csi & node */
-	if (csi && (csi->row_status == NCS_ROW_ACTIVE)) {
+	if (csi != NULL) {
 		switch (info->actn) {
 		case AVSV_PG_TRACK_ACT_START:
 			/* add the relvant recs to the lists */
@@ -96,7 +96,7 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			break;
 
 		default:
-			m_AVSV_ASSERT(0);
+			assert(0);
 		}		/* switch */
 	}
 
@@ -194,8 +194,8 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	m_AVD_LOG_FUNC_ENTRY("avd_pg_csi_node_add");
 
 	/* alloc the pg-csi-node & pg-node-csi recs */
-	pg_csi_node = m_MMGR_ALLOC_AVD_PG_CSI_NODE;
-	pg_node_csi = m_MMGR_ALLOC_AVD_PG_NODE_CSI;
+	pg_csi_node = calloc(1, sizeof(AVD_PG_CSI_NODE));
+	pg_node_csi = calloc(1, sizeof(AVD_PG_NODE_CSI));
 	if (!pg_csi_node || !pg_node_csi) {
 		if (!pg_csi_node)
 			m_AVD_LOG_MEM_FAIL(AVD_PG_CSI_NODE_ALLOC_FAILED);
@@ -205,13 +205,11 @@ uns32 avd_pg_csi_node_add(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	}
 
 	/* add the node to the pg list maintained by csi */
-	memset(pg_csi_node, 0, sizeof(AVD_PG_CSI_NODE));
 	pg_csi_node->node = node;
 	pg_csi_node->csi_dll_node.key = (uns8 *)&pg_csi_node->node;
 	ncs_db_link_list_add(&csi->pg_node_list, &pg_csi_node->csi_dll_node);
 
 	/* add the csi to the pg list maintained by node */
-	memset(pg_node_csi, 0, sizeof(AVD_PG_NODE_CSI));
 	pg_node_csi->csi = csi;
 	pg_node_csi->node_dll_node.key = (uns8 *)&pg_node_csi->csi;
 	ncs_db_link_list_add(&node->pg_csi_list, &pg_node_csi->node_dll_node);
@@ -243,12 +241,12 @@ void avd_pg_csi_node_del(AVD_CL_CB *cb, AVD_CSI *csi, AVD_AVND *node)
 	/* free from pg list maintained on csi */
 	pg_csi_node = (AVD_PG_CSI_NODE *)ncs_db_link_list_remove(&csi->pg_node_list, (uns8 *)&node);
 	if (pg_csi_node)
-		m_MMGR_FREE_AVD_PG_CSI_NODE(pg_csi_node);
+		free(pg_csi_node);
 
 	/* free from pg list maintained on node */
 	pg_node_csi = (AVD_PG_NODE_CSI *)ncs_db_link_list_remove(&node->pg_csi_list, (uns8 *)&csi);
 	if (pg_node_csi)
-		m_MMGR_FREE_AVD_PG_NODE_CSI(pg_node_csi);
+		free(pg_node_csi);
 
 	return;
 }

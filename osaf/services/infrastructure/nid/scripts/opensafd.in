@@ -33,10 +33,10 @@ export MDS_QUIESCED_TMR_VAL_IN_10MS=40
 
 if [ "$NODE_TYPE" == "controller" ] ; then
   NT=1
-  AMF=ncs_scap
+  AMF=opensaf_scap
 elif [ "$NODE_TYPE" == "payload" ] ; then
   NT=2
-  AMF=ncs_pcap
+  AMF=opensaf_pcap
 else
   log "ERROR: NODE_TYPE is not properly set in $SYSCONFDIR/script.conf"
   exit 2

@@ -34,7 +34,18 @@
 #ifndef AVD_AVND_H
 #define AVD_AVND_H
 
-struct avd_su_tag;
+#include <saAmf.h>
+#include <saImm.h>
+#include <ncspatricia.h>
+#include <ncsdlib.h>
+#include <mds_papi.h>
+#include <avd_su.h>
+#include <avsv_d2nmsg.h>
+#include <avd_tmr.h>
+
+struct avd_amf_cluster_tag;
+struct avd_amf_node_sw_bundle_tag;
+struct CcbUtilOperationData;
 
 typedef enum {
 
@@ -79,20 +90,22 @@ typedef struct avd_avnd_tag {
 				 * nodes AvND.
 				 * Checkpointing - Sent on node up.
 				 */
-
-	NCS_ADMIN_STATE su_admin_state;	/* admin STATEs of all the SUs in the
-					 * node.
-					 * Checkpointing - Sent independent update 
-					 */
+   /************ AMF B.04 **************************************************/
+	SaNameT saAmfNodeClmNode;
+	char *saAmfNodeCapacity;
+	SaTimeT saAmfNodeSuFailOverProb;
+	SaUint32T saAmfNodeSuFailoverMax;
+	SaBoolT saAmfNodeAutoRepair;
+	SaBoolT saAmfNodeFailfastOnTerminationFailure;
+	SaBoolT saAmfNodeFailfastOnInstantiationFailure;
+	SaAmfAdminStateT saAmfNodeAdminState;
+	SaAmfOperationalStateT saAmfNodeOperState;
+   /************ AMF B.04 **************************************************/
 
 	SaNameT hpi_entity_path;	/* The entity path of the HPI entity that
 					   implements the CLM node */
 
-	NCS_OPER_STATE oper_state;	/* operation state of the node 
-					 * Checkpointing - Sent independent update 
-					 */
-	NCS_OPER_STATE avm_oper_state;	/* operation state of the node */
-	NCS_ROW_STATUS row_status;	/* row status of this MIB row */
+	SaAmfOperationalStateT avm_oper_state;	/* operation state of the node */
 
 	AVD_AVND_STATE node_state;	/* F.S.M state of the AVND 
 					 * Checkpointing - Sent independent update 
@@ -113,14 +126,6 @@ typedef struct avd_avnd_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	SaTimeT su_failover_prob;	/* SU failover probation period 
-					 * Checkpointing - Sent as a one time update.
-					 */
-
-	uns32 su_failover_max;	/* max SU failover count 
-				 * Checkpointing - Sent as a one time update.
-				 */
-
 	uns32 rcv_msg_id;	/* The receive message id counter 
 				 * Checkpointing - Sent independent update 
 				 */
@@ -128,23 +133,42 @@ typedef struct avd_avnd_tag {
 	uns32 snd_msg_id;	/* The send message id counter 
 				 * Checkpointing - Sent independent update 
 				 */
-	AVD_HLT *list_of_hlt;	/* list oof health check for this node */
 
 	NCS_BOOL hrt_beat_rcvd;	/* Boolean Showing First heart beat recevied from AvND */
+	struct avd_avnd_tag *cluster_list_node_next;
+	struct avd_amf_cluster_tag *node_on_cluster;
+	struct avd_amf_node_sw_bundle_tag *list_of_avd_sw_bdl;
 
 } AVD_AVND;
+
+typedef struct avd_amf_ng_tag {
+
+	NCS_PATRICIA_NODE tree_node;	/* key will be AMF  node group name */
+	SaNameT ng_name;
+	uns32 number_nodes;	/* number of element in saAmfNGNodeList */
+	SaNameT *saAmfNGNodeList;	/* array of node names in group */
+
+	struct avd_amf_ng_tag *cluster_list_ng_next;
+	struct avd_amf_cluster_tag *ng_on_cluster;
+
+} AVD_AMF_NG;
+
+typedef struct avd_amf_node_sw_bundle_tag {
+
+	NCS_PATRICIA_NODE tree_node;	/* key will be amf cluster name */
+	SaNameT sw_bdl_name;
+	char *saAmfNodeSwBundlePathPrefix;
+	struct avd_amf_node_sw_bundle_tag *node_list_sw_bdl_next;
+	AVD_AVND *node_sw_bdl_on_node;
+
+} AVD_AMF_SW_BUNDLE;
 
 #define AVD_AVND_NULL     ((AVD_AVND *)0)
 
 #define m_AVD_SET_AVND_SU_ADMIN(cb,node,state) {\
-node->su_admin_state = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_SU_ADMIN_STATE);\
+node->saAmfNodeAdminState = state;\
+m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_ADMIN_STATE);\
 avd_gen_node_admin_state_changed_ntf(cb,node);\
-}
-
-#define m_AVD_SET_AVND_OPER(cb,node,state) {\
-node->oper_state = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_OPER_STATE);\
 }
 
 #define m_AVD_SET_AVND_RCV_ID(cb,node,rcvid) {\
@@ -158,7 +182,7 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
    AVD_SU_SI_REL *curr_susi = 0; \
    flag = TRUE;\
    i_su = node->list_of_su;\
-   while ((i_su != AVD_SU_NULL) && (flag == TRUE))\
+   while ((i_su != NULL) && (flag == TRUE))\
    {\
       if ((i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER) ||\
           (i_su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN)) { \
@@ -172,47 +196,24 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
    }\
 }
 
-EXTERN_C AVD_AVND *avd_avnd_struc_crt(AVD_CL_CB *cb, SaNameT node_name, NCS_BOOL ckpt);
-EXTERN_C uns32 avd_avnd_struc_add_nodeid(AVD_CL_CB *cb, AVD_AVND *avnd);
-EXTERN_C AVD_AVND *avd_avnd_struc_find(AVD_CL_CB *cb, SaNameT node_name);
-EXTERN_C AVD_AVND *avd_avnd_struc_find_nodeid(AVD_CL_CB *cb, SaClmNodeIdT node_id);
-EXTERN_C AVD_AVND *avd_avnd_struc_find_next(AVD_CL_CB *cb, SaNameT node_name);
-EXTERN_C AVD_AVND *avd_avnd_struc_find_next_nodeid(AVD_CL_CB *cb, SaClmNodeIdT node_id);
-EXTERN_C uns32 avd_avnd_struc_del(AVD_CL_CB *cb, AVD_AVND *avnd);
-EXTERN_C uns32 avd_avnd_struc_rmv_nodeid(AVD_CL_CB *cb, AVD_AVND *avnd);
+/* AMF Node */
+extern AVD_AVND *avd_node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
+extern void avd_node_delete(AVD_AVND *avnd);
+extern AVD_AVND *avd_node_find(const SaNameT *node_name);
+extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
 
-EXTERN_C uns32 ncsndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 ncsndtableentry_extract(NCSMIB_PARAM_VAL *param,
-				       NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 ncsndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncsndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				    NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 ncsndtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				      NCSMIB_SETROW_PARAM_VAL *params,
-				      struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+EXTERN_C uns32 avd_node_add_nodeid(AVD_AVND *avnd);
+extern void avd_node_delete_nodeid(AVD_AVND *node);
 
-EXTERN_C uns32 ncsndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-EXTERN_C uns32 saamfnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfnodetableentry_extract(NCSMIB_PARAM_VAL *param,
-					   NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					  NCSMIB_SETROW_PARAM_VAL *params,
-					  struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+EXTERN_C AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
+EXTERN_C AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
+extern SaAisErrorT avd_node_config_get(void);
+extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
+extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);
 
-EXTERN_C uns32 saclmnodetableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saclmnodetableentry_extract(NCSMIB_PARAM_VAL *param,
-					   NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saclmnodetableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saclmnodetableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-					NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saclmnodetableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					  NCSMIB_SETROW_PARAM_VAL *params,
-					  struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
-EXTERN_C uns32 saclmnodetableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
+/* AMF Node group */
+extern SaAisErrorT avd_node_group_config_get(void);
 
-EXTERN_C uns32 avd_add_avnd_anchor_nodeid(AVD_CL_CB *cb, SaNameT node_name, SaClmNodeIdT node_id);
+extern void avd_node_constructor(void);
 
 #endif

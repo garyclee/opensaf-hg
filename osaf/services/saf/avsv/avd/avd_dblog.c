@@ -39,7 +39,8 @@
  */
 
 #include "avd.h"
-#if (NCS_AVD_LOG == 1)
+
+static uns8 trace_severity = NCSFL_SEV_INFO;
 
 /****************************************************************************
   Name          : avd_log_admin_state_ntfs
@@ -47,24 +48,24 @@
   Description   : This routine logs the admin state related ntfs.
 
   Arguments     : State    - Admin State
-                  name_net - ptr to the name (node/su/sg/si name)
+                  name     - ptr to the name (node/su/sg/si name)
                   sev      - severity
 
   Return Values : None
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name, uns8 sev)
 {
-	char name[SA_MAX_NAME_LENGTH];
+	char lname[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lname, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (name_net)
-		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
+	if (name)
+		strncpy(lname, (char *)name->value, name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_ADMIN, AVD_FC_ADMIN, NCSFL_LC_HEADLINE, sev, "TCI", name, state);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_ADMIN, AVD_FC_ADMIN, NCSFL_LC_HEADLINE, sev, "TCI", lname, state);
 
 	return;
 }
@@ -75,24 +76,24 @@ void avd_log_admin_state_ntfs(AVD_ADMIN_STATE_FLEX state, SaNameT *name_net, uns
   Description   : This routine logs the si unassigned related ntfs.
 
   Arguments     : State    - State
-                  name_net - ptr to the si name
+                  name     - ptr to the si name
                   sev      - severity
 
   Return Values : None
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_si_unassigned_ntfs(AVD_NTF_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_si_unassigned_ntfs(AVD_NTF_FLEX state, SaNameT *name, uns8 sev)
 {
-	char name[SA_MAX_NAME_LENGTH];
+	char lname[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lname, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (name_net)
-		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
+	if (name)
+		strncpy(lname, (char *)name->value, name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SI_UNASSIGN, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCI", name, state);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SI_UNASSIGN, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCI", lname, state);
 
 	return;
 }
@@ -103,24 +104,24 @@ void avd_log_si_unassigned_ntfs(AVD_NTF_FLEX state, SaNameT *name_net, uns8 sev)
   Description   : This routine logs the oper state related ntfs.
 
   Arguments     : State    - oper State
-                  name_net - ptr to the name 
+                  name     - ptr to the name 
                   sev      - severity
 
   Return Values : None
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 sev)
+void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name, uns8 sev)
 {
-	char name[SA_MAX_NAME_LENGTH];
+	char lname[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lname, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (name_net)
-		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
+	if (name)
+		strncpy(lname, (char *)name->value, name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_OPER, AVD_FC_OPER, NCSFL_LC_HEADLINE, sev, "TCI", name, state);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_OPER, AVD_FC_OPER, NCSFL_LC_HEADLINE, sev, "TCI", lname, state);
 
 	return;
 }
@@ -132,24 +133,24 @@ void avd_log_oper_state_ntfs(AVD_OPER_STATE_FLEX state, SaNameT *name_net, uns8 
 
   Arguments     : op    - Operation
                   cl    - "Cluster"
-                  name_net - ptr to the node name
+                  name - ptr to the node name
                   sev      - severity
 
   Return Values : None
 
   Notes         : None.
  *****************************************************************************/
-void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, uns8 sev)
+void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name, uns8 sev)
 {
-	char name[SA_MAX_NAME_LENGTH];
+	char lname[SA_MAX_NAME_LENGTH];
 
-	memset(name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lname, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (name_net)
-		strncpy(name, (char *)name_net->value, m_NCS_OS_NTOHS(name_net->length));
+	if (name)
+		strncpy(lname, (char *)name->value, name->length);
 
-	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_CLM, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCII", name, op, cl);
+	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_CLM, AVD_FC_NTF, NCSFL_LC_HEADLINE, sev, "TCII", lname, op, cl);
 
 	return;
 }
@@ -160,8 +161,8 @@ void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, 
   Description   : This routine logs the SUSI HA related ntfs.
 
   Arguments     : state         - HA State
-                  su_name_net   - ptr to the su name
-                  si_name_net   - ptr to the si name
+                  su_name       - ptr to the su name
+                  si_name       - ptr to the si name
                   sev           - severity
                   isStateChanged- Flag to specify that this routine is called in context of 
                                   HA State changed or HA Sate changing ntfs.
@@ -171,28 +172,28 @@ void avd_log_clm_node_ntfs(AVD_NTF_FLEX cl, AVD_NTF_FLEX op, SaNameT *name_net, 
   Notes         : None.
  *****************************************************************************/
 void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state,
-			  SaNameT *su_name_net, SaNameT *si_name_net, uns8 sev, NCS_BOOL isStateChanged)
+			  SaNameT *su_name, SaNameT *si_name, uns8 sev, NCS_BOOL isStateChanged)
 {
-	char su_name[SA_MAX_NAME_LENGTH];
-	char si_name[SA_MAX_NAME_LENGTH];
+	char lsu_name[SA_MAX_NAME_LENGTH];
+	char lsi_name[SA_MAX_NAME_LENGTH];
 
-	memset(su_name, '\0', SA_MAX_NAME_LENGTH);
-	memset(si_name, '\0', SA_MAX_NAME_LENGTH);
-
-	/* convert name into string format */
-	if (su_name_net)
-		strncpy(su_name, (char *)su_name_net->value, m_NCS_OS_NTOHS(su_name_net->length));
+	memset(lsu_name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lsi_name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (si_name_net)
-		strncpy(si_name, (char *)si_name_net->value, m_NCS_OS_NTOHS(si_name_net->length));
+	if (su_name)
+		strncpy(lsu_name, (char *)su_name->value, su_name->length);
+
+	/* convert name into string format */
+	if (si_name)
+		strncpy(lsi_name, (char *)si_name->value, si_name->length);
 
 	if (isStateChanged)
 		ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SUSI_HA, AVD_FC_SUSI_HA,
-			   NCSFL_LC_HEADLINE, sev, "TCCI", su_name, si_name, state);
+			   NCSFL_LC_HEADLINE, sev, "TCCI", lsu_name, lsi_name, state);
 	else
 		ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SUSI_HA_CHG_START, AVD_FC_SUSI_HA,
-			   NCSFL_LC_HEADLINE, sev, "TCCI", su_name, si_name, state);
+			   NCSFL_LC_HEADLINE, sev, "TCCI", lsu_name, lsi_name, state);
 
 	return;
 }
@@ -202,7 +203,7 @@ void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state,
 
   Description   : This routine logs the failure of shutdown ntfs.
 
-  Arguments     : node_name_net - Node name
+  Arguments     : node_name     - Node name
                   sev           - severity
                   errcode       - Error code indicating the reason of failure
                                   of shutdown
@@ -215,18 +216,18 @@ void avd_log_susi_ha_ntfs(AVD_HA_STATE_FLEX state,
                   3: SG is unstable
                   Index to the string is formed by subtracting 1 from errcode
  *****************************************************************************/
-void avd_log_shutdown_failure(SaNameT *node_name_net, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode)
+void avd_log_shutdown_failure(SaNameT *node_name, uns8 sev, AVD_SHUTDOWN_FAILURE_FLEX errcode)
 {
-	char node_name[SA_MAX_NAME_LENGTH];
+	char lnode_name[SA_MAX_NAME_LENGTH];
 
-	memset(node_name, '\0', SA_MAX_NAME_LENGTH);
+	memset(lnode_name, '\0', SA_MAX_NAME_LENGTH);
 
 	/* convert name into string format */
-	if (node_name_net)
-		strncpy(node_name, (char *)node_name_net->value, m_NCS_OS_NTOHS(node_name_net->length));
+	if (node_name)
+		strncpy(lnode_name, (char *)node_name->value, node_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_SHUTDOWN_FAILURE, AVD_FC_SHUTDOWN_FAILURE,
-		   NCSFL_LC_HEADLINE, sev, "TCI", node_name, (errcode - 1));
+		   NCSFL_LC_HEADLINE, sev, "TCI", lnode_name, (errcode - 1));
 }
 
 /****************************************************************************
@@ -245,6 +246,13 @@ void avd_log_shutdown_failure(SaNameT *node_name_net, uns8 sev, AVD_SHUTDOWN_FAI
 void avd_flx_log_reg()
 {
 	NCS_DTSV_RQ reg;
+        char *p;
+
+        if ((p = getenv("AVD_TRACE_SEVERITY")) != NULL) {
+                trace_severity = atoi(p);
+                if (trace_severity > NCSFL_SEV_EMERGENCY)
+                        trace_severity = NCSFL_SEV_INFO;
+        }
 
 	memset(&reg, 0, sizeof(NCS_DTSV_RQ));
 	reg.i_op = NCS_DTSV_OP_BIND;
@@ -301,7 +309,7 @@ void avd_flx_log_dereg()
   Notes         : None.
  *****************************************************************************/
 void avd_pxy_pxd_log(uns32 sev,
-		     uns32 index, uns8 *info, SaNameT *comp_name, uns32 info1, uns32 info2, uns32 info3, uns32 info4)
+		     uns32 index, char *info, SaNameT *comp_name, uns32 info1, uns32 info2, uns32 info3, uns32 info4)
 {
 	char comp[SA_MAX_NAME_LENGTH];
 
@@ -309,7 +317,7 @@ void avd_pxy_pxd_log(uns32 sev,
 
 	/* convert name into string format */
 	if (comp_name)
-		strncpy(comp, (char *)comp_name->value, m_NCS_OS_NTOHS(comp_name->length));
+		strncpy(comp, (char *)comp_name->value, comp_name->length);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVD, (uns8)AVD_PXY_PXD, (uns8)AVD_FC_PXY_PXD,
 		   NCSFL_LC_HEADLINE, (uns8)sev, NCSFL_TYPE_TICCLLLL, index, info, comp, info1, info2, info3, info4);
@@ -318,8 +326,8 @@ void avd_pxy_pxd_log(uns32 sev,
 
 void _avd_log(uns8 severity, const char *function, const char *format, ...)
 {
-	char preamble[128];
-	char str[128];
+	char preamble[164];
+	char str[164];
 	va_list ap;
 
 	va_start(ap, format);
@@ -342,7 +350,6 @@ void _avd_trace(const char *file, unsigned int line, const char *format, ...)
 	va_end(ap);
 
 	ncs_logmsg(NCS_SERVICE_ID_AVD, AVD_LID_GENLOG, AVD_FC_GENLOG,
-		   NCSFL_LC_HEADLINE, NCSFL_SEV_INFO, NCSFL_TYPE_TC, str);
+		   NCSFL_LC_HEADLINE, trace_severity, NCSFL_TYPE_TC, str);
 }
 
-#endif   /* (NCS_AVD_LOG == 1) */

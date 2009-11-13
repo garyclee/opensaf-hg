@@ -28,9 +28,10 @@ fi
 # alternative installation directory. Set the variables to the directory above 
 # where the lib and bin directories are located. See the default setting below.
 xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
-xerces_lib=$xerces_prefix/$lib_dir
-netsnmp_prefix=${NETSNMP_PREFIX:-"/usr"}
-netsnmp_lib=$netsnmp_prefix/$lib_dir
+xerces_lib=/usr/lib
+
+netsnmp_prefix=`net-snmp-config --prefix`
+netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
 
 opensaf_home=$PWD/../..
 top=`pwd`

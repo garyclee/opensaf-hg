@@ -22,37 +22,34 @@ noinst_LTLIBRARIES = libavd.la
 
 libavd_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-DNCS_AVD=1 -DNCS_AVSV_LOG=1 \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_srcdir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/snmp/mapi/include \
+        -I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libavd_la_LDFLAGS = -static
 
 libavd_la_SOURCES = \
+	avd_app.c \
 	avd_avm.c \
 	avd_avmmsg.c \
-	avd_avnd.c \
-	avd_bam.c \
-	avd_bammsg.c \
+	avd_node.c \
 	avd.c \
-	avd_chkmsg.c \
 	avd_chkop.c \
 	avd_ckpt_dec.c \
 	avd_ckpt_edu.c \
 	avd_ckpt_enc.c \
 	avd_ckpt_updt.c \
+	avd_cluster.c \
 	avd_comp.c \
+	avd_comptype.c \
 	avd_csi.c \
 	avd_dblog.c \
 	avd_dmsg.c \
-	avd_evtlog.c \
 	avd_hb.c \
 	avd_hlt.c \
-	avd_hpi.c \
-	avd_mab.c \
+	avd_imm.c \
 	avd_mds.c \
-	avd_mibtbl.c \
 	avd_ndfsm.c \
 	avd_ndmsg.c \
 	avd_ndproc.c \
@@ -72,7 +69,6 @@ libavd_la_SOURCES = \
 	avd_susi.c \
 	avd_tmr.c \
 	avd_ntf.c \
-	avd_utilmsg.c
+	avd_util.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
 
-libavd_la_LIBADD = \
-	$(top_builddir)/osaf/snmp/miblib/avsv/avd/libavd_miblib.la

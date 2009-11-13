@@ -34,11 +34,8 @@ COMMON_SRC = \
 	avnd_di.c \
 	avnd_err.c \
 	avnd_evt.c \
-	avnd_evtlog.c \
 	avnd_hcdb.c \
-	avnd_hpi.c \
 	avnd_log.c \
-	avnd_mab.c \
 	avnd_mds.c \
 	avnd_mon.c \
 	avnd_pg.c \
@@ -55,17 +52,18 @@ COMMON_SRC = \
 	avnd_verify.c \
 	avnd_avnd.c \
 	avnd_proxy.c \
-	avnd_proxydb.c 
+	avnd_proxydb.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
 
 COMMON_CPPFLAGS = \
-	-DNCS_AVND=1 -DNCS_AVSV_LOG=1 \
+	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_builddir)/osaf/snmp/mapi/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libavnd_ctrl_la_CPPFLAGS = \
-	-DNCS_AVND_MBCSV_CKPT=1 \
 	$(COMMON_CPPFLAGS)
 
 libavnd_ctrl_la_LDFLAGS = -static
@@ -78,15 +76,8 @@ libavnd_ctrl_la_SOURCES = \
 	avnd_ckpt_enc.c \
 	avnd_ckpt_updt.c 
 
-libavnd_ctrl_la_LIBADD = \
-	$(top_builddir)/osaf/snmp/miblib/avsv/avnd/libavnd_miblib.la
-
-
 libavnd_pld_la_CPPFLAGS = $(COMMON_CPPFLAGS)
 
 libavnd_pld_la_LDFLAGS = -static
 
 libavnd_pld_la_SOURCES = $(COMMON_SRC)
-
-libavnd_pld_la_LIBADD = \
-	$(top_builddir)/osaf/snmp/miblib/avsv/avnd/libavnd_miblib.la

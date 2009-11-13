@@ -62,15 +62,12 @@ typedef struct avnd_cb_tag {
 	EDU_HDL edu_hdl_avnd;	/* edu handle for avnd-avnd interface */
 	EDU_HDL edu_hdl_ava;	/* edu handle for ava interface */
 	EDU_HDL edu_hdl_cla;	/* edu handle for cla interface */
-	uns32 mab_hdl;		/* mab hdl */
-	uns32 mab_node_hdl;	/* mab hdl for this node in node status tbl */
-	uns32 hpi_hdl;		/* hpi hdl */
-	SaEvtHandleT *eds_hdl;	/* edsv hdl */
-	SaSelectionObjectT *eds_sel_obj;	/* edsv selection object */
+	uns32 srm_hdl;		/* srmsv handle */
+	SaSelectionObjectT srm_sel_obj;	/* srmsv selection object */
 
 	/* node states */
-	NCS_ADMIN_STATE admin_state;	/* node admin state */
-	NCS_OPER_STATE oper_state;	/* node oper state  */
+	SaAmfAdminStateT admin_state;	/* node admin state */
+	SaAmfOperationalStateT oper_state;	/* node oper state  */
 	uns32 flag;		/* cb flag */
 
 	/* avnd timers */
@@ -98,6 +95,9 @@ typedef struct avnd_cb_tag {
 	NCS_PATRICIA_TREE internode_avail_comp_db;	/* Internode components, whose node is UP */
 	MDS_DEST cntlr_avnd_vdest;	/* Controller AvND Vdest addr */
 
+	/* srmsv resource request mapping list (res mon hdl is the key) */
+	NCS_DB_LINK_LIST srm_req_list;
+
 	MDS_DEST active_avd_adest;
 	uns32 rcv_msg_id;	/* Message ID of the last message received */
 	/* AvD messaging params (retransmit list etc.) */
@@ -112,8 +112,6 @@ typedef struct avnd_cb_tag {
 
 	SaNtfHandleT ntfHandle;
 
-	uns32 avnd_mbcsv_mab_hdl;	/* MAB handle returned during 
-					   initilisation. */
 	MDS_HDL avnd_mbcsv_vaddr_pwe_hdl;	/* The pwe handle returned when
 						 * vdest address is created.
 						 */
@@ -133,6 +131,7 @@ typedef struct avnd_cb_tag {
 	NCS_BOOL is_quisced_set;
 	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 
+	SaImmHandleT immOmHandle;
 } AVND_CB;
 
 #define AVND_CB_NULL ((AVND_CB *)0)
@@ -162,16 +161,9 @@ typedef struct avnd_cb_tag {
 
 #define m_AVND_NODE_ERR_ESC_LEVEL_SET(x, val)  ((x)->node_err_esc_level = (val))
 
-EXTERN_C uns32 ncssndtableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 ncssndtableentry_extract(NCSMIB_PARAM_VAL *param,
-					NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 ncssndtableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncssndtableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				     NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 ncssndtableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				       NCSMIB_SETROW_PARAM_VAL *params,
-				       struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
-EXTERN_C uns32 ncssndtableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
+extern AVND_CB *avnd_cb;
+
+extern AVND_CB *avnd_cb;
 
 EXTERN_C void avnd_dnd_list_destroy(AVND_CB *);
 

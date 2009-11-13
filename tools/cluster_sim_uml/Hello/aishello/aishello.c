@@ -67,7 +67,7 @@ main(int argc, char* argv[])
 {
     SaNameT compName;
     SaVersionT version = {'B',1,1};
-    SaAmfHealthcheckKeyT key1 = { "A9FD64E12C", 10 };
+    SaAmfHealthcheckKeyT key1 = { "HC1", 3 };
     SaAmfCallbacksT callbacks = {
         healthcheckCallback,
         componentTerminateCallback,

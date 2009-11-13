@@ -25,7 +25,8 @@
 
 ******************************************************************************/
 
-#include "avd.h"
+#include <avd_ntf.h>
+#include <avd_dblog.h>
 
 /*****************************************************************************
   Name          :  avd_amf_alarm_service_impaired_ntf
@@ -88,8 +89,8 @@ uns32 avd_gen_cluster_reset_ntf(AVD_CL_CB *avd_cb, AVD_COMP *comp)
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_cluster_reset_ntf");
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(comp->comp_info.name_net.length);
-	(void)memcpy(comp_name.value, comp->comp_info.name_net.value, comp_name.length);
+	comp_name.length = comp->comp_info.name.length;
+	(void)memcpy(comp_name.value, comp->comp_info.name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Failure of Component %s triggered cluster reset", comp_name.value);
@@ -124,10 +125,10 @@ uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_node_admin_state_changed_ntf");
-	avd_log_admin_state_ntfs(node->su_admin_state, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
+	avd_log_admin_state_ntfs(node->saAmfNodeAdminState, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -140,7 +141,7 @@ uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 						0x65,
 						SA_NTF_MANAGEMENT_OPERATION,
 					        SA_AMF_ADMIN_STATE,
-					        node->su_admin_state);
+					        node->saAmfNodeAdminState);
 
 	return status;
 }
@@ -164,11 +165,11 @@ uns32 avd_gen_sg_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SG *sg)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_sg_admin_state_changed_ntf");
-	avd_log_admin_state_ntfs(sg->admin_state, &(sg->name_net), NCSFL_SEV_NOTICE);
+	avd_log_admin_state_ntfs(sg->saAmfSGAdminState, &(sg->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(sg->name_net.length);
-	(void)memcpy(comp_name.value, sg->name_net.value, comp_name.length);
+	comp_name.length = sg->name.length;
+	(void)memcpy(comp_name.value, sg->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Admin state of SG %s changed", comp_name.value);
@@ -180,7 +181,7 @@ uns32 avd_gen_sg_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SG *sg)
 						0x67,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_AMF_ADMIN_STATE,
-						sg->admin_state);
+						sg->saAmfSGAdminState);
 
 	return status;
 }
@@ -204,11 +205,10 @@ uns32 avd_gen_su_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_admin_state_changed_ntf");
-	avd_log_admin_state_ntfs(su->admin_state, &(su->name_net), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(su->name_net.length);
-	(void)memcpy(comp_name.value, su->name_net.value, comp_name.length);
+	comp_name.length = su->name.length;
+	(void)memcpy(comp_name.value, su->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Admin state of SU %s changed", comp_name.value);
@@ -220,7 +220,7 @@ uns32 avd_gen_su_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU *su)
 						0x66,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_AMF_ADMIN_STATE,
-						su->admin_state);
+						su->saAmfSUAdminState);
 
 	return status;
 }
@@ -244,11 +244,11 @@ uns32 avd_gen_si_unassigned_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_unassigned_ntf");
-	avd_log_si_unassigned_ntfs(AVD_NTFS_UNASSIGNED, &(si->name_net), NCSFL_SEV_NOTICE);
+	avd_log_si_unassigned_ntfs(AVD_NTFS_UNASSIGNED, &(si->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(si->name_net.length);
-	(void)memcpy(comp_name.value, si->name_net.value, comp_name.length);
+	comp_name.length = si->name.length;
+	(void)memcpy(comp_name.value, si->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "SI designated by %s has no current active assignments to any SU", comp_name.value);
@@ -284,13 +284,13 @@ uns32 avd_gen_si_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_oper_state_chg_ntf");
 	if (si->list_of_sisu != AVD_SU_SI_REL_NULL) 
-	avd_log_oper_state_ntfs(NCS_OPER_STATE_ENABLE, &(si->name_net), NCSFL_SEV_NOTICE);
+	avd_log_oper_state_ntfs(NCS_OPER_STATE_ENABLE, &(si->name), NCSFL_SEV_NOTICE);
 	else 
-	avd_log_oper_state_ntfs(NCS_OPER_STATE_DISABLE, &(si->name_net), NCSFL_SEV_NOTICE);
+	avd_log_oper_state_ntfs(NCS_OPER_STATE_DISABLE, &(si->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(si->name_net.length);
-	(void)memcpy(comp_name.value, si->name_net.value, comp_name.length);
+	comp_name.length = si->name.length;
+	memcpy(comp_name.value, si->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Oper state of SI %s changed", comp_name.value);
@@ -302,7 +302,7 @@ uns32 avd_gen_si_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 						0x6B,
 						SA_NTF_OBJECT_OPERATION,
 						SA_AMF_OP_STATE,
-						si->admin_state);
+						si->saAmfSIAdminState);
 	return status;
 }
 
@@ -325,11 +325,11 @@ uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_si_admin_state_chg_ntf");
-	avd_log_admin_state_ntfs(si->admin_state, &(si->name_net), NCSFL_SEV_NOTICE);	
+	avd_log_admin_state_ntfs(si->saAmfSIAdminState, &(si->name), NCSFL_SEV_NOTICE);	
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(si->name_net.length);
-	(void)memcpy(comp_name.value, si->name_net.value, comp_name.length);
+	comp_name.length = si->name.length;
+	(void)memcpy(comp_name.value, si->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Admin state of SI %s changed", comp_name.value);
@@ -341,7 +341,7 @@ uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si)
 						0x68,
 						SA_NTF_MANAGEMENT_OPERATION,
 						SA_AMF_ADMIN_STATE,
-						si->admin_state);
+						si->saAmfSIAdminState);
 
 	return status;
 }
@@ -365,15 +365,15 @@ uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_ha_state_changed_ntf");
-	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name_net), &(susi->si->name_net), NCSFL_SEV_NOTICE, FALSE);
+	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name), &(susi->si->name), NCSFL_SEV_NOTICE, FALSE);
 
 	memset(comp_name_su.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name_su.length = ntohs(susi->su->name_net.length);
-	(void)memcpy(comp_name_su.value, susi->su->name_net.value, comp_name_su.length);
+	comp_name_su.length = susi->su->name.length;
+	(void)memcpy(comp_name_su.value, susi->su->name.value, comp_name_su.length);
 
 	memset(comp_name_si.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name_si.length = ntohs(susi->si->name_net.length);
-	(void)memcpy(comp_name_si.value, susi->si->name_net.value, comp_name_si.length);
+	comp_name_si.length = susi->si->name.length;
+	(void)memcpy(comp_name_si.value, susi->si->name.value, comp_name_si.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "The HA state of SI %s assigned to SU %s changed", comp_name_si.value, comp_name_su.value);
@@ -410,15 +410,15 @@ uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_su_si_assigned_ntf");
-	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name_net), &(susi->si->name_net), NCSFL_SEV_NOTICE, TRUE);
+	avd_log_susi_ha_ntfs(susi->state, &(susi->su->name), &(susi->si->name), NCSFL_SEV_NOTICE, TRUE);
 
 	memset(comp_name_su.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name_su.length = ntohs(susi->su->name_net.length);
-	(void)memcpy(comp_name_su.value, susi->su->name_net.value, comp_name_su.length);
+	comp_name_su.length = susi->su->name.length;
+	(void)memcpy(comp_name_su.value, susi->su->name.value, comp_name_su.length);
 
 	memset(comp_name_si.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name_si.length = ntohs(susi->si->name_net.length);
-	(void)memcpy(comp_name_si.value, susi->si->name_net.value, comp_name_si.length);
+	comp_name_si.length = susi->si->name.length;
+	(void)memcpy(comp_name_si.value, susi->si->name.value, comp_name_si.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "The HA state of SI %s assigned to SU %s changed", comp_name_si.value, comp_name_su.value);
@@ -493,7 +493,7 @@ uns32 avd_clm_node_join_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_JOINED, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -533,7 +533,7 @@ uns32 avd_clm_node_exit_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
         avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_EXITED, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -572,7 +572,7 @@ uns32 avd_clm_node_reconfiured_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_reconfiured_ntf");
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -614,7 +614,7 @@ uns32 avd_gen_ncs_init_success_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
            	   node->node_info.nodeId);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -659,7 +659,7 @@ uns32 avd_node_shutdown_failure_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 err
 	avd_log_shutdown_failure(&(node->node_info.nodeName), NCSFL_SEV_NOTICE, errcode);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = ntohs(node->node_info.nodeName.length);
+	comp_name.length = node->node_info.nodeName.length;
 	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
@@ -711,7 +711,7 @@ uns32 sendAlarmNotificationAvd(AVD_CL_CB *avd_cb,
 {
 	uns32 status = NCSCC_RC_FAILURE;
 	SaNtfAlarmNotificationT myAlarmNotification;
-
+    
 	status = saNtfAlarmNotificationAllocate(avd_cb->ntfHandle, &myAlarmNotification,
 						/* numCorrelatedNotifications */
 						0,

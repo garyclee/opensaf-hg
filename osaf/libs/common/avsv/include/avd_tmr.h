@@ -33,7 +33,7 @@
 #ifndef AVD_TMR_H
 #define AVD_TMR_H
 
-#define AVD_CFG_TMR_INTVL ((SaTimeT)30000000)
+#include <ncssysf_tmr.h>
 
 /* timer type enums */
 typedef enum avd_tmr_type {
@@ -48,7 +48,6 @@ typedef enum avd_tmr_type {
 				 * timer after which AvD will assign
 				 * SIs to application SU. */
 
-	AVD_TMR_CFG,		/* Timer for receiving the cfg msgs */
 	AVD_TMR_SI_DEP_TOL,	/* SI_SI dependency tolerance timer */
 	AVD_TMR_MAX
 } AVD_TMR_TYPE;
@@ -81,10 +80,11 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_CLINIT_TMR_START(cb) \
 {\
+   avd_log(NCSFL_SEV_NOTICE, "Starting cluster startup timer"); \
    cb->amf_init_tmr.cb_hdl = cb->cb_handle; \
    cb->amf_init_tmr.is_active = FALSE; \
    cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
-   avd_start_tmr(cb,&(cb->amf_init_tmr),cb->amf_init_intvl); \
+   avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
 }
 
 /* macro to start the Send Heart beat timer. The cb structure
@@ -118,7 +118,7 @@ typedef struct avd_tmr_tag {
    si_dep_rec->si_dep_timer.type = AVD_TMR_SI_DEP_TOL; \
    si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_mib.si_name_prim; \
    si_dep_rec->si_dep_timer.dep_si_name = si_dep_rec->indx_mib.si_name_sec; \
-   avd_start_tmr(cb, &si_dep_rec->si_dep_timer, si_dep_rec->tolerance_time); \
+   avd_start_tmr(cb, &si_dep_rec->si_dep_timer, si_dep_rec->saAmfToleranceTime); \
 }
 
 /*** Extern function declarations ***/

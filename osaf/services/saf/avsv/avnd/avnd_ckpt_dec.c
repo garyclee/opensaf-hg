@@ -101,7 +101,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 
-static uns32 avnd_decode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
+static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
 static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec);
@@ -203,7 +203,7 @@ const AVND_DECODE_CKPT_DATA_FUNC_PTR avnd_dec_ckpt_data_func_list[AVND_CKPT_MSG_
 	avnd_decode_ckpt_su_si_rec_prv_assign_state,
 
 	/* CSI REC Async Update messages */
-	avnd_decode_ckpt_comp_csi_act_comp_name_net,
+	avnd_decode_ckpt_comp_csi_act_comp_name,
 	avnd_decode_ckpt_comp_csi_trans_desc,
 	avnd_decode_ckpt_comp_csi_standby_rank,
 	avnd_decode_ckpt_comp_csi_curr_assign_state,
@@ -1424,7 +1424,7 @@ static uns32 avnd_decode_ckpt_hc_period(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	hc_rec = m_AVND_HCDB_REC_GET(cb->hcdb, hc_ptr->key);
+	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
 	if (NULL == hc_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1477,7 +1477,7 @@ static uns32 avnd_decode_ckpt_hc_max_dur(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	hc_rec = m_AVND_HCDB_REC_GET(cb->hcdb, hc_ptr->key);
+	hc_rec = avnd_hcdb_rec_get(cb, &hc_ptr->key);
 	if (NULL == hc_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1530,7 +1530,7 @@ static uns32 avnd_decode_ckpt_su_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1583,7 +1583,7 @@ static uns32 avnd_decode_ckpt_su_err_esc_level(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1636,7 +1636,7 @@ static uns32 avnd_decode_ckpt_su_comp_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1689,7 +1689,7 @@ static uns32 avnd_decode_ckpt_su_comp_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1742,7 +1742,7 @@ static uns32 avnd_decode_ckpt_su_restart_prob(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1795,7 +1795,7 @@ static uns32 avnd_decode_ckpt_su_restart_max(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1848,7 +1848,7 @@ static uns32 avnd_decode_ckpt_su_comp_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1901,7 +1901,7 @@ static uns32 avnd_decode_ckpt_su_restart_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -1954,7 +1954,7 @@ static uns32 avnd_decode_ckpt_su_err_esc_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2008,7 +2008,7 @@ static uns32 avnd_decode_ckpt_su_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2061,7 +2061,7 @@ static uns32 avnd_decode_ckpt_su_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name_net);
+	su_rec = m_AVND_SUDB_REC_GET(cb->sudb, su_dec_ptr->name);
 	if (NULL == su_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2114,7 +2114,7 @@ static uns32 avnd_decode_ckpt_comp_flag_change(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2167,7 +2167,7 @@ static uns32 avnd_decode_ckpt_comp_reg_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2220,7 +2220,7 @@ static uns32 avnd_decode_ckpt_comp_reg_dest(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2273,7 +2273,7 @@ static uns32 avnd_decode_ckpt_comp_oper_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2326,7 +2326,7 @@ static uns32 avnd_decode_ckpt_comp_pres_state(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2379,7 +2379,7 @@ static uns32 avnd_decode_ckpt_comp_term_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB_DE
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2432,7 +2432,7 @@ static uns32 avnd_decode_ckpt_comp_csi_set_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2485,7 +2485,7 @@ static uns32 avnd_decode_ckpt_comp_quies_cmplt_cbk_timeout(AVND_CB *cb, NCS_MBCS
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2538,7 +2538,7 @@ static uns32 avnd_decode_ckpt_comp_csi_rmv_cbk_timeout(AVND_CB *cb, NCS_MBCSV_CB
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2591,7 +2591,7 @@ static uns32 avnd_decode_ckpt_comp_pxied_inst_cbk_timeout(AVND_CB *cb, NCS_MBCSV
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2644,7 +2644,7 @@ static uns32 avnd_decode_ckpt_comp_pxied_clean_cbk_timeout(AVND_CB *cb, NCS_MBCS
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2697,7 +2697,7 @@ static uns32 avnd_decode_ckpt_comp_err_info(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2753,7 +2753,7 @@ static uns32 avnd_decode_ckpt_comp_def_recovery(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2806,7 +2806,7 @@ static uns32 avnd_decode_ckpt_comp_pend_evt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2859,7 +2859,7 @@ static uns32 avnd_decode_ckpt_comp_orph_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2912,7 +2912,7 @@ static uns32 avnd_decode_ckpt_comp_node_id(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -2965,7 +2965,7 @@ static uns32 avnd_decode_ckpt_comp_type(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3018,7 +3018,7 @@ static uns32 avnd_decode_ckpt_comp_mds_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3072,7 +3072,7 @@ static uns32 avnd_decode_ckpt_comp_reg_resp_pending(AVND_CB *cb, NCS_MBCSV_CB_DE
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3125,7 +3125,7 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3184,7 +3184,7 @@ static uns32 avnd_decode_ckpt_comp_term_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3243,7 +3243,7 @@ static uns32 avnd_decode_ckpt_comp_inst_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3297,7 +3297,7 @@ static uns32 avnd_decode_ckpt_comp_term_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3351,7 +3351,7 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_max(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3404,7 +3404,7 @@ static uns32 avnd_decode_ckpt_comp_inst_retry_cnt(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3457,7 +3457,7 @@ static uns32 avnd_decode_ckpt_comp_exec_cmd(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3510,7 +3510,7 @@ static uns32 avnd_decode_ckpt_comp_cmd_exec_ctxt(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3563,7 +3563,7 @@ static uns32 avnd_decode_ckpt_comp_inst_cmd_ts(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3616,7 +3616,7 @@ static uns32 avnd_decode_ckpt_comp_clc_reg_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3670,7 +3670,7 @@ static uns32 avnd_decode_ckpt_comp_inst_code_rcvd(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+	comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 	if (NULL == comp_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3732,18 +3732,18 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_add(AVND_CB *cb, NCS_MBCSV_CB_D
 	   In case 2. => Search comp in COMPDB_REC and proxy in EXT_COMPDB_REC.
 	 */
 	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_add, comp, len, comp type",
-			      &comp_dec_ptr->name_net, comp_dec_ptr->name_net.length, comp_dec_ptr->comp_type, 0, 0);
+			      &comp_dec_ptr->name, comp_dec_ptr->name.length, comp_dec_ptr->comp_type, 0, 0);
 	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_add, Pxy comp, len, comp type",
-			      &comp_dec_ptr->proxy_comp_name_net,
-			      comp_dec_ptr->proxy_comp_name_net.length, comp_dec_ptr->comp_type, 0, 0);
+			      &comp_dec_ptr->proxy_comp_name,
+			      comp_dec_ptr->proxy_comp_name.length, comp_dec_ptr->comp_type, 0, 0);
 
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp_dec_ptr)) {
-		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name_net);
-		pxy_comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->proxy_comp_name_net);
+		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name);
+		pxy_comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->proxy_comp_name);
 	} else {
-		comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+		comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 		pxy_comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db,
-							     comp_dec_ptr->proxy_comp_name_net);
+							     comp_dec_ptr->proxy_comp_name);
 	}
 
 	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
@@ -3811,18 +3811,18 @@ static uns32 avnd_decode_ckpt_comp_proxy_proxied_del(AVND_CB *cb, NCS_MBCSV_CB_D
 	   In case 2. => Search comp in COMPDB_REC and proxy in EXT_COMPDB_REC.
 	 */
 	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_del, comp, len, comp type",
-			      &comp_dec_ptr->name_net, comp_dec_ptr->name_net.length, comp_dec_ptr->comp_type, 0, 0);
+			      &comp_dec_ptr->name, comp_dec_ptr->name.length, comp_dec_ptr->comp_type, 0, 0);
 	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_proxy_proxied_del, Pxy comp, len, comp type",
-			      &comp_dec_ptr->proxy_comp_name_net,
-			      comp_dec_ptr->proxy_comp_name_net.length, comp_dec_ptr->comp_type, 0, 0);
+			      &comp_dec_ptr->proxy_comp_name,
+			      comp_dec_ptr->proxy_comp_name.length, comp_dec_ptr->comp_type, 0, 0);
 
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp_dec_ptr)) {
-		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name_net);
-		pxy_comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->proxy_comp_name_net);
+		comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp_dec_ptr->name);
+		pxy_comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->proxy_comp_name);
 	} else {
-		comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name_net);
+		comp_rec = m_AVND_COMPDB_REC_GET(cb->compdb, comp_dec_ptr->name);
 		pxy_comp_rec = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db,
-							     comp_dec_ptr->proxy_comp_name_net);
+							     comp_dec_ptr->proxy_comp_name);
 	}
 
 	if ((NULL == comp_rec) || (NULL == pxy_comp_rec)) {
@@ -3881,7 +3881,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_state(AVND_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name_net, &su_si_dec_ptr->name_net);
+	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3934,7 +3934,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name_net, &su_si_dec_ptr->name_net);
+	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -3987,7 +3987,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV
 		return status;
 	}
 
-	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name_net, &su_si_dec_ptr->name_net);
+	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4040,7 +4040,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 		return status;
 	}
 
-	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name_net, &su_si_dec_ptr->name_net);
+	su_si_rec = avnd_su_si_rec_get(cb, &su_si_dec_ptr->su_name, &su_si_dec_ptr->name);
 	if (NULL == su_si_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4055,7 +4055,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 }
 
 /****************************************************************************\
- * Function: avnd_decode_ckpt_comp_csi_act_comp_name_net
+ * Function: avnd_decode_ckpt_comp_csi_act_comp_name
  *
  * Purpose:  Decode AVND_COMP_CSI_REC active component name info. 
  *
@@ -4068,7 +4068,7 @@ static uns32 avnd_decode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
  *
  *
 \**************************************************************************/
-static uns32 avnd_decode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
+static uns32 avnd_decode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
@@ -4076,7 +4076,7 @@ static uns32 avnd_decode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_
 	AVND_COMP_CSI_REC dec_csi;
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_act_comp_name_net", NULL, 0, 0, 0, 0);
+	m_AVND_AVND_ENTRY_LOG("avnd_decode_ckpt_comp_csi_act_comp_name", NULL, 0, 0, 0, 0);
 
 	csi_dec_ptr = &dec_csi;
 
@@ -4093,13 +4093,13 @@ static uns32 avnd_decode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_
 		return status;
 	}
 
-	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name_net, &csi_dec_ptr->name_net);
+	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
 	}
 
-	csi_rec->act_comp_name_net = csi_dec_ptr->act_comp_name_net;
+	csi_rec->act_comp_name = csi_dec_ptr->act_comp_name;
 
 	/* If update is successful, update async update count */
 	cb->avnd_async_updt_cnt.csi_updt++;
@@ -4146,7 +4146,7 @@ static uns32 avnd_decode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_DEC 
 		return status;
 	}
 
-	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name_net, &csi_dec_ptr->name_net);
+	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4199,7 +4199,7 @@ static uns32 avnd_decode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_DE
 		return status;
 	}
 
-	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name_net, &csi_dec_ptr->name_net);
+	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4252,7 +4252,7 @@ static uns32 avnd_decode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_
 		return status;
 	}
 
-	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name_net, &csi_dec_ptr->name_net);
+	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4305,7 +4305,7 @@ static uns32 avnd_decode_ckpt_comp_csi_prv_assign_state(AVND_CB *cb, NCS_MBCSV_C
 		return status;
 	}
 
-	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name_net, &csi_dec_ptr->name_net);
+	csi_rec = avnd_compdb_csi_rec_get(cb, &csi_dec_ptr->comp_name, &csi_dec_ptr->name);
 	if (NULL == csi_rec) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4360,7 +4360,7 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_status(AVND_CB *cb, NCS_MBCSV_CB_DEC *
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4426,7 +4426,7 @@ static uns32 avnd_decode_ckpt_comp_hc_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_hc_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4491,7 +4491,7 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_amf_hdl(AVND_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4566,7 +4566,7 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_mds(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4641,7 +4641,7 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_tmr(AVND_CB *cb, NCS_MBCSV_CB_DEC *de
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;
@@ -4716,7 +4716,7 @@ static uns32 avnd_decode_ckpt_comp_cbk_rec_timeout(AVND_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_cbk_dec_ptr->comp_name);
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(ederror);
 		return NCSCC_RC_FAILURE;

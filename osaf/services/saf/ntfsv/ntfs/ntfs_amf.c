@@ -413,16 +413,16 @@ SaAisErrorT ntfs_amf_init(ntfs_cb_t *cb)
 		goto done;
 	}
 
+	/* Start AMF healthchecks */
+	if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK)
+		goto done;
+
 	/* Register component with AMF */
 	error = saAmfComponentRegister(cb->amf_hdl, &cb->comp_name, (SaNameT *)NULL);
 	if (error != SA_AIS_OK) {
 		LOG_ER("saAmfComponentRegister() FAILED");
 		goto done;
 	}
-
-	/* Start AMF healthchecks */
-	if ((error = amf_healthcheck_start(cb)) != SA_AIS_OK)
-		goto done;
 
  done:
 	TRACE_LEAVE();

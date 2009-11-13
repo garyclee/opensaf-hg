@@ -33,6 +33,18 @@
 #ifndef AVD_CB_H
 #define AVD_CB_H
 
+#include <saImmOi.h>
+#include <saClm.h>
+
+#include <ncssysf_lck.h>
+#include <ncspatricia.h>
+#include <mds_papi.h>
+#include <mbcsv_papi.h>
+#include <ncs_edu_pub.h>
+
+#include <avd_ckp.h>
+#include <avd_tmr.h>
+
 struct avd_avnd_tag;
 
 typedef enum {
@@ -109,17 +121,10 @@ typedef struct avd_si_dep {
 typedef struct cl_cb_tag {
 
 	SYSF_MBX avd_mbx;	/* mailbox on which AvD waits */
-	NCS_SEL_OBJ_SET sel_obj_set;	/* The set of selection objects
-					 * on which the AvD does select
-					 */
-	NCS_SEL_OBJ sel_high;	/*the highest selection object */
 
 	/* for HB thread */
 	SYSF_MBX avd_hb_mbx;	/* mailbox on which AvD waits */
-	NCS_SEL_OBJ_SET hb_sel_obj_set;	/* The set of selection objects
-					 * on which the AvD does select
-					 */
-	NCS_SEL_OBJ hb_sel_high;	/*the highest selection object */
+
 	uns32 cb_handle;	/*the control block handle of AVD
 				 */
 	NCSCONTEXT mds_handle;	/* The handle returned by MDS 
@@ -165,13 +170,6 @@ typedef struct cl_cb_tag {
 				 */
 	MDS_DEST other_avd_adest;	/* ADEST of  other AvD
 					 */
-	V_DEST_QA vcard_anchor;	/* the anchor value that 
-				 * differentiates the primary 
-				 * and standby vcards of AvD.
-				 */
-	V_DEST_QA other_vcard_anchor;	/*  The anchor value of the other
-					 * AvD.
-					 */
 
 	/*
 	 * Message queue to hold messages to be sent to the ND.
@@ -187,7 +185,6 @@ typedef struct cl_cb_tag {
 	NCS_MBCSV_HDL mbcsv_hdl;
 	uns32 ckpt_hdl;
 	SaSelectionObjectT mbcsv_sel_obj;
-	SaVersionT avsv_ver;
 	AVD_STBY_SYNC_STATE stby_sync_state;
 
 	uns32 synced_reo_type;	/* Count till which sync is done */
@@ -199,17 +196,6 @@ typedef struct cl_cb_tag {
 	AVSV_ASYNC_UPDT_MSG_QUEUE_LIST async_updt_msgs;
 
 	EDU_HDL edu_hdl;	/* EDU handle */
-	uns32 mab_hdl;		/* MAB handle returned during initilisation. */
-	uns32 mab_row_hdl_list[(NCSMIB_TBL_AVSV_AVD_END - NCSMIB_TBL_AVSV_BASE) + 1];
-	/* The list of row handles returned
-	 * by MAB. Only active will
-	 * have them. */
-	uns32 hpi_hdl;		/* HPI handle returned during initilisation. */
-	SaEvtHandleT *eds_hdl;	/* The EDS handle returned during 
-				 * initilisation. 
-				 */
-	SaSelectionObjectT *eds_sel_obj;	/* The selection object returned by EDS. */
-
 	SaTimeT cluster_init_time;	/* The time when the firstnode joined the cluster.
 					 * Checkpointing - Sent as a one time update.
 					 */
@@ -242,47 +228,19 @@ typedef struct cl_cb_tag {
 				 * Checkpointing - Sent as a one time update.
 				 */
 
-	SaTimeT amf_init_intvl;	/* This is the amount of time
-				 * avsv will wait before
-				 * assigning SIs in the SG.
-				 * Checkpointing - Sent as a one time update.
-				 */
 	NCS_PATRICIA_TREE node_list;	/* Tree of AvND nodes indexed by
 					 * node id. used for storing the 
 					 * nodes on f-over.
 					 */
-	NCS_PATRICIA_TREE avnd_anchor;	/* Tree of AvND nodes indexed by
-					 * node id.
-					 */
-	NCS_PATRICIA_TREE avnd_anchor_name;	/* Tree of AvND nodes indexed by
-						 * node name with length in
-						 * network order.
-						 */
-	NCS_PATRICIA_TREE sg_anchor;	/* Tree of service groups */
-	NCS_PATRICIA_TREE su_anchor;	/* Tree of Service units */
-	NCS_PATRICIA_TREE si_anchor;	/* Tree of Service instances */
-	NCS_PATRICIA_TREE comp_anchor;	/* Tree of components */
-	NCS_PATRICIA_TREE csi_anchor;	/* Tree of component service instances */
-	NCS_PATRICIA_TREE hlt_anchor;	/* Tree of health check records */
 	NCS_PATRICIA_TREE su_per_si_rank_anchor;	/* Tree of su per si ranks */
-	NCS_PATRICIA_TREE sg_si_rank_anchor;	/* Tree of SG-SI rank */
-	NCS_PATRICIA_TREE sg_su_rank_anchor;	/* Tree of SG-SU rank */
-	NCS_PATRICIA_TREE comp_cs_type_anchor;	/* Tree of comp csi type */
-	NCS_PATRICIA_TREE cs_type_param_anchor;	/* Tree of csi type param */
 	AVD_SI_DEP si_dep;	/* SI-SI dependency data */
 	AVD_TMR heartbeat_send_avd;	/* The timer for sending the heartbeat */
 	AVD_TMR heartbeat_rcv_avd;	/* The timer for receiving the heartbeat */
 	AVD_TMR amf_init_tmr;	/* The timer for amf initialisation. */
-	NCS_ADMIN_STATE cluster_admin_state;
 	uns32 nodes_exit_cnt;	/* The counter to identifies the number
 				   of nodes that have exited the membership
 				   since the cluster boot time */
 
-	uns32 num_cfg_msgs;	/* Number of cfg messages received */
-	union {
-		AVD_TMR cfg_tmr;	/* Timer waiting for conf msgs */
-	} init_phase_tmr;
-	MDS_DEST bam_mds_dest;
 	MDS_DEST avm_mds_dest;
 
    /********** NTF related params      ***********/
@@ -297,9 +255,13 @@ typedef struct cl_cb_tag {
 	uns16 peer_msg_fmt_ver;
 	uns16 avd_peer_ver;
 
-} AVD_CL_CB;
+   /******** IMM related ********/
+	SaImmOiHandleT immOiHandle;
+	SaImmOiHandleT immOmHandle;
+	SaSelectionObjectT imm_sel_obj;
+        NCS_BOOL  impl_set;
 
-#define AVD_CL_CB_NULL ((AVD_CL_CB *)0)
+} AVD_CL_CB;
 
 /* macro to push the ND msg in the queue (to the end of the list) */
 #define m_AVD_DTOND_MSG_PUSH(cb, msg) \
@@ -397,16 +359,10 @@ take read locks if necessary.
     m_NCS_UNLOCK(&avd_cb->avnd_tbl_lock, ltype);\
 }
 
+extern AVD_CL_CB *avd_cb;
+
 struct avd_evt_tag;
 
-EXTERN_C void avd_init_cmplt(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_evd_init(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_hpi_init(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_mab_init(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_mab_reg_rows(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_mab_unreg_rows(AVD_CL_CB *cb);
-EXTERN_C uns32 avd_miblib_init(AVD_CL_CB *cb);
-EXTERN_C void avd_tmr_cl_init_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C uns32 avd_mab_snd_warmboot_req(AVD_CL_CB *cb);
+extern uns32 avd_init_proc(void);
 
 #endif

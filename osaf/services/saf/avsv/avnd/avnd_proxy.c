@@ -100,25 +100,24 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 	AVSV_AMF_COMP_REG_PARAM *reg = &api_info->param.reg;
 
 	m_AVND_AVND_ENTRY_LOG("avnd_evt_ava_comp_val_req():Comp,Type and Hdl are",
-			      &reg->comp_name_net, api_info->type, reg->hdl, 0, 0);
+			      &reg->comp_name, api_info->type, reg->hdl, 0, 0);
 
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avd = m_MMGR_ALLOC_AVSV_DND_MSG)) {
-		memset(msg.info.avd, 0, sizeof(AVSV_DND_MSG));
+	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
 		msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
 		msg.info.avd->msg_info.n2d_comp_valid_info.node_id = cb->clmdb.node_info.nodeId;
-		msg.info.avd->msg_info.n2d_comp_valid_info.comp_name_net =
-		    evt->info.ava.msg->info.api_info.param.reg.comp_name_net;
+		msg.info.avd->msg_info.n2d_comp_valid_info.comp_name =
+		    evt->info.ava.msg->info.api_info.param.reg.comp_name;
 
 		/* add the record to the AvD msg list */
 		if ((0 != (rec = avnd_diq_rec_add(cb, &msg)))) {
 			/* These parameters would not be encoded or decoded so, wouldn't be sent to AvD. */
 			rec->msg.info.avd->msg_info.n2d_comp_valid_info.hdl = reg->hdl;
-			rec->msg.info.avd->msg_info.n2d_comp_valid_info.proxy_comp_name_net = reg->proxy_comp_name_net;
+			rec->msg.info.avd->msg_info.n2d_comp_valid_info.proxy_comp_name = reg->proxy_comp_name;
 			rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_dest = api_info->dest;
 			rec->msg.info.avd->msg_info.n2d_comp_valid_info.mds_ctxt = evt->mds_ctxt;
 			/* send the message */
@@ -126,7 +125,7 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 
 			if ((NCSCC_RC_SUCCESS != rc) && rec) {
 				m_AVND_AVND_ERR_LOG("avnd_diq_rec_send:failed:Comp,Type and Hdl are",
-						    &reg->comp_name_net, api_info->type, reg->hdl, 0, 0);
+						    &reg->comp_name, api_info->type, reg->hdl, 0, 0);
 				/* pop & delete */
 				m_AVND_DIQ_REC_FIND_POP(cb, rec);
 				avnd_diq_rec_del(cb, rec);
@@ -134,14 +133,14 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 		} else {
 			rc = NCSCC_RC_FAILURE;
 			m_AVND_AVND_ERR_LOG("avnd_diq_rec_add failed:Comp,Type and Hdl are",
-					    &reg->comp_name_net, api_info->type, reg->hdl, 0, 0);
+					    &reg->comp_name, api_info->type, reg->hdl, 0, 0);
 		}
 	} else
 		rc = NCSCC_RC_FAILURE;
 
 	if (NCSCC_RC_FAILURE == rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_ava_comp_val_req :failure:Comp,Type and Hdl are",
-				    &reg->comp_name_net, api_info->type, reg->hdl, 0, 0);
+				    &reg->comp_name, api_info->type, reg->hdl, 0, 0);
 	}
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
@@ -181,16 +180,16 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 	info = &evt->info.avd->msg_info.d2n_comp_valid_resp_info;
 
 	m_AVND_AVND_ENTRY_LOG("avnd_evt_avd_comp_validation_resp_msg():Comp,MsgId,NodeId and result are",
-			      &info->comp_name_net, info->msg_id, info->node_id, info->result, 0);
+			      &info->comp_name, info->msg_id, info->node_id, info->result, 0);
 
 	m_AVND_DIQ_REC_FIND(cb, info->msg_id, rec);
 
-	if ((NULL == rec) || (memcmp(&info->comp_name_net,
-				     &rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name_net,
+	if ((NULL == rec) || (memcmp(&info->comp_name,
+				     &rec->msg.info.avd->msg_info.n2d_comp_valid_info.comp_name,
 				     sizeof(SaNameT)) != 0)) {
 		/* Seems the rec was deleted, some problem. */
 		m_AVND_AVND_ERR_LOG("Valid Rep:Rec is NULL or Name Mismatch:Comp,MsgId,NodeId and result are",
-				    &info->comp_name_net, info->msg_id, info->node_id, info->result, 0);
+				    &info->comp_name, info->msg_id, info->node_id, info->result, 0);
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -206,7 +205,7 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 		/* So, let us add this component in the data base. And send reg req
 		   to the AvND, where proxied comp is running. */
 		comp = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
-					       &(info->comp_name_net), info->node_id, &rc, FALSE, FALSE);
+					       &(info->comp_name), info->node_id, &rc, FALSE, FALSE);
 		if ((comp) && (SA_AIS_OK == rc)) {
 			/* Fill other informations here */
 			comp->reg_hdl = comp_valid_info.hdl;
@@ -217,15 +216,15 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 			comp_valid_info.node_id = info->node_id;
 
 			/* Create proxy-proxied support here */
-			if (0 == (pxy_comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_valid_info.proxy_comp_name_net))) {
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name_net));
+			if (0 == (pxy_comp = m_AVND_COMPDB_REC_GET(cb->compdb, comp_valid_info.proxy_comp_name))) {
+				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
 				rc = NCSCC_RC_FAILURE;
 				amf_rc = SA_AIS_ERR_INVALID_PARAM;
 				goto send_resp;
 			}
 
 			if ((NULL != pxy_comp) && (!m_AVND_COMP_IS_REG(pxy_comp))) {
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name_net));
+				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
 				rc = NCSCC_RC_FAILURE;
 				amf_rc = SA_AIS_ERR_NOT_EXIST;
 				goto send_resp;
@@ -242,16 +241,16 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 			/* Send a registration message to the corresponding AvND */
 			memset(&api_info, 0, sizeof(AVSV_AMF_API_INFO));
 			m_AVND_COMP_REG_MSG_FILL(api_info, comp->reg_dest,
-						 comp->reg_hdl, &comp->name_net, &comp->pxy_comp->name_net);
+						 comp->reg_hdl, &comp->name, &comp->pxy_comp->name);
 			rc = avnd_avnd_msg_send(cb, (uns8 *)&(api_info), AVSV_AMF_COMP_REG,
 						&comp->mds_ctxt, comp->node_id);
 
 			if (rc != NCSCC_RC_SUCCESS) {
 				m_AVND_AVND_ERR_LOG("avnd_avnd_msg_send failed:Comp,MsgId,NodeId and result are",
-						    &info->comp_name_net, info->msg_id, info->node_id, rc, 0);
+						    &info->comp_name, info->msg_id, info->node_id, rc, 0);
 
 				amf_rc = SA_AIS_ERR_TRY_AGAIN;
-				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name_net));
+				avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(info->comp_name));
 				goto send_resp;
 			}
 			comp->reg_resp_pending = TRUE;
@@ -293,7 +292,7 @@ uns32 avnd_evt_avd_comp_validation_resp_msg(AVND_CB *cb, AVND_EVT *evt)
 
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_AVND_ERR_LOG("avnd_evt_avd_comp_validation_resp_msg failed:Comp,MsgId,NodeId and result are",
-				    &info->comp_name_net, info->msg_id, info->node_id, info->result, 0);
+				    &info->comp_name, info->msg_id, info->node_id, info->result, 0);
 	}
 	return rc;
 }
@@ -328,17 +327,15 @@ uns32 avnd_avnd_msg_send(AVND_CB *cb, uns8 *msg_info, AVSV_AMF_API_TYPE type, MD
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG)) {
-		memset(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+	if (0 != (msg.info.avnd = calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)))) {
 		msg.type = AVND_MSG_AVND;
 
-		if (0 == (nd_nd_ava_msg = m_MMGR_ALLOC_AVSV_NDA_AVA_MSG)) {
+		if (0 == (nd_nd_ava_msg = calloc(1, sizeof(AVSV_NDA_AVA_MSG)))) {
 			rc = NCSCC_RC_FAILURE;
-			m_MMGR_FREE_AVSV_ND2ND_AVND_MSG(msg.info.avnd);
+			free(msg.info.avnd);
 			goto done;
 		}
 
-		memset(nd_nd_ava_msg, 0, sizeof(AVSV_ND2ND_AVA_MSG));
 		msg.info.avnd->type = AVND_AVND_AVA_MSG;
 		msg.info.avnd->info.msg = nd_nd_ava_msg;
 		memcpy(&msg.info.avnd->mds_ctxt, ctxt, sizeof(MDS_SYNC_SND_CTXT));
@@ -430,68 +427,68 @@ uns32 avnd_int_ext_comp_hdlr(AVND_CB *cb, AVSV_AMF_API_INFO *api_info,
 	switch (api_info->type) {
 	case AVSV_AMF_COMP_UNREG:
 		{
-			comp_name = api_info->param.unreg.comp_name_net;
+			comp_name = api_info->param.unreg.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_HC_START:
 		{
-			comp_name = api_info->param.hc_start.comp_name_net;
+			comp_name = api_info->param.hc_start.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_HC_STOP:
 		{
-			comp_name = api_info->param.hc_stop.comp_name_net;
+			comp_name = api_info->param.hc_stop.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_HC_CONFIRM:
 		{
-			comp_name = api_info->param.hc_confirm.comp_name_net;
+			comp_name = api_info->param.hc_confirm.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_PM_START:
 		{
-			comp_name = api_info->param.pm_start.comp_name_net;
+			comp_name = api_info->param.pm_start.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_PM_STOP:
 		{
-			comp_name = api_info->param.pm_stop.comp_name_net;
+			comp_name = api_info->param.pm_stop.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_CSI_QUIESCING_COMPLETE:
 		{
-			comp_name = api_info->param.csiq_compl.comp_name_net;
+			comp_name = api_info->param.csiq_compl.comp_name;
 			send_resp = FALSE;
 			break;
 		}
 
 	case AVSV_AMF_HA_STATE_GET:
 		{
-			comp_name = api_info->param.ha_get.comp_name_net;
+			comp_name = api_info->param.ha_get.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_ERR_REP:
 		{
-			comp_name = api_info->param.err_rep.err_comp_net;
+			comp_name = api_info->param.err_rep.err_comp;
 			break;
 		}
 
 	case AVSV_AMF_ERR_CLEAR:
 		{
-			comp_name = api_info->param.err_clear.comp_name_net;
+			comp_name = api_info->param.err_clear.comp_name;
 			break;
 		}
 
 	case AVSV_AMF_RESP:
 		{
-			comp_name = api_info->param.resp.comp_name_net;
+			comp_name = api_info->param.resp.comp_name;
 			send_resp = FALSE;
 			break;
 		}
@@ -650,8 +647,7 @@ uns32 avnd_avnd_cbk_del_send(AVND_CB *cb, SaNameT *comp_name, uns32 *opq_hdl, NO
 	memset(&msg, 0, sizeof(AVND_MSG));
 
 	/* populate the msg */
-	if (0 != (msg.info.avnd = m_MMGR_ALLOC_AVSV_ND2ND_AVND_MSG)) {
-		memset(msg.info.avnd, 0, sizeof(AVSV_ND2ND_AVND_MSG));
+	if (0 != (msg.info.avnd = calloc(1, sizeof(AVSV_ND2ND_AVND_MSG)))) {
 		msg.type = AVND_MSG_AVND;
 		msg.info.avnd->type = AVND_AVND_CBK_DEL;
 		msg.info.avnd->info.cbk_del.comp_name = *comp_name;

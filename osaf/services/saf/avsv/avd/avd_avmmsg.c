@@ -77,7 +77,7 @@
 uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = AVD_CL_CB_NULL;
+	AVD_CL_CB *cb = NULL;
 
 	/* check that the message ptr is not NULL */
 	if (rcv_msg == NULL) {
@@ -86,7 +86,7 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 	}
 
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = malloc(sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -96,9 +96,9 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 	}
 
 	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log error */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		/* free the message and return */
 		avm_avd_free_msg(&rcv_msg);
 		return NCSCC_RC_FAILURE;
@@ -118,7 +118,7 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 		avm_avd_free_msg(&rcv_msg);
 		evt->info.avm_msg = NULL;
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 
 		return NCSCC_RC_FAILURE;
 	}
@@ -192,7 +192,7 @@ uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_NODE_SHUTDOWN_RESP_MSG;
 
-	snd_msg->avd_avm_msg.shutdown_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
+	snd_msg->avd_avm_msg.shutdown_resp.node_name.length = node->length;
 	memcpy(&snd_msg->avd_avm_msg.shutdown_resp.node_name.value, node->value,
 	       snd_msg->avd_avm_msg.shutdown_resp.node_name.length);
 
@@ -229,7 +229,7 @@ uns32 avd_avm_send_failover_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_NODE_FAILOVER_RESP_MSG;
 
-	snd_msg->avd_avm_msg.failover_resp.node_name.length = m_NTOH_SANAMET_LEN(node->length);
+	snd_msg->avd_avm_msg.failover_resp.node_name.length = node->length;
 	memcpy(&snd_msg->avd_avm_msg.failover_resp.node_name.value, node->value,
 	       snd_msg->avd_avm_msg.failover_resp.node_name.length);
 
@@ -265,7 +265,7 @@ uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *cb, SaNameT *node)
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_FAULT_DOMAIN_REQ_MSG;
 
-	snd_msg->avd_avm_msg.fault_domain_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
+	snd_msg->avd_avm_msg.fault_domain_req.node_name.length = node->length;
 	memcpy(&snd_msg->avd_avm_msg.fault_domain_req.node_name.value, node->value,
 	       snd_msg->avd_avm_msg.fault_domain_req.node_name.length);
 
@@ -302,7 +302,7 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_NODE_RESET_REQ_MSG;
 
-	snd_msg->avd_avm_msg.reset_req.node_name.length = m_NTOH_SANAMET_LEN(node->length);
+	snd_msg->avd_avm_msg.reset_req.node_name.length = node->length;
 	memcpy(&snd_msg->avd_avm_msg.reset_req.node_name.value, node->value,
 	       snd_msg->avd_avm_msg.reset_req.node_name.length);
 
@@ -401,12 +401,12 @@ uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
 	snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_LOST_MSG;
 
 	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node))) {
+	if (NULL == (avnd = avd_node_find_nodeid(node))) {
 		m_AVD_LOG_INVALID_VAL_ERROR(node);
 		return NCSCC_RC_FAILURE;
 	}
 
-	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = avnd->node_info.nodeName.length;
 
 	memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value,
 	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
@@ -444,12 +444,12 @@ uns32 avd_avm_d_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
 	snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_RESTORE_MSG;
 
 	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node))) {
+	if (NULL == (avnd = avd_node_find_nodeid(node))) {
 		m_AVD_LOG_INVALID_VAL_ERROR(node);
 		return NCSCC_RC_FAILURE;
 	}
 
-	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = avnd->node_info.nodeName.length;
 
 	memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value,
 	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
@@ -487,12 +487,12 @@ uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
 	snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
 
 	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node))) {
+	if (NULL == (avnd = avd_node_find_nodeid(node))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(node);
 		return NCSCC_RC_FAILURE;
 	}
 
-	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = avnd->node_info.nodeName.length;
 
 	memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value,
 	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
@@ -533,12 +533,12 @@ uns32 avd_avm_nd_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
 	snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
 
 	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_avnd_struc_find_nodeid(cb, node))) {
+	if (NULL == (avnd = avd_node_find_nodeid(node))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(node);
 		return NCSCC_RC_FAILURE;
 	}
 
-	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = m_NTOH_SANAMET_LEN(avnd->node_info.nodeName.length);
+	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = avnd->node_info.nodeName.length;
 
 	memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value,
 	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
@@ -575,7 +575,7 @@ uns32 avd_avm_node_reset_rsp(AVD_CL_CB *cb, uns32 node)
 	memset(msg, '\0', sizeof(AVM_AVD_MSG_T));
 
 	msg->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
-	avnd = avd_avnd_struc_find_nodeid(cb, node);
+	avnd = avd_node_find_nodeid(node);
 
 	if (NULL == avnd) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
@@ -583,9 +583,9 @@ uns32 avd_avm_node_reset_rsp(AVD_CL_CB *cb, uns32 node)
 	}
 
 	memcpy(msg->avm_avd_msg.reset_resp.node_name.value,
-	       avnd->node_info.nodeName.value, m_NCS_OS_NTOHS(avnd->node_info.nodeName.length));
+	       avnd->node_info.nodeName.value, avnd->node_info.nodeName.length);
 
-	msg->avm_avd_msg.reset_resp.node_name.length = m_NCS_OS_NTOHS(avnd->node_info.nodeName.length);
+	msg->avm_avd_msg.reset_resp.node_name.length = avnd->node_info.nodeName.length;
 
 	avd_avm_rcv_msg(cb->cb_handle, msg);
 

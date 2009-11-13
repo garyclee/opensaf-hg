@@ -326,7 +326,7 @@ uns32 ncs_edp_saamfprotectiongroupmembert(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET saamfprotectiongroupmembert_rules[] = {
 		{EDU_START, ncs_edp_saamfprotectiongroupmembert, 0, 0, 0,
 		 sizeof(SaAmfProtectionGroupMemberT), 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0,
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0,
 		 (long)&((SaAmfProtectionGroupMemberT *)0)->compName, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAAMFHASTATET, 0, 0, 0,
 		 (long)&((SaAmfProtectionGroupMemberT *)0)->haState, 0, NULL},

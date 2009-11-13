@@ -34,6 +34,8 @@
 #ifndef AVD_MSG_H
 #define AVD_MSG_H
 
+#include <avsv_d2nmsg.h>
+
 typedef enum {
 	AVD_D2D_HEARTBEAT_MSG = AVSV_DND_MSG_MAX,
 	AVD_D2D_MSG_MAX,
@@ -61,7 +63,7 @@ struct avd_avnd_tag;
 struct avd_su_tag;
 struct avd_hlt_tag;
 struct avd_su_si_rel_tag;
-struct avd_cmp_tag;
+struct avd_comp_tag;
 struct avd_comp_csi_rel_tag;
 struct avd_csi_tag;
 
@@ -91,7 +93,7 @@ EXTERN_C uns32 avd_snd_hbt_info_msg(struct cl_cb_tag *cb);
 EXTERN_C uns32 avd_snd_su_comp_msg(struct cl_cb_tag *cb,
 				   struct avd_avnd_tag *avnd, NCS_BOOL *comp_sent, NCS_BOOL fail_over);
 EXTERN_C uns32 avd_snd_su_msg(struct cl_cb_tag *cb, struct avd_su_tag *su);
-EXTERN_C uns32 avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_cmp_tag *comp);
+EXTERN_C uns32 avd_snd_comp_msg(struct cl_cb_tag *cb, struct avd_comp_tag *comp);
 EXTERN_C uns32 avd_snd_susi_msg(struct cl_cb_tag *cb, struct avd_su_tag *su, struct avd_su_si_rel_tag *susi,
 				AVSV_SUSI_ACT actn);
 EXTERN_C uns32 avd_snd_shutdown_app_su_msg(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd);
@@ -105,7 +107,7 @@ EXTERN_C uns32 avd_snd_pg_upd_msg(struct cl_cb_tag *, struct avd_avnd_tag *, str
 EXTERN_C uns32 avd_avm_mds_cpy(MDS_CALLBACK_COPY_INFO *);
 EXTERN_C uns32 avd_snd_hb_msg(struct cl_cb_tag *);
 EXTERN_C uns32 avd_snd_comp_validation_resp(struct cl_cb_tag *cb, struct avd_avnd_tag *avnd,
-					    struct avd_cmp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
+					    struct avd_comp_tag *comp_ptr, AVD_DND_MSG *n2d_msg);
 EXTERN_C void avsv_d2d_msg_free(AVD_D2D_MSG *);
 EXTERN_C void avd_mds_d_enc(uns32, MDS_CALLBACK_ENC_INFO *);
 EXTERN_C void avd_mds_d_dec(uns32, MDS_CALLBACK_DEC_INFO *);

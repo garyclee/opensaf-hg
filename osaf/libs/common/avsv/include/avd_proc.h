@@ -33,9 +33,13 @@
 #ifndef AVD_PROC_H
 #define AVD_PROC_H
 
+#include <avd_cb.h>
+#include <avd_evt.h>
+#include <avd_susi.h>
+
 typedef void (*AVD_EVT_HDLR) (AVD_CL_CB *, AVD_EVT *);
 
-EXTERN_C void avd_main_proc(AVD_CL_CB *cb);
+EXTERN_C void avd_main_proc(void *);
 
 EXTERN_C void avd_su_oper_state_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_su_si_assign_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
@@ -45,7 +49,7 @@ EXTERN_C uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
 EXTERN_C uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
-EXTERN_C uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd, NCS_ADMIN_STATE new_admin_state);
+EXTERN_C uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd, SaAmfAdminStateT new_admin_state);
 EXTERN_C uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_BOOL q_flag);
 EXTERN_C uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state);
@@ -127,7 +131,6 @@ EXTERN_C uns32 avd_sg_nacvred_sg_admin_down(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su);
 
 EXTERN_C void avd_node_up_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_reg_hlth_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_reg_su_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_reg_comp_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
@@ -150,7 +153,6 @@ EXTERN_C void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_rcv_hb_d_msg(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C void avd_hb_init_proc(uns32 *);
 EXTERN_C void avd_process_hb_event(AVD_CL_CB *cb_now, struct avd_evt_tag *evt);
 
 #endif

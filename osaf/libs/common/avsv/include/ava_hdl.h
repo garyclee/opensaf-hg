@@ -113,7 +113,7 @@ typedef struct ava_hdl_db_tag {
 #define m_AVA_HDL_PEND_CBK_PUSH(list, rec) \
 { \
    if (!((list)->head)) { \
-       m_AVSV_ASSERT(!((list)->num)); \
+       assert(!((list)->num)); \
        (list)->head = (rec); \
    } \
    else \

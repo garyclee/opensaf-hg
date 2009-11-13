@@ -155,12 +155,12 @@ typedef struct avnd_clc_evt {
 	NCS_OS_PROC_EXEC_STATUS_INFO exec_stat;	/* cmd execution status */
 
 	/* valid only when cmd launch (fork, exec etc) fails */
-	SaNameT comp_name_net;	/* comp-name */
+	SaNameT comp_name;	/* comp-name */
 	AVND_COMP_CLC_CMD_TYPE cmd_type;	/* cmd-type */
 } AVND_CLC_EVT;
 
 typedef struct avnd_comp_fsm_evt {
-	SaNameT comp_name_net;	/* comp-name */
+	SaNameT comp_name;	/* comp-name */
 	uns32 ev;		/* comp fsm event */
 } AVND_COMP_FSM_EVT;
 

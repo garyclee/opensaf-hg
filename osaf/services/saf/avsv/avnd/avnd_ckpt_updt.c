@@ -65,16 +65,16 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 	AVSV_SU_INFO_MSG su_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su->name_net);
+	su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su->name);
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_data. SU, Dec action, su_ptr",
-			      &su->name_net, action, NCS_PTR_TO_INT32_CAST(su_ptr), 0, 0);
+			      &su->name, action, NCS_PTR_TO_INT32_CAST(su_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
 			if ((NULL == su_ptr) && (TRUE == su->su_is_external)) {
-				su_info.name_net = su->name_net;
+				su_info.name = su->name;
 				su_info.comp_restart_prob = su->comp_restart_prob;
 				su_info.comp_restart_max = su->comp_restart_max;
 				su_info.su_restart_prob = su->su_restart_prob;
@@ -85,15 +85,6 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 				su_ptr = avnd_sudb_rec_add(cb, &su_info, &rc);
 				if (NULL == su_ptr) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
-					return NCSCC_RC_FAILURE;
-				}
-				/* register this su row with mab */
-				rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, &su_ptr->name_net,
-							   0, 0, &su_ptr->mab_hdl,
-							   (su_ptr->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->
-							    mab_hdl));
-				if (NCSCC_RC_SUCCESS != rc) {
-					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
 			} else {
@@ -133,11 +124,7 @@ uns32 avnd_ckpt_add_rmv_updt_su_data(AVND_CB *cb, AVND_SU *su, NCS_MBCSV_ACT_TYP
 	case NCS_MBCSV_ACT_RMV:
 		{
 			if (NULL != su_ptr) {
-				/* unreg the row from mab */
-				avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-							(su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
-				status = avnd_sudb_rec_del(cb, &su_ptr->name_net);
+				status = avnd_sudb_rec_del(cb, &su_ptr->name);
 				if (NCSCC_RC_SUCCESS != status) {
 					m_AVND_LOG_INVALID_VAL_FATAL(status);
 					return NCSCC_RC_FAILURE;
@@ -185,19 +172,19 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 	AVND_COMP_CSI_REC *csi_rec = NULL;
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_si_rec. SI, Dec action",
-			      &su_si_ckpt->name_net, action, 0, 0, 0);
-	su_si_rec_ptr = avnd_su_si_rec_get(cb, &su_si_ckpt->su_name_net, &su_si_ckpt->name_net);
+			      &su_si_ckpt->name, action, 0, 0, 0);
+	su_si_rec_ptr = avnd_su_si_rec_get(cb, &su_si_ckpt->su_name, &su_si_ckpt->name);
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_si_rec. SU, Dec action, su_si_rec_ptr",
-			      &su_si_ckpt->su_name_net, action, NCS_PTR_TO_INT32_CAST(su_si_rec_ptr), 0, 0);
+			      &su_si_ckpt->su_name, action, NCS_PTR_TO_INT32_CAST(su_si_rec_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
 			if (NULL == su_si_rec_ptr) {
 				memset(&info, 0, sizeof(AVND_SU_SI_PARAM));
-				info.su_name_net = su_si_ckpt->su_name_net;
-				info.si_name_net = su_si_ckpt->name_net;
-				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name_net);
+				info.su_name = su_si_ckpt->su_name;
+				info.si_name = su_si_ckpt->name;
+				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name);
 				if (NULL == su_ptr) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
@@ -234,7 +221,7 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 	case NCS_MBCSV_ACT_RMV:
 		{
 			if (NULL != su_si_rec_ptr) {
-				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name_net);
+				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_si_ckpt->su_name);
 				if (NULL == su_ptr) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
@@ -255,14 +242,10 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 					}
 					/* free the csi attributes */
 					if (csi_rec->attrs.list)
-						m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(csi_rec->attrs.list);
-					/* unregister the comp-csi row with mab */
-					avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_AMF_COMP_CSI, csi_rec->mab_hdl,
-								(csi_rec->comp->su->su_is_external ? cb->
-								 avnd_mbcsv_mab_hdl : cb->mab_hdl));
+						free(csi_rec->attrs.list);
 
 					/* finally free this record */
-					m_MMGR_FREE_AVND_COMP_CSI_REC(csi_rec);
+					free(csi_rec);
 				}	/* while ( 0 != csi_rec) */
 
 				/* Now delete the SU_SI record */
@@ -271,7 +254,7 @@ uns32 avnd_ckpt_add_rmv_updt_su_si_rec(AVND_CB *cb, AVND_SU_SI_REC *su_si_ckpt, 
 					m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					return NCSCC_RC_FAILURE;
 				}
-				m_MMGR_FREE_AVND_SU_SI_REC(su_si_rec_ptr);
+				free(su_si_rec_ptr);
 			} /*if (NULL != su_si_rec_ptr) */
 			else {
 				m_AVND_LOG_INVALID_VAL_FATAL(su_si_rec_ptr);
@@ -314,12 +297,12 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_su_siq_rec. SU, Dec action",
-			      &su_siq_ckpt->info.su_name_net, action, 0, 0, 0);
+			      &su_siq_ckpt->info.su_name, action, 0, 0, 0);
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
 		{
 			if (NULL != su_siq_ckpt) {
-				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name_net);
+				su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name);
 				if (NULL == su_ptr) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 					return NCSCC_RC_FAILURE;
@@ -339,7 +322,7 @@ uns32 avnd_ckpt_add_rmv_updt_su_siq_rec(AVND_CB *cb, AVND_SU_SIQ_REC *su_siq_ckp
 
 	case NCS_MBCSV_ACT_RMV:
 		{
-			su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name_net);
+			su_ptr = m_AVND_SUDB_REC_GET(cb->sudb, su_siq_ckpt->info.su_name);
 			if (NULL == su_ptr) {
 				m_AVND_LOG_INVALID_VAL_FATAL(su_ptr);
 				return NCSCC_RC_FAILURE;
@@ -400,12 +383,12 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 	   In case 2. => Search in COMPDB_REC.
 	 */
 	if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) {
-		comp_ptr = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp->name_net);
+		comp_ptr = m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db, comp->name);
 	} else
-		comp_ptr = m_AVND_COMPDB_REC_GET(cb->compdb, comp->name_net);
+		comp_ptr = m_AVND_COMPDB_REC_GET(cb->compdb, comp->name);
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_data. Comp, Dec action, comp_ptr, Comp Type",
-			      &comp->name_net, action, NCS_PTR_TO_INT32_CAST(comp_ptr), comp->comp_type, 0);
+			      &comp->name, action, NCS_PTR_TO_INT32_CAST(comp_ptr), comp->comp_type, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -413,7 +396,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 			if (m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) {
 				if (NULL == comp_ptr) {
 					comp_ptr = avnd_internode_comp_add(&(cb->internode_avail_comp_db),
-									   &(comp->name_net), comp->node_id, &status,
+									   &(comp->name), comp->node_id, &status,
 									   m_AVND_PROXY_IS_FOR_EXT_COMP(comp),
 									   m_AVND_COMP_TYPE_IS_PROXY(comp));
 					/* For internode too, we are expecting some update, so continue
@@ -430,7 +413,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 					memset(&comp_info, 0, sizeof(AVND_COMP_PARAM));
 					/* We care for the name when adding, the rest of the param
 					   will be updated in NCS_MBCSV_ACT_UPDATE switch case. */
-					comp_info.name_net = comp->name_net;
+					comp_info.name = comp->name;
 					comp_info.inst_level = comp->inst_level;
 					/* If comp_info.comp_restart is TRUE, then in avnd_compdb_rec_add,
 					   it marks comp->is_restart_en as FALSE and vice-versa. So, to
@@ -447,18 +430,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 					comp_ptr->comp_type = comp->comp_type;
 					memcpy(&(comp_ptr->mds_ctxt), &(comp->mds_ctxt), sizeof(MDS_SYNC_SND_CTXT));
 					comp_ptr->reg_resp_pending = comp->reg_resp_pending;
-					comp_ptr->proxy_comp_name_net = comp->proxy_comp_name_net;
-
-					/* register this comp row with mab */
-					status = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT,
-								       &comp_ptr->name_net, 0, 0, &comp_ptr->mab_hdl,
-								       (comp_ptr->su->su_is_external ? cb->
-									avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
-					if (NCSCC_RC_SUCCESS != status) {
-						m_AVND_LOG_INVALID_VAL_FATAL(status);
-						return NCSCC_RC_FAILURE;
-					}
+					comp_ptr->proxy_comp_name = comp->proxy_comp_name;
 
 					/* This is for Cold Sync. Read NOTE inside the function
 					   avnd_encode_cold_sync_rsp_comp_config() 
@@ -468,12 +440,12 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 					   in our data base is enough. */
 
 					memset(&temp_comp_name, 0, sizeof(SaNameT));
-					if (memcmp(&temp_comp_name, &comp->proxy_comp_name_net, sizeof(SaNameT)) != 0) {
+					if (memcmp(&temp_comp_name, &comp->proxy_comp_name, sizeof(SaNameT)) != 0) {
 						/* This has proxy name associated with it. So, add it in the
 						   pxied_list of proxy component. */
 						pxy_comp =
 						    m_AVND_INT_EXT_COMPDB_REC_GET(cb->internode_avail_comp_db,
-										  comp->proxy_comp_name_net);
+										  comp->proxy_comp_name);
 						if (NULL == pxy_comp) {
 							m_AVND_LOG_INVALID_VAL_FATAL(pxy_comp);
 							return NCSCC_RC_FAILURE;
@@ -555,7 +527,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 
 				comp_ptr->pend_evt = comp->pend_evt;
 				comp_ptr->orph_tmr.is_active = comp->orph_tmr.is_active;
-				comp_ptr->proxy_comp_name_net = comp->proxy_comp_name_net;
+				comp_ptr->proxy_comp_name = comp->proxy_comp_name;
 			} else {
 				m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 				return NCSCC_RC_FAILURE;
@@ -569,7 +541,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 				if (NULL != comp_ptr)
 					status = avnd_internode_comp_del(cb,
 									 &(cb->internode_avail_comp_db),
-									 &(comp->name_net));
+									 &(comp->name));
 				else {
 					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
@@ -578,13 +550,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_data(AVND_CB *cb, AVND_COMP *comp, NCS_MBCSV_A
 
 			if (!m_AVND_COMP_TYPE_IS_INTER_NODE(comp)) {
 				if (NULL != comp_ptr) {
-					/* unreg the row from mab */
-					avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT,
-								comp->mab_hdl,
-								(comp->su->su_is_external ?
-								 cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
-					status = avnd_compdb_rec_del(cb, &comp->name_net);
+					status = avnd_compdb_rec_del(cb, &comp->name);
 				} else {
 					m_AVND_LOG_INVALID_VAL_FATAL(comp_ptr);
 					return NCSCC_RC_FAILURE;
@@ -632,17 +598,17 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 	AVND_SU *su = NULL;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	su_si_rec = avnd_su_si_rec_get(cb, &csi->su_name_net, &csi->si_name_net);
-	csi_ptr = avnd_compdb_csi_rec_get(cb, &csi->comp_name_net, &csi->name_net);
+	su_si_rec = avnd_su_si_rec_get(cb, &csi->su_name, &csi->si_name);
+	csi_ptr = avnd_compdb_csi_rec_get(cb, &csi->comp_name, &csi->name);
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. CSI, Dec action, su_si_rec, csi_ptr",
-			      &csi->name_net, action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr),
+			      &csi->name, action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr),
 			      0);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SU, Dec action, su_si_rec, csi_ptr", &csi->su_name_net,
+	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SU, Dec action, su_si_rec, csi_ptr", &csi->su_name,
 			      action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. Comp, Dec action, su_si_rec, csi_ptr",
-			      &csi->comp_name_net, action, NCS_PTR_TO_INT32_CAST(su_si_rec),
+			      &csi->comp_name, action, NCS_PTR_TO_INT32_CAST(su_si_rec),
 			      NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
-	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SI, Dec action, su_si_rec, csi_ptr", &csi->si_name_net,
+	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_csi_data. SI, Dec action, su_si_rec, csi_ptr", &csi->si_name,
 			      action, NCS_PTR_TO_INT32_CAST(su_si_rec), NCS_PTR_TO_INT32_CAST(csi_ptr), 0);
 
 	switch (action) {
@@ -650,12 +616,12 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 		{
 			if ((NULL == csi_ptr) && (NULL != su_si_rec)) {
 				memset(&csi_param, 0, sizeof(AVSV_SUSI_ASGN));
-				csi_param.comp_name_net = csi->comp_name_net;
-				csi_param.csi_name_net = csi->name_net;
+				csi_param.comp_name = csi->comp_name;
+				csi_param.csi_name = csi->name;
 				csi_param.csi_rank = csi->rank;
 				csi_param.attrs.number = csi->attrs.number;
 				csi_param.attrs.list = csi->attrs.list;
-				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name_net);
+				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name);
 				if (NULL == su) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su);
 					return NCSCC_RC_FAILURE;
@@ -680,7 +646,7 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 	case NCS_MBCSV_ACT_UPDATE:
 		{
 			if (NULL != csi_ptr) {
-				csi_ptr->act_comp_name_net = csi->act_comp_name_net;
+				csi_ptr->act_comp_name = csi->act_comp_name;
 				csi_ptr->trans_desc = csi->trans_desc;
 				csi_ptr->standby_rank = csi->standby_rank;
 				csi_ptr->curr_assign_state = csi->curr_assign_state;
@@ -696,7 +662,7 @@ uns32 avnd_ckpt_add_rmv_updt_csi_data(AVND_CB *cb, AVND_COMP_CSI_REC *csi, NCS_M
 			/* CSI is getting deleted as part of SU_SI_REC delete, so this part
 			   of the code will not be called at this point of time. */
 			if ((NULL != csi_ptr) && (NULL != su_si_rec)) {
-				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name_net);
+				su = m_AVND_SUDB_REC_GET(cb->sudb, csi->su_name);
 				if (NULL == su) {
 					m_AVND_LOG_INVALID_VAL_FATAL(su);
 					return NCSCC_RC_FAILURE;
@@ -745,10 +711,10 @@ uns32 avnd_ckpt_add_rmv_updt_hlt_data(AVND_CB *cb, AVND_HC *hlt, NCS_MBCSV_ACT_T
 	AVSV_HLT_INFO_MSG hc_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	hlt_ptr = m_AVND_HCDB_REC_GET(cb->hcdb, hlt->key);
+	hlt_ptr = avnd_hcdb_rec_get(cb, &hlt->key);
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_hlt_data. Comp, Dec Action, hlt_ptr",
-			      &hlt->key.comp_name_net, action, NCS_PTR_TO_INT32_CAST(hlt_ptr), 0, 0);
+			      &hlt->key.comp_name, action, NCS_PTR_TO_INT32_CAST(hlt_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -829,7 +795,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 	tmp_hc_rec.key = hlt->key;
 	tmp_hc_rec.req_hdl = hlt->req_hdl;
 	/* determine if this healthcheck is already active */
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, hlt->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, hlt->comp_name);
 	if (comp == NULL) {
 		m_AVND_LOG_INVALID_VAL_FATAL(comp);
 		return NCSCC_RC_FAILURE;
@@ -837,7 +803,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 	hc_rec = m_AVND_COMPDB_REC_HC_GET(*comp, tmp_hc_rec);
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_hlt_rec, Comp, Dec action, comp, hc_rec",
-			      &hlt->comp_name_net, action, NCS_PTR_TO_INT32_CAST(comp), NCS_PTR_TO_INT32_CAST(hc_rec),
+			      &hlt->comp_name, action, NCS_PTR_TO_INT32_CAST(comp), NCS_PTR_TO_INT32_CAST(hc_rec),
 			      0);
 
 	switch (action) {
@@ -845,7 +811,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_hlt_rec(AVND_CB *cb, AVND_COMP_HC_REC *hlt, NC
 		{
 			if ((NULL == hc_rec) && (NULL != comp)) {
 				memset(&hc_info, 0, sizeof(AVSV_AMF_HC_START_PARAM));
-				hc_info.comp_name_net = hlt->comp_name_net;
+				hc_info.comp_name = hlt->comp_name;
 				hc_info.hc_key = hlt->key;
 				hc_info.hdl = hlt->req_hdl;
 				hc_rec = avnd_mbcsv_comp_hc_rec_add(cb, comp, &hc_info, &hlt->dest);
@@ -919,10 +885,10 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 	AVND_COMP_CBK *cbk_ptr = NULL;
 	AVND_COMP *comp = NULL;
 
-	comp = m_AVND_COMPDB_REC_GET(cb->compdb, cbk->comp_name_net);
+	comp = m_AVND_COMPDB_REC_GET(cb->compdb, cbk->comp_name);
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_cbk_rec, Comp, Dec action, comp",
-			      &cbk->comp_name_net, action, NCS_PTR_TO_INT32_CAST(comp), 0, 0);
+			      &cbk->comp_name, action, NCS_PTR_TO_INT32_CAST(comp), 0, 0);
 
 	if (NULL == comp) {
 		m_AVND_LOG_INVALID_VAL_FATAL(comp);
@@ -947,7 +913,7 @@ uns32 avnd_ckpt_add_rmv_updt_comp_cbk_rec(AVND_CB *cb, AVND_COMP_CBK *cbk, NCS_M
 	}
 
 	m_AVND_AVND_ENTRY_LOG("avnd_ckpt_add_rmv_updt_comp_cbk_rec, Comp, Dec action, cbk_ptr",
-			      &comp->name_net, action, NCS_PTR_TO_INT32_CAST(cbk_ptr), 0, 0);
+			      &comp->name, action, NCS_PTR_TO_INT32_CAST(cbk_ptr), 0, 0);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -1062,12 +1028,12 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
   /****************** Destroy Internode db starts here***********************/
 	{
 		AVND_COMP *comp = NULL;
-		SaNameT comp_name_net;
+		SaNameT comp_name;
 		AVND_COMP_PXIED_REC *rec = 0, *curr_rec = 0;
 
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)0);
 		while (comp != 0) {
-			comp_name_net = comp->name_net;
+			comp_name = comp->name;
 
 			if (m_AVND_PROXY_IS_FOR_EXT_COMP(comp)) {
 				rec = (AVND_COMP_PXIED_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->pxied_list);
@@ -1081,19 +1047,18 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						del_comp = curr_rec->pxied_comp;
 						del_proxy = comp;
 						del_rec =
-						    (AVND_COMP_PXIED_REC *)ncs_db_link_list_remove(&del_proxy->
-												   pxied_list,
-												   (uns8 *)&del_comp->
-												   name_net);
-						m_MMGR_FREE_AVND_COMP_PXIED_REC(del_rec);
+						    (AVND_COMP_PXIED_REC *)
+						    ncs_db_link_list_remove(&del_proxy->pxied_list,
+									    (uns8 *)&del_comp->name);
+						free(del_rec);
 						if (NCSCC_RC_SUCCESS != rc)
 							m_AVND_LOG_INVALID_VAL_FATAL(rc);
 					}
 				}
-				rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name_net));
+				rc = avnd_internode_comp_del(cb, &(cb->internode_avail_comp_db), &(comp_name));
 			}
 			comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db,
-								      (uns8 *)&comp_name_net);
+								      (uns8 *)&comp_name);
 		}		/* while */
 	}
   /****************** Destroy Internode db ends here ***********************/
@@ -1103,18 +1068,18 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 		AVND_SU *su = NULL;
 		AVND_SU_SI_REC *curr_su_si = NULL;
 		AVND_COMP_CSI_REC *csi_rec = NULL;
-		SaNameT su_name_net;
+		SaNameT su_name;
 
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 		while (su != 0) {
-			su_name_net = su->name_net;
+			su_name = su->name;
 			if (TRUE == su->su_is_external) {
 				while (0 != (curr_su_si = (AVND_SU_SI_REC *)m_NCS_DBLIST_FIND_FIRST(&su->si_list))) {
 					/*  Delete the CSI Record attached to this SU_SI record. */
 					/* scan & delete each csi record */
 					while (0 != (csi_rec =
 						     (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_su_si->
-												  csi_list))) {
+                                                                                                  csi_list))) {
 						rc = m_AVND_COMPDB_REC_CSI_REM(*(csi_rec->comp), *csi_rec);
 						if (rc != NCSCC_RC_SUCCESS) {
 							m_AVND_LOG_INVALID_VAL_FATAL(rc);
@@ -1128,15 +1093,10 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						}
 						/* free the csi attributes */
 						if (csi_rec->attrs.list)
-							m_MMGR_FREE_AVSV_COMMON_DEFAULT_VAL(csi_rec->attrs.list);
-						/* unregister the comp-csi row with mab */
-						avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_AMF_COMP_CSI,
-									csi_rec->mab_hdl,
-									(csi_rec->comp->su->su_is_external ? cb->
-									 avnd_mbcsv_mab_hdl : cb->mab_hdl));
+							free(csi_rec->attrs.list);
 
 						/* finally free this record */
-						m_MMGR_FREE_AVND_COMP_CSI_REC(csi_rec);
+						free(csi_rec);
 					}	/* while ( 0 != csi_rec) */
 					/* Now delete the SU_SI record */
 					rc = m_AVND_SUDB_REC_SI_REM(*su, *curr_su_si);
@@ -1144,10 +1104,10 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 						m_AVND_LOG_INVALID_VAL_FATAL(rc);
 						return NCSCC_RC_FAILURE;
 					}
-					m_MMGR_FREE_AVND_SU_SI_REC(curr_su_si);
+					free(curr_su_si);
 				}	/* while(0 != curr_su_si) */
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name_net);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
 		}		/* while(su != 0) */
 	}
 
@@ -1157,11 +1117,11 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 	{
 		AVND_SU *su = NULL;
 		AVND_SU_SIQ_REC *su_siq = NULL;
-		SaNameT su_name_net;
+		SaNameT su_name;
 
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 		while (su != 0) {
-			su_name_net = su->name_net;
+			su_name = su->name;
 			if (TRUE == su->su_is_external) {
 				while (0 != (su_siq = (AVND_SU_SIQ_REC *)m_NCS_DBLIST_FIND_FIRST(&su->siq))) {
 					/* unlink the buffered msg from the queue */
@@ -1175,7 +1135,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 					}
 				}	/* while(0 != su_siq) */
 			}	/* if(TRUE == su->su_is_external) */
-			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name_net);
+			su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
 		}		/* while(su != 0) */
 
 	}
@@ -1184,18 +1144,13 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
   /**************** Delete Component, its HC and CBK Record *****************/
 	{
 		AVND_COMP *comp = NULL;
-		SaNameT comp_name_net;
+		SaNameT comp_name;
 
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)0);
 		while (comp != 0) {
-			comp_name_net = comp->name_net;
+			comp_name = comp->name;
 			if (TRUE == comp->su->su_is_external) {
-				/* unreg the row from mab */
-				avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
-							(comp->su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->
-							 mab_hdl));
-
-				rc = avnd_compdb_rec_del(cb, &comp->name_net);
+				rc = avnd_compdb_rec_del(cb, &comp->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					m_AVND_LOG_INVALID_VAL_FATAL(rc);
@@ -1203,7 +1158,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				}
 			}	/* if(TRUE == comp->su->su_is_external) */
 			comp = (AVND_COMP *)
-			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp_name_net);
+			    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp_name);
 		}		/* while(comp != 0) */
 	}
   /**************** Delete Component, its HC and CBK Record ends here *******/
@@ -1211,17 +1166,13 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
   /**************** In the end delete SU Record  *****************/
 	{
 		AVND_SU *su = NULL;
-		SaNameT su_name_net;
+		SaNameT su_name;
 
 		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
 		while (su != 0) {
-			su_name_net = su->name_net;
+			su_name = su->name;
 			if (TRUE == su->su_is_external) {
-				/* unreg the row from mab */
-				avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-							(su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
-				rc = avnd_sudb_rec_del(cb, &su->name_net);
+				rc = avnd_sudb_rec_del(cb, &su->name);
 
 				if (rc != NCSCC_RC_SUCCESS) {
 					m_AVND_LOG_INVALID_VAL_FATAL(rc);
@@ -1229,7 +1180,7 @@ uns32 avnd_ext_comp_data_clean_up(AVND_CB *cb, NCS_BOOL avnd_shut_down)
 				}
 			}	/* if(TRUE == su->su_is_external) */
 			su = (AVND_SU *)
-			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name_net);
+			    ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name);
 		}		/* while(su != 0) */
 	}
 	/* Reset the cold sync done counter */

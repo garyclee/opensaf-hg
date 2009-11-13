@@ -33,15 +33,15 @@
 #ifndef AVND_H
 #define AVND_H
 
+#include <saImmOm.h>
+
 #include "avsv.h"
+#include "ncs_log.h"
+#include "dta_papi.h"
 #include "avnd_dl_api.h"
 
 /* Porting Include Files */
-#include "avsv_d2nmem.h"
-#include "avsv_n2avamem.h"
-#include "avsv_n2clamem.h"
 #include "avnd_defs.h"
-#include "avnd_mem.h"
 #include "avsv_ipc.h"
 
 /* AvSv Common Files */
@@ -69,7 +69,6 @@
 #include "avnd_clm.h"
 #include "avnd_cb.h"
 #include "avnd_log.h"
-#include "avnd_mib.h"
 #include "ncs_trap.h"
 #include "avnd_ntf.h"
 #include "avnd_proxy.h"

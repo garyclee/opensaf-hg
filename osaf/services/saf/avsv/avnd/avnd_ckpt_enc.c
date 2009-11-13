@@ -100,7 +100,7 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_state(AVND_CB *cb, NCS_MBCSV_CB_ENC 
 static uns32 avnd_encode_ckpt_su_si_rec_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avnd_encode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 
-static uns32 avnd_encode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
+static uns32 avnd_encode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avnd_encode_ckpt_comp_csi_trans_desc(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avnd_encode_ckpt_comp_csi_standby_rank(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
 static uns32 avnd_encode_ckpt_comp_csi_curr_assign_state(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc);
@@ -201,7 +201,7 @@ const AVND_ENCODE_CKPT_DATA_FUNC_PTR avnd_enc_ckpt_data_func_list[AVND_CKPT_MSG_
 	avnd_encode_ckpt_su_si_rec_prv_assign_state,
 
 	/* CSI REC Async Update messages */
-	avnd_encode_ckpt_comp_csi_act_comp_name_net,
+	avnd_encode_ckpt_comp_csi_act_comp_name,
 	avnd_encode_ckpt_comp_csi_trans_desc,
 	avnd_encode_ckpt_comp_csi_standby_rank,
 	avnd_encode_ckpt_comp_csi_curr_assign_state,
@@ -356,7 +356,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_config(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 
 			(*num_of_obj)++;
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}
 
 	return status;
@@ -392,9 +392,9 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 	   We need to send internode component(proxy) first and after that external
 	   component (proxied), bz while decoding, first we will add all proxy 
 	   components in DB and then one by one proxied component. After decoding
-	   proxied component, we can check comp->proxy_comp_name_net, if it NULL,
+	   proxied component, we can check comp->proxy_comp_name, if it NULL,
 	   then comp will be in ORPH state and no proxy is attached to it. If 
-	   comp->proxy_comp_name_net is not NULL, then it is name of proxy for the
+	   comp->proxy_comp_name is not NULL, then it is name of proxy for the
 	   proxied component and use avnd_comp_proxied_add to add it in proxy
 	   component pxied_list. For adding proxied component to the pxied_list
 	   of proxy component, we should have proxy component already in DB,
@@ -417,7 +417,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 
 			(*num_of_obj)++;
 		}
-		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)&comp->name_net);
+		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&cb->internode_avail_comp_db, (uns8 *)&comp->name);
 	}
 	/*
 	 * Now send proxied components (external component).
@@ -438,7 +438,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_config(AVND_CB *cb, NCS_MBCSV_CB_ENC
 			(*num_of_obj)++;
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 	}
 
 	return status;
@@ -486,7 +486,7 @@ static uns32 avnd_encode_cold_sync_rsp_su_si_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *
 			}
 		}
 		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}
 
 	return status;
@@ -533,7 +533,7 @@ static uns32 avnd_encode_cold_sync_rsp_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 				(*num_of_obj)++;
 			}
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}
 
 	return status;
@@ -573,9 +573,9 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 				for (csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_FIRST(&curr_su_si->csi_list);
 				     csi; csi = (AVND_COMP_CSI_REC *)m_NCS_DBLIST_FIND_NEXT(&csi->si_dll_node)) {
 					/* Before calling EDU, fill comp_name and si_name */
-					csi->comp_name_net = csi->comp->name_net;
-					csi->si_name_net = csi->si->name_net;
-					csi->su_name_net = su->name_net;
+					csi->comp_name = csi->comp->name;
+					csi->si_name = csi->si->name;
+					csi->su_name = su->name;
 
 					status =
 					    m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_csi_rec, &enc->io_uba,
@@ -591,7 +591,7 @@ static uns32 avnd_encode_cold_sync_rsp_csi_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *en
 				}
 			}
 		}		/* if(TRUE == su->su_is_external) */
-		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name_net);
+		su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su->name);
 	}
 
 	return status;
@@ -630,7 +630,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 			for (comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_FIRST(&comp->hc_list);
 			     comp_hc; comp_hc = (AVND_COMP_HC_REC *)m_NCS_DBLIST_FIND_NEXT(&comp_hc->comp_dll_node)) {
 				/* Before calling EDU, fill comp_name and si_name */
-				comp_hc->comp_name_net = comp_hc->comp->name_net;
+				comp_hc->comp_name = comp_hc->comp->name;
 
 				status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_comp_hc, &enc->io_uba,
 							    EDP_OP_TYPE_ENC, comp_hc, &ederror, enc->i_peer_version);
@@ -645,7 +645,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_hlt_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 			}
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 	}
 
 	return status;
@@ -683,7 +683,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 		if (TRUE == comp->su->su_is_external) {
 			for (comp_cbk = comp->cbk_list; comp_cbk; comp_cbk = comp_cbk->next) {
 				/* Before calling EDU, fill comp_name */
-				comp_cbk->comp_name_net = comp_cbk->comp->name_net;
+				comp_cbk->comp_name = comp_cbk->comp->name;
 
 				status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_comp_cbk_rec, &enc->io_uba,
 							    EDP_OP_TYPE_ENC, comp_cbk, &ederror, enc->i_peer_version);
@@ -698,7 +698,7 @@ static uns32 avnd_encode_cold_sync_rsp_comp_cbk_rec(AVND_CB *cb, NCS_MBCSV_CB_EN
 			}
 		}		/* if(TRUE == comp->su->su_is_external) */
 		comp = (AVND_COMP *)
-		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name_net);
+		    ncs_patricia_tree_getnext(&cb->compdb, (uns8 *)&comp->name);
 	}
 
 	return status;
@@ -1108,8 +1108,7 @@ static uns32 avnd_encode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	case NCS_MBCSV_ACT_ADD:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_siq, &enc->io_uba,
-					    EDP_OP_TYPE_ENC,
-					    (AVND_SU_SI_PARAM *)
+					    EDP_OP_TYPE_ENC, (AVND_SU_SI_PARAM *)
 					    &(((AVND_SU_SIQ_REC *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->info),
 					    &ederror, enc->i_peer_version);
 		break;
@@ -1117,8 +1116,7 @@ static uns32 avnd_encode_ckpt_siq_rec(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avnd_edp_ckpt_msg_siq, &enc->io_uba,
-						EDP_OP_TYPE_ENC,
-						(AVND_SU_SI_PARAM *)
+						EDP_OP_TYPE_ENC, (AVND_SU_SI_PARAM *)
 						&(((AVND_SU_SIQ_REC *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->info),
 						&ederror, enc->i_peer_version, 1, 4);
 		break;
@@ -3422,7 +3420,7 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
 }
 
 /****************************************************************************\
- * Function:  avnd_encode_ckpt_comp_csi_act_comp_name_net
+ * Function:  avnd_encode_ckpt_comp_csi_act_comp_name
  *
  * Purpose:  Encode AVND_COMP_CSI_REC active component name info.
  *
@@ -3435,12 +3433,12 @@ static uns32 avnd_encode_ckpt_su_si_rec_prv_assign_state(AVND_CB *cb, NCS_MBCSV_
  *
  *
 \**************************************************************************/
-static uns32 avnd_encode_ckpt_comp_csi_act_comp_name_net(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
+static uns32 avnd_encode_ckpt_comp_csi_act_comp_name(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
 
-	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_act_comp_name_net", NULL, 0, 0, 0, 0);
+	m_AVND_AVND_ENTRY_LOG("avnd_encode_ckpt_comp_csi_act_comp_name", NULL, 0, 0, 0, 0);
 
 	/*
 	 * Action in this case is just to update. If action passed is add/rmv then log

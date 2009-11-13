@@ -31,12 +31,12 @@
 #define AVA_H
 
 #include "avsv.h"
+#include "ncs_log.h"
+#include "dta_papi.h"
 #include "ava_dl_api.h"
 
 /* Porting Include Files */
-#include "avsv_n2avamem.h"
 #include "ava_def.h"
-#include "ava_mem.h"
 
 #include "avsv_amfparam.h"
 #include "avsv_n2avamsg.h"

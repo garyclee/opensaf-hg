@@ -155,6 +155,9 @@ dist_pkglocalstate_DATA = \
 
 
 dist_bin_SCRIPTS = \
+	$(top_srcdir)/scripts/amf-adm \
+	$(top_srcdir)/scripts/amf-find \
+	$(top_srcdir)/scripts/amf-state \
 	$(top_srcdir)/scripts/opensaf_mem_dump
 
 nodist_bin_SCRIPTS = \

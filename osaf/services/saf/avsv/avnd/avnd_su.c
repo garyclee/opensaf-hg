@@ -91,12 +91,8 @@ uns32 avnd_evt_avd_reg_su_msg(AVND_CB *cb, AVND_EVT *evt)
 
 		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
 
-		/* register this su row with mab */
-		rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, &su->name_net,
-					   0, 0, &su->mab_hdl,
-					   (su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-		if (NCSCC_RC_SUCCESS != rc)
-			break;
+		/* add components belonging to this SU */
+		avnd_comp_config_get_su(su);
 	}
 
 	/* 
@@ -106,22 +102,18 @@ uns32 avnd_evt_avd_reg_su_msg(AVND_CB *cb, AVND_EVT *evt)
 	if (su_info) {		/* => add operation stopped in the middle */
 		for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
 			/* get the record */
-			su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name_net);
+			su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name);
 			if (!su)
 				break;
 
-			/* unreg the row from mab */
-			avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-						(su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
-			/* delete the record */
+                        /* delete the record */
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
-			avnd_sudb_rec_del(cb, &su_info->name_net);
+			avnd_sudb_rec_del(cb, &su_info->name);
 		}
 	}
 
    /*** send the response to AvD ***/
-	rc = avnd_di_reg_su_rsp_snd(cb, &info->su_list->name_net, rc);
+	rc = avnd_di_reg_su_rsp_snd(cb, &info->su_list->name, rc);
 
  done:
 	return rc;
@@ -152,11 +144,11 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 
 	/* scan the su list & add each su to su-db */
 	for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
-		if (NULL == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name_net))) {
+		if (NULL == (su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name))) {
 			/* SU is not present so add it */
 			su = avnd_sudb_rec_add(cb, su_info, &rc);
 			if (!su) {
-				avnd_di_reg_su_rsp_snd(cb, &su_info->name_net, rc);
+				avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
 				/* Log Error, we are not able to update at this time */
 				m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
 
@@ -164,19 +156,7 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 			}
 
 			m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
-
-			/* register this su row with mab */
-			rc = avnd_mab_reg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT,
-						   &su->name_net, 0, 0, &su->mab_hdl,
-						   (su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-			if (NCSCC_RC_SUCCESS != rc) {
-				avnd_di_reg_su_rsp_snd(cb, &su_info->name_net, rc);
-				/* Log Error, we are not able to update at this time */
-				m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
-				return rc;
-			}
-
-			avnd_di_reg_su_rsp_snd(cb, &su_info->name_net, rc);
+			avnd_di_reg_su_rsp_snd(cb, &su_info->name, rc);
 		} else {
 			/* SU present, so update its contents */
 			/* update error recovery escalation parameters */
@@ -197,21 +177,16 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 	 */
 	memset(&su_name, 0, sizeof(SaNameT));
 	while (NULL != (su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)&su_name))) {
-		su_name = su->name_net;
+		su_name = su->name;
 
 		if (FALSE == su->avd_updt_flag) {
 			/* First walk entire comp list of this SU and delete all the
 			 * component records which are there in the list.
 			 */
 			while ((comp = m_AVND_COMP_FROM_SU_DLL_NODE_GET(m_NCS_DBLIST_FIND_FIRST(&su->comp_list)))) {
-				/* unreg the row from mab */
-				avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_COMP_STAT, comp->mab_hdl,
-							(comp->su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->
-							 mab_hdl));
-
 				/* delete the record */
 				m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVND_CKPT_COMP_CONFIG);
-				rc = avnd_compdb_rec_del(cb, &comp->name_net);
+				rc = avnd_compdb_rec_del(cb, &comp->name);
 				if (NCSCC_RC_SUCCESS != rc) {
 					/* Log error */
 					m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
@@ -220,13 +195,9 @@ static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *
 			}
 
 			/* Delete SU from the list */
-			/* unreg the row from mab */
-			avnd_mab_unreg_tbl_rows(cb, NCSMIB_TBL_AVSV_NCS_SU_STAT, su->mab_hdl,
-						(su->su_is_external ? cb->avnd_mbcsv_mab_hdl : cb->mab_hdl));
-
 			/* delete the record */
 			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
-			rc = avnd_sudb_rec_del(cb, &su->name_net);
+			rc = avnd_sudb_rec_del(cb, &su->name);
 			if (NCSCC_RC_SUCCESS != rc) {
 				/* Log error */
 				m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_EMERGENCY, AVND_LOG_FOVR_SU_UPDT_FAIL, rc);
@@ -263,7 +234,7 @@ uns32 avnd_evt_avd_info_su_si_assign_msg(AVND_CB *cb, AVND_EVT *evt)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* get the su */
-	su = m_AVND_SUDB_REC_GET(cb->sudb, info->su_name_net);
+	su = m_AVND_SUDB_REC_GET(cb->sudb, info->su_name);
 	if (!su)
 		return rc;
 
@@ -410,7 +381,7 @@ uns32 avnd_su_curr_info_del(AVND_CB *cb, AVND_SU *su)
 
 		/* disable the oper state (if pi su) */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su)) {
-			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, NCS_OPER_STATE_DISABLE);
+			m_AVND_SU_OPER_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_OPERATIONAL_DISABLED);
 			m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVND_CKPT_SU_OPER_STATE);
 		}
 	}

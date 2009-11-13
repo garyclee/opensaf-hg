@@ -107,15 +107,16 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 
 	attrMod = malloc(sizeof(SaImmAttrModificationT_2));
 
-	if ((name = strtok(tmp, "=")) == NULL) {
+	if ((value = strstr(tmp, "=")) == NULL) {
 		res = -1;
 		goto done;
 	}
 
-	attrMod->modType = SA_IMM_ATTR_VALUES_REPLACE;
-	attrMod->modAttr.attrName = strdup(name);
+	name = tmp;
+	*value = '\0';
+	value++;
 
-	error = immutil_get_attrValueType(className, attrMod->modAttr.attrName, &attrMod->modAttr.attrValueType);
+	error = immutil_get_attrValueType(className, name, &attrMod->modAttr.attrValueType);
 	if (error == SA_AIS_ERR_NOT_EXIST) {
 		fprintf(stderr, "Class '%s' does not exist\n", className);
 		res = -1;
@@ -128,20 +129,14 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 		goto done;
 	}
 
+	attrMod->modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod->modAttr.attrName = name;
 	attrMod->modAttr.attrValuesNumber = 1;
-
-	if ((value = strtok(NULL, "=")) == NULL) {
-		fprintf(stderr, "Attribute value missing for: %s\n", nameval);
-		res = -1;
-		goto done;
-	}
-
 	attrMod->modAttr.attrValues = malloc(sizeof(SaImmAttrValueT *));
 	attrMod->modAttr.attrValues[0] = immutil_new_attrValue(attrMod->modAttr.attrValueType, value);
 
  done:
 	free(className);
-	free(tmp);
 	if (res != 0) {
 		free(attrMod);
 		attrMod = NULL;
@@ -159,17 +154,16 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval)
 {
 	int res = 0;
-	char *tmp = strdup(nameval);
-	char *name, *value;
+	char *name = strdup(nameval), *p;
+	char *value;
 	SaImmAttrValuesT_2 *attrValue;
 	SaAisErrorT error;
 
 	attrValue = malloc(sizeof(SaImmAttrValuesT_2));
 
-	if ((name = strtok(tmp, "=")) == NULL) {
-		res = -1;
-		goto done;
-	}
+	p = strchr(name, '=');
+	*p = '\0';
+	value = p + 1;
 
 	attrValue->attrName = strdup(name);
 
@@ -188,18 +182,11 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 	}
 
 	attrValue->attrValuesNumber = 1;
-
-	if ((value = strtok(NULL, "=")) == NULL) {
-		fprintf(stderr, "Attribute value missing for: %s\n", nameval);
-		res = -1;
-		goto done;
-	}
-
 	attrValue->attrValues = malloc(sizeof(SaImmAttrValueT *));
 	attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, value);
 
  done:
-	free(tmp);
+	free(name);
 	if (res != 0) {
 		free(attrValue);
 		attrValue = NULL;
@@ -230,7 +217,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 	int rc = EXIT_FAILURE;
 	char *parent = NULL;
 	SaNameT parentName;
-	char *rdn, *rdnTag;
+	char *str, *delim;
 	const SaNameT *parentNames[] = {&parentName, NULL};
 	SaImmCcbHandleT ccbHandle;
 
@@ -251,37 +238,36 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 	i = 0;
 	while (objectNames[i] != NULL) {
-		parent = strchr((char*)objectNames[i]->value, ',');
-		rdn = strdup((char*)objectNames[i]->value);
+		str = strdup((char*)objectNames[i]->value);
+		if ((delim = strchr(str, ',')) != NULL) {
+			/* a parent exist */
+			if (*(delim - 1) == 0x5c) {
+				/* comma delimiter is escaped, search again */
+				delim += 2;
+				delim = strchr(delim, ',');
+			}
 
-		if (parent) {
-			parent++; /* step past the comma ',' */
+			*delim = '\0';
+			parent = delim + 1;
+			if (!parent) {
+				fprintf(stderr, "error - malformed object DN\n");
+				goto done;
+			}
+
 			parentName.length = sprintf((char*)parentName.value, "%s", parent);
+
 			if ((error = saImmOmAdminOwnerSet(ownerHandle, parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
 				if (error == SA_AIS_ERR_NOT_EXIST)
 					fprintf(stderr, "error - parent '%s' does not exist\n", parentName.value);
-				else
+				else {
 					fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
-				goto done;
+					goto done;
+				}
 			}
-			rdn = strtok(rdn, ",");
 		}
 
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		attrValue = malloc(sizeof(SaImmAttrValuesT_2));
-		attrValue->attrValueType = SA_IMM_ATTR_SASTRINGT;
-		attrValue->attrValuesNumber = 1;
-		attrValue->attrValues = malloc(sizeof(SaImmAttrValueT *));
-		attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, rdn);
-		if (strchr(rdn, '=') == NULL) {
-			fprintf(stderr, "error - malformed object RDN\n");
-			goto done;
-		}
-		if ((rdnTag = strtok(rdn, "=")) == NULL) {
-			fprintf(stderr, "error - malformed RDN\n");
-			goto done;
-		}
-		attrValue->attrName = rdnTag;
+		attrValue = new_attr_value(className, str);
 		attrValues[attr_len - 1] = attrValue;
 		attrValues[attr_len] = NULL;
 
@@ -304,14 +290,14 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		goto done_release;
 	}
 
- done_release:
+	rc = 0;
+
+done_release:
 	if (parent && (error = saImmOmAdminOwnerRelease(
-		ownerHandle, (const SaNameT **)objectNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
+		ownerHandle, (const SaNameT **)parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
 		fprintf(stderr, "error - saImmOmAdminOwnerRelease FAILED: %s\n", saf_error(error));
 		goto done;
 	}
-
-	rc = 0;
 done:
 	return rc;
 }
@@ -338,7 +324,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 
 	for (i = 0; i < optargs_len; i++) {
 		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
-		if ((attrMod = new_attr_mod(objectNames[0], optargs[i])) == NULL)
+		if ((attrMod = new_attr_mod(objectNames[i], optargs[i])) == NULL)
 			exit(EXIT_FAILURE);
 		
 		attrMods[attr_len - 1] = attrMod;

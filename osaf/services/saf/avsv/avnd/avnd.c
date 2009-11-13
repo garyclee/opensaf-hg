@@ -32,18 +32,24 @@
 ******************************************************************************
 */
 
+#include "immutil.h"
 #include "avnd.h"
 #include "ncs_main_pvt.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
 #include "avsv_n2claedu.h"
 #include "avsv_nd2ndmsg.h"
+#include "avnd_mon.h"
 
 /* global cb handle */
 uns32 gl_avnd_hdl = 0;
 
 /* global task handle */
 NCSCONTEXT gl_avnd_task_hdl = 0;
+
+/* control block and global pointer to it  */
+static AVND_CB _avnd_cb;
+AVND_CB *avnd_cb = &_avnd_cb;
 
 /* static function declarations */
 
@@ -127,9 +133,7 @@ uns32 avnd_create(NCS_LIB_CREATE *create_info)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* register with dtsv */
-#if (NCS_AVND_LOG == 1)
 	rc = avnd_log_reg();
-#endif
 
 	/* create & initialize AvND cb */
 	cb = avnd_cb_create();
@@ -216,9 +220,7 @@ uns32 avnd_destroy()
 		ncshm_give_hdl((uns32)gl_avnd_hdl);
 
 	/* unregister with DTSv */
-#if (NCS_AVND_LOG == 1)
 	rc = avnd_log_unreg();
-#endif
 
 	return rc;
 }
@@ -237,26 +239,20 @@ uns32 avnd_destroy()
 ******************************************************************************/
 AVND_CB *avnd_cb_create()
 {
-	AVND_CB *cb = 0;
+	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 	SaNtfCallbacksT ntfCallbacks = { NULL, NULL };
+	SaVersionT immVersion = { 'A', 2, 1 };
 
-	/* allocate AvND cb */
-	if ((0 == (cb = m_MMGR_ALLOC_AVND_CB))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		goto err;
-	}
 	m_AVND_LOG_CB(AVSV_LOG_CB_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
-
-	memset(cb, 0, sizeof(AVND_CB));
 
 	/* assign the AvND pool-id (used by hdl-mngr) */
 	cb->pool_id = NCS_HM_POOL_ID_COMMON;
 
 	/* assign the default states */
-	cb->admin_state = NCS_ADMIN_STATE_UNLOCK;
-	cb->oper_state = NCS_OPER_STATE_ENABLE;
+	cb->admin_state = SA_AMF_ADMIN_UNLOCKED;
+	cb->oper_state = SA_AMF_OPERATIONAL_ENABLED;
 	cb->term_state = AVND_TERM_STATE_UP;
 	cb->led_state = AVND_LED_STATE_RED;
 	cb->destroy = FALSE;
@@ -282,7 +278,9 @@ AVND_CB *avnd_cb_create()
 	}
 	m_AVND_LOG_CB(AVSV_LOG_CB_HDL_ASS_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-   /*** initialize avnd dbs ***/
+	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
+
+	/*** initialize avnd dbs ***/
 
 	/* initialize su db */
 	if (NCSCC_RC_SUCCESS != avnd_sudb_init(cb))
@@ -293,8 +291,7 @@ AVND_CB *avnd_cb_create()
 		goto err;
 
 	/* initialize healthcheck db */
-	if (NCSCC_RC_SUCCESS != avnd_hcdb_init(cb))
-		goto err;
+	avnd_hcdb_init(cb);
 
 	/* initialize clm db */
 	if (NCSCC_RC_SUCCESS != avnd_clmdb_init(cb))
@@ -325,6 +322,8 @@ AVND_CB *avnd_cb_create()
 		avnd_log(NCSFL_SEV_ERROR, "saNtfInitialize Failed (%u)", rc);
 		goto err;
 	}
+
+	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
 
 	return cb;
 
@@ -455,32 +454,6 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 #endif
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
-	/* MIB-LIB initialisation */
-	rc = avnd_miblib_init(cb);
-	if (NCSCC_RC_SUCCESS != rc) {
-		/* log */
-		goto err;
-	}
-
-	/* MAB registration */
-	rc = avnd_tbls_reg_with_mab(cb);
-	if (NCSCC_RC_SUCCESS != rc) {
-		/* log */
-		goto err;
-	}
-#ifdef NCS_AVND_MBCSV_CKPT
-	/* MAB registration */
-	rc = avnd_tbls_reg_with_mab_for_vdest(cb);
-	if (NCSCC_RC_SUCCESS != rc) {
-		/* log */
-		goto err;
-	}
-#endif
-
-	/* TBD Later */
-	/* Initialise HPI */
-	/* Initialise EDSv */
-
 	return rc;
 
  err:
@@ -607,8 +580,7 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 
-	/* free the control block */
-	m_MMGR_FREE_AVND_CB(cb);
+	cb = NULL;
 	m_AVND_LOG_CB(AVSV_LOG_CB_DESTROY, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
 	/* reset the global cb handle */
@@ -689,31 +661,11 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_cla);
 	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
-	/* Unregister all the avnd tables */
-	/*rc = avnd_mab_unreg_rows(cb);
-	 *if ( NCSCC_RC_SUCCESS != rc ) goto done;
-	 */
-
-	/* MAB unregistration */
-	rc = avnd_tbls_unreg_with_mab(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-#ifdef NCS_AVND_MBCSV_CKPT
-	/* MAB unregistration */
-	rc = avnd_tbls_unreg_with_mab_for_vdest(cb);
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-#endif
-	/* TBD Later */
-	/* unregister HPI */
 	/* NTFA Finalize */
 	rc = saNtfFinalize(cb->ntfHandle);
 	if (rc != SA_AIS_OK) {
-		/* log the error code here */
 		avnd_log(NCSFL_SEV_ERROR, "saNtfFinalize Failed (%u)", rc);
 	}
-
  done:
 	return rc;
 }

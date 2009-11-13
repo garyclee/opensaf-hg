@@ -68,7 +68,7 @@ uns32 avd_mds_enc(uns32 cb_hdl, MDS_CALLBACK_ENC_INFO *enc_info)
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_enc");
 
 	/* get the CB from the handle manager */
-	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log the problem */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
 		return NCSCC_RC_FAILURE;
@@ -132,7 +132,7 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	dst_msg = m_MMGR_ALLOC_AVSV_DND_MSG;
+	dst_msg = malloc(sizeof(AVSV_DND_MSG));
 	if (dst_msg == AVD_DND_MSG_NULL) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
@@ -144,7 +144,7 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 	if (NCSCC_RC_SUCCESS != avsv_dnd_msg_copy(dst_msg, (AVSV_DND_MSG *)cpy_info->i_msg)) {
 		/* log error that the director is in degraded situation */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_MMGR_FREE_AVSV_DND_MSG(dst_msg);
+		free(dst_msg);
 		return NCSCC_RC_FAILURE;
 	}
 	cpy_info->o_cpy = (NCSCONTEXT)dst_msg;
@@ -174,14 +174,14 @@ uns32 avd_mds_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_dec");
 
 	/* get the CB from the handle manager */
-	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log the problem */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
 		return NCSCC_RC_FAILURE;
 	}
 
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, dec_info->io_uba,
-				EDP_OP_TYPE_DEC, (AVSV_DND_MSG **)&dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
+				EDP_OP_TYPE_DEC, &dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
 
 	/* give back the handle */
 	ncshm_give_hdl(cb_hdl);
@@ -237,19 +237,14 @@ uns32 avd_mds_dec_flat(uns32 cb_hdl, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 uns32 avd_d2n_msg_enqueue(AVD_CL_CB *cb, NCSMDS_INFO *snd_mds)
 {
 	AVSV_ND_MSG_QUEUE *nd_msg;
-
-	assert(snd_mds->info.svc_send.info.snd.i_to_dest != 0);
-
 	/*
 	 * Allocate the message and put it in the queue.
 	 * We will have to send it at later point of time.
 	 */
-	if (NULL == (nd_msg = m_MMGR_ALLOC_D2N_MSG)) {
+	if (NULL == (nd_msg = calloc(1, sizeof(AVSV_ND_MSG_QUEUE)))) {
 		/* Log error */
 		return NCSCC_RC_FAILURE;
 	}
-
-	memset(nd_msg, '\0', sizeof(AVSV_ND_MSG_QUEUE));
 
 	memcpy(&nd_msg->snd_msg, snd_mds, sizeof(NCSMDS_INFO));
 
@@ -297,7 +292,7 @@ uns32 avd_d2n_msg_dequeue(AVD_CL_CB *cb)
 
 		avsv_dnd_msg_free((AVD_DND_MSG *)queue_elem->snd_msg.info.svc_send.i_msg);
 
-		m_MMGR_FREE_D2N_MSG(queue_elem);
+		free(queue_elem);
 
 		m_AVD_DTOND_MSG_POP(cb, queue_elem);
 	}
@@ -329,12 +324,6 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
-
-	if (nd_node->adest == 0) {
-		avd_log(NCSFL_SEV_WARNING, "Invalid adest for %x, msg type %u",
-			nd_node->node_info.nodeId, snd_msg->msg_type);
-		return NCSCC_RC_FAILURE;
-	}
 
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 
@@ -412,7 +401,7 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
 uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = AVD_CL_CB_NULL;
+	AVD_CL_CB *cb = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_n2d_msg_rcv");
 
@@ -423,7 +412,7 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 	}
 
 	/* create the message event */
-	evt = m_MMGR_ALLOC_AVD_EVT;
+	evt = calloc(1, sizeof(AVD_EVT));
 	if (evt == AVD_EVT_NULL) {
 		/* log error */
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
@@ -435,10 +424,10 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
 	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == AVD_CL_CB_NULL) {
+	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
 		/* log error */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 		/* free the message and return */
 		avsv_dnd_msg_free(rcv_msg);
 		return NCSCC_RC_FAILURE;
@@ -479,7 +468,7 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 			avsv_dnd_msg_free(rcv_msg);
 			evt->info.avnd_msg = NULL;
 			/* free the event and return */
-			m_MMGR_FREE_AVD_EVT(evt);
+			free(evt);
 
 			return NCSCC_RC_FAILURE;
 		}
@@ -495,7 +484,7 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 		avsv_dnd_msg_free(rcv_msg);
 		evt->info.avnd_msg = NULL;
 		/* free the event and return */
-		m_MMGR_FREE_AVD_EVT(evt);
+		free(evt);
 
 		return NCSCC_RC_FAILURE;
 	}

@@ -102,12 +102,12 @@ typedef struct avnd_dnd_list_tag {
    (m).type = AVSV_AMF_COMP_REG; \
    (m).dest = (dst); \
    (m).param.reg.hdl = (hd); \
-   memcpy((m).param.reg.comp_name_net.value, \
-                   (cn)->value, m_NCS_OS_NTOHS((cn)->length)); \
-   (m).param.reg.comp_name_net.length = ((cn)->length); \
-   memcpy((m).param.reg.proxy_comp_name_net.value, \
-                   (pcn)->value, m_NCS_OS_NTOHS((pcn)->length)); \
-   (m).param.reg.proxy_comp_name_net.length = ((pcn)->length); \
+   memcpy((m).param.reg.comp_name.value, \
+                   (cn)->value, (cn)->length); \
+   (m).param.reg.comp_name.length = ((cn)->length); \
+   memcpy((m).param.reg.proxy_comp_name.value, \
+                   (pcn)->value, (pcn)->length); \
+   (m).param.reg.proxy_comp_name.length = ((pcn)->length); \
 }
 
 /* Macro to populate the 'component unregister' message */
@@ -116,12 +116,12 @@ typedef struct avnd_dnd_list_tag {
    (m).type = AVSV_AMF_COMP_UNREG; \
    (m).dest = (dst); \
    (m).param.unreg.hdl = (hd); \
-   memcpy((m).param.unreg.comp_name_net.value, \
+   memcpy((m).param.unreg.comp_name.value, \
                    (cn).value, (cn).length); \
-   (m).param.unreg.comp_name_net.length = m_NCS_OS_HTONS((cn).length); \
-   memcpy((m).param.unreg.proxy_comp_name_net.value, \
+   (m).param.unreg.comp_name.length = (cn).length; \
+   memcpy((m).param.unreg.proxy_comp_name.value, \
                    (pcn).value, (pcn).length); \
-   (m).param.unreg.proxy_comp_name_net.length = m_NCS_OS_HTONS((pcn).length); \
+   (m).param.unreg.proxy_comp_name.length = (pcn).length; \
 }
 
 /*** Extern function declarations ***/

@@ -28,6 +28,9 @@
 #ifndef AVD_NTF_H
 #define AVD_NTF_H
 
+#include <avd_comp.h>
+#include <avd_susi.h>
+
 #define ADDITION_TEXT_LENGTH 256
 #define AVD_NTF_SENDER "AVD"
 
@@ -47,9 +50,9 @@ EXTERN_C uns32 avd_gen_si_oper_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si);
 
 EXTERN_C uns32 avd_gen_si_admin_state_chg_ntf(AVD_CL_CB *avd_cb, AVD_SI *si);
 
-EXTERN_C uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi);
+EXTERN_C uns32 avd_gen_su_ha_state_changed_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
 
-EXTERN_C uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, AVD_SU_SI_REL *susi);
+EXTERN_C uns32 avd_gen_su_si_assigned_ntf(AVD_CL_CB *avd_cb, struct avd_su_si_rel_tag *susi);
 
 EXTERN_C uns32 avd_clm_alarm_service_impaired_ntf(AVD_CL_CB *avd_cb, SaAisErrorT err);
 

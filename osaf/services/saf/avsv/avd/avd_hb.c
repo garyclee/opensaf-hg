@@ -38,7 +38,9 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <avd_hb.h>
+#include <avd_dblog.h>
+#include <avd_avm.h>
 
 /*****************************************************************************
  * Function: avd_init_heartbeat
@@ -217,7 +219,7 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->avd_hrt_beat_rcvd = FALSE;
 
 	/* get avnd ptr to call avd_avm_mark_nd_absent */
-	if ((avnd = avd_avnd_struc_find_nodeid(cb, cb->node_id_avd_other)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(cb->node_id_avd_other)) == AVD_AVND_NULL) {
 		/* we can't do anything without getting avnd ptr. just return */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
 		return;
@@ -389,15 +391,14 @@ void avd_rcv_hb_d_msg(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (cb->avail_state_avd_other != d2d_msg->msg_info.d2d_hrt_bt.avail_state)) {
 		/* There has been change in the role of peer AvD, so, we need to send
 		   the role to the peer controller AvND. */
-		m_AVD_PXY_PXD_SUCC_LOG("avd_rcv_hb_d_msg: role changed. Prev nodeid,Chgd nodeid,Pre role,chgd role",
-				       NULL, cb->node_id_avd_other, d2d_msg->msg_info.d2d_hrt_bt.node_id,
-				       cb->avail_state_avd_other, d2d_msg->msg_info.d2d_hrt_bt.avail_state);
+		avd_log(NCSFL_SEV_NOTICE, "role changed. nodeid=%x, prev role=%u, new role=%u",
+			d2d_msg->msg_info.d2d_hrt_bt.node_id, cb->avail_state_avd_other,
+			d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		rc = avd_avnd_send_role_change(cb, d2d_msg->msg_info.d2d_hrt_bt.node_id,
 					       d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		if (NCSCC_RC_SUCCESS != rc) {
-			m_AVD_PXY_PXD_ERR_LOG("avd_rcv_hb_d_msg: role sent failed. Node Id and role are",
-					      NULL, d2d_msg->msg_info.d2d_hrt_bt.node_id,
-					      d2d_msg->msg_info.d2d_hrt_bt.avail_state, 0, 0);
+			avd_log(NCSFL_SEV_NOTICE, "role send failed. nodeid=%x, role=%u",
+				d2d_msg->msg_info.d2d_hrt_bt.node_id, d2d_msg->msg_info.d2d_hrt_bt.avail_state);
 		} else {
 			avd_d2n_msg_dequeue(cb);
 		}

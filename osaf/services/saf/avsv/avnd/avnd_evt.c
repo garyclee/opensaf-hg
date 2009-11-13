@@ -33,6 +33,8 @@
 
 #include "avnd.h"
 
+extern char *avnd_evt_type_name[];
+
 /****************************************************************************
   Name          : avnd_evt_create
  
@@ -51,6 +53,7 @@
  
   Notes         : None.
 ******************************************************************************/
+
 AVND_EVT *avnd_evt_create(AVND_CB *cb,
 			  AVND_EVT_TYPE type,
 			  MDS_SYNC_SND_CTXT *mds_ctxt,
@@ -59,13 +62,11 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	AVND_EVT *evt = 0;
 
 	/* alloc avnd event */
-	evt = m_MMGR_ALLOC_AVND_EVT;
+	evt = calloc(1, sizeof(AVND_EVT));
 	if (!evt) {
 		/* log */
 		goto done;
 	}
-
-	memset(evt, 0, sizeof(AVND_EVT));
 
 	/* fill the common fields */
 	evt->cb_hdl = cb->cb_hdl;
@@ -185,7 +186,7 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}
 
  done:
@@ -318,11 +319,11 @@ void avnd_evt_destroy(AVND_EVT *evt)
 		break;
 
 	default:
-		m_AVSV_ASSERT(0);
+		assert(0);
 	}
 
 	/* free the avnd event */
-	m_MMGR_FREE_AVND_EVT(evt);
+	free(evt);
 
 	/* log */
 	m_AVND_LOG_EVT(type, AVND_LOG_EVT_DESTROY, AVND_LOG_EVT_SUCCESS, NCSFL_SEV_INFO);
@@ -352,8 +353,10 @@ uns32 avnd_evt_send(AVND_CB *cb, AVND_EVT *evt)
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_LOG_MBX(AVSV_LOG_MBX_SEND, AVSV_LOG_MBX_FAILURE, NCSFL_SEV_CRITICAL);
 		m_AVND_LOG_EVT(type, AVND_LOG_EVT_SEND, AVND_LOG_EVT_FAILURE, NCSFL_SEV_CRITICAL);
-	} else
+	} else {
+//		avnd_log(NCSFL_SEV_NOTICE, "%s", avnd_evt_type_name[type]);
 		m_AVND_LOG_EVT(type, AVND_LOG_EVT_SEND, AVND_LOG_EVT_SUCCESS, NCSFL_SEV_INFO);
+	}
 
 	return rc;
 }

@@ -317,40 +317,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 	}
 #endif
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "AVSV=")) {
-#if (NCS_AVD == 1)
-      /*** Init AVD ***/
-		m_NCS_DBG_PRINTF("\nAVSV:AVD:ON");
-		setenv("AVD", "ON", 1);
-		if (avd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("AVD lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
-
-#if (NCS_AVND == 1)
-      /*** Init AVND ***/
-		m_NCS_DBG_PRINTF("\nAVSV:AVND:ON");
-		if (avnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("AVND lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
-
-#if (NCS_AVM == 1)
-      /*** Init AVM ***/
-		m_NCS_DBG_PRINTF("\nAVSV:AVM:ON");
-		if (avm_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("AVM lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-		m_NCS_DBG_PRINTF("\n AvM thread created");
-#endif
-	}
-
    /*** Init BAM ***/
 	if ('n' != ncs_util_get_char_option(argc, argv, "BAM=")) {
 #if (NCS_BAM == 1)

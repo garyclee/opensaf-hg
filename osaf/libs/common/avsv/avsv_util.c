@@ -58,20 +58,20 @@ uns32 avsv_cpy_SU_DN_from_DN(SaNameT *d_su_dn, SaNameT *s_dn_name)
 	/* SU DN name is  SU name + NODE name */
 
 	/* First get the SU name */
-	tmp = strstr(s_dn_name->value, "safSu");
+	tmp = strstr((char*)s_dn_name->value, "safSu");
 
 	/* It might be external SU. */
 	if (NULL == tmp)
-		tmp = strstr(s_dn_name->value, "safEsu");
+		tmp = strstr((char*)s_dn_name->value, "safEsu");
 
 	if (!tmp)
 		return NCSCC_RC_FAILURE;
 
 	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy(d_su_dn->value, tmp);
+		strcpy((char*)d_su_dn->value, tmp);
 
 		/* Fill the length and return the pointer */
-		d_su_dn->length = strlen(d_su_dn->value);
+		d_su_dn->length = strlen((char*)d_su_dn->value);
 	} else
 		return NCSCC_RC_FAILURE;
 
@@ -101,16 +101,16 @@ uns32 avsv_cpy_node_DN_from_DN(SaNameT *d_node_dn, SaNameT *s_dn_name)
 	memset(d_node_dn, 0, sizeof(SaNameT));
 
 	/* get the node name */
-	tmp = strstr(s_dn_name->value, "safNode");
+	tmp = strstr((char*)s_dn_name->value, "safNode");
 
 	if (!tmp)
 		return NCSCC_RC_FAILURE;
 
 	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy(d_node_dn->value, tmp);
+		strcpy((char*)d_node_dn->value, tmp);
 
 		/* Fill the length and return the pointer */
-		d_node_dn->length = strlen(d_node_dn->value);
+		d_node_dn->length = strlen((char*)d_node_dn->value);
 	} else
 		return NCSCC_RC_FAILURE;
 
@@ -161,16 +161,16 @@ uns32 avsv_cpy_SI_DN_from_DN(SaNameT *d_si_dn, SaNameT *s_dn_name)
 	memset(d_si_dn, 0, sizeof(SaNameT));
 
 	/* get the si name */
-	tmp = strstr(s_dn_name->value, "safSi");
+	tmp = strstr((char*)s_dn_name->value, "safSi");
 
 	if (!tmp)
 		return NCSCC_RC_FAILURE;
 
 	if (strlen(tmp) < SA_MAX_NAME_LENGTH) {
-		strcpy(d_si_dn->value, tmp);
+		strcpy((char*)d_si_dn->value, tmp);
 
 		/* Fill the length and return the pointer */
-		d_si_dn->length = strlen(d_si_dn->value);
+		d_si_dn->length = strlen((char*)d_si_dn->value);
 	} else
 		return NCSCC_RC_FAILURE;
 
@@ -250,7 +250,7 @@ uns32 avsv_dblist_saname_cmp(uns8 *key1, uns8 *key2)
 	name1_net = *((SaNameT *)key1);
 	name2_net = *((SaNameT *)key2);
 
-	i = m_CMP_NORDER_SANAMET(name1_net, name2_net);
+	i = m_CMP_HORDER_SANAMET(name1_net, name2_net);
 
 	return ((i == 0) ? 0 : ((i > 0) ? 1 : 2));
 }

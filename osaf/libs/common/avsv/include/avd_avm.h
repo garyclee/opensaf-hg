@@ -34,6 +34,8 @@
 #ifndef AVD_AVM_H
 #define AVD_AVM_H
 
+#include <avd_node.h>
+
 EXTERN_C uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *, SaNameT *, uns32);
 EXTERN_C uns32 avd_avm_send_failover_resp(AVD_CL_CB *, SaNameT *, uns32);
 EXTERN_C uns32 avd_avm_rcv_msg(uns32, AVM_AVD_MSG_T *);

@@ -34,8 +34,16 @@
 #ifndef AVD_SI_H
 #define AVD_SI_H
 
-struct avd_su_si_rel_tag;
-struct avd_spons_si_tag;
+#include <saAmf.h>
+#include <saImm.h>
+#include <ncspatricia.h>
+#include <avd_app.h>
+#include <avd_sg.h>
+#include <avd_su.h>
+#include <avd_sg.h>
+#include <avd_si_dep.h>
+#include <avsv_defs.h>
+#include <avd_ckpt_msg.h>
 
 /* Enum values defines different SI-SI dependency FSM states. */
 typedef enum {
@@ -55,30 +63,21 @@ typedef enum {
 typedef struct avd_si_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be the SI name */
+	SaNameT name;
 
-	SaNameT name_net;	/* name of the SI with the length
-				 * field in the network order.
-				 * It is used as the index. 
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	uns32 rank;		/* The rank of the SI in the SG 
-				 * Checkpointing - Sent as a one time update.
-				 */
-
-	uns32 su_config_per_si;	/* The number of standby SU assignments
-				 * this SI can have in N-Way redundancy model
-				 * Or the number of active SU assignments
-				 * this SI can have in N-Way active redundancy model */
-	uns32 su_curr_active;	/* The number of active SU assignments this
-				 * SI has 
-				 * Checkpointing - Updated independently.
-				 */
-
-	uns32 su_curr_standby;	/* The number of standby SU assignments this
-				 * SI has 
-				 * Checkpointing - Updated independently.
-				 */
+   /******************** B.04 model *************************************************/
+	SaNameT saAmfSvcType;
+	SaNameT saAmfSIProtectedbySG;
+	uns32 saAmfSIRank;
+	char **saAmfSIActiveWeight;
+	char **saAmfSIStandbyWeight;
+	uns32 saAmfSIPrefActiveAssignments;
+	uns32 saAmfSIPrefStandbyAssignments;
+	SaAmfAdminStateT saAmfSIAdminState;
+	SaAmfAssignmentStateT saAmfSIAssignmentState;
+	uns32 saAmfSINumCurrActiveAssignments;
+	uns32 saAmfSINumCurrStandbyAssignments;
+   /******************** B.04 model *************************************************/
 
 	uns32 max_num_csi;	/* The number of CSIs that will
 				 * be part of this SI.
@@ -95,85 +94,91 @@ typedef struct avd_si_tag {
 					 * Checkpointing - Updated independently.
 					 */
 
-	NCS_ADMIN_STATE admin_state;	/* admin state of the SI
-					 * Checkpointing - Updated independently.
-					 */
-
-	NCS_ROW_STATUS row_status;	/* row status of this MIB row
-					 * Checkpointing - Updated independently.
-					 */
-
-	SaNameT sg_name;	/* name of the parent SG 
-				 * Checkpointing - Updated independently.
-				 */
-
-	AVD_SG *sg_of_si;	/* the service group of this SI */
-	struct avd_csi_tag *list_of_csi;	/* The list of component service instances in
-						 * the SI */
-	struct avd_si_tag *sg_list_of_si_next;	/* the next SI in the list of Service instances
-						 * in this group */
+	struct avd_sg_tag *sg_of_si;	/* the service group of this SI */
+	struct avd_csi_tag *list_of_csi;	/* The list of CSIs in the SI */
+	struct avd_si_tag *sg_list_of_si_next;	/* next SI in the SG list of SIs */
 	struct avd_su_si_rel_tag *list_of_sisu;	/* the list of su si relationship elements */
-
 	AVD_SI_DEP_STATE si_dep_state;	/* SI-SI dep state of this SI */
 	struct avd_spons_si_tag *spons_si_list;
 	uns32 tol_timer_count;
+	struct avd_amf_svc_type_tag *si_on_svc_type;
+	struct avd_si_tag *si_list_svc_type_next;
+	struct avd_app_tag *si_on_app;
+	struct avd_si_tag *si_list_app_next;
+	struct avd_sus_per_si_rank_tag *list_of_sus_per_si_rank;
 } AVD_SI;
 
-/* SG-SI-Rank table index structure */
-typedef struct avd_sg_si_rank_indx_tag {
+typedef struct avd_amf_svc_type_tag {
 
-	SaNameT sg_name_net;	/* Name of the SG with the length
-				 * field in the network order. */
-	uns32 si_rank_net;	/* The rank of the SI for the SG
-				 * In the network order */
-} AVD_SG_SI_RANK_INDX;
+	NCS_PATRICIA_NODE tree_node;	/* key will be svc type name */
+	SaNameT name;
+	char **saAmfSvcDefActiveWeight;
+	char **saAmfSvcDefStandbyWeight;
+	struct avd_si_tag *list_of_si;
+	struct avd_svc_type_cs_type_tag *list_of_cs_type;
 
-/* Availability directors SIs organised per RANK in a SG. 
- * This Data structure lives in the AVD and is maintained as a patricia tree 
- * from the AVD Control Block.
- */
-typedef struct avd_sg_si_rank_tag {
+} AVD_SVC_TYPE;
 
-	NCS_PATRICIA_NODE tree_node;	/* key will be the SG name and Rank */
-	AVD_SG_SI_RANK_INDX indx;	/* Index */
-	SaNameT si_name;	/* Name of the Service Instance */
+typedef struct {
+	NCS_PATRICIA_NODE tree_node;	/* key is name */
+	SaNameT name;
+	SaUint32T saAmfSvcMaxNumCSIs;
 
-} AVD_SG_SI_RANK;
+	SaUint32T curr_num_csis;
 
-#define AVD_SG_SI_RANK_NULL ((AVD_SG_SI_RANK *)0)
+	struct avd_amf_svc_type_tag *cs_type_on_svc_type;
+	struct avd_svc_type_cs_type_tag *cs_type_list_svc_type_next;
+
+} AVD_SVC_TYPE_CS_TYPE;
 
 #define AVD_SI_NULL ((AVD_SI *)0)
-#define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->su_config_per_si
-#define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->su_curr_active
+#define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
+#define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
 #define m_AVD_SI_INC_ACTV_CURR_SU(l_si) \
 {\
- (l_si)->su_curr_active ++; \
+ (l_si)->saAmfSINumCurrActiveAssignments ++; \
+ if ((l_si)->saAmfSINumCurrActiveAssignments == 1) {\
+    l_si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;\
+    if(avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) { \
+       avd_saImmOiRtObjectUpdate(&l_si->name, "saAmfSIAssignmentState",\
+       SA_IMM_ATTR_SAUINT32T, &l_si->saAmfSIAssignmentState); \
+    } \
+ }\
  m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_ACTIVE); \
+ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_ASSIGNMENT_STATE); \
 }
 
 #define m_AVD_SI_DEC_ACTV_CURR_SU(l_si)\
 {\
-   if ((l_si)->su_curr_active != 0)\
+   if ((l_si)->saAmfSINumCurrActiveAssignments != 0)\
    {\
-      (l_si)->su_curr_active --;\
+      (l_si)->saAmfSINumCurrActiveAssignments --;\
+      if ((l_si)->saAmfSINumCurrActiveAssignments == 0) {\
+          l_si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;\
+          if(avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) { \
+             avd_saImmOiRtObjectUpdate(&l_si->name, "saAmfSIAssignmentState",\
+             SA_IMM_ATTR_SAUINT32T, &l_si->saAmfSIAssignmentState); \
+          } \
+      }\
       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_ACTIVE); \
+      m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_ASSIGNMENT_STATE); \
    }\
 }
 
-#define m_AVD_SI_STDBY_MAX_SU(l_si)       (l_si)->su_config_per_si
-#define m_AVD_SI_STDBY_CURR_SU(l_si)      (l_si)->su_curr_standby
+#define m_AVD_SI_STDBY_MAX_SU(l_si)       (l_si)->saAmfSIPrefStandbyAssignments
+#define m_AVD_SI_STDBY_CURR_SU(l_si)      (l_si)->saAmfSINumCurrStandbyAssignments
 
 #define m_AVD_SI_INC_STDBY_CURR_SU(l_si)  \
 { \
-   ((l_si)->su_curr_standby++); \
+   ((l_si)->saAmfSINumCurrStandbyAssignments++); \
    m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_STBY); \
 }
 
 #define m_AVD_SI_DEC_STDBY_CURR_SU(l_si)\
 {\
-   if ((l_si)->su_curr_standby != 0)\
+   if ((l_si)->saAmfSINumCurrStandbyAssignments != 0)\
    { \
-      (l_si)->su_curr_standby--;\
+      (l_si)->saAmfSINumCurrStandbyAssignments--;\
       m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_STBY); \
    } \
 }
@@ -184,61 +189,19 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_SWITCH);\
 }
 
 #define m_AVD_SET_SI_ADMIN(cb,si,state) {\
-si->admin_state = state;\
+si->saAmfSIAdminState = state;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_ADMIN_STATE);\
 avd_gen_si_admin_state_chg_ntf(cb,si);\
 }
 
-EXTERN_C AVD_SI *avd_si_struc_crt(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL ckpt);
-EXTERN_C AVD_SI *avd_si_struc_find(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order);
-EXTERN_C AVD_SI *avd_si_struc_find_next(AVD_CL_CB *cb, SaNameT si_name, NCS_BOOL host_order);
-EXTERN_C uns32 avd_si_struc_del(AVD_CL_CB *cb, AVD_SI *si);
-EXTERN_C void avd_si_add_sg_list(AVD_CL_CB *cb, AVD_SI *si);
-EXTERN_C void avd_si_del_sg_list(AVD_CL_CB *cb, AVD_SI *si);
-EXTERN_C uns32 saamfsitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 saamfsitableentry_extract(NCSMIB_PARAM_VAL *param,
-					 NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 saamfsitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 saamfsitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				      NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 saamfsitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					NCSMIB_SETROW_PARAM_VAL *params,
-					struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+extern AVD_SI *avd_si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes);
+extern void avd_si_delete(AVD_SI *si);
+extern AVD_SI *avd_si_find(const SaNameT *si_name);
+extern AVD_SI *avd_si_getnext(const SaNameT *si_name);
+extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
 
-EXTERN_C uns32 ncssitableentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-EXTERN_C uns32 ncssitableentry_extract(NCSMIB_PARAM_VAL *param,
-				       NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 ncssitableentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-EXTERN_C uns32 ncssitableentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				    NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-EXTERN_C uns32 ncssitableentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-				      NCSMIB_SETROW_PARAM_VAL *params,
-				      struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
+extern SaAisErrorT avd_svctype_config_get(void);
+extern AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_find(const SaNameT *svctypecstypes_name);
 
-EXTERN_C uns32 ncssitableentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
-EXTERN_C AVD_SG_SI_RANK *avd_sg_si_rank_add_row(AVD_CL_CB *cb, AVD_SI *si);
-
-EXTERN_C AVD_SG_SI_RANK *avd_sg_si_rank_struc_find(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx);
-
-EXTERN_C AVD_SG_SI_RANK *avd_sg_si_rank_struc_find_next(AVD_CL_CB *cb, AVD_SG_SI_RANK_INDX indx);
-
-EXTERN_C uns32 avd_sg_si_rank_del_row(AVD_CL_CB *cb, AVD_SI *si);
-
-EXTERN_C uns32 saamfsgsirankentry_get(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSCONTEXT *data);
-
-EXTERN_C uns32 saamfsgsirankentry_extract(NCSMIB_PARAM_VAL *param,
-					  NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-
-EXTERN_C uns32 saamfsgsirankentry_next(NCSCONTEXT cb, NCSMIB_ARG *arg,
-				       NCSCONTEXT *data, uns32 *next_inst_id, uns32 *next_inst_id_len);
-
-EXTERN_C uns32 saamfsgsirankentry_set(NCSCONTEXT cb, NCSMIB_ARG *arg, NCSMIB_VAR_INFO *var_info, NCS_BOOL test_flag);
-
-EXTERN_C uns32 saamfsgsirankentry_setrow(NCSCONTEXT cb, NCSMIB_ARG *args,
-					 NCSMIB_SETROW_PARAM_VAL *params,
-					 struct ncsmib_obj_info *obj_info, NCS_BOOL testrow_flag);
-
-EXTERN_C uns32 saamfsgsirankentry_rmvrow(NCSCONTEXT cb, NCSMIB_IDX *idx);
-
+extern void avd_si_constructor(void);
 #endif
