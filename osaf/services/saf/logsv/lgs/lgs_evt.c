@@ -355,16 +355,15 @@ static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
 		LOG_NO("ACTIVE request");
 		lgs_cb->mds_role = V_DEST_RL_ACTIVE;
+		lgs_cb->ha_state = SA_AMF_HA_ACTIVE;
+
 		if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS) {
 			LOG_ER("lgs_mds_change_role FAILED %u", rc);
 			goto done;
 		}
 
-		lgs_cb->ha_state = SA_AMF_HA_ACTIVE;
-		if ((rc = lgs_mds_change_role(lgs_cb)) != NCSCC_RC_SUCCESS) {
-			LOG_ER("lgs_mds_change_role FAILED %u", rc);
+		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb))
 			goto done;
-		}
 
 		/* Open all streams */
 		stream = log_stream_getnext_by_name(NULL);
