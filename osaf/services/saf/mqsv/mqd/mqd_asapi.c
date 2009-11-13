@@ -399,6 +399,13 @@ uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_IN
 					m_LOG_MQSV_D(MQD_GROUP_REMOVE_QUEUE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
 						     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
 				}
+				/* Update Runtime Attribute to IMMSV */
+				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
+					immutil_update_one_rattr(pMqd->immOiHandle, (char *)pObjNode->oinfo.name.value,
+								 "saMsgQueueGroupNumQueues", SA_IMM_ATTR_SAUINT32T,
+								 &pObjNode->oinfo.ilist.count);
+					mqd_runtime_update_grpmembers_attr(pMqd, pObjNode);
+				}
 			}
 		}
 		break;
@@ -424,6 +431,14 @@ uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_IN
 				goto resp_send;
 			}
 
+			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
+				if (immutil_saImmOiRtObjectDelete(pMqd->immOiHandle, &pObjNode->oinfo.name) !=
+				    SA_AIS_OK) {
+					mqd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQGrp object %s FAILED",
+						   pObjNode->oinfo.name.value);
+					return NCSCC_RC_FAILURE;
+				}
+			}
 			/* Clean all the queue associated with this group */
 			while ((pOelm = ncs_dequeue(&pObjNode->oinfo.ilist))) {
 				if (pOelm) {
@@ -1175,6 +1190,7 @@ uns32 mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, 
 {
 	MQD_OBJ_NODE *pObjNode = 0, *pQNode = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT error;
 	MQSV_EVT mib_event;
 	memset(&mib_event, 0, sizeof(MQSV_EVT));
 
@@ -1236,6 +1252,13 @@ uns32 mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, 
 				pOelm->pObject = &pObjNode->oinfo;
 				ncs_enqueue(&pQNode->oinfo.ilist, pOelm);
 
+				/* Update Runtime Attribute to IMMSV */
+				if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
+					immutil_update_one_rattr(pMqd->immOiHandle, (char *)pObjNode->oinfo.name.value,
+								 "saMsgQueueGroupNumQueues", SA_IMM_ATTR_SAUINT32T,
+								 &pObjNode->oinfo.ilist.count);
+					mqd_runtime_update_grpmembers_attr(pMqd, pObjNode);
+				}
 				m_LOG_MQSV_D(MQD_DB_ADD_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
 					     __FILE__, __LINE__);
 			} else {
@@ -1273,15 +1296,23 @@ uns32 mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, 
 			pObjNode->oinfo.info.qgrp.policy = reg->policy;
 
 			*opr = ASAPi_GROUP_ADD;	/* This is Group create */
+			if (pMqd->ha_state == SA_AMF_HA_ACTIVE) {
+				error = mqd_create_runtime_MqGrpObj(pObjNode, pMqd->immOiHandle);
+				if (error != SA_AIS_OK) {
+					mqd_genlog(NCSFL_SEV_ERROR, "Creation of MqGrpobj FAILED: %u \n", error);
+					return NCSCC_RC_FAILURE;
+				}
+			}
 
 			/* Add the object node */
 			rc = mqd_db_node_add(pMqd, pObjNode);
 			if (NCSCC_RC_SUCCESS != rc) {
 				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_GROUP_CREATE_FAILED, NCSFL_LC_MQSV_QGRP_MGMT,
 					     NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-			} else
+			} else {
 				m_LOG_MQSV_D(MQD_REG_DB_QUEUE_GROUP_CREATE_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT,
 					     NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__);
+			}
 		}
 		break;
 

@@ -34,7 +34,6 @@ noinst_HEADERS = \
 	mqd_log.h \
 	mqd_logstr.h \
 	mqd_mem.h \
-	mqd_mib.h \
 	mqd_red.h \
 	mqd_saf.h \
 	mqd_tmr.h \
@@ -45,7 +44,6 @@ noinst_HEADERS = \
 	mqnd_log.h \
 	mqnd_mds.h \
 	mqnd_mem.h \
-	mqnd_mib.h \
 	mqnd_proc.h \
 	mqnd_restart.h \
 	mqnd_saf.h \
@@ -61,4 +59,7 @@ noinst_HEADERS = \
 	mqsv_init.h \
 	mqsv_mbedu.h \
 	mqsv_mem.h \
-	posix.h
+	posix.h \
+	mqd_imm.h \
+	mqnd_imm.h 
+	

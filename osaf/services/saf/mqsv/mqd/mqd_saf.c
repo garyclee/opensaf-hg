@@ -33,6 +33,7 @@
  * Module Inclusion Control...
  */
 #include "mqd.h"
+#include "mqd_imm.h"
 extern MQDLIB_INFO gl_mqdinfo;
 static uns32 mqd_process_quisced_state(MQD_CB *pMqd, SaInvocationT invocation, SaAmfHAStateT haState);
 /****************************************************************************
@@ -126,6 +127,10 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 	if (pMqd) {
 		m_LOG_MQSV_D(MQD_CSI_SET_ROLE, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, haState, __FILE__, __LINE__);
 		if ((SA_AMF_HA_QUIESCED == haState) && (pMqd->ha_state == SA_AMF_HA_ACTIVE)) {
+			saErr = immutil_saImmOiImplementerClear(pMqd->immOiHandle);
+			if (saErr != SA_AIS_OK) {
+				mqd_genlog(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed: err = %u \n", saErr);
+			}
 			mqd_process_quisced_state(pMqd, invocation, haState);
 			ncshm_give_hdl(pMqd->hdl);
 			return;
@@ -158,6 +163,8 @@ void mqd_saf_csi_set_cb(SaInvocationT invocation,
 
       /** Change the MDS role **/
 		if (SA_AMF_HA_ACTIVE == pMqd->ha_state) {
+			/* If this is the active Director, become implementer */
+			mqd_imm_declare_implementer(pMqd);
 			mds_role = V_DEST_RL_ACTIVE;
 		} else {
 			mds_role = V_DEST_RL_STANDBY;

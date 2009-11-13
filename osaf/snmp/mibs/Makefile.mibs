@@ -6,7 +6,6 @@ mibs_files = \
    ESMI-NCS-PSR-MIB \
    ESMI-SAF-AMF-MIB \
    ESMI-SAF-CLM-MIB \
-   ESMI-SAF-MSG-MIB \
    NCS-AVM-MIB \
    NCS-AVSV-MIB \
    NCS-DTSV-MIB \
@@ -14,5 +13,4 @@ mibs_files = \
    SAF-AIS-TC-MIB \
    SAF-AMF-MIB \
    SAF-CLM-MIB \
-   SAF-MSG-MIB \
    SAF-TC-MIB

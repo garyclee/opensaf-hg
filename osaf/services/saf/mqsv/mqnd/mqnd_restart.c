@@ -302,29 +302,6 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 			pnode->qname = qnode->qinfo.queueName;
 			pnode->qhdl = qnode->qinfo.queueHandle;
 			mqnd_qname_node_add(cb, pnode);
-
-			rc = mqsv_reg_mqndmib_queue_tbl_row(cb, qnode->qinfo.queueName, &qnode->qinfo.mab_rec_row_hdl);
-			if (rc != NCSCC_RC_SUCCESS) {
-				if (pnode) {
-					mqnd_qname_node_del(cb, pnode);
-					m_MMGR_FREE_MQND_QNAME_NODE(pnode);
-				}
-				return rc;
-			}
-
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++) {
-				rc = mqsv_reg_mqndmib_queue_priority_tbl_row(cb, qnode->qinfo.queueName, counter,
-									     &qnode->qinfo.
-									     mab_rec_priority_row_hdl[counter]);
-				if (rc != NCSCC_RC_SUCCESS) {
-					if (pnode) {
-						mqnd_qname_node_del(cb, pnode);
-						m_MMGR_FREE_MQND_QNAME_NODE(pnode);
-					}
-					return rc;
-				}
-			}
 		}
 	}
 

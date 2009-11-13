@@ -34,6 +34,7 @@ static uns32 mqnd_send_transfer_owner_req(MQND_CB *cb, MQP_REQ_MSG *mqp_req,
 					  SaMsgQueueHandleT old_hdl, MQP_REQ_TYPE openType);
 void mqnd_proc_ckpt_clm_node_left(MQND_CB *cb);
 void mqnd_proc_ckpt_clm_node_joined(MQND_CB *cb);
+
 uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 {
 	SaMsgQueueHandleT qhdl;
@@ -44,6 +45,7 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 	uns32 rc = NCSCC_RC_SUCCESS, counter;
 	SaNameT qname;
 	MQND_QUEUE_CKPT_INFO queue_ckpt_node;
+	SaAisErrorT error;
 
 	qhdl = req->msg.mqp_req.info.transferComplete.queueHandle;
 
@@ -165,20 +167,20 @@ uns32 mqnd_evt_proc_mqp_qtransfer_complete(MQND_CB *cb, MQSV_EVT *req)
 					      rc, __FILE__, __LINE__);
 				return rc;
 			}
+			/* Immsv Runtime Object Create  */
+			error = mqnd_create_runtime_MsgQobject(qnode->qinfo.queueName.value, qnode->qinfo.creationTime, qnode,
+						      cb->immOiHandle);
+			if (error != SA_AIS_OK) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQobject FAILED: %u \n", error);
+				return NCSCC_RC_FAILURE;
+			}
+			error = mqnd_create_runtime_MsgQPriorityobject(qnode->qinfo.queueName.value, qnode, cb->immOiHandle);
+			if (error != SA_AIS_OK) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "Create MsgQPriorityobject FAILED: %u \n", error);
+				return NCSCC_RC_FAILURE;
+			}
 		}
 
-		/*MIB dereg was done earlier while sending transfer req response,so in case of failure re-registration is required */
-		rc = mqsv_reg_mqndmib_queue_tbl_row(cb, qnode->qinfo.queueName, &qnode->qinfo.mab_rec_row_hdl);
-		m_LOG_MQSV_ND(MQND_Q_ROW_REG_WITH_MIB_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__,
-			      __LINE__);
-
-		for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; counter++) {
-			rc = mqsv_reg_mqndmib_queue_priority_tbl_row(cb, qnode->qinfo.queueName, counter,
-								     &qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-			if (rc != NCSCC_RC_SUCCESS)
-				m_LOG_MQSV_ND(MQND_QPR_TBL_ROW_REG_WITH_MIB_FAILED, NCSFL_LC_MQSV_Q_MGMT,
-					      NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		}
 		/* Free the ASAPi response Event */
 		if (opr.info.msg.resp)
 			asapi_msg_free(&opr.info.msg.resp);
@@ -401,13 +403,6 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	if (opr.info.msg.resp)
 		asapi_msg_free(&opr.info.msg.resp);
 
-	/* Deregistering with the MIB Table at the previous node before opening the new queue at the destination */
-	if (err == SA_AIS_OK) {
-		mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-		for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; counter++)
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-					   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-	}
  send_rsp:
 	/* Send the response */
 	transfer_rsp.type = MQSV_EVT_MQP_RSP;
@@ -423,6 +418,12 @@ uns32 mqnd_evt_proc_mqp_qtransfer(MQND_CB *cb, MQSV_EVT *req)
 	rc = mqnd_mds_send_rsp(cb, &req->sinfo, &transfer_rsp);
 	if (rc != NCSCC_RC_SUCCESS)
 		m_LOG_MQSV_ND(MQND_MDS_SND_RSP_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
+	else
+		/* delete Message Queue Objetc at IMMSV */
+	if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
+		mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s", qnode->qinfo.queueName.value);
+		return NCSCC_RC_FAILURE;
+	}
 
 	if (mqsv_message_cpy)
 		m_MMGR_FREE_MQND_DEFAULT(mqsv_message_cpy);
@@ -705,6 +706,9 @@ uns32 mqnd_existing_queue_open(MQND_CB *cb, MQSV_SEND_INFO *sinfo, MQP_OPEN_REQ 
 	/* Change the queue owner from orphan to owned */
 	if (qnode->qinfo.owner_flag == MQSV_QUEUE_OWN_STATE_ORPHAN) {
 		qnode->qinfo.owner_flag = MQSV_QUEUE_OWN_STATE_OWNED;
+		/*update the Message Queue Owner update to IMMSV */
+		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
+					 "saMsgQueueIsOpened", SA_IMM_ATTR_SAUINT32T, &qnode->qinfo.owner_flag);
 		qnode->qinfo.rcvr_mqa = sinfo->dest;
 		qnode->qinfo.msgHandle = open->msgHandle;
 	}
@@ -1008,11 +1012,11 @@ uns32 mqnd_proc_queue_close(MQND_CB *cb, MQND_QUEUE_NODE *qnode, SaAisErrorT *er
 		}
 		if ((timeout == 0) && qnode && (qnode->qinfo.sendingState == MSG_QUEUE_AVAILABLE) &&
 		    (!(qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT))) {
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++)
-				mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-						   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
+			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "Deletion of MsgQueue object %s FAILED",
+					 qnode->qinfo.queueName.value);
+				return NCSCC_RC_FAILURE;
+			}
 		}
 
 		/* Delete the mapping entry from the qname database */

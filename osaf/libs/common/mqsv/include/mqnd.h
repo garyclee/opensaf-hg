@@ -46,9 +46,5 @@
 #include "mqnd_saf.h"
 #include "saf_mem.h"
 #include "saClm.h"
-/*For MIBs */
-#include "mqnd_mib.h"
-#include "mqsv_mapi.h"
-#include "oac_papi.h"
 
 #endif

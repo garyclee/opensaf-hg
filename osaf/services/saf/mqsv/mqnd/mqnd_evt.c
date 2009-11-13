@@ -438,9 +438,9 @@ static uns32 mqnd_evt_proc_mqp_qopen(MQND_CB *cb, MQSV_EVT *evt)
 		goto error2;
 	}
 
-	if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) ||
-	    ((opr.info.msg.resp->info.nresp.err.flag)
-	     && (opr.info.msg.resp->info.nresp.err.errcode != SA_AIS_ERR_NOT_EXIST))) {
+	if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || ((opr.info.msg.resp->info.nresp.err.flag)
+							  && (opr.info.msg.resp->info.nresp.err.errcode !=
+							      SA_AIS_ERR_NOT_EXIST))) {
 		/* log this error */
 		if ((opr.info.msg.resp) && (opr.info.msg.resp->info.nresp.err.errcode == SA_AIS_ERR_TRY_AGAIN)) {
 			err = SA_AIS_ERR_TRY_AGAIN;
@@ -647,6 +647,11 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 		if (opr.info.msg.resp)
 			asapi_msg_free(&opr.info.msg.resp);
 
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
+			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MessageQueue Object %s FAILED \n",
+				 qnode->qinfo.queueName.value);
+			return NCSCC_RC_FAILURE;
+		}
 		/* Delete the queue immediately */
 		mqnd_mq_destroy(&qnode->qinfo);
 
@@ -655,14 +660,6 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 
 		/*Invalidate the shm area of the queue */
 		mqnd_shm_queue_ckpt_section_invalidate(cb, qnode);
-
-		if (qnode) {
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++)
-				mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-						   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-		}
 
 		/* Delete the mapping entry from the qname database */
 		memset(&qname, 0, sizeof(SaNameT));
@@ -751,11 +748,11 @@ static uns32 mqnd_evt_proc_unlink(MQND_CB *cb, MQSV_EVT *evt)
 			}
 		}
 		if (qnode) {
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++)
-				mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-						   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
+			if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
+				mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
+					 qnode->qinfo.queueName.value);
+				return NCSCC_RC_FAILURE;
+			}
 		}
 
 		/* Delete the mapping entry from the qname database */
@@ -1294,6 +1291,11 @@ uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 		/* Free the response Event */
 		asapi_msg_free(&opr.info.msg.resp);
 
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &qnode->qinfo.queueName) != SA_AIS_OK) {
+			mqnd_genlog(NCSFL_SEV_ERROR, "Deleting MsgQueue Object %s FAILED \n",
+				 qnode->qinfo.queueName.value);
+			return NCSCC_RC_FAILURE;
+		}
 		/* Delete the Queue */
 		mqnd_mq_destroy(&qnode->qinfo);
 
@@ -1311,13 +1313,6 @@ uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 			m_MMGR_FREE_MQND_QNAME_NODE(pnode);
 		}
 
-		if (qnode) {
-			mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQTBL, qnode->qinfo.mab_rec_row_hdl);
-			for (counter = SA_MSG_MESSAGE_HIGHEST_PRIORITY; counter < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1;
-			     counter++)
-				mqnd_unreg_mib_row(cb, NCSMIB_TBL_MQSV_MSGQPRTBL,
-						   qnode->qinfo.mab_rec_priority_row_hdl[counter]);
-		}
 		/* Delete the Queue Node from the tree */
 		mqnd_queue_node_del(cb, qnode);
 
@@ -1390,9 +1385,9 @@ uns32 mqnd_evt_proc_tmr_expiry(MQND_CB *cb, MQSV_EVT *evt)
 			rc = asapi_opr_hdlr(&opr);
 		}
 
-		if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) ||
-		    ((opr.info.msg.resp->info.nresp.err.flag)
-		     && (opr.info.msg.resp->info.nresp.err.errcode != SA_AIS_ERR_NOT_EXIST))) {
+		if ((rc != SA_AIS_OK) || (!opr.info.msg.resp) || ((opr.info.msg.resp->info.nresp.err.flag)
+								  && (opr.info.msg.resp->info.nresp.err.errcode !=
+								      SA_AIS_ERR_NOT_EXIST))) {
 			err = SA_AIS_ERR_TRY_AGAIN;
 			m_LOG_MQSV_ND(MQND_ASAPI_NRESOLVE_HDLR_FAILED, NCSFL_LC_MQSV_Q_MGMT, NCSFL_SEV_ERROR, err,
 				      __FILE__, __LINE__);
@@ -1533,9 +1528,18 @@ static uns32 mqnd_evt_proc_ret_time_set(MQND_CB *cb, MQSV_EVT *evt)
 		goto send_rsp;
 	}
 
+	if (((qnode->qinfo.queueStatus.creationFlags & SA_MSG_QUEUE_PERSISTENT) == SA_MSG_QUEUE_PERSISTENT) ||
+        (qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE))
+   	{
+        	err = SA_AIS_ERR_BAD_OPERATION;
+      		goto send_rsp;
+   	}
 	/* Set retention time only if timer is not started */
 	if (!qnode->qinfo.tmr.is_active) {
 		qnode->qinfo.queueStatus.retentionTime = evt->msg.mqp_req.info.retTimeSetReq.retentionTime;
+		immutil_update_one_rattr(cb->immOiHandle, (char *)qnode->qinfo.queueName.value,
+					 "saMsgQueueRetentionTime", SA_IMM_ATTR_SATIMET,
+					 &qnode->qinfo.queueStatus.retentionTime);
 	} else {
 		err = SA_AIS_ERR_BAD_HANDLE;
 		goto send_rsp;

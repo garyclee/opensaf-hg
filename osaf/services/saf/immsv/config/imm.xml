@@ -1379,6 +1379,135 @@
 			<default-value>1</default-value>
 		</attr>
 	</class>
+
+	<class name="SaMsgQueue">
+                <category>SA_RUNTIME</category>
+                <rdn>   
+                        <name>safMq</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </rdn>  
+                <attr>
+                        <name>saMsgQueueIsPersistent</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueRetentionTime</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueSize</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueUsedSize</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueueCreationTimestamp</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueNumMsgs</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueueNumMemberQueueGroups</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueueIsOpened</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+        </class>
+
+        <class name="SaMsgQueuePriority">
+                <category>SA_RUNTIME</category>
+                <rdn>
+                        <name>safMqPrio</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </rdn>
+                <attr>
+                        <name>saMsgQueuePriorityQSize</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueuePriorityQUsedSize</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueuePriorityQNumMessages</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueuePriorityQNumFullErrors</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                </attr>
+                <attr>
+                        <name>saMsgQueuePriorityCapacityAvailable</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueuePriorityCapacityReached</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+        </class>
+
+        <class name="SaMsgQueueGroup">
+                <category>SA_RUNTIME</category>
+                <rdn>
+                        <name>safMqg</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </rdn>
+                <attr>
+                        <name>saMsgQueueGroupPolicy</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueGroupNumQueues</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saMsgQueueGroupMemberName</name>
+                        <type>SA_NAME_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                        <flag>SA_MULTI_VALUE</flag>
+                </attr>
+        </class>
+
+
 	<class name="SaCkptCheckpoint">
 		<category>SA_RUNTIME</category>
 		<rdn>
@@ -1768,6 +1897,13 @@
 		</attr>
 	</object>
 	<object class="SaAmfApplication">
+                <dn>safApp=safMsgService</dn>
+		<attr>
+                        <name>saAmfAppType</name>
+                        <value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+                </attr>
+        </object>
+	<object class="SaAmfApplication">
 		<dn>safApp=safEvtService</dn>
 		<attr>
 			<name>saAmfAppType</name>
@@ -1978,7 +2114,7 @@
 	</object>
 	<object class="SaAmfSGType">
 		<dn>safVersion=4.0.0,safSgType=OpenSafSgTypeNoRed</dn>
-		<attr>
+		<attr>=
 			<name>saAmfSgtRedundancyModel</name>
 			<value>5</value>
 		</attr>
