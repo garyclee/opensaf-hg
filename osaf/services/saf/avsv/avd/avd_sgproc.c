@@ -56,9 +56,10 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <stdbool.h>
 #include <immutil.h>
-#include "avd_imm.h"
+#include <avd.h>
+#include <avd_imm.h>
 
 /*****************************************************************************
  * Function: avd_new_assgn_susi
@@ -134,7 +135,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			continue;
 		}
 
-		if ((compcsi = avd_compcsi_create(cb, susi, l_csi, l_comp)) == NULL) {
+		if ((compcsi = avd_compcsi_create(susi, l_csi, l_comp, true)) == NULL) {
 			/* free all the CSI assignments and end this loop */
 			avd_log(NCSFL_SEV_ERROR, "Could not create CompCSI '%s' '%s'",
 				l_comp->comp_info.name.value, l_csi->name.value);
@@ -146,18 +147,6 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		m_AVD_LOG_RCVD_VAL(((long)compcsi));
 
 		l_comp->assign_flag = TRUE;
-		compcsi->comp = l_comp;
-		compcsi->csi = l_csi;
-		compcsi->susi = susi;
-		/* Add it to the CSI list */
-		if (l_csi->list_compcsi == NULL) {
-			l_csi->list_compcsi = compcsi;
-		} else {
-			compcsi->csi_csicomp_next = l_csi->list_compcsi;
-			l_csi->list_compcsi = compcsi;
-		}
-		l_csi->compcsi_cnt++;
-
 		l_csi = l_csi->si_list_of_csi_next;
 	}			/* while((l_csi != AVD_CSI_NULL) && (l_flag == TRUE)) */
 

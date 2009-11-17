@@ -2132,30 +2132,47 @@ SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName,
 	return rc;
 }
 
-/**
- * Search for "needle" in the "haystack" and create a DN from the result
- * @param haystack
- * @param out
- * @param needle
- */
-void avsv_sanamet_init(const SaNameT *haystack, SaNameT *out, const char *needle)
+void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
 {
 	char *p;
 
-	memset(out, 0, sizeof(SaNameT));
+	memset(dn, 0, sizeof(SaNameT));
 	p = strstr((char*)haystack->value, needle);
 	assert(p);
-	out->length = strlen(p);
-	memcpy(out->value, p, out->length);
+	dn->length = strlen(p);
+	memcpy(dn->value, p, dn->length);
 }
 
-/**
- * Create a DN for an association class. Escape commas in the child DN.
- * @param child_dn
- * @param parent_dn
- * @param rdn_tag
- * @param dn
- */
+void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
+	const char *needle, const char *parent)
+{
+	char *p;
+	char *pp;
+	int i = 0;
+
+	memset(dn, 0, sizeof(SaNameT));
+
+	/* find what we actually are looking for */
+	p = strstr((char*)haystack->value, needle);
+	assert(p);
+
+	/* find the parent */
+	pp = strstr((char*)haystack->value, parent);
+	assert(pp);
+
+	/* position at parent separtor */
+	pp--;
+
+	/* copy the value upto parent but skip escape chars */
+	while (p != pp) {
+		if (*p != '\\')
+			dn->value[i++] = *p;
+		p++;
+	}
+
+	dn->length = strlen((char*)dn->value);
+}
+
 void avd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
 	const char *rdn_tag, SaNameT *dn)
 {
