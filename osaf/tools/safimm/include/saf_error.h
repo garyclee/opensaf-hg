@@ -17,4 +17,4 @@
 
 #include <saAis.h>
 
-extern char *saf_error(SaAisErrorT error);
+extern const char *saf_error(SaAisErrorT error);
