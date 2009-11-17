@@ -4203,9 +4203,9 @@ SaAisErrorT saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
 						*((SaUint64T *)copyv) = q->attrDefaultValue->val.sauint64;
 						break;
 					case SA_IMM_ATTR_SATIMET:
-						/*TODO: ABT PROBLEM WITH ASSIGNEMENT. Allignement ?? */
-						TRACE_3("WARNING SaTimeT default broken");
-						/* *((SaTimeT *)copyv) = q->attrDefaultValue->val.satime; */
+						/* I once got a segv on the line below.
+						   Allignement problem ? */
+						*((SaTimeT *)copyv) = q->attrDefaultValue->val.satime;
 						break;
 					case SA_IMM_ATTR_SAFLOATT:
 						*((SaFloatT *)copyv) = q->attrDefaultValue->val.safloat;
