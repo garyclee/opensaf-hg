@@ -115,8 +115,37 @@ EXTERN_C void avd_mds_d_dec(uns32, MDS_CALLBACK_DEC_INFO *);
 EXTERN_C uns32 avd_d2d_msg_snd(struct cl_cb_tag *, AVD_D2D_MSG *);
 extern int avd_admin_state_is_valid(SaAmfAdminStateT state);
 extern SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName, SaNameT *object_name);
-extern void avsv_sanamet_init(const SaNameT *dn, SaNameT *out, const char *rdn_name);
-extern void avd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
-	const char *rdn_tag, SaNameT *dn);
+
+/**
+ * Search for "needle" in the "haystack" and create a DN from the result.
+ * "haystack" must be a normal DN, with no escape characters.
+ * @param haystack A normal DN
+ * @param dn DN is written here
+ * @param needle
+ */
+extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn,
+	const char *needle);
+
+/**
+ * Search for "needle" in the "haystack" and create a DN from the result.
+ * "haystack" must be an association object DN, with escape characters.
+ * 
+ * @param haystack An association class DN
+ * @param dn DN is written here
+ * @param needle rdn tag of class
+ * @param parent rdn tag of parent
+ */
+extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
+	SaNameT *dn, const char *needle, const char *parent);
+
+/**
+ * Create a DN for an association class. Escape commas in the child DN.
+ * @param child_dn
+ * @param parent_dn
+ * @param rdn_tag
+ * @param dn
+ */
+extern void avd_create_association_class_dn(const SaNameT *child_dn,
+	const SaNameT *parent_dn, const char *rdn_tag, SaNameT *dn);
 
 #endif

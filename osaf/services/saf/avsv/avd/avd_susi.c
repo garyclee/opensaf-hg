@@ -731,30 +731,9 @@ static SaAisErrorT avd_sirankedsu_ccb_apply_create_hdlr(
 		value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "safRankedSu")) {
-			SaNameT temp_name;
-			char *p = NULL;
-
 			rdn_attr_value = *((SaNameT *)value);
+			avsv_sanamet_init_from_association_dn(&rdn_attr_value, &su_name, "safSu", "safSi");
 			found = TRUE;
-			/* Take out Su Name. safRankedSu=safSu=SuName\,safSg=SgName\,
-			   safApp=AppName,safSi=SiName,safApp=AppName */
-			temp_name = rdn_attr_value;
-			p = strstr((char *)temp_name.value, "safSi=");
-			*(--p) = '\0';	/* null terminate at comma before si name */
-
-			/* Skip past the RDN tag */
-			p = strchr((char *)temp_name.value, '=') + 1;
-			assert(p);
-			memset(&su_name, 0, sizeof(SaNameT));
-			/* Copy the RDN value which is a DN with escaped commas */
-			i = 0;
-			while (*p) {
-				if (*p != '\\')
-					su_name.value[i++] = *p;
-
-				p++;
-			}
-
 		}
 		attribute = opdata->param.create.attrValues[i++];
 	}

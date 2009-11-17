@@ -27,7 +27,7 @@
 /*
  * Module Inclusion Control...
  */
-
+#include <stdbool.h>
 #include <avd_dblog.h>
 #include <avd_util.h>
 #include <avsv_util.h>
@@ -585,6 +585,57 @@ static SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi)
 /**************************** End class SaAmfCSIAttribute ******************************/
 /***************************************************************************************/
 
+/**
+ * Get configuration for the SaAmfCSIAssignment objects related
+ * to this CSI from IMM and create AVD internal objects.
+ * @param cb
+ * 
+ * @return int
+ */
+static SaAisErrorT avd_csiass_config_get(const SaNameT *csi_name, AVD_CSI *csi)
+{
+	SaAisErrorT error;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	SaNameT csiass_name, su_name, si_name, comp_name;
+	const SaImmAttrValuesT_2 **attributes;
+	const char *className = "SaAmfCSIAssignment";
+	AVD_SU_SI_REL *susi;
+	AVD_COMP *comp;
+	AVD_COMP_CSI_REL *compcsi;
+
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
+
+	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, csi_name,
+		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
+		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize failed: %u", error);
+		goto done1;
+	}
+
+	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &csiass_name,
+		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
+
+		avd_log(NCSFL_SEV_NOTICE, "'%s'", csiass_name.value);
+		avsv_sanamet_init(&csiass_name, &si_name, "safSi");
+		avsv_sanamet_init_from_association_dn(&csiass_name, &su_name, "safSu", "safCsi");
+		susi = avd_susi_find(avd_cb, &su_name, &si_name);
+		avsv_sanamet_init_from_association_dn(&csiass_name, &comp_name, "safComp", "safCsi");
+		comp = avd_comp_find(&comp_name);
+		compcsi = avd_compcsi_create(susi, csi, comp, false);
+	}
+
+	error = SA_AIS_OK;
+
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+
+ done1:
+	return error;
+}
+
 /***************************************************************************************/
 /**************************** Start class SaAmfCSI *************************************/
 /***************************************************************************************/
@@ -802,6 +853,8 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 
 		avd_csi_add_to_model(csi);
 
+		avd_csiass_config_get(&csi_name, csi);
+
 		if (avd_csiattr_config_get(&csi_name, csi) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
@@ -1006,57 +1059,46 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
            avd_log(NCSFL_SEV_ERROR, "rc=%u, '%s'", rc, dn.value);
 }
 
-/*****************************************************************************
- * Function: avd_compcsi_create
- *
- * Purpose:  This function will create and add a AVD_COMP_CSI_REL structure
- * to the list of component csi relationships of a SU SI relationship.
- * It will add the element to the head of the list.
- *
- * Input: cb - the AVD control block
- *        susi - The SU SI relationship structure that encompasses this
- *               component CSI relationship.
- *        avd_csi - Pointer to CSI for SaAmfCSIAssignment object creation.
- *        avd_comp - Pointer to Comp for SaAmfCSIAssignment object creation.
- *
- * Returns: Pointer to AVD_COMP_CSI_REL structure or AVD_COMP_CSI_REL_NULL
- *          if failure.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_COMP_CSI_REL *avd_compcsi_create(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, AVD_CSI *avd_csi, AVD_COMP *avd_comp)
+AVD_COMP_CSI_REL *avd_compcsi_create(AVD_SU_SI_REL *susi, AVD_CSI *csi,
+	AVD_COMP *comp, bool create_in_imm)
 {
-	AVD_COMP_CSI_REL *comp_csi;
+	AVD_COMP_CSI_REL *compcsi;
 
-	/* Allocate a new block structure now
-	 */
-	if ((comp_csi = calloc(1, sizeof(AVD_COMP_CSI_REL))) == NULL) {
-		/* log an error */
-		m_AVD_LOG_MEM_FAIL(AVD_COMPCSI_ALLOC_FAILED);
+	if ((csi == NULL) && (comp == NULL)) {
+		avd_log(NCSFL_SEV_ERROR, "Either csi or comp is NULL");
+                return NULL;
+	}
+
+	if ((compcsi = calloc(1, sizeof(AVD_COMP_CSI_REL))) == NULL) {
+		avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
 		return NULL;
 	}
 
-	comp_csi->susi_csicomp_next = NULL;
+	compcsi->comp = comp;
+	compcsi->csi = csi;
+	compcsi->susi = susi;
+
+	/* Add to the CSI owned list */
+	if (csi->list_compcsi == NULL) {
+		csi->list_compcsi = compcsi;
+	} else {
+		compcsi->csi_csicomp_next = csi->list_compcsi;
+		csi->list_compcsi = compcsi;
+	}
+	csi->compcsi_cnt++;
+
+	/* Add to the SUSI owned list */
 	if (susi->list_of_csicomp == NULL) {
-		susi->list_of_csicomp = comp_csi;
-                goto done;
+		susi->list_of_csicomp = compcsi;
+	} else {
+		compcsi->susi_csicomp_next = susi->list_of_csicomp;
+		susi->list_of_csicomp = compcsi;
 	}
 
-	comp_csi->susi_csicomp_next = susi->list_of_csicomp;
-	susi->list_of_csicomp = comp_csi;
+	if (create_in_imm)
+		avd_create_csiassignment_in_imm(susi->state, &csi->name, &comp->comp_info.name);
 
-done:
-        if ((avd_csi == NULL) && (avd_comp == NULL)) {
-		avd_log(NCSFL_SEV_ERROR, "Either csi or comp is NULL");
-                return comp_csi;
-	}
-
-        avd_create_csiassignment_in_imm(susi->state, &avd_csi->name, &avd_comp->comp_info.name);
-
-	return comp_csi;
+	return compcsi;
 }
 
 /** Delete an SaAmfCSIAssignment from IMM
