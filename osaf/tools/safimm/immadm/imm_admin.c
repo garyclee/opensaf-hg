@@ -233,15 +233,17 @@ int main(int argc, char *argv[])
 		}
 
 		error = saImmOmAdminOperationInvoke_2(ownerHandle, &objectName, 0, operationId,
-						      params, &operationReturnValue, SA_TIME_ONE_SECOND * 10);
-		if ((error != SA_AIS_OK) || (operationReturnValue != SA_AIS_OK)) {
-			if (error == SA_AIS_ERR_NOT_EXIST)
-				fprintf(stderr,
-					"error - saImmOmAdminOperationInvoke_2 - object '%s' has no registered implementer\n",
-					objectName.value);
-			else
-				fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s, %s\n",
-					saf_error(error), saf_error(operationReturnValue));
+			params, &operationReturnValue, SA_TIME_ONE_SECOND * 10);
+
+		if (error != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 returned: %s\n",
+				saf_error(error));
+			exit(EXIT_FAILURE);
+		}
+
+		if (operationReturnValue != SA_AIS_OK) {
+			fprintf(stderr, "error - saImmOmAdminOperationInvoke_2 FAILED: %s\n",
+				saf_error(operationReturnValue));
 			exit(EXIT_FAILURE);
 		}
 
