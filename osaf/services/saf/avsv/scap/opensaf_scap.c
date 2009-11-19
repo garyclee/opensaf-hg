@@ -65,12 +65,13 @@ int main(int argc, char **argv)
 		char *p;
 
 		if (logtrace_init(basename(argv[0]), trace_file) == 0) {
-			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL) {
-				unsigned int mask = atoi(p);
-				trace_category_set(mask);
-			}
+			unsigned int mask = CATEGORY_ALL;
+			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL)
+				mask = atoi(p);
 
-			syslog(LOG_NOTICE, "trace enabled to file %s", trace_file);
+			trace_category_set(mask);
+
+			syslog(LOG_NOTICE, "trace enabled to file %s, mask %0x", trace_file, mask);
 		} else
 			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
 	}
