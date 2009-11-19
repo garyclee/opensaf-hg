@@ -30,7 +30,8 @@ ncs_psr_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/libs/core/mbcsv/include
+	-I$(top_srcdir)/osaf/libs/core/mbcsv/include \
+	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include
 
 ncs_psr_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
