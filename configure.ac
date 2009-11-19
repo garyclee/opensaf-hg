@@ -668,10 +668,12 @@ AC_CONFIG_FILES([
         osaf/libs/agents/infrastructure/rda/Makefile
         osaf/libs/agents/saf/Makefile
         osaf/libs/agents/saf/ava/Makefile
+        osaf/libs/agents/saf/ava/include/Makefile
         osaf/libs/agents/saf/imma/Makefile
         osaf/libs/agents/saf/lga/Makefile
         osaf/libs/agents/saf/ntfa/Makefile
         osaf/libs/agents/saf/cla/Makefile
+        osaf/libs/agents/saf/cla/include/Makefile
         osaf/libs/agents/saf/cpa/Makefile
         osaf/libs/agents/saf/eda/Makefile
         osaf/libs/agents/saf/gla/Makefile
