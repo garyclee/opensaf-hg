@@ -34,7 +34,6 @@
 #ifndef AVD_CSI_H
 #define AVD_CSI_H
 
-#include <stdbool.h>
 #include <avd_comp.h>
 
 /* The attribute value structure for the CSIs. */
@@ -97,46 +96,21 @@ typedef struct avd_comp_csi_rel_tag {
 							 * CSI structure */
 } AVD_COMP_CSI_REL;
 
-/**
- * Finds CSI structure from the database.
- * 
- * @param csi_name
- * 
- * @return AVD_CSI*
- */
-extern AVD_CSI *avd_csi_find(const SaNameT *csi_name);
+/* Finds CSI structure from the database.*/
+EXTERN_C AVD_CSI *avd_csi_find(const SaNameT *csi_name);
 
-/**
- * Create a AVD_COMP_CSI_REL and link it with the specified SUSI & CSI.
- * Conditionally create a corresponding SaAmfCSIAssignment object in IMM.
- * 
- * @param susi
- * @param csi
- * @param comp
- * @param create_in_imm set to true if IMM object (CSI assignment) should be created
- * 
- * @return AVD_COMP_CSI_REL*
+/* creates and adds compCSI structure to the list of compCSI in SUSI. */
+EXTERN_C AVD_COMP_CSI_REL *avd_compcsi_create(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, AVD_CSI *, AVD_COMP *);
+/* deletes and frees all compCSI structure from
+ * the list of compCSI in SUSI.
  */
-extern AVD_COMP_CSI_REL *avd_compcsi_create(struct avd_su_si_rel_tag *susi, AVD_CSI *csi,
-	AVD_COMP *comp, bool create_in_imm);
-
-/**
- * Delete and free the AVD_COMP_CSI_REL structure from the list in SUSI and CSI.
- * Unconditionally delete the corresponding SaAmfCSIAssignment object from IMM.
- * 
- * @param cb
- * @param susi
- * @param ckpt
- * 
- * @return uns32
- */
-extern uns32 avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, NCS_BOOL ckpt);
+EXTERN_C uns32 avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, NCS_BOOL ckpt);
 
 extern SaAisErrorT avd_cstype_config_get(void);
 extern SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si);
 
-extern void avd_si_add_csi_list(AVD_CL_CB *cb, AVD_CSI *csi);
-extern void avd_si_del_csi_list(AVD_CL_CB *cb, AVD_CSI *csi);
+EXTERN_C void avd_si_add_csi_list(AVD_CL_CB *cb, AVD_CSI *csi);
+EXTERN_C void avd_si_del_csi_list(AVD_CL_CB *cb, AVD_CSI *csi);
 extern void avd_csi_constructor(void);
 
 #endif

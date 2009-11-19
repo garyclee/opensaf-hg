@@ -33,7 +33,6 @@
 #include "avsv.h"
 #include "ncs_log.h"
 #include "dta_papi.h"
-#include "avnd.h"
 #include "cla_dl_api.h"
 
 /* Porting Include Files */

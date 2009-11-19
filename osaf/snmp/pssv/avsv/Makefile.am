@@ -55,6 +55,7 @@ libavsv_pssv_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_builddir)/osaf/snmp/mapi/include \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
+	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
 nodist_libavsv_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
