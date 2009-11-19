@@ -19,14 +19,6 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
-   ava_cb.h \
-   ava_def.h \
-   ava_dl_api.h \
-   ava.h \
-   ava_hdl.h \
-   ava_log.h \
-   ava_logstr.h \
-   ava_mds.h \
    avsv_amfparam.h \
    avsv_clmparam.h \
    avsv_d2nedu.h \
@@ -42,12 +34,4 @@ noinst_HEADERS = \
    avsv_n2claedu.h \
    avsv_n2clamsg.h \
    avsv_util.h \
-   cla_cb.h \
-   cla_def.h \
-   cla_dl_api.h \
-   cla.h \
-   cla_hdl.h \
-   cla_log.h \
-   cla_logstr.h \
-   cla_mds.h \
    avsv_nd2ndmsg.h 

@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -18,24 +18,13 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+noinst_HEADERS = \
+   cla_cb.h \
+   cla_def.h \
+   cla_dl_api.h \
+   cla.h \
+   cla_hdl.h \
+   cla_log.h \
+   cla_logstr.h \
+   cla_mds.h
 
-noinst_LTLIBRARIES = libava.la
-
-libava_la_CPPFLAGS = \
-	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
-
-libava_la_LDFLAGS = -static
-
-libava_la_SOURCES = \
-	ava_api.c \
-	ava_hdl.c \
-	ava_init.c \
-	ava_log.c \
-	ava_mds.c \
-	ava_op.c

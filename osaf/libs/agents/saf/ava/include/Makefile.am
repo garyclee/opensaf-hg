@@ -18,24 +18,12 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
-
-noinst_LTLIBRARIES = libava.la
-
-libava_la_CPPFLAGS = \
-	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
-
-libava_la_LDFLAGS = -static
-
-libava_la_SOURCES = \
-	ava_api.c \
-	ava_hdl.c \
-	ava_init.c \
-	ava_log.c \
-	ava_mds.c \
-	ava_op.c
+noinst_HEADERS = \
+   ava_cb.h \
+   ava_def.h \
+   ava_dl_api.h \
+   ava.h \
+   ava_hdl.h \
+   ava_log.h \
+   ava_logstr.h \
+   ava_mds.h
