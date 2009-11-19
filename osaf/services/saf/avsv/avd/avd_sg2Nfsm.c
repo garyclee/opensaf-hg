@@ -54,7 +54,9 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <logtrace.h>
+
+#include <avd.h>
 
 /*****************************************************************************
  * Function: avd_sg_2n_act_susi
@@ -1133,11 +1135,10 @@ uns32 avd_sg_2n_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 
 uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SU *l_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_insvc_func");
-	m_AVD_LOG_RCVD_VAL(((long)su));
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
@@ -1145,23 +1146,24 @@ uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 	 */
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN) {
 		m_AVD_LOG_INVALID_VAL_FATAL(su->sg_of_su->sg_fsm_state);
-		return NCSCC_RC_FAILURE;
+		rc =  NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	/* If the SG FSM state is not stable just return success. */
 	if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if ((l_su = avd_sg_2n_su_chose_asgn(cb, su->sg_of_su)) == NULL) {
 		avd_sg_app_su_inst_func(cb, su->sg_of_su);
 
 		/* all the assignments have already been done in the SG. */
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/* Add the SU to the list and change the FSM state */
@@ -1169,8 +1171,10 @@ uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 
 	m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
-	return NCSCC_RC_SUCCESS;
 
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
  /*****************************************************************************
@@ -2656,27 +2660,24 @@ uns32 avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
 	AVD_SU *l_su;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_realign_func");
-	m_AVD_LOG_RCVD_VAL(((long)sg));
+	TRACE_ENTER2("'%s'", sg->name.value);
 
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 	/* If the SG FSM state is not stable just return success. */
-
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if ((l_su = avd_sg_2n_su_chose_asgn(cb, sg)) == NULL) {
 		/* all the assignments have already been done in the SG. */
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/* Add the SU to the list and change the FSM state */
@@ -2687,6 +2688,8 @@ uns32 avd_sg_2n_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 
+done:
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -3420,12 +3423,11 @@ void avd_sg_2n_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 
 uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_admin_fail");
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)avnd));
+	TRACE_ENTER2("'%s'", su->name.value);
+	TRACE("SG state %u", su->sg_of_su->sg_fsm_state);
 
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 	if ((cb->init_state != AVD_APP_STATE) && (su->sg_of_su->sg_ncs_spec == SA_FALSE)) {
 		return NCSCC_RC_FAILURE;
 	}
@@ -3529,7 +3531,8 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		break;
 	}			/* switch (su->sg_of_su->sg_fsm_state) */
 
-	return NCSCC_RC_SUCCESS;
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /*****************************************************************************

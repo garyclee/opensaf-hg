@@ -39,6 +39,9 @@
  * Module Inclusion Control...
  */
 #include <poll.h>
+
+#include <logtrace.h>
+
 #include <avd.h>
 #include <avd_imm.h>
 #include <avd_cluster.h>
@@ -59,6 +62,45 @@ static void avd_restart(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	/* This function will be defined once we finalise on the shutdown seq */
 }
+
+static char* avd_evt_name[] = {
+	"AVD_EVT_INVALID",
+	"AVD_EVT_NODE_UP_MSG",
+	"AVD_EVT_REG_HLT_MSG",
+	"AVD_EVT_REG_SU_MSG",
+	"AVD_EVT_REG_COMP_MSG",
+	"AVD_EVT_HEARTBEAT_MSG",
+	"AVD_EVT_OPERATION_STATE_MSG",
+	"AVD_EVT_INFO_SU_SI_ASSIGN_MSG",
+	"AVD_EVT_PG_TRACK_ACT_MSG",
+	"AVD_EVT_OPERATION_REQUEST_MSG",
+	"AVD_EVT_DATA_REQUEST_MSG",
+	"AVD_EVT_SHUTDOWN_APP_SU_MSG",
+	"AVD_EVT_VERIFY_ACK_NACK_MSG",
+	"AVD_EVT_COMP_VALIDATION_MSG",
+	"AVD_EVT_TMR_SND_HB",
+	"AVD_EVT_TMR_RCV_HB_D",
+	"AVD_EVT_TMR_RCV_HB_ND",
+	"AVD_EVT_TMR_RCV_HB_INIT",
+	"AVD_EVT_TMR_CL_INIT",
+	"AVD_EVT_TMR_SI_DEP_TOL",
+	"AVD_EVT_MDS_AVD_UP",
+	"AVD_EVT_MDS_AVD_DOWN",
+	"AVD_EVT_MDS_AVND_UP",
+	"AVD_EVT_MDS_AVND_DOWN",
+	"AVD_EVT_MDS_QSD_ACK",
+	"AVD_EVT_INIT_CFG_DONE_MSG",
+	"AVD_EVT_RESTART",
+	"AVD_EVT_ND_SHUTDOWN",
+	"AVD_EVT_ND_FAILOVER",
+	"AVD_EVT_FAULT_DMN_RSP",
+	"AVD_EVT_ND_RESET_RSP",
+	"AVD_EVT_ND_OPER_ST",
+	"AVD_EVT_ROLE_CHANGE",
+	"AVD_EVT_SWITCH_NCS_SU",
+	"AVD_EVT_D_HB",
+	"AVD_EVT_SI_DEP_STATE"
+};
 
 /* list of all the function pointers related to handling the events
  * for active AvD.
@@ -524,7 +566,7 @@ void avd_main_proc(void *null)
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_main_proc");
+	TRACE_ENTER();
 
 	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
 		avd_log(NCSFL_SEV_ERROR, "avd_init_proc failed");
@@ -639,7 +681,7 @@ void avd_main_proc(void *null)
 		}
 
 		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
-
+			TRACE("IMM event rec");
 			error = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ALL);
 
 			/*
@@ -704,9 +746,7 @@ void avd_main_proc(void *null)
 
 static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 {
-	m_AVD_LOG_RCVD_VAL(((long)evt));
-	m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
-	m_AVD_LOG_EVT_INFO(AVD_RCVD_EVENT, evt->rcv_evt);
+	TRACE_ENTER2("%s", avd_evt_name[evt->rcv_evt]);
 
 	/* check the HA state */
 	if (cb_now->role_set == FALSE)
@@ -750,7 +790,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	cb_now->sync_required = TRUE;
 
 	free(evt);
-
+	TRACE_LEAVE2("%s", avd_evt_name[evt->rcv_evt]);
 }
 
 /*****************************************************************************

@@ -46,7 +46,9 @@
 ******************************************************************************
 */
 
-#include "avd.h"
+#include <logtrace.h>
+
+#include <avd.h>
 
 /* static function declarations */
 static uns32 avd_sg_nway_si_assign(AVD_CL_CB *, AVD_SG *);
@@ -614,20 +616,17 @@ uns32 avd_sg_nway_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi,
  **************************************************************************/
 uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_realign_func");
-	m_AVD_LOG_RCVD_VAL(((long)sg));
-
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* If the SG FSM state is not stable just return success. */
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/* initiate si assignments */
@@ -638,6 +637,8 @@ uns32 avd_sg_nway_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	if (sg->sg_fsm_state == AVD_SG_FSM_STABLE)
 		avd_sg_app_su_inst_func(cb, sg);
 
+done:
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

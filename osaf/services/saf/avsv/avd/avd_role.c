@@ -35,11 +35,12 @@
  */
 
 #include <immutil.h>
+#include <logtrace.h>
 
-#include "avd.h"
-#include "avd_imm.h"
-#include "avd_app.h"
-#include "avd_cluster.h"
+#include <avd.h>
+#include <avd_imm.h>
+#include <avd_app.h>
+#include <avd_cluster.h>
 
 #define PRINT_ROLE(role)\
 {\
@@ -72,25 +73,16 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
 \**************************************************************************/
 void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVM_AVD_SYS_CON_ROLE_T *msg = NULL;
+	AVM_AVD_SYS_CON_ROLE_T *msg = &evt->info.avm_msg->avm_avd_msg.role;
 	uns32 status = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_role_change");
-
-	if (evt->info.avm_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		status = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
-	msg = &evt->info.avm_msg->avm_avd_msg.role;
+	TRACE_ENTER2("cause=%u, role=%u", msg->cause, msg->role);
 
 	if ((cb->role_switch == SA_TRUE) && (msg->cause == AVM_ADMIN_SWITCH_OVER)) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->role_switch);
 		m_AVD_LOG_INVALID_VAL_FATAL(msg->cause);
 		avm_avd_free_msg(&evt->info.avm_msg);
-		return;
+		goto done;
 	}
 
 	/* 
@@ -199,6 +191,7 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	avm_avd_free_msg(&evt->info.avm_msg);
+	TRACE_LEAVE2("%u", status);
 	return;
 }
 

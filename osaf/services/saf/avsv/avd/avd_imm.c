@@ -29,6 +29,7 @@
 #include <saImmOm.h>
 #include <saImmOi.h>
 #include <immutil.h>
+#include <logtrace.h>
 
 #include <avd_cb.h>
 #include <avsv_defs.h>
@@ -255,7 +256,7 @@ static void avd_oi_admin_operation_cb(SaImmOiHandleT immoi_handle,
 {
 	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
 
-	avd_trace("%s, op %llu", object_name->value, op_id);
+	TRACE_ENTER2("%s, op %llu", object_name->value, op_id);
 
 	if (admin_op_callback[type] != NULL) {
 		admin_op_callback[type] (immoi_handle, invocation, object_name, op_id, params);
@@ -280,11 +281,14 @@ static void avd_oi_admin_operation_cb(SaImmOiHandleT immoi_handle,
 static SaAisErrorT avd_oi_rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 	const SaNameT *object_name, const SaImmAttrNameT *attribute_names)
 {
+	SaAisErrorT error;
 	AVSV_AMF_CLASS_ID type = object_name_to_class_type(object_name);
 
-	avd_trace("%s", object_name->value);
+	TRACE_ENTER2("%s", object_name->value);
 	assert(rtattr_update_callback[type] != NULL);
-	return rtattr_update_callback[type] (immoi_handle, object_name, attribute_names);
+	error = rtattr_update_callback[type] (immoi_handle, object_name, attribute_names);
+	TRACE_LEAVE2("%u", error);
+	return error;
 }
 
 /*****************************************************************************
@@ -308,7 +312,7 @@ static SaAisErrorT avd_oi_ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *operation;
 
-	avd_trace("CCB ID %llu, class %s, parent %s", ccb_id, class_name, parent_name->value);
+	TRACE_ENTER2("CCB ID %llu, class %s, parent %s", ccb_id, class_name, parent_name->value);
 
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		int i = 0;
@@ -355,7 +359,7 @@ static SaAisErrorT avd_oi_ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccb_util_ccb_data;
 
-	avd_trace("CCB ID %llu, %s", ccb_id, object_name->value);
+	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, object_name->value);
 
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		/* "memorize the request" */
@@ -387,7 +391,7 @@ static SaAisErrorT avd_oi_ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccb_util_ccb_data;
 
-	avd_trace("CCB ID %llu, %s", ccb_id, object_name->value);
+	TRACE_ENTER2("CCB ID %llu, %s", ccb_id, object_name->value);
 
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		/* "memorize the request" */
@@ -423,7 +427,7 @@ static SaAisErrorT avd_oi_ccb_completed_cb(SaImmOiHandleT immoi_handle,
 	CcbUtilOperationData_t *opdata = NULL;
 	AVSV_AMF_CLASS_ID type;
 
-	avd_trace("CCB ID %llu", ccb_id);
+	TRACE_ENTER2("CCB ID %llu", ccb_id);
 
 	/* "check that the sequence of change requests contained in the CCB is
 	   valid and that no errors will be generated when these changes
@@ -484,7 +488,7 @@ static void avd_oi_ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_i
 	CcbUtilOperationData_t *opdata = NULL;
 	AVSV_AMF_CLASS_ID type;
 
-	avd_trace("CCB ID %llu", ccb_id);
+	TRACE_ENTER2("CCB ID %llu", ccb_id);
 
 	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != NULL) {
 		type = object_name_to_class_type(&opdata->objectName);
@@ -524,6 +528,8 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 	SaAisErrorT error = SA_AIS_OK;
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 
+	TRACE_ENTER();
+
 	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
 		avd_log(NCSFL_SEV_ERROR, "saImmOiInitialize failed %u", error);
 		goto done;
@@ -540,6 +546,7 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 	}
 
  done:
+	TRACE_LEAVE2("%u", error);
 	return error;
 }
 
@@ -560,6 +567,8 @@ SaAisErrorT avd_imm_impl_set(void)
 	SaAisErrorT rc = SA_AIS_OK;
 	uns32 i;
 
+	TRACE_ENTER();
+
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, implementerName)) != SA_AIS_OK) {
 		avd_log(NCSFL_SEV_ERROR, "saImmOiImplementerSet failed %u", rc);
 		return rc;
@@ -576,6 +585,7 @@ SaAisErrorT avd_imm_impl_set(void)
 
         avd_cb->impl_set = TRUE;
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -642,7 +652,7 @@ void avd_class_impl_set(const SaImmClassNameT className,
 
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_trace("'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	/* Only create and delete operations are OK */
 	if (opdata->operationType != CCBUTIL_MODIFY) {
@@ -660,6 +670,8 @@ SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata)
 uns32 avd_imm_config_get(void)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
+
+	TRACE_ENTER();
 
 	/*
 	** Get types first since instances are dependent of them.
@@ -721,6 +733,7 @@ done:
 	else
 		avd_log(NCSFL_SEV_ERROR, "Failed to read configuration, AMF will not start");
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
