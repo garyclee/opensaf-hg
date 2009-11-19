@@ -595,6 +595,7 @@ AC_CHECK_FUNCS([ \
 AC_CONFIG_FILES([
         Makefile
         opensaf.spec
+        Doxyfile
         config/script.conf
         java/Makefile
         java/ais_api/Makefile

@@ -237,6 +237,9 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 
+docs:
+	doxygen
+
 clean-local:
 	-rm -f $(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
 if ENABLE_RPM_TARGET
@@ -245,6 +248,7 @@ endif
 
 distclean-local:
 	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
+	-rm -rf docs/
 if ENABLE_SMIDUMP
 	@if [ -f $(top_builddir)/tools/smidump/bin/smidump ]; then \
 		rm -rf $(top_builddir)/tools/smidump/bin; \
