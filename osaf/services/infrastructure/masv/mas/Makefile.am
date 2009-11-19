@@ -27,7 +27,8 @@ ncs_mas_CPPFLAGS = \
 	-DNCS_MAS_RED=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include
+	-I$(top_srcdir)/osaf/libs/common/avsv/include \
+	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include
 
 ncs_mas_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
