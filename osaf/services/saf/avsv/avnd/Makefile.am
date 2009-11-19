@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = include
+
 noinst_LTLIBRARIES = libavnd_ctrl.la libavnd_pld.la
 
 COMMON_SRC = \
@@ -59,6 +61,7 @@ COMMON_CPPFLAGS = \
 	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
+	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
 	-I$(top_builddir)/osaf/snmp/mapi/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include

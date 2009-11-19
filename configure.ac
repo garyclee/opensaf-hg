@@ -800,7 +800,9 @@ AC_CONFIG_FILES([
         osaf/services/saf/avsv/avm/include/Makefile
         osaf/services/saf/avsv/avm/logstr/Makefile
         osaf/services/saf/avsv/avd/Makefile
+        osaf/services/saf/avsv/avd/include/Makefile
         osaf/services/saf/avsv/avnd/Makefile
+        osaf/services/saf/avsv/avnd/include/Makefile
         osaf/services/saf/avsv/pcap/Makefile
         osaf/services/saf/avsv/pcap/scripts/Makefile
         osaf/services/saf/avsv/pcap/scripts/opensaf_pcap_clean

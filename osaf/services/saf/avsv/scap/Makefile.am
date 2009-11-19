@@ -26,8 +26,9 @@ opensaf_scap_CPPFLAGS = \
 	-DNCS_MAC=1 -DNCS_BAM=1 \
 	$(AM_CPPFLAGS) \
 	-DNCS_MAIN_EXTERNAL \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avm/include \
+	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
+	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/bam/include
 
