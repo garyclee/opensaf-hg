@@ -31,6 +31,8 @@
  */
 
 #include <immutil.h>
+#include <logtrace.h>
+
 #include <avd_util.h>
 #include <avd_cluster.h>
 #include <avd_dblog.h>
@@ -66,18 +68,19 @@ void avd_cluster_tmr_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	SaNameT lsg_name;
 	AVD_SG *i_sg;
 
+	TRACE_ENTER();
 	avd_log(NCSFL_SEV_NOTICE, "Cluster startup timeout");
 
 	assert(evt->info.tmr.type == AVD_TMR_CL_INIT);
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		avd_log(NCSFL_SEV_WARNING, "Admin state of cluster is locked");
-		return;
+		goto done;
 	}
 
 	if (cb->init_state != AVD_INIT_DONE) {
 		avd_log(NCSFL_SEV_EMERGENCY, "wrong state %u", cb->init_state);
-		return;
+		goto done;
 	}
 
 	/* change state to application state. */
@@ -119,6 +122,9 @@ void avd_cluster_tmr_init_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			break;
 		}
 	}
+
+done:
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

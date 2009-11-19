@@ -52,7 +52,9 @@
  * Module Inclusion Control...
  */
 
-#include "avd.h"
+#include <logtrace.h>
+
+#include <avd.h>
 
 /*****************************************************************************
  * Function: avd_sg_npm_su_next_asgn
@@ -2616,28 +2618,24 @@ uns32 avd_sg_npm_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *susi, 
 
 uns32 avd_sg_npm_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 {
+	TRACE_ENTER2("'%s'", sg->name.value);
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_npm_realign_func");
-	m_AVD_LOG_RCVD_VAL(((long)sg));
-
-	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 	/* If the SG FSM state is not stable just return success. */
-
 	if ((cb->init_state != AVD_APP_STATE) && (sg->sg_ncs_spec == SA_FALSE)) {
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (sg->sg_fsm_state != AVD_SG_FSM_STABLE) {
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (avd_sg_npm_su_chose_asgn(cb, sg) == NULL) {
 		/* all the assignments have already been done in the SG. */
 		m_AVD_SET_SG_ADJUST(cb, sg, AVSV_SG_STABLE);
 		avd_sg_app_su_inst_func(cb, sg);
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	/*  change the FSM state */
@@ -2647,6 +2645,8 @@ uns32 avd_sg_npm_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	m_AVD_SET_SG_FSM(cb, (sg), AVD_SG_FSM_SG_REALIGN);
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 
+done:
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

@@ -46,6 +46,7 @@
 #include <poll.h>
 #include <saImmOm.h>
 #include <immutil.h>
+#include <logtrace.h>
 #include <avd.h>
 #include <avd_hlt.h>
 #include <avd_imm.h>
@@ -83,6 +84,8 @@ static void avd_hb_proc(uns32 *null)
 	AVD_CL_CB *cb = avd_cb;
 	AVD_EVT *evt;
 	NCS_SEL_OBJ mbx_fd;
+
+	TRACE_ENTER();
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->avd_hb_mbx);
 
@@ -176,6 +179,8 @@ uns32 avd_init_proc(void)
 	int rc = NCSCC_RC_FAILURE;
         SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
 
+	TRACE_ENTER();
+
 	memset(&patricia_params, 0, sizeof(NCS_PATRICIA_PARAMS));
 
 	/* Initialize all the locks and trees in the CB */
@@ -259,6 +264,7 @@ uns32 avd_init_proc(void)
 	rc = NCSCC_RC_SUCCESS;
 
  done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -282,6 +288,8 @@ static uns32 avd_initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	void *avd_task_hdl;
+
+	TRACE_ENTER();
 
 	/* run the class constructors */
 	avd_app_constructor();
@@ -340,6 +348,7 @@ static uns32 avd_initialize(void)
 		return NCSCC_RC_FAILURE;
 	}
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

@@ -58,6 +58,8 @@
 
 #include <stdbool.h>
 #include <immutil.h>
+#include <logtrace.h>
+
 #include <avd.h>
 #include <avd_imm.h>
 
@@ -238,30 +240,20 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_DND_MSG *n2d_msg;
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *avnd;
 	AVD_SU *su, *i_su;
 	SaAmfReadinessStateT old_state;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_su_oper_state_func");
-
-	if (evt->info.avnd_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		return;
-	}
-
-	n2d_msg = evt->info.avnd_msg;
-
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+	TRACE_ENTER2("from %x, '%s' state=%u", n2d_msg->msg_info.n2d_opr_state.node_id,
+		n2d_msg->msg_info.n2d_opr_state.su_name.value,
+		n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG))
 	    == AVD_AVND_NULL) {
 		/* sanity failed return */
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
@@ -270,9 +262,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* log information error that the node is in invalid state */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* 
@@ -292,9 +282,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if ((su = avd_su_find(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
 		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_CRITICAL, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
@@ -302,9 +290,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (su_node_ptr != avnd) {
 		/* log fatal error that the SU is in invalid state */
 		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* Verify that the SU and node oper state is diabled and rcvr is failfast */
@@ -320,9 +306,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 
 		avd_nd_ncs_su_failed(cb, avnd);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* Verify that the SU operation state is disable and do the processing. */
@@ -332,9 +316,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
 			avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
 			avd_nd_ncs_su_failed(cb, avnd);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 		}
 
 		/* If the cluster timer hasnt expired, mark the SU operation state
@@ -384,9 +366,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 												     value,
 												     i_su->name.
 												     length);
-								avsv_dnd_msg_free(n2d_msg);
-								evt->info.avnd_msg = NULL;
-								return;
+								goto done;
 							}
 							break;
 
@@ -402,9 +382,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 												     value,
 												     i_su->name.
 												     length);
-								avsv_dnd_msg_free(n2d_msg);
-								evt->info.avnd_msg = NULL;
-								return;
+								goto done;
 							}
 							break;
 
@@ -420,9 +398,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 												     value,
 												     i_su->name.
 												     length);
-								avsv_dnd_msg_free(n2d_msg);
-								evt->info.avnd_msg = NULL;
-								return;
+								goto done;
 							}
 							break;
 
@@ -438,9 +414,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 												     value,
 												     i_su->name.
 												     length);
-								avsv_dnd_msg_free(n2d_msg);
-								evt->info.avnd_msg = NULL;
-								return;
+								goto done;
 							}
 							break;
 
@@ -457,9 +431,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 												     value,
 												     i_su->name.
 												     length);
-								avsv_dnd_msg_free(n2d_msg);
-								evt->info.avnd_msg = NULL;
-								return;
+								goto done;
 							}
 							break;
 						}
@@ -478,9 +450,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						/* log error about the failure */
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->sg_of_su->name.value,
 										     i_su->sg_of_su->name.length);
-						avsv_dnd_msg_free(n2d_msg);
-						evt->info.avnd_msg = NULL;
-						return;
+						goto done;
 					}
 
 					i_su = i_su->avnd_list_su_next;
@@ -502,9 +472,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -518,9 +486,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -534,9 +500,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -550,9 +514,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 					case SA_AMF_NO_REDUNDANCY_MODEL:
@@ -566,9 +528,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 					}
@@ -587,9 +547,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 					/* log error about the failure */
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->sg_of_su->name.value,
 									     su->sg_of_su->name.length);
-					avsv_dnd_msg_free(n2d_msg);
-					evt->info.avnd_msg = NULL;
-					return;
+					goto done;
 				}
 
 			}	/*else (n2d_msg->msg_info.n2d_opr_state.node_oper_state == NCS_OPER_STATE_DISABLE) */
@@ -618,9 +576,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 										     su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						avsv_dnd_msg_free(n2d_msg);
-						evt->info.avnd_msg = NULL;
-						return;
+						goto done;
 					}
 					break;
 
@@ -635,9 +591,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 										     su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						avsv_dnd_msg_free(n2d_msg);
-						evt->info.avnd_msg = NULL;
-						return;
+						goto done;
 					}
 					break;
 
@@ -652,9 +606,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 										     su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						avsv_dnd_msg_free(n2d_msg);
-						evt->info.avnd_msg = NULL;
-						return;
+						goto done;
 					}
 					break;
 
@@ -670,13 +622,10 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 										     su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
-						avsv_dnd_msg_free(n2d_msg);
-						evt->info.avnd_msg = NULL;
-						return;
+						goto done;
 					}
 					break;
 				}
-
 			}
 			else
 				assert(0);
@@ -700,9 +649,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -716,9 +663,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -732,9 +677,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 
@@ -748,9 +691,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 					case SA_AMF_NO_REDUNDANCY_MODEL:
@@ -764,25 +705,19 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
 											     su->name.length);
-							avsv_dnd_msg_free(n2d_msg);
-							evt->info.avnd_msg = NULL;
-							return;
+							goto done;
 						}
 						break;
 					}
-
 				}
 			}
-			/* if(m_AVD_APP_SU_IS_INSVC(su)) */
-		}		/* else (su->sg_of_su->sg_ncs_spec == SA_TRUE) */
-
+		}
 	}
-	/* else if(n2d_msg->msg_info.n2d_opr_state.su_oper_state == NCS_OPER_STATE_ENABLE) */
+
+done:
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
-
-	return;
-
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -972,13 +907,9 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_SU_SI_REL *susi;
 	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_su_si_assign_func");
+	TRACE_ENTER();
 
-	if (evt->info.avnd_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		return;
-	}
+	assert(evt->info.avnd_msg);
 
 	n2d_msg = evt->info.avnd_msg;
 
@@ -990,7 +921,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	if ((avnd->node_state == AVD_AVND_STATE_ABSENT) ||
@@ -999,9 +930,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* log information error that the node is in invalid state */
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_state);
 		m_AVD_LOG_INVALID_VAL_ERROR(avnd->rcv_msg_id);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* update the receive id count */
@@ -1026,18 +955,14 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		if ((su = avd_su_find(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
 			m_AVD_LOG_INVALID_NAME_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
 						     n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 		}
 
 		if (su->list_of_susi == AVD_SU_SI_REL_NULL) {
 			/* log Info error that the SU mentioned is not in proper state. */
 			m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
 			m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 		}
 
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
@@ -1096,9 +1021,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		default:
 			/* log fatal error that the message is not proper. */
 			m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.msg_act);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 			break;
 		}		/* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
 
@@ -1241,9 +1164,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 							     n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(n2d_msg->msg_info.n2d_su_si_assign.si_name.value,
 							     n2d_msg->msg_info.n2d_su_si_assign.si_name.length);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 		}
 
 		switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) {
@@ -1277,9 +1198,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								     susi->su->name.length);
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
 								     susi->si->name.length);
-				avsv_dnd_msg_free(n2d_msg);
-				evt->info.avnd_msg = NULL;
-				return;
+				goto done;
 			}
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				susi->fsm = AVD_SU_SI_STATE_ASGND;
@@ -1310,9 +1229,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								     susi->su->name.length);
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
 								     susi->si->name.length);
-				avsv_dnd_msg_free(n2d_msg);
-				evt->info.avnd_msg = NULL;
-				return;
+				goto done;
 			}
 
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
@@ -1366,9 +1283,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			/* log fatal error that the message is not proper. */
 			m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.msg_act);
 			m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
+			goto done;
 			break;
 		}		/* switch (n2d_msg->msg_info.n2d_su_si_assign.msg_act) */
 
@@ -1532,6 +1447,9 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
+
+done:
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -1643,7 +1561,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SU *i_su;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_app_su_inst_func");
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	i_su = sg->list_of_su;
 	while (i_su != NULL) {
@@ -1737,6 +1655,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	sg->saAmfSGNumCurrInstantiatedSpareSUs = num_insvc_su - num_asgd_su;
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_SU_SPARE_NUM);
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2403,9 +2322,10 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SG_OPER **i_su_opr;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_su_oper_list_add");
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* Check that the current pointer in the SG is empty and not same as
 	 * the SU to be added.
@@ -2415,14 +2335,13 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 
 		if (!ckpt)
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
-
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	if (su->sg_of_su->su_oper_list.su == su) {
 		/* Log that it is already added return success. */
 		m_AVD_LOG_RCVD_VAL(((long)su));
-		return NCSCC_RC_SUCCESS;
+		goto done;
 	}
 
 	i_su_opr = &su->sg_of_su->su_oper_list.next;
@@ -2430,7 +2349,7 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 		if ((*i_su_opr)->su == su) {
 			/* Log that it is already added return success. */
 			m_AVD_LOG_RCVD_VAL(((long)su));
-			return NCSCC_RC_SUCCESS;
+			goto done;
 		}
 		i_su_opr = &((*i_su_opr)->next);
 	}
@@ -2443,7 +2362,8 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 		m_AVD_LOG_MEM_FAIL_LOC(AVD_SG_OPER_ALLOC_FAILED);
 		m_AVD_LOG_INVALID_VAL_FATAL(((long)su));
 		m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
-		return NCSCC_RC_FAILURE;
+		rc = NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	m_AVD_LOG_RCVD_VAL(((long)(*i_su_opr)));
@@ -2455,7 +2375,9 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 	if (!ckpt)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
 
-	return NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -2641,7 +2563,7 @@ uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state)
 	SaAmfHAStateT old_ha_state = SA_AMF_HA_ACTIVE;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_su_si_mod_snd");
+	TRACE_ENTER2("'%s', state %u", su->name.value, state);
 
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;
@@ -2720,7 +2642,7 @@ uns32 avd_sg_su_si_del_snd(AVD_CL_CB *cb, AVD_SU *su)
 	AVD_SU_SI_REL *i_susi;
 	AVD_SU_SI_STATE old_state = AVD_SU_SI_STATE_ASGN;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_su_si_del_snd");
+	TRACE_ENTER2("'%s'", su->name.value);
 
 	/* change the state for all assignments to the specified state. */
 	i_susi = su->list_of_susi;

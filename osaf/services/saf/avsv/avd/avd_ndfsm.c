@@ -45,6 +45,8 @@
  * Module Inclusion Control...
  */
 
+#include <logtrace.h>
+
 #include <avd.h>
 #include <avd_cluster.h>
 
@@ -96,28 +98,16 @@
 void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = AVD_AVND_NULL;
-	AVD_DND_MSG *n2d_msg;
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	NCS_BOOL comp_sent;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_node_up_func");
-
-	if (evt->info.avnd_msg == NULL) {
-		/* log error that a message contents is missing */
-		m_AVD_LOG_INVALID_VAL_ERROR(0);
-		return;
-	}
-
-	n2d_msg = evt->info.avnd_msg;
-
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
+	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_clm_node_up.node_id);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_clm_node_up.node_id, AVSV_N2D_CLM_NODE_UP_MSG))
 	    == AVD_AVND_NULL) {
 		/* sanity failed return */
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* Check the AvD FSM state process node up only if AvD is in init done or
@@ -128,17 +118,13 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if ((n2d_msg->msg_info.n2d_clm_node_up.node_id != cb->node_id_avd) && (cb->init_state < AVD_INIT_DONE)) {
 		avd_log(NCSFL_SEV_WARNING, "invalid init state (%u), node %x",
 			cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
 		avd_log(NCSFL_SEV_WARNING, "invalid node state %u for node %x",
 			avnd->node_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
-		avsv_dnd_msg_free(n2d_msg);
-		evt->info.avnd_msg = NULL;
-		return;
+		goto done;
 	}
 
 	/* Retrive the information from the message */
@@ -156,10 +142,6 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	avnd->node_info.initialViewNumber = ++(cb->cluster_view_number);
 	avnd->node_info.member = SA_TRUE;
 
-	/* free the received message */
-	avsv_dnd_msg_free(n2d_msg);
-	evt->info.avnd_msg = NULL;
-
 	/* Broadcast the node update to all the node directors only
 	 * those that are up will use the update.
 	 */
@@ -171,8 +153,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * down.
 		 */
 		m_AVD_UNDO_UP_CHNG(cb, avnd);
-
-		return;
+		goto done;
 	}
 
 	/* Identify if this AVND is running on the same node as AVD */
@@ -196,7 +177,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 
 		avd_node_down_func(cb, avnd);
-		return;
+		goto done;
 	}
 
 	/* send the Ack message to the node.
@@ -209,7 +190,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * due to restarting this node
 		 */
 		avd_node_down_func(cb, avnd);
-		return;
+		goto done;
 	}
 
 	/* start the heartbeat timer for node director of non sys
@@ -252,7 +233,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 */
 
 		avd_node_down_func(cb, avnd);
-		return;
+		goto done;
 	}
 
 	/* If component message is sent change state to no config or else skip
@@ -270,7 +251,10 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_UP_INFO);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_CB_CL_VIEW_NUM);
 
-	return;
+done:
+	avsv_dnd_msg_free(n2d_msg);
+	evt->info.avnd_msg = NULL;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

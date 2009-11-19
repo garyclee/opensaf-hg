@@ -16,10 +16,14 @@
  */
 
 #include <stdio.h>
+#include <syslog.h>
+#include <libgen.h>
 
 #include <ncs_main_pvt.h>
 #include <ncs_lib.h>
 #include <ncssysf_sem.h>
+
+#include <logtrace.h>
 
 #include <avd_dl_api.h>
 #include <avnd_dl_api.h>
@@ -34,11 +38,47 @@ static void main_avnd_usr1_signal_hdlr(int sig)
 		m_NCS_SEM_GIVE(avnd_sem);
 }
 
+/**
+ * USR2 signal handler to enable/disable trace (toggle)
+ * @param sig
+ */
+static void sigusr2_handler(int sig)
+{
+	static int category_mask;
+
+	if (category_mask == 0)
+		category_mask = CATEGORY_ALL;
+	else
+		category_mask = 0;
+
+	(void) trace_category_set(category_mask);
+}
+
 int main(int argc, char **argv)
 {
 	uns32 error;
 	NCS_LIB_REQ_INFO lib_create;
 	char *scap_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
+	const char *trace_file;
+
+	if ((trace_file = getenv("SCAP_TRACE_PATHNAME")) != NULL) {
+		char *p;
+
+		if (logtrace_init(basename(argv[0]), trace_file) == 0) {
+			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL) {
+				unsigned int mask = atoi(p);
+				trace_category_set(mask);
+			}
+
+			syslog(LOG_NOTICE, "trace enabled to file %s", trace_file);
+		} else
+			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
+	}
+
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "signal USR2 failed: %s", strerror(errno));
+		goto done;
+	}
 
 	strcpy(gl_nid_svc_name, "SCAP");
 
