@@ -318,6 +318,17 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	cb->clm_node_joined = 1;
 
+	/* Imm Initialization */
+	amf_error = mqnd_imm_initialize(cb);
+	if (amf_error != SA_AIS_OK) {
+		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization  Failed %u\n", amf_error); */
+		mqnd_genlog(NCSFL_SEV_ERROR, "mqnd_imm_initialize Failed: %u \n", amf_error);
+		goto amf_reg_err;
+	}
+
+	/* IMM Declare the Implementor */
+	mqnd_imm_declare_implementer(cb);
+
 	/* Create the task for MQND */
 	if ((rc = m_NCS_TASK_CREATE((NCS_OS_CB)mqnd_main_process,
 				    (NCSCONTEXT)(long)cb->cb_hdl, m_MQND_TASKNAME, m_MQND_TASK_PRI,
@@ -342,17 +353,6 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	/* Bind with ASAPi */
 	mqnd_asapi_bind(cb);
-
-	/* Imm Initialization */
-	amf_error = mqnd_imm_initialize(cb);
-	if (amf_error != SA_AIS_OK) {
-		/* we need to log here (NCSFL_SEV_ERROR, "Imm Initialization  Failed %u\n", amf_error); */
-		mqnd_genlog(NCSFL_SEV_ERROR, "mqnd_imm_initialize Failed: %u \n", amf_error);
-		goto amf_reg_err;
-	}
-
-	/* IMM Declare the Implementor */
-	mqnd_imm_declare_implementer(cb);
 
 	/* Code for No Redundancy Support */
 	/*   start the AMF Health Check  */
@@ -380,19 +380,22 @@ static uns32 mqnd_lib_init(MQSV_CREATE_INFO *info)
 
 	return NCSCC_RC_SUCCESS;
 
- amf_reg_err:
-	mqnd_amf_de_init(cb);
- amf_init_err:
+ amf_hc_start_fail:
 	mqnd_mds_unregister(cb);
- mqnd_clm_fail:
-	saClmFinalize(cb->clm_hdl);
  mqnd_mds_fail:
 	m_NCS_TASK_STOP(cb->task_hdl);
 
  mqnd_task_start_fail:
 	m_NCS_TASK_RELEASE(cb->task_hdl);
-
  mqnd_task_create_fail:
+	/* IMM FInalize. */
+	saImmOiFinalize(cb->immOiHandle);
+ mqnd_clm_fail:
+	saClmFinalize(cb->clm_hdl);
+ clm_init_fail:
+ amf_reg_err:
+	mqnd_amf_de_init(cb);
+ amf_init_err:
 	m_NCS_IPC_DETACH(&cb->mbx, mqnd_clear_mbx, cb);
 
  mqnd_ipc_att_fail:
