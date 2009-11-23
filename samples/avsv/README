@@ -1,0 +1,16 @@
+This directory contains two different AMF component implementations:
+	1) amf_demo.c 
+	2) amf_comp_template.c
+
+amf_demo.c tries to cover all functions in the AMF API and will exit after a few
+health checks to demonstrate fail over. Must be used with the 2N configuration
+file.
+
+amf_comp_template.c on the other hand contains just the skeleton of an AMF
+component. All required callbacks are implemented and responds OK when
+requested. To be used with with any of the configuration files. Use this
+implementation if you are interested in what happens when you do admin operations
+such as lock, lock-instantiation etc on SU or any other level containing the 
+component.
+
+Both implementations will output to the system log (normally /var/log/message).
