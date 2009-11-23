@@ -55,4 +55,6 @@ case "$1" in
 		immfind -c $*
 		;;
 esac
-exit 0
+
+exit $?
+
