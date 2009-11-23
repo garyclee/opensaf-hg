@@ -172,10 +172,8 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	if (FALSE == ckpt) {
 		if (ha_state == SA_AMF_HA_ACTIVE) {
 			su->saAmfSUNumCurrActiveSIs++;
-			si->saAmfSINumCurrActiveAssignments++;
 		} else {
 			su->saAmfSUNumCurrStandbySIs++;
-			si->saAmfSINumCurrStandbyAssignments++;
 		}
 
 		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN)
@@ -189,11 +187,11 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			/* Unassign the SUSI */
 			avd_susi_delete(cb, susi, TRUE);
 			if (ha_state == SA_AMF_HA_ACTIVE) {
+				assert(su->saAmfSUNumCurrActiveSIs > 0);
 				su->saAmfSUNumCurrActiveSIs--;
-				si->saAmfSINumCurrActiveAssignments--;
 			} else {
+				assert(su->saAmfSUNumCurrStandbySIs > 0);
 				su->saAmfSUNumCurrStandbySIs--;
-				si->saAmfSINumCurrStandbyAssignments--;
 			}
 
 			return NCSCC_RC_FAILURE;
@@ -1252,10 +1250,12 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		case AVSV_SUSI_ACT_DEL:
 			/* AvND can force a abrupt removal of assignments */
 			if (susi->state == SA_AMF_HA_STANDBY) {
+				assert(susi->su->saAmfSUNumCurrStandbySIs > 0);
 				susi->su->saAmfSUNumCurrStandbySIs--;
 				m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su, AVSV_CKPT_SU_SI_CURR_STBY);
 			} else {
+				assert(susi->su->saAmfSUNumCurrActiveSIs > 0);
 				susi->su->saAmfSUNumCurrActiveSIs--;
 				m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
@@ -1329,6 +1329,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) {
 							if (susi->su->saAmfSUNumCurrStandbySIs != 0) {
 								susi->su->saAmfSUNumCurrActiveSIs++;
+								assert(susi->su->saAmfSUNumCurrStandbySIs > 0);
 								susi->su->saAmfSUNumCurrStandbySIs--;
 								m_AVD_SI_INC_ACTV_CURR_SU(susi->si);
 								m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
@@ -1339,6 +1340,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						} else if (n2d_msg->msg_info.n2d_su_si_assign.ha_state ==
 							   SA_AMF_HA_STANDBY) {
 							susi->su->saAmfSUNumCurrStandbySIs++;
+							assert(susi->su->saAmfSUNumCurrActiveSIs > 0);
 							susi->su->saAmfSUNumCurrActiveSIs--;
 							m_AVD_SI_INC_STDBY_CURR_SU(susi->si);
 							m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
