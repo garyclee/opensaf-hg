@@ -47,59 +47,75 @@ adm_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
 
+	if [ -z "$val" ]; then
+		exit 1
+	fi
+
 	echo -n "	$1="
-    if [ "$val" == "<Empty>" ]; then
-        echo $val
-    elif [ $val -eq 1 ]; then
-        echo "UNLOCKED(1)"
-    elif [ $val -eq 2 ]; then
-        echo "LOCKED(2)"
-    else
-        echo "UNKNOWN($val)"
-    fi
+	if [ "$val" == "<Empty>" ]; then
+		echo $val
+	elif [ $val -eq 1 ]; then
+		echo "UNLOCKED(1)"
+	elif [ $val -eq 2 ]; then
+		echo "LOCKED(2)"
+	else
+		echo "UNKNOWN($val)"
+	fi
 }
 
 ha_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
 
+	if [ -z "$val" ]; then
+		exit 1
+	fi
+
 	echo -n "	$1="
-    if [ $val -eq 1 ]; then
-        echo "ACTIVE(1)"
-    elif [ $val -eq 2 ]; then
-        echo "STANDBY(2)"
-    elif [ $val -eq 3 ]; then
-        echo "QUIESCED(3)"
-    elif [ $val -eq 3 ]; then
-        echo "QUIESCING(4)"
-    else
-        echo "UNKNOWN($hastate)"
-    fi
+	if [ $val -eq 1 ]; then
+		echo "ACTIVE(1)"
+	elif [ $val -eq 2 ]; then
+		echo "STANDBY(2)"
+	elif [ $val -eq 3 ]; then
+		echo "QUIESCED(3)"
+	elif [ $val -eq 3 ]; then
+		echo "QUIESCING(4)"
+	else
+		echo "UNKNOWN($hastate)"
+	fi
 }
 
 ha_readiness_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
 
+	if [ -z "$val" ]; then
+		exit 1
+	fi
+
 	echo -n "	$state="
-    if [ "$val" == "<Empty>" ]; then
-        echo $val
-    elif [ $val -eq 1 ]; then
-        echo "READY_FOR_ASSIGNMENT(1)"
-    elif [ $val -eq 2 ]; then
-        echo "READY_FOR_ACTIVE_DEGRADED(2)"
-    elif [ $val -eq 3 ]; then
-        echo "NOT_READY_FOR_ACTIVE(3)"
+	if [ "$val" == "<Empty>" ]; then
+		echo $val
+	elif [ $val -eq 1 ]; then
+		echo "READY_FOR_ASSIGNMENT(1)"
+	elif [ $val -eq 2 ]; then
+		echo "READY_FOR_ACTIVE_DEGRADED(2)"
+	elif [ $val -eq 3 ]; then
+		echo "NOT_READY_FOR_ACTIVE(3)"
 	elif [ $val -eq 4 ]; then
 		echo "NOT_READY_FOR_ASSIGNMENT(4)"
-    else
-        echo "UNKNOWN($val)"
-    fi
+	else
+		echo "UNKNOWN($val)"
+	fi
 }
 
 pres_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
+
+	if [ -z "$val" ]; then
+		exit 1
+	fi
 
 	echo -n "	$state="
 	if [ "$val" == "<Empty>" ]; then
@@ -127,34 +143,42 @@ oper_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
 
+	if [ -z "$val" ]; then
+		exit 1
+	fi
+
 	echo -n "	$1="
-    if [ "$val" == "<Empty>" ]; then
-        echo $val
-    elif [ $val -eq 1 ]; then
-        echo "ENABLED(1)"
-    elif [ $val -eq 2 ]; then
-        echo "DISABLED(2)"
-    else
-        echo "UNKNOWN($val)"
-    fi
+	if [ "$val" == "<Empty>" ]; then
+		echo $val
+	elif [ $val -eq 1 ]; then
+		echo "ENABLED(1)"
+	elif [ $val -eq 2 ]; then
+		echo "DISABLED(2)"
+	else
+		echo "UNKNOWN($val)"
+	fi
 }
 
 readiness_state()
 {
 	local val=`immlist -a $1 $2 | cut -d = -f2`
 
+	if [ -z "$val" ]; then
+		exit 1
+	fi
+
 	echo -n "	$state="
-    if [ "$val" == "<Empty>" ]; then
-        echo $val
-    elif [ $val -eq 1 ]; then
-        echo "OUT-OF-SERVICE(1)"
-    elif [ $val -eq 2 ]; then
-        echo "IN-SERVICE(2)"
-    elif [ $val -eq 3 ]; then
-        echo "STOPPING(3)"
-    else
-        echo "UNKNOWN($val)"
-    fi
+	if [ "$val" == "<Empty>" ]; then
+		echo $val
+	elif [ $val -eq 1 ]; then
+		echo "OUT-OF-SERVICE(1)"
+	elif [ $val -eq 2 ]; then
+		echo "IN-SERVICE(2)"
+	elif [ $val -eq 3 ]; then
+		echo "STOPPING(3)"
+	else
+		echo "UNKNOWN($val)"
+	fi
 }
 
 app_state()
