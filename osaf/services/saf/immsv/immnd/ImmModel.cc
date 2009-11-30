@@ -3118,10 +3118,8 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             }
             
             if((attr->mFlags & SA_IMM_ATTR_RUNTIME)&& 
-                !(isLoading && 
-                    (attr->mFlags & SA_IMM_ATTR_PERSISTENT))) {
-                //*** Reject non-persistent rt attributes from 
-                //being loaded.
+                !(attr->mFlags & SA_IMM_ATTR_PERSISTENT)) {
+                // *** Reject non-persistent rt attributes from created over OM API.
                 LOG_NO("ERR_INVALID_PARAM: attr '%s' is a runtime attribute => "
                     "can not be assigned over OM-API.", 
                     attrName.c_str());
