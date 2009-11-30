@@ -36,7 +36,23 @@ AC_SUBST([OPENSAF_BUGREPORT])
 AC_SUBST([ac_configure_args])
 
 
-#
+# Check if rpath is disabled
+AC_MSG_CHECKING(whether to use rpath)
+AC_ARG_ENABLE(rpath,
+	[AC_HELP_STRING([--disable-rpath],
+			[Patches libtool to not use rpath in the libraries produced.])],
+	[osaf_cv_rpath="$enable_rpath"], [osaf_cv_rpath="yes"])
+AC_MSG_RESULT($osaf_cv_rpath)
+
+# Patch libtool to not use rpath if requested.
+if test "$osaf_cv_rpath" = "no"; then
+ AC_MSG_RESULT([Patching libtool to not use rpath.])
+ sed < libtool > libtool-2 \
+   's/^hardcode_libdir_flag_spec.*$'/'hardcode_libdir_flag_spec=" -D__LIBTOOL_NO_RPATH__ "/'
+ mv libtool-2 libtool
+ chmod 755 libtool
+fi
+
 # The RPM spec file has a container for the package release number (default to
 # one), it is possible to customize that value with this configure option.
 #
