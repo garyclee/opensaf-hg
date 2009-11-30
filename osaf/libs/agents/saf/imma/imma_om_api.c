@@ -5299,6 +5299,12 @@ SaAisErrorT saImmOmSearchInitialize_2(SaImmHandleT immHandle,
 			goto release_lock;
 		}
 
+		if(attributeNames && (!(searchOptions & SA_IMM_SEARCH_GET_SOME_ATTR))) {
+			TRACE_2("ERR_IVALID_PARAM: attributeNames != NULL yet searchOptions set to IMM_SEARCH_GET_SOME_ATTR");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto release_lock;
+		}
+
 		/*Create search-node & handle   */
 		search_node = (IMMA_SEARCH_NODE *)
 		    calloc(1, sizeof(IMMA_SEARCH_NODE));
