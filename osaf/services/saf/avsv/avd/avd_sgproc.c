@@ -1496,28 +1496,38 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
            SI could be assigned to SU successfully if there was any. The operation failed if
            AvND encountered error while assigning/unassigning SI to the SU. */
 
-	if ( su == NULL )
-		su = susi->su;
+        su = avd_su_find(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
 
-	if ( su != NULL ) {
-		if ( su->pend_cbk.invocation != 0) {
-			if ( (su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ) {
-				if ( (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) )
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
-				else if ( n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS )
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
-				/* else lock is still not complete so don't send result. */
-			} else if ( su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK ) {
-				if ( ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
-				     (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) )
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
-				else
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
-			}
-			su->pend_cbk.invocation = 0;
-			su->pend_cbk.admin_oper = 0;
-		}
-	}
+        if ( su != NULL ) {
+                if ( su->pend_cbk.invocation != 0) {
+              	  if ( (su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ) {
+                          if ( (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) ) {
+                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+                                    su->pend_cbk.invocation = 0;
+                                    su->pend_cbk.admin_oper = 0;
+                                    }
+                                else if ( n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS ) {
+                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
+                                    su->pend_cbk.invocation = 0;
+                                    su->pend_cbk.admin_oper = 0;
+                                    }
+                                /* else lock is still not complete so don't send result. */
+                             }
+                          else if ( su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK ) {
+                                if ( ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
+                                     (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) ) {
+                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+                                    su->pend_cbk.invocation = 0;
+                                    su->pend_cbk.admin_oper = 0;
+                                    }
+                                else {
+                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+                                    su->pend_cbk.invocation = 0;
+                                    su->pend_cbk.admin_oper = 0;
+                                    }
+                             }
+                }
+        }
 
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);
