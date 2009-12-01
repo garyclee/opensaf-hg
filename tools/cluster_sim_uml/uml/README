@@ -37,7 +37,8 @@ system. This concept is called a shadow root, see below.
 
 DIRECTORY STRUCTURE
 
-archive   This directory contains linux and busybox downloads.
+$ARCHIVE  This directory contains linux and busybox downloads
+          (./archive/ used as default).
 
 bin	  This direcory contains the UML binary and a few scripts.
 
@@ -50,10 +51,14 @@ root_template	This directory contains the template for building initramfs
 
 HOW TO BUILD
 
-- Execute 'build_uml' in this directory or in the parent directory.
+- Execute './build_uml all' in this directory or './build_uml' in the
+parent directory.
 
 Building means downloading, configuring & building kernel and busybox packages
 from the internet.
+
+Files are downloaded to the directory pointed out by the $ARCHIVE
+variable, or to "./archive" if not defined.
 
 Files created are removed by 'clean_uml'. Downloaded files are
 removed manually by deleting them from the archive.

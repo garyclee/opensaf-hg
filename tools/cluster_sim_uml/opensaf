@@ -65,7 +65,7 @@ cluster_start() {
     # Start network if necessary
     if ! pgrep -U $uid uml_switch > /dev/null; then
         xterm -iconic -geometry 60x8-0+110 \
-            -T UML-network -e $UML_DIR/bin/uml_switch -unix /tmp/uml-${uid}.ctl &
+            -T UML-network -e $UML_DIR/bin/uml_switch -unix /tmp/uml-${uid}.ctl $tap &
         echo $! >> $PIDFILEDIR/uml_pids
     fi
 
