@@ -97,7 +97,7 @@ uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_update_msg");
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -246,7 +246,7 @@ uns32 avd_snd_node_ack_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_ack_msg");
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -310,7 +310,7 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_data_verify_msg");
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -375,13 +375,13 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *i_avnd = AVD_AVND_NULL;
+	AVD_AVND *i_avnd = NULL;
 	SaClmNodeIdT i_nodeid = 0;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_info_on_fover_msg");
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -406,7 +406,7 @@ uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* put all the other nodes in the clusters information into the message.
 	 */
-	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != AVD_AVND_NULL) {
+	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != NULL) {
 		i_nodeid = i_avnd->node_info.nodeId;
 
 		if (i_avnd->node_info.member != SA_TRUE)
@@ -458,13 +458,13 @@ uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 {
 	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *i_avnd = AVD_AVND_NULL;
+	AVD_AVND *i_avnd = NULL;
 	SaClmNodeIdT i_nodeid = 0;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_up_msg");
 
 	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the node record
 		 * needs to be mentioned.
 		 */
@@ -492,7 +492,7 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 
 	/* put all the other nodes in the clusters information into the message.
 	 */
-	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != AVD_AVND_NULL) {
+	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != NULL) {
 		i_nodeid = i_avnd->node_info.nodeId;
 
 		if (i_avnd->node_info.member != SA_TRUE)
@@ -597,7 +597,7 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_oper_state_msg");
 
 	/* Verify if the node structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the avnd record
 		 * needs to be mentioned.
 		 */
@@ -786,7 +786,7 @@ uns32 avd_snd_op_req_msg(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_PARAM_INFO *param_i
 	op_req_msg->msg_type = AVSV_D2N_OPERATION_REQUEST_MSG;
 	memcpy(&op_req_msg->msg_info.d2n_op_req.param_info, param_info, sizeof(AVSV_PARAM_INFO));
 
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This means the message needs to be broadcasted to
 		 * all the nodes.
 		 */
@@ -1643,7 +1643,7 @@ uns32 avd_snd_shutdown_app_su_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_shutdown_app_su_msg");
 
 	/* Verify if the node structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the avnd record
 		 * needs to be mentioned.
 		 */
@@ -1898,7 +1898,7 @@ uns32 avd_snd_set_leds_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	m_AVD_LOG_FUNC_ENTRY("avd_snd_set_leds_msg");
 
 	/* Verify if the node structure pointer is valid. */
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* This is a invalid situation as the avnd record
 		 * needs to be mentioned.
 		 */

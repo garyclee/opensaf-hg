@@ -3241,6 +3241,13 @@
 			<value>safNode=SC_2_1,safCluster=myClmCluster</value>
 		</attr>
 	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=Osaf,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxLIBDIRxx</value>
+		</attr>
+	</object>
 	<object class="SaAmfSU">
 		<dn>safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
 		<attr>
@@ -3487,6 +3494,13 @@
 			<value>safNode=SC_2_2,safCluster=myClmCluster</value>
 		</attr>
 	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=Osaf,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxLIBDIRxx</value>
+		</attr>
+	</object>
 	<object class="SaAmfSU">
 		<dn>safSu=SC_2_2,safSg=NoRed,safApp=OpenSAF</dn>
 		<attr>
@@ -3722,6 +3736,13 @@
 			<value>safNode=PL_2_3,safCluster=myClmCluster</value>
 		</attr>
 	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=Osaf,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxLIBDIRxx</value>
+		</attr>
+	</object>
 	<object class="SaAmfSU">
 		<dn>safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
 		<attr>
@@ -3853,6 +3874,13 @@
 			<value>safNode=PL_2_4,safCluster=myClmCluster</value>
 		</attr>
 	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=Osaf,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxLIBDIRxx</value>
+		</attr>
+	</object>
 	<object class="SaAmfSU">
 		<dn>safSu=PL_2_4,safSg=NoRed,safApp=OpenSAF</dn>
 		<attr>
@@ -3982,6 +4010,13 @@
 		<attr>
 			<name>saAmfNodeClmNode</name>
 			<value>safNode=PL_2_5,safCluster=myClmCluster</value>
+		</attr>
+	</object>
+	<object class="SaAmfNodeSwBundle">
+		<dn>safInstalledSwBundle=Osaf,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
+		<attr>
+			<name>saAmfNodeSwBundlePathPrefix</name>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">

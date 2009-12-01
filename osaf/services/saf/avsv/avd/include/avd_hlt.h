@@ -35,5 +35,6 @@
 #define AVD_HLT_H
 
 extern void avd_hc_constructor(void);
+extern void avd_hctype_constructor(void);
 
 #endif

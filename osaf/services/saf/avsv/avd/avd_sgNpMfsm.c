@@ -3630,10 +3630,10 @@ uns32 avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 
 			/* this is a active SU. */
 			if ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-			    ((avnd != AVD_AVND_NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
+			    ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
 				/* change the state for all assignments to quiesced. */
 				rc = avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED);
-			} else if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) || ((avnd != AVD_AVND_NULL)
+			} else if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) || ((avnd != NULL)
 											     &&
 											     (avnd->saAmfNodeAdminState
 											      ==
@@ -3677,7 +3677,7 @@ uns32 avd_sg_npm_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		if ((su->sg_of_su->su_oper_list.su == su) &&
 		    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-		     ((avnd != AVD_AVND_NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
+		     ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
 			/* If the SU is in the operation list and the SU admin state is lock.
 			 * send D2N-INFO_SU_SI_ASSIGN modify quiesced message to the SU. 
 			 */

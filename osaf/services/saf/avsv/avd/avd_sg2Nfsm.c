@@ -182,7 +182,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	NCS_BOOL l_flag = TRUE;
 	AVD_SU_SI_REL *tmp_susi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_su_chose_asgn");
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	a_susi = avd_sg_2n_act_susi(cb, sg, &s_susi);
 
@@ -201,7 +201,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 
 		if (a_su == NULL) {
-			/* No in service SUs available in the SG. */
+			TRACE("No in service SUs available in the SG");
 			return NULL;
 		}
 	} else {		/* if (a_susi == AVD_SU_SI_REL_NULL) */
@@ -210,7 +210,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	if (a_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) {
-		/* The current active SU is OOS so return */
+		TRACE("The current active SU is OOS so return");
 		return NULL;
 	}
 
@@ -266,7 +266,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 		}
 
 		if (s_su == NULL) {
-			/* No in service SUs available in the SG, that can be made standby. */
+			TRACE("No in service SUs available in the SG, that can be made standby");
 			return NULL;
 		}
 	} else {		/* if (s_susi == AVD_SU_SI_REL_NULL) */
@@ -275,7 +275,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	}
 
 	if (s_su->saAmfSuReadinessState != SA_AMF_READINESS_IN_SERVICE) {
-		/* The current standby SU is OOS so return */
+		TRACE("The current standby SU is OOS so return");
 		return NULL;
 	}
 
@@ -318,6 +318,7 @@ static AVD_SU *avd_sg_2n_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	/* If we are here it means no new assignments have been done so just 
 	 * return NULL
 	 */
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -1138,14 +1139,12 @@ uns32 avd_sg_2n_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SU *l_su;
 
-	TRACE_ENTER2("'%s'", su->name.value);
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
 	if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_ADMIN) {
-		m_AVD_LOG_INVALID_VAL_FATAL(su->sg_of_su->sg_fsm_state);
+		LOG_ER("Wrong sg fsm state %u", su->sg_of_su->sg_fsm_state);
 		rc =  NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -3435,7 +3434,7 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 	switch (su->sg_of_su->sg_fsm_state) {
 	case AVD_SG_FSM_STABLE:
 		if ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-		    ((avnd != AVD_AVND_NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
+		    ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED))) {
 			if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 				/* this is a active SU. */
 				/* change the state for all assignments to quiesced. */
@@ -3470,7 +3469,7 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		}		/* if ((su->admin_state == NCS_ADMIN_STATE_LOCK) ||
 				   ((avnd != AVD_AVND_NULL) && (avnd->su_admin_state == NCS_ADMIN_STATE_LOCK))) */
 		else if ((su->saAmfSUAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) ||
-			 ((avnd != AVD_AVND_NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))) {
+			 ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN))) {
 			if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
 				/* this is a active SU. */
 				/* change the state for all assignments to quiesceing. */
@@ -3510,7 +3509,7 @@ uns32 avd_sg_2n_su_admin_fail(AVD_CL_CB *cb, AVD_SU *su, AVD_AVND *avnd)
 		if ((su->sg_of_su->su_oper_list.su == su) &&
 		    (su->list_of_susi->state == SA_AMF_HA_QUIESCING) &&
 		    ((su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED) ||
-		     ((avnd != AVD_AVND_NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
+		     ((avnd != NULL) && (avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED)))) {
 			/* If the SU is in the operation list and the SU admin state is lock.
 			 * send D2N-INFO_SU_SI_ASSIGN modify quiesced message to the SU. 
 			 */

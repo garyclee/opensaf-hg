@@ -567,6 +567,7 @@ void avd_main_proc(void *null)
 	SaAisErrorT error = SA_AIS_OK;
 
 	TRACE_ENTER();
+	avd_log(NCSFL_SEV_NOTICE, "starting...");
 
 	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
 		avd_log(NCSFL_SEV_ERROR, "avd_init_proc failed");

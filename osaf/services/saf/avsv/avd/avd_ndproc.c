@@ -74,7 +74,7 @@
  **************************************************************************/
 AVD_AVND *avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt, SaClmNodeIdT node_id, AVSV_DND_MSG_TYPE msg_typ)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_msg_sanity_chk");
 
@@ -98,7 +98,7 @@ AVD_AVND *avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt, SaClmNodeIdT node_id, 
 		return avnd;
 	}
 
-	if ((avnd = avd_node_find_nodeid(node_id)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(node_id)) == NULL) {
 		avd_log(NCSFL_SEV_ERROR, "invalid node ID (%x)", node_id);
 		return avnd;
 	}
@@ -134,7 +134,7 @@ void avd_reg_su_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		n2d_msg->msg_info.n2d_reg_su.su_name.value);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_reg_su.node_id, AVSV_N2D_REG_SU_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -238,7 +238,7 @@ void avd_reg_comp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_reg_comp.node_id, AVSV_N2D_REG_COMP_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -372,7 +372,7 @@ void avd_oper_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_op_req.node_id);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_op_req.node_id, AVSV_N2D_OPERATION_REQUEST_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -455,7 +455,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_data_req.node_id);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_data_req.node_id, AVSV_N2D_DATA_REQUEST_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -493,7 +493,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	switch (n2d_msg->msg_info.n2d_data_req.param_info.class_id) {
 	case AVSV_SA_AMF_COMP: {
 		/* Find the component record in the database, specified in the message. */
-		if ((comp = avd_comp_find(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
+		if ((comp = avd_comp_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
 			avd_log(NCSFL_SEV_ERROR, "Invalid Comp '%s' (%u)",
 				n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 				n2d_msg->msg_info.n2d_data_req.param_info.name.length);
@@ -576,7 +576,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 	case AVSV_SA_AMF_SU: {
 		/* Find the component record in the database, specified in the message. */
-		if ((su = avd_su_find(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
+		if ((su = avd_su_get(&n2d_msg->msg_info.n2d_data_req.param_info.name)) == NULL) {
 			avd_log(NCSFL_SEV_ERROR, "Invalid SU '%s' (%u)",
 				n2d_msg->msg_info.n2d_data_req.param_info.name.value,
 				n2d_msg->msg_info.n2d_data_req.param_info.name.length);
@@ -686,7 +686,7 @@ void avd_comp_validation_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	valid_info = &n2d_msg->msg_info.n2d_comp_valid_info;
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, valid_info->node_id, AVSV_N2D_COMP_VALIDATION_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -706,7 +706,7 @@ void avd_comp_validation_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* Update the receive id for the node */
 	m_AVD_SET_AVND_RCV_ID(cb, avnd, (valid_info->msg_id));
 
-	comp_ptr = avd_comp_find(&valid_info->comp_name);
+	comp_ptr = avd_comp_get(&valid_info->comp_name);
 
 	if (NULL != comp_ptr) {
 		/* We found the component, reply to AvND. */

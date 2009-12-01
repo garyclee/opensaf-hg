@@ -133,25 +133,10 @@ typedef struct avd_su_tag {
 	struct avd_su_tag *avnd_list_su_next;	/* the next SU in the AvND */
 	struct avd_su_tag *su_list_sg_next;
 	struct avd_sg_tag *su_on_sg;
-	struct avd_amf_su_type_tag *su_on_su_type;
+	struct avd_sutype *su_on_su_type;
 	struct avd_su_tag *su_list_su_type_next;
 
 } AVD_SU;
-
-typedef struct avd_amf_su_type_tag {
-
-	NCS_PATRICIA_NODE tree_node;	/* key will be su type name */
-	SaNameT su_type_name;
-
-   /******************** B.04 model *************************************************/
-	SaUint32T saAmfSutIsExternal;
-	SaUint32T saAmfSutDefSUFailover;
-	SaNameT *saAmfSutProvidesSvcTypes;	/* array of DNs, size in number_svc_types */
-   /******************** B.04 model *************************************************/
-	uns32 number_svc_types;	/* size of array saAmfSutProvidesSvcTypes */
-	struct avd_su_tag *list_of_su;
-
-} AVD_SU_TYPE;
 
 typedef struct {
 	NCS_PATRICIA_NODE tree_node;	/* key is name */
@@ -186,26 +171,96 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_SU_SWITCH);\
  if(TRUE == i_su->su_is_external) su_node_ptr = avd_cb->ext_comp_info.local_avnd_node; \
  else su_node_ptr = i_su->su_on_node;
 
-extern AVD_SU *avd_su_create(const SaNameT *su_name, const SaImmAttrValuesT_2 **attributes);
-extern void avd_su_delete(AVD_SU* su);
-extern AVD_SU *avd_su_find(const SaNameT *su_name);
-extern AVD_SU *avd_su_getnext(const SaNameT *su_name);
-extern void avd_su_del_comp(struct avd_comp_tag *comp);
+/**
+ * Allocate SU memory and initialize attributes to defaults
+ * @param dn
+ * 
+ * @return AVD_SU*
+ */
+extern AVD_SU *avd_su_new(const SaNameT *dn);
+
+/**
+ * Free SU memory and set SU ptr to NULL
+ * @param su
+ */
+extern void avd_su_delete(AVD_SU **su);
+
+/**
+ * Add SU to SU DB.
+ * @param su
+ */
+extern void avd_su_db_add(AVD_SU *su);
+
+/**
+ * Remove SU from SU DB
+ * @param su
+ */
+extern void avd_su_db_remove(AVD_SU *su);
+
+/**
+ * Get SU object from DB using given key
+ * 
+ * @param dn
+ * 
+ * @return struct AVD_SU*
+ */
+extern AVD_SU *avd_su_get(const SaNameT *dn);
+
+/**
+ * Get next SU object from DB using given key
+ * 
+ * @param dn
+ * 
+ * @return struct AVD_SU*
+ */
+extern AVD_SU *avd_su_getnext(const SaNameT *dn);
+
+extern void avd_su_remove_comp(struct avd_comp_tag *comp);
 extern void avd_su_add_comp(struct avd_comp_tag *comp);
 
 EXTERN_C void avd_su_add_sg_list(AVD_CL_CB *cb, AVD_SU *su);
 EXTERN_C void avd_su_del_sg_list(AVD_CL_CB *cb, AVD_SU *su);
 EXTERN_C void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su);
 EXTERN_C void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg);
+
+/**
+ * Get SUs from IMM and create internal objects
+ * 
+ * @return SaAisErrorT
+ */
 extern SaAisErrorT avd_su_config_get(const SaNameT *sg_name, struct avd_sg_tag *sg);
-extern SaAisErrorT avd_sutype_config_get(void);
+
 extern void avd_su_pres_state_set(AVD_SU *su, SaAmfPresenceStateT pres_state);
 extern void avd_su_oper_state_set(AVD_SU *su, SaAmfOperationalStateT oper_state);
 extern void avd_su_readiness_state_set(AVD_SU *su, SaAmfReadinessStateT readiness_state);
 extern void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state);
-extern AVD_SU_TYPE *avd_sutype_find(const SaNameT *su_type_name);
 
-extern AVD_SUTCOMP_TYPE *avd_sutcomptype_find(const SaNameT *sutcomptype_name);
-
+/**
+ * Class constructor, must be called before any other function
+ */
 extern void avd_su_constructor(void);
+
+/**
+ * Get SaAmfSutCompType object from DB using given key
+ * 
+ * @param dn
+ * 
+ * @return AVD_SUTCOMP_TYPE*
+ */
+extern AVD_SUTCOMP_TYPE *avd_sutcomptype_get(const SaNameT *dn);
+
+/**
+ * Get configuration for all SaAmfSutCompType objects from IMM and
+ * create AVD internal objects.
+ * @param cb
+ * 
+ * @return int
+ */
+extern SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *sut);
+
+/**
+ * Class constructor, must be called before any other function
+ */
+extern void avd_sutcomptype_constructor(void);
+
 #endif

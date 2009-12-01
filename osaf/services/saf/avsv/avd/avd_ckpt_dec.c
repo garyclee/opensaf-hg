@@ -1221,7 +1221,7 @@ static uns32 avsv_decode_ckpt_sg_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1265,7 +1265,7 @@ static uns32 avsv_decode_ckpt_sg_su_assigned_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1310,7 +1310,7 @@ static uns32 avsv_decode_ckpt_sg_su_spare_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1355,7 +1355,7 @@ static uns32 avsv_decode_ckpt_sg_su_uninst_num(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1400,7 +1400,7 @@ static uns32 avsv_decode_ckpt_sg_adjust_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1445,7 +1445,7 @@ static uns32 avsv_decode_ckpt_sg_fsm_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (sg_struct = avd_sg_find(&sg_ptr->name)))
+	if (NULL == (sg_struct = avd_sg_get(&sg_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1490,7 +1490,7 @@ static uns32 avsv_decode_ckpt_su_preinstan(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1535,7 +1535,7 @@ static uns32 avsv_decode_ckpt_su_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1580,7 +1580,7 @@ static uns32 avsv_decode_ckpt_su_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1625,7 +1625,7 @@ static uns32 avsv_decode_ckpt_su_rediness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1670,7 +1670,7 @@ static uns32 avsv_decode_ckpt_su_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1715,7 +1715,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1759,7 +1759,7 @@ static uns32 avsv_decode_ckpt_su_si_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1804,7 +1804,7 @@ static uns32 avsv_decode_ckpt_su_term_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1848,7 +1848,7 @@ static uns32 avsv_decode_ckpt_su_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1893,7 +1893,7 @@ static uns32 avsv_decode_ckpt_su_act_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (su_struct = avd_su_find(&su_ptr->name)))
+	if (NULL == (su_struct = avd_su_get(&su_ptr->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1938,7 +1938,7 @@ static uns32 avsv_decode_ckpt_si_admin_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *de
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -1983,7 +1983,7 @@ static uns32 avsv_decode_ckpt_si_assignment_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DE
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2028,7 +2028,7 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2073,7 +2073,7 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2118,7 +2118,7 @@ static uns32 avsv_decode_ckpt_si_switch(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec)
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_find(&si_ptr_dec->name)))
+	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2164,7 +2164,7 @@ static uns32 avsv_decode_ckpt_comp_proxy_comp_name(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 	if (status != NCSCC_RC_SUCCESS)
 		assert(0);
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name)))
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
@@ -2210,7 +2210,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_actv(AVD_CL_CB *cb, NCS_MBCSV_CB
 	if (status != NCSCC_RC_SUCCESS)
 		assert(0);
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2262,7 +2262,7 @@ static uns32 avsv_decode_ckpt_comp_curr_num_csi_stby(AVD_CL_CB *cb, NCS_MBCSV_CB
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2314,7 +2314,7 @@ static uns32 avsv_decode_ckpt_comp_oper_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2366,7 +2366,7 @@ static uns32 avsv_decode_ckpt_comp_readiness_state(AVD_CL_CB *cb, NCS_MBCSV_CB_D
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2418,7 +2418,7 @@ static uns32 avsv_decode_ckpt_comp_pres_state(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;
@@ -2470,7 +2470,7 @@ static uns32 avsv_decode_ckpt_comp_restart_count(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC
 		return status;
 	}
 
-	if (NULL == (comp_struct = avd_comp_find(&comp_ptr->comp_info.name))) {
+	if (NULL == (comp_struct = avd_comp_get(&comp_ptr->comp_info.name))) {
 		/* Log Error */
 		m_AVD_LOG_INVALID_VAL_FATAL(dec->i_reo_type);
 		return NCSCC_RC_FAILURE;

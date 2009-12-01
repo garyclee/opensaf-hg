@@ -16,20 +16,6 @@
  *
  */
 
-/*****************************************************************************
-  DESCRIPTION: This module deals with the creation, accessing and deletion of
-  the Cluster database on the AVD.
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
 #include <immutil.h>
 #include <logtrace.h>
 
@@ -127,21 +113,7 @@ done:
 	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_cluster_apply_modify_hdlr
- * 
- * Purpose: This routine handles modify operations on SaAmfCluster objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_cluster_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+static void ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
@@ -154,7 +126,7 @@ static void avd_cluster_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdat
 	}
 }
 
-static SaAisErrorT avd_cluster_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
@@ -164,7 +136,7 @@ static SaAisErrorT avd_cluster_ccb_completed_modify_hdlr(CcbUtilOperationData_t 
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfClusterStartupTimeout")) {
 			SaTimeT cluster_startup_timeout = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (0 == cluster_startup_timeout) {
-				avd_log(NCSFL_SEV_ERROR, "Invalid saAmfClusterStartupTimeout %llu",
+				LOG_ER("Invalid saAmfClusterStartupTimeout %llu",
 					avd_cluster->saAmfClusterStartupTimeout);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
@@ -176,36 +148,22 @@ static SaAisErrorT avd_cluster_ccb_completed_modify_hdlr(CcbUtilOperationData_t 
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_cluster_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfCluster objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", opdata->objectName.value, opdata->ccbId);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		avd_log(NCSFL_SEV_ERROR, "SaAmfCluster objects cannot be created");
+		LOG_ER("SaAmfCluster objects cannot be created");
 		goto done;
 		break;
 	case CCBUTIL_MODIFY:
-		rc = avd_cluster_ccb_completed_modify_hdlr(opdata);
+		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		avd_log(NCSFL_SEV_ERROR, "SaAmfCluster objects cannot be deleted");
+		LOG_ER("SaAmfCluster objects cannot be deleted");
 		goto done;
 		break;
 	default:
@@ -217,25 +175,13 @@ static SaAisErrorT avd_cluster_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_cluster_apply_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfCluster objects.
- * 
- *
- * Input  : Control Block, Ccb Util Oper Data, Test Flag.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_cluster_ccb_apply_cb(CcbUtilOperationData_t *ccbutil_operationdata)
+static void cluster_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	switch (ccbutil_operationdata->operationType) {
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	switch (opdata->operationType) {
 	case CCBUTIL_MODIFY:
-		avd_cluster_ccb_apply_modify_hdlr(ccbutil_operationdata);
+		ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_CREATE:
 	case CCBUTIL_DELETE:
@@ -246,24 +192,9 @@ static void avd_cluster_ccb_apply_cb(CcbUtilOperationData_t *ccbutil_operationda
 	}
 }
 
-/*****************************************************************************
- * Function: avd_cluster_admin_op_cb
- *
- * Purpose: This routine handles admin Oper on SaAmfCluster objects.
- *
- *
- * Input  : Ccb Util Oper Data, Test Flag.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_cluster_admin_op_cb(SaImmOiHandleT immOiHandle,
-				    SaInvocationT invocation,
-				    const SaNameT *object_name,
-				    SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
+static void cluster_admin_op_cb(SaImmOiHandleT immOiHandle,
+	SaInvocationT invocation, const SaNameT *object_name,
+	SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 
@@ -306,12 +237,12 @@ SaAisErrorT avd_cluster_config_get(void)
 	if ((error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
 						       SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 						       &searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize failed: %u", error);
+		LOG_ER("saImmOmSearchInitialize failed: %u", error);
 		goto done;
 	}
 
 	if ((error = immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "No cluster object found");
+		LOG_ER("No cluster object found");
 		goto done;
 	}
 
@@ -319,11 +250,11 @@ SaAisErrorT avd_cluster_config_get(void)
 
 	/* Cluster should be root object */
 	if (strchr((char *)dn.value, ',') != NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Parent to '%s' is not root", dn.value);
+		LOG_ER("Parent to '%s' is not root", dn.value);
 		return -1;
 	}
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
+	TRACE("'%s'", dn.value);
 
 	if (immutil_getAttr("saAmfClusterStartupTimeout", attributes,
 			    0, &avd_cluster->saAmfClusterStartupTimeout) == SA_AIS_OK) {
@@ -331,7 +262,7 @@ SaAisErrorT avd_cluster_config_get(void)
 		if (avd_cluster->saAmfClusterStartupTimeout == 0)
 			avd_cluster->saAmfClusterStartupTimeout = AVSV_CLUSTER_INIT_INTVL;
 	} else {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfClusterStartupTimeout FAILED for '%s'", dn.value);
+		LOG_ER("Get saAmfClusterStartupTimeout FAILED for '%s'", dn.value);
 		goto done;
 	}
 
@@ -341,7 +272,7 @@ SaAisErrorT avd_cluster_config_get(void)
 	}
 
 	if (!avd_admin_state_is_valid(avd_cluster->saAmfClusterAdminState)) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfClusterAdminState %u", avd_cluster->saAmfClusterAdminState);
+		LOG_ER("Invalid saAmfClusterAdminState %u", avd_cluster->saAmfClusterAdminState);
 		return -1;
 	}
 
@@ -353,9 +284,38 @@ SaAisErrorT avd_cluster_config_get(void)
 	return rc;
 }
 
+void avd_cluster_remove_ng(AVD_AMF_NG *node_gr)
+{
+	AVD_AMF_NG *i_node_gr = NULL;
+	AVD_AMF_NG *prev_node_gr = NULL;
+
+	if (node_gr->ng_on_cluster != NULL) {
+		/* remove Node from Cluster */
+		i_node_gr = node_gr->ng_on_cluster->list_of_avd_ng;
+
+		while ((i_node_gr != NULL) && (i_node_gr != node_gr)) {
+			prev_node_gr = i_node_gr;
+			i_node_gr = i_node_gr->cluster_list_ng_next;
+		}
+
+		if (i_node_gr != node_gr) {
+			/* Log a fatal error */
+		} else {
+			if (prev_node_gr == NULL) {
+				node_gr->ng_on_cluster->list_of_avd_ng = node_gr->cluster_list_ng_next;
+			} else {
+				prev_node_gr->cluster_list_ng_next = node_gr->cluster_list_ng_next;
+			}
+		}
+
+		node_gr->cluster_list_ng_next = NULL;
+		node_gr->ng_on_cluster = NULL;
+	}
+}
+
 void avd_cluster_constructor(void)
 {
-	avd_class_impl_set("SaAmfCluster", NULL,
-		avd_cluster_admin_op_cb, avd_cluster_ccb_completed_cb, avd_cluster_ccb_apply_cb);
+	avd_class_impl_set("SaAmfCluster", NULL, cluster_admin_op_cb,
+		cluster_ccb_completed_cb, cluster_ccb_apply_cb);
 }
 

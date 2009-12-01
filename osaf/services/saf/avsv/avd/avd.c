@@ -51,6 +51,7 @@
 #include <avd_hlt.h>
 #include <avd_imm.h>
 #include <avd_cluster.h>
+#include <avd_sutype.h>
 
 /* 
 ** The singleton AVD Cluster Control Block. Statically allocated which is
@@ -292,18 +293,32 @@ static uns32 avd_initialize(void)
 	TRACE_ENTER();
 
 	/* run the class constructors */
+	avd_apptype_constructor();
 	avd_app_constructor();
+	avd_compglobalattrs_constructor();
+	avd_compcstype_constructor();
 	avd_comp_constructor();
 	avd_ctcstype_constructor();
 	avd_comptype_constructor();
 	avd_cluster_constructor();
+	avd_cstype_constructor();
 	avd_csi_constructor();
+	avd_csiattr_constructor();
+	avd_hctype_constructor();
 	avd_hc_constructor();
 	avd_node_constructor();
+	avd_ng_constructor();
+	avd_nodeswbundle_constructor();
+	avd_sgtype_constructor();
 	avd_sg_constructor();
+	avd_svctypecstypes_constructor();
+	avd_svctype_constructor();
 	avd_si_constructor();
+	avd_sirankedsu_constructor();
 	avd_sidep_constructor();
+	avd_sutcomptype_constructor();
 	avd_su_constructor();
+	avd_sutype_constructor();
 
 	/* Register with Logging subsystem. This is an agent call and
 	 ** could succeed even if the DTS server is not available 

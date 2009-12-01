@@ -15,27 +15,15 @@
  *
  */
 
-/*****************************************************************************
-..............................................................................
+#include <logtrace.h>
+#include <avd.h>
 
-..............................................................................
-
-  DESCRIPTION: This module contain all the supporting functions for the
-               checkpointing operation. 
-
-..............................................................................
-
-  FUNCTIONS INCLUDED in this module:
-
-  
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
-#include "avd.h"
+static char *action_name[] = {
+	"invalid",
+	"add",
+	"rmv",
+	"update"
+};
 
 /****************************************************************************\
  * Function: avd_ckpt_node
@@ -55,18 +43,24 @@
 \**************************************************************************/
 uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE action)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_node->node_info.nodeName.value);
-
-	if (NULL == (node = avd_node_find(&ckpt_node->node_info.nodeName))) {
-		if (NULL == (node = avd_node_create(&ckpt_node->node_info.nodeName, NULL)))
-			return NCSCC_RC_FAILURE;
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->node_info.nodeName.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (node = avd_node_new(&ckpt_node->node_info.nodeName))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_node_db_add(node);
+		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (node = avd_node_get(&ckpt_node->node_info.nodeName))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		/* Update all runtime attributes */	
 		node->saAmfNodeAdminState = ckpt_node->saAmfNodeAdminState;
 		node->saAmfNodeOperState = ckpt_node->saAmfNodeOperState;
@@ -83,11 +77,20 @@ uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE actio
 		if (NULL == avd_node_find_nodeid(ckpt_node->node_info.nodeId))
 			avd_node_add_nodeid(node);
 		break;
+	case NCS_MBCSV_ACT_RMV:
+		if (NULL == (node = avd_node_get(&ckpt_node->node_info.nodeName))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_node_delete(&node);
+		break;
 	default:
 		assert(0);
 	}
 
-	return NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -108,27 +111,42 @@ uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE actio
 \**************************************************************************/
 uns32 avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_APP *app;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_app->name.value);
-
-	if (NULL == (app = avd_app_find(&ckpt_app->name))) {
-		if (NULL == (app = avd_app_create(&ckpt_app->name, NULL)))
-			return NCSCC_RC_FAILURE;
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_app->name.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (app = avd_app_new(&ckpt_app->name))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_app_db_add(app);
+		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (app = avd_app_get(&ckpt_app->name))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		/* Update all runtime attributes */	
 		app->saAmfApplicationAdminState = ckpt_app->saAmfApplicationAdminState;
 		app->saAmfApplicationCurrNumSGs = ckpt_app->saAmfApplicationCurrNumSGs;
+		break;
+	case NCS_MBCSV_ACT_RMV:
+		if (NULL == (app = avd_app_get(&ckpt_app->name))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_app_delete(&app);
 		break;
 	default:
 		assert(0);
 	}
 
-	return NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -149,18 +167,25 @@ uns32 avd_ckpt_app(AVD_CL_CB *cb, AVD_APP *ckpt_app, NCS_MBCSV_ACT_TYPE action)
 \**************************************************************************/
 uns32 avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SG *sg;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_sg->name.value);
-
-	if (NULL == (sg = avd_sg_find(&ckpt_sg->name))) {
-		if (NULL == (sg = avd_sg_create(&ckpt_sg->name, NULL)))
-			return NCSCC_RC_FAILURE;
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_sg->name.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (sg = avd_sg_new(&ckpt_sg->name))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_sg_db_add(sg);
+		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
+			LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		/* Update all runtime attributes */	
 		sg->saAmfSGAdminState = ckpt_sg->saAmfSGAdminState;
 		sg->saAmfSGNumCurrAssignedSUs = ckpt_sg->saAmfSGNumCurrAssignedSUs;
@@ -169,11 +194,22 @@ uns32 avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 		sg->adjust_state = ckpt_sg->adjust_state;
 		sg->sg_fsm_state = ckpt_sg->sg_fsm_state;
 		break;
+	case NCS_MBCSV_ACT_RMV: {
+		if (NULL == (sg = avd_sg_get(&ckpt_sg->name))) {
+			LOG_ER("avd_sg_get FAILED for '%s'", ckpt_sg->name.value);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_sg_delete(&sg);
+		break;
+	}
 	default:
 		assert(0);
 	}
 
-	return NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -194,22 +230,29 @@ uns32 avd_ckpt_sg(AVD_CL_CB *cb, AVD_SG *ckpt_sg, NCS_MBCSV_ACT_TYPE action)
 \**************************************************************************/
 uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 {
+	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_SU *su;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_su->name.value);
-
-	if (NULL == (su = avd_su_find(&ckpt_su->name))) {
-		if (NULL == (su = avd_su_create(&ckpt_su->name, NULL)))
-			return NCSCC_RC_FAILURE;
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_su->name.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD: {
 		SaNameT sg_name;
+		if (NULL == (su = avd_su_new(&ckpt_su->name))) {
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		avsv_sanamet_init(&ckpt_su->name, &sg_name, "safSg=");
-		su->sg_of_su = avd_sg_find(&sg_name);
+		su->sg_of_su = avd_sg_get(&sg_name);
+		avd_su_db_add(su);
+		/* fall through */
 	}
-	case NCS_MBCSV_ACT_UPDATE:
+	case NCS_MBCSV_ACT_UPDATE: {
+		if (NULL == (su = avd_su_get(&ckpt_su->name))) {
+			LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 		/* Update all runtime attributes */	
 		su->saAmfSUPreInstantiable = ckpt_su->saAmfSUPreInstantiable;
 		su->saAmfSUOperState = ckpt_su->saAmfSUOperState;
@@ -223,11 +266,23 @@ uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 		su->su_switch = ckpt_su->su_switch;
 		su->su_act_state = su->su_act_state;
 		break;
+	}
+	case NCS_MBCSV_ACT_RMV: {
+		if (NULL == (su = avd_su_get(&ckpt_su->name))) {
+			LOG_ER("avd_su_get FAILED for '%s'", ckpt_su->name.value);
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+		avd_su_delete(&su);
+		break;
+	}
 	default:
 		assert(0);
 	}
 
-	return NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -247,20 +302,22 @@ uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 \**************************************************************************/
 uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SI *si;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_si->name.value);
-
-	if (NULL == (si = avd_si_find(&ckpt_si->name))) {
-		if (NULL == (si = avd_si_create(&ckpt_si->name, NULL))) {
-			m_AVD_LOG_INVALID_VAL_FATAL(action);
-			return NCSCC_RC_FAILURE;
-		}
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_si->name.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (si = avd_si_new(&ckpt_si->name)))
+			goto done;
+		avd_si_db_add(si);
+		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
+			LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
+			goto done;
+		}
 		/* Update all runtime attributes */	
 		si->saAmfSINumCurrActiveAssignments = si->saAmfSINumCurrActiveAssignments;
 		si->saAmfSINumCurrStandbyAssignments = si->saAmfSINumCurrStandbyAssignments;
@@ -268,11 +325,22 @@ uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 		si->si_switch = si->si_switch;
 		si->saAmfSIAdminState = si->saAmfSIAdminState;
 		break;
+	case NCS_MBCSV_ACT_RMV: {
+		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
+			LOG_ER("avd_si_get FAILED for '%s'", ckpt_si->name.value);
+			goto done;
+		}
+		avd_si_delete(&si);
+		break;
+	}
 	default:
 		assert(0);
 	}
 
-	return NCSCC_RC_SUCCESS;
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -295,7 +363,7 @@ uns32 avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE a
 
 	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_su->name.value);
 
-	su = avd_su_find(&ckpt_su->name);
+	su = avd_su_get(&ckpt_su->name);
 	assert(su);
 
 	if (NCS_MBCSV_ACT_ADD == action)
@@ -346,7 +414,7 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
 		return NCSCC_RC_FAILURE;
 	}
 
-	si_ptr_up = avd_si_find(&si->name);
+	si_ptr_up = avd_si_get(&si->name);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
@@ -392,8 +460,8 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 
 	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
 
-	su_ptr = avd_su_find(&su_si_ckpt->su_name);
-	si_ptr_up = avd_si_find(&su_si_ckpt->si_name);
+	su_ptr = avd_su_get(&su_si_ckpt->su_name);
+	si_ptr_up = avd_si_get(&su_si_ckpt->si_name);
 
 	if ((NULL == su_ptr) || (NULL == si_ptr_up)) {
 		m_AVD_LOG_INVALID_VAL_FATAL(action);
@@ -463,30 +531,99 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 \**************************************************************************/
 uns32 avd_ckpt_comp(AVD_CL_CB *cb, AVD_COMP *ckpt_comp, NCS_MBCSV_ACT_TYPE action)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_COMP *comp;
+	const SaNameT *dn = &ckpt_comp->comp_info.name;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_comp->comp_info.name.value);
-
-	if (NULL == (comp = avd_comp_find(&ckpt_comp->comp_info.name))) {
-		if (NULL == (comp = avd_comp_create(&ckpt_comp->comp_info.name, NULL))) {
-			m_AVD_LOG_INVALID_VAL_FATAL(action);
-			return NCSCC_RC_FAILURE;
-		}
-	}
+	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (comp = avd_comp_new(dn)))
+			goto done;
+		avd_comp_db_add(comp);
+		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (comp = avd_comp_get(dn))) {
+			LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
+			goto done;
+		}
 		comp->saAmfCompOperState = ckpt_comp->saAmfCompOperState;
 		comp->saAmfCompPresenceState = ckpt_comp->saAmfCompPresenceState;
 		comp->saAmfCompRestartCount = ckpt_comp->saAmfCompRestartCount;
 		break;
+	case NCS_MBCSV_ACT_RMV: {
+		if (NULL == (comp = avd_comp_get(dn))) {
+			LOG_ER("avd_comp_get FAILED for '%s'", dn->value);
+			goto done;
+		}
+		avd_comp_delete(&comp);
+		break;
+	}
 	default:
 		assert(0);
 	}
 
-	return status;
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+/****************************************************************************\
+ * Function: avd_ckpt_compcstype
+ *
+ * Purpose:  Add new COMP_CS_TYPE entry if action is ADD, remove COMP_CS_TYPE 
+ *           from the tree if action is to remove and update data if request is to update.
+ *
+ * Input: cb  - CB pointer.
+ *        comp_cs_type - Decoded structure.
+ *        action - ADD/RMV/UPDT
+ *
+ * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
+ *
+ * NOTES:
+ *
+ *
+\**************************************************************************/
+uns32 avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NCS_MBCSV_ACT_TYPE action)
+{
+	uns32 rc = NCSCC_RC_FAILURE;
+	AVD_COMPCS_TYPE *ccst;
+	const SaNameT *dn = &ckpt_compcstype->name;
+
+	TRACE_ENTER2("%s - '%s'", action_name[action], dn->value);
+
+	switch (action) {
+	case NCS_MBCSV_ACT_ADD:
+		if (NULL == (ccst = avd_compcstype_new(dn)))
+			goto done;
+		avd_compcstype_db_add(ccst);
+		/* fall through */
+	case NCS_MBCSV_ACT_UPDATE:
+		if (NULL == (ccst = avd_compcstype_get(dn))) {
+			LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
+			goto done;
+		}
+		ccst->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;
+		ccst->saAmfCompNumCurrStandbyCSIs = ckpt_compcstype->saAmfCompNumCurrStandbyCSIs;
+		break;
+	case NCS_MBCSV_ACT_RMV: {
+		if (NULL == (ccst = avd_compcstype_get(dn))) {
+			LOG_ER("avd_compcstype_get FAILED for '%s'", dn->value);
+			goto done;
+		}
+		avd_compcstype_delete(&ccst);
+		break;
+	}
+	default:
+		assert(0);
+	}
+
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /****************************************************************************\
@@ -734,48 +871,6 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
 	/* Reset the cold sync done counter */
 	cb->synced_reo_type = 0;
 #endif
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************\
- * Function: avd_ckpt_compcstype
- *
- * Purpose:  Add new COMP_CS_TYPE entry if action is ADD, remove COMP_CS_TYPE 
- *           from the tree if action is to remove and update data if request is to update.
- *
- * Input: cb  - CB pointer.
- *        comp_cs_type - Decoded structure.
- *        action - ADD/RMV/UPDT
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES:
- *
- *
-\**************************************************************************/
-uns32 avd_ckpt_compcstype(AVD_CL_CB *cb, AVD_COMPCS_TYPE *ckpt_compcstype, NCS_MBCSV_ACT_TYPE action)
-{
-	AVD_COMPCS_TYPE *compcstype;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_compcstype->name.value);
-
-	if (NULL == (compcstype = avd_compcstype_find(&ckpt_compcstype->name))) {
-		if (NULL == (compcstype = avd_compcstype_create(&ckpt_compcstype->name, NULL))) {
-			m_AVD_LOG_INVALID_VAL_FATAL(action);
-			return NCSCC_RC_FAILURE;
-		}
-	}
-
-	switch (action) {
-	case NCS_MBCSV_ACT_ADD:
-	case NCS_MBCSV_ACT_UPDATE:
-		compcstype->saAmfCompNumCurrActiveCSIs = ckpt_compcstype->saAmfCompNumCurrActiveCSIs;
-		compcstype->saAmfCompNumCurrStandbyCSIs = ckpt_compcstype->saAmfCompNumCurrStandbyCSIs;
-		break;
-	default:
-		assert(0);
-	}
-
 	return NCSCC_RC_SUCCESS;
 }
 

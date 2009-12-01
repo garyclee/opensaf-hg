@@ -47,6 +47,7 @@ noinst_HEADERS = \
    avd_sg.h \
    avd_si.h \
    avd_su.h \
+   avd_sutype.h \
    avd_susi.h \
    avd_tmr.h \
    avd_util.h \

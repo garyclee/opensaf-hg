@@ -46,17 +46,17 @@ typedef struct avd_pg_csi_node {
 typedef struct avd_pg_node_csi {
 	NCS_DB_LINK_LIST_NODE node_dll_node;	/* avnd dll node (key is csi ptr) */
 
-	AVD_CSI *csi;		/* ptr to the csi */
+	struct avd_csi_tag *csi;		/* ptr to the csi */
 } AVD_PG_NODE_CSI;
 
 EXTERN_C void avd_pg_trk_act_func(AVD_CL_CB *, struct avd_evt_tag *);
 
 EXTERN_C uns32 avd_pg_susi_chg_prc(AVD_CL_CB *, AVD_SU_SI_REL *);
-EXTERN_C uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *, AVD_COMP_CSI_REL *, NCS_BOOL);
+EXTERN_C uns32 avd_pg_compcsi_chg_prc(AVD_CL_CB *, struct avd_comp_csi_rel_tag *, NCS_BOOL);
 
-EXTERN_C uns32 avd_pg_csi_node_add(AVD_CL_CB *, AVD_CSI *, AVD_AVND *);
-EXTERN_C void avd_pg_csi_node_del(AVD_CL_CB *, AVD_CSI *, AVD_AVND *);
-EXTERN_C void avd_pg_csi_node_del_all(AVD_CL_CB *, AVD_CSI *);
+EXTERN_C uns32 avd_pg_csi_node_add(AVD_CL_CB *, struct avd_csi_tag *, AVD_AVND *);
+EXTERN_C void avd_pg_csi_node_del(AVD_CL_CB *, struct avd_csi_tag *, AVD_AVND *);
+EXTERN_C void avd_pg_csi_node_del_all(AVD_CL_CB *, struct avd_csi_tag *);
 EXTERN_C void avd_pg_node_csi_del_all(AVD_CL_CB *, AVD_AVND *);
 
 #endif   /* !AVD_PG_H */

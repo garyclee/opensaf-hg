@@ -93,10 +93,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	AVD_COMP *l_comp;
 	AVD_CSI *l_csi;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_new_assgn_susi");
-
-	m_AVD_LOG_RCVD_VAL(((long)su));
-	m_AVD_LOG_RCVD_VAL(((long)si));
+	TRACE_ENTER2("'%s' '%s' state=%u", su->name.value, si->name.value, ha_state);
 
 	if ((susi = avd_susi_create(cb, si, su, ha_state)) == NULL) {
 		avd_log(NCSFL_SEV_ERROR, "Could not create SUSI '%s' '%s'", su->name.value, si->name.value);
@@ -251,7 +248,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -280,7 +277,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* get the SU from the tree */
 
-	if ((su = avd_su_find(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
+	if ((su = avd_su_get(&n2d_msg->msg_info.n2d_opr_state.su_name)) == NULL) {
 		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_CRITICAL, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 		goto done;
 	}
@@ -741,7 +738,7 @@ done:
 void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO *assign)
 {
 	AVD_SU *i_su = NULL;
-	AVD_AVND *avnd_other = AVD_AVND_NULL;
+	AVD_AVND *avnd_other = NULL;
 	SaBoolT ncs_done = SA_TRUE;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -836,7 +833,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 			cb->role_switch = SA_FALSE;	/* almost done with switch */
 
 			/* get the avnd on other SCXB from node_id of other AvD */
-			if (AVD_AVND_NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
+			if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 				return;
 			}
@@ -917,7 +914,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if ((avnd =
 	     avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_su_si_assign.node_id, AVSV_N2D_INFO_SU_SI_ASSIGN_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -952,7 +949,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		 * SU operation. 
 		 */
 
-		if ((su = avd_su_find(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
+		if ((su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
 			m_AVD_LOG_INVALID_NAME_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
 						     n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
 			goto done;
@@ -1406,43 +1403,40 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	}			/* else (n2d_msg->msg_info.n2d_su_si_assign.si_name.length == 0) */
 
-        /* If there is any admin action going on SU and it is complete then send its result to admin.
-           Lock/Shutdown is successful if all SIs have been unassigned. Unlock is successful if
-           SI could be assigned to SU successfully if there was any. The operation failed if
-           AvND encountered error while assigning/unassigning SI to the SU. */
+	/* If there is any admin action going on SU and it is complete then send its result to admin.
+	   Lock/Shutdown is successful if all SIs have been unassigned. Unlock is successful if
+	   SI could be assigned to SU successfully if there was any. The operation failed if
+	AvND encountered error while assigning/unassigning SI to the SU. */
 
-        su = avd_su_find(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
+	su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
 
-        if ( su != NULL ) {
-                if ( su->pend_cbk.invocation != 0) {
-              	  if ( (su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ) {
-                          if ( (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) ) {
-                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
-                                    su->pend_cbk.invocation = 0;
-                                    su->pend_cbk.admin_oper = 0;
-                                    }
-                                else if ( n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS ) {
-                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
-                                    su->pend_cbk.invocation = 0;
-                                    su->pend_cbk.admin_oper = 0;
-                                    }
-                                /* else lock is still not complete so don't send result. */
-                             }
-                          else if ( su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK ) {
-                                if ( ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
-                                     (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) ) {
-                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
-                                    su->pend_cbk.invocation = 0;
-                                    su->pend_cbk.admin_oper = 0;
-                                    }
-                                else {
-                                    immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
-                                    su->pend_cbk.invocation = 0;
-                                    su->pend_cbk.admin_oper = 0;
-                                    }
-                             }
-                }
-        }
+	if ( su != NULL ) {
+		if ( su->pend_cbk.invocation != 0) {
+			if ( (su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ) {
+				if ( (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) ) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+					su->pend_cbk.invocation = 0;
+					su->pend_cbk.admin_oper = 0;
+				} else if ( n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS ) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
+					su->pend_cbk.invocation = 0;
+					su->pend_cbk.admin_oper = 0;
+				}
+				/* else lock is still not complete so don't send result. */
+			} else if ( su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK ) {
+				if ( ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
+				     (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) ) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+					su->pend_cbk.invocation = 0;
+					su->pend_cbk.admin_oper = 0;
+				} else {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+					su->pend_cbk.invocation = 0;
+					su->pend_cbk.admin_oper = 0;
+				}
+			}
+		}
+	}
 
 	/* Free the messages */
 	avsv_dnd_msg_free(n2d_msg);

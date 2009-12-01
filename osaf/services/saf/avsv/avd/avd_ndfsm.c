@@ -97,7 +97,7 @@
 
 void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	NCS_BOOL comp_sent;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -105,7 +105,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_clm_node_up.node_id);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_clm_node_up.node_id, AVSV_N2D_CLM_NODE_UP_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		goto done;
 	}
@@ -292,7 +292,7 @@ void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_hrt_bt.node_id, AVSV_N2D_HEARTBEAT_MSG))
-	    == AVD_AVND_NULL) {
+	    == NULL) {
 		/* sanity failed return */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
@@ -366,7 +366,7 @@ void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_nd_func");
 
@@ -396,7 +396,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	syslog(LOG_WARNING, "AVD: Heart Beat missed with node director on %x", evt->info.tmr.node_id);
 
 	/* get avnd ptr to call avd_avm_mark_nd_absent */
-	if ((avnd = avd_node_find_nodeid(evt->info.tmr.node_id)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(evt->info.tmr.node_id)) == NULL) {
 		/* we can't do anything without getting avnd ptr. just return */
 		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
 		return;
@@ -962,7 +962,7 @@ uns32 avd_node_down(AVD_CL_CB *cb, SaClmNodeIdT node_id)
 	m_AVD_LOG_FUNC_ENTRY("avd_node_down");
 
 	if ((avnd = avd_node_find_nodeid(node_id)
-	    ) == AVD_AVND_NULL) {
+	    ) == NULL) {
 		/* log error that the node id is invalid */
 		m_AVD_LOG_INVALID_VAL_FATAL(node_id);
 		return NCSCC_RC_FAILURE;

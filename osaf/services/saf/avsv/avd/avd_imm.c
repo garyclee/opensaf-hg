@@ -39,6 +39,7 @@
 #include <avd_app.h>
 #include <avd_sg.h>
 #include <avd_su.h>
+#include <avd_sutype.h>
 #include <avd_comp.h>
 #include <avd_si.h>
 #include <avd_csi.h>
@@ -95,10 +96,10 @@ static char *avd_class_names[] = {
 	"SaAmfSvcTypeCSTypes"
 };
 
-static AvdImmOiCcbApplyCallbackT ccb_apply_callback[AVSV_SA_AMF_CLASS_MAX] = { NULL };
-static AvdImmOiCcbCompletedCallbackT ccb_completed_callback[AVSV_SA_AMF_CLASS_MAX] = { NULL };
-static SaImmOiAdminOperationCallbackT_2 admin_op_callback[AVSV_SA_AMF_CLASS_MAX] = { NULL };
-static SaImmOiRtAttrUpdateCallbackT rtattr_update_callback[AVSV_SA_AMF_CLASS_MAX] = { NULL };
+static AvdImmOiCcbApplyCallbackT ccb_apply_callback[AVSV_SA_AMF_CLASS_MAX];
+static AvdImmOiCcbCompletedCallbackT ccb_completed_callback[AVSV_SA_AMF_CLASS_MAX];
+static SaImmOiAdminOperationCallbackT_2 admin_op_callback[AVSV_SA_AMF_CLASS_MAX];
+static SaImmOiRtAttrUpdateCallbackT rtattr_update_callback[AVSV_SA_AMF_CLASS_MAX];
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -234,7 +235,6 @@ static AVSV_AMF_CLASS_ID object_name_to_class_type(const SaNameT *obj_name)
 		}
 	}
 
-	assert(class_type != AVSV_SA_AMF_CLASS_INVALID);
 	return class_type;
 }
 
@@ -250,7 +250,7 @@ static AVSV_AMF_CLASS_ID object_name_to_class_type(const SaNameT *obj_name)
  * NOTES: None.
  *
  **************************************************************************/
-static void avd_oi_admin_operation_cb(SaImmOiHandleT immoi_handle,
+static void admin_operation_cb(SaImmOiHandleT immoi_handle,
 	SaInvocationT invocation, const SaNameT *object_name,
 	SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
 {
@@ -259,11 +259,12 @@ static void avd_oi_admin_operation_cb(SaImmOiHandleT immoi_handle,
 	TRACE_ENTER2("%s, op %llu", object_name->value, op_id);
 
 	if (admin_op_callback[type] != NULL) {
-		admin_op_callback[type] (immoi_handle, invocation, object_name, op_id, params);
+		admin_op_callback[type](immoi_handle, invocation, object_name, op_id, params);
 	} else {
-		avd_log(NCSFL_SEV_ERROR, "Admin operation not supported for %s (%u)", object_name->value, type);
+		LOG_ER("Admin operation not supported for %s (%u)", object_name->value, type);
 		(void)immutil_saImmOiAdminOperationResult(immoi_handle, invocation, SA_AIS_ERR_INVALID_PARAM);
 	}
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -278,7 +279,7 @@ static void avd_oi_admin_operation_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static SaAisErrorT avd_oi_rt_attr_update_cb(SaImmOiHandleT immoi_handle,
+static SaAisErrorT rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 	const SaNameT *object_name, const SaImmAttrNameT *attribute_names)
 {
 	SaAisErrorT error;
@@ -286,7 +287,7 @@ static SaAisErrorT avd_oi_rt_attr_update_cb(SaImmOiHandleT immoi_handle,
 
 	TRACE_ENTER2("%s", object_name->value);
 	assert(rtattr_update_callback[type] != NULL);
-	error = rtattr_update_callback[type] (immoi_handle, object_name, attribute_names);
+	error = rtattr_update_callback[type](immoi_handle, object_name, attribute_names);
 	TRACE_LEAVE2("%u", error);
 	return error;
 }
@@ -304,40 +305,69 @@ static SaAisErrorT avd_oi_rt_attr_update_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static SaAisErrorT avd_oi_ccb_object_create_cb(SaImmOiHandleT immoi_handle,
+static SaAisErrorT ccb_object_create_cb(SaImmOiHandleT immoi_handle,
 	SaImmOiCcbIdT ccb_id, const SaImmClassNameT class_name,
 	const SaNameT *parent_name, const SaImmAttrValuesT_2 **attr)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *operation;
+	int i = 0;
+	const SaImmAttrValuesT_2 *attrValue;
+	AVSV_AMF_CLASS_ID id_from_class_name, id_from_dn;
 
-	TRACE_ENTER2("CCB ID %llu, class %s, parent %s", ccb_id, class_name, parent_name->value);
+	TRACE_ENTER2("CCB ID %llu, class %s, parent '%s'", ccb_id, class_name, parent_name->value);
 
-	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
-		int i = 0;
-		const SaImmAttrValuesT_2 *attrValue;
+	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) == NULL) {
+		LOG_ER("Failed to get CCB object for %llu", ccb_id);
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done;
+	}
 
-		operation = ccbutil_ccbAddCreateOperation(ccb_util_ccb_data, class_name, parent_name, attr);
+	operation = ccbutil_ccbAddCreateOperation(ccb_util_ccb_data, class_name, parent_name, attr);
 
-		/* Find the RDN attribute and store the object DN */
-		while ((attrValue = attr[i++]) != NULL) {
-			if (!strncmp(attrValue->attrName, "saf", 3)) {
+	if (operation == NULL) {
+		LOG_ER("Failed to get CCB operation object for %llu", ccb_id);
+		rc = SA_AIS_ERR_NO_MEMORY;
+		goto done;
+	}
+
+	/* Find the RDN attribute and store the object DN */
+	while ((attrValue = attr[i++]) != NULL) {
+		if (!strncmp(attrValue->attrName, "saf", 3)) {
+			if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 				SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
 				if ((parent_name != NULL) && (parent_name->length > 0)) {
 					operation->objectName.length = sprintf((char *)operation->objectName.value,
-									       "%s,%s", rdnVal, parent_name->value);
+						"%s,%s", rdnVal, parent_name->value);
 				} else {
 					operation->objectName.length = sprintf((char *)operation->objectName.value,
-									       "%s", rdnVal);
+						"%s", rdnVal);
 				}
+			} else {
+				SaNameT *rdnVal = ((SaNameT *)attrValue->attrValues[0]);
+				operation->objectName.length = sprintf((char *)operation->objectName.value,
+					"%s,%s", rdnVal->value, parent_name->value);
 			}
+			
+			TRACE("%s(%u)", operation->objectName.value, operation->objectName.length);
 		}
-	} else {
-		avd_log(NCSFL_SEV_ERROR, "Failed to get CCB object for %llu", ccb_id);
-		rc = SA_AIS_ERR_NO_MEMORY;
+	}
+	
+	if (operation->objectName.length == 0) {
+		LOG_ER("Malformed DN %llu", ccb_id);
+		rc = SA_AIS_ERR_INVALID_PARAM;
 	}
 
+	/* Verify that DN is valid for class */
+	id_from_class_name = class_name_to_class_type(class_name);
+	id_from_dn = object_name_to_class_type(&operation->objectName);
+	if (id_from_class_name != id_from_dn) {
+		LOG_ER("Illegal DN '%s' for class '%s'", operation->objectName.value, class_name);
+		rc = SA_AIS_ERR_INVALID_PARAM;
+	}
+
+done:
 	return rc;
 }
 
@@ -353,7 +383,7 @@ static SaAisErrorT avd_oi_ccb_object_create_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static SaAisErrorT avd_oi_ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
+static SaAisErrorT ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
 	SaImmOiCcbIdT ccb_id, const SaNameT *object_name)
 {
 	SaAisErrorT rc = SA_AIS_OK;
@@ -365,10 +395,11 @@ static SaAisErrorT avd_oi_ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
 		/* "memorize the request" */
 		ccbutil_ccbAddDeleteOperation(ccb_util_ccb_data, object_name);
 	} else {
-		avd_log(NCSFL_SEV_ERROR, "Failed to get CCB object for %llu", ccb_id);
+		LOG_ER("Failed to get CCB object for %llu", ccb_id);
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -384,7 +415,7 @@ static SaAisErrorT avd_oi_ccb_object_delete_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static SaAisErrorT avd_oi_ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
+static SaAisErrorT ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 	SaImmOiCcbIdT ccb_id, const SaNameT *object_name,
 	const SaImmAttrModificationT_2 **attr_mods)
 {
@@ -396,14 +427,15 @@ static SaAisErrorT avd_oi_ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
 	if ((ccb_util_ccb_data = ccbutil_getCcbData(ccb_id)) != NULL) {
 		/* "memorize the request" */
 		if (ccbutil_ccbAddModifyOperation(ccb_util_ccb_data, object_name, attr_mods) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "Failed '%s'", object_name->value);
+			LOG_ER("Failed '%s'", object_name->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 		}
 	} else {
-		avd_log(NCSFL_SEV_ERROR, "Failed to get CCB object for %llu", ccb_id);
+		LOG_ER("Failed to get CCB object for %llu", ccb_id);
 		rc = SA_AIS_ERR_NO_MEMORY;
 	}
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -420,7 +452,7 @@ static SaAisErrorT avd_oi_ccb_object_modify_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static SaAisErrorT avd_oi_ccb_completed_cb(SaImmOiHandleT immoi_handle,
+static SaAisErrorT ccb_completed_cb(SaImmOiHandleT immoi_handle,
 	SaImmOiCcbIdT ccb_id)
 {
 	SaAisErrorT rc = SA_AIS_OK;
@@ -435,14 +467,20 @@ static SaAisErrorT avd_oi_ccb_completed_cb(SaImmOiHandleT immoi_handle,
 
 	while ((opdata = ccbutil_getNextCcbOp(ccb_id, opdata)) != NULL) {
 		type = object_name_to_class_type(&opdata->objectName);
-		assert(ccb_completed_callback[type] != NULL);
-		rc = ccb_completed_callback[type] (opdata);
+		if (ccb_completed_callback[type] == NULL) {
+			/* this can happen for malformed DNs */
+			LOG_ER("Class implementer for '%s' not found", opdata->objectName.value);
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+		rc = ccb_completed_callback[type](opdata);
 
 		/* Get out at first error */
 		if (rc != SA_AIS_OK)
 			break;
 	}
-
+done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -459,15 +497,17 @@ static SaAisErrorT avd_oi_ccb_completed_cb(SaImmOiHandleT immoi_handle,
  * NOTES: None.
  *
  **************************************************************************/
-static void avd_oi_ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
+static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 {
-	struct CcbUtilCcbData *ccb_util_ccb_data;
+	CcbUtilCcbData_t *ccb_util_ccb_data;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu", ccb_id);
+	TRACE_ENTER2("CCB ID %llu", ccb_id);
+
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
-	/*  TODO loop and free userData */
-	assert(ccb_util_ccb_data != NULL);
+	assert(ccb_util_ccb_data);
 	ccbutil_deleteCcbData(ccb_util_ccb_data);
+
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -483,7 +523,7 @@ static void avd_oi_ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_i
  * NOTES: None.
  *
  **************************************************************************/
-static void avd_oi_ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
+static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 {
 	CcbUtilOperationData_t *opdata = NULL;
 	AVSV_AMF_CLASS_ID type;
@@ -494,19 +534,21 @@ static void avd_oi_ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_i
 		type = object_name_to_class_type(&opdata->objectName);
 		/* Base types will not have an apply callback, skip empty ones */
 		if (ccb_apply_callback[type] != NULL)
-			ccb_apply_callback[type] (opdata);
+			ccb_apply_callback[type](opdata);
 	}
+
+	TRACE_LEAVE();
 }
 
 static const SaImmOiCallbacksT_2 avd_callbacks = {
-	.saImmOiAdminOperationCallback = avd_oi_admin_operation_cb,
-	.saImmOiCcbAbortCallback = avd_oi_ccb_abort_cb,
-	.saImmOiCcbApplyCallback = avd_oi_ccb_apply_cb,
-	.saImmOiCcbCompletedCallback = avd_oi_ccb_completed_cb,
-	.saImmOiCcbObjectCreateCallback = avd_oi_ccb_object_create_cb,
-	.saImmOiCcbObjectDeleteCallback = avd_oi_ccb_object_delete_cb,
-	.saImmOiCcbObjectModifyCallback = avd_oi_ccb_object_modify_cb,
-	.saImmOiRtAttrUpdateCallback = avd_oi_rt_attr_update_cb
+	.saImmOiAdminOperationCallback = admin_operation_cb,
+	.saImmOiCcbAbortCallback = ccb_abort_cb,
+	.saImmOiCcbApplyCallback = ccb_apply_cb,
+	.saImmOiCcbCompletedCallback = ccb_completed_cb,
+	.saImmOiCcbObjectCreateCallback = ccb_object_create_cb,
+	.saImmOiCcbObjectDeleteCallback = ccb_object_delete_cb,
+	.saImmOiCcbObjectModifyCallback = ccb_object_modify_cb,
+	.saImmOiRtAttrUpdateCallback = rt_attr_update_cb
 };
 
 /*****************************************************************************
@@ -531,17 +573,17 @@ SaAisErrorT avd_imm_init(void *avd_cb)
 	TRACE_ENTER();
 
 	if ((error = immutil_saImmOiInitialize_2(&cb->immOiHandle, &avd_callbacks, &immVersion)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOiInitialize failed %u", error);
+		LOG_ER("saImmOiInitialize failed %u", error);
 		goto done;
 	}
 
 	if ((error = immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmInitialize failed %u", error);
+		LOG_ER("saImmOmInitialize failed %u", error);
 		goto done;
 	}
 
 	if ((error = immutil_saImmOiSelectionObjectGet(cb->immOiHandle, &cb->imm_sel_obj)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOiSelectionObjectGet failed %u", error);
+		LOG_ER("saImmOiSelectionObjectGet failed %u", error);
 		goto done;
 	}
 
@@ -570,7 +612,7 @@ SaAisErrorT avd_imm_impl_set(void)
 	TRACE_ENTER();
 
 	if ((rc = immutil_saImmOiImplementerSet(avd_cb->immOiHandle, implementerName)) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOiImplementerSet failed %u", rc);
+		LOG_ER("saImmOiImplementerSet failed %u", rc);
 		return rc;
 	}
 
@@ -578,7 +620,7 @@ SaAisErrorT avd_imm_impl_set(void)
 		if ((NULL != ccb_completed_callback[i]) &&
 		    (rc = immutil_saImmOiClassImplementerSet(avd_cb->immOiHandle, avd_class_names[i])) != SA_AIS_OK) {
 
-			avd_log(NCSFL_SEV_ERROR, "Impl Set Failed for %s, returned %d",	avd_class_names[i], rc);
+			LOG_ER("Impl Set Failed for %s, returned %d",	avd_class_names[i], rc);
 			break;
 		}
 	}
@@ -604,7 +646,7 @@ SaAisErrorT avd_imm_impl_set(void)
 static void *avd_imm_impl_set_task(void *_cb)
 {
 	if (avd_imm_impl_set() != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "exiting since avd_imm_impl_set failed");
+		LOG_ER("exiting since avd_imm_impl_set failed");
 		exit(EXIT_FAILURE);	// TODO ncs_reboot?
 	}
 
@@ -633,7 +675,7 @@ void avd_imm_impl_set_task_create(void)
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
 	if (pthread_create(&thread, &attr, avd_imm_impl_set_task, avd_cb) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }
@@ -646,6 +688,7 @@ void avd_class_impl_set(const SaImmClassNameT className,
 
 	rtattr_update_callback[type] = rtattr_cb;
 	admin_op_callback[type] = adminop_cb;
+	assert(ccb_completed_callback[type] == NULL);
 	ccb_completed_callback[type] = ccb_compl_cb;
 	ccb_apply_callback[type] = ccb_apply_cb;
 }
@@ -662,12 +705,7 @@ SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata)
 	}
 }
 
-/**
- * Parse the model top down and create internal AVD objects
- * 
- * @return uns32
- */
-uns32 avd_imm_config_get(void)
+unsigned int avd_imm_config_get(void)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 
@@ -716,7 +754,7 @@ uns32 avd_imm_config_get(void)
 	if (avd_node_config_get() != SA_AIS_OK)
 		goto done;
 
-	if (avd_node_group_config_get() != SA_AIS_OK)
+	if (avd_ng_config_get() != SA_AIS_OK)
 		goto done;
 
 	if (avd_app_config_get() != SA_AIS_OK)
@@ -731,7 +769,7 @@ done:
 	if (rc == NCSCC_RC_SUCCESS)
 		avd_log(NCSFL_SEV_NOTICE, "Configuration successfully read from IMM");
 	else
-		avd_log(NCSFL_SEV_ERROR, "Failed to read configuration, AMF will not start");
+		LOG_ER("Failed to read configuration, AMF will not start");
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;

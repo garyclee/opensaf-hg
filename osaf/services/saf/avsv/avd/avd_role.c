@@ -349,8 +349,8 @@ done:
 static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	AVD_SU *i_su = NULL;
-	AVD_AVND *avnd = AVD_AVND_NULL;
-	AVD_AVND *avnd_other = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
+	AVD_AVND *avnd_other = NULL;
 	SaClmNodeIdT node_id = 0;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_role_switch_actv_qsd");
@@ -363,13 +363,13 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 	}
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
+	if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 		m_AVD_LOG_INVALID_VAL_ERROR(cb->node_id_avd_other);
 		return NCSCC_RC_FAILURE;
 	}
@@ -452,7 +452,7 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_role_failover");
 	m_NCS_DBG_PRINTF("\nFAILOVER StandBy --> Active");
@@ -474,7 +474,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		m_NCS_DBG_PRINTF("\nAvSv: FAILOVER StandBy --> Active FAILED, DB not found\n");
 		syslog(LOG_ERR, "NCS_AvSv: FAILOVER StandBy --> Active FAILED, DB not found");
@@ -564,8 +564,8 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_AVND *avnd = AVD_AVND_NULL;
-	AVD_AVND *avnd_other = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
+	AVD_AVND *avnd_other = NULL;
 	AVD_EVT *evt = AVD_EVT_NULL;
 	NCSMDS_INFO svc_to_mds_info;
 
@@ -589,7 +589,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 		return NCSCC_RC_FAILURE;
 	}
 
-	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
 		m_NCS_DBG_PRINTF("\nAvSv: FAILOVER Quiesced --> Active FAILED, DB not found\n");
 		syslog(LOG_ERR, "NCS_AvSv: FAILOVER Quiesced --> Active FAILED, DB not found");
@@ -629,7 +629,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			cb->avail_state_avd = role;
 			avd_role_switch_ncs_su(cb, &evt);
 
-			if (AVD_AVND_NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
+			if (NULL != (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
 				/* We are successfully changed role to Active.
 				   do node down processing for other node */
 				avd_avm_mark_nd_absent(cb, avnd_other);
@@ -743,14 +743,14 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 \**************************************************************************/
 void avd_role_switch_ncs_su(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	AVD_SU *i_su = NULL;
 	AVSV_N2D_INFO_SU_SI_ASSIGN_MSG_INFO assign;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_role_switch_ncs_su");
 
 	/* get the avnd from node_id */
-	if (AVD_AVND_NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
+	if (NULL == (avnd = avd_node_find_nodeid(cb->node_id_avd))) {
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd);
 		return;
 	}
@@ -943,7 +943,7 @@ static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 \**************************************************************************/
 static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	uns32 node_id = 0;
 	uns32 status = NCSCC_RC_SUCCESS;
 

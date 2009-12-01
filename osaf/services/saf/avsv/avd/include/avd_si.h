@@ -194,14 +194,22 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, si, AVSV_CKPT_SI_ADMIN_STATE);\
 avd_gen_si_admin_state_chg_ntf(cb,si);\
 }
 
-extern AVD_SI *avd_si_create(SaNameT *si_name, const SaImmAttrValuesT_2 **attributes);
-extern void avd_si_delete(AVD_SI *si);
-extern AVD_SI *avd_si_find(const SaNameT *si_name);
+extern void avd_si_add_csi(struct avd_csi_tag* csi);
+extern void avd_si_remove_csi(struct avd_csi_tag *csi);
+extern AVD_SI *avd_si_new(const SaNameT *dn);
+extern void avd_si_delete(AVD_SI **si);
+extern void avd_si_db_add(AVD_SI *si);
+extern AVD_SI *avd_si_get(const SaNameT *si_name);
 extern AVD_SI *avd_si_getnext(const SaNameT *si_name);
 extern SaAisErrorT avd_si_config_get(struct avd_app_tag *app);
-
-extern SaAisErrorT avd_svctype_config_get(void);
-extern AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_find(const SaNameT *svctypecstypes_name);
-
 extern void avd_si_constructor(void);
+
+extern AVD_SVC_TYPE *avd_svctype_get(const SaNameT *dn);
+extern SaAisErrorT avd_svctype_config_get(void);
+extern void avd_svctype_constructor(void);
+
+extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
+extern AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *svctypecstypes_name);
+extern void avd_svctypecstypes_constructor(void);
+
 #endif
