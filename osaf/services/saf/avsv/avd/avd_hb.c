@@ -197,7 +197,7 @@ void avd_tmr_snd_hb_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_d_func");
 	m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, NCSFL_SEV_NOTICE, cb->node_id_avd_other);
@@ -219,7 +219,7 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	cb->avd_hrt_beat_rcvd = FALSE;
 
 	/* get avnd ptr to call avd_avm_mark_nd_absent */
-	if ((avnd = avd_node_find_nodeid(cb->node_id_avd_other)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(cb->node_id_avd_other)) == NULL) {
 		/* we can't do anything without getting avnd ptr. just return */
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
 		return;

@@ -39,6 +39,8 @@
 
 #include <saImmOm.h>
 #include <immutil.h>
+#include <logtrace.h>
+
 #include <avd_dblog.h>
 #include <avd_imm.h>
 #include <avd_si_dep.h>
@@ -115,7 +117,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_del");
 
 	/* Dependent SI row Status should be active, if not return error */
-	if ((dep_si = avd_si_find(&si_dep_rec->indx_mib.si_name_sec))
+	if ((dep_si = avd_si_get(&si_dep_rec->indx_mib.si_name_sec))
 	    == AVD_SI_NULL) {
 		/* LOG the message */
 		return;
@@ -412,7 +414,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 		}
 
 		/* Since the SI Dep. is been removed, adjust the dependent SI dep state accordingly */
-		si = avd_si_find(&rec->indx.si_name_prim);
+		si = avd_si_get(&rec->indx.si_name_prim);
 		if (si == AVD_SI_NULL)
 			return;
 
@@ -519,8 +521,8 @@ void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	si = avd_si_find(&evt->info.tmr.dep_si_name);
-	spons_si = avd_si_find(&evt->info.tmr.spons_si_name);
+	si = avd_si_get(&evt->info.tmr.dep_si_name);
+	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
 	if ((si == NULL) || (spons_si == NULL)) {
 		/* Nothing to do here as SI/spons-SI itself lost their existence */
@@ -762,7 +764,7 @@ void avd_process_si_dep_state_evt(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	if (evt->info.tmr.dep_si_name.length == 0) {
 		/* Its an ASSIGN evt */
-		si = avd_si_find(&evt->info.tmr.spons_si_name);
+		si = avd_si_get(&evt->info.tmr.spons_si_name);
 		if (si != NULL) {
 			avd_screen_sponsor_si_state(cb, si, TRUE);
 		}
@@ -795,8 +797,8 @@ void avd_si_dep_start_unassign(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_start_unassign");
 
-	si = avd_si_find(&evt->info.tmr.dep_si_name);
-	spons_si = avd_si_find(&evt->info.tmr.spons_si_name);
+	si = avd_si_get(&evt->info.tmr.dep_si_name);
+	spons_si = avd_si_get(&evt->info.tmr.spons_si_name);
 
 	if ((!si) || (!spons_si)) {
 		/* Log the ERROR message */
@@ -958,7 +960,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 				break;
 			}
 
-			dep_si = avd_si_find(&si_dep_rec->indx_mib.si_name_sec);
+			dep_si = avd_si_get(&si_dep_rec->indx_mib.si_name_sec);
 			if (dep_si == NULL) {
 				/* No corresponding SI node?? some thing wrong */
 				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_mib, TRUE);
@@ -1338,7 +1340,7 @@ static AVD_SI_SI_DEP *sidep_new(SaNameT *sidep_name, const SaImmAttrValuesT_2 **
 	avd_sidep_indx_init(sidep_name, &indx);
 
 	/* Sponsor SI need to exist */
-	if (avd_si_find(&indx.si_name_prim) == NULL) {
+	if (avd_si_get(&indx.si_name_prim) == NULL) {
 		avd_log(NCSFL_SEV_ERROR, "avd_si_struc_find failed for '%s'", indx.si_name_prim.value);
 		goto done;
 	}
@@ -1413,12 +1415,12 @@ SaAisErrorT avd_sidep_config_get(void)
 	return error;
 }
 
-static SaAisErrorT avd_sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT sidep_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_SI_SI_DEP *sidep;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -1442,14 +1444,14 @@ done:
 	return rc;
 }
 
-static void avd_sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_SI_SI_DEP *sidep;
 	AVD_SI_SI_DEP_INDX indx;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
@@ -1476,6 +1478,5 @@ static void avd_sidep_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 
 void avd_sidep_constructor(void)
 {
-	avd_class_impl_set("SaAmfSIDependency", NULL, NULL,
-		avd_sidep_ccb_completed_cb, avd_sidep_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSIDependency", NULL, NULL, sidep_ccb_completed_cb, sidep_ccb_apply_cb);
 }

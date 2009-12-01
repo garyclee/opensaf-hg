@@ -27,14 +27,13 @@
 #include <saAmf.h>
 #include <avd_node.h>
 
-typedef struct avd_amf_cluster_tag {
+typedef struct avd_cluster_tag {
 	SaNameT saAmfCluster;
 	SaNameT saAmfClusterClmCluster;
 	SaTimeT saAmfClusterStartupTimeout;
 	SaAmfAdminStateT saAmfClusterAdminState;
 
-	struct avd_avnd_tag *list_of_avnd_node;
-	struct avd_amf_ng_tag *list_of_avd_ng;
+	struct avd_ng_tag *list_of_avd_ng;
 
 } AVD_CLUSTER;
 
@@ -42,6 +41,7 @@ extern AVD_CLUSTER *avd_cluster;
 
 extern SaAisErrorT avd_cluster_config_get(void);
 extern void avd_cluster_tmr_init_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
+extern void avd_cluster_remove_ng(AVD_AMF_NG *node_gr);
 extern void avd_cluster_constructor(void);
 
 #endif

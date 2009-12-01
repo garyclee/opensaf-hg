@@ -34,12 +34,13 @@ void avd_imm_impl_set_task_create(void);
 SaAisErrorT avd_imm_impl_set(void);
 
 /**
- * Install callbacks associated with classNams
+ * Install callbacks associated with classNames
  * @param className
  * @param rtattr_cb
  * @param adminop_cb
  * @param ccb_compl_cb
  * @param ccb_apply_cb
+ * @param ccb_abort_cb
  */
 void avd_class_impl_set(const SaImmClassNameT className,
 	SaImmOiRtAttrUpdateCallbackT rtattr_cb, SaImmOiAdminOperationCallbackT_2 adminop_cb,
@@ -54,7 +55,7 @@ void avd_class_impl_set(const SaImmClassNameT className,
  */
 SaAisErrorT avd_imm_default_OK_completed_cb(CcbUtilOperationData_t *opdata);
 
-extern uns32 avd_imm_config_get(void);
+extern unsigned int avd_imm_config_get(void);
 extern SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT* dn, SaImmAttrNameT attributeName,
      SaImmValueTypeT attrValueType, void* value);
 extern SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,

@@ -16,51 +16,95 @@
  *
  */
 
-/*****************************************************************************
 
-  DESCRIPTION:This module deals with the creation, accessing and deletion of
-  the SU database on the AVD.
-  
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
-#include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
 
 #include <avd_util.h>
 #include <avd_su.h>
+#include <avd_sutype.h>
 #include <avd_dblog.h>
 #include <avd_imm.h>
-#include <avd_cluster.h>
 #include <avd_ntf.h>
 #include <avd_proc.h>
 
-static NCS_PATRICIA_TREE avd_su_db;
-static NCS_PATRICIA_TREE avd_sutype_db;
-static NCS_PATRICIA_TREE avd_sutcomptype_db;
+static NCS_PATRICIA_TREE su_db;
 
-static SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SU_TYPE *sut);
+void avd_su_db_add(AVD_SU *su)
+{
+	unsigned int rc;
 
-/*****************************************************************************
- * Function: avd_su_del_comp
- *
- * Purpose:  This function will del the given comp from the SU list, and fill
- * the components pointer with NULL
- *
- * Input: comp - The component pointer
- *
- * Returns: None. 
- *
- * NOTES: None
- *
- * 
- **************************************************************************/
-void avd_su_del_comp(AVD_COMP *comp)
+	if (avd_su_get(&su->name) == NULL) {
+		rc = ncs_patricia_tree_add(&su_db, &su->tree_node);
+		assert(rc == NCSCC_RC_SUCCESS);
+	}
+}
+
+void avd_su_db_remove(AVD_SU *su)
+{
+	unsigned int rc = ncs_patricia_tree_del(&su_db, &su->tree_node);
+	assert(rc == NCSCC_RC_SUCCESS);
+}
+
+AVD_SU *avd_su_new(const SaNameT *dn)
+{
+	SaNameT sg_name;
+	AVD_SU *su;
+
+	if ((su = calloc(1, sizeof(AVD_SU))) == NULL) {
+		LOG_ER("avd_su_new: calloc FAILED");
+		return NULL;
+	}
+	
+	memcpy(su->name.value, dn->value, dn->length);
+	su->name.length = dn->length;
+	su->tree_node.key_info = (uns8 *)&(su->name);
+	avsv_sanamet_init(dn, &sg_name, "safSg");
+	su->sg_of_su = avd_sg_get(&sg_name);
+	su->saAmfSUFailover = FALSE;
+	su->term_state = FALSE;
+	su->su_switch = AVSV_SI_TOGGLE_STABLE;
+	su->saAmfSUPreInstantiable = TRUE;
+	su->saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
+	su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+	su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+	su->su_act_state = AVD_SU_NO_STATE;
+	su->su_is_external = FALSE;
+
+	return su;
+}
+
+void avd_su_delete(AVD_SU **su)
+{
+	avd_node_remove_su(*su);
+	avd_sutype_remove_su(*su);
+	avd_su_db_remove(*su);
+	avd_sg_remove_su(*su);
+	free(*su);
+	*su = NULL;
+}
+
+AVD_SU *avd_su_get(const SaNameT *dn)
+{
+	SaNameT tmp = {0};
+
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
+
+	return (AVD_SU *)ncs_patricia_tree_get(&su_db, (uns8 *)&tmp);
+}
+
+AVD_SU *avd_su_getnext(const SaNameT *dn)
+{
+	SaNameT tmp = {0};
+
+	tmp.length = dn->length;
+	memcpy(tmp.value, dn->value, tmp.length);
+
+	return (AVD_SU *)ncs_patricia_tree_getnext(&su_db, (uns8 *)&tmp);
+}
+
+void avd_su_remove_comp(AVD_COMP *comp)
 {
 	AVD_COMP *i_comp = NULL;
 	AVD_COMP *prev_comp = NULL;
@@ -101,277 +145,11 @@ void avd_su_add_comp(AVD_COMP *comp)
 		while ((i_comp->su_comp_next != NULL) &&
 		       (i_comp->su_comp_next->comp_info.inst_level < comp->comp_info.inst_level))
 			i_comp = i_comp->su_comp_next;
-
 		comp->su_comp_next = i_comp->su_comp_next;
 		i_comp->su_comp_next = comp;
 	}
-
 	comp->su->curr_num_comp++;
 	comp->su->num_of_comp++;	// TODO 
-}
-
-/*****************************************************************************
- * Function: avd_su_find
- *
- * Purpose:  This function will find a AVD_SU structure in the
- * tree with su_name value as key.
- *
- * Input: dn - The name of the SU.
- *        
- * Returns: The pointer to AVD_SU structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SU *avd_su_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SU *)ncs_patricia_tree_get(&avd_su_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_su_getnext
- *
- * Purpose:  This function will get the next AVD_SU structure in the
- * tree whose su_name value is next of the given su_name value.
- *
- * Input: dn - The name of the SU.
- *        
- * Returns: The pointer to AVD_SU structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SU *avd_su_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SU *)ncs_patricia_tree_getnext(&avd_su_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_su_delete
- *
- * Purpose:  This function will delete and free AVD_SU structure from 
- * the tree.
- *
- * Input: su - The SU structure that needs to be deleted.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-void avd_su_delete(AVD_SU *su)
-{
-	unsigned int rc = ncs_patricia_tree_del(&avd_su_db, &su->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	free(su);
-}
-
-/*****************************************************************************
- * Function: avd_su_del_avnd_list
- *
- * Purpose:  This function will del the given SU from the AVND list, and fill
- * the SUs pointer with NULL
- *
- * Input: cb - the AVD control block
- *        su - The SU pointer
- *
- * Returns: None. 
- *
- * NOTES: None
- *
- * 
- **************************************************************************/
-void avd_su_del_avnd_list(AVD_CL_CB *cb, AVD_SU *su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-	NCS_BOOL isNcs;
-
-	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == SA_TRUE))
-		isNcs = TRUE;
-	else
-		isNcs = FALSE;
-
-	/* For external component, there is no AvND attached, so let it return. */
-	if (su->su_on_node != AVD_AVND_NULL) {
-		/* remove SU from node */
-		i_su = (isNcs) ? su->su_on_node->list_of_ncs_su : su->su_on_node->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->avnd_list_su_next;
-		}
-
-		if (i_su != su) {
-			/* Log a fatal error */
-		} else {
-			if (prev_su == NULL) {
-				if (isNcs)
-					su->su_on_node->list_of_ncs_su = su->avnd_list_su_next;
-				else
-					su->su_on_node->list_of_su = su->avnd_list_su_next;
-			} else {
-				prev_su->avnd_list_su_next = su->avnd_list_su_next;
-			}
-		}
-
-		su->avnd_list_su_next = NULL;
-		su->su_on_node = AVD_AVND_NULL;
-	}
-	/* if (su->su_on_node != AVD_AVND_NULL) */
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_su_del_sg_list
- *
- * Purpose:  This function will del the given SU from the SG list, and fill
- * the SUs pointer with NULL
- *
- * Input: cb - the AVD control block
- *        su - The SU pointer
- *
- * Returns: None. 
- *
- * NOTES: None
- *
- * 
- **************************************************************************/
-
-void avd_su_del_sg_list(AVD_CL_CB *cb, AVD_SU *su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-
-	if (su->sg_of_su != NULL) {
-		/* remove SU from SG */
-		i_su = su->sg_of_su->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->sg_list_su_next;
-		}
-
-		if (i_su != su) {
-			/* Log a fatal error */
-		} else {
-			if (prev_su == NULL) {
-				su->sg_of_su->list_of_su = su->sg_list_su_next;
-			} else {
-				prev_su->sg_list_su_next = su->sg_list_su_next;
-			}
-		}
-
-		su->sg_list_su_next = NULL;
-		su->sg_of_su = NULL;
-	}
-	/* if (su->sg_of_su != AVD_SG_NULL) */
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_su_add_sg_list
- *
- * Purpose:  This function will add the given SU to the SG list, and fill
- * the SUs pointers. 
- *
- * Input: cb - the AVD control block
- *        su - The SU pointer
- *
- * Returns: None. 
- *
- * NOTES: None
- *
- * 
- **************************************************************************/
-
-void avd_su_add_sg_list(AVD_CL_CB *cb, AVD_SU *su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-
-	if ((su == NULL) || (su->sg_of_su == NULL))
-		return;
-
-	i_su = su->sg_of_su->list_of_su;
-
-	while ((i_su != NULL) && (i_su->saAmfSURank < su->saAmfSURank)) {
-		prev_su = i_su;
-		i_su = i_su->sg_list_su_next;
-	}
-
-	if (prev_su == NULL) {
-		su->sg_list_su_next = su->sg_of_su->list_of_su;
-		su->sg_of_su->list_of_su = su;
-	} else {
-		prev_su->sg_list_su_next = su;
-		su->sg_list_su_next = i_su;
-	}
-}
-
-/*****************************************************************************
- * Function: avd_sutype_find
- *
- * Purpose:  This function will find a AVD_SU_TYPE structure in the
- *           tree with su_type_name value as key.
- *
- * Input: dn - The name of the su_type_name.
- *
- * Returns: The pointer to AVD_SU_TYPE structure found in the tree.
- *
- * NOTES:
- *
- *
- **************************************************************************/
-
-AVD_SU_TYPE *avd_sutype_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SU_TYPE *)ncs_patricia_tree_get(&avd_sutype_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_sutype_delete
- *
- * Purpose:  This function will delete a AVD_SU_TYPE structure from the
- *           tree. 
- *
- * Input: su_type - The su_type structure that needs to be deleted.
- *
- * Returns: Ok/Error.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-void avd_sutype_delete(AVD_SU_TYPE *avd_su_type)
-{
-	uns32 rc;
-
-	rc = ncs_patricia_tree_del(&avd_sutype_db, &avd_su_type->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-
-	free(avd_su_type);
 }
 
 /*****************************************************************************
@@ -391,7 +169,6 @@ void avd_sutype_delete(AVD_SU_TYPE *avd_su_type)
  *
  * 
  **************************************************************************/
-
 void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 {
 	AVD_SU *su;
@@ -404,7 +181,7 @@ void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 
 	if (ack_msg->msg_info.n2d_reg_su.error != NCSCC_RC_SUCCESS) {
 		/* Find the SU */
-		su = avd_su_find(&ack_msg->msg_info.n2d_reg_su.su_name);
+		su = avd_su_get(&ack_msg->msg_info.n2d_reg_su.su_name);
 		if (su == NULL) {
 			/* The SU has already been deleted. there is nothing
 			 * that can be done.
@@ -426,14 +203,8 @@ void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 		/* remove the SU from both the SG list and the
 		 * AVND list if present.
 		 */
-
-		m_AVD_CB_LOCK(cb, NCS_LOCK_WRITE);
-
-		avd_su_del_sg_list(cb, su);
-
-		avd_su_del_avnd_list(cb, su);
-
-		m_AVD_CB_UNLOCK(cb, NCS_LOCK_WRITE);
+		avd_sg_remove_su(su);
+		avd_node_remove_su(su);
 
 		if (su->list_of_comp != NULL) {
 			/* Mark All the components as Not in service. Send
@@ -449,7 +220,7 @@ void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 				param.class_id = AVSV_SA_AMF_COMP;
 				avd_snd_op_req_msg(cb, avnd, &param);
 				/* delete from the SU list */
-				avd_su_del_comp(su->list_of_comp);
+				avd_su_remove_comp(su->list_of_comp);
 			}
 
 			su->si_max_active = 0;
@@ -470,7 +241,7 @@ void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	 * information of the SU.
 	 */
 	/* Find the SU */
-	su = avd_su_find(&ack_msg->msg_info.n2d_reg_su.su_name);
+	su = avd_su_get(&ack_msg->msg_info.n2d_reg_su.su_name);
 	if (su == NULL) {
 		/* The SU has already been deleted. there is nothing
 		 * that can be done.
@@ -496,24 +267,63 @@ void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
  * 
  * @return int
  */
-static int avd_su_config_validate(const SaNameT *dn, const AVD_SU *su)
+static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
+	const CcbUtilOperationData_t *opdata)
 {
-	if (avd_node_find(&su->saAmfSUHostNodeOrNodeGroup) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Node '%s' does not exist", su->saAmfSUHostNodeOrNodeGroup.value);
-		return -1;
+	SaAisErrorT rc;
+	SaNameT aname;
+	SaBoolT abool;
+	SaAmfAdminStateT admstate;
+	char *parent;
+
+	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+		LOG_ER("No parent to '%s' ", dn->value);
+		return 0;
 	}
 
-	if (su->saAmfSUFailover > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSUFailover %u for '%s'", su->saAmfSUFailover, dn->value);
-		return -1;
+	if (strncmp(++parent, "safSg=", 6) != 0) {
+		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		return 0;
 	}
 
-	if (su->saAmfSUAdminState > SA_AMF_ADMIN_UNLOCKED) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSUAdminState %u for '%s'", su->saAmfSUAdminState, dn->value);
-		return -1;
+	rc = immutil_getAttr("saAmfSUType", attributes, 0, &aname);
+	assert(rc == SA_AIS_OK);
+
+	if (avd_sutype_get(&aname) == NULL) {
+		/* SU type does not exist in current model, check CCB if passed as param */
+		if (opdata == NULL) {
+			LOG_ER("SU type '%s' does not exist in model", aname.value);
+			return 0;
+		}
+
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+			LOG_ER("SU type '%s' does not exist in existing model or in CCB",
+				aname.value);
+			return 0;
+		}
 	}
 
-	return 0;
+	if ((immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &aname) == SA_AIS_OK) &&
+	    ((avd_ng_get(&aname) == NULL) && (avd_node_get(&aname) == NULL))) {
+		LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'", aname.value, dn->value);
+		return 0;
+	}
+
+	// TODO maintenance campaign
+
+	if ((immutil_getAttr("saAmfSUFailover", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfSUFailover %u for '%s'", abool, dn->value);
+		return 0;
+	}
+
+	if ((immutil_getAttr("saAmfSUAdminState", attributes, 0, &admstate) == SA_AIS_OK) &&
+	    !avd_admin_state_is_valid(admstate)) {
+		LOG_ER("Invalid saAmfSUAdminState %u for '%s'", admstate, dn->value);
+		return 0;
+	}
+
+	return 1;
 }
 
 /**
@@ -524,49 +334,28 @@ static int avd_su_config_validate(const SaNameT *dn, const AVD_SU *su)
  * 
  * @return AVD_SU*
  */
-/***/
-AVD_SU *avd_su_create(const SaNameT *su_name, const SaImmAttrValuesT_2 **attributes)
+static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	AVD_SU *su;
-	AVD_SU_TYPE *sut;
-	SaNameT sg_name;
+	struct avd_sutype *sut;
+	SaAisErrorT error;
+
+	TRACE_ENTER2("'%s'", dn->value);
 
 	/*
-	** If called from cold sync, attributes==NULL.
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (su = avd_su_find(su_name))) {
-		if ((su = calloc(1, sizeof(AVD_SU))) == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
+	if ((su = avd_su_get(dn)) == NULL) {
+		if ((su = avd_su_new(dn)) == NULL) {
+			LOG_ER("avd_sutype_new failed");
 			goto done;
 		}
-		
-		memcpy(su->name.value, su_name->value, su_name->length);
-		su->name.length = su_name->length;
-		su->tree_node.key_info = (uns8 *)&(su->name);
-		avsv_sanamet_init(su_name, &sg_name, "safSg");
-		su->sg_of_su = avd_sg_find(&sg_name);
-		su->saAmfSUFailover = FALSE;
-		su->term_state = FALSE;
-		su->su_switch = AVSV_SI_TOGGLE_STABLE;
-		su->saAmfSUPreInstantiable = TRUE;
-		su->saAmfSUOperState = SA_AMF_OPERATIONAL_DISABLED;
-		su->saAmfSUPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
-		su->saAmfSuReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
-		su->su_act_state = AVD_SU_NO_STATE;
-		su->su_is_external = FALSE;
 	}
 
-	/* If no attributes supplied, go direct and add to DB */
-	if (NULL == attributes)
-		goto add_to_db;
-
-	if (immutil_getAttr("saAmfSUType", attributes, 0, &su->saAmfSUType) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSUType FAILED for '%s'", su_name->value);
-		goto done;
-	}
+	error = immutil_getAttr("saAmfSUType", attributes, 0, &su->saAmfSUType);
+	assert(error == SA_AIS_OK);
 
 	if (immutil_getAttr("saAmfSURank", attributes, 0, &su->saAmfSURank) != SA_AIS_OK) {
 		/* Empty, assign default value */
@@ -575,14 +364,14 @@ AVD_SU *avd_su_create(const SaNameT *su_name, const SaImmAttrValuesT_2 **attribu
 
 	if (immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &su->saAmfSUHostNodeOrNodeGroup) != SA_AIS_OK) {
 		/* TODO: this is no error! */
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSUHostNodeOrNodeGroup FAILED for '%s'", su_name->value);
+		LOG_ER("Get saAmfSUHostNodeOrNodeGroup FAILED for '%s'", dn->value);
 		goto done;
 	}
 
 	memcpy(&su->saAmfSUHostedByNode, &su->saAmfSUHostNodeOrNodeGroup, sizeof(SaNameT));
 
-	if ((sut = avd_sutype_find(&su->saAmfSUType)) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "saAmfSUType '%s' does not exist", su->saAmfSUType.value);
+	if ((sut = avd_sutype_get(&su->saAmfSUType)) == NULL) {
+		LOG_ER("saAmfSUType '%s' does not exist", su->saAmfSUType.value);
 		goto done;
 	}
 
@@ -599,73 +388,46 @@ AVD_SU *avd_su_create(const SaNameT *su_name, const SaImmAttrValuesT_2 **attribu
 	su->si_max_active = -1;	// TODO
 	su->si_max_standby = -1;	// TODO
 
-add_to_db:
-	(void)ncs_patricia_tree_add(&avd_su_db, &su->tree_node);
 	rc = 0;
 
 done:
-	if (rc != 0) {
-		free(su);
-		su = NULL;
-	}
+	if (rc != 0)
+		avd_su_delete(&su);
+
 	return su;
 }
 
-/*****************************************************************************
- * Function: avd_su_add_to_model
- * 
- * Purpose: This routine adds SaAmfSU objects to Patricia tree.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_su_add_to_model(AVD_SU *su)
+static void su_add_to_model(AVD_SU *su)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
-	AVD_SU_TYPE *sut = su->su_on_su_type;
 	AVD_AVND *node = NULL;
+	int new_su = 0;
 
-	/* Add SU to list in SU Type */
-	su->su_list_su_type_next = sut->list_of_su;
-	sut->list_of_su = su;
+	if (avd_su_get(&su->name) == NULL)
+		new_su = 1;
 
-	/* add to the list of SG  */
-	avd_su_add_sg_list(avd_cb, su);
+	avd_su_db_add(su);
+	avd_sutype_add_su(su);
+	avd_sg_add_su(su);
 
 	if (FALSE == su->su_is_external) {
-		/* Find the AVND node and link it to the structure.
-		 */
-
-		if ((su->su_on_node = avd_node_find(&su->saAmfSUHostNodeOrNodeGroup)) == AVD_AVND_NULL) {
-			avd_su_del_sg_list(avd_cb, su);
+		if ((su->su_on_node = avd_node_get(&su->saAmfSUHostNodeOrNodeGroup)) == NULL) {
+			avd_sg_remove_su(su);
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
 
-		if (strstr((char *)su->name.value, "safApp=OpenSAF") != NULL) {
-			su->avnd_list_su_next = su->su_on_node->list_of_ncs_su;
-			su->su_on_node->list_of_ncs_su = su;
-		} else {
-			su->avnd_list_su_next = su->su_on_node->list_of_su;
-			su->su_on_node->list_of_su = su;
-		}
-
+		avd_node_add_su(su);
 		node = su->su_on_node;
-	} /* if(FALSE == su->su_is_external)  */
+	}
 	else {
 		if (NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) {
 			/* This is an external SU and we need to create the 
 			   supporting info. */
 			avd_cb->ext_comp_info.ext_comp_hlt_check = malloc(sizeof(AVD_AVND));
 			if (NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) {
-				avd_su_del_sg_list(avd_cb, su);
-				avd_log(NCSFL_SEV_ERROR, "Memory Alloc Failure");
+				avd_sg_remove_su(su);
+				LOG_ER("Memory Alloc Failure");
 			}
 			memset(avd_cb->ext_comp_info.ext_comp_hlt_check, 0, sizeof(AVD_AVND));
 			avd_cb->ext_comp_info.local_avnd_node = avd_node_find_nodeid(avd_cb->node_id_avd);
@@ -673,31 +435,32 @@ static void avd_su_add_to_model(AVD_SU *su)
 			if (NULL == avd_cb->ext_comp_info.local_avnd_node) {
 				m_AVD_PXY_PXD_ERR_LOG("sutableentry_set:Local node unavailable:SU Name,node id are",
 						      &su->name, avd_cb->node_id_avd, 0, 0, 0);
-				avd_su_del_sg_list(avd_cb, su);
-				avd_log(NCSFL_SEV_ERROR, "Avnd Lookup failure, node id %u", avd_cb->node_id_avd);
+				avd_sg_remove_su(su);
+				LOG_ER("Avnd Lookup failure, node id %u", avd_cb->node_id_avd);
 			}
 
 		}
-		/* if(NULL == avd_cb->ext_comp_info.ext_comp_hlt_check) */
-		node = avd_cb->ext_comp_info.local_avnd_node;
 
-	}			/* else of if(FALSE == su->su_is_external)  */
-#if 0
-	if ((node->node_state == AVD_AVND_STATE_PRESENT) ||
-	    (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
-	    (node->node_state == AVD_AVND_STATE_NCS_INIT)) {
+		node = avd_cb->ext_comp_info.local_avnd_node;
+	}
+
+	if (new_su && ((node->node_state == AVD_AVND_STATE_PRESENT) ||
+		       (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
+		       (node->node_state == AVD_AVND_STATE_NCS_INIT))) {
+
 		if (avd_snd_su_msg(avd_cb, su) != NCSCC_RC_SUCCESS) {
-			avd_su_del_avnd_list(avd_cb, su);
-			avd_su_del_sg_list(avd_cb, su);
+			avd_node_remove_su(su);
+			avd_sg_remove_su(su);
 
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
 	}
-#endif
 
 done:
 	assert(rc == NCSCC_RC_SUCCESS);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
+
 	/* Set runtime cached attributes. */
 	if (avd_cb->impl_set == TRUE) {
 		avd_saImmOiRtObjectUpdate(&su->name,
@@ -723,15 +486,6 @@ done:
 
 }
 
-/**
- * Get configuration for all SaAmfSU objects from IMM and
- * create AVD internal objects.
- * 
- * @param sg_name
- * @param sg
- * 
- * @return int
- */
 SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 {
 	SaAisErrorT error;
@@ -742,36 +496,31 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 	const char *className = "SaAmfSU";
 	AVD_SU *su;
 
-	assert(sg != NULL);
+	TRACE_ENTER();
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, sg_name, SA_IMM_SUBTREE,
-						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "No objects found (1)");
+		LOG_ER("No objects found (1)");
 		goto done1;
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &su_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", su_name.value);
+		if (!is_config_valid(&su_name, attributes, NULL))
+			goto done2;
 
-		if ((su = avd_su_create(&su_name, attributes)) == NULL) {
+		if ((su = su_create(&su_name, attributes)) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if (avd_su_config_validate(&su_name, su) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "SU '%s' validation error", su_name.value);
-			avd_su_delete(su);
-			goto done2;
-		}
-
-		avd_su_add_to_model(su);
+		su_add_to_model(su);
 
 		if (avd_comp_config_get(&su_name, su) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
@@ -784,195 +533,7 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
  done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
  done1:
-
-	return error;
-}
-
-/*****************************************************************************
- * Function: avd_sutype_create
- * 
- * Purpose: This routine creates new SaAmfSUType objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: Pointer to SU Type structure.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static AVD_SU_TYPE *avd_sutype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
-{
-	AVD_SU_TYPE *sut;
-	int rc, i;
-
-	if ((sut = calloc(1, sizeof(AVD_SU_TYPE))) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "calloc failed");
-		return NULL;
-	}
-	memset(sut, 0, sizeof(AVD_SU_TYPE));
-	memcpy(sut->su_type_name.value, dn->value, dn->length);
-	sut->su_type_name.length = dn->length;
-	sut->tree_node.key_info = (uns8 *)&(sut->su_type_name);
-
-	if (immutil_getAttr("saAmfSutIsExternal", attributes, 0, &sut->saAmfSutIsExternal) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSutIsExternal FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSutDefSUFailover", attributes, 0, &sut->saAmfSutDefSUFailover) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSutDefSUFailover FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttrValuesNumber("saAmfSutProvidesSvcTypes", attributes, &sut->number_svc_types) == SA_AIS_OK) {
-		sut->saAmfSutProvidesSvcTypes = malloc(sut->number_svc_types * sizeof(SaNameT));
-		for (i = 0; i < sut->number_svc_types; i++) {
-			if (immutil_getAttr("saAmfSutProvidesSvcTypes", attributes, i,
-					    &sut->saAmfSutProvidesSvcTypes[i]) != SA_AIS_OK) {
-				avd_log(NCSFL_SEV_ERROR, "Get saAmfSutProvidesSvcTypes FAILED for '%s'", dn->value);
-				goto done;
-			}
-		}
-	} else {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSGtValidSuTypes FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	rc = ncs_patricia_tree_add(&avd_sutype_db, &sut->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	rc = 0;
- done:
-	if (rc != 0) {
-		free(sut);
-		sut = NULL;
-	}
-
-	return sut;
-}
-
-/*****************************************************************************
- * Function: avd_sutype_config_validate
- * 
- * Purpose: This routine handles all CCB operations on SaAmfSUType objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_sutype_config_validate(const AVD_SU_TYPE *su_type, const CcbUtilOperationData_t *opdata)
-{
-	/* int i = 0; */
-	char *parent;
-	char *dn = (char *)su_type->su_type_name.value;
-
-	if ((parent = strchr(dn, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
-		return -1;
-	}
-
-	parent++;
-
-	/* Should be children to the SU Base type */
-	if (strncmp(parent, "safSuType=", 10) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", parent, dn);
-		return -1;
-	}
-#if 0
-	/*  TODO we need proper Svc Type handling for this, revisit */
-
-	/* Make sure all Svc types exist */
-	for (i = 0; i < su_type->number_svc_types; i++) {
-		AVD_AMF_SVC_TYPE *svc_type =
-		    avd_svctype_find(avd_cb, su_type->saAmfSutProvidesSvcTypes[i], TRUE);
-		if (svc_type == NULL) {
-			/* Svc type does not exist in current model, check CCB */
-			if ((opdata != NULL) &&
-			    (ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_type->saAmfSutProvidesSvcTypes[i]) == NULL)) {
-				avd_log(NCSFL_SEV_ERROR, "Svc type '%s' does not exist either in model or CCB",
-					su_type->saAmfSutProvidesSvcTypes[i]);
-				return SA_AIS_ERR_BAD_OPERATION;
-			}
-			avd_log(NCSFL_SEV_ERROR, "AMF Svc type '%s' does not exist",
-				su_type->saAmfSutProvidesSvcTypes[i].value);
-			return -1;
-		}
-	}
-#endif
-	if (su_type->saAmfSutDefSUFailover > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong saAmfSutDefSUFailover value '%u'", su_type->saAmfSutDefSUFailover);
-		return -1;
-	}
-
-	if (su_type->saAmfSutIsExternal > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong saAmfSutIsExternal value '%u'", su_type->saAmfSutIsExternal);
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
- * Get configuration for all SaAmfSUType objects from IMM and
- * create AVD internal objects.
- * @param cb
- * 
- * @return int
- */
-SaAisErrorT avd_sutype_config_get(void)
-{
-	AVD_SU_TYPE *sut;
-	SaAisErrorT error;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfSUType";
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
-	
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((sut = avd_sutype_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
-
-		if (avd_sutype_config_validate(sut, NULL) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF SU type '%s' validation error", dn.value);
-			goto done2;
-		}
-
-		if (avd_sutcomptype_config_get(&dn, sut) != SA_AIS_OK) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
-	}
-
-	error = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
+	TRACE_LEAVE2("%u", error);
 	return error;
 }
 
@@ -1052,176 +613,18 @@ void avd_su_admin_state_set(AVD_SU *su, SaAmfAdminStateT admin_state)
 	avd_gen_su_admin_state_changed_ntf(avd_cb, su);
 }
 
-/*****************************************************************************
- * Function: avd_sutype_ccb_apply_delete_hdlr
+/**
+ * Handle admin operations on SaAmfSU objects.
  * 
- * Purpose: This routine handles delete operations on SaAmfSUType objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- ****************************************************************************/
-static void avd_sutype_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
-{
-	AVD_SU_TYPE *avd_su_type;
-
-	avd_su_type = avd_sutype_find(&opdata->objectName);
-	assert(avd_su_type != NULL);
-
-	if (NULL != avd_su_type->saAmfSutProvidesSvcTypes)
-		free(avd_su_type->saAmfSutProvidesSvcTypes);
-
-	assert(NULL == avd_su_type->list_of_su);
-	avd_sutype_delete(avd_su_type);
-}
-
-/*****************************************************************************
- * Function: avd_sutype_ccb_apply_cb
- * 
- * Purpose: This routine handles all CCB apply operations on SaAmfSUType objects.
- * 
- *
- * Input  : Ccb Util Oper Data 
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_sutype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		break;
-	case CCBUTIL_DELETE:
-		avd_sutype_ccb_apply_delete_hdlr(opdata);
-		break;
-	default:
-		assert(0);
-		break;
-	}
-}
-
-/*****************************************************************************
- * Function: avd_sutype_ccb_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfSUType objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_sutype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SU_TYPE *su_type;
-
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		if ((su_type = avd_sutype_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
-			goto done;
-		}
-
-		if (avd_sutype_config_validate(su_type, opdata) != 0)
-			goto done;
-
-		opdata->userData = su_type;	/* Save for later use in apply */
-		rc = SA_AIS_OK;
-		break;
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfSUType not supported");
-		break;
-	case CCBUTIL_DELETE:
-		su_type = avd_sutype_find(&opdata->objectName);
-		if (NULL != su_type->list_of_su) {
-			avd_log(NCSFL_SEV_ERROR, "SaAmfSUType is in use");
-			goto done;
-		}
-		rc = SA_AIS_OK;
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
- done:
-	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_su_del_su_type_list
- *
- * Purpose:  This function will del the given su from su_type list.
- *
- * Input: cb - the AVD control block
- *        su - The su pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-void avd_su_del_su_type_list(AVD_CL_CB *cb, AVD_SU *su)
-{
-	AVD_SU *i_su = NULL;
-	AVD_SU *prev_su = NULL;
-
-	if (su->su_on_su_type != NULL) {
-		i_su = su->su_on_su_type->list_of_su;
-
-		while ((i_su != NULL) && (i_su != su)) {
-			prev_su = i_su;
-			i_su = i_su->su_list_su_type_next;
-		}
-
-		if (i_su != su) {
-			/* Log a fatal error */
-		} else {
-			if (prev_su == NULL) {
-				su->su_on_su_type->list_of_su = su->su_list_su_type_next;
-			} else {
-				prev_su->su_list_su_type_next = su->su_list_su_type_next;
-			}
-		}
-
-		su->su_list_su_type_next = NULL;
-		su->su_on_su_type = NULL;
-	}
-
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_su_admin_op_cb
- * 
- * Purpose: This routine handles all Admin operations on SaAmfSU objects.
- * 
- *
- * Input  : Oi handle, Invocation, Object name, oper id and params.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_su_admin_op_cb(SaImmOiHandleT immoi_handle,
-			       SaInvocationT invocation,
-			       const SaNameT *su_name,
-			       SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
+ * @param immoi_handle
+ * @param invocation
+ * @param su_name
+ * @param op_id
+ * @param params
+ */
+static void su_admin_op_cb(SaImmOiHandleT immoi_handle,	SaInvocationT invocation,
+	const SaNameT *su_name, SaImmAdminOperationIdT op_id,
+	const SaImmAdminOperationParamsT_2 **params)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB*) avd_cb;
 	AVD_SU    *su;
@@ -1246,8 +649,7 @@ static void avd_su_admin_op_cb(SaImmOiHandleT immoi_handle,
 		goto done;
 	}
 
-	if (NULL == (su = avd_su_find(su_name))) {
-		rc = SA_AIS_ERR_NOT_EXIST;
+	if (NULL == (su = avd_su_get(su_name))) {
 		LOG_CR("SU '%s' not found", su_name->value);
 		/* internal error? assert instead? */
 		goto done;
@@ -1505,10 +907,10 @@ done:
 	TRACE_LEAVE2("%u", rc);
 }
 
-static SaAisErrorT avd_su_rt_attr_cb(SaImmOiHandleT immOiHandle,
-				     const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
+	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SU *su = avd_su_find(objectName);
+	AVD_SU *su = avd_su_get(objectName);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
@@ -1553,7 +955,7 @@ static SaAisErrorT avd_su_rt_attr_cb(SaImmOiHandleT immOiHandle,
  *
  *
  **************************************************************************/
-static SaAisErrorT avd_su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
@@ -1563,7 +965,7 @@ static SaAisErrorT avd_su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
 			NCS_BOOL su_failover = *((SaTimeT *)attr_mod->modAttr.attrValues[0]);
 			if (su_failover > SA_TRUE) {
-				avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSUFailover %u", su_failover);
+				LOG_ER("Invalid saAmfSUFailover %u", su_failover);
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
@@ -1591,106 +993,64 @@ static SaAisErrorT avd_su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
  *
  *
  **************************************************************************/
-static SaAisErrorT avd_su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	AVD_SU *avd_su = NULL;
+	AVD_SU *su;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	/* Find the su name. */
-	avd_su = avd_su_find(&opdata->objectName);
-	assert(avd_su != NULL);
+	su = avd_su_get(&opdata->objectName);
+	assert(su != NULL);
 
-	if ((avd_su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
-	    (avd_su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
+	if ((su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
+	    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
-	if (avd_su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) {
+	if (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
 	/* Check to see that no components or SUSI exists on this component */
-	if ((avd_su->list_of_comp != NULL) || (avd_su->list_of_susi != AVD_SU_SI_REL_NULL)) {
+	if ((su->list_of_comp != NULL) || (su->list_of_susi != AVD_SU_SI_REL_NULL)) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
 		goto done;
 	}
 
- done:
-
+done:
+	opdata->userData = su;
+	TRACE_LEAVE2("%u", rc);
 	return rc;
-
 }
 
-/*****************************************************************************
- * Function: avd_su_ccb_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfSU objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SU *su;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if ((su = avd_su_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL)
-			goto done;
-
-		if (avd_su_config_validate(&opdata->objectName, su) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF Su '%s' validation error", su->name.value);
-			avd_su_delete(su);
-			goto done;
-		}
-		
-		opdata->userData = su; /* Save for later use in apply */
-		rc = SA_AIS_OK;
+		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		rc = avd_su_ccb_completed_modify_hdlr(opdata);
+		rc = su_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = avd_su_ccb_completed_delete_hdlr(opdata);
+		rc = su_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
 		break;
 	}
- done:
-	return rc;
-}
 
-/*****************************************************************************
- * Function: avd_su_ccb_apply_create_hdlr
- * 
- * Purpose: This routine handles create operations on SaAmfSU objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_su_ccb_apply_create_hdlr(CcbUtilOperationData_t *opdata)
-{
-	avd_su_add_to_model(opdata->userData);
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -1707,46 +1067,38 @@ static void avd_su_ccb_apply_create_hdlr(CcbUtilOperationData_t *opdata)
  *
  *
  **************************************************************************/
-static void avd_su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_SU *avd_su = NULL;
+	AVD_SU *su = NULL;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-	avd_su = avd_su_find(&opdata->objectName);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+
+	su = avd_su_get(&opdata->objectName);
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
 			NCS_BOOL su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
-			avd_su->saAmfSUFailover = su_failover;
+			su->saAmfSUFailover = su_failover;
 		}
 	}
+
+	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_su_ccb_apply_delete_hdlr
+/**
+ * Handle delete operations on SaAmfSU objects.
  * 
- * Purpose: This routine handles delete operations on SaAmfSU objects.
- * 
- *
- * Input  : Ccb Util Oper Data. 
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
+ * @param su
+ */
+static void su_ccb_apply_delete_hdlr(AVD_SU *su)
 {
-	AVD_SU *avd_su = NULL;
-	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_node_ptr;
 	AVSV_PARAM_INFO param;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-	avd_su = avd_su_find(&opdata->objectName);
+	TRACE_ENTER2("'%s'", su->name.value);
 
-	m_AVD_GET_SU_NODE_PTR(avd_cb, avd_su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(avd_cb, su, su_node_ptr);
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -1754,235 +1106,44 @@ static void avd_su_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 		param.class_id = AVSV_SA_AMF_SU;
 		param.act = AVSV_OBJ_OPR_DEL;
-		param.name = avd_su->name;
+		param.name = su->name;
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
-
-	/* remove the SU from both the SG list and the
-	 * AVND list if present.
-	 */
-	m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-	avd_su_del_sg_list(avd_cb, avd_su);
-	avd_su_del_avnd_list(avd_cb, avd_su);
-
-	m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
 
 	/* check point to the standby AVD that this
 	 * record need to be deleted
 	 */
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, avd_su, AVSV_CKPT_AVD_SU_CONFIG);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 
-	avd_su_del_su_type_list(avd_cb, avd_su);
-	avd_su_delete(avd_su);
+	avd_su_delete(&su);
 
+	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_su_ccb_apply_cb
- *
- * Purpose: This routine handles all CCB operations on SaAmfSU objects.
- *
- *
- * Input  : Ccb Util Oper Data
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	AVD_SU *su;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		avd_su_ccb_apply_create_hdlr(opdata);
+		su = su_create(&opdata->objectName, opdata->param.create.attrValues);
+		assert(su);
+		su_add_to_model(su);
 		break;
 	case CCBUTIL_MODIFY:
-		avd_su_ccb_apply_modify_hdlr(opdata);
+		su_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		avd_su_ccb_apply_delete_hdlr(opdata);
-		break;
-	default:
-		assert(0);
-		break;
-	}
-}
-
-static AVD_SUTCOMP_TYPE *avd_sutcomptype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
-{
-	uns32 rc;
-	AVD_SUTCOMP_TYPE *sutcomptype;
-
-	if ((sutcomptype = calloc(1, sizeof(AVD_SUTCOMP_TYPE))) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "calloc failed");
-		return NULL;
-	}
-
-	memcpy(sutcomptype->name.value, dn->value, dn->length);
-	sutcomptype->name.length = dn->length;
-	sutcomptype->tree_node.key_info = (uns8 *)&(sutcomptype->name);
-
-	if (immutil_getAttr("saAmfSutMaxNumComponents", attributes, 0, &sutcomptype->saAmfSutMaxNumComponents) != SA_AIS_OK)
-		sutcomptype->saAmfSutMaxNumComponents = -1; /* no limit */
-
-	if (immutil_getAttr("saAmfSutMinNumComponents", attributes, 0, &sutcomptype->saAmfSutMinNumComponents) != SA_AIS_OK)
-		sutcomptype->saAmfSutMinNumComponents = 1;
-
-	rc = ncs_patricia_tree_add(&avd_sutcomptype_db, &sutcomptype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-
-	return sutcomptype;
-}
-
-static void avd_sutcomptype_delete(AVD_SUTCOMP_TYPE *sutcomptype)
-{
-	uns32 rc;
-
-	rc = ncs_patricia_tree_del(&avd_sutcomptype_db, &sutcomptype->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	free(sutcomptype);
-}
-
-AVD_SUTCOMP_TYPE *avd_sutcomptype_find(const SaNameT *dn)
-{
-    SaNameT tmp = {0};
-
-    tmp.length = dn->length;
-    memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_SUTCOMP_TYPE *)ncs_patricia_tree_get(&avd_sutcomptype_db, (uns8 *)&tmp);
-}
-
-/**
- * Get configuration for all SaAmfSutCompType objects from IMM and
- * create AVD internal objects.
- * @param cb
- * 
- * @return int
- */
-static SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, AVD_SU_TYPE *sut)
-{
-	AVD_SUTCOMP_TYPE *sutcomptype;
-	SaAisErrorT error;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfSutCompType";
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, sutype_name, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
-	
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-
-		avd_log(NCSFL_SEV_NOTICE, "'%s' (%u)", dn.value, dn.length);
-
-		if ((sutcomptype = avd_sutcomptype_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
-	}
-
-	error = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-	return error;
-}
-
-/*****************************************************************************
- * Function: avd_sutcomptype_ccb_completed_cb
- * 
- * Purpose: Handles the CCB completed operation for the SaAmfSutCompType class.
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_sutcomptype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SUTCOMP_TYPE *sutcomptype;
-
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		if ((sutcomptype = avd_sutcomptype_create(&opdata->objectName,
-			opdata->param.create.attrValues)) == NULL) {
-			goto done;
-		}
-
-		opdata->userData = sutcomptype;	/* Save for later use in apply */
-		rc = SA_AIS_OK;
-		break;
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfSUType not supported");
-		break;
-	case CCBUTIL_DELETE:
-		sutcomptype = avd_sutcomptype_find(&opdata->objectName);
-		if (sutcomptype->curr_num_components == 0) {
-			rc = SA_AIS_OK;
-		}
+		su_ccb_apply_delete_hdlr(opdata->userData);
 		break;
 	default:
 		assert(0);
 		break;
 	}
 
- done:
-	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_sutcomptype_ccb_apply_cb
- * 
- * Purpose: Handles the CCB apply operation for the SaAmfSutCompType class.
- * 
- * Input  : Ccb Util Oper Data 
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_sutcomptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	AVD_SUTCOMP_TYPE *sutcomptype;
-
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		break;
-	case CCBUTIL_DELETE:
-		sutcomptype = avd_sutcomptype_find(&opdata->objectName);
-		avd_sutcomptype_delete(sutcomptype);
-		break;
-	default:
-		assert(0);
-		break;
-	}
+	TRACE_LEAVE();
 }
 
 void avd_su_constructor(void)
@@ -1990,14 +1151,8 @@ void avd_su_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&avd_su_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	assert(ncs_patricia_tree_init(&avd_sutype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	assert(ncs_patricia_tree_init(&avd_sutcomptype_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&su_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set("SaAmfSU", avd_su_rt_attr_cb,
-		avd_su_admin_op_cb, avd_su_ccb_completed_cb, avd_su_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSUType", NULL, NULL, avd_sutype_ccb_completed_cb, avd_sutype_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSUBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
-	avd_class_impl_set("SaAmfSutCompType", NULL, NULL,
-		avd_sutcomptype_ccb_completed_cb, avd_sutcomptype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSU", su_rt_attr_cb, su_admin_op_cb, su_ccb_completed_cb, su_ccb_apply_cb);
 }
+

@@ -791,7 +791,7 @@ uns32 avd_avnd_send_role_change(AVD_CL_CB *cb, NODE_ID node_id, uns32 role)
 	/* It may happen that this function has been called before AvND has come
 	   up, so just return SUCCESS. Send the role change when AvND comes up. */
 	if ((avnd = avd_node_find_nodeid(node_id)
-	    ) == AVD_AVND_NULL) {
+	    ) == NULL) {
 		m_AVD_PXY_PXD_ERR_LOG("avd_avnd_send_role_change: avnd is NULL. Comp,node_id and role are",
 				      NULL, node_id, role, 0, 0);
 		goto done;

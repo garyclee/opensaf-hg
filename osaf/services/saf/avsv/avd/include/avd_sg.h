@@ -280,15 +280,23 @@ sg->admin_si = AVD_SI_NULL;\
    }\
 }
 
-extern void avd_sg_add_si(AVD_SG *sg, struct avd_si_tag *si);
-extern void avd_sg_del_si(AVD_SG *sg, struct avd_si_tag *si);
-extern AVD_SG *avd_sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attributes);
-extern void avd_sg_delete(AVD_SG *sg);
-extern AVD_SG *avd_sg_find(const SaNameT *sg_name);
+extern AVD_SG *avd_sg_new(const SaNameT *dn);
+extern void avd_sg_delete(AVD_SG **sg);
+extern void avd_sg_db_add(AVD_SG *sg);
+extern void avd_sg_db_remove(AVD_SG *sg);
+extern AVD_SG *avd_sg_get(const SaNameT *sg_name);
 extern AVD_SG *avd_sg_getnext(const SaNameT *sg_name);
+extern void avd_sg_add_si(AVD_SG *sg, struct avd_si_tag *si);
+extern void avd_sg_remove_si(AVD_SG *sg, struct avd_si_tag *si);
 extern SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, struct avd_app_tag *app);
+extern void avd_sg_add_su(struct avd_su_tag* su);
+extern void avd_sg_remove_su(struct avd_su_tag *su);
 extern void avd_sg_constructor(void);
+
 extern SaAisErrorT avd_sgtype_config_get(void);
-extern AVD_AMF_SG_TYPE *avd_sgtype_find(const SaNameT *dn);
+extern AVD_AMF_SG_TYPE *avd_sgtype_get(const SaNameT *dn);
+extern void avd_sgtype_add_sg(AVD_SG *sg);
+extern void avd_sgtype_remove_sg(AVD_SG *sg);
+extern void avd_sgtype_constructor(void);
 
 #endif

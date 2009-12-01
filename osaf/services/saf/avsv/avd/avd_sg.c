@@ -16,419 +16,104 @@
  *
  */
 
-/*****************************************************************************
+#include <logtrace.h>
 
-  DESCRIPTION:This module deals with the creation, accessing and deletion of
-  the SG database on the AVD.
-  
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
-#include <ncspatricia.h>
 #include <avd_dblog.h>
+#include <avd_util.h>
 #include <avd_cluster.h>
 #include <avd_app.h>
 #include <avd_imm.h>
-#include <avd_su.h>
+#include <avd_sutype.h>
 #include <avd_ckpt_msg.h>
 #include <avd_ntf.h>
 #include <avd_sg.h>
 #include <avd_proc.h>
 
-static NCS_PATRICIA_TREE avd_sg_db;
-static NCS_PATRICIA_TREE avd_sg_type_db;
+static NCS_PATRICIA_TREE sg_db;
 
-/*****************************************************************************/
-/************************* Start Class SaAmfSGType ***************************/
-/*****************************************************************************/
-
-/*****************************************************************************
- * Function: avd_sgtype_find
- *
- * Purpose:  This function will find a AVD_AMF_SG_TYPE structure in the
- *           tree with name value as key.
- *
- * Input: dn - The DN of the SGType.
- *        
- * Returns: The pointer to AVD_AMF_SG_TYPE structure found in the tree.
- *
- * NOTES:
- *
- *
- **************************************************************************/
-
-AVD_AMF_SG_TYPE *avd_sgtype_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_AMF_SG_TYPE *)ncs_patricia_tree_get(&avd_sg_type_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_sgtype_delete
- *
- * Purpose:  This function will delete a AVD_AMF_SG_TYPE structure from the
- *           tree. 
- *
- * Input: sg_type - The sg_type structure that needs to be deleted.
- *        
- * Returns: Ok/Error.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-static void avd_sgtype_delete(AVD_AMF_SG_TYPE *sg_type)
-{
-	(void)ncs_patricia_tree_del(&avd_sg_type_db, &sg_type->tree_node);
-	free(sg_type->saAmfStgValidSuTypes);
-	free(sg_type);
-}
-
-/**
- * Add the SG type to the DB
- * @param sgt
- */
-static void avd_sgtype_add_to_model(AVD_AMF_SG_TYPE *sgt)
+void avd_sg_db_add(AVD_SG *sg)
 {
 	unsigned int rc;
 
-	avd_trace("'%s'", sgt->name.value);
-	rc = ncs_patricia_tree_add(&avd_sg_type_db, &sgt->tree_node);
+	if (avd_sg_get(&sg->name) == NULL) {
+		rc = ncs_patricia_tree_add(&sg_db, &sg->tree_node);
+		assert(rc == NCSCC_RC_SUCCESS);
+	}
+}
+
+void avd_sg_db_remove(AVD_SG *sg)
+{
+	unsigned int rc = ncs_patricia_tree_del(&sg_db, &sg->tree_node);
 	assert(rc == NCSCC_RC_SUCCESS);
 }
 
 /**
- * Validate configuration attributes for an SaAmfSGType object
- * 
- * @param dn
- * @param sgt
- * @param opdata
- * 
- * @return int
+ * Add the SG to the model
+ * @param sg
  */
-static int avd_sgtype_config_validate(const AVD_AMF_SG_TYPE *sgt, const CcbUtilOperationData_t *opdata_)
+static void sg_add_to_model(AVD_SG *sg)
 {
-	int i;
-	const char *dn = (char *)sgt->name.value;
-	char *parent;
+	SaNameT app_name;
+	AVD_APP *app;
+	char *p;
 
-	if ((parent = strchr(dn, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
-		return -1;
-	}
+	memset(&app_name, 0, sizeof(app_name));
+	p = strstr((char*)sg->name.value, "safApp");
+	app_name.length = strlen(p);
+	memcpy(app_name.value, p, app_name.length);
+	app = avd_app_get(&app_name);
+	sg->sg_on_app = app;
 
-	parent++;
+	avd_sg_db_add(sg);
+	avd_sgtype_add_sg(sg);
+	avd_app_add_sg(sg->sg_on_app, sg);
 
-	/* SGType should be children to SGBaseType */
-	if (strncmp(parent, "safSgType=", 10) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", parent, dn);
-		return -1;
-	}
+	/* SGs belonging to a magic app will be NCS, TODO Better name! */
+	if (!strcmp((char *)app_name.value, "safApp=OpenSAF"))
+		sg->sg_ncs_spec = TRUE;
 
-	if ((sgt->saAmfSgtRedundancyModel < SA_AMF_2N_REDUNDANCY_MODEL) ||
-	    (sgt->saAmfSgtRedundancyModel > SA_AMF_NO_REDUNDANCY_MODEL)) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSgtRedundancyModel %u for '%s'",
-			sgt->saAmfSgtRedundancyModel, dn);
-		return -1;
-	}
-
-	/* Make sure all SU types exist */
-	for (i = 0; i < sgt->number_su_type; i++) {
-		AVD_SU_TYPE *su_type = avd_sutype_find(&sgt->saAmfSGtValidSuTypes[i]);
-		if (su_type == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "AMF SU type '%s' does not exist", sgt->saAmfSGtValidSuTypes[i].value);
-			return -1;
-		}
-	}
-
-	if (sgt->saAmfSgtDefAutoRepair > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSgtDefAutoRepair %u for '%s'", sgt->saAmfSgtDefAutoRepair, dn);
-		return -1;
-	}
-
-	if (sgt->saAmfSgtDefAutoAdjust > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSgtDefAutoAdjust %u for '%s'", sgt->saAmfSgtDefAutoAdjust, dn);
-		return -1;
-	}
-
-	return 0;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
 }
 
 /**
- * Create a new SG type object and initialize its attributes from the attribute list.
- * @param dn
- * @param attributes
- * 
- * @return AVD_AMF_SG_TYPE*
+ * Remove the SG to the model
+ * @param sg
  */
-static AVD_AMF_SG_TYPE *avd_sgtype_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static void sg_remove_from_model(AVD_SG *sg)
 {
-	int i = 0, rc = -1, j;
-	AVD_AMF_SG_TYPE *sgt;
-	const SaImmAttrValuesT_2 *attr;
+	avd_sgtype_remove_sg(sg);
+	avd_app_remove_sg(sg->sg_on_app, sg);
+	avd_sg_db_remove(sg);
 
-	if ((sgt = calloc(1, sizeof(AVD_AMF_SG_TYPE))) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "calloc failed");
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
+}
+
+AVD_SG *avd_sg_new(const SaNameT *dn)
+{
+	AVD_SG *sg;
+
+	if ((sg = calloc(1, sizeof(AVD_SG))) == NULL) {
+		LOG_ER("calloc FAILED");
 		return NULL;
 	}
 
-	memcpy(sgt->name.value, dn->value, dn->length);
-	sgt->name.length = dn->length;
-	sgt->tree_node.key_info = (uns8 *)&(sgt->name);
+	memcpy(sg->name.value, dn->value, dn->length);
+	sg->name.length = dn->length;
+	sg->tree_node.key_info = (uns8 *)&(sg->name);
+	sg->sg_ncs_spec = SA_FALSE;
+	sg->sg_fsm_state = AVD_SG_FSM_STABLE;
+	sg->adjust_state = AVSV_SG_STABLE;
 
-	if (immutil_getAttr("saAmfSgtRedundancyModel", attributes, 0, &sgt->saAmfSgtRedundancyModel) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtRedundancyModel FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	while ((attr = attributes[i++]) != NULL) {
-		if (!strcmp(attr->attrName, "saAmfSgtValidSuTypes")) {
-			sgt->number_su_type = attr->attrValuesNumber;
-			sgt->saAmfSGtValidSuTypes = malloc(attr->attrValuesNumber * sizeof(SaNameT));
-			for (j = 0; j < attr->attrValuesNumber; j++) {
-				sgt->saAmfSGtValidSuTypes[j] = *((SaNameT *)attr->attrValues[j]);
-			}
-		}
-	}
-
-	if (sgt->number_su_type == 0) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtValidSuTypes FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefAutoRepair", attributes, 0, &sgt->saAmfSgtDefAutoRepair) != SA_AIS_OK) {
-		sgt->saAmfSgtDefAutoRepair = SA_TRUE;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefAutoAdjust", attributes, 0, &sgt->saAmfSgtDefAutoAdjust) != SA_AIS_OK) {
-		sgt->saAmfSgtDefAutoAdjust = SA_FALSE;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefAutoAdjustProb", attributes, 0, &sgt->saAmfSgtDefAutoAdjustProb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtDefAutoAdjustProb FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefCompRestartProb", attributes, 0, &sgt->saAmfSgtDefCompRestartProb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtDefCompRestartProb FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefCompRestartMax", attributes, 0, &sgt->saAmfSgtDefCompRestartMax) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtDefCompRestartMax FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefSuRestartProb", attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtDefSuRestartProb FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfSgtDefSuRestartMax", attributes, 0, &sgt->saAmfSgtDefSuRestartProb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSgtDefSuRestartMax FAILED for '%s'", dn->value);
-		goto done;
-	}
-
-	rc = 0;
-
- done:
-	if (rc != 0) {
-		free(sgt);
-		sgt = NULL;
-	}
-
-	return sgt;
+	return sg;
 }
 
-/**
- * Get configuration for all SaAmfSGType objects from IMM and create AVD internal objects.
- * @param cb
- * 
- * @return int
- */
-SaAisErrorT avd_sgtype_config_get(void)
+void avd_sg_delete(AVD_SG **sg)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
-	AVD_AMF_SG_TYPE *sgt;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfSGType";
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
-
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((sgt = avd_sgtype_create(&dn, attributes)) == NULL)
-			goto done2;
-
-		if (avd_sgtype_config_validate(sgt, NULL) != 0)
-			goto done2;
-
-		avd_sgtype_add_to_model(sgt);
-	}
-
-	error = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
-	return error;
+	sg_remove_from_model(*sg);
+	avd_sg_db_remove(*sg);
+	free(*sg);
+	*sg = NULL;
 }
-
-/**
- * Validate SaAmfSGType CCB completed
- * @param opdata
- * 
- * @return SaAisErrorT
- */
-static SaAisErrorT avd_sgtype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_AMF_SG_TYPE *sgt;
-
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		if ((sgt = avd_sgtype_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL)
-			goto done;
-
-		if (avd_sgtype_config_validate(sgt, opdata) != 0) {
-			avd_sgtype_delete(sgt);
-			goto done;
-		}
-
-		opdata->userData = sgt;	/* Save for later use in apply */
-		break;
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfSGType not supported");
-		goto done;
-		break;
-	case CCBUTIL_DELETE:
-		sgt = avd_sgtype_find(&opdata->objectName);
-		if (sgt->list_of_sg != NULL) {
-			avd_log(NCSFL_SEV_ERROR, "SGs exist of this SG type");
-			goto done;
-		}
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
-	rc = SA_AIS_OK;
- done:
-	return rc;
-}
-
-/**
- * Apply SaAmfSGType CCB changes
- * @param opdata
- * 
- * @return SaAisErrorT
- */
-static void avd_sgtype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		avd_sgtype_add_to_model(opdata->userData);
-		break;
-	case CCBUTIL_DELETE:{
-			AVD_AMF_SG_TYPE *sgt = avd_sgtype_find(&opdata->objectName);
-			avd_sgtype_delete(sgt);
-			break;
-		}
-	default:
-		assert(0);
-	}
-}
-
-/*****************************************************************************
- * Function: avd_sgtype_del_sg
- *
- * Purpose:  This function will del the given sg from sg_type list.
- *
- * Input: sg - The sg pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-static void avd_sgtype_del_sg(AVD_SG *sg)
-{
-	AVD_SG *i_sg = NULL;
-	AVD_SG *prev_sg = NULL;
-
-	if (sg->sg_on_sg_type != NULL) {
-		i_sg = sg->sg_on_sg_type->list_of_sg;
-
-		while ((i_sg != NULL) && (i_sg != sg)) {
-			prev_sg = i_sg;
-			i_sg = i_sg->sg_list_sg_type_next;
-		}
-
-		if (i_sg != sg) {
-			/* Log a fatal error */
-			assert(0);
-		} else {
-			if (prev_sg == NULL) {
-				sg->sg_on_sg_type->list_of_sg = sg->sg_list_sg_type_next;
-			} else {
-				prev_sg->sg_list_sg_type_next = sg->sg_list_sg_type_next;
-			}
-		}
-
-		sg->sg_list_sg_type_next = NULL;
-		sg->sg_on_sg_type = NULL;
-	}
-}
-
-/*****************************************************************************/
-/*****************************************************************************/
-/*****************************************************************************/
-
-/*****************************************************************************
- * Function: avd_sg_add_si
- *
- * Purpose:  This function will add the given SI to the SG list, and fill
- * the SIs pointers. 
- *
- * Input: cb - the AVD control block
- *        si - The SI pointer
- *
- * Returns: None. 
- *
- * NOTES: None
- *
- * 
- **************************************************************************/
 
 void avd_sg_add_si(AVD_SG *sg, AVD_SI* si)
 {
@@ -451,7 +136,7 @@ void avd_sg_add_si(AVD_SG *sg, AVD_SI* si)
 	}
 }
 
-void avd_sg_del_si(AVD_SG *sg, AVD_SI* si)
+void avd_sg_remove_si(AVD_SG *sg, AVD_SI* si)
 {
 	AVD_SI *i_si = NULL;
 	AVD_SI *prev_si = NULL;
@@ -477,47 +162,15 @@ void avd_sg_del_si(AVD_SG *sg, AVD_SI* si)
 	}
 }
 
-/*****************************************************************************
- * Function: avd_sg_find
- *
- * Purpose:  This function will find a AVD_SG structure in the
- * tree with sg_name value as key.
- *
- * Input: dn - The name of the service group that needs to be
- *                    found.
- *
- * Returns: The pointer to AVD_SG structure found in the tree.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_SG *avd_sg_find(const SaNameT *dn)
+AVD_SG *avd_sg_get(const SaNameT *dn)
 {
 	SaNameT tmp = {0};
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SG *)ncs_patricia_tree_get(&avd_sg_db, (uns8 *)&tmp);
+	return (AVD_SG *)ncs_patricia_tree_get(&sg_db, (uns8 *)&tmp);
 }
-
-/*****************************************************************************
- * Function: avd_sg_getnext
- *
- * Purpose:  This function will get the next AVD_SG structure in the
- * tree whose sg_name value is next of the given sg_name value.
- *
- * Input: dn - The name of the service group that needs to be
- *                    found.
- *        
- * Returns: The pointer to AVD_SG structure found in the tree.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
 
 AVD_SG *avd_sg_getnext(const SaNameT *dn)
 {
@@ -526,50 +179,7 @@ AVD_SG *avd_sg_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_SG *)ncs_patricia_tree_getnext(&avd_sg_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_sg_delete
- *
- * Purpose:  This function will delete and free AVD_SG structure from 
- * the tree.
- *
- * Input: sg - The SG structure that needs to be deleted.
- *
- * Returns: -
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-void avd_sg_delete(AVD_SG *sg)
-{
-	avd_trace("'%s'", sg->name.value);
-	(void)ncs_patricia_tree_del(&avd_sg_db, &sg->tree_node);
-	avd_sgtype_del_sg(sg);
-	avd_app_del_sg(sg->sg_on_app, sg);
-	free(sg);
-}
-
-/**
- * Add the SG to the DB
- * @param sgt
- */
-static void avd_sg_add_to_model(AVD_SG *sg)
-{
-	assert(sg != NULL);
-	avd_trace("'%s'", sg->name.value);
-
-	/* Add SG to list in SG Type */
-	sg->sg_list_sg_type_next = sg->sg_on_sg_type->list_of_sg;
-	sg->sg_on_sg_type->list_of_sg = sg;
-
-	/* Add SG to list in App */
-	avd_app_add_sg(sg->sg_on_app, sg);
-
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
+	return (AVD_SG *)ncs_patricia_tree_getnext(&sg_db, (uns8 *)&tmp);
 }
 
 /**
@@ -580,80 +190,90 @@ static void avd_sg_add_to_model(AVD_SG *sg)
  * 
  * @return int
  */
-static int avd_sg_config_validate(const AVD_SG *sg)
+static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-	const char *dn = (char *)sg->name.value;
+	SaAisErrorT rc;
+	SaNameT aname;
+	SaBoolT abool;
+	SaAmfAdminStateT admstate;
+	char *parent;
 
-	if (sg->saAmfSGAutoRepair > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSGAutoRepair %u for '%s'", sg->saAmfSGAutoRepair, dn);
-		return -1;
+	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+		LOG_ER("No parent to '%s' ", dn->value);
+		return 0;
 	}
 
-	if (sg->saAmfSGAutoAdjust > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfSGAutoAdjust %u for '%s'", sg->saAmfSGAutoAdjust, dn);
-		return -1;
+	if (strncmp(++parent, "safApp=", 7) != 0) {
+		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		return 0;
 	}
 
-	/*  Validate saAmfSGSuHostNodeGroup */
+	rc = immutil_getAttr("saAmfSGType", attributes, 0, &aname);
+	assert(rc == SA_AIS_OK);
 
-	return 0;
+	if (avd_sgtype_get(&aname) == NULL) {
+		if (opdata == NULL) {
+			LOG_ER("SG type '%s' does not exist in model", aname.value);
+			return 0;
+		}
+
+		/* SG type does not exist in current model, check CCB */
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+			LOG_ER("SG type '%s' does not exist in existing model or in CCB", aname.value);
+			return 0;
+		}
+	}
+
+	if ((immutil_getAttr("saAmfSGAutoRepair", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfSGAutoRepair %u for '%s'", abool, dn->value);
+		return 0;
+	}
+
+	if ((immutil_getAttr("saAmfSGAutoAdjust", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfSGAutoAdjust %u for '%s'", abool, dn->value);
+		return 0;
+	}
+
+	if ((immutil_getAttr("saAmfSGAdminState", attributes, 0, &admstate) == SA_AIS_OK) &&
+	    !avd_admin_state_is_valid(admstate)) {
+		LOG_ER("Invalid saAmfSGAdminState %u for '%s'", admstate, dn->value);
+		return 0;
+	}
+
+	if ((immutil_getAttr("saAmfSGSuHostNodeGroup", attributes, 0, &aname) == SA_AIS_OK) &&
+	    (avd_ng_get(&aname) == NULL)) {
+		LOG_ER("Invalid saAmfSGSuHostNodeGroup '%s' for '%s'", aname.value, dn->value);
+		return 0;
+	}
+
+	return 1;
 }
 
-AVD_SG *avd_sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attributes)
+static AVD_SG *sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	AVD_SG *sg;
 	AVD_AMF_SG_TYPE *sgt;
-	AVD_APP *app;
-	SaNameT app_name;
-	char *p;
+	SaAisErrorT error;
+
+	TRACE_ENTER2("'%s'", sg_name->value);
 
 	/*
-	** If called from cold sync, attributes==NULL.
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (sg = avd_sg_find(sg_name))) {
-		if ((sg = calloc(1, sizeof(AVD_SG))) == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
-			return NULL;
-		}
-
-		memcpy(sg->name.value, sg_name->value, sg_name->length);
-		sg->name.length = sg_name->length;
-		sg->tree_node.key_info = (uns8 *)&(sg->name);
-		sg->sg_ncs_spec = SA_FALSE;
-		sg->sg_fsm_state = AVD_SG_FSM_STABLE;
-		sg->adjust_state = AVSV_SG_STABLE;
+	if (NULL == (sg = avd_sg_get(sg_name))) {
+		if ((sg = avd_sg_new(sg_name)) == NULL)
+			goto done;
 	}
 
+	error = immutil_getAttr("saAmfSGType", attributes, 0, &sg->saAmfSGType);
+	assert(error == SA_AIS_OK);
 
-	/* If no attributes supplied, go direct and add to DB */
-	if (NULL == attributes)
-		goto add_to_db;
-
-	memset(&app_name, 0, sizeof(app_name));
-	p = strstr((char*)sg->name.value, "safApp");
-	app_name.length = strlen(p);
-	memcpy(app_name.value, p, app_name.length);
-	app = avd_app_find(&app_name);
-	sg->sg_on_app = app;
-
-	/* SGs belonging to a magic app will be NCS, TODO Better name! */
-	if (!strcmp((char *)app_name.value, "safApp=OpenSAF")) {
-		sg->sg_ncs_spec = TRUE;
-	}
-
-	if (immutil_getAttr("saAmfSGType", attributes, 0, &sg->saAmfSGType) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfSGType FAILED for '%s'", sg_name->value);
-		goto done;
-	}
-
-	if ((sgt = avd_sgtype_find(&sg->saAmfSGType)) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "saAmfSGType '%s' does not exist", sg->saAmfSGType.value);
-		goto done;
-	}
-
+	sgt = avd_sgtype_get(&sg->saAmfSGType);
+	assert(sgt);
 	sg->sg_on_sg_type = sgt;
 
 	(void)immutil_getAttr("saAmfSGSuHostNodeGroup", attributes, 0, &sg->saAmfSGSuHostNodeGroup);
@@ -719,15 +339,11 @@ AVD_SG *avd_sg_create(const SaNameT *sg_name, const SaImmAttrValuesT_2 **attribu
 	/*  TODO use value in type instead? */
 	sg->sg_redundancy_model = sgt->saAmfSgtRedundancyModel;
 
-add_to_db:
-	(void) ncs_patricia_tree_add(&avd_sg_db, &sg->tree_node);
 	rc = 0;
 
 done:
-	if (rc != 0) {
-		free(sg);
-		sg = NULL;
-	}
+	if (rc != 0)
+		avd_sg_delete(&sg);
 
 	return sg;
 }
@@ -749,34 +365,33 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfSG";
 
+	TRACE_ENTER();
+
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, app_dn, SA_IMM_SUBTREE,
-						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
+		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
 		goto done1;
 	}
 
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
+	while (immutil_saImmOmSearchNext_2(searchHandle, &dn,
+		(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		if ((sg = avd_sg_create(&dn, attributes)) == NULL) {
+		if (!is_config_valid(&dn, attributes, NULL))
+			goto done2;
+
+		if ((sg = sg_create(&dn, attributes)) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
 
-		if (avd_sg_config_validate(sg) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF SG '%s' validation error", dn.value);
-			avd_sg_delete(sg);
-			goto done2;
-		}
-
-		avd_sg_add_to_model(sg);
+		sg_add_to_model(sg);
 
 		if (avd_su_config_get(&dn, sg) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
@@ -786,54 +401,23 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 
 	error = SA_AIS_OK;
 
- done2:
+done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
+done1:
+	TRACE_LEAVE2("%u", error);
 	return error;
 }
 
-/*****************************************************************************
- * Function: avd_sg_ccb_apply_delete_hdlr
- *
- * Purpose: This routine handles delete operations on SaAmfSG objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- ****************************************************************************/
-static void avd_sg_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
+static void sg_ccb_apply_delete_hdlr(AVD_SG *sg)
 {
-	AVD_SG *sg;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-
-	sg = avd_sg_find(&opdata->objectName);
-	assert(sg != NULL);
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	/* check point to the standby AVD that this record need to be deleted */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
-
-	avd_sg_delete(sg);
+	avd_sg_delete(&sg);
 }
 
-/*****************************************************************************
- * Function: avd_sg_ccb_completed_modify_hdlr
- *
- * Purpose: This routine validates modify operations on SaAmfSG objects.
- *
- *
- * Input  : Control Block, Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_sg_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_SG *avd_sg = NULL;
@@ -841,7 +425,7 @@ static SaAisErrorT avd_sg_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	avd_sg = avd_sg_find(&opdata->objectName);
+	avd_sg = avd_sg_get(&opdata->objectName);
 	assert(avd_sg != NULL);
 
 	/* Validate whether we can modify it. */
@@ -856,9 +440,9 @@ static SaAisErrorT avd_sg_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 			if (!strcmp(attribute->attrName, "saAmfSGType")) {
 				SaNameT sg_type_name = *((SaNameT *)value);
 
-				avd_sg_type = avd_sgtype_find(&sg_type_name);
+				avd_sg_type = avd_sgtype_get(&sg_type_name);
 				if (NULL == avd_sg_type) {
-					avd_log(NCSFL_SEV_ERROR, "SG Type '%s' not found", sg_type_name.value);
+					LOG_ER("SG Type '%s' not found", sg_type_name.value);
 					rc = SA_AIS_ERR_BAD_OPERATION;
 					goto done;
 				}
@@ -936,21 +520,7 @@ static SaAisErrorT avd_sg_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opda
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_sg_ccb_apply_modify_hdlr
- *
- * Purpose: This routine applies modify operations on SaAmfSG objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_sg_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
+static void ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SG *avd_sg;
 	AVD_AMF_SG_TYPE *avd_sg_type;
@@ -959,9 +529,9 @@ static void avd_sg_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_SU *ncs_su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	avd_sg = avd_sg_find(&opdata->objectName);
+	avd_sg = avd_sg_get(&opdata->objectName);
 	assert(avd_sg != NULL);
 
 	/* Validate whether we can modify it. */
@@ -978,7 +548,7 @@ static void avd_sg_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 				SaNameT sg_type_name = *((SaNameT *)value);
 
 				avd_sg->saAmfSGType = sg_type_name;
-				avd_sg_type = avd_sgtype_find(&sg_type_name);
+				avd_sg_type = avd_sgtype_get(&sg_type_name);
 				assert(NULL != avd_sg_type);
 
 				/* Fill the relevant values from sg_type. */
@@ -1206,34 +776,19 @@ static void avd_sg_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}			/* Admin state is UNLOCKED */
 }
 
-/*****************************************************************************
- * Function: avd_sg_admin_op_cb
- *
- * Purpose: This routine handles admin Oper on SaAmfSG objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_sg_admin_op_cb(SaImmOiHandleT immOiHandle,
-			       SaInvocationT invocation,
-			       const SaNameT *object_name,
-			       SaImmAdminOperationIdT op_id, const SaImmAdminOperationParamsT_2 **params)
+static void sg_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+	const SaNameT *object_name, SaImmAdminOperationIdT op_id,
+	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_SG *sg;
 	SaAmfAdminStateT adm_state;
 
 	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", object_name->value, op_id);
-	sg = avd_sg_find(object_name);
+	sg = avd_sg_get(object_name);
 
 	if (sg->sg_ncs_spec == SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Admin Op on OpenSAF MW SG is not allowed");
+		LOG_ER("Admin Op on OpenSAF MW SG is not allowed");
 		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
@@ -1241,13 +796,13 @@ static void avd_sg_admin_op_cb(SaImmOiHandleT immOiHandle,
 	switch (op_id) {
 	case SA_AMF_ADMIN_UNLOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_UNLOCKED) {
-			avd_log(NCSFL_SEV_ERROR, "%s is already unlocked", object_name->value);
+			LOG_ER("%s is already unlocked", object_name->value);
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			avd_log(NCSFL_SEV_ERROR, "%s is locked instantiation", object_name->value);
+			LOG_ER("%s is locked instantiation", object_name->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -1263,13 +818,13 @@ static void avd_sg_admin_op_cb(SaImmOiHandleT immOiHandle,
 
 	case SA_AMF_ADMIN_LOCK:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) {
-			avd_log(NCSFL_SEV_ERROR, "%s is already locked", object_name->value);
+			LOG_ER("%s is already locked", object_name->value);
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			avd_log(NCSFL_SEV_ERROR, "%s is locked instantiation", object_name->value);
+			LOG_ER("%s is locked instantiation", object_name->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -1285,14 +840,14 @@ static void avd_sg_admin_op_cb(SaImmOiHandleT immOiHandle,
 		break;
 	case SA_AMF_ADMIN_SHUTDOWN:
 		if (sg->saAmfSGAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			avd_log(NCSFL_SEV_ERROR, "%s is shutting down", object_name->value);
+			LOG_ER("%s is shutting down", object_name->value);
 			rc = SA_AIS_ERR_NO_OP;
 			goto done;
 		}
 
 		if ((sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED) ||
 		    (sg->saAmfSGAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-			avd_log(NCSFL_SEV_ERROR, "%s is locked (instantiation)", object_name->value);
+			LOG_ER("%s is locked (instantiation)", object_name->value);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -1316,14 +871,14 @@ static void avd_sg_admin_op_cb(SaImmOiHandleT immOiHandle,
 	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 }
 
-static SaAisErrorT avd_sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
-				     const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
+	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_SG *sg = avd_sg_find(objectName);
+	AVD_SG *sg = avd_sg_get(objectName);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
-	avd_trace("%s", objectName->value);
+	TRACE_ENTER2("'%s'", objectName->value);
 	assert(sg != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
@@ -1349,55 +904,44 @@ static SaAisErrorT avd_sg_rt_attr_cb(SaImmOiHandleT immOiHandle,
  * 
  * @return SaAisErrorT
  */
-static SaAisErrorT avd_sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_SG *sg;
+	AVD_SG *sg = NULL;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
-	case CCBUTIL_CREATE: {
-		if ((sg = avd_sg_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL)
-			goto done;
-
-		if (avd_sg_config_validate(sg) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF SG '%s' validation error", sg->name.value);
-			avd_sg_delete(sg);
-			goto done;
-		}
-
-		opdata->userData = sg;	/* Save for later use in apply */
-		rc = SA_AIS_OK;
-
+	case CCBUTIL_CREATE:
+		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+			rc = SA_AIS_OK;
 		break;
-	}
 	case CCBUTIL_MODIFY:
-		rc = avd_sg_ccb_completed_modify_hdlr(opdata);
-		goto done;
+		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		sg = avd_sg_find(&opdata->objectName);
+		sg = avd_sg_get(&opdata->objectName);
 		if (sg->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
-			avd_log(NCSFL_SEV_ERROR, "SG admin state is not locked instantiation");
+			LOG_ER("SG admin state is not locked instantiation");
+			goto done;
 		}
-		goto done;
 		if (sg->list_of_su != NULL) {
-			avd_log(NCSFL_SEV_ERROR, "SUs still exist in this SG");
+			LOG_ER("SUs still exist in this SG");
 			goto done;
 		}
 		if (sg->list_of_si != NULL) {
-			avd_log(NCSFL_SEV_ERROR, "SIs still exist in this SG");
+			LOG_ER("SIs still exist in this SG");
 			goto done;
 		}
 		rc = SA_AIS_OK;
+		opdata->userData = sg;	/* Save for later use in apply */
 		break;
 	default:
 		assert(0);
 		break;
 	}
-
- done:
+done:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -1407,40 +951,90 @@ static SaAisErrorT avd_sg_ccb_completed_cb(CcbUtilOperationData_t *opdata)
  * 
  * @return SaAisErrorT
  */
-static void avd_sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void sg_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	AVD_SG *sg;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		avd_sg_add_to_model(opdata->userData);
+		sg = sg_create(&opdata->objectName, opdata->param.create.attrValues);
+		assert(sg);
+		sg_add_to_model(sg);
 		break;
-	case CCBUTIL_DELETE:{
-			avd_sg_ccb_apply_delete_hdlr(opdata);
-			break;
-		}
+	case CCBUTIL_DELETE:
+		sg_ccb_apply_delete_hdlr(opdata->userData);
+		break;
 	case CCBUTIL_MODIFY:
-		avd_sg_ccb_apply_modify_hdlr(opdata);
+		ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
 		assert(0);
 	}
 }
 
-/*****************************************************************************/
-/************************* End Class SaAmfSG *********************************/
-/*****************************************************************************/
+void avd_sg_remove_su(AVD_SU* su)
+{
+	AVD_SU *i_su = NULL;
+	AVD_SU *prev_su = NULL;
+
+	if (su->sg_of_su != NULL) {
+		/* remove SU from SG */
+		i_su = su->sg_of_su->list_of_su;
+
+		while ((i_su != NULL) && (i_su != su)) {
+			prev_su = i_su;
+			i_su = i_su->sg_list_su_next;
+		}
+
+		if (i_su != su) {
+			/* Log a fatal error */
+		} else {
+			if (prev_su == NULL) {
+				su->sg_of_su->list_of_su = su->sg_list_su_next;
+			} else {
+				prev_su->sg_list_su_next = su->sg_list_su_next;
+			}
+		}
+
+		su->sg_list_su_next = NULL;
+		su->sg_of_su = NULL;
+	}
+	/* if (su->sg_of_su != AVD_SG_NULL) */
+	return;
+}
+
+void avd_sg_add_su(AVD_SU* su)
+{
+	AVD_SU *i_su = NULL;
+	AVD_SU *prev_su = NULL;
+
+	if ((su == NULL) || (su->sg_of_su == NULL))
+		return;
+
+	i_su = su->sg_of_su->list_of_su;
+
+	while ((i_su != NULL) && (i_su->saAmfSURank < su->saAmfSURank)) {
+		prev_su = i_su;
+		i_su = i_su->sg_list_su_next;
+	}
+
+	if (prev_su == NULL) {
+		su->sg_list_su_next = su->sg_of_su->list_of_su;
+		su->sg_of_su->list_of_su = su;
+	} else {
+		prev_su->sg_list_su_next = su;
+		su->sg_list_su_next = i_su;
+	}
+}
 
 void avd_sg_constructor(void)
 {
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&avd_sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	assert(ncs_patricia_tree_init(&avd_sg_type_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&sg_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set("SaAmfSG", avd_sg_rt_attr_cb, avd_sg_admin_op_cb,
-		avd_sg_ccb_completed_cb, avd_sg_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSGType", NULL, NULL, avd_sgtype_ccb_completed_cb, avd_sgtype_ccb_apply_cb);
-	avd_class_impl_set("SaAmfSGBaseType", NULL, NULL, avd_imm_default_OK_completed_cb, NULL);
+	avd_class_impl_set("SaAmfSG", sg_rt_attr_cb, sg_admin_op_cb, sg_ccb_completed_cb, sg_ccb_apply_cb);
 }

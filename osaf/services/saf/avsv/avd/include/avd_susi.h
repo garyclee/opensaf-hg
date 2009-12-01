@@ -149,5 +149,6 @@ extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	AVD_SUS_PER_SI_RANK_INDX indx, AVD_SU **o_su);
 extern AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK_INDX indx);
 extern SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si);
+extern void avd_sirankedsu_constructor(void);
 
 #endif

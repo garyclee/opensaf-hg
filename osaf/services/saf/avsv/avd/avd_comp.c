@@ -30,6 +30,8 @@
 
 #include <saImmOm.h>
 #include <immutil.h>
+#include <logtrace.h>
+
 #include <avd_util.h>
 #include <avd_dblog.h>
 #include <avd_comp.h>
@@ -39,11 +41,42 @@
 #include <avd_proc.h>
 #include <avd_ckpt_msg.h>
 
-static SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp);
-static void avd_comptype_del_comp(AVD_COMP* comp);
+static NCS_PATRICIA_TREE comp_db;
 
-static NCS_PATRICIA_TREE avd_comp_db;
-static NCS_PATRICIA_TREE avd_compcstype_db;
+void avd_comp_db_add(AVD_COMP *comp)
+{
+	unsigned int rc;
+
+	if (avd_comp_get(&comp->comp_info.name) == NULL) {
+		rc = ncs_patricia_tree_add(&comp_db, &comp->tree_node);
+		assert(rc == NCSCC_RC_SUCCESS);
+	}
+}
+
+AVD_COMP *avd_comp_new(const SaNameT *dn)
+{
+	AVD_COMP *comp;
+
+	if ((comp = calloc(1, sizeof(AVD_COMP))) == NULL) {
+		LOG_ER("calloc FAILED");
+		return NULL;
+	}
+	
+	memcpy(comp->comp_info.name.value, dn->value, dn->length);
+	comp->comp_info.name.length = dn->length;
+	comp->tree_node.key_info = (uns8 *)&(comp->comp_info.name);
+	comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
+	comp->comp_info.category = NCS_COMP_TYPE_NON_SAF;
+	comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
+	comp->comp_info.inst_level = 1;
+	comp->comp_info.comp_restart = TRUE;
+	comp->nodefail_cleanfail = FALSE;
+	comp->saAmfCompOperState = SA_AMF_OPERATIONAL_DISABLED;
+	comp->saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
+	comp->saAmfCompPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
+
+	return comp;
+}
 
 void avd_comp_pres_state_set(AVD_COMP *comp, SaAmfPresenceStateT pres_state)
 {
@@ -80,45 +113,15 @@ void avd_comp_readiness_state_set(AVD_COMP *comp, SaAmfReadinessStateT readiness
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, comp, AVSV_CKPT_COMP_READINESS_STATE);
 }
 
-/*****************************************************************************
- * Function: avd_comp_find
- *
- * Purpose:  This function will find a AVD_COMP structure in the
- * tree with comp_name value as key.
- *
- * Input: dn - The name of the component.
- *
- * Returns: The pointer to AVD_COMP structure found in the tree.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-AVD_COMP *avd_comp_find(const SaNameT *dn)
+AVD_COMP *avd_comp_get(const SaNameT *dn)
 {
 	SaNameT tmp = {0};
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMP *)ncs_patricia_tree_get(&avd_comp_db, (uns8 *)&tmp);
+	return (AVD_COMP *)ncs_patricia_tree_get(&comp_db, (uns8 *)&tmp);
 }
-
-/*****************************************************************************
- * Function: avd_comp_getnext
- *
- * Purpose:  This function will find the next AVD_COMP structure in the
- * tree whose comp_name value is next of the given comp_name value.
- *
- * Input: dn - The name of the component.
- *
- * Returns: The pointer to AVD_COMP structure found in the tree.
- *
- * NOTES:
- *
- * 
- **************************************************************************/
 
 AVD_COMP *avd_comp_getnext(const SaNameT *dn)
 {
@@ -127,31 +130,16 @@ AVD_COMP *avd_comp_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	return (AVD_COMP *)ncs_patricia_tree_getnext(&avd_comp_db, (uns8 *)&tmp);
+	return (AVD_COMP *)ncs_patricia_tree_getnext(&comp_db, (uns8 *)&tmp);
 }
 
-/*****************************************************************************
- * Function: avd_comp_delete
- *
- * Purpose:  This function will delete and free AVD_COMP structure from 
- * the tree. If the node need to be deleted with saNameT, first do a find
- * and call this function with the AVD_COMP pointer.
- *
- * Input: comp - The component structure that needs to be deleted.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-void avd_comp_delete(AVD_COMP* comp)
+void avd_comp_delete(AVD_COMP **comp)
 {
-	avd_su_del_comp(comp);
-	avd_comptype_del_comp(comp);
-	(void)ncs_patricia_tree_del(&avd_comp_db, &comp->tree_node);
-	free(comp);
+	avd_su_remove_comp(*comp);
+	avd_comptype_remove_comp(*comp);
+	(void)ncs_patricia_tree_del(&comp_db, &(*comp)->tree_node);
+	free(*comp);
+	*comp = NULL;
 }
 
 /*****************************************************************************
@@ -172,10 +160,8 @@ void avd_comp_delete(AVD_COMP* comp)
  *
  * 
  **************************************************************************/
-
 void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 {
-
 	AVD_COMP *comp, *i_comp;
 	AVSV_PARAM_INFO param;
 	AVD_AVND *avnd;
@@ -189,7 +175,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 
 	if (ack_msg->msg_info.n2d_reg_comp.error != NCSCC_RC_SUCCESS) {
 		/* Find the component */
-		comp = avd_comp_find(&ack_msg->msg_info.n2d_reg_comp.comp_name);
+		comp = avd_comp_get(&ack_msg->msg_info.n2d_reg_comp.comp_name);
 		if (comp == NULL) {
 			/* The component has already been deleted. there is nothing
 			 * that can be done.
@@ -288,7 +274,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (comp->su), AVSV_CKPT_AVD_SU_CONFIG);
 
-		avd_su_del_comp(comp);
+		avd_su_remove_comp(comp);
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 		return;
@@ -298,7 +284,7 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 	 * information of the component.
 	 */
 	/* Find the component */
-	comp = avd_comp_find(&ack_msg->msg_info.n2d_reg_comp.comp_name);
+	comp = avd_comp_get(&ack_msg->msg_info.n2d_reg_comp.comp_name);
 	if (comp == NULL) {
 		/* The comp has already been deleted. there is nothing
 		 * that can be done.
@@ -354,85 +340,68 @@ void avd_comp_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
 			}
 		}
 	}
-	return;
 }
 
-/*****************************************************************************
- * Function: avd_comp_add_to_model
- * 
- * Purpose: This routine adds SaAmfComp objects to Patricia tree.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_comp_add_to_model(AVD_COMP *avd_comp)
+static void comp_add_to_model(AVD_COMP *comp)
 {
 	AVD_COMP *i_comp = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 	NCS_BOOL isPre;
 
-	/* add to the list of SU  */
-	avd_su_add_comp(avd_comp);
-
-	/* add to CompType list */
-	avd_comptype_add_comp_list(avd_comp);
+	avd_comp_db_add(comp);
+	avd_su_add_comp(comp);
+	avd_comptype_add_comp(comp);
 
 	/* check if the
 	 * corresponding node is UP send the component information
 	 * to the Node.
 	 */
-	if (FALSE == avd_comp->su->su_is_external) {
-		su_node_ptr = avd_comp->su->su_on_node;
+	if (FALSE == comp->su->su_is_external) {
+		su_node_ptr = comp->su->su_on_node;
 	} else {
 		/* This is an external SU, so there is no node assigned to it.
 		   For some purpose of validations and sending SU/Comps info to
 		   hosting node (Controllers), we can take use of the hosting
 		   node. */
 		if ((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE ==
-		     avd_comp->comp_info.category) ||
-		    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == avd_comp->comp_info.category)) {
+		     comp->comp_info.category) ||
+		    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
 			/* This is a valid external component. Ext comp is in ext
 			   SU. */
 		} else {
 			/* This is not a valid external component. External SU has 
 			   been assigned a cluster component. */
-			avd_comp->su->curr_num_comp--;
-			avd_su_del_comp(avd_comp);
-			avd_log(NCSFL_SEV_ERROR, "Not A Valid External Component: Category '%u'configured",
-				avd_comp->comp_info.category);
+			comp->su->curr_num_comp--;
+			avd_su_remove_comp(comp);
+			LOG_ER("Not A Valid External Component: Category '%u'configured",
+				comp->comp_info.category);
 			return;
 		}
 		su_node_ptr = avd_cb->ext_comp_info.local_avnd_node;
-	}			/* Else of if(FALSE == avd_comp->su->su_is_external). */
+	}			/* Else of if(FALSE == comp->su->su_is_external). */
 #if 0
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NCS_INIT)) {
-		if (avd_snd_comp_msg(avd_cb, avd_comp) != NCSCC_RC_SUCCESS) {
+		if (avd_snd_comp_msg(avd_cb, comp) != NCSCC_RC_SUCCESS) {
 			/* the SU will never get to readiness state in service */
 			/* Log an internal error */
-			avd_comp->su->curr_num_comp--;
-			avd_su_del_comp(avd_comp);
-			avd_log(NCSFL_SEV_ERROR, "Sending Comp Info to AvND failed: '%s'",
-				avd_comp->comp_info.name.value);
+			comp->su->curr_num_comp--;
+			avd_su_remove_comp(comp);
+			LOG_ER("Sending Comp Info to AvND failed: '%s'",
+				comp->comp_info.name.value);
 			return;
 		}
 	}
 #endif
 	/* Verify if the SUs preinstan value need to be changed */
-	if ((avd_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
-	    (avd_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-	    (avd_comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
-		avd_comp->su->saAmfSUPreInstantiable = TRUE;
+	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
+	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+	    (comp->comp_info.category == NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE)) {
+		comp->su->saAmfSUPreInstantiable = TRUE;
 	} else {
 		isPre = FALSE;
-		i_comp = avd_comp->su->list_of_comp;
+		i_comp = comp->su->list_of_comp;
 		while (i_comp) {
 			if ((i_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
 			    (i_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
@@ -443,36 +412,37 @@ static void avd_comp_add_to_model(AVD_COMP *avd_comp)
 			i_comp = i_comp->su_comp_next;
 		}
 		if (isPre == FALSE) {
-			avd_comp->su->saAmfSUPreInstantiable = FALSE;
+			comp->su->saAmfSUPreInstantiable = FALSE;
 		}
-		avd_comp->max_num_csi_actv = 1;
-		avd_comp->max_num_csi_stdby = 1;
+		comp->max_num_csi_actv = 1;
+		comp->max_num_csi_stdby = 1;
 	}
 
-	if ((avd_comp->max_num_csi_actv < avd_comp->su->si_max_active) || (avd_comp->su->si_max_active == 0)) {
-		avd_comp->su->si_max_active = avd_comp->max_num_csi_actv;
+	if ((comp->max_num_csi_actv < comp->su->si_max_active) || (comp->su->si_max_active == 0)) {
+		comp->su->si_max_active = comp->max_num_csi_actv;
 	}
 
-	if ((avd_comp->max_num_csi_stdby < avd_comp->su->si_max_standby) || (avd_comp->su->si_max_standby == 0)) {
-		avd_comp->su->si_max_standby = avd_comp->max_num_csi_stdby;
+	if ((comp->max_num_csi_stdby < comp->su->si_max_standby) || (comp->su->si_max_standby == 0)) {
+		comp->su->si_max_standby = comp->max_num_csi_stdby;
 	}
 
         /* Set runtime cached attributes. */
         if (avd_cb->impl_set == TRUE) {
-		avd_saImmOiRtObjectUpdate(&avd_comp->su->name,
+		avd_saImmOiRtObjectUpdate(&comp->su->name,
 				"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
-				&avd_comp->su->saAmfSUPreInstantiable);
+				&comp->su->saAmfSUPreInstantiable);
 
-		avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-				"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompReadinessState);
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+				"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 
-		avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-				"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompOperState);
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+				"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
 
-		avd_saImmOiRtObjectUpdate(&avd_comp->comp_info.name,
-				"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &avd_comp->saAmfCompPresenceState);
+		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
+				"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 	}
 
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 }
 
 /**
@@ -481,115 +451,105 @@ static void avd_comp_add_to_model(AVD_COMP *avd_comp)
  * 
  * @return int
  */
-static int avd_comp_config_validate(AVD_COMP *avd_comp, const CcbUtilOperationData_t *opdata)
+static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-	AVD_SU *su = NULL;
-	CcbUtilOperationData_t *ccb_object = NULL;
-	saAmfRedundancyModelT sg_red_model;
+	SaAisErrorT rc;
+	SaNameT aname;
 	char *parent;
-	char *dn = (char *)avd_comp->comp_info.name.value;
-	SaNameT su_name;
 
-	if ((parent = strchr(dn, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
+	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+		LOG_ER("No parent to '%s' ", dn->value);
+		return 0;
+	}
+
+	if (strncmp(++parent, "safSu=", 6) != 0) {
+		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		return 0;
+	}
+
+	rc = immutil_getAttr("saAmfCompType", attributes, 0, &aname);
+	assert(rc == SA_AIS_OK);
+
+	if (avd_comptype_get(&aname) == NULL) {
+		/* Comp type does not exist in current model, check CCB */
+		if (opdata == NULL) {
+			LOG_ER("Comp type '%s' does not exist in model", aname.value);
+			return 0;
+		}
+
+		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+			LOG_ER("Comp type '%s' does not exist in existing model or in CCB", aname.value);
+			return 0;
+		}
+	}
+#if 0
+	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) && (comp->comp_info.init_len == 0)) {
+		LOG_ER("Sa Aware Component: instantiation command not configured");
+		return -1;
+	} else if ((comp->comp_info.category == NCS_COMP_TYPE_NON_SAF) &&
+		   ((comp->comp_info.init_len == 0) || (comp->comp_info.term_len == 0))) {
+		LOG_ER("Non-SaAware Component: instantiation or termination command not configured");
 		return -1;
 	}
 
-	parent++;
-
-	/* Should be children to SU */
-	if (strncmp(parent, "safSu=", 6) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", parent, dn);
-		return -1;
-	}
-
-	if ((avd_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) && (avd_comp->comp_info.init_len == 0)) {
-		avd_log(NCSFL_SEV_ERROR, "Sa Aware Component: instantiation command not configured");
-		return -1;
-	} else if ((avd_comp->comp_info.category == NCS_COMP_TYPE_NON_SAF) &&
-		   ((avd_comp->comp_info.init_len == 0) || (avd_comp->comp_info.term_len == 0))) {
-		avd_log(NCSFL_SEV_ERROR, "Non-SaAware Component: instantiation or termination command not configured");
-		return -1;
-	}
-
-	if ((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == avd_comp->comp_info.category) ||
-	    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == avd_comp->comp_info.category)) {
-		if ((avd_comp->comp_info.init_len == 0) ||
-		    (avd_comp->comp_info.term_len == 0) || (avd_comp->comp_info.clean_len == 0)) {
+	if ((NCS_COMP_TYPE_EXTERNAL_PRE_INSTANTIABLE == comp->comp_info.category) ||
+	    (NCS_COMP_TYPE_EXTERNAL_NON_PRE_INSTANTIABLE == comp->comp_info.category)) {
+		if ((comp->comp_info.init_len == 0) ||
+		    (comp->comp_info.term_len == 0) || (comp->comp_info.clean_len == 0)) {
 			/* For external component, the following fields should not be 
 			   filled. */
 		} else {
-			avd_log(NCSFL_SEV_ERROR, "External Component: instantiation or termination not configured");
+			LOG_ER("External Component: instantiation or termination not configured");
 			return -1;
 		}
 	} else {
-		if (avd_comp->comp_info.clean_len == 0) {
-			avd_log(NCSFL_SEV_ERROR, "Cluster Component: Cleanup script not configured");
+		if (comp->comp_info.clean_len == 0) {
+			LOG_ER("Cluster Component: Cleanup script not configured");
 			return -1;
 		}
 
-		if (avd_comp->comp_info.max_num_inst == 0) {
-			avd_log(NCSFL_SEV_ERROR, "Cluster Component: Max num inst not configured");
-			return -1;
-		}
-	}
-
-	if ((avd_comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
-	    (avd_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
-	    (avd_comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE)) {
-
-		if (avd_comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY) {
-			avd_comp->max_num_csi_actv = 1;
-		} else if ((avd_comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY) ||
-			   (avd_comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE)) {
-			avd_comp->max_num_csi_actv = 1;
-			avd_comp->max_num_csi_stdby = 1;
-		} else if (avd_comp->comp_info.cap == NCS_COMP_CAPABILITY_X_ACTIVE) {
-			avd_comp->max_num_csi_stdby = avd_comp->max_num_csi_actv;
-		}
-
-		if ((avd_comp->max_num_csi_actv == 0) || (avd_comp->max_num_csi_stdby == 0)) {
-			avd_log(NCSFL_SEV_ERROR, "Max Act Csi or Max Stdby Csi not configured");
+		if (comp->comp_info.max_num_inst == 0) {
+			LOG_ER("Cluster Component: Max num inst not configured");
 			return -1;
 		}
 	}
 
-	avsv_sanamet_init(&avd_comp->comp_info.name, &su_name, "safSu=");
-	if (NULL == (su = avd_su_find(&su_name))) {
-		if (opdata != NULL) {
-			if ((ccb_object = ccbutil_getCcbOpDataByDN(opdata->ccbId, &su_name)) == NULL) {
-				avd_log(NCSFL_SEV_ERROR, "SU '%s' does not exist in existing model or in CCB",
-					su_name.value);
-				return -1;
+	if ((comp->comp_info.category == NCS_COMP_TYPE_SA_AWARE) ||
+	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_PRE_INSTANTIABLE) ||
+	    (comp->comp_info.category == NCS_COMP_TYPE_PROXIED_LOCAL_NON_PRE_INSTANTIABLE)) {
 
-			} else {
-				su = (AVD_SU *)(ccb_object->userData);
-			}
-		} else
-			assert(0);
-	}
+		if (comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE_OR_Y_STANDBY) {
+			comp->max_num_csi_actv = 1;
+		} else if ((comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY) ||
+			   (comp->comp_info.cap == NCS_COMP_CAPABILITY_1_ACTIVE)) {
+			comp->max_num_csi_actv = 1;
+			comp->max_num_csi_stdby = 1;
+		} else if (comp->comp_info.cap == NCS_COMP_CAPABILITY_X_ACTIVE) {
+			comp->max_num_csi_stdby = comp->max_num_csi_actv;
+		}
 
-	if (su == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Su '%s'  Not Configured", su_name.value);
-		return -1;
+		if ((comp->max_num_csi_actv == 0) || (comp->max_num_csi_stdby == 0)) {
+			LOG_ER("Max Act Csi or Max Stdby Csi not configured");
+			return -1;
+		}
 	}
 
 	sg_red_model = su->sg_of_su->sg_redundancy_model;
 
 	/* Check illegal component capability/category wrt SG red model */
 	if (((sg_red_model == SA_AMF_N_WAY_REDUNDANCY_MODEL) &&
-	     ((avd_comp->comp_info.cap != NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY) ||
-	      (avd_comp->comp_info.category == NCS_COMP_TYPE_NON_SAF)))) {
-		avd_log(NCSFL_SEV_ERROR, "Illegal category %u or cap %u for SG red model %u",
-			avd_comp->comp_info.category, avd_comp->comp_info.cap, sg_red_model);
+	     ((comp->comp_info.cap != NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY) ||
+	      (comp->comp_info.category == NCS_COMP_TYPE_NON_SAF)))) {
+		LOG_ER("Illegal category %u or cap %u for SG red model %u",
+			comp->comp_info.category, comp->comp_info.cap, sg_red_model);
 		return -1;
 	}
 
 	/* Check illegal component capability wrt SG red model */
 	if ((sg_red_model == SA_AMF_NPM_REDUNDANCY_MODEL) &&
-	    (avd_comp->comp_info.cap != NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY)) {
-		avd_log(NCSFL_SEV_ERROR, "Illegal capability %u for SG red model %u",
-			avd_comp->comp_info.cap, sg_red_model);
+	    (comp->comp_info.cap != NCS_COMP_CAPABILITY_1_ACTIVE_OR_1_STANDBY)) {
+		LOG_ER("Illegal capability %u for SG red model %u",
+			comp->comp_info.cap, sg_red_model);
 		return -1;
 	}
 
@@ -598,41 +558,41 @@ static int avd_comp_config_validate(AVD_COMP *avd_comp, const CcbUtilOperationDa
 		AVD_SUTCOMP_TYPE *sutcomptype;
 		SaNameT sutcomptype_name;
 
-		avd_create_association_class_dn(&avd_comp->saAmfCompType, &su->saAmfSUType,
+		avd_create_association_class_dn(&comp->saAmfCompType, &su->saAmfSUType,
 			"safMemberCompType", &sutcomptype_name);
-		sutcomptype = avd_sutcomptype_find(&sutcomptype_name);
+		sutcomptype = avd_sutcomptype_get(&sutcomptype_name);
 		if (sutcomptype == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "Not found '%s'", sutcomptype_name.value);
+			LOG_ER("Not found '%s'", sutcomptype_name.value);
 			return -1;
 		}
 
 		if (sutcomptype->curr_num_components == sutcomptype->saAmfSutMaxNumComponents) {
-			avd_log(NCSFL_SEV_ERROR, "SU '%s' cannot contain more components of this type '%s*",
-				su->name.value, avd_comp->saAmfCompType.value);
+			LOG_ER("SU '%s' cannot contain more components of this type '%s*",
+				su->name.value, comp->saAmfCompType.value);
 			return -1;
 		}
 	}
 
 	if (TRUE == su->su_is_external) {
-		if ((TRUE == avd_comp->comp_info.am_enable) ||
-		    (0 != avd_comp->comp_info.amstart_len) || (0 != avd_comp->comp_info.amstop_len)) {
-			avd_log(NCSFL_SEV_ERROR, "External Component: Active monitoring configured");
+		if ((TRUE == comp->comp_info.am_enable) ||
+		    (0 != comp->comp_info.amstart_len) || (0 != comp->comp_info.amstop_len)) {
+			LOG_ER("External Component: Active monitoring configured");
 			return -1;
 		} else {
 			/* There are default values assigned to amstart_time, 
 			   amstop_time and clean_time. Since these values are not 
 			   used for external components, so we will reset it. */
-			avd_comp->comp_info.amstart_time = 0;
-			avd_comp->comp_info.amstop_time = 0;
-			avd_comp->comp_info.clean_time = 0;
-			avd_comp->comp_info.max_num_amstart = 0;
+			comp->comp_info.amstart_time = 0;
+			comp->comp_info.amstop_time = 0;
+			comp->comp_info.clean_time = 0;
+			comp->comp_info.max_num_amstart = 0;
 		}
 	}
-
-	return 0;
+#endif
+	return 1;
 }
 
-static NCS_COMP_TYPE_VAL avd_comp_category_to_ncs(SaUint32T saf_comp_category)
+static NCS_COMP_TYPE_VAL comp_category_to_ncs(SaUint32T saf_comp_category)
 {
 	NCS_COMP_TYPE_VAL ncs_comp_category = 0;
 
@@ -674,7 +634,7 @@ static NCS_COMP_TYPE_VAL avd_comp_category_to_ncs(SaUint32T saf_comp_category)
 	return ncs_comp_category;
 }
 
-AVD_COMP *avd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes)
+static AVD_COMP *comp_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	AVD_COMP *comp;
@@ -682,53 +642,33 @@ AVD_COMP *avd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **a
 	const char *str;
 	const AVD_COMP_TYPE *comptype;
 	SaNameT su_name;
+	SaAisErrorT error;
+
+	TRACE_ENTER2("'%s'", dn->value);
 
 	/*
-	** If called from cold sync, attributes==NULL.
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (comp = avd_comp_find(comp_name))) {
-		if ((comp = calloc(1, sizeof(AVD_COMP))) == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
-			goto done;
-		}
+	if ((NULL == (comp = avd_comp_get(dn))) &&
+	    (((comp = avd_comp_new(dn)) == NULL)))
+	    goto done;
 
-		memcpy(comp->comp_info.name.value, comp_name->value, comp_name->length);
-		comp->comp_info.name.length = comp_name->length;
-		comp->tree_node.key_info = (uns8 *)&(comp->comp_info.name);
-		comp->comp_info.cap = SA_AMF_COMP_ONE_ACTIVE_OR_ONE_STANDBY;
-		comp->comp_info.category = NCS_COMP_TYPE_NON_SAF;
-		comp->comp_info.def_recvr = SA_AMF_COMPONENT_RESTART;
-		comp->comp_info.inst_level = 1;
-		comp->comp_info.comp_restart = TRUE;
-		comp->nodefail_cleanfail = FALSE;
-		comp->saAmfCompOperState = SA_AMF_OPERATIONAL_DISABLED;
-		comp->saAmfCompReadinessState = SA_AMF_READINESS_OUT_OF_SERVICE;
-		comp->saAmfCompPresenceState = SA_AMF_PRESENCE_UNINSTANTIATED;
-	}
+	avsv_sanamet_init(dn, &su_name, "safSu=");
+	comp->su = avd_su_get(&su_name);
 
-	/* If no attributes supplied, go direct and add to DB */
-	if (NULL == attributes)
-		goto add_to_db;
+	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
+	assert(error == SA_AIS_OK);
 
-	avsv_sanamet_init(comp_name, &su_name, "safSu=");
-	comp->su = avd_su_find(&su_name);
-
-	if (immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfCompType FAILED for '%s'", comp_name->value);
-		goto done;
-	}
-
-	if ((comp->comp_type = avd_comptype_find(&comp->saAmfCompType)) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Get '%s' FAILED for '%s'", comp->saAmfCompType.value, comp_name->value);
+	if ((comp->comp_type = avd_comptype_get(&comp->saAmfCompType)) == NULL) {
+		LOG_ER("Get '%s' FAILED for '%s'", comp->saAmfCompType.value, dn->value);
 		goto done;
 	}
 
 	comptype = comp->comp_type;
 
 	/*  TODO clean this up! */
-	comp->comp_info.category = avd_comp_category_to_ncs(comptype->saAmfCtCompCategory);
+	comp->comp_info.category = comp_category_to_ncs(comptype->saAmfCtCompCategory);
 
 	if (strlen(comptype->saAmfCtRelPathInstantiateCmd) > 0) {
 		strcpy(comp->comp_info.init_info, comptype->saAmfCtRelPathInstantiateCmd);
@@ -862,15 +802,10 @@ AVD_COMP *avd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **a
 	comp->max_num_csi_actv = -1;	// TODO
 	comp->max_num_csi_stdby = -1;	// TODO
 
-add_to_db:
-	(void)ncs_patricia_tree_add(&avd_comp_db, &comp->tree_node);
 	rc = 0;
-
 done:
-	if (rc != 0) {
-		(void)avd_comp_delete(comp);
-		comp = NULL;
-	}
+	if (rc != 0)
+		avd_comp_delete(&comp);
 
 	return comp;
 }
@@ -892,7 +827,7 @@ SaAisErrorT avd_comp_config_get(const SaNameT *su_name, AVD_SU *su)
 	const char *className = "SaAmfComp";
 	AVD_COMP *comp;
 
-	assert(su != NULL);
+	TRACE_ENTER();
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
@@ -902,23 +837,20 @@ SaAisErrorT avd_comp_config_get(const SaNameT *su_name, AVD_SU *su)
 		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
 		&searchParam, NULL, &searchHandle)) != SA_AIS_OK) {
 
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", rc);
+		LOG_ER("saImmOmSearchInitialize_2 failed: %u", rc);
 		goto done1;
 	}
 
-	while (immutil_saImmOmSearchNext_2(searchHandle, &comp_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+	while (immutil_saImmOmSearchNext_2(searchHandle, &comp_name,
+		(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", comp_name.value);
-
-		if ((comp = avd_comp_create(&comp_name, attributes)) == NULL)
+		if (!is_config_valid(&comp_name, attributes, NULL))
 			goto done2;
 
-		if (avd_comp_config_validate(comp, NULL) != 0) {
-			avd_comp_delete(comp);
+		if ((comp = comp_create(&comp_name, attributes)) == NULL)
 			goto done2;
-		}
 
-		avd_comp_add_to_model(comp);
+		comp_add_to_model(comp);
 
 		if (avd_compcstype_config_get(&comp_name, comp) != SA_AIS_OK)
 			goto done2;
@@ -926,19 +858,19 @@ SaAisErrorT avd_comp_config_get(const SaNameT *su_name, AVD_SU *su)
 
 	error = SA_AIS_OK;
 
- done2:
+done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
+done1:
+	TRACE_LEAVE2("%u", error);
 	return error;
 }
 
-static void avd_comp_admin_op_cb(SaImmOiHandleT immOiHandle,
-				 SaInvocationT invocation,
-				 const SaNameT *objectName,
-				 SaImmAdminOperationIdT opId, const SaImmAdminOperationParamsT_2 **params)
+static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+	const SaNameT *objectName, SaImmAdminOperationIdT opId,
+	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_COMP *comp = avd_comp_find(objectName);
+	AVD_COMP *comp = avd_comp_get(objectName);
 
 	assert(comp != NULL);
 
@@ -955,14 +887,14 @@ static void avd_comp_admin_op_cb(SaImmOiHandleT immOiHandle,
 	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 }
 
-static SaAisErrorT avd_comp_rt_attr_callback(SaImmOiHandleT immOiHandle,
-					     const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
+static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,
+	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
-	AVD_COMP *comp = avd_comp_find(objectName);
+	AVD_COMP *comp = avd_comp_get(objectName);
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
-	avd_trace("%s", objectName->value);
+	TRACE_ENTER2("'%s'", objectName->value);
 	assert(comp != NULL);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
@@ -980,62 +912,7 @@ static SaAisErrorT avd_comp_rt_attr_callback(SaImmOiHandleT immOiHandle,
 	return SA_AIS_OK;
 }
 
-/*****************************************************************************
- * Function: avd_comptype_del_comp
- *
- * Purpose:  This function will del the given comp from comp_type list.
- *
- * Input: comp - The comp pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-static void avd_comptype_del_comp(AVD_COMP* comp)
-{
-	AVD_COMP *i_comp = NULL;
-	AVD_COMP *prev_comp = NULL;
-
-	if (comp->comp_type != NULL) {
-		i_comp = comp->comp_type->list_of_comp;
-
-		while ((i_comp != NULL) && (i_comp != comp)) {
-			prev_comp = i_comp;
-			i_comp = i_comp->comp_type_list_comp_next;
-		}
-
-		if (i_comp == comp) {
-			if (prev_comp == NULL) {
-				comp->comp_type->list_of_comp = comp->comp_type_list_comp_next;
-			} else {
-				prev_comp->comp_type_list_comp_next = comp->comp_type_list_comp_next;
-			}
-
-			comp->comp_type_list_comp_next = NULL;
-			comp->comp_type = NULL;
-		}
-	}
-
-	return;
-}
-
-/*****************************************************************************
- * Function: avd_comp_ccb_completed_modify_hdlr
- * 
- * Purpose: This routine validates modify CCB operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_comp_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
@@ -1044,7 +921,7 @@ static SaAisErrorT avd_comp_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 
 	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
-	comp = avd_comp_find(&opdata->objectName);
+	comp = avd_comp_get(&opdata->objectName);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -1052,20 +929,20 @@ static SaAisErrorT avd_comp_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT dn = *((SaNameT*)value);
-			if (NULL == avd_comptype_find(&dn)) {
-				avd_log(NCSFL_SEV_ERROR, "Comp Type '%s' not found", dn.value);
+			if (NULL == avd_comptype_get(&dn)) {
+				LOG_ER("Comp Type '%s' not found", dn.value);
 				goto done;
 			}
 
 			if ((comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 			    (comp->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 			    (comp->su->sg_of_su->sg_on_app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)){
-				avd_log(NCSFL_SEV_ERROR, "A parent is not locked instantiation, '%s'", dn.value);
+				LOG_ER("A parent is not locked instantiation, '%s'", dn.value);
 				goto done;
 			}
 
 			if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
-				avd_log(NCSFL_SEV_ERROR, "Comp '%s' has wrong presence state %u",
+				LOG_ER("Comp '%s' has wrong presence state %u",
 					dn.value, comp->saAmfCompPresenceState);
 				goto done;
 			}
@@ -1077,21 +954,7 @@ done:
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_comp_ccb_completed_delete_hdlr
- * 
- * Purpose: This routine validates delete CCB operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_COMP *comp = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
@@ -1099,7 +962,7 @@ static SaAisErrorT avd_comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *op
 	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
 
 	/* Find the comp name. */
-	comp = avd_comp_find(&opdata->objectName);
+	comp = avd_comp_get(&opdata->objectName);
 	assert(comp != NULL);
 
 	/* Check to see that the SU of which the component is a
@@ -1120,90 +983,33 @@ static SaAisErrorT avd_comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *op
 
 }
 
-/*****************************************************************************
- * Function: avd_comp_ccb_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_COMP *comp;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if ((comp = avd_comp_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
-			rc = SA_AIS_ERR_NO_MEMORY;
-			goto done;
-		}
-
-		if (avd_comp_config_validate(comp, opdata) != 0) {
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-		opdata->userData = comp;	/* Save for later use in apply */
-		rc = SA_AIS_OK;
+		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		rc = avd_comp_ccb_completed_modify_hdlr(opdata);
+		rc = ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = avd_comp_ccb_completed_delete_hdlr(opdata);
+		rc = comp_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
 		break;
 	}
- done:
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_comp_ccb_apply_create_hdlr
- * 
- * Purpose: This routine handles create operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_comp_ccb_apply_create_hdlr(CcbUtilOperationData_t *opdata)
-{
-	avd_comp_add_to_model(opdata->userData);
-}
-
-/*****************************************************************************
- * Function: avd_comp_ccb_apply_modify_hdlr
- * 
- * Purpose: This routine handles modify operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data. 
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
+static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
@@ -1220,9 +1026,9 @@ static void avd_comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	param.class_id = AVSV_SA_AMF_COMP;
 	param.act = AVSV_OBJ_OPR_MOD;
 
-	avd_comp = avd_comp_find(&opdata->objectName);
+	avd_comp = avd_comp_get(&opdata->objectName);
 	param.name = avd_comp->comp_info.name;
-	avd_comp_type = avd_comptype_find(&avd_comp->saAmfCompType);
+	avd_comp_type = avd_comptype_get(&avd_comp->saAmfCompType);
 
 	m_AVD_GET_SU_NODE_PTR(avd_cb, avd_comp->su, su_node_ptr);
 
@@ -1537,21 +1343,7 @@ static void avd_comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	return;
 }
 
-/*****************************************************************************
- * Function: avd_comp_ccb_apply_delete_hdlr
- * 
- * Purpose: This routine handles delete operations on SaAmfComp objects.
- * 
- *
- * Input  : Ccb Util Oper Data. 
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
+static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 {
 	AVD_COMP *comp = NULL, *i_comp = NULL;
 	uns32 min_si = 0;
@@ -1559,7 +1351,7 @@ static void avd_comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
 
-	comp = avd_comp_find(&opdata->objectName);
+	comp = avd_comp_get(&opdata->objectName);
 
 	/* verify if the max ACTIVE and STANDBY SIs of the SU 
 	 ** need to be changed
@@ -1652,370 +1444,31 @@ static void avd_comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		avd_snd_op_req_msg(avd_cb, su_node_ptr, &param);
 	}
 
-	avd_comp_delete(comp);
+	avd_comp_delete(&comp);
 }
 
-/*****************************************************************************
- * Function: avd_comp_ccb_apply_cb
- *
- * Purpose: This routine handles all CCB operations on SaAmfComp objects.
- *
- *
- * Input  : Ccb Util Oper Data
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		avd_comp_ccb_apply_create_hdlr(opdata);
-		break;
-	case CCBUTIL_MODIFY:
-		avd_comp_ccb_apply_modify_hdlr(opdata);
-		break;
-	case CCBUTIL_DELETE:
-		avd_comp_ccb_apply_delete_hdlr(opdata);
-		break;
-	default:
-		assert(0);
-		break;
-	}
-}
-
-/*****************************************************************************/
-/*****************************************************************************/
-/*****************************************************************************/
-
-/*****************************************************************************
- * Function: avd_compcstype_find_match
- *  
- * Purpose:  This function will verify the the component and CSI are related
- *  in the table.
- *
- * Input: csi -  The CSI whose type need to be matched with the components CSI types list
- *        comp - The component whose list need to be searched.
- *
- * Returns: NCSCC_RC_SUCCESS, NCS_RC_FAILURE.
- *
- * NOTES: This function will be used only while assigning new susi.
- *        In this funtion we will find a match only if the matching comp_cs_type
- *        row status is active.
- **************************************************************************/
-
-uns32 avd_compcstype_find_match(const AVD_CSI *csi, const AVD_COMP *comp)
-{
-	AVD_COMPCS_TYPE *cst;
-	SaNameT dn;
-
-	avd_create_association_class_dn(&csi->saAmfCSType, &comp->comp_info.name, "safSupportedCsType", &dn);
-	avd_trace("'%s'", dn.value);
-	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&avd_compcstype_db, (uns8 *)&dn);
-
-	if (cst != NULL)
-		return NCSCC_RC_SUCCESS;
-	else
-		return NCSCC_RC_FAILURE;
-}
-
-AVD_COMPCS_TYPE *avd_compcstype_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&avd_compcstype_db, (uns8 *)&tmp);
-}
-
-AVD_COMPCS_TYPE *avd_compcstype_getnext(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, dn->length);
-
-	return (AVD_COMPCS_TYPE *)ncs_patricia_tree_getnext(&avd_compcstype_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_compcstype_delete
- *
- * Purpose:  This function will delete and free AVD_COMP_CS_TYPE structure from 
- * the tree.
- *
- * Input: cst - 
- *
- * Returns: -
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
-static void avd_compcstype_delete(AVD_COMPCS_TYPE *cst)
-{
-	unsigned int rc;
-
-	rc = ncs_patricia_tree_del(&avd_compcstype_db, &cst->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-
-	free(cst);
-}
-
-/**
- * Validate configuration attributes for an SaAmfCompCsType object
- * @param cst
- * 
- * @return int
- */
-static int avd_compcstype_config_validate(const AVD_COMPCS_TYPE *cst)
-{
-	char *parent;
-	char *dn = (char *)cst->name.value;
-
-	/* This is an association class, the parent (SaAmfComp) should come after the second comma */
-	if ((parent = strchr(dn, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
-		return -1;
-	}
-
-	parent++;
-
-	/* Second comma should be the parent */
-	if ((parent = strchr(parent, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
-		return -1;
-	}
-
-	parent++;
-
-	/* Should be children to SaAmfComp */
-	if (strncmp(parent, "safComp=", 8) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s'", parent);
-		return -1;
-	}
-
-	return 0;
-}
-
-AVD_COMPCS_TYPE *avd_compcstype_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
-{
-	int rc = -1;
-	AVD_COMPCS_TYPE *compcstype;
-	AVD_CTCS_TYPE *ctcstype;
-	SaNameT ctcstype_name;
-	char *rdnval = strdup((char*)dn->value);
-	char *p;
-	SaNameT comp_name;
 	AVD_COMP *comp;
 
-	/*
-	** If called from cold sync, attributes==NULL.
-	** If called at new active at failover, the object is found in the DB
-	** but needs to get configuration attributes initialized.
-	*/
-	if (NULL == (compcstype = avd_compcstype_find(dn))) {
-		if ((compcstype = calloc(1, sizeof(*compcstype))) == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
-			return NULL;
-		}
-		
-		memcpy(compcstype->name.value, dn->value, dn->length);
-		compcstype->name.length = dn->length;
-		compcstype->tree_node.key_info = (uns8 *)&(compcstype->name);
-	}
-
-	/* If no attributes supplied, go direct and add to DB */
-	if (NULL == attributes)
-		goto add_to_db;
-
-	avsv_sanamet_init(dn, &comp_name, "safComp=");
-	comp = avd_comp_find(&comp_name);
-
-	p = strchr(rdnval, ',') + 1;
-	p = strchr(p, ',');
-	*p = '\0';
-	ctcstype_name.length = sprintf((char*)ctcstype_name.value,
-		"%s,%s", rdnval, comp->comp_type->name.value);
-	ctcstype = avd_ctcstype_find(&ctcstype_name);
-
-	if (ctcstype == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "avd_ctcstype_find FAILED for %s", ctcstype_name.value);
-		goto done;
-	}
-
-	if (immutil_getAttr("saAmfCompNumMaxActiveCSIs", attributes, 0,
-		&compcstype->saAmfCompNumMaxActiveCSIs) != SA_AIS_OK) {
-
-		compcstype->saAmfCompNumMaxActiveCSIs = ctcstype->saAmfCtDefNumMaxActiveCSIs;
-	}
-
-
-	if (immutil_getAttr("saAmfCompNumMaxStandbyCSIs", attributes, 0,
-		&compcstype->saAmfCompNumMaxStandbyCSIs) != SA_AIS_OK) {
-
-		compcstype->saAmfCompNumMaxStandbyCSIs = ctcstype->saAmfCtDefNumMaxStandbyCSIs;
-	}
-
-	/* add to list in comp */
-	compcstype->comp_list_compcstype_next = comp->compcstype_list;
-	comp->compcstype_list = compcstype;
-
-add_to_db:
-	(void)ncs_patricia_tree_add(&avd_compcstype_db, &compcstype->tree_node);
-	rc = 0;
-
-done:
-	if (rc != 0) {
-		free(compcstype);
-		compcstype = NULL;
-	}
-
-	return compcstype;
-}
-
-/**
- * Get configuration for all AMF CompCsType objects from IMM and
- * create AVD internal objects.
- * 
- * @param cb
- * @param comp
- * 
- * @return int
- */
-static SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
-{
-	SaAisErrorT error;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	const SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfCompCsType";
-	AVD_COMPCS_TYPE *compcstype;
-	SaImmAttrNameT attributeNames[] = {"saAmfCompNumMaxActiveCSIs", "saAmfCompNumMaxStandbyCSIs", NULL};
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, comp_name, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		attributeNames, &searchHandle);
-
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", error);
-		goto done1;
-	}
-
-	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &dn,
-		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
-
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((compcstype = avd_compcstype_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
-
-		if (avd_compcstype_config_validate(compcstype) != 0) {
-			avd_compcstype_delete(compcstype);
-			goto done2;
-		}
-	}
-
-	error = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
-	return error;
-}
-
-static SaAisErrorT avd_compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_COMPCS_TYPE *cst;
-
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE: {
-		cst = avd_compcstype_create(&opdata->objectName, opdata->param.create.attrValues);
-
-		if (cst == NULL)
-			goto done;
-
-		if (avd_compcstype_config_validate(cst) != 0)
-			goto done;
-
-		opdata->userData = cst;	/* Save for later use in apply */
-		rc = SA_AIS_OK;
-		break;
-	}
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfCompCsType not supported");
-		break;
-	case CCBUTIL_DELETE:
-		rc = SA_AIS_OK;
-		break;
-	default:
-		assert(0);
-		break;
-	}
- done:
-	return rc;
-}
-
-static void avd_compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
+		comp = comp_create(&opdata->objectName, opdata->param.create.attrValues);
+		assert(comp);
+		comp_add_to_model(comp);
 		break;
-	case CCBUTIL_DELETE:{
-		AVD_COMPCS_TYPE *compcstype = avd_compcstype_find(&opdata->objectName);
-		avd_compcstype_delete(compcstype);
+	case CCBUTIL_MODIFY:
+		comp_ccb_apply_modify_hdlr(opdata);
 		break;
-	}
+	case CCBUTIL_DELETE:
+		comp_ccb_apply_delete_hdlr(opdata);
+		break;
 	default:
 		assert(0);
 		break;
 	}
-}
-
-static SaAisErrorT avd_compcstype_rt_attr_callback(SaImmOiHandleT immOiHandle,
-	const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
-{
-	AVD_COMPCS_TYPE *cst = avd_compcstype_find(objectName);
-	SaImmAttrNameT attributeName;
-	int i = 0;
-
-	avd_trace("%s", objectName->value);
-	assert(cst != NULL);
-
-	while ((attributeName = attributeNames[i++]) != NULL) {
-		if (!strcmp("saAmfCompNumCurrActiveCSIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrActiveCSIs);
-		} else if (!strcmp("saAmfCompNumCurrStandbyCSIs", attributeName)) {
-			(void)avd_saImmOiRtObjectUpdate(objectName, attributeName,
-						       SA_IMM_ATTR_SAUINT32T, &cst->saAmfCompNumCurrStandbyCSIs);
-		} else if (!strcmp("saAmfCompAssignedCsi", attributeName)) {
-			/* TODO */
-		} else
-			assert(0);
-	}
-
-	return SA_AIS_OK;
 }
 
 void avd_comp_constructor(void)
@@ -2023,14 +1476,9 @@ void avd_comp_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&avd_comp_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&comp_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set("SaAmfComp", avd_comp_rt_attr_callback,
-		avd_comp_admin_op_cb, avd_comp_ccb_completed_cb, avd_comp_ccb_apply_cb);
-
-	assert(ncs_patricia_tree_init(&avd_compcstype_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
-	avd_class_impl_set("SaAmfCompCsType", avd_compcstype_rt_attr_callback,
-		NULL, avd_compcstype_ccb_completed_cb, avd_compcstype_ccb_apply_cb);
+	avd_class_impl_set("SaAmfComp", comp_rt_attr_cb, comp_admin_op_cb,
+		comp_ccb_completed_cb, comp_ccb_apply_cb);
 }
 

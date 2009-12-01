@@ -16,102 +16,94 @@
  *
  */
 
-/*****************************************************************************
-
-  DESCRIPTION: This module deals with the creation, accessing and deletion of
-  the AVND database on the AVD.
-
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
-#include "avd.h"
 #include <saImmOm.h>
 #include <immutil.h>
-#include "avd_cluster.h"
-#include "avd_imm.h"
+#include <logtrace.h>
 
-static SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node);
+#include <avd.h>
+#include <avd_cluster.h>
+#include <avd_imm.h>
 
-static NCS_PATRICIA_TREE avd_node_name_db;	/* SaNameT index */
-static NCS_PATRICIA_TREE avd_node_id_db;	/* SaClmNodeIdT index */
-static NCS_PATRICIA_TREE avd_nodegroup_db;
-static NCS_PATRICIA_TREE avd_nodeswbundle_db;
-
-/*****************************************************************************
- * Function: avd_node_add_nodeid
- *
- * Purpose:  This function will add a AVD_AVND structure to the
- * tree with node_id value as key.
- *
- * Input: avnd - The avnd structure that needs to be added.
- *
- * Returns: The pointer to AVD_AVND structure found in the tree with node id.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
+static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
+static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
 
 uns32 avd_node_add_nodeid(AVD_AVND *avnd)
 {
-	if (avnd && avnd->node_info.nodeId) {
+	unsigned int rc;
+
+	if ((avd_node_find_nodeid(avnd->node_info.nodeId) == NULL) &&
+	    (avnd->node_info.nodeId != 0)) {
+
 		avnd->tree_node_id_node.key_info = (uns8 *)&(avnd->node_info.nodeId);
 		avnd->tree_node_id_node.bit = 0;
 		avnd->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
 		avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
-		m_AVD_CB_AVND_TBL_LOCK(avd_cb, NCS_LOCK_WRITE);
-
-		if (ncs_patricia_tree_add(&avd_node_id_db, &avnd->tree_node_id_node)
-		    != NCSCC_RC_SUCCESS) {
-			/* log an error */
-			return NCSCC_RC_FAILURE;
-		}
-
-		m_AVD_CB_AVND_TBL_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+		rc = ncs_patricia_tree_add(&node_id_db, &avnd->tree_node_id_node);
+		assert(rc == NCSCC_RC_SUCCESS);
 	}
+
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_node_delete_nodeid
- *
- * Purpose:  This function will delete AVD_AVND structure from 
- * the tree with node id as key.
- *
- * Input: avnd - The avnd structure that needs to be deleted.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES:
- *
- * 
- **************************************************************************/
 void avd_node_delete_nodeid(AVD_AVND *node)
 {
-	(void) ncs_patricia_tree_del(&avd_node_id_db, &node->tree_node_id_node);
+	(void) ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
 }
 
-/*****************************************************************************
- * Function: avd_node_find
- *
- * Purpose:  This function will find a AVD_AVND structure in the
- * tree with node_name value as key.
- *
- * Input: dn - The node name on which the AVND is running.
- *
- * Returns: The pointer to AVD_AVND structure found in the tree.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
+void avd_node_db_add(AVD_AVND *node)
+{
+	unsigned int rc;
 
-AVD_AVND *avd_node_find(const SaNameT *dn)
+	if (avd_node_get(&node->node_info.nodeName) == NULL) {
+		rc = ncs_patricia_tree_add(&node_name_db, &node->tree_node_name_node);
+		assert(rc == NCSCC_RC_SUCCESS);
+	}
+}
+
+AVD_AVND *avd_node_new(const SaNameT *dn)
+{
+	AVD_AVND *node;
+
+	if ((node = calloc(1, sizeof(AVD_AVND))) == NULL) {
+		LOG_ER("calloc FAILED");
+		return NULL;
+	}
+
+	memcpy(node->node_info.nodeName.value, dn->value, dn->length);
+	node->node_info.nodeName.length = dn->length;
+	node->tree_node_name_node.key_info = (uns8 *)&(node->node_info.nodeName);
+	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
+	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
+	node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
+	node->saAmfNodeOperState = SA_AMF_OPERATIONAL_DISABLED;
+	node->node_state = AVD_AVND_STATE_ABSENT;
+	node->node_info.member = SA_FALSE;
+	node->type = AVSV_AVND_CARD_PAYLOAD;
+	node->avm_oper_state = SA_AMF_OPERATIONAL_ENABLED;
+
+	return node;
+}
+
+void avd_node_delete(AVD_AVND **node)
+{
+	assert((*node)->pg_csi_list.n_nodes == 0);
+	if ((*node)->node_info.nodeId)
+		avd_node_delete_nodeid(*node);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+	ncs_patricia_tree_del(&node_name_db, &(*node)->tree_node_name_node);
+	free(*node);
+	*node = NULL;
+}
+
+static void node_add_to_model(AVD_AVND *node)
+{
+	avd_node_db_add(node);
+	avd_node_add_nodeid(node);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+}
+
+AVD_AVND *avd_node_get(const SaNameT *dn)
 {
 	AVD_AVND *avnd;
 	SaNameT tmp = {0};
@@ -119,9 +111,9 @@ AVD_AVND *avd_node_find(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_get(&avd_node_name_db, (uns8 *)&tmp);
+	avnd = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
 
-	if (avnd != AVD_AVND_NULL) {
+	if (avnd != NULL) {
 		/* Adjust the pointer
 		 */
 		avnd = (AVD_AVND *)(((char *)avnd)
@@ -132,45 +124,14 @@ AVD_AVND *avd_node_find(const SaNameT *dn)
 	return avnd;
 }
 
-/*****************************************************************************
- * Function: avd_node_find_nodeid
- *
- * Purpose:  This function will find a AVD_AVND structure in the
- * tree with node_id value as key.
- *
- * Input: node_id - The node id on which the AVND is running.
- *
- * Returns: The pointer to AVD_AVND structure found in the tree.
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 {
 	AVD_AVND *avnd;
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_get(&avd_node_id_db, (uns8 *)&node_id);
+	avnd = (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uns8 *)&node_id);
 
 	return avnd;
 }
-
-/*****************************************************************************
- * Function: avd_node_getnext
- *
- * Purpose:  This function will find the next AVD_AVND structure in the
- * tree whose node_name value is next of the given node_name value. The function 
- * internaly converts the length to network order.
- *
- * Input: dn - The node name on which the AVND is running.
- *
- * Returns: The pointer to AVD_AVND structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
 
 AVD_AVND *avd_node_getnext(const SaNameT *dn)
 {
@@ -180,9 +141,9 @@ AVD_AVND *avd_node_getnext(const SaNameT *dn)
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&avd_node_name_db, (uns8 *)&tmp);
+	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
 
-	if (avnd != AVD_AVND_NULL) {
+	if (avnd != NULL) {
 		/* Adjust the pointer
 		 */
 		avnd = (AVD_AVND *)(((char *)avnd)
@@ -193,96 +154,13 @@ AVD_AVND *avd_node_getnext(const SaNameT *dn)
 	return avnd;
 }
 
-/*****************************************************************************
- * Function: avd_node_getnext_nodeid
- *
- * Purpose:  This function will find the next AVD_AVND structure in the
- * tree whose node_id value is next of the given node_id value.
- *
- * Input: node_id - The node id on which the AVND is running.
- *
- * Returns: The pointer to AVD_AVND structure found in the tree. 
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-
 AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id)
 {
 	AVD_AVND *avnd;
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&avd_node_id_db, (uns8 *)&node_id);
+	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uns8 *)&node_id);
 
 	return avnd;
-}
-
-/*****************************************************************************
- * Function: avd_node_delete
- *
- * Purpose:  This function will delete and free AVD_AVND structure from 
- * the tree with node name as key.
- *
- * Input: avnd - The avnd structure that needs to be deleted.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: Make sure that the node is removed from the node_id tree of the CB.
- * avd_node_delete_nodeid() should be called prior to calling this func.
- *
- * 
- **************************************************************************/
-
-void avd_node_delete(AVD_AVND *node)
-{
-	assert(node->pg_csi_list.n_nodes == 0);
-	avd_node_delete_nodeid(node);
-	ncs_patricia_tree_del(&avd_node_name_db, &node->tree_node_name_node);
-	free(node);
-}
-
-/*****************************************************************************
- * Function: avd_avnd_del_cluster_list
- *
- * Purpose:  This function will del the given Node from the Cluster list.
- *
- * Input: node - The node pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-void avd_avnd_del_cluster_list(AVD_AVND *node)
-{
-	AVD_AVND *i_node = NULL;
-	AVD_AVND *prev_node = NULL;
-
-	if (node->node_on_cluster != NULL) {
-		/* remove Node from Cluster */
-		i_node = node->node_on_cluster->list_of_avnd_node;
-
-		while ((i_node != NULL) && (i_node != node)) {
-			prev_node = i_node;
-			i_node = i_node->cluster_list_node_next;
-		}
-
-		if (i_node != node) {
-			/* Log a fatal error */
-		} else {
-			if (prev_node == NULL) {
-				node->node_on_cluster->list_of_avnd_node = node->cluster_list_node_next;
-			} else {
-				prev_node->cluster_list_node_next = node->cluster_list_node_next;
-			}
-		}
-
-		node->cluster_list_node_next = NULL;
-		node->node_on_cluster = NULL;
-	}
-
-	return;
 }
 
 /**
@@ -292,33 +170,47 @@ void avd_avnd_del_cluster_list(AVD_AVND *node)
  * 
  * @return int
  */
-static int avd_node_config_validate(const AVD_AVND *node, const CcbUtilOperationData_t *opdata)
+static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
-	const char *name = (char *)node->node_info.nodeName.value;
+	SaBoolT abool;
+	SaAmfAdminStateT admstate;
+	char *parent;
 
-	if (node->saAmfNodeAutoRepair > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfNodeAutoRepair %u for '%s'", node->saAmfNodeAutoRepair, name);
-		return -1;
+	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+		LOG_ER("No parent to '%s' ", dn->value);
+		return 0;
 	}
 
-	if (node->saAmfNodeFailfastOnInstantiationFailure > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfNodeFailfastOnInstantiationFailure %u for '%s'",
-			node->saAmfNodeFailfastOnInstantiationFailure, name);
-		return -1;
+	if (strncmp(++parent, "safAmfCluster=", 14) != 0) {
+		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
+		return 0;
 	}
 
-	if (node->saAmfNodeFailfastOnTerminationFailure > SA_TRUE) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid saAmfNodeFailfastOnTerminationFailure %u for '%s'",
-			node->saAmfNodeFailfastOnTerminationFailure, name);
-		return -1;
+	if ((immutil_getAttr("saAmfNodeAutoRepair", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfNodeAutoRepair %u for '%s'", abool, dn->value);
+		return 0;
 	}
 
-	if (!avd_admin_state_is_valid(node->saAmfNodeAdminState)) {
-		avd_log(NCSFL_SEV_ERROR, "Invalid admin state %u for '%s'", node->saAmfNodeAdminState, name);
-		return -1;
+	if ((immutil_getAttr("saAmfNodeFailfastOnTerminationFailure", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfNodeFailfastOnTerminationFailure %u for '%s'", abool, dn->value);
+		return 0;
 	}
 
-	return 0;
+	if ((immutil_getAttr("saAmfNodeFailfastOnInstantiationFailure", attributes, 0, &abool) == SA_AIS_OK) &&
+	    (abool > SA_TRUE)) {
+		LOG_ER("Invalid saAmfNodeFailfastOnInstantiationFailure %u for '%s'", abool, dn->value);
+		return 0;
+	}
+
+	if ((immutil_getAttr("saAmfNodeAdminState", attributes, 0, &admstate) == SA_AIS_OK) &&
+	    !avd_admin_state_is_valid(admstate)) {
+		LOG_ER("Invalid saAmfNodeAdminState %u for '%s'", admstate, dn->value);
+		return 0;
+	}
+
+	return 1;
 }
 
 /**
@@ -328,38 +220,21 @@ static int avd_node_config_validate(const AVD_AVND *node, const CcbUtilOperation
  * 
  * @return AVD_AVND*
  */
-AVD_AVND *avd_node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
+static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
 	int rc = -1;
 	AVD_AVND *node;
 
+	TRACE_ENTER2("'%s'", dn->value);
+
 	/*
-	** If called from cold sync, attributes==NULL.
 	** If called at new active at failover, the object is found in the DB
 	** but needs to get configuration attributes initialized.
 	*/
-	if (NULL == (node = avd_node_find(dn))) {
-		if ((node = calloc(1, sizeof(AVD_AVND))) == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "calloc FAILED");
-			return NULL;
-		}
-
-		memcpy(node->node_info.nodeName.value, dn->value, dn->length);
-		node->node_info.nodeName.length = dn->length;
-		node->tree_node_name_node.key_info = (uns8 *)&(node->node_info.nodeName);
-		node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
-		node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
-		node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
-		node->saAmfNodeOperState = SA_AMF_OPERATIONAL_DISABLED;
-		node->node_state = AVD_AVND_STATE_ABSENT;
-		node->node_info.member = SA_FALSE;
-		node->type = AVSV_AVND_CARD_PAYLOAD;
-		node->avm_oper_state = SA_AMF_OPERATIONAL_ENABLED;
+	if (NULL == (node = avd_node_get(dn))) {
+		if ((node = avd_node_new(dn)) == NULL)
+			goto done;
 	}
-
-	/* If no attributes supplied, go direct and add to DB */
-	if (NULL == attributes)
-		goto add_to_db;
 
 	/*  TODO this is a workaround! */
 	if (immutil_getAttr("saAmfNodeClmNode", attributes, 0, &node->saAmfNodeClmNode) == SA_AIS_OK) {
@@ -370,35 +245,35 @@ AVD_AVND *avd_node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 		if (immutil_saImmOmAccessorGet_2(accessorHandle, &node->saAmfNodeClmNode,
 						 NULL, &clm_node_attrs) != SA_AIS_OK) {
-			avd_log(NCSFL_SEV_ERROR, "Get saImmOmAccessorGet_2 FAILED for '%s'",
+			LOG_ER("Get saImmOmAccessorGet_2 FAILED for '%s'",
 				node->saAmfNodeClmNode.value);
 			goto done;
 		}
 
 		if (immutil_getAttr("saClmNodeID", (const SaImmAttrValuesT_2 **)clm_node_attrs,
 				    0, &node->node_info.nodeId) != SA_AIS_OK) {
-			avd_log(NCSFL_SEV_ERROR, "Get saClmNodeID FAILED for '%s'", node->saAmfNodeClmNode.value);
+			LOG_ER("Get saClmNodeID FAILED for '%s'", node->saAmfNodeClmNode.value);
 			goto done;
 		}
 
 		(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 	} else {
-		avd_log(NCSFL_SEV_ERROR, "saAmfNodeClmNode not configured for '%s'", node->saAmfNodeClmNode.value);
+		LOG_ER("saAmfNodeClmNode not configured for '%s'", node->saAmfNodeClmNode.value);
 		goto done;
 	}
 
 	if (immutil_getAttr("saAmfNodeSuFailOverProb", attributes, 0, &node->saAmfNodeSuFailOverProb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfNodeSuFailOverProb FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfNodeSuFailOverProb FAILED for '%s'", dn->value);
 		goto done;
 	}
 
 	if (immutil_getAttr("saAmfNodeSuFailoverMax", attributes, 0, &node->saAmfNodeSuFailoverMax) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfNodeSuFailoverMax FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfNodeSuFailoverMax FAILED for '%s'", dn->value);
 		goto done;
 	}
 
 	if (immutil_getAttr("saAmfNodeAutoRepair", attributes, 0, &node->saAmfNodeAutoRepair) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfNodeAutoRepair FAILED for '%s'", dn->value);
+		LOG_ER("Get saAmfNodeAutoRepair FAILED for '%s'", dn->value);
 		goto done;
 	}
 
@@ -417,17 +292,11 @@ AVD_AVND *avd_node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 		node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
 	}
 
-add_to_db:
-	(void) ncs_patricia_tree_add(&avd_node_name_db, &node->tree_node_name_node);
-	if (NULL == avd_node_find_nodeid(node->node_info.nodeId))
-		avd_node_add_nodeid(node);
 	rc = 0;
 
 done:
-	if (rc != 0) {
-		free(node);
-		node = NULL;
-	}
+	if (rc != 0)
+		avd_node_delete(&node);
 
 	return node;
 }
@@ -444,9 +313,11 @@ SaAisErrorT avd_node_config_get(void)
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT dn;
-	SaImmAttrValuesT_2 **attributes;
+	const SaImmAttrValuesT_2 **attributes;
 	const char *className = "SaAmfNode";
 	AVD_AVND *node;
+
+	TRACE_ENTER();
 
 	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
@@ -457,31 +328,28 @@ SaAisErrorT avd_node_config_get(void)
 		NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "No objects found");
+		LOG_ER("No objects found");
 		goto done1;
 	}
 
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, &attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((node = avd_node_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
+	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
+		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if (avd_node_config_validate(node, NULL) != 0) {
-			avd_node_delete(node);
-			avd_log(NCSFL_SEV_ERROR, "AMF node '%s' validation error", dn.value);
+		if ((node = node_create(&dn, attributes)) == NULL)
 			goto done2;
-		}
+
+		node_add_to_model(node);
 
 		avd_nodeswbdl_config_get(node);
 	}
 
 	rc = SA_AIS_OK;
 
- done2:
+done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
+done1:
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
@@ -530,47 +398,6 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 }
 
 /*****************************************************************************
- * Function: avd_node_ccb_completed_create_hdlr
- *
- * Purpose: This routine handles create operations on SaAmfNode objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_create_hdlr(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_OK;
-	AVD_AVND *node;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-
-	if ((node = avd_node_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		goto done;
-	}
-
-	if (avd_node_config_validate(node, opdata) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "AMF node '%s' validation error", node->node_info.nodeName.value);
-		rc = SA_AIS_ERR_BAD_OPERATION;
-		avd_node_delete(node);
-		free(node);
-		goto done;
-	}
-
-	/* Save for later use in apply */
-	opdata->userData = node;
-
- done:
-	return rc;
-}
-
-/*****************************************************************************
  * Function: avd_node_ccb_completed_delete_hdlr
  *
  * Purpose: This routine handles delete operations on SaAmfCluster objects.
@@ -586,35 +413,38 @@ static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *op
 	AVD_AVND *node;
 
 	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-	node = avd_node_find(&opdata->objectName);
+	node = avd_node_get(&opdata->objectName);
 	assert(node != NULL);
 
 	if (node->node_info.member) {
-		avd_log(NCSFL_SEV_ERROR, "Node '%s' is still cluster member", opdata->objectName.value);
+		LOG_ER("Node '%s' is still cluster member", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	if (node->type == AVSV_AVND_CARD_SYS_CON) {
-		avd_log(NCSFL_SEV_ERROR, "Cannot remove controller node");
+		LOG_ER("Cannot remove controller node");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	/* Check to see that the node is in admin locked state before delete */
-	if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
-		avd_log(NCSFL_SEV_ERROR, "Node '%s' not locked", opdata->objectName.value);
+	if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+		LOG_ER("Node '%s' is not locked instantiation", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	/* Check to see that no SUs exists on this node */
 	if (node->list_of_su != NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Node '%s' still has SUs", opdata->objectName.value);
+		LOG_ER("Node '%s' still has SUs", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
 	if (node->list_of_avd_sw_bdl != NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Node '%s' still has SW Bundles", opdata->objectName.value);
+		LOG_ER("Node '%s' still has SW Bundles", opdata->objectName.value);
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
+
+	/* Save for later use in apply */
+	opdata->userData = node;
 
 	return rc;
 }
@@ -646,7 +476,7 @@ static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 		void *value = attribute->attrValues[0];
 
 		if (!strcmp(attribute->attrName, "saAmfNodeClmNode")) {
-			avd_log(NCSFL_SEV_ERROR, "Modification of saAmfNodeClmNode not allowed");
+			LOG_ER("Modification of saAmfNodeClmNode not allowed");
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailOverProb")) {
@@ -674,7 +504,7 @@ static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 				goto done;
 			}
 		} else {
-			avd_log(NCSFL_SEV_ERROR, "Unknown attribute %s", attribute->attrName);
+			LOG_ER("Unknown attribute %s", attribute->attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
 			goto done;
 		}
@@ -684,29 +514,16 @@ static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_node_ccb_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfNode objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
-	SaAisErrorT rc;
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	avd_trace("'%s'", opdata->objectName.value);
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		rc = avd_node_ccb_completed_create_hdlr(opdata);
+		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
 		rc = avd_node_ccb_completed_modify_hdlr(opdata);
@@ -722,52 +539,19 @@ static SaAisErrorT avd_node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_node_ccb_apply_delete_hdlr
- *
- * Purpose: This routine handles delete operations on SaAmfCluster objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- ****************************************************************************/
-static void avd_node_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_delete_hdlr(AVD_AVND *node)
 {
-	AVD_AVND *node;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-
-	node = avd_node_find(&opdata->objectName);
-	assert(node != NULL);
+	avd_log(NCSFL_SEV_NOTICE, "'%s'", node->node_info.nodeName.value);
 
 	/* Remove the node from the node_id tree. */
-	m_AVD_CB_LOCK(avd_cb, NCS_LOCK_WRITE);
-	avd_avnd_del_cluster_list(node);
 	avd_node_delete_nodeid(node);
-	avd_node_delete(node);
-	m_AVD_CB_UNLOCK(avd_cb, NCS_LOCK_WRITE);
+	avd_node_delete(&node);
 
 	/* Check point to the standby AVD to delete this node */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 }
 
-/*****************************************************************************
- * Function: avd_node_ccb_apply_modify_hdlr
- *
- * Purpose: This routine handles modify operations on SaAmfCluster objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	uns32 rc;
 	AVD_AVND *avd_avnd;
@@ -777,7 +561,7 @@ static void avd_node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
 
 	/* Find the node name. */
-	avd_avnd = avd_node_find(&opdata->objectName);
+	avd_avnd = avd_node_get(&opdata->objectName);
 	assert(avd_avnd != NULL);
 
 	i = 0;
@@ -850,57 +634,35 @@ static void avd_node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}			/* while (attr_mod != NULL) */
 }
 
-/*****************************************************************************
- * Function: avd_node_ccb_apply_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfNode objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
-	avd_trace("'%s'", opdata->objectName.value);
+	AVD_AVND *node;
+
+	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
+		node = node_create(&opdata->objectName, opdata->param.create.attrValues);
+		assert(node);
+		node_add_to_model(node);
 		break;
 	case CCBUTIL_MODIFY:
-		avd_node_ccb_apply_modify_hdlr(opdata);
+		node_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		avd_node_ccb_apply_delete_hdlr(opdata);
+		node_ccb_apply_delete_hdlr(opdata->userData);
 		break;
 	default:
 		assert(0);
 		break;
 	}
+
+	TRACE_LEAVE();
 }
 
-/*****************************************************************************
- * Function: avd_node_admin_op_cb
- *
- * Purpose: This routine handles admin Oper on SaAmfNode objects.
- *
- *
- * Input  : ...
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_node_admin_op_cb(SaImmOiHandleT immOiHandle,
-				 SaInvocationT invocation,
-				 const SaNameT *objectName,
-				 SaImmAdminOperationIdT operationId, const SaImmAdminOperationParamsT_2 **params)
+static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+	const SaNameT *objectName, SaImmAdminOperationIdT operationId,
+	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_AVND *avd_avnd;
@@ -908,7 +670,7 @@ static void avd_node_admin_op_cb(SaImmOiHandleT immOiHandle,
 	avd_log(NCSFL_SEV_NOTICE, "%s", objectName->value);
 
 	/* Find the node name. */
-	avd_avnd = avd_node_find(objectName);
+	avd_avnd = avd_node_get(objectName);
 	assert(avd_avnd != NULL);
 
 	switch (operationId) {
@@ -939,544 +701,16 @@ static void avd_node_admin_op_cb(SaImmOiHandleT immOiHandle,
 	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
 }
 
-/*****************************************************************************
- * Function: avd_ng_del_cluster_list
- *
- * Purpose:  This function will del the given Ng from the Cluster list.
- *
- * Input: node group - The node group pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-static void avd_ng_del_cluster_list(AVD_AMF_NG *node_gr)
-{
-	AVD_AMF_NG *i_node_gr = NULL;
-	AVD_AMF_NG *prev_node_gr = NULL;
-
-	if (node_gr->ng_on_cluster != NULL) {
-		/* remove Node from Cluster */
-		i_node_gr = node_gr->ng_on_cluster->list_of_avd_ng;
-
-		while ((i_node_gr != NULL) && (i_node_gr != node_gr)) {
-			prev_node_gr = i_node_gr;
-			i_node_gr = i_node_gr->cluster_list_ng_next;
-		}
-
-		if (i_node_gr != node_gr) {
-			/* Log a fatal error */
-		} else {
-			if (prev_node_gr == NULL) {
-				node_gr->ng_on_cluster->list_of_avd_ng = node_gr->cluster_list_ng_next;
-			} else {
-				prev_node_gr->cluster_list_ng_next = node_gr->cluster_list_ng_next;
-			}
-		}
-
-		node_gr->cluster_list_ng_next = NULL;
-		node_gr->ng_on_cluster = NULL;
-	}
-}
-
-/*****************************************************************************
- * Function: avd_ng_find
- *
- * Purpose:  This function will find a AVD_AMF_NG structure in the
- *           tree with ng_name value as key.
- *
- * Input: dn - The name of the Cluster.
- *        
- * Returns: The pointer to AVD_AMF_NG structure found in the tree.
- *
- * NOTES:
- *
- *
- **************************************************************************/
-static AVD_AMF_NG *avd_ng_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_AMF_NG *)ncs_patricia_tree_get(&avd_nodegroup_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_ng_delete
- *
- * Purpose:  This function will delete a AVD_AMF_NG structure from the
- *           tree. 
- *
- * Input: ng - The Node Gr structure that needs to be deleted.
- *
- * Returns: -
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-static void avd_ng_delete(AVD_AMF_NG *ng)
-{
-	uns32 rc;
-
-	avd_ng_del_cluster_list(ng);
-	rc = ncs_patricia_tree_del(&avd_nodegroup_db, &ng->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	free(ng->saAmfNGNodeList);
-	free(ng);
-}
-
-/**
- * Validate configuration attributes for an AMF node group object
- * @param ng
- * @param opdata
- * 
- * @return int
- */
-static int avd_ng_config_validate(const AVD_AMF_NG *ng, const CcbUtilOperationData_t *opdata)
-{
-	int i;
-	char *p;
-
-	p = strchr((char *)ng->ng_name.value, ',');
-	if (p == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", ng->ng_name.value);
-		return -1;
-	}
-	p++;
-
-	if (strncmp(p, "safAmfCluster=", 14) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", p, ng->ng_name.value);
-		return -1;
-	}
-
-	/* Make sure all nodes exist */
-	for (i = 0; i < ng->number_nodes; i++) {
-		AVD_AVND *node = avd_node_find(&ng->saAmfNGNodeList[i]);
-		if (node == NULL) {
-			/* Node does not exist in current model, check CCB */
-			if ((opdata != NULL) &&
-			    (ccbutil_getCcbOpDataByDN(opdata->ccbId, &ng->saAmfNGNodeList[i]) == NULL)) {
-				avd_log(NCSFL_SEV_ERROR, "Node '%s' does not exist either in model or CCB",
-					ng->saAmfNGNodeList[i].value);
-				return SA_AIS_ERR_BAD_OPERATION;
-			}
-			avd_log(NCSFL_SEV_ERROR, "Node '%s' does not exist", ng->saAmfNGNodeList[i].value);
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
-/**
- * Create a new Node Group object
- * @param dn
- * @param attributes
- * 
- * @return AVD_AVND*
- */
-static AVD_AMF_NG *avd_ng_create(SaNameT *ng_name, const SaImmAttrValuesT_2 **attributes)
-{
-	int rc = -1, i = 0, j;
-	AVD_AMF_NG *ng;
-	const SaImmAttrValuesT_2 *attr;
-
-	if ((ng = calloc(1, sizeof(AVD_AMF_NG))) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "calloc failed");
-		return NULL;
-	}
-
-	memcpy(ng->ng_name.value, ng_name->value, ng_name->length);
-	ng->ng_name.length = ng_name->length;
-	ng->tree_node.key_info = (uns8 *)&(ng->ng_name);
-
-	while ((attr = attributes[i++]) != NULL) {
-		if (!strcmp(attr->attrName, "saAmfNHNodeList")) {
-			ng->number_nodes = attr->attrValuesNumber;
-			ng->saAmfNGNodeList = malloc(attr->attrValuesNumber * sizeof(SaNameT));
-			for (j = 0; j < attr->attrValuesNumber; j++) {
-				ng->saAmfNGNodeList[j] = *((SaNameT *)attr->attrValues[j]);
-			}
-		}
-	}
-
-	if (ncs_patricia_tree_add(&avd_nodegroup_db, &ng->tree_node) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_ERROR, "ncs_patricia_tree_add failed");
-		goto done;
-	}
-	rc = 0;
-
-done:
-	if (rc != 0) {
-		free(ng);
-		ng = NULL;
-	}
-
-	return ng;
-}
-
-/*****************************************************************************
- * Function: avd_ng_ccb_apply_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfNodeGroup objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	avd_trace("'%s'", opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		break;
-	case CCBUTIL_DELETE: {
-		AVD_AMF_NG *ng = avd_ng_find(&opdata->objectName);
-		avd_ng_delete(ng);
-		break;
-	}
-	default:
-		assert(0);
-	}
-}
-
-/*****************************************************************************
- * Function: avd_ng_ccb_completed_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfNodeGroup objects.
- * 
- *
- * Input  : Ccb Util Oper Data
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_ng_ccb_completed_cb(CcbUtilOperationData_t *opdata)
-{
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_AMF_NG *ng;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", opdata->objectName.value, opdata->ccbId);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		if ((ng = avd_ng_create(&opdata->objectName, opdata->param.create.attrValues)) == NULL) {
-			goto done;
-		}
-
-		if (avd_ng_config_validate(ng, opdata) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF node group '%s' validation error", ng->ng_name.value);
-			avd_ng_delete(ng);
-			free(ng->saAmfNGNodeList);
-			free(ng);
-			goto done;
-		}
-
-		break;
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfNodeGroup not supported");
-		goto done;
-		break;
-	case CCBUTIL_DELETE:
-		avd_log(NCSFL_SEV_ERROR, "Deletion of SaAmfNodeGroup not supported");
-		goto done;
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
-	rc = SA_AIS_OK;
- done:
-	return rc;
-}
-
-/**
- * Get configuration for all AMF node group objects from IMM and
- * create AVD internal objects.
- * 
- * @return int
- */
-SaAisErrorT avd_node_group_config_get(void)
-{
-	SaAisErrorT error, rc = SA_AIS_ERR_FAILED_OPERATION;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfNodeGroup";
-	AVD_AMF_NG *ng;
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-						  NULL, &searchHandle);
-
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "No objects found");
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, &attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((ng = avd_ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
-			goto done2;
-
-		if (avd_ng_config_validate(ng, NULL) != 0) {
-			avd_ng_delete(ng);
-			avd_log(NCSFL_SEV_ERROR, "AMF node group '%s' validation error", dn.value);
-			goto done2;
-		}
-	}
-
-	rc = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
-	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_nodeswbdl_find
- *
- * Purpose:  This function will find a AVD_AMF_SW_BUNDLE structure in the
- *           tree with sw_bdl_name value as key.
- *
- * Input: dn - The name of the Cluster.
- *        
- * Returns: The pointer to AVD_AMF_SW_BUNDLE structure found in the tree.
- *
- * NOTES:
- *
- *
- **************************************************************************/
-
-static AVD_AMF_SW_BUNDLE *avd_nodeswbdl_find(const SaNameT *dn)
-{
-	SaNameT tmp = {0};
-
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
-
-	return (AVD_AMF_SW_BUNDLE *)ncs_patricia_tree_get(&avd_nodeswbundle_db, (uns8 *)&tmp);
-}
-
-/*****************************************************************************
- * Function: avd_sw_bdl_delete
- *
- * Purpose:  This function will delete a AVD_AMF_SW_BUNDLE structure from the
- *           tree. 
- *
- * Input: sw_bdl - The Sw Bundle structure that needs to be deleted.
- *
- * Returns: -
- *
- * NOTES:
- *
- * 
- **************************************************************************/
-static void avd_nodeswbdl_delete(AVD_AMF_SW_BUNDLE *sw_bdl)
-{
-	uns32 rc;
-
-	rc = ncs_patricia_tree_del(&avd_nodeswbundle_db, &sw_bdl->tree_node);
-	assert(rc == NCSCC_RC_SUCCESS);
-	free(sw_bdl->saAmfNodeSwBundlePathPrefix);
-	free(sw_bdl);
-}
-
-/**
- * Validate configuration attributes for an AMF node Sw bundle object.
- * Validate the naming tree.
- * @param ng
- * @param opdata
- * 
- * @return int
- */
-static int avd_nodeswbdl_config_validate(const AVD_AMF_SW_BUNDLE *sw_bdl)
-{
-	char *parent;
-	char *dn = (char *)sw_bdl->sw_bdl_name.value;
-
-	if ((parent = strchr(dn, ',')) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "No parent to '%s' ", dn);
-		return -1;
-	}
-
-	parent++;
-
-	/* Should be children to nodes */
-	if (strncmp(parent, "safAmfNode=", 11) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "Wrong parent '%s' to '%s' ", parent, dn);
-		return -1;
-	}
-
-	return 0;
-}
-
-/**
- * Create a new Node Sw Bundle object
- * @param dn
- * @param attributes
- * 
- * @return AVD_AVND*
- */
-static AVD_AMF_SW_BUNDLE *avd_nodeswbdl_create(SaNameT *sw_bdl_name, const SaImmAttrValuesT_2 **attributes, AVD_AVND *node)
-{
-	int rc = -1;
-	AVD_AMF_SW_BUNDLE *sw_bdl;
-	const char *prefix;
-
-	if ((sw_bdl = calloc(1, sizeof(AVD_AMF_SW_BUNDLE))) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "calloc failed");
-		return NULL;
-	}
-
-	memcpy(sw_bdl->sw_bdl_name.value, sw_bdl_name->value, sw_bdl_name->length);
-	sw_bdl->sw_bdl_name.length = sw_bdl_name->length;
-	sw_bdl->tree_node.key_info = (uns8 *)&(sw_bdl->sw_bdl_name);
-
-	prefix = immutil_getStringAttr(attributes, "saAmfNodeSwBundlePathPrefix", 0);
-	if (prefix == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "Get saAmfNodeSwBundlePathPrefix FAILED for '%s'", sw_bdl_name->value);
-		goto done;
-	}
-
-	sw_bdl->saAmfNodeSwBundlePathPrefix = strdup(prefix);
-	sw_bdl->node_sw_bdl_on_node = node;
-
-	if (ncs_patricia_tree_add(&avd_nodeswbundle_db, &sw_bdl->tree_node) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_ERROR, "ncs_patricia_tree_add failed");
-		goto done;
-	}
-	rc = 0;
-
-done:
-	if (rc != 0) {
-		free(sw_bdl);
-		sw_bdl = NULL;
-	}
-
-	return sw_bdl;
-}
-
-static void avd_nodeswbdl_add_to_model(AVD_AMF_SW_BUNDLE *sw_bdl)
+void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
 {
 	sw_bdl->node_list_sw_bdl_next = sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl;
 	sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl;
 }
 
-/**
- * Get configuration for all AMF node Sw Bundle objects from IMM and
- * create AVD internal objects.
- * 
- * @return int
- */
-static SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
+void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
 {
-	SaAisErrorT error, rc = SA_AIS_ERR_FAILED_OPERATION;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	SaNameT dn;
-	SaImmAttrValuesT_2 **attributes;
-	const char *className = "SaAmfNodeSwBundle";
-	AVD_AMF_SW_BUNDLE *sw_bdl;
-
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
-
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, &node->node_info.nodeName, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
-
-	if (SA_AIS_OK != error) {
-		avd_log(NCSFL_SEV_ERROR, "No objects found");
-		goto done1;
-	}
-
-	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, &attributes) == SA_AIS_OK) {
-		avd_log(NCSFL_SEV_NOTICE, "'%s'", dn.value);
-
-		if ((sw_bdl = avd_nodeswbdl_create(&dn, (const SaImmAttrValuesT_2 **)attributes, node)) == NULL)
-			goto done2;
-
-		if (avd_nodeswbdl_config_validate(sw_bdl) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF Node Sw Bundle '%s' validation error", dn.value);
-			goto done2;
-		}
-
-		avd_nodeswbdl_add_to_model(sw_bdl);
-	}
-
-	rc = SA_AIS_OK;
-
- done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
- done1:
-
-	return rc;
-}
-
-/*****************************************************************************
- * Function: avd_nodeswbdl_ccb_apply_create_hdlr
- * 
- * Purpose: This routine handles create operations on SaAmfNodeSwBundle objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-
-static void avd_nodeswbdl_ccb_apply_create_hdlr(CcbUtilOperationData_t *opdata)
-{
-	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", opdata->objectName.value, opdata->ccbId);
-	avd_nodeswbdl_add_to_model(opdata->userData);
-}
-
-/*****************************************************************************
- * Function: avd_node_del_swbdl
- *
- * Purpose:  This function will del the given sw_bdl from the Node list.
- *
- * Input: cb - the AVD control block
- *        sw_bundle - The Sw Bundle pointer
- *
- * Returns: None.
- *
- * NOTES: None
- *
- *
- **************************************************************************/
-static void avd_node_del_swbdl(AVD_AMF_SW_BUNDLE *sw_bdl)
-{
-	AVD_AMF_SW_BUNDLE *i_sw_bdl = NULL;
-	AVD_AMF_SW_BUNDLE *prev_sw_bdl = NULL;
+	AVD_NODE_SW_BUNDLE *i_sw_bdl = NULL;
+	AVD_NODE_SW_BUNDLE *prev_sw_bdl = NULL;
 
 	if (sw_bdl->node_sw_bdl_on_node != NULL) {
 		/* remove Sw Bdl from Node */
@@ -1502,101 +736,54 @@ static void avd_node_del_swbdl(AVD_AMF_SW_BUNDLE *sw_bdl)
 	}
 }
 
-/*****************************************************************************
- * Function: avd_nodeswbdl_ccb_apply_delete_hdlr
- * 
- * Purpose: This routine handles delete operations on SaAmfNodeSwBundle objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- ****************************************************************************/
-static void avd_nodeswbdl_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
+void avd_node_add_su(AVD_SU *su)
 {
-	AVD_AMF_SW_BUNDLE *sw_bdl;
-
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-	sw_bdl = avd_nodeswbdl_find(&opdata->objectName);
-	assert(sw_bdl != NULL);
-	avd_node_del_swbdl(sw_bdl);
-	avd_nodeswbdl_delete(sw_bdl);
-}
-
-/*****************************************************************************
- * Function: avd_nodeswbdl_ccb_apply_cb
- * 
- * Purpose: This routine handles all CCB operations on SaAmfNodeSwBundle objects.
- * 
- *
- * Input  : Ccb Util Oper Data.
- *  
- * Returns: None.
- *  
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static void avd_nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
-{
-	avd_trace("'%s'", opdata->objectName.value);
-
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		avd_nodeswbdl_ccb_apply_create_hdlr(opdata);
-		break;
-	case CCBUTIL_DELETE:
-		avd_nodeswbdl_ccb_apply_delete_hdlr(opdata);
-		break;
-	default:
-		assert(0);
+	if (strstr((char *)su->name.value, "safApp=OpenSAF") != NULL) {
+		su->avnd_list_su_next = su->su_on_node->list_of_ncs_su;
+		su->su_on_node->list_of_ncs_su = su;
+	} else {
+		su->avnd_list_su_next = su->su_on_node->list_of_su;
+		su->su_on_node->list_of_su = su;
 	}
 }
 
-static SaAisErrorT avd_nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+void avd_node_remove_su(AVD_SU *su)
 {
-	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
-	AVD_AVND *node;
-	AVD_AMF_SW_BUNDLE *sw_bdl;
+	AVD_SU *i_su = NULL;
+	AVD_SU *prev_su = NULL;
+	NCS_BOOL isNcs;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s', %llu", opdata->objectName.value, opdata->ccbId);
+	if ((su->sg_of_su) && (su->sg_of_su->sg_ncs_spec == SA_TRUE))
+		isNcs = TRUE;
+	else
+		isNcs = FALSE;
 
-	switch (opdata->operationType) {
-	case CCBUTIL_CREATE:
-		node = avd_node_find(opdata->param.create.parentName);
-		if (node == NULL) {
-			avd_log(NCSFL_SEV_ERROR, "AMF Node Sw Bundle must be created under a node");
-			goto done;
-		}
-		if ((sw_bdl = avd_nodeswbdl_create(&opdata->objectName, opdata->param.create.attrValues, node)) == NULL) {
-			goto done;
-		}
+	/* For external component, there is no AvND attached, so let it return. */
+	if (su->su_on_node != NULL) {
+		/* remove SU from node */
+		i_su = (isNcs) ? su->su_on_node->list_of_ncs_su : su->su_on_node->list_of_su;
 
-		if (avd_nodeswbdl_config_validate(sw_bdl) != 0) {
-			avd_log(NCSFL_SEV_ERROR, "AMF Node Sw Bundle '%s' validation error", opdata->objectName.value);
-			goto done;
+		while ((i_su != NULL) && (i_su != su)) {
+			prev_su = i_su;
+			i_su = i_su->avnd_list_su_next;
 		}
 
-		opdata->userData = sw_bdl;	/* Save for later use in apply */
+		if (i_su != su) {
+			/* Log a fatal error */
+		} else {
+			if (prev_su == NULL) {
+				if (isNcs)
+					su->su_on_node->list_of_ncs_su = su->avnd_list_su_next;
+				else
+					su->su_on_node->list_of_su = su->avnd_list_su_next;
+			} else {
+				prev_su->avnd_list_su_next = su->avnd_list_su_next;
+			}
+		}
 
-		break;
-	case CCBUTIL_MODIFY:
-		avd_log(NCSFL_SEV_ERROR, "Modification of SaAmfNodeSwBundle not supported");
-		goto done;
-		break;
-	case CCBUTIL_DELETE:
-		avd_log(NCSFL_SEV_ERROR, "Deletion of SaAmfNodeSwBundle not supported");
-		goto done;
-		break;
-	default:
-		assert(0);
-		break;
+		su->avnd_list_su_next = NULL;
+		su->su_on_node = NULL;
 	}
-
-	rc = SA_AIS_OK;
- done:
-	return rc;
 }
 
 void avd_node_constructor(void)
@@ -1604,18 +791,9 @@ void avd_node_constructor(void)
 	NCS_PATRICIA_PARAMS patricia_params;
 
 	patricia_params.key_size = sizeof(SaNameT);
-	assert(ncs_patricia_tree_init(&avd_node_name_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	assert(ncs_patricia_tree_init(&avd_nodegroup_db, &patricia_params) == NCSCC_RC_SUCCESS);
-	assert(ncs_patricia_tree_init(&avd_nodeswbundle_db, &patricia_params) == NCSCC_RC_SUCCESS);
-
+	assert(ncs_patricia_tree_init(&node_name_db, &patricia_params) == NCSCC_RC_SUCCESS);
 	patricia_params.key_size = sizeof(SaClmNodeIdT);
-	assert(ncs_patricia_tree_init(&avd_node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
+	assert(ncs_patricia_tree_init(&node_id_db, &patricia_params) == NCSCC_RC_SUCCESS);
 
-	avd_class_impl_set("SaAmfNode", NULL,
-		avd_node_admin_op_cb, avd_node_ccb_completed_cb, avd_node_ccb_apply_cb);
-
-	avd_class_impl_set("SaAmfNodeGroup", NULL, NULL, avd_ng_ccb_completed_cb, avd_ng_ccb_apply_cb);
-
-	avd_class_impl_set("SaAmfNodeSwBundle", NULL,
-		NULL, avd_nodeswbdl_ccb_completed_cb, avd_nodeswbdl_ccb_apply_cb);
+	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb, node_ccb_completed_cb, node_ccb_apply_cb);
 }

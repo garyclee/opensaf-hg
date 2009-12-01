@@ -207,7 +207,7 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	NCS_BOOL failover_pending = FALSE;
 	AVD_SU *i_su = NULL;
 	uns32 count = 0;
@@ -247,9 +247,9 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_node_find(&tmpNode->node_name);
+		avnd = avd_node_get(&tmpNode->node_name);
 
-		if (avnd == AVD_AVND_NULL) {
+		if (avnd == NULL) {
 			/* LOG an error ? */
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(tmpNode->node_name.value, tmpNode->node_name.length);
 			/* Ignore sending failure of shutdown_response coz 
@@ -376,7 +376,7 @@ void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_
 	AVD_SU *i_su = NULL;
 	NCS_BOOL assign_list_empty = TRUE;
 
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		m_AVD_LOG_INVALID_VAL_ERROR(0);
 		return;
 	}
@@ -567,7 +567,7 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	NCS_BOOL failover_pending = FALSE;
 	AVD_SU *i_su = NULL;
 
@@ -606,9 +606,9 @@ void avd_avm_nd_failover_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_node_find(&tmpNode->node_name);
+		avnd = avd_node_get(&tmpNode->node_name);
 
-		if (avnd == AVD_AVND_NULL) {
+		if (avnd == NULL) {
 			/* LOG an error ? */
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(tmpNode->node_name.value, tmpNode->node_name.length);
 			tmpNode = tmpNode->next;
@@ -696,7 +696,7 @@ void avd_avm_fault_domain_rsp(AVD_CL_CB *cb, AVD_EVT *evt)
 void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 
 	if (evt->info.avm_msg == NULL) {
 		/* log error that a message contents is missing */
@@ -723,9 +723,9 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* first get the avnd structure from the name in message */
-	avnd = avd_node_find(&msg->avm_avd_msg.reset_resp.node_name);
+	avnd = avd_node_get(&msg->avm_avd_msg.reset_resp.node_name);
 
-	if (avnd == AVD_AVND_NULL) {
+	if (avnd == NULL) {
 		/* LOG an error ? */
 		/*m_AVD_LOG_INVALID_NAME_VAL_ERROR(tmpNode->node_name, tmpNode->node_name.length); */
 		avm_avd_free_msg(&msg);
@@ -769,7 +769,7 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVM_AVD_MSG_T *msg;
 	AVM_LIST_NODE_T *tmpNode = AVM_LIST_NODE_NULL;
-	AVD_AVND *avnd = AVD_AVND_NULL;
+	AVD_AVND *avnd = NULL;
 	AVD_SU *i_su = NULL;
 	AVD_AVND *su_node_ptr = NULL;
 
@@ -808,9 +808,9 @@ void avd_avm_nd_oper_st_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	while (tmpNode) {
 		/* first get the avnd structure from the name in message */
-		avnd = avd_node_find(&tmpNode->node_name);
+		avnd = avd_node_get(&tmpNode->node_name);
 
-		if (avnd == AVD_AVND_NULL) {
+		if (avnd == NULL) {
 			/* LOG an error ? */
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(tmpNode->node_name.value, tmpNode->node_name.length);
 			tmpNode = tmpNode->next;
@@ -941,7 +941,7 @@ void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 
-	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == AVD_AVND_NULL) {
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_shutdown_app_su.node_id)) == NULL) {
 		/* log error that the node id is invalid */
 		m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_shutdown_app_su.node_id);
 		avsv_dnd_msg_free(n2d_msg);

@@ -34,9 +34,9 @@ libavd_la_LDFLAGS = -static
 
 libavd_la_SOURCES = \
 	avd_app.c \
+	avd_apptype.c \
 	avd_avm.c \
 	avd_avmmsg.c \
-	avd_node.c \
 	avd.c \
 	avd_chkop.c \
 	avd_ckpt_dec.c \
@@ -45,22 +45,31 @@ libavd_la_SOURCES = \
 	avd_ckpt_updt.c \
 	avd_cluster.c \
 	avd_comp.c \
+	avd_compcstype.c \
 	avd_comptype.c \
 	avd_csi.c \
+	avd_csiattr.c \
+	avd_cstype.c \
+	avd_ctcstype.c \
 	avd_dblog.c \
 	avd_dmsg.c \
 	avd_hb.c \
 	avd_hlt.c \
+	avd_hlttype.c \
 	avd_imm.c \
 	avd_mds.c \
 	avd_ndfsm.c \
 	avd_ndmsg.c \
 	avd_ndproc.c \
+	avd_node.c \
+	avd_nodegroup.c \
+	avd_nodeswbundle.c \
 	avd_pg.c \
 	avd_proc.c \
 	avd_role.c \
 	avd_sg2Nfsm.c \
 	avd_sg.c \
+	avd_sgtype.c \
 	avd_sgNAcvRfsm.c \
 	avd_sgNoRfsm.c \
 	avd_sgNpMfsm.c \
@@ -70,6 +79,10 @@ libavd_la_SOURCES = \
 	avd_siDep.c \
 	avd_su.c \
 	avd_susi.c \
+	avd_sutcomptype.c \
+	avd_sutype.c \
+	avd_svctype.c \
+	avd_svctypecstypes.c \
 	avd_tmr.c \
 	avd_ntf.c \
 	avd_util.c \

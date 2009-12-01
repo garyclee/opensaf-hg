@@ -175,7 +175,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 	for (su_rank_rec = avd_sirankedsu_getnext(cb, i_idx);
 	     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name, si->name) == 0);
 	     su_rank_rec = avd_sirankedsu_getnext(cb, su_rank_rec->indx)) {
-		curr_su = avd_su_find(&su_rank_rec->su_name);
+		curr_su = avd_su_get(&su_rank_rec->su_name);
 		if (curr_su == su)
 			break;
 	}
@@ -198,7 +198,7 @@ AVD_SU_SI_REL *avd_susi_create(AVD_CL_CB *cb, AVD_SI *si, AVD_SU *su, SaAmfHASta
 			     i_su_rank_rec
 			     && (m_CMP_HORDER_SANAMET(i_su_rank_rec->indx.si_name, si->name) == 0);
 			     i_su_rank_rec = avd_sirankedsu_getnext(cb, i_su_rank_rec->indx)) {
-				curr_su = avd_su_find(&i_su_rank_rec->su_name);
+				curr_su = avd_su_get(&i_su_rank_rec->su_name);
 				if (curr_su == i_su_si->su)
 					break;
 			}
@@ -317,7 +317,7 @@ AVD_SU_SI_REL *avd_susi_find(AVD_CL_CB *cb, const SaNameT *su_name, const SaName
 {
 	AVD_SU *su;
 
-	if ((su = avd_su_find(su_name)) == NULL)
+	if ((su = avd_su_get(su_name)) == NULL)
 		return AVD_SU_SI_REL_NULL;
 
 	return avd_su_susi_find(cb, su, si_name);
@@ -352,7 +352,7 @@ AVD_SU_SI_REL *avd_susi_find_next(AVD_CL_CB *cb, SaNameT su_name, SaNameT si_nam
 	 * first SU SI relation
 	 */
 	if (su_name.length != 0) {
-		su = avd_su_find(&su_name);
+		su = avd_su_get(&su_name);
 		if (su == NULL)
 			su_si = AVD_SU_SI_REL_NULL;
 		else
@@ -647,8 +647,8 @@ AVD_SUS_PER_SI_RANK *avd_sirankedsu_getnext_valid(AVD_CL_CB *cb,
 	}
 
 	/* get the su & si */
-	su = avd_su_find(&rank_elt->su_name);
-	si = avd_si_find(&indx.si_name);
+	su = avd_su_get(&rank_elt->su_name);
+	si = avd_si_get(&indx.si_name);
 
 	/* validate this entry */
 	if ((si == AVD_SI_NULL) || (su == NULL) || (si->sg_of_si != su->sg_of_su))
@@ -716,7 +716,7 @@ static SaAisErrorT avd_sirankedsu_ccb_apply_create_hdlr(
 	int i = 0;
 
 	/* Find the si name. */
-	avd_si = avd_si_find(opdata->param.create.parentName);
+	avd_si = avd_si_get(opdata->param.create.parentName);
 
 	if (avd_si == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -909,7 +909,7 @@ static SaAisErrorT avd_sirankedsu_ccb_apply_delete_hdlr(struct CcbUtilOperationD
 	avd_susi_namet_init(opdata->param.deleteOp.objectName, &su_name, &si_name);
 
 	/* Find the su name. */
-	su = avd_su_find(&su_name);
+	su = avd_su_get(&su_name);
 
 	if (su != NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -924,7 +924,7 @@ static SaAisErrorT avd_sirankedsu_ccb_apply_delete_hdlr(struct CcbUtilOperationD
 	     su_rank_rec && (m_CMP_HORDER_SANAMET(su_rank_rec->indx.si_name,
 						  si_name) == 0);
 	     su_rank_rec = avd_sirankedsu_getnext(avd_cb, su_rank_rec->indx)) {
-		curr_su = avd_su_find(&su_rank_rec->su_name);
+		curr_su = avd_su_get(&su_rank_rec->su_name);
 		if (curr_su == su) {
 			found = TRUE;
 			break;
@@ -937,7 +937,7 @@ static SaAisErrorT avd_sirankedsu_ccb_apply_delete_hdlr(struct CcbUtilOperationD
 	}
 
 	/* Find the si name. */
-	si = avd_si_find(&si_name);
+	si = avd_si_get(&si_name);
 
 	if (si == NULL) {
 		rc = SA_AIS_ERR_INVALID_PARAM;
@@ -983,7 +983,7 @@ static void avd_sirankedsu_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}
 }
 
-static void avd_sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1003,7 +1003,7 @@ static void avd_sirankedsu_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	}
 }
 
-static SaAisErrorT avd_sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT sirankedsu_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -1080,9 +1080,8 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
 	return error;
 }
 
-__attribute__ ((constructor)) static void avd_sirankedsu_constructor(void)
+void avd_sirankedsu_constructor(void)
 {
-	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL,
-	       avd_sirankedsu_ccb_completed_cb, avd_sirankedsu_ccb_apply_cb);
+	avd_class_impl_set("SaAmfSIRankedSU", NULL, NULL, sirankedsu_ccb_completed_cb, sirankedsu_ccb_apply_cb);
 }
 

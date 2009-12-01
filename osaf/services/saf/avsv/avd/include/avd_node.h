@@ -43,8 +43,8 @@
 #include <avsv_d2nmsg.h>
 #include <avd_tmr.h>
 
-struct avd_amf_cluster_tag;
-struct avd_amf_node_sw_bundle_tag;
+struct avd_cluster_tag;
+struct avd_node_sw_bundle_tag;
 struct CcbUtilOperationData;
 
 typedef enum {
@@ -136,32 +136,32 @@ typedef struct avd_avnd_tag {
 
 	NCS_BOOL hrt_beat_rcvd;	/* Boolean Showing First heart beat recevied from AvND */
 	struct avd_avnd_tag *cluster_list_node_next;
-	struct avd_amf_cluster_tag *node_on_cluster;
-	struct avd_amf_node_sw_bundle_tag *list_of_avd_sw_bdl;
+	struct avd_cluster_tag *node_on_cluster;
+	struct avd_node_sw_bundle_tag *list_of_avd_sw_bdl;
 
 } AVD_AVND;
 
-typedef struct avd_amf_ng_tag {
+typedef struct avd_ng_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be AMF  node group name */
 	SaNameT ng_name;
 	uns32 number_nodes;	/* number of element in saAmfNGNodeList */
 	SaNameT *saAmfNGNodeList;	/* array of node names in group */
 
-	struct avd_amf_ng_tag *cluster_list_ng_next;
-	struct avd_amf_cluster_tag *ng_on_cluster;
+	struct avd_ng_tag *cluster_list_ng_next;
+	struct avd_cluster_tag *ng_on_cluster;
 
 } AVD_AMF_NG;
 
-typedef struct avd_amf_node_sw_bundle_tag {
+typedef struct avd_node_sw_bundle_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be amf cluster name */
 	SaNameT sw_bdl_name;
 	char *saAmfNodeSwBundlePathPrefix;
-	struct avd_amf_node_sw_bundle_tag *node_list_sw_bdl_next;
+	struct avd_node_sw_bundle_tag *node_list_sw_bdl_next;
 	AVD_AVND *node_sw_bdl_on_node;
 
-} AVD_AMF_SW_BUNDLE;
+} AVD_NODE_SW_BUNDLE;
 
 #define AVD_AVND_NULL     ((AVD_AVND *)0)
 
@@ -197,23 +197,32 @@ m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
 }
 
 /* AMF Node */
-extern AVD_AVND *avd_node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
-extern void avd_node_delete(AVD_AVND *avnd);
-extern AVD_AVND *avd_node_find(const SaNameT *node_name);
+extern AVD_AVND *avd_node_new(const SaNameT *dn);
+extern void avd_node_delete(AVD_AVND **avnd);
+extern void avd_node_db_add(AVD_AVND *node);
+extern AVD_AVND *avd_node_get(const SaNameT *node_name);
 extern AVD_AVND *avd_node_getnext(const SaNameT *node_name);
-
-EXTERN_C uns32 avd_node_add_nodeid(AVD_AVND *avnd);
+extern uns32 avd_node_add_nodeid(AVD_AVND *avnd);
 extern void avd_node_delete_nodeid(AVD_AVND *node);
-
-EXTERN_C AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
-EXTERN_C AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
+extern AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id);
+extern AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
 extern SaAisErrorT avd_node_config_get(void);
 extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);
+extern void avd_node_constructor(void);
+extern void avd_node_add_su(struct avd_su_tag *su);
+extern void avd_node_remove_su(struct avd_su_tag *su);
+extern void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl);
+extern void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl);
 
 /* AMF Node group */
-extern SaAisErrorT avd_node_group_config_get(void);
+extern SaAisErrorT avd_ng_config_get(void);
+extern AVD_AMF_NG *avd_ng_get(const SaNameT *dn);
+extern void avd_ng_constructor(void);
 
-extern void avd_node_constructor(void);
+/* AMF Node SW Bundle */
+extern AVD_NODE_SW_BUNDLE *avd_nodeswbdl_get(const SaNameT *dn);
+extern SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node);
+extern void avd_nodeswbundle_constructor(void);
 
 #endif

@@ -55,17 +55,23 @@ typedef struct avd_app_tag {
 	struct avd_app_type_tag *app_on_app_type;
 } AVD_APP;
 
-extern AVD_APP *avd_app_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes);
-extern void avd_app_delete(AVD_APP *app);
-extern AVD_APP *avd_app_find(const SaNameT *app_name);
+extern void avd_app_db_add(AVD_APP *app);
+extern AVD_APP *avd_app_new(const SaNameT *dn);
+extern void avd_app_delete(AVD_APP **app);
+extern AVD_APP *avd_app_get(const SaNameT *app_name);
 extern AVD_APP *avd_app_getnext(const SaNameT *app_name);
 
 extern void avd_app_add_si(AVD_APP *app, struct avd_si_tag *si);
-extern void avd_app_del_si(AVD_APP *app, struct avd_si_tag *si);
+extern void avd_app_remove_si(AVD_APP *app, struct avd_si_tag *si);
 extern void avd_app_add_sg(AVD_APP *app, struct avd_sg_tag *sg);
-extern void avd_app_del_sg(AVD_APP *app, struct avd_sg_tag *sg);
+extern void avd_app_remove_sg(AVD_APP *app, struct avd_sg_tag *sg);
 extern SaAisErrorT avd_app_config_get(void);
-extern SaAisErrorT avd_apptype_config_get(void);
 extern void avd_app_constructor(void);
+
+extern AVD_APP_TYPE *avd_apptype_find(const SaNameT *dn);
+extern void avd_apptype_add_app(AVD_APP *app);
+extern void avd_apptype_remove_app(AVD_APP *app);
+extern SaAisErrorT avd_apptype_config_get(void);
+extern void avd_apptype_constructor(void);
 
 #endif

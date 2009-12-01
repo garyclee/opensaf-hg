@@ -69,7 +69,7 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* run sanity check on the msg */
 	if ((node = avd_msg_sanity_chk(cb, evt, info->node_id, AVSV_N2D_PG_TRACK_ACT_MSG))
-	    == AVD_AVND_NULL)
+	    == NULL)
 		goto done;
 
 	if ((node->node_state == AVD_AVND_STATE_ABSENT) || (node->node_state == AVD_AVND_STATE_GO_DOWN)) {
@@ -80,7 +80,7 @@ void avd_pg_trk_act_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* get the node & csi */
-	csi = avd_csi_find(&info->csi_name);
+	csi = avd_csi_get(&info->csi_name);
 
 	/* update the pg lists maintained on csi & node */
 	if (csi != NULL) {
