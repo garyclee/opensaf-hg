@@ -33,12 +33,11 @@ xerces_lib=/usr/lib
 netsnmp_prefix=`net-snmp-config --prefix`
 netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
 
-opensaf_home=$PWD/../..
+opensaf_home=$(cd ../..; pwd)
 top=`pwd`
 bin=$top/bin
 archive=$top/archive
 scripts=$archive/scripts
-kver=${KVER:-2.6.24.3}
 
 die() {
     echo "ERROR: $*"
@@ -52,11 +51,30 @@ test -e $netsnmp_lib/libnetsnmp.so || \
 test -e $xerces_lib/libxerces-c.so || \
     die "Cannot find xerces libraries in: $xerces_lib"
 
+
+install_testprog() {
+    echo "Building and installing test program"
+    src=$opensaf_home/samples/avsv
+    libd=$top/rootfs/usr/local/$lib_dir
+    installd=$top/rootfs/opt/amf_demo
+    immxml=$top/rootfs/etc/opensaf/imm.xml
+
+    mkdir -p $installd
+    cp $src/amf_demo_script $installd
+    gcc -g -O2 -Wall -fPIC -I$opensaf_home/osaf/libs/saf/include \
+	-o $installd/amf_demo $src/amf_comp_template.c \
+	-L$libd -lSaAmf -L$libd/opensaf -lavsv_common -lopensaf_core
+
+    test -r $immxml.orig || cp $immxml $immxml.orig
+    $opensaf_home/tools/devel/immtools/immxml-merge \
+	$immxml.orig $src/AppConfig-2N.xml > $immxml
+    $opensaf_home/tools/devel/immtools/immxml-validate $immxml
+}
+
 create_rootfs()
 {
     local root=$top/rootfs
     local opensafconfig=$root/etc/opensaf
-    local bom_xml=$root/etc/opensaf/NCSSystemBOM.xml
 
     echo "Removing old root file system: $root"
     rm -rf $root
@@ -87,11 +105,6 @@ create_rootfs()
 
     # The var directory structure is setup from within each UML
     rm -rf var/*
-
-    echo "Patch BOM xml, reduce cluster init time"
-    cat $bom_xml | sed 's/<clusterInitTime>40000/<clusterInitTime>4000/g' > \
-        $bom_xml.tmp
-    mv $bom_xml.tmp $bom_xml
 
     # Required by e.g. the snmpd script
     cp $archive/snmp*d.conf etc/snmp
@@ -136,39 +149,28 @@ create_rootfs()
     # Change LOG configuration to use "replicated" disk
     sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' etc/opensaf/saflog.conf
 
-    echo "Building aishello"
-    export OPENSAF_INCLUDE=$root/usr/local/include
-    export OPENSAF_LIB=$root/usr/local/$lib_dir
-    $top/Hello/install.sh $root
-    install -m 644 $top/Hello/AppConfig.xml etc/opensaf
-
     # Copy local timezone settings
     test -f /etc/localtime && install /etc/localtime etc
-
-    cd - >& /dev/null
+    cd $top
 
     # Create a dummy /etc/hosts file, will be populated at start
     touch $root/etc/hosts
 
+    test -n "$INSTALL_TESTPROG" && install_testprog
     rm -rf $root/usr/local/include
 
     echo "Creating [$root/root.cpio] ..."
     $bin/mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null
 }
 
-find rootfs -name ncs_nid >& /dev/null
-if test $? = 0; then
+
+if find rootfs -name ncs_nid >& /dev/null; then
     echo "OpenSAF seems to be installed already, cowardly refusing..."
     echo "   Remove directory 'rootfs' if a fresh install is needed"
     exit 0
 fi
 
 # Build the Linux UML binary
-if uml/build_uml; then
-    create_rootfs
-else
-    echo "build of UML Linux kernel failed"
-    exit 1
-fi
+./uml/build_uml all || die "build of UML Linux kernel failed"
+create_rootfs
 
-exit 0
