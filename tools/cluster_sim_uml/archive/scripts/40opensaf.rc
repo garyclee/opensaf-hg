@@ -28,6 +28,7 @@ eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
 
 if test `uname -m` = "x86_64"; then
    export LD_LIBRARY_PATH="/usr/local/lib64:/usr/local/lib64/opensaf"
+   test -r /usr/local/lib64 || ln -s lib /usr/local/lib64
 else
    export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib/opensaf"
 fi

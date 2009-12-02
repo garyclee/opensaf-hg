@@ -28,7 +28,7 @@ fi
 # alternative installation directory. Set the variables to the directory above 
 # where the lib and bin directories are located. See the default setting below.
 xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
-xerces_lib=/usr/lib
+xerces_lib=/usr/$lib_dir
 
 netsnmp_prefix=`net-snmp-config --prefix`
 netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
@@ -121,14 +121,14 @@ create_rootfs()
 
     # Needed by dtsv archive rotation
     install /bin/tar bin
-    install /usr/bin/nice usr/bin
+    install $(which nice) usr/bin
     
     echo "Resolve bash dependencies"
     cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | \
         sed -e 's,/tls,,'` $lib_dir
 
     echo "Resolve OpenSAF dependencies"
-    cp /$lib_dir/librt.so.* $lib_dir
+    cp /$lib_dir/librt.so.* /$lib_dir/libz.so.* $lib_dir
     cp /$lib_dir/libgcc_s.so.* $lib_dir
     cp -a /usr/$lib_dir/libstdc++.* $lib_dir
     install $xerces_lib/libxerces-c.so* $lib_dir
