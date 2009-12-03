@@ -17,11 +17,11 @@
 
 #include "immtest.h"
 
-static const SaImmClassNameT configClassName = "SaAmfApplication";
+static const SaImmClassNameT configClassName = "OpensafImm";
 
 static const SaNameT objectName = {
-    .value = "safApp=safImmService",
-    .length = sizeof("safApp=safImmService"),
+    .value = "opensafImm=opensafImm,safApp=safImmService",
+    .length = sizeof("opensafImm=opensafImm,safApp=safImmService"),
 };
 
 void saImmOiObjectImplementerSet_01(void)

@@ -18,8 +18,8 @@
 #include "immtest.h"
 
 static const SaNameT objectName = {
-    .value = "safApp=safImmService",
-    .length = sizeof("safApp=safImmService"),
+    .value = "opensafImm=opensafImm,safApp=safImmService",
+    .length = sizeof("opensafImm=opensafImm,safApp=safImmService"),
 };
 
 void saImmOiObjectImplementerRelease_01(void)
