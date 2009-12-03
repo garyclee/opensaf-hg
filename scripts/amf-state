@@ -58,6 +58,10 @@ adm_state()
 		echo "UNLOCKED(1)"
 	elif [ $val -eq 2 ]; then
 		echo "LOCKED(2)"
+	elif [ $val -eq 3 ]; then
+		echo "LOCKED-INSTANTIATION(3)"
+	elif [ $val -eq 4 ]; then
+		echo "SHUTTING-DOWN(4)"
 	else
 		echo "UNKNOWN($val)"
 	fi
