@@ -20,7 +20,7 @@
 #include <pthread.h>
 #include "immtest.h"
 
-static SaImmClassNameT className = (SaImmClassNameT) "SaAmfComp";
+static SaImmClassNameT className = (SaImmClassNameT) "SaAmfComp_TEST";
 static SaUint32T int1Value = 0xdeadbeef;
 static SaImmAttrValueT attrUpdateValues[] ={&int1Value};
 static SaImmAttrModificationT_2 attrMod1 =

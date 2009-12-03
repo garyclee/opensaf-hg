@@ -17,7 +17,7 @@
 
 #include "immtest.h"
 
-static SaImmClassNameT className = (SaImmClassNameT) "SaAmfApplication";
+static SaImmClassNameT className = (SaImmClassNameT) "OpensafImm";
 /* 
 static const SaNameT objectName = {
     .value = "safAmfNode=Node01,safAmfCluster=1",

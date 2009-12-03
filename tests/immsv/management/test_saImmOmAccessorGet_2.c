@@ -24,8 +24,8 @@ static SaNameT nonExistingObjectName = {
     .length = sizeof("nonExistingObjectName"),
 };
 static const SaNameT objectName = {
-    .value = "safRdn=immManagement,safApp=safImmService",
-    .length = sizeof("safRdn=immManagement,safApp=safImmService"),
+    .value = "opensafImm=opensafImm,safApp=safImmService",
+    .length = sizeof("opensafImm=opensafImm,safApp=safImmService"),
 };
 
 static unsigned int print_SaImmAttrValuesT_2(SaImmAttrValuesT_2 **attributes)
@@ -94,9 +94,10 @@ void saImmOmAccessorGet_2_01(void)
     safassert(saImmOmInitialize(&immOmHandle, &immOmCallbacks, &immVersion), SA_AIS_OK);
     safassert(saImmOmAccessorInitialize(immOmHandle, &accessorHandle), SA_AIS_OK);
     rc = saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes);
+    safassert(rc, SA_AIS_OK);
     cnt = print_SaImmAttrValuesT_2(attributes);
     test_validate(rc, SA_AIS_OK);
-    assert(cnt == 10);
+    assert(cnt == 6);
     safassert(saImmOmFinalize(immOmHandle), SA_AIS_OK);
 }
 
