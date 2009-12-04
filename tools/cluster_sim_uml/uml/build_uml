@@ -254,12 +254,16 @@ cmd_create_initramfs()
 
     rm -rf root
     cp -rL root_template root
+    if [ $(uname -m) = x86_64 ]; then
+      rm -Rf root/lib
+      ln -s lib64 root/lib
+    fi
     cp -L bin/tipc-config root/sbin
     cp -L bin/busybox root/bin
     for n in bin/sh sbin/init; do
         ln -fs /bin/busybox root/$n
     done
-    cp -L `ldd ./bin/busybox | tr -s ' \t' '\n' | grep /$lib_dir | sed -e 's,/tls,,'` root/$lib_dir
+    cp -L `ldd ./bin/busybox | tr -s ' \t' '\n' | grep /lib | sed -e 's,/tls,,'` root/$lib_dir
     cp -L /$lib_dir/libnss_files.so.? /$lib_dir/libpthread.so.? /$lib_dir/libm.so.? root/$lib_dir
     chown -hR $UID:$gid root
 }
@@ -288,6 +292,8 @@ cmd_build_umlutils()
     cp tools-${umlutilsver}/tunctl/tunctl bin
     make -C tools-$umlutilsver/mconsole
     cp tools-${umlutilsver}/mconsole/uml_mconsole bin
+    make -C tools-$umlutilsver/uml_net
+    cp tools-${umlutilsver}/uml_net/uml_net bin
 }
 
 ##   build_tipcutils
@@ -333,10 +339,10 @@ cmd_clean() {
 ##
 cmd_all() {
     cmd_download
+    cmd_extract_kernel
     cmd_build_tipcutils
     cmd_build_busybox
     cmd_create_initramfs
-    cmd_extract_kernel
     cmd_build_linux
     cmd_build_umlutils
 }
