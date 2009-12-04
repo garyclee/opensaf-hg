@@ -17,6 +17,17 @@
 #
 #
 
+error_exit () {
+  echo "Exiting due to error in line $1"
+  exit 1
+}
+
+copy_so_deps () {
+ for so in `ldd $1 | grep '=>' | sed 's/.*=> \([^ ]*\).*/\1/' | grep -v libc.so`
+  do
+    cp -vL $so $2
+  done
+}
 arch=$(uname -m)
 if [ $arch = x86_64 ]; then
     lib_dir=lib64
@@ -28,7 +39,11 @@ fi
 # alternative installation directory. Set the variables to the directory above 
 # where the lib and bin directories are located. See the default setting below.
 xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
-xerces_lib=/usr/$lib_dir
+if [ -e "${XERCES_PREFIX}/$lib_dir" ]; then
+  xerces_lib="${XERCES_PREFIX}/$lib_dir"
+else
+  xerces_lib="/usr/$lib_dir"
+fi
 
 netsnmp_prefix=`net-snmp-config --prefix`
 netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
@@ -81,14 +96,20 @@ create_rootfs()
     echo "Creating new root file system ..."
     mkdir $root
     
+    cd $root
+    if [ $(uname -m) = x86_64 ]; then
+      mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin usr/share/snmp/mibs
+      mkdir -p etc/snmp etc/default etc/init.d
+      ln -s lib64 usr/lib
+      ln -s lib64 lib
+    else
+      mkdir -p sbin bin lib usr/lib usr/sbin usr/bin usr/share/snmp/mibs
+      mkdir -p etc/snmp etc/default etc/init.d
+    fi
+
     echo "Installing OpenSAF"
     make -C $opensaf_home DESTDIR=$root -j3 install
     rm -rf $root/usr/local/share/opensaf/samples
-
-    cd $root
-    mkdir -p sbin bin $lib_dir
-    mkdir -p usr/$lib_dir usr/sbin usr/bin /usr/lib usr/share/snmp/mibs
-    mkdir -p etc/snmp etc/default etc/init.d
 
     echo "Installing net-snmp files from: $netsnmp_prefix"
     install $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
@@ -100,7 +121,7 @@ create_rootfs()
     mv usr/local/share/snmp/mibs/* usr/share/snmp/mibs
 
     echo "   Resolve snmpd dependencies"
-    cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /$lib_dir | \
+    cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /lib | \
         grep -v usr | grep -v netsnmp | sed -e 's,/tls,,'` usr/$lib_dir
 
     # The var directory structure is setup from within each UML
@@ -119,32 +140,34 @@ create_rootfs()
     install /usr/bin/pkill usr/bin
     install /usr/bin/killall usr/bin
 
+    echo "Resolve binary dependencies"
+    copy_so_deps /bin/bash $lib_dir
+    copy_so_deps /usr/bin/pgrep usr/$lib_dir
+    copy_so_deps /usr/bin/pkill usr/$lib_dir
+    copy_so_deps /usr/bin/killall usr/$lib_dir
+
     # Needed by dtsv archive rotation
     install /bin/tar bin
     install $(which nice) usr/bin
     
-    echo "Resolve bash dependencies"
-    cp -L `ldd /bin/bash | tr -s ' \t' '\n' | grep /$lib_dir | \
-        sed -e 's,/tls,,'` $lib_dir
-
     echo "Resolve OpenSAF dependencies"
-    cp /$lib_dir/librt.so.* /$lib_dir/libz.so.* $lib_dir
-    cp /$lib_dir/libgcc_s.so.* $lib_dir
-    cp -a /usr/$lib_dir/libstdc++.* $lib_dir
-    install $xerces_lib/libxerces-c.so* $lib_dir
+    cp /$lib_dir/librt.so.* $lib_dir || error_exit $LINENO
+    cp /$lib_dir/libz.so.* $lib_dir || cp /usr/$lib_dir/libz.so.* $lib_dir || error_exit $LINENO
+    cp /$lib_dir/libgcc_s.so.* $lib_dir || error_exit $LINENO
+    cp -a /usr/$lib_dir/libstdc++.* $lib_dir || error_exit $LINENO
+    install $xerces_lib/libxerces-c.so* $lib_dir || error_exit $LINENO
 
     echo "Resolve IMM dependencies"
     immload=`find . -name immload`
     if [ $? -eq 0 ]; then
-        cp -L `ldd $immload | tr -s ' \t' '\n' | \
-            grep /usr/$lib_dir ` usr/$lib_dir
+        copy_so_deps $immload usr/$lib_dir
     fi
 
     install $archive/rde.conf etc/opensaf
 
     echo "Resolve xerces dependencies"
     cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | \
-        grep /usr/$lib_dir | sed -e 's,/tls,,'` usr/$lib_dir
+        grep /lib | sed -e 's,/tls,,'` usr/$lib_dir
 
     # Change LOG configuration to use "replicated" disk
     sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' etc/opensaf/saflog.conf

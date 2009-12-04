@@ -1,7 +1,7 @@
 if test `uname -m` = "x86_64"; then
-   export LD_LIBRARY_PATH="/usr/local/lib64:/usr/local/lib64/opensaf"
+   export LD_LIBRARY_PATH="/lib64:/usr/lib64:/usr/local/lib64:/usr/local/lib64/opensaf"
 else
-   export LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib/opensaf"
+   export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib:/usr/local/lib/opensaf"
 fi
 export MIBDIRS="/usr/share/snmp/mibs:/usr/local/share/snmp/mibs"
 export MIBS=ALL
