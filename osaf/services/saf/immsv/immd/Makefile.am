@@ -48,6 +48,8 @@ opensaf_immd_SOURCES = \
 	immd_sbevt.c
 
 opensaf_immd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

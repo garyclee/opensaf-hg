@@ -29,4 +29,7 @@ immlist_SOURCES = \
 	imm_list.c
 
 immlist_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la

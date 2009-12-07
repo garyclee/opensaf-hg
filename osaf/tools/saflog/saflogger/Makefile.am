@@ -30,4 +30,5 @@ saflogger_SOURCES = \
 	saf_error.c
 
 saflogger_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/saf/libSaLog/libSaLog.la

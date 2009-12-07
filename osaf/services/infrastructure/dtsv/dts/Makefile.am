@@ -54,6 +54,8 @@ ncs_dts_SOURCES = \
 ncs_dts_LDFLAGS = -Wl,--export-dynamic
 
 ncs_dts_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
 	$(top_builddir)/osaf/snmp/miblib/dtsv/dts/libdts_miblib.la

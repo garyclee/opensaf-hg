@@ -41,6 +41,9 @@ ncs_hisv_SOURCES = \
 
 ncs_hisv_LDADD = \
 	@HPI_LIBS@ \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hcd/libhcd.la \

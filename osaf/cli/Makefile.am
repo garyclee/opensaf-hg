@@ -58,6 +58,8 @@ ncs_cli_maa_SOURCES = \
 	sysfcli.c
 
 ncs_cli_maa_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la

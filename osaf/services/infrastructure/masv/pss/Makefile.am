@@ -50,6 +50,8 @@ ncs_psr_SOURCES = \
 ncs_psr_LDFLAGS = -Wl,--export-dynamic
 
 ncs_psr_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
  	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \

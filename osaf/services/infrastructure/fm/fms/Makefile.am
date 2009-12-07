@@ -44,6 +44,8 @@ opensaf_fmsd_SOURCES = \
 	fm_amf.c
 
 opensaf_fmsd_LDADD = \
+     	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la
