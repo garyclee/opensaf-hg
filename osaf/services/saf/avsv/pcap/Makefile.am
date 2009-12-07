@@ -34,6 +34,10 @@ opensaf_pcap_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
 opensaf_pcap_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_pld.la \

@@ -41,6 +41,10 @@ opensaf_scap_SOURCES = \
 opensaf_scap_LDFLAGS = @XERCESC_LIB@
 
 opensaf_scap_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/maa/libmaa.la \

@@ -30,5 +30,8 @@ hisv_power_set_util_SOURCES = \
 	hisv_power_set_util.c
 
 hisv_power_set_util_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la

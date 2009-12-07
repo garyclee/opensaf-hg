@@ -32,4 +32,7 @@ immload_SOURCES = \
 immload_LDFLAGS = @XML2_LIBS@
 
 immload_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la
