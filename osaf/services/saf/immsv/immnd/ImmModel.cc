@@ -29,14 +29,17 @@
 #include "immsv_api.h"
 
 // Local types
+#define DEFAULT_TIMEOUT_SEC 6
 
 struct ContinuationInfo2
 {
-    ContinuationInfo2():mCreateTime(0), mConn(0){}
-    ContinuationInfo2(SaUint32T conn):mConn(conn) {mCreateTime = time(NULL);}
+    ContinuationInfo2():mCreateTime(0), mConn(0), mTimeout(0){}
+    ContinuationInfo2(SaUint32T conn, SaUint32T timeout):mConn(conn), mTimeout(timeout) 
+	{mCreateTime = time(NULL);}
     
     time_t  mCreateTime;
     SaUint32T mConn;
+    SaUint32T mTimeout; //0=> no timeout. Otherwise timeout in SECONDS.
     //Default copy constructor and assignement operator used in ContinuationMap2
 };
 typedef std::map<SaInvocationT, ContinuationInfo2> ContinuationMap2;
@@ -4891,8 +4894,11 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         
         //If request originated on this node => register request continuation.
         if(reqConn) {
-            TRACE_5("Storing req invocation %u for inv: %llu", reqConn, saInv);
-            sAdmReqContinuationMap[saInv] = ContinuationInfo2(reqConn);
+            SaUint32T timeout = 
+                (req->timeout)?((SaUint32T) (req->timeout)/100 + 1):0;
+            TRACE_5("Storing req invocation %u for inv: %llu timeout:%u", reqConn, saInv,
+                timeout);
+            sAdmReqContinuationMap[saInv] = ContinuationInfo2(reqConn, timeout);
         }
         
         if(*implConn) {
@@ -4934,7 +4940,7 @@ ImmModel::setSearchReqContinuation(SaInvocationT& saInv, SaUint32T reqConn)
 {
     TRACE_ENTER();
     TRACE_5("setSearchReqContinuation <%llu, %u>", saInv, reqConn);
-    sSearchReqContinuationMap[saInv] = ContinuationInfo2(reqConn);
+    sSearchReqContinuationMap[saInv] = ContinuationInfo2(reqConn, DEFAULT_TIMEOUT_SEC);
     TRACE_LEAVE();
 }
 
@@ -5458,12 +5464,13 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
         ci2!=sAdmReqContinuationMap.end();
         ++ci2) {
         //TODO: the timeout should not be hardwired, but for now it is.
-        if(now - ci2->second.mCreateTime >= 6) {
-            TRACE_5("Timeout on AdministrativeOp continuation %llu", 
-                ci2->first);
+        if(ci2->second.mTimeout && 
+			(now - ci2->second.mCreateTime >= (int) ci2->second.mTimeout)) {
+            TRACE_5("Timeout on AdministrativeOp continuation %llu  tmout:%u", 
+                ci2->first, ci2->second.mTimeout);
             admReqs.push_back(ci2->first);
         } else {
-            TRACE_5("Did not timeout now - start < 6(%lu)", 
+            TRACE_5("Did not timeout now - start < %u(%lu)", ci2->second.mTimeout,
                 now - ci2->second.mCreateTime);
         }
     }
@@ -5479,7 +5486,7 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
         ci2!=sSearchReqContinuationMap.end();
         ++ci2) {
         //TODO the timeout should not be hardwired, but for now it is.
-        if(now - ci2->second.mCreateTime >= 6) {
+        if(now - ci2->second.mCreateTime >= DEFAULT_TIMEOUT_SEC) {
             TRACE_5("Timeout on Search continuation %llu", ci2->first);
             searchReqs.push_back(ci2->first);
         } 
@@ -5505,9 +5512,9 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
 			//TODO the timeout should not be hardwired, but for now it is.
 			TRACE("Checking active ccb %u for deadlock or blocked implementer", (*i3)->mId);
 			if((*i3)->mWaitStartTime &&
-				(now - (*i3)->mWaitStartTime >= 6)) {
-				TRACE_5("Timeout on CCB %u "
-					"while waiting for implementer reply", (*i3)->mId);
+				(now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) {
+				//TODO Timeout value should be fetched from IMM service object.
+				TRACE_5("Timeout on CCB %u while waiting for implementer reply", (*i3)->mId);
 				ccbs.push_back((*i3)->mId);
 			}
 		}

@@ -694,7 +694,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			send_evt.info.imma.info.admOpRsp.invocation = inv;
 			send_evt.info.imma.info.errRsp.error = SA_AIS_ERR_TIMEOUT;
 
-			SaUint32T subinv = m_IMMSV_UNPACK_HANDLE_LOW(inv);
+			SaInt32T subinv = m_IMMSV_UNPACK_HANDLE_LOW(inv);
 			if (subinv < 0) {	//async-admin-op
 				LOG_WA("Timeout on asyncronous admin operation %i", subinv);
 				rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OM, cl_node->agent_mds_dest, &send_evt);
