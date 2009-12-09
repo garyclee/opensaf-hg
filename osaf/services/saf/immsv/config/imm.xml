@@ -1791,6 +1791,12 @@
 			<type>SA_STRING_T</type>
 			<category>SA_RUNTIME</category>
 		</attr>
+		<attr>
+			<name>saImmOiTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
 	</class>
 	<class name="SaLogStream">
 		<category>SA_RUNTIME</category>
@@ -4261,5 +4267,12 @@
 	</object>
 	<object class="SaSmfSwBundle">
 			<dn>safBundle=OpenSAF</dn>
+	</object>
+	<object class="SaImmMngt">
+		<dn>safRdn=immManagement,safApp=safImmService</dn>
+		<attr>
+			<name>saImmRepositoryInit</name>
+			<value>2</value>
+		</attr>
 	</object>
 </imm:IMM-contents>
