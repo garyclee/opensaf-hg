@@ -391,7 +391,7 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
                                 error = SA_AIS_ERR_INVALID_PARAM;
                                 goto done;
                         }
-                        
+
                         switch (attr[i]->attrValueType) {
                                 case SA_IMM_ATTR_SAINT32T:
                                         *((SaInt32T*) param) = *((SaInt32T*) attr[i]->attrValues[index]);
@@ -423,12 +423,12 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
                                         goto done;
                                         break;
                         }
-                        
+
                         error = SA_AIS_OK;
                         break;
                 }
         }
-        
+
  done:
         return error;
 }
@@ -820,12 +820,12 @@ static void *clistMalloc(struct Chunk *clist, size_t size)
 struct ImmutilWrapperProfile immutilWrapperProfile = { 1, 25, 400 };
 
 SaAisErrorT immutil_saImmOiInitialize_2(SaImmOiHandleT *immOiHandle,
-    const SaImmOiCallbacksT_2 *immOiCallbacks, 
+    const SaImmOiCallbacksT_2 *immOiCallbacks,
     const SaVersionT *version)
 {
     /* Version parameter is in/out i.e. must be mutable and should not be
        re-used from previous call in a retry loop. */
-    SaVersionT localVer = *version; 
+    SaVersionT localVer = *version;
 
 	SaAisErrorT rc = saImmOiInitialize_2(immOiHandle, immOiCallbacks, &localVer);
 	unsigned int nTries = 1;
@@ -1115,3 +1115,41 @@ SaAisErrorT immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT
 		immutilError("saImmOmAdminOwnerClear FAILED, rc = %d", (int)rc);
 	return rc;
 }
+
+
+SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,
+                                             const SaImmClassNameT className,
+                                             const SaImmClassCategoryT classCategory,
+                                             const SaImmAttrDefinitionT_2** attrDefinitions)
+{
+        SaAisErrorT rc = saImmOmClassCreate_2(immCcbHandle, className, classCategory, attrDefinitions);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmClassCreate_2(immCcbHandle, className, classCategory, attrDefinitions);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmClassCreate_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+
+
+SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
+                                             const SaImmClassNameT className,
+                                             const SaNameT *parent,
+                                             const SaImmAttrValuesT_2** attrValues)
+{
+        SaAisErrorT rc = saImmOmCcbObjectCreate_2(immCcbHandle, className, parent, attrValues);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbObjectCreate_2(immCcbHandle, className, parent, attrValues);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbObjectCreate_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+

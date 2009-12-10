@@ -47,11 +47,17 @@ typedef enum {
 	INVALID = 0,
 	CREATE = 1,
 	DELETE = 2,
-	MODIFY
+	MODIFY = 3,
+	IMMFILE = 4
 } op_t;
 
+
+// The interface function which implements the -f opton (imm_import.cc)
+int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose);
+
+
 /**
- * 
+ *
  */
 static void usage(const char *progname)
 {
@@ -72,6 +78,8 @@ static void usage(const char *progname)
 	printf("\t-d, --delete [object DN]... \n");
 	printf("\t-h, --help                    this help\n");
 	printf("\t-m, --modify [object DN]... \n");
+	printf("\t-v, --verbose (only valid with -f/--file option)\n");
+	printf("\t-f, --file <imm.xml file containing classes and/or objects>\n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -88,7 +96,7 @@ static void usage(const char *progname)
  * Alloc SaImmAttrModificationT_2 object and initialize its attributes from nameval (x=y)
  * @param objectName
  * @param nameval
- * 
+ *
  * @return SaImmAttrModificationT_2*
  */
 static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *nameval)
@@ -148,7 +156,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
  * Alloc SaImmAttrValuesT_2 object and initialize its attributes from nameval (x=y)
  * @param className
  * @param nameval
- * 
+ *
  * @return SaImmAttrValuesT_2*
  */
 static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval)
@@ -197,13 +205,13 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 
 /**
  * Create object(s) of the specified class, initialize attributes with values from optarg.
- * 
+ *
  * @param objectNames
  * @param className
  * @param ownerHandle
  * @param optargs
  * @param optargs_len
- * 
+ *
  * @return int
  */
 int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
@@ -225,7 +233,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
 		if ((attrValue = new_attr_value(className, optargs[i])) == NULL)
 			goto done;
-		
+
 		attrValues[attr_len - 1] = attrValue;
 		attrValues[attr_len] = NULL;
 		attr_len++;
@@ -304,12 +312,12 @@ done:
 
 /**
  * Modify object(s) with the attributes specifed in the optargs array
- * 
+ *
  * @param objectNames
  * @param ownerHandle
  * @param optargs
  * @param optargs_len
- * 
+ *
  * @return int
  */
 int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandle, char **optargs, int optargs_len)
@@ -326,7 +334,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 		attrMods = realloc(attrMods, (attr_len + 1) * sizeof(SaImmAttrModificationT_2 *));
 		if ((attrMod = new_attr_mod(objectNames[i], optargs[i])) == NULL)
 			exit(EXIT_FAILURE);
-		
+
 		attrMods[attr_len - 1] = attrMod;
 		attrMods[attr_len] = NULL;
 		attr_len++;
@@ -337,7 +345,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 			fprintf(stderr, "error - object '%s' does not exist\n", objectNames[0]->value);
 		else
 			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
-		
+
 		goto done;
 	}
 
@@ -381,7 +389,7 @@ int object_modify(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
  * Delete object(s) in the NULL terminated array using one CCB.
  * @param objectNames
  * @param ownerHandle
- * 
+ *
  * @return int
  */
 int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandle)
@@ -398,7 +406,7 @@ int object_delete(const SaNameT **objectNames, SaImmAdminOwnerHandleT ownerHandl
 			fprintf(stderr, "error - object does not exist\n");
 		else
 			fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
-		
+
 		goto done;
 	}
 
@@ -438,9 +446,11 @@ int main(int argc, char *argv[])
 	struct option long_options[] = {
 		{"attribute", required_argument, 0, 'a'},
 		{"create", required_argument, 0, 'c'},
+		{"file", required_argument, 0, 'f'},
 		{"delete", no_argument, 0, 'd'},
 		{"help", no_argument, 0, 'h'},
 		{"modify", no_argument, 0, 'm'},
+		{"verbose", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
@@ -454,9 +464,11 @@ int main(int argc, char *argv[])
 	char **optargs = NULL;
         SaImmClassNameT className = NULL;
 	op_t op = INVALID;
+	char* xmlFilename;
+	int verbose = 0;
 
 	while (1) {
-		c = getopt_long(argc, argv, "a:c:dhm", long_options, NULL);
+		c = getopt_long(argc, argv, "a:c:f:dhmv", long_options, NULL);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
@@ -488,6 +500,18 @@ int main(int argc, char *argv[])
 			usage(basename(argv[0]));
 			exit(EXIT_SUCCESS);
 			break;
+		case 'f':
+			if (op == INVALID)
+				op = IMMFILE;
+			else {
+				fprintf(stderr, "error - only one operation at a time supported\n");
+				exit(EXIT_FAILURE);
+			}
+			xmlFilename = optarg;
+			break;
+		case 'v':
+			verbose = 1;
+			break;
 		case 'm': {
 			if (op == INVALID)
 				op = MODIFY;
@@ -502,6 +526,11 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 			break;
 		}
+	}
+
+	if (op == IMMFILE) {
+		rc = importImmXML(xmlFilename, adminOwnerName, verbose);
+		exit(rc);
 	}
 
 	/* Modify is default */

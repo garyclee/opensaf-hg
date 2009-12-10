@@ -105,7 +105,7 @@ extern "C" {
 	} CcbUtilOperationData_t;
 
 /**
- * A CCB object, holds the stored operations for a CCB. 
+ * A CCB object, holds the stored operations for a CCB.
  */
 	typedef struct CcbUtilCcbData {
 		struct CcbUtilCcbData *next;
@@ -148,7 +148,7 @@ extern "C" {
  * Add a Delete operation to a CCB data object.
  */
 	void ccbutil_ccbAddDeleteOperation(struct CcbUtilCcbData *ccb, const SaNameT *objectName);
-	
+
 /**
  * Add a Modify operation to a CCB data object. Modify of an object that is beeing created in the
  * same CCB is not allowed.
@@ -166,7 +166,7 @@ CcbUtilOperationData_t *ccbutil_getNextCcbOp(SaImmOiCcbIdT id, CcbUtilOperationD
  * Find a CCB operation using DN
  * @param id
  * @param dn
- * 
+ *
  * @return CcbUtilOperationData_t*
  */
 CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT id, const SaNameT *dn);
@@ -265,7 +265,7 @@ CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT id, const SaNameT
  * @param attrName
  * @param attr
  * @param attrValuesNumber
- * 
+ *
  * @return SaAisErrorT
  */
 extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
@@ -317,13 +317,13 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 
 /**
  * Update one runtime attribute of the specified object.
- * 
+ *
  * @param immOiHandle
  * @param dn
  * @param attributeName
  * @param attrValueType
  * @param value
- * 
+ *
  * @return SaAisErrorT
  */
 /***/
@@ -335,7 +335,7 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 /**
  * Get class name from object name.
  * @param objectName
- * 
+ *
  * @return SaImmClassNameT
  */
 	extern SaImmClassNameT immutil_get_className(const SaNameT *objectName);
@@ -343,11 +343,11 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 /**
  * Get value type of named attribute for an object. The caller
  * must free the memory returned.
- * 
+ *
  * @param objectName
  * @param attrName
  * @param attrValueType
- * 
+ *
  * @return SaAisErrorT
  */
 	extern SaAisErrorT immutil_get_attrValueType(const SaImmClassNameT className,
@@ -358,7 +358,7 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
  * free the memory returned.
  * @param attrValueType
  * @param str
- * 
+ *
  * @return void*
  */
 	extern void *immutil_new_attrValue(SaImmValueTypeT attrValueType, const char *str);
@@ -438,6 +438,16 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 							SaImmAttrValuesT_2 ***attributes);
 
 	extern SaAisErrorT immutil_saImmOmAccessorFinalize(SaImmAccessorHandleT accessorHandle);
+
+	extern SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,
+	                                             const SaImmClassNameT className,
+	                                             const SaImmClassCategoryT classCategory,
+	                                             const SaImmAttrDefinitionT_2** attrDefinitions);
+
+	extern SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
+	                                             const SaImmClassNameT className,
+	                                             const SaNameT *parent,
+	                                             const SaImmAttrValuesT_2** attrValues);
 
 /**
  * Wrapper for saImmOmSearchInitialize

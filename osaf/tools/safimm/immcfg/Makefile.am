@@ -20,15 +20,25 @@ MAINTAINERCLEANFILES = Makefile.in
 
 bin_PROGRAMS = immcfg
 
+immcfg_CXXFLAGS = \
+	$(AM_CXXFLAGS) \
+	-I$(top_srcdir)/osaf/tools/safimm/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	@XML2_CFLAGS@
+
 immcfg_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/tools/safimm/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	@XML2_CFLAGS@
 
 immcfg_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	$(top_srcdir)/osaf/tools/safimm/src/saf_error.c \
+	imm_import.cc \
 	imm_cfg.c
+
+immcfg_LDFLAGS = @XML2_LIBS@
 
 immcfg_LDADD = \
 	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
