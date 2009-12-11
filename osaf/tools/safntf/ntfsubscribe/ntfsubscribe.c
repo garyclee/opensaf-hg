@@ -545,13 +545,11 @@ static SaAisErrorT waitForNotifications(SaNtfHandleT myHandle, int selectionObje
 	fds[0].events = POLLIN;
 
 	for (;;) {
- poll_retry:
 		rv = poll(fds, 1, timeout_ms);
 
-		if (rv == EINTR)
-			goto poll_retry;
-
 		if (rv == -1) {
+			if (errno == EINTR)
+				continue;
 			fprintf(stderr, "poll FAILED: %s\n", strerror(errno));
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
@@ -817,7 +815,7 @@ int main(int argc, char *argv[])
 
 	error = saNtfNotificationUnsubscribe(subscriptionId);
 	if (SA_AIS_OK != error) {
-		fprintf(stderr, "saNtfNotificationUnsubscribe failed - %s\n", error_output(error));
+		fprintf(stderr, "waitForNotifications failed - %s\n", error_output(error));
 		exit(EXIT_FAILURE);
 	}
 
