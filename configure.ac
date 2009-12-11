@@ -889,6 +889,7 @@ AC_CONFIG_FILES([
         scripts/openhpisubagt_clean
         scripts/openhpisubagt_start
         scripts/tipc_reset.sh
+        tests/avsv/amfoitest/Makefile
         tests/immsv/implementer/Makefile
         tests/immsv/management/Makefile
         tests/logsv/Makefile
