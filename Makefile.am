@@ -134,6 +134,7 @@ endif
 if ENABLE_TESTS
 
 SUBDIRS += \
+	tests/avsv/amfoitest \
 	tests/logsv \
 	tests/ntfsv \
 	tests/immsv/implementer \
