@@ -15,21 +15,35 @@
 #
 # Author(s): Ericsson AB
 #
-#
 
-error_exit () {
-  echo "Exiting due to error in line $1"
-  exit 1
+##
+## build_uml [subcommand] [params...]
+##
+##   Build script for the Open SAF cluster simulation with User Mode
+##   Linux (UML).  When invoked without a sub-command the rootfs is
+##   built (for backward compatibility).
+##
+## Subcommands;
+##
+
+prg=`basename $0`
+dir=`dirname $0`; dir=`cd $dir; pwd`
+tmp=/tmp/${prg}$$
+
+die() {
+    echo "ERROR: $*" >&2
+    rm -rf $tmp
+    exit 1
 }
 
-copy_so_deps () {
- for so in `ldd $1 | grep '=>' | sed 's/.*=> \([^ ]*\).*/\1/' | grep -v libc.so`
-  do
-    cp -vL $so $2
-  done
+##   help
+##     Help printout.
+##
+cmd_help() {
+    grep '^##' $dir/$prg | cut -c3-
 }
-arch=$(uname -m)
-if [ $arch = x86_64 ]; then
+
+if test "$(uname -m)" = "x86_64"; then
     lib_dir=lib64
 else
     lib_dir=lib
@@ -39,36 +53,39 @@ fi
 # alternative installation directory. Set the variables to the directory above 
 # where the lib and bin directories are located. See the default setting below.
 xerces_prefix=${XERCES_PREFIX:-"/usr/local"}
-if [ -e "${XERCES_PREFIX}/$lib_dir" ]; then
-  xerces_lib="${XERCES_PREFIX}/$lib_dir"
+xerces_lib="$xerces_prefix/$lib_dir"
+if test -n "$NETSNMP_PREFIX"; then
+    netsnmp_prefix=$NETSNMP_PREFIX
+    netsnmp_lib=$netsnmp_prefix/$lib_dir
 else
-  xerces_lib="/usr/$lib_dir"
+    netsnmp_prefix=`net-snmp-config --prefix`
+    netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
 fi
-
-netsnmp_prefix=`net-snmp-config --prefix`
-netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
 
 opensaf_home=$(cd ../..; pwd)
 top=`pwd`
 bin=$top/bin
 archive=$top/archive
 scripts=$archive/scripts
+root=$top/rootfs
 
-die() {
-    echo "ERROR: $*"
-    rm -rf $root
-    exit 1
+
+##   getlibs prog [prog...]
+##     Return required (and found) dynamic libs for programs.
+##
+cmd_getlibs() {
+    for n in $@; do
+	test -x $n || continue
+	file -L $n | grep -q "dynamically linked\|shared object" || continue
+	ldd $n | grep -o '/[^ ]*' | sed -e 's,/tls,,'
+    done
 }
 
-# Check that we can find everything needed
-test -e $netsnmp_lib/libnetsnmp.so || \
-    die "cannot find net-snmp libraries in: $netsnmp_lib"
-test -e $xerces_lib/libxerces-c.so || \
-    die "Cannot find xerces libraries in: $xerces_lib"
 
-
-install_testprog() {
-    echo "Building and installing test program"
+##   install_testprog
+##     Building and installing the test program.
+##
+cmd_install_testprog() {
     src=$opensaf_home/samples/avsv
     libd=$top/rootfs/usr/local/$lib_dir
     installd=$top/rootfs/opt/amf_demo
@@ -86,47 +103,57 @@ install_testprog() {
     $opensaf_home/tools/devel/immtools/immxml-validate $immxml
 }
 
-create_rootfs()
+##   create_rootfs
+##     Create a (shadow) rootfs with OpenSAF and other required programs.
+##
+cmd_create_rootfs()
 {
-    local root=$top/rootfs
-    local opensafconfig=$root/etc/opensaf
+    # Check that we can find everything needed
+    test -e $netsnmp_lib/libnetsnmp.so || \
+	die "cannot find net-snmp libraries in: $netsnmp_lib"
+    test -e $xerces_lib/libxerces-c.so || \
+	die "Cannot find xerces libraries in: $xerces_lib"
 
-    echo "Removing old root file system: $root"
+    echo "(Re-)Creating new root file system..."
     rm -rf $root
-    echo "Creating new root file system ..."
     mkdir $root
-    
+
     cd $root
-    if [ $(uname -m) = x86_64 ]; then
-      mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin usr/share/snmp/mibs
-      mkdir -p etc/snmp etc/default etc/init.d
-      ln -s lib64 usr/lib
-      ln -s lib64 lib
+    echo "Setup dirs and links..."
+    if test "$(uname -m)" = "x86_64"; then
+	mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin usr/share/snmp/mibs
+	mkdir -p etc/snmp etc/default etc/init.d
+	ln -s lib64 usr/lib
+	ln -s lib64 lib
     else
-      mkdir -p sbin bin lib usr/lib usr/sbin usr/bin usr/share/snmp/mibs
-      mkdir -p etc/snmp etc/default etc/init.d
+	mkdir -p sbin bin lib usr/lib usr/sbin usr/bin usr/share/snmp/mibs
+	mkdir -p etc/snmp etc/default etc/init.d
     fi
 
-    echo "Installing OpenSAF"
-    make -C $opensaf_home DESTDIR=$root -j3 install
-    rm -rf $root/usr/local/share/opensaf/samples
+    echo "Installing OpenSAF (takes some time)..."
+    if ! make -C $opensaf_home DESTDIR=$root -j3 install>$tmp/install.log 2>&1
+    then
+	cat $tmp/install.log
+	die "Failed to install OpenSAF"
+    fi
+    rm -rf $root/usr/local/share/opensaf/samples \
+	$root/usr/local/include \
+	$root/usr/local/share/doc \
+	$root/usr/local/lib/pkgconfig \
+	$root/usr/local/lib/opensaf/*.a \
+	$root/usr/local/lib/opensaf/*.la \
+	$root/usr/local/lib/*.a $root/usr/local/lib/*.la 
+
+    echo "Installing Xerces files from: $xerces_lib"
+    cp $xerces_lib/libxerces-c.so* $root/usr/$lib_dir
 
     echo "Installing net-snmp files from: $netsnmp_prefix"
-    install $netsnmp_lib/libnetsnmp*.so* usr/$lib_dir
+    cp $netsnmp_lib/libnetsnmp*.so* $root/usr/$lib_dir
     install $netsnmp_prefix/sbin/snmp* usr/sbin
     install $netsnmp_prefix/bin/snmp* usr/bin
     install $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
-
     # Move the OpenSAF mibs to the standard location for simplicity
     mv usr/local/share/snmp/mibs/* usr/share/snmp/mibs
-
-    echo "   Resolve snmpd dependencies"
-    cp -L `ldd usr/sbin/snmpd | tr -s ' \t' '\n' | grep /lib | \
-        grep -v usr | grep -v netsnmp | sed -e 's,/tls,,'` usr/$lib_dir
-
-    # The var directory structure is setup from within each UML
-    rm -rf var/*
-
     # Required by e.g. the snmpd script
     cp $archive/snmp*d.conf etc/snmp
     
@@ -139,61 +166,119 @@ create_rootfs()
     install /usr/bin/pgrep usr/bin
     install /usr/bin/pkill usr/bin
     install /usr/bin/killall usr/bin
-
-    echo "Resolve binary dependencies"
-    copy_so_deps /bin/bash $lib_dir
-    copy_so_deps /usr/bin/pgrep usr/$lib_dir
-    copy_so_deps /usr/bin/pkill usr/$lib_dir
-    copy_so_deps /usr/bin/killall usr/$lib_dir
-
     # Needed by dtsv archive rotation
     install /bin/tar bin
     install $(which nice) usr/bin
     
-    echo "Resolve OpenSAF dependencies"
-    cp /$lib_dir/librt.so.* $lib_dir || error_exit $LINENO
-    cp /$lib_dir/libz.so.* $lib_dir || cp /usr/$lib_dir/libz.so.* $lib_dir || error_exit $LINENO
-    cp /$lib_dir/libgcc_s.so.* $lib_dir || error_exit $LINENO
-    cp -a /usr/$lib_dir/libstdc++.* $lib_dir || error_exit $LINENO
-    install $xerces_lib/libxerces-c.so* $lib_dir || error_exit $LINENO
-
-    echo "Resolve IMM dependencies"
-    immload=`find . -name immload`
-    if [ $? -eq 0 ]; then
-        copy_so_deps $immload usr/$lib_dir
-    fi
+    # Change LOG configuration to use "replicated" disk
+    sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
+	etc/opensaf/saflog.conf
 
     install $archive/rde.conf etc/opensaf
 
-    echo "Resolve xerces dependencies"
-    cp -L `ldd $xerces_lib/libxerces-c.so | tr -s ' \t' '\n' | \
-        grep /lib | sed -e 's,/tls,,'` usr/$lib_dir
-
-    # Change LOG configuration to use "replicated" disk
-    sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' etc/opensaf/saflog.conf
+    # The var directory structure is setup from within each UML
+    rm -rf var/*
 
     # Copy local timezone settings
     test -f /etc/localtime && install /etc/localtime etc
-    cd $top
 
     # Create a dummy /etc/hosts file, will be populated at start
     touch $root/etc/hosts
 
-    test -n "$INSTALL_TESTPROG" && install_testprog
-    rm -rf $root/usr/local/include
+    if test -n "$INSTALL_TESTPROG"; then
+	echo "Building and installing test program"
+	cmd_install_testprog
+    fi
+
+    echo "Installing required dynamic libs..."
+    cmd_installibs
 
     echo "Creating [$root/root.cpio] ..."
-    $bin/mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null
+    cd $top
+    cmd_mkcpio
+}
+
+##   installibs
+##     Install required dynamic libraries.
+##     Xerces, lib-snmp opensaf dependencies are excluded.
+##
+cmd_installibs() {
+    local deplib=$tmp/deplib
+    cd $root
+    cmd_getlibs $xerces_lib/libxerces-c.so \
+	$(find . -name immload) ./bin/* ./usr/bin/* ./usr/sbin/* |\
+	grep -v -e 'libSa\|libimmsv\|libncs\|libsaf\|netsnmp\|libxerces' \
+	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
+
+    for n in $(cat $deplib | sort | uniq); do
+	dst=usr/$lib_dir
+	echo $n | grep -q '^/lib' && dst=$lib_dir
+	echo "  $n -> rootfs/$dst/$(basename $n)"
+	cp -L $n $dst || die "Failed [cp -R $n $dst]"
+    done
 }
 
 
-if find rootfs -name ncs_nid >& /dev/null; then
-    echo "OpenSAF seems to be installed already, cowardly refusing..."
-    echo "   Remove directory 'rootfs' if a fresh install is needed"
-    exit 0
+##   mklndircpio <fromdir> <archive> [prefix]
+##     Creates cpio archive with a link-tree with absolute links.
+##
+cmd_mklndircpio() {
+    test -n "$1" -a -n "$2" || die "Missing param"
+    test -d "$1" || die "Not a directory [$1]"
+    archive=$2
+    prefix=${3:-/hostfs/rootfs}
+    tmpd=$tmp/mklndircpio$$
+    echo $archive | grep -q "^/" || $archive=$top/$archive
+    rm -f $archive
+    cd $1
+    items=`find ./ | sed -e 's,./,,'`
+    for n in $items; do
+	if test -d $n; then
+	    mkdir -p $tmpd/$n || die "Can't create dir [$tmpd/$n]"
+	else
+	    ln -s $prefix/$n $tmpd/$n || die "Can't create link [$tmpd/$n]"
+	fi
+    done
+    cd $tmpd
+    echo $items | tr ' ' '\n' | cpio -o -H newc > $archive
+}
+
+##   mkcpio
+##     Re-build the "rootfs/root.cpio" file using the "mklndircpio"
+##     sub-command.
+##
+cmd_mkcpio() {
+    cmd_mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null ||\
+	die Failed
+}
+
+##   default
+##     Backward compatible default command.
+##
+cmd_default() {
+    if find rootfs -name ncs_nid >& /dev/null; then
+	echo "OpenSAF seems to be installed already, cowardly refusing..."
+	echo "   Remove directory 'rootfs' if a fresh install is needed"
+	exit 0
+    fi
+
+    # Build the Linux UML binary
+    ./uml/build_uml all || die "build of UML Linux kernel failed"
+    cmd_create_rootfs
+}
+
+
+# Get the command
+if test -n "$1"; then
+    cmd=$1
+    shift
+else
+    cmd=default
 fi
-
-# Build the Linux UML binary
-./uml/build_uml all || die "build of UML Linux kernel failed"
-create_rootfs
-
+grep -q "^cmd_$cmd()" $0 || die "Invalid command [$cmd]"
+trap "die Interrupted" INT TERM
+mkdir -p $tmp
+cmd_$cmd "$@"
+status=$?
+rm -rf $tmp
+exit $status
