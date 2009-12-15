@@ -125,11 +125,12 @@ void avd_su_remove_comp(AVD_COMP *comp)
 				prev_comp->su_comp_next = comp->su_comp_next;
 			}
 
+			/* decrement the active component number of this SU */
+			assert(comp->su->curr_num_comp > 0);
+			comp->su->curr_num_comp--;
+
 			comp->su_comp_next = NULL;
 			comp->su = NULL;
-
-			/* decrement the active component number of this SU */
-			comp->su->curr_num_comp--;
 		}
 	}
 }
@@ -150,115 +151,6 @@ void avd_su_add_comp(AVD_COMP *comp)
 	}
 	comp->su->curr_num_comp++;
 	comp->su->num_of_comp++;	// TODO 
-}
-
-/*****************************************************************************
- * Function: avd_su_ack_msg
- *
- * Purpose:  This function processes the acknowledgment received for
- *          a SU related message from AVND for operator related changes.
- *          If the message acknowledges success change the row status of the
- *          SU to active, if failure change row status to not in service.
- *
- * Input: cb - the AVD control block
- *        ack_msg - The acknowledgement message received from the AVND.
- *
- * Returns: none.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-void avd_su_ack_msg(AVD_CL_CB *cb, AVD_DND_MSG *ack_msg)
-{
-	AVD_SU *su;
-	AVSV_PARAM_INFO param;
-	AVD_AVND *avnd;
-
-	/* check the ack message for errors. If error find the SU that
-	 * has error.
-	 */
-
-	if (ack_msg->msg_info.n2d_reg_su.error != NCSCC_RC_SUCCESS) {
-		/* Find the SU */
-		su = avd_su_get(&ack_msg->msg_info.n2d_reg_su.su_name);
-		if (su == NULL) {
-			/* The SU has already been deleted. there is nothing
-			 * that can be done.
-			 */
-
-			/* Log an information error that the SU is
-			 * deleted.
-			 */
-			return;
-		}
-
-		/* log an fatal error as normally this shouldnt happen.
-		 */
-
-		m_AVD_LOG_INVALID_VAL_FATAL(ack_msg->msg_info.n2d_reg_su.error);
-
-		m_AVD_GET_SU_NODE_PTR(cb, su, avnd);
-
-		/* remove the SU from both the SG list and the
-		 * AVND list if present.
-		 */
-		avd_sg_remove_su(su);
-		avd_node_remove_su(su);
-
-		if (su->list_of_comp != NULL) {
-			/* Mark All the components as Not in service. Send
-			 * the node delete request for all the components.
-			 */
-
-			while (su->list_of_comp != NULL) {
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, (su->list_of_comp), AVSV_CKPT_AVD_COMP_CONFIG);
-				/* send a delete message to the AvND for the comp. */
-				memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-				param.act = AVSV_OBJ_OPR_DEL;
-				param.name = su->list_of_comp->comp_info.name;
-				param.class_id = AVSV_SA_AMF_COMP;
-				avd_snd_op_req_msg(cb, avnd, &param);
-				/* delete from the SU list */
-				avd_su_remove_comp(su->list_of_comp);
-			}
-
-			su->si_max_active = 0;
-			su->si_max_standby = 0;
-			su->saAmfSUPreInstantiable = TRUE;
-			su->curr_num_comp = 0;
-			/* Set runtime cached attributes. */
-			avd_saImmOiRtObjectUpdate(&su->name,
-					"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
-					&su->saAmfSUPreInstantiable);
-		}
-
-		m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-		return;
-	}
-
-	/* Log an information error that the node was updated with the
-	 * information of the SU.
-	 */
-	/* Find the SU */
-	su = avd_su_get(&ack_msg->msg_info.n2d_reg_su.su_name);
-	if (su == NULL) {
-		/* The SU has already been deleted. there is nothing
-		 * that can be done.
-		 */
-
-		/* Log an information error that the SU is
-		 * deleted.
-		 */
-		/* send a delete message to the AvND for the SU. */
-		memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
-		param.act = AVSV_OBJ_OPR_DEL;
-		param.name = ack_msg->msg_info.n2d_reg_su.su_name;
-		param.class_id = AVSV_SA_AMF_SU;
-		avnd = avd_node_find_nodeid(ack_msg->msg_info.n2d_reg_su.node_id);
-		avd_snd_op_req_msg(cb, avnd, &param);
-		return;
-	}
 }
 
 /**

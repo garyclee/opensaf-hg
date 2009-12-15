@@ -267,6 +267,7 @@ typedef struct avnd_su_tag {
 #define AVND_SU_ASSIGN_PEND   0x00002000	/* set; when su si assign starts */
 #define AVND_SU_ALL_TERM      0x00004000	/* set; when all resp for term has come for all comps
 						   used only in inst failed state */
+#define AVND_SU_REG_FAILED    0x00008000	/* set; when su registration fails */
 
 /* macros for checking the su states */
 #define m_AVND_SU_IS_RESTART(x)     (((x)->flag) & AVND_SU_FLAG_RESTART)
@@ -298,10 +299,12 @@ typedef struct avnd_su_tag {
 /* macros for checking the su params */
 #define m_AVND_SU_IS_SU_RESTART_DIS(x)    (((x)->flag) & AVND_SU_FLAG_RESTART_DIS)
 #define m_AVND_SU_IS_PREINSTANTIABLE(x)   (((x)->flag) & AVND_SU_FLAG_PREINSTANTIABLE)
+#define m_AVND_SU_IS_REG_FAILED(x)        (((x)->flag) & AVND_SU_REG_FAILED)
 
 /* macros for setting the su params */
-#define m_AVND_SU_RESTART_DIS_SET(x)   (((x)->flag) |= AVND_SU_FLAG_RESTART_DIS)
+#define m_AVND_SU_RESTART_DIS_SET(x)      (((x)->flag) |= AVND_SU_FLAG_RESTART_DIS)
 #define m_AVND_SU_PREINSTANTIABLE_SET(x)  (((x)->flag) |= AVND_SU_FLAG_PREINSTANTIABLE)
+#define m_AVND_SU_REG_FAILED_SET(x)       (((x)->flag) |= AVND_SU_REG_FAILED)
 
 /* macros for resetting the su params */
 #define m_AVND_SU_RESTART_DIS_RESET(x)  (((x)->flag) &= ~AVND_SU_FLAG_RESTART_DIS)

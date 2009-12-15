@@ -166,7 +166,13 @@ void avd_reg_su_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	/* check if this is a operator initiated update */
 	if (avnd->node_state == AVD_AVND_STATE_PRESENT) {
-		avd_su_ack_msg(cb, n2d_msg);
+		if (n2d_msg->msg_info.n2d_reg_su.error != NCSCC_RC_SUCCESS) {
+			/* Cannot do much, let the operator clean up the mess */
+			LOG_ER("%s: '%s' node=%x FAILED to register", __FUNCTION__,
+				n2d_msg->msg_info.n2d_reg_su.su_name.value,
+				n2d_msg->msg_info.n2d_reg_su.node_id);
+		}
+
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 		goto done;

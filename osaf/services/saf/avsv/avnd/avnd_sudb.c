@@ -271,7 +271,7 @@ uns32 avnd_su_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	AVND_SU *su;
 	uns32 rc = NCSCC_RC_FAILURE;
 
-	avnd_log(NCSFL_SEV_NOTICE, "Op %u, key %s, %s", param->act, param->name.value);
+	avnd_log(NCSFL_SEV_NOTICE, "Op %u, '%s'", param->act, param->name.value);
 
 	su = m_AVND_SUDB_REC_GET(cb->sudb, param->name);
 	if (!su) {

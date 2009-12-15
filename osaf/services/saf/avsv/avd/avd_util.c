@@ -43,6 +43,7 @@
 /*
  * Module Inclusion Control...
  */
+#include <logtrace.h>
 #include <string.h>
 #include <avd.h>
 
@@ -657,31 +658,19 @@ uns32 avd_snd_oper_state_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 
 uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_DND_MSG *d2n_msg;
 	AVD_AVND *su_node_ptr = NULL;
 
 	m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_presence_msg");
-
-	/* Verify if the SU structure pointer is valid. */
-	if (su == NULL) {
-		/* This is a invalid situation as the SU record
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that SU record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
+	TRACE_ENTER2("%s '%s'", (term_state == TRUE) ? "Terminate" : "Instantiate", su->name.value);
 
 	/* prepare the node update message. */
 	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
 	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(su_node_ptr->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
+		LOG_ER("%s: calloc FAILED", __FUNCTION__);
+		goto done;
 	}
 
 	/* prepare the SU presence state change notification message */
@@ -695,20 +684,17 @@ uns32 avd_snd_presence_msg(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL term_state)
 
 	/* send the message */
 	if (avd_d2n_msg_snd(cb, su_node_ptr, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(su_node_ptr->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		/* free the SU presence message */
-
+		LOG_ER("%s: avd_d2n_msg_snd FAILED", __FUNCTION__);
 		avsv_dnd_msg_free(d2n_msg);
-		/* decrement the node send id */
 		--(su_node_ptr->snd_msg_id);
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, (su_node_ptr), AVSV_CKPT_AVND_SND_MSG_ID);
-	return NCSCC_RC_SUCCESS;
-
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 /*****************************************************************************
@@ -2168,32 +2154,6 @@ void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
 		if (*p != '\\')
 			dn->value[i++] = *p;
 		p++;
-	}
-
-	dn->length = strlen((char*)dn->value);
-}
-
-void avd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
-	const char *rdn_tag, SaNameT *dn)
-{
-	char *p = (char*) dn->value;
-	int i;
-
-	memset(dn, 0, sizeof(SaNameT));
-
-	p += sprintf((char*)dn->value, "%s=", rdn_tag);
-
-	/* copy child DN and escape commas */
-	for (i = 0; i < child_dn->length; i++) {
-		if (child_dn->value[i] == ',')
-			*p++ = 0x5c; /* backslash */
-
-		*p++ = child_dn->value[i];
-	}
-
-	if (parent_dn != NULL) {
-		*p++ = ',';
-		strcpy(p, (char*)parent_dn->value);
 	}
 
 	dn->length = strlen((char*)dn->value);

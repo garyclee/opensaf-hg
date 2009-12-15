@@ -57,6 +57,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const CcbUtilOperationData_t *opdata)
 {
 	char *parent;
+	const char *path_prefix;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
@@ -69,7 +70,13 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	// TODO lookup SMF bundle object
+	path_prefix = immutil_getStringAttr(attributes, "saAmfNodeSwBundlePathPrefix", 0);
+	assert(path_prefix);
+
+	if (path_prefix[0] != '/') {
+		LOG_ER("Invalid absolute path '%s' for '%s' ", path_prefix, dn->value);
+		return 0;
+	}
 
 	return 1;
 }
@@ -83,7 +90,6 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
  */
 static AVD_NODE_SW_BUNDLE *nodeswbdl_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 {
-	int rc = -1;
 	SaNameT node_name;
 	AVD_AVND *node;
 	AVD_NODE_SW_BUNDLE *sw_bdl;
@@ -104,21 +110,10 @@ static AVD_NODE_SW_BUNDLE *nodeswbdl_create(SaNameT *dn, const SaImmAttrValuesT_
 	sw_bdl->tree_node.key_info = (uns8 *)&(sw_bdl->sw_bdl_name);
 
 	prefix = immutil_getStringAttr(attributes, "saAmfNodeSwBundlePathPrefix", 0);
-	if (prefix == NULL) {
-		LOG_ER("Get saAmfNodeSwBundlePathPrefix FAILED for '%s'", dn->value);
-		goto done;
-	}
+	assert(prefix != NULL);
 
 	sw_bdl->saAmfNodeSwBundlePathPrefix = strdup(prefix);
 	sw_bdl->node_sw_bdl_on_node = node;
-
-	rc = 0;
-
-done:
-	if (rc != 0) {
-		free(sw_bdl);
-		sw_bdl = NULL;
-	}
 
 	return sw_bdl;
 }
@@ -176,7 +171,7 @@ SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
 done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
 done1:
-	TRACE_LEAVE2("%u", error);
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 

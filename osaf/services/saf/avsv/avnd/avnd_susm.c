@@ -154,6 +154,21 @@ static AVND_SU_PRES_FSM_FN avnd_su_pres_fsm[][AVND_SU_PRES_FSM_EV_MAX - 1] = {
 	 }
 };
 
+static unsigned int update_avd_presence_state(const AVND_SU *su)
+{
+	AVSV_PARAM_INFO param;
+
+	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
+	param.class_id = AVSV_SA_AMF_SU;
+	param.attr_id = saAmfSUPresenceState_ID;
+	param.name = su->name;
+	param.act = AVSV_OBJ_OPR_MOD;
+	*((uns32 *)param.value) = m_NCS_OS_HTONL(su->pres);
+	param.value_len = sizeof(uns32);
+
+	return avnd_di_object_upd_send(avnd_cb, &param);
+}
+
 /***************************************************************************
  * S U - S I  Q U E U E  M A N A G E M E N T   P O R T I O N   S T A R T S *
  ***************************************************************************/
@@ -793,8 +808,15 @@ uns32 avnd_evt_avd_su_pres_msg(AVND_CB *cb, AVND_EVT *evt)
 		/* trigger su instantiation for pi su */
 		if (m_AVND_SU_IS_PREINSTANTIABLE(su))
 			rc = avnd_su_pres_fsm_run(cb, su, 0, AVND_SU_PRES_FSM_EV_INST);
-		else
-			assert(0);
+		else {
+			if (m_AVND_SU_IS_REG_FAILED(su)) {
+				/* The SU configuration is bad, we cannot do much other transition to failed state */
+				m_AVND_SU_PRES_STATE_SET_AND_SEND_NTF(cb, su, SA_AMF_PRESENCE_INSTANTIATION_FAILED);
+				m_AVND_SU_ALL_TERM_RESET(su);
+				update_avd_presence_state(su);
+			} else
+				assert(0);
+		}
 		break;
 	}			/* switch */
 
@@ -866,7 +888,6 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
 {
 	AVND_SU_SI_REC *si = 0;
 	NCS_BOOL is_en;
-	AVSV_PARAM_INFO param;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* pi su */
@@ -1037,15 +1058,8 @@ uns32 avnd_su_pres_st_chng_prc(AVND_CB *cb, AVND_SU *su, SaAmfPresenceStateT prv
 	}
 
 	/* inform avd of the change in presence state */
-	memset(&param, 0, sizeof(AVSV_PARAM_INFO));
-	param.class_id = AVSV_SA_AMF_SU;
-	param.attr_id = saAmfSUPresenceState_ID;
-	param.name = su->name;
-	param.act = AVSV_OBJ_OPR_MOD;
-	*((uns32 *)param.value) = m_NCS_OS_HTONL(su->pres);
-	param.value_len = sizeof(uns32);
+	rc = update_avd_presence_state(su);
 
-	rc = avnd_di_object_upd_send(cb, &param);
 	if (NCSCC_RC_SUCCESS != rc)
 		goto done;
 

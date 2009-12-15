@@ -46,17 +46,17 @@ instantiate()
 
 	cleanup
 
-	$AMFDEMO >> ${LOGDIR}/amf_demo.log 2>&1 &
+	$AMFDEMO $* >> ${LOGDIR}/amf_demo.log 2>&1 &
 
 	echo $! > $PIDFILE
 }
 
 case "$CMD" in
 	instantiate)
-		instantiate
+		instantiate $*
 		;;
 	cleanup)
-		cleanup
+		cleanup $*
 		;;
 	*)
 		echo "Usage: $0 {instantiate|cleanup}"

@@ -368,13 +368,13 @@ uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttribu
 
 	for (cnt = 0; cnt < sattr->number; cnt++) {
 		/* alloc memory for attr name & value */
-		dattr->attr[cnt].attrName = malloc(strlen(sattr->attr[cnt].attrName));
+		dattr->attr[cnt].attrName = malloc(strlen((char*)sattr->attr[cnt].attrName));
 		if (!dattr->attr[cnt].attrName) {
 			free(dattr->attr[cnt].attrName);
 			goto done;
 		}
 
-		dattr->attr[cnt].attrValue = malloc(strlen(sattr->attr[cnt].attrValue));
+		dattr->attr[cnt].attrValue = malloc(strlen((char*)sattr->attr[cnt].attrValue));
 		if (!dattr->attr[cnt].attrValue) {
 			free(dattr->attr[cnt].attrName);
 			free(dattr->attr[cnt].attrValue);
@@ -382,8 +382,8 @@ uns32 avsv_amf_csi_attr_list_copy(SaAmfCSIAttributeListT *dattr, SaAmfCSIAttribu
 		}
 
 		/* copy the attr name & value */
-		strcpy(dattr->attr[cnt].attrName, sattr->attr[cnt].attrName);
-		strcpy(dattr->attr[cnt].attrValue, sattr->attr[cnt].attrValue);
+		strcpy((char*)dattr->attr[cnt].attrName, (char*)sattr->attr[cnt].attrName);
+		strcpy((char*)dattr->attr[cnt].attrValue, (char*)sattr->attr[cnt].attrValue);
 
 		/* increment the attr name-val pair cnt that is copied */
 		dattr->number++;

@@ -845,6 +845,6 @@ EXTERN_C AVND_COMP_HC_REC *avnd_mbcsv_comp_hc_rec_add(struct avnd_cb_tag *cb,
 EXTERN_C void avnd_mbcsv_comp_hc_rec_del(struct avnd_cb_tag *cb, AVND_COMP *comp, AVND_COMP_HC_REC *rec);
 
 extern uns32 avnd_comp_oper_req(struct avnd_cb_tag *cb, AVSV_PARAM_INFO *param);
-extern SaAisErrorT avnd_comp_config_get_su(struct avnd_su_tag *su);
+extern unsigned int avnd_comp_config_get_su(struct avnd_su_tag *su);
 
 #endif   /* !AVND_COMP_H */

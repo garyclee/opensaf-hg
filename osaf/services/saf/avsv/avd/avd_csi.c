@@ -170,7 +170,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		avsv_sanamet_init(dn, &si_name, "safSi");
 
 		if (avd_si_get(&si_name) != NULL {
-			avd_create_association_class_dn(&aname, &si->saAmfSvcType,
+			avsv_create_association_class_dn(&aname, &si->saAmfSvcType,
 				"safMemberCSType", &svctypecstype_name);
 		} else {
 			if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &si_name) == NULL) {
@@ -429,7 +429,7 @@ static void avd_create_csiassignment_in_imm(SaAmfHAStateT ha_state,
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
                return;
 
-       avd_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
+       avsv_create_association_class_dn(comp_dn, NULL, "safCSIComp", &dn);
 
        if ((rc = avd_saImmOiRtObjectCreate("SaAmfCSIAssignment", csi_dn, attrValues)) != SA_AIS_OK)
            LOG_ER("rc=%u, '%s'", rc, dn.value);
@@ -490,7 +490,7 @@ static void avd_delete_csiassignment_from_imm(const SaNameT *comp_dn, const SaNa
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
                return;
 
-       avd_create_association_class_dn(comp_dn, csi_dn, "safCSIComp", &dn);
+       avsv_create_association_class_dn(comp_dn, csi_dn, "safCSIComp", &dn);
 
        if ((rc = avd_saImmOiRtObjectDelete(&dn)) != SA_AIS_OK)
                LOG_ER("rc=%u, '%s'", rc, dn.value);
