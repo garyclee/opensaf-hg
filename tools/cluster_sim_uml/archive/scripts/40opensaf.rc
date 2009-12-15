@@ -36,6 +36,8 @@ fi
 mkdir -p /var/lib/opensaf
 mkdir -p /var/run/opensaf
 
+rm /etc/opensaf/node_type
+
 if [ $hostnumber -lt 3 ]; then
     export SNMPCONFPATH=/etc/snmp
     export MIBDIRS="/usr/share/snmp/mibs:/usr/local/share/snmp/mibs"
@@ -58,8 +60,10 @@ if [ $hostnumber -lt 3 ]; then
     echo "AVM XML" >> /var/lib/opensaf/pssv_spcn.list
 
     ln -sf /etc/opensaf/nodeinit.conf.controller /etc/opensaf/nodeinit.conf
+    echo controller > /etc/opensaf/node_type
 else
     ln -sf /etc/opensaf/nodeinit.conf.payload /etc/opensaf/nodeinit.conf
+    echo payload > /etc/opensaf/node_type
 fi
 
 rm -f /etc/opensaf/slot_id
@@ -75,4 +79,4 @@ ulimit -c unlimited
 # to pick it up.
 mv /usr/local/share/snmp/ncsSnmpSubagt.conf /usr/share/snmp/ncsSnmpSubagt.conf
 
-/etc/init.d/opensafd start
+/etc/init.d/opensafd start&
