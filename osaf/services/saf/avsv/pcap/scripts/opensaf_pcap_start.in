@@ -28,10 +28,8 @@ XTERM=""
 # i.e. from gdb Typically, the cmd would be  "run ROLE=1\2 NID_SVC_NAME=21"
 
 DAEMON=opensaf_pcap
-
-
+export PCAP_TRACE_PATHNAME=$NCS_STDOUTS_PATH/${DAEMON}.log
 echo "Executing PCAP init-script..."
-
 echo "NCS_STDOUTS_PATH=$NCS_STDOUTS_PATH"
 
 #Function to start/spawn a service.

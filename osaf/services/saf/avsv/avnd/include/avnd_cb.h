@@ -62,8 +62,6 @@ typedef struct avnd_cb_tag {
 	EDU_HDL edu_hdl_avnd;	/* edu handle for avnd-avnd interface */
 	EDU_HDL edu_hdl_ava;	/* edu handle for ava interface */
 	EDU_HDL edu_hdl_cla;	/* edu handle for cla interface */
-	uns32 srm_hdl;		/* srmsv handle */
-	SaSelectionObjectT srm_sel_obj;	/* srmsv selection object */
 
 	/* node states */
 	SaAmfAdminStateT admin_state;	/* node admin state */

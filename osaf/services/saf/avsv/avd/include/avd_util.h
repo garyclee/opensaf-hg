@@ -138,14 +138,4 @@ extern void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn,
 extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
 	SaNameT *dn, const char *needle, const char *parent);
 
-/**
- * Create a DN for an association class. Escape commas in the child DN.
- * @param child_dn
- * @param parent_dn
- * @param rdn_tag
- * @param dn
- */
-extern void avd_create_association_class_dn(const SaNameT *child_dn,
-	const SaNameT *parent_dn, const char *rdn_tag, SaNameT *dn);
-
 #endif

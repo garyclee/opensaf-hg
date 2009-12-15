@@ -178,8 +178,14 @@ int main(int argc, char **argv)
 	SaAisErrorT        rc;
 	SaSelectionObjectT amf_sel_obj;
 	struct pollfd fds[1];
+	char args[256] = {0};
+	int i, j = 0;
 
-	syslog(LOG_INFO, "Started");
+	/* The args are printed just to test the argv "augmentation" between comp type and instance */
+	for (i = 0; i < argc; i++)
+		j += sprintf(&args[j], " %s", argv[i]);
+
+	syslog(LOG_INFO, "Started with args: %s", args);
 
 	memset(&amf_callbacks, 0, sizeof(SaAmfCallbacksT));
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;

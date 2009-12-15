@@ -31,7 +31,8 @@
 ******************************************************************************
 */
 
-#include "avnd.h"
+#include <logtrace.h>
+#include <avnd.h>
 
 static uns32 avnd_avd_su_update_on_fover(AVND_CB *cb, AVSV_D2N_REG_SU_MSG_INFO *info);
 
@@ -92,27 +93,16 @@ uns32 avnd_evt_avd_reg_su_msg(AVND_CB *cb, AVND_EVT *evt)
 		m_AVND_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVND_CKPT_SU_CONFIG);
 
 		/* add components belonging to this SU */
-		avnd_comp_config_get_su(su);
-	}
-
-	/* 
-	 * if all the records aren't added, delete those 
-	 * records that were successfully added
-	 */
-	if (su_info) {		/* => add operation stopped in the middle */
-		for (su_info = info->su_list; su_info; su = 0, su_info = su_info->next) {
-			/* get the record */
-			su = m_AVND_SUDB_REC_GET(cb->sudb, su_info->name);
-			if (!su)
-				break;
-
-                        /* delete the record */
-			m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, su, AVND_CKPT_SU_CONFIG);
-			avnd_sudb_rec_del(cb, &su_info->name);
+		if (avnd_comp_config_get_su(su) != NCSCC_RC_SUCCESS) {
+			m_AVND_SU_REG_FAILED_SET(su);
+			/* Will transition to instantiation-failed when instantiated */
+			LOG_ER("%s: FAILED", __FUNCTION__);
+			rc = NCSCC_RC_FAILURE;
+			break;
 		}
 	}
 
-   /*** send the response to AvD ***/
+	/*** send the response to AvD ***/
 	rc = avnd_di_reg_su_rsp_snd(cb, &info->su_list->name, rc);
 
  done:

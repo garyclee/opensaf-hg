@@ -32,7 +32,7 @@
 static NCSCONTEXT avnd_sem;
 extern char gl_nid_svc_name[];
 
-static void main_avnd_usr1_signal_hdlr(int sig)
+static void sigusr1_handler(int sig)
 {
 	if (sig == SIGUSR1)
 		m_NCS_SEM_GIVE(avnd_sem);
@@ -44,7 +44,7 @@ static void main_avnd_usr1_signal_hdlr(int sig)
  */
 static void sigusr2_handler(int sig)
 {
-	static int category_mask;
+	static unsigned int category_mask;
 
 	if (category_mask == 0)
 		category_mask = CATEGORY_ALL;
@@ -52,6 +52,7 @@ static void sigusr2_handler(int sig)
 		category_mask = 0;
 
 	(void) trace_category_set(category_mask);
+	TRACE("New mask: %x", category_mask);
 }
 
 int main(int argc, char **argv)
@@ -65,20 +66,13 @@ int main(int argc, char **argv)
 		char *p;
 
 		if (logtrace_init(basename(argv[0]), trace_file) == 0) {
-			unsigned int mask = CATEGORY_ALL;
-			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL)
-				mask = atoi(p);
-
-			trace_category_set(mask);
-
-			syslog(LOG_NOTICE, "trace enabled to file %s, mask %0x", trace_file, mask);
+			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL) {
+				unsigned int mask = strtoul(p, NULL, 0);
+				trace_category_set(mask);
+				syslog(LOG_NOTICE, "trace enabled to file %s, mask %x", trace_file, mask);
+			}
 		} else
 			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
-	}
-
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		syslog(LOG_ERR, "signal USR2 failed: %s", strerror(errno));
-		goto done;
 	}
 
 	strcpy(gl_nid_svc_name, "SCAP");
@@ -108,7 +102,15 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-	signal(SIGUSR1, main_avnd_usr1_signal_hdlr);
+	if (signal(SIGUSR1, sigusr1_handler)  == SIG_ERR) {
+		syslog(LOG_ERR, "signal USR1 failed: %s", strerror(errno));
+		goto done;
+	}
+
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "signal USR2 failed: %s", strerror(errno));
+		goto done;
+	}
 
 	if ( m_NCS_SEM_CREATE(&avnd_sem) == NCSCC_RC_FAILURE) {
 		fprintf(stderr, "sem create failed\n");

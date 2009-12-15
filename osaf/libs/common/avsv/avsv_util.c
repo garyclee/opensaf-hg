@@ -305,3 +305,37 @@ NCS_BOOL avsv_sa_name_is_null(SaNameT *name)
 	else
 		return FALSE;
 }
+
+/**
+ * Create a DN for an association class. Escape commas in the child DN.
+ * @param child_dn
+ * @param parent_dn
+ * @param rdn_tag
+ * @param dn[out]
+ */
+void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
+	const char *rdn_tag, SaNameT *dn)
+{
+	char *p = (char*) dn->value;
+	int i;
+
+	memset(dn, 0, sizeof(SaNameT));
+
+	p += sprintf((char*)dn->value, "%s=", rdn_tag);
+
+	/* copy child DN and escape commas */
+	for (i = 0; i < child_dn->length; i++) {
+		if (child_dn->value[i] == ',')
+			*p++ = 0x5c; /* backslash */
+
+		*p++ = child_dn->value[i];
+	}
+
+	if (parent_dn != NULL) {
+		*p++ = ',';
+		strcpy(p, (char*)parent_dn->value);
+	}
+
+	dn->length = strlen((char*)dn->value);
+}
+

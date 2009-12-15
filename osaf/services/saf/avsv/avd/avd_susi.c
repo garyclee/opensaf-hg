@@ -80,7 +80,7 @@ static void avd_create_siassignment_in_imm(SaAmfHAStateT ha_state,
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 	       return;
 
-       avd_create_association_class_dn(su_dn, NULL, "safSISU", &dn);
+       avsv_create_association_class_dn(su_dn, NULL, "safSISU", &dn);
 
        if ((rc = avd_saImmOiRtObjectCreate("SaAmfSIAssignment", si_dn, attrValues)) != SA_AIS_OK)
 	   avd_log(NCSFL_SEV_ERROR, "rc=%u, '%s'", rc, dn.value);
@@ -99,7 +99,7 @@ static void avd_delete_siassignment_from_imm(const SaNameT *si_dn, const SaNameT
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 	       return;
 
-       avd_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
+       avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
 
        if ((rc = avd_saImmOiRtObjectDelete(&dn)) != SA_AIS_OK)
 	       avd_log(NCSFL_SEV_ERROR, "rc=%u, '%s'", rc, dn.value);
@@ -119,7 +119,7 @@ void avd_susi_update(SaAmfHAStateT ha_state, const SaNameT *si_dn, const SaNameT
        if (avd_cb->avail_state_avd != SA_AMF_HA_ACTIVE)
 	       return;
 
-       avd_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
+       avsv_create_association_class_dn(su_dn, si_dn, "safSISU", &dn);
 
        if ((rc = avd_saImmOiRtObjectUpdate(&dn,"saAmfSISUHAState", SA_IMM_ATTR_SAUINT32T, &ha_state)) != SA_AIS_OK)
 	       avd_log(NCSFL_SEV_ERROR, "rc=%u, '%s'", rc, dn.value);

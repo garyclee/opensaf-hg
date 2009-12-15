@@ -30,20 +30,44 @@
 #ifndef AVSV_UTIL_H
 #define AVSV_UTIL_H
 
-EXTERN_C uns32 avsv_cpy_SU_DN_from_DN(SaNameT *, SaNameT *);
-EXTERN_C uns32 avsv_cpy_node_DN_from_DN(SaNameT *, SaNameT *);
-EXTERN_C NCS_BOOL avsv_is_external_DN(SaNameT *);
-EXTERN_C uns32 avsv_cpy_SI_DN_from_DN(SaNameT *, SaNameT *);
+#include <saAmf.h>
 
-EXTERN_C uns32 avsv_dblist_uns32_cmp(uns8 *, uns8 *);
-EXTERN_C uns32 avsv_dblist_uns64_cmp(uns8 *, uns8 *);
-EXTERN_C uns32 avsv_dblist_saname_net_cmp(uns8 *, uns8 *);
-EXTERN_C uns32 avsv_dblist_saname_cmp(uns8 *, uns8 *);
-EXTERN_C uns32 avsv_dblist_sahckey_cmp(uns8 *, uns8 *);
+#define IS_COMP_SAAWARE(category) \
+	(((category) & SA_AMF_COMP_SA_AWARE))
 
-EXTERN_C NCS_BOOL avsv_sa_name_is_null(SaNameT *);
+#define IS_COMP_PROXY(category) \
+	(((category) & SA_AMF_COMP_PROXY))
+
+#define IS_COMP_PROXIED(category) \
+	(((category) & SA_AMF_COMP_PROXIED))
+
+#define IS_COMP_LOCAL(category) \
+	(((category) & SA_AMF_COMP_SA_AWARE) || ((category) & SA_AMF_COMP_LOCAL))
+
+#define IS_COMP_CONTAINER(category) \
+	(((category) & SA_AMF_COMP_CONTAINER))
+
+#define IS_COMP_CONTAINED(category) \
+	(((category) & SA_AMF_COMP_CONTAINED))
+
 
 /* macro to determine if name is null */
 #define m_AVSV_SA_NAME_IS_NULL(n) avsv_sa_name_is_null(&(n))
+
+extern unsigned int avsv_cpy_SU_DN_from_DN(SaNameT *, SaNameT *);
+extern unsigned int avsv_cpy_node_DN_from_DN(SaNameT *, SaNameT *);
+extern unsigned int avsv_is_external_DN(SaNameT *);
+extern unsigned int avsv_cpy_SI_DN_from_DN(SaNameT *, SaNameT *);
+
+extern unsigned int avsv_dblist_uns32_cmp(unsigned char *, unsigned char *);
+extern unsigned int avsv_dblist_uns64_cmp(unsigned char *, unsigned char *);
+extern unsigned int avsv_dblist_saname_net_cmp(unsigned char *, unsigned char *);
+extern unsigned int avsv_dblist_saname_cmp(unsigned char *, unsigned char *);
+extern unsigned int avsv_dblist_sahckey_cmp(unsigned char *, unsigned char *);
+
+extern unsigned int avsv_sa_name_is_null(SaNameT *);
+
+extern void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
+	const char *rdn_tag, SaNameT *dn);
 
 #endif   /* !AVSV_UTIL_H */

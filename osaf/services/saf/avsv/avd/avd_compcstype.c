@@ -20,6 +20,7 @@
 #include <immutil.h>
 #include <logtrace.h>
 
+#include <avsv_util.h>
 #include <avd_util.h>
 #include <avd_dblog.h>
 #include <avd_comp.h>
@@ -97,7 +98,7 @@ uns32 avd_compcstype_find_match(const AVD_CSI *csi, const AVD_COMP *comp)
 	AVD_COMPCS_TYPE *cst;
 	SaNameT dn;
 
-	avd_create_association_class_dn(&csi->saAmfCSType, &comp->comp_info.name, "safSupportedCsType", &dn);
+	avsv_create_association_class_dn(&csi->saAmfCSType, &comp->comp_info.name, "safSupportedCsType", &dn);
 	avd_trace("'%s'", dn.value);
 	cst = (AVD_COMPCS_TYPE *)ncs_patricia_tree_get(&compcstype_db, (uns8 *)&dn);
 

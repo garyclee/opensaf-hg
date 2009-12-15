@@ -20,6 +20,7 @@
 #include <immutil.h>
 #include <logtrace.h>
 
+#include <avsv_util.h>
 #include <avd_comp.h>
 #include <avd_imm.h>
 
@@ -109,6 +110,12 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	assert(error == SA_AIS_OK);
 
 	(void)immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle);
+
+	if (!IS_COMP_PROXIED(compt->saAmfCtCompCategory) && IS_COMP_LOCAL(compt->saAmfCtCompCategory)) {
+		error = immutil_getAttr("saAmfCtSwBundle", attributes, 0, &compt->saAmfCtSwBundle);
+		assert(error == SA_AIS_OK);
+	}
+
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefCmdEnv", 0)) != NULL)
 		strcpy(compt->saAmfCtDefCmdEnv, str);
 	(void)immutil_getAttr("saAmfCtDefClcCliTimeout", attributes, 0, &compt->saAmfCtDefClcCliTimeout);
@@ -138,7 +145,7 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 	if ((str = immutil_getStringAttr(attributes, "saAmfCtDefAmStopCmdArgv", 0)) != NULL)
 		strcpy(compt->saAmfCtDefAmStopCmdArgv, str);
 
-	(void)immutil_getAttr("saAmfCtDefQuiesingCompleteTimeout", attributes, 0,
+	(void)immutil_getAttr("saAmfCtDefQuiescingCompleteTimeout", attributes, 0,
 			      &compt->saAmfCompQuiescingCompleteTimeout);
 
 	error = immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &compt->saAmfCtDefRecoveryOnError);
@@ -151,8 +158,12 @@ static AVD_COMP_TYPE *comptype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
+	SaUint32T category;
 	SaUint32T uint32;
 	char *parent;
+	SaNameT name;
+	SaTimeT time;
+	SaAisErrorT rc;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
@@ -165,16 +176,76 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	/* We do not support Proxy, Container and Contained as of now. */
-	if ((immutil_getAttr("saAmfCtCompCategory", attributes, 0, &uint32) == SA_AIS_OK) &&
-	    ((uint32 & SA_AMF_COMP_PROXY) ||(uint32 & SA_AMF_COMP_CONTAINER) || (uint32 & SA_AMF_COMP_CONTAINED))) {
+	rc = immutil_getAttr("saAmfCtCompCategory", attributes, 0, &category);
+	assert(rc = SA_AIS_OK);
 
-		LOG_ER("Unsupported saAmfCtCompCategory value '%u' for '%s'", uint32, dn->value);
+	/* We do not support Proxy, Container and Contained as of now. */
+	if (IS_COMP_PROXY(category) || IS_COMP_CONTAINER(category)|| IS_COMP_CONTAINED(category)) {
+		LOG_ER("Unsupported saAmfCtCompCategory value '%u' for '%s'", category, dn->value);
 		return 0;	
 	}
 
-	if ((immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &uint32) == SA_AIS_OK) &&
-	    (uint32 > SA_AMF_CONTAINER_RESTART)) {
+	/*                                                                                                  
+        ** The saAmfCtDefClcCliTimeout attribute is "mandatory for all components except for
+	** external components"
+        */
+	if (!IS_COMP_LOCAL(category) &&
+	    (immutil_getAttr("saAmfCtDefClcCliTimeout", attributes, 0, &time) != SA_AIS_OK)) {
+		LOG_ER("Required attribute saAmfCtDefClcCliTimeout not configured for '%s'", dn->value);
+		return 0;	
+	}
+
+	/*                                                                                                  
+        ** The saAmfCtDefCallbackTimeout attribute "mandatory for all components except for
+	** non-proxied, non-SA-aware components"                                                                                                    
+        */
+	if (!IS_COMP_PROXIED(category) && !IS_COMP_SAAWARE(category) &&
+	    (immutil_getAttr("saAmfCtDefCallbackTimeout", attributes, 0, &time) != SA_AIS_OK)) {
+		LOG_ER("Required attribute saAmfCtDefCallbackTimeout not configured for '%s'", dn->value);
+		return 0;	
+	}
+
+	/* 
+	** The saAmfCtSwBundle/saAmfCtRelPathInstantiateCmd "attribute is mandatory for all
+	** non-proxied local components".
+	*/
+	if (!IS_COMP_PROXIED(category) && IS_COMP_LOCAL(category)) {
+
+		if (immutil_getAttr("saAmfCtSwBundle", attributes, 0, &name) != SA_AIS_OK) {
+			LOG_ER("Required attribute saAmfCtSwBundle not configured for '%s'", dn->value);
+			return 0;	
+		}
+
+		if (immutil_getStringAttr(attributes, "saAmfCtRelPathInstantiateCmd", 0) == NULL) {
+			LOG_ER("Required attribute saAmfCtRelPathInstantiateCmd not configured for '%s'", dn->value);
+			return 0;	
+		}
+	}
+
+	/*
+	** The saAmfCtDefTerminateCmdArgv "attribute is mandatory for local non-proxied,
+	** non-SA-aware components".
+	*/
+	if (IS_COMP_LOCAL(category) && !IS_COMP_PROXIED(category) && !IS_COMP_SAAWARE(category) &&
+	    (immutil_getStringAttr(attributes, "saAmfCtDefTerminateCmdArgv", 0) == NULL)) {
+		LOG_ER("Required attribute saAmfCtDefTerminateCmdArgv not configured for '%s', cat=%x", dn->value, category);
+		return 0;	
+	}
+
+	/*
+	** The saAmfCtRelPathCleanupCmd "attribute is mandatory for all local components (proxied or
+	** non-proxied)"
+	*/
+	if (IS_COMP_LOCAL(category) && 
+	    (immutil_getStringAttr(attributes, "saAmfCtRelPathCleanupCmd", 0) == NULL)) {
+		LOG_ER("Required attribute saAmfCtRelPathCleanupCmd not configured for '%s'", dn->value);
+		return 0;	
+	}
+
+	rc = immutil_getAttr("saAmfCtDefRecoveryOnError", attributes, 0, &uint32);
+	assert(rc = SA_AIS_OK);
+
+	if (uint32 > SA_AMF_CONTAINER_RESTART) {
 		LOG_ER("Wrong saAmfCtDefRecoveryOnError value '%u'", uint32);
 		return 0;
 	}
@@ -191,7 +262,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
  */
 SaAisErrorT avd_comptype_config_get(void)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	SaAisErrorT error, rc = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT dn;
@@ -215,7 +286,7 @@ SaAisErrorT avd_comptype_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL) != 0)
+		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
 		if ((comp_type = comptype_create(&dn, attributes)) == NULL)
@@ -227,13 +298,13 @@ SaAisErrorT avd_comptype_config_get(void)
 			goto done2;
 	}
 
-	error = SA_AIS_OK;
+	rc = SA_AIS_OK;
 
 done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
 done1:
-	TRACE_LEAVE2("%u", error);
-	return error;
+	TRACE_LEAVE2("%u", rc);
+	return rc;
 }
 
 static void comptype_ccb_apply_cb(CcbUtilOperationData_t *opdata)

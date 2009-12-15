@@ -260,8 +260,8 @@ static uns32 avsv_encode_ckpt_avd_cluster_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC
 	switch (enc->io_action) {
 	case NCS_MBCSV_ACT_UPDATE:
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_cluster, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
 		break;
 	default:
 		assert(0);
@@ -307,8 +307,14 @@ static uns32 avsv_encode_ckpt_avd_node_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_AVND *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
+		break;
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_node, &enc->io_uba,
+			EDP_OP_TYPE_ENC, (AVD_APP*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 3);
 		break;
 	default:
 		assert(0);
@@ -354,8 +360,14 @@ static uns32 avsv_encode_ckpt_avd_app_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *en
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_APP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_APP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
+		break;
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_app, &enc->io_uba,
+			EDP_OP_TYPE_ENC, (AVD_APP*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
 		assert(0);
@@ -401,8 +413,14 @@ static uns32 avsv_encode_ckpt_avd_sg_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
+		break;
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_sg, &enc->io_uba,
+			EDP_OP_TYPE_ENC, (AVD_SG *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
 		assert(0);
@@ -447,8 +465,14 @@ static uns32 avsv_encode_ckpt_avd_su_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
+		break;
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_su, &enc->io_uba,
+			EDP_OP_TYPE_ENC, (AVD_SU *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
 		break;
 	default:
 		assert(0);
@@ -493,15 +517,15 @@ static uns32 avsv_encode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_si, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 1, 1);
+			EDP_OP_TYPE_ENC, (AVD_SI *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
 		break;
 
 	default:
@@ -608,13 +632,13 @@ static uns32 avsv_encode_ckpt_avd_siass(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		su_si_ckpt.state = ((AVD_SU_SI_REL *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)))->state;
 
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass,
-					    &enc->io_uba, EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version);
+			&enc->io_uba, EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_siass, &enc->io_uba,
-						EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version, 2, 1, 2);
+			EDP_OP_TYPE_ENC, &su_si_ckpt, &ederror, enc->i_peer_version, 2, 1, 2);
 		break;
 
 	default:
@@ -662,15 +686,15 @@ static uns32 avsv_encode_ckpt_avd_comp_config(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 	case NCS_MBCSV_ACT_UPDATE:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp, &enc->io_uba,
-					    EDP_OP_TYPE_ENC, (AVD_COMP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-					    &ederror, enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_COMP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version);
 		break;
 
 	case NCS_MBCSV_ACT_RMV:
 		/* Send only key information */
 		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp, &enc->io_uba,
-						EDP_OP_TYPE_ENC, (AVD_COMP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
-						&ederror, enc->i_peer_version, 1, 1);
+			EDP_OP_TYPE_ENC, (AVD_COMP *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
 		break;
 
 	default:
@@ -2786,11 +2810,15 @@ static uns32 avsv_encode_ckpt_avd_comp_cs_type_config(AVD_CL_CB *cb, NCS_MBCSV_C
 	case NCS_MBCSV_ACT_ADD:
 		/* Send entire data */
 		status = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
-					    EDP_OP_TYPE_ENC,
-					    (AVD_COMPCS_TYPE *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)), &ederror,
-					    enc->i_peer_version);
+			EDP_OP_TYPE_ENC, (AVD_COMPCS_TYPE *)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)), &ederror,
+			enc->i_peer_version);
 		break;
-
+	case NCS_MBCSV_ACT_RMV:
+		/* Send only key information */
+		status = m_NCS_EDU_SEL_VER_EXEC(&cb->edu_hdl, avsv_edp_ckpt_msg_comp_cs_type, &enc->io_uba,
+			EDP_OP_TYPE_ENC, (AVD_COMPCS_TYPE*)(NCS_INT64_TO_PTR_CAST(enc->io_reo_hdl)),
+			&ederror, enc->i_peer_version, 1, 1);
+		break;
 	default:
 		assert(0);
 	}
