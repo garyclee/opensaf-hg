@@ -45,12 +45,14 @@ static SaVersionT immVersion = { 'A', 2, 1 };
 
 typedef enum {
 	INVALID = 0,
-	CREATE = 1,
-	DELETE = 2,
-	MODIFY = 3,
-	IMMFILE = 4
+	CREATE_OBJECT = 1,
+	DELETE_OBJECT = 2,
+	DELETE_CLASS = 3,
+	MODIFY_OBJECT = 4,
+	LOAD_IMMFILE = 5
 } op_t;
 
+#define VERBOSE_INFO(format, args...) if (verbose) { fprintf(stderr, format, ##args); }
 
 // The interface function which implements the -f opton (imm_import.cc)
 int importImmXML(char* xmlfileC, char* adminOwnerName, int verbose);
@@ -74,12 +76,13 @@ static void usage(const char *progname)
 
 	printf("\nOPTIONS\n");
 	printf("\t-a, --attribute name=value [object DN]... \n");
-	printf("\t-c, --create <class name> [object DN]... \n");
-	printf("\t-d, --delete [object DN]... \n");
+	printf("\t-c, --create-object <class name> [object DN]... \n");
+	printf("\t-d, --delete-object [object DN]... \n");
 	printf("\t-h, --help                    this help\n");
-	printf("\t-m, --modify [object DN]... \n");
+	printf("\t-m, --modify-object [object DN]... \n");
 	printf("\t-v, --verbose (only valid with -f/--file option)\n");
 	printf("\t-f, --file <imm.xml file containing classes and/or objects>\n");
+	printf("\t--delete-class <classname> [classname2]... \n");
 
 	printf("\nEXAMPLE\n");
 	printf("\timmcfg -a saAmfNodeSuFailoverMax=7 safAmfNode=Node01,safAmfCluster=1\n");
@@ -439,61 +442,118 @@ done:
 	return rc;
 }
 
+/**
+ * Delete class(es) in the NULL terminated array
+ * @param classNames
+ * @param ownerHandle
+ *
+ * @return int
+ */
+int class_delete(const SaImmClassNameT *classNames, SaImmHandleT immHandle)
+{
+	SaAisErrorT error;
+	int rc = EXIT_FAILURE;
+	int i = 0;
+
+	while (classNames[i] != NULL) {
+		if ((error = saImmOmClassDelete(immHandle, classNames[i])) != SA_AIS_OK) {
+			if (error == SA_AIS_ERR_NOT_EXIST)
+				fprintf(stderr, "error - class does not exist :%s\n", classNames[i]);
+			else
+				fprintf(stderr, "error - saImmOmAdminOwnerSet FAILED: %s\n", saf_error(error));
+
+			goto done;
+		}
+		i++;
+	}
+
+	rc = 0;
+done:
+	return rc;
+}
+
+static char *create_adminOwnerName(char *base){
+	char hostname[HOST_NAME_MAX];
+	char *unique_adminOwner = malloc(HOST_NAME_MAX+10+strlen(base)+5);
+
+	if (gethostname(hostname, sizeof(hostname)) != 0){
+		fprintf(stderr, "error while retrieving hostname\n");
+		exit(EXIT_FAILURE);
+	}
+	sprintf(unique_adminOwner, "%s_%s_%d", base, hostname, getpid());
+	return unique_adminOwner;
+}
+
+
+static op_t verify_setoption(op_t prevValue, op_t newValue)
+{
+	if (prevValue == INVALID)
+		return newValue;
+	else {
+		fprintf(stderr, "error - only one operation at a time supported\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	int rc = EXIT_SUCCESS;
 	int c;
 	struct option long_options[] = {
-		{"attribute", required_argument, 0, 'a'},
-		{"create", required_argument, 0, 'c'},
-		{"file", required_argument, 0, 'f'},
-		{"delete", no_argument, 0, 'd'},
-		{"help", no_argument, 0, 'h'},
-		{"modify", no_argument, 0, 'm'},
-		{"verbose", no_argument, 0, 'v'},
+		{"attribute", required_argument, NULL, 'a'},
+		{"create-object", required_argument, NULL, 'c'},
+		{"file", required_argument, NULL, 'f'},
+		{"delete-class", no_argument, NULL, 0},    /* Note: should be 'no_arg'! treated as "Remaining args" below*/
+		{"delete-object", no_argument, NULL, 'd'},
+		{"help", no_argument, NULL, 'h'},
+		{"modify-object", no_argument, NULL, 'm'},
+		{"verbose", no_argument, NULL, 'v'},
 		{0, 0, 0, 0}
 	};
 	SaAisErrorT error;
 	SaImmHandleT immHandle;
-	SaImmAdminOwnerNameT adminOwnerName = basename(argv[0]);
+	SaImmAdminOwnerNameT adminOwnerName = create_adminOwnerName(basename(argv[0]));
 	SaImmAdminOwnerHandleT ownerHandle;
 	SaNameT **objectNames = NULL;
 	int objectNames_len = 1;
+
+	SaImmClassNameT *classNames = NULL;
+	int classNames_len = 1;
+
 	SaNameT *objectName;
 	int optargs_len = 0;	/* one off */
 	char **optargs = NULL;
-        SaImmClassNameT className = NULL;
+	SaImmClassNameT className = NULL;
 	op_t op = INVALID;
 	char* xmlFilename;
 	int verbose = 0;
+	int i;
 
 	while (1) {
-		c = getopt_long(argc, argv, "a:c:f:dhmv", long_options, NULL);
+		int option_index = 0;
+		c = getopt_long(argc, argv, "a:c:f:dhmv", long_options, &option_index);
 
 		if (c == -1)	/* have all command-line options have been parsed? */
 			break;
 
 		switch (c) {
+		case 0:
+			VERBOSE_INFO("Long option[%d]: %s\n", option_index, long_options[option_index].name);
+            if (strcmp("delete-class", long_options[option_index].name) == 0)
+            {
+            	op = verify_setoption(op, DELETE_CLASS);
+            }
+            break;
 		case 'a':
 			optargs = realloc(optargs, ++optargs_len * sizeof(char *));
 			optargs[optargs_len - 1] = strdup(optarg);
 			break;
 		case 'c':
 			className = optarg;
-			if (op == INVALID)
-				op = CREATE;
-			else {
-				fprintf(stderr, "error - only one operation at a time supported\n");
-				exit(EXIT_FAILURE);
-			}
+			op = verify_setoption(op, CREATE_OBJECT);
 			break;
 		case 'd': {
-			if (op == INVALID)
-				op = DELETE;
-			else {
-				fprintf(stderr, "error - only one operation at a time supported\n");
-				exit(EXIT_FAILURE);
-			}
+			op = verify_setoption(op, DELETE_OBJECT);
 			break;
 		}
 		case 'h':
@@ -501,24 +561,14 @@ int main(int argc, char *argv[])
 			exit(EXIT_SUCCESS);
 			break;
 		case 'f':
-			if (op == INVALID)
-				op = IMMFILE;
-			else {
-				fprintf(stderr, "error - only one operation at a time supported\n");
-				exit(EXIT_FAILURE);
-			}
+			op = verify_setoption(op, LOAD_IMMFILE);
 			xmlFilename = optarg;
 			break;
 		case 'v':
 			verbose = 1;
 			break;
 		case 'm': {
-			if (op == INVALID)
-				op = MODIFY;
-			else {
-				fprintf(stderr, "error - only one operation at a time supported\n");
-				exit(EXIT_FAILURE);
-			}
+			op = verify_setoption(op, MODIFY_OBJECT);
 			break;
 		}
 		default:
@@ -528,26 +578,48 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (op == IMMFILE) {
+	if (op == LOAD_IMMFILE) {
 		rc = importImmXML(xmlFilename, adminOwnerName, verbose);
 		exit(rc);
 	}
 
-	/* Modify is default */
-	if (op == INVALID)
-		op = MODIFY;
+	if (op == INVALID) {
+		VERBOSE_INFO("no option specified - defaults to MODIFY\n");
+		/* Modify is default */
+		op = MODIFY_OBJECT;
+	}
 
-	/* Remaining arguments should be object names. Need at least one... */
+	if (verbose) {
+		VERBOSE_INFO("operation:%d argc:%d optind:%d\n", op, argc, optind);
+
+		if (optind < argc) {
+			VERBOSE_INFO("non-option ARGV-elements: ");
+			for (i=optind; i < argc; i++) {
+				VERBOSE_INFO("%s ", argv[i]);
+			}
+			VERBOSE_INFO("\n");
+		}
+	}
+
+	/* Remaining arguments should be object names or class names. Need at least one... */
 	if ((argc - optind) < 1) {
-		fprintf(stderr, "error - specify at least one object\n");
+		fprintf(stderr, "error - specify at least one object or class\n");
 		exit(EXIT_FAILURE);
 	}
 
-	while (optind < argc) {
-		objectNames = realloc(objectNames, (objectNames_len + 1) * sizeof(SaNameT*));
-		objectName = objectNames[objectNames_len - 1] = malloc(sizeof(SaNameT));
-		objectNames[objectNames_len++] = NULL;
-		objectName->length = snprintf((char*)objectName->value, SA_MAX_NAME_LENGTH, "%s", argv[optind++]);
+	if (op == DELETE_CLASS) {
+		while (optind < argc) {
+			classNames = realloc(classNames, (classNames_len + 1) * sizeof(SaImmClassNameT*));
+			classNames[classNames_len - 1] = ((SaImmClassNameT) argv[optind++]);
+			classNames[classNames_len++] = NULL;
+		}
+	} else {
+		while (optind < argc) {
+			objectNames = realloc(objectNames, (objectNames_len + 1) * sizeof(SaNameT*));
+			objectName = objectNames[objectNames_len - 1] = malloc(sizeof(SaNameT));
+			objectNames[objectNames_len++] = NULL;
+			objectName->length = snprintf((char*)objectName->value, SA_MAX_NAME_LENGTH, "%s", argv[optind++]);
+		}
 	}
 
 	(void)immutil_saImmOmInitialize(&immHandle, NULL, &immVersion);
@@ -560,14 +632,17 @@ int main(int argc, char *argv[])
 	}
 
 	switch (op) {
-	case CREATE:
+	case CREATE_OBJECT:
 		rc = object_create((const SaNameT **)objectNames, className, ownerHandle, optargs, optargs_len);
 		break;
-	case DELETE:
+	case DELETE_OBJECT:
 		rc = object_delete((const SaNameT **)objectNames, ownerHandle);
 		break;
-	case MODIFY:
+	case MODIFY_OBJECT:
 		rc = object_modify((const SaNameT **)objectNames, ownerHandle, optargs, optargs_len);
+		break;
+	case DELETE_CLASS:
+		rc = class_delete(classNames, immHandle);
 		break;
 	default:
 		fprintf(stderr, "error - no operation specified\n");

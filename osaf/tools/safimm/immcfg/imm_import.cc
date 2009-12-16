@@ -1719,8 +1719,6 @@ int loadImmXML(std::string xmlfile)
     SaAisErrorT errorCode;
     int result;
 
-    result = -1;
-
     version.releaseCode   = 'A';
     version.majorVersion  = 2;
     version.minorVersion  = 1;
@@ -1793,7 +1791,7 @@ int loadImmXML(std::string xmlfile)
         }
     }
 
-    return !result;
+    return result;
 }
 
 
