@@ -781,6 +781,8 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 			case NTFSV_SUBSCRIBE_RSP:
 				total_bytes += ntfa_dec_subscribe_rsp_msg(uba, msg);
 				break;
+			case NTFSV_UNSUBSCRIBE_RSP: /* Only header sent from server */
+				break;                        
 			case NTFSV_SEND_NOT_RSP:
 				total_bytes += ntfa_dec_send_not_rsp_msg(uba, msg);
 				break;

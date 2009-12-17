@@ -932,15 +932,6 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		total_bytes += 4;
 
 		if (param->notification.objectCreateDelete.numAttributes > 0) {
-			/* dealloc in ntfs_evt.c: proc_send_not_msg */
-			param->notification.objectCreateDelete.objectAttributes =
-			    (SaNtfAttributeT *)calloc(1, param->notification.objectCreateDelete.numAttributes
-						      * sizeof(SaNtfAttributeT));
-			if (NULL == param->notification.objectCreateDelete.objectAttributes) {
-				TRACE_1("calloc failed");
-				return 0;
-			}
-
 			for (i = 0; i < param->notification.objectCreateDelete.numAttributes; i++) {
 				total_bytes =
 				    decodeSaNtfAttribute(uba,
@@ -961,18 +952,6 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		*param->notification.attributeChange.sourceIndicator = ncs_decode_16bit(&p8);
 		ncs_dec_skip_space(uba, 4);
 		total_bytes += 4;
-		if (param->notification.attributeChange.numAttributes != 0) {
-			param->notification.attributeChange.changedAttributes =
-			    (SaNtfAttributeChangeT *)calloc(1,
-							    param->notification.attributeChange.numAttributes *
-							    sizeof(SaNtfAttributeChangeT));
-			if (param->notification.attributeChange.changedAttributes == NULL) {
-				TRACE_1("calloc failed");
-				return 0;
-			}
-		} else {
-			param->notification.attributeChange.changedAttributes = NULL;
-		}
 		for (i = 0; i < param->notification.attributeChange.numAttributes; i++) {
 			total_bytes =
 			    decodeSaNtfAttributeChangeT(uba,
@@ -991,13 +970,6 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		ncs_dec_skip_space(uba, 4);
 		total_bytes += 4;
 		TRACE("dec numStCh: %d", (int)param->notification.stateChange.numStateChanges);
-		param->notification.stateChange.changedStates =
-		    (SaNtfStateChangeT *)calloc(1, sizeof(SaNtfStateChangeT) *
-						param->notification.stateChange.numStateChanges);
-		if (NULL == param->notification.stateChange.changedStates) {
-			TRACE_1("calloc failed");
-			return 0;
-		}
 		for (i = 0; i < param->notification.stateChange.numStateChanges; i++) {
 			p8 = ncs_dec_flatten_space(uba, local_data, 3);
 			param->notification.stateChange.changedStates[i].stateId = ncs_decode_16bit(&p8);

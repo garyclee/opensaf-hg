@@ -2067,9 +2067,7 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 				ntfa_msg_destroy(o_msg);
 			goto done_give_hdl;
 		}
-		TRACE_1("subscriptionId from server %u",
-			o_msg->info.api_resp_info.param.unsubscribe_rsp.subscriptionId);
-
+		
 		if (listPtr->next != NULL) {
 			listPtr->next->prev = listPtr->prev;
 		}
@@ -2084,6 +2082,8 @@ SaAisErrorT saNtfNotificationFilterFree(SaNtfNotificationFilterHandleT notificat
 		}
 		TRACE_1("REMOVE: listPtr->SubscriptionId %d", listPtr->subscriberListSubscriptionId);
 		free(listPtr);
+		if (o_msg)
+			ntfa_msg_destroy(o_msg);		
 	}
 
  done_give_hdl:

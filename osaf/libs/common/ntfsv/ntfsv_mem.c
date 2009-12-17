@@ -573,7 +573,7 @@ void ntfsv_copy_ntf_obj_cr_del(SaNtfObjectCreateDeleteNotificationT *dest,
 {
 	ntfsv_copy_ntf_header(&dest->notificationHeader, &src->notificationHeader);
 	dest->numAttributes = src->numAttributes;
-	dest->sourceIndicator = src->sourceIndicator;
+	*dest->sourceIndicator = *src->sourceIndicator;
 
 	if (0 < dest->numAttributes) {
 		memcpy(dest->objectAttributes, src->objectAttributes, dest->numAttributes * sizeof(SaNtfAttributeT));
@@ -593,7 +593,7 @@ void ntfsv_copy_ntf_attr_change(SaNtfAttributeChangeNotificationT *dest, const S
 	ntfsv_copy_ntf_header(&dest->notificationHeader, &src->notificationHeader);
 	dest->numAttributes = src->numAttributes;
 
-	dest->sourceIndicator = src->sourceIndicator;
+	*dest->sourceIndicator = *src->sourceIndicator;
 	if (0 < dest->numAttributes) {
 		memcpy(dest->changedAttributes,
 		       src->changedAttributes, dest->numAttributes * sizeof(SaNtfAttributeChangeT));
@@ -613,7 +613,7 @@ void ntfsv_copy_ntf_state_change(SaNtfStateChangeNotificationT *dest, const SaNt
 	ntfsv_copy_ntf_header(&dest->notificationHeader, &src->notificationHeader);
 	dest->numStateChanges = src->numStateChanges;
 
-	dest->sourceIndicator = src->sourceIndicator;
+	*dest->sourceIndicator = *src->sourceIndicator;
 
 	if (0 < dest->numStateChanges) {
 		memcpy(dest->changedStates, src->changedStates, dest->numStateChanges * sizeof(SaNtfStateChangeT));
@@ -622,7 +622,7 @@ void ntfsv_copy_ntf_state_change(SaNtfStateChangeNotificationT *dest, const SaNt
 
 void ntfsv_dealloc_notification(ntfsv_send_not_req_t *param)
 {
-	TRACE_ENTER2("ntfsv_send_not_req_t ptr = %p " "notificationType = %d", param, (int)param->notificationType);
+	TRACE_ENTER2("ntfsv_send_not_req_t ptr = %p " "notificationType = %#x", param, (int)param->notificationType);
 	switch (param->notificationType) {
 	case SA_NTF_TYPE_ALARM:
 		ntfsv_free_alarm(&param->notification.alarm);

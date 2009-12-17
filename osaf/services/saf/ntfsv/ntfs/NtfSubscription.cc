@@ -83,16 +83,13 @@ NtfSubscription::~NtfSubscription()
 	 while (posN != filterMap.end())
 	 {
 		  NtfFilter* filter = posN->second;  
-		  TRACE_2("filter posN->first %#x filter_ptr=%p", posN->first, filter);
-		  if (filter) {
-			  TRACE_2("Filter of type %#x destroyed", (int)filter->type());
-			  delete filter;
-			  filterMap.erase(posN);  
-		  }
-		  posN++;
+		  TRACE_2("Delete filter type %#x", (int)filter->type());
+		  delete filter;
+		  filterMap.erase(posN++);
 	 }
 	 TRACE_LEAVE();
 }
+
 /**
  * This method is called to get the id of the subscription.
  *

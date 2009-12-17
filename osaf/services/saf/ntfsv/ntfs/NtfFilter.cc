@@ -245,6 +245,7 @@ NtfAlarmFilter::~NtfAlarmFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
 	ntfsv_filter_alarm_free(filter_);
+	free(filter_);
 }
 
 bool NtfAlarmFilter::checkTrend(SaNtfAlarmNotificationT *a)
@@ -325,6 +326,7 @@ NtfSecurityAlarmFilter::~NtfSecurityAlarmFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
 	ntfsv_filter_sec_alarm_free(filter_);
+	free(filter_);
 }
 
 /**
@@ -441,6 +443,7 @@ NtfObjectCreateDeleteFilter::~NtfObjectCreateDeleteFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
 	ntfsv_filter_obj_cr_del_free(filter_);
+	free(filter_);
 }
 
 /**
@@ -474,8 +477,9 @@ NtfStateChangeFilter::~NtfStateChangeFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
 	ntfsv_filter_state_ch_free(filter_);
+	free(filter_);
 }
-
+ 
 /**
  * checkFilter - check if the notification matches the filter. 
  *
@@ -545,6 +549,7 @@ NtfAttributeChangeFilter::~NtfAttributeChangeFilter()
 {
 	TRACE_8("destructor p = %p", filter_);
 	ntfsv_filter_attr_ch_free(filter_);
+	free(filter_);
 }
 
 
