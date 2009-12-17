@@ -27,6 +27,7 @@
  * Module Inclusion Control...
  */
 
+#include <avsv_util.h>
 #include <avd_util.h>
 #include <avd_susi.h>
 #include <immutil.h>

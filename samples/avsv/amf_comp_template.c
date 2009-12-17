@@ -32,6 +32,7 @@
 #include <unistd.h>
 #include <poll.h>
 #include <syslog.h>
+#include <libgen.h>
 
 #include <saAmf.h>
 
@@ -164,6 +165,21 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 	exit(0);
 }
 
+static void create_pid_file(const char *filename_prefix)
+{
+	char path[256];
+	FILE *fp;
+	
+	snprintf(path, sizeof(path), "/var/run/%s.pid", filename_prefix);
+	fp = fopen(path, "w");
+	if (fp == NULL)	{
+		syslog(LOG_ERR, "fopen failed: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+	fprintf(fp, "%d\n", getpid());
+	fclose(fp);
+}
+
 /**
  * 
  * @param argc
@@ -180,12 +196,18 @@ int main(int argc, char **argv)
 	struct pollfd fds[1];
 	char args[256] = {0};
 	int i, j = 0;
+	char *comp_name = getenv("SA_AMF_COMPONENT_NAME");
+
+	create_pid_file(comp_name);
+
+	/* Use syslog for logging. */
+	openlog(basename(argv[0]), LOG_PID, LOG_USER);
 
 	/* The args are printed just to test the argv "augmentation" between comp type and instance */
 	for (i = 0; i < argc; i++)
 		j += sprintf(&args[j], " %s", argv[i]);
 
-	syslog(LOG_INFO, "Started with args: %s", args);
+	syslog(LOG_INFO, "'%s' started with args: '%s'", comp_name, args);
 
 	memset(&amf_callbacks, 0, sizeof(SaAmfCallbacksT));
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
@@ -224,7 +246,7 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-	syslog(LOG_INFO, "'%s' registered", gl_comp_name.value);
+	syslog(LOG_INFO, "'%s' registered with AMF", gl_comp_name.value);
 
 	fds[0].fd = amf_sel_obj;
 	fds[0].events = POLLIN;

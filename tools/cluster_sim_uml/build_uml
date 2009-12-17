@@ -69,6 +69,7 @@ archive=$top/archive
 scripts=$archive/scripts
 root=$top/rootfs
 
+appconfig=${APPCONFIG:-"AppConfig-2N.xml"}
 
 ##   getlibs prog [prog...]
 ##     Return required (and found) dynamic libs for programs.
@@ -83,7 +84,10 @@ cmd_getlibs() {
 
 
 ##   install_testprog
-##     Building and installing the test program.
+##     Building and installing the AMF demo program.
+##     Use environment variable APPCONFIG to name the imm.xml to be used.
+##     Default is "AppConfig-2N.xml"
+##     For example: APPCONFIG=AppConfig-nwayactive.xml ./build_uml install_testprog
 ##
 cmd_install_testprog() {
     src=$opensaf_home/samples/avsv
@@ -99,7 +103,7 @@ cmd_install_testprog() {
 
     test -r $immxml.orig || cp $immxml $immxml.orig
     $opensaf_home/tools/devel/immtools/immxml-merge \
-	$immxml.orig $src/AppConfig-2N.xml > $immxml
+	$immxml.orig $src/$appconfig > $immxml
     $opensaf_home/tools/devel/immtools/immxml-validate $immxml
 }
 

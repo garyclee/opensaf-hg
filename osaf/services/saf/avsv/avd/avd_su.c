@@ -163,10 +163,15 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	const CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc;
-	SaNameT aname;
+	SaNameT saAmfSUType, sg_name;
+	SaNameT	saAmfSUHostNodeOrNodeGroup = {0}, saAmfSGSuHostNodeGroup = {0};
 	SaBoolT abool;
 	SaAmfAdminStateT admstate;
 	char *parent;
+	SaUint32T saAmfSutIsExternal;
+	struct avd_sutype *sut = NULL;
+	CcbUtilOperationData_t *tmp;
+	AVD_SG *sg;
 
 	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
@@ -178,27 +183,126 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	rc = immutil_getAttr("saAmfSUType", attributes, 0, &aname);
+	rc = immutil_getAttr("saAmfSUType", attributes, 0, &saAmfSUType);
 	assert(rc == SA_AIS_OK);
 
-	if (avd_sutype_get(&aname) == NULL) {
+	if ((sut = avd_sutype_get(&saAmfSUType)) != NULL) {
+		saAmfSutIsExternal = sut->saAmfSutIsExternal;
+	} else {
 		/* SU type does not exist in current model, check CCB if passed as param */
 		if (opdata == NULL) {
-			LOG_ER("SU type '%s' does not exist in model", aname.value);
+			LOG_ER("SU type '%s' does not exist in model", saAmfSUType.value);
 			return 0;
 		}
 
-		if (ccbutil_getCcbOpDataByDN(opdata->ccbId, &aname) == NULL) {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUType)) == NULL) {
 			LOG_ER("SU type '%s' does not exist in existing model or in CCB",
-				aname.value);
+				saAmfSUType.value);
 			return 0;
 		}
+
+		rc = immutil_getAttr("saAmfSutIsExternal", tmp->param.create.attrValues, 0, &saAmfSutIsExternal);
+		assert(rc == SA_AIS_OK);
 	}
 
-	if ((immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &aname) == SA_AIS_OK) &&
-	    ((avd_ng_get(&aname) == NULL) && (avd_node_get(&aname) == NULL))) {
-		LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'", aname.value, dn->value);
+	/* Validate that a configured node or node group exist */
+	if ((immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) &&
+	    ((avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
+	     (avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL))) {
+
+		LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'",
+			saAmfSUHostNodeOrNodeGroup.value, dn->value);
 		return 0;
+	}
+
+	/* Get value of saAmfSGSuHostNodeGroup */
+	avsv_sanamet_init(dn, &sg_name, "safSg");
+	sg = avd_sg_get(&sg_name);
+	if (sg) {
+		saAmfSGSuHostNodeGroup = sg->saAmfSGSuHostNodeGroup;
+	} else {
+		if ((tmp = ccbutil_getCcbOpDataByDN(opdata->ccbId, &sg_name)) == NULL) {
+			LOG_ER("SG '%s' does not exist in existing model or in CCB", sg_name.value);
+			return 0;
+		}
+
+		(void) immutil_getAttr("saAmfSGSuHostNodeGroup",
+			tmp->param.create.attrValues, 0, &saAmfSGSuHostNodeGroup);
+	}
+
+	/* If its a local SU, node or nodegroup must be configured */
+	if (!saAmfSutIsExternal && 
+	    (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") == NULL) &&
+	    (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") == NULL) &&
+	    (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") == NULL)) {
+		return 0;
+	}
+
+	/*
+	* "It is an error to define the saAmfSUHostNodeOrNodeGroup attribute for an external
+	* service unit".
+	*/
+	if (saAmfSutIsExternal &&
+	    ((strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") != NULL) ||
+	     (strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL) ||
+	     (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") != NULL))) {
+		return 0;
+	}
+
+	/*
+        * "If node groups are configured for both the service units of a service group and the
+	* service group, the nodes contained in the node group for the service unit can only be
+	* a subset of the nodes contained in the node group for the service group. If a node is
+	* configured for a service unit, it must be a member of the node group for the service
+	* group, if configured."
+        */
+	if ((strstr((char *)saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL) &&
+	    (strstr((char *)saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") != NULL)) {
+		AVD_AMF_NG *ng_of_su, *ng_of_sg;
+		SaNameT *ng_node_list_su, *ng_node_list_sg;
+		int i, j, found;
+
+		ng_of_su = avd_ng_get(&saAmfSUHostNodeOrNodeGroup);
+		if (ng_of_su == NULL) {
+			LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'",
+				saAmfSUHostNodeOrNodeGroup.value, dn->value);
+			return 0;
+		}
+
+		ng_of_sg = avd_ng_get(&saAmfSGSuHostNodeGroup);
+		if (ng_of_su == NULL) {
+			LOG_ER("Invalid saAmfSGSuHostNodeGroup '%s' for '%s'",
+				saAmfSGSuHostNodeGroup.value, dn->value);
+			return 0;
+		}
+
+		if (ng_of_su->number_nodes > ng_of_sg->number_nodes) {
+			LOG_ER("SU node group '%s' contains more nodes than the SG node group '%s'",
+				saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
+			return 0;
+		}
+
+		ng_node_list_su = ng_of_su->saAmfNGNodeList;
+
+		for (i = 0; i < ng_of_su->number_nodes; i++) {
+			found = 0;
+			ng_node_list_sg = ng_of_sg->saAmfNGNodeList;
+
+			for (j = 0; j < ng_of_sg->number_nodes; j++) {
+				if (!memcmp(ng_node_list_su, ng_node_list_sg, sizeof(SaNameT)))
+					found = 1;
+
+				ng_node_list_sg++;
+			}
+
+			if (!found) {
+				LOG_ER("SU node group '%s' is not a subset of the SG node group '%s'",
+					saAmfSUHostNodeOrNodeGroup.value, saAmfSGSuHostNodeGroup.value);
+				return 0;
+			}
+
+			ng_node_list_su++;
+		}
 	}
 
 	// TODO maintenance campaign
@@ -254,11 +358,7 @@ static AVD_SU *su_create(const SaNameT *dn, const SaImmAttrValuesT_2 **attribute
 		su->saAmfSURank = 0;
 	}
 
-	if (immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &su->saAmfSUHostNodeOrNodeGroup) != SA_AIS_OK) {
-		/* TODO: this is no error! */
-		LOG_ER("Get saAmfSUHostNodeOrNodeGroup FAILED for '%s'", dn->value);
-		goto done;
-	}
+	(void) immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &su->saAmfSUHostNodeOrNodeGroup);
 
 	memcpy(&su->saAmfSUHostedByNode, &su->saAmfSUHostNodeOrNodeGroup, sizeof(SaNameT));
 
@@ -289,6 +389,63 @@ done:
 	return su;
 }
 
+/**
+ * Map SU to a node. A node is selected using a static load balancing scheme. Nodes are selected
+ * from a node group in the (unordered) order they appear in the node list in the node group.
+ * @param su
+ * 
+ * @return AVD_AVND*
+ */
+static AVD_AVND *map_su_to_node(const AVD_SU *su)
+{
+	AVD_AMF_NG *ng = NULL;
+	int i;          
+	AVD_SU *su_temp = NULL;
+	AVD_AVND *node = NULL;
+
+	TRACE_ENTER2("'%s'", su->name.value);
+
+	/* If node is configured in SU we are done */
+	if (strstr((char *)su->saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=") != NULL)
+		return avd_node_get(&su->saAmfSUHostNodeOrNodeGroup);
+
+	/* A node group configured in the SU is prioritized before the same in SG */
+	if (strstr((char *)su->saAmfSUHostNodeOrNodeGroup.value, "safAmfNodeGroup=") != NULL)
+		ng = avd_ng_get(&su->saAmfSUHostNodeOrNodeGroup);
+	else {
+		if (strstr((char *)su->sg_of_su->saAmfSGSuHostNodeGroup.value, "safAmfNodeGroup=") != NULL)
+			ng = avd_ng_get(&su->sg_of_su->saAmfSGSuHostNodeGroup);
+	}
+
+	assert(ng);
+
+	/* Find a node in the group that doesn't have a SU in same SG mapped to it already */
+	for (i = 0; i < ng->number_nodes; i++) {
+		node = avd_node_get(&ng->saAmfNGNodeList[i]);
+		assert(node);
+
+		if (su->sg_of_su->sg_ncs_spec == SA_TRUE) {
+			for (su_temp = node->list_of_ncs_su; su_temp != NULL; su_temp = su_temp->sg_list_su_next) {
+				if (su_temp->sg_of_su == su->sg_of_su)
+					break;
+			}
+		}
+
+		if (su->sg_of_su->sg_ncs_spec == SA_FALSE) {
+			for (su_temp = node->list_of_su; su_temp != NULL; su_temp = su_temp->sg_list_su_next) {
+				if (su_temp->sg_of_su == su->sg_of_su)
+					break;
+			}
+		}
+
+		if (su_temp == NULL)
+			return node;
+	}
+
+	/* All nodes already have an SU mapped for the SG. Return a node in the node group. */
+	return avd_node_get(&ng->saAmfNGNodeList[0]);
+}
+
 static void su_add_to_model(AVD_SU *su)
 {
 	unsigned int rc = NCSCC_RC_SUCCESS;
@@ -303,11 +460,11 @@ static void su_add_to_model(AVD_SU *su)
 	avd_sg_add_su(su);
 
 	if (FALSE == su->su_is_external) {
-		if ((su->su_on_node = avd_node_get(&su->saAmfSUHostNodeOrNodeGroup)) == NULL) {
-			avd_sg_remove_su(su);
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
+		su->su_on_node = map_su_to_node(su);
+
+		/* Update the saAmfSUHostedByNode runtime attribute. IMM is updated in avd_init_role_set(). */
+	        memcpy(&su->saAmfSUHostedByNode, &su->su_on_node->node_info.nodeName, sizeof(SaNameT));
+		TRACE("'%s' hosted by '%s'", su->name.value, su->saAmfSUHostedByNode.value);
 
 		avd_node_add_su(su);
 		node = su->su_on_node;
