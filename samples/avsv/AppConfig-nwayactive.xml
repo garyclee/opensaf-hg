@@ -177,7 +177,7 @@
 		</attr>
 		<attr>
 			<name>saAmfSGSuHostNodeGroup</name>
-			<value>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</value>
+			<value>safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSGAutoRepair</name>
@@ -241,14 +241,10 @@
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSUAdminState</name>
@@ -256,18 +252,14 @@
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
 	    </attr>
-	    <attr>
-		<name>saAmfCompInstantiateCmdArgv</name>
-		<value>SC_2_1</value>
-	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
 		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
@@ -277,14 +269,10 @@
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSUAdminState</name>
@@ -292,18 +280,14 @@
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
 	    </attr>
-	    <attr>
-		<name>saAmfCompInstantiateCmdArgv</name>
-		<value>SC_2_2</value>
-	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
 		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
@@ -313,14 +297,10 @@
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=PL_2_3,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSUAdminState</name>
@@ -328,18 +308,14 @@
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=PL_2_3,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
 	    </attr>
-	    <attr>
-		<name>saAmfCompInstantiateCmdArgv</name>
-		<value>PL_2_3</value>
-	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=PL_2_3,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
 		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
@@ -349,14 +325,10 @@
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=PL_2_4,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSUAdminState</name>
@@ -364,18 +336,14 @@
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=PL_2_4,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
 	    </attr>
-	    <attr>
-		<name>saAmfCompInstantiateCmdArgv</name>
-		<value>PL_2_4</value>
-	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=PL_2_4,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
 		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
@@ -385,14 +353,10 @@
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=PL_2_5,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
-		</attr>
-		<attr>
-			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</value>
 		</attr>
 		<attr>
 			<name>saAmfSUAdminState</name>
@@ -400,17 +364,13 @@
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=PL_2_5,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
 	    </attr>
-	    <attr>
-		<name>saAmfCompInstantiateCmdArgv</name>
-		<value>PL_2_5</value>
-	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=PL_2_5,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 </imm:IMM-contents>

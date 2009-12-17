@@ -23,7 +23,7 @@ CMD=$1
 LOGDIR=/var/opt/amf_demo
 RUNDIR=/var/run/amf_demo
 AMFDEMO=/opt/amf_demo/amf_demo
-PIDFILE="${RUNDIR}/amf_demo.pid"
+PIDFILE="/var/run/${SA_AMF_COMPONENT_NAME}".pid
 
 mkdir -p $RUNDIR
 mkdir -p $LOGDIR
