@@ -376,11 +376,11 @@ static uns32 proc_send_not_msg(ntfs_cb_t *cb, ntfsv_ntfs_evt_t *evt)
 
 	TRACE_ENTER();
 	ntfsv_send_not_req_t *param = evt->info.msg.info.api_info.param.send_notification;
-
-	notificationReceived(param->client_id, param->notificationType, param, &evt->mds_ctxt);
+	
 	if (param->notificationType == SA_NTF_TYPE_ALARM) {
 		print_header(&param->notification.alarm.notificationHeader);
 	}
+	notificationReceived(param->client_id, param->notificationType, param, &evt->mds_ctxt);
 
 	/* The allocated resources in ntfsv_enc_dec.c is freed in the destructor in NtfNotification */
 	TRACE_LEAVE();

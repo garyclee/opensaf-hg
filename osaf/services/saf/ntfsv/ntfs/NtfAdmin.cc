@@ -500,17 +500,24 @@ void NtfAdmin::clientRemoved(unsigned int clientId)
  */
 void NtfAdmin::clientRemoveMDS(MDS_DEST mds_dest)
 {
-    TRACE_ENTER2("REMOVE mdsDest: %llu", mds_dest);
-    ClientMap::iterator pos;
-    for (pos = clientMap.begin(); pos != clientMap.end(); pos++)
-    {
-        NtfClient* client = pos->second;
-        if (client->getMdsDest() == mds_dest)
-        {
-            clientRemoved(client->getClientId());
-        }
-    }
-    TRACE_LEAVE();
+	TRACE_ENTER2("REMOVE mdsDest: %llu", mds_dest);
+	ClientMap::iterator pos;
+	bool found = false;
+	do {
+		found = false;		
+		for (pos = clientMap.begin(); pos != clientMap.end(); pos++)
+		{
+			NtfClient* client = pos->second;
+			if (client->getMdsDest() == mds_dest)
+			{
+				clientRemoved(client->getClientId());
+				found = true;
+				/* avoid continue iterate after erase */
+				break;
+			}
+		}
+	} while (found);
+	TRACE_LEAVE();
 }
 
 /**
