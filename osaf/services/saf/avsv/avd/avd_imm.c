@@ -485,7 +485,7 @@ done:
 }
 
 /*****************************************************************************
- * Function: avd_oi_ccb_abort_cb
+ * Function: ccb_abort_cb
  *
  * Purpose: This function handles abort callback for the corresponding 
  *          CCB operation.
@@ -503,6 +503,7 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 
 	TRACE_ENTER2("CCB ID %llu", ccb_id);
 
+	/* Return CCB container memory */
 	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
 	assert(ccb_util_ccb_data);
 	ccbutil_deleteCcbData(ccb_util_ccb_data);
@@ -511,7 +512,7 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 }
 
 /*****************************************************************************
- * Function: avd_oi_ccb_apply_cb
+ * Function: ccb_apply_cb
  *
  * Purpose: This function handles apply callback for the correponding 
  *          CCB operation.
@@ -525,6 +526,7 @@ static void ccb_abort_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
  **************************************************************************/
 static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 {
+	CcbUtilCcbData_t *ccb_util_ccb_data;
 	CcbUtilOperationData_t *opdata = NULL;
 	AVSV_AMF_CLASS_ID type;
 
@@ -536,6 +538,11 @@ static void ccb_apply_cb(SaImmOiHandleT immoi_handle, SaImmOiCcbIdT ccb_id)
 		if (ccb_apply_callback[type] != NULL)
 			ccb_apply_callback[type](opdata);
 	}
+
+	/* Return CCB container memory */
+	ccb_util_ccb_data = ccbutil_findCcbData(ccb_id);
+	assert(ccb_util_ccb_data);
+	ccbutil_deleteCcbData(ccb_util_ccb_data);
 
 	TRACE_LEAVE();
 }

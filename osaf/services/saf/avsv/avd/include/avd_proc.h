@@ -154,4 +154,7 @@ EXTERN_C void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C void avd_rcv_hb_d_msg(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_process_hb_event(AVD_CL_CB *cb_now, struct avd_evt_tag *evt);
 
+extern uns32 avd_fm_inform_hb_evt(AVD_CL_CB *cb, uns32 nodeid, fmHeartbeatIndType);
+extern uns32 avd_fm_init(void);
+
 #endif

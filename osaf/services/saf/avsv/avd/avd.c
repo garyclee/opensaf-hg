@@ -47,6 +47,8 @@
 #include <saImmOm.h>
 #include <immutil.h>
 #include <logtrace.h>
+#include <rda_papi.h>
+
 #include <avd.h>
 #include <avd_hlt.h>
 #include <avd_imm.h>
@@ -159,6 +161,33 @@ static int avd_hb_task_create()
 	return 0;
 }
 
+/**
+ * Callback from RDA. Post a messageto the AVD mailbox.
+ * @param cb_hdl
+ * @param cb_info
+ * @param error_code
+ */
+static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+{
+	uns32 rc;
+	AVD_EVT *evt;
+	AVM_AVD_SYS_CON_ROLE_T *msg;
+
+	TRACE_ENTER();
+
+	evt = malloc(sizeof(AVD_EVT));
+	assert(evt);
+	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
+	evt->info.avm_msg = malloc(sizeof(AVM_AVD_SYS_CON_ROLE_T));
+	evt->info.avm_msg->msg_type = AVM_AVD_SYS_CON_ROLE_MSG;
+	msg = &evt->info.avm_msg->avm_avd_msg.role;
+	msg->cause = AVM_FAIL_OVER;
+	msg->role = cb_info->info.io_role + 1; /* ugly? */
+
+	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	assert(rc == NCSCC_RC_SUCCESS);
+}
+
 /*****************************************************************************
  * Function: avd_init_proc
  *
@@ -172,13 +201,13 @@ static int avd_hb_task_create()
  *
  * 
  **************************************************************************/
-
 uns32 avd_init_proc(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	NCS_PATRICIA_PARAMS patricia_params;
 	int rc = NCSCC_RC_FAILURE;
-        SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+	SaVersionT ntfVersion = { 'A', 0x01, 0x01 };
+	SaAmfHAStateT role;
 
 	TRACE_ENTER();
 
@@ -256,11 +285,31 @@ uns32 avd_init_proc(void)
 	if (avd_hb_task_create() != 0)
 		goto done;
 
-        rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion);
-        if (rc != SA_AIS_OK) {
-                avd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)", rc);
-                goto done;
-        }
+	rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion);
+	if (rc != SA_AIS_OK) {
+		avd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)", rc);
+		goto done;
+	}
+
+	if ((rc = rda_get_role(&role)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_get_role FAILED");
+		goto done;
+	}
+
+	if (avd_init_role_set(cb, role) != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_init_role_set FAILED");
+		goto done;
+	}
+
+	if ((rc = rda_register_callback(0, rda_cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("rda_register_callback FAILED %u", rc);
+		goto done;
+	}
+
+	if (avd_fm_init() != NCSCC_RC_SUCCESS) {
+		LOG_ER("avd_fm_init FAILED %u", rc);
+		goto done;
+	}
 
 	rc = NCSCC_RC_SUCCESS;
 

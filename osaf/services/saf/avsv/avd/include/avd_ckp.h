@@ -104,6 +104,7 @@ typedef uns32 (*AVSV_DECODE_COLD_SYNC_RSP_DATA_FUNC_PTR) (struct cl_cb_tag * cb,
 							  NCS_MBCSV_CB_DEC *enc, uns32 num_of_obj);
 
 /* Function Definations of avd_chkop.c */
+extern uns32 avd_init_role_set(struct cl_cb_tag *cb, SaAmfHAStateT role);
 EXTERN_C void avd_role_change(struct cl_cb_tag *cb, struct avd_evt_tag *evt);
 EXTERN_C uns32 avsv_mbcsv_register(struct cl_cb_tag *cb);
 EXTERN_C uns32 avsv_mbcsv_deregister(struct cl_cb_tag *cb);

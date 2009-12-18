@@ -41,6 +41,7 @@
 /*
  * Module Inclusion Control...
  */
+#include <logtrace.h>
 #include "avd.h"
 
 /****************************************************************************
@@ -64,6 +65,8 @@
  ***************************************************************************/
 void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
+	TRACE_ENTER();
+
 	/* check whether we are in the context of shutdown, if yes
 	   we have to respond back to avm for the shutdown request
 	 */
@@ -107,7 +110,7 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* failover all the SuSIs */
 	avd_node_susi_fail_func(cb, avnd);
-	return;
+	TRACE_LEAVE();
 }
 
 /****************************************************************************
@@ -698,6 +701,8 @@ void avd_avm_nd_reset_rsp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVM_AVD_MSG_T *msg;
 	AVD_AVND *avnd = NULL;
 
+	TRACE_ENTER();
+
 	if (evt->info.avm_msg == NULL) {
 		/* log error that a message contents is missing */
 		m_AVD_LOG_INVALID_VAL_ERROR(0);
@@ -968,3 +973,96 @@ void avd_shutdown_app_su_resp_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	evt->info.avnd_msg = NULL;
 	return;
 }
+
+uns32 avd_fm_inform_hb_evt(AVD_CL_CB *cb, uns32 nodeid, fmHeartbeatIndType type)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaAisErrorT ais_rc;
+	SaHpiEntityPathT ent_path;
+
+	TRACE_ENTER2("%x, %u", nodeid, type);
+
+	ent_path.Entry[0].EntityType = SAHPI_ENT_PHYSICAL_SLOT;
+	ent_path.Entry[0].EntityLocation = (nodeid & 0xf00) >> 8;
+	ent_path.Entry[1].EntityType = SAHPI_ENT_ADVANCEDTCA_CHASSIS;
+	ent_path.Entry[1].EntityLocation = (nodeid & 0x30000) >> 16;
+	ent_path.Entry[2].EntityType = SAHPI_ENT_ROOT;
+	ent_path.Entry[2].EntityLocation = 0;
+
+	ais_rc = fmNodeHeartbeatInd(cb->fm_hdl, type, ent_path);
+	if (ais_rc != SA_AIS_OK) {
+		LOG_ER("fmNodeHeartbeatInd FAILED %u", ais_rc);
+		rc = NCSCC_RC_FAILURE;
+	}
+
+	TRACE_LEAVE2("%u", rc);
+	return rc;
+}
+
+static void fma_node_reset_cb(SaInvocationT inv, SaHpiEntityPathT ent_path)
+{
+	AVD_AVND *node;
+	AVD_EVT *evt;
+	uns32 nodeid = 0xf;
+	int i = 0;
+	uns32 rc;
+
+	TRACE_ENTER();
+
+	do {
+		if (ent_path.Entry[i].EntityType == SAHPI_ENT_PHYSICAL_SLOT)
+			nodeid |= (ent_path.Entry[i].EntityLocation << 8);
+
+		if (ent_path.Entry[i].EntityType == SAHPI_ENT_ADVANCEDTCA_CHASSIS)
+			nodeid |= (ent_path.Entry[i].EntityLocation << 16);
+
+		i++;
+	} while (ent_path.Entry[i].EntityType != SAHPI_ENT_ROOT);
+
+	TRACE("Reset response for node ID %x", nodeid);
+
+	node = avd_node_find_nodeid(nodeid);
+	assert(node);
+	evt = malloc(sizeof(AVD_EVT));
+	assert(evt);
+	evt->rcv_evt = AVD_EVT_ND_RESET_RSP;
+	evt->info.avm_msg = malloc(sizeof(AVM_AVD_MSG_T));
+	assert(evt->info.avm_msg);
+	evt->info.avm_msg->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
+	evt->info.avm_msg->avm_avd_msg.reset_resp.node_name = node->node_info.nodeName;
+	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
+	assert(rc == NCSCC_RC_SUCCESS);
+
+	fmResponse(avd_cb->fm_hdl, inv, SA_AIS_OK);
+
+	TRACE_LEAVE();
+}
+
+uns32 avd_fm_init(void)
+{
+	uns32 rc = NCSCC_RC_SUCCESS;
+	SaVersionT ver = {'B', 1, 1};
+	SaAisErrorT ais_rc;
+	fmCallbacksT fm_cbks;
+
+	TRACE_ENTER();
+
+	fm_cbks.fmNodeResetIndCallback = fma_node_reset_cb;
+	fm_cbks.fmSysManSwitchReqCallback = NULL;
+
+	if ((ais_rc = fmInitialize(&avd_cb->fm_hdl, &fm_cbks, &ver)) != SA_AIS_OK) {
+		LOG_ER("fmInitialize FAILED %u", ais_rc);
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
+	if ((ais_rc = fmSelectionObjectGet(avd_cb->fm_hdl, &avd_cb->fm_sel_obj)) != SA_AIS_OK) {
+		LOG_ER("fmSelectionObjectGet FAILED %u", ais_rc);
+		fmFinalize(avd_cb->fm_hdl);
+		rc = NCSCC_RC_FAILURE;
+	}
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
