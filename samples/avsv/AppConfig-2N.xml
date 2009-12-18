@@ -226,29 +226,25 @@
 			<dn>safBundle=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU1,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
 		</attr>
 		<attr>
 			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
-		</attr>
-		<attr>
-			<name>saAmfSUAdminState</name>
-			<value>3</value>
+			<value>safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</value>
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
@@ -260,32 +256,28 @@
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SC_2_1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU2,safSg=AmfDemo,safApp=AmfDemo</dn>
 		<attr>
 			<name>saAmfSUType</name>
 			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
 		</attr>
 		<attr>
 			<name>saAmfSUHostNodeOrNodeGroup</name>
-			<value>safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</value>
-		</attr>
-		<attr>
-			<name>saAmfSUAdminState</name>
-			<value>3</value>
+			<value>safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</value>
 		</attr>
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo</dn>
 	    <attr>
 		<name>saAmfCompType</name>
 		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
@@ -297,6 +289,6 @@
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SC_2_2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo</dn>
 	</object>
 </imm:IMM-contents>

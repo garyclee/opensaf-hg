@@ -37,10 +37,12 @@
 /*
  * Module Inclusion Control...
  */
+#include <logtrace.h>
 
 #include <avd_hb.h>
 #include <avd_dblog.h>
 #include <avd_avm.h>
+#include <avd_proc.h>
 
 /*****************************************************************************
  * Function: avd_init_heartbeat
@@ -119,7 +121,7 @@ void avd_d2d_heartbeat_msg_func(AVD_CL_CB *cb)
 	   from peer AVD */
 
 	if (FALSE == cb->avd_hrt_beat_rcvd) {
-		avd_avm_d_hb_restore_msg(cb, cb->node_id_avd_other);
+		avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatRestore);
 		/* message sent to AVM */
 		cb->avd_hrt_beat_rcvd = TRUE;
 	}
@@ -199,9 +201,8 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_d_func");
-	m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, NCSFL_SEV_NOTICE, cb->node_id_avd_other);
-	syslog(LOG_WARNING, "AVD: Heart Beat missed with standby director on %x", cb->node_id_avd_other);
+	TRACE_ENTER();
+	LOG_WA("Heart Beat missed with standby director on %x", cb->node_id_avd_other);
 
 	/* we need not do a sync send to stanby */
 	cb->sync_required = FALSE;
@@ -212,8 +213,7 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	/* Inform AVM About this */
-	avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
+	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
 
 	/*Set the first heat beat variable to False */
 	cb->avd_hrt_beat_rcvd = FALSE;
@@ -229,7 +229,7 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
 		avd_avm_send_reset_req(cb, &avnd->node_info.nodeName);
 
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -322,24 +322,14 @@ void avd_mds_avd_down_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-	m_AVD_LOG_FUNC_ENTRY("avd_standby_tmr_rcv_hb_d_func");
-	syslog(LOG_WARNING, "AVD: Heart Beat missed with active director on %x", cb->node_id_avd_other);
+	TRACE_ENTER();
+	LOG_WA("Heart Beat missed with active director on %x", cb->node_id_avd_other);
 
-	m_AVD_LOG_CKPT_EVT(AVD_HB_MISS_WITH_PEER, NCSFL_SEV_NOTICE, cb->node_id_avd_other);
-
-	if (evt->info.tmr.type != AVD_TMR_RCV_HB_D) {
-		/* log error that a wrong timer type value */
-		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-		return;
-	}
-
-	/*Set the first heat beat variable to False */
+	/* Set the first heat beat variable to False */
 	cb->avd_hrt_beat_rcvd = FALSE;
 
-	/* Inform AVM About this */
-	avd_avm_d_hb_lost_msg(cb, cb->node_id_avd_other);
-
-	return;
+	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

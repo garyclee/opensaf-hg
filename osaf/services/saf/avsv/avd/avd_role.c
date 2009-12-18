@@ -42,15 +42,6 @@
 #include <avd_app.h>
 #include <avd_cluster.h>
 
-#define PRINT_ROLE(role)\
-{\
-    (role == 1)?m_NCS_DBG_PRINTF("\n AVD: ROLE = %s", "ACTIVE"):\
-    (role == 2)?m_NCS_DBG_PRINTF("\n AVD: ROLE = %s", "STANDBY"):\
-    (role == 3)?m_NCS_DBG_PRINTF("\n AVD: ROLE = %s", "QUIESCED"):\
-                m_NCS_DBG_PRINTF("\n AVD: ROLE = %d",  role);\
-}
-
-static uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB *cb, SaAmfHAStateT role);
@@ -195,6 +186,21 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 	return;
 }
 
+static const char *role_to_str(SaAmfHAStateT role)
+{
+	switch (role) {
+	case SA_AMF_HA_ACTIVE:
+		return "ACTIVE";
+		break;
+	case SA_AMF_HA_STANDBY:
+		return "STANDBY";
+		break;
+	default:
+		return "unknown";
+		break;
+	}
+}
+
 /****************************************************************************\
  * Function: avd_init_role_set
  *
@@ -209,12 +215,11 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
  *
  * 
 \**************************************************************************/
-static uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
+uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 {
 	uns32 status = NCSCC_RC_FAILURE;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_init_role_set");
-	PRINT_ROLE(role);
+	LOG_NO("I am %s", role_to_str(role));
 
 	/*
 	 * Set mds VDEST initial role. We need not send the role to AvND
@@ -454,9 +459,8 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	uns32 status = NCSCC_RC_SUCCESS;
 	AVD_AVND *avnd = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_role_failover");
-	m_NCS_DBG_PRINTF("\nFAILOVER StandBy --> Active");
-	syslog(LOG_NOTICE, "FAILOVER StandBy --> Active");
+	TRACE_ENTER();
+	LOG_NO("FAILOVER StandBy --> Active");
 
 	/* If we are in the middle of admin switch, ignore it */
 	if (cb->role_switch == SA_TRUE) {
@@ -544,6 +548,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	if (avd_imm_impl_set() != SA_AIS_OK)
 		return NCSCC_RC_FAILURE;
 
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

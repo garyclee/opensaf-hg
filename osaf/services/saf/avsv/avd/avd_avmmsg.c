@@ -45,6 +45,7 @@
 /*
  * Module Inclusion Control...
  */
+#include <logtrace.h>
 #include "avd.h"
 #include "avd_avm.h"
 
@@ -188,6 +189,8 @@ uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
 	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	assert(0);
+
 	/* Fill in the message */
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_NODE_SHUTDOWN_RESP_MSG;
@@ -225,6 +228,8 @@ uns32 avd_avm_send_failover_resp(AVD_CL_CB *cb, SaNameT *node, uns32 status)
 	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	assert(0);
+
 	/* Fill in the message */
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
 	snd_msg->msg_type = AVD_AVM_NODE_FAILOVER_RESP_MSG;
@@ -260,6 +265,8 @@ uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *cb, SaNameT *node)
 {
 	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	assert(0);
 
 	/* Fill in the message */
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
@@ -297,6 +304,7 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_avm_send_reset_req");
+	assert(0);
 
 	/* Fill in the message */
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
@@ -349,206 +357,8 @@ uns32 avd_avm_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
 ******************************************************************************/
 uns32 avd_avm_role_rsp(AVD_CL_CB *cb, NCS_BOOL status, SaAmfHAStateT role)
 {
-	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_avm_role_rsp");
-
-	PRINT_ROLE(role, status);
-/* m_NCS_DBG_PRINTF("\nAVD: ROLE = %d -- RESP = %d\n",role,status); */
-
-	/* Fill in the message */
-	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
-	snd_msg->msg_type = AVD_AVM_SYS_CON_ROLE_ACK_MSG;
-	snd_msg->avd_avm_msg.role_ack.rc = status;
-	snd_msg->avd_avm_msg.role_ack.role = role;
-
-	rc = avd_avm_send_msg(cb, snd_msg);
-
-	if (rc != NCSCC_RC_SUCCESS)
-		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
-
-	if (status != TRUE) {
-		m_AVD_LOG_INVALID_VAL_ERROR(status);
-		m_AVD_LOG_INVALID_VAL_ERROR(role);
-	}
-
-	return rc;
-}
-
-/****************************************************************************
-*  Name          : avd_avm_d_hb_lost_msg
-* 
-*  Description   : This is a routine that is invoked to send a hb lost
-*                  message to AvM.
-* 
-*  Arguments     : cb    - AvD control block Handle.
-* 
-*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-* 
-*  Notes         : 
-******************************************************************************/
-uns32 avd_avm_d_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
-{
-	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
-	AVD_AVND *avnd;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_avm_hb_lost_msg");
-
-	/* Fill in the message */
-	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
-	snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_LOST_MSG;
-
-	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_node_find_nodeid(node))) {
-		m_AVD_LOG_INVALID_VAL_ERROR(node);
-		return NCSCC_RC_FAILURE;
-	}
-
-	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = avnd->node_info.nodeName.length;
-
-	memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value,
-	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
-
-	rc = avd_avm_send_msg(cb, snd_msg);
-
-	if (rc != NCSCC_RC_SUCCESS)
-		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
-
-	return rc;
-}
-
-/****************************************************************************
-*  Name          : avd_avm_d_hb_restore_msg
-* 
-*  Description   : This is a routine that is invoked to send a hb restore
-*                  message to AvM.
-* 
-*  Arguments     : cb    - AvD control block Handle.
-* 
-*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-* 
-*  Notes         : 
-******************************************************************************/
-uns32 avd_avm_d_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
-{
-	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
-	AVD_AVND *avnd;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_avm_hb_restore_msg");
-
-	/* Fill in the message */
-	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
-	snd_msg->msg_type = AVD_AVM_D_HRT_BEAT_RESTORE_MSG;
-
-	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_node_find_nodeid(node))) {
-		m_AVD_LOG_INVALID_VAL_ERROR(node);
-		return NCSCC_RC_FAILURE;
-	}
-
-	snd_msg->avd_avm_msg.avd_hb_info.node_name.length = avnd->node_info.nodeName.length;
-
-	memcpy(&snd_msg->avd_avm_msg.avd_hb_info.node_name.value,
-	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avd_hb_info.node_name.length);
-
-	rc = avd_avm_send_msg(cb, snd_msg);
-
-	if (rc != NCSCC_RC_SUCCESS)
-		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
-
-	return rc;
-}
-
-/****************************************************************************
-*  Name          : avd_avm_nd_hb_lost_msg
-* 
-*  Description   : This is a routine that is invoked to send a hb lost
-*                  message to AvM.
-* 
-*  Arguments     : cb    - AvD control block Handle.
-* 
-*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-* 
-*  Notes         : 
-******************************************************************************/
-uns32 avd_avm_nd_hb_lost_msg(AVD_CL_CB *cb, uns32 node)
-{
-	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
-	AVD_AVND *avnd;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Fill in the message */
-	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
-	snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_LOST_MSG;
-	/* Fill in the logical node_id */
-	snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
-
-	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_node_find_nodeid(node))) {
-		m_AVD_LOG_INVALID_VAL_FATAL(node);
-		return NCSCC_RC_FAILURE;
-	}
-
-	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = avnd->node_info.nodeName.length;
-
-	memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value,
-	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
-
-	rc = avd_avm_send_msg(cb, snd_msg);
-
-	if (rc != NCSCC_RC_SUCCESS)
-		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
-
-	return rc;
-}
-
-/****************************************************************************
-*  Name          : avd_avm_nd_hb_restore_msg
-* 
-*  Description   : This is a routine that is invoked to send a hb restore 
-*                  message to AvM.
-* 
-*  Arguments     : cb    - AvD control block Handle.
-* 
-*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-* 
-*  Notes         : 
-******************************************************************************/
-uns32 avd_avm_nd_hb_restore_msg(AVD_CL_CB *cb, uns32 node)
-{
-	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
-	AVD_AVND *avnd;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* Fill in the message */
-	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));
-	snd_msg->msg_type = AVD_AVM_ND_HRT_BEAT_RESTORE_MSG;
-
-	/*Using the lost Heart beat structure only , as same information is 
-	   is to be send */
-	/* Fill in the logical node_id */
-	snd_msg->avd_avm_msg.avnd_hb_info.node_id = node;
-
-	/* Find the node from the node ID */
-	if (NULL == (avnd = avd_node_find_nodeid(node))) {
-		m_AVD_LOG_INVALID_VAL_FATAL(node);
-		return NCSCC_RC_FAILURE;
-	}
-
-	snd_msg->avd_avm_msg.avnd_hb_info.node_name.length = avnd->node_info.nodeName.length;
-
-	memcpy(&snd_msg->avd_avm_msg.avnd_hb_info.node_name.value,
-	       avnd->node_info.nodeName.value, snd_msg->avd_avm_msg.avnd_hb_info.node_name.length);
-
-	rc = avd_avm_send_msg(cb, snd_msg);
-
-	if (rc != NCSCC_RC_SUCCESS)
-		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
-
-	return rc;
+	TRACE_ENTER2("%u", status);
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************\

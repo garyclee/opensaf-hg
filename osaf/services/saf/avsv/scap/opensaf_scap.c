@@ -27,7 +27,6 @@
 
 #include <avd_dl_api.h>
 #include <avnd_dl_api.h>
-#include <avm_dl_api.h>
 
 static NCSCONTEXT avnd_sem;
 extern char gl_nid_svc_name[];
@@ -94,11 +93,6 @@ int main(int argc, char **argv)
 
 	if (avnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "AVND lib request failed\n");
-		goto done;
-	}
-
-	if (avm_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		fprintf(stderr, "AVM lib request failed\n");
 		goto done;
 	}
 

@@ -46,9 +46,12 @@
 #include <avd_imm.h>
 #include <avd_cluster.h>
 
-#define FD_MBX   0
-#define FD_MBCSV 1
-#define FD_IMM   2
+enum {
+	FD_MBX = 0,
+	FD_MBCSV,
+	FD_FMA,
+	FD_IMM
+} AVD_FDS;
 
 static nfds_t nfds = FD_IMM + 1;
 static struct pollfd fds[FD_IMM + 1];
@@ -580,6 +583,8 @@ void avd_main_proc(void *null)
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_MBCSV].fd = cb->mbcsv_sel_obj;
 	fds[FD_MBCSV].events = POLLIN;
+	fds[FD_FMA].fd = cb->fm_sel_obj;
+	fds[FD_FMA].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
 	nfds = FD_IMM + 1;
@@ -722,6 +727,11 @@ void avd_main_proc(void *null)
 				avd_d2n_msg_dequeue(cb);
 			}
 		}		/* End of if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN)  */
+
+		if (fds[FD_FMA].revents & POLLIN) {
+			TRACE("FM event rec");
+			fmDispatch(avd_cb->fm_hdl, SA_DISPATCH_ONE);
+		}
 	}
 
 	syslog(LOG_CRIT, "AVD Thread Failed");

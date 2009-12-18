@@ -323,7 +323,7 @@ void avd_nd_heartbeat_msg_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	   yes than inform AVM 
 	 */
 	if (FALSE == avnd->hrt_beat_rcvd) {
-		if (NCSCC_RC_SUCCESS != avd_avm_nd_hb_restore_msg(cb, avnd->node_info.nodeId)) {
+		if (NCSCC_RC_SUCCESS != avd_fm_inform_hb_evt(cb, avnd->node_info.nodeId, fmHeartbeatRestore)) {
 			/* log error that the node id is invalid */
 			m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
 			m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
@@ -368,13 +368,9 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
 	AVD_AVND *avnd = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_tmr_rcv_hb_nd_func");
+	TRACE_ENTER();
 
-	if (evt->info.tmr.type != AVD_TMR_RCV_HB_ND) {
-		/* log error that a wrong timer type value */
-		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.type);
-		return;
-	}
+	assert(evt->info.tmr.type == AVD_TMR_RCV_HB_ND);
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
 		/* log error that a cluster is admin down */
@@ -393,7 +389,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	syslog(LOG_WARNING, "AVD: Heart Beat missed with node director on %x", evt->info.tmr.node_id);
+	LOG_WA("Heart Beat missed with node director on %x", evt->info.tmr.node_id);
 
 	/* get avnd ptr to call avd_avm_mark_nd_absent */
 	if ((avnd = avd_node_find_nodeid(evt->info.tmr.node_id)) == NULL) {
@@ -412,7 +408,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	 *
 	 * Mark the node status as ???
 	 */
-	if (NCSCC_RC_SUCCESS != avd_avm_nd_hb_lost_msg(cb, evt->info.tmr.node_id)) {
+	if (NCSCC_RC_SUCCESS != avd_fm_inform_hb_evt(cb, evt->info.tmr.node_id, fmHeartbeatLost)) {
 		/* log error that the node id is invalid */
 		m_AVD_LOG_INVALID_VAL_FATAL(evt->info.tmr.node_id);
 		return;
@@ -422,7 +418,7 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
 		avd_avm_send_reset_req(cb, &avnd->node_info.nodeName);
 
-	return;
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************

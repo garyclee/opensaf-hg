@@ -18,7 +18,7 @@
 #ifndef FM_PAPI_H
 #define FM_PAPI_H
 
-#include "saAis.h"
+#include <saAis.h>
 #include <SaHpi.h>
 
 #define FMA_UNS32_HDL_MAX 0xffffffff
@@ -49,20 +49,20 @@ typedef struct {
 /********* FMA API declarations ******************/
 /*************************************************/
 
-EXTERN_C SaAisErrorT fmInitialize(fmHandleT *fmHandle, const fmCallbacksT *fmCallbacks, SaVersionT *version);
+extern SaAisErrorT fmInitialize(fmHandleT *fmHandle, const fmCallbacksT *fmCallbacks, SaVersionT *version);
 
-EXTERN_C SaAisErrorT fmSelectionObjectGet(fmHandleT fmHandle, SaSelectionObjectT *selectionObject);
+extern SaAisErrorT fmSelectionObjectGet(fmHandleT fmHandle, SaSelectionObjectT *selectionObject);
 
-EXTERN_C SaAisErrorT fmDispatch(fmHandleT fmHandle, SaDispatchFlagsT dispatchFlags);
+extern SaAisErrorT fmDispatch(fmHandleT fmHandle, SaDispatchFlagsT dispatchFlags);
 
-EXTERN_C SaAisErrorT fmFinalize(fmHandleT fmHandle);
+extern SaAisErrorT fmFinalize(fmHandleT fmHandle);
 
-EXTERN_C SaAisErrorT fmCanSwitchoverProceed(fmHandleT fmHandle, SaBoolT *CanSwitchoverProceed);
+extern SaAisErrorT fmCanSwitchoverProceed(fmHandleT fmHandle, SaBoolT *CanSwitchoverProceed);
 
-EXTERN_C SaAisErrorT fmNodeResetInd(fmHandleT fmHandle, SaHpiEntityPathT entityReset);
+extern SaAisErrorT fmNodeResetInd(fmHandleT fmHandle, SaHpiEntityPathT entityReset);
 
-EXTERN_C SaAisErrorT fmNodeHeartbeatInd(fmHandleT fmHandle, fmHeartbeatIndType fmHbType, SaHpiEntityPathT entityReset);
+extern SaAisErrorT fmNodeHeartbeatInd(fmHandleT fmHandle, fmHeartbeatIndType fmHbType, SaHpiEntityPathT entityReset);
 
-EXTERN_C SaAisErrorT fmResponse(fmHandleT fmHandle, SaInvocationT invocation, SaAisErrorT error);
+extern SaAisErrorT fmResponse(fmHandleT fmHandle, SaInvocationT invocation, SaAisErrorT error);
 
 #endif
