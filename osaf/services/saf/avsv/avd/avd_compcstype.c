@@ -290,7 +290,7 @@ SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 	searchParam.searchOneAttr.attrValue = &className;
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, comp_name, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR, &searchParam,
 		attributeNames, &searchHandle);
 
 	if (SA_AIS_OK != error) {
