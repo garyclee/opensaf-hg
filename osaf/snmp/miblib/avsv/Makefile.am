@@ -27,7 +27,7 @@ miblib:
 		smidump -R $(top_srcdir)/OpenSAFCopyRights \
 		-f ncsmiblib \
 		-d $(top_builddir)/osaf \
-		SAF-AMF-MIB SAF-CLM-MIB NCS-AVSV-MIB NCS-AVM-MIB; \
+		NCS-AVM-MIB; \
 		touch miblib.gen; \
 	fi)
 

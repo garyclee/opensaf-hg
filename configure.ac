@@ -36,23 +36,28 @@ AC_SUBST([OPENSAF_BUGREPORT])
 AC_SUBST([ac_configure_args])
 
 
+#
 # Check if rpath is disabled
-AC_MSG_CHECKING(whether to use rpath)
-AC_ARG_ENABLE(rpath,
+#
+AC_MSG_CHECKING([whether to use rpath])
+AC_ARG_ENABLE([rpath],
 	[AC_HELP_STRING([--disable-rpath],
-			[Patches libtool to not use rpath in the libraries produced.])],
-	[osaf_cv_rpath="$enable_rpath"], [osaf_cv_rpath="yes"])
-AC_MSG_RESULT($osaf_cv_rpath)
+		[Patches libtool to not use rpath in the libraries produced.])],
+	[],
+	[osaf_cv_rpath=yes])
+AC_MSG_RESULT([$osaf_cv_rpath])
 
 # Patch libtool to not use rpath if requested.
 if test "$osaf_cv_rpath" = "no"; then
- AC_MSG_RESULT([Patching libtool to not use rpath.])
- sed < libtool > libtool-2 \
-   's/^hardcode_libdir_flag_spec.*$'/'hardcode_libdir_flag_spec=" -D__LIBTOOL_NO_RPATH__ "/'
- mv libtool-2 libtool
- chmod 755 libtool
+	AC_MSG_RESULT([Patching libtool to not use rpath.])
+	sed < libtool > libtool-2 \
+		's/^hardcode_libdir_flag_spec.*$'/'hardcode_libdir_flag_spec=" -D__LIBTOOL_NO_RPATH__ "/'
+	mv libtool-2 libtool
+	chmod 755 libtool
 fi
 
+
+#
 # The RPM spec file has a container for the package release number (default to
 # one), it is possible to customize that value with this configure option.
 #
@@ -119,11 +124,13 @@ AC_SUBST([WITH_HPI_INTERFACE], ["$with_hpi_interface"])
 # Some build systems support their own 'make rpm' rule, offer the possibility to
 # disable the one provided with OpenSAF
 #
+AC_MSG_CHECKING([whether to enable the make rpm target])
 AC_ARG_ENABLE([rpm-target],
         [AS_HELP_STRING([--disable-rpm-target],
                 [disable support for the "make rpm" target [default=no]])],
         [],
         [enable_rpm_target=yes])
+AC_MSG_RESULT([$enable_rpm_target])
 
 AM_CONDITIONAL([ENABLE_RPM_TARGET], [test "$enable_rpm_target" = yes])
 
@@ -133,11 +140,13 @@ AM_CONDITIONAL([ENABLE_RPM_TARGET], [test "$enable_rpm_target" = yes])
 # copy of the modified libsmi, in this case you don't need to build it each time
 # when building OpenSAF.
 #
+AC_MSG_CHECKING([whether to enable building the custom smidump tool])
 AC_ARG_ENABLE([smidump],
         [AS_HELP_STRING([--disable-smidump],
                 [disable building the custom NCS smidump tool [default=no]])],
         [],
         [enable_smidump=yes])
+AC_MSG_RESULT([$enable_smidump])
 
 AM_CONDITIONAL([ENABLE_SMIDUMP], [test "$enable_smidump" = yes])
 AC_SUBST([SMIDUMP_ENABLED], ["$enable_smidump"])
@@ -226,11 +235,13 @@ AC_SUBST([XML2_CONFIG_BIN], ["$with_xml2_config_bin"])
 #
 # Enable/disable global HPI hardware management support
 #
+AC_MSG_CHECKING([whether to enable the HPI integration support])
 AC_ARG_ENABLE([hpi],
         [AS_HELP_STRING([--enable-hpi],
                 [enable hardware management with HPI [default=yes]])],
         [],
         [enable_hpi=yes])
+AC_MSG_RESULT([$enable_hpi])
 
 AM_CONDITIONAL([ENABLE_HPI], [test "$enable_hpi" = yes])
 AC_SUBST([HPI_ENABLED], ["$enable_hpi"])
@@ -264,11 +275,13 @@ AC_SUBST([OPENHPI_ENABLED], ["$with_openhpi"])
 #
 m4_include([m4/java.m4])
 
+AC_MSG_CHECKING([whether to enable the Java AIS interface mapping])
 AC_ARG_ENABLE([java],
         [AS_HELP_STRING([--enable-java],
                 [enable the Java AIS interface mapping [default=no]])],
         [],
         [enable_java=no])
+AC_MSG_RESULT([$enable_java])
 
 AM_CONDITIONAL([ENABLE_JAVA], [test "$enable_java" = yes])
 AC_SUBST([JAVA_ENABLED], ["$enable_java"])
@@ -277,11 +290,13 @@ AC_SUBST([JAVA_ENABLED], ["$enable_java"])
 #
 # Enable/disable building the OpenSAF tests
 #
+AC_MSG_CHECKING([whether to enable building the OpenSAF tests])
 AC_ARG_ENABLE([tests],
         [AS_HELP_STRING([--enable-tests],
                 [enable building the OpenSAF testing programs [default=no]])],
         [],
         [enable_tests=no])
+AC_MSG_RESULT([$enable_tests])
 
 AM_CONDITIONAL([ENABLE_TESTS], [test "$enable_tests" = yes])
 AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
@@ -901,55 +916,55 @@ echo ""
 echo "======================================================="
 echo "OpenSAF Build Configuration Summary"
 echo "======================================================="
-echo "Version: $VERSION"
-echo "Release: $OPENSAF_RPM_RELEASE"
+echo " Version: $VERSION"
+echo " Release: $OPENSAF_RPM_RELEASE"
 echo ""
-echo "Installation Directories:"
-echo "${ECHO_T} prefix: ${prefix}"
-echo "${ECHO_T} bindir: ${bindir}"
-echo "${ECHO_T} sbindir: ${sbindir}"
-echo "${ECHO_T} datadir: ${datadir}"
-echo "${ECHO_T} sysconfdir: ${sysconfdir}"
-echo "${ECHO_T} docdir: ${docdir}"
-echo "${ECHO_T} localstatedir: ${localstatedir}"
-echo "${ECHO_T} includedir: ${includedir}"
-echo "${ECHO_T} libdir: ${libdir}"
+echo " Installation Directories:"
+echo "${ECHO_T}  prefix: ${prefix}"
+echo "${ECHO_T}  exec_prefix: ${exec_prefix}"
+echo "${ECHO_T}  bindir: ${bindir}"
+echo "${ECHO_T}  sbindir: ${sbindir}"
+echo "${ECHO_T}  datadir: ${datadir}"
+echo "${ECHO_T}  sysconfdir: ${sysconfdir}"
+echo "${ECHO_T}  docdir: ${docdir}"
+echo "${ECHO_T}  localstatedir: ${localstatedir}"
+echo "${ECHO_T}  includedir: ${includedir}"
+echo "${ECHO_T}  libdir: ${libdir}"
 echo ""
-echo "Compiling Options:"
-echo "${ECHO_T} Host CPU: ${host_cpu}"
-echo "${ECHO_T} C Compiler: ${CC}"
-echo "${ECHO_T} C++ Compiler: ${CXX}"
-echo "${ECHO_T} CFLAGS: ${CFLAGS} ${AM_CFLAGS}"
-echo "${ECHO_T} CXXFLAGS: ${CXXFLAGS} ${AM_CXXFLAGS}"
-echo "${ECHO_T} LDFLAGS: ${LDFLAGS}"
-echo "${ECHO_T} srcdir: ${srcdir}"
+echo " Compiling Options:"
+echo "${ECHO_T}  C Compiler: ${CC}"
+echo "${ECHO_T}  C++ Compiler: ${CXX}"
+echo "${ECHO_T}  CFLAGS: ${CFLAGS} ${AM_CFLAGS}"
+echo "${ECHO_T}  CXXFLAGS: ${CXXFLAGS} ${AM_CXXFLAGS}"
+echo "${ECHO_T}  LDFLAGS: ${LDFLAGS}"
+echo "${ECHO_T}  Enable RPATH: ${osaf_cv_rpath}"
 
 if test "$srcdir" == "."; then
-        echo "${ECHO_T} Using VPATH: no"
+        echo "${ECHO_T}  Using VPATH: no"
 else
-        echo "${ECHO_T} Using VPATH: yes"
+        echo "${ECHO_T}  Using VPATH: yes"
 fi
 
 AM_CONDITIONAL([WITH_VPATH], [test "$srcdir" != "."])
 
 echo ""
-echo "Dependencies Options:"
+echo " Dependencies Options:"
 
 if test "$enable_hpi" = yes; then
-        echo "${ECHO_T} HPI_CFLAGS: ${HPI_CFLAGS}"
-        echo "${ECHO_T} HPI_LIBS: ${HPI_LIBS}"
+        echo "${ECHO_T}  HPI_CFLAGS: ${HPI_CFLAGS}"
+        echo "${ECHO_T}  HPI_LIBS: ${HPI_LIBS}"
 fi
 
-echo "${ECHO_T} NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
-echo "${ECHO_T} NETSNMP_LIBS: ${NETSNMP_LIBS}"
-echo "${ECHO_T} MIBDIRS: ${MIBDIRS}"
-echo "${ECHO_T} XML2_CFLAGS: ${XML2_CFLAGS}"
-echo "${ECHO_T} XML2_LIBS: ${XML2_LIBS}"
+echo "${ECHO_T}  NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
+echo "${ECHO_T}  NETSNMP_LIBS: ${NETSNMP_LIBS}"
+echo "${ECHO_T}  MIBDIRS: ${MIBDIRS}"
+echo "${ECHO_T}  XML2_CFLAGS: ${XML2_CFLAGS}"
+echo "${ECHO_T}  XML2_LIBS: ${XML2_LIBS}"
 echo ""
-echo "OpenSAF Options:"
-echo "${ECHO_T} Enable Java AIS Mapping: ${enable_java}"
-echo "${ECHO_T} Enable HPI support: ${enable_hpi}"
-echo "${ECHO_T} Enable OpenHPI: ${with_openhpi}"
-echo "${ECHO_T} Enable Building NCS smidump: ${enable_smidump}"
+echo " OpenSAF Options:"
+echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
+echo "${ECHO_T}  Enable HPI support: ${enable_hpi}"
+echo "${ECHO_T}  Enable OpenHPI: ${with_openhpi}"
+echo "${ECHO_T}  Enable Building NCS smidump: ${enable_smidump}"
 echo "======================================================="
 echo ""
