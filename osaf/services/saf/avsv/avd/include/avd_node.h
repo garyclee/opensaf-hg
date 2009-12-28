@@ -100,6 +100,12 @@ typedef struct avd_avnd_tag {
 	SaBoolT saAmfNodeFailfastOnInstantiationFailure;
 	SaAmfAdminStateT saAmfNodeAdminState;
 	SaAmfOperationalStateT saAmfNodeOperState;
+
+	AVD_ADMIN_OPER_CBK admin_node_pend_cbk;	/*to store any pending admin op
+						   callbacks on this node */
+	uns32 su_cnt_admin_oper;	/* count to keep track SUs on this node 
+					   undergoing node admin op */
+
    /************ AMF B.04 **************************************************/
 
 	SaNameT hpi_entity_path;	/* The entity path of the HPI entity that
@@ -165,12 +171,6 @@ typedef struct avd_node_sw_bundle_tag {
 
 #define AVD_AVND_NULL     ((AVD_AVND *)0)
 
-#define m_AVD_SET_AVND_SU_ADMIN(cb,node,state) {\
-node->saAmfNodeAdminState = state;\
-m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_ADMIN_STATE);\
-avd_gen_node_admin_state_changed_ntf(cb,node);\
-}
-
 #define m_AVD_SET_AVND_RCV_ID(cb,node,rcvid) {\
 node->rcv_msg_id = rcvid;\
 m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, node, AVSV_CKPT_AVND_RCV_MSG_ID);\
@@ -209,11 +209,12 @@ extern AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id);
 extern SaAisErrorT avd_node_config_get(void);
 extern void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state);
 extern void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state);
+extern void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state);
 extern void avd_node_constructor(void);
 extern void avd_node_add_su(struct avd_su_tag *su);
 extern void avd_node_remove_su(struct avd_su_tag *su);
-extern void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl);
-extern void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl);
+extern void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
+extern void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
 
 /* AMF Node group */
 extern SaAisErrorT avd_ng_config_get(void);

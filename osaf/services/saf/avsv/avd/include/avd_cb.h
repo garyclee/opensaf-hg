@@ -115,6 +115,12 @@ typedef struct avd_si_dep {
 					   acts as a primary key */
 } AVD_SI_DEP;
 
+/* AVD IMM Admin Operation Callback */
+typedef struct admin_oper_cbk {
+	SaAmfAdminOperationIdT admin_oper;
+	SaInvocationT invocation;
+} AVD_ADMIN_OPER_CBK;
+
 /* Cluster Control Block (Cl_CB): This data structure lives
  * in the AvD and is the anchor structure for all internal data structures.
  */
@@ -259,7 +265,7 @@ typedef struct cl_cb_tag {
 	SaImmOiHandleT immOiHandle;
 	SaImmOiHandleT immOmHandle;
 	SaSelectionObjectT imm_sel_obj;
-        NCS_BOOL  impl_set;
+	NCS_BOOL impl_set;
 
 } AVD_CL_CB;
 

@@ -50,11 +50,6 @@ typedef enum {
 	AVD_SU_NODE_OPER
 } AVD_SU_STATE;
 
-typedef struct admin_oper_cbk {
-	SaAmfAdminOperationIdT     admin_oper;
-	SaInvocationT              invocation;
-} AVD_ADMIN_OPER_CBK;
-
 /* Avialability directors Service Unit structure(AVD_SU):
  * This data structure lives in the AvD and reflects data points
  * associated with the Service Unit (SU) on the AvD.
@@ -63,28 +58,28 @@ typedef struct avd_su_tag {
 
 	NCS_PATRICIA_NODE tree_node;	/* key will be the SU name */
 
-	SaNameT  name;	           
-	SaNameT  saAmfSUType;
-	uns32    saAmfSURank;
-	SaNameT  saAmfSUHostNodeOrNodeGroup;
-	SaBoolT  saAmfSUFailover;
-	SaNameT  saAmfSUMaintenanceCampaign;
+	SaNameT name;
+	SaNameT saAmfSUType;
+	uns32 saAmfSURank;
+	SaNameT saAmfSUHostNodeOrNodeGroup;
+	SaBoolT saAmfSUFailover;
+	SaNameT saAmfSUMaintenanceCampaign;
 
 	/* runtime attributes */
-	SaBoolT                saAmfSUPreInstantiable;
+	SaBoolT saAmfSUPreInstantiable;
 	SaAmfOperationalStateT saAmfSUOperState;
-	SaAmfAdminStateT       saAmfSUAdminState;
-	SaAmfReadinessStateT   saAmfSuReadinessState;
-	SaAmfPresenceStateT    saAmfSUPresenceState;
-	SaNameT              **saAmfSUAssignedSIs;
-	SaNameT                saAmfSUHostedByNode;
-	SaUint32T              saAmfSUNumCurrActiveSIs;
-	SaUint32T              saAmfSUNumCurrStandbySIs;
-	SaUint32T              saAmfSURestartCount;	// TODO use this!
+	SaAmfAdminStateT saAmfSUAdminState;
+	SaAmfReadinessStateT saAmfSuReadinessState;
+	SaAmfPresenceStateT saAmfSUPresenceState;
+	SaNameT **saAmfSUAssignedSIs;
+	SaNameT saAmfSUHostedByNode;
+	SaUint32T saAmfSUNumCurrActiveSIs;
+	SaUint32T saAmfSUNumCurrStandbySIs;
+	SaUint32T saAmfSURestartCount;	// TODO use this!
 
-	AVD_ADMIN_OPER_CBK     pend_cbk; /* Stores zero invocation value of imm adm cbk
-					  * when no admin operation is going on.
-					  */
+	AVD_ADMIN_OPER_CBK pend_cbk;	/* Stores zero invocation value of imm adm cbk
+					 * when no admin operation is going on.
+					 */
 
 	uns32 num_of_comp;	/* The number of components
 				 * that will make up this SU
@@ -105,7 +100,6 @@ typedef struct avd_su_tag {
 				 * Sis that can be assigned to this SU.
 				 * Checkpointing - Sent as a one time update.
 				 */
-
 
 	NCS_BOOL term_state;	/* admin state to terminate the
 				 * service unit.

@@ -349,8 +349,7 @@ uns32 avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 					if (avd_sg_su_si_mod_snd(cb, su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
 						/* log a fatal error */
 						m_AVD_LOG_INVALID_VAL_ERROR(((long)su));
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-										     su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 						return NCSCC_RC_FAILURE;
 					}
 
@@ -397,7 +396,7 @@ uns32 avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 
@@ -431,7 +430,7 @@ uns32 avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 			}	/* if (su->list_of_susi->state == SA_AMF_HA_QUIESCING) */
@@ -735,8 +734,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 					/* log a fatal error */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-									     susi->si->name.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 					return NCSCC_RC_FAILURE;
@@ -782,7 +780,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 
@@ -828,8 +826,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 			} else {
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-								     susi->si->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 
 				/* free all the CSI assignments  */
 				avd_compcsi_delete(cb, susi, FALSE);
@@ -876,7 +873,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 					m_AVD_LOG_INVALID_VAL_FATAL(((long)su->list_of_susi));
 					m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
 					m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->list_of_susi->si->name.value,
-						su->list_of_susi->si->name.length);
+									 su->list_of_susi->si->name.length);
 
 					avd_sg_su_oper_list_add(cb, su, FALSE);
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -893,7 +890,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 			}
@@ -956,8 +953,7 @@ uns32 avd_sg_nacvred_susi_sucss_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *s
 				/* log a fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-								     susi->si->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 				susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				return NCSCC_RC_FAILURE;
@@ -1091,8 +1087,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 					/* log a fatal error */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-									     susi->si->name.length);
+					m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 					susi->fsm = old_fsm_state;
 					m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 					return NCSCC_RC_FAILURE;
@@ -1138,7 +1133,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 
@@ -1178,7 +1173,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 					m_AVD_LOG_INVALID_VAL_FATAL(((long)su->list_of_susi));
 					m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->name.value, su->name.length);
 					m_AVD_LOG_INVALID_NAME_VAL_FATAL(su->list_of_susi->si->name.value,
-						su->list_of_susi->si->name.length);
+									 su->list_of_susi->si->name.length);
 
 					avd_sg_su_oper_list_add(cb, su, FALSE);
 					m_AVD_SET_SG_FSM(cb, (su->sg_of_su), AVD_SG_FSM_SG_REALIGN);
@@ -1195,7 +1190,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 					m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 					if (flag == TRUE) {
-						m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+						node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 					}
 				}
 			}
@@ -1229,8 +1224,7 @@ uns32 avd_sg_nacvred_susi_fail_func(AVD_CL_CB *cb, AVD_SU *su, AVD_SU_SI_REL *su
 				/* log a fatal error */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-								     susi->si->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 				susi->fsm = old_fsm_state;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 				return NCSCC_RC_FAILURE;
@@ -1331,7 +1325,7 @@ uns32 avd_sg_nacvred_realign_func(AVD_CL_CB *cb, AVD_SG *sg)
 	m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 	m_AVD_LOG_RCVD_VAL(sg->sg_fsm_state);
 
-done:
+ done:
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
@@ -1434,7 +1428,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == TRUE) {
-					m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
 		}
@@ -1470,7 +1464,7 @@ void avd_sg_nacvred_node_fail_func(AVD_CL_CB *cb, AVD_SU *su)
 			} else if (su_node_ptr->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
 				m_AVD_IS_NODE_LOCK((su_node_ptr), flag);
 				if (flag == TRUE) {
-					m_AVD_SET_AVND_SU_ADMIN(cb, (su_node_ptr), SA_AMF_ADMIN_LOCKED);
+					node_admin_state_set(su_node_ptr, SA_AMF_ADMIN_LOCKED);
 				}
 			}
 
@@ -1706,7 +1700,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 					/* log a fatal error */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)i_susi));
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_susi->su->name.value,
-									     i_susi->su->name.length);
+									 i_susi->su->name.length);
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(si->name.value, si->name.length);
 				}
 
@@ -1733,7 +1727,7 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 					/* log a fatal error */
 					m_AVD_LOG_INVALID_VAL_ERROR(((long)i_susi));
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_susi->su->name.value,
-									     i_susi->su->name.length);
+									 i_susi->su->name.length);
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(si->name.value, si->name.length);
 				}
 
@@ -1766,9 +1760,8 @@ uns32 avd_sg_nacvred_si_admin_down(AVD_CL_CB *cb, AVD_SI *si)
 						/* log a fatal error */
 						m_AVD_LOG_INVALID_VAL_ERROR(((long)i_susi));
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_susi->su->name.value,
-										     i_susi->su->name.length);
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(si->name.value,
-										     si->name.length);
+										 i_susi->su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(si->name.value, si->name.length);
 					}
 				}
 
