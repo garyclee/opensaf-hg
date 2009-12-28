@@ -49,7 +49,6 @@ EXTERN_C uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
 EXTERN_C uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
-EXTERN_C uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd, SaAmfAdminStateT new_admin_state);
 EXTERN_C uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_BOOL q_flag);
 EXTERN_C uns32 avd_sg_app_sg_admin_func(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C uns32 avd_sg_su_si_mod_snd(AVD_CL_CB *cb, AVD_SU *su, SaAmfHAStateT state);

@@ -34,8 +34,6 @@
                                  application SUs on a node.
   avd_sg_app_su_inst_func - processes the request to evaluate the SG for
                            Instantiations and terminations of SUs in the SG.
-  avd_sg_app_node_admin_func - processes the request to do UNLOCK or LOCK or shutdown
-                               of the AMF application SUs on the node.
   avd_sg_app_sg_admin_func -  processes the request to do UNLOCK or LOCK or shutdown
                               of the AMF application SUs on the SG.
   avd_node_susi_fail_func -  un assign all the SUSIs on the faulted node.
@@ -62,6 +60,7 @@
 
 #include <avd.h>
 #include <avd_imm.h>
+#include <logtrace.h>
 
 /*****************************************************************************
  * Function: avd_new_assgn_susi
@@ -196,12 +195,12 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			return NCSCC_RC_FAILURE;
 		}
 
-		if(si->saAmfSINumCurrActiveAssignments > 0) {
+		if (si->saAmfSINumCurrActiveAssignments > 0) {
 			si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
 		}
-		if(ha_state == SA_AMF_HA_ACTIVE) {
+		if (ha_state == SA_AMF_HA_ACTIVE) {
 			avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
-					SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
+						  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 		}
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -244,8 +243,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	AVD_AVND *su_node_ptr = NULL;
 
 	TRACE_ENTER2("from %x, '%s' state=%u", n2d_msg->msg_info.n2d_opr_state.node_id,
-		n2d_msg->msg_info.n2d_opr_state.su_name.value,
-		n2d_msg->msg_info.n2d_opr_state.su_oper_state);
+		     n2d_msg->msg_info.n2d_opr_state.su_name.value, n2d_msg->msg_info.n2d_opr_state.su_oper_state);
 
 	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_opr_state.node_id, AVSV_N2D_OPERATION_STATE_MSG))
 	    == NULL) {
@@ -359,10 +357,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								 */
 
 								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.
-												     value,
-												     i_su->name.
-												     length);
+								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+												 i_su->name.length);
 								goto done;
 							}
 							break;
@@ -375,10 +371,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								 */
 
 								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.
-												     value,
-												     i_su->name.
-												     length);
+								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+												 i_su->name.length);
 								goto done;
 							}
 							break;
@@ -391,10 +385,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								 */
 
 								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.
-												     value,
-												     i_su->name.
-												     length);
+								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+												 i_su->name.length);
 								goto done;
 							}
 							break;
@@ -407,10 +399,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								 */
 
 								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.
-												     value,
-												     i_su->name.
-												     length);
+								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+												 i_su->name.length);
 								goto done;
 							}
 							break;
@@ -424,10 +414,8 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 								 */
 
 								/* log error about the failure */
-								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.
-												     value,
-												     i_su->name.
-												     length);
+								m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->name.value,
+												 i_su->name.length);
 								goto done;
 							}
 							break;
@@ -446,7 +434,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 						/* log error about the failure */
 						m_AVD_LOG_INVALID_NAME_VAL_ERROR(i_su->sg_of_su->name.value,
-										     i_su->sg_of_su->name.length);
+										 i_su->sg_of_su->name.length);
 						goto done;
 					}
 
@@ -468,7 +456,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -482,7 +470,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -496,7 +484,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -510,7 +498,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -524,7 +512,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -543,7 +531,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 					/* log error about the failure */
 					m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->sg_of_su->name.value,
-									     su->sg_of_su->name.length);
+									 su->sg_of_su->name.length);
 					goto done;
 				}
 
@@ -570,8 +558,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						 */
 
 						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-										     su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -585,8 +572,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						 */
 
 						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-										     su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -600,8 +586,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						 */
 
 						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-										     su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
@@ -616,15 +601,13 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 						 */
 
 						/* log error about the failure */
-						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-										     su->name.length);
+						m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
 						avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
 						goto done;
 					}
 					break;
 				}
-			}
-			else
+			} else
 				assert(0);
 		} else {	/* if(su->sg_of_su->sg_ncs_spec == SA_TRUE) */
 
@@ -645,7 +628,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -659,7 +642,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -673,7 +656,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -687,7 +670,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -701,7 +684,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 							/* log error about the failure */
 							m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value,
-											     su->name.length);
+											 su->name.length);
 							goto done;
 						}
 						break;
@@ -711,7 +694,7 @@ void avd_su_oper_state_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		}
 	}
 
-done:
+ done:
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
 	TRACE_LEAVE();
@@ -951,7 +934,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		if ((su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name)) == NULL) {
 			m_AVD_LOG_INVALID_NAME_VAL_FATAL(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
-						     n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
+							 n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
 			goto done;
 		}
 
@@ -1075,8 +1058,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 					if (q_flag == FALSE) {
 						avd_sg_nway_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
 									    n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									    n2d_msg->msg_info.n2d_su_si_assign.
-									    ha_state);
+									    n2d_msg->msg_info.
+									    n2d_su_si_assign.ha_state);
 					}
 				} else {
 					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
@@ -1093,10 +1076,10 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 					if (q_flag == FALSE) {
 						avd_sg_nacvred_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
-									       n2d_msg->msg_info.n2d_su_si_assign.
-									       msg_act,
-									       n2d_msg->msg_info.n2d_su_si_assign.
-									       ha_state);
+									       n2d_msg->msg_info.
+									       n2d_su_si_assign.msg_act,
+									       n2d_msg->msg_info.
+									       n2d_su_si_assign.ha_state);
 					}
 				} else {
 					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
@@ -1133,8 +1116,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 					if (q_flag == FALSE) {
 						avd_sg_nored_susi_sucss_func(cb, su, AVD_SU_SI_REL_NULL,
 									     n2d_msg->msg_info.n2d_su_si_assign.msg_act,
-									     n2d_msg->msg_info.n2d_su_si_assign.
-									     ha_state);
+									     n2d_msg->msg_info.
+									     n2d_su_si_assign.ha_state);
 					}
 				} else {
 					m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
@@ -1152,15 +1135,14 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		if ((susi =
 		     avd_susi_find(cb, &n2d_msg->msg_info.n2d_su_si_assign.su_name,
-			     &n2d_msg->msg_info.n2d_su_si_assign.si_name)) == AVD_SU_SI_REL_NULL)
-		{
+				   &n2d_msg->msg_info.n2d_su_si_assign.si_name)) == AVD_SU_SI_REL_NULL) {
 			/* Acknowledgement for a deleted SU SI ignore the message */
 
 			/* log information error */
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(n2d_msg->msg_info.n2d_su_si_assign.su_name.value,
-							     n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
+							 n2d_msg->msg_info.n2d_su_si_assign.su_name.length);
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(n2d_msg->msg_info.n2d_su_si_assign.si_name.value,
-							     n2d_msg->msg_info.n2d_su_si_assign.si_name.length);
+							 n2d_msg->msg_info.n2d_su_si_assign.si_name.length);
 			goto done;
 		}
 
@@ -1191,10 +1173,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 				/* log Info error that the susi mentioned is not in proper state. */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value,
-								     susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-								     susi->si->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 				goto done;
 			}
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
@@ -1222,10 +1202,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 				/* log Info error that the susi mentioned is not in proper state. */
 				m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value,
-								     susi->su->name.length);
-				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value,
-								     susi->si->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->su->name.value, susi->su->name.length);
+				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 				goto done;
 			}
 
@@ -1406,35 +1384,68 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	/* If there is any admin action going on SU and it is complete then send its result to admin.
 	   Lock/Shutdown is successful if all SIs have been unassigned. Unlock is successful if
 	   SI could be assigned to SU successfully if there was any. The operation failed if
-	AvND encountered error while assigning/unassigning SI to the SU. */
+	   AvND encountered error while assigning/unassigning SI to the SU. */
 
 	su = avd_su_get(&n2d_msg->msg_info.n2d_su_si_assign.su_name);
 
-	if ( su != NULL ) {
-		if ( su->pend_cbk.invocation != 0) {
-			if ( (su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK) || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN) ) {
-				if ( (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0) ) {
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+	if (su != NULL) {
+		if (su->pend_cbk.invocation != 0) {
+			if ((su->pend_cbk.admin_oper == SA_AMF_ADMIN_LOCK)
+			    || (su->pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTDOWN)) {
+				if ((su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
+									    SA_AIS_OK);
 					su->pend_cbk.invocation = 0;
 					su->pend_cbk.admin_oper = 0;
-				} else if ( n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS ) {
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
+				} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
+									    SA_AIS_ERR_REPAIR_PENDING);
 					su->pend_cbk.invocation = 0;
 					su->pend_cbk.admin_oper = 0;
 				}
 				/* else lock is still not complete so don't send result. */
-			} else if ( su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK ) {
-				if ( ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
-				     (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) ) {
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_OK);
+			} else if (su->pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCK) {
+				if (((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)) &&
+				    (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS)) {
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
+									    SA_AIS_OK);
 					su->pend_cbk.invocation = 0;
 					su->pend_cbk.admin_oper = 0;
 				} else {
-					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
+									    SA_AIS_ERR_TIMEOUT);
 					su->pend_cbk.invocation = 0;
 					su->pend_cbk.admin_oper = 0;
 				}
 			}
+		} else if (su->su_on_node->admin_node_pend_cbk.invocation != 0) {
+			/* decrement the SU count on the node undergoing admin operation  
+			   when all SIs have been unassigned for a SU on the node undergoing 
+			   LOCK/SHUTDOWN or when successful SI assignment has happened for 
+			   a SU on the node undergoing UNLOCK */
+			if ((((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_LOCKED) ||
+			      (su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_SHUTTING_DOWN)) &&
+			     (su->saAmfSUNumCurrActiveSIs == 0) && (su->saAmfSUNumCurrStandbySIs == 0)) ||
+			    ((su->su_on_node->admin_node_pend_cbk.admin_oper == SA_AMF_ADMIN_UNLOCKED) &&
+			     ((su->saAmfSUNumCurrActiveSIs != 0) || (su->saAmfSUNumCurrStandbySIs != 0)))) {
+				su->su_on_node->su_cnt_admin_oper--;
+			}
+
+			/* if this last su to undergo admin operation then report to IMM */
+			if (su->su_on_node->su_cnt_admin_oper == 0) {
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle,
+								    su->su_on_node->admin_node_pend_cbk.invocation,
+								    SA_AIS_OK);
+				su->su_on_node->admin_node_pend_cbk.invocation = 0;
+				su->su_on_node->admin_node_pend_cbk.admin_oper = 0;
+			} else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->pend_cbk.invocation,
+								    SA_AIS_ERR_REPAIR_PENDING);
+				su->su_on_node->admin_node_pend_cbk.invocation = 0;
+				su->su_on_node->admin_node_pend_cbk.admin_oper = 0;
+				su->su_on_node->su_cnt_admin_oper = 0;
+			}
+			/* else admin oper still not complete */
 		}
 	}
 
@@ -1442,7 +1453,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	avsv_dnd_msg_free(n2d_msg);
 	evt->info.avnd_msg = NULL;
 
-done:
+ done:
 	TRACE_LEAVE();
 }
 
@@ -1650,234 +1661,6 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, sg, AVSV_CKPT_SG_SU_SPARE_NUM);
 
 	TRACE_LEAVE();
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_sg_app_node_admin_func
- *
- * Purpose:  This function processes the request to do UNLOCK or LOCK or shutdown
- * of the AMF application SUs on the node. It first verifies that the
- * SGs belonging to the node are all stable and then it sets the readiness 
- * state of each of the SU on the node and calls the SG FSM for each of the
- * SUs.
- *
- * Input: cb - the AVD control block
- *        avnd - The pointer to the node whose application SUs need to
- *               be administratively modified.
- *        new_admin_state - The adminstate to which the node should change.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_sg_app_node_admin_func(AVD_CL_CB *cb, AVD_AVND *avnd, SaAmfAdminStateT new_admin_state)
-{
-	AVD_SU *i_su, *i_su_sg;
-	NCS_BOOL su_admin = FALSE;
-	AVD_SU_SI_REL *curr_susi;
-	AVD_AVND *i_su_node_ptr = NULL;
-	AVD_AVND *i_su_sg_node_ptr = NULL;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_app_node_admin_func");
-
-	/* If the node is not yet operational just modify the admin state field
-	 * incase of shutdown to lock and return success as this will only cause
-	 * state filed change and no semantics need to be followed.
-	 */
-	if (avnd->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
-		if (new_admin_state == SA_AMF_ADMIN_SHUTTING_DOWN) {
-			m_AVD_SET_AVND_SU_ADMIN(cb, avnd, SA_AMF_ADMIN_LOCKED);
-		} else {
-			m_AVD_SET_AVND_SU_ADMIN(cb, avnd, new_admin_state);
-		}
-
-		return NCSCC_RC_SUCCESS;
-	}
-
-	/* Based on the admin operation that is been done call the corresponding.
-	 * Redundancy model specific functionality for each of the SUs on 
-	 * the node.
-	 */
-
-	switch (new_admin_state) {
-	case SA_AMF_ADMIN_UNLOCKED:
-
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
-			/* if SG to which this SU belongs and has SI assignments is undergoing 
-			 * su semantics return error.
-			 */
-			if ((i_su->list_of_susi != AVD_SU_SI_REL_NULL) &&
-			    (i_su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE)) {
-
-				/* Dont go ahead as a SG that is undergoing transition is
-				 * there related to this node.
-				 */
-				avd_log(NCSFL_SEV_ERROR, "invalid sg state %u for unlock",
-					i_su->sg_of_su->sg_fsm_state);
-				return NCSCC_RC_FAILURE;
-			}
-
-			/* get the next SU on the node */
-			i_su = i_su->avnd_list_su_next;
-		}		/* while(i_su != AVD_SU_NULL) */
-
-		/* For each of the SUs calculate the readiness state. This routine is called
-		 * only when AvD is in AVD_APP_STATE. call the SG FSM with the new readiness
-		 * state.
-		 */
-
-		m_AVD_SET_AVND_SU_ADMIN(cb, avnd, new_admin_state);
-
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
-			m_AVD_GET_SU_NODE_PTR(cb, i_su, i_su_node_ptr);
-
-			if (m_AVD_APP_SU_IS_INSVC(i_su, i_su_node_ptr)) {
-				avd_su_readiness_state_set(i_su, SA_AMF_READINESS_IN_SERVICE);
-				switch (i_su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					avd_sg_2n_su_insvc_func(cb, i_su);
-					break;
-
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					avd_sg_nway_su_insvc_func(cb, i_su);
-					break;
-
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					avd_sg_npm_su_insvc_func(cb, i_su);
-					break;
-
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-					avd_sg_nacvred_su_insvc_func(cb, i_su);
-					break;
-
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					avd_sg_nored_su_insvc_func(cb, i_su);
-					break;
-				}
-
-				/* Since an SU has come in-service re look at the SG to see if other
-				 * instantiations or terminations need to be done.
-				 */
-				avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
-			}
-			/* get the next SU on the node */
-			i_su = i_su->avnd_list_su_next;
-		}
-		break;		/* case NCS_ADMIN_STATE_UNLOCK: */
-	case SA_AMF_ADMIN_LOCKED:
-	case SA_AMF_ADMIN_SHUTTING_DOWN:
-
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
-			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-				/* verify that two assigned SUs belonging to the same SG are not
-				 * on this node 
-				 */
-				i_su_sg = i_su->sg_of_su->list_of_su;
-				while (i_su_sg != NULL) {
-					m_AVD_GET_SU_NODE_PTR(cb, i_su, i_su_node_ptr);
-					m_AVD_GET_SU_NODE_PTR(cb, i_su_sg, i_su_sg_node_ptr);
-
-					if ((i_su != i_su_sg) &&
-					    (i_su_node_ptr == i_su_sg_node_ptr) &&
-					    (i_su_sg->list_of_susi != AVD_SU_SI_REL_NULL)) {
-						avd_log(NCSFL_SEV_ERROR, "two SUs on same node");
-						return NCSCC_RC_FAILURE;
-					}
-
-					i_su_sg = i_su_sg->sg_list_su_next;
-
-				}	/* while (i_su_sg != AVD_SU_NULL) */
-
-				/* if SG to which this SU belongs and has SI assignments is undergoing 
-				 * any semantics other than for this SU return error.
-				 */
-				if (i_su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
-					if ((i_su->sg_of_su->sg_fsm_state != AVD_SG_FSM_SU_OPER) ||
-					    (avnd->saAmfNodeAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
-					    (new_admin_state != SA_AMF_ADMIN_LOCKED)) {
-						avd_log(NCSFL_SEV_ERROR, "invalid sg state %u for lock/shutdown",
-							i_su->sg_of_su->sg_fsm_state);
-						return NCSCC_RC_FAILURE;
-					}
-				}
-				/*if (i_su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) */
-				if (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
-					su_admin = TRUE;
-				} else if ((avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) &&
-					   (su_admin == FALSE) &&
-					   (i_su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL)) {
-					for (curr_susi = i_su->list_of_susi;
-					     (curr_susi) && ((SA_AMF_HA_ACTIVE != curr_susi->state) ||
-							     ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)));
-					     curr_susi = curr_susi->su_next) ;
-					if (curr_susi)
-						su_admin = TRUE;
-				}
-
-			}
-
-			/* if(i_su->list_of_susi != AVD_SU_SI_REL_NULL) */
-			/* get the next SU on the node */
-			i_su = i_su->avnd_list_su_next;
-		}		/* while(i_su != AVD_SU_NULL) */
-
-		m_AVD_SET_AVND_SU_ADMIN(cb, avnd, new_admin_state);
-
-		/* Now call the SG FSM for each of the SUs that have SI assignment. */
-		i_su = avnd->list_of_su;
-		while (i_su != NULL) {
-			avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
-			if (i_su->list_of_susi != AVD_SU_SI_REL_NULL) {
-				switch (i_su->sg_of_su->sg_redundancy_model) {
-				case SA_AMF_2N_REDUNDANCY_MODEL:
-					avd_sg_2n_su_admin_fail(cb, i_su, avnd);
-					break;
-
-				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
-					avd_sg_nway_su_admin_fail(cb, i_su, avnd);
-					break;
-
-				case SA_AMF_NPM_REDUNDANCY_MODEL:
-					avd_sg_npm_su_admin_fail(cb, i_su, avnd);
-					break;
-
-				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
-					avd_sg_nacvred_su_admin_fail(cb, i_su, avnd);
-					break;
-
-				case SA_AMF_NO_REDUNDANCY_MODEL:
-				default:
-					avd_sg_nored_su_admin_fail(cb, i_su, avnd);
-					break;
-				}
-			}
-
-			/* since an SU is now OOS we need to take a relook at the SG. */
-			avd_sg_app_su_inst_func(cb, i_su->sg_of_su);
-
-			/* get the next SU on the node */
-			i_su = i_su->avnd_list_su_next;
-		}
-
-		if ((avnd->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su_admin == FALSE)) {
-			m_AVD_SET_AVND_SU_ADMIN(cb, avnd, SA_AMF_ADMIN_LOCKED);
-		}
-
-		break;		/* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
-	default:
-		avd_log(NCSFL_SEV_ERROR, "fatal error");
-		return NCSCC_RC_FAILURE;
-		break;
-	}
-
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2105,9 +1888,10 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_su_pres_state_set(i_su, SA_AMF_PRESENCE_UNINSTANTIATED);
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 
-                /* Check if there was any admin operations going on this SU. */
-		if ( i_su->pend_cbk.invocation != 0) {
-			immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+		/* Check if there was any admin operations going on this SU. */
+		if (i_su->pend_cbk.invocation != 0) {
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation,
+							    SA_AIS_ERR_TIMEOUT);
 			i_su->pend_cbk.invocation = 0;
 			i_su->pend_cbk.admin_oper = 0;
 		}
@@ -2186,6 +1970,16 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	}			/* while (i_su != AVD_SU_NULL) */
 
+	/* send pending callback for this node if any */
+	if (avnd->admin_node_pend_cbk.invocation != 0) {
+		LOG_WA("Response to admin callback due to node fail");
+		immutil_saImmOiAdminOperationResult(cb->immOiHandle, avnd->admin_node_pend_cbk.invocation,
+						    SA_AIS_ERR_REPAIR_PENDING);
+		avnd->admin_node_pend_cbk.invocation = 0;
+		avnd->admin_node_pend_cbk.admin_oper = 0;
+		avnd->su_cnt_admin_oper = 0;
+	}
+
 	/* Run through the list of application SUs make all of them O.O.S. 
 	 */
 	i_su = avnd->list_of_su;
@@ -2195,8 +1989,9 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_su_readiness_state_set(i_su, SA_AMF_READINESS_OUT_OF_SERVICE);
 
 		/* Check if there was any admin operations going on this SU. */
-		if ( i_su->pend_cbk.invocation != 0) {
-			immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+		if (i_su->pend_cbk.invocation != 0) {
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_su->pend_cbk.invocation,
+							    SA_AIS_ERR_TIMEOUT);
 			i_su->pend_cbk.invocation = 0;
 			i_su->pend_cbk.admin_oper = 0;
 		}
@@ -2369,7 +2164,7 @@ uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt)
 	if (!ckpt)
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, su, AVSV_CKPT_AVD_SG_OPER_SU);
 
-done:
+ done:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }

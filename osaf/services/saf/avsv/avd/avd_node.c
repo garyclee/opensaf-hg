@@ -31,8 +31,7 @@ uns32 avd_node_add_nodeid(AVD_AVND *avnd)
 {
 	unsigned int rc;
 
-	if ((avd_node_find_nodeid(avnd->node_info.nodeId) == NULL) &&
-	    (avnd->node_info.nodeId != 0)) {
+	if ((avd_node_find_nodeid(avnd->node_info.nodeId) == NULL) && (avnd->node_info.nodeId != 0)) {
 
 		avnd->tree_node_id_node.key_info = (uns8 *)&(avnd->node_info.nodeId);
 		avnd->tree_node_id_node.bit = 0;
@@ -48,7 +47,7 @@ uns32 avd_node_add_nodeid(AVD_AVND *avnd)
 
 void avd_node_delete_nodeid(AVD_AVND *node)
 {
-	(void) ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
+	(void)ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
 }
 
 void avd_node_db_add(AVD_AVND *node)
@@ -106,7 +105,7 @@ static void node_add_to_model(AVD_AVND *node)
 AVD_AVND *avd_node_get(const SaNameT *dn)
 {
 	AVD_AVND *avnd;
-	SaNameT tmp = {0};
+	SaNameT tmp = { 0 };
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
@@ -136,7 +135,7 @@ AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 AVD_AVND *avd_node_getnext(const SaNameT *dn)
 {
 	AVD_AVND *avnd;
-	SaNameT tmp = {0};
+	SaNameT tmp = { 0 };
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
@@ -170,13 +169,13 @@ AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id)
  * 
  * @return int
  */
-static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
+static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t * opdata)
 {
 	SaBoolT abool;
 	SaAmfAdminStateT admstate;
 	char *parent;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	if ((parent = strchr((char *)dn->value, ',')) == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
 		return 0;
 	}
@@ -186,8 +185,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		return 0;
 	}
 
-	if ((immutil_getAttr("saAmfNodeAutoRepair", attributes, 0, &abool) == SA_AIS_OK) &&
-	    (abool > SA_TRUE)) {
+	if ((immutil_getAttr("saAmfNodeAutoRepair", attributes, 0, &abool) == SA_AIS_OK) && (abool > SA_TRUE)) {
 		LOG_ER("Invalid saAmfNodeAutoRepair %u for '%s'", abool, dn->value);
 		return 0;
 	}
@@ -228,9 +226,9 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	TRACE_ENTER2("'%s'", dn->value);
 
 	/*
-	** If called at new active at failover, the object is found in the DB
-	** but needs to get configuration attributes initialized.
-	*/
+	 ** If called at new active at failover, the object is found in the DB
+	 ** but needs to get configuration attributes initialized.
+	 */
 	if (NULL == (node = avd_node_get(dn))) {
 		if ((node = avd_node_new(dn)) == NULL)
 			goto done;
@@ -245,8 +243,7 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 		if (immutil_saImmOmAccessorGet_2(accessorHandle, &node->saAmfNodeClmNode,
 						 NULL, &clm_node_attrs) != SA_AIS_OK) {
-			LOG_ER("Get saImmOmAccessorGet_2 FAILED for '%s'",
-				node->saAmfNodeClmNode.value);
+			LOG_ER("Get saImmOmAccessorGet_2 FAILED for '%s'", node->saAmfNodeClmNode.value);
 			goto done;
 		}
 
@@ -294,7 +291,7 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 	rc = 0;
 
-done:
+ done:
 	if (rc != 0)
 		avd_node_delete(&node);
 
@@ -324,8 +321,8 @@ SaAisErrorT avd_node_config_get(void)
 	searchParam.searchOneAttr.attrValue = &className;
 
 	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, NULL, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &searchHandle);
+						  SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
+						  NULL, &searchHandle);
 
 	if (SA_AIS_OK != error) {
 		LOG_ER("No objects found");
@@ -346,9 +343,9 @@ SaAisErrorT avd_node_config_get(void)
 
 	rc = SA_AIS_OK;
 
-done2:
+ done2:
 	(void)immutil_saImmOmSearchFinalize(searchHandle);
-done1:
+ done1:
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
@@ -392,7 +389,7 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 		node->node_info.nodeName.value, oper_state_name[node->saAmfNodeOperState], oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
 	avd_saImmOiRtObjectUpdate(&node->node_info.nodeName, "saAmfNodeOperState",
-		 SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
+				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	/*  TODO is this always correct or do we need a new param? */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_OPER_STATE);
 }
@@ -407,7 +404,7 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
  * Returns: None.
  *
  ****************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	AVD_AVND *node;
@@ -463,7 +460,7 @@ static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t *op
  *
  *
  **************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
@@ -514,7 +511,7 @@ static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *op
 	return rc;
 }
 
-static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
+static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -551,7 +548,7 @@ static void node_ccb_apply_delete_hdlr(AVD_AVND *node)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 }
 
-static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t * opdata)
 {
 	uns32 rc;
 	AVD_AVND *avd_avnd;
@@ -634,7 +631,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}			/* while (attr_mod != NULL) */
 }
 
-static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
+static void node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 {
 	AVD_AVND *node;
 
@@ -660,54 +657,545 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	TRACE_LEAVE();
 }
 
-static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
-	const SaNameT *objectName, SaImmAdminOperationIdT operationId,
-	const SaImmAdminOperationParamsT_2 **params)
+static const char *admin_state_name[] = {
+	"INVALID",
+	"UNLOCKED",
+	"LOCKED",
+	"LOCKED_INSTANTIATION",
+	"SHUTTING_DOWN"
+};
+
+/**
+ * sets the admin state of a node
+ *
+ * @param node
+ * @param admin_state
+ */
+void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 {
+	assert(node != NULL);
+	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
+	TRACE_ENTER2("'%s' %s => %s",
+		     node->saAmfNodeClmNode.value, admin_state_name[node->saAmfNodeAdminState],
+		     admin_state_name[admin_state]);
+
+	node->saAmfNodeAdminState = admin_state;
+	avd_saImmOiRtObjectUpdate(&node->saAmfNodeClmNode, "saAmfNodeAdminState",
+				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
+	avd_gen_node_admin_state_changed_ntf(avd_cb, node);
+	TRACE_LEAVE2("node_admin_state_set");
+}
+
+/**
+ * Sends msg to terminate all SUs on the node as part of lock instantiation
+ *
+ * @param node
+ */
+static uns32 node_admin_lock_instantiation(AVD_AVND *node)
+{
+	AVD_SU *su;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
+
+	/* terminate all the SUs on this Node */
+	su = node->list_of_su;
+	while (su != NULL) {
+		if ((su->saAmfSUPreInstantiable == TRUE) &&
+		    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED ||
+		     su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED ||
+		     su->saAmfSUPresenceState != SA_AMF_PRESENCE_TERMINATION_FAILED)) {
+
+			if (avd_snd_presence_msg(avd_cb, su, TRUE) == NCSCC_RC_SUCCESS) {
+				m_AVD_SET_SU_TERM(avd_cb, su, TRUE);
+				node->su_cnt_admin_oper++;
+			} else {
+				rc = NCSCC_RC_FAILURE;
+				LOG_WA("Failed Termination '%s'", su->name.value);
+			}
+			su = su->avnd_list_su_next;
+		}
+	}
+
+	TRACE_LEAVE2("%u, %u", rc, node->su_cnt_admin_oper);
+	return rc;
+}
+
+/**
+ * Sends msg to instantiate SUs on the node as part of unlock instantiation
+ *
+ * @param node
+ */
+static uns32 node_admin_unlock_instantiation(AVD_AVND *node)
+{
+	AVD_SU *su;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
+
+	/* instantiate the SUs on this Node */
+	su = node->list_of_su;
+	while (su != NULL) {
+		if ((su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+		    (su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+		    (su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+
+			if (su->saAmfSUPreInstantiable == TRUE) {
+				if (avd_snd_presence_msg(avd_cb, su, FALSE) == NCSCC_RC_SUCCESS) {
+					m_AVD_SET_SU_TERM(avd_cb, su, FALSE);
+					node->su_cnt_admin_oper++;
+				} else {
+					rc = NCSCC_RC_FAILURE;
+					LOG_WA("Failed Instantiation '%s'", su->name.value);
+				}
+			} else {
+				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+			}
+			su = su->avnd_list_su_next;
+		}
+	}
+
+	TRACE_LEAVE2("%u, %u", rc, node->su_cnt_admin_oper);
+	return rc;
+}
+
+/**
+ * processes  lock, unlock and shutdown admin operations on a node
+ *
+ * @param node
+ * @param invocation
+ * @param operationId
+ */
+static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
+					    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
+{
+	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
+	AVD_SU *su, *su_sg;
+	NCS_BOOL su_admin = FALSE;
+	AVD_SU_SI_REL *curr_susi;
+	AVD_AVND *su_node_ptr = NULL;
+	AVD_AVND *su_sg_node_ptr = NULL;
+	SaAmfAdminStateT new_admin_state;
+
+	TRACE_ENTER2("node_admin_lock_unlock_shutdown");
+	/* determine the new_admin_state from operation ID */
+	if (operationId == SA_AMF_ADMIN_SHUTDOWN)
+		new_admin_state = SA_AMF_ADMIN_SHUTTING_DOWN;
+	else if (operationId == SA_AMF_ADMIN_UNLOCK)
+		new_admin_state = SA_AMF_ADMIN_UNLOCKED;
+	else
+		new_admin_state = SA_AMF_ADMIN_LOCKED;
+
+	/* If the node is not yet operational just modify the admin state field
+	 * incase of shutdown to lock and return success as this will only cause
+	 * state filed change and no semantics need to be followed.
+	 */
+	if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
+		if (new_admin_state == SA_AMF_ADMIN_SHUTTING_DOWN) {
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		} else {
+			node_admin_state_set(node, new_admin_state);
+		}
+		immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
+		goto end;
+	}
+
+	/* Based on the admin operation that is been done call the corresponding.
+	 * Redundancy model specific functionality for each of the SUs on 
+	 * the node.
+	 */
+
+	switch (new_admin_state) {
+	case SA_AMF_ADMIN_UNLOCKED:
+
+		su = node->list_of_su;
+		while (su != NULL) {
+			/* if SG to which this SU belongs and has SI assignments is undergoing 
+			 * su semantics return error.
+			 */
+			if ((su->list_of_susi != AVD_SU_SI_REL_NULL) &&
+			    (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE)) {
+
+				/* Dont go ahead as a SG that is undergoing transition is
+				 * there related to this node.
+				 */
+				LOG_WA("invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN);
+				goto end;
+			}
+
+			/* get the next SU on the node */
+			su = su->avnd_list_su_next;
+		}		/* while(su != AVD_SU_NULL) */
+
+		/* For each of the SUs calculate the readiness state. This routine is called
+		 * only when AvD is in AVD_APP_STATE. call the SG FSM with the new readiness
+		 * state.
+		 */
+
+		node_admin_state_set(node, new_admin_state);
+
+		su = node->list_of_su;
+		while (su != NULL) {
+			m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+
+			if (m_AVD_APP_SU_IS_INSVC(su, su_node_ptr)) {
+				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
+				switch (su->sg_of_su->sg_redundancy_model) {
+				case SA_AMF_2N_REDUNDANCY_MODEL:
+					avd_sg_2n_su_insvc_func(cb, su);
+					break;
+
+				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+					avd_sg_nway_su_insvc_func(cb, su);
+					break;
+
+				case SA_AMF_NPM_REDUNDANCY_MODEL:
+					avd_sg_npm_su_insvc_func(cb, su);
+					break;
+
+				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+					avd_sg_nacvred_su_insvc_func(cb, su);
+					break;
+
+				case SA_AMF_NO_REDUNDANCY_MODEL:
+				default:
+					avd_sg_nored_su_insvc_func(cb, su);
+					break;
+				}
+
+				/* Since an SU has come in-service re look at the SG to see if other
+				 * instantiations or terminations need to be done.
+				 */
+				avd_sg_app_su_inst_func(cb, su->sg_of_su);
+			}
+
+			/* check if admin lock has caused a SG REALIGN to send admin cbk */
+			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN)
+				node->su_cnt_admin_oper++;
+
+			/* get the next SU on the node */
+			su = su->avnd_list_su_next;
+		}
+		if (node->su_cnt_admin_oper == 0)
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
+		else {
+			node->admin_node_pend_cbk.invocation = invocation;
+			node->admin_node_pend_cbk.admin_oper = operationId;
+		}
+		break;		/* case NCS_ADMIN_STATE_UNLOCK: */
+
+	case SA_AMF_ADMIN_LOCKED:
+	case SA_AMF_ADMIN_SHUTTING_DOWN:
+
+		su = node->list_of_su;
+		while (su != NULL) {
+			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
+				/* verify that two assigned SUs belonging to the same SG are not
+				 * on this node 
+				 */
+				su_sg = su->sg_of_su->list_of_su;
+				while (su_sg != NULL) {
+					m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
+					m_AVD_GET_SU_NODE_PTR(cb, su_sg, su_sg_node_ptr);
+
+					if ((su != su_sg) &&
+					    (su_node_ptr == su_sg_node_ptr) &&
+					    (su_sg->list_of_susi != AVD_SU_SI_REL_NULL)) {
+						LOG_WA("two SUs on same node");
+						immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,
+										    SA_AIS_ERR_NOT_SUPPORTED);
+
+						goto end;
+					}
+
+					su_sg = su_sg->sg_list_su_next;
+
+				}	/* while (su_sg != AVD_SU_NULL) */
+
+				/* if SG to which this SU belongs and has SI assignments is undergoing 
+				 * any semantics other than for this SU return error.
+				 */
+				if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
+					if ((su->sg_of_su->sg_fsm_state != AVD_SG_FSM_SU_OPER) ||
+					    (node->saAmfNodeAdminState != SA_AMF_ADMIN_SHUTTING_DOWN) ||
+					    (new_admin_state != SA_AMF_ADMIN_LOCKED)) {
+						LOG_WA("invalid sg state %u for lock/shutdown",
+						       su->sg_of_su->sg_fsm_state);
+						immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,
+										    SA_AIS_ERR_TRY_AGAIN);
+
+						goto end;
+					}
+				}
+				/*if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) */
+				if (su->list_of_susi->state == SA_AMF_HA_ACTIVE) {
+					su_admin = TRUE;
+				} else if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) &&
+					   (su_admin == FALSE) &&
+					   (su->sg_of_su->sg_redundancy_model == SA_AMF_N_WAY_REDUNDANCY_MODEL)) {
+					for (curr_susi = su->list_of_susi;
+					     (curr_susi) && ((SA_AMF_HA_ACTIVE != curr_susi->state) ||
+							     ((AVD_SU_SI_STATE_UNASGN == curr_susi->fsm)));
+					     curr_susi = curr_susi->su_next) ;
+					if (curr_susi)
+						su_admin = TRUE;
+				}
+
+			}
+
+			/* if(su->list_of_susi != AVD_SU_SI_REL_NULL) */
+			/* get the next SU on the node */
+			su = su->avnd_list_su_next;
+		}		/* while(su != AVD_SU_NULL) */
+
+		node_admin_state_set(node, new_admin_state);
+
+		/* Now call the SG FSM for each of the SUs that have SI assignment. */
+		su = node->list_of_su;
+		while (su != NULL) {
+			avd_su_readiness_state_set(su, SA_AMF_READINESS_OUT_OF_SERVICE);
+			if (su->list_of_susi != AVD_SU_SI_REL_NULL) {
+				switch (su->sg_of_su->sg_redundancy_model) {
+				case SA_AMF_2N_REDUNDANCY_MODEL:
+					avd_sg_2n_su_admin_fail(cb, su, node);
+					break;
+
+				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+					avd_sg_nway_su_admin_fail(cb, su, node);
+					break;
+
+				case SA_AMF_NPM_REDUNDANCY_MODEL:
+					avd_sg_npm_su_admin_fail(cb, su, node);
+					break;
+
+				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+					avd_sg_nacvred_su_admin_fail(cb, su, node);
+					break;
+
+				case SA_AMF_NO_REDUNDANCY_MODEL:
+				default:
+					avd_sg_nored_su_admin_fail(cb, su, node);
+					break;
+				}
+			}
+
+			/* since an SU is now OOS we need to take a relook at the SG. */
+			avd_sg_app_su_inst_func(cb, su->sg_of_su);
+
+			if (su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SG_REALIGN ||
+			    su->sg_of_su->sg_fsm_state == AVD_SG_FSM_SU_OPER)
+				node->su_cnt_admin_oper++;
+
+			/* get the next SU on the node */
+			su = su->avnd_list_su_next;
+		}
+
+		if ((node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) && (su_admin == FALSE)) {
+			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+		}
+
+		if (node->su_cnt_admin_oper == 0)
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
+		else {
+			node->admin_node_pend_cbk.invocation = invocation;
+			node->admin_node_pend_cbk.admin_oper = operationId;
+		}
+		break;		/* case NCS_ADMIN_STATE_LOCK: case NCS_ADMIN_STATE_SHUTDOWN: */
+
+	default:
+		assert(0);
+		break;
+	}
+ end:
+	TRACE_LEAVE2("node_admin_lock_unlock_shutdown");
+}
+
+/**
+ * Handle admin operations on SaAmfNode objects.
+ *      
+ * @param immOiHandle             
+ * @param invocation
+ * @param objectName
+ * @param operationId
+ * @param params
+ */
+static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
+			     const SaNameT *objectName, SaImmAdminOperationIdT operationId,
+			     const SaImmAdminOperationParamsT_2 **params)
+{
+	AVD_AVND *node;
+	AVD_SU *su = NULL;
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_AVND *avd_avnd;
 
-	avd_log(NCSFL_SEV_NOTICE, "%s", objectName->value);
+	TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, operationId);
 
-	/* Find the node name. */
-	avd_avnd = avd_node_get(objectName);
-	assert(avd_avnd != NULL);
+	if (avd_cb->init_state != AVD_APP_STATE) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		LOG_WA("AVD not in APP_STATE");
+		goto done;
+	}
 
-	switch (operationId) {
-		/* Valid B.04 AMF node admin operations */
-	case SA_AMF_ADMIN_SHUTDOWN:
-		if ((avd_avnd->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) && (operationId == SA_AMF_ADMIN_SHUTDOWN)) {
-			rc = NCSCC_RC_INV_VAL;
+	node = avd_node_get(objectName);
+	assert(node != AVD_AVND_NULL);
+
+	if (node->admin_node_pend_cbk.admin_oper != 0) {
+		rc = SA_AIS_ERR_TRY_AGAIN;
+		LOG_WA("Node undergoing admin operation");
+		goto done;
+	}
+
+	/* Check for any conflicting admin operations */
+
+	su = node->list_of_su;
+	while (su != NULL) {
+		if (su->pend_cbk.admin_oper != 0) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			LOG_WA("SU on this node is undergoing admin op (%s)", su->name.value);
 			goto done;
 		}
-		/* Don't put break, let it call avd_sg_app_node_admin_func */
-	case SA_AMF_ADMIN_UNLOCK:
-	case SA_AMF_ADMIN_LOCK:
-		if (operationId == avd_avnd->saAmfNodeAdminState)
+		if (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) {
+			rc = SA_AIS_ERR_TRY_AGAIN;
+			LOG_WA("SG of SU on this node not in STABLE state (%s)", su->name.value);
 			goto done;
+		}
+		su = su->avnd_list_su_next;
+	}
 
-		if (avd_sg_app_node_admin_func(avd_cb, avd_avnd, operationId) != NCSCC_RC_SUCCESS)
+	switch (operationId) {
+	case SA_AMF_ADMIN_SHUTDOWN:
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_SHUTTING_DOWN) {
+			rc = SA_AIS_ERR_NO_OP;
+			LOG_WA("Already in SHUTTING DOWN state");
+			goto done;
+		}
+
+		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_UNLOCKED) {
 			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		node_admin_lock_unlock_shutdown(node, invocation, operationId);
 		break;
+
+	case SA_AMF_ADMIN_UNLOCK:
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_UNLOCKED) {
+			rc = SA_AIS_ERR_NO_OP;
+			LOG_WA("Already in UNLOCKED state");
+			goto done;
+		}
+
+		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		node_admin_lock_unlock_shutdown(node, invocation, operationId);
+		break;
+
+	case SA_AMF_ADMIN_LOCK:
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
+			rc = SA_AIS_ERR_NO_OP;
+			LOG_WA("Already in LOCKED state");
+			goto done;
+		}
+
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		node_admin_lock_unlock_shutdown(node, invocation, operationId);
+		break;
+
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			rc = SA_AIS_ERR_NO_OP;
+			LOG_WA("Already in LOCKED INSTANTIATION state");
+			goto done;
+		}
+
+		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+
+		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED || node->list_of_su == NULL) {
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			goto done;
+		}
+
+		/* now do the lock_instantiation of the node */
+		if (NCSCC_RC_SUCCESS == node_admin_lock_instantiation(node)) {
+			node->admin_node_pend_cbk.admin_oper = operationId;
+			node->admin_node_pend_cbk.invocation = invocation;
+		} else {
+			rc = SA_AIS_ERR_REPAIR_PENDING;
+			LOG_WA("LOCK_INSTANTIATION FAILED");
+			avd_node_oper_state_set(node, SA_AMF_OPERATIONAL_DISABLED);
+			goto done;
+		}
+		break;
+
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
-	case SA_AMF_ADMIN_RESTART:
+		if (node->saAmfNodeAdminState == SA_AMF_ADMIN_LOCKED) {
+			rc = SA_AIS_ERR_NO_OP;
+			LOG_WA("Already in LOCKED state");
+			goto done;
+		}
+
+		if (node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_WA("Invalid Admin Operation in state %d", node->saAmfNodeAdminState);
+			goto done;
+		}
+
+		node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
+
+		if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED || node->list_of_su == NULL) {
+			immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
+			goto done;
+		}
+
+		/* now do the unlock_instantiation of the node */
+		if (NCSCC_RC_SUCCESS == node_admin_unlock_instantiation(node)) {
+			node->admin_node_pend_cbk.admin_oper = operationId;
+			node->admin_node_pend_cbk.invocation = invocation;
+		} else {
+			rc = SA_AIS_ERR_TIMEOUT;
+			LOG_WA("UNLOCK_INSTANTIATION FAILED");
+			goto done;
+		}
+		break;
+
 	default:
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
+		LOG_WA("UNSUPPORTED ADMIN OPERATION (%llu)", operationId);
 		break;
 	}
 
  done:
-	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	if (rc != SA_AIS_OK)
+		immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+
+	TRACE_LEAVE2("%u", rc);
 }
 
-void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
+void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl)
 {
 	sw_bdl->node_list_sw_bdl_next = sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl;
 	sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl;
 }
 
-void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
+void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl)
 {
 	AVD_NODE_SW_BUNDLE *i_sw_bdl = NULL;
 	AVD_NODE_SW_BUNDLE *prev_sw_bdl = NULL;
