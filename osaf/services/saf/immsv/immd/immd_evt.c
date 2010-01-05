@@ -1912,6 +1912,17 @@ static uns32 immd_evt_proc_mds_evt(IMMD_CB *cb, IMMD_EVT *evt)
 			}
 		}
 
+		if ((cb->ha_state == SA_AMF_HA_QUIESCED)  ) {
+			immd_immnd_info_node_get(&cb->immnd_tree,&mds_info->dest, &node_info);
+			if (!node_info) {
+				TRACE_5("NCSMDS_DOWN detected by QUIESCED  IMMD, "
+					"no info on immnd node %llu", mds_info->dest);
+				goto done;
+			} else {
+				TRACE_5("IMMND DOWN PROCESS detected by QUIESCED IMMD");
+				immd_process_immnd_down(cb, node_info, FALSE);
+			}
+		}
 		break;
 	default:
 		TRACE_1("Unhandled MDS change: %u", mds_info->change);
