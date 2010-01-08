@@ -372,8 +372,8 @@ uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REP
 			       SaAmfHAStateT ha_state, SaImmOiHandleT immOiHandle)
 {
 	SaAisErrorT err = SA_AIS_OK;
-	SaNameT replica;
-	memset(&replica, 0, sizeof(replica));
+	SaNameT replica_dn;
+	memset(&replica_dn, 0, sizeof(SaNameT));
 
 	/* Add the imm runtime object */
 	if (ha_state == SA_AMF_HA_ACTIVE) {
@@ -392,14 +392,11 @@ uns32 cpd_ckpt_reploc_node_add(NCS_PATRICIA_TREE *ckpt_reploc_tree, CPD_CKPT_REP
 		/* m_LOG_CPD_HEADLINE(CPD_CKPT_REPLOC_INFO_ADD_FAILED, NCSFL_SEV_ERROR); */
 		/* delete reploc imm runtime object */
 		if (ha_state == SA_AMF_HA_ACTIVE) {
-			strcpy((char *)replica.value, "safReplica=");
-			strcat((char *)replica.value, ckpt_reploc_node->rep_key.node_name.value);
-			strcat((char *)replica.value, ",");
-			strcat((char *)replica.value, ckpt_reploc_node->rep_key.ckpt_name.value);
-			replica.length = strlen((char *)replica.value);
+			cpd_create_association_class_dn(&ckpt_reploc_node->rep_key.node_name,
+							&ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
 
-			if (immutil_saImmOiRtObjectDelete(immOiHandle, &replica) != SA_AIS_OK) {
-				cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica.value);
+			if (immutil_saImmOiRtObjectDelete(immOiHandle, &replica_dn) != SA_AIS_OK) {
+				cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica_dn.value);
 				return NCSCC_RC_FAILURE;
 			}
 			return NCSCC_RC_FAILURE;

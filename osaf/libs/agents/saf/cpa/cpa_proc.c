@@ -141,32 +141,6 @@ uns32 cpa_open_attr_validate(const SaCkptCheckpointCreationAttributesT
 	return SA_AIS_OK;
 }
 
-/**************************************************************
- Name      :   cpa_open_name_validate
-
- Arguments :  CheckpointName
-
-**************************************************************/
-uns32 cpa_open_name_validate(const SaNameT *checkpointName)
-{
-	SaUint8T *ptr;
-	SaUint8T *safName = "safCkpt";
-	ptr = (SaUint8T *)&checkpointName->value;
-
-	if (checkpointName->length == 0)
-		return SA_AIS_ERR_INVALID_PARAM;
-
-	while (*safName) {
-		if (*safName == *ptr) {
-			safName++;
-			ptr++;
-			continue;
-		} else
-			return SA_AIS_ERR_INVALID_PARAM;
-	}
-	return SA_AIS_OK;
-}
-
 /****************************************************************************
   Name          : cpa_callback_ipc_init
   

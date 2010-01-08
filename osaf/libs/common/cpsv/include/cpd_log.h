@@ -268,6 +268,7 @@ EXTERN_C void cpd_headline_log(uns8, uns8);
 EXTERN_C void cpd_db_status_log(uns8, char *);
 EXTERN_C void cpd_memfail_log(uns8);
 EXTERN_C void cpd_mbcsv_log(uns8, uns8);
+EXTERN_C void _cpd_log(uns8 severity, const char *function, const char *format, ...);
 #define m_LOG_CPD_HEADLINE(id, sev) cpd_headline_log(id, sev)
 #define m_LOG_CPD_DB_STATUS(id, str) cpd_db_status_log(id, str)
 #define m_LOG_CPD_MEMFAIL(id) cpd_memfail_log(id)

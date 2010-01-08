@@ -26,6 +26,8 @@
 
 #include "cpd.h"
 #include "cpd_log.h"
+#include "cpd_imm.h"
+#include "immutil.h"
 
 /****************************************************************************
  * Name          : cpd_noncolloc_ckpt_rep_create
@@ -1204,18 +1206,20 @@ void cpd_cb_dump(void)
 uns32 cpd_ckpt_reploc_imm_object_delete(CPD_CB *cb, CPD_CKPT_REPLOC_INFO *ckpt_reploc_node, NCS_BOOL is_unlink_set)
 {
 
-	SaNameT replica;
-	memset(&replica, 0, sizeof(replica));
+	SaNameT replica_dn, node_name;
+	memset(&replica_dn, 0, sizeof(SaNameT));
+	memset(&node_name, 0, sizeof(SaNameT));
 	/* delete imm runtime object */
 	if ((cb->ha_state == SA_AMF_HA_ACTIVE) && (is_unlink_set != TRUE)) {
-		strcpy((char *)replica.value, "safReplica=");
-		strcat((char *)replica.value, (char *)ckpt_reploc_node->rep_key.node_name.value);
-		strcat((char *)replica.value, ",");
-		strcat((char *)replica.value, (char *)ckpt_reploc_node->rep_key.ckpt_name.value);
-		replica.length = strlen((char *)replica.value);
-		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &replica) != SA_AIS_OK) {
-			cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica.value);
+		/* escapes rdn's  ',' with '\'   */
+		node_name.length = m_NCS_OS_NTOHS(ckpt_reploc_node->rep_key.node_name.length);
+		strcpy((char *)node_name.value, (char *)ckpt_reploc_node->rep_key.node_name.value);
+		cpd_create_association_class_dn(&node_name,
+						&ckpt_reploc_node->rep_key.ckpt_name, "safReplica", &replica_dn);
+		if (immutil_saImmOiRtObjectDelete(cb->immOiHandle, &replica_dn) != SA_AIS_OK) {
+			cpd_log(NCSFL_SEV_ERROR, "Deleting run time object %s FAILED", replica_dn.value);
 			return NCSCC_RC_FAILURE;
 		}
 	}
+	return NCSCC_RC_SUCCESS;
 }
