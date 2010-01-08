@@ -69,7 +69,7 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	CPD_CKPT_INFO_NODE *ckpt_node = NULL;
 	SaTimeT ckpt_ret_duration;
 	SaUint32T num_users, num_readers, num_writers, num_replicas, num_sections, num_corrupt_sections;
-	SaUint32T replicaIsActive;
+	SaUint32T replicaIsActive = TRUE;
 	SaUint64T ckpt_size, ckpt_used_size;
 	SaImmAttrNameT attributeName;
 	SaImmAttrModificationT_2 attr_output[9];
@@ -77,10 +77,10 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 	CPD_CKPT_REPLOC_INFO *rep_info = NULL;
 	CPD_REP_KEY_INFO key_info;
 	CPD_CPND_INFO_NODE *cpnd_info_node;
-	char *ckpt_name = strchr((char *)objectName->value, ',');
+	SaNameT replica_dn, ckptName, clm_node_name;
+	char *ckpt_name;
 
-	SaNameT replica, ckptName;
-	memset(&replica, 0, sizeof(replica));
+	memset(&replica_dn, 0, sizeof(SaNameT));
 	memset(&ckptName, 0, sizeof(ckptName));
 	strcpy((char *)ckptName.value, (char *)objectName->value);
 	ckptName.length = objectName->length;
@@ -103,11 +103,18 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 		return SA_AIS_ERR_FAILED_OPERATION;
 	}
 
-	if (strncmp(objectName->value, "safReplica=", 11) == 0) {
-		ckpt_name++;
-		memset(&ckptName, 0, sizeof(ckptName));
-		strcpy((char *)ckptName.value, ckpt_name);
-		ckptName.length = strlen(ckpt_name);
+	if (strncmp((char *)objectName->value, "safReplica=", 11) == 0) {
+		ckpt_name = strchr((char *)objectName->value, ',');
+		if (ckpt_name) {
+			ckpt_name++;	/*escaping first ',' of the associated class DN name */
+			ckpt_name = strchr((char *)ckpt_name, ',');
+			if (ckpt_name) {
+				ckpt_name++;
+				memset(&ckptName, 0, sizeof(ckptName));
+				strcpy((char *)ckptName.value, ckpt_name);
+				ckptName.length = strlen(ckpt_name);
+			}
+		}
 	}
 
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckptName, &map_info);
@@ -128,18 +135,30 @@ static SaAisErrorT cpd_saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 			}
 
 			if (rep_info) {
-				strcpy((char *)replica.value, "safReplica=");
-				strcat((char *)replica.value, (char *)rep_info->rep_key.node_name.value);
-				strcat((char *)replica.value, ",");
-				strcat((char *)replica.value, (char *)rep_info->rep_key.ckpt_name.value);
-				replica.length = strlen((char *)replica.value);
+				clm_node_name.length = m_NCS_OS_NTOHS(rep_info->rep_key.node_name.length);
+				strncpy((char *)clm_node_name.value, (char *)rep_info->rep_key.node_name.value,
+					clm_node_name.length);
+				/* escapes rdn's  ',' with '\'   */
+				cpd_create_association_class_dn(&clm_node_name,
+								&rep_info->rep_key.ckpt_name, "safReplica",
+								&replica_dn);
 
-				if (m_CMP_HORDER_SANAMET(*objectName, replica) == 0) {
+				if (m_CMP_HORDER_SANAMET(*objectName, replica_dn) == 0) {
 
 					/* Walk through the attribute Name list */
 					while ((attributeName = attributeNames[i]) != NULL) {
 						if (strcmp(attributeName, "saCkptReplicaIsActive") == 0) {
-							replicaIsActive = rep_info->rep_type;
+							/* replicaIsActive  DESCRIPTION " Indicates if the node 
+							contains an active replica of the checkpoint designated 
+							by 'saCkptCheckpointNameLoc'.  Applicable only for collocated 
+							checkpoints created with either asynchronous or asynchronousweak 
+							update option. The concept of an active replica doesn't apply 
+							if the checkpoint is either non-collocated or collocated but 
+							created with a synchronous update option and hence the other 
+							INTEGER values have been provided to bring out those specific traits." */
+
+						        if(rep_info->rep_type == REP_NOTACTIVE)
+							   replicaIsActive = FALSE;
 							attr_output[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
 							attr_output[0].modAttr.attrName = attributeName;
 							attr_output[0].modAttr.attrValuesNumber = 1;
@@ -284,14 +303,14 @@ SaAisErrorT create_runtime_replica_object(CPD_CKPT_REPLOC_INFO *ckpt_reploc_node
 	SaImmAttrValuesT_2 replica_dn;
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrValuesT_2 *attrValues[2];
-	SaNameT rdn;
+	SaNameT replica_rdn;
 	SaNameT ckpt_name;
-	memset(&ckpt_name, 0, sizeof(ckpt_name));
-	memset(&rdn, 0, sizeof(rdn));
-	strcpy((char *)rdn.value, "safReplica=");
-	strcat((char *)rdn.value, (char *)ckpt_reploc_node->rep_key.node_name.value);
-	rdn.length = strlen((char *)rdn.value);
-	dn[0] = &rdn;
+	memset(&ckpt_name, 0, sizeof(SaNameT));
+
+	/* escapes rdn's  ',' with '\'   */
+	cpd_create_association_class_dn(&ckpt_reploc_node->rep_key.node_name, NULL, "safReplica", &replica_rdn);
+
+	dn[0] = &replica_rdn;
 	replica_dn.attrName = "safReplica";
 	replica_dn.attrValueType = SA_IMM_ATTR_SANAMET;
 	replica_dn.attrValuesNumber = 1;
@@ -333,14 +352,16 @@ SaAisErrorT create_runtime_ckpt_object(CPD_CKPT_INFO_NODE *ckpt_node, SaImmOiHan
 	SaImmAttrValuesT_2 ckpt_dn, ckpt_creat_time, ckpt_creat_flags,
 	    ckpt_max_sections, ckpt_max_section_size, ckpt_max_section_id_size;
 	SaTimeT create_time_sec;
+
+	memset(&parentName, 0, sizeof(SaNameT));
+
 	if (parent_name != NULL) {
 		rdnstr = strtok(dndup, ",");
 		parent_name++;
-		memset(&parentName, 0, sizeof(parentName));
 		strcpy((char *)parentName.value, parent_name);
 		parentName.length = strlen((char *)parent_name);
 	} else
-		rdnstr = ckpt_node->ckpt_name.value;
+		rdnstr = (char *)ckpt_node->ckpt_name.value;
 
 	dn[0] = &rdnstr;
 	create_time_sec = ckpt_node->create_time * SA_TIME_ONE_SECOND;
@@ -459,4 +480,30 @@ void cpd_imm_declare_implementer(CPD_CB *cb)
 		cpd_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
+}
+
+void cpd_create_association_class_dn(const SaNameT *child_dn, const SaNameT *parent_dn,
+				     const char *rdn_tag, SaNameT *dn)
+{
+	char *p = (char *)dn->value;
+	int i;
+
+	memset(dn, 0, sizeof(SaNameT));
+
+	p += sprintf((char *)dn->value, "%s=", rdn_tag);
+
+	/* copy child DN and escape commas */
+	for (i = 0; i < child_dn->length; i++) {
+		if (child_dn->value[i] == ',')
+			*p++ = 0x5c;	/* backslash */
+
+		*p++ = child_dn->value[i];
+	}
+
+	if (parent_dn != NULL) {
+		*p++ = ',';
+		strcpy(p, (char *)parent_dn->value);
+	}
+
+	dn->length = strlen((char *)dn->value);
 }

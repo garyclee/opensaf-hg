@@ -638,6 +638,14 @@ SaAisErrorT saCkptCheckpointOpen(SaCkptHandleT ckptHandle, const SaNameT *checkp
 
 	m_CPSV_SET_SANAMET(checkpointName);
 
+	/* SA_AIS_ERR_INVALID_PARAM, bullet 4 in SAI-AIS-CKPT-B.02.02 
+           Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
+        if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
+                m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                "CkptOpen:DN", __FILE__, __LINE__, SA_AIS_ERR_INVALID_PARAM, ckptHandle);
+                return SA_AIS_ERR_INVALID_PARAM;
+        }
+
 	/* Draft Validations */
 	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags, checkpointName);
 	if (rc != SA_AIS_OK) {
@@ -927,6 +935,14 @@ SaAisErrorT saCkptCheckpointOpenAsync(SaCkptHandleT ckptHandle, SaInvocationT in
 	/* Draft Validations */
 
 	m_CPSV_SET_SANAMET(checkpointName);
+
+	/* SA_AIS_ERR_INVALID_PARAM, bullet 4 in SAI-AIS-CKPT-B.02.02 
+           Section 3.6.1 saCkptCheckpointOpen() and saCkptCheckpointOpenAsync(), Return Values */
+        if (strncmp((const char *)checkpointName->value, "safCkpt=", 8) != 0) {
+                m_LOG_CPA_CCLLF(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR,
+                                "CkptOpen:DN", __FILE__, __LINE__, SA_AIS_ERR_INVALID_PARAM, ckptHandle);
+                return SA_AIS_ERR_INVALID_PARAM;
+        }
 
 	rc = cpa_open_attr_validate(checkpointCreationAttributes, checkpointOpenFlags, checkpointName);
 	if (rc != SA_AIS_OK) {

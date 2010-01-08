@@ -26,6 +26,7 @@
 
 #include "cpd.h"
 #include "cpd_log.h"
+#include "immutil.h"
 
 uns32 cpd_evt_proc_cb_dump(CPD_CB *cb);
 static uns32 cpd_evt_proc_ckpt_create(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo);

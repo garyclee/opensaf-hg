@@ -284,19 +284,19 @@ static uns32 cpd_lib_init(CPD_CREATE_INFO *info)
 	/* Register with CLM */
 
 	memset(&healthy, 0, sizeof(healthy));
-	health_key = getenv("CPSV_ENV_HEALTHCHECK_KEY");
+	health_key = (int8 *)getenv("CPSV_ENV_HEALTHCHECK_KEY");
 	if (health_key == NULL) {
-		strcpy(healthy.key, "A1B2");
+		strcpy((char *)healthy.key, "A1B2");
 		/* TBD Log */
 	} else {
-		if (strlen(health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
+		if (strlen((char *)health_key) >= SA_AMF_HEALTHCHECK_KEY_MAX) {
 			rc = NCSCC_RC_FAILURE;
 			m_LOG_CPD_CL(CPD_HEALTHCHECK_START_FAIL, CPD_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
 			goto cpd_mab_fail;
 		} else
-			strcpy(healthy.key, health_key);
+			strcpy((char *)healthy.key, (char *)health_key);
 	}
-	healthy.keyLen = strlen(healthy.key);
+	healthy.keyLen = strlen((char *)healthy.key);
 
 	amf_error = saAmfHealthcheckStart(cb->amf_hdl, &cb->comp_name, &healthy,
 					  SA_AMF_HEALTHCHECK_AMF_INVOKED, SA_AMF_COMPONENT_FAILOVER);
@@ -470,7 +470,6 @@ static void cpd_main_process(NCSCONTEXT info)
 	NCS_MBCSV_ARG mbcsv_arg;
 	SaSelectionObjectT amf_sel_obj, clm_sel_obj;
 	SaAisErrorT error = SA_AIS_OK;
-	char *trace_file;
 
 	mbx_fd = ncs_ipc_get_sel_obj(&cb->cpd_mbx);
 	if (saAmfSelectionObjectGet(cb->amf_hdl, &amf_sel_obj) != SA_AIS_OK) {
