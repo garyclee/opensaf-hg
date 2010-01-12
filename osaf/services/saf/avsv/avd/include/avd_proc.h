@@ -45,7 +45,7 @@ EXTERN_C void avd_su_oper_state_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_su_si_assign_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 				  SaAmfHAStateT role, NCS_BOOL ckpt, AVD_SU_SI_REL **ret_ptr);
-EXTERN_C uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
+EXTERN_C void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd);
 EXTERN_C uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg);
 EXTERN_C uns32 avd_sg_su_oper_list_add(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
 EXTERN_C uns32 avd_sg_su_oper_list_del(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL ckpt);
