@@ -203,6 +203,27 @@ uns32 avnd_evt_cla_track_stop(AVND_CB *cb, AVND_EVT *evt)
 	return avnd_mds_send(cb, &msg, &evt->info.cla.mds_dest, &evt->mds_ctxt);
 }
 
+// TODO remove later when we have a new CLM...
+static void amf_to_clm_node(const SaNameT *amf_node, SaNameT *clm_node)
+{
+	#include <immutil.h>
+        SaAisErrorT rc;
+        SaImmAccessorHandleT accessorHandle;
+        const SaImmAttrValuesT_2 **attributes;
+	SaImmAttrNameT attributeNames[] = {"saAmfNodeClmNode", NULL};
+
+        immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+
+        rc = immutil_saImmOmAccessorGet_2(accessorHandle, amf_node,
+                attributeNames, (SaImmAttrValuesT_2 ***)&attributes);
+	assert(rc == SA_AIS_OK);
+
+	rc = immutil_getAttr("saAmfNodeClmNode", attributes, 0, clm_node);
+	assert(rc == SA_AIS_OK);
+
+        immutil_saImmOmAccessorFinalize(accessorHandle);
+}
+
 /****************************************************************************
   Name          : avnd_evt_cla_node_get
  
@@ -254,7 +275,7 @@ uns32 avnd_evt_cla_node_get(AVND_CB *cb, AVND_EVT *evt)
 	if (rec) {
 		clusterNode.nodeId = rec->info.node_id;
 		clusterNode.nodeAddress = rec->info.node_address;
-		clusterNode.nodeName = rec->info.node_name;
+		amf_to_clm_node(&rec->info.node_name, &clusterNode.nodeName);
 		clusterNode.nodeName.length = rec->info.node_name.length;
 		clusterNode.member = rec->info.member;
 		clusterNode.bootTimestamp = rec->info.boot_timestamp;
