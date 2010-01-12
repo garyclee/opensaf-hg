@@ -413,8 +413,8 @@ void avd_oper_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
-	/* log an error since this shouldn't happen */
-	m_AVD_LOG_INVALID_VAL_FATAL(n2d_msg->msg_info.n2d_op_req.error);
+	LOG_ER("Operation request FAILED, sender %x, '%s'",
+		n2d_msg->msg_info.n2d_op_req.node_id, n2d_msg->msg_info.n2d_op_req.param_info.name.value);
 
  done:
 	avsv_dnd_msg_free(n2d_msg);
