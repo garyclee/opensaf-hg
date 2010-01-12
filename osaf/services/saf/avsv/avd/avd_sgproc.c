@@ -1479,20 +1479,20 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
  * 
  **************************************************************************/
 
-uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
+void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	AVD_SU *i_su;
 	AVD_AVND *su_node_ptr = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_app_node_su_inst_func");
+	TRACE_ENTER2("'%s'", avnd->node_info.nodeName.value);
 
 	if (cb->init_state == AVD_INIT_DONE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
-
 			if ((i_su->num_of_comp == i_su->curr_num_comp) &&
 			    (i_su->term_state == FALSE) &&
-			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
+			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
+			    (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED)) {
 				if (i_su->saAmfSUPreInstantiable == TRUE) {
 					/* instantiate all the pre-instatiable SUs */
 					avd_snd_presence_msg(cb, i_su, FALSE);
@@ -1509,14 +1509,11 @@ uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			}
 
 			i_su = i_su->avnd_list_su_next;
+		}
 
-		}		/* while(i_su != AVD_SU_NULL) */
-
-	} /* if (cb->init_state == AVD_INIT_DONE) */
-	else if (cb->init_state == AVD_APP_STATE) {
+	} else if (cb->init_state == AVD_APP_STATE) {
 		i_su = avnd->list_of_su;
 		while (i_su != NULL) {
-
 			if ((i_su->num_of_comp == i_su->curr_num_comp) &&
 			    (i_su->term_state == FALSE) &&
 			    (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED)) {
@@ -1525,13 +1522,10 @@ uns32 avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			}
 
 			i_su = i_su->avnd_list_su_next;
-
-		}		/* while(i_su != AVD_SU_NULL) */
-
+		}
 	}
-	/* if (cb->init_state == AVD_APP_STATE) */
-	return NCSCC_RC_SUCCESS;
 
+	TRACE_LEAVE();
 }
 
 /*****************************************************************************
@@ -1577,6 +1571,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			num_insvc_su++;
 			if ((i_su->list_of_susi == AVD_SU_SI_REL_NULL) &&
 			    (i_su->saAmfSUPreInstantiable == TRUE) &&
+			    (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 			    (sg->saAmfSGNumPrefInserviceSUs < (num_insvc_su + num_try_insvc_su))) {
 				/* enough inservice SUs are already there terminate this
 				 * SU.
@@ -1638,6 +1633,7 @@ uns32 avd_sg_app_su_inst_func(AVD_CL_CB *cb, AVD_SG *sg)
 			} else if ((i_su->saAmfSUPreInstantiable == TRUE) &&
 				   (sg->saAmfSGNumPrefInserviceSUs > (num_insvc_su + num_try_insvc_su)) &&
 				   (i_su->saAmfSUPresenceState == SA_AMF_PRESENCE_UNINSTANTIATED) &&
+				   (i_su->saAmfSUAdminState == SA_AMF_ADMIN_UNLOCKED) &&
 				   (su_node_ptr->saAmfNodeOperState == SA_AMF_OPERATIONAL_ENABLED) &&
 				   (i_su->term_state == FALSE)) {
 				/* Try to Instantiate this SU */
