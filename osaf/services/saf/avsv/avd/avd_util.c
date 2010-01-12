@@ -2118,17 +2118,6 @@ SaAisErrorT avd_object_name_create(SaNameT *rdn_attr_value, SaNameT *parentName,
 	return rc;
 }
 
-void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
-{
-	char *p;
-
-	memset(dn, 0, sizeof(SaNameT));
-	p = strstr((char*)haystack->value, needle);
-	assert(p);
-	dn->length = strlen(p);
-	memcpy(dn->value, p, dn->length);
-}
-
 void avsv_sanamet_init_from_association_dn(const SaNameT *haystack, SaNameT *dn,
 	const char *needle, const char *parent)
 {

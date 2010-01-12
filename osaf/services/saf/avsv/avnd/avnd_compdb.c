@@ -82,29 +82,30 @@ static SaAisErrorT avnd_comp_config_get(const SaNameT *comp_name);
 /* We should only get the config attributes from IMM to avoid problems
    with a pure runtime attributes */
 static SaImmAttrNameT compConfigAttributes[] = {
-    "saAmfCompType",
-    "saAmfCompCmdEnv",
-    "saAmfCompInstantiateCmdArgv",
-    "saAmfCompInstantiateTimeout",
-    "saAmfCompInstantiateLevel",
-    "saAmfCompNumMaxInstantiateWithoutDelay",
-    "saAmfCompNumMaxInstantiateWithDelay",
-    "saAmfCompDelayBetweenInstantiateAttempts",
-    "saAmfCompTerminateCmdArgv",
-    "saAmfCompTerminateTimeout",
-    "saAmfCompCleanupCmdArgv"
-    "saAmfCompCleanupTimeout",
-    "saAmfCompAmStartCmdArgv",
-    "saAmfCompAmStartTimeout",
-    "saAmfCompNumMaxAmStartAttempts",
-    "saAmfCompAmStopCmdArgv",
-    "saAmfCompAmStopTimeout",
-    "saAmfCompNumMaxAmStopAttempts",
-    "saAmfCompCSISetCallbackTimeout",
-    "saAmfCompCSIRmvCallbackTimeout",
-    "saAmfCompQuiescingCompleteTimeout",
-    "saAmfCompRecoveryOnError",
-    "saAmfCompDisableRestart"
+	"saAmfCompType",
+	"saAmfCompCmdEnv",
+	"saAmfCompInstantiateCmdArgv",
+	"saAmfCompInstantiateTimeout",
+	"saAmfCompInstantiateLevel",
+	"saAmfCompNumMaxInstantiateWithoutDelay",
+	"saAmfCompNumMaxInstantiateWithDelay",
+	"saAmfCompDelayBetweenInstantiateAttempts",
+	"saAmfCompTerminateCmdArgv",
+	"saAmfCompTerminateTimeout",
+	"saAmfCompCleanupCmdArgv"
+	"saAmfCompCleanupTimeout",
+	"saAmfCompAmStartCmdArgv",
+	"saAmfCompAmStartTimeout",
+	"saAmfCompNumMaxAmStartAttempts",
+	"saAmfCompAmStopCmdArgv",
+	"saAmfCompAmStopTimeout",
+	"saAmfCompNumMaxAmStopAttempts",
+	"saAmfCompCSISetCallbackTimeout",
+	"saAmfCompCSIRmvCallbackTimeout",
+	"saAmfCompQuiescingCompleteTimeout",
+	"saAmfCompRecoveryOnError",
+	"saAmfCompDisableRestart",
+	NULL
 };
 
 /*****************************************************************************
@@ -857,7 +858,6 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			case saAmfCompType_ID: {
 				SaNameT *value = (SaNameT *)param->value;
 
-				assert(sizeof(SaNameT) == param->value_len);
 				assert(comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED);
 
 				avnd_log(NCSFL_SEV_NOTICE, "saAmfCompType %s %u", value->value, value->length);
@@ -1523,43 +1523,59 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
  * 
  * @return SaAisErrorT 
  */
-
 static SaAisErrorT avnd_comp_config_get(const SaNameT *dn)
 {
-	SaAisErrorT rc, error = SA_AIS_ERR_FAILED_OPERATION;
-	SaImmAccessorHandleT accessorHandle;
+	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	const SaImmAttrValuesT_2 **attributes;
 	AVND_COMP *comp;
 	AVND_SU *su;
-	SaNameT su_name;
-	char *p;
+	SaNameT su_name, comp_name;
+	SaImmSearchHandleT searchHandle;
+	SaImmSearchParametersT_2 searchParam;
+	const char *className = "SaAmfComp";
 
-	immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
+	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	searchParam.searchOneAttr.attrValue = &className;
 
-	rc = immutil_saImmOmAccessorGet_2(accessorHandle, dn,
-		compConfigAttributes, (SaImmAttrValuesT_2 ***)&attributes);
+	TRACE_ENTER2("'%s'", dn->value);
 
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOmAccessorGet_2 FAILED %u", rc);
-		goto done;
+	avsv_sanamet_init(dn, &su_name, "safSu");
+
+	if ((error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, &su_name,
+		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR,
+		&searchParam, compConfigAttributes, &searchHandle)) != SA_AIS_OK) {
+
+		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
+		goto done1;
 	}
 
-	p = strstr((char*)dn->value, "safSu");
-	memset(&su_name, 0, sizeof(su_name));
-	strcpy((char*)su_name.value, p);
-	su_name.length = strlen(p);
+	error = immutil_saImmOmSearchNext_2(searchHandle, &comp_name, (SaImmAttrValuesT_2 ***)&attributes);
+	while ((error == SA_AIS_OK) && (memcmp(&comp_name, dn, sizeof(SaNameT) != 0))) {
+		error = immutil_saImmOmSearchNext_2(searchHandle, &comp_name,
+			(SaImmAttrValuesT_2 ***)&attributes);
+	}
+
+	if (error != SA_AIS_OK && error != SA_AIS_ERR_NOT_EXIST) {
+		LOG_ER("immutil_saImmOmSearchNext_2 FAILED %u", error);
+		goto done2;
+	}
+
+	avnd_log(NCSFL_SEV_NOTICE, "'%s'", dn->value);
+	assert(memcmp(&comp_name, dn, sizeof(SaNameT)) == 0);
+
 	su = m_AVND_SUDB_REC_GET(avnd_cb->sudb, su_name);
 	assert(su);
 
 	if ((comp = avnd_comp_create(dn, attributes, su)) == NULL)
-		goto done;
+		goto done2;
 
 	avnd_hc_config_get(comp);
-
 	error = SA_AIS_OK;
 
-done:
-	immutil_saImmOmAccessorFinalize(accessorHandle);
+done2:
+	(void)immutil_saImmOmSearchFinalize(searchHandle);
+done1:
 	return error;
 }
 

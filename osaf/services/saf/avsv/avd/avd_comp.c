@@ -937,13 +937,13 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			if ((comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 			    (comp->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
 			    (comp->su->sg_of_su->sg_on_app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)){
-				LOG_ER("A parent is not locked instantiation, '%s'", dn.value);
+				LOG_ER("A parent is not locked instantiation, '%s'", comp->comp_info.name.value);
 				goto done;
 			}
 
 			if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
 				LOG_ER("Comp '%s' has wrong presence state %u",
-					dn.value, comp->saAmfCompPresenceState);
+					comp->comp_info.name.value, comp->saAmfCompPresenceState);
 				goto done;
 			}
 		}
@@ -1020,7 +1020,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	unsigned int rc = NCSCC_RC_SUCCESS;
 	AVSV_PARAM_INFO param;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 	param.class_id = AVSV_SA_AMF_COMP;

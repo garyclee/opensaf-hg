@@ -339,3 +339,20 @@ void avsv_create_association_class_dn(const SaNameT *child_dn, const SaNameT *pa
 	dn->length = strlen((char*)dn->value);
 }
 
+/**
+ * Initialize a DN by searching for needle in haystack
+ * @param haystack
+ * @param dn
+ * @param needle
+ */
+void avsv_sanamet_init(const SaNameT *haystack, SaNameT *dn, const char *needle)
+{
+	char *p;
+
+	memset(dn, 0, sizeof(SaNameT));
+	p = strstr((char*)haystack->value, needle);
+	assert(p);
+	dn->length = strlen(p);
+	memcpy(dn->value, p, dn->length);
+}
+
