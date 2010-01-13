@@ -25,7 +25,6 @@ noinst_HEADERS = \
 
 logtest_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/tests/immsv/common \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 
 logtest_SOURCES = \
