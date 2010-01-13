@@ -60,6 +60,8 @@ libavsv_pssv_la_CPPFLAGS = \
 
 nodist_libavsv_pssv_la_SOURCES = $(PSSV_GENERATED_FILES)
 
+libavsv_pssv_la_CFLAGS = @HPI_CFLAGS@
+
 libavsv_pssv_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
 
 $(PSSV_GENERATED_FILES): pssv
