@@ -30,6 +30,8 @@ libavd_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/snmp/mapi/include \
         -I$(top_srcdir)/osaf/libs/common/immsv/include
 
+libavd_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+
 libavd_la_LDFLAGS = -static
 
 libavd_la_SOURCES = \
