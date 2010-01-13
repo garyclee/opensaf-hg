@@ -888,7 +888,6 @@ SaAisErrorT saNtfNotificationSubscribe(const SaNtfNotificationTypeFilterHandlesT
 
 						 /* retrieve notification filter hdl rec */
 						 filter_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_NTFA, filterHndl[i]);
-						 TRACE_1("filter_hdl = %llu", filter_hdl_rec->filter_hdl);
 						 if (filter_hdl_rec == NULL) {
 									TRACE_1("ncshm_take_hdl failed");
 									TRACE_LEAVE();
