@@ -51,6 +51,8 @@ libavd_miblib_la_CPPFLAGS = \
 	-I$(top_builddir)/osaf/snmp/mapi/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
+libavd_miblib_la_CFLAGS = @HPI_CFLAGS@
+
 libavd_miblib_la_LDFLAGS = -static
 
 nodist_libavd_miblib_la_SOURCES = $(MIBLIB_GENERATED_FILES)
