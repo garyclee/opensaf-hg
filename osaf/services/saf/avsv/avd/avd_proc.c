@@ -800,8 +800,8 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	/* reset the sync falg */
 	cb_now->sync_required = TRUE;
 
-	free(evt);
 	TRACE_LEAVE2("%s", avd_evt_name[evt->rcv_evt]);
+	free(evt);
 }
 
 /*****************************************************************************
