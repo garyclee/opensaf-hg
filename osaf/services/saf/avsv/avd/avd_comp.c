@@ -935,8 +935,9 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 			}
 
 			if ((comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-			    (comp->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-			    (comp->su->sg_of_su->sg_on_app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)){
+				(comp->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+				(comp->su->sg_of_su->sg_on_app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
+				(comp->su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
 				LOG_ER("A parent is not locked instantiation, '%s'", comp->comp_info.name.value);
 				goto done;
 			}
