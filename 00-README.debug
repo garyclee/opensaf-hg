@@ -41,13 +41,10 @@ System Controller Checklist
     The configure process should have detected the presence or absence of
     those packages at runtime.
 
-    a. The Xerces-C libraries are available and Xerces-C include files are 
-       available. In cases of rpm installation, make sure the devel package 
-       is installed.
-    b. The Net-SNMP libraries are available and Net-SNMP include files are 
+    a. The Net-SNMP libraries are available and Net-SNMP include files are 
        available. In cases of rpm installation, make sure the devel package is 
        installed.
-    c. The libxml2 libraries are available and libxml2 include files are 
+    b. The libxml2 libraries are available and libxml2 include files are 
        available. In cases of rpm installation, make sure the devel package 
        is installed.
     c. DRBD is installed and configured as described in 00-README.drbd.

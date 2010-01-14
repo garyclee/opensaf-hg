@@ -174,7 +174,7 @@ your Linux environment:
 
     * Distribution used (e.g. Fedora, Ubuntu, SUSE, PNE-LE etc.)
     * The revision of your Linux distribution
-    * Package revisions of the prerequisites (e.g. net-snmp, xerces, tipc etc.)
+    * Package revisions of the prerequisites (e.g. net-snmp, tipc etc.)
     * If using the package prerequisites from the Linux distribution?
     * Build tool revisions (e.g. gcc, automake, autoconf, libtool)
     * If using cross-compiling + target information
@@ -210,7 +210,6 @@ Source Tree Structure
       +-scripts/                    (Various OpenSAF service scripts)
       +-services/                   (`OpenSAF' services implementation)
       | +-avsv/
-      | +-bam/
       | +-cli/
       | +-common/
       | +-cpsv/
@@ -246,7 +245,6 @@ Prerequisites
 The following software is required to build `OpenSAF':
 
     * The Linux Kernel with TIPC development support
-    * Xerces-C++ XML Parser 2.7.0+
     * Net-SNMP 5.4+
     * An HPI implementation (e.g. OpenHPI)
     * Libxml2

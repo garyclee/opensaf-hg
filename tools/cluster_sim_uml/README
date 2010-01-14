@@ -26,7 +26,7 @@ The cluster environment is built using:
 - Linux kernel
 - Busybox
 - opensaf rpms
-- netsnmp & xerces libraries
+- netsnmp libraries
 - a few host libraries
 
 All packages are downloaded from the net. Make sure to have proxy settings
@@ -75,7 +75,7 @@ configured Opensaf like this:
 
 $ ./configure --disable-hpi
 
-Also make sure you have netsnmp and xerces libraries available. If these 
+Also make sure you have netsnmp libraries available. If these 
 libraries are in a non-standard location, setup environment variables to 
 point the right location. See 'build_uml'.
 
@@ -194,5 +194,4 @@ The following packages are known to work:
 - libgcc-4.1.0-28.4 (needed by scap)
 - libstdc++-4.1.0-28.4 (needed by scap)
 - net-snmp-5.4.1
-- xerces-c-src_2_7_0
 

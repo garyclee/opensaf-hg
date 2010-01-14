@@ -490,23 +490,6 @@ else
    fi
 fi
 
-
-# TODO: Fix the hardcoded locations, and add flexible --with
-XERCESC_LIB=""
-XERCESC_INCLUDE=""
-
-AC_CHECK_LIB([xerces-c],
-        [main],
-        [XERCESC_LIB="-lxerces-c"],
-        [AC_ERROR([Can't find the xerces shared libraries])])
-
-AC_CHECK_HEADER([xercesc/util/XercesVersion.hpp],
-        [XERCESC_INCLUDE="-I/usr/include/xercesc"],
-        [AC_ERROR([Can't find the xerces development headers])])
-
-AC_SUBST([XERCESC_LIB])
-AC_SUBST([XERCESC_INCLUDE])
-
 if test "$ac_check_netsnmp_config" = missing; then
         AC_ERROR([Can't find the net-snmp development package])
 else
@@ -752,9 +735,6 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaMsg/pkgconfig/opensaf-msg.pc
         osaf/services/Makefile
         osaf/services/infrastructure/Makefile
-        osaf/services/infrastructure/bam/Makefile
-        osaf/services/infrastructure/bam/include/Makefile
-        osaf/services/infrastructure/bam/logstr/Makefile
         osaf/services/infrastructure/dtsv/Makefile
         osaf/services/infrastructure/dtsv/include/Makefile
         osaf/services/infrastructure/dtsv/logstr/Makefile
