@@ -35,7 +35,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 # TODO: Causing issue on SUSE, package names are different, need to create
 # distro specific check
 %if %is_rhel || %is_fedora
-BuildRequires: net-snmp-devel xerces-c-devel
+BuildRequires: net-snmp-devel
 %if %is_openhpi
 BuildRequires: openhpi-devel pkgconfig
 %endif
@@ -75,7 +75,7 @@ Requires: %{name}-libs = %{version}-%{release}
 Requires: /sbin/ldconfig
 
 %if %is_rhel || %is_fedora
-Requires: net-snmp xerces-c
+Requires: net-snmp
 %if %is_openhpi
 Requires: openhpi
 %endif
@@ -388,7 +388,6 @@ fi
 %{_pkglibdir}/libavsv_logstr.so.*
 %{_pkglibdir}/libavsv_pssv.so.*
 %{_pkglibdir}/libavsv_subagt.so.*
-%{_pkglibdir}/libbam_logstr.so.*
 %{_pkglibdir}/libcli_logstr.so.*
 %{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/libdts_clicef.so.*

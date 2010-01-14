@@ -67,10 +67,6 @@
 #include "avnd_dl_api.h"
 #endif
 
-#if (NCS_BAM == 1)
-#include "bam.h"
-#endif
-
 #if (NCS_MBCSV == 1)
 #include "mbcsv_dl_api.h"
 #endif

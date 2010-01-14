@@ -69,10 +69,6 @@
 #include "avnd_dl_api.h"
 #endif
 
-#if (NCS_BAM == 1)
-#include "bam.h"
-#endif
-
 #if (NCS_AVM == 1)
 #include "avm_dl_api.h"
 #endif
@@ -317,16 +313,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 	}
 #endif
 
-   /*** Init BAM ***/
-	if ('n' != ncs_util_get_char_option(argc, argv, "BAM=")) {
-#if (NCS_BAM == 1)
-		if (ncs_bam_dl_func(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("BAM DL function failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
-	}
 
    /*** Init DTS ***/
 #if (NCS_DTS == 1)
