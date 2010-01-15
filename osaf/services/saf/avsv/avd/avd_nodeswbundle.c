@@ -190,7 +190,7 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfNodeSwBundle not supported");
 		break;
 	case CCBUTIL_DELETE:
-		LOG_ER("Deletion of SaAmfNodeSwBundle not supported");
+		rc = SA_AIS_OK;
 		break;
 	default:
 		assert(0);
