@@ -15,22 +15,15 @@
  *
  */
 
+#include <imm_loader.hh>
 #include <iostream>
-#include <list>
-#include <map>
-#include <string>
 #include <libxml/parser.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <assert.h>
 #include <syslog.h>
 #include <configmake.h>
-
-#include <saImmOm.h>
-#include <immsv_api.h>
-#include <saAis.h>
 #include <logtrace.h>
 
 #define MAX_DEPTH 10
@@ -93,7 +86,7 @@ typedef struct ParserStateStruct
     char*                objectClass;
     char*                objectName;
 
-    std::list<SaImmAttrValuesT_2> attrValues;
+    std::list<SaImmAttrValuesT_2> attrValuesList;
     std::list<char*>            attrValueBuffers;
     int                         valueContinue;
 
@@ -104,31 +97,27 @@ typedef struct ParserStateStruct
     SaImmHandleT         ccbHandle;
 } ParserState;
 
-SaImmCallbacksT immCallbacks = 
-{
-};
-
-/* Prototypes */
-
 /* Helper functions */
-static void addClassAttributeDefinition(ParserState* state);
-static void addObjectAttributeDefinition(ParserState* state);
+
 static void addToAttrTypeCache(ParserState*, SaImmValueTypeT);
-static SaImmValueTypeT getClassAttrValueType(ParserState*, 
-                                             const char*, 
-                                             const char*);
+
+static SaImmValueTypeT getClassAttrValueType(
+    std::map<std::string, std::map<std::string, SaImmValueTypeT> > * classAttrTypeMap,
+    const char* className,
+    const char* attrName);
+
 static void saveRDNAttribute(ParserState* parserState);
-static void getDNForClass(ParserState*, 
-                          const SaImmClassNameT,
-                          SaImmAttrValuesT_2*);
+
+static void getRDNForClass(const char* objectName,
+    const SaImmClassNameT className,
+    std::map<std::string, SaImmAttrValuesT_2> *classRDNMap,
+    SaImmAttrValuesT_2* values);
+
 static void charsToValueHelper(SaImmAttrValueT*, 
                                SaImmValueTypeT, 
                                const char*);
 static SaImmValueTypeT charsToTypeHelper(const xmlChar* str, size_t len);
 static SaImmAttrFlagsT charsToFlagsHelper(const xmlChar* str, size_t len);
-
-static void createImmClass(ParserState*);
-static void createImmObject(ParserState*);
 
 
 /* SAX callback handlers */
@@ -296,32 +285,34 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
 
 /**
  * Creates an Imm Object through the ImmOm interface
+ * Note: classRDNMap is NULL when loading from PBE.
  */
-static void createImmObject(ParserState* state)
+bool createImmObject(SaImmClassNameT className,
+    char * objectName,
+    std::list<SaImmAttrValuesT_2> *attrValuesList,
+    SaImmCcbHandleT ccbHandle, 
+    std::map<std::string, SaImmAttrValuesT_2> *classRDNMap)
 {
-    SaImmClassNameT className;
     SaNameT parentName;
     SaImmAttrValuesT_2** attrValues;
     SaAisErrorT errorCode;
     int i;
-    size_t DNlen;
+    size_t RDNlen;
 
-    TRACE_8("CREATE IMM OBJECT %s, %s", 
-            state->objectClass,
-            state->objectName);
+    TRACE_ENTER2("CREATE IMM OBJECT %s, %s", className, objectName);
 
-    /* Set the class name */
-    className = state->objectClass;
+    TRACE("attrValuesList size:%u clasRDNMap size:%u", attrValuesList->size(),
+	    classRDNMap?classRDNMap->size():0);
 
     /* Set the parent name */
     parentName.length = 0;
-    if (state->objectName != NULL)
+    if (objectName != NULL)
     {
         char* parent;
 
         /* ',' is the delimeter */
         /* but '\' is the escape character, used for association objects */
-        parent = state->objectName;
+        parent = objectName;
         do {
             parent = strchr(parent, ',');
             TRACE_8("PARENT: %s", parent);
@@ -339,53 +330,50 @@ static void createImmObject(ParserState* state)
         }
     } else {
         LOG_ER("Empty DN for object");
-        exit(1);
+        TRACE_LEAVE();
+        return false;
     }
 
-    /* Get the length of the DN and truncate state->objectName */
+    /* Get the length of the RDN and truncate objectName */
     if (parentName.length > 0)
     {
-        DNlen = strlen(state->objectName) - (parentName.length + 1);
+        RDNlen = strlen(objectName) - (parentName.length + 1);
+        objectName[RDNlen] = '\0';
     }
     else
     {
-        DNlen = strlen(state->objectName);
+        RDNlen = strlen(objectName);
     }
 
-    state->objectName[DNlen] = '\0';
-
-    TRACE_8("OBJECT NAME: %s", state->objectName);
+    TRACE_8("OBJECT RDN: %s", objectName);
 
     /* Set the attribute values array, add space for the rdn attribute
      * and a NULL terminator */
 
     /* Freed at the bottom of the function */
     attrValues = (SaImmAttrValuesT_2**)
-                 malloc((state->attrValues.size() + 2)
-                        * sizeof(SaImmAttrValuesT_2*));
-    if (attrValues == NULL)
-    {
-        LOG_ER("Failed to malloc attrValues");
-        exit(1);
-    }
+            malloc((attrValuesList->size() + (classRDNMap?2:1))
+                * sizeof(SaImmAttrValuesT_2*));
+    assert(attrValues);
 
     /* Add the NULL termination */
-    attrValues[state->attrValues.size() + 1] = NULL; /* Adjust for RDN */
+    attrValues[attrValuesList->size() + (classRDNMap?1:0)] = NULL; /* Conditionally adjust for RDN */
 
-    std::list<SaImmAttrValuesT_2>::iterator it =
-        state->attrValues.begin();
+    std::list<SaImmAttrValuesT_2>::iterator it = attrValuesList->begin();
 
     i = 0;
-    while (it != state->attrValues.end())
+    while (it != attrValuesList->end())
     {
         attrValues[i] = &(*it);
-
         i++;
         it++;
     }
 
-    attrValues[i] = (SaImmAttrValuesT_2*)malloc(sizeof(SaImmAttrValuesT_2));
-    getDNForClass(state, className, attrValues[i]);
+    if(classRDNMap) {
+        attrValues[i] = (SaImmAttrValuesT_2*)malloc(sizeof(SaImmAttrValuesT_2));
+        getRDNForClass(objectName, className, classRDNMap, attrValues[i]);
+        TRACE("RDN attr value assigned for attrValues index %u", i);
+    }
 
     
     int retries=0;
@@ -398,7 +386,7 @@ static void createImmObject(ParserState* state)
             errorCode = SA_AIS_OK;
         }
 
-        errorCode = saImmOmCcbObjectCreate_2(state->ccbHandle,
+        errorCode = saImmOmCcbObjectCreate_2(ccbHandle,
                                          className,
                                          &parentName,
                                          (const SaImmAttrValuesT_2**)
@@ -410,7 +398,8 @@ static void createImmObject(ParserState* state)
     if (SA_AIS_OK != errorCode)
     {
         LOG_ER("Failed to create the imm om object err: %d", errorCode);
-        exit(1);
+        TRACE_LEAVE();
+        return false;
     }
 
     if(!opensafObjectCreated && 
@@ -421,72 +410,57 @@ static void createImmObject(ParserState* state)
 
     TRACE_8("CREATE DONE");
 
-    /* Free used parameters */
+    /* Free used parameters - moved to endElementHandler
     free(state->objectClass);
     state->objectClass = NULL;
     free(state->objectName);
     state->objectName = NULL;
+    */
 
-    /* Free the DN attrName later since it's re-used */
+    /* Free the RDN attrName later since it's re-used */
     /*free(attrValues[i]->attrValues);*/
     free(attrValues[i]);
     free(attrValues);
 
-
-    for (it = state->attrValues.begin();
-        it != state->attrValues.end();
+    for (it = attrValuesList->begin();
+        it != attrValuesList->end();
         it++)
     {
         free(it->attrName);
         free(it->attrValues);
     }
-    state->attrValues.clear();
+    attrValuesList->clear();
+    return true;
 }
 
 /**
  * Creates an ImmClass through the ImmOm interface
  */
-static void createImmClass(ParserState* state)
+bool createImmClass(SaImmHandleT immHandle,
+    const SaImmClassNameT className, 
+    SaImmClassCategoryT classCategory,
+    std::list<SaImmAttrDefinitionT_2>* attrDefinitions)
 {
-    SaImmClassNameT          className;
-    SaImmClassCategoryT      classCategory;
     SaImmAttrDefinitionT_2** attrDefinition;
     SaAisErrorT              errorCode;
     int i;
 
-    TRACE_8("CREATING IMM CLASS %s", state->className);
-
-    /* Set the name */
-    className = state->className;
-
-    /* Set the category */
-    if (state->classCategorySet)
-    {
-        classCategory = state->classCategory;
-    }
-    else
-    {
-        LOG_ER("NO CLASS CATEGORY");
-        exit(1);
-    }
+    TRACE_ENTER2("CREATING IMM CLASS %s", className);
 
     /* Set the attrDefinition array */
     attrDefinition = (SaImmAttrDefinitionT_2**)
-                     calloc((state->attrDefinitions.size() + 1),
+                     calloc((attrDefinitions->size() + 1),
                             sizeof(SaImmAttrDefinitionT_2*));
-    if (attrDefinition == NULL)
-    {
-        LOG_ER("Failed to malloc attrDefinition");
-        exit(1);
-    }
+    assert(attrDefinition);
 
-    attrDefinition[state->attrDefinitions.size()] = NULL;
+    //attrDefinition[attrDefinitions->size()] = NULL;
+    //calloc zeroes.
 
     std::list<SaImmAttrDefinitionT_2>::iterator it =
-        state->attrDefinitions.begin();
+        attrDefinitions->begin();
 
     i = 0;
-    while (it != state->attrDefinitions.end())
+    while (it != attrDefinitions->end())
     {
         attrDefinition[i] = &(*it);
 
@@ -503,7 +477,7 @@ static void createImmClass(ParserState* state)
             usleep(500);
             errorCode = SA_AIS_OK;
         }
-        errorCode = saImmOmClassCreate_2(state->immHandle,
+        errorCode = saImmOmClassCreate_2(immHandle,
                                      className,
                                      classCategory,
                                      (const SaImmAttrDefinitionT_2**)
@@ -513,8 +487,8 @@ static void createImmClass(ParserState* state)
 
     if (SA_AIS_OK != errorCode)
     {
-        LOG_ER("FAILED to create IMM class, %d", errorCode);
-        exit(1);
+        LOG_ER("FAILED to create IMM class %s, err:%d", className, errorCode);
+        return false;
     }
 
     if(!opensafClassCreated && 
@@ -523,13 +497,18 @@ static void createImmClass(ParserState* state)
         opensafClassCreated = true;
     }
 
-    TRACE_8("CREATED IMM CLASS %s %u", className, opensafClassCreated);
+    TRACE_8("CREATED IMM CLASS %s", className);
 
-    /* Free all each attrDefinition */
-    it = state->attrDefinitions.begin();
+    /* Free each attrDefinition */
+    it = attrDefinitions->begin();
 
-    while (it != state->attrDefinitions.end())
+    while (it != attrDefinitions->end())
     {
+        if(it->attrDefaultValue) {
+            TRACE("Freeing default value for attribute %s", it->attrName);
+            free(it->attrDefaultValue);
+            it->attrDefaultValue = NULL;
+        }
         free(it->attrName);
         it->attrName = NULL;
         it++;
@@ -537,30 +516,30 @@ static void createImmClass(ParserState* state)
 
     /* Free the attrDefinition array and empty the list */
     free(attrDefinition);
-    state->attrDefinitions.clear();
+    attrDefinitions->clear();
 
-    TRACE_8("<CREATE IMM CLASS");
+    TRACE_LEAVE();
+    return true;
 }
 
 /**
- * Returns an SaImmAttrValueT struct representing the DN for an object
+ * Sets RDN value for the SaImmAttrValueT struct representing the RDN
  */
-static void getDNForClass(ParserState* state,
-                          const SaImmClassNameT className,
-                          SaImmAttrValuesT_2* values)
+static void getRDNForClass(const char *objectName,
+    const SaImmClassNameT className,
+    std::map<std::string, SaImmAttrValuesT_2> *classRDNMap,
+    SaImmAttrValuesT_2* values)
 {
-    std::string classNameString;
+    TRACE_ENTER();
+    std::string classNameString(className);
 
-    classNameString = std::string(className);
-
-    if (state->classRDNMap.find(classNameString) == 
-        state->classRDNMap.end())
+    if (classRDNMap->find(classNameString) == classRDNMap->end())
     {
         LOG_ER("CLASS %s NOT FOUND", className);
         exit(1);
     }
 
-    *values = state->classRDNMap[classNameString];
+    *values = (*classRDNMap)[classNameString];
 
     values->attrValues = (SaImmAttrValueT*)malloc(sizeof(SaImmAttrValueT));
 
@@ -568,7 +547,8 @@ static void getDNForClass(ParserState* state,
 
     charsToValueHelper(values->attrValues,
                        values->attrValueType,
-                       state->objectName);
+                       objectName);
+    TRACE_LEAVE();
 }
 
 
@@ -800,7 +780,12 @@ static void endElementHandler(void* userData,
         }
         else
         {
-            createImmClass(state);
+            if(!createImmClass(state->immHandle, state->className,
+                state->classCategory, &(state->attrDefinitions)))
+            {
+                LOG_ER("Failed to create class %s - exiting",state->className);
+                exit(1);
+            }
             state->attrFlags = 0;
 
             state->attrValueTypeSet    = 0;
@@ -814,11 +799,32 @@ static void endElementHandler(void* userData,
     {
         if (state->state[state->depth - 1] == CLASS)
         {
-            addClassAttributeDefinition(state);
+            /* Save the attribute definition in classRDNMap
+               if the RDN flag is set
+	    */
+            saveRDNAttribute(state);
+
+            //addClassAttributeDefinition(state);
+            assert(state->attrValueTypeSet);
+            addClassAttributeDefinition(state->attrName, 
+                state->attrValueType,
+                state->attrFlags,
+                state->attrDefaultValueBuffer,
+                &(state->attrDefinitions));
+
+            /* Free the default value */
+            free(state->attrDefaultValueBuffer);
+            state->attrDefaultValueBuffer = NULL;
         }
         else
         {
-            addObjectAttributeDefinition(state);
+            //addObjectAttributeDefinition(state);
+            addObjectAttributeDefinition(state->objectClass,
+                state->attrName,
+                &(state->attrValueBuffers),
+                getClassAttrValueType(&(state->classAttrTypeMap),
+                    state->objectClass, state->attrName),
+                &(state->attrValuesList));
         }
         /* </object> */
     }
@@ -868,8 +874,21 @@ static void endElementHandler(void* userData,
         }
 
         /* Create the object */
-        createImmObject(state);
-        /* </imm:IMM-contents> */
+        //createImmObject(state);
+        if(!createImmObject(state->objectClass,
+            state->objectName,
+            &(state->attrValuesList),
+            state->ccbHandle,
+            &(state->classRDNMap))) {
+                LOG_NO("Failed to create object - exiting");
+                exit(1);
+            }
+
+            /* Free used parameters */
+            free(state->objectClass);
+            state->objectClass = NULL;
+            free(state->objectName);
+            state->objectName = NULL;
     }
     else if (strcmp((const char*)name, "imm:IMM-contents") == 0)
     {
@@ -1087,7 +1106,6 @@ static void charactersHandler(void* userData,
                     */
                     state->attrValueBuffers.push_front(str);
                 }
-
             }
             else
             {
@@ -1131,18 +1149,22 @@ static void charactersHandler(void* userData,
             if (state->state[state->depth - 1] == ATTRIBUTE)
             {
                 if (state->attrDefaultValueBuffer == NULL){
-                    state->attrDefaultValueBuffer = (char*)malloc((size_t)len + 1);
-                    strncpy(state->attrDefaultValueBuffer,
-                        (const char*)chars,
+                    state->attrDefaultValueBuffer =
+                        (char*)malloc((size_t)len + 1);
+                    strncpy(state->attrDefaultValueBuffer, (const char*)chars,
                         (size_t)len);
                     state->attrDefaultValueBuffer[len] = '\0';
                     state->attrDefaultValueSet = 1;
-                } else {
+                } 
+                else
+                {
                     /* The defaultValueBuffer contains data from previous
                      * call for same value */
                     assert(state->attrDefaultValueSet);
                     int newlen = strlen(state->attrDefaultValueBuffer)+len;
-                    state->attrDefaultValueBuffer = (char*) realloc((void*)state->attrDefaultValueBuffer, (size_t) newlen);
+                    state->attrDefaultValueBuffer = (char*)
+                        realloc((void*)state->attrDefaultValueBuffer,
+                        (size_t) newlen);
                     strncat(state->attrDefaultValueBuffer,
                 	                        (const char*)chars,
                 	                        (size_t)len);
@@ -1317,83 +1339,79 @@ static char* getAttributeValue(const char* attr,
 }
 
 /**
- * Adds an object attr definition to the state->attrValues list
+ * Adds an object attr definition to the attrValuesList
  */
-static void addObjectAttributeDefinition(ParserState* state)
+void addObjectAttributeDefinition(SaImmClassNameT objectClass,
+    SaImmAttrNameT attrName, std::list<char*> *attrValueBuffers,
+    SaImmValueTypeT attrType,
+    std::list<SaImmAttrValuesT_2> *attrValuesList)
 {
     std::list<char*>::iterator it;
     SaImmAttrValuesT_2 attrValues;
     int i;
     size_t len;
-
+    TRACE_ENTER2("attrValueBuffers size:%u", attrValueBuffers->size());
     /* The attrName must be set */
-    assert(state->attrName);
+    assert(attrName);
 
     /* The value array can not be empty */
-    assert(state->attrValueBuffers.size() != 0);
+    assert(attrValueBuffers->size() != 0);
 
     /* The object class must be set */
-    assert(state->objectClass);
+    assert(objectClass);
 
     /* Set the valueType */
-    attrValues.attrValueType = getClassAttrValueType(state, 
-                                                     state->objectClass,
-                                                     state->attrName);
+    attrValues.attrValueType = attrType;
 
-    TRACE_8("addObjectAttributeDefinition %s, %s, %d",
-            state->className, 
-            state->attrName,
-            attrValues.attrValueType);
+    TRACE_8("addObjectAttributeDefinition %s, %s, %d", objectClass,
+        attrName, attrType);
 
     /* For each value, convert from char* to SaImmAttrValuesT_2 and
        store an array pointing to all in attrValues */
-    attrValues.attrValuesNumber = state->attrValueBuffers.size();
+    attrValues.attrValuesNumber = attrValueBuffers->size();
     attrValues.attrValues = (SaImmAttrValueT*)
                             malloc(sizeof(SaImmAttrValuesT_2) * 
                                    attrValues.attrValuesNumber + 1);
 
     attrValues.attrValues[attrValues.attrValuesNumber] = NULL;
 
-    it = state->attrValueBuffers.begin();
+    it = attrValueBuffers->begin();
     i = 0;
-    while (it != state->attrValueBuffers.end())
+    while (it != attrValueBuffers->end())
     {
-        TRACE_8("NAME: %s", state->attrName);
-
         charsToValueHelper(&attrValues.attrValues[i],
                            attrValues.attrValueType, 
                            *it);
-
         i++;
         it++;
     }
 
     /* Assign the name */
-    len = strlen(state->attrName);
+    len = strlen(attrName);
     attrValues.attrName = (char*) malloc(len + 1);
     if (attrValues.attrName == NULL)
     {
         LOG_ER("Failed to malloc attrValues.attrName");
         exit(1);
     }
-    strncpy(attrValues.attrName, 
-            state->attrName,
-            len);
+    strncpy(attrValues.attrName, attrName, len);
     attrValues.attrName[len] = '\0';
 
     /* Add attrValues to the list */
-    state->attrValues.push_front(attrValues);
+    attrValuesList->push_front(attrValues);
+    TRACE("Value added size:%u", attrValuesList->size());
 
     /* Free unneeded data */
-    for (it = state->attrValueBuffers.begin();
-        it != state->attrValueBuffers.end();
+    for (it = attrValueBuffers->begin();
+        it != attrValueBuffers->end();
         it++)
     {
         free(*it);
     }
 
-    state->attrValueBuffers.clear();
-    assert(state->attrValueBuffers.size() == 0);
+    attrValueBuffers->clear();
+    assert(attrValueBuffers->size() == 0);
+    TRACE_LEAVE();
 }
 
 /**
@@ -1456,123 +1474,70 @@ static void addToAttrTypeCache(ParserState* state,
 /**
  * Returns the valueType for a given state, classname and attribute name
  */
-static SaImmValueTypeT getClassAttrValueType(ParserState* state,
+static SaImmValueTypeT getClassAttrValueType(std::map<std::string, std::map<std::string, SaImmValueTypeT> > * classAttrTypeMap,
                                              const char* className,
                                              const char* attrName)
 {
     std::string classNameString;
     std::string attrNameString;
 
-    std::map<std::string, std::map<std::string, std::string> >::iterator classIt;
-    std::map<std::string, std::string>::iterator attrIt;
+    //std::map<std::string, std::map<std::string, std::string> >::iterator classIt;
+    //std::map<std::string, std::string>::iterator attrIt;
 
     classNameString = std::string(className);
     attrNameString = std::string(attrName);
 
-    if (state->classAttrTypeMap.find(classNameString) ==
-        state->classAttrTypeMap.end())
+    if (classAttrTypeMap->find(classNameString) == classAttrTypeMap->end())
     {
         LOG_ER("NO CORRESPONDING CLASS %s", className);
         exit(1);
     }
 
-    if (state->classAttrTypeMap[classNameString].find(attrNameString) ==
-        state->classAttrTypeMap[classNameString].end())
+    if ((*classAttrTypeMap)[classNameString].find(attrNameString) ==
+        (*classAttrTypeMap)[classNameString].end())
     {
         LOG_ER("NO CORRESPONDING ATTRIBUTE %s in class %s", attrName,
                className);
         exit(1);
     }
 
-    return state->classAttrTypeMap[classNameString][attrNameString];
+    return (*classAttrTypeMap)[classNameString][attrNameString];
 }
 
 /**
  * Adds an class attribute definition to the list
  */
-static void addClassAttributeDefinition(ParserState* state)
+void addClassAttributeDefinition(SaImmAttrNameT attrName, 
+    SaImmValueTypeT attrValueType,
+    SaImmAttrFlagsT attrFlags,
+    SaImmAttrValueT attrDefaultValueBuffer,
+    std::list<SaImmAttrDefinitionT_2> *attrDefinitions)
 {
     SaImmAttrDefinitionT_2 attrDefinition;
 
     /* Set the name */
-    if (state->attrName != NULL)
-    {
-        attrDefinition.attrName = state->attrName;
-    }
-    else
-    {
-        LOG_ER( "NO ATTR NAME");
-        exit(1);
-    }
-
-    /* Save the attribute definition in classRDNMap if the RDN flag is
-     * set */
-    saveRDNAttribute(state);
+    assert(attrName);
+    attrDefinition.attrName = attrName;
 
     /* Set attrValueType */
-    assert(state->attrValueTypeSet);
-    attrDefinition.attrValueType = state->attrValueType;
-    if (state->state[state->depth] == RDN)
-    {
-        TRACE_8("ADDING RDN!");
-        /*
-        // Work-around since the IMM-server only accepts SaNameT RDN
-        if (attrDefinition.attrValueType != SA_IMM_ATTR_SANAMET)
-        {
-            LOG_IN("RDN of type SA_STRING_T is not supported. "
-                   "Changed to SA_NAME_T for class %s",
-                   state->className);
-        }
-
-        attrDefinition.attrValueType = SA_IMM_ATTR_SANAMET;
-        */
-    }
-    else if (state->attrValueTypeSet)
-    {
-        attrDefinition.attrValueType = state->attrValueType;
-        TRACE_8("ATTR %s, %d",
-                attrDefinition.attrName,
-                attrDefinition.attrValueType);
-    }
-    else
-    {
-        LOG_ER("NO ATTR VALUE TYPE");
-        exit(1);
-    }
+    attrDefinition.attrValueType = attrValueType;
 
     /* Set the flags */
-    attrDefinition.attrFlags = state->attrFlags;
-
-    /* Set the NtfId */
-    if (state->attrNtfIdSet)
-    {
-        LOG_WA("IGNORING NTF-ID FOR CLASS CREATE");
-        //attrDefinition.attrNtfId = state->attrNtfId;
-    }
-    else
-    {
-        //TRACE_8("NO ATTR NTF ID");
-        //attrDefinition.attrNtfId = 0;
-    }
+    attrDefinition.attrFlags = attrFlags;
 
     /* Set the default value */
-    if (state->attrDefaultValueSet)
+    if (attrDefaultValueBuffer)
     {
         charsToValueHelper(&attrDefinition.attrDefaultValue,
-                           state->attrValueType,
-                           state->attrDefaultValueBuffer);
+                           attrValueType,
+                           (const char*) attrDefaultValueBuffer);
     }
     else
     {
         attrDefinition.attrDefaultValue = NULL;
     }
-
     /* Add to the list of attrDefinitions */
-    state->attrDefinitions.push_front(attrDefinition);
-
-    /* Free the default value */
-    free(state->attrDefaultValueBuffer);
-    state->attrDefaultValueBuffer = NULL;
+    attrDefinitions->push_front(attrDefinition);
 }
 
 /**
@@ -1586,8 +1551,6 @@ static void charsToValueHelper(SaImmAttrValueT* value,
     unsigned int i;
     char byte[5];
     char* endMark;
-
-    TRACE_8("CHARS TO VALUE HELPER");
 
     switch (type)
     {
@@ -1680,9 +1643,7 @@ int loadImmXML(std::string xmldir, std::string file)
 
     TRACE("Loading from %s/%s", xmldir.c_str(), file.c_str());
 
-    errorCode = saImmOmInitialize(&(state.immHandle), 
-                                  &immCallbacks,
-                                  &version);
+    errorCode = saImmOmInitialize(&(state.immHandle), NULL, &version);
     if (SA_AIS_OK != errorCode)
     {
         LOG_ER("Failed to initialize the IMM OM interface (%d)", errorCode);
@@ -1713,8 +1674,6 @@ int loadImmXML(std::string xmldir, std::string file)
     filename = xmldir;
     filename.append("/");
     filename.append(file);
-
-    std::cout << "Loading " << filename << std::endl;
 
     result = xmlSAXUserParseFile(&my_handler, &state, filename.c_str());
 
@@ -2084,7 +2043,6 @@ int immsync(void)
     return 1;
 }
 
-
 /** 
  * immloader main entry point.
  * 
@@ -2096,9 +2054,11 @@ int immsync(void)
 int main(int argc, char* argv[])
 {
     std::string xmldir;
-    std::string file;
-    const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/immnd_trace";
+    std::string xml_file;
+    const char* pbe_file;
+    const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/opensaf_immnd.log";
     const char* logPath;
+    void* pbeHandle=NULL;
 
     if (argc < 3)
     {
@@ -2123,10 +2083,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-
-
     xmldir = std::string(argv[1]);
-    file   = std::string(argv[2]);
+    xml_file   = std::string(argv[2]);
 
     if (argc > 3)
     {
@@ -2150,15 +2108,15 @@ int main(int argc, char* argv[])
                 }
             }
 
-	    syslog(LOG_NOTICE, "Sync starting");
+            LOG_NO("Sync starting");
             if (immsync())
             {
-                syslog(LOG_NOTICE, "Sync ending normally");
+                LOG_NO("Sync ending normally");
                 exit(0);
             }
             else
             {
-                syslog(LOG_ERR, "Sync ending ABNORMALLY");
+                LOG_ER("Sync ending ABNORMALLY");
                 exit(1);
             }
         }
@@ -2179,17 +2137,38 @@ int main(int argc, char* argv[])
         }
     }
 
-    syslog(LOG_NOTICE, "Load starting");
-    if (!loadImmXML(xmldir, file))
-        goto err;
+    LOG_NO("Load starting");
 
-    syslog(LOG_NOTICE, "Load ending normally");
+    if ((pbe_file = getenv("IMMSV_PBE_FILE")) != NULL)
+    {
+        LOG_NO("IMMSV_PBE_FILE is defined (%s) check it for existence and SaImmRepositoryInitModeT", pbe_file);
+        pbeHandle = checkPbeRepositoryInit(xmldir, std::string(pbe_file));
+    }
+
+    if (pbeHandle) {
+        LOG_NO("***** Loading from PBE file %s at %s *****",pbe_file, argv[1]);
+        if(!loadImmFromPbe(pbeHandle)) {
+            LOG_ER("Load from PBE ending ABNORMALLY dir:%s file:%s",
+                argv[1], pbe_file);
+            /* Try to prevent cyclic restart. Escalation will only work if 
+               xmldir is writable.
+            */
+            escalatePbe(xmldir, std::string(pbe_file));
+            goto err; 
+        }
+    } else {
+        LOG_NO("***** Loading from XML file %s at %s *****", argv[2], argv[1]);
+        if (!loadImmXML(xmldir, xml_file)) {
+            LOG_ER("Load from imm.xml file ending ABNORMALLY dir:%s file:%s",
+                argv[1], argv[2]);
+            goto err;
+        }
+    }
+    LOG_NO("Load ending normally");
     return 0;
 
 err:
-    syslog(LOG_ERR, "Load ending ABNORMALLY dir:%s file:%s", argv[1], argv[2]);
     exit(1);
-
     return 0;
 }
 

@@ -47,6 +47,9 @@ if [ $hostnumber -lt 3 ]; then
     rm -f /var/lib/opensaf/pssv_store
     ln -s /hostfs/$REPL_DIR/pssv_store /var/lib/opensaf/
 
+    rm -f /var/lib/opensaf/immsv_store
+    ln -s /hostfs/$REPL_DIR/immsv_store /var/lib/opensaf/
+
     rm -f /var/lib/opensaf/log
     ln -s /hostfs/$REPL_DIR/log /var/lib/opensaf/log
 
