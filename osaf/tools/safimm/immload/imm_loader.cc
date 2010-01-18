@@ -1128,18 +1128,26 @@ static void charactersHandler(void* userData,
 
             break;
         case DEFAULT_VALUE:
-            /* The defaultValueBuffer must be NULL */
-            assert(!state->attrDefaultValueBuffer);
-
             if (state->state[state->depth - 1] == ATTRIBUTE)
             {
-                state->attrDefaultValueBuffer = (char*)malloc((size_t)len + 1);
-                strncpy(state->attrDefaultValueBuffer, 
-                        (const char*)chars, 
+                if (state->attrDefaultValueBuffer == NULL){
+                    state->attrDefaultValueBuffer = (char*)malloc((size_t)len + 1);
+                    strncpy(state->attrDefaultValueBuffer,
+                        (const char*)chars,
                         (size_t)len);
-                state->attrDefaultValueBuffer[len] = '\0';
-
-                state->attrDefaultValueSet = 1;
+                    state->attrDefaultValueBuffer[len] = '\0';
+                    state->attrDefaultValueSet = 1;
+                } else {
+                    /* The defaultValueBuffer contains data from previous
+                     * call for same value */
+                    assert(state->attrDefaultValueSet);
+                    int newlen = strlen(state->attrDefaultValueBuffer)+len;
+                    state->attrDefaultValueBuffer = (char*) realloc((void*)state->attrDefaultValueBuffer, (size_t) newlen);
+                    strncat(state->attrDefaultValueBuffer,
+                	                        (const char*)chars,
+                	                        (size_t)len);
+                    state->attrDefaultValueBuffer[newlen] = '\0';
+                }
             }
             else
             {
