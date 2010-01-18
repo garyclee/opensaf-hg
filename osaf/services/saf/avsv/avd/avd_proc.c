@@ -587,10 +587,9 @@ void avd_main_proc(void *null)
 	fds[FD_FMA].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
-	nfds = FD_IMM + 1;
 
 	while (1) {
-		int ret = poll(fds, 3, -1);
+		int ret = poll(fds, nfds, -1);
 
 		if (ret == -1) {
 			if (errno == EINTR) {
@@ -714,7 +713,7 @@ void avd_main_proc(void *null)
 				 ** Skip the IMM file descriptor in next poll(), IMM fd must
 				 ** be the last in the fd array.
 				 */
-				nfds = FD_MBCSV + 1;
+				nfds--;
 
 				/* Initiate IMM reinitializtion in the background */
 				avd_imm_reinit_bg(cb);
