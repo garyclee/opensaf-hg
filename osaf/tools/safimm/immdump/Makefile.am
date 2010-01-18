@@ -22,14 +22,20 @@ bin_PROGRAMS = immdump
 
 immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
+immdump_SOURCES = imm_dumper.cc imm_pbe_dump.cc
+
 immdump_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-immdump_SOURCES = \
-	imm_dumper.cc
+#immdump_CPPFLAGS = \
+#	$(AM_CPPFLAGS) \
+#	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+#	-I/usr/local/include \
+#	-DIMM_PBE
 
 immdump_LDFLAGS = @XML2_LIBS@
+#immdump_LDFLAGS = @XML2_LIBS@ -L/usr/local/lib -lsqlite3
 
 immdump_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

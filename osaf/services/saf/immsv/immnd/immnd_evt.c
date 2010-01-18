@@ -624,7 +624,7 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 			goto agent_rsp;
 		}
 	} else if (load_pid < 0) {
-		TRACE_2("Rejecting OM client attach. Waiting for loading or sync to " "complete");
+		TRACE_2("Rejecting OM client attach. Waiting for loading or sync to complete");
 		error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
@@ -725,7 +725,7 @@ static uns32 immnd_evt_proc_search_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 					 /*=>DUMP/BACKUP*/
 		if (cb->mCanBeCoord) {
 			if (immModel_immNotWritable(cb) || (cb->mState != IMM_SERVER_READY)) {
-				LOG_WA("Cannot allow official dump/backup when imm-sync " "is in progress");
+				LOG_WA("Cannot allow official dump/backup when imm-sync is in progress");
 				error = SA_AIS_ERR_TRY_AGAIN;
 				goto agent_rsp;
 			}
@@ -839,7 +839,7 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 		oldRsp = rsp->attrValuesList;
 		while (oldRsp) {	//Find the old value
 			IMMSV_ATTR_VALUES *att2 = &(oldRsp->n);
-			TRACE_2("Mattching against:%s", att2->attrName.buf);
+			/*TRACE_2("Mattching against:%s", att2->attrName.buf);*/
 			if (att->attrName.size == att2->attrName.size && (strncmp((const char *)att->attrName.buf, (const char *)att2->attrName.buf, att->attrName.size) == 0)) {	//We have a match
 				TRACE_2("MATCH FOUND nrof old values:%lu", att2->attrValuesNumber);
 				assert(att->attrValueType == att2->attrValueType);
@@ -1231,7 +1231,7 @@ static uns32 immnd_evt_proc_search_next(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND
 
 			rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, implDest, &send_evt);
 			if (rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("Problem in sending to peer IMMND over MDS. " "Aborting searchNext.");
+				LOG_ER("Problem in sending to peer IMMND over MDS. Aborting searchNext.");
 				error = SA_AIS_ERR_NO_RESOURCES;
 				goto agent_rsp;
 			}
@@ -2104,7 +2104,7 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	}
 
 	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("Too many FEVS messages outstanding towards IMMD, rejecting " "this message");
+		LOG_WA("Too many FEVS messages outstanding towards IMMD, rejecting this message");
 		error = SA_AIS_ERR_NO_RESOURCES;
 		goto agent_rsp;
 	}
@@ -2414,7 +2414,7 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 					immnd_client_node_get(cb, tmp_hdl, &oi_cl_node);
 					if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
 						/*Implementer client died ? */
-						LOG_WA("IMMND - Client went down so can not send apply - " "ignoring!");
+						LOG_WA("IMMND - Client went down so can not send apply - ignoring!");
 					} else {
 						/*GENERATE apply message to implementer. */
 						send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbUpcallRsp.ccbId;
@@ -2676,7 +2676,7 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 		   application may invoke this call when it should not.
 		   I need a timer associated with the implementer continuation anyway..
 		 */
-		LOG_WA("Received reply from implementer yet continuation lost - " "ignoring");
+		LOG_WA("Received reply from implementer yet continuation lost - ignoring");
 		return rc;
 	}
 
@@ -2725,7 +2725,7 @@ static uns32 immnd_evt_proc_admop_rsp(IMMND_CB *cb, IMMND_EVT *evt,
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMND, reply_dest, &send_evt);
 
 		if (rc != NCSCC_RC_SUCCESS) {
-			LOG_ER("Problem in sending to peer IMMND over MDS. " "Discarding admin op reply.");
+			LOG_ER("Problem in sending to peer IMMND over MDS. Discarding admin op reply.");
 		}
 	} else {
 		LOG_WA("Continuation for AdminOp was lost, probably due to timeout");
@@ -2951,7 +2951,7 @@ static void immnd_evt_proc_class_create(IMMND_CB *cb,
 			if (cl_node->mSyncBlocked) {
 				cl_node->mSyncBlocked = FALSE;
 			} else {
-				LOG_ER("Unexpected class-create reply arrived destined for sync agent - " "discarding");
+				LOG_ER("Unexpected class-create reply arrived destined for sync agent - discarding");
 				return;
 			}
 		}
@@ -3125,7 +3125,7 @@ static uns32 immnd_evt_proc_sync_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 			free(tmpData);
 		}
 	} else {
-		LOG_ER("Will not allow sync messages from any process except sync " "process");
+		LOG_ER("Will not allow sync messages from any process except sync process");
 		err = SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -3647,7 +3647,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 			/*Fetch client node for OI ! */
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
 			if (oi_cl_node == NULL) {
-				LOG_WA("IMMND - Client went down so can not send abort UC - " "ignoring!");
+				LOG_WA("IMMND - Client went down so can not send abort UC - ignoring!");
 			} else {
 				send_evt.info.imma.info.ccbCompl.ccbId = ccbId;
 				send_evt.info.imma.info.ccbCompl.implId = implConnArr[ix];
@@ -3672,7 +3672,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 		/*Fetch client node for OM ! */
 		immnd_client_node_get(cb, omHandle, &om_cl_node);
 		if (om_cl_node == NULL || om_cl_node->mIsStale) {
-			LOG_WA("IMMND - Client went down so can not send reply " "ignoring!");
+			LOG_WA("IMMND - Client went down so can not send reply ignoring!");
 		} else {
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -4445,7 +4445,7 @@ uns32 immnd_evt_proc_abort_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *s
 	} else {		/* Noncoord IMMNDs */
 		if (cb->mState == IMM_SERVER_SYNC_CLIENT) {	/* Sync client will have to restart the sync */
 			cb->mState = IMM_SERVER_LOADING_PENDING;
-			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> " "IMM SERVER LOADING PENDING (sync aborted)");
+			LOG_WA("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER LOADING PENDING (sync aborted)");
 			cb->mTimer = 0;
 			cb->mMyEpoch = 0;
 			cb->mSync = FALSE;
@@ -4489,7 +4489,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		immnd_adjustEpoch(cb);
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
 		cb->mState = IMM_SERVER_READY;
-		LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> " "IMM_SERVER_READY (materialized by start sync)");
+		LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY (materialized by start sync)");
 		/* This is the case where loading has completed, 
 		   yet this node has not grabbed this fact in immnd_proc
 		   under case IMM_SERVER_LOADING_CLIENT, and now a start
@@ -4502,7 +4502,7 @@ static uns32 immnd_evt_proc_start_sync(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		cb->mTimer = 0;
 		cb->mState = IMM_SERVER_READY;
 		immnd_ackToNid(NCSCC_RC_SUCCESS);
-		LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> " "IMM SERVER READY (materialized by start sync)");
+		LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY (materialized by start sync)");
 		/* This is the case where sync has completed,
 		   this node is a sync client,
 		   yet this node has not grabbed this fact in immnd_proc
@@ -4584,7 +4584,7 @@ static uns32 immnd_evt_proc_reset(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO 
 		LOG_ER("IMMND forced to restart on order from IMMD");
 		exit(1);
 	} else {
-		LOG_NO("IMMD received reset order from IMMD, but has just restarted - " "ignoring");
+		LOG_NO("IMMD received reset order from IMMD, but has just restarted - ignoring");
 	}
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
@@ -4617,7 +4617,7 @@ static uns32 immnd_evt_proc_loading_ok(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_
 		cb->highestReceived = evt->info.ctrl.fevsMsgStart;
 		if(!(cb->mAccepted)) {
 			assert(cb->mState == IMM_SERVER_LOADING_PENDING);
-			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> " "IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
+			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT (materialized by proc_loading_ok)");
 			cb->mState = IMM_SERVER_LOADING_CLIENT;
 			cb->mTimer = 0;
 			cb->mAccepted = TRUE;
@@ -4689,6 +4689,7 @@ static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 {
 	if (evt->info.ctrl.nodeId != cb->node_id) {
 		cb->mNumNodes++;
+		TRACE("immnd_evt_proc_intro_rsp cb->mNumNodes: %u", cb->mNumNodes);
 	} else {		/*This node was introduced to the IMM cluster */
 		cb->mIntroduced = TRUE;
 		cb->mCanBeCoord = evt->info.ctrl.canBeCoord;
@@ -4980,7 +4981,7 @@ static void immnd_evt_proc_finalize_sync(IMMND_CB *cb,
 			IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 			immnd_client_node_get(cb, clnt_hdl, &cl_node);
 			if (cl_node == NULL || cl_node->mIsStale) {
-				TRACE_2("IMMND - Sync client alerady disconnected");
+				TRACE_2("IMMND - Sync client already disconnected");
 			} else if (cl_node->mSyncBlocked) {
 				cl_node->mSyncBlocked = FALSE;
 			}

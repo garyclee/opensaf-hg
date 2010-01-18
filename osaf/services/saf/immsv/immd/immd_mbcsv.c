@@ -804,7 +804,7 @@ uns32 immd_mbcsv_encode_proc(NCS_MBCSV_CB_ARG *arg)
 			break;
 		}
 	} else {
-		LOG_ER("UNRECOGNIZED FORMAT TYPE");
+		LOG_ER("UNHANDLED FORMAT Version %u. Incompatible peer.", msg_fmt_version);
 		rc = NCSCC_RC_FAILURE;
 	}
 
@@ -1155,7 +1155,8 @@ static uns32 immd_mbcsv_decode_proc(NCS_MBCSV_CB_ARG *arg)
 		return NCSCC_RC_SUCCESS;
 	} else {
 		/* Drop The Message */
-		LOG_ER("UNRECOGNIZED FORMAT TYPE");
+		LOG_ER("UNRECOGNIZED FORMAT Version %u. Incompatible peer.", 
+			msg_fmt_version);
 		return NCSCC_RC_FAILURE;
 	}
 }

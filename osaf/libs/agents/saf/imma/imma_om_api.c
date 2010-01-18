@@ -4959,8 +4959,8 @@ SaAisErrorT immsv_sync(SaImmHandleT immHandle,
 		attr = attrValues[i];
 
 		if (attr->attrValuesNumber == 0) {
-			TRACE("Attribute without values DN:%s ATT:%s, skipped in sync",
-			      objectName->value, attr->attrName);
+			/*TRACE("Attribute without values DN:%s ATT:%s, skipped in sync",
+			  objectName->value, attr->attrName);*/
 			continue;
 		}
 

@@ -15,21 +15,14 @@
  *
  */
 
+
+#include <imm_dumper.hh>
 #include <iostream>
 #include <iomanip>
-#include <string>
-#include <list>
-#include <map>
 #include <sstream>
 #include <fstream>
-#include <cstring>
-#include <configmake.h>
-
-#include <saImmOm.h>
-#include <immsv_api.h>
 #include <limits.h>
 #include <libxml/parser.h>
-#include <logtrace.h>
 #include <getopt.h>
 
 #define XML_VERSION "1.0"
@@ -39,7 +32,6 @@
 #define MINOR_VERSION 1
 
 /* Prototypes */
-static std::string getClassName(SaImmAttrValuesT_2** attrs);
 static void dumpClasses(SaImmHandleT, xmlNodePtr);
 static void classToXML(std::string, SaImmHandleT, xmlNodePtr);
 static void objectToXML(std::string, 
@@ -48,32 +40,32 @@ static void objectToXML(std::string,
                         std::map<std::string, std::string>,
                         xmlNodePtr);
 static void valuesToXML(SaImmAttrValuesT_2* p, xmlNodePtr parent);
-static std::string valueToString(SaImmAttrValueT, SaImmValueTypeT);
 static void dumpObjects(SaImmHandleT, 
                         std::map<std::string, std::string>,
                         xmlNodePtr);
 static void flagsToXML(SaImmAttrDefinitionT_2*, xmlNodePtr);
 static void typeToXML(SaImmAttrDefinitionT_2*, xmlNodePtr);
 static std::map<std::string, std::string> cacheRDNs(SaImmHandleT);
-static std::list<std::string> getClassNames(SaImmHandleT);
 
 static void usage(const char *progname)
 {
-	printf("\nNAME\n");
-	printf("\t%s - dump IMM model to file\n", progname);
+    printf("\nNAME\n");
+    printf("\t%s - dump IMM model to file\n", progname);
 
-	printf("\nSYNOPSIS\n");
-	printf("\t%s <file name>\n", progname);
+    printf("\nSYNOPSIS\n");
+    printf("\t%s <file name>\n", progname);
 
-	printf("\nDESCRIPTION\n");
-	printf("\t%s is an IMM OM client used to dump, write the IMM model to file\n", progname);
+    printf("\nDESCRIPTION\n");
+    printf("\t%s is an IMM OM client used to dump, write the IMM model to file\n", progname);
 
-	printf("\nOPTIONS\n");
-	printf("\t-h, --help\n");
-	printf("\t\tthis help\n");
+    printf("\nOPTIONS\n");
+    printf("\t-h, --help\n");
+    printf("\t\tthis help\n\n");
+    printf("\t-p, --pbe   {<file name>}\n");
+    printf("\t\tInstead of xml file, generate/populate persistent back-end DB\n");
 
-	printf("\nEXAMPLE\n");
-	printf("\timmdump /tmp/imm.xml\n");
+    printf("\nEXAMPLE\n");
+    printf("\timmdump /tmp/imm.xml\n");
 }
 
 /* Functions */
@@ -82,7 +74,8 @@ int main(int argc, char* argv[])
     int c;
     struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
-	{0, 0, 0, 0}
+        {"pbe", required_argument, 0, 'p'},
+        {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
     SaAisErrorT            errorCode;
@@ -90,29 +83,43 @@ int main(int argc, char* argv[])
     SaImmCallbacksT        immCallbacks = {};
     std::map<std::string, std::string> classRDNMap;
     std::string filename;
-    const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/immnd_trace";
+    const char* defaultLog = "immdump_trace";
     const char* logPath;
+    bool pbeCase = false;
+    void* dbHandle=NULL;
+    const char* dump_trace_label = "imm_dump";
+    const char* pbe_trace_label = "pbe_init";
+    const char* trace_label = dump_trace_label;
+    SaImmAdminOwnerHandleT ownerHandle;
+    ClassMap classIdMap;
 
-    if (argc != 2)
+    if ((argc < 2) || (argc > 3))
     {
         printf("Usage: %s <dumpfile>\n", argv[0]);
         exit(1);
     }
 
     while (1) {
-	    if ((c = getopt_long(argc, argv, "h", long_options, NULL)) == -1)
-		    break;
+    if ((c = getopt_long(argc, argv, "hp:", long_options, NULL)) == -1)
+            break;
 
-	    switch (c) {
-	    case 'h':
-		    usage(basename(argv[0]));
-		    exit(EXIT_SUCCESS);
-		    break;
-	    default:
-		    fprintf(stderr, "Try '%s --help' for more information\n", argv[0]);
-		    exit(EXIT_FAILURE);
-		    break;
-	    }
+            switch (c) {
+                case 'h':
+                    usage(basename(argv[0]));
+                    exit(EXIT_SUCCESS);
+                    break;
+
+                case 'p':
+                    pbeCase = true;
+                    trace_label = pbe_trace_label;
+
+                    break;
+                default:
+                    fprintf(stderr, "Try '%s --help' for more information\n", 
+                        argv[0]);
+                    exit(EXIT_FAILURE);
+                    break;
+        }
     }
 
     if ((logPath = getenv("IMMND_TRACE_PATHNAME")) == NULL)
@@ -120,7 +127,7 @@ int main(int argc, char* argv[])
         logPath = defaultLog;
     }
 
-    if (logtrace_init("imm-dump", logPath) == -1)
+    if (logtrace_init(trace_label, logPath) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
@@ -136,11 +143,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    filename.append(argv[1]);
-    /*
-    filename.append("/");
-    filename.append(argv[2]);
-    */
 
     xmlDocPtr xmlDoc;
     xmlNodePtr xmlImmRoot;
@@ -149,10 +151,7 @@ int main(int argc, char* argv[])
     version.majorVersion = MAJOR_VERSION;
     version.minorVersion = MINOR_VERSION;
 
-    std::cout << "Dumping the current IMM state" << std::endl;
-
     /* Initialize immOm */
-    TRACE_1("Before saImmOmInitialize");
     errorCode = saImmOmInitialize(&immHandle, &immCallbacks, &version);
     if (SA_AIS_OK != errorCode)
     {
@@ -161,7 +160,46 @@ int main(int argc, char* argv[])
             <<  std::endl;
         exit(1);
     }
-    TRACE_1("After saImmOmInitialize");
+
+    if(pbeCase) {
+        filename.append(argv[2]);
+        std::cout << 
+            "Populating Pbe from current IMM state to " << filename << 
+             std::endl;
+
+        /* Initialize access to PBE database. */
+        dbHandle = pbeRepositoryInit(filename.c_str());
+	if(dbHandle) {
+		LOG_NO("Opened persistent repository %s", filename.c_str());
+	} else {
+		std::cout << "immdump not built with Pbe option." << std::endl;
+		exit(1);
+	}
+
+        /* Set admin-owner with releaseOnfinalize true disabling resurrect. */
+        errorCode = saImmOmAdminOwnerInitialize(immHandle, "IMM-PBE-DUMP", 
+	    SA_TRUE, &ownerHandle);
+        if(SA_AIS_OK != errorCode)
+        {
+            TRACE_4("Failed to initialize imm om interface: err:%u - exiting",
+                errorCode);
+	    std::cout << "Failed to initialize imm om interface; err:" 
+		      << errorCode << std::endl;
+            exit(1);
+        }
+
+        dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
+        TRACE("Dump classes OK");
+
+        dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
+        TRACE("Dump objects OK");
+
+        pbeRepositoryClose(dbHandle);
+	exit(0);
+    }
+
+    filename.append(argv[1]);
+    std::cout << "Dumping the current IMM state" << std::endl;
 
     /* Create a new xml document */
     xmlDoc = xmlNewDoc((xmlChar*)XML_VERSION);
@@ -277,7 +315,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     TRACE_LEAVE();
 }
 
-static std::string getClassName(SaImmAttrValuesT_2** attrs)
+std::string getClassName(SaImmAttrValuesT_2** attrs)
 {
     int i;
     std::string className;
@@ -517,7 +555,7 @@ static void valuesToXML(SaImmAttrValuesT_2* p, xmlNodePtr parent)
 }
 
 
-static std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
+std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
 {
     SaNameT* namep;
     char* str;
@@ -722,7 +760,7 @@ static void typeToXML(SaImmAttrDefinitionT_2* p, xmlNodePtr parent)
     }
 }
 
-static std::list<std::string> getClassNames(SaImmHandleT immHandle)
+std::list<std::string> getClassNames(SaImmHandleT immHandle)
 {
     SaImmAccessorHandleT accessorHandle;
     SaImmAttrValuesT_2** attributes;

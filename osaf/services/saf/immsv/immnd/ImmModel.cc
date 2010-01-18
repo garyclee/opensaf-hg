@@ -1255,8 +1255,8 @@ ImmModel::abortSync()
             LOG_NO("Abort sync: Discarding synced objects");
             while(sObjectMap.size()) {
                 ObjectMap::iterator oi = sObjectMap.begin();
-                TRACE("sObjectmap.size:%u delete: %s", sObjectMap.size(),
-                    oi->first.c_str());
+                TRACE("sObjectmap.size:%u delete: %s", 
+					(unsigned int) sObjectMap.size(), oi->first.c_str());
                 commitDelete(oi->first);
             }
 
@@ -2223,7 +2223,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
             sMissingParents.size()) {
             ObjectNameSet::iterator oni;
             LOG_ER("Can not apply because there are %u missing parents", 
-                sMissingParents.size());
+                (unsigned int) sMissingParents.size());
             for(oni=sMissingParents.begin(); oni != sMissingParents.end(); 
                 ++oni) {
                 LOG_ER("Missing Parent DN: %s", oni->c_str());
@@ -3013,7 +3013,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     }
     
     if(objectName.find(',') != std::string::npos) {
-        LOG_NO("ERR_INVALID_PARAM: Can not tollerate ',' in RDN");
+        LOG_NO("ERR_INVALID_PARAM: Can not tolerate ',' in RDN");
         err = SA_AIS_ERR_INVALID_PARAM;     
         goto ccbObjectCreateExit;
     }
@@ -7916,7 +7916,7 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
 			TRACE_5("Verified %u CCBs, %u gone", verified, gone);
 			if(sCcbVector.size() != verified + gone) {
 				LOG_WA("sCcbVector.size()/%u != verified/%u + gone/%u",
-					sCcbVector.size(), verified, gone);
+					(unsigned int) sCcbVector.size(), verified, gone);
 			}   
             //Old member passed verification.
         }

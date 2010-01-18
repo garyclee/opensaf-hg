@@ -377,6 +377,7 @@ uns32 immnd_introduceMe(IMMND_CB *cb)
 		/*Only set to 1 if this is the first time, (dont overwrite higher 
 		   values). Incremented in immnd_evt_proc_intro_rsp. */
 		cb->mNumNodes = 1;
+		TRACE("immnd_introduceMe cb->mNumNodes:%u", cb->mNumNodes);
 	}
 	return rc;
 }
@@ -1169,7 +1170,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			} else {
 				/*Phase 3 */
 				if (!(cb->mTimer % 10)) {
-					LOG_IN("Sync Phase-3 time:%u", cb->mTimer);
+					LOG_IN("Sync Phase-3 time:%u", cb->mTimer/10);
 				}
 				if (immnd_syncComplete(cb, TRUE, cb->mTimer)) {
 					cb->mTimer = 0;

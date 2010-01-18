@@ -56,7 +56,7 @@ cluster_start() {
         mkdir -p $CLUSTER_SIM_UML_DIR/$REPL_DIR/log
         mkdir -p $CLUSTER_SIM_UML_DIR/$REPL_DIR/immsv_store
         cp  rootfs/etc/opensaf/imm.xml \
-            $CLUSTER_SIM_UML_DIR/$REPL_DIR/immsv_store/imm_basic.xml
+            $CLUSTER_SIM_UML_DIR/$REPL_DIR/immsv_store/imm.xml
     fi
 
     # Create /etc/hosts file
