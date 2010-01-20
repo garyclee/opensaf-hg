@@ -20,6 +20,7 @@
  * ========================================================================
  */
 
+#include <algorithm>
 #include "logtrace.h"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfCampaignThread.hh"
@@ -286,7 +287,7 @@ void SmfUpgradeCampaign::sortProceduresInExecLevelOrder()
 	}
 
 	//Sort the execution level vector
-	sort(levels.begin(), levels.end());
+	std::sort(levels.begin(), levels.end());
 
 	//Create a sorted procedure vector
 	std::vector < SmfUpgradeProcedure * >sortedProc;

@@ -16,17 +16,18 @@
  */
 #include <sys/stat.h>
 #include <new>
+#include <vector>
+#include <string>
 
+#include "SmfCampaign.hh"
 #include "smfd.h"
 #include "smfd_smfnd.h"
-#include "SmfCampaign.hh"
 #include "SmfCampaignThread.hh"
 #include "SmfCampaignXmlParser.hh"
 #include "SmfUpgradeCampaign.hh"
 #include "SmfUpgradeProcedure.hh"
 
 #include <saSmf.h>
-#include <list>
 #include <logtrace.h>
 #include <immutil.h>
 

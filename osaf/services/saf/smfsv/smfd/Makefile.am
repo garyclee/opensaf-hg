@@ -46,6 +46,8 @@ noinst_HEADERS = \
 
 pkglib_PROGRAMS = opensaf_smfd
 
+opensaf_smfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
+
 opensaf_smfd_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
