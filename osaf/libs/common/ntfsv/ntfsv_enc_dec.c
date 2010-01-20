@@ -757,11 +757,47 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	goto done;
 }
 
+uns32 ntfsv_enc_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
+{
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	int i;
+	
+	TRACE_ENTER();
+	assert(uba != NULL);
+	/** encode the contents **/
+	p8 = ncs_enc_reserve_space(uba, 8);
+	if (!p8) {
+		TRACE("p8 NULL!!!");
+		return 0;
+	}
+	TRACE_3("t:%#x, nd: %u",
+		param->notificationType,
+		param->numberDiscarded); 
+	ncs_encode_32bit(&p8, param->notificationType);
+	ncs_encode_32bit(&p8, param->numberDiscarded);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
+	for (i = 0; i < param->numberDiscarded; i++) {
+		p8 = ncs_enc_reserve_space(uba, 8);
+		if (!p8) {
+			TRACE_1("encoding error");
+			total_bytes = 0;			
+			break;
+		}
+		ncs_encode_64bit(&p8, param->discardedNotificationIdentifiers[i]);
+		ncs_enc_claim_space(uba, 8);
+		total_bytes += 8;
+	}
+	TRACE_LEAVE();  
+	return total_bytes;
+}
+
 static uns32 ntfsv_dec_not_header(NCS_UBAID *uba, SaNtfNotificationHeaderT *param)
 {
 	uns8 *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[10];
+	uns8 local_data[8];
 	int i;
 	/* SaNtfNotificationHeaderT size params */
 	SaUint16T numCorrelatedNotifications;
@@ -835,7 +871,7 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 {
 	uns8 *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[10];
+	uns8 local_data[16];
 
 	TRACE_ENTER();
 
@@ -1034,6 +1070,35 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 	}
 	TRACE_LEAVE();
 	return total_bytes;
+}
+
+uns32 ntfsv_dec_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
+{
+	uns8 *p8;
+	uns32 total_bytes = 0;
+	uns8 local_data[8];
+	int i;
+	
+	TRACE_ENTER();
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
+	param->notificationType = ncs_decode_32bit(&p8);
+	param->numberDiscarded = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
+	TRACE_3("t:%#x, nd: %u", param->notificationType, param->numberDiscarded);
+	param->discardedNotificationIdentifiers = calloc(1, sizeof(SaNtfIdentifierT) * param->numberDiscarded);
+	if (!param->discardedNotificationIdentifiers) {
+		TRACE_LEAVE();
+		return 0;
+	}
+	for (i = 0; i < param->numberDiscarded; i++) {
+		p8 = ncs_dec_flatten_space(uba, local_data, 8);
+		param->discardedNotificationIdentifiers[i] = ncs_decode_64bit(&p8);
+		ncs_dec_skip_space(uba, 8);
+		total_bytes += 8;
+	} 
+	TRACE_LEAVE();
+	return 1;
 }
 
 uns32 ntfsv_enc_filter_header(NCS_UBAID *uba, SaNtfNotificationFilterHeaderT *h)
@@ -1346,7 +1411,11 @@ uns32 ntfsv_enc_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 		ncs_encode_32bit(&p8, (uns32)NULL);
 		ncs_enc_claim_space(uba, 4);
 	}	
-		
+	
+	rc = ntfsv_enc_discard_msg(uba, &param->d_info);
+	if (!rc)
+		return 0;
+
 	TRACE_LEAVE();
 	return total_bytes;
 }
@@ -1407,7 +1476,7 @@ uns32 ntfsv_dec_subscribe_msg(NCS_UBAID *uba, ntfsv_subscribe_req_t *param)
 	int i;
 	uns8 *p8;
 	uns32 rc = 0;
-	uns8 local_data[4];
+	uns8 local_data[10];
 	uns32 filter_type;
 	param->f_rec.alarm_filter = NULL;
 	param->f_rec.att_ch_filter = NULL;
@@ -1659,7 +1728,10 @@ TRACE_ENTER();
 		assert(!filter_type);
 		param->f_rec.sta_ch_filter = NULL;
 	}
-	rc = 1;
+	
+	rc = ntfsv_dec_discard_msg(uba, &param->d_info);
+	if (!rc)
+		goto error_free;
 done:	
 	TRACE_8("NTFSV_SUBSCRIBE_REQ");
 	TRACE_LEAVE();

@@ -58,7 +58,8 @@ extern "C" {
 /* NTFSV Callback enums */
 	typedef enum {
 		NTFSV_NOTIFICATION_CALLBACK = 1,
-		NTFSV_NTFS_CBK_MAX = 2
+		NTFSV_DISCARDED_CALLBACK = 2,
+		NTFSV_NTFS_CBK_MAX = 3
 	} ntfsv_cbk_msg_type_t;
 
 	typedef enum {
@@ -143,10 +144,18 @@ extern "C" {
 		uns32 readerId;
 	} ntfsv_read_next_req_t;
 
+	/*** Callback Parameter definitions ***/
+	typedef struct {
+		SaNtfNotificationTypeT notificationType;
+		SaUint32T numberDiscarded;
+		SaNtfIdentifierT *discardedNotificationIdentifiers;
+	} ntfsv_discarded_info_t;
+	
 	typedef struct {
 		uns32 client_id;
 		SaNtfSubscriptionIdT subscriptionId;
 		ntfsv_filter_ptrs_t f_rec;
+		ntfsv_discarded_info_t d_info;
 	} ntfsv_subscribe_req_t;
 
 	typedef struct {
@@ -169,14 +178,15 @@ extern "C" {
 		} param;
 	} ntfsv_api_info_t;
 
-/*** Callback Parameter definitions ***/
-
 /* wrapper structure for all the callbacks */
 	typedef struct {
 		ntfsv_cbk_msg_type_t type;	/* callback type */
 		uns32 ntfs_client_id;	/* ntfs client_id */
 		SaNtfSubscriptionIdT subscriptionId;
-		ntfsv_send_not_req_t *notification_cbk;
+		union {
+			ntfsv_send_not_req_t *notification_cbk;
+			ntfsv_discarded_info_t discarded_cbk;
+		} param;
 	} ntfsv_cbk_info_t;
 
 /* API Response parameter definitions */
@@ -241,14 +251,6 @@ extern "C" {
 	struct NtfGlobals {
 		SaNtfIdentifierT notificationId;
 		SaUint64T clientIdCounter;
-	};
-
-	struct DiscardedInfo {
-		SaNtfSubscriptionIdT subscriptionId;
-		SaNtfNotificationTypeT notificationType;
-		SaUint32T numberDiscarded;
-		SaNtfIdentifierT
-		 discardedNotificationIdentifiers[MAX_DISCARDED_NOTIFICATIONS];
 	};
 
 #ifdef  __cplusplus

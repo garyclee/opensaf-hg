@@ -457,7 +457,7 @@ static uns32 enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confi
 	TRACE_ENTER();
 	assert(uba != NULL);
     /** encode the contents **/
-	p8 = ncs_enc_reserve_space(uba, 16);
+	p8 = ncs_enc_reserve_space(uba, 20);
 	if (!p8) {
 		TRACE("NULL pointer");
 		return 0;
@@ -465,8 +465,9 @@ static uns32 enc_mbcsv_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_confi
 	ncs_encode_32bit(&p8, param->clientId);
 	ncs_encode_32bit(&p8, param->subscriptionId);
 	ncs_encode_64bit(&p8, param->notificationId);
-	ncs_enc_claim_space(uba, 16);
-	total_bytes += 16;
+	ncs_encode_32bit(&p8, param->discarded);
+	ncs_enc_claim_space(uba, 20);
+	total_bytes += 20;
 	TRACE_LEAVE();
 	return total_bytes;
 }
@@ -891,15 +892,16 @@ static uns32 decode_not_send_confirm_msg(NCS_UBAID *uba, ntfs_ckpt_not_send_conf
 {
 	uns8 *p8;
 	uns32 total_bytes = 0;
-	uns8 local_data[16];
+	uns8 local_data[20];
 
 	/* releaseCode, majorVersion, minorVersion */
-	p8 = ncs_dec_flatten_space(uba, local_data, 16);
+	p8 = ncs_dec_flatten_space(uba, local_data, 20);
 	param->clientId = ncs_decode_32bit(&p8);
 	param->subscriptionId = ncs_decode_32bit(&p8);
 	param->notificationId = ncs_decode_64bit(&p8);
-	ncs_dec_skip_space(uba, 16);
-	total_bytes += 16;
+	param->discarded = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 20);
+	total_bytes += 20;
 	TRACE_8("decode_not_send_confirm_msg");
 	return total_bytes;
 }
@@ -1180,15 +1182,43 @@ static uns32 ckpt_proc_not_log_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 	return rc;
 }
 
+/****************************************************************************
+ * Name          : ckpt_proc_not_send_confirm
+ *
+ * Description   : confirm that a notification has been sent to a subscriber,
+ *                 been discarded or that a discarded message has been sent.                 
+ *                 
+ * Arguments     : cb - pointer to NTFS  ControlBlock.
+ *                 data - pointer to  NTFS_CHECKPOINT_DATA. 
+ * 
+ *
+ * Return Values : NCSCC_RC_SUCCESS
+ *
+ * Notes         : None.
+ ****************************************************************************/
+
 static uns32 ckpt_proc_not_send_confirm(ntfs_cb_t *cb, ntfsv_ckpt_msg_t *data)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
-	TRACE_ENTER();
-	notificationSentConfirmed(data->ckpt_rec.send_confirm.clientId,
-				  data->ckpt_rec.send_confirm.subscriptionId,
-				  data->ckpt_rec.send_confirm.notificationId);
+	TRACE_ENTER2("discarded %d", data->ckpt_rec.send_confirm.discarded);
+	if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_OK) {	
+		notificationSentConfirmed(data->ckpt_rec.send_confirm.clientId,
+			data->ckpt_rec.send_confirm.subscriptionId, data->ckpt_rec.send_confirm.notificationId,
+			data->ckpt_rec.send_confirm.discarded);
+	}
+	else if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_DISCARDED) {	
+		discardedAdd(data->ckpt_rec.send_confirm.clientId, data->ckpt_rec.send_confirm.subscriptionId,
+			data->ckpt_rec.send_confirm.notificationId);
+		notificationSentConfirmed(data->ckpt_rec.send_confirm.clientId,
+			data->ckpt_rec.send_confirm.subscriptionId, data->ckpt_rec.send_confirm.notificationId,
+			data->ckpt_rec.send_confirm.discarded);
+	}
+	else if (data->ckpt_rec.send_confirm.discarded == NTFS_NOTIFICATION_DISCARDED_LIST_SENT) {	
+		discardedClear(data->ckpt_rec.send_confirm.clientId, data->ckpt_rec.send_confirm.subscriptionId);
+	}
+	else 
+		assert(0);
 	TRACE_LEAVE();
-	return rc;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************

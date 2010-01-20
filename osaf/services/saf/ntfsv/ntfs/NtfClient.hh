@@ -38,14 +38,13 @@ public:
     void notificationReceived(unsigned int clientId,
                               NtfNotification* notification,
                               MDS_SYNC_SND_CTXT *mdsCtxt);
-    void sendNotification(NtfNotification* notification);
     void confirmNtfSend();
     unsigned int getClientId() const;
     MDS_DEST getMdsDest() const;
     void subscriptionRemoved(SaNtfSubscriptionIdT subscriptionId,
                              MDS_SYNC_SND_CTXT *mdsCtxt);
     void syncRequest(NCS_UBAID *uba);
-    void sendNotConfirmedNotification(NtfNotification* notification);
+    void sendNotConfirmedNotification(NtfNotification* notification, SaNtfSubscriptionIdT subscriptionId);
 
     void confirmNtfNotification(SaNtfIdentifierT notificationId,
                                 MDS_SYNC_SND_CTXT *mdsCtxt,
@@ -61,6 +60,8 @@ public:
                   MDS_SYNC_SND_CTXT *mdsCtxt);
     void deleteReader(unsigned int readerId, MDS_SYNC_SND_CTXT *mdsCtxt);
 
+	 void discardedAdd(SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId);
+	 void discardedClear(SaNtfSubscriptionIdT subscriptionId);
     void printInfo();
 
 private:
@@ -72,7 +73,8 @@ private:
                           MDS_SYNC_SND_CTXT *mdsCtxt);
     void deleteReaderResponse(SaAisErrorT* error,
                               MDS_SYNC_SND_CTXT *mdsCtxt);
-
+	 void addDiscardedNotification(NtfNotification* notification);
+	 
     unsigned int clientId_;
     unsigned int readerId_;
 
@@ -80,8 +82,6 @@ private:
     typedef std::map<SaNtfSubscriptionIdT,NtfSubscription*> SubscriptionMap;
     SubscriptionMap subscriptionMap;
 
-    typedef std::list<SaNtfIdentifierT> DiscardedNotificationIdList;
-    DiscardedNotificationIdList discardedNotificationIdList;
     typedef std::map<unsigned int, NtfReader*> ReaderMapT;
     ReaderMapT readerMap;
 

@@ -377,8 +377,26 @@ static uns32 enc_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 ******************************************************************************/
 static uns32 enc_send_not_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
-	ntfsv_send_not_req_t *param = msg->info.cbk_info.notification_cbk;
+	ntfsv_send_not_req_t *param = msg->info.cbk_info.param.notification_cbk;
 	return ntfsv_enc_not_msg(uba, param);
+}
+
+/****************************************************************************
+  Name          : enc_send_discard_cbk_msg
+ 
+  Description   : This routine encodes discarded callback API msg
+ 
+  Arguments     : NCS_UBAID *msg,
+                  NTFSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+static uns32 enc_send_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	ntfsv_discarded_info_t *param = &msg->info.cbk_info.param.discarded_cbk;
+	return ntfsv_enc_discard_msg(uba, param);
 }
 
 /****************************************************************************
@@ -596,6 +614,8 @@ static uns32 mds_enc(struct ncsmds_callback_info *info)
 		total_bytes += 12;
 		if (msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
 			total_bytes += enc_send_not_cbk_msg(uba, msg);
+		} else if (msg->info.cbk_info.type == NTFSV_DISCARDED_CALLBACK) {
+			total_bytes += enc_send_discard_cbk_msg(uba, msg);
 		} else {
 			TRACE("unknown callback type %d", msg->info.cbk_info.type);
 			goto err;

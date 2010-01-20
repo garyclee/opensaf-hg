@@ -129,7 +129,6 @@ void NtfClient::subscriptionAdded(NtfSubscription* subscription,
 
         if (activeController())
         {
-			  /*TODO: add filter info */
 			  sendSubscriptionUpdate(subscription->getSubscriptionInfo());
 			  confirmNtfSubscribe(subscription->getSubscriptionId(), mdsCtxt);
         }
@@ -192,15 +191,11 @@ void NtfClient::notificationReceived(unsigned int clientId,
                     clientId_);
             // first store subscription data in notifiaction object for
             //  tracking purposes
-            notification->storeMatchingSubscription(clientId_,
-                                                    subscription->getSubscriptionId());
+            notification->storeMatchingSubscription(clientId_, subscription->getSubscriptionId());
             // if active, send out the notification
             if (activeController())
             {
-                // store the matching subscriptionId in the notification
-                notification->getNotInfo()->subscriptionId
-                = subscription->getSubscriptionId();
-                sendNotification(notification);
+                subscription->sendNotification(notification, this);
             }
         }
         else
@@ -253,6 +248,28 @@ void NtfClient::subscriptionRemoved(SaNtfSubscriptionIdT subscriptionId,
     }
 }
 
+void NtfClient::discardedAdd(SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId)
+{
+    SubscriptionMap::iterator pos;
+    pos = subscriptionMap.find(subscriptionId);
+    if (pos != subscriptionMap.end()) {
+		 pos->second->discardedAdd(notificationId);
+    } else {
+        LOG_ER( "discardedAdd subscription %u not found", subscriptionId);
+    }
+}
+
+void NtfClient::discardedClear(SaNtfSubscriptionIdT subscriptionId)
+{
+	SubscriptionMap::iterator pos;
+	pos = subscriptionMap.find(subscriptionId);
+	if (pos != subscriptionMap.end()) {
+		pos->second->discardedClear();
+	} else {
+		LOG_ER( "discardedClear subscription %u not found", subscriptionId);
+	}	
+}
+
 /**
  * This method is called when information about this client is
  * requested by another node.
@@ -269,148 +286,23 @@ void NtfClient::syncRequest(NCS_UBAID *uba)
         NtfSubscription* subscription = pos->second;
         TRACE_3("NtfClient::syncRequest sending info about subscription %u for "
                 "client %u", subscription->getSubscriptionId(), clientId_);
-        int retval = sendNewSubscription(subscription->getSubscriptionInfo(), uba);
-        if (retval != 1)
-        {
-            LOG_ER(
-                  "NtfClient::syncRequest sendNewSubscription was not sent"
-                  ", error code is %d", retval);
-        }
+        subscription->syncRequest(uba);
     }
 }
 
-/**
- * This method is called when a notification should be sent to the client.
- *
- * If there are no notifications in the discarded notification list, then
- * we try to send it out. If it does not succeed, we put the newly
- * received notification in the list.
- *
- * If there are notifications in the discarded notification list, then
- * we try to send them out first. If it succeeds, we try to send the newly
- * received notifiaction. If it does not succeed, we put the newly
- * received notification to the end of the list.
- *
- * @param notification
- *               Pointer to the notification object.
- */
-void NtfClient::sendNotification(NtfNotification* notification)
-{
-    TRACE_ENTER();
-    // check if there are discarded notifications
-    if (discardedNotificationIdList.empty())
-    {
-        // send notification
-        TRACE_3("NtfClient::sendNotification send_notification_lib called,"
-                " client %u, notification %llu",
-                clientId_, notification->getNotificationId());
-        if (send_notification_lib(
-                                 notification->getNotInfo(),
-                                 clientId_,
-                                 &mdsDest_) != NCSCC_RC_SUCCESS)
-        {
-            // send failed, put notification id in discard list
-            discardedNotificationIdList.push_back(
-                                                 notification->getNotificationId());
-            TRACE_3("NtfClient::sendNotification send_notification_lib"
-                    " failed, new discardedNotificationIdList size is %u",
-                    (unsigned int)discardedNotificationIdList.size());
-        }
-    }
-    else
-    {
-     // there are already discarded notifications in the queue, send them first
-        struct DiscardedInfo discardedInfo;
-        discardedInfo.subscriptionId =
-        notification->getNotInfo()->subscriptionId;
-        discardedInfo.notificationType =
-        (SaNtfNotificationTypeT)notification->getNotificationType();
-        discardedInfo.numberDiscarded = discardedNotificationIdList.size();
-        DiscardedNotificationIdList::iterator pos;
-        int i=0;
-        pos = discardedNotificationIdList.begin();
-        while ((i < MAX_DISCARDED_NOTIFICATIONS) &&
-               (pos != discardedNotificationIdList.end()))
-        {
-            discardedInfo.discardedNotificationIdentifiers[i] = *pos;
-            i++;
-            pos++;
-        }
-        // first try to send discarded notifications
-        TRACE_3("NtfClient::sendNotification send_discard_notification_lib"
-                " called");
-        if (send_discard_notification_lib( &discardedInfo) == 0)
-        {
-            // sending discarded notifications was successful, empty list
-            discardedNotificationIdList.clear();
-            TRACE_3("NtfClient::sendNotification "
-                    "send_discard_notification_lib succeeded, "
-                    "new discardedNotificationIdList size is %u",
-                    (unsigned int)discardedNotificationIdList.size());
-            // try to send the new notification
-            TRACE_3("NtfClient::sendNotification send_notification_lib"
-                    " called, client %u, notification %llu",
-                    clientId_, notification->getNotificationId());
-            if (send_notification_lib(notification->getNotInfo(),
-                                      clientId_,
-                                      &mdsDest_) != NCSCC_RC_SUCCESS)
-            {
-                // sending new notification failed,
-                //  put notification in discard list
-                if (discardedNotificationIdList.size() <
-                    MAX_DISCARDED_NOTIFICATIONS)
-                {
-                    discardedNotificationIdList.push_back(
-                                                         notification->getNotificationId());
-                    TRACE_2("NtfClient::sendNotification "
-                            "send_notification_lib failed, "
-                            "new discardedNotificationIdList size is %u",
-                            (unsigned int)discardedNotificationIdList.size());
-                }
-                else
-                {
-                    TRACE_2("NtfClient::sendNotification "
-                            "send_notification_lib failed, "
-                            "discardedNotificationIdList full, "
-                            "size is %u",
-                            (unsigned int)discardedNotificationIdList.size());
-                }
-            }
-        }
-        else
-        {
-            // sending discarded notification failed,
-            // add new notification to the existing list,
-            //  we will try to send it later
-            if (discardedNotificationIdList.size() <
-                MAX_DISCARDED_NOTIFICATIONS)
-            {
-                discardedNotificationIdList.
-                push_back(notification->getNotificationId());
-                TRACE_2("NtfClient::sendNotification "
-                        "send_discard_notification_lib failed, "
-                        "new discardedNotificationIdList size is %u",
-                        (unsigned int)discardedNotificationIdList.size());
-            }
-            else
-            {
-                TRACE_2("NtfClient::sendNotification "
-                        "send_discard_notification_lib failed, "
-                        "discardedNotificationIdList full, size is %u",
-                        (unsigned int)discardedNotificationIdList.size());
-            }
-        }
-    }
-    TRACE_LEAVE();
-}
-
-void NtfClient::sendNotConfirmedNotification(NtfNotification* notification)
+void NtfClient::sendNotConfirmedNotification(NtfNotification* notification, SaNtfSubscriptionIdT subscriptionId)
 {
     TRACE_ENTER();
     // if active, send out the notification
     if (activeController())
     {
-        sendNotification(notification);
+		 SubscriptionMap::iterator pos;
+		 pos = subscriptionMap.find(subscriptionId);
+		 if (pos != subscriptionMap.end()) {
+			 pos->second->sendNotification(notification, this);
+		 }	else {
+			 TRACE_3("subscription: %u client: %u not found", subscriptionId, getClientId()); 
+		 }
     }
     TRACE_LEAVE();
 }

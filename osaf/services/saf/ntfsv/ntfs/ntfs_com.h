@@ -32,6 +32,9 @@
 #include "ntfsv_msg.h"
 #include "ntfs.h"
 
+/* TODO: remove this, only used until external test is possible. */
+#define DISCARDED_TEST 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,8 +62,8 @@ extern "C" {
 					SaNtfNotificationTypeT notificationType, ntfsv_send_not_req_t *sendNotInfo);
 	void notificationReceivedColdSync(unsigned int clientId,
 					  SaNtfNotificationTypeT notificationType, ntfsv_send_not_req_t *sendNotInfo);
-	void notificationSentConfirmed(unsigned int clientId,
-				       SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId);
+	void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+		SaNtfIdentifierT notificationId, int discarded);
 	void notificationLoggedConfirmed(SaNtfIdentifierT notificationId);
 	void clientRemoved(unsigned int clientId);
 	void clientRemoveMDS(MDS_DEST mds_dest);
@@ -77,7 +80,9 @@ extern "C" {
 	void syncGlobals(const struct NtfGlobals *ntfGlobals);
 	void storeMatchingSubscription(SaNtfIdentifierT notificationId,
 				       unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
-
+	void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId);
+	void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);
+	
 /* Calls from Admin --> communication layer */
 
 /**
@@ -109,11 +114,11 @@ extern "C" {
 
 	void delete_reader_res_lib(SaAisErrorT error, MDS_DEST mdsDest, MDS_SYNC_SND_CTXT *mdsCtxt);
 
-	int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST *mds_dest);
+	int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST mds_dest);
 
 	void sendLoggedConfirm(SaNtfIdentifierT notificationId);
 
-	int send_discard_notification_lib(struct DiscardedInfo *discardedInfo);
+	int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uns32 c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest);
 
 	void setStartSyncTimer();
 	void setSyncWaitTimer();
@@ -132,8 +137,8 @@ extern "C" {
 	void sendUnsubscribeUpdate(unsigned int clientId, unsigned int subscriptionId);
 	void sendNotificationUpdate(unsigned int clientId, ntfsv_send_not_req_t *notification);
 	void sendLoggedConfirmUpdate(SaNtfIdentifierT notificationId);
-	void sendNotConfirmUpdate(unsigned int clientId,
-				  SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId);
+	void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+		SaNtfIdentifierT notificationId, int discarded);
 	int sendNoOfNotifications(uns32 num_rec, NCS_UBAID *uba);
 	int sendNoOfSubscriptions(uns32 num_rec, NCS_UBAID *uba);
 	int sendNoOfClients(uns32 num_rec, NCS_UBAID *uba);

@@ -332,7 +332,7 @@ static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t *cb, ntfsv_msg_t *msg, ntfa_cl
 				}
 /* TODO: put in handle database when decode */
 				rc = ntfa_alloc_callback_notification(notification,
-								      cbk_info->notification_cbk, hdl_rec);
+								      cbk_info->param.notification_cbk, hdl_rec);
 				if (rc != SA_AIS_OK) {
 					/* not in handle struct */
 					free(notification);
@@ -342,9 +342,22 @@ static SaAisErrorT ntfa_hdl_cbk_rec_prc(ntfa_cb_t *cb, ntfsv_msg_t *msg, ntfa_cl
 			}
 		}
 		break;
+	case NTFSV_DISCARDED_CALLBACK:
+		{
+			if (reg_cbk->saNtfNotificationDiscardedCallback) {
+				rc = SA_AIS_OK;
+				reg_cbk->saNtfNotificationDiscardedCallback(
+					cbk_info->subscriptionId,
+					cbk_info->param.discarded_cbk.notificationType,
+					cbk_info->param.discarded_cbk.numberDiscarded,
+					cbk_info->param.discarded_cbk.discardedNotificationIdentifiers);
+			}
+			free(cbk_info->param.discarded_cbk.discardedNotificationIdentifiers);
+		}
+		break;
 	default:
-		TRACE("unknown callback type: %d", cbk_info->type);
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		TRACE("unsupported callback type: %d", cbk_info->type);
+		rc = SA_AIS_ERR_LIBRARY;
 		break;
 	}
  done:
@@ -372,15 +385,9 @@ static SaAisErrorT ntfa_hdl_cbk_dispatch_one(ntfa_cb_t *cb, ntfa_client_hdl_rec_
 	/* Nonblk receive to obtain the message from priority queue */
 	while (NULL != (cbk_msg = (ntfsv_msg_t *)
 			m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
-		TRACE_1("In While loop type = %d", (int)cbk_msg->info.cbk_info.type);
-		if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
-			rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-			break;
-		} else {
-			TRACE("Unsupported callback type = %d", cbk_msg->info.cbk_info.type);
-			rc = SA_AIS_ERR_LIBRARY;
-		}
+		rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
 		ntfa_msg_destroy(cbk_msg);
+		break;
 	}
 	TRACE_LEAVE();
 	return rc;
@@ -407,12 +414,7 @@ static uns32 ntfa_hdl_cbk_dispatch_all(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *hdl
 	do {
 		if (NULL == (cbk_msg = (ntfsv_msg_t *)m_NCS_IPC_NON_BLK_RECEIVE(&hdl_rec->mbx, cbk_msg)))
 			break;
-		if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
-			TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
-			rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-		} else {
-			TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
-		}
+		rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
 		/* now that we are done with this rec, free the resources */
 		ntfa_msg_destroy(cbk_msg);
 	} while (1);
@@ -441,14 +443,8 @@ static uns32 ntfa_hdl_cbk_dispatch_block(ntfa_cb_t *cb, ntfa_client_hdl_rec_t *h
 
 	for (;;) {
 		if (NULL != (cbk_msg = (ntfsv_msg_t *)
-			     m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
-
-			if (cbk_msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
-				TRACE_2("NTFSV_NTFS_DELIVER_EVENT");
-				rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
-			} else {
-				TRACE("unsupported callback type %d", cbk_msg->info.cbk_info.type);
-			}
+						 m_NCS_IPC_RECEIVE(&hdl_rec->mbx, cbk_msg))) {
+			rc = ntfa_hdl_cbk_rec_prc(cb, cbk_msg, hdl_rec);
 			/* now that we are done with this rec, free the resources */
 			ntfa_msg_destroy(cbk_msg);
 		} else
@@ -536,8 +532,8 @@ void ntfa_msg_destroy(ntfsv_msg_t *msg)
 		TRACE("NTFSV_NTFS_CBK_MSG dealloc_notification");
 		if (msg->info.cbk_info.type == NTFSV_NOTIFICATION_CALLBACK) {
 			/*       TODO: fix in decode  */
-			ntfsv_dealloc_notification(msg->info.cbk_info.notification_cbk);
-			free(msg->info.cbk_info.notification_cbk);
+			ntfsv_dealloc_notification(msg->info.cbk_info.param.notification_cbk);
+			free(msg->info.cbk_info.param.notification_cbk);
 		}
 	}
 	free(msg);
