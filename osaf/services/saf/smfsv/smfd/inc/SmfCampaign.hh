@@ -18,11 +18,11 @@
 #ifndef _SmfCampaign_hh_
 #define _SmfCampaign_hh_
 
+#include <string>
+#include <list>
 #include <saAis.h>
 #include <saSmf.h>
 #include <saImmOi.h>
-#include <string>
-#include <list>
 
 #include <SmfCampaignThread.hh>
 

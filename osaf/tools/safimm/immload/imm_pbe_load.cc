@@ -16,6 +16,7 @@
  */
 
 #include "imm_loader.hh"
+#include <stdio.h>
 #include <logtrace.h>
 #include <errno.h>
 #include <fcntl.h>
