@@ -41,8 +41,10 @@ opensaf_smfnd_SOURCES = \
 	smfnd_main.c \
 	smfnd_amf.c \
 	smfnd_evt.c \
-	smfnd_mds.c 
+	smfnd_mds.c
 
 opensaf_smfnd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la
