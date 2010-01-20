@@ -77,8 +77,6 @@ typedef struct amf_comp_type {
 	SaBoolT saAmfCtDefDisableRestart;
 } amf_comp_type_t;
 
-static SaAisErrorT avnd_comp_config_get(const SaNameT *comp_name);
-
 /* We should only get the config attributes from IMM to avoid problems
    with a pure runtime attributes */
 static SaImmAttrNameT compConfigAttributes[] = {
@@ -685,6 +683,7 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 	uns32 rc = NCSCC_RC_FAILURE;
 
 	avnd_log(NCSFL_SEV_NOTICE, "Op %u, %s", param->act, param->name.value);
+	TRACE_ENTER2("Op %u, %s", param->act, param->name.value);
 
 	switch (param->act) {
 	case AVSV_OBJ_OPR_MOD: {
@@ -856,23 +855,16 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			case saAmfCompNumMaxAmStopAttempts_ID:
 				break;
 			case saAmfCompType_ID: {
-				SaNameT *value = (SaNameT *)param->value;
-
 				assert(comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED);
-
-				avnd_log(NCSFL_SEV_NOTICE, "saAmfCompType %s %u", value->value, value->length);
-				rc = avnd_compdb_rec_del(cb, &param->name);
-				if (NCSCC_RC_SUCCESS != rc) {
-					LOG_ER("avnd_compdb_rec_del FAILED %u", rc);
-					goto done;
-				}
-
-				rc = avnd_comp_config_get(&param->name);
-				if (SA_AIS_OK != rc) {
-					rc = NCSCC_RC_FAILURE;
-					LOG_ER("avnd_comp_config_get FAILED %u", rc);
-					goto done;
-				}
+				comp->saAmfCompType = param->name_sec;
+				/* 
+				** Indicate that comp config is no longer valid and have to be
+				** refreshed from IMM. We cannot refresh here since it is probably
+				** not yet in IMM.
+				*/
+				comp->config_is_valid = 0;
+				LOG_NO("saAmfCompType for '%s' changed to '%s'",
+					comp->name.value, comp->saAmfCompType.value);
 				break;
 			}
 			default:
@@ -1170,40 +1162,23 @@ done:
 }
 
 /**
- * Create an avnd component object.
- * Validation has been done by avd => simple error handling (asserts).
- * Comp type argv and comp argv augments each other.
- * @param comp_name
+ * Initialize the members of the comp object with the configuration attributes from IMM.
+ * @param comp
  * @param attributes
- * @param su
  * 
- * @return AVND_COMP*
+ * @return int
  */
-static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes, AVND_SU *su)
+static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 {
-	int rc = -1, res, i, j;
-	AVND_COMP *comp;
+	int i, j, res = -1;
 	AVND_COMP_CLC_CMD_PARAM *cmd;
-	const char *argv;
 	amf_comp_type_t *comptype;
-	SaBoolT disable_restart;
 	SaNameT nodeswbundle_name;
+	const char *argv;
+	SaBoolT disable_restart;
 	char *path_prefix = NULL;
-	SaAisErrorT error;
 
-	TRACE_ENTER2("%s", comp_name->value);
-
-	if ((comp = calloc(1, sizeof(*comp))) == NULL) {
-		LOG_ER("%s: calloc FAILED for '%s'", __FUNCTION__, comp_name->value);
-		LOG_ER("out of memory will exit now");
-		exit(1);
-	}
-
-	memcpy(&comp->name, comp_name, sizeof(comp->name));
-	comp->name.length = comp_name->length;
-
-	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
-	assert(error == SA_AIS_OK);
+	TRACE_ENTER2("%s", comp->name.value);
 
 	if ((comptype = avnd_comptype_create(&comp->saAmfCompType)) == NULL) {
 		LOG_ER("%s: avnd_comptype_create FAILED for '%s'", __FUNCTION__,
@@ -1214,9 +1189,10 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	avsv_create_association_class_dn(&comptype->saAmfCtSwBundle,
 		&avnd_cb->clmdb.node_info.nodeName, "safInstalledSwBundle", &nodeswbundle_name);
 
-	res = get_string_attr_from_imm(avnd_cb->immOmHandle, "saAmfNodeSwBundlePathPrefix", &nodeswbundle_name, &path_prefix);
+	res = get_string_attr_from_imm(avnd_cb->immOmHandle, "saAmfNodeSwBundlePathPrefix",
+		&nodeswbundle_name, &path_prefix);
 	if (res != 0) {
-		LOG_NO("%s: '%s'", __FUNCTION__, comp_name->value);
+		LOG_NO("%s: '%s'", __FUNCTION__, comp->name.value);
 		LOG_ER("%s: FAILED to read '%s'", __FUNCTION__, nodeswbundle_name.value);
 		goto done;
 	}
@@ -1397,6 +1373,46 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	init_comp_category(comp, comptype->saAmfCtCompCategory);
 
+done:
+	free(path_prefix);
+	avnd_comptype_delete(comptype);
+	TRACE_LEAVE();
+	return res;
+}
+
+/**
+ * Create an avnd component object.
+ * Validation has been done by avd => simple error handling (asserts).
+ * Comp type argv and comp argv augments each other.
+ * @param comp_name
+ * @param attributes
+ * @param su
+ * 
+ * @return AVND_COMP*
+ */
+static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValuesT_2 **attributes, AVND_SU *su)
+{
+	int rc = -1;
+	AVND_COMP *comp;
+	SaAisErrorT error;
+
+	TRACE_ENTER2("%s", comp_name->value);
+
+	if ((comp = calloc(1, sizeof(*comp))) == NULL) {
+		LOG_ER("%s: calloc FAILED for '%s'", __FUNCTION__, comp_name->value);
+		LOG_ER("out of memory will exit now");
+		exit(1);
+	}
+
+	memcpy(&comp->name, comp_name, sizeof(comp->name));
+	comp->name.length = comp_name->length;
+
+	error = immutil_getAttr("saAmfCompType", attributes, 0, &comp->saAmfCompType);
+	assert(error == SA_AIS_OK);
+
+	comp_init(comp, attributes);
+
+	comp->config_is_valid = 1;
 	comp->avd_updt_flag = FALSE;
 
 	/* synchronize comp oper state */
@@ -1456,12 +1472,10 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	rc = 0;
 done:
-	free(path_prefix);
 	if (rc != 0) {
 		free(comp);
 		comp = NULL;
 	}
-	avnd_comptype_delete(comptype);
 	return comp;
 }
 
@@ -1516,66 +1530,38 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
 }
 
 /**
- * Get configuration for a DN specified AMF Comp object from IMM
- * and create an internal object. 
+ * Reinitialize a comp object with configuration data from IMM.
  * 
- * @param dn 
+ * @param comp
  * 
- * @return SaAisErrorT 
+ * @return int
  */
-static SaAisErrorT avnd_comp_config_get(const SaNameT *dn)
+int avnd_comp_config_reinit(AVND_COMP *comp)
 {
-	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
+	int res;
+	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
-	AVND_COMP *comp;
-	AVND_SU *su;
-	SaNameT su_name, comp_name;
-	SaImmSearchHandleT searchHandle;
-	SaImmSearchParametersT_2 searchParam;
-	const char *className = "SaAmfComp";
 
-	searchParam.searchOneAttr.attrName = "SaImmAttrClassName";
-	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
-	searchParam.searchOneAttr.attrValue = &className;
+	TRACE_ENTER2("%s", comp->name.value);
 
-	TRACE_ENTER2("'%s'", dn->value);
+	(void)immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
 
-	avsv_sanamet_init(dn, &su_name, "safSu");
+	if (immutil_saImmOmAccessorGet_2(accessorHandle, &comp->name, NULL,
+		(SaImmAttrValuesT_2 ***)&attributes) != SA_AIS_OK) {
 
-	if ((error = immutil_saImmOmSearchInitialize_2(avnd_cb->immOmHandle, &su_name,
-		SA_IMM_SUBTREE, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_SOME_ATTR,
-		&searchParam, compConfigAttributes, &searchHandle)) != SA_AIS_OK) {
-
-		LOG_ER("saImmOmSearchInitialize_2 failed: %u", error);
-		goto done1;
+		LOG_ER("saImmOmAccessorGet_2 FAILED for '%s'", comp->name.value);
+		goto done;
 	}
 
-	error = immutil_saImmOmSearchNext_2(searchHandle, &comp_name, (SaImmAttrValuesT_2 ***)&attributes);
-	while ((error == SA_AIS_OK) && (memcmp(&comp_name, dn, sizeof(SaNameT) != 0))) {
-		error = immutil_saImmOmSearchNext_2(searchHandle, &comp_name,
-			(SaImmAttrValuesT_2 ***)&attributes);
-	}
+	res = comp_init(comp, attributes);
 
-	if (error != SA_AIS_OK && error != SA_AIS_ERR_NOT_EXIST) {
-		LOG_ER("immutil_saImmOmSearchNext_2 FAILED %u", error);
-		goto done2;
-	}
+	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 
-	avnd_log(NCSFL_SEV_NOTICE, "'%s'", dn->value);
-	assert(memcmp(&comp_name, dn, sizeof(SaNameT)) == 0);
+	/* need to get HC type configuration also if that has been recently created */
+	avnd_hctype_config_get(&comp->saAmfCompType);
 
-	su = m_AVND_SUDB_REC_GET(avnd_cb->sudb, su_name);
-	assert(su);
-
-	if ((comp = avnd_comp_create(dn, attributes, su)) == NULL)
-		goto done2;
-
-	avnd_hc_config_get(comp);
-	error = SA_AIS_OK;
-
-done2:
-	(void)immutil_saImmOmSearchFinalize(searchHandle);
-done1:
-	return error;
+done:
+	TRACE_LEAVE();
+	return res;
 }
 
