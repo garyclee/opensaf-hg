@@ -271,6 +271,7 @@ fi
 %{_pkglibdir}/openhpisubagt_start
 %endif
 %{_pkglibdir}/immnd_script
+%{_pkglibdir}/smfnd_script
 %{_pkglibdir}/tipc_reset.sh
 
 
@@ -328,6 +329,9 @@ fi
 %{_pkglibdir}/immd_script
 %{_pkglibdir}/opensaf_immd
 %{_pkglibdir}/opensaf_immnd
+%{_pkglibdir}/smfd_script
+%{_pkglibdir}/opensaf_smfd
+%{_pkglibdir}/opensaf_smfnd
 %{_pkglibdir}/immload
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -335,11 +339,18 @@ fi
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
+%{_pkglibdir}/smf_backup_create
+%{_pkglibdir}/smf_bundle_check
+%{_pkglibdir}/smf_cluster_reboot
+%{_pkglibdir}/smf_node_check
+%{_pkglibdir}/smf_repository_check
 %config %{_sysconfdir}/%{name}/imm.xml
 %config(noreplace) %{_sysconfdir}/%{name}/rde.conf
 %config(noreplace) %{_sysconfdir}/%{name}/fms.conf
 %config(noreplace) %{_sysconfdir}/%{name}/pdrbd_proxied.conf
 %config(noreplace) %{_sysconfdir}/%{name}/saflog.conf
+%config(noreplace) %{_sysconfdir}/%{name}/smfd.conf
+%config(noreplace) %{_sysconfdir}/%{name}/smfnd.conf
 %config(noreplace) %{_sysconfdir}/%{name}/ntf.conf
 %config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.controller
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
@@ -374,10 +385,12 @@ fi
 %{_pkglibdir}/opensaf_pcap_clean
 %{_pkglibdir}/opensaf_pcap_start
 %{_pkglibdir}/opensaf_immnd
+%{_pkglibdir}/opensaf_smfnd
 %{_bindir}/saflogger
 %{_bindir}/ntfsend
 %{_bindir}/ntfsubscribe
 %{_bindir}/collect_logs_payload
+%{_sysconfdir}/%{name}/smfnd.conf
 %config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.payload
 
 
@@ -402,6 +415,7 @@ fi
 %{_pkglibdir}/libimmsv_common.so.*
 %{_pkglibdir}/libmqsv_common.so.*
 %{_pkglibdir}/libntfsv_common.so.*
+%{_pkglibdir}/libsmfsv_common.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libfma.so.*
 %{_pkglibdir}/libhpl.so.*

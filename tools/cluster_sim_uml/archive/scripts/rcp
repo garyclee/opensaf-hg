@@ -1,0 +1,60 @@
+#! /bin/sh
+##
+## rcp <remotehost:src> <dst>
+## rcp <src> <remotehost:dst>
+##
+##    Faked "rcp" for UML target. Uses the /hostfs for transfer.
+##
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+help() {
+    grep '^##' $0 | cut -c3-
+    exit 0
+}
+test -n "$1" || help
+test -n "$2" || die "No dest"
+
+copyfrom() {
+    remotehost=$1
+    src=$2
+    dst=$3
+    srcfile=$(basename $src)
+    test -d /hostfs/rootfs/var/$remotehost/tmp || \
+	die "Not a directory [/hostfs/rootfs/var/$remotehost/tmp]"
+    rsh $remotehost "test -r $src" || die "Not readable [$remotehost:$src]"
+    rsh $remotehost "cp $src /var/tmp"
+    cp /hostfs/rootfs/var/$remotehost/tmp/$srcfile $dst
+    rm -f /hostfs/rootfs/var/$remotehost/tmp/$srcfile
+}
+
+copyto() {
+    remotehost=$1
+    src=$2
+    dst=$3
+    srcfile=$(basename $src)
+    test -d /hostfs/rootfs/var/$remotehost/tmp || \
+	die "Not a directory [/hostfs/rootfs/var/$remotehost/tmp]"
+    test -r $src || die "Not readable [$src]"
+    cp $src /hostfs/rootfs/var/$remotehost/tmp
+    rsh $remotehost "cp /var/tmp/$srcfile $dst"
+    rm -f /hostfs/rootfs/var/$remotehost/tmp/$srcfile
+}
+
+if echo $1 | grep -q ":" ; then
+    echo $2 | grep -q ":" && die "Both src and dst are remote"
+    remotehost=$(echo $1 | cut -d: -f1)
+    src=$(echo $1 | cut -d: -f2)
+    dst=$2
+    copyfrom $remotehost $src $dst
+elif echo $2 | grep -q ":" ; then
+    remotehost=$(echo $2 | cut -d: -f1)
+    dst=$(echo $2 | cut -d: -f2)
+    src=$1
+    copyto $remotehost $src $dst
+else
+    die "No remotehost specified"
+fi
+

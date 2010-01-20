@@ -1,0 +1,11 @@
+# This file contains configuration for the SMFND service
+# See the file services/smfsv/README for more configuration options.
+
+# Uncomment the next line if you want to run through valgrind
+#export TOOL="valgrind --leak-check=full --log-file=/tmp/log.valgrind"
+
+# The file where traces will be stored (if enabled)
+export SMFND_TRACE_PATHNAME=${LOCALSTATEDIR}/stdouts/opensaf_smfnd.log
+
+# Uncomment the next line to enable traces
+export SMFND_TRACE_CATEGORIES=ALL

@@ -1,4 +1,4 @@
-/*      -*- OpenSAF  -*-
+/*       OpenSAF
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -25,6 +25,8 @@
 #include <syslog.h>
 
 #include <immutil.h>
+
+#include <logtrace.h>
 
 static const SaVersionT immVersion = { 'A', 2, 1 };
 size_t strnlen(const char *s, size_t maxlen);
@@ -386,12 +388,17 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
                 return SA_AIS_ERR_INVALID_PARAM;
 
         for (i = 0; attr[i] != NULL; i++) {
+/*
+           LOG_NO("TESTING immutil_getAttr1 attr[i]->attrName=%s attrName=%s i=%d attr[i]->attrValuesNumber=%d", attr[i]->attrName, attrName, i, attr[i]->attrValuesNumber);
+*/
                 if (strcmp(attr[i]->attrName, attrName) == 0) {
                         if ((index >= attr[i]->attrValuesNumber) || (attr[i]->attrValues == NULL)) {
                                 error = SA_AIS_ERR_INVALID_PARAM;
                                 goto done;
                         }
-
+/*
+                        LOG_NO("TESTING immutil_getAttr2 attrName=%s i=%d attr[i]->attrValuesNumber=%d", attrName, i, attr[i]->attrValuesNumber);
+*/
                         switch (attr[i]->attrValueType) {
                                 case SA_IMM_ATTR_SAINT32T:
                                         *((SaInt32T*) param) = *((SaInt32T*) attr[i]->attrValues[index]);
@@ -431,6 +438,23 @@ SaAisErrorT immutil_getAttr(const SaImmAttrNameT attrName,
 
  done:
         return error;
+}
+
+const SaTimeT* immutil_getTimeAttr(const SaImmAttrValuesT_2 **attr, char const* name, unsigned int index)
+{
+        unsigned int i;
+        if (attr == NULL || attr[0] == NULL) 
+                return NULL;
+        for (i = 0; attr[i] != NULL; i++) {
+                if (strcmp(attr[i]->attrName, name) == 0) {
+                        if (index >= attr[i]->attrValuesNumber 
+                            || attr[i]->attrValues == NULL
+                            || attr[i]->attrValueType != SA_IMM_ATTR_SATIMET)
+                                return NULL;
+                        return (SaTimeT*)attr[i]->attrValues[index];
+                }		
+        }
+        return NULL;
 }
 
 const SaUint32T *immutil_getUint32Attr(const SaImmAttrValuesT_2 **attr, char const *name, unsigned int index)
@@ -1136,6 +1160,151 @@ SaAisErrorT immutil_saImmOmClassCreate_2(SaImmCcbHandleT immCcbHandle,
 
 
 
+////////////////////////////////////////////
+SaAisErrorT immutil_saImmOiFinalize(SaImmOiHandleT immOiHandle)
+{
+        SaAisErrorT rc = saImmOiFinalize(immOiHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOiFinalize(immOiHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOiFinalize FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+
+SaAisErrorT immutil_saImmOmAdminOwnerInitialize(SaImmHandleT immHandle,
+                                                const SaImmAdminOwnerNameT admOwnerName,
+                                                SaBoolT relOwnOnFinalize,
+                                                SaImmAdminOwnerHandleT *ownerHandle)
+{
+        SaAisErrorT rc = saImmOmAdminOwnerInitialize(immHandle, admOwnerName, relOwnOnFinalize, ownerHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOwnerInitialize(immHandle, admOwnerName, relOwnOnFinalize, ownerHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOwnerInitialize FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT ownerHandle)
+{
+        SaAisErrorT rc = saImmOmAdminOwnerFinalize(ownerHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOwnerFinalize(ownerHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOwnerFinalize FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbInitialize(SaImmAdminOwnerHandleT ownerHandle,
+                                         SaImmCcbFlagsT ccbFlags,
+                                         SaImmCcbHandleT *immCcbHandle)
+{
+        SaAisErrorT rc = saImmOmCcbInitialize(ownerHandle, ccbFlags, immCcbHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbInitialize(ownerHandle, ccbFlags, immCcbHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbInitialize FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbFinalize(SaImmCcbHandleT immCcbHandle)
+{
+        SaAisErrorT rc = saImmOmCcbFinalize(immCcbHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbFinalize(immCcbHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbFinalize FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbApply(SaImmCcbHandleT immCcbHandle)
+{
+        SaAisErrorT rc = saImmOmCcbApply(immCcbHandle);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbApply(immCcbHandle);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbApply FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT ownerHandle,
+                                         const SaNameT** name,
+                                         SaImmScopeT scope)
+{
+        SaAisErrorT rc = saImmOmAdminOwnerSet(ownerHandle, name, scope);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOwnerSet(ownerHandle, name, scope);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOwnerSet FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
+                                             const SaNameT** name,
+                                             SaImmScopeT scope)
+{
+        SaAisErrorT rc = saImmOmAdminOwnerRelease(ownerHandle, name, scope);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOwnerRelease(ownerHandle, name, scope);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOwnerRelease FAILED, rc = %d", (int)rc);
+        return rc;
+}
+SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
+                                                  const SaNameT *objectName,
+                                                  SaImmContinuationIdT continuationId,
+                                                  SaImmAdminOperationIdT operationId,
+                                                  const SaImmAdminOperationParamsT_2 **params,
+                                                  SaAisErrorT *operationReturnValue,
+                                                  SaTimeT timeout)
+
+{
+        SaAisErrorT rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId, 
+                                                       operationId, params, operationReturnValue, timeout);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmAdminOperationInvoke_2(ownerHandle, objectName, continuationId, 
+                                                   operationId, params, operationReturnValue, timeout);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmAdminOperationInvoke_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
 SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
                                              const SaImmClassNameT className,
                                              const SaNameT *parent,
@@ -1153,3 +1322,65 @@ SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT immCcbHandle,
         return rc;
 }
 
+SaAisErrorT immutil_saImmOmCcbObjectModify_2(SaImmCcbHandleT immCcbHandle,
+                                             const SaNameT *objectName,
+                                             const SaImmAttrModificationT_2** attrMods)
+{
+        SaAisErrorT rc = saImmOmCcbObjectModify_2(immCcbHandle, objectName, attrMods);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbObjectModify_2(immCcbHandle, objectName, attrMods);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbObjectModify_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmCcbObjectDelete(SaImmCcbHandleT immCcbHandle,
+                                           const SaNameT *objectName)
+{
+        SaAisErrorT rc = saImmOmCcbObjectDelete(immCcbHandle, objectName);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmCcbObjectDelete(immCcbHandle, objectName);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmCcbObjectDelete FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
+                                                 const SaImmClassNameT className,
+                                                 SaImmClassCategoryT *classCategory,
+                                                 SaImmAttrDefinitionT_2 ***attrDefinitions)
+{
+   SaAisErrorT rc = saImmOmClassDescriptionGet_2(immHandle, className, classCategory, attrDefinitions);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmClassDescriptionGet_2(immHandle, className, classCategory, attrDefinitions);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmClassDescriptionGet_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}
+
+SaAisErrorT immutil_saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle,
+                                                        SaImmAttrDefinitionT_2 **attrDef)
+{
+        SaAisErrorT rc = saImmOmClassDescriptionMemoryFree_2(immHandle, attrDef);
+        unsigned int nTries = 1;
+        while(rc == SA_AIS_ERR_TRY_AGAIN && nTries < immutilWrapperProfile.nTries){
+                usleep(immutilWrapperProfile.retryInterval * 1000);
+                rc = saImmOmClassDescriptionMemoryFree_2(immHandle, attrDef);
+                nTries++;
+        }
+        if (rc != SA_AIS_OK && immutilWrapperProfile.errorsAreFatal)
+                immutilError("saImmOmClassDescriptionMemoryFree_2 FAILED, rc = %d", (int)rc);
+        return rc;
+}

@@ -30,4 +30,5 @@ include_HEADERS = \
 	saLck.h \
 	saLog.h \
 	saMsg.h \
-	saNtf.h
+	saNtf.h \
+	saSmf.h

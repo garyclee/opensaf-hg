@@ -158,7 +158,11 @@ cmd_create_rootfs()
     install -m 755 $archive/scripts/snmpd etc/init.d
     install -m 755 $archive/scripts/*.rc etc/init.d
     cp $scripts/profile etc
-    
+    mkdir -p root/www/cgi-bin
+    cp $scripts/rshd root/www/cgi-bin
+    cp $scripts/rsh $scripts/rcp usr/bin
+    chmod +x usr/bin/rsh usr/bin/rcp root/www/cgi-bin/rshd
+
     echo "Copy some needed extra programs (bash, ...)"
     install /bin/bash bin
     install /usr/bin/pgrep usr/bin

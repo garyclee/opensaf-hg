@@ -587,6 +587,7 @@ AC_CONFIG_FILES([
         osaf/libs/common/mqsv/include/Makefile
         osaf/libs/common/ntfsv/Makefile
         osaf/libs/common/ntfsv/include/Makefile
+        osaf/libs/common/smfsv/Makefile
         osaf/libs/saf/Makefile
         osaf/libs/saf/include/Makefile
         osaf/libs/saf/libSaAmf/Makefile
@@ -723,6 +724,14 @@ AC_CONFIG_FILES([
         osaf/services/saf/mqsv/mqd/scripts/ncs_mqd_start
         osaf/services/saf/mqsv/mqnd/scripts/Makefile
         osaf/services/saf/mqsv/mqnd/scripts/ncs_mqnd_start
+	osaf/services/saf/smfsv/Makefile
+        osaf/services/saf/smfsv/config/Makefile
+        osaf/services/saf/smfsv/smfd/Makefile
+        osaf/services/saf/smfsv/smfnd/Makefile
+        osaf/services/saf/smfsv/smfd/scripts/Makefile
+        osaf/services/saf/smfsv/smfd/scripts/smfd_script
+        osaf/services/saf/smfsv/smfnd/scripts/Makefile
+        osaf/services/saf/smfsv/smfnd/scripts/smfnd_script
         osaf/tools/Makefile
         osaf/tools/hisv_events_demo/Makefile
         osaf/tools/hisv_power_set_util/Makefile

@@ -1,0 +1,65 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+# Default implementation of SMF backup
+
+# FROM THE SMF SPECIFICATION;
+# 4.1.1 Upgrade Prerequisites
+#
+#   Before an upgrade campaign starts, the following prerequisites
+#   must be checked at a minimum.
+#
+#    1. The Software Management Framework is operational.
+#    2. The software repository is accessible.
+#    3. There is no other upgrade campaign in progress.
+#    4. The currently running version of the software is available in
+#       the software repository.
+#    5. The specifics of the upgrade campaign have been provided, and
+#       the campaign is still applicable.
+#    6. The desired version of the software is available in the
+#       software repository, and all the dependencies of the required
+#       packages have been checked and are satisfied.
+#    7. All affected nodes must provide the resources (for instance,
+#       sufficient disk space and proper access rights) needed to
+#       perform the upgrade campaign.
+#    8. The target system is in a state such that the expected service
+#       outage does not exceed the acceptable service outage defined
+#       for the campaign.
+#    9. Upgrade-aware entities are ready for an upgrade campaign.
+#   10. Any necessary backup is created.
+#
+#   If any of these checks fails, the upgrade campaign must not
+#   start. If the upgrade campaign has been initiated, it must
+#   terminate immediately. Note that after the correction of the
+#   failed prerequisite, the campaign may be re-attempted.
+
+# This script should check the node according to item 7 above.
+# Currently this script does nothing.
+
+prg=`basename $0`
+smfrc=${SMFRC:-/hostfs/smf.rc}
+test -r $smfrc && . $smfrc
+
+if [ "$#" -ne 1 ]; then
+    echo Node name must be given
+    exit 1
+fi
+
+echo Performing SMF node check actions, node name = $1
+
+exit 0
+
