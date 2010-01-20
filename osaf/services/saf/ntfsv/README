@@ -95,8 +95,8 @@ This means that the Admin object has a nodeMap where each entry contains
 a nodeId and a pointer to the appropriate node object.
 
 The maps are:
-* clientMap is located in the Node object and holds information about
-  all clients on a certain node
+* clientMap is located in the Admin object and holds information about
+  all clients.
 * readerMap is located in the Client object. For each reader initialize a new 
   NtfReader object is created with a copy of the cached notifications
 * subscriptionMap is located in the Client object and holds information
@@ -182,10 +182,6 @@ Internationalization
 Reader API
 - read from SAFLog records
 - filter
-
-Discarded notification API
--problem to make test case for this functionality because not consumed callbacks
-will be stored in a queue in library.
 
 CONTRIBUTORS/MAINTAINERS
 Arne Eriksson <Arne.R.Eriksson@ericsson.com>

@@ -57,9 +57,8 @@ public:
     void notificationReceivedColdSync(unsigned int clientId,
                                       SaNtfNotificationTypeT notificationType,
                                       ntfsv_send_not_req_t* sendNotInfo);
-    void notificationSentConfirmed(unsigned int clientId,
-                                   SaNtfSubscriptionIdT subscriptionId,
-                                   SaNtfIdentifierT notificationId);
+    void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+                                   SaNtfIdentifierT notificationId,  int discarded);
     void notificationLoggedConfirmed(SaNtfIdentifierT notificationId);
     void clientRemoved(unsigned int clientId);
     void clientRemoveMDS(MDS_DEST mds_dest);
@@ -88,7 +87,9 @@ public:
     NtfClient* getClient(unsigned int clientId);
     void deleteConfirmedNotification(NtfNotification* notification,
                                      NotificationMap::iterator pos);
-    static NtfAdmin* theNtfAdmin;
+	 void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId); 
+	 void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId);	 
+	 static NtfAdmin* theNtfAdmin;
     NtfLogger logger;
 
 private:

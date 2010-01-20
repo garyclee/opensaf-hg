@@ -42,6 +42,13 @@ typedef enum ntfsv_ckpt_rec_type {
 	NTFS_CKPT_MSG_MAX
 } ntfsv_ckpt_msg_type_t;
 
+typedef enum ntfsv_discarded_rec_type {
+	NTFS_NOTIFICATION_OK = 0,
+	NTFS_NOTIFICATION_DISCARDED = 1,
+	NTFS_NOTIFICATION_DISCARDED_LIST_SENT = 2,
+	NTFS_CKPT_DISCARDED_MSG_MAX
+} ntfsv_discarded_type_t;
+
 /* Structures for Checkpoint data(to be replicated at the standby) */
 
 /* Registrationlist checkpoint record, used in cold/async checkpoint updates */
@@ -75,6 +82,7 @@ typedef struct {
 	uns32 clientId;
 	SaNtfSubscriptionIdT subscriptionId;
 	SaNtfIdentifierT notificationId;
+	ntfsv_discarded_type_t discarded;
 } ntfs_ckpt_not_send_confirm_t;
 
 /* Checkpoint message containing ntfs data of a particular type.

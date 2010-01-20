@@ -285,18 +285,11 @@ static uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_
 			{
 				ntfa_client_hdl_rec_t *ntfa_hdl_rec;
 
-				TRACE_2("NTFSV_NOTIFICATION_CALLBACK_MSG: "
+				TRACE_2("NTFSV_NOTIFICATION_CALLBACK: "
 					"subscriptionId = %d,"
 					" client_id = %d",
 					(int)ntfsv_msg->info.cbk_info.subscriptionId,
 					(int)ntfsv_msg->info.cbk_info.ntfs_client_id);
-
-			/** Create the chan hdl record here before 
-                         ** queing this message onto the priority queue
-                         ** so that the dispatch by the application to fetch
-                         ** the callback is instantaneous.
-                         **/
-
 			/** Lookup the hdl rec by client_id  **/
 				if (NULL == (ntfa_hdl_rec =
 					     ntfa_find_hdl_rec_by_client_id(cb,
@@ -306,7 +299,32 @@ static uns32 ntfa_ntfs_msg_proc(ntfa_cb_t *cb, ntfsv_msg_t *ntfsv_msg, MDS_SEND_
 					TRACE_LEAVE();
 					return NCSCC_RC_FAILURE;
 				}
+			/** enqueue this message  **/
+				if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&ntfa_hdl_rec->mbx, ntfsv_msg, prio)) {
+					TRACE("IPC SEND FAILED");
+					TRACE_LEAVE();
+					return NCSCC_RC_FAILURE;
+				}
+			}
+			break;
+		case NTFSV_DISCARDED_CALLBACK:
+			{
+				ntfa_client_hdl_rec_t *ntfa_hdl_rec;
 
+				TRACE_2("NTFSV_DISCARDED_CALLBACK: "
+					"subscriptionId = %d,"
+					" client_id = %d",
+					(int)ntfsv_msg->info.cbk_info.subscriptionId,
+					(int)ntfsv_msg->info.cbk_info.ntfs_client_id);
+			/** Lookup the hdl rec by client_id  **/
+				if (NULL == (ntfa_hdl_rec =
+						  ntfa_find_hdl_rec_by_client_id(cb,
+										 ntfsv_msg->info.cbk_info.ntfs_client_id))) {
+					TRACE("client_id not found");
+					ntfa_msg_destroy(ntfsv_msg);
+					TRACE_LEAVE();
+					return NCSCC_RC_FAILURE;
+				}
 			/** enqueue this message  **/
 				if (NCSCC_RC_SUCCESS != m_NCS_IPC_SEND(&ntfa_hdl_rec->mbx, ntfsv_msg, prio)) {
 					TRACE("IPC SEND FAILED");
@@ -548,7 +566,7 @@ static uns32 ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	ntfsv_initialize_rsp_t *param = &msg->info.api_resp_info.param.init_rsp;
-	uns8 local_data[100];
+	uns8 local_data[4];
 
 	assert(uba != NULL);
 
@@ -575,8 +593,26 @@ static uns32 ntfa_dec_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 static uns32 ntfa_dec_not_send_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 {
 	assert(uba != NULL);
-	ntfsv_send_not_req_t *param = msg->info.cbk_info.notification_cbk;
+	ntfsv_send_not_req_t *param = msg->info.cbk_info.param.notification_cbk;
 	return ntfsv_dec_not_msg(uba, param);
+}
+/****************************************************************************
+  Name          : ntfa_dec_not_discard_cbk_msg
+ 
+  Description   : This routine decode discarded callback msg
+ 
+  Arguments     : NCS_UBAID *msg,
+                  NTFSV_MSG *msg
+                  
+  Return Values : uns32
+ 
+  Notes         : None.
+******************************************************************************/
+static uns32 ntfa_dec_not_discard_cbk_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
+{
+	assert(uba != NULL);
+	ntfsv_discarded_info_t *param = &msg->info.cbk_info.param.discarded_cbk;
+	return ntfsv_dec_discard_msg(uba, param);
 }
 
 /****************************************************************************
@@ -596,7 +632,7 @@ static uns32 ntfa_dec_subscribe_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	ntfsv_subscribe_rsp_t *param = &msg->info.api_resp_info.param.subscribe_rsp;
-	uns8 local_data[100];
+	uns8 local_data[4];
 
 	assert(uba != NULL);
 
@@ -625,7 +661,7 @@ static uns32 ntfa_dec_send_not_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	ntfsv_send_not_rsp_t *param = &msg->info.api_resp_info.param.send_not_rsp;
-	uns8 local_data[100];
+	uns8 local_data[8];
 
 	assert(uba != NULL);
 
@@ -655,7 +691,7 @@ static uns32 ntfa_dec_reader_initialize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_init_rsp_t *param = &msg->info.api_resp_info.param.reader_init_rsp;
-	uns8 local_data[8];
+	uns8 local_data[4];
 
 	assert(uba != NULL);
 
@@ -684,7 +720,7 @@ static uns32 ntfa_dec_reader_finalize_rsp_msg(NCS_UBAID *uba, ntfsv_msg_t *msg)
 	uns8 *p8;
 	uns32 total_bytes = 0;
 	ntfsv_reader_finalize_rsp_t *param = &msg->info.api_resp_info.param.reader_finalize_rsp;
-	uns8 local_data[8];
+	uns8 local_data[4];
 
 	assert(uba != NULL);
 
@@ -738,7 +774,7 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 	uns8 *p8;
 	ntfsv_msg_t *msg;
 	NCS_UBAID *uba = info->info.dec.io_uba;
-	uns8 local_data[20];
+	uns8 local_data[12];
 	uns32 total_bytes = 0;
 	TRACE_ENTER();
 
@@ -815,20 +851,24 @@ static uns32 ntfa_mds_dec(struct ncsmds_callback_info *info)
 			switch (msg->info.cbk_info.type) {
 			case NTFSV_NOTIFICATION_CALLBACK:
 				/* TODO: use notificationAlloc here? */
-				msg->info.cbk_info.notification_cbk = calloc(1, sizeof(ntfsv_send_not_req_t));
-				if (NULL == msg->info.cbk_info.notification_cbk) {
+				msg->info.cbk_info.param.notification_cbk = calloc(1, sizeof(ntfsv_send_not_req_t));
+				if (NULL == msg->info.cbk_info.param.notification_cbk) {
 					TRACE_1("could not allocate memory");
 					return 0;
 				}
 				TRACE_2("decode notification cbk message");
 				total_bytes += ntfa_dec_not_send_cbk_msg(uba, msg);
 				break;
+			case NTFSV_DISCARDED_CALLBACK:
+				TRACE_2("decode discarded cbk message");
+			total_bytes += ntfa_dec_not_discard_cbk_msg(uba, msg);
+			break;
 			default:
 				TRACE_2("Unknown callback type = %d!", msg->info.cbk_info.type);
 				break;
 			}
 		}
-		break;
+		break;		
 	default:
 		TRACE("Unknown MSG type %d", msg->type);
 		break;

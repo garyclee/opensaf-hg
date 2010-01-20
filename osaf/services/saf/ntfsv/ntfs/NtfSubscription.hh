@@ -26,6 +26,8 @@
 #include "NtfNotification.hh"
 #include "saNtf.h"
 
+class NtfClient;
+
 class NtfSubscription{
 
 public:
@@ -35,13 +37,19 @@ public:
     void confirmNtfSend();
 	 SaNtfSubscriptionIdT getSubscriptionId() const;
 	 ntfsv_subscribe_req_t* getSubscriptionInfo();
-    void printInfo();
+    void printInfo();	 
     typedef std::map<SaNtfNotificationTypeT,NtfFilter*> FilterMap;
-
+	 void sendNotification(NtfNotification* notification, NtfClient *client);	 
+	 void discardedAdd(SaNtfIdentifierT n_id);
+	 void discardedClear();
+	 void syncRequest(NCS_UBAID *uba);
 private:
 	FilterMap filterMap;
 	SaNtfSubscriptionIdT subscriptionId_;
 	ntfsv_subscribe_req_t s_info_;
+	typedef std::list<SaNtfIdentifierT> DiscardedNotificationIdList;
+	DiscardedNotificationIdList discardedNotificationIdList;
+	
 };
 
 #endif // SUBSCRIPTION_H

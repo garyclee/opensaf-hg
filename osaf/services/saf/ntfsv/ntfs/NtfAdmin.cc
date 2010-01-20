@@ -385,10 +385,8 @@ void NtfAdmin::notificationReceivedColdSync(unsigned int clientId,
  *                 Cluster-wide unique id of the notification that was
  *                 delivered.
  */
-void NtfAdmin::notificationSentConfirmed(
-                                        unsigned int clientId,
-                                        SaNtfSubscriptionIdT subscriptionId,
-                                        SaNtfIdentifierT notificationId)
+void NtfAdmin::notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+    SaNtfIdentifierT notificationId, int discarded)
 {
 
     // find notification
@@ -403,7 +401,7 @@ void NtfAdmin::notificationSentConfirmed(
         if (activeController())
         {
             /* no delete if active */
-            sendNotConfirmUpdate(clientId, subscriptionId, notificationId);
+            sendNotConfirmUpdate(clientId, subscriptionId, notificationId, discarded);
         }
         else
         {
@@ -564,6 +562,36 @@ void NtfAdmin::subscriptionRemoved(unsigned int clientId,
     }
 }
 
+void NtfAdmin::discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId)
+{
+    ClientMap::iterator pos;
+    pos = clientMap.find(clientId);
+    if (pos != clientMap.end())
+    {
+        NtfClient* client = pos->second;
+        client->discardedAdd(subscriptionId, notificationId);
+    }
+    else
+    {
+        LOG_ER("client %u not found", clientId);
+    }
+}
+
+void NtfAdmin::discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId)
+{
+    ClientMap::iterator pos;
+    pos = clientMap.find(clientId);
+    if (pos != clientMap.end())
+    {
+        NtfClient* client = pos->second;
+        client->discardedClear(subscriptionId);
+    }
+    else
+    {
+        LOG_ER("client %u not found", clientId);
+    }
+}
+
 /**
  *  Encode the whole data structure. 
  *  
@@ -682,10 +710,7 @@ void NtfAdmin::checkNotificationList()
                 NtfClient* client = getClient(uSubId.clientId);
                 if (NULL != client)
                 {
-                    // store the matching subscriptionId in the notification
-                    notification->getNotInfo()->subscriptionId
-                    = uSubId.subscriptionId;
-                    client->sendNotConfirmedNotification(notification);
+                    client->sendNotConfirmedNotification(notification, uSubId.subscriptionId);
                 }
                 else
                 {
@@ -955,16 +980,11 @@ void notificationReceivedColdSync(unsigned int clientId,
                                                         sendNotInfo);
 }
 
-void notificationSentConfirmed(
-                              unsigned int clientId,
-                              SaNtfSubscriptionIdT subscriptionId,
-                              SaNtfIdentifierT notificationId)
+void notificationSentConfirmed(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId,
+    SaNtfIdentifierT notificationId, int discarded)
 {
     assert(NtfAdmin::theNtfAdmin != NULL);
-    NtfAdmin::theNtfAdmin->notificationSentConfirmed(
-                                                    clientId,
-                                                    subscriptionId,
-                                                    notificationId);
+    NtfAdmin::theNtfAdmin->notificationSentConfirmed(clientId, subscriptionId, notificationId, discarded);
 }
 
 void notificationLoggedConfirmed(SaNtfIdentifierT notificationId)
@@ -1062,4 +1082,14 @@ void checkNotificationList()
     return NtfAdmin::theNtfAdmin->checkNotificationList();
 }
 
+void discardedAdd(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId)
+{
+    assert(NtfAdmin::theNtfAdmin != NULL);
+    return NtfAdmin::theNtfAdmin->discardedAdd(clientId, subscriptionId, notificationId);    
+}
 
+void discardedClear(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId)
+{
+    assert(NtfAdmin::theNtfAdmin != NULL);
+    return NtfAdmin::theNtfAdmin->discardedClear(clientId, subscriptionId);    
+}

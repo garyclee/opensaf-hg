@@ -28,6 +28,10 @@
 #include "ntfsv_enc_dec.h"
 #include "ntfsv_mem.h"
 #include "ntfs_mbcsv.h"
+#if DISCARDED_TEST
+	/* TODO REMOVE TEST */
+   int disc_test_cntr=1;
+#endif
 
 int activeController()
 {
@@ -267,27 +271,41 @@ void delete_reader_res_lib(SaAisErrorT error, MDS_DEST mdsDest, MDS_SYNC_SND_CTX
  *
  *   @return return value == NCSCC_RC_SUCCESS if ok
  */
-int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST *mds_dest)
+int send_notification_lib(ntfsv_send_not_req_t *dispatchInfo, uns32 client_id, MDS_DEST mds_dest)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	ntfsv_msg_t msg;
+	SaNtfNotificationHeaderT *header;
+	int discarded = 0;
+	
 	TRACE_ENTER();
+	ntfsv_get_ntf_header(dispatchInfo, &header);
+	TRACE_3("client id: %u, not_id: %llu", client_id, *header->notificationId);	
+	
+#if DISCARDED_TEST
+	/* TODO REMOVE TEST */
+	if ((disc_test_cntr % 20)) {
+		TRACE_3("FAKE DISKARDED");
+		/* Allways confirm if not success notification will be put in discarded list. */
+		notificationSentConfirmed(client_id, dispatchInfo->subscriptionId, *header->notificationId, NTFS_NOTIFICATION_DISCARDED);
+		return NCSCC_RC_FAILURE;
+	}
+	/* END TODO REMOVE TEST */
+#endif
 	memset(&msg, 0, sizeof(ntfsv_msg_t));
 	msg.type = NTFSV_NTFS_CBK_MSG;
 	msg.info.cbk_info.type = NTFSV_NOTIFICATION_CALLBACK;
 	msg.info.cbk_info.ntfs_client_id = client_id;
 	msg.info.cbk_info.subscriptionId = dispatchInfo->subscriptionId;
-	msg.info.cbk_info.notification_cbk = dispatchInfo;
-
-	rc = ntfs_mds_msg_send(ntfs_cb, &msg, mds_dest, NULL,	/* send regular msg */
+	msg.info.cbk_info.param.notification_cbk = dispatchInfo;
+	rc = ntfs_mds_msg_send(ntfs_cb, &msg, &mds_dest, NULL,	/* send regular msg */
 			       MDS_SEND_PRIORITY_HIGH);
 	if (rc != NCSCC_RC_SUCCESS) {
-		TRACE_1("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
-	} else {
-		SaNtfNotificationHeaderT *header;
-		ntfsv_get_ntf_header(dispatchInfo, &header);
-		notificationSentConfirmed(client_id, dispatchInfo->subscriptionId, *header->notificationId);
-	}
+		discarded = NTFS_NOTIFICATION_DISCARDED;
+		LOG_ER("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
+	} 
+	/* Allways confirm if not success notification will be put in discarded list. */
+	notificationSentConfirmed(client_id, dispatchInfo->subscriptionId, *header->notificationId, discarded);
 	TRACE_LEAVE();
 	return (rc);
 };
@@ -306,11 +324,37 @@ void sendLoggedConfirm(SaNtfIdentifierT notificationId)
  *
  *   @return          return value = 1 if ok -1 if failed
  */
-int send_discard_notification_lib(struct DiscardedInfo *discardedInfo)
+int send_discard_notification_lib(ntfsv_discarded_info_t *discardedInfo, uns32 c_id, SaNtfSubscriptionIdT s_id, MDS_DEST mds_dest)
 {
-	return 0;		/* TODO:? Not implemented due to problem to create test case    */
-	/*        all notifications will be put into queue in agent lib */
-	/*        therefore discarded will never happen                 */
+	uns32 rc = NCSCC_RC_SUCCESS;
+	ntfsv_msg_t msg;
+	TRACE_ENTER();
+#if DISCARDED_TEST
+	/* TODO REMOVE TEST */
+	if ((disc_test_cntr % 20)) {
+		TRACE_3("FAKE DISKARDED");
+		return NCSCC_RC_FAILURE;
+	}
+	/* END TODO REMOVE TEST */
+#endif
+	memset(&msg, 0, sizeof(ntfsv_msg_t));
+	msg.type = NTFSV_NTFS_CBK_MSG;
+	msg.info.cbk_info.type = NTFSV_DISCARDED_CALLBACK;
+	msg.info.cbk_info.ntfs_client_id = c_id;
+	msg.info.cbk_info.subscriptionId = s_id;
+	msg.info.cbk_info.param.discarded_cbk.notificationType = discardedInfo->notificationType;
+	msg.info.cbk_info.param.discarded_cbk.numberDiscarded = discardedInfo->numberDiscarded;
+	msg.info.cbk_info.param.discarded_cbk.discardedNotificationIdentifiers = discardedInfo->discardedNotificationIdentifiers;
+
+	rc = ntfs_mds_msg_send(ntfs_cb, &msg, &mds_dest, NULL,	/* send regular msg */
+					 MDS_SEND_PRIORITY_HIGH);
+	if (rc != NCSCC_RC_SUCCESS) {
+		TRACE_1("ntfs_mds_msg_send to ntfa failed rc: %d", (int)rc);
+	} else {
+		sendNotConfirmUpdate(c_id, s_id, 0, NTFS_NOTIFICATION_DISCARDED_LIST_SENT);
+	}
+	TRACE_LEAVE();
+	return (rc);
 }
 
 /* Send sync data to standby */
@@ -365,13 +409,8 @@ int sendNoOfSubscriptions(uns32 num_rec, NCS_UBAID *uba)
 
 int sendNewSubscription(ntfsv_subscribe_req_t *s, NCS_UBAID *uba)
 {
-	ntfsv_subscribe_req_t s_rec;
-
-	s_rec.client_id = s->client_id;
-	s_rec.subscriptionId = s->subscriptionId;
-	s_rec.f_rec = s->f_rec;
-	 
-	if (0 == ntfsv_enc_subscribe_msg(uba, &s_rec))
+	TRACE_2("numdiscarded: %u", s->d_info.numberDiscarded);
+	if (0 == ntfsv_enc_subscribe_msg(uba, s))
 		return 0;
 	return 1;
 };
@@ -412,6 +451,9 @@ void sendSubscriptionUpdate(ntfsv_subscribe_req_t* s)
 	ckpt.header.num_ckpt_records = 1;
 	ckpt.header.data_len = 1;
 	ckpt.ckpt_rec.subscribe.arg = *s;
+	/* discardedInfo not checkpointed here */
+	ckpt.ckpt_rec.subscribe.arg.d_info.numberDiscarded = 0;
+	ckpt.ckpt_rec.subscribe.arg.d_info.notificationType = 0;
 	update_standby(&ckpt, NCS_MBCSV_ACT_ADD);
 }
 
@@ -454,7 +496,7 @@ void sendLoggedConfirmUpdate(SaNtfIdentifierT notificationId)
 	TRACE_LEAVE();
 }
 
-void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId)
+void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscriptionId, SaNtfIdentifierT notificationId, int discarded)
 {
 	ntfsv_ckpt_msg_t ckpt;
 	TRACE_ENTER2("client: %u, subId: %u, notId: %llu", clientId, subscriptionId, notificationId);
@@ -465,6 +507,7 @@ void sendNotConfirmUpdate(unsigned int clientId, SaNtfSubscriptionIdT subscripti
 	ckpt.ckpt_rec.send_confirm.clientId = clientId;
 	ckpt.ckpt_rec.send_confirm.subscriptionId = subscriptionId;
 	ckpt.ckpt_rec.send_confirm.notificationId = notificationId;
+	ckpt.ckpt_rec.send_confirm.discarded = discarded;
 	update_standby(&ckpt, NCS_MBCSV_ACT_ADD);
 	TRACE_LEAVE();
 }
