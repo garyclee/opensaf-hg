@@ -1,4 +1,4 @@
-/*      -*- OpenSAF  -*-
+/*       OpenSAF 
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -271,6 +271,17 @@ CcbUtilOperationData_t *ccbutil_getCcbOpDataByDN(SaImmOiCcbIdT id, const SaNameT
 extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 	const SaImmAttrValuesT_2 **attr, SaUint32T *attrValuesNumber);
 
+ /**
+ * Scans the attributes for an an attribute identified by the passed
+ * name. If the attribute is found the value with the passed index is
+ * returned.
+ * @param attr The attribute vector
+ * @param name The name of the attribute
+ * @param index The value index (always 0 for single-value attributes)
+ * @return A pointer to the value or NULL if not found
+ */
+         const SaTimeT* immutil_getTimeAttr(const SaImmAttrValuesT_2 **attr, char const* name, unsigned int index);
+
 /**
  * Return the value for a named attribute from the supplied
  * attribute array. Convert the returned value to the specified
@@ -480,8 +491,103 @@ extern SaAisErrorT immutil_getAttrValuesNumber(const SaImmAttrNameT attrName,
 /**
  * Wrapper for saImmOmAdminOwnerClear
  */
-	SaAisErrorT
-	 immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objectNames, SaImmScopeT scope);
+	extern SaAisErrorT
+         immutil_saImmOmAdminOwnerClear(SaImmHandleT immHandle, const SaNameT **objectNames, SaImmScopeT scope);
+
+/**
+ * Wrapper for saImmOiFinalize
+ */
+	extern SaAisErrorT immutil_saImmOiFinalize(SaImmOiHandleT immOiHandle);
+
+/**
+ * Wrapper for saImmOmAdminOwnerInitialize
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOwnerInitialize( SaImmHandleT immHandle,
+    								const SaImmAdminOwnerNameT admOwnerName,
+   								SaBoolT relOwnOnFinalize,
+   								SaImmAdminOwnerHandleT *ownerHandle);
+
+/**
+ * Wrapper for saImmOmAdminOwnerFinalize
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOwnerFinalize(SaImmAdminOwnerHandleT ownerHandle);
+
+/**
+ * Wrapper for saImmOmCcbInitialize
+ */
+	extern SaAisErrorT immutil_saImmOmCcbInitialize(SaImmAdminOwnerHandleT ownerHandle,
+ 							SaImmCcbFlagsT ccbFlags,
+							SaImmCcbHandleT *immCcbHandle);
+
+/**
+ * Wrapper for saImmOmCcbFinalize
+ */
+	extern SaAisErrorT immutil_saImmOmCcbFinalize(SaImmCcbHandleT  immCcbHandle);
+
+/**
+ * Wrapper for saImmOmCcbApply
+ */
+	extern SaAisErrorT immutil_saImmOmCcbApply(SaImmCcbHandleT  immCcbHandle);
+
+/**
+ * Wrapper for saImmOmAdminOwnerSet
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOwnerSet(SaImmAdminOwnerHandleT  ownerHandle,
+							const SaNameT** name,
+							SaImmScopeT scope);
+
+/**
+ * Wrapper for saImmOmAdminOwnerRelease
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOwnerRelease(SaImmAdminOwnerHandleT ownerHandle,
+   							    const SaNameT** name,
+    							    SaImmScopeT scope);
+
+/**
+ * Wrapper for saImmOmAdminOperationInvoke_2
+ */
+	extern SaAisErrorT immutil_saImmOmAdminOperationInvoke_2(SaImmAdminOwnerHandleT ownerHandle,
+								 const SaNameT *objectName,
+    								 SaImmContinuationIdT continuationId,
+    								 SaImmAdminOperationIdT operationId,
+    								 const SaImmAdminOperationParamsT_2 **params,
+    								 SaAisErrorT *operationReturnValue,
+    								 SaTimeT timeout);
+
+/**
+ * Wrapper for saImmOmCcbObjectCreate_2
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectCreate_2(SaImmCcbHandleT  immCcbHandle,
+    							    const SaImmClassNameT className,
+    							    const SaNameT *parent,
+    						            const SaImmAttrValuesT_2** attrValues);
+
+/**
+ * Wrapper for saImmOmCcbObjectModify_2
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectModify_2(SaImmCcbHandleT  immCcbHandle,
+    						     	    const SaNameT *objectName,
+    							    const SaImmAttrModificationT_2** attrMods);
+
+/**
+ * Wrapper for saImmOmCcbObjectDelete
+ */
+	extern SaAisErrorT immutil_saImmOmCcbObjectDelete(SaImmCcbHandleT  immCcbHandle,
+    							  const SaNameT *objectName);
+
+/**
+ * Wrapper for saImmOmClassDescriptionGet_2
+ */
+	extern SaAisErrorT immutil_saImmOmClassDescriptionGet_2(SaImmHandleT immHandle,
+                                                                const SaImmClassNameT className,
+                                                                SaImmClassCategoryT *classCategory,
+                                                                SaImmAttrDefinitionT_2 ***attrDefinitions);
+
+/**
+ * Wrapper for saImmOmClassDescriptionMemoryFree_2
+ */
+	extern SaAisErrorT immutil_saImmOmClassDescriptionMemoryFree_2(SaImmHandleT immHandle,
+                                                                       SaImmAttrDefinitionT_2 **attrDef);
 
 /*@}*/
 

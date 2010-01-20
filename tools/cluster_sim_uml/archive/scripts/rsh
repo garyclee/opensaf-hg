@@ -1,0 +1,16 @@
+#! /bin/sh
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+test -n "$1" || die "Target missing"
+adr=$1
+shift
+test -n "$1" || die "Command missing"
+qstr=$(echo "$@" | tr -s ' ' '+')
+wget -Y off -q -O - http://$adr/cgi-bin/rshd?$qstr > $tmp/exec 2>&1
+eval $(grep '^EXITSTATUS=' $tmp/exec)
+grep -v '^EXITSTATUS=' $tmp/exec
+return $EXITSTATUS

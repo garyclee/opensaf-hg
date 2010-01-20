@@ -1,0 +1,224 @@
+#!/bin/bash 
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+# Default implementation of SMF backup
+
+
+
+
+# This script is called once before the upgrade starts. Note that it
+# is not called on every node but only on the node where the upgrade
+# execution is started, probably one of the SC's. Since the nodes are
+# assumed to have local file systems this script must execute a local
+# backup on each node and collect the node-backups to one place.
+#
+# For this we require some remote shell and a remote copy program.
+# These are defined by the $RSH and $RCP variables, or "rsh" and "rcp"
+# are used by default.
+
+# Only applications will be backed up. This script will search the IMM
+# for installed bundles and backup these bundles from the repository on
+# all nodes. `hostname` == safAmfNode is assumed.
+
+# It seems to be undefined what a "backup" is and where it is stored,
+# so in this example we make these assumptions;
+#
+#  - A "backup" is a compressed (gzip) tar-file.
+#  - Backup files are stored in a directory defined by the $SMF_BACKUP_DIR
+#    variable.
+
+# The final backup tar-file will contain the IMM dump and the local
+# backups from all (reachable) nodes. Example;
+#
+#   # tar xzvf TEST_BACKUP.tgz 
+#   imm.xml
+#   PL_2_3_backup.tgz
+#   SC_2_1_backup.tgz
+#   SC_2_2_backup.tgz
+#
+# On restore the local backups will be copied to the corresponding
+# node and will be restored locally. The saved imm.xml is restored
+# and the cluster is rebooted.
+
+# The local backup-files will contain the bundle-directories in the
+# $SMFREPOSITORY and the off/on-line remove and install scripts for all
+# bundles installed on that particular node.  The local backup-files
+# will also contain the directory "tmp/bundles" that holds a data-file
+# for each saved bundle. Example;
+#
+#   # tar tf SC_2_1_backup.tgz
+#   tmp/
+#   tmp/bundles/
+#   tmp/bundles/bundleA
+#   opt/opensaf/bundleA/
+#   opt/opensaf/bundleA/ETF.xml
+#   hostfs/online_remove.sh
+#   hostfs/offline_remove.sh
+#   hostfs/online_install.sh
+#   hostfs/offline_install.sh
+#
+# In this example the local backup contains one single bundle (bundleA)
+# containing only an ETF file. (SMFREPOSITORY=/opt/opensaf)
+#
+
+# On restore the local backup-file is unpacked on root (/). The
+# /tmp/bundles directory is scanned for bundles. The bundle
+# information files contains off-line install information. Exmaple;
+#
+#   # cat /tmp/bundles/bundleA
+#   saSmfBundleInstallOfflineCmdUri=/hostfs/offline_install.sh
+#   saSmfBundleInstallOfflineCmdArgs=bundleA
+#
+# The bundles are restored by calling their offline install scripts like;
+#
+#   /hostfs/offline_install.sh bundleA
+#
+# It is the responsibility of the bundle creator to make sure that the
+# bundle can be properly restored with this script. THIS IS NOT
+# IN THE SAF STANDARD! It is just a way used in this example. 
+
+
+
+rsh=${RSH:-rsh}
+rcp=${RCP:-rcp}
+tar=${TAR:-tar}
+
+myself=$0
+prg=`basename $0`
+tmp=/tmp/${prg}$$
+localtag=SMF_LOCAL_BACKUP
+
+die() {
+    echo "ERROR: $@" >&2
+    logger -t $prg -p user.err "ERROR ($cmd): $@"
+    rm -rf $tmp
+    exit 1
+}
+log() {
+    echo "$@"
+    logger -t $prg -p user.debug "$@"
+}
+
+get_nodes() {
+    for n in $(immfind -c SaAmfNode); do
+	echo $n | cut -d, -f1 | cut -d= -f2
+    done
+}
+
+smfrc=${SMFRC:-/hostfs/smf.rc}
+test -r $smfrc && . $smfrc
+
+# Prints the files to save for the passed bundle (dn).
+# Stores the offline install info in $tmp/tmp/bundles/$bundleid.
+get_bundle_files() {
+    b=$1
+    immlist $b -a SaImmAttrClassName > /dev/null 2>&1 ||\
+	die "Invalid bundle reference [$b]"
+    bundleid=$(echo $b | cut -d, -f1 | cut -d= -f2)
+    echo "$SMFREPOSITORY/$bundleid"
+    immlist $b -a saSmfBundleRemoveOnlineCmdUri\
+	-a saSmfBundleRemoveOfflineCmdUri -a saSmfBundleInstallOnlineCmdUri\
+	-a saSmfBundleInstallOfflineCmdUri | cut -d= -f2 | grep -v "<Empty>"
+    immlist $b -a saSmfBundleInstallOfflineCmdUri \
+	-a saSmfBundleInstallOfflineCmdArgs > $tmp/tmp/bundles/$bundleid
+}
+
+# Prints the DN's of the SwBundles installed on the local node.
+# It is assumed that the `hostname` and the AmfNode name are the same.
+get_local_bundles() {
+    hostname=$(hostname)
+    for n in $(immfind -c SaAmfNodeSwBundle | grep "safAmfNode=$hostname,"); do
+	# The rdn contains a reference to the SwBundle	
+	echo $n | sed -e 's/\\,/%%%/g' | cut -d, -f1 | cut -d= -f2- |\
+	    sed -e 's/%%%/,/g'
+    done
+}
+
+# Take a backup of the local file-system. This function should be
+# executed on all nodes in the cluster.
+local_backup() {
+    dstd=/tmp/$localtag
+    rm -rf $dstd; mkdir -p $dstd
+    backup_tar=$dstd/backup.tgz
+    mkdir -p $tmp/tmp/bundles
+    touch $tmp/files
+    for b in $(get_local_bundles); do
+	get_bundle_files $b >> $tmp/files
+    done
+
+    # Create the local tar-file
+    cd $tmp
+    $tar czf $backup_tar -T files tmp > /dev/null 2>&1
+    cd /
+}
+
+trap "die Interrupted" INT TERM
+mkdir -p $tmp
+
+x=$(which $rsh) || die "Not found [$rsh]"
+test -x $x || die "Not executable [$x]"
+x=$(which $rcp) || die "Not found [$rcp]"
+test -x $x || die "Not executable [$x]"
+
+test -n "$1" || die "Identifier must be given"
+test -n "$SMFREPOSITORY" || die 'Not defined $SMFREPOSITORY'
+test -d "$SMFREPOSITORY" || die "Not a directory [$SMFREPOSITORY]"
+
+
+# Check for local execution
+if test "$1" = "$localtag"; then
+    local_backup
+    rm -rf $tmp
+    exit 0
+fi
+
+
+# --- This it the central backup ---
+log "Performing SMF backup actions, Identifier = $1"
+
+# Check target backup-file
+test -n "$SMF_BACKUP_DIR" || die 'Undefined $SMF_BACKUP_DIR'
+if ! test -d "$SMF_BACKUP_DIR"; then
+    mkdir -p $SMF_BACKUP_DIR || die "Could not create [$SMF_BACKUP_DIR]"
+fi
+backup_tar=$SMF_BACKUP_DIR/$1.tgz
+test -r $backup_tar && die "Already exists [$backup_tar]"
+
+# Execute a local backup on all nodes and collect the results
+for n in $(get_nodes); do
+    if ! $rcp $myself $n:/tmp > /dev/null 2>&1; then
+	log "Node [$n] unreachable. Skipped..."
+	continue
+    fi
+    $rsh $n "SMFREPOSITORY=$SMFREPOSITORY SMFRC=$SMFRC /tmp/$prg $localtag" ||\
+	die "Local backup failed on node [$n]"
+    backup_created=$($rsh $n "test -r /tmp/$localtag/backup.tgz && echo yes")
+    test "$backup_created" = "yes" || die "No backup created on node [$n]"
+    $rcp $n:/tmp/$localtag/backup.tgz $tmp/${n}_backup.tgz
+done
+
+# Save the IMM contents
+immdump $tmp/imm.xml > /dev/null || die "Failed immdump"
+
+# Create the final backup tar-file
+cd $tmp
+$tar czf $backup_tar imm.xml *_backup.tgz
+cd /
+
+rm -rf $tmp
+exit 0
+

@@ -18,81 +18,81 @@
  *
 -->
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
-		<class name="SaSmfSwBundle">
+	<class name="SaSmfSwBundle">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>safBundle</name>
+			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
-			<rdn>
-				<name>safBundle</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_INITIALIZED</flag>
-			</rdn>
-			<attr>
-				<name>saSmfBundleDefaultCmdTimeout</name>
-				<type>SA_TIME_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleInstallOnlineCmdUri</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleInstallOnlineCmdArgs</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleInstallOfflineCmdUri</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleInstallOfflineCmdArgs</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleInstallOfflineScope</name>
-				<type>SA_UINT32_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleRemoveOnlineCmdUri</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleRemoveOnlineCmdArgs</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleRemoveOfflineCmdUri</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleRemoveOfflineCmdArgs</name>
-				<type>SA_STRING_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-			<attr>
-				<name>saSmfBundleRemoveOfflineScope</name>
-				<type>SA_UINT32_T</type>
-				<category>SA_CONFIG</category>
-				<flag>SA_WRITABLE</flag>
-			</attr>
-		</class>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfBundleDefaultCmdTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleInstallOnlineCmdUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleInstallOnlineCmdArgs</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleInstallOfflineCmdUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleInstallOfflineCmdArgs</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleInstallOfflineScope</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleRemoveOnlineCmdUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleRemoveOnlineCmdArgs</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleRemoveOfflineCmdUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleRemoveOfflineCmdArgs</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfBundleRemoveOfflineScope</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+	</class>
 	<class name="SaAmfCluster">
 		<category>SA_CONFIG</category>
 		<rdn>
@@ -1454,362 +1454,357 @@
 			<default-value>1</default-value>
 		</attr>
 	</class>
-        <class name="OpenSAFDtsvGlobalLogPolicy">
-                <category>SA_CONFIG</category>
-                <rdn>   
-                        <name>opensafGlobalLogPolicy</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_INITIALIZED</flag>
-                </rdn>  
-                <attr>
-                        <name>osafDtsvGlobalMessageLogging</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr> 
-                <attr>
-                        <name>osafDtsvGlobalLogDevice</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                </attr> 
-                <attr>  
-                        <name>osafDtsvGlobalLogFileSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1000</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalFileLogCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCircularBuffSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>111</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCirBuffCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLoggingState</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCategoryBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>-1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalSeverityBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>252</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalNumOfLogFiles</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>10</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLogMsgSequencing</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCloseOpenFiles</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-        </class>
-        <class name="OpenSAFDtsvNodeLogPolicy">
-                <category>SA_CONFIG</category>
-                <rdn>
-                        <name>opensafNodeLogPolicy</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_INITIALIZED</flag>
-                </rdn>
-                <attr>
-                        <name>osafDtsvNodeMessageLogging</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeLogDevice</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeLogFileSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1000</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeFileLogCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeCircularBuffSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>120</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeCirBuffCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeLoggingState</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeCategoryBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>-1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvNodeSeverityBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>252</default-value>
-                </attr>
-        </class>
-        <class name="OpenSAFDtsvServiceLogPolicy">
-                <category>SA_CONFIG</category>
-                <rdn>
-                        <name>opensafServiceLogPolicy</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_INITIALIZED</flag>
-                </rdn>
-                <attr>
-                        <name>osafDtsvServiceLogDevice</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceLogFileSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1000</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceFileLogCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceCircularBuffSize</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>12</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceCirBuffCompFormat</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>0</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceLoggingState</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceCategoryBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>-1</default-value>
-                </attr>
-                <attr>
-                        <name>osafDtsvServiceSeverityBitMap</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_CONFIG</category>
-                        <flag>SA_WRITABLE</flag>
-                        <default-value>252</default-value>
-                </attr>
-        </class>
-
+	<class name="OpenSAFDtsvGlobalLogPolicy">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>opensafGlobalLogPolicy</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>osafDtsvGlobalMessageLogging</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogDevice</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogFileSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1000</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalFileLogCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCircularBuffSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>111</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCirBuffCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLoggingState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCategoryBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>-1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalSeverityBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>252</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalNumOfLogFiles</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>10</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogMsgSequencing</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCloseOpenFiles</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+	</class>
+	<class name="OpenSAFDtsvNodeLogPolicy">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>opensafNodeLogPolicy</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>osafDtsvNodeMessageLogging</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeLogDevice</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeLogFileSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1000</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeFileLogCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeCircularBuffSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>120</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeCirBuffCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeLoggingState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeCategoryBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>-1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvNodeSeverityBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>252</default-value>
+		</attr>
+	</class>
+	<class name="OpenSAFDtsvServiceLogPolicy">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>opensafServiceLogPolicy</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>osafDtsvServiceLogDevice</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceLogFileSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1000</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceFileLogCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceCircularBuffSize</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>12</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceCirBuffCompFormat</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>0</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceLoggingState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceCategoryBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>-1</default-value>
+		</attr>
+		<attr>
+			<name>osafDtsvServiceSeverityBitMap</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<default-value>252</default-value>
+		</attr>
+	</class>
 	<class name="SaMsgQueue">
-                <category>SA_RUNTIME</category>
-                <rdn>   
-                        <name>safMq</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </rdn>  
-                <attr>
-                        <name>saMsgQueueIsPersistent</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueRetentionTime</name>
-                        <type>SA_TIME_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueSize</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueUsedSize</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueueCreationTimestamp</name>
-                        <type>SA_TIME_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueNumMsgs</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueueNumMemberQueueGroups</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueueIsOpened</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-        </class>
-
-        <class name="SaMsgQueuePriority">
-                <category>SA_RUNTIME</category>
-                <rdn>
-                        <name>safMqPrio</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </rdn>
-                <attr>
-                        <name>saMsgQueuePriorityQSize</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueuePriorityQUsedSize</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueuePriorityQNumMessages</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueuePriorityQNumFullErrors</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                </attr>
-                <attr>
-                        <name>saMsgQueuePriorityCapacityAvailable</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueuePriorityCapacityReached</name>
-                        <type>SA_UINT64_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-        </class>
-
-        <class name="SaMsgQueueGroup">
-                <category>SA_RUNTIME</category>
-                <rdn>
-                        <name>safMqg</name>
-                        <type>SA_STRING_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </rdn>
-                <attr>
-                        <name>saMsgQueueGroupPolicy</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueGroupNumQueues</name>
-                        <type>SA_UINT32_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                </attr>
-                <attr>
-                        <name>saMsgQueueGroupMemberName</name>
-                        <type>SA_NAME_T</type>
-                        <category>SA_RUNTIME</category>
-                        <flag>SA_CACHED</flag>
-                        <flag>SA_MULTI_VALUE</flag>
-                </attr>
-        </class>
-
-
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safMq</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saMsgQueueIsPersistent</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueRetentionTime</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueUsedSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueueCreationTimestamp</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueNumMsgs</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueueNumMemberQueueGroups</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueueIsOpened</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+	</class>
+	<class name="SaMsgQueuePriority">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safMqPrio</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saMsgQueuePriorityQSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueuePriorityQUsedSize</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueuePriorityQNumMessages</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueuePriorityQNumFullErrors</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+		</attr>
+		<attr>
+			<name>saMsgQueuePriorityCapacityAvailable</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueuePriorityCapacityReached</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+	</class>
+	<class name="SaMsgQueueGroup">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safMqg</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saMsgQueueGroupPolicy</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueGroupNumQueues</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saMsgQueueGroupMemberName</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
 	<class name="SaCkptCheckpoint">
 		<category>SA_RUNTIME</category>
 		<rdn>
@@ -2179,6 +2174,389 @@
 			<category>SA_RUNTIME</category>
 		</attr>
 	</class>
+	<class name="OpenSafRepository">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>repository</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+	</class>
+	<class name="SaSmfCampaign">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>safSmfCampaign</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfCmpgFileUri</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+		</attr>
+		<attr>
+			<name>saSmfCmpgConfigBase</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfCmpgExpectedTime</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfCmpgElapsedTime</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfCmpgState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<default-value>1</default-value>
+		</attr>
+		<attr>
+			<name>saSmfCmpgError</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SaSmfProcedure">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safSmfProcedure</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfProcExecLevel</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcMustKeepSIs</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcAcceptSIOutage</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcMaxNumSIsOutage</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcUpgrMethod</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcPeriod</name>
+			<type>SA_TIME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfProcError</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SaSmfStep">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safSmfStep</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfStepMaxRetry</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfStepRetryCount</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfStepRestartOption</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfStepState</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfStepError</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SaSmfDeactivationUnit">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safSmfDu</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfDuActedOn</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>saSmfDuEntityToRemove</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SaSmfActivationUnit">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safSmfAu</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfAuActedOn</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>saSmfAuEntityToAdd</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SaSmfImageNodes">
+		<category>SA_RUNTIME</category>
+		<rdn>
+			<name>safImageNode</name>
+			<type>SA_STRING_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</rdn>
+		<attr>
+			<name>saSmfINSwBundle</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+		</attr>
+		<attr>
+			<name>saSmfINNode</name>
+			<type>SA_NAME_T</type>
+			<category>SA_RUNTIME</category>
+			<flag>SA_PERSISTENT</flag>
+			<flag>SA_CACHED</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
+	<class name="SmfConfig">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>smfConfig</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>smfBackupCreateCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfBundleCheckCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfNodeCheckCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfRepositoryCheckCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfClusterRebootCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfAdminOpTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfCliTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+	</class>
+	<class name="SmfTestClass">
+		<category>SA_CONFIG</category>
+		<rdn>
+			<name>aName</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</rdn>
+		<attr>
+			<name>aTimeT</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aStringT</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aInt32T</name>
+			<type>SA_INT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aUint32T</name>
+			<type>SA_UINT32_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aInt64T</name>
+			<type>SA_INT64_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aUint64T</name>
+			<type>SA_UINT64_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aNameT</name>
+			<type>SA_NAME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aFloatT</name>
+			<type>SA_FLOAT_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aDoubleT</name>
+			<type>SA_DOUBLE_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+		<attr>
+			<name>aAnyT</name>
+			<type>SA_ANY_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
+			<flag>SA_MULTI_VALUE</flag>
+		</attr>
+	</class>
 	<object class="SaAmfAppBaseType">
 		<dn>safAppType=OpenSafApplicationType</dn>
 	</object>
@@ -2205,12 +2583,12 @@
 		</attr>
 	</object>
 	<object class="SaAmfApplication">
-                <dn>safApp=safMsgService</dn>
+		<dn>safApp=safMsgService</dn>
 		<attr>
-                        <name>saAmfAppType</name>
-                        <value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
-                </attr>
-        </object>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+		</attr>
+	</object>
 	<object class="SaAmfApplication">
 		<dn>safApp=safEvtService</dn>
 		<attr>
@@ -2539,8 +2917,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeRDE</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2573,8 +2951,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeDTS</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2615,8 +2993,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeFMS</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2657,8 +3035,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeIMMD</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2703,8 +3081,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeLOG</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2749,8 +3127,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeNTF</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2799,8 +3177,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeEDS</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2837,8 +3215,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeCPD</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2871,8 +3249,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeGLD</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2905,8 +3283,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeMQD</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2939,8 +3317,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeIMMND</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -2981,8 +3359,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeCPND</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -3015,8 +3393,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeMQND</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -3049,8 +3427,8 @@
 	<object class="SaAmfCompType">
 		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</dn>
 		<attr>
-				<name>saAmfCtSwBundle</name>
-				<value>safBundle=OpenSAF</value>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
 		</attr>
 		<attr>
 			<name>saAmfCtCompCategory</name>
@@ -4500,7 +4878,7 @@
 		<dn>safCsiAttr=Attr2,safCsi=GLND,safSi=NoRed5,safApp=OpenSAF</dn>
 	</object>
 	<object class="SaSmfSwBundle">
-			<dn>safBundle=OpenSAF</dn>
+		<dn>safBundle=OpenSAF</dn>
 	</object>
 	<object class="SaImmMngt">
 		<dn>safRdn=immManagement,safApp=safImmService</dn>
@@ -4510,50 +4888,352 @@
 		</attr>
 	</object>
 	<object class="OpenSAFDtsvGlobalLogPolicy">
-                <dn>opensafGlobalLogPolicy=safDtsv,safApp=safDtsvService</dn>
-                <attr>
-                        <name>osafDtsvGlobalMessageLogging</name>
-                        <value>0</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLogDevice</name>
-                        <value>128</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLogFileSize</name>
-                        <value>1000</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalFileLogCompFormat</name>
-                        <value>0</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCircularBuffSize</name>
-                        <value>111</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCirBuffCompFormat</name>
-                        <value>0</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLoggingState</name>
-                        <value>1</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalSeverityBitMap</name>
-                        <value>252</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalNumOfLogFiles</name>
-                        <value>10</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalLogMsgSequencing</name>
-                        <value>0</value>
-                </attr>
-                <attr>
-                        <name>osafDtsvGlobalCloseOpenFiles</name>
-                         <value>0</value>
-                </attr>
-        </object>
+		<dn>opensafGlobalLogPolicy=safDtsv,safApp=safDtsvService</dn>
+		<attr>
+			<name>osafDtsvGlobalMessageLogging</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogDevice</name>
+			<value>128</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogFileSize</name>
+			<value>1000</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalFileLogCompFormat</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCircularBuffSize</name>
+			<value>111</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCirBuffCompFormat</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLoggingState</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalSeverityBitMap</name>
+			<value>252</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalNumOfLogFiles</name>
+			<value>10</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalLogMsgSequencing</name>
+			<value>0</value>
+		</attr>
+		<attr>
+			<name>osafDtsvGlobalCloseOpenFiles</name>
+			<value>0</value>
+		</attr>
+	</object>
+	<object class="SaSmfCampaign">
+		<dn>safSmfCampaign=Campaign_1,safApp=safSmfService</dn>
+		<attr>
+			<name>saSmfCmpgFileUri</name>
+			<value>/hostfs/campaign.xml</value>
+		</attr>
+	</object>
+	<object class="SaAmfApplication">
+		<dn>safApp=safSmfService</dn>
+		<attr>
+			<name>saAmfAppType</name>
+			<value>safVersion=4.0.0,safAppType=OpenSafApplicationType</value>
+		</attr>
+	</object>
+	<object class="OpenSafRepository">
+		<dn>safRepository=smfRepository,safApp=safSmfService</dn>
+	</object>
+	<object class="SmfConfig">
+		<dn>smfConfig=1,safApp=safSmfService</dn>
+		<attr>
+			<name>smfBackupCreateCmd</name>
+			<value>/usr/local/lib/opensaf/smf_backup_create</value>
+		</attr>
+		<attr>
+			<name>smfBundleCheckCmd</name>
+			<value>/usr/local/lib/opensaf/smf_bundle_check</value>
+		</attr>
+		<attr>
+			<name>smfNodeCheckCmd</name>
+			<value>/usr/local/lib/opensaf/smf_node_check</value>
+		</attr>
+		<attr>
+			<name>smfRepositoryCheckCmd</name>
+			<value>/usr/local/lib/opensaf/smf_repository_check</value>
+		</attr>
+		<attr>
+			<name>smfClusterRebootCmd</name>
+			<value>/usr/local/lib/opensaf/smf_cluster_reboot</value>
+		</attr>
+		<attr>
+			<name>smfAdminOpTimeout</name>
+			<value>600000000000</value>
+		</attr>
+		<attr>
+			<name>smfCliTimeout</name>
+			<value>600000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeSMF</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>smfd_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>smfd_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>5</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeSMFND</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</dn>
+		<attr>
+			<name>saAmfCtSwBundle</name>
+			<value>safBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>smfnd_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>smfnd_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>2</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=A1B2,safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=A1B2,safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr><name>saAmfHctDefMaxDuration</name><value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeSMF,safVersion=4.0.0,safSuType=OpenSafSuTypeServer</dn>
+	</object>
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeSMFND,safVersion=4.0.0,safSuType=OpenSafSuTypeND</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=SMF-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=SMF-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=SMFND-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=SMFND-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=SMF-OpenSAF,safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safVersion=4.0.0,safSvcType=NoRed-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMF-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMF,safSi=SC-2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMF-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMF-OpenSAF,safComp=SMF,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMF,safSu=SC_2_2,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMF-OpenSAF,safComp=SMF,safSu=SC_2_2,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed1,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=SC_2_2,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed2,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=SC_2_2,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed3,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=PL_2_3,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=PL_2_4,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed4,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=PL_2_4,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=SMFND,safSu=PL_2_5,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeSMFND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=SMFND,safSi=NoRed5,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=SMFND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=PL_2_5,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
 </imm:IMM-contents>

@@ -8,6 +8,7 @@ include $(top_srcdir)/samples/leap/leap.mk
 include $(top_srcdir)/samples/mbcsv/mbcsv.mk
 include $(top_srcdir)/samples/mds/mds.mk
 include $(top_srcdir)/samples/mqsv/mqsv.mk
+include $(top_srcdir)/samples/smfsv/smfsv.mk
 
 samples_sources = \
    $(avsv_sources) \
@@ -19,4 +20,5 @@ samples_sources = \
    $(leap_sources) \
    $(mbcsv_sources) \
    $(mds_sources) \
-   $(mqsv_sources)
+   $(mqsv_sources) \
+   $(smfsv_sources)
