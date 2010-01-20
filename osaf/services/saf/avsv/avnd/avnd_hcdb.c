@@ -37,8 +37,6 @@
 #include <saImmOm.h>
 #include <immutil.h>
 
-static SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn);
-
 static NCS_PATRICIA_TREE hctypedb;	/* healthcheck type db */
 
 /****************************************************************************
@@ -339,7 +337,7 @@ static AVND_HCTYPE *hctype_create(AVND_CB *cb, SaNameT *dn, const SaImmAttrValue
 	return hc;
 }
 
-static SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
+SaAisErrorT avnd_hctype_config_get(const SaNameT *comptype_dn)
 {
 	SaAisErrorT error = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmSearchHandleT searchHandle;

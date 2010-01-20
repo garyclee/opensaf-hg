@@ -33,7 +33,9 @@
 ******************************************************************************
 */
 
-#include "avnd.h"
+#include <logtrace.h>
+
+#include <avnd.h>
 
 /* static function declarations */
 static uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *, AVND_COMP *);
@@ -1081,6 +1083,19 @@ uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s", comp->name.value);
+
+	/*
+	** If the component configuration is not valid (e.g. comptype has been
+	** changed by an SMF upgrade), refresh it from IMM.
+	** At first time instantiation of OpenSAF components we cannot go
+	** to IMM since we would deadloack.
+	*/
+	if (!comp->config_is_valid && avnd_comp_config_reinit(comp) != 0) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
 	/*if proxied component check whether the proxy exists, if so continue 
 	   instantiating by calling the proxied callback. else start timer and 
 	   wait for inst timeout duration */
@@ -1106,7 +1121,7 @@ uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_COMP_PRES_STATE_SET(comp, SA_AMF_PRESENCE_INSTANTIATING);
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
 
-		return rc;
+		goto done;
 	}
 
 	/* instantiate the comp */
@@ -1128,6 +1143,8 @@ uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_PRES_STATE);
 	}
 
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 

@@ -1047,8 +1047,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT *dn = (SaNameT*) value;
 			param.attr_id = saAmfCompType_ID;
-			param.value_len = dn->length;
-			memcpy(param.value, dn->value, param.value_len);
+			param.name_sec = *dn;
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 
 			char *param_val = *((char **)value);
