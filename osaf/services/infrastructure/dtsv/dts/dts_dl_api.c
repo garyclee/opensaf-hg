@@ -254,7 +254,6 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 		m_NCS_IPC_DETACH(&gl_dts_mbx, dts_clear_mbx, inst);
 		m_NCS_IPC_RELEASE(&gl_dts_mbx, NULL);
 		inst->created = FALSE;
-		dts_unregister_tables(inst);
 		dtsv_mbcsv_deregister(inst);
 		dts_mds_unreg(inst, TRUE);
 		dtsv_clear_asciispec_tree(inst);

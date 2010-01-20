@@ -55,7 +55,6 @@
 #include "ncs_ubaid.h"
 #include "ncsencdec.h"
 #include "ncs_stack.h"
-#include "ncs_mib.h"
 #include "ncs_mtbl.h"
 #include "ncs_log.h"
 #include "ncs_lib.h"

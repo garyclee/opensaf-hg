@@ -100,7 +100,8 @@ typedef enum dts_svc_msg_type {
 	DTA_FLOW_CONTROL,
 	/* Message type indicating the congestion state of DTS as seen by DTA */
 	DTS_CONGESTION_HIT,
-	DTS_CONGESTION_CLEAR
+	DTS_CONGESTION_CLEAR,
+	DTS_IMMND_EVT_RCV
 } DTS_SVC_MSG_TYPE;
 
 /***************************************************************************

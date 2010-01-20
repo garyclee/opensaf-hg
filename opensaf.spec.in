@@ -390,10 +390,7 @@ fi
 %{_pkglibdir}/libavsv_subagt.so.*
 %{_pkglibdir}/libcli_logstr.so.*
 %{_pkglibdir}/libcpsv_logstr.so.*
-%{_pkglibdir}/libdts_clicef.so.*
 %{_pkglibdir}/libdts_logstr.so.*
-%{_pkglibdir}/libdts_pssv.so.*
-%{_pkglibdir}/libdtsv_subagt.so.*
 %{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/libmab_logstr.so.*

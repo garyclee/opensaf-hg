@@ -48,8 +48,6 @@ EXTERN_C uns32 dts_data_clean_up(DTS_CB *cb);
 /* Macro to set dts_svc_reg_tbl attributes */
 #define m_DTS_SET_SVC_REG_TBL(svc, param) \
 {  \
-   svc->row_status = param->row_status; \
-   svc->row_exist = param->row_exist; \
    svc->per_node_logging = param->per_node_logging; \
    svc->svc_policy.enable = param->svc_policy.enable; \
    svc->svc_policy.category_bit_map = param->svc_policy.category_bit_map; \

@@ -621,7 +621,6 @@ AC_CONFIG_FILES([
         osaf/cli/logstr/Makefile
         osaf/cli/services/Makefile
         osaf/cli/services/avsv/Makefile
-        osaf/cli/services/dtsv/Makefile
         osaf/cli/services/psr/Makefile
         osaf/snmp/Makefile
         osaf/snmp/config/Makefile
@@ -631,8 +630,6 @@ AC_CONFIG_FILES([
         osaf/snmp/miblib/Makefile
         osaf/snmp/miblib/avsv/Makefile
         osaf/snmp/miblib/avsv/avm/Makefile
-        osaf/snmp/miblib/dtsv/Makefile
-        osaf/snmp/miblib/dtsv/dts/Makefile
         osaf/snmp/miblib/pssv/Makefile
         osaf/snmp/miblib/pssv/pss/Makefile
         osaf/snmp/mibs/Makefile
@@ -640,7 +637,6 @@ AC_CONFIG_FILES([
         osaf/snmp/pssv/config/Makefile
         osaf/snmp/pssv/avsv/Makefile
         osaf/snmp/pssv/avsv/avm/Makefile
-        osaf/snmp/pssv/dtsv/Makefile
         osaf/snmp/scripts/Makefile
         osaf/snmp/scripts/ncs_snmpsubagt_clean
         osaf/snmp/scripts/ncs_snmpsubagt_reload
@@ -653,7 +649,6 @@ AC_CONFIG_FILES([
         osaf/snmp/subagt/services/Makefile
         osaf/snmp/subagt/services/avsv/Makefile
         osaf/snmp/subagt/services/avsv/avm/Makefile
-        osaf/snmp/subagt/services/dtsv/Makefile
         osaf/snmp/subagt/services/pssv/Makefile
         osaf/libs/Makefile
         osaf/libs/agents/Makefile
