@@ -49,7 +49,7 @@
  **********
  * This flag enables logging in all DTS subcomponents. To actually
  * enable Logging behavior, not only must this flag be turned on, but
- * each DTS subcomponent (MAC, MAS or OAC) must be enabled along the
+ * each DTS subcomponent must be enabled along the
  * logging dimensions desired.
  */
 

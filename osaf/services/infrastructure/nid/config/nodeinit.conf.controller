@@ -58,13 +58,9 @@ xxLIBDIRxx/rde_script:RDF:S:xxLIBDIRxx/rde_script:12000:-6:2:1:start:stop
 xxLIBDIRxx/ncs_dts_start:DTSV:S:xxLIBDIRxx/ncs_dts_clean:4000:4:2:1:start:
 xxLIBDIRxx/opensaf_fms:HLFM:S:xxLIBDIRxx/opensaf_fms:12000:-6:2:1:start:stop
 #xxLIBDIRxx/drbdctrl:DRBD:S:xxLIBDIRxx/drbdctrl:800::2::start all:stop all
-#xxLIBDIRxx/nis_snmpd_start:SNMPD:S:xxLIBDIRxx/nis_snmpd_clean:10000:4:5:1::
-xxLIBDIRxx/ncs_mas_start:MASV:S:xxLIBDIRxx/ncs_mas_clean:4000:4:2:1:start:
 xxLIBDIRxx/immd_script:IMMD:S:xxLIBDIRxx/immd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/immnd_script:IMMND:S:xxLIBDIRxx/immnd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_lgs:LOGD:S:xxLIBDIRxx/opensaf_lgs:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_ntfs:NTFD:S:xxLIBDIRxx/opensaf_ntfs:4000:4:2:1:start:stop
-xxLIBDIRxx/ncs_pss_start:PSSV:S:xxLIBDIRxx/ncs_pss_clean:4000:4:2:1:start:
 xxLIBDIRxx/ncs_eds_start:EDSV:S:xxLIBDIRxx/ncs_eds_clean:5000:4:2:1:start:
-xxLIBDIRxx/ncs_snmpsubagt_start:SUBAGT:S:xxLIBDIRxx/ncs_snmpsubagt_clean:5000:4:2:1:start:
 xxLIBDIRxx/opensaf_scap_start:SCAP:S:xxLIBDIRxx/opensaf_scap_clean:192000:-6:0:1:start:

@@ -23,20 +23,14 @@
 #include "t_suite.h"
 #include "ncsdlib.h"
 #include "ncs_saf.h"
-#include "ncs_mib.h"
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_edu_pub.h"
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 #include "ncs_main_pvt.h"
 
 #include "ncs_log.h"
 #include "dta_papi.h"
-
-#include "oac_papi.h"
-#include "oac_api.h"
 
 #include <SaHpi.h>
 

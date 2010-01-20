@@ -205,9 +205,6 @@ static uns32 mqd_lib_init(void)
 		return rc;
 	}
 
-	/* CLM Initialize */
-
-	/* Initialize the MIBs scalar objects */
 	strcpy(pMqd->safSpecVer.value, "B.03.01");
 	pMqd->safSpecVer.length = strlen("B.03.01");
 	strcpy(pMqd->safAgtVen.value, "OpenSAF");
@@ -220,7 +217,6 @@ static uns32 mqd_lib_init(void)
 	rc = mqd_lm_init(pMqd);
 	if (NCSCC_RC_SUCCESS != rc) {	/* Handle failure */
 		m_LOG_MQSV_D(MQD_LM_INIT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-/*      mqd_clm_shut(pMqd);*/
 		mqd_mbcsv_finalize(pMqd);
 		if (mqd_mds_shut(pMqd) != NCSCC_RC_SUCCESS) {
 			m_LOG_MQSV_D(MQD_MDS_SHUT_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);

@@ -82,7 +82,7 @@ uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info)
  * Description   : This is the function which initalize the dts libarary.
  *                 This function creates an IPC mail Box and spawns DTS
  *                 thread.
- *                 This function initializes the CB, handle manager, MDS and MAB.
+ *                 This function initializes the CB, handle manager and MDS.
  *
  * Arguments     : req_info - Request info.
  *

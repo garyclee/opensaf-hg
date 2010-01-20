@@ -105,13 +105,6 @@ extern "C" {
 		   requests originated locally; MDS will not attempt an exact load-share 
 		   on a global basis.
 
-		   The 'i_create_oac' determines whether an OAC needs to be created on
-		   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
-		   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
-		   it has the same life and role as this MDS-DESt) then it should set this 
-		   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
-		   a PWE1 on the MDS-DEST created by this call.
-
 		   NOTE: 
 		   1) The "persistent" option should uniformly be either a TRUE or 
 		   a FALSE across multiple VDEST_CREATE calls for the same string-name.
@@ -122,7 +115,6 @@ extern "C" {
 		 */
 		NCS_BOOL i_persistent;
 		NCS_VDEST_TYPE i_policy;
-		NCS_BOOL i_create_oac;	/* TRUE if OAC is to be created */
 
 		NCSVDA_VDEST_CREATE_TYPE i_create_type;
 		union {
@@ -136,9 +128,6 @@ extern "C" {
 			} named;	/* if create_type = NCSVDA_VDEST_CREATE_NAMED    */
 
 		} info;
-
-		/* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
-		uns32 o_pwe1_oac_hdl;
 
 		MDS_HDL o_mds_pwe1_hdl;	/* Handle to PWE 1 on vdest            */
 		MDS_HDL o_mds_vdest_hdl;	/* Handle to vdest for global services */
@@ -179,13 +168,6 @@ extern "C" {
 
 		/* i_pwe_id: The environement-identifier for the PWE being created */
 		PW_ENV_ID i_pwe_id;
-
-		/* i_create_oac: If TRUE, an OAC would be pre-created on the PWE. */
-		NCS_BOOL i_create_oac;
-
-		/* Handle to pre-created OAC on this PWE. Set only if 
-		   "i_create_oac" is TRUE */
-		uns32 o_pwe_oac_hdl;
 
 		/* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
 		   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */
@@ -257,22 +239,10 @@ extern "C" {
 
 		   This API simply creates a PWE1 on the absolute destination, if
 		   not already created, and returns the handle to that PWE1.
-
-		   The 'i_create_oac' determines whether an OAC needs to be created on
-		   the MDS_DEST being created. An OAC (MIB Object-Access-Client) service is 
-		   optional on an MDS-DEST. If the caller has a MIB tied to this VDEST (i.e. 
-		   it has the same life and role as this MDS-DESt) then it should set this 
-		   to TRUE. The `i_pwe1_oac_hdl` carries a handle to an OAC sitting on
-		   a PWE1 on the MDS-DEST created by this call.
-
 		 */
-		NCS_BOOL i_create_oac;
 
 		/* Absolute destination of this core */
 		MDS_DEST o_adest;
-
-		/* Handle to OAC on PWE1. Set only if i_create_oac is TRUE   */
-		uns32 o_pwe1_oac_hdl;	/* Handle to OAC on PWE1 on adest      */
 
 		MDS_HDL o_mds_pwe1_hdl;	/* Handle to PWE 1 on adest            */
 		MDS_HDL o_mds_adest_hdl;	/* Handle to adest for global services */
@@ -288,13 +258,6 @@ extern "C" {
 
 		/* i_pwe_id: The environement-identifier for the PWE being created */
 		PW_ENV_ID i_pwe_id;
-
-		/* i_create_oac: If TRUE, an OAC would be pre-created on the PWE. */
-		NCS_BOOL i_create_oac;
-
-		/* Handle to pre-created OAC on this PWE. Set only if 
-		   "i_create_oac" is TRUE */
-		uns32 o_pwe_oac_hdl;
 
 		/* o_mds_pwe_hdl: An "MDS-handle" meant for all normal-MDS-services. These
 		   normal-MDS-services are a member of a PWE identified by "i_pwe_id" */

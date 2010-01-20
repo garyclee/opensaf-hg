@@ -22,8 +22,7 @@ pkglib_LTLIBRARIES = libhpl.la
 
 libhpl_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include
 
 libhpl_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

@@ -33,28 +33,14 @@
 #include "ncs_main_papi.h"
 #include "ncs_mda_papi.h"
 #include "ncs_sprr_papi.h"
-#include "oac_papi.h"
 #include "ncs_main_pvt.h"
 #include "ncs_lib.h"
 #include "mds_dl_api.h"
 #include "sprr_dl_api.h"
 #include "mda_dl_api.h"
-#include "ncs_mib_pub.h"
-#include "oac_dl_api.h"
-#if ((NCS_MAS == 1) || (NCS_MAC == 1))
-#include "mab.h"
-#endif
 
 #if (NCS_VDS == 1)
 #include "vds_dl_api.h"
-#endif
-
-#if (NCS_CLI == 1)
-#include "ncs_cli.h"
-#endif
-
-#if (NCS_PSR == 1)
-#include "psr_papi.h"
 #endif
 
 #if (NCS_AVA == 1)
@@ -119,10 +105,6 @@
 #if (NCS_DTS == 1)
 #include "dts_dl_api.h"
 
-#if (NCS_SNMPSUBAGT_LOG == 1)
-#include "subagt_log.h"
-#endif
-
 #if (NCS_AVSV_LOG == 1)
 #include "avd_logstr.h"
 #include "avnd_logstr.h"
@@ -137,15 +119,6 @@
 #include "mqd_logstr.h"
 #endif
 #endif   /* NCS_DTS */
-
-#if (NCS_MAC == 1)
-#include "mac_papi.h"
-#endif
-
-#include "ncs_sprr_papi.h"
-
-#include "ncs_mib.h"
-#include "ncsmiblib.h"
 
 #ifdef __NCSINC_LINUX__
 #define LOG_PATH OSAF_LOCALSTATEDIR "log"
@@ -185,10 +158,8 @@ typedef struct ncs_main_pub_cb {
 	uns32 leap_use_count;
 	uns32 mds_use_count;
 	uns32 dta_use_count;
-	uns32 oac_use_count;
 
 	NCS_AGENT_DATA mbca;
-	NCS_AGENT_DATA maa;
 	NCS_AGENT_DATA ncs_hpl;
 
 } NCS_MAIN_PUB_CB;
@@ -270,7 +241,6 @@ unsigned int ncs_agents_startup(int argc, char *argv[])
 \***************************************************************************/
 unsigned int ncs_agents_shutdown(int argc, char *argv[])
 {
-	ncs_maa_shutdown();
 	ncs_mbca_shutdown();
 
 	ncs_core_agents_shutdown();
@@ -441,62 +411,6 @@ unsigned int ncs_dta_startup(int argc, char *argv[])
 	return NCSCC_RC_SUCCESS;
 }
 
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_oac_startup
-
-\***************************************************************************/
-unsigned int ncs_oac_startup(int argc, char *argv[])
-{
-	NCS_LIB_REQ_INFO lib_create;
-
-	m_NCS_AGENT_LOCK;
-
-	if (!gl_ncs_main_pub_cb.leap_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nLEAP not yet started.... \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (!gl_ncs_main_pub_cb.mds_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nMDS not yet started.... \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (!gl_ncs_main_pub_cb.dta_use_count) {
-		NCSMAINPUB_TRACE1_ARG1("\nDTA not yet started.... \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (gl_ncs_main_pub_cb.oac_use_count > 0) {
-		gl_ncs_main_pub_cb.oac_use_count++;
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_SUCCESS;
-	}
-
-	memset(&lib_create, 0, sizeof(lib_create));
-	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
-
-	/* STEP : Initialize the OAA layer */
-	if (oaclib_request(&lib_create) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: OAC lib_req failed \n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-	gl_ncs_main_pub_cb.oac_use_count = 1;
-
-	/* All CORE services are started */
-	gl_ncs_main_pub_cb.core_started = TRUE;
-
-	m_NCS_AGENT_UNLOCK;
-
-	return NCSCC_RC_SUCCESS;
-}
 
 /***************************************************************************\
 
@@ -508,14 +422,8 @@ uns32 ncs_non_core_agents_startup(int argc, char *argv[])
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	rc = ncs_mbca_startup(argc, argv);
-	if (rc != NCSCC_RC_SUCCESS)
-		return rc;
 
-	rc = ncs_maa_startup(argc, argv);
-	if (rc != NCSCC_RC_SUCCESS)
-		return rc;
-
-	return NCSCC_RC_SUCCESS;
+	return rc;
 }
 
 /***************************************************************************\
@@ -542,11 +450,6 @@ unsigned int ncs_core_agents_startup(int argc, char *argv[])
 
 	if (ncs_dta_startup(argc, argv) != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA startup failed \n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-
-	if (ncs_oac_startup(argc, argv) != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("ERROR: OAC startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
@@ -654,54 +557,6 @@ unsigned int ncs_hisv_hpl_startup(int argc, char *argv[])
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_maa_startup
-
-\***************************************************************************/
-unsigned int ncs_maa_startup(int argc, char *argv[])
-{
-	NCS_LIB_REQ_INFO lib_create;
-
-	if (!gl_ncs_main_pub_cb.core_started) {
-		NCSMAINPUB_TRACE1_ARG1("\nNCS core not yet started.... \n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	memset(&lib_create, 0, sizeof(lib_create));
-	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
-
-	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
-		return NCSCC_RC_SUCCESS;	/* No agents to load */
-
-	m_NCS_AGENT_LOCK;
-
-	if (gl_ncs_main_pub_cb.maa.use_count > 0) {
-		/* Already created, so just increment the use_count */
-		gl_ncs_main_pub_cb.maa.use_count++;
-	} else /*** Init MAA ***/ if ('n' != ncs_util_get_char_option(argc, argv, "MASV=")) {
-		gl_ncs_main_pub_cb.maa.lib_req =
-		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "maclib_request");
-		if (gl_ncs_main_pub_cb.maa.lib_req == NULL) {
-			NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:OFF");
-		} else {
-			if ((*gl_ncs_main_pub_cb.maa.lib_req) (&lib_create) != NCSCC_RC_SUCCESS) {
-				m_NCS_AGENT_UNLOCK;
-				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			} else {
-				NCSMAINPUB_DBG_TRACE1_ARG1("\nMASV:MAA:ON");
-				gl_ncs_main_pub_cb.maa.use_count = 1;
-			}
-		}
-	}
-
-	m_NCS_AGENT_UNLOCK;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_hisv_hpl_shutdown
 
 \***************************************************************************/
@@ -766,39 +621,6 @@ unsigned int ncs_mbca_shutdown(void)
 	return rc;
 }
 
-/***************************************************************************\
-
-  PROCEDURE    :    ncs_maa_shutdown
-
-\***************************************************************************/
-unsigned int ncs_maa_shutdown(void)
-{
-	NCS_LIB_REQ_INFO lib_destroy;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	m_NCS_AGENT_LOCK;
-
-	if (gl_ncs_main_pub_cb.maa.use_count > 1) {
-		/* Still users extis, so just decrement the use_count */
-		gl_ncs_main_pub_cb.maa.use_count--;
-		m_NCS_AGENT_UNLOCK;
-		return rc;
-	}
-
-	memset(&lib_destroy, 0, sizeof(lib_destroy));
-	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-	lib_destroy.info.destroy.dummy = 0;;
-
-	if (gl_ncs_main_pub_cb.maa.lib_req != NULL)
-		rc = (*gl_ncs_main_pub_cb.maa.lib_req) (&lib_destroy);
-
-	gl_ncs_main_pub_cb.maa.use_count = 0;
-	gl_ncs_main_pub_cb.maa.lib_req = NULL;
-
-	m_NCS_AGENT_UNLOCK;
-
-	return rc;
-}
 
 /***************************************************************************\
 
@@ -913,70 +735,6 @@ void ncs_dta_shutdown()
 
 /***************************************************************************\
 
-  PROCEDURE    :    ncs_oac_shutdown
-
-\***************************************************************************/
-void ncs_oac_shutdown()
-{
-	NCS_SPIR_REQ_INFO spir_req;
-	NCS_LIB_REQ_INFO lib_destroy;
-	int rc;
-
-	m_NCS_AGENT_LOCK;
-
-	if (gl_ncs_main_pub_cb.oac_use_count > 1) {
-		/* Still users extis, so just decrement the use_count */
-		gl_ncs_main_pub_cb.oac_use_count--;
-		m_NCS_AGENT_UNLOCK;
-		return;
-	}
-
-	/* STEP: Check if any "OAC" has been created on ADEST-PWE1. This is
-	   required because the NCSADA_GET_HDLS does not have a 
-	   corresponding NCSADA_REL_HDLS API. Hence, any OAC on the
-	   pre-created ADEST-PWE1 has to be explicitly destroyed. 
-
-	   A similar thing has to be done when a PWE on VDEST or ADEST
-	   is destroyed; It needs to be checked whether any OAC has
-	   been created, and if yes, then it has to be destroyed. Please 
-	   see NCSVDA_PWE_DESTROY/NCSADA_PWE_DESTROY code for this.
-	 */
-	memset(&spir_req, 0, sizeof(spir_req));
-	spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-	spir_req.i_environment_id = 1;
-	spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-	spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-	if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
-		/* PWE1-OAC has been created. So destroy it */
-		memset(&spir_req, 0, sizeof(spir_req));
-		spir_req.type = NCS_SPIR_REQ_REL_INST;
-		spir_req.i_environment_id = 1;
-		spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-		spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-
-		if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-			rc = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			return;
-		}
-	}
-
-	/* STEP: Invoke OAC library shutdown */
-	memset(&lib_destroy, 0, sizeof(lib_destroy));
-	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
-	lib_destroy.info.destroy.dummy = 0;
-
-	oaclib_request(&lib_destroy);
-
-	gl_ncs_main_pub_cb.oac_use_count = 0;
-	gl_ncs_main_pub_cb.core_started = FALSE;
-
-	m_NCS_AGENT_UNLOCK;
-
-	return;
-}
-
-/***************************************************************************\
-
   PROCEDURE    :    ncs_core_agents_shutdown
 
 \***************************************************************************/
@@ -994,7 +752,6 @@ unsigned int ncs_core_agents_shutdown()
 	}
 
    /*** Shutdown basic services ***/
-	ncs_oac_shutdown();
 	/*usleep(1000); */
 	ncs_dta_shutdown();
 	ncs_mds_shutdown();

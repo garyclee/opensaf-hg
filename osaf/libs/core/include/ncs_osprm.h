@@ -518,22 +518,6 @@ extern "C" {
 #define LEAPDLL_API
 #endif
 
-#ifndef MABOAC_API
-#define MABOAC_API
-#endif
-
-#ifndef MABCOM_API
-#define MABCOM_API
-#endif
-
-#ifndef MABMAC_API
-#define MABMAC_API
-#endif
-
-#ifndef MABMAS_API
-#define MABMAS_API
-#endif
-
 #ifndef IFSVDLL_API
 #define IFSVDLL_API
 #endif

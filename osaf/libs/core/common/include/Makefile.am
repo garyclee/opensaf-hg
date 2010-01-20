@@ -21,13 +21,10 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_HEADERS = \
 	avm_avd.h \
 	logtrace.h \
-	ncs_avsv_bam_msg.h \
-	ncs_bam_avm.h \
 	ncs_main_pvt.h \
 	ncs_mda_pvt.h \
 	ncs_saf_edu.h \
 	ncs_util.h \
-	oac_api.h \
 	saf_def.h \
 	saf_mem.h \
 	sprr_dl_api.h \

@@ -499,12 +499,6 @@ static uns32 mqd_qgrp_cnt_get_evt_process(MQD_CB *pMqd, MQSV_EVT *pevt)
 			rsp.msg.mqnd_ctrl.info.qgrp_cnt_info.info.noOfQueueGroupMemOf = 0;
 		}
 		rc = mqd_mds_send_rsp(pMqd, &pevt->sinfo, &rsp);
-		if (rc != NCSCC_RC_SUCCESS)
-			m_LOG_MQSV_D(MQD_REG_HDLR_MIB_EVT_SEND_FAILED, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_ERROR, rc,
-				     __FILE__, __LINE__);
-		else
-			m_LOG_MQSV_D(MQD_REG_HDLR_MIB_EVT_SEND_SUCCESS, NCSFL_LC_MQSV_QGRP_MGMT, NCSFL_SEV_NOTICE, rc,
-				     __FILE__, __LINE__);
 	}
 	return rc;
 }

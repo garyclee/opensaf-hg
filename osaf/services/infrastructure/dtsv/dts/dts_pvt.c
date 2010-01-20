@@ -557,6 +557,9 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		dts_add_svc_to_dta(to_reg, svc);
 		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
 
+		//svc->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
+		//svc->row_exist = FALSE;
+
 		/* newly created service, set all the policies to default 
 		 * then add new entry to the patricia tree */
 		svc->per_node_logging = NCS_SNMP_FALSE;
@@ -1727,6 +1730,7 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 	(*node)->node.key_info = (uns8 *)&(*node)->ntwk_key;
 
 	(*node)->per_node_logging = log_level;
+	//(*node)->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
 	/* 
 	 * If service id is 0 it meand it is a node entry.
 	 */

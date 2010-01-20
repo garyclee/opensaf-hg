@@ -898,7 +898,6 @@ static uns32 mds_demo_create_named_vdest(char * name, uns32 *pwe_hdl)
 
    vda_info.req = NCSVDA_VDEST_CREATE;
    vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_NAMED;
-   vda_info.info.vdest_create.i_create_oac = FALSE;/* To simplify */
    vda_info.info.vdest_create.i_persistent = FALSE;
    vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
    vda_info.info.vdest_create.info.named.i_name.length = 

@@ -102,7 +102,6 @@ const NCSFL_STR avd_event_set[] = {
 	{AVD_SND_TMR_EVENT, "Send Timer event for processing: "},
 	{AVD_SND_AVD_MSG_EVENT, "Send AvD message event for processing: "},
 	{AVD_SND_AVND_MSG_EVENT, "Send AvND message event for processing: "},
-	{AVD_SND_MAB_EVENT, "Send MAB event for processing: "},
 	{AVD_RCVD_EVENT, "Received the event for processing: "},
 	{AVD_RCVD_INVLD_EVENT, "Received an invalid event for processing: "},
 	{0, 0}

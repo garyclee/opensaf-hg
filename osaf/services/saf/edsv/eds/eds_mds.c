@@ -1501,7 +1501,6 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
 #endif
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_create_oac = TRUE;	/* To simplify. Check this. TBD */
 	vda_info.info.vdest_create.i_persistent = FALSE;	/* Up-to-the application */
 	/*  vda_info.info.vdest_create.i_persistent = TRUE; * Up-to-the application */
 	/*  vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC; */
@@ -1522,7 +1521,6 @@ uns32 eds_mds_vdest_create(EDS_CB *eds_cb)
 	/* Store the info returned by MDS */
 	eds_cb->mds_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
 	eds_cb->mds_vdest_hdl = vda_info.info.vdest_create.o_mds_vdest_hdl;
-	eds_cb->mab_hdl = vda_info.info.vdest_create.o_pwe1_oac_hdl;
 
 	return rc;
 }

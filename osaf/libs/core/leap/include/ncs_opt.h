@@ -187,10 +187,6 @@
 #define APS_INTF_SUBSYSTEM   0	/* Target Services implementation of Interface Subsystem */
 #endif
 
-#ifndef NCS_MAB
-#define NCS_MAB              0	/* MIB Access Broker */
-#endif
-
 #ifndef NCS_A2SIG
 #define NCS_A2SIG            0	/* AAL 2 Signalling */
 #endif
@@ -712,11 +708,6 @@
 /* Init Handle Manager */
 #ifndef NCSL_ENV_INIT_HM
 #define NCSL_ENV_INIT_HM 1
-#endif
-
-/* Init MIB Transaction Manager */
-#ifndef NCSL_ENV_INIT_MTM
-#define NCSL_ENV_INIT_MTM 1
 #endif
 
 /* Init KMS */

@@ -25,8 +25,7 @@ pkglib_LTLIBRARIES = libmqsv_common.la
 libmqsv_common_la_CPPFLAGS = \
 	-DNCS_MQA=1 -DNCS_MQSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/mqsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/mqsv/include
 
 libmqsv_common_la_SOURCES = \
 	mqsv_common.c \

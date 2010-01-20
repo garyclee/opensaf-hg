@@ -119,23 +119,6 @@
 /* Maximum number for AM start attempts */
 #define AVSV_MAX_AMSTART 1
 
-/* Define the Ranks for the persistent MIB tables */
-typedef enum {
-	AVSV_TBL_RANK_MIN = 20,
-	AVSV_TBL_RANK_NCSSG = AVSV_TBL_RANK_MIN,
-	AVSV_TBL_RANK_AMFSG,
-	AVSV_TBL_RANK_NCSND,
-	AVSV_TBL_RANK_AMFND,
-	AVSV_TBL_RANK_AMFSU,
-	AVSV_TBL_RANK_AMFCOMP,
-	AVSV_TBL_RANK_AMFSI,
-	AVSV_TBL_RANK_AMFSI_DEP,
-	AVSV_TBL_RANK_AMFCSTYPEPARAM,
-	AVSV_TBL_RANK_AMFCSINV,
-	AVSV_TBL_RANK_AMFCSI,
-	AVSV_TBL_RANK_MAX
-} AVSV_TBL_RANK;
-
 /* comp capability model definition */
 typedef enum ncs_comp_capability_model {
 	NCS_COMP_CAPABILITY_X_ACTIVE_AND_Y_STANDBY = 1,
@@ -338,26 +321,6 @@ typedef enum
    saAmfHealthcheckMaxDuration_ID = 2,
 } SA_AMF_HEALTHCHECK_ATTR_ID; 
 
-/* Macros for data to MIB arg modification */
-#define m_AVSV_OCTVAL_TO_PARAM(param,buffer,len,val) \
-{\
-   param->i_fmat_id = NCSMIB_FMAT_OCT; \
-   param->i_length = len; \
-   memcpy((uns8 *)buffer,val,param->i_length); \
-   param->info.i_oct = (uns8 *)buffer; \
-}
-
-#define m_AVSV_LENVAL_TO_PARAM(param,buffer,saname) \
-m_AVSV_OCTVAL_TO_PARAM(param,buffer,saname.length,saname.value)
-
-   /* since it is 64 bit length fill 8 */
-#define m_AVSV_UNS64_TO_PARAM(param,buffer,val64) \
-{\
-   param->i_fmat_id = NCSMIB_FMAT_OCT; \
-   param->i_length = 8; \
-   param->info.i_oct = (uns8 *)buffer; \
-   m_NCS_OS_HTONLL_P(param->info.i_oct,val64); \
-}
 
 #define NCS_SERVICE_AVSV_COMMON_SUB_ID_DEFAULT_VAL 1
 #define SA_AMF_PRESENCE_ORPHANED (SA_AMF_PRESENCE_TERMINATION_FAILED+1)

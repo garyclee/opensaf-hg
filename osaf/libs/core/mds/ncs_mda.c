@@ -37,7 +37,6 @@
 #include "mda_mem.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"
-#include "oac_papi.h"
 #include "mds_papi.h"
 
 /***************************************************************************\
@@ -280,41 +279,6 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
 		ada_info->info.adest_get_hdls.o_adest = svc_info.info.query_pwe.info.abs_info.o_adest;
-		/* STEP : Finally an SPRR lookup if OAC handle is also required,
-		   create is required. 
-		 */
-
-		if (ada_info->info.adest_get_hdls.i_create_oac) {
-			/* Lookup OAC instance */
-			memset(&spir_req, 0, sizeof(spir_req));
-			spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-			spir_req.i_environment_id = 1;
-			spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-			spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-
-			if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
-				ada_info->info.adest_get_hdls.o_pwe1_oac_hdl = spir_req.info.lookup_inst.o_handle;
-			} else {
-				/* OAC needs to be instantiated.
-				   NOTE:FIXME: This OAC instance will be destroyed
-				   when OAC subsystem is destroyed (in ncs_main_pub.c). This is
-				   because NCSADA_GET_HDLS does not have a
-				   matching NCSADA_REL_HDLS kind of thing. 
-				 */
-				memset(&spir_req, 0, sizeof(spir_req));
-				spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
-				spir_req.i_environment_id = 1;
-				spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-				spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-
-				if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-					return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-				}
-				ada_info->info.adest_get_hdls.o_pwe1_oac_hdl =
-				    spir_req.info.lookup_create_inst.o_handle;
-			}
-		}
-
 		return NCSCC_RC_SUCCESS;
 
 	case NCSADA_PWE_CREATE:
@@ -331,20 +295,6 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 		}
 		ada_info->info.pwe_create.o_mds_pwe_hdl = (MDS_HDL)spir_req.info.lookup_create_inst.o_handle;
 
-		/* STEP : Finally an SPRR lookup if OAC handle is also required */
-		if (ada_info->info.pwe_create.i_create_oac) {
-			spir_req.i_environment_id = ada_info->info.pwe_create.i_pwe_id;
-			spir_req.i_instance_name = m_MDS_SPIR_ADEST_NAME;
-			spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-			spir_req.type = NCS_SPIR_REQ_LOOKUP_CREATE_INST;
-			spir_req.info.lookup_create_inst.i_inst_attrs.number = 0;
-
-			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			}
-			ada_info->info.pwe_create.o_pwe_oac_hdl = spir_req.info.lookup_create_inst.o_handle;
-		}
-
 		return NCSCC_RC_SUCCESS;
 
 	case NCSADA_PWE_DESTROY:
@@ -359,6 +309,8 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 		if (ncsmds_api(&mds_info) != NCSCC_RC_SUCCESS) {
 			return NCSCC_RC_FAILURE;
 		}
+
+#if 0
 		/*  Now the PWE-ID is available */
 		/* STEP : If there is an OAA for this PWE, then destroy it */
 		spir_req.i_environment_id = mds_info.info.query_pwe.o_pwe_id;
@@ -371,6 +323,7 @@ uns32 ncsada_api(NCSADA_INFO *ada_info)
 			spir_req.info.rel_inst = 0;	/* Dummy unsued value */
 			ncs_spir_api(&spir_req);	/* We discard the return value */
 		}
+#endif
 
 		/* Release the handle to that PWE */
 		/* NOTE : Some of the SPIR fields already set above */

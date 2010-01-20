@@ -288,7 +288,6 @@ static uns32 fma_mds_register_adest(FMA_CB *cb)
 	memset(&ada_info, '\0', sizeof(NCSADA_INFO));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 	if ((ncsada_api(&ada_info)) != NCSCC_RC_SUCCESS) {
 		m_FMA_LOG_MDS(FMA_LOG_MDS_HDLS_GET, FMA_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
 		return NCSCC_RC_FAILURE;

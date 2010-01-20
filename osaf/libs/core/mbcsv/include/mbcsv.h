@@ -53,15 +53,12 @@
 #include "ncs_ubaid.h"
 #include "ncsencdec.h"
 #include "ncs_stack.h"
-#include "ncs_mib.h"
-#include "ncs_mtbl.h"
 
 #if (MBCSV_LOG == 1)
 #include "dta_papi.h"
 #endif
 
 #include "ncs_lib.h"
-#include "ncsmiblib.h"
 
 /*#include "ncs_mda_pvt.h"*/
 #include "ncs_mda_papi.h"

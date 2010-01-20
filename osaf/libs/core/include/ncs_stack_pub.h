@@ -62,57 +62,7 @@ extern "C" {
  *                        NCSMEM_AID via ncsmem_aid_alloc().
  *                Heap  : if the passed pointer IS NULL, get memory from heap.
  *
- *  For example:
- *          
- *         The function ncsmib_sync_request() answers a MIB request in the
- *         same callthread. the client (invoker) will either pass a valid
- *         ptr to an NCSMEM_AID or a NULL depending on where memory is to
- *         come from when the answer is of type OCTET-STRING, which requires
- *         memory 'as if' from HEAP.
- *              
- *         In the example code fragment below, we see that the NCSMIB_ARG is on
- *         the stack and since an NCSMEM_AID was sent down, any NCSMIB_ARG result
- *         that requires memory to be 'allocated', will get it from the NCSMEM_AID,
- *         which is really the stack (space[1024]).
- *           
  ***************************************************************************/
-#if 0
-	uns32 example_ncsmib_arg_on_stack(NCS_KEY *mib_key) {
-		NCSMIB_ARG arg;	/* REQ on STACK, RSP on STACK too  */
-		NCSMEM_AID ma;	/* RSP allocations from STACK space too  */
-		uns8 space[1024];	/* This is the stack-space used for 'allocations'  */
-		uns8 *octet;
-
-		 ncsmib_init(&arg);	/* NOTE: NCSMIB_ARG on STACK!!!!  */
-		 ncsmem_aid_init(&ma, space, 1024);	/* Put NCSMEM_AID in start state  */
-
-		 arg.i_mib_key = mib_key;	/* OK, keep example complete/honest,  */
-		 arg.i_usr_key = mib_key;	/* but this is all irrelevant to the point  */
-
-		 arg.i_op = NCSMIB_OP_REQ_GET;	/* ditto on irrelevance  */
-		 arg.i_idx.i_inst_ids = instance - thing;
-		 arg.i_idx.i_inst_len = 8;
-		 arg.i_rsp_fnc = NULL;
-		 arg.i_tbl_id = FSS1MIB_TBL_BFAKE;
-
-		/* OK,thing fetched is type OCTET-STR; memory to come from stack via NCSMEM_AID */
-
-		 arg.req.info.get_req.i_param_id = FAKE_OBJ_TYPE_OCTET_STRING;
-
-		/* OK, 'ma' goes down (not NULL), so NCSMIB_ARG RSP mem will ALL BE FROM STACK */
-
-		 ncsmib_sync_request(&arg, ncsmac_mib_request, FMC_WAIT_TIME, &ma);	/* example */
-
-		/* OK, we got an 'octet' answer; 'octet' memory is from stack 'space[1024]' */
-
-		 octet = arg.rsp.info.get_rsp.i_param_val.info.i_oct;
-
-		/* Now if we return here, there is automatic NCSMIB_ARG REQ/RSP cleanup, since */
-		/* all data is on the stack. Popping the stack is enough!! */
-
-		 return NCSCC_RC_SUCCESS;
-	}
-#endif
 /***************************************************************************
  *
  * NOTE: All allocs from NCSMEM_AID are guarenteed to start on 4 byte 
@@ -176,21 +126,6 @@ extern "C" {
 		uns16 length;	/* lenght of stack element         */
 
 	} NCS_SE;
-
-/***************************************************************************
- * Stack Element Types : Each SE has a unique type ID
- ***************************************************************************/
-
-	typedef enum ncs_se_type {
-
-		NCS_SE_TYPE_BACKTO,	/* Where this msg goes back to  */
-		NCS_SE_TYPE_REQUEST,	/* An encoded request as USRBUF */
-		NCS_SE_TYPE_MIB_SYNC,
-		NCS_SE_TYPE_MIB_TIMED,
-		NCS_SE_TYPE_FILTER_ID,
-		NCS_SE_TYPE_MIB_ORIG,
-		NCS_SE_TYPE_FORWARD_TO_PSR
-	} NCS_SE_TYPE;
 
 /***************************************************************************
  *

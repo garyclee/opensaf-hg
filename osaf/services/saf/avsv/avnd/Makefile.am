@@ -62,8 +62,6 @@ COMMON_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libavnd_ctrl_la_CPPFLAGS = \

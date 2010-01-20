@@ -69,7 +69,6 @@
 #include "avnd_clm.h"
 #include "avnd_cb.h"
 #include "avnd_log.h"
-#include "ncs_trap.h"
 #include "avnd_ntf.h"
 #include "avnd_proxy.h"
 #include "avnd_ckpt_updt.h"

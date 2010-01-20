@@ -29,8 +29,6 @@
 *******************************************************************************/
 #ifndef EDS_EVT_H
 #define EDS_EVT_H
-#include "ncsmiblib.h"
-#include "oac_papi.h"
 
 typedef enum edsv_eds_evt_type {
 	EDSV_EDS_EVT_BASE,

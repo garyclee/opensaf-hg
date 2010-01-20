@@ -183,12 +183,6 @@ typedef struct eds_mib_chan_tbl {
 	uns32 num_lost_evts;
 } EDS_CHAN_TBL;
 
-typedef struct edsv_mibtbl_row_handle {
-	uns32 scalar_tbl_row_hdl;
-	/* Handle for row of Scalar table */
-	uns32 chan_tbl_row_hdl;
-	/* Handle for row of chan_tbl table */
-} EDSV_MIBTBL_ROW_HANDLE;
 
 typedef struct eds_worklist_tag {
 	uns32 chan_id;
@@ -198,7 +192,7 @@ typedef struct eds_worklist_tag {
 	uns16 cname_len;	/* Length of channel name */
 	uns8 *cname;		/* Channel name. NULL terminated if ascii */
 
-	/* MIB - Channel Table Objects */
+	/*  Channel runtime info */
 	EDS_CHAN_TBL chan_row;
 
 	NCS_PATRICIA_TREE chan_open_rec;	/* Channel Open record - mix of all opens *
@@ -262,9 +256,7 @@ typedef struct eds_cb_tag {
 	SaSelectionObjectT mbcsv_sel_obj;	/* Selection object to wait for MBCSv events */
 	NCS_MBCSV_CKPT_HDL mbcsv_ckpt_hdl;	/* MBCSv handle obtained during checkpoint open */
 	EDU_HDL edu_hdl;	/* Handle from EDU for encode/decode operations */
-	uns32 mab_hdl;		/* mab handle for mib operations */
 	NCS_BOOL csi_assigned;
-	EDSV_MIBTBL_ROW_HANDLE row_handle;
 	NODE_ID node_id;
 	SaClmHandleT clm_hdl;	/* CLM handle */
 	SaSelectionObjectT clm_sel_obj;	/* Selection object to wait for CLM events */
@@ -273,8 +265,8 @@ typedef struct eds_cb_tag {
 	SaSelectionObjectT imm_sel_obj;	/* Selection object to wait for IMM events */
 } EDS_CB;
 
-#define EDS_MIB_CHAN_TBL_NULL ((EDS_WORKLIST *)0)
-#define EDS_INIT_MIB_CHAN_TBL(wp,chan_create_time) \
+
+#define EDS_INIT_CHAN_RTINFO(wp,chan_create_time) \
       wp->chan_row.create_time=chan_create_time;  \
       wp->chan_row.num_users=0; \
       wp->chan_row.num_subscribers=0; \
@@ -345,7 +337,5 @@ EXTERN_C NCS_BOOL is_node_a_member(EDS_CB *, NODE_ID);
 EXTERN_C EDS_WORKLIST *get_channel_from_worklist(EDS_CB *cb, SaNameT chan_name);
 EXTERN_C SaAisErrorT eds_imm_init(EDS_CB *cb);
 EXTERN_C SaAisErrorT eds_imm_declare_implementer(SaImmOiHandleT OiHandle);
-
-void eds_init_mib_objects(EDS_CB *cb);
 
 #endif

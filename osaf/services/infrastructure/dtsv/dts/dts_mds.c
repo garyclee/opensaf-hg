@@ -67,7 +67,6 @@ uns32 dts_mds_reg(DTS_CB *cb)
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_persistent = FALSE;
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
-	vda_info.info.vdest_create.i_create_oac = TRUE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	vda_info.info.vdest_create.info.specified.i_vdest = cb->vaddr;
 

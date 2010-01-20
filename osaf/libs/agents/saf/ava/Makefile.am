@@ -26,9 +26,7 @@ libava_la_CPPFLAGS = \
 	-DNCS_AVA=1 -DNCS_AVSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include
 
 libava_la_LDFLAGS = -static
 

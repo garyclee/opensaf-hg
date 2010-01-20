@@ -21,11 +21,9 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_LTLIBRARIES = libmqsv_logstr.la
 
 libmqsv_logstr_la_CPPFLAGS = \
-	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 -DDTS_DEBUG=1 -DMAB_LOG=1 \
-	-DPSR_LOG=1 \
+	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 -DDTS_DEBUG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/mqsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/mqsv/include
 
 libmqsv_logstr_la_SOURCES = \
 	mqa_logstr.c \

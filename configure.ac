@@ -134,24 +134,6 @@ AC_MSG_RESULT([$enable_rpm_target])
 
 AM_CONDITIONAL([ENABLE_RPM_TARGET], [test "$enable_rpm_target" = yes])
 
-
-#
-# Option to enable/disable smidump to be built. It's possible to keep a local
-# copy of the modified libsmi, in this case you don't need to build it each time
-# when building OpenSAF.
-#
-AC_MSG_CHECKING([whether to enable building the custom smidump tool])
-AC_ARG_ENABLE([smidump],
-        [AS_HELP_STRING([--disable-smidump],
-                [disable building the custom NCS smidump tool [default=no]])],
-        [],
-        [enable_smidump=yes])
-AC_MSG_RESULT([$enable_smidump])
-
-AM_CONDITIONAL([ENABLE_SMIDUMP], [test "$enable_smidump" = yes])
-AC_SUBST([SMIDUMP_ENABLED], ["$enable_smidump"])
-
-
 #
 # Many distros use different init.d directory depending on their LSB compliance
 # support. Use this option to point to the init.d directory used by your distro.
@@ -171,46 +153,6 @@ AC_ARG_WITH([initscriptdir],
         [with_initscriptdir=/etc/init.d])
 
 AC_SUBST([initscriptdir], ["$with_initscriptdir"])
-
-
-#
-# By default MIBDIRS rely on net-snmp-config to get the system value, some
-# distro provide a broken value for 'net-snmp-config --default-mibdirs', if it's
-# your case, force it manually.
-#
-AC_ARG_WITH([default-mibdirs],
-        [AS_HELP_STRING([--with-default-mibdirs=@<:@DIR@:>@],
-                [use DIR as the default location to check for system MIBS])],
-        [
-        if test -d $withval; then
-                with_mibdirs=$withval
-        else
-                AC_ERROR([$withval is an invalid path])
-        fi
-        ],
-        [with_mibdirs=check])
-
-
-#
-# When cross-compiling you might have issue detecting/running the target copy of
-# net-snmp-config (because it relies on the arch command at runtime), if it's
-# your case, force the location of the 'net-snmp-config-<arch>' to get the proper
-# value for your target.
-#
-AC_ARG_WITH([net-snmp-config-bin],
-        [AS_HELP_STRING([--with-net-snmp-config-bin=@<:@FILE@:>@],
-                [use FILE as the target specific net-snmp-config script])],
-        [
-        if test -x $withval; then
-                with_netsnmp_config_bin=$withval
-        else
-                AC_ERROR([$withval is an invalid filename])
-        fi
-        ],
-        [with_netsnmp_config_bin=net-snmp-config])
-
-AC_SUBST([NETSNMP_CONFIG_BIN], ["$with_netsnmp_config_bin"])
-
 
 #
 # When cross-compiling you might have issue detecting/running the target copy of
@@ -343,8 +285,6 @@ AC_PROG_MAKE_SET
 AC_PROG_YACC
 
 if test "$cross_compiling" = no; then
-        AC_CHECK_PROG([ac_check_netsnmp_config], [$with_netsnmp_config_bin], 
-                [found], [missing])
         AC_CHECK_PROG([ac_check_xml2_config], [$with_xml2_config_bin],
                 [found], [missing])
 fi
@@ -490,22 +430,6 @@ else
    fi
 fi
 
-if test "$ac_check_netsnmp_config" = missing; then
-        AC_ERROR([Can't find the net-snmp development package])
-else
-        NETSNMP_LIBS=`${NETSNMP_CONFIG_BIN} --agent-libs`
-        NETSNMP_CFLAGS=`${NETSNMP_CONFIG_BIN} --cflags`
- 
-        if test "$with_mibdirs" = check; then
-                MIBDIRS=`${NETSNMP_CONFIG_BIN} --default-mibdirs`
-        else
-                MIBDIRS=$with_mibdirs
-        fi
-
-        AC_SUBST([NETSNMP_LIBS])
-        AC_SUBST([NETSNMP_CFLAGS])
-        AC_SUBST([MIBDIRS])
-fi
 
 if test "$ac_check_xml2_config" = missing; then
         AC_ERROR([Can't find the libxml2 development package])
@@ -616,48 +540,12 @@ AC_CONFIG_FILES([
         java/ais_api_impl/Makefile
         java/ais_api_impl_native/Makefile
         osaf/Makefile
-        osaf/cli/Makefile
-        osaf/cli/config/Makefile
-        osaf/cli/logstr/Makefile
-        osaf/cli/services/Makefile
-        osaf/cli/services/avsv/Makefile
-        osaf/cli/services/psr/Makefile
-        osaf/snmp/Makefile
-        osaf/snmp/config/Makefile
-        osaf/snmp/mapi/Makefile
-        osaf/snmp/mapi/avsv/Makefile
-        osaf/snmp/mapi/avsv/avm/Makefile
-        osaf/snmp/miblib/Makefile
-        osaf/snmp/miblib/avsv/Makefile
-        osaf/snmp/miblib/avsv/avm/Makefile
-        osaf/snmp/miblib/pssv/Makefile
-        osaf/snmp/miblib/pssv/pss/Makefile
-        osaf/snmp/mibs/Makefile
-        osaf/snmp/pssv/Makefile
-        osaf/snmp/pssv/config/Makefile
-        osaf/snmp/pssv/avsv/Makefile
-        osaf/snmp/pssv/avsv/avm/Makefile
-        osaf/snmp/scripts/Makefile
-        osaf/snmp/scripts/ncs_snmpsubagt_clean
-        osaf/snmp/scripts/ncs_snmpsubagt_reload
-        osaf/snmp/scripts/ncs_snmpsubagt_start
-        osaf/snmp/scripts/nis_snmpd_clean
-        osaf/snmp/scripts/nis_snmpd_start
-        osaf/snmp/subagt/Makefile
-        osaf/snmp/subagt/config/Makefile
-        osaf/snmp/subagt/logstr/Makefile
-        osaf/snmp/subagt/services/Makefile
-        osaf/snmp/subagt/services/avsv/Makefile
-        osaf/snmp/subagt/services/avsv/avm/Makefile
-        osaf/snmp/subagt/services/pssv/Makefile
         osaf/libs/Makefile
         osaf/libs/agents/Makefile
         osaf/libs/agents/infrastructure/Makefile
         osaf/libs/agents/infrastructure/dta/Makefile
         osaf/libs/agents/infrastructure/fma/logstr/Makefile
         osaf/libs/agents/infrastructure/fma/Makefile
-        osaf/libs/agents/infrastructure/maa/Makefile
-        osaf/libs/agents/infrastructure/oaa/Makefile
         osaf/libs/agents/infrastructure/rda/Makefile
         osaf/libs/agents/saf/Makefile
         osaf/libs/agents/saf/ava/Makefile
@@ -750,18 +638,6 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/hisv/logstr/Makefile
         osaf/services/infrastructure/hisv/scripts/Makefile
         osaf/services/infrastructure/hisv/scripts/ncs_hisv_start
-        osaf/services/infrastructure/masv/Makefile
-        osaf/services/infrastructure/masv/include/Makefile
-        osaf/services/infrastructure/masv/logstr/Makefile
-        osaf/services/infrastructure/masv/mas/Makefile
-        osaf/services/infrastructure/masv/mas/scripts/Makefile
-        osaf/services/infrastructure/masv/mas/scripts/ncs_mas_clean
-        osaf/services/infrastructure/masv/mas/scripts/ncs_mas_start
-        osaf/services/infrastructure/masv/pss/Makefile
-        osaf/services/infrastructure/masv/pss/logstr/Makefile
-        osaf/services/infrastructure/masv/pss/scripts/Makefile
-        osaf/services/infrastructure/masv/pss/scripts/ncs_pss_clean
-        osaf/services/infrastructure/masv/pss/scripts/ncs_pss_start
         osaf/services/infrastructure/nid/Makefile
         osaf/services/infrastructure/nid/config/Makefile
         osaf/services/infrastructure/nid/scripts/Makefile
@@ -786,11 +662,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/rde/scripts/rde_script
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
-        osaf/services/saf/avsv/config/Makefile
         osaf/services/saf/avsv/logstr/Makefile
-        osaf/services/saf/avsv/avm/Makefile
-        osaf/services/saf/avsv/avm/include/Makefile
-        osaf/services/saf/avsv/avm/logstr/Makefile
         osaf/services/saf/avsv/avd/Makefile
         osaf/services/saf/avsv/avd/include/Makefile
         osaf/services/saf/avsv/avnd/Makefile
@@ -930,9 +802,6 @@ if test "$enable_hpi" = yes; then
         echo "${ECHO_T}  HPI_LIBS: ${HPI_LIBS}"
 fi
 
-echo "${ECHO_T}  NETSNMP_CFLAGS: ${NETSNMP_CFLAGS}"
-echo "${ECHO_T}  NETSNMP_LIBS: ${NETSNMP_LIBS}"
-echo "${ECHO_T}  MIBDIRS: ${MIBDIRS}"
 echo "${ECHO_T}  XML2_CFLAGS: ${XML2_CFLAGS}"
 echo "${ECHO_T}  XML2_LIBS: ${XML2_LIBS}"
 echo ""
@@ -940,6 +809,5 @@ echo " OpenSAF Options:"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
 echo "${ECHO_T}  Enable HPI support: ${enable_hpi}"
 echo "${ECHO_T}  Enable OpenHPI: ${with_openhpi}"
-echo "${ECHO_T}  Enable Building NCS smidump: ${enable_smidump}"
 echo "======================================================="
 echo ""

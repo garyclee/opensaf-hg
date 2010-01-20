@@ -26,8 +26,7 @@ libavd_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_srcdir)/osaf/snmp/mapi/include \
+	-I$(top_srcdir)/osaf/services/infrastructure/fm/include \
         -I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libavd_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
@@ -90,3 +89,6 @@ libavd_la_SOURCES = \
 	avd_util.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
 
+libavd_la_LIBADD = \
+        $(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
+        $(top_builddir)/osaf/libs/agents/infrastructure/fma/libfma.la

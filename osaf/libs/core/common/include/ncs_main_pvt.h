@@ -103,7 +103,7 @@ EXTERN_C uns32 gl_pargc;
 /***********************************************************************\
    m_NCS_NID_NOTIFY: This function notifies NID about the occurance of 
                      an error while instantiating NCS pre-AMF spawned 
-                     process. Ex: MDS, MASv, DTSv, PSSv, SCAP, PCAP.. 
+                     process. Ex: MDS, DTSv, SCAP, PCAP.. 
 
                      Only the macro should be used, the function 
                      prototyped below should not be used. 

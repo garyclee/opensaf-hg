@@ -334,9 +334,6 @@ uns32 mqd_asapi_dereg_db_upd(MQD_CB *pMqd, ASAPi_DEREG_INFO *dereg, ASAPi_MSG_IN
 	uns32 rc = NCSCC_RC_SUCCESS;
 	MQD_OBJ_NODE *pObjNode = NULL, *pObj = NULL;
 	MQD_OBJECT_ELEM *pOelm = NULL, *pQGelm = NULL;
-	MQSV_EVT mib_event;
-
-	memset(&mib_event, 0, sizeof(MQSV_EVT));
 
 	switch (dereg->objtype) {
 
@@ -1191,8 +1188,6 @@ uns32 mqd_asapi_db_upd(MQD_CB *pMqd, ASAPi_REG_INFO *reg, MQD_OBJ_NODE **onode, 
 	MQD_OBJ_NODE *pObjNode = 0, *pQNode = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaAisErrorT error;
-	MQSV_EVT mib_event;
-	memset(&mib_event, 0, sizeof(MQSV_EVT));
 
 	switch (reg->objtype) {
 		/* Insert queue into a QueueGroup */

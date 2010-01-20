@@ -116,8 +116,8 @@ typedef struct avd_tmr_tag {
    si_dep_rec->si_dep_timer.cb_hdl = cb->cb_handle; \
    si_dep_rec->si_dep_timer.is_active = FALSE; \
    si_dep_rec->si_dep_timer.type = AVD_TMR_SI_DEP_TOL; \
-   si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_mib.si_name_prim; \
-   si_dep_rec->si_dep_timer.dep_si_name = si_dep_rec->indx_mib.si_name_sec; \
+   si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_imm.si_name_prim; \
+   si_dep_rec->si_dep_timer.dep_si_name = si_dep_rec->indx_imm.si_name_sec; \
    avd_start_tmr(cb, &si_dep_rec->si_dep_timer, si_dep_rec->saAmfToleranceTime); \
 }
 

@@ -30,8 +30,7 @@ noinst_LTLIBRARIES = libimmaOm.la libimmaOi.la
 libimmaOm_la_CPPFLAGS = \
 	-DIMMA_OM \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libimmaOm_la_LDFLAGS = -static
 
@@ -45,8 +44,7 @@ libimmaOm_la_SOURCES = \
 libimmaOi_la_CPPFLAGS = \
 	-DIMMA_OI \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libimmaOi_la_LDFLAGS = -static
 

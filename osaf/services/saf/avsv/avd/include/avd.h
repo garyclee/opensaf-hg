@@ -57,9 +57,6 @@
 #include "avd_cb.h"
 #include "avd_pg.h"
 
-#include "ncs_avsv_bam_msg.h"
-#include "avm_avd.h"
-
 #include "avd_dblog.h"
 #include "avd_evt.h"
 #include "avd_proc.h"
@@ -72,7 +69,7 @@
 #include "avd_ckpt_edu.h"
 #include "avd_ckpt_updt.h"
 
+#include "fm_papi.h"
 #include "avd_avm.h"
-#include "ncs_trap.h"
 
 #endif

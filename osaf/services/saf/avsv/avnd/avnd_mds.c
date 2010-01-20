@@ -172,12 +172,11 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	}
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
-	/* get the MAB handle from MDS */
+	/* get the handle from MDS */
 
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = TRUE;
 
 	rc = ncsada_api(&ada_info);
 
@@ -223,7 +222,6 @@ uns32 avnd_mds_vdest_reg(AVND_CB *cb)
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_persistent = FALSE;
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
-	vda_info.info.vdest_create.i_create_oac = TRUE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	vda_info.info.vdest_create.info.specified.i_vdest = cb->avnd_mbcsv_vaddr;
 
@@ -1498,7 +1496,6 @@ uns32 avnd_mds_param_get(AVND_CB *cb)
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 
 	/* invoke ada request */
 	rc = ncsada_api(&ada_info);

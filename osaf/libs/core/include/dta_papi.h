@@ -42,7 +42,6 @@
 
 #include "ncs_svd.h"
 #include "ncs_ubaid.h"
-#include "ncs_mtbl.h"
 #include "ncssysf_def.h"
 #include "ncs_lib.h"
 #include "ncssysf_def.h"

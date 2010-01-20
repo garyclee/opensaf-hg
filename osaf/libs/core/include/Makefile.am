@@ -25,11 +25,8 @@ pkginclude_HEADERS = \
 	hpl_api.h \
 	hpl_msg.h \
 	ip_defs.h \
-	mab_penv.h \
-	mac_papi.h \
 	mbcsv_papi.h \
 	mds_papi.h \
-	ncs_cli.h \
 	ncs_dl.h \
 	ncs_edu_pub.h \
 	ncsencdec_pub.h \
@@ -45,10 +42,6 @@ pkginclude_HEADERS = \
 	ncs_main_papi.h \
 	ncs_mda_papi.h \
 	ncs_mds_def.h \
-	ncsmiblib.h \
-	ncsmib_mem.h \
-	ncs_mib_pub.h \
-	ncs_mtbl.h  \
 	ncs_mtree.h \
 	ncs_osprm.h \
 	ncspatricia.h \
@@ -68,19 +61,12 @@ pkginclude_HEADERS = \
 	ncssysf_tmr.h \
 	ncssysf_tsk.h \
 	ncs_tmr.h \
-	ncs_trap.h \
 	ncs_ubaid.h \
 	ncsusrbuf.h \
-	ncs_xmtre.h \
 	nid_api.h \
-	oac_papi.h \
 	os_defs.h \
-	psr_mib_load.h \
-	psr_papi.h \
 	rda_papi.h \
 	fm_papi.h \
 	sckt_defs.h \
-	subagt_mab.h \
-	subagt_oid_db.h \
 	sysf_ip.h \
 	trg_defs.h

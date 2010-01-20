@@ -63,7 +63,7 @@ extern "C" {
 	typedef uns32 IE_DESC[2];	/* IE Descriptor for ATM Signallng */
 	typedef uns32 FIE_DESC;	/* IE Descriptor for FR Signalling. */
 
-	typedef uns32 ncs_oid;	/* Basic data type for SNMP/ILMI Object Sub-ids... */
+	typedef uns32 ncs_oid;	/* Basic data type for ILMI Object Sub-ids... */
 
 	typedef uns32 NCS_IPV4_ADDR;
 

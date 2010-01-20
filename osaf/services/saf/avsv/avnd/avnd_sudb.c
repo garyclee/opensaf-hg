@@ -24,8 +24,7 @@
 
   DESCRIPTION:
    This module deals with the creation, accessing and deletion of
-   the SU database on the AVND. It also deals with all the MIB operations
-   like get,getnext etc related to the SU table.
+   the SU database on the AVND.
 
 ..............................................................................
 

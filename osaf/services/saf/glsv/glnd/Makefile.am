@@ -25,8 +25,7 @@ pkglib_PROGRAMS = ncs_glnd
 ncs_glnd_CPPFLAGS = \
 	-DNCS_GLND=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/glsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
 ncs_glnd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \

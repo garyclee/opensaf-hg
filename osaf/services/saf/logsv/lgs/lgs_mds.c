@@ -1035,7 +1035,6 @@ static uns32 mds_vdest_create(lgs_cb_t *lgs_cb)
 	lgs_cb->vaddr = LGS_VDEST_ID;
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	vda_info.info.vdest_create.i_create_oac = TRUE;	/* To simplify. Check this. TBD */
 	vda_info.info.vdest_create.i_persistent = FALSE;	/* Up-to-the application */
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	vda_info.info.vdest_create.info.specified.i_vdest = lgs_cb->vaddr;

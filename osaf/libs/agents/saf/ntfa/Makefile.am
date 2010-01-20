@@ -26,8 +26,7 @@ noinst_LTLIBRARIES = libntfa.la
 
 libntfa_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/ntfsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 libntfa_la_SOURCES = \
 	$(top_srcdir)/osaf/libs/common/ntfsv/ntfsv_enc_dec.c \

@@ -23,8 +23,7 @@ noinst_LTLIBRARIES = libgla.la
 libgla_la_CPPFLAGS = \
 	-DNCS_GLA=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/glsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
 libgla_la_LDFLAGS = -static
 

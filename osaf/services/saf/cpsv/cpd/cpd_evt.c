@@ -466,7 +466,7 @@ static uns32 cpd_evt_proc_ckpt_usr_info(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO
 /***************************************************************************
  * Name         : cpd_evt_proc_ckpt_sec_info_upd
  *
- * Description  : To get the number of sections for mib
+ * Description  : To get the number of sections 
  **************************************************************************/
 uns32 cpd_evt_proc_ckpt_sec_info_upd(CPD_CB *cb, CPD_EVT *evt, CPSV_SEND_INFO *sinfo)
 {

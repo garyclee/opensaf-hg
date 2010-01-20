@@ -552,11 +552,6 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
  *
  * NOTES: The table id object id list handled in the routine from the AvND are
  *
- *     NCSMIB_TBL_AVSV_AMF_SU   : saAmfSUPresenceState_ID
- *     NCSMIB_TBL_AVSV_AMF_COMP : saAmfCompRestartCount_ID
- *                                saAmfCompOperState_ID
- *                                saAmfCompPresenceState_ID
- *
  * 
  **************************************************************************/
 
@@ -730,7 +725,7 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				break;
 			}	/* switch(n2d_msg->msg_info.n2d_data_req.param_info.obj_id) */
 
-			break;	/* case NCSMIB_TBL_AVSV_AMF_SU */
+			break;	/* case AVSV_SA_AMF_SU */
 		}
 	default:
 		/* log error that a the table value is invalid */

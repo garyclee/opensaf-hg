@@ -23,8 +23,7 @@ noinst_LTLIBRARIES = libeda.la
 libeda_la_CPPFLAGS = \
 	-DNCS_EDA=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/edsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/edsv/include
 
 libeda_la_LDFLAGS = -static
 

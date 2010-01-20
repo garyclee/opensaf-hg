@@ -23,8 +23,7 @@ noinst_LTLIBRARIES = libhcd.la
 libhcd_la_CPPFLAGS = \
 	-DNCS_HISV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include
 
 libhcd_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

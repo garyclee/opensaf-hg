@@ -1488,7 +1488,6 @@ uns32 eda_mds_init(EDA_CB *cb)
    /** Create the ADEST for EDA and get the pwe hdl**/
 	memset(&ada_info, '\0', sizeof(ada_info));
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;	/* For now */
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsada_api(&ada_info))) {
 		m_LOG_EDSV_A(EDA_FAILURE, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);

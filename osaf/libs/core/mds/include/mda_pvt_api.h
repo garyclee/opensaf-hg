@@ -29,6 +29,7 @@
 
 #include "ncs_ubaid.h"
 #include "ncs_util.h"
+#include "ncs_lib.h"
 
 #define VDA_SVC_PVT_VER  1
 #define VDA_WRT_VDS_SUBPART_VER_MIN 1
@@ -46,12 +47,6 @@
 EXTERN_C LEAPDLL_API uns32 vda_chg_role_vdest(MDS_DEST *i_vdest, V_DEST_RL i_new_role);
 
 EXTERN_C LEAPDLL_API uns32 vda_create_vdest_locally(uns32 i_policy, MDS_DEST *i_vdest, MDS_HDL *o_mds_vdest_hdl);
-
-EXTERN_C LEAPDLL_API uns32 mda_create_pwe_and_oac(NCSCONTEXT i_mds_dest_hdl,
-						  uns32 i_pwe_id,
-						  NCS_BOOL i_create_oac, NCSCONTEXT *o_pwe1_hdl, uns32 *o_pwe1_oac_hdl);
-
-EXTERN_C LEAPDLL_API uns32 mda_destroy_pwe_and_oac(NCSCONTEXT i_mds_pwe_hdl);
 
 EXTERN_C LEAPDLL_API uns32 vda_util_enc_8bit(NCS_UBAID *uba, uns8 data);
 EXTERN_C LEAPDLL_API uns8 vda_util_dec_8bit(NCS_UBAID *uba);

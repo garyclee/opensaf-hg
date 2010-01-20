@@ -27,7 +27,6 @@
 #  xxBINDIRxx/*drbd*
 #  /var/crash/core*ncs*
 #  /var/log/messages
-#  /var/log/snmpd.log
 #  /var/log/ncsSnmpSubagt.log
 #  /etc/opensaf/
 #  
@@ -46,7 +45,7 @@
 
 MAX_LOG_DIR=7
  
-declare LOG_DIR[$MAX_LOG_DIR]=(drbd_config @sysconfdir@/@PACKAGE_NAME@/ coredumps /var/log/messages /var/log/snmpd.log /var/log/ncsSnmpSubagt.log /etc/opensaf/) 
+declare LOG_DIR[$MAX_LOG_DIR]=(drbd_config @sysconfdir@/@PACKAGE_NAME@/ coredumps /var/log/messages  /etc/opensaf/) 
 
 if [ $# -eq 0 ]
 then
@@ -58,9 +57,7 @@ echo "1 /etc/drbd.conf & xxBINDIRxx/*drbd*"
 echo 2  @sysconfdir@/@PACKAGE_NAME@/
 echo "3 coredumps /var/crash/core*ncs*"
 echo 4  /var/log/messages
-echo 5  /var/log/snmpd.log
-echo 6  /var/log/ncsSnmpSubagt.log
-echo 7  /etc/opensaf/
+echo 5  /etc/opensaf/
 echo 99 ALL of the above files/directories.
 echo 
 echo "Enter the number(s) corresponding to files/directories you want to collect seperated by SPACE" 

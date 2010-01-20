@@ -71,15 +71,15 @@ typedef struct avd_si_si_dep_indx_tag {
 /*
  * Data structure that holds SI-SI dependency data, same record is updated
  * in two SI_SI dep anch tree's. One of the tree hold sponsor SI name as the
- * primary indx & dependent SI name as secondary indx (as per SI_SI dep MIB).
+ * primary indx & dependent SI name as secondary indx (as per SI_SI dep cfg).
  * The other one has vis-versa.
  */
 typedef struct avd_si_si_dep {
-	NCS_PATRICIA_NODE tree_node_mib;
+	NCS_PATRICIA_NODE tree_node_imm;
 	NCS_PATRICIA_NODE tree_node;
 
 	/* Index info to retrieve the record */
-	AVD_SI_SI_DEP_INDX indx_mib;
+	AVD_SI_SI_DEP_INDX indx_imm;
 	AVD_SI_SI_DEP_INDX indx;
 
 	uns32 si_dep_hdl;
@@ -102,8 +102,8 @@ EXTERN_C uns32 avd_si_dep_spons_list_add(AVD_CL_CB *avd_cb, struct avd_si_tag *d
 EXTERN_C void avd_si_dep_delete(AVD_CL_CB *cb, struct avd_si_tag *si);
 EXTERN_C void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec);
 EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx);
-EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isMibIdx);
-EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isMibIdx);
+EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
+EXTERN_C AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx);
 EXTERN_C uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec);
 EXTERN_C void avd_tmr_si_dep_tol_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_si_dep_spons_unassign(AVD_CL_CB *cb, struct avd_si_tag *si, struct avd_si_tag *si_dep);

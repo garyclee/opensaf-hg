@@ -182,7 +182,6 @@ uns32 cpd_sb_proc_ckpt_create(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 			goto cpd_cpnd_node_find_fail;
 		}
 		add_flag = TRUE;
-		/* for mibs i am changing */
 		key = m_NCS_NODE_ID_FROM_MDS_DEST(nref_info->dest);
 		node_id = key;
 		if (saClmClusterNodeGet(cb->clm_hdl, node_id, NCS_SAF_ACCEPT_TIME, &cluster_node) != SA_AIS_OK) {
@@ -339,7 +338,6 @@ uns32 cpd_sb_proc_ckpt_dest_del(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 			cpd_cpnd_info_node_delete(cb, node_info);
 		}
 
-		/* Added this code for mibs */
 		key_info.node_name = node_name;
 		/*  key_info.node_name.length = m_NCS_OS_NTOHS(node_name.length); */
 		cpd_ckpt_reploc_get(&cb->ckpt_reploc_tree, &key_info, &rep_info);
@@ -514,7 +512,6 @@ uns32 cpd_sb_proc_ckpt_dest_add(CPD_CB *cb, CPD_MBCSV_MSG *msg)
 		goto free_mem;
 	}
 
-	/* Added for mibs */
 	key = m_NCS_NODE_ID_FROM_MDS_DEST(msg->info.dest_add.mds_dest);
 	node_id = key;
 	if (saClmClusterNodeGet(cb->clm_hdl, node_id, NCS_SAF_ACCEPT_TIME, &cluster_node) != SA_AIS_OK) {

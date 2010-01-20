@@ -24,8 +24,7 @@ libglsv_logstr_la_CPPFLAGS = \
 	-DNCS_GLSV_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
 libglsv_logstr_la_SOURCES = \
 	gla_logstr.c \

@@ -7,8 +7,6 @@ function show () {
 
 cat << EOF
 =========== CMD-SET =========================
-ncs_avsv_walk
-ncs_dlsv_walk
 ncs_switchover
 ncs_failover
 ncs_status
@@ -158,42 +156,6 @@ grep -in "avd_avm_role_rsp" /var/opt/opensaf/stdouts/ncs_scap.log | sort
 
 }
 
-function ncs_avsv_walk () {
-
-if [ $# -lt 2 ] ; then 
-     
-   echo "Usage: [Active IP address] [AmfTable]";
-   return;
-fi 
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/SAF-AMF-MIB $1 $2
-
-}
-
-function ncs_dlsv_walk () {
-
-if [ $# -lt 2 ] ; then
-
-   echo "Usage: [Active IP address] [ncsDlsv]";
-   return;
-fi
-snmpwalk -v2c -c public -m /usr/share/snmp/mibs/NCS-DLSV-MIB $1 $2
-}
-
-
-
-function ncs_switchover () {
-set -x
-
-   if [ $# -lt 1 ] ; then 
-     
-      echo "Usage: [Active IP address]";
-      return;
-   fi 
-
-   snmpset -v2c -c public -m /usr/share/snmp/mibs/NCS-AVM-MIB $1 ncsAvmAdmSwitch.0 i 1
-}
-
-
 function ncs_failover () {
 
    scap_pid=`pgrep ncs_scap`
@@ -220,9 +182,9 @@ function ncs_failover () {
 
 function ncs_status () {
 
-NCS_MAX_PROCESS=17
+NCS_MAX_PROCESS=13
 count=0;
-declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_mas ncs_psr ncs_scap ncs_ifnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv ncs_snmp_subagt )
+declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_scap ncs_ifnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv)
 
 for k in `ps -e | grep ncs_ | grep -v ncs_tipc.sh | grep -v xterm | grep -v gdb | awk '{print $4}'`; do
 status=false;
@@ -418,31 +380,12 @@ fi
 if [ $1 == "ACTIVE" ]; then
 
   echo 1 > /etc/ncs/init_role
-  echo "AVD XML"> /var/opt/opensaf/pssv_spcn.list
-  echo "AVM XML">>/var/opt/opensaf/pssv_spcn.list
-
-  cat /var/opt/opensaf/pssv_spcn.list
 
 else
 
   echo 2 > /etc/ncs/init_role
 
 fi
-
- 
-   snmpd_pid=`pgrep snmpd`
-
-   if [ ":$snmpd_pid" == ":" ]; then
-
-      echo "snmpd does not exist ";
-      echo "starting SNMPD ...";
-      /usr/sbin/snmpd -x 705;
-
-   else
-
-      echo "SNMPD is running ...";
- 
-   fi
 
    /opt/motorola/ncs/scxb/etc/ncs_cb_initd start
 

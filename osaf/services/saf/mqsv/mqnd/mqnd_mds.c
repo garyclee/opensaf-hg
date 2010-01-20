@@ -67,7 +67,6 @@ static uns32 mqnd_mds_get_handle(MQND_CB *cb)
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 
 	arg.req = NCSADA_GET_HDLS;
-	arg.info.adest_get_hdls.i_create_oac = TRUE;
 	rc = ncsada_api(&arg);
 
 	if (rc != NCSCC_RC_SUCCESS) {

@@ -44,13 +44,10 @@ libleap_la_SOURCES = \
 	sysf_tmr.c \
 	sysf_tsk.c \
 	hj_iplib.c \
-	hj_mib_edu.c \
 	nid_api.c \
-	hj_mib_mds.c \
 	sysf_file.c \
 	nid_ipc.c \
 	hj_ipcstats.c \
-	hj_xmtre.c \
 	hj_qptrs.c \
 	sysfsysm.c \
 	hj_dlprm.c \
@@ -61,9 +58,7 @@ libleap_la_SOURCES = \
 	hj_queue.c \
 	hj_hdl.c \
 	hj_kms.c \
-	hj_mib.c \
 	hj_tmr.c \
-	hjmiblib.c \
 	hj_stack.c \
 	hj_stree.c \
 	hj_ubaid.c \
@@ -71,7 +66,6 @@ libleap_la_SOURCES = \
 	ncs_dummy.c \
 	hj_hash.c \
 	hj_ipv6.c \
-	hj_mtree.c \
 	sysf_exc_scr.c \
 	os_defs.c \
 	dl_defs.c

@@ -28,12 +28,9 @@
 
 #include "t_suite.h"
 #include "ncs_saf.h"
-#include "ncs_mib.h"
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 #include "ncs_main_pvt.h"
 
 #include "logtrace.h"

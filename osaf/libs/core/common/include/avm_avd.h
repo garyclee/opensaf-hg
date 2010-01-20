@@ -42,17 +42,12 @@
 #include "ncs_stack.h"
 #include "ncssysf_def.h"
 #include "ncsdlib.h"
-#include "ncs_mib.h"
 #include "ncs_lib.h"
 #include "ncs_dummy.h"
 
 #include "mds_papi.h"
 /* #include "ncs_edu_pub.h" */
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 #include "ncs_main_pvt.h"
-#include "oac_papi.h"
-#include "oac_api.h"
 #include "ncspatricia.h"
 #include "saAis.h"
 #include "saEvt.h"

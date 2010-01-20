@@ -500,7 +500,7 @@ static uns32 cpnd_evt_proc_ckpt_finalize(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 		/* reset the client info in shared memory */
 		cpnd_restart_client_reset(cb, cp_node, cl_node);
 
-		/* Sending the MIB Num Users, Num Writers , Num readers & Local Ref Count Update to CPD */
+		/* Sending the Num Users, Num Writers , Num readers & Local Ref Count Update to CPD */
 		rc = cpnd_send_ckpt_usr_info_to_cpd(cb, cp_node, cp_node->open_flags, CPSV_USR_INFO_CKPT_CLOSE);
 		if (rc != NCSCC_RC_SUCCESS) {
 			m_LOG_CPND_CL(CPND_MDS_SEND_FAIL, CPND_FC_HDLN, NCSFL_SEV_ERROR, __FILE__, __LINE__);
@@ -1668,7 +1668,7 @@ static uns32 cpnd_evt_proc_ckpt_rdset_info(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND
 /**********************************************************
  * Name          : cpnd_evt_proc_ckpt_mem_size
  *
- * Description   : Function to process the MIB info
+ * Description   : Function to process the info
  *
  * Arguments     : CPND_CB *cb - CPND CB pointer
  *                 CPSV_EVT *evt - Received Event structure
@@ -1706,7 +1706,7 @@ static uns32 cpnd_evt_proc_ckpt_mem_size(CPND_CB *cb, CPND_EVT *evt, CPSV_SEND_I
 /**********************************************************
  * Name          : cpnd_evt_proc_ckpt_num_sections
  *
- * Description   : Function to process the MIB info
+ * Description   : Function to process the info
  *
  * Arguments     : CPND_CB *cb - CPND CB pointer
  *                 CPSV_EVT *evt - Received Event structure
