@@ -18,6 +18,9 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+noinst_HEADERS = \
+	imm_dumper.hh
+
 bin_PROGRAMS = immdump
 
 immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
