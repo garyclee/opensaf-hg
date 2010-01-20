@@ -143,7 +143,6 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	vda_info.req = NCSVDA_VDEST_CREATE;
 	vda_info.info.vdest_create.i_persistent = FALSE;
 	vda_info.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
-	vda_info.info.vdest_create.i_create_oac = TRUE;
 	vda_info.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	vda_info.info.vdest_create.info.specified.i_vdest = cb->vaddr;
 
@@ -202,7 +201,6 @@ uns32 avd_mds_reg(AVD_CL_CB *cb)
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 
 	if (ncsada_api(&ada_info) != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_INSTALL);

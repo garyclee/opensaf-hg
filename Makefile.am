@@ -82,22 +82,7 @@ BUILT_SOURCES = configmake.h
 
 CLEANFILES = configmake.h configmake.h-t
 
-
-if ENABLE_SMIDUMP
-
-BUILT_SOURCES += build_smidump
-
-build_smidump:
-	@if [ ! $(top_srcdir) -ef $(top_builddir) ]; then \
-		cp -R $(top_srcdir)/tools/smidump $(top_builddir)/tools; \
-	fi
-	@$(top_builddir)/tools/smidump/generate_smidump.sh
-
-endif
-
-
 EXTRA_DIST = \
-	$(top_srcdir)/tools/smidump \
 	$(top_srcdir)/tests
 
 
@@ -123,7 +108,7 @@ nobase_dist_pkgdata_DATA = $(samples_sources)
 
 
 # FIXME Like this until SNMP references removed
-SUBDIRS = osaf/snmp/mapi osaf/snmp/miblib osaf pkgconfig
+SUBDIRS = osaf pkgconfig
 
 if ENABLE_JAVA
 
@@ -250,9 +235,3 @@ endif
 distclean-local:
 	-rm -f $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf
 	-rm -rf docs/
-if ENABLE_SMIDUMP
-	@if [ -f $(top_builddir)/tools/smidump/bin/smidump ]; then \
-		rm -rf $(top_builddir)/tools/smidump/bin; \
-		make -C $(top_builddir)/tools/smidump/src distclean; \
-	fi
-endif

@@ -27,13 +27,6 @@
 #define m_CPD_IS_LOCAL_NODE(m,n)   (m == n) ? 1 : 0
 #define m_NCS_MDS_DEST_NODEID_EQUAL(m,n) (m == n) ? 1 : 0
 #define m_CPND_NODE_ID_CMP(m,n) (m==n) ? 1 : 0
-#define m_CPSV_UNS64_TO_PARAM(param,buffer,val64) \
-{\
-   param->i_fmat_id = NCSMIB_FMAT_OCT; \
-   param->i_length = 8; \
-   param->info.i_oct = (uns8 *)buffer; \
-   m_NCS_OS_HTONLL_P(param->info.i_oct,val64); \
-}
 #define CPSV_WAIT_TIME  100
 
 /*30B Versioning Changes */
@@ -192,7 +185,6 @@ typedef struct cpd_cb_tag {
 
 	NCS_BOOL is_cpnd_tree_up;	/* if TRUE cpnd_tree is UP */
 	NCS_PATRICIA_TREE ckpt_tree;	/* Checkpoint info indexed by Ckpt Handle */
-	uns32 oac_hdl;
 	NCS_BOOL is_ckpt_tree_up;	/* if TRUE cpnd_tree is UP */
 	NCS_PATRICIA_TREE ckpt_map_tree;	/* Maps from Ckpt name --> Ckpt ID      */
 	NCS_BOOL is_ckpt_map_up;	/* if TRUE CKPT MAP tree is UP */

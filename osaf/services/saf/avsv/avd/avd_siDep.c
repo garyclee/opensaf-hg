@@ -117,7 +117,7 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	m_AVD_LOG_FUNC_ENTRY("avd_si_dep_spons_list_del");
 
 	/* Dependent SI row Status should be active, if not return error */
-	if ((dep_si = avd_si_get(&si_dep_rec->indx_mib.si_name_sec))
+	if ((dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec))
 	    == AVD_SI_NULL) {
 		/* LOG the message */
 		return;
@@ -132,13 +132,13 @@ void avd_si_dep_spons_list_del(AVD_CL_CB *cb, AVD_SI_SI_DEP *si_dep_rec)
 	spons_si_node = dep_si->spons_si_list;
 
 	/* Check if the sponsor is the first node of the list */
-	if (m_CMP_HORDER_SANAMET(dep_si->spons_si_list->si->name, si_dep_rec->indx_mib.si_name_prim) == 0) {
+	if (m_CMP_HORDER_SANAMET(dep_si->spons_si_list->si->name, si_dep_rec->indx_imm.si_name_prim) == 0) {
 		dep_si->spons_si_list = spons_si_node->next;
 		free(spons_si_node);
 	} else {
 		while (spons_si_node->next != NULL) {
 			if (m_CMP_HORDER_SANAMET(spons_si_node->next->si->name,
-						 si_dep_rec->indx_mib.si_name_prim) != 0) {
+						 si_dep_rec->indx_imm.si_name_prim) != 0) {
 				spons_si_node = spons_si_node->next;
 				continue;
 			}
@@ -392,7 +392,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 
 	rec = avd_si_si_dep_find_next(cb, &spons_indx, TRUE);
 	while (rec != NULL) {
-		if (m_CMP_HORDER_SANAMET(rec->indx_mib.si_name_prim, spons_indx.si_name_prim) != 0) {
+		if (m_CMP_HORDER_SANAMET(rec->indx_imm.si_name_prim, spons_indx.si_name_prim) != 0) {
 			break;
 		}
 
@@ -400,7 +400,7 @@ void avd_si_dep_delete(AVD_CL_CB *cb, AVD_SI *si)
 		memcpy(dep_indx.si_name_prim.value, spons_indx.si_name_sec.value,
 		       spons_indx.si_name_sec.length);
 
-		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_mib)
+		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			/* LOG the message */
 		}
@@ -877,7 +877,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 			dep_si->tol_timer_count = 1;
 		} else {
 			/* Send an event to start SI unassignment process */
-			avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_mib);
+			avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_imm);
 		}
 		break;
 
@@ -901,7 +901,7 @@ void avd_update_si_dep_state_for_spons_unassign(AVD_CL_CB *cb, AVD_SI *dep_si, A
 				si_dep_rec->unassign_event = TRUE;
 
 				/* Send an event to start SI unassignment process */
-				avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_mib);
+				avd_si_dep_state_evt(cb, dep_si, &si_dep_rec->indx_imm);
 			}
 		}
 		break;
@@ -953,17 +953,17 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 	if (si_dep == NULL) {
 		si_dep_rec = avd_si_si_dep_find_next(cb, &si_indx, TRUE);
 		while (si_dep_rec != NULL) {
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0) {
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0) {
 				/* Seems no more node exists in spons_anchor tree with 
 				 * "si_indx.si_name_prim" as primary key 
 				 */
 				break;
 			}
 
-			dep_si = avd_si_get(&si_dep_rec->indx_mib.si_name_sec);
+			dep_si = avd_si_get(&si_dep_rec->indx_imm.si_name_sec);
 			if (dep_si == NULL) {
 				/* No corresponding SI node?? some thing wrong */
-				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_mib, TRUE);
+				si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, TRUE);
 
 				/* LOG the failure */
 				continue;
@@ -975,7 +975,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 				avd_si_dep_state_evt(cb, dep_si, NULL);
 			}
 
-			si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_mib, TRUE);
+			si_dep_rec = avd_si_si_dep_find_next(cb, &si_dep_rec->indx_imm, TRUE);
 		}
 	} else {
 		/* Just ignore and return if spons_state is AVD_SI_DEP_SPONSOR_ASSIGNED */
@@ -990,7 +990,7 @@ void avd_si_dep_spons_state_modif(AVD_CL_CB *cb, AVD_SI *si, AVD_SI *si_dep, AVD
 
 		if (si_dep_rec != NULL) {
 			/* se_dep_rec primary key should match with sponsor SI name */
-			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_mib.si_name_prim, si_indx.si_name_prim) != 0)
+			if (m_CMP_HORDER_SANAMET(si_dep_rec->indx_imm.si_name_prim, si_indx.si_name_prim) != 0)
 				return;
 
 			avd_update_si_dep_state_for_spons_unassign(cb, si_dep, si_dep_rec);
@@ -1023,7 +1023,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_struc_crt");
 
-	/* Allocate a new block structure for mib rec now */
+	/* Allocate a new block structure for imm rec now */
 	if ((rec = calloc(1, sizeof(AVD_SI_SI_DEP))) == NULL) {
 		/* log an error 
 		   m_AVD_LOG_MEM_FAIL(AVD_SI_SI_DEP_ALLOC_FAILED);
@@ -1031,11 +1031,11 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 		return NULL;
 	}
 
-	rec->indx_mib.si_name_prim.length = indx->si_name_prim.length;
-	memcpy(rec->indx_mib.si_name_prim.value, indx->si_name_prim.value, si_prim_len);
+	rec->indx_imm.si_name_prim.length = indx->si_name_prim.length;
+	memcpy(rec->indx_imm.si_name_prim.value, indx->si_name_prim.value, si_prim_len);
 
-	rec->indx_mib.si_name_sec.length = indx->si_name_sec.length;
-	memcpy(rec->indx_mib.si_name_sec.value, indx->si_name_sec.value, si_sec_len);
+	rec->indx_imm.si_name_sec.length = indx->si_name_sec.length;
+	memcpy(rec->indx_imm.si_name_sec.value, indx->si_name_sec.value, si_sec_len);
 
 	rec->indx.si_name_prim.length = indx->si_name_sec.length;
 	memcpy(rec->indx.si_name_prim.value, indx->si_name_sec.value, si_sec_len);
@@ -1043,17 +1043,17 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	rec->indx.si_name_sec.length = indx->si_name_prim.length;
 	memcpy(rec->indx.si_name_sec.value, indx->si_name_prim.value, si_prim_len);
 
-	rec->tree_node_mib.key_info = (uns8 *)&(rec->indx_mib);
-	rec->tree_node_mib.bit = 0;
-	rec->tree_node_mib.left = NCS_PATRICIA_NODE_NULL;
-	rec->tree_node_mib.right = NCS_PATRICIA_NODE_NULL;
+	rec->tree_node_imm.key_info = (uns8 *)&(rec->indx_imm);
+	rec->tree_node_imm.bit = 0;
+	rec->tree_node_imm.left = NCS_PATRICIA_NODE_NULL;
+	rec->tree_node_imm.right = NCS_PATRICIA_NODE_NULL;
 
 	rec->tree_node.key_info = (uns8 *)&(rec->indx);
 	rec->tree_node.bit = 0;
 	rec->tree_node.left = NCS_PATRICIA_NODE_NULL;
 	rec->tree_node.right = NCS_PATRICIA_NODE_NULL;
 
-	if (ncs_patricia_tree_add(&cb->si_dep.spons_anchor, &rec->tree_node_mib)
+	if (ncs_patricia_tree_add(&cb->si_dep.spons_anchor, &rec->tree_node_imm)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
 		free(rec);
@@ -1063,7 +1063,7 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
 	if (ncs_patricia_tree_add(&cb->si_dep.dep_anchor, &rec->tree_node)
 	    != NCSCC_RC_SUCCESS) {
 		/* log an error */
-		ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_mib);
+		ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &rec->tree_node_imm);
 		free(rec);
 		return NULL;
 	}
@@ -1076,24 +1076,24 @@ AVD_SI_SI_DEP *avd_si_si_dep_struc_crt(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx)
  *
  * Purpose:  This function will find a AVD_SI_SI_DEP structure in the tree 
  *           with indx value as key. Indices can be provided as per the order
- *           mention in the mib or in the reverse of that. 
+ *           mention in the imm or in the reverse of that. 
  *
  * Input: cb - The AVD control block
  *        indx - The key.
  *
  * Returns: The pointer to AVD_SG_SI_RANK structure found in the tree.
  *
- * NOTES: Set the isMibIdx flag value to 1 if indices are as defined by mib and 0
+ * NOTES: Set the isImmIdx flag value to 1 if indices are as defined by imm and 0
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isMibIdx)
+AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_find");
 
-	if (isMibIdx) {
+	if (isImmIdx) {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&cb->si_dep.spons_anchor, (uns8 *)indx);
 	} else {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_get(&cb->si_dep.dep_anchor, (uns8 *)indx);
@@ -1113,24 +1113,24 @@ AVD_SI_SI_DEP *avd_si_si_dep_find(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_B
  *
  * Purpose:  This function will find next AVD_SI_SI_DEP structure in the tree
  *           with indx value as key. Indices can be provided as per the order
- *           mention in the mib or in the reverse of that. 
+ *           mention in the imm or in the reverse of that. 
  *
  * Input: cb - the AVD control block
  *        indx - The key.
  *
  * Returns: The next pointer to AVD_SG_SI_RANK structure found in the tree.
  *
- * NOTES: Set the isMibIdx flag value to 1 if indices are as defined by mib and 0
+ * NOTES: Set the isImmIdx flag value to 1 if indices are as defined by imm and 0
  *        if it is in reverse order
  * 
  **************************************************************************/
-AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isMibIdx)
+AVD_SI_SI_DEP *avd_si_si_dep_find_next(AVD_CL_CB *cb, AVD_SI_SI_DEP_INDX *indx, NCS_BOOL isImmIdx)
 {
 	AVD_SI_SI_DEP *rec = NULL;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_si_si_dep_find_next");
 
-	if (isMibIdx) {
+	if (isImmIdx) {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&cb->si_dep.spons_anchor, (uns8 *)indx);
 	} else {
 		rec = (AVD_SI_SI_DEP *)ncs_patricia_tree_getnext(&cb->si_dep.dep_anchor, (uns8 *)indx);
@@ -1178,8 +1178,8 @@ uns32 avd_si_si_dep_del_row(AVD_CL_CB *cb, AVD_SI_SI_DEP *rec)
 
 	si_dep_rec = NULL;
 
-	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_mib, TRUE)) != NULL) {
-		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &si_dep_rec->tree_node_mib)
+	if ((si_dep_rec = avd_si_si_dep_find(cb, &rec->indx_imm, TRUE)) != NULL) {
+		if (ncs_patricia_tree_del(&cb->si_dep.spons_anchor, &si_dep_rec->tree_node_imm)
 		    != NCSCC_RC_SUCCESS) {
 			/* log error */
 			return NCSCC_RC_FAILURE;

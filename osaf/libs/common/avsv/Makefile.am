@@ -25,9 +25,7 @@ pkglib_LTLIBRARIES = libavsv_common.la
 libavsv_common_la_CPPFLAGS = \
 	-DNCS_EDU=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/avsv/include
 
 libavsv_common_la_SOURCES = \
 	avsv_d2nedu.c \

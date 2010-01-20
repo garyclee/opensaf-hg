@@ -84,12 +84,9 @@ typedef struct mqnd_queue_info {
 
 	MQND_TMR tmr;		/* Retention Timer */
 	MQND_TMR qtransfer_complete_tmr;	/* Q Transfer Complete Timer */
-	/* for mibs 7.5 */
 	SaTimeT creationTime;	/* Queue Creation time */
 	uns32 numberOfFullErrors[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
 	SaUint32T totalQueueSize;
-	uns32 mab_rec_row_hdl;
-	uns32 mab_rec_priority_row_hdl[SA_MSG_MESSAGE_LOWEST_PRIORITY + 1];
 	uns32 shm_queue_index;
 } MQND_QUEUE_INFO;
 

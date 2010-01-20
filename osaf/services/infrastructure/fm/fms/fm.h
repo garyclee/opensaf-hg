@@ -48,8 +48,6 @@
 #include "ncssysf_ipc.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_sem.h"
-#include "ncsmib_mem.h"
-#include "ncs_mib_pub.h"
 #include "ncspatricia.h"
 #include "ncs_mds_def.h"
 
@@ -58,7 +56,6 @@
 
 #include "ncs_log.h"
 #include "ncs_lib.h"
-#include "ncs_trap.h"
 #include "ncs_edu_pub.h"
 #include "nid_api.h"
 #include "mds_papi.h"

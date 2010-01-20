@@ -418,27 +418,8 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 	LEAPDLL_API uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					  NCSCONTEXT ptr, uns32 *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_ncsmib_param_val(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-						   NCSCONTEXT ptr, uns32 *ptr_data_len,
-						   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_ncsmib_idx(EDU_HDL *hdl, EDU_TKN *edu_tkn,
-					     NCSCONTEXT ptr, uns32 *ptr_data_len,
-					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_ncs_trap_varbind(EDU_HDL *edu_hdl,
-						   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-						   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
-						   EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_ncs_trap(EDU_HDL *edu_hdl,
-					   EDU_TKN *edu_tkn, NCSCONTEXT ptr,
-					   uns32 *ptr_data_len, EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-
-#if 0
-	LEAPDLL_API int ncs_edu_mds_dest_test_nodeid_fnc(NCSCONTEXT arg);
-#endif
 
 	LEAPDLL_API int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);
-
-	LEAPDLL_API int ncs_edu_ncsmib_param_val_test_fmat_fnc(NCSCONTEXT arg);
 
 /************* NCS Built-in EDU Program Prototypes *************/
 

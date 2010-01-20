@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = dtsv hisv fm masv nid pdrbd rde
+SUBDIRS = dtsv hisv fm nid pdrbd rde

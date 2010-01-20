@@ -23,8 +23,7 @@ pkglib_LTLIBRARIES = libcpsv_logstr.la
 libcpsv_logstr_la_CPPFLAGS = \
 	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
 libcpsv_logstr_la_SOURCES = \
 	cpa_logstr.c \

@@ -217,7 +217,6 @@ static uns32 mqd_mds_vdest_create(MQD_CB *pMqd)
 	arg.info.vdest_create.i_persistent = FALSE;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	arg.info.vdest_create.i_create_oac = TRUE;
 	arg.info.vdest_create.info.specified.i_vdest = pMqd->my_dest;
 
 	/* Create VDEST */

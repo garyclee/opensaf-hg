@@ -186,7 +186,7 @@ typedef struct cpnd_ckpt_node {
 	NCS_BOOL is_rdset;
 
 	int32 offset;		/* for restart mechanism - shared memory offset */
-	SaNameT node_name;	/* for mibs */
+	SaNameT node_name;	
 
 	NCS_BOOL is_cpa_created_ckpt_replica;	/* Flag to indicate whether replica created by CPA/CPD */
 	CPSV_EVT *evt_bckup_q;

@@ -4,7 +4,6 @@
 %define is_rhel %(test -e /etc/redhat-release && echo 1 || echo 0)
 %define is_gentoo %(test -e /etc/gentoo-release && echo 1 || echo 0)
 
-%define is_smidump %(test "@SMIDUMP_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_hpi %(test "@HPI_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_openhpi %(test "@OPENHPI_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
@@ -34,14 +33,11 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 # TODO: Causing issue on SUSE, package names are different, need to create
 # distro specific check
-%if %is_rhel || %is_fedora
-BuildRequires: net-snmp-devel
 %if %is_openhpi
 BuildRequires: openhpi-devel pkgconfig
 %endif
 %if %is_java
 #BuildRequires: java-1.6.0-openjdk-devel ant
-%endif
 %endif
 
 
@@ -74,11 +70,8 @@ Requires: %{name}-common = %{version}-%{release}
 Requires: %{name}-libs = %{version}-%{release}
 Requires: /sbin/ldconfig
 
-%if %is_rhel || %is_fedora
-Requires: net-snmp
 %if %is_openhpi
 Requires: openhpi
-%endif
 %endif
 
 Conflicts: %{name}-payload
@@ -254,8 +247,6 @@ fi
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/run/%{name}
-%dir %{_datadir}/snmp/mibs
-%{_datadir}/snmp/mibs/*
 %config(noreplace) %{_sysconfdir}/%{name}/imm.conf
 %config(noreplace) %{_sysconfdir}/%{name}/chassis_id
 %config(noreplace) %{_sysconfdir}/%{name}/slot_id
@@ -286,7 +277,6 @@ fi
 %files controller
 %defattr(-,root,root)
 %{_bindir}/get_ha_state
-%{_bindir}/ncs_cli_maa
 %{_bindir}/collect_logs_controller
 %{_bindir}/immadm
 %{_bindir}/immcfg
@@ -316,17 +306,11 @@ fi
 %{_pkglibdir}/ncs_hisv_clean
 %{_pkglibdir}/ncs_hisv_start
 %endif
-%{_pkglibdir}/ncs_mas
-%{_pkglibdir}/ncs_mas_clean
-%{_pkglibdir}/ncs_mas_start
 %{_pkglibdir}/ncs_mqd
 %{_pkglibdir}/ncs_mqd_clean
 %{_pkglibdir}/ncs_mqd_start
 %{_pkglibdir}/ncs_mqnd
 %{_pkglibdir}/ncs_nid
-%{_pkglibdir}/ncs_psr
-%{_pkglibdir}/ncs_pss_clean
-%{_pkglibdir}/ncs_pss_start
 %{_pkglibdir}/ncs_rde
 %{_pkglibdir}/ncs_rde_clean
 %{_pkglibdir}/ncs_rde_start
@@ -336,17 +320,11 @@ fi
 %{_pkglibdir}/opensaf_scap
 %{_pkglibdir}/opensaf_scap_clean
 %{_pkglibdir}/opensaf_scap_start
-%{_pkglibdir}/ncs_snmp_subagt
-%{_pkglibdir}/ncs_snmpsubagt_clean
-%{_pkglibdir}/ncs_snmpsubagt_reload
-%{_pkglibdir}/ncs_snmpsubagt_start
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/opensaf_saflogd
 %{_pkglibdir}/opensaf_lgs
 %{_pkglibdir}/opensaf_ntfd
 %{_pkglibdir}/opensaf_ntfs
-%{_pkglibdir}/nis_snmpd_clean
-%{_pkglibdir}/nis_snmpd_start
 %{_pkglibdir}/immd_script
 %{_pkglibdir}/opensaf_immd
 %{_pkglibdir}/opensaf_immnd
@@ -357,53 +335,29 @@ fi
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
-%config %{_sysconfdir}/%{name}/AppConfig.xsd
-%config %{_sysconfdir}/%{name}/cli_cefslib.conf
 %config %{_sysconfdir}/%{name}/imm.xml
-%config %{_sysconfdir}/%{name}/NCSConfig.xsd
-%config(noreplace) %{_sysconfdir}/%{name}/NCSSystemBOM.xml
-%config(noreplace) %{_sysconfdir}/%{name}/NCSSystemBOM.xml.hp.c-class
-%config %{_sysconfdir}/%{name}/pssv_lib.conf
 %config(noreplace) %{_sysconfdir}/%{name}/rde.conf
 %config(noreplace) %{_sysconfdir}/%{name}/fms.conf
 %config(noreplace) %{_sysconfdir}/%{name}/pdrbd_proxied.conf
-%config %{_sysconfdir}/%{name}/subagt_lib.conf
-%config %{_sysconfdir}/%{name}/ValidationConfig.xml
-%config %{_sysconfdir}/%{name}/ValidationConfig.xsd
 %config(noreplace) %{_sysconfdir}/%{name}/saflog.conf
 %config(noreplace) %{_sysconfdir}/%{name}/ntf.conf
 %config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.controller
-%config %{_datadir}/snmp/ncsSnmpSubagt.conf
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_1
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_2
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_3
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_4
 %{_localstatedir}/lib/%{name}/node_ha_state
-%{_localstatedir}/lib/%{name}/pssv_spcn.list
-%{_pkglibdir}/libavm_logstr.so.*
-%{_pkglibdir}/libavm_pssv.so.*
-%{_pkglibdir}/libavm_subagt.so.*
-%{_pkglibdir}/libavsv_clicef.so.*
 %{_pkglibdir}/libavsv_logstr.so.*
-%{_pkglibdir}/libavsv_pssv.so.*
-%{_pkglibdir}/libavsv_subagt.so.*
-%{_pkglibdir}/libcli_logstr.so.*
 %{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libedsv_logstr.so.*
 %{_pkglibdir}/libglsv_logstr.so.*
-%{_pkglibdir}/libmab_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libmqsv_logstr.so.*
-%{_pkglibdir}/libncs_snmp_subagt.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
-%{_pkglibdir}/libpsr_clicef.so.*
-%{_pkglibdir}/libpssv_logstr.so.*
-%{_pkglibdir}/libpssv_subagt.so.*
 %{_pkglibdir}/librde_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
-%{_pkglibdir}/libsubagt_logstr.so.*
 #TODO: To be changed when supporting other HPI
 %if %is_hpi
 %{_pkglibdir}/libhisv_logstr.so.*
@@ -448,7 +402,6 @@ fi
 %{_pkglibdir}/libimmsv_common.so.*
 %{_pkglibdir}/libmqsv_common.so.*
 %{_pkglibdir}/libntfsv_common.so.*
-%{_pkglibdir}/libmaa.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libfma.so.*
 %{_pkglibdir}/libhpl.so.*

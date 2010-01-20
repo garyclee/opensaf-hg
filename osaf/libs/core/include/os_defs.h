@@ -128,11 +128,6 @@ extern "C" {
  ****************************************************************************/
 
 #define LEAPDLL_API
-#define MABOAC_API
-#define MABCOM_AP
-#define MABMAC_API
-#define MABMAS_API
-#define MABPSR_API
 #define RMSDLL_API
 #define CLIDLL_API
 #define GLDDLL_API

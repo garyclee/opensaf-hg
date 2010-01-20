@@ -28,12 +28,11 @@
 
 ******************************************************************************
 */
-
 #include "gl_defs.h"
 #include "ncs_opt.h"
 #include "t_suite.h"
-#include "mds_papi.h"
 #include "ncs_sprr_papi.h"
+#include "mds_papi.h"
 #include "sprr_dl_api.h"
 
 /****************************************************************************\
@@ -720,3 +719,4 @@ uns32 ncs_environment_clear(uns32 env_id)
 	else
 		return NCSCC_RC_SUCCESS;
 }
+

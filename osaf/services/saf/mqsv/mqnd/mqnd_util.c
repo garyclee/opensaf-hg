@@ -164,7 +164,7 @@ uns32 mqnd_queue_create(MQND_CB *cb, MQP_OPEN_REQ *open,
 		}
 	}
 
-	/* Create & add qname structure used in MIBS */
+	/* Create & add qname structure */
 	memset(pnode, 0, sizeof(MQND_QNAME_NODE));
 	pnode->qname = qnode->qinfo.queueName;
 	pnode->qhdl = (SaMsgQueueHandleT)qnode->qinfo.queueHandle;

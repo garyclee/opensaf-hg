@@ -23,8 +23,7 @@ pkglib_LTLIBRARIES = libpdrbd_logstr.la
 libpdrbd_logstr_la_CPPFLAGS = \
 	-DNCS_PDRBD=1 -DPDRBD_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/pdrbd \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/pdrbd
 
 libpdrbd_logstr_la_SOURCES = \
 	pdrbd_logstr.c

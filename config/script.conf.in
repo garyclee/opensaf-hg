@@ -26,9 +26,6 @@ LIBPATH="xxLIBDIRxx"
 TIPC_MODULE="/lib/modules/$(uname -r)/kernel/net/tipc.ko"
 TIPC_MANAGE="YES"
 
-export SNMPCONFPATH="/usr/share/snmp"
-export MIBDIRS="@MIBDIRS@"
-
 # The following environment variables are useful
 # when running in simulation mode, where multiple
 # nodes are simulated on the same Linux desktop

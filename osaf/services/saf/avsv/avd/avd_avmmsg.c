@@ -304,7 +304,6 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_avm_send_reset_req");
-	assert(0);
 
 	/* Fill in the message */
 	memset(snd_msg, '\0', sizeof(AVD_AVM_MSG_T));

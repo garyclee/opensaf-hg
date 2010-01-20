@@ -512,7 +512,6 @@ typedef struct dts_cb {
 	DTSV_ASYNC_UPDT_CNT async_updt_cnt;
 
 	EDU_HDL edu_hdl;	/* EDU handle */
-	/* Smik - Do we need MAB and EDS handles ?? */
 
 	/* Create time constants */
 	NCS_PATRICIA_TREE svc_tbl;
@@ -1048,7 +1047,7 @@ EXTERN_C void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, 
 
 EXTERN_C uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst,
 						DTS_SVC_REG_TBL *service,
-						NCSMIB_PARAM_ID param_id, uns32 node_id, SS_SVC_ID svc_id);
+						unsigned int param_id, uns32 node_id, SS_SVC_ID svc_id);
 
 EXTERN_C uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value);
 
@@ -1085,16 +1084,6 @@ EXTERN_C void dts_print_reg_tbl_dbg(void);
 EXTERN_C void dts_print_next_svc_dta_list(NCS_PATRICIA_TREE *node, SVC_KEY *key);
 EXTERN_C void dts_printall_svc_per_node(uns32 node_id);
 EXTERN_C uns32 dts_print_current_config(DTS_CB *cb);
-
-/************************************************************************
-* DTS console logging 
-************************************************************************/
-EXTERN_C uns32 dtsv_global_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag);
-EXTERN_C uns32 dtsv_global_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg);
-EXTERN_C uns32 dtsv_node_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag);
-EXTERN_C uns32 dtsv_node_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg);
-EXTERN_C uns32 dtsv_service_conf_console(DTS_CB *cb, NCSMIB_ARG *arg, NCS_BOOL flag);
-EXTERN_C uns32 dtsv_service_disp_conf_console(DTS_CB *cb, NCSMIB_ARG *arg);
 
 /************************************************************************
 * DTS ascii_spec reload 

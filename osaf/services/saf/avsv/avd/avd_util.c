@@ -714,32 +714,6 @@ done:
  *
  * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  *
- * NOTES: The table id and object id
- *
- *           NCSMIB_TBL_AVSV_AMF_NODE : saAmfNodeSuFailoverProb_ID
- *                                      saAmfNodeSuFailoverMax_ID
- *           NCSMIB_TBL_AVSV_AMF_SG :   saAmfSGCompRestartProb_ID
- *                                      saAmfSGCompRestartMax_ID
- *                                      saAmfSGSuRestartProb_ID
- *                                      saAmfSGSuRestartMax_ID
- *           NCSMIB_TBL_AVSV_AMF_SU :
- *           NCSMIB_TBL_AVSV_AMF_COMP:  saAmfCompInstantiateTimeout_ID
- *                                      saAmfCompDelayBetweenInstantiateAttempts_ID
- *                                      saAmfCompTerminationTimeout_ID
- *                                      saAmfCompCleanupTimeout_ID,
- *                                      saAmfCompAmStartTimeout_ID,
- *                                      saAmfCompAmStopTimeout_ID,
- *                                      saAmfCompResponseTimeout_ID,
- *                                      saAmfCompNodeRebootCleanFail_ID,
- *                                      saAmfCompRecoveryOnTimeout_ID,
- *                                      saAmfCompNumMaxInstantiate_ID,
- *                                      saAmfCompMaxNumInstantiateWithDelay_ID
- *                                      saAmfCompNumMaxAmStartAttempts_ID
- *                                      saAmfCompNumMaxAmStopAttempts_ID,
- *        NCSMIB_TBL_AVSV_AMF_HLT_CHK:  saAmfHealthCheckPeriod_ID,
- *                                      saAmfHealthCheckMaxDuration_ID
- *                                      
- *
  * 
  **************************************************************************/
 

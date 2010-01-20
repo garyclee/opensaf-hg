@@ -16,7 +16,6 @@ CORE_CPP_DEFINES = \
     -DNCS_TMR_DBG_ENABLE=$(DEBUG_VAL) \
     -DNCS_SAF=1 \
     -DNCS_RMS=0 \
-    -DNCS_MAB=1 \
     -DNCS_MDS=1 \
     -DDTS_SIM_TEST_ENV=1 \
     -DDTA_FLOW=1 \

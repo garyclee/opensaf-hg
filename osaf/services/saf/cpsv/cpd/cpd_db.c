@@ -298,7 +298,7 @@ void cpd_ckpt_tree_node_destroy(CPD_CB *cb)
 
 /****************************************************************************
   Name          : cpd_ckpt_reploc_tree_init
-  Description   : This routine is used for MIBs replica location table 
+  Description   : This routine is used for replica location table 
   Arguments     : cb - pointer to the CPD Control Block
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
   Notes         : None

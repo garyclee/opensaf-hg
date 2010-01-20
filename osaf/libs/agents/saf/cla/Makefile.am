@@ -25,9 +25,7 @@ noinst_LTLIBRARIES = libcla.la
 libcla_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/cla/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include
+	-I$(top_srcdir)/osaf/libs/agents/saf/cla/include
 
 libcla_la_LDFLAGS = -static
 

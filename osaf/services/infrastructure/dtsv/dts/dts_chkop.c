@@ -791,6 +791,8 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
+	/* Smik - Here CB hdl is required supplying oac_hdl from DTS CB */
+	//mbcsv_arg.info.open.i_client_hdl = cb->oac_hdl; /* TODO  what suppose to do */
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_mbcsv_open_ckpt: MBCSV Open operation failed");

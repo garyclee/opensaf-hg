@@ -147,7 +147,6 @@ static uns32 fm_mds_get_adest_hdls(FM_CB *cb)
 	memset(&arg, 0, sizeof(NCSADA_INFO));
 
 	arg.req = NCSADA_GET_HDLS;
-	arg.info.adest_get_hdls.i_create_oac = FALSE;
 
 	if (ncsada_api(&arg) != NCSCC_RC_SUCCESS) {
 		return NCSCC_RC_FAILURE;

@@ -55,14 +55,9 @@
 #include "ncs_ubaid.h"
 #include "ncsencdec.h"
 #include "ncs_stack.h"
-#include "ncs_mtbl.h"
 #include "ncs_log.h"
 #include "ncs_lib.h"
 #include "ncs_util.h"
-
-#if (NCS_CLI == 1)
-#include "ncs_cli.h"
-#endif
 
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"
@@ -79,13 +74,7 @@
 #include "rms_env.h"
 #endif
 
-#include "oac_papi.h"
-
 #include "saAis.h"
-
-#if (NCS_CLI == 1)
-#include "dtsvcli.h"
-#endif
 
 #include <sys/select.h>
 #include <sys/time.h>

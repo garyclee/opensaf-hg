@@ -127,7 +127,6 @@
 #include "ncssysf_ipc.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_sem.h"
-#include "ncsmib_mem.h"
 #include "ncspatricia.h"
 #include "ncs_queue.h"
 
@@ -162,20 +161,6 @@
 /* replaced with their pub_inc */
 /* equivalent above.           */
 /*******************************/
-/*
-#include "ncs_hdl.h"
-#include "sysf_lck.h"
-#include "usrbuf.h"
-#include "sysf_def.h"
-#include "sysfpool.h"
-#include "sysf_tmr.h"
-#include "sysf_mem.h"
-#include "sysf_tsk.h"
-#include "sysf_sem.h"
-#include "sysf_file.h"
-#include "sysf_ni.h"
-#include "mib_mem.h"
-*/
 
  /*
   * Additional include files for CMS subsystem...
@@ -445,19 +430,6 @@
 #include "fib_mem.h"
 #endif   /* ((APS_FIBS == 1) || (APS_FIBC == 1)) */
 #endif   /* (APS_IPRP == 1) */
-
-/* Additional include files for CLI system... */
-
-/*
- * Additional include files for MAB subsystem...
- */
-
-#if (NCS_MAB == 1)
-#include "mab_opt.h"
-#include "mab_def.h"
-#include "mab_mem.h"
-#include "mab_tgt.h"
-#endif
 
 #if (NCS_USE_SYSMON == 1)
 #include "ncs_sysm.h"

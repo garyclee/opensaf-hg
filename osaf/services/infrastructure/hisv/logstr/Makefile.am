@@ -24,8 +24,7 @@ libhisv_logstr_la_CPPFLAGS = \
 	-DNCS_HISV_LOG=1 -DNCS_DTS=1 -DDTS_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
 libhisv_logstr_la_SOURCES = \
 	hcd_logstr.c

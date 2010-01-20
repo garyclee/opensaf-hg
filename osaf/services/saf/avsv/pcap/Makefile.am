@@ -26,8 +26,7 @@ opensaf_pcap_CPPFLAGS = \
 	-DNCS_AVND=1 \
 	$(AM_CPPFLAGS) \
 	-DNCS_MAIN_EXTERNAL \
-	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include
 
 opensaf_pcap_SOURCES = \
 	opensaf_pcap.c \

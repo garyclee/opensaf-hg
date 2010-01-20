@@ -77,7 +77,6 @@ uns32 cpd_mds_vdest_create(CPD_CB *cb)
 	arg.info.vdest_create.i_persistent = FALSE;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	arg.info.vdest_create.i_create_oac = TRUE;
 
 	arg.info.vdest_create.info.specified.i_vdest = cb->cpd_dest_id;
 
@@ -89,7 +88,6 @@ uns32 cpd_mds_vdest_create(CPD_CB *cb)
 	}
 
 /*   cb->cpd_dest_id = arg.info.vdest_create.info.named.o_vdest;  */
-	cb->oac_hdl = arg.info.vdest_create.o_pwe1_oac_hdl;
 	/*  cb->cpd_anc     = arg.info.vdest_create.info.named.o_anc; */
 	cb->mds_handle = arg.info.vdest_create.o_mds_pwe1_hdl;
 

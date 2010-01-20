@@ -56,12 +56,7 @@
 #if (NCSL_ENV_INIT_KMS == 1)
 #include "ncs_kms.h"
 #endif
-#if (NCSL_ENV_INIT_MTM == 1)
-#include "ncs_mib.h"
-#endif
 
-#include "ncs_mib_pub.h"
-#include "ncsmiblib.h"
 
 time_t ncs_time_stamp()
 {
@@ -419,21 +414,12 @@ uns32 leap_env_init()
 	}
 #endif   /* #if (NCSL_ENV_INIT_KMS == 1) */
 
-#if (NCSL_ENV_INIT_MTM == 1)
-	/* initialize MIB Transaction Manager: 
-	   needed for NCS_MIB code...
-	 */
-	(void)ncsmib_tm_create();
-#endif   /* #if (NCSL_ENV_INIT_MTM == 1) */
 
 #if (NCSL_ENV_INIT_HM == 1)
 	/* initialize Handle Manager */
 	if (ncshm_init() != NCSCC_RC_SUCCESS) {
 		printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
 
-#if (NCSL_ENV_INIT_MTM == 1)
-		(void)ncsmib_tm_destroy();
-#endif
 #if (NCSL_ENV_INIT_KMS == 1)
 		{
 			NCSKMS_LM_ARG kms_arg;
@@ -470,9 +456,6 @@ uns32 leap_env_init()
 #if (NCSL_ENV_INIT_HM == 1)
 			(void)ncshm_delete();
 #endif
-#if (NCSL_ENV_INIT_MTM == 1)
-			(void)ncsmib_tm_destroy();
-#endif
 #if (NCSL_ENV_INIT_KMS == 1)
 			{
 				NCSKMS_LM_ARG kms_arg;
@@ -496,27 +479,6 @@ uns32 leap_env_init()
 	}
 #endif   /* #if (NCS_USE_SYSMON == 1) */
 #endif   /* #if (NCSL_ENV_INIT_SMON == 1)  */
-
-	/* NCS MIBLIB is being initialized here. */
-	{
-		NCSMIBLIB_REQ_INFO miblib_init;
-		uns32 status;
-
-		/* Initalize miblib */
-		memset(&miblib_init, 0, sizeof(NCSMIBLIB_REQ_INFO));
-
-		/* register with MIBLIB */
-		miblib_init.req = NCSMIBLIB_REQ_INIT_OP;
-		status = ncsmiblib_process_req(&miblib_init);
-		if (status != NCSCC_RC_SUCCESS) {
-			/* Log error */
-
-			printf("\nleap_env_init: FAILED to initialize MIBLIB\n");
-
-			return m_LEAP_DBG_SINK(status);
-		}
-
-	}
 
 	/* Initialize script execution control block */
 	if (NCSCC_RC_SUCCESS != init_exec_mod_cb()) {
@@ -578,11 +540,6 @@ uns32 leap_env_destroy()
 #if (NCSL_ENV_INIT_HM == 1)
 	/* destroying Handle Manager */
 	(void)ncshm_delete();
-#endif
-
-#if (NCSL_ENV_INIT_MTM == 1)
-	/* destroying MIB Transaction Manager */
-	(void)ncsmib_tm_destroy();
 #endif
 
 #if (NCSL_ENV_INIT_KMS == 1)

@@ -33,8 +33,7 @@ endif
 ncs_hisv_CPPFLAGS= \
 	-DNCS_HISV=1 -DNCS_HISV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include
 
 ncs_hisv_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c

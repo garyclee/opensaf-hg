@@ -1668,7 +1668,7 @@ static uns32 mqnd_evt_proc_cb_dump(void)
 		printf("\n\n Queue Total Size          : %u\n", qnode->qinfo.totalQueueSize);
 		printf(" Queue Total Used Size     : %llu\n", shm_base_addr[offset].QueueStatsShm.totalQueueUsed);
 		printf(" Queue Total No of Messages: %u\n", shm_base_addr[offset].QueueStatsShm.totalNumberOfMessages);
-		printf("\n~~~~~~~~~~ MIB Related Queue Info ~~~~~~~~~~\n");
+		printf("\n~~~~~~~~~~ Queue Info ~~~~~~~~~~\n");
 		printf(" Queue Creation Time:  %llu\n", qnode->qinfo.creationTime);
 		for (i = SA_MSG_MESSAGE_HIGHEST_PRIORITY; i < SA_MSG_MESSAGE_LOWEST_PRIORITY + 1; i++)
 			printf(" Number of Full Errors of %u priority: %u\n", i, qnode->qinfo.numberOfFullErrors[i]);

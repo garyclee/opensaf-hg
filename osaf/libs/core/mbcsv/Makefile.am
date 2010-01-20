@@ -27,8 +27,7 @@ libmbca_la_LDFLAGS = -static
 libmbca_la_CPPFLAGS = \
 	-DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/core/mbcsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/core/mbcsv/include
 
 libmbca_la_SOURCES = \
 	mbcsv_act.c \

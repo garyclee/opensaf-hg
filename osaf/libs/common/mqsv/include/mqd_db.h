@@ -152,7 +152,6 @@ typedef struct mqd_cb {
 	EDU_HDL edu_hdl;	/* Edu Handle */
 	uns8 hmpool;		/* Handle Manager Pool ID for this Service Part */
 
-	/* for mib */
 	SaNameT safSpecVer;
 	SaNameT safAgtVen;
 	uns32 safAgtVenPro;

@@ -97,9 +97,7 @@ extern "C" {
 
 #if 1
 
-/* OID definition in the NET-SNMP Library will have to be used */
-
-	typedef uns32 ncs_oid;	/* Basic data type for SNMP/ILMI Object Sub-ids... */
+	typedef uns32 ncs_oid;	/* Basic data type for ILMI Object Sub-ids... */
 #endif
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32)(long)(x))
@@ -206,7 +204,7 @@ extern "C" {
 #define NCS_SNMP_TRUE    1
 #define NCS_SNMP_FALSE   2
 
-/* H&J Constants aligned with SNMP Admin and Oper STATUS values */
+/* H&J Constants aligned with  Admin and Oper STATUS values */
 
 	typedef enum ncs_status {
 		NCS_STATUS_UP = 1,
@@ -218,7 +216,7 @@ extern "C" {
 		NCS_STATUS_LL_DOWN = 7
 	} NCS_STATUS;
 
-/* H&J Constants aligned with SNMP Row STATUS values */
+/* H&J Constants aligned with Row STATUS values */
 
 	typedef enum ncs_row_status {
 		NCS_ROW_ACTIVE = 1,
@@ -249,7 +247,7 @@ extern "C" {
 		NCS_USAGE_STATE_BUSY
 	} NCS_USAGE_STATE;
 
-/* Format types(similar to MIB Format types, but proprietory to NCS), 
+/* Format types, proprietory to NCS), 
    used in EDU */
 	typedef enum ncs_edu_fmat_tag {
 		NCS_EDU_FMAT_8BIT,	/* 8 bit    */
@@ -296,11 +294,11 @@ extern "C" {
 #define NCSCC_RC_SKIP_MSG             14
 #define NCSCC_RC_CONT_MSG             15
 
-#define NCSCC_RC_INV_VAL              16	/* MASv :Invalid Value Specified     */
-#define NCSCC_RC_INV_SPECIFIC_VAL     17	/* MASv */
+#define NCSCC_RC_INV_VAL              16
+#define NCSCC_RC_INV_SPECIFIC_VAL     17
 
-#define NCSCC_RC_NO_OBJECT            18	/* MASv */
-#define NCSCC_RC_NO_INSTANCE          19	/* MASv */
+#define NCSCC_RC_NO_OBJECT            18
+#define NCSCC_RC_NO_INSTANCE          19
 #define NCSCC_RC_NOSUCHNAME           20
 
 #define NCSCC_RC_OUT_OF_MEM           21	/* Out of memory                    */
@@ -327,34 +325,20 @@ extern "C" {
 #define NCSCC_RC_TMR_STOPPED         128
 #define NCSCC_RC_TMR_DESTROYED       129
 
-#define NCSCC_RC_NO_SUCH_TBL         130	/* MASv */
-#define NCSCC_RC_REQ_TIMOUT          131	/* MASv */
+#define NCSCC_RC_NO_SUCH_TBL         130
+#define NCSCC_RC_REQ_TIMOUT          131
 
-#define NCSCC_RC_NO_TO_SVC           132	/* MDS */
+#define NCSCC_RC_NO_TO_SVC           132
 
-#define NCSCC_RC_NO_ACCESS           133	/* MASv */
-#define NCSCC_RC_NO_CREATION         134	/* MASv */
-#define NCSCC_RC_NO_MAS              135	/* If MAS is not alive */
-#define NCSCC_RC_PLBK_IN_PROGRESS    136	/* Playback from PSSv in progress.
-						   So retry again later. */
+#define NCSCC_RC_NO_ACCESS           133
+#define NCSCC_RC_NO_CREATION         134
+#define NCSCC_RC_NO_MAS              135
+#define NCSCC_RC_PLBK_IN_PROGRESS    136
 #define NCSCC_RC_INVALID_INPUT       137	/* Input is invalid */
-#define NCSCC_RC_NOT_WRITABLE        138	/* MASv */
+#define NCSCC_RC_NOT_WRITABLE        138
 /* NCSCC_RC_NOT_WRITABLE is mapped to SNMP_ERR_NOTWRITABLE. If the variable binding's name specifies a variable
    which exists but can not be modified no matter what new value is specified, then the value of the Response-PDU's 
    error-status field is set to `notWritable' (set on read-only, not-accessible objects returns this error)
-*/
-
-#define NCSCC_RC_RESOURCE_UNAVAILABLE 139	/* MASv */
-/* the assignment of the value specified by the variable binding's value field to the specified variable
-   requires the allocation of a resource which is presently unavailable, then the value of the Response-PDU's 
-   error-status field is set to `resourceUnavailable'. If the application is not running and set request is 
-   given on mib object owned by that application, then NCSCC_RC_NO_SUCH_TBL returned by MAS is mapped 
-   to SNMP_ERR_RESOURCEUNAVAILABLE   
-*/
-#define NCSCC_RC_INCONSISTENT_NAME   140	/* MASv */
-/* If the variable binding's name specifies a variable which does not exist but can not be created under the present
-   circumstances (even though it could be created under other circumstances), then the value of the Response-PDU's 
-   error-status field is set to `inconsistentName'. NCSCC_RC_INCONSISTENT_NAME is mapped to SNMP_ERR_INCONSISTENTNAME.
 */
 
 #define NCSCC_RC_CONTINUE           1023

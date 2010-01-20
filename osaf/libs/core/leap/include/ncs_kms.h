@@ -33,9 +33,6 @@
 
   MDS PWE handle - (NCSCONTEXT) Used by MDS Normal Services in the context 
                    of such MDS services as INSTALL, SEND, BCAST and SUBSCRIBE.
-  MIB Key        - (NCS_KEY) In any given system this may be a MAC key 
-                   (distributed systems) or a subsystem specific key (MIB 
-                   tables are local to client). 
 
   CLIENTS
   =======

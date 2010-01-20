@@ -67,8 +67,6 @@
 #include "ncssysf_ipc.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_sem.h"
-#include "ncsmib_mem.h"
-#include "ncs_mib_pub.h"
 #include "ncspatricia.h"
 #include "ncs_mds_def.h"
 

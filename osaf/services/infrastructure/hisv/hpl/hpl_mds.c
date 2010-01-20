@@ -893,7 +893,6 @@ uns32 hpl_mds_initialize(HPL_CB *hpl_cb)
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsada_api(&ada_info))) {
 		/* to log an event and return */

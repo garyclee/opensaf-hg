@@ -65,7 +65,6 @@ uns32 immd_mds_vdest_create(IMMD_CB *cb)
 	arg.req = NCSVDA_VDEST_CREATE;
 	arg.info.vdest_create.i_persistent = FALSE;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
-	arg.info.vdest_create.i_create_oac = FALSE;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
 	arg.info.vdest_create.info.specified.i_vdest = cb->immd_dest_id;
 

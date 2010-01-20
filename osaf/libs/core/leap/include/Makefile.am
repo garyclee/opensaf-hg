@@ -21,7 +21,6 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_HEADERS = \
 	cmndiagenv.h \
 	gl_defs.h \
-	mib_mem.h \
 	ncs_cache.h \
 	ncs_cio.h \
 	ncsdlib.h \
@@ -38,8 +37,6 @@ noinst_HEADERS = \
 	ncs_ipcstats.h \
 	ncs_kms.h \
 	ncs_leap_version.h \
-	ncs_mib.h \
-	ncs_mpls.h \
 	ncs_opt.h \
 	ncs_qptrs.h \
 	ncs_regx.h \

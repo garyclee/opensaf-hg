@@ -25,8 +25,7 @@ pkglib_LTLIBRARIES = libcpsv_common.la
 libcpsv_common_la_CPPFLAGS = \
 	-DNCS_CPND=1 -DNCS_CPD=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
 libcpsv_common_la_SOURCES = \
 	cpsv_edu.c \

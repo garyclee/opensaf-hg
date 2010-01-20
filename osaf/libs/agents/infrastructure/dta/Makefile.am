@@ -22,8 +22,7 @@ noinst_LTLIBRARIES = libdta.la
 
 libdta_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
 libdta_la_LDFLAGS = -static
 

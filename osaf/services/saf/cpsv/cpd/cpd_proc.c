@@ -780,8 +780,6 @@ uns32 cpd_process_cpnd_down(CPD_CB *cb, MDS_DEST *cpnd_dest)
 					      __FILE__, __LINE__);
 				cpd_ckpt_map_node_get(&cb->ckpt_map_tree, &ckpt_node->ckpt_name, &map_info);
 
-				/* BUG FIX FOR SNMP MIBS */
-				/*    ckpt_node->ckpt_name.length = m_NCS_OS_NTOHS(ckpt_node->ckpt_name.length);  */
 				/* Remove the ckpt_node */
 				proc_rc = cpd_ckpt_node_delete(cb, ckpt_node);
 
@@ -973,8 +971,6 @@ uns32 cpd_proc_unlink_set(CPD_CB *cb, CPD_CKPT_INFO_NODE **ckpt_node, CPD_CKPT_M
 	cpd_ckpt_map_node_get(&cb->ckpt_map_tree, ckpt_name, &map_info);
 
 	if (map_info) {
-		/* BUG FIX FOR SNMP MIBS */
-		/*   ckpt_name->length =  m_NCS_OS_NTOHS(ckpt_name->length);   */
 		cpd_ckpt_node_get(&cb->ckpt_tree, &map_info->ckpt_id, ckpt_node);
 	} else {
 		m_LOG_CPD_CCL(CPD_PROC_UNLINK_SET_FAILED, CPD_FC_HDLN, NCSFL_SEV_ERROR, ckpt_name->value, __FILE__,

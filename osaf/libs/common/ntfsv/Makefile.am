@@ -24,8 +24,7 @@ pkglib_LTLIBRARIES = libntfsv_common.la
 
 libntfsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/ntfsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/ntfsv/include
 
 libntfsv_common_la_SOURCES = \
 	ntfsv_enc_dec.c \

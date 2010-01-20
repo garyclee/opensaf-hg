@@ -33,8 +33,7 @@ pkglib_PROGRAMS = opensaf_immnd
 opensaf_immnd_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 opensaf_immnd_SOURCES =	\
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \

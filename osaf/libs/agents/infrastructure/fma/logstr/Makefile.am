@@ -23,8 +23,7 @@ pkglib_LTLIBRARIES = libfma_logstr.la
 libfma_logstr_la_CPPFLAGS = \
 	-DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/agents/infrastructure/fma \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/agents/infrastructure/fma
 
 libfma_logstr_la_SOURCES = \
 	fma_logstr.c

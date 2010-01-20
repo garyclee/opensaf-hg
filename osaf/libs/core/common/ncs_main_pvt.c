@@ -33,30 +33,9 @@
 
 #include "ncs_lib.h"
 #include "mda_dl_api.h"
-#include "ncs_mib_pub.h"
-
-#if ((NCS_MAS == 1) || (NCS_MAC == 1))
-#include "mab.h"
-#endif
-
-#if (NCS_PSR == 1)
-#include "psr.h"
-#endif
-
-#if (PSR_LOG == 1)
-#include "psr_log.h"
-#endif
 
 #if (NCS_VDS == 1)
 #include "vds_dl_api.h"
-#endif
-
-#if (NCS_CLI_MAA == 1)
-#include "ncs_cli.h"
-#endif
-
-#if (NCS_PSR == 1)
-#include "psr_papi.h"
 #endif
 
 #if (NCS_AVA == 1)
@@ -132,10 +111,6 @@
 #include "dts.h"
 #include "dts_dl_api.h"
 
-#if (NCS_SNMPSUBAGT_LOG == 1)
-#include "subagt_log.h"
-#endif
-
 #if (MBCSV_LOG == 1)
 #include "mbcsv_log.h"
 #endif
@@ -179,10 +154,6 @@
 #endif
 #endif   /* NCS_DTS */
 
-#if (NCS_MAC == 1)
-#include "mac_papi.h"
-#endif
-
 #if (PCS_HALS_MONC == 1)
 #include "hals.h"
 #elif (PCS_HALS_PROXY == 1)
@@ -192,14 +163,6 @@
 /* NID specific hdr file */
 #include "nid_api.h"
 
-#include "ncs_mib.h"
-#include "ncsmiblib.h"
-#if (NCS_PSR == 1)
-/*
-  EXTERN_C MABPSR_API PSS_ATTRIBS gl_pss_amf_attribs;
-  EXTERN_C uns32 dts_pssv_register(uns32 pss_hdl);
- */
-#endif
 
 static uns32 ncs_d_nd_svr_startup(int argc, char *argv[]);
 static uns32 ncs_d_nd_svr_shutdown(int argc, char *argv[]);
@@ -212,7 +175,6 @@ static void main_avnd_usr1_signal_hdlr(int signal);
 /* NID specific NCS service global variable */
 char gl_nid_svc_name[NID_MAXSNAME];
 static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name);
-uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type, char *i_param_val, uns32 val_len, char *index);	/* FIXME:Phani_11_july_06  Unused. Cleanup? */
 
 /***************************************************************************\
 
@@ -302,18 +264,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-   /*** Init MAC ***/
-#if (NCS_MAC == 1)
-	m_NCS_DBG_PRINTF("\nMAA:ON");
-	    /*** Init MAA ***/
-	if (ncs_maa_startup(argc, argv) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("MAA start-up has been failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-#endif
-
-
    /*** Init DTS ***/
 #if (NCS_DTS == 1)
    /****** DTSV default service severity level *******/
@@ -333,10 +283,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
 /*      
-#if (PSR_LOG == 1)
-      pss_reg_strings();
-#endif
-
 #if (NCS_AVSV_LOG == 1)
       ava_str_reg();
       avnd_str_reg();
@@ -382,44 +328,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 	}
 #endif   /* If NCS_DTS == 1 */
 
-   /*** Init MAS ***/
-#if (NCS_MAS == 1)
-	if ('n' != ncs_util_get_char_option(argc, argv, "MASV=")) {
-		m_NCS_DBG_PRINTF("\nMAS:ON");
-		if (maslib_request(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("MAS lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-	}
-#endif
-
-   /*** Init CLI ***/
-#if (NCS_CLI_MAA == 1)
-	if ('n' != ncs_util_get_char_option(argc, argv, "CLI=")) {
-		m_NCS_DBG_PRINTF("\nCLI:ON");
-		if (cli_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("CLI lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-	}
-#endif
-
-   /*** Init PSS, and register related MIBINFOs with PSS ***/
-#if (NCS_PSR == 1)
-	if ('n' != ncs_util_get_char_option(argc, argv, "PSS=")) {
-
-		m_NCS_DBG_PRINTF("\nPSS:ON");
-		if (ncspss_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("PSS lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-
-	}
-#endif
-
 	if ('n' != ncs_util_get_char_option(argc, argv, "EDSV=")) {
 #if (NCS_EDS == 1)
       /*** Init EDS ***/
@@ -430,50 +338,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		} else
 			m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
-#endif
-	}
-
-	if ('n' != ncs_util_get_char_option(argc, argv, "SNMP=")) {
-#if (NCS_SNMPSUBAGT == 1)
-      /*** Init SNMP SubAgent ***/
-		uns32 status = NCSCC_RC_FAILURE;
-		NCS_LIB_REQ_INFO subagt_req;
-		uns32 (*se_api_ptr) (NCS_LIB_REQ_INFO *) = NULL;
-		NCS_OS_DLIB_HDL *lib_subagt_hdl = NULL;
-
-		m_NCS_DBG_PRINTF("\nSNMP: SUB AGENT:ON");
-
-		/* load the subagent library */
-		lib_subagt_hdl = m_NCS_OS_DLIB_LOAD("libncs_snmp_subagt.so.0", m_NCS_OS_DLIB_ATTR);
-		if (lib_subagt_hdl == NULL) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("dlopen() failed with error %s\n", dlerror());
-			printf("SUBAGT load lib failed...\n");
-			return NCSCC_RC_FAILURE;
-		}
-
-		/* clear the parameters */
-		memset(&subagt_req, 0, sizeof(NCS_LIB_REQ_INFO));
-		subagt_req.i_op = NCS_LIB_REQ_CREATE;
-		subagt_req.info.create.argc = 0;
-		subagt_req.info.create.argv = NULL;
-
-		/* Call the SubAgent SE API to Init the library */
-		se_api_ptr = m_NCS_OS_DLIB_SYMBOL(lib_subagt_hdl, "ncs_snmpsubagt_lib_req");
-		if (se_api_ptr == NULL) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("dlsym() failed with error %s\n", dlerror());
-			printf("SubAgtCreate(): Did not find ncs_snmpsubagt_lib_req()...\n");
-			return NCSCC_RC_FAILURE;
-		}
-
-		/* call the initialization routine */
-		status = (*se_api_ptr) (&subagt_req);
-		if (status != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("SubAgtCreate(): Unable to Create the library...\n");
-			return NCSCC_RC_FAILURE;
-		}
 #endif
 	}
 
@@ -659,24 +523,6 @@ or Demo which need to have their own main().
 #endif
 #endif
 
-#if (NCS_MAC == 1)
-static uns32 mainindex_extract_from_token(char *word, uns32 *instance_ids, uns32 *instance_id_len);
-
-static uns32 mainget_the_index(char *const i_inst_str, uns32 *instance_ids, uns32 *instance_id_len);
-static void mainsnmpset_help_print(void);
-static uns32
-mainmib_mab_mib_param_fill(NCSMIB_PARAM_VAL *io_param_val,
-			   NCSMIB_PARAM_ID i_param_id, NCSMIB_FMAT_ID i_fmat_id, void *i_set_val, uns32 i_set_val_len);
-static uns32
-mainmib_mab_mac_msg_send(uns32 i_mib_key,
-			 uns32 i_table_id,
-			 uns32 *i_inst,
-			 uns32 i_inst_len,
-			 uns32 i_param_id,
-			 uns32 i_param_type,
-			 uns32 i_req_type, void *i_set_val, uns32 i_set_val_len, uns32 i_time_val, uns32 send_to_masv);
-#endif
-
 uns32 mds_hub_flag = 0;
 uns32 gl_pcon_id = NCS_MAIN_DEF_PCON_ID;
 
@@ -687,262 +533,6 @@ int main(int argc, char *argv[])
 }
 #endif
 
-#if (NCS_MAC == 1)
-uns32 mainsnmpset(uns32 i_table_id, uns32 i_param_id, int i_param_type, char *i_param_val, uns32 val_len, char *index)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns32 instance_id_len = 0;
-	uns32 instance_ids[255];
-	uns32 i_mib_key = gl_mac_handle;
-	uns32 i_set_val_len = 0;
-	uns32 set_value = 0;
-	void *i_set_val = NULL;
-
-	if (i_param_val == NULL)
-		return (NCSCC_RC_FAILURE);
-
-	/* NCSMIB_FMAT_INT = 1 and != 1 for strings */
-	if (i_param_type == NCSMIB_FMAT_INT) {
-		set_value = atoi(i_param_val);
-
-      /** NOTE we are not supporting negative values at present **/
-		if (set_value == -1) {
-			mainsnmpset_help_print();
-			return (NCSCC_RC_FAILURE);
-		}
-
-		i_param_type = NCSMIB_FMAT_INT;
-		i_set_val = (void *)&set_value;
-		if (index != NULL) {
-	 /*** extracting the index for the table object ***/
-			status = mainget_the_index(index, instance_ids, &instance_id_len);
-			if (status != NCSCC_RC_SUCCESS) {
-				mainsnmpset_help_print();
-				return (NCSCC_RC_FAILURE);
-			}
-		}
-
-	} else {
-      /** for octet strings **/
-		i_param_type = NCSMIB_FMAT_OCT;
-		i_set_val = (void *)i_param_val;
-		i_set_val_len = val_len;
-		if (index != NULL) {
-	 /*** extracting the index for the table object ***/
-			status = mainget_the_index(index, instance_ids, &instance_id_len);
-			if (status != NCSCC_RC_SUCCESS) {
-				mainsnmpset_help_print();
-				return (NCSCC_RC_FAILURE);
-			}
-		}
-	}
-
-	/* send the request */
-	status = mainmib_mab_mac_msg_send(i_mib_key, i_table_id,
-					  instance_ids,
-					  instance_id_len,
-					  i_param_id,
-					  i_param_type, NCSMIB_OP_REQ_SET, i_set_val, i_set_val_len, 200, 1);
-	return (status);
-}
-
-static uns32
-mainmib_mab_mac_msg_send(uns32 i_mib_key,
-			 uns32 i_table_id,
-			 uns32 *i_inst,
-			 uns32 i_inst_len,
-			 uns32 i_param_id,
-			 uns32 i_param_type,
-			 uns32 i_req_type, void *i_set_val, uns32 i_set_val_len, uns32 i_time_val, uns32 send_to_masv)
-{
-	NCSMIB_ARG io_mib_arg;
-	uns32 status = NCSCC_RC_SUCCESS;
-	uns8 space[1024];
-	NCSMEM_AID ma;
-
-	/* Log the Function Entry */
-
-	/* set the NCSMIB_ARG */
-	memset(&io_mib_arg, 0, sizeof(NCSMIB_ARG));
-	ncsmib_init(&io_mib_arg);
-
-	/* Fill in the NCSMIB_ARG */
-	io_mib_arg.i_op = i_req_type;
-	io_mib_arg.i_tbl_id = i_table_id;
-	io_mib_arg.i_rsp_fnc = NULL;
-	if (i_inst_len == 0) {
-		io_mib_arg.i_idx.i_inst_ids = NULL;
-	} else {
-		io_mib_arg.i_idx.i_inst_ids = i_inst;
-	}
-	io_mib_arg.i_idx.i_inst_len = i_inst_len;
-
-	/* Log the data */
-
-	/* set the param details based on the type of the request */
-	switch (i_req_type) {
-	case NCSMIB_OP_REQ_GET:
-		/* 
-		 * Log the data *
-		 * m_NCS_DBG_PRINTF("Table id: %d, Param ID: %d\n", i_table_id, i_param_id);
-		 */
-		io_mib_arg.req.info.get_req.i_param_id = i_param_id;
-		break;
-	case NCSMIB_OP_REQ_NEXT:
-		/* log the request type and the param id */
-		io_mib_arg.req.info.next_req.i_param_id = i_param_id;
-		break;
-	case NCSMIB_OP_REQ_SET:
-	case NCSMIB_OP_REQ_TEST:
-		/* log the request type and data */
-		/* update the param */
-		mainmib_mab_mib_param_fill(&io_mib_arg.req.info.set_req.i_param_val,
-					   i_param_id, i_param_type, i_set_val, i_set_val_len);
-		break;
-	default:
-		/* log the error */
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* send the request to MAB */
-	/* Fill in the Key  */
-	io_mib_arg.i_mib_key = i_mib_key;
-	io_mib_arg.i_usr_key = i_mib_key;
-
-	memset(space, 0, sizeof(space));
-
-	/* call the MAB function prototype */
-	ncsmem_aid_init(&ma, space, 1024);
-	m_NCS_DBG_PRINTF("Sending the following request ...\n");
-	ncsmib_pp(&io_mib_arg);
-
-	if (send_to_masv == 1) {
-		status = ncsmib_sync_request(&io_mib_arg, ncsmac_mib_request, i_time_val, &ma);
-	}
-
-	if (status != NCSCC_RC_SUCCESS) {
-		/* Log the error */
-		printf("Wrapper:ncsmib_sync_request() failed with error %d\n", status);
-	} else {
-		/* Sent the request to MAB, and here is the response */
-		ncsmib_pp(&io_mib_arg);
-	}
-
-	/* Log the function exit */
-	return status;
-}
-
-static uns32
-mainmib_mab_mib_param_fill(NCSMIB_PARAM_VAL *io_param_val,
-			   NCSMIB_PARAM_ID i_param_id, NCSMIB_FMAT_ID i_fmat_id, void *i_set_val, uns32 i_set_val_len)
-{
-	uns32 status = NCSCC_RC_SUCCESS;
-
-	if (io_param_val == NULL) {
-		/* log the error */
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* update the param id */
-	io_param_val->i_param_id = i_param_id;
-	/* Log the parameter ID */
-
-	/* update the format id */
-	io_param_val->i_fmat_id = i_fmat_id;
-	/* Log the Format ID */
-
-	/* update the length */
-	io_param_val->i_length = (uns16)i_set_val_len;
-	/* Log the Length */
-
-	/* update the value */
-	switch (io_param_val->i_fmat_id) {
-		/* add all the other formats like OID, COUNTER64   */
-	case NCSMIB_FMAT_INT:
-		io_param_val->info.i_int = *((uns32 *)(i_set_val));
-		/* Log the data */
-		break;
-
-	case NCSMIB_FMAT_OCT:
-		io_param_val->info.i_oct = (uns8 *)(i_set_val);
-		/* Log the data */
-		break;
-
-	default:
-		/* printf("jsmib_mab_mib_param_fill(): Invalid param type\n"); */
-		/* Log the error */
-		status = NCSCC_RC_FAILURE;
-		break;
-	}
-
-	return status;
-}
-
-static uns32 mainindex_extract_from_token(char *word, uns32 *instance_ids, uns32 *instance_id_len)
-{
-	uns32 *len_place_holder = NULL;
-	if (word != NULL) {
-		switch (*word) {
-		case '@':
-			word++;
-			len_place_holder = instance_ids;
-			instance_ids++;
-			*len_place_holder = 0;
-			(*instance_id_len)++;
-			while (*word) {
-				(*len_place_holder)++;
-				*instance_ids++ = (uns32)*word++;
-				(*instance_id_len)++;
-			}
-			break;
-
-		case '#':
-			word++;
-			*instance_ids++ = (uns32)atoi(word);
-			(*instance_id_len)++;
-			break;
-
-		default:
-			printf("Invalid type in the index...\n");
-			return NCSCC_RC_FAILURE;
-		}
-	}
-	return NCSCC_RC_SUCCESS;
-}
-
-static uns32 mainget_the_index(char *const i_inst_str, uns32 *instance_ids, uns32 *instance_id_len)
-{
-	char *word = NULL;
-	char tmp_var[256];
-	uns32 status = NCSCC_RC_SUCCESS;
-
-	strcpy(tmp_var, i_inst_str);
-	word = strtok(tmp_var, " ");
-	do {
-		status = mainindex_extract_from_token(word, &instance_ids[*instance_id_len], instance_id_len);
-		if (status != NCSCC_RC_SUCCESS) {
-			break;
-		}
-	}
-	while ((word = strtok(NULL, " ")) != NULL);
-
-	return status;
-}
-
-static void mainsnmpset_help_print(void)
-{
-	printf("Give proper arguments...\n");
-	printf(" =================================================================================\n");
-	printf("|SNMPSET Usage...                                                                 |\n");
-	printf("|'snmpset(table-id, param-id,param_type (1 - int, 2 - oct), \n");
-	printf("          setvalue, val_len,\"[index(in quotes)]\")) |\n");
-	printf("|For Scalar Objects, do not give the index parameter                              |\n");
-	printf("|For Eg, Integer indices shall be given as " "#1234" "                              |\n");
-	printf("|For Eg, String and Integer indices shall be given as " "@hello #1234 @hello" "     |\n");
-	printf(" =================================================================================\n");
-	return;
-}
-#endif
 
 /***************************************************************************
 
@@ -1130,9 +720,6 @@ static uns32 mainget_svc_enable_info(char **pargv, uns32 *pargc, FILE *fp)
 
 	return (NCSCC_RC_SUCCESS);
 }
-
-#if (NCS_MAC == 1)
-#endif
 
 #if (NCS_AVND == 1)
 static void main_avnd_usr1_signal_hdlr(int signal)

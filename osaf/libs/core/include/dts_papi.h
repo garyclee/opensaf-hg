@@ -42,7 +42,6 @@
 
 #include "ncs_svd.h"
 #include "ncs_ubaid.h"
-#include "ncs_mtbl.h"
 #include "ncssysf_def.h"
 #include "ncs_lib.h"
 #include "ncssysf_def.h"
@@ -241,6 +240,5 @@ typedef struct ncs_dtsv_reg_canned_str {
  ***************************************************************************/
 EXTERN_C DTSDLL_API uns32 ncs_dtsv_ascii_spec_api(NCS_DTSV_REG_CANNED_STR *arg);
 EXTERN_C DTSDLL_API uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
-EXTERN_C DTSDLL_API uns32 dts_pssv_register(uns32 psr_hdl);
 
 #endif   /* DTS_PAPI_H */

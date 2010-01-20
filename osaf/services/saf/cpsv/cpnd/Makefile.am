@@ -25,9 +25,7 @@ pkglib_PROGRAMS = ncs_cpnd
 ncs_cpnd_CPPFLAGS = \
 	-DNCS_CPND=1 -DNCS_CPSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/cpsv/include
 
 ncs_cpnd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \

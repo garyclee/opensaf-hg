@@ -25,7 +25,6 @@ pkglib_LTLIBRARIES = libedsv_common.la
 libedsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include
 
 libedsv_common_la_SOURCES = \

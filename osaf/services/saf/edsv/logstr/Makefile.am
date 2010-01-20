@@ -24,9 +24,7 @@ libedsv_logstr_la_CPPFLAGS = \
 	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_builddir)/osaf/snmp/mapi/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 libedsv_logstr_la_SOURCES = \
 	eds_logstr.c \

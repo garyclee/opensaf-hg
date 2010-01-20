@@ -999,7 +999,6 @@ uns32 ntfa_mds_init(ntfa_cb_t *cb)
     /** Create the ADEST for NTFA and get the pwe hdl**/
 	memset(&ada_info, '\0', sizeof(ada_info));
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;	/* For now */
 
 	if (NCSCC_RC_SUCCESS != (rc = ncsada_api(&ada_info))) {
 		TRACE("NCSADA_GET_HDLS failed, rc = %d", rc);

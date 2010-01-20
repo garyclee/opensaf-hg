@@ -23,8 +23,7 @@ pkglib_LTLIBRARIES = libdts_logstr.la
 libdts_logstr_la_CPPFLAGS = \
 	-DDTS_LOG=1 -DDTA_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
 libdts_logstr_la_SOURCES = \
 	dts_logstr.c

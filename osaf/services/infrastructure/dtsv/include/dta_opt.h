@@ -49,7 +49,7 @@
  **********
  * This flag enables logging in all DTA subcomponents. To actually
  * enable Logging behavior, not only must this flag be turned on, but
- * each DTA subcomponent (MAC, MAS or OAC) must be enabled along the
+ * each DTA subcomponent must be enabled along the
  * logging dimensions desired.
  */
 

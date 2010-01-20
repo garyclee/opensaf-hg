@@ -26,7 +26,6 @@ ncs_cpd_CPPFLAGS = \
 	-DNCS_CPD=1 -DNCS_CPSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 ncs_cpd_SOURCES = \

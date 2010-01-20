@@ -89,12 +89,8 @@ const NCSFL_STR hcd_fwerr_set[] = {
 	{HCD_SE_FWERR_TIPC_INIT_FAILED, "NCS[TIPC] Initialization Failed"},
 	{HCD_SE_FWERR_IFSD_INIT_FAILED, "NCS[IFSD] Initialization Failed"},
 	{HCD_SE_FWERR_DTSV_INIT_FAILED, "NCS[DTSV] Initialization Failed"},
-	{HCD_SE_FWERR_MASV_INIT_FAILED, "NCS[MASV] Initialization Failed"},
-	{HCD_SE_FWERR_PSSV_INIT_FAILED, "NCS[PSSV] Initialization Failed"},
 	{HCD_SE_FWERR_GLND_INIT_FAILED, "NCS[GLND] Initialization Failed"},
 	{HCD_SE_FWERR_EDSV_INIT_FAILED, "NCS[EDSV] Initialization Failed"},
-	{HCD_SE_FWERR_SUBAGT_INIT_FAILED, "NCS[SUBAGT] Initialization Failed"},
-	{HCD_SE_FWERR_SNMPD_INIT_FAILED, "NCS[SNMPD] Initialization Failed"},
 	{HCD_SE_FWERR_NCS_INIT_FAILED, "NCS Initialization Failed"},
 	{HCD_SE_FWERR_UNKNOWN_EVT_FAILED, "NCS Initialization Unknown Error"},
 

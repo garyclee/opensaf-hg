@@ -62,7 +62,6 @@ uns32 dta_get_ada_hdl(void)
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 
 	if (ncsada_api(&ada_info) != NCSCC_RC_SUCCESS) {
 		return m_DTA_DBG_SINK(NCSCC_RC_FAILURE, "dta_get_ada_hdl: DTA get ADEST handle failed.");

@@ -416,7 +416,7 @@ uns32 eds_remove_worklist_entry(EDS_CB *cb, uns32 chan_id)
 	while (wp) {
 		if (wp->chan_id == chan_id) {	/* Found the one we want? */
 			/*This functionality is there here before the Bugfix:61494 - 
-			   Now unlinked channels will be deleted from the mib database */
+			   Now unlinked channels will be deleted from the database */
 			/*  eds_remove_cname_rec(cb,wp); */	/* remove the entry from the channel name database */
 
 			if (wp->prev == NULL) {	/* Removing 1st element */
@@ -506,7 +506,6 @@ static NCS_BOOL is_active_channel(EDS_WORKLIST *wp, uns32 chan_name_len, uns8 *c
  * eds_add_cname_rec() - Inserts a channelname record into the cname list .
  *
  * Every channel entry has a entry in the channel name tree. 
- * This channel name list will be used for the MIB snmp walk  
  *
  ***************************************************************************/
 static uns32 eds_add_cname_rec(EDS_CB *cb, EDS_WORKLIST *wp, uns8 *chan_name, uns16 chan_name_len)
@@ -583,11 +582,10 @@ eds_add_chan_open_rec(EDS_WORKLIST *wp, uns32 reg_id, uns32 chan_id, MDS_DEST de
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Update Channel Table MIB object */
 	/* NOTE: Currently incrementing users per channel open instance */
 	wp->chan_row.num_users += 1;
 
-	/* Update other MIB objects */
+	/* Update other objects */
 	if (open_flags & SA_EVT_CHANNEL_PUBLISHER)
 		wp->chan_row.num_publishers += 1;
 
@@ -1301,8 +1299,8 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		memcpy(wp->cname, chan_name, chan_name_len);
 		*(wp->cname + chan_name_len) = '\0';
 
-		/* Update MIB - channel Table objects with default values & creation time stamp */
-		EDS_INIT_MIB_CHAN_TBL(wp, chan_create_time);
+		/* Update - channel Table objects with default values & creation time stamp */
+		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
 		/* Create an IMM runtime object */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -1430,8 +1428,8 @@ eds_channel_open(EDS_CB *cb, uns32 reg_id, uns32 flags,
 		else
 			wp->chan_id = prevp->chan_id + 1;	/* New ID is previous entry +1 */
 
-		/* Update MIB channel Table object */
-		EDS_INIT_MIB_CHAN_TBL(wp, chan_create_time);
+		/* initialize channels with default values */
+		EDS_INIT_CHAN_RTINFO(wp, chan_create_time);
 
 /* Create an IMM runtime object */
 		if (cb->ha_state == SA_AMF_HA_ACTIVE) {
@@ -1536,7 +1534,6 @@ uns32 eds_channel_close(EDS_CB *cb, uns32 reg_id, uns32 chan_id, uns32 chan_open
 		subrec = next;
 	}
 
-	/* Update MIB objects */
 	wp->chan_row.num_users -= 1;
 
 	/* Remove the CHAN_OPEN_REC from the worklist */

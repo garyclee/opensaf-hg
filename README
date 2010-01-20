@@ -236,7 +236,6 @@ Source Tree Structure
       +-tools/                      (Misc `OpenSAF' tools)
       | +-cluster_sim_uml/
       | +-pdrbd/
-      | +-smidump/
 
 
 Prerequisites
@@ -287,7 +286,6 @@ steps before trying to `configure' (i.e. bootsrapping).
 
 By default `OpenSAF' will assume to following `configure' options:
 
-    --enable-smidump
     --enable-hpi
     --with-openhpi
     --disable-java
@@ -310,10 +308,6 @@ Use one of the following forms to disable an option:
 
 The `--with-<mumble>' option forms are used for external package support and
 the `--enable-<mumble>' option forms are used for internal component state.
-
-By using `./configure --disable-smidump', you are disabling initial building
-of the customized `smidump' tool contained in the source tree. By default
-the customized `smidump' tool will be built.
 
 By using `./configure --enable-hpi', you are enabling global HPI support and
 one HPI implementation is enabled by default (for now OpenHPI). By default
@@ -355,10 +349,6 @@ autodetection.
 By using `./configure --disable-rpm-target', you are masking out the `make rpm'
 target, some build systems provide their own `make rpm` rule, it would then be
 clashing with the OpenSAF rule.
-
-By using `./configure --with-default-mibdirs', you inform the build system where
-to find the SNMP MIBS on your system. Some distro provide a broken
-`net-snmp-config --default-mibdirs' value, force it with this option.
 
 By using `./configure --with-net-snmp-config-bin', you inform the build system
 where to find the `net-snmp-config' script. It's not possible to autodetect the

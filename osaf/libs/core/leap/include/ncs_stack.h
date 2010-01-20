@@ -51,17 +51,6 @@
 
 #define SE_ALIGNMENT_MARKER 0xFFFF
 
-/***************************************************************************
- * Compiler hint that there is such a structure in the world..
- ***************************************************************************/
-
-struct ncsmib_arg;		/* this allows function prototypes below to fly */
-
-/***************************************************************************
- * Compiler hint that there are such function prototypes in the world...
- ***************************************************************************/
-
-typedef uns32 (*NCSMIB_FNC) (struct ncsmib_arg * req);
 
 /***************************************************************************
 
@@ -92,54 +81,6 @@ typedef struct ncs_se_backto {
 
 } NCS_SE_BACKTO;
 
-/***************************************************************************
- * MIB Sync : Used by NetPlane MIB services to preserve MIB request sync info
- ***************************************************************************/
-
-typedef struct ncs_se_mib_sync {
-	NCS_SE se;		/* All NCS_STACK Stack Elements start with this */
-
-	struct ncsmib_arg *stack_arg;	/* synchronous version uses NCSMIB_ARG* on stack */
-	void *stack_sem;	/* We create/store a LEAP semaphor on the stack */
-	NCSMIB_FNC usr_rsp_fnc;	/* store the response function for later use    */
-	NCSMEM_AID *maid;	/* passed (stack) space holder for later allocs */
-
-} NCS_SE_MIB_SYNC;
-
-/***************************************************************************
- * MIB Timed : Used by NetPlane MIB services to preserve MIB request timed info
- ***************************************************************************/
-
-typedef struct ncs_se_mib_timed {
-	NCS_SE se;		/* All NCS_STACK Stack Elements start with this  */
-
-	uns32 tm_xch_id;	/* transaction manager exchange id              */
-
-} NCS_SE_MIB_TIMED;
-
-/***************************************************************************
- * MIB Orig : Used by NetPlane MIB services to preserve info about the 
- *            original sender of the MIB request 
- ***************************************************************************/
-
-typedef struct ncs_se_mib_orig {
-	NCS_SE se;		/* All NCS_STACK Stack Elements start with this  */
-
-	uns64 usr_key;		/* Original user key pointer                    */
-	NCSMIB_FNC usr_rsp_fnc;	/* Original user response function              */
-
-} NCS_SE_MIB_ORIG;
-
-/***************************************************************************
- * Forward to PSR : Used by NetPlane OAC to determine which OAC should
- *                  forward SET Requests to the PSR
- ***************************************************************************/
-
-typedef struct ncs_se_forward_to_psr {
-	NCS_SE se;		/* All NCS_STACK Stack Elements start with this  */
-
-	NCS_BOOL flag;		/* If TRUE, forward to PSR                      */
-} NCS_SE_FORWARD_TO_PSR;
 
 /***************************************************************************
  *

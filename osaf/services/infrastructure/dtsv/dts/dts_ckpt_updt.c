@@ -423,6 +423,9 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				} else {
 					/*async update for new svc_reg, so initialize node param */
 					node_reg_ptr->per_node_logging = NODE_LOGGING;
+					/*node_reg_ptr->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
+					node_reg_ptr->row_exist = FALSE;
+					node_reg_ptr->num_svcs  = svcreg->num_svcs; */
 
 					/* Copy attributes of node policy & op device */
 					node_reg_ptr->svc_policy.enable = NODE_ENABLE;

@@ -51,7 +51,6 @@ uns32 pdrbd_get_ada_hdl(void)
 	memset(&ada_info, 0, sizeof(ada_info));
 
 	ada_info.req = NCSADA_GET_HDLS;
-	ada_info.info.adest_get_hdls.i_create_oac = FALSE;
 
 	if (ncsada_api(&ada_info) != NCSCC_RC_SUCCESS) {
 		m_LOG_PDRBD_MISC(PDRBD_MISC_GET_ADEST_HDL_FAILED, NCSFL_SEV_ERROR, NULL);

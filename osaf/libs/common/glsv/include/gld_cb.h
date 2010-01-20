@@ -21,14 +21,6 @@
 #include "gld_tmr.h"
 #include "saImmOi.h"
 
-#define m_GLSV_UNS64_TO_PARAM(param,buffer,val64) \
-{\
-   param->i_fmat_id = NCSMIB_FMAT_OCT; \
-   param->i_length = 8; \
-   param->info.i_oct = (uns8 *)buffer; \
-   m_NCS_OS_HTONLL_P(param->info.i_oct,val64); \
-}
-
 /* typedef enums */
 typedef enum {
 	GLD_RESOURCE_NOT_INITIALISED = 0,
@@ -55,7 +47,6 @@ typedef struct glsv_gld_rsc_info_tag {
 	struct glsv_gld_rsc_info_tag *next;	/* List of resources                         */
 	struct glsv_gld_rsc_info_tag *prev;
 
-	/* MIB variables */
 	SaTimeT saf_rsc_creation_time;
 	uns32 saf_rsc_no_of_users;
 	uns32 saf_rsc_stripped_cnt;

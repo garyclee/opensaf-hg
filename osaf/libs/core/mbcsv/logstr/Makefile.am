@@ -23,8 +23,7 @@ pkglib_LTLIBRARIES = libmbcsv_logstr.la
 libmbcsv_logstr_la_CPPFLAGS = \
 	-DNCS_MBCSV=1 -DMBCSV_DEBUG=1 -DMBCSV_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/core/mbcsv/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/core/mbcsv/include
 
 libmbcsv_logstr_la_SOURCES = \
 	mbcsv_logstr.c

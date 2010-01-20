@@ -270,18 +270,6 @@ struct ncs_sar_ctrl_info_tag;
 #define m_MMGR_ALLOC_EDP_NCSFLOAT32 m_NCS_MEM_ALLOC(sizeof(ncsfloat32),\
             NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0)
 
-/* for the SNMP-subagent trap varbind data structure */
-#define m_MMGR_NCS_TRAP_VARBIND_ALLOC\
-    (NCS_TRAP_VARBIND*)m_NCS_MEM_ALLOC(sizeof(NCS_TRAP_VARBIND), \
-                                         NCS_MEM_REGION_PERSISTENT,\
-                                         NCS_SERVICE_ID_OS_SVCS, \
-                                         0)
-
-#define m_MMGR_NCS_TRAP_VARBIND_FREE(p) m_NCS_MEM_FREE(p, \
-                                         NCS_MEM_REGION_PERSISTENT,\
-                                         NCS_SERVICE_ID_OS_SVCS, \
-                                         0)
-
 /*
  * m_LEAP_FAILURE
  *

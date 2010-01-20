@@ -494,7 +494,6 @@ uns32 gld_mds_vdest_create(GLSV_GLD_CB *cb)
 	arg.info.vdest_create.i_persistent = FALSE;
 	arg.info.vdest_create.i_policy = NCS_VDEST_TYPE_DEFAULT;
 	arg.info.vdest_create.i_create_type = NCSVDA_VDEST_CREATE_SPECIFIC;
-	arg.info.vdest_create.i_create_oac = TRUE;
 	arg.info.vdest_create.info.specified.i_vdest = cb->my_dest_id;
 
 	seed = rand();

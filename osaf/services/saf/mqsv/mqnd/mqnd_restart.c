@@ -281,7 +281,7 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 	SaTimeT presentTime, timeout = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	/* Add the queue to the MQND queue node, queue name DB and MIB LIB */
+	/* Add the queue to the MQND queue node, queue name DB */
 	if (1) {
 		MQND_QNAME_NODE *pnode = 0;
 		uns32 counter = 0;
@@ -289,10 +289,10 @@ static uns32 mqnd_restart_queue_node_add(MQND_CB *cb, MQND_QUEUE_NODE *qnode)
 		/* Add the queue into qnode DB */
 		mqnd_queue_node_add(cb, qnode);
 
-		/* For unlinked queues, don't add it to MIB and name DB */
+		/* For unlinked queues, don't add it to name DB */
 		if (!(qnode->qinfo.sendingState == MSG_QUEUE_UNAVAILABLE)) {
 
-			/* IF not unlinked, add it to name DB and MIB */
+			/* IF not unlinked, add it to name DB */
 			pnode = m_MMGR_ALLOC_MQND_QNAME_NODE;
 
 			if (!pnode)

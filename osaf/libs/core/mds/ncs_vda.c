@@ -34,7 +34,6 @@
 #include "mds_core.h"
 #include "mda_pvt_api.h"
 #include "mda_mem.h"
-#include "oac_papi.h"
 #include "ncs_mda_papi.h"
 
 static MDS_CLIENT_MSG_FORMAT_VER
@@ -172,15 +171,6 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		vda_info->info.vdest_create.o_mds_vdest_hdl =
 		    (MDS_HDL)vda_info->info.vdest_create.info.specified.i_vdest;
 
-		/* STEP : Finally an SPRR lookup if OAC handle is also required */
-		if (vda_info->info.vdest_create.i_create_oac) {
-			spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-
-			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			}
-			vda_info->info.vdest_create.o_pwe1_oac_hdl = spir_req.info.lookup_create_inst.o_handle;
-		}
 		return vda_info->o_result = NCSCC_RC_SUCCESS;
 
 	case NCSVDA_VDEST_CHG_ROLE:
@@ -221,36 +211,8 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		return vda_info->o_result = NCSCC_RC_SUCCESS;
 
 	case NCSVDA_VDEST_DESTROY:
-		/* STEP : If there is an OAA for this PWE, then destroy it */
 		memset(&spir_req, 0, sizeof(spir_req));
 		spir_req.i_environment_id = 1;
-		spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-		spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-
-		if (vda_info->info.vdest_destroy.i_create_type == NCSVDA_VDEST_CREATE_SPECIFIC) {
-			/* Check if the VDEST is in allowed range */
-			if (m_MDS_GET_VDEST_ID_FROM_MDS_DEST(vda_info->info.vdest_destroy.i_vdest)
-			    > NCSVDA_UNNAMED_MAX) {
-				return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			}
-
-			m_MDS_FIXED_VDEST_TO_INST_NAME(m_MDS_GET_VDEST_ID_FROM_MDS_DEST
-						       (vda_info->info.vdest_destroy.i_vdest),
-						       &spir_req.i_instance_name);
-		} else {
-			spir_req.i_instance_name = vda_info->info.vdest_destroy.i_name;
-		}
-
-		if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
-			spir_req.type = NCS_SPIR_REQ_REL_INST;
-			spir_req.info.rel_inst = 0;	/* Dummy unsued value */
-			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			}
-
-			return vda_info->o_result = NCSCC_RC_SUCCESS;
-		}
-
 		/* Release the handle to that PWE */
 		/* NOTE : Some of the SPIR fields already set above */
 		spir_req.i_sp_abstract_name = m_MDS_SP_ABST_NAME;
@@ -262,8 +224,6 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		return vda_info->o_result = NCSCC_RC_SUCCESS;
 
 	case NCSVDA_PWE_CREATE:
-
-		/*  Creating a PWE2 on VDEST with OAC service on it is Failing */
 
 		/* First create pwe on give VDEST with LOOKUP_CREATE query */
 		memset(&spir_req, 0, sizeof(spir_req));
@@ -280,39 +240,14 @@ uns32 ncsvda_api(NCSVDA_INFO *vda_info)
 		}
 		vda_info->info.pwe_create.o_mds_pwe_hdl = spir_req.info.lookup_create_inst.o_handle;
 
-		/* First create Instantiate OAC on give PWE with LOOKUP_CREATE query */
-		if (vda_info->info.pwe_create.i_create_oac) {
-			spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-
-			if (ncs_spir_api(&spir_req) != NCSCC_RC_SUCCESS) {
-				return vda_info->o_result = m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-			}
-			vda_info->info.pwe_create.o_pwe_oac_hdl = spir_req.info.lookup_create_inst.o_handle;
-		} else {
-			vda_info->info.pwe_create.o_pwe_oac_hdl = 0;
-		}
-
 		return vda_info->o_result = NCSCC_RC_SUCCESS;
 
 	case NCSVDA_PWE_DESTROY:
-		/* STEP : If there is an OAA for this PWE, then destroy it */
 		/* NOTE: The PWE-ID from PWE-handle is done a little
 		   bit differently from that in NCSVDA_PWE_DESTROY
 		 */
 		memset(&spir_req, 0, sizeof(spir_req));
 		spir_req.i_environment_id = m_MDS_GET_PWE_ID_FROM_PWE_HDL(vda_info->info.pwe_destroy.i_mds_pwe_hdl);
-		spir_req.i_sp_abstract_name = m_OAA_SP_ABST_NAME;
-		spir_req.type = NCS_SPIR_REQ_LOOKUP_INST;
-
-		m_MDS_FIXED_VDEST_TO_INST_NAME(m_MDS_GET_VDEST_ID_FROM_PWE_HDL
-					       (vda_info->info.pwe_destroy.i_mds_pwe_hdl), &spir_req.i_instance_name);
-
-		if (ncs_spir_api(&spir_req) == NCSCC_RC_SUCCESS) {
-			spir_req.type = NCS_SPIR_REQ_REL_INST;
-			spir_req.info.rel_inst = 0;	/* Dummy unsued value */
-			ncs_spir_api(&spir_req);	/* We discard the return value */
-		}
-
 		/* Release the handle to that PWE */
 
 		/* NOTE : Some of the SPIR fields already set above */
