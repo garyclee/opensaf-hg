@@ -301,6 +301,7 @@ NCSFL_FMAT dts_fmat_set[] = {
 	{DTS_LID_FLOW_UP, "TLL",
 	 "DTS %s CONGESTION EVENT HIT. INFO & DEBUG severity logs will be dropped for NODE: 0x%08lx & Process Id: %ld\n\n"},
 	{DTS_LID_FLOW_DOWN, "TLL", "DTS %s CONGESTION EVENT CLEARED. NODE: 0x%08lx Process Id: %ld\n\n"},
+	{DTS_LID_GENLOG, NCSFL_TYPE_TC, "%s %s\n"},
 	{0, 0, 0}
 };
 

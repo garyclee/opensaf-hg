@@ -229,4 +229,20 @@ void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc)
 			   NCSFL_LC_MISC, NCSFL_SEV_DEBUG, "TIC", id, str);
 }
 
+
+
+
+void _dts_log(uns8 severity, const char *function, const char *format, ...)
+{
+        char preamble[128];
+        char str[128];
+        va_list ap;
+
+        va_start(ap, format);
+        snprintf(preamble, sizeof(preamble), "%s - %s", function, format);
+        vsnprintf(str, sizeof(str), preamble, ap);
+        va_end(ap);
+
+        ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_GENLOG, DTS_FC_GENLOG, NCSFL_LC_HEADLINE, severity, NCSFL_TYPE_TC, str);
+}
 #endif   /* (DTS_LOG == 1) */

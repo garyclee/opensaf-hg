@@ -257,9 +257,6 @@ EXTERN_C uns32 dta_fill_reg_msg(DTSV_MSG *msg, SS_SVC_ID svc_id, const uns16 ver
 
   D i s t r i b u t e d    T r a c i n g    A g e n t    L o c k s
 
- The DTA locks follow the lead of the master MIB Access Broker setting
- to determine what type of lock to implement.
-
 *************************************************************************/
 
 #if (NCSDTA_USE_LOCK_TYPE == DTA_NO_LOCKS)	/* NO Locks */

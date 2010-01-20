@@ -47,7 +47,6 @@
 #include "subagt.h"
 
 #include "avsv_subagt_init.h"
-#include "dtsv_subagt_init.h"
 #include "avm_subagt_init.h"
 #include "rda_papi.h"
 

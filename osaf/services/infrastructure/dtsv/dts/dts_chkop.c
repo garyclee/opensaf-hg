@@ -39,6 +39,8 @@
  */
 
 #include "dts.h"
+#include "dts_imm.h"
+
 static uns32 dtsv_mbcsv_callback(NCS_MBCSV_CB_ARG *arg);
 static uns32 dtsv_mbcsv_process_enc_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
 static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg);
@@ -72,6 +74,7 @@ extern const DTSV_DECODE_CKPT_DATA_FUNC_PTR dtsv_dec_ckpt_data_func_list[DTSV_CK
 uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 {
 	SaAmfHAStateT prev_haState = cb->ha_state;
+	SaAisErrorT error = SA_AIS_OK;
 
 	/*
 	 * Validate the role. In case of illegal role setting raise an error.
@@ -105,6 +108,12 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 	 */
 	if ((prev_haState == SA_AMF_HA_ACTIVE) && (haState == SA_AMF_HA_QUIESCED)) {
 		m_DTS_DBG_SINK(NCSCC_RC_SUCCESS, "dts_role_change: DTS going ACTIVE --> QUIESCED");
+
+		/* Give up our IMM OI implementer role */
+		error = dts_saImmOiImplementerClear(cb->immOiHandle);
+		if (error != SA_AIS_OK) {
+			m_DTS_DBG_SINK(NCSFL_SEV_ERROR, "saImmOiImplementerClear failed");
+		}
 
 		/* Change MDS VDEST */
 		if (dts_mds_change_role(cb, haState) != NCSCC_RC_SUCCESS) {
@@ -181,6 +190,19 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		   m_LOG_DTS_API(DTS_FAIL_OVER_FAILED);
 		   return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_role_change: DTS fail-over failed");
 		   } */
+		if (prev_haState == SA_AMF_HA_QUIESCED)
+			 dts_imm_declare_implementer(cb);
+
+		if (prev_haState == SA_AMF_HA_STANDBY) {
+			dts_imm_declare_implementer(cb);
+
+			/* get default global configuration from global scalar object */
+			dts_configure_global_policy(); /* order must be followed for these three calls */
+			/* Loads all NodeLogPolicy objects from IMMSv */
+			dts_read_log_policies("OpenSAFDtsvNodeLogPolicy");
+			/* Loads all ServiceLogPolicy objects from IMMSv */
+			dts_read_log_policies("OpenSAFDtsvServiceLogPolicy");
+		}
 
 		/* Once it becomes active, it IS in-sync with itself */
 		cb->in_sync = TRUE;
@@ -510,8 +532,8 @@ static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 */
 				if (TRUE == cb->cold_sync_in_progress) {
 					if (NCSCC_RC_SUCCESS != dtsv_validate_reo_type_in_csync(cb,
-												arg->info.decode.
-												i_reo_type)) {
+												arg->info.
+												decode.i_reo_type)) {
 						/* Free userbuff and return without decoding */
 						ncs_reset_uba(&arg->info.decode.i_uba);
 						break;
@@ -558,8 +580,7 @@ static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			}
 
 			if ((NCS_MBCSV_MSG_COLD_SYNC_RESP_COMPLETE == arg->info.decode.i_msg_type) &&
-			    (NCSCC_RC_SUCCESS == status))
-			{
+			    (NCSCC_RC_SUCCESS == status)) {
 				cb->in_sync = TRUE;
 				cb->cold_sync_in_progress = FALSE;
 				m_LOG_DTS_CHKOP(DTS_CSYNC_DEC_COMPLETE);
@@ -770,8 +791,6 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
-	/* Smik - Here CB hdl is required supplying oac_hdl from DTS CB */
-	mbcsv_arg.info.open.i_client_hdl = cb->oac_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_mbcsv_open_ckpt: MBCSV Open operation failed");

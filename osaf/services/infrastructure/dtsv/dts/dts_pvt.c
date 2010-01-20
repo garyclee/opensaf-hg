@@ -48,9 +48,20 @@
 #include <configmake.h>
 
 #include "dts.h"
+#include "dts_imm.h"
+#include <poll.h>
+
+#define FD_USR1 0
+#define FD_AMF 0
+#define FD_MBCSV 1
+#define FD_MBX 2
+#define FD_IMM 3
+
+static nfds_t nfds = 3;
 
 #define m_DTS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_dts_comp_name"
 
+static struct pollfd fds[4];
 static uns32 dts_stby_initialize(DTS_CB *cb);
 
 /*****************************************************************************
@@ -71,112 +82,85 @@ static uns32 dts_stby_initialize(DTS_CB *cb);
 *****************************************************************************/
 
 /*****************************************************************************
-   dts_do_evts
+  dts_do_evts
 *****************************************************************************/
 void dts_do_evts(SYSF_MBX *mbx)
 {
 	uns32 status;
-	/*fd_set          readfds; */
-	NCS_SEL_OBJ_SET readfds;
-	NCS_SEL_OBJ numfds, mbx_fd, ncs_amf_sel_obj, ncs_mbcsv_sel_obj;
+	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT saf_status = SA_AIS_OK;
-	int count;
 
-	ncs_amf_sel_obj.raise_obj = 0;
-	ncs_amf_sel_obj.rmv_obj = 0;
-	ncs_mbcsv_sel_obj.raise_obj = 0;
-	ncs_mbcsv_sel_obj.rmv_obj = 0;
+	mbx_fd = ncs_ipc_get_sel_obj(mbx);
 
-	/*numfds = dts_cb.numfds;
-	   readfds = dts_cb.readfds; */
+	fds[FD_MBX].fd = mbx_fd.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+	fds[FD_USR1].fd = dts_cb.sighdlr_sel_obj.rmv_obj;
+	fds[FD_USR1].events = POLLIN;
+	fds[FD_MBCSV].fd = dts_cb.mbcsv_sel_obj;
+	fds[FD_MBCSV].events = POLLIN;
 
 	while (1) {
-		/* re-intialize the FDs and count */
-		numfds.raise_obj = 0;
-		numfds.rmv_obj = 0;
-		m_NCS_SEL_OBJ_ZERO(&readfds);
 
-		mbx_fd = m_NCS_IPC_GET_SEL_OBJ(mbx);
-		m_NCS_SEL_OBJ_SET(mbx_fd, &readfds);
-		numfds = m_GET_HIGHER_SEL_OBJ(mbx_fd, numfds);
+		/* wait for the requests indefinitely */
+		int ret = poll(fds, nfds, -1);
 
-		if (dts_cb.dts_amf_sel_obj != 0) {
-			m_SET_FD_IN_SEL_OBJ((uns32)dts_cb.dts_amf_sel_obj, ncs_amf_sel_obj);
-			m_NCS_SEL_OBJ_SET(ncs_amf_sel_obj, &readfds);
-			numfds = m_GET_HIGHER_SEL_OBJ(ncs_amf_sel_obj, numfds);
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "poll failed");
 		}
 
-		/* Add signal hdlr selection obj to readfds */
-		if (dts_cb.sighdlr_sel_obj.rmv_obj != 0) {
-			m_NCS_SEL_OBJ_SET(dts_cb.sighdlr_sel_obj, &readfds);
-			numfds = m_GET_HIGHER_SEL_OBJ(dts_cb.sighdlr_sel_obj, numfds);
+		/* MBCSv FD is selected */
+		if (fds[FD_MBCSV].revents & POLLIN) {
+			status = dtsv_mbcsv_dispatch(&dts_cb, SA_DISPATCH_ALL);
+			if (status != NCSCC_RC_SUCCESS)
+				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: Error received");
 		}
 
-		/* Add mbcsv selection obj to readfds */
-		if (dts_cb.mbcsv_sel_obj != 0) {
-			m_SET_FD_IN_SEL_OBJ((uns32)dts_cb.mbcsv_sel_obj, ncs_mbcsv_sel_obj);
-			m_NCS_SEL_OBJ_SET(ncs_mbcsv_sel_obj, &readfds);
-			numfds = m_GET_HIGHER_SEL_OBJ(ncs_mbcsv_sel_obj, numfds);
-		}
-
-		/*dts_cb.numfds = numfds;
-		   dts_cb.readfds = readfds; */
-
-		/* wait for the requests indefinately */
-		count = m_NCS_SEL_OBJ_SELECT(numfds, &readfds, NULL, NULL, NULL);
-		if (count > 0) {
-			/* MBCSv FD is selected */
-			if (m_NCS_SEL_OBJ_ISSET(ncs_mbcsv_sel_obj, &readfds)) {
-				status = dtsv_mbcsv_dispatch(&dts_cb, SA_DISPATCH_ALL);
-				if (status != NCSCC_RC_SUCCESS)
-					m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: Error received");
-
-				m_NCS_SEL_OBJ_CLR(ncs_mbcsv_sel_obj, &readfds);
-			}
-
-			/* AMF FD is selected */
-			if (m_NCS_SEL_OBJ_ISSET(ncs_amf_sel_obj, &readfds)) {
-				/* process the event from AMF */
+		/* AMF FD is selected */
+		if (fds[FD_AMF].revents & POLLIN) {
+			/* Initialize, get selection object and register with AMF */
+			if (dts_cb.amf_hdl != 0) {
 				saf_status = saAmfDispatch(dts_cb.amf_hdl, SA_DISPATCH_ALL);
 				if (saf_status != SA_AIS_OK) {
+					printf("saAmfDispatch failed \n");
 					/* log the error  */
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: AMF Dispatch failing");
+				} else
+					printf(" saAmfDispatch successful \n");
+			} else {
+				status = dts_amf_register(&dts_cb);
+				if (status == NCSCC_RC_SUCCESS) {
+					printf("AMF registration success\n");
+					fds[FD_AMF].fd = dts_cb.dts_amf_sel_obj;
+				} else {
+					printf("AMF registration failed \n");
+					exit(1);
 				}
-
-				/* clear the bit off for this fd */
-				m_NCS_SEL_OBJ_CLR(ncs_amf_sel_obj, &readfds);
-			}
-
-			/* request from AMF is serviced */
-			/* Signal handler FD is selected */
-			if (m_NCS_SEL_OBJ_ISSET(dts_cb.sighdlr_sel_obj, &readfds)) {
-				m_LOG_DTS_API(DTS_AMF_UP_SIG);
-				status = dts_handle_signal();
-				if (status != NCSCC_RC_SUCCESS)
-					m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: Error received");
-				m_NCS_SEL_OBJ_RMV_IND(dts_cb.sighdlr_sel_obj, TRUE, TRUE);
-				m_NCS_SEL_OBJ_CLR(dts_cb.sighdlr_sel_obj, &readfds);
-			}
-
-			/* Process the messages on the Mail box */
-			if (m_NCS_SEL_OBJ_ISSET(mbx_fd, &readfds)) {
-				/* process native requests of MASv */
-				status = dts_do_evt((DTSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, NULL));
-				if (status != NCSCC_RC_SUCCESS) {
-					/*m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-					   "dts_do_evts: Error received....debug!!"); */
-				}
-				m_NCS_SEL_OBJ_CLR(mbx_fd, &readfds);
-			}
-
-			readfds = dts_cb.readfds;
-			numfds = dts_cb.numfds;
-		} /*end of if */
-		else {
-			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: select failed");
+			}	/* Else amf_hdl!=0 */
 		}
+		/* Process the messages on the Mail box */
+		if (fds[FD_MBX].revents & POLLIN) {
+			/* process native requests of MASv */
+			status = dts_do_evt((DTSV_MSG *)m_NCS_IPC_NON_BLK_RECEIVE(mbx, NULL));
+			if (status != NCSCC_RC_SUCCESS) {
+				/*m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
+				   "dts_do_evts: Error received....debug!!"); */
+			}
+		}
+
+		if (fds[FD_IMM].revents & POLLIN) {
+			/* dispatch all the IMMSv pending callbacks */
+			saf_status = saImmOiDispatch(dts_cb.immOiHandle, SA_DISPATCH_ONE);
+			if (saf_status == SA_AIS_ERR_BAD_HANDLE) {
+				nfds = FD_IMM;
+				dts_cb.imm_init_done = FALSE;
+				m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "IMMSv Dispatch failed");
+				break;
+			}
+		}
+
 	}			/*end of while */
-	return;
 }
 
 /*****************************************************************************
@@ -212,10 +196,6 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 
 		case DTSV_DUMP_SEQ_MSGS:
 			rc = dts_dump_seq_msg(inst, FALSE);
-			break;
-			/*Smik - handle AMF up */
-		case DTS_AMF_COMPONENTIZE:
-			rc = dts_amf_register(inst);
 			break;
 
 			/* Added a case for handling msg_type DTS_QUIESCED_CMPLT.
@@ -286,17 +266,11 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 			break;
 
 		}
-	} /*end of if */
-	else {
-		switch (msg->msg_type) {
-		case DTS_AMF_COMPONENTIZE:
-			rc = dts_amf_register(inst);
-			break;
-
-		default:
-			break;
-		}
-	}			/*end of else */
+	}
+	if ((SA_AMF_HA_ACTIVE == inst->ha_state) || (SA_AMF_HA_STANDBY == inst->ha_state)) {
+		if (msg->msg_type == DTS_IMMND_EVT_RCV)
+			rc = dts_handle_immnd_event(msg);
+	}
 
 	if (0 != msg) {
 		if ((rc != NCSCC_RC_SUCCESS) && (msg->msg_type == DTA_LOG_DATA))
@@ -307,38 +281,6 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 	}
 
 	return rc;
-}
-
-/**************************************************************************\
- Function: dts_handle_signal
-
- Purpose:  Function used for handling the signal frm AMF being up. 
-
- Input:    None.
-
- Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
-
- Notes:  
-\**************************************************************************/
-uns32 dts_handle_signal(void)
-{
-	DTSV_MSG *msg = NULL;
-
-	msg = m_MMGR_ALLOC_DTSV_MSG;
-
-	if (msg == NULL)
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_signal: Failed to allocate memory for DTSV_MSG");
-
-	memset(msg, 0, sizeof(DTSV_MSG));
-	msg->msg_type = DTS_AMF_COMPONENTIZE;
-
-	/* Post this message to DTS mailbox */
-	if (m_DTS_SND_MSG(&gl_dts_mbx, msg, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
-		if (0 != msg)
-			m_MMGR_FREE_DTSV_MSG(msg);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_signal:IPC send failed");
-	}
-	return NCSCC_RC_SUCCESS;
 }
 
 /**************************************************************************\
@@ -384,6 +326,31 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 }
 
 /**************************************************************************\
+ Function: dts_reg_with_imm
+
+ Purpose:  Function used for handling the DTA up down events received
+           from MDS.
+
+ Input:    msg : Event message received from the MDS.
+
+ Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
+
+ Notes:  
+\**************************************************************************/
+void dts_reg_with_imm(DTS_CB *inst)
+{
+	SaAisErrorT error = SA_AIS_OK;
+
+	dts_imm_declare_implementer(inst);
+	/* get default global configuration from global scalar object */
+	dts_configure_global_policy(); /* order must be followed for these calls */
+	/* loads all the NodeLogPolicy objects from IMMSv */
+	dts_read_log_policies("OpenSAFDtsvNodeLogPolicy");
+	/* loads all the ServiceLogPolicy objects from IMMSv */
+	dts_read_log_policies("OpenSAFDtsvServiceLogPolicy");
+}
+
+/**************************************************************************\
  Function: dts_register_service
 
  Purpose:  Function used for registering the service with the DTS. Function 
@@ -398,6 +365,7 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 \**************************************************************************/
 uns32 dts_register_service(DTSV_MSG *msg)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
 	DTS_SVC_REG_TBL *svc, *node_reg;
@@ -442,12 +410,9 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		node_reg->node.key_info = (uns8 *)&node_reg->ntwk_key;
 
 		node_reg->per_node_logging = NODE_LOGGING;
-		node_reg->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
 		node_reg->my_node = node_reg;
 
-		/* Set the node policy to default and add the node into the patricia tree */
 		dts_default_node_policy_set(&node_reg->svc_policy, &node_reg->device, key.node);
-
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)node_reg) != NCSCC_RC_SUCCESS) {
 			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
 			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
@@ -592,16 +557,11 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		dts_add_svc_to_dta(to_reg, svc);
 		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
 
-		svc->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
-		svc->row_exist = FALSE;
-
 		/* newly created service, set all the policies to default 
 		 * then add new entry to the patricia tree */
 		svc->per_node_logging = NCS_SNMP_FALSE;
 		/*svc->num_svcs         = 0; */
-
 		dts_default_svc_policy_set(svc);
-
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
 			m_LOG_DTS_EVT(DTS_EV_SVC_REG_ENT_ADD_FAIL, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
 			m_LOG_DTS_EVT(DTS_EV_SVC_REG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
@@ -714,13 +674,11 @@ uns32 dts_register_service(DTSV_MSG *msg)
 
 	m_DTS_UNLK(&inst->lock);
 	m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
-
 	if (dts_mds_send_msg(msg, dta_key, inst->mds_hdl) != NCSCC_RC_SUCCESS) {
 		m_LOG_DTS_SVC_PRVDR(DTS_SP_MDS_SND_MSG_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: DTS: MDS send failed");
 	}
-	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)dta_key);
-
+/*	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)dta_key); */
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -739,6 +697,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 \**************************************************************************/
 uns32 dts_unregister_service(DTSV_MSG *msg)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
 	DTS_SVC_REG_TBL *node, *svc;
@@ -757,8 +716,7 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
 	m_LOG_DTS_EVT(DTS_EV_SVC_DE_REG_REQ_RCV, msg->data.data.reg.svc_id, msg->node, (uns32)msg->dest_addr);
 
-	if (((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl,
-							      (const uns8 *)&nt_key)) == NULL)
+	if (((node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key)) == NULL)
 	    || (node->dta_count == 0)) {
 		m_LOG_DTS_HEADLINE(DTS_HDLN_NULL_INST);
 		m_LOG_DTS_EVT(DTS_EV_SVC_DEREG_FAILED, key.ss_svc_id, key.node, (uns32)msg->dest_addr);
@@ -855,15 +813,13 @@ uns32 dts_unregister_service(DTSV_MSG *msg)
 
 	node->num_svcs--;
 
-	/* Close the open file and let the service log to a new file if 
-	 * the rowstatus is active
-	 */
+	/* Close the open file and let the service log to a new file */
 	node->device.new_file = TRUE;
 	node->device.cur_file_size = 0;
 
 	/* Check whether we still need this patricia entry. 
 	 * If no then delete it and free mem */
-	if ((node->dta_count == 0) && (node->row_exist == FALSE)) {
+	if (node->dta_count == 0) {
 		node->v_cd_list = NULL;
 		dts_circular_buffer_free(&dev->cir_buffer);
 		/* Cleanup the DTS_FILE_LIST datastructure for svc */
@@ -1069,21 +1025,13 @@ uns32 dts_log_data(DTSV_MSG *msg)
 		if (node->my_node == NULL) {
 			m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 			return NCSCC_RC_FAILURE;
-		}
-		/* 
-		 * Check whether the row status is set to active. If it is active then 
-		 * use user configured policies, else log using default policies.
-		 */
-		else if ((node->my_node->row_status == NCSMIB_ROWSTATUS_ACTIVE)
-			 && (node->my_node->per_node_logging == NCS_SNMP_TRUE)) {
+		} else if (node->my_node->per_node_logging == NCS_SNMP_TRUE) {
 			/* 
 			 * If per node logging is set then log the per node log file, 
 			 * else use per service log file for logging.
 			 */
 			rc = dtsv_log_msg(msg, &node->my_node->svc_policy, &node->my_node->device, PER_NODE_FILE, spec);
 
-		} else if (node->row_status == NCSMIB_ROWSTATUS_ACTIVE) {
-			rc = dtsv_log_msg(msg, &node->svc_policy, &node->device, PER_SVC_FILE, spec);
 		} else {
 			/* 
 			 * If per node logging is set then log the per node log file.
@@ -1278,6 +1226,7 @@ NCS_BOOL dts_find_reg(void *key, void *qelem)
 uns32 gl_severity_filter = GLOBAL_SEVERITY_FILTER;
 void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	/* Set Default Node Policies */
 
 	dflt_plcy->node_dflt.per_node_logging = NODE_LOGGING;
@@ -1320,6 +1269,7 @@ void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy)
 \**************************************************************************/
 void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	gpolicy->global_logging = GLOBAL_LOGGING;
 
 	gpolicy->g_policy.enable = GLOBAL_ENABLE;
@@ -1358,7 +1308,7 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 
  Purpose:  This Function is used for setting the default policies of the 
            node which are just registered with the DTS and also if the 
-           user creates the new row in the table.
+           user creates the new imm object.
 
  Input:    npolicy  : Node policy table.
            device   : Node logging device.
@@ -1370,6 +1320,7 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 \**************************************************************************/
 void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_id)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
 	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
@@ -1408,7 +1359,7 @@ void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_
 
  Purpose:  This Function is used for setting the default policies of the 
            services which are just registered with the DTS and also if the 
-           user creates the new row in the table.
+           user creates the new imm object.
 
  Input:    spolicy  : Service policy table.
            device   : Service logging device.
@@ -1421,24 +1372,23 @@ void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_
 \**************************************************************************/
 void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	POLICY *spolicy = &service->svc_policy;
 	OP_DEVICE *device = &service->device;
 	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
 	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
-	/* Service filter policy would take from node filter if node 
-	 *            rowstatus is Active. otherwise it'll take frm global filter 
-	 */
-	if ((service->my_node != NULL) && (service->my_node->row_status == NCSMIB_ROWSTATUS_ACTIVE)) {
+	/* Service filter policy would take from node filter if node */
+	if (service->my_node != NULL) {
 		spolicy->enable = service->my_node->svc_policy.enable;
 		spolicy->category_bit_map = service->my_node->svc_policy.category_bit_map;
 		spolicy->severity_bit_map = service->my_node->svc_policy.severity_bit_map;
+
 	} else {
 		spolicy->enable = dts_cb.g_policy.g_policy.enable;
 		spolicy->category_bit_map = global_cat_filter;
 		spolicy->severity_bit_map = global_sev_filter;
 	}
-
 	spolicy->log_dev = SVC_LOG_DEV;
 	spolicy->log_file_size = SVC_LOGFILE_SIZE;
 	device->new_file = TRUE;
@@ -1564,6 +1514,7 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 \**************************************************************************/
 uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	DTSV_MSG msg;
 	if (dta == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_send_filter_config_msg: NULL pointer passed");
@@ -1584,6 +1535,7 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LI
 	msg.data.data.msg_fltr.severity_bit_map = svc->svc_policy.severity_bit_map;
 	/* No need of policy handles */
 	/*msg.data.data.msg_fltr.policy_hdl = svc->svc_hdl; */
+	printf("enable_log = %d, category_bit_map = %d, severity_bit_map = %d\n", msg.data.data.msg_fltr.enable_log, msg.data.data.msg_fltr.category_bit_map, msg.data.data.msg_fltr.severity_bit_map);
 
 	if (dts_mds_send_msg(&msg, dta->dta_addr, inst->mds_hdl) != NCSCC_RC_SUCCESS)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_send_filter_config_msg: MDS send message failed.");
@@ -1756,6 +1708,7 @@ uns32 dts_close_files_quiesced(void)
 \**************************************************************************/
 uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_SVC_REG_TBL *parent_node;
 	SVC_KEY nt_key;
 	/* 
@@ -1768,13 +1721,12 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 	memset(*node, '\0', sizeof(DTS_SVC_REG_TBL));
 	(*node)->my_key.node = node_id;
 	(*node)->my_key.ss_svc_id = svc_id;
-	/*  Network order key added */
+	/* Network order key added */
 	(*node)->ntwk_key.node = m_NCS_OS_HTONL(node_id);
 	(*node)->ntwk_key.ss_svc_id = m_NCS_OS_HTONL(svc_id);
 	(*node)->node.key_info = (uns8 *)&(*node)->ntwk_key;
 
 	(*node)->per_node_logging = log_level;
-	(*node)->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
 	/* 
 	 * If service id is 0 it meand it is a node entry.
 	 */
@@ -1796,7 +1748,6 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 		/* For service entry create a vcard queue. */
 		/*ncs_create_queue(&(*node)->v_cd_list); */
 		(*node)->v_cd_list = NULL;
-
 		dts_default_svc_policy_set((*node));
 	}
 
@@ -1862,25 +1813,11 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
 			nt_key = node->ntwk_key;
 
 			device = &node->device;
-			/*Check whether row status is set to Active. if it is active, then
-			 * initialize as per user configured policy, else initialize using
-			 * default policies */
-			if (node->row_status == NCSMIB_ROWSTATUS_ACTIVE) {
-				policy = &node->svc_policy;
-				if ((node->per_node_logging == NCS_SNMP_TRUE) && (key.ss_svc_id == 0)) {
-					m_DTS_STBY_INIT(policy, device, PER_NODE_FILE);
-				} else if (key.ss_svc_id != 0) {
-					m_DTS_STBY_INIT(policy, device, PER_SVC_FILE);
-				}
-			} /*end of Rowstatus active */
-			else {
-				if ((cb->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_TRUE) && (key.ss_svc_id == 0)) {
-					policy = &cb->dflt_plcy.node_dflt.policy;
-					m_DTS_STBY_INIT(policy, device, PER_NODE_FILE);
-				} else if (key.ss_svc_id != 0) {
-					policy = &cb->dflt_plcy.svc_dflt.policy;
-					m_DTS_STBY_INIT(policy, device, PER_SVC_FILE);
-				}	/*end of else per_node_logging = TRUE */
+			policy = &node->svc_policy;
+			if ((node->per_node_logging == NCS_SNMP_TRUE) && (key.ss_svc_id == 0)) {
+				m_DTS_STBY_INIT(policy, device, PER_NODE_FILE);
+			} else if (key.ss_svc_id != 0) {
+				m_DTS_STBY_INIT(policy, device, PER_SVC_FILE);
 			}
 			/* Go to the next node(not service) in the tree */
 			/*  Network order key added */
@@ -2045,6 +1982,7 @@ void dts_enqueue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 \**************************************************************************/
 void dts_add_svc_to_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc)
 {
+	printf("-------  %s  --------\n", __FUNCTION__);
 	SVC_ENTRY *dta_svc_entry, *tmp;
 
 	if (svc != NULL) {
@@ -2557,8 +2495,7 @@ void dts_print_svc_reg_pat(DTS_CB *cb, FILE *fp)
 
 		fprintf(fp, "\nKey: {Node=%d, Svc_ID=%d}", svc->my_key.node, svc->my_key.ss_svc_id);
 		fprintf(fp, "\nNetwork-order Key: {Node=%u, Svc_ID=%u}", svc->ntwk_key.node, svc->ntwk_key.ss_svc_id);
-		fprintf(fp, "\nPer_node_logging: %d, RowStatus: %d, Row Exists: %d", svc->per_node_logging,
-			svc->row_status, svc->row_exist);
+		fprintf(fp, "\nPer_node_logging: %d", svc->per_node_logging);
 
 		fprintf(fp, "\nPolicy info:\n------------------");
 		fprintf(fp,
@@ -2736,8 +2673,7 @@ void dts_print_reg_tbl_dbg(void)
 
 		printf("\nKey: {Node=%d, Svc_ID=%d}", svc->my_key.node, svc->my_key.ss_svc_id);
 		printf("\nNetwork-order Key: {Node=%d, Svc_ID=%d}", svc->ntwk_key.node, svc->ntwk_key.ss_svc_id);
-		printf("\nPer_node_logging: %d, RowStatus: %d, Row Exists: %d", svc->per_node_logging, svc->row_status,
-		       svc->row_exist);
+		printf("\nPer_node_logging: %d", svc->per_node_logging);
 
 		printf("\nPolicy info:\n------------------");
 		printf
@@ -2905,8 +2841,7 @@ void dts_printall_svc_per_node(uns32 node_id)
 		printf("\n------------------");
 
 		printf("\nKey: {Node=%d, Svc_ID=%d}", svc->my_key.node, svc->my_key.ss_svc_id);
-		printf("\nPer_node_logging: %d, RowStatus: %d, Row Exists: %d", svc->per_node_logging, svc->row_status,
-		       svc->row_exist);
+		printf("\nPer_node_logging: %d", svc->per_node_logging);
 
 		printf("\nPolicy info:\n------------------");
 		printf
@@ -2958,4 +2893,56 @@ void dts_printall_svc_per_node(uns32 node_id)
 
 	m_DTS_UNLK(&cb->lock);
 	return;
+}
+
+/**************************************************************************\
+ Function: dts_handle_immnd_event
+
+ Purpose:  Function used for handling the DTA up down events received
+           from MDS.
+
+ Input:    msg : Event message received from the MDS.
+
+ Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
+
+ Notes:  
+\**************************************************************************/
+uns32 dts_handle_immnd_event(DTSV_MSG *msg)
+{
+	SaAisErrorT error = SA_AIS_OK;
+	DTS_CB *inst = &dts_cb;
+
+	m_DTS_LK(&inst->lock);
+	m_LOG_DTS_LOCK(DTS_LK_LOCKED, &inst->lock);
+
+	m_LOG_DTS_SVC_PRVDR(DTS_SP_MDS_RCV_EVT);
+
+	switch (msg->data.data.evt.change) {	/* Review change type */
+	case NCSMDS_DOWN:
+		break;
+	case NCSMDS_UP:
+		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received IMMND up event for :", msg->node, (uns32)msg->dest_addr);
+		if (inst->imm_init_done == FALSE) {
+			if (dts_imm_initialize(inst) != SA_AIS_OK) {
+				printf("imm initialize failed\n");
+				exit(1);
+			}
+			if (inst->ha_state == SA_AMF_HA_ACTIVE) {
+				dts_reg_with_imm(inst);
+			}
+
+			fds[FD_IMM].fd = inst->imm_sel_obj;
+			fds[FD_IMM].events = POLLIN;
+			nfds = FD_IMM + 1;
+			inst->imm_init_done = TRUE;
+		}
+		break;
+
+	default:
+		break;
+	}			/* End Switch */
+	m_DTS_UNLK(&inst->lock);
+	m_LOG_DTS_LOCK(DTS_LK_UNLOCKED, &inst->lock);
+
+	return NCSCC_RC_SUCCESS;
 }

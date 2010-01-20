@@ -40,7 +40,6 @@ libncs_snmp_subagt_la_CPPFLAGS = \
 	-DNCS_EDA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_builddir)/osaf/snmp/subagt/services/avsv \
-	-I$(top_builddir)/osaf/snmp/subagt/services/dtsv \
 	-I$(top_builddir)/osaf/snmp/subagt/services/avsv/avm \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
@@ -63,5 +62,4 @@ libncs_snmp_subagt_la_LIBADD = \
 	@NETSNMP_LIBS@ \
 	$(top_builddir)/osaf/snmp/subagt/services/avsv/avm/libavm_subagt.la \
 	$(top_builddir)/osaf/snmp/subagt/services/avsv/libavsv_subagt.la \
-	$(top_builddir)/osaf/snmp/subagt/services/dtsv/libdtsv_subagt.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la

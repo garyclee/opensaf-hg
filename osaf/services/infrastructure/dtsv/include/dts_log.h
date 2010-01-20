@@ -255,7 +255,8 @@ typedef enum dts_flex_sets {
 	DTS_FC_EVT,
 	DTS_FC_CIRBUFF,
 	DTS_FC_STR,
-	DTS_FC_UPDT
+	DTS_FC_UPDT,
+	DTS_FC_GENLOG
 } DTS_FLEX_SETS;
 
 typedef enum dts_log_ids {
@@ -284,7 +285,8 @@ typedef enum dts_log_ids {
 	DTS_LID_WSYNC_ERR,
 	DTS_LID_ASYNC_UPDT,
 	DTS_LID_FLOW_UP,
-	DTS_LID_FLOW_DOWN
+	DTS_LID_FLOW_DOWN,
+	DTS_LID_GENLOG
 } DTS_LOG_IDS;
 
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -311,6 +313,9 @@ EXTERN_C void log_dts_cbop(uns8 op_id, SS_SVC_ID svc_id, uns32 node);
 EXTERN_C void log_dts_dbg(uns8 id, char *str, NODE_ID node, SS_SVC_ID svc);
 EXTERN_C void log_dts_dbg_name(uns8 id, char *str, uns32 svc_id, char *svc);
 EXTERN_C void log_dts_chkp_evt(uns8 id);
+
+#define dts_log(severity, format, args...) _dts_log((severity), __FUNCTION__, (format), ##args)
+void _dts_log(uns8 severity, const char *function, const char *format, ...);
 
 #define m_LOG_DTS_HEADLINE(id)             log_dts_headline (id    )
 #define m_LOG_DTS_SVC_PRVDR(id)            log_dts_svc_prvdr(id    )

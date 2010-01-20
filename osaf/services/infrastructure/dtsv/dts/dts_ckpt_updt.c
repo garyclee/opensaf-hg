@@ -36,6 +36,7 @@
  */
 
 #include "dts.h"
+#include "dts_imm.h"
 
 static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb);
 
@@ -305,7 +306,7 @@ uns32 dtsv_ckpt_add_rmv_updt_dta_dest(DTS_CB *cb, DTA_DEST_LIST *dtadest, NCS_MB
 							      (uns32)to_reg->dta_addr);
 
 					/* Check if svc entry is required or not */
-					if ((svc->dta_count == 0) && (svc->row_exist == FALSE)) {
+					if (svc->dta_count == 0) {
 						if (&svc->device.cir_buffer != NULL)
 							dts_circular_buffer_free(&svc->device.cir_buffer);
 						device = &svc->device;
@@ -422,9 +423,6 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				} else {
 					/*async update for new svc_reg, so initialize node param */
 					node_reg_ptr->per_node_logging = NODE_LOGGING;
-					node_reg_ptr->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
-					node_reg_ptr->row_exist = FALSE;
-					/*node_reg_ptr->num_svcs  = svcreg->num_svcs; */
 
 					/* Copy attributes of node policy & op device */
 					node_reg_ptr->svc_policy.enable = NODE_ENABLE;
@@ -569,41 +567,25 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 					if (cb->cli_bit_map != 0) {
 						while ((svc_ptr != NULL) && (svc_ptr->my_key.node == key.node)) {
 							switch (cb->cli_bit_map) {
-							case ncsDtsvNodeMessageLogging_ID:
+							case osafDtsvNodeMessageLogging_ID:
 								if (svcreg->per_node_logging == NCS_SNMP_FALSE)
 									svc_ptr->device.new_file = TRUE;
-								break;
-
-								/* In case of row-status activation only, propagate the
-								 * node level filters to corr svc filter policy 
-								 * settings. Logging policy would anyways be init 
-								 * on switch-over/fail-over. 
-								 */
-							case ncsDtsvNodeRowStatus_ID:
-								svc_ptr->svc_policy.category_bit_map =
-								    svcreg->svc_policy.category_bit_map;
-								svc_ptr->svc_policy.enable = svcreg->svc_policy.enable;
-								svc_ptr->svc_policy.severity_bit_map =
-								    svcreg->svc_policy.severity_bit_map;
 								break;
 
 								/* Change the filter policies only if the node update
 								 * is sent for an active rowstatus node entry 
 								 */
-							case ncsDtsvNodeCategoryBitMap_ID:
-								if (svcreg->row_status == NCSMIB_ROWSTATUS_ACTIVE)
+							case osafDtsvNodeCategoryBitMap_ID:
 									svc_ptr->svc_policy.category_bit_map =
 									    svcreg->svc_policy.category_bit_map;
 								break;
 
-							case ncsDtsvNodeLoggingState_ID:
-								if (svcreg->row_status == NCSMIB_ROWSTATUS_ACTIVE)
+							case osafDtsvNodeLoggingState_ID:
 									svc_ptr->svc_policy.enable =
 									    svcreg->svc_policy.enable;
 								break;
 
-							case ncsDtsvNodeSeverityBitMap_ID:
-								if (svcreg->row_status == NCSMIB_ROWSTATUS_ACTIVE)
+							case osafDtsvNodeSeverityBitMap_ID:
 									svc_ptr->svc_policy.severity_bit_map =
 									    svcreg->svc_policy.severity_bit_map;
 								break;
@@ -684,10 +666,7 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				 */
 				if (cb->svc_rmv_mds_dest == 0) {
 					/* RMV updt corresponding to row destroy op on Act */
-					if ((svc_ptr->dta_count == 0) &&
-					    ((svc_ptr->row_exist == FALSE)
-					     || (cb->cli_bit_map == ncsDtsvServiceRowStatus_ID)
-					     || (cb->cli_bit_map == ncsDtsvNodeRowStatus_ID))) {
+					if (svc_ptr->dta_count == 0) {
 						if (&svc_ptr->device.cir_buffer != NULL)
 							dts_circular_buffer_free(&svc_ptr->device.cir_buffer);
 						device = &svc_ptr->device;
@@ -771,8 +750,8 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 							if (to_reg->svc_list == NULL) {
 								/*ncs_destroy_queue(&to_reg->svc_list); */
 								ncs_patricia_tree_del(&cb->dta_list,
-										      (NCS_PATRICIA_NODE *)&to_reg->
-										      node);
+										      (NCS_PATRICIA_NODE *)
+										      &to_reg->node);
 								m_LOG_DTS_EVT(DTS_EV_DTA_DEST_RMV_SUCC, 0, key.node,
 									      (uns32)to_reg->dta_addr);
 								if (NULL != to_reg)
@@ -800,10 +779,10 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 					return NCSCC_RC_SUCCESS;
 				}
 
-				/* Delete svc entry when dta_count is zero & either row_exist is 
-				 * False. Rowstatus delete is already taken care of. 
+				/* Delete svc entry when dta_count is zero 
+				 * Rowstatus delete is already taken care of. 
 				 */
-				else if ((svc_ptr->dta_count == 0) && (svc_ptr->row_exist == FALSE)) {
+				else if (svc_ptr->dta_count == 0) {
 					/* No need of policy handles */
 					/* Now delete the svc entry from the patricia tree */
 					/*ncshm_destroy_hdl(NCS_SERVICE_ID_DTSV, svc_ptr->svc_hdl); 
@@ -984,12 +963,12 @@ uns32 dtsv_ckpt_add_rmv_updt_global_policy(DTS_CB *cb, GLOBAL_POLICY *gp, DTS_FI
 			   update the node/service policy with the changes */
 			if (cb->cli_bit_map != 0) {
 				switch (cb->cli_bit_map) {
-				case ncsDtsvGlobalMessageLogging_ID:
+				case osafDtsvGlobalMessageLogging_ID:
 					cb->g_policy.device.new_file = TRUE;
 					/*dts_circular_buffer_clear(&cb->g_policy.device.cir_buffer); */
-				case ncsDtsvGlobalCategoryBitMap_ID:
-				case ncsDtsvGlobalLoggingState_ID:
-				case ncsDtsvGlobalSeverityBitMap_ID:
+				case osafDtsvGlobalCategoryBitMap_ID:
+				case osafDtsvGlobalLoggingState_ID:
+				case osafDtsvGlobalSeverityBitMap_ID:
 					/* This case changes have to propagated to all svcs */
 					if (NCSCC_RC_SUCCESS != dts_stby_global_filtering_policy_change(cb)) {
 						m_DTS_UNLK(&cb->lock);
@@ -1054,13 +1033,13 @@ static uns32 dts_stby_global_filtering_policy_change(DTS_CB *cb)
 		nt_key.ss_svc_id = m_NCS_OS_HTONL(service->my_key.ss_svc_id);
 
 		/* Set the Node Policy as per the Global Policy */
-		if (cb->cli_bit_map == ncsDtsvGlobalLoggingState_ID)
+		if (cb->cli_bit_map == osafDtsvGlobalLoggingState_ID)
 			service->svc_policy.enable = cb->g_policy.g_policy.enable;
-		if (cb->cli_bit_map == ncsDtsvGlobalCategoryBitMap_ID)
+		if (cb->cli_bit_map == osafDtsvGlobalCategoryBitMap_ID)
 			service->svc_policy.category_bit_map = cb->g_policy.g_policy.category_bit_map;
-		if (cb->cli_bit_map == ncsDtsvGlobalSeverityBitMap_ID)
+		if (cb->cli_bit_map == osafDtsvGlobalSeverityBitMap_ID)
 			service->svc_policy.severity_bit_map = cb->g_policy.g_policy.severity_bit_map;
-		if (cb->cli_bit_map == ncsDtsvGlobalMessageLogging_ID) {
+		if (cb->cli_bit_map == osafDtsvGlobalMessageLogging_ID) {
 			service->device.new_file = TRUE;
 		}
 		service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)&nt_key);

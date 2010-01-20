@@ -37,7 +37,6 @@ noinst_HEADERS = \
 	dts_dl_api.h \
 	dts.h \
 	dts_log.h \
-	dts_mapi.h \
 	dts_mem.h \
 	dts_opt.h \
 	dts_pvt.h \
@@ -45,4 +44,6 @@ noinst_HEADERS = \
 	dtsvcli.h \
 	dtsv_mem.h \
 	dtsv_msg.h \
-	sysf_log.h
+	sysf_log.h \
+	dts_imm.h
+	

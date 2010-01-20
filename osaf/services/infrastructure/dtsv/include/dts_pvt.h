@@ -16,7 +16,7 @@
  */
 
 #include <configmake.h>
-
+#include "saImmOi.h"
 /*****************************************************************************
 ..............................................................................
 
@@ -60,9 +60,6 @@
 #define COMPRESSED_FORMAT    0x01
 #define EXPANDED_FORMAT      0x02
 
-#ifndef NCSDTSV_CLI_MIB_FETCH_TIMEOUT
-#define NCSDTSV_CLI_MIB_FETCH_TIMEOUT 600
-#endif
 
 #define  DTS_AMF_HEALTH_CHECK_KEY  "A9FD64E12C12"	/* Some randomely generated key */
 #define  DTS_NULL_HA_STATE         0
@@ -351,7 +348,7 @@ typedef struct global_policy {
    */
 	NCS_BOOL dflt_logging;	/* TRUE - Logging enabled by default, 
 				   FALSE - Logging Disabled by default */
-	/* Align datatype with NCS-DTSV-MIB object */
+	/* Align datatype with IMM  object */
 	uns32 g_num_log_files;	/*Number of old log files to be saved per service or per node */
 	/*Smik - Added for console printing */
 	uns8 g_num_cons_dev;	/*Max no. of console devices to be configured per service or per node */
@@ -390,7 +387,6 @@ typedef struct dts_svc_reg_tbl {
 	NCS_PATRICIA_NODE node;
 	NCS_BOOL per_node_logging;	/* Set to TRUE if Node Logging is used
 					   Set to FALSE if Service Logging is used */
-	uns32 row_status;
 
 	SVC_KEY my_key;		/* Key used for searching the element, Node ID + Service ID */
 
@@ -404,7 +400,6 @@ typedef struct dts_svc_reg_tbl {
 	uns32 dta_count;	/*No of dta_entries in v_cd_list */
 	POLICY svc_policy;	/* Service policy table */
 	OP_DEVICE device;
-	NCS_BOOL row_exist;
 	/*NCSFL_ASCII_SPEC        *my_spec; */
 	struct dts_svc_reg_tbl *my_node;
 	SPEC_ENTRY *spec_list;	/*Ptr to linked-list of ASCII_SPECs corres. to
@@ -473,7 +468,6 @@ typedef struct dts_cb {
 	char t_log_str[SYSF_FL_LOG_BUFF_SIZE];
 	char cb_log_str[SYSF_FL_LOG_BUFF_SIZE];
 
-	uns32 oac_hdl;
 	MDS_HDL mds_hdl;
 	NCSCONTEXT task_handle;
 
@@ -504,14 +498,6 @@ typedef struct dts_cb {
 	 * How do we get this information 
 	 */
 	SaAmfRecommendedRecoveryT recommendedRecovery;
-
-	/* Table Handles */
-	uns32 global_tbl_row_hdl;
-	uns32 node_tbl_row_hdl;
-	uns32 svc_tbl_row_hdl;
-	uns32 cirbuff_op_tbl_row_hdl;
-	/* Table handle for DTSv CLI command table */
-	uns32 cmd_op_tbl_row_hdl;
 
 	/* 
 	 * MBCSv related variables.
@@ -558,7 +544,7 @@ typedef struct dts_cb {
 	 * Quiesced complete ack frm dts_do_evt */
 	SaInvocationT csi_cb_invocation;
 
-	uns8 cli_bit_map;	/*Bit map to reflect change made in global
+	uns8 cli_bit_map;       /*Bit map to reflect change made in global
 				   policy or node policy through CLI */
 	MDS_DEST svc_rmv_mds_dest;	/*MDS_DEST corrsp to DTA from which 
 					   service unreg is received */
@@ -566,9 +552,12 @@ typedef struct dts_cb {
 	SPEC_CKPT last_spec_loaded;	/* Contains data to ckpt the details for last
 					   spec loaded for this service.
 					   Needed only for checkpointing. */
+	SaImmOiHandleT immOiHandle;     
+	SaSelectionObjectT imm_sel_obj;
 #if (DTS_FLOW == 1)
 	uns32 msg_count;
 #endif
+	NCS_BOOL imm_init_done;
 
 } DTS_CB;
 
@@ -889,7 +878,7 @@ EXTERN_C DTS_CB dts_cb;
    } \
 } \
 
-/* Define the Ranks for the persistent MIB tables */
+/* Define the Ranks for the persistent IMM Objects */
 typedef enum {
 	DTSV_TBL_RANK_MIN = 1,
 	DTSV_TBL_RANK_GLOBAL = DTSV_TBL_RANK_MIN,
@@ -915,6 +904,7 @@ DTSv Message Processing functions
 ************************************************************************/
 EXTERN_C uns32 dts_handle_signal(void);
 EXTERN_C uns32 dts_handle_dta_event(DTSV_MSG *msg);
+EXTERN_C uns32 dts_handle_immnd_event(DTSV_MSG *msg);
 EXTERN_C uns32 dts_register_service(DTSV_MSG *msg);
 EXTERN_C uns32 dts_unregister_service(DTSV_MSG *msg);
 EXTERN_C uns32 dts_log_data(DTSV_MSG *msg);
@@ -936,23 +926,6 @@ EXTERN_C uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, un
 EXTERN_C uns32
 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level);
 
-/***************************************************************************
- * DTSv defines for functions added for PSSv integration
- ***************************************************************************/
-EXTERN_C uns32 dts_mab_snd_warmboot_req(DTS_CB *cb);
-EXTERN_C uns32 dtsv_policy_set_oct(NCSMIB_ARG *arg, NCSCONTEXT data);
-EXTERN_C uns32 dtsv_node_extract_oct(NCSMIB_PARAM_VAL *param_val,
-				     NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 dtsv_node_policy_set_oct(DTS_CB *cb, NCSMIB_ARG *arg, POLICY *policy);
-EXTERN_C uns32 dtsv_svc_extract_oct(NCSMIB_PARAM_VAL *param_val,
-				    NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 dtsv_svc_policy_set_oct(DTS_CB *cb, NCSMIB_ARG *arg, POLICY *policy);
-EXTERN_C uns32 dtsv_global_extract_oct(NCSMIB_PARAM_VAL *param_val,
-				       NCSMIB_VAR_INFO *var_info, NCSCONTEXT data, NCSCONTEXT buffer);
-EXTERN_C uns32 dtsv_global_policy_set_oct(DTS_CB *cb, NCSMIB_ARG *arg, POLICY *policy);
-EXTERN_C uns32 ncsdtsvscalars_tbl_reg(void);
-EXTERN_C uns32 ncsdtsvnodelogpolicyentry_tbl_reg(void);
-EXTERN_C uns32 ncsdtsvservicelogpolicyentry_tbl_reg(void);
 
 /************************************************************************
 DTSv Circular buffer functions.
@@ -979,19 +952,6 @@ EXTERN_C uns32 dts_enable_sequencing(DTS_CB *inst);
 EXTERN_C uns32 dts_disable_sequencing(DTS_CB *inst);
 EXTERN_C uns32 dts_free_msg_content(NCSFL_NORMAL *msg);
 
-/************************************************************************
-MIB Requests Processing functions
-************************************************************************/
-EXTERN_C void dtsv_populate_global_policy_mibinfo(void);
-EXTERN_C void dtsv_populate_node_policy_mibinfo(void);
-EXTERN_C void dtsv_populate_svc_policy_mibinfo(void);
-EXTERN_C uns32 ncs_dtsv_mib_request(NCSMIB_ARG *mib_args);
-EXTERN_C uns32 dtsv_global_policy_table_register(void);
-EXTERN_C uns32 dtsv_node_policy_table_register(void);
-EXTERN_C uns32 dtsv_svc_policy_table_register(void);
-EXTERN_C uns32 dtsv_cirbuff_op_table_register(void);
-
-EXTERN_C uns32 dtsv_policy_tbl_req(NCSMIB_ARG *args);
 
 /************************************************************************
 Basic DTS Layer Management Service entry points off std LM API
@@ -1018,13 +978,6 @@ EXTERN_C void log_my_msg(NCSFL_NORMAL *lmsg, DTS_CB *inst);
 ******************************************************************************/
 EXTERN_C int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str);
 
-/*****************************************************************************
-MIB Registration and Request handling routines 
-*****************************************************************************/
-
-EXTERN_C uns32 dts_register_tables(DTS_CB *inst);
-EXTERN_C uns32 dts_unregister_tables(DTS_CB *inst);
-EXTERN_C uns32 dts_mib_request(struct ncsmib_arg *mib_args);
 
 /************************************************************************
 DTS fail over related 

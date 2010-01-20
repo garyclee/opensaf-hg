@@ -202,7 +202,6 @@ static uns32 dtsv_decode_ckpt_dts_svc_reg_tbl_config(DTS_CB *cb, NCS_MBCSV_CB_DE
 
 	return status;
 }
-
 /****************************************************************************\
  * Function: dtsv_decode_ckpt_dta_dest_list_config
  *
@@ -662,7 +661,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 	svc = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&cb->svc_tbl, (const uns8 *)NULL);
 	while (svc != NULL) {
 		nt_key = svc->ntwk_key;
-		if ((svc->dta_count == 0) && (svc->row_exist == FALSE) && (svc->my_key.ss_svc_id != 0)) {
+		if ((svc->dta_count == 0) && (svc->my_key.ss_svc_id != 0)) {
 			/* Remove the service entry now */
 			if (&svc->device.cir_buffer != NULL)
 				dts_circular_buffer_free(&svc->device.cir_buffer);

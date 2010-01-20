@@ -76,7 +76,6 @@ uns32 dts_mds_reg(DTS_CB *cb)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: Vdest creation failed");
 
 	/* store the info returned by MDS */
-	cb->oac_hdl = vda_info.info.vdest_create.o_pwe1_oac_hdl;
 	cb->mds_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
 	/* Smik - New additions */
 	cb->vaddr_pwe_hdl = vda_info.info.vdest_create.o_mds_pwe1_hdl;
@@ -123,7 +122,23 @@ uns32 dts_mds_reg(DTS_CB *cb)
 	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
 		cb->created = FALSE;
 		dts_mds_unreg(cb, TRUE);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: Event subscription failed!!");
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: DTA Event subscription failed!!");
+	}
+
+	/* DTS is subscribing for IMMMD MDS service */
+	memset(&svc_to_mds_info, 0, sizeof(NCSMDS_INFO));
+	svc_to_mds_info.i_mds_hdl = cb->mds_hdl;
+	svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_DTS;
+	svc_to_mds_info.i_op = MDS_SUBSCRIBE;
+	svc_to_mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
+	svc_to_mds_info.info.svc_subscribe.i_num_svcs = DTS_NUM_SVCS_TO_SUBSCRIBE;
+	svc_ids_array[0] = NCSMDS_SVC_ID_IMMND;
+	svc_to_mds_info.info.svc_subscribe.i_svc_ids = svc_ids_array;
+
+	if (ncsmds_api(&svc_to_mds_info) != NCSCC_RC_SUCCESS) {
+		cb->created = FALSE;
+		dts_mds_unreg(cb, TRUE);
+		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_mds_reg: IMMND Event subscription failed!!");
 	}
 
 	return NCSCC_RC_SUCCESS;
@@ -311,7 +326,7 @@ uns32 dts_mds_callback(NCSMDS_CALLBACK_INFO *cbinfo)
 		if (m_DTS_SND_MSG(&gl_dts_mbx, msg, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
 			if (0 != msg)
 				m_MMGR_FREE_DTSV_MSG(msg);
-			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_handle_signal:IPC send failed");
+			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "QUIESCED_COMPL MSG  IPC send failed");
 		}
 		break;
 
@@ -456,7 +471,11 @@ void dts_mds_evt(MDS_CALLBACK_SVC_EVENT_INFO svc_info, MDS_CLIENT_HDL yr_svc_hdl
 	}
 	memset(msg, '\0', sizeof(DTSV_MSG));
 
-	msg->msg_type = DTS_DTA_EVT_RCV;
+        if(svc_info.i_svc_id == NCSMDS_SVC_ID_IMMND)
+                msg->msg_type = DTS_IMMND_EVT_RCV;
+        else
+                msg->msg_type = DTS_DTA_EVT_RCV;
+
 	msg->node = svc_info.i_node_id;
 	msg->data.data.evt.change = svc_info.i_change;
 	msg->dest_addr = svc_info.i_dest;
@@ -567,7 +586,7 @@ void dts_set_dta_up_down(NODE_ID node_id, MDS_DEST adest, NCS_BOOL up_down)
 					m_LOG_DTS_EVT(DTS_EV_DTA_SVC_RMV, svc->my_key.ss_svc_id, svc->my_key.node,
 						      (uns32)(dta_ptr->dta_addr));
 
-					if ((svc->dta_count == 0) && (svc->row_exist == FALSE)) {
+					if (svc->dta_count == 0) {
 						dts_circular_buffer_free(&svc->device.cir_buffer);
 						dev = &svc->device;
 						/* Cleanup the DTS_FILE_LIST datastructure for svc */

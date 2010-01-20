@@ -55,12 +55,10 @@
 #include "ncs_ubaid.h"
 #include "ncsencdec.h"
 #include "ncs_stack.h"
-#include "ncs_mib.h"
 #include "ncs_mtbl.h"
 #include "ncs_log.h"
 #include "ncs_lib.h"
 #include "ncs_util.h"
-#include "ncsmiblib.h"
 
 #if (NCS_CLI == 1)
 #include "ncs_cli.h"
@@ -101,7 +99,6 @@
 #include "dts_papi.h"
 #include "dta_api.h"
 #include "dta_papi.h"
-#include "dts_mapi.h"
 #include "dts_log.h"
 #include "dts_api.h"
 #include "dts_mem.h"

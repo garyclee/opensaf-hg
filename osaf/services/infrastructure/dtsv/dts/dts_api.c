@@ -204,29 +204,6 @@ uns32 dts_svc_create(DTS_CREATE *create)
 
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MBCSv registration failed");
 	}
-
-	/* Register with OAC and MIB-LIB */
-	if (dts_register_tables(inst) != NCSCC_RC_SUCCESS) {
-		m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-		dtsv_mbcsv_deregister(inst);
-		dts_mds_unreg(inst, TRUE);
-		inst->created = FALSE;
-		ncs_patricia_tree_destroy(&inst->svc_tbl);
-		ncs_patricia_tree_destroy(&inst->dta_list);
-		ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-		ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
-
-		m_DTS_UNLK(&inst->lock);
-		m_DTS_LK_DLT(&inst->lock);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MIB table registration failed");
-	}
-
-	/* DTS PSSv integration changes -  Send playback request to PSR */
-	if (inst->ha_state == SA_AMF_HA_ACTIVE) {
-		if (dts_mab_snd_warmboot_req(inst) != NCSCC_RC_SUCCESS) {
-			m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Failed PSS playback");
-		}
-	}
 #ifdef __NCSINC_LINUX__
 	{
 		char *env_var;
@@ -240,7 +217,6 @@ uns32 dts_svc_create(DTS_CREATE *create)
 
 		if (dts_create_log_dir_path(inst->log_path) != NCSCC_RC_SUCCESS) {
 			m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-			dts_unregister_tables(inst);
 			dtsv_mbcsv_deregister(inst);
 			dts_mds_unreg(inst, TRUE);
 			inst->created = FALSE;
@@ -258,7 +234,7 @@ uns32 dts_svc_create(DTS_CREATE *create)
 #else
 	strcpy(inst->log_path, LOG_PATH);
 #endif
-
+	inst->imm_init_done = FALSE;
 	m_DTS_UNLK(&inst->lock);
 
 	return NCSCC_RC_SUCCESS;
@@ -367,11 +343,6 @@ uns32 dts_svc_destroy(DTS_DESTROY *destroy)
 	dtsv_clear_libname_tree(inst);
 	ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
 	ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-
-	/* Deregister MIB tables from OAC. */
-	retval = dts_unregister_tables(inst);
-	if (retval != NCSCC_RC_SUCCESS)
-		retval = m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_destroy: Failed to deregister MIB tables from OAC");
 
 	m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
 
