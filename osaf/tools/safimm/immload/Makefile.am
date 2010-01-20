@@ -18,6 +18,9 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+noinst_HEADERS = \
+	imm_loader.hh
+
 pkglib_PROGRAMS = immload
 
 immload_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
