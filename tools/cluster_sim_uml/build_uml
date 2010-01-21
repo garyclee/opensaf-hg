@@ -49,17 +49,6 @@ else
     lib_dir=lib
 fi
 
-# NETSNMP_PREFIX can be set in the environment to point to an
-# alternative installation directory. Set the variables to the directory above 
-# where the lib and bin directories are located. See the default setting below.
-if test -n "$NETSNMP_PREFIX"; then
-    netsnmp_prefix=$NETSNMP_PREFIX
-    netsnmp_lib=$netsnmp_prefix/$lib_dir
-else
-    netsnmp_prefix=`net-snmp-config --prefix`
-    netsnmp_lib=`net-snmp-config --libdir | sed 's/\-L//g'`
-fi
-
 opensaf_home=$(cd ../..; pwd)
 top=`pwd`
 bin=$top/bin
@@ -82,10 +71,11 @@ cmd_getlibs() {
 
 
 ##   install_testprog
-##     Building and installing the AMF demo program.
+##     Build and install the AMF demo program.
 ##     Use environment variable APPCONFIG to name the imm.xml to be used.
 ##     Default is "AppConfig-2N.xml"
-##     For example: APPCONFIG=AppConfig-nwayactive.xml ./build_uml install_testprog
+##     For example: 
+##        env APPCONFIG=AppConfig-nwayactive.xml ./build_uml install_testprog
 ##
 cmd_install_testprog() {
     src=$opensaf_home/samples/avsv
@@ -103,6 +93,7 @@ cmd_install_testprog() {
     $opensaf_home/tools/devel/immtools/immxml-merge \
 	$immxml.orig $src/$appconfig > $immxml
     $opensaf_home/tools/devel/immtools/immxml-validate $immxml
+    cmd_mkcpio
 }
 
 ##   create_rootfs
@@ -110,10 +101,6 @@ cmd_install_testprog() {
 ##
 cmd_create_rootfs()
 {
-    # Check that we can find everything needed
-    test -e $netsnmp_lib/libnetsnmp.so || \
-	die "cannot find net-snmp libraries in: $netsnmp_lib"
-
     echo "(Re-)Creating new root file system..."
     rm -rf $root
     mkdir $root
@@ -121,13 +108,13 @@ cmd_create_rootfs()
     cd $root
     echo "Setup dirs and links..."
     if test "$(uname -m)" = "x86_64"; then
-	mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin usr/share/snmp/mibs
-	mkdir -p etc/snmp etc/default etc/init.d
+	mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin
+	mkdir -p etc/default etc/init.d
 	ln -s lib64 usr/lib
 	ln -s lib64 lib
     else
-	mkdir -p sbin bin lib usr/lib usr/sbin usr/bin usr/share/snmp/mibs
-	mkdir -p etc/snmp etc/default etc/init.d
+	mkdir -p sbin bin lib usr/lib usr/sbin usr/bin
+	mkdir -p etc/default etc/init.d
     fi
 
     echo "Installing OpenSAF (takes some time)..."
@@ -144,18 +131,6 @@ cmd_create_rootfs()
 	$root/usr/local/lib/opensaf/*.la \
 	$root/usr/local/lib/*.a $root/usr/local/lib/*.la 
 
-
-    echo "Installing net-snmp files from: $netsnmp_prefix"
-    cp $netsnmp_lib/libnetsnmp*.so* $root/usr/$lib_dir
-    install $netsnmp_prefix/sbin/snmp* usr/sbin
-    install $netsnmp_prefix/bin/snmp* usr/bin
-    install $netsnmp_prefix/share/snmp/mibs/* usr/share/snmp/mibs
-    # Move the OpenSAF mibs to the standard location for simplicity
-    mv usr/local/share/snmp/mibs/* usr/share/snmp/mibs
-    # Required by e.g. the snmpd script
-    cp $archive/snmp*d.conf etc/snmp
-    
-    install -m 755 $archive/scripts/snmpd etc/init.d
     install -m 755 $archive/scripts/*.rc etc/init.d
     cp $scripts/profile etc
     mkdir -p root/www/cgi-bin
@@ -187,29 +162,29 @@ cmd_create_rootfs()
     # Create a dummy /etc/hosts file, will be populated at start
     touch $root/etc/hosts
 
-    if test -n "$INSTALL_TESTPROG"; then
-	echo "Building and installing test program"
-	cmd_install_testprog
-    fi
-
     echo "Installing required dynamic libs..."
     cmd_installibs
 
-    echo "Creating [$root/root.cpio] ..."
     cd $top
-    cmd_mkcpio
+    if test -n "$INSTALL_TESTPROG"; then
+	echo "Building and installing test program"
+	cmd_install_testprog
+    else
+	echo "Creating [$root/root.cpio] ..."
+	cmd_mkcpio
+    fi
 }
 
 ##   installibs
 ##     Install required dynamic libraries.
-##     net-snmp & opensaf dependencies are excluded.
+##     opensaf dependencies are excluded.
 ##
 cmd_installibs() {
     local deplib=$tmp/deplib
     cd $root
     cmd_getlibs \
 	$(find . -name immload) ./bin/* ./usr/bin/* ./usr/sbin/* |\
-	grep -v -e 'libSa\|libimmsv\|libncs\|libsaf\|netsnmp' \
+	grep -v -e 'libSa\|libimmsv\|libncs\|libsaf' \
 	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
 
     for n in $(cat $deplib | sort | uniq); do
