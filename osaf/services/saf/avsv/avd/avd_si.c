@@ -715,7 +715,8 @@ static void si_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		si_add_to_model(si);
 		break;
 	case CCBUTIL_DELETE:
-		avd_si_delete((AVD_SI **)&opdata->userData);
+		si = opdata->userData;
+		avd_si_delete(&si);
 		break;
 	case CCBUTIL_MODIFY:
 		si_ccb_apply_modify_hdlr(opdata);

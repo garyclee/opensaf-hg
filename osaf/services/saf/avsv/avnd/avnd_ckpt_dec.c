@@ -715,7 +715,7 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 	AVND_ASYNC_UPDT_CNT *updt_cnt;
 	AVND_ASYNC_UPDT_CNT dec_updt_cnt;
 	EDU_ERR ederror = 0;
-	uns8 logbuff[SA_MAX_NAME_LENGTH];
+	char logbuff[SA_MAX_NAME_LENGTH];
 
 	m_AVND_AVND_ENTRY_LOG("avnd_decode_warm_sync_rsp", NULL, 0, 0, 0, 0);
 
@@ -739,7 +739,7 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 updt_cnt->hlth_config_updt, updt_cnt->su_updt, updt_cnt->comp_updt, updt_cnt->su_si_updt,
 		 updt_cnt->siq_updt, updt_cnt->csi_updt, updt_cnt->comp_hlth_rec_updt, updt_cnt->comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG((uns8 *)&logbuff, NULL, 0, 0, 0, 0);
+	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
@@ -749,7 +749,7 @@ uns32 avnd_decode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_DEC *dec)
 		 cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt,
 		 cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG((uns8 *)&logbuff, NULL, 0, 0, 0, 0);
+	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	/*
 	 * Compare the update counts of the Standby with Active.

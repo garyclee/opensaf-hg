@@ -432,7 +432,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 
-	TRACE_ENTER2("(%u) (%u)", pres, su->pend_cbk.invocation);
+	TRACE_ENTER2("(%u) (%llu)", pres, su->pend_cbk.invocation);
 
 	switch (su->pend_cbk.admin_oper) {
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
@@ -464,7 +464,7 @@ static void su_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 		break;
 	}
 
-	TRACE_LEAVE2("(%u)", su->pend_cbk.invocation);
+	TRACE_LEAVE2("(%llu)", su->pend_cbk.invocation);
 }
 
 /**
@@ -478,7 +478,7 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 
-	TRACE_ENTER2("(%u) (%u)", pres, su->su_on_node->admin_node_pend_cbk.invocation);
+	TRACE_ENTER2("(%u) (%llu)", pres, su->su_on_node->admin_node_pend_cbk.invocation);
 
 	switch (su->su_on_node->admin_node_pend_cbk.admin_oper) {
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
@@ -530,7 +530,7 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 		break;
 	}
 
-	TRACE_LEAVE2("(%u)(%u)", su->su_on_node->admin_node_pend_cbk.invocation, su->su_on_node->su_cnt_admin_oper);
+	TRACE_LEAVE2("(%llu)(%u)", su->su_on_node->admin_node_pend_cbk.invocation, su->su_on_node->su_cnt_admin_oper);
 }
 
 /*****************************************************************************

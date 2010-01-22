@@ -361,7 +361,8 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		compcstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
-		avd_compcstype_delete((AVD_COMPCS_TYPE**)&opdata->userData);
+		cst = opdata->userData;
+		avd_compcstype_delete(&cst);
 		break;
 	default:
 		assert(0);

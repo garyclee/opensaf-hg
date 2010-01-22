@@ -26,31 +26,50 @@
 
 static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttrValuesT_2 **attributes)
 {
+	int rc = 0;
 	AVD_CSI_ATTR *csiattr = NULL, *tmp;
 	unsigned int values_number;
-
-	TRACE_ENTER2("'%s'", csiattr_name->value);
+	char *p1, *p2;
+	SaNameT dn = *csiattr_name;
+	int i;
+	const char *value;
+	
+	p2 = strchr((char*)dn.value, ',');
+	*p2 = '\0';
+	
+	p1 = strchr((char*)dn.value, '=');
+	p1++;
+	
+	if ((p2 - p1) > SA_MAX_NAME_LENGTH) {
+		rc = -1;
+		LOG_ER("CSI attr name too long (impl limit)");
+		goto done;
+	}
 
 	/* Handle multi value attributes */
-	if ((immutil_getAttrValuesNumber("saAmfCSIAttriValue", attributes, &values_number) == SA_AIS_OK) &&
-	    (values_number > 0)) {
-		int i;
-		const char *value;
-
+	if ((immutil_getAttrValuesNumber("saAmfCSIAttriValue", attributes,
+		&values_number) == SA_AIS_OK) && (values_number > 0)) {
+		
 		for (i = 0; i < values_number; i++) {
 			if ((tmp = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
+				rc = -1;
 				LOG_ER("calloc FAILED");
-				return NULL;
+				goto done;
 			}
 
-			memcpy(tmp->name_value.name.value, csiattr_name->value, csiattr_name->length);
-			tmp->name_value.name.length = csiattr_name->length;
 			tmp->attr_next = csiattr;
 			csiattr = tmp;
 
+			csiattr->name_value.name.length = p2 - p1;
+			memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
+
 			if ((value = immutil_getStringAttr(attributes, "saAmfCSIAttriValue", i)) != NULL) {
-				csiattr->name_value.name.length =
-				    sprintf((char *)csiattr->name_value.name.value, "%s", csiattr_name->value);
+				if (strlen(value) > SA_MAX_NAME_LENGTH) {
+					rc = -1;
+					LOG_ER("CSI attr value too long (impl limit)");
+					goto done;
+				}
+
 				csiattr->name_value.value.length =
 				    snprintf((char *)csiattr->name_value.value.value, SA_MAX_NAME_LENGTH, "%s", value);
 			} else {
@@ -58,31 +77,26 @@ static AVD_CSI_ATTR *csiattr_create(const SaNameT *csiattr_name, const SaImmAttr
 				csiattr->name_value.value.length = 0;
 			}
 		}
-	}
-
-	if (csiattr == NULL) {
+	} else {
 		/* No values found, create value empty attribute */
 		if ((csiattr = calloc(1, sizeof(AVD_CSI_ATTR))) == NULL) {
+			rc = -1;
 			LOG_ER("calloc FAILED");
-			return NULL;
+			goto done;
 		}
 
-		memcpy(csiattr->name_value.name.value, csiattr_name->value, csiattr_name->length);
-		csiattr->name_value.name.length = csiattr_name->length;
+		csiattr->name_value.name.length = p2 - p1;
+		memcpy(csiattr->name_value.name.value, p1, csiattr->name_value.name.length);
 	}
 
-	return csiattr;
-}
-
-static AVD_CSI_ATTR *avd_csiattr_find(const AVD_CSI *csi, const SaNameT *csiattr_name)
-{
-	AVD_CSI_ATTR *csiattr = NULL;
-
-	csiattr = csi->list_attributes;
-	while (csiattr != NULL) {
-		if (memcmp(csiattr_name, &csiattr->name_value.name, sizeof(SaNameT)) == 0)
-			break;
-		csiattr = csiattr->attr_next;
+done:
+	if (rc != 0) {
+		tmp = csiattr;
+		while (tmp != NULL) {
+			free(tmp);
+			tmp = tmp->attr_next;
+		}
+		csiattr = NULL;
 	}
 
 	return csiattr;

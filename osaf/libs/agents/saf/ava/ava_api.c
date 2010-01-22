@@ -159,8 +159,8 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
       if ( getenv("SA_AMF_COMPONENT_NAME") )
       {
          if(strlen(getenv("SA_AMF_COMPONENT_NAME")) < SA_MAX_NAME_LENGTH) {
-             strcpy(cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
-             cb->comp_name.length = (uns16)strlen(cb->comp_name.value);
+             strcpy((char*)cb->comp_name.value, getenv("SA_AMF_COMPONENT_NAME"));
+             cb->comp_name.length = (uns16)strlen((char*)cb->comp_name.value);
              m_AVA_FLAG_SET(cb, AVA_FLAG_COMP_NAME);
          }else {
              rc = SA_AIS_ERR_INVALID_PARAM;
@@ -289,7 +289,7 @@ SaAisErrorT saAmfDispatch (SaAmfHandleT hdl,
    AVA_HDL_REC *hdl_rec = 0;
    SaAisErrorT rc = SA_AIS_OK;
    int argc = 0;
-   char **argv;
+   char **argv = NULL;
    uns32 pend_fin = 0;
    uns32 pend_dis = 0;
 
@@ -359,7 +359,7 @@ SaAisErrorT saAmfFinalize (SaAmfHandleT hdl)
    AVSV_NDA_AVA_MSG msg;
    SaAisErrorT  rc = SA_AIS_OK;
    int argc = 0;
-   char **argv;
+   char **argv = NULL;
    NCS_BOOL agent_flag = FALSE; /* flag = FALSE, we should not call agent shutdown */
 
    /* initialize the msg */
@@ -481,7 +481,7 @@ SaAisErrorT saAmfComponentRegister (SaAmfHandleT  hdl,
   
     /* non-proxied component should not forge its name while registering */
    if(!proxy_comp_name && 
-         strncmp(comp_name->value, cb->comp_name.value, comp_name->length))
+         strncmp((char*)comp_name->value, (char*)cb->comp_name.value, comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -489,7 +489,7 @@ SaAisErrorT saAmfComponentRegister (SaAmfHandleT  hdl,
 
    /* proxy component should not forge its name while registering its proxied*/
    if(proxy_comp_name && 
-         strncmp(proxy_comp_name->value, cb->comp_name.value, proxy_comp_name->length))
+         strncmp((char*)proxy_comp_name->value, (char*)cb->comp_name.value, proxy_comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -592,7 +592,7 @@ SaAisErrorT saAmfComponentUnregister (SaAmfHandleT hdl,
   
     /* non-proxied component should not forge its name while unregistering */
    if(!proxy_comp_name && 
-         strncmp(comp_name->value, cb->comp_name.value, comp_name->length))
+         strncmp((char*)comp_name->value, (char*)cb->comp_name.value, comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;
@@ -601,7 +601,7 @@ SaAisErrorT saAmfComponentUnregister (SaAmfHandleT hdl,
 
    /* proxy component should not forge its name while unregistering proxied */
    if(proxy_comp_name && 
-         strncmp(proxy_comp_name->value, cb->comp_name.value, proxy_comp_name->length))
+         strncmp((char*)proxy_comp_name->value, (char*)cb->comp_name.value, proxy_comp_name->length))
    {
       rc = SA_AIS_ERR_BAD_OPERATION;
       goto done;

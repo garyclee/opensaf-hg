@@ -230,6 +230,25 @@
 		<value>safVersion=4.0.0,safCSType=AmfDemoCsType</value>
 	    </attr>
 	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrNoValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrSingleValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+		<attr>
+				<name>saAmfCSIAttriValue</name>
+				<value>val11</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSIAttribute">
+		<dn>safCsiAttr=AttrMultiValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+		<attr>
+				<name>saAmfCSIAttriValue</name>
+				<value>val21</value>
+				<value>val22</value>
+				<value>val23</value>
+		</attr>
+	</object>
 	<object class="SaSmfSwBundle">
 			<dn>safBundle=AmfDemo</dn>
 	</object>
