@@ -40,10 +40,6 @@
 
 #include "dts.h"
 
-/* Static vriable declarations */
-static uns16 idx[2];
-
-
 static uns32 dump_global_buffer_log(DTS_CB *inst, uns8 device);
 static uns32 dump_per_node_buffer_log(DTS_CB *inst, uns32 node_id, uns8 device);
 static uns32 dump_svc_per_node_buffer_log(DTS_CB *inst, SVC_KEY *key, uns8 device);

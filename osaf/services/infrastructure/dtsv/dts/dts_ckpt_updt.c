@@ -423,9 +423,6 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				} else {
 					/*async update for new svc_reg, so initialize node param */
 					node_reg_ptr->per_node_logging = NODE_LOGGING;
-					/*node_reg_ptr->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
-					node_reg_ptr->row_exist = FALSE;
-					node_reg_ptr->num_svcs  = svcreg->num_svcs; */
 
 					/* Copy attributes of node policy & op device */
 					node_reg_ptr->svc_policy.enable = NODE_ENABLE;
@@ -571,13 +568,10 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 						while ((svc_ptr != NULL) && (svc_ptr->my_key.node == key.node)) {
 							switch (cb->cli_bit_map) {
 							case osafDtsvNodeMessageLogging_ID:
-								if (svcreg->per_node_logging == NCS_SNMP_FALSE)
+								if (svcreg->per_node_logging == FALSE)
 									svc_ptr->device.new_file = TRUE;
 								break;
 
-								/* Change the filter policies only if the node update
-								 * is sent for an active rowstatus node entry 
-								 */
 							case osafDtsvNodeCategoryBitMap_ID:
 									svc_ptr->svc_policy.category_bit_map =
 									    svcreg->svc_policy.category_bit_map;
@@ -668,7 +662,6 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				 * svc_ptr->v-cd_list, also remove svc entry from dta->svc_list.
 				 */
 				if (cb->svc_rmv_mds_dest == 0) {
-					/* RMV updt corresponding to row destroy op on Act */
 					if (svc_ptr->dta_count == 0) {
 						if (&svc_ptr->device.cir_buffer != NULL)
 							dts_circular_buffer_free(&svc_ptr->device.cir_buffer);
@@ -783,7 +776,6 @@ uns32 dtsv_ckpt_add_rmv_updt_svc_reg(DTS_CB *cb, DTS_SVC_REG_TBL *svcreg, DTS_FI
 				}
 
 				/* Delete svc entry when dta_count is zero 
-				 * Rowstatus delete is already taken care of. 
 				 */
 				else if (svc_ptr->dta_count == 0) {
 					/* No need of policy handles */

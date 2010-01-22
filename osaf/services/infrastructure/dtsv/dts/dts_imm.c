@@ -31,18 +31,13 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 						      const SaImmAttrValuesT_2 **attr);
 static SaAisErrorT dts_saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 						      SaImmOiCcbIdT ccbId, const SaNameT *objectName);
-static void dts_saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId);
 static SaAisErrorT dts_saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 						      const SaNameT *objectName,
 						      const SaImmAttrModificationT_2 **attrMods);
+static void dts_saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId);
 static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId);
 static void dts_saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId);
-static SaAisErrorT dts_set_service_policy(SVC_KEY key, SaImmAttrValuesT_2 **attributes);
-SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmClassNameT className);
-uns32 dts_initialize_node_policy(SaNameT objName, DTS_SVC_REG_TBL *node, OP_DEVICE *device);
-uns32 dts_initialize_service_policy(SaNameT objName, DTS_SVC_REG_TBL *service, OP_DEVICE *device);
-uns32 dts_set_node_policy(SVC_KEY key, SaImmAttrValuesT_2 **attributes);
-uns32 dts_set_service_policy(SVC_KEY key, SaImmAttrValuesT_2 **attributes);
+static SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmClassNameT className);
 
 SaImmOiCallbacksT_2 oi_cbks = {
 	.saImmOiAdminOperationCallback = NULL,
@@ -68,7 +63,6 @@ SaImmOiCallbacksT_2 oi_cbks = {
 \**************************************************************************/
 SaAisErrorT dts_imm_initialize(DTS_CB *cb)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SaAisErrorT rc;
 	unsigned int nTries = 1;
 
@@ -107,7 +101,6 @@ SaAisErrorT dts_imm_initialize(DTS_CB *cb)
 \**************************************************************************/
 void *_dts_imm_declare_implementer(void *cb)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SaAisErrorT error = SA_AIS_OK;
 	DTS_CB *dts_cb = (DTS_CB *)cb;
 
@@ -142,7 +135,6 @@ void *_dts_imm_declare_implementer(void *cb)
 \**************************************************************************/
 void dts_imm_declare_implementer(DTS_CB *cb)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	pthread_t thread;
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -166,7 +158,6 @@ void dts_imm_declare_implementer(DTS_CB *cb)
 \**************************************************************************/
 SaAisErrorT dts_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	unsigned int nTries = 1;
 	SaAisErrorT rc = saImmOiClassImplementerRelease(immOiHandle, className);
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
@@ -194,7 +185,6 @@ SaAisErrorT dts_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const
 \**************************************************************************/
 SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaImmClassNameT className)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	unsigned int nTries = 1;
 	SaAisErrorT rc = saImmOiClassImplementerSet(immOiHandle, className);
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
@@ -223,12 +213,13 @@ SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaI
 \**************************************************************************/
 SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	unsigned int nTries = 1;
 	SaAisErrorT rc;
+
 	dts_saImmOiClassImplementerRelease(immOiHandle, DTS_GLOBAL_CLASS_NAME);
 	dts_saImmOiClassImplementerRelease(immOiHandle, DTS_NODE_CLASS_NAME);
 	dts_saImmOiClassImplementerRelease(immOiHandle, DTS_SERVICE_CLASS_NAME);
+
 	rc = saImmOiImplementerClear(immOiHandle);
 	while (rc == SA_AIS_ERR_TRY_AGAIN && nTries < 25) {
 		usleep(400 * 1000);
@@ -260,7 +251,6 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 						      const SaImmClassNameT className, const SaNameT *parentName,
 						      const SaImmAttrValuesT_2 **attr)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	const SaImmAttrValuesT_2 *attrValue;
 	CcbUtilOperationData_t *operation;
@@ -340,7 +330,6 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 static SaAisErrorT dts_saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle,
 						      SaImmOiCcbIdT ccbId, const SaNameT *objectName)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
 	if (!strncmp(objectName->value, "opensafGlobalLogPolicy=", 23)) {
@@ -370,7 +359,6 @@ static SaAisErrorT dts_saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle
 \**************************************************************************/
 static void dts_saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) != NULL)
@@ -395,7 +383,6 @@ static SaAisErrorT dts_saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle
 						      const SaNameT *objectName,
 						      const SaImmAttrModificationT_2 **attrMods)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
 		printf("Failed to get CCB object\n");
@@ -420,7 +407,6 @@ static SaAisErrorT dts_saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle
 \********************************************************************************/
 static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
 	const SaImmAttrModificationT_2 *attrMod;
@@ -643,10 +629,8 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 \********************************************************************************/
 static void dts_saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	SaImmAttrValuesT_2 **attributes;
 	struct CcbUtilOperationData *ccbUtilOperationData;
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
@@ -710,9 +694,8 @@ static void dts_saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
  NOTES: None.
  
 \********************************************************************************/
-void dts_configure_global_policy()
+unsigned int dts_configure_global_policy()
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SaAisErrorT rc = NCSCC_RC_SUCCESS;
 	SaImmHandleT omHandle;
 	SaNameT objectName;
@@ -730,7 +713,7 @@ void dts_configure_global_policy()
 	/* Get all attributes of the object */
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
 		printf("Configuration object %s not found\n", objectName.value);
-		return;
+		return NCSCC_RC_FAILURE;
 	}
 
 	while ((attribute = attributes[i++]) != NULL) {
@@ -745,7 +728,14 @@ void dts_configure_global_policy()
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
-			inst->g_policy.global_logging = value;
+			if (GLOBAL_LOGGING != value) {
+				inst->g_policy.global_logging = value;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalMessageLogging_ID)) {
+					printf("Failed to change global logging\n");
+					return NCSCC_RC_FAILURE;
+				}
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
 			SaUint32T LogDevice = *((uns8 *)&value);
 			printf("osafDtsvGlobalLogDevice %u\n", LogDevice);
@@ -785,13 +775,34 @@ void dts_configure_global_policy()
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
-			inst->g_policy.g_policy.enable = value;
+			if (GLOBAL_ENABLE != value) {
+				inst->g_policy.g_policy.enable = value;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalLoggingState_ID)) {
+					printf("Failed to change global logging state\n");
+					return NCSCC_RC_FAILURE;
+				}
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
-			printf("osafDtsvGlobalCategoryBitMap %d\n", value);
-			inst->g_policy.g_policy.category_bit_map = value;
+			if (GLOBAL_CATEGORY_FILTER != value) {
+				printf("osafDtsvGlobalCategoryBitMap %d\n", value);
+				inst->g_policy.g_policy.category_bit_map = value;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalCategoryBitMap_ID)) {
+					printf("Failed to change global category level\n");
+					return NCSCC_RC_FAILURE;
+				}
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-			printf("osafDtsvGlobalSeverityBitMap %d\n", *(uns16 *)&value);
-			inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
+			if (GLOBAL_SEVERITY_FILTER_DEFAULT != *(uns16 *)&value) {
+				printf("osafDtsvGlobalSeverityBitMap %d\n", *(uns16 *)&value);
+				inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID)) {
+					printf("Failed to change global severity level\n");
+					return NCSCC_RC_FAILURE;
+				}
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles ")) {
 			if ((value < 1) || (value > 255)) {
 				rc = NCSCC_RC_FAILURE;
@@ -825,10 +836,7 @@ void dts_configure_global_policy()
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 	(void)immutil_saImmOmFinalize(omHandle);
 
-	if (rc == NCSCC_RC_FAILURE) {
-		printf("Shall not allow out of range values", rc);
-		exit(EXIT_FAILURE);
-	}
+	return rc;
 }
 
 /******************************************************************************\
@@ -841,9 +849,8 @@ void dts_configure_global_policy()
  NOTES: None.
  
 \********************************************************************************/
-uns32 dts_parse_node_policy_DN(char *objName, SVC_KEY *key)
+unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	char *tmp, *num, node[10] = { 0 };
 	int i = 0;
 	tmp = strstr(objName, "osafNodeID=");
@@ -857,9 +864,13 @@ uns32 dts_parse_node_policy_DN(char *objName, SVC_KEY *key)
 	else
 		return NCSCC_RC_FAILURE;
 
+	/* extracting the node id */
 	if (num) {
 		while (++tmp != num) {
-			node[i++] = *tmp;
+			if (isdigit(*tmp)) {
+				node[i++] = *tmp;
+			} else
+				return NCSCC_RC_FAILURE;
 		}
 	} else
 		return NCSCC_RC_FAILURE;
@@ -883,9 +894,9 @@ uns32 dts_parse_node_policy_DN(char *objName, SVC_KEY *key)
  NOTES: None.
  
 \********************************************************************************/
-uns32 dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
+unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
+	int i = 0;
 
 	char *tmp, *num, node[10] = { 0 };
 	tmp = strstr(objName, "osafNodeID=");
@@ -894,14 +905,18 @@ uns32 dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
 	else
 		return NCSCC_RC_FAILURE;
 
-	int i = 0;
 	if (tmp)
-		num = strchr(tmp, ',');
+		num = strchr(tmp, '\\');
 	else
 		return NCSCC_RC_FAILURE;
+
+	/* extracting the node id */
 	if (num) {
 		while (++tmp != num) {
-			node[i++] = *tmp;
+			if (isdigit(*tmp)) {
+				node[i++] = *tmp;
+			} else
+				return NCSCC_RC_FAILURE;
 		}
 	} else
 		return NCSCC_RC_FAILURE;
@@ -917,12 +932,16 @@ uns32 dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
 		num = strchr(tmp, ',');
 	else
 		return NCSCC_RC_FAILURE;
-	i = 0;
+	i = 0;			/* resetting iterator */
 	memset(node, 0, sizeof(node));
 
+	/* extracting the service id */
 	if (num) {
 		while (++tmp != num) {
-			node[i++] = *tmp;
+			if (isdigit(*tmp)) {
+				node[i++] = *tmp;
+			} else
+				return NCSCC_RC_FAILURE;
 		}
 	} else
 		return NCSCC_RC_FAILURE;
@@ -949,7 +968,6 @@ uns32 dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
 \********************************************************************************/
 SaAisErrorT dts_read_log_policies(char *className)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SaAisErrorT rc = SA_AIS_ERR_FAILED_OPERATION;
 	SaImmHandleT omHandle;
@@ -957,7 +975,6 @@ SaAisErrorT dts_read_log_policies(char *className)
 	SaImmSearchParametersT_2 searchParam;
 	SaNameT objName, root_obj;
 	SaImmAttrValuesT_2 **attributes;
-	SVC_KEY key;
 
 	memset(&objName, 0, sizeof(SaNameT));
 	memset(&root_obj, 0, sizeof(SaNameT));
@@ -979,13 +996,16 @@ SaAisErrorT dts_read_log_policies(char *className)
 		return rc;
 	}
 
+	/* searches for the object with provided info in serach criteria */
 	while (immutil_saImmOmSearchNext_2(searchHandle, &objName, &attributes) == SA_AIS_OK) {
 		int i = 0;
 		const SaImmAttrValuesT_2 *attribute = attributes[0];
 
 		while (attribute) {
+			/* checks whether the object found is service log policy object */
 			if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
 				rc = dts_service_log_policy_set(inst, objName.value, attributes, CCBUTIL_CREATE);
+				/* checks whether the object found is node log policy object */
 			} else if (!strcmp(attribute->attrName, "opensafNodeLogPolicy")) {
 				rc = dts_node_log_policy_set(inst, objName.value, attributes, CCBUTIL_CREATE);
 			}

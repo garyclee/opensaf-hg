@@ -67,17 +67,17 @@
 #define  DTS_RECOVERY              SA_AMF_COMPONENT_FAILOVER
 
 /* Default settings for Global logging parameters */
-#define       GLOBAL_LOGGING          NCS_SNMP_FALSE
+#define       GLOBAL_LOGGING          FALSE
 #define       GLOBAL_LOG_DEV          LOG_FILE
 #define       GLOBAL_LOGFILE_SIZE     1000
 #define       GLOBAL_FILE_LOG_FMT     EXPANDED_FORMAT
 #define       GLOBAL_CIR_BUFF_SIZE    111
 #define       GLOBAL_BUFF_LOG_FMT     EXPANDED_FORMAT
 #define       GLOBAL_NUM_LOG_FILES    10
-#define       GLOBAL_ENABLE_SEQ       NCS_SNMP_FALSE
+#define       GLOBAL_ENABLE_SEQ       FALSE
 
 /* Default settings for Global filtering parameters */
-#define       GLOBAL_ENABLE           NCS_SNMP_TRUE
+#define       GLOBAL_ENABLE           TRUE
 #define       GLOBAL_CATEGORY_FILTER  0xFFFFFFFF
 /* Global severity filter would be defaulted to 0xFC*/
 #ifndef       GLOBAL_SEVERITY_FILTER_DEFAULT
@@ -88,7 +88,7 @@
 #define       GLOBAL_SEVERITY_FILTER_ALL   0xFF
 
 /* Default settings for NODE logging parameters */
-#define       NODE_LOGGING          NCS_SNMP_FALSE
+#define       NODE_LOGGING          FALSE
 #define       NODE_LOG_DEV          LOG_FILE
 #define       NODE_LOGFILE_SIZE     1000
 #define       NODE_FILE_LOG_FMT     EXPANDED_FORMAT
@@ -96,12 +96,12 @@
 #define       NODE_BUFF_LOG_FMT     EXPANDED_FORMAT
 
 /* Default settings for NODE filtering parameters */
-#define       NODE_ENABLE           NCS_SNMP_TRUE
+#define       NODE_ENABLE           TRUE
 #define       NODE_CATEGORY_FILTER  0xFFFFFFFF
 #define       NODE_SEVERITY_FILTER  0xFF
 
 /* Default settings for SERVICE logging parameters */
-#define       SVC_LOGGING          NCS_SNMP_TRUE
+#define       SVC_LOGGING          TRUE
 #define       SVC_LOG_DEV          LOG_FILE
 #define       SVC_LOGFILE_SIZE     1000
 #define       SVC_FILE_LOG_FMT     EXPANDED_FORMAT
@@ -109,7 +109,7 @@
 #define       SVC_BUFF_LOG_FMT     EXPANDED_FORMAT
 
 /* Default settings for NODE filtering parameters */
-#define       SVC_ENABLE           NCS_SNMP_TRUE
+#define       SVC_ENABLE           TRUE
 #define       SVC_CATEGORY_FILTER  0xFFFFFFFF
 
 #ifndef       SVC_SEVERITY_FILTER_DEFAULT
@@ -243,9 +243,6 @@ typedef struct cir_buffer_op_table {
 } CIR_BUFFER_OP_TABLE;
 #define CIR_BUFFER_OP_TABLE_NULL    ((CIR_BUFFER_OP_TABLE *)0)
 
-/*************************************************************************
-* Policy Tables - Used in case of Row status is Active 
-*************************************************************************/
 typedef struct policy {
 	/* Logging policies */
 	uns8 log_dev;		/* Log device: file, circular buffer or console */
@@ -264,13 +261,9 @@ typedef struct policy {
 } POLICY;
 #define POLICY_NULL    ((POLICY *)0)
 
-/*************************************************************************
-* Default Policy Table - Used in case of Row status is not Active 
-*************************************************************************/
-
 typedef struct svc_defaults {
-	NCS_BOOL per_node_logging;	/* If NCS_SNMP_TRUE- use one output device for a node, 
-					   If NCS_SNMP_FALSE- check for per service logging policy */
+	NCS_BOOL per_node_logging;	/* If TRUE- use one output device for a node, 
+					   If FALSE- check for per service logging policy */
 	POLICY policy;
 
 } SVC_DEFAULTS;

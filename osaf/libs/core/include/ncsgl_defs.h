@@ -199,11 +199,6 @@ extern "C" {
 #define TX      2
 #endif
 
-/* H&J Constants aligned with SNMP TruthValue constants */
-
-#define NCS_SNMP_TRUE    1
-#define NCS_SNMP_FALSE   2
-
 /* H&J Constants aligned with  Admin and Oper STATUS values */
 
 	typedef enum ncs_status {
@@ -215,17 +210,6 @@ extern "C" {
 		NCS_STATUS_NOT_PRESENT = 6,
 		NCS_STATUS_LL_DOWN = 7
 	} NCS_STATUS;
-
-/* H&J Constants aligned with Row STATUS values */
-
-	typedef enum ncs_row_status {
-		NCS_ROW_ACTIVE = 1,
-		NCS_ROW_NOT_IN_SERVICE = 2,
-		NCS_ROW_NOT_READY = 3,
-		NCS_ROW_CREATE_AND_GO = 4,
-		NCS_ROW_CREATE_AND_WAIT = 5,
-		NCS_ROW_DESTROY = 6
-	} NCS_ROW_STATUS;
 
 /* X.731 admin state values */
 	typedef enum ncs_admin_state_tag {
