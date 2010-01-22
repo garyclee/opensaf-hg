@@ -70,7 +70,7 @@ uns32 avnd_comp_clc_st_chng_prc(AVND_CB *, AVND_COMP *, SaAmfPresenceStateT, SaA
 
 static uns32 avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *);
 static uns32 avnd_instfail_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
-static uns8 *avnd_prep_attr_env_var(AVND_COMP *, uns32 *);
+static char *avnd_prep_attr_env_var(AVND_COMP *, uns32 *);
 
 /***************************************************************************
  ** C O M P O N E N T   C L C   F S M   M A T R I X   D E F I N I T I O N **
@@ -2149,13 +2149,13 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	NCS_OS_ENVIRON_ARGS arg;
 	NCS_OS_ENVIRON_SET_NODE env_set[3];
 	SaNameT env_val_name;
-	uns8 env_val_nodeid[11];
-	uns8 env_val_comp_err[11];	/*we req only 10 */
-	uns8 env_var_name[] = "SA_AMF_COMPONENT_NAME";
-	uns8 env_var_nodeid[] = "NCS_ENV_NODE_ID";
-	uns8 env_var_comp_err[] = "NCS_ENV_COMPONENT_ERROR_SRC";
-	uns8 env_var_attr[] = "NCS_ENV_COMPONENT_CSI_ATTR";
-	uns8 *env_attr_val = 0;
+	char env_val_nodeid[11];
+	char env_val_comp_err[11];	/*we req only 10 */
+	char env_var_name[] = "SA_AMF_COMPONENT_NAME";
+	char env_var_nodeid[] = "NCS_ENV_NODE_ID";
+	char env_var_comp_err[] = "NCS_ENV_COMPONENT_ERROR_SRC";
+	char env_var_attr[] = "NCS_ENV_COMPONENT_CSI_ATTR";
+	char *env_attr_val = 0;
 	AVND_CLC_EVT clc_evt;
 	AVND_EVT *evt = 0;
 	AVND_COMP_CLC_INFO *clc_info = &comp->clc_info;
@@ -2205,19 +2205,19 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 
 	memset(&env_val_name, '\0', sizeof(SaNameT));
 	memset(env_val_nodeid, '\0', sizeof(env_val_nodeid));
-	strncpy(env_val_name.value, comp->name.value, comp->name.length);
+	memcpy((char*)env_val_name.value, (char*)comp->name.value, comp->name.length);
 
    /*** populate the env variable set ***/
 	/* comp name env */
 	env_set[0].overwrite = 1;
-	env_set[0].name = (char *)env_var_name;
+	env_set[0].name = env_var_name;
 	env_set[0].value = (char *)(env_val_name.value);
 	arg.num_args++;
 
 	/* node id env */
 	env_set[1].overwrite = 1;
-	env_set[1].name = (char *)env_var_nodeid;
-	sprintf((char *)env_val_nodeid, "%u", (uns32)(cb->clmdb.node_info.nodeId));
+	env_set[1].name = env_var_nodeid;
+	sprintf(env_val_nodeid, "%u", (uns32)(cb->clmdb.node_info.nodeId));
 	env_set[1].value = (char *)env_val_nodeid;
 	arg.num_args++;
 
@@ -2253,7 +2253,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 		if (NCSCC_RC_FAILURE == result)
 			goto err;
 
-		if ((uns8 *)0 != env_attr_val) {
+		if (NULL != env_attr_val) {
 			/*Csi Attributes env */
 			env_set[2].overwrite = 1;
 			env_set[2].name = (char *)env_var_attr;
@@ -2415,12 +2415,12 @@ uns32 avnd_instfail_su_failover(AVND_CB *cb, AVND_SU *su, AVND_COMP *failed_comp
  
   Notes         : None.
 ******************************************************************************/
-uns8 *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
+static char *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 {
 
 	AVND_COMP_CSI_REC *curr_csi = 0;
 	NCS_AVSV_ATTR_NAME_VAL *attr_list = 0;
-	uns8 *env_val = 0;
+	char *env_val = 0;
 	uns32 mem_length = 0;
 	uns32 count = 0;
 
@@ -2448,7 +2448,7 @@ uns8 *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 	}
 
 	/*Allocate the Memory of mem_length + 1 */
-	env_val = (mem_length) ? (uns8 *)malloc(mem_length + 1) : (uns8 *)0;
+	env_val = (mem_length) ? malloc(mem_length + 1) : NULL;
 
 	if (NULL == env_val) {	/* Mem failure */
 		*ret_status = NCSCC_RC_FAILURE;
@@ -2466,9 +2466,9 @@ uns8 *avnd_prep_attr_env_var(AVND_COMP *comp, uns32 *ret_status)
 			if (0 != count)
 				strncat(env_val, ",", 1);
 
-			strncat(env_val, attr_list->name.value, attr_list->name.length);
+			strncat(env_val, (char*)attr_list->name.value, attr_list->name.length);
 			strncat(env_val, "=", 1);
-			strncat(env_val, attr_list->value.value, attr_list->value.length);
+			strncat(env_val, (char*)attr_list->value.value, attr_list->value.length);
 		}
 	}
 	return env_val;

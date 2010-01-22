@@ -264,6 +264,7 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			LOG_ER("Application still has SGs or SIs");
 			goto done;
 		}
+		opdata->userData = app;	/* Save for later use in apply */
 		rc = SA_AIS_OK;
 		break;
 	default:
@@ -273,7 +274,6 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 	rc = SA_AIS_OK;
 done:
-	opdata->userData = app;	/* Save for later use in apply */
 	TRACE_LEAVE2("%u", rc);
 	return rc;
 }

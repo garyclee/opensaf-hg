@@ -92,7 +92,6 @@ static AVD_CTCS_TYPE *ctcstype_create(const SaNameT *dn, const SaImmAttrValuesT_
 
 	rc = 0;
 
-done:
 	if (rc != 0) {
 		free(ctcstype);
 		ctcstype = NULL;

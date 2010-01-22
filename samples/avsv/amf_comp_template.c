@@ -92,6 +92,15 @@ static void amf_csi_set_callback(SaInvocationT inv, const SaNameT *comp_name,
 		syslog(LOG_ERR, "saAmfResponse FAILED - %u", rc);
 		exit(1);
 	}
+
+	if (csi_desc.csiFlags & SA_AMF_CSI_ADD_ONE) {
+		SaAmfCSIAttributeT *attr;
+		int i;
+		for (i = 0; i < csi_desc.csiAttr.number; i++) {
+			attr = &csi_desc.csiAttr.attr[i];
+			syslog(LOG_DEBUG, "\tname: %s, value: %s", attr->attrName, attr->attrValue);
+		}
+	}
 }
 
 /**

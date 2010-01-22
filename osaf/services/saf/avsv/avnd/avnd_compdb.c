@@ -1538,7 +1538,7 @@ unsigned int avnd_comp_config_get_su(AVND_SU *su)
  */
 int avnd_comp_config_reinit(AVND_COMP *comp)
 {
-	int res;
+	int res = -1;
 	SaImmAccessorHandleT accessorHandle;
 	const SaImmAttrValuesT_2 **attributes;
 

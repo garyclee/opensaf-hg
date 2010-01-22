@@ -166,13 +166,13 @@ void ava_log_cb (AVSV_LOG_CB op, AVSV_LOG_CB status, uns8 sev)
  *****************************************************************************/
 void ava_log_cbk (AVSV_LOG_AMF_CBK type, SaNameT *comp_name, uns8 sev)
 {
-   uns8 name[SA_MAX_NAME_LENGTH];
+   char name[SA_MAX_NAME_LENGTH];
 
    memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert comp-name into string format */
    if (comp_name) 
-      strncpy(name, comp_name->value, comp_name->length);
+      strncpy(name, (char*)comp_name->value, comp_name->length);
 
    ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_CBK, AVA_FC_CBK, 
               NCSFL_LC_API, sev, NCSFL_TYPE_TIC, type - 1, name);
@@ -223,13 +223,13 @@ void ava_log_api (AVA_LOG_API   type,
                   const SaNameT *comp_name, 
                   uns8          sev)
 {
-   uns8 name[SA_MAX_NAME_LENGTH];
+   char name[SA_MAX_NAME_LENGTH];
 
    memset(name, '\0', SA_MAX_NAME_LENGTH);
 
    /* convert comp-name into string format */
    if (comp_name) 
-      strncpy(name, comp_name->value, comp_name->length);
+      strncpy(name, (char*)comp_name->value, comp_name->length);
 
    ncs_logmsg(NCS_SERVICE_ID_AVA, AVA_LID_API, AVA_FC_API, 
               NCSFL_LC_API, sev, NCSFL_TYPE_TIIC, type-1, status, name);

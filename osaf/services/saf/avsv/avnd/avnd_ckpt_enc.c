@@ -788,7 +788,7 @@ uns32 avnd_encode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
 	EDU_ERR ederror = 0;
-	uns8 logbuff[SA_MAX_NAME_LENGTH];
+	char logbuff[SA_MAX_NAME_LENGTH];
 
 	memset(logbuff, '\0', SA_MAX_NAME_LENGTH);
 	snprintf(logbuff, SA_MAX_NAME_LENGTH - 1,
@@ -798,7 +798,7 @@ uns32 avnd_encode_warm_sync_rsp(AVND_CB *cb, NCS_MBCSV_CB_ENC *enc)
 		 cb->avnd_async_updt_cnt.siq_updt, cb->avnd_async_updt_cnt.csi_updt,
 		 cb->avnd_async_updt_cnt.comp_hlth_rec_updt, cb->avnd_async_updt_cnt.comp_cbk_rec_updt);
 
-	m_AVND_AVND_ENTRY_LOG((uns8 *)&logbuff, NULL, 0, 0, 0, 0);
+	m_AVND_AVND_ENTRY_LOG(logbuff, NULL, 0, 0, 0, 0);
 
 	/*
 	 * Encode and send latest async update counts. (In the same manner we sent
