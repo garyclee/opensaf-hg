@@ -50,6 +50,7 @@
 #include "dts.h"
 #include "dts_imm.h"
 #include <poll.h>
+#include <ctype.h>
 
 #define FD_USR1 0
 #define FD_AMF 0
@@ -126,8 +127,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 					printf("saAmfDispatch failed \n");
 					/* log the error  */
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: AMF Dispatch failing");
-				} else
-					printf(" saAmfDispatch successful \n");
+				}
 			} else {
 				status = dts_amf_register(&dts_cb);
 				if (status == NCSCC_RC_SUCCESS) {
@@ -218,7 +218,7 @@ uns32 dts_do_evt(DTSV_MSG *msg)
 
 			/* Clear sequencing buffer just before going to quiesced */
 			/* Clear the sequencing buffer before going to quiesced */
-			if (NCS_SNMP_TRUE == inst->g_policy.g_enable_seq)
+			if (TRUE == inst->g_policy.g_enable_seq)
 				dts_disable_sequencing(inst);
 
 			/* Close all open files now */
@@ -333,7 +333,7 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 
  Input:    msg : Event message received from the MDS.
 
- Returns:  NCSCC_RC_SUCCESSS/NCSCC_RC_FAILURE
+ Returns:  void
 
  Notes:  
 \**************************************************************************/
@@ -343,7 +343,11 @@ void dts_reg_with_imm(DTS_CB *inst)
 
 	dts_imm_declare_implementer(inst);
 	/* get default global configuration from global scalar object */
-	dts_configure_global_policy(); /* order must be followed for these calls */
+	if (dts_configure_global_policy() == NCSCC_RC_FAILURE) {
+		printf("Failed to load global log policy object from IMMSv");
+		exit(1);
+	}
+
 	/* loads all the NodeLogPolicy objects from IMMSv */
 	dts_read_log_policies("OpenSAFDtsvNodeLogPolicy");
 	/* loads all the ServiceLogPolicy objects from IMMSv */
@@ -365,7 +369,6 @@ void dts_reg_with_imm(DTS_CB *inst)
 \**************************************************************************/
 uns32 dts_register_service(DTSV_MSG *msg)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
 	DTS_SVC_REG_TBL *svc, *node_reg;
@@ -557,12 +560,9 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		dts_add_svc_to_dta(to_reg, svc);
 		m_LOG_DTS_EVT(DTS_EV_DTA_SVC_ADD, key.ss_svc_id, key.node, (uns32)to_reg->dta_addr);
 
-		//svc->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
-		//svc->row_exist = FALSE;
-
 		/* newly created service, set all the policies to default 
 		 * then add new entry to the patricia tree */
-		svc->per_node_logging = NCS_SNMP_FALSE;
+		svc->per_node_logging = FALSE;
 		/*svc->num_svcs         = 0; */
 		dts_default_svc_policy_set(svc);
 		if (ncs_patricia_tree_add(&inst->svc_tbl, (NCS_PATRICIA_NODE *)svc) != NCSCC_RC_SUCCESS) {
@@ -681,7 +681,7 @@ uns32 dts_register_service(DTSV_MSG *msg)
 		m_LOG_DTS_SVC_PRVDR(DTS_SP_MDS_SND_MSG_FAILED);
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_register_service: DTS: MDS send failed");
 	}
-/*	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)dta_key); */
+	m_LOG_DTS_EVT(DTS_EV_SVC_REG_SUCCESSFUL, key.ss_svc_id, key.node, (uns32)dta_key);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -700,7 +700,6 @@ uns32 dts_register_service(DTSV_MSG *msg)
 \**************************************************************************/
 uns32 dts_unregister_service(DTSV_MSG *msg)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY key, nt_key;
 	DTS_SVC_REG_TBL *node, *svc;
@@ -983,7 +982,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 	 * If sequencing is enabled then queue the messgae into the sequencing 
 	 * buffer otherwise do normal logging.
 	 */
-	if ((inst->g_policy.g_enable_seq == NCS_SNMP_TRUE) && (msg->seq_msg == FALSE)) {
+	if ((inst->g_policy.g_enable_seq == TRUE) && (msg->seq_msg == FALSE)) {
 		if (NCSCC_RC_SUCCESS != dts_queue_seq_msg(inst, msg)) {
 			dts_free_msg_content(&msg->data.data.msg.log_msg);
 			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
@@ -1019,7 +1018,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 	 * Check whether global logging is set. If global logging is set
 	 * then log using global logging policies.
 	 */
-	if (inst->g_policy.global_logging == NCS_SNMP_TRUE) {
+	if (inst->g_policy.global_logging == TRUE) {
 		rc = dtsv_log_msg(msg, &inst->g_policy.g_policy, &inst->g_policy.device, GLOBAL_FILE, spec);
 	} else {
 		/* Check whether the service is registered properly, its node entry 
@@ -1028,7 +1027,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 		if (node->my_node == NULL) {
 			m_MMGR_FREE_OCT(msg->data.data.msg.log_msg.hdr.fmat_type);
 			return NCSCC_RC_FAILURE;
-		} else if (node->my_node->per_node_logging == NCS_SNMP_TRUE) {
+		} else if (node->my_node->per_node_logging == TRUE) {
 			/* 
 			 * If per node logging is set then log the per node log file, 
 			 * else use per service log file for logging.
@@ -1036,18 +1035,7 @@ uns32 dts_log_data(DTSV_MSG *msg)
 			rc = dtsv_log_msg(msg, &node->my_node->svc_policy, &node->my_node->device, PER_NODE_FILE, spec);
 
 		} else {
-			/* 
-			 * If per node logging is set then log the per node log file.
-			 * else use per service log file for logging.
-			 */
-			if (inst->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_TRUE) {
-				rc = dtsv_log_msg(msg, &inst->dflt_plcy.node_dflt.policy,
-						  &node->my_node->device, PER_NODE_FILE, spec);
-			} else {
-
-				rc = dtsv_log_msg(msg, &inst->dflt_plcy.svc_dflt.policy,
-						  &node->device, PER_SVC_FILE, spec);
-			}
+			rc = dtsv_log_msg(msg, &node->svc_policy, &node->device, PER_SVC_FILE, spec);
 		}
 	}			/*end of else */
 	return rc;
@@ -1229,7 +1217,6 @@ NCS_BOOL dts_find_reg(void *key, void *qelem)
 uns32 gl_severity_filter = GLOBAL_SEVERITY_FILTER;
 void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	/* Set Default Node Policies */
 
 	dflt_plcy->node_dflt.per_node_logging = NODE_LOGGING;
@@ -1272,7 +1259,6 @@ void dts_default_policy_set(DEFAULT_POLICY *dflt_plcy)
 \**************************************************************************/
 void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	gpolicy->global_logging = GLOBAL_LOGGING;
 
 	gpolicy->g_policy.enable = GLOBAL_ENABLE;
@@ -1288,7 +1274,7 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 
 	gpolicy->g_num_log_files = GLOBAL_NUM_LOG_FILES;
 	gpolicy->g_enable_seq = GLOBAL_ENABLE_SEQ;
-	gpolicy->g_close_files = NCS_SNMP_FALSE;
+	gpolicy->g_close_files = FALSE;
 
 	gpolicy->device.cur_file_size = 0;
 	gpolicy->device.svc_fh = 0;
@@ -1323,7 +1309,6 @@ void dts_global_policy_set(GLOBAL_POLICY *gpolicy)
 \**************************************************************************/
 void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_id)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
 	uns32 global_cat_filter = dts_cb.g_policy.g_policy.category_bit_map;
 
@@ -1375,7 +1360,6 @@ void dts_default_node_policy_set(POLICY *npolicy, OP_DEVICE *device, uns32 node_
 \**************************************************************************/
 void dts_default_svc_policy_set(DTS_SVC_REG_TBL *service)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	POLICY *spolicy = &service->svc_policy;
 	OP_DEVICE *device = &service->device;
 	uns8 global_sev_filter = dts_cb.g_policy.g_policy.severity_bit_map;
@@ -1517,7 +1501,6 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 \**************************************************************************/
 uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTSV_MSG msg;
 	if (dta == NULL)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_send_filter_config_msg: NULL pointer passed");
@@ -1538,7 +1521,6 @@ uns32 dts_send_filter_config_msg(DTS_CB *inst, DTS_SVC_REG_TBL *svc, DTA_DEST_LI
 	msg.data.data.msg_fltr.severity_bit_map = svc->svc_policy.severity_bit_map;
 	/* No need of policy handles */
 	/*msg.data.data.msg_fltr.policy_hdl = svc->svc_hdl; */
-	printf("enable_log = %d, category_bit_map = %d, severity_bit_map = %d\n", msg.data.data.msg_fltr.enable_log, msg.data.data.msg_fltr.category_bit_map, msg.data.data.msg_fltr.severity_bit_map);
 
 	if (dts_mds_send_msg(&msg, dta->dta_addr, inst->mds_hdl) != NCSCC_RC_SUCCESS)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_send_filter_config_msg: MDS send message failed.");
@@ -1711,7 +1693,6 @@ uns32 dts_close_files_quiesced(void)
 \**************************************************************************/
 uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_SVC_REG_TBL *parent_node;
 	SVC_KEY nt_key;
 	/* 
@@ -1730,7 +1711,6 @@ uns32 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_
 	(*node)->node.key_info = (uns8 *)&(*node)->ntwk_key;
 
 	(*node)->per_node_logging = log_level;
-	//(*node)->row_status = NCSMIB_ROWSTATUS_NOTINSERVICE;
 	/* 
 	 * If service id is 0 it meand it is a node entry.
 	 */
@@ -1791,20 +1771,20 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
 	POLICY *policy;
 
 	/* Check for message sequencing enabled or not */
-	if (cb->g_policy.g_enable_seq == NCS_SNMP_TRUE)
+	if (cb->g_policy.g_enable_seq == TRUE)
 		if (dts_enable_sequencing(cb) != NCSCC_RC_SUCCESS)
 			m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				       "dts_stby_initialize: Failed to enable sequencing of messages");
 
 	/* Smik - Check for the logging level and initialize accordingly */
-	if (cb->g_policy.global_logging == NCS_SNMP_TRUE) {
+	if (cb->g_policy.global_logging == TRUE) {
 		device = &cb->g_policy.device;
 		policy = &cb->g_policy.g_policy;
 
 		m_DTS_STBY_INIT(policy, device, GLOBAL_FILE);
 
 	}
-	/*end of global_logging = NCS_SNMP_TRUE */
+	/*end of global_logging = TRUE */
 	/* Not global logging; so it would be either node logging or service logging
 	 * Traverse the service registration table to do node/service specific 
 	 * initialization */
@@ -1818,7 +1798,7 @@ static uns32 dts_stby_initialize(DTS_CB *cb)
 
 			device = &node->device;
 			policy = &node->svc_policy;
-			if ((node->per_node_logging == NCS_SNMP_TRUE) && (key.ss_svc_id == 0)) {
+			if ((node->per_node_logging == TRUE) && (key.ss_svc_id == 0)) {
 				m_DTS_STBY_INIT(policy, device, PER_NODE_FILE);
 			} else if (key.ss_svc_id != 0) {
 				m_DTS_STBY_INIT(policy, device, PER_SVC_FILE);
@@ -1986,7 +1966,6 @@ void dts_enqueue_dta(DTS_SVC_REG_TBL *svc, DTA_DEST_LIST *dta)
 \**************************************************************************/
 void dts_add_svc_to_dta(DTA_DEST_LIST *dta, DTS_SVC_REG_TBL *svc)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SVC_ENTRY *dta_svc_entry, *tmp;
 
 	if (svc != NULL) {
@@ -2913,7 +2892,6 @@ void dts_printall_svc_per_node(uns32 node_id)
 \**************************************************************************/
 uns32 dts_handle_immnd_event(DTSV_MSG *msg)
 {
-	SaAisErrorT error = SA_AIS_OK;
 	DTS_CB *inst = &dts_cb;
 
 	m_DTS_LK(&inst->lock);

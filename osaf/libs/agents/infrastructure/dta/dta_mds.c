@@ -277,6 +277,7 @@ uns32 dta_svc_reg_config(DTA_CB *inst, DTSV_MSG *msg)
 	svc->category_bit_map = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.category_bit_map;
 	svc->severity_bit_map = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.severity_bit_map;
 	svc->enable_log = ((DTSV_MSG *)msg)->data.data.reg_conf.msg_fltr.enable_log;
+
 	svc->log_msg = TRUE;
 
 	/* Smik - Set the service flag to FALSE */

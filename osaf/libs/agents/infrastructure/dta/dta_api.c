@@ -349,7 +349,7 @@ uns32 dta_reg_svc(NCS_BIND_SVC *bind_svc)
 	memset(svc, 0, sizeof(REG_TBL_ENTRY));
 	svc->svc_id = svc_id;
 	svc->log_msg = FALSE;
-	svc->enable_log = NCS_SNMP_TRUE;
+	svc->enable_log = TRUE;
 	/* Restricting bufferring of logs till NOTICE level severity only */
 	svc->severity_bit_map = 0xFC;
 	svc->category_bit_map = 0xFFFFFFFF;
@@ -494,7 +494,7 @@ uns32 dta_dereg_svc(SS_SVC_ID svc_id)
  ****************************************************************************/
 uns32 dta_svc_reg_log_en(REG_TBL_ENTRY *svc, NCSFL_NORMAL *lmsg)
 {
-	if ((svc->enable_log == NCS_SNMP_FALSE) ||
+	if ((svc->enable_log == FALSE) ||
 	    ((svc->category_bit_map & lmsg->hdr.category) != lmsg->hdr.category) ||
 	    ((svc->severity_bit_map & lmsg->hdr.severity) != lmsg->hdr.severity)) {
 		return NCSCC_RC_FAILURE;

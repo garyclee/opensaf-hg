@@ -39,13 +39,15 @@
 
 /* function prototypes */
 void dts_imm_declare_implementer(DTS_CB *cb);
-uns32 dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
-uns32 dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
+unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
+unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
 SaAisErrorT dts_imm_initialize(DTS_CB *cb);
-void dts_configure_global_policy();
+unsigned int dts_configure_global_policy();
 SaAisErrorT dts_imm_initialize(DTS_CB *cb);
 SaAisErrorT dts_read_log_policies(char *className);
 SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
+uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
+uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
 
 /******************************************************************************
                            Global Policy Table

@@ -191,15 +191,20 @@ uns32 dts_role_change(DTS_CB *cb, SaAmfHAStateT haState)
 		   return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_role_change: DTS fail-over failed");
 		   } */
 		if (prev_haState == SA_AMF_HA_QUIESCED)
-			 dts_imm_declare_implementer(cb);
+			dts_imm_declare_implementer(cb);
 
 		if (prev_haState == SA_AMF_HA_STANDBY) {
 			dts_imm_declare_implementer(cb);
 
-			/* get default global configuration from global scalar object */
-			dts_configure_global_policy(); /* order must be followed for these three calls */
+			/* get default global configuration from global policy object */
+			if (dts_configure_global_policy() == NCSCC_RC_FAILURE) {
+				printf("Failed to load global log policy object from IMMSv");
+				exit(1);
+			}
+
 			/* Loads all NodeLogPolicy objects from IMMSv */
 			dts_read_log_policies("OpenSAFDtsvNodeLogPolicy");
+
 			/* Loads all ServiceLogPolicy objects from IMMSv */
 			dts_read_log_policies("OpenSAFDtsvServiceLogPolicy");
 		}
@@ -532,8 +537,8 @@ static uns32 dtsv_mbcsv_process_dec_cb(DTS_CB *cb, NCS_MBCSV_CB_ARG *arg)
 				 */
 				if (TRUE == cb->cold_sync_in_progress) {
 					if (NCSCC_RC_SUCCESS != dtsv_validate_reo_type_in_csync(cb,
-												arg->info.
-												decode.i_reo_type)) {
+												arg->info.decode.
+												i_reo_type)) {
 						/* Free userbuff and return without decoding */
 						ncs_reset_uba(&arg->info.decode.i_uba);
 						break;
@@ -791,10 +796,7 @@ static uns32 dtsv_mbcsv_open_ckpt(DTS_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = (uns32)cb->mds_hdl;
-	/* Smik - Here CB hdl is required supplying oac_hdl from DTS CB */
-	//mbcsv_arg.info.open.i_client_hdl = cb->oac_hdl; /* TODO  what suppose to do */
-
-	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
+	    if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dtsv_mbcsv_open_ckpt: MBCSV Open operation failed");
 	}
 

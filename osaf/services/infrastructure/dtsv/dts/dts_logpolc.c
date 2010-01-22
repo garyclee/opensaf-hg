@@ -56,8 +56,6 @@ static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enu
 static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int paramid,
 					  uns8 old_log_device, uns32 old_buff_size);
 
-static uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
-
 /**************************************************************************
  Function: dts_log_policy_change
 
@@ -69,7 +67,6 @@ static uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int para
 **************************************************************************/
 void dts_log_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	if (old_plcy->buff_log_fmt != new_plcy->buff_log_fmt)
 		node->device.buff_log_fmt_change = TRUE;
 
@@ -96,7 +93,6 @@ void dts_log_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_
 **************************************************************************/
 void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *new_plcy)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_CB *inst = &dts_cb;
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service;
@@ -138,7 +134,6 @@ void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *n
 **************************************************************************/
 uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* 
@@ -187,7 +182,6 @@ uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
 **************************************************************************/
 uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	/* Check whether log device is already set to buffer or not.
 	 *            If not then return success, no need to call the buff_size 
 	 *            increase/decrease functions.
@@ -217,7 +211,6 @@ uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value)
 **************************************************************************/
 uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_SVC_REG_TBL *service;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
@@ -241,7 +234,7 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 	service = (DTS_SVC_REG_TBL *)ncs_patricia_tree_get(&inst->svc_tbl, (const uns8 *)&nt_key);
 
 	if (!service) {
-		rc = dts_create_new_pat_entry(inst, &service, key.node, key.ss_svc_id, NCS_SNMP_FALSE);
+		rc = dts_create_new_pat_entry(inst, &service, key.node, key.ss_svc_id, FALSE);
 		if (rc != NCSCC_RC_SUCCESS) {
 			/*log ERROR */
 			ncs_logmsg(NCS_SERVICE_ID_DTSV, DTS_LID_EVT, DTS_FC_EVT, NCSFL_LC_EVENT, NCSFL_SEV_ERROR,
@@ -388,7 +381,6 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *service,
 				       unsigned int param_id, uns32 node_id, SS_SVC_ID svc_id)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTA_DEST_LIST *dta;
 	DTA_ENTRY *dta_entry;
 	/* Configure services for this change */
@@ -414,7 +406,6 @@ uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *service,
 static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service,
 					  unsigned int paramid, uns8 old_log_device, uns32 old_buff_size)
 {
-printf("-------  %s  --------\n", __FUNCTION__);
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	switch (paramid) {
@@ -483,7 +474,6 @@ printf("-------  %s  --------\n", __FUNCTION__);
 **************************************************************************/
 static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *service, enum CcbUtilOperationType opType)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	OP_DEVICE *dev = &service->device;
 	/*
 	 * If Ccb operations is Delete, we will have to remove 
@@ -536,7 +526,6 @@ static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *service, 
 **************************************************************************/
 uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	uns32 rc = NCSCC_RC_SUCCESS, old_buff_size = 0;
 	uns8 old_log_device = 0;
 	uns32 old_num_log_files = 0, i = 0;
@@ -548,7 +537,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 
 	strcpy(data.file_name, "");
 
-	attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
+	attrMod = (SaImmAttrModificationT_2 *)ccbUtilOperationData->param.modify.attrMods[i++];
 	if (!attrMod) {
 		printf("Invalid ccbUtilOperationData value");
 		return NCSCC_RC_FAILURE;
@@ -564,22 +553,26 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 
 		value = *(SaUint32T *)attribute->attrValues[0];
 		if (!strcmp(attribute->attrName, "osafDtsvGlobalMessageLogging")) {
-			inst->g_policy.device.new_file = TRUE;
+			if (inst->g_policy.global_logging != value) {
+				inst->g_policy.device.new_file = TRUE;
 
-			dts_circular_buffer_clear(&inst->g_policy.device.cir_buffer);
-			m_LOG_DTS_CBOP(DTS_CBOP_CLEARED, 0, 0);
-			inst->g_policy.global_logging = value;
-			/* Update the cli_bit_map field in DTS_CB */
-			inst->cli_bit_map = osafDtsvGlobalMessageLogging_ID;
-			if (NCSCC_RC_SUCCESS !=
-			    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalMessageLogging_ID))
-				return NCSCC_RC_FAILURE;
-
+				dts_circular_buffer_clear(&inst->g_policy.device.cir_buffer);
+				m_LOG_DTS_CBOP(DTS_CBOP_CLEARED, 0, 0);
+				inst->g_policy.global_logging = value;
+				/* Update the cli_bit_map field in DTS_CB */
+				inst->cli_bit_map = osafDtsvGlobalMessageLogging_ID;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalMessageLogging_ID))
+					return NCSCC_RC_FAILURE;
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
-			old_log_device = inst->g_policy.g_policy.log_dev;
-			inst->g_policy.g_policy.log_dev = *(uns8 *)&value;
+			if (inst->g_policy.g_policy.log_dev != *(uns8 *)&value) {
+				old_log_device = inst->g_policy.g_policy.log_dev;
+				inst->g_policy.g_policy.log_dev = *(uns8 *)&value;
 
-			rc = dts_log_device_set(&inst->g_policy.g_policy, &inst->g_policy.device, old_log_device);
+				rc = dts_log_device_set(&inst->g_policy.g_policy, &inst->g_policy.device,
+							old_log_device);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogFileSize")) {
 			printf("osafDtsvGlobalLogFileSize %d\n", value);
 			inst->g_policy.g_policy.log_file_size = value;
@@ -587,38 +580,47 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 			inst->g_policy.device.file_log_fmt_change = TRUE;
 			inst->g_policy.g_policy.file_log_fmt = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCircularBuffSize")) {
-			old_buff_size = inst->g_policy.g_policy.cir_buff_size;
-			inst->g_policy.g_policy.cir_buff_size = value;
-			rc = dts_buff_size_set(&inst->g_policy.g_policy, &inst->g_policy.device, old_buff_size);
-			printf("osafDtsvGlobalCircularBuffSize %d\n", value);
+			if (inst->g_policy.g_policy.cir_buff_size != value) {
+				old_buff_size = inst->g_policy.g_policy.cir_buff_size;
+				inst->g_policy.g_policy.cir_buff_size = value;
+				rc = dts_buff_size_set(&inst->g_policy.g_policy, &inst->g_policy.device, old_buff_size);
+				printf("osafDtsvGlobalCircularBuffSize %d\n", value);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCirBuffCompFormat")) {
 			inst->g_policy.device.buff_log_fmt_change = TRUE;
 			inst->g_policy.g_policy.buff_log_fmt = value;
 			printf("osafDtsvGlobalCirBuffCompFormat %d\n", value);
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLoggingState")) {
-			inst->cli_bit_map = osafDtsvGlobalLoggingState_ID;
-			inst->g_policy.g_policy.enable = value;
-			if (NCSCC_RC_SUCCESS !=
-			    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalLoggingState_ID))
-				return NCSCC_RC_FAILURE;
-			printf("osafDtsvGlobalLoggingState %d\n", value);
+			if (inst->g_policy.g_policy.enable != value) {
+				inst->cli_bit_map = osafDtsvGlobalLoggingState_ID;
+				inst->g_policy.g_policy.enable = value;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalLoggingState_ID))
+					return NCSCC_RC_FAILURE;
+				printf("osafDtsvGlobalLoggingState %d\n", value);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
-			inst->g_policy.g_policy.category_bit_map = *(uns32 *)&value;
-			inst->g_policy.g_policy.category_bit_map = ntohl(inst->g_policy.g_policy.category_bit_map);
-			/* Smik - update the cli_bit_map field in DTS_CB */
-			inst->cli_bit_map = osafDtsvGlobalCategoryBitMap_ID;
-			if (NCSCC_RC_SUCCESS !=
-			    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalCategoryBitMap_ID))
-				return NCSCC_RC_FAILURE;
-			printf("osafDtsvGlobalCategoryBitMap %d\n", value);
+			if (inst->g_policy.g_policy.category_bit_map != value) {
+				inst->g_policy.g_policy.category_bit_map = value;
+				inst->g_policy.g_policy.category_bit_map =
+				    ntohl(inst->g_policy.g_policy.category_bit_map);
+				/* Smik - update the cli_bit_map field in DTS_CB */
+				inst->cli_bit_map = osafDtsvGlobalCategoryBitMap_ID;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalCategoryBitMap_ID))
+					return NCSCC_RC_FAILURE;
+				printf("osafDtsvGlobalCategoryBitMap %d\n", value);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-			inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
-			/* Smik - update the cli_bit_map field in DTS_CB */
-			inst->cli_bit_map = osafDtsvGlobalSeverityBitMap_ID;
-			if (NCSCC_RC_SUCCESS !=
-			    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID))
-				return NCSCC_RC_FAILURE;
-			printf("osafDtsvGlobalSeverityBitMap %d\n", value);
+			if (inst->g_policy.g_policy.severity_bit_map != *(uns16 *)&value) {
+				inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
+				/* Smik - update the cli_bit_map field in DTS_CB */
+				inst->cli_bit_map = osafDtsvGlobalSeverityBitMap_ID;
+				if (NCSCC_RC_SUCCESS !=
+				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID))
+					return NCSCC_RC_FAILURE;
+				printf("osafDtsvGlobalSeverityBitMap %d\n", value);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles")) {
 			{
 				old_num_log_files = inst->g_policy.g_num_log_files;
@@ -647,28 +649,32 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 									    DTSV_CKPT_DTS_LOG_FILE_CONFIG);
 					}
 
-					node =
-					    (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl,
-											 (const uns8 *)&node->ntwk_key);
+					node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl,
+											    (const uns8 *)&node->
+											    ntwk_key);
 				}
 			}
 			printf("osafDtsvGlobalNumOfLogFiles %d\n", value);
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogMsgSequencing")) {
-			inst->g_policy.g_enable_seq = value;
-			if (inst->g_policy.g_enable_seq == NCS_SNMP_TRUE)
-				dts_enable_sequencing(inst);
-			else
-				dts_disable_sequencing(inst);
-			printf("osafDtsvGlobalLogMsgSequencing %d\n", value);
+			if (inst->g_policy.g_enable_seq != value) {
+				inst->g_policy.g_enable_seq = value;
+				if (inst->g_policy.g_enable_seq == TRUE)
+					dts_enable_sequencing(inst);
+				else
+					dts_disable_sequencing(inst);
+				printf("osafDtsvGlobalLogMsgSequencing %d\n", value);
+			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCloseOpenFiles")) {
-			inst->g_policy.g_close_files = value;
-			dts_close_opened_files();
-			printf("osafDtsvGlobalCloseOpenFiles %d\n", value);
+			if (inst->g_policy.g_close_files != value) {
+				inst->g_policy.g_close_files = value;
+				dts_close_opened_files();
+				printf("osafDtsvGlobalCloseOpenFiles %d\n", value);
+			}
 		} else {
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 
-		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
+		attrMod = (SaImmAttrModificationT_2 *)ccbUtilOperationData->param.modify.attrMods[i++];
 	}
 
 	if (rc != NCSCC_RC_FAILURE) {
@@ -701,7 +707,6 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 **************************************************************************/
 uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service;
 	DTA_DEST_LIST *dta;
@@ -757,7 +762,6 @@ uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id)
 **************************************************************************/
 uns32 dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	DTS_SVC_REG_TBL *node;
 	uns32 paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
 	uns8 log_device = 0;
@@ -926,7 +930,6 @@ uns32 dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, en
 **************************************************************************/
 static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, uns32 node_id)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service;
 	DTA_DEST_LIST *dta;
@@ -952,7 +955,7 @@ static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsign
 		else if (param_id == osafDtsvNodeSeverityBitMap_ID)
 			service->svc_policy.severity_bit_map = node->svc_policy.severity_bit_map;
 		else if (param_id == osafDtsvNodeMessageLogging_ID) {
-			if (node->per_node_logging == NCS_SNMP_FALSE)
+			if (node->per_node_logging == FALSE)
 				service->device.new_file = TRUE;
 
 			dts_circular_buffer_clear(&service->device.cir_buffer);
@@ -986,7 +989,6 @@ static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsign
 static uns32 dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
 				       unsigned int paramid, uns8 old_log_device, uns32 old_buff_size)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	switch (paramid) {
@@ -1010,7 +1012,7 @@ static uns32 dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
 		break;
 
 	case osafDtsvNodeMessageLogging_ID:
-		if (node->per_node_logging == NCS_SNMP_TRUE)
+		if (node->per_node_logging == TRUE)
 			node->device.new_file = TRUE;
 
 		/* Smik - Update the cli_bit_map field in DTS_CB */
@@ -1059,7 +1061,6 @@ static uns32 dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
 **************************************************************************/
 static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType)
 {
-	printf("-------  %s  --------\n", __FUNCTION__);
 	OP_DEVICE *dev;
 
 	if (opType == CCBUTIL_CREATE) {
@@ -1072,10 +1073,10 @@ static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum Cc
 		 * Check if we need to change the logging policy. If yes then 
 		 * new logging policy handle should be sent the DTA for logging.
 		 */
-		if (((node->per_node_logging == NCS_SNMP_TRUE) &&
-		     (inst->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_FALSE)) ||
-		    ((inst->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_TRUE) &&
-		     (node->per_node_logging == NCS_SNMP_FALSE))) {
+		if (((node->per_node_logging == TRUE) &&
+		     (inst->dflt_plcy.node_dflt.per_node_logging == FALSE)) ||
+		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) &&
+		     (node->per_node_logging == FALSE))) {
 			dtsv_node_policy_change(inst, node, osafDtsvNodeMessageLogging_ID, node->my_key.node);
 		}
 	} else if (opType == CCBUTIL_DELETE) {
@@ -1092,10 +1093,10 @@ static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum Cc
 		 * Check if we need to change the logging policy. If yes then 
 		 * new logging policy handle should be sent the DTA for logging.
 		 */
-		if (((node->per_node_logging == NCS_SNMP_TRUE) &&
-		     (inst->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_FALSE)) ||
-		    ((inst->dflt_plcy.node_dflt.per_node_logging == NCS_SNMP_TRUE) &&
-		     (node->per_node_logging == NCS_SNMP_FALSE))) {
+		if (((node->per_node_logging == TRUE) &&
+		     (inst->dflt_plcy.node_dflt.per_node_logging == FALSE)) ||
+		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) &&
+		     (node->per_node_logging == FALSE))) {
 			dtsv_node_policy_change(inst, node, osafDtsvNodeMessageLogging_ID, node->my_key.node);
 		}
 

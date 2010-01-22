@@ -320,7 +320,7 @@ uns32 dts_svc_destroy(DTS_DESTROY *destroy)
 
 	/* Now walk through the sequencing buffer and free all the messages */
 	/* Clear sequencing buffer only if DTS is Act */
-	if ((NCS_SNMP_TRUE == inst->g_policy.g_enable_seq) && (inst->ha_state == SA_AMF_HA_ACTIVE)) {
+	if ((TRUE == inst->g_policy.g_enable_seq) && (inst->ha_state == SA_AMF_HA_ACTIVE)) {
 		m_NCS_TMR_STOP(inst->tmr);
 		m_NCS_TMR_DESTROY(inst->tmr);
 		for (i = 0; i < inst->s_buffer.num_msgs; i++) {
