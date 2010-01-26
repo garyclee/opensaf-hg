@@ -42,6 +42,7 @@
 #include "saf_error.h"
 
 static SaVersionT immVersion = { 'A', 2, 1 };
+int verbose = 0;
 
 typedef enum {
 	INVALID = 0,
@@ -162,7 +163,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
  *
  * @return SaImmAttrValuesT_2*
  */
-static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval)
+static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char *nameval, int isRdn)
 {
 	int res = 0;
 	char *name = strdup(nameval), *p;
@@ -177,6 +178,7 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 	value = p + 1;
 
 	attrValue->attrName = strdup(name);
+	VERBOSE_INFO("new_attr_value attrValue->attrName: %s value:%s\n", attrValue->attrName, isRdn ? nameval : value);
 
 	error = immutil_get_attrValueType(className, attrValue->attrName, &attrValue->attrValueType);
 
@@ -194,7 +196,7 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 
 	attrValue->attrValuesNumber = 1;
 	attrValue->attrValues = malloc(sizeof(SaImmAttrValueT *));
-	attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, value);
+	attrValue->attrValues[0] = immutil_new_attrValue(attrValue->attrValueType, isRdn ? nameval : value);
 
  done:
 	free(name);
@@ -234,10 +236,11 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 	for (i = 0; i < optargs_len; i++) {
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		if ((attrValue = new_attr_value(className, optargs[i])) == NULL)
+		if ((attrValue = new_attr_value(className, optargs[i], 0)) == NULL)
 			goto done;
 
 		attrValues[attr_len - 1] = attrValue;
+		VERBOSE_INFO("object_create optargs[%d]: %s\n", i, optargs[i]);
 		attrValues[attr_len] = NULL;
 		attr_len++;
 	}
@@ -267,6 +270,7 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 			parentName.length = sprintf((char*)parentName.value, "%s", parent);
 
+			VERBOSE_INFO("call saImmOmAdminOwnerSet for parent: %s\n", parent);
 			if ((error = saImmOmAdminOwnerSet(ownerHandle, parentNames, SA_IMM_SUBTREE)) != SA_AIS_OK) {
 				if (error == SA_AIS_ERR_NOT_EXIST)
 					fprintf(stderr, "error - parent '%s' does not exist\n", parentName.value);
@@ -278,9 +282,10 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		}
 
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		attrValue = new_attr_value(className, str);
+		attrValue = new_attr_value(className, str, 1);
 		attrValues[attr_len - 1] = attrValue;
 		attrValues[attr_len] = NULL;
+		VERBOSE_INFO("object_create rdn attribute attrValues[%d]: %s \n", attr_len - 1, str);
 
 		if ((error = saImmOmCcbObjectCreate_2(ccbHandle, className, &parentName,
 			(const SaImmAttrValuesT_2**)attrValues)) != SA_AIS_OK) {
@@ -526,7 +531,6 @@ int main(int argc, char *argv[])
 	SaImmClassNameT className = NULL;
 	op_t op = INVALID;
 	char* xmlFilename;
-	int verbose = 0;
 	int i;
 
 	while (1) {
