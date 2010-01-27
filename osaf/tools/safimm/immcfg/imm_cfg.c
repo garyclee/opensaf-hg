@@ -174,11 +174,16 @@ static SaImmAttrValuesT_2 *new_attr_value(const SaImmClassNameT className, char 
 	attrValue = malloc(sizeof(SaImmAttrValuesT_2));
 
 	p = strchr(name, '=');
+	if (p == NULL){
+		fprintf(stderr, "The Attribute '%s' does not contain a equal sign ('=')\n", nameval);
+		res = -1;
+		goto done;
+	}
 	*p = '\0';
 	value = p + 1;
 
 	attrValue->attrName = strdup(name);
-	VERBOSE_INFO("new_attr_value attrValue->attrName: %s value:%s\n", attrValue->attrName, isRdn ? nameval : value);
+	VERBOSE_INFO("new_attr_value attrValue->attrName: '%s' value:'%s'\n", attrValue->attrName, isRdn ? nameval : value);
 
 	error = immutil_get_attrValueType(className, attrValue->attrName, &attrValue->attrValueType);
 
@@ -236,11 +241,13 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 
 	for (i = 0; i < optargs_len; i++) {
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		if ((attrValue = new_attr_value(className, optargs[i], 0)) == NULL)
+		VERBOSE_INFO("object_create optargs[%d]: '%s'\n", i, optargs[i]);
+		if ((attrValue = new_attr_value(className, optargs[i], 0)) == NULL){
+			fprintf(stderr, "error - creating attribute from '%s'\n", optargs[i]);
 			goto done;
+		}
 
 		attrValues[attr_len - 1] = attrValue;
-		VERBOSE_INFO("object_create optargs[%d]: %s\n", i, optargs[i]);
 		attrValues[attr_len] = NULL;
 		attr_len++;
 	}
@@ -282,10 +289,13 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		}
 
 		attrValues = realloc(attrValues, (attr_len + 1) * sizeof(SaImmAttrValuesT_2 *));
-		attrValue = new_attr_value(className, str, 1);
+		VERBOSE_INFO("object_create rdn attribute attrValues[%d]: '%s' \n", attr_len - 1, str);
+		if ((attrValue = new_attr_value(className, str, 1)) == NULL){
+			fprintf(stderr, "error - creating rdn attribute from '%s'\n", str);
+			goto done;
+		}
 		attrValues[attr_len - 1] = attrValue;
 		attrValues[attr_len] = NULL;
-		VERBOSE_INFO("object_create rdn attribute attrValues[%d]: %s \n", attr_len - 1, str);
 
 		if ((error = saImmOmCcbObjectCreate_2(ccbHandle, className, &parentName,
 			(const SaImmAttrValuesT_2**)attrValues)) != SA_AIS_OK) {
