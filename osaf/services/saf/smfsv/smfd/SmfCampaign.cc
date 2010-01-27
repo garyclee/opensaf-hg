@@ -39,7 +39,8 @@
  * Constructor
  */
  SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** attrValues):
-m_upgradeCampaign(NULL)
+	 m_upgradeCampaign(NULL),
+	 m_cmpgState(SA_SMF_CMPG_INITIAL)
 {
 	init(attrValues);
 	m_dn = m_cmpg;
@@ -51,7 +52,8 @@ m_upgradeCampaign(NULL)
  * Constructor
  */
 SmfCampaign::SmfCampaign(const SaNameT * dn):
-   m_upgradeCampaign(NULL)
+	m_upgradeCampaign(NULL),
+	m_cmpgState(SA_SMF_CMPG_INITIAL)
 {
 	m_dn.append((char *)dn->value, dn->length);
 }

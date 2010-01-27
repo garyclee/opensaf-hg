@@ -134,7 +134,13 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 
         if (auList.empty()) {
                 /* No AU in the step (only install/remove bundles) */
-                i_step->setStepType(SMF_STEP_SW_INSTALL);
+		if (i_step->getDeactivationUnitList().empty()) {
+			i_step->setStepType(SMF_STEP_SW_INSTALL);
+		} else {
+			/* We have deactivation units. This must be a
+			 * single-step removal package. */
+			i_step->setStepType(SMF_STEP_AU_LOCK);
+		}
         } else {
 		bool rebootNeeded = false;
                 SmfImmUtils immutil;
