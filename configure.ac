@@ -245,6 +245,83 @@ AC_SUBST([TESTS_ENABLED], ["$enable_tests"])
 
 
 #
+# Enable a build to fit the payload deployment model
+#
+AC_MSG_CHECKING([whether to build for a payload deployment model])
+AC_ARG_ENABLE([payload-build],
+	[AS_HELP_STRING([--enable-payload-build],
+		[set the build type for a payload deployment model [default=no]])],
+	[],
+	[enable_payload_build=no])
+AC_MSG_RESULT([$enable_payload_build])
+
+AM_CONDITIONAL([ENABLE_PAYLOAD_BUILD], [test "$enable_payload_build" = yes])
+AC_SUBST([PAYLOAD_BUILD_ENABLED], ["$enable_payload_build"])
+
+
+#
+# Enable/disable building some of the OpenSAF AIS Services
+#
+AC_MSG_CHECKING([whether to build the SAI-AIS-CKPT service])
+AC_ARG_ENABLE([ais-ckpt],
+	[AS_HELP_STRING([--disable-ais-ckpt],
+		[disable building the SAI-AIS-CKPT service [default=no]])],
+	[],
+	[enable_ais_ckpt=yes])
+AC_MSG_RESULT([$enable_ais_ckpt])
+
+AM_CONDITIONAL([ENABLE_AIS_CKPT], [test "$enable_ais_ckpt" = yes])
+AC_SUBST([AIS_CKPT_ENABLED], ["$enable_ais_ckpt"])
+
+
+AC_MSG_CHECKING([whether to build the SAI-AIS-EVT service])
+AC_ARG_ENABLE([ais-evt],
+	[AS_HELP_STRING([--disable-ais-evt],
+		[disable building the SAI-AIS-EVT service [default=no]])],
+	[],
+	[enable_ais_evt=yes])
+AC_MSG_RESULT([$enable_ais_evt])
+
+AM_CONDITIONAL([ENABLE_AIS_EVT], [test "$enable_ais_evt" = yes])
+AC_SUBST([AIS_EVT_ENABLED], ["$enable_ais_evt"])
+
+
+AC_MSG_CHECKING([whether to build the SAI-AIS-LCK service])
+AC_ARG_ENABLE([ais-lck],
+	[AS_HELP_STRING([--disable-ais-lck],
+		[disable building the SAI-AIS-LCK service [default=no]])],
+	[],
+	[enable_ais_lck=yes])
+AC_MSG_RESULT([$enable_ais_lck])
+
+AM_CONDITIONAL([ENABLE_AIS_LCK], [test "$enable_ais_lck" = yes])
+AC_SUBST([AIS_LCK_ENABLED], ["$enable_ais_lck"])
+
+
+AC_MSG_CHECKING([whether to build the SAI-AIS-MSG service])
+AC_ARG_ENABLE([ais-msg],
+	[AS_HELP_STRING([--disable-ais-msg],
+		[disable building the SAI-AIS-MSG service [default=no]])],
+	[],
+	[enable_ais_msg=yes])
+AC_MSG_RESULT([$enable_ais_msg])
+
+AM_CONDITIONAL([ENABLE_AIS_MSG], [test "$enable_ais_msg" = yes])
+AC_SUBST([AIS_MSG_ENABLED], ["$enable_ais_msg"])
+
+
+AC_MSG_CHECKING([whether to build the SAI-AIS-SMF service])
+AC_ARG_ENABLE([ais-smf],
+	[AS_HELP_STRING([--disable-ais-smf],
+		[disable building the SAI-AIS-SMF service [default=no]])],
+	[],
+	[enable_ais_smf=yes])
+AC_MSG_RESULT([$enable_ais_smf])
+
+AM_CONDITIONAL([ENABLE_AIS_SMF], [test "$enable_ais_smf" = yes])
+AC_SUBST([AIS_SMF_ENABLED], ["$enable_ais_smf"])
+
+#
 # unless explicitly set, drop previx from sysconfdir
 # and localstatedir
 #
@@ -818,5 +895,6 @@ echo " OpenSAF Options:"
 echo "${ECHO_T}  Enable Java AIS Mapping: ${enable_java}"
 echo "${ECHO_T}  Enable HPI support: ${enable_hpi}"
 echo "${ECHO_T}  Enable OpenHPI: ${with_openhpi}"
+echo "${ECHO_T}  Enable Build for Payload: ${enable_payload_build}"
 echo "======================================================="
 echo ""

@@ -18,7 +18,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 include $(top_srcdir)/Makefile.common
 
-#BUILT_SOURCES = build-javadoc
+BUILT_SOURCES = build-javadoc
 
 EXTRA_DIST = \
 	src \
@@ -28,11 +28,18 @@ EXTRA_DIST = \
 build-javadoc:
 	$(ANT) -f build.xml javadocAPI
 
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(javadocdir)/$(PACKAGE_NAME)
+	@cd javadoc; \
+	for file in `find . -name \*`; do \
+		$(INSTALL) -D -m 644 ../$(top_builddir)/java/ais_api/javadoc/$$file $(DESTDIR)$(javadocdir)/$(PACKAGE_NAME)/$$file.txt; \
+	done; \
+	cd -
+
 uninstall-local:
-	-rm -rf $(DESTDIR)$(docdir)/java_ais
+	-rm -rf $(DESTDIR)$(javadocdir)/$(PACKAGE_NAME)
 
 clean-local:
 	$(ANT) -f build.xml clean
-	-rm -rf $(top_builddir)/java/ais_api/bin
 	-rm -rf $(top_builddir)/java/ais_api/javadoc
 

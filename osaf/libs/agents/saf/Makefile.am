@@ -18,4 +18,28 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ava cla cpa eda gla imma lga mqa ntfa
+SUBDIRS = ava cla imma lga ntfa
+
+if ENABLE_AIS_CKPT
+
+SUBDIRS += cpa
+
+endif
+
+if ENABLE_AIS_EVT
+
+SUBDIRS += eda
+
+endif
+
+if ENABLE_AIS_LCK
+
+SUBDIRS += gla
+
+endif
+
+if ENABLE_AIS_MSG
+
+SUBDIRS += mqa
+
+endif

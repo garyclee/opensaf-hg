@@ -9,7 +9,14 @@
 %define is_java %(test "@JAVA_ENABLED@" = "yes" && echo 1 || echo 0)
 %define is_tests %(test "@TESTS_ENABLED@" = "yes" && echo 1 || echo 0)
 
+%define is_ais_ckpt %(test "@AIS_CKPT_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_ais_evt %(test "@AIS_EVT_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_ais_lck %(test "@AIS_LCK_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_ais_msg %(test "@AIS_MSG_ENABLED@" = "yes" && echo 1 || echo 0)
+%define is_ais_smf %(test "@AIS_SMF_ENABLED@" = "yes" && echo 1 || echo 0)
+
 %define _pkglibdir %{_libdir}/%{name}
+%define _pkgsysconfdir %{_sysconfdir}/%{name}
 %define _initddir @initscriptdir@
 
 # TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
@@ -19,6 +26,7 @@
 %if %is_rhel || %is_fedora
 %define __global_cflags	-O2 -g -pipe -Wall
 %endif
+
 
 Summary: OpenSAF is an open source implementation of the SAF AIS specification
 Name: opensaf
@@ -30,15 +38,9 @@ URL: http://www.opensaf.org
 Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-
-# TODO: Causing issue on SUSE, package names are different, need to create
-# distro specific check
-%if %is_openhpi
-BuildRequires: openhpi-devel pkgconfig
-%endif
-%if %is_java
-#BuildRequires: java-1.6.0-openjdk-devel ant
-%endif
+Requires(post): /sbin/chkconfig /sbin/service
+Requires(preun): /sbin/chkconfig /sbin/service
+Requires: %{name}-libs = %{version}-%{release}
 
 
 %description
@@ -55,26 +57,359 @@ Foundation was founded on January 22nd 2008 with Emerson Network Power,
 Ericsson, Nokia Siemens Networks, HP and Sun Microsystems as founding members.
 
 
-%package common
-Group: System Environment/Base
-Summary: The common components to run an OpenSAF Controller or Payload node
-Requires: /sbin/chkconfig /sbin/service
+%package amf-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-amf-libs < %{version}-%{release}
 
-%description common
+%description amf-libs
+The Availability Management Framework provides a set of APIs to enable highly
+available applications. In addition to component registration and life cycle 
+management, it includes functions for error reporting and health monitoring. 
+The Availability Management Framework also assigns active or standby workloads 
+to the components of an application as a function of component state and system 
+configuration. The Availability Management Framework configuration allows 
+prioritization of resources and provides for a variety of redundancy models. 
+The Availability Management Framework also provides APIs for components to 
+track the assignment of work or so-called component service instances among the 
+set of components protecting the same component service instance.
+
+
+%if %is_ais_ckpt
+
+%package ckpt-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-ckpt-libs < %{version}-%{release}
+
+%description ckpt-libs
+The Checkpoint Service provides a facility for processes to record checkpoint 
+data incrementally, which can be used to protect an application against 
+failures. When recovering from fail-over or switch-over situations, the 
+checkpoint data can be retrieved, and execution can be resumed from the state 
+recorded before the failure.
+
+%package ckpt-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
+Requires: %{name}-ckpt-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+
+%description ckpt-director
+
+%package ckpt-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
+Requires: %{name}-ckpt-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+
+%description ckpt-nodedirector
+
+%endif
+
+
+%package clm-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-clm-libs < %{version}-%{release}
+
+%description clm-libs
+The Cluster Membership Service provides applications with membership information
+about the nodes that have been administratively configured in the cluster 
+configuration (these nodes are also called cluster nodes or configured nodes), 
+and it is core to any clustered system. A cluster consists of this set of 
+configured nodes, each with a unique node name.
+
+
+%if %is_ais_evt
+
+%package evt-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-EVT Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-evt-libs < %{version}-%{release}
+
+%description evt-libs
+The Event Service is a publish/subscribe multipoint-to-multipoint communication
+mechanism that is based on the concept of event channels. One or more publishers
+communicate asynchronously with one or more subscribers by means of events over
+a cluster-wide entity named event channel.
+
+%package evt-server
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-EVT Service
+Requires: %{name}-evt-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+
+%description evt-server
+
+%endif
+
+
+%package imm-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-imm-libs < %{version}-%{release}
+
+%description imm-libs
+The different entities of an SA Forum cluster, such as components provided by 
+the Availability Management Framework, checkpoints provided by the Checkpoint 
+Service, or message queues provided by the Message Service are represented by 
+various objects of the SA Forum Information Model.
+
+%package imm-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
+BuildRequires: libxml2
+Requires: libxml2
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description imm-director
+
+%package imm-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description imm-nodedirector
+
+
+%if %is_ais_lck
+
+%package lck-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-lck-libs < %{version}-%{release}
+
+%description lck-libs
+The Lock Service is a distributed lock service, which is intended for use in a 
+cluster where processes in different nodes might compete with each other for 
+access to a shared resource.
+
+%package lck-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
+Requires: %{name}-lck-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description lck-director
+
+%package lck-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
+Requires: %{name}-lck-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description lck-nodedirector
+
+%endif
+
+
+%package log-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-LOG Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-log-libs < %{version}-%{release}
+
+%description log-libs
+Logging information is a high-level cluster-significant, function-based (as 
+opposed to implementation-particular) information suited primarily for network 
+or system administrators, or automated tools to review current and historical 
+logged information to trouble shoot issues such as misconfigurations, network 
+disconnects and unavailable resources.
+
+%package log-server
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-LOG Service
+Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description log-server
+
+
+%if %is_ais_msg
+
+%package msg-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-msg-libs < %{version}-%{release}
+
+%description msg-libs
+The Message Service specifies a buffered message-passing system based on the
+concept of a message queue for processes on the same or on different nodes. 
+Messages are written to message queues and read from them. A single message 
+queue permits a multipoint-to-point communication. Message queues are 
+persistent or non-persistent. The Message Service must preserve messages that 
+have not yet been consumed when the message queue is closed.
+
+%package msg-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
+Requires: %{name}-msg-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+
+%description msg-director
+
+%package msg-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
+Requires: %{name}-msg-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+
+%description msg-nodedirector
+
+%endif
+
+
+%package ntf-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-NTF Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-ntf-libs < %{version}-%{release}
+
+%description ntf-libs
+ITU-T recommendations X.700 - X.799 deal with the area of system management,
+and how it may be applied to a communications system. ITU-T broadly classifies 
+the management domain into the famous FCAPS model that segregates the overall 
+management into five areas, with the "F" standing for Fault Management. The 
+Notification Service is based on these fault management recommendations to a 
+great degree, but also needs many other supportive recommendations that include, 
+for example, the concepts of managed objects, which are covered in Structure 
+of Management Information. Normative references to ITU-T-defined agents and 
+managers are used in the definition of the current notification standard.
+
+%package ntf-server
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-NTF Service
+Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-log-libs = %{version}-%{release}
+
+%description ntf-server
+
+
+%if %is_ais_smf
+
+%package smf-libs
+Group: System Environment/Libraries
+Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name}-libs = %{version}-%{release}
+Obsoletes: %{name}-smf-libs < %{version}-%{release}
+
+%description smf-libs
+SA Forum systems are required to provide highly available services to their 
+users over a long period of time during which the systems may undergo changes 
+due to growth and evolution, bug fixes, or enhancement of services. These 
+changes may require addition, removal, replacement, or reconfiguration of 
+hardware or software elements. High service availability requires that such 
+changes cause no (or only minimal) loss of service.
+
+%package smf-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
+BuildRequires: libxml2
+Requires: libxml2
+Requires: %{name}-smf-libs = %{version}-%{release}
+Requires: %{name}-imm-libs < %{version}-%{release}
+Requires: %{name}-amf-libs < %{version}-%{release}
+Requires: %{name}-clm-libs < %{version}-%{release}
+Requires: %{name}-ntf-libs < %{version}-%{release}
+
+%description smf-director
+
+%package smf-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
+Requires: %{name}-smf-libs = %{version}-%{release}
+Requires: %{name}-amf-libs < %{version}-%{release}
+
+%description smf-nodedirector
+
+%endif
 
 
 %package controller
 Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF System Controller node
-Requires: %{name}-common = %{version}-%{release}
-Requires: %{name}-libs = %{version}-%{release}
-Requires: /sbin/ldconfig
-
+Conflicts: %{name}-payload
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-imm-director = %{version}-%{release}
+Requires: %{name}-imm-nodedirector = %{version}-%{release}
+Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-log-server = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-ntf-server = %{version}-%{release}
+%if %is_ais_ckpt
+Requires: %{name}-ckpt-libs = %{version}-%{release}
+Requires: %{name}-ckpt-director = %{version}-%{release}
+Requires: %{name}-ckpt-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_evt
+Requires: %{name}-evt-libs = %{version}-%{release}
+Requires: %{name}-evt-server = %{version}-%{release}
+%endif
+%if %is_ais_lck
+Requires: %{name}-lck-libs = %{version}-%{release}
+Requires: %{name}-lck-director = %{version}-%{release}
+Requires: %{name}-lck-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_msg
+Requires: %{name}-msg-libs = %{version}-%{release}
+Requires: %{name}-msg-director = %{version}-%{release}
+Requires: %{name}-msg-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_smf
+Requires: %{name}-smf-libs = %{version}-%{release}
+Requires: %{name}-smf-director = %{version}-%{release}
+Requires: %{name}-smf-nodedirector = %{version}-%{release}
+%endif
 %if %is_openhpi
 Requires: openhpi
 %endif
-
-Conflicts: %{name}-payload
 
 %description controller
 
@@ -82,17 +417,42 @@ Conflicts: %{name}-payload
 %package payload
 Group: System Environment/Daemons
 Summary: The required components to run an OpenSAF Payload node
-Requires: %{name}-common = %{version}-%{release}
-Requires: %{name}-libs = %{version}-%{release}
-Requires: /sbin/ldconfig
 Conflicts: %{name}-controller
+Requires(post): /sbin/ldconfig
+Requires(postun): /sbin/ldconfig
+Requires: %{name} = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-imm-nodedirector = %{version}-%{release}
+Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+%if %is_ais_ckpt
+Requires: %{name}-ckpt-libs = %{version}-%{release}
+Requires: %{name}-ckpt-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_evt
+Requires: %{name}-evt-libs = %{version}-%{release}
+%endif
+%if %is_ais_lck
+Requires: %{name}-lck-libs = %{version}-%{release}
+Requires: %{name}-lck-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_msg
+Requires: %{name}-msg-libs = %{version}-%{release}
+Requires: %{name}-msg-nodedirector = %{version}-%{release}
+%endif
+%if %is_ais_smf
+Requires: %{name}-smf-libs = %{version}-%{release}
+Requires: %{name}-smf-nodedirector = %{version}-%{release}
+%endif
 
 %description payload
 
 
 %package libs
 Group: System Environment/Libraries
-Summary: The OpenSAF common runtime libraries
+Summary: The non-SAF OpenSAF specific common runtime libraries
 Requires: /sbin/ldconfig
 Obsoletes: %{name}-libs < %{version}-%{release}
 
@@ -102,10 +462,27 @@ Obsoletes: %{name}-libs < %{version}-%{release}
 %package devel
 Group: Development/Libraries
 Summary: The development environment for the OpenSAF project
+BuildRequires: pkgconfig
 Requires: %{name}-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+%if %is_ais_ckpt
+Requires: %{name}-ckpt-libs = %{version}-%{release}
+%endif
+%if %is_ais_evt
+Requires: %{name}-evt-libs = %{version}-%{release}
+%endif
+%if %is_ais_lck
+Requires: %{name}-lck-libs = %{version}-%{release}
+%endif
+%if %is_ais_msg
+Requires: %{name}-msg-libs = %{version}-%{release}
+%endif
 
 %description devel
-The development libraries and header files for the OpenSAF project.
 
 
 %package samples
@@ -114,21 +491,20 @@ Summary: Small sample applications to demonstrate OpenSAF functionalities
 Requires: %{name}-devel = %{version}-%{release}
 
 %description samples
-Small sample applications to demonstrate OpenSAF functionalities
 
 
 %if %is_java
+
 %package java
 Group: Development/Libraries
 Summary: The Java AIS interface mapping for AMF and CLM
-Requires: %{name}-libs = %{version}-%{release}
-
-%if %is_rhel || %is_fedora
-#Requires: java-1.6.0-openjdk-devel
-%endif
+BuildRequires: ant java-devel
+Requires: java
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
 
 %description java
-The Java AIS interface mapping for AMF and CLM
+
 %endif
 
 
@@ -136,25 +512,22 @@ The Java AIS interface mapping for AMF and CLM
 Group: Applications/System
 Summary: Optional tools for OpenSAF
 Requires: %{name}-devel = %{version}-%{release}
-
-%if %is_rhel || %is_fedora
 %if %is_openhpi
 Requires: openhpi
 %endif
-%endif
 
 %description tools
-Optional miscellaneous tools and utilities for use with OpenSAF
 
 
 %if %is_tests
+
 %package tests
 Group: Development/Libraries
-Summary: The OpenSAF tests programs
+Summary: The OpenSAF test programs
 Requires: %{name}-controller = %{version}-%{release}
 
 %description tests
-The OpenSAF tests programs
+
 %endif
 
 
@@ -181,18 +554,7 @@ The OpenSAF tests programs
 %{__rm} -rf $RPM_BUILD_ROOT
 
 
-%pre -p <lua>
-print("")
-print("---------------------------------------------------------------------")
-print("* MESSAGE:                                                          *")
-print("* Depending on the node type you are trying to configure:           *")
-print("* Install the 'opensaf-controller' or the 'opensaf-payload' package *")
-print("---------------------------------------------------------------------")
-print("")
-os.exit("-1")
-
-
-%post common
+%post
 # If we're being upgraded
 if [ "$1" = "2" ]; then
    /sbin/service opensafd condrestart >/dev/null 2>&1 || :
@@ -201,68 +563,144 @@ else # If we're being installed
    /sbin/chkconfig opensafd off
 fi
 
-%post libs -p /sbin/ldconfig
-
-%post controller
-%{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.controller %{_sysconfdir}/%{name}/nodeinit.conf
-echo "controller" > %{_sysconfdir}/%{name}/node_type
-/sbin/ldconfig
-
-%post payload
-%{__ln_s} -f %{_sysconfdir}/%{name}/nodeinit.conf.payload %{_sysconfdir}/%{name}/nodeinit.conf
-echo "payload" > %{_sysconfdir}/%{name}/node_type
-/sbin/ldconfig
-
-
-%preun common
+%preun
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
     /sbin/service opensafd stop >/dev/null 2>&1 || :
     /sbin/chkconfig --del opensafd
 fi
 
+
+%post amf-libs
+/sbin/ldconfig
+
+%postun amf-libs
+/sbin/ldconfig
+
+
+%if %is_ais_ckpt
+%post ckpt-libs
+/sbin/ldconfig
+
+%postun ckpt-libs
+/sbin/ldconfig
+%endif
+
+
+%post clm-libs
+/sbin/ldconfig
+
+%postun clm-libs
+/sbin/ldconfig
+
+
+%if %is_ais_evt
+%post evt-libs
+/sbin/ldconfig
+
+%postun evt-libs
+/sbin/ldconfig
+%endif
+
+
+%post imm-libs
+/sbin/ldconfig
+
+%postun imm-libs
+/sbin/ldconfig
+
+
+%if %is_ais_lck
+%post lck-libs
+/sbin/ldconfig
+
+%postun lck-libs
+/sbin/ldconfig
+%endif
+
+
+%post log-libs
+/sbin/ldconfig
+
+%postun log-libs
+/sbin/ldconfig
+
+
+%if %is_ais_msg
+%post msg-libs
+/sbin/ldconfig
+
+%postun msg-libs
+/sbin/ldconfig
+%endif
+
+
+%post ntf-libs
+/sbin/ldconfig
+
+%postun ntf-libs
+/sbin/ldconfig
+
+
+%if %is_ais_smf
+%post smf-libs
+/sbin/ldconfig
+
+%postun smf-libs
+/sbin/ldconfig
+%endif
+
+
+%post libs
+/sbin/ldconfig
+
+%postun libs
+/sbin/ldconfig
+
+
+%post controller
+%{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
+echo "controller" > %{_pkgsysconfdir}/node_type
+/sbin/ldconfig
+
 %preun controller
-%{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
+%{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
+
+%postun controller
+/sbin/ldconfig
+
+
+%post payload
+%{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.payload %{_pkgsysconfdir}/nodeinit.conf
+echo "payload" > %{_pkgsysconfdir}/node_type
+/sbin/ldconfig
 
 %preun payload
-%{__rm} -f %{_sysconfdir}/%{name}/nodeinit.conf
+%{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
 
-
-%postun libs -p /sbin/ldconfig
-
-%postun controller -p /sbin/ldconfig
-
-%postun payload -p /sbin/ldconfig
+%postun payload
+/sbin/ldconfig
 
 
 %files
 %defattr(-,root,root)
-
-
-%files common
-%defattr(-,root,root)
 %doc AUTHORS ChangeLog COPYING.LIB INSTALL NEWS OpenSAFCopyRights THANKS
 %doc README 00-README.uml 00-README.conf 00-README.debug 00-README.drbd
-%dir %{_sysconfdir}/%{name}
+%dir %{_pkglibdir}
+%dir %{_pkgsysconfdir}
 %dir %{_localstatedir}/lib/%{name}
 %dir %{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/run/%{name}
-%config(noreplace) %{_sysconfdir}/%{name}/imm.conf
-%config(noreplace) %{_sysconfdir}/%{name}/chassis_id
-%config(noreplace) %{_sysconfdir}/%{name}/slot_id
-%config(noreplace) %{_sysconfdir}/%{name}/subslot_id
-%config(noreplace) %{_sysconfdir}/%{name}/node_type
-%config %{_sysconfdir}/%{name}/script.conf
-%{_sysconfdir}/%{name}/nodeinit.conf
+%config(noreplace) %{_pkgsysconfdir}/chassis_id
+%config(noreplace) %{_pkgsysconfdir}/slot_id
+%config(noreplace) %{_pkgsysconfdir}/subslot_id
+%config(noreplace) %{_pkgsysconfdir}/node_type
+%config %{_pkgsysconfdir}/script.conf
+%{_pkgsysconfdir}/nodeinit.conf
 %{_initddir}/opensafd
+%{_pkglibdir}/ncs_nid
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
-%{_pkglibdir}/ncs_cpnd_clean
-%{_pkglibdir}/ncs_cpnd_start
-%{_pkglibdir}/ncs_glnd_clean
-%{_pkglibdir}/ncs_glnd_start
-%{_pkglibdir}/ncs_mqnd_clean
-%{_pkglibdir}/ncs_mqnd_start
 %{_pkglibdir}/nid_tipc
 %if %is_openhpi
 %{_pkglibdir}/openhpid_clean
@@ -270,102 +708,226 @@ fi
 %{_pkglibdir}/openhpisubagt_clean
 %{_pkglibdir}/openhpisubagt_start
 %endif
-%{_pkglibdir}/immnd_script
-%{_pkglibdir}/smfnd_script
 %{_pkglibdir}/tipc_reset.sh
 
 
-%files controller
+%files amf-libs
 %defattr(-,root,root)
-%{_bindir}/get_ha_state
-%{_bindir}/collect_logs_controller
+%{_libdir}/libSaAmf.so.*
+%{_pkglibdir}/libavsv_common.so.*
+
+
+%if %is_ais_ckpt
+
+%files ckpt-libs
+%defattr(-,root,root)
+%{_libdir}/libSaCkpt.so.*
+%{_pkglibdir}/libcpsv_common.so.*
+
+%files ckpt-director
+%defattr(-,root,root)
+%{_pkglibdir}/libcpsv_logstr.so.*
+%{_pkglibdir}/ncs_cpd
+%{_pkglibdir}/ncs_cpd_clean
+%{_pkglibdir}/ncs_cpd_start
+
+%files ckpt-nodedirector
+%defattr(-,root,root)
+%{_pkglibdir}/ncs_cpnd
+%{_pkglibdir}/ncs_cpnd_clean
+%{_pkglibdir}/ncs_cpnd_start
+
+%endif
+
+
+%files clm-libs
+%defattr(-,root,root)
+%{_libdir}/libSaClm.so.*
+
+
+%if %is_ais_evt
+
+%files evt-libs
+%defattr(-,root,root)
+%{_libdir}/libSaEvt.so.*
+%{_pkglibdir}/libedsv_common.so.*
+
+%files evt-server
+%defattr(-,root,root)
+%{_pkglibdir}/libedsv_logstr.so.*
+%{_pkglibdir}/ncs_eds
+%{_pkglibdir}/ncs_eds_clean
+%{_pkglibdir}/ncs_eds_start
+
+%endif
+
+
+%files imm-libs
+%defattr(-,root,root)
+%{_libdir}/libSaImmOi.so.*
+%{_libdir}/libSaImmOm.so.*
+%{_pkglibdir}/libimmsv_common.so.*
+
+%files imm-director
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/imm.xml
 %{_bindir}/immadm
 %{_bindir}/immcfg
 %{_bindir}/immdump
 %{_bindir}/immfind
 %{_bindir}/immlist
-%{_bindir}/saflogger
-%{_bindir}/ntfsend
-%{_bindir}/ntfsubscribe
-%{_pkglibdir}/ncs_cpd
-%{_pkglibdir}/ncs_cpd_clean
-%{_pkglibdir}/ncs_cpd_start
-%{_pkglibdir}/ncs_cpnd
-%{_pkglibdir}/ncs_dts
-%{_pkglibdir}/ncs_dts_clean
-%{_pkglibdir}/ncs_dts_start
-%{_pkglibdir}/ncs_eds
-%{_pkglibdir}/ncs_eds_clean
-%{_pkglibdir}/ncs_eds_start
+%{_pkglibdir}/immd_script
+%{_pkglibdir}/opensaf_immd
+%{_pkglibdir}/immload
+
+%files imm-nodedirector
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/imm.conf
+%{_pkglibdir}/opensaf_immnd
+%{_pkglibdir}/immnd_script
+
+
+%if %is_ais_lck
+
+%files lck-libs
+%defattr(-,root,root)
+%{_libdir}/libSaLck.so.*
+%{_pkglibdir}/libglsv_common.so.*
+
+%files lck-director
+%defattr(-,root,root)
+%{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/ncs_gld
 %{_pkglibdir}/ncs_gld_clean
 %{_pkglibdir}/ncs_gld_start
+
+%files lck-nodedirector
+%defattr(-,root,root)
 %{_pkglibdir}/ncs_glnd
-#TODO: To be changed when supporting other HPI
-%if %is_hpi
-%{_pkglibdir}/ncs_hisv
-%{_pkglibdir}/ncs_hisv_clean
-%{_pkglibdir}/ncs_hisv_start
+%{_pkglibdir}/ncs_glnd_clean
+%{_pkglibdir}/ncs_glnd_start
+
 %endif
+
+
+%files log-libs
+%defattr(-,root,root)
+%{_libdir}/libSaLog.so.*
+
+%files log-server
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/saflog.conf
+%{_bindir}/saflogger
+%{_pkglibdir}/opensaf_saflogd
+%{_pkglibdir}/opensaf_lgs
+
+
+%if %is_ais_msg
+
+%files msg-libs
+%defattr(-,root,root)
+%{_libdir}/libSaMsg.so.*
+%{_pkglibdir}/libmqsv_common.so.*
+
+%files msg-director
+%defattr(-,root,root)
+%{_pkglibdir}/libmqsv_logstr.so.*
 %{_pkglibdir}/ncs_mqd
 %{_pkglibdir}/ncs_mqd_clean
 %{_pkglibdir}/ncs_mqd_start
+
+%files msg-nodedirector
+%defattr(-,root,root)
 %{_pkglibdir}/ncs_mqnd
-%{_pkglibdir}/ncs_nid
-%{_pkglibdir}/ncs_rde
-%{_pkglibdir}/ncs_rde_clean
-%{_pkglibdir}/ncs_rde_start
-%{_pkglibdir}/rde_script
-%{_pkglibdir}/opensaf_fmsd
-%{_pkglibdir}/opensaf_fms
-%{_pkglibdir}/opensaf_scap
-%{_pkglibdir}/opensaf_scap_clean
-%{_pkglibdir}/opensaf_scap_start
-%{_pkglibdir}/ncs_pdrbd
-%{_pkglibdir}/opensaf_saflogd
-%{_pkglibdir}/opensaf_lgs
+%{_pkglibdir}/ncs_mqnd_clean
+%{_pkglibdir}/ncs_mqnd_start
+
+%endif
+
+
+%files ntf-libs
+%defattr(-,root,root)
+%{_libdir}/libSaNtf.so.*
+%{_pkglibdir}/libntfsv_common.so.*
+
+%files ntf-server
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/ntf.conf
+%{_bindir}/ntfsend
+%{_bindir}/ntfsubscribe
 %{_pkglibdir}/opensaf_ntfd
 %{_pkglibdir}/opensaf_ntfs
-%{_pkglibdir}/immd_script
-%{_pkglibdir}/opensaf_immd
-%{_pkglibdir}/opensaf_immnd
-%{_pkglibdir}/smfd_script
-%{_pkglibdir}/opensaf_smfd
-%{_pkglibdir}/opensaf_smfnd
-%{_pkglibdir}/immload
-%{_pkglibdir}/pdrbdctrl
-%{_pkglibdir}/pdrbdsts
-%{_pkglibdir}/drbd_clean
-%{_pkglibdir}/drbdctrl
-%{_pkglibdir}/drbd_start
-%{_pkglibdir}/ncs_drbd_r0_clean
+
+
+%if %is_ais_smf
+
+%files smf-libs
+%defattr(-,root,root)
+%{_pkglibdir}/libsmfsv_common.so.*
+
+%files smf-director
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/smfd.conf
 %{_pkglibdir}/smf_backup_create
 %{_pkglibdir}/smf_bundle_check
 %{_pkglibdir}/smf_cluster_reboot
 %{_pkglibdir}/smf_node_check
 %{_pkglibdir}/smf_repository_check
-%config %{_sysconfdir}/%{name}/imm.xml
-%config(noreplace) %{_sysconfdir}/%{name}/rde.conf
-%config(noreplace) %{_sysconfdir}/%{name}/fms.conf
-%config(noreplace) %{_sysconfdir}/%{name}/pdrbd_proxied.conf
-%config(noreplace) %{_sysconfdir}/%{name}/saflog.conf
-%config(noreplace) %{_sysconfdir}/%{name}/smfd.conf
-%config(noreplace) %{_sysconfdir}/%{name}/smfnd.conf
-%config(noreplace) %{_sysconfdir}/%{name}/ntf.conf
-%config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.controller
+%{_pkglibdir}/smfd_script
+%{_pkglibdir}/opensaf_smfd
+
+%files smf-nodedirector
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/smfnd.conf
+%{_pkglibdir}/smfnd_script
+%{_pkglibdir}/opensaf_smfnd
+
+%endif
+
+
+%files controller
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/rde.conf
+%config(noreplace) %{_pkgsysconfdir}/fms.conf
+%config(noreplace) %{_pkgsysconfdir}/pdrbd_proxied.conf
+%config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
+%{_bindir}/get_ha_state
+%{_bindir}/collect_logs_controller
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_1
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_2
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_3
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_4
 %{_localstatedir}/lib/%{name}/node_ha_state
+%{_pkglibdir}/ncs_dts
+%{_pkglibdir}/ncs_dts_clean
+%{_pkglibdir}/ncs_dts_start
+#TODO: To be changed when supporting other HPI
+%if %is_hpi
+%{_pkglibdir}/ncs_hisv
+%{_pkglibdir}/ncs_hisv_clean
+%{_pkglibdir}/ncs_hisv_start
+%endif
+%{_pkglibdir}/ncs_rde
+%{_pkglibdir}/ncs_rde_clean
+%{_pkglibdir}/ncs_rde_start
+%{_pkglibdir}/rde_script
+%{_pkglibdir}/opensaf_fmsd
+%{_pkglibdir}/opensaf_fms
+#TODO: Split SCAP with AMF Director/Nodedirector
+%{_pkglibdir}/opensaf_scap
+%{_pkglibdir}/opensaf_scap_clean
+%{_pkglibdir}/opensaf_scap_start
+%{_pkglibdir}/ncs_pdrbd
+%{_pkglibdir}/pdrbdctrl
+%{_pkglibdir}/pdrbdsts
+%{_pkglibdir}/drbd_clean
+%{_pkglibdir}/drbdctrl
+%{_pkglibdir}/drbd_start
+%{_pkglibdir}/ncs_drbd_r0_clean
 %{_pkglibdir}/libavsv_logstr.so.*
-%{_pkglibdir}/libcpsv_logstr.so.*
 %{_pkglibdir}/libdts_logstr.so.*
-%{_pkglibdir}/libedsv_logstr.so.*
-%{_pkglibdir}/libglsv_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
-%{_pkglibdir}/libmqsv_logstr.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/librde_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
@@ -377,45 +939,18 @@ fi
 
 %files payload
 %defattr(-,root,root)
-%{_pkglibdir}/ncs_cpnd
-%{_pkglibdir}/ncs_glnd
-%{_pkglibdir}/ncs_mqnd
-%{_pkglibdir}/ncs_nid
+%config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
+%{_bindir}/collect_logs_payload
+#TODO: Split PCAP with AMF Director/Nodedirector
 %{_pkglibdir}/opensaf_pcap
 %{_pkglibdir}/opensaf_pcap_clean
 %{_pkglibdir}/opensaf_pcap_start
-%{_pkglibdir}/opensaf_immnd
-%{_pkglibdir}/opensaf_smfnd
-%{_bindir}/saflogger
-%{_bindir}/ntfsend
-%{_bindir}/ntfsubscribe
-%{_bindir}/collect_logs_payload
-%{_sysconfdir}/%{name}/smfnd.conf
-%config(noreplace) %{_sysconfdir}/%{name}/nodeinit.conf.payload
 
 
 %files libs
 %defattr(-,root,root)
 %{_sysconfdir}/ld.so.conf.d/%{name}-%{_host_cpu}.conf
-%{_libdir}/libSaAmf.so.*
-%{_libdir}/libSaCkpt.so.*
-%{_libdir}/libSaClm.so.*
-%{_libdir}/libSaEvt.so.*
-%{_libdir}/libSaImmOi.so.*
-%{_libdir}/libSaImmOm.so.*
-%{_libdir}/libSaLck.so.*
-%{_libdir}/libSaLog.so.*
-%{_libdir}/libSaNtf.so.*
-%{_libdir}/libSaMsg.so.*
 %{_pkglibdir}/libopensaf_core.so.*
-%{_pkglibdir}/libavsv_common.so.*
-%{_pkglibdir}/libcpsv_common.so.*
-%{_pkglibdir}/libedsv_common.so.*
-%{_pkglibdir}/libglsv_common.so.*
-%{_pkglibdir}/libimmsv_common.so.*
-%{_pkglibdir}/libmqsv_common.so.*
-%{_pkglibdir}/libntfsv_common.so.*
-%{_pkglibdir}/libsmfsv_common.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libfma.so.*
 %{_pkglibdir}/libhpl.so.*
@@ -424,17 +959,29 @@ fi
 %files devel
 %defattr(-,root,root)
 %if %is_java
-#%dir %{javadocdir}
-#%{javadocdir}/%{name}-%{version}/*
-%{_libdir}/libjava_ais_api_native.so
+%dir %{_javadocdir}/%{name}
+%{_javadocdir}/%{name}/*
 %endif
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/*.so
 %{_libdir}/*.a
-# TODO split of SAF / non-SAF headers
-%{_includedir}/*
+%{_includedir}/saAis.h
+%{_includedir}/saAmf.h
+%{_includedir}/saCkpt.h
+%{_includedir}/saClm.h
+%{_includedir}/saEvt.h
+%{_includedir}/saImm.h
+%{_includedir}/saImmOi.h
+%{_includedir}/saImmOm.h
+%{_includedir}/saLck.h
+%{_includedir}/saLog.h
+%{_includedir}/saMsg.h
+%{_includedir}/saNtf.h
+%{_includedir}/saSmf.h
+%{_includedir}/%{name}/*
 
 
+#TODO: Is it going out of the main opensaf repo?
 %files samples
 %defattr(-,root,root)
 %doc 00-README.samples
@@ -442,6 +989,7 @@ fi
 %{_datadir}/%{name}/samples/*
 
 
+#TODO: Clean when scap/pcap will be split into amfd/amfnd and PLM introduced
 %files tools
 %defattr(-,root,root)
 %if %is_hpi
@@ -455,25 +1003,22 @@ fi
 
 
 %if %is_tests
+#TODO: Is it going out of the main opensaf repo?
 %files tests
 %defattr(-,root,root)
 %{_bindir}/immomtest
 %{_bindir}/immoitest
 %{_bindir}/logtest
 %{_bindir}/ntftest
+
 %endif
 
 
 %if %is_java
+
 %files java
 %defattr(-,root,root)
 %{_libdir}/libjava_ais_api_native.so.*
 %{_javadir}/opensaf_ais_api.jar
+
 %endif
-
-
-%changelog
-* Sun Mar 8 2009 Hans Feldt <hans.feldt@ericsson.com>
-- Added immsv in OpenSAF 3.0 B4
-* Tue Aug 12 2008 Jonathan Fournier <jonathan.fournier@windriver.com>
-- Created the initial common spec file for OpenSAF 3.0
