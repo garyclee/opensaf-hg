@@ -21,11 +21,31 @@ MAINTAINERCLEANFILES = Makefile.in
 SUBDIRS = \
 	include \
 	libSaAmf \
-	libSaCkpt \
 	libSaClm \
-	libSaEvt \
 	libSaImm \
-	libSaLck \
 	libSaLog \
-	libSaMsg \
 	libSaNtf
+
+if ENABLE_AIS_CKPT
+
+SUBDIRS += libSaCkpt
+
+endif
+
+if ENABLE_AIS_EVT
+
+SUBDIRS += libSaEvt
+
+endif
+
+if ENABLE_AIS_LCK
+
+SUBDIRS += libSaLck
+
+endif
+
+if ENABLE_AIS_MSG
+
+SUBDIRS += libSaMsg
+
+endif
