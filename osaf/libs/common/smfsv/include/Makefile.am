@@ -19,4 +19,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = config scripts smfd smfnd
+noinst_HEADERS = \
+	smfsv_defs.h \
+	smfsv_evt.h

@@ -868,11 +868,11 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %files smf-director
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/smfd.conf
-%{_pkglibdir}/smf_backup_create
-%{_pkglibdir}/smf_bundle_check
-%{_pkglibdir}/smf_cluster_reboot
-%{_pkglibdir}/smf_node_check
-%{_pkglibdir}/smf_repository_check
+%{_pkglibdir}/smf-backup-create
+%{_pkglibdir}/smf-bundle-check
+%{_pkglibdir}/smf-cluster-reboot
+%{_pkglibdir}/smf-node-check
+%{_pkglibdir}/smf-repository-check
 %{_pkglibdir}/smfd_script
 %{_pkglibdir}/opensaf_smfd
 

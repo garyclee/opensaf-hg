@@ -19,4 +19,9 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = config scripts smfd smfnd
+dist_pkglib_SCRIPTS = \
+        smf-backup-create \
+        smf-bundle-check \
+        smf-cluster-reboot \
+        smf-node-check \
+        smf-repository-check

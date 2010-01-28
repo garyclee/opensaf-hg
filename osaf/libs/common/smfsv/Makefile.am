@@ -19,12 +19,13 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+SUBDIRS = include
+
 pkglib_LTLIBRARIES = libsmfsv_common.la
 
 libsmfsv_common_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/saf/smfsv/inc \
-	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/smfsv/include
 
 libsmfsv_common_la_SOURCES = \
 	smfsv_evt.c
