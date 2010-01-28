@@ -21,43 +21,41 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-noinst_HEADERS = \
-	inc/smfd_cb.h \
-	inc/smfd_evt.h \
-	inc/smfd_smfnd.h \
-	inc/smfd.h \
-	inc/SmfCampaignXmlParser.hh \
-	inc/SmfUpgradeCampaign.hh \
-	inc/SmfUpgradeProcedure.hh \
-	inc/SmfUpgradeAction.hh \
-	inc/SmfImmOperation.hh \
-	inc/SmfCampaignThread.hh \
-	inc/SmfProcedureThread.hh \
-	inc/SmfCampaign.hh \
-	inc/SmfCampState.hh \
-	inc/SmfTargetTemplate.hh \
-	inc/SmfProcState.hh \
-	inc/SmfUpgradeStep.hh \
-	inc/SmfStepState.hh \
-	inc/SmfUpgradeMethod.hh \
-	inc/SmfUtils.hh \
-	inc/SmfCampaignWrapup.hh \
-	inc/SmfCampaignInit.hh
-
 pkglib_PROGRAMS = opensaf_smfd
+
+noinst_HEADERS = \
+	smfd_cb.h \
+	smfd_evt.h \
+	smfd_smfnd.h \
+	smfd.h \
+	SmfCampaignXmlParser.hh \
+	SmfUpgradeCampaign.hh \
+	SmfUpgradeProcedure.hh \
+	SmfUpgradeAction.hh \
+	SmfImmOperation.hh \
+	SmfCampaignThread.hh \
+	SmfProcedureThread.hh \
+	SmfCampaign.hh \
+	SmfCampState.hh \
+	SmfTargetTemplate.hh \
+	SmfProcState.hh \
+	SmfUpgradeStep.hh \
+	SmfStepState.hh \
+	SmfUpgradeMethod.hh \
+	SmfUtils.hh \
+	SmfCampaignWrapup.hh \
+	SmfCampaignInit.hh
 
 opensaf_smfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 opensaf_smfd_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
-	-I $(top_srcdir)/osaf/libs/core/leap/include \
-	-I $(top_srcdir)/osaf/libs/core/mds/include \
-	-I $(top_srcdir)/osaf/libs/core/common/include \
-	-I $(top_srcdir)/osaf/services/saf/smfsv/inc \
-	-I $(top_srcdir)/osaf/services/saf/smfsv/smfd/inc \
-	-I $(top_srcdir)/osaf/services/infrastructure/masv/include \
-	-I $(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/core/leap/include \
+	-I$(top_srcdir)/osaf/libs/core/mds/include \
+	-I$(top_srcdir)/osaf/libs/core/common/include \
+	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 opensaf_smfd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
@@ -94,8 +92,8 @@ opensaf_smfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
-	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/smfsv/libsmfsv_common.la

@@ -21,20 +21,18 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-noinst_HEADERS = \
-	inc/smfnd.h \
-	inc/smfnd_evt.h
-
 pkglib_PROGRAMS = opensaf_smfnd
+
+noinst_HEADERS = \
+	smfnd.h \
+	smfnd_evt.h
 
 opensaf_smfnd_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
-	-I $(top_srcdir)/osaf/services/saf/smfsv/inc \
-	-I $(top_srcdir)/osaf/services/saf/smfsv/smfnd/inc \
-	-I $(top_srcdir)/osaf/libs/core/common/include \
-	-I $(top_srcdir)/osaf/libs/core/include \
-	-I $(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
+	-I$(top_srcdir)/osaf/libs/core/common/include \
+	-I$(top_srcdir)/osaf/libs/core/include
 
 opensaf_smfnd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \

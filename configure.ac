@@ -665,6 +665,7 @@ AC_CONFIG_FILES([
         osaf/libs/common/ntfsv/Makefile
         osaf/libs/common/ntfsv/include/Makefile
         osaf/libs/common/smfsv/Makefile
+        osaf/libs/common/smfsv/include/Makefile
         osaf/libs/saf/Makefile
         osaf/libs/saf/include/Makefile
         osaf/libs/saf/libSaAmf/Makefile
@@ -803,6 +804,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/mqsv/mqnd/scripts/ncs_mqnd_start
 	osaf/services/saf/smfsv/Makefile
         osaf/services/saf/smfsv/config/Makefile
+        osaf/services/saf/smfsv/scripts/Makefile
         osaf/services/saf/smfsv/smfd/Makefile
         osaf/services/saf/smfsv/smfnd/Makefile
         osaf/services/saf/smfsv/smfd/scripts/Makefile
