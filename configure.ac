@@ -22,6 +22,7 @@ AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE([$PACKAGE_NAME], [$PACKAGE_VERSION])
+AC_USE_SYSTEM_EXTENSIONS
 
 # (major version) = (first number) - (third number)
 # (minor version) = (third number)
@@ -522,6 +523,7 @@ fi
 # Checks for header files.
 #############################################
 AC_HEADER_DIRENT
+AC_HEADER_MAJOR
 AC_HEADER_STDBOOL
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
@@ -548,16 +550,19 @@ AC_CHECK_HEADERS([ \
 
 
 #############################################
-# Checks for typedefs, structures, and compiler characteristics.
+# Checks for typedefs, structures, 
+# and compiler characteristics.
 #############################################
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
+AC_CHECK_MEMBERS([struct stat.st_rdev])
 AC_STRUCT_TM
 AC_TYPE_OFF_T
+AC_TYPE_SIGNAL
 AC_TYPE_SIZE_T
 AC_TYPE_UID_T
-AC_TYPE_SIGNAL
+AC_TYPE_UINT32_T
 
 
 #############################################
@@ -573,6 +578,8 @@ AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STAT
 AC_FUNC_STRFTIME
+AC_FUNC_STRNLEN
+AC_FUNC_STRTOD
 AC_FUNC_VPRINTF
 
 AC_CHECK_FUNCS([ \
@@ -597,12 +604,15 @@ AC_CHECK_FUNCS([ \
         strchr \
         strdup \
         strerror \
+        strndup \
         strpbrk \
         strrchr \
         strspn \
         strstr \
         strtol \
-        strtoul])
+        strtoul \
+        strtoull])
+
 
 #############################################
 # List the output Makefiles
