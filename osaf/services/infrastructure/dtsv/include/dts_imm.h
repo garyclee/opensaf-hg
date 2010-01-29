@@ -38,16 +38,18 @@
 #define DTS_SERVICE_CLASS_NAME "OpenSAFDtsvServiceLogPolicy"
 
 /* function prototypes */
-void dts_imm_declare_implementer(DTS_CB *cb);
-unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
-unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
-SaAisErrorT dts_imm_initialize(DTS_CB *cb);
-unsigned int dts_configure_global_policy();
-SaAisErrorT dts_imm_initialize(DTS_CB *cb);
-SaAisErrorT dts_read_log_policies(char *className);
-SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
-uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
-uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
+EXTERN_C void dts_imm_declare_implementer(DTS_CB *cb);
+EXTERN_C SaAisErrorT dts_imm_initialize(DTS_CB *cb);
+EXTERN_C SaAisErrorT dts_imm_initialize(DTS_CB *cb);
+EXTERN_C SaAisErrorT dts_read_log_policies(char *className);
+EXTERN_C SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle);
+EXTERN_C unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key);
+EXTERN_C unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key);
+EXTERN_C unsigned int dts_configure_global_policy();
+EXTERN_C unsigned int dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id);
+EXTERN_C unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
+EXTERN_C unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp);
+EXTERN_C unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData);
 
 /******************************************************************************
                            Global Policy Table
@@ -65,7 +67,6 @@ typedef enum dtsv_global_policy_obj_id {
 	osafDtsvGlobalNumOfLogFiles_ID,
 	osafDtsvGlobalLogMsgSequencing_ID,
 	osafDtsvGlobalCloseOpenFiles_ID,
-
 	osafDtsvScalarsMax_ID
 } DTSV_GLOBAL_POLICY_OBJ_ID;
 
@@ -83,7 +84,6 @@ typedef enum dtsv_node_policy_obj_id {
 	osafDtsvNodeLoggingState_ID,
 	osafDtsvNodeCategoryBitMap_ID,
 	osafDtsvNodeSeverityBitMap_ID,
-
 	osafDtsvNodeLogPolicyEntryMax_ID
 } DTSV_NODE_POLICY_OBJ_ID;
 
@@ -101,7 +101,6 @@ typedef enum dtsv_svc_policy_obj_id {
 	osafDtsvServiceLoggingState_ID,
 	osafDtsvServiceCategoryBitMap_ID,
 	osafDtsvServiceSeverityBitMap_ID,
-
 	osafDtsvServiceLogPolicyEntryMax_ID
 } DTSV_SVC_POLICY_OBJ_ID;
 

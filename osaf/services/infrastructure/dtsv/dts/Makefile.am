@@ -48,7 +48,7 @@ ncs_dts_SOURCES = \
 	dts_seq.c \
 	dts_tgt.c \
 	dts_imm.c \
-	sysf_log.c
+	dts_sysf_log.c
 
 ncs_dts_LDFLAGS = -Wl,--export-dynamic
 

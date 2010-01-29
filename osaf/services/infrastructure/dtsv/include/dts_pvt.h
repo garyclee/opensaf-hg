@@ -16,15 +16,7 @@
  */
 
 #include <configmake.h>
-#include "saImmOi.h"
 /*****************************************************************************
-..............................................................................
-
-  
-    
-      
-..............................................................................
-        
   DESCRIPTION:
           
  _Private_ Flex Log Server (DTS) abstractions and function prototypes.
@@ -39,6 +31,7 @@
 #define DTS_PVT_H
 
 #include "mds_papi.h"
+#include "saImmOi.h"
 
 #ifdef __NCSINC_LINUX__
 #define LOG_PATH OSAF_LOCALSTATEDIR "log"
@@ -520,7 +513,7 @@ typedef struct dts_cb {
 
 	uns8 hmpool_id;
 
-	uns8 *cons_dev;		/* Added 2 variables for console logging */
+	char *cons_dev;		/* Added 2 variables for console logging */
 	int32 cons_fd;
 
 	/*Patricia trees introduced to keep track of ASCII Spec tables registered */
@@ -917,7 +910,6 @@ EXTERN_C uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 EXTERN_C uns32 dtsv_log_msg(DTSV_MSG *msg, POLICY *policy, OP_DEVICE *device, uns8 file_type, NCSFL_ASCII_SPEC *spec);
 EXTERN_C uns32
 dts_create_new_pat_entry(DTS_CB *inst, DTS_SVC_REG_TBL **node, uns32 node_id, SS_SVC_ID svc_id, uns8 log_level);
-
 
 /************************************************************************
 DTSv Circular buffer functions.

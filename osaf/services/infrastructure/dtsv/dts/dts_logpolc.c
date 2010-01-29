@@ -41,20 +41,20 @@
 
 ******************************************************************************/
 
-/* Local routines for this table */
-static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, uns32 node_id);
+/* Local routines */
+static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, unsigned int node_id);
 
 static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType);
 
-static uns32 dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
-				       unsigned int paramid, uns8 old_log_device, uns32 old_buff_size);
+static unsigned int dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
+				       unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size);
 
-static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, uns32 node_id);
+static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, unsigned int node_id);
 
-static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType);
+static unsigned int dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum CcbUtilOperationType opType);
 
-static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int paramid,
-					  uns8 old_log_device, uns32 old_buff_size);
+static unsigned int dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int paramid,
+					  uns8 old_log_device, unsigned int old_buff_size);
 
 /**************************************************************************
  Function: dts_log_policy_change
@@ -132,9 +132,9 @@ void dts_filter_policy_change(DTS_SVC_REG_TBL *node, POLICY *old_plcy, POLICY *n
 
  Notes:  
 **************************************************************************/
-uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
+unsigned int dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
 	/* 
 	 * Check whether our log device has changed to circular buffer.
@@ -180,7 +180,7 @@ uns32 dts_log_device_set(POLICY *policy, OP_DEVICE *device, uns8 old_value)
 
  Notes:  
 **************************************************************************/
-uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value)
+unsigned int dts_buff_size_set(POLICY *policy, OP_DEVICE *device, unsigned int old_value)
 {
 	/* Check whether log device is already set to buffer or not.
 	 *            If not then return success, no need to call the buff_size 
@@ -209,13 +209,13 @@ uns32 dts_buff_size_set(POLICY *policy, OP_DEVICE *device, uns32 old_value)
 
  Notes:  
 **************************************************************************/
-uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
+unsigned int dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
 {
 	DTS_SVC_REG_TBL *service;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
 	SaImmAttrValuesT_2 *attribute, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
-	uns32 paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
+	unsigned int paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
 	uns8 old_log_device = 0;
 	int i = 0;
 
@@ -223,7 +223,7 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 	memset(&nt_key, 0, sizeof(SVC_KEY));
 
 	if (dts_parse_service_policy_DN(objName, &key) == NCSCC_RC_FAILURE) {
-		printf("Cannot proceed: Invalid DN format\n");
+		dts_log(NCSFL_SEV_ERROR, "Cannot proceed: Invalid DN format\n");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -251,7 +251,7 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 	if (UtilOp == CCBUTIL_DELETE) {
 		/* Do processing specific to the param objects after set */
 		if (NCSCC_RC_SUCCESS != dts_manage_service_objects(inst, service, CCBUTIL_DELETE)) {
-			printf("instance of object being delete failed");
+			dts_log(NCSFL_SEV_ERROR, "instance of object being delete failed");
 			return NCSCC_RC_FAILURE;
 		}
 
@@ -277,63 +277,63 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 			paramid = osafDtsvServiceLogDevice_ID;
 			old_log_device = service->svc_policy.log_dev;
 			service->svc_policy.log_dev = *(uns8 *)&value;
-			printf("osafDtsvServiceLogDevice = %d\n", service->svc_policy.log_dev);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogDevice = %d\n", service->svc_policy.log_dev);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceLogFileSize")) {
 			if ((value < 100) || (value > 10000)) {
-				printf("Invalid osafDtsvServiceLogFileSize value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceLogFileSize value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceLogFileSize_ID;
 			service->svc_policy.log_file_size = value;
-			printf("osafDtsvServiceLogFileSize = %d\n", service->svc_policy.log_file_size);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogFileSize = %d\n", service->svc_policy.log_file_size);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceFileLogCompFormat")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvServiceFileLogCompFormat value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceFileLogCompFormat value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceFileLogCompFormat_ID;
 			service->svc_policy.file_log_fmt = value;
-			printf("osafDtsvServiceFileLogCompFormat = %d\n", service->svc_policy.file_log_fmt);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceFileLogCompFormat = %d\n", service->svc_policy.file_log_fmt);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceCircularBuffSize")) {
 			if ((value < 10) || (value > 1000)) {
-				printf("Invalid osafDtsvServiceCircularBuffSize value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceCircularBuffSize value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceCircularBuffSize_ID;
 			old_buff_size = service->svc_policy.cir_buff_size;
 			service->svc_policy.cir_buff_size = value;
-			printf("osafDtsvServiceCircularBuffSize = %d\n", service->svc_policy.cir_buff_size);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCircularBuffSize = %d\n", service->svc_policy.cir_buff_size);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceCirBuffCompFormat")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvServiceCirBuffCompFormat value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceCirBuffCompFormat value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceCirBuffCompFormat_ID;
 			service->svc_policy.buff_log_fmt = value;
-			printf("osafDtsvServiceCirBuffCompFormat =  %d\n", service->svc_policy.buff_log_fmt);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCirBuffCompFormat =  %d\n", service->svc_policy.buff_log_fmt);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceLoggingState")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvServiceLoggingState value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceLoggingState value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceLoggingState_ID;
 			service->svc_policy.enable = value;
-			printf("osafDtsvServiceLoggingState = %d\n", service->svc_policy.enable);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLoggingState = %d\n", service->svc_policy.enable);
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceCategoryBitMap")) {
 			paramid = osafDtsvServiceCategoryBitMap_ID;
-			service->svc_policy.category_bit_map = *(uns32 *)&value;
+			service->svc_policy.category_bit_map = *(unsigned int *)&value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvServiceSeverityBitMap")) {
 			if ((value < 1) || (value > 255)) {
-				printf("Invalid osafDtsvServiceSeverityBitMap value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvServiceSeverityBitMap value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvServiceSeverityBitMap_ID;
 			service->svc_policy.severity_bit_map = *(uns16 *)&value;
-			printf("osafDtsvServiceSeverityBitMap = %d\n", service->svc_policy.severity_bit_map);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap = %d\n", service->svc_policy.severity_bit_map);
 		} else if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
-			printf("RDN = %s\n", (char *)value);
+			dts_log(NCSFL_SEV_DEBUG, "RDN = %s\n", (char *)value);
 		} else {
-			printf("invalid attribute %s\n", attribute->attrName);
+			dts_log(NCSFL_SEV_ERROR, "invalid attribute %s\n", attribute->attrName);
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 
@@ -378,8 +378,8 @@ uns32 dts_service_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info,
 
  Notes:  
 **************************************************************************/
-uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *service,
-				       unsigned int param_id, uns32 node_id, SS_SVC_ID svc_id)
+unsigned int dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *service,
+				       unsigned int param_id, unsigned int node_id, SS_SVC_ID svc_id)
 {
 	DTA_DEST_LIST *dta;
 	DTA_ENTRY *dta_entry;
@@ -403,10 +403,10 @@ uns32 dtsv_svc_filtering_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *service,
 
  Notes:  
 **************************************************************************/
-static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service,
-					  unsigned int paramid, uns8 old_log_device, uns32 old_buff_size)
+static unsigned int dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service,
+					  unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
 	switch (paramid) {
 	case osafDtsvServiceLogDevice_ID:
@@ -447,7 +447,7 @@ static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service
 		break;
 
 	default:
-		printf("Invalid param Id\n");
+		dts_log(NCSFL_SEV_ERROR, "Invalid param Id\n");
 		break;
 	}
 
@@ -472,7 +472,7 @@ static uns32 dts_handle_service_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *service
                 
  Notes:         
 **************************************************************************/
-static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *service, enum CcbUtilOperationType opType)
+static unsigned int dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *service, enum CcbUtilOperationType opType)
 {
 	OP_DEVICE *dev = &service->device;
 	/*
@@ -524,11 +524,11 @@ static uns32 dts_manage_service_objects(DTS_CB *inst, DTS_SVC_REG_TBL *service, 
 
  Notes:  
 **************************************************************************/
-uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData)
+unsigned int dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUtilOperationData)
 {
-	uns32 rc = NCSCC_RC_SUCCESS, old_buff_size = 0;
+	unsigned int rc = NCSCC_RC_SUCCESS, old_buff_size = 0;
 	uns8 old_log_device = 0;
-	uns32 old_num_log_files = 0, i = 0;
+	unsigned int old_num_log_files = 0, i = 0;
 	DTS_SVC_REG_TBL *node;
 	OP_DEVICE *device;
 	DTS_LOG_CKPT_DATA data;
@@ -539,7 +539,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 
 	attrMod = (SaImmAttrModificationT_2 *)ccbUtilOperationData->param.modify.attrMods[i++];
 	if (!attrMod) {
-		printf("Invalid ccbUtilOperationData value");
+		dts_log(NCSFL_SEV_ERROR, "Invalid ccbUtilOperationData value");
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -574,7 +574,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 							old_log_device);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogFileSize")) {
-			printf("osafDtsvGlobalLogFileSize %d\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogFileSize %d\n", value);
 			inst->g_policy.g_policy.log_file_size = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalFileLogCompFormat")) {
 			inst->g_policy.device.file_log_fmt_change = TRUE;
@@ -584,12 +584,12 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 				old_buff_size = inst->g_policy.g_policy.cir_buff_size;
 				inst->g_policy.g_policy.cir_buff_size = value;
 				rc = dts_buff_size_set(&inst->g_policy.g_policy, &inst->g_policy.device, old_buff_size);
-				printf("osafDtsvGlobalCircularBuffSize %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCircularBuffSize %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCirBuffCompFormat")) {
 			inst->g_policy.device.buff_log_fmt_change = TRUE;
 			inst->g_policy.g_policy.buff_log_fmt = value;
-			printf("osafDtsvGlobalCirBuffCompFormat %d\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCirBuffCompFormat %d\n", value);
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLoggingState")) {
 			if (inst->g_policy.g_policy.enable != value) {
 				inst->cli_bit_map = osafDtsvGlobalLoggingState_ID;
@@ -597,7 +597,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalLoggingState_ID))
 					return NCSCC_RC_FAILURE;
-				printf("osafDtsvGlobalLoggingState %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLoggingState %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
 			if (inst->g_policy.g_policy.category_bit_map != value) {
@@ -609,7 +609,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalCategoryBitMap_ID))
 					return NCSCC_RC_FAILURE;
-				printf("osafDtsvGlobalCategoryBitMap %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
 			if (inst->g_policy.g_policy.severity_bit_map != *(uns16 *)&value) {
@@ -619,7 +619,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID))
 					return NCSCC_RC_FAILURE;
-				printf("osafDtsvGlobalSeverityBitMap %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles")) {
 			{
@@ -650,11 +650,11 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 					}
 
 					node = (DTS_SVC_REG_TBL *)ncs_patricia_tree_getnext(&inst->svc_tbl,
-											    (const uns8 *)&node->
-											    ntwk_key);
+											    (const uns8 *)
+											    &node->ntwk_key);
 				}
 			}
-			printf("osafDtsvGlobalNumOfLogFiles %d\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalNumOfLogFiles %d\n", value);
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogMsgSequencing")) {
 			if (inst->g_policy.g_enable_seq != value) {
 				inst->g_policy.g_enable_seq = value;
@@ -662,13 +662,13 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 					dts_enable_sequencing(inst);
 				else
 					dts_disable_sequencing(inst);
-				printf("osafDtsvGlobalLogMsgSequencing %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogMsgSequencing %d\n", value);
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCloseOpenFiles")) {
 			if (inst->g_policy.g_close_files != value) {
 				inst->g_policy.g_close_files = value;
 				dts_close_opened_files();
-				printf("osafDtsvGlobalCloseOpenFiles %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCloseOpenFiles %d\n", value);
 			}
 		} else {
 			return SA_AIS_ERR_BAD_OPERATION;
@@ -705,7 +705,7 @@ uns32 dts_global_log_policy_set(DTS_CB *inst, struct CcbUtilOperationData *ccbUt
 
  Notes:  
 **************************************************************************/
-uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id)
+unsigned int dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id)
 {
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service;
@@ -760,19 +760,19 @@ uns32 dtsv_global_filtering_policy_change(DTS_CB *inst, unsigned int param_id)
 
  Notes:  
 **************************************************************************/
-uns32 dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
+unsigned int dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, enum CcbUtilOperationType UtilOp)
 {
 	DTS_SVC_REG_TBL *node;
-	uns32 paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
+	unsigned int paramid = 0, old_buff_size = 0, rc = NCSCC_RC_SUCCESS;
 	uns8 log_device = 0;
 	SVC_KEY key, nt_key;
 	SaImmAttrModificationT_2 *attrMod, **attrMods = (SaImmAttrModificationT_2 **)attrib_info;
 	SaImmAttrValuesT_2 *attribute, **attributes = (SaImmAttrValuesT_2 **)attrib_info;
-	uns32 i = 0;
+	unsigned int i = 0;
 
-	if (dts_parse_node_policy_DN(objName, &key) == NCSFL_SEV_ERROR) {
-		printf("Cannot proceed: Invalid DN format");
-		return NCSFL_SEV_ERROR;
+	if (dts_parse_node_policy_DN(objName, &key) == NCSCC_RC_FAILURE) {
+		dts_log(NCSFL_SEV_ERROR, "Cannot proceed: Invalid DN format");
+		return NCSCC_RC_FAILURE;
 	}
 
 	/*  Network order key added */
@@ -816,73 +816,73 @@ uns32 dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, en
 
 		if (!strcmp(attribute->attrName, "osafDtsvNodeMessageLogging")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvNodeMessageLogging value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeMessageLogging value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeMessageLogging_ID;
 			node->per_node_logging = value;
-			printf("osafDtsvNodeMessageLogging = %d\n", node->per_node_logging);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeMessageLogging = %d\n", node->per_node_logging);
 		} else if (!strcmp(attribute->attrName, "opensafNodeLogPolicy")) {
-			printf("RDN = %s\n", (char *)value);
+			dts_log(NCSFL_SEV_DEBUG, "RDN = %s\n", (char *)value);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogDevice")) {
 			paramid = osafDtsvNodeLogDevice_ID;
 			log_device = node->svc_policy.log_dev;
 			node->svc_policy.log_dev = *(uns8 *)&value;
-			printf("osafDtsvNodeLogDevice = %d\n", node->svc_policy.log_dev);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogDevice = %d\n", node->svc_policy.log_dev);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogFileSize")) {
 			if ((value < 100) || (value > 100000)) {
-				printf("Invalid osafDtsvNodeLogFileSize value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeLogFileSize value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeLogFileSize_ID;
 			node->svc_policy.log_file_size = value;
-			printf("osafDtsvNodeLogFileSize = %d\n", node->svc_policy.log_file_size);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogFileSize = %d\n", node->svc_policy.log_file_size);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeFileLogCompFormat")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvNodeFileLogCompFormat value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeFileLogCompFormat value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeFileLogCompFormat_ID;
 			node->svc_policy.file_log_fmt = value;
-			printf("osafDtsvNodeFileLogCompFormat = %d\n", node->svc_policy.file_log_fmt);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeFileLogCompFormat = %d\n", node->svc_policy.file_log_fmt);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeCircularBuffSize")) {
 			if ((value < 10) || (value > 10000)) {
-				printf("Invalid osafDtsvNodeCircularBuffSize value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeCircularBuffSize value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeCircularBuffSize_ID;
 			old_buff_size = node->svc_policy.cir_buff_size;
 			node->svc_policy.cir_buff_size = value;
-			printf("osafDtsvNodeCircularBuffSize = %d\n", node->svc_policy.cir_buff_size);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCircularBuffSize = %d\n", node->svc_policy.cir_buff_size);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeCirBuffCompFormat")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvNodeCirBuffCompFormat value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeCirBuffCompFormat value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeCirBuffCompFormat_ID;
 			node->svc_policy.buff_log_fmt = value;
-			printf("osafDtsvNodeCirBuffCompFormat =%d\n", node->svc_policy.buff_log_fmt);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCirBuffCompFormat =%d\n", node->svc_policy.buff_log_fmt);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeLoggingState")) {
 			if ((value < 0) || (value > 1)) {
-				printf("Invalid osafDtsvNodeLoggingState value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeLoggingState value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeLoggingState_ID;
 			node->svc_policy.enable = value;
-			printf("osafDtsvNodeLoggingState = %d\n", node->svc_policy.enable);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLoggingState = %d\n", node->svc_policy.enable);
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeCategoryBitMap")) {
 			paramid = osafDtsvNodeCategoryBitMap_ID;
-			node->svc_policy.category_bit_map = *(uns32 *)&value;
+			node->svc_policy.category_bit_map = *(unsigned int *)&value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvNodeSeverityBitMap")) {
 			if ((value < 1) || (value > 255)) {
-				printf("Invalid osafDtsvNodeSeverityBitMap value\n");
+				dts_log(NCSFL_SEV_ERROR, "Invalid osafDtsvNodeSeverityBitMap value\n");
 				exit(EXIT_FAILURE);
 			}
 			paramid = osafDtsvNodeSeverityBitMap_ID;
 			node->svc_policy.severity_bit_map = *(uns8 *)&value;
-			printf("osafDtsvNodeSeverityBitMap = %d\n", node->svc_policy.severity_bit_map);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap = %d\n", node->svc_policy.severity_bit_map);
 		} else {
-			printf("Invalid attribute value\n");
+			dts_log(NCSFL_SEV_ERROR, "Invalid attribute value\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -928,7 +928,7 @@ uns32 dts_node_log_policy_set(DTS_CB *inst, char *objName, void *attrib_info, en
 
  Notes:  
 **************************************************************************/
-static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, uns32 node_id)
+static unsigned int dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsigned int param_id, unsigned int node_id)
 {
 	SVC_KEY nt_key;
 	DTS_SVC_REG_TBL *service;
@@ -986,10 +986,10 @@ static uns32 dtsv_node_policy_change(DTS_CB *inst, DTS_SVC_REG_TBL *node, unsign
 
  Notes:  
 **************************************************************************/
-static uns32 dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
-				       unsigned int paramid, uns8 old_log_device, uns32 old_buff_size)
+static unsigned int dts_handle_node_param_set(DTS_CB *inst, DTS_SVC_REG_TBL *node,
+				       unsigned int paramid, uns8 old_log_device, unsigned int old_buff_size)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+	unsigned int rc = NCSCC_RC_SUCCESS;
 
 	switch (paramid) {
 	case osafDtsvNodeLogDevice_ID:
@@ -1075,8 +1075,7 @@ static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum Cc
 		 */
 		if (((node->per_node_logging == TRUE) &&
 		     (inst->dflt_plcy.node_dflt.per_node_logging == FALSE)) ||
-		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) &&
-		     (node->per_node_logging == FALSE))) {
+		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) && (node->per_node_logging == FALSE))) {
 			dtsv_node_policy_change(inst, node, osafDtsvNodeMessageLogging_ID, node->my_key.node);
 		}
 	} else if (opType == CCBUTIL_DELETE) {
@@ -1095,8 +1094,7 @@ static void dts_manage_node_objects(DTS_CB *inst, DTS_SVC_REG_TBL *node, enum Cc
 		 */
 		if (((node->per_node_logging == TRUE) &&
 		     (inst->dflt_plcy.node_dflt.per_node_logging == FALSE)) ||
-		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) &&
-		     (node->per_node_logging == FALSE))) {
+		    ((inst->dflt_plcy.node_dflt.per_node_logging == TRUE) && (node->per_node_logging == FALSE))) {
 			dtsv_node_policy_change(inst, node, osafDtsvNodeMessageLogging_ID, node->my_key.node);
 		}
 

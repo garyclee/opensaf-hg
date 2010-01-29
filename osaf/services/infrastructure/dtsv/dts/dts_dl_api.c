@@ -110,8 +110,8 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 
 	/* Initialize SAF stuff */
 	/* Fill in the Health check key */
-	strcpy(inst->health_chk_key.key, DTS_AMF_HEALTH_CHECK_KEY);
-	inst->health_chk_key.keyLen = strlen(inst->health_chk_key.key);
+	strcpy((char *)inst->health_chk_key.key, DTS_AMF_HEALTH_CHECK_KEY);
+	inst->health_chk_key.keyLen = strlen((char *)inst->health_chk_key.key);
 
 	inst->invocationType = DTS_HB_INVOCATION_TYPE;
 	/* Recommended recovery is to failover */
@@ -357,19 +357,19 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 {
 	/* get the instruments ready */
 	FILE *fp = NULL;
-	int8 lib_name[DTS_MAX_LIBNAME] = { 0 };
-	int8 func_name[DTS_MAX_FUNCNAME] = { 0 };
+	char lib_name[DTS_MAX_LIBNAME] = { 0 };
+	char func_name[DTS_MAX_FUNCNAME] = { 0 };
 	int32 nargs = 0;
 	uns32 status = NCSCC_RC_SUCCESS;
 	uns32 (*reg_unreg_routine) () = NULL;
-	int8 *dl_error = NULL;
+	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
 	ASCII_SPEC_LIB *lib_entry;
 	NCS_OS_DLIB_HDL *lib_hdl = NULL;
 	char dbg_str[DTS_MAX_LIB_DBG];
 
 	/* open the file */
-	fp = fopen(file_name, "r");
+	fp = fopen((char *)file_name, "r");
 	if (fp == NULL) {
 		/* inform that there is no such file, and return */
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_apps_ascii_spec_load: Unable to load the file");
@@ -440,7 +440,7 @@ uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do)
 							      "dts_apps_ascii_spec_load: Memory allocation for patricia node failed");
 				}
 				memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
-				strcpy(lib_entry->lib_name, lib_name);
+				strcpy((char *)lib_entry->lib_name, lib_name);
 				lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
 				lib_entry->lib_hdl = lib_hdl;
 				lib_entry->use_count++;
@@ -493,9 +493,9 @@ void dts_cons_init(void)
 	int32 fd;
 	uns32 tried_devcons = 0;
 	uns32 tried_vtmaster = 0;
-	uns8 *s;
+	char *s;
 
-	if ((s = (uns8 *)getenv("CONSOLE")) != NULL)
+	if ((s = getenv("CONSOLE")) != NULL)
 		inst->cons_dev = s;
 	else {
 		inst->cons_dev = DTS_CNSL;	/* defined as "/dev/console" */

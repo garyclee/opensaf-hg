@@ -257,7 +257,7 @@ static uns32 dtsv_encode_ckpt_dta_dest_list_config(DTS_CB *cb, NCS_MBCSV_CB_ENC 
 	 * table correspondind to the DTA being added. For removal this doesn't
 	 * matter.
 	 */
-	if (ncs_encode_n_octets_in_uba(&enc->io_uba, (char *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
+	if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uns8 *)cb->last_spec_loaded.svc_name, DTSV_SVC_NAME_MAX) !=
 	    NCSCC_RC_SUCCESS)
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 				      "dtsv_encode_ckpt_dta_dest_list_config: ncs_encode_n_octets_in_uba returns NULL");
@@ -627,7 +627,7 @@ static uns32 dtsv_encode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				ncs_encode_16bit(&enc_data, spec_entry->spec_struct->ss_spec->ss_ver);
 				ncs_enc_claim_space(&enc->io_uba, sizeof(uns32));
 				/* Now encode the service name */
-				if (ncs_encode_n_octets_in_uba(&enc->io_uba, spec_entry->svc_name, DTSV_SVC_NAME_MAX) !=
+				if (ncs_encode_n_octets_in_uba(&enc->io_uba, (uns8 *)spec_entry->svc_name, DTSV_SVC_NAME_MAX) !=
 				    NCSCC_RC_SUCCESS)
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						       "dtsv_encode_cold_sync_rsp_dta_dest_list_config: ncs_encode_n_octets_in_uba returns failure");
