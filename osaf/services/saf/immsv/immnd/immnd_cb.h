@@ -23,7 +23,7 @@
 #define IMMSV_WAIT_TIME  100
 
 /*Max # of outstanding fevs messages towards director.*/
-/*Note max-max is 255. cb->messages_pending is an uns8*/
+/*Note max-max is 255. cb->fevs_replies_pending is an uns8*/
 #define IMMND_FEVS_MAX_PENDING 16
 
 typedef enum immnd_server_state {
@@ -89,13 +89,15 @@ typedef struct immnd_cb_tag {
 	MDS_DEST immnd_mdest_id;
 	NCS_NODE_ID node_id;
 
-	uns8 messages_pending;	//For FEVS
+	/*Nr of FEVS messages sent, but not received back at origin.*/
+	uns8 fevs_replies_pending; 
 
 	SaUint32T cli_id_gen;	/* for generating client_id */
 
 	SaUint64T highestProcessed;	//highest fevs msg processed so far.
 	SaUint64T highestReceived;	//highest fevs msg received so far 
-	IMMND_FEVS_MSG_NODE *fevs_msg_list;
+	IMMND_FEVS_MSG_NODE *fevs_in_list;  //incomming queue
+	IMMND_FEVS_MSG_NODE *fevs_out_list; //outgoing queue
 
 	void *immModel;
 	SaUint32T mMyEpoch;	//Epoch counter, used in synch of immnds

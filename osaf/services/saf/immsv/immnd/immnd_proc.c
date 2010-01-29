@@ -53,7 +53,7 @@ void immnd_ackToNid(uns32 rc)
  ****************************************************************************/
 void immnd_proc_immd_down(IMMND_CB *cb)
 {
-	LOG_WA("ABT immmnd_proc_immd_down - not implemented");
+	LOG_WA("immmnd_proc_immd_down - not implemented");
 }
 
 /****************************************************************************
@@ -256,7 +256,7 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
 				++failed;
 			}
 		} else {
-			TRACE_5("No action client id :%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
+			/*TRACE_5("No action client id :%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);*/
 		}
 
 		immnd_client_node_getnext(cb, prev_hdl, &cl_node);
@@ -665,7 +665,13 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 		return;
 	}
 
-	/*immnd_proc_imma_discard_stales(cb); */
+	if(cb->fevs_out_list) {
+		/* Push out any lingering buffered asyncronous feves messages. 
+		   Normally pushed by arrival of reply over fevs.
+		*/
+		TRACE("cleanTheHouse push out buffered async fevs");
+		dequeue_outgoing(cb); /* function body in immnd_evt.c */
+	}
 
 	immModel_cleanTheBasement(cb,
 				  cb->mTimer,
