@@ -112,7 +112,7 @@ void *_dts_imm_declare_implementer(void *cb)
 		nTries++;
 	}
 	if (error != SA_AIS_OK) {
-		printf("ImplementerSet Failed: %u", error);
+		dts_log(NCSFL_SEV_ERROR, "ImplementerSet Failed: %u", error);
 		exit(1);
 	}
 	printf("imm implementer set success\n");
@@ -140,7 +140,7 @@ void dts_imm_declare_implementer(DTS_CB *cb)
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 	if (pthread_create(&thread, NULL, _dts_imm_declare_implementer, cb) != 0) {
-		printf("pthread create failed\n");
+		dts_log(NCSFL_SEV_ERROR, "pthread create failed\n");
 		exit(EXIT_FAILURE);
 	}
 	pthread_attr_destroy(&attr);
@@ -166,11 +166,11 @@ SaAisErrorT dts_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const
 		nTries++;
 	}
 	if (rc != SA_AIS_OK) {
-		printf("saImmOiClassImplementerRelease of ClassName = %s is Failed, rc = %u", className, rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerRelease of ClassName = %s is Failed, rc = %u", className, rc);
 		exit(EXIT_FAILURE);
 	}
 
-	printf("dts_saImmOiClassImplementerRelease Success\n");
+	dts_log(NCSFL_SEV_DEBUG, "dts_saImmOiClassImplementerRelease Success\n");
 	return rc;
 }
 
@@ -193,11 +193,11 @@ SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaI
 		nTries++;
 	}
 	if (rc != SA_AIS_OK) {
-		printf("saImmOiClassImplementerSet of ClassName = %s is Failed, rc = %u", className, rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerSet of ClassName = %s is Failed, rc = %u", className, rc);
 		exit(EXIT_FAILURE);
 	}
 
-	printf("dts_dts_saImmOiClassImplementerSet Success\n");
+	dts_log(NCSFL_SEV_DEBUG, "dts_dts_saImmOiClassImplementerSet Success\n");
 	return rc;
 }
 
@@ -227,11 +227,11 @@ SaAisErrorT dts_saImmOiImplementerClear(SaImmOiHandleT immOiHandle)
 		nTries++;
 	}
 	if (rc != SA_AIS_OK) {
-		printf("saImmOiImplementerClear FAILED, rc = %u", rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOiImplementerClear FAILED, rc = %u", rc);
 		exit(EXIT_FAILURE);
 	}
 
-	printf("dts_saImmOiImplementerClear Success\n");
+	dts_log(NCSFL_SEV_DEBUG, "dts_saImmOiImplementerClear Success\n");
 
 	return rc;
 }
@@ -259,18 +259,18 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 
 	/* There shall be only one instance of the Global Log policy object */
 	if (!strcmp(className, DTS_GLOBAL_CLASS_NAME)) {
-		printf("Not allowed to create Global Policy config ojbect");
+		dts_log(NCSFL_SEV_ERROR, "Not allowed to create Global Policy config ojbect");
 		return SA_AIS_ERR_BAD_OPERATION;
 
 	} else if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-		printf("Failed to get CCB object");
+		dts_log(NCSFL_SEV_ERROR, "Failed to get CCB object");
 		return SA_AIS_ERR_NO_MEMORY;
 	} else {
 
 		operation = ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
 
 		if (operation == NULL) {
-			printf("Failed to get CCB operation object for %llu", ccbId);
+			dts_log(NCSFL_SEV_ERROR, "Failed to get CCB operation object for %llu", ccbId);
 			return SA_AIS_ERR_NO_MEMORY;
 		}
 
@@ -297,18 +297,18 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 		}
 
 		if (operation->objectName.length == 0) {
-			printf("Malformed DN %llu\n", ccbId);
+			dts_log(NCSFL_SEV_ERROR, "Malformed DN %llu\n", ccbId);
 			return SA_AIS_ERR_INVALID_PARAM;
 		}
 		/* memorize the create request */
-		if (!strncmp(operation->objectName.value, "opensafNodeLogPolicy=", 21)) {
-			if (dts_parse_node_policy_DN(operation->objectName.value, &key) != SA_AIS_OK)
+		if (!strncmp((char *)operation->objectName.value, "opensafNodeLogPolicy=", 21)) {
+			if (dts_parse_node_policy_DN((char *)operation->objectName.value, &key) != SA_AIS_OK)
 				return SA_AIS_ERR_BAD_OPERATION;
-		} else if (!strncmp(operation->objectName.value, "opensafServiceLogPolicy=", 24)) {
-			if (dts_parse_service_policy_DN(operation->objectName.value, &key) != SA_AIS_OK)
+		} else if (!strncmp((char *)operation->objectName.value, "opensafServiceLogPolicy=", 24)) {
+			if (dts_parse_service_policy_DN((char *)operation->objectName.value, &key) != SA_AIS_OK)
 				return SA_AIS_ERR_BAD_OPERATION;
 		} else {
-			printf("DTSv: DN is not according to the specifications\n");
+			dts_log(NCSFL_SEV_ERROR, "DTSv: DN is not according to the specifications\n");
 			return SA_AIS_ERR_BAD_OPERATION;
 		}
 		ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
@@ -332,12 +332,12 @@ static SaAisErrorT dts_saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	if (!strncmp(objectName->value, "opensafGlobalLogPolicy=", 23)) {
-		printf("Not allowed to create Global Policy config ojbect");
+	if (!strncmp((char *)objectName->value, "opensafGlobalLogPolicy=", 23)) {
+		dts_log(NCSFL_SEV_ERROR, "Not allowed to create Global Policy config ojbect");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 	if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-		printf("Failed to find CCB object being delete\n");
+		dts_log(NCSFL_SEV_ERROR, "Failed to find CCB object being delete\n");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -364,7 +364,7 @@ static void dts_saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) != NULL)
 		ccbutil_deleteCcbData(ccbUtilCcbData);
 	else
-		printf("Failed to find CCB object");
+		dts_log(NCSFL_SEV_ERROR, "Failed to find CCB object");
 
 }
 
@@ -385,7 +385,7 @@ static SaAisErrorT dts_saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
-		printf("Failed to get CCB object\n");
+		dts_log(NCSFL_SEV_ERROR, "Failed to get CCB object\n");
 		return SA_AIS_ERR_NO_MEMORY;
 	}
 
@@ -412,7 +412,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 	const SaImmAttrModificationT_2 *attrMod;
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		printf("Failed to find CCB object");
+		dts_log(NCSFL_SEV_ERROR, "Failed to find CCB object");
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
@@ -424,7 +424,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
 	while (ccbUtilOperationData) {
 		int i = 0;
-		if (!strncmp(ccbUtilOperationData->objectName.value, "opensafServiceLogPolicy=", 24)) {
+		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafServiceLogPolicy=", 24)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_DELETE:
 				break;
@@ -442,35 +442,35 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					value = *(SaUint32T *)attribute->attrValues[0];
 					if (!strcmp(attribute->attrName, "osafDtsvServiceLogDevice")) {
 						uns8 LogDevice = *((uns8 *)&value);
-						printf("osafDtsvServiceLogDevice  %u\n", LogDevice);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogDevice  %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceLogFileSize")) {
-						printf("osafDtsvServiceLogFileSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLogFileSize %u\n", value);
 						if ((value < 100) || (value > 10000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceFileLogCompFormat")) {
-						printf("osafDtsvServiceFileLogCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceFileLogCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCircularBuffSize")) {
-						printf("osafDtsvServiceCircularBuffSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCircularBuffSize %u\n", value);
 						if ((value < 10) || (value > 1000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCirBuffCompFormat")) {
-						printf("osafDtsvServiceCirBuffCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCirBuffCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceLoggingState")) {
-						printf("osafDtsvServiceLoggingState %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceLoggingState %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCategoryBitMap")) {
-						printf("osafDtsvServiceCategoryBitMap %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceSeverityBitMap")) {
-						printf("osafDtsvServiceSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap %u\n", *(uns16 *)&value);
 					} else {
-						printf("invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
@@ -480,7 +480,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 			}	/* end of switch */
 		}
 		/* end of if opensafServicePolily */
-		if (!strncmp(ccbUtilOperationData->objectName.value, "opensafGlobalLogPolicy=", 23)) {
+		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafGlobalLogPolicy=", 23)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_CREATE:
 				return SA_AIS_ERR_BAD_OPERATION;
@@ -498,52 +498,52 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 
 					value = *(SaUint32T *)attribute->attrValues[0];
 					if (!strcmp(attribute->attrName, "osafDtsvGlobalMessageLogging")) {
-						printf("osafDtsvGlobalMessageLogging = %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalMessageLogging = %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
 						SaUint32T LogDevice = *((uns8 *)&value);
-						printf("osafDtsvGlobalLogDevice %u\n", LogDevice);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogDevice %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogFileSize")) {
-						printf("osafDtsvGlobalLogFileSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogFileSize %u\n", value);
 						if ((value < 100) || (value > 1000000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalFileLogCompFormat")) {
-						printf("osafDtsvGlobalFileLogCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalFileLogCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCircularBuffSize")) {
-						printf("osafDtsvGlobalCircularBuffSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCircularBuffSize %u\n", value);
 						if ((value < 10) || (value > 100000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCirBuffCompFormat")) {
-						printf("osafDtsvGlobalCirBuffCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCirBuffCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLoggingState")) {
-						printf("osafDtsvGlobalLoggingState %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLoggingState %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
-						printf("osafDtsvGlobalCategoryBitMap %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-						printf("osafDtsvGlobalSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %u\n", *(uns16 *)&value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles")) {
-						printf("osafDtsvGlobalNumOfLogFiles %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalNumOfLogFiles %u\n", value);
 						if ((value < 1) || (value > 255))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogMsgSequencing")) {
-						printf("osafDtsvGlobalLogMsgSequencing %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogMsgSequencing %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCloseOpenFiles")) {
-						printf("osafDtsvGlobalCloseOpenFiles %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCloseOpenFiles %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else {
-						printf("invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
@@ -552,7 +552,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 			}
 		}
 
-		if (!strncmp(ccbUtilOperationData->objectName.value, "opensafNodeLogPolicy=", 21)) {
+		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafNodeLogPolicy=", 21)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_DELETE:
 				break;
@@ -570,40 +570,40 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					value = *(SaUint32T *)attribute->attrValues[0];
 
 					if (!strcmp(attribute->attrName, "osafDtsvNodeMessageLogging")) {
-						printf("osafDtsvNodeMessageLogging = %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeMessageLogging = %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogDevice")) {
 						SaUint32T LogDevice = *((uns8 *)&value);
-						printf("osafDtsvNodeLogDevice %u\n", LogDevice);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogDevice %u\n", LogDevice);
 						if (LogDevice > DTS_LOG_DEV_VAL_MAX)
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeLogFileSize")) {
-						printf("osafDtsvNodeLogFileSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLogFileSize %u\n", value);
 						if ((value < 100) || (value > 100000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeFileLogCompFormat")) {
-						printf("osafDtsvNodeFileLogCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeFileLogCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeCircularBuffSize")) {
-						printf("osafDtsvNodeCircularBuffSize %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCircularBuffSize %u\n", value);
 						if ((value < 10) || (value > 10000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeCirBuffCompFormat")) {
-						printf("osafDtsvNodeCirBuffCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCirBuffCompFormat %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeLoggingState")) {
-						printf("osafDtsvNodeLoggingState %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeLoggingState %u\n", value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeCategoryBitMap")) {
-						printf("osafDtsvNodeCategoryBitMap %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeSeverityBitMap")) {
-						printf("osafDtsvNodeSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap %u\n", *(uns16 *)&value);
 					} else {
-						printf("invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
@@ -634,11 +634,11 @@ static void dts_saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 	struct CcbUtilOperationData *ccbUtilOperationData;
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
-		printf("Failed to find CCB object for %llu", ccbId);
+		dts_log(NCSFL_SEV_ERROR, "Failed to find CCB object for %llu", ccbId);
 	}
 	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
 	while (ccbUtilOperationData) {
-		if (!strncmp(ccbUtilOperationData->objectName.value, "opensafGlobalLogPolicy=", 23)) {
+		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafGlobalLogPolicy=", 23)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_CREATE:
 				/* Global object creation is not alloowed */
@@ -649,33 +649,33 @@ static void dts_saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbId
 			case CCBUTIL_MODIFY:
 				dts_global_log_policy_set(inst, ccbUtilOperationData);
 			}	/* end of switch (ccbUtilOperationData->operationType) */
-		} else if (!strncmp(ccbUtilOperationData->objectName.value, "opensafNodeLogPolicy=", 21)) {
+		} else if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafNodeLogPolicy=", 21)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_CREATE:
-				dts_node_log_policy_set(inst, ccbUtilOperationData->objectName.value,
+				dts_node_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value,
 							ccbUtilOperationData->param.create.attrValues, CCBUTIL_CREATE);
 				break;
 			case CCBUTIL_DELETE:
-				dts_node_log_policy_set(inst, ccbUtilOperationData->objectName.value, NULL,
+				dts_node_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value, NULL,
 							CCBUTIL_DELETE);
 				break;
 			case CCBUTIL_MODIFY:
-				dts_node_log_policy_set(inst, ccbUtilOperationData->objectName.value,
+				dts_node_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value,
 							ccbUtilOperationData->param.modify.attrMods, CCBUTIL_MODIFY);
 			}	/* end of switch */
-		} else if (!strncmp(ccbUtilOperationData->objectName.value, "opensafServiceLogPolicy=", 24)) {
+		} else if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafServiceLogPolicy=", 24)) {
 			switch (ccbUtilOperationData->operationType) {
 			case CCBUTIL_CREATE:
-				dts_service_log_policy_set(inst, ccbUtilOperationData->objectName.value,
+				dts_service_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value,
 							   ccbUtilOperationData->param.create.attrValues,
 							   CCBUTIL_CREATE);
 				break;
 			case CCBUTIL_DELETE:
-				dts_service_log_policy_set(inst, ccbUtilOperationData->objectName.value, NULL,
+				dts_service_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value, NULL,
 							   CCBUTIL_DELETE);
 				break;
 			case CCBUTIL_MODIFY:
-				dts_service_log_policy_set(inst, ccbUtilOperationData->objectName.value,
+				dts_service_log_policy_set(inst, (char *)ccbUtilOperationData->objectName.value,
 							   ccbUtilOperationData->param.modify.attrMods, CCBUTIL_MODIFY);
 			}	/* end of switch (ccbUtilOperationData->operationType) */
 		}
@@ -712,7 +712,7 @@ unsigned int dts_configure_global_policy()
 
 	/* Get all attributes of the object */
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &objectName, NULL, &attributes) != SA_AIS_OK) {
-		printf("Configuration object %s not found\n", objectName.value);
+		dts_log(NCSFL_SEV_ERROR, "Configuration object %s not found\n", objectName.value);
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -732,45 +732,45 @@ unsigned int dts_configure_global_policy()
 				inst->g_policy.global_logging = value;
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalMessageLogging_ID)) {
-					printf("Failed to change global logging\n");
+					dts_log(NCSFL_SEV_ERROR, "Failed to change global logging\n");
 					return NCSCC_RC_FAILURE;
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogDevice")) {
 			SaUint32T LogDevice = *((uns8 *)&value);
-			printf("osafDtsvGlobalLogDevice %u\n", LogDevice);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogDevice %u\n", LogDevice);
 			if (LogDevice <= DTS_LOG_DEV_VAL_MAX)
 				inst->g_policy.g_policy.log_dev = LogDevice;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogFileSize")) {
-			printf("osafDtsvGlobalLogFileSize %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogFileSize %u\n", value);
 			if ((value < 100) || (value > 1000000)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 			inst->g_policy.g_policy.log_file_size = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalFileLogCompFormat")) {
-			printf("osafDtsvGlobalFileLogCompFormat %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalFileLogCompFormat %u\n", value);
 			if ((value < 0) || (value > 1)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 			inst->g_policy.g_policy.file_log_fmt = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCircularBuffSize")) {
-			printf("osafDtsvGlobalCircularBuffSize %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCircularBuffSize %u\n", value);
 			if ((value < 10) || (value > 100000)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 			inst->g_policy.g_policy.cir_buff_size = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCirBuffCompFormat")) {
-			printf("osafDtsvGlobalCirBuffCompFormat %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCirBuffCompFormat %u\n", value);
 			if ((value < 0) || (value > 1)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
 			inst->g_policy.g_policy.buff_log_fmt = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLoggingState")) {
-			printf("osafDtsvGlobalLoggingState %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLoggingState %u\n", value);
 			if ((value < 0) || (value > 1)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
@@ -779,27 +779,27 @@ unsigned int dts_configure_global_policy()
 				inst->g_policy.g_policy.enable = value;
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalLoggingState_ID)) {
-					printf("Failed to change global logging state\n");
+					dts_log(NCSFL_SEV_ERROR, "Failed to change global logging state\n");
 					return NCSCC_RC_FAILURE;
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
 			if (GLOBAL_CATEGORY_FILTER != value) {
-				printf("osafDtsvGlobalCategoryBitMap %d\n", value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %d\n", value);
 				inst->g_policy.g_policy.category_bit_map = value;
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalCategoryBitMap_ID)) {
-					printf("Failed to change global category level\n");
+					dts_log(NCSFL_SEV_ERROR, "Failed to change global category level\n");
 					return NCSCC_RC_FAILURE;
 				}
 			}
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
 			if (GLOBAL_SEVERITY_FILTER_DEFAULT != *(uns16 *)&value) {
-				printf("osafDtsvGlobalSeverityBitMap %d\n", *(uns16 *)&value);
+				dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %d\n", *(uns16 *)&value);
 				inst->g_policy.g_policy.severity_bit_map = *(uns16 *)&value;
 				if (NCSCC_RC_SUCCESS !=
 				    dtsv_global_filtering_policy_change(inst, osafDtsvGlobalSeverityBitMap_ID)) {
-					printf("Failed to change global severity level\n");
+					dts_log(NCSFL_SEV_ERROR, "Failed to change global severity level\n");
 					return NCSCC_RC_FAILURE;
 				}
 			}
@@ -808,10 +808,10 @@ unsigned int dts_configure_global_policy()
 				rc = NCSCC_RC_FAILURE;
 				break;
 			}
-			printf("osafDtsvGlobalNumOfLogFiles %u\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalNumOfLogFiles %u\n", value);
 			inst->g_policy.g_num_log_files = value;
 		} else if (!strcmp(attribute->attrName, "osafDtsvGlobalLogMsgSequencing")) {
-			printf("osafDtsvGlobalLogMsgSequencing %d\n", value);
+			dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalLogMsgSequencing %d\n", value);
 			if ((value < 0) || (value > 1)) {
 				rc = NCSCC_RC_FAILURE;
 				break;
@@ -880,7 +880,7 @@ unsigned int dts_parse_node_policy_DN(char *objName, SVC_KEY *key)
 		return NCSCC_RC_FAILURE;
 	key->ss_svc_id = 0;
 
-	printf("key->node = %d\n", key->node);
+	dts_log(NCSFL_SEV_DEBUG, "key->node = %d\n", key->node);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -951,7 +951,7 @@ unsigned int dts_parse_service_policy_DN(char *objName, SVC_KEY *key)
 	if (!(key->node) || !(key->ss_svc_id))
 		return NCSCC_RC_FAILURE;
 
-	printf("key->node = %d   key->ss_svc_id =  %d\n", key->node, key->ss_svc_id);
+	dts_log(NCSFL_SEV_DEBUG, "key->node = %d   key->ss_svc_id =  %d\n", key->node, key->ss_svc_id);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -992,7 +992,7 @@ SaAisErrorT dts_read_log_policies(char *className)
 						    SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 						    NULL, &searchHandle)) != SA_AIS_OK) {
 
-		printf("saImmOmSearchInitialize_2 failed: %u", rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOmSearchInitialize_2 failed: %u", rc);
 		return rc;
 	}
 
@@ -1004,10 +1004,10 @@ SaAisErrorT dts_read_log_policies(char *className)
 		while (attribute) {
 			/* checks whether the object found is service log policy object */
 			if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
-				rc = dts_service_log_policy_set(inst, objName.value, attributes, CCBUTIL_CREATE);
+				dts_service_log_policy_set(inst, (char *)objName.value, attributes, CCBUTIL_CREATE);
 				/* checks whether the object found is node log policy object */
 			} else if (!strcmp(attribute->attrName, "opensafNodeLogPolicy")) {
-				rc = dts_node_log_policy_set(inst, objName.value, attributes, CCBUTIL_CREATE);
+				dts_node_log_policy_set(inst, (char *)objName.value, attributes, CCBUTIL_CREATE);
 			}
 			attribute = attributes[++i];
 		}

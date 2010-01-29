@@ -124,7 +124,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 			if (dts_cb.amf_hdl != 0) {
 				saf_status = saAmfDispatch(dts_cb.amf_hdl, SA_DISPATCH_ALL);
 				if (saf_status != SA_AIS_OK) {
-					printf("saAmfDispatch failed \n");
+					dts_log(NCSFL_SEV_ERROR, "saAmfDispatch failed \n");
 					/* log the error  */
 					m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_do_evts: AMF Dispatch failing");
 				}
@@ -134,7 +134,7 @@ void dts_do_evts(SYSF_MBX *mbx)
 					printf("AMF registration success\n");
 					fds[FD_AMF].fd = dts_cb.dts_amf_sel_obj;
 				} else {
-					printf("AMF registration failed \n");
+					dts_log(NCSFL_SEV_ERROR, "AMF registration failed \n");
 					exit(1);
 				}
 			}	/* Else amf_hdl!=0 */
@@ -328,10 +328,7 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 /**************************************************************************\
  Function: dts_reg_with_imm
 
- Purpose:  Function used for handling the DTA up down events received
-           from MDS.
-
- Input:    msg : Event message received from the MDS.
+ Purpose: Owns all DTS log policie's objects and reads themi from IMMSv. 
 
  Returns:  void
 
@@ -339,12 +336,10 @@ uns32 dts_handle_dta_event(DTSV_MSG *msg)
 \**************************************************************************/
 void dts_reg_with_imm(DTS_CB *inst)
 {
-	SaAisErrorT error = SA_AIS_OK;
-
 	dts_imm_declare_implementer(inst);
 	/* get default global configuration from global scalar object */
 	if (dts_configure_global_policy() == NCSCC_RC_FAILURE) {
-		printf("Failed to load global log policy object from IMMSv");
+		dts_log(NCSFL_SEV_ERROR, "Failed to load global log policy object from IMMSv");
 		exit(1);
 	}
 
@@ -2610,7 +2605,7 @@ void dts_print_cb(DTS_CB *cb, FILE *fp)
 	while (lib_entry != NULL) {
 		fprintf(fp, "\n%s  use_count:%d", lib_entry->lib_name, lib_entry->use_count);
 		lib_entry =
-		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, lib_entry->lib_name);
+		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uns8 *)lib_entry->lib_name);
 	}
 
 	fprintf(fp, "\n\nASCII_SPECs loaded\n-------------------------");
@@ -2782,7 +2777,7 @@ void dts_print_cb_dbg(void)
 	while (lib_entry != NULL) {
 		printf("\n%s. use count: %d", lib_entry->lib_name, lib_entry->use_count);
 		lib_entry =
-		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, lib_entry->lib_name);
+		    (ASCII_SPEC_LIB *)ncs_patricia_tree_getnext(&cb->libname_asciispec_tree, (const uns8 *)lib_entry->lib_name);
 	}
 
 	printf("\n\nASCII_SPECs loaded\n-------------------------");
@@ -2906,7 +2901,7 @@ uns32 dts_handle_immnd_event(DTSV_MSG *msg)
 		m_LOG_DTS_DBGSTRLL(DTS_SERVICE, "Received IMMND up event for :", msg->node, (uns32)msg->dest_addr);
 		if (inst->imm_init_done == FALSE) {
 			if (dts_imm_initialize(inst) != SA_AIS_OK) {
-				printf("imm initialize failed\n");
+				dts_log(NCSFL_SEV_ERROR, "imm initialize failed\n");
 				exit(1);
 			}
 			if (inst->ha_state == SA_AMF_HA_ACTIVE) {

@@ -262,10 +262,10 @@ uns32 dts_ascii_spec_deregister(SS_SVC_ID ss_id, uns16 version)
 *****************************************************************************/
 NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION action)
 {
-	int8 lib_name[DTS_MAX_LIBNAME] = { 0 };
-	int8 func_name[DTS_MAX_FUNCNAME] = { 0 };
+	char lib_name[DTS_MAX_LIBNAME] = { 0 };
+	char func_name[DTS_MAX_FUNCNAME] = { 0 };
 	uns32 (*reg_unreg_routine) () = NULL;
-	int8 *dl_error = NULL;
+	char *dl_error = NULL;
 	NCS_LIB_REQ_INFO req_info;
 	NCS_OS_DLIB_HDL *lib_hdl = NULL;
 	ASCII_SPEC_LIB *lib_entry = NULL;
@@ -361,7 +361,7 @@ NCSCONTEXT dts_ascii_spec_load(char *svc_name, uns16 version, DTS_SPEC_ACTION ac
 					return NULL;
 				}
 				memset(lib_entry, '\0', sizeof(ASCII_SPEC_LIB));
-				strcpy(lib_entry->lib_name, lib_name);
+				strcpy((char *)lib_entry->lib_name, lib_name);
 				lib_entry->libname_node.key_info = (uns8 *)lib_entry->lib_name;
 				lib_entry->lib_hdl = lib_hdl;
 				/* Add node to patricia tree table */

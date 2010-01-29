@@ -200,7 +200,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 	uns8 i, num;
 	uns32 j;
 	FILE *fh;
-	uns8 *str = dts_cb.cb_log_str;
+	char *str = dts_cb.cb_log_str;
 	uns8 *ptr;
 	uns8 inuse_buff = 0;
 	NCS_BOOL found = FALSE;
@@ -244,7 +244,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 				fprintf(fh, "\n NEW PART \n");
 
 				for (j = 0; j < cir_buff->buff_part[num].num_of_elements; j++) {
-					strcpy(str, ptr);
+					strcpy(str, (char *)ptr);
 					fprintf(fh, (const char *)str);
 					ptr += (strlen(str) + 1);
 				}
@@ -255,7 +255,7 @@ uns32 dts_dump_log_to_op_device(CIR_BUFFER *cir_buff, uns8 device, char *file)
 						      "URGENT: dts_dump_log_to_op_device: Unable to Open FILE. Something is going wrong.");
 		} else if (device == OUTPUT_CONSOLE) {
 			for (j = 0; j < cir_buff->buff_part[num].num_of_elements; j++) {
-				strcpy(str, ptr);
+				strcpy(str, (char *)ptr);
 				printf("%s", str);
 				ptr += (strlen(str) + 1);
 			}
@@ -492,7 +492,7 @@ uns32 dts_dump_to_cir_buffer(CIR_BUFFER *cir_buff, char *str)
 				      "dts_dump_to_cir_buffer: Hmmm!! Looks like your message does not fit into the buffer part. Increase buffer size.");
 
 	/* So everything is set to dump your message in buffer. Good Luck!! */
-	strcpy(cir_buff->cur_location, str);
+	strcpy((char *)cir_buff->cur_location, str);
 	cir_buff->cur_location += str_len;
 
 	cir_buff->buff_part[cir_buff->cur_buff_num].num_of_elements++;
@@ -684,7 +684,7 @@ uns32 dts_dump_buffer_to_buffer(CIR_BUFFER *src_cir_buff, CIR_BUFFER *dst_cir_bu
 				return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 						      "URGENT: dts_dump_to_cir_buffer: Failed to copy to new buffer");
 
-			ptr += (strlen(ptr) + 1);
+			ptr += (strlen((char *)ptr) + 1);
 		}
 
 		if (src_cir_buff->buff_part[num].status == INUSE)

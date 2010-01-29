@@ -637,7 +637,7 @@ static uns32 dtsv_decode_cold_sync_rsp_dta_dest_list_config(DTS_CB *cb, NCS_MBCS
 				ncs_dec_skip_space(&dec->i_uba, sizeof(uns16));
 
 				if (ncs_decode_n_octets_from_uba
-				    (&dec->i_uba, (char *)&cb->last_spec_loaded.svc_name,
+				    (&dec->i_uba, (uns8 *)&cb->last_spec_loaded.svc_name,
 				     DTSV_SVC_NAME_MAX) != NCSCC_RC_SUCCESS)
 					return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
 							      "dtsv_decode_cold_sync_rsp_dta_dest_list_config: ncs_decode_n_octets_from_uba failed");
