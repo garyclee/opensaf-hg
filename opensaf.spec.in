@@ -349,10 +349,10 @@ Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
 BuildRequires: libxml2
 Requires: libxml2
 Requires: %{name}-smf-libs = %{version}-%{release}
-Requires: %{name}-imm-libs < %{version}-%{release}
-Requires: %{name}-amf-libs < %{version}-%{release}
-Requires: %{name}-clm-libs < %{version}-%{release}
-Requires: %{name}-ntf-libs < %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
 
 %description smf-director
 
@@ -360,7 +360,7 @@ Requires: %{name}-ntf-libs < %{version}-%{release}
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
 Requires: %{name}-smf-libs = %{version}-%{release}
-Requires: %{name}-amf-libs < %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description smf-nodedirector
 
