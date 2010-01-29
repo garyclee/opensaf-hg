@@ -4022,7 +4022,13 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                         oi->second->mImplementer->mImplementerName.c_str());
                     //Let the timeout take care of it.
                 } else {
-                    objNameVector.push_back(oi->first);
+                    if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                        std::string objectName(oi->first);
+                        nameToExternal(objectName);
+                        objNameVector.push_back(objectName);
+                    } else {
+                        objNameVector.push_back(oi->first);
+                    }
                     connVector.push_back(implConn);
                     continuations.push_back(sLastContinuationId);
                 }
@@ -4105,7 +4111,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     size_t sz = strnlen((char *) rsp->name.value, 
         (size_t)rsp->name.length);
     std::string objectName((const char*)rsp->name.value, sz);
-    
+
     SaUint32T ccbId = rsp->ccbId;
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
@@ -4117,6 +4123,14 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
         return;
     }
     ccb = *i1;
+    
+    if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
+        LOG_ER("Not a proper object name: %s", objectName.c_str());
+        if(ccb->mVeto == SA_AIS_OK) {
+            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+        }
+	return;
+    }
     
     ObjectMutationMap::iterator omuti =
         ccb->mMutations.find(objectName);
