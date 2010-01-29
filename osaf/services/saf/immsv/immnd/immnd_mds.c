@@ -593,9 +593,9 @@ static uns32 immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_ev
 
 		switch (svc_evt->i_change) {
 		case NCSMDS_DOWN:
-			if (cb->messages_pending) {
-				LOG_WA("Director Service is down,  messages pending:%u "
-				       "fevs highest processed:%llu", cb->messages_pending, cb->highestProcessed);
+			if (cb->fevs_replies_pending) {
+				LOG_WA("Director Service is down,  fevs replies pending:%u "
+				       "fevs highest processed:%llu", cb->fevs_replies_pending, cb->highestProcessed);
 			} else {
 				LOG_NO("Director Service is down");
 			}
@@ -616,10 +616,10 @@ static uns32 immnd_mds_svc_evt(IMMND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *svc_ev
 
 		case NCSMDS_NO_ACTIVE:
 			cb->is_immd_up = FALSE;
-			if (cb->messages_pending) {
+			if (cb->fevs_replies_pending) {
 				LOG_WA("Director Service in NOACTIVE state - "
-				       "messages pending:%u fevs highest processed:%llu",
-				       cb->messages_pending, cb->highestProcessed);
+				       "fevs replies pending:%u fevs highest processed:%llu",
+				       cb->fevs_replies_pending, cb->highestProcessed);
 			} else {
 				LOG_NO("Director Service in NOACTIVE state");
 			}

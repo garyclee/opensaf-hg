@@ -174,15 +174,16 @@ void immnd_client_node_tree_destroy(IMMND_CB *cb)
 
 /* FEVS MESSAGE QUEUEING */
 /*************************************************************************
- * Name            : immnd_enqueue_fevs_msg
+ * Name            : immnd_enqueue_incoming_fevs_msg
  *
  * Description     : Place a fevs message in backlog queue
  *
  *************************************************************************/
-void immnd_enqueue_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT clnt_hdl, MDS_DEST reply_dest, IMMSV_OCTET_STRING *msg, SaUint64T *next_expected,	//out
-			    SaUint32T *andHowManyMore)	//out
+void immnd_enqueue_incoming_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT clnt_hdl, 
+	MDS_DEST reply_dest, IMMSV_OCTET_STRING *msg, SaUint64T *next_expected,	//out
+	SaUint32T *andHowManyMore)	//out
 {
-	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_msg_list;
+	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_in_list;
 
 	/* assert(0); */
 	LOG_ER("MESSAGE OUT OF ORDER => EXITING");
@@ -213,14 +214,14 @@ void immnd_enqueue_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT clnt_hdl
 	node->next = NULL;
 
 	if (!tmp) {		//first insertion in list
-		cb->fevs_msg_list = node;
+		cb->fevs_in_list = node;
 		goto expectations;
 	}
 
 	if (tmp->msgNo > msgNo) {	//insert at top of list
-		assert(tmp == cb->fevs_msg_list);	//remove this after component test
+		assert(tmp == cb->fevs_in_list);	//remove this after component test
 		node->next = tmp;
-		cb->fevs_msg_list = node;
+		cb->fevs_in_list = node;
 		goto expectations;
 	}
 
@@ -237,17 +238,17 @@ void immnd_enqueue_fevs_msg(IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT clnt_hdl
 
  expectations:
 	*next_expected = cb->highestProcessed + 1;
-	*andHowManyMore = (cb->fevs_msg_list->msgNo) - (*next_expected);
+	*andHowManyMore = (cb->fevs_in_list->msgNo) - (*next_expected);
 }
 
 /***************************************************************************
- * Name            : immnd_dequeue_fevs_msg
+ * Name            : immnd_dequeue_incoming_fevs_msg
  *
  * Description     : Removes a fevs_msg from backlog.
  *
  *************************************************************************/
-IMMSV_OCTET_STRING *immnd_dequeue_fevs_msg(IMMSV_OCTET_STRING *msg,
-					   IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT *clnt_hdl, MDS_DEST *reply_dest)
+IMMSV_OCTET_STRING *immnd_dequeue_incoming_fevs_msg(IMMSV_OCTET_STRING *msg,
+	IMMND_CB *cb, SaUint64T msgNo, SaImmHandleT *clnt_hdl, MDS_DEST *reply_dest)
 {
 	/* Note: This function is currently not used. 
 	   It is work in progress for dealing with instability of mds broadcast.
@@ -259,11 +260,11 @@ IMMSV_OCTET_STRING *immnd_dequeue_fevs_msg(IMMSV_OCTET_STRING *msg,
 	 */
 	assert(msg);
 	assert(msgNo == cb->highestProcessed);
-	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_msg_list;
+	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_in_list;
 	++msgNo;
 	if (tmp && (tmp->msgNo == msgNo)) {	//message wanted at front of queue 
 		/* First free the old message in msg */
-		/* TODO: ABT This free is probably already done by the dispatch!! */
+		/* TODO: This free is probably already done by the dispatch!! */
 		free(msg->buf);
 		/* Then assign the buffer in the first queued element */
 		msg->buf = tmp->msg.buf;
@@ -271,12 +272,76 @@ IMMSV_OCTET_STRING *immnd_dequeue_fevs_msg(IMMSV_OCTET_STRING *msg,
 		*reply_dest = tmp->reply_dest;
 		tmp->msg.buf = NULL;	//precaution
 		/* remove the list lelement */
-		cb->fevs_msg_list = tmp->next;
+		cb->fevs_in_list = tmp->next;
 		tmp->next = NULL;	//precaution
 		free(tmp);
 	}
-	/* TODO: ABT I think I leak the last message buffer returned. */
+	/* TODO: I think I leak the last message buffer returned. */
 	/* walk the code case to verify. */
 
 	return msg;		//Reusing the IMMSV_OCTET_STRING object that was input.
 }
+
+
+/*************************************************************************
+ * Name            : immnd_enqueue_outgoing_fevs_msg
+ *
+ * Description     : Place a fevs message in backlog queue
+ *
+ *************************************************************************/
+void immnd_enqueue_outgoing_fevs_msg(IMMND_CB *cb, 
+	SaImmHandleT clnt_hdl, IMMSV_OCTET_STRING *msg)
+{
+	TRACE_ENTER();
+	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_out_list;
+	IMMND_FEVS_MSG_NODE *new_node = malloc(sizeof(IMMND_FEVS_MSG_NODE));
+	assert(new_node);
+	new_node->msgNo = 0;
+	new_node->clnt_hdl = clnt_hdl;
+	new_node->reply_dest = 0LL;
+	new_node->msg.size = msg->size;
+	new_node->msg.buf = msg->buf;
+	msg->buf = NULL;	//Steal the message buffer instad of allocating again.
+	msg->size = 0;
+	new_node->next = NULL;
+
+	if(tmp == NULL) { 
+		cb->fevs_out_list = new_node; /* First insert. */
+	} else {
+		while (tmp && tmp->next) { 
+			tmp = tmp->next;
+		}
+		tmp->next = new_node; /* Insert at end. */
+	}
+	TRACE_LEAVE();
+}
+
+/***************************************************************************
+ * Name            : immnd_dequeue_outgoing_fevs_msg
+ *
+ * Description     : Removes a fevs_msg from backlog.
+ *
+ *************************************************************************/
+void immnd_dequeue_outgoing_fevs_msg(IMMND_CB *cb, IMMSV_OCTET_STRING *msg, SaImmHandleT *clnt_hdl)
+{
+	TRACE_ENTER();
+	assert(msg);
+	assert(cb->fevs_out_list);
+	IMMND_FEVS_MSG_NODE *tmp = cb->fevs_out_list;
+
+	msg->buf = tmp->msg.buf;
+	msg->size = tmp->msg.size;
+
+	*clnt_hdl = tmp->clnt_hdl;
+	tmp->msg.buf = NULL;
+	tmp->msg.size = 0;
+
+	/* remove the list lelement */
+	cb->fevs_out_list = tmp->next;
+	tmp->next = NULL; 
+	free(tmp);
+
+	TRACE_LEAVE();
+}
+
+

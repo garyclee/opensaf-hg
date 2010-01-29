@@ -1345,9 +1345,7 @@ static uns32 immnd_evt_proc_search_finalize(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_
 	immModel_fetchLastResult(sn->searchOp, &rsp);
 	immModel_clearLastResult(sn->searchOp);
 	if (rsp) {
-		TRACE_2("ABT This branch needs testing - ENTER");
 		freeSearchNext(rsp, TRUE);
-		TRACE_2("ABT This branch needs testing - EXIT");
 	}
 
 	immModel_deleteSearchOp(sn->searchOp);
@@ -1693,15 +1691,17 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 		goto agent_rsp;
 	}
 
-	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_NO_RESOURCES;
+	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting admo_init request", 
+			IMMND_FEVS_MAX_PENDING);
+		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
 
 	/*aquire a ND sender count and send the fevs to ND (without waiting) */
-	cb->messages_pending++;	/*flow control */
-	if (cb->messages_pending > 1) {
-		TRACE("Messages pending:%u", cb->messages_pending);
+	cb->fevs_replies_pending++;	/*flow control */
+	if (cb->fevs_replies_pending > 1) {
+		TRACE("Messages pending:%u", cb->fevs_replies_pending);
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
@@ -1717,7 +1717,7 @@ static uns32 immnd_evt_proc_admowner_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SE
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("IMMND - AdminOwner Initialize Failed");
 		send_evt.info.imma.info.admInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
-		cb->messages_pending--;
+		cb->fevs_replies_pending--;
 		goto agent_rsp;
 	}
 
@@ -1779,14 +1779,16 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_NO_RESOURCES;
+	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting impl_set request",
+			IMMND_FEVS_MAX_PENDING);
+		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
 
-	cb->messages_pending++;	/*flow control */
-	if (cb->messages_pending > 1) {
-		TRACE("Messages pending:%u", cb->messages_pending);
+	cb->fevs_replies_pending++;	/*flow control */
+	if (cb->fevs_replies_pending > 1) {
+		TRACE("Messages pending:%u", cb->fevs_replies_pending);
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
@@ -1806,7 +1808,7 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("Problem in sending to IMMD over MDS");
 		send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_TRY_AGAIN;
-		cb->messages_pending--;
+		cb->fevs_replies_pending--;
 		goto agent_rsp;
 	}
 
@@ -1870,14 +1872,16 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		goto agent_rsp;
 	}
 
-	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_NO_RESOURCES;
+	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting ccb_init request",
+			IMMND_FEVS_MAX_PENDING);
+		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
 
-	cb->messages_pending++;	/*flow control */
-	if (cb->messages_pending > 1) {
-		TRACE("Messages pending:%u", cb->messages_pending);
+	cb->fevs_replies_pending++;	/*flow control */
+	if (cb->fevs_replies_pending > 1) {
+		TRACE("Messages pending:%u", cb->fevs_replies_pending);
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
@@ -1894,7 +1898,7 @@ static uns32 immnd_evt_proc_ccb_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	if (rc != NCSCC_RC_SUCCESS) {
 		LOG_ER("Problem in sending ro IMMD over MDS");
 		send_evt.info.imma.info.ccbInitRsp.error = SA_AIS_ERR_TRY_AGAIN;
-		cb->messages_pending--;
+		cb->fevs_replies_pending--;
 		goto agent_rsp;
 	}
 
@@ -1961,9 +1965,10 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 		goto agent_rsp;
 	}
 
-	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		LOG_ER("Too many backloged fevs messages (> %u)", IMMND_FEVS_MAX_PENDING);
-		err = SA_AIS_ERR_NO_RESOURCES;
+	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+		LOG_WA("ERR_TRY_AGAIN: Too many backloged fevs messages (> %u) rejecting rt_update request",
+			IMMND_FEVS_MAX_PENDING);
+		err = SA_AIS_ERR_TRY_AGAIN;
 		goto agent_rsp;
 	}
 
@@ -1979,9 +1984,9 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 		   code branch if imm is not writbale.
 		 */
 
-		cb->messages_pending++;	/*flow control */
-		if (cb->messages_pending > 1) {
-			TRACE("Messages pending:%u", cb->messages_pending);
+		cb->fevs_replies_pending++;	/*flow control */
+		if (cb->fevs_replies_pending > 1) {
+			TRACE("Messages pending:%u", cb->fevs_replies_pending);
 		}
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -1993,7 +1998,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 
 		if (!immnd_is_immd_up(cb)) {
 			err = SA_AIS_ERR_TRY_AGAIN;
-			cb->messages_pending--;
+			cb->fevs_replies_pending--;
 			goto agent_rsp;
 		}
 
@@ -2002,7 +2007,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 		if (rc != NCSCC_RC_SUCCESS) {
 			LOG_ER("Problem in sending to IMMD over MDS");
 			err = SA_AIS_ERR_TRY_AGAIN;
-			cb->messages_pending--;
+			cb->fevs_replies_pending--;
 			goto agent_rsp;
 		}
 
@@ -2045,7 +2050,7 @@ static uns32 immnd_evt_proc_rt_update(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 static void dump_usrbuf(USRBUF *ub)
 {
 	if (ub) {
-		TRACE_2("ABT IMMND dump_usrbuf: ");
+		TRACE_2("IMMND dump_usrbuf: ");
 		TRACE_2("next:%p ", ub->next);
 		TRACE_2("link:%p ", ub->link);
 		TRACE_2("count:%u ", ub->count);
@@ -2076,42 +2081,69 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	SaAisErrorT error;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
 	SaImmHandleT client_hdl;
+        SaBoolT asyncReq = (!sinfo || sinfo->stype != MDS_SENDTYPE_SNDRSP);
 
 	TRACE_2("sender_count: %llu size: %u ", evt->info.fevsReq.sender_count, evt->info.fevsReq.msg.size);
 
 	client_hdl = evt->info.fevsReq.client_hdl;
 	immnd_client_node_get(cb, client_hdl, &cl_node);
-	if (cl_node == NULL || cl_node->mIsStale) {
-		LOG_WA("IMMND - Client %llu went down so no response", client_hdl);
-		error = SA_AIS_ERR_BAD_HANDLE;
-		goto agent_rsp;
+	if(cl_node == NULL || cl_node->mIsStale) {
+		if(asyncReq) {
+			TRACE("IMMND - Client %llu went down on asyncronous request, still sending it", client_hdl);
+		} else {
+			LOG_WA("IMMND - Client %llu went down on syncronous request, discarding request", client_hdl);
+			error = SA_AIS_ERR_BAD_HANDLE;
+			goto agent_rsp;
+		}
 	}
 
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 	if (!immnd_is_immd_up(cb)) {
-		LOG_ER("IMMND - Director Service Is Down");
-		error = SA_AIS_ERR_TRY_AGAIN;
-		goto agent_rsp;
+		LOG_ER("IMMND - Director Service Is Down. Rejecting FEVS request.");
+		if(asyncReq) {
+			/* We could enqueue async messages (typically replies) but there
+			   is a risk that a failover would be followed by a "burst" of old replies,
+			   which could provoke more problems than it solves. 
+			*/
+			return NCSCC_RC_FAILURE;
+		} else {
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
 	}
 
 	/*sender_count set to 1 if we are to check locally for writability
 	   before sending to IMMD. This to avoid broadcasting requests that 
 	   are doomed anyway.  */
-	if (evt->info.fevsReq.sender_count && immModel_immNotWritable(cb)) {
-		error = SA_AIS_ERR_TRY_AGAIN;
-		goto agent_rsp;
+	if ((evt->info.fevsReq.sender_count && immModel_immNotWritable(cb))) {
+		if(asyncReq) {
+			TRACE("Rare case (?) of enqueueing async & write message due to on-going sync.");
+			immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
+			return NCSCC_RC_SUCCESS;
+		} else {
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
 	}
 
-	if (cb->messages_pending > IMMND_FEVS_MAX_PENDING) {
-		LOG_WA("Too many FEVS messages outstanding towards IMMD, rejecting this message");
-		error = SA_AIS_ERR_NO_RESOURCES;
-		goto agent_rsp;
+	if (cb->fevs_replies_pending >= IMMND_FEVS_MAX_PENDING) {
+		if(asyncReq) {
+			immnd_enqueue_outgoing_fevs_msg(cb, client_hdl, &(evt->info.fevsReq.msg));
+			LOG_WA("Too many pending FEVS message replies (> %u) enqueueing async message",
+				IMMND_FEVS_MAX_PENDING);
+			return NCSCC_RC_SUCCESS;
+		} else {
+			LOG_WA("ERR_TRY_AGAIN: Too many pending FEVS message replies (> %u) rejecting request",
+				IMMND_FEVS_MAX_PENDING);
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
 	}
 
-	cb->messages_pending++;	/*flow control */
-	if (cb->messages_pending > 1) {
-		TRACE("Messages pending:%u", cb->messages_pending);
+	cb->fevs_replies_pending++;	/*flow control */
+	if (cb->fevs_replies_pending > 1) {
+		TRACE("Replies pending:%u", cb->fevs_replies_pending);
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;
@@ -2128,19 +2160,26 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 
 	if (rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("Problem in sending to IMMD over MDS");
-		error = SA_AIS_ERR_TRY_AGAIN;
-		cb->messages_pending--;
-		goto agent_rsp;
+		cb->fevs_replies_pending--;
+		if(asyncReq) {
+			LOG_ER("Problem in sending asyncronous FEVS message over MDS - dropping message!");
+			return NCSCC_RC_FAILURE;
+		} else {
+			LOG_WA("Problem in sending FEVS message over MDS");
+			error = SA_AIS_ERR_TRY_AGAIN;
+			goto agent_rsp;
+		}
 	}
 
 	/*Save sinfo in continuation. 
 	   Note should set up a wait time for the continuation roughly in line
 	   with IMMSV_WAIT_TIME. */
 	assert(rc == NCSCC_RC_SUCCESS);
-	cl_node->tmpSinfo = *sinfo;	//TODO: should be part of continuation?
+	if(sinfo) {
+		cl_node->tmpSinfo = *sinfo;	//TODO: should be part of continuation?
+	}
 
-	/*                             Only a single continuation per client 
+	/* Only a single continuation per client 
 	   possible, but not when op is async!
 	   This is where the ND sender count is needed.
 	   But we should be able to use the agents
@@ -2159,7 +2198,8 @@ static uns32 immnd_evt_proc_fevs_forward(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEN
 	send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 	send_evt.info.imma.info.errRsp.error = error;
 
-	assert(sinfo->stype == MDS_SENDTYPE_SNDRSP);
+	assert(!asyncReq);
+	/*assert(sinfo->stype == MDS_SENDTYPE_SNDRSP); redundant */
 	TRACE_2("SENDRSP FAIL %u ", send_evt.info.imma.info.admInitRsp.error);
 	rc = immnd_mds_send_rsp(cb, sinfo, &send_evt);
 
@@ -4710,6 +4750,34 @@ static uns32 immnd_evt_proc_intro_rsp(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_I
 	return NCSCC_RC_SUCCESS;
 }
 
+void dequeue_outgoing(IMMND_CB *cb)
+{
+	TRACE_ENTER();
+	IMMND_EVT dummy_evt;
+	
+	unsigned int space = (cb->fevs_replies_pending < IMMND_FEVS_MAX_PENDING)?
+		(IMMND_FEVS_MAX_PENDING - cb->fevs_replies_pending):0;
+
+	TRACE("Pending replies:%u space:%u out list?:%p", cb->fevs_replies_pending, space, cb->fevs_out_list);
+
+	while(cb->fevs_out_list && space && (cb->fevs_replies_pending < IMMND_FEVS_MAX_PENDING) && immnd_is_immd_up(cb)){
+		memset(&dummy_evt, '\0', sizeof(IMMND_EVT));
+		--space;
+		immnd_dequeue_outgoing_fevs_msg(cb, &dummy_evt.info.fevsReq.msg, &dummy_evt.info.fevsReq.client_hdl);
+		if(immnd_evt_proc_fevs_forward(cb, &dummy_evt, NULL) == NCSCC_RC_SUCCESS) {
+			LOG_IN("Outgoing asyncronous fevs message dequeued, messages now pending: %u", 
+				cb->fevs_replies_pending);
+		} else {
+			LOG_ER("Failed to process delayed asyncronous fevs message - discarded");
+		}
+		if(dummy_evt.info.fevsReq.msg.buf) {
+			free(dummy_evt.info.fevsReq.msg.buf);
+			dummy_evt.info.fevsReq.msg.size = 0;
+		}
+	}
+	TRACE_LEAVE();
+}
+
 /****************************************************************************
  * Name          : immnd_evt_proc_fevs_rcv
  *
@@ -4734,6 +4802,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	if (cb->highestProcessed >= msgNo) {
 		/*We have already received this message, discard it. */
 		LOG_WA("DISCARD DUPLICATE FEVS message:%llu", msgNo);
+		dequeue_outgoing(cb);
 		return NCSCC_RC_FAILURE;	/*TODO: ensure evt is discarded by invoker */
 	}
 
@@ -4741,12 +4810,12 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 
 	if (originatedAtThisNd) {
 		assert(!reply_dest || (reply_dest == cb->immnd_mdest_id));
-		if (cb->messages_pending) {
-			--(cb->messages_pending);	/*flow control towards IMMD */
+		if (cb->fevs_replies_pending) {
+			--(cb->fevs_replies_pending);	/*flow control towards IMMD */
 		}
-		TRACE_2("FEVS from myself, still pending:%u", cb->messages_pending);
+		TRACE_2("FEVS from myself, still pending:%u", cb->fevs_replies_pending);
 	} else {
-		TRACE_2("REMOTE FEVS received. Messages from me still pending:%u", cb->messages_pending);
+		TRACE_2("REMOTE FEVS received. Messages from me still pending:%u", cb->fevs_replies_pending);
 	}
 
 	if (cb->highestReceived < msgNo) {
@@ -4759,13 +4828,14 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		SaUint32T andHowManyMore = 0;	/*What are these used for ? */
 		if (cb->mAccepted) {
 			LOG_WA("MESSAGE:%llu OUT OF ORDER my highest processed:%llu", msgNo, cb->highestProcessed);
-			immnd_enqueue_fevs_msg(cb, msgNo, clnt_hdl, reply_dest, msg, &next_expected, &andHowManyMore);
+			exit(1);
+			immnd_enqueue_incoming_fevs_msg(cb, msgNo, clnt_hdl, reply_dest, msg, &next_expected, &andHowManyMore);
 		}
 
 		/*If next_expected!=0 we send request to re-send message(s) to Director. 
 		   This is a bit stupid. we KNOW that next expected is highestProcessed+1
 		 */
-		return NCSCC_RC_SUCCESS;	/* TODO: ensure evt is discarded by invoker */
+		goto done;
 	}
 
 	/*NORMAL CASE: Received the expected in-order message. */
@@ -4786,7 +4856,7 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		/*Check if the processed message releases some queued messages. */
 
 		if (cb->highestReceived > msgNo) {	/*queue is not empty */
-			msg = immnd_dequeue_fevs_msg(msg, cb, msgNo, &clnt_hdl, &reply_dest);
+			msg = immnd_dequeue_incoming_fevs_msg(msg, cb, msgNo, &clnt_hdl, &reply_dest);
 			/* TODO: Perhaps add next_expected and andHowManyMore arg to trigger
 			   fetching of lost messages. Otherwise this will be triggered only when
 			   the next normal message arrives. 
@@ -4798,10 +4868,12 @@ static uns32 immnd_evt_proc_fevs_rcv(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 			}
 		} else {
 			msg = NULL;
-			assert(cb->fevs_msg_list == NULL);
+			assert(cb->fevs_in_list == NULL);
 		}
 	} while (msg);
 
+ done:
+	dequeue_outgoing(cb);
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
