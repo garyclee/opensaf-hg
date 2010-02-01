@@ -2243,3 +2243,44 @@ void avd_file_dump(const char *path)
 
 	fclose(f);
 }
+
+/**
+ * prepares and sends admin operation request message for a component
+ * to the corresponding avnd
+ *
+ * @param comp
+ * @param opId
+ */
+int comp_admin_op_snd_msg(AVD_COMP *comp, SaAmfAdminOperationIdT opId)
+{
+	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
+	AVD_DND_MSG *d2n_msg;
+	AVD_AVND *node = NULL;
+	unsigned int rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER2(" '%s' %u", comp->comp_info.name.value, opId);
+
+	assert(comp->su != NULL);
+	m_AVD_GET_SU_NODE_PTR(cb,comp->su,node);
+	assert(node != NULL);
+
+	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
+	if (d2n_msg == AVD_DND_MSG_NULL) {
+		rc = NCSCC_RC_OUT_OF_MEM;
+		goto done;
+	}
+
+	d2n_msg->msg_type = AVSV_D2N_ADMIN_OP_REQ_MSG;
+	d2n_msg->msg_info.d2n_admin_op_req_info.msg_id = ++(node->snd_msg_id);
+	d2n_msg->msg_info.d2n_admin_op_req_info.node_id = node->node_info.nodeId;
+	d2n_msg->msg_info.d2n_admin_op_req_info.comp_name = comp->comp_info.name;
+	d2n_msg->msg_info.d2n_admin_op_req_info.oper_id = opId;
+
+	rc = avd_d2n_msg_snd(cb, node, d2n_msg);
+	if (rc != NCSCC_RC_SUCCESS) {
+		avsv_dnd_msg_free(d2n_msg);
+		--(node->snd_msg_id);
+	}
+done:
+	TRACE_LEAVE2("(%u)", rc);
+	return rc;
+}

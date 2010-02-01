@@ -138,6 +138,7 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_avd_set_leds_msg,	/* AVND_EVT_AVD_SET_LEDS_MSG */
 	avnd_evt_avd_comp_validation_resp_msg,	/* AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG */
 	avnd_evt_avd_role_change_msg,	/* AVND_EVT_AVD_ROLE_CHANGE_MSG */
+	avnd_evt_avd_admin_op_req_msg,       /*  AVND_EVT_AVD_ADMIN_OP_REQ_MSG */
 
 	/* AvA event types */
 	avnd_evt_ava_finalize,	/* AVND_EVT_AVA_AMF_FINALIZE */

@@ -865,26 +865,75 @@ done1:
 	return error;
 }
 
+/**
+ * Handle admin operations on SaAmfComp objects.
+ *      
+ * @param immOiHandle             
+ * @param invocation
+ * @param objectName
+ * @param operationId
+ * @param params
+ */
 static void comp_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 	const SaNameT *objectName, SaImmAdminOperationIdT opId,
 	const SaImmAdminOperationParamsT_2 **params)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_COMP *comp = avd_comp_get(objectName);
 
+        TRACE_ENTER2("%llu, '%s', %llu", invocation, objectName->value, opId);
+
+	AVD_COMP *comp = avd_comp_get(objectName);
 	assert(comp != NULL);
 
 	switch (opId) {
 		/* Valid B.04 AMF comp admin operations */
 	case SA_AMF_ADMIN_RESTART:
+		if (comp->comp_info.comp_restart == TRUE) {
+			LOG_WA("Component Restart disabled '%s'", objectName->value);
+			rc = SA_AIS_ERR_NOT_SUPPORTED;
+		}
+		else if (comp->admin_pend_cbk.invocation != 0) {
+			LOG_WA("Component undergoing admin operation '%s'", objectName->value);
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+		else if (comp->su->pend_cbk.invocation != 0) {
+			LOG_WA("SU undergoing admin operation '%s'", objectName->value);
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+		else if (comp->su->su_on_node->admin_node_pend_cbk.invocation != 0) {
+			LOG_WA("Node undergoing admin operation '%s'", objectName->value);
+			rc = SA_AIS_ERR_TRY_AGAIN;
+		}
+		else if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_INSTANTIATED) {
+			LOG_WA("Component not instantiated '%s'", objectName->value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		}
+		else {
+			/* prepare the admin op req message and queue it */
+			if (comp_admin_op_snd_msg(comp, opId) == NCSCC_RC_SUCCESS) {
+				comp->admin_pend_cbk.admin_oper = opId;
+				comp->admin_pend_cbk.invocation = invocation;
+				rc = SA_AIS_OK;
+			}
+			else {
+				LOG_WA("Admin op request send failed '%s'", objectName->value);
+				rc = SA_AIS_ERR_TIMEOUT;
+			}
+		}
+		break;
+
 	case SA_AMF_ADMIN_EAM_START:
 	case SA_AMF_ADMIN_EAM_STOP:
 	default:
+		LOG_WA("Unsupported admin operation '%llu'", opId);
 		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		break;
 	}
 
-	(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+	if (rc != SA_AIS_OK)
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, rc);
+
+	TRACE_LEAVE2("(%u)",rc);
 }
 
 static SaAisErrorT comp_rt_attr_cb(SaImmOiHandleT immOiHandle,

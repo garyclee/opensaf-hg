@@ -1900,6 +1900,11 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			avd_comp_pres_state_set(i_comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			avd_comp_readiness_state_set(i_comp, SA_AMF_READINESS_OUT_OF_SERVICE);
 			i_comp->saAmfCompRestartCount = 0;
+			if (i_comp->admin_pend_cbk.invocation != 0) {
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_comp->admin_pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+				i_comp->admin_pend_cbk.invocation = 0;
+				i_comp->admin_pend_cbk.admin_oper = 0;
+			}
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_comp, AVSV_CKPT_AVD_COMP_CONFIG);
 			i_comp = i_comp->su_comp_next;
 		}
@@ -2000,6 +2005,11 @@ void avd_node_susi_fail_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 			avd_comp_pres_state_set(i_comp, SA_AMF_PRESENCE_UNINSTANTIATED);
 			avd_comp_readiness_state_set(i_comp, SA_AMF_READINESS_OUT_OF_SERVICE);
 			i_comp->saAmfCompRestartCount = 0;
+			if (i_comp->admin_pend_cbk.invocation != 0) {
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle, i_comp->admin_pend_cbk.invocation, SA_AIS_ERR_TIMEOUT);
+				i_comp->admin_pend_cbk.invocation = 0;
+				i_comp->admin_pend_cbk.admin_oper = 0;
+			}
 			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, i_comp, AVSV_CKPT_AVD_COMP_CONFIG);
 			i_comp = i_comp->su_comp_next;
 		}

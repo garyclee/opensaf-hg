@@ -63,7 +63,7 @@ static uns32 avnd_err_escalate(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR 
 
 static uns32 avnd_err_recover(AVND_CB *, AVND_SU *, AVND_COMP *, AVSV_ERR_RCVR);
 
-static uns32 avnd_err_rcvr_comp_restart(AVND_CB *, AVND_COMP *);
+uns32 avnd_err_rcvr_comp_restart(AVND_CB *, AVND_COMP *);
 static uns32 avnd_err_rcvr_su_restart(AVND_CB *, AVND_SU *, AVND_COMP *);
 static uns32 avnd_err_rcvr_comp_failover(AVND_CB *, AVND_COMP *);
 static uns32 avnd_err_rcvr_su_failover(AVND_CB *, AVND_SU *, AVND_COMP *);
@@ -288,6 +288,10 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 	FILE *fp = NULL;
 	time_t local_time;
 	unsigned char asc_lt[40];	/* ASCII Localtime */
+
+	/* when undergoing admin oper do not process any component errors */
+	if (comp->admin_oper == SA_TRUE)
+		goto done;
 
 	/* Level3 escalation is node failover. we dont expect any
 	 ** more errors from application as the node is already failed over. 
@@ -549,10 +553,12 @@ uns32 avnd_err_rcvr_comp_restart(AVND_CB *cb, AVND_COMP *comp)
 {
 	AVND_COMP_CSI_REC *csi = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* mark the comp failed */
-	m_AVND_COMP_FAILED_SET(comp);
-	m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
+	
+	if (comp->admin_oper == SA_FALSE) {
+		/* mark the comp failed */
+		m_AVND_COMP_FAILED_SET(comp);
+		m_AVND_SEND_CKPT_UPDT_ASYNC_UPDT(cb, comp, AVND_CKPT_COMP_FLAG_CHANGE);
+	}
 
 	/* delete the comp current info */
 	rc = avnd_comp_curr_info_del(cb, comp);

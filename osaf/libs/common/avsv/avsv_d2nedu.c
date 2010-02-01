@@ -395,6 +395,16 @@ uns32 avsv_edp_dnd_msg(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT,
 		 (long)&((AVSV_DND_MSG *)0)->msg_info.d2n_role_change_info.role, 0, NULL},
 
+		/* AVSV_D2N_ADMIN_OP_REQ_MSG, LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG */
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.msg_id, 0, NULL},
+		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.node_id, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet_net, 0, 0, 0, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.comp_name, 0, NULL},
+		{EDU_EXEC, ncs_edp_uns32, 0, 0, EDU_EXIT, 
+		    (long)&((AVSV_DND_MSG*)0)->msg_info.d2n_admin_op_req_info.oper_id, 0, NULL},
+
 		{EDU_END, 0, 0, 0, 0, 0, 0, NULL},
 	};
 
@@ -463,7 +473,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		LCL_JMP_OFFSET_AVSV_D2N_SET_LEDS_MSG = 116,
 		LCL_JMP_OFFSET_AVSV_N2D_COMP_VALID_MSG = 118,
 		LCL_JMP_OFFSET_AVSV_D2N_COMP_VALID_RESP_MSG = 126,
-		LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG = 130
+		LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG = 130,
+		LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG = 133
 	} LCL_JMP_OFFSET_;
 	AVSV_DND_MSG_TYPE type;
 
@@ -535,6 +546,8 @@ int avsv_dnd_msg_test_type_fnc(NCSCONTEXT arg)
 		return LCL_JMP_OFFSET_AVSV_D2N_COMP_VALID_RESP_MSG;
 	case AVSV_D2N_ROLE_CHANGE_MSG:
 		return LCL_JMP_OFFSET_AVSV_D2N_ROLE_CHANGE_MSG;
+	case AVSV_D2N_ADMIN_OP_REQ_MSG:
+		return LCL_JMP_OFFSET_AVSV_D2N_ADMIN_OP_REQ_MSG;
 	default:
 		break;
 	}

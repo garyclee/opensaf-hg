@@ -684,7 +684,7 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
 	avd_gen_node_admin_state_changed_ntf(avd_cb, node);
-	TRACE_LEAVE2("node_admin_state_set");
+	TRACE_LEAVE();
 }
 
 /**
@@ -779,7 +779,7 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	AVD_AVND *su_sg_node_ptr = NULL;
 	SaAmfAdminStateT new_admin_state;
 
-	TRACE_ENTER2("node_admin_lock_unlock_shutdown");
+	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
 	/* determine the new_admin_state from operation ID */
 	if (operationId == SA_AMF_ADMIN_SHUTDOWN)
 		new_admin_state = SA_AMF_ADMIN_SHUTTING_DOWN;
@@ -1010,7 +1010,7 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 		break;
 	}
  end:
-	TRACE_LEAVE2("node_admin_lock_unlock_shutdown");
+	TRACE_LEAVE();
 }
 
 /**
