@@ -341,6 +341,7 @@ typedef struct avnd_comp_tag {
 	NCS_BOOL reg_resp_pending;	/* If the reg resp is pending from 
 					   proxied comp AvND, it TRUE. */
 	SaNameT proxy_comp_name;	/* Used for Checkpointing. */
+	SaBoolT admin_oper;   /*set to TRUE if undergoing admin operation */
 	int config_is_valid; /* Used to indicate that config has to be refreshed from IMM */
 
 } AVND_COMP;

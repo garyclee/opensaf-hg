@@ -423,6 +423,37 @@ void avd_oper_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 }
 
 /**
+ * handler to report error response to imm for any pending admin operation on comp 
+ *
+ * @param comp
+ * @param pres
+ */
+static void comp_admin_op_report_to_imm(AVD_COMP *comp, SaAmfPresenceStateT pres)
+{
+	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
+	TRACE_ENTER2("%u", pres);
+
+	if (comp->admin_pend_cbk.admin_oper == SA_AMF_ADMIN_RESTART) {
+		if ((comp->saAmfCompPresenceState == SA_AMF_PRESENCE_INSTANTIATED) &&
+		   (pres != SA_AMF_PRESENCE_RESTARTING)) {
+			immutil_saImmOiAdminOperationResult(cb->immOiHandle,comp->admin_pend_cbk.invocation, SA_AIS_ERR_BAD_OPERATION);
+			comp->admin_pend_cbk.admin_oper = 0;
+			comp->admin_pend_cbk.invocation = 0;
+		}
+		else if (comp->saAmfCompPresenceState == SA_AMF_PRESENCE_RESTARTING) {
+			if (pres == SA_AMF_PRESENCE_INSTANTIATED)
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle,comp->admin_pend_cbk.invocation, SA_AIS_OK);
+			else
+				immutil_saImmOiAdminOperationResult(cb->immOiHandle,comp->admin_pend_cbk.invocation, SA_AIS_ERR_REPAIR_PENDING);
+
+			comp->admin_pend_cbk.admin_oper = 0;
+			comp->admin_pend_cbk.invocation = 0;
+		}
+	}
+	TRACE_LEAVE2("(%llu)", comp->admin_pend_cbk.invocation);
+}
+
+/**
  * handler to report error response to imm for any pending admin operation on su 
  *
  * @param su
@@ -640,8 +671,12 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			case saAmfCompPresenceState_ID:
 				TRACE("comp pres state");
 				if (n2d_msg->msg_info.n2d_data_req.param_info.value_len == sizeof(uns32)) {
-					l_val = *((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]);
-					avd_comp_pres_state_set(comp, ntohl(l_val));
+					l_val = ntohl(*((uns32 *)&n2d_msg->msg_info.n2d_data_req.param_info.value[0]));
+					/* Now check whether this presence state change was due to 
+					   adminstrative operation invocation on the component */
+					if (comp->admin_pend_cbk.invocation != 0)
+						comp_admin_op_report_to_imm(comp, l_val);
+					avd_comp_pres_state_set(comp, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
 					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.

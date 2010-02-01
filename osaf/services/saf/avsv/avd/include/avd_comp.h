@@ -117,6 +117,7 @@ typedef struct avd_comp_tag {
 	struct avd_comp_tag *su_comp_next;	/* the next component in list of  components
 						 * in this SU */
 	struct avd_comp_cs_type_tag *compcstype_list;
+	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
 
 } AVD_COMP;
 
