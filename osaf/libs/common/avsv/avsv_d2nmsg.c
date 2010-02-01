@@ -497,14 +497,16 @@ uns32 avsv_cpy_d2n_susi_msg(AVSV_DND_MSG *d_susi_msg, AVSV_DND_MSG *s_susi_msg)
 		}
 
 		memcpy(d_compcsi_info, s_compcsi_info, sizeof(AVSV_SUSI_ASGN));
-		if (s_compcsi_info->attrs.list != NULL) {
-			d_compcsi_info->attrs.list = malloc((s_compcsi_info->attrs.number * sizeof(AVSV_SUSI_ASGN)));
+
+		if ((s_compcsi_info->attrs.list != NULL) && (s_compcsi_info->attrs.number > 0)) {
+			d_compcsi_info->attrs.list =
+				malloc(s_compcsi_info->attrs.number * sizeof(*d_compcsi_info->attrs.list));
 			if (d_compcsi_info->attrs.list == NULL) {
 				avsv_free_d2n_susi_msg_info(d_susi_msg);
 				return NCSCC_RC_FAILURE;
 			}
 			memcpy(d_compcsi_info->attrs.list, s_compcsi_info->attrs.list,
-			       (s_compcsi_info->attrs.number * sizeof(AVSV_SUSI_ASGN)));
+			       (s_compcsi_info->attrs.number * sizeof(*d_compcsi_info->attrs.list)));
 		}
 		d_compcsi_info->next = d_susi_msg->msg_info.d2n_su_si_assign.list;
 		d_susi_msg->msg_info.d2n_su_si_assign.list = d_compcsi_info;
