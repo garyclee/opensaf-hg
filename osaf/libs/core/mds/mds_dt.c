@@ -37,10 +37,9 @@ uns32 mds_mdtm_init(NODE_ID node_id, uns32 *mds_tipc_ref)
 
 	/* INit all transports */
 #if MDS_OVER_TIPC
-	mdtm_tipc_init(node_id, mds_tipc_ref);
+	return mdtm_tipc_init(node_id, mds_tipc_ref);
 #endif
 
-	return NCSCC_RC_SUCCESS;
 }
 
 /*********************************************************
@@ -60,10 +59,9 @@ uns32 mds_mdtm_destroy(void)
 {
 	/* Destroy all transports */
 #if MDS_OVER_TIPC
-	mdtm_tipc_destroy();
+	return mdtm_tipc_destroy();
 #endif
 
-	return NCSCC_RC_SUCCESS;
 }
 
 /*********************************************************
@@ -294,5 +292,43 @@ uns32 mds_mdtm_send(MDTM_SEND_REQ *req)
 {
 #if MDS_OVER_TIPC
 	return mds_mdtm_send_tipc(req);
+#endif
+}
+
+/*********************************************************
+
+  Function NAME: mds_mdtm_node_subscribe
+
+  DESCRIPTION:
+
+  ARGUMENTS:
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mdtm_node_subscribe(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+{
+#if MDS_OVER_TIPC
+	return mds_mdtm_node_subscribe_tipc(svc_hdl, subtn_ref_val); 
+#endif
+}
+
+/*********************************************************
+
+  Function NAME: mds_mdtm_node_unsubscribe
+
+  DESCRIPTION:
+
+  ARGUMENTS:
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mdtm_node_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val)
+{
+#if MDS_OVER_TIPC
+	return mds_mdtm_node_unsubscribe_tipc(subtn_ref_val); 
 #endif
 }

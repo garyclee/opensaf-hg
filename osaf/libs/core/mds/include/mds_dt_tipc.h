@@ -86,4 +86,7 @@ extern uns32 mds_mdtm_tx_hdl_unregister_tipc(MDS_DEST adest);
 
 extern uns32 mds_mdtm_send_tipc(MDTM_SEND_REQ *req);
 
+extern uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val); 
+extern uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val); 
+
 #endif

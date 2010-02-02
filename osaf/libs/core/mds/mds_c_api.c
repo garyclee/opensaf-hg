@@ -987,7 +987,13 @@ if (PEER_SVC_ID_LIST != NULL)
 	}
 	svc_cb->sync_send_queue = NULL;
 
-/* STEP 5: Delete a SVC-TABLE entry */
+/* STEP 5: Delete a SVC-TABLE entry and do the node unsubsribe */
+
+	if (svc_cb->i_node_subscr) {
+		if (mds_mdtm_node_unsubscribe( svc_cb->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
+			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_unsubscribe \n");
+		}
+	}
 
 	mds_svc_tbl_del((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, info->info.svc_uninstall.i_msg_free_cb);
 
@@ -1357,6 +1363,115 @@ uns32 mds_mcm_pwe_query(NCSMDS_INFO *info)
 	}
 	m_MDS_LOG_NOTIFY("MCM_API : query_pwe : Successful for PWE hdl = %lx", info->i_mds_hdl);
 	m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_pwe_query");
+	return NCSCC_RC_SUCCESS;
+}
+
+/*********************************************************
+
+  Function NAME: mds_mcm_node_subscribe
+
+  DESCRIPTION:
+
+  ARGUMENTS: 
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mcm_node_subscribe(NCSMDS_INFO *info)
+{
+	MDS_SVC_HDL svc_hdl;
+	MDS_SVC_INFO *local_svc_info = NULL;
+
+	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_node_subscribe");
+
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
+		/* Service doesn't exist */
+		m_MDS_LOG_ERR("MCM_API : node_subscribe : SVC id = %d on VDEST id = %d FAILED : SVC Doesn't Exist",
+				info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_node_subscribe");
+		return NCSCC_RC_FAILURE;
+	}
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+
+	/* Get Service info cb */
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+						(NCSCONTEXT)&local_svc_info)) {
+		/* Service Doesn't exist */
+		m_MDS_LOG_ERR("MCM: SVC doesnt exists, returning from mds_mcm_node_subscribe=%d\n",
+				info->i_svc_id);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if ( local_svc_info->i_node_subscr ) {
+		m_MDS_LOG_ERR("MCM_API: node_subscribe: SVC id = %d ,VDEST id = %d FAILED : subscription Exist",
+				info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		return NCSCC_RC_FAILURE;
+	}
+	else {
+		if (mds_mdtm_node_subscribe( svc_hdl, &local_svc_info->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
+			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_subscribe: SVC id = %d Fail\n",info->i_svc_id);
+			return NCSCC_RC_FAILURE;
+		}
+		local_svc_info->i_node_subscr = 1;
+	}
+	m_MDS_LOG_DBG("MCM_API : mds_mcm_node_subscribe : S\n");
+	return NCSCC_RC_SUCCESS;
+}
+
+/*********************************************************
+
+  Function NAME: mds_mcm_node_unsubscribe
+
+  DESCRIPTION:
+
+  ARGUMENTS: 
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mcm_node_unsubscribe(NCSMDS_INFO *info)
+{
+	MDS_SVC_HDL svc_hdl;
+	MDS_SVC_INFO *local_svc_info = NULL;
+
+	m_MDS_LOG_DBG("MCM_API : Entering : mds_mcm_node_unsubscribe");
+
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_query((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id)) {
+		/* Service doesn't exist */
+		m_MDS_LOG_ERR("MCM_API : node_subscribe : SVC id = %d on VDEST id = %d FAILED : SVC Doesn't Exist",
+			      info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_node_subscribe");
+		return NCSCC_RC_FAILURE;
+	}
+	mds_svc_tbl_get_svc_hdl((MDS_PWE_HDL)info->i_mds_hdl, info->i_svc_id, &svc_hdl);
+
+	/* Get Service info cb */
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(svc_hdl),
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(svc_hdl),
+						(NCSCONTEXT)&local_svc_info)) {
+		/* Service Doesn't exist */
+		m_MDS_LOG_ERR("MCM: SVC doesnt exists, returning from mds_mcm_node_subscribe=%d\n",
+				info->i_svc_id);
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (0 == local_svc_info->i_node_subscr ) {
+		m_MDS_LOG_ERR("MCM_API: node_subscribe: SVC id = %d ,VDEST id = %d FAILED : node subscription doesnt Exist",
+				info->i_svc_id, m_MDS_GET_VDEST_ID_FROM_PWE_HDL(info->i_mds_hdl));
+		return NCSCC_RC_FAILURE;
+	}
+	else {
+		if (mds_mdtm_node_unsubscribe( local_svc_info->node_subtn_ref_val) != NCSCC_RC_SUCCESS) {
+			m_MDS_LOG_ERR("MCM_API: mds_mdtm_node_unsubscribe: SVC id = %d Fail\n",info->i_svc_id);
+			return NCSCC_RC_FAILURE;
+		}
+		local_svc_info->i_node_subscr = 0;
+		local_svc_info->node_subtn_ref_val = 0;
+        }
+	m_MDS_LOG_DBG("MCM_API : mds_mcm_node_unsubscribe : S\n");
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -2761,6 +2876,166 @@ else (entry exists)
 	}
 	m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_svc_down");
 	return NCSCC_RC_SUCCESS;
+}
+
+
+/*********************************************************
+
+  Function NAME: mds_mcm_node_up
+
+  DESCRIPTION:
+
+  ARGUMENTS: 
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
+
+{
+	MDS_MCM_MSG_ELEM *event_msg = NULL;
+	MDS_SVC_INFO *local_svc_info = NULL;
+	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
+	uns32 status = NCSCC_RC_SUCCESS;
+
+	/* Get Service info cb */
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+						(NCSCONTEXT)&local_svc_info)) {
+		/* Service Doesn't exist */
+		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_node_up\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+
+	if (0 == local_svc_info->i_node_subscr ) {
+		/* Node Subscription Doesn't exist */
+		m_MDS_LOG_ERR(" Node subscription doesnt exists, returning from mds_mcm_node_up\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	event_msg = m_MMGR_ALLOC_MSGELEM;
+	if (event_msg == NULL) {
+		m_MDS_LOG_ERR("mds_mcm_node_up out of memory\n");
+		return NCSCC_RC_FAILURE;
+	}
+	memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
+	event_msg->type = MDS_EVENT_TYPE;
+	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
+
+	/* Temp ptr to cbinfo in event_msg */
+	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+
+	cbinfo->i_op = MDS_CALLBACK_NODE_EVENT;
+	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
+	cbinfo->i_yr_svc_id = local_svc_info->svc_id;
+
+	cbinfo->info.node_evt.node_chg = NCSMDS_NODE_UP;
+
+	cbinfo->info.node_evt.node_id = node_id;
+
+	/* Post to mail box If Q Ownership is enabled Else Call user callback */
+	if (local_svc_info->q_ownership == TRUE) {
+
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+			/* Message Queuing failed */
+			m_MMGR_FREE_MSGELEM(event_msg);
+			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : NODE UP EVENT : FAILED\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_node_up");
+			return NCSCC_RC_FAILURE;
+		} else {
+			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : NODE UP EVENT : Success\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_node_up");
+			return NCSCC_RC_SUCCESS;
+		}
+	} else {
+		/* Call user callback */
+		status = local_svc_info->cback_ptr(cbinfo);
+		m_MMGR_FREE_MSGELEM(event_msg);
+	}
+	m_MDS_LOG_DBG("MCM_API : Leaving : S : status : mds_mcm_node_up");
+	return status;
+
+}
+
+/*********************************************************
+
+  Function NAME: mds_mcm_node_down
+
+  DESCRIPTION:
+
+  ARGUMENTS: 
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id)
+
+{
+	MDS_MCM_MSG_ELEM *event_msg = NULL;
+	MDS_SVC_INFO *local_svc_info = NULL;
+	NCSMDS_CALLBACK_INFO *cbinfo = NULL;
+	uns32 status = NCSCC_RC_SUCCESS;
+
+	/* Get Service info cb */
+	if (NCSCC_RC_SUCCESS != mds_svc_tbl_get(m_MDS_GET_PWE_HDL_FROM_SVC_HDL(local_svc_hdl),
+						m_MDS_GET_SVC_ID_FROM_SVC_HDL(local_svc_hdl),
+						(NCSCONTEXT)&local_svc_info)) {
+		/* Service Doesn't exist */
+		m_MDS_LOG_ERR(" SVC doesnt exists, returning from mds_mcm_node_down\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (0 == local_svc_info->i_node_subscr ) {
+		/* Node Subscription Doesn't exist */
+		m_MDS_LOG_ERR(" Node subscription doesnt exists, returning from mds_mcm_node_down\n");
+		return NCSCC_RC_FAILURE;
+        }
+
+	event_msg = m_MMGR_ALLOC_MSGELEM;
+	if (event_msg == NULL) {
+		m_MDS_LOG_ERR("mds_mcm_node_up out of memory\n");
+		return NCSCC_RC_FAILURE;
+	}
+	memset(event_msg, 0, sizeof(MDS_MCM_MSG_ELEM));
+	event_msg->type = MDS_EVENT_TYPE;
+	event_msg->pri = MDS_SEND_PRIORITY_MEDIUM;
+
+	/* Temp ptr to cbinfo in event_msg */
+	cbinfo = &event_msg->info.event.cbinfo;	/* NOTE: Aliased pointer */
+
+	cbinfo->i_op = MDS_CALLBACK_NODE_EVENT;
+	cbinfo->i_yr_svc_hdl = local_svc_info->yr_svc_hdl;
+	cbinfo->i_yr_svc_id = local_svc_info->svc_id;
+
+	cbinfo->info.node_evt.node_chg = NCSMDS_NODE_DOWN;
+
+	cbinfo->info.node_evt.node_id = node_id;
+
+	/* Post to mail box If Q Ownership is enabled Else Call user callback */
+	if (local_svc_info->q_ownership == TRUE) {
+
+		if ((m_NCS_IPC_SEND(&local_svc_info->q_mbx, event_msg, NCS_IPC_PRIORITY_NORMAL)) != NCSCC_RC_SUCCESS) {
+			/* Message Queuing failed */
+			m_MMGR_FREE_MSGELEM(event_msg);
+			m_MDS_LOG_ERR("SVC Mailbox IPC_SEND : NODE DOWN EVENT : FAILED\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : F : mds_mcm_node_down");
+			return NCSCC_RC_FAILURE;
+		} else {
+			m_MDS_LOG_INFO("SVC mailbox IPC_SEND : NODE DOWN EVENT : Success\n");
+			m_MDS_LOG_DBG("MCM_API : Leaving : S : mds_mcm_node_down");
+			return NCSCC_RC_SUCCESS;
+		}
+	} else {
+		/* Call user callback */
+		status = local_svc_info->cback_ptr(cbinfo);
+		m_MMGR_FREE_MSGELEM(event_msg);
+	}
+	m_MDS_LOG_DBG("MCM_API : Leaving : S : status : mds_mcm_node_down");
+	return status;
+
 }
 
 /*********************************************************

@@ -258,7 +258,8 @@ typedef struct mds_svc_info {
 	MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver;
 	NCS_BOOL i_fail_no_active_sends;	/* Default messages will be buufered in MDS when destination is
 						   in No-Active state, else dropped */
-
+	NCS_BOOL i_node_subscr;	/* suscription to node */
+	MDS_SUBTN_REF_VAL node_subtn_ref_val;  
 } MDS_SVC_INFO;
 
 MDS_SVC_INFO *mds_get_svc_info_by_hdl(MDS_SVC_HDL hdl);
@@ -323,6 +324,11 @@ extern uns32 mds_retrieve(NCSMDS_INFO *info);
 extern uns32 mds_mcm_dest_query(NCSMDS_INFO *info);
 
 extern uns32 mds_mcm_pwe_query(NCSMDS_INFO *info);
+
+extern uns32 mds_mcm_node_subscribe(NCSMDS_INFO *info);
+
+extern uns32 mds_mcm_node_unsubscribe(NCSMDS_INFO *info);
+
 
 /* Note in case of the DOWN, RED-DOWN and NO-ACTIVE callbacks to the user, archword provided will be unspecified
      and will be as follows */
