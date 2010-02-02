@@ -172,7 +172,8 @@ int main(int argc, char* argv[])
 	if(dbHandle) {
 		LOG_NO("Opened persistent repository %s", filename.c_str());
 	} else {
-		std::cout << "immdump not built with Pbe option." << std::endl;
+		std::cout << "immdump: intialize failed, check syslog for details"
+			  << std::endl;
 		exit(1);
 	}
 

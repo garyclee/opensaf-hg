@@ -171,6 +171,7 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 	uns8 *p8;
 	uns32 helper32;
 	uns64 helper64;
+	void* anonymous;
 	IMMSV_OCTET_STRING *os = NULL;
 
 	switch (t) {
@@ -212,13 +213,17 @@ static void immsv_evt_enc_att_val(NCS_UBAID *o_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 		ncs_enc_claim_space(o_ub, 8);
 		break;
 	case SA_IMM_ATTR_SAFLOATT:
-		helper32 = *((uns32 *)&(v->val.safloat));
+		//helper32 = *((uns32 *)&(v->val.safloat));
+		anonymous = &(v->val.safloat);
+		helper32 = *((uns32*) anonymous);
 		p8 = ncs_enc_reserve_space(o_ub, 4);
 		ncs_encode_32bit(&p8, helper32);
 		ncs_enc_claim_space(o_ub, 4);
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
-		helper64 = *((uns64 *)&(v->val.sadouble));
+		//helper64 = *((uns64 *)&(v->val.sadouble));
+		anonymous = &(v->val.sadouble);
+		helper64 = *((uns64 *) anonymous);
 		p8 = ncs_enc_reserve_space(o_ub, 8);
 		ncs_encode_64bit(&p8, helper64);
 		ncs_enc_claim_space(o_ub, 8);
@@ -236,6 +241,7 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 	uns32 helper32;
 	uns64 helper64;
 	uns8 local_data[8];
+	void* anonymous;
 	IMMSV_OCTET_STRING *os = NULL;
 
 	switch (t) {
@@ -281,13 +287,17 @@ static void immsv_evt_dec_att_val(NCS_UBAID *i_ub, IMMSV_EDU_ATTR_VAL *v, SaImmV
 		p8 = ncs_dec_flatten_space(i_ub, local_data, 4);
 		helper32 = ncs_decode_32bit(&p8);
 		ncs_dec_skip_space(i_ub, 4);
-		v->val.safloat = *((float *)&helper32);
+		//v->val.safloat = *((float *)&helper32);
+		anonymous = &helper32;
+		v->val.safloat = *((float *) anonymous);
 		break;
 	case SA_IMM_ATTR_SADOUBLET:
 		p8 = ncs_dec_flatten_space(i_ub, local_data, 8);
 		helper64 = ncs_decode_64bit(&p8);
 		ncs_dec_skip_space(i_ub, 8);
-		v->val.sadouble = *((double *)&helper64);
+		//v->val.sadouble = *((double *)&helper64);
+		anonymous = &helper64;
+		v->val.sadouble = *((double *) anonymous);
 		break;
 
 	default:
