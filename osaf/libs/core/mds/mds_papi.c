@@ -116,6 +116,14 @@ uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info)
 		status = mds_mcm_pwe_query(svc_to_mds_info);
 		break;
 
+	case MDS_NODE_SUBSCRIBE:
+		status = mds_mcm_node_subscribe(svc_to_mds_info);
+		break;
+
+	case MDS_NODE_UNSUBSCRIBE:
+		status = mds_mcm_node_unsubscribe(svc_to_mds_info);
+		break;
+
 	default:
 		m_MDS_LOG_ERR("MDS_PAPI : API Option Unsupported in ncsmds_api()");
 		status = NCSCC_RC_FAILURE;

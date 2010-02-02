@@ -374,6 +374,12 @@ extern uns32 mds_mdtm_tx_hdl_register(MDS_DEST adest);
 /* Tx Unregister (For decrementing the use count) */
 extern uns32 mds_mdtm_tx_hdl_unregister(MDS_DEST adest);
 
+/* Node subscription */
+extern uns32 mds_mdtm_node_subscribe(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+
+/* Node unsubscription */
+extern uns32 mds_mdtm_node_unsubscribe(MDS_SUBTN_REF_VAL subtn_ref_val);
+
 /* ******************************************** */
 /* ******************************************** */
 /*                MDTM to MCM                   */
@@ -396,6 +402,12 @@ extern uns32 mds_mcm_svc_down(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, V_DEST_RL rol
 			      NCS_VDEST_TYPE vdest_policy, MDS_DEST adest, NCS_BOOL my_pcon,
 			      MDS_SVC_HDL local_svc_hdl, MDS_SUBTN_REF_VAL subtn_ref_val,
 			      MDS_SVC_PVT_SUB_PART_VER svc_sub_part_ver, MDS_SVC_ARCHWORD_TYPE archword_type);
+
+/* NODE UP */
+extern uns32 mds_mcm_node_up(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
+
+/* NODE DOWN */
+extern uns32 mds_mcm_node_down(MDS_SVC_HDL local_svc_hdl, NODE_ID node_id);
 
 /* VDEST UP */
 extern uns32 mds_mcm_vdest_up(MDS_VDEST_ID vdest_id, MDS_DEST adest);

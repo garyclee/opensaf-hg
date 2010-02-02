@@ -110,6 +110,12 @@ extern "C" {
 		 */
 		NCSMDS_CHG_ROLE,	/* Destination just changed role (A->S) | (A->S)) */
 	} NCSMDS_CHG;
+	
+	typedef enum {
+                NCSMDS_NODE_UP = 0,
+                NCSMDS_NODE_DOWN = 1,
+	} NCSMDS_NODE_CHG;
+		
 
 /* Virtual destination role                                               */
 	typedef enum {
@@ -353,7 +359,9 @@ extern "C" {
 		MDS_RETRIEVE,
 		MDS_CHG_ROLE,	/* Changes role service's underlying VDEST  */
 		MDS_QUERY_DEST,
-		MDS_QUERY_PWE
+		MDS_QUERY_PWE,
+		MDS_NODE_SUBSCRIBE,
+		MDS_NODE_UNSUBSCRIBE,
 	} NCSMDS_TYPE;
 
 	typedef struct mds_install_info {
@@ -554,6 +562,20 @@ extern "C" {
 
 	} MDS_QUERY_PWE_INFO;
 
+/* MDS_SUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
+*/
+	typedef struct mds_subscribe_node_info {
+		uns32 i_dummy;	/* Unused */
+
+	} MDS_SUBSCRIBE_NODE_INFO;
+
+/* MDS_UNSUBSCRIBE_NODE_INFO: Can be used by a client to get the NODE_UP and NODE_DOWN .
+*/
+	typedef struct mds_unsubscribe_node_info {
+		uns32 i_dummy;	/* Unused */
+
+	} MDS_UNSUBSCRIBE_NODE_INFO;
+
 	typedef struct ncsmds_info {
 		/* i_mds_hdl:  This can be one of
 		   1) mds_adest_hdl: Given by "global-MDS-services" on absolute dest.
@@ -580,6 +602,8 @@ extern "C" {
 			MDS_CHG_ROLE_INFO chg_role;
 			MDS_QUERY_DEST_INFO query_dest;
 			MDS_QUERY_PWE_INFO query_pwe;
+			MDS_SUBSCRIBE_NODE_INFO subscribe_node;  
+			MDS_UNSUBSCRIBE_NODE_INFO unsubscribe_node;  
 		} info;
 	} NCSMDS_INFO;
 
@@ -607,6 +631,7 @@ extern "C" {
 		MDS_CALLBACK_SYS_EVENT,
 		MDS_CALLBACK_QUIESCED_ACK,	/* Acknowledgement of quiesced action */
 		MDS_CALLBACK_DIRECT_RECEIVE,
+		MDS_CALLBACK_NODE_EVENT,
 
 		MDS_CALLBACK_SVC_MAX
 	} NCSMDS_CALLBACK_TYPE;
@@ -786,6 +811,14 @@ unpack individual structure members. */
 		uns32 i_dummy;	/* Unused */
 	} MDS_CALLBACK_QUIESCED_ACK_INFO;
 
+	typedef struct mds_callback_node_event_info {
+		/* MDS uses the following callback to inform an MDS-client that 
+		   a node is UP or down 
+		 */
+		NCSMDS_NODE_CHG  node_chg;
+		NODE_ID node_id;
+	} MDS_CALLBACK_NODE_EVENT_INFO;
+
 	typedef struct ncsmds_callback_info {
 		MDS_CLIENT_HDL i_yr_svc_hdl;	/* Handle to MDS Client's context */
 		MDS_SVC_ID i_yr_svc_id;	/* Service ID of yourself         */
@@ -801,6 +834,7 @@ unpack individual structure members. */
 			MDS_CALLBACK_SVC_EVENT_INFO svc_evt;
 			MDS_CALLBACK_SYS_EVENT_INFO sys_evt;
 			MDS_CALLBACK_QUIESCED_ACK_INFO quiesced_ack;
+			MDS_CALLBACK_NODE_EVENT_INFO node_evt;
 		} info;
 	} NCSMDS_CALLBACK_INFO;
 

@@ -166,6 +166,10 @@ uns32 mds_tmr_mailbox_processing(void);
 
 uns16 mds_checksum(uns32 length, uns8 buff[]);
 
+
+uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val);
+uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val);
+
 MDTM_REF_HDL_LIST *mdtm_ref_hdl_list_hdr;
 
 typedef struct mdtm_tipc_cb {
@@ -873,7 +877,7 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 	uns32 inst_type = 0;
 
 	MDS_DEST adest = 0;
-
+        
 	inst_type = event.s.seq.type & 0x00ff0000;	/* To get which type event
 							   either SVC,VDEST, PCON, NODE OR process */
 	switch (inst_type) {
@@ -1037,6 +1041,50 @@ static uns32 mdtm_process_discovery_events(uns32 discovery_event, struct tipc_ev
 				    ("MDTM: TIPC EVENT UNSUPPORTED for VDEST(other than Publish and Withdraw)\n");
 				return NCSCC_RC_FAILURE;
 			}
+		}
+		break;
+
+	case MDS_NODE_INST_TYPE:
+		{
+			MDS_SUBTN_REF_VAL subtn_ref_val;
+			MDS_SVC_HDL svc_hdl;
+			uns32 node_status = 0;
+			NODE_ID node_id = 0;
+
+			m_MDS_LOG_INFO("MDTM: Received NODE event");
+
+			node_status = m_MDS_CHECK_TIPC_NODE_ID_RANGE(event.port.node);
+
+			if (NCSCC_RC_SUCCESS == node_status) {
+				node_id = ((NODE_ID)(m_MDS_GET_NCS_NODE_ID_FROM_TIPC_NODE_ID(event.port.node)));
+				    
+			} else {
+				m_MDS_LOG_ERR
+					("MDTM: Dropping  the node event,as the TIPC NODEid is not in the prescribed range=0x%08x,  Event type=%d",
+					event.port.node, discovery_event);
+				return NCSCC_RC_FAILURE;
+			}
+			subtn_ref_val = *((uns64 *)(event.s.usr_handle));
+
+
+			if (NCSCC_RC_SUCCESS != mdtm_get_from_ref_tbl(subtn_ref_val, &svc_hdl)) {
+				m_MDS_LOG_INFO("MDTM: No entry in ref tbl so dropping the recd event");
+				return NCSCC_RC_FAILURE;
+			}
+			
+			if (TIPC_PUBLISHED == discovery_event) {
+				m_MDS_LOG_INFO("MDTM: Raising the NODE UP event for NODE id = %d", node_id);
+				return mds_mcm_node_up(svc_hdl, node_id);
+			} else if (TIPC_WITHDRAWN == discovery_event) {
+				m_MDS_LOG_INFO("MDTM: Raising the NODE DOWN event for NODE id = %d", node_id);
+				return mds_mcm_node_down(svc_hdl, node_id);
+			} else {
+				m_MDS_LOG_INFO
+				    ("MDTM: TIPC EVENT UNSUPPORTED for Node (other than Publish and Withdraw)\n");
+				return NCSCC_RC_FAILURE;
+			}
+
+			
 		}
 		break;
 
@@ -2298,6 +2346,74 @@ uns32 mds_mdtm_svc_subscribe_tipc(PW_ENV_ID pwe_id, MDS_SVC_ID svc_id, NCSMDS_SC
 	m_MDS_LOG_INFO("MDTM: SVC-SUBSCRIBE Success\n");
 
 	return status;
+}
+
+
+/*********************************************************
+
+  Function NAME: mds_mdtm_node_subscribe_tipc
+
+  DESCRIPTION: Subscription to Node UP and DOWN events
+
+  ARGUMENTS:
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+
+uns32 mds_mdtm_node_subscribe_tipc(MDS_SVC_HDL svc_hdl, MDS_SUBTN_REF_VAL *subtn_ref_val)
+
+{ 
+	struct tipc_subscr net_subscr;
+	uns32 status = NCSCC_RC_SUCCESS;
+
+	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_subscribe_tipc\n");
+	memset(&net_subscr, 0, sizeof(net_subscr));
+	net_subscr.seq.type = 0;
+	net_subscr.seq.lower = 0;
+	net_subscr.seq.upper = ~0;
+	net_subscr.timeout = FOREVER;
+	net_subscr.filter = TIPC_SUB_PORTS;
+	*subtn_ref_val = 0;
+	*subtn_ref_val = ++handle;
+	*((uns64 *)net_subscr.usr_handle) = *subtn_ref_val;
+
+	if (send(tipc_cb.Dsock, &net_subscr, sizeof(net_subscr), 0) != sizeof(net_subscr)) {
+		perror("failed to send network subscription");
+		m_MDS_LOG_ERR("MDTM: NODE-SUBSCRIBE Failure\n");
+		return NCSCC_RC_FAILURE;
+	}
+
+	status = mdtm_add_to_ref_tbl(svc_hdl, *subtn_ref_val);
+	++num_subscriptions;
+	m_MDS_LOG_INFO("MDTM: NODE-SUBSCRIBE Success\n");
+
+	return status;
+}
+
+
+/*********************************************************
+
+  Function NAME: mds_mdtm_node_unsubscribe_tipc
+
+  DESCRIPTION:
+
+  ARGUMENTS:
+
+  RETURNS:  1 - NCSCC_RC_SUCCESS
+            2 - NCSCC_RC_FAILURE
+
+*********************************************************/
+uns32 mds_mdtm_node_unsubscribe_tipc(MDS_SUBTN_REF_VAL subtn_ref_val)
+
+{
+	m_MDS_LOG_INFO("MDTM: In mds_mdtm_node_unsubscribe_tipc\n");
+	/* Presently TIPC doesnt supports the unsubscribe */
+	mdtm_del_from_ref_tbl(subtn_ref_val);
+	m_MDS_LOG_INFO("MDTM: NODE-UNSUBSCRIBE Success\n");
+	return NCSCC_RC_SUCCESS;
+
 }
 
 /*********************************************************
