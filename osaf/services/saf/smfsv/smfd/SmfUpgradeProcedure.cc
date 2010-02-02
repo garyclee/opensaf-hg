@@ -1482,50 +1482,48 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 	std::list < std::string >::const_iterator iter;
 	std::list < std::string >::const_iterator iterE;
 
-	if (i_step->getDeactivationUnitList().size() > 0) {
-		/* Create the SaSmfDeactivationUnit object */
-		SmfImmRTCreateOperation icoSaSmfDeactivationUnit;
-		icoSaSmfDeactivationUnit.setClassName("SaSmfDeactivationUnit");
-		icoSaSmfDeactivationUnit.setParentDn(i_step->getRdn() + "," + getDn());
-		icoSaSmfDeactivationUnit.setImmHandle(getProcThread()->getImmHandle());
+	/* Create the SaSmfDeactivationUnit object */
+	SmfImmRTCreateOperation icoSaSmfDeactivationUnit;
+	icoSaSmfDeactivationUnit.setClassName("SaSmfDeactivationUnit");
+	icoSaSmfDeactivationUnit.setParentDn(i_step->getRdn() + "," + getDn());
+	icoSaSmfDeactivationUnit.setImmHandle(getProcThread()->getImmHandle());
 
-		SmfImmAttribute attrsafSmfDu;
-		attrsafSmfDu.setName("safSmfDu");
-		attrsafSmfDu.setType("SA_IMM_ATTR_SASTRINGT");
-		attrsafSmfDu.addValue("safSmfDu=smfDeactivationUnit");
-		icoSaSmfDeactivationUnit.addValue(attrsafSmfDu);
+	SmfImmAttribute attrsafSmfDu;
+	attrsafSmfDu.setName("safSmfDu");
+	attrsafSmfDu.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsafSmfDu.addValue("safSmfDu=smfDeactivationUnit");
+	icoSaSmfDeactivationUnit.addValue(attrsafSmfDu);
 
-		SmfImmAttribute attrsaSmfDuActedOn;
-		attrsaSmfDuActedOn.setName("saSmfDuActedOn");
-		attrsaSmfDuActedOn.setType("SA_IMM_ATTR_SANAMET");
-		const std::list < std::string > deactList = i_step->getDeactivationUnitList();
-		if(deactList.size() != 0) {
-			iter = deactList.begin();
-			iterE = deactList.end();
-			while (iter != iterE) {
-				attrsaSmfDuActedOn.addValue(*iter);
-				iter++;
-			}
-		} else {
-			/* A value must always be supplied to a cached runtime attribute */
-			attrsaSmfDuActedOn.addValue("");
+	SmfImmAttribute attrsaSmfDuActedOn;
+	attrsaSmfDuActedOn.setName("saSmfDuActedOn");
+	attrsaSmfDuActedOn.setType("SA_IMM_ATTR_SANAMET");
+	const std::list < std::string > deactList = i_step->getDeactivationUnitList();
+	if(deactList.size() != 0) {
+		iter = deactList.begin();
+		iterE = deactList.end();
+		while (iter != iterE) {
+			attrsaSmfDuActedOn.addValue(*iter);
+			iter++;
 		}
-		icoSaSmfDeactivationUnit.addValue(attrsaSmfDuActedOn);
+	} else {
+		/* A value must always be supplied to a cached runtime attribute */
+		attrsaSmfDuActedOn.addValue("");
+	}
+	icoSaSmfDeactivationUnit.addValue(attrsaSmfDuActedOn);
 
-		SmfImmAttribute attrsaSmfDuEntityToRemove;
-		attrsaSmfDuEntityToRemove.setName("saSmfDuEntityToRemove");
-		attrsaSmfDuEntityToRemove.setType("SA_IMM_ATTR_SANAMET");
+	SmfImmAttribute attrsaSmfDuEntityToRemove;
+	attrsaSmfDuEntityToRemove.setName("saSmfDuEntityToRemove");
+	attrsaSmfDuEntityToRemove.setType("SA_IMM_ATTR_SANAMET");
 
-		if (!setEntitiesToAddRemMod(i_step, &attrsaSmfDuEntityToRemove)) {
-			rc = SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
-		}
-		icoSaSmfDeactivationUnit.addValue(attrsaSmfDuEntityToRemove);
+	if (!setEntitiesToAddRemMod(i_step, &attrsaSmfDuEntityToRemove)) {
+		rc = SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+	}
+	icoSaSmfDeactivationUnit.addValue(attrsaSmfDuEntityToRemove);
 
-                if ((rc=icoSaSmfDeactivationUnit.execute()) != SA_AIS_OK) { //Create the object
-                        LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfDeactivationUnit.execute() returned %d", rc);
-                        TRACE_LEAVE();
-                        return rc;
-                }
+	if ((rc=icoSaSmfDeactivationUnit.execute()) != SA_AIS_OK) { //Create the object
+		LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfDeactivationUnit.execute() returned %d", rc);
+		TRACE_LEAVE();
+		return rc;
 	}
 
         /* Create the SaSmfImageNodes objects as childrens to the SaSmfDeactivationUnit instance */
@@ -1578,50 +1576,48 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
 		bundleRefiter++;
 	}
 
-	if (i_step->getActivationUnitList().size() > 0) {
-		/* Create the SaSmfActivationUnit object */
-		SmfImmRTCreateOperation icoSaSmfActivationUnit;
-		icoSaSmfActivationUnit.setClassName("SaSmfActivationUnit");
-		icoSaSmfActivationUnit.setParentDn(i_step->getRdn() + "," + getDn());
-		icoSaSmfActivationUnit.setImmHandle(getProcThread()->getImmHandle());
+	/* Create the SaSmfActivationUnit object */
+	SmfImmRTCreateOperation icoSaSmfActivationUnit;
+	icoSaSmfActivationUnit.setClassName("SaSmfActivationUnit");
+	icoSaSmfActivationUnit.setParentDn(i_step->getRdn() + "," + getDn());
+	icoSaSmfActivationUnit.setImmHandle(getProcThread()->getImmHandle());
 
-		SmfImmAttribute attrsafSmfAu;
-		attrsafSmfAu.setName("safSmfAu");
-		attrsafSmfAu.setType("SA_IMM_ATTR_SASTRINGT");
-		attrsafSmfAu.addValue("safSmfAu=smfActivationUnit");
-		icoSaSmfActivationUnit.addValue(attrsafSmfAu);
+	SmfImmAttribute attrsafSmfAu;
+	attrsafSmfAu.setName("safSmfAu");
+	attrsafSmfAu.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsafSmfAu.addValue("safSmfAu=smfActivationUnit");
+	icoSaSmfActivationUnit.addValue(attrsafSmfAu);
 
-		SmfImmAttribute attrsaSmfAuActedOn;
-		attrsaSmfAuActedOn.setName("saSmfAuActedOn");
-		attrsaSmfAuActedOn.setType("SA_IMM_ATTR_SANAMET");
-		const std::list < std::string > actList = i_step->getActivationUnitList();
-		if(actList.size() != 0) {
-			iter = actList.begin();
-			iterE = actList.end();
-			while (iter != iterE) {
-				attrsaSmfAuActedOn.addValue(*iter);
-				iter++;
-			}
-		} else {
-			/* A value must always be supplied to a cached runtime attribute */
-			attrsaSmfAuActedOn.addValue("");
+	SmfImmAttribute attrsaSmfAuActedOn;
+	attrsaSmfAuActedOn.setName("saSmfAuActedOn");
+	attrsaSmfAuActedOn.setType("SA_IMM_ATTR_SANAMET");
+	const std::list < std::string > actList = i_step->getActivationUnitList();
+	if(actList.size() != 0) {
+		iter = actList.begin();
+		iterE = actList.end();
+		while (iter != iterE) {
+			attrsaSmfAuActedOn.addValue(*iter);
+			iter++;
 		}
-		icoSaSmfActivationUnit.addValue(attrsaSmfAuActedOn);
+	} else {
+		/* A value must always be supplied to a cached runtime attribute */
+		attrsaSmfAuActedOn.addValue("");
+	}
+	icoSaSmfActivationUnit.addValue(attrsaSmfAuActedOn);
 
-		SmfImmAttribute attrsaSmfAuEntityToAdd;
-		attrsaSmfAuEntityToAdd.setName("saSmfAuEntityToAdd");
-		attrsaSmfAuEntityToAdd.setType("SA_IMM_ATTR_SANAMET");
+	SmfImmAttribute attrsaSmfAuEntityToAdd;
+	attrsaSmfAuEntityToAdd.setName("saSmfAuEntityToAdd");
+	attrsaSmfAuEntityToAdd.setType("SA_IMM_ATTR_SANAMET");
 
-		if (!setEntitiesToAddRemMod(i_step, &attrsaSmfAuEntityToAdd)) {
-			rc = SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
-		}
-		icoSaSmfActivationUnit.addValue(attrsaSmfAuEntityToAdd);
+	if (!setEntitiesToAddRemMod(i_step, &attrsaSmfAuEntityToAdd)) {
+		rc = SA_AIS_ERR_CAMPAIGN_ERROR_DETECTED;
+	}
+	icoSaSmfActivationUnit.addValue(attrsaSmfAuEntityToAdd);
 
-                if ((rc=icoSaSmfActivationUnit.execute()) != SA_AIS_OK) { //Create the object
-                        LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfActivationUnit.execute() returned %d", rc);
-                        TRACE_LEAVE();
-                        return rc;
-                }
+	if ((rc=icoSaSmfActivationUnit.execute()) != SA_AIS_OK) { //Create the object
+		LOG_ER("SmfUpgradeProcedure::createImmStep: icoSaSmfActivationUnit.execute() returned %d", rc);
+		TRACE_LEAVE();
+		return rc;
 	}
 
         /* Create the SaSmfImageNodes objects as childrens to the SaSmfActivationUnit instance */
