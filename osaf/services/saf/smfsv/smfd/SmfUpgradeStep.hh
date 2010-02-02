@@ -440,6 +440,13 @@ class SmfUpgradeStep {
 	bool callBundleScript(SmfInstallRemoveT i_order, const std::list < SmfBundleRef > &i_bundleList,
 			      const std::string & i_node);
 
+	bool createOneSaAmfNodeSwBundle(
+		const std::string& i_node,
+		const SmfBundleRef& bundle);
+	bool deleteOneSaAmfNodeSwBundle(
+		const std::string & i_node,
+		const SmfBundleRef& i_bundle);
+
 ///
 /// Purpose:  Call admin operation on all dn in list
 /// @param    -

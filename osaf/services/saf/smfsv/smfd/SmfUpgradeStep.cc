@@ -686,44 +686,116 @@ bool
 SmfUpgradeStep::createSaAmfNodeSwBundles(const std::string & i_node)
 {
 	TRACE_ENTER();
-
-        SmfImmUtils immUtil;
 	std::list < SmfBundleRef >::const_iterator bundleit;
+	for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
+		if (i_node.length() > 0) {
+			if (createOneSaAmfNodeSwBundle(i_node, *bundleit) == false) {
+				TRACE_LEAVE();
+				return false;
+			}
+		} else {
+			std::list<SmfPlmExecEnv> const& plmExecEnvList = bundleit->getPlmExecEnvList();
+			std::list<SmfPlmExecEnv>::const_iterator ee;
+			for (ee = plmExecEnvList.begin(); ee != plmExecEnvList.end(); ee++) {
+				if (ee->getAmfNode().length() == 0) {
+					LOG_ER("No AmfNode in PlmExecEnv for bundle [%s]", 
+					       bundleit->getBundleDn().c_str());
+					TRACE_LEAVE();
+					return false;
+				}
+				if (createOneSaAmfNodeSwBundle(ee->getAmfNode(), *bundleit) == false) {
+					TRACE_LEAVE();
+					return false;
+				}
+			}
+		}
+	}
+
+	TRACE_LEAVE();
+	return true;
+}
+
+//------------------------------------------------------------------------------
+// createOneSaAmfNodeSwBundle()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::createOneSaAmfNodeSwBundle(
+	const std::string& i_node,
+	const SmfBundleRef& i_bundle)
+{
+	TRACE_ENTER();
+        SmfImmUtils immUtil;
 	SaImmAttrValuesT_2 **attributes;
 
-	for (bundleit = m_swAddList.begin(); bundleit != m_swAddList.end(); ++bundleit) {
-                std::string bundleDn = (*bundleit).getBundleDn();
+	//Check if object alredy exist
+	std::string escapedDn = replaceAllCopy(i_bundle.getBundleDn(), ",", "\\,");
+	std::string object = "safInstalledSwBundle=" + escapedDn + "," + i_node;
+	if (immUtil.getObject(object, &attributes)) {
+		// Object already exists
+		TRACE_LEAVE();
+		return true;
+	}
 
-                //Check if object alredy exist
-                std::string escapedDn = replaceAllCopy(bundleDn, ",", "\\,");
-                std::string object = "safInstalledSwBundle=" + escapedDn + "," + i_node;
-                if (immUtil.getObject(object, &attributes) == false) {
-                        TRACE("SaAmfNodeSwBundle %s does not exist in Imm, create it", object.c_str());
-                        SmfImmCreateOperation icoSaAmfNodeSwBundle;
+	TRACE("SaAmfNodeSwBundle %s does not exist in Imm, create it", object.c_str());
+	SmfImmCreateOperation icoSaAmfNodeSwBundle;
 
-                        icoSaAmfNodeSwBundle.setClassName("SaAmfNodeSwBundle");
-                        icoSaAmfNodeSwBundle.setParentDn(i_node);
+	icoSaAmfNodeSwBundle.setClassName("SaAmfNodeSwBundle");
+	icoSaAmfNodeSwBundle.setParentDn(i_node);
 
-                        SmfImmAttribute attrsafInstalledSwBundle;
-                        attrsafInstalledSwBundle.setName("safInstalledSwBundle");
-                        attrsafInstalledSwBundle.setType("SA_IMM_ATTR_SASTRINGT");
-                        attrsafInstalledSwBundle.addValue("safInstalledSwBundle=" + escapedDn);
-                        icoSaAmfNodeSwBundle.addValue(attrsafInstalledSwBundle);
+	SmfImmAttribute attrsafInstalledSwBundle;
+	attrsafInstalledSwBundle.setName("safInstalledSwBundle");
+	attrsafInstalledSwBundle.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsafInstalledSwBundle.addValue("safInstalledSwBundle=" + escapedDn);
+	icoSaAmfNodeSwBundle.addValue(attrsafInstalledSwBundle);
 
-                        SmfImmAttribute attrsaAmfNodeSwBundlePathPrefix;
-                        attrsaAmfNodeSwBundlePathPrefix.setName("saAmfNodeSwBundlePathPrefix");
-                        attrsaAmfNodeSwBundlePathPrefix.setType("SA_IMM_ATTR_SASTRINGT");
-                        attrsaAmfNodeSwBundlePathPrefix.addValue((*bundleit).getPathNamePrefix());
-                        icoSaAmfNodeSwBundle.addValue(attrsaAmfNodeSwBundlePathPrefix);
+	SmfImmAttribute attrsaAmfNodeSwBundlePathPrefix;
+	attrsaAmfNodeSwBundlePathPrefix.setName("saAmfNodeSwBundlePathPrefix");
+	attrsaAmfNodeSwBundlePathPrefix.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsaAmfNodeSwBundlePathPrefix.addValue(i_bundle.getPathNamePrefix());
+	icoSaAmfNodeSwBundle.addValue(attrsaAmfNodeSwBundlePathPrefix);
 
-                        std::list < SmfImmOperation * > immOperations;
-                        immOperations.push_back(&icoSaAmfNodeSwBundle);
-                        if (immUtil.doImmOperations(immOperations) != SA_AIS_OK) {
-                                TRACE_LEAVE();
-                                return false;
-                        }
-                }
-        }
+	std::list < SmfImmOperation * > immOperations;
+	immOperations.push_back(&icoSaAmfNodeSwBundle);
+	if (immUtil.doImmOperations(immOperations) != SA_AIS_OK) {
+		TRACE_LEAVE();
+		return false;
+	}
+
+	TRACE_LEAVE();
+	return true;
+}
+
+//------------------------------------------------------------------------------
+// deleteSaAmfNodeSwBundle()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::deleteOneSaAmfNodeSwBundle(
+	const std::string & i_node,
+	const SmfBundleRef& i_bundle)
+{
+	TRACE_ENTER();
+
+        SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+	std::string bundleDn = i_bundle.getBundleDn();
+
+	//Check if object alredy exist
+	std::string escapedDn = replaceAllCopy(bundleDn, ",", "\\,");
+	std::string object = "safInstalledSwBundle=" + escapedDn + "," + i_node;
+	if (immUtil.getObject(object, &attributes) == true) {
+		TRACE("SaAmfNodeSwBundle %s exist in Imm, delete it", object.c_str());
+		SmfImmDeleteOperation idoSaAmfNodeSwBundle;
+
+		idoSaAmfNodeSwBundle.setDn(object);
+		std::list < SmfImmOperation * > immOperations;
+		immOperations.push_back(&idoSaAmfNodeSwBundle);
+
+		TRACE("immUtil.doImmOperations");
+		if (immUtil.doImmOperations(immOperations) != SA_AIS_OK) {
+			TRACE_LEAVE();
+			return false;
+		}
+	}
 
 	TRACE_LEAVE();
 
@@ -737,30 +809,29 @@ bool
 SmfUpgradeStep::deleteSaAmfNodeSwBundles(const std::string & i_node)
 {
 	TRACE_ENTER();
-
-        SmfImmUtils immUtil;
 	std::list < SmfBundleRef >::const_iterator bundleit;
-	SaImmAttrValuesT_2 **attributes;
  
 	for (bundleit = m_swRemoveList.begin(); bundleit != m_swRemoveList.end(); ++bundleit) {
-                std::string bundleDn = (*bundleit).getBundleDn();
-
-                //Check if object alredy exist
-                std::string escapedDn = replaceAllCopy(bundleDn, ",", "\\,");
-                std::string object = "safInstalledSwBundle=" + escapedDn + "," + i_node;
-                if (immUtil.getObject(object, &attributes) == true) {
-                        TRACE("SaAmfNodeSwBundle %s exist in Imm, delete it", object.c_str());
-                        SmfImmDeleteOperation idoSaAmfNodeSwBundle;
-
-                        idoSaAmfNodeSwBundle.setDn(object);
-                        std::list < SmfImmOperation * > immOperations;
-                        immOperations.push_back(&idoSaAmfNodeSwBundle);
-
-                        TRACE("immUtil.doImmOperations");
-                        if (immUtil.doImmOperations(immOperations) != SA_AIS_OK) {
-                                TRACE_LEAVE();
-                                return false;
-                        }
+		if (i_node.length() > 0) {
+			if (deleteOneSaAmfNodeSwBundle(i_node, *bundleit) == false) {
+				TRACE_LEAVE();
+				return false;
+			}
+		} else {
+			std::list<SmfPlmExecEnv> const& plmExecEnvList = bundleit->getPlmExecEnvList();
+			std::list<SmfPlmExecEnv>::const_iterator ee;
+			for (ee = plmExecEnvList.begin(); ee != plmExecEnvList.end(); ee++) {
+				if (ee->getAmfNode().length() == 0) {
+					LOG_ER("No AmfNode in PlmExecEnv for bundle [%s]", 
+					       bundleit->getBundleDn().c_str());
+					TRACE_LEAVE();
+					return false;
+				}
+				if (deleteOneSaAmfNodeSwBundle(ee->getAmfNode(), *bundleit) == false) {
+					TRACE_LEAVE();
+					return false;
+				}
+			}
                 }
         }
 
