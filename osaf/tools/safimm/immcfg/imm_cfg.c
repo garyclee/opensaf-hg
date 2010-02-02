@@ -108,7 +108,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	int res = 0;
 	char *tmp = strdup(nameval);
 	char *name, *value;
-	SaImmAttrModificationT_2 *attrMod;
+	SaImmAttrModificationT_2 *attrMod = NULL;
 	SaImmClassNameT className = immutil_get_className(objectName);
 	SaAisErrorT error;
 
@@ -545,7 +545,7 @@ int main(int argc, char *argv[])
 	char **optargs = NULL;
 	SaImmClassNameT className = NULL;
 	op_t op = INVALID;
-	char* xmlFilename;
+	char* xmlFilename=NULL;
 	int i;
 
 	while (1) {

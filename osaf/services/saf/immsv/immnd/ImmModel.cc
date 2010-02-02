@@ -1256,7 +1256,7 @@ ImmModel::abortSync()
             while(sObjectMap.size()) {
                 ObjectMap::iterator oi = sObjectMap.begin();
                 TRACE("sObjectmap.size:%u delete: %s", 
-					(unsigned int) sObjectMap.size(), oi->first.c_str());
+                    (unsigned int) sObjectMap.size(), oi->first.c_str());
                 commitDelete(oi->first);
             }
 
@@ -1636,7 +1636,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req)
                 className.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
         } else if (i->second->mRefCount > 0) {
-            TRACE_7("ERR_BUSY: class '%s' busy, refCount:%u", 
+            LOG_IN("ERR_BUSY: class '%s' busy, refCount:%u", 
                 className.c_str(), i->second->mRefCount);
             err = SA_AIS_ERR_BUSY;
         } else {
@@ -1869,9 +1869,9 @@ ImmModel::adminOwnerDelete(SaUint32T ownerId, bool hard)
         unsigned int loopCount=0;
         
         if((*i)->mAdminOwnerName == std::string("IMMLOADER")) {
-            //Loader-pid set to zero both in loader-imm and in slave-imms.
-            //In loader-imm the loader-pid was positive. 
-            //In slave-imms the loader-pid was negative.
+            //Loader-pid set to zero both in immnd-coord and in other immnds.
+            //In coord the loader-pid was positive. 
+            //In non-coords the loader-pid was negative.
             if(hard) {
                 LOG_WA("Hard close of admin owner IMMLOADER "
                     "=> Loading must have failed");
@@ -2004,19 +2004,22 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                 std::string objectName((const char *) ol->name.buf,
                     (size_t) strnlen((const char *) ol->name.buf, 
                         (size_t) ol->name.size));
-                TRACE_5("%s Admin Owner for object %s\n", 
-                    release?(ownerId?"Release":"Clear"):"Set", 
-                    objectName.c_str());
-                
-				if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
-					LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
-					assert(!doIt);
-					return SA_AIS_ERR_INVALID_PARAM;
-				}
+                if(doIt) {
+                    TRACE_5("%s Admin Owner for object %s\n", 
+                        release?(ownerId?"Release":"Clear"):"Set", 
+                        objectName.c_str());
+                }
+
+                if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
+                    LOG_NO("ERR_INVALID_PARAM: Not a proper object name");
+                    assert(!doIt);
+                    return SA_AIS_ERR_INVALID_PARAM;
+                }
 
                 ObjectMap::iterator i1 = sObjectMap.find(objectName);
                 if (i1 == sObjectMap.end()) {
-                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist", objectName.c_str());
+                    TRACE_7("ERR_NOT_EXIST: object '%s' does not exist",
+                        objectName.c_str());
                     return SA_AIS_ERR_NOT_EXIST;
                 } else {
                     SaUint32T ccbIdOfObj;
@@ -2031,7 +2034,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                         i2 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
                             CcbIdIs(ccbIdOfObj));
                         if (i2 != sCcbVector.end() && (*i2)->isActive()) {
-                            TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
+                            LOG_IN("ERR_BUSY: ccb id %u active on object %s", 
                                 ccbIdOfObj, objectName.c_str());
                             TRACE_LEAVE();
                             return SA_AIS_ERR_BUSY;
@@ -2064,7 +2067,7 @@ ImmModel::adminOwnerChange(const struct immsv_a2nd_admown_set* req,
                                                 sCcbVector.end(),
                                                 CcbIdIs(ccbIdOfObj));
                                             if (i2 != sCcbVector.end() && (*i2)->isActive()) {
-                                                TRACE_7("ERR_BUSY: ccb id %u is active on"
+                                                LOG_IN("ERR_BUSY: ccb id %u active on"
                                                     "object %s", ccbIdOfObj,
                                                     subObjName.c_str());
                                                 TRACE_LEAVE();
@@ -2189,7 +2192,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
 {
     SaAisErrorT err = SA_AIS_OK;
     TRACE_ENTER();
-    TRACE_5("APLYING CCB ID:%u", ccbId);
+    TRACE_5("APPLYING CCB ID:%u", ccbId);
     
     CcbVector::iterator i;
     AdminOwnerVector::iterator i2;
@@ -2210,12 +2213,12 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 ccb->mAdminOwnerId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
         } else if(ccb->mState > IMM_CCB_READY) {
-            TRACE_7("ERR_FAILED_OPERATION: Ccb is not in correct state (%u) for Apply", ccb->mState);
+            LOG_IN("ERR_FAILED_OPERATION: Ccb not in correct state (%u) for Apply", ccb->mState);
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         } else if(reqConn && (ccb->mOriginatingConn != reqConn)) {
             LOG_IN("ERR_BAD_HANDLE: Missmatch on connection for ccb id %u", ccbId);
             ccb->mVeto = SA_AIS_ERR_BAD_HANDLE;
-        }
+        } 
         
         if(!ccb->isOk()) {
             err = SA_AIS_ERR_FAILED_OPERATION;
@@ -2229,6 +2232,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                 LOG_ER("Missing Parent DN: %s", oni->c_str());
             }
             err = SA_AIS_ERR_FAILED_OPERATION;
+	    ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         } else {
             /* Remove assert after component test */
             assert(!sMissingParents.size());
@@ -2246,6 +2250,7 @@ ImmModel::ccbApply(SaUint32T ccbId,
                     LOG_WA("Lost connection with implementer %s, "
                         "refusing apply", impInfo->mImplementerName.c_str());
                     err = SA_AIS_ERR_FAILED_OPERATION;
+		    ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
                     break;
                 }
                 //Wait for ack, possibly remote
@@ -2277,7 +2282,7 @@ ImmModel::commitCreate(ObjectInfo* obj)
 {
     //obj->mCreateLock = false;
     obj->mObjFlags &= ~IMM_CREATE_LOCK;
-    TRACE_5("Flags after remove create lock:%u", obj->mObjFlags);
+    /*TRACE_5("Flags after remove create lock:%u", obj->mObjFlags);*/
 }
 
 void
@@ -2428,15 +2433,9 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     
     ccb->mImplementers.clear();
     
-    //With EVS the critical phase is trivially completed.
+    //With FEVS the critical phase is trivially completed.
     //We do not wait for replies from peer imm-server-nodes or from
     //implementers on the apply callback (no return code).
-    //One issue is the crash of imm-server and reconnect of an OI client
-    //with an implementer waiting for the apply call for a completed ccb.
-    //To handle this case requires a minimal transaction log 
-    //(memory of outcome).
-    //This is not the same as a ccb in critical phase.
-    //Critical means retained locks. 
     if(true /*conVector.empty()*/) {
 		ccb->mState = IMM_CCB_COMMITED;
 		LOG_NO("Ccb %u COMMITED", ccb->mId);
@@ -2686,14 +2685,14 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
             }
             ccb->mImplementers.clear();
         }
-		/*  ABT OCT 2009 Retain the ccb info to allow ccb result recovery. */
+        /*  ABT OCT 2009 Retain the ccb info to allow ccb result recovery. */
 
-		if(ccb->mWaitStartTime == 0)  {
-			ccb->mWaitStartTime = time(NULL); 
-			TRACE_5("Ccb Wait-time for GC set. State: %u/%s", ccb->mState,
-				(ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
-				((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
-		}
+        if(ccb->mWaitStartTime == 0)  {
+            ccb->mWaitStartTime = time(NULL); 
+            TRACE_5("Ccb Wait-time for GC set. State: %u/%s", ccb->mState,
+                (ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                ((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+        }
         //TODO(?) Would be neat to store ccb outcomes in the OpenSafImm object.
     }
     
@@ -2828,7 +2827,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
+        LOG_IN("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectCreate operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
@@ -2935,7 +2934,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         parent->getAdminOwnerName(&parentAdminOwnerName);
         if((parentAdminOwnerName != adminOwner->mAdminOwnerName) && 
             !isLoading) {
-            TRACE_7("ERR_BAD_OPERATION: parent object not owned by '%s'", 
+            LOG_IN("ERR_BAD_OPERATION: parent object not owned by '%s'", 
                 adminOwner->mAdminOwnerName.c_str());
             err = SA_AIS_ERR_BAD_OPERATION;
             goto ccbObjectCreateExit;
@@ -3409,7 +3408,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
+        LOG_IN("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectModify operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectModifyExit;
@@ -3435,7 +3434,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
         LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb-admoId:%u and "
-			"AdminOwnerId:%u",	adminOwner->mId, ccb->mAdminOwnerId);
+            "AdminOwnerId:%u", adminOwner->mId, ccb->mAdminOwnerId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectModifyExit;
     }
@@ -3458,9 +3457,8 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     object->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
-        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
-            objAdminOwnerName.c_str(),
-            adminOwner->mAdminOwnerName.c_str());
+        LOG_IN("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
+            objAdminOwnerName.c_str(), adminOwner->mAdminOwnerName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
         goto ccbObjectModifyExit;
     }
@@ -3841,7 +3839,7 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     ccb = *i1;
     
     if(!ccb->isOk()) {
-        TRACE_7("ERR_FAILED_OPERATION: ccb %u is in an error state "
+        LOG_IN("ERR_FAILED_OPERATION: ccb %u is in an error state "
             "rejecting ccbObjectDelete operation ", ccbId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectDeleteExit;
@@ -3941,26 +3939,25 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     
     oi->second->getAdminOwnerName(&objAdminOwnerName);
     if(objAdminOwnerName != adminOwner->mAdminOwnerName) {
-        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
+        LOG_IN("ERR_BAD_OPERATION: Mismatch on administrative owner %s != %s", 
             objAdminOwnerName.c_str(),
             adminOwner->mAdminOwnerName.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
     
     ccbIdOfObj = oi->second->mCcbId;
-	if(ccbIdOfObj != ccb->mId) {
-		i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
-			CcbIdIs(ccbIdOfObj));
-		if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
-			TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
-				ccb->mId, ccbIdOfObj);
-			return SA_AIS_ERR_BUSY;
-		}
-	}
-
+    if(ccbIdOfObj != ccb->mId) {
+        i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
+            CcbIdIs(ccbIdOfObj));
+        if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
+            LOG_IN("ERR_BUSY: ccb id %u diff from active ccb id on object %u",
+                ccb->mId, ccbIdOfObj);
+            return SA_AIS_ERR_BUSY;
+        }
+    }
     
     if(oi->second->mClassInfo->mCategory != SA_IMM_CLASS_CONFIG) {
-        TRACE_7("ERR_BAD_OPERATION: object '%s' is not a configuration object", 
+        LOG_IN("ERR_BAD_OPERATION: object '%s' is not a configuration object",
             oi->first.c_str());
         /*return SA_AIS_ERR_INVALID_PARAM;*/
         return SA_AIS_ERR_BAD_OPERATION;
@@ -3977,12 +3974,14 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     ObjectMutationMap::iterator omuti =
         ccb->mMutations.find(oi->first);
     if(omuti != ccb->mMutations.end()) {
-        //TODO: fix to allow delete on top of modify. Possibly also delete on 
-        //create. Delete on create is dangerous, must check if there are children
-        //creates.
-        TRACE_7("ERR_BAD_OPERATION: Object '%s' already subject of another operation in same "
-            "ccb. can not handle chained delete in same ccb currently", 
-            oi->first.c_str());
+        /*
+          TODO: fix to allow delete on top of modify. Possibly also delete on 
+          create. Delete on create is dangerous, must check if there are
+          children creates.
+        */
+        LOG_IN("ERR_BAD_OPERATION: Object '%s' already subject of another "
+            "operation in same ccb. can not handle chained delete in same ccb "
+            "currently", oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
     
@@ -4540,8 +4539,8 @@ ImmModel::filterMatch(ObjectInfo* obj, ImmsvOmSearchOneAttr* filter,
         //does match.
         //If it does not match then simply discard the search object.
         LOG_WA("ERR_NO_RESOURCES: Attribute %s is a non-cached runtime "
-			"attribute in object %s => can not handle search with match "
-			"on such attributes currently.", attrName.c_str(), objName);
+            "attribute in object %s => can not handle search with match "
+             "on such attributes currently.", attrName.c_str(), objName);
         err = SA_AIS_ERR_NO_RESOURCES;
         //TRACE_LEAVE();
         return false;
@@ -4609,7 +4608,8 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
     if (rootName.length() > 0) {
         i = sObjectMap.find(rootName);
         if (i == sObjectMap.end()) {
-            TRACE_7("ERR_NOT_EXIST: root object '%s' does not exist", rootName.c_str());
+            TRACE_7("ERR_NOT_EXIST: root object '%s' does not exist",
+                rootName.c_str());
             err = SA_AIS_ERR_NOT_EXIST;
             goto searchInitializeExit;
         } else if(i->second->mObjFlags & IMM_CREATE_LOCK) {
@@ -4874,7 +4874,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     
     if(objAdminOwnerName != adminOwner->mAdminOwnerName)
     {
-        TRACE_7("ERR_BAD_OPERATION: Mismatch on administrative owner %s/%u != %s/%u", 
+        LOG_IN("ERR_BAD_OPERATION: Mismatch on administrative owner %s/%u != %s/%u", 
             objAdminOwnerName.c_str(), 
             (unsigned int) objAdminOwnerName.size(),
             adminOwner->mAdminOwnerName.c_str(),
@@ -4889,7 +4889,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
         i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
 			CcbIdIs(ccbIdOfObj));
         if (i3 != sCcbVector.end() && (*i3)->isActive()) {
-            TRACE_7("ERR_BUSY: ccb id %u is active on object %s", 
+            LOG_IN("ERR_BUSY: ccb id %u is active on object %s", 
                 ccbIdOfObj, objectName.c_str());
             TRACE_LEAVE();
             return SA_AIS_ERR_BUSY;
@@ -5057,9 +5057,9 @@ ImmModel::nameCheck(const std::string& name, bool strict) const
 			   (prev_chr == '\\')) || 
             !isgraph(chr) && !(chr == '\0' && pos == len - 1))
         {
-            TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());
-            TRACE_5("isgraph(%c):%u, pos=%u", chr, isgraph(chr), 
-                (unsigned int) pos);
+            /*TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());*/
+            TRACE_5("Bad name. string size:%u isgraph(%c):%u, pos=%u", 
+                (unsigned int) len, chr, isgraph(chr), (unsigned int) pos);
             return false;
         }
         prev_chr = chr;
@@ -5092,10 +5092,12 @@ ImmModel::nameToInternal(std::string& name)
         prev_chr = chr;
     }
 
+    /*
     if(effective) {
         TRACE_5("Replaced occurences of '\\,' with '\\#' result:%s",
             name.c_str());
     }
+    */
 
     return nameCheck(name, false);
 }
@@ -5119,10 +5121,12 @@ ImmModel::nameToExternal(std::string& name)
         prev_chr = chr;
     }
 
+    /*
     if(effective) {
         TRACE_5("Replaced occurences of '\\#' with '\\,' result:%s",
             name.c_str());
     }
+    */
 }
 
 void
@@ -5399,7 +5403,6 @@ ImmModel::discardContinuations(SaUint32T dead)
         } else {++ci2;}
     }
     
-    
     //TODO: implementer still potentially refered to from Ccbs (mImplementers)
     
     TRACE_LEAVE();
@@ -5477,7 +5480,6 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     for(ci2=sAdmReqContinuationMap.begin(); 
         ci2!=sAdmReqContinuationMap.end();
         ++ci2) {
-        //TODO: the timeout should not be hardwired, but for now it is.
         if(ci2->second.mTimeout && 
 			(now - ci2->second.mCreateTime >= (int) ci2->second.mTimeout)) {
             TRACE_5("Timeout on AdministrativeOp continuation %llu  tmout:%u", 
@@ -5511,41 +5513,43 @@ ImmModel::cleanTheBasement(unsigned int seconds, InvocVector& admReqs,
     //Conclusion: I should add cleanup logic here anyway, since it is easy to
     //do and solves the problem. 
     
-	for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
-		if((*i3)->mState > IMM_CCB_CRITICAL) {
-			/* Garbage Collect ccbInfo more than one minute old */
-			if((*i3)->mWaitStartTime &&
-				(now - (*i3)->mWaitStartTime >= 60)) {
-				TRACE_5("Removing CCB %u terminated more than 60 secs ago", 
-					(*i3)->mId);
-				(*i3)->mState = IMM_CCB_ILLEGAL;
-				ccbsToGc.push_back(*i3);
-			}
-		} else if(iAmCoord) {
-			//Fetch CcbIds for Ccbs that have waited too long on an implementer
-			//TODO the timeout should not be hardwired, but for now it is.
-			TRACE("Checking active ccb %u for deadlock or blocked implementer", (*i3)->mId);
-			if((*i3)->mWaitStartTime &&
-				(now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) {
-				//TODO Timeout value should be fetched from IMM service object.
-				TRACE_5("Timeout on CCB %u while waiting for implementer reply", (*i3)->mId);
-				ccbs.push_back((*i3)->mId);
-			}
-		}
-	}
+    for(i3=sCcbVector.begin(); i3!=sCcbVector.end(); ++i3) {
+        if((*i3)->mState > IMM_CCB_CRITICAL) {
+            /* Garbage Collect ccbInfo more than one minute old */
+            if((*i3)->mWaitStartTime && (now - (*i3)->mWaitStartTime >= 60)) {
+                TRACE_5("Removing CCB %u terminated more than 60 secs ago", 
+                    (*i3)->mId);
+                (*i3)->mState = IMM_CCB_ILLEGAL;
+                ccbsToGc.push_back(*i3);
+            }
+        } else if(iAmCoord) {
+            //Fetch CcbIds for Ccbs that have waited too long on an implementer
+            //TODO the timeout should not be hardwired, but for now it is.
+            TRACE("Checking active ccb %u for deadlock or blocked implementer",
+                (*i3)->mId);
+            if((*i3)->mWaitStartTime &&
+               (now - (*i3)->mWaitStartTime >= DEFAULT_TIMEOUT_SEC)) {
+                //TODO Timeout value should be fetched from IMM service object.
+                TRACE_5("Timeout on CCB %u while waiting on implementer reply",
+                    (*i3)->mId);
+                ccbs.push_back((*i3)->mId);
+            }
+        }
+    }
 
-	while((i3 = ccbsToGc.begin()) != ccbsToGc.end()) {
-		CcbInfo* ccb = (*i3);
-		TRACE("Deleting ccb %u from ccbsToGc", ccb->mId);
-		ccbsToGc.erase(i3);
-		i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccb->mId));
-		assert(i3 != sCcbVector.end());
-		TRACE("Deleting ccb %u from sCcbsVector", ccb->mId);
-		sCcbVector.erase(i3);
-		TRACE("Delete ccb %u", ccb->mId);
-		delete (ccb);
-		TRACE("After delete");
-	}
+    while((i3 = ccbsToGc.begin()) != ccbsToGc.end()) {
+        CcbInfo* ccb = (*i3);
+        TRACE("Deleting ccb %u from ccbsToGc", ccb->mId);
+        ccbsToGc.erase(i3);
+        i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(),
+            CcbIdIs(ccb->mId));
+        assert(i3 != sCcbVector.end());
+        TRACE("Deleting ccb %u from sCcbsVector", ccb->mId);
+        sCcbVector.erase(i3);
+        TRACE("Delete ccb %u", ccb->mId);
+        delete (ccb);
+        TRACE("After delete");
+    }
 
     /*
       ImplementerVector::iterator i;
@@ -5698,8 +5702,8 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
                 } else {
                     ClassInfo* classInfo = i1->second;
                     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        TRACE_7("ERR_BAD_OPERATION: Class '%s' is a runtime class, "
-                            "not allowed to set class implementer.", 
+                        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime "
+                            "class, not allowed to set class implementer.", 
                             className.c_str());
                         err = SA_AIS_ERR_BAD_OPERATION;
                     } else {
@@ -5813,7 +5817,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
                 } else {
                     ClassInfo* classInfo = i1->second;
                     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
-                        TRACE_7("ERR_BAD_OPERATION: Class '%s' is a runtime class.", 
+                        LOG_IN("ERR_BAD_OPERATION: Class '%s' is a runtime class.", 
                             className.c_str());
                         err = SA_AIS_ERR_BAD_OPERATION;
                     } else {
@@ -6046,7 +6050,7 @@ SaAisErrorT ImmModel::setImplementer(std::string objectName,
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
         assert(!doIt);
-        TRACE_7("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
+        LOG_IN("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to set object implementer.", 
             objectName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
@@ -6084,7 +6088,7 @@ SaAisErrorT ImmModel::releaseImplementer(std::string objectName,
     ClassInfo* classInfo = obj->mClassInfo;
     if(classInfo->mCategory == SA_IMM_CLASS_RUNTIME) {
         assert(!doIt);
-        TRACE_7("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
+        LOG_IN("ERR_BAD_OPERATION: Object '%s' is a runtime object, "
             "not allowed to release object implementer.", 
             objectName.c_str());
         err = SA_AIS_ERR_BAD_OPERATION;
@@ -6420,14 +6424,13 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 assert(i44 != parent->mClassInfo->mAttrMap.end());
                 
                 if(!(i44->second->mFlags & SA_IMM_ATTR_PERSISTENT)) {
-                    LOG_NO("ERR_INVALID_PARAM: Parent object '%s' is a non-persistent runtime "
-                        "object. Will not allow create of persistent "
-                        "sub-object.", parentName.c_str());
+                    LOG_NO("ERR_INVALID_PARAM: Parent object '%s' is a "
+                        "non-persistent runtime object. Will not allow "
+                        "create of persistent sub-object.",parentName.c_str());
                     err = SA_AIS_ERR_INVALID_PARAM;
                     goto rtObjectCreateExit;
                 }
             }
-            
             
             objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
@@ -6731,8 +6734,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        TRACE_7("ERR_BAD_OPERATION: The provided implementer handle %u does not "
-			"correspond to the actual connection <%u, %x> != <%u, %x>",
+        LOG_IN("ERR_BAD_OPERATION: The provided implementer handle %u does "
+            "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectUpdateExit;
@@ -6747,9 +6750,9 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     if(!object->mImplementer ||
         (object->mImplementer->mConn != conn) || 
         (object->mImplementer->mNodeId != nodeId)) {
-        TRACE_7("ERR_BAD_OPERATION: Not a correct implementer handle or object not "
-			"handled by the implementer conn:%u nodeId:%x object->mImplementer:%p", 
-            conn, nodeId, object->mImplementer);
+        LOG_IN("ERR_BAD_OPERATION: Not a correct implementer handle or object "
+            "not handled by the implementer conn:%u nodeId:%x "
+            "object->mImplementer:%p", conn, nodeId, object->mImplementer);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectUpdateExit;
     }
@@ -6837,7 +6840,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     TRACE_5("IMM not writable => Cant update cahced rtattrs");
                     break;
                 }
-                
+
                 *isPureLocal = false;
                 if(wasLocal) {
                     p = p->next;
@@ -7050,14 +7053,15 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
     if(!info) {
-        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
+        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u",
+            req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectDeleteExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        TRACE_7("ERR_BAD_OPERATION: The provided implementer handle %u does not "
-			"correspond to the actual connection <%u, %x> != <%u, %x>",
+        LOG_IN("ERR_BAD_OPERATION: The provided implementer handle %u does "
+            "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
         goto rtObjectDeleteExit;
@@ -7112,7 +7116,7 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     
     if(!object->mImplementer ||
         object->mImplementer != info) {
-        TRACE_7("ERR_BAD_OPERATION: Not a correct implementer handle "
+        LOG_IN("ERR_BAD_OPERATION: Not a correct implementer handle "
             "or object %s is not handled by the provided implementer " 
             "named %s (!=%p <name:'%s' conn:%u, node:%x>)", 
             oi->first.c_str(), info->mImplementerName.c_str(),
@@ -7125,11 +7129,11 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     }
     
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
-        TRACE_7("ERR_BAD_OPERATION: object '%s' is not a runtime object",
+        LOG_IN("ERR_BAD_OPERATION: object '%s' is not a runtime object",
             oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
-    
+
     if(doIt) {
         
         AttrMap::iterator i4;
@@ -7234,10 +7238,10 @@ ImmModel::objectSync(const ImmsvOmObjectSync* req)
     
     if ((i5 = sObjectMap.find(objectName)) != sObjectMap.end()) {
         if(i5->second->mObjFlags & IMM_CREATE_LOCK) {
-            TRACE_7("ERR_EXIST: object '%s' is already registered for creation "
-				"in a ccb, but not applied yet", objectName.c_str());
+            TRACE_7("ERR_EXIST: object '%s' is already registered for "
+            "creation in a ccb, but not applied yet", objectName.c_str());
         } else {
-			TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
+            TRACE_7("ERR_EXIST: object '%s' exists", objectName.c_str());
         }
         err = SA_AIS_ERR_EXIST;
         goto objectSyncExit;
@@ -7589,26 +7593,27 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
         LOG_IN("finalizeSync message contains %u class info records", 
             (unsigned int) sClassMap.size());
 
-		for(ccbItr=sCcbVector.begin(); ccbItr!=sCcbVector.end(); ++ccbItr) {
-			if((*ccbItr)->isActive()) {
-				LOG_ER("FinalizeSync: Found active transaction %u, "
-					"sync should not have started!", (*ccbItr)->mId);
-				err = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
+        for(ccbItr=sCcbVector.begin(); ccbItr!=sCcbVector.end(); ++ccbItr){
+            if((*ccbItr)->isActive()) {
+                LOG_ER("FinalizeSync: Found active transaction %u, "
+                    "sync should not have started!", (*ccbItr)->mId);
+                err = SA_AIS_ERR_BAD_OPERATION;
+                goto done;
+            }
 
-			/*
-		    TRACE("Encode CCB-ID:%u outcome:(%u)%s", (*ccbItr)->mId, (*ccbItr)->mState,
-				((*ccbItr)->mState == IMM_CCB_COMMITED)?"COMMITED":
-				(((*ccbItr)->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
-			*/
-				
-			ImmsvCcbOutcomeList* ol = (ImmsvCcbOutcomeList *)
-				calloc(1, sizeof(ImmsvCcbOutcomeList));
-			ol->ccbId = (*ccbItr)->mId;
-			ol->ccbState = (*ccbItr)->mState;
-			ol->next = req->ccbResults;
-			req->ccbResults = ol;
+            /*
+              TRACE("Encode CCB-ID:%u outcome:(%u)%s", (*ccbItr)->mId,
+               (*ccbItr)->mState,
+               ((*ccbItr)->mState == IMM_CCB_COMMITED)?"COMMITED":
+               (((*ccbItr)->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+            */
+
+            ImmsvCcbOutcomeList* ol = (ImmsvCcbOutcomeList *)
+                calloc(1, sizeof(ImmsvCcbOutcomeList));
+            ol->ccbId = (*ccbItr)->mId;
+            ol->ccbState = (*ccbItr)->mState;
+            ol->next = req->ccbResults;
+            req->ccbResults = ol;
         }
         
     } else {
@@ -7681,8 +7686,10 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 assert(att);
                 if(!(att->empty())) {
                     std::string implName(att->getValueC_str());
-                    TRACE_5("Attaching implementer %s to object %s",
-                        implName.c_str(), oi->first.c_str());
+                    /*
+                      TRACE_5("Attaching implementer %s to object %s",
+                      implName.c_str(), oi->first.c_str());
+                    */
                     ImplementerInfo* impl = findImplementer(implName);
                     //assert(impl);
                     if(impl) {
@@ -7725,28 +7732,27 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
             LOG_IN("Synced %u classes", classCount);
             assert(sClassMap.size() == classCount);
 
-			ImmsvCcbOutcomeList* ol = req->ccbResults;
-			while(ol) {
-				CcbInfo* newCcb = new CcbInfo;
-				newCcb->mId = ol->ccbId;
-
-				newCcb->mAdminOwnerId = 0;
-				newCcb->mCcbFlags = 0;
-				newCcb->mOriginatingNode = 0;
-				newCcb->mOriginatingConn = 0;
-				newCcb->mVeto = SA_AIS_OK;
-				newCcb->mState = (ImmCcbState) ol->ccbState;
-				newCcb->mWaitStartTime = time(NULL);
-				sCcbVector.push_back(newCcb);
+            ImmsvCcbOutcomeList* ol = req->ccbResults;
+            while(ol) {
+                CcbInfo* newCcb = new CcbInfo;
+                newCcb->mId = ol->ccbId;
+                newCcb->mAdminOwnerId = 0;
+                newCcb->mCcbFlags = 0;
+                newCcb->mOriginatingNode = 0;
+                newCcb->mOriginatingConn = 0;
+                newCcb->mVeto = SA_AIS_OK;
+                newCcb->mState = (ImmCcbState) ol->ccbState;
+                newCcb->mWaitStartTime = time(NULL);
+                sCcbVector.push_back(newCcb);
     
-				TRACE_5("CCB %u state %s", newCcb->mId, 
-					(newCcb->mState == IMM_CCB_COMMITED)?"COMMITED":
-					((newCcb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
-				assert(!(newCcb->isActive()));
-				ol = ol->next;
+                TRACE_5("CCB %u state %s", newCcb->mId, 
+                    (newCcb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                    ((newCcb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+                assert(!(newCcb->isActive()));
+                ol = ol->next;
             }
 
-			TRACE_5("Synced %u CCB-outcomes", (unsigned int) sCcbVector.size());
+            TRACE_5("Synced %u CCB-outcomes",(unsigned int) sCcbVector.size());
             
             this->setLoader(0); 
             //Opens for OM and OI connections to this node.
@@ -7906,32 +7912,32 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
                 ioci = ioci->next;
             }
 
-			//Verify CCB outcomes.
-			ImmsvCcbOutcomeList* ol = req->ccbResults;
-			unsigned int verified = 0;
-			unsigned int gone = 0;
-			while(ol) {
-				CcbVector::iterator i1 = 
-					std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ol->ccbId));
-				if(i1 == sCcbVector.end()) {
-					++gone;
-				} else {
-					CcbInfo* ccb = *i1;
-					assert(ccb->mState == (ImmCcbState) ol->ccbState);
-					++verified;
-					/*
-					TRACE_5("CCB %u verified with state %s", ccb->mId, 
-						(ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
-						((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
-					*/
-				}
-				ol = ol->next;
+            //Verify CCB outcomes.
+            ImmsvCcbOutcomeList* ol = req->ccbResults;
+            unsigned int verified = 0;
+            unsigned int gone = 0;
+            while(ol) {
+                CcbVector::iterator i1 = std::find_if(sCcbVector.begin(),
+                    sCcbVector.end(), CcbIdIs(ol->ccbId));
+                if(i1 == sCcbVector.end()) {
+                    ++gone;
+                } else {
+                    CcbInfo* ccb = *i1;
+                    assert(ccb->mState == (ImmCcbState) ol->ccbState);
+                    ++verified;
+                    /*
+                        TRACE_5("CCB %u verified with state %s", ccb->mId, 
+                         (ccb->mState == IMM_CCB_COMMITED)?"COMMITED":
+                         ((ccb->mState == IMM_CCB_ABORTED)?"ABORTED":"OTHER"));
+                    */
+                }
+                ol = ol->next;
             }
-			TRACE_5("Verified %u CCBs, %u gone", verified, gone);
-			if(sCcbVector.size() != verified + gone) {
-				LOG_WA("sCcbVector.size()/%u != verified/%u + gone/%u",
-					(unsigned int) sCcbVector.size(), verified, gone);
-			}   
+            TRACE_5("Verified %u CCBs, %u gone", verified, gone);
+            if(sCcbVector.size() != verified + gone) {
+                LOG_WA("sCcbVector.size()/%u != verified/%u + gone/%u",
+                    (unsigned int) sCcbVector.size(), verified, gone);
+            }
             //Old member passed verification.
         }
     }

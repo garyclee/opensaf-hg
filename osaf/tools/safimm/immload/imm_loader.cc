@@ -235,26 +235,26 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
     SaNameT parent;
     rdn.length = strlen(OPENSAF_IMM_OBJECT_RDN);
     strcpy((char *) rdn.value, OPENSAF_IMM_OBJECT_RDN);
-    SaNameT*     nameValues[1];
+    void*     nameValues[1];
     nameValues[0] = &rdn;
 
     parent.length = strlen(OPENSAF_IMM_OBJECT_PARENT);
     strcpy((char *) parent.value, OPENSAF_IMM_OBJECT_PARENT);
 
     SaUint32T epochValue=1;
-    SaUint32T* intValues[1];
+    void* intValues[1];
     intValues[0] = &epochValue;
 
     SaImmAttrValuesT_2 v1, v2;
     v1.attrName = OPENSAF_IMM_ATTR_RDN;
     v1.attrValueType = SA_IMM_ATTR_SANAMET;
     v1.attrValuesNumber = 1;
-    v1.attrValues = (void**)nameValues;
+    v1.attrValues = nameValues;
 
     v2.attrName = OPENSAF_IMM_ATTR_EPOCH;
     v2.attrValueType = SA_IMM_ATTR_SAUINT32T;
     v2.attrValuesNumber = 1;
-    v2.attrValues = (void**)intValues;
+    v2.attrValues = intValues;
 
     const SaImmAttrValuesT_2* attrValues[3] = {&v1,&v2,0};
 
@@ -295,14 +295,15 @@ bool createImmObject(SaImmClassNameT className,
 {
     SaNameT parentName;
     SaImmAttrValuesT_2** attrValues;
-    SaAisErrorT errorCode;
+    SaAisErrorT errorCode = SA_AIS_OK;
     int i;
     size_t RDNlen;
 
     TRACE_ENTER2("CREATE IMM OBJECT %s, %s", className, objectName);
 
-    TRACE("attrValuesList size:%u clasRDNMap size:%u", attrValuesList->size(),
-	    classRDNMap?classRDNMap->size():0);
+    TRACE("attrValuesList size:%u clasRDNMap size:%u", 
+        (unsigned int) attrValuesList->size(),
+        (unsigned int) classRDNMap?classRDNMap->size():0);
 
     /* Set the parent name */
     parentName.length = 0;
@@ -442,7 +443,7 @@ bool createImmClass(SaImmHandleT immHandle,
     std::list<SaImmAttrDefinitionT_2>* attrDefinitions)
 {
     SaImmAttrDefinitionT_2** attrDefinition;
-    SaAisErrorT              errorCode;
+    SaAisErrorT errorCode = SA_AIS_OK;
     int i;
 
     TRACE_ENTER2("CREATING IMM CLASS %s", className);
@@ -1082,7 +1083,8 @@ static void charactersHandler(void* userData,
                     TRACE_8("APPEND TO CURRENT VALUE");
                     
                     size_t oldsize = strlen(state->attrValueBuffers.front());
-                    TRACE_8("APPEND VALUE newsize:%u", oldsize + len + 1);
+                    TRACE_8("APPEND VALUE newsize:%u",
+                        (unsigned int) oldsize + len + 1);
 
                     str = (char *) malloc(oldsize + len + 1);
                     if (str == NULL)
@@ -1091,11 +1093,13 @@ static void charactersHandler(void* userData,
                         exit(1);
                     }
                     strncpy(str, state->attrValueBuffers.front(), oldsize + 1);
-                    TRACE_8("COPIED OLD VALUE %u %s", oldsize, str);
+                    TRACE_8("COPIED OLD VALUE %u %s", (unsigned int) oldsize,
+                        str);
 
                     strncpy(str + oldsize, (const char*)chars, (size_t)len + 1);
                     str[oldsize + len] = '\0';
-                    LOG_IN("APPENDED NEW VALUE newsize %u %s", oldsize + len + 1, str);
+                    LOG_IN("APPENDED NEW VALUE newsize %u %s", 
+                        (unsigned int) oldsize + len + 1, str);
 
                     /* Remove the old string */
                     free(state->attrValueBuffers.front());
@@ -1350,7 +1354,8 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
     SaImmAttrValuesT_2 attrValues;
     int i;
     size_t len;
-    TRACE_ENTER2("attrValueBuffers size:%u", attrValueBuffers->size());
+    TRACE_ENTER2("attrValueBuffers size:%u",
+        (unsigned int) attrValueBuffers->size());
     /* The attrName must be set */
     assert(attrName);
 
@@ -1399,7 +1404,7 @@ void addObjectAttributeDefinition(SaImmClassNameT objectClass,
 
     /* Add attrValues to the list */
     attrValuesList->push_front(attrValues);
-    TRACE("Value added size:%u", attrValuesList->size());
+    TRACE("Value added size:%u", (unsigned int) attrValuesList->size());
 
     /* Free unneeded data */
     for (it = attrValueBuffers->begin();
@@ -1442,7 +1447,7 @@ static void saveRDNAttribute(ParserState* state)
         values.attrValueType = state->attrValueType;
 
         /* Set the number of attr values */
-        values.attrValuesNumber = 1;
+        values.attrValuesNumber = 0; /* will be set to 1 when RDN is created */
 
         values.attrValues = NULL;
 
