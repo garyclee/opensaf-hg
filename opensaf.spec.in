@@ -179,8 +179,8 @@ various objects of the SA Forum Information Model.
 %package imm-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
-BuildRequires: libxml2
-Requires: libxml2
+#BuildRequires: libxml2-devel
+#Requires: libxml2
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
@@ -346,8 +346,8 @@ changes cause no (or only minimal) loss of service.
 %package smf-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
-BuildRequires: libxml2
-Requires: libxml2
+#BuildRequires: libxml2-devel
+#Requires: libxml2
 Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
