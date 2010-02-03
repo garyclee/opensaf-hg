@@ -1105,6 +1105,34 @@ done:
 	return rc;
 }
 
+/**
+ * Validation performed when an SU is dynamically created with a CCB.
+ * @param dn
+ * @param attributes
+ * @param opdata
+ * 
+ * @return int
+ */
+static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
+	const CcbUtilOperationData_t *opdata)
+{
+	SaAmfAdminStateT admstate;
+
+	if (immutil_getAttr("saAmfSUAdminState", attributes, 0, &admstate) == SA_AIS_OK) {
+		if (admstate != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			LOG_ER("Invalid saAmfSUAdminState %u for '%s'", admstate, dn->value);
+			LOG_NO("saAmfSUAdminState must be LOCKED_INSTANTIATION(%u) for dynamically created SUs",
+				SA_AMF_ADMIN_LOCKED_INSTANTIATION);
+			return 0;
+		}
+	} else {
+		LOG_ER("saAmfSUAdminState not configured for '%s'", dn->value);
+		return 0;
+	}
+
+	return 1;
+}
+
 static SaAisErrorT su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -1113,7 +1141,8 @@ static SaAisErrorT su_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 
 	switch (opdata->operationType) {
 	case CCBUTIL_CREATE:
-		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
+		if (is_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata) &&
+		    is_ccb_create_config_valid(&opdata->objectName, opdata->param.create.attrValues, opdata))
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
