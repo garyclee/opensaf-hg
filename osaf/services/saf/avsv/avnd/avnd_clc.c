@@ -1090,17 +1090,6 @@ uns32 avnd_comp_clc_uninst_inst_hdler(AVND_CB *cb, AVND_COMP *comp)
 
 	TRACE_ENTER2("%s", comp->name.value);
 
-	/*
-	** If the component configuration is not valid (e.g. comptype has been
-	** changed by an SMF upgrade), refresh it from IMM.
-	** At first time instantiation of OpenSAF components we cannot go
-	** to IMM since we would deadloack.
-	*/
-	if (!comp->config_is_valid && avnd_comp_config_reinit(comp) != 0) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	/*if proxied component check whether the proxy exists, if so continue 
 	   instantiating by calling the proxied callback. else start timer and 
 	   wait for inst timeout duration */
@@ -2169,6 +2158,14 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	char tmp_argv[AVND_COMP_CLC_PARAM_MAX + 2][AVND_COMP_CLC_PARAM_SIZE_MAX];
 	uns32 argc = 0, result, rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER2("%s, type:%u", comp->name.value, cmd_type);
+
+	/* Refresh the component configuration, it may have changed */
+	if (avnd_comp_config_reinit(comp) != 0) {
+		rc = NCSCC_RC_FAILURE;
+		goto err;
+	}
+
 	/* For external component, there is no cleanup command. So, we will send a
 	   SUCCESS message to the mail box for external components. There wouldn't
 	   be any other command for external component comming. */
@@ -2332,6 +2329,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 		free(env_attr_val);
 	}
 
+	TRACE_LEAVE2("%u", rc);
 	return rc;
 }
 
