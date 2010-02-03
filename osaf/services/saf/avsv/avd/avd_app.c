@@ -131,7 +131,7 @@ void avd_app_add_sg(AVD_APP *app, AVD_SG *sg)
 	sg->sg_list_app_next = app->list_of_sg;
 	app->list_of_sg = sg;
 	app->saAmfApplicationCurrNumSGs++;
-	// TODO checkpoint
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 }
 
 void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
@@ -159,7 +159,7 @@ void avd_app_remove_sg(AVD_APP *app, AVD_SG *sg)
 
 	assert(app->saAmfApplicationCurrNumSGs > 0);
 	app->saAmfApplicationCurrNumSGs--;
-	// TODO checkpoint	
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
 	sg->sg_list_app_next = NULL;
 	sg->sg_on_app = NULL;
 }
@@ -239,8 +239,10 @@ done:
 
 static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
+	const SaImmAttrModificationT_2 *attr_mod;
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 	AVD_APP *app;
+	int i = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -250,14 +252,26 @@ static SaAisErrorT app_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfApplication not supported");
-		goto done;
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+
+			if (!strcmp(attribute->attrName, "saAmfAppType")) {
+				SaNameT dn = *((SaNameT*)attribute->attrValues[0]);
+				if (NULL == avd_apptype_find(&dn)) {
+					LOG_ER("saAmfAppType '%s' not found", dn.value);
+					goto done;
+				}
+				rc = SA_AIS_OK;
+				break;
+			} else
+				assert(0);
+		}
 		break;
 	case CCBUTIL_DELETE:
 		app = avd_app_get(&opdata->objectName);
 		if (app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
 			LOG_ER("Wrong admin state (%u) for delete of '%s'",
-				app->saAmfApplicationAdminState, app->saAmfAppType.value);
+				app->saAmfApplicationAdminState, app->name.value);
 			goto done;
 		}
 		if ((app->list_of_sg != NULL) || (app->list_of_si != NULL)) {
@@ -281,6 +295,7 @@ done:
 static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_APP *app;
+	int i = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -290,6 +305,27 @@ static void app_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		assert(app);
 		app_add_to_model(app);
 		break;
+	case CCBUTIL_MODIFY: {
+		const SaImmAttrModificationT_2 *attr_mod;
+		app = avd_app_get(&opdata->objectName);
+
+		while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
+			const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
+
+			if (!strcmp(attribute->attrName, "saAmfAppType")) {
+				avd_apptype_remove_app(app);
+				app->saAmfAppType = *((SaNameT*)attribute->attrValues[0]);
+				app->app_on_app_type = avd_apptype_find(&app->saAmfAppType);
+				avd_apptype_add_app(app);
+				LOG_NO("Changed saAmfAppType to '%s' for '%s'",
+					app->saAmfAppType.value, app->name.value);
+				break;
+			}
+			else
+				assert(0);
+		}
+		break;
+	}
 	case CCBUTIL_DELETE:
 		avd_app_delete(opdata->userData);
 		break;
