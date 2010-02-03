@@ -855,7 +855,6 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 			case saAmfCompNumMaxAmStopAttempts_ID:
 				break;
 			case saAmfCompType_ID: {
-				assert(comp->pres == SA_AMF_PRESENCE_UNINSTANTIATED);
 				comp->saAmfCompType = param->name_sec;
 				/* 
 				** Indicate that comp config is no longer valid and have to be
@@ -863,8 +862,8 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 				** not yet in IMM.
 				*/
 				comp->config_is_valid = 0;
-				LOG_NO("saAmfCompType for '%s' changed to '%s'",
-					comp->name.value, comp->saAmfCompType.value);
+				LOG_NO("saAmfCompType changed to '%s' for '%s'",
+					comp->saAmfCompType.value, comp->name.value);
 				break;
 			}
 			default:
@@ -893,6 +892,7 @@ uns32 avnd_comp_oper_req(AVND_CB *cb, AVSV_PARAM_INFO *param)
 
 	rc = NCSCC_RC_SUCCESS;
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
@@ -1373,6 +1373,8 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 
 	init_comp_category(comp, comptype->saAmfCtCompCategory);
 
+	comp->config_is_valid = 1;
+
 done:
 	free(path_prefix);
 	avnd_comptype_delete(comptype);
@@ -1412,7 +1414,6 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 
 	comp_init(comp, attributes);
 
-	comp->config_is_valid = 1;
 	comp->avd_updt_flag = FALSE;
 
 	/* synchronize comp oper state */
@@ -1544,6 +1545,18 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 
 	TRACE_ENTER2("%s", comp->name.value);
 
+	/*
+	** If the component configuration is not valid (e.g. comptype has been
+	** changed by an SMF upgrade), refresh it from IMM.
+	** At first time instantiation of OpenSAF components we cannot go
+	** to IMM since we would deadloack.
+	*/
+	if (comp->config_is_valid) {
+		res = 0;
+		goto done;
+	}
+
+
 	(void)immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
 
 	if (immutil_saImmOmAccessorGet_2(accessorHandle, &comp->name, NULL,
@@ -1554,6 +1567,8 @@ int avnd_comp_config_reinit(AVND_COMP *comp)
 	}
 
 	res = comp_init(comp, attributes);
+	if (res == 0)
+		TRACE("'%s' configuration reread from IMM", comp->name.value);
 
 	(void)immutil_saImmOmAccessorFinalize(accessorHandle);
 

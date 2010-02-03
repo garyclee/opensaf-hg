@@ -979,23 +979,20 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT dn = *((SaNameT*)value);
 			if (NULL == avd_comptype_get(&dn)) {
-				LOG_ER("Comp Type '%s' not found", dn.value);
+				LOG_ER("saAmfCompType '%s' not found", dn.value);
 				goto done;
 			}
 
-			if ((comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-				(comp->su->sg_of_su->saAmfSGAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-				(comp->su->sg_of_su->sg_on_app->saAmfApplicationAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) &&
-				(comp->su->su_on_node->saAmfNodeAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION)) {
-				LOG_ER("A parent is not locked instantiation, '%s'", comp->comp_info.name.value);
+			if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
+				LOG_ER("Modification of saAmfCompType for OpenSAF comp not supported");
 				goto done;
 			}
 
-			if (comp->saAmfCompPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) {
-				LOG_ER("Comp '%s' has wrong presence state %u",
-					comp->comp_info.name.value, comp->saAmfCompPresenceState);
-				goto done;
-			}
+			break; /* out of while */
+		}
+		else {
+			LOG_ER("Modification of attribute '%s' not supported", attribute->attrName);
+			goto done;
 		}
 	}
 
@@ -1063,10 +1060,10 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 {
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
-	AVD_COMP *avd_comp = NULL;
+	AVD_COMP *comp;
 	NCS_BOOL node_present = FALSE;
 	AVD_AVND *su_node_ptr = NULL;
-	AVD_COMP_TYPE *avd_comp_type;
+	AVD_COMP_TYPE *comp_type;
 	unsigned int rc = NCSCC_RC_SUCCESS;
 	AVSV_PARAM_INFO param;
 
@@ -1076,11 +1073,11 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	param.class_id = AVSV_SA_AMF_COMP;
 	param.act = AVSV_OBJ_OPR_MOD;
 
-	avd_comp = avd_comp_get(&opdata->objectName);
-	param.name = avd_comp->comp_info.name;
-	avd_comp_type = avd_comptype_get(&avd_comp->saAmfCompType);
+	comp = avd_comp_get(&opdata->objectName);
+	param.name = comp->comp_info.name;
+	comp_type = avd_comptype_get(&comp->saAmfCompType);
 
-	m_AVD_GET_SU_NODE_PTR(avd_cb, avd_comp->su, su_node_ptr);
+	m_AVD_GET_SU_NODE_PTR(avd_cb, comp->su, su_node_ptr);
 
 	if ((su_node_ptr->node_state == AVD_AVND_STATE_PRESENT) ||
 	    (su_node_ptr->node_state == AVD_AVND_STATE_NO_CONFIG) ||
@@ -1095,24 +1092,30 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 
 		if (!strcmp(attribute->attrName, "saAmfCompType")) {
 			SaNameT *dn = (SaNameT*) value;
+
+			avd_comptype_remove_comp(comp);
+			comp->saAmfCompType = *dn;
+			comp->comp_type = avd_comptype_get(dn);
+			avd_comptype_add_comp(comp);
 			param.attr_id = saAmfCompType_ID;
 			param.name_sec = *dn;
+			LOG_NO("saAmfCompType changed to '%s' for '%s'", dn->value, opdata->objectName.value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateCmdArgv")) {
 
 			char *param_val = *((char **)value);
 			param.attr_id = saAmfCompInstantiateCmd_ID;
-			strcpy((char *)&param.value[0], (char *)&avd_comp_type->saAmfCtRelPathInstantiateCmd);
+			strcpy((char *)&param.value[0], (char *)&comp_type->saAmfCtRelPathInstantiateCmd);
 			/* We need to append the arg with the command. */
 			cmd_argv = (char *)(param.value + strlen((char *)param.value));
 			*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 			strncpy(cmd_argv, param_val, strlen(param_val));
 			param.value_len = strlen((char *)param.value);
 
-			memset(&avd_comp->comp_info.init_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&avd_comp->comp_info.init_cmd_arg_info, param_val);
-			avd_comp->comp_info.init_len = param.value_len;
-			memset(&avd_comp->comp_info.init_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			memcpy(avd_comp->comp_info.init_info, &param.value[0], avd_comp->comp_info.init_len);
+			memset(&comp->comp_info.init_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&comp->comp_info.init_cmd_arg_info, param_val);
+			comp->comp_info.init_len = param.value_len;
+			memset(&comp->comp_info.init_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			memcpy(comp->comp_info.init_info, &param.value[0], comp->comp_info.init_len);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiateTimeout")) {
 			SaTimeT timeout;
@@ -1123,10 +1126,10 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompInstantiateTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.init_time = *((SaTimeT *)value);
+			comp->comp_info.init_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompInstantiationLevel")) {
-			avd_comp->comp_info.inst_level = *((SaUint32T *)value);
+			comp->comp_info.inst_level = *((SaUint32T *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithoutDelay")) {
 
 			uns32 num_inst;
@@ -1135,7 +1138,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uns32);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
-			avd_comp->comp_info.max_num_inst = *((SaUint32T *)value);
+			comp->comp_info.max_num_inst = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxInstantiateWithDelay")) {
 
@@ -1145,7 +1148,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uns32);
 			num_inst = htonl(num_inst);
 			memcpy(&param.value[0], &num_inst, param.value_len);
-			avd_comp->max_num_inst_delay = *((SaUint32T *)value);
+			comp->max_num_inst_delay = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompDelayBetweenInstantiateAttempts")) {
 
@@ -1157,24 +1160,24 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompDelayBetweenInstantiateAttempts_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->inst_retry_delay = *((SaTimeT *)value);
+			comp->inst_retry_delay = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateCmdArgv")) {
 
 			char *param_val = *((char **)value);
 			param.attr_id = saAmfCompTerminateCmd_ID;
-			strcpy((char *)&param.value[0], (char *)&avd_comp_type->saAmfCtRelPathTerminateCmd);
+			strcpy((char *)&param.value[0], (char *)&comp_type->saAmfCtRelPathTerminateCmd);
 			/* We need to append the arg with the command. */
 			cmd_argv = (char *)(param.value + strlen((char *)param.value));
 			*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 			strncpy(cmd_argv, param_val, strlen(param_val));
 			param.value_len = strlen((char *)param.value);
 
-			memset(&avd_comp->comp_info.term_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&avd_comp->comp_info.term_cmd_arg_info, param_val);
-			avd_comp->comp_info.term_len = param.value_len;
-			memset(&avd_comp->comp_info.term_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			memcpy(avd_comp->comp_info.term_info, &param.value[0], avd_comp->comp_info.term_len);
+			memset(&comp->comp_info.term_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&comp->comp_info.term_cmd_arg_info, param_val);
+			comp->comp_info.term_len = param.value_len;
+			memset(&comp->comp_info.term_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			memcpy(comp->comp_info.term_info, &param.value[0], comp->comp_info.term_len);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompTerminateTimeout")) {
 
@@ -1186,24 +1189,24 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompTerminateTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.term_time = *((SaTimeT *)value);
+			comp->comp_info.term_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupCmdArgv")) {
 
 			char *param_val = *((char **)value);
 			param.attr_id = saAmfCompCleanupCmd_ID;
-			strcpy((char *)&param.value[0], (char *)&avd_comp_type->saAmfCtRelPathCleanupCmd);
+			strcpy((char *)&param.value[0], (char *)&comp_type->saAmfCtRelPathCleanupCmd);
 			/* We need to append the arg with the command. */
 			cmd_argv = (char *)(param.value + strlen((char *)param.value));
 			*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 			strncpy(cmd_argv, param_val, strlen(param_val));
 			param.value_len = strlen((char *)param.value);
 
-			memset(&avd_comp->comp_info.clean_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&avd_comp->comp_info.clean_cmd_arg_info, param_val);
-			avd_comp->comp_info.clean_len = param.value_len;
-			memset(&avd_comp->comp_info.clean_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			memcpy(avd_comp->comp_info.clean_info, &param.value[0], avd_comp->comp_info.clean_len);
+			memset(&comp->comp_info.clean_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&comp->comp_info.clean_cmd_arg_info, param_val);
+			comp->comp_info.clean_len = param.value_len;
+			memset(&comp->comp_info.clean_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			memcpy(comp->comp_info.clean_info, &param.value[0], comp->comp_info.clean_len);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCleanupTimeout")) {
 			SaTimeT timeout;
@@ -1214,36 +1217,36 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCleanupTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.clean_time = *((SaTimeT *)value);
+			comp->comp_info.clean_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartCmdArgv")) {
 
 			char *param_val = *((char **)value);
 
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
 
 			param.attr_id = saAmfCompAmStartCmd_ID;
-			strcpy((char *)&param.value[0], (char *)&avd_comp_type->saAmfCtRelPathAmStartCmd);
+			strcpy((char *)&param.value[0], (char *)&comp_type->saAmfCtRelPathAmStartCmd);
 			/* We need to append the arg with the command. */
 			cmd_argv = (char *)(param.value + strlen((char *)param.value));
 			*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 			strncpy(cmd_argv, param_val, strlen(param_val));
 			param.value_len = strlen((char *)param.value);
 
-			memset(&avd_comp->comp_info.amstart_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&avd_comp->comp_info.amstart_cmd_arg_info, param_val);
-			avd_comp->comp_info.amstart_len = param.value_len;
-			memset(&avd_comp->comp_info.amstart_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			memcpy(avd_comp->comp_info.amstart_info, &param.value[0], avd_comp->comp_info.amstart_len);
+			memset(&comp->comp_info.amstart_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&comp->comp_info.amstart_cmd_arg_info, param_val);
+			comp->comp_info.amstart_len = param.value_len;
+			memset(&comp->comp_info.amstart_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			memcpy(comp->comp_info.amstart_info, &param.value[0], comp->comp_info.amstart_len);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStartTimeout")) {
 
 			SaTimeT timeout;
 			SaTimeT temp_timeout;
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1254,12 +1257,12 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompAmStartTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.amstart_time = *((SaTimeT *)value);
+			comp->comp_info.amstart_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStartAttempt")) {
 
 			uns32 num_am_start;
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1269,38 +1272,38 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uns32);
 			num_am_start = htonl(num_am_start);
 			memcpy(&param.value[0], &num_am_start, param.value_len);
-			avd_comp->comp_info.max_num_amstart = *((SaUint32T *)value);
+			comp->comp_info.max_num_amstart = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopCmdArgv")) {
 
 			char *param_val = *((char **)value);
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
 
-			memset(&(avd_comp->comp_info.amstop_cmd_arg_info), 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&(avd_comp->comp_info.amstop_cmd_arg_info), param_val);
+			memset(&(comp->comp_info.amstop_cmd_arg_info), 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&(comp->comp_info.amstop_cmd_arg_info), param_val);
 			param.attr_id = saAmfCompAmStopCmd_ID;
-			strcpy((char *)&param.value[0], (char *)&avd_comp_type->saAmfCtRelPathAmStartCmd);
+			strcpy((char *)&param.value[0], (char *)&comp_type->saAmfCtRelPathAmStartCmd);
 			/* We need to append the arg with the command. */
 			cmd_argv = (char *)(param.value + strlen((char *)param.value));
 			*cmd_argv++ = 0x20;	/* Insert SPACE between cmd and args */
 			strncpy(cmd_argv, param_val, strlen(param_val));
 			param.value_len = strlen((char *)param.value);
 
-			memset(&avd_comp->comp_info.amstop_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			strcpy((char *)&avd_comp->comp_info.amstop_cmd_arg_info, param_val);
-			avd_comp->comp_info.amstop_len = param.value_len;
-			memset(&avd_comp->comp_info.amstop_info, 0, AVSV_MISC_STR_MAX_SIZE);
-			memcpy((char *)&avd_comp->comp_info.amstop_info, &param.value[0],
-			       avd_comp->comp_info.amstop_len);
+			memset(&comp->comp_info.amstop_cmd_arg_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			strcpy((char *)&comp->comp_info.amstop_cmd_arg_info, param_val);
+			comp->comp_info.amstop_len = param.value_len;
+			memset(&comp->comp_info.amstop_info, 0, AVSV_MISC_STR_MAX_SIZE);
+			memcpy((char *)&comp->comp_info.amstop_info, &param.value[0],
+			       comp->comp_info.amstop_len);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompAmStopTimeout")) {
 
 			SaTimeT timeout;
 			SaTimeT temp_timeout;
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1311,12 +1314,12 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompAmStopTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.amstop_time = *((SaTimeT *)value);
+			comp->comp_info.amstop_time = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompNumMaxAmStopAttempt")) {
 
 			uns32 num_am_stop;
-			if (TRUE == avd_comp->su->su_is_external) {
+			if (TRUE == comp->su->su_is_external) {
 				rc = SA_AIS_ERR_INVALID_PARAM;
 				goto done;
 			}
@@ -1326,7 +1329,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uns32);
 			num_am_stop = htonl(num_am_stop);
 			memcpy(&param.value[0], &num_am_stop, param.value_len);
-			avd_comp->comp_info.max_num_amstop = *((SaUint32T *)value);
+			comp->comp_info.max_num_amstop = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSISetCallbackTimeout")) {
 
@@ -1338,7 +1341,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCSISetCallbackTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.csi_set_callback_timeout = *((SaTimeT *)value);
+			comp->comp_info.csi_set_callback_timeout = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompCSIRmvCallbackTimeout")) {
 
@@ -1350,7 +1353,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompCSIRmvCallbackTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.csi_rmv_callback_timeout = *((SaTimeT *)value);
+			comp->comp_info.csi_rmv_callback_timeout = *((SaTimeT *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompQuiescingCompleteTimeout")) {
 
@@ -1362,7 +1365,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.attr_id = saAmfCompQuiescingCompleteTimeout_ID;
 			param.value_len = sizeof(SaTimeT);
 			memcpy(&param.value[0], &temp_timeout, param.value_len);
-			avd_comp->comp_info.quiescing_complete_timeout = *((SaTimeT *)value);
+			comp->comp_info.quiescing_complete_timeout = *((SaTimeT *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompRecoveryOnError")) {
 			uns32 recovery;
 			recovery = *((SaUint32T *)value);
@@ -1370,14 +1373,14 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 			param.value_len = sizeof(uns32);
 			recovery = htonl(recovery);
 			memcpy(&param.value[0], &recovery, param.value_len);
-			avd_comp->comp_info.def_recvr = *((SaUint32T *)value);
+			comp->comp_info.def_recvr = *((SaUint32T *)value);
 
 		} else if (!strcmp(attribute->attrName, "saAmfCompDisableRestart")) {
-			avd_comp->comp_info.comp_restart = *((SaUint32T *)value);
+			comp->comp_info.comp_restart = *((SaUint32T *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompProxyCsi")) {
-			avd_comp->comp_proxy_csi = *((SaNameT *)value);
+			comp->comp_proxy_csi = *((SaNameT *)value);
 		} else if (!strcmp(attribute->attrName, "saAmfCompContainerCsi")) {
-			avd_comp->comp_container_csi = *((SaNameT *)value);
+			comp->comp_container_csi = *((SaNameT *)value);
 		} else {
 			assert(0);
 		}
