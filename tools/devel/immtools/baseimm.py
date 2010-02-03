@@ -188,7 +188,15 @@ def abort_script(*args):
     formatStr = "\nAborting script: " + args[0]
     print >> sys.stderr, formatStr % tuple(printf_args)
     sys.exit(2)
+
+def exit_script(*args):
+    printf_args = []
+    for i in range(1, len(args)):
+        printf_args.append(args[i])
     
+    formatStr = "\n" + args[0]
+    print >> sys.stderr, formatStr % tuple(printf_args)
+    sys.exit(0)    
 
 def verifyInputFileReadAcess(filename):
     if os.access(filename, os.R_OK) == False:

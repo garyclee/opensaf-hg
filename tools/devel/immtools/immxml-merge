@@ -27,7 +27,9 @@ class Options(BaseOptions):
     #traceOn = False
     keepCommentElements = False
     ignoreVariants = False
+    ignoreMissingClass = False
     grep_class = None
+    grep_dn = None
     sort = False
     outputFilename = None
     stdout = True
@@ -37,7 +39,7 @@ class Options(BaseOptions):
     
     @staticmethod
     def printOptionSettings():
-        return BaseOptions.printOptionSettings()+' keepCommentElements: %s \n ignoreVariants: %s \n grep_class: %s\n sort:%s\n outputFilename: %s\n schemaFilename: %s\n' % (Options.keepCommentElements, Options.ignoreVariants, Options.grep_class, Options.sort, Options.outputFilename, Options.schemaFilename)
+        return BaseOptions.printOptionSettings()+' keepCommentElements: %s \n ignoreVariants: %s \n grep_class: %s\n grep_dn: %s\n sort:%s\n outputFilename: %s\n schemaFilename: %s\n' % (Options.keepCommentElements, Options.ignoreVariants, Options.grep_class, Options.grep_dn ,Options.sort, Options.outputFilename, Options.schemaFilename)
 
         
 
@@ -49,6 +51,7 @@ class MergedImmDocument(BaseImmDocument):
         self.classList = []
         self.classDict = {}
         self.regexpObj = None
+        self.dn_regexpObj = None
         self.firstSourceDoc = None
         self.objectList = []
         self.objectDnNameDict = {}
@@ -60,6 +63,10 @@ class MergedImmDocument(BaseImmDocument):
         if Options.grep_class:
             trace("matching classes with pattern:%s", Options.grep_class)
             self.regexpObj = re.compile(Options.grep_class)
+
+        if Options.grep_dn:
+            trace("grep_dn matching dn with pattern:%s", Options.grep_dn)
+            self.dn_regexpObj = re.compile(Options.grep_dn)
      
     def initResultDocument(self, doc): 
         if self.isResultDocInitialized:
@@ -133,14 +140,24 @@ class MergedImmDocument(BaseImmDocument):
         
         trace("objectDnElement: %s", objectDnElement.toxml())
         
-        # classname must exist in dictionary map
+        # classname must exist in dictionary map (unless --ignore-noclass is specified)
         if className not in self.classDict:
-            if Options.grep_class != None:                
-                trace("ignoring object with unknown classname:%s", className)
-                return
+            if Options.ignoreMissingClass == False:
+                if Options.grep_class != None:                
+                    trace("ignoring object with class not matching pattern classname:%s", className)
+                    return
+                else:
+                    abort_script("failed to find class referred in: \n %s", objectElement.toxml())
+                trace("zzz")
             else:
-                abort_script("failed to find class in in \n %s", objectElement.toxml())
-        
+                trace("Continue processing object with missing class (--ignore-missing-class)")
+
+        if self.dn_regexpObj != None:
+            trace ("grep_dn check if object dn %s match pattern %s", objectDnName, Options.grep_dn)            
+            if re.search(self.dn_regexpObj, objectDnName) == None:
+                trace ("Object dn %s does not match pattern %s", objectDnName, Options.grep_dn)
+                return
+        trace("match ok :%s", objectDnName);
             
         if objectDnName in self.objectDnNameDict:
             if self.checkObjectClashAcceptable(objectDnName):
@@ -250,6 +267,12 @@ class MergedImmDocument(BaseImmDocument):
     def saveResult(self):
         trace("")
         
+        if len(self.classList) < 1 and Options.grep_class != None:
+            exit_script("No classes matches pattern %s specified with --grep-class. No document is saved. Exiting!", Options.grep_class)
+
+        if len(self.objectList) < 1 and Options.grep_dn != None:
+            exit_script("No objects matches pattern %s specified with --grep-dn. No document is saved. Exiting!", Options.grep_dn)
+
         # Use a temp file when output file is not specified. When this script finishes it prints the file to stdout
         # and removes the file 
         if Options.stdout:
@@ -260,10 +283,7 @@ class MergedImmDocument(BaseImmDocument):
             self.classList.sort()
             self.objectList.sort()
         
-        trace("Number of classes in resulting xml document:%d", len(self.classList))
-        
-        if len(self.classList) < 1 and Options.grep_class != None:
-            abort_script("No classes matches pattern %s specified with --grep-class. No document is saved. Exiting!", Options.grep_class)
+        trace("Number of classes in resulting xml document:%d", len(self.classList))        
             
         # iterate over all objects again to validate again when all objects are parsed from inputfiles
         #if Options.disableParentDnValidation==False:
@@ -301,8 +321,11 @@ class MergedImmDocument(BaseImmDocument):
             #command = "/bin/sh -c 'XMLLINT_INDENT=\"    \" ; export XMLLINT_INDENT; /usr/bin/xmllint --format "+tmpOutputFilename+" --output "+Options.outputFilename +"'"
             if self.formatXmlFileWithXmlLint(tmpOutputFilename, Options.outputFilename) != 0:
                 abort_script("failed to validate input file %s:", tmpOutputFilename)
+            trace("delete the tmp file: %s", tmpOutputFilename)
+            os.remove(tmpOutputFilename) 
         else:
             # at least we should move file to its real name
+            trace("shutil.move(%s, %s)", tmpOutputFilename, Options.outputFilename)
             shutil.move(tmpOutputFilename, Options.outputFilename) 
 
         trace("Number of classes parsed:%d stored:%d", self.classes_parsed, len(self.classList))
@@ -335,16 +358,27 @@ def printUsage():
                           (if option is omitted stdout is used)
   --grep-class=PATTERN    pattern match the class names in source file(s)
                           (This option also sets disableParentDnValidation)
-  --ignore-variants       when merge tool finds several definitions of same class or object the default behaviour
-                          is to abort the merge processing and print out which class/object is duplicated.
-                          with this option it is possible to continue merge, keeping the first
-                          instance of a class or object definition and ignore the other.
-                          A summary of processed/ignored classes/objects is printed.
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --grep-dn=PATTERN       pattern match the object dn names in source file(s)
+                          (This option also sets disableParentDnValidation)
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --ignore-variants       when merge tool finds several definitions of same 
+                          class or object the default behaviour is to abort the
+                          merge processing and print out which class/object is 
+                          duplicated. With this option it is possible to
+                          continue merge, keeping the first instance of a class 
+                          or object definition and ignore the other.
+                          At end of processing a summary of processed/ignored
+                          classes/objects is listed.
+  --ignore-missing-class  do not require class definitions referred by an object
+                          to exist in source file(s) (Is required by default)
   --keepCommentElements   keep embedded comment elements
                           (experimental support: associates comment elements 
                            with subsequent class or object element which may be 
                            correct association....)
-      --schema            validate inputfiles and output(file) with the supplied
+  --schema                validate inputfiles and output(file) with the supplied
                           xsd schema file
   -s, --sort              sort the merged class and object names
   -t, --trace             print trace information to stderr
@@ -362,7 +396,7 @@ def printVersion():
 
 def main(argv):    
     try:
-        opts, args = getopt.getopt(argv, "thvso", ["trace", "keep-comment-elements", "ignore-variants", "help", "version", "sort", "grep-class=", "output=", "schema="])
+        opts, args = getopt.getopt(argv, "thvso:", ["trace", "keep-comment-elements", "ignore-variants", "ignore-missing-class", "help", "version", "sort", "grep-class=", "grep-dn=", "output=", "schema="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print_info_stderr("%s", str(err))
@@ -377,8 +411,13 @@ def main(argv):
             Options.keepCommentElements = True
         if o in ["--ignore-variants"]:
             Options.ignoreVariants = True
+        if o in ["--ignore-missing-class"]:
+        	Options.ignoreMissingClass = True
         if o in ["--grep-class"]:
             Options.grep_class = v
+            Options.disableParentDnValidation = True            
+        if o in ["--grep-dn"]:
+            Options.grep_dn = v
             Options.disableParentDnValidation = True            
         if o in ("-o", "--output"):
             Options.stdout = False
