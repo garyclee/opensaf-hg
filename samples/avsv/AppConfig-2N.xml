@@ -15,7 +15,15 @@
  *
  * Author(s): Ericsson
  *
+
+- This file is prepared for initial loading, loaded by IMM at startup. Merge this 
+file with the main imm.xml using the immxml-merge tool.
+
+- If this file is to be loaded dynamically using e.g. 'immcfg -f', the SUs must have admin state
+unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections below.
+
 -->
+
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<object class="SaAmfAppBaseType">
 		<dn>safAppType=AmfDemoAppType</dn>
@@ -242,6 +250,12 @@
 			<name>saAmfSUHostNodeOrNodeGroup</name>
 			<value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
 		</attr>
+<!--
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+-->
 	</object>
 	<object class="SaAmfComp">
 	    <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo</dn>
@@ -275,6 +289,12 @@
 			<name>saAmfSUHostNodeOrNodeGroup</name>
 			<value>safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</value>
 		</attr>
+<!--
+		<attr>
+			<name>saAmfSUAdminState</name>
+			<value>3</value>
+		</attr>
+-->
 	</object>
 	<object class="SaAmfComp">
 	    <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo</dn>
