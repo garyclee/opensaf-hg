@@ -1022,13 +1022,38 @@ static SaAisErrorT su_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 				rc = SA_AIS_ERR_BAD_OPERATION;
 				goto done;
 			}
+		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
+			AVD_SU *su = avd_su_get(&opdata->objectName);
+
+			if (attr_mod->modAttr.attrValuesNumber == 0) {
+				if (su->saAmfSUMaintenanceCampaign.length == 0) {
+					LOG_ER("No value to clear for saAmfSUMaintenanceCampaign");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+			} else if (attr_mod->modAttr.attrValuesNumber == 1) {
+				SaNameT *saAmfSUMaintenanceCampaign = ((SaNameT *)attr_mod->modAttr.attrValues[0]);
+
+				if (su->saAmfSUMaintenanceCampaign.length > 0) {
+					LOG_ER("saAmfSUMaintenanceCampaign already set for %s", su->name.value);
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+
+				if (saAmfSUMaintenanceCampaign->length == 0) {
+					LOG_ER("Illegal clearing of saAmfSUMaintenanceCampaign");
+					rc = SA_AIS_ERR_BAD_OPERATION;
+					goto done;
+				}
+			} else
+				assert(0); /* is not multivalue, IMM should enforce */
 		} else {
-			rc = SA_AIS_ERR_BAD_OPERATION;
+			LOG_ER("Modification of attribute '%s' not supported", attr_mod->modAttr.attrName);
 			goto done;
 		}
 	}
 
- done:
+done:
 	return rc;
 }
 
@@ -1133,7 +1158,21 @@ static void su_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 		if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUFailover")) {
 			NCS_BOOL su_failover = *((SaUint32T *)attr_mod->modAttr.attrValues[0]);
 			su->saAmfSUFailover = su_failover;
+		} else if (!strcmp(attr_mod->modAttr.attrName, "saAmfSUMaintenanceCampaign")) {
+			AVD_SU *su = avd_su_get(&opdata->objectName);
+			if (attr_mod->modAttr.attrValuesNumber == 1) {
+				assert(su->saAmfSUMaintenanceCampaign.length == 0);
+				su->saAmfSUMaintenanceCampaign = *((SaNameT *)attr_mod->modAttr.attrValues[0]);
+				LOG_NO("saAmfSUMaintenanceCampaign set to '%s' for '%s'",
+					su->saAmfSUMaintenanceCampaign.value, su->name.value);
+			} else if (attr_mod->modAttr.attrValues == 0) {
+				su->saAmfSUMaintenanceCampaign.length = 0;
+				LOG_NO("saAmfSUMaintenanceCampaign cleared for '%s'", su->name.value);
+			} else
+				assert(0);
 		}
+		else
+			assert(0);
 	}
 
 	TRACE_LEAVE();
