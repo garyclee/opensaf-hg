@@ -676,11 +676,11 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 	assert(node != NULL);
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	TRACE_ENTER2("'%s' %s => %s",
-		     node->saAmfNodeClmNode.value, admin_state_name[node->saAmfNodeAdminState],
+		     node->node_info.nodeName.value, admin_state_name[node->saAmfNodeAdminState],
 		     admin_state_name[admin_state]);
 
 	node->saAmfNodeAdminState = admin_state;
-	avd_saImmOiRtObjectUpdate(&node->saAmfNodeClmNode, "saAmfNodeAdminState",
+	avd_saImmOiRtObjectUpdate(&node->node_info.nodeName, "saAmfNodeAdminState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
 	avd_gen_node_admin_state_changed_ntf(avd_cb, node);
@@ -697,7 +697,7 @@ static uns32 node_admin_lock_instantiation(AVD_AVND *node)
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
+	TRACE_ENTER2("%s", node->node_info.nodeName.value);
 
 	/* terminate all the SUs on this Node */
 	su = node->list_of_su;
@@ -732,7 +732,7 @@ static uns32 node_admin_unlock_instantiation(AVD_AVND *node)
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
+	TRACE_ENTER2("%s", node->node_info.nodeName.value);
 
 	/* instantiate the SUs on this Node */
 	su = node->list_of_su;
@@ -779,8 +779,9 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	AVD_AVND *su_sg_node_ptr = NULL;
 	SaAmfAdminStateT new_admin_state;
 
-	TRACE_ENTER2("%s", node->saAmfNodeClmNode.value);
-	/* determine the new_admin_state from operation ID */
+	TRACE_ENTER2("%s", node->node_info.nodeName.value);
+
+        /* determine the new_admin_state from operation ID */
 	if (operationId == SA_AMF_ADMIN_SHUTDOWN)
 		new_admin_state = SA_AMF_ADMIN_SHUTTING_DOWN;
 	else if (operationId == SA_AMF_ADMIN_UNLOCK)
