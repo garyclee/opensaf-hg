@@ -520,6 +520,7 @@
 			<name>saAmfSUMaintenanceCampaign</name>
 			<type>SA_NAME_T</type>
 			<category>SA_CONFIG</category>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 		<attr>
 			<name>saAmfSUPreInstantiable</name>
