@@ -639,10 +639,6 @@ static SaAisErrorT subscribeForNotifications(const saNotificationFilterAllocatio
 			return errorCode;
 		}
 		notificationFilterHandles.alarmFilterHandle = myAlarmFilter.notificationFilterHandle;
-	
-		/* Set perceived severities */
-		myAlarmFilter.perceivedSeverities[0] = SA_NTF_SEVERITY_WARNING;
-		myAlarmFilter.perceivedSeverities[1] = SA_NTF_SEVERITY_CLEARED;
 	}
 	
 	if (used_filters.all || used_filters.att_ch) {
@@ -728,7 +724,7 @@ int main(int argc, char *argv[])
 	int c;
 	SaAisErrorT error;
 	int timeout = -1;	/* block indefintively in poll */
-	saNotificationFilterAllocationParamsT notificationFilterAllocationParams;
+	saNotificationFilterAllocationParamsT notificationFilterAllocationParams = {0};
 	SaNtfSubscriptionIdT subscriptionId = 1;
 	struct option long_options[] = {
 		{"alarm", no_argument, 0, 'a'},
@@ -742,14 +738,6 @@ int main(int argc, char *argv[])
 	};
 
 	progname = argv[0];
-
-	notificationFilterAllocationParams.numEventTypes = 0;
-	notificationFilterAllocationParams.numNotificationObjects = 0;
-	notificationFilterAllocationParams.numNotifyingObjects = 0;
-	notificationFilterAllocationParams.numNotificationClassIds = 0;
-	notificationFilterAllocationParams.numProbableCauses = 0;
-	notificationFilterAllocationParams.numPerceivedSeverities = 2;
-	notificationFilterAllocationParams.numTrends = 0;
 
 	/* Check options */
 	while (1) {
