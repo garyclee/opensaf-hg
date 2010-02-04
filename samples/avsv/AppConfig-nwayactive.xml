@@ -139,7 +139,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 		<attr>
 			<name>saAmfCtDefDisableRestart</name>
-			<value>1</value>
+			<value>0</value>
 		</attr>
 	</object>
 	<object class="SaAmfCSType">

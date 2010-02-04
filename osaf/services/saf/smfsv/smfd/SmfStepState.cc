@@ -623,11 +623,8 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
 	TRACE_ENTER();
 	LOG_NO("STEP: Executing node reboot step %s", i_step->getDn().c_str());
 
-        /* TODO: This is not completly implemented yet. We need to 
-           find out which bundles that requires reboot so we can install/remove 
-           the correct bundles in all cases */
-
-	/* Online installation of new software (no reboot required) */
+	/* All online installations are performed here regardless if the bundles needs reboot or not */
+	/* Online installation of all new software */
 	LOG_NO("STEP: Online installation of new software (no reboot required)");
 	if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
 		LOG_ER("Failed to online install bundles");
@@ -657,14 +654,6 @@ SmfStepStateExecuting::executeNodeReboot(SmfUpgradeStep * i_step)
                 LOG_ER("Failed to offline remove bundles");
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
-	}
-
-	/* Online installation of new software (reboot required) */
-	LOG_NO("STEP: Online installation of new software (reboot required)");
-	if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online install bundles");
-		changeState(i_step, SmfStepStateFailed::instance());
-		return false;
 	}
 
 	/* Modify information model and set maintenance status */

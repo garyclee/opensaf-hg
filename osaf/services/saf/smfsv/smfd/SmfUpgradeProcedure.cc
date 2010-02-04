@@ -310,7 +310,7 @@ SmfUpgradeProcedure::setImmStateAndSendNotification(SaSmfProcStateT i_state)
 
 	TRACE("Set procedure state = %u", i_state);
 	m_procState = i_state;
-	getProcThread()->updateImmAttr(this->getDn().c_str(), "saSmfProcState", SA_IMM_ATTR_SAUINT32T, &m_procState);
+	getProcThread()->updateImmAttr(this->getDn().c_str(), (char*)"saSmfProcState", SA_IMM_ATTR_SAUINT32T, &m_procState);
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, 0x66, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_PROCEDURE_STATE, i_state);
 	TRACE_LEAVE();
@@ -534,7 +534,7 @@ SmfUpgradeProcedure::calculateRollingSteps(SmfRollingUpgrade * i_rollingUpgrade)
                         TRACE("SmfUpgradeProcedure::calculateRollingSteps:calculateRollingSteps new step added %s with activation/deactivation unit %s",
                               newStep->getRdn().c_str(), (*itActDeact).c_str());
 
-			if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_SU)){
+			if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_SU_COMP)){
                                 LOG_ER("SmfUpgradeProcedure::calculateRollingSteps:addStepModifications failed");
                                 return false;
                         }
@@ -993,7 +993,7 @@ SmfUpgradeProcedure::addStepModifications(SmfUpgradeStep * i_newStep,
 		const std::list < SmfImmModifyOperation * >&modificationList = targetEntity->getModifyOperationList();
 
 		switch (i_auType) {
-		case SMF_AU_AMF_NODE:
+		case SMF_AU_AMF_NODE: /* Activation unit is Node */
 			{
 				if (!addStepModificationsNode(i_newStep, parentType, modificationList)) {
                                         LOG_ER("SmfUpgradeProcedure::addStepModifications: addStepModificationsNode failed");
@@ -1001,18 +1001,10 @@ SmfUpgradeProcedure::addStepModifications(SmfUpgradeStep * i_newStep,
                                 }
 				break;
 			}
-		case SMF_AU_SU:
+		case SMF_AU_SU_COMP: /* Activation unit is SU or Component */
 			{
-				if ( !addStepModificationsSu(i_newStep, parentType, modificationList)) {
-                                        LOG_ER("SmfUpgradeProcedure::addStepModifications: addStepModificationsSu failed");
-                                        return false;
-                                }
-				break;
-			}
-		case SMF_AU_COMP:
-			{
-				if (!addStepModificationsComp(i_newStep, parentType, modificationList)) {
-                                        LOG_ER("SmfUpgradeProcedure::addStepModifications: addStepModificationsComp failed");
+				if ( !addStepModificationsSuComp(i_newStep, parentType, modificationList)) {
+                                        LOG_ER("SmfUpgradeProcedure::addStepModifications: addStepModificationsSuComp failed");
                                         return false;
                                 }
 				break;
@@ -1181,10 +1173,10 @@ SmfUpgradeProcedure::addStepModificationsNode(SmfUpgradeStep * i_newStep, const 
 }
 
 //------------------------------------------------------------------------------
-// addStepModificationsSu()
+// addStepModificationsSuComp()
 //------------------------------------------------------------------------------
 bool 
-SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+SmfUpgradeProcedure::addStepModificationsSuComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
                                             const std::list < SmfImmModifyOperation * >&i_modificationList)
 {
         TRACE_ENTER();
@@ -1200,29 +1192,29 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
 
         if (i_parentType->getTypeDn().size() > 0) { //Type is set, parent may be set to limit the scope
                 /* Type was specified, find all objects of this version type */
-                TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check type %s for modifications", i_parentType->getTypeDn().c_str());
+                TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check type %s for modifications", i_parentType->getTypeDn().c_str());
 
                 /* First find out if it's a SU or components version type */
                 if (immUtil.getObject(i_parentType->getTypeDn(), &attributes) == false) {
-                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:failed to get version type imm object %s", i_parentType->getTypeDn().c_str());
+                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:failed to get version type imm object %s", i_parentType->getTypeDn().c_str());
                         return false;
                 }
 
                 className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)
                                                   attributes, SA_IMM_ATTR_CLASS_NAME, 0);
                 if (className == NULL) {
-                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:class name not found for version type %s", i_parentType->getTypeDn().c_str());
+                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:class name not found for version type %s", i_parentType->getTypeDn().c_str());
                         return false;
                 }
 
                 if (strcmp(className, "SaAmfSUType") == 0) {
-                        TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check SU type %s for modifications", i_parentType->getTypeDn().c_str());
+                        TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check SU type %s for modifications", i_parentType->getTypeDn().c_str());
 
                         /* type DN is of class SaAmfSUType, find all SU's of this version type */
                         (void)immUtil.getChildren(i_parentType->getParentDn(), objectList, SA_IMM_SUBTREE, "SaAmfSU");
 
 			for (objit = objectList.begin(); objit != objectList.end(); ++objit) {
-				TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check SU %s for modifications", (*objit).c_str());
+				TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check SU %s for modifications", (*objit).c_str());
 				if (immUtil.getObject((*objit), &attributes) == true) {
 					const SaNameT *typeRef =
 					    immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfSUType", 0);
@@ -1237,29 +1229,29 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
                                                                 //to modify within the AU/DU domain
                                                                 //Add object modifications
 
-                                                                TRACE("SmfUpgradeProcedure::addStepModificationsSu:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
+                                                                TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
                                                    
                                                                 if (!addStepModificationList(i_newStep, *objit, i_modificationList)) {
-                                                                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:addStepModificationList fails");
+                                                                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:addStepModificationList fails");
                                                                         return false;
                                                                 }
                                                                 break;
 
                                                         } else {
-                                                                TRACE("SmfUpgradeProcedure::addStepModificationsSu:NO MATCH Modification DN=%s, AU/DU=%s", (*objit).c_str(),(*auEntityIt).c_str());
+                                                                TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:NO MATCH Modification DN=%s, AU/DU=%s", (*objit).c_str(),(*auEntityIt).c_str());
                                                         }
                                                 }
 					}
 				}
 			}
                 } else if (strcmp(className, "SaAmfCompType") == 0) {
-                        TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check Comp type %s for modifications", i_parentType->getTypeDn().c_str());
+                        TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check Comp type %s for modifications", i_parentType->getTypeDn().c_str());
 
                         /* type DN is of class SaAmfCompType, find all components's of this version type */
                         (void)immUtil.getChildren(i_parentType->getParentDn(), objectList, SA_IMM_SUBTREE, "SaAmfComp");
 
                         for (objit = objectList.begin(); objit != objectList.end(); ++objit) {
-				TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check Comp %s for modifications", (*objit).c_str());
+				TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check Comp %s for modifications", (*objit).c_str());
 				if (immUtil.getObject((*objit), &attributes) == true) {
 					const SaNameT *typeRef =
                                                 immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes, "saAmfCompType", 0);
@@ -1268,38 +1260,36 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
 					    && (strcmp(i_parentType->getTypeDn().c_str(), (char *)typeRef->value) == 0)) {
 						/* This component is of the correct version type */
                                                 //For all objects found of this type, match DNs to see if it is within the act/deact unit
-                                                for (objit = objectList.begin(); objit != objectList.end(); ++objit) {
-                                                        for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
-                                                                if((*objit).find(*auEntityIt) != std::string::npos) {
-                                                                        //The auEntityIt DN is a substring of objit i.e. the object 
-                                                                        //to modify within the AU/DU domain
-                                                                        //Add object modifications
+						for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
+							if((*objit).find(*auEntityIt) != std::string::npos) {
+								//The auEntityIt DN is a substring of objit i.e. the object 
+								//to modify within the AU/DU domain
+								//Add object modifications
 
-                                                                        TRACE("SmfUpgradeProcedure::addStepModificationsSu:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
+								TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
 
-                                                                        if (!addStepModificationList(i_newStep, *objit, i_modificationList)) {
-                                                                                LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:addStepModificationList fails");
-                                                                                return false;
-                                                                        }
+								if (!addStepModificationList(i_newStep, *objit, i_modificationList)) {
+									LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:addStepModificationList fails");
+									return false;
+								}
+								break;
 
-                                                                        break;
-                                                                } else {
-                                                                        TRACE("SmfUpgradeProcedure::addStepModificationsSu:NO MATCH Modification DN=%s, AU/DU=%s", (*objit).c_str(),(*auEntityIt).c_str());
-                                                                }
-                                                        }
-                                                }
+							} else {
+								TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:NO MATCH Modification DN=%s, AU/DU=%s", (*objit).c_str(),(*auEntityIt).c_str());
+							}
+						}
 					}
 				}
 			}
                 } else {
-                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:class name %s for type %s not valid as type",
+                        LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:class name %s for type %s not valid as type",
                                className,
                                i_parentType->getTypeDn().c_str());
                         return false;
                 }
         } else if (i_parentType->getParentDn().size() > 0) { //Parent only is set, no type
                 /* Parent was specified */
-                TRACE("SmfUpgradeProcedure::addStepModificationsSu:Check SU children to parent %s for modifications", i_parentType->getParentDn().c_str());
+                TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Check SU children to parent %s for modifications", i_parentType->getParentDn().c_str());
 
                 /* Parent SG but no type specified, find all child SU's to the parent SG */
                 (void)immUtil.getChildren(i_parentType->getParentDn(), objectList, SA_IMM_SUBLEVEL, "SaAmfSU");
@@ -1311,10 +1301,10 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
                                         //to modify within the AU/DU domain
                                         //Add object modifications
 
-                                        TRACE("SmfUpgradeProcedure::addStepModificationsSu:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
+                                        TRACE("SmfUpgradeProcedure::addStepModificationsSuComp:Modification DN=%s, is within AU/DU=%s, add modifications", (*objit).c_str(),(*auEntityIt).c_str());
 
                                         if (!addStepModificationList(i_newStep, *objit, i_modificationList)) {
-                                                LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:addStepModificationList fails");
+                                                LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:addStepModificationList fails");
                                                 return false;
                                         }
 
@@ -1330,7 +1320,7 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
                 std::list < std::string >::const_iterator auEntityIt;
                 for (auEntityIt = auEntityList.begin(); auEntityIt != auEntityList.end(); ++auEntityIt) {
                         if (!addStepModificationList(i_newStep, *auEntityIt, i_modificationList)) {
-                                LOG_ER("SmfUpgradeProcedure::addStepModificationsSu:addStepModificationList fails");
+                                LOG_ER("SmfUpgradeProcedure::addStepModificationsSuComp:addStepModificationList fails");
                                 return false;
                         }
                 }
@@ -1340,15 +1330,6 @@ SmfUpgradeProcedure::addStepModificationsSu(SmfUpgradeStep * i_newStep, const Sm
         return true;
 }
 
-//------------------------------------------------------------------------------
-// addStepModificationsComp()
-//------------------------------------------------------------------------------
-bool 
-SmfUpgradeProcedure::addStepModificationsComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
-						   const std::list < SmfImmModifyOperation * >&i_modificationList)
-{
-        return true;
-}
 
 //------------------------------------------------------------------------------
 // addStepModificationList()
@@ -1766,7 +1747,7 @@ SmfUpgradeProcedure::setEntitiesToAddRemMod(SmfUpgradeStep * i_step, SmfImmAttri
                         std::string rdnAttr;
                         for (int i = 0; attrDefinitionsOut[i] != 0; i++) {
                                 SaImmAttrFlagsT flags = attrDefinitionsOut[i]->attrFlags;
-                                if (flags & SA_IMM_ATTR_RDN == SA_IMM_ATTR_RDN) {
+                                if ((flags & SA_IMM_ATTR_RDN) == SA_IMM_ATTR_RDN) {
                                         rdnAttr = (char*)attrDefinitionsOut[i]->attrName;
                                         break;
                                 }
