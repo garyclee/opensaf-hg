@@ -39,6 +39,9 @@
 
 #include <poll.h>
 #include <sched.h>
+
+#include <logtrace.h>
+
 #include "avnd.h"
 #include "avnd_mon.h"
 
@@ -65,6 +68,7 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_AVD_SET_LEDS_MSG",
 	"AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG",
 	"AVND_EVT_AVD_ROLE_CHANGE_MSG",
+	"AVND_EVT_AVD_ADMIN_OP_REQ_MSG",
 	"AVND_EVT_AVA_FINALIZE",
 	"AVND_EVT_AVA_COMP_REG",
 	"AVND_EVT_AVA_COMP_UNREG",
@@ -296,7 +300,6 @@ NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
 	while (0 != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(mbx))) {
 		cb_hdl = evt->cb_hdl;
 
-//		avnd_log(NCSFL_SEV_NOTICE, "%s", avnd_evt_type_name[evt->type]);
 		avnd_evt_process(evt);
 
 		/* retrieve avnd cb */
@@ -337,6 +340,8 @@ void avnd_evt_process(AVND_EVT *evt)
 	/* nothing to process */
 	if (!evt)
 		goto done;
+
+	TRACE_ENTER2("%s", avnd_evt_type_name[evt->type]);
 
 	/* validate the event type */
 	if ((evt->type <= AVND_EVT_INVALID) || (evt->type >= AVND_EVT_MAX)) {
@@ -379,11 +384,11 @@ void avnd_evt_process(AVND_EVT *evt)
 	if (cb)
 		ncshm_give_hdl(evt->cb_hdl);
 
+	TRACE_LEAVE2("%s", avnd_evt_type_name[evt->type]);
+
 	/* free the event */
 	if (evt)
 		avnd_evt_destroy(evt);
-
-	return;
 }
 
 /*****************************************************************************

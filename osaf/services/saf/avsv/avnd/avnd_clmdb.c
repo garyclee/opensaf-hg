@@ -101,6 +101,27 @@ uns32 avnd_clmdb_destroy(AVND_CB *cb)
 	return rc;
 }
 
+// TODO remove later when we have a new CLM...
+static void amf_to_clm_node(const SaNameT *amf_node, SaNameT *clm_node)
+{
+	#include <immutil.h>
+        SaAisErrorT rc;
+        SaImmAccessorHandleT accessorHandle;
+        const SaImmAttrValuesT_2 **attributes;
+	SaImmAttrNameT attributeNames[] = {"saAmfNodeClmNode", NULL};
+
+        immutil_saImmOmAccessorInitialize(avnd_cb->immOmHandle, &accessorHandle);
+
+        rc = immutil_saImmOmAccessorGet_2(accessorHandle, amf_node,
+                attributeNames, (SaImmAttrValuesT_2 ***)&attributes);
+	assert(rc == SA_AIS_OK);
+
+	rc = immutil_getAttr("saAmfNodeClmNode", attributes, 0, clm_node);
+	assert(rc == SA_AIS_OK);
+
+        immutil_saImmOmAccessorFinalize(accessorHandle);
+}
+
 /****************************************************************************
   Name          : avnd_clmdb_rec_add
  
@@ -142,7 +163,7 @@ AVND_CLM_REC *avnd_clmdb_rec_add(AVND_CB *cb, AVSV_CLM_INFO *node_info)
 
 	/* update the params */
 	rec->info.node_address = node_info->node_address;
-	rec->info.node_name = node_info->node_name;
+	amf_to_clm_node(&node_info->node_name, &rec->info.node_name);
 	rec->info.member = node_info->member;
 	rec->info.boot_timestamp = node_info->boot_timestamp;
 	rec->info.view_number = node_info->view_number;
