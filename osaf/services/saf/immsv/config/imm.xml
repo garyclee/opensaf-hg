@@ -4956,23 +4956,23 @@
 		<dn>smfConfig=1,safApp=safSmfService</dn>
 		<attr>
 			<name>smfBackupCreateCmd</name>
-			<value>/usr/local/lib/opensaf/smf_backup_create</value>
+			<value>/usr/local/lib/opensaf/smf-backup-create</value>
 		</attr>
 		<attr>
 			<name>smfBundleCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf_bundle_check</value>
+			<value>/usr/local/lib/opensaf/smf-bundle-check</value>
 		</attr>
 		<attr>
 			<name>smfNodeCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf_node_check</value>
+			<value>/usr/local/lib/opensaf/smf-node-check</value>
 		</attr>
 		<attr>
 			<name>smfRepositoryCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf_repository_check</value>
+			<value>/usr/local/lib/opensaf/smf-repository-check</value>
 		</attr>
 		<attr>
 			<name>smfClusterRebootCmd</name>
-			<value>/usr/local/lib/opensaf/smf_cluster_reboot</value>
+			<value>/usr/local/lib/opensaf/smf-cluster-reboot</value>
 		</attr>
 		<attr>
 			<name>smfAdminOpTimeout</name>

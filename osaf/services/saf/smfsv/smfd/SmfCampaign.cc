@@ -39,8 +39,8 @@
  * Constructor
  */
  SmfCampaign::SmfCampaign(const SaNameT * parent, const SaImmAttrValuesT_2 ** attrValues):
-	 m_upgradeCampaign(NULL),
-	 m_cmpgState(SA_SMF_CMPG_INITIAL)
+	 m_cmpgState(SA_SMF_CMPG_INITIAL),
+	 m_upgradeCampaign(NULL)
 {
 	init(attrValues);
 	m_dn = m_cmpg;
@@ -52,8 +52,8 @@
  * Constructor
  */
 SmfCampaign::SmfCampaign(const SaNameT * dn):
-	m_upgradeCampaign(NULL),
-	m_cmpgState(SA_SMF_CMPG_INITIAL)
+	m_cmpgState(SA_SMF_CMPG_INITIAL),
+	m_upgradeCampaign(NULL)
 {
 	m_dn.append((char *)dn->value, dn->length);
 }
@@ -80,18 +80,28 @@ SmfCampaign::getDn()
 bool 
 SmfCampaign::executing(void)
 {
+	bool rc = true;
 	switch (m_cmpgState) {
+	/* 
+	   The following states are final states where the campaign is
+	   considered as NOT executing and object can be removed/modified
+	*/
 	case SA_SMF_CMPG_INITIAL:
 	case SA_SMF_CMPG_CAMPAIGN_COMMITTED:
 	case SA_SMF_CMPG_EXECUTION_FAILED:
 	case SA_SMF_CMPG_ROLLBACK_COMMITTED:
 	case SA_SMF_CMPG_ROLLBACK_FAILED:
-		return false;
-
+		rc = false;
+		break;
 	default:
-		return true;
+		/*
+		  At all other states the campaign is considered executing
+		*/
+		rc = true;
+		break;
 	}
-	return false;
+
+	return rc;
 }
 
 /** 
@@ -188,7 +198,7 @@ SmfCampaign::modify(const SaImmAttrModificationT_2 ** attrMods)
 
 			/* Change state to initial */
 			m_cmpgState = SA_SMF_CMPG_INITIAL;
-			updateImmAttr(this->getDn().c_str(), "saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
+			updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
 		} else {
 			LOG_ER("modifying invalid attribute %s", attribute->attrName);
 			rc = SA_AIS_ERR_BAD_OPERATION;
@@ -502,7 +512,7 @@ SmfCampaign::setState(SaSmfCmpgStateT state)
 
 	m_cmpgState = state;
 
-	updateImmAttr(this->getDn().c_str(), "saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
+	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
 
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, 0x65, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_CAMPAIGN_STATE, m_cmpgState);
@@ -516,7 +526,7 @@ void
 SmfCampaign::setConfigBase(SaTimeT configBase)
 {
 	m_cmpgConfigBase = configBase;
-	updateImmAttr(this->getDn().c_str(), "saSmfCmpgConfigBase", SA_IMM_ATTR_SATIMET, &m_cmpgConfigBase);
+	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgConfigBase", SA_IMM_ATTR_SATIMET, &m_cmpgConfigBase);
 }
 
 /** 
@@ -527,7 +537,7 @@ void
 SmfCampaign::setExpectedTime(SaTimeT expectedTime)
 {
 	m_cmpgExpectedTime = expectedTime;
-	updateImmAttr(this->getDn().c_str(), "saSmfCmpgExpectedTime", SA_IMM_ATTR_SATIMET, &m_cmpgExpectedTime);
+	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgExpectedTime", SA_IMM_ATTR_SATIMET, &m_cmpgExpectedTime);
 }
 
 /** 
@@ -538,7 +548,7 @@ void
 SmfCampaign::setElapsedTime(SaTimeT elapsedTime)
 {
 	m_cmpgElapsedTime = elapsedTime;
-	updateImmAttr(this->getDn().c_str(), "saSmfCmpgElapsedTime", SA_IMM_ATTR_SATIMET, &m_cmpgElapsedTime);
+	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgElapsedTime", SA_IMM_ATTR_SATIMET, &m_cmpgElapsedTime);
 }
 
 /** 
@@ -551,7 +561,7 @@ SmfCampaign::setError(const std::string & error)
 	m_cmpgError = error;
 	const char *errorStr = m_cmpgError.c_str();
 
-	updateImmAttr(this->getDn().c_str(), "saSmfCmpgError", SA_IMM_ATTR_SASTRINGT, &errorStr);
+	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgError", SA_IMM_ATTR_SASTRINGT, &errorStr);
 }
 
 /** 
@@ -671,7 +681,8 @@ SmfCampaignList::cleanup(void)
 	while (it != m_campaignList.end()) {
 		SmfCampaign *campaign = *it;
 		delete campaign;
-		m_campaignList.erase(it);
 		it++;
 	}
+
+       	m_campaignList.clear();
 }

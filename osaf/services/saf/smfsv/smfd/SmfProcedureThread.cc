@@ -89,9 +89,14 @@ SmfProcedureThread::start(void)
 
 	/* Create the task */
 	if ((rc =
-	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfProcedureThread::main, (NCSCONTEXT) this, m_PROCEDURE_TASKNAME,
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfProcedureThread::main, (NCSCONTEXT) this, (char*) m_PROCEDURE_TASKNAME,
 			       m_PROCEDURE_TASK_PRI, m_PROCEDURE_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
+		return -1;
+	}
+
+	if ((rc =m_NCS_TASK_DETACH(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("TASK_START_DETACH\n");
 		return -1;
 	}
 
@@ -309,13 +314,13 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 	uns32 saSmfProcUpgrMethod = 0;
 	SaTimeT saSmfProcPeriod = 0;
 	uns32 saSmfProcState = SA_SMF_PROC_INITIAL;
-	char *saSmfProcError = "";
+	char *saSmfProcError = (char*)"";
 
 	TRACE_ENTER();
 
 	void *arr1[] = { &safSmfProcedure };
 	const SaImmAttrValuesT_2 attr_safSmfProc = {
-		"safSmfProcedure",
+		(char*)"safSmfProcedure",
 		SA_IMM_ATTR_SASTRINGT,
 		1,
 		arr1
@@ -323,7 +328,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr2[] = { &saSmfProcExecLevel };
 	const SaImmAttrValuesT_2 attr_saSmfProcExecLevel = {
-		"saSmfProcExecLevel",
+		(char*)"saSmfProcExecLevel",
 		SA_IMM_ATTR_SAUINT32T,
 		1,
 		arr2
@@ -331,7 +336,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr3[] = { &saSmfProcMustKeepSIs };
 	const SaImmAttrValuesT_2 attr_saSmfProcMustKeepSIs = {
-		"saSmfProcMustKeepSIs",
+		(char*)"saSmfProcMustKeepSIs",
 		SA_IMM_ATTR_SANAMET,
 		1,
 		arr3
@@ -339,7 +344,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr4[] = { &saSmfProcAcceptSIOutage };
 	const SaImmAttrValuesT_2 attr_saSmfProcAcceptSIOutage = {
-		"saSmfProcAcceptSIOutage",
+		(char*)"saSmfProcAcceptSIOutage",
 		SA_IMM_ATTR_SANAMET,
 		1,
 		arr4
@@ -347,7 +352,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr5[] = { &saSmfProcMaxNumSIsOutage };
 	const SaImmAttrValuesT_2 attr_saSmfProcMaxNumSIsOutage = {
-		"saSmfProcMaxNumSIsOutage",
+		(char*)"saSmfProcMaxNumSIsOutage",
 		SA_IMM_ATTR_SAUINT32T,
 		1,
 		arr5
@@ -355,7 +360,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr6[] = { &saSmfProcUpgrMethod };
 	const SaImmAttrValuesT_2 attr_saSmfProcUpgrMethod = {
-		"saSmfProcUpgrMethod",
+		(char*)"saSmfProcUpgrMethod",
 		SA_IMM_ATTR_SAUINT32T,
 		1,
 		arr6
@@ -363,7 +368,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr7[] = { &saSmfProcPeriod };
 	const SaImmAttrValuesT_2 attr_saSmfProcPeriod = {
-		"saSmfProcPeriod",
+		(char*)"saSmfProcPeriod",
 		SA_IMM_ATTR_SATIMET,
 		1,
 		arr7
@@ -371,7 +376,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr8[] = { &saSmfProcState };
 	const SaImmAttrValuesT_2 attr_saSmfProcState = {
-		"saSmfProcState",
+		(char*)"saSmfProcState",
 		SA_IMM_ATTR_SAUINT32T,
 		1,
 		arr8
@@ -379,7 +384,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 
 	void *arr9[] = { &saSmfProcError };
 	const SaImmAttrValuesT_2 attr_saSmfProcError = {
-		"saSmfProcError",
+		(char*)"saSmfProcError",
 		SA_IMM_ATTR_SASTRINGT,
 		1,
 		arr9
@@ -405,7 +410,7 @@ SmfProcedureThread::createImmProcedure(SmfUpgradeProcedure * procedure)
 	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
 	immutilWrapperProfile.errorsAreFatal = 0;
 
-	rc = immutil_saImmOiRtObjectCreate_2(m_procOiHandle, "SaSmfProcedure", &parentName, attrValues);
+	rc = immutil_saImmOiRtObjectCreate_2(m_procOiHandle, (char*)"SaSmfProcedure", &parentName, attrValues);
 	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
 
 	if (rc != SA_AIS_OK) {

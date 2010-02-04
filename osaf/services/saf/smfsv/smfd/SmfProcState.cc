@@ -294,7 +294,8 @@ SmfProcStateExecuting::executeInit(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeAction * >::iterator iter;
 	for (iter = i_proc->m_procInitAction.begin(); iter != i_proc->m_procInitAction.end(); ++iter) {
                 if ((*iter)->execute() != 0) {
-                        LOG_ER("SmfProcStateExecuting::executeInit:wrapup action %d failed", (*iter)->getId());
+			changeState(i_proc, SmfProcStateExecFailed::instance());
+                        LOG_ER("SmfProcStateExecuting::executeInit:init action %d failed", (*iter)->getId());
                         CAMPAIGN_EVT *errevt = new CAMPAIGN_EVT();
                         errevt->type = CAMPAIGN_EVT_PROCEDURE_RC;
                         errevt->event.procResult.rc = PROCEDURE_FAILED;
@@ -355,7 +356,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 			} else {
 				changeState(i_proc, SmfProcStateExecFailed::instance());
 
-				TRACE("Step %s failed, sending procedure failed %s",
+				LOG_ER("Step %s in procedure %s failed, send procedure failed event",
 				      (*iter)->getRdn().c_str(), i_proc->getProcName().c_str());
 
 				CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
@@ -378,6 +379,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 /* Online uninstallation of old software */
                 LOG_NO("PROC: Online uninstallation of old software");
                 if ((*iter)->onlineRemoveBundles((*iter)->getSwNode()) == false) {
+			changeState(i_proc, SmfProcStateExecFailed::instance());
                         LOG_ER("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
                         CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
                         evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
@@ -391,6 +393,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
                 /* Delete SaAmfNodeSwBundle object */
                 LOG_NO("PROC: Delete SaAmfNodeSwBundle object");
                 if ((*iter)->deleteSaAmfNodeSwBundles((*iter)->getSwNode()) == false) {
+			changeState(i_proc, SmfProcStateExecFailed::instance());
                         LOG_ER("SmfProcStateExecuting::executeStep:Failed to delete SaAmfNodeSwBundle object");
                         CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
                         evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
@@ -427,23 +430,28 @@ SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
 	std::vector < SmfUpgradeAction * >::iterator iter;
 	for (iter = i_proc->m_procWrapupAction.begin(); iter != i_proc->m_procWrapupAction.end(); ++iter) {
 		if ((*iter)->execute() != 0) {
+			changeState(i_proc, SmfProcStateExecFailed::instance());
 			LOG_ER("wrapup action %d failed", (*iter)->getId());
+			TRACE("SmfProcStateExecuting::executeWrapup, Sending CAMPAIGN_EVT_PROCEDURE_RC event to campaign thread. RC=PROCEDURE_FAILED");
+                        CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+                        evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+                        evt->event.procResult.rc = PROCEDURE_FAILED;
+                        evt->event.procResult.procedure = i_proc;
+                        SmfCampaignThread::instance()->send(evt);
+                        TRACE_LEAVE();
+                        return;
 		}
 	}
 
-	changeState(i_proc, SmfProcStateExecutionCompleted::instance());
-	rc = PROCEDURE_COMPLETED;
-
 	TRACE("SmfProcStateExecuting::executeWrapup, Wrapup actions finished for procedure %s ",
 	      i_proc->getProcName().c_str());
-	TRACE("SmfProcStateExecuting::executeWrapup, Sending CAMPAIGN_EVT_PROCEDURE_RC event to campaign thread. RC=%u",
-	      rc);
+	TRACE("SmfProcStateExecuting::executeWrapup, Sending CAMPAIGN_EVT_PROCEDURE_RC event to campaign thread. RC=PROCEDURE_COMPLETED");
 
 	LOG_NO("PROC: Upgrade procedure completed %s", i_proc->getProcName().c_str());
-
+	changeState(i_proc, SmfProcStateExecutionCompleted::instance());
 	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
 	evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
-	evt->event.procResult.rc = rc;
+	evt->event.procResult.rc = PROCEDURE_COMPLETED;
 	evt->event.procResult.procedure = i_proc;
 	SmfCampaignThread::instance()->send(evt);
 
