@@ -54,8 +54,7 @@ class SmfTargetEntityTemplate;
 typedef enum {
 	SMF_AU_NONE = 1,
 	SMF_AU_AMF_NODE = 2,
-	SMF_AU_SU = 3,
-	SMF_AU_COMP = 4
+	SMF_AU_SU_COMP = 3
 } SmfAuT;
 
 /* ========================================================================
@@ -355,18 +354,8 @@ class SmfUpgradeProcedure {
 /// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
 /// @return   None.
 ///
-	bool addStepModificationsSu(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
+	bool addStepModificationsSuComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
 				    const std::list < SmfImmModifyOperation * >&i_modificationList);
-
-///
-/// Purpose:  Add IMM step modifications for AU of type Component
-/// @param    i_newStep A pointer to a SmfUpgradeStep object.
-/// @param    i_parentType A pointer to a SmfParentType object.
-/// @param    i_modificationList A list of pointers to SmfImmModifyOperation objects.
-/// @return   True if successful otherwise false
-///
-	bool addStepModificationsComp(SmfUpgradeStep * i_newStep, const SmfParentType * i_parentType,
-				      const std::list < SmfImmModifyOperation * >&i_modificationList);
 
 ///
 /// Purpose:  Add IMM modification list to step
