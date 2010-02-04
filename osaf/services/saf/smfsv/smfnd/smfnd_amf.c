@@ -165,10 +165,15 @@ static SaAisErrorT amf_healthcheck_start(smfnd_cb_t * cb)
 	memset(&healthy, 0, sizeof(healthy));
 	health_key = getenv("SMFSV_ENV_HEALTHCHECK_KEY");
 
-	if (health_key == NULL)
+	if (health_key == NULL) {
 		strcpy((char *)healthy.key, "A1B2");
-	else
+	} else {
+		if (strlen(health_key) > SA_AMF_HEALTHCHECK_KEY_MAX) {
+			LOG_ER("amf_healthcheck_start(): Helthcheck key to long");
+			return SA_AIS_ERR_NAME_TOO_LONG;
+		}
 		strcpy((char *)healthy.key, health_key);
+	}
 
 	healthy.keyLen = strlen((const char *)healthy.key);
 

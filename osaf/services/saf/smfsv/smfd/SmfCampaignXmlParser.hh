@@ -44,7 +44,6 @@ class SmfActivationUnitType;
 class SmfImmOperation;
 class SmfImmModifyOperation;
 class SmfImmCreateOperation;
-class SaImmAttrValuesT;
 class SmfCliCommandAction;
 class SmfImmCcbAction;
 class SmfAdminOperationAction;

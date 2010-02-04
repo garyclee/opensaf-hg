@@ -367,7 +367,7 @@ int main(int argc, char *argv[])
 
 	main_process();
 
-	exit(0);
+	exit(EXIT_SUCCESS);
  done:
 	if (smfd_cb->nid_started == 1) {
 		if (nid_notify("SMFD", NCSCC_RC_FAILURE, NULL) !=
@@ -376,5 +376,5 @@ int main(int argc, char *argv[])
 	}
 
 	LOG_ER("SMFD failed, exiting...");
-	exit(1);
+	exit(EXIT_FAILURE);
 }

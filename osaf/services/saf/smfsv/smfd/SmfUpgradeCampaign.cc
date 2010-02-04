@@ -273,39 +273,31 @@ void SmfUpgradeCampaign::sortProceduresInExecLevelOrder()
 	TRACE_ENTER();
 
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
-	std::vector < int >levels;
-	//Find out used procedure execution levels, just one entry for each level
-	int lev = -1;
-	iter = m_procedure.begin();
-	while (iter != m_procedure.end()) {
-		if ((*iter)->getExecLevel() > lev) {
-			lev = (*iter)->getExecLevel();
-			levels.push_back(lev);
-		}
+	std::list < int >levels;
 
-		iter++;
+	//Find out used procedure execution levels, just one entry for each level
+	for (iter = m_procedure.begin();iter != m_procedure.end(); iter++) {
+		levels.push_back((*iter)->getExecLevel());
 	}
 
-	//Sort the execution level vector
-	std::sort(levels.begin(), levels.end());
+	//Sort the execution levels and remove duplicates
+	levels.sort();
+	levels.unique();
 
 	//Create a sorted procedure vector
 	std::vector < SmfUpgradeProcedure * >sortedProc;
 
-	std::vector < int >::iterator levelIter;
-	levelIter = levels.begin();
-	while (levelIter != levels.end()) {
+	std::list < int >::iterator levelIter;
+	for (levelIter = levels.begin(); levelIter != levels.end(); levelIter++) {
 		iter = m_procedure.begin();
 		while (iter != m_procedure.end()) {
 			if ((*levelIter) == (*iter)->getExecLevel())
 				sortedProc.push_back(*iter);
 			iter++;
 		}
-
-		levelIter++;
 	}
 
-	//Copy the sorted procedure vector to class member member
+	//Copy the sorted procedure vector to class member
 	m_procedure = sortedProc;
 
 	TRACE_LEAVE();

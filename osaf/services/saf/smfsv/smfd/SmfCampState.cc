@@ -30,6 +30,7 @@
 #include "SmfCampaign.hh"
 #include "SmfProcedureThread.hh"
 #include <immutil.h>
+#include <sstream>
 
 /* ========================================================================
  *   DEFINITIONS
@@ -215,10 +216,17 @@ void
 SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
+	std::string error;
+	std::string s;
+	std::stringstream out;
 
 	TRACE("SmfCampStateInitial::execute implementation");
 
 	LOG_NO("CAMP: Start upgrade campaign %s", i_camp->getCampaignName().c_str());
+
+	//Reset error string in case the previous prerequsites check failed
+        //In such case an error string is present in initial state
+	SmfCampaignThread::instance()->campaign()->setError("");
 
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
@@ -237,10 +245,17 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		TRACE("Executing repository check cmd %s", smfd_cb->repositoryCheckCmd);
 		int rc = system(smfd_cb->repositoryCheckCmd);
 		if (rc != 0) {
-			LOG_ER("CAMP: Repository check command %s failed %d", smfd_cb->repositoryCheckCmd, rc);
+			error = "CAMP: Repository check command ";
+			error += smfd_cb->repositoryCheckCmd;
+			error += " failed ";
+			out << rc;
+			s = out.str();
+			error += s;
+			goto exit_error;
 		}
 	} else {
-		LOG_ER("CAMP: No Repository check command found");
+		error = "CAMP: No Repository check command found";
+		goto exit_error;
 	}
 
 	LOG_NO("CAMP: Create system backup %s", i_camp->getCampaignName().c_str());
@@ -252,10 +267,17 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		TRACE("Executing backup create cmd %s", backupCmd.c_str());
 		int rc = system(backupCmd.c_str());
 		if (rc != 0) {
-			LOG_ER("CAMP: Backup create command %s failed %d", backupCmd.c_str(), rc);
+			error = "CAMP: Backup create command ";
+			error += smfd_cb->repositoryCheckCmd;
+			error += " failed ";
+			out << rc;
+			s = out.str();
+			error += s;
+			goto exit_error;
 		}
 	} else {
-		LOG_ER("CAMP: No backup create command found");
+		error = "CAMP: No backup create command  found";
+		goto exit_error;
 	}
 
 	LOG_NO("CAMP: Start executing campaign %s", i_camp->getCampaignName().c_str());
@@ -265,6 +287,15 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	i_camp->execute();
 
 	TRACE_LEAVE();
+	return;
+
+exit_error:
+	LOG_ER(error.c_str());
+	SmfCampaignThread::instance()->campaign()->setError(error);
+	//Remain in state initial if prerequsites check or SMF backup fails
+//	changeState(i_camp, SmfCampStateExecFailed::instance());
+	TRACE_LEAVE();
+	return;
 }
 
 //------------------------------------------------------------------------------
@@ -429,10 +460,15 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
 		//If the state is initial and the execution level is new or the same as 
-		//procedure just started.
+		//the procedure just started.
 		TRACE("SmfCampStateExecuting::executeProc, procedure %s, state=%u, execLevel=%d",
 		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
-		TRACE("SmfCampStateExecuting::executeProc, current execLevel=%d", execLevel);
+
+		if (execLevel != -1) {
+			TRACE("SmfCampStateExecuting::executeProc, a procedure already run at execLevel=%d, start parallel procedure", 
+			      execLevel);
+		}
+
 		if (((*iter)->getState() == SA_SMF_PROC_INITIAL)
 		    && ((execLevel == -1)
 			|| (execLevel == (*iter)->getExecLevel()))) {

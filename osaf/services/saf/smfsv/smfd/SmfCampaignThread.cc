@@ -143,6 +143,11 @@ int
 		return -1;
 	}
 
+	if ((rc =m_NCS_TASK_DETACH(m_task_hdl)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("TASK_START_DETACH\n");
+		return -1;
+	}
+
 	if ((rc = m_NCS_TASK_START(m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_START_FAILED\n");
 		return -1;
@@ -270,8 +275,13 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 class
 	strcpy((char *)ntfStateNot.notificationHeader.notifyingObject->value, SMF_NOTIFYING_OBJECT);
 
 	/* Notification object */
-	ntfStateNot.notificationHeader.notificationObject->length = dn.length();
-	strcpy((char *)ntfStateNot.notificationHeader.notificationObject->value, dn.c_str());
+	SaUint16T length = dn.length();
+	if (length > SA_MAX_NAME_LENGTH) {
+		TRACE("notificationHeader length was %d, truncated to 256", length);
+		length = 256;
+	}
+	ntfStateNot.notificationHeader.notificationObject->length = length;
+	strncpy((char *)ntfStateNot.notificationHeader.notificationObject->value, dn.c_str(), length);
 
 	/* Event type */
 	*(ntfStateNot.notificationHeader.eventType) = SA_NTF_OBJECT_STATE_CHANGE;
