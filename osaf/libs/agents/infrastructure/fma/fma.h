@@ -39,7 +39,5 @@
 #include "fma_log.h"
 #include "fma_mds.h"
 #include "fma_cb.h"
-#include "hpl_api.h"
-#include "hisv_msg.h"
 
 #endif

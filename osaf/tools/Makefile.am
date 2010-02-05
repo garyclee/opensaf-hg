@@ -19,9 +19,3 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = safimm saflog safntf
-
-if ENABLE_HPI
-
-SUBDIRS += hisv_events_demo hisv_power_set_util
-
-endif

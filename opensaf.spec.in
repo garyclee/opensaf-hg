@@ -407,9 +407,6 @@ Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-smf-director = %{version}-%{release}
 Requires: %{name}-smf-nodedirector = %{version}-%{release}
 %endif
-%if %is_openhpi
-Requires: openhpi
-%endif
 
 %description controller
 
@@ -512,9 +509,6 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 Group: Applications/System
 Summary: Optional tools for OpenSAF
 Requires: %{name}-devel = %{version}-%{release}
-%if %is_openhpi
-Requires: openhpi
-%endif
 
 %description tools
 
@@ -702,12 +696,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc
-%if %is_openhpi
-%{_pkglibdir}/openhpid_clean
-%{_pkglibdir}/openhpid_start
-%{_pkglibdir}/openhpisubagt_clean
-%{_pkglibdir}/openhpisubagt_start
-%endif
 %{_pkglibdir}/tipc_reset.sh
 
 
@@ -902,12 +890,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_dts
 %{_pkglibdir}/ncs_dts_clean
 %{_pkglibdir}/ncs_dts_start
-#TODO: To be changed when supporting other HPI
-%if %is_hpi
-%{_pkglibdir}/ncs_hisv
-%{_pkglibdir}/ncs_hisv_clean
-%{_pkglibdir}/ncs_hisv_start
-%endif
 %{_pkglibdir}/ncs_rde
 %{_pkglibdir}/ncs_rde_clean
 %{_pkglibdir}/ncs_rde_start
@@ -931,10 +913,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/librde_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
-#TODO: To be changed when supporting other HPI
-%if %is_hpi
-%{_pkglibdir}/libhisv_logstr.so.*
-%endif
 
 
 %files payload
@@ -953,7 +931,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libfma.so.*
-%{_pkglibdir}/libhpl.so.*
 
 
 %files devel
@@ -992,10 +969,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 #TODO: Clean when scap/pcap will be split into amfd/amfnd and PLM introduced
 %files tools
 %defattr(-,root,root)
-%if %is_hpi
-%{_bindir}/hisv_events_demo
-%{_bindir}/hisv_power_set_util
-%endif
 %{_bindir}/opensaf_mem_dump
 %{_bindir}/amf-adm
 %{_bindir}/amf-find

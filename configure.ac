@@ -718,13 +718,6 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/fm/config/Makefile
         osaf/services/infrastructure/fm/fms/scripts/Makefile
         osaf/services/infrastructure/fm/fms/scripts/opensaf_fms
-        osaf/services/infrastructure/hisv/Makefile
-        osaf/services/infrastructure/hisv/hcd/Makefile
-        osaf/services/infrastructure/hisv/hpl/Makefile
-        osaf/services/infrastructure/hisv/include/Makefile
-        osaf/services/infrastructure/hisv/logstr/Makefile
-        osaf/services/infrastructure/hisv/scripts/Makefile
-        osaf/services/infrastructure/hisv/scripts/ncs_hisv_start
         osaf/services/infrastructure/nid/Makefile
         osaf/services/infrastructure/nid/config/Makefile
         osaf/services/infrastructure/nid/scripts/Makefile
@@ -820,8 +813,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/smfsv/smfnd/scripts/Makefile
         osaf/services/saf/smfsv/smfnd/scripts/smfnd_script
         osaf/tools/Makefile
-        osaf/tools/hisv_events_demo/Makefile
-        osaf/tools/hisv_power_set_util/Makefile
         osaf/tools/safimm/Makefile
         osaf/tools/safimm/immadm/Makefile
         osaf/tools/safimm/immcfg/Makefile
@@ -842,10 +833,6 @@ AC_CONFIG_FILES([
         scripts/collect_logs_controller
         scripts/collect_logs_payload
         scripts/get_ha_state
-        scripts/openhpid_clean
-        scripts/openhpid_start
-        scripts/openhpisubagt_clean
-        scripts/openhpisubagt_start
         scripts/tipc_reset.sh
         tests/avsv/amfoitest/Makefile
         tests/immsv/implementer/Makefile

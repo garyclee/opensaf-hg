@@ -301,7 +301,7 @@ uns32 rde_flex_log_ascii_set_dereg(void)
 /****************************************************************************
  * Name          : rde_log_str_lib_req
  *
- * Description   : Library entry point for hisv log string library.
+ * Description   : Library entry point for rde log string library.
  *
  * Arguments     : req_info  - This is the pointer to the input information
  *                             which SBOM gives.

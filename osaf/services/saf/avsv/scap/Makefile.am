@@ -43,7 +43,6 @@ opensaf_scap_LDADD = \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/services/saf/avsv/avd/libavd.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_ctrl.la \
-	$(top_builddir)/osaf/services/infrastructure/hisv/hpl/libhpl.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la

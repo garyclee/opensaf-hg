@@ -82,10 +82,6 @@
 #include "eds_dl_api.h"
 #endif
 
-#if (NCS_HISV == 1)
-#include "hisv_dl_api.h"
-#endif
-
 #if (NCS_PDRBD == 1)
 #include "pdrbd_dl_api.h"
 #endif
@@ -121,10 +117,6 @@
 
 #if (NCS_EDSV_LOG == 1)
 #include "edsv_logstr.h"
-#endif
-
-#if (NCS_HISV_LOG == 1)
-#include "hisv_logstr.h"
 #endif
 #endif   /* NCS_DTS */
 
@@ -290,19 +282,6 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 			printf("GLND lib request failed\n");
 			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 		}
-#endif
-	}
-
-	if ('n' != ncs_util_get_char_option(argc, argv, "HISV=")) {
-#if (NCS_HISV == 1)
-		/* Init HISV */
-		m_NCS_DBG_PRINTF("\nHISV:ON");
-		if (ncs_hisv_hcd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("\nHISV:HCD lib create failed");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		} else
-			m_NCS_DBG_PRINTF("\nHISV:HCD libcreate success");
 #endif
 	}
 

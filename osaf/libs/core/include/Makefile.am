@@ -22,8 +22,6 @@ pkginclude_HEADERS = \
 	cpsv_papi.h \
 	dta_papi.h \
 	dts_papi.h \
-	hpl_api.h \
-	hpl_msg.h \
 	ip_defs.h \
 	mbcsv_papi.h \
 	mds_papi.h \
