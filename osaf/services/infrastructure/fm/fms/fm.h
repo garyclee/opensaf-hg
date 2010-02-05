@@ -65,8 +65,6 @@
 
 /* HPI include file. */
 #include <SaHpi.h>
-#include "hpl_api.h"
-#include "hpl_msg.h"
 
 #include "rda_papi.h"
 #include "fm_papi.h"

@@ -184,7 +184,7 @@ function ncs_status () {
 
 NCS_MAX_PROCESS=13
 count=0;
-declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_scap ncs_ifnd ncs_cpnd ncs_cpd ncs_ifd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld ncs_hisv)
+declare process[NCS_MAX_PROCESS]=(ncs_dts ncs_scap ncs_cpnd ncs_cpd ncs_eds ncs_mqnd ncs_glnd ncs_mqd ncs_gld)
 
 for k in `ps -e | grep ncs_ | grep -v ncs_tipc.sh | grep -v xterm | grep -v gdb | awk '{print $4}'`; do
 status=false;

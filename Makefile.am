@@ -157,17 +157,6 @@ dist_pkglib_SCRIPTS = \
 nodist_pkglib_SCRIPTS = \
 	$(top_builddir)/scripts/tipc_reset.sh 
 
-if WITH_OPENHPI
-
-nodist_pkglib_SCRIPTS += \
-	$(top_builddir)/scripts/openhpid_clean \
-	$(top_builddir)/scripts/openhpid_start \
-	$(top_builddir)/scripts/openhpisubagt_clean \
-	$(top_builddir)/scripts/openhpisubagt_start
-
-endif
-
-
 if ENABLE_RPM_TARGET
 
 RPMTOPDIR = `pwd`/rpms

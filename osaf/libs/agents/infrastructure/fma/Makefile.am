@@ -32,8 +32,7 @@ noinst_HEADERS = \
 
 libfma_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/services/infrastructure/fm/include \
-	-I$(top_srcdir)/osaf/services/infrastructure/hisv/include
+	-I$(top_srcdir)/osaf/services/infrastructure/fm/include
 
 libfma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 

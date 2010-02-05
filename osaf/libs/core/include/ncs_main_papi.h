@@ -65,7 +65,6 @@ extern "C" {
 \***********************************************************************/
 	EXTERN_C unsigned int ncs_core_agents_startup(int argc, char *argv[]);
 	EXTERN_C unsigned int ncs_mbca_startup(int argc, char *argv[]);
-	EXTERN_C unsigned int ncs_hisv_hpl_startup(int argc, char *argv[]);
 
 	EXTERN_C unsigned int ncs_leap_startup(int argc, char *argv[]);
 	EXTERN_C unsigned int ncs_mds_startup(int argc, char *argv[]);
@@ -73,7 +72,6 @@ extern "C" {
 
 	EXTERN_C unsigned int ncs_mbca_shutdown(void);
 	EXTERN_C unsigned int ncs_core_agents_shutdown(void);
-	EXTERN_C unsigned int ncs_hisv_hpl_shutdown(void);
 
 	EXTERN_C void ncs_dta_shutdown(void);
 	EXTERN_C void ncs_mds_shutdown(void);

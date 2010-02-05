@@ -323,13 +323,13 @@ static uns32 fm_hpl_init(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Initialize with HPL. */
-	memset(&req_info, '\0', sizeof(req_info));
+	/*memset(&req_info, '\0', sizeof(req_info));
 	req_info.i_op = NCS_LIB_REQ_CREATE;
 	rc = ncs_hpl_lib_req(&req_info);
 	if (rc != NCSCC_RC_SUCCESS) {
 		printf("hpl lib init failed\n ");
 		return rc;
-	}
+	}*/
 
 	return rc;
 }
@@ -351,9 +351,9 @@ static uns32 fm_hpl_finalize(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Initialize with HPL. */
-	memset(&req_info, '\0', sizeof(req_info));
+	/*memset(&req_info, '\0', sizeof(req_info));
 	req_info.i_op = NCS_LIB_REQ_DESTROY;
-	rc = ncs_hpl_lib_req(&req_info);
+	rc = ncs_hpl_lib_req(&req_info);*/
 
 	return rc;
 }
@@ -492,7 +492,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			fm_conv_shelf_slot_to_entity_path(entity_path, fm_cb->peer_shelf,
 							  fm_mbx_evt->slot, fm_mbx_evt->sub_slot);
 			if (fm_cb->is_platform == TRUE)
-				hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+				syslog(LOG_INFO, "FIXME: Removed HISv integration\n");
+				/*hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);*/
 			else {
 				if (fm_mbx_evt->slot == fm_cb->peer_slot &&
 				    fm_mbx_evt->sub_slot == fm_cb->peer_sub_slot) {
@@ -546,7 +547,8 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			       fm_cb->peer_slot);
 
 			if (fm_cb->is_platform == TRUE)
-				status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+				syslog(LOG_INFO, "FIXME: Removed HISv integration\n");
+				/*status = hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);*/
 			else
 				status = fms_reset_peer(fm_cb);
 
@@ -571,8 +573,9 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 			       fm_cb->peer_slot);
 
 			if (fm_cb->is_platform == TRUE)
+				syslog(LOG_INFO, "FIXME: Removed HISv integration\n");
 				/* Don't care what is return status */
-				hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);
+				/*hpl_resource_reset(fm_cb->peer_shelf, entity_path, HISV_RES_GRACEFUL_REBOOT);*/
 			else
 				fms_reset_peer(fm_cb);
 

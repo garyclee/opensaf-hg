@@ -644,7 +644,7 @@ void fma_get_ent_path_from_slot_site(SaHpiEntityPathT *o_ent_path, FMA_CB *cb, u
 #endif
 	if (cb->is_platform == TRUE) {
 		/* Attempt to lookup the array-based entity-path first using the HISv lookup fn */
-		rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *)&temp_epath, sizeof(temp_epath));
+		/*rc = hpl_entity_path_lookup(HPL_EPATH_FLAG_ARRAY, shelf, slot, (uns8 *)&temp_epath, sizeof(temp_epath));*/
 	}
 #ifdef HAVE_HPI_A01
 	o_ent_path->Entry[2].EntityType = SAHPI_ENT_ROOT;
@@ -745,13 +745,13 @@ static uns32 fma_hpl_init(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Initialize with HPL. */
-	memset(&req_info, '\0', sizeof(req_info));
+	/*memset(&req_info, '\0', sizeof(req_info));
 	req_info.i_op = NCS_LIB_REQ_CREATE;
 	rc = ncs_hpl_lib_req(&req_info);
 	if (rc != NCSCC_RC_SUCCESS) {
 		printf("hpl lib init failed\n ");
 		return rc;
-	}
+	}*/
 
 	return rc;
 }
@@ -773,9 +773,9 @@ static uns32 fma_hpl_finalize(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Initialize with HPL. */
-	memset(&req_info, '\0', sizeof(req_info));
+	/*memset(&req_info, '\0', sizeof(req_info));
 	req_info.i_op = NCS_LIB_REQ_DESTROY;
-	rc = ncs_hpl_lib_req(&req_info);
+	rc = ncs_hpl_lib_req(&req_info);*/
 
 	return rc;
 }
