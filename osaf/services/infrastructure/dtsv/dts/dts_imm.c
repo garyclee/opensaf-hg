@@ -166,7 +166,8 @@ SaAisErrorT dts_saImmOiClassImplementerRelease(SaImmOiHandleT immOiHandle, const
 		nTries++;
 	}
 	if (rc != SA_AIS_OK) {
-		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerRelease of ClassName = %s is Failed, rc = %u", className, rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerRelease of ClassName = %s is Failed, rc = %u",
+			className, rc);
 		exit(EXIT_FAILURE);
 	}
 
@@ -193,7 +194,8 @@ SaAisErrorT dts_saImmOiClassImplementerSet(SaImmOiHandleT immOiHandle, const SaI
 		nTries++;
 	}
 	if (rc != SA_AIS_OK) {
-		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerSet of ClassName = %s is Failed, rc = %u", className, rc);
+		dts_log(NCSFL_SEV_ERROR, "saImmOiClassImplementerSet of ClassName = %s is Failed, rc = %u", className,
+			rc);
 		exit(EXIT_FAILURE);
 	}
 
@@ -276,7 +278,7 @@ static SaAisErrorT dts_saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle
 
 		/* Find the RDN attribute and store the object DN */
 		while ((attrValue = attr[i++]) != NULL) {
-			if (!strncmp(attrValue->attrName, "saf", 3)) {
+			if (!strncmp(attrValue->attrName, "opensaf", 7)) {
 				if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 					SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
 					if ((parentName != NULL) && (parentName->length > 0)) {
@@ -410,6 +412,7 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
 	const SaImmAttrModificationT_2 *attrMod;
+	const SaImmAttrValuesT_2 *attribute = NULL;
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		dts_log(NCSFL_SEV_ERROR, "Failed to find CCB object");
@@ -425,15 +428,21 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 	while (ccbUtilOperationData) {
 		int i = 0;
 		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafServiceLogPolicy=", 24)) {
-			switch (ccbUtilOperationData->operationType) {
-			case CCBUTIL_DELETE:
-				break;
-			case CCBUTIL_CREATE:
-			case CCBUTIL_MODIFY:
-				attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-				while (attrMod) {
+			if (ccbUtilOperationData->operationType == CCBUTIL_DELETE)
+				return SA_AIS_OK;
+			if (ccbUtilOperationData->operationType == CCBUTIL_CREATE
+			    || ccbUtilOperationData->operationType == CCBUTIL_MODIFY) {
+				if (ccbUtilOperationData->operationType == CCBUTIL_MODIFY) {
+					attrMod = ccbUtilOperationData->param.modify.attrMods[i];
+					if (attrMod)
+						attribute = &attrMod->modAttr;
+					else
+						attribute = NULL;
+				} else
+					attribute = ccbUtilOperationData->param.create.attrValues[i];
+
+				while (attribute) {
 					SaUint32T value;
-					const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
 
 					if (attribute->attrValuesNumber == 0) {
 						return SA_AIS_ERR_BAD_OPERATION;
@@ -450,7 +459,8 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						if ((value < 100) || (value > 10000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceFileLogCompFormat")) {
-						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceFileLogCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceFileLogCompFormat %u\n",
+							value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCircularBuffSize")) {
@@ -458,7 +468,8 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						if ((value < 10) || (value > 1000))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCirBuffCompFormat")) {
-						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCirBuffCompFormat %u\n", value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCirBuffCompFormat %u\n",
+							value);
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceLoggingState")) {
@@ -468,16 +479,27 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceCategoryBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvServiceSeverityBitMap")) {
-						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvServiceSeverityBitMap %u\n",
+							*(uns16 *)&value);
+					} else if (!strcmp(attribute->attrName, "opensafServiceLogPolicy")) {
+						dts_log(NCSFL_SEV_DEBUG, "RDN = %s", (char *)value);
 					} else {
-						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n",
+							attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
-					attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
+					if (ccbUtilOperationData->operationType == CCBUTIL_MODIFY) {
+						attrMod = ccbUtilOperationData->param.modify.attrMods[++i];
+						if (attrMod)
+							attribute = &attrMod->modAttr;
+						else
+							attribute = NULL;
+					} else
+						attribute = ccbUtilOperationData->param.create.attrValues[++i];
 
-				}	/* end of while(attrMod) */
-			}	/* end of switch */
+				}	/* end of while(attribute) */
+			}	/* end of if */
 		}
 		/* end of if opensafServicePolily */
 		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafGlobalLogPolicy=", 23)) {
@@ -529,7 +551,8 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalCategoryBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalSeverityBitMap")) {
-						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalSeverityBitMap %u\n",
+							*(uns16 *)&value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvGlobalNumOfLogFiles")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvGlobalNumOfLogFiles %u\n", value);
 						if ((value < 1) || (value > 255))
@@ -543,7 +566,8 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 						if ((value < 0) || (value > 1))
 							return SA_AIS_ERR_BAD_OPERATION;
 					} else {
-						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n",
+							attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
@@ -553,15 +577,21 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 		}
 
 		if (!strncmp((char *)ccbUtilOperationData->objectName.value, "opensafNodeLogPolicy=", 21)) {
-			switch (ccbUtilOperationData->operationType) {
-			case CCBUTIL_DELETE:
-				break;
-			case CCBUTIL_CREATE:
-			case CCBUTIL_MODIFY:
-				attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-				while (attrMod) {
+			if (ccbUtilOperationData->operationType == CCBUTIL_DELETE)
+				return SA_AIS_OK;
+			if ((ccbUtilOperationData->operationType == CCBUTIL_CREATE)
+			    || (ccbUtilOperationData->operationType == CCBUTIL_MODIFY)) {
+				if (ccbUtilOperationData->operationType == CCBUTIL_MODIFY) {
+					attrMod = ccbUtilOperationData->param.modify.attrMods[i];
+					if (attrMod)
+						attribute = &attrMod->modAttr;
+					else
+						attribute = NULL;
+				} else
+					attribute = ccbUtilOperationData->param.create.attrValues[i];
+
+				while (attribute) {
 					SaUint32T value;
-					const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
 
 					if (attribute->attrValuesNumber == 0) {
 						return SA_AIS_ERR_BAD_OPERATION;
@@ -601,14 +631,25 @@ static SaAisErrorT dts_saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, S
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeCategoryBitMap")) {
 						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeCategoryBitMap %u\n", value);
 					} else if (!strcmp(attribute->attrName, "osafDtsvNodeSeverityBitMap")) {
-						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap %u\n", *(uns16 *)&value);
+						dts_log(NCSFL_SEV_DEBUG, "osafDtsvNodeSeverityBitMap %u\n",
+							*(uns16 *)&value);
+					} else if (!strcmp(attribute->attrName, "opensafNodeLogPolicy")) {
+						dts_log(NCSFL_SEV_DEBUG, "RDN = %s", (char *)value);
 					} else {
-						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n", attribute->attrName);
+						dts_log(NCSFL_SEV_ERROR, "invalid attribute = %s\n",
+							attribute->attrName);
 						return SA_AIS_ERR_BAD_OPERATION;
 					}
 
-					attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-				}	/* end of while (attrMod) */
+					if (ccbUtilOperationData->operationType == CCBUTIL_MODIFY) {
+						attrMod = ccbUtilOperationData->param.modify.attrMods[++i];
+						if (attrMod)
+							attribute = &attrMod->modAttr;
+						else
+							attribute = NULL;
+					} else
+						attribute = ccbUtilOperationData->param.create.attrValues[++i];
+				}	/* end of while (attribute) */
 			}
 		}		/* end of strcmp(objName, Nodepolicy) */
 		ccbUtilOperationData = ccbUtilOperationData->next;
