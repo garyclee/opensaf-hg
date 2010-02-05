@@ -744,7 +744,7 @@ SmfUpgradeStep::createOneSaAmfNodeSwBundle(
 
 	SmfImmAttribute attrsafInstalledSwBundle;
 	attrsafInstalledSwBundle.setName("safInstalledSwBundle");
-	attrsafInstalledSwBundle.setType("SA_IMM_ATTR_SASTRINGT");
+	attrsafInstalledSwBundle.setType("SA_IMM_ATTR_SANAMET");
 	attrsafInstalledSwBundle.addValue("safInstalledSwBundle=" + escapedDn);
 	icoSaAmfNodeSwBundle.addValue(attrsafInstalledSwBundle);
 
