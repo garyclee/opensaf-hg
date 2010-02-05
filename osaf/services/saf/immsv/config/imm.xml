@@ -213,7 +213,7 @@
 		<category>SA_CONFIG</category>
 		<rdn>
 			<name>safInstalledSwBundle</name>
-			<type>SA_STRING_T</type>
+			<type>SA_NAME_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
 		</rdn>
