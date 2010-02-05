@@ -36,10 +36,8 @@ opensaf_scap_SOURCES = \
 
 opensaf_scap_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/common/edsv/libedsv_common.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
-	$(top_builddir)/osaf/libs/saf/libSaEvt/libSaEvt.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/services/saf/avsv/avd/libavd.la \
 	$(top_builddir)/osaf/services/saf/avsv/avnd/libavnd_ctrl.la \
