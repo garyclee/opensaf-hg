@@ -557,6 +557,11 @@ static void fm_mbx_msg_handler(FM_CB *fm_cb, FM_EVT *fm_mbx_evt)
 				fm_tmr_start(&fm_cb->reset_retry_tmr, fm_cb->reset_retry_tmr_val);
 			}
 
+			if (( fm_cb->is_platform != TRUE ) && ( status == NCSCC_RC_SUCCESS )) {
+				/* Wait for the other node  to go down, case of SCAP kill on active controller */
+				sleep(5);
+			}
+
 			/* Set RDA role to active */
 			fm_rda_set_role(fm_cb, PCS_RDA_ACTIVE);
 		} else if (fm_mbx_evt->info.fm_tmr->type == FM_TMR_RESET_RETRY) {

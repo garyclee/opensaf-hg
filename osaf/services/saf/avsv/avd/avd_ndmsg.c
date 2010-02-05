@@ -325,6 +325,12 @@ uns32 avd_d2n_msg_snd(AVD_CL_CB *cb, AVD_AVND *nd_node, AVD_DND_MSG *snd_msg)
 	m_AVD_LOG_FUNC_ENTRY("avd_d2n_msg_snd");
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, snd_msg, sizeof(AVD_DND_MSG), snd_msg);
 
+	if(nd_node->adest == 0) {
+		avd_log(NCSFL_SEV_WARNING, "Invalid adest for %x, msg type %u",
+			nd_node->node_info.nodeId, snd_msg->msg_type);
+		return NCSCC_RC_FAILURE;
+	}
+
 	memset(&snd_mds, '\0', sizeof(NCSMDS_INFO));
 
 	snd_mds.i_mds_hdl = cb->adest_hdl;

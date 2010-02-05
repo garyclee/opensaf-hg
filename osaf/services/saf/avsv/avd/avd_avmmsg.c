@@ -300,6 +300,7 @@ uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *cb, SaNameT *node)
 ******************************************************************************/
 uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 {
+#if 0
 	AVD_AVM_MSG_T *snd_msg = m_MMGR_ALLOC_AVD_AVM_MSG;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -319,6 +320,33 @@ uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
 		m_MMGR_FREE_AVD_AVM_MSG(snd_msg);
 
 	return rc;
+#else
+	AVD_AVND *avnd = NULL;
+
+	/* Temporary hack till the plm and clm comes into picture */	
+	/* first get the avnd structure from the node name */
+	avnd = avd_node_get(node);
+
+	if (avnd == NULL) {
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (avnd->node_info.nodeId == cb->node_id_avd) {
+		ncs_reboot("A reset has been trigerred for this node");
+	} else if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
+
+		/* clean up the heartbeat timer for this node. */
+		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
+		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+
+		avd_avm_mark_nd_absent(cb, avnd);
+	}
+
+	return NCSCC_RC_SUCCESS;
+
+#endif
+
 }
 
 /****************************************************************************
