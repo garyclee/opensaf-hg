@@ -224,7 +224,7 @@ static uns32 log_initialize(const char *progname)
 
 	TRACE_ENTER();
 
-	if (ncspvt_svcs_startup(2, logd_argv, NULL) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup(2, logd_argv) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

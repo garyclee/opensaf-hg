@@ -23,13 +23,12 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = opensaf_pcap
 
 opensaf_pcap_CPPFLAGS = \
-	-DNCS_AVND=1 \
+	-DNCS_AVND=1 -DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
-	-DNCS_MAIN_EXTERNAL \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include
 
 opensaf_pcap_SOURCES = \
-	opensaf_pcap.c \
+	pcap_main.c \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
 opensaf_pcap_LDADD = \

@@ -23,16 +23,15 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = opensaf_scap
 
 opensaf_scap_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
 	-DNCS_MAIN_EXTERNAL \
-	-I$(top_srcdir)/osaf/services/saf/avsv/avm/include \
+	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include
 
 opensaf_scap_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 opensaf_scap_SOURCES = \
-	opensaf_scap.c \
+	scap_main.c \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
 opensaf_scap_LDADD = \

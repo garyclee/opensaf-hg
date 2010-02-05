@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2009 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -16,19 +16,19 @@
  */
 
 #include <stdio.h>
+#include <syslog.h>
 #include <libgen.h>
 
-#include <ncsgl_defs.h>
 #include <ncs_main_pvt.h>
-#include <ncs_lib.h> /* NCS_LIB_REQ_INFO */
+#include <ncs_lib.h>
 #include <ncssysf_sem.h>
 
 #include <logtrace.h>
 
+#include <avd_dl_api.h>
 #include <avnd_dl_api.h>
 
 static NCSCONTEXT avnd_sem;
-
 extern char gl_nid_svc_name[];
 
 static void sigusr1_handler(int sig)
@@ -58,13 +58,14 @@ int main(int argc, char **argv)
 {
 	uns32 error;
 	NCS_LIB_REQ_INFO lib_create;
+	char *scap_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 	const char *trace_file;
 
-	if ((trace_file = getenv("PCAP_TRACE_PATHNAME")) != NULL) {
+	if ((trace_file = getenv("SCAP_TRACE_PATHNAME")) != NULL) {
 		char *p;
 
 		if (logtrace_init(basename(argv[0]), trace_file) == 0) {
-			if ((p = getenv("PCAP_TRACE_CATEGORIES")) != NULL) {
+			if ((p = getenv("SCAP_TRACE_CATEGORIES")) != NULL) {
 				unsigned int mask = strtoul(p, NULL, 0);
 				trace_category_set(mask);
 				syslog(LOG_NOTICE, "trace enabled to file %s, mask %x", trace_file, mask);
@@ -73,9 +74,9 @@ int main(int argc, char **argv)
 			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
 	}
 
-	strcpy(gl_nid_svc_name, "PCAP");
+	strcpy(gl_nid_svc_name, "SCAP");
 
-	if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup(2, scap_argv) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "ncspvt_svcs_startup failed\n");
 		goto done;
 	}
@@ -83,6 +84,12 @@ int main(int argc, char **argv)
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
 	lib_create.info.create.argc = argc;
 	lib_create.info.create.argv = argv;
+
+	setenv("AVD", "ON", 1);
+	if (avd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		fprintf(stderr, "AVD lib request failed\n");
+		goto done;
+	}
 
 	if (avnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
 		fprintf(stderr, "AVND lib request failed\n");
@@ -116,8 +123,8 @@ int main(int argc, char **argv)
 
 	exit(0);
 
-	done:
-	(void) nid_notify("PCAP", NCSCC_RC_FAILURE, &error);
+done:
+	(void) nid_notify("SCAP", NCSCC_RC_FAILURE, &error);
 	fprintf(stderr, "failed, exiting\n");
 	exit(1);
 }
