@@ -78,13 +78,7 @@ int ncspvt_load_config_n_startup(int argc, char *argv[]);
                      3)  From Tetware main.
 
 \***********************************************************************/
-uns32 ncspvt_svcs_startup(int argc, char *argv[], FILE *fp);
-
-/***********************************************************************\
-   
-   ncspvt_svcs_shutdown: Opposite of ncspvt_svcs_startup()
-\***********************************************************************/
-uns32 ncspvt_svcs_shutdown(int argc, char *argv[]);
+uns32 ncspvt_svcs_startup(int argc, char *argv[]);
 
 /***********************************************************************\
 ****   

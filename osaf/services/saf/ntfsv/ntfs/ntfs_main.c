@@ -202,7 +202,7 @@ static uns32 initialize(const char *progname)
 		}
 	}
 
-	if (ncspvt_svcs_startup(2, ntfd_argv, NULL) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup(2, ntfd_argv) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (ncspvt_svcs_startup(argc, argv, NULL) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup(argc, argv) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

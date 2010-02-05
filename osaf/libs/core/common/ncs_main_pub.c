@@ -30,23 +30,16 @@
 #include "mds_papi.h"
 #include "ncs_main_papi.h"
 #include "ncs_mda_papi.h"
-#include "ncs_sprr_papi.h"
 #include "ncs_main_pvt.h"
 #include "ncs_lib.h"
 #include "mds_dl_api.h"
 #include "sprr_dl_api.h"
 #include "mda_dl_api.h"
 
-#if (NCS_VDS == 1)
-#include "vds_dl_api.h"
-#endif
-
 #if (NCS_AVA == 1)
 #include "ava_dl_api.h"
 #endif
-#if (NCS_AVD == 1)
-#include "avd_dl_api.h"
-#endif
+
 #if (NCS_AVND == 1)
 #include "avnd_dl_api.h"
 #endif
@@ -58,9 +51,11 @@
 #if (NCS_GLA == 1)
 #include "gla_dl_api.h"
 #endif
+
 #if (NCS_GLD == 1)
 #include "gld_dl_api.h"
 #endif
+
 #if (NCS_GLND == 1)
 #include "glnd_dl_api.h"
 #endif
@@ -68,18 +63,19 @@
 #if (NCS_MQA == 1)
 #include "mqa_dl_api.h"
 #endif
+
 #if (NCS_MQD == 1)
 #include "mqd_dl_api.h"
-#endif
-#if (NCS_MQND == 1)
 #endif
 
 #if (NCS_CPA == 1)
 #include "cpa_dl_api.h"
 #endif
+
 #if (NCS_CPD == 1)
 #include "cpd_dl_api.h"
 #endif
+
 #if (NCS_CPND == 1)
 #include "cpnd_dl_api.h"
 #endif

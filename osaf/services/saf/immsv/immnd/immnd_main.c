@@ -163,7 +163,7 @@ static uns32 immnd_initialize(char *progname)
 	 * The "DTSV_SYNC_UP=0" is needed to disable waiting for DTSv which
 	 * is not started at this point.
 	 */
-	if (ncspvt_svcs_startup(2, immnd_argv, NULL) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup(2, immnd_argv) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}
