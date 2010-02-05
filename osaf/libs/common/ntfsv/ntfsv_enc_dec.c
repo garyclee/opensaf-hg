@@ -1086,17 +1086,21 @@ uns32 ntfsv_dec_discard_msg(NCS_UBAID *uba, ntfsv_discarded_info_t *param)
 	ncs_dec_skip_space(uba, 8);
 	total_bytes += 8;
 	TRACE_3("t:%#x, nd: %u", param->notificationType, param->numberDiscarded);
-	param->discardedNotificationIdentifiers = calloc(1, sizeof(SaNtfIdentifierT) * param->numberDiscarded);
-	if (!param->discardedNotificationIdentifiers) {
-		TRACE_LEAVE();
-		return 0;
+	if (param->numberDiscarded) {
+		param->discardedNotificationIdentifiers = calloc(1, sizeof(SaNtfIdentifierT) * param->numberDiscarded);
+		if (!param->discardedNotificationIdentifiers) {
+			TRACE_LEAVE();
+			return 0;
+		}
+		for (i = 0; i < param->numberDiscarded; i++) {
+			p8 = ncs_dec_flatten_space(uba, local_data, 8);
+			param->discardedNotificationIdentifiers[i] = ncs_decode_64bit(&p8);
+			ncs_dec_skip_space(uba, 8);
+			total_bytes += 8;
+		} 
+	} else {
+		param->discardedNotificationIdentifiers = NULL;
 	}
-	for (i = 0; i < param->numberDiscarded; i++) {
-		p8 = ncs_dec_flatten_space(uba, local_data, 8);
-		param->discardedNotificationIdentifiers[i] = ncs_decode_64bit(&p8);
-		ncs_dec_skip_space(uba, 8);
-		total_bytes += 8;
-	} 
 	TRACE_LEAVE();
 	return 1;
 }

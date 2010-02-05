@@ -80,6 +80,7 @@ NtfSubscription::NtfSubscription(ntfsv_subscribe_req_t* s):subscriptionId_(s->su
 		}
 		s_info_.d_info.numberDiscarded = 0;
 		free(s_info_.d_info.discardedNotificationIdentifiers);
+		s_info_.d_info.discardedNotificationIdentifiers = NULL;
 	}
 }
 
@@ -196,7 +197,8 @@ void NtfSubscription::syncRequest(NCS_UBAID *uba)
 		 LOG_ER("syncRequest send subscription failed");
 		 assert(0);
 	}
-	free(s_info_.d_info.discardedNotificationIdentifiers);  
+	free(s_info_.d_info.discardedNotificationIdentifiers);
+	s_info_.d_info.discardedNotificationIdentifiers = NULL;  
 }
 
 /**
