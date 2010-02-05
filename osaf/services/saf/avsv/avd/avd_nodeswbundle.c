@@ -59,13 +59,14 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	char *parent;
 	const char *path_prefix;
 
-	if ((parent = strchr((char*)dn->value, ',')) == NULL) {
+	parent = avd_getparent((char*)dn->value);
+	if (parent == NULL) {
 		LOG_ER("No parent to '%s' ", dn->value);
 		return 0;
 	}
 
 	/* Should be children to nodes */
-	if (strncmp(++parent, "safAmfNode=", 11) != 0) {
+	if (strncmp(parent, "safAmfNode=", 11) != 0) {
 		LOG_ER("Wrong parent '%s' to '%s' ", parent, dn->value);
 		return 0;
 	}

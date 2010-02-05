@@ -2284,3 +2284,26 @@ done:
 	TRACE_LEAVE2("(%u)", rc);
 	return rc;
 }
+
+/**
+ * returns the parent of a DN (including DNs with escaped RDNs)
+ *
+ * @param i_dn
+ */
+char* avd_getparent(const char* i_dn)
+{
+	char* parent = i_dn;
+	char* tmp_parent;
+
+	/* Check if there exist any escaped RDN in the DN */
+	tmp_parent = strrchr((char*)i_dn, '\\');
+	if (tmp_parent != NULL) {
+		parent = tmp_parent + 2;
+	}
+
+	if ((parent = strchr((char*)parent, ',')) != NULL) {
+		parent++;
+	}
+
+	return parent;
+}
