@@ -55,70 +55,10 @@
  **
  **/
 
-#if ((NCSSYSM_IPC_WATCH_ENABLE == 1) || (NCSSYSM_IPC_STATS_ENABLE == 1))
-
-#include "ncs_sysm.h"
-#include "sysfsysm.h"
-
-typedef struct ipc_rpt_qlat {
-	uns32 start_time;
-	uns32 start_depth;
-	uns32 start_percentile;
-	uns32 finish_time;
-	uns32 finish_depth;
-	uns32 finish_percentile;
-	NCSIPC_LTCY_EVT callback;
-} IPC_RPT_QLAT;
-
-extern struct ncs_sysmon gl_sysmon;
-
-struct tag_ncs_ipc;
-
-typedef struct ncs_ipc_stats {
-	struct ncs_ipc_stats *next;
-	struct tag_ncs_ipc *resource;	/* Back pointer to the IPC struct  */
-	uns16 resource_id;	/* Identifier internally generated */
-	uns32 curr_depth;	/* CurrentQ Depth                  */
-	uns32 last_depth;	/* Last Q Depth                    */
-	uns32 max_depth;	/* reference to MAX Q depth allowed */
-	uns32 last_bkt;		/* Last watch bucket               */
-
-	uns32 hwm;		/* Max Depth reached               */
-	uns32 enqed;		/* Enqueued msgs so far            */
-	uns32 deqed;		/* Dequeued msgs so far            */
-
-#if (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
-	struct ipc_rpt_qlat ipc_qlat;
-#endif
-
-} NCS_IPC_STATS;
-
-#define m_NCS_SM_IPC_ELEM_ADD(a)           ncssm_ipc_elem_add(&a->stats,a)
-
-#define m_NCS_SM_IPC_ELEM_DEL(a)           ncssm_ipc_elem_del(&a->stats)
-
-#define m_NCS_SM_IPC_ELEM_CUR_DEPTH_INC(a) \
-{if(a->stats.curr_depth++ >= a->stats.hwm) \
-{a->stats.hwm = a->stats.curr_depth;} \
-  a->stats.enqed++; \
-if((a->stats.curr_depth >= a->stats.max_depth) && (gl_sysmon.res_lmt_cb != NULL)) \
-{NCSSYSM_RES_LMT_EVT evt; \
-  evt.i_vrtr_id = gl_sysmon.vrtr_id; \
-  evt.i_obj_id = NCSSYSM_OID_IPC_TTL; \
-  evt.i_ttl = a->stats.max_depth;\
-  (*gl_sysmon.res_lmt_cb)(&evt);}}
-
-#define m_NCS_SM_IPC_ELEM_CUR_DEPTH_DEC(a) {a->stats.curr_depth--;a->stats.deqed++;}
-
-void ncssm_ipc_elem_add(struct ncs_ipc_stats *stats, struct tag_ncs_ipc *ipc);
-void ncssm_ipc_elem_del(struct ncs_ipc_stats *stats);
-#else
-
 #define m_NCS_SM_IPC_ELEM_ADD(a)
 #define m_NCS_SM_IPC_ELEM_DEL(a)
 #define m_NCS_SM_IPC_ELEM_CUR_DEPTH_INC(a)
 #define m_NCS_SM_IPC_ELEM_CUR_DEPTH_DEC(a)
-#endif
 
 typedef struct ncs_ipc_queue {
 	NCS_IPC_MSG *head;
@@ -161,36 +101,12 @@ typedef struct tag_ncs_ipc {
 	uns32 ref_count;	/* reference count - number of instances attached
 				 * to this IPC */
 	char *name;		/* mbx task name */
-
-#if ((NCSSYSM_IPC_WATCH_ENABLE == 1) || (NCSSYSM_IPC_STATS_ENABLE == 1))
-	NCS_IPC_STATS stats;
-#endif
-
 } NCS_IPC;
-
-#if (NCS_USE_SYSMON == 1) && (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
-
-LEAPDLL_API uns32 ncssysm_lm_op_ipc_lbgn(NCSSYSM_IPC_RPT_LBGN * info);
-LEAPDLL_API uns32 ncssysm_lm_op_ipc_ltcy(NCSSYSM_IPC_RPT_LTCY * info);
-
-#define m_NCS_SYSM_LM_OP_IPC_LBGN(info)  ncssysm_lm_op_ipc_lbgn(info)
-#define m_NCS_SYSM_LM_OP_IPC_LTCY(info)  ncssysm_lm_op_ipc_ltcy(info)
-
-LEAPDLL_API uns32 ipc_get_queue_depth(char *name);
-
-#define m_NCS_SET_ST_QLAT()  gl_sysmon.ipc_stats->ipc_qlat.start_depth = ipc_get_queue_depth(gl_sysmon.ipc_stats->resource->name);  \
-                            gl_sysmon.ipc_stats->ipc_qlat.start_time  = m_NCS_GET_TIME_MS;
-
-#define m_NCS_SET_FN_QLAT()   gl_sysmon.ipc_stats->ipc_qlat.finish_depth = ipc_get_queue_depth(gl_sysmon.ipc_stats->resource->name);    \
-                             gl_sysmon.ipc_stats->ipc_qlat.finish_time  = m_NCS_GET_TIME_MS;                                       \
-                             (gl_sysmon.ipc_stats->ipc_qlat.callback)();
-#else				/* (NCS_USE_SYSMON == 1) && (NCSSYSM_IPC_REPORT_ACTIVITY == 1) */
 
 #define m_NCS_SYSM_LM_OP_IPC_LBGN(info)   NCSCC_RC_FAILURE
 #define m_NCS_SYSM_LM_OP_IPC_LTCY(info)   NCSCC_RC_FAILURE
 
 #define m_NCS_SET_ST_QLAT()
 #define m_NCS_SET_FN_QLAT()
-#endif   /* (NCS_USE_SYSMON == 1) && (NCSSYSM_IPC_REPORT_ACTIVITY == 1) */
 
 #endif   /* SYSF_IPC_H */

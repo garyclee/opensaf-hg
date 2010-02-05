@@ -29,6 +29,9 @@
 
 #ifndef GLD_MEM_H
 #define GLD_MEM_H
+
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for GLD */
 typedef enum {
 	NCS_SERVICE_GLD_SUB_ID_GLSV_GLD_CB = 1,

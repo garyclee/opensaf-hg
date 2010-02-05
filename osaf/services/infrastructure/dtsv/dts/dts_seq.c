@@ -40,6 +40,7 @@
 */
 
 #include "dts.h"
+#include "ncssysf_mem.h"
 
 static void dts_tmrcb(void *arg);
 /****************************************************************************

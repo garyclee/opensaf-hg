@@ -37,35 +37,8 @@
 /***************************************************************************
  * NCSUB_POOL holds all info associated with a particular USRBUF pool
  ***************************************************************************/
-#if ((NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1) || (NCSSYSM_BUF_DBG_ENABLE ==1))
-
-struct ncssysm_buf_rpt_wo;
-struct ncssysm_buf_rpt_wos;
-
-typedef enum ncsub_pool_rpt_op {
-	NCSUB_POOL_RPT_OP_WO,
-	NCSUB_POOL_RPT_OP_WOS
-} NCSUB_POOL_RPT_OP;
-
-typedef struct ncsub_pool_rpt_arg {
-	NCSUB_POOL_RPT_OP op;
-	union {
-		struct ncssysm_buf_rpt_wo *wo;
-		struct ncssysm_buf_rpt_wos *wos;
-	} info;
-
-} NCSUB_POOL_RPT_ARG;
-
-typedef void (*NCSUB_POOL_AGE) (void);
-typedef void (*NCSUB_POOL_IGNORE) (NCS_BOOL val);
-typedef void (*NCSUB_POOL_LOC) (void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file);
-typedef uns32 (*NCSUB_POOL_RPT) (NCSUB_POOL_RPT_ARG * arg);
-
-EXTERN_C LEAPDLL_API void *ncs_buf_dbg_loc(void *ptr, int svc_id, int sub_id, unsigned int line, char *file);
-#endif
-
-EXTERN_C LEAPDLL_API uns32 ncs_lbp_create(void);
-EXTERN_C LEAPDLL_API uns32 ncs_lbp_destroy(void);
+EXTERN_C uns32 ncs_lbp_create(void);
+EXTERN_C uns32 ncs_lbp_destroy(void);
 
 typedef struct ncsub_pool {
 	NCS_BOOL busy;
@@ -74,15 +47,6 @@ typedef struct ncsub_pool {
 	NCS_POOL_MFREE mem_free;
 	uns32 hdr_reserve;
 	uns32 trlr_reserve;
-
-#if ((NCSSYSM_BUF_STATS_ENABLE == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_WATCH_ENABLE))
-	NCSUB_POOL_AGE mem_age;
-	NCSUB_POOL_IGNORE mem_ignore;
-	NCSUB_POOL_LOC mem_loc;
-	NCSUB_POOL_RPT mem_rpt;
-	NCSUB_POOL_STATS stats;
-#endif
-
 } NCSUB_POOL;
 
 /***************************************************************************
@@ -130,13 +94,6 @@ typedef struct ncsmmgr_ub_register {
 	uns8 i_pool_id;
 	NCS_POOL_MALLOC i_mem_alloc;
 	NCS_POOL_MFREE i_mem_free;
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-	NCSUB_POOL_AGE i_mem_age;
-	NCSUB_POOL_IGNORE i_mem_ignore;
-	NCSUB_POOL_LOC i_mem_loc;
-	NCSUB_POOL_RPT i_mem_rpt;
-#endif
-
 } NCSMMGR_UB_REGISTER;
 
 /***************************************************************************
@@ -192,8 +149,8 @@ typedef struct ncsmmgr_ub_lm_arg {
 
  ***************************************************************************/
 
-EXTERN_C LEAPDLL_API uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
-EXTERN_C LEAPDLL_API NCSUB_POOL *ncsmmgr_ub_getpool(uns8 pool_id);
+EXTERN_C uns32 ncsmmgr_ub_lm(NCSMMGR_UB_LM_ARG *arg);
+EXTERN_C NCSUB_POOL *ncsmmgr_ub_getpool(uns8 pool_id);
 
 #define m_NCSMMGR_UB_LM(a)           ncsmmgr_ub_lm(a)
 #define m_NCSMMGR_UB_GETPOOL(id)     ncsmmgr_ub_getpool(id)

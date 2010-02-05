@@ -19,6 +19,8 @@
 #include "ntfsv_enc_dec.h"
 #include "ntfs_com.h"
 #include "ntfsv_mem.h"
+#include "ncssysf_def.h"
+
 /*
 NTFS_CKPT_DATA_HEADER
        4                4               4                 2            

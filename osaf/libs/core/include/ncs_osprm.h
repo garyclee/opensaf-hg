@@ -514,22 +514,6 @@ extern "C" {
 	typedef int32 int64;
 #endif
 
-#ifndef LEAPDLL_API
-#define LEAPDLL_API
-#endif
-
-#ifndef IFSVDLL_API
-#define IFSVDLL_API
-#endif
-
-#ifndef EDSDLL_API
-#define EDSDLL_API
-#endif
-
-#ifndef EDADLL_API
-#define EDADLL_API
-#endif
-
 /****************************************************************************
  * General definitions
  ***************************************************************************/
@@ -618,7 +602,7 @@ extern "C" {
 #ifndef m_OS_UDEF_ALLOC
 
 #define m_OS_UDEF_ALLOC  ncs_os_udef_alloc
-	EXTERN_C LEAPDLL_API void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
+	EXTERN_C void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri);
 #endif
 
 /****************************************************************************
@@ -636,7 +620,7 @@ extern "C" {
 #ifndef m_OS_UDEF_FREE
 
 #define m_OS_UDEF_FREE   ncs_os_udef_free
-	EXTERN_C LEAPDLL_API void ncs_os_udef_free(void *ptr, uns8 pool);
+	EXTERN_C void ncs_os_udef_free(void *ptr, uns8 pool);
 #endif
 
 /****************************************************************************
@@ -690,7 +674,7 @@ extern "C" {
 #ifndef m_NCS_OS_TASK
 
 #define m_NCS_OS_TASK(pncs_os_task,req) ncs_os_task (pncs_os_task,req)
-	EXTERN_C LEAPDLL_API unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
+	EXTERN_C unsigned int ncs_os_task(NCS_OS_TASK *, NCS_OS_TASK_REQUEST);
 #endif
 
 /****************************************************************************
@@ -747,7 +731,7 @@ extern "C" {
 #ifndef m_NCS_OS_CLEANUP
 
 #define m_NCS_OS_CLEANUP ncs_os_cleanup()
-	EXTERN_C LEAPDLL_API void ncs_os_cleanup(void);
+	EXTERN_C void ncs_os_cleanup(void);
 #endif
 
 /****************************************************************************
@@ -768,7 +752,7 @@ extern "C" {
 #ifndef m_NCS_OS_TIMER
 
 #define m_NCS_OS_TIMER(pncs_os_timer,req) ncs_os_timer(pncs_os_timer,req)
-	EXTERN_C LEAPDLL_API unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
+	EXTERN_C unsigned int ncs_os_timer(NCS_OS_TIMER *, NCS_OS_TIMER_REQUEST);
 #endif
 #endif
 
@@ -795,7 +779,7 @@ extern "C" {
 #ifndef m_NCS_OS_LOCK
 
 #define m_NCS_OS_LOCK(pncs_os_lock,req,type) ncs_os_lock(pncs_os_lock,req,type)
-	EXTERN_C LEAPDLL_API unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
+	EXTERN_C unsigned int ncs_os_lock(NCS_OS_LOCK *, NCS_OS_LOCK_REQUEST, unsigned int);
 #endif
 
 /****************************************************************************
@@ -816,7 +800,7 @@ extern "C" {
 #ifndef m_NCS_OS_SEM
 
 #define m_NCS_OS_SEM(pncs_os_sem,req) ncs_os_sem(pncs_os_sem,req)
-	EXTERN_C LEAPDLL_API unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
+	EXTERN_C unsigned int ncs_os_sem(NCS_OS_SEM *, NCS_OS_SEM_REQUEST);
 #endif
 
 /*****************************************************************************
@@ -832,12 +816,12 @@ extern "C" {
 
 #ifndef m_NCS_OS_START_TASK_LOCK
 #define m_NCS_OS_START_TASK_LOCK   ncs_os_start_task_lock()
-	EXTERN_C LEAPDLL_API void ncs_os_start_task_lock(void);
+	EXTERN_C void ncs_os_start_task_lock(void);
 #endif
 
 #ifndef m_NCS_OS_END_TASK_LOCK
 #define m_NCS_OS_END_TASK_LOCK     ncs_os_end_task_lock()
-	EXTERN_C LEAPDLL_API void ncs_os_end_task_lock(void);
+	EXTERN_C void ncs_os_end_task_lock(void);
 #endif
 
 /****************************************************************************
@@ -946,7 +930,7 @@ extern "C" {
 	} NCS_OS_MQ_REQ_INFO;
 
 #define m_NCS_OS_MQ ncs_os_mq
-	EXTERN_C LEAPDLL_API uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
+	EXTERN_C uns32 ncs_os_mq(NCS_OS_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX Message-queues Primitive definition
@@ -1073,7 +1057,7 @@ extern "C" {
 	} NCS_OS_POSIX_MQ_REQ_INFO;
 
 #define m_NCS_OS_POSIX_MQ ncs_os_posix_mq
-	EXTERN_C LEAPDLL_API uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
+	EXTERN_C uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req);
 
 /****************************************************************************
  * POSIX shm_memory Primitive definition
@@ -1394,7 +1378,7 @@ extern "C" {
 \***************************************************************************/
 /* Select is returnig uns32 it should be int */
 
-	LEAPDLL_API int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
+	 int ncs_sel_obj_select(NCS_SEL_OBJ highest_sel_obj,
 					   NCS_SEL_OBJ_SET *io_readfds,
 					   NCS_SEL_OBJ_SET *io_writefds,
 					   NCS_SEL_OBJ_SET *io_exceptfds, uns32 *io_timeout);
@@ -1427,7 +1411,7 @@ extern "C" {
                         of "fds" than that accepted by select(). 
 
 \***************************************************************************/
-	LEAPDLL_API int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *io_timeout);
+	 int32 ncs_sel_obj_poll_single_obj(NCS_SEL_OBJ sel_obj, uns32 *io_timeout);
 #define     m_NCS_SEL_OBJ_POLL_SINGLE_OBJ(obj, io_timeout)\
             ncs_sel_obj_poll_single_obj(obj, io_timeout)
 
@@ -1492,7 +1476,7 @@ extern "C" {
 
 #ifndef m_NCS_OS_CUR_CPU_USAGE
 #define m_NCS_OS_CUR_CPU_USAGE  os_cur_cpu_usage()
-	EXTERN_C LEAPDLL_API unsigned int os_cur_cpu_usage(void);
+	EXTERN_C unsigned int os_cur_cpu_usage(void);
 #endif
 
 /****************************************************************************
@@ -1504,12 +1488,12 @@ extern "C" {
 
 #ifndef m_NCS_OS_INIT_CPU_MON
 #define m_NCS_OS_INIT_CPU_MON  ncs_cpu_mon_init()
-	EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_init(void);
+	EXTERN_C unsigned int ncs_cpu_mon_init(void);
 #endif
 
 #ifndef m_NCS_OS_SHUTDOWN_CPU_MON
 #define m_NCS_OS_SHUTDOWN_CPU_MON  ncs_cpu_mon_shutdown()
-	EXTERN_C LEAPDLL_API unsigned int ncs_cpu_mon_shutdown(void);
+	EXTERN_C unsigned int ncs_cpu_mon_shutdown(void);
 #endif
 
 /****************************************************************************
@@ -1891,10 +1875,6 @@ extern "C" {
       *(p32 + 3)  =  v32 & 0x000000ff;}
 #endif
 
-#ifndef NCS_OS_HAVE_FLOATINGPOINT
-#define NCS_OS_HAVE_FLOATINGPOINT            1
-#endif
-
 /****************************************************************************
  **                                                                        **
  **                  Process Library Interface                             **
@@ -1985,14 +1965,14 @@ extern "C" {
 #define m_NCS_SIGNAL(signal,handler)                  ncs_os_signal(signal,handler)
 
 /* declarations */
-	EXTERN_C LEAPDLL_API uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
+	EXTERN_C uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req);
 
-	EXTERN_C LEAPDLL_API unsigned int ncs_os_process_execute(char *exec_mod, char *argv[],
+	EXTERN_C unsigned int ncs_os_process_execute(char *exec_mod, char *argv[],
 								 NCS_OS_ENVIRON_ARGS *set_env_args);
 
-	EXTERN_C LEAPDLL_API int ncs_os_process_terminate(unsigned int proc_id);
+	EXTERN_C int ncs_os_process_terminate(unsigned int proc_id);
 
-	EXTERN_C LEAPDLL_API sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
+	EXTERN_C sighandler_t ncs_os_signal(int signalnum, sighandler_t handler);
 
 /****************************************************************************
  **                                                                        **
@@ -2085,31 +2065,6 @@ extern "C" {
 
 /*****************************************************************************
  **                                                                         **
- **                              Stack Trace                                **
- **                                                                         **
- ****************************************************************************/
-#if (NCS_MMGR_STACKTRACE == 1)
-/* most RTOSs can not do this kind of thing */
-
-#ifndef NCS_STACKTRACE_MAX
-#define NCS_STACKTRACE_MAX          256
-#endif
-
-#ifndef m_NCS_OS_STACKTRACE_GET
-#define m_NCS_OS_STACKTRACE_GET
-#endif
-
-#ifndef m_NCS_OS_STACKTRACE_EXPAND
-#define m_NCS_OS_STACKTRACE_EXPAND
-#endif
-
-#ifndef m_NCS_OS_STACKTRACE_REPORT
-#define m_NCS_OS_STACKTRACE_REPORT
-#endif
-#endif   /*#if (NCS_MMGR_STACKTRACE == 1) */
-
-/*****************************************************************************
- **                                                                         **
  **                              min and max                                **
  **                                                                         **
  ****************************************************************************/
@@ -2121,42 +2076,6 @@ extern "C" {
 #ifndef max
 #define max(a,b) ((a) > (b) ? (a) : (b))
 #endif   /* max */
-
-/*****************************************************************************
- **                                                                         **
- **                    NetPlane Keyboard values                             **
- **                                                                         **
- ****************************************************************************/
-
-#define  NCS_OS_KEY_F1         0x100
-#define  NCS_OS_KEY_F2         0x101
-#define  NCS_OS_KEY_F3         0x102
-#define  NCS_OS_KEY_F4         0x103
-#define  NCS_OS_KEY_F5         0x104
-#define  NCS_OS_KEY_F6         0x105
-#define  NCS_OS_KEY_F7         0x106
-#define  NCS_OS_KEY_F8         0x107
-#define  NCS_OS_KEY_F9         0x108
-#define  NCS_OS_KEY_F10        0x109
-#define  NCS_OS_KEY_F11        0x110
-#define  NCS_OS_KEY_F12        0x111
-#define  NCS_OS_KEY_HOME       0x112
-#define  NCS_OS_KEY_END        0x113
-#define  NCS_OS_KEY_PGUP       0x114
-#define  NCS_OS_KEY_PGDN       0x115
-#define  NCS_OS_KEY_INS        0x116
-#define  NCS_OS_KEY_DEL        0x117
-#define  NCS_OS_KEY_UP         0x118
-#define  NCS_OS_KEY_DOWN       0x119
-#define  NCS_OS_KEY_LEFT       0x120
-#define  NCS_OS_KEY_RIGHT      0x121
-#define  NCS_OS_KEY_ENTER      0x122
-#define  NCS_OS_KEY_ESC        0x123
-#define  NCS_OS_KEY_TAB        0x124
-#define  NCS_OS_KEY_BACKSP     0x125
-#define  NCS_OS_KEY_MOD_CTRL   0x200
-#define  NCS_OS_KEY_MOD_ALT    0x201
-#define  NCS_OS_KEY_MOD_SHIFT  0x202
 
 #ifdef  __cplusplus
 }

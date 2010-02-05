@@ -32,8 +32,7 @@
  ******************************************************************************
  */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 #include "sysf_file.h"
 

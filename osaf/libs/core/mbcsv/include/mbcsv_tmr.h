@@ -35,6 +35,7 @@
 #define MBCSV_TMR_H
 
 #include "mbcsv.h"
+#include "ncssysf_tmr.h"
 
 /*
 * Bit masks for timers

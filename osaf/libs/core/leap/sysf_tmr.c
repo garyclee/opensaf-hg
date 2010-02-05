@@ -28,17 +28,18 @@
 ..............................................................................
 */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 
 #include "ncs_tasks.h"
 #include "ncs_tmr.h"
 #include "sysf_def.h"
+#include "ncssysf_def.h"
 #include "ncssysf_sem.h"
 #include "ncssysf_tmr.h"
 #include "ncssysf_tsk.h"
 #include "ncspatricia.h"
+#include "ncssysf_mem.h"
 
 #ifndef SYSF_TMR_LOG
 #define SYSF_TMR_LOG  0
@@ -117,38 +118,6 @@ typedef struct sysf_tmr_leak {
 #define TMR_DBG_ASSERT_STATE(t,s)
 #endif
 
-#if NCSSYSM_TMR_STATS_ENABLE == 1
-
-/* SMM : NOTE some statistics have suspicious answers at this point. I   */
-/*       suspect some of the macros are not properly sprinkled now.      */
-
-typedef struct tmr_stats {
-	uns32 cnt;		/* a place to keep a count */
-	uns32 ring_hwm;		/* Most svc'ed in one bucket */
-	uns32 tmr_hwm;		/* Most timers in svc at once */
-	uns32 start_cnt;	/* raw count of started tmrs */
-	uns32 expiry_cnt;	/* raw count of expired tmrs */
-	uns32 stop_cnt;		/* raw count of cancelled tmrs */
-	uns32 free_hwm;		/* free tmr objects in pool hwm */
-	uns32 free_now;		/* currently free in pool */
-	uns32 ttl_active;	/* currently active ..do math when asked */
-	uns32 ttl_tmrs;		/* timers malloc'ed/in TmrSvc */
-
-} TMR_STATS;
-
-#define TMR_SET_CNT(s)         s.cnt=0
-#define TMR_INC_CNT(s)         s.cnt++
-#define TMR_STAT_RING_HWM(s)   {if(s.cnt>s.ring_hwm) s.ring_hwm=s.cnt;}
-#define TMR_STAT_TMR_HWM(c,s)  {if(c>s.tmr_hwm)  s.tmr_hwm=c;}
-#define TMR_STAT_STARTS(s)     s.start_cnt++
-#define TMR_STAT_EXPIRY(s)     s.expiry_cnt++
-#define TMR_STAT_CANCELLED(s)  s.stop_cnt++
-#define TMR_STAT_FREE_HWM(s)   {if(s.free_now>s.free_hwm) s.free_hwm=s.free_now;}
-#define TMR_STAT_ADD_FREE(s)   s.free_now++
-#define TMR_STAT_RMV_FREE(s)   s.free_now--
-#define TMR_STAT_TTL_TMRS(s)   s.ttl_tmrs++
-#else
-
 #if ENABLE_SYSLOG_TMR_STATS
 typedef struct tmr_stats {
 	uns32 cnt;
@@ -169,7 +138,6 @@ typedef struct tmr_stats {
 #define TMR_STAT_ADD_FREE(s)
 #define TMR_STAT_RMV_FREE(s)
 #define TMR_STAT_TTL_TMRS(s)
-#endif
 
 /* SYSF_TMR holds expiry info and state                                  */
 typedef struct sysf_tmr {
@@ -1087,30 +1055,7 @@ uns32 ncs_tmr_whatsout(void)
  * NOTE: This is quick output scheme. Needs to be fit into sysmon model.
  ****************************************************************************/
 
-#if (NCSSYSM_TMR_STATS_ENABLE == 0)
-
 uns32 ncs_tmr_getstats(void)
 {
 	return NCSCC_RC_SUCCESS;
 }
-#else
-
-uns32 ncs_tmr_getstats(void)
-{
-	printf("|---------------------------------------|\n");
-	printf("|   T I M E R      S T A T I S T I C S  |\n");
-	printf("|----------------------+----------------|\n");
-	printf(" worst ring hwm        :   %d\n", gl_tcb.stats.ring_hwm);
-	printf(" ttl timers hwm        :   %d\n", gl_tcb.stats.ring_hwm);
-	printf(" raw started tmrs      :   %d\n", gl_tcb.stats.start_cnt);
-	printf(" raw expired tmrs      :   %d\n", gl_tcb.stats.expiry_cnt);
-	printf(" raw cancelled tmrs    :   %d\n", gl_tcb.stats.stop_cnt);
-	printf(" free pool hwm         :   %d\n", gl_tcb.stats.free_hwm);
-	printf(" free pool now         :   %d\n", gl_tcb.stats.free_now);
-	printf(" ttl active tmrs       :   %d\n", gl_tcb.stats.ttl_active);
-	printf(" ttl tmr-blks in sys   :   %d\n", gl_tcb.stats.ttl_tmrs);
-
-	return NCSCC_RC_SUCCESS;
-}
-
-#endif

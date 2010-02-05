@@ -31,7 +31,7 @@
 #include "mqa.h"
 
 /* global cb handle */
-MQADLL_API uns32 gl_mqa_hdl = 0;
+ uns32 gl_mqa_hdl = 0;
 MQA_CB mqa_cb;
 static uns32 mqa_use_count = 0;
 /* MQA Agent creation specific LOCK */

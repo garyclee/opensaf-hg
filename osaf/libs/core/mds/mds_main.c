@@ -27,8 +27,8 @@
 ******************************************************************************
 */
 
-#include "gl_defs.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
+#include "ncssysf_def.h"
 #include "ncs_lib.h"
 #include "ncssysf_tmr.h"
 #include "ncs_main_pvt.h"

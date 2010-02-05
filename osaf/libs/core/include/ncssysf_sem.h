@@ -120,10 +120,10 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C LEAPDLL_API uns32 ncs_sem_create(void **);
-	EXTERN_C LEAPDLL_API uns32 ncs_sem_release(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_sem_give(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_sem_take(void *);
+	EXTERN_C uns32 ncs_sem_create(void **);
+	EXTERN_C uns32 ncs_sem_release(void *);
+	EXTERN_C uns32 ncs_sem_give(void *);
+	EXTERN_C uns32 ncs_sem_take(void *);
 
 #ifdef  __cplusplus
 }

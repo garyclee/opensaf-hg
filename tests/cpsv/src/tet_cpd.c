@@ -1,16 +1,5 @@
 #if ( (NCS_CPD == 1) && (TET_D == 1) )
 
-#if 0
-
-#include "mds_inc.h"
-#include "ncs_lim.h"
-#include "lim.h"
-#include "rcp_inc.h"
-#include "md_cfg.h"
-#include "ncs_lib.h"
-#include "ncs_mds.h"
-
-#endif
 #include "cpsv.h"
 #include "cpd.h"
 #include "tet_api.h"
@@ -19,7 +8,7 @@
 void tet_create_cpd();
 void tet_cpd_dump_cb();
 
-extern CPDDLL_API uns32 gl_cpd_hdl;
+extern uns32 gl_cpd_hdl;
 
 
 void tet_run_cpd() {

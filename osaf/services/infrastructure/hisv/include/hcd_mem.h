@@ -29,6 +29,8 @@
 #ifndef HCD_MEM_H
 #define HCD_MEM_H
 
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for HISv - HAM */
 typedef enum {
 	NCS_SERVICE_HAM_CB = 1,

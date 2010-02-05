@@ -41,7 +41,6 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
-#include "ncs_opt.h"
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 
@@ -61,7 +60,7 @@
 
 #include "ncs_queue.h"
 #include "ncs_scktprm.h"
-#include "sysf_lck.h"
+#include "ncssysf_lck.h"
 #include "ncs_main_papi.h"
 
 /*

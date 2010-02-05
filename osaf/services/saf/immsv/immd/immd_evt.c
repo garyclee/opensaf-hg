@@ -27,6 +27,7 @@
 #include "immsv.h"
 #include "immsv_evt.h"
 #include "immd.h"
+#include "ncssysf_mem.h"
 
 uns32 immd_evt_proc_cb_dump(IMMD_CB *cb);
 

@@ -18,6 +18,8 @@
 #ifndef IMMND_CB_H
 #define IMMND_CB_H
 
+#include <saClm.h>
+
 /* macros for the CB handle */
 
 #define IMMSV_WAIT_TIME  100

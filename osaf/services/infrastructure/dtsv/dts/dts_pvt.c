@@ -48,6 +48,7 @@
 #include <configmake.h>
 
 #include "dts.h"
+#include "ncssysf_mem.h"
 #include "dts_imm.h"
 #include <poll.h>
 #include <ctype.h>

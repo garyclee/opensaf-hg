@@ -18,6 +18,8 @@
 #ifndef CPD_CB_H
 #define CPD_CB_H
 
+#include <saClm.h>
+
 #define CPSV_CPD_MBCSV_VERSION    1
 
 #define CPD_EVT_TIME_OUT 100

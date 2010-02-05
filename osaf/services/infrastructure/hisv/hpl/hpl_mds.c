@@ -29,6 +29,7 @@
 *****************************************************************************/
 
 #include "hpl.h"
+#include "ncssysf_def.h"
 
 /* local functions declaration */
 /* MDS callback functions */

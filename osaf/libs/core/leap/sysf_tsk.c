@@ -38,8 +38,7 @@
  ******************************************************************************
  */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 
 #include "ncssysf_tsk.h"
@@ -137,7 +136,6 @@ uns32 ncs_task_current(void **task_handle)
 
 int ncs_task_entry(NCS_OS_TASK *task)
 {
-
 	m_NCS_OS_TASK_PRELUDE;
 
 	task->info.create.i_entry_point(task->info.create.i_ep_arg);

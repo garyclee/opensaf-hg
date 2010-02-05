@@ -38,6 +38,6 @@ typedef struct mqdlib_info {
 	uns32 inst_hdl;		/* MQD Instance Handle */
 } MQDLIB_INFO;
 
-EXTERN_C MQDDLL_API uns32 mqd_lib_req(NCS_LIB_REQ_INFO *);
+EXTERN_C uns32 mqd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* MQD_DL_API_H */

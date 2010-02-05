@@ -34,7 +34,6 @@
 #if (NCS_DTS == 1)
 
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 #include "saAis.h"
 #include "ncs_log.h"
 #include "dts_papi.h"

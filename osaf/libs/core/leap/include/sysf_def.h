@@ -35,6 +35,7 @@
 #define SYSF_DEF_H
 
 #include "ncssysf_def.h"
+#include "ncssysf_mem.h"
 
 struct ncs_ipaddr_entry;
 struct ncsxlim_if_rec;

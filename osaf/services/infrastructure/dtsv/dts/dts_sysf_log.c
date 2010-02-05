@@ -30,9 +30,6 @@
 ******************************************************************************
 */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
-#include "t_suite.h"
 #include "ncs_log.h"
 #include "dts.h"
 

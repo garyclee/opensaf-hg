@@ -15,65 +15,31 @@
  *
  */
 
-/*****************************************************************************
-..............................................................................
-
-..............................................................................
-
-  DESCRIPTION:
-
-  This module is the main include file for Availability Agent (AvA).
-  
-******************************************************************************
-*/
-
 #ifndef EDA_H
 #define EDA_H
 
-/*  Get compile time options */
-#include "ncs_opt.h"
-
-/* Get general definitions */
 #include "ncsgl_defs.h"
 
-/* Get target's suite of header files...*/
-#include "t_suite.h"
-
-/* From /base/common/inc */
 #include "ncs_svd.h"
 #include "usrbuf.h"
 #include "ncsft.h"
-#include "ncsft_rms.h"
 #include "ncs_ubaid.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 #include "ncs_stack.h"
 #include "ncs_log.h"
 #include "ncs_lib.h"
-#include "ncs_dummy.h"
-
-/* From targsvcs/common/inc */
-#include "mds_papi.h"
-
-/* From /base/products/rms/inc */
-#if (NCS_RMS == 1)
-#include "rms_env.h"
-#endif
 
 #include "mds_papi.h"
 
-/* DTS header file */
 #if (NCS_DTS == 1)
 #include "dts_papi.h"
 #endif
 
-/* DTA header file */
 #if (NCS_DTA == 1)
 #include "dta_papi.h"
 #endif
 
-/* EDA specific inc Files */
 #include "edsv_msg.h"
-
 #include "eda_cb.h"
 #include "eda_hdl.h"
 #include "eda_mds.h"
@@ -81,8 +47,6 @@
 #include "eda_log.h"
 #include "edsv_logstr.h"
 #include "edsv_mem.h"
-
-/* EDSV specific include files */
 #include "edsv_defs.h"
 #include "edsv_util.h"
 

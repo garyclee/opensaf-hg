@@ -33,7 +33,7 @@
 #ifndef DTS_DL_API_H
 #define DTS_DL_API_H
 
-EXTERN_C DTSDLL_API uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
+EXTERN_C uns32 dts_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 EXTERN_C uns32 dts_apps_ascii_spec_load(uns8 *file_name, uns32 what_to_do);
 

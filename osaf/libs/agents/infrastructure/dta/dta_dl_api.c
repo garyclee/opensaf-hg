@@ -34,6 +34,9 @@
 */
 
 #include "dta.h"
+#include "ncs_tasks.h"
+#include "ncssysf_mem.h"
+
 
 static NCS_BOOL dta_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 

@@ -25,9 +25,9 @@
 ******************************************************************************
 */
 
-#include "gl_defs.h"
-#include "ncs_opt.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
+#include "ncssysf_def.h"
+#include "ncssysf_sem.h"
 #include "ncs_main_pvt.h"
 #include "ncs_main_papi.h"
 

@@ -26,11 +26,8 @@
 ******************************************************************************
 */
 
-/** Get compile time options...**/
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "patricia.h"
 #include "ncs_stack.h"
 #include "ncssysf_mem.h"
@@ -39,7 +36,7 @@
 #include "sysf_def.h"
 #include "ncs_ubaid.h"
 
-EXTERN_C LEAPDLL_API char gl_log_string[];
+EXTERN_C char gl_log_string[];
 
 /*****************************************************************************
 

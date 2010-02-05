@@ -25,8 +25,7 @@
 #ifndef _MDS_LOG_H
 #define _MDS_LOG_H
 
-#include "gl_defs.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
 #include "ncs_lib.h"
 
 /* Logging utility functions  - Phani */

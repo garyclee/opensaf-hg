@@ -26,6 +26,7 @@
 
 #include "immnd.h"
 #include "immsv_api.h"
+#include "ncssysf_mem.h"
 
 static uns32 immnd_evt_proc_cb_dump(IMMND_CB *cb);
 static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm);

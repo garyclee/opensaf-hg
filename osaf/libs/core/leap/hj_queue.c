@@ -15,29 +15,9 @@
  *
  */
 
-/*****************************************************************************
-..............................................................................
-
-..............................................................................
-
-  DESCRIPTION:
-
-******************************************************************************
-*/
-
-/** Get compile time options...
- **/
-#include "ncs_opt.h"
-
-/** Get general definitions...
- **/
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
-/** Get NCS Queue Facility header file.
- **/
 #include "ncs_queue.h"
-
 #include "ncssysfpool.h"
 #include "ncssysf_lck.h"
 

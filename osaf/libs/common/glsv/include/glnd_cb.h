@@ -18,12 +18,14 @@
 #ifndef GLND_CB_H
 #define GLND_CB_H
 
+#include <saCkpt.h>
+
 #include "glnd_tmr.h"
 #include "glnd_evt.h"
 
 /* global variables */
-EXTERN_C GLNDDLL_API uns32 gl_glnd_hdl;
-EXTERN_C GLNDDLL_API NCSCONTEXT gl_glnd_task_hdl;
+EXTERN_C uns32 gl_glnd_hdl;
+EXTERN_C NCSCONTEXT gl_glnd_task_hdl;
 
 /* macros for the global varibales */
 #define m_GLND_RETRIEVE_GLND_CB_HDL      gl_glnd_hdl

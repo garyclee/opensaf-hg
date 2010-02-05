@@ -32,6 +32,7 @@
 #include <opensaf/ncssysfpool.h>
 #include <opensaf/ncssysf_def.h>
 #include <opensaf/ncssysf_tsk.h>
+#include <opensaf/ncssysf_mem.h>
 
 /* SAF header files */
 #include <saAis.h>

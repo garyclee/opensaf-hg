@@ -30,7 +30,7 @@
 #ifndef MQA_DB_H
 #define MQA_DB_H
 
-extern MQADLL_API uns32 gl_mqa_hdl;
+extern  uns32 gl_mqa_hdl;
 
 /*Maximum Nodes in the cluster */
 #define MQA_MAX_NODES NCS_MAX_SLOTS

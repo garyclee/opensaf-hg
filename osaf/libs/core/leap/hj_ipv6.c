@@ -27,10 +27,8 @@
 ******************************************************************************
 */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysf_def.h"
 
 #if (NCS_IPV6 == 1)

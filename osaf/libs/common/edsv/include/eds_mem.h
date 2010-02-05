@@ -30,6 +30,7 @@
 #define EDS_MEM_H
 
 #include "eds.h"
+#include "ncssysf_mem.h"
 
 /* Service Sub IDs for EDS */
 typedef enum {

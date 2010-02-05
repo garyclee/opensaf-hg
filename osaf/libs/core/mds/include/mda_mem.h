@@ -27,6 +27,8 @@
 #ifndef MDA_MEM_H
 #define MDA_MEM_H
 
+#include "ncssysf_mem.h"
+
 #define VDS_MEM_NCSVDA_INFO 1
 
 #define m_MMGR_ALLOC_NCSVDA_INFO \

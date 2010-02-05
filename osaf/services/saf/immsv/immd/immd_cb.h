@@ -18,6 +18,8 @@
 #ifndef IMMD_CB_H
 #define IMMD_CB_H
 
+#include <saClm.h>
+
 #define IMMD_EVT_TIME_OUT 100
 #define IMMSV_WAIT_TIME  100
 

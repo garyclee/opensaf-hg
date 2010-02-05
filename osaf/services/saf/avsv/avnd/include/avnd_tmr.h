@@ -30,6 +30,8 @@
 #ifndef AVND_TMR_H
 #define AVND_TMR_H
 
+#include "ncssysf_tmr.h"
+
 struct avnd_cb_tag;
 
 /* timer type enums */

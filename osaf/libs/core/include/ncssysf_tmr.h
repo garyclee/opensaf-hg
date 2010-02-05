@@ -56,7 +56,7 @@ extern "C" {
 
 	typedef void (*TMR_CALLBACK) (void *);
 
-	EXTERN_C LEAPDLL_API uns32 gl_tmr_milliseconds;
+	EXTERN_C uns32 gl_tmr_milliseconds;
 
 /** Target system timer support functions...
  **/
@@ -84,22 +84,22 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C LEAPDLL_API tmr_t ncs_tmr_alloc(char *, uns32);
-	EXTERN_C LEAPDLL_API tmr_t ncs_tmr_start(tmr_t, uns32, TMR_CALLBACK, void *, char *, uns32);
-	EXTERN_C LEAPDLL_API uns32 ncs_tmr_stop_v2(tmr_t, void **);
-	EXTERN_C LEAPDLL_API void ncs_tmr_stop(tmr_t);
-	EXTERN_C LEAPDLL_API void ncs_tmr_free(tmr_t);
-	EXTERN_C LEAPDLL_API uns32 ncs_tmr_remaining(tmr_t, uns32 *);
+	EXTERN_C tmr_t ncs_tmr_alloc(char *, uns32);
+	EXTERN_C tmr_t ncs_tmr_start(tmr_t, uns32, TMR_CALLBACK, void *, char *, uns32);
+	EXTERN_C uns32 ncs_tmr_stop_v2(tmr_t, void **);
+	EXTERN_C void ncs_tmr_stop(tmr_t);
+	EXTERN_C void ncs_tmr_free(tmr_t);
+	EXTERN_C uns32 ncs_tmr_remaining(tmr_t, uns32 *);
 
 /* Keep old names for Create  and Destroy, as many places call these functions */
 
-	EXTERN_C LEAPDLL_API NCS_BOOL sysfTmrCreate(void);
-	EXTERN_C LEAPDLL_API NCS_BOOL sysfTmrDestroy(void);
+	EXTERN_C NCS_BOOL sysfTmrCreate(void);
+	EXTERN_C NCS_BOOL sysfTmrDestroy(void);
 
 /* For now, I/O is done internally.. Later we can export data and do I/O outside */
 
-	EXTERN_C LEAPDLL_API uns32 ncs_tmr_whatsout(void);
-	EXTERN_C LEAPDLL_API uns32 ncs_tmr_getstats(void);
+	EXTERN_C uns32 ncs_tmr_whatsout(void);
+	EXTERN_C uns32 ncs_tmr_getstats(void);
 
 #ifdef  __cplusplus
 }

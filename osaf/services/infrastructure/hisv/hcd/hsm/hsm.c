@@ -32,6 +32,7 @@
 #endif
 
 #include "hcd.h"
+#include "ncssysf_sem.h"
 
 /* forward declarations of local functions */
 static uns32 publish_inspending(HSM_CB *hsm_cb, SaHpiRptEntryT *RptEntry);

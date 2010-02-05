@@ -30,23 +30,18 @@
 #define __AVM_AVD_H__
 
 #define NCS_SAF 1
-#include "ncs_opt.h"
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 #include "ncs_svd.h"
 #include "usrbuf.h"
 #include "ncsft.h"
-#include "ncsft_rms.h"
 #include "ncs_ubaid.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 #include "ncs_stack.h"
 #include "ncssysf_def.h"
 #include "ncsdlib.h"
 #include "ncs_lib.h"
-#include "ncs_dummy.h"
 
 #include "mds_papi.h"
-/* #include "ncs_edu_pub.h" */
 #include "ncs_main_pvt.h"
 #include "ncspatricia.h"
 #include "saAis.h"

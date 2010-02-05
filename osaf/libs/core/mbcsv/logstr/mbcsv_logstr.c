@@ -380,7 +380,6 @@ uns32 mbcsv_dereg_strings()
 
 uns32 mbcsv_reg_strings(char *fname)
 {
-	USE(fname);
 	return NCSCC_RC_SUCCESS;
 }
 

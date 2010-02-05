@@ -34,7 +34,6 @@
 #include "ncsgl_defs.h"
 
 /* Get target's suite of header files...*/
-#include "t_suite.h"
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
@@ -48,7 +47,6 @@
 #include "usrbuf.h"
 #include "ncs_ubaid.h"
 #include "ncsdlib.h"
-#include "ncs_mtree.h"
 #include "ncs_queue.h"
 #include "ncs_saf.h"
 #include "ncs_tmr.h"

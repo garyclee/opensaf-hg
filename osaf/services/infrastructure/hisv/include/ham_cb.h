@@ -28,6 +28,8 @@
 #ifndef HAM_CB_H
 #define HAM_CB_H
 
+#include "ncssysf_tmr.h"
+
 /* macro definitions */
 /* system event log clear timer period */
 #define HPI_SYS_LOG_CLEAR_INTERVAL  54000

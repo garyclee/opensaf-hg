@@ -28,6 +28,7 @@
 */
 
 #include "cpsv.h"
+#include "ncssysf_mem.h"
 
 /* Routines in this file will be identified while coding */
 

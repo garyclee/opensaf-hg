@@ -279,8 +279,6 @@ static void fma_main_proc(uns32 *fma_init_hdl)
 	FMA_MBX_EVT_T *fma_mbx_evt;
 	uns32 msg;
 
-	USE(msg);
-
 	m_FMA_LOG_FUNC_ENTRY("fma_main_proc");
 
 	if (fma_init_hdl == NULL)
@@ -289,27 +287,26 @@ static void fma_main_proc(uns32 *fma_init_hdl)
 	if (*fma_init_hdl != gl_fma_hdl)
 		return;
 
-   /** Get FMA CB **/
+	/* Get FMA CB */
 	cb = ncshm_take_hdl(NCS_SERVICE_ID_FMA, gl_fma_hdl);
 	if (cb == NULL) {
 		m_FMA_LOG_CB(FMA_LOG_CB_RETRIEVE, FMA_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
 		return;
 	}
 
-   /** Get mailbox selection object **/
+	/* Get mailbox selection object */
 	mbx_sel_obj = m_NCS_IPC_GET_SEL_OBJ(&cb->mbx);
 
-   /** Reset the selection object to ZERO**/
+	/* Reset the selection object to ZERO */
 	m_NCS_SEL_OBJ_ZERO(&cb->sel_obj);
 
-   /** Set the mbx selection object in FMA_CB selection object set **/
+	/* Set the mbx selection object in FMA_CB selection object set */
 	m_NCS_SEL_OBJ_SET(mbx_sel_obj, &cb->sel_obj);
 
 	temp_sel_obj_set = cb->sel_obj;
 	ncshm_give_hdl(gl_fma_hdl);
 
-   /** Wait infinitely till something written on mbx fd that is FMA receives 
-       msg from FM **/
+	/* Wait infinitely till something written on mbx fd that is FMA receives msg from FM */
 	while ((m_NCS_SEL_OBJ_SELECT(mbx_sel_obj, &temp_sel_obj_set, NULL, NULL, NULL) != -1)) {
 		if (m_NCS_SEL_OBJ_ISSET(mbx_sel_obj, &temp_sel_obj_set)) {
 			cb = ncshm_take_hdl(NCS_SERVICE_ID_FMA, gl_fma_hdl);

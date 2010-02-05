@@ -48,11 +48,7 @@
 extern "C" {
 #endif
 
-#if (defined(_NCS_LTCS_DATA_PLANE_) || (NCS_SOFT_DPE == 1))
-#define PAYLOAD_BUF_SIZE 2048
-#else
 #define PAYLOAD_BUF_SIZE 1400	/* default size of packet_data bufrs */
-#endif
 
 /*****************************************************************************
 
@@ -120,31 +116,7 @@ extern "C" {
  *
  * Specialty fields needed in specific contexts. Read below.
  */
-
-#if ((NCS_HPFR == 1) || (SAR_BUFR_STORAGE == 1))
-
-	typedef struct usrbuf_extent {
-#if (NCS_HPFR == 1)
-  /** The following 3 fields are used by the H&J HPFR RFC 1490 code, which
-   ** may be used in conjunction with your purchase of either FRF.5 or FRF.8.
-   ** If you are not using H&J's HPFR code, you can delete these 3 fields.
-   **/
-		struct usrbuf *first_frag;
-		struct usrbuf *next_frag;
-		uns16 code;
-#endif   /* (NCS_HPFR == 1) */
-
-#if (SAR_BUFR_STORAGE == 1)
-  /** Storage for hardware SAR driver 
-   **/
-		void *sar_data;
-#endif   /* (SAR_BUFR_STORAGE == 1) */
-
-	} USRBUF_EXTENT;	/* user definable extension within USEBUF */
-#else
-
 	typedef void *USRBUF_EXTENT;
-#endif   /* ((NCS_HPFR == 1) || (SAR_BUFR_STORAGE == 1)) */
 
 /****************************************************************************
  *  typedef USRBUF
@@ -286,46 +258,6 @@ extern "C" {
 #define NCSMEM_HI_PRI     3
 #define NCSMEM_MED_PRI    2
 #define NCSMEM_LOW_PRI    1
-
-#if ((NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-	struct ncs_sysmon;
-	extern struct ncs_sysmon gl_sysmon;
-
-/****************************************************************************
-
-  U S R B U F   P O O L  M A N A G E R
-
-  Internal structures used to manage various Mem Pools.
-
-*****************************************************************************/
-
-	typedef struct ncsub_pool_stats {
-		uns32 max;	/* MAX available mem in the pool */
-		uns32 pool_id;	/* pool id */
-		uns32 alloced;	/* alloc'ed so far */
-		uns32 freed;	/* free'ed so far */
-		uns32 curr;	/* current alloc'ed memory */
-		uns32 cnt;	/* current number of buffers alloc'ed from the pool */
-		uns32 hwm;	/* high water mark */
-		/* Count of Buffers chained to make a message at free time        */
-		uns32 fc_1;	/* 1 Buffer in chain at free time          */
-		uns32 fc_2;	/* 2 Buffers in chain at free time         */
-		uns32 fc_3;	/* 3 Buffers in chain at free time         */
-		uns32 fc_4;	/* 4 Buffers in chain at free time         */
-		uns32 fc_gt;	/* 5 or more Buffers in chain at free time */
-		/* Count of bytes in payload area at free time (actual message size)   */
-		uns32 s32b;	/* less than 32 byte payload at free time       */
-		uns32 s64b;	/* less than 64 byte payload at free time       */
-		uns32 s128b;	/* less than 128 byte payload at free time      */
-		uns32 s256b;	/* less than 256 byte payload at free time      */
-		uns32 s512b;	/* less than 512 byte payload at free time      */
-		uns32 s1024b;	/* less than 1024 byte payload at free time     */
-		uns32 s2048b;	/* less than 2048 byte payload at free time     */
-		uns32 sbig_b;	/* greater than 2048 byte payload at free time  */
-
-	} NCSUB_POOL_STATS;
-#endif
 
 #ifdef  __cplusplus
 }

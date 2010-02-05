@@ -122,9 +122,9 @@ typedef struct ncs_edu_admin_op_tag {
 /********************* EDU Internal Macros *********************/
 
 /************ EDU internal macro-related functions. ************/
-EXTERN_C LEAPDLL_API void ncs_edu_tkn_init(EDU_TKN *edu_tkn);
+EXTERN_C void ncs_edu_tkn_init(EDU_TKN *edu_tkn);
 
-EXTERN_C LEAPDLL_API void ncs_edu_tkn_flush(EDU_TKN *edu_tkn);
+EXTERN_C void ncs_edu_tkn_flush(EDU_TKN *edu_tkn);
 
 EXTERN_C uns32 ncs_edu_run_edcompile_on_edp(EDU_HDL *edu_hdl, EDU_HDL_NODE *hdl_node, EDU_ERR *o_err);
 
@@ -230,37 +230,37 @@ EXTERN_C uns32 ncs_edu_get_refcount_of_testable_field(EDP_TEST_INSTR_REC *inst_s
 
 EXTERN_C void ncs_edu_log_msg(char *string);
 
-EXTERN_C LEAPDLL_API void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt);
+EXTERN_C void ncs_edu_skip_space(EDU_TLV_ENV *tlv_env, uns32 cnt);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_8bit(uns8 **stream, uns32 val);
+EXTERN_C uns32 ncs_encode_tlv_8bit(uns8 **stream, uns32 val);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_16bit(uns8 **stream, uns32 val);
+EXTERN_C uns32 ncs_encode_tlv_16bit(uns8 **stream, uns32 val);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_32bit(uns8 **stream, uns32 val);
+EXTERN_C uns32 ncs_encode_tlv_32bit(uns8 **stream, uns32 val);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_64bit(uns8 **stream, uns64 val);
+EXTERN_C uns32 ncs_encode_tlv_64bit(uns8 **stream, uns64 val);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count);
+EXTERN_C uns32 ncs_encode_tlv_n_32bit(uns8 **stream, uns32 *val_ptr, uns16 n_count);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_n_16bit(uns8 **stream, uns16 *val_ptr, uns16 n_count);
+EXTERN_C uns32 ncs_encode_tlv_n_16bit(uns8 **stream, uns16 *val_ptr, uns16 n_count);
 
-EXTERN_C LEAPDLL_API uns32 ncs_encode_tlv_n_octets(uns8 **stream, uns8 *val, uns16 count);
+EXTERN_C uns32 ncs_encode_tlv_n_octets(uns8 **stream, uns8 *val, uns16 count);
 
-EXTERN_C LEAPDLL_API uns32 ncs_decode_tlv_32bit(uns8 **stream);
+EXTERN_C uns32 ncs_decode_tlv_32bit(uns8 **stream);
 
-EXTERN_C LEAPDLL_API uns64 ncs_decode_tlv_64bit(uns8 **stream);
+EXTERN_C uns64 ncs_decode_tlv_64bit(uns8 **stream);
 
-EXTERN_C LEAPDLL_API uns16 ncs_decode_tlv_16bit(uns8 **stream);
+EXTERN_C uns16 ncs_decode_tlv_16bit(uns8 **stream);
 
-EXTERN_C LEAPDLL_API uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest);
+EXTERN_C uns16 ncs_decode_tlv_n_32bit(uns8 **stream, uns32 *dest);
 
-EXTERN_C LEAPDLL_API uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest);
+EXTERN_C uns16 ncs_decode_tlv_n_16bit(uns8 **stream, uns16 *dest);
 
-EXTERN_C LEAPDLL_API uns8 ncs_decode_tlv_8bit(uns8 **stream);
+EXTERN_C uns8 ncs_decode_tlv_8bit(uns8 **stream);
 
-EXTERN_C LEAPDLL_API uns8 *ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
+EXTERN_C uns8 *ncs_decode_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
 
-EXTERN_C LEAPDLL_API uns8 *ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
+EXTERN_C uns8 *ncs_copy_tlv_n_octets(uns8 *src, uns8 *dest, uns32 count);
 
 /************ EDU internal macro-related functions. ************/
 

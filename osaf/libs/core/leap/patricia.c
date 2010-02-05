@@ -39,15 +39,8 @@
 *******************************************************************************
 */
 
-/* Get compile time options...
- */
-#include "ncs_opt.h"
-
-/** Global Declarations...
- **/
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysfpool.h"
 #include "ncssysf_def.h"
 #include "patricia.h"

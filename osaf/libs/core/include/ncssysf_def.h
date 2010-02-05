@@ -95,10 +95,10 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	EXTERN_C LEAPDLL_API uns32 decode_32bitOS_inc(uns8 **stream);
-	EXTERN_C LEAPDLL_API uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
-	EXTERN_C LEAPDLL_API uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
-	EXTERN_C LEAPDLL_API uns16 decode_16bitOS_inc(uns8 **stream);
+	EXTERN_C uns32 decode_32bitOS_inc(uns8 **stream);
+	EXTERN_C uns32 encode_32bitOS_inc(uns8 **stream, uns32 val);
+	EXTERN_C uns32 encode_16bitOS_inc(uns8 **stream, uns32 val);
+	EXTERN_C uns16 decode_16bitOS_inc(uns8 **stream);
 
 #define m_NCS_OS_HTONL_P_INC(p8,v32) encode_32bitOS_inc(&p8, v32)
 #define m_NCS_OS_HTONS_P_INC(p8,v16) encode_16bitOS_inc(&p8, v16)
@@ -190,7 +190,7 @@ extern "C" {
  **/
 #define sysf_time_stamp  ncs_time_stamp()
 
-	EXTERN_C LEAPDLL_API time_t ncs_time_stamp(void);
+	EXTERN_C time_t ncs_time_stamp(void);
 
 /*****************************************************************************
  **                                                                         **
@@ -219,7 +219,7 @@ extern "C" {
  * ENABLE_LEAP_DBG can be enabled in ncs_opt,h
  */
 
-	EXTERN_C LEAPDLL_API uns32 leap_dbg_sink(uns32, char *, long);
+	EXTERN_C uns32 leap_dbg_sink(uns32, char *, long);
 
 #define m_LEAP_GOTO_DBG_SINK(l,f,r) leap_dbg_sink(l,f,(uns32)r)
 #define m_LEAP_DBG_SINK(r)          leap_dbg_sink(__LINE__,__FILE__,(long)r)
@@ -283,8 +283,6 @@ extern "C" {
 #define MAX_FILENAME_LEN                   128
 
 #define m_NCS_IPV4_TO_IFIDX(hbo_ipv4)       m_NCS_OS_IPV4_TO_IFIDX(hbo_ipv4)
-
-#define NCS_HAVE_FLOATINGPOINT              NCS_OS_HAVE_FLOATINGPOINT
 
 #define m_NCS_CUR_CPU_USAGE                 m_NCS_OS_CUR_CPU_USAGE
 
@@ -350,21 +348,8 @@ extern "C" {
  **                                                                         **
  ****************************************************************************/
 
-	EXTERN_C LEAPDLL_API int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
-	EXTERN_C LEAPDLL_API int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
-
-/*****************************************************************************
- **                                                                         **
- **                              Stack Trace                                **
- **                                                                         **
- ****************************************************************************/
-#if (NCS_MMGR_STACKTRACE == 1)
-
-#define NCS_STACKTRACE_INFO       NCS_OS_STACKTRACE_INFO
-
-#define m_NCS_STACKTRACE_GET      m_NCS_OS_STACKTRACE_GET
-#define m_NCS_STACKTRACE_EXPAND   m_NCS_OS_STACKTRACE_EXPAND
-#endif   /*#if (NCS_MMGR_STACKTRACE == 1) */
+	EXTERN_C int32 sysf_strrcspn(const uns8 *s, const int32 start_pos, const uns8 *reject);
+	EXTERN_C int32 sysf_strincmp(const uns8 *s1, const uns8 *s2, uns32 n);
 
 #ifdef  __cplusplus
 }
@@ -374,7 +359,7 @@ extern "C" {
  **             LEAP ENVIRONMENT INITIALIZATION AND CLEAN UP                **
  **                                                                         **
  ****************************************************************************/
-    EXTERN_C LEAPDLL_API uns32 leap_env_init(void);
-EXTERN_C LEAPDLL_API uns32 leap_env_destroy(void);
+    EXTERN_C uns32 leap_env_init(void);
+EXTERN_C uns32 leap_env_destroy(void);
 
 #endif

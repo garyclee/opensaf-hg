@@ -32,11 +32,13 @@
 #ifndef EDS_CB_H
 #define EDS_CB_H
 
-/* IMMSV header */
-#include "saImmOi.h"
+#include <saClm.h>
+#include <saImmOi.h>
+
+#include "ncssysf_tmr.h"
 
 /* global variables */
-EXTERN_C EDSDLL_API uns32 gl_eds_hdl;
+EXTERN_C uns32 gl_eds_hdl;
 
 struct eda_reg_list_tag;
 

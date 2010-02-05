@@ -39,7 +39,6 @@ typedef enum {
 
 /* Common Headers */
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
@@ -48,7 +47,7 @@ typedef enum {
 #include "mds_papi.h"
 #include "ncs_log.h"
 #include "ncs_edu_pub.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 #include "mbcsv_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_mda_papi.h"

@@ -44,7 +44,7 @@
  * 
  */
 
-extern DTSDLL_API SYSF_MBX gl_dts_mbx;
+extern  SYSF_MBX gl_dts_mbx;
 
 /* The DTS Send and Recieve mailbox manipulations */
 

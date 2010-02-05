@@ -32,6 +32,7 @@
 #define PDRBD_MEM_H
 
 #include "pdrbd.h"
+#include "ncssysf_mem.h"
 
 #define MBCSV_MEM_PDRBD_EVT     1
 

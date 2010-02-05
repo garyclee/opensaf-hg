@@ -309,48 +309,48 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 /************* EDU EXTERNAL API (to Service Users) *************/
 
 /************ EDU external macro-related functions. ************/
-	EXTERN_C LEAPDLL_API uns32
+	EXTERN_C uns32
 	 ncs_edu_run_rules(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn, EDU_INST_SET prog[],
 			   NCSCONTEXT ptr, uns32 *ptr_data_len, EDU_BUF_ENV *buf_env,
 			   EDP_OP_TYPE optype, EDU_ERR *o_err, int instr_count);
 
-	EXTERN_C LEAPDLL_API
+	EXTERN_C 
 	    uns32 ncs_edu_compile_edp(EDU_HDL *edu_hdl, EDU_PROG_HANDLER prog,
 				      EDU_HDL_NODE **p_hdl_node, EDU_ERR *o_err);
 
-	EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
+	EXTERN_C uns32 ncs_edu_hdl_init(EDU_HDL *edu_hdl);
 
-	EXTERN_C LEAPDLL_API uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
+	EXTERN_C uns32 ncs_edu_hdl_flush(EDU_HDL *edu_hdl);
 
 #if 0
-	EXTERN_C LEAPDLL_API uns32
+	EXTERN_C uns32
 	 ncs_edu_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 		      EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 #endif
 
-	EXTERN_C LEAPDLL_API uns32
+	EXTERN_C uns32
 	 ncs_edu_ver_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCS_UBAID *uba,
 			  EDP_OP_TYPE op, NCSCONTEXT arg, EDU_ERR *o_err, EDU_MSG_VERSION to_version,
 			  uns8 var_cnt, ...);
 
-	EXTERN_C LEAPDLL_API uns32
+	EXTERN_C uns32
 	 ncs_edu_tlv_exec(EDU_HDL *edu_hdl, EDU_PROG_HANDLER edp, NCSCONTEXT bufp,
 			  uns32 buf_size, EDP_OP_TYPE op, NCSCONTEXT data_ptr, EDU_ERR *o_err, uns8 var_cnt, ...);
 
-	EXTERN_C LEAPDLL_API void ncs_edu_print_error_string(int enum_val);
+	EXTERN_C void ncs_edu_print_error_string(int enum_val);
 /************ EDU external macro-related functions. ************/
 
 /************* NCS Built-in EDU Program Prototypes *************/
-	LEAPDLL_API uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_ncs_bool(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					   NCSCONTEXT ptr, uns32 *ptr_data_len,
 					   EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_uns8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_uns16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_uns32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #if 0
@@ -358,10 +358,10 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 #endif
 
 #if(NCS_UNS64_DEFINED == 1)
-	LEAPDLL_API uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_uns64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_int64(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #else
@@ -369,42 +369,42 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 #define ncs_edp_int64           ncs_edp_int32	/* macro-convention ignored */
 #endif
 
-	LEAPDLL_API uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_char(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_string(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					 NCSCONTEXT ptr, uns32 *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_short(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_int(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				      NCSCONTEXT ptr, uns32 *ptr_data_len,
 				      EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #if 0
-	LEAPDLL_API uns32 ncs_edp_long(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_long(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #endif
 
-	LEAPDLL_API uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_int8(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 				       NCSCONTEXT ptr, uns32 *ptr_data_len,
 				       EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_int16(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_int32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
 #if 0
-	LEAPDLL_API uns32 ncs_edp_double(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_double(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					 NCSCONTEXT ptr, uns32 *ptr_data_len,
 					 EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_float(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_float(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					NCSCONTEXT ptr, uns32 *ptr_data_len,
 					EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
-	LEAPDLL_API uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	 uns32 ncs_edp_ncsfloat32(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					     NCSCONTEXT ptr, uns32 *ptr_data_len,
 					     EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 #else
@@ -415,11 +415,11 @@ ncs_edu_ver_exec(edu_hdl, edp_ptr, uba, op, data_ptr,o_err,to_version,var_cnt, #
 
 #define ncs_edp_mds_dest ncs_edp_uns64
 
-	LEAPDLL_API uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
+	uns32 ncs_edp_ncs_key(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 					  NCSCONTEXT ptr, uns32 *ptr_data_len,
 					  EDU_BUF_ENV *buf_env, EDP_OP_TYPE op, EDU_ERR *o_err);
 
-	LEAPDLL_API int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);
+	int ncs_edu_ncs_key_test_fmat_fnc(NCSCONTEXT arg);
 
 /************* NCS Built-in EDU Program Prototypes *************/
 

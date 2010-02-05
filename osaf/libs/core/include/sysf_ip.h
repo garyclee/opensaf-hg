@@ -49,7 +49,7 @@ extern "C" {
 
 	struct ncs_ip_request_info_tag;
 
-	EXTERN_C LEAPDLL_API uns32 sysf_ip_request(struct ncs_ip_request_info_tag *ip_request);
+	EXTERN_C uns32 sysf_ip_request(struct ncs_ip_request_info_tag *ip_request);
 
 	EXTERN_C int ncssock_ipv6_send_msg(NCS_SOCKET_ENTRY * se, char *bufp, uns32 total_len,
 					   struct sockaddr_in6 *saddr);

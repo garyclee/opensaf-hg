@@ -33,7 +33,6 @@
 */
 
 #include "gld.h"
-#include "ncs_dummy.h"
 
 /*****************************************************************************
   PROCEDURE NAME : gld_start_tmr

@@ -30,7 +30,6 @@
 #ifndef DTS_OPT_H
 #define DTS_OPT_H
 
-#include "ncs_opt.h"
 
 /*
  * NCS_DTS_REV

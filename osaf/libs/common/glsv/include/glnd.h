@@ -36,7 +36,6 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 
 /* Common Headers */
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
@@ -45,8 +44,7 @@ G_GLND_MEMFAIL(GLND_RESTART_RSC_LOCK_LIST_ALLOC_FAILED);
 #include "ncs_tmr.h"
 #include "ncs_log.h"
 #include "ncs_edu_pub.h"
-#include "ncsencdec.h"
-#include "ncs_dummy.h"
+#include "ncsencdec_pub.h"
 #include "ncs_util.h"
 
 /* DTS header file */

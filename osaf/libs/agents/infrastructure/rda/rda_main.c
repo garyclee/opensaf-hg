@@ -33,6 +33,7 @@
 ** Includes
 */
 #include "rda.h"
+#include "ncssysf_mem.h"
 
 /*
 ** Static functions

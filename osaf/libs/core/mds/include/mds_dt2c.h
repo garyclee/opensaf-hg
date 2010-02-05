@@ -30,7 +30,7 @@
 #include <linux/tipc.h>
 #endif
 
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "mds_papi.h"
 #include <linux/tipc.h>
 

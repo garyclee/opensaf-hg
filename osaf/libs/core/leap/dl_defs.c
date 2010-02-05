@@ -35,11 +35,10 @@ NOTES:
 
   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncs_dl.h"
+#include "ncssysf_def.h"
 #include "ncssysf_tsk.h"
 #include "ncssysf_mem.h"
 
@@ -54,7 +53,6 @@ NOTES:
  * LEAP base it needs to be included here.
  */
 #include "ncs_scktprm.h"
-/* Fix Ends */
 
 #include <time.h>
 #include <sys/types.h>
@@ -66,10 +64,6 @@ NOTES:
 
 #include "sysf_def.h"
 #include "ncs_dlprm.h"
-
-#ifdef  DUMP_USRBUF_IN_MDS_LOG	/* Never to be enabled in real code */
-#include "mds_inc.h"
-#endif
 
 #define L2STACK_BUFFER_SIZE (1500)
 #define SYS_L2SOCK_DEF_SEL_TIMEOUT 20
@@ -898,22 +892,6 @@ static uns32 ncsl2sock_event_raw_send(NCS_L2SOCKET_ENTRY *se, NCSCONTEXT arg)
 		}
 	}
 
-#ifdef DUMP_USRBUF_IN_MDS_LOG	/* PM : 31/Jan/2005 */
-	{
-		uns32 ubuf_num;
-		USRBUF *print_usrmsg;
-
-		/* Explicit log trace-level check to avoid expensive logging code */
-		/* TRACE logging is enabled. Some more expensive trace logging */
-
-		for (ubuf_num = 0, print_usrmsg = usrbuf; print_usrmsg; ubuf_num++, print_usrmsg = print_usrmsg->link) {
-			m_LOG_MDS_TRACE("DL_DEFS.C:WRITE_FRAG:UBUF_NUM=%d:START=%d:COUNT=%d:UB_REF_COUNT=%d\n",
-					ubuf_num, print_usrmsg->start, print_usrmsg->count,
-					print_usrmsg->payload->RefCnt);
-		}
-	}
-#endif
-
 	if ((bufp = m_MMGR_DATA_AT_START(usrbuf, (unsigned int)total_len, pBigBuff)) == NULL) {
 		bytes_sent = NCSSOCK_ERROR;
 	}
@@ -1559,8 +1537,6 @@ static uns32 ncsl2sock_event_raw_indication(NCS_L2SOCKET_ENTRY *se_in, NCSCONTEX
 	NCS_DL_ERROR dl_error;
 	NCS_DL_INDICATION loc_dl_ind = NULL;
 
-	USE(ddi);
-
 #if (NCS_DL_DEFS_TRACE == 1)
 	m_NCS_DL_DEFS_TRACE("ncsl2sock_event_raw_indication(0x%08x)\n", (uns32)se_in);
 #endif
@@ -1738,25 +1714,7 @@ static uns32 ncsl2sock_event_raw_indication(NCS_L2SOCKET_ENTRY *se_in, NCSCONTEX
 		} else {
 			header_len = 14;
 		}
-#ifdef DUMP_USRBUF_IN_MDS_LOG	/* PM : 31/Jan/2005 */
-		{
-			uns32 ubuf_num;
-			USRBUF *print_usrmsg;
-
-			/* Explicit log trace-level check to avoid expensive logging code */
-			/* TRACE logging is enabled. Some more expensive trace logging */
-
-			for (ubuf_num = 0, print_usrmsg = dlbuf;
-			     print_usrmsg; ubuf_num++, print_usrmsg = print_usrmsg->link) {
-				m_LOG_MDS_TRACE("DL_DEFS.C:READ_FRAG:UBUF_NUM=%d:START=%d:COUNT=%d:UB_REF_COUNT=%d\n",
-						ubuf_num, print_usrmsg->start, print_usrmsg->count,
-						print_usrmsg->payload->RefCnt);
-			}
-		}
-#endif
-
-			/** Strip off the Ethernet Header...
-			 **/
+		/* Strip off the Ethernet Header... */
 		m_MMGR_REMOVE_FROM_START(&dlbuf, header_len);
 
 		if (se->shared == FALSE) {
@@ -1839,15 +1797,11 @@ static uns32 ncsl2sock_event_raw_indication(NCS_L2SOCKET_ENTRY *se_in, NCSCONTEX
 
 static uns32 ncsl2sock_event_null(NCS_L2SOCKET_ENTRY *se, NCSCONTEXT arg)
 {
-	USE(se);
-	USE(arg);
 	return NCSCC_RC_SUCCESS;
 }
 
 static uns32 ncsl2sock_event_failure(NCS_L2SOCKET_ENTRY *se, NCSCONTEXT arg)
 {
-	USE(se);
-	USE(arg);
 	return NCSCC_RC_FAILURE;
 }
 

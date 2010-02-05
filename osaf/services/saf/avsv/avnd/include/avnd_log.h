@@ -36,6 +36,7 @@
 #define AVND_LOG_H
 
 #include "avsv_log.h"
+#include <saClm.h>
 
 /******************************************************************************
                     Logging offset indices for timer

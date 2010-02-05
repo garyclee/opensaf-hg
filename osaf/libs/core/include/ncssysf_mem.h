@@ -43,14 +43,6 @@
 extern "C" {
 #endif
 
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-
-#define m_NCSSYSM_BUF_ASSERT(exp)  assert(exp)
-#else
-
-#define m_NCSSYSM_BUF_ASSERT(exp)
-#endif
-
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
  @
  @          MEMORY MANAGER PRIMITIVES (MACROS)...
@@ -125,12 +117,12 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	LEAPDLL_API void *sysf_leap_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	LEAPDLL_API void sysf_leap_free(void *data, uns8 pool_id);
-	LEAPDLL_API void *sysf_heap_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	LEAPDLL_API void sysf_heap_free(void *data, uns8 pool_id);
-	LEAPDLL_API void *sysf_stub_alloc(uns32 b, uns8 pool_id, uns8 pri);
-	LEAPDLL_API void sysf_stub_free(void *data, uns8 pool_id);
+	 void *sysf_leap_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	 void sysf_leap_free(void *data, uns8 pool_id);
+	 void *sysf_heap_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	 void sysf_heap_free(void *data, uns8 pool_id);
+	 void *sysf_stub_alloc(uns32 b, uns8 pool_id, uns8 pri);
+	 void sysf_stub_free(void *data, uns8 pool_id);
 
 /* free the user frame data info */
 #define m_MMGR_FREE_BUFR_FRAMES(ptr) m_NCS_MEM_FREE(ptr->bufp, NCS_MEM_REGION_TRANSIENT, \
@@ -205,11 +197,7 @@ extern "C" {
  **
  ** This macro must return a pointer to the duplicate USRBUF.
  **/
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-#define m_MMGR_DITTO_BUFR(p)     sysf_ditto_pkt(ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__))
-#else
 #define m_MMGR_DITTO_BUFR(p)     sysf_ditto_pkt(p)
-#endif
 
 /** Macro to copy a USRBUF...This translates into creating additional
  ** packet buffer descriptor(s) and payload area(s).
@@ -218,11 +206,7 @@ extern "C" {
  **
  ** This macro must return a pointer to the copy of the USRBUF.
  **/
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-#define m_MMGR_COPY_BUFR(p)     sysf_copy_pkt(ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__))
-#else
 #define m_MMGR_COPY_BUFR(p)     sysf_copy_pkt(p)
-#endif
 
 /** Macro to free a USRBUF (chain)...
  ** 
@@ -231,173 +215,6 @@ extern "C" {
  ** The return value from this macro is irrelevant.
  **/
 
-#if ((NCSSYSM_BUF_STATS_ENABLE != 1) && (NCSSYSM_BUF_DBG_ENABLE == 1))
-#define m_MMGR_FREE_BUFR_LIST(p) \
-{                         \
-   USRBUF *pn;            \
-                          \
-   for (; (p);)           \
-   {                      \
-      pn = (p)->link;     \
-      ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__); \
-      sysf_free_pkt(p);   \
-      p = pn;             \
-   }                      \
-}
-#endif
-
-#if ((NCSSYSM_BUF_STATS_ENABLE == 1) && (NCSSYSM_BUF_DBG_ENABLE == 1))
-#define m_MMGR_FREE_BUFR_LIST(p) \
-{                         \
-   USRBUF *pn;            \
-   uns32   chain_cnt;     \
-   uns32   data_size = p != NULL ? sysf_get_chain_len(p): (uns32)0; \
-   uns32    pool_id = p != NULL ? (uns32)((USRBUF*)p)->pool_ops->pool_id : (uns32)0;\
-                          \
-   for (chain_cnt = 0; (p);chain_cnt++) \
-   {                      \
-      pn = (p)->link;     \
-      ncs_buf_dbg_loc(p,NCS_SERVICE_ID_OS_SVCS,2,__LINE__,__FILE__); \
-      sysf_free_pkt(p);   \
-      p = pn;             \
-   } \
-   if(chain_cnt > 0)\
-   {\
-   m_PMGR_LK(&gl_ub_pool_mgr.lock); \
-                          \
-   switch(chain_cnt) \
-  { \
-  case 1: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_1++;\
-    break; \
-  case 2: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_2++;\
-    break; \
-  case 3: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_3++;\
-    break; \
-  case 4: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_4++;\
-    break; \
-  default: \
-   gl_ub_pool_mgr.pools[pool_id].stats.fc_gt++;\
-    break; \
-   } \
-     \
-   if(data_size < 32) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s32b++;\
-   } \
-   else if(data_size < 64) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s64b++;\
-   } \
-   else if(data_size < 128) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s128b++;\
-   } \
-   else if(data_size < 256) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s256b++;\
-   } \
-   else if(data_size < 512) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s512b++;\
-   } \
-   else if(data_size < 1024) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s1024b++;\
-   } \
-   else if(data_size < 2048) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s2048b++;\
-   } \
-   else if(data_size > 2048) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.sbig_b++;\
-   } \
-     \
-   m_PMGR_UNLK(&gl_ub_pool_mgr.lock);   \
-   } \
-}
-#endif
-
-#if ((NCSSYSM_BUF_STATS_ENABLE == 1) && (NCSSYSM_BUF_DBG_ENABLE != 1))
-#define m_MMGR_FREE_BUFR_LIST(p) \
-{                         \
-   USRBUF *pn;            \
-   uns32   chain_cnt;     \
-   uns32   data_size = p != NULL ? sysf_get_chain_len(p): (uns32)0; \
-   uns32    pool_id = p != NULL ? (uns32)((USRBUF*)p)->pool_ops->pool_id : (uns32)0;\
-                          \
-   for (chain_cnt = 0; (p);chain_cnt++) \
-   {                      \
-      pn = (p)->link;     \
-      sysf_free_pkt(p);   \
-      p = pn;             \
-   } \
-   if(chain_cnt > 0) \
-   { \
-   m_PMGR_LK(&gl_ub_pool_mgr.lock); \
-                          \
-   switch(chain_cnt) \
-  { \
-  case 1: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_1++;\
-    break; \
-  case 2: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_2++;\
-    break; \
-  case 3: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_3++;\
-    break; \
-  case 4: \
-    gl_ub_pool_mgr.pools[pool_id].stats.fc_4++;\
-    break; \
-  default: \
-   gl_ub_pool_mgr.pools[pool_id].stats.fc_gt++;\
-    break; \
-   } \
-     \
-   if(data_size < 32) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s32b++;\
-   } \
-   else if(data_size < 64) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s64b++;\
-   } \
-   else if(data_size < 128) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s128b++;\
-   } \
-   else if(data_size < 256) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s256b++;\
-   } \
-   else if(data_size < 512) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s512b++;\
-   } \
-   else if(data_size < 1024) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s1024b++;\
-   } \
-   else if(data_size < 2048) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.s2048b++;\
-   } \
-   else if(data_size > 2048) \
-   { \
-    gl_ub_pool_mgr.pools[pool_id].stats.sbig_b++;\
-   } \
-     \
-   m_PMGR_UNLK(&gl_ub_pool_mgr.lock);   \
-   } \
-}
-#endif
-
-#if ((NCSSYSM_BUF_STATS_ENABLE != 1) && (NCSSYSM_BUF_DBG_ENABLE != 1))
 #define m_MMGR_FREE_BUFR_LIST(p) \
 {                         \
    USRBUF *pn;            \
@@ -409,7 +226,6 @@ extern "C" {
       p = pn;             \
    }                      \
 }
-#endif
 
 /** Macro to fetch the next USRBUF in a queue of USRBUFs.
  ** 
@@ -696,44 +512,44 @@ extern "C" {
  @
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C LEAPDLL_API void sysf_free_pkt(USRBUF *pb);
+	EXTERN_C void sysf_free_pkt(USRBUF *pb);
 
-	EXTERN_C LEAPDLL_API USRBUF *sysf_alloc_pkt(unsigned char pool_id,
+	EXTERN_C USRBUF *sysf_alloc_pkt(unsigned char pool_id,
 						    unsigned char priority, int num, unsigned int line, char *file);
 
-	EXTERN_C LEAPDLL_API char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
-	EXTERN_C LEAPDLL_API char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
-	EXTERN_C LEAPDLL_API void sysf_remove_from_end(USRBUF *pb, unsigned int size);
-	EXTERN_C LEAPDLL_API char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
-	EXTERN_C LEAPDLL_API void sysf_remove_from_start(USRBUF **ppb, unsigned int size);
-	EXTERN_C LEAPDLL_API char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare);
-	EXTERN_C LEAPDLL_API char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare);
-	EXTERN_C LEAPDLL_API USRBUF *sysf_ditto_pkt(USRBUF *);
-	EXTERN_C LEAPDLL_API USRBUF *sysf_copy_pkt(USRBUF *dup_me);
-	EXTERN_C LEAPDLL_API char *sysf_data_in_mid(USRBUF *pb,
+	EXTERN_C char *sysf_reserve_at_end(USRBUF **ppb, unsigned int size);
+	EXTERN_C char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size, NCS_BOOL total);
+	EXTERN_C void sysf_remove_from_end(USRBUF *pb, unsigned int size);
+	EXTERN_C char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size);
+	EXTERN_C void sysf_remove_from_start(USRBUF **ppb, unsigned int size);
+	EXTERN_C char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare);
+	EXTERN_C char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare);
+	EXTERN_C USRBUF *sysf_ditto_pkt(USRBUF *);
+	EXTERN_C USRBUF *sysf_copy_pkt(USRBUF *dup_me);
+	EXTERN_C char *sysf_data_in_mid(USRBUF *pb,
 						    unsigned int offset,
 						    unsigned int size, char *spare, unsigned int copy_flag);
-	EXTERN_C LEAPDLL_API char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata);
-	EXTERN_C LEAPDLL_API char *sysf_insert_in_mid(USRBUF *pb,
+	EXTERN_C char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char *cdata);
+	EXTERN_C char *sysf_insert_in_mid(USRBUF *pb,
 						      unsigned int offset, unsigned int size, char *ins_data);
-	EXTERN_C LEAPDLL_API unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_sz, SYSF_UBQ *q);
-	EXTERN_C LEAPDLL_API void sysf_append_data(USRBUF *p1, USRBUF *p2);
-	EXTERN_C LEAPDLL_API USRBUF *sysf_ubq_dq_head(SYSF_UBQ *q);
-	EXTERN_C LEAPDLL_API void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
-	EXTERN_C LEAPDLL_API USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
+	EXTERN_C unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_sz, SYSF_UBQ *q);
+	EXTERN_C void sysf_append_data(USRBUF *p1, USRBUF *p2);
+	EXTERN_C USRBUF *sysf_ubq_dq_head(SYSF_UBQ *q);
+	EXTERN_C void sysf_ubq_dq_specific(SYSF_UBQ *q, USRBUF *ub);
+	EXTERN_C USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *q, USRBUF *ub);
 
-	EXTERN_C LEAPDLL_API uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
-	EXTERN_C LEAPDLL_API USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
+	EXTERN_C uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len);
+	EXTERN_C USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length);
 
 /** Computational routines **/
-	EXTERN_C LEAPDLL_API uns32 sysf_get_chain_len(const USRBUF *);
-	EXTERN_C LEAPDLL_API void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
+	EXTERN_C uns32 sysf_get_chain_len(const USRBUF *);
+	EXTERN_C void sysf_calc_usrbuf_cksum_1s_comp(USRBUF *const, unsigned int, uns16 *const);
 
-	EXTERN_C LEAPDLL_API void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
+	EXTERN_C void sysf_usrbuf_hexdump(USRBUF *buf, char *fname);
 
-	EXTERN_C LEAPDLL_API uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
+	EXTERN_C uns32 sysf_str_hexdump(uns8 *data, uns32 size, char *fname);
 
-	EXTERN_C LEAPDLL_API uns32 sysf_pick_output(char *str, char *fname);
+	EXTERN_C uns32 sysf_pick_output(char *str, char *fname);
 
 #ifdef  __cplusplus
 }

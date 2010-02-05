@@ -63,7 +63,7 @@ static uns32 mqd_ckpt_decode_cold_sync_resp(MQD_CB *pMqd, NCS_MBCSV_CB_ARG *arg)
 static uns32 mqd_a2s_make_record_from_coldsync(MQD_CB *pMqd, MQD_A2S_QUEUE_INFO q_data_msg);
 static uns32 mqd_db_del_all_records(MQD_CB *pMqd);
 
-extern MQDDLL_API MQDLIB_INFO gl_mqdinfo;
+extern  MQDLIB_INFO gl_mqdinfo;
 
 /****************************************************************************************** 
  *  Name             : mqd_a2s_async_update

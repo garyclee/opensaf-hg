@@ -18,7 +18,7 @@
 #ifndef AVA_DL_API_H
 #define AVA_DL_API_H
 
-EXTERN_C LEAPDLL_API uns32 ava_lib_req(NCS_LIB_REQ_INFO *);
+EXTERN_C uns32 ava_lib_req(NCS_LIB_REQ_INFO *);
 EXTERN_C unsigned int ncs_ava_startup(void);
 EXTERN_C unsigned int ncs_ava_shutdown(void);
 

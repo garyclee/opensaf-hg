@@ -26,11 +26,13 @@
 #define _MDS_DT_H
 
 #include "mds_dt2c.h"
-#include "gl_defs.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
 #include "ncs_lib.h"
 #include "ncssysf_tmr.h"
 #include "ncs_main_papi.h"
+#include "ncssysf_mem.h"
+#include "ncspatricia.h"
+
 #include <linux/tipc.h>
 
 /* This file is private to the MDTM layer. */

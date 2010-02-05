@@ -149,7 +149,7 @@ EXTERN_C uns32 imma_db_destroy(IMMA_CB *cb);
 
 /*client tree*/
 EXTERN_C uns32 imma_client_tree_init(IMMA_CB *cb);
-EXTERN_C  void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
+EXTERN_C void imma_client_node_get(NCS_PATRICIA_TREE *client_tree, SaImmHandleT *cl_hdl, IMMA_CLIENT_NODE **cl_node);
 EXTERN_C uns32 imma_client_node_add(NCS_PATRICIA_TREE *client_tree, IMMA_CLIENT_NODE *cl_node);
 EXTERN_C uns32 imma_client_node_delete(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node);
 EXTERN_C void imma_client_tree_destroy(IMMA_CB *cb);

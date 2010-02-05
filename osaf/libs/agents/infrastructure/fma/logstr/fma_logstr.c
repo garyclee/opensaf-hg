@@ -16,7 +16,6 @@
  */
 
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 #include "ncs_log.h"
 #include "dts_papi.h"
 #include "dta_papi.h"

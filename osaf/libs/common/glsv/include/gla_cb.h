@@ -18,6 +18,10 @@
 #ifndef GLA_CB_H
 #define GLA_CB_H
 
+#include "ncssysf_tmr.h"
+#include "ncssysf_mem.h"
+#include "ncspatricia.h"
+
 extern uns32 gl_gla_hdl;
 #define m_GLSV_GLA_RETRIEVE_GLA_CB  ncshm_take_hdl(NCS_SERVICE_ID_GLA, gl_gla_hdl)
 #define m_GLSV_GLA_GIVEUP_GLA_CB    ncshm_give_hdl(gl_gla_hdl)

@@ -30,7 +30,6 @@
 #ifndef DTA_OPT_H
 #define DTA_OPT_H
 
-#include "ncs_opt.h"
 
 /*
  * NCS_DTA_REV

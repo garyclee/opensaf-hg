@@ -43,6 +43,7 @@
 
 /* NCS_LOCK now defined from below include file */
 #include "ncssysf_lck.h"
+#include "ncssysf_mem.h"
 
 /***************************************************************************
 

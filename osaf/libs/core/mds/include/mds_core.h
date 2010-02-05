@@ -26,12 +26,13 @@
 #ifndef _MDS_CORE_H
 #define _MDS_CORE_H
 
-#include "gl_defs.h"
-#include "ncs_opt.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
 #include "mds_papi.h"
 #include "mds_dt2c.h"
 #include "mds_adm.h"
+#include "ncssysf_tmr.h"
+#include "ncssysf_mem.h"
+#include "ncspatricia.h"
 
 /* Declarations private to MDS Core module - Vishal */
 typedef uns32 MDS_SYNC_TXN_ID;

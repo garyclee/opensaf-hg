@@ -32,17 +32,12 @@
 #ifndef DTS_H
 #define DTS_H
 
-/*  Get compile time options...*/
-
-#include "ncs_opt.h"
-
 /* Get general definitions.....*/
 
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 
 /* Get target's suite of header files...*/
 
-#include "t_suite.h"
 
 #include "dts_tgt.h"
 
@@ -51,9 +46,8 @@
 #include "ncs_svd.h"
 #include "usrbuf.h"
 #include "ncsft.h"
-#include "ncsft_rms.h"
 #include "ncs_ubaid.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 #include "ncs_stack.h"
 #include "ncs_log.h"
 #include "ncs_lib.h"
@@ -67,12 +61,6 @@
 /* From targsvcs/common/inc */
 
 #include "mds_papi.h"
-
-/* From /base/products/rms/inc */
-
-#if (NCS_RMS == 1)
-#include "rms_env.h"
-#endif
 
 #include "saAis.h"
 

@@ -30,6 +30,8 @@
 #ifndef AVSV_CLMPARAM_H
 #define AVSV_CLMPARAM_H
 
+#include <saClm.h>
+
 /* CLM API enums */
 typedef enum avsv_clm_api_type {
 	AVSV_CLM_INITIALIZE = 1,

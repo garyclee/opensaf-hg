@@ -88,34 +88,8 @@ struct msgbuf {
 /* includes for DLL */
 #include <dlfcn.h>
 
-#if (NCSSYSM_STKTRACE == 1)
-#include <execinfo.h>
-#endif
-
 #include <assert.h>
 #include <sys/wait.h>
-
-/** Meaningless expression to remove "unreferenced variable" compiler
- ** warnings.  Depending on the compiler and alternate definition may be:
- **/
-#define USE(x)                  (x=x)
-#define CONST_USE(x) {void * dummy = &x;}
-
-/*****************************************************************************
-
-  INCLUDE trg_defs.h IF THE END USER DEFINES "USE_TARGET_SYSTEM_TYPEDEFS" non zero
-
-  The end user is responsible to supply contents of trg_defs.h file.
-
- ****************************************************************************/
-
-# if(USE_TARGET_SYSTEM_TYPEDEFS != 0)
-#include "trg_defs.h"
-#endif
-
-#if 0
-#include "ncsgl_defs.h"
-#endif
 
 #ifdef  __cplusplus
 extern "C" {
@@ -127,25 +101,6 @@ extern "C" {
 
  ****************************************************************************/
 
-#define LEAPDLL_API
-#define RMSDLL_API
-#define CLIDLL_API
-#define GLDDLL_API
-#define GLNDDLL_API
-#define GLADLL_API
-#define SPADLL_API
-#define DTSDLL_API
-#define MBCSVDLL_API
-#define DTADLL_API
-#define MQSVDLL_API
-#define MQADLL_API
-#define MQDDLL_API
-#define MQNDDLL_API
-#define CPADLL_API
-#define CPDDLL_API
-#define CPNDDLL_API
-#define APS_DLL_API
-
 /* Linux supports "long long" which is a 64-bit data type */
 #define NCS_64BIT_DATA_TYPE_SUPPORT 1
 #define NCS_UNS64_DEFINED 1
@@ -154,7 +109,7 @@ extern "C" {
 	extern void ncs_os_atomic_destroy(void);
 
 #ifndef m_NCS_OS_DBG_PRINTF
-	EXTERN_C LEAPDLL_API int ncs_dbg_logscreen(const char *str, ...);
+	EXTERN_C int ncs_dbg_logscreen(const char *str, ...);
 #define m_NCS_OS_DBG_PRINTF         ncs_dbg_logscreen
 #endif
 
@@ -326,28 +281,6 @@ extern "C" {
 #define m_NCS_OS_HTONS_P(p8,v16) { \
    *p8     = (uns8)(v16>>8); \
    *(p8+1) = (uns8)v16; }
-
-/*****************************************************************************
- **                                                                         **
- **                              Stack Trace                                **
- **                                                                         **
- ****************************************************************************/
-#if (NCSSYSM_STKTRACE == 1)
-#define NCSSYS_STKTRACE_FRAMES_MAX 128
-	typedef struct ncs_os_stktrace_info {
-		uns32 flags;	/* fetched=1, */
-		struct ncs_os_stktrace_info *next;
-		uns32 ticks;
-		int addr_count;	/* number of addresses in stack trace (dwarray) */
-		void *addr_array[128];	/* array of function addresses */
-	} NCS_OS_STKTRACE_ENTRY;
-
-	void ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st);
-	void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 *outlen);
-
-#define m_NCS_OS_STACKTRACE_GET     ncs_os_stacktrace_get
-#define m_NCS_OS_STACKTRACE_EXPAND  ncs_os_stacktrace_expand
-#endif
 
 /****************************************************************************
  * m_NCS_OS_TARGET_INIT

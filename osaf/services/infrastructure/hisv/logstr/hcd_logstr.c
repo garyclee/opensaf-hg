@@ -287,7 +287,6 @@ uns32 hisv_dereg_strings()
 
 uns32 hisv_reg_strings(char *fname)
 {
-	USE(fname);
 	return NCSCC_RC_SUCCESS;
 }
 

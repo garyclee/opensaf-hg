@@ -107,8 +107,6 @@ void avnd_stop_tmr(AVND_CB *cb, AVND_TMR *tmr)
 	if (AVND_TMR_MAX <= tmr->type)
 		return;
 
-	USE(cb);
-
 	/* Stop the timer if it is active... */
 	m_START_CRITICAL;
 	if (tmr->is_active == TRUE) {

@@ -45,7 +45,7 @@
 #define NCS_2_0 1
 #include "mqd.h"
 #include <poll.h>
-MQDDLL_API MQDLIB_INFO gl_mqdinfo;
+ MQDLIB_INFO gl_mqdinfo;
 
 #define FD_AMF 0
 #define FD_MBCSV 1

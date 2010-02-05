@@ -33,6 +33,8 @@
 #ifndef MBCSV_MEM_H
 #define MBCSV_MEM_H
 
+#include "ncssysf_mem.h"
+
 #define MBCSV_MEM_MBCSV_EVT     1
 #define MBCSV_MEM_REG_INFO      2
 #define MBCSV_MEM_CKPT_INST     3

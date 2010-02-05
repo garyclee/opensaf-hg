@@ -399,7 +399,6 @@ uns32 dts_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 uns32 dts_reg_strings(char *fname)
 {
-	USE(fname);
 	return NCSCC_RC_SUCCESS;
 }
 

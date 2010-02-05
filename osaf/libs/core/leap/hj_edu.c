@@ -26,22 +26,19 @@
 ******************************************************************************
 */
 
-/** Get compile time options...**/
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
 #include "sysf_def.h"
 #include "patricia.h"
 #include "ncs_stack.h"
-#include "sysfpool.h"
+#include "ncssysfpool.h"
 #include "ncsencdec_pub.h"
 #include "ncs_edu.h"
 #include "usrbuf.h"
 
-LEAPDLL_API char gl_log_string[GL_LOG_STRING_LEN];
+ char gl_log_string[GL_LOG_STRING_LEN];
 
 #if(NCS_EDU_VERBOSE_PRINT == 1)
 static uns32 ncs_edu_ppdb_init(EDU_PPDB * ppdb);

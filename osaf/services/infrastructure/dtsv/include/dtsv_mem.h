@@ -33,6 +33,8 @@
 #ifndef DTSV_MEM_H
 #define DTSV_MEM_H
 
+#include "ncssysf_mem.h"
+
 #define DTSV_MEM_DTSV_MSG     1
 #define DTSV_MEM_OCT         2
 

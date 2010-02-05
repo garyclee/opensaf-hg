@@ -37,9 +37,8 @@
 ******************************************************************************
 */
 
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncs_hdl.h"
 #include "ncssysf_def.h"
 #include "ncssysf_sem.h"

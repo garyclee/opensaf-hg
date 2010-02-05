@@ -2,7 +2,7 @@
 
 #include "tet_glsv.h"
 
-extern GLDDLL_API uns32 gl_gld_hdl;
+extern uns32 gl_gld_hdl;
 
 void tet_run_gld() {
 

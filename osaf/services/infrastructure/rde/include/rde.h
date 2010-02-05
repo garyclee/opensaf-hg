@@ -53,7 +53,6 @@
 #include <sys/time.h>
 
 #include "ncsgl_defs.h"
-#include "ncs_opt.h"
 #include "ncs_osprm.h"
 
 #include "ncs_svd.h"
@@ -72,7 +71,6 @@
 
 #include "ncs_queue.h"
 #include "ncs_scktprm.h"
-#include "sysf_lck.h"
 
 /* 
  * DTS header file 
@@ -84,7 +82,7 @@
 /* 
  * Get General Definations 
  */
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 
 /* 
  * Get target's suite of header files...

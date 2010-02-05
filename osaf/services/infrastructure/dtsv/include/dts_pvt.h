@@ -32,6 +32,7 @@
 
 #include "mds_papi.h"
 #include "saImmOi.h"
+#include "ncssysf_tmr.h"
 
 #ifdef __NCSINC_LINUX__
 #define LOG_PATH OSAF_LOCALSTATEDIR "log"
@@ -881,7 +882,7 @@ typedef enum {
 DTS tasking loop function
 *************************************************************************/
 
-EXTERN_C DTSDLL_API void dts_do_evts(SYSF_MBX *mbx);
+EXTERN_C void dts_do_evts(SYSF_MBX *mbx);
 EXTERN_C uns32 dts_do_evt(DTSV_MSG *msg);
 
 /************************************************************************

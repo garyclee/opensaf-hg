@@ -18,6 +18,8 @@
 #ifndef GLSV_LCK_H
 #define GLSV_LCK_H
 
+#include <saLck.h>
+
 typedef struct glsv_lock_req_info_tag {
 	SaLckLockIdT lockid;	/* index for identifying the lock */
 	SaLckLockIdT lcl_lockid;	/* index for identifying the lock */

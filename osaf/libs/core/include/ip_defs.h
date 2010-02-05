@@ -42,8 +42,8 @@
 extern "C" {
 #endif
 
-	EXTERN_C LEAPDLL_API int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
-	EXTERN_C LEAPDLL_API unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
+	EXTERN_C int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
+	EXTERN_C unsigned int os_ifidx_to_ipv4(unsigned int ifIndex);
 
 /*****************************************************************************
  **                                                                         **

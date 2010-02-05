@@ -27,6 +27,7 @@
 #define EDSV_MEM_H
 
 #include "eda.h"
+#include "ncssysf_mem.h"
 
 /* Service Sub IDs for EDA */
 typedef enum {

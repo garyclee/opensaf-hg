@@ -31,6 +31,8 @@
 #ifndef GLSV_MEM_H
 #define GLSV_MEM_H
 
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for GLSV */
 typedef enum {
 	NCS_SERVICE_GLSV_SUB_ID_GLND_LOCK_LIST_INFO = 1,

@@ -29,7 +29,7 @@
 
 #ifndef GLD_DL_API_H
 #define GLD_DL_API_H
-EXTERN_C GLDDLL_API uns32 gl_gld_hdl;
-EXTERN_C GLDDLL_API uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info);
+EXTERN_C uns32 gl_gld_hdl;
+EXTERN_C uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info);
 
 #endif   /* !GLD_DL_API_H */

@@ -30,7 +30,7 @@
 #ifndef DTS_LOG_H
 #define DTS_LOG_H
 
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 
 /*******************************************************************************************/
 

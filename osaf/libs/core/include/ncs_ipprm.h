@@ -32,12 +32,6 @@
 #ifndef NCS_IPPRM_H
 #define NCS_IPPRM_H
 
-#if 0				/* Kyle's code.. One version of a Layering violation */
-#ifndef NCS_LOCK
-#define NCS_LOCK NCS_OS_LOCK
-#endif
-#endif
-
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncs_scktprm.h"
@@ -45,7 +39,7 @@
 #include "ncs_iplib.h"
 #include "ncs_ip.h"
 
-#include "ncssysf_lck.h"	/* Steve's code.. Another version of the same Layer V */
+#include "ncssysf_lck.h"
 #include "ncsusrbuf.h"
 #include "ncs_queue.h"
 
@@ -470,7 +464,7 @@ extern "C" {
 
 #ifndef m_NCS_OS_IPV4_TO_IFIDX
 #define m_NCS_OS_IPV4_TO_IFIDX(hbo_ipv4)  os_ipv4_to_ifidx(hbo_ipv4)
-	EXTERN_C LEAPDLL_API int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
+	EXTERN_C int os_ipv4_to_ifidx(unsigned int hbo_ipv4);
 #endif
 
 #ifndef NCS_OS_IPSVC_AIO_OP_TYPE

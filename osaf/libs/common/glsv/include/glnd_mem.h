@@ -30,6 +30,8 @@
 #ifndef GLND_MEM_H
 #define GLND_MEM_H
 
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for GLND */
 typedef enum {
 	NCS_SERVICE_GLND_SUB_ID_GLND_DEFAULT_VAL = 1,
