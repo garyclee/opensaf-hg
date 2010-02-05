@@ -896,13 +896,17 @@ SaAisErrorT ntfsv_v_data_cp(v_data * dest, const v_data * src)
 	TRACE_ENTER2("src alloc v_data max_size %u, size %zd, p_base %p", src->max_data_size, src->size, src->p_base);
 	dest->max_data_size = src->max_data_size;
 	dest->size = src->size;
-	dest->p_base = calloc(1, src->size);
-	TRACE_1("alloc v_data.p_base %p", dest->p_base);
-	if (dest->p_base == NULL) {
-		return SA_AIS_ERR_NO_MEMORY;
-		TRACE_LEAVE();
-	}
-	memcpy(dest->p_base, src->p_base, src->size);
+	if (src->size) {
+		dest->p_base = calloc(1, src->size);
+		TRACE_1("alloc v_data.p_base %p", dest->p_base);
+		if (dest->p_base == NULL) {
+			TRACE_LEAVE();
+			return SA_AIS_ERR_NO_MEMORY;
+		}
+		memcpy(dest->p_base, src->p_base, src->size);
+	} else {
+		dest->p_base = NULL;
+	} 
 	TRACE_LEAVE2("dest alloc v_data max_size %u, size %zd, p_base %p",
 		     dest->max_data_size, dest->size, dest->p_base);
 	return SA_AIS_OK;
