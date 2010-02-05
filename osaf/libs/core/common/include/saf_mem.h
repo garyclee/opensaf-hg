@@ -30,6 +30,8 @@
 #ifndef SAF_MEM_H
 #define SAF_MEM_H
 
+#include "ncssysf_mem.h"
+
 /*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
                         Memory Allocation and Release Macros 

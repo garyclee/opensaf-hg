@@ -23,22 +23,18 @@ SUBDIRS = include
 noinst_LTLIBRARIES = libleap.la
 
 libleap_la_CPPFLAGS = \
+	-DUSE_LITTLE_ENDIAN=1 -DNCSL_ENV_INIT_HM=1 \
+	-DNCSL_ENV_INIT_MTM=1 -DNCSL_ENV_INIT_TMR=1 \
 	$(AM_CPPFLAGS)
 
 libleap_la_SOURCES = \
 	ncsdlib.c \
-	hj_regx.c \
 	ncs_posix_tmr.c \
 	sysf_dl.c \
-	sysf_cio.c \
 	sysf_def.c \
 	patricia.c \
-	sysf_fio.c \
 	sysf_ipc.c \
-	sysf_key.c \
-	sysf_lck.c \
 	sysf_mem.c \
-	hj_cache.c \
 	sysf_sem.c \
 	sysf_str.c \
 	sysf_tmr.c \
@@ -47,9 +43,6 @@ libleap_la_SOURCES = \
 	nid_api.c \
 	sysf_file.c \
 	nid_ipc.c \
-	hj_ipcstats.c \
-	hj_qptrs.c \
-	sysfsysm.c \
 	hj_dlprm.c \
 	hj_dec.c \
 	hj_edp.c \
@@ -57,14 +50,9 @@ libleap_la_SOURCES = \
 	hj_enc.c \
 	hj_queue.c \
 	hj_hdl.c \
-	hj_kms.c \
 	hj_tmr.c \
 	hj_stack.c \
-	hj_stree.c \
 	hj_ubaid.c \
-	hj_ubsar.c \
-	ncs_dummy.c \
-	hj_hash.c \
 	hj_ipv6.c \
 	sysf_exc_scr.c \
 	os_defs.c \

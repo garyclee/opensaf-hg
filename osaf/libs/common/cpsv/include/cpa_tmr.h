@@ -18,6 +18,8 @@
 #ifndef CPA_TMR_H
 #define CPA_TMR_H
 
+#include "ncssysf_tmr.h"
+
 #define CPA_OPEN_ASYNC_WAIT_TIME    1000	/* Milli Seconds */
 #define CPA_SYNC_ASYNC_WAIT_TIME    1000	/* Milli Seconds */
 

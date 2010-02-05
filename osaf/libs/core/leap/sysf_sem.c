@@ -35,10 +35,8 @@
  ******************************************************************************
  */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysf_sem.h"
 
 uns32 ncs_sem_create(void **s_handle)

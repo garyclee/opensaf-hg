@@ -30,6 +30,8 @@
 #ifndef CPD_MEM_H
 #define CPD_MEM_H
 
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for CPD */
 typedef enum {
 	CPD_SVC_SUB_ID_CPD_CB = CPSV_SVC_SUB_ID_MAX + 1,

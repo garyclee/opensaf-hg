@@ -32,6 +32,8 @@
 #ifndef CPSV_MEM_H
 #define CPSV_MEM_H
 
+#include "ncssysf_mem.h"
+
 /******************************************************************************
                            Service Sub IDs Commonly used by CPA, CPND & CPD
 *******************************************************************************/

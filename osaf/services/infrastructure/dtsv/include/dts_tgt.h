@@ -47,10 +47,10 @@
 
 #if ((DTS_DEBUG == 1) || (DTS_LOG == 1))
 
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink(uns32, char *, uns32, char *);
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
+EXTERN_C uns32 dts_dbg_sink(uns32, char *, uns32, char *);
+EXTERN_C uns32 dts_dbg_sink_svc(uns32, char *, uns32, char *, uns32);
 /* Added new function to display service name */
-EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
+EXTERN_C uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, char *);
 /* m_DTS_DBG_VOID() used to keep compiler happy @ void return functions */
 
 #define m_DTS_DBG_SINK(r, s)  dts_dbg_sink(__LINE__,__FILE__,(uns32)r, (char*)s)
@@ -105,7 +105,7 @@ EXTERN_C DTSDLL_API uns32 dts_dbg_sink_svc_name(uns32, char *, uns32, char *, ch
  *       store this however it wants.
  */
 
-EXTERN_C DTSDLL_API void *sysf_dts_validate(uns32 k);
+EXTERN_C void *sysf_dts_validate(uns32 k);
 
 /* The DTS validate macro */
 

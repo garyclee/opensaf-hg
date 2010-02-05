@@ -77,7 +77,7 @@ typedef struct ncsdta_arg {
  * Global Instance of Layer Management
  ***************************************************************************/
 
-EXTERN_C DTADLL_API uns32 dta_lm(DTA_LM_ARG *arg);
+EXTERN_C uns32 dta_lm(DTA_LM_ARG *arg);
 
 /***************************************************************************
  * Global Instance of DTA mailbox

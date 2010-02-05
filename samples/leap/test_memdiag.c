@@ -18,6 +18,7 @@
 #include <opensaf/ncsgl_defs.h>
 #include <opensaf/ncs_osprm.h>
 #include <opensaf/ncssysfpool.h>
+#include <opensaf/ncssysf_mem.h>
 #include "leaptest.h"
 
 /****************************************************************************************

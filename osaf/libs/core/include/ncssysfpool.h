@@ -32,6 +32,7 @@
 
 #include "ncs_hdl_pub.h"
 #include "ncssysf_lck.h"
+#include "ncssysf_mem.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -45,7 +46,7 @@ extern "C" {
 #define m_NCS_MEM_ALLOC(nbytes, mem_region, service_id, sub_id) malloc((nbytes))
 #define m_NCS_MEM_FREE(free_me, mem_region, service_id, sub_id) free((free_me))
 
-EXTERN_C LEAPDLL_API char *ncs_fname(char *fpath);
+EXTERN_C char *ncs_fname(char *fpath);
 
 #ifdef  __cplusplus
 }

@@ -43,6 +43,7 @@
 #include "mds_core.h"
 #include "mds_papi.h"
 #include "mds_log.h"
+#include "ncssysf_mem.h"
 
 uns32 mds_mcm_global_exchange_id = 0;
 

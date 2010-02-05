@@ -1,19 +1,9 @@
 #if ( (NCS_CPND == 1) && (TET_ND == 1) )
-#if 0
-
-#include "mds_inc.h"
-#include "ncs_lim.h"
-#include "lim.h"
-#include "rcp_inc.h"
-#include "md_cfg.h"
-#include "ncs_lib.h"
-#include "ncs_mds.h"
-#endif
 #include "cpsv.h"
 #include "cpnd.h"
 #include "tet_api.h"
 
-extern CPNDDLL_API uns32 gl_cpnd_hdl;
+extern uns32 gl_cpnd_hdl;
 void tet_create_cpnd();
 void tet_cpnd_show();
 

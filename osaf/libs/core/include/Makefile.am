@@ -42,7 +42,6 @@ pkginclude_HEADERS = \
 	ncs_main_papi.h \
 	ncs_mda_papi.h \
 	ncs_mds_def.h \
-	ncs_mtree.h \
 	ncs_osprm.h \
 	ncspatricia.h \
 	ncs_posix_tmr.h \
@@ -68,5 +67,4 @@ pkginclude_HEADERS = \
 	rda_papi.h \
 	fm_papi.h \
 	sckt_defs.h \
-	sysf_ip.h \
-	trg_defs.h
+	sysf_ip.h

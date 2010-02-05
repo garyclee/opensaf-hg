@@ -27,6 +27,8 @@
 #ifndef EDA_CB_H
 #define EDA_CB_H
 
+#include <saClm.h>
+
 #include "eda.h"
 
 /*  EDA control block is the master anchor structure for all
@@ -115,7 +117,7 @@ typedef struct eda_cb_tag {
 
 /*** Extern function declarations ***/
 
-EXTERN_C LEAPDLL_API uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *);
+EXTERN_C uns32 ncs_eda_lib_req(NCS_LIB_REQ_INFO *);
 EXTERN_C unsigned int ncs_eda_startup(void);
 EXTERN_C unsigned int ncs_eda_shutdown(void);
 EXTERN_C uns32 eda_create(NCS_LIB_CREATE *);

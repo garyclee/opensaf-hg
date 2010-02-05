@@ -701,41 +701,12 @@ mem_whatsout_summary(int argc, char **argv)
 static int
 mem_stktrace_add(int argc, char **argv)
 {
-#if (NCSSYSM_STKTRACE)
-    if(2 == argc)
-    {
-        NCSSYSM_LM_ARG   lm_arg;
-
-        memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
-        lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_ADD;
-        lm_arg.op.mem_stk_add.i_file = argv[1];
-        lm_arg.op.mem_stk_add.i_line = atoi(argv[0]);
-
-        if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
-        {
-          printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
-          return NCSCC_RC_FAILURE;
-        }
-    }
-#endif
     return 0;
 }
 
 static int
 mem_stktrace_flush(int argc, char **argv)
 {
-#if (NCSSYSM_STKTRACE)
-    NCSSYSM_LM_ARG   lm_arg;
- 
-    memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
-    lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_FLUSH;
- 
-    if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
-    {
-      printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
-      return NCSCC_RC_FAILURE;
-    }
-#endif
     return 0;
 }
 
@@ -743,42 +714,6 @@ mem_stktrace_flush(int argc, char **argv)
 static int
 mem_stktrace_report(int argc, char **argv)
 {
-#if (NCSSYSM_STKTRACE)
-    static NCS_BOOL once = TRUE;
-    uns8 outstr[STKTRACE_REPORT_SIZE];
-    NCSSYSM_LM_ARG   lm_arg;
-
-    memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
-    do
-    {
-        lm_arg.i_op = NCSSYSM_LM_OP_MEM_STK_RPT;
-        lm_arg.op.mem_stk_rpt.i_file = argv[1];
-        lm_arg.op.mem_stk_rpt.i_line = atoi(argv[0]);
-        lm_arg.op.mem_stk_rpt.i_ticks_min = 0;
-        lm_arg.op.mem_stk_rpt.i_ticks_max = 0xFFFFFFFF;
-        lm_arg.op.mem_stk_rpt.io_rsltsize = STKTRACE_REPORT_SIZE;
-        lm_arg.op.mem_stk_rpt.io_results = outstr;
-        lm_arg.op.mem_stk_rpt.io_marker = lm_arg.op.mem_stk_rpt.io_marker;
-        lm_arg.op.mem_stk_rpt.o_records = lm_arg.op.mem_stk_rpt.o_records;
-
-        if(4 == argc)
-        {
-            lm_arg.op.mem_stk_rpt.i_ticks_min = atoi(argv[2]);
-            lm_arg.op.mem_stk_rpt.i_ticks_max = atoi(argv[3]);
-        }
-        if(2 == argc || 4 == argc)
-        {
-            if(ncssysm_lm(&lm_arg) != NCSCC_RC_SUCCESS)
-            {
-              printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
-              return NCSCC_RC_FAILURE;
-            }
-    
-            printf((char*)outstr);
-        }
-        
-    } while(TRUE == lm_arg.op.mem_stk_rpt.o_more);
-#endif
     return 0;
 }
 
@@ -829,25 +764,6 @@ ipc_lat_report_func(void)
 static int 
 ipc_begin_lat_report(char *name)
 {
-#if (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
-   NCSSYSM_LM_ARG   lm_arg;
-
-   memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
-   lm_arg.i_op = NCSSYSM_LM_OP_IPC_RPT_LBGN;
-   lm_arg.op.ipc_rpt_lat_bgn.i_name = name;
-   lm_arg.op.ipc_rpt_lat_bgn.i_cbfunc = ipc_lat_report_func;
-
-   if(ncssysm_lm(&lm_arg) == NCSCC_RC_SUCCESS)
-   {
-     printf("\nncssysm_lm(): NCSSYSM_LM_OP_RPT_LBGN depth=%d percentile=%d\n", lm_arg.op.ipc_rpt_lat_bgn.o_cr_depth, lm_arg.op.ipc_rpt_lat_bgn.o_cr_pcnt);
-     return NCS_LT_TEST_RC_FAILURE;
-   }
-   else
-   {
-      printf("\nncssysm_lm(): NCSSYSM_LM_OP_MEM_STK_ON failed\n");
-      return NCS_LT_TEST_RC_SUCCESS;
-   }
-#endif
     return NCS_LT_TEST_RC_SUCCESS;
 }
 
@@ -855,29 +771,6 @@ ipc_begin_lat_report(char *name)
 static int 
 ipc_lat_report(void)
 {
-#if (NCSSYSM_IPC_REPORT_ACTIVITY == 1)
-   NCSSYSM_LM_ARG   lm_arg;
-
-   memset(&lm_arg, '\0', sizeof(NCSSYSM_LM_ARG));
-   lm_arg.i_op = NCSSYSM_LM_OP_IPC_RPT_LTCY;
-
-   if(ncssysm_lm(&lm_arg) == NCSCC_RC_SUCCESS)
-   {
-      printf("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY name %s\nstart time=%u finish time=%u (diff=%u)\nstart depth=%d finish depth=%d\n",
-                             lm_arg.op.ipc_rpt_lat.o_name, 
-                             lm_arg.op.ipc_rpt_lat.o_st_time,
-                             lm_arg.op.ipc_rpt_lat.o_fn_time, 
-                             lm_arg.op.ipc_rpt_lat.o_fn_time - lm_arg.op.ipc_rpt_lat.o_st_time,
-                             lm_arg.op.ipc_rpt_lat.o_st_depth,
-                             lm_arg.op.ipc_rpt_lat.o_fn_depth);
-      return NCS_LT_TEST_RC_SUCCESS;
-   }
-   else
-   {
-      printf("\nncssysm_lm(): NCSSYSM_LM_OP_IPC_RPT_LTCY failed\n");
-      return NCS_LT_TEST_RC_FAILURE;
-   }
-#endif
     return NCS_LT_TEST_RC_SUCCESS;
 }
 

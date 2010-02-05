@@ -125,6 +125,7 @@
 #define MBCSV_ENV_H
 
 #include "mbcsv.h"
+#include "ncspatricia.h"
 
 #define MBCSV_HA_ROLE_INIT                        0
 

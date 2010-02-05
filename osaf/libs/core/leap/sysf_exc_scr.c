@@ -31,6 +31,7 @@
  */
 
 #include "sysf_exc_scr.h"
+#include "ncssysf_def.h"
 
 SYSF_EXECUTE_MODULE_CB module_cb;
 

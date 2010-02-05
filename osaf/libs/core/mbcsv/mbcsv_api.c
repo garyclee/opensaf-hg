@@ -43,6 +43,7 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 #include "mbcsv.h"
+#include "ncssysf_mem.h"
 
 static const MBCSV_PROCESS_REQ_FUNC_PTR
  mbcsv_init_process_req_func[NCS_MBCSV_OP_OBJ_SET + 1] = {

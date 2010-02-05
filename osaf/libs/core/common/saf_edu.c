@@ -27,14 +27,12 @@
 ******************************************************************************
 */
 
-#include "ncs_opt.h"
 
-#include "gl_defs.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
 
 #include "patricia.h"
 #include "ncs_stack.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 
 #include "saAis.h"
 #include "saAmf.h"
@@ -245,7 +243,7 @@ uns32 ncs_edp_saamfhealthcheckkeyt(EDU_HDL *hdl, EDU_TKN *edu_tkn,
   RETURNS:          void
 
 *****************************************************************************/
-void LEAPDLL_API ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p)
+void  ncs_saf_free_saamfhealthcheckkeyt(SaAmfHealthcheckKeyT *p)
 {
 	if (p != NULL) {
 		m_NCS_MEM_FREE(p->key, NCS_MEM_REGION_PERSISTENT, NCS_SERVICE_ID_OS_SVCS, 0);

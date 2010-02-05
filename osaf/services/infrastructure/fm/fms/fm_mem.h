@@ -18,6 +18,8 @@
 #ifndef FM_MEM_H
 #define FM_MEM_H
 
+#include "ncssysf_mem.h"
+
 typedef enum ncs_fm_service_sub_id {
 	NCS_FM_SVC_SUB_ID_FM_EVT,
 	NCS_FM_SVC_SUB_ID_FM_CB,

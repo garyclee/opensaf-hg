@@ -26,6 +26,10 @@
   This file consists of constants, enums and data structs used by immnd_xxx.c
 ******************************************************************************/
 
+#ifndef IMMND_INIT_H
+#define IMMND_INIT_H
+
+#include <saClm.h>
 #include "immsv_evt_model.h"
 
 EXTERN_C IMMND_CB *immnd_cb;
@@ -312,3 +316,5 @@ uns32 immnd_evt_destroy(IMMSV_EVT *evt, SaBoolT onheap, uns32 line);
 /* File : ----  immnd_proc.c */
 uns32 immnd_proc_server(uns32 *timeout);
 /* End : ----  immnd_proc.c  */
+
+#endif

@@ -28,12 +28,13 @@
 
 ******************************************************************************
 */
-#include "gl_defs.h"
-#include "ncs_opt.h"
-#include "t_suite.h"
+#include <ncsgl_defs.h>
 #include "ncs_sprr_papi.h"
 #include "mds_papi.h"
 #include "sprr_dl_api.h"
+#include "ncssysf_mem.h"
+#include "ncspatricia.h"
+#include "ncssysf_def.h"
 
 /****************************************************************************\
  * Private macro definitions 

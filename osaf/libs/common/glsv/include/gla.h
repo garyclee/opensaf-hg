@@ -32,7 +32,6 @@
 
 /* Common Headers */
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 #include "ncs_util.h"
 
 /* From /base/common/inc */
@@ -40,8 +39,7 @@
 #include "ncs_ubaid.h"
 #include "mds_papi.h"
 #include "ncs_log.h"
-#include "ncsencdec.h"
-#include "ncs_dummy.h"
+#include "ncsencdec_pub.h"
 
 /* DTS header file */
 #include "dta_papi.h"

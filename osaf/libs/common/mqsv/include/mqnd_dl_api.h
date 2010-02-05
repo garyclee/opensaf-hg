@@ -33,6 +33,6 @@
 #ifndef MQND_DL_API_H
 #define MQND_DL_API_H
 
-EXTERN_C MQNDDLL_API uns32 mqnd_lib_req(NCS_LIB_REQ_INFO *);
+EXTERN_C uns32 mqnd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* MQD_PAPI_H */

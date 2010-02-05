@@ -47,18 +47,10 @@
 
 ******************************************************************************/
 
-/** Get compile time options...**/
-#include "ncs_opt.h"
-
-/** Get general definitions...**/
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysf_def.h"
-/** Get the key abstractions for this thing...**/
 #include "ncs_stack.h"
-
-/** Changed from ncsencdec.h to below: **/
 #include "ncsencdec_pub.h"
 
 /*****************************************************************************

@@ -28,8 +28,7 @@
 
 *******************************************************************************/
 
-#include "ncs_opt.h"
-#include "gl_defs.h"		/* Global defintions */
+#include <ncsgl_defs.h>		/* Global defintions */
 
 #include "ncs_ipprm.h"		/* Req'd for primitive interfaces */
 #include "sysf_ip.h"

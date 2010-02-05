@@ -33,7 +33,6 @@
 #ifndef NID_API_H
 #define NID_API_H
 
-/*#include "ncs_opt.h"*/
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "ncssysf_def.h"
@@ -64,8 +63,8 @@ typedef struct nid_fifo_msg {
 /**********************************************************************
  *    Exported finctions by NID_API                                    *
  **********************************************************************/
-EXTERN_C LEAPDLL_API uns32 nid_notify(char *, uns32, uns32 *);
-EXTERN_C LEAPDLL_API uns32 nis_notify(char *, uns32 *);
+EXTERN_C uns32 nid_notify(char *, uns32, uns32 *);
+EXTERN_C uns32 nis_notify(char *, uns32 *);
 EXTERN_C uns32 nid_create_ipc(char *);
 EXTERN_C uns32 nid_open_ipc(int32 *fd, char *);
 EXTERN_C void nid_close_ipc(void);

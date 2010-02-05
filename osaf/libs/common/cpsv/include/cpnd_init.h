@@ -26,6 +26,11 @@
   This file consists of constats, enums and data structs used by cpnd_init.c
 ******************************************************************************/
 
+#ifndef CPND_INIT_H
+#define CPND_INIT_H
+
+#include <saClm.h>
+
 /**** Macro to get the component name for the component type ****/
 #define m_CPND_TASKNAME "CPND"
 
@@ -228,3 +233,4 @@ void cpnd_flx_log_dereg(void);
 void *cpnd_restart_shm_create(NCS_OS_POSIX_SHM_REQ_INFO *cpnd_open_req, CPND_CB *cb, SaClmNodeIdT nodeid);
 
 /* End : -- cpnd_init.c */
+#endif

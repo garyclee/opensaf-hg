@@ -614,7 +614,7 @@ extern "C" {
    NCSCC_RC_REQ_TIMEOUT : The API call timed out
 */
 	typedef uns32 (*NCSMDS_API) (NCSMDS_INFO *svc_to_mds_info);
-	EXTERN_C LEAPDLL_API uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
+	EXTERN_C uns32 ncsmds_api(NCSMDS_INFO *svc_to_mds_info);
 
 /************************************************************************
     3) SVC APIs out of MDS (indications out of MDS to Services(clients) )
@@ -867,7 +867,7 @@ unpack individual structure members. */
 *************************************************************************/
 #ifdef NCS_DEBUG
 
-	EXTERN_C LEAPDLL_API void ncsmds_pp(void);
+	EXTERN_C void ncsmds_pp(void);
 #endif
 
 /***********************************************************************\

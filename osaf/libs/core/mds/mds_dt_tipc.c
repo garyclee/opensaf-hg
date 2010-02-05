@@ -26,6 +26,10 @@
 */
 #include "mds_dt.h"
 #include "mds_log.h"
+#include "ncssysf_def.h"
+#include "ncssysf_tsk.h"
+#include "ncssysf_mem.h"
+
 #include <sys/poll.h>
 #include <sys/types.h>
 #include <unistd.h>

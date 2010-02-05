@@ -33,6 +33,8 @@
 #ifndef DTA_PVT_H
 #define DTA_PVT_H
 
+#include "ncspatricia.h"
+
 #define DTA_MDS_SEND_TIMEOUT  1500
 
 typedef struct reg_tbl_entry {

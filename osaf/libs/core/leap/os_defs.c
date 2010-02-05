@@ -39,8 +39,7 @@
 
 ******************************************************************************/
 
-#include "ncs_opt.h"
-#include "gl_defs.h"		/* Global defintions */
+#include <ncsgl_defs.h>		/* Global defintions */
 
 #include "ncs_osprm.h"		/* Req'd for primitive interfaces */
 
@@ -61,6 +60,9 @@
 
 #include <sysf_exc_scr.h>
 #include <ncssysf_tsk.h>
+#include "ncs_tasks.h"
+#include "ncssysf_lck.h"
+#include "ncssysf_def.h"
 
 /*FIXME: osprims does not have private header file, hence the declaration here */
 
@@ -1872,9 +1874,6 @@ void ncs_stty_reset(void)
 
 void *ncs_os_udef_alloc(uns32 size, uns8 pool_id, uns8 pri)
 {
-	USE(pool_id);
-	USE(pri);
-
 	return m_NCS_OS_MEMALLOC(size, NULL);
 }
 
@@ -2025,40 +2024,6 @@ unsigned int os_cur_cpu_usage(void)
 
 /*****************************************************************************
  **                                                                         **
- **                              Stack Trace                                **
- **                                                                         **
- ****************************************************************************/
-#if (NCSSYSM_STKTRACE == 1)
-#define NCSSYS_STKTRACE_FRAMES_MAX 128
-void ncs_os_stacktrace_get(NCS_OS_STKTRACE_ENTRY * st)
-{
-	st->addr_count = backtrace(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
-	return;
-}
-
-void ncs_os_stacktrace_expand(NCS_OS_STKTRACE_ENTRY * st, uns8 *outstr, uns32 *outlen)
-{
-	int i;
-	char **symbolnames = NULL;
-	symbolnames = backtrace_symbols(st->addr_array, NCSSYS_STKTRACE_FRAMES_MAX);
-
-	for (i = 1; i < (st->addr_count - 1); i++) {
-		char *str;
-		strcat(outstr, "| ");
-		str = strrchr(symbolnames[i], NCS_OS_PATHSEPARATOR_CHAR);
-		strcat(outstr, ++str);
-		strcat(outstr, "\n");
-	}
-	*outlen = strlen(outstr);
-
-	free(symbolnames);
-
-	return;
-}
-#endif   /* #if (NCSSYSM_STKTRACE == 1) */
-
-/*****************************************************************************
- **                                                                         **
  **                                                                         **
  **                                                                         **
  ****************************************************************************/
@@ -2069,7 +2034,6 @@ unsigned int linux_char_normalizer(void)
 	unsigned int chr;
 
 	chr = ncs_unbuf_getch();
-	USE(done);
 	return key;
 }
 

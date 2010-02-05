@@ -30,6 +30,8 @@
 #ifndef GLD_TMR_H
 #define GLD_TMR_H
 
+#include "ncssysf_tmr.h"
+
 #define GLSV_GLND_MASTER_REELECTION_WAIT_TIME     300000000LL	/* platform dependent time for waiting during master relection */
 #define GLSV_GLND_NODE_RESTART_WAIT     30000000	/* platform dependent time for waiting during node restrt */
 

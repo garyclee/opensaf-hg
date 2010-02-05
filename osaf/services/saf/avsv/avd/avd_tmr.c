@@ -115,10 +115,7 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 		return;
 	}
 
-	USE(cb);
-
 	/* Stop the timer if it is active... */
-
 	if (tmr->is_active == TRUE) {
 		tmr->is_active = FALSE;
 		m_NCS_TMR_STOP(tmr->tmr_id);

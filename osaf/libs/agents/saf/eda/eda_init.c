@@ -29,6 +29,7 @@
 */
 
 #include "eda.h"
+#include "ncssysf_mem.h"
 
 /* global cb handle */
 uns32 gl_eda_hdl = 0;

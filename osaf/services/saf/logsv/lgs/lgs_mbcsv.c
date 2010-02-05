@@ -16,6 +16,8 @@
  */
 
 #include "lgs.h"
+#include "ncssysf_def.h"
+#include "ncssysf_mem.h"
 
 /*
 LGS_CKPT_DATA_HEADER

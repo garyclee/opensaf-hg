@@ -28,6 +28,8 @@
 #ifndef HSM_CB_H
 #define HSM_CB_H
 
+#include <saEvt.h>
+
 /* pattern array lengths for fault, non-fault events */
 #define HPI_FAULT_PATTERN_ARRAY_LEN       2
 #define HPI_NON_FAULT_PATTERN_ARRAY_LEN   4

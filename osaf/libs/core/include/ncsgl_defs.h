@@ -56,14 +56,11 @@ extern "C" {
 /*
  * The following typedefs are dependent upon the target system processor and the
  * C-compiler. A change in the processor or the compiler *may* entail changes
- * to the following sections. These changes may be incorporated by defining
- * USE_TARGET_SYSTEM_TYPEDEFS and including the new defines in trg_defs.h under
- * the osprims directory which is included by os_defs.h
+ * to the following sections.
  */
 
-#if    (USE_TARGET_SYSTEM_TYPEDEFS == 0)
 
-/** Native typedef declarations....**/
+/* Native typedef declarations.... */
 
 	typedef unsigned char uns8;	/*  8-bit */
 	typedef unsigned short uns16;	/* 16-bit */
@@ -77,9 +74,10 @@ extern "C" {
 
 	typedef float ncsfloat32;
 
-/** support for double is dependent upon the target system and/or C-compiler.
- ** If your system does NOT support double, change this to uns32.
- **/
+	/* 
+	 * support for double is dependent upon the target system and/or C-compiler.
+	 * If your system does NOT support double, change this to uns32.
+	 */
 	typedef double DOUBLE;
 
 	typedef uns16 NCS_VRID;	/* Virtual Router ID */
@@ -95,10 +93,7 @@ extern "C" {
 	typedef uns32 IE_DESC[2];	/* IE Descriptor for ATM Signallng */
 	typedef uns32 FIE_DESC;	/* IE Descriptor for FR Signalling. */
 
-#if 1
-
 	typedef uns32 ncs_oid;	/* Basic data type for ILMI Object Sub-ids... */
-#endif
 
 #define NCS_PTR_TO_INT32_CAST(x)   ((int32)(long)(x))
 #define NCS_PTR_TO_UNS64_CAST(x)   ((uns64)(long)(x))
@@ -131,7 +126,6 @@ extern "C" {
 /* prototype for registered function to 'Probe' protocol values */
 
 	typedef void (*PROBER) (uns32 dir_flag, void *, const void *);
-#endif
 
 /* 
  * Define to allow .h files to be processed by C++ compiler.
@@ -288,7 +282,7 @@ extern "C" {
 #define NCSCC_RC_OUT_OF_MEM           21	/* Out of memory                    */
 #define NCSCC_RC_CALL_GATED           22	/* NCSCC_CALL_DATA passed on         */
 #define NCSCC_RC_SIG_FREE_CD          23	/* Signalling alloc'ed the call data */
-	/* Signalling should free it        */
+						/* Signalling should free it        */
 
 #define NCSCC_RC_SIG_CLEARS_ALL       24	/* Signalling drives iface clearing */
 #define NCSCC_RC_USR_CLEARS_ALL       25	/* Application drives iface clearing */
@@ -407,7 +401,6 @@ extern "C" {
 #include "ncs_iplib.h"
 
 	/* The below two includes were added to overcome the issues
-	   with the future removal of t_suite.h.  Some protocol files
 	   rely upon LEAP to include the files they need. i.e. below
 	 */
 #include "ncs_ipprm.h"		/* Req'd for primitive interfaces */

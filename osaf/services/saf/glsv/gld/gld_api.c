@@ -27,7 +27,7 @@
 #include "gld.h"
 #include "gld_imm.h"
 #include <poll.h>
-GLDDLL_API uns32 gl_gld_hdl;
+ uns32 gl_gld_hdl;
 
 static void gld_main_process(SYSF_MBX *mbx);
 

@@ -31,7 +31,8 @@
 #define MQD_DB_H
 
 /******************** Service Sub part Versions ******************************/
-#include "saImmOi.h"
+#include <saClm.h>
+#include <saImmOi.h>
 
 #define MQSV_MQD_MBCSV_VERSION  1
 #define MQSV_MQD_MBCSV_VERSION_MIN 1

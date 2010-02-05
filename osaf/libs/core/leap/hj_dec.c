@@ -53,9 +53,7 @@ The following set does NOT do buffer chaining management
 *******************************************************************************
 */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
-
+#include <ncsgl_defs.h>
 #include "ncssysf_mem.h"
 #include "ncssysf_def.h"
 #include "ncs_svd.h"

@@ -30,7 +30,8 @@
 #ifndef MQND_DB_H
 #define MQND_DB_H
 
-#include "saImmOi.h"
+#include <saClm.h>
+#include <saImmOi.h>
 /* Decleration for global variable */
 EXTERN_C uns32 gl_mqnd_cb_hdl;
 

@@ -82,7 +82,7 @@ extern "C" {
 	} NCS_SPLR_REQ_INFO;
 
 /**** SPLR API ****/
-	EXTERN_C LEAPDLL_API uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info);
+	EXTERN_C uns32 ncs_splr_api(NCS_SPLR_REQ_INFO *info);
 
 /*****************************************************************\
  ******************** SPIR API request types *********************
@@ -178,7 +178,7 @@ extern "C" {
 	} NCS_SPIR_REQ_INFO;
 
 /**** SPIR API ****/
-	EXTERN_C LEAPDLL_API uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info);
+	EXTERN_C uns32 ncs_spir_api(NCS_SPIR_REQ_INFO *info);
 
 /** Function to setup NCS infrastructure elements for an environement **/
 	EXTERN_C uns32 ncs_environment_setup(uns32 env_id);

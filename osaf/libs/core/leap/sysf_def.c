@@ -34,8 +34,7 @@
 
 #include <configmake.h>
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
 #include "ncs_scktprm.h"
 
@@ -43,20 +42,9 @@
 #include "ncssysf_def.h"
 #include "ncssysf_tmr.h"
 #include "sysf_def.h"
-#include "sysf_lck.h"
+#include "ncssysf_lck.h"
 #include "ncssysfpool.h"
 #include "usrbuf.h"
-#include "sysf_exc_scr.h"
-
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-#include "ncs_sysm.h"
-#endif
-#endif
-#if (NCSL_ENV_INIT_KMS == 1)
-#include "ncs_kms.h"
-#endif
-
 
 time_t ncs_time_stamp()
 {
@@ -196,7 +184,6 @@ uns16 decode_16bitOS_inc(uns8 **stream)
 
   DESCRIPTION:
 
-   If the ENABLE_LEAP_DBG flag is enabled (ncs_opt.h) then LEAP code that
    has been instrumented to seek runtime errors will invoke this macro.
    If the flag is disabled, LEAP debug code is benign and not in the built
    image.
@@ -343,142 +330,27 @@ uns32 leap_env_init()
 
 	/* initialize OS target */
 	m_NCS_OS_TARGET_INIT;
-
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-	/* initialize LEAP Buffer Pool */
-	if (ncs_lbp_create() != NCSCC_RC_SUCCESS) {
-		printf("\nleap_env_init: FAILED to initialize Buffer Pool\n");
-
-		return NCSCC_RC_FAILURE;
-	}
-#endif   /* #if (NCSL_ENV_INIT_LBP == 1) */
-#endif
-
-#if (NCSL_ENV_INIT_LM == 1)
-	/* initialize LEAP Lock Manager */
-	if (ncs_lock_create_mngr() != NCSCC_RC_SUCCESS) {
-		printf("\nleap_env_init: FAILED to initialize Lock Manager\n");
-
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-		(void)ncs_lbp_destroy();
-#endif
-#endif
-
-		return NCSCC_RC_FAILURE;
-	}
-#endif   /* #if (NCSL_ENV_INIT_LM == 1) */
-
 	ncs_os_atomic_init();
 
 #if (NCSL_ENV_INIT_TMR == 1)
 	/* initialize LEAP Timer Service */
 	if (sysfTmrCreate() != NCSCC_RC_SUCCESS) {
 		printf("\nleap_env_init: FAILED to initialize Timer Service\n");
-
-#if (NCSL_ENV_INIT_LM == 1)
-		(void)ncs_lock_destroy_mngr();
-#endif
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-		(void)ncs_lbp_destroy();
-#endif
-#endif
-
 		return NCSCC_RC_FAILURE;
 	}
 #endif   /* #if (NCSL_ENV_INIT_TMR == 1) */
-
-#if (NCSL_ENV_INIT_KMS == 1)
-	/* initialize KMS */
-	{
-		NCSKMS_LM_ARG kms_arg;
-		kms_arg.i_op = NCSKMS_LM_CREATE;
-		if (ncskms_lm(&kms_arg) != NCSCC_RC_SUCCESS) {
-			printf("\nleap_env_init: FAILED to initialize KMS\n");
-
-#if (NCSL_ENV_INIT_TMR == 1)
-			(void)sysfTmrDestroy();
-#endif
-#if (NCSL_ENV_INIT_LM == 1)
-			(void)ncs_lock_destroy_mngr();
-#endif
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-			(void)ncs_lbp_destroy();
-#endif
-#endif
-			return NCSCC_RC_FAILURE;
-		}
-	}
-#endif   /* #if (NCSL_ENV_INIT_KMS == 1) */
-
 
 #if (NCSL_ENV_INIT_HM == 1)
 	/* initialize Handle Manager */
 	if (ncshm_init() != NCSCC_RC_SUCCESS) {
 		printf("\nleap_env_init: FAILED to initialize Handle Manager\n");
 
-#if (NCSL_ENV_INIT_KMS == 1)
-		{
-			NCSKMS_LM_ARG kms_arg;
-			kms_arg.i_op = NCSKMS_LM_DESTROY;
-			(void)ncskms_lm(&kms_arg);
-		}
-#endif
 #if (NCSL_ENV_INIT_TMR == 1)
 		(void)sysfTmrDestroy();
 #endif
-#if (NCSL_ENV_INIT_LM == 1)
-		(void)ncs_lock_destroy_mngr();
-#endif
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-		(void)ncs_lbp_destroy();
-#endif
-#endif
-
 		return NCSCC_RC_FAILURE;
 	}
 #endif   /* #if (NCSL_ENV_INIT_HM == 1) */
-
-#if (NCSL_ENV_INIT_SMON == 1)
-	/* initialize SYSMON */
-#if (NCS_USE_SYSMON == 1)
-	{
-		NCSSYSM_LM_ARG sm_arg;
-		sm_arg.i_op = NCSSYSM_LM_OP_INIT;
-		sm_arg.i_vrtr_id = 1;
-		if (ncssysm_lm(&sm_arg) != NCSCC_RC_SUCCESS) {
-			printf("\nleap_env_init: FAILED to initialize SYSMON\n");
-
-#if (NCSL_ENV_INIT_HM == 1)
-			(void)ncshm_delete();
-#endif
-#if (NCSL_ENV_INIT_KMS == 1)
-			{
-				NCSKMS_LM_ARG kms_arg;
-				kms_arg.i_op = NCSKMS_LM_DESTROY;
-				(void)ncskms_lm(&kms_arg);
-			}
-#endif
-#if (NCSL_ENV_INIT_TMR == 1)
-			(void)sysfTmrDestroy();
-#endif
-#if (NCSL_ENV_INIT_LM == 1)
-			(void)ncs_lock_destroy_mngr();
-#endif
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-			(void)ncs_lbp_destroy();
-#endif
-#endif
-			return NCSCC_RC_FAILURE;
-		}
-	}
-#endif   /* #if (NCS_USE_SYSMON == 1) */
-#endif   /* #if (NCSL_ENV_INIT_SMON == 1)  */
 
 	/* Initialize script execution control block */
 	if (NCSCC_RC_SUCCESS != init_exec_mod_cb()) {
@@ -524,31 +396,9 @@ uns32 leap_env_destroy()
 	/* Destroying  execution control block */
 	exec_mod_cb_destroy();
 
-#if (NCSL_ENV_INIT_SMON == 1)
-#if (NCS_USE_SYSMON == 1)
-	/* destroying SYSMON */
-	{
-		NCSSYSM_LM_ARG sm_arg;
-		sm_arg.i_op = NCSSYSM_LM_OP_INIT;
-		sm_arg.i_vrtr_id = 1;
-
-		(void)ncssysm_lm(&sm_arg);
-	}
-#endif
-#endif
-
 #if (NCSL_ENV_INIT_HM == 1)
 	/* destroying Handle Manager */
 	(void)ncshm_delete();
-#endif
-
-#if (NCSL_ENV_INIT_KMS == 1)
-	/* destroying KMS */
-	{
-		NCSKMS_LM_ARG kms_arg;
-		kms_arg.i_op = NCSKMS_LM_DESTROY;
-		(void)ncskms_lm(&kms_arg);
-	}
 #endif
 
 #if (NCSL_ENV_INIT_TMR == 1)
@@ -557,18 +407,6 @@ uns32 leap_env_destroy()
 #endif
 
 	ncs_os_atomic_destroy();
-
-#if (NCSL_ENV_INIT_LM == 1)
-	/* destroying Lock Manager */
-	(void)ncs_lock_destroy_mngr();
-#endif
-
-#if (NCS_USE_SYSMON == 1)
-#if (NCSL_ENV_INIT_LBP == 1)
-	/* destroying LEAP Buffer Pool */
-	(void)ncs_lbp_destroy();
-#endif
-#endif
 
 	m_NCS_DBG_PRINTF("\nDONE DESTROYING LEAP ENVIRONMENT\n");
 

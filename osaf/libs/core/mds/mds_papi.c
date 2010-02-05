@@ -36,6 +36,7 @@
 #include "mds_log.h"
 #include "mds_pvt.h"
 #include "ncs_main_papi.h"
+#include "ncssysf_mem.h"
 
 /****************************************************************************
  *

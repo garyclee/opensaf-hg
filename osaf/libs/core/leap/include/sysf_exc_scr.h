@@ -33,7 +33,6 @@
 #ifndef SYSF_EXC_SCR_H
 #define SYSF_EXC_SCR_H
 
-#include "ncs_opt.h"
 #include "ncsgl_defs.h"
 #include "ncs_osprm.h"
 #include "os_defs.h"

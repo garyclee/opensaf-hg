@@ -28,6 +28,8 @@ DESCRIPTION:
 #ifndef FMA_FM_INTF_H
 #define FMA_FM_INTF_H
 
+#include "ncssysf_mem.h"
+
 #define m_MSG_FMT_VER_GET(rem_ver,my_ver_min,my_ver_max,msg_fmt_array) \
    (((rem_ver) < (my_ver_min))?0:\
    (((rem_ver) >= (my_ver_max))?((msg_fmt_array)[(my_ver_max) - (my_ver_min)]):\

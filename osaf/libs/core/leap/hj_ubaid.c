@@ -62,26 +62,13 @@
 ******************************************************************************
 */
 
-/** Get compile time options...
- **/
-#include "ncs_opt.h"
-
-/** Get general definitions...
- **/
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
-/** Get NCS Queue Facility header file.
- **/
 #include "ncs_ubaid.h"
 #include "ncssysf_def.h"
 #include "ncssysf_mem.h"
-#include "ncsencdec.h"
+#include "ncsencdec_pub.h"
 #include "ncsusrbuf.h"
-
-/** Does not violate LEAP split. No MDS 
-    headers included in below file
- **/
 #include "ncs_mds_def.h"
 
 #define SIXTYFOUR_BYTES 64

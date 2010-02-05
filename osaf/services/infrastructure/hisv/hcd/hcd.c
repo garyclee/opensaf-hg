@@ -35,6 +35,7 @@
 
 #include "hcd.h"
 #include "hcd_amf.h"
+#include "ncssysf_sem.h"
 
 /* global cb handle */
 uns32 gl_hcd_hdl;

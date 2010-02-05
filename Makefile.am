@@ -106,8 +106,6 @@ dist_pkgdata_DATA =
 
 nobase_dist_pkgdata_DATA = $(samples_sources)
 
-
-# FIXME Like this until SNMP references removed
 SUBDIRS = osaf pkgconfig
 
 if ENABLE_JAVA

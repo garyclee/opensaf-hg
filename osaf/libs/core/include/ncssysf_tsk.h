@@ -185,14 +185,14 @@ extern "C" {
  
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-	EXTERN_C LEAPDLL_API uns32 ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_release(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_detach(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_start(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_stop(void *);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_sleep(unsigned int);
-	EXTERN_C LEAPDLL_API uns32 ncs_task_current(void **);
-	EXTERN_C LEAPDLL_API int ncs_task_entry(NCS_OS_TASK *task);
+	EXTERN_C uns32 ncs_task_create(NCS_OS_CB, void *, char *, unsigned int, unsigned int, void **);
+	EXTERN_C uns32 ncs_task_release(void *);
+	EXTERN_C uns32 ncs_task_detach(void *);
+	EXTERN_C uns32 ncs_task_start(void *);
+	EXTERN_C uns32 ncs_task_stop(void *);
+	EXTERN_C uns32 ncs_task_sleep(unsigned int);
+	EXTERN_C uns32 ncs_task_current(void **);
+	EXTERN_C int ncs_task_entry(NCS_OS_TASK *task);
 
 #ifdef  __cplusplus
 }

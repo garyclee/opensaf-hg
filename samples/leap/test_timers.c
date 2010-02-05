@@ -54,11 +54,7 @@ timer_accuracy_test(void)
    for (period = 0; period <= 300000; )
    {
        expired = 0;
-#if NCS_HAVE_FLOATINGPOINT
        printf ("Measuring : %5.1f : Seconds...   ", (float) period/1000);
-#else
-       printf ("Measuring %d Seconds...   ", period/1000);
-#endif
       m_NCS_TASK_SLEEP (rand() % 100); /* keep out of sync with timer service tick */
       start  = m_NCS_GET_TIME_MS;
       m_NCS_TMR_START (timer, period/10, timer_accuracy_cb_func, (void *) &expired);
@@ -70,11 +66,7 @@ timer_accuracy_test(void)
       diff = expired - start;
             
       p = ( period ? ((float) diff * 100 / period) : 100 );
-#if NCS_HAVE_FLOATINGPOINT
       printf ("Deviation: (ms) = %3lld, (%%) = %4.1f\n", diff-period, p-100);
-#else
-      printf ("Deviation: (ms) = %3lld, (%%) = %d\n", diff-period, p-100);
-#endif
       if (period < 1000)       /* less than 1 second ? */
          period += 100;        /*        inc by 100 ms */
       else if (period < 10000) /* less than 10 seconds ? */

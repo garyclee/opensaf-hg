@@ -30,6 +30,8 @@
 #ifndef CPA_MEM_H
 #define CPA_MEM_H
 
+#include "ncssysf_mem.h"
+
 /* Service Sub IDs for CPA */
 typedef enum {
 	CPA_SVC_SUB_ID_CPA_CB = CPSV_SVC_SUB_ID_MAX + 1,

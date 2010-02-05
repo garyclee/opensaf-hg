@@ -38,7 +38,7 @@
  */
 #include "mqsv.h"
 
-MQSVDLL_API ASAPi_CB asapi;	/* Global ASAPi Control Block */
+ ASAPi_CB asapi;	/* Global ASAPi Control Block */
 
 /******************************** LOCAL ROUTINES *****************************/
 static uns32 asapi_msg_hdlr(ASAPi_MSG_ARG *);

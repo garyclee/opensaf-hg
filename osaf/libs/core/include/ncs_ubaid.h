@@ -80,27 +80,27 @@ extern "C" {
 
 /* Encode assist (member) functions */
 
-	EXTERN_C LEAPDLL_API int32 ncs_enc_init_space(NCS_UBAID *uba);
-	EXTERN_C LEAPDLL_API int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uns8 pool_id, uns8 prio);
-	EXTERN_C LEAPDLL_API void ncs_enc_prime_space(NCS_UBAID *uba, USRBUF *ub);
-	EXTERN_C LEAPDLL_API uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res);
-	EXTERN_C LEAPDLL_API void ncs_enc_claim_space(NCS_UBAID *uba, int32 used);
-	EXTERN_C LEAPDLL_API void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub);
-	EXTERN_C LEAPDLL_API uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
-	EXTERN_C LEAPDLL_API uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
+	EXTERN_C int32 ncs_enc_init_space(NCS_UBAID *uba);
+	EXTERN_C int32 ncs_enc_init_space_pp(NCS_UBAID *uba, uns8 pool_id, uns8 prio);
+	EXTERN_C void ncs_enc_prime_space(NCS_UBAID *uba, USRBUF *ub);
+	EXTERN_C uns8 *ncs_enc_reserve_space(NCS_UBAID *uba, int32 res);
+	EXTERN_C void ncs_enc_claim_space(NCS_UBAID *uba, int32 used);
+	EXTERN_C void ncs_enc_append_usrbuf(NCS_UBAID *uba, USRBUF *ub);
+	EXTERN_C uns32 ncs_encode_n_octets_in_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
+	EXTERN_C uns32 ncs_decode_n_octets_from_uba(NCS_UBAID *uba, uns8 *os, unsigned int count);
 
 /* Decode assist (member) functions */
 
-	EXTERN_C LEAPDLL_API void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub);
-	EXTERN_C LEAPDLL_API uns8 *ncs_dec_flatten_space(NCS_UBAID *uba, uns8 *os, int32 count);
-	EXTERN_C LEAPDLL_API void ncs_dec_skip_space(NCS_UBAID *uba, int32 used);
+	EXTERN_C void ncs_dec_init_space(NCS_UBAID *uba, USRBUF *ub);
+	EXTERN_C uns8 *ncs_dec_flatten_space(NCS_UBAID *uba, uns8 *os, int32 count);
+	EXTERN_C void ncs_dec_skip_space(NCS_UBAID *uba, int32 used);
 
 /* These are used if the NCS_UBAID is used to track 'fit' issues */
 
-	EXTERN_C LEAPDLL_API void ncs_set_max(NCS_UBAID *uba, int32 max);
-	EXTERN_C LEAPDLL_API NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32 to_put);
-	EXTERN_C LEAPDLL_API NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32 to_get);
-	EXTERN_C LEAPDLL_API void ncs_reset_uba(NCS_UBAID *uba);
+	EXTERN_C void ncs_set_max(NCS_UBAID *uba, int32 max);
+	EXTERN_C NCS_BOOL ncs_enc_can_i_put(NCS_UBAID *uba, int32 to_put);
+	EXTERN_C NCS_BOOL ncs_dec_can_i_get(NCS_UBAID *uba, int32 to_get);
+	EXTERN_C void ncs_reset_uba(NCS_UBAID *uba);
 
 /***************************************************************\
       mds_encode_mds_dest: Encodes an MDS_DEST into a USRBUF. The
@@ -125,11 +125,11 @@ extern "C" {
                                or NCSCC_RC_FAILURE.
 
 \***************************************************************/
-	EXTERN_C LEAPDLL_API uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest);
-	EXTERN_C LEAPDLL_API uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest);
+	EXTERN_C uns32 mds_uba_encode_mds_dest(NCS_UBAID *uba, MDS_DEST *i_mds_dest);
+	EXTERN_C uns32 mds_uba_decode_mds_dest(NCS_UBAID *uba, MDS_DEST *o_mds_dest);
 
-	EXTERN_C LEAPDLL_API uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest);
-	EXTERN_C LEAPDLL_API uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest);
+	EXTERN_C uns32 mds_st_encode_mds_dest(uns8 **stream, MDS_DEST *idest);
+	EXTERN_C uns32 mds_st_decode_mds_dest(uns8 **stream, MDS_DEST *odest);
 
 /***************************************************************\
       ncs_encode_pointer: Encodes a pointer into a USRBUF. The
@@ -154,8 +154,8 @@ extern "C" {
                                or NCSCC_RC_FAILURE.
  
 \***************************************************************/
-	EXTERN_C LEAPDLL_API uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer);
-	EXTERN_C LEAPDLL_API uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,
+	EXTERN_C uns32 ncs_uba_encode_pointer(NCS_UBAID *uba, NCSCONTEXT i_pointer);
+	EXTERN_C uns32 ncs_uba_decode_pointer(NCS_UBAID *uba, uns64 *o_recvd_ptr,
 							  uns8 *o_ptr_size_in_bytes);
 
 #ifdef  __cplusplus

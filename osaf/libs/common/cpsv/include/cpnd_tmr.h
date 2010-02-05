@@ -18,6 +18,8 @@
 #ifndef CPND_TMR_H
 #define CPND_TMR_H
 
+#include "ncssysf_tmr.h"
+
 typedef enum cpndq_tmr_type {
 	CPND_TMR_TYPE_RETENTION = 1,
 	CPND_TMR_TYPE_SEC_EXPI,

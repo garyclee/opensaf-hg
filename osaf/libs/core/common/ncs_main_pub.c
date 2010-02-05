@@ -26,10 +26,8 @@
 */
 
 #include <configmake.h>
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "mds_papi.h"
-#include "ncs_opt.h"
-#include "t_suite.h"
 #include "ncs_main_papi.h"
 #include "ncs_mda_papi.h"
 #include "ncs_sprr_papi.h"
@@ -839,8 +837,6 @@ uns32 mainget_node_id(uns32 *node_id)
 		*node_id = atoi(tmp);
 		return NCSCC_RC_SUCCESS;
 	}
-#else
-	USE(tmp);
 #endif
 	d_len = strlen(ncs_config_root);
 	f_len = strlen("/node_id");

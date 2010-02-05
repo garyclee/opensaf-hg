@@ -34,6 +34,8 @@
 #ifndef DTS_MEM_H
 #define DTS_MEM_H
 
+#include "ncssysf_mem.h"
+
 #define DTSV_MEM_DTS_CB 1
 #define DTS_MEM_DTSV_MSG  2
 #define DTS_MEM_SVC_REG_TBL  3

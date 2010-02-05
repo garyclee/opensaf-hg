@@ -85,17 +85,17 @@ extern "C" {
 
 /** H&J Queue Primitives
  **/
-	LEAPDLL_API void ncs_create_queue(NCS_QUEUE *queue);
-	LEAPDLL_API void ncs_destroy_queue(NCS_QUEUE *queue);
-	LEAPDLL_API void *ncs_peek_queue(NCS_QUEUE *queue);
-	LEAPDLL_API unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item);
-	LEAPDLL_API unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item);
+	 void ncs_create_queue(NCS_QUEUE *queue);
+	 void ncs_destroy_queue(NCS_QUEUE *queue);
+	 void *ncs_peek_queue(NCS_QUEUE *queue);
+	 unsigned int ncs_enqueue(NCS_QUEUE *queue, void *item);
+	 unsigned int ncs_enqueue_head(NCS_QUEUE *queue, void *item);
 
-	LEAPDLL_API void *ncs_dequeue(NCS_QUEUE *queue);
-	LEAPDLL_API void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match);
-	LEAPDLL_API void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match);
-	LEAPDLL_API void *ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR *itr);
-	LEAPDLL_API void *ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR *itr);
+	 void *ncs_dequeue(NCS_QUEUE *queue);
+	 void *ncs_remove_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match);
+	 void *ncs_find_item(NCS_QUEUE *queue, void *key, NCSQ_MATCH match);
+	 void *ncs_walk_items(NCS_QUEUE *queue, NCS_Q_ITR *itr);
+	 void *ncs_queue_get_next(NCS_QUEUE *queue, NCS_Q_ITR *itr);
 
 #ifdef  __cplusplus
 }

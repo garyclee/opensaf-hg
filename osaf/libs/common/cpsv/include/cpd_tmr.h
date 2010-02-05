@@ -18,6 +18,8 @@
 #ifndef CPD_TMR_H
 #define CPD_TMR_H
 
+#include "ncssysf_tmr.h"
+
 typedef enum cpd_tmr_type {
 	CPD_TMR_TYPE_CPND_RETENTION = 1,
 	CPD_TMR_TYPE_MAX = CPD_TMR_TYPE_CPND_RETENTION,

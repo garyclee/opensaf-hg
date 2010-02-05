@@ -24,6 +24,8 @@
 
 #include "imma.h"
 #include "immsv_api.h"
+#include "ncssysf_mem.h"
+
 #include <string.h>
 
 /* For some reason I have to declare the strnlen function prototype.

@@ -36,6 +36,7 @@
 #include <configmake.h>
 #include "dts.h"
 #include "rda_papi.h"
+#include "ncs_tasks.h"
 
 static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 

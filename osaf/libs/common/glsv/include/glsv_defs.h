@@ -81,7 +81,7 @@ typedef enum {
 #if(NCS_GLSV_DEBUG == 1)
 #define m_GLSV_DEBUG_CONS_PRINTF   printf
 #else
-#define m_GLSV_DEBUG_CONS_PRINTF   ncs_dummy_var_arg_func
+#define m_GLSV_DEBUG_CONS_PRINTF 
 #endif
 
 typedef SaUint32T SaLckResourceIdT;

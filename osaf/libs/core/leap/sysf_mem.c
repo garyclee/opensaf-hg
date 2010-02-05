@@ -43,13 +43,8 @@
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 */
 
-/** H&J Includes...
- **/
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
-#include "ncs_sysm.h"
 #include "ncs_svd.h"
 #include "ncssysfpool.h"
 #include "ncssysf_def.h"
@@ -57,859 +52,12 @@
 #include "usrbuf.h"
 #include "ncsusrbuf.h"
 #include "sysf_def.h"
-#include "sysf_ipc.h"
 
 /**********************************************************************************/
 /*                       L E A P   B U F F E R    P O O L                         */
 /**********************************************************************************/
 
 #include "ncs_stack.h"
-
-#if (NCS_USE_SYSMON == 1)
-
-#define LBP_NO_LOCKS   0	/* No Lock     == 0 */
-#define LBP_OBJ_LOCKS  1	/* Object Lock == 1 */
-#define LBP_TASK_LOCKS 2	/* Task Lock   == 2 */
-
-#ifndef NCSLBP_USE_LOCK_TYPE
-#define NCSLBP_USE_LOCK_TYPE LBP_OBJ_LOCKS
-#endif
-
-#if (NCSLBP_USE_LOCK_TYPE == LBP_NO_LOCKS)	/* NO Locks */
-
-#define m_LBP_LK_CREATE(lk)
-#define m_LBP_LK_INIT
-#define m_LBP_LK(lk)
-#define m_LBP_UNLK(lk)
-#define m_LBP_LK_DLT(lk)
-#elif (NCSLBP_USE_LOCK_TYPE == LBP_TASK_LOCKS)	/* Task Locks */
-
-#define m_LBP_LK_CREATE(lk)
-#define m_LBP_LK_INIT            m_INIT_CRITICAL
-#define m_LBP_LK(lk)             m_START_CRITICAL
-#define m_LBP_UNLK(lk)           m_END_CRITICAL
-#define m_LBP_LK_DLT(lk)
-#elif (NCSLBP_USE_LOCK_TYPE == LBP_OBJ_LOCKS)	/* Object Locks */
-
-#define m_LBP_LK_CREATE(lk)      m_NCS_LOCK_INIT_V2(lk,0,0)
-#define m_LBP_LK_INIT
-#define m_LBP_LK(lk)             m_NCS_LOCK_V2(lk,   NCS_LOCK_WRITE,0, 0)
-#define m_LBP_UNLK(lk)           m_NCS_UNLOCK_V2(lk, NCS_LOCK_WRITE, 0, 0)
-#define m_LBP_LK_DLT(lk)         m_NCS_LOCK_DESTROY_V2(lk, 0, 0)
-#endif
-
-extern UB_POOL_MGR gl_ub_pool_mgr;
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-/* debugging is ENABLED - include debugging args */
-
-#define m_NCS_LBP_ALLOC(nbytes, pri) \
-          ncs_lbp_alloc(nbytes, pri, __LINE__, __FILE__)
-
-#define m_NCS_LBP_FREE(free_me) \
-          ncs_lbp_free((void *)(free_me), __LINE__, __FILE__)
-#else
-/* debugging is DISABLED - don't include debugging args */
-
-#define m_NCS_LBP_ALLOC(nbytes, pri)  \
-          ncs_lbp_alloc(nbytes, pri)
-
-#define m_NCS_LBP_FREE(free_me)  \
-          ncs_lbp_free((void *)(free_me))
-#endif
-
-#if (NCS_USE_SYSMON == 1)
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-#define m_NCS_LBP_RPT(arg) \
-          ncs_lbp_rpt(arg)
-#define m_NCS_LBP_IGNORE(val) \
-          ncs_lbp_ignore(val)
-#define m_NCS_LBP_AGE ncs_lbp_age()
-#else
-#define m_NCS_LBP_RPT(arg) NCSCC_RC_SUCCESS
-#define m_NCS_LBP_IGNORE(val)
-#define m_NCS_LBP_AGE
-#endif
-#endif
-
-#if ((NCS_MMGR_DEBUG == 1) || (NCSSYSM_MEM_DBG_ENABLE == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-struct ub_pool_mgr;
-EXTERN_C LEAPDLL_API struct ub_pool_mgr gl_ub_pool_mgr;
-#endif
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-#define m_NCS_LBP_LOC(mem,svc_id,sub_id,line,file) \
-          ncs_lbp_loc(mem,svc_id,sub_id,line,file)
-#else
-#define m_NCS_LBP_LOC(mem,svc_id,sub_id,line,file)
-#endif
-
-/* Pad the size of the thing allocated to an even boundary for WBS machines */
-
-#if (TRGT_IS_WBS == 0)
-
-#define MMGR_PAD_SIZE(s) s
-#else
-#define MMGR_PAD_SIZE(s) (s%4?(s+(4-(s%4))):s)
-#endif
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-
-#define BOTTOM_MARKER  0x35353535	/* marker; printable characters "5555" */
-#define START_MARKER   0x33333333	/* marker; printable characters "3333" */
-#endif
-
-typedef struct ncs_lbp_entry {
-
-#if ((NCS_MMGR_DEBUG  == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-
-	/* Debug data galore for giving insight into memory leaks/crashes/etc. */
-
-	uns32 start_marker;	/* Start of structure marker 0x33333333 */
-#endif
-#if ((NCS_MMGR_DEBUG  == 1) || (NCSSYSM_BUF_DBG_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-	uns32 free_line;	/* file & line of free-er */
-	char *free_file;
-
-	uns32 line;		/* file & line of allocation */
-	char *file;
-
-	uns32 loc_line;		/* file & line marked by 'real' owner */
-	char *loc_file;
-
-	NCS_SERVICE_ID prev_svc_id;	/* the previous owner of this mem */
-	unsigned int prev_sub_id;
-
-	NCS_SERVICE_ID service_id;	/* the current owner fo this mem */
-	unsigned int sub_id;
-
-	NCS_BOOL ignore;
-	uns32 age;		/* pulse age */
-#endif
-
-	/* The REAL stuff when DBG is OFF */
-
-	struct ncs_lbp_entry *next;
-	struct ncs_lbp_entry *prev;
-	struct ncs_lbpool *pool;
-	NCS_BOOL owned;
-	size_t real_size;
-	USRDATA *data;
-
-} NCS_LBP_ENTRY;
-
-typedef struct ncs_lbpool {
-	NCS_BOOL exists;
-	uns32 size;
-	NCS_LBP_ENTRY *free;
-	NCS_LBP_ENTRY *inuse;
-
-} NCS_LBPOOL;
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-EXTERN_C void *ncs_lbp_alloc(unsigned int nbytes, unsigned int pri, unsigned int line, char *file);
-
-EXTERN_C void ncs_lbp_free(void *free_me, unsigned int line, char *file);
-
-EXTERN_C void ncs_lbp_loc(void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file);
-
-static char gl_none[5] = "NONE";	/* loc_file name before assignment */
-#else
-
-EXTERN_C void *ncs_lbp_alloc(unsigned int nbytes, unsigned int pri);
-EXTERN_C void ncs_lbp_free(void *free_me);
-#endif
-
-#if (NCS_USE_SYSMON == 1)
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-EXTERN_C uns32 ncs_lbp_rpt(NCSUB_POOL_RPT_ARG * arg);
-
-EXTERN_C void ncs_lbp_ignore(NCS_BOOL val);
-
-EXTERN_C void ncs_lbp_age(void);
-
-uns32 lbp_rpt_wos(NCSSYSM_BUF_RPT_WOS * info);
-uns32 lbp_rpt_wo(NCSSYSM_BUF_RPT_WO * info);
-#endif
-#endif
-
-NCS_LBPOOL leap_buf_pool = { TRUE, MMGR_PAD_SIZE(sizeof(USRDATA)),
-	NULL,
-	NULL
-};
-
-NCS_LOCK lp_pool_lock;
-
-static NCS_BOOL lb_pool_lock_inited = FALSE;
-
-/*****************************************************************************/
-
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-
-uns32 ncs_lbp_rpt(NCSUB_POOL_RPT_ARG * arg)
-{
-	switch (arg->op) {
-	case NCSUB_POOL_RPT_OP_WO:
-		return lbp_rpt_wo(arg->info.wo);
-		break;
-
-	case NCSUB_POOL_RPT_OP_WOS:
-		return lbp_rpt_wos(arg->info.wos);
-		break;
-
-	default:
-		break;
-	}
-	return NCSCC_RC_SUCCESS;
-}
-
-void ncs_lbp_ignore(NCS_BOOL val)
-{
-	NCS_LBP_ENTRY *pe;
-
-	pe = leap_buf_pool.inuse;
-	while (pe != NULL) {
-		pe->ignore = val;
-		pe = pe->next;
-	}
-}
-
-void ncs_lbp_age(void)
-{
-	NCS_LBP_ENTRY *pe;
-
-	pe = leap_buf_pool.inuse;
-	while (pe != NULL) {
-		pe->age++;
-		pe = pe->next;
-	}
-}
-#endif
-
-/********************/
-
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-
-extern char *ncs_fname(char *fpath);
-
-uns32 lbp_rpt_wo(NCSSYSM_BUF_RPT_WO * info)
-{
-	NCS_LBP_ENTRY *pe;
-	NCS_BOOL to_std = FALSE;
-	NCS_BOOL to_file = FALSE;
-	char output_string[256];
-	char asc_tod[33];
-	time_t tod;
-	uns32 j;
-	uns32 ss_id = 0;
-	NCS_BOOL all_ss = FALSE;
-	uns32 min_age = 0;
-
-	memset(info->o_wo, 0, sizeof(info->o_wo));
-
-	min_age = info->i_age;
-	if (info->i_ss_id == 0)
-		all_ss = TRUE;
-	else
-		ss_id = info->i_ss_id;
-
-	to_std = info->i_opp.opp_bits & OPP_TO_STDOUT ? TRUE : FALSE;
-	to_file = info->i_opp.opp_bits & OPP_TO_FILE ? TRUE : FALSE;
-
-	if ((to_std == TRUE) || (to_file == TRUE)) {
-		FILE *fh = NULL;
-
-		if (to_file == TRUE) {
-			if (info->i_opp.fname != NULL) {
-				if (strlen(info->i_opp.fname) != 0) {
-					fh = sysf_fopen(info->i_opp.fname, "at");
-					if (fh == NULL) {
-						printf("Unable to open %s\n", info->i_opp.fname);
-						return NCSCC_RC_FAILURE;
-					}
-				} else {
-					return NCSCC_RC_FAILURE;
-				}
-			}
-		}
-
-		asc_tod[0] = '\0';
-		m_GET_ASCII_TIME_STAMP(tod, asc_tod);
-		sprintf(output_string, "%s\n", asc_tod);
-		fh == NULL ? printf("%s", output_string) : fprintf(fh, output_string);
-
-		sprintf(output_string, "|---|----+----+-----------+-----+-----------+--------+---+---+----------|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "|  N O N - I G N O R E D   O U T S T A N D I N G   B U F   R E P O R T  |\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string,
-			"|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string,
-			"|  #| Age|Real|   alloc'ed|Owner|Ownr claims|  Real  |Svc|Sub|          |RefCnt|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string,
-			"|  #| Cnt|line|    in file| line|    in file|  size  | ID| ID| Ptr value|      |\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string,
-			"|---|----+----+-----------+-----+-----------+--------+---+---+----------+------|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-
-		for (pe = leap_buf_pool.inuse, j = 0; pe != NULL; pe = pe->next) {
-			if (pe->ignore == TRUE)
-				continue;
-			if ((all_ss == FALSE) && ((uns32)pe->service_id != ss_id))
-				continue;
-			if (pe->age < min_age)
-				continue;
-
-			sprintf(output_string, "%4d%5d%5d%12s%6d%12s%9d%4d%4d%10x%6d\n", j + 1,	/* Nmber */
-				pe->age,	/* age */
-				pe->line,	/* Line  */
-				ncs_fname(pe->file),	/* File  */
-				pe->loc_line,	/* OwnrL */
-				ncs_fname(pe->loc_file),	/* OwnrF */
-				pe->real_size,	/* Real Size  */
-				pe->service_id,	/* SvcID */
-				pe->sub_id,	/* SubID */
-				(int)((char *)pe + sizeof(NCS_LBP_ENTRY)),	/* Ptr   */
-				pe->data->RefCnt /* refCnt */ );
-
-			if (j < NCSSYSM_BUF_MAX_WO) {
-				info->o_wo[j].o_aline = pe->line;
-				info->o_wo[j].o_afile = (uns8 *)ncs_fname(pe->file);
-				info->o_wo[j].o_oline = pe->loc_line;
-				info->o_wo[j].o_ofile = (uns8 *)ncs_fname(pe->loc_file);
-				info->o_wo[j].o_svcid = pe->service_id;
-				info->o_wo[j].o_subid = pe->sub_id;
-				info->o_wo[j].o_age = pe->age;
-				info->o_wo[j].o_ptr = (NCSCONTEXT)((char *)pe + sizeof(NCS_LBP_ENTRY));
-				info->o_wo[j].o_refcnt = pe->data->RefCnt;
-				info->o_filled = j + 1;
-			}
-
-			j++;
-
-			if (to_std == TRUE)
-				printf("%s", output_string);
-			if (to_file == TRUE)
-				fprintf(fh, output_string);
-
-		}
-
-		if (((to_file == TRUE)) && fh) {
-			fclose(fh);
-		}
-
-	}
-
-	if (info->i_opp.opp_bits & OPP_TO_MASTER) {
-		/* TBD */
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-#endif
-
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-/* A helper struct to keep track of our hits */
-
-typedef struct ncs_lbp_hist {
-	struct ncs_lbp_hist *next;
-	NCS_LBP_ENTRY *pe;
-	uns32 hit_cnt;
-
-} NCS_LBP_HIST;
-
-/* We will use memory from the stack of this big */
-
-#define LBP_HIST_SPACE 3000
-
-uns32 lbp_rpt_wos(NCSSYSM_BUF_RPT_WOS * info)
-{
-	NCS_BOOL found;
-	NCSMEM_AID ma;
-	char space[LBP_HIST_SPACE];
-	NCS_LBP_HIST *hash[NCS_SERVICE_ID_MAX];
-	NCS_LBP_HIST *test;
-	uns32 itr;
-
-	NCS_LBP_ENTRY *pe;
-	NCS_BOOL to_std = FALSE;
-	NCS_BOOL to_file = FALSE;
-	char output_string[128];
-	char asc_tod[33];
-	time_t tod;
-	uns32 j;
-	uns32 ss_id = 0;
-	NCS_BOOL all_ss = FALSE;
-	uns32 min_age = 0;
-
-	memset(info->o_wos, 0, sizeof(info->o_wos));
-
-	ncsmem_aid_init(&ma, (uns8 *)space, LBP_HIST_SPACE * sizeof(char));
-
-	memset(space, '\0', LBP_HIST_SPACE * sizeof(char));
-	memset(hash, '\0', sizeof(hash));
-
-	min_age = info->i_age;
-	if (info->i_ss_id == 0)
-		all_ss = TRUE;
-	else
-		ss_id = info->i_ss_id;
-
-	to_std = info->i_opp.opp_bits & OPP_TO_STDOUT ? TRUE : FALSE;
-	to_file = info->i_opp.opp_bits & OPP_TO_FILE ? TRUE : FALSE;
-
-	if ((to_std == TRUE) || (to_file == TRUE)) {
-		FILE *fh = NULL;
-
-		if (to_file == TRUE) {
-			if (info->i_opp.fname != NULL) {
-				if (strlen(info->i_opp.fname) != 0) {
-					fh = sysf_fopen(info->i_opp.fname, "at");
-					if (fh == NULL) {
-						printf("Unable to open %s\n", info->i_opp.fname);
-						return NCSCC_RC_FAILURE;
-					}
-				} else {
-					return NCSCC_RC_FAILURE;
-				}
-			}
-		}
-
-		j = 0;
-		for (pe = leap_buf_pool.inuse; pe != NULL; pe = pe->next) {
-			if (pe->ignore == TRUE)
-				continue;
-			if ((all_ss == FALSE) && ((uns32)pe->service_id != ss_id))
-				continue;
-			if (pe->age < min_age)
-				continue;
-
-			found = FALSE;
-
-      /** OK, next line confuses some; ptr to first ptr so I know there is always test->next 
-       **/
-			for (test = hash[pe->service_id]; test != NULL; test = test->next) {
-				if ((test->pe->line == pe->line) &&
-				    (test->pe->service_id == pe->service_id) &&
-				    (test->pe->sub_id == pe->sub_id) &&
-				    (test->pe->age == pe->age) && (strcmp(pe->file, test->pe->file) == 0)) {
-					test->hit_cnt++;
-					found = TRUE;
-					break;
-				}
-
-			}
-
-			if (found == FALSE) {
-				if ((test = (NCS_LBP_HIST *) ncsmem_aid_alloc(&ma, sizeof(NCS_LBP_HIST))) == NULL)
-					continue;	/* means we have maxed out on 'reports';  You must have enough !!.. */
-				test->next = hash[pe->service_id];
-				test->pe = pe;
-				hash[pe->service_id] = test;
-				test->hit_cnt++;
-			}
-
-		}
-
-		asc_tod[0] = '\0';
-		m_GET_ASCII_TIME_STAMP(tod, asc_tod);
-		sprintf(output_string, "%s\n", asc_tod);
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-
-		sprintf(output_string, "%s", "|------+-----+-------------+------+----+----+-----+-----|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "%s", "|         B U F  O U T   - S U M M A R Y          |\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "%s", "|------+-----+-------------+------+----+----+-----+-----|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "%s", "|hit   |show |   alloc'ed  |Owner |Svc |Sub |real |bkt  |\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "%s", "|Cnt   |Cnt  |    in file  | line | ID | ID |size |size |\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-		sprintf(output_string, "%s", "|------+-----+-------------+------+----+----+-----+-----|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-
-		j = 0;
-		for (itr = 0; itr < NCS_SERVICE_ID_MAX; itr++) {
-			for (test = hash[itr]; test != NULL; test = test->next) {
-
-				sprintf(output_string, "|%6d|%5d|%13s|%6d|%4d|%4d|%5d|%5d|\n", test->hit_cnt,	/* hits  */
-					test->pe->age,	/* age */
-					ncs_fname(test->pe->file),	/* File  */
-					test->pe->line,	/* Line  */
-					test->pe->service_id,	/* SvcID */
-					test->pe->sub_id, test->pe->real_size,	/* real size */
-					test->pe->pool->size /* bucket size */ );
-
-				if (j < NCSSYSM_BUF_MAX_WOS) {
-					info->o_wos[j].o_inst = test->hit_cnt;
-					info->o_wos[j].o_age = test->pe->age;
-					info->o_wos[j].o_aline = test->pe->line;
-					info->o_wos[j].o_afile = (uns8 *)ncs_fname(test->pe->file);
-					info->o_wos[j].o_svcid = test->pe->service_id;
-					info->o_wos[j].o_subid = test->pe->sub_id;
-					info->o_filled = j + 1;
-					j++;
-				}
-
-				if (to_std == TRUE)
-					printf("%s", output_string);
-				if (to_file == TRUE)
-					fprintf(fh, output_string);
-			}
-		}
-
-		sprintf(output_string, "|------+-----+-------------+------+----+----+-----+-----|\n");
-		if (to_std == TRUE)
-			printf("%s", output_string);
-		if (to_file == TRUE)
-			fprintf(fh, output_string);
-
-		if (((to_file == TRUE)) && fh) {
-			fclose(fh);
-		}
-
-	}
-
-	if (info->i_opp.opp_bits & OPP_TO_MASTER) {
-		/* TBD */
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-#endif
-/********************/
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-
-void ncs_lbp_loc(void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file)
-{
-	NCS_LBP_ENTRY *pe;
-
-	if (mem == NULL)
-		return;
-
-	if ((pe = (NCS_LBP_ENTRY *) (((char *)mem) - sizeof(NCS_LBP_ENTRY))) == NULL) {
-		m_LEAP_FAILURE(NCSFAIL_MEM_SCREWED_UP, 0);
-		return;
-	}
-
-	pe->prev_svc_id = pe->prev_svc_id;
-	pe->service_id = svc_id;
-	pe->prev_sub_id = pe->sub_id;
-	pe->sub_id = sub_id;
-	pe->loc_line = line;
-	pe->loc_file = file;
-
-}
-#endif
-
-/****************************************************************************
- *
- * Function Name: ncs_lbp_create
- *
- * Purpose:       put leap buffer pool (reference implementation) into start
- *                state.
- *
- ****************************************************************************/
-
-uns32 ncs_lbp_create(void)
-{
-	if (lb_pool_lock_inited == FALSE) {
-		m_LBP_LK_CREATE(&lp_pool_lock);
-		lb_pool_lock_inited = TRUE;
-	}
-
-	if (leap_buf_pool.exists == FALSE) {
-		leap_buf_pool.size = MMGR_PAD_SIZE(sizeof(USRDATA));
-		leap_buf_pool.free = NULL;
-		leap_buf_pool.inuse = NULL;
-		leap_buf_pool.exists = TRUE;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- *
- * Function Name: ncs_lbp_destroy
- *
- * Purpose:       Recover all memory resources in the H&J memory pool.
- *
- ****************************************************************************/
-
-uns32 ncs_lbp_destroy(void)
-{
-	NCS_LBP_ENTRY *pe;
-
-	if (leap_buf_pool.exists != TRUE)
-		return NCSCC_RC_FAILURE;
-
-	if (lb_pool_lock_inited == TRUE) {
-		m_LBP_LK_DLT(&lp_pool_lock);
-		lb_pool_lock_inited = FALSE;
-	}
-
-	while ((pe = leap_buf_pool.free) != NULL) {
-		leap_buf_pool.free = pe->next;
-		if (pe->next != NULL)
-			pe->next->prev = NULL;
-		m_NCS_OS_MEMFREE(pe, NULL);
-	}
-
-	leap_buf_pool.exists = FALSE;
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
- *
- * Function Name: ncs_lbp_alloc
- *
- * Purpose:       Allocate memory. If free memory
- *                is not in that pool, go to the HEAP and get some.
- *
- *                If debug is enabled, store lots of stuff about the
- *                invoker.
- *
- ****************************************************************************/
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-void *ncs_lbp_alloc(unsigned int nbytes, unsigned int pri, unsigned int line, char *file)
-#else
-
-void *ncs_lbp_alloc(unsigned int nbytes, unsigned int pri)
-#endif
-{
-	NCS_LBP_ENTRY *pe;
-	unsigned int len;
-	char *payload;
-	m_LBP_LK_INIT;
-
-	USE(pri);
-
-	if (nbytes > sizeof(USRDATA))
-		return NULL;
-
-	m_LBP_LK(&lp_pool_lock);
-
-	if ((pe = leap_buf_pool.free) == NULL) {
-		m_LBP_UNLK(&lp_pool_lock);
-		len = leap_buf_pool.size + sizeof(NCS_LBP_ENTRY) + sizeof(uns32);
-
-		if ((pe = (NCS_LBP_ENTRY *) m_NCS_OS_MEMALLOC(len, NULL)) == NULL) {
-			return NULL;
-		}
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-
-		pe->prev_sub_id = 0;	/* we clear it out once; from then on, we record */
-		pe->prev_svc_id = 0;
-		pe->start_marker = START_MARKER;	/* mark it once */
-		pe->free_file = gl_none;	/* starts off with no free-er */
-		pe->free_line = 0;
-#endif
-
-		pe->owned = FALSE;
-		m_LBP_LK(&lp_pool_lock);
-		if (leap_buf_pool.exists == FALSE) {
-			/* LBP has been destroyed */
-			m_NCS_OS_MEMFREE(pe, NULL);
-			m_LBP_UNLK(&lp_pool_lock);
-			return NULL;
-		}
-	} else if (pe->owned == TRUE) {
-		m_NCSSYSM_BUF_ASSERT(0);
-		m_LBP_UNLK(&lp_pool_lock);
-		return NULL;
-	} else {
-		leap_buf_pool.free = pe->next;
-		if (pe->next != NULL)
-			pe->next->prev = NULL;
-	}
-
-	pe->owned = TRUE;
-	pe->next = leap_buf_pool.inuse;
-	leap_buf_pool.inuse = pe;
-	pe->prev = NULL;
-	pe->real_size = MMGR_PAD_SIZE(nbytes);
-
-	if (pe->next != NULL)
-		pe->next->prev = pe;
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-
-	pe->loc_file = gl_none;
-	pe->loc_line = 0;
-	pe->service_id = 0;
-	pe->sub_id = 0;
-	pe->line = line;
-	pe->file = file;
-#endif
-
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-	pe->ignore = FALSE;
-	pe->age = 0;
-#endif
-
-	m_LBP_UNLK(&lp_pool_lock);
-
-	payload = (char *)pe + sizeof(NCS_LBP_ENTRY);
-	pe->data = (USRDATA *)payload;
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))	/* Requester can't write below this! */
-	{
-		uns32 *bottom;
-
-		bottom = (uns32 *)((char *)(payload + pe->real_size));
-		*bottom = BOTTOM_MARKER;
-	}
-#endif
-
-	return (void *)payload;
-}
-
-/****************************************************************************
- *
- * Function Name: ncs_lbp_free
- *
- * Purpose:       Put memory back into the leap buffer pool.
- *
- ****************************************************************************/
-
-#if ((NCS_MMGR_DEBUG != 0) || (NCSSYSM_BUF_DBG_ENABLE == 1))
-void ncs_lbp_free(void *free_me, unsigned int line, char *file)
-#else
-
-void ncs_lbp_free(void *free_me)
-#endif
-{
-	NCS_LBP_ENTRY *pe;
-	m_LBP_LK_INIT;
-
-	if (free_me == NULL) {
-		m_LEAP_FAILURE(NCSFAIL_FREEING_NULL_PTR, 0);
-		return;
-	}
-
-	if ((pe = (NCS_LBP_ENTRY *) (((char *)free_me) - sizeof(NCS_LBP_ENTRY))) == NULL) {
-		m_LEAP_FAILURE(NCSFAIL_MEM_SCREWED_UP, 0);
-		return;
-	}
-
-	m_LBP_LK(&lp_pool_lock);
-
-	if (leap_buf_pool.exists != TRUE) {
-    /** if this occurs, then the Leap Buffer Pool has been destroyed.
-    ** Free the memory back to the OS...
-    **/
-		m_NCS_OS_MEMFREE(pe, NULL);
-		m_LBP_UNLK(&lp_pool_lock);
-		return;
-	}
-
-	if (pe->owned == FALSE) {
-		m_LEAP_FAILURE(NCSFAIL_DOUBLE_DELETE, 0);
-		m_LBP_UNLK(&lp_pool_lock);
-		return;
-	}
-
-	pe->owned = FALSE;
-
-#if (NCSSYSM_BUF_DBG_ENABLE == 1)
-
-	{			/* T E S T  lower boundary of returned memory */
-
-		uns32 *bottom = (uns32 *)((char *)free_me + pe->real_size);
-
-		if (*bottom != BOTTOM_MARKER) {
-			m_LEAP_FAILURE(NCSFAIL_FAILED_BM_TEST, 0);
-			m_LBP_UNLK(&lp_pool_lock);
-			return;
-		}
-	}
-
-	memset(free_me, 0xff, leap_buf_pool.size);	/* set memory to generally bad value */
-	pe->free_line = line;
-	pe->free_file = file;
-
-	pe->prev_sub_id = pe->sub_id;
-	pe->prev_svc_id = pe->service_id;
-	pe->sub_id = 0;
-	pe->service_id = 0;
-	pe->loc_file = gl_none;
-	pe->loc_line = 0;
-#endif
-
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-	pe->ignore = TRUE;
-#endif
-
-	if (pe->next != NULL)
-		pe->next->prev = pe->prev;
-
-	if (pe->prev != NULL)
-		pe->prev->next = pe->next;
-	else
-		leap_buf_pool.inuse = pe->next;
-
-	pe->next = leap_buf_pool.free;
-	leap_buf_pool.free = pe;
-	pe->prev = NULL;
-
-	if (pe->next != NULL)
-		pe->next->prev = pe;
-
-	m_LBP_UNLK(&lp_pool_lock);
-
-}
-
-#endif   /* #if (NCS_USE_SYSMON == 1) */
 
 /*************************************************************************************/
 
@@ -961,52 +109,13 @@ void ncs_lbp_free(void *free_me)
 
 void *sysf_leap_alloc(uns32 b, uns8 pool_id, uns8 pri)
 {
-	USE(pool_id);
-#if (NCS_USE_SYSMON == 1)
-	return m_NCS_LBP_ALLOC(b, pri);
-#else
 	return m_NCS_MEM_ALLOC(b, NULL, NCS_SERVICE_ID_OS_SVCS, 0);
-#endif
 }
 
 void sysf_leap_free(void *data, uns8 pool_id)
 {
-#if (NCS_USE_SYSMON == 1)
-	m_NCS_LBP_FREE(data);
-#else
 	m_NCS_MEM_FREE(data, NULL, NCS_SERVICE_ID_OS_SVCS, 0);
-#endif
 }
-
-#if (NCS_USE_SYSMON == 1)
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-EXTERN_C uns32 sysf_leap_rpt(NCSUB_POOL_RPT_ARG * arg);
-EXTERN_C void sysf_leap_loc(void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file);
-EXTERN_C void sysf_leap_ignore(NCS_BOOL val);
-EXTERN_C void sysf_leap_age(void);
-
-uns32 sysf_leap_rpt(NCSUB_POOL_RPT_ARG * arg)
-{
-	return m_NCS_LBP_RPT(arg);
-}
-
-void sysf_leap_loc(void *mem, uns32 svc_id, uns32 sub_id, uns32 line, char *file)
-{
-	m_NCS_LBP_LOC(mem, svc_id, sub_id, line, file);
-}
-
-void sysf_leap_ignore(NCS_BOOL val)
-{
-	m_NCS_LBP_IGNORE(val);
-}
-
-void sysf_leap_age(void)
-{
-	m_NCS_LBP_AGE;
-}
-#endif
-#endif
 
 /***************************************************************************
  * NCSUB_HEAP_POOL
@@ -1016,8 +125,6 @@ void sysf_leap_age(void)
 
 void *sysf_heap_alloc(uns32 b, uns8 pool_id, uns8 pri)
 {
-	USE(pool_id);
-	USE(pri);
 	return m_NCS_OS_MEMALLOC(b, NULL);
 }
 
@@ -1055,33 +162,13 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 /*--------+---------------+----------------+----------------*/
 	{
 	 /* Pool-id 0 */
-#if (NCS_USE_SYSMON == 1)
 	 {TRUE, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-	  , sysf_leap_age, sysf_leap_ignore, sysf_leap_loc, sysf_leap_rpt, {0xffffffff, NCSUB_LEAP_POOL, 0, 0, 0, 0, 0}
-#endif
-#else
-	 {TRUE, NCSUB_LEAP_POOL, sysf_leap_alloc, sysf_leap_free, 0, 0,
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-	  , NULL, NULL, NULL, NULL, {0xffffffff, NCSUB_LEAP_POOL, 0, 0, 0, 0, 0}
-#endif
-#endif
 	  },
 	 /* Pool-id 1 */
 	 {TRUE, NCSUB_HEAP_POOL, sysf_heap_alloc, sysf_heap_free, 0, 0,
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-	  , NULL, NULL, NULL, NULL, {0xffffffff, NCSUB_HEAP_POOL, 0, 0, 0, 0, 0}
-#endif
 	  },
 	 /* Pool-id 2 */
 	 {TRUE, NCSUB_UDEF_POOL, m_OS_UDEF_ALLOC, m_OS_UDEF_FREE, 0, 0,
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-	  , NULL, NULL, NULL, NULL, {0xffffffff, NCSUB_UDEF_POOL, 0, 0, 0, 0, 0}
-#endif
 	  },
 	 /* Pool-id 3 : FOR MDS : PM-23/Jan/2005
 	    Header break up for fragmented MDS messages - 
@@ -1116,23 +203,10 @@ UB_POOL_MGR gl_ub_pool_mgr = {
 	  */
 #define MDS_UB_HDR_MAX 50
 #define MDS_UB_TRLR_MAX 25
-#if (NCS_USE_SYSMON == 1)
+
 	 {TRUE, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free, MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
 
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-	  , sysf_leap_age, sysf_leap_ignore, sysf_leap_loc, sysf_leap_rpt, {0xffffffff, NCSUB_MDS_POOL, 0, 0, 0, 0, 0}
-#endif   /* #if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1)) */
-
 	  },
-#else
-	 {TRUE, NCSUB_MDS_POOL, sysf_leap_alloc, sysf_leap_free, MDS_UB_HDR_MAX, MDS_UB_TRLR_MAX,
-
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-	  , NULL, NULL, NULL, NULL, {0xffffffff, NCSUB_MDS_POOL, 0, 0, 0, 0, 0}
-#endif   /* #if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1)) */
-
-	  },
-#endif   /* else of #if (NCS_USE_SYSMON == 1) */
 	 /* Pool-id 4 */
 	 {FALSE, 0, sysf_stub_alloc, sysf_stub_free, 0, 0},
 	 }
@@ -1169,9 +243,6 @@ static uns32 mmgr_ub_svc_init(NCSMMGR_UB_INIT *init)
 			gl_ub_pool_mgr.pools[i].pool_id = 0;
 			gl_ub_pool_mgr.pools[i].mem_alloc = sysf_stub_alloc;
 			gl_ub_pool_mgr.pools[i].mem_free = sysf_stub_free;
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-			memset(&gl_ub_pool_mgr.pools[i].stats, 0, sizeof(gl_ub_pool_mgr.pools[i].stats));
-#endif
 		}
 	}
 
@@ -1233,13 +304,6 @@ static uns32 mmgr_ub_svc_register(NCSMMGR_UB_REGISTER *reg)
 	pool->pool_id = reg->i_pool_id;
 	pool->mem_alloc = reg->i_mem_alloc;
 	pool->mem_free = reg->i_mem_free;
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-	pool->mem_age = reg->i_mem_age;
-	pool->mem_ignore = reg->i_mem_ignore;
-	pool->mem_loc = reg->i_mem_loc;
-	pool->mem_rpt = reg->i_mem_rpt;
-#endif
-
 	m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
 
 	return NCSCC_RC_SUCCESS;
@@ -1356,9 +420,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 
 	USRBUF *ub;
 	USRDATA *ud;
-	USE(priority);
-	USE(num);
-
 	m_PMGR_LK_INIT;
 
 	ub = (USRBUF *)m_NCS_MEM_ALLOC(sizeof(USRBUF), NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
@@ -1371,26 +432,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 			m_LEAP_DBG_SINK(0);
 			return NULL;
 		}
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-		if ((gl_ub_pool_mgr.pools[pool_id].stats.curr + sizeof(USRDATA)) >=
-		    gl_ub_pool_mgr.pools[pool_id].stats.max) {
-			NCSSYSM_RES_LMT_EVT evt;
-			evt.i_vrtr_id = gl_sysmon.vrtr_id;
-			evt.i_obj_id = NCSSYSM_OID_BUF_TTL;
-			evt.i_ttl = gl_ub_pool_mgr.pools[pool_id].stats.max;
-			evt.i_attr = LEAM_INST_ID;
-			evt.i_inst_id = pool_id;
-			if (gl_sysmon.res_lmt_cb == NULL)
-				(*gl_sysmon.res_lmt_cb) (&evt);
-
-			m_NCS_MEM_FREE(ub, NCS_MEM_REGION_IO_DATA_HDR, NCS_SERVICE_ID_OS_SVCS, 2);
-			ub = (USRBUF *)0;
-			m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
-			return ub;
-		}
-#endif
-
 		ud = (USRDATA *)gl_ub_pool_mgr.pools[pool_id].mem_alloc(sizeof(USRDATA), pool_id, priority);
 
 		if (ud == (USRDATA *)NULL) {
@@ -1398,24 +439,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 			ub = (USRBUF *)0;
 			m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
 		} else {
-
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-
-			if (gl_ub_pool_mgr.pools[pool_id].mem_loc != NULL)
-				gl_ub_pool_mgr.pools[pool_id].mem_loc(ud, NCS_SERVICE_ID_OS_SVCS, 2, __LINE__,
-								      __FILE__);
-
-			gl_ub_pool_mgr.pools[pool_id].stats.curr += sizeof(USRDATA);
-#endif
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-			gl_ub_pool_mgr.pools[pool_id].stats.alloced += sizeof(USRDATA);
-
-			gl_ub_pool_mgr.pools[pool_id].stats.cnt++;
-			if (gl_ub_pool_mgr.pools[pool_id].stats.curr > gl_ub_pool_mgr.pools[pool_id].stats.hwm) {
-				gl_ub_pool_mgr.pools[pool_id].stats.hwm = gl_ub_pool_mgr.pools[pool_id].stats.curr;
-			}
-#endif
-
 			/* Set up data fields... */
 			ud->RefCnt = 1;
 
@@ -1427,11 +450,6 @@ USRBUF *sysf_alloc_pkt(unsigned char pool_id, unsigned char priority, int num, u
 			m_MMGR_NEXT(ub) = (USRBUF *)0;
 			ub->link = (USRBUF *)0;
 			ub->count = 0;
-#if (NCS_SIGL == 1)
-			m_MMGR_SET_NPS(ub, 0);
-			m_MMGR_SET_RTS(ub, 0);
-#endif
-
 			ub->start = gl_ub_pool_mgr.pools[pool_id].hdr_reserve;
 		}
 	}
@@ -1455,15 +473,6 @@ void sysf_free_pkt(USRBUF *ub)
 			m_PMGR_LK(&gl_ub_pool_mgr.lock);
 
 			gl_ub_pool_mgr.pools[pool_id].mem_free(ud, pool_id);
-
-#if ((NCSSYSM_BUF_WATCH_ENABLE == 1) || (NCSSYSM_BUF_STATS_ENABLE == 1))
-			gl_ub_pool_mgr.pools[pool_id].stats.curr -= sizeof(USRDATA);
-#endif
-#if (NCSSYSM_BUF_STATS_ENABLE == 1)
-			gl_ub_pool_mgr.pools[pool_id].stats.cnt--;
-			gl_ub_pool_mgr.pools[pool_id].stats.freed += sizeof(USRDATA);
-#endif
-
 			m_PMGR_UNLK(&gl_ub_pool_mgr.lock);
 
 		}
@@ -1482,9 +491,6 @@ USRBUF *sysf_ditto_pkt(USRBUF *dup_me)
 
 	USRBUF *ub, *ub_head;
 	USRBUF **ubp;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((dup_me != NULL));
 
 	ub_head = (USRBUF *)0;
 	ubp = &ub_head;
@@ -1536,9 +542,6 @@ USRBUF *sysf_copy_pkt(USRBUF *dup_me)
 	USRBUF **ubp;
 	USRDATA *payload;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((dup_me != NULL));
-
 	ub_head = (USRBUF *)0;
 	ubp = &ub_head;
 
@@ -1584,9 +587,6 @@ uns32 sysf_get_chain_len(const USRBUF *my_len)
 {
 	const USRBUF *ub;
 	uns32 len;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((my_len != NULL));
 
 	for (len = 0, ub = my_len; (ub); ub = ub->link)
 		len += ub->count;
@@ -1808,9 +808,6 @@ char *sysf_reserve_at_end_amap(USRBUF **ppb, unsigned int *io_size,
 	int32 min_rsrv;
 	int32 space_left;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((ppb == NULL) || (*ppb == NULL) || (*io_size == 0))));
-
 	ub = *ppb;
 
 	while (ub->link != (USRBUF *)0) {
@@ -1862,9 +859,6 @@ void sysf_remove_from_end(USRBUF *pb, unsigned int size)
 	USRBUF *ub;
 	unsigned int buflen;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((pb != NULL));
-
 	if (pb != BNULL) {
 		while ((size > 0) && (sysf_get_chain_len(pb))) {
 
@@ -1900,9 +894,6 @@ void sysf_remove_from_end(USRBUF *pb, unsigned int size)
 char *sysf_reserve_at_start(USRBUF **ppb, unsigned int size)
 {
 	USRBUF *ub;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((ppb == NULL) || (*ppb == NULL))));
 
 	ub = *ppb;
 	/* Can we prepend directly within this USRBUF? It would be nice. */
@@ -1956,9 +947,6 @@ void sysf_remove_from_start(USRBUF **ppb, unsigned int size)
 	USRBUF *ub;
 	unsigned int buflen;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((ppb == NULL) || (*ppb == NULL))));
-
 	while (((ub = *ppb) != (USRBUF *)0) && (size > 0)) {
 		buflen = ub->count;
 
@@ -1989,9 +977,6 @@ char *sysf_data_at_end(const USRBUF *pb, unsigned int size, char *spare)
 {
 	const USRBUF *pb_work, *pbs;
 	register unsigned int num_in_buff;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((pb == NULL) || (spare == NULL))));
 
 	/* First, find the last buffer and see if the data is already contiguous. */
 	pb_work = pb;
@@ -2043,9 +1028,6 @@ char *sysf_data_at_start(const USRBUF *pb, unsigned int size, char *spare)
 {
 	register unsigned int num_in_buff;
 	char *spare_work;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((pb == NULL) || (spare == NULL))));
 
 	while ((num_in_buff = pb->count) == 0)	/* skip over null-length buffers */
 		pb = pb->link;
@@ -2100,9 +1082,6 @@ char *sysf_data_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char 
 	register unsigned int num_in_buf;
 	register unsigned int cpcnt;
 	char *cb_work;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((pb != NULL));
 
 	if (pb->count >= (offset + size)) {
 		if (copy_flag == TRUE) {
@@ -2194,9 +1173,6 @@ static char *sysf_reserve_in_mid(USRBUF *pb, unsigned int offset, unsigned int s
 	USRDATA *ud;
 	char *src;
 	char *dest;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((pb == NULL) || (size == 0))));
 
 	/* Move to the USRBUF that contains the first byte of the data */
 	num_in_buf = pb->count;
@@ -2311,9 +1287,6 @@ char *sysf_insert_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, cha
 {
 	char *insert_spot;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((pb == NULL) || (ins_data == NULL))));
-
 	insert_spot = sysf_reserve_in_mid(pb, offset, size);
 
 	if (insert_spot != (char *)0)
@@ -2337,9 +1310,6 @@ char *sysf_write_in_mid(USRBUF *pb, unsigned int offset, unsigned int size, char
 {
 	USRDATA *ud;
 	unsigned int num_in_buf;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((pb == NULL) || (cdata == NULL))));
 
 	/* Move to the USRBUF that contains the first byte of the data */
 	num_in_buf = pb->count;
@@ -2418,9 +1388,6 @@ void sysf_ubq_dq_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 {
 	USRBUF *searcher;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((ubq == NULL) || (pbuf == NULL))));
-
 	m_NCS_LOCK_V2(&ubq->lock, NCS_LOCK_WRITE, NCS_SERVICE_ID_COMMON, 1);
 
 	if (ubq->head == pbuf)
@@ -2460,9 +1427,6 @@ USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 {
 	USRBUF *searcher;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((ubq == NULL) || (pbuf == NULL))));
-
 	for (searcher = ubq->head; searcher != BNULL; searcher = m_MMGR_NEXT(searcher)) {
 		if (searcher == pbuf)
 			return pbuf;
@@ -2484,9 +1448,6 @@ USRBUF *sysf_ubq_scan_specific(SYSF_UBQ *ubq, USRBUF *pbuf)
 
 void sysf_append_data(USRBUF *p1, USRBUF *p2)
 {
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((p1 != NULL));
-
 	while (p1->link != (USRBUF *)0) {
 		p1 = p1->link;	/* advance to the last one, if nec. */
 	}
@@ -2524,9 +1485,6 @@ unsigned int sysf_frag_bufr(USRBUF *ppb, unsigned int frag_size, SYSF_UBQ *ubq)
 	unsigned long needsize = 0;
 	unsigned char action = APS_NONE;
 	unsigned char fragmenting = 0;
-
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((ubq != NULL));
 
 	if ((ppb == BNULL) || (frag_size == 0))
 		return (ubq->count);
@@ -2783,13 +1741,9 @@ USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length)
 	unsigned int len;
 	uns8 *src, *dst;
 
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((packet == NULL) || (length == 0))));
-
 	src = packet;
 
-  /** Move the pdu into a buffer chain ...
-  **/
+	/* Move the pdu into a buffer chain ... */
 	if ((first_uu_pdu = (uu_pdu = m_MMGR_ALLOC_BUFR(sizeof(USRBUF)))) == BNULL) {
 		m_MMGR_FREE_BUFR_LIST(uu_pdu);
 		return BNULL;
@@ -2834,9 +1788,6 @@ USRBUF *sysf_copy_to_usrbuf(uns8 *packet, unsigned int length)
 
 uns32 sysf_copy_from_usrbuf(USRBUF *packet, uns8 *buffer, uns32 buff_len)
 {
-	/* varify that the passed arguments are reasonably healthy */
-	m_NCSSYSM_BUF_ASSERT((!((packet == NULL) || (buffer == NULL) || (buff_len == 0))));
-
 	if (NULL == m_MMGR_COPY_MID_DATA(packet, 0, buff_len, buffer))
 		return 0;
 	else

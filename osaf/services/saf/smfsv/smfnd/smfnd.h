@@ -19,7 +19,6 @@
 #define SMFND_H
 
 #include <ncsgl_defs.h>
-#include <t_suite.h>
 #include <ncssysf_ipc.h>
 #include <mds_papi.h>
 #include <ncs_hdl_pub.h>

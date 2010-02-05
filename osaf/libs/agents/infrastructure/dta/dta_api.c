@@ -40,6 +40,8 @@
 */
 #include "dta.h"
 #include "os_defs.h"
+#include "ncssysf_mem.h"
+
 
 DTA_CB dta_cb;
 uns32 dta_hdl;

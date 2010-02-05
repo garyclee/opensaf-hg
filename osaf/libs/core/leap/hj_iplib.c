@@ -27,10 +27,8 @@
 ******************************************************************************
 */
 
-#include "ncs_opt.h"
-#include "gl_defs.h"
+#include <ncsgl_defs.h>
 #include "ncs_osprm.h"
-
 #include "ncssysf_def.h"
 #include "ncs_iplib.h"
 

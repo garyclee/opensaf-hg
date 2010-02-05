@@ -18,8 +18,10 @@
 #ifndef CPND_CB_H
 #define CPND_CB_H
 
+#include <saClm.h>
+
 /* global variables */
-EXTERN_C CPNDDLL_API uns32 gl_cpnd_cb_hdl;
+EXTERN_C uns32 gl_cpnd_cb_hdl;
 
 /* macros for the CB handle */
 #define m_CPND_TAKE_CPND_CB      ncshm_take_hdl(NCS_SERVICE_ID_CPND, gl_cpnd_cb_hdl)

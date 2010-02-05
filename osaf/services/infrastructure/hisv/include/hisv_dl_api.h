@@ -18,6 +18,6 @@
 #ifndef HISV_DL_API_H
 #define HISV_DL_API_H
 
-EXTERN_C LEAPDLL_API uns32 ncs_hisv_hcd_lib_req(NCS_LIB_REQ_INFO *);
+EXTERN_C uns32 ncs_hisv_hcd_lib_req(NCS_LIB_REQ_INFO *);
 
 #endif   /* !HISV_DL_API_H */

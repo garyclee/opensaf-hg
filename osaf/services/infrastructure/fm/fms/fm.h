@@ -34,7 +34,6 @@
 
 #include "ncs_main_papi.h"
 #include "ncsgl_defs.h"
-#include "ncs_opt.h"
 #include "ncs_osprm.h"
 
 #include "ncs_svd.h"

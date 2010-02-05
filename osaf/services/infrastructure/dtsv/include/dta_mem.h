@@ -35,6 +35,8 @@
 #ifndef DTA_MEM_H
 #define DTA_MEM_H
 
+#include "ncssysf_mem.h"
+
 #define DTSV_MEM_DTA_CB 1
 #define DTSV_MEM_DTA_REG 2
 /* Changes for buffering of logs */

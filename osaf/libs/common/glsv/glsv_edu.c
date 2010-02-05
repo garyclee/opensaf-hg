@@ -34,7 +34,6 @@
 
 /* Common Headers */
 #include "ncsgl_defs.h"
-#include "t_suite.h"
 
 /* From /base/common/inc */
 #include "ncs_lib.h"
