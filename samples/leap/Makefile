@@ -28,7 +28,7 @@ OBJS = test_atomic_counts.o test_bufmgr.o test_encdec.o test_file.o \
 CC = gcc
 CFLAGS = -g -O2 -Wall -fPIC
 INCLUDES = -I. -I/usr/include/opensaf
-CPPFLAGS = -DNCS_SAF=1 -DNCS_IFSV_BOND_INTF=1
+CPPFLAGS = -DNCS_SAF=1
 LDFLAGS = -lncs_core
 
 all: $(PROG) $(LIB)

@@ -26,13 +26,13 @@
   This file consists of constats, enums and data structs used by mdnd_init.c
 ******************************************************************************/
 
-/**** Macro to get the component name for the component type ****/
+/* Macro to get the component name for the component type */
 #define m_MQND_TASKNAME "MQND"
 
-/**** Macro for MQND task priority ****/
+/* Macro for MQND task priority */
 #define m_MQND_TASK_PRI (5)
 
-/**** Macro for IFSV task stack size ****/
+/* Macro for MQND task stack size */
 #define m_MQND_STACKSIZE NCS_STACKSIZE_HUGE
 
 /*****************************************************************************

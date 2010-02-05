@@ -28,13 +28,13 @@
 
 EXTERN_C uns32 gl_cpd_cb_hdl;
 
-/**** Macro to get the component name for the component type ****/
+/* Macro to get the component name for the component type */
 #define m_CPD_TASKNAME "CPD"
 
-/**** Macro for MQND task priority ****/
+/* Macro for MQND task priority */
 #define m_CPD_TASK_PRI (5)
 
-/**** Macro for IFSV task stack size ****/
+/* Macro for CPD task stack size */
 #define m_CPD_STACKSIZE NCS_STACKSIZE_HUGE
 
 #define m_CPD_STORE_CB_HDL(hdl) (gl_cpd_cb_hdl = hdl)

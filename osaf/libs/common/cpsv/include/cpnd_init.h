@@ -31,13 +31,13 @@
 
 #include <saClm.h>
 
-/**** Macro to get the component name for the component type ****/
+/* Macro to get the component name for the component type */
 #define m_CPND_TASKNAME "CPND"
 
-/**** Macro for MQND task priority ****/
+/* Macro for MQND task priority */
 #define m_CPND_TASK_PRI (5)
 
-/**** Macro for IFSV task stack size ****/
+/* Macro for CPND task stack size */
 #define m_CPND_STACKSIZE NCS_STACKSIZE_HUGE
 
 #define m_CPND_STORE_CB_HDL(hdl) (gl_cpnd_cb_hdl = hdl)
