@@ -29,6 +29,7 @@
 #include "immsv_api.h"
 
 static const char *loaderBase = "immload";
+static const char *pbeBase = "/usr/local/bin/immdump";
 
 void immnd_ackToNid(uns32 rc)
 {
@@ -255,10 +256,7 @@ void immnd_proc_imma_down(IMMND_CB *cb, MDS_DEST dest, NCSMDS_SVC_ID sv_id)
 				TRACE_5("Stale marked client id:%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);
 				++failed;
 			}
-		} else {
-			/*TRACE_5("No action client id :%llx sv_id:%u", cl_node->imm_app_hdl, cl_node->sv_id);*/
 		}
-
 		immnd_client_node_getnext(cb, prev_hdl, &cl_node);
 	}
 	if (failed) {
@@ -575,9 +573,11 @@ static void immnd_abortLoading(IMMND_CB *cb)
 
 SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step)
 {				/*Invoked by sync-coordinator and sync-clients.
-				   Other old-member nodes do not invoke. */
+				   Other old-member nodes do not invoke.
+				*/
 
-#if 0				/* Enable this code only to test logic for handling coord crash in sync */
+#if 0   /* Enable this code only to test logic for handling coord crash in
+	   sync */
 	if (coordinator && cb->mMyEpoch == 4) {
 		LOG_NO("FAULT INJECTION crash during sync");
 		exit(1);
@@ -834,12 +834,12 @@ static int immnd_forkLoader(IMMND_CB *cb)
 			(char *)(cb->mFile ? cb->mFile : "imm.xml"), 0
 		};
 
-		TRACE_5("FORKING %s %s %s", ldrArgs[0], ldrArgs[1], ldrArgs[2]);
+		TRACE_5("EXEC %s %s %s", ldrArgs[0], ldrArgs[1], ldrArgs[2]);
 		execvp(loaderName, ldrArgs);
 		LOG_ER("%s failed to exec, error %u", base, errno);
 		exit(1);
 	}
-	TRACE_5("Parent %s, successfully forked loader pid:%u", base, pid);
+	TRACE_5("Parent %s, successfully forked loader, pid:%d", base, pid);
 	TRACE_LEAVE();
 	return pid;
 }
@@ -882,7 +882,50 @@ static int immnd_forkSync(IMMND_CB *cb)
 		LOG_ER("%s failed to exec sync, error %u", base, errno);
 		exit(1);
 	}
-	TRACE_5("Parent %s, successfully forked sync-agent pid:%u", base, pid);
+	TRACE_5("Parent %s, successfully forked sync-agent, pid:%d", base, pid);
+	TRACE_LEAVE();
+	return pid;
+}
+
+static int immnd_forkPbe(IMMND_CB *cb)
+{
+	const char *base = basename(cb->mProgName);
+	char pbePath[1024];
+	int pid = (-1);
+	int dirLen = strlen(cb->mDir);
+	int pbeLen = strlen(cb->mPbeFile);
+	int i, j;
+	TRACE_ENTER();
+
+	for (i = 0; i < dirLen; ++i) {
+           pbePath[i] = cb->mDir[i];
+	}
+
+	pbePath[i++] = '/';
+
+	for(j = 0; j < pbeLen; ++i, ++j) {
+            pbePath[i] = cb->mPbeFile[j];
+	}
+	pbePath[i] = '\0';
+
+
+	TRACE("pbe-file-path:%s", pbePath);
+
+	pid = fork();		/*posix fork */
+	if (pid == (-1)) {
+		LOG_ER("%s failed to fork, error %u", base, errno);
+		return (-1);
+	}
+
+	if (pid == 0) {		/*child */
+		/* TODO: Should close file-descriptors ... */
+		char * const pbeArgs[5] = { (char *) pbeBase, "--pbe", pbePath, "--daemon", 0 };
+		LOG_IN("Trying to exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
+		execvp(pbeBase, pbeArgs);
+		LOG_ER("%s failed to exec '%s -pbe', error %u", base, pbeBase, errno);
+		exit(1);
+	}
+	TRACE_5("Parent %s, successfully forked %s, pid:%d", base, pbePath, pid);
 	TRACE_LEAVE();
 	return pid;
 }
@@ -925,6 +968,9 @@ uns32 immnd_proc_server(uns32 *timeout)
 			cb->mTimer = 0;
 			LOG_NO("SERVER STATE: IMM_SERVER_ANONYMOUS --> " "IMM_SERVER_CLUSTER_WAITING");
 			cb->mState = IMM_SERVER_CLUSTER_WAITING;
+			if ((cb->mPbeFile = getenv("IMMSV_PBE_FILE")) != NULL) {
+				LOG_NO("Persistent Back-End capability enabled, Pbe file:%s", cb->mPbeFile);
+			}
 		}
 
 		if(cb->is_immd_up) {
@@ -1171,7 +1217,6 @@ uns32 immnd_proc_server(uns32 *timeout)
 				} else {
 					LOG_IN("Sync Phase-2: Ccbs are terminated, IMM in "
 					       "read-only mode, forked sync process pid:%u", cb->syncPid);
-					immModel_setSync(cb, cb->syncPid);
 				}
 			} else {
 				/*Phase 3 */
@@ -1220,37 +1265,67 @@ uns32 immnd_proc_server(uns32 *timeout)
 			}
 		}
 
+		if (cb->pbePid > 0) {
+			int status = 0;
+			if (waitpid(cb->pbePid, &status, WNOHANG) > 0) {
+				LOG_WA("Persistent back-end process has apparently died.");
+				cb->pbePid = 0;
+			}
+		}
+
 		coord = immnd_iAmCoordinator(cb);
 
 		immnd_cleanTheHouse(cb, coord == 1);
 
-		if (coord == 1) {
-			if (cb->mTimer > 1) {	/*Every sec but first time after 2 secs. */
-				if (immModel_immNotWritable(cb)) {
-					/*Ooops we have apparently taken over the role of IMMND
-					   coordinator during an uncompleted sync. Probably due 
-					   to coordinator crash. Abort the sync. */
-					LOG_WA("ABORTING UNCOMPLETED SYNC - " "COORDINATOR MUST HAVE CRASHED");
-					immnd_abortSync(cb);
-				} else {
-					newEpoch = immnd_syncNeeded(cb);
-					if (newEpoch) {
-						if (cb->syncPid > 0) {
-							LOG_WA("Will not start new sync when previous "
-							       "sync process (%u) has not terminated", cb->syncPid);
-						} else {
-							if (immnd_announceSync(cb, newEpoch)) {
-								LOG_NO("SERVER STATE: IMM_SERVER_READY -->"
-								       " IMM_SERVER_SYNC_SERVER");
-								cb->mState = IMM_SERVER_SYNC_SERVER;
-								cb->mTimer = 0;
-								*timeout = 100;	/* 0.1 sec */
-							}
+		if ((coord == 1) && (cb->mTimer > 1)) {
+			/*Every sec but first time after 2 secs. */
+			if (immModel_immNotWritable(cb)) {
+				/*Ooops we have apparently taken over the role of IMMND
+				  coordinator during an uncompleted sync. Probably due 
+				  to coordinator crash. Abort the sync. */
+				LOG_WA("ABORTING UNCOMPLETED SYNC - COORDINATOR MUST HAVE CRASHED");
+				immnd_abortSync(cb);
+			} else {
+				newEpoch = immnd_syncNeeded(cb);
+				if (newEpoch) {
+					if (cb->syncPid > 0) {
+						LOG_WA("Will not start new sync when previous "
+							"sync process (%u) has not terminated", 
+							cb->syncPid);
+					} else {
+						if (immnd_announceSync(cb, newEpoch)) {
+							LOG_NO("SERVER STATE: IMM_SERVER_READY -->"
+								" IMM_SERVER_SYNC_SERVER");
+							cb->mState = IMM_SERVER_SYNC_SERVER;
+							cb->mTimer = 0;
+							*timeout = 100;	/* 0.1 sec */
 						}
 					}
 				}
 			}
-		}
+			/* Independently of aborting or coordinating sync, 
+			   check if we should be starting/stopping persistent back-end.*/
+			if (cb->mPbeFile) {/* Pbe enabled */
+				SaImmRepositoryInitModeT rim =
+
+					immModel_getRepositoryInitMode(cb);
+				TRACE("RepositoryInitMode: %s", (rim==SA_IMM_KEEP_REPOSITORY)?
+					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+
+				if (cb->pbePid == 0) { /* Pbe is NOT running */
+					if (rim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
+						LOG_NO("STARTING persistent back end process.");
+						cb->pbePid = immnd_forkPbe(cb);
+					}
+				} else {
+					assert(cb->pbePid > 0); /* Pbe is running. */
+					if (rim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
+						LOG_NO("STOPPING persistent back end process.");
+						/* TODO######## stop PBE. */
+					}
+				}
+			}
+		} /* if((coord == 1)...*/
 		break;
 
 	default:

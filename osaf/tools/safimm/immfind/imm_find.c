@@ -16,7 +16,7 @@
  */
 
 /*
- * This file contains a command line utility to perform IMM admin operations.
+ * This file contains a command line utility to perform IMM search operations.
  * Example: immfind"
  */
 

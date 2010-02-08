@@ -40,6 +40,9 @@ extern "C" {
 #define OPENSAF_IMM_OBJECT_RDN "opensafImm=opensafImm"
 #define OPENSAF_IMM_OBJECT_PARENT "safApp=safImmService"
 
+#define OPENSAF_IMM_PBE_IMPL_NAME "OpenSafImmPBE"
+#define OPENSAF_IMM_SERVICE_NAME "safImmService"
+
 /* 
  * Special flags only to be used by the imm-dummper or the imm-loader.
  *
@@ -56,11 +59,11 @@ extern "C" {
  * The use of these flags in search options is NON STANDARD.
  * It is only allowed for imm internal use. 
  * We are messing with the a part of the value space for search options.
- * This may not be apossible in future implementations.
+ * This may not be possible in future implementations.
  *
  * The defines should really not use the SA_IMM prefix as they are non
  * standard. But I choose use the same prefix as the corrsponding defines
- * in the standard, as a riminder of where I am tresspassing. 
+ * in the standard, as a reminder of where I am tresspassing. 
  * This includefile is not part of the public API anyway.
 */
 #define SA_IMM_SEARCH_PERSISTENT_ATTRS          0x0010

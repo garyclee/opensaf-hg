@@ -66,9 +66,8 @@ bool createImmObject(SaImmClassNameT className,
 	std::map<std::string, SaImmAttrValuesT_2> *classRDNMap);
 
 
-/* Move to separate PBE file. */
-void escalatePbe(std::string xmldir, std::string file);
+void escalatePbe(std::string dir, std::string file);
 
-void* checkPbeRepositoryInit(std::string xmldir, std::string file);
+void* checkPbeRepositoryInit(std::string dir, std::string file);
 
 int loadImmFromPbe(void* pbeHandle);

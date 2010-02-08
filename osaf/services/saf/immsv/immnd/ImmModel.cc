@@ -267,6 +267,9 @@ static std::string immAttrClasses(OPENSAF_IMM_ATTR_CLASSES);
 static std::string immAttrEpoch(OPENSAF_IMM_ATTR_EPOCH);
 static std::string immClassName(OPENSAF_IMM_CLASS_NAME);
 
+static std::string immManagementDn("safRdn=immManagement,safApp=safImmService");
+static std::string saImmRepositoryInit("saImmRepositoryInit");
+static SaImmRepositoryInitModeT immInitMode = SA_IMM_INIT_FROM_FILE;
 
 SaAisErrorT 
 immModel_ccbResult(IMMND_CB *cb, SaUint32T ccbId)
@@ -972,12 +975,6 @@ immModel_getLoader(IMMND_CB *cb)
     return ImmModel::instance(&cb->immModel)->getLoader();
 }
 
-SaInt32T
-immModel_getSync(IMMND_CB *cb)
-{
-    return ImmModel::instance(&cb->immModel)->getSync();
-}
-
 void
 immModel_setLoader(IMMND_CB *cb, SaInt32T loaderPid)
 {
@@ -1008,6 +1005,13 @@ immModel_immNotWritable(IMMND_CB *cb)
     return (SaBoolT) ImmModel::instance(&cb->immModel)->immNotWritable();
 }
 
+SaImmRepositoryInitModeT
+immModel_getRepositoryInitMode(IMMND_CB *cb)
+{
+    return (SaImmRepositoryInitModeT)
+		ImmModel::instance(&cb->immModel)->getRepositoryInitMode();
+}
+
 void
 immModel_prepareForSync(IMMND_CB *cb, SaBoolT isJoining)
 {
@@ -1018,12 +1022,6 @@ void
 immModel_discardContinuations(IMMND_CB *cb, SaUint32T deadConn)
 {
     ImmModel::instance(&cb->immModel)->discardContinuations(deadConn);
-}
-
-void
-immModel_setSync(IMMND_CB *cb, SaInt32T syncPid)
-{
-    ImmModel::instance(&cb->immModel)->setSync(syncPid);
 }
 
 SaAisErrorT
@@ -1099,8 +1097,7 @@ immModel_rtObjectUpdate(IMMND_CB *cb,
 /*====================================================================*/
 
 ImmModel::ImmModel() : 
-    loaderPid(-1),
-    syncPid(-1)
+    loaderPid(-1)
 {
 }
 
@@ -1124,6 +1121,42 @@ ImmModel::immNotWritable()
             
     }  
 }
+
+/* immNotPbeWritable returning true means:
+   (1) immNotWriteable is true OR... 
+   (2) immNotWritable is false (imm service is writable), but according to
+   configuration there should be a persistent back-end (Pbe) and the Pbe is
+   currently not operational.
+
+   Pbe is dynamically disabled by setting immInitMode to SA_IMM_INIT_FROM_FILE.
+*/
+bool
+ImmModel::immNotPbeWritable()
+{
+    SaUint32T dummyCon;
+    /* Not writable => Not persitent writable. */
+    if(immNotWritable()) {return true;}
+
+    /* INIT_FROM_FILE => no PBE => Writable => PersistentWritable */
+    if(immInitMode == SA_IMM_INIT_FROM_FILE) {return false;}
+
+    if(immInitMode != SA_IMM_KEEP_REPOSITORY) {
+        LOG_ER("Illegal value on RepositoryInitMode:%u", immInitMode);
+        immInitMode = SA_IMM_INIT_FROM_FILE; 
+        return false;
+    }
+
+    /* immInitMode == SA_IMM_KEEP_REPOSITORY */
+    /* Check if PBE OI is available. */
+
+    
+    if(getPbeOi(&dummyCon)) {
+        return false; /* Pbe IS present => writable. */
+    }
+
+    return true; /* Persistent back end available or disabled. */
+}
+
 
 void
 ImmModel::prepareForLoading()
@@ -1294,7 +1327,6 @@ ImmModel::abortSync()
             assert(0);
             
     }
-    setSync(0);
 }
 
 /**
@@ -1311,6 +1343,14 @@ ImmModel::setLoader(int pid)
         LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", 
             __LINE__);
     }
+
+    immInitMode = getRepositoryInitMode();
+    if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
+        LOG_IN("RepositoryInitModeT is SA_IMM_KEEP_REPOSITORY");
+    } else {
+        LOG_IN("RepositoryInitModeT is SA_IMM_INIT_FROM_FILE");
+        immInitMode = SA_IMM_INIT_FROM_FILE; /* Ensure valid value*/
+    }
 }
 
 /**
@@ -1322,25 +1362,6 @@ int
 ImmModel::getLoader() 
 {
     return loaderPid;
-}
-
-/**
- * Sets the pid for the sync process. Allows the sync process to
- * "write" to the sync-client-imm nodes.
- */
-void
-ImmModel::setSync(int pid) 
-{
-    syncPid = pid;
-}
-
-/**
- * Returns the pid for the sync process, only valid at coordinator imm.
- */
-int
-ImmModel::getSync() 
-{
-    return syncPid;
 }
 
 /**
@@ -1383,8 +1404,57 @@ ImmModel::adjustEpoch(int suggestedEpoch)
     return suggestedEpoch;
 }
 
+/**
+ * Fetches the SaImmRepositoryInitT value of the attribute
+ * 'saImmRepositoryInit' in the object immManagementDn.
+ * If not found then return SA_IMM_INIT_FROM_FILE as default.
+ */
+SaImmRepositoryInitModeT 
+ImmModel::getRepositoryInitMode() 
+{
+    ImmAttrValueMap::iterator avi;
+    ObjectInfo* immMgObject = NULL;
+    ObjectMap::iterator oi = sObjectMap.find(immManagementDn);
+    if(oi != sObjectMap.end()) {
+        immMgObject = oi->second;
+        avi = immMgObject->mAttrValueMap.find(saImmRepositoryInit);
+        
+        if(avi != immMgObject->mAttrValueMap.end()) {
+            assert(!avi->second->isMultiValued());
+            return (SaImmRepositoryInitModeT) avi->second->getValue_int();
+        }
+    }
 
+    TRACE_2("%s not found or %s not found, returning INIT_FROM_FILE",
+        immManagementDn.c_str(), saImmRepositoryInit.c_str());
+    return SA_IMM_INIT_FROM_FILE;
+}
 
+/**
+ * Fetches the nodeId and possibly connection id for the
+ * implementer connected to the class OPENSAF_IMM_CLASS_NAME.
+ * This is used both when testing for the presence of the PBE
+ * and for locating the PBE when a message/upcall is to be sent 
+ * to it.
+ */
+unsigned int 
+ImmModel::getPbeOi(SaUint32T* implConn)
+{
+    TRACE_ENTER();
+    std::string opensafClass(OPENSAF_IMM_CLASS_NAME);
+    ClassMap::iterator ci = sClassMap.find(opensafClass);
+    assert(ci!=sClassMap.end());
+    ClassInfo* classInfo = ci->second;
+    if((classInfo->mImplementer && 
+       classInfo->mImplementer->mId &&
+       !(classInfo->mImplementer->mDying))) {
+        *implConn = classInfo->mImplementer->mConn;
+        return classInfo->mImplementer->mNodeId;
+    }
+    *implConn = 0;
+    TRACE_LEAVE();
+    return 0;
+}
 
 /** 
  * Returns the only instance of ImmModel.
@@ -1414,7 +1484,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
     std::string className((const char*)req->className.buf, sz);
     SaAisErrorT err = SA_AIS_OK;
     
-    if(immNotWritable()) {
+    if(immNotPbeWritable()) {
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
@@ -1624,7 +1694,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req)
     
     SaAisErrorT err = SA_AIS_OK;
     
-    if(immNotWritable()) {
+    if(immNotPbeWritable()) {
         err = SA_AIS_ERR_TRY_AGAIN;
     } else if(!nameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
@@ -2315,7 +2385,19 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
         }
     }
     afterImage->mAttrValueMap.clear();
-    delete afterImage; 
+    delete afterImage;
+    if(dn == immManagementDn) {
+        /* clumsy solution to check every modify for this. 
+	   TODO: catch this in the modify op OI handler to
+	   prevent datatype error. 
+	*/
+        immInitMode = getRepositoryInitMode();
+        if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
+            LOG_IN("RepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
+        } else {
+            LOG_IN("RepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
+	}
+    }
     TRACE_LEAVE();
 }
 
@@ -4114,7 +4196,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     SaUint32T ccbId = rsp->ccbId;
     CcbInfo* ccb = 0;
     CcbVector::iterator i1;
-    
+
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
         LOG_WA("ccb id %u missing or terminated", ccbId);
@@ -4122,7 +4204,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
         return;
     }
     ccb = *i1;
-    
+
     if(! (nameCheck(objectName)||nameToInternal(objectName)) ) {
         LOG_ER("Not a proper object name: %s", objectName.c_str());
         if(ccb->mVeto == SA_AIS_OK) {
@@ -4130,7 +4212,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
         }
 	return;
     }
-    
+
     ObjectMutationMap::iterator omuti =
         ccb->mMutations.find(objectName);
     if(omuti == ccb->mMutations.end()) {
@@ -4679,7 +4761,7 @@ ImmModel::searchInitialize(const ImmsvOmSearchInit* req, ImmSearchOp& op)
                     if(obj->mObjFlags & IMM_DN_INTERNAL_REP) {
                         nameToExternal(objectName);
                     }
-                    TRACE_7("Add object:%s flags:%u", objectName.c_str(), obj->mObjFlags);
+                    /*TRACE_7("Add object:%s flags:%u", objectName.c_str(), obj->mObjFlags);*/
                     op.addObject(objectName);
 
                     if(searchOptions & (SA_IMM_SEARCH_GET_ALL_ATTR |
@@ -6269,7 +6351,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
     
-    if(immNotWritable()) {
+    if(immNotPbeWritable()) {
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -6295,7 +6377,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
     ImmAttrValueMap::iterator i6;
     
     immsv_attr_values_list* attrValues = NULL;
-
+    bool isPersistent = false;
     bool nameCorrected = false;
     
     /*Should rename member adminOwnerId. Used to store implid here.*/
@@ -6410,6 +6492,10 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                 err = SA_AIS_ERR_INVALID_PARAM;     
                 goto rtObjectCreateExit;
             }
+
+            if(i4->second->mFlags & SA_IMM_ATTR_PERSISTENT) {
+                isPersistent = true;
+            }
             
             if(parent && 
                 (parent->mClassInfo->mCategory == SA_IMM_CLASS_RUNTIME) &&
@@ -6431,7 +6517,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
                     goto rtObjectCreateExit;
                 }
             }
-            
+
             objectName.append((const char*)attrValues->n.attrValue.val.x.buf, 
                 strnlen((const char*)attrValues->n.attrValue.val.x.buf,
                     (size_t)attrValues->n.attrValue.val.x.size));
@@ -6661,8 +6747,13 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             delete object; 
             goto rtObjectCreateExit;
         }
-        LOG_IN("Create runtime object '%s' by Impl id: %u", objectName.c_str(),
-            info->mId);
+        if(isPersistent) {
+            LOG_IN("Create PERSISTENT runtime object '%s' by Impl id: %u",
+                objectName.c_str(), info->mId);
+        } else {
+            LOG_IN("Create runtime object '%s' by Impl id: %u",
+                objectName.c_str(), info->mId);
+        }
         
         sObjectMap[objectName] = object;
         classInfo->mRefCount++;
@@ -6841,6 +6932,17 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     break;
                 }
 
+                if(attr->mFlags & SA_IMM_ATTR_PERSISTENT) {
+                    if(immNotPbeWritable()) {
+                        err = SA_AIS_ERR_TRY_AGAIN;
+                        LOG_NO("ERR_TRY_AGAIN: IMM not persistent writable => Cant update persistent rtattrs");
+                        break;
+                    }
+
+                    LOG_IN("Update of PERSISTENT runtime object %s",
+                        objectName.c_str());
+                }
+
                 *isPureLocal = false;
                 if(wasLocal) {
                     p = p->next;
@@ -7016,7 +7118,7 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     SaAisErrorT err = SA_AIS_OK;
     ImplementerInfo* info = NULL;
     
-    if(immNotWritable()) {
+    if(immNotPbeWritable()) {
         TRACE_LEAVE();
         return SA_AIS_ERR_TRY_AGAIN;
     }
@@ -7459,7 +7561,6 @@ ImmModel::finalizeSync(ImmsvOmFinalizeSync* req, bool isCoord,
     
     if(isCoord) {//Produce the checkpoint 
 		CcbVector::iterator ccbItr;
-        this->setSync(0);
         
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
         LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", __LINE__);

@@ -24,12 +24,9 @@
 #include <limits.h>
 #include <libxml/parser.h>
 #include <getopt.h>
+#include <assert.h>
 
 #define XML_VERSION "1.0"
-
-#define RELEASE_CODE 'A'
-#define MAJOR_VERSION 2
-#define MINOR_VERSION 1
 
 /* Prototypes */
 static void dumpClasses(SaImmHandleT, xmlNodePtr);
@@ -62,7 +59,7 @@ static void usage(const char *progname)
     printf("\t-h, --help\n");
     printf("\t\tthis help\n\n");
     printf("\t-p, --pbe   {<file name>}\n");
-    printf("\t\tInstead of xml file, generate/populate persistent back-end DB\n");
+    printf("\t\tInstead of xml file, generate/populate persistent back-end database/file\n");
 
     printf("\nEXAMPLE\n");
     printf("\timmdump /tmp/imm.xml\n");
@@ -74,33 +71,47 @@ int main(int argc, char* argv[])
     int c;
     struct option long_options[] = {
         {"help", no_argument, 0, 'h'},
+        {"daemon", no_argument, 0, 'd'},
         {"pbe", required_argument, 0, 'p'},
         {0, 0, 0, 0}
     };
     SaImmHandleT           immHandle;
     SaAisErrorT            errorCode;
     SaVersionT             version;
-    SaImmCallbacksT        immCallbacks = {};
+    /*
+    SaImmAdminOwnerHandleT ownerHandle;
+    SaNameT immApp;
+    immApp.length = strlen(OPENSAF_IMM_OBJECT_PARENT);
+    strncpy((char *) immApp.value, OPENSAF_IMM_OBJECT_PARENT, 
+	    immApp.length + 1);
+
+    immApp.length = strlen(OPENSAF_IMM_OBJECT_DN);
+    strncpy((char *) immApp.value, OPENSAF_IMM_OBJECT_DN, 
+	    immApp.length + 1);
+    const SaNameT* objectNames[] = {&immApp, NULL};
+    */
+
     std::map<std::string, std::string> classRDNMap;
     std::string filename;
     const char* defaultLog = "immdump_trace";
     const char* logPath;
-    bool pbeCase = false;
+    bool pbeDumpCase = false;
+    bool pbeDaemonCase = false;
     void* dbHandle=NULL;
     const char* dump_trace_label = "imm_dump";
-    const char* pbe_trace_label = "pbe_init";
+    const char* pbe_dump_trace_label = "imm_pbe_dump";
+    const char* pbe_daemon_trace_label = "imm_pbe";
     const char* trace_label = dump_trace_label;
-    SaImmAdminOwnerHandleT ownerHandle;
     ClassMap classIdMap;
 
-    if ((argc < 2) || (argc > 3))
+    if ((argc < 2) || (argc > 4))
     {
-        printf("Usage: %s <dumpfile>\n", argv[0]);
+        printf("Usage: %s <xmldumpfile>\n", argv[0]);
         exit(1);
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hp:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hpd:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -109,11 +120,16 @@ int main(int argc, char* argv[])
                     exit(EXIT_SUCCESS);
                     break;
 
-                case 'p':
-                    pbeCase = true;
-                    trace_label = pbe_trace_label;
-
+                case 'd':
+                    pbeDaemonCase = true;
+                    trace_label = pbe_daemon_trace_label;
                     break;
+
+                case 'p':
+                    pbeDumpCase = true;
+                    trace_label = pbe_dump_trace_label;
+                    break;
+
                 default:
                     fprintf(stderr, "Try '%s --help' for more information\n", 
                         argv[0]);
@@ -121,6 +137,7 @@ int main(int argc, char* argv[])
                     break;
         }
     }
+
 
     if ((logPath = getenv("IMMND_TRACE_PATHNAME")) == NULL)
     {
@@ -144,50 +161,67 @@ int main(int argc, char* argv[])
     }
 
 
-    xmlDocPtr xmlDoc;
-    xmlNodePtr xmlImmRoot;
-
     version.releaseCode = RELEASE_CODE;
     version.majorVersion = MAJOR_VERSION;
     version.minorVersion = MINOR_VERSION;
 
     /* Initialize immOm */
-    errorCode = saImmOmInitialize(&immHandle, &immCallbacks, &version);
+    errorCode = saImmOmInitialize(&immHandle, NULL, &version);
     if (SA_AIS_OK != errorCode)
     {
-        std::cout << "Failed to initialize the imm om interface - exiting" 
+        if(pbeDaemonCase) {
+		LOG_WA("Failed to initialize imm om handle - exiting");
+        } else {
+            std::cout << "Failed to initialize the imm om interface - exiting" 
             << errorCode 
             <<  std::endl;
+        }
         exit(1);
     }
 
-    if(pbeCase) {
+    /*TODO if(pbeDaemonCase && !pbeDumpCase !pbeFileExists) pbeDumpCase = true;*/
+
+    if(pbeDumpCase) {
         filename.append(argv[2]);
-        std::cout << 
-            "Populating Pbe from current IMM state to " << filename << 
-             std::endl;
+        if(pbeDaemonCase) {
+		LOG_IN("Populating Pbe from current IMM state to %s", filename.c_str());
+        } else {
+            std::cout << 
+                "Populating Pbe from current IMM state to " << filename << 
+                 std::endl;
+        }
 
         /* Initialize access to PBE database. */
-        dbHandle = pbeRepositoryInit(filename.c_str());
+        dbHandle = pbeRepositoryInit(filename.c_str(), true);
 	if(dbHandle) {
-		LOG_NO("Opened persistent repository %s", filename.c_str());
-	} else {
-		std::cout << "immdump: intialize failed, check syslog for details"
-			  << std::endl;
-		exit(1);
+                TRACE_1("Opened persistent repository %s", filename.c_str());
+        } else {
+            if(pbeDaemonCase) {
+                    LOG_WA("immdump: pbe intialize failed - exiting");
+            } else {
+                std::cout << "immdump: intialize failed - exiting, check syslog for details"
+                    << std::endl;
+	    }
+            exit(1);
 	}
 
-        /* Set admin-owner with releaseOnfinalize true disabling resurrect. */
-        errorCode = saImmOmAdminOwnerInitialize(immHandle, "IMM-PBE-DUMP", 
-	    SA_TRUE, &ownerHandle);
+	/*
+        errorCode = saImmOmAdminOwnerInitialize(immHandle, 
+		OPENSAF_IMM_SERVICE_NAME, SA_FALSE, &ownerHandle);
         if(SA_AIS_OK != errorCode)
         {
-            TRACE_4("Failed to initialize imm om interface: err:%u - exiting",
-                errorCode);
-	    std::cout << "Failed to initialize imm om interface; err:" 
-		      << errorCode << std::endl;
+            if(pbeDaemonCase) {
+                LOG_WA("Failed to initialize imm om handle: err:%u - exiting",
+		    errorCode);
+            } else {
+                std::cout << "Failed to initialize imm om interface; err:" 
+                      << errorCode << std::endl;
+	    }
             exit(1);
         }
+
+	errorCode = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
+	*/
 
         dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump classes OK");
@@ -195,9 +229,40 @@ int main(int argc, char* argv[])
         dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump objects OK");
 
-        pbeRepositoryClose(dbHandle);
+	if(!pbeDaemonCase) {
+            pbeRepositoryClose(dbHandle);
+            exit(0);
+	}
+	/* Else the pbe dump was needed to get the initial pbe-file
+	   to be used by the pbeDaemon.
+	 */
+    }
+
+
+    if(pbeDaemonCase) {
+
+        if(!dbHandle) {
+            dbHandle = pbeRepositoryInit(filename.c_str(), false);
+            if(!dbHandle) {
+       	        LOG_WA("immdump: pbe intialize failed - exiting");
+                exit(1);
+                /* TODO SYNC with pbe-file AND with IMMSv */
+	    }
+        }
+
+	pbeDaemon(immHandle, dbHandle, &classIdMap);
+	TRACE("Exit from pbeDaemon");
 	exit(0);
     }
+
+
+    /* NOT pbeDaemonCase, i.e. plain imm.xml dump */
+
+    assert(!pbeDumpCase && !pbeDaemonCase);
+
+    /* Normal dump/export case to XML file. */
+    xmlDocPtr xmlDoc;
+    xmlNodePtr xmlImmRoot;
 
     filename.append(argv[1]);
     std::cout << "Dumping the current IMM state" << std::endl;
@@ -216,7 +281,7 @@ int main(int argc, char* argv[])
 
     std::cout << "Wrote " 
         << xmlSaveFormatFile (filename.c_str(), xmlDoc, 1) 
-    << std::endl;
+            << std::endl;
 
     return 0;
 }

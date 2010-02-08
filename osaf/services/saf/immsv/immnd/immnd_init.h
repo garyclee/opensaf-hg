@@ -214,11 +214,9 @@ extern "C" {
 
 	SaInt32T immModel_getLoader(IMMND_CB *cb);
 
-	SaInt32T immModel_getSync(IMMND_CB *cb);
-
 	void immModel_setLoader(IMMND_CB *cb, SaInt32T loaderPid);
 
-	void immModel_setSync(IMMND_CB *cb, SaInt32T loaderPid);
+	void immModel_setPbe(IMMND_CB *cb, SaInt32T pbePid);
 
 	void immModel_recognizedIsolated(IMMND_CB *cb);
 
@@ -249,6 +247,8 @@ extern "C" {
 	void immModel_discardContinuations(IMMND_CB *cb, SaUint32T deadConn);
 
 	SaBoolT immModel_immNotWritable(IMMND_CB *cb);
+
+	SaImmRepositoryInitModeT immModel_getRepositoryInitMode(IMMND_CB *cb);
 
 	SaAisErrorT
 	    immModel_rtObjectCreate(IMMND_CB *cb,
