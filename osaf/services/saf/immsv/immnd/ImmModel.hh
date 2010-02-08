@@ -275,9 +275,8 @@ public:
     void              getObjectName(ObjectInfo* obj, std::string& name);
     void              setLoader(int pid);
     int               getLoader();
-    void              setSync(int pid);
-    int               getSync();
     int               adjustEpoch(int suggestedEpoch);
+    SaImmRepositoryInitModeT getRepositoryInitMode();
     void              prepareForLoading();
     bool              readyForLoading();
     void              prepareForSync(bool isJoining);
@@ -288,6 +287,8 @@ public:
     bool              ccbsTerminated();
     void              getNonCriticalCcbs(IdVector& cv);
     bool              immNotWritable();
+    bool              immNotPbeWritable();
+    unsigned int      getPbeOi(SaUint32T* implConn);
     SaUint32T         findConnForImplementerOfObject(std::string objectDn);
     ImplementerInfo*  findImplementer(SaUint32T);
     ImplementerInfo*  findImplementer(std::string&);
@@ -412,10 +413,9 @@ private:
     void               commitDelete(const std::string& dn);
     
     int loaderPid; //(-1) => loading not started or loading partiticpant.
-                   // >0  => loading in progress at loading coordinator.
+                   // >0  => loading in progress here at coordinator.
                    //  0  => loading completed at coordinator and participants.
     
-    int syncPid;   // >0  => This node is the coordinator for sync 
 };
 
 #endif

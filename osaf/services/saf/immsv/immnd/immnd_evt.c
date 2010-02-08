@@ -605,7 +605,6 @@ void immnd_process_evt(void)
  *****************************************************************************/
 static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_INFO *sinfo, SaBoolT isOm)
 {
-	/*TODO isOm is ignored, should be set in cl_node */
 	IMMSV_EVT send_evt;
 	SaAisErrorT error;
 	IMMND_IMM_CLIENT_NODE *cl_node = NULL;
@@ -613,7 +612,8 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 
 	int load_pid = immModel_getLoader(cb);
-	int sync_pid = load_pid ? 0 : (immModel_getSync(cb));
+	int sync_pid = (!load_pid && (cb->syncPid > 0))?(cb->syncPid):0;
+	int pbe_pid =  (!load_pid && (cb->pbePid > 0))?(cb->pbePid):0;
 
 	if (load_pid > 0) {
 		if (evt->info.initReq.client_pid == load_pid) {
@@ -671,7 +671,11 @@ static uns32 immnd_evt_proc_imm_init(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	if (sync_pid && (cl_node->client_pid == sync_pid)) {
 		TRACE_2("Sync agent attached, pid: %u", sync_pid);
 		cl_node->mIsSync = 1;
+	} else 	if (pbe_pid && (cl_node->client_pid == pbe_pid)) {
+		LOG_IN("Persistent Back End attached, pid: %u", pbe_pid);
+		cl_node->mIsPbe = 1;
 	}
+	       
 
 	send_evt.info.imma.info.initRsp.immHandle = cl_node->imm_app_hdl;
 	error = SA_AIS_OK;
@@ -1790,6 +1794,17 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 	cb->fevs_replies_pending++;	/*flow control */
 	if (cb->fevs_replies_pending > 1) {
 		TRACE("Messages pending:%u", cb->fevs_replies_pending);
+	}
+
+	if(strncmp(evt->info.implSet.impl_name.buf, OPENSAF_IMM_PBE_IMPL_NAME,
+		   evt->info.implSet.impl_name.size)==0) {
+		if(cl_node->mIsPbe) {
+			TRACE("Persistent Back End OI %s is attaching", 
+				OPENSAF_IMM_PBE_IMPL_NAME);
+		} else {
+			LOG_WA("Will not allow Pbe implementer %s to attach, wrong pid:%u != %u",
+				OPENSAF_IMM_PBE_IMPL_NAME, cl_node->client_pid, cb->pbePid);
+		}
 	}
 
 	send_evt.type = IMMSV_EVT_TYPE_IMMD;

@@ -114,13 +114,18 @@ static void valuesToPBE(SaImmAttrValuesT_2* p, SaImmAttrFlagsT attrFlags,
 	TRACE_LEAVE();
 }
 
-void* pbeRepositoryInit(const char* filePath)
+void* pbeRepositoryInit(const char* filePath, bool create)
 {
 	int fd=(-1);
 	sqlite3* dbHandle=NULL;
 	std::string newFilename;
 	int rc=0;
-	char *execErr=NULL;
+	SaImmRepositoryInitModeT rpi = (SaImmRepositoryInitModeT) 0;
+	char **result=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	const char * sql = "select saImmRepositoryInit from SaImmMngt";
 
 	const char * sql_tr[] = 
 		{"BEGIN EXCLUSIVE TRANSACTION",
@@ -151,8 +156,13 @@ void* pbeRepositoryInit(const char* filePath)
 		 "COMMIT TRANSACTION",
 		 NULL
 		};
-	/* First, check if db-file already exists and if so mv it to a backup copy. */
+	TRACE_ENTER();
 
+	if(!create) {goto re_attach;}
+
+	/* Create the Pbe-repository by dumping current imm contents to a fresh DB. */
+
+	/* Check if db-file already exists and if so mv it to a backup copy. */
 	fd = open(filePath, O_RDWR);
 	if(fd != (-1)) {
 		close(fd);
@@ -181,20 +191,82 @@ void* pbeRepositoryInit(const char* filePath)
 
 	/* Creating the schema. */
 	for (int ix=0; sql_tr[ix]!=NULL; ++ix) {
-		rc = sqlite3_exec(dbHandle, sql_tr[ix], NULL, NULL, &execErr);
+		rc = sqlite3_exec(dbHandle, sql_tr[ix], NULL, NULL, &zErr);
 		if (rc != SQLITE_OK) {
-			LOG_ER("SQL statement %u/('%s') failed because:\n %s", ix, sql_tr[ix], execErr);
-			sqlite3_free(execErr);
+			LOG_ER("SQL statement %u/('%s') failed because:\n %s", ix, sql_tr[ix], zErr);
+			sqlite3_free(zErr);
 			goto bailout;
 		}
 		TRACE_2("Successfully executed %s", sql_tr[ix]);
 	}
 
+	TRACE_LEAVE();
 	return (void *) dbHandle;
+
+ re_attach:
+	/* Re-attach to an already created pbe file.
+	   Before trying to open with sqlite3, check if the db file exists
+	   and is writable. This avoids the sqlite3 default behavior of simply
+	   succeeding with open and creating an empty db, when there is no db
+	   file.
+	*/
+	fd = open(filePath, O_RDWR);
+	if(fd == (-1)) {
+		LOG_ER("File '%s' is not accessible for read/write, cause:%s - exiting", 
+			filePath, strerror(errno));
+		goto bailout;
+	}
+
+	close(fd);
+	fd=(-1);
+
+	rc = sqlite3_open(filePath, &dbHandle);
+	if(rc) {
+		LOG_ER("Can't open sqlite pbe file '%s', cause:%s", 
+			filePath, sqlite3_errmsg(dbHandle));
+		goto bailout;
+	} 
+	TRACE_2("Successfully opened sqlite pbe file %s", filePath);
+
+	rc = sqlite3_get_table((sqlite3 *) dbHandle, sql, &result, &nrows, 
+		&ncols, &zErr);
+	if(rc) {
+		LOG_IN("Could not access table SaImmMngt, error:%s", zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed SaImmMngt table rows:%u cols:%u", 
+		nrows, ncols);
+
+	if(nrows == 0) {
+		LOG_ER("SaImmMngt exists but is empty");
+		goto bailout;
+	} else if(nrows > 1) {
+		LOG_WA("SaImmMngt has %u tuples, should only be one - using first tuple", nrows);
+	}
+
+	rpi = (SaImmRepositoryInitModeT) atoi(result[1]);
+
+	if( rpi == SA_IMM_KEEP_REPOSITORY) {
+		LOG_IN("saImmRepositoryInit: SA_IMM_KEEP_REPOSITORY - attaching to repository");
+	} else if(rpi == SA_IMM_INIT_FROM_FILE) {
+		LOG_WA("saImmRepositoryInit: SA_IMM_INIT_FROM_FILE - will not attach!");
+		goto bailout;
+	} else {
+		LOG_ER("saImmRepositoryInit: Not a valid value (%u) - can not attach", rpi);
+		goto bailout;
+	}
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return dbHandle;
 
  bailout:
 	/* TODO: remove imm.db file */
-	sqlite3_close(dbHandle);
+	if(dbHandle) {
+		sqlite3_close(dbHandle);
+	}
+	TRACE_LEAVE();
 	return NULL;
 }
 
@@ -684,7 +756,7 @@ void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 }
 
 #else
-void* pbeRepositoryInit(const char* filePath)
+void* pbeRepositoryInit(const char* filePath, bool create)
 {
 	LOG_WA("immdump not built with Pbe option.");
 	return NULL;

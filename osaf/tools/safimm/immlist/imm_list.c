@@ -16,7 +16,7 @@
  */
 
 /*
- * This file contains a command line utility to view IMM objects.
+ * This file contains a command line utility to access IMM objects/attributes.
  * Example: immlist ..."
  */
 

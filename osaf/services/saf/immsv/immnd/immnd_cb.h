@@ -63,6 +63,7 @@ typedef struct immnd_immom_client_node {
 	NCSMDS_SVC_ID sv_id;	/* OM or OI */
 	IMMND_OM_SEARCH_NODE *searchOpList;
 	uns8 mIsSync;		/* Client is special sync client */
+	uns8 mIsPbe;            /* Client is persistent back end */
 	uns8 mSyncBlocked;	/* Sync client expects reply */
 	uns8 mIsStale;		/* Client disconnected when IMMD
 				   is unavailable => postpone 
@@ -123,14 +124,16 @@ typedef struct immnd_cb_tag {
 	SaClmNodeIdT clm_node_id;
 	SaAmfHandleT amf_hdl;	// AMF handle, obtained thru AMF init
 
-	/* ABT IMM state ported from AIS */
 	int32 loaderPid;
 	int32 syncPid;
+	int32 pbePid;   //Persistent back end (PBE) is running if pbePid > 0
 	IMMND_SERVER_STATE mState;
 	uns32 mTimer;		//Measures progress in immnd_proc_server
 	char *mProgName;	//The full path name of the immnd executable.
-	const char *mDir;	//The directory where the imm.xml files reside
-	const char *mFile;	//The name of the imm.xml file to start from
+	const char *mDir;	//The directory where imm.xml & pbe files reside
+	const char *mFile;	//The imm.xml file to start from
+	const char *mPbeFile;   //Pbe feature is configured (IMMSV_PBE_FILE).
+
 	uns8 mExpectedNodes;
 	uns8 mWaitSecs;
 	uns8 mNumNodes;

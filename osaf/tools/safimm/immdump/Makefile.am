@@ -25,7 +25,8 @@ bin_PROGRAMS = immdump
 
 immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
-immdump_SOURCES = imm_dumper.cc imm_pbe_dump.cc
+immdump_SOURCES = imm_dumper.cc imm_pbe_dump.cc imm_pbe_daemon.cc \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
 
 immdump_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
@@ -44,4 +45,5 @@ immdump_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
-	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOi.la

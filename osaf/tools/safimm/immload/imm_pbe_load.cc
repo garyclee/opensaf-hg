@@ -26,7 +26,7 @@
 
 #include <sqlite3.h>
 
-void* checkPbeRepositoryInit(std::string xmldir, std::string file)
+void* checkPbeRepositoryInit(std::string dir, std::string file)
 {
 	SaImmRepositoryInitModeT rpi = (SaImmRepositoryInitModeT) 0;
 	std::string filename;
@@ -40,7 +40,7 @@ void* checkPbeRepositoryInit(std::string xmldir, std::string file)
 	const char * sql = "select saImmRepositoryInit from SaImmMngt";
 	TRACE_ENTER();
 	/* Build the filename */
-	filename = xmldir;
+	filename = dir;
 	filename.append("/");
 	filename.append(file);
 
@@ -695,7 +695,7 @@ int loadImmFromPbe(void* pbeHandle)
 
 #else
 
-void* checkPbeRepositoryInit(std::string xmldir, std::string file)
+void* checkPbeRepositoryInit(std::string dir, std::string file)
 {
 	TRACE_ENTER2("Not enabled");
 	LOG_WA("immload not built with the Pbe option");
@@ -712,11 +712,11 @@ int loadImmFromPbe(void* pbeHandle)
 
 #endif
 
-void escalatePbe(std::string xmldir, std::string file)
+void escalatePbe(std::string dir, std::string file)
 {
 	std::string filename;
 	std::string newFilename;
-	filename = xmldir;
+	filename = dir;
 	filename.append("/");
 	filename.append(file);
 

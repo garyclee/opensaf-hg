@@ -23,6 +23,10 @@
 #include <immsv_api.h>
 #include <logtrace.h>
 
+#define RELEASE_CODE 'A'
+#define MAJOR_VERSION 2
+#define MINOR_VERSION 1
+
 /* Prototypes */
 typedef std::map<std::string, SaImmAttrFlagsT> AttrMap;
 struct ClassInfo
@@ -38,9 +42,11 @@ typedef std::map<std::string, ClassInfo*> ClassMap;
 std::list<std::string> getClassNames(SaImmHandleT handle);
 std::string getClassName(SaImmAttrValuesT_2** attrs);
 std::string valueToString(SaImmAttrValueT, SaImmValueTypeT);
-void* pbeRepositoryInit(const char* filePath);
+void* pbeRepositoryInit(const char* filePath, bool create);
 void pbeRepositoryClose(void* dbHandle);
 void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
 void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle);
+
+void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap);

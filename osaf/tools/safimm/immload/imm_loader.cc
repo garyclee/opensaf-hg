@@ -1468,11 +1468,9 @@ static void addToAttrTypeCache(ParserState* state,
     /* className and attrName can not be NULL */
     assert(state->className && state->attrName);
 
-    std::string classString;
-    std::string attrNameString;
+    std::string classString(state->className);
+    std::string attrNameString(state->attrName);
 
-    classString = std::string(state->className);
-    attrNameString = std::string(state->attrName);
     state->classAttrTypeMap[classString][attrNameString] = valueType;
 }
 
@@ -1483,14 +1481,9 @@ static SaImmValueTypeT getClassAttrValueType(std::map<std::string, std::map<std:
                                              const char* className,
                                              const char* attrName)
 {
-    std::string classNameString;
-    std::string attrNameString;
+    std::string classNameString(className);
+    std::string attrNameString(attrName);
 
-    //std::map<std::string, std::map<std::string, std::string> >::iterator classIt;
-    //std::map<std::string, std::string>::iterator attrIt;
-
-    classNameString = std::string(className);
-    attrNameString = std::string(attrName);
 
     if (classAttrTypeMap->find(classNameString) == classAttrTypeMap->end())
     {
@@ -2058,12 +2051,10 @@ int immsync(void)
  */
 int main(int argc, char* argv[])
 {
-    std::string xmldir;
-    std::string xml_file;
-    const char* pbe_file;
     const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/opensaf_immnd.log";
     const char* logPath;
     void* pbeHandle=NULL;
+    const char* pbe_file;
 
     if (argc < 3)
     {
@@ -2076,20 +2067,8 @@ int main(int argc, char* argv[])
         logPath = defaultLog;
     }
 
-    if(strnlen(argv[1], SA_MAX_NAME_LENGTH) == SA_MAX_NAME_LENGTH)
-    {
-        syslog(LOG_ERR, "Unreasonably long directory path");
-        exit(1);
-    }
-
-    if(strnlen(argv[2], SA_MAX_NAME_LENGTH) == SA_MAX_NAME_LENGTH)
-    {
-        syslog(LOG_ERR, "Unreasonably long filename");
-        exit(1);
-    }
-
-    xmldir = std::string(argv[1]);
-    xml_file   = std::string(argv[2]);
+    std::string xmldir(argv[1]);
+    std::string xml_file(argv[2]);
 
     if (argc > 3)
     {
