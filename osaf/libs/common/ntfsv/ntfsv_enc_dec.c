@@ -15,8 +15,10 @@
  *
  */
 
+#include <ncsencdec_pub.h>
 #include "ntfsv_enc_dec.h"
 #include "ntfsv_mem.h"
+
 
 static void print_object_attribute(SaNtfAttributeT *input)
 {

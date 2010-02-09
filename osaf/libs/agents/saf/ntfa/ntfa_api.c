@@ -86,9 +86,11 @@ static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *not
 {
 
 	if (*notification->notificationHeader.eventType < SA_NTF_STATE_CHANGE_NOTIFICATIONS_START ||
-	    *notification->notificationHeader.eventType > SA_NTF_OBJECT_STATE_CHANGE) {
-		TRACE_1("Invalid eventType value");
-		return SA_AIS_ERR_INVALID_PARAM;
+		 (*notification->notificationHeader.eventType > SA_NTF_OBJECT_STATE_CHANGE &&
+		  *notification->notificationHeader.eventType < SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) ||
+		 *notification->notificationHeader.eventType > SA_NTF_HPI_EVENT_OTHER) {
+		 TRACE_1("Invalid eventType value");
+		 return SA_AIS_ERR_INVALID_PARAM;
 	}
 	return checkHeader(&notification->notificationHeader);
 }
@@ -1428,7 +1430,7 @@ SaAisErrorT saNtfLocalizedMessageFree(SaStringT message)
 
 /*  3.15.2.3	saNtfPtrValGet()  */
 SaAisErrorT saNtfPtrValGet(SaNtfNotificationHandleT notificationHandle,
-			   SaNtfValueT *value, void **dataPtr, SaUint16T *dataSize)
+			   const SaNtfValueT *value, void **dataPtr, SaUint16T *dataSize)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	unsigned int client_handle;
@@ -1472,7 +1474,7 @@ SaAisErrorT saNtfPtrValGet(SaNtfNotificationHandleT notificationHandle,
 
 /*  3.15.2.4	saNtfArrayValGet()  */
 SaAisErrorT saNtfArrayValGet(SaNtfNotificationHandleT notificationHandle,
-			     SaNtfValueT *value, void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize)
+			     const SaNtfValueT *value, void **arrayPtr, SaUint16T *numElements, SaUint16T *elementSize)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	unsigned int client_handle;
@@ -1601,7 +1603,7 @@ SaAisErrorT saNtfAttributeChangeNotificationFilterAllocate(SaNtfHandleT ntfHandl
 							   SaUint16T numNotificationObjects,
 							   SaUint16T numNotifyingObjects,
 							   SaUint16T numNotificationClassIds,
-							   SaUint32T numSourceIndicators)
+							   SaUint16T numSourceIndicators)
 {
  SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;
@@ -1683,8 +1685,8 @@ SaAisErrorT saNtfStateChangeNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 	SaUint16T numNotificationObjects,
 	SaUint16T numNotifyingObjects,
 	SaUint16T numNotificationClassIds,
-	SaUint32T numSourceIndicators,
-	SaUint32T numChangedStates)
+	SaUint16T numSourceIndicators,
+	SaUint16T numChangedStates)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;
@@ -1765,8 +1767,8 @@ SaAisErrorT saNtfAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 						 SaUint16T numNotificationObjects,
 						 SaUint16T numNotifyingObjects,
 						 SaUint16T numNotificationClassIds,
-						 SaUint32T numProbableCauses,
-						 SaUint32T numPerceivedSeverities, SaUint32T numTrends)
+						 SaUint16T numProbableCauses,
+						 SaUint16T numPerceivedSeverities, SaUint16T numTrends)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;
@@ -1848,10 +1850,10 @@ SaAisErrorT saNtfSecurityAlarmNotificationFilterAllocate(SaNtfHandleT ntfHandle,
 							 SaUint16T numNotificationObjects,
 							 SaUint16T numNotifyingObjects,
 							 SaUint16T numNotificationClassIds,
-							 SaUint32T numProbableCauses,
-							 SaUint32T numSeverities,
-							 SaUint32T numSecurityAlarmDetectors,
-							 SaUint32T numServiceUsers, SaUint32T numServiceProviders)
+							 SaUint16T numProbableCauses,
+							 SaUint16T numSeverities,
+							 SaUint16T numSecurityAlarmDetectors,
+							 SaUint16T numServiceUsers, SaUint16T numServiceProviders)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	ntfa_client_hdl_rec_t *client_rec;

@@ -15,6 +15,7 @@
  *
  */
 
+#include <ncsencdec_pub.h>
 #include "ntfs.h"
 #include "ntfsv_enc_dec.h"
 #include "ntfs_com.h"
