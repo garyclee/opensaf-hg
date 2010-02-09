@@ -5,7 +5,7 @@
 **
 ** DESCRIPTION: 
 **   This file provides the C language binding for the Service 
-**   Availability(TM) Forum Notification Service (NTF). 
+**   Availability(TM) Forum AIS Notification Service (NTF). 
 **   It contains all of the prototypes and type definitions required 
 **   for user API functions
 **   
@@ -13,12 +13,12 @@
 **   SAI-AIS-NTF-A.03.01
 **
 ** DATE: 
-**   Wed Oct 08 2008
+**   Thu Jul 16 2009
 **
 ** LEGAL:
 **   OWNERSHIP OF SPECIFICATION AND COPYRIGHTS.
 **
-** Copyright 2008 by the Service Availability Forum. All rights reserved.
+** Copyright(c) 2009, Service Availability(TM) Forum. All rights reserved.
 **
 ** Permission to use, copy, modify, and distribute this software for any
 ** purpose without fee is hereby granted, provided that this entire notice
@@ -35,6 +35,10 @@
 
 #ifndef _SA_NTF_H
 #define _SA_NTF_H
+
+/*************************************************/
+/********** Defs for NTF API functions ***********/
+/*************************************************/
 
 #include "saAis.h"
 
@@ -142,13 +146,13 @@ typedef enum {
 #define SA_NTF_CONFIG_UPDATE_START_BIT               0x80000
 #define SA_NTF_CONFIG_UPDATE_END_BIT                0x100000
 #define SA_NTF_ERROR_REPORT_BIT                     0x200000
-#define SA_NTF_ERROR_CLEAR_BIT 		            0x400000
+#define SA_NTF_ERROR_CLEAR_BIT                      0x400000
 #define SA_NTF_HPI_EVENT_RESOURCE_BIT               0x800000
 #define SA_NTF_HPI_EVENT_SENSOR_BIT                0x1000000
 #define SA_NTF_HPI_EVENT_WATCHDOG_BIT              0x2000000
 #define SA_NTF_HPI_EVENT_DIMI_BIT                  0x4000000
 #define SA_NTF_HPI_EVENT_FUMI_BIT                  0x8000000
-#define SA_NTF_HPI_EVENT_OTHER                    0x10000000
+#define SA_NTF_HPI_EVENT_OTHER_BIT                0x10000000
 #define SA_NTF_APPLICATION_EVENT_BIT          0x100000000000
 
 typedef SaUint64T SaNtfEventTypeBitmapT;
@@ -262,9 +266,9 @@ typedef struct {
 } SaNtfNotificationHeaderT;
 
 typedef enum {
-    SA_NTF_OBJECT_OPERATION = 0,
-    SA_NTF_UNKNOWN_OPERATION = 1,
-    SA_NTF_MANAGEMENT_OPERATION = 2
+    SA_NTF_OBJECT_OPERATION = 1,
+    SA_NTF_MANAGEMENT_OPERATION = 2,
+    SA_NTF_UNKNOWN_OPERATION = 3
 } SaNtfSourceIndicatorT;
 
 typedef struct {
@@ -297,6 +301,7 @@ typedef struct {
     SaNtfAttributeT *objectAttributes;
 } SaNtfObjectCreateDeleteNotificationT;
 
+#if defined(SA_NTF_A01) || defined(SA_NTF_A02)
 typedef struct {
     SaNtfElementIdT stateId;
     SaBoolT oldStatePresent;
@@ -311,6 +316,22 @@ typedef struct {
     SaNtfSourceIndicatorT *sourceIndicator;
     SaNtfStateChangeT *changedStates;
 } SaNtfStateChangeNotificationT;
+#endif /* SA_NTF_A01 || SA_NTF_A02 */
+
+typedef struct {
+    SaNtfElementIdT stateId;
+    SaBoolT oldStatePresent;
+    SaUint64T oldState;
+    SaUint64T newState;
+} SaNtfStateChangeT_3;
+
+typedef struct {
+    SaNtfNotificationHandleT notificationHandle;
+    SaNtfNotificationHeaderT notificationHeader;
+    SaUint16T numStateChanges;
+    SaNtfSourceIndicatorT *sourceIndicator;
+    SaNtfStateChangeT_3 *changedStates;
+} SaNtfStateChangeNotificationT_3;
 
 typedef enum {
     SA_NTF_ADAPTER_ERROR,
@@ -459,7 +480,7 @@ typedef struct {
     SaNtfProbableCauseT *probableCause;
     SaNtfSeverityT *severity;
     SaNtfSecurityAlarmDetectorT *securityAlarmDetector;
-    SaNtfServiceUserT*serviceUser;
+    SaNtfServiceUserT *serviceUser;
     SaNtfServiceUserT *serviceProvider;
 } SaNtfSecurityAlarmNotificationT;
 
@@ -602,6 +623,7 @@ typedef struct {
 
 #define SA_NTF_FILTER_HANDLE_NULL       ((SaNtfNotificationFilterHandleT) NULL)
 
+#if defined(SA_NTF_A01) || defined(SA_NTF_A02)
 typedef struct {
     SaNtfNotificationTypeT notificationType;
     union {
@@ -612,20 +634,33 @@ typedef struct {
         SaNtfSecurityAlarmNotificationT      securityAlarmNotification;
     } notification;
 } SaNtfNotificationsT;
+#endif /* SA_NTF_A01 || SA_NTF_A02 */
+
+typedef struct {
+    SaNtfNotificationTypeT notificationType;
+    union {
+        SaNtfObjectCreateDeleteNotificationT objectCreateDeleteNotification;
+        SaNtfAttributeChangeNotificationT    attributeChangeNotification;
+        SaNtfStateChangeNotificationT_3      stateChangeNotification;
+        SaNtfAlarmNotificationT              alarmNotification;
+        SaNtfSecurityAlarmNotificationT      securityAlarmNotification;
+        SaNtfMiscellaneousNotificationT      miscellaneousNotification;
+    } notification;
+} SaNtfNotificationsT_3;
 
 typedef enum {
     SA_NTF_STATIC_FILTER_STATE = 1,
-    SA_NTF_SUBSCRIBER_STATE = 2,
+    SA_NTF_SUBSCRIBER_STATE = 2
 } SaNtfStateT;
 
 typedef enum {
     SA_NTF_STATIC_FILTER_STATE_INACTIVE = 1,
-    SA_NTF_STATIC_FILTER_STATE_ACTIVE = 2,
+    SA_NTF_STATIC_FILTER_STATE_ACTIVE = 2
 } SaNtfStaticFilterStateT;
 
 typedef enum {
     SA_NTF_SUBSCRIBER_STATE_FORWARD_NOT_OK = 1,
-    SA_NTF_SUBSCRIBER_STATE_FORWARD_OK = 2,
+    SA_NTF_SUBSCRIBER_STATE_FORWARD_OK = 2
 } SaNtfSubscriberStateT;
 
 typedef enum {
@@ -635,10 +670,12 @@ typedef enum {
     SA_NTF_NTFID_CONSUMER_FAST_ENOUGH = 0x068
 } SaNtfNotificationMinorIdT;
 
+#if defined(SA_NTF_A01) || defined(SA_NTF_A02)
 typedef void 
 (*SaNtfNotificationCallbackT)(
     SaNtfSubscriptionIdT subscriptionId,
     const SaNtfNotificationsT *notification);
+#endif /* SA_NTF_A01 || SA_NTF_A02 */
 
 typedef void 
 (*SaNtfNotificationDiscardedCallbackT)(
@@ -652,7 +689,51 @@ typedef struct {
     SaNtfNotificationCallbackT saNtfNotificationCallback;
     SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
 } SaNtfCallbacksT;
+#endif /* SA_NTF_A01 */
 
+#ifdef SA_NTF_A02
+typedef void 
+(*SaNtfStaticSuppressionFilterSetCallbackT)(
+    SaNtfHandleT ntfHandle,
+    SaUint16T notificationTypeBitmap);
+
+typedef struct {
+    SaNtfNotificationCallbackT saNtfNotificationCallback;
+    SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
+    SaNtfStaticSuppressionFilterSetCallbackT
+        saNtfStaticSuppressionFilterSetCallback;
+} SaNtfCallbacksT_2;
+#endif /* SA_NTF_A02 */
+
+typedef void 
+(*SaNtfStaticSuppressionFilterSetCallbackT_3)(
+    SaNtfHandleT ntfHandle,
+    SaNtfEventTypeBitmapT eventTypeBitmap);
+    
+typedef void 
+(*SaNtfNotificationCallbackT_3)(
+    SaNtfSubscriptionIdT subscriptionId,
+    const SaNtfNotificationsT_3 *notification);
+
+typedef struct {
+    SaNtfNotificationCallbackT_3 saNtfNotificationCallback;
+    SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
+    SaNtfStaticSuppressionFilterSetCallbackT_3 saNtfStaticSuppressionFilterSetCallback;
+} SaNtfCallbacksT_3;
+
+/*************************************************/
+/************ Defs for NTF Admin API *************/
+/*************************************************/
+
+typedef enum {
+    SA_NTF_ADMIN_ACTIVATE_STATIC_SUPPRESSION_FILTER = 1,
+    SA_NTF_ADMIN_DEACTIVATE_STATIC_SUPPRESSION_FILTER = 2
+} SaNtfAdminOperationIdT;
+
+/*************************************************/
+/******** NTF API function declarations **********/
+/*************************************************/
+#ifdef SA_NTF_A01
 extern SaAisErrorT
 saNtfInitialize(
     SaNtfHandleT *ntfHandle,
@@ -671,8 +752,8 @@ saNtfStateChangeNotificationFilterAllocate(
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
     SaUint16T numNotificationClassIds,
-    SaUint32T numSourceIndicators,
-    SaUint32T numChangedStates);
+    SaUint16T numSourceIndicators,
+    SaUint16T numChangedStates);
 
 extern SaAisErrorT 
 saNtfNotificationUnsubscribe(
@@ -686,18 +767,6 @@ saNtfNotificationReadInitialize(
 #endif /* SA_NTF_A01 */
 
 #ifdef SA_NTF_A02
-typedef void 
-(*SaNtfStaticSuppressionFilterSetCallbackT)(
-    SaNtfHandleT ntfHandle,
-    SaUint16T notificationTypeBitmap);
-
-typedef struct {
-    SaNtfNotificationCallbackT saNtfNotificationCallback;
-    SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
-    SaNtfStaticSuppressionFilterSetCallbackT
-        saNtfStaticSuppressionFilterSetCallback;
-} SaNtfCallbacksT_2;
-
 extern SaAisErrorT
 saNtfInitialize_2(
     SaNtfHandleT *ntfHandle,
@@ -717,17 +786,6 @@ saNtfNotificationSubscribe(
     const SaNtfNotificationTypeFilterHandlesT *notificationFilterHandles,
     SaNtfSubscriptionIdT subscriptionId);
 #endif /* SA_NTF_A01 || SA_NTF_A02 */
-
-typedef void 
-(*SaNtfStaticSuppressionFilterSetCallbackT_3)(
-    SaNtfHandleT ntfHandle,
-    SaNtfEventTypeBitmapT eventTypeBitmap);
-
-typedef struct {
-    SaNtfNotificationCallbackT saNtfNotificationCallback;
-    SaNtfNotificationDiscardedCallbackT saNtfNotificationDiscardedCallback;
-    SaNtfStaticSuppressionFilterSetCallbackT_3 saNtfStaticSuppressionFilterSetCallback;
-} SaNtfCallbacksT_3;
 
 extern SaAisErrorT 
 saNtfInitialize_3(
@@ -769,10 +827,22 @@ saNtfAttributeChangeNotificationAllocate(
     SaUint16T numAttributes,
     SaInt16T variableDataSize);
 
+#if defined(SA_NTF_A01) || defined(SA_NTF_A02)
 extern SaAisErrorT 
 saNtfStateChangeNotificationAllocate( 
     SaNtfHandleT ntfHandle,
     SaNtfStateChangeNotificationT *notification,
+    SaUint16T numCorrelatedNotifications,
+    SaUint16T lengthAdditionalText,
+    SaUint16T numAdditionalInfo,
+    SaUint16T numStateChanges,
+    SaInt16T variableDataSize);
+#endif /* SA_NTF_A01 || SA_NTF_A02 */
+    
+extern SaAisErrorT 
+saNtfStateChangeNotificationAllocate_3( 
+    SaNtfHandleT ntfHandle,
+    SaNtfStateChangeNotificationT_3 *notification,
     SaUint16T numCorrelatedNotifications,
     SaUint16T lengthAdditionalText,
     SaUint16T numAdditionalInfo,
@@ -798,7 +868,16 @@ saNtfSecurityAlarmNotificationAllocate(
     SaUint16T numCorrelatedNotifications,
     SaUint16T lengthAdditionalText,
     SaUint16T numAdditionalInfo,
-    SaInt16T variableDataSize);    
+    SaInt16T variableDataSize); 
+
+extern SaAisErrorT
+saNtfMiscellaneousNotificationAllocate(
+    SaNtfHandleT ntfHandle,
+    SaNtfMiscellaneousNotificationT *notification,
+    SaUint16T numCorrelatedNotifications,
+    SaUint16T lengthAdditionalText,
+    SaUint16T numAdditionalInfo,
+    SaInt16T variableDataSize);
 
 extern SaAisErrorT 
 saNtfPtrValAllocate(
@@ -815,16 +894,26 @@ saNtfArrayValAllocate(
     void **arrayPtr,
     SaNtfValueT *value);
 
+extern SaAisErrorT
+saNtfIdentifierAllocate(
+    SaNtfNotificationHandleT notificationHandle,
+    SaNtfIdentifierT *notificationIdentifier);
+
 extern SaAisErrorT 
 saNtfNotificationSend(
     SaNtfNotificationHandleT notificationHandle);
+    
+extern SaAisErrorT
+saNtfNotificationSendWithId(
+    SaNtfNotificationHandleT notificationHandle,
+    SaNtfIdentifierT notificationIdentifier);
 
 extern SaAisErrorT 
 saNtfNotificationFree(
     SaNtfNotificationHandleT notificationHandle);
 
 extern SaAisErrorT
-SaNtfVariableDataSizeGet(
+saNtfVariableDataSizeGet(
     SaNtfNotificationHandleT notificationHandle,
     SaUint16T *variableDataSpaceAvailable);
 
@@ -840,14 +929,14 @@ saNtfLocalizedMessageFree_2(
 
 extern SaAisErrorT saNtfPtrValGet(
     SaNtfNotificationHandleT notificationHandle,
-    SaNtfValueT *value,
+    const SaNtfValueT *value,
     void **dataPtr,
     SaUint16T *dataSize);
 
 extern SaAisErrorT 
 saNtfArrayValGet(
     SaNtfNotificationHandleT notificationHandle,
-    SaNtfValueT *value,
+    const SaNtfValueT *value,
     void **arrayPtr,
     SaUint16T *numElements,
     SaUint16T *elementSize);
@@ -870,7 +959,7 @@ saNtfAttributeChangeNotificationFilterAllocate(
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
     SaUint16T numNotificationClassIds,
-    SaUint32T numSourceIndicators);
+    SaUint16T numSourceIndicators);
 
 extern SaAisErrorT 
 saNtfStateChangeNotificationFilterAllocate_2( 
@@ -880,8 +969,8 @@ saNtfStateChangeNotificationFilterAllocate_2(
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
     SaUint16T numNotificationClassIds,
-    SaUint32T numSourceIndicators,
-    SaUint32T numChangedStates);
+    SaUint16T numSourceIndicators,
+    SaUint16T numChangedStates);
 
 extern SaAisErrorT 
 saNtfAlarmNotificationFilterAllocate( 
@@ -891,9 +980,9 @@ saNtfAlarmNotificationFilterAllocate(
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
     SaUint16T numNotificationClassIds,
-    SaUint32T numProbableCauses,
-    SaUint32T numPerceivedSeverities,
-    SaUint32T numTrends);
+    SaUint16T numProbableCauses,
+    SaUint16T numPerceivedSeverities,
+    SaUint16T numTrends);
 
 extern SaAisErrorT 
 saNtfSecurityAlarmNotificationFilterAllocate( 
@@ -903,11 +992,11 @@ saNtfSecurityAlarmNotificationFilterAllocate(
     SaUint16T numNotificationObjects,
     SaUint16T numNotifyingObjects,
     SaUint16T numNotificationClassIds,
-    SaUint32T numProbableCauses,
-    SaUint32T numSeverities,
-    SaUint32T numSecurityAlarmDetectors,
-    SaUint32T numServiceUsers,
-    SaUint32T numServiceProviders);
+    SaUint16T numProbableCauses,
+    SaUint16T numSeverities,
+    SaUint16T numSecurityAlarmDetectors,
+    SaUint16T numServiceUsers,
+    SaUint16T numServiceProviders);
 
 extern SaAisErrorT 
 saNtfNotificationFilterFree(
@@ -929,11 +1018,23 @@ saNtfNotificationUnsubscribe_2(
     SaNtfHandleT ntfHandle,
     SaNtfSubscriptionIdT subscriptionId);
 
+#if defined(SA_NTF_A01) || defined(SA_NTF_A02)
 extern SaAisErrorT 
 saNtfNotificationReadNext(
     SaNtfReadHandleT readHandle,
     SaNtfSearchDirectionT searchDirection,
     SaNtfNotificationsT *notification);
+#endif /* SA_NTF_A01 || SA_NTF_A02 */
+
+extern SaAisErrorT 
+saNtfNotificationReadNext_3(
+    SaNtfReadHandleT readHandle,
+    SaNtfSearchDirectionT searchDirection,
+    SaNtfNotificationsT_3 *notification);
+    
+extern SaAisErrorT
+saNtfNotificationReadFinalize(
+    SaNtfReadHandleT readHandle);
 
 #ifdef __cplusplus
 }
