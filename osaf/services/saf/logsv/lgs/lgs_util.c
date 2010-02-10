@@ -56,7 +56,11 @@ int lgs_create_config_file(log_stream_t *stream)
 		goto done;
 	}
 
+fopen_retry:
 	if ((filp = fopen(pathname, "w")) == NULL) {
+		if (errno == EINTR)
+			goto fopen_retry;
+
 		LOG_ER("ERROR: cannot open %s", strerror(errno));
 		rc = -1;
 		goto done;
@@ -87,10 +91,15 @@ int lgs_create_config_file(log_stream_t *stream)
 	if (rc == -1)
 		LOG_ER("Could not write to file '%s'", pathname);
 
-	if ((rc = fclose(filp)) == -1)
-		LOG_ER("Could not close file '%s' - '%s'", pathname, strerror(errno));
+fclose_retry:
+	if ((rc = fclose(filp)) == -1) {
+		if (errno == EINTR)
+			goto fclose_retry;
 
- done:
+		LOG_ER("Could not close file '%s' - '%s'", pathname, strerror(errno));
+	}
+
+done:
 	return rc;
 }
 
