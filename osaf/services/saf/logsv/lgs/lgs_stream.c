@@ -36,6 +36,25 @@ static int lgs_stream_array_remove(int id);
 static int get_number_of_log_files(log_stream_t *logStream, char *oldest_file);
 
 /**
+ * Close with retry at EINTR
+ * @param fd
+ *
+ * @return int
+ */
+static int fileclose(int fd)
+{
+	int rc;
+
+close_retry:
+	rc = close(fd);
+
+	if (rc == -1 && errno == EINTR)
+		goto close_retry;
+
+	return rc;
+}
+
+/**
  * Delete config file.
  * @param stream
  * 
@@ -481,10 +500,15 @@ static int log_file_open(log_stream_t *stream)
 
 	sprintf(pathname, "%s/%s/%s.log", lgs_cb->logsv_root_dir, stream->pathName, stream->logFileCurrent);
 
-	fd = open(pathname, O_CREAT | O_RDWR | O_SYNC | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP);
+open_retry:
+	fd = open(pathname, O_CREAT | O_RDWR | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP);
 
-	if (fd == -1)
+	if (fd == -1) {
+		if (errno == EINTR)
+			goto open_retry;
+
 		LOG_ER("Could not open: %s - %s", pathname, strerror(errno));
+	}
 
 	return fd;
 }
@@ -558,7 +582,7 @@ int log_stream_close(log_stream_t **s)
 	if (stream->numOpeners == 0) {
 		if (stream->fd != -1) {
 			char *timeString = lgs_get_time();
-			if ((rc = close(stream->fd)) == -1) {
+			if ((rc = fileclose(stream->fd)) == -1) {
 				LOG_ER("close FAILED: %s", strerror(errno));
 				goto done;
 			}
@@ -604,7 +628,7 @@ int log_stream_file_close(log_stream_t *stream)
 	assert(stream->numOpeners > 0);
 
 	if (stream->fd != -1) {
-		if ((rc = close(stream->fd)) == -1)
+		if ((rc = fileclose(stream->fd)) == -1)
 			LOG_ER("close FAILED: %s", strerror(errno));
 		else
 			stream->fd = -1;
@@ -766,7 +790,7 @@ int log_stream_write(log_stream_t *stream, const char *buf)
 	if ((stream->curFileSize + stream->fixedLogRecordSize) > stream->maxLogFileSize) {
 		char *current_time = lgs_get_time();
 
-		if ((rc = close(stream->fd)) == -1) {
+		if ((rc = fileclose(stream->fd)) == -1) {
 			LOG_ER("close FAILED: %s", strerror(errno));
 			goto done;
 		}
@@ -968,7 +992,7 @@ int log_stream_config_change(log_stream_t *stream, const char *current_file_name
 		goto done;
 	}
 
-	if ((rc = close(stream->fd)) == -1) {
+	if ((rc = fileclose(stream->fd)) == -1) {
 		LOG_ER("close FAILED: %s", strerror(errno));
 		goto done;
 	}
