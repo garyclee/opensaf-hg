@@ -469,7 +469,7 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	SaVersionT *version;
 	lgsv_msg_t msg;
 	lgsv_ckpt_msg_t ckpt;
-	log_client_t *client;
+	log_client_t *client = NULL;
 
 	TRACE_ENTER2("dest %llx", evt->fr_dest);
 
@@ -500,10 +500,10 @@ static uns32 proc_initialize_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 	msg.type = LGSV_LGA_API_RESP_MSG;
 	msg.info.api_resp_info.type = LGSV_INITIALIZE_RSP;
 	msg.info.api_resp_info.rc = ais_rc;
-	msg.info.api_resp_info.param.init_rsp.client_id = client->client_id;
+	msg.info.api_resp_info.param.init_rsp.client_id = client ? client->client_id : 0;
 	rc = lgs_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
 
-	TRACE_LEAVE2("client_id %u", client->client_id);
+	TRACE_LEAVE2("client_id %u", client ? client->client_id : 0);
 	return rc;
 }
 

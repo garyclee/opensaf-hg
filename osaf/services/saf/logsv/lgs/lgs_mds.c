@@ -15,6 +15,7 @@
  *
  */
 
+#include <ncsencdec_pub.h>
 #include "lgs.h"
 
 #define LGS_SVC_PVT_SUBPART_VERSION 1
