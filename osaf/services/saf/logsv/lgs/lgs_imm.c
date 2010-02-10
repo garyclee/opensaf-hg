@@ -315,7 +315,7 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
-	log_stream_t *stream;
+	log_stream_t *stream = NULL;
 	const SaImmAttrModificationT_2 *attrMod;
 	int new_cfg_file_needed;
 	char current_file_name[NAME_MAX];
@@ -396,13 +396,13 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 			}
 		}
 
+		/* Checkpoint to standby LOG server */
+		lgs_ckpt_stream(stream);
+
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
-	/* Checkpoint to standby LOG server */
-	lgs_ckpt_stream(stream);
-
- done:
+done:
 	ccbutil_deleteCcbData(ccbUtilCcbData);
 	TRACE_LEAVE();
 }
