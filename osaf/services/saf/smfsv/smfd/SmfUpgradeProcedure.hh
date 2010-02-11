@@ -40,6 +40,7 @@ class SmfRollingUpgrade;
 class SmfSinglestepUpgrade;
 class SmfParentType;
 class SmfTargetEntityTemplate;
+class SmfEntity;
 
 /* ========================================================================
  *   DEFINITIONS
@@ -293,26 +294,23 @@ class SmfUpgradeProcedure {
 	bool calculateNodeList(const std::string & i_objectDn, std::list < std::string > &o_nodeList);
 
 ///
-/// Purpose:  Calculate the activation units
-/// @param    i_nodeList The list of nodes involved.
-/// @param    i_actUnitTemplates The list of activation unit templates specified.
-/// @param    o_activationUnitList The resulting list of activation units.
-/// @return   True if successful otherwise false
-///
-	bool calculateActivationUnits(const std::list < std::string > &i_nodeList,
-				      const std::list < SmfParentType * >&i_actUnitTemplates,
-				      std::list < std::string > &o_activationUnitList);
-
-///
 /// Purpose:  Calculate activation units from template
 /// @param    i_parentType The parent/type pair.
 /// @param    i_nodeList The list of nodes the procedure shall operate on.
 /// @param    o_actDeactUnits The resulting list of act/deact units.
+/// @param    o_nodeList If this is non-NULL the i_nodeList is ignored, instead all nodes where the
+///              units are hosted are added to the map. This is used for single-step only.
 /// @return   True if successful otherwise false
 ///
         bool calcActivationUnitsFromTemplate(SmfParentType * i_parentType, 
                                              const std::list < std::string >& i_nodeList,
-                                             std::list < std::string >& o_actDeactUnits);
+                                             std::list < std::string >& o_actDeactUnits,
+					     std::list<std::string>* o_nodeList = NULL);
+
+	bool calcActivationUnitsFromTemplateSingleStep(
+		SmfEntity const& i_entity,
+		std::list<std::string>& o_actDeactUnits,
+		std::list<std::string>& o_nodeList);
 ///
 /// Purpose:  Fetch node for a SU or Component DN
 /// @param    i_dn The DN for the SU or component

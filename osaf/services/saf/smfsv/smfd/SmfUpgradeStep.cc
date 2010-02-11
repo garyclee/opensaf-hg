@@ -694,16 +694,14 @@ SmfUpgradeStep::createSaAmfNodeSwBundles(const std::string & i_node)
 				return false;
 			}
 		} else {
-			std::list<SmfPlmExecEnv> const& plmExecEnvList = bundleit->getPlmExecEnvList();
-			std::list<SmfPlmExecEnv>::const_iterator ee;
-			for (ee = plmExecEnvList.begin(); ee != plmExecEnvList.end(); ee++) {
-				if (ee->getAmfNode().length() == 0) {
-					LOG_ER("No AmfNode in PlmExecEnv for bundle [%s]", 
-					       bundleit->getBundleDn().c_str());
-					TRACE_LEAVE();
-					return false;
-				}
-				if (createOneSaAmfNodeSwBundle(ee->getAmfNode(), *bundleit) == false) {
+			std::list<std::string> swNodeList;
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				TRACE_LEAVE();
+				return false;
+			}
+			std::list<std::string>::const_iterator n;
+			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+				if (createOneSaAmfNodeSwBundle(*n, *bundleit) == false) {
 					TRACE_LEAVE();
 					return false;
 				}
@@ -818,16 +816,14 @@ SmfUpgradeStep::deleteSaAmfNodeSwBundles(const std::string & i_node)
 				return false;
 			}
 		} else {
-			std::list<SmfPlmExecEnv> const& plmExecEnvList = bundleit->getPlmExecEnvList();
-			std::list<SmfPlmExecEnv>::const_iterator ee;
-			for (ee = plmExecEnvList.begin(); ee != plmExecEnvList.end(); ee++) {
-				if (ee->getAmfNode().length() == 0) {
-					LOG_ER("No AmfNode in PlmExecEnv for bundle [%s]", 
-					       bundleit->getBundleDn().c_str());
-					TRACE_LEAVE();
-					return false;
-				}
-				if (deleteOneSaAmfNodeSwBundle(ee->getAmfNode(), *bundleit) == false) {
+			std::list<std::string> swNodeList;
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				TRACE_LEAVE();
+				return false;
+			}
+			std::list<std::string>::const_iterator n;
+			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+				if (deleteOneSaAmfNodeSwBundle(*n, *bundleit) == false) {
 					TRACE_LEAVE();
 					return false;
 				}
@@ -837,6 +833,31 @@ SmfUpgradeStep::deleteSaAmfNodeSwBundles(const std::string & i_node)
 
 	TRACE_LEAVE();
 
+	return true;
+}
+
+//------------------------------------------------------------------------------
+// calculateSingleStepNodes()
+//------------------------------------------------------------------------------
+bool SmfUpgradeStep::calculateSingleStepNodes(
+	std::list<SmfPlmExecEnv> const& i_plmExecEnvList,
+	std::list<std::string>& o_nodelist)
+{
+	o_nodelist = m_swNodeList;
+	std::list<SmfPlmExecEnv>::const_iterator ee;
+	for (ee = i_plmExecEnvList.begin(); ee != i_plmExecEnvList.end(); ee++) {
+		std::string const& amfnode = ee->getAmfNode();
+		if (amfnode.length() == 0) {
+			LOG_ER("Only AmfNodes can be handled in plmExecEnv");
+			return false;
+		}
+		o_nodelist.push_back(amfnode);
+	}
+
+	/* The m_swNodeList itself may contain duplicates and combined with the PlmExecEnv list
+	   duplicates are almost certain. */
+	o_nodelist.sort();
+	o_nodelist.unique();
 	return true;
 }
 
@@ -948,24 +969,25 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 		if (i_node.length() == 0) {
 
 			/* In the single-step upgrade the nodes for
-			   the bundle is provided in the PlmExecEnv
-			   list. The step itself is not bound to a
-			   particular node, so the "i_node" will be
-			   empty. */
+			   the bundle is provided in the m_swNodeList
+			   and the PlmExecEnv list. The step itself is
+			   not bound to a particular node, so the
+			   "i_node" will be empty. */
 
-			std::list<SmfPlmExecEnv> const& plmExecEnvList = bundleit->getPlmExecEnvList();
-			std::list<SmfPlmExecEnv>::const_iterator ee;
-			for (ee = plmExecEnvList.begin(); ee != plmExecEnvList.end(); ee++) {
-				if (ee->getPrefered().length() == 0) {
-					TRACE("Empty PlmExecEnv ignored");
-					continue;
-				}
-				char const* nodeName = ee->getPrefered().c_str();
+			std::list<std::string> swNodeList;
+			if (!calculateSingleStepNodes(bundleit->getPlmExecEnvList(), swNodeList)) {
+				result = false;
+				goto done;					
+			}
+
+			std::list<std::string>::const_iterator n;
+			for (n = swNodeList.begin(); n != swNodeList.end(); n++) {
+				char const* nodeName = n->c_str();
 				TRACE("Executing bundle script '%s' on node '%s' (single-step)", 
 				      command.c_str(), nodeName);
-				MDS_DEST nodeDest = getNodeDestination(ee->getPrefered());
+				MDS_DEST nodeDest = getNodeDestination(*n);
 				if (nodeDest == 0) {
-					LOG_ER("no node destination found for node %s", nodeName);
+					LOG_ER("no node destination found for node [%s]", nodeName);
 					result = false;
 					goto done;
 				}

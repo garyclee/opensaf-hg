@@ -292,6 +292,9 @@ class SmfUpgradeStep {
 /// @return   None
 ///
 	void setSwNode(const std::string & i_swNode);
+	inline void addSwNode(const std::string& i_swNode) {
+		m_swNodeList.push_back(i_swNode);
+	}
 
 ///
 /// Purpose:  Get the node where sw should be added/removed
@@ -440,12 +443,20 @@ class SmfUpgradeStep {
 	bool callBundleScript(SmfInstallRemoveT i_order, const std::list < SmfBundleRef > &i_bundleList,
 			      const std::string & i_node);
 
+
+///
+/// Purpose:  Create/Delete NodeSwBundle objects.
+///
+
 	bool createOneSaAmfNodeSwBundle(
 		const std::string& i_node,
 		const SmfBundleRef& bundle);
 	bool deleteOneSaAmfNodeSwBundle(
 		const std::string & i_node,
 		const SmfBundleRef& i_bundle);
+	bool calculateSingleStepNodes(
+		std::list<SmfPlmExecEnv> const& i_plmExecEnvList,
+		std::list<std::string>& o_nodelist);
 
 ///
 /// Purpose:  Call admin operation on all dn in list
@@ -500,6 +511,7 @@ class SmfUpgradeStep {
 	std::list < SmfBundleRef > m_swAddList;
 	std::list < SmfImmOperation * >m_modificationList;
 	std::string m_swNode;	         // The node where bundles should be added/removed
+	std::list<std::string> m_swNodeList; // Same as "m_swNode" but for single-step
 	SmfStepT m_stepType;	         // Type of activation unit
         bool     m_switchOver;           // Switchover executed 
 };

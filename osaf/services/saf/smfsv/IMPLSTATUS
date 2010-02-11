@@ -9,11 +9,15 @@ Not planned to be implemented in OpenSAF4.0 release:
 
 Implemented:
 Rolling upgrade including targetNodeTemplate and targetEntityTemplate.        
-Single step upgrade, no template implemented.
+Single step upgrade.
 Sample implementation of SMF interface commands.
 
 Not implemented:
-Single step upgrade using templete not implemented.
+Single step upgrade add-application using template not implemented.
+  The application-objects does not exist when the procedure starts in
+  this case which inhibits scanning using templates. Templates work
+  for "forModify" and should be usable for a remove-application
+  operation.
 
 Testing:
 Tested in UML environment.
