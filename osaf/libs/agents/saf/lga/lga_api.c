@@ -799,6 +799,32 @@ SaAisErrorT saLogWriteLogAsync(SaLogStreamHandleT logStreamHandle,
 		}
 	}
 
+	if (logRecord->logHdrType == SA_LOG_NTF_HEADER) {
+		if (logRecord->logHeader.ntfHdr.notificationObject == NULL) {
+			TRACE("notificationObject == NULL");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notificationObject->length > SA_MAX_NAME_LENGTH) {
+			TRACE("notificationObject.length > SA_MAX_NAME_LENGTH");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notifyingObject == NULL) {
+			TRACE("notifyingObject == NULL");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+
+		if (logRecord->logHeader.ntfHdr.notifyingObject->length > SA_MAX_NAME_LENGTH) {
+			TRACE("notifyingObject.length > SA_MAX_NAME_LENGTH");
+			rc = SA_AIS_ERR_INVALID_PARAM;
+			goto done;
+		}
+	}
+
 	/* retrieve log stream hdl record */
 	lstr_hdl_rec = ncshm_take_hdl(NCS_SERVICE_ID_LGA, logStreamHandle);
 	if (lstr_hdl_rec == NULL) {
