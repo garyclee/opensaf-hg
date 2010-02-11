@@ -1599,8 +1599,8 @@ SmfUpgradeProcedure::createImmStep(SmfUpgradeStep * i_step)
                 //Extract the bundle name from the DN
                 std::string imageNode = "safImageNode=";
                 std::string bundleName = (*bundleRefiter).getBundleDn();
-                std::string::size_type pos = bundleName.find("safSmfBundle=");
-                pos += strlen("safSmfBundle=");
+                std::string::size_type pos = bundleName.find("=");
+		pos++;
                 imageNode += bundleName.substr(pos, bundleName.find(",") - pos);
                 safIMageNode.addValue(imageNode);
                 icoSaSmfImageNodes.addValue(safIMageNode);
