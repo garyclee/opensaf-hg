@@ -628,27 +628,38 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 	newStep->setRestartOption(i_upgrade->getStepRestartOption());
 
 	if (forAddRemove != NULL) {
+
 		TRACE("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: SmfForAddRemove");
-		const SmfActivationUnitType* aunit;
-		std::list<SmfEntity>::const_iterator e;
-		std::list<SmfImmCreateOperation>::const_iterator o;
 
 		/*
 		 * Handle the activation-unit.
 		 */
-		aunit = forAddRemove->getActivationUnit();
+		const SmfActivationUnitType* aunit = forAddRemove->getActivationUnit();
 		assert(aunit != NULL);
 		assert(aunit->getRemoved().size() == 0);
 		assert(aunit->getSwRemove().size() == 0);
+		std::list<std::string> nodeList;
+		std::list<SmfEntity>::const_iterator e;
 		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
-				LOG_ER("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: (activation) byTemplate not implemented");
-				return false;
+				std::list<std::string> actUnits;
+				if (!calcActivationUnitsFromTemplateSingleStep(*e, actUnits, nodeList)) {
+					delete newStep;
+					return false;
+				}
+				std::list<std::string>::const_iterator a;
+				for (a = actUnits.begin(); a != actUnits.end(); a++) {
+					newStep->addActivationUnit(*a);
+				}
+			} else {
+				assert(e->getName().length() > 0);
+				std::string node = getNodeForCompSu(e->getName());
+				if (node.length() > 0) nodeList.push_back(node);
+				newStep->addActivationUnit(e->getName());
 			}
-			assert(e->getName().length() > 0);
-			newStep->addActivationUnit(e->getName());
 		}
 		newStep->addSwAdd(aunit->getSwAdd());
+		std::list<SmfImmCreateOperation>::const_iterator o;
 		for (o = aunit->getAdded().begin(); o != aunit->getAdded().end(); o++) {
 			newStep->addImmOperation(new SmfImmCreateOperation(*o));
 		}
@@ -662,17 +673,26 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 		assert(aunit->getSwAdd().size() == 0);
 		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
-				LOG_ER("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: (deactivation) byTemplate not implemented");
-                                delete newStep;
-				return false;
+				std::list<std::string> deactUnits;
+				if (!calcActivationUnitsFromTemplateSingleStep(*e, deactUnits, nodeList)) {
+					delete newStep;
+					return false;
+				}
+				std::list<std::string>::const_iterator a;
+				for (a = deactUnits.begin(); a != deactUnits.end(); a++) {
+					newStep->addDeactivationUnit(*a);
+				}
+			} else {
+				assert(e->getName().length() > 0);
+				std::string node = getNodeForCompSu(e->getName());
+				if (node.length() > 0) nodeList.push_back(node);
+				newStep->addDeactivationUnit(e->getName());
 			}
-			assert(e->getName().length() > 0);
-			newStep->addDeactivationUnit(e->getName());
 		}
 		newStep->addSwRemove(aunit->getSwRemove());
 		for (e = aunit->getRemoved().begin(); e != aunit->getRemoved().end(); e++) {
 			if (e->getParent().length() > 0 || e->getType().length() > 0) {
-				LOG_ER("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: (removed) byTemplate not implemented");
+				LOG_ER("SmfUpgradeProcedure::calculateSingleStep: (forAddRemove/removed) byTemplate not implemented");
                                 delete newStep;
 				return false;
 			}
@@ -682,18 +702,73 @@ bool SmfUpgradeProcedure::calculateSingleStep(SmfSinglestepUpgrade* i_upgrade)
 			newStep->addImmOperation(deleteop);
 		}
 
+		std::list<std::string>::const_iterator n;
+		for (n = nodeList.begin(); n != nodeList.end(); n++) {
+			newStep->addSwNode(*n);
+		}
+
 		addProcStep(newStep);
 		return true;		// <--------- RETURN HERE
 	}
 
 	const SmfForModify* forModify = dynamic_cast<const SmfForModify*>(scope);
 	if (forModify != NULL) {
-		LOG_ER("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: UpgradeScope SmfForModify not implemented");
-                return false;
+
+		TRACE("SmfUpgradeProcedure::calculateSingleStep: SmfForModify");
+
+		/*
+		 * (The main difference between "forAddRemove" and
+		 * "forModify" is that the acivation/deactivation
+		 * units are separated in addremove but symmetric in
+		 * modify.)
+		 */
+
+		const SmfActivationUnitType* aunit = forModify->getActivationUnit();
+		assert(aunit != NULL);
+		std::list<std::string> nodeList;
+		std::list<SmfEntity>::const_iterator e;
+		for (e = aunit->getActedOn().begin(); e != aunit->getActedOn().end(); e++) {
+			if (e->getParent().length() > 0 || e->getType().length() > 0) {
+				std::list<std::string> actDeactUnits;
+				if (!calcActivationUnitsFromTemplateSingleStep(*e, actDeactUnits, nodeList)) {
+					delete newStep;
+					return false;
+				}
+				std::list<std::string>::const_iterator a;
+				for (a = actDeactUnits.begin(); a != actDeactUnits.end(); a++) {
+					newStep->addDeactivationUnit(*a);
+					newStep->addActivationUnit(*a);
+				}
+			} else {
+				assert(e->getName().length() > 0);
+				std::string node = getNodeForCompSu(e->getName());
+				if (node.length() > 0) nodeList.push_back(node);
+				newStep->addDeactivationUnit(e->getName());
+				newStep->addActivationUnit(e->getName());
+			}
+		}
+
+		std::list<std::string>::const_iterator n;
+		for (n = nodeList.begin(); n != nodeList.end(); n++) {
+			newStep->addSwNode(*n);
+		}
+		newStep->addSwAdd(aunit->getSwAdd());
+		newStep->addSwRemove(aunit->getSwRemove());
+
+		/*
+		 * Handle TargetEntityTemplate's
+		 */
+		if (!addStepModifications(newStep, forModify->getTargetEntityTemplate(), SMF_AU_SU_COMP)) {
+			delete newStep;
+			return false;
+		}
+
+		addProcStep(newStep);
+                return true;		// <--------- RETURN HERE
 	}
 
 	delete newStep;
-	LOG_ER("SmfUpgradeProcedure::calculateSingleStep:calculateSingleStep: Unknown upgradeScope");
+	LOG_ER("SmfUpgradeProcedure::calculateSingleStep:Unknown upgradeScope");
         return false;
 }
 
@@ -748,38 +823,19 @@ SmfUpgradeProcedure::calculateNodeList(const std::string & i_objectDn, std::list
 }
 
 //------------------------------------------------------------------------------
-// calculateActivationUnits()
+// calcActivationUnitsFromTemplateSingleStep()
 //------------------------------------------------------------------------------
-bool 
-SmfUpgradeProcedure::calculateActivationUnits(const std::list < std::string > &i_nodeList,
-						   const std::list < SmfParentType * >&i_actUnitTemplates,
-						   std::list < std::string > &o_activationUnitList)
+bool SmfUpgradeProcedure::calcActivationUnitsFromTemplateSingleStep(
+	SmfEntity const& i_entity,
+	std::list<std::string>& o_actDeactUnits,
+	std::list<std::string>& o_nodeList)
 {
-	if (i_actUnitTemplates.size() == 0) {
-		/* No activation unit templates, use node list as activation/deactivation units */
-		o_activationUnitList = i_nodeList;
-	} else {
-		/* We have activation unit templates, calculate activation/deactivation units */
-		std::list < SmfParentType * >::const_iterator it = i_actUnitTemplates.begin();
-
-		while (it != i_actUnitTemplates.end()) {
-			SmfParentType *parentType = *it;
-			if (parentType->getParentDn().size() == 0) {
-				if (parentType->getTypeDn().size() > 0) {
-					/* Only type is set */
-				}
-			} else {
-				if (parentType->getTypeDn().size() == 0) {
-					/* Only parent is set */
-				} else {
-					/* Both type and parent is set */
-				}
-			}
-			it++;
-		}
-	}
-
-        return true;
+	SmfParentType parent;
+	parent.setParentDn(i_entity.getParent());
+	parent.setTypeDn(i_entity.getType());
+	std::list<std::string> dummy_nodeList;
+	return calcActivationUnitsFromTemplate(
+		&parent, dummy_nodeList, o_actDeactUnits, &o_nodeList);
 }
 
 //------------------------------------------------------------------------------
@@ -788,7 +844,8 @@ SmfUpgradeProcedure::calculateActivationUnits(const std::list < std::string > &i
 bool 
 SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentType, 
                                                      const std::list < std::string >&i_nodeList,
-                                                     std::list < std::string > &o_actDeactUnits)
+                                                     std::list < std::string > &o_actDeactUnits,
+						     std::list<std::string>* o_nodeList)
 {
         TRACE_ENTER();
         SmfImmUtils immUtil;
@@ -846,7 +903,11 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                         immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
                                                                             "saAmfSUHostedByNode",
                                                                             0);
-                                                if (hostedByNode != NULL) {
+						if (hostedByNode == NULL) {
+                                                        LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
+                                                        return false;
+						}
+                                                if (o_nodeList == NULL) {
                                                         std::list < std::string >::const_iterator it;
                                                         for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
                                                                 if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
@@ -857,8 +918,8 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                                 }
                                                         }
                                                 } else {
-                                                        LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
-                                                        return false;
+							o_actDeactUnits.push_back(*objit);
+							o_nodeList->push_back((const char*)hostedByNode->value);
                                                 }
                                         }
                                 } else {
@@ -889,7 +950,11 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                         const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
                                                                                                           "saAmfSUHostedByNode", 
                                                                                                           0);
-                                                        if (hostedByNode != NULL){
+                                                        if (hostedByNode == NULL) {
+								LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
+								return false;
+							}
+                                                        if (o_nodeList == NULL) {
                                                                 std::list < std::string >::const_iterator it;
                                                                 for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
                                                                         if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
@@ -900,8 +965,8 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                                         }
                                                                 }
                                                         } else {
-                                                                LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
-                                                                return false;
+								o_actDeactUnits.push_back(*objit);
+								o_nodeList->push_back((const char*)hostedByNode->value);
                                                         }
                                                 }
                                         }
@@ -929,7 +994,11 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                 const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
                                                                                   "saAmfSUHostedByNode",
                                                                                   0);
-                                if (hostedByNode != NULL) {
+				if (hostedByNode == NULL) {
+                                        LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
+                                        return false;
+				}
+                                if (o_nodeList == NULL) {
                                         std::list < std::string >::const_iterator it;
                                         for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
                                                 if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
@@ -939,9 +1008,9 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                                         break;
                                                 }
                                         }
-                                }else {
-                                        LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No hostedByNode attr set for %s", (*objit).c_str());  
-                                        return false;
+                                } else {
+					o_actDeactUnits.push_back(*objit);
+					o_nodeList->push_back((const char*)hostedByNode->value);
                                 }
                         } else {
                                 LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:Fails to get object %s", (*objit).c_str());  
