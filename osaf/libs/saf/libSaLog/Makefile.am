@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = libSaLog.version
 
-LIB_VERSION=1:0:0
+LIB_VERSION=1:0:1
 
 SUBDIRS = pkgconfig
 
@@ -34,7 +34,7 @@ libSaLog_la_CPPFLAGS = \
 
 libSaLog_la_LDFLAGS = \
 	-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaLog/libSaLog.version \
-	-version-info $(LIB_VERSION)
+	-version-number $(LIB_VERSION)
 
 libSaLog_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
