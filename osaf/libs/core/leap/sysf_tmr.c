@@ -765,13 +765,13 @@ tmr_t ncs_tmr_start(tmr_t tid, uns32 tmrDelay,	/* timer period in number of 10ms
 	}
 	scaled = (tmrDelay * 10 / NCS_MILLISECONDS_PER_TICK) + 1 + (get_time_elapsed_in_ticks(&ts_start));
 
+	/* Lock the enter wheel in the safe area */
+	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
+
 	/* Do some up front initialization as if all will go well */
 	tmr->tmrCB = tmrCB;
 	tmr->tmrUarg = tmrUarg;
 	TMR_SET_STATE(tmr, TMR_STATE_START);
-
-	/* Lock the enter wheel in the safe area */
-	m_NCS_LOCK(&gl_tcb.safe.enter_lock, NCS_LOCK_WRITE);
 
 	tmr->next = NULL;
 	m_NCS_OS_HTONLL_P(&temp_key_value, scaled);
