@@ -47,33 +47,17 @@ static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 
 	TRACE_ENTER();
 
-	/*
-	if ((stream = log_stream_get_by_name((char *)objectName->value)) == NULL) {
-		LOG_ER("Stream %s not found", objectName->value);
-		(void)immutil_saImmOiAdminOperationResult(pbeOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
-		goto done;
-	}
-	*/
-
 	if (opId == 4711) {
 		/*
-		if (severityFilter == stream->severityFilter) {
-			(void)immutil_saImmOiAdminOperationResult(pbeOiHandle, invocation, SA_AIS_ERR_NO_OP);
-			goto done;
-		}
-
-		TRACE("Changing severity for stream %s to %u", stream->name, severityFilter);
-		stream->severityFilter = severityFilter;
-
-		(void)immutil_update_one_rattr(pbeOiHandle, (char *)objectName->value,
+		(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
 					       "saLogStreamSeverityFilter", SA_IMM_ATTR_SAUINT32T,
 					       &stream->severityFilter);
-
-		(void)immutil_saImmOiAdminOperationResult(pbeOiHandle, invocation, SA_AIS_OK);
 		*/
+
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_OK);
 	} else {
 		LOG_ER("Invalid operation ID, should be %d ", 4711);
-		(void)immutil_saImmOiAdminOperationResult(pbeOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
+		(void)immutil_saImmOiAdminOperationResult(immOiHandle, invocation, SA_AIS_ERR_INVALID_PARAM);
 	}
  done:
 	TRACE_LEAVE();
@@ -86,8 +70,7 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER();
-
+	TRACE_ENTER2("Modify callback for CCB:%llu object:%s", ccbId, objectName->value);
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
 			LOG_ER("Failed to get CCB objectfor %llu", ccbId);
@@ -109,9 +92,9 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
-	const SaImmAttrModificationT_2 *attrMod;
+	//const SaImmAttrModificationT_2 *attrMod;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("Completed callback for CCB:%llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("Failed to find CCB object for %llu", ccbId);
@@ -119,113 +102,11 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 		goto done;
 	}
 
-	/*
-	 ** "check that the sequence of change requests contained in the CCB is 
-	 ** valid and that no errors will be generated when these changes
-	 ** are applied."
-	 */
+	goto done;
+
 	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
 	while (ccbUtilOperationData != NULL) {
-		int i = 0;
-		TRACE("Change stream %s", ccbUtilOperationData->param.modify.objectName->value);
 
-		/*
-		if ((stream = log_stream_get_by_name((char *)ccbUtilOperationData->param.modify.objectName->value)) ==
-		    NULL) {
-			LOG_ER("Stream %s not found", ccbUtilOperationData->param.modify.objectName->value);
-			rc = SA_AIS_ERR_BAD_OPERATION;
-			goto done;
-		}
-		*/
-
-		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		while (attrMod != NULL) {
-			void *value;
-			const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-
-			TRACE("attribute %s", attribute->attrName);
-
-			if (attribute->attrValuesNumber == 0) {
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-
-			value = attribute->attrValues[0];
-
-			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-				/*
-				struct stat pathstat;
-				char *fileName = *((char **)value);
-				if (stat(fileName, &pathstat) == 0) {
-					LOG_ER("File %s already exist", fileName);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("fileName: %s", fileName);
-				*/
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
-				SaUint64T maxLogFileSize = *((SaUint64T *)value);
-				TRACE("maxLogFileSize: %llu", maxLogFileSize);
-			} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
-				SaUint32T fixedLogRecordSize = *((SaUint32T *)value);
-				if (fixedLogRecordSize > 0/*stream->maxLogFileSize*/) {
-					LOG_ER("fixedLogRecordSize out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("fixedLogRecordSize: %u", fixedLogRecordSize);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-				/*
-				SaLogFileFullActionT logFullAction = *((SaUint32T *)value);
-				if (logFullAction > SA_LOG_FILE_FULL_ACTION_ROTATE) {
-					LOG_ER("logFullAction out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("logFullAction: %u", logFullAction);
-				*/
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-				SaUint32T logFullHaltThreshold = *((SaUint32T *)value);
-				if (logFullHaltThreshold >= 100) {
-					LOG_ER("logFullHaltThreshold out of range");
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("logFullHaltThreshold: %u", logFullHaltThreshold);
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-				SaUint32T maxFilesRotated = *((SaUint32T *)value);
-				if (maxFilesRotated > 128) {
-					LOG_ER("Unreasonable maxFilesRotated: %x", maxFilesRotated);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("maxFilesRotated: %u", maxFilesRotated);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-				char *logFileFormat = *((char **)value);
-				TRACE("logFileFormat: %s", logFileFormat);
-				/*
-				if (!lgs_is_valid_format_expression(logFileFormat, stream->streamType, &dummy)) {
-					LOG_ER("Invalid logFileFormat: %s", logFileFormat);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				*/
-			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-				SaUint32T severityFilter = *((SaUint32T *)value);
-				if (severityFilter > 0x7f) {
-					LOG_ER("Invalid severity: %x", severityFilter);
-					rc = SA_AIS_ERR_BAD_OPERATION;
-					goto done;
-				}
-				TRACE("severityFilter: %u", severityFilter);
-			} else {
-				LOG_ER("invalid attribute");
-				rc = SA_AIS_ERR_BAD_OPERATION;
-				goto done;
-			}
-
-			attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		}
 		ccbUtilOperationData = ccbUtilOperationData->next;
 	}
 
@@ -238,17 +119,9 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 	struct CcbUtilOperationData *ccbUtilOperationData;
-	const SaImmAttrModificationT_2 *attrMod;
+	//const SaImmAttrModificationT_2 *attrMod;
 
-	char *fileName = NULL;
-	SaUint64T maxLogFileSize = 0;
-	SaUint32T fixedLogRecordSize = 0;
-	SaUint32T logFullHaltThreshold = 0;
-	SaUint32T maxFilesRotated = 0;
-	char *logFileFormat = NULL;
-	SaUint32T severityFilter = 0;
-
-	TRACE_ENTER();
+	TRACE_ENTER2("PBE APPLY CALLBACK cleanup CCB:%llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		LOG_ER("Failed to find CCB object for %llu", ccbId);
@@ -256,51 +129,9 @@ static void saImmOiCcbApplyCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 	}
 
 	ccbUtilOperationData = ccbUtilCcbData->operationListHead;
-	while (ccbUtilOperationData != NULL) {
-		int i = 0;
-		TRACE("Apply changes to %s", ccbUtilOperationData->param.modify.objectName->value);
 
-		attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		while (attrMod != NULL) {
-			void *value;
-			const SaImmAttrValuesT_2 *attribute = &attrMod->modAttr;
-
-			TRACE("attribute %s", attribute->attrName);
-			/* check for nrofValues > 0 */
-			value = attribute->attrValues[0];
-
-			if (!strcmp(attribute->attrName, "saLogStreamFileName")) {
-				fileName = *((char **)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxLogFileSize")) {
-				maxLogFileSize = *((SaUint64T *)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamFixedLogRecordSize")) {
-				fixedLogRecordSize = *((SaUint32T *)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullAction")) {
-
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFullHaltThreshold")) {
-				logFullHaltThreshold = *((SaUint32T *)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamMaxFilesRotated")) {
-				maxFilesRotated = *((SaUint32T *)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamLogFileFormat")) {
-				logFileFormat = *((char **)value);
-			} else if (!strcmp(attribute->attrName, "saLogStreamSeverityFilter")) {
-				severityFilter = *((SaUint32T *)value);
-			} else {
-				LOG_ER("invalid attribute");
-				goto done;
-			}
-
-			attrMod = ccbUtilOperationData->param.modify.attrMods[i++];
-		}
-
-		ccbUtilOperationData = ccbUtilOperationData->next;
-	}
-
-	TRACE("dummy %s %llu %u %u %u %s %u", fileName, maxLogFileSize, fixedLogRecordSize,
-		logFullHaltThreshold, maxFilesRotated, logFileFormat, severityFilter);
-
- done:
 	ccbutil_deleteCcbData(ccbUtilCcbData);
+ done:
 	TRACE_LEAVE();
 }
 
@@ -308,7 +139,7 @@ static void saImmOiCcbAbortCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT cc
 {
 	struct CcbUtilCcbData *ccbUtilCcbData;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("ABORT callback. Cleanup CCB %llu", ccbId);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) != NULL)
 		ccbutil_deleteCcbData(ccbUtilCcbData);
@@ -323,7 +154,7 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	struct CcbUtilCcbData *ccbUtilCcbData;
-	TRACE_ENTER();
+	TRACE_ENTER2("CREATE CALLBACK CCB:%llu class:%s parent:%s", ccbId, className, parentName->value);
 
 	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
 		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
@@ -344,6 +175,23 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
 	const SaNameT *objectName)
 {
+	SaAisErrorT rc = SA_AIS_OK;
+	struct CcbUtilCcbData *ccbUtilCcbData;
+	TRACE_ENTER2("DELETE CALLBACK CCB:%llu object:%s", ccbId, objectName->value);
+
+	if ((ccbUtilCcbData = ccbutil_findCcbData(ccbId)) == NULL) {
+		if ((ccbUtilCcbData = ccbutil_getCcbData(ccbId)) == NULL) {
+			LOG_ER("Failed to get CCB objectfor %llu", ccbId);
+			rc = SA_AIS_ERR_NO_MEMORY;
+			goto done;
+		}
+	}
+
+	/* "memorize the deletion request" */
+	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
+
+ done:
+	TRACE_LEAVE();
 	return SA_AIS_OK;
 }
 /**
@@ -358,32 +206,10 @@ static SaAisErrorT saImmOiRtAttrUpdateCallback(SaImmOiHandleT immOiHandle,
 					       const SaNameT *objectName, const SaImmAttrNameT *attributeNames)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	SaImmAttrNameT attributeName;
-	int i = 0;
-	int numOpeners = 0;
-	char *stream = (char *)objectName->value;
+	//SaImmAttrNameT attributeName;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("RT ATTR UPDATE CALLBACK");
 
-	if (stream == NULL) {
-		LOG_ER("saImmOiRtAttrUpdateCallback, stream %s not found", objectName->value);
-		rc = SA_AIS_ERR_FAILED_OPERATION;	/* not really covered in spec */
-		goto done;
-	}
-
-	while ((attributeName = attributeNames[i++]) != NULL) {
-		TRACE("Attribute %s", attributeName);
-		if (!strcmp(attributeName, "saLogStreamNumOpeners")) {
-			(void)immutil_update_one_rattr(immOiHandle, (char *)objectName->value,
-						       attributeName, SA_IMM_ATTR_SAUINT32T, &numOpeners);
-		} else {
-			LOG_ER("saImmOiRtAttrUpdateCallback, unknown attribute %s", attributeName);
-			rc = SA_AIS_ERR_FAILED_OPERATION;	/* not really covered in spec */
-			goto done;
-		}
-	}
-
- done:
 	TRACE_LEAVE();
 	return rc;
 }
@@ -410,38 +236,7 @@ static void dump_sig_handler(int sig)
 
 	if (trace_category_set(CATEGORY_ALL) == -1)
 		printf("trace_category_set failed");
-	TRACE("Control block information");
-	TRACE("  comp_name:      %s", lgs_cb->comp_name.value);
-	TRACE("  log_version:    %c.%02d.%02d", lgs_cb->log_version.releaseCode,
-	      lgs_cb->log_version.majorVersion, lgs_cb->log_version.minorVersion);
-	TRACE("  mds_role:       %u", lgs_cb->mds_role);
-	TRACE("  last_client_id: %u", lgs_cb->last_client_id);
-	TRACE("  ha_state:       %u", lgs_cb->ha_state);
-	TRACE("  ckpt_state:     %u", lgs_cb->ckpt_state);
-	TRACE("  root_dir:       %s", lgs_cb->logsv_root_dir);
 
-	TRACE("Client information");
-	client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree, NULL);
-	while (client != NULL) {
-		lgs_stream_list_t *s = client->stream_list_root;
-		TRACE("  client_id: %u", client->client_id);
-		TRACE("    lga_client_dest: %llx", client->mds_dest);
-
-		while (s != NULL) {
-			TRACE("    stream id: %u", s->stream_id);
-			s = s->next;
-		}
-		client = (log_client_t *)ncs_patricia_tree_getnext(&lgs_cb->client_tree,
-								   (uns8 *)&client->client_id_net);
-	}
-
-	TRACE("Streams information");
-	stream = (log_stream_t *)log_stream_getnext_by_name(NULL);
-	while (stream != NULL) {
-		log_stream_print(stream);
-		stream = (log_stream_t *)log_stream_getnext_by_name(stream->name);
-	}
-	log_stream_id_print();
 	if (trace_category_set(old_category_mask) == -1)
 		printf("trace_category_set failed");
 	*/
@@ -465,13 +260,6 @@ static void sigusr2_handler(int sig)
 	if (trace_category_set(category_mask) == -1)
 		printf("trace_category_set failed");
 }
-
-#ifdef IMM_PBE
-
-#else
-
-#endif
-
 
 SaAisErrorT pbe_daemon_imm_oi_init()
 {
@@ -533,6 +321,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap)
 
 	SaAisErrorT error = SA_AIS_OK;
 	//uns32 rc;
+	//Assign dbHandle to static var.
 
 	if (pbe_daemon_imm_oi_init() != SA_AIS_OK) {
 		exit(1);

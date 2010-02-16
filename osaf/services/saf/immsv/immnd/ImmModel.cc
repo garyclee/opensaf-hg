@@ -192,9 +192,10 @@ typedef enum {
     IMM_CCB_DELETE_OP = 5,  //Ongoing delete (pending implementer calls/replies)
     IMM_CCB_PREPARE = 6,    //Waiting for nodes prepare & completed calls/replies
     IMM_CCB_CRITICAL = 7,   //Commit(apply) has started on nodes.
-    IMM_CCB_COMMITED = 8,   //Commited at nodes pending implementer apply calls
-    IMM_CCB_ABORTED = 9,    //READY->ABORTED PREPARE->ABORTED
-    IMM_CCB_ILLEGAL = 10    //CCB has been removed.
+    IMM_CCB_PBE_ABORT = 8,  //The Persistent back end replied with abort
+    IMM_CCB_COMMITED = 9,  //Commited at nodes pending implementer apply calls
+    IMM_CCB_ABORTED = 10,   //READY->ABORTED PREPARE->ABORTED
+    IMM_CCB_ILLEGAL = 11   //CCB has been removed.
 } ImmCcbState;
 
 struct CcbInfo
@@ -213,6 +214,7 @@ struct CcbInfo
     ObjectMutationMap mMutations;
     SaAisErrorT       mVeto;  //SA_AIS_OK as long as no "participan" voted error.
     time_t            mWaitStartTime;
+    SaUint32T         mOpCount;
 };
 typedef std::vector<CcbInfo*> CcbVector;
 
@@ -334,10 +336,13 @@ immModel_ccbObjectCreate(IMMND_CB *cb,
     const struct ImmsvOmCcbObjectCreate* req,
     SaUint32T* implConn,
     SaClmNodeIdT* implNodeId,
-    SaUint32T* continuationId)
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-        ccbObjectCreate(req, implConn, implNodeId, continuationId);
+        ccbObjectCreate(req, implConn, implNodeId, continuationId, 
+            pbeConn, pbeNodeId);
 }
 
 SaAisErrorT
@@ -345,10 +350,13 @@ immModel_ccbObjectModify(IMMND_CB *cb,
     const struct ImmsvOmCcbObjectModify* req,
     SaUint32T* implConn,
     SaClmNodeIdT* implNodeId,
-    SaUint32T* continuationId)
+    SaUint32T* continuationId,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId)
 {
     return ImmModel::instance(&cb->immModel)->
-        ccbObjectModify(req, implConn, implNodeId, continuationId);
+	    ccbObjectModify(req, implConn, implNodeId, continuationId,
+            pbeConn, pbeNodeId);
 }
 
 
@@ -359,7 +367,9 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
     SaUint32T* arrSize,
     SaUint32T** implConnArr,
     SaUint32T** implIdArr,
-    SaStringT** objNameArr)			 
+    SaStringT** objNameArr,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId)		 
     
 {
     ConnVector cv;
@@ -372,8 +382,7 @@ immModel_ccbObjectDelete(IMMND_CB *cb,
     
     SaAisErrorT err = 
         ImmModel::instance(&cb->immModel)->ccbObjectDelete(req,
-            reqConn, 
-            ov, cv, iv);
+            reqConn, ov, cv, iv, pbeConn, pbeNodeId);
     *arrSize = cv.size();
     assert(*arrSize == iv.size());
     assert(*arrSize == ov.size());
@@ -678,10 +687,14 @@ immModel_findConnForImplementerOfObject(IMMND_CB *cb,
 SaBoolT
 immModel_ccbWaitForCompletedAck(IMMND_CB *cb, 
     SaUint32T ccbId,
-    SaAisErrorT* err)
+    SaAisErrorT* err,
+    SaUint32T* pbeConn,
+    SaClmNodeIdT* pbeNodeId,
+    SaUint32T* pbeId,
+    SaUint32T* pbeCtn)
 {
     return (SaBoolT) ImmModel::instance(&cb->immModel)->
-        ccbWaitForCompletedAck(ccbId, err);
+        ccbWaitForCompletedAck(ccbId, err, pbeConn, pbeNodeId, pbeId, pbeCtn);
 }
 
 SaBoolT
@@ -694,7 +707,7 @@ immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb,
 }
 
 
-void
+SaBoolT
 immModel_ccbCommit(IMMND_CB *cb, 
     SaUint32T ccbId,
     SaUint32T* arrSize,
@@ -704,7 +717,8 @@ immModel_ccbCommit(IMMND_CB *cb,
     ConnVector::iterator cvi;
     unsigned int ix=0;
     
-    ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
+    SaBoolT pbeModeChange = (SaBoolT) 
+	    ImmModel::instance(&cb->immModel)->ccbCommit(ccbId, cv);
     
     *arrSize = cv.size();
     if(*arrSize) {
@@ -716,6 +730,7 @@ immModel_ccbCommit(IMMND_CB *cb,
     }
     
     assert(ix==(*arrSize));
+    return pbeModeChange;
 }
 
 SaAisErrorT
@@ -1134,6 +1149,7 @@ bool
 ImmModel::immNotPbeWritable()
 {
     SaUint32T dummyCon;
+    unsigned int dummyNode;
     /* Not writable => Not persitent writable. */
     if(immNotWritable()) {return true;}
 
@@ -1150,7 +1166,7 @@ ImmModel::immNotPbeWritable()
     /* Check if PBE OI is available. */
 
     
-    if(getPbeOi(&dummyCon)) {
+    if(getPbeOi(&dummyCon, &dummyNode)) {
         return false; /* Pbe IS present => writable. */
     }
 
@@ -1342,14 +1358,16 @@ ImmModel::setLoader(int pid)
         sImmNodeState = IMM_NODE_FULLY_AVAILABLE;
         LOG_IN("NODE STATE-> IMM_NODE_FULLY_AVAILABLE %u", 
             __LINE__);
-    }
 
-    immInitMode = getRepositoryInitMode();
-    if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
-        LOG_IN("RepositoryInitModeT is SA_IMM_KEEP_REPOSITORY");
+        immInitMode = getRepositoryInitMode();
+        if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
+            LOG_IN("RepositoryInitModeT is SA_IMM_KEEP_REPOSITORY");
+        } else {
+            LOG_IN("RepositoryInitModeT is SA_IMM_INIT_FROM_FILE");
+            immInitMode = SA_IMM_INIT_FROM_FILE; /* Ensure valid value*/
+        }
     } else {
-        LOG_IN("RepositoryInitModeT is SA_IMM_INIT_FROM_FILE");
-        immInitMode = SA_IMM_INIT_FROM_FILE; /* Ensure valid value*/
+        TRACE_5("Loading starts, pid:%u", pid);
     }
 }
 
@@ -1437,8 +1455,8 @@ ImmModel::getRepositoryInitMode()
  * and for locating the PBE when a message/upcall is to be sent 
  * to it.
  */
-unsigned int 
-ImmModel::getPbeOi(SaUint32T* implConn)
+void *
+ImmModel::getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode)
 {
     TRACE_ENTER();
     std::string opensafClass(OPENSAF_IMM_CLASS_NAME);
@@ -1448,12 +1466,14 @@ ImmModel::getPbeOi(SaUint32T* implConn)
     if((classInfo->mImplementer && 
        classInfo->mImplementer->mId &&
        !(classInfo->mImplementer->mDying))) {
-        *implConn = classInfo->mImplementer->mConn;
-        return classInfo->mImplementer->mNodeId;
+        *pbeConn = classInfo->mImplementer->mConn;
+	*pbeNode = classInfo->mImplementer->mNodeId;
+        return classInfo->mImplementer;
     }
-    *implConn = 0;
+    *pbeConn = 0;
+    *pbeNode = 0;
     TRACE_LEAVE();
-    return 0;
+    return NULL;
 }
 
 /** 
@@ -2193,6 +2213,7 @@ ImmModel::ccbCreate(SaUint32T adminOwnerId,
     info->mVeto = SA_AIS_OK;
     info->mState = IMM_CCB_EMPTY;
     info->mWaitStartTime = 0;
+    info->mOpCount = 0;
     sCcbVector.push_back(info);
     
     TRACE_5("CCB %u created with admo %u", info->mId, adminOwnerId);
@@ -2214,6 +2235,7 @@ ImmModel::ccbResult(SaUint32T ccbId)
 		switch ((*i)->mState) {
 
 			case IMM_CCB_ABORTED:
+			case IMM_CCB_PBE_ABORT:
 				TRACE_5("Fetch ccb result: CCB %u was aborted", ccbId);
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				break; //Normal
@@ -2355,7 +2377,7 @@ ImmModel::commitCreate(ObjectInfo* obj)
     /*TRACE_5("Flags after remove create lock:%u", obj->mObjFlags);*/
 }
 
-void
+bool
 ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
 {
     TRACE_ENTER();
@@ -2388,17 +2410,24 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
     delete afterImage;
     if(dn == immManagementDn) {
         /* clumsy solution to check every modify for this. 
-	   TODO: catch this in the modify op OI handler to
-	   prevent datatype error. 
-	*/
+           TODO: catch this in the modify op OI handler to
+           prevent datatype error. ? Problem is that seems not
+           tight enough.
+        */
+        SaImmRepositoryInitModeT oldMode = immInitMode;
         immInitMode = getRepositoryInitMode();
-        if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
-            LOG_IN("RepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
-        } else {
-            LOG_IN("RepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
-	}
+        if(oldMode != immInitMode) {
+            if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
+                LOG_IN("RepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
+            } else {
+                LOG_IN("RepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
+	    }
+	    TRACE_LEAVE();
+	    return true;
+        }
     }
     TRACE_LEAVE();
+    return false;
 }
 
 void
@@ -2443,19 +2472,24 @@ ImmModel::commitDelete(const std::string& dn)
     TRACE_LEAVE();
 }
 
-void
+bool
 ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
 {
     TRACE_ENTER();
     CcbVector::iterator i;
-    
+    bool pbeModeChange = false;
+
     i = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     assert(i != sCcbVector.end());
     TRACE_5("Commit CCB %u", (*i)->mId);
     CcbInfo* ccb = (*i);
     assert(ccb->isOk());
-    assert(ccb->mState == IMM_CCB_PREPARE);
-    ccb->mState = IMM_CCB_CRITICAL;
+    if(ccb->mState == IMM_CCB_PREPARE) {
+        ccb->mState = IMM_CCB_CRITICAL;
+    } else {
+        assert(ccb->mState == IMM_CCB_CRITICAL);
+        TRACE_5("Ccb %u comitted by persistent back end", ccbId);
+    }
     ccb->mWaitStartTime = 0;
 
     //Do the actual commit!
@@ -2472,7 +2506,7 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
                 break;
             case IMM_MODIFY:
                 assert(omut->mAfterImage);
-                commitModify(omit->first, omut->mAfterImage);
+                pbeModeChange = commitModify(omit->first, omut->mAfterImage) || pbeModeChange;
                 omut->mAfterImage=NULL;
                 break;
             case IMM_DELETE:
@@ -2515,13 +2549,12 @@ ImmModel::ccbCommit(SaUint32T ccbId, ConnVector& connVector)
     
     ccb->mImplementers.clear();
     
-    //With FEVS the critical phase is trivially completed.
+    //With FEVS and no PBE the critical phase is trivially completed.
     //We do not wait for replies from peer imm-server-nodes or from
     //implementers on the apply callback (no return code).
-    if(true /*conVector.empty()*/) {
-		ccb->mState = IMM_CCB_COMMITED;
-		LOG_NO("Ccb %u COMMITED", ccb->mId);
-	}
+    ccb->mState = IMM_CCB_COMMITED;
+    LOG_NO("Ccb %u COMMITED", ccb->mId);
+    return pbeModeChange;
 }
 
 void
@@ -2571,6 +2604,11 @@ ImmModel::ccbAbort(SaUint32T ccbId, ConnVector& connVector, SaUint32T* client)
             LOG_WA("CCB %u is in critical state, can not abort", ccbId);
             TRACE_LEAVE();
             return;
+            
+        case IMM_CCB_PBE_ABORT:
+            TRACE_5("Aborting ccb %u because PBE decided ABORT", ccbId);
+            *client = ccb->mOriginatingConn;
+            break;
             
         case IMM_CCB_COMMITED:
             TRACE_5("CCB %u was already commited", ccbId);
@@ -2662,6 +2700,7 @@ ImmModel::ccbTerminate(SaUint32T ccbId)
                 return SA_AIS_ERR_TRY_AGAIN;
                 
             case IMM_CCB_PREPARE:
+            case IMM_CCB_PBE_ABORT:
                 LOG_WA("Will not terminate ccb %u while waiting for "
                     "replies from implementers on completed ack", ccbId);
                 TRACE_LEAVE();
@@ -2843,7 +2882,9 @@ ImmModel::eduAtValToOs(immsv_octet_string* tmpos,
 SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     SaUint32T* implConn,
     unsigned int* implNodeId,
-    SaUint32T* continuationId)
+    SaUint32T* continuationId,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -2935,7 +2976,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     assert(!adminOwner->mDying);
     
     if(adminOwner->mId !=  ccb->mAdminOwnerId) {
-        LOG_WA("Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
+        LOG_WA("ERR_FAILED_OPERATION: Inconsistency between Ccb admoId:%u and AdminOwner-id:%u",
 			adminOwner->mId, ccb->mAdminOwnerId);
         err = SA_AIS_ERR_FAILED_OPERATION;
         goto ccbObjectCreateExit;
@@ -3026,7 +3067,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
     i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
         AttrFlagIncludes(SA_IMM_ATTR_RDN));
     if (i4 == classInfo->mAttrMap.end()) {
-        LOG_ER("No RDN attribute found in class!");
+        LOG_ER("ERR_FAILED_OPERATION: No RDN attribute found in class!");
         err = SA_AIS_ERR_FAILED_OPERATION;     //Should never happen!
         goto ccbObjectCreateExit;
     }
@@ -3135,8 +3176,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         } else {
             object->mObjFlags = IMM_CREATE_LOCK;
         }
-        TRACE_5("Flags after insert create lock:%u", 
-            object->mObjFlags);
+        //TRACE_5("Flags after insert create lock:%u", object->mObjFlags);
         
         
         // Add attributes to object
@@ -3304,7 +3344,25 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                 err = SA_AIS_ERR_INVALID_PARAM;	  
             }
         }
-        
+
+	// Prepare for call on PersistentBackEnd
+        if((err == SA_AIS_OK) && pbeNodeIdPtr) {
+            void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+            if(!pbe) {
+                if(ccb->mMutations.size()) {
+                    /* ongoing ccb interrupted by PBE down */
+                    err = SA_AIS_ERR_FAILED_OPERATION;
+                    ccb->mVeto = err;
+                    LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
+                           "ccb %u is aborted", ccbId);
+                } else {
+                    /* Pristine ccb can not start because PBE down */
+                    TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
+                    err = SA_AIS_ERR_TRY_AGAIN;
+                }
+            }
+        }
+
         if(err == SA_AIS_OK) {
             oMut = new ObjectMutation(IMM_CREATE);
             oMut->mAfterImage = object;
@@ -3359,6 +3417,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
                     objectName.c_str());
                 err = SA_AIS_ERR_NOT_EXIST;
             }
+
         }
         
         if(err == SA_AIS_OK) {
@@ -3366,6 +3425,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             //This is a create => No need to check if there already is a 
             //mutation on this object.
             ccb->mMutations[objectName] = oMut;
+	    ccb->mOpCount++;
             
             //Object placed in map before apply/commit as a place-holder.
             //The mCreateLock on the object should prevent premature 
@@ -3376,7 +3436,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
             unsigned int sze = sObjectMap.size();
             if(sze >= 5000) {
                 if(sze%1000 == 0) {
-                    LOG_WA("Number of objects in is:%u", sze);
+                    LOG_WA("Number of objects in IMM is:%u", sze);
                 }
             }
             
@@ -3438,7 +3498,9 @@ SaAisErrorT
 ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     SaUint32T* implConn,
     unsigned int* implNodeId,
-    SaUint32T* continuationId)
+    SaUint32T* continuationId,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -3546,16 +3608,16 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
     }
     
     ccbIdOfObj = object->mCcbId;
-	if(ccbIdOfObj != ccbId) {
-		i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
-			CcbIdIs(ccbIdOfObj));
-		if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
-			TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
-				ccbId, ccbIdOfObj);
-			err = SA_AIS_ERR_BUSY;
-			goto ccbObjectModifyExit;
-		}
-	}
+    if(ccbIdOfObj != ccbId) {
+        i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
+            CcbIdIs(ccbIdOfObj));
+        if ((i1 != sCcbVector.end()) && ((*i1)->isActive())) {
+            TRACE_7("ERR_BUSY: ccb id %u differs from active ccb id on object %u", 
+                ccbId, ccbIdOfObj);
+            err = SA_AIS_ERR_BUSY;
+            goto ccbObjectModifyExit;
+        }
+    }
 
     classInfo = object->mClassInfo;
     assert(classInfo);
@@ -3583,7 +3645,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             afim = oMut->mAfterImage;
         }
     }
-    
+
     //Find each attribute to be modified.
     //Check that attribute is a config attribute.
     //Check that attribute is writable.
@@ -3773,9 +3835,28 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
         }
     }//for (p = ....)
     
-    // Prepare for call on object implementor 
+    // Prepare for call on PersistentBackEnd
+
+    if((err == SA_AIS_OK) && pbeNodeIdPtr) {
+        void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+        if(!pbe) {
+            if(ccb->mMutations.size()) {
+                /* ongoing ccb interrupted by PBE down */
+                err = SA_AIS_ERR_FAILED_OPERATION;
+                ccb->mVeto = err;
+                LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
+                       "ccb %u is aborted", ccbId);
+            } else {
+                /* Pristine ccb can not start because PBE down */
+                TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
+                err = SA_AIS_ERR_TRY_AGAIN;
+            }
+        }
+    }
+
+    // Prepare for call on object implementer 
     // and add implementer to ccb.
-    
+
     if(err == SA_AIS_OK) {
         if(chainedOp) {
             assert(oMut);
@@ -3844,6 +3925,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 adminOwner->mTouchedObjects.insert(object);
             }
         }
+	ccb->mOpCount++;
     } else { 
         //err != SA_AIS_OK
         if(ccb->mState == IMM_CCB_MODIFY_OP) {ccb->mState = IMM_CCB_READY;}
@@ -3870,7 +3952,7 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
             }
         }
     }
-    
+
  ccbObjectModifyExit:
     TRACE_LEAVE(); 
     return err;
@@ -3884,7 +3966,9 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
     SaUint32T reqConn,
     ObjectNameVector& objNameVector,
     ConnVector& connVector, 
-    IdVector& continuations)
+    IdVector& continuations,
+    SaUint32T* pbeConnPtr,
+    unsigned int* pbeNodeIdPtr)
 {
     TRACE_ENTER();
     SaAisErrorT err = SA_AIS_OK;
@@ -3969,11 +4053,30 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
         err = SA_AIS_ERR_NOT_EXIST;
         goto ccbObjectDeleteExit;
     }
+
+    // Prepare for call on PersistentBackEnd
+
+    if((err == SA_AIS_OK) && pbeNodeIdPtr) {
+        void* pbe = getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+        if(!pbe) {
+            if(ccb->mMutations.size()) {
+                /* ongoing ccb interrupted by PBE down */
+                err = SA_AIS_ERR_FAILED_OPERATION;
+                ccb->mVeto = err;
+                LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
+                       "ccb %u is aborted", ccbId);
+            } else {
+                /* Pristine ccb can not start because PBE down */
+                TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
+                err = SA_AIS_ERR_TRY_AGAIN;
+            }
+        }
+    }
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         
         err = deleteObject(oi, reqConn, adminOwner, ccb, doIt, objNameVector,
-            connVector, continuations);
+            connVector, continuations, pbeConnPtr?(*pbeConnPtr):0);
         
         // Find all sub objects to the deleted object and delete them
         for (oi2 = sObjectMap.begin(); 
@@ -3984,7 +4087,8 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 if ((subObjName.rfind(objectName, pos) == pos) &&
                     (subObjName[pos-1] == ',')){
                     err = deleteObject(oi2, reqConn, adminOwner, ccb, doIt, 
-                        objNameVector, connVector, continuations);
+                        objNameVector, connVector, continuations, 
+			    pbeConnPtr?(*pbeConnPtr):0);
                 }
             }
         }
@@ -4011,7 +4115,8 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     bool doIt,
     ObjectNameVector& objNameVector,
     ConnVector& connVector, 
-    IdVector& continuations)
+    IdVector& continuations,
+    unsigned int pbeIsLocal)
 {
     /*TRACE_ENTER();*/
     
@@ -4077,7 +4182,8 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             new ObjectMutation(IMM_DELETE);
         ccb->mMutations[oi->first] = oMut;
         //oMut->mBeforeImage = oi->second;
-        
+	ccb->mOpCount++;
+
         if(oi->second->mImplementer && oi->second->mImplementer->mNodeId) {
             ccb->mState = IMM_CCB_DELETE_OP;
             
@@ -4095,6 +4201,10 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
             SaUint32T implConn = oi->second->mImplementer->mConn;
             
             ccb->mWaitStartTime = time(NULL);
+	    /* TODO: Resetting the ccb timer for each deleted object here. 
+	       Not so efficient. Should set it only when all objects
+	       are processed.
+	     */
             
             if(implConn) { //implementer is on THIS node.
                 if(oi->second->mImplementer->mDying) {
@@ -4114,8 +4224,21 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                     continuations.push_back(sLastContinuationId);
                 }
             }
+
+
             if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
-        }
+        } else if(pbeIsLocal) {
+            /* No regular implementer, but we have a PBE. */
+            if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
+                std::string objectName(oi->first);
+                nameToExternal(objectName);
+                objNameVector.push_back(objectName);
+            } else {
+                objNameVector.push_back(oi->first);
+            }
+            connVector.push_back(0);
+            continuations.push_back(0);
+	}
     }
     /*TRACE_LEAVE();*/
     return SA_AIS_OK;
@@ -4155,14 +4278,28 @@ ImmModel::ccbWaitForDeleteImplAck(SaUint32T ccbId, SaAisErrorT* err)
 }
 
 bool
-ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err) 
+ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err,
+                                 SaUint32T* pbeConnPtr, unsigned int* pbeNodeIdPtr,
+                                 SaUint32T* pbeIdPtr, SaUint32T* pbeCtnPtr)
 {
     TRACE_ENTER();
+    if(pbeNodeIdPtr) {
+        TRACE("We expect there to be a Pbe");
+        assert(pbeConnPtr);
+        assert(pbeIdPtr);
+        assert(pbeCtnPtr);
+        *pbeNodeIdPtr = 0;
+        *pbeConnPtr = 0;
+        *pbeIdPtr = 0;
+        *pbeCtnPtr = 0;
+    }
+
     CcbVector::iterator i1;
     i1 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbId));
     if(i1 == sCcbVector.end() || (!(*i1)->isActive()) ) {
         LOG_WA("CCb %u terminated during ccbCompleted processing, "
             "ccb must be aborted", ccbId);
+        *err = SA_AIS_ERR_FAILED_OPERATION;
         return false;
     }
     CcbInfo* ccb = *i1;
@@ -4175,13 +4312,67 @@ ImmModel::ccbWaitForCompletedAck(SaUint32T ccbId, SaAisErrorT* err)
         for(i2=ccb->mImplementers.begin(); i2!=ccb->mImplementers.end(); ++i2){
             if(i2->second->mWaitForImplAck) {
                 TRACE_LEAVE();
-                return true;
+                return true; /* Continue waiting for some regular implementers */
             }
         }
     }
+
+    /* No more implementers to wait for. 
+       If PBE exists then we need to wait for pbe commit decission,
+       but there can be no ccb timeout on that wait because we must
+       obtain the decision from the PBE. 
+       If the PBE crashes we could possibly force it to presumed abort.
+       But that requires the current repository on disk to be scrapped,
+       followed by a fresh PBE dump.
+    */
     ccb->mWaitStartTime = 0;
+
+    if(ccb->mState == IMM_CCB_CRITICAL) {
+        /* This must be the PBE reply. Stop waiting. */
+        TRACE_5("PBE replied with rc:%u for ccb:%u", *err, ccbId);
+	if((*err) != SA_AIS_OK) {
+		ccb->mState = IMM_CCB_PBE_ABORT;
+	}
+        return false;
+    }
+
+    if(((*err) == SA_AIS_OK) && pbeNodeIdPtr) {
+        /* There should be a PBE */
+        ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(pbeConnPtr, pbeNodeIdPtr);
+        if(pbeImpl) {
+            /* There is in fact a PBE (up) */
+            assert(ccb->mState == IMM_CCB_PREPARE);
+            ccb->mState = IMM_CCB_CRITICAL;
+            *pbeIdPtr = pbeImpl->mId;
+            /* Add pbe implementer to the ccb implementer collection. 
+               Note that this is done here AFTER all normal implementers
+               have replied on the ccb-completed upcall.
+             */
+            ImplementerCcbAssociation* impla = new 
+                        ImplementerCcbAssociation(pbeImpl);
+            ccb->mImplementers[pbeImpl->mId] = impla;
+            impla->mWaitForImplAck = true;
+            impla->mContinuationId = ccb->mOpCount;
+
+            *pbeCtnPtr = impla->mContinuationId;
+
+            /* With PBE enabled, the critical phase is non-trivial. 
+               The commit/abort decision is now delegated to the PBE.
+               The CCB is in critical phase until we know the outcome.
+               This means we can not terminate the ccb (release the
+               objects write locked by the ccb) until we know the outcome.
+            */
+            return true; /* Wait also for PBE*/
+        } else {
+            /* But there is not any PBE up currently => abort.  */
+            ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
+            *err = ccb->mVeto;
+            LOG_WA("ERR_FAILED_OPERATION: Persistent back end is down "
+                           "ccb %u is aborted", ccbId);
+        }
+    }
     TRACE_LEAVE();
-    return false;
+    return false; /* nobody to wait for */
 }
 
 void
@@ -4210,7 +4401,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
         if(ccb->mVeto == SA_AIS_OK) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
-	return;
+        return;
     }
 
     ObjectMutationMap::iterator omuti =
@@ -4222,6 +4413,7 @@ ImmModel::ccbObjDelContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
+        assert(omuti->second->mWaitForImplAck);	    
         omuti->second->mWaitForImplAck = false;
         assert(/*(omuti->second->mContinuationId == 0) ||*/
                (omuti->second->mContinuationId == (SaUint32T) rsp->inv));
@@ -4265,14 +4457,39 @@ ImmModel::ccbCompletedContinuation(const immsv_oi_ccb_upcall_rsp* rsp,
     if(ix == ccb->mImplementers.end()) {
         LOG_WA("implementer '%u' Not found in ccb - aborting ccb", 
             rsp->implId);
-        if(ccb->mVeto == SA_AIS_OK) {
+        if((ccb->mVeto == SA_AIS_OK) && (ccb->mState < IMM_CCB_CRITICAL)) {
             ccb->mVeto = SA_AIS_ERR_FAILED_OPERATION;
         }
     } else {
+        if(ccb->mState == IMM_CCB_CRITICAL) {
+            /* This is the commit/abort decision from the PBE.*/
+            /* Verify that it is the PBE that is replying. */	
+            SaUint32T dummyConn;
+            unsigned int dummyNodeId;
+            ImplementerInfo* pbeImpl = (ImplementerInfo *) getPbeOi(&dummyConn, &dummyNodeId);
+            if(!pbeImpl || (pbeImpl->mId != rsp->implId)) {
+                LOG_WA("Received commit/abort decision on ccb %u from terminated PBE", ccbId);
+                return; /* Intentionally drop the missmatched response.*/
+		/* If the PBE responds corrrectly, but crashes and gets deregistered
+		   as implementer before this reply reaches us, the reply should be
+		   seen as valid, but gets discard here. This could be fixed by
+                   replacing the getPbeOi call with code that checks against the 
+                   implementer info even when the implementer is marked as dead.
+		   getPbeOi returns NULL for the valid but dead case.
+		 */
+            }
+            if(rsp->result == SA_AIS_OK) {
+                TRACE("COMMIT decision on ccb %u received from PBE", ccbId);
+            } else {
+                TRACE("ABORT decision on ccb %u received from PBE", ccbId);
+            }
+        }
+
         ix->second->mWaitForImplAck = false;
         assert(/*(ix->second->mContinuationId == 0) ||*/
                (ix->second->mContinuationId == rsp->inv));
         *reqConn = ccb->mOriginatingConn;
+
         if((ccb->mVeto == SA_AIS_OK) && (rsp->result != SA_AIS_OK)) {
             LOG_IN("implementer returned error, Ccb aborted with error: %u",
                 rsp->result);
@@ -4968,8 +5185,7 @@ SaAisErrorT ImmModel::adminOperationInvoke(
     CcbVector::iterator i3;
     SaUint32T ccbIdOfObj = object->mCcbId;
     if(ccbIdOfObj) {//check for ccb interference
-        i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), 
-			CcbIdIs(ccbIdOfObj));
+        i3 = std::find_if(sCcbVector.begin(), sCcbVector.end(), CcbIdIs(ccbIdOfObj));
         if (i3 != sCcbVector.end() && (*i3)->isActive()) {
             LOG_IN("ERR_BUSY: ccb id %u is active on object %s", 
                 ccbIdOfObj, objectName.c_str());

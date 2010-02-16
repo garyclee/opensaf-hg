@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
     }
 
     while (1) {
-    if ((c = getopt_long(argc, argv, "hpd:", long_options, NULL)) == -1)
+    if ((c = getopt_long(argc, argv, "hdp:", long_options, NULL)) == -1)
             break;
 
             switch (c) {
@@ -181,8 +181,12 @@ int main(int argc, char* argv[])
 
     /*TODO if(pbeDaemonCase && !pbeDumpCase !pbeFileExists) pbeDumpCase = true;*/
 
+    printf("argv[0]:%s argv[1]:%s argv[2]:%s argv[3]:%s\n", 
+      argv[0], argv[1], argv[2], argv[3]);
+    
+
     if(pbeDumpCase) {
-        filename.append(argv[2]);
+        filename.append(argv[3]);
         if(pbeDaemonCase) {
 		LOG_IN("Populating Pbe from current IMM state to %s", filename.c_str());
         } else {

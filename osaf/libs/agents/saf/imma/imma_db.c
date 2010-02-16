@@ -199,17 +199,25 @@ struct imma_oi_ccb_record * imma_oi_ccb_record_find(IMMA_CLIENT_NODE *cl_node, S
 	return tmp;
 }
 
-void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, SaUint32T inv)
 {
 	TRACE_ENTER();
-	if(imma_oi_ccb_record_find(cl_node, ccbId)) return;
+	struct imma_oi_ccb_record *new_ccb = imma_oi_ccb_record_find(cl_node, ccbId);
+	if(new_ccb) {
+		if(!inv) {
+			new_ccb->opCount++;
+			TRACE_2("Zero inv => PBE Incremented opcount to %u", new_ccb->opCount);
+		}
+		return;
+	}
 
-	struct imma_oi_ccb_record *new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
+	new_ccb = calloc(1, sizeof(struct imma_oi_ccb_record));
 	new_ccb->ccbId = ccbId;
+	new_ccb->opCount = inv?0:1; /* zero inv =>PBE => count ops. */
 	new_ccb->next = cl_node->activeOiCcbs;
 	cl_node->activeOiCcbs = new_ccb;
-	TRACE("Record for ccbid:%u handle:%llx client:%p added", 
-		ccbId, cl_node->handle, cl_node);
+	TRACE("Record for ccbid:%u handle:%llx client:%p opCount:%d added", 
+		ccbId, cl_node->handle, cl_node, new_ccb->opCount);
 	TRACE_LEAVE();
 }
 
@@ -258,7 +266,7 @@ int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
 	return rs;
 }
 
-int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
+int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, SaUint32T inv)
 {
 	TRACE_ENTER();
 	int rs = 0;
@@ -268,7 +276,15 @@ int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId)
 		assert(!tmp->isCritical);
 		tmp->isCritical = 1;
 		rs = 1;
-		TRACE("Record for ccbid:%u %llx %p set to critical", ccbId, cl_node->handle, cl_node);
+		if(tmp->opCount) {
+			if(tmp->opCount != inv) {
+				LOG_ER("Mismatch in PBE op-count %u should be %u", tmp->opCount, inv);
+				rs = 0;
+			} else {
+				TRACE_5("op-count matches with inv:%u", inv);
+			}
+		}
+		TRACE("Record for ccbid:%u %llx %p PBE-opcount:%u set to critical", ccbId, cl_node->handle, cl_node, tmp->opCount);
 	}
 
 	TRACE_LEAVE();
