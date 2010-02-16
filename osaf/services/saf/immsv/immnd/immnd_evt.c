@@ -1804,6 +1804,8 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 		} else {
 			LOG_WA("Will not allow Pbe implementer %s to attach, wrong pid:%u != %u",
 				OPENSAF_IMM_PBE_IMPL_NAME, cl_node->client_pid, cb->pbePid);
+			send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_BAD_HANDLE;
+			goto agent_rsp;
 		}
 	}
 
@@ -2439,21 +2441,89 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 	IMMSV_SEND_INFO *sinfo = NULL;
 	SaAisErrorT err;
 	SaUint32T reqConn = 0;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL; /* Defaults to NULL for no PBE. */
+	SaUint32T pbeId = 0;
+	SaUint32T pbeCtn = 0;
 	TRACE_ENTER();
 
 	immModel_ccbCompletedContinuation(cb, &(evt->info.ccbUpcallRsp), &reqConn);
+TRACE("ABT Back to continuation pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		
+		/* If pbeNodeIdPtr is NULL then ccbWaitForCompletedAck skips the 
+		   lookup of the pbe implementer and does not make us wait for it.
+		 */
+	}
 
-	if (!immModel_ccbWaitForCompletedAck(cb, evt->info.ccbUpcallRsp.ccbId, &err)) {
-		/*Finished waiting for completed Acks */
+	if (immModel_ccbWaitForCompletedAck(cb, evt->info.ccbUpcallRsp.ccbId, &err,
+		    &pbeConn, pbeNodeIdPtr, &pbeId, &pbeCtn)) {
+		/* We still need to wait for some implementer replies, possibly also the PBE.*/
+		if(pbeNodeId) {
+			/* There is be a PBE. */
+			assert(err == SA_AIS_OK); /* If not OK then we should not have arrived here. */
+			TRACE_5("Wait for PBE commit decision for ccb %u", evt->info.ccbUpcallRsp.ccbId);
+			if(pbeConn) {
+				TRACE_5("PBE is LOCAL - send completed upcall for %u", evt->info.ccbUpcallRsp.ccbId);
+				/* The PBE is connected at THIS node. Make the completed upcall. 
+				   If the PBE decides to commit it soes so immediately. 
+				   It does not wait for the apply upcall.
+				 */
+				SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+				/*Fetch client node for OI ! */
+				immnd_client_node_get(cb, implHandle, &oi_cl_node);
+				if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
+					LOG_WA("PBE went down");
+					/* ###TODO need to ABORT ccb in CRITICAL. or set CRITICAL below*/
+					/* This is a bad case. The immnds have just delegated the decision
+					   to commit or abort this ccb to the PBE, yet it has just crashed.
+					   I should mark the ccb being in limbo until a new PBE has attached,
+					   then resend the completed upcall, which should generate an aborted 
+					   reply to all IMMNDs. 
+					   err = SA_AIS_ERR_FAILED_OPERATION;
+					 */
+					assert(0);
+				}
+
+				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+				send_evt.type = IMMSV_EVT_TYPE_IMMA;
+				send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
+				send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbUpcallRsp.ccbId;
+				send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+				send_evt.info.imma.info.ccbCompl.implId = pbeId;
+				send_evt.info.imma.info.ccbCompl.invocation = pbeCtn;
+
+				TRACE_2("MAKING IMPLEMENTER CCB COMPLETED upcall");
+				if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					    oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+					LOG_ER("CCB COMPLETED UPCALL SEND TO PBE FAILED");
+					abort();
+				} else {
+					TRACE_5("IMMND UPCALL TO PBE for ccb %u, SEND SUCCEEDED", 
+						evt->info.ccbUpcallRsp.ccbId);
+				}
+
+			}
+			reqConn = 0; /* Ensure we dont reply to OM client yet. */
+		}
+	} else {
+		/*Finished waiting for completed Acks from implementers (and PBE) */
 		if (err == SA_AIS_OK) {	/*Proceed with commit */
 			/*If we arrive here, the assumption is that all implementors have agreed
 			   to commit and all immnds are prepared to commit this ccb. Fevs must
-			   guarantee that all have seen the same replies from implementers. */
+			   guarantee that all have seen the same replies from implementers. 
+			   If there is a PBE then it has also decided to commit.
+			*/
 			TRACE_2("DELAYED COMMIT TAKING EFFECT");
 			SaUint32T *implConnArr = NULL;
 			SaUint32T arrSize = 0;
 
-			immModel_ccbCommit(cb, evt->info.ccbUpcallRsp.ccbId, &arrSize, &implConnArr);
+			if(immModel_ccbCommit(cb, evt->info.ccbUpcallRsp.ccbId, &arrSize, &implConnArr)) {
+				cb->mRim = immModel_getRepositoryInitMode(cb);
+			}
+			  
 			if (arrSize) {
 				int ix;
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
@@ -2530,9 +2600,10 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 			LOG_WA("Failure in termination of CCB:%u - ignoring!", evt->info.ccbUpcallRsp.ccbId);
 			/* There is really not much we can do here. */
 		}
-	}			//if(!immModel_ccbWait
+	}
 	TRACE_LEAVE();
 }
+
 
 /****************************************************************************
  * Name          : immnd_evt_proc_rt_update_pull
@@ -3364,6 +3435,9 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 	NCS_NODE_ID implNodeId = 0;
 	SaUint32T continuationId = 0;
 	SaBoolT delayedReply = SA_FALSE;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 	TRACE_ENTER();
 
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -3385,8 +3459,59 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 		p = p->next;
 	}
 #endif   /*ABT DEBUG PRINTOUTS STOP */
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		/* If pbeNodeIdPtr is NULL then ccbObjectCreate skips the lookup
+		   of the pbe implementer.
+		 */
+	}
 
-	err = immModel_ccbObjectCreate(cb, &(evt->info.objCreate), &implConn, &implNodeId, &continuationId);
+	err = immModel_ccbObjectCreate(cb, &(evt->info.objCreate), &implConn, &implNodeId, 
+		&continuationId, &pbeConn, pbeNodeIdPtr);
+
+	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
+		/*The persistent back-end is present and executing at THIS node. */
+		assert(cb->mIsCoord);
+		assert(pbeNodeId);
+		assert(pbeNodeId == cb->node_id);
+		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+		/*Fetch client node for PBE */
+		immnd_client_node_get(cb, implHandle, &oi_cl_node);
+		assert(oi_cl_node);
+		if (oi_cl_node->mIsStale) {
+			LOG_WA("PBE is down => ccb %u fails", 
+				evt->info.objCreate.ccbId);
+			/* This is an asymetric failure, dangerous because we 
+			   are not waiting on reply for the modify UC to PBE.
+			   But the op count plus forced wait on PBE-completed,
+			   should prevent any apply to succeed. 
+			*/
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			immnd_proc_global_abort_ccb(cb, evt->info.objCreate.ccbId);
+		} else {
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_CREATE_UC;
+			send_evt.info.imma.info.objCreate = evt->info.objCreate;
+			send_evt.info.imma.info.objCreate.adminOwnerId = 0; 
+			/*We re-use the adminOwner member of the ccbCreate message to hold the 
+			  invocation id. In this case, 0 => no reply is expected. */
+
+			send_evt.info.imma.info.objCreate.immHandle = implHandle;
+
+			TRACE_2("MAKING PBE-IMPLEMENTER OBJ CREATE upcall");
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				    oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+				LOG_ER("Upcall over MDS for ccbObjectCreate failed "
+				       "to PBE failed! - aborting");
+				err = SA_AIS_ERR_FAILED_OPERATION;
+				immnd_proc_global_abort_ccb(cb, evt->info.objCreate.ccbId);
+			}
+			implHandle = 0LL;
+			oi_cl_node = NULL;
+		}
+	}
 
 	if (err == SA_AIS_OK && implNodeId) {
 		/*We have an implementer (somewhere) */
@@ -3402,7 +3527,6 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 				LOG_WA("Client died");
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				delayedReply = SA_FALSE;
-				assert(oi_cl_node != NULL);
 			} else {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3420,7 +3544,7 @@ static void immnd_evt_proc_object_create(IMMND_CB *cb,
 				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 						       oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("Agent upcall over MDS for ccbObjectCreate failed");
-					err = SA_AIS_ERR_LIBRARY;
+					err = SA_AIS_ERR_FAILED_OPERATION;
 				}
 			}
 		}
@@ -3483,6 +3607,9 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	SaUint32T implConn = 0;
 	NCS_NODE_ID implNodeId = 0;
 	SaUint32T continuationId = 0;
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
 
 	TRACE_ENTER();
 #if 0				/*ABT DEBUG PRINTOUTS START */
@@ -3505,7 +3632,60 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 	}
 #endif   /*ABT DEBUG PRINTOUTS STOP */
 
-	err = immModel_ccbObjectModify(cb, &(evt->info.objModify), &implConn, &implNodeId, &continuationId);
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		/* If pbeNodeIdPtr is NULL then ccbObjectModify skips 
+		   the lookup of the pbe implementer.
+		 */
+	}
+
+	err = immModel_ccbObjectModify(cb, &(evt->info.objModify), &implConn, &implNodeId, 
+		&continuationId, &pbeConn, pbeNodeIdPtr);
+
+	if(pbeNodeIdPtr && pbeConn && err == SA_AIS_OK) {
+		/*The persistent back-end is present and executing at THIS node. */
+		assert(cb->mIsCoord);
+		assert(pbeNodeId);
+		assert(pbeNodeId == cb->node_id);
+		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+
+		/*Fetch client node for PBE */
+		immnd_client_node_get(cb, implHandle, &oi_cl_node);
+		assert(oi_cl_node);
+		if (oi_cl_node->mIsStale) {
+			LOG_WA("PBE is down => ccb %u fails",
+				evt->info.objModify.ccbId);
+			/* This is an asymetric failure, dangerous because we 
+			   are not waiting on reply for the modify UC to PBE.
+			   But the op count plus forced wait on PBE-completed,
+			   should prevent any apply to succeed. 
+			*/
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			immnd_proc_global_abort_ccb(cb, evt->info.objModify.ccbId);
+		} else {
+			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+			send_evt.type = IMMSV_EVT_TYPE_IMMA;
+			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_MODIFY_UC;
+			send_evt.info.imma.info.objModify = evt->info.objModify;
+			send_evt.info.imma.info.objModify.adminOwnerId = 0; 
+			/*We re-use the adminOwner member of the ccbModify message to hold the 
+			  invocation id. In this case, 0 => no reply is expected. */
+
+			send_evt.info.imma.info.objModify.immHandle = implHandle;
+
+			TRACE_2("MAKING PBE-IMPLEMENTER OBJ MODIFY upcall");
+			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+				    oi_cl_node->agent_mds_dest,
+				    &send_evt) != NCSCC_RC_SUCCESS) {
+				LOG_ER("Upcall over MDS for ccbObjectModify "
+					"to PBE failed! - aborting");
+				err = SA_AIS_ERR_FAILED_OPERATION;
+				immnd_proc_global_abort_ccb(cb, evt->info.objModify.ccbId);
+			}
+			implHandle = 0LL;
+			oi_cl_node = NULL;
+		}
+	}
 
 	if (err == SA_AIS_OK && implNodeId) {
 		/*We have an implementer (somewhere) */
@@ -3517,11 +3697,11 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 
 			/*Fetch client node for OI ! */
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
-			if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
-				LOG_WA("OI Client died");
+			assert(oi_cl_node != NULL);
+			if (oi_cl_node->mIsStale) {
+				LOG_WA("OI Client went down so nod modify upcall");
 				err = SA_AIS_ERR_FAILED_OPERATION;
 				delayedReply = SA_FALSE;
-				assert(oi_cl_node != NULL);
 			} else {
 				memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 				send_evt.type = IMMSV_EVT_TYPE_IMMA;
@@ -3542,7 +3722,7 @@ static void immnd_evt_proc_object_modify(IMMND_CB *cb,
 				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
 						       oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
 					LOG_ER("Agent upcall over MDS for ccbObjectModify failed");
-					err = SA_AIS_ERR_LIBRARY;
+					err = SA_AIS_ERR_FAILED_OPERATION;
 				}
 			}
 		}
@@ -3702,7 +3882,7 @@ static void immnd_evt_ccb_abort(IMMND_CB *cb, SaUint32T ccbId, SaBoolT timeout, 
 
 			/*Fetch client node for OI ! */
 			immnd_client_node_get(cb, implHandle, &oi_cl_node);
-			if (oi_cl_node == NULL) {
+			if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
 				LOG_WA("IMMND - Client went down so can not send abort UC - ignoring!");
 			} else {
 				send_evt.info.imma.info.ccbCompl.ccbId = ccbId;
@@ -3785,14 +3965,87 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	SaUint32T arrSize = 0;
 	SaBoolT delayedReply = SA_FALSE;
 
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	TRACE_ENTER();
+
 #if 0				/*ABT DEBUG PRINTOUTS START */
 	TRACE_2("ABT immnd_evt_proc_object_delete object:%s", evt->info.objDelete.objectName.buf);
 	TRACE_2("ABT immnd_evt_proc_object_delete CCB:%u ADMOWN:%u",
 		evt->info.objDelete.ccbId, evt->info.objDelete.adminOwnerId);
 #endif   /*ABT DEBUG PRINTOUTS STOP */
 
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		/* If pbeNodeIdPtr is NULL then ccbObjectCreate skips the lookup
+		   of the pbe implementer. */
+	}
+
 	err = immModel_ccbObjectDelete(cb, &(evt->info.objDelete),
-				       originatedAtThisNd ? conn : 0, &arrSize, &implConnArr, &invocArr, &objNameArr);
+		originatedAtThisNd ? conn : 0, &arrSize, &implConnArr, &invocArr, &objNameArr,
+		&pbeConn, pbeNodeIdPtr);
+
+
+	/* Before generating implemener upcalls for any local implementers,
+	   generate PBE upcalls for ALL deleted objects, if the PBE exists and is local.
+           To reduce nrof messages, we do not wait for ack from create/modify/delete 
+           upcalls to PBE. Instead we count the number of ops for the ccb in both model
+	   and in PBE. The count is verified in teh completed upcall to PBE where we 
+	   *do* wait for ack. In fact the ccb-commit/abort decision is delegated to
+           the PBE when the completed upcall is done.
+	 */
+	if(pbeNodeIdPtr && pbeConn && err==SA_AIS_OK) {
+		/* PBE exists and is local to this node. */
+		assert(cb->mIsCoord);
+		assert(pbeNodeId);
+		assert(pbeNodeId == cb->node_id);
+		implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_DELETE_UC;
+		send_evt.info.imma.info.objDelete.ccbId = evt->info.objDelete.ccbId;
+		send_evt.info.imma.info.objDelete.immHandle = implHandle;
+		send_evt.info.imma.info.objDelete.adminOwnerId = 0; /* No reply!*/
+
+		/*Fetch client node for PBE */
+		immnd_client_node_get(cb, implHandle, &oi_cl_node);
+		assert(oi_cl_node);
+		if (oi_cl_node->mIsStale) {
+			LOG_WA("IMMND - PBE is down => ccb %u fails",
+				evt->info.objDelete.ccbId);
+			/* This is an asymetric failure, dangerous because we 
+			   are not waiting on replies for delete UC to PBE.
+			   But the op count plus forced wait on PBE-completed,
+			   should prevent any apply to succeed. 
+			*/
+			err = SA_AIS_ERR_FAILED_OPERATION;
+			immnd_proc_global_abort_ccb(cb, evt->info.objDelete.ccbId);			
+		} else {
+			/* We have obtained PBE handle & dest info for PBE. 
+			   Iterate through objNameArray and send delete upcalls to PBE.
+			 */
+			int ix = 0;
+			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
+				send_evt.info.imma.info.objDelete.objectName.size = 
+					strlen(objNameArr[ix]);
+				send_evt.info.imma.info.objDelete.objectName.buf = 
+					objNameArr[ix];
+
+				TRACE_2("MAKING PBE-IMPLEMENTER OBJ DELETE upcall");
+				if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+					    oi_cl_node->agent_mds_dest, 
+					    &send_evt) != NCSCC_RC_SUCCESS) {
+					LOG_ER("Immnd upcall over MDS for ccbObjectDelete "
+						"to PBE failed! - aborting ccb %u",
+						evt->info.objDelete.ccbId);
+					err = SA_AIS_ERR_FAILED_OPERATION;
+					immnd_proc_global_abort_ccb(cb, evt->info.objDelete.ccbId);
+				}
+			}
+
+		}
+	} /* End of PersistentBackEnd handling. */
 
 	if (err == SA_AIS_OK) {
 		if (arrSize) {
@@ -3804,16 +4057,22 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			send_evt.info.imma.info.objDelete.ccbId = evt->info.objDelete.ccbId;
 			int ix = 0;
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
+				if(implConnArr[ix] == 0) {
+					/* implConn zero => ony for PBE. */
+					continue;
+				}
+
 				/*Look up the client node for the implementer, using implConn */
 				implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
 				/*Fetch client node for OI ! */
 				immnd_client_node_get(cb, implHandle, &oi_cl_node);
-				if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
-					LOG_WA("IMMND - Client went down so no response");
+				assert(oi_cl_node != NULL);
+				if (oi_cl_node->mIsStale) {
+					LOG_WA("Client went down so no delete upcall to one client");
+					/* This should cause the ccb-operation to timeout on wait for the reply. */
 					err = SA_AIS_ERR_FAILED_OPERATION;
 					delayedReply = SA_FALSE;
-					assert(oi_cl_node != NULL);
 				} else {
 					send_evt.info.imma.info.objDelete.objectName.size = strlen(objNameArr[ix]);
 					send_evt.info.imma.info.objDelete.objectName.buf = objNameArr[ix];
@@ -3828,23 +4087,20 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 							       oi_cl_node->agent_mds_dest,
 							       &send_evt) != NCSCC_RC_SUCCESS) {
 						LOG_ER("Immnd upcall over MDS for ccbObjectDelete failed");
+						/* This should cause the ccb-operation to timeout. */
 						err = SA_AIS_ERR_FAILED_OPERATION;
 						delayedReply = SA_FALSE;
 					}
 				}
 			}	/*for */
 		} else if (immModel_ccbWaitForDeleteImplAck(cb, evt->info.ccbId, &err)) {
-			/*No local implementers, but we need to wait for remote implementers */
-			TRACE_2("No local implementers but wait for remote. ccb: %u", evt->info.ccbId);
-			/* TODO:
-			   If err != SA_AIS_OK from above call, should not delayedReply=FALSE??
-			   but perhaps this can not happen if above returns true.
-			 */
-			delayedReply = SA_TRUE;
+			TRACE_2("No local implementers but wait for remote ones. ccb: %u", evt->info.ccbId);
+			delayedReply = (err==SA_AIS_OK);
 		} else {
 			TRACE_2("NO IMPLEMENTERS AT ALL. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
 		}
 	}
+
 	/* err!=SA_AIS_OK or no implementers =>immediate reply */
 	if (arrSize) {
 		int ix;
@@ -3864,13 +4120,13 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	if (originatedAtThisNd && !delayedReply) {
 		immnd_client_node_get(cb, clnt_hdl, &cl_node);
 		if (cl_node == NULL || cl_node->mIsStale) {
-			LOG_WA("IMMND - Client went down so no response");
+			LOG_WA("IMMND - OM Client went down so no response");
 			return;
 		}
 
 		sinfo = &cl_node->tmpSinfo;
 
-		TRACE_2("Send immediate reply to agent/client");
+		TRACE_2("Send immediate reply to OM client");
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
 		send_evt.info.imma.info.errRsp.error = err;
@@ -4050,13 +4306,26 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 	SaUint32T *ctnArr = NULL;
 	SaUint32T arrSize = 0;
 	SaBoolT delayedReply = SA_FALSE;
-
+	SaUint32T pbeConn = 0;
+	NCS_NODE_ID pbeNodeId = 0;
+	NCS_NODE_ID *pbeNodeIdPtr = NULL;
+	SaUint32T pbeId = 0;
+	SaUint32T pbeCtn = 0;
+	TRACE_ENTER();
 #if 0 /* Ticket #496  testcase immomtest 6 22 */
 	if((evt->info.ccbId == 10)&&(originatedAtThisNd)) {
 		LOG_ER("FAULT INJECTION CRASH IN APPLY OF CCB 10");
 		abort();
 	}
 #endif
+TRACE("ABT procc_ccb_apply pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
+	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
+		pbeNodeIdPtr = &pbeNodeId;
+		TRACE("We expect there to be a PBE");
+		/* If pbeNodeIdPtr is NULL then ccbWaitForCompletedAck
+		   (further down below) skips the lookup of the pbe implementer.
+		 */
+	}
 
 	err = immModel_ccbApply(cb, evt->info.ccbId, originatedAtThisNd ? conn : 0,
 				&arrSize, &implConnArr, &implIdArr, &ctnArr);
@@ -4080,7 +4349,6 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 					LOG_WA("IMMND - Client went down so no response");
 					err = SA_AIS_ERR_FAILED_OPERATION;
 					delayedReply = SA_FALSE;
-					assert(oi_cl_node != NULL);
 				} else {
 					send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
 					send_evt.info.imma.info.ccbCompl.implId = implIdArr[ix];
@@ -4100,14 +4368,51 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 					}
 				}
 			}	/*for */
-		} else if (immModel_ccbWaitForCompletedAck(cb, evt->info.ccbId, &err)) {
-			TRACE_2("No local implementers but wait for remote. ccb: %u", evt->info.ccbId);
-			/* TODO:
-			   If err != SA_AIS_OK from above all should not 
-			   delayedReply=FALSE?? */
+		} else if (immModel_ccbWaitForCompletedAck(cb, evt->info.ccbId, &err,
+				   &pbeConn, pbeNodeIdPtr, &pbeId, &pbeCtn)) {
+			TRACE_2("No local regular implementers but wait for remote and/or PBE ccb: %u", evt->info.ccbId);
 			delayedReply = SA_TRUE;
+			if(pbeNodeId) {
+				/* There is be a PBE. */
+				assert(err == SA_AIS_OK); /* I not OK then we should not be waiting. */
+				TRACE_5("Wait for PBE commit decision for ccb %u", evt->info.ccbId);
+				if(pbeConn) {
+					TRACE_5("PBE is LOCAL - send completed upcall for %u", evt->info.ccbId);
+					/* The PBE is connected at THIS node. Make the completed upcall. 
+					   If the PBE decides to commit it soes so immediately. 
+					   It does not wait for the apply upcall.
+					*/
+					SaImmOiHandleT implHandle = m_IMMSV_PACK_HANDLE(pbeConn, pbeNodeId);
+					/*Fetch client node for OI ! */
+					immnd_client_node_get(cb, implHandle, &oi_cl_node);
+					if (oi_cl_node == NULL || oi_cl_node->mIsStale) {
+						LOG_WA("PBE went down");
+						/* ###TODO need to ABORT ccb in CRITICAL. or set CRITICAL below*/
+						err = SA_AIS_ERR_FAILED_OPERATION;
+						assert(0);
+					}
+
+					memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+					send_evt.type = IMMSV_EVT_TYPE_IMMA;
+					send_evt.info.imma.type = IMMA_EVT_ND2A_OI_CCB_COMPLETED_UC;
+					send_evt.info.imma.info.ccbCompl.ccbId = evt->info.ccbId;
+					send_evt.info.imma.info.ccbCompl.immHandle = implHandle;
+					send_evt.info.imma.info.ccbCompl.implId = pbeId;
+					send_evt.info.imma.info.ccbCompl.invocation = pbeCtn;
+
+					TRACE_2("MAKING IMPLEMENTER CCB COMPLETED upcall");
+					if(immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMA_OI,
+						   oi_cl_node->agent_mds_dest, &send_evt) != NCSCC_RC_SUCCESS) {
+						LOG_ER("CCB COMPLETED UPCALL SEND TO PBE FAILED");
+						abort();
+					} else {
+						TRACE_5("IMMND UPCALL TO PBE for ccb %u, SEND SUCCEEDED", 
+							evt->info.ccbId);
+					}
+				}
+			}
 		} else {
-			TRACE_2("NO IMPLEMENTERS AT ALL. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
+			TRACE_2("NO IMPLEMENTERS AT ALL AND NO PBE. for ccb:%u err:%u sz:%u", evt->info.ccbId, err, arrSize);
 		}
 	}
 	/* err != SA_AIS_OK or no implementers => immediate reply. */
@@ -4124,7 +4429,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 		arrSize = 0;
 	}
 
-	/*REPLY can not be sent immediately if there are implementers
+	/*REPLY can not be sent immediately if there are implementers or PBE.
 	   Must wait for prepare votes. */
 	if (!delayedReply) {
 		SaUint32T client = 0;
@@ -4137,7 +4442,9 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			   or node departure, is not handled correctly/consistently over FEVS. 
 			   We should transform this to a more elaborate immnd_evt_ccb_commit call.
 			 */
-			immModel_ccbCommit(cb, evt->info.ccbId, &arrSize, &implConnArr);
+			if(immModel_ccbCommit(cb, evt->info.ccbId, &arrSize, &implConnArr)) {
+				cb->mRim = immModel_getRepositoryInitMode(cb);
+			}
 			/* TODO: INFORM DIRECTOR OF CCB-COMMIT DECISION */
 			assert(arrSize == 0);
 		} else {
@@ -4169,6 +4476,7 @@ static void immnd_evt_proc_ccb_apply(IMMND_CB *cb,
 			}
 		}
 	}
+	TRACE_LEAVE();
 }
 
 static uns32 immnd_restricted_ok(IMMND_CB *cb, uns32 id)
@@ -5881,3 +6189,4 @@ uns32 immnd_is_immd_up(IMMND_CB *cb)
 
 	return is_immd_up;
 }
+

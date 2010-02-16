@@ -127,21 +127,27 @@ public:
                                         const ImmsvOmCcbObjectCreate* req,
                                         SaUint32T* implConn,
                                         unsigned int* implNodeId,
-                                        SaUint32T* continuationId);
+                                        SaUint32T* continuationId,
+                                        SaUint32T* pbeConn,
+                                        unsigned int* pbeNodeId);
     
     SaAisErrorT         ccbObjectModify(
                                         const ImmsvOmCcbObjectModify* req,
                                         SaUint32T* implConn,
                                         unsigned int* implNodeId,
-                                        SaUint32T* continuationId);
+                                        SaUint32T* continuationId,
+                                        SaUint32T* pbeConn,
+                                        unsigned int* pbeNodeId);
     
     SaAisErrorT         ccbObjectDelete(
                                         const ImmsvOmCcbObjectDelete* req,
                                         SaUint32T reqConn,
                                         ObjectNameVector& objNameVector,
                                         ConnVector& connVector,
-                                        IdVector& continuations);
-    
+                                        IdVector& continuations,
+                                        SaUint32T* pbeConn,
+                                        unsigned int* pbeNodeId);
+
     SaAisErrorT         deleteObject(
                                      ObjectMap::iterator& oi,
                                      SaUint32T reqConn,
@@ -150,7 +156,8 @@ public:
                                      bool doIt,
                                      ObjectNameVector& objNameVector,
                                      ConnVector& connVector,
-                                     IdVector& continuations);
+                                     IdVector& continuations,
+				     unsigned int pbeIsLocal);
     
     bool                ccbWaitForDeleteImplAck(
                                                 SaUint32T ccbId, 
@@ -158,7 +165,11 @@ public:
 
     bool                ccbWaitForCompletedAck(
                                                SaUint32T ccbId, 
-                                               SaAisErrorT* err);
+                                               SaAisErrorT* err,
+                                               SaUint32T* pbeConn,
+                                               unsigned int* pbeNodeId,
+					       SaUint32T* pbeId,
+					       SaUint32T* pbeCtn);
     
     void                ccbObjDelContinuation(
                                               const immsv_oi_ccb_upcall_rsp* rsp,
@@ -288,7 +299,7 @@ public:
     void              getNonCriticalCcbs(IdVector& cv);
     bool              immNotWritable();
     bool              immNotPbeWritable();
-    unsigned int      getPbeOi(SaUint32T* implConn);
+    void*             getPbeOi(SaUint32T* pbeConn, unsigned int* pbeNode);
     SaUint32T         findConnForImplementerOfObject(std::string objectDn);
     ImplementerInfo*  findImplementer(SaUint32T);
     ImplementerInfo*  findImplementer(std::string&);
@@ -300,7 +311,7 @@ public:
     void              discardNode(unsigned int nodeId, IdVector& cv);
     void              getCcbIdsForOrigCon(SaUint32T dead, IdVector& cv);
     void              getAdminOwnerIdsForCon(SaUint32T dead, IdVector& cv);
-    void              ccbCommit(SaUint32T ccbId, ConnVector& connVector);
+    bool              ccbCommit(SaUint32T ccbId, ConnVector& connVector);
     void              ccbAbort(
                                SaUint32T ccbId, 
                                ConnVector& connVector,
@@ -409,7 +420,7 @@ private:
                                        bool remove=false);
     
     void               commitCreate(ObjectInfo* afim);
-    void               commitModify(const std::string& dn, ObjectInfo* afim);
+    bool               commitModify(const std::string& dn, ObjectInfo* afim);
     void               commitDelete(const std::string& dn);
     
     int loaderPid; //(-1) => loading not started or loading partiticpant.

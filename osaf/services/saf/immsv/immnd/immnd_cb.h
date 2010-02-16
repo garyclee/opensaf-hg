@@ -133,6 +133,7 @@ typedef struct immnd_cb_tag {
 	const char *mDir;	//The directory where imm.xml & pbe files reside
 	const char *mFile;	//The imm.xml file to start from
 	const char *mPbeFile;   //Pbe feature is configured (IMMSV_PBE_FILE).
+	SaImmRepositoryInitModeT mRim; 
 
 	uns8 mExpectedNodes;
 	uns8 mWaitSecs;

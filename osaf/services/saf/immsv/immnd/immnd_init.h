@@ -55,6 +55,8 @@ void search_req_continue(IMMND_CB *cb, IMMSV_OM_RSP_SEARCH_REMOTE *reply, SaUint
 void immnd_ackToNid(uns32 rc);
 SaBoolT immnd_syncComplete(IMMND_CB *cb, SaBoolT coordinator, SaUint32T step);
 
+void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId);
+
 /* End immnd_proc.c */
 
 /* file : - ImmModel.cc */
@@ -117,20 +119,20 @@ extern "C" {
 
 	SaAisErrorT
 	    immModel_ccbObjectDelete(IMMND_CB *cb,
-				     const struct ImmsvOmCcbObjectDelete *req,
-				     SaUint32T reqConn,
-				     SaUint32T *arrSize,
-				     SaUint32T **implConnArr, SaUint32T **implIdArr, SaStringT **objNameArr);
+		    const struct ImmsvOmCcbObjectDelete *req,
+		    SaUint32T reqConn, SaUint32T *arrSize, SaUint32T **implConnArr, SaUint32T **implIdArr, 
+		    SaStringT **objNameArr, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
+
 
 	SaAisErrorT
 	    immModel_ccbObjectCreate(IMMND_CB *cb,
-				     const struct ImmsvOmCcbObjectCreate *req,
-				     SaUint32T *implConn, SaClmNodeIdT *implNodeId, SaUint32T *continuationId);
+		    const struct ImmsvOmCcbObjectCreate *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
+		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	SaAisErrorT
 	    immModel_ccbObjectModify(IMMND_CB *cb,
-				     const struct ImmsvOmCcbObjectModify *req,
-				     SaUint32T *implConn, SaClmNodeIdT *implNodeId, SaUint32T *continuationId);
+		    const struct ImmsvOmCcbObjectModify *req, SaUint32T *implConn, SaClmNodeIdT *implNodeId, 
+		    SaUint32T *continuationId, SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId);
 
 	void immModel_ccbCompletedContinuation(IMMND_CB *cb,
 					       const struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
@@ -138,11 +140,13 @@ extern "C" {
 	void immModel_ccbObjDelContinuation(IMMND_CB *cb,
 					    const struct immsv_oi_ccb_upcall_rsp *rsp, SaUint32T *reqConn);
 
-	SaBoolT immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err);
+	SaBoolT immModel_ccbWaitForCompletedAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err, 
+                                            SaUint32T *pbeConn, SaClmNodeIdT *pbeNodeId, 
+                                            SaUint32T *pbeId, SaUint32T *pbeCtn);
 
 	SaBoolT immModel_ccbWaitForDeleteImplAck(IMMND_CB *cb, SaUint32T ccbId, SaAisErrorT *err);
 
-	void immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
+	SaBoolT immModel_ccbCommit(IMMND_CB *cb, SaUint32T ccbId, SaUint32T *arrSize, SaUint32T **implConnArr);
 	SaAisErrorT immModel_ccbFinalize(IMMND_CB *cb, SaUint32T ccbId);
 
 	SaAisErrorT immModel_searchInitialize(IMMND_CB *cb, struct ImmsvOmSearchInit *req, void **searchOp);

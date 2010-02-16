@@ -23,7 +23,9 @@ struct imma_oi_ccb_record {
 	SaUint32T ccbId;
 	uns8 isStale;    /* 1 => ccb was terminated by IMMND down. */
 	uns8 isCritical; /* 1 => OI has replied OK on completed callback but not */
-};                   /*      received abort-callback or apply-callback.      */
+                         /*      received abort-callback or apply-callback.      */
+        SaUint32T opCount; /* Used to ensure PBE has not missed any unacked ops. */
+};
 
 typedef struct imma_client_node {
 	NCS_PATRICIA_NODE patnode;	/* index for the tree */
@@ -156,8 +158,8 @@ EXTERN_C void imma_client_tree_destroy(IMMA_CB *cb);
 EXTERN_C void imma_client_tree_cleanup(IMMA_CB *cb);
 EXTERN_C void imma_mark_clients_stale(IMMA_CB *cb);
 EXTERN_C int  isExposed(IMMA_CB *cb, IMMA_CLIENT_NODE  *clnode);
-void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
-int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
+void imma_oi_ccb_record_add(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, SaUint32T inv);
+int imma_oi_ccb_record_set_critical(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId, SaUint32T inv);
 int imma_oi_ccb_record_terminate(IMMA_CLIENT_NODE *cl_node, SaUint32T ccbId);
 
 

@@ -948,7 +948,7 @@ static void imma_proc_obj_delete(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_DELETE for ccb %u", evt->info.objDelete.ccbId);
-		imma_oi_ccb_record_add(cl_node, evt->info.objDelete.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objDelete.ccbId, callback->inv);
 	}
 
 	/* Release The Lock */
@@ -1012,7 +1012,7 @@ static void imma_proc_obj_create(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("Posted IMMA_CALLBACK_OI_CCB_CREATE for ccb %u", evt->info.objCreate.ccbId);
-		imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objCreate.ccbId, callback->inv);
 	}
 
 	/* Release The Lock */
@@ -1075,7 +1075,7 @@ static void imma_proc_obj_modify(IMMA_CB *cb, IMMA_EVT *evt)
 		/* Send the event */
 		(void)m_NCS_IPC_SEND(&cl_node->callbk_mbx, callback, NCS_IPC_PRIORITY_NORMAL);
 		TRACE("IMMA_CALLBACK_OI_CCB_MODIFY Posted for ccb %u", evt->info.objModify.ccbId);
-		imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId);
+		imma_oi_ccb_record_add(cl_node, evt->info.objModify.ccbId, callback->inv);
 	}
 
 	/* Release The Lock */
@@ -1794,14 +1794,14 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				   assume this in the IMMSv implementation. 
 				*/
 				imma_client_node_get(&cb->client_tree, &(immHandle), &cl_node);
-				if (cl_node && imma_oi_ccb_record_set_critical(cl_node, callback->ccbID)) {
+				if (cl_node && imma_oi_ccb_record_set_critical(cl_node, callback->ccbID, callback->inv)) {
 					TRACE_2("Sending normal OK response on completed for ccb %u. "
 						"The oi_ccb_record now marked as critical.", callback->ccbID);
 
 					localEr = imma_evt_fake_evs(cb, &ccbCompletedRpl, NULL, 0, cl_node->handle, 
 						&locked, FALSE);
 				} else {
-					TRACE_4("ERROR: Client node gone (%p), or CCB record for %u non existent. "
+					LOG_ER("ERROR: Client node gone (%p), or CCB record for %u non existent. "
 						"Overiding OK response from ccb-completed with ERR_FAILED_OPERATION", 
 						cl_node, callback->ccbID);
 					ccbCompletedRpl.info.immnd.info.ccbUpcallRsp.result = 
@@ -2005,20 +2005,24 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
+			if(callback->inv) { 
+				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				locked = TRUE;
+				memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
+				ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
+				ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
+				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
 
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			locked = TRUE;
-			memset(&ccbObjCrRpl, 0, sizeof(IMMSV_EVT));
-			ccbObjCrRpl.type = IMMSV_EVT_TYPE_IMMND;
-			ccbObjCrRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_CREATE_RSP;
-			ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-			ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-			ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+				ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
-			ccbObjCrRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-
-			/*async fevs */
-			localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+				/*async fevs */
+				localEr = imma_evt_fake_evs(cb, &ccbObjCrRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			} else {
+				/* callback->inv == 0 means PBE create upcall, no reply. */
+				
+			}
 
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
@@ -2084,20 +2088,21 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 			}
 
-			memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
-			ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
-			ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP;
-			ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-			ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-			ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-			ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-			ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
+			if(callback->inv) { /* callback->inv == 0 means PBE modify upcall, no reply. */
+				memset(&ccbObjDelRpl, 0, sizeof(IMMSV_EVT));
+				ccbObjDelRpl.type = IMMSV_EVT_TYPE_IMMND;
+				ccbObjDelRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_DELETE_RSP;
+				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
+				ccbObjDelRpl.info.immnd.info.ccbUpcallRsp.name = callback->name;
 
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			locked = TRUE;
-			/*async  fevs */
-			localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-
+				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				locked = TRUE;
+				/*async  fevs */
+				localEr = imma_evt_fake_evs(cb, &ccbObjDelRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			}
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = FALSE;
@@ -2247,20 +2252,20 @@ static void imma_process_callback_info(IMMA_CB *cb, IMMA_CLIENT_NODE *cl_node,
 				localEr = SA_AIS_ERR_FAILED_OPERATION;
 				/*Change to BAD_OP if only aborting modify and not ccb. */
 			}
+			if(callback->inv) { /* callback->inv == 0 means PBE modify upcall, no reply. */
+				assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
+				locked = TRUE;
+				memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
+				ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
+				ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
+				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
+				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
+				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
+				ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
 
-			assert(m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
-			locked = TRUE;
-			memset(&ccbObjModRpl, 0, sizeof(IMMSV_EVT));
-			ccbObjModRpl.type = IMMSV_EVT_TYPE_IMMND;
-			ccbObjModRpl.info.immnd.type = IMMND_EVT_A2ND_CCB_OBJ_MODIFY_RSP;
-			ccbObjModRpl.info.immnd.info.ccbUpcallRsp.result = localEr;
-			ccbObjModRpl.info.immnd.info.ccbUpcallRsp.oi_client_hdl = callback->lcl_imm_hdl;
-			ccbObjModRpl.info.immnd.info.ccbUpcallRsp.ccbId = callback->ccbID;
-			ccbObjModRpl.info.immnd.info.ccbUpcallRsp.inv = callback->inv;
-
-			/*async fevs */
-			localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
-
+				/*async fevs */
+				localEr = imma_evt_fake_evs(cb, &ccbObjModRpl, NULL, 0, cl_node->handle, &locked, FALSE);
+			}
 			if (locked) {
 				assert(m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE) == NCSCC_RC_SUCCESS);
 				locked = FALSE;

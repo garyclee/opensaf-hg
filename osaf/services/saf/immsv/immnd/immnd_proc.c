@@ -125,7 +125,7 @@ uns32 immnd_proc_imma_discard_connection(IMMND_CB *cb, IMMND_IMM_CLIENT_NODE *cl
 		if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt) != NCSCC_RC_SUCCESS) {
 			if (immnd_is_immd_up(cb)) {
 				LOG_ER("Discard implementer failed for implId:%u "
-				       "but IMMD is up !? - case not handled. Client will " "be orphanded", implId);
+				       "but IMMD is up !? - case not handled. Client will be orphanded", implId);
 			} else {
 				LOG_WA("Discard implementer failed for implId:%u "
 				       "(immd_down)- will retry later", implId);
@@ -748,7 +748,7 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 			LOG_WA("Timeout while waiting for implementer, aborting ccb:%u", ccbIdArr[ix]);
 
 			if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
-					       &send_evt) != NCSCC_RC_SUCCESS) {
+				    &send_evt) != NCSCC_RC_SUCCESS) {
 				LOG_ER("Failure to broadcast discard Ccb for ccbId:%u", ccbIdArr[ix]);
 				/* assert(0); */
 			}
@@ -758,6 +758,20 @@ static void immnd_cleanTheHouse(IMMND_CB *cb, SaBoolT iAmCoordNow)
 
 	/*TRACE_LEAVE(); */
 }
+
+void immnd_proc_global_abort_ccb(IMMND_CB *cb, SaUint32T ccbId)
+{
+	IMMSV_EVT send_evt;
+	memset(&send_evt, '\0', sizeof(IMMSV_EVT));
+	send_evt.type = IMMSV_EVT_TYPE_IMMD;
+	send_evt.info.immd.type = IMMD_EVT_ND2D_ABORT_CCB;
+	send_evt.info.immd.info.ccbId = ccbId;
+	if (immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id,
+		    &send_evt) != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failure to broadcast abort Ccb for ccbId:%u", ccbId);
+	}
+}
+
 
 static SaBoolT immnd_ccbsTerminated(IMMND_CB *cb, SaUint32T step)
 {
@@ -919,7 +933,14 @@ static int immnd_forkPbe(IMMND_CB *cb)
 
 	if (pid == 0) {		/*child */
 		/* TODO: Should close file-descriptors ... */
-		char * const pbeArgs[5] = { (char *) pbeBase, "--pbe", pbePath, "--daemon", 0 };
+		/*char * const pbeArgs[5] = { (char *) pbeBase, "--daemon", "--pbe", pbePath, 0 };*/
+		char * pbeArgs[5];
+		pbeArgs[0] = (char *) pbeBase;
+		pbeArgs[1] =  "--daemon";
+		pbeArgs[2] = "--pbe";
+		pbeArgs[3] = pbePath;
+		pbeArgs[4] =  0;
+
 		LOG_IN("Trying to exec: %s %s %s %s", pbeArgs[0], pbeArgs[1], pbeArgs[2], pbeArgs[3]);
 		execvp(pbeBase, pbeArgs);
 		LOG_ER("%s failed to exec '%s -pbe', error %u", base, pbeBase, errno);
@@ -966,11 +987,8 @@ uns32 immnd_proc_server(uns32 *timeout)
 		/*TRACE_5("IMM_SERVER_ANONYMOUS");*/
 		if (immnd_introduceMe(cb) == NCSCC_RC_SUCCESS) {
 			cb->mTimer = 0;
-			LOG_NO("SERVER STATE: IMM_SERVER_ANONYMOUS --> " "IMM_SERVER_CLUSTER_WAITING");
+			LOG_NO("SERVER STATE: IMM_SERVER_ANONYMOUS --> IMM_SERVER_CLUSTER_WAITING");
 			cb->mState = IMM_SERVER_CLUSTER_WAITING;
-			if ((cb->mPbeFile = getenv("IMMSV_PBE_FILE")) != NULL) {
-				LOG_NO("Persistent Back-End capability enabled, Pbe file:%s", cb->mPbeFile);
-			}
 		}
 
 		if(cb->is_immd_up) {
@@ -996,7 +1014,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			} else {
 				/*Non coordinator goes directly to loading pending */
 				cb->mState = IMM_SERVER_LOADING_PENDING;
-				LOG_NO("SERVER STATE: IMM_SERVER_CLUSTER_WAITING --> " "IMM_SERVER_LOADING_PENDING");
+				LOG_NO("SERVER STATE: IMM_SERVER_CLUSTER_WAITING --> IMM_SERVER_LOADING_PENDING");
 				cb->mTimer = 0;
 			}
 		} else {	/*We are not ready to start loading yet */
@@ -1007,7 +1025,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 		}
 
 		if (cb->mTimer > 200) {	/* No progress in 20 secs */
-			LOG_ER("Failed to load/sync. Giving up after %u seconds, " "restarting..", (cb->mTimer) / 10);
+			LOG_ER("Failed to load/sync. Giving up after %u seconds, restarting..", (cb->mTimer) / 10);
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
 			immnd_ackToNid(rc);
 		}
@@ -1018,7 +1036,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 		newEpoch = immnd_iAmLoader(cb);
 		if (newEpoch < 0) {	/*Loading is not possible */
 			if (immnd_iAmCoordinator(cb) == 1) {
-				LOG_ER("LOADING NOT POSSIBLE, " "CLUSTER DOES NOT AGREE ON EPOCH.. TERMINATING");
+				LOG_ER("LOADING NOT POSSIBLE, CLUSTER DOES NOT AGREE ON EPOCH.. TERMINATING");
 				rc = NCSCC_RC_FAILURE;
 				immnd_ackToNid(rc);
 			} else {
@@ -1049,7 +1067,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				}
 			} else {
 				/*Non loader goes directly to loading client */
-				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> " "IMM_SERVER_LOADING_CLIENT");
+				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_PENDING --> IMM_SERVER_LOADING_CLIENT");
 				cb->mState = IMM_SERVER_LOADING_CLIENT;
 				cb->mTimer = 0;
 			}
@@ -1060,7 +1078,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 		if (cb->mSync) {
 			/* Sync has started */
 			cb->mTimer = 0;
-			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_PENDING --> " "IMM_SERVER_SYNC_CLIENT");
+			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_PENDING --> IMM_SERVER_SYNC_CLIENT");
 			cb->mState = IMM_SERVER_SYNC_CLIENT;
 		} else {
 			/* Sync has not started yet. */
@@ -1078,7 +1096,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			}
 
 			if (!(cb->mTimer % 10)) {
-				LOG_IN("This node still waiting to be sync'ed " "after %u seconds", cb->mTimer / 10);
+				LOG_IN("This node still waiting to be sync'ed after %u seconds", cb->mTimer / 10);
 			}
 		}
 		break;
@@ -1114,7 +1132,13 @@ uns32 immnd_proc_server(uns32 *timeout)
 				immnd_adjustEpoch(cb);
 				cb->mState = IMM_SERVER_READY;
 				immnd_ackToNid(NCSCC_RC_SUCCESS);
-				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_SERVER --> " "IMM_SERVER_READY");
+				LOG_NO("SERVER STATE: IMM_SERVER_LOADING_SERVER --> IMM_SERVER_READY");
+				if (cb->mPbeFile) {/* Pbe enabled */
+					cb->mRim = immModel_getRepositoryInitMode(cb);
+
+					TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+						"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+				}
 				/*Dont zero cb->loaderPid yet. 
 				   It is used to control waiting for loader child. */
 			} else {
@@ -1144,7 +1168,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 	case IMM_SERVER_LOADING_CLIENT:
 		TRACE_5("IMM_SERVER_LOADING_CLIENT");
 		if (cb->mTimer > (cb->mWaitSecs ? ((cb->mWaitSecs) * 10 + 150) : 150)) {
-			LOG_WA("Loading client timed out, waiting to be loaded - " "terminating");
+			LOG_WA("Loading client timed out, waiting to be loaded - terminating");
 			cb->mTimer = 0;
 			/*immModel_setLoader(cb,0); */
 			/*cb->mState = IMM_SERVER_ANONYMOUS; */
@@ -1155,7 +1179,13 @@ uns32 immnd_proc_server(uns32 *timeout)
 			immnd_adjustEpoch(cb);
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
 			cb->mState = IMM_SERVER_READY;
-			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> " "IMM_SERVER_READY");
+			LOG_NO("SERVER STATE: IMM_SERVER_LOADING_CLIENT --> IMM_SERVER_READY");
+			if (cb->mPbeFile) {/* Pbe enabled */
+				cb->mRim = immModel_getRepositoryInitMode(cb);
+
+				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			}
 			/*
 			   This code case duplicated in immnd_evt.c
 			   Search for: "ticket:#598"
@@ -1169,7 +1199,13 @@ uns32 immnd_proc_server(uns32 *timeout)
 			cb->mTimer = 0;
 			cb->mState = IMM_SERVER_READY;
 			immnd_ackToNid(NCSCC_RC_SUCCESS);
-			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> " "IMM SERVER READY");
+			LOG_NO("SERVER STATE: IMM_SERVER_SYNC_CLIENT --> IMM SERVER READY");
+			if (cb->mPbeFile) {/* Pbe enabled */
+				cb->mRim = immModel_getRepositoryInitMode(cb);
+
+				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			}
 			/*
 			   This code case duplicated in immnd_evt.c
 			   Search for: "ticket:#599"
@@ -1180,7 +1216,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 			   In this case we may becomme the coordinator even though
 			   we are not loaded or synced. We should in this case becomme
 			   the loader. */
-			LOG_WA("Coordinator apparently crashed during sync. " "Aborting the sync.");
+			LOG_WA("Coordinator apparently crashed during sync. Aborting the sync.");
 			rc = NCSCC_RC_FAILURE;	/*terminate. */
 			immnd_ackToNid(rc);
 		}
@@ -1200,7 +1236,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 				assert(cb->syncPid == 0);
 				cb->mTimer = 0;
 				cb->mState = IMM_SERVER_READY;
-				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> " "IMM SERVER READY");
+				LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 			}
 		} else {
 			/*Phase 2 */
@@ -1213,7 +1249,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 					cb->mTimer = 0;
 					cb->mState = IMM_SERVER_READY;
 					immnd_abortSync(cb);
-					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> " "IMM SERVER READY");
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 				} else {
 					LOG_IN("Sync Phase-2: Ccbs are terminated, IMM in "
 					       "read-only mode, forked sync process pid:%u", cb->syncPid);
@@ -1226,14 +1262,14 @@ uns32 immnd_proc_server(uns32 *timeout)
 				if (immnd_syncComplete(cb, TRUE, cb->mTimer)) {
 					cb->mTimer = 0;
 					cb->mState = IMM_SERVER_READY;
-					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER -->" " IMM SERVER READY");
+					LOG_NO("SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM SERVER READY");
 				} else {
 					int status = 0;
 					if (waitpid(cb->syncPid, &status, WNOHANG) > 0) {
 						LOG_ER("SYNC APPARENTLY FAILED status:%i", WEXITSTATUS(status));
 						cb->syncPid = 0;
 						cb->mTimer = 0;
-						LOG_NO("-SERVER STATE: IMM_SERVER_SYNC_SERVER " "--> IMM_SERVER_READY");
+						LOG_NO("-SERVER STATE: IMM_SERVER_SYNC_SERVER --> IMM_SERVER_READY");
 						cb->mState = IMM_SERVER_READY;
 						immnd_abortSync(cb);
 					}
@@ -1306,20 +1342,22 @@ uns32 immnd_proc_server(uns32 *timeout)
 			/* Independently of aborting or coordinating sync, 
 			   check if we should be starting/stopping persistent back-end.*/
 			if (cb->mPbeFile) {/* Pbe enabled */
-				SaImmRepositoryInitModeT rim =
+				/* TODO more efficient, only check if pbePid is zero. 
+				   Move rim to cb and only fetch after ccb-apply. 
+				 */
+				/*cb->mRim = immModel_getRepositoryInitMode(cb); Should not be needed */
 
-					immModel_getRepositoryInitMode(cb);
-				TRACE("RepositoryInitMode: %s", (rim==SA_IMM_KEEP_REPOSITORY)?
+				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
 					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 
 				if (cb->pbePid == 0) { /* Pbe is NOT running */
-					if (rim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
+					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */
 						LOG_NO("STARTING persistent back end process.");
 						cb->pbePid = immnd_forkPbe(cb);
 					}
 				} else {
 					assert(cb->pbePid > 0); /* Pbe is running. */
-					if (rim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
+					if (cb->mRim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
 						LOG_NO("STOPPING persistent back end process.");
 						/* TODO######## stop PBE. */
 					}

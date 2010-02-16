@@ -186,6 +186,13 @@ static uns32 immnd_initialize(char *progname)
 		immnd_cb->mWaitSecs = atoi(envVar);
 	}
 
+	if ((immnd_cb->mPbeFile = getenv("IMMSV_PBE_FILE")) != NULL) {
+		LOG_NO("Persistent Back-End capability enabled, Pbe file:%s",
+			immnd_cb->mPbeFile);
+	}
+
+	immnd_cb->mRim = SA_IMM_INIT_FROM_FILE;
+
 	if (immnd_cb->mDir == NULL) {
 		LOG_ER("Env var IMMSV_ROOT_DIRECTORY missing");
 		goto done;
