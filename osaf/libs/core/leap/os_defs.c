@@ -1023,7 +1023,7 @@ uns32 ncs_os_posix_mq(NCS_OS_POSIX_MQ_REQ_INFO *req)
 
 			if (req->info.open.iflags & O_CREAT) {
 				os_req.req = NCS_OS_MQ_REQ_CREATE;
-				file.info.create.i_file_name = filename;
+				file.info.create.i_file_name = (uns8*)filename;
 
 				rc = ncs_os_file(&file, NCS_OS_FILE_CREATE);
 				if (rc != NCSCC_RC_SUCCESS)
@@ -2030,7 +2030,6 @@ unsigned int os_cur_cpu_usage(void)
 unsigned int linux_char_normalizer(void)
 {
 	unsigned int key = 0x00;
-	unsigned char done = FALSE;
 	unsigned int chr;
 
 	chr = ncs_unbuf_getch();
@@ -2198,6 +2197,20 @@ uns32 ncs_os_process_execute_timed(NCS_OS_PROC_EXECUTE_TIMED_INFO *req)
 		for (; count > 0; count--) {
 			setenv(node->name, node->value, node->overwrite);
 			node++;
+		}
+
+		/* By default we close all inherited file descriptors in the child */
+		if (getenv("OPENSAF_KEEP_FD_OPEN_AFTER_FORK") == NULL) {
+			int i;
+
+			/* Close all inherited file descriptors */
+			for (i = getdtablesize(); i >= 0; --i)
+				close(i); /* close all descriptors */
+
+			/* Reopen standard file descriptors and connect to a harmless device */
+			i = open("/dev/null", O_RDWR); /* open stdin */
+			dup(i); /* stdout */
+			dup(i); /* stderr */
 		}
 
 		/* child part */
