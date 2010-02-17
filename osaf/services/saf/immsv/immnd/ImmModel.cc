@@ -4070,6 +4070,8 @@ ImmModel::ccbObjectDelete(const ImmsvOmCcbObjectDelete* req,
                 TRACE_5("ERR_TRY_AGAIN: Persistent back end is down");
                 err = SA_AIS_ERR_TRY_AGAIN;
             }
+        } else {
+                TRACE_7("ABT PbeConn: %u PbeNode:%u", *pbeConnPtr, *pbeNodeIdPtr);
         }
     }
     
@@ -4173,6 +4175,7 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
     }
     
     if(doIt) {
+        bool localImpl = false;
         oi->second->mCcbId = ccb->mId; //Overwrite any old obsolete ccb id.
         oi->second->mObjFlags |= IMM_DELETE_LOCK;//Prevents creates of subobjects.
         TRACE_5("Flags after insert delete lock:%u", 
@@ -4222,13 +4225,15 @@ ImmModel::deleteObject(ObjectMap::iterator& oi,
                     }
                     connVector.push_back(implConn);
                     continuations.push_back(sLastContinuationId);
+                    localImpl = true;
                 }
-            }
-
+            } 
 
             if(sLastContinuationId >= 0xfffffffe) {sLastContinuationId = 1;}
-        } else if(pbeIsLocal) {
-            /* No regular implementer, but we have a PBE. */
+        } 
+
+	if(pbeIsLocal && !localImpl) {
+            /* No regular and local implementer, but we have a PBE. */
             if(oi->second->mObjFlags & IMM_DN_INTERNAL_REP) {
                 std::string objectName(oi->first);
                 nameToExternal(objectName);
