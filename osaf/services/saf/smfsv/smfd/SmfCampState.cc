@@ -268,7 +268,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		int rc = system(backupCmd.c_str());
 		if (rc != 0) {
 			error = "CAMP: Backup create command ";
-			error += smfd_cb->repositoryCheckCmd;
+			error += smfd_cb->backupCreateCmd;
 			error += " failed ";
 			out << rc;
 			s = out.str();
