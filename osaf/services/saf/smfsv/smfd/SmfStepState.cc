@@ -315,7 +315,6 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
                 {
                         if (executeSwInstall(i_step) == false){
 				LOG_ER("executeSwInstall failed");
-				changeState(i_step, SmfStepStateFailed::instance());
 				rc = false;
 			}
                         break;
@@ -324,7 +323,6 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
                 {
                         if (executeAuLock(i_step) == false){
 				LOG_ER("executeAuLock failed");
-				changeState(i_step, SmfStepStateFailed::instance());
 				rc = false;
 			}
                         break;
@@ -333,7 +331,6 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
                 {
                         if (executeAuRestart(i_step) == false){
 				LOG_ER("executeAuRestart failed");
-				changeState(i_step, SmfStepStateFailed::instance());
 				rc = false;
 			}
                         break;
@@ -342,7 +339,6 @@ SmfStepStateExecuting::execute(SmfUpgradeStep * i_step)
                 {
                         if (executeNodeReboot(i_step) == false){
 				LOG_ER("executeNodeReboot failed");
-				changeState(i_step, SmfStepStateFailed::instance());
 				rc = false;
 			}
                         break;
