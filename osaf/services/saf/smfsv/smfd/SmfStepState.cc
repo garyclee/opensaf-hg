@@ -438,7 +438,7 @@ SmfStepStateExecuting::executeAuLock(SmfUpgradeStep * i_step)
 	/* Online installation of new software */
 	LOG_NO("STEP: Online installation of new software");
 	if (i_step->onlineInstallBundles(i_step->getSwNode()) == false) {
-		LOG_ER("Failed to online install bundles in step=%s",i_step->getRdn().c_str());
+		LOG_ER("Failed to online install new bundles in step=%s",i_step->getRdn().c_str());
 		changeState(i_step, SmfStepStateFailed::instance());
 		return false;
 	}
@@ -462,7 +462,7 @@ SmfStepStateExecuting::executeAuLock(SmfUpgradeStep * i_step)
         /* Offline uninstallation of old software */
         LOG_NO("STEP: Offline uninstallation of old software");
         if (i_step->offlineRemoveBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to offline remove bundles in step=%s",i_step->getRdn().c_str());
+                LOG_ER("Failed to offline remove old bundles in step=%s",i_step->getRdn().c_str());
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
 	}
@@ -486,7 +486,7 @@ SmfStepStateExecuting::executeAuLock(SmfUpgradeStep * i_step)
         /* Offline installation of new software */
         LOG_NO("STEP: Offline installation of new software");
         if (i_step->offlineInstallBundles(i_step->getSwNode()) == false) {
-                LOG_ER("Failed to set maintenance state in step=%s",i_step->getRdn().c_str());
+                LOG_ER("Failed to offline install new software in step=%s",i_step->getRdn().c_str());
                 changeState(i_step, SmfStepStateFailed::instance());
                 return false;
         }
