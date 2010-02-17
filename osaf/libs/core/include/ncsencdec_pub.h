@@ -160,11 +160,6 @@ extern "C" {
 	} USRFRAME;
 
 /* encode ncsfloat32 */
-#if defined(__NCSINC_WIN32__)
-#define m_NCS_ENCODE_FLOAT(f, enc) {\
-          *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
-         }
-#else
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
           *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
@@ -173,15 +168,9 @@ extern "C" {
 #define m_NCS_ENCODE_FLOAT(f, enc) {\
           *((uns32 *)(enc)) = htonl(*((uns32 *)&(f))); \
          }
-#endif
 #endif
 
 /* decode ncsfloat32 */
-#if defined(__NCSINC_WIN32__)
-#define m_NCS_DECODE_FLOAT(n, dec)  {\
-          *((uns32 *) (dec)) = (n); \
-         }
-#else
 #if defined(__NCSINC_PSOS__)
 #define m_NCS_DECODE_FLOAT(n, dec) {\
           *((uns32 *) (dec)) = (n); \
@@ -190,7 +179,6 @@ extern "C" {
 #define m_NCS_DECODE_FLOAT(n, dec) {\
           *((uns32 *) (dec)) = (n); \
          }
-#endif
 #endif
 
 #ifdef  __cplusplus
