@@ -3995,8 +3995,9 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	   *do* wait for ack. In fact the ccb-commit/abort decision is delegated to
            the PBE when the completed upcall is done.
 	 */
+	TRACE("ABT: pbeNodeIdPtr:%d pbeConn:%u err:%u", pbeNodeIdPtr, pbeConn, err);
 	if(pbeNodeIdPtr && pbeConn && err==SA_AIS_OK) {
-		/* PBE exists and is local to this node. */
+		TRACE_5("PBE exists and is local to this node arrSize:%u", arrSize);
 		assert(cb->mIsCoord);
 		assert(pbeNodeId);
 		assert(pbeNodeId == cb->node_id);
@@ -4050,7 +4051,6 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	if (err == SA_AIS_OK) {
 		if (arrSize) {
 			/*We have local implementer(s) for deleted object(s) */
-			delayedReply = SA_TRUE;
 			memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 			send_evt.type = IMMSV_EVT_TYPE_IMMA;
 			send_evt.info.imma.type = IMMA_EVT_ND2A_OI_OBJ_DELETE_UC;
@@ -4059,9 +4059,11 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 			for (; ix < arrSize && err == SA_AIS_OK; ++ix) {
 				if(implConnArr[ix] == 0) {
 					/* implConn zero => ony for PBE. */
+					TRACE("Skiping over %s (was only for PBE)", objNameArr[ix]);
 					continue;
 				}
 
+				delayedReply = SA_TRUE;
 				/*Look up the client node for the implementer, using implConn */
 				implHandle = m_IMMSV_PACK_HANDLE(implConnArr[ix], cb->node_id);
 
