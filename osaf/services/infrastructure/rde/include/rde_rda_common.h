@@ -33,6 +33,7 @@
 /*
 ** includes
 */
+#include <configmake.h>
 
 /*
 ** Return/error codes
@@ -42,7 +43,7 @@
 **    Name of this particular RDA socket implementation
 **
 */
-#define  RDE_RDA_SOCK_NAME    "/tmp/rde_rda_socket_interface"
+#define  RDE_RDA_SOCK_NAME    PIDPATH "rde_rda_socket_interface"
 
 /*
 ** Protocal message primitives for RDE-RDA interaction

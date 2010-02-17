@@ -2938,11 +2938,19 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>ncs_rde_start</value>
+			<value>rde_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>ncs_rde_clean</value>
+			<value>rde_script</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

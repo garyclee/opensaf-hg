@@ -34,9 +34,9 @@
 #ifndef RDE_RDA_H
 #define RDE_RDA_H
 
-#include "rde.h"
 #include "rde_cb.h"
-#include "sys/socket.h"
+#include <sys/socket.h>
+#include <sys/un.h>
 
 /*****************************************************************************\
  *                                                                             *
@@ -61,6 +61,7 @@ typedef enum {
 \*****************************************************************************/
 
 #define REPLY_SIZE               4096
+#define MAX_RDA_CLIENTS 64
 
 /*
  * Forward declarations
@@ -84,7 +85,7 @@ typedef struct {
 	int fd;			/* File descriptor          */
 	int flags;		/* Flags specified for open */
 	int client_count;
-	RDE_RDA_CLIENT clients[256];
+	RDE_RDA_CLIENT clients[MAX_RDA_CLIENTS];
 
 } RDE_RDA_CB;
 
@@ -98,7 +99,7 @@ const char *rde_rda_sock_name(RDE_RDA_CB *rde_rda_cb);
 uns32 rde_rda_open(const char *sockname, RDE_RDA_CB *rde_rda_cb);
 uns32 rde_rda_close(RDE_RDA_CB *rde_rda_cb);
 uns32 rde_rda_process_msg(RDE_RDA_CB *rde_rda_cb);
-uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index);
+uns32 rde_rda_client_process_msg(RDE_RDA_CB *rde_rda_cb, int index, int *disconnect);
 uns32 rde_rda_send_role(int role);
 
 #endif   /* RDE_RDA_H */

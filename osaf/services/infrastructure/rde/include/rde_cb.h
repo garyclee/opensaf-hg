@@ -15,65 +15,16 @@
  *
  */
 
-#include <configmake.h>
-
-/*****************************************************************************
-..............................................................................
-
-  MODULE NAME: rde_cb.h
-
-..............................................................................
-
-  DESCRIPTION: Contains definitions of the RDE control block sturctures
-
-..............................................................................
-
-******************************************************************************
-*/
-
 #ifndef RDE_CB_H
 #define RDE_CB_H
+
+#include <configmake.h>
+#include <mds_papi.h>
 
 #include "rde_rda_common.h"
 #include "rde_amf.h"
 #include "rde_rda.h"
 #include "rda_papi.h"
-#include "rde_rde.h"
-
-/*****************************************************************************\
- *                                                                             *
- *   Structure Definitions                                                     *
- *                                                                             *
-\*****************************************************************************/
-
-/*
-** Forward declarations
-**
-*/
-
-#define   RDE_DEFAULT_PID_FILE                  PIDPATH "rde.pid"
-#define   RDE_DEFAULT_LOG_LEVEL             5
-#define   RDE_DEFAULT_SHELF_NUMBER          2
-#define   RDE_DEFAULT_SLOT_NUMBER           1
-#define   RDE_DEFAULT_SITE_NUMBER           1
-
-/*
-**  RDE_OPTIONS
-**
-**  Structure containing all the options that may
-**  be specified at startup time
-**
-*/
-
-typedef struct {
-	const char *pid_file;
-	uns32 shelf_number;
-	uns32 slot_number;
-	uns32 site_number;
-	uns32 log_level;
-	NCS_BOOL is_daemon;
-
-} RDE_OPTIONS;
 
 /*
 **  RDE_CONTROL_BLOCK
@@ -83,8 +34,7 @@ typedef struct {
 */
 
 typedef struct {
-
-	RDE_OPTIONS options;
+	SYSF_MBX mbx;
 	const char *prog_name;
 	NCSCONTEXT task_handle;
 	NCS_BOOL task_terminate;
@@ -96,10 +46,32 @@ typedef struct {
 
 	RDE_RDA_CB rde_rda_cb;
 	RDE_AMF_CB rde_amf_cb;
-	NCS_LOCK lock;
-	RDE_RDE_CB rde_rde_cb;
 
 } RDE_CONTROL_BLOCK;
+
+typedef enum rde_msg_type {
+	RDE_MSG_PEER_UP = 1,
+	RDE_MSG_PEER_DOWN = 2,
+	RDE_MSG_PEER_INFO_REQ = 3,
+	RDE_MSG_PEER_INFO_RESP = 4,
+} RDE_MSG_TYPE;
+
+struct rde_peer_info {
+	PCS_RDA_ROLE ha_role;
+};
+
+struct rde_msg {
+	struct rde_msg *next;
+	RDE_MSG_TYPE type;
+	MDS_DEST fr_dest;
+	NODE_ID fr_node_id;
+	union {
+		struct rde_peer_info peer_info;
+	} info;
+};
+
+extern const char *rde_msg_name[];
+extern NCS_NODE_ID rde_my_node_id;
 
 /*****************************************************************************\
  *                                                                             *
@@ -107,7 +79,9 @@ typedef struct {
  *                                                                             *
 \*****************************************************************************/
 
-EXTERN_C RDE_CONTROL_BLOCK *rde_get_control_block(void);
-EXTERN_C uns32 rde_get_options(RDE_CONTROL_BLOCK *context, int argc, char *argv[]);
+extern RDE_CONTROL_BLOCK *rde_get_control_block(void);
+extern uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb);
+extern uns32 rde_mds_send(struct rde_msg *msg, MDS_DEST to_dest);
+extern uns32 rde_set_role(PCS_RDA_ROLE role);
 
 #endif   /* RDE_CB_H */

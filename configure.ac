@@ -733,12 +733,8 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/pdrbd/scripts/ncs_drbd_r0_clean
         osaf/services/infrastructure/pdrbd/scripts/pdrbdctrl
         osaf/services/infrastructure/rde/Makefile
-        osaf/services/infrastructure/rde/config/Makefile
-        osaf/services/infrastructure/rde/logstr/Makefile
         osaf/services/infrastructure/rde/include/Makefile
         osaf/services/infrastructure/rde/scripts/Makefile
-        osaf/services/infrastructure/rde/scripts/ncs_rde_clean
-        osaf/services/infrastructure/rde/scripts/ncs_rde_start
         osaf/services/infrastructure/rde/scripts/rde_script
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
