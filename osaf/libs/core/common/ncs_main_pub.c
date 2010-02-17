@@ -132,11 +132,7 @@ typedef struct ncs_agent_data {
 } NCS_AGENT_DATA;
 
 typedef struct ncs_main_pub_cb {
-#ifdef __NCSINC_WIN32__
-	HINSTANCE *lib_hdl;
-#else
 	NCS_OS_DLIB_HDL *lib_hdl;
-#endif
 
 	NCS_LOCK lock;
 	uns32 lock_create;
@@ -287,12 +283,8 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
 
 	m_NCS_AGENT_UNLOCK;
 
-     /*** start initializing all the required agents ***/
-#ifdef __NCSINC_WIN32__
-	gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD("NCS_DLL", m_NCS_OS_DLIB_ATTR);
-#else
+	/* start initializing all the required agents */
 	gl_ncs_main_pub_cb.lib_hdl = m_NCS_OS_DLIB_LOAD(NULL, m_NCS_OS_DLIB_ATTR);
-#endif
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -553,11 +545,7 @@ void ncs_leap_shutdown()
 	lib_destroy.i_op = NCS_LIB_REQ_DESTROY;
 	lib_destroy.info.destroy.dummy = 0;
 
-#ifdef __NCSINC_WIN32__
 	m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
-#else
-	m_NCS_OS_DLIB_CLOSE(gl_ncs_main_pub_cb.lib_hdl);
-#endif
 	gl_ncs_main_pub_cb.lib_hdl = NULL;
 
 	sprr_lib_req(&lib_destroy);

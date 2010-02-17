@@ -85,11 +85,6 @@ extern "C" {
 	} NCS_IP_SEND_EVT;
 #endif
 
-#if !defined(__NCSINC_WIN32__)
-
-#define SOCKET int
-#define INVALID_SOCKET -1
-#endif
 #if (NCS_IPV6 == 1)
 	typedef enum ipv6_proc_result {
 		IPV6_ADDR_GREATER_THAN = 1,
