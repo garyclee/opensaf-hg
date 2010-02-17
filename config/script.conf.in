@@ -123,6 +123,10 @@ DAEMON_STARTED=1
 DAEMON_START_FAILED=2
 DAEMON_NOT_FND=$DAEMON_START_FAILED 
 
+# By default AMF will close all files and redirect standard streams to /dev/null.
+# Uncomment the next line to change to post 4.0 behaviour.
+# Useful when debugging AMF CLC-CLI scripts.
+#export OPENSAF_KEEP_FD_OPEN_AFTER_FORK=YES
 
 CORE_FILE_SIZE="unlimited"
 CORE_PATTERN="/var/crash/core_%t_%e_%p"
