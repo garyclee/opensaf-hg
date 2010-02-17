@@ -53,34 +53,13 @@
  * RDE AMF control information
  */
 typedef struct {
-	uns8 comp_name[256];
+	char comp_name[256];
 	SaAmfHandleT amf_hdl;	/* AMF handle */
 	SaSelectionObjectT amf_fd;	/* AMF selection fd */
 	NCS_BOOL is_amf_up;	/* For amf_fd and pipe_fd */
-	NCS_OS_SEM semaphore;	/* Semaphore for health check */
-
-#define RDE_HA_COMP_NAMED_PIPE "/tmp/rde_ha_comp_named_pipe"
-	int pipe_fd;		/* To recieve msg from INSTANTIATE script */
 
 } RDE_AMF_CB;
 
-RDE_AMF_CB *rde_amf_get_cb(void);
-
-void rde_saf_CSI_set_callback(SaInvocationT invocation,
-			      const SaNameT *compName, SaAmfHAStateT haState, SaAmfCSIDescriptorT csiDescriptor);
-
-void rde_saf_health_chk_callback(SaInvocationT invocation, const SaNameT *compName, SaAmfHealthcheckKeyT *checkType);
-
-void rde_saf_CSI_rem_callback(SaInvocationT invocation,
-			      const SaNameT *compName, const SaNameT *csiName, const SaAmfCSIFlagsT csiFlags);
-
-void rde_saf_comp_terminate_callback(SaInvocationT invocation, const SaNameT *compName);
-
-uns32 rde_agents_startup(void);
-uns32 rde_agents_shutdown(void);
-uns32 rde_amf_open(RDE_AMF_CB *rde_cb);
-uns32 rde_amf_close(RDE_AMF_CB *rde_cb);
-uns32 rde_amf_pipe_process_msg(RDE_AMF_CB *rde_cb);
-uns32 rde_amf_process_msg(RDE_AMF_CB *rde_cb);
+extern uns32 rde_amf_init(RDE_AMF_CB *rde_amf_cb);
 
 #endif

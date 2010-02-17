@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 #
 #      -*- OpenSAF  -*-
 #
@@ -13,150 +13,95 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson Network Power
+# Author(s): Ericsson AB
 #
-#
+
+echo "`date`: $0 $*"
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-#
-# Role Distribution Entity daemon startup/shutdown Script
-#
+CMD=$1
 
-DAEMON=ncs_rde
-DESC="Role Distribution Entity Daemon"
-PIDFILE="$PIDPATH/rde.pid"
-NID_SVC_NAME=RDF
+NAME=rde
+TOOL=$RDETOOL
 
-source "$SYSCONFDIR/rde.conf"
-# SELINUX enforces special properties for init scripts
-# and execvp() from /sbin/ that causes stdout to get 
-# redirected to /dev/null. 
-echo $(/sbin/ifconfig) > $TMPDIR/opensaf_ifs
-if grep "inet addr:$CONTROLLER1 " $TMPDIR/opensaf_ifs; then
-    export RDE_SELF_IP_ADDR=$CONTROLLER1
-    export RDE_PEER_IP_ADDR=$CONTROLLER2
-    export RDE_HA_ROLE=0 # PCS_RDA_ACTIVE
-elif grep "inet addr:$CONTROLLER2 " $TMPDIR/opensaf_ifs; then
-    export RDE_SELF_IP_ADDR=$CONTROLLER2
-    export RDE_PEER_IP_ADDR=$CONTROLLER1
-    export RDE_HA_ROLE=1 # PCS_RDA_STANDBY
-else
-    logger -t opensaf -s \
-        "RDE: Invalid configuration, check $SYSCONFDIR/rde.conf"
-    exit 1
-fi
+# Start generic part
+SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
+BIN=${LIBPATH}/opensaf_${NAME}
+COMPNAMEFILE=${LOCALSTATEDIR}/${NAME}_comp_name
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_${NAME}.log
+PIDFILE=${PIDPATH}/opensaf_${NAME}.pid
 
-rm -f $TMPDIR/opensaf_ifs
+test -f $PIDFILE && PID=`cat $PIDFILE`
 
-
-
-
-# Set environment variables
-#
-function rde_set_env_var
+start()
 {
-    # Check for environment variable for slot number.
-    if [ "$SLOT_NUMBER" = "" ]; then
-        SLOT_NUMBER=`cat "$SLOT_ID_FILE"`
-        export SLOT_NUMBER
+    test -p $NIDFIFO || exit 1
+
+    if [ ! -x $BIN ]; then
+        logger -s -t $0 "ERROR: File $BIN does not exist or is not executable"
+        echo "$NID_MAGIC:$SERVICE:$DAEMON_NOT_FND" > $NIDFIFO
+        exit 1
     fi
 
-    # Check for environment variable for site number.
-    if [ "$SITE_NUMBER" = "" ]; then
-        export SITE_NUMBER=0x0F
-    fi
+    test -f $PIDFILE && kill -KILL $PID
 
-    # Check for environment variable for site number.
-    if [ "$PAYLOAD_BLADES" = "" ]; then
-        export PAYLOAD_BLADES="3.$SITE_NUMBER 4.$SITE_NUMBER 5.$SITE_NUMBER \
-            6.$SITE_NUMBER 7.$SITE_NUMBER 8.$SITE_NUMBER 9.$SITE_NUMBER \
-            10.$SITE_NUMBER 11.$SITE_NUMBER 12.$SITE_NUMBER 13.$SITE_NUMBER \
-            14.$SITE_NUMBER 15.$SITE_NUMBER 16.$SITE_NUMBER"
+    export ${SERVICE}_COMP_NAME_FILE=$COMPNAMEFILE
+
+    $TOOL $BIN >> $LOGFILE 2>&1 &
+   
+    if [ $? -ne 0 ]; then
+        logger -s -t $0 "ERROR: Cannot start $BIN."
+        echo "$NID_MAGIC:$SERVICE:$DAEMON_START_FAILED" > $NIDFIFO
+        exit 1
     fi
 }
 
-if [ ! -x "$LIBPATH/$DAEMON" ]; then
-   logger -t opensaf -s "Unable to find daemon: ${LIBPATH}/${DAEMON}"
-   echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_NOT_FND" > "$NIDFIFO"
-   exit 1
-fi
+instantiate()
+{
+    echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
 
-# Set env
-rde_set_env_var
+    # If the process exist it has been started earlier by NID, send signal to it.
+    # If the process does not exist, AMF wants it (re)started.
+    if test -f $PIDFILE; then
+        kill -USR1 $PID
+    else
+        $TOOL $BIN >> $LOGFILE 2>&1 &
+    fi
+}
 
-set -e
+stop()
+{
+    # Allow tools to dump results to file system before exit
+    if test -f $PIDFILE; then
+        if [ "$TOOL" == "" ]; then
+            kill -KILL $PID
+        else
+            kill -TERM $PID
+        fi
+    fi
 
-case "$1" in
+    rm -f $COMPNAMEFILE
+    rm -f $PIDFILE
+}
+
+case "$CMD" in
     start)
-        rm -f "$PIDFILE"
-        if [ -f "$PIDFILE" ]; then
-            echo  "$LIBPATH/$DAEMON already running.."
-            exit 1
-        fi
-
-        echo "."
-
-        # Wait to allow the other controller to complete a potentially
-        # ongoing fail over.
-        sleep 12
-
-        # Start rde
-        echo "Starting $DESC: $LIBPATH/$DAEMON"
-        $LIBPATH/ncs_rde > ${NCS_STDOUTS_PATH}/ncs_rde 2>&1 &
-        if [ $? -ne 0 ]; then
-            echo -n -e "Failed to start $DAEMON.    \n"
-            echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
-                $NIDFIFO
-            exit 1
-        else
-            echo "Started $DESC: $LIBPATH/$DAEMON"
-        fi
-        echo "."
+        start
         ;;
-
     stop)
-        if [ ! -f "$PIDFILE" ]; then
-            echo "$LIBPATH/$DAEMON is not running.."
-        else
-            echo "Stopping $DESC: $LIBPATH/$DAEMON"
-            kill -9 $l_pid
-            rm -f "$PIDFILE"
-        fi
-        echo "."
+        stop
         ;;
-
-    restart|force-reload)
-        #
-        #       If the "reload" option is implemented, move the "force-reload"
-        #       option to the "reload" entry above. If not, "force-reload" is
-        #       just the same as "restart".
-        #
-        if [ ! -f "$PIDFILE" ]; then
-            echo "$LIBPATH/$DAEMON is not running.. Use start."
-        else
-            echo "Stopping $DESC: $LIBPATH/$DAEMON"
-            echo "Restarting $DESC: $LIBPATH/$DAEMON"
-           `kill -9 $l_pid`
-            rm -f "$PIDFILE"
-
-            # Start rde
-            "$LIBPATH/ncs_rde" >"$NCS_STDOUTS_PATH/ncs_rde" 2>&1 &
-            if [ $? -ne 0 ] ; then
-                echo -n -e "Failed to start $DAEMON.    \n"
-                echo "$NID_MAGIC:$NID_SVC_NAME:$DAEMON_START_FAILED" > \
-                    "$NIDFIFO"
-                exit 1
-            fi
-            echo "."
-        fi
+    instantiate)
+        instantiate
         ;;
-
+    cleanup)
+        stop
+        ;;
     *)
-        # echo "Usage: $N {start|stop|restart|reload|force-reload}" >&2
-        echo "Usage: $LIBPATH/rde_script {start|stop|restart|force-reload}" >&2
+        echo "Usage: $0 {start|stop|instantiate|cleanup}"
         exit 1
-        ;;
 esac
 
 exit 0
+

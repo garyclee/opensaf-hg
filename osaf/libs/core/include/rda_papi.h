@@ -38,22 +38,12 @@
 #include "ncsgl_defs.h"		/* uns32 */
 
 /*
-** Error strings (defined in pcs_rda_test.c)
-*/
-extern char *pcsrda_err_str[];
-extern char *pcsrda_role_str[];
-
-/*
 ** Return/error codes
 */
 typedef enum {
 	PCSRDA_RC_SUCCESS,
 	PCSRDA_RC_TIMEOUT,
 	PCSRDA_RC_INVALID_PARAMETER,
-	PCSRDA_RC_LIB_LOAD_FAILED,
-	PCSRDA_RC_LIB_NOT_INITIALIZED,
-	PCSRDA_RC_LIB_NOT_FOUND,
-	PCSRDA_RC_LIB_SYM_FAILED,
 	PCSRDA_RC_IPC_CREATE_FAILED,
 	PCSRDA_RC_IPC_CONNECT_FAILED,
 	PCSRDA_RC_IPC_SEND_FAILED,
@@ -82,12 +72,12 @@ typedef enum {
 } PCS_RDA_REQ_TYPE;
 
 typedef enum {
+	PCS_RDA_UNDEFINED = 0,
 	PCS_RDA_ACTIVE,
 	PCS_RDA_STANDBY,
 	PCS_RDA_QUIESCED,
 	PCS_RDA_ASSERTING,
-	PCS_RDA_YIELDING,
-	PCS_RDA_UNDEFINED
+	PCS_RDA_YIELDING
 } PCS_RDA_ROLE;
 
 typedef enum {

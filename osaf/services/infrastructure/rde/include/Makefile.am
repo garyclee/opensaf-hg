@@ -21,9 +21,5 @@ MAINTAINERCLEANFILES = Makefile.in
 noinst_HEADERS = \
 	rde_amf.h \
 	rde_cb.h \
-	rde.h \
-	rde_log.h \
-	rde_log_str.h \
 	rde_rda.h \
-	rde_rde.h \
 	rde_rda_common.h

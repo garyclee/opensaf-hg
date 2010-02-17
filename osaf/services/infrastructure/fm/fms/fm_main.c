@@ -23,7 +23,7 @@
 ******************************************************************************/
 
 #include "fm.h"
-char *role_string[] = { "ACTIVE", "STANDBY", "QUIESCED",
+char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 	"ASSERTING", "YIELDING", "UNDEFINED"
 };
 

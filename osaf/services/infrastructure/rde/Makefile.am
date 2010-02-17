@@ -18,23 +18,21 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = config scripts include logstr
+SUBDIRS = scripts include
 
-pkglib_PROGRAMS = ncs_rde
+pkglib_PROGRAMS = opensaf_rde
 
-ncs_rde_CPPFLAGS = \
+opensaf_rde_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/rde/include
 
-ncs_rde_SOURCES = \
+opensaf_rde_SOURCES = \
 	rde_amf.c \
-	rde_init.c \
-	rde_log.c \
 	rde_main.c \
-	rde_rda.c \
-	rde_rde.c
+	rde_mds.c \
+	rde_rda.c
 
-ncs_rde_LDADD = \
+opensaf_rde_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

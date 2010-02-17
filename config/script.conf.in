@@ -11,6 +11,16 @@ BINPATH="xxBINDIRxx"
 LIBPATH="xxLIBDIRxx"
 
 #########################################
+# RDE configuration
+#########################################
+# Uncomment the next line to enable traces from rde directly at start
+#export RDE_TRACE_CATEGORIES=0xffffffff
+
+# Uncomment (and change) the next line to change how long the RDE server is
+# waiting to discover a peer. Default is 2s.
+#export RDE_DISCOVER_PEER_TIMEOUT=5000
+
+#########################################
 # DTSv configuration
 #########################################
 # Number of archives with dtsv files from old lives that should be stored

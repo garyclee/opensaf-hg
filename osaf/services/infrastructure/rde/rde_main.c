@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2010 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,479 +11,551 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Emerson Network Power
+ * Author(s): Ericsson
  *
  */
 
 #include <configmake.h>
+#include <poll.h>
+#include <libgen.h>
 
-/*****************************************************************************
-..............................................................................
+#include <logtrace.h>
+#include <ncs_main_papi.h>
+#include <mds_papi.h>
+#include <nid_api.h>
 
-  $$
-
-  MODULE NAME: rde_main.c
-
-..............................................................................
-
-  DESCRIPTION:
-
-  This file contains the main() routine for RDE.
-
-******************************************************************************/
-
-#include "rde.h"
 #include "rde_cb.h"
 
-/***************************************************************\
- *                                                               *
- *         Prototypes for static functions                       *
- *                                                               *
-\***************************************************************/
+#define RDA_MAX_CLIENTS 32
 
-static uns32 rde_create_pidfile(void);
-static uns32 rde_main_loop(void);
-static uns32 rde_shutdown(void);
-extern uns32 rde_initialize(void);
+enum {
+	FD_USR1 = 0,
+	FD_AMF = FD_USR1,
+	FD_MBX = 1,
+	FD_RDA_SERVER = 2,
+	FD_CLIENT_START
+};
 
-/*****************************************************************************
+NCS_NODE_ID rde_my_node_id;
+static NCS_NODE_ID peer_node_id;
 
-  PROCEDURE NAME:       main
+const char *rde_msg_name[] = {
+	"-",
+	"RDE_MSG_PEER_UP(1)",
+	"RDE_MSG_PEER_DOWN(2)",
+	"RDE_MSG_PEER_INFO_REQ(3)",
+	"RDE_MSG_PEER_INFO_RESP(4)",
+};
 
-  DESCRIPTION:          Main routine for RDE
-                     
-  ARGUMENTS:
+/* note: default value mentioned in script.conf, change in both places */
+static int discover_peer_timeout = 2000;
 
-  RETURNS:
+static RDE_CONTROL_BLOCK _rde_cb;
+static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;
+static NCS_SEL_OBJ usr1_sel_obj;
+static unsigned int category_mask = -1;
 
-  NOTES:
-
-*****************************************************************************/
-
-int main(int argc, char *argv[])
+static uns32 update_status_file(PCS_RDA_ROLE role)
 {
-	uns32 rc = NCSCC_RC_FAILURE;
-	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
-	char line[256];
-	FILE *fp;
-	NCS_PHY_SLOT_ID slot_id;
+        int index;
+        index = 0;
+        time_t local_time;
+        unsigned char asc_lt[40];       /* Ascii Localtime */
 
-	fp = fopen(OSAF_SYSCONFDIR "slot_id", "r");
-	if (fp == NULL) {
-		printf(OSAF_SYSCONFDIR "slot_id couldn't be opened\n");
-		return RDE_RDE_RC_FAILURE;
-	}
+        LOG_NO("This System Controller is assigned : %s",
+               ((role == PCS_RDA_ACTIVE) ? "HA ACTIVE STATE" : "HA STANDBY STATE"));
 
-   /***************************************************************\
-    *                                                               *
-    *         Parse command line options                            *
-    *                                                               *
-   \***************************************************************/
+	/* Update the HA state to the OSAF_LOCALSTATEDIR/node_ha_state file */
+        FILE *fp = NULL;
+        fp = fopen(NODE_HA_STATE, "a");
+        if (fp) {
+                /* Get the ascii local time stamp */
+                asc_lt[0] = '\0';
+                m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
+                fprintf(fp, "%s | This System Controller is assigned : %s\n", asc_lt,
+                        ((role == PCS_RDA_ACTIVE) ? "HA ACTIVE STATE" : "HA STANDBY STATE"));
+                fflush(fp);
+                fclose(fp);
+        }
 
-	if (rde_get_options(rde_cb, argc, argv) != NCSCC_RC_SUCCESS) {
-		exit(-1);
-	}
-
-	if (fgets(line, sizeof(line), fp) != NULL) {
-		slot_id = atoi(line);
-		rde_cb->options.slot_number = slot_id;
-		fclose(fp);
-	} else {
-		printf("Slot_id couldn't be read\n");
-		fclose(fp);
-		return RDE_RDE_RC_FAILURE;
-	}
-	/*
-	 ** Print options
-	 */
-	printf("PID  file          : %s\n", rde_cb->options.pid_file);
-	printf("Shelf number       : %d\n", rde_cb->options.shelf_number);
-	printf("Slot number        : %d\n", rde_cb->options.slot_number);
-	printf("Site number        : %d\n", rde_cb->options.site_number);
-	printf("Log level          : %u\n", rde_cb->options.log_level);
-	printf("Interactive mode   : %s\n", (rde_cb->options.is_daemon ? "FALSE" : "TRUE"));
-
-   /***************************************************************\
-    *                                                               *
-    *         Create PID file                                       *
-    *                                                               *
-   \***************************************************************/
-	if (rde_create_pidfile() != NCSCC_RC_SUCCESS) {
-		exit(-1);
-	}
-
-   /***************************************************************\
-    *                                                               *
-    *         Start LEAP Environment                                *
-    *         Initialize memory tracking                            *
-    *                                                               *
-   \***************************************************************/
-
-	if (rde_agents_startup() != NCSCC_RC_SUCCESS) {
-		remove(rde_cb->options.pid_file);
-		printf("RDE NCS_AGENTS START FAILED\n");
-		exit(-1);
-	}
-
-    /***************************************************************\
-    *                                                               *
-    *         Initialize processing                                 *
-    *                                                               *
-   \***************************************************************/
-
-   /***************************************************************\
-    *                                                               *
-    *         Initialize processing                                 *
-    *                                                               *
-   \***************************************************************/
-
-	if ((rc = rde_initialize()) != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "RDE: rde_initialize failed, check rde.conf");
-		rde_agents_shutdown();
-		remove(rde_cb->options.pid_file);
-		printf("RDE INITIALIZATION FAILED: %l\n", rc);
-		exit(-1);
-	}
-
-	/* RDE is successfully initialized, notify the same to NID later after 
-	   getting the correct role. */
-	{
-		printf("RDE INITIALIZATION SUCCESS\n");
-	}
-
-   /***************************************************************\
-    *                                                               *
-    *         Main processing loop for this task                    *
-    *                                                               *
-   \***************************************************************/
-
-	rde_main_loop();
-
-   /***************************************************************\
-    *                                                               *
-    *         Shutdown and exit                                     *
-    *                                                               *
-   \***************************************************************/
-
-	rde_shutdown();
-
-	rde_agents_shutdown();
-	exit(0);
+        return NCSCC_RC_SUCCESS;
 }
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_get_control_block
-
-  DESCRIPTION:          Singleton implementation for RDE Context
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:
-
-*****************************************************************************/
 
 RDE_CONTROL_BLOCK *rde_get_control_block(void)
 {
-	static NCS_BOOL initialized = FALSE;
-	static RDE_CONTROL_BLOCK rde_cb;
-
-	if (!initialized) {
-		initialized = TRUE;
-		memset(&rde_cb, 0, sizeof(rde_cb));
-	}
-
-	return &rde_cb;
+	return rde_cb;
 }
 
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_get_options
-
-  DESCRIPTION:          Extract options specified on command line
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:
-
-*****************************************************************************/
-
-uns32 rde_get_options(RDE_CONTROL_BLOCK *rde_cb, int argc, char *argv[]
-    )
+/**
+ * USR1 signal is used when AMF wants instantiate us as a
+ * component. Wake up the main thread so it can register with
+ * AMF.
+ * 
+ * @param i_sig_num
+ */
+static void sigusr1_handler(int sig)
 {
-	RDE_OPTIONS *options = &rde_cb->options;
+	(void)sig;
+	signal(SIGUSR1, SIG_IGN);
+	ncs_sel_obj_ind(usr1_sel_obj);
+}
+
+/**
+ * Enable trace in runtime
+ * @param sig
+ */
+static void sigusr2_handler(int sig)
+{
+	if (category_mask == 0) {
+		category_mask = CATEGORY_ALL;
+	} else {
+		category_mask = 0;
+	}
+
+	if (trace_category_set(category_mask) == -1)
+		printf("trace_category_set failed");
+}
+
+static int create_pidfile(const char *name)
+{
+	char path[256];
+	FILE *fp;
+	
+	snprintf(path, sizeof(path), PIDPATH "/%s.pid", name);
+	fp = fopen(path, "w");
+	if (fp == NULL) {
+		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
+		return -1;
+	}
+	fprintf(fp, "%d\n", getpid());
+	fclose(fp);
+
+	return 0;
+}
+
+uns32 rde_set_role(PCS_RDA_ROLE role)
+{
+	LOG_NO("rde_rde_set_role: role set to %d", role);
+
+	rde_cb->ha_role = role;
+
+	if (role == PCS_RDA_QUIESCED) {
+		return NCSCC_RC_SUCCESS;
+	}
+
+	/* Send new role to all RDA client */
+	rde_rda_send_role(rde_cb->ha_role);
+
+	return NCSCC_RC_SUCCESS;
+}
+
+static int fd_to_client_ixd(int fd)
+{
+	int i;
+	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
+
+	for (i = 0; i < rde_rda_cb->client_count; i++)
+		if (fd == rde_rda_cb->clients[i].fd)
+			break;
+
+	assert(i < MAX_RDA_CLIENTS);
+
+	return i;
+}
+
+static void handle_mbx_event(void)
+{
+	struct rde_msg *msg;
+
+	TRACE_ENTER();
+
+	msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
+
+	switch (msg->type) {
+	case RDE_MSG_PEER_INFO_REQ: {
+		struct rde_msg peer_info_req;
+		TRACE("Received %s", rde_msg_name[msg->type]);
+		peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
+		peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
+		rde_mds_send(&peer_info_req, msg->fr_dest);
+		break;
+	}
+	case RDE_MSG_PEER_UP:
+		TRACE("Received %s", rde_msg_name[msg->type]);
+		peer_node_id = msg->fr_node_id;
+		break;
+	case RDE_MSG_PEER_DOWN:
+		TRACE("Received %s", rde_msg_name[msg->type]);
+		peer_node_id = 0;
+		break;
+	default:
+		LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
+		break;
+	}
+
+	free(msg);
+
+	TRACE_LEAVE();
+}
+
+static uns32 discover_peer(int mbx_fd)
+{
+	struct pollfd fds[1];
+	struct rde_msg *msg;
+	int ret;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	const char *progName = argv[0];
 
-	int opt;
-	extern char *optarg;
-	extern int optind, opterr, optopt;
+	TRACE_ENTER();
 
-	m_RDE_ENTRY("rde_get_options");
+	fds[0].fd = mbx_fd;
+	fds[0].events = POLLIN;
 
-   /***************************************************************\
-    *                                                               *
-    *         Initialize default options                            *
-    *                                                               *
-   \***************************************************************/
+	while (1) {
+		ret = poll(fds, 1, discover_peer_timeout);
 
-	options->is_daemon = TRUE;
-	options->pid_file = RDE_DEFAULT_PID_FILE;
-	options->log_level = RDE_DEFAULT_LOG_LEVEL;
-	options->shelf_number = RDE_DEFAULT_SHELF_NUMBER;
-	options->slot_number = RDE_DEFAULT_SLOT_NUMBER;
-	options->site_number = RDE_DEFAULT_SITE_NUMBER;
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+			
+			LOG_ER("poll failed - %s", strerror(errno));
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
 
-   /***************************************************************\
-    *                                                               *
-    *         Parse command line options                            *
-    *                                                               *
-   \***************************************************************/
+		if (ret == 0) {
+			TRACE("Peer discovery timeout");
+			goto done;
+		}
 
-	while ((opt = getopt(argc, argv, "p:f:s:t:l:vhi")) != -1) {
-		switch (opt) {
+		if (ret == 1) {
+			msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
 
-	 /*******************************************************\
-         *                                                       *
-         *         Pid file                                      *
-         *                                                       *
-         \*******************************************************/
+			switch (msg->type) {
+			case RDE_MSG_PEER_UP: {
+				struct rde_msg peer_info_req;
 
-		case 'p':
+				peer_node_id = msg->fr_node_id;
+				TRACE("Received %s", rde_msg_name[msg->type]);
 
-			if (optarg != NULL) {
-				options->pid_file = optarg;
-			} else {
-				m_RDE_LOG_COND(RDE_SEV_ERROR, RDE_LOG_COND_NO_PID_FILE);
-				printf("PID file not specified, for help use -h option\n");
-				rc = NCSCC_RC_FAILURE;
+				/* Send request for peer information */
+				peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
+				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
+				rde_mds_send(&peer_info_req, msg->fr_dest);
+				goto done;
+			}
+			case RDE_MSG_PEER_INFO_REQ: {
+				struct rde_msg peer_info_req;
+				TRACE("Received %s", rde_msg_name[msg->type]);
+				peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
+				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
+				rde_mds_send(&peer_info_req, msg->fr_dest);
+				break;
+			}
+			default:
+				LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
+				break;
 			}
 
+		} else
+			assert(0);
+	}
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+static uns32 determine_role(int mbx_fd)
+{
+	struct pollfd fds[1];
+	struct rde_msg *msg;
+	int ret;
+	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
+
+	if (peer_node_id == 0) {
+		LOG_NO("Peer not available => Active role");
+		rde_cb->ha_role = PCS_RDA_ACTIVE;
+		update_status_file(rde_cb->ha_role);
+		goto done;
+	}
+
+	fds[0].fd = mbx_fd;
+	fds[0].events = POLLIN;
+
+	while (1) {
+		ret = poll(fds, 1, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+			
+			LOG_ER("poll failed - %s", strerror(errno));
+			rc = NCSCC_RC_FAILURE;
+			goto done;
+		}
+
+		assert(ret == 1);
+
+		msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
+
+		switch (msg->type) {
+		case RDE_MSG_PEER_DOWN:
+			TRACE("Received %s", rde_msg_name[msg->type]);
+			LOG_NO("rde@%x down waiting for response => Active role", peer_node_id);
+			rde_cb->ha_role = PCS_RDA_ACTIVE;
+			update_status_file(rde_cb->ha_role);
+			peer_node_id = 0;
 			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Shelf number                                  *
-         *                                                       *
-         \*******************************************************/
-
-		case 'f':
-
-			if (optarg == NULL) {
-				m_RDE_LOG_COND(RDE_SEV_ERROR, RDE_LOG_COND_NO_SHELF_NUMBER);
-				printf("Shelf number not specified, for help use -h option\n");
-				rc = NCSCC_RC_FAILURE;
-			} else {
-				options->shelf_number = atoi(optarg);
+		case RDE_MSG_PEER_INFO_REQ: {
+			struct rde_msg peer_info_req;
+			TRACE("Received %s", rde_msg_name[msg->type]);
+			peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
+			peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
+			rde_mds_send(&peer_info_req, msg->fr_dest);
+			break;
+		}
+		case RDE_MSG_PEER_INFO_RESP:
+			TRACE("Received %s", rde_msg_name[msg->type]);
+			switch (msg->info.peer_info.ha_role) {
+			case PCS_RDA_UNDEFINED:
+				TRACE("my=%x, peer=%x", rde_my_node_id, msg->fr_node_id);
+				if (rde_my_node_id < msg->fr_node_id) {
+					rde_cb->ha_role = PCS_RDA_ACTIVE;
+					LOG_NO("rde@%x has no state, my nodeid is less => Active role", msg->fr_node_id);
+					update_status_file(rde_cb->ha_role);
+				} else if (rde_my_node_id > msg->fr_node_id) {
+					rde_cb->ha_role = PCS_RDA_STANDBY;
+					LOG_NO("rde@%x has no state, my nodeid is greater => Standby role", msg->fr_node_id);
+					update_status_file(rde_cb->ha_role);
+				} else
+					assert(0);
+				goto done;
+			case PCS_RDA_ACTIVE:
+				rde_cb->ha_role = PCS_RDA_STANDBY;
+				LOG_NO("rde@%x has active state => Standby role", msg->fr_node_id);
+				update_status_file(rde_cb->ha_role);
+				goto done;
+			case PCS_RDA_STANDBY:
+				LOG_NO("rde@%x has standby state => possible fail over, waiting...", msg->fr_node_id);
+				sleep(1);
+				
+				/* Send request for peer information */
+				struct rde_msg peer_info_req;
+				peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
+				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
+				rde_mds_send(&peer_info_req, msg->fr_dest);
+			default:
+				LOG_NO("rde@%x has unsupported state, panic!", msg->fr_node_id);
+				assert(0);
 			}
-
 			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Slot number                                   *
-         *                                                       *
-         \*******************************************************/
-
-		case 's':
-
-			if (optarg == NULL) {
-				m_RDE_LOG_COND(RDE_SEV_ERROR, RDE_LOG_COND_NO_SLOT_NUMBER);
-				printf("Slot number not specified, for help use -h option\n");
-				rc = NCSCC_RC_FAILURE;
-			} else {
-				options->slot_number = atoi(optarg);
-			}
-
-			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Site number                                   *
-         *                                                       *
-         \*******************************************************/
-
-		case 't':
-
-			if (optarg == NULL) {
-				m_RDE_LOG_COND(RDE_SEV_ERROR, RDE_LOG_COND_NO_SITE_NUMBER);
-				printf("Site number not specified, for help use -h option\n");
-				rc = NCSCC_RC_FAILURE;
-			} else {
-				options->site_number = atoi(optarg);
-			}
-
-			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Log level                                     *
-         *                                                       *
-         \*******************************************************/
-
-		case 'l':
-			{
-				uns32 log_level = atoi(optarg);
-
-				if (log_level < RDE_LOG_EMERGENCY || log_level > RDE_LOG_DEBUG) {
-					printf("Invalid Loglevel. 0(EMERG) to 7(DEBUG)\n");
-					rc = NCSCC_RC_FAILURE;
-				}
-
-				options->log_level = log_level;
-			}
-
-			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Interactive/daemonize                         *
-         *                                                       *
-         \*******************************************************/
-
-		case 'i':
-
-			options->is_daemon = FALSE;
-
-			break;
-
-	/*******************************************************\
-         *                                                       *
-         *         Version                                       *
-         *                                                       *
-         \*******************************************************/
-
-		case 'v':
-
-			printf(" rde_rde version:  Development Version\n");
-			break;
-
-	 /*******************************************************\
-         *                                                       *
-         *         Help / usage                                  *
-         *                                                       *
-         \*******************************************************/
-
-		case 'u':
-		case 'h':
 		default:
-			printf("Usage:\n");
-			printf("  %s [options]\n", progName);
-			printf("     Available options:\n");
-			printf("        -h             :     Display this help message.\n");
-			printf("        -i             :     Run interactively\n");
-			printf("        -l <0-7>       :     Set log level <0-7>\n");
-			printf("        -v             :     Display version information\n");
-			printf("        -p <file path> :     Use file as PID file \n");
-			printf("        -f <shelfnum>  :     Use the specified shelf number\n");
-			printf("        -s <slotnum>   :     Use the specified slot number\n");
-			printf("        -t <sitenum>   :     Use the specified site number\n");
-			printf("\n");
-			printf("    Default Values:\n");
-			printf("       PID  file          : %s\n", RDE_DEFAULT_PID_FILE);
-			printf("       Shelf number       : %d\n", RDE_DEFAULT_SHELF_NUMBER);
-			printf("       Slot number        : %d\n", RDE_DEFAULT_SLOT_NUMBER);
-			printf("       Site number        : %d\n", RDE_DEFAULT_SITE_NUMBER);
-			printf("       Log level          : %u\n", RDE_DEFAULT_LOG_LEVEL);
-			printf("       Interactive mode   : %s\n", (options->is_daemon ? "FALSE" : "TRUE"));
-
-			return NCSCC_RC_FAILURE;	/* Cause program to exit */
+			LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
 			break;
+		}
+	} /* while (1) */
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+/**
+ * Initialize the RDE server.
+ * @param argv
+ * 
+ * @return int, 0=OK
+ */
+static int initialize_rde(char **argv)
+{
+	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
+	int rc = NCSCC_RC_FAILURE;
+	char *path = getenv("NCS_STDOUTS_PATH");
+	char pathname[256];
+	char *rde_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=0" };
+	char *name = strdup(basename(argv[0]));
+	char *val;
+
+	if ((rc = ncs_core_agents_startup(2, rde_argv)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_core_agents_startup FAILED");
+		goto init_failed;
+	}
+
+	sprintf(pathname, "%s/%s.log", path, name);
+
+	if (logtrace_init(name, pathname) != 0) {
+		syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
+		goto init_failed;
+	}
+
+	if ((val = getenv("RDE_TRACE_CATEGORIES")) != NULL)
+		category_mask = strtoul(val, NULL, 0);
+
+	trace_category_set(category_mask);
+
+	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != NULL)
+		discover_peer_timeout = strtoul(val, NULL, 0);
+
+	TRACE("discover_peer_timeout=%d", discover_peer_timeout);
+
+	if (create_pidfile(name) != 0)
+		goto init_failed;
+
+	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_sel_obj_create FAILED");
+		goto init_failed;
+	}
+
+	if ((rc = ncs_ipc_create(&rde_cb->mbx)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_ipc_create FAILED");
+		goto init_failed;
+	}
+
+	if ((rc = ncs_ipc_attach(&rde_cb->mbx)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_ipc_attach FAILED");
+		goto init_failed;
+	}
+
+	rde_my_node_id = ncs_get_node_id();
+
+	if ((rc = rde_rda_open(RDE_RDA_SOCK_NAME, rde_rda_cb)) != NCSCC_RC_SUCCESS)
+		goto init_failed;
+
+	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+		LOG_ER("signal USR1 FAILED: %s", strerror(errno));
+		goto init_failed;
+	}
+
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		LOG_ER("signal USR2 FAILED: %s", strerror(errno));
+		goto init_failed;
+	}
+
+	if (rde_mds_register(rde_cb) != NCSCC_RC_SUCCESS)
+		goto init_failed;
+
+	rc = NCSCC_RC_SUCCESS;
+
+init_failed:
+	return rc;
+}
+
+int main(int argc, char **argv)
+{
+	uns32 rc;
+	nfds_t nfds = 3;
+	struct pollfd fds[nfds + RDA_MAX_CLIENTS];
+	int i, ret;
+	NCS_SEL_OBJ mbx_sel_obj;
+	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
+
+	if (initialize_rde(argv) != NCSCC_RC_SUCCESS)
+		goto init_failed;
+
+	mbx_sel_obj = ncs_ipc_get_sel_obj(&rde_cb->mbx);
+
+	if ((rc = discover_peer(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
+		goto init_failed;
+
+	if ((rc = determine_role(mbx_sel_obj.rmv_obj)) == NCSCC_RC_FAILURE)
+		goto init_failed;
+
+	/* USR1/AMF fd */
+	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
+	fds[FD_USR1].events = POLLIN;
+
+	/* Mailbox */
+	fds[FD_MBX].fd = mbx_sel_obj.rmv_obj;
+	fds[FD_MBX].events = POLLIN;
+
+	/* RDA server socket */
+	fds[FD_RDA_SERVER].fd = rde_cb->rde_rda_cb.fd;
+	fds[FD_RDA_SERVER].events = POLLIN;
+
+	if (nid_notify("RDE", rc, NULL) != NCSCC_RC_SUCCESS) {
+		LOG_ER("nid_notify failed");
+		goto init_failed;
+	}
+
+	while (1) {
+		ret = poll(fds, nfds, -1);
+
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
+			
+			LOG_ER("poll failed - %s", strerror(errno));
+			break;
+		}
+
+		if (fds[FD_AMF].revents & POLLIN) {
+			if (rde_cb->rde_amf_cb.amf_hdl != 0) {
+				SaAisErrorT error;
+				TRACE("AMF event rec");
+				if ((error = saAmfDispatch(rde_cb->rde_amf_cb.amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
+					LOG_ER("saAmfDispatch failed: %u", error);
+					goto done;
+				}
+			} else {
+				TRACE("SIGUSR1 event rec");
+				ncs_sel_obj_destroy(usr1_sel_obj);
+				
+				if (rde_amf_init(&rde_cb->rde_amf_cb) != NCSCC_RC_SUCCESS)
+					goto done;
+				
+				fds[FD_AMF].fd = rde_cb->rde_amf_cb.amf_fd;
+			}
+		}
+
+		if (fds[FD_MBX].revents & POLLIN)
+			handle_mbx_event();
+
+		if (fds[FD_RDA_SERVER].revents & POLLIN) {
+			int newsockfd;
+
+			newsockfd = accept(rde_rda_cb->fd, (struct sockaddr *)NULL, NULL);
+			if (newsockfd < 0) {
+				LOG_ER("accept FAILED %s", strerror(errno));
+				goto done;
+			}
+
+			/* Add the new client fd to client-list	*/
+			rde_rda_cb->clients[rde_rda_cb->client_count].is_async = FALSE;
+			rde_rda_cb->clients[rde_rda_cb->client_count].fd = newsockfd;
+			rde_rda_cb->client_count++;
+
+			/* Update poll fd selection */
+			fds[nfds].fd = newsockfd;
+			fds[nfds].events = POLLIN;
+			nfds++;
+
+			TRACE("accepted new client, fd=%d, idx=%d, nfds=%lu", newsockfd, rde_rda_cb->client_count, nfds);
+		}
+
+		for (i = FD_CLIENT_START; i < nfds; i++) {
+			if (fds[i].revents & POLLIN) {
+				int client_disconnected = 0;
+				TRACE("received msg on fd %u", fds[i].fd);
+				rde_rda_client_process_msg(rde_rda_cb, fd_to_client_ixd(fds[i].fd), &client_disconnected);
+				if (client_disconnected) {
+					/* reinitialize the fd array & nfds */
+					nfds = FD_CLIENT_START;
+					for (i = 0; i < rde_rda_cb->client_count; i++, nfds++) {
+						fds[i + FD_CLIENT_START].fd = rde_rda_cb->clients[i].fd;
+						fds[i + FD_CLIENT_START].events = POLLIN;
+					}
+					TRACE("client disconnected, fd array reinitialized, nfds=%lu", nfds);
+					break;
+				}
+			}
 		}
 	}
 
-	if (optind != argc) {
-		printf("Bad Arguments for rde_rde... Use -h option for help.\n");
-		return NCSCC_RC_FAILURE;
-	}
-	return rc;
-
+init_failed:
+	(void)nid_notify("RDE", NCSCC_RC_FAILURE, NULL);
+done:
+	syslog(LOG_ERR, "Exiting...");
+	exit(1);
 }
 
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_create_pidfile
-
-  DESCRIPTION:          Daemonizes the current process
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:
-
-*****************************************************************************/
-
-static
-uns32 rde_create_pidfile(void)
-{
-	FILE *pidfd;
-	RDE_CONTROL_BLOCK *rde_cb;
-
-	m_RDE_ENTRY("rde_create_pidfile");
-
-	rde_cb = rde_get_control_block();
-
-	if ((pidfd = fopen(rde_cb->options.pid_file, "w")) != NULL) {
-		fprintf(pidfd, "%d\n", (int)getpid());
-		fclose(pidfd);
-	} else {
-		printf("%s: pidfile %s open failed\n", rde_cb->prog_name, rde_cb->options.pid_file);
-
-		return NCSCC_RC_FAILURE;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_main_loop
-
-  DESCRIPTION:          Main loop 
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:
-
-*****************************************************************************/
-
-uns32 rde_main_loop(void)
-{
-	RDE_CONTROL_BLOCK *rde_cb = rde_get_control_block();
-
-	/* TBD: Wait forever for now */
-	if (m_NCS_OS_SEM(&rde_cb->semaphore, NCS_OS_SEM_TAKE) != NCSCC_RC_SUCCESS) {
-		printf("RDE MAIN LOOP, SEM TAKE FAILED\n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
-
-  PROCEDURE NAME:       rde_shutdown
-
-  DESCRIPTION:          Main loop 
-                     
-  ARGUMENTS:
-
-  RETURNS:
-
-  NOTES:
-
-*****************************************************************************/
-
-uns32 rde_shutdown(void)
-{
-	return NCSCC_RC_SUCCESS;
-}
-
-/* #endif */

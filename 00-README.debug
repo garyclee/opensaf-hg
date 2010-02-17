@@ -26,66 +26,22 @@ System Controller Checklist
 
 3.  Have you checked the slot_id?
     The slot_id should be unique and different from any other node. The system 
-    controllers. The default NCSSystemBOM.xml contains definitions for 5 
-    physical slots (1 to 5). The file  NCSSystemBOM.xml can be edited to add 
-    definitions for more than 5 slots.
+    controllers.
 
-4.  Have you checked the RDE configuration? 
-    The IP address and port numbers of the controllers should be set correctly 
-    in rde.conf.
-
-5.  Have you checked the open source packages installation?
+4.  Have you checked the open source packages installation?
     Ensure that the following open source packages are installed
     (make install or the rpm packages are installed):
 
     The configure process should have detected the presence or absence of
     those packages at runtime.
 
-    a. The Net-SNMP libraries are available and Net-SNMP include files are 
-       available. In cases of rpm installation, make sure the devel package is 
-       installed.
-    b. The libxml2 libraries are available and libxml2 include files are 
+    a. The libxml2 libraries are available and libxml2 include files are 
        available. In cases of rpm installation, make sure the devel package 
        is installed.
-    c. DRBD is installed and configured as described in 00-README.drbd.
+    b. DRBD is installed and configured as described in 00-README.drbd.
 
-6.  Have you checked the chassis_id? The chassis_id should be the same as 
-    ACTIVE system controller. This value should be the same in the 
-    NCSSystemBOM.xml.
-
-7.  Do you have problems while running the OpenSAF Command Line Interface?
-
-    a. The following error message "ncs cli user is not an authenticated 
-       cli user...exiting CLI process" could be observed sometimes while
-       starting OpenSAF CLI interface i.e. while running /usr/bin/ncs_cli_maa.
-       In such cases, from the same shell prompt where this error was 
-       observed, run the command id. The output of this command should contain
-       the following string listed: "9001(ncs_cli_superuser)". If not, Please
-       run the OpenSAF CLI from a different shell prompt. Otherwise, please
-       check your machine's user group settings.
-
-    b. Error Messages during OpenSAF installation and uninstallation related
-       to groupadd and groupdel accordingly may not impact the OpenSAF CLI 
-       services' functionality, For example:- "groupdel: cannot remove user's
-       primary group" In such cases, please check the user group settings on
-       your machine. Change the 'root' user's primary group from being 
-       'ncs_cli_superuser' to any other group, such that OpenSAF RPM packages 
-       can add or delete the 'ncs_cli_superuser' group accordingly. 
-
-    c. For error messages related to useradd and userdel, please check your 
-       /homepartition settings. During OpenSAF RPM installation, A default 
-       user by name "opensaf" with view permissions is created for OpenSAF 
-       CLI with the password "moto123". Also, the "root" is given super user
-       permissions for running the OpenSAF CLI commands. The default home 
-       directory for this opensaf user is /home/opensaf. OpenSAF RPM 
-       installation may fail to add or delete this user if the /home partition
-       OR any other settings related to useradd and userdel command settings 
-       on your machine is not correct. In such cases, please rectify the same
-       before going ahead to use the opensaf user for OpenSAF CLI access.  As
-       such, these errors should not affect the OpenSAF CLI functionality for
-       the 'root' user. For more information on OpenSAF CLI, check the OpenSAF
-       CLI Programmer's Reference. 
-
+5.  Have you checked the chassis_id? The chassis_id should be the same as 
+    ACTIVE system controller.
 
 Payload Node Checklist
 ======================
@@ -112,12 +68,3 @@ Payload Node Checklist
 
 3.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE & STANDBY system controllers.
-
-4.  Have you checked the slot_id? The slot_id should have a value equal to or 
-    greater than 3 and should be unique and different from any other node. 
-    'nodeInstance' and 'nodePrototype' for these slots should have been 
-    defined in the NCSSystemBOM.xml on the system controller. The default 
-    NCSSystemBOM.xml contains definitions for 5 physical slots only 
-    (slot_id1 to 5). Definitions for slot_id greater than 5 have to be added 
-    in NCSSystemBOM.xml.
-

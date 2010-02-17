@@ -194,6 +194,7 @@ extern "C" {
     		NCSMDS_SVC_ID_SMFD,
     		NCSMDS_SVC_ID_SMFND,
     		NCSMDS_SVC_ID_SMFA,
+    		NCSMDS_SVC_ID_RDE,
 		NCSMDS_SVC_ID_NCSMAX,	/* This mnemonic always last */
 		/* END: These are NCS internal use service-id definitions */
 

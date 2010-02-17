@@ -875,7 +875,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 
 %files controller
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/fms.conf
 %config(noreplace) %{_pkgsysconfdir}/pdrbd_proxied.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
@@ -890,9 +889,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_dts
 %{_pkglibdir}/ncs_dts_clean
 %{_pkglibdir}/ncs_dts_start
-%{_pkglibdir}/ncs_rde
-%{_pkglibdir}/ncs_rde_clean
-%{_pkglibdir}/ncs_rde_start
+%{_pkglibdir}/opensaf_rde
 %{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
@@ -911,7 +908,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
-%{_pkglibdir}/librde_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
 
 

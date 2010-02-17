@@ -86,14 +86,4 @@ typedef struct {
 
 } RDA_CONTROL_BLOCK;
 
-/*
-** Exportable Functions
-*/
-int pcs_rda_reg_callback(uns32, PCS_RDA_CB_PTR, void **);
-int pcs_rda_unreg_callback(void *);
-int pcs_rda_set_role(PCS_RDA_ROLE);
-int pcs_rda_get_role(PCS_RDA_ROLE *);
-
-#define RDE_RDA_SHELF_ID    2	/* As per BOM file. To send it to AVM */
-
 #endif   /* RDA_H */
