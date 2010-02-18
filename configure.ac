@@ -706,6 +706,7 @@ AC_CONFIG_FILES([
         osaf/services/Makefile
         osaf/services/infrastructure/Makefile
         osaf/services/infrastructure/dtsv/Makefile
+        osaf/services/infrastructure/dtsv/config/Makefile
         osaf/services/infrastructure/dtsv/include/Makefile
         osaf/services/infrastructure/dtsv/logstr/Makefile
         osaf/services/infrastructure/dtsv/dts/Makefile
@@ -738,6 +739,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/rde/scripts/rde_script
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
+        osaf/services/saf/avsv/config/Makefile
         osaf/services/saf/avsv/logstr/Makefile
         osaf/services/saf/avsv/avd/Makefile
         osaf/services/saf/avsv/avd/include/Makefile
@@ -766,6 +768,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/ntfsv/ntfs/scripts/Makefile
         osaf/services/saf/ntfsv/ntfs/scripts/opensaf_ntfs
         osaf/services/saf/cpsv/Makefile
+        osaf/services/saf/cpsv/config/Makefile
         osaf/services/saf/cpsv/logstr/Makefile
         osaf/services/saf/cpsv/cpd/Makefile
         osaf/services/saf/cpsv/cpnd/Makefile
@@ -774,12 +777,14 @@ AC_CONFIG_FILES([
         osaf/services/saf/cpsv/cpnd/scripts/Makefile
         osaf/services/saf/cpsv/cpnd/scripts/ncs_cpnd_start
         osaf/services/saf/edsv/Makefile
+        osaf/services/saf/edsv/config/Makefile
         osaf/services/saf/edsv/logstr/Makefile
         osaf/services/saf/edsv/eds/Makefile
         osaf/services/saf/edsv/eds/scripts/Makefile
         osaf/services/saf/edsv/eds/scripts/ncs_eds_clean
         osaf/services/saf/edsv/eds/scripts/ncs_eds_start
         osaf/services/saf/glsv/Makefile
+        osaf/services/saf/glsv/config/Makefile
         osaf/services/saf/glsv/logstr/Makefile
         osaf/services/saf/glsv/gld/Makefile
         osaf/services/saf/glsv/glnd/Makefile
@@ -788,6 +793,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/glsv/glnd/scripts/Makefile
         osaf/services/saf/glsv/glnd/scripts/ncs_glnd_start
         osaf/services/saf/mqsv/Makefile
+        osaf/services/saf/mqsv/config/Makefile
         osaf/services/saf/mqsv/logstr/Makefile
         osaf/services/saf/mqsv/mqd/Makefile
         osaf/services/saf/mqsv/mqnd/Makefile

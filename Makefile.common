@@ -50,3 +50,6 @@ docdir = $(datadir)/doc/$(PACKAGE_NAME)-$(PACKAGE_VERSION)
 javadir = $(datadir)/java
 javadocdir = $(datadir)/javadoc
 initddir = $(initscriptdir)
+
+pkgimmxmldir = $(pkgdatadir)/immxml
+pkgimmxml_svcdir = $(pkgimmxmldir)/services

@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
+
+if [ -z $1 ] ; then
+   RESULTFILE=./imm.xml.`date "+%Y%m%d_%H%M"`
+else
+   if [ -f $1 ] ; then
+      echo "The file $1 already exists"
+      exit 1
+   fi
+  RESULTFILE=$1
+fi
+
+SERVICESDIR=./services
+TEMPLATE_TMPDIR=`mktemp -d /tmp/immxml_template_dir.XXXXXX`
+TMPDIR=`mktemp -d /tmp/immxml_configure_dir.XXXXXX`
+LOGFILE=/tmp/$0.log
+>$LOGFILE
+
+SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
+echo -e "merge SC templates to: $SC_TEMPLATE" >> $LOGFILE
+./immxml-merge --ignore-missing-class -o $SC_TEMPLATE `find $SERVICESDIR -name \*_sc_template.xml|xargs` >>$LOGFILE 2>&1
+
+PL_TEMPLATE=$TEMPLATE_TMPDIR/imm_pl_template.xml
+echo -e "merge PL templates to: $PL_TEMPLATE" >> $LOGFILE
+./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
+
+echo -e "Generate node specific immxml files into dir:$TMPDIR" >> $LOGFILE
+immxml-nodegen --nodegen-dir $TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
+
+./immxml-merge -o $TMPDIR/imm_classes.xml `find $SERVICESDIR -name \*_classes.xml|xargs` >>$LOGFILE 2>&1
+./immxml-merge --ignore-missing-class -o $TMPDIR/imm_objects.xml `find $SERVICESDIR -name \*_objects.xml|xargs` >>$LOGFILE 2>&1
+
+# merge all intermediate files to the result file
+FILES_TO_MERGE="$SERVICESDIR/imm_copyright.xml $TMPDIR/*.xml"
+
+echo -e "\n Create resulting imm.xml by merging intermediate files :$FILES_TO_MERGE" >> $LOGFILE
+./immxml-merge --sort -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
+
+rm -rf $TEMPLATE_TMPDIR
+rm -rf $TMPDIR
+
+if [ -z $1 ] ; then
+   echo "Successfully generated the imm file: $RESULTFILE"
+else
+   echo "Successfully generated the imm file"
+fi
+

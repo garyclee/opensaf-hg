@@ -242,8 +242,44 @@ cmd_default() {
     # Build the Linux UML binary
     ./uml/build_uml all || die "build of UML Linux kernel failed"
     cmd_create_rootfs
+    echo -e "\n\nTEMP TEMP: Still using the imm.xml from mercurial repo instead of generating it. This will soon be changed...\nCommand to generate the imm.xml: \"build_uml generate_immxml [clustersize]\"\n\n" 
+    #cmd_generate_immxml
 }
 
+##   gen_immxml
+##   Generates the imm.xml file with a given cluster size.
+##   Default size with no argument given is 2 SC's and 3 PL's
+##   For example (generates imm.xml for 2 SC's and 8 PL's): 
+##        ./build_uml generate_immxml 10
+##
+cmd_generate_immxml() {
+    numnodes=${1:-5}
+    cd $top
+    
+    if test ! -d rootfs ; then
+	echo "   This command requires an existing 'rootfs' directory"
+	exit 0
+    fi
+
+    # generate imm.xml file
+    cd rootfs/usr/local/share/opensaf/immxml
+    if test $numnodes -lt 2 ; then
+        sc_count=1
+        pl_count=0
+    else
+        sc_count=2
+        pl_count=$[$numnodes-2]
+    fi
+
+    echo "Generating the imm.xml file with $sc_count SC's and $pl_count PL's"
+    immxml-clustersize --sc-count $sc_count --pl-count $pl_count >$tmp/install.log 2>&1
+    rm -f imm_generated.xml
+    if ! immxml-configure imm_generated.xml
+    then
+	die "Failed to generate immxml"
+    fi
+    cp -f imm_generated.xml $top/rootfs/etc/opensaf/imm.xml
+}
 
 # Get the command
 if test -n "$1"; then

@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include logstr dts
+SUBDIRS = include logstr dts config

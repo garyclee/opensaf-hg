@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,17 +11,16 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s): Ericsson AB
 #
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/logsv/config/saflog.conf
 
 dist_pkgimmxml_svc_DATA = \
-	logsv_sc_template.xml \
-	logsv_classes.xml \
-	logsv_objects.xml
+	cpsv_sc_template.xml \
+	cpsv_pl_template.xml \
+	cpsv_classes.xml \
+	cpsv_objects.xml

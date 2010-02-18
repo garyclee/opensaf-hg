@@ -18,4 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = logstr gld glnd
+SUBDIRS = logstr gld glnd config
