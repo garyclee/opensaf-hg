@@ -1,0 +1,331 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+
+NODE_CFG_FILE=input/nodes.cfg
+SC_TEMPLATE_FILE=input/imm_SC_template.xml
+SC_PATTERN=SC_2_1
+PL_TEMPLATE_FILE=input/imm_PL_template.xml
+PL_PATTERN=PL_2_3
+CUR_SC_COUNT=0
+CUR_PL_COUNT=0
+UNDEF_COUNT=999
+SC_COUNT=$UNDEF_COUNT
+PL_COUNT=$UNDEF_COUNT
+RESULT_DIR=./nodegen_result
+
+
+
+trace () {
+  if [ ! -z "$TRACE_ENABLED" ]; then
+     echo -e "trace: $1" >&2
+     #         ^^^ to stderr
+  fi
+}
+
+script_error () {
+   echo "error: $1" >&2
+   #         ^^^ to stderr
+}
+
+info () {
+   echo "$1" >&2
+   #         ^^^ to stderr
+}
+
+create_node()
+{
+   PATTERN=$1
+   TEMPLATE=$2
+   INDEX=$3
+   ID=$4
+   CLMID=$5
+   trace "PATTERN:$PATTERN TEMPLATE:$TEMPLATE ID:$ID CLMID:$CLMID"
+   
+   trace "replace NoRed_TOKEN with NoRed$INDEX"
+   trace "replace $PATTERN with $ID"
+   trace "replace CLM_TOKEN with $CLMID"
+
+   cat $TEMPLATE | sed "
+s/NoRed_TOKEN/NoRed$INDEX/g 
+s/CLM_TOKEN/$CLMID/g 
+s/$PATTERN/$ID/g"  > $RESULT_DIR/imm_$ID.xml
+
+   #cat $TEMPLATE | sed "s/NoRed_$PATTERN/NoRed$INDEX/" | sed "s/$PATTERN/$ID/" > $RESULT_DIR/imm_$ID.xml
+}
+
+dyn_file_header()
+{
+   cat <<EOF >>$DYN_FILE
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+EOF
+}
+
+dyn_file_trailer()
+{
+   cat <<EOF >>$DYN_FILE
+</imm:IMM-contents>
+EOF
+}
+
+clm_node_store()
+{
+   CLMID=$1
+   HOST_NUMBER=$2
+   NodeIdValue=$(( 16#2000f + $HOST_NUMBER * 256))
+   NodeId=`printf "0x%04x" $NodeIdValue`
+
+   cat <<EOF >>$DYN_FILE
+        <object class="SaClmNode">
+                <dn>safNode=$CLMID,safCluster=myClmCluster</dn>
+                <attr>
+                        <name>saClmNodeID</name>
+                        <value>$NodeId</value>
+                </attr>
+        </object>
+EOF
+}
+
+nodegroups_begin()
+{
+   NODEGROUP_SC=$(cat <<EOF
+        <object class="SaAmfNodeGroup">
+                <dn>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</dn>
+                <attr>
+                        <name>saAmfNGNodeList</name>
+EOF
+)   
+   NODEGROUP_PL=$(cat <<EOF
+        <object class="SaAmfNodeGroup">
+                <dn>safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster</dn>
+                <attr>
+                        <name>saAmfNGNodeList</name>
+EOF
+)   
+   NODEGROUP_ALL=$(cat <<EOF
+        <object class="SaAmfNodeGroup">
+                <dn>safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster</dn>
+                <attr>
+                        <name>saAmfNGNodeList</name>
+EOF
+)   
+}
+
+nodegroups_end()
+{
+   NODEGROUP_END=$(cat <<EOF
+                </attr>
+        </object>
+EOF
+)   
+   # Assign end tags to nodegroups
+   NODEGROUP_SC="${NODEGROUP_SC}\n$NODEGROUP_END"
+   NODEGROUP_PL="${NODEGROUP_PL}\n$NODEGROUP_END"
+   NODEGROUP_ALL="${NODEGROUP_ALL}\n$NODEGROUP_END"
+}
+
+nodegroup_sc_store()
+{
+   trace "NODEGROUP_SC:\n$NODEGROUP_SC"
+   echo -e "$NODEGROUP_SC" >> $DYN_FILE
+}
+
+nodegroup_pl_store()
+{
+   trace "NODEGROUP_PL:\n$NODEGROUP_PL"
+   echo -e "$NODEGROUP_PL" >>$DYN_FILE
+}
+
+nodegroup_all_store()
+{
+   trace "NODEGROUP_ALL:\n$NODEGROUP_ALL"
+   echo -e "$NODEGROUP_ALL" >> $DYN_FILE
+}
+
+
+nodegroup_sc_addnode()
+{
+   ID=$1
+   NODE=$(cat <<EOF
+			<value>safAmfNode=$ID,safAmfCluster=myAmfCluster</value>
+EOF
+)   
+   NODEGROUP_SC="${NODEGROUP_SC}\n$NODE"
+}
+
+nodegroup_pl_addnode()
+{
+   ID=$1
+   NODE=$(cat <<EOF
+			<value>safAmfNode=$ID,safAmfCluster=myAmfCluster</value>
+EOF
+)   
+   NODEGROUP_PL="${NODEGROUP_PL}\n$NODE"
+}
+
+nodegroup_all_addnode()
+{
+   ID=$1
+   NODE=$(cat <<EOF
+			<value>safAmfNode=$ID,safAmfCluster=myAmfCluster</value>
+EOF
+)   
+   NODEGROUP_ALL="${NODEGROUP_ALL}\n$NODE"
+}
+
+validate_options()
+{
+   trace "SC_COUNT:$SC_COUNT PL_COUNT:$PL_COUNT"
+
+   if [ $SC_COUNT -ne $UNDEF_COUNT ] ; then
+      if [ $SC_COUNT -lt 1 -o $SC_COUNT -gt 2 ] ; then
+         script_error "One or two SC's must be specified!. Exiting!"
+         exit 1
+      fi
+   fi
+
+   if [ ! -f $SC_TEMPLATE_FILE ] ; then
+      script_error "Cannot find sc-template file '$SC_TEMPLATE_FILE'"
+      exit 1
+   fi
+
+   if [ ! -f $PL_TEMPLATE_FILE ] ; then
+      script_error "Cannot find pl-template file '$PL_TEMPLATE_FILE'"
+      exit 1
+   fi
+}
+
+verify_result()
+{
+   trace "CUR_SC_COUNT:$CUR_SC_COUNT CUR_PL_COUNT:$CUR_PL_COUNT"
+
+   if [ $SC_COUNT -ne $UNDEF_COUNT -a $CUR_SC_COUNT -lt $SC_COUNT ] ; then
+      script_error "not enough rows in node config file to create $SC_COUNT SC nodes!. Exiting!"
+      exit 1
+   fi
+
+   if [ $PL_COUNT -ne $UNDEF_COUNT -a $CUR_PL_COUNT -lt $PL_COUNT ] ; then
+      script_error "not enough rows in node config file to create $PL_COUNT PL nodes!. Exiting!"
+      exit 1
+   fi
+
+   #if [ $CUR_PL_COUNT -eq 0 -a $CUR_SC_COUNT -eq 0 ] ; then
+   #   script_error "no PLs nor SCs is created!. Exiting!"
+   #   exit 1
+   #fi
+}
+
+USAGE="Usage: immxml-nodegen\n\
+\t  [-c|--node-config node_config_file]\n\
+\t  [-d|--nodegen-dir directory]\n\
+\t  [-y|--sc-count count]\n\
+\t  [-x|--pl-count count]\n\
+\t  [-s|--sc-template sc_template_file]\n\
+\t  [-p|--pl-template pl_template_file]\n\
+\t  [-h|--help]\n\
+\n\
+Note. With no options given to script it will generate nodes for all\n 
+entries thats exists in node config file (default: input/nodes.cfg).\n"
+
+TEMP=`getopt -o d:s:p:c:ht --long sc-template:,pl-template:,node-config:,nodegen-dir:,help,trace,pl-count:,sc-count: \
+     -- "$@"`
+if [ $? != 0 ] ; then 
+   script_error "Failed to process command options. Terminating..."
+   exit 1 ; 
+fi
+eval set -- "$TEMP"
+
+while true ; do
+	case "$1" in
+		-c|--node-config) NODE_CFG_FILE=$2; trace "Option --node-config , argument \`$NODE_CFG_FILE'" ; shift 2 ;;
+		-d|--nodegen-dir) RESULT_DIR=$2; trace "Option $1 , argument \`$RESULT_DIR'" ; shift 2 ;;
+		-s|--sc-template) SC_TEMPLATE_FILE=$2; trace "Option --sc-template, argument \`$SC_TEMPLATE_FILE'" ; shift 2 ;;
+		-p|--pl-template) PL_TEMPLATE_FILE=$2; trace "Option --pl-template, argument \`$PL_TEMPLATE_FILE'" ; shift 2 ;;
+		-x|--pl-count) PL_COUNT=$2; trace "Option --pl-count, argument \`$PL_COUNT'" ; shift 2 ;;
+		-y|--sc-count) SC_COUNT=$2; trace "Option --sc-count, argument \`$SC_COUNT'" ; shift 2 ;;
+		-h|--help) echo -e $USAGE ; exit 1 ;;
+		-t|--trace) TRACE_ENABLED=on ; shift 1 ;;
+		--) shift ; break ;;
+		*) script_error "Internal error!" ; exit 1 ;;
+	esac
+done
+#echo "Remaining arguments:"
+#for arg do echo '--> '"\`$arg'" ; done
+
+
+rm -rf $RESULT_DIR
+mkdir $RESULT_DIR
+DYN_FILE=$RESULT_DIR/imm_nodes_dyn_part.xml
+
+validate_options
+
+dyn_file_header
+nodegroups_begin
+
+
+while read TYPE ID CLMID ; do
+   N=$((N+1))
+   trace "N:$N" 
+   if [ $TYPE == 'SC' ] ; then
+      trace "Using template: $SC_TEMPLATE_FILE with ID:$ID CLMID:$CLMID"
+            
+      trace SC_COUNT:$SC_COUNT CUR_SC_COUNT:$CUR_SC_COUNT
+      if [ $CUR_SC_COUNT -lt $SC_COUNT ] ; then
+          trace "Creating SC with ID:$ID"
+          create_node $SC_PATTERN $SC_TEMPLATE_FILE $N $ID $CLMID
+          nodegroup_sc_addnode $ID
+          nodegroup_all_addnode $ID
+          clm_node_store $CLMID $N
+	  CUR_SC_COUNT=$((CUR_SC_COUNT+1))
+      else
+          info "Have reached number of SCs. Skip node with ID:$ID"
+      fi 
+   elif [ $TYPE == 'PL' ] ; then
+      trace "Using template: $PL_TEMPLATE_FILE with ID:$ID CLMID:$CLMID"
+
+      trace PL_COUNT:$PL_COUNT CUR_PL_COUNT:$CUR_PL_COUNT
+      if [ $CUR_PL_COUNT -lt $PL_COUNT ] ; then
+          trace "Creating PL with ID:$ID"
+          create_node $PL_PATTERN $PL_TEMPLATE_FILE $N $ID $CLMID
+          nodegroup_pl_addnode $ID
+          nodegroup_all_addnode $ID
+          clm_node_store $CLMID $N
+	  CUR_PL_COUNT=$((CUR_PL_COUNT+1))
+      else
+          info "Have reached number of PLs. Skip node with ID:$ID"
+      fi 
+   fi
+done < $NODE_CFG_FILE
+
+verify_result
+nodegroups_end
+
+if [ $CUR_SC_COUNT -gt 0 ] ; then
+   trace "Create nodegroup 'SCs'"
+   nodegroup_sc_store
+fi
+
+if [ $CUR_PL_COUNT -gt 0 ] ; then
+   trace "Create nodegroup 'PLs'"
+   nodegroup_pl_store
+fi
+
+nodegroup_all_store
+dyn_file_trailer
+
+info "Successful: result files is placed in directory: $RESULT_DIR"
+exit 0

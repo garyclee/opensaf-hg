@@ -137,12 +137,24 @@ dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/.drbd_sync_state_4 \
 	$(top_srcdir)/config/node_ha_state
 
+dist_pkgimmxml_DATA = \
+	$(top_srcdir)/tools/devel/immtools/README
+
 
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/amf-adm \
 	$(top_srcdir)/scripts/amf-find \
 	$(top_srcdir)/scripts/amf-state \
 	$(top_srcdir)/scripts/opensaf_mem_dump
+
+dist_pkgimmxml_SCRIPTS = \
+	$(top_srcdir)/tools/devel/immtools/baseimm.py \
+	$(top_srcdir)/tools/devel/immtools/immxml-configure \
+	$(top_srcdir)/tools/devel/immtools/immxml-merge \
+	$(top_srcdir)/tools/devel/immtools/immxml-nodegen \
+	$(top_srcdir)/tools/devel/immtools/immxml-validate \
+	$(top_srcdir)/tools/devel/immtools/immxml-clustersize \
+	$(top_srcdir)/tools/devel/immtools/verify.sh
 
 nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \
@@ -193,6 +205,10 @@ install-data-local: update-ldconfig
 	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
 
 install-data-hook:
+	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
+		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
+	done
+
 	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxPIDPATHxx|$(localstatedir)/run/$(PACKAGE_NAME)|g' "$$i"; \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \

@@ -19,9 +19,8 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/logsv/config/saflog.conf
+	$(top_srcdir)/osaf/services/infrastructure/rde/config/rde.conf
 
 dist_pkgimmxml_svc_DATA = \
-	logsv_sc_template.xml \
-	logsv_classes.xml \
-	logsv_objects.xml
+	rde_sc_template.xml \
+	rde_objects.xml

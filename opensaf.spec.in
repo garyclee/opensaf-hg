@@ -18,6 +18,8 @@
 %define _pkglibdir %{_libdir}/%{name}
 %define _pkgsysconfdir %{_sysconfdir}/%{name}
 %define _initddir @initscriptdir@
+%define _pkgimmxmldir %{_datadir}/opensaf/immxml
+%define _pkgimmxml_svcdir %{_datadir}/opensaf/immxml/services
 
 # TODO: redfine the global_cflags because Red Hat enables FORTIFY_SOURCE
 # and stack-protector by default which catches buffer overflows in
@@ -656,6 +658,7 @@ fi
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
 echo "controller" > %{_pkgsysconfdir}/node_type
 /sbin/ldconfig
+echo "For information on how to configure the initial imm.xml file check the readme file: %{_pkgimmxmldir}/README"
 
 %preun controller
 %{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
@@ -718,6 +721,10 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_cpd
 %{_pkglibdir}/ncs_cpd_clean
 %{_pkglibdir}/ncs_cpd_start
+%{_pkgimmxml_svcdir}/cpsv_classes.xml
+%{_pkgimmxml_svcdir}/cpsv_objects.xml
+%{_pkgimmxml_svcdir}/cpsv_pl_template.xml
+%{_pkgimmxml_svcdir}/cpsv_sc_template.xml
 
 %files ckpt-nodedirector
 %defattr(-,root,root)
@@ -746,6 +753,9 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_eds
 %{_pkglibdir}/ncs_eds_clean
 %{_pkglibdir}/ncs_eds_start
+%{_pkgimmxml_svcdir}/edsv_classes.xml
+%{_pkgimmxml_svcdir}/edsv_objects.xml
+%{_pkgimmxml_svcdir}/edsv_sc_template.xml
 
 %endif
 
@@ -767,6 +777,11 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/immd_script
 %{_pkglibdir}/opensaf_immd
 %{_pkglibdir}/immload
+%{_pkgimmxml_svcdir}/immsv_classes.xml
+%{_pkgimmxml_svcdir}/immsv_objects.xml
+%{_pkgimmxml_svcdir}/immsv_pl_template.xml
+%{_pkgimmxml_svcdir}/immsv_sc_template.xml
+%{_pkgimmxml_svcdir}/imm_copyright.xml
 
 %files imm-nodedirector
 %defattr(-,root,root)
@@ -788,6 +803,10 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_gld
 %{_pkglibdir}/ncs_gld_clean
 %{_pkglibdir}/ncs_gld_start
+%{_pkgimmxml_svcdir}/glsv_classes.xml
+%{_pkgimmxml_svcdir}/glsv_objects.xml
+%{_pkgimmxml_svcdir}/glsv_pl_template.xml
+%{_pkgimmxml_svcdir}/glsv_sc_template.xml
 
 %files lck-nodedirector
 %defattr(-,root,root)
@@ -808,6 +827,9 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_bindir}/saflogger
 %{_pkglibdir}/opensaf_saflogd
 %{_pkglibdir}/opensaf_lgs
+%{_pkgimmxml_svcdir}/logsv_classes.xml
+%{_pkgimmxml_svcdir}/logsv_objects.xml
+%{_pkgimmxml_svcdir}/logsv_sc_template.xml
 
 
 %if %is_ais_msg
@@ -823,6 +845,10 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/ncs_mqd
 %{_pkglibdir}/ncs_mqd_clean
 %{_pkglibdir}/ncs_mqd_start
+%{_pkgimmxml_svcdir}/mqsv_classes.xml
+%{_pkgimmxml_svcdir}/mqsv_objects.xml
+%{_pkgimmxml_svcdir}/mqsv_pl_template.xml
+%{_pkgimmxml_svcdir}/mqsv_sc_template.xml
 
 %files msg-nodedirector
 %defattr(-,root,root)
@@ -845,6 +871,8 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_bindir}/ntfsubscribe
 %{_pkglibdir}/opensaf_ntfd
 %{_pkglibdir}/opensaf_ntfs
+%{_pkgimmxml_svcdir}/ntfsv_objects.xml
+%{_pkgimmxml_svcdir}/ntfsv_sc_template.xml
 
 
 %if %is_ais_smf
@@ -863,6 +891,10 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/smf-repository-check
 %{_pkglibdir}/smfd_script
 %{_pkglibdir}/opensaf_smfd
+%{_pkgimmxml_svcdir}/smfsv_classes.xml
+%{_pkgimmxml_svcdir}/smfsv_objects.xml
+%{_pkgimmxml_svcdir}/smfsv_pl_template.xml
+%{_pkgimmxml_svcdir}/smfsv_sc_template.xml
 
 %files smf-nodedirector
 %defattr(-,root,root)
@@ -909,6 +941,27 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
+%{_pkgimmxmldir}/README
+%{_pkgimmxmldir}/baseimm.py
+%{_pkgimmxmldir}/immxml-clustersize
+%{_pkgimmxmldir}/immxml-configure
+%{_pkgimmxmldir}/immxml-merge
+%{_pkgimmxmldir}/immxml-nodegen
+%{_pkgimmxmldir}/immxml-validate
+%{_pkgimmxmldir}/verify.sh
+%{_pkgimmxml_svcdir}/avsv_classes.xml
+%{_pkgimmxml_svcdir}/avsv_objects.xml
+%{_pkgimmxml_svcdir}/clmsv_classes.xml
+%{_pkgimmxml_svcdir}/clmsv_objects.xml
+%{_pkgimmxml_svcdir}/common_pl_template.xml
+%{_pkgimmxml_svcdir}/common_sc_template.xml
+%{_pkgimmxml_svcdir}/dtsv_classes.xml
+%{_pkgimmxml_svcdir}/dtsv_objects.xml
+%{_pkgimmxml_svcdir}/dtsv_sc_template.xml
+%{_pkgimmxml_svcdir}/rde_objects.xml
+%{_pkgimmxml_svcdir}/rde_sc_template.xml
+%{_pkgimmxml_svcdir}/fm_objects.xml
+%{_pkgimmxml_svcdir}/fm_sc_template.xml
 
 
 %files payload
