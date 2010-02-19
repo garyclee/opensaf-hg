@@ -250,7 +250,7 @@ uns32 avnd_mon_task_create(void)
 	uns32 rc;
 
 	/* create avnd task */
-	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, (void *)&gl_avnd_hdl,
+	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_mon_process, NULL,
 			       "AVND_MON", m_AVND_TASK_PRIORITY, m_AVND_STACKSIZE, &gl_avnd_mon_task_hdl);
 	if (NCSCC_RC_SUCCESS != rc) {
 		avnd_log(NCSFL_SEV_CRITICAL, "Passive Monitoring thread CREATE failed");
@@ -377,32 +377,17 @@ void avnd_mon_pids(AVND_CB *cb)
 ******************************************************************************/
 void avnd_mon_process(void *arg)
 {
-	AVND_CB *cb;
-	uns32 cb_hdl;
 	unsigned int mon_rate;
 	char *tmp_ptr;
 
-	/* get cb-hdl */
-	cb_hdl = *((uns32 *)arg);
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, cb_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		return;
-	}
-
-	/* before waiting, return avnd cb */
-	ncshm_give_hdl(cb_hdl);
+	tmp_ptr = getenv("AVND_PM_MONITORING_RATE");
+	if (tmp_ptr) 
+		mon_rate = atoi(tmp_ptr);
+	else
+		mon_rate = AVND_PM_MONITORING_INTERVAL;
 
 	while (1) {
-		avnd_mon_pids(cb);
-
-		tmp_ptr = getenv("AVND_PM_MONITORING_RATE");
-		if (tmp_ptr) 
-			mon_rate = atoi(tmp_ptr);
-		else
-			mon_rate = AVND_PM_MONITORING_INTERVAL;
-
+		avnd_mon_pids(avnd_cb);
 		m_NCS_TASK_SLEEP(mon_rate);
 	}
 }

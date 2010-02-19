@@ -52,7 +52,6 @@ typedef enum avnd_tmr_type {
 typedef struct avnd_tmr {
 	tmr_t tmr_id;
 	AVND_TMR_TYPE type;	/* timer type */
-	uns32 cb_hdl;		/* cb hdl to retrieve the AvND cb ptr */
 	uns32 opq_hdl;		/* hdl to retrive the timer context */
 	NCS_BOOL is_active;
 } AVND_TMR;
@@ -142,7 +141,7 @@ typedef struct avnd_tmr {
 #define m_AVND_TMR_NODE_ERR_ESC_START(cb, rc)\
             (rc) = avnd_start_tmr ((cb), &(cb)->node_err_esc_tmr, \
                                      AVND_TMR_NODE_ERR_ESC,\
-                                    (cb)->su_failover_prob, (cb)->cb_hdl);
+                                    (cb)->su_failover_prob, 0);
 
 /* Macro to stop the node-error-escalation timer */
 #define m_AVND_TMR_NODE_ERR_ESC_STOP(cb)\

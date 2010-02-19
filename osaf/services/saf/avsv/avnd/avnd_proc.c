@@ -340,29 +340,14 @@ done:
 ******************************************************************************/
 NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
 {
-	AVND_EVT *evt = 0;
-	uns32 cb_hdl = 0;
-	AVND_CB *cb = 0;
+	AVND_EVT *evt;
 
 	/* process each event */
 	while (0 != (evt = (AVND_EVT *)ncs_ipc_non_blk_recv(mbx))) {
-		cb_hdl = evt->cb_hdl;
-
 		avnd_evt_process(evt);
 
-		/* retrieve avnd cb */
-		if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, cb_hdl))) {
-			m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
+		if (avnd_cb->destroy == TRUE)
 			return TRUE;
-		}
-
-		if (cb->destroy == TRUE) {
-			ncshm_give_hdl(cb_hdl);
-			return TRUE;
-		}
-
-		ncshm_give_hdl(cb_hdl);
-
 	}
 
 	return FALSE;
@@ -381,7 +366,7 @@ NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
 ******************************************************************************/
 void avnd_evt_process(AVND_EVT *evt)
 {
-	AVND_CB *cb = 0;
+	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* nothing to process */
@@ -393,12 +378,6 @@ void avnd_evt_process(AVND_EVT *evt)
 	/* validate the event type */
 	if ((evt->type <= AVND_EVT_INVALID) || (evt->type >= AVND_EVT_MAX)) {
 		/* log */
-		goto done;
-	}
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, evt->cb_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
 		goto done;
 	}
 
@@ -426,11 +405,7 @@ void avnd_evt_process(AVND_EVT *evt)
 	m_AVND_LOG_EVT(evt->type, 0,
 		       (rc == NCSCC_RC_SUCCESS) ? AVND_LOG_EVT_SUCCESS : AVND_LOG_EVT_FAILURE, NCSFL_SEV_INFO);
 
- done:
-	/* return avnd cb */
-	if (cb)
-		ncshm_give_hdl(evt->cb_hdl);
-
+done:
 	TRACE_LEAVE2("%s", avnd_evt_type_name[evt->type]);
 
 	/* free the event */

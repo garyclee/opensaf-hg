@@ -43,9 +43,6 @@
 #include "avsv_nd2ndmsg.h"
 #include "avnd_mon.h"
 
-/* global cb handle */
-uns32 gl_avnd_hdl = 0;
-
 /* global task handle */
 NCSCONTEXT gl_avnd_task_hdl = 0;
 
@@ -174,15 +171,8 @@ done:
 ******************************************************************************/
 uns32 avnd_destroy()
 {
-	AVND_CB *cb = 0;
+	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)gl_avnd_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
 
 	/* destroy external interfaces */
 	rc = avnd_ext_intf_destroy(cb);
@@ -199,11 +189,7 @@ uns32 avnd_destroy()
 	 *if ( NCSCC_RC_SUCCESS != rc ) goto done;
 	 */
 
- done:
-	/* return avnd cb */
-	if (cb)
-		ncshm_give_hdl((uns32)gl_avnd_hdl);
-
+done:
 	/* unregister with DTSv */
 	rc = avnd_log_unreg();
 
@@ -256,13 +242,6 @@ AVND_CB *avnd_cb_create()
 	/* iniialize the error escaltion paramaets */
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
 
-	/* create the association with hdl-mngr */
-	if ((0 == (cb->cb_hdl = ncshm_create_hdl(cb->pool_id, NCS_SERVICE_ID_AVND, (NCSCONTEXT)cb)))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_HDL_ASS_CREATE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		goto err;
-	}
-	m_AVND_LOG_CB(AVSV_LOG_CB_HDL_ASS_CREATE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
-
 	immutil_saImmOmInitialize(&cb->immOmHandle, NULL, &immVersion);
 
 	/*** initialize avnd dbs ***/
@@ -298,9 +277,6 @@ AVND_CB *avnd_cb_create()
 	/* initialize available internode components db */
 	if (NCSCC_RC_SUCCESS != avnd_internode_avail_comp_db_init(cb))
 		goto err;
-
-	/* everything went off well.. store the cb hdl in the global variable */
-	gl_avnd_hdl = cb->cb_hdl;
 
 	/* NTFA Initialization */
 	rc = saNtfInitialize(&cb->ntfHandle, &ntfCallbacks, &ntfVersion);
@@ -513,13 +489,6 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	/* destroy the PID monitor lock */
 	m_NCS_LOCK_DESTROY(&cb->mon_lock);
 
-	/* return AvND CB */
-	ncshm_give_hdl(gl_avnd_hdl);
-
-	/* remove the association with hdl-mngr */
-	ncshm_destroy_hdl(NCS_SERVICE_ID_AVND, cb->cb_hdl);
-	m_AVND_LOG_CB(AVSV_LOG_CB_HDL_ASS_REMOVE, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
-
 	/* detach & destroy AvND mailbox */
 	rc = avnd_mbx_destroy(cb);
 	if (NCSCC_RC_SUCCESS != rc)
@@ -528,10 +497,7 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 	cb = NULL;
 	m_AVND_LOG_CB(AVSV_LOG_CB_DESTROY, AVSV_LOG_CB_SUCCESS, NCSFL_SEV_INFO);
 
-	/* reset the global cb handle */
-	gl_avnd_hdl = 0;
-
- done:
+done:
 	if (NCSCC_RC_SUCCESS != rc)
 		m_AVND_LOG_INVALID_VAL_FATAL(rc);
 	return rc;
@@ -659,36 +625,23 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
  *****************************************************************************/
 void avnd_sigusr1_handler(void)
 {
-	AVND_CB *cb = 0;
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	TRACE_ENTER();
 
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)gl_avnd_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	/* create the evt with evt type indicating last step of termination */
-	evt = avnd_evt_create(cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);
+	evt = avnd_evt_create(avnd_cb, AVND_EVT_LAST_STEP_TERM, NULL, NULL, NULL, 0, 0);
 	if (!evt) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
 	/* send the event */
-	rc = avnd_evt_send(cb, evt);
+	rc = avnd_evt_send(avnd_cb, evt);
 
- done:
+done:
 	/* free the event */
 	if (NCSCC_RC_SUCCESS != rc && evt)
 		avnd_evt_destroy(evt);
-
-	if (cb)
-		ncshm_give_hdl((uns32)gl_avnd_hdl);
-
-	return;
 }

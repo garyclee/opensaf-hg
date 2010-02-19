@@ -70,7 +70,6 @@ uns32 avnd_start_tmr(AVND_CB *cb, AVND_TMR *tmr, AVND_TMR_TYPE type, SaTimeT per
 		tmr->is_active = FALSE;
 	}
 	tmr->opq_hdl = uarg;
-	tmr->cb_hdl = cb->cb_hdl;
 	m_NCS_TMR_START(tmr->tmr_id, (uns32)(period / AVSV_NANOSEC_TO_LEAPTM), avnd_tmr_exp, (void *)tmr);
 	tmr->is_active = TRUE;
 	m_END_CRITICAL;
@@ -143,17 +142,9 @@ void avnd_tmr_exp(void *uarg)
 {
 	AVND_EVT_TYPE type = AVND_EVT_INVALID;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	AVND_CB *cb = 0;
+	AVND_CB *cb = avnd_cb;
 	AVND_TMR *tmr = (AVND_TMR *)uarg;
 	AVND_EVT *evt = 0;
-	uns32 cb_hdl;
-
-	/* retrieve AvND CB */
-
-	cb_hdl = tmr->cb_hdl;
-	cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, tmr->cb_hdl);
-	if (!cb)
-		return;
 
 	/* 
 	 * Check if this timer was stopped after "avnd_timer_expiry" was called 
@@ -168,7 +159,7 @@ void avnd_tmr_exp(void *uarg)
 
 		/* create & send the timer event */
 		evt = avnd_evt_create(cb, type, 0, 0, (void *)&tmr->opq_hdl, 0, 0);
-		if ((evt) && (cb_hdl == tmr->cb_hdl)) {
+		if (evt) {
 			rc = avnd_evt_send(cb, evt);
 		} else {
 			rc = NCSCC_RC_FAILURE;
@@ -179,11 +170,5 @@ void avnd_tmr_exp(void *uarg)
 	if (NCSCC_RC_SUCCESS != rc && evt)
 		avnd_evt_destroy(evt);
 
-	/* return AvND CB */
-	ncshm_give_hdl(cb_hdl);
-
-	/* log */
 	m_AVND_LOG_TMR(tmr->type, AVND_LOG_TMR_EXPIRY, AVND_LOG_TMR_SUCCESS, NCSFL_SEV_INFO);
-
-	return;
 }

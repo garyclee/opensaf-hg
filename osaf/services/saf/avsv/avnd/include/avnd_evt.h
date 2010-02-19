@@ -173,7 +173,6 @@ typedef struct avnd_pm_mon_evt {
 /* AVND top-level event structure */
 typedef struct avnd_evt_tag {
 	struct avnd_evt_tag *next;
-	uns32 cb_hdl;
 	MDS_SYNC_SND_CTXT mds_ctxt;
 	NCS_IPC_PRIORITY priority;
 	AVND_EVT_TYPE type;

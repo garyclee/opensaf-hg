@@ -1224,10 +1224,6 @@ uns32 avnd_evt_tmr_node_err_esc(AVND_CB *cb, AVND_EVT *evt)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	if (evt->info.tmr.opq_hdl != cb->cb_hdl) {
-		assert(0);
-	}
-
 	/* reset all parameters */
 	cb->su_failover_cnt = 0;
 	cb->node_err_esc_level = AVND_ERR_ESC_LEVEL_0;
