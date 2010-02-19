@@ -122,12 +122,27 @@ SmfCampaignWrapup::executeCampWrapup()
 	TRACE_ENTER();
         bool rc = true;
 
+	//Callback at commit
+#if 0
+	std::list < SmfCallbackOptions * >m_callbackAtCommit;
+#endif
+	// The actions below are trigged by a campaign commit operation.
+	// The campaign will enter state "commited" even if some actions fails.
+	// Just log errors and try to execute as many operations as possible.
+
 	LOG_NO("CAMP: Campaign wrapup, start campWrapupActions (%d)", m_campWrapupAction.size());
 	std::list < SmfUpgradeAction * >::iterator iter;
 	for (iter = m_campWrapupAction.begin(); iter != m_campWrapupAction.end(); ++iter) {
 		if ((*iter)->execute() != 0) {
 			LOG_ER("SmfCampaignWrapup campWrapupActions %d failed", (*iter)->getId());
-			return false;
+		}
+	}
+
+	LOG_NO("CAMP: Campaign wrapup , start remove from IMM (%d)", m_removeFromImm.size());
+	if (m_removeFromImm.size() > 0) {
+		SmfImmUtils immUtil;
+		if (immUtil.doImmOperations(m_removeFromImm) == false) {
+			LOG_ER("SmfCampaignWrapup remove from IMM failed");
 		}
 	}
 
@@ -155,8 +170,7 @@ SmfCampaignWrapup::executeCampWrapup()
         }
 
         if (!immUtil.doImmOperations(operations)) {
-                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to set saAmfSUMaintenanceCampaign");
-                rc = false;
+                LOG_ER("SmfUpgradeStep::setMaintenanceState(), fails to reset all saAmfSUMaintenanceCampaign attr");
         }
 
         //Delete the created SmfImmModifyOperation instances
@@ -180,11 +194,6 @@ SmfCampaignWrapup::executeCampComplete()
 {
 	TRACE_ENTER();
 
-	//Callback at commit
-#if 0
-	std::list < SmfCallbackOptions * >m_callbackAtCommit;
-#endif
-
 	//Campaign wrapup complete actions
 	LOG_NO("CAMP: Campaign complete, start executeCampComplete (%d)", m_campCompleteAction.size());
 	std::list < SmfUpgradeAction * >::iterator iter;
@@ -195,15 +204,6 @@ SmfCampaignWrapup::executeCampComplete()
 			return false;
 		}
 		iter++;
-	}
-
-	LOG_NO("CAMP: Campaign wrapup , start remove from IMM (%d)", m_removeFromImm.size());
-	if (m_removeFromImm.size() > 0) {
-		SmfImmUtils immUtil;
-		if (immUtil.doImmOperations(m_removeFromImm) == false) {
-			LOG_ER("SmfCampaignWrapup remove from IMM failed");
-			return false;
-		}
 	}
 
 	LOG_NO("CAMP: executeCampComplete completed");
