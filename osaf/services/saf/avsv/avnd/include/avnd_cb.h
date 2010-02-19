@@ -52,7 +52,6 @@ typedef struct avnd_cb_tag {
 	NCS_BOOL is_avd_down;	/* Temp: Indicates if AvD went down */
 
 	/* cb related params */
-	uns32 cb_hdl;		/* hdl returned by hdl mngr */
 	NCS_LOCK lock;		/* cb lock */
 	NCS_LOCK mon_lock;	/* PID monitor lock */
 

@@ -103,7 +103,6 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	mds_info.i_op = MDS_INSTALL;
 	mds_info.info.svc_install.i_mds_q_ownership = FALSE;
 	mds_info.info.svc_install.i_svc_cb = avnd_mds_cbk;
-	mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)cb->cb_hdl;
 	mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	mds_info.info.svc_install.i_mds_svc_pvt_ver = AVND_MDS_SUB_PART_VERSION;
 
@@ -240,7 +239,6 @@ uns32 avnd_mds_vdest_reg(AVND_CB *cb)
 	svc_to_mds_info.i_mds_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
 	svc_to_mds_info.i_svc_id = NCSMDS_SVC_ID_AVND_CNTLR;
 	svc_to_mds_info.i_op = MDS_INSTALL;
-	svc_to_mds_info.info.svc_install.i_yr_svc_hdl = (MDS_CLIENT_HDL)cb->cb_hdl;
 	svc_to_mds_info.info.svc_install.i_install_scope = NCSMDS_SCOPE_NONE;
 	svc_to_mds_info.info.svc_install.i_svc_cb = avnd_mds_cbk;
 	svc_to_mds_info.info.svc_install.i_mds_q_ownership = FALSE;
@@ -304,18 +302,11 @@ uns32 avnd_mds_unreg(AVND_CB *cb)
 ******************************************************************************/
 uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 {
-	AVND_CB *cb = 0;
+	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	if (!info)
 		goto done;
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)info->i_yr_svc_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
 
 	switch (info->i_op) {
 	case MDS_CALLBACK_RECEIVE:
@@ -402,11 +393,7 @@ uns32 avnd_mds_cbk(NCSMDS_CALLBACK_INFO *info)
 		break;
 	}
 
- done:
-	/* return avnd cb */
-	if (cb)
-		ncshm_give_hdl((uns32)info->i_yr_svc_hdl);
-
+done:
 	return rc;
 }
 

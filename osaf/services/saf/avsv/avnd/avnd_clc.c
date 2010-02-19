@@ -502,19 +502,11 @@ uns32 avnd_evt_tmr_clc_pxied_comp_reg(AVND_CB *cb, AVND_EVT *evt)
 uns32 avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
 {
 	AVND_CLC_EVT clc_evt;
-	AVND_CB *cb = 0;
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	if (!info)
 		goto done;
-
-	/* retrieve avnd cb */
-	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, info->i_usr_hdl))) {
-		m_AVND_LOG_CB(AVSV_LOG_CB_RETRIEVE, AVSV_LOG_CB_FAILURE, NCSFL_SEV_CRITICAL);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
 
 	memset(&clc_evt, 0, sizeof(AVND_CLC_EVT));
 
@@ -523,23 +515,19 @@ uns32 avnd_comp_clc_resp(NCS_OS_PROC_EXECUTE_TIMED_CB_INFO *info)
 	clc_evt.exec_stat = info->exec_stat;
 
 	/* create the event */
-	evt = avnd_evt_create(cb, AVND_EVT_CLC_RESP, 0, 0, 0, (void *)&clc_evt, 0);
+	evt = avnd_evt_create(avnd_cb, AVND_EVT_CLC_RESP, 0, 0, 0, (void *)&clc_evt, 0);
 	if (!evt) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
 	/* send the event */
-	rc = avnd_evt_send(cb, evt);
+	rc = avnd_evt_send(avnd_cb, evt);
 
  done:
 	/* free the event */
 	if (NCSCC_RC_SUCCESS != rc && evt)
 		avnd_evt_destroy(evt);
-
-	/* return avnd cb */
-	if (cb)
-		ncshm_give_hdl(info->i_usr_hdl);
 
 	return rc;
 }
@@ -2274,7 +2262,6 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	cmd_info.i_script = argv[0];
 	cmd_info.i_argv = argv;
 	cmd_info.i_timeout_in_ms = (uns32)((clc_info->cmds[cmd_type - 1].timeout) / 1000000);
-	cmd_info.i_usr_hdl = cb->cb_hdl;
 	cmd_info.i_cb = avnd_comp_clc_resp;
 	cmd_info.i_set_env_args = &arg;
 

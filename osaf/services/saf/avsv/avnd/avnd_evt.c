@@ -69,7 +69,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	}
 
 	/* fill the common fields */
-	evt->cb_hdl = cb->cb_hdl;
 	if (mds_ctxt)
 		evt->mds_ctxt = *mds_ctxt;
 	evt->type = type;

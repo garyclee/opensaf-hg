@@ -163,18 +163,12 @@ uns32 avnd_mbcsv_register(AVND_CB *cb)
 static uns32 avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 {
 	uns32 status = NCSCC_RC_SUCCESS;
-	AVND_CB *cb;
+	AVND_CB *cb = avnd_cb;
 
 	m_AVND_AVND_ENTRY_LOG("Entered avnd_mbcsv_cb", NULL, 0, 0, 0, 0);
 
 	if (NULL == arg) {
 		m_AVND_AVND_ERR_LOG("avnd_mbcsv_cb: arg is NULL", NULL, 0, 0, 0, 0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Get the CB from the handle manager */
-	if ((cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, arg->i_client_hdl)) == NULL) {
-		/* Log here  and free the received UBA */
 		return NCSCC_RC_FAILURE;
 	}
 
@@ -208,8 +202,6 @@ static uns32 avnd_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 	}
 
 	m_NCS_UNLOCK(&cb->lock, NCS_LOCK_WRITE);
-
-	ncshm_give_hdl(arg->i_client_hdl);
 
 	return status;
 }
@@ -651,7 +643,6 @@ static uns32 avnd_mbcsv_open_ckpt(AVND_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->avnd_mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = cb->avnd_mbcsv_vaddr_pwe_hdl;
-	mbcsv_arg.info.open.i_client_hdl = cb->cb_hdl;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		m_AVND_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
