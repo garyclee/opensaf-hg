@@ -34,5 +34,5 @@ immadm_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
-	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
-	$(top_srcdir)/osaf/libs/saf/libSaImm/libSaImmOi.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la
