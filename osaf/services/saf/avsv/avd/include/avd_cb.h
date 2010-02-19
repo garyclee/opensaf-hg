@@ -373,6 +373,4 @@ extern AVD_CL_CB *avd_cb;
 
 struct avd_evt_tag;
 
-extern uns32 avd_init_proc(void);
-
 #endif

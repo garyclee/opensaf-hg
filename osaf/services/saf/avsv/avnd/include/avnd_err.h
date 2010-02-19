@@ -108,8 +108,8 @@ struct avnd_cb_tag;
 struct avnd_comp_tag;
 struct avnd_su_tag;
 
-EXTERN_C uns32 avnd_err_process(struct avnd_cb_tag *, struct avnd_comp_tag *, AVND_ERR_INFO *);
-
-EXTERN_C uns32 avnd_err_su_repair(struct avnd_cb_tag *, struct avnd_su_tag *);
+extern uns32 avnd_err_process(struct avnd_cb_tag *, struct avnd_comp_tag *, AVND_ERR_INFO *);
+extern uns32 avnd_err_su_repair(struct avnd_cb_tag *, struct avnd_su_tag *);
+extern uns32 avnd_err_rcvr_comp_restart(struct avnd_cb_tag *cb, struct avnd_comp_tag *comp);
 
 #endif   /* !AVND_ERR_H */

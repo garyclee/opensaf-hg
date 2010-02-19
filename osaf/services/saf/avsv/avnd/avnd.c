@@ -32,7 +32,9 @@
 ******************************************************************************
 */
 
-#include "immutil.h"
+#include <immutil.h>
+#include <logtrace.h>
+
 #include "avnd.h"
 #include "ncs_main_pvt.h"
 #include "avsv_d2nedu.h"
@@ -53,62 +55,53 @@ AVND_CB *avnd_cb = &_avnd_cb;
 
 /* static function declarations */
 
-static uns32 avnd_create(NCS_LIB_CREATE *create_info);
-
 static AVND_CB *avnd_cb_create(void);
 
 static uns32 avnd_mbx_create(AVND_CB *);
 
 static uns32 avnd_ext_intf_create(AVND_CB *);
 
-static uns32 avnd_task_create(void);
-
 static uns32 avnd_mbx_destroy(AVND_CB *);
 
 static uns32 avnd_ext_intf_destroy(AVND_CB *);
 
-static uns32 avnd_task_destroy(void);
-
 static NCS_BOOL avnd_mbx_clean(NCSCONTEXT, NCSCONTEXT);
 
-static void avnd_sigusr1_handler(void);
-
-/****************************************************************************
-  Name          : avnd_lib_req
- 
-  Description   : This routine is exported to the external entities & is used
-                  to create & destroy AvND.
- 
-  Arguments     : req_info - ptr to the request info
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uns32 avnd_lib_req(NCS_LIB_REQ_INFO *req_info)
+static int get_node_type(void)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
+        size_t bytes;
+        int type;
+        char buf[32];
+        FILE *f = fopen(OSAF_SYSCONFDIR "node_type", "r");
 
-	switch (req_info->i_op) {
-	case NCS_LIB_REQ_CREATE:
-		rc = avnd_create(&req_info->info.create);
-		if (NCSCC_RC_SUCCESS == rc) {
-			m_AVND_LOG_SEAPI(AVSV_LOG_SEAPI_CREATE, AVSV_LOG_SEAPI_SUCCESS, NCSFL_SEV_INFO);
-		} else {
-			m_AVND_LOG_SEAPI(AVSV_LOG_SEAPI_CREATE, AVSV_LOG_SEAPI_FAILURE, NCSFL_SEV_CRITICAL);
+        if (!f) {
+                LOG_ER("Could not open file %s - %s", OSAF_SYSCONFDIR "node_type", strerror(errno));
+                return AVSV_AVND_CARD_PAYLOAD;
+        }
+
+        if ((bytes = fscanf(f, "%s", buf)) > 0) {
+                if (strncmp(buf, "controller", sizeof(buf)) == 0) {
+			TRACE("Node type: controller");
+                        type = AVSV_AVND_CARD_SYS_CON;
 		}
-		break;
+                else if (strncmp(buf, "payload", sizeof(buf)) == 0) {
+			TRACE("Node type: payload");
+                        type = AVSV_AVND_CARD_PAYLOAD;
+		}
+                else {
+                        syslog(LOG_ERR, "Unknown node type %s", buf);
+                        type = AVSV_AVND_CARD_PAYLOAD;
+                }
+        } else {
+		LOG_ER("fscanf FAILED for %s - %s", OSAF_SYSCONFDIR "node_type", strerror(errno));
+                type = AVSV_AVND_CARD_PAYLOAD;
+        }
 
-	case NCS_LIB_REQ_DESTROY:
-		avnd_sigusr1_handler();
-		break;
+        (void)fclose(f);
 
-	default:
-		break;
-	}
-
-	return rc;
+	return type;
 }
+
 
 /****************************************************************************
   Name          : avnd_create
@@ -119,15 +112,14 @@ uns32 avnd_lib_req(NCS_LIB_REQ_INFO *req_info)
                   b) create & attach AvND mailbox.
                   c) initialize external interfaces (logging service being the
                      exception).
-                  d) create & start AvND task.
  
-  Arguments     : create_info - ptr to the create info
+  Arguments     : -
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None
 ******************************************************************************/
-uns32 avnd_create(NCS_LIB_CREATE *create_info)
+uns32 avnd_create(void)
 {
 	AVND_CB *cb = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -156,14 +148,7 @@ uns32 avnd_create(NCS_LIB_CREATE *create_info)
 		goto done;
 	}
 
-	/* create & start AvND task */
-	rc = avnd_task_create();
-	if (NCSCC_RC_SUCCESS != rc) {
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
- done:
+done:
 	/* if failed, perform the cleanup */
 	if (NCSCC_RC_SUCCESS != rc)
 		avnd_destroy();
@@ -296,6 +281,8 @@ AVND_CB *avnd_cb_create()
 	/* initialize clm db */
 	if (NCSCC_RC_SUCCESS != avnd_clmdb_init(cb))
 		goto err;
+
+	avnd_cb->clmdb.type = get_node_type();
 
 	/* initialize pg db */
 	if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
@@ -443,13 +430,13 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 		goto err;
 	}
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
-
-#ifdef NCS_AVND_MBCSV_CKPT
-	/* MDS registration for VDEST */
-	rc = avnd_mds_mbcsv_reg(cb);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
-		goto err;
+#if FIXME
+	if (cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+		rc = avnd_mds_mbcsv_reg(cb);
+		if (NCSCC_RC_SUCCESS != rc) {
+			m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
+			goto err;
+		}
 	}
 #endif
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
@@ -459,48 +446,6 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
  err:
 	/* destroy external interfaces */
 	avnd_ext_intf_destroy(cb);
-
-	return rc;
-}
-
-/****************************************************************************
-  Name          : avnd_task_create
- 
-  Description   : This routine creates & starts AvND task.
- 
-  Arguments     : None.
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uns32 avnd_task_create()
-{
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* create avnd task */
-	rc = m_NCS_TASK_CREATE((NCS_OS_CB)avnd_main_process, (void *)&gl_avnd_hdl, "AVND",
-			       m_AVND_TASK_PRIORITY, m_AVND_STACKSIZE, &gl_avnd_task_hdl);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_TASK(AVSV_LOG_TASK_CREATE, AVSV_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
-		goto err;
-	}
-	m_AVND_LOG_TASK(AVSV_LOG_TASK_CREATE, AVSV_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
-
-	/* now start the task */
-	rc = m_NCS_TASK_START(gl_avnd_task_hdl);
-	if (NCSCC_RC_SUCCESS != rc) {
-		m_AVND_LOG_TASK(AVSV_LOG_TASK_START, AVSV_LOG_TASK_FAILURE, NCSFL_SEV_CRITICAL);
-		goto err;
-	}
-	m_AVND_LOG_TASK(AVSV_LOG_TASK_START, AVSV_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
-
-	return rc;
-
- err:
-	/* destroy the task */
-	if (gl_avnd_task_hdl)
-		avnd_task_destroy();
 
 	return rc;
 }
@@ -671,26 +616,6 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 }
 
 /****************************************************************************
-  Name          : avnd_task_destroy
- 
-  Description   : This routine destroys the AvND task.
- 
-  Arguments     : None.
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None
-******************************************************************************/
-uns32 avnd_task_destroy()
-{
-	/* release the task */
-	m_NCS_TASK_RELEASE(gl_avnd_task_hdl);
-	m_AVND_LOG_TASK(AVSV_LOG_TASK_RELEASE, AVSV_LOG_TASK_SUCCESS, NCSFL_SEV_INFO);
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/****************************************************************************
    Name          : avnd_mbx_clean
   
    Description   : This routine dequeues & deletes all the events from the 
@@ -726,18 +651,19 @@ NCS_BOOL avnd_mbx_clean(NCSCONTEXT arg, NCSCONTEXT msg)
                    all the NCS components also. This is the signal to perform 
                    the last step of termination including db clean-up.
 
-   Arguments     : arg - argument to be passed
-                   msg - ptr to the 1st event in the mailbox
+   Arguments     : 
   
    Return Values : TRUE/FALSE
   
    Notes         : None.
  *****************************************************************************/
-static void avnd_sigusr1_handler(void)
+void avnd_sigusr1_handler(void)
 {
 	AVND_CB *cb = 0;
 	AVND_EVT *evt = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+	TRACE_ENTER();
 
 	/* retrieve avnd cb */
 	if (0 == (cb = (AVND_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVND, (uns32)gl_avnd_hdl))) {

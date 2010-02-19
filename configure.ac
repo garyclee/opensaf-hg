@@ -745,16 +745,12 @@ AC_CONFIG_FILES([
         osaf/services/saf/avsv/logstr/Makefile
         osaf/services/saf/avsv/avd/Makefile
         osaf/services/saf/avsv/avd/include/Makefile
+        osaf/services/saf/avsv/avd/scripts/Makefile
+        osaf/services/saf/avsv/avd/scripts/amfd_script
         osaf/services/saf/avsv/avnd/Makefile
         osaf/services/saf/avsv/avnd/include/Makefile
-        osaf/services/saf/avsv/pcap/Makefile
-        osaf/services/saf/avsv/pcap/scripts/Makefile
-        osaf/services/saf/avsv/pcap/scripts/opensaf_pcap_clean
-        osaf/services/saf/avsv/pcap/scripts/opensaf_pcap_start
-        osaf/services/saf/avsv/scap/Makefile
-        osaf/services/saf/avsv/scap/scripts/Makefile
-        osaf/services/saf/avsv/scap/scripts/opensaf_scap_clean
-        osaf/services/saf/avsv/scap/scripts/opensaf_scap_start
+        osaf/services/saf/avsv/avnd/scripts/Makefile
+        osaf/services/saf/avsv/avnd/scripts/amfnd_script
         osaf/services/saf/immsv/Makefile
         osaf/services/saf/immsv/config/Makefile
         osaf/services/saf/immsv/immd/Makefile

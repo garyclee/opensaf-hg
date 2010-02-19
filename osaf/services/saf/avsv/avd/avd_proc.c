@@ -562,7 +562,7 @@ static void avd_imm_reinit_bg(AVD_CL_CB *cb)
  * 
  **************************************************************************/
 
-void avd_main_proc(void *null)
+void avd_main_proc(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	AVD_EVT *evt;
@@ -572,8 +572,8 @@ void avd_main_proc(void *null)
 	TRACE_ENTER();
 	avd_log(NCSFL_SEV_NOTICE, "starting...");
 
-	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_ERROR, "avd_init_proc failed");
+	if (avd_initialize() != NCSCC_RC_SUCCESS) {
+		avd_log(NCSFL_SEV_ERROR, "avd_initialize FAILED");
 		exit(EXIT_FAILURE);
 	}
 
@@ -587,6 +587,8 @@ void avd_main_proc(void *null)
 	fds[FD_FMA].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
+
+	(void) nid_notify("AMFD", NCSCC_RC_SUCCESS, NULL);
 
 	while (1) {
 		int ret = poll(fds, nfds, -1);

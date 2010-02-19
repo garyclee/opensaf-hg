@@ -33,7 +33,6 @@ noinst_HEADERS = \
    avd_csi.h \
    avd_dblog.h \
    avd_def.h \
-   avd_dl_api.h \
    avd_evt.h \
    avd.h \
    avd_hb.h \

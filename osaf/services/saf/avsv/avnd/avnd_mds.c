@@ -683,6 +683,10 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 				if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
 					return rc;
 
+				/* supervise our local avd */
+				if (evt_info->i_node_id == ncs_get_node_id())
+					ncs_reboot("avd down");
+
 				/* reset the avd mds-dest */
 				memset(&cb->avd_dest, 0, sizeof(MDS_DEST));
 

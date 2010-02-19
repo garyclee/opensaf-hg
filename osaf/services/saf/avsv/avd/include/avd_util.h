@@ -139,6 +139,6 @@ extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
 	SaNameT *dn, const char *needle, const char *parent);
 
 extern int comp_admin_op_snd_msg(struct avd_comp_tag *comp, SaAmfAdminOperationIdT opId);
-extern char* avd_getparent(const char* dn);
+extern const char* avd_getparent(const char* dn);
 
 #endif

@@ -36,6 +36,16 @@ fi
 
 export OLD_STDOUTSPATH="$LOCALSTATEDIR/old_stdouts"
 
+#########################################
+# AMF Configuration
+#########################################
+# Uncomment to run valgrind on the amfd/amfnd binary
+#AMFDTOOL=valgrind
+#AMFNDTOOL=valgrind
+
+# Uncomment to enable traces from the very start of amfd/amfnd
+#export AMFD_TRACE_CATEGORIES=0xffffffff
+#export AMFND_TRACE_CATEGORIES=0xffffffff
 
 #########################################
 # FILES
@@ -134,5 +144,3 @@ CORE_PATTERN_CURRENT=$(cat /proc/sys/kernel/core_pattern)
 
 INITTIMEOUT=1000
 TERMTIMEOUT=5
-#export SCAP_TRACE_CATEGORIES=0xffffffff
-#export PCAP_TRACE_CATEGORIES=0xffffffff

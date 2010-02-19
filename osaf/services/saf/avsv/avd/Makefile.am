@@ -18,22 +18,21 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+SUBDIRS = include scripts
 
-noinst_LTLIBRARIES = libavd.la
+pkglib_PROGRAMS = opensaf_amfd
 
-libavd_la_CPPFLAGS = \
+opensaf_amfd_CPPFLAGS = \
+	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/fm/include \
-        -I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-libavd_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+opensaf_amfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
-libavd_la_LDFLAGS = -static
-
-libavd_la_SOURCES = \
+opensaf_amfd_SOURCES = \
 	avd_app.c \
 	avd_apptype.c \
 	avd_avm.c \
@@ -87,8 +86,18 @@ libavd_la_SOURCES = \
 	avd_tmr.c \
 	avd_ntf.c \
 	avd_util.c \
+	amfd_main.c \
+	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
 
-libavd_la_LIBADD = \
-        $(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
-        $(top_builddir)/osaf/libs/agents/infrastructure/fma/libfma.la
+opensaf_amfd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
+	$(top_builddir)/osaf/libs/agents/infrastructure/fma/libfma.la
+

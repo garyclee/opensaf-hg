@@ -2288,15 +2288,15 @@ done:
 /**
  * returns the parent of a DN (including DNs with escaped RDNs)
  *
- * @param i_dn
+ * @param dn
  */
-char* avd_getparent(const char* i_dn)
+const char* avd_getparent(const char* dn)
 {
-	char* parent = i_dn;
-	char* tmp_parent;
+	const char* parent = dn;
+	const char* tmp_parent;
 
 	/* Check if there exist any escaped RDN in the DN */
-	tmp_parent = strrchr((char*)i_dn, '\\');
+	tmp_parent = strrchr(dn, '\\');
 	if (tmp_parent != NULL) {
 		parent = tmp_parent + 2;
 	}

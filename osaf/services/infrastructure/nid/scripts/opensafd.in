@@ -31,17 +31,7 @@ export LEAP_TMR_THREAD_RT=1
 export LEAP_THREADS_NON_RT=1
 export MDS_QUIESCED_TMR_VAL_IN_10MS=40
 
-if [ "$NODE_TYPE" == "controller" ] ; then
-  NT=1
-  AMF=opensaf_scap
-elif [ "$NODE_TYPE" == "payload" ] ; then
-  NT=2
-  AMF=opensaf_pcap
-else
-  log "ERROR: NODE_TYPE is not properly set in $SYSCONFDIR/script.conf"
-  exit 2
-fi
-
+AMF=opensaf_amfnd
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
 NIDPIDFILE="$PIDPATH/nodeinit.pid"

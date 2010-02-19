@@ -25,7 +25,6 @@ noinst_HEADERS = \
    avnd_def.h \
    avnd_defs.h \
    avnd_di.h \
-   avnd_dl_api.h \
    avnd_err.h \
    avnd_evt.h \
    avnd.h \

@@ -896,10 +896,10 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
-#TODO: Split SCAP with AMF Director/Nodedirector
-%{_pkglibdir}/opensaf_scap
-%{_pkglibdir}/opensaf_scap_clean
-%{_pkglibdir}/opensaf_scap_start
+%{_pkglibdir}/opensaf_amfd
+%{_pkglibdir}/amfd_script
+%{_pkglibdir}/opensaf_amfnd
+%{_pkglibdir}/amfnd_script
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -919,10 +919,8 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
 %{_bindir}/collect_logs_payload
-#TODO: Split PCAP with AMF Director/Nodedirector
-%{_pkglibdir}/opensaf_pcap
-%{_pkglibdir}/opensaf_pcap_clean
-%{_pkglibdir}/opensaf_pcap_start
+%{_pkglibdir}/opensaf_amfnd
+%{_pkglibdir}/amfnd_script
 
 
 %files libs
@@ -966,7 +964,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_datadir}/%{name}/samples/*
 
 
-#TODO: Clean when scap/pcap will be split into amfd/amfnd and PLM introduced
+#TODO: Clean when PLM introduced
 %files tools
 %defattr(-,root,root)
 %{_bindir}/opensaf_mem_dump
