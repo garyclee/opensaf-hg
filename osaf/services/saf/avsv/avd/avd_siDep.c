@@ -466,7 +466,6 @@ uns32 avd_si_dep_state_evt(AVD_CL_CB *cb, AVD_SI *si, AVD_SI_SI_DEP_INDX *si_dep
 	/* Update evt struct, using tmr field even though this field is not
 	 * relevant for this event, but it accommodates the required data.
 	 */
-	evt->cb_hdl = cb->cb_handle;
 	evt->rcv_evt = AVD_EVT_SI_DEP_STATE;
 
 	/* si_dep_idx is NULL for ASSIGN event non-NULL for UNASSIGN event */

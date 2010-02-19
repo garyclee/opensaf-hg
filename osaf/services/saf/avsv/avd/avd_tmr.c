@@ -144,21 +144,12 @@ void avd_stop_tmr(AVD_CL_CB *cb, AVD_TMR *tmr)
 *****************************************************************************/
 void avd_tmr_exp(void *uarg)
 {
-
-	AVD_CL_CB *cb = NULL;
+	AVD_CL_CB *cb = avd_cb;
 	AVD_TMR *tmr = (AVD_TMR *)uarg;
 	AVD_EVT *evt = AVD_EVT_NULL;
-	uns32 cb_hdl;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_tmr_exp");
 	m_AVD_LOG_RCVD_VAL(tmr->type);
-
-	/* retrieve AvD CB */
-	cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, tmr->cb_hdl);
-	if (cb == NULL)
-		return;
-
-	cb_hdl = tmr->cb_hdl;
 
 	/* 
 	 * Check if this timer was stopped after "avd_tmr_exp" was called 
@@ -170,13 +161,12 @@ void avd_tmr_exp(void *uarg)
 		/* create & send the timer event */
 		evt = calloc(1, sizeof(AVD_EVT));
 		if (evt != AVD_EVT_NULL) {
-			evt->cb_hdl = tmr->cb_hdl;
 			evt->info.tmr = *tmr;
 			evt->rcv_evt = (tmr->type - AVD_TMR_SND_HB) + AVD_EVT_TMR_SND_HB;
 			m_AVD_LOG_RCVD_VAL(((long)evt));
 			m_AVD_LOG_EVT_INFO(AVD_SND_TMR_EVENT, evt->rcv_evt);
 
-			if ((tmr->cb_hdl == cb_hdl) && (evt->rcv_evt == AVD_EVT_TMR_SND_HB)) {
+			if (evt->rcv_evt == AVD_EVT_TMR_SND_HB) {
 				if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
 				    != NCSCC_RC_SUCCESS) {
 					/* log */
@@ -185,7 +175,7 @@ void avd_tmr_exp(void *uarg)
 				}
 				m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
-			} else if (tmr->cb_hdl == cb_hdl) {
+			} else {
 				if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
 				    != NCSCC_RC_SUCCESS) {
 					/* log */
@@ -193,16 +183,9 @@ void avd_tmr_exp(void *uarg)
 					free(evt);
 				}
 				m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
-			} else {
-				free(evt);
 			}
 		} else {
 			m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
 		}
 	}
-
-	/* return AvD CB handle */
-	ncshm_give_hdl(cb_hdl);
-
-	return;
 }

@@ -712,7 +712,6 @@ static uns32 avsv_mbcsv_open_ckpt(AVD_CL_CB *cb)
 	mbcsv_arg.i_op = NCS_MBCSV_OP_OPEN;
 	mbcsv_arg.i_mbcsv_hdl = cb->mbcsv_hdl;
 	mbcsv_arg.info.open.i_pwe_hdl = cb->vaddr_pwe_hdl;
-	mbcsv_arg.info.open.i_client_hdl = cb->cb_handle;
 
 	if (NCSCC_RC_SUCCESS != ncs_mbcsv_svc(&mbcsv_arg)) {
 		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);

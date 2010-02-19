@@ -163,15 +163,17 @@ static int avd_hb_task_create()
 
 /**
  * Callback from RDA. Post a messageto the AVD mailbox.
- * @param cb_hdl
+ * @param notused
  * @param cb_info
  * @param error_code
  */
-static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
+static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE error_code)
 {
 	uns32 rc;
 	AVD_EVT *evt;
 	AVM_AVD_SYS_CON_ROLE_T *msg;
+
+	(void) notused;
 
 	TRACE_ENTER();
 
@@ -372,11 +374,6 @@ uns32 avd_initialize(void)
 	 ** could succeed even if the DTS server is not available 
 	 */
 	avd_flx_log_reg();
-
-	if ((cb->cb_handle = ncshm_create_hdl(NCS_HM_POOL_ID_COMMON, NCS_SERVICE_ID_AVD, cb)) == 0) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncshm_create_hdl FAILED");
-		return NCSCC_RC_FAILURE;
-	}
 
 	if (ncs_ipc_create(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
 		avd_log(NCSFL_SEV_EMERGENCY, "ncs_ipc_create FAILED");

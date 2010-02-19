@@ -52,33 +52,22 @@
   Description   : This is a callback routine that is invoked to encode
                   AvND-AvD messages.
  
-  Arguments     : cb_hdl    - AvD control block Handle.
-                  enc_info  - ptr to the MDS encode info.
+  Arguments     : enc_info  - ptr to the MDS encode info.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : 
 ******************************************************************************/
-uns32 avd_mds_enc(uns32 cb_hdl, MDS_CALLBACK_ENC_INFO *enc_info)
+uns32 avd_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
-	AVD_CL_CB *cb;
+	AVD_CL_CB *cb = avd_cb;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_enc");
 
-	/* get the CB from the handle manager */
-	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
-		/* log the problem */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		return NCSCC_RC_FAILURE;
-	}
-
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, enc_info->io_uba,
 				EDP_OP_TYPE_ENC, enc_info->i_msg, &ederror, enc_info->o_msg_fmt_ver);
-
-	/* give back the handle */
-	ncshm_give_hdl(cb_hdl);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* Encode failed!!! */
@@ -96,16 +85,15 @@ uns32 avd_mds_enc(uns32 cb_hdl, MDS_CALLBACK_ENC_INFO *enc_info)
   Description   : This is a callback routine that is invoked to encode
                   AvND-AvD messages in a flat buffer.
  
-  Arguments     : cb_hdl    - AvD control block Handle.
-                  enc_info  - ptr to the MDS encode info.
+  Arguments     : enc_info  - ptr to the MDS encode info.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : 
 ******************************************************************************/
-uns32 avd_mds_enc_flat(uns32 cb_hdl, MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
+uns32 avd_mds_enc_flat(MDS_CALLBACK_ENC_FLAT_INFO *enc_info)
 {
-	return avd_mds_enc(cb_hdl, (MDS_CALLBACK_ENC_INFO *)enc_info);
+	return avd_mds_enc((MDS_CALLBACK_ENC_INFO *)enc_info);
 }
 
 /****************************************************************************
@@ -158,33 +146,22 @@ uns32 avd_mds_cpy(MDS_CALLBACK_COPY_INFO *cpy_info)
   Description   : This is a callback routine that is invoked to decode
                   AvD-AvND messages.
  
-  Arguments     : cb_hdl    - AvD control block Handle.
-                  dec_info  - ptr to the MDS decode info.
+  Arguments     : dec_info  - ptr to the MDS decode info.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
+uns32 avd_mds_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
-	AVD_CL_CB *cb;
+	AVD_CL_CB *cb = avd_cb;
 	EDU_ERR ederror = 0;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_mds_dec");
 
-	/* get the CB from the handle manager */
-	if ((cb = ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
-		/* log the problem */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		return NCSCC_RC_FAILURE;
-	}
-
 	rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_dnd_msg, dec_info->io_uba,
 				EDP_OP_TYPE_DEC, &dec_info->o_msg, &ederror, dec_info->i_msg_fmt_ver);
-
-	/* give back the handle */
-	ncshm_give_hdl(cb_hdl);
 
 	if (rc != NCSCC_RC_SUCCESS) {
 		/* decode failed!!! */
@@ -209,16 +186,15 @@ uns32 avd_mds_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
   Description   : This is a callback routine that is invoked to decode
                   AvD-AvND messages from flat buffers.
  
-  Arguments     : cb_hdl    - AvD control block Handle.
-                  dec_info  - ptr to the MDS decode info.
+  Arguments     : dec_info  - ptr to the MDS decode info.
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None.
 ******************************************************************************/
-uns32 avd_mds_dec_flat(uns32 cb_hdl, MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
+uns32 avd_mds_dec_flat(MDS_CALLBACK_DEC_FLAT_INFO *dec_info)
 {
-	return avd_mds_dec(cb_hdl, (MDS_CALLBACK_DEC_INFO *)dec_info);
+	return avd_mds_dec((MDS_CALLBACK_DEC_INFO *)dec_info);
 }
 
 /****************************************************************************
@@ -396,18 +372,17 @@ uns32 avd_d2n_msg_bcast(AVD_CL_CB *cb, AVD_DND_MSG *bcast_msg)
   from AvND. It converts the message to the corresponding event and posts
   the message to the mailbox for processing by the main loop.
  
-  Arguments     : cb_hdl     -  AvD cb Handle.
-                  rcv_msg    -  ptr to the received message
+  Arguments     : rcv_msg    -  ptr to the received message
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
+uns32 avd_n2d_msg_rcv(AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16 msg_fmt_ver)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = NULL;
+	AVD_CL_CB *cb = avd_cb;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_n2d_msg_rcv");
 
@@ -429,22 +404,11 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
-	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
-		/* log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		free(evt);
-		/* free the message and return */
-		avsv_dnd_msg_free(rcv_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
 	if (node_id == cb->node_id_avd_other) {
 		/* We need to maintain version information of peer AvND. We shouldn't
 		   send role change message to older version Controller AvND. */
 		cb->peer_msg_fmt_ver = msg_fmt_ver;
 	}
-	evt->cb_hdl = cb_hdl;
 	evt->rcv_evt = (rcv_msg->msg_type - AVSV_N2D_CLM_NODE_UP_MSG)
 	    + AVD_EVT_NODE_UP_MSG;
 	if (rcv_msg->msg_type >= AVSV_N2D_COMP_VALIDATION_MSG) {
@@ -467,8 +431,6 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 		if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
 		    != NCSCC_RC_SUCCESS) {
 			m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-			/* return AvD CB handle */
-			ncshm_give_hdl(cb_hdl);
 			/* log error */
 			/* free the message */
 			avsv_dnd_msg_free(rcv_msg);
@@ -483,8 +445,6 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 	else if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
 		 != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* return AvD CB handle */
-		ncshm_give_hdl(cb_hdl);
 		/* log error */
 		/* free the message */
 		avsv_dnd_msg_free(rcv_msg);
@@ -496,9 +456,6 @@ uns32 avd_n2d_msg_rcv(uns32 cb_hdl, AVD_DND_MSG *rcv_msg, NODE_ID node_id, uns16
 	}
 
 	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
-
-	/* return AvD CB handle */
-	ncshm_give_hdl(cb_hdl);
 
 	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_RCV_CBK);
 	return NCSCC_RC_SUCCESS;

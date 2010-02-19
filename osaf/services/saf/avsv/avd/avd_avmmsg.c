@@ -67,18 +67,17 @@
  *  from AVM. It converts the message to the corresponding event and posts
  *  the message to the mailbox for processing by the main loop.
  * 
- *  Arguments     : cb_hdl     -  AvD cb Handle.
- *                  rcv_msg    -  ptr to the received message
+ *  Arguments     : rcv_msg    -  ptr to the received message
  * 
  *  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  * 
  *  Notes         : None.
  ***************************************************************************/
 
-uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
+uns32 avd_avm_rcv_msg(AVM_AVD_MSG_T *rcv_msg)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = NULL;
+	AVD_CL_CB *cb = avd_cb;
 
 	/* check that the message ptr is not NULL */
 	if (rcv_msg == NULL) {
@@ -96,24 +95,12 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
-		/* log error */
-		free(evt);
-		/* free the message and return */
-		avm_avd_free_msg(&rcv_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	evt->cb_hdl = cb_hdl;
 	evt->rcv_evt = (rcv_msg->msg_type + AVD_EVT_INIT_MAX);
 	evt->info.avm_msg = rcv_msg;
 
 	if (m_NCS_IPC_SEND(&cb->avd_mbx, evt, NCS_IPC_PRIORITY_HIGH)
 	    != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* return AvD CB handle */
-		ncshm_give_hdl(cb_hdl);
 		/* log error */
 		/* free the message */
 		avm_avd_free_msg(&rcv_msg);
@@ -126,9 +113,6 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
 
 	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
-	/* return AvD CB handle */
-	ncshm_give_hdl(cb_hdl);
-
 	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_RCV_CBK);
 	return NCSCC_RC_SUCCESS;
 }
@@ -139,7 +123,7 @@ uns32 avd_avm_rcv_msg(uns32 cb_hdl, AVM_AVD_MSG_T *rcv_msg)
   Description   : This is a routine that is invoked to send messages
                   to AVM.
  
-  Arguments     : cb_hdl    - AvD control block Handle.
+  Arguments     : 
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
@@ -424,7 +408,7 @@ uns32 avd_avm_node_reset_rsp(AVD_CL_CB *cb, uns32 node)
 
 	msg->avm_avd_msg.reset_resp.node_name.length = avnd->node_info.nodeName.length;
 
-	avd_avm_rcv_msg(cb->cb_handle, msg);
+	avd_avm_rcv_msg(msg);
 
 	return NCSCC_RC_SUCCESS;
 }

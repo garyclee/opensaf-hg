@@ -132,8 +132,6 @@ typedef struct cl_cb_tag {
 	/* for HB thread */
 	SYSF_MBX avd_hb_mbx;	/* mailbox on which AvD waits */
 
-	uns32 cb_handle;	/*the control block handle of AVD
-				 */
 	NCSCONTEXT mds_handle;	/* The handle returned by MDS 
 				 * when initialized
 				 */
