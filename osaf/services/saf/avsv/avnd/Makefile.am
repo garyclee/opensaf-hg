@@ -18,15 +18,26 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = include
+SUBDIRS = include scripts
 
-noinst_LTLIBRARIES = libavnd_ctrl.la libavnd_pld.la
+pkglib_PROGRAMS = opensaf_amfnd
 
-COMMON_SRC = \
+opensaf_amfnd_CPPFLAGS = \
+	-DNCS_MAIN_EXTERNAL \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/libs/common/avsv/include \
+	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
+
+opensaf_amfnd_SOURCES = \
 	avnd.c \
 	avnd_cam.c \
 	avnd_cbq.c \
 	avnd_chc.c \
+	avnd_ckpt_dec.c \
+	avnd_ckpt_edu.c \
+	avnd_ckpt_enc.c \
+	avnd_ckpt_updt.c \
 	avnd_clc.c \
 	avnd_clm.c \
 	avnd_clmdb.c \
@@ -39,6 +50,7 @@ COMMON_SRC = \
 	avnd_hcdb.c \
 	avnd_log.c \
 	avnd_mds.c \
+	avnd_mbcsv.c \
 	avnd_mon.c \
 	avnd_pg.c \
 	avnd_pgdb.c \
@@ -55,30 +67,16 @@ COMMON_SRC = \
 	avnd_avnd.c \
 	avnd_proxy.c \
 	avnd_proxydb.c \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	amfnd_main.c \
+	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
 
-COMMON_CPPFLAGS = \
-	-DNCS_AVND=1 \
-	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/avsv/include \
-	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+opensaf_amfnd_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
 
-libavnd_ctrl_la_CPPFLAGS = \
-	$(COMMON_CPPFLAGS)
-
-libavnd_ctrl_la_LDFLAGS = -static
-
-libavnd_ctrl_la_SOURCES = \
-	$(COMMON_SRC) \
-	avnd_mbcsv.c \
-	avnd_ckpt_dec.c \
-	avnd_ckpt_edu.c \
-	avnd_ckpt_enc.c \
-	avnd_ckpt_updt.c 
-
-libavnd_pld_la_CPPFLAGS = $(COMMON_CPPFLAGS)
-
-libavnd_pld_la_LDFLAGS = -static
-
-libavnd_pld_la_SOURCES = $(COMMON_SRC)

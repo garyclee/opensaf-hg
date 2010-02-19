@@ -39,7 +39,7 @@
 
 typedef void (*AVD_EVT_HDLR) (AVD_CL_CB *, AVD_EVT *);
 
-EXTERN_C void avd_main_proc(void *);
+EXTERN_C void avd_main_proc(void);
 
 EXTERN_C void avd_su_oper_state_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_su_si_assign_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);

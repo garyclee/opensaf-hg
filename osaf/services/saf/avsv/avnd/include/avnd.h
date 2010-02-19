@@ -38,7 +38,6 @@
 #include "avsv.h"
 #include "ncs_log.h"
 #include "dta_papi.h"
-#include "avnd_dl_api.h"
 
 /* Porting Include Files */
 #include "avnd_defs.h"
@@ -73,5 +72,8 @@
 #include "avnd_proxy.h"
 #include "avnd_ckpt_updt.h"
 #include "avnd_ckpt_msg.h"
+
+extern uns32 avnd_create(void);
+extern void avnd_sigusr1_handler(void);
 
 #endif

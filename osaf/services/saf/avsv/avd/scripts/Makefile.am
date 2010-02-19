@@ -1,8 +1,6 @@
-#!/bin/bash
-#
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -13,14 +11,12 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson Network Power
+# Author(s): Ericsson AB
 #
 
-source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+include $(top_srcdir)/Makefile.common
 
-DAEMON=opensaf_pcap
-echo "Cleanup $DAEMON..."
-killall $DAEMON
-rm -f "$PIDPATH/$DAEMON.pid"
-exit 0
+MAINTAINERCLEANFILES = Makefile.in
 
+nodist_pkglib_SCRIPTS = \
+	$(top_builddir)/osaf/services/saf/avsv/avd/scripts/amfd_script

@@ -201,7 +201,7 @@ static void rda_cb(uns32 cb_hdl, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE er
  *
  * 
  **************************************************************************/
-uns32 avd_init_proc(void)
+static uns32 avd_init_proc(void)
 {
 	AVD_CL_CB *cb = avd_cb;
 	NCS_PATRICIA_PARAMS patricia_params;
@@ -334,10 +334,9 @@ uns32 avd_init_proc(void)
  * 
  **************************************************************************/
 
-static uns32 avd_initialize(void)
+uns32 avd_initialize(void)
 {
 	AVD_CL_CB *cb = avd_cb;
-	void *avd_task_hdl;
 
 	TRACE_ENTER();
 
@@ -400,40 +399,11 @@ static uns32 avd_initialize(void)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* create and start the AvD thread */
-	if (ncs_task_create((NCS_OS_CB) avd_main_proc, NULL, NCS_AVD_NAME_STR,
-		NCS_AVD_PRIORITY, NCS_AVD_STCK_SIZE, &avd_task_hdl) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_task_create FAILED");
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (ncs_task_start(avd_task_hdl) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_task_start FAILED");
+	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
+		avd_log(NCSFL_SEV_EMERGENCY, "avd_init_proc failed");
 		return NCSCC_RC_FAILURE;
 	}
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_lib_req
- *
- * Purpose: This is the routine that is exposed to the outside world
- * for both initialization and destruction of the AVD module. This
- * will inturn call the initialisation and destroy routines of AVD.
- * 
- *
- * Input: req_info - pointer to the DL SE API request structure.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: None.
- *
- * 
- **************************************************************************/
-
-uns32 avd_lib_req(NCS_LIB_REQ_INFO *req_info)
-{
-	return avd_initialize();
 }

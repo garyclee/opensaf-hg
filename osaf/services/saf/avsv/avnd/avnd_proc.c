@@ -46,7 +46,8 @@
 #include "avnd_mon.h"
 
 #define FD_MBX   0
-#define FD_MBCSV 1
+#define FD_USR1  1
+#define FD_MBCSV 2
 
 char *avnd_evt_type_name[] = {
 	"AVND_EVT_INVALID",
@@ -111,6 +112,8 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_LAST_STEP_TERM",
 	"AVND_EVT_PID_EXIT",
 };
+
+static NCS_SEL_OBJ usr1_sel_obj; /* Selection object for USR1 signal events */
 
 static NCS_BOOL avnd_mbx_process(SYSF_MBX *);
 static void avnd_evt_process(AVND_EVT *);
@@ -202,41 +205,76 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_pid_exit_evt	/* AVND_EVT_PID_EXIT */
 };
 
+/**
+ * USR1 signal is used when NID wants to stop OpenSAF (AMF).
+ * 
+ * @param sig
+ */
+static void sigusr1_handler(int sig)
+{
+	TRACE_ENTER();
+	ncs_sel_obj_ind(usr1_sel_obj);
+	signal(SIGUSR1, SIG_IGN);
+}
+
 /****************************************************************************
   Name          : avnd_main_process
  
   Description   : This routine is an entry point for the AvND task.
  
-  Arguments     : arg - ptr to the cb handle
+  Arguments     : -
  
   Return Values : None.
  
   Notes         : None
 ******************************************************************************/
-void avnd_main_process(void *arg)
+void avnd_main_process(void)
 {
 	NCS_SEL_OBJ mbx_fd;
 	NCS_BOOL avnd_exit = FALSE;
-	struct pollfd fds[2];
-	nfds_t nfds = 1;
+	struct pollfd fds[3];
+	nfds_t nfds = 2;
 
-	/* Change scheduling class to real time only on payload nodes. */
-	if (getenv("AVD") == NULL) {
+	TRACE_ENTER();
+
+	if (avnd_create() != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "ncspvt_svcs_startup failed\n");
+		goto done;
+	}
+
+	/* Change scheduling class to real time. */
+	{
 		struct sched_param param = {.sched_priority = 79 };
 
 		if (sched_setscheduler(0, SCHED_RR, &param) == -1)
-			syslog(LOG_ERR, "Could not set scheduling class for avnd: %s", strerror(errno));
+			syslog(LOG_ERR, "Could not set scheduling class for avnd: %s",
+				strerror(errno));
+	}
+
+	if (ncs_sel_obj_create(&usr1_sel_obj) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_sel_obj_create failed");
+		goto done;
+	}
+
+	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
+		LOG_ER("signal USR1 failed: %s", strerror(errno));
+		goto done;
 	}
 
 	mbx_fd = ncs_ipc_get_sel_obj(&avnd_cb->mbx);
 	fds[FD_MBX].fd = mbx_fd.rmv_obj;
 	fds[FD_MBX].events = POLLIN;
 
-#ifdef NCS_AVND_MBCSV_CKPT
-	fds[FD_MBCSV].fd = avnd_cb->avnd_mbcsv_sel_obj;
-	fds[FD_MBCSV].events = POLLIN;
-	nfds++;
+	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
+	fds[FD_USR1].events = POLLIN;
+#if FIXME
+	if (avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+		fds[FD_MBCSV].fd = avnd_cb->avnd_mbcsv_sel_obj;
+		fds[FD_MBCSV].events = POLLIN;
+		nfds++;
+	}
 #endif
+	(void) nid_notify("AMFND", NCSCC_RC_SUCCESS, NULL);
 
 	/* now wait forever */
 	while (1) {
@@ -253,18 +291,27 @@ void avnd_main_process(void *arg)
 
 		if (fds[FD_MBX].revents & POLLIN) {
 			avnd_exit = avnd_mbx_process(&avnd_cb->mbx);
-			if (TRUE == avnd_exit)
+			if (TRUE == avnd_exit) {
+				if (avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+					/*
+					* FIXME: this is a hack until NID is removed
+					* Kill amfd otherwise it will reboot the system.
+					*/
+					LOG_IN("Killing amfd...");
+					system("killall opensaf_amfd");
+				}
 				break;
+			}
 		}
 
-#ifdef NCS_AVND_MBCSV_CKPT
-		if (fds[FD_MBCSV].revents & POLLIN) {
-			avnd_log(NCSFL_SEV_NOTICE, "%u", __LINE__);
+		if (fds[FD_USR1].revents & POLLIN)
+			avnd_sigusr1_handler();
+#if FIXME
+		if ((avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) &&
+		    (fds[FD_MBCSV].revents & POLLIN)) {
 			if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(avnd_cb, SA_DISPATCH_ALL)) {
-				/* Log error; but continue with our loop. */
-				syslog(LOG_ERR, "%s: avnd_mbcsv_dispatch failed", __FUNCTION__);
+				; /* continue with our loop. */
 			}
-			avnd_log(NCSFL_SEV_NOTICE, "%u", __LINE__);
 		}
 #endif
 	}
@@ -272,6 +319,7 @@ void avnd_main_process(void *arg)
 	if (FALSE == avnd_exit)
 		syslog(LOG_ERR, "%s: Thread Exited", __FUNCTION__);
 
+done:
 	/* Give some time for cleanup and reboot scipts */
 	sleep(5);
 	exit(0);
@@ -310,7 +358,6 @@ NCS_BOOL avnd_mbx_process(SYSF_MBX *mbx)
 
 		if (cb->destroy == TRUE) {
 			ncshm_give_hdl(cb_hdl);
-			avnd_destroy();
 			return TRUE;
 		}
 

@@ -45,9 +45,6 @@
 /* AVD-AVND common EDPs */
 #include "avsv_d2nedu.h"
 
-/* AvD managment API Include Files */
-#include "avd_dl_api.h"
-
 #include "mbcsv_papi.h"
 #include "avd_ckp.h"
 
@@ -71,5 +68,7 @@
 
 #include "fm_papi.h"
 #include "avd_avm.h"
+
+extern uns32 avd_initialize(void);
 
 #endif

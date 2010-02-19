@@ -552,6 +552,9 @@ static uns32 avd_mds_svc_evt(uns32 *cb_hdl, MDS_CALLBACK_SVC_EVENT_INFO *evt_inf
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
+			/* supervise our local avnd */
+			if (evt_info->i_node_id == cb->node_id_avd)
+				ncs_reboot("avnd down");
 			break;
 
 		case NCSMDS_SVC_ID_BAM:
