@@ -588,15 +588,7 @@ SmfCampStateExecCompleted::commit(SmfUpgradeCampaign * i_camp)
 {
 	TRACE_ENTER();
 
-	if (i_camp->m_campWrapup.executeCampWrapup() == false) {
-		LOG_NO("Campaign wrapup.executeCampWrapup failed");
-#if 0
-		/* Faulty campWrapupAction shall not impact the outcome of the campaign */
-		SmfCampaignThread::instance()->campaign()->setError(error);
-		changeState(i_camp, SmfCampStateExecFailed::instance());
-		return;
-#endif
-	}
+	i_camp->m_campWrapup.executeCampWrapup(); // No action if wrapup is faulty
 
 	changeState(i_camp, SmfCampStateCommitted::instance());
 
