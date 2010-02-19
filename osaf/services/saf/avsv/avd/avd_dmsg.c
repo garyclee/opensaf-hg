@@ -54,7 +54,7 @@
  * 
  **************************************************************************/
 
-void avd_mds_d_enc(uns32 cb_hdl, MDS_CALLBACK_ENC_INFO *enc_info)
+void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 {
 	NCS_UBAID *uba = NULL;
 	uns8 *data;
@@ -91,7 +91,7 @@ void avd_mds_d_enc(uns32 cb_hdl, MDS_CALLBACK_ENC_INFO *enc_info)
  * 
  **************************************************************************/
 
-void avd_mds_d_dec(uns32 cb_hdl, MDS_CALLBACK_DEC_INFO *dec_info)
+void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 {
 	uns8 *data;
 	uns8 data_buff[24];
@@ -169,18 +169,17 @@ uns32 avd_d2d_msg_snd(AVD_CL_CB *cb, AVD_D2D_MSG *snd_msg)
   from AvD. It converts the message to the corresponding event and posts
   the message to the mailbox for processing by the HB loop.
  
-  Arguments     : cb_hdl     -  AvD cb Handle.
-                  rcv_msg    -  ptr to the received message
+  Arguments     : rcv_msg    -  ptr to the received message
  
   Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
  
   Notes         : None.
 ******************************************************************************/
 
-uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
+uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 {
 	AVD_EVT *evt = AVD_EVT_NULL;
-	AVD_CL_CB *cb = NULL;
+	AVD_CL_CB *cb = avd_cb;
 
 	m_AVD_LOG_FUNC_ENTRY("avd_d2d_msg_rcv");
 
@@ -202,17 +201,6 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
-	/* get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, cb_hdl)) == NULL) {
-		/* log error */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_hdl);
-		free(evt);
-		/* free the message and return */
-		avsv_d2d_msg_free(rcv_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	evt->cb_hdl = cb_hdl;
 	evt->rcv_evt = AVD_EVT_D_HB;
 
 	evt->info.avd_msg = rcv_msg;
@@ -220,8 +208,6 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 	if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
 	    != NCSCC_RC_SUCCESS) {
 		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* return AvD CB handle */
-		ncshm_give_hdl(cb_hdl);
 		/* log error */
 		/* free the message */
 		avsv_d2d_msg_free(rcv_msg);
@@ -233,9 +219,6 @@ uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg)
 	}
 
 	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
-
-	/* return AvD CB handle */
-	ncshm_give_hdl(cb_hdl);
 
 	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_RCV_CBK);
 	return NCSCC_RC_SUCCESS;

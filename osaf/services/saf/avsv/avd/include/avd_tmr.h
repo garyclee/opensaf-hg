@@ -56,7 +56,6 @@ typedef enum avd_tmr_type {
 typedef struct avd_tmr_tag {
 	tmr_t tmr_id;
 	AVD_TMR_TYPE type;
-	uns32 cb_hdl;		/* cb hdl to retrieve the AvD cb ptr */
 	SaClmNodeIdT node_id;
 	SaNameT spons_si_name;
 	SaNameT dep_si_name;
@@ -68,7 +67,6 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_HB_TMR_START(cb,avnd) \
 {\
-   avnd->heartbeat_rcv_avnd.cb_hdl = cb->cb_handle; \
    avnd->heartbeat_rcv_avnd.is_active = FALSE; \
    avnd->heartbeat_rcv_avnd.node_id = avnd->node_info.nodeId; \
    avnd->heartbeat_rcv_avnd.type = AVD_TMR_RCV_HB_ND; \
@@ -81,7 +79,6 @@ typedef struct avd_tmr_tag {
 #define m_AVD_CLINIT_TMR_START(cb) \
 {\
    avd_log(NCSFL_SEV_NOTICE, "Starting cluster startup timer"); \
-   cb->amf_init_tmr.cb_hdl = cb->cb_handle; \
    cb->amf_init_tmr.is_active = FALSE; \
    cb->amf_init_tmr.type = AVD_TMR_CL_INIT; \
    avd_start_tmr(cb,&(cb->amf_init_tmr), avd_cluster->saAmfClusterStartupTimeout); \
@@ -92,7 +89,6 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_SND_HB_TMR_START(cb) \
 {\
-   cb->heartbeat_send_avd.cb_hdl = cb->cb_handle; \
    cb->heartbeat_send_avd.is_active = FALSE; \
    cb->heartbeat_send_avd.type = AVD_TMR_SND_HB; \
    cb->heartbeat_send_avd.node_id = cb->node_id_avd_other; \
@@ -104,7 +100,6 @@ typedef struct avd_tmr_tag {
  */
 #define m_AVD_RCV_HB_TMR_START(cb) \
 {\
-   cb->heartbeat_rcv_avd.cb_hdl = cb->cb_handle; \
    cb->heartbeat_rcv_avd.is_active = FALSE; \
    cb->heartbeat_rcv_avd.type = AVD_TMR_RCV_HB_D; \
    cb->heartbeat_rcv_avd.node_id = cb->node_id_avd_other; \
@@ -113,7 +108,6 @@ typedef struct avd_tmr_tag {
 
 #define m_AVD_SI_DEP_TOL_TMR_START(cb, si_dep_rec) \
 {\
-   si_dep_rec->si_dep_timer.cb_hdl = cb->cb_handle; \
    si_dep_rec->si_dep_timer.is_active = FALSE; \
    si_dep_rec->si_dep_timer.type = AVD_TMR_SI_DEP_TOL; \
    si_dep_rec->si_dep_timer.spons_si_name = si_dep_rec->indx_imm.si_name_prim; \

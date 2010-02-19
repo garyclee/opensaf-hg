@@ -47,6 +47,6 @@ EXTERN_C void avd_mds_avd_up_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_mds_avd_down_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_standby_tmr_rcv_hb_d_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
 EXTERN_C void avd_standby_avd_down_func(AVD_CL_CB *cb, struct avd_evt_tag *evt);
-EXTERN_C uns32 avd_d2d_msg_rcv(uns32 cb_hdl, AVD_D2D_MSG *rcv_msg);
+EXTERN_C uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg);
 
 #endif

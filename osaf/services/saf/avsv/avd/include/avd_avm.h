@@ -38,7 +38,7 @@
 
 EXTERN_C uns32 avd_avm_send_shutdown_resp(AVD_CL_CB *, SaNameT *, uns32);
 EXTERN_C uns32 avd_avm_send_failover_resp(AVD_CL_CB *, SaNameT *, uns32);
-EXTERN_C uns32 avd_avm_rcv_msg(uns32, AVM_AVD_MSG_T *);
+EXTERN_C uns32 avd_avm_rcv_msg(AVM_AVD_MSG_T *);
 EXTERN_C uns32 avd_avm_send_fault_domain_req(AVD_CL_CB *, SaNameT *);
 EXTERN_C uns32 avd_avm_send_reset_req(AVD_CL_CB *, SaNameT *);
 

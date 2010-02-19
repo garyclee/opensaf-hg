@@ -627,7 +627,6 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 			 */
 			AVD_EVT evt;
 			memset(&evt, '\0', sizeof(AVD_EVT));
-			evt.cb_hdl = cb->cb_handle;
 			evt.rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
 			/* set cb state to active */
@@ -698,7 +697,6 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
-	evt->cb_hdl = cb->cb_handle;
 	evt->rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
 	m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT, evt->rcv_evt);
@@ -885,7 +883,6 @@ static uns32 avd_role_switch_stdby_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	m_AVD_LOG_RCVD_VAL(((long)evt));
 
-	evt->cb_hdl = cb->cb_handle;
 	evt->rcv_evt = AVD_EVT_SWITCH_NCS_SU;
 
 	m_AVD_LOG_EVT_INFO(AVD_SND_AVND_MSG_EVENT, evt->rcv_evt);

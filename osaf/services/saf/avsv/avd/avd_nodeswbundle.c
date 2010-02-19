@@ -56,7 +56,7 @@ static void nodeswbdl_delete(AVD_NODE_SW_BUNDLE *sw_bdl)
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes,
 	const CcbUtilOperationData_t *opdata)
 {
-	char *parent;
+	const char *parent;
 	const char *path_prefix;
 
 	parent = avd_getparent((char*)dn->value);
