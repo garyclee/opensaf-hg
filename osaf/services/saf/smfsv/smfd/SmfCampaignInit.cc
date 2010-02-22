@@ -145,8 +145,9 @@ SmfCampaignInit::execute()
 	std::list < SmfUpgradeAction * >::iterator upActiter;
 	upActiter = m_campInitAction.begin();
 	while (upActiter != m_campInitAction.end()) {
-		if ((*upActiter)->execute() != 0) {
-			LOG_ER("SmfCampaignInit init action %d failed", (*upActiter)->getId());
+		int rc = (*upActiter)->execute();
+		if (rc != 0) {
+			LOG_ER("SmfCampaignInit init action %d failed, rc = %d", (*upActiter)->getId(), rc);
 			return false;
 		}
 		upActiter++;
