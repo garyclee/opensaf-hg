@@ -184,17 +184,17 @@ void opensafClassCreate(SaImmHandleT immHandle)
     int retries=0;
     SaImmAttrDefinitionT_2 d1, d2, d3;
 
-    d1.attrName = OPENSAF_IMM_ATTR_RDN;
+    d1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
     d1.attrValueType = SA_IMM_ATTR_SANAMET;
     d1.attrFlags = SA_IMM_ATTR_CONFIG | SA_IMM_ATTR_RDN | SA_IMM_ATTR_INITIALIZED;
     d1.attrDefaultValue = NULL;
 
-    d2.attrName = OPENSAF_IMM_ATTR_EPOCH;
+    d2.attrName = (char *) OPENSAF_IMM_ATTR_EPOCH;
     d2.attrValueType = SA_IMM_ATTR_SAUINT32T;
     d2.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_PERSISTENT;
     d2.attrDefaultValue = NULL;
 
-    d3.attrName = OPENSAF_IMM_ATTR_CLASSES;
+    d3.attrName = (char *) OPENSAF_IMM_ATTR_CLASSES;
     d3.attrValueType = SA_IMM_ATTR_SASTRINGT;
     d3.attrFlags = SA_IMM_ATTR_RUNTIME | SA_IMM_ATTR_CACHED | SA_IMM_ATTR_PERSISTENT | 
         SA_IMM_ATTR_MULTI_VALUE;
@@ -213,7 +213,7 @@ void opensafClassCreate(SaImmHandleT immHandle)
         }
         err = saImmOmClassCreate_2(
                                    immHandle, 
-                                   OPENSAF_IMM_CLASS_NAME,
+                                   (char *) OPENSAF_IMM_CLASS_NAME,
                                    SA_IMM_CLASS_CONFIG,
                                    attrDefs);
 
@@ -246,12 +246,12 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
     intValues[0] = &epochValue;
 
     SaImmAttrValuesT_2 v1, v2;
-    v1.attrName = OPENSAF_IMM_ATTR_RDN;
+    v1.attrName = (char *) OPENSAF_IMM_ATTR_RDN;
     v1.attrValueType = SA_IMM_ATTR_SANAMET;
     v1.attrValuesNumber = 1;
     v1.attrValues = nameValues;
 
-    v2.attrName = OPENSAF_IMM_ATTR_EPOCH;
+    v2.attrName = (char *) OPENSAF_IMM_ATTR_EPOCH;
     v2.attrValueType = SA_IMM_ATTR_SAUINT32T;
     v2.attrValuesNumber = 1;
     v2.attrValues = intValues;
@@ -269,7 +269,7 @@ static void opensafObjectCreate(SaImmCcbHandleT ccbHandle)
 
         err = saImmOmCcbObjectCreate_2(
                                    ccbHandle, 
-                                   OPENSAF_IMM_CLASS_NAME, 
+                                   (char *) OPENSAF_IMM_CLASS_NAME, 
                                    &parent,
                                    attrValues);
 
@@ -301,9 +301,9 @@ bool createImmObject(SaImmClassNameT className,
 
     TRACE_ENTER2("CREATE IMM OBJECT %s, %s", className, objectName);
 
-    TRACE("attrValuesList size:%u clasRDNMap size:%u", 
-        (unsigned int) attrValuesList->size(),
-        (unsigned int) classRDNMap?classRDNMap->size():0);
+    TRACE("attrValuesList size:%zu clasRDNMap size:%u", 
+        attrValuesList->size(),
+        classRDNMap?classRDNMap->size():0);
 
     /* Set the parent name */
     parentName.length = 0;
@@ -848,7 +848,7 @@ static void endElementHandler(void* userData,
 
             /* First time, initialize the imm object api */
             errorCode = saImmOmAdminOwnerInitialize(state->immHandle,
-                                                    "IMMLOADER",
+                                                    (char *) "IMMLOADER",
                                                     SA_FALSE,
                                                     &state->ownerHandle);
             if (errorCode != SA_AIS_OK)
@@ -1730,7 +1730,7 @@ int getClassNames(SaImmHandleT& immHandle, std::list<std::string>& classNamesLis
     strcpy((char*)tspSaObjectName.value, OPENSAF_IMM_OBJECT_DN);
     tspSaObjectName.length = strlen(OPENSAF_IMM_OBJECT_DN);
 
-    SaImmAttrNameT attNames[2] = {OPENSAF_IMM_ATTR_CLASSES,0};
+    SaImmAttrNameT attNames[2] = {(char *) OPENSAF_IMM_ATTR_CLASSES,0};
 
     err = saImmOmAccessorGet_2(accessorHandle, 
                                &tspSaObjectName, 
@@ -1898,7 +1898,7 @@ int syncObjectsOfClass(std::string className, SaImmHandleT& immHandle)
 
     SaImmSearchParametersT_2 param; //Filter objects on class-name attribute.
 
-    param.searchOneAttr.attrName = SA_IMM_ATTR_CLASS_NAME;
+    param.searchOneAttr.attrName = (char *) SA_IMM_ATTR_CLASS_NAME;
     param.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
     param.searchOneAttr.attrValue = (void *) &cln;  //Pointer TO char*
 

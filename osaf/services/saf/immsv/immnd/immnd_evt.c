@@ -3995,7 +3995,7 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 	   *do* wait for ack. In fact the ccb-commit/abort decision is delegated to
            the PBE when the completed upcall is done.
 	 */
-	TRACE("ABT: pbeNodeIdPtr:%d pbeConn:%u err:%u", pbeNodeIdPtr, pbeConn, err);
+	/*TRACE("ABT: pbeNodeIdPtr:%p pbeConn:%u err:%u", pbeNodeIdPtr, pbeConn, err);*/
 	if(pbeNodeIdPtr && pbeConn && err==SA_AIS_OK) {
 		TRACE_5("PBE exists and is local to this node arrSize:%u", arrSize);
 		assert(cb->mIsCoord);

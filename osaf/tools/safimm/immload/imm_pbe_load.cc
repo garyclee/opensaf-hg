@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <cstdlib>
 
 #ifdef IMM_PBE
 
@@ -335,7 +336,7 @@ bool loadObjectFromPbe(void* pbeHandle, SaImmHandleT immHandle, SaImmCcbHandleT 
 	std::list<SaImmAttrValuesT_2> attrValuesList;
 	AttrInfoVector::iterator it;
 
-	TRACE_ENTER2("Loading object id(%s) dn(%s) class(%s)(#atts %u) from PBE",
+	TRACE_ENTER2("Loading object id(%s) dn(%s) class(%s)(#atts %zu) from PBE",
 		object_id, dn, class_info->className.c_str(),
 		class_info->attrInfoVector.size());
 
@@ -648,7 +649,7 @@ int loadImmFromPbe(void* pbeHandle)
 	}
 
 	/*Fetch objects from PBE and create in IMM */
-	errorCode = saImmOmAdminOwnerInitialize(immHandle, "IMMLOADER", 
+	errorCode = saImmOmAdminOwnerInitialize(immHandle, (char *) "IMMLOADER", 
 		SA_FALSE, &ownerHandle);
 	if (errorCode != SA_AIS_OK) {
 		LOG_ER("Failed on saImmOmAdminOwnerInitialize %d", errorCode);

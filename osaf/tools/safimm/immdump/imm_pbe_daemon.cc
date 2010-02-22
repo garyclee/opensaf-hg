@@ -23,6 +23,9 @@
 #include <saImmOi.h>
 #include "immutil.h"
 #include <poll.h>
+#include <stdio.h>
+#include <cstdlib>
+
 
 #define FD_IMM 0
 
@@ -290,12 +293,12 @@ SaAisErrorT pbe_daemon_imm_oi_init()
 		return rc;
 	}
 
-	rc = saImmOiImplementerSet(pbeOiHandle, OPENSAF_IMM_PBE_IMPL_NAME);
+	rc = saImmOiImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_PBE_IMPL_NAME);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN || rc == SA_AIS_ERR_EXIST) && 
 		(msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;
-		rc = saImmOiImplementerSet(pbeOiHandle, OPENSAF_IMM_PBE_IMPL_NAME);
+		rc = saImmOiImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_PBE_IMPL_NAME);
 	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiImplementerSet for %s failed %u", OPENSAF_IMM_PBE_IMPL_NAME, rc);
@@ -303,11 +306,11 @@ SaAisErrorT pbe_daemon_imm_oi_init()
 	}
 	/* Second implementer: OPENSAF_IMM_SERVICE_IMPL_NAME */
 
-	rc = saImmOiClassImplementerSet(pbeOiHandle, OPENSAF_IMM_CLASS_NAME);
+	rc = saImmOiClassImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_CLASS_NAME);
 	while ((rc == SA_AIS_ERR_TRY_AGAIN) && (msecs_waited < max_waiting_time_ms)) {
 		usleep(sleep_delay_ms * 1000);
 		msecs_waited += sleep_delay_ms;	
-		rc = saImmOiClassImplementerSet(pbeOiHandle, OPENSAF_IMM_CLASS_NAME);
+		rc = saImmOiClassImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_CLASS_NAME);
 	}
 
 	TRACE_LEAVE();
