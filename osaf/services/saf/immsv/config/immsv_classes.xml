@@ -3,7 +3,7 @@
 	<class name="SaImmMngt">
 		<category>SA_CONFIG</category>
 		<rdn>
-			<name>saImmMngt</name>
+			<name>safRdn</name>
 			<type>SA_STRING_T</type>
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
