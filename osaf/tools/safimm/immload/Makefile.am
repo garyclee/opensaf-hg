@@ -27,17 +27,17 @@ immload_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 immload_SOURCES = imm_loader.cc imm_pbe_load.cc
 
-#immload_CPPFLAGS = \
-#	$(AM_CPPFLAGS) \
-#	-I$(top_srcdir)/osaf/libs/common/immsv/include
 immload_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I/usr/local/include \
-	-DIMM_PBE
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
+#immload_CPPFLAGS = \
+#	$(AM_CPPFLAGS) \
+#	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+#	-I/usr/local/include \
+#	-DIMM_PBE
 
-#immload_LDFLAGS = @XML2_LIBS@
-immload_LDFLAGS = @XML2_LIBS@ -L/usr/local/lib -lsqlite3
+immload_LDFLAGS = @XML2_LIBS@
+#immload_LDFLAGS = @XML2_LIBS@ -L/usr/local/lib -lsqlite3
 
 immload_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
