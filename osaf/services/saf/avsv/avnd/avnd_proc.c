@@ -320,8 +320,16 @@ void avnd_main_process(void)
 		syslog(LOG_ERR, "%s: Thread Exited", __FUNCTION__);
 
 done:
-	/* Give some time for cleanup and reboot scipts */
+	/* NOTIFY THE NIS script that we are done cleanup */
+	if (avnd_cb->destroy == TRUE) {
+		uns32 rc = NCSCC_RC_SUCCESS;
+		nis_notify("DONE", &rc);
+	}
+
+	/* Give some time for cleanup and reboot scripts */
+	signal(SIGCHLD, SIG_IGN); /* must ignore for sleep to work */
 	sleep(5);
+
 	exit(0);
 }
 

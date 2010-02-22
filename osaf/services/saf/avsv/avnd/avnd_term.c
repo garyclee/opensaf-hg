@@ -57,7 +57,6 @@ extern const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX];
 ******************************************************************************/
 static void avnd_last_step_clean(AVND_CB *cb)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
 	AVND_COMP *comp = 0;
 
@@ -95,11 +94,6 @@ static void avnd_last_step_clean(AVND_CB *cb)
 
 	/* Mark the destroy flag */
 	cb->destroy = TRUE;
-
-	/* NOTIFY THE NIS sript that we are done cleanup */
-	nis_notify("DONE", &rc);
-
-	return;
 }
 
 /****************************************************************************
@@ -185,10 +179,6 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 
 			/* Mark the destroy flag */
 			cb->destroy = TRUE;
-
-			/* NOTIFY THE NIS sript that we are done cleanup */
-			nis_notify("DONE", &rc);
-
 		}
 
 	}
@@ -212,7 +202,6 @@ uns32 avnd_evt_last_step_term(AVND_CB *cb, AVND_EVT *evt)
 ******************************************************************************/
 void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 {
-	uns32 rc = NCSCC_RC_SUCCESS;
 	AVND_SU *su = 0;
 
 	su = (AVND_SU *)ncs_patricia_tree_getnext(&cb->sudb, (uns8 *)0);
@@ -244,9 +233,6 @@ void avnd_check_su_shutdown_done(AVND_CB *cb, NCS_BOOL is_ncs)
 
 		/* Mark the destroy flag */
 		cb->destroy = TRUE;
-
-		/* NOTIFY THE NIS sript that we are done cleanup */
-		nis_notify("DONE", &rc);
 	} else {
 		/* No SUs to be processed for termination.
 		 ** send the response message to AVD informing DONE. 
