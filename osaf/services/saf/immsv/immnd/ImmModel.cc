@@ -5357,12 +5357,12 @@ ImmModel::nameCheck(const std::string& name, bool strict) const
         unsigned char chr = name.at(pos);
         
         if((((chr == ',') || (strict && (chr == '#'))) && 
-			   (prev_chr == '\\')) || 
-            !isgraph(chr) && !(chr == '\0' && pos == len - 1))
+               (prev_chr == '\\')) || 
+                (!isgraph(chr) && !(chr == '\0' && pos == len - 1)))
         {
             /*TRACE_5("bad name size:%u '%s'", (unsigned int) len, name.c_str());*/
-            TRACE_5("Bad name. string size:%u isgraph(%c):%u, pos=%u", 
-                (unsigned int) len, chr, isgraph(chr), (unsigned int) pos);
+            TRACE_5("Bad name. string size:%zu isgraph(%c):%u, pos=%zu", 
+                len, chr, isgraph(chr), pos);
             return false;
         }
         prev_chr = chr;
@@ -5388,7 +5388,7 @@ ImmModel::nameToInternal(std::string& name)
                 effective = true;
             } else if(chr == '#') {
                 LOG_WA("Can not accept external DN with escaped hash '\\#' "
-                    "pos:%u in %s", pos, name.c_str());
+                    "pos:%zu in %s", pos, name.c_str());
                 return false;
             }
         }
