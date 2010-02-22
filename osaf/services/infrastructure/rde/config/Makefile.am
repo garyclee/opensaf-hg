@@ -18,9 +18,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/infrastructure/rde/config/rde.conf
-
 dist_pkgimmxml_svc_DATA = \
 	rde_sc_template.xml \
 	rde_objects.xml

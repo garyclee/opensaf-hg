@@ -3,37 +3,45 @@
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeRDE</dn>
 	</object>
-	<object class="SaAmfCompType">
-		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeRDE</dn>
-		<attr>
-			<name>saAmfCtSwBundle</name>
-			<value>safBundle=OpenSAF</value>
-		</attr>
-		<attr>
-			<name>saAmfCtCompCategory</name>
-			<value>1</value>
-		</attr>
-		<attr>
-			<name>saAmfCtDefClcCliTimeout</name>
-			<value>10000000000</value>
-		</attr>
-		<attr>
-			<name>saAmfCtDefCallbackTimeout</name>
-			<value>10000000000</value>
-		</attr>
-		<attr>
-			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>ncs_rde_start</value>
-		</attr>
-		<attr>
-			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>ncs_rde_clean</value>
-		</attr>
-		<attr>
-			<name>saAmfCtDefRecoveryOnError</name>
-			<value>5</value>
-		</attr>
-	</object>
+        <object class="SaAmfCompType">
+                <dn>safVersion=4.0.0,safCompType=OpenSafCompTypeRDE</dn>
+                <attr>
+                        <name>saAmfCtSwBundle</name>
+                        <value>safBundle=OpenSAF</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtCompCategory</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtDefClcCliTimeout</name>
+                        <value>10000000000</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtDefCallbackTimeout</name>
+                        <value>10000000000</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtRelPathInstantiateCmd</name>
+                        <value>rde_script</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtDefInstantiateCmdArgv</name>
+                        <value>instantiate</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtRelPathCleanupCmd</name>
+                        <value>rde_script</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtDefCleanupCmdArgv</name>
+                        <value>cleanup</value>
+                </attr>
+                <attr>
+                        <name>saAmfCtDefRecoveryOnError</name>
+                        <value>5</value>
+                </attr>
+        </object>
 	<object class="SaAmfHealthcheckType">
 		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeRDE</dn>
 		<attr>

@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = scripts include
+SUBDIRS = scripts include config
 
 pkglib_PROGRAMS = opensaf_rde
 
