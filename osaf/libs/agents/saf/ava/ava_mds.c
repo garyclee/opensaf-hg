@@ -56,7 +56,13 @@ static uns32 ava_mds_enc (AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info);
 static uns32 ava_mds_dec (AVA_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info);
 
 
-const MDS_CLIENT_MSG_FORMAT_VER ava_avnd_msg_fmt_map_table[AVA_AVND_SUBPART_VER_MAX] = {AVSV_AVND_AVA_MSG_FMT_VER_1};
+static const MDS_CLIENT_MSG_FORMAT_VER ava_avnd_msg_fmt_map_table[AVA_AVND_SUBPART_VER_MAX] = {AVSV_AVND_AVA_MSG_FMT_VER_1};
+
+/**
+ * function called when MDS down for avnd (AMF) is received
+ * Can be used by a client to reboot the system.
+ */
+static void (*amf_down_cb)(void);
 
 
 /****************************************************************************
@@ -471,6 +477,12 @@ uns32 ava_mds_svc_evt(AVA_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
       case NCSMDS_SVC_ID_AVND:
          memset(&cb->avnd_dest, 0, sizeof(MDS_DEST));
          m_AVA_FLAG_RESET(cb, AVA_FLAG_AVND_UP);
+         if (amf_down_cb == NULL)
+             /* AMF is down, terminate this process */
+             raise(SIGTERM);
+         else
+             /* A client has installed a callback pointer, call it */
+             amf_down_cb();
          break;
          
       default:
@@ -872,3 +884,17 @@ uns32 ava_mds_enc (AVA_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 
    return rc;
 }
+
+/**
+ * Install a callback pointer that will be called when it is detected that AMF has gone down.
+ * No public definition in a header file on purpose!
+ * 
+ * @param cb
+ * 
+ */
+void ava_install_amf_down_cb(void (*cb)(void))
+{
+	assert(amf_down_cb == NULL);
+	amf_down_cb = cb;
+}
+

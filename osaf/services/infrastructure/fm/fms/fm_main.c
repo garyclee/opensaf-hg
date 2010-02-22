@@ -52,6 +52,13 @@ static char *fms_skip_white(char *);
 
 uns32 gl_fm_hdl;
 
+extern void ava_install_amf_down_cb(void (*cb)(void));
+
+static void amf_down(void)
+{
+	ncs_reboot("AMF down");
+}
+
 /*****************************************************************************
 
   PROCEDURE NAME:       main
@@ -65,6 +72,8 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_sel_obj, pipe_sel_obj, amf_sel_obj, highest_sel_obj;
 	NCS_SEL_OBJ_SET sel_obj_set;
 	FM_EVT *fm_mbx_evt = NULL;
+
+	ava_install_amf_down_cb(amf_down);
 
 	if (fm_create_pidfile() != NCSCC_RC_SUCCESS) {
 		printf("\nfm pid file create failed.");

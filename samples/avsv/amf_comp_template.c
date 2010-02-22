@@ -33,6 +33,7 @@
 #include <poll.h>
 #include <syslog.h>
 #include <libgen.h>
+#include <signal.h>
 
 #include <saAmf.h>
 
@@ -189,6 +190,12 @@ static void create_pid_file(const char *filename_prefix)
 	fclose(fp);
 }
 
+static void sigterm_handler(int sig)
+{
+	syslog(LOG_NOTICE, "exiting");
+	exit(EXIT_SUCCESS);
+}
+
 /**
  * 
  * @param argc
@@ -206,6 +213,11 @@ int main(int argc, char **argv)
 	char args[256] = {0};
 	int i, j = 0;
 	char *comp_name = getenv("SA_AMF_COMPONENT_NAME");
+
+	if ((signal(SIGTERM, sigterm_handler)) == SIG_ERR) {
+		syslog(LOG_ERR, "signal TERM failed: %s", strerror(errno));
+		goto done;
+	}
 
 	create_pid_file(comp_name);
 
