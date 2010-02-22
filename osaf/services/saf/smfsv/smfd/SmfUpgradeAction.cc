@@ -352,11 +352,11 @@ SmfAdminOperationAction::execute()
         const SaImmAdminOperationParamsT_2 **params = createAdmOperParams(m_doParameters);
 
 	SmfImmUtils siu;
-        siu.callAdminOperation(m_doDn, m_doOpId, params, smfd_cb->adminOpTimeout);
+        int rc = siu.callAdminOperation(m_doDn, m_doOpId, params, smfd_cb->adminOpTimeout);
 
 	TRACE_LEAVE();
 
-	return 0;
+	return rc;
 }
 
 //------------------------------------------------------------------------------
