@@ -169,9 +169,6 @@ cmd_create_rootfs()
     if test -n "$INSTALL_TESTPROG"; then
 	echo "Building and installing test program"
 	cmd_install_testprog
-    else
-	echo "Creating [$root/root.cpio] ..."
-	cmd_mkcpio
     fi
 }
 
@@ -242,8 +239,9 @@ cmd_default() {
     # Build the Linux UML binary
     ./uml/build_uml all || die "build of UML Linux kernel failed"
     cmd_create_rootfs
-    echo -e "\n\nTEMP TEMP: Still using the imm.xml from mercurial repo instead of generating it. This will soon be changed...\nCommand to generate the imm.xml: \"build_uml generate_immxml [clustersize]\"\n\n" 
-    #cmd_generate_immxml
+    echo "Generating imm.xml for a default sized cluster" 
+    cmd_generate_immxml
+    echo -e "\n Command to generate the imm.xml for other size of cluster:\n \"build_uml generate_immxml [clustersize]\"\n"
 }
 
 ##   gen_immxml
@@ -279,6 +277,10 @@ cmd_generate_immxml() {
 	die "Failed to generate immxml"
     fi
     cp -f imm_generated.xml $top/rootfs/etc/opensaf/imm.xml
+    cd $top
+    echo "Creating [$root/root.cpio] ..."
+    cmd_mkcpio
+    echo "generate_immxml complete."
 }
 
 # Get the command
