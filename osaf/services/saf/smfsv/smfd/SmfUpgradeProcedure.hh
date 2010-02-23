@@ -265,6 +265,14 @@ class SmfUpgradeProcedure {
 	SmfProcedureThread *getProcThread();
 
 ///
+/// Purpose:  Switchover smfnd control to other controller
+/// @param    None.
+/// @return   None.
+///
+        void switchOver();
+
+
+///
 /// Purpose:  Calculate upgrade steps for this procedure
 /// @param    -
 /// @return   True if successful otherwise false

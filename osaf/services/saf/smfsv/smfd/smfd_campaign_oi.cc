@@ -33,6 +33,7 @@
 #include "SmfCampaign.hh"
 #include "SmfCampaignThread.hh"
 #include "SmfUtils.hh"
+#include "SmfCampState.hh"
 
 static SaVersionT immVersion = { 'A', 2, 1 };
 
@@ -380,7 +381,7 @@ uns32 create_campaign_objects(smfd_cb_t * cb)
 	(void)immutil_saImmOmAccessorInitialize(omHandle, &accessorHandle);
 
 	/* Search for all objects of class Campaign */
-	objectSearch.searchOneAttr.attrName = SA_IMM_ATTR_CLASS_NAME;
+	objectSearch.searchOneAttr.attrName = (char*)SA_IMM_ATTR_CLASS_NAME;
 	objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	objectSearch.searchOneAttr.attrValue = &className;
 
@@ -417,7 +418,7 @@ uns32 create_campaign_objects(smfd_cb_t * cb)
 		LOG_NO("Continue executing ongoing campaign %s", execCampaign->getDn().c_str());
 
 		if (SmfCampaignThread::start(execCampaign) == 0) {
-			TRACE("Sending execute event to thread");
+			TRACE("Sending CAMPAIGN_EVT_EXECUTE event to thread");
 			CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
 			evt->type = CAMPAIGN_EVT_EXECUTE;
 			SmfCampaignThread::instance()->send(evt);
@@ -596,6 +597,26 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 
 	LOG_NO("Cli Timeout = %llu", *cliTimeout);
 
+	const SaTimeT *rebootTimeout = immutil_getTimeAttr((const SaImmAttrValuesT_2 **)attributes,
+							SMF_REBOOT_TIMEOUT_ATTR, 0);
+
+	if (rebootTimeout == NULL) {
+		LOG_ER("Failed to get attr %s from %s", SMF_REBOOT_TIMEOUT_ATTR, SMF_CONFIG_OBJECT_DN);
+		return NCSCC_RC_FAILURE;
+	}
+
+	LOG_NO("Reboot Timeout = %llu", *rebootTimeout);
+
+	const char *smfNodeBundleActCmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
+							SMF_NODE_ACT_ATTR, 0);
+
+	if ((smfNodeBundleActCmd == NULL) || (strcmp(smfNodeBundleActCmd,"") == 0)) {
+		LOG_NO("SMF will use the STEP standard set of actions.");
+	}else{
+		LOG_NO("SMF will use the STEP non standard Bundle Activate set of actions.");
+		LOG_NO("Node bundle activation cmd = %s", smfNodeBundleActCmd);
+	}
+
 	cb->backupCreateCmd = strdup(backupCreateCmd);
 	cb->bundleCheckCmd = strdup(bundleCheckCmd);
 	cb->nodeCheckCmd = strdup(nodeCheckCmd);
@@ -603,6 +624,8 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 	cb->clusterRebootCmd = strdup(clusterRebootCmd);
 	cb->adminOpTimeout = *adminOpTimeout;
 	cb->cliTimeout = *cliTimeout;
+	cb->rebootTimeout = *rebootTimeout;
+	cb->nodeBundleActCmd = strdup(smfNodeBundleActCmd);
 
 	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;

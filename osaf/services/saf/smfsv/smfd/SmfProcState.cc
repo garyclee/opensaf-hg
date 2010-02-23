@@ -29,6 +29,7 @@
 #include "SmfUpgradeAction.hh"
 #include <immutil.h>
 #include "SmfUtils.hh"
+#include "smfd.h"
 
 /* ========================================================================
  *   DEFINITIONS
@@ -277,10 +278,10 @@ SmfProcStateExecuting::executeInit(SmfUpgradeProcedure * i_proc)
                 return;
         }
 
-	TRACE("SmfProcStateExecuting::executeInit, Create step objects");
+	TRACE("SmfProcStateExecuting::executeInit, Create step objects in IMM");
         if( !i_proc->createImmSteps() ) {
                 changeState(i_proc, SmfProcStateExecFailed::instance());
-                LOG_ER("SmfProcStateExecuting::executeInit:createImmSteps failes");
+                LOG_ER("SmfProcStateExecuting::executeInit:createImmSteps in IMM failes");
                 CAMPAIGN_EVT *errevt = new CAMPAIGN_EVT();
                 errevt->type = CAMPAIGN_EVT_PROCEDURE_RC;
                 errevt->event.procResult.rc = PROCEDURE_FAILED;
@@ -321,7 +322,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 {
 	TRACE_ENTER();
 	TRACE("SmfProcStateExecuting::executeStep: Procedure=%s", i_proc->getProcName().c_str());
-        
+
 	/* Find and execute first step in state Initial. */
 	std::vector < SmfUpgradeStep * >::iterator iter;
 	iter = i_proc->m_procSteps.begin();
@@ -348,8 +349,7 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 				LOG_NO ("PROC: Step %s needs switchover, let other controller take over",
                                        (*iter)->getRdn().c_str());
 
-                                /* TODO We most likely need to spawn a separate thread to execute
-                                the switch over since the it ought to close down ourselfs */
+				i_proc->switchOver();
 
 				TRACE_LEAVE();
 				return;
@@ -371,41 +371,81 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 		iter++;
 	}
 
-        //Run all online remove scripts for all bundles listed in the upgrade steps
-	iter = i_proc->m_procSteps.begin();
-	while (iter != i_proc->m_procSteps.end()) {
+	// If the OpenSAF proprietary step actions was selected (by the nodeBundleActCmd attribute in the SmfConfig class)
+	// the offline remove scripts was run within the steps.
+	if((smfd_cb->nodeBundleActCmd == NULL) || (strcmp(smfd_cb->nodeBundleActCmd,"") == 0)) {
+		//Run all online remove scripts for all bundles listed in the upgrade steps
+		iter = i_proc->m_procSteps.begin();
+		while (iter != i_proc->m_procSteps.end()) {
 
-                TRACE("SmfProcStateExecuting::executeStep: Execute OnlineRemove for the bundles to remove");
-                /* Online uninstallation of old software */
-                LOG_NO("PROC: Online uninstallation of old software");
-                if ((*iter)->onlineRemoveBundles((*iter)->getSwNode()) == false) {
-			changeState(i_proc, SmfProcStateExecFailed::instance());
-                        LOG_ER("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
-                        CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
-                        evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
-                        evt->event.procResult.rc = PROCEDURE_FAILED;
-                        evt->event.procResult.procedure = i_proc;
-                        SmfCampaignThread::instance()->send(evt);
-                        TRACE_LEAVE();
-                        return;
-                }
+			TRACE("SmfProcStateExecuting::executeStep: Execute OnlineRemove for the bundles to remove");
+			/* Online uninstallation of old software */
+			LOG_NO("PROC: Online uninstallation of old software");
 
-                /* Delete SaAmfNodeSwBundle object */
-                LOG_NO("PROC: Delete SaAmfNodeSwBundle object");
-                if ((*iter)->deleteSaAmfNodeSwBundles((*iter)->getSwNode()) == false) {
-			changeState(i_proc, SmfProcStateExecFailed::instance());
-                        LOG_ER("SmfProcStateExecuting::executeStep:Failed to delete SaAmfNodeSwBundle object");
-                        CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
-                        evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
-                        evt->event.procResult.rc = PROCEDURE_FAILED;
-                        evt->event.procResult.procedure = i_proc;
-                        SmfCampaignThread::instance()->send(evt);
-                        TRACE_LEAVE();
-                        return;
-                }
+			/* Run only remove scripts for those bundles which does not require reboot to online uninstall */
+			/* Find out which bundles to be removed here. Bundles which requires reboot have already has   */
+			/* their online remove scripts executed in the step.                                           */
+			SmfImmUtils immutil;
+			SaImmAttrValuesT_2 ** attributes;
+			std::list < SmfBundleRef > nonRestartBundles;
+			const std::list < SmfBundleRef > &removeList = (*iter)->getSwRemoveList();
+			std::list< SmfBundleRef >::const_iterator bundleIter = removeList.begin();
+			while (bundleIter != removeList.end()) {
+				/* Read the saSmfBundleInstallOfflineScope to detect if the bundle shall be included */
+				if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+					LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+					CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+					evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+					evt->event.procResult.rc = PROCEDURE_FAILED;
+					evt->event.procResult.procedure = i_proc;
+					SmfCampaignThread::instance()->send(evt);
+					TRACE_LEAVE();
+					return;
+				}
+				const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+									       "saSmfBundleInstallOfflineScope",
+									       0);
+				/* Include only bundles not need reboot */
+				if ((scope != NULL) && (*scope != SA_SMF_CMD_SCOPE_PLM_EE)) {
+					TRACE("SmfProcStateExecuting::executeStep:Include the SW bundle %s to remove list", 
+					      (*bundleIter).getBundleDn().c_str());
+
+					nonRestartBundles.push_back((*bundleIter));
+				}
+
+				bundleIter++;
+			}
+
+//                if ((*iter)->onlineRemoveBundles((*iter)->getSwNode()) == false) {
+			if ((*iter)->onlineRemoveBundlesUserList((*iter)->getSwNode(), removeList) == false) {
+				changeState(i_proc, SmfProcStateExecFailed::instance());
+				LOG_ER("SmfProcStateExecuting::executeStep:Failed to online remove bundles");
+				CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+				evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+				evt->event.procResult.rc = PROCEDURE_FAILED;
+				evt->event.procResult.procedure = i_proc;
+				SmfCampaignThread::instance()->send(evt);
+				TRACE_LEAVE();
+				return;
+			}
+
+			/* Delete SaAmfNodeSwBundle objects */
+			LOG_NO("PROC: Delete SaAmfNodeSwBundle objects");
+			if ((*iter)->deleteSaAmfNodeSwBundles((*iter)->getSwNode()) == false) {
+				changeState(i_proc, SmfProcStateExecFailed::instance());
+				LOG_ER("SmfProcStateExecuting::executeStep:Failed to delete SaAmfNodeSwBundle object");
+				CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+				evt->type = CAMPAIGN_EVT_PROCEDURE_RC;
+				evt->event.procResult.rc = PROCEDURE_FAILED;
+				evt->event.procResult.procedure = i_proc;
+				SmfCampaignThread::instance()->send(evt);
+				TRACE_LEAVE();
+				return;
+			}
 		
-		iter++;
-        }
+			iter++;
+		}
+	}
 
 	/* All steps are executed, continue the procedure execution */
 	TRACE("SmfProcStateExecuting::executeStep, All steps in procedure %s executed", i_proc->getProcName().c_str());
@@ -420,8 +460,6 @@ SmfProcStateExecuting::executeStep(SmfUpgradeProcedure * i_proc)
 void 
 SmfProcStateExecuting::executeWrapup(SmfUpgradeProcedure * i_proc)
 {
-	PROCEDURE_RESULT rc;
-
 	TRACE_ENTER();
 	TRACE("SmfProcStateExecuting::executeWrapup actions");
 

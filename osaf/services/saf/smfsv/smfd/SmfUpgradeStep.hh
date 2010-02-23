@@ -346,6 +346,14 @@ class SmfUpgradeStep {
 	bool onlineRemoveBundles(const std::string & i_node);
 
 ///
+/// Purpose:  Online remove bundles according to user supplied list
+/// @param    on what node to offline remove bundles 
+/// @param    list od bundle references 
+/// @return   true on success else false
+///
+	bool onlineRemoveBundlesUserList(const std::string & i_node, const std::list < SmfBundleRef > &i_bundleList);
+
+///
 /// Purpose:  Lock deactivation units 
 /// @param    - 
 /// @return   true on success else false
@@ -422,6 +430,13 @@ class SmfUpgradeStep {
 ///
 	bool getSwitchOver();
 
+///
+/// Purpose:  isCurrentNode  
+/// @param    - 
+/// @return   true if the calling component executes on the given AMF node, otherwise false.
+///
+	bool isCurrentNode(const std::string & i_amfNodeDN);
+
 	friend class SmfStepState;
 	friend class SmfStepStateExecuting;
 	friend class SmfStepStateCompleted;
@@ -434,6 +449,14 @@ class SmfUpgradeStep {
 		SMF_STEP_OFFLINE_REMOVE  = 3,
 		SMF_STEP_ONLINE_REMOVE   = 4
 	} SmfInstallRemoveT;
+
+///
+/// Purpose:  Call script on remote node
+/// @param    -
+/// @return   -
+///
+	bool executeRemoteCmd( const std::string &i_cmd,
+			       const std::string & i_node);
 
 ///
 /// Purpose:  Call bundle script on remote node
@@ -465,6 +488,13 @@ class SmfUpgradeStep {
 ///
 	bool callAdminOperation(unsigned int i_operation, const SaImmAdminOperationParamsT_2 ** params,
 				const std::list < std::string > &i_dnList);
+
+///
+/// Purpose:  Reboot a node in the cluster and wait until possible to communicate
+/// @param    The node to be rebooted
+/// @return   Bool true if successful otherwise false
+///
+	bool nodeReboot(const std::string & i_node);
 
 ///
 /// Purpose:  Set the state in IMM step object and send state change notification

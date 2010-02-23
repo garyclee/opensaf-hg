@@ -304,6 +304,17 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
 		</attr>
+		<attr>
+			<name>smfRebootTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfNodeBundleActCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+		</attr>
 	</class>
 	<object class="SaSmfCampaign">
 		<dn>safSmfCampaign=Campaign_1,safApp=safSmfService</dn>
@@ -351,6 +362,14 @@
 		<attr>
 			<name>smfCliTimeout</name>
 			<value>600000000000</value>
+		</attr>
+		<attr>
+			<name>smfRebootTimeout</name>
+			<value>600000000000</value>
+		</attr>
+		<attr>
+			<name>smfNodeBundleActCmd</name>
+			<value></value>
 		</attr>
 	</object>
 

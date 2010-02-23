@@ -434,9 +434,9 @@ SmfCampaign::adminOpExecute(void)
 			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
 			return SA_AIS_OK;
 		}
+
 		//Parse campaign file
 		SmfCampaignXmlParser parser;
-
 		SmfUpgradeCampaign *p_uc = parser.parseCampaignXml(m_cmpgFileUri);
 		if (p_uc == NULL) {
 			std::string error = "Error when parsing the campaign file " + m_cmpgFileUri;
@@ -445,8 +445,15 @@ SmfCampaign::adminOpExecute(void)
 			setState(SA_SMF_CMPG_INITIAL);	/* Set initial state to allow reexecution */
 			return SA_AIS_OK;
 		}
+
+		//Initiate the campaign with the current campaign object state
+		//The SmfUpgradeCampaign needs to be set to the right SmfCampState
+		//to execute properly in case of a switchower
+		p_uc->setCampState(getState());
+
 		setUpgradeCampaign(p_uc);
 	}
+
 	//Execute campaign
 	TRACE("adminOpExecute, Executing campaign %s", getUpgradeCampaign()->getCampaignName().c_str());
 	getUpgradeCampaign()->execute();
@@ -516,6 +523,15 @@ SmfCampaign::setState(SaSmfCmpgStateT state)
 
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_CAMPAIGN, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_CAMPAIGN_STATE, m_cmpgState);
+}
+/** 
+ * state
+ * Get state
+ */
+SaSmfCmpgStateT 
+SmfCampaign::getState()
+{
+	return m_cmpgState;
 }
 
 /** 

@@ -227,7 +227,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 	//Reset error string in case the previous prerequsites check failed
         //In such case an error string is present in initial state
 	SmfCampaignThread::instance()->campaign()->setError("");
-
+#if 0
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
 	//Set the DN of the procedures
@@ -239,7 +239,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 
 		iter++;
 	}
-
+#endif
 	LOG_NO("CAMP: Check repository %s", i_camp->getCampaignName().c_str());
 	if (smfd_cb->repositoryCheckCmd != NULL) {
 		TRACE("Executing repository check cmd %s", smfd_cb->repositoryCheckCmd);
@@ -342,9 +342,21 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 
 	TRACE("SmfCampStateExecuting::execute, Do some checking");
 
+	std::vector < SmfUpgradeProcedure * >::iterator iter;
+
+	//Set the DN of the procedures
+	iter = i_camp->m_procedure.begin();
+	while (iter != i_camp->m_procedure.end()) {
+		//Set the DN of the procedure
+		std::string dn = (*iter)->getProcName() + "," + SmfCampaignThread::instance()->campaign()->getDn();
+		(*iter)->setDn(dn);
+
+		iter++;
+	}
+
 	//Start procedure threads
 	TRACE("SmfCampStateExecuting::execute, start procedure threads and set initial state");
-	std::vector < SmfUpgradeProcedure * >::iterator iter;
+//	std::vector < SmfUpgradeProcedure * >::iterator iter;
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
 		SmfProcedureThread *procThread = new SmfProcedureThread(*iter);
@@ -357,16 +369,16 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 	}
 
 	//If a running campaign was restarted on an other node, the procedures in executing state
-	//must be restarted.
+	//must be restarted. The execution shall continue at step execution phase. The procedure initiation
+	//and step calculation was performed before the move of control.
 	bool execProcFound = false;
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
 		if ((*iter)->getState() == SA_SMF_PROC_EXECUTING) {
-			TRACE
-			    ("SmfCampStateExecuting::execute, restarted procedure found, send CAMPAIGN_EVT_EXECUTE event to thread");
+			TRACE("SmfCampStateExecuting::execute, restarted procedure found, send PROCEDURE_EVT_EXECUTE_STEP event to thread");
 			SmfProcedureThread *procThread = (*iter)->getProcThread();
 			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
-			evt->type = PROCEDURE_EVT_EXECUTE;
+			evt->type = PROCEDURE_EVT_EXECUTE_STEP;
 			procThread->send(evt);
 			execProcFound = true;
 		}
