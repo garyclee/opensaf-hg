@@ -85,7 +85,7 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 	AVD_SUS_PER_SI_RANK *su_rank_rec;
 	AVD_SU_SI_REL *tmp_rel;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_su_chose_asgn");
+	TRACE_ENTER2("'%s'", sg->name.value);
 
 	i_si = sg->list_of_si;
 	l_flag = TRUE;
@@ -143,8 +143,7 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				/* Add the SU to the operation list */
 				avd_sg_su_oper_list_add(cb, i_su, FALSE);
 
-				/* Increment the SU count for the SI */
-				m_AVD_SI_INC_ACTV_CURR_SU(i_si);
+				avd_si_inc_curr_act_ass(i_si);
 
 				/* Check if the SI can take more assignments. If not exit the SU loop.                         
 				 */
@@ -200,8 +199,7 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				/* Add the SU to the operation list */
 				avd_sg_su_oper_list_add(cb, i_su, FALSE);
 
-				/* Increment the SU count for the SI */
-				m_AVD_SI_INC_ACTV_CURR_SU(i_si);
+				avd_si_inc_curr_act_ass(i_si);
 
 				/* Check if the SI can take more assignments. If not exit the SU loop.
 				 */
@@ -568,11 +566,7 @@ uns32 avd_sg_nacvred_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 
 uns32 avd_sg_nacvred_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nacvred_su_insvc_func");
-	m_AVD_LOG_RCVD_VAL(((long)su));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */

@@ -475,9 +475,9 @@ uns32 avd_susi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	if (!ckpt) {
 		/* update the si counters */
 		if (SA_AMF_HA_STANDBY == susi->state) {
-			m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
+			avd_si_dec_curr_stdby_ass(susi->si);
 		} else {
-			m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
+			avd_si_dec_curr_act_ass(susi->si);
 		}
 	}
 

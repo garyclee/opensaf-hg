@@ -307,10 +307,7 @@ uns32 avd_sg_nway_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nway_su_insvc_func");
-	m_AVD_LOG_RCVD_VAL(((long)su));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
@@ -1267,8 +1264,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				avd_sg_su_oper_list_add(cb, curr_su, FALSE);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
-				/* increment the standby assignment count for the si */
-				m_AVD_SI_INC_STDBY_CURR_SU(curr_si);
+				avd_si_inc_curr_stdby_ass(curr_si);
 
 				/* verify if si needs more assigments */
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
@@ -1307,8 +1303,7 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				avd_sg_su_oper_list_add(cb, curr_su, FALSE);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
-				/* increment the standby assignment count for the si */
-				m_AVD_SI_INC_STDBY_CURR_SU(curr_si);
+				avd_si_inc_curr_stdby_ass(curr_si);
 
 				/* verify if si needs more assigments */
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))

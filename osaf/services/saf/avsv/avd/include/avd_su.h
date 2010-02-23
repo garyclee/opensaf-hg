@@ -256,4 +256,9 @@ extern SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_s
  */
 extern void avd_sutcomptype_constructor(void);
 
+extern void avd_su_inc_curr_act_si(AVD_SU *su);
+extern void avd_su_dec_curr_act_si(AVD_SU *su);
+extern void avd_su_inc_curr_stdby_si(AVD_SU *su);
+extern void avd_su_dec_curr_stdby_si(AVD_SU *su);
+
 #endif

@@ -572,11 +572,7 @@ uns32 avd_sg_nored_su_fault_func(AVD_CL_CB *cb, AVD_SU *su)
 
 uns32 avd_sg_nored_su_insvc_func(AVD_CL_CB *cb, AVD_SU *su)
 {
-
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_nored_su_insvc_func");
-	m_AVD_LOG_RCVD_VAL(((long)su));
-
-	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
+	TRACE_ENTER2("'%s', %u", su->name.value, su->sg_of_su->sg_fsm_state);
 
 	/* An SU will not become in service when the SG is being locked or shutdown.
 	 */
