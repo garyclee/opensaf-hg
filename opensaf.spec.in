@@ -768,7 +768,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 
 %files imm-director
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/imm.xml
 %{_bindir}/immadm
 %{_bindir}/immcfg
 %{_bindir}/immdump
