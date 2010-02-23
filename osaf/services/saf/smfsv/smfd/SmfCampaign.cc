@@ -514,7 +514,7 @@ SmfCampaign::setState(SaSmfCmpgStateT state)
 
 	updateImmAttr(this->getDn().c_str(), (char*)"saSmfCmpgState", SA_IMM_ATTR_SAUINT32T, &m_cmpgState);
 
-	SmfCampaignThread::instance()->sendStateNotification(m_dn, 0x65, SA_NTF_MANAGEMENT_OPERATION,
+	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_CAMPAIGN, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_CAMPAIGN_STATE, m_cmpgState);
 }
 

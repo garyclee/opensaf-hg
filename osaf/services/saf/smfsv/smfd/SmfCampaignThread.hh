@@ -25,10 +25,10 @@
 #include <string>
 
 /* TODO: This needs to be handled somewhere else */
-#define VENDOR_ID 0x42
-
-/* TODO: This needs to be handled somewhere else */
 #define SMF_NOTIFYING_OBJECT "safApp=safSmfService"
+#define MINOR_ID_CAMPAIGN 0x65
+#define MINOR_ID_PROCEDURE 0x66
+#define MINOR_ID_STEP 0x67
 
 /**** Macro for CAMPAIGN task name ****/
 #define m_CAMPAIGN_TASKNAME "CAMPAIGN"
