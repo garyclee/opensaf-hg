@@ -311,7 +311,7 @@ SmfUpgradeProcedure::setImmStateAndSendNotification(SaSmfProcStateT i_state)
 	TRACE("Set procedure state = %u", i_state);
 	m_procState = i_state;
 	getProcThread()->updateImmAttr(this->getDn().c_str(), (char*)"saSmfProcState", SA_IMM_ATTR_SAUINT32T, &m_procState);
-	SmfCampaignThread::instance()->sendStateNotification(m_dn, 0x66, SA_NTF_MANAGEMENT_OPERATION,
+	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_PROCEDURE, SA_NTF_MANAGEMENT_OPERATION,
 							     SA_SMF_PROCEDURE_STATE, i_state);
 	TRACE_LEAVE();
 }

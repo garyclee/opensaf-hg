@@ -291,7 +291,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 class
 	*(ntfStateNot.notificationHeader.eventTime) = (SaTimeT) SA_TIME_UNKNOWN;
 
 	/* set Notification Class Identifier */
-	ntfStateNot.notificationHeader.notificationClassId->vendorId = VENDOR_ID;
+	ntfStateNot.notificationHeader.notificationClassId->vendorId = SA_NTF_VENDOR_ID_SAF;
 	ntfStateNot.notificationHeader.notificationClassId->majorId = SA_SVC_SMF;
 	ntfStateNot.notificationHeader.notificationClassId->minorId = classId;
 
