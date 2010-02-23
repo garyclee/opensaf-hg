@@ -493,6 +493,8 @@ static void su_add_to_model(AVD_SU *su)
 		node = avd_cb->ext_comp_info.local_avnd_node;
 	}
 
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
+
 	if (new_su && ((node->node_state == AVD_AVND_STATE_PRESENT) ||
 		       (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||
 		       (node->node_state == AVD_AVND_STATE_NCS_INIT))) {
@@ -504,11 +506,13 @@ static void su_add_to_model(AVD_SU *su)
 			rc = SA_AIS_ERR_INVALID_PARAM;
 			goto done;
 		}
-	}
+
+		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
+	} else
+		avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_DISABLED);
 
 done:
 	assert(rc == NCSCC_RC_SUCCESS);
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
 
 	/* Set runtime cached attributes. */
 	if (avd_cb->impl_set == TRUE) {
@@ -525,14 +529,9 @@ done:
 				&su->saAmfSUPresenceState);
 
 		avd_saImmOiRtObjectUpdate(&su->name,
-				"saAmfSUOperState", SA_IMM_ATTR_SAUINT32T,
-				&su->saAmfSUOperState);
-
-		avd_saImmOiRtObjectUpdate(&su->name,
 				"saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T,
 				&su->saAmfSuReadinessState);
 	}
-
 }
 
 SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
@@ -1267,6 +1266,32 @@ static void su_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 	}
 
 	TRACE_LEAVE();
+}
+
+void avd_su_inc_curr_act_si(AVD_SU *su)
+{
+	su->saAmfSUNumCurrActiveSIs++;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
+}
+
+void avd_su_dec_curr_act_si(AVD_SU *su)
+{
+	assert(su->saAmfSUNumCurrActiveSIs > 0);
+	su->saAmfSUNumCurrActiveSIs--;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
+}
+
+void avd_su_inc_curr_stdby_si(AVD_SU *su)
+{
+	su->saAmfSUNumCurrStandbySIs++;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_STBY);
+}
+
+void avd_su_dec_curr_stdby_si(AVD_SU *su)
+{
+	assert(su->saAmfSUNumCurrStandbySIs > 0);
+	su->saAmfSUNumCurrStandbySIs--;
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, su, AVSV_CKPT_SU_SI_CURR_STBY);
 }
 
 void avd_su_constructor(void)

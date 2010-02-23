@@ -60,7 +60,7 @@
 
 #include <avd.h>
 #include <avd_imm.h>
-#include <logtrace.h>
+#include <avd_su.h>
 
 /*****************************************************************************
  * Function: avd_new_assgn_susi
@@ -86,6 +86,7 @@
 uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			 SaAmfHAStateT ha_state, NCS_BOOL ckpt, AVD_SU_SI_REL **ret_ptr)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
 	AVD_SU_SI_REL *susi;
 	AVD_COMP_CSI_REL *compcsi;
 	NCS_BOOL l_flag;
@@ -96,7 +97,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 
 	if ((susi = avd_susi_create(cb, si, su, ha_state)) == NULL) {
 		avd_log(NCSFL_SEV_ERROR, "Could not create SUSI '%s' '%s'", su->name.value, si->name.value);
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	m_AVD_LOG_RCVD_VAL(((long)susi));
@@ -159,7 +160,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 		avd_compcsi_delete(cb, susi, TRUE);
 		/* Unassign the SUSI */
 		avd_susi_delete(cb, susi, TRUE);
-		return NCSCC_RC_FAILURE;
+		goto done;
 	}
 
 	/* Now send the message about the SU SI assignment to
@@ -168,14 +169,7 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 	 */
 
 	if (FALSE == ckpt) {
-		if (ha_state == SA_AMF_HA_ACTIVE) {
-			su->saAmfSUNumCurrActiveSIs++;
-		} else {
-			su->saAmfSUNumCurrStandbySIs++;
-		}
-
-		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN)
-		    != NCSCC_RC_SUCCESS) {
+		if (avd_snd_susi_msg(cb, su, susi, AVSV_SUSI_ACT_ASGN) != NCSCC_RC_SUCCESS) {
 			m_AVD_LOG_INVALID_VAL_ERROR(((uns32)ha_state));
 			m_AVD_LOG_INVALID_VAL_ERROR(((long)susi));
 			m_AVD_LOG_INVALID_NAME_VAL_ERROR(su->name.value, su->name.length);
@@ -184,36 +178,27 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			avd_compcsi_delete(cb, susi, TRUE);
 			/* Unassign the SUSI */
 			avd_susi_delete(cb, susi, TRUE);
-			if (ha_state == SA_AMF_HA_ACTIVE) {
-				assert(su->saAmfSUNumCurrActiveSIs > 0);
-				su->saAmfSUNumCurrActiveSIs--;
-			} else {
-				assert(su->saAmfSUNumCurrStandbySIs > 0);
-				su->saAmfSUNumCurrStandbySIs--;
-			}
 
-			return NCSCC_RC_FAILURE;
+			goto done;
 		}
 
-		if (si->saAmfSINumCurrActiveAssignments > 0) {
-			si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;
-		}
-		if (ha_state == SA_AMF_HA_ACTIVE) {
-			avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
-						  SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
-		}
+		if (ha_state == SA_AMF_HA_ACTIVE)
+			avd_su_inc_curr_act_si(su);
+		else
+			avd_su_inc_curr_stdby_si(su);
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
-		if (susi->si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) {
+
+		if (susi->si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL)
 			avd_gen_si_oper_state_chg_ntf(cb, susi->si);
-		}
-		avd_gen_su_ha_state_changed_ntf(cb, susi);
 	}
 
 	*ret_ptr = susi;
-	return NCSCC_RC_SUCCESS;
-
+	rc = NCSCC_RC_SUCCESS;
+done:
+	TRACE_LEAVE();
+	return rc;
 }
 
 /*****************************************************************************
@@ -880,18 +865,13 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 
 void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 {
-
-	AVD_DND_MSG *n2d_msg;
+	AVD_DND_MSG *n2d_msg = evt->info.avnd_msg;
 	AVD_AVND *avnd, *su_node_ptr = NULL;
 	AVD_SU *su = NULL;
 	AVD_SU_SI_REL *susi;
 	NCS_BOOL q_flag = FALSE, qsc_flag = FALSE;
 
-	TRACE_ENTER();
-
-	assert(evt->info.avnd_msg);
-
-	n2d_msg = evt->info.avnd_msg;
+	TRACE_ENTER2("%x", n2d_msg->msg_info.n2d_su_si_assign.node_id);
 
 	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, n2d_msg, sizeof(AVD_DND_MSG), n2d_msg);
 
@@ -1150,15 +1130,11 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		case AVSV_SUSI_ACT_DEL:
 			/* AvND can force a abrupt removal of assignments */
 			if (susi->state == SA_AMF_HA_STANDBY) {
-				assert(susi->su->saAmfSUNumCurrStandbySIs > 0);
-				susi->su->saAmfSUNumCurrStandbySIs--;
-				m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su, AVSV_CKPT_SU_SI_CURR_STBY);
+				avd_su_dec_curr_stdby_si(susi->su);
+				avd_si_dec_curr_stdby_ass(susi->si);
 			} else {
-				assert(susi->su->saAmfSUNumCurrActiveSIs > 0);
-				susi->su->saAmfSUNumCurrActiveSIs--;
-				m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
-				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su, AVSV_CKPT_SU_SI_CURR_ACTIVE);
+				avd_su_dec_curr_act_si(susi->su);
+				avd_si_dec_curr_act_ass(susi->si);
 			}
 			break;
 
@@ -1177,6 +1153,7 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				m_AVD_LOG_INVALID_NAME_VAL_ERROR(susi->si->name.value, susi->si->name.length);
 				goto done;
 			}
+
 			if (n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) {
 				susi->fsm = AVD_SU_SI_STATE_ASGND;
 				m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi, AVSV_CKPT_AVD_SI_ASS);
@@ -1220,24 +1197,18 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 					} else {
 						if (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) {
 							if (susi->su->saAmfSUNumCurrStandbySIs != 0) {
-								susi->su->saAmfSUNumCurrActiveSIs++;
-								assert(susi->su->saAmfSUNumCurrStandbySIs > 0);
-								susi->su->saAmfSUNumCurrStandbySIs--;
-								m_AVD_SI_INC_ACTV_CURR_SU(susi->si);
-								m_AVD_SI_DEC_STDBY_CURR_SU(susi->si);
-								m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su,
-												 AVSV_CKPT_AVD_SU_CONFIG);
+								avd_su_inc_curr_act_si(susi->su);
+								avd_su_dec_curr_stdby_si(susi->su);
+								avd_si_inc_curr_act_ass(susi->si);
+								avd_si_dec_curr_stdby_ass(susi->si);
 							}
 
 						} else if (n2d_msg->msg_info.n2d_su_si_assign.ha_state ==
 							   SA_AMF_HA_STANDBY) {
-							susi->su->saAmfSUNumCurrStandbySIs++;
-							assert(susi->su->saAmfSUNumCurrActiveSIs > 0);
-							susi->su->saAmfSUNumCurrActiveSIs--;
-							m_AVD_SI_INC_STDBY_CURR_SU(susi->si);
-							m_AVD_SI_DEC_ACTV_CURR_SU(susi->si);
-							m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, susi->su,
-											 AVSV_CKPT_AVD_SU_CONFIG);
+							avd_su_dec_curr_act_si(susi->su);
+							avd_su_inc_curr_stdby_si(susi->su);
+							avd_si_inc_curr_stdby_ass(susi->si);
+							avd_si_dec_curr_act_ass(susi->si);
 						}
 					}
 
@@ -2315,14 +2286,14 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 
 				/* update the si counters */
 				if (SA_AMF_HA_ACTIVE == i_susi->state) {
-					m_AVD_SI_INC_ACTV_CURR_SU(i_susi->si);
-					m_AVD_SI_DEC_STDBY_CURR_SU(i_susi->si);
+					avd_si_inc_curr_act_ass(i_susi->si);
+					avd_si_dec_curr_stdby_ass(i_susi->si);
 				}
 
 				/* update the si counters */
 				if (SA_AMF_HA_ACTIVE == i_susi->state) {
-					m_AVD_SI_INC_ACTV_CURR_SU(i_susi->si);
-					m_AVD_SI_DEC_STDBY_CURR_SU(i_susi->si);
+					avd_si_inc_curr_act_ass(i_susi->si);
+					avd_si_dec_curr_stdby_ass(i_susi->si);
 				}
 
 				i_susi = i_susi->su_next;

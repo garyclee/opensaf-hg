@@ -71,8 +71,8 @@ typedef struct avd_si_tag {
 	uns32 saAmfSIRank;
 	char **saAmfSIActiveWeight;
 	char **saAmfSIStandbyWeight;
-	uns32 saAmfSIPrefActiveAssignments;
-	uns32 saAmfSIPrefStandbyAssignments;
+	uns32 saAmfSIPrefActiveAssignments;  /* only applicable for the N-way active redundancy model */
+	uns32 saAmfSIPrefStandbyAssignments; /* only applicable for the N-way active redundancy model */
 	SaAmfAdminStateT saAmfSIAdminState;
 	SaAmfAssignmentStateT saAmfSIAssignmentState;
 	uns32 saAmfSINumCurrActiveAssignments;
@@ -134,54 +134,9 @@ typedef struct {
 #define AVD_SI_NULL ((AVD_SI *)0)
 #define m_AVD_SI_ACTV_MAX_SU(l_si) (l_si)->saAmfSIPrefActiveAssignments
 #define m_AVD_SI_ACTV_CURR_SU(l_si) (l_si)->saAmfSINumCurrActiveAssignments
-#define m_AVD_SI_INC_ACTV_CURR_SU(l_si) \
-{\
- (l_si)->saAmfSINumCurrActiveAssignments ++; \
- if ((l_si)->saAmfSINumCurrActiveAssignments == 1) {\
-    l_si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_FULLY_ASSIGNED;\
-    if(avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) { \
-       avd_saImmOiRtObjectUpdate(&l_si->name, "saAmfSIAssignmentState",\
-       SA_IMM_ATTR_SAUINT32T, &l_si->saAmfSIAssignmentState); \
-    } \
- }\
- m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_ACTIVE); \
- m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_ASSIGNMENT_STATE); \
-}
-
-#define m_AVD_SI_DEC_ACTV_CURR_SU(l_si)\
-{\
-   if ((l_si)->saAmfSINumCurrActiveAssignments != 0)\
-   {\
-      (l_si)->saAmfSINumCurrActiveAssignments --;\
-      if ((l_si)->saAmfSINumCurrActiveAssignments == 0) {\
-          l_si->saAmfSIAssignmentState = SA_AMF_ASSIGNMENT_UNASSIGNED;\
-          if(avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) { \
-             avd_saImmOiRtObjectUpdate(&l_si->name, "saAmfSIAssignmentState",\
-             SA_IMM_ATTR_SAUINT32T, &l_si->saAmfSIAssignmentState); \
-          } \
-      }\
-      m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_ACTIVE); \
-      m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_ASSIGNMENT_STATE); \
-   }\
-}
 
 #define m_AVD_SI_STDBY_MAX_SU(l_si)       (l_si)->saAmfSIPrefStandbyAssignments
 #define m_AVD_SI_STDBY_CURR_SU(l_si)      (l_si)->saAmfSINumCurrStandbyAssignments
-
-#define m_AVD_SI_INC_STDBY_CURR_SU(l_si)  \
-{ \
-   ((l_si)->saAmfSINumCurrStandbyAssignments++); \
-   m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_STBY); \
-}
-
-#define m_AVD_SI_DEC_STDBY_CURR_SU(l_si)\
-{\
-   if ((l_si)->saAmfSINumCurrStandbyAssignments != 0)\
-   { \
-      (l_si)->saAmfSINumCurrStandbyAssignments--;\
-      m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb,l_si,AVSV_CKPT_SI_SU_CURR_STBY); \
-   } \
-}
 
 #define m_AVD_SET_SI_SWITCH(cb,si,state) {\
 si->si_switch = state;\
@@ -211,5 +166,9 @@ extern void avd_svctype_constructor(void);
 extern SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name);
 extern AVD_SVC_TYPE_CS_TYPE *avd_svctypecstypes_get(const SaNameT *svctypecstypes_name);
 extern void avd_svctypecstypes_constructor(void);
+extern void avd_si_inc_curr_act_ass(AVD_SI *si);
+extern void avd_si_dec_curr_act_ass(AVD_SI *si);
+extern void avd_si_inc_curr_stdby_ass(AVD_SI *si);
+extern void avd_si_dec_curr_stdby_ass(AVD_SI *si);
 
 #endif

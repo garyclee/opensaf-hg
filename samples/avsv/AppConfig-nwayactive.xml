@@ -26,42 +26,42 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<object class="SaAmfAppBaseType">
-		<dn>safAppType=AmfDemoAppType</dn>
+		<dn>safAppType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSGBaseType">
-		<dn>safSgType=AmfDemoSgType</dn>
+		<dn>safSgType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSUBaseType">
-		<dn>safSuType=AmfDemoSuType</dn>
+		<dn>safSuType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfCompBaseType">
-		<dn>safCompType=AmfDemoCompType</dn>
+		<dn>safCompType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSvcBaseType">
-	    <dn>safSvcType=AmfDemoSvcType</dn>
+	    <dn>safSvcType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfCSBaseType">
-	    <dn>safCSType=AmfDemoCsType</dn>
+	    <dn>safCSType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSvcType">
-	    <dn>safVersion=4.0.0,safSvcType=AmfDemoSvcType</dn>
+	    <dn>safVersion=4.0.0,safSvcType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfAppType">
-		<dn>safVersion=4.0.0,safAppType=AmfDemoAppType</dn>
+		<dn>safVersion=4.0.0,safAppType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfApptSGTypes</name>
-			<value>safVersion=4.0.0,safSgType=AmfDemoSgType</value>
+			<value>safVersion=4.0.0,safSgType=AmfDemo2</value>
 		</attr>
 	</object>
 	<object class="SaAmfSGType">
-		<dn>safVersion=4.0.0,safSgType=AmfDemoSgType</dn>
+		<dn>safVersion=4.0.0,safSgType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSgtRedundancyModel</name>
 			<value>4</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtValidSuTypes</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 		<attr>
 			<name>saAmfSgtDefAutoAdjustProb</name>
@@ -85,7 +85,7 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 	</object>
 	<object class="SaAmfSUType">
-		<dn>safVersion=4.0.0,safSuType=AmfDemoSuType</dn>
+		<dn>safVersion=4.0.0,safSuType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSutIsExternal</name>
 			<value>0</value>
@@ -96,18 +96,18 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 		<attr>
 			<name>saAmfSutProvidesSvcTypes</name>
-			<value>safVersion=4.0.0,safSvcType=AmfDemoSvcType</value>
+			<value>safVersion=4.0.0,safSvcType=AmfDemo2</value>
 		</attr>
 	</object>
 	<object class="SaAmfCompType">
-		<dn>safVersion=4.0.0,safCompType=AmfDemoCompType</dn>
+		<dn>safVersion=4.0.0,safCompType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfCtCompCategory</name>
 			<value>1</value>
 		</attr>
 		<attr>
 			<name>saAmfCtSwBundle</name>
-			<value>safBundle=AmfDemo</value>
+			<value>safBundle=AmfDemo2</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefClcCliTimeout</name>
@@ -143,23 +143,23 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 	</object>
 	<object class="SaAmfCSType">
-		<dn>safVersion=4.0.0,safCSType=AmfDemoCsType</dn>
+		<dn>safVersion=4.0.0,safCSType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSutCompType">
-		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemoCompType,safVersion=4.0.0,safSuType=AmfDemoSuType</dn>
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemo2,safVersion=4.0.0,safSuType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfSvcTypeCSTypes">
-	  <dn>safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safVersion=4.0.0,safSvcType=AmfDemoSvcType</dn>
+	  <dn>safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemo2,safVersion=4.0.0,safSvcType=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfCtCsType">
-		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safVersion=4.0.0,safCompType=AmfDemoCompType</dn>
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safVersion=4.0.0,safCompType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfCtCompCapability</name>
 			<value>1</value>
 		</attr>
 	</object>
 	<object class="SaAmfHealthcheckType">
-		<dn>safHealthcheckKey=AmfDemo,safVersion=4.0.0,safCompType=AmfDemoCompType</dn>
+		<dn>safHealthcheckKey=AmfDemo,safVersion=4.0.0,safCompType=AmfDemo2</dn>
 		<attr>
 			<name>saAmfHctDefPeriod</name>
 			<value>10000000000</value>
@@ -171,17 +171,17 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 	</object>
 
 	<object class="SaAmfApplication">
-		<dn>safApp=AmfDemo</dn>
+		<dn>safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfAppType</name>
-			<value>safVersion=4.0.0,safAppType=AmfDemoAppType</value>
+			<value>safVersion=4.0.0,safAppType=AmfDemo2</value>
 		</attr>
 	</object>
 	<object class="SaAmfSG">
-		<dn>safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSGType</name>
-			<value>safVersion=4.0.0,safSgType=AmfDemoSgType</value>
+			<value>safVersion=4.0.0,safSgType=AmfDemo2</value>
 		</attr>
 		<attr>
 			<name>saAmfSGSuHostNodeGroup</name>
@@ -213,14 +213,14 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 	</object>
 	<object class="SaAmfSI">
-		<dn>safSi=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSi=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSvcType</name>
-			<value>safVersion=4.0.0,safSvcType=AmfDemoSvcType</value>
+			<value>safVersion=4.0.0,safSvcType=AmfDemo2</value>
 		</attr>
 		<attr>
 			<name>saAmfSIProtectedbySG</name>
-			<value>safSg=AmfDemo,safApp=AmfDemo</value>
+			<value>safSg=AmfDemo,safApp=AmfDemo2</value>
 		</attr> 
 		<attr>
 			<name>saAmfSIPrefActiveAssignments</name>
@@ -232,24 +232,24 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr> 
 	</object>
 	<object class="SaAmfCSI">
-	    <dn>safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCSType</name>
-		<value>safVersion=4.0.0,safCSType=AmfDemoCsType</value>
+		<value>safVersion=4.0.0,safCSType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCSIAttribute">
-		<dn>safCsiAttr=AttrNoValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safCsiAttr=AttrNoValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfCSIAttribute">
-		<dn>safCsiAttr=AttrSingleValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safCsiAttr=AttrSingleValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 				<name>saAmfCSIAttriValue</name>
 				<value>val11</value>
 		</attr>
 	</object>
 	<object class="SaAmfCSIAttribute">
-		<dn>safCsiAttr=AttrMultiValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safCsiAttr=AttrMultiValue,safCsi=AmfDemo,safSi=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 				<name>saAmfCSIAttriValue</name>
 				<value>val21</value>
@@ -258,20 +258,20 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 		</attr>
 	</object>
 	<object class="SaSmfSwBundle">
-			<dn>safBundle=AmfDemo</dn>
+			<dn>safBundle=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo2,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU1,safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 <!--
 		<attr>
@@ -281,27 +281,27 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+		<value>safVersion=4.0.0,safCompType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo1,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo2,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU2,safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 <!--
 		<attr>
@@ -311,27 +311,27 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+		<value>safVersion=4.0.0,safCompType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo2,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo2,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU3,safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 <!--
 		<attr>
@@ -341,27 +341,27 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+		<value>safVersion=4.0.0,safCompType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo3,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safComp=AmfDemo,safSu=SU3,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo2,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU4,safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 <!--
 		<attr>
@@ -371,27 +371,27 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU4,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+		<value>safVersion=4.0.0,safCompType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo4,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safComp=AmfDemo,safSu=SU4,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 	<object class="SaAmfNodeSwBundle">
-		<dn>safInstalledSwBundle=safBundle=AmfDemo,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
+		<dn>safInstalledSwBundle=safBundle=AmfDemo2,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
 			<value>/opt/amf_demo</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
-		<dn>safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
+		<dn>safSu=SU5,safSg=AmfDemo,safApp=AmfDemo2</dn>
 		<attr>
 			<name>saAmfSUType</name>
-			<value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+			<value>safVersion=4.0.0,safSuType=AmfDemo2</value>
 		</attr>
 <!--
 		<attr>
@@ -401,13 +401,13 @@ unlocked instantiation (3). Uncomment the commented saAmfSUAdminState sections b
 -->
 	</object>
 	<object class="SaAmfComp">
-	    <dn>safComp=AmfDemo,safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safComp=AmfDemo,safSu=SU5,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	    <attr>
 		<name>saAmfCompType</name>
-		<value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+		<value>safVersion=4.0.0,safCompType=AmfDemo2</value>
 	    </attr>
 	</object>
 	<object class="SaAmfCompCsType">
-	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType,safComp=AmfDemo,safSu=AmfDemo5,safSg=AmfDemo,safApp=AmfDemo</dn>
+	    <dn>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo2,safComp=AmfDemo,safSu=SU5,safSg=AmfDemo,safApp=AmfDemo2</dn>
 	</object>
 </imm:IMM-contents>

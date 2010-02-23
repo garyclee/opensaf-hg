@@ -774,7 +774,7 @@ unsigned int avd_imm_config_get(void)
 
 done:
 	if (rc == NCSCC_RC_SUCCESS)
-		avd_log(NCSFL_SEV_NOTICE, "Configuration successfully read from IMM");
+		LOG_NO("AMF Configuration successfully read from IMM");
 	else
 		LOG_ER("Failed to read configuration, AMF will not start");
 
@@ -788,19 +788,20 @@ SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attribut
 	SaImmAttrModificationT_2 attrMod;
 	const SaImmAttrModificationT_2 *attrMods[] = { &attrMod, NULL };
 	SaImmAttrValueT attrValues[] = { value };
-	SaAisErrorT rc;
+	SaAisErrorT rc = SA_AIS_OK;
 
-	attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
-	attrMod.modAttr.attrName = attributeName;
-	attrMod.modAttr.attrValuesNumber = 1;
-	attrMod.modAttr.attrValueType = attrValueType;
-	attrMod.modAttr.attrValues = attrValues;
+	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
+		attrMod.modAttr.attrName = attributeName;
+		attrMod.modAttr.attrValuesNumber = 1;
+		attrMod.modAttr.attrValueType = attrValueType;
+		attrMod.modAttr.attrValues = attrValues;
 
-	rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
+		rc = saImmOiRtObjectUpdate_2(avd_cb->immOiHandle, dn, attrMods);
 
-	if (rc != SA_AIS_OK)
-		avd_log(NCSFL_SEV_WARNING, "FAILED %u, '%s', %s",
-			rc, dn->value, attributeName);
+		if (rc != SA_AIS_OK)
+			LOG_ER("%s: FAILED %u, '%s', %s", __FUNCTION__, rc, dn->value, attributeName);
+	}
 
 	return rc;
 }
@@ -812,8 +813,7 @@ SaAisErrorT avd_saImmOiRtObjectCreate(const SaImmClassNameT className,
 		className, parentName, attrValues);
 
 	if (rc != SA_AIS_OK)
-		avd_log(NCSFL_SEV_WARNING, "FAILED %u, '%s'",
-			rc, parentName->value);
+		LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, parentName->value);
 
 	return rc;
 }
@@ -823,8 +823,7 @@ SaAisErrorT avd_saImmOiRtObjectDelete(const SaNameT* dn)
 	SaAisErrorT rc = saImmOiRtObjectDelete(avd_cb->immOiHandle, dn);
 
 	if (rc != SA_AIS_OK)
-		avd_log(NCSFL_SEV_WARNING, "FAILED %u, '%s'",
-			rc, dn->value);
+		LOG_ER("%s: FAILED %u, '%s'", __FUNCTION__, rc, dn->value);
 
 	return rc;
 }
