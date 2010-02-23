@@ -199,7 +199,7 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 {
 	int rc = -1;
 	AVD_CSI *csi;
-	unsigned int values_number;
+	unsigned int values_number = 0;
 	SaAisErrorT error;
 
 	TRACE_ENTER2("'%s'", csi_name->value);
@@ -221,19 +221,24 @@ static AVD_CSI *csi_create(const SaNameT *csi_name, const SaImmAttrValuesT_2 **a
 	error = immutil_getAttr("saAmfCSType", attributes, 0, &csi->saAmfCSType);
 	assert(error == SA_AIS_OK);
 
-	if ((immutil_getAttrValuesNumber("saAmfCSIDependencies", attributes, &values_number) == SA_AIS_OK) &&
-	    (values_number > 0)) {
-		int i;
+	if ((immutil_getAttrValuesNumber("saAmfCSIDependencies", attributes, &values_number) == SA_AIS_OK)) {
 
-		csi->saAmfCSIDependencies = calloc((values_number + 1), sizeof(SaNameT *));
-		for (i = 0; i < values_number; i++) {
-			csi->saAmfCSIDependencies[i] = malloc(sizeof(SaNameT));
+		if (values_number == 0) {
+			/* No Dependency Configured. Mark rank as 1.*/
+			csi->rank = 1;
+		} else if (values_number == 1) {
+			/* Dependency Configured. Decide rank when adding it in si list.*/
 			if (immutil_getAttr("saAmfCSIDependencies", attributes, 0,
-					    &csi->saAmfCSIDependencies[i]) != SA_AIS_OK) {
+						&csi->saAmfCSIDependencies) != SA_AIS_OK) {
 				LOG_ER("Get saAmfCSIDependencies FAILED for '%s'", csi_name->value);
 				goto done;
 			}
+		} else {
+			LOG_ER("saAmfCSIDependencies Not Supported for multivalued '%s' No of Dep CSIs= %d", 
+					csi_name->value, values_number);
+			goto done;
 		}
+
 	}
 
 	csi->cstype = avd_cstype_get(&csi->saAmfCSType);

@@ -26,8 +26,69 @@
 #include <avd_proc.h>
 
 static NCS_PATRICIA_TREE si_db;
+static void avd_si_add_csi_db(struct avd_csi_tag* csi);
 
-void avd_si_add_csi(struct avd_csi_tag* csi)
+static void avd_si_arrange_dep_csi(struct avd_csi_tag* csi)
+{
+	AVD_CSI *temp_csi = NULL;
+	AVD_SI *temp_si = NULL;
+revisit:
+        temp_csi = csi->si->list_of_csi;
+        while (temp_csi) {
+                if ((FALSE == temp_csi->dep_csi_added) && (0 == memcmp(&temp_csi->saAmfCSIDependencies, &csi->name, sizeof(SaNameT)))) {
+                        temp_csi->rank = csi->rank + 1;
+                        /* We need to rearrange Dep CSI rank as per modified. */
+                        /* Store the SI pointer as avd_si_remove_csi makes it NULL in the end */
+                        temp_si = temp_csi->si;
+                        avd_si_remove_csi(temp_csi);
+                        temp_csi->si = temp_si;
+                        avd_si_add_csi_db(temp_csi);
+                        temp_csi->dep_csi_added = TRUE;
+                        /* We need to check whether any other CSI is dependent on temp_csi.*/
+                        avd_si_arrange_dep_csi(temp_csi);
+                        /* We need to revisit again as the list has been modified. */
+                        goto revisit;
+                }
+                temp_csi = temp_csi->si_list_of_csi_next;
+        }
+	return;
+}
+
+void avd_si_add_csi(struct avd_csi_tag* avd_csi)
+{
+	AVD_CSI *temp_csi = NULL;
+        bool found = FALSE;
+
+        /* Find whether csi (avd_csi->saAmfCSIDependencies) is already in the DB. */
+        if (avd_csi->rank != 1) /* (rank != 1) ==> (rank is 0). i.e. avd_csi is dependent on another CSI. */ {
+                temp_csi = avd_csi->si->list_of_csi;
+                while (temp_csi) {
+                        if (0 == memcmp(&temp_csi->name, &avd_csi->saAmfCSIDependencies, sizeof(SaNameT))) {
+				/* The CSI is dependent on other CSI, so its rank will be one more than Dep CSI */
+				avd_csi->rank = temp_csi->rank + 1;
+				found = TRUE;
+                        }
+			temp_csi = temp_csi->si_list_of_csi_next;
+                }
+                if (found == FALSE) {
+			/* Not found, means saAmfCSIDependencies is yet to come. So put it in the end with rank 0. 
+                           There may be existing CSIs which will be dependent on avd_csi, but don't run 
+                           avd_si_arrange_dep_csi() as of now. All dependent CSI's rank will be changed when 
+			   CSI on which avd_csi(avd_csi->saAmfCSIDependencies) will come.*/
+                        goto add_csi;
+
+                }
+        }
+
+        /* We need to check whether any other previously added CSI(with rank = 0) was dependent on this CSI. */
+        avd_si_arrange_dep_csi(avd_csi);
+add_csi:
+        avd_si_add_csi_db(avd_csi);
+
+	return;
+}
+
+static void avd_si_add_csi_db(struct avd_csi_tag* csi)
 {
 	AVD_CSI *i_csi = NULL;
 	AVD_CSI *prev_csi = NULL;
