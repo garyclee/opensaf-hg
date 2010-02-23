@@ -46,7 +46,7 @@ echo -e "merge PL templates to: $PL_TEMPLATE" >> $LOGFILE
 ./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
 
 echo -e "Generate node specific immxml files into dir:$TMPDIR" >> $LOGFILE
-immxml-nodegen --nodegen-dir $TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
+./immxml-nodegen --nodegen-dir $TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
 
 ./immxml-merge -o $TMPDIR/imm_classes.xml `find $SERVICESDIR -name \*_classes.xml|xargs` >>$LOGFILE 2>&1
 ./immxml-merge --ignore-missing-class -o $TMPDIR/imm_objects.xml `find $SERVICESDIR -name \*_objects.xml|xargs` >>$LOGFILE 2>&1
