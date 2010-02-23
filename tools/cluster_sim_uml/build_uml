@@ -270,9 +270,9 @@ cmd_generate_immxml() {
     fi
 
     echo "Generating the imm.xml file with $sc_count SC's and $pl_count PL's"
-    immxml-clustersize --sc-count $sc_count --pl-count $pl_count >$tmp/install.log 2>&1
+    ./immxml-clustersize --sc-count $sc_count --pl-count $pl_count >$tmp/install.log 2>&1
     rm -f imm_generated.xml
-    if ! immxml-configure imm_generated.xml
+    if ! ./immxml-configure imm_generated.xml
     then
 	die "Failed to generate immxml"
     fi
