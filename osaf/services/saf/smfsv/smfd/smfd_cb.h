@@ -50,6 +50,8 @@ typedef struct smfd_cb {
 	char *clusterRebootCmd;	                    /* Cluster reboot cmd string    */
 	SaTimeT adminOpTimeout;                     /* Timeout for admin operations */
 	SaTimeT cliTimeout;	                    /* Timeout for cli commands     */
+	SaTimeT rebootTimeout;	                    /* Timeout for reboot to finish */
+	char *nodeBundleActCmd;	                    /* Command for activation of bundles on a node */
 } smfd_cb_t;
 
 #ifdef __cplusplus

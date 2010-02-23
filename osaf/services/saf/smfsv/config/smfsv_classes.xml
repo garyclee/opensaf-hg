@@ -378,6 +378,17 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
 		</attr>
+		<attr>
+			<name>smfRebootTimeout</name>
+			<type>SA_TIME_T</type>
+			<category>SA_CONFIG</category>
+			<flag>SA_INITIALIZED</flag>
+		</attr>
+		<attr>
+			<name>smfNodeBundleActCmd</name>
+			<type>SA_STRING_T</type>
+			<category>SA_CONFIG</category>
+		</attr>
 	</class>
 	<class name="SmfTestClass">
 		<category>SA_CONFIG</category>

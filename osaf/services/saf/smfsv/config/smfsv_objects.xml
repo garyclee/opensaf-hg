@@ -47,6 +47,14 @@
 			<name>smfCliTimeout</name>
 			<value>600000000000</value>
 		</attr>
+		<attr>
+			<name>smfRebootTimeout</name>
+			<value>600000000000</value>
+		</attr>
+		<attr>
+			<name>smfNodeBundleActCmd</name>
+			<value></value>
+		</attr>
 	</object>
 	<object class="SaAmfCompBaseType">
 		<dn>safCompType=OpenSafCompTypeSMF</dn>

@@ -164,6 +164,7 @@ SaSmfStepStateT
 SmfUpgradeStep::getState() const
 {
 	return m_state->getState();
+
 }
 
 //------------------------------------------------------------------------------
@@ -316,7 +317,7 @@ SmfUpgradeStep::setImmStateAndSendNotification(SaSmfStepStateT i_state)
 		return;
 	}
 
-	m_procedure->getProcThread()->updateImmAttr(this->getDn().c_str(), "saSmfStepState", SA_IMM_ATTR_SAUINT32T, &i_state);
+	m_procedure->getProcThread()->updateImmAttr(this->getDn().c_str(), (char*)"saSmfStepState", SA_IMM_ATTR_SAUINT32T, &i_state);
 
 	SmfCampaignThread::instance()->sendStateNotification(m_dn, MINOR_ID_STEP, SA_NTF_MANAGEMENT_OPERATION, SA_SMF_STEP_STATE, i_state);
 	TRACE_LEAVE();
@@ -515,6 +516,16 @@ SmfUpgradeStep::onlineRemoveBundles(const std::string & i_node)
 {
 	TRACE("Online remove bundles on node %s", i_node.c_str());
 	return callBundleScript(SMF_STEP_ONLINE_REMOVE, m_swRemoveList, i_node);
+}
+
+//------------------------------------------------------------------------------
+// onlineRemoveBundlesUserList()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::onlineRemoveBundlesUserList(const std::string & i_node, const std::list < SmfBundleRef > &i_bundleList)
+{
+	TRACE("Online remove bundles supplied by separate list on node %s", i_node.c_str());
+	return callBundleScript(SMF_STEP_ONLINE_REMOVE, i_bundleList, i_node);
 }
 
 //------------------------------------------------------------------------------
@@ -880,6 +891,80 @@ SmfUpgradeStep::getSwitchOver()
 }
 
 //------------------------------------------------------------------------------
+// isCurrentNode()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::isCurrentNode(const std::string & i_amfNodeDN)
+{
+	TRACE_ENTER();
+
+	SmfImmUtils immUtil;
+	SaImmAttrValuesT_2 **attributes;
+	bool rc = false;
+	std::string comp_name = getenv("SA_AMF_COMPONENT_NAME");
+	TRACE("My components name is %s", comp_name.c_str());
+
+	// Find the parent SU to this component and read which node that is hosting the SU
+	if (immUtil.getParentObject(comp_name, &attributes) == true) {
+		const SaNameT *hostedByNode = immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
+								  "saAmfSUHostedByNode", 
+								  0);
+		if (hostedByNode != NULL){
+			TRACE("The SU is hosted by node %s", (char *)hostedByNode->value);
+			if (strcmp(i_amfNodeDN.c_str(), (char *)hostedByNode->value) == 0) {
+				/* The SU is hosted by the node */
+				TRACE("SmfUpgradeStep::isCurrentNode:MATCH, component %s hosted by %s", comp_name.c_str(), i_amfNodeDN.c_str());
+				rc = true;
+			}
+		} else {
+			LOG_ER("SmfUpgradeStep::isCurrentNode:No hostedByNode attr set for components hosting SU %s", comp_name.c_str());  
+			rc = false;
+		}
+        } else {
+		LOG_ER("SmfUpgradeStep::isCurrentNode:Fails to get parent to %s", comp_name.c_str());  
+		rc = false;
+	}
+
+	TRACE_LEAVE();
+        return rc;
+}
+
+//------------------------------------------------------------------------------
+// executeRemoteCmd()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::executeRemoteCmd( const std::string  &i_cmd,
+				  const std::string & i_node)
+{
+	TRACE_ENTER();
+	TRACE("Executing script '%s' on node '%s'", i_cmd.c_str(), i_node.c_str());
+	SaTimeT timeout;
+	int fc;
+	bool rc = true;
+	MDS_DEST nodeDest = getNodeDestination(i_node);
+	while (nodeDest == 0) {
+		LOG_ER("no node destination found for node %s", i_node.c_str());
+		rc = false;
+		goto done;
+	}
+
+	/* Execute the script remote on node */
+	timeout = smfd_cb->cliTimeout;	/* Default timeout */
+
+	fc = smfnd_remote_cmd(i_cmd.c_str(), nodeDest, timeout / 10000000);
+	/* convert ns to 10 ms timeout */
+	if (fc != 0) {
+		LOG_ER("executing command '%s' on node '%s' failed with fcode %d", 
+		       i_cmd.c_str(), i_node.c_str(), fc);
+		rc = false;
+		goto done;
+	}
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
+//------------------------------------------------------------------------------
 // callBundleScript()
 //------------------------------------------------------------------------------
 bool 
@@ -1004,11 +1089,23 @@ SmfUpgradeStep::callBundleScript(SmfInstallRemoveT i_order,
 
 			TRACE("Executing bundle script '%s' on node '%s'", 
 			      command.c_str(), i_node.c_str());
+			TRACE("Get node destination for %s", i_node.c_str());
+
+//			SaTimeT timeout = smfd_cb->rebootTimeout;
+			int interval = 5;
+			int timeout = smfd_cb->rebootTimeout/1000000000; //seconds
 			MDS_DEST nodeDest = getNodeDestination(i_node);
-			if (nodeDest == 0) {
-				LOG_ER("no node destination found for node %s", i_node.c_str());
-				result = false;
-				goto done;
+			while (nodeDest == 0) {
+				if (timeout > 0) {
+					TRACE("No destination found, try again wait %d seconds", interval);
+					sleep(interval);
+					nodeDest = getNodeDestination(i_node);
+					timeout -= interval;
+				} else {
+					LOG_ER("no node destination found for node %s", i_node.c_str());
+					result = false;
+					goto done;
+				}
 			}
 
 			/* TODO : how to handle the case where the cmd is an URI */
@@ -1053,6 +1150,103 @@ SmfUpgradeStep::callAdminOperation(unsigned int i_operation,
 
 	TRACE_LEAVE();
 	return true;
+}
+
+//------------------------------------------------------------------------------
+// nodeReboot()
+//------------------------------------------------------------------------------
+bool 
+SmfUpgradeStep::nodeReboot(const std::string & i_node)
+{
+	TRACE_ENTER();
+	bool result = true;
+	MDS_DEST nodeDest;
+	int rc;
+	std::string cmd;        // Command to enter
+	int interval;           // Retry interval
+	int timeout;            // Connection timeout
+	int rebootTimeout = smfd_cb->rebootTimeout / 1000000000; //seconds
+	int cliTimeout    = 400;                                 // 400 * 10 ms = 4 seconds
+
+	//Order smf node director to reboot the node
+	cmd = "reboot";
+	nodeDest = getNodeDestination(i_node);
+
+	if (nodeDest == 0) {
+		LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", i_node.c_str());
+		result = false;
+		goto done;
+	}
+
+	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+#if 0
+	// The rebooted node will not answer
+	if (rc != 0) {
+		LOG_ER("SmfUpgradeStep::nodeReboot: executing command '%s' on node '%s' failed with rc %d", 
+		       cmd.c_str(), i_node.c_str(), rc);
+		result = false;
+		goto done;
+	}
+#endif
+
+	//Wait for the node to be down
+	TRACE("SmfUpgradeStep::nodeReboot: Waiting for the node to teardown");
+	cmd      = "true";              //Command "true" should be available on all Linux systems
+	timeout  = rebootTimeout / 2;   //Use half of the reboot timeout for teardown
+	interval = 2;                   //Retry interval is 2 seconds
+	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+	while(rc != -1){
+		sleep(interval);
+		rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+		if (timeout <= 0) {
+			LOG_ER("SmfUpgradeStep::nodeReboot: teardown timeout on node '%s'", i_node.c_str());
+			result = false;
+			goto done;
+		}
+
+		timeout -= interval;
+	}
+
+	//The node has stop answering commands, wait for the node to start answering commands
+	//Try to get the node detination
+	timeout  = rebootTimeout; //seconds
+	interval = 5;
+	TRACE("SmfUpgradeStep::nodeReboot: Waiting to get node destination");
+	nodeDest = getNodeDestination(i_node);
+	while (nodeDest == 0) {
+		TRACE("SmfUpgradeStep::nodeReboot: No destination found, try again wait %d seconds", interval);
+		sleep(interval);
+		nodeDest = getNodeDestination(i_node);
+		if (timeout <= 0) {
+			LOG_ER("SmfUpgradeStep::nodeReboot: no node destination found for node %s", i_node.c_str());
+			result = false;
+			goto done;
+		}
+
+		timeout -= interval;
+	}
+
+	//Node destination is found, wait for node to accept command "true"
+	cmd      = "true";              //Command "true" should be available on all Linux systems
+	timeout  = rebootTimeout / 2;   //Use half of the reboot timeoot
+	interval = 5;
+	TRACE("SmfUpgradeStep::nodeReboot: Waiting for the node to accept command 'true'");
+	rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+	while(rc != -1){
+		sleep(interval);
+		rc = smfnd_remote_cmd(cmd.c_str(), nodeDest, cliTimeout);
+		if (timeout <= 0) {
+			LOG_ER("SmfUpgradeStep::nodeReboot: accept command timeout on node '%s'", i_node.c_str());
+			result = false;
+			goto done;
+		}
+
+		timeout -= interval;
+	}
+
+done:
+	TRACE_LEAVE();
+	return result;
 }
 
 //------------------------------------------------------------------------------

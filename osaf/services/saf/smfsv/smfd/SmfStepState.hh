@@ -107,9 +107,13 @@ class SmfStepStateExecuting:public SmfStepState {
  } private:
 
 	bool executeSwInstall(SmfUpgradeStep * i_step);
+	bool executeSwInstallAct(SmfUpgradeStep * i_step);
 	bool executeAuLock(SmfUpgradeStep * i_step);
+	bool executeAuLockAct(SmfUpgradeStep * i_step);
 	bool executeAuRestart(SmfUpgradeStep * i_step);
+	bool executeAuRestartAct(SmfUpgradeStep * i_step);
 	bool executeNodeReboot(SmfUpgradeStep * i_step);
+	bool executeNodeRebootAct(SmfUpgradeStep * i_step);
 
 	static SmfStepState *s_instance;
 };

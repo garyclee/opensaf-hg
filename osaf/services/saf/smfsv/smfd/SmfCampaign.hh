@@ -34,6 +34,8 @@
 #define SMF_CLUSTER_REBOOT_ATTR   "smfClusterRebootCmd"
 #define SMF_ADMIN_OP_TIMEOUT_ATTR "smfAdminOpTimeout"
 #define SMF_CLI_TIMEOUT_ATTR      "smfCliTimeout"
+#define SMF_REBOOT_TIMEOUT_ATTR   "smfRebootTimeout"
+#define SMF_NODE_ACT_ATTR         "smfNodeBundleActCmd"
 
 class SmfUpgradeCampaign;
 class SmfUpgradeProcedure;
@@ -68,6 +70,7 @@ class SmfCampaign {
 	void procResult(SmfUpgradeProcedure * procedure, int rc);
 
 	void setState(SaSmfCmpgStateT state);
+	SaSmfCmpgStateT getState();
 	void setConfigBase(SaTimeT configBase);
 	void setExpectedTime(SaTimeT expectedTime);
 	void setElapsedTime(SaTimeT elapsedTime);
