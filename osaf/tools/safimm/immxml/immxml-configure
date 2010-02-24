@@ -45,11 +45,13 @@ SERVICESDIR=./services
 TEMP_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
 TEMPLATE_TMPDIR=$TEMP_ROOTDIR/templatedir
 TMPDIR=$TEMP_ROOTDIR/intermediatefiles
+NODE_TMPDIR=$TEMP_ROOTDIR/nodes
 LOGFILE=/tmp/$0.log
 
 >$LOGFILE
 mkdir -p $TMPDIR
 mkdir -p $TEMPLATE_TMPDIR
+mkdir -p $NODE_TMPDIR
 
 SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
 echo -e "merge SC templates to: $SC_TEMPLATE" >> $LOGFILE
@@ -61,8 +63,8 @@ echo -e "merge PL templates to: $PL_TEMPLATE" >> $LOGFILE
 ./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
 verifyExitCode $?
 
-echo -e "Generate node specific immxml files into dir:$TMPDIR" >> $LOGFILE
-./immxml-nodegen --nodegen-dir $TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
+echo -e "Generate node specific immxml files into dir:$NODE_TMPDIR" >> $LOGFILE
+./immxml-nodegen --nodegen-dir $NODE_TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
 verifyExitCode $?
 
 ./immxml-merge -o $TMPDIR/imm_classes.xml `find $SERVICESDIR -name \*_classes.xml|xargs` >>$LOGFILE 2>&1
@@ -71,7 +73,7 @@ verifyExitCode $?
 verifyExitCode $?
 
 # merge all intermediate files to the result file
-FILES_TO_MERGE="$SERVICESDIR/imm_copyright.xml $TMPDIR/*.xml"
+FILES_TO_MERGE="$SERVICESDIR/imm_copyright.xml $TMPDIR/imm_classes.xml $TMPDIR/imm_objects.xml $NODE_TMPDIR/*.xml"
 
 echo -e "\n Create resulting imm.xml by merging intermediate files :$FILES_TO_MERGE" >> $LOGFILE
 ./immxml-merge --sort -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
