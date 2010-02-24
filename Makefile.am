@@ -138,7 +138,7 @@ dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/node_ha_state
 
 dist_pkgimmxml_DATA = \
-	$(top_srcdir)/tools/devel/immtools/README
+	$(top_srcdir)/osaf/tools/safimm/immxml/README
 
 
 dist_bin_SCRIPTS = \
@@ -148,13 +148,13 @@ dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/opensaf_mem_dump
 
 dist_pkgimmxml_SCRIPTS = \
-	$(top_srcdir)/tools/devel/immtools/baseimm.py \
-	$(top_srcdir)/tools/devel/immtools/immxml-configure \
-	$(top_srcdir)/tools/devel/immtools/immxml-merge \
-	$(top_srcdir)/tools/devel/immtools/immxml-nodegen \
-	$(top_srcdir)/tools/devel/immtools/immxml-validate \
-	$(top_srcdir)/tools/devel/immtools/immxml-clustersize \
-	$(top_srcdir)/tools/devel/immtools/verify.sh
+	$(top_srcdir)/osaf/tools/safimm/immxml/baseimm.py \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-configure \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-merge \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-nodegen \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-validate \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-clustersize \
+	$(top_srcdir)/osaf/tools/safimm/immxml/verify.sh
 
 nodist_bin_SCRIPTS = \
 	$(top_builddir)/scripts/collect_logs_controller \

@@ -90,9 +90,9 @@ cmd_install_testprog() {
 	-L$libd -lSaAmf -L$libd/opensaf -lavsv_common -lopensaf_core
 
     test -r $immxml.orig || cp $immxml $immxml.orig
-    $opensaf_home/tools/devel/immtools/immxml-merge \
+    $opensaf_home/osaf/tools/safimm/immxml/immxml-merge \
 	$immxml.orig $src/$appconfig > $immxml
-    $opensaf_home/tools/devel/immtools/immxml-validate $immxml
+    $opensaf_home/osaf/tools/safimm/immxml/immxml-validate $immxml
     cmd_mkcpio
 }
 
@@ -164,6 +164,10 @@ cmd_create_rootfs()
 
     echo "Installing required dynamic libs..."
     cmd_installibs
+
+    echo "Generating imm.xml for a default sized cluster" 
+    cmd_generate_immxml
+    echo -e "\n Command to generate the imm.xml for other size of cluster:\n \"build_uml generate_immxml [clustersize]\"\n"
 
     cd $top
     if test -n "$INSTALL_TESTPROG"; then
@@ -239,9 +243,6 @@ cmd_default() {
     # Build the Linux UML binary
     ./uml/build_uml all || die "build of UML Linux kernel failed"
     cmd_create_rootfs
-    echo "Generating imm.xml for a default sized cluster" 
-    cmd_generate_immxml
-    echo -e "\n Command to generate the imm.xml for other size of cluster:\n \"build_uml generate_immxml [clustersize]\"\n"
 }
 
 ##   gen_immxml
