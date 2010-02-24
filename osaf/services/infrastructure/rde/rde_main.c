@@ -243,14 +243,6 @@ static uns32 discover_peer(int mbx_fd)
 				rde_mds_send(&peer_info_req, msg->fr_dest);
 				goto done;
 			}
-			case RDE_MSG_PEER_INFO_REQ: {
-				struct rde_msg peer_info_req;
-				TRACE("Received %s", rde_msg_name[msg->type]);
-				peer_info_req.type = RDE_MSG_PEER_INFO_RESP;
-				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
-				rde_mds_send(&peer_info_req, msg->fr_dest);
-				break;
-			}
 			default:
 				LOG_ER("%s: discarding unknown message type %u", __FUNCTION__, msg->type);
 				break;
@@ -300,6 +292,10 @@ static uns32 determine_role(int mbx_fd)
 		msg = (struct rde_msg*)ncs_ipc_non_blk_recv(&rde_cb->mbx);
 
 		switch (msg->type) {
+		case RDE_MSG_PEER_UP:
+			TRACE("Received straggler up msg, ignoring");
+			assert(peer_node_id);
+			break;
 		case RDE_MSG_PEER_DOWN:
 			TRACE("Received %s", rde_msg_name[msg->type]);
 			LOG_NO("rde@%x down waiting for response => Active role", peer_node_id);
