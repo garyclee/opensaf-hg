@@ -267,8 +267,9 @@ int object_create(const SaNameT **objectNames, const SaImmClassNameT className,
 		str = strdup((char*)objectNames[i]->value);
 		if ((delim = strchr(str, ',')) != NULL) {
 			/* a parent exist */
-			if (*(delim - 1) == 0x5c) {
+			while (*(delim - 1) == 0x5c) {
 				/* comma delimiter is escaped, search again */
+printf("comma delimiter is escaped, search again");
 				delim += 2;
 				delim = strchr(delim, ',');
 			}
