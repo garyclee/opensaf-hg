@@ -47,6 +47,11 @@ validate_options()
       script_error "One or two SC's must be specified!. Exiting!"
       exit 1
    fi
+
+   if [ $SC_COUNT -lt 2 -a $PL_COUNT -gt 0 ] ; then
+      script_error "Two SC's is required for clusters with payloads. Exiting!"
+      exit 1
+   fi
 }
 
 USAGE="Usage: immxml-clustersize\n\

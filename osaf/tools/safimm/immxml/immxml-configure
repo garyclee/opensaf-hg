@@ -19,6 +19,16 @@ die() {
     exit 1
 }
 
+verifyExitCode()
+{
+    if [ $1 -ne 0 ]
+    then
+       echo "Aborting script! exitCode: $1"
+       exit $?
+    fi
+}
+
+
 test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
 
 if [ -z $1 ] ; then
@@ -32,33 +42,45 @@ else
 fi
 
 SERVICESDIR=./services
-TEMPLATE_TMPDIR=`mktemp -d /tmp/immxml_template_dir.XXXXXX`
-TMPDIR=`mktemp -d /tmp/immxml_configure_dir.XXXXXX`
+TEMP_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
+TEMPLATE_TMPDIR=$TEMP_ROOTDIR/templatedir
+TMPDIR=$TEMP_ROOTDIR/intermediatefiles
 LOGFILE=/tmp/$0.log
+
 >$LOGFILE
+mkdir -p $TMPDIR
+mkdir -p $TEMPLATE_TMPDIR
 
 SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
 echo -e "merge SC templates to: $SC_TEMPLATE" >> $LOGFILE
 ./immxml-merge --ignore-missing-class -o $SC_TEMPLATE `find $SERVICESDIR -name \*_sc_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $?
 
 PL_TEMPLATE=$TEMPLATE_TMPDIR/imm_pl_template.xml
 echo -e "merge PL templates to: $PL_TEMPLATE" >> $LOGFILE
 ./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $?
 
 echo -e "Generate node specific immxml files into dir:$TMPDIR" >> $LOGFILE
 ./immxml-nodegen --nodegen-dir $TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config ./nodes.cfg >>$LOGFILE 2>&1
+verifyExitCode $?
 
 ./immxml-merge -o $TMPDIR/imm_classes.xml `find $SERVICESDIR -name \*_classes.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $?
 ./immxml-merge --ignore-missing-class -o $TMPDIR/imm_objects.xml `find $SERVICESDIR -name \*_objects.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $?
 
 # merge all intermediate files to the result file
 FILES_TO_MERGE="$SERVICESDIR/imm_copyright.xml $TMPDIR/*.xml"
 
 echo -e "\n Create resulting imm.xml by merging intermediate files :$FILES_TO_MERGE" >> $LOGFILE
 ./immxml-merge --sort -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
+verifyExitCode $?
 
-rm -rf $TEMPLATE_TMPDIR
-rm -rf $TMPDIR
+./immxml-validate $RESULTFILE  >>$LOGFILE 2>&1
+verifyExitCode $?
+
+rm -rf $TEMP_ROOTDIR
 
 if [ -z $1 ] ; then
    echo "Successfully generated the imm file: $RESULTFILE"
