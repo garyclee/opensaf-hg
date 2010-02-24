@@ -23,7 +23,7 @@
 
 #define RDE_MDS_PVT_SUBPART_VERSION 1
 
-static MDS_DEST mds_adest;
+static MDS_DEST peer_dest;
 static MDS_HDL mds_hdl;
 
 static uns32 msg_encode(MDS_CALLBACK_ENC_INFO *enc_info)
@@ -105,7 +105,7 @@ done:
 	return rc;
 }
 
-static int msg_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
+static int mbx_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	struct rde_msg *msg = calloc(1, sizeof(struct rde_msg));
@@ -115,7 +115,7 @@ static int msg_send(RDE_MSG_TYPE type, MDS_DEST fr_dest, NODE_ID fr_node_id)
 	msg->fr_dest = fr_dest;
 	msg->fr_node_id = fr_node_id;
 
-	if (ncs_ipc_send(&cb->mbx, (NCS_IPC_MSG *)msg, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
+	if (ncs_ipc_send(&cb->mbx, (NCS_IPC_MSG *)msg, NCS_IPC_PRIORITY_HIGH) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_ipc_send FAILED");
 		free(msg);
 		rc = NCSCC_RC_FAILURE;
@@ -129,8 +129,6 @@ static uns32 mds_callback(struct ncsmds_callback_info *info)
 	struct rde_msg *msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	RDE_CONTROL_BLOCK *cb = rde_get_control_block();
-
-	assert(info != NULL);
 
 	switch (info->i_op) {
 	case MDS_CALLBACK_COPY:
@@ -147,11 +145,16 @@ static uns32 mds_callback(struct ncsmds_callback_info *info)
 	case MDS_CALLBACK_DEC_FLAT:
 		break;
 	case MDS_CALLBACK_RECEIVE:
+		if (!peer_dest) {
+			/* Sometimes a message from peer is received before MDS_UP, simulate MDS_UP */
+			TRACE("generating up msg from rec event!");
+			rc = mbx_send(RDE_MSG_PEER_UP, info->info.receive.i_fr_dest, info->info.receive.i_node_id);
+		}
+
 		msg = (struct rde_msg*)info->info.receive.i_msg;
 		msg->fr_dest = info->info.receive.i_fr_dest;
 		msg->fr_node_id = info->info.receive.i_node_id;
 		if (ncs_ipc_send(&cb->mbx, (NCS_IPC_MSG *)info->info.receive.i_msg, NCS_IPC_PRIORITY_NORMAL) != NCSCC_RC_SUCCESS) {
-
 			LOG_ER("ncs_ipc_send FAILED");
 			free(msg);
 			rc = NCSCC_RC_FAILURE;
@@ -165,11 +168,13 @@ static uns32 mds_callback(struct ncsmds_callback_info *info)
 		if (info->info.svc_evt.i_change == NCSMDS_DOWN) {
 			TRACE("MDS DOWN dest: %llx, node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-			rc = msg_send(RDE_MSG_PEER_DOWN, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
+			peer_dest = 0;
+			rc = mbx_send(RDE_MSG_PEER_DOWN, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else if (info->info.svc_evt.i_change == NCSMDS_UP) {
 			TRACE("MDS UP dest: %llx, node ID: %x, svc_id: %d",
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
-			rc = msg_send(RDE_MSG_PEER_UP, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
+			peer_dest = info->info.svc_evt.i_dest;
+			rc = mbx_send(RDE_MSG_PEER_UP, info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id);
 		} else {
 			TRACE("MDS %u dest: %llx, node ID: %x, svc_id: %d", info->info.svc_evt.i_change,
 				info->info.svc_evt.i_dest, info->info.svc_evt.i_node_id, info->info.svc_evt.i_svc_id);
@@ -192,6 +197,7 @@ uns32 rde_mds_register(RDE_CONTROL_BLOCK *cb)
 	NCSADA_INFO ada_info;
 	NCSMDS_INFO svc_info;
 	MDS_SVC_ID svc_id[1] = { NCSMDS_SVC_ID_RDE };
+	MDS_DEST mds_adest;
 
 	TRACE_ENTER();
 
