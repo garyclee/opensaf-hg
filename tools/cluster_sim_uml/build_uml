@@ -93,6 +93,7 @@ cmd_install_testprog() {
     $opensaf_home/osaf/tools/safimm/immxml/immxml-merge \
 	$immxml.orig $src/$appconfig > $immxml
     $opensaf_home/osaf/tools/safimm/immxml/immxml-validate $immxml
+    echo "Creating [$root/root.cpio] ..."
     cmd_mkcpio
 }
 
@@ -173,6 +174,9 @@ cmd_create_rootfs()
     if test -n "$INSTALL_TESTPROG"; then
 	echo "Building and installing test program"
 	cmd_install_testprog
+    else
+        echo "Creating [$root/root.cpio] ..."
+        cmd_mkcpio
     fi
 }
 
@@ -279,8 +283,6 @@ cmd_generate_immxml() {
     fi
     cp -f imm_generated.xml $top/rootfs/etc/opensaf/imm.xml
     cd $top
-    echo "Creating [$root/root.cpio] ..."
-    cmd_mkcpio
     echo "generate_immxml complete."
 }
 
