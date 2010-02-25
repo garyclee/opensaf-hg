@@ -278,37 +278,5 @@ void mds_free_direct_buff(MDS_DIRECT_BUFF buff)
 	}
 }
 
-/****************************************************************************
- *
- * Function Name: mds_node_link_reset
- *
- * Purpose:
- *
- * Return Value:  NCSCC_RC_SUCCESS On Success
- *                NCSCC_RC_FAILURE on failure
- *
- ****************************************************************************/
-uns32 mds_node_link_reset(NCS_NODE_ID node_id)
-{
-	char buffer[50];
-	int status;
-	/* Fix for the multi shelf support, Here we will check whether the destination node is in our shelf or not */
-	if ((node_id & 0x00ff0000) != (m_NCS_GET_NODE_ID & 0x00ff0000)) {
-		m_MDS_LOG_ERR("MDS_PAPI: Node_id Passed to the TIPC reset script is out of range of shelf ,Node=0x%08x",
-			      node_id);
-		return NCSCC_RC_FAILURE;
-	}
-
-	sprintf(buffer, "sh %s/tipc_reset.sh %x &", PKGLIBDIR, node_id);
-	status = system(buffer);
-	if (status == 0) {
-		m_MDS_LOG_NOTIFY("MDS_PAPI: Successfully executed the TIPC reset script for Node=0x%08x", node_id);
-		status = NCSCC_RC_SUCCESS;
-	} else {
-		m_MDS_LOG_ERR("MDS_PAPI: Failed to execute the TIPC reset script for Node=0x%08x", node_id);
-		status = NCSCC_RC_FAILURE;
-	}
-	return status;
-}
 
 #endif   /* (NCS_MDS == 1) */

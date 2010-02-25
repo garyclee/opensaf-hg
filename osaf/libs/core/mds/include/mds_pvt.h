@@ -29,17 +29,4 @@
 #define MDS_PVT_H
 #include "ncsgl_defs.h"
 
-/****************************************************************************
- *
- * Function Name: mds_node_link_reset
- *
- * Purpose: To reset the TIPC link tolerance <self_node-peer_node>to the 
- *           default value of 1.5 sec. peer_node is the node_id passed
- *
- * Return Value:  NCSCC_RC_SUCCESS On Success
- *                NCSCC_RC_FAILURE on failure
- *
- ****************************************************************************/
-uns32 mds_node_link_reset(NCS_NODE_ID node_id);
-
 #endif
