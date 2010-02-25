@@ -19,8 +19,14 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#ifdef IMM_PBE
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_IMM_PBE
 
 #include <sqlite3.h> 
 
@@ -448,7 +454,7 @@ static ClassInfo* classToPBE(std::string classNameString,
 		}
 
 		if (sqlB.size() > sqlBsize) {
-			LOG_ER("SQL statement too long:%u max length:%u", 
+			LOG_ER("SQL statement too long:%zu max length:%u", 
 				sqlB.size(), sqlBsize);
 			goto bailout;
 		}

@@ -301,7 +301,7 @@ bool createImmObject(SaImmClassNameT className,
 
     TRACE_ENTER2("CREATE IMM OBJECT %s, %s", className, objectName);
 
-    TRACE("attrValuesList size:%zu clasRDNMap size:%u", 
+    TRACE("attrValuesList size:%zu clasRDNMap size:%lu", 
         attrValuesList->size(),
         classRDNMap?classRDNMap->size():0);
 

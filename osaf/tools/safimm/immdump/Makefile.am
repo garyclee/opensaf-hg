@@ -23,23 +23,19 @@ noinst_HEADERS = \
 
 bin_PROGRAMS = immdump
 
-immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
+immdump_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@ @SQLITE3_CFLAGS@
 
-immdump_SOURCES = imm_dumper.cc imm_pbe_dump.cc imm_pbe_daemon.cc \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
+immdump_SOURCES = \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	imm_dumper.cc \
+	imm_pbe_dump.cc \
+	imm_pbe_daemon.cc
 
 immdump_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-#immdump_CPPFLAGS = \
-#	$(AM_CPPFLAGS) \
-#	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-#	-I/usr/local/include \
-#	-DIMM_PBE
-
-immdump_LDFLAGS = @XML2_LIBS@
-#immdump_LDFLAGS = @XML2_LIBS@ -L/usr/local/lib -lsqlite3
+immdump_LDFLAGS = @XML2_LIBS@ @SQLITE3_LIBS@
 
 immdump_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \

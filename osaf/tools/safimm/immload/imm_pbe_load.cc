@@ -23,7 +23,11 @@
 #include <assert.h>
 #include <cstdlib>
 
-#ifdef IMM_PBE
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#ifdef HAVE_IMM_PBE
 
 #include <sqlite3.h>
 
