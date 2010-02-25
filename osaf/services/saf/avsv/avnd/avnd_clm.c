@@ -470,7 +470,6 @@ uns32 avnd_evt_avd_node_update_msg(AVND_CB *cb, AVND_EVT *evt)
 			avnd_clm_snd_track_changes(cb, rec, SA_CLM_NODE_JOINED);
 	} else {		/* => node deletion */
 
-		mds_node_link_reset(info->clm_info.node_id);
 		rec = avnd_clmdb_rec_get(cb, info->clm_info.node_id);
 
 /*************************   Section  1 Starts Here **************************/

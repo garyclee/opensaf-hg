@@ -832,7 +832,6 @@ AC_CONFIG_FILES([
         scripts/collect_logs_controller
         scripts/collect_logs_payload
         scripts/get_ha_state
-        scripts/tipc_reset.sh
         tests/avsv/amfoitest/Makefile
         tests/immsv/implementer/Makefile
         tests/immsv/management/Makefile

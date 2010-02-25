@@ -166,9 +166,6 @@ dist_pkglib_SCRIPTS = \
 	$(top_srcdir)/scripts/find_pid \
 	$(top_srcdir)/scripts/opensaf_reboot 
 
-nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/scripts/tipc_reset.sh 
-
 if ENABLE_RPM_TARGET
 
 RPMTOPDIR = `pwd`/rpms

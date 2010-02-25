@@ -699,7 +699,6 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc
-%{_pkglibdir}/tipc_reset.sh
 
 
 %files amf-libs
