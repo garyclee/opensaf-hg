@@ -261,6 +261,25 @@ AC_SUBST([PAYLOAD_BUILD_ENABLED], ["$enable_payload_build"])
 
 
 #
+# Enable/disable IMM Persistent Backend
+#
+AC_MSG_CHECKING([whether to use the IMM persistent backend])
+AC_ARG_ENABLE([imm-pbe],
+	[AS_HELP_STRING([--enable-imm-pbe],
+		[enable the IMM Persistent Backend Interface [default=yes]])],
+	[],
+	[enable_imm_pbe=no])
+AC_MSG_RESULT([$enable_imm_pbe])
+
+if test "$enable_imm_pbe" = yes; then
+	AC_DEFINE([HAVE_IMM_PBE], 1, [Define if we have IMM_PBE enabled])
+fi
+
+AM_CONDITIONAL([ENABLE_IMM_PBE], [test "$enable_imm_pbe" = yes])
+AC_SUBST([IMM_PBE_ENABLED], ["$enable_imm_pbe"])
+
+
+#
 # Enable/disable building some of the OpenSAF AIS Services
 #
 AC_MSG_CHECKING([whether to build the SAI-AIS-CKPT service])
@@ -516,6 +535,11 @@ else
         XML2_CFLAGS=`${XML2_CONFIG_BIN} --cflags`
         AC_SUBST([XML2_LIBS])
         AC_SUBST([XML2_CFLAGS])
+fi
+
+
+if test "$enable_imm_pbe" = yes; then
+	PKG_CHECK_MODULES([SQLITE3], [sqlite3])
 fi
 
 
@@ -881,6 +905,11 @@ echo " Dependencies Options:"
 if test "$enable_hpi" = yes; then
         echo "${ECHO_T}  HPI_CFLAGS: ${HPI_CFLAGS}"
         echo "${ECHO_T}  HPI_LIBS: ${HPI_LIBS}"
+fi
+
+if test "$enable_imm_pbe" = yes; then
+        echo "${ECHO_T}  SQLITE3_CFLAGS: ${SQLITE3_CFLAGS}"
+        echo "${ECHO_T}  SQLITE3_LIBS: ${SQLITE3_LIBS}"
 fi
 
 echo "${ECHO_T}  XML2_CFLAGS: ${XML2_CFLAGS}"
