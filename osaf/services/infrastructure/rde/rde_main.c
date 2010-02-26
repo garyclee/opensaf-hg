@@ -302,7 +302,7 @@ static uns32 determine_role(int mbx_fd)
 			rde_cb->ha_role = PCS_RDA_ACTIVE;
 			update_status_file(rde_cb->ha_role);
 			peer_node_id = 0;
-			break;
+			goto done;
 		case RDE_MSG_PEER_INFO_REQ: {
 			struct rde_msg peer_info_req;
 			TRACE("Received %s", rde_msg_name[msg->type]);
@@ -341,6 +341,7 @@ static uns32 determine_role(int mbx_fd)
 				peer_info_req.type = RDE_MSG_PEER_INFO_REQ;
 				peer_info_req.info.peer_info.ha_role = rde_cb->ha_role;
 				rde_mds_send(&peer_info_req, msg->fr_dest);
+				break;
 			default:
 				LOG_NO("rde@%x has unsupported state, panic!", msg->fr_node_id);
 				assert(0);
