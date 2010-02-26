@@ -110,12 +110,6 @@
 #endif
 #endif   /* NCS_DTS */
 
-#ifdef __NCSINC_LINUX__
-#define LOG_PATH PKGLOCALSTATEDIR "log"
-#else
-#define LOG_PATH   ""
-#endif
-
 #define NODE_ID_FILE PKGLOCALSTATEDIR "node_id"
 
 /**************************************************************************\
@@ -150,8 +144,6 @@ typedef struct ncs_main_pub_cb {
 
 } NCS_MAIN_PUB_CB;
 
-static uns32 ncs_main_set_log_dir(void);
-static uns32 ncs_main_create_log_dir(char *path);
 static uns32 mainget_node_id(uns32 *node_id);
 static uns32 ncs_set_config_root(void);
 static uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
@@ -195,9 +187,6 @@ uns32 gl_pargc = 0;
    m_NCS_LOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE);
 
 #define m_NCS_AGENT_UNLOCK m_NCS_UNLOCK(&gl_ncs_main_pub_cb.lock, NCS_LOCK_WRITE)
-
-#define NCS_LOG_DIR_NAME_MAXLEN 256
-char gl_ncs_log_dir[NCS_LOG_DIR_NAME_MAXLEN];	/* To store the path for logging directory */
 
 /***************************************************************************\
 
@@ -260,13 +249,7 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
 	lib_create.info.create.argc = argc;
 	lib_create.info.create.argv = argv;
 
-	if (ncs_main_set_log_dir() != NCSCC_RC_SUCCESS) {
-		NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't create log directory\n");
-		m_NCS_AGENT_UNLOCK;
-		return NCSCC_RC_FAILURE;
-	}
-
-   /*** Initalize basic services ***/
+   	/* Initalize basic services */
 	if (leap_env_init() != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("\nERROR: Couldn't initialised LEAP basic services \n");
 		m_NCS_AGENT_UNLOCK;
@@ -1019,97 +1002,6 @@ char *ncs_util_search_argv_list(int argc, char *argv[], char *arg_prefix)
 	}
 	return NULL;
 }
-
-/*****************************************************************************
-
-  PROCEDURE     :    ncs_main_set_log_dir
-
-  DESCRIPTION:       Function used for setting the global variable contain
-                     log path.
-
-                     Global variable name = "gl_ncs_log_dir"
-
-  RETURNS:           SUCCESS - All went well.
-                     FAILURE - Something went wrong.
-
-*****************************************************************************/
-static uns32 ncs_main_set_log_dir()
-{
-#ifdef __NCSINC_LINUX__
-	{
-		char *env_var;
-		env_var = getenv("NCS_LOG_PATH");
-
-		if (env_var) {
-			strcpy(gl_ncs_log_dir, env_var);
-		} else {
-			strcpy(gl_ncs_log_dir, LOG_PATH);
-		}
-
-		if (ncs_main_create_log_dir(gl_ncs_log_dir) != NCSCC_RC_SUCCESS) {
-			return NCSCC_RC_FAILURE;
-		}
-	}
-#else
-	strcpy(gl_ncs_log_dir, LOG_PATH);
-#endif
-	return NCSCC_RC_SUCCESS;
-}
-
-#ifdef __NCSINC_LINUX__
-/*****************************************************************************
-
-  PROCEDURE NAME:    ncs_main_create_log_dir
-
-  DESCRIPTION:       Function used for creating the log directory.
-
-  RETURNS:           SUCCESS - All went well.
-                     FAILURE - Something went wrong.
-
-*****************************************************************************/
-static uns32 ncs_main_create_log_dir(char *path)
-{
-	uns32 retval = NCSCC_RC_SUCCESS;
-	uns32 i = 0, len = 0;
-	char *tmp, tchar[200];
-
-	if (NCS_LOG_DIR_NAME_MAXLEN < strlen(path)) {
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-	if (*path != '/') {
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-
-	len = strlen(path);
-
-	if (path[len - 1] != '/') {
-		path[len] = '/';
-		path[len + 1] = '\0';
-	}
-
-	tmp = path;
-
-	while (*tmp != '\0') {
-		tchar[i] = *tmp;
-		tmp++;
-		i++;
-
-		if ((*tmp == '/') || (*tmp == '\0')) {
-			tchar[i] = '\0';
-			if (MKDIR(tchar, 0x3ED) == -1) {
-				if (errno != EEXIST) {
-					perror("Failed to create log directory:");
-					retval = NCSCC_RC_FAILURE;
-					break;
-				}
-			}
-			tchar[i] = '/';
-		}
-	}
-	NCSMAINPUB_DBG_TRACE1_ARG2("\n My log directory path = %s \n", path);
-	return retval;
-}
-#endif
 
 /****************************************************************************
   Name          :  ncs_get_node_id_from_phyinfo
