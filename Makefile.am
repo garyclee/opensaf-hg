@@ -53,7 +53,6 @@ configmake.h: Makefile
 	echo '#define DATAROOTDIR "$(datarootdir)"'; \
 	echo '#define DATADIR "$(datadir)"'; \
 	echo '#define SYSCONFDIR "$(sysconfdir)"'; \
-	echo '#define OSAF_SYSCONFDIR "$(sysconfdir)/$(PACKAGE_NAME)/"'; \
 	echo '#define SHAREDSTATEDIR "$(sharedstatedir)"'; \
 	echo '#define LOCALSTATEDIR "$(localstatedir)"'; \
 	echo '#define OSAF_LOCALSTATEDIR "$(localstatedir)/lib/$(PACKAGE_NAME)/"'; \
@@ -70,6 +69,7 @@ configmake.h: Makefile
 	echo '#define LOCALEDIR "$(localedir)"'; \
 	echo '#define MANDIR "$(mandir)"'; \
 	echo '#define MANEXT "$(manext)"'; \
+	echo '#define PKGSYSCONFDIR "$(sysconfdir)/$(PACKAGE_NAME)/"'; \
 	echo '#define PKGDATADIR "$(pkgdatadir)"'; \
 	echo '#define PKGINCLUDEDIR "$(pkgincludedir)"'; \
 	echo '#define PKGLIBDIR "$(pkglibdir)"'; \

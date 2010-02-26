@@ -23,7 +23,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 CMD=$1
 
 NAME=ntfd
-CONFFILE=${SYSCONFDIR}/ntf.conf
+CONFFILE=${PKGSYSCONFDIR}/ntf.conf
 
 # Start generic part
 SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`

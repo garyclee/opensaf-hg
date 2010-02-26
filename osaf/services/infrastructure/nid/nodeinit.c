@@ -22,7 +22,7 @@
 *       Module Name:    nodeinit (Node Initialization Daemon)           *
 *                                                                       *
 *       Purpose:        Nodeinitd reads following info from             *
-*                       OSAF_SYSCONFDIR/nodeinit.conf file:             *
+*                       PKGSYSCONFDIR/nodeinit.conf file:               *
 *                       * Application file name,with absolute path name.*
 *                       * Application Name.                             *
 *                       * Application Type.                             *
@@ -324,11 +324,11 @@ NID_APP_TYPE get_apptype(char *p)
 /****************************************************************************
  * Name          : get_spawn_info                                           *
  *                                                                          *
- * Description   : Parse one entry in OSAF_SYSCONFDIR/nodeinit.conf file and  *
+ * Description   : Parse one entry in PKGSYSCONFDIR/nodeinit.conf file and  *
  *           extract the fields into "spawninfo".                           *
  *                                                                          *
  *                                                                          *
- * Arguments     : srcstr - One entry in OSAF_SYSCONFDIR/nodeinit.conf to be  *
+ * Arguments     : srcstr - One entry in PKGSYSCONFDIR/nodeinit.conf to be  *
  *           parsed.                                                        *
  *           spawninfo - output buffer to fill with NID_SPAWN_INFO          *
  *                 sbuf - Buffer for returning error messages               *
@@ -587,7 +587,7 @@ uns32 get_spawn_info(char *srcstr, NID_SPAWN_INFO *spawninfo, char *sbuf)
 /****************************************************************************
  * Name          : parse_nodeinitconf                                       *
  *                                                                          *
- * Description   : Parse all the entries in OSAF_SYSCONFDIR/nodeinit.conf *
+ * Description   : Parse all the entries in PKGSYSCONFDIR/nodeinit.conf     *
  *           file and return intermittently with lineno where parsing       *
  *           error was found.                                               *
  *                                                                          *
@@ -1398,10 +1398,10 @@ void cleanup(NID_SPAWN_INFO *service)
  * Name          : recovery_action                                          *
  *                                                                          *
  * Description   : Invokes all the recovery actions in sequence according   *
- *            to the recovery options specified in OSAF_SYSCONFDIR/-        *
+ *            to the recovery options specified in PKGSYSCONFDIR/-          *
  *           nodeinit.conf file                                             *
  *           It invokes recovery action for the count specified in          *
- *           OSAF_SYSCONFDIR/nodeinit.conf if the recovery failes.          *
+ *           PKGSYSCONFDIR/nodeinit.conf if the recovery failes.            *
  *                                                                          *
  * Arguments     : service - service details for spawning.                  *
  *           strbuff - Buffer to return error message if any.               *

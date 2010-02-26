@@ -23,7 +23,7 @@ source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 CMD=$1
 
 NAME=saflogd
-CONFFILE=${SYSCONFDIR}/saflog.conf
+CONFFILE=${PKGSYSCONFDIR}/saflog.conf
 
 # Start generic part
 SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`

@@ -40,10 +40,10 @@
 
 static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
-#define DTS_ASCII_SPEC_CONFIG_FILE OSAF_SYSCONFDIR "dts_ascii_spec_config"
-#define DTS_PID_FILE               PIDPATH "ncs_dts.pid"	/* 16 */
-#define m_DTS_SLOT_ID_FILE    OSAF_SYSCONFDIR "slot_id"
-#define DTS_PID_FILE_NAME_LEN  FILENAME_MAX
+#define DTS_ASCII_SPEC_CONFIG_FILE	PKGSYSCONFDIR "dts_ascii_spec_config"
+#define DTS_PID_FILE			PIDPATH "ncs_dts.pid"
+#define m_DTS_SLOT_ID_FILE		PKGSYSCONFDIR "slot_id"
+#define DTS_PID_FILE_NAME_LEN		FILENAME_MAX
 
 /****************************************************************************
  * Name          : dts_lib_req

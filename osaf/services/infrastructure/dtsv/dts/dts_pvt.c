@@ -1567,7 +1567,7 @@ int32 dts_open_conf_cons(DTS_CB *cb, uns32 mode, char *str)
  Function: dts_ascii_spec_reload
 
  Purpose:  Function used for reloading ASCII_SPEC table specified in   
-           OSAF_SYSCONFDIR/dts_ascii_spec_config.
+           PKGSYSCONFDIR/dts_ascii_spec_config.
 
  Input:    None.
 

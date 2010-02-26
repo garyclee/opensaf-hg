@@ -134,7 +134,7 @@ extern uns32 gl_severity_filter;	/* To allow manipulat at init-time */
 /* Limit for console device names */
 #define       DTS_CONS_DEV_MAX      20
 /* DTS ASCII SPEC table loading file define */
-#define DTS_ASCII_SPEC_CONFIG_FILE OSAF_SYSCONFDIR "dts_ascii_spec_config"
+#define DTS_ASCII_SPEC_CONFIG_FILE PKGSYSCONFDIR "dts_ascii_spec_config"
 
 /* define for checking log device SET values */
 #define       DTS_LOG_DEV_VAL_MAX   32

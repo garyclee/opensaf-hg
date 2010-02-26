@@ -98,7 +98,7 @@ start()
         # NID_CONFIG_PATH is to configure the path for
         # NID to pickup nodeinit.conf file
         ####################################################
-	export NID_CONFIG_PATH="$SYSCONFDIR"
+	export NID_CONFIG_PATH="$PKGSYSCONFDIR"
         export CONSOLE=/dev/tty
 
         ####################################################
@@ -119,13 +119,13 @@ start()
         ####################################################################################
 	if [ ":$2" == ":" ]; then
             NODE_NAME=""
-	    export NCS_SIMULATION_CONFIG_ROOTDIR="$SYSCONFDIR"
+	    export NCS_SIMULATION_CONFIG_ROOTDIR="$PKGSYSCONFDIR"
         else
             NODE_NAME=$2
-            if [ -r "$SYSCONFDIR"/"$2"]; then
-                export NCS_SIMULATION_CONFIG_ROOTDIR="$SYSCONFDIR/$2"
+            if [ -r "$PKGSYSCONFDIR"/"$2"]; then
+                export NCS_SIMULATION_CONFIG_ROOTDIR="$PKGSYSCONFDIR/$2"
             else
-                log "ERROR: $SYSCONFDIR/$2 not found"
+                log "ERROR: $PKGSYSCONFDIR/$2 not found"
                 exit 1
             fi
         fi

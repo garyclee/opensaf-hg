@@ -56,7 +56,7 @@
 #define NID_MAX_RESP_LEN             1
 #define NID_MAX_REST_LEN             1
 
-#define NID_PLAT_CONF_PATH          OSAF_SYSCONFDIR
+#define NID_PLAT_CONF_PATH          PKGSYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
 #define NID_NCSLOGPATH              OSAF_LOCALSTATEDIR "stdouts"
 #define NID_PID_FILE                PIDPATH "nodeinit.pid"
@@ -117,7 +117,7 @@ typedef int32 (*NID_FORK_FUNC) (NID_SPAWN_INFO *, char *, char *args[], char *, 
 
 /*****************************************************************
  *       Structures Used by nodeinitd to store the parsed info   *
- *       from OSAF_SYSCONFDIR/nodeinit.conf, and used while    *
+ *       from PKGSYSCONFDIR/nodeinit.conf, and used while    *
  *       spawning                                                *
  *****************************************************************/
 typedef struct nid_recovery_list {
