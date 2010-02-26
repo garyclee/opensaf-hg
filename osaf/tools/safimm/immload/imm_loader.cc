@@ -25,6 +25,7 @@
 #include <syslog.h>
 #include <configmake.h>
 #include <logtrace.h>
+#include <sys/stat.h>
 
 #define MAX_DEPTH 10
 #define MAX_CHAR_BUFFER_SIZE 8192  //8k
@@ -1632,6 +1633,7 @@ int loadImmXML(std::string xmldir, std::string file)
     SaAisErrorT errorCode;
     std::string filename;
     int result;
+    struct stat stat_buf;
 
     result = -1;
 
@@ -1673,6 +1675,13 @@ int loadImmXML(std::string xmldir, std::string file)
     filename.append("/");
     filename.append(file);
 
+    if(stat(filename.c_str(), &stat_buf) != 0) 
+    {
+	    LOG_ER("***** FILE:%s IS NOT ACCESSIBLE ***********",
+		    filename.c_str());
+        goto bailout;
+    }
+
     result = xmlSAXUserParseFile(&my_handler, &state, filename.c_str());
 
     /* Make sure to finalize the imm connections */
@@ -1707,6 +1716,7 @@ int loadImmXML(std::string xmldir, std::string file)
         }
     }
 
+ bailout:
     return !result; 
 }
 

@@ -187,7 +187,7 @@ static uns32 immnd_initialize(char *progname)
 	}
 
 	if ((immnd_cb->mPbeFile = getenv("IMMSV_PBE_FILE")) != NULL) {
-		LOG_NO("Persistent Back-End capability enabled, Pbe file:%s",
+		LOG_NO("Persistent Back-End capability configured, Pbe file:%s",
 			immnd_cb->mPbeFile);
 	}
 
