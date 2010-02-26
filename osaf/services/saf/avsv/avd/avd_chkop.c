@@ -37,7 +37,7 @@
 /*
  * Module Inclusion Control...
  */
-
+#include <logtrace.h>
 #include "avd.h"
 
 static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg);
@@ -178,55 +178,34 @@ uns32 avsv_mbcsv_deregister(AVD_CL_CB *cb)
 \**************************************************************************/
 static uns32 avsv_mbcsv_cb(NCS_MBCSV_CB_ARG *arg)
 {
-	uns32 status = NCSCC_RC_SUCCESS;
-	AVD_CL_CB *cb;
-
-	m_AVD_LOG_FUNC_ENTRY("avsv_mbcsv_cb");
-
-	if (NULL == arg) {
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Get the CB from the handle manager */
-	if ((cb = (AVD_CL_CB *)ncshm_take_hdl(NCS_SERVICE_ID_AVD, arg->i_client_hdl)) == NULL) {
-		/* Log error and free the received UBA */
-		m_AVD_LOG_INVALID_VAL_FATAL(NCSCC_RC_FAILURE);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVD_CB_LOCK(cb, NCS_LOCK_WRITE);
+	uns32 status;
 
 	switch (arg->i_op) {
 	case NCS_MBCSV_CBOP_ENC:
-		status = avsv_mbcsv_process_enc_cb(cb, arg);
+		status = avsv_mbcsv_process_enc_cb(avd_cb, arg);
 		break;
 
 	case NCS_MBCSV_CBOP_DEC:
-		status = avsv_mbcsv_process_dec_cb(cb, arg);
+		status = avsv_mbcsv_process_dec_cb(avd_cb, arg);
 		break;
 
 	case NCS_MBCSV_CBOP_PEER:
-		status = avsv_mbcsv_process_peer_info_cb(cb, arg);
+		status = avsv_mbcsv_process_peer_info_cb(avd_cb, arg);
 		break;
 
 	case NCS_MBCSV_CBOP_NOTIFY:
-		status = avsv_mbcsv_process_notify(cb, arg);
+		status = avsv_mbcsv_process_notify(avd_cb, arg);
 		break;
 
 	case NCS_MBCSV_CBOP_ERR_IND:
-		status = avsv_mbcsv_process_err_ind(cb, arg);
+		status = avsv_mbcsv_process_err_ind(avd_cb, arg);
 		break;
 
 	default:
-		m_AVD_LOG_INVALID_VAL_FATAL(arg->i_op);
+		LOG_ER("avsv_mbcsv_cb: invalid op %u", arg->i_op);
 		status = NCSCC_RC_FAILURE;
 		break;
 	}
-
-	m_AVD_CB_UNLOCK(cb, NCS_LOCK_WRITE);
-
-	ncshm_give_hdl(arg->i_client_hdl);
 
 	return status;
 }
@@ -412,7 +391,7 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			m_AVD_LOG_CKPT_EVT(AVD_COLD_SYNC_REQ_RCVD, NCSFL_SEV_INFO, 1);
 
 			if (cb->init_state < AVD_INIT_DONE) {
-				avd_log(NCSFL_SEV_WARNING, "invalid init state (%u) for cold sync req", cb->init_state);
+				LOG_WA("invalid init state (%u) for cold sync req", cb->init_state);
 				status = NCSCC_RC_FAILURE;
 			}
 		}
