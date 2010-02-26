@@ -34,7 +34,7 @@ export MDS_QUIESCED_TMR_VAL_IN_10MS=40
 AMF=opensaf_amfnd
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
-NIDPIDFILE="$PIDPATH/nodeinit.pid"
+NIDPIDFILE="$PKGPIDDIR/nodeinit.pid"
 NISSTATUS="NONE"
 STATUS=0
 

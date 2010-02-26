@@ -140,7 +140,7 @@ static uns32 initialize_smfnd(const char *progname)
 	}
 
 	/* Create pidfile */
-	sprintf(path, PIDPATH "%s.pid", basename(progname));
+	sprintf(path, PKGPIDDIR "%s.pid", basename(progname));
 	if ((fp = fopen(path, "w")) == NULL) {
 		LOG_ER("Could not open %s", path);
 		rc = NCSCC_RC_FAILURE;

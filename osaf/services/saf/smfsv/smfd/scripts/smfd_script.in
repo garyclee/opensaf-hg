@@ -27,7 +27,7 @@ SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
 BIN=${LIBPATH}/opensaf_$NAME
 COMPNAMEFILE=${PKGLOCALSTATEDIR}/$NAME_comp_name
 LOGFILE=${NCS_STDOUTS_PATH}/opensaf_$NAME.log
-PIDFILE=${PIDPATH}/opensaf_$NAME.pid
+PIDFILE=${PKGPIDDIR}/opensaf_$NAME.pid
 CONFFILE=${PKGSYSCONFDIR}/$NAME.conf
 
 test -f $CONFFILE && source $CONFFILE

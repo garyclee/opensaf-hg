@@ -1721,7 +1721,7 @@ uns32 spawn_services(char *strbuf)
 			if (service->app_type == NID_DAEMN) {
 				int32 lfd;
 				char filename[30], str[15];
-				sprintf(filename, PIDPATH "%s.pid", "ncsspcap");
+				sprintf(filename, PKGPIDDIR "%s.pid", "ncsspcap");
 				unlink(filename);
 				lfd = open(filename, O_CREAT | O_WRONLY, S_IRWXU);
 				sprintf(str, "%d\n", service->pid);

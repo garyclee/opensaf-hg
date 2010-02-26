@@ -41,7 +41,7 @@
 static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
 #define DTS_ASCII_SPEC_CONFIG_FILE	PKGSYSCONFDIR "dts_ascii_spec_config"
-#define DTS_PID_FILE			PIDPATH "ncs_dts.pid"
+#define DTS_PID_FILE			PKGPIDDIR "ncs_dts.pid"
 #define m_DTS_SLOT_ID_FILE		PKGSYSCONFDIR "slot_id"
 #define DTS_PID_FILE_NAME_LEN		FILENAME_MAX
 
@@ -168,7 +168,7 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 	fp = fopen(pidfilename, "w");
 	if (fp == NULL) {
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-				      "dts_lib_init: Failed to open " PIDPATH "dts_stb_pid for write");
+				      "dts_lib_init: Failed to open " PKGPIDDIR "dts_stb_pid for write");
 	}
 
 	if (fprintf(fp, "%d", getpid()) < 1) {

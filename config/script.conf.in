@@ -6,7 +6,7 @@
 TMPDIR="/tmp"
 PKGLOCALSTATEDIR="@localstatedir@/lib/@PACKAGE_NAME@"
 PKGSYSCONFDIR="@sysconfdir@/@PACKAGE_NAME@"
-PIDPATH="xxPIDPATHxx"
+PKGPIDDIR="@localstatedir@/run/@PACKAGE_NAME@"
 BINPATH="xxBINDIRxx"
 LIBPATH="xxLIBDIRxx"
 
