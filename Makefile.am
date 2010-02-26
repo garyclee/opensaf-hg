@@ -75,6 +75,7 @@ configmake.h: Makefile
 	echo '#define PKGLIBDIR "$(pkglibdir)"'; \
 	echo '#define PKGLIBEXECDIR "$(pkglibexecdir)"'; \
 	echo '#define PKGPIDDIR "$(localstatedir)/run/$(PACKAGE_NAME)/"'; \
+	echo '#define PKGLOGDIR "$(localstatedir)/log/$(PACKAGE_NAME)/"'; \
 	} | sed '/""/d' > $@-t
 	mv $@-t $@
 
