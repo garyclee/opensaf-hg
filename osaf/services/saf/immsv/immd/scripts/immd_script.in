@@ -29,7 +29,7 @@ CONFFILE=${PKGSYSCONFDIR}/imm.conf
 # Start generic part
 SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
 BIN=${LIBPATH}/opensaf_${NAME}
-COMPNAMEFILE=${LOCALSTATEDIR}/${NAME}_comp_name
+COMPNAMEFILE=${PKGLOCALSTATEDIR}/${NAME}_comp_name
 LOGFILE=${NCS_STDOUTS_PATH}/opensaf_${NAME}.log
 PIDFILE=${PIDPATH}/opensaf_${NAME}.pid
 

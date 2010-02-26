@@ -131,7 +131,7 @@ $ pkill -USR1 saflogd
 
 Traces are written to the file:
 
-LOCALSTATEDIR/stdouts/opensaf_saflogd
+PKGLOCALSTATEDIR/stdouts/opensaf_saflogd
 
 To enable traces from the very start of the log server, uncomment the line:
 

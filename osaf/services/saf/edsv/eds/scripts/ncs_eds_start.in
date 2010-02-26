@@ -27,7 +27,7 @@ XTERM=""
 
 DAEMON=ncs_eds
 PIDFILE=eds.pid
-COMPNAMEFILE="$LOCALSTATEDIR/ncs_eds_comp_name"
+COMPNAMEFILE="$PKGLOCALSTATEDIR/ncs_eds_comp_name"
 NID_SVC_NAME=EDSV
 
 echo "Executing EDSv init-script..."

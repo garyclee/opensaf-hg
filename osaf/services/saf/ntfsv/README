@@ -139,7 +139,7 @@ $  pkill -USR2 opensaf_ntfd
 
 Traces are written to the file:
 
-LOCALSTATEDIR/stdouts/opensaf_ntfd.log
+PKGLOCALSTATEDIR/stdouts/opensaf_ntfd.log
 
 To enable traces from the very start of the ntf server, uncomment the line:
 

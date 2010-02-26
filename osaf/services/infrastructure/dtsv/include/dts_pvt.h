@@ -35,7 +35,7 @@
 #include "ncssysf_tmr.h"
 
 #ifdef __NCSINC_LINUX__
-#define LOG_PATH OSAF_LOCALSTATEDIR "log"
+#define LOG_PATH PKGLOCALSTATEDIR "log"
 #else
 #define LOG_PATH   ""
 #endif

@@ -2051,7 +2051,7 @@ int immsync(void)
  */
 int main(int argc, char* argv[])
 {
-    const char* defaultLog = OSAF_LOCALSTATEDIR "stdouts/opensaf_immnd.log";
+    const char* defaultLog = PKGLOCALSTATEDIR "stdouts/opensaf_immnd.log";
     const char* logPath;
     void* pbeHandle=NULL;
     const char* pbe_file;

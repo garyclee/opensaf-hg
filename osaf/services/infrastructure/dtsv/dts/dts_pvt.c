@@ -61,7 +61,7 @@
 
 static nfds_t nfds = 3;
 
-#define m_DTS_COMP_NAME_FILE OSAF_LOCALSTATEDIR "ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "ncs_dts_comp_name"
 
 static struct pollfd fds[4];
 static uns32 dts_stby_initialize(DTS_CB *cb);
@@ -2375,7 +2375,7 @@ uns32 dts_free_msg_content(NCSFL_NORMAL *msg)
   DESCRIPTION:    Prints the DTS Service registration info to file.
 
   RETURNS:        NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-  NOTES:          Configuration data is printed to OSAF_LOCALSTATEDIR/log/DTS_<date>.config
+  NOTES:          Configuration data is printed to PKGLOCALSTATEDIR/log/DTS_<date>.config
                   file.   
 *****************************************************************************/
 uns32 dts_print_current_config(DTS_CB *cb)

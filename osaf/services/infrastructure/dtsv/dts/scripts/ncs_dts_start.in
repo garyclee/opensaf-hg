@@ -28,7 +28,7 @@ XTERM=""
 
 DAEMON=ncs_dts
 PIDFILE=ncs_dts.pid
-COMPNAMEFILE="$LOCALSTATEDIR/ncs_dts_comp_name"
+COMPNAMEFILE="$PKGLOCALSTATEDIR/ncs_dts_comp_name"
 NID_SVC_NAME=DTSV
 MAX_ARCHIVES=${DTSV_MAX_ARCHIVES:-0}
 FILES_FROM=/tmp/opensaf_dtsv_files

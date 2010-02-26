@@ -149,7 +149,7 @@ cmd_create_rootfs()
     install $(which nice) usr/bin
     
     # Change LOG configuration to use "replicated" disk
-    sed -i 's/=${LOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
+    sed -i 's/=${PKGLOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/saflog.conf
 
     install $archive/rde.conf etc/opensaf
