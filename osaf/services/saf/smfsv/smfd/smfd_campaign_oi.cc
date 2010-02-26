@@ -220,7 +220,7 @@ static SaAisErrorT saImmOiCcbCompletedCallback(SaImmOiHandleT immOiHandle, SaImm
 
 				rc = campaign->verify(ccbUtilOperationData->param.modify.attrMods);
 				if (rc != SA_AIS_OK) {
-					LOG_ER("Campaign %s attribute modification not allowed",
+					LOG_ER("Campaign %s attribute modification fail, wrong state or parameter content",
 					       ccbUtilOperationData->param.modify.objectName->value);
 					goto done;
 				}

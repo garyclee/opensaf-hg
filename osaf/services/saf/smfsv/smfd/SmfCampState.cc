@@ -292,8 +292,15 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 exit_error:
 	LOG_ER(error.c_str());
 	SmfCampaignThread::instance()->campaign()->setError(error);
+
 	//Remain in state initial if prerequsites check or SMF backup fails
 //	changeState(i_camp, SmfCampStateExecFailed::instance());
+
+	/* Terminate campaign thread */
+	CAMPAIGN_EVT *evt = new CAMPAIGN_EVT();
+	evt->type = CAMPAIGN_EVT_TERMINATE;
+	SmfCampaignThread::instance()->send(evt);
+
 	TRACE_LEAVE();
 	return;
 }
