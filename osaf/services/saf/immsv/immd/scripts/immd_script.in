@@ -24,7 +24,7 @@ CMD=$1
 
 NAME=immd
 TOOL=$IMMDTOOL
-CONFFILE=${SYSCONFDIR}/imm.conf
+CONFFILE=${PKGSYSCONFDIR}/imm.conf
 
 # Start generic part
 SERVICE=`echo $NAME | tr '[:lower:]' '[:upper:]'`
