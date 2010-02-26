@@ -24,9 +24,9 @@ PIDFILE=eds.pid
 #XTERM=""
 echo "Cleanup EDS..."
 
-if test -f "$PIDPATH/$PIDFILE"
+if test -f "$PKGPIDDIR/$PIDFILE"
 then
-    l_pid=`cat "$PIDPATH/$PIDFILE"`
+    l_pid=`cat "$PKGPIDDIR/$PIDFILE"`
     echo $l_pid
 fi
 
@@ -42,6 +42,6 @@ then
 else
    echo "EDS process already killed"
 fi
-rm -f "$PIDPATH/$PIDFILE"
+rm -f "$PKGPIDDIR/$PIDFILE"
 
 exit 0

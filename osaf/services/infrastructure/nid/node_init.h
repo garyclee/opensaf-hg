@@ -59,7 +59,7 @@
 #define NID_PLAT_CONF_PATH          PKGSYSCONFDIR
 #define NID_PLAT_CONF               "nodeinit.conf"
 #define NID_NCSLOGPATH              PKGLOCALSTATEDIR "stdouts"
-#define NID_PID_FILE                PIDPATH "nodeinit.pid"
+#define NID_PID_FILE                PKGPIDDIR "nodeinit.pid"
 #define NID_RUNNING_DIR             "/"
 #define NID_CNSL                    "/dev/console"
 #define NID_VT_MASTER               "/dev/tty0"

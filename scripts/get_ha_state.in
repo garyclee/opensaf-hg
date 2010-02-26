@@ -2,7 +2,7 @@
 
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
-PIDFILE="$PIDPATH/nodeinit.pid"
+PIDFILE="$PKGPIDDIR/nodeinit.pid"
 
 if [ ! -f "$PIDFILE" ]; then
     echo "OpenSAF is stopped."

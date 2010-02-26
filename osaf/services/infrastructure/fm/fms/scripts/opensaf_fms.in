@@ -23,7 +23,7 @@
 source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
 
 DAEMON=opensaf_fmsd
-PIDFILE="$PIDPATH/fms.pid"
+PIDFILE="$PKGPIDDIR/fms.pid"
 export FMS_CONF_PATH="$PKGSYSCONFDIR/fms.conf"
 NID_SVC_NAME=HLFM
 

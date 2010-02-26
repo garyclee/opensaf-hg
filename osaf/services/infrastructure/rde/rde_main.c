@@ -121,7 +121,7 @@ static int create_pidfile(const char *name)
 	char path[256];
 	FILE *fp;
 	
-	snprintf(path, sizeof(path), PIDPATH "/%s.pid", name);
+	snprintf(path, sizeof(path), PKGPIDDIR "/%s.pid", name);
 	fp = fopen(path, "w");
 	if (fp == NULL) {
 		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));

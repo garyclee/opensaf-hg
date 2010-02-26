@@ -45,7 +45,7 @@ start()
        exit 1
     fi
     killall ncs_eds
-    rm -f $PIDPATH/$PIDFILE
+    rm -f $PKGPIDDIR/$PIDFILE
     $XTERM "$LIBPATH/ncs_eds" "$*" >"$NCS_STDOUTS_PATH/ncs_eds.log" 2>&1 &
     echo "Starting $DESC: $LIBPATH/$DAEMON";
 
@@ -76,9 +76,9 @@ case "$1" in
 	echo $SA_AMF_COMPONENT_NAME > $COMPNAMEFILE
 
 	# check for the PID availability
-	if test -f "$PIDPATH/$PIDFILE"
+	if test -f "$PKGPIDDIR/$PIDFILE"
 	then
-	   l_pid=`cat "$PIDPATH/$PIDFILE"`
+	   l_pid=`cat "$PKGPIDDIR/$PIDFILE"`
 	fi
       
 	if [ "$l_pid" ]
@@ -90,9 +90,9 @@ case "$1" in
 		start ;
 		sleep 10s
 		#Check if the process is running and send a signal
-		if test -f "$PIDPATH/$PIDFILE"
+		if test -f "$PKGPIDDIR/$PIDFILE"
 		then
-			l_pid=`cat "$PIDPATH/$PIDFILE"`
+			l_pid=`cat "$PKGPIDDIR/$PIDFILE"`
 		fi
 
 		echo $l_pid

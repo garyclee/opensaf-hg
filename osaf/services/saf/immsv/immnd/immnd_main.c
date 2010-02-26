@@ -130,7 +130,7 @@ static uns32 immnd_initialize(char *progname)
 		char path[256];
 		FILE *fp;
 
-		snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
+		snprintf(path, sizeof(path), PKGPIDDIR "%s.pid", basename(progname));
 		fp = fopen(path, "w");
 		if (fp == NULL) {
 			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));

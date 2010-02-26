@@ -23,15 +23,15 @@ PIDFILE=ncs_dts.pid
 #XTERM=""
 echo "Cleanup DTS..."
 
-if test -f "$PIDPATH/$PIDFILE"
+if test -f "$PKGPIDDIR/$PIDFILE"
 then
-    l_pid=`cat "$PIDPATH/$PIDFILE"`
+    l_pid=`cat "$PKGPIDDIR//$PIDFILE"`
     echo $l_pid
 fi
 
 if [ "$l_pid" ]
 then
-   rm $PIDPATH/$PIDFILE
+   rm $PKGPIDDIR//$PIDFILE
    echo "AMF error code: $NCS_ENV_COMPONENT_ERROR_SRC"
    sleep 3
    if [ $NCS_ENV_COMPONENT_ERROR_SRC -ne 0 ]
@@ -44,6 +44,6 @@ else
    echo "DTS process already killed"
 fi
 #killall ncs_dts
-rm -f "$PIDPATH/$PIDFILE"
+rm -f "$PKGPIDDIR//$PIDFILE"
 
 exit 0

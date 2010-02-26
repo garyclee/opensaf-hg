@@ -74,7 +74,7 @@ configmake.h: Makefile
 	echo '#define PKGINCLUDEDIR "$(pkgincludedir)"'; \
 	echo '#define PKGLIBDIR "$(pkglibdir)"'; \
 	echo '#define PKGLIBEXECDIR "$(pkglibexecdir)"'; \
-	echo '#define PIDPATH "$(localstatedir)/run/$(PACKAGE_NAME)/"'; \
+	echo '#define PKGPIDDIR "$(localstatedir)/run/$(PACKAGE_NAME)/"'; \
 	} | sed '/""/d' > $@-t
 	mv $@-t $@
 
@@ -205,9 +205,7 @@ install-data-hook:
 	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 	done
-
-	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' -e 'xxPIDPATHxx'  $(DESTDIR)$(pkgsysconfdir)/*) ; do \
-		sed -i 's|xxPIDPATHxx|$(localstatedir)/run/$(PACKAGE_NAME)|g' "$$i"; \
+	@for i in $$(grep -lr -e 'xxBINDIRxx' -e 'xxLIBDIRxx' $(DESTDIR)$(pkgsysconfdir)/*) ; do \
 		sed -i 's|xxBINDIRxx|$(bindir)|g' "$$i"; \
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 	done

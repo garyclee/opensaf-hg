@@ -43,7 +43,7 @@
 **    Name of this particular RDA socket implementation
 **
 */
-#define  RDE_RDA_SOCK_NAME    PIDPATH "rde_rda_socket_interface"
+#define  RDE_RDA_SOCK_NAME PKGPIDDIR "rde_rda_socket_interface"
 
 /*
 ** Protocal message primitives for RDE-RDA interaction
