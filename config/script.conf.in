@@ -4,7 +4,7 @@
 # OpenSAF PATH's
 #########################################
 TMPDIR="/tmp"
-LOCALSTATEDIR="@localstatedir@/lib/@PACKAGE_NAME@"
+PKGLOCALSTATEDIR="@localstatedir@/lib/@PACKAGE_NAME@"
 PKGSYSCONFDIR="@sysconfdir@/@PACKAGE_NAME@"
 PIDPATH="xxPIDPATHxx"
 BINPATH="xxBINDIRxx"
@@ -41,10 +41,10 @@ TIPC_MANAGE="YES"
 # nodes are simulated on the same Linux desktop
 if [ ":$NCS_STDOUTS_PATH" == ":" ]
 then
-      export NCS_STDOUTS_PATH="$LOCALSTATEDIR/stdouts"
+      export NCS_STDOUTS_PATH="$PKGLOCALSTATEDIR/stdouts"
 fi
 
-export OLD_STDOUTSPATH="$LOCALSTATEDIR/old_stdouts"
+export OLD_STDOUTSPATH="$PKGLOCALSTATEDIR/old_stdouts"
 
 #########################################
 # AMF Configuration
@@ -60,7 +60,7 @@ export OLD_STDOUTSPATH="$LOCALSTATEDIR/old_stdouts"
 #########################################
 # FILES
 #########################################
-NODE_HA_STATE="$LOCALSTATEDIR/node_ha_state"
+NODE_HA_STATE="$PKGLOCALSTATEDIR/node_ha_state"
 DBGFILE="$NCS_STDOUTS_PATH/monc_debug_log"
 NIDFIFO="$TMPDIR/nodeinit.fifo"
 SPCAPFIFO="$NIDFIFO"

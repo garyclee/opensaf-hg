@@ -111,12 +111,12 @@
 #endif   /* NCS_DTS */
 
 #ifdef __NCSINC_LINUX__
-#define LOG_PATH OSAF_LOCALSTATEDIR "log"
+#define LOG_PATH PKGLOCALSTATEDIR "log"
 #else
 #define LOG_PATH   ""
 #endif
 
-#define NODE_ID_FILE OSAF_LOCALSTATEDIR "node_id"
+#define NODE_ID_FILE PKGLOCALSTATEDIR "node_id"
 
 /**************************************************************************\
 
@@ -746,7 +746,7 @@ uns32 mainget_node_id(uns32 *node_id)
 	/* Hack ncs_config_root to construct path */
 	sprintf(ncs_config_root + d_len, "%s", "/node_id");
 
-	/* LSB changes. Pick nodeid from OSAF_LOCALSTATEDIR */
+	/* LSB changes. Pick nodeid from PKGLOCALSTATEDIR */
 
 	fp = fopen(NODE_ID_FILE, "r");
 

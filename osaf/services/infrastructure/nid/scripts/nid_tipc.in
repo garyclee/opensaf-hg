@@ -102,7 +102,7 @@ if [ $# -gt 1 ] ; then
     fi
 fi    
 
-printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $LOCALSTATEDIR/node_id
+printf "00%02x%02x%02x\n" $CHASSIS_ID $SLOT_ID $SUBSLOT_ID > $PKGLOCALSTATEDIR/node_id
 
 if [ "$USE_SUBSLOT_ID" = "YES" ]; then
     TIPC_NODEID=$(($SLOT_ID << $SHIFT4))

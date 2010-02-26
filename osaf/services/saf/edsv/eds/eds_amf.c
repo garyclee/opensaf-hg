@@ -472,7 +472,7 @@ uns32 eds_amf_init(EDS_CB *eds_cb)
 	/* Read the component name file now, AMF should have populated it by now */
 	snprintf(compfilename, EDS_COMP_FILE_NAME_LEN - 1, "%s", m_EDS_COMP_NAME_FILE);
 
-	fp = fopen(compfilename, "r");	/*OSAF_LOCALSTATEDIR/ncs_eds_comp_name */
+	fp = fopen(compfilename, "r");	/* PKGLOCALSTATEDIR/ncs_eds_comp_name */
 	if (fp == NULL) {
 		m_LOG_EDSV_S(EDS_AMF_COMP_FILE_OPEN_FOR_READ_FAIL, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 0, __FILE__,
 			     __LINE__, 0);

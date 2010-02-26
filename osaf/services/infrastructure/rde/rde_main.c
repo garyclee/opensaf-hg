@@ -65,7 +65,7 @@ static uns32 update_status_file(PCS_RDA_ROLE role)
         LOG_NO("This System Controller is assigned : %s",
                ((role == PCS_RDA_ACTIVE) ? "HA ACTIVE STATE" : "HA STANDBY STATE"));
 
-	/* Update the HA state to the OSAF_LOCALSTATEDIR/node_ha_state file */
+	/* Update the HA state to the PKGLOCALSTATEDIR/node_ha_state file */
         FILE *fp = NULL;
         fp = fopen(NODE_HA_STATE, "a");
         if (fp) {

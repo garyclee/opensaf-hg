@@ -48,7 +48,7 @@
 
 #define NID_MAXSNAME                30
 
-#define NODE_HA_STATE  OSAF_LOCALSTATEDIR "node_ha_state"
+#define NODE_HA_STATE  PKGLOCALSTATEDIR "node_ha_state"
 
 /****************************************************************
  *       Message format used by nodeinitd and spawned services  *

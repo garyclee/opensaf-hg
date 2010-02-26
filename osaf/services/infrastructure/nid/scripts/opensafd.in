@@ -136,8 +136,8 @@ start()
         if [ ":$3" == ":" ]; then
             ### No explicit NCS_LOG_PATH argument.
             ### Create it using NODE_NAME
-            export NCS_LOG_PATH="$LOCALSTATEDIR/log$NODE_NAME"
-            NCS_OLD_LOG_PATH="$LOCALSTATEDIR/old_log$NODE_NAME"
+            export NCS_LOG_PATH="$PKGLOCALSTATEDIR/log$NODE_NAME"
+            NCS_OLD_LOG_PATH="$PKGLOCALSTATEDIR/old_log$NODE_NAME"
         else
             export NCS_LOG_PATH=$3
         fi
