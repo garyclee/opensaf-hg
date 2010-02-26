@@ -968,12 +968,14 @@ uns32 immnd_proc_server(uns32 *timeout)
 	IMMND_CB *cb = immnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	int32 coord, newEpoch;
-	int32 printFrq = (*timeout > 100) ? 3 : 10;
+	int32 printFrq = (*timeout > 100) ? 5 : 50;
 	/*TRACE_ENTER(); */
 
 	if ((cb->mTimer % printFrq) == 0) {
-		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u",
-			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord);
+		TRACE_5("tmout:%u ste:%u ME:%u RE:%u crd:%u rim:%s",
+			*timeout, cb->mState, cb->mMyEpoch, cb->mRulingEpoch, cb->mIsCoord,
+			(cb->mRim==SA_IMM_KEEP_REPOSITORY)?
+			"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 	}
 
 	if (cb->mState < IMM_SERVER_DUMP) {
@@ -1346,9 +1348,6 @@ uns32 immnd_proc_server(uns32 *timeout)
 				   Move rim to cb and only fetch after ccb-apply. 
 				 */
 				/*cb->mRim = immModel_getRepositoryInitMode(cb); Should not be needed */
-
-				TRACE("RepositoryInitMode: %s", (cb->mRim==SA_IMM_KEEP_REPOSITORY)?
-					"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
 
 				if (cb->pbePid == 0) { /* Pbe is NOT running */
 					if (cb->mRim == SA_IMM_KEEP_REPOSITORY) {/* Pbe SHOULD run. */

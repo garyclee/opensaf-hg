@@ -65,6 +65,18 @@ static void usage(const char *progname)
     printf("\timmdump /tmp/imm.xml\n");
 }
 
+static void saImmOmAdminOperationInvokeCallback(SaInvocationT invocation,
+    SaAisErrorT operationReturnValue,
+    SaAisErrorT)
+{
+    LOG_ER("Unexpected asyn admin-op reaply callback invocation:%llx", invocation);
+}
+
+static const SaImmCallbacksT callbacks = {
+    saImmOmAdminOperationInvokeCallback
+};
+
+
 /* Functions */
 int main(int argc, char* argv[])
 {
@@ -78,16 +90,17 @@ int main(int argc, char* argv[])
     SaImmHandleT           immHandle;
     SaAisErrorT            errorCode;
     SaVersionT             version;
-    /*
+
     SaImmAdminOwnerHandleT ownerHandle;
+    /*
     SaNameT immApp;
     immApp.length = strlen(OPENSAF_IMM_OBJECT_PARENT);
     strncpy((char *) immApp.value, OPENSAF_IMM_OBJECT_PARENT, 
-	    immApp.length + 1);
+        immApp.length + 1);
 
     immApp.length = strlen(OPENSAF_IMM_OBJECT_DN);
     strncpy((char *) immApp.value, OPENSAF_IMM_OBJECT_DN, 
-	    immApp.length + 1);
+        immApp.length + 1);
     const SaNameT* objectNames[] = {&immApp, NULL};
     */
 
@@ -166,11 +179,11 @@ int main(int argc, char* argv[])
     version.minorVersion = MINOR_VERSION;
 
     /* Initialize immOm */
-    errorCode = saImmOmInitialize(&immHandle, NULL, &version);
+    errorCode = saImmOmInitialize(&immHandle, &callbacks, &version);
     if (SA_AIS_OK != errorCode)
     {
         if(pbeDaemonCase) {
-		LOG_WA("Failed to initialize imm om handle - exiting");
+            LOG_WA("Failed to initialize imm om handle - exiting");
         } else {
             std::cout << "Failed to initialize the imm om interface - exiting" 
             << errorCode 
@@ -181,14 +194,14 @@ int main(int argc, char* argv[])
 
     /*TODO if(pbeDaemonCase && !pbeDumpCase !pbeFileExists) pbeDumpCase = true;*/
 
-    printf("argv[0]:%s argv[1]:%s argv[2]:%s argv[3]:%s\n", 
-      argv[0], argv[1], argv[2], argv[3]);
+    /*printf("argv[0]:%s argv[1]:%s argv[2]:%s argv[3]:%s\n", 
+      argv[0], argv[1], argv[2], argv[3]);*/
     
 
     if(pbeDumpCase) {
         filename.append(argv[3]);
         if(pbeDaemonCase) {
-		LOG_IN("Populating Pbe from current IMM state to %s", filename.c_str());
+            LOG_IN("Populating Pbe from current IMM state to %s", filename.c_str());
         } else {
             std::cout << 
                 "Populating Pbe from current IMM state to " << filename << 
@@ -197,35 +210,40 @@ int main(int argc, char* argv[])
 
         /* Initialize access to PBE database. */
         dbHandle = pbeRepositoryInit(filename.c_str(), true);
-	if(dbHandle) {
-                TRACE_1("Opened persistent repository %s", filename.c_str());
+        if(dbHandle) {
+            TRACE_1("Opened persistent repository %s", filename.c_str());
         } else {
             if(pbeDaemonCase) {
-                    LOG_WA("immdump: pbe intialize failed - exiting");
+                LOG_WA("immdump: pbe intialize failed - exiting");
             } else {
                 std::cout << "immdump: intialize failed - exiting, check syslog for details"
                     << std::endl;
-	    }
-            exit(1);
-	}
-
-	/*
-        errorCode = saImmOmAdminOwnerInitialize(immHandle, 
-		OPENSAF_IMM_SERVICE_NAME, SA_FALSE, &ownerHandle);
-        if(SA_AIS_OK != errorCode)
-        {
-            if(pbeDaemonCase) {
-                LOG_WA("Failed to initialize imm om handle: err:%u - exiting",
-		    errorCode);
-            } else {
-                std::cout << "Failed to initialize imm om interface; err:" 
-                      << errorCode << std::endl;
-	    }
+            }
             exit(1);
         }
 
-	errorCode = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
-	*/
+        /* Creating an admin owner with release on finalize set.
+           This makes the handle non resurrectable, allowing us
+           to detect loss of immnd. If immnd goes down we also exit.
+           A new immnd coord will be elected which should start a new pbe process.
+         */
+        errorCode = saImmOmAdminOwnerInitialize(immHandle, 
+            (char *) OPENSAF_IMM_SERVICE_NAME, SA_TRUE, &ownerHandle); 
+        if(SA_AIS_OK != errorCode)
+        {
+            if(pbeDaemonCase) {
+                LOG_WA("Failed to initialize admin owner handle: err:%u - exiting",
+                    errorCode);
+            } else {
+                std::cout << "Failed to initialize admin owner handle; err:" 
+                    << errorCode << std::endl;
+            }
+            exit(1);
+        }
+
+        /*
+        errorCode = saImmOmAdminOwnerSet(ownerHandle, objectNames, SA_IMM_ONE);
+        */
 
         dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump classes OK");
@@ -233,13 +251,13 @@ int main(int argc, char* argv[])
         dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump objects OK");
 
-	if(!pbeDaemonCase) {
+        if(!pbeDaemonCase) {
             pbeRepositoryClose(dbHandle);
             exit(0);
-	}
-	/* Else the pbe dump was needed to get the initial pbe-file
-	   to be used by the pbeDaemon.
-	 */
+        }
+        /* Else the pbe dump was needed to get the initial pbe-file
+           to be used by the pbeDaemon.
+         */
     }
 
 
@@ -248,15 +266,15 @@ int main(int argc, char* argv[])
         if(!dbHandle) {
             dbHandle = pbeRepositoryInit(filename.c_str(), false);
             if(!dbHandle) {
-       	        LOG_WA("immdump: pbe intialize failed - exiting");
+                LOG_WA("immdump: pbe intialize failed - exiting");
                 exit(1);
                 /* TODO SYNC with pbe-file AND with IMMSv */
-	    }
+            }
         }
 
-	pbeDaemon(immHandle, dbHandle, &classIdMap);
-	TRACE("Exit from pbeDaemon");
-	exit(0);
+        pbeDaemon(immHandle, dbHandle, &classIdMap);
+        TRACE("Exit from pbeDaemon");
+        exit(0);
     }
 
 
@@ -322,7 +340,7 @@ static void dumpObjects(SaImmHandleT immHandle,
             (SaImmSearchOptionsT)
             (SA_IMM_SEARCH_ONE_ATTR | 
                 SA_IMM_SEARCH_GET_ALL_ATTR |
-                SA_IMM_SEARCH_PERSISTENT_ATTRS),//ABT
+                SA_IMM_SEARCH_PERSISTENT_ATTRS),/*only persistent rtattrs*/
             NULL/*&params*/, 
             NULL, 
             &searchHandle);
@@ -389,7 +407,6 @@ std::string getClassName(SaImmAttrValuesT_2** attrs)
 {
     int i;
     std::string className;
-    //size_t sz;
     TRACE_ENTER();
 
     for (i = 0; attrs[i] != NULL; i++)
@@ -510,13 +527,6 @@ static void classToXML(std::string classNameString,
                         (xmlChar*)"name",
                         (xmlChar*)(*p)->attrName);
 
-        // 	xmlSetNsProp(attrNode,
-        // 		     NULL,
-        // 		     (xmlChar*)"name",
-        // 		     (xmlChar*)(*p)->attrName);
-
-
-        // FIXME doesn't work for rdns
         if ((*p)->attrDefaultValue != NULL)
         {
             xmlNewTextChild(attrNode,
@@ -581,12 +591,6 @@ static void objectToXML(std::string objectNameString,
         if (classRDNMap.find(classNameString) != classRDNMap.end() &&
             classRDNMap[classNameString] == std::string((*p)->attrName))
         {
-            // 	    attrNode = 
-            // 		xmlNewTextChild(objectNode,
-            // 				NULL,
-            // 				(xmlChar*)"dn",
-            // 				(xmlChar*)(valueToString((*p)->attrValues[0],
-            // 						      (*p)->attrValueType).c_str()));
             continue;
         }
         else
@@ -683,10 +687,6 @@ std::string valueToString(SaImmAttrValueT value, SaImmValueTypeT type)
             std::cout << "Unknown value type - exiting" << std::endl;
             exit(1);
     }
-    //     xmlNewTextChild(parent,
-    // 		    NULL,
-    // 		    (xmlChar*)"value",
-    // 		    (xmlChar*)ost.str().c_str());
 
     return ost.str().c_str();
 }
@@ -703,11 +703,6 @@ static void flagsToXML(SaImmAttrDefinitionT_2* p, xmlNodePtr parent)
                         NULL,
                         (xmlChar*)"flag",
                         (xmlChar*)"SA_MULTI_VALUE");
-    }
-
-    if (flags & SA_IMM_ATTR_RDN)
-    {
-        //FIXME
     }
 
     if (flags & SA_IMM_ATTR_CONFIG)

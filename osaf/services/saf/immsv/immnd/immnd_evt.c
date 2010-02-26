@@ -1802,8 +1802,8 @@ static uns32 immnd_evt_proc_impl_set(IMMND_CB *cb, IMMND_EVT *evt, IMMSV_SEND_IN
 			TRACE("Persistent Back End OI %s is attaching", 
 				OPENSAF_IMM_PBE_IMPL_NAME);
 		} else {
-			LOG_WA("Will not allow Pbe implementer %s to attach, wrong pid:%u != %u",
-				OPENSAF_IMM_PBE_IMPL_NAME, cl_node->client_pid, cb->pbePid);
+			LOG_WA("Will not allow Pbe implementer %s to attach, client was not forked by this IMMND",
+				OPENSAF_IMM_PBE_IMPL_NAME);
 			send_evt.info.imma.info.implSetRsp.error = SA_AIS_ERR_BAD_HANDLE;
 			goto agent_rsp;
 		}
@@ -2402,6 +2402,9 @@ static void immnd_evt_proc_ccb_obj_delete_rsp(IMMND_CB *cb,
 
 		memset(&send_evt, '\0', sizeof(IMMSV_EVT));
 		send_evt.type = IMMSV_EVT_TYPE_IMMA;
+		if (evt->info.ccbUpcallRsp.result != SA_AIS_OK) {
+			evt->info.ccbUpcallRsp.result = SA_AIS_ERR_FAILED_OPERATION;
+		}
 		send_evt.info.imma.info.errRsp.error = evt->info.ccbUpcallRsp.result;
 		send_evt.info.imma.type = IMMA_EVT_ND2A_IMM_ERROR;
 		assert(cl_node->tmpSinfo.stype == MDS_SENDTYPE_SNDRSP);
@@ -2449,7 +2452,6 @@ static void immnd_evt_proc_ccb_compl_rsp(IMMND_CB *cb,
 	TRACE_ENTER();
 
 	immModel_ccbCompletedContinuation(cb, &(evt->info.ccbUpcallRsp), &reqConn);
-TRACE("ABT Back to continuation pbeFile:%s rim:%u", cb->mPbeFile, cb->mRim);
 	if(cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY)) {
 		pbeNodeIdPtr = &pbeNodeId;
 		
@@ -3005,7 +3007,7 @@ static void immnd_evt_proc_admop(IMMND_CB *cb,
 				}
 			}
 		} else {
-			TRACE_2("Delayed reply, wait for reply from implemener");
+			TRACE_2("Delayed reply, wait for reply from implementer");
 			/*Implementer may be on another node. */
 		}
 	}
@@ -3987,11 +3989,11 @@ static void immnd_evt_proc_object_delete(IMMND_CB *cb,
 		&pbeConn, pbeNodeIdPtr);
 
 
-	/* Before generating implemener upcalls for any local implementers,
+	/* Before generating implementer upcalls for any local implementers,
 	   generate PBE upcalls for ALL deleted objects, if the PBE exists and is local.
            To reduce nrof messages, we do not wait for ack from create/modify/delete 
            upcalls to PBE. Instead we count the number of ops for the ccb in both model
-	   and in PBE. The count is verified in teh completed upcall to PBE where we 
+	   and in PBE. The count is verified in the completed upcall to PBE where we 
 	   *do* wait for ack. In fact the ccb-commit/abort decision is delegated to
            the PBE when the completed upcall is done.
 	 */

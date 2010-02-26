@@ -27,7 +27,8 @@
 #include <cstdlib>
 
 
-#define FD_IMM 0
+#define FD_IMM_PBE_OI 0
+#define FD_IMM_PBE_OM 1
 
 const unsigned int sleep_delay_ms = 500;
 const unsigned int max_waiting_time_ms = 5 * 1000;	/* 5 secs */
@@ -35,10 +36,11 @@ const unsigned int max_waiting_time_ms = 5 * 1000;	/* 5 secs */
 
 static SaImmOiHandleT pbeOiHandle;
 static SaSelectionObjectT immOiSelectionObject;
+static SaSelectionObjectT immOmSelectionObject;
 static int category_mask;
 
-static struct pollfd fds[1];
-static nfds_t nfds = 1;
+static struct pollfd fds[2];
+static nfds_t nfds = 2;
 
 static void saImmOiAdminOperationCallback(SaImmOiHandleT immOiHandle,
 					  SaInvocationT invocation,
@@ -82,9 +84,16 @@ static SaAisErrorT saImmOiCcbObjectModifyCallback(SaImmOiHandleT immOiHandle,
 		}
 	}
 
-	/* "memorize the modification request" */
-	ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
-
+	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
+		LOG_WA("Pbe will not allow modifications to object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		/* We will actually get invoked twice on this object, both as normal implementer and as PBE
+		   the response on the modify upcall from PBE is discarded, but not for the regular implemener.
+		 */
+	} else {
+		/* "memorize the modification request" */
+		ccbutil_ccbAddModifyOperation(ccbUtilCcbData, objectName, attrMods);
+	}
  done:
 	TRACE_LEAVE();
 	return rc;
@@ -167,12 +176,20 @@ static SaAisErrorT saImmOiCcbObjectCreateCallback(SaImmOiHandleT immOiHandle, Sa
 		}
 	}
 
-	/* "memorize the creation request" */
-	ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
+	if(strncmp((char *) className, (char *) OPENSAF_IMM_CLASS_NAME, strlen(className)) == 0) {
+		LOG_WA("Pbe will not allow creates of instances of class %s", (char *) OPENSAF_IMM_CLASS_NAME);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		/* We will actually get invoked twice on this create, both as normal implementer and as PBE
+		   the response on the create upcall from PBE is discarded, but not for the regular implementer UC.
+		 */
+	} else {
+		/* "memorize the creation request" */
+		ccbutil_ccbAddCreateOperation(ccbUtilCcbData, className, parentName, attr);
+	}
 
  done:
 	TRACE_LEAVE();
-	return SA_AIS_OK;
+	return rc;
 }
 
 static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, SaImmOiCcbIdT ccbId,
@@ -190,12 +207,20 @@ static SaAisErrorT saImmOiCcbObjectDeleteCallback(SaImmOiHandleT immOiHandle, Sa
 		}
 	}
 
-	/* "memorize the deletion request" */
-	ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
+	if(strncmp((char *) objectName->value, (char *) OPENSAF_IMM_OBJECT_DN, objectName->length) ==0) {
+		LOG_WA("Pbe will not allow delete of object %s", (char *) OPENSAF_IMM_OBJECT_DN);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		/* We will actually get invoked twice on this object, both as normal implementer and as PBE
+		   the response on the delete upcall from PBE is discarded, but not for the regular implemener.
+		 */
+	} else {
+		/* "memorize the deletion request" */
+		ccbutil_ccbAddDeleteOperation(ccbUtilCcbData, objectName);
+	}
 
  done:
 	TRACE_LEAVE();
-	return SA_AIS_OK;
+	return rc;
 }
 /**
  * IMM requests us to update a non cached runtime attribute.
@@ -264,7 +289,7 @@ static void sigusr2_handler(int sig)
 		printf("trace_category_set failed");
 }
 
-SaAisErrorT pbe_daemon_imm_oi_init()
+SaAisErrorT pbe_daemon_imm_init(SaImmHandleT immHandle)
 {
 	SaAisErrorT rc;
 	unsigned int msecs_waited = 0;
@@ -283,13 +308,6 @@ SaAisErrorT pbe_daemon_imm_oi_init()
 	}
 	if (rc != SA_AIS_OK) {
 		LOG_ER("saImmOiInitialize_2 failed %u", rc);
-		return rc;
-	}
-
-	rc = saImmOiSelectionObjectGet(pbeOiHandle, &immOiSelectionObject);
-	/* SelectionObjectGet is library local, no need for retry loop */
-	if (rc != SA_AIS_OK) {
-		LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
 		return rc;
 	}
 
@@ -313,6 +331,20 @@ SaAisErrorT pbe_daemon_imm_oi_init()
 		rc = saImmOiClassImplementerSet(pbeOiHandle, (char *) OPENSAF_IMM_CLASS_NAME);
 	}
 
+	rc = saImmOiSelectionObjectGet(pbeOiHandle, &immOiSelectionObject);
+	/* SelectionObjectGet is library local, no need for retry loop */
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOiSelectionObjectGet failed %u", rc);
+		return rc;
+	}
+
+	rc = saImmOmSelectionObjectGet(immHandle, &immOmSelectionObject);
+	/* SelectionObjectGet is library local, no need for retry loop */
+	if (rc != SA_AIS_OK) {
+		LOG_ER("saImmOmSelectionObjectGet failed %u", rc);
+		return rc;
+	}
+
 	TRACE_LEAVE();
 
 	return rc;
@@ -326,7 +358,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap)
 	//uns32 rc;
 	//Assign dbHandle to static var.
 
-	if (pbe_daemon_imm_oi_init() != SA_AIS_OK) {
+	if (pbe_daemon_imm_init(immHandle) != SA_AIS_OK) {
 		exit(1);
 	}
 
@@ -335,8 +367,10 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap)
 		exit(1);
 	}
 	/* Set up all file descriptors to listen to */
-	fds[FD_IMM].fd = immOiSelectionObject;
-	fds[FD_IMM].events = POLLIN;
+	fds[FD_IMM_PBE_OI].fd = immOiSelectionObject;
+	fds[FD_IMM_PBE_OI].events = POLLIN;
+	fds[FD_IMM_PBE_OM].fd = immOmSelectionObject;
+	fds[FD_IMM_PBE_OM].events = POLLIN;
 
         while(1) {
 		TRACE("PBE Daemon entering poll");
@@ -350,7 +384,7 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap)
 			break;
 		}
 
-		if (pbeOiHandle && fds[FD_IMM].revents & POLLIN) {
+		if (pbeOiHandle && fds[FD_IMM_PBE_OI].revents & POLLIN) {
 			error = saImmOiDispatch(pbeOiHandle, SA_DISPATCH_ALL);
 
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
@@ -363,9 +397,21 @@ void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap)
 		   SaImmMngt: safRdn=immManagement,safApp=safImmService
 		   ?? OpensafImm: opensafImm=opensafImm,safApp=safImmService ??
 		*/
+
+		if (immHandle && fds[FD_IMM_PBE_OM].revents & POLLIN) {
+			error = saImmOmDispatch(immHandle, SA_DISPATCH_ALL);
+			if (error != SA_AIS_OK) {
+				LOG_WA("saImmOmDispatch returned %u PBE lost contact with IMMND - exiting", error);
+				pbeOiHandle = 0;
+				immHandle = 0;
+				break;
+			}
+		}
+
+		
 	}
 
-	LOG_NO("FAILED EXITING...");
+	LOG_IN("IMM PBE process EXITING...");
 	TRACE_LEAVE();
 	exit(1);
 }
