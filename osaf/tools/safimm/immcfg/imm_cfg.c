@@ -76,7 +76,7 @@ static void usage(const char *progname)
 	printf("\tWhen creating or modifying several objects, they have to be of the same class.");
 
 	printf("\nOPTIONS\n");
-	printf("\t-a, --attribute name=value [object DN]... \n");
+	printf("\t-a, --attribute name[+|-]=value [object DN]... \n");
 	printf("\t-c, --create-object <class name> [object DN]... \n");
 	printf("\t-d, --delete-object [object DN]... \n");
 	printf("\t-h, --help                    this help\n");
@@ -94,6 +94,10 @@ static void usage(const char *progname)
 	printf("\t\tdelete one object\n");
 	printf("\timmcfg -d safAmfNode=Node01,safAmfCluster=1 safAmfNode=Node02,safAmfCluster=1\n");
 	printf("\t\tdelete two objects\n");
+	printf("\timmcfg -a saAmfNGNodeList+=safAmfNode=PL_2_6,safAmfCluster=myAmfCluster safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster\n");
+	printf("\t\tadd a value to an attribute\n");
+	printf("\timmcfg -a saAmfNGNodeList-=safAmfNode=PL_2_6,safAmfCluster=myAmfCluster safAmfNodeGroup=PLs,safAmfCluster=myAmfCluster\n");
+	printf("\t\tremove a value from an attribute\n");
 }
 
 /**
@@ -111,6 +115,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	SaImmAttrModificationT_2 *attrMod = NULL;
 	SaImmClassNameT className = immutil_get_className(objectName);
 	SaAisErrorT error;
+	SaImmAttrModificationTypeT modType = SA_IMM_ATTR_VALUES_REPLACE;
 
 	if (className == NULL) {
 		res = -1;
@@ -122,6 +127,15 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 	if ((value = strstr(tmp, "=")) == NULL) {
 		res = -1;
 		goto done;
+	}
+
+	if (value[-1] == '+') {
+		modType = SA_IMM_ATTR_VALUES_ADD;
+		value[-1] = 0;
+	}
+	else if (value[-1] == '-') {
+		modType = SA_IMM_ATTR_VALUES_DELETE;
+		value[-1] = 0;
 	}
 
 	name = tmp;
@@ -141,7 +155,7 @@ static SaImmAttrModificationT_2 *new_attr_mod(const SaNameT *objectName, char *n
 		goto done;
 	}
 
-	attrMod->modType = SA_IMM_ATTR_VALUES_REPLACE;
+	attrMod->modType = modType;
 	attrMod->modAttr.attrName = name;
 	if (strlen(value)) {
 		attrMod->modAttr.attrValuesNumber = 1;
