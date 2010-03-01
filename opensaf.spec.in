@@ -940,7 +940,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
 %{_pkgimmxmldir}/README
-%{_pkgimmxmldir}/baseimm.py
+%{_pkgimmxmldir}/baseimm.py*
 %{_pkgimmxmldir}/immxml-clustersize
 %{_pkgimmxmldir}/immxml-configure
 %{_pkgimmxmldir}/immxml-merge
