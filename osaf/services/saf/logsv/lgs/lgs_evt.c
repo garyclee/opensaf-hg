@@ -912,7 +912,7 @@ static uns32 proc_write_log_async_msg(lgs_cb_t *cb, lgsv_lgs_evt_t *evt)
 
 	if (lgs_format_log_record(param->logRecord,
 				  stream->logFileFormat,
-				  stream->fixedLogRecordSize + 1,
+				  stream->fixedLogRecordSize,
 				  logOutputString, ++stream->logRecordId) != SA_AIS_OK) {
 		error = SA_AIS_ERR_INVALID_PARAM;	/* FIX? */
 		goto done;

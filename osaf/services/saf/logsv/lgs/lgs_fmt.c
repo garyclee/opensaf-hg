@@ -1107,11 +1107,10 @@ SaAisErrorT lgs_format_log_record(SaLogRecordT *logRecord,
 
 	/* Pad log record to fixed log record fieldSize */
 	if (i < dest_size) {
-		dest[i++] = '\n';
-		memset(&dest[i], 0, dest_size - i);
+		memset(&dest[i], ' ', dest_size - i);
+		dest[dest_size - 1] = '\n';
 	} else {
-		dest[i - 2] = '\n';
-		dest[i - 1] = '\0';
+		dest[i - 1] = '\n';
 	}
 
 	if (truncationLetterPos != -1) {	/* Insert truncation info letter */
