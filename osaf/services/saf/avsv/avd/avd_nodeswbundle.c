@@ -158,8 +158,10 @@ SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		if ((sw_bdl = nodeswbdl_create(&dn, attributes)) == NULL)
 			goto done2;

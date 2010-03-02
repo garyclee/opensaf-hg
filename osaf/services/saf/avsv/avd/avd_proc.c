@@ -540,7 +540,7 @@ static void avd_imm_reinit_bg(AVD_CL_CB *cb)
 	pthread_t thread;
 
 	if (pthread_create(&thread, NULL, avd_imm_reinit_thread, cb) != 0) {
-		avd_log(NCSFL_SEV_ERROR, "pthread_create FAILED: %s", strerror(errno));
+		LOG_ER("pthread_create FAILED: %s", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
 }
@@ -569,11 +569,9 @@ void avd_main_proc(void)
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error = SA_AIS_OK;
 
-	TRACE_ENTER();
-	avd_log(NCSFL_SEV_NOTICE, "starting...");
-
 	if (avd_initialize() != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_ERROR, "avd_initialize FAILED");
+		LOG_ER("main: avd_initialize FAILED, exiting...");
+		(void) nid_notify("AMFD", NCSCC_RC_FAILURE, NULL);
 		exit(EXIT_FAILURE);
 	}
 
@@ -598,15 +596,24 @@ void avd_main_proc(void)
 				continue;
 			}
 
-			avd_log(NCSFL_SEV_ERROR, "AVD poll failed - %s", strerror(errno));
+			LOG_ER("main: poll FAILED - %s", strerror(errno));
 			break;
 		}
 
 		if (fds[FD_MBX].revents & POLLIN) {
-			evt = (AVD_EVT *)m_NCS_IPC_NON_BLK_RECEIVE(&cb->avd_mbx, msg);
+			evt = (AVD_EVT *)ncs_ipc_non_blk_recv(&cb->avd_mbx);
 
-			if ((cb->avd_fover_state) && (evt != AVD_EVT_NULL) &&
-			    (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
+			if (evt == NULL) {
+				LOG_ER("main: NULL evt");
+				continue;
+			}
+
+			if ((AVD_EVT_INVALID <= evt->rcv_evt) && (evt->rcv_evt >= AVD_EVT_MAX)) {
+				LOG_ER("main: invalid evt %u", evt->rcv_evt);
+				continue;
+			}
+
+			if (cb->avd_fover_state) {
 				/* 
 				 * We are in fail-over, so process only 
 				 * verify ack/nack and timer expiry events. Enqueue
@@ -661,30 +668,15 @@ void avd_main_proc(void)
 						m_AVD_EVT_QUEUE_DEQUEUE(cb, queue_evt);
 					}
 				}
-			} else if ((FALSE == cb->avd_fover_state) && (evt != AVD_EVT_NULL) &&
-				   (evt->rcv_evt > AVD_EVT_INVALID) && (evt->rcv_evt < AVD_EVT_MAX)) {
+			} else if (FALSE == cb->avd_fover_state) {
 				avd_process_event(cb, evt);
-			} else if (evt == AVD_EVT_NULL) {
-				/* log fatal error that a NULL event was returned. */
-				m_AVD_LOG_INVALID_VAL_FATAL(0);
-			} else {
-				/* log fatal error that invalid event id was received
-				 */
-				m_AVD_LOG_RCVD_VAL(((long)evt));
-				m_AVD_LOG_RCVD_NAME_VAL(evt, sizeof(AVD_EVT));
-				m_AVD_LOG_EVT_INVAL(evt->rcv_evt);
-				free(evt);
-			}
-
+			} else
+				assert(0);
 		}
 
 		if (fds[FD_MBCSV].revents & POLLIN) {
-			if (NCSCC_RC_SUCCESS != avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL)) {
-				/* 
-				 * Log error; but continue with our loop.
-				 */
-				m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_ERROR, NCSCC_RC_FAILURE);
-			}
+			if (NCSCC_RC_SUCCESS != avsv_mbcsv_dispatch(cb, SA_DISPATCH_ALL))
+				LOG_ER("avsv_mbcsv_dispatch FAILED");
 		}
 
 		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
@@ -701,7 +693,7 @@ void avd_main_proc(void)
 			 ** cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
-				avd_log(NCSFL_SEV_ERROR, "saImmOiDispatch returned BAD_HANDLE");
+				LOG_ER("main: saImmOiDispatch returned BAD_HANDLE");
 
 				/*
 				 ** Invalidate the IMM OI handle, this info is used in other
@@ -720,7 +712,7 @@ void avd_main_proc(void)
 				/* Initiate IMM reinitializtion in the background */
 				avd_imm_reinit_bg(cb);
 			} else if (error != SA_AIS_OK) {
-				avd_log(NCSFL_SEV_ERROR, "saImmOiDispatch failed %u", error);
+				LOG_ER("main: saImmOiDispatch FAILED %u", error);
 				break;
 			}
 			else {
@@ -731,7 +723,8 @@ void avd_main_proc(void)
 
 		if (fds[FD_FMA].revents & POLLIN) {
 			TRACE("FM event rec");
-			fmDispatch(avd_cb->fm_hdl, SA_DISPATCH_ONE);
+			if ((error = fmDispatch(avd_cb->fm_hdl, SA_DISPATCH_ONE)) != SA_AIS_OK)
+				LOG_ER("main: fmDispatch FAILED %u", error);
 		}
 	}
 
@@ -793,10 +786,8 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 
 		avd_d2n_msg_dequeue(cb_now);
 
-	} else {
-		/* log error that the CB is in invalid HA state. */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_now->avail_state_avd);
-	}
+	} else
+		assert(0);
 
 	/* reset the sync falg */
 	cb_now->sync_required = TRUE;
@@ -841,11 +832,8 @@ void avd_process_hb_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 		/* if quiesced call g_avd_quiesc_list functions */
 		g_avd_quiesc_list[evt->rcv_evt] (cb_now, evt);
 
-	} else {
-		/* log error that the CB is in invalid HA state. */
-		m_AVD_LOG_INVALID_VAL_FATAL(cb_now->avail_state_avd);
-	}
+	} else
+		assert(0);
 
 	free(evt);
-
 }

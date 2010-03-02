@@ -561,8 +561,10 @@ SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &su_name, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&su_name, attributes, NULL))
+		if (!is_config_valid(&su_name, attributes, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		if ((su = su_create(&su_name, attributes)) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
