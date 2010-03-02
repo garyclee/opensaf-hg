@@ -237,7 +237,6 @@ typedef struct cl_cb_tag {
 					 * node id. used for storing the 
 					 * nodes on f-over.
 					 */
-	NCS_PATRICIA_TREE su_per_si_rank_anchor;	/* Tree of su per si ranks */
 	AVD_SI_DEP si_dep;	/* SI-SI dependency data */
 	AVD_TMR heartbeat_send_avd;	/* The timer for sending the heartbeat */
 	AVD_TMR heartbeat_rcv_avd;	/* The timer for receiving the heartbeat */

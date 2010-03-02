@@ -241,12 +241,6 @@ static uns32 avd_init_proc(void)
 		goto done;
 	}
 
-	patricia_params.key_size = sizeof(AVD_SUS_PER_SI_RANK_INDX);
-	if (ncs_patricia_tree_init(&cb->su_per_si_rank_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_patricia_tree_init FAILED");
-		goto done;
-	}
-
 	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
 	if (ncs_patricia_tree_init(&cb->si_dep.spons_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
 		avd_log(NCSFL_SEV_EMERGENCY, "ncs_patricia_tree_init FAILED");

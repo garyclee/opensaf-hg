@@ -78,7 +78,8 @@ opensaf_amfd_SOURCES = \
 	avd_si.c \
 	avd_siDep.c \
 	avd_su.c \
-	avd_susi.c \
+	avd_siass.c \
+	avd_sirankedsu.c \
 	avd_sutcomptype.c \
 	avd_sutype.c \
 	avd_svctype.c \
