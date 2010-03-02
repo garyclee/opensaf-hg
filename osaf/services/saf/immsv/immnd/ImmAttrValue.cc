@@ -345,6 +345,13 @@ ImmAttrMultiValue::removeValue(const IMMSV_OCTET_STRING& match) //virtual
     
     if(mNext) {
         mNext->removeValue(match); //TODO: make non-recursive!
+
+        if(!(mNext->mValueSize)) {
+            ImmAttrMultiValue* tmp = mNext;
+            mNext = tmp->mNext;
+            tmp->mNext = NULL;
+            delete tmp;
+        }
     }
 }
 
