@@ -330,11 +330,15 @@ SaAisErrorT avd_node_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
-		if ((node = node_create(&dn, attributes)) == NULL)
+		if ((node = node_create(&dn, attributes)) == NULL) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		node_add_to_model(node);
 

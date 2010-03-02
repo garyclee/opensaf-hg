@@ -383,8 +383,10 @@ SaAisErrorT avd_sg_config_get(const SaNameT *app_dn, AVD_APP *app)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		if ((sg = sg_create(&dn, attributes)) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;

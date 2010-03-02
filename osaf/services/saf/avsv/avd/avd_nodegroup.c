@@ -174,8 +174,10 @@ SaAisErrorT avd_ng_config_get(void)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if (!is_config_valid(&dn, attributes, NULL))
+		if (!is_config_valid(&dn, attributes, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
 			goto done2;

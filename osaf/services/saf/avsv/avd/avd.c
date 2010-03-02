@@ -102,7 +102,7 @@ static void avd_hb_proc(uns32 *null)
 			if (errno == EINTR)
 				continue;
 
-			avd_log(NCSFL_SEV_ERROR, "AVD-HB poll failed - %s", strerror(errno));
+			LOG_ER("AVD-HB poll failed - %s", strerror(errno));
 			break;
 		}
 
@@ -117,7 +117,7 @@ static void avd_hb_proc(uns32 *null)
 					/* Process the event */
 					avd_process_hb_event(cb, evt);
 				} else
-					avd_log(NCSFL_SEV_EMERGENCY, "Invalid event: %u", evt->rcv_evt);
+					LOG_ER("Invalid event: %u", evt->rcv_evt);
 			}
 		}
 	}
@@ -149,12 +149,12 @@ static int avd_hb_task_create()
 			      NULL,
 			      NCS_AVD_HB_NAME_STR,
 			      NCS_AVD_HB_PRIORITY, NCS_AVD_HB_STCK_SIZE, &avd_hb_task_hdl) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "task create FAILED");
+		LOG_ER("task create FAILED");
 		return -1;
 	}
 
 	if (m_NCS_TASK_START(avd_hb_task_hdl) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "task start FAILED");
+		LOG_ER("task start FAILED");
 		return -1;
 	}
 
@@ -218,12 +218,12 @@ static uns32 avd_init_proc(void)
 	/* Initialize all the locks and trees in the CB */
 
 	if (NCSCC_RC_FAILURE == m_AVD_CB_LOCK_INIT(cb)) {
-		avd_log(NCSFL_SEV_ERROR, "cb lock init FAILED");
+		LOG_ER("cb lock init FAILED");
 		goto done;
 	}
 
 	if (NCSCC_RC_FAILURE == m_AVD_CB_AVND_TBL_LOCK_INIT(cb)) {
-		avd_log(NCSFL_SEV_ERROR, "lock init FAILED");
+		LOG_ER("tbl lock init FAILED");
 		goto done;
 	}
 
@@ -237,25 +237,25 @@ static uns32 avd_init_proc(void)
 
 	patricia_params.key_size = sizeof(SaClmNodeIdT);
 	if (ncs_patricia_tree_init(&cb->node_list, &patricia_params) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_patricia_tree_init FAILED");
+		LOG_ER("ncs_patricia_tree_init FAILED");
 		goto done;
 	}
 
 	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
 	if (ncs_patricia_tree_init(&cb->si_dep.spons_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_patricia_tree_init FAILED");
+		LOG_ER("ncs_patricia_tree_init FAILED");
 		goto done;
 	}
 
 	patricia_params.key_size = sizeof(AVD_SI_SI_DEP_INDX);
 	if (ncs_patricia_tree_init(&cb->si_dep.dep_anchor, &patricia_params) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_patricia_tree_init FAILED");
+		LOG_ER("ncs_patricia_tree_init FAILED");
 		goto done;
 	}
 
 	/* Initialise MDS */
 	if (avd_mds_reg_def(cb) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "avd_mds_reg_def FAILED");
+		LOG_ER("avd_mds_reg_def FAILED");
 		goto done;
 	}
 
@@ -264,26 +264,26 @@ static uns32 avd_init_proc(void)
 
 	/* Initialise MDS */
 	if (avd_mds_reg(cb) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "avd_mds_reg FAILED");
+		LOG_ER("avd_mds_reg FAILED");
 		goto done;
 	}
 
 	if (NCSCC_RC_FAILURE == avsv_mbcsv_register(cb)) {
-		avd_log(NCSFL_SEV_EMERGENCY, "avsv_mbcsv_register FAILED");
+		LOG_ER("avsv_mbcsv_register FAILED");
 		goto done;
 	}
 
 	if (avd_imm_init(cb) != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_EMERGENCY, "avd_imm_init FAILED");
+		LOG_ER("avd_imm_init FAILED");
 		goto done;
 	}
 
 	if (avd_hb_task_create() != 0)
 		goto done;
 
-	rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion);
-	if (rc != SA_AIS_OK) {
-		avd_log(NCSFL_SEV_ERROR,"saNtfInitialize Failed (%u)", rc);
+	if ((rc = saNtfInitialize(&cb->ntfHandle, NULL, &ntfVersion)) != SA_AIS_OK) {
+		LOG_ER("saNtfInitialize Failed (%u)", rc);
+		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
@@ -292,7 +292,7 @@ static uns32 avd_init_proc(void)
 		goto done;
 	}
 
-	if (avd_init_role_set(cb, role) != NCSCC_RC_SUCCESS) {
+	if ((rc = avd_init_role_set(cb, role)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("avd_init_role_set FAILED");
 		goto done;
 	}
@@ -302,7 +302,7 @@ static uns32 avd_init_proc(void)
 		goto done;
 	}
 
-	if (avd_fm_init() != NCSCC_RC_SUCCESS) {
+	if ((rc = avd_fm_init()) != NCSCC_RC_SUCCESS) {
 		LOG_ER("avd_fm_init FAILED %u", rc);
 		goto done;
 	}
@@ -370,28 +370,28 @@ uns32 avd_initialize(void)
 	avd_flx_log_reg();
 
 	if (ncs_ipc_create(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_ipc_create FAILED");
+		LOG_ER("ncs_ipc_create FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (ncs_ipc_attach(&cb->avd_mbx) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_ipc_attach FAILED");
+		LOG_ER("ncs_ipc_attach FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	/* create a mailbox for heart beat thread. */
 	if (ncs_ipc_create(&cb->avd_hb_mbx) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_ipc_create FAILED");
+		LOG_ER("ncs_ipc_create FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (ncs_ipc_attach(&cb->avd_hb_mbx) != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "ncs_ipc_attach FAILED");
+		LOG_ER("ncs_ipc_attach FAILED");
 		return NCSCC_RC_FAILURE;
 	}
 
 	if (avd_init_proc() != NCSCC_RC_SUCCESS) {
-		avd_log(NCSFL_SEV_EMERGENCY, "avd_init_proc failed");
+		LOG_ER("avd_init_proc failed");
 		return NCSCC_RC_FAILURE;
 	}
 

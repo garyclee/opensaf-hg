@@ -301,8 +301,10 @@ SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 	while ((error = immutil_saImmOmSearchNext_2(searchHandle, &dn,
 		(SaImmAttrValuesT_2 ***)&attributes)) == SA_AIS_OK) {
 
-		if (!is_config_valid(&dn, NULL))
+		if (!is_config_valid(&dn, NULL)) {
+			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
+		}
 
 		if ((compcstype = compcstype_create(&dn, attributes)) == NULL) {
 			error = SA_AIS_ERR_FAILED_OPERATION;
