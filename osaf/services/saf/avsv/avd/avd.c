@@ -180,11 +180,11 @@ static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE e
 	evt = malloc(sizeof(AVD_EVT));
 	assert(evt);
 	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
-	evt->info.avm_msg = malloc(sizeof(AVM_AVD_SYS_CON_ROLE_T));
+	evt->info.avm_msg = malloc(sizeof(*evt->info.avm_msg));
 	evt->info.avm_msg->msg_type = AVM_AVD_SYS_CON_ROLE_MSG;
 	msg = &evt->info.avm_msg->avm_avd_msg.role;
 	msg->cause = AVM_FAIL_OVER;
-	msg->role = cb_info->info.io_role + 1; /* ugly? */
+	msg->role = cb_info->info.io_role;
 
 	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
 	assert(rc == NCSCC_RC_SUCCESS);
