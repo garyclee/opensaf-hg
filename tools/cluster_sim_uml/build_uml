@@ -152,8 +152,6 @@ cmd_create_rootfs()
     sed -i 's/=${PKGLOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/saflog.conf
 
-    install $archive/rde.conf etc/opensaf
-
     # The var directory structure is setup from within each UML
     rm -rf var/*
 

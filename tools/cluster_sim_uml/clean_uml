@@ -20,6 +20,5 @@
 rm -rf rootfs usr
 rm -rf repl-opensaf
 uml/clean_uml
-make -C Hello/aishello clean
 
 exit 0
