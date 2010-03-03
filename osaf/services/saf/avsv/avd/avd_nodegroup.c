@@ -195,6 +195,90 @@ done1:
 	return rc;
 }
 
+static SaAisErrorT ng_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	int i = 0, j;
+	const SaImmAttrModificationT_2 *mod;
+	AVD_AVND *node;
+	AVD_SU *su;
+	int delete_found = 0;
+	int add_found = 0;
+
+	TRACE_ENTER();
+
+	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		if (mod->modType == SA_IMM_ATTR_VALUES_REPLACE) {
+			TRACE("replace");
+			goto done;
+		}
+
+		if (mod->modType == SA_IMM_ATTR_VALUES_DELETE) {
+			if (add_found) {
+				LOG_ER("ng modify: no support for mixed ops");
+				goto done;
+			}
+
+			delete_found = 1;
+
+			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
+				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
+				if (node == NULL) {
+					LOG_ER("Node '%s' does not exist", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+					goto done;
+				}
+
+				TRACE("DEL %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+
+				/* Ensure no SU is mapped to this node via the node group */
+				su = node->list_of_su;
+				while (su) {
+					if (memcmp(mod->modAttr.attrValues[j], &su->saAmfSUHostedByNode, sizeof(SaNameT)) == 0) {
+						if (memcmp(&opdata->objectName, &su->saAmfSUHostNodeOrNodeGroup, sizeof(SaNameT)) == 0) {
+							LOG_ER("SU '%s' is mapped to this node", su->name.value);
+							goto done;
+						}
+
+						if (memcmp(&opdata->objectName, &su->su_on_sg->saAmfSGSuHostNodeGroup, sizeof(SaNameT)) == 0) {
+							LOG_ER("SU '%s' is mapped to this node", su->name.value);
+							goto done;
+						}
+					}
+					su = su->avnd_list_su_next;
+				}
+			}
+		}
+
+		if (mod->modType == SA_IMM_ATTR_VALUES_ADD) {
+			if (delete_found) {
+				LOG_ER("ng modify: no support for mixed ops");
+				goto done;
+			}
+
+			add_found = 1;
+
+			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
+				node = avd_node_get((SaNameT *)mod->modAttr.attrValues[j]);
+				if ((node == NULL) &&
+					(ccbutil_getCcbOpDataByDN(opdata->ccbId, (SaNameT *)mod->modAttr.attrValues[j]) == NULL)) {
+
+					LOG_ER("Node '%s' does not exist in model or CCB",
+						((SaNameT *)mod->modAttr.attrValues[j])->value);
+					goto done;
+				}
+
+				TRACE("ADD %s", ((SaNameT *)mod->modAttr.attrValues[j])->value);
+			}
+		}
+	}
+
+	rc = SA_AIS_OK;
+
+done:
+	TRACE_LEAVE();
+	return rc;
+}
+
 static SaAisErrorT ng_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
@@ -207,7 +291,7 @@ static SaAisErrorT ng_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		    rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		LOG_ER("Modification of SaAmfNodeGroup not supported");
+		rc = ng_ccb_completed_modify_hdlr(opdata);
 		goto done;
 		break;
 	case CCBUTIL_DELETE:
@@ -224,6 +308,62 @@ done:
 	return rc;
 }
 
+static void ng_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
+{
+	int i = 0, j;
+	const SaImmAttrModificationT_2 *mod;
+	AVD_AMF_NG *ng;
+
+	TRACE_ENTER();
+
+	ng = avd_ng_get(&opdata->objectName);
+
+	while ((mod = opdata->param.modify.attrMods[i++]) != NULL) {
+		switch (mod->modType) {
+		case SA_IMM_ATTR_VALUES_ADD: {
+			ng->saAmfNGNodeList = realloc(ng->saAmfNGNodeList,
+				(ng->number_nodes + mod->modAttr.attrValuesNumber) * sizeof(SaNameT));
+
+			if (ng->saAmfNGNodeList == NULL) {
+				LOG_EM("%s: realloc FAILED", __FUNCTION__);
+				exit(1);
+			}
+
+			for (j = 0; j < mod->modAttr.attrValuesNumber; j++) {
+				ng->saAmfNGNodeList[ng->number_nodes + j] = *((SaNameT *)mod->modAttr.attrValues[j]);
+				TRACE("ADD %s", ng->saAmfNGNodeList[ng->number_nodes + j].value);
+			}
+
+			ng->number_nodes += mod->modAttr.attrValuesNumber;
+			TRACE("number_nodes %u", ng->number_nodes);
+			break;
+		}
+		case SA_IMM_ATTR_VALUES_DELETE: {
+			/* find node to delete */
+			for (j = 0; j < ng->number_nodes; j++) {
+				if (memcmp(&ng->saAmfNGNodeList[j], mod->modAttr.attrValues[0], sizeof(SaNameT)) == 0)
+					break;
+			}
+
+			assert(j < ng->number_nodes);
+
+			TRACE("found node %s", ng->saAmfNGNodeList[j].value);
+
+			for (; j < ng->number_nodes; j++)
+				ng->saAmfNGNodeList[j] = ng->saAmfNGNodeList[j + 1];
+
+			ng->number_nodes -= mod->modAttr.attrValuesNumber;
+			TRACE("number_nodes %u", ng->number_nodes);
+			break;
+		}
+		default:
+			assert(0);
+		}
+	}
+
+	TRACE_LEAVE();
+}
+
 static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_AMF_NG *ng;
@@ -235,6 +375,9 @@ static void ng_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		ng = ng_create(&opdata->objectName, opdata->param.create.attrValues);
 		assert(ng);
 		ng_db_add(ng);
+		break;
+	case CCBUTIL_MODIFY:
+		ng_ccb_apply_modify_hdlr(opdata);
 		break;
 	default:
 		assert(0);

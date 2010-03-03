@@ -27,18 +27,18 @@
 static NCS_PATRICIA_TREE node_name_db;	/* SaNameT index */
 static NCS_PATRICIA_TREE node_id_db;	/* SaClmNodeIdT index */
 
-uns32 avd_node_add_nodeid(AVD_AVND *avnd)
+uns32 avd_node_add_nodeid(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if ((avd_node_find_nodeid(avnd->node_info.nodeId) == NULL) && (avnd->node_info.nodeId != 0)) {
+	if ((avd_node_find_nodeid(node->node_info.nodeId) == NULL) && (node->node_info.nodeId != 0)) {
 
-		avnd->tree_node_id_node.key_info = (uns8 *)&(avnd->node_info.nodeId);
-		avnd->tree_node_id_node.bit = 0;
-		avnd->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
-		avnd->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
+		node->tree_node_id_node.key_info = (uns8 *)&(node->node_info.nodeId);
+		node->tree_node_id_node.bit = 0;
+		node->tree_node_id_node.left = NCS_PATRICIA_NODE_NULL;
+		node->tree_node_id_node.right = NCS_PATRICIA_NODE_NULL;
 
-		rc = ncs_patricia_tree_add(&node_id_db, &avnd->tree_node_id_node);
+		rc = ncs_patricia_tree_add(&node_id_db, &node->tree_node_id_node);
 		assert(rc == NCSCC_RC_SUCCESS);
 	}
 
@@ -47,7 +47,8 @@ uns32 avd_node_add_nodeid(AVD_AVND *avnd)
 
 void avd_node_delete_nodeid(AVD_AVND *node)
 {
-	(void)ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
+	if (node->tree_node_id_node.key_info != NULL)
+		(void)ncs_patricia_tree_del(&node_id_db, &node->tree_node_id_node);
 }
 
 void avd_node_db_add(AVD_AVND *node)
@@ -104,62 +105,53 @@ static void node_add_to_model(AVD_AVND *node)
 
 AVD_AVND *avd_node_get(const SaNameT *dn)
 {
-	AVD_AVND *avnd;
+	AVD_AVND *node;
 	SaNameT tmp = { 0 };
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
+	node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
 
-	if (avnd != NULL) {
+	if (node != NULL) {
 		/* Adjust the pointer
 		 */
-		avnd = (AVD_AVND *)(((char *)avnd)
+		node = (AVD_AVND *)(((char *)node)
 				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
 				       - ((char *)AVD_AVND_NULL)));
 	}
 
-	return avnd;
+	return node;
 }
 
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
 {
-	AVD_AVND *avnd;
-
-	avnd = (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uns8 *)&node_id);
-
-	return avnd;
+	return (AVD_AVND *)ncs_patricia_tree_get(&node_id_db, (uns8 *)&node_id);
 }
 
 AVD_AVND *avd_node_getnext(const SaNameT *dn)
 {
-	AVD_AVND *avnd;
+	AVD_AVND *node;
 	SaNameT tmp = { 0 };
 
 	tmp.length = dn->length;
 	memcpy(tmp.value, dn->value, tmp.length);
 
-	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
+	node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
 
-	if (avnd != NULL) {
-		/* Adjust the pointer
-		 */
-		avnd = (AVD_AVND *)(((char *)avnd)
+	if (node != NULL) {
+		/* Adjust the pointer */
+		node = (AVD_AVND *)(((char *)node)
 				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
 				       - ((char *)AVD_AVND_NULL)));
 	}
 
-	return avnd;
+	return node;
 }
 
 AVD_AVND *avd_node_getnext_nodeid(SaClmNodeIdT node_id)
 {
-	AVD_AVND *avnd;
-
-	avnd = (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uns8 *)&node_id);
-
-	return avnd;
+	return (AVD_AVND *)ncs_patricia_tree_getnext(&node_id_db, (uns8 *)&node_id);
 }
 
 /**
@@ -270,8 +262,7 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 	}
 
 	if (immutil_getAttr("saAmfNodeAutoRepair", attributes, 0, &node->saAmfNodeAutoRepair) != SA_AIS_OK) {
-		LOG_ER("Get saAmfNodeAutoRepair FAILED for '%s'", dn->value);
-		goto done;
+		node->saAmfNodeAutoRepair = SA_TRUE;
 	}
 
 	if (immutil_getAttr("saAmfNodeFailfastOnTerminationFailure", attributes, 0,
@@ -291,10 +282,11 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 
 	rc = 0;
 
- done:
+done:
 	if (rc != 0)
 		avd_node_delete(&node);
 
+	TRACE_LEAVE();
 	return node;
 }
 
@@ -399,7 +391,7 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 }
 
 /*****************************************************************************
- * Function: avd_node_ccb_completed_delete_hdlr
+ * Function: node_ccb_completed_delete_hdlr
  *
  * Purpose: This routine handles delete operations on SaAmfCluster objects.
  *
@@ -408,14 +400,12 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
  * Returns: None.
  *
  ****************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdata)
+static SaAisErrorT node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
-	AVD_AVND *node;
+	AVD_AVND *node = avd_node_get(&opdata->objectName);
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
-	node = avd_node_get(&opdata->objectName);
-	assert(node != NULL);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	if (node->node_info.member) {
 		LOG_ER("Node '%s' is still cluster member", opdata->objectName.value);
@@ -444,33 +434,17 @@ static SaAisErrorT avd_node_ccb_completed_delete_hdlr(CcbUtilOperationData_t * o
 		return SA_AIS_ERR_BAD_OPERATION;
 	}
 
-	/* Save for later use in apply */
-	opdata->userData = node;
-
+	TRACE_LEAVE();
 	return rc;
 }
 
-/*****************************************************************************
- * Function: avd_node_ccb_completed_modify_hdlr
- *
- * Purpose: This routine handles CCB modify completed operations on SaAmfNode objects.
- *
- *
- * Input  : Ccb Util Oper Data.
- *
- * Returns: None.
- *
- * NOTES  : None.
- *
- *
- **************************************************************************/
-static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t * opdata)
+static SaAisErrorT node_ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
 	while ((attr_mod = opdata->param.modify.attrMods[i++]) != NULL) {
 		const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
@@ -511,11 +485,12 @@ static SaAisErrorT avd_node_ccb_completed_modify_hdlr(CcbUtilOperationData_t * o
 		}
 	}
 
- done:
+done:
+	TRACE_LEAVE();
 	return rc;
 }
 
-static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t * opdata)
+static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
@@ -527,43 +502,45 @@ static SaAisErrorT node_ccb_completed_cb(CcbUtilOperationData_t * opdata)
 			rc = SA_AIS_OK;
 		break;
 	case CCBUTIL_MODIFY:
-		rc = avd_node_ccb_completed_modify_hdlr(opdata);
+		rc = node_ccb_completed_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		rc = avd_node_ccb_completed_delete_hdlr(opdata);
+		rc = node_ccb_completed_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
 		break;
 	}
 
+	TRACE_LEAVE();
 	return rc;
 }
 
-static void node_ccb_apply_delete_hdlr(AVD_AVND *node)
+static void node_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", node->node_info.nodeName.value);
+	AVD_AVND *node = avd_node_get(&opdata->objectName);
 
-	/* Remove the node from the node_id tree. */
+	TRACE_ENTER2("'%s'", node->node_info.nodeName.value);
+
+	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+
 	avd_node_delete_nodeid(node);
 	avd_node_delete(&node);
 
-	/* Check point to the standby AVD to delete this node */
-	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+	TRACE_LEAVE();
 }
 
-static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t * opdata)
+static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 {
 	uns32 rc;
-	AVD_AVND *avd_avnd;
+	AVD_AVND *node;
 	const SaImmAttrModificationT_2 *attr_mod;
 	int i = 0;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER2("'%s'", opdata->objectName.value);
 
-	/* Find the node name. */
-	avd_avnd = avd_node_get(&opdata->objectName);
-	assert(avd_avnd != NULL);
+	node = avd_node_get(&opdata->objectName);
+	assert(node != NULL);
 
 	i = 0;
 	/* Modifications can be done for the following parameters. */
@@ -587,22 +564,22 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t * opdata)
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverProb_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
-			param.name = avd_avnd->node_info.nodeName;
+			param.name = node->node_info.nodeName;
 
-			if (avd_avnd->node_state != AVD_AVND_STATE_ABSENT) {
-				backup_time = avd_avnd->saAmfNodeSuFailOverProb;
+			if (node->node_state != AVD_AVND_STATE_ABSENT) {
+				backup_time = node->saAmfNodeSuFailOverProb;
 				param.value_len = sizeof(SaTimeT);
 				memcpy((char *)&param.value[0], (char *)&su_failover_prob, param.value_len);
 
-				avd_avnd->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
+				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 
-				rc = avd_snd_op_req_msg(avd_cb, avd_avnd, &param);
+				rc = avd_snd_op_req_msg(avd_cb, node, &param);
 				assert(rc == NCSCC_RC_SUCCESS);
 			} else {
-				avd_avnd->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
+				node->saAmfNodeSuFailOverProb = m_NCS_OS_NTOHLL_P(&su_failover_prob);
 			}
 
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_avnd, AVSV_CKPT_AVD_NODE_CONFIG);
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 
 		} else if (!strcmp(attribute->attrName, "saAmfNodeSuFailoverMax")) {
 			uns32 back_val;
@@ -614,28 +591,30 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t * opdata)
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverMax_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
-			param.name = avd_avnd->node_info.nodeName;
+			param.name = node->node_info.nodeName;
 
-			if (avd_avnd->node_state != AVD_AVND_STATE_ABSENT) {
-				back_val = avd_avnd->saAmfNodeSuFailoverMax;
+			if (node->node_state != AVD_AVND_STATE_ABSENT) {
+				back_val = node->saAmfNodeSuFailoverMax;
 				param.value_len = sizeof(uns32);
 				m_NCS_OS_HTONL_P(&param.value[0], failover_val);
-				avd_avnd->saAmfNodeSuFailoverMax = failover_val;
+				node->saAmfNodeSuFailoverMax = failover_val;
 
-				rc = avd_snd_op_req_msg(avd_cb, avd_avnd, &param);
+				rc = avd_snd_op_req_msg(avd_cb, node, &param);
 				assert(rc == NCSCC_RC_SUCCESS);
 			} else {
-				avd_avnd->saAmfNodeSuFailoverMax = failover_val;
+				node->saAmfNodeSuFailoverMax = failover_val;
 			}
 
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, avd_avnd, AVSV_CKPT_AVD_NODE_CONFIG);
+			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 		} else {
 			assert(0);
 		}
 	}			/* while (attr_mod != NULL) */
+
+	TRACE_LEAVE();
 }
 
-static void node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
+static void node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 {
 	AVD_AVND *node;
 
@@ -651,7 +630,7 @@ static void node_ccb_apply_cb(CcbUtilOperationData_t * opdata)
 		node_ccb_apply_modify_hdlr(opdata);
 		break;
 	case CCBUTIL_DELETE:
-		node_ccb_apply_delete_hdlr(opdata->userData);
+		node_ccb_apply_delete_hdlr(opdata);
 		break;
 	default:
 		assert(0);
@@ -1194,13 +1173,13 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 	TRACE_LEAVE2("%u", rc);
 }
 
-void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl)
+void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
 {
 	sw_bdl->node_list_sw_bdl_next = sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl;
 	sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl;
 }
 
-void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl)
+void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE *sw_bdl)
 {
 	AVD_NODE_SW_BUNDLE *i_sw_bdl = NULL;
 	AVD_NODE_SW_BUNDLE *prev_sw_bdl = NULL;
@@ -1215,7 +1194,7 @@ void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl)
 		}
 
 		if (i_sw_bdl != sw_bdl) {
-			/* Log a fatal error */
+			assert(0);
 		} else {
 			if (prev_sw_bdl == NULL) {
 				sw_bdl->node_sw_bdl_on_node->list_of_avd_sw_bdl = sw_bdl->node_list_sw_bdl_next;
@@ -1262,7 +1241,7 @@ void avd_node_remove_su(AVD_SU *su)
 		}
 
 		if (i_su != su) {
-			/* Log a fatal error */
+			assert(0);
 		} else {
 			if (prev_su == NULL) {
 				if (isNcs)
@@ -1290,3 +1269,4 @@ void avd_node_constructor(void)
 
 	avd_class_impl_set("SaAmfNode", NULL, node_admin_op_cb, node_ccb_completed_cb, node_ccb_apply_cb);
 }
+

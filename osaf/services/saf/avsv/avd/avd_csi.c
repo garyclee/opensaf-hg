@@ -95,15 +95,7 @@ static void csi_add_to_model(AVD_CSI *csi)
 
 static void csi_delete(AVD_CSI *csi)
 {
-	AVD_CSI_ATTR *i_csi_attr;
 	unsigned int rc;
-
-	/* Delete CSI attributes */
-	i_csi_attr = csi->list_attributes;
-	while (i_csi_attr != NULL) {
-		avd_csi_remove_csiattr(csi, i_csi_attr);
-		i_csi_attr = csi->list_attributes;
-	}
 
 	avd_cstype_remove_csi(csi);
 	avd_si_remove_csi(csi);
@@ -295,11 +287,6 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 		csi_add_to_model(csi);
 
 		csiass_config_get(&csi_name, csi);
-
-		if (avd_csiattr_config_get(&csi_name, csi) != SA_AIS_OK) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
 	}
 
 	error = SA_AIS_OK;
@@ -557,77 +544,6 @@ uns32 avd_compcsi_delete(AVD_CL_CB *cb, AVD_SU_SI_REL *susi, NCS_BOOL ckpt)
 	}
 
 	return NCSCC_RC_SUCCESS;
-}
-
-void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr)
-{
-	AVD_CSI_ATTR *i_attr = NULL;
-	AVD_CSI_ATTR *p_attr = NULL;
-
-	/* remove ATTR from CSI list */
-	i_attr = csi->list_attributes;
-
-	while ((i_attr != NULL) && (i_attr != attr)) {
-		p_attr = i_attr;
-		i_attr = i_attr->attr_next;
-	}
-
-	if (i_attr != attr) {
-		/* Log a fatal error */
-		assert(0);
-	} else {
-		if (p_attr == NULL) {
-			csi->list_attributes = i_attr->attr_next;
-		} else {
-			p_attr->attr_next = i_attr->attr_next;
-		}
-	}
-
-	assert(csi->num_attributes > 0);
-	csi->num_attributes--;
-}
-
-void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr)
-{
-	int cnt = 0;
-	AVD_CSI_ATTR *ptr;
-
-	/* Count number of attributes (multivalue) */
-	ptr = csiattr;
-	while (ptr != NULL) {
-		cnt++;
-		if (ptr->attr_next != NULL)
-			ptr = ptr->attr_next;
-		else
-			break;
-	}
-
-	ptr->attr_next = csi->list_attributes;
-	csi->list_attributes = csiattr;
-#if 0
-	if (csi->list_attributes == NULL) {
-		csi->list_attributes = csiattr;
-		goto done;
-	}
-
-	/* keep the list in CSI in ascending order */
-	ptr = NULL;
-	i_attr = csi->list_attributes;
-	while ((i_attr != NULL) && (m_CMP_HORDER_SANAMET(i_attr->name_value.name, csiattr->name_value.name) < 0)) {
-		ptr = i_attr;
-		i_attr = i_attr->attr_next;
-	}
-
-	if (ptr == NULL) {
-		csi->list_attributes = csiattr;
-		csiattr->attr_next = i_attr;
-	} else {
-		ptr->attr_next = csiattr;
-		csiattr->attr_next = i_attr;
-	}
- done:
-#endif
-	csi->num_attributes += cnt;
 }
 
 void avd_csi_constructor(void)

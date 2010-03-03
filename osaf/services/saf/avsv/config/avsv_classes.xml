@@ -114,6 +114,7 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_MULTI_VALUE</flag>
 			<flag>SA_INITIALIZED</flag>
+			<flag>SA_WRITABLE</flag>
 		</attr>
 	</class>
 	<class name="SaAmfNodeSwBundle">
