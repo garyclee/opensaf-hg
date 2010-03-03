@@ -968,7 +968,7 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	AVD_COMP *comp;
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-	avd_log(NCSFL_SEV_NOTICE, "CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
+	TRACE_ENTER();
 
 	comp = avd_comp_get(&opdata->objectName);
 
@@ -997,37 +997,38 @@ static SaAisErrorT ccb_completed_modify_hdlr(CcbUtilOperationData_t *opdata)
 	}
 
 	rc = SA_AIS_OK;
+
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
 static SaAisErrorT comp_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
-	AVD_COMP *comp = NULL;
+	AVD_COMP *comp;
 	SaAisErrorT rc = SA_AIS_OK;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", opdata->objectName.value);
+	TRACE_ENTER();
 
-	/* Find the comp name. */
 	comp = avd_comp_get(&opdata->objectName);
-	assert(comp != NULL);
 
-	/* Check to see that the SU of which the component is a
-	 * part is in admin locked state, in term state with
-	 * no assignments before
-	 * making the row status as not in service or delete 
-	 */
-	if ((comp->su->sg_of_su->sg_ncs_spec == TRUE) ||
-	    (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) ||
-	    (comp->su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) ||
-	    (comp->su->list_of_susi != AVD_SU_SI_REL_NULL) ||
-	    ((comp->su->saAmfSUPreInstantiable == TRUE) && (comp->su->term_state != TRUE))) {
-		/* log information error */
-		return SA_AIS_ERR_BAD_OPERATION;
+	if (comp->su->sg_of_su->sg_ncs_spec == TRUE) {
+		/* Middleware component */
+		if (comp->su->su_on_node->node_state != AVD_AVND_STATE_ABSENT) {
+			LOG_ER("Node state is in wrong state for MW %s deletion", comp->comp_info.name.value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		}
+	}
+	else {
+		/* Non-middleware component */
+		if (comp->su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
+			LOG_ER("SU adm state is not LOCKED_INSTANTIATION for %s deletion", comp->comp_info.name.value);
+			rc = SA_AIS_ERR_BAD_OPERATION;
+		}
 	}
 
+	TRACE_LEAVE();
 	return rc;
-
 }
 
 static SaAisErrorT comp_ccb_completed_cb(CcbUtilOperationData_t *opdata)
@@ -1067,7 +1068,7 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 	unsigned int rc = NCSCC_RC_SUCCESS;
 	AVSV_PARAM_INFO param;
 
-	TRACE_ENTER2("'%s'", opdata->objectName.value);
+	TRACE_ENTER();
 
 	memset(((uns8 *)&param), '\0', sizeof(AVSV_PARAM_INFO));
 	param.class_id = AVSV_SA_AMF_COMP;
@@ -1391,7 +1392,9 @@ static void comp_ccb_apply_modify_hdlr(struct CcbUtilOperationData *opdata)
 				goto done;
 		}
 	}
- done:
+
+done:
+	TRACE_LEAVE();
 	return;
 }
 
@@ -1402,6 +1405,8 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	NCS_BOOL isPre;
 	AVD_AVND *su_node_ptr = NULL;
 	AVSV_PARAM_INFO param;
+
+	TRACE_ENTER();
 
 	comp = avd_comp_get(&opdata->objectName);
 
@@ -1497,6 +1502,7 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 	}
 
 	avd_comp_delete(&comp);
+	TRACE_LEAVE();
 }
 
 static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
@@ -1521,6 +1527,8 @@ static void comp_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		assert(0);
 		break;
 	}
+
+	TRACE_LEAVE();
 }
 
 void avd_comp_constructor(void)

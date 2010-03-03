@@ -326,6 +326,7 @@ done1:
 static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
+	AVD_COMPCS_TYPE *cst;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -339,8 +340,17 @@ static SaAisErrorT compcstype_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfCompCsType not supported");
 		break;
 	case CCBUTIL_DELETE:
-//		rc = SA_AIS_OK;
-		// TODO
+		cst = avd_compcstype_get(&opdata->objectName);
+		if (cst->comp->su->sg_of_su->sg_ncs_spec)
+			if (cst->comp->su->su_on_node->node_state == AVD_AVND_STATE_ABSENT)
+				rc = SA_AIS_OK;
+			else
+				LOG_ER("Can only delete MW entities for absent nodes");
+		else
+			if (cst->comp->su->saAmfSUAdminState == SA_AMF_ADMIN_LOCKED_INSTANTIATION)
+				rc = SA_AIS_OK;
+			else
+				LOG_ER("Deletion of SaAmfCompCsType requires parent SU to be in LOCKED-INSTANTIATION");
 		break;
 	default:
 		assert(0);
@@ -363,7 +373,7 @@ static void compcstype_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		compcstype_add_to_model(cst);
 		break;
 	case CCBUTIL_DELETE:
-		cst = opdata->userData;
+		cst = avd_compcstype_get(&opdata->objectName);
 		avd_compcstype_delete(&cst);
 		break;
 	default:

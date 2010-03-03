@@ -206,13 +206,21 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	/* Validate that a configured node or node group exist */
-	if ((immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) &&
-	    ((avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
-	     (avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL))) {
-
-		LOG_ER("Invalid saAmfSUHostNodeOrNodeGroup '%s' for '%s'",
-			saAmfSUHostNodeOrNodeGroup.value, dn->value);
-		return 0;
+	if (immutil_getAttr("saAmfSUHostNodeOrNodeGroup", attributes, 0, &saAmfSUHostNodeOrNodeGroup) == SA_AIS_OK) {
+		if (strncmp((char*)saAmfSUHostNodeOrNodeGroup.value, "safAmfNode=", 11) == 0) {
+			if ((avd_node_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
+				(ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL)) {
+				LOG_ER("Node '%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+				return 0;
+			}
+		}
+		else {
+			if ((avd_ng_get(&saAmfSUHostNodeOrNodeGroup) == NULL) &&
+				(ccbutil_getCcbOpDataByDN(opdata->ccbId, &saAmfSUHostNodeOrNodeGroup) == NULL)) {
+				LOG_ER("Nodegroup '%s' does not exist in existing model or in CCB", saAmfSUHostNodeOrNodeGroup.value);
+				return 0;
+			}
+		}
 	}
 
 	/* Get value of saAmfSGSuHostNodeGroup */
@@ -250,7 +258,7 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 	}
 
 	/*
-        * "If node groups are configured for both the service units of a service group and the
+	* "If node groups are configured for both the service units of a service group and the
 	* service group, the nodes contained in the node group for the service unit can only be
 	* a subset of the nodes contained in the node group for the service group. If a node is
 	* configured for a service unit, it must be a member of the node group for the service
@@ -968,8 +976,7 @@ static SaAisErrorT su_rt_attr_cb(SaImmOiHandleT immOiHandle,
 	SaImmAttrNameT attributeName;
 	int i = 0;
 
-	avd_trace("%s", objectName->value);
-	assert(su != NULL);
+	TRACE("%s", objectName->value);
 
 	while ((attributeName = attributeNames[i++]) != NULL) {
 		if (!strcmp("saAmfSUAssignedSIs", attributeName)) {
@@ -1076,6 +1083,10 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_SU *su;
 	SaAisErrorT rc = SA_AIS_OK;
+	int is_app_su = 1;
+
+	if (strstr((char *)opdata->objectName.value, "safApp=OpenSAF") != NULL)
+		is_app_su = 0;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
 
@@ -1085,18 +1096,26 @@ static SaAisErrorT su_ccb_completed_delete_hdlr(CcbUtilOperationData_t *opdata)
 
 	if ((su->saAmfSUPresenceState != SA_AMF_PRESENCE_UNINSTANTIATED) &&
 	    (su->saAmfSUPresenceState != SA_AMF_PRESENCE_INSTANTIATION_FAILED)) {
-		rc = SA_AIS_ERR_INVALID_PARAM;
+		LOG_ER("'%s' has wrong pres state %u for deletion", su->name.value, su->saAmfSUPresenceState);
+		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
-	if (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED) {
-		rc = SA_AIS_ERR_INVALID_PARAM;
+	if (is_app_su && (su->saAmfSUAdminState != SA_AMF_ADMIN_LOCKED)) {
+		LOG_ER("'%s' has wrong admin state %u for deletion", su->name.value, su->saAmfSUAdminState);
+		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
-	/* Check to see that no components or SUSI exists on this component */
-	if ((su->list_of_comp != NULL) || (su->list_of_susi != AVD_SU_SI_REL_NULL)) {
-		rc = SA_AIS_ERR_INVALID_PARAM;
+	if (su->list_of_comp != NULL) {
+		LOG_ER("'%s' scheduled for deletion still has components", su->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
+		goto done;
+	}
+
+	if (su->list_of_susi != NULL) {
+		LOG_ER("'%s' scheduled for deletion still has assignments", su->name.value);
+		rc = SA_AIS_ERR_BAD_OPERATION;
 		goto done;
 	}
 
@@ -1118,6 +1137,15 @@ static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_
 	const CcbUtilOperationData_t *opdata)
 {
 	SaAmfAdminStateT admstate;
+	int is_app_su = 1;
+
+	if (strstr((char *)dn->value, "safApp=OpenSAF") != NULL)
+		is_app_su = 0;
+
+	if (is_app_su && (immutil_getAttr("saAmfSUAdminState", attributes, 0, &admstate) != SA_AIS_OK)) {
+		LOG_ER("saAmfSUAdminState not configured for '%s'", dn->value);
+		return 0;
+	}
 
 	if (immutil_getAttr("saAmfSUAdminState", attributes, 0, &admstate) == SA_AIS_OK) {
 		if (admstate != SA_AMF_ADMIN_LOCKED_INSTANTIATION) {
@@ -1126,9 +1154,6 @@ static int is_ccb_create_config_valid(const SaNameT *dn, const SaImmAttrValuesT_
 				SA_AMF_ADMIN_LOCKED_INSTANTIATION);
 			return 0;
 		}
-	} else {
-		LOG_ER("saAmfSUAdminState not configured for '%s'", dn->value);
-		return 0;
 	}
 
 	return 1;

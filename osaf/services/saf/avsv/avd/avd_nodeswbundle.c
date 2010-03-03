@@ -180,6 +180,7 @@ done1:
 
 static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 {
+	AVD_NODE_SW_BUNDLE *sw_bdl;
 	SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
 	TRACE_ENTER2("CCB ID %llu, '%s'", opdata->ccbId, opdata->objectName.value);
@@ -193,7 +194,11 @@ static SaAisErrorT nodeswbdl_ccb_completed_cb(CcbUtilOperationData_t *opdata)
 		LOG_ER("Modification of SaAmfNodeSwBundle not supported");
 		break;
 	case CCBUTIL_DELETE:
-		rc = SA_AIS_OK;
+		sw_bdl = avd_nodeswbdl_get(&opdata->objectName);
+		if (sw_bdl->node_sw_bdl_on_node->node_state == AVD_AVND_STATE_ABSENT)
+			rc = SA_AIS_OK;
+		else
+			LOG_ER("Node state is not ABSENT required for deletion of %s", opdata->objectName.value);
 		break;
 	default:
 		assert(0);
@@ -217,7 +222,8 @@ static void nodeswbdl_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		nodeswbdl_add_to_model(sw_bdl);
 		break;
 	case CCBUTIL_DELETE:
-		nodeswbdl_delete(opdata->userData);
+		sw_bdl = avd_nodeswbdl_get(&opdata->objectName);
+		nodeswbdl_delete(sw_bdl);
 		break;
 	default:
 		assert(0);
