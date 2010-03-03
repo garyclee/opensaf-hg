@@ -361,7 +361,7 @@ uns32 avd_ckpt_su_oper_list(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE a
 {
 	AVD_SU *su;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s'", ckpt_su->name.value);
+	TRACE_ENTER2("'%s'", ckpt_su->name.value);
 
 	su = avd_su_get(&ckpt_su->name);
 	assert(su);
@@ -397,7 +397,7 @@ uns32 avd_ckpt_sg_admin_si(AVD_CL_CB *cb, NCS_UBAID *uba, NCS_MBCSV_ACT_TYPE act
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 
-	avd_log(NCSFL_SEV_NOTICE, "action %u", action);
+	TRACE_ENTER2("action %u", action);
 
 	si = &dec_si;
 	/* 
@@ -456,7 +456,7 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 	AVD_SU *su_ptr;
 	AVD_SI *si_ptr_up;
 
-	avd_log(NCSFL_SEV_NOTICE, "'%s' '%s'", su_si_ckpt->si_name.value, su_si_ckpt->su_name.value);
+	TRACE_ENTER2("'%s' '%s'", su_si_ckpt->si_name.value, su_si_ckpt->su_name.value);
 
 	su_si_rel_ptr = avd_susi_find(cb, &su_si_ckpt->su_name, &su_si_ckpt->si_name);
 

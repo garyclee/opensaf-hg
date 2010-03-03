@@ -16,25 +16,13 @@
  */
 
 /*****************************************************************************
-..............................................................................
-
-..............................................................................
 
   DESCRIPTION: This module contain all the encode routines require for encoding
   AVD data structures during checkpointing. 
 
-..............................................................................
+******************************************************************************/
 
-  FUNCTIONS INCLUDED in this module:
-
-  
-******************************************************************************
-*/
-
-/*
- * Module Inclusion Control...
- */
-
+#include <logtrace.h>
 #include <avd.h>
 #include <avd_cluster.h>
 
@@ -109,6 +97,8 @@ static uns32 avsv_encode_su_oper_list(AVD_CL_CB *cb, AVD_SG *sg, NCS_MBCSV_CB_EN
  * Function list for encoding the async data.
  * We will jump into this function using the reo_type received 
  * in the encode argument.
+ *
+ * This array _must_ correspond to avsv_ckpt_msg_reo_type in avd_ckpt_msg.h
  */
 const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 	avsv_encode_ckpt_avd_cb_config,
@@ -181,7 +171,7 @@ const AVSV_ENCODE_CKPT_DATA_FUNC_PTR avsv_enc_ckpt_data_func_list[] = {
 /*
  * Function list for encoding the cold sync response data
  * We will jump into this function using the reo_type received 
- * in the cold sync repsonce argument.
+ * in the cold sync response argument.
  */
 const AVSV_ENCODE_COLD_SYNC_RSP_DATA_FUNC_PTR avsv_enc_cold_sync_rsp_data_func_list[] = {
 	avsv_encode_cold_sync_rsp_avd_cb_config,
@@ -596,7 +586,7 @@ static uns32 avsv_encode_ckpt_avd_sg_admin_si(AVD_CL_CB *cb, NCS_MBCSV_CB_ENC *e
 }
 
 /****************************************************************************\
- * Function: avsv_encode_ckpt_avd_su_si_rel
+ * Function: avsv_encode_ckpt_avd_siass
  *
  * Purpose:  Encode entire AVD_SU_SI_REL data..
  *
