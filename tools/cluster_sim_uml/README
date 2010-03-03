@@ -26,7 +26,6 @@ The cluster environment is built using:
 - Linux kernel
 - Busybox
 - opensaf rpms
-- netsnmp libraries
 - a few host libraries
 
 All packages are downloaded from the net. Make sure to have proxy settings
@@ -60,9 +59,6 @@ etc	  This directory contains a script that this executed very early in
 	  the UML startup. It is required by the fairly generic UML scripts to
 	  be located here. Do not edit.
 
-Hello	  This directory contains a sample (dummy) AMF application that uses an
-	  2+1 (n+m) redundancy model on the payload nodes.
-
 uml	  This directory contains the UML kernel build, the busybox build and
 	  UML utilities.
 
@@ -74,14 +70,6 @@ DESTDIR set to the UML root file system. Make sure you have a default
 configured Opensaf like this:
 
 $ ./configure --disable-hpi
-
-Also make sure you have netsnmp libraries available. If these 
-libraries are in a non-standard location, setup environment variables to 
-point the right location. See 'build_uml'.
-
-Please note the netsnmp has to be configured with:
-
---without-openssl --disable-embedded-perl --without-perl-modules --without-rpm
 
 - Execute './build_uml'.
 
@@ -148,7 +136,6 @@ STARTUP SEQUENCE
 
 6. controller	
    /etc/init.d/40opensaf.rc does the following:
-   - starts snmpd, 
    - setups the environment for opensaf 
    - executes '/etc/init.d/opensafd start'
 
@@ -188,10 +175,8 @@ GNU C Library version 2.4 or later
 The following packages are known to work:
 
 - bash-3.1-24.4 (needed by opensaf scripts)
-- sysvinit-2.86-21.4 (contains start-stop-daemon needed by snmp scripts)
 - readline-5.1-24.4 (needed by bash)
 - ncurses-5.5-18.2 (needed by bash)
 - libgcc-4.1.0-28.4 (needed by scap)
 - libstdc++-4.1.0-28.4 (needed by scap)
-- net-snmp-5.4.1
 
