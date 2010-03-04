@@ -699,21 +699,18 @@
 			<type>SA_NAME_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
-			<flag>SA_PERSISTENT</flag>
 		</rdn>
 		<attr>
 			<name>saAmfSISUHAState</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
-			<flag>SA_PERSISTENT</flag>
 		</attr>
 		<attr>
 			<name>saAmfSISUHAReadinessState</name>
 			<type>SA_UINT32_T</type>
 			<category>SA_RUNTIME</category>
 			<flag>SA_CACHED</flag>
-			<flag>SA_PERSISTENT</flag>
 		</attr>
 	</class>
 	<class name="SaAmfSvcTypeCSTypes">
