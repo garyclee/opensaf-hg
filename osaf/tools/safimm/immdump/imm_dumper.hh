@@ -40,13 +40,37 @@ struct ClassInfo
 typedef std::map<std::string, ClassInfo*> ClassMap;
 
 std::list<std::string> getClassNames(SaImmHandleT handle);
-std::string getClassName(SaImmAttrValuesT_2** attrs);
+std::string getClassName(const SaImmAttrValuesT_2** attrs);
 std::string valueToString(SaImmAttrValueT, SaImmValueTypeT);
+
 void* pbeRepositoryInit(const char* filePath, bool create);
 void pbeRepositoryClose(void* dbHandle);
 void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	void* db_handle);
-void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle);
+void objectToPBE(std::string objectNameString, 
+	const SaImmAttrValuesT_2** attrs,
+	ClassMap* classIdMap, void* db_handle, unsigned int object_id,
+	SaImmClassNameT className);
 
-void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap);
+void objectDeleteToPBE(std::string objectNameString, void* db_handle);
+
+void pbeDaemon(SaImmHandleT immHandle, void* dbHandle, ClassMap* classIdMap,
+	unsigned int objCount);
+
+SaAisErrorT pbeBeginTrans(void* db_handle);
+SaAisErrorT pbeCommitTrans(void* db_handle);
+
+void objectModifyDiscardAllValuesOfAttrToPBE(void* dbHandle, 
+	std::string objName, 
+	const SaImmAttrValuesT_2* modAttr);
+	
+void objectModifyAddValuesOfAttrToPBE(void* dbHandle, 
+	std::string objName, 
+	const SaImmAttrValuesT_2* modAttr);
+	
+void objectModifyDiscardMatchingValuesOfAttrToPBE(void* dbHandle, 
+	std::string objName, 
+	const SaImmAttrValuesT_2* modAttr);
+	
