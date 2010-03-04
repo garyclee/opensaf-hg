@@ -35,7 +35,7 @@ static void objectToXML(std::string,
                         SaImmAttrValuesT_2**, 
                         SaImmHandleT, 
                         std::map<std::string, std::string>,
-                        xmlNodePtr);
+                     	xmlNodePtr);
 static void valuesToXML(SaImmAttrValuesT_2* p, xmlNodePtr parent);
 static void dumpObjects(SaImmHandleT, 
                         std::map<std::string, std::string>,
@@ -116,6 +116,7 @@ int main(int argc, char* argv[])
     const char* pbe_daemon_trace_label = "imm_pbe";
     const char* trace_label = dump_trace_label;
     ClassMap classIdMap;
+    unsigned int objCount=0;
 
     if ((argc < 2) || (argc > 4))
     {
@@ -248,7 +249,7 @@ int main(int argc, char* argv[])
         dumpClassesToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump classes OK");
 
-        dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
+        objCount = dumpObjectsToPbe(immHandle, &classIdMap, dbHandle);
         TRACE("Dump objects OK");
 
         if(!pbeDaemonCase) {
@@ -271,8 +272,10 @@ int main(int argc, char* argv[])
                 /* TODO SYNC with pbe-file AND with IMMSv */
             }
         }
-
-        pbeDaemon(immHandle, dbHandle, &classIdMap);
+	
+	/* If we allow pbe without prior dump we need to fix classIdMap. */
+	assert(classIdMap.size());
+        pbeDaemon(immHandle, dbHandle, &classIdMap, objCount);
         TRACE("Exit from pbeDaemon");
         exit(0);
     }
@@ -361,7 +364,6 @@ static void dumpObjects(SaImmHandleT immHandle,
     /* Iterate through the object space */
     do
     {
-        std::string className;
         errorCode = saImmOmSearchNext_2(searchHandle, 
                                         &objectName, 
                                         &attrs);
@@ -403,7 +405,7 @@ static void dumpObjects(SaImmHandleT immHandle,
     TRACE_LEAVE();
 }
 
-std::string getClassName(SaImmAttrValuesT_2** attrs)
+std::string getClassName(const SaImmAttrValuesT_2** attrs)
 {
     int i;
     std::string className;
@@ -557,7 +559,7 @@ static void objectToXML(std::string objectNameString,
                         SaImmAttrValuesT_2** attrs,
                         SaImmHandleT immHandle,
                         std::map<std::string, std::string> classRDNMap,
-                        xmlNodePtr parent)
+                       	xmlNodePtr parent)
 {
     std::string valueString;
     std::string classNameString;
@@ -565,7 +567,7 @@ static void objectToXML(std::string objectNameString,
     TRACE_ENTER();
 
     std::cout << "Dumping object " << objectNameString << std::endl;
-    classNameString = getClassName(attrs);
+    classNameString = getClassName((const SaImmAttrValuesT_2**) attrs);
     /* Create the object tag */
     objectNode = xmlNewTextChild(parent, 
                                  NULL, 

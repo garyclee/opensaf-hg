@@ -33,7 +33,6 @@
 static void typeToPBE(SaImmAttrDefinitionT_2* p, 
 	void* dbHandle, std::string * table_def)
 {
-	TRACE_ENTER();
 	switch (p->attrValueType)
 	{
 		case SA_IMM_ATTR_SAINT32T:
@@ -59,10 +58,10 @@ static void typeToPBE(SaImmAttrDefinitionT_2* p,
 			TRACE_4("Unknown value type %u", p->attrValueType);
 			exit(1);
 	}
-	TRACE_LEAVE();
 }
 
-static void valuesToPBE(SaImmAttrValuesT_2* p, SaImmAttrFlagsT attrFlags, 
+static void valuesToPBE(const SaImmAttrValuesT_2* p, 
+	SaImmAttrFlagsT attrFlags, 
 	const char *objIdStr, void* db_handle)
 {
 	/* Handle the multivalued case. */	
@@ -148,16 +147,16 @@ void* pbeRepositoryInit(const char* filePath, bool create)
 		 "CREATE TABLE objects (obj_id integer primary key, class_id integer, dn text)",
 		 "CREATE UNIQUE INDEX objects_idx on objects (dn)",
 
-		 "CREATE TABLE objects_int_multi (obj_id integer, attr_name text, int_val integer)",
+		 "CREATE TABLE objects_int_multi (obj_id integer, attr_name text, int_val integer, tuple_id integer primary key)",
 		 "CREATE INDEX objects_int_multi_idx on objects_int_multi (obj_id, attr_name)",
 
-		 "CREATE TABLE objects_text_multi (obj_id integer, attr_name text, text_val text)",
+		 "CREATE TABLE objects_text_multi (obj_id integer, attr_name text, text_val text, tuple_id integer primary key)",
 		 "CREATE INDEX objects_text_multi_idx on objects_text_multi (obj_id, attr_name)",
 
-		 "CREATE TABLE objects_real_multi (obj_id integer, attr_name text, real_val real)",
+		 "CREATE TABLE objects_real_multi (obj_id integer, attr_name text, real_val real, tuple_id integer primary key)",
 		 "CREATE INDEX objects_real_multi_idx on objects_real_multi (obj_id, attr_name)",
 
-		 "CREATE TABLE objects_blob_multi (obj_id integer, attr_name text, blob_val blob)",
+		 "CREATE TABLE objects_blob_multi (obj_id integer, attr_name text, blob_val blob, tuple_id integer primary key)",
 		 "CREATE INDEX objects_blob_multi_idx on objects_blob_multi (obj_id, attr_name)",
 		 "COMMIT TRANSACTION",
 		 NULL
@@ -492,12 +491,677 @@ static ClassInfo* classToPBE(std::string classNameString,
 	exit(1);
 }
 
-static void objectToPBE(std::string objectNameString,
-	SaImmAttrValuesT_2** attrs,
-	SaImmHandleT immHandle,
+void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sql1("select obj_id,class_id from objects where dn = '");
+	std::string sql21("select attr_type,attr_flags from attr_def where class_id = ");
+
+	int rc=0;
+	char **result=NULL;
+	char **result2=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	const char* object_id=NULL;
+	const char* class_id=NULL;
+	const char* class_name=NULL;
+	SaImmValueTypeT attr_type;
+	SaImmAttrFlagsT attr_flags;
+	TRACE_ENTER();
+	assert(dbHandle);
+
+	/* First, look up obj_id and class_id  from objects where dn == objname. */
+	sql1.append(objName);
+	sql1.append("'");
+	
+	TRACE("GENERATED 1:%s", sql1.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql1.c_str(), &result, &nrows,
+		&ncols, &zErr);
+
+	if(rc) {
+		LOG_ER("Could not access object '%s' for delete, error:%s",
+			objName.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed object '%s'. cols:%u", 
+		objName.c_str(), ncols);
+
+	object_id = result[ncols];
+	class_id  = result[ncols+1];
+
+	TRACE_2("object_id:%s class_id:%s", object_id, class_id);
+
+	/* Second, obtain the class description for the attribute. */
+
+	sql21.append(class_id);
+	sql21.append(" and attr_name = '");
+	sql21.append(attrValue->attrName);
+	sql21.append("'");
+
+	TRACE("GENERATED 21:%s", sql21.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql21.c_str(), &result2, &nrows,
+		&ncols, &zErr);
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+
+	TRACE_2("Successfully accessed attr_def for class_id:%s attr_name:%s. cols:%u (T:%s, F:%s)", 
+		class_id, attrValue->attrName, ncols, result2[ncols], result2[ncols+1]);
+
+	attr_type = (SaImmValueTypeT) atol(result2[ncols]);
+	assert(attr_type == attrValue->attrValueType);
+	attr_flags = atol(result2[ncols+1]);
+	sqlite3_free_table(result2);
+
+	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
+		TRACE_3("COMPONENT TEST BRANCH 1");
+		/* Remove all values. */
+		std::string sql211("delete from objects_");
+		switch(attr_type) {
+			case SA_IMM_ATTR_SAINT32T: 
+			case SA_IMM_ATTR_SAUINT32T: 
+			case SA_IMM_ATTR_SAINT64T:  
+			case SA_IMM_ATTR_SAUINT64T: 
+			case SA_IMM_ATTR_SATIMET:
+				sql211.append("int_multi where obj_id = ");
+			break;
+
+		case SA_IMM_ATTR_SAFLOATT:  
+		case SA_IMM_ATTR_SADOUBLET: 
+				sql211.append("real_multi where obj_id = ");
+			break;
+
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+				sql211.append("text_multi where obj_id = ");
+			break;
+
+		default:
+			LOG_ER("Unknown value type %u", attr_type);
+			goto bailout;
+		}
+
+		sql211.append(object_id);
+		sql211.append(" and attr_name = '");
+		sql211.append(attrValue->attrName);
+		sql211.append("'");
+
+		TRACE("GENERATED 211:%s", sql211.c_str());
+		rc = sqlite3_exec(dbHandle, sql211.c_str(), NULL, NULL, &zErr);
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql211.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+		TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+	} else {
+		/* Assign the null value to the single valued attribute. */
+		std::string sql22("update ");
+		std::string sql3("select class_name from classes where class_id = ");
+
+		/* Get the class-name for the object */
+		sql3.append(class_id);
+		TRACE("GENERATED 3:%s", sql3.c_str());
+		rc = sqlite3_get_table(dbHandle, sql3.c_str(), &result2, &nrows,
+			&ncols, &zErr);
+
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql3.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+
+		if(nrows != 1) {
+			LOG_ER("Expected 1 row got %u rows", nrows);
+			goto bailout;
+		}
+
+		class_name = result2[ncols];
+		TRACE_2("Successfully accessed classes class_id:%s class_name:'%s'. cols:%u", 
+			class_id, class_name, ncols);
+
+		/* Update the relevant attribute in the class_name table */
+		sql22.append(class_name);
+		sql22.append(" set ");
+		sql22.append(attrValue->attrName);
+		sql22.append(" = NULL where obj_id =");
+		sql22.append(object_id);
+		sqlite3_free_table(result2);
+
+		TRACE("GENERATED 22:%s", sql22.c_str());
+		rc = sqlite3_exec(dbHandle, sql22.c_str(), NULL, NULL, &zErr);
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql22.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+		TRACE("Update %u values", sqlite3_changes(dbHandle));
+	}
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return;
+
+ bailout:
+	TRACE_LEAVE();
+	sqlite3_close((sqlite3 *) dbHandle);
+	exit(1);
+}
+
+void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sql1("select obj_id,class_id from objects where dn = '");
+	std::string sql21("select attr_type,attr_flags from attr_def where class_id = ");
+
+	int rc=0;
+	char **result=NULL;
+	char **result2=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	const char* object_id=NULL;
+	const char* class_id=NULL;
+	const char* class_name=NULL;
+	SaImmValueTypeT attr_type;
+	SaImmAttrFlagsT attr_flags;
+	bool text_val = false;
+
+	TRACE_ENTER();
+	assert(dbHandle);
+
+	/* First, look up obj_id and class_id  from objects where dn == objname. */
+	sql1.append(objName);
+	sql1.append("'");
+	
+	TRACE("GENERATED 1:%s", sql1.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql1.c_str(), &result, &nrows,
+		&ncols, &zErr);
+
+	if(rc) {
+		LOG_ER("Could not access object '%s' for delete, error:%s",
+			objName.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed object '%s'. cols:%u", 
+		objName.c_str(), ncols);
+
+	object_id = result[ncols];
+	class_id  = result[ncols+1];
+	TRACE_2("object_id:%s class_id:%s", object_id, class_id);
+
+	/* Second, obtain the class description for the attribute. */
+
+	sql21.append(class_id);
+	sql21.append(" and attr_name = '");
+	sql21.append(attrValue->attrName);
+	sql21.append("'");
+
+	TRACE("GENERATED 21:%s", sql21.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql21.c_str(), &result2, &nrows,
+		&ncols, &zErr);
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+
+	TRACE_2("Successfully accessed attr_def for class_id:%s attr_name:%s. cols:%u (T:%s, F:%s)", 
+		class_id, attrValue->attrName, ncols, result2[ncols], result2[ncols+1]);
+
+	attr_type = (SaImmValueTypeT) atol(result2[ncols]);
+	assert(attr_type == attrValue->attrValueType);
+	attr_flags = atol(result2[ncols+1]);
+	sqlite3_free_table(result2);
+
+	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
+		/* Remove all matching values. */
+		std::string sql212("delete from objects_");
+		std::string val_attr;
+		unsigned int ix;
+		TRACE_3("COMPONENT TEST BRANCH 3");
+
+		switch(attr_type) {
+			case SA_IMM_ATTR_SAINT32T: 
+			case SA_IMM_ATTR_SAUINT32T: 
+			case SA_IMM_ATTR_SAINT64T:  
+			case SA_IMM_ATTR_SAUINT64T: 
+			case SA_IMM_ATTR_SATIMET:
+				sql212.append("int_multi where obj_id = ");
+				val_attr.append("' and int_val = ");
+			break;
+
+		case SA_IMM_ATTR_SAFLOATT:  
+		case SA_IMM_ATTR_SADOUBLET: 
+				sql212.append("real_multi where obj_id = ");
+				val_attr.append("' and real_val =");
+			break;
+
+		case SA_IMM_ATTR_SANAMET:
+		case SA_IMM_ATTR_SASTRINGT:
+		case SA_IMM_ATTR_SAANYT:
+				sql212.append("text_multi where obj_id = ");
+				val_attr.append("' and text_val = '");
+				text_val = true;
+			break;
+
+		default:
+			LOG_ER("Unknown value type %u", attr_type);
+			goto bailout;
+		}
+
+		sql212.append(object_id);
+		sql212.append(" and attr_name = '");
+		sql212.append(attrValue->attrName);
+		sql212.append(val_attr);
+		for(ix=0; ix < attrValue->attrValuesNumber; ++ix) {
+		TRACE_3("COMPONENT TEST BRANCH 4");
+			sql212.append(valueToString(attrValue->attrValues[ix], attr_type));
+			if(text_val) {
+				sql212.append("'");
+			}
+			TRACE("GENERATED 212:%s", sql212.c_str());
+			rc = sqlite3_exec(dbHandle, sql212.c_str(), NULL, NULL, &zErr);
+			if(rc) {
+				LOG_ER("SQL statement ('%s') failed because:\n %s", 
+					sql212.c_str(), zErr);
+				sqlite3_free(zErr);
+				goto bailout;
+			}
+			TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+		}
+	} else {
+		/* Assign the null value to the single valued attribute IFF
+		   current value matches.
+		 */
+		unsigned int ix;
+		std::string sql23("update ");
+		std::string sql3("select class_name from classes where class_id = ");
+		bool text_val = ((attr_type == SA_IMM_ATTR_SANAMET) ||
+			(attr_type == SA_IMM_ATTR_SASTRINGT) ||
+			(attr_type == SA_IMM_ATTR_SAANYT));
+		TRACE_3("COMPONENT TEST BRANCH 5");
+
+		/* Get the class-name for the object */
+		sql3.append(class_id);
+		TRACE("GENERATED 3:%s", sql3.c_str());
+		rc = sqlite3_get_table(dbHandle, sql3.c_str(), &result2, &nrows,
+			&ncols, &zErr);
+
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql3.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+
+		if(nrows != 1) {
+			LOG_ER("Expected 1 row got %u rows", nrows);
+			goto bailout;
+		}
+		TRACE_2("Successfully accessed classes class_id:%s class_name:'%s'. cols:%u", 
+			class_id, class_name, ncols);
+
+		class_name = result2[ncols];
+
+
+		/* Update the relevant attribute in the class_name table IFF value matches. */
+		sql23.append(class_name);
+		sql23.append(" set ");
+		sql23.append(attrValue->attrName);
+		sql23.append(" = NULL where obj_id =");
+		sql23.append(object_id);
+		sql23.append(" and ");
+		sql23.append(attrValue->attrName);
+		sql23.append(" = ");
+		if(text_val) {sql23.append("'");}
+		sqlite3_free_table(result2);
+		for(ix=0; ix < attrValue->attrValuesNumber; ++ix) {
+		TRACE_3("COMPONENT TEST BRANCH 6");
+			sql23.append(valueToString(attrValue->attrValues[ix], attr_type));
+			if(text_val) {sql23.append("'");}
+			TRACE("GENERATED 23:%s", sql23.c_str());
+			rc = sqlite3_exec(dbHandle, sql23.c_str(), NULL, NULL, &zErr);
+			if(rc) {
+				LOG_ER("SQL statement ('%s') failed because:\n %s",
+					sql23.c_str(), zErr);
+				sqlite3_free(zErr);
+				goto bailout;
+			}
+			TRACE("Update %u values", sqlite3_changes(dbHandle));
+		}
+	}
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return;
+
+ bailout:
+	TRACE_LEAVE();
+	sqlite3_close((sqlite3 *) dbHandle);
+	exit(1);
+}
+
+void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sql1("select obj_id,class_id from objects where dn = '");
+	std::string sql21("select attr_type,attr_flags from attr_def where class_id = ");
+
+	int rc=0;
+	char **result=NULL;
+	char **result2=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	const char* object_id=NULL;
+	const char* class_id=NULL;
+	const char* class_name=NULL;
+	SaImmValueTypeT attr_type;
+	SaImmAttrFlagsT attr_flags;
+	TRACE_ENTER();
+	assert(dbHandle);
+
+	/* First, look up obj_id and class_id  from objects where dn == objname. */
+	sql1.append(objName);
+	sql1.append("'");
+	
+	TRACE("GENERATED 1:%s", sql1.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql1.c_str(), &result, &nrows,
+		&ncols, &zErr);
+
+	if(rc) {
+		LOG_ER("Could not access object '%s' for delete, error:%s",
+			objName.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed object '%s'. cols:%u", 
+		objName.c_str(), ncols);
+
+	object_id = result[ncols];
+	class_id  = result[ncols+1];
+
+	TRACE_2("object_id:%s class_id:%s", object_id, class_id);
+
+	/* Second, obtain the class description for the attribute. */
+
+	sql21.append(class_id);
+	sql21.append(" and attr_name = '");
+	sql21.append(attrValue->attrName);
+	sql21.append("'");
+
+	TRACE("GENERATED 21:%s", sql21.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql21.c_str(), &result2, &nrows,
+		&ncols, &zErr);
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+
+	TRACE_2("Successfully accessed attr_def for class_id:%s attr_name:%s. cols:%u (T:%s, F:%s)", 
+		class_id, attrValue->attrName, ncols, result2[ncols], result2[ncols+1]);
+
+	attr_type = (SaImmValueTypeT) atol(result2[ncols]);
+	assert(attr_type == attrValue->attrValueType);
+	attr_flags = atol(result2[ncols+1]);
+	sqlite3_free_table(result2);
+
+	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
+		TRACE("Add to multivalued attribute.");
+		TRACE_3("COMPONENT TEST BRANCH 7");
+	        valuesToPBE(attrValue, attr_flags, objName.c_str(), dbHandle);
+	} else {
+		/* Add value to single valued */
+		std::string sql22("update ");
+		std::string sql3("select class_name from classes where class_id = ");
+
+		assert(attrValue->attrValuesNumber == 1);
+		/* Get the class-name for the object */
+		sql3.append(class_id);
+		TRACE("GENERATED 3:%s", sql3.c_str());
+		rc = sqlite3_get_table(dbHandle, sql3.c_str(), &result2, &nrows, &ncols, &zErr);
+
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql3.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+
+		if(nrows != 1) {
+			LOG_ER("Expected 1 row got %u rows", nrows);
+			goto bailout;
+		}
+
+		class_name = result2[ncols];
+		TRACE_2("Successfully accessed classes class_id:%s class_name:'%s'. cols:%u", 
+			class_id, class_name, ncols);
+
+		/* Update the relevant attribute in the class_name table */
+		/* We should check that the current value is NULL, but we assume instead
+		   that the ImmModel has done this check. */
+		sql22.append(class_name);
+		sql22.append(" set ");
+		sql22.append(attrValue->attrName);
+		sql22.append(" = ");
+		sql22.append(valueToString(attrValue->attrValues[0], attrValue->attrValueType));
+		sql22.append("where obj_id = ");
+		sql22.append(object_id);
+		sqlite3_free_table(result2);
+
+		TRACE("GENERATED 22:%s", sql22.c_str());
+		rc = sqlite3_exec(dbHandle, sql22.c_str(), NULL, NULL, &zErr);
+		if(rc) {
+			LOG_ER("SQL statement ('%s') failed because:\n %s", sql22.c_str(), zErr);
+			sqlite3_free(zErr);
+			goto bailout;
+		}
+		TRACE("Updated %u values", sqlite3_changes(dbHandle));
+	}
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return;
+
+ bailout:
+	sqlite3_close((sqlite3 *) dbHandle);
+	TRACE_LEAVE();
+	exit(1);
+}
+
+void objectDeleteToPBE(std::string objectNameString, void* db_handle)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	std::string sql1("select obj_id,class_id from objects where dn = '");
+	std::string sql2("delete from objects where obj_id = ");
+	std::string sql3("select class_name from classes where class_id = ");
+	std::string sql4("delete from ");
+	std::string sql5("delete from objects_int_multi where obj_id = ");
+	std::string sql6("delete from objects_real_multi where obj_id = ");
+	std::string sql7("delete from objects_text_multi where obj_id = ");
+
+	int rc=0;
+	char **result=NULL;
+	char **result2=NULL;
+	char *zErr=NULL;
+	int nrows=0;
+	int ncols=0;
+	const char* object_id=NULL;
+	const char* class_id=NULL;
+	const char* class_name=NULL;
+	TRACE_ENTER();
+	assert(dbHandle);
+
+	/* First, look up obj_id and class_id  from objects where dn == objname. */
+	sql1.append(objectNameString);
+	sql1.append("'");
+	
+	TRACE("GENERATED 1:%s", sql1.c_str());
+
+	rc = sqlite3_get_table(dbHandle, sql1.c_str(), &result, &nrows,
+		&ncols, &zErr);
+
+	if(rc) {
+		LOG_ER("Could not access object '%s' for delete, error:%s",
+			objectNameString.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+	TRACE_2("Successfully accessed object '%s'. cols:%u", 
+		objectNameString.c_str(), ncols);
+
+	object_id = result[ncols];
+	class_id  = result[ncols+1];
+
+	TRACE_2("object_id:%s class_id:%s", object_id, class_id);
+
+	/*
+	  Second, delete the root object tuple in objects for obj_id. 
+	*/
+
+	sql2.append(object_id);
+	TRACE("GENERATED 2:%s", sql2.c_str());
+
+	rc = sqlite3_exec(dbHandle, sql2.c_str(), NULL, NULL, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql2.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+
+	/* Third get the class-name for the object */
+
+	sql3.append(class_id);
+	TRACE("GENERATED 3:%s", sql3.c_str());
+	rc = sqlite3_get_table(dbHandle, sql3.c_str(), &result2, &nrows,
+		&ncols, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql3.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	if(nrows != 1) {
+		LOG_ER("Expected 1 row got %u rows", nrows);
+		goto bailout;
+	}
+	class_name = result2[ncols];
+
+	TRACE_2("Successfully accessed classes class_id:%s class_name:'%s'. cols:%u", 
+		class_id, class_name, ncols);
+
+	/* Fourth delete the base attribute tuple from table 'classname' for obj_id.
+	 */
+	sql4.append(class_name);
+	sql4.append(" where obj_id = ");
+	sql4.append(object_id);
+	sqlite3_free_table(result2);
+
+	TRACE("GENERATED 4:%s", sql4.c_str());
+	rc = sqlite3_exec(dbHandle, sql4.c_str(), NULL, NULL, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql4.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+
+	/*
+	  Fifth delete from objects_int_multi, objects_real_multi, objects_text_multi where
+	  obj_id ==OBJ_ID
+	 */
+
+	sql5.append(object_id);
+	TRACE("GENERATED 5:%s", sql5.c_str());
+
+	rc = sqlite3_exec(dbHandle, sql5.c_str(), NULL, NULL, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql5.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+
+	sql6.append(object_id);
+	TRACE("GENERATED 6:%s", sql6.c_str());
+
+	rc = sqlite3_exec(dbHandle, sql6.c_str(), NULL, NULL, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql6.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+
+	sql7.append(object_id);
+	TRACE("GENERATED 7:%s", sql7.c_str());
+
+	rc = sqlite3_exec(dbHandle, sql7.c_str(), NULL, NULL, &zErr);
+	if(rc) {
+		LOG_ER("SQL statement ('%s') failed because:\n %s", sql7.c_str(), zErr);
+		sqlite3_free(zErr);
+		goto bailout;
+	}
+
+	TRACE("Deleted %u values", sqlite3_changes(dbHandle));
+
+	sqlite3_free_table(result);
+	TRACE_LEAVE();
+	return;
+
+ bailout:
+	sqlite3_close((sqlite3 *) dbHandle);
+	exit(1);
+}
+
+
+
+void objectToPBE(std::string objectNameString,
+	const SaImmAttrValuesT_2** attrs,
 	ClassMap *classIdMap,
 	void* db_handle,
-	unsigned int object_id)
+	unsigned int object_id,
+	SaImmClassNameT className)
 {
 	std::string valueString;
 	std::string classNameString;
@@ -517,7 +1181,12 @@ static void objectToPBE(std::string objectNameString,
 
 	TRACE_ENTER();
 	TRACE_1("Dumping object %s", objectNameString.c_str());
-	classNameString = getClassName(attrs);
+	if(className) {
+		classNameString = std::string(className);
+	} else {
+		classNameString = getClassName(attrs);
+	}
+
 	classInfo = (*classIdMap)[classNameString];
 	if(!classInfo) {
 		LOG_ER("Class '%s' not found in classIdMap", 
@@ -546,7 +1215,7 @@ static void objectToPBE(std::string objectNameString,
 	sqlF.append(classNameString.c_str());
 	sqlF2.append(objIdStr);
 
-	for (SaImmAttrValuesT_2** p = attrs; *p != NULL; p++)
+	for (const SaImmAttrValuesT_2** p = attrs; *p != NULL; p++)
 	{
 		std::string attName((*p)->attrName);
 		SaImmAttrFlagsT attrFlags = classInfo->mAttrMap[attName];
@@ -607,6 +1276,7 @@ static void objectToPBE(std::string objectNameString,
 	return;
  bailout:
 	sqlite3_close(dbHandle);
+	TRACE_LEAVE();
 	/* TODO remove imm.db file */
 	exit(1);
 }
@@ -654,10 +1324,11 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
+	TRACE_LEAVE();
 	exit(1);	
 }
 
-void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle)
 {
 	int                    rc=0;
@@ -695,7 +1366,7 @@ void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 			NULL/*&params*/, 
 			NULL, 
 			&searchHandle);
-
+ 
 	} while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
 		(tryCount < maxTries)); /* Can happen if imm is syncing. */
 
@@ -717,7 +1388,6 @@ void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	/* Iterate through the object space */
 	do
 	{
-		std::string className;
 		errorCode = saImmOmSearchNext_2(searchHandle, &objectName, &attrs);
 
 		if (SA_AIS_OK != errorCode)
@@ -733,8 +1403,7 @@ void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 		}
 
 		objectToPBE(std::string((char*)objectName.value, objectName.length),
-			attrs, immHandle, classIdMap, dbHandle, 
-			++object_id);
+			(const SaImmAttrValuesT_2**) attrs, classIdMap, dbHandle, ++object_id, NULL);
 	} while (true);
 
 	if (SA_AIS_ERR_NOT_EXIST != errorCode)
@@ -754,12 +1423,45 @@ void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	/* End the search */
 	saImmOmSearchFinalize(searchHandle);
 	TRACE_LEAVE();
-	return;
+	return object_id; /* == number of dumped objects */
  bailout:
 	sqlite3_close(dbHandle);
 	/* TODO remove imm.db file */
 	exit(1);	
 }
+
+SaAisErrorT pbeBeginTrans(void* db_handle)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	char *execErr=NULL;
+	int rc=0;
+
+	sqlite3_exec(dbHandle, "BEGIN EXCLUSIVE TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('BEGIN EXCLUSIVE TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
+	return SA_AIS_OK;
+}
+
+SaAisErrorT pbeCommitTrans(void* db_handle)
+{
+	sqlite3* dbHandle = (sqlite3 *) db_handle;
+	char *execErr=NULL;
+	int rc=0;
+
+	sqlite3_exec(dbHandle, "COMMIT TRANSACTION", NULL, NULL, &execErr);
+	if(rc != SQLITE_OK) {
+		LOG_ER("SQL statement ('COMMIT TRANSACTION') failed because:\n %s",
+			execErr);
+		sqlite3_free(execErr);
+		return SA_AIS_ERR_FAILED_OPERATION;
+	}
+	return SA_AIS_OK;
+}
+
 
 #else
 void* pbeRepositoryInit(const char* filePath, bool create)
@@ -778,9 +1480,20 @@ void dumpClassesToPbe(SaImmHandleT immHandle, ClassMap *classIdMap,
 	assert(0);
 }
 
-void dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
+unsigned int dumpObjectsToPbe(SaImmHandleT immHandle, ClassMap* classIdMap,
 	void* db_handle)
 {
 	assert(0);
+	return 0;
+}
+
+SaAisErrorT pbeBeginTrans(void* db_handle)
+{
+	return SA_AIS_ERR_NO_RESOURCES;
+}
+
+SaAisErrorT pbeCommitTrans(void* db_handle)
+{
+	return SA_AIS_ERR_NO_RESOURCES;
 }
 #endif

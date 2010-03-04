@@ -246,7 +246,6 @@ bool loadClassFromPbe(void* pbeHandle,
 	}
 
 	if (!createImmClass(immHandle, (char *) className, classCategory, &attrDefs)) {
-		sqlite3_free_table(result);
 		goto bailout;
 	}
 
