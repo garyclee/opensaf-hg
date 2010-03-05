@@ -43,7 +43,6 @@ typedef uns32 (*AVND_EVT_HDLR) (struct avnd_cb_tag *, struct avnd_evt_tag *);
 
 EXTERN_C void avnd_main_process(void);
 
-EXTERN_C uns32 avnd_evt_avd_node_update_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_node_up_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_reg_su_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_avd_reg_comp_msg(struct avnd_cb_tag *, struct avnd_evt_tag *);

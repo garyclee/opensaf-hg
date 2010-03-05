@@ -11,7 +11,7 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s):  Emerson Network Power
 #
 
 include $(top_srcdir)/Makefile.common

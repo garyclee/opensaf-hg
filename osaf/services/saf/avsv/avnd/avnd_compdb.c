@@ -359,7 +359,7 @@ AVND_COMP *avnd_compdb_rec_add(AVND_CB *cb, AVND_COMP_PARAM *info, uns32 *rc)
 	m_AVND_COMP_RESTART_EN_SET(comp, (info->comp_restart == TRUE) ? FALSE : TRUE);
 
 	comp->cap = info->cap;
-	comp->node_id = cb->clmdb.node_info.nodeId;
+	comp->node_id = cb->node_info.nodeId;
 
 	/* update CLC params */
 	comp->clc_info.inst_retry_max = info->max_num_inst;
@@ -1187,7 +1187,7 @@ static int comp_init(AVND_COMP *comp, const SaImmAttrValuesT_2 **attributes)
 	}
 
 	avsv_create_association_class_dn(&comptype->saAmfCtSwBundle,
-		&avnd_cb->clmdb.node_info.nodeName, "safInstalledSwBundle", &nodeswbundle_name);
+		&avnd_cb->amf_nodeName, "safInstalledSwBundle", &nodeswbundle_name);
 
 	res = get_string_attr_from_imm(avnd_cb->immOmHandle, "saAmfNodeSwBundlePathPrefix",
 		&nodeswbundle_name, &path_prefix);
@@ -1420,7 +1420,7 @@ static AVND_COMP *avnd_comp_create(const SaNameT *comp_name, const SaImmAttrValu
 	m_AVND_COMP_OPER_STATE_AVD_SYNC(avnd_cb, comp, rc);
 
 //	comp->cap = info->cap;
-	comp->node_id = avnd_cb->clmdb.node_info.nodeId;
+	comp->node_id = avnd_cb->node_info.nodeId;
 	comp->pres = SA_AMF_PRESENCE_UNINSTANTIATED;
 
 	/* Initialize the comp-hc list. */

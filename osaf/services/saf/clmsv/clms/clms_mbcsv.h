@@ -82,7 +82,9 @@ typedef struct clms_ckpt_node {
         SaTimeT  lck_cbk_timeout;
         SaClmAdminStateT  admin_state;
         SaClmClusterChangesT  change;
+	#ifdef ENABLE_AIS_PLM
         SaPlmReadinessStateT  ee_red_state;
+	#endif
         SaBoolT nodeup;     /*Check for the connectivity*/
         SaInvocationT curr_admin_inv;
         SaBoolT stat_change;    /*Required to check for the number of nodes on which change has occured*/

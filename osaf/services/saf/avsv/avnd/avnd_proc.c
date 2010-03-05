@@ -47,17 +47,16 @@
 
 #define FD_MBX   0
 #define FD_USR1  1
-#define FD_MBCSV 2
+#define FD_CLM   2 
+#define FD_MBCSV 3
 
 char *avnd_evt_type_name[] = {
 	"AVND_EVT_INVALID",
-	"AVND_EVT_AVD_NODE_UPDATE_MSG",
 	"AVND_EVT_AVD_NODE_UP_MSG",
 	"AVND_EVT_AVD_REG_HLT_MSG",
 	"AVND_EVT_AVD_REG_SU_MSG",
 	"AVND_EVT_AVD_REG_COMP_MSG",
 	"AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG",
-	"AVND_EVT_AVD_NODE_ON_FOVER",
 	"AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG",
 	"AVND_EVT_AVD_PG_UPD_MSG",
 	"AVND_EVT_AVD_OPERATION_REQUEST_MSG",
@@ -85,11 +84,6 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_AVA_ERR_REP",
 	"AVND_EVT_AVA_ERR_CLEAR",
 	"AVND_EVT_AVA_RESP",
-	"AVND_EVT_CLA_FINALIZE",
-	"AVND_EVT_CLA_TRACK_START",
-	"AVND_EVT_CLA_TRACK_STOP",
-	"AVND_EVT_CLA_NODE_GET",
-	"AVND_EVT_CLA_NODE_ASYNC_GET",
 	"AVND_EVT_TMR_HC",
 	"AVND_EVT_TMR_CBK_RESP",
 	"AVND_EVT_TMR_SND_HB",
@@ -102,7 +96,6 @@ char *avnd_evt_type_name[] = {
 	"AVND_EVT_MDS_AVD_UP",
 	"AVND_EVT_MDS_AVD_DN",
 	"AVND_EVT_MDS_AVA_DN",
-	"AVND_EVT_MDS_CLA_DN",
 	"AVND_EVT_MDS_AVND_DN",
 	"AVND_EVT_MDS_AVND_UP",
 	"AVND_EVT_HA_STATE_CHANGE",
@@ -127,13 +120,11 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_invalid_func,	/* AVND_EVT_INVALID */
 
 	/* AvD message event types */
-	avnd_evt_avd_node_update_msg,	/* AVND_EVT_AVD_NODE_UPDATE_MSG */
 	avnd_evt_avd_node_up_msg,	/* AVND_EVT_AVD_NODE_UP_MSG */
 	NULL,				/* AVND_EVT_AVD_REG_HLT_MSG */
 	avnd_evt_avd_reg_su_msg,	/* AVND_EVT_AVD_REG_SU_MSG */
 	avnd_evt_avd_reg_comp_msg,	/* AVND_EVT_AVD_REG_COMP_MSG */
 	avnd_evt_avd_info_su_si_assign_msg,	/* AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG */
-	avnd_evt_avd_clm_node_on_fover,	/* AVND_EVT_AVD_NODE_ON_FOVER */
 	avnd_evt_avd_pg_track_act_rsp_msg,	/* AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG */
 	avnd_evt_avd_pg_upd_msg,	/* AVND_EVT_AVD_PG_UPD_MSG */
 	avnd_evt_avd_operation_request_msg,	/* AVND_EVT_AVD_OPERATION_REQUEST_MSG */
@@ -164,13 +155,6 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_ava_err_clear,	/* AVND_EVT_AVA_ERR_CLEAR */
 	avnd_evt_ava_resp,	/* AVND_EVT_AVA_RESP */
 
-	/* CLA event types */
-	avnd_evt_cla_finalize,	/* AVND_EVT_CLA_FINALIZE */
-	avnd_evt_cla_track_start,	/* AVND_EVT_CLA_TRACK_START */
-	avnd_evt_cla_track_stop,	/* AVND_EVT_CLA_TRACK_STOP */
-	avnd_evt_cla_node_get,	/* AVND_EVT_CLA_NODE_GET */
-	avnd_evt_cla_node_async_get,	/* AVND_EVT_CLA_NODE_ASYNC_GET */
-
 	/* timer event types */
 	avnd_evt_tmr_hc,	/* AVND_EVT_TMR_HC */
 	avnd_evt_tmr_cbk_resp,	/* AVND_EVT_TMR_CBK_RESP */
@@ -186,7 +170,6 @@ const AVND_EVT_HDLR g_avnd_func_list[AVND_EVT_MAX] = {
 	avnd_evt_mds_avd_up,	/* AVND_EVT_MDS_AVD_UP */
 	avnd_evt_mds_avd_dn,	/* AVND_EVT_MDS_AVD_DN */
 	avnd_evt_mds_ava_dn,	/* AVND_EVT_MDS_AVA_DN */
-	avnd_evt_mds_cla_dn,	/* AVND_EVT_MDS_CLA_DN */
 	avnd_evt_mds_avnd_dn,	/* AVND_EVT_MDS_AVND_DN */
 	avnd_evt_mds_avnd_up,	/* AVND_EVT_MDS_AVND_UP */
 
@@ -232,8 +215,8 @@ void avnd_main_process(void)
 {
 	NCS_SEL_OBJ mbx_fd;
 	NCS_BOOL avnd_exit = FALSE;
-	struct pollfd fds[3];
-	nfds_t nfds = 2;
+	struct pollfd fds[4];
+	nfds_t nfds = 3;
 
 	TRACE_ENTER();
 
@@ -267,8 +250,12 @@ void avnd_main_process(void)
 
 	fds[FD_USR1].fd = usr1_sel_obj.rmv_obj;
 	fds[FD_USR1].events = POLLIN;
+
+	fds[FD_CLM].fd = avnd_cb->clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
+         
 #if FIXME
-	if (avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+	if (avnd_cb->type == AVSV_AVND_CARD_SYS_CON) {
 		fds[FD_MBCSV].fd = avnd_cb->avnd_mbcsv_sel_obj;
 		fds[FD_MBCSV].events = POLLIN;
 		nfds++;
@@ -289,10 +276,16 @@ void avnd_main_process(void)
 			break;
 		}
 
+                if (fds[FD_CLM].revents & POLLIN) {
+                        TRACE("CLM event recieved");
+                        avnd_log(NCSFL_SEV_NOTICE,"CLM event recieved");
+                        saClmDispatch(avnd_cb->clmHandle, SA_DISPATCH_ALL);
+                }
+
 		if (fds[FD_MBX].revents & POLLIN) {
 			avnd_exit = avnd_mbx_process(&avnd_cb->mbx);
 			if (TRUE == avnd_exit) {
-				if (avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+				if (avnd_cb->type == AVSV_AVND_CARD_SYS_CON) {
 					/*
 					* FIXME: this is a hack until NID is removed
 					* Kill amfd otherwise it will reboot the system.
@@ -307,7 +300,7 @@ void avnd_main_process(void)
 		if (fds[FD_USR1].revents & POLLIN)
 			avnd_sigusr1_handler();
 #if FIXME
-		if ((avnd_cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) &&
+		if ((avnd_cb->type == AVSV_AVND_CARD_SYS_CON) &&
 		    (fds[FD_MBCSV].revents & POLLIN)) {
 			if (NCSCC_RC_SUCCESS != avnd_mbcsv_dispatch(avnd_cb, SA_DISPATCH_ALL)) {
 				; /* continue with our loop. */

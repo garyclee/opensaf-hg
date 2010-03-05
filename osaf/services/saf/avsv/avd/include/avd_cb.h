@@ -205,13 +205,6 @@ typedef struct cl_cb_tag {
 					 * Checkpointing - Sent as a one time update.
 					 */
 
-	uns32 cluster_num_nodes;	/* The number of member nodes in the cluster
-					 * Checkpointing - Calculated at standby
-					 */
-
-	SaUint64T cluster_view_number;	/* the current cluster membership view number 
-					 * Checkpointing - Sent as an independent update.
-					 */
 	SaClmNodeIdT node_id_avd;	/* node id on which this AvD is  running */
 	SaClmNodeIdT node_id_avd_other;	/* node id on which the other AvD is
 					 * running 
@@ -267,6 +260,9 @@ typedef struct cl_cb_tag {
 
 	fmHandleT fm_hdl;
 	SaSelectionObjectT fm_sel_obj;
+	/* Clm stuff */
+	SaClmHandleT clmHandle;
+	SaSelectionObjectT clm_sel_obj;
 
 } AVD_CL_CB;
 

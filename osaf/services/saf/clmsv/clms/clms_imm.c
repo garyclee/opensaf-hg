@@ -52,7 +52,7 @@ static void *imm_impl_set(void *_cb)
 		exit(EXIT_FAILURE);
 	}
 
-	if ((rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode1")) != SA_AIS_OK){
+	if ((rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode")) != SA_AIS_OK){
 		LOG_ER("saImmOiClassImplementerSet failed  for class SaClmNode%u", rc);
 		exit(EXIT_FAILURE);
 	}
@@ -149,23 +149,23 @@ CLMS_CLUSTER_NODE * clms_node_new(SaNameT *name,const SaImmAttrValuesT_2 ** attr
 		value = attr->attrValues[0];
 		TRACE("Inside the while loop attrname %s",attr->attrName);
 		       
-	       	if (!strcmp(attr->attrName, "saClmNodeAdminState1")) {
+	       	if (!strcmp(attr->attrName, "saClmNodeAdminState")) {
 			node->admin_state = *((SaUint32T *)value);
 			
-		} else if (!strcmp(attr->attrName, "saClmNodeLockCallbackTimeout1")) {
+		} else if (!strcmp(attr->attrName, "saClmNodeLockCallbackTimeout")) {
 			node->lck_cbk_timeout = *((SaTimeT *)value);
 		       
-		} else if (!strcmp(attr->attrName, "saClmNodeDisableReboot1")) {
+		} else if (!strcmp(attr->attrName, "saClmNodeDisableReboot")) {
 			node->disable_reboot = *((SaUint32T *)value);
 		
-		} else if (!strcmp(attr->attrName, "saClmNodeAddressFamily1")) {
+		} else if (!strcmp(attr->attrName, "saClmNodeAddressFamily")) {
 			node->node_addr.family = *((SaUint32T *)value);
 
-		} else if (!strcmp(attr->attrName, "saClmNodeAddress1")) {
+		} else if (!strcmp(attr->attrName, "saClmNodeAddress")) {
 			strcpy((char *)node->node_addr.value,*((char **)value));
 			node->node_addr.length = (SaUint16T)strlen((char *)node->node_addr.value);
 
-		} else if (!strcmp(attr->attrName, "saClmNodeEE1")) {
+		} else if (!strcmp(attr->attrName, "saClmNodeEE")) {
 			SaNameT *name = (SaNameT*)value;
 			TRACE("saClmNodeEE attribute name's length %d",name->length);
 
@@ -197,7 +197,7 @@ SaAisErrorT clms_node_create_config(void)
 	 SaNameT dn;
 	 SaImmAttrValuesT_2 **attributes;
 	/*For time being changed to SaClmNode1 but shud be SaClmNode*/
-	 const char *className="SaClmNode1";
+	 const char *className="SaClmNode";
 
 	TRACE_ENTER();
 
@@ -336,7 +336,7 @@ SaAisErrorT clms_imm_activate(CLMS_CB *cb)
 			exit(EXIT_FAILURE);
 		}
 
-		if ((rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode1"))!=SA_AIS_OK){
+		if ((rc = saImmOiClassImplementerSet(cb->immOiHandle, "SaClmNode"))!=SA_AIS_OK){
 			LOG_ER("saImmOiClassImplementerSet failed  for class SaClmNode%u", rc);
 			exit(EXIT_FAILURE);
 		}
@@ -381,31 +381,31 @@ void clms_node_update_rattr(CLMS_CLUSTER_NODE * nd)
 	TRACE_ENTER(); 
                                                 
         attr_Mod[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[0].modAttr.attrName = "saClmNodeIsMember1";
+        attr_Mod[0].modAttr.attrName = "saClmNodeIsMember";
         attr_Mod[0].modAttr.attrValuesNumber = 1;
         attr_Mod[0].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
         attr_Mod[0].modAttr.attrValues = attrUpdateValue;
 
         attr_Mod[1].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[1].modAttr.attrName = "saClmNodeID1";
+        attr_Mod[1].modAttr.attrName = "saClmNodeID";
         attr_Mod[1].modAttr.attrValuesNumber = 1;
         attr_Mod[1].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
         attr_Mod[1].modAttr.attrValues = attrUpdateValue1;
 
         attr_Mod[2].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[2].modAttr.attrName = "saClmNodeBootTimeStamp1";
+        attr_Mod[2].modAttr.attrName = "saClmNodeBootTimeStamp";
         attr_Mod[2].modAttr.attrValuesNumber = 1;
         attr_Mod[2].modAttr.attrValueType = SA_IMM_ATTR_SATIMET;
         attr_Mod[2].modAttr.attrValues = attrUpdateValue2;
 
         attr_Mod[3].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[3].modAttr.attrName = "saClmNodeInitialViewNumber1";
+        attr_Mod[3].modAttr.attrName = "saClmNodeInitialViewNumber";
         attr_Mod[3].modAttr.attrValuesNumber = 1;
         attr_Mod[3].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
         attr_Mod[3].modAttr.attrValues = attrUpdateValue3;
                 
         attr_Mod[4].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[4].modAttr.attrName = "saClmNodeAdminState1";
+        attr_Mod[4].modAttr.attrName = "saClmNodeAdminState";
         attr_Mod[4].modAttr.attrValuesNumber = 1;
         attr_Mod[4].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
         attr_Mod[4].modAttr.attrValues = attrUpdateValue4;
@@ -840,7 +840,7 @@ static SaAisErrorT clms_imm_ccb_obj_create_callback (
 				rc = SA_AIS_ERR_NOT_SUPPORTED;
                                 goto done;
 			}
-			else if (!strncmp(attrValue->attrName, "safNode1", 7)) {
+			else if (!strncmp(attrValue->attrName, "safNode", 7)) {
 				if (attrValue->attrValueType == SA_IMM_ATTR_SASTRINGT) {
 	                               	SaStringT rdnVal = *((SaStringT *)attrValue->attrValues[0]);
 					if ((parentName != NULL) && (parentName->length > 0)) {
@@ -988,27 +988,27 @@ SaAisErrorT clms_node_ccb_comp_modify(CcbUtilOperationData_t *opdata)
                 const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
                 void *value = attribute->attrValues[0];
 
-                if (!strcmp(attribute->attrName, "saClmNodeDisableReboot1")) {
+                if (!strcmp(attribute->attrName, "saClmNodeDisableReboot")) {
                         SaBoolT val = *((SaBoolT *)value);
                         if (val > SA_TRUE) {
                                 rc = SA_AIS_ERR_BAD_OPERATION;
                                 goto done;
                         }
-                } else if (!strcmp(attribute->attrName, "saClmNodeAddressFamily1")) {
+                } else if (!strcmp(attribute->attrName, "saClmNodeAddressFamily")) {
 				TRACE("Modifictaion of saClmNodeAddressFamily  not allowed");
                                 rc = SA_AIS_ERR_NOT_SUPPORTED;
                                 goto done;
-                } else if (!strcmp(attribute->attrName, "saClmNodeAddress1")) {
+                } else if (!strcmp(attribute->attrName, "saClmNodeAddress")) {
 				TRACE("Modifictaion of saClmNodeAddress  not allowed");
                                 rc = SA_AIS_ERR_NOT_SUPPORTED;
                                 goto done;
-                } else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout1")) {
+                } else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout")) {
                         SaTimeT Timeout = *((SaTimeT *)value);
                         if (Timeout == 0) {
                                 rc = SA_AIS_ERR_BAD_OPERATION;
                                 goto done;
                         }
-                } else if (!strcmp(attribute->attrName, "saClmNodeEE1")) {
+                } else if (!strcmp(attribute->attrName, "saClmNodeEE")) {
 
 			if (clms_cb->reg_with_plm == SA_FALSE){	
 				TRACE("saClmNodeEE1 attribute change doesn't apply when plm in not in model");
@@ -1109,10 +1109,10 @@ SaAisErrorT clms_node_ccb_apply_modify(CcbUtilOperationData_t *opdata)
                 const SaImmAttrValuesT_2 *attribute = &attr_mod->modAttr;
                 void *value = attribute->attrValues[0];
 
-                if (!strcmp(attribute->attrName, "saClmNodeDisableReboot1")) {
+                if (!strcmp(attribute->attrName, "saClmNodeDisableReboot")) {
 			node->disable_reboot = *((SaBoolT *)value);
 		
-                } else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout1")) {
+                } else if (!strcmp(attribute->attrName, "saClmNodeLockCallbackTimeout")) {
                         node->lck_cbk_timeout  = *((SaTimeT *)value);
 		}
 		

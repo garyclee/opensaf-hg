@@ -273,6 +273,11 @@ static uns32 avd_init_proc(void)
 		goto done;
 	}
 
+	if (avd_clm_init() != SA_AIS_OK) {
+		LOG_EM("avd_clm_init FAILED");
+		goto done;
+	}
+
 	if (avd_imm_init(cb) != SA_AIS_OK) {
 		LOG_ER("avd_imm_init FAILED");
 		goto done;

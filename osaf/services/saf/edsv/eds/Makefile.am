@@ -23,6 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = ncs_eds
 
 ncs_eds_CPPFLAGS = \
+        -DSA_CLM_B01=1 \
 	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \

@@ -50,6 +50,7 @@ enum {
 	FD_MBX = 0,
 	FD_MBCSV,
 	FD_FMA,
+	FD_CLM,
 	FD_IMM
 } AVD_FDS;
 
@@ -583,6 +584,8 @@ void avd_main_proc(void)
 	fds[FD_MBCSV].events = POLLIN;
 	fds[FD_FMA].fd = cb->fm_sel_obj;
 	fds[FD_FMA].events = POLLIN;
+	fds[FD_CLM].fd = cb->clm_sel_obj;
+	fds[FD_CLM].events = POLLIN;
 	fds[FD_IMM].fd = cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
 
@@ -679,6 +682,11 @@ void avd_main_proc(void)
 				LOG_ER("avsv_mbcsv_dispatch FAILED");
 		}
 
+		if (fds[FD_CLM].revents & POLLIN) {
+			TRACE("CLM event rec");
+			saClmDispatch(cb->clmHandle, SA_DISPATCH_ALL);
+		}
+
 		if (cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			TRACE("IMM event rec");
 			error = saImmOiDispatch(cb->immOiHandle, SA_DISPATCH_ALL);
@@ -757,6 +765,7 @@ static void avd_process_event(AVD_CL_CB *cb_now, AVD_EVT *evt)
 	if (cb_now->role_set == FALSE)
 		g_avd_init_list[evt->rcv_evt] (cb_now, evt);
 	else if (cb_now->avail_state_avd == SA_AMF_HA_ACTIVE) {
+		avd_log(NCSFL_SEV_NOTICE, "Event process");
 		/* if active call g_avd_actv_list functions */
 		g_avd_actv_list[evt->rcv_evt] (cb_now, evt);
 

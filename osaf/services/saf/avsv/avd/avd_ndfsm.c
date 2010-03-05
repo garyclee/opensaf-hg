@@ -51,34 +51,6 @@
 #include <avd_cluster.h>
 
 /*****************************************************************************
- * Macro: m_AVD_UNDO_UP_CHNG
- *
- * Purpose:  This macro will undo the changes done for the node when
- *           node update message couldnt be sent. It also 
- *           Decrements the global view number.
- *
- * Input: cb - the AVD control block pointer.
- *        avnd - pointer to the avnd structure of the node.
- *        
- *
- * Return: none.
- *
- * NOTES: 
- *
- * 
- **************************************************************************/
-#define m_AVD_UNDO_UP_CHNG(cb,avnd) \
-{\
-   avnd->node_info.bootTimestamp = 0; \
-   memset(&(avnd->adest),'\0',sizeof(MDS_DEST)); \
-   memset(&(avnd->node_info.nodeAddress),'\0',sizeof(SaClmNodeAddressT)); \
-   avnd->rcv_msg_id = 0; \
-   cb->cluster_view_number --; \
-   avnd->node_info.initialViewNumber = 0; \
-   avnd->node_info.member = SA_FALSE; \
-}
-
-/*****************************************************************************
  * Function: avd_node_up_func
  *
  * Purpose:  This function is the handler for node up event indicating
@@ -110,6 +82,9 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
+	avd_log(NCSFL_SEV_NOTICE, "NODE UP RCVD for AVD STATE(%u), node %x, node state %u",
+			cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id, avnd->node_state);
+
 	/* Check the AvD FSM state process node up only if AvD is in init done or
 	 * APP init state for all nodes except the primary system controller
 	 * whose node up is accepted in config done state.
@@ -128,38 +103,17 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	}
 
 	/* Retrive the information from the message */
-	avnd->node_info.bootTimestamp = n2d_msg->msg_info.n2d_clm_node_up.boot_timestamp;
-	memcpy(&avnd->node_info.nodeAddress, &n2d_msg->msg_info.n2d_clm_node_up.node_address,
-	       sizeof(SaClmNodeAddressT));
 	avnd->adest = n2d_msg->msg_info.n2d_clm_node_up.adest_address;
 	avnd->rcv_msg_id = n2d_msg->msg_info.n2d_clm_node_up.msg_id;
 
-	/* Increment the view number and treat that as the
-	 * new view number as a new node has joined the
-	 * cluster.
-	 */
-
-	avnd->node_info.initialViewNumber = ++(cb->cluster_view_number);
-	avnd->node_info.member = SA_TRUE;
-
-	/* Broadcast the node update to all the node directors only
-	 * those that are up will use the update.
-	 */
-
-	if (avd_snd_node_update_msg(cb, avnd) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to broad cast */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		/* undo all the changes done so that the node is still considered
-		 * down.
-		 */
-		m_AVD_UNDO_UP_CHNG(cb, avnd);
+	if (avnd->node_info.member != SA_TRUE) {
+		avd_log(NCSFL_SEV_NOTICE, "Not a Cluster Member dropping the msg");
 		goto done;
 	}
 
 	/* Identify if this AVND is running on the same node as AVD */
 	if ((avnd->node_info.nodeId == cb->node_id_avd) || (avnd->node_info.nodeId == cb->node_id_avd_other)) {
 		avnd->type = AVSV_AVND_CARD_SYS_CON;
-
 	}
 
 	/*Intialize the heart beat receive indication value  */
@@ -180,6 +134,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
+	avd_log(NCSFL_SEV_NOTICE, "Snd_node_up msg success");
 	/* send the Ack message to the node.
 	 */
 	if (avd_snd_node_ack_msg(cb, avnd, avnd->rcv_msg_id) != NCSCC_RC_SUCCESS) {
@@ -193,6 +148,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
+	avd_log(NCSFL_SEV_NOTICE, "Snd_node_ack msg success");
 	/* start the heartbeat timer for node director of non sys
 	 * controller.
 	 */
@@ -236,6 +192,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		goto done;
 	}
 
+	avd_log(NCSFL_SEV_NOTICE, "Snd_node_su_comp msg success");
 	/* If component message is sent change state to no config or else skip
 	 * all the comming up states and jump to present state. This is because
 	 * the node doesnt have any components meaning that even the NCS component
@@ -244,8 +201,10 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	if (comp_sent == TRUE) {
 		avd_node_state_set(avnd, AVD_AVND_STATE_NO_CONFIG);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-	} else
+	} else {
+		avd_log(NCSFL_SEV_NOTICE, "Snd_nd_reg_comp_evt msg");
 		avd_nd_reg_comp_evt_hdl(cb, avnd);
+	}
 
 	/* checkpoint the node. */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_UP_INFO);
@@ -414,10 +373,9 @@ void avd_tmr_rcv_hb_nd_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	/* check if the node was undergoing shutdown, if so send shutdown response */
-	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
-		avd_avm_send_reset_req(cb, &avnd->node_info.nodeName);
-
+	// opensaf_reboot(avnd->node_info.nodeID, 
+	//	avnd->node_info.executionEnvironment.value, 
+	//	"Heart beat missed");
 	TRACE_LEAVE();
 }
 
@@ -456,8 +414,6 @@ void avd_nd_reg_comp_evt_hdl(AVD_CL_CB *cb, AVD_AVND *avnd)
 		/* now change the state to present */
 		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
 		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
-
-		cb->cluster_num_nodes++;
 
 		/* We can now set the LEDS */
 		avd_snd_set_leds_msg(cb, avnd);
@@ -558,8 +514,6 @@ void avd_nd_ncs_su_assigned(AVD_CL_CB *cb, AVD_AVND *avnd)
 		avd_node_state_set(avnd, AVD_AVND_STATE_PRESENT);
 		avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_ENABLED);
 
-		cb->cluster_num_nodes++;
-
 		/* We can now set the LEDS */
 		avd_snd_set_leds_msg(cb, avnd);
 
@@ -613,6 +567,9 @@ void avd_nd_ncs_su_failed(AVD_CL_CB *cb, AVD_AVND *avnd)
 	/* call the function to down this node */
 	avd_node_down_func(cb, avnd);
 
+	// opensaf_reboot(avnd->node_info.nodeID, 
+	//	avnd->node_info.executionEnvironment.value, 
+	//	"NCS SU failed default recovery NODE_FAILFAST");
 	/* reboot the AvD if the AvND matches self and AVD is quiesced. */
 	if ((avnd->node_info.nodeId == cb->node_id_avd) && (cb->avail_state_avd == SA_AMF_HA_QUIESCED)) {
 		ncs_reboot("Node failed in qsd state");
@@ -687,17 +644,9 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 	/* Mark this AVD as one recovering from fail-over */
 	cb->avd_fover_state = TRUE;
 
-	/* reset the count - number of nodes in cluster */
-	cb->cluster_num_nodes = 0;
-
 	/* Walk through all the nodes and send verify message to them. */
 	while (NULL != (avnd = avd_node_getnext_nodeid(node_id))) {
 		node_id = avnd->node_info.nodeId;
-
-		/* lets calculate the number of nodes in cluster */
-		if (AVD_AVND_STATE_ABSENT != avnd->node_state) {
-			cb->cluster_num_nodes++;
-		}
 
 		/*
 		 * If AVND state machine is in Absent state then just return.
@@ -827,32 +776,11 @@ void avd_ack_nack_event(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	if ((TRUE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) &&
-	    (TRUE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.v_num_ack)) {
+	if (TRUE == evt->info.avnd_msg->msg_info.n2d_ack_nack_info.ack) {
 		/* Wow great!! We are in sync with this node...Log inforamtion */
 		avsv_dnd_msg_free(n2d_msg);
 		evt->info.avnd_msg = NULL;
 		return;
-	}
-
-	/*
-	 * In case of view number nack, send information of all the cluster
-	 * nodes to this AVND.
-	 */
-	if (evt->info.avnd_msg->msg_info.n2d_ack_nack_info.v_num_ack == FALSE) {
-		/* Log inormation */
-		if (NCSCC_RC_SUCCESS != avd_snd_node_info_on_fover_msg(cb, avnd)) {
-			m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-			/* we are in a bad shape. Restart the node for recovery */
-
-			/* call the routine to failover all the effected nodes
-			 * due to restarting this node
-			 */
-			avd_node_down_func(cb, avnd);
-			avsv_dnd_msg_free(n2d_msg);
-			evt->info.avnd_msg = NULL;
-			return;
-		}
 	}
 
 	/*

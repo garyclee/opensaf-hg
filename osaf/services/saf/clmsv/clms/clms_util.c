@@ -270,7 +270,7 @@ uns32 clms_node_dn_chk(SaNameT *objName)
 	char *tmpstr;
 	TRACE_ENTER();
 	
-	if(!strncmp((char *)objName->value,"safNode1=",9)){
+	if(!strncmp((char *)objName->value,"safNode=",8)){
 		tmpstr = strchr((char *)objName->value,',');
 		if (tmpstr != NULL)
 			if(!strncmp(++tmpstr,"safCluster=",11)){

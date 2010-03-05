@@ -32,4 +32,4 @@ opensaf_clmna_SOURCES = \
 	clms_nodeagent.c
 
 opensaf_clmna_LDADD = \
-	$(top_builddir)/osaf/libs/saf/libSaClma/libSaClma.la 
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la 

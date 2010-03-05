@@ -23,6 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = ncs_glnd
 
 ncs_glnd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_GLND=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include

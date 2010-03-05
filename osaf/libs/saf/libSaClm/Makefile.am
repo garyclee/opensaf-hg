@@ -11,7 +11,7 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Wind River Systems
+# Author(s):  Emerson Network Power
 #
 
 include $(top_srcdir)/Makefile.common
@@ -34,5 +34,5 @@ libSaClm_la_LDFLAGS = -version-info $(LIB_VERSION)
 
 libSaClm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
-	$(top_builddir)/osaf/libs/agents/saf/cla/libcla.la \
-	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la
+	$(top_builddir)/osaf/libs/agents/saf/clma/libclma.la \
+	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la

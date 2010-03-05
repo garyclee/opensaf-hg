@@ -233,15 +233,15 @@ static uns32 clms_init(const char *progname)
 	{
 		char path[256];
 		FILE *fp;
-
-		snprintf(path, sizeof(path), PIDPATH "%s.pid", basename(progname));
-		fp = fopen(path, "w");
-		if (fp == NULL) {
-			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		fprintf(fp, "%d\n", getpid());
-		fclose(fp);
+		
+		snprintf(path, sizeof(path), PKGPIDDIR "%s.pid", basename(progname));
+                fp = fopen(path, "w");
+                if (fp == NULL) {
+                        syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
+                        exit(EXIT_FAILURE);
+                }
+                fprintf(fp, "%d\n", getpid());
+                fclose(fp);
 	}
 
 	/* Initialize trace system first of all so we can see what is going on. */

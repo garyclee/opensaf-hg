@@ -112,7 +112,7 @@ uns32 avnd_evt_avd_verify_message(AVND_CB *cb, AVND_EVT *evt)
 	 * mismatch. Reset the receive message ID count. Here after AVD is going to 
 	 * Start with 0.
 	 */
-	avnd_di_ack_nack_msg_send(cb, info->snd_id_cnt, info->view_number);
+	avnd_di_ack_nack_msg_send(cb, info->snd_id_cnt, 0);
 	/* Log error */
 
 	/*

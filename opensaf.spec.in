@@ -141,7 +141,6 @@ Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
-Requires: %{name}-plm-libs = %{version}-%{release}
 
 %description clm-server
 
@@ -307,7 +306,6 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 %description msg-nodedirector
 
 %endif
-
 
 %package ntf-libs
 Group: System Environment/Libraries
@@ -557,7 +555,6 @@ Requires: %{name}-controller = %{version}-%{release}
 %{__rm} -rf $RPM_BUILD_ROOT%{_pkglibdir}/*.so
 %{__rm} -rf $RPM_BUILD_ROOT/usr/share/doc/%{name}-%{version}
 
-
 %clean
 %{__rm} -rf $RPM_BUILD_ROOT
 
@@ -669,6 +666,7 @@ fi
 %post controller
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
 echo "controller" > %{_pkgsysconfdir}/node_type
+hostname > %{_pkgsysconfdir}/node_name
 /sbin/ldconfig
 echo "For information on how to configure the initial imm.xml file check the readme file: %{_pkgimmxmldir}/README"
 
@@ -682,6 +680,7 @@ echo "For information on how to configure the initial imm.xml file check the rea
 %post payload
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.payload %{_pkgsysconfdir}/nodeinit.conf
 echo "payload" > %{_pkgsysconfdir}/node_type
+hostname > %{_pkgsysconfdir}/node_name
 /sbin/ldconfig
 
 %preun payload
@@ -704,6 +703,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %config(noreplace) %{_pkgsysconfdir}/slot_id
 %config(noreplace) %{_pkgsysconfdir}/subslot_id
 %config(noreplace) %{_pkgsysconfdir}/node_type
+%config(noreplace) %{_pkgsysconfdir}/node_name
 %config %{_pkgsysconfdir}/script.conf
 %{_pkgsysconfdir}/nodeinit.conf
 %{_initddir}/opensafd
@@ -748,14 +748,14 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 
 %files clm-libs
 %defattr(-,root,root)
-%{_libdir}/libSaClma.so.*
+%{_libdir}/libSaClm.so.*
 %{_pkglibdir}/libclmsv_common.so.*
 
 %files clm-server
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/clm.conf
-%config(noreplace) %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/opensaf_clms
+%{_pkglibdir}/opensaf_nodeagent
 %{_pkglibdir}/opensaf_clmd
 %{_pkglibdir}/opensaf_clmna
 %{_pkgimmxml_svcdir}/clmsv_classes.xml
@@ -964,7 +964,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
 %{_pkgimmxmldir}/README
-%{_pkgimmxmldir}/baseimm.py*
+%{_pkgimmxmldir}/baseimm.py
 %{_pkgimmxmldir}/immxml-clustersize
 %{_pkgimmxmldir}/immxml-configure
 %{_pkgimmxmldir}/immxml-merge

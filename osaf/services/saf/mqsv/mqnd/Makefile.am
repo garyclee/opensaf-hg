@@ -23,6 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = ncs_mqnd
 
 ncs_mqnd_CPPFLAGS = \
+        -DSA_CLM_B01=1 \
 	-DNCS_MQND=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/mqsv/include \

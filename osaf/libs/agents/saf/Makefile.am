@@ -18,7 +18,7 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS = ava cla imma lga ntfa clma
+SUBDIRS = ava imma lga ntfa clma
 
 if ENABLE_AIS_CKPT
 

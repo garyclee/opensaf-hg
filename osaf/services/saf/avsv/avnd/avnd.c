@@ -39,7 +39,6 @@
 #include "ncs_main_pvt.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
-#include "avsv_n2claedu.h"
 #include "avsv_nd2ndmsg.h"
 #include "avnd_mon.h"
 
@@ -145,6 +144,13 @@ uns32 avnd_create(void)
 		goto done;
 	}
 
+	/* initialize external interfaces */
+	rc = avnd_clm_init();
+	if (SA_AIS_OK != rc) {
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
+
 done:
 	/* if failed, perform the cleanup */
 	if (NCSCC_RC_SUCCESS != rc)
@@ -173,6 +179,9 @@ uns32 avnd_destroy()
 {
 	AVND_CB *cb = avnd_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
+
+        /* stop clm tracking and finalize */
+        avnd_clm_stop();
 
 	/* destroy external interfaces */
 	rc = avnd_ext_intf_destroy(cb);
@@ -257,11 +266,7 @@ AVND_CB *avnd_cb_create()
 	/* initialize healthcheck db */
 	avnd_hcdb_init(cb);
 
-	/* initialize clm db */
-	if (NCSCC_RC_SUCCESS != avnd_clmdb_init(cb))
-		goto err;
-
-	avnd_cb->clmdb.type = get_node_type();
+	avnd_cb->type = get_node_type();
 
 	/* initialize pg db */
 	if (NCSCC_RC_SUCCESS != avnd_pgdb_init(cb))
@@ -389,16 +394,6 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 		goto err;
 	}
 
-	m_NCS_EDU_HDL_INIT(&cb->edu_hdl_cla);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_INIT, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
-
-	rc = m_NCS_EDU_COMPILE_EDP(&cb->edu_hdl_cla, avsv_edp_nd_cla_msg, &err);
-	if (rc != NCSCC_RC_SUCCESS) {
-		/* Log ERROR */
-
-		goto err;
-	}
-
 	/* MDS registration */
 	rc = avnd_mds_reg(cb);
 	if (NCSCC_RC_SUCCESS != rc) {
@@ -407,7 +402,7 @@ uns32 avnd_ext_intf_create(AVND_CB *cb)
 	}
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 #if FIXME
-	if (cb->clmdb.type == AVSV_AVND_CARD_SYS_CON) {
+	if (cb->type == AVSV_AVND_CARD_SYS_CON) {
 		rc = avnd_mds_mbcsv_reg(cb);
 		if (NCSCC_RC_SUCCESS != rc) {
 			m_AVND_LOG_MDS(AVSV_LOG_MDS_REG, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
@@ -458,10 +453,6 @@ uns32 avnd_cb_destroy(AVND_CB *cb)
 
 	/* destroy healthcheck db */
 	if (NCSCC_RC_SUCCESS != (rc = avnd_hcdb_destroy(cb)))
-		goto done;
-
-	/* destroy clm db */
-	if (NCSCC_RC_SUCCESS != (rc = avnd_clmdb_destroy(cb)))
 		goto done;
 
 	/* destroy pg db */
@@ -567,9 +558,6 @@ uns32 avnd_ext_intf_destroy(AVND_CB *cb)
 	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_ava);
-	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
-
-	m_NCS_EDU_HDL_FLUSH(&cb->edu_hdl_cla);
 	m_AVND_LOG_EDU(AVSV_LOG_EDU_FINALIZE, AVSV_LOG_EDU_SUCCESS, NCSFL_SEV_INFO);
 
 	/* NTFA Finalize */

@@ -31,6 +31,7 @@ noinst_HEADERS = \
 pkglib_PROGRAMS = opensaf_immd
 
 opensaf_immd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include

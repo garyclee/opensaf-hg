@@ -44,8 +44,10 @@
 #include <saClm.h>
 #include <rda_papi.h>
 #include <saNtf.h>
-#include <saPlm.h>
 #include <ncssysf_def.h>
+#ifdef ENABLE_AIS_PLM
+#include <saPlm.h>
+#endif
 
 /* CLMS files */
 #include "clmsv_defs.h"

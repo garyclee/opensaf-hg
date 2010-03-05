@@ -312,22 +312,6 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 				return rc;
 			}
 		}
-		/* check if AvM sent this
-		 ** message to the director if not return error.
-		 */
-		else if ((info->info.receive.i_fr_svc_id == NCSMDS_SVC_ID_AVM) &&
-			 (info->info.receive.i_to_svc_id == NCSMDS_SVC_ID_AVD)) {
-			m_AVD_LOG_MSG_MDS_RCV_INFO(AVD_LOG_RCVD_MSG,
-						   ((AVM_AVD_MSG_T *)info->info.receive.i_msg),
-						   info->info.receive.i_node_id);
-
-			rc = avd_avm_rcv_msg((AVM_AVD_MSG_T *)info->info.receive.i_msg);
-			info->info.receive.i_msg = (NCSCONTEXT)0;
-			if (rc != NCSCC_RC_SUCCESS) {
-				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_RCV_CBK);
-				return rc;
-			}
-		}
 		/* check if AvD sent this
 		 ** message to the director if not return error.
 		 */
@@ -359,25 +343,13 @@ uns32 avd_mds_cbk(struct ncsmds_callback_info *info)
 		break;
 	case MDS_CALLBACK_COPY:
 		{
-			if ((info->i_yr_svc_id == NCSMDS_SVC_ID_AVD) &&
-			    (info->info.cpy.i_to_svc_id == NCSMDS_SVC_ID_AVM)) {
-				info->info.cpy.o_msg_fmt_ver =
-				    avd_avm_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver - 1];
+			info->info.cpy.o_msg_fmt_ver =
+			    avd_avnd_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver - 1];
 
-				rc = avd_avm_mds_cpy(&info->info.cpy);
-				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_CPY_CBK);
-					return rc;
-				}
-			} else {
-				info->info.cpy.o_msg_fmt_ver =
-				    avd_avnd_msg_fmt_map_table[info->info.cpy.i_rem_svc_pvt_ver - 1];
-
-				rc = avd_mds_cpy(&info->info.cpy);
-				if (rc != NCSCC_RC_SUCCESS) {
-					m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_CPY_CBK);
-					return rc;
-				}
+			rc = avd_mds_cpy(&info->info.cpy);
+			if (rc != NCSCC_RC_SUCCESS) {
+				m_AVD_LOG_MDS_ERROR(AVSV_LOG_MDS_CPY_CBK);
+				return rc;
 			}
 		}
 		break;

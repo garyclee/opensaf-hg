@@ -109,7 +109,7 @@ uns32 avnd_evt_ava_comp_val_req(AVND_CB *cb, AVND_EVT *evt)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_COMP_VALIDATION_MSG;
 		msg.info.avd->msg_info.n2d_comp_valid_info.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_comp_valid_info.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_comp_valid_info.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_comp_valid_info.comp_name =
 		    evt->info.ava.msg->info.api_info.param.reg.comp_name;
 

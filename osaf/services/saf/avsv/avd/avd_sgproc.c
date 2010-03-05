@@ -61,6 +61,7 @@
 #include <avd.h>
 #include <avd_imm.h>
 #include <avd_su.h>
+#include <avd_clm.h>
 
 /*****************************************************************************
  * Function: avd_new_assgn_susi
@@ -746,7 +747,6 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 
 			/*  We failed to switch, Send Active to all NCS Su's having 2N redun model &
 			   present in this node */
-			avd_avm_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_QUIESCED);
 			cb->avail_state_avd = SA_AMF_HA_ACTIVE;
 			cb->role_switch = SA_FALSE;
 
@@ -766,7 +766,6 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 	/* Active -> Quiesed && resp = Failure */
 	if ((cb->avail_state_avd == SA_AMF_HA_QUIESCED) &&
 	    (assign->ha_state == SA_AMF_HA_QUIESCED) && (assign->error == NCSCC_RC_FAILURE)) {
-		avd_avm_role_rsp(cb, NCSCC_RC_FAILURE, SA_AMF_HA_QUIESCED);
 		cb->avail_state_avd = SA_AMF_HA_ACTIVE;
 		cb->role_switch = SA_FALSE;
 
@@ -797,7 +796,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 		}
 
 		if (ncs_done == SA_TRUE) {
-			avd_avm_role_rsp(cb, NCSCC_RC_SUCCESS, SA_AMF_HA_ACTIVE);
+			assert(avd_clm_track_start() == SA_AIS_OK);
 			cb->role_switch = SA_FALSE;	/* almost done with switch */
 
 			/* get the avnd on other SCXB from node_id of other AvD */
@@ -987,9 +986,8 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-		/* Are we in the middle of role switch */
-		if ((cb->role_switch == SA_TRUE) &&
-		    (su->sg_of_su->sg_ncs_spec == SA_TRUE) &&
+		/* Are we in the middle of controller switch/failover */
+		if ((su->sg_of_su->sg_ncs_spec == SA_TRUE) &&
 		    (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
 		    (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
 		    ((su_node_ptr->type == AVSV_AVND_CARD_SYS_CON) ||
@@ -1417,6 +1415,21 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 				su->su_on_node->su_cnt_admin_oper = 0;
 			}
 			/* else admin oper still not complete */
+		}
+		/* also check for pending clm callback operations */ 
+		if (su->su_on_node->clm_pend_inv != 0) {
+			if((su->saAmfSUNumCurrActiveSIs == 0) && 
+			   (su->saAmfSUNumCurrStandbySIs == 0)) 
+				su->su_on_node->su_cnt_admin_oper--;
+			if (su->su_on_node->su_cnt_admin_oper == 0)
+				/* since unassignment of all SIs on this node has been done
+				   now go on with the terminataion */
+				clm_node_terminate(su->su_on_node);
+			else if (n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) {
+				/* just report error to clm let CLM take the action */
+				saClmResponse_4(cb->clmHandle, su->su_on_node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
+				su->su_on_node->clm_pend_inv = 0;
+			} /* else wait for some more time */
 		}
 	}
 
