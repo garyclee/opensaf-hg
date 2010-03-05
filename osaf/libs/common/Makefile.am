@@ -20,6 +20,12 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = avsv immsv logsv ntfsv clmsv
 
+if ENABLE_AIS_PLM
+
+SUBDIRS += plmsv
+
+endif
+
 if ENABLE_AIS_CKPT
 
 SUBDIRS += cpsv

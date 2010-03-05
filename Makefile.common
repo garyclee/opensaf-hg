@@ -36,7 +36,7 @@ AM_CPPFLAGS = \
 	$(CORE_INCLUDES) \
 	$(all_includes)
 
-AM_CFLAGS = -fPIC -Wall
+AM_CFLAGS = -fPIC -Wall -lpthread
 AM_CXXFLAGS = -fPIC -Wall
 
 

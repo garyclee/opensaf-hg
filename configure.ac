@@ -282,6 +282,7 @@ AC_SUBST([IMM_PBE_ENABLED], ["$enable_imm_pbe"])
 #
 # Enable/disable building some of the OpenSAF AIS Services
 #
+
 AC_MSG_CHECKING([whether to build the SAI-AIS-CKPT service])
 AC_ARG_ENABLE([ais-ckpt],
 	[AS_HELP_STRING([--disable-ais-ckpt],
@@ -344,9 +345,9 @@ AC_SUBST([AIS_SMF_ENABLED], ["$enable_ais_smf"])
 AC_MSG_CHECKING([whether to build the SAI-AIS-PLM service])
 AC_ARG_ENABLE([ais-plm],
 	[AS_HELP_STRING([--disable-ais-plm],
-		[disable building the SAI-AIS-PLM service [default=yes]])],
+		[disable building the SAI-AIS-PLM service [default=no]])],
 	[],
-	[enable_ais_plm=no])
+	[enable_ais_plm=yes])
 AC_MSG_RESULT([$enable_ais_plm])
 
 AM_CONDITIONAL([ENABLE_AIS_PLM], [test "$enable_ais_plm" = yes])
@@ -555,6 +556,10 @@ if test "$enable_imm_pbe" = yes; then
 fi
 
 
+if test "$enable_ais_plm" = yes; then
+	AC_DEFINE([ENABLE_AIS_PLM], 1, [Define to 1 if PLM is enabled])
+fi
+
 #############################################
 # Checks for header files.
 #############################################
@@ -672,6 +677,7 @@ AC_CONFIG_FILES([
         osaf/libs/agents/saf/ava/Makefile
         osaf/libs/agents/saf/ava/include/Makefile
         osaf/libs/agents/saf/imma/Makefile
+        osaf/libs/agents/saf/plma/Makefile
         osaf/libs/agents/saf/lga/Makefile
         osaf/libs/agents/saf/ntfa/Makefile
 	osaf/libs/agents/saf/clma/Makefile
@@ -701,6 +707,10 @@ AC_CONFIG_FILES([
         osaf/libs/common/glsv/include/Makefile
         osaf/libs/common/immsv/Makefile
         osaf/libs/common/immsv/include/Makefile
+        osaf/libs/common/plmsv/Makefile
+        osaf/libs/common/plmsv/plms/Makefile
+        osaf/libs/common/plmsv/plmc/Makefile
+        osaf/libs/common/plmsv/include/Makefile
         osaf/libs/common/logsv/Makefile
         osaf/libs/common/logsv/include/Makefile
         osaf/libs/common/mqsv/Makefile
@@ -719,6 +729,9 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaImm/Makefile
         osaf/libs/saf/libSaImm/pkgconfig/Makefile
         osaf/libs/saf/libSaImm/pkgconfig/opensaf-imm.pc
+        osaf/libs/saf/libSaPlm/Makefile
+        osaf/libs/saf/libSaPlm/pkgconfig/Makefile
+        osaf/libs/saf/libSaPlm/pkgconfig/opensaf-plm.pc	
         osaf/libs/saf/libSaLog/Makefile
         osaf/libs/saf/libSaLog/pkgconfig/Makefile
         osaf/libs/saf/libSaLog/pkgconfig/opensaf-log.pc
@@ -795,6 +808,18 @@ AC_CONFIG_FILES([
         osaf/services/saf/immsv/immd/scripts/immd_script
         osaf/services/saf/immsv/immnd/scripts/Makefile
         osaf/services/saf/immsv/immnd/scripts/immnd_script
+        osaf/services/saf/plmsv/Makefile
+        osaf/services/saf/plmsv/config/Makefile
+        osaf/services/saf/plmsv/plmc/Makefile
+        osaf/services/saf/plmsv/plmc/plmc_lib/Makefile
+        osaf/services/saf/plmsv/plmc/plmcd/Makefile
+        osaf/services/saf/plmsv/plmc/plmc_boot/Makefile
+        osaf/services/saf/plmsv/plms/Makefile
+        osaf/services/saf/plmsv/plms/scripts/Makefile
+	osaf/services/saf/plmsv/plms/scripts/plms_script
+        osaf/services/saf/plmsv/plmc/scripts/Makefile
+	osaf/services/saf/plmsv/plmc/scripts/plmc_boot_script
+	osaf/services/saf/plmsv/plmc/scripts/plmc_main
         osaf/services/saf/logsv/Makefile
         osaf/services/saf/logsv/config/Makefile
         osaf/services/saf/logsv/lgs/Makefile
@@ -881,7 +906,9 @@ AC_CONFIG_FILES([
         tests/immsv/management/Makefile
         tests/logsv/Makefile
  	tests/clmsv/Makefile
-        tests/ntfsv/Makefile])
+        tests/ntfsv/Makefile
+	tests/plmsv/plms/Makefile
+	tests/plmsv/Makefile])
 
 AC_OUTPUT
 

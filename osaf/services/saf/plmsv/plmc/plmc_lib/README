@@ -1,0 +1,34 @@
+To Compile the library 
+  See top README
+  The library is called libplmc_lib.so and will end up in the lib directory
+
+  Also note: The plmc_d daemon is built with DEBUG messages turned off:
+    CFLAGS=-g -Wall -fpic
+
+  If you want to turn on debug messages, use:
+    CFLAGS=-g -Wall -fpic -DPLMC_LIB_DEBUG
+  Additional debug messages will show up in /tmp/plmc_lib_debug.<pid>.
+
+Test executable
+  When compiled from top you will also end up with a test/test_lib executable.
+  This is a small test program that simulates a PLMSv - and exercises the PLMc
+  library function calls.  It gives you a console-based user interface which
+  can be used to issue commands, using the library.  Note: Do not run test_lib
+  at the same time as the plmc_tcp_talker, which is another test program that
+  tests a single connection to a PLMc daemon.
+
+Running test executable
+  Before you can use this program you will need to export the LD_LIBRARY_PATH
+  to point to where you put to the libplmc_lib.so file.  Note that this
+  is not needed if the library is installed in the system wide library path.
+  An example of how to set the LD_LIBRARY_PATH if you are in the same directory
+  as the libplmc_lib.so could be.
+
+  # export LD_LIBRARY_PATH=LD_LIBRARY_PATH:$PWD
+
+  The test_lib program needs a plmc.conf file.  You can put that where ever
+  you want.  You will need to set the environment variable
+  PLMC_CONF_PATH to reflect where it is located.  If PLMC_CONF_PATH is not set,
+  the library will assume /etc/opensaf/plmc.conf.  If it can't find a 
+  conf file there either, the library will return an error during
+  initialization.

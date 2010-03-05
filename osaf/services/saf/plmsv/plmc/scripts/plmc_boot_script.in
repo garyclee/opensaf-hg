@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Hewlett-Packard Development Company, L.P.
+#
+
+#
+# plmc_boot RC init file used to start/stop the plmc_boot UDP message program
+#
+
+#
+# chkconfig info
+#
+### BEGIN INIT INFO
+# Provides:          openhpid
+# Required-Start:    $local_fs $network $syslog
+# Required-Stop:     $local_fs $network $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+### END INIT INFO
+# description: plmc_boot starts/stops the plmc_boot UDP message program.
+# config: normally found at /etc/opensaf/plmc.conf.
+#
+
+###################################################################
+# NOTE: This script looks to see if PLMC_CONF_PATH and            #
+#       PLMC_BOOT_BIN_PATH are configured in the                  #
+#       opensaf/script.conf file.  If not configured, defaults    #
+#       are used instead.                                         #
+#                                                                 #
+###################################################################
+
+PLMC_CONF_PATH=""
+PLMC_BOOT_BIN_PATH=""
+RETVAL=0
+
+if [ -r "/etc/opensaf/script.conf" ]
+then
+  . "/etc/opensaf/script.conf"
+elif [ -r "/usr/local/etc/opensaf/script.conf" ]
+then
+  . "/usr/local/etc/opensaf/script.conf"
+else
+  echo "plmc_boot: warning: could not find the opensaf/script.conf file."
+fi
+
+if [ "$PLMC_CONF_PATH" = "" ]
+then
+  echo "plmc_boot: warning: PLMC_CONF_PATH is not configured. Using default path: /etc/opensaf/plmc.conf"
+  PLMC_CONF_PATH=/etc/opensaf/plmc.conf
+fi
+if [ "$PLMC_BOOT_BIN_PATH" = "" ]
+then
+  echo "plmc_boot: warning: PLMC_BOOT_BIN_PATH is not configured. Using default path: /usr/bin"
+  PLMC_BOOT_BIN_PATH=/usr/bin/plmc_boot
+fi
+
+print_start_msg()
+{
+  if [ "$RETVAL" = "0" ]
+  then
+    echo "Starting plmc_boot: [  OK  ]"
+  else
+    echo "Starting plmc_boot: [  FAIL  ]"
+  fi
+}
+
+print_stop_msg()
+{
+  if [ "$RETVAL" = "0" ]
+  then
+    echo "Stopping plmc_boot: [  OK  ]"
+  else
+    echo "Stopping plmc_boot: [  FAIL  ]"
+  fi
+}
+
+case "$1" in
+  start)
+        $PLMC_BOOT_BIN_PATH -c $PLMC_CONF_PATH start
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/plmc_boot
+        print_start_msg
+        ;;
+  stop)
+        $PLMC_BOOT_BIN_PATH -c $PLMC_CONF_PATH stop
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/plmc_boot
+        print_stop_msg
+        ;;
+  *)
+        echo "Usage: $0 {start|stop}" >&2
+        exit 1
+        ;;
+esac
+
+exit $RETVAL
+

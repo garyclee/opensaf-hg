@@ -20,6 +20,12 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = ava imma lga ntfa clma
 
+if ENABLE_AIS_PLM
+
+SUBDIRS += plma 
+
+endif
+
 if ENABLE_AIS_CKPT
 
 SUBDIRS += cpa
