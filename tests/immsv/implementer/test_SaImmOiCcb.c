@@ -413,7 +413,16 @@ static void saImmOiCcb_02(void)
     pthread_join(thread[0], NULL);
     pthread_join(thread[1], NULL);
 
-    test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
+    if(rc != SA_AIS_ERR_BAD_OPERATION) {
+        /* Note  that the error code returned by implementer need not
+         always be the errro code returned over the OM API. 
+        Specifically, when the OI rejects the operation, the IMM may
+        in some cases abort the entire CCB with SA_AIS_ERR_FAILED_OPERATON. */
+        test_validate(rc, SA_AIS_ERR_FAILED_OPERATION);
+    } else 
+    {
+            test_validate(rc, SA_AIS_ERR_BAD_OPERATION);
+    }
 
     om_teardown();
     saImmOiCcbObjectDeleteCallback_response = SA_AIS_OK;
