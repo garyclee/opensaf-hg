@@ -289,7 +289,7 @@ while read TYPE ID CLMID ; do
           create_node $SC_PATTERN $SC_TEMPLATE_FILE $N $ID $CLMID
           nodegroup_sc_addnode $ID
           nodegroup_all_addnode $ID
-          clm_node_store $CLMID $N
+          #clm_node_store $CLMID $N
 	  CUR_SC_COUNT=$((CUR_SC_COUNT+1))
       else
           info "Have reached number of SCs. Skip node with ID:$ID"
@@ -303,7 +303,7 @@ while read TYPE ID CLMID ; do
           create_node $PL_PATTERN $PL_TEMPLATE_FILE $N $ID $CLMID
           nodegroup_pl_addnode $ID
           nodegroup_all_addnode $ID
-          clm_node_store $CLMID $N
+          #clm_node_store $CLMID $N
 	  CUR_PL_COUNT=$((CUR_PL_COUNT+1))
       else
           info "Have reached number of PLs. Skip node with ID:$ID"
