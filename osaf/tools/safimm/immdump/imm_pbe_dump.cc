@@ -741,7 +741,6 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 		std::string sql212("delete from objects_");
 		std::string val_attr;
 		unsigned int ix;
-		TRACE_3("COMPONENT TEST BRANCH 3");
 
 		switch(attr_type) {
 			case SA_IMM_ATTR_SAINT32T: 
@@ -777,7 +776,6 @@ void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string o
 		sql212.append(attrValue->attrName);
 		sql212.append(val_attr);
 		for(ix=0; ix < attrValue->attrValuesNumber; ++ix) {
-		TRACE_3("COMPONENT TEST BRANCH 4");
 			sql212.append(valueToString(attrValue->attrValues[ix], attr_type));
 			if(text_val) {
 				sql212.append("'");
@@ -939,8 +937,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 
 	if(attr_flags & SA_IMM_ATTR_MULTI_VALUE) {
 		TRACE("Add to multivalued attribute.");
-		TRACE_3("COMPONENT TEST BRANCH 7");
-	        valuesToPBE(attrValue, attr_flags, objName.c_str(), dbHandle);
+	        valuesToPBE(attrValue, attr_flags, object_id, dbHandle);
 	} else {
 		/* Add value to single valued */
 		std::string sql22("update ");
@@ -975,7 +972,7 @@ void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName,
 		sql22.append(attrValue->attrName);
 		sql22.append(" = ");
 		sql22.append(valueToString(attrValue->attrValues[0], attrValue->attrValueType));
-		sql22.append("where obj_id = ");
+		sql22.append(" where obj_id = ");
 		sql22.append(object_id);
 		sqlite3_free_table(result2);
 
