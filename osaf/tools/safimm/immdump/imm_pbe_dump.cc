@@ -1496,4 +1496,37 @@ SaAisErrorT pbeCommitTrans(void* db_handle)
 {
 	return SA_AIS_ERR_NO_RESOURCES;
 }
+
+void objectDeleteToPBE(std::string objectNameString, void* db_handle)
+{
+	assert(0);
+}
+
+void objectModifyDiscardAllValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	assert(0);
+}
+
+void objectModifyAddValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	assert(0);
+}
+
+void objectModifyDiscardMatchingValuesOfAttrToPBE(void* db_handle, std::string objName, 
+	const SaImmAttrValuesT_2* attrValue)
+{
+	assert(0);
+}
+
+void objectToPBE(std::string objectNameString,
+	const SaImmAttrValuesT_2** attrs,
+	ClassMap *classIdMap,
+	void* db_handle,
+	unsigned int object_id,
+	SaImmClassNameT className)
+{
+	assert(0);
+}
 #endif
