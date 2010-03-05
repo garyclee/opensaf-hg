@@ -22,6 +22,7 @@ MAINTAINERCLEANFILES = Makefile.in
 bin_PROGRAMS = clmtest
 
 clmtest_CPPFLAGS = \
+        -DSA_CLM_B01=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/tests/unit_test_fw/inc
 

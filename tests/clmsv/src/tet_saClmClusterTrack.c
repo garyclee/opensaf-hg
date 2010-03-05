@@ -29,7 +29,7 @@ static void admin_lock(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 2 %s",name);
         assert((rc = system(command)) != -1);
@@ -40,7 +40,7 @@ static void admin_unlock(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 1 %s",name);
         assert((rc = system(command)) != -1);
@@ -51,7 +51,7 @@ static void admin_shutdown(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 3 %s",name);
         assert((rc = system(command)) != -1);
@@ -62,7 +62,7 @@ static void saClmadmin_lock1(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 2 %s",name);
         assert((rc = system(command)) != -1);
@@ -73,7 +73,7 @@ static void saClmadmin_unlock1(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 1 %s",name);
         assert((rc = system(command)) != -1);
@@ -84,7 +84,7 @@ static void saClmadmin_shutdown1(void)
 {
         int rc;
         char command[256];
-        char name[]= "safNode1=SC_2_1,safCluster=myClmCluster";
+        char name[]= "safNode=SC_2_1,safCluster=myClmCluster";
 
         sprintf(command, "immadm -o 3 %s",name);
         assert((rc = system(command)) != -1);
