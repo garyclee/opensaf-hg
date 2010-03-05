@@ -973,8 +973,6 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkgimmxmldir}/verify.sh
 %{_pkgimmxml_svcdir}/avsv_classes.xml
 %{_pkgimmxml_svcdir}/avsv_objects.xml
-%{_pkgimmxml_svcdir}/clmsv_classes.xml
-%{_pkgimmxml_svcdir}/clmsv_objects.xml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
