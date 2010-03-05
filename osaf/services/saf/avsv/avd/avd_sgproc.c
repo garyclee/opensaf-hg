@@ -183,10 +183,14 @@ uns32 avd_new_assgn_susi(AVD_CL_CB *cb, AVD_SU *su, AVD_SI *si,
 			goto done;
 		}
 
-		if (ha_state == SA_AMF_HA_ACTIVE)
+		if (ha_state == SA_AMF_HA_ACTIVE) {
 			avd_su_inc_curr_act_si(su);
-		else
+			avd_si_inc_curr_act_ass(si);
+		}
+		else {
 			avd_su_inc_curr_stdby_si(su);
+			avd_si_inc_curr_stdby_ass(si);
+		}
 
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(cb, susi, AVSV_CKPT_AVD_SI_ASS);
 		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, su, AVSV_CKPT_AVD_SU_CONFIG);
@@ -2295,12 +2299,6 @@ uns32 avd_sg_su_asgn_del_util(AVD_CL_CB *cb, AVD_SU *su, NCS_BOOL del_flag, NCS_
 
 					/* trigger pg upd */
 					avd_pg_susi_chg_prc(cb, i_susi);
-				}
-
-				/* update the si counters */
-				if (SA_AMF_HA_ACTIVE == i_susi->state) {
-					avd_si_inc_curr_act_ass(i_susi->si);
-					avd_si_dec_curr_stdby_ass(i_susi->si);
 				}
 
 				/* update the si counters */
