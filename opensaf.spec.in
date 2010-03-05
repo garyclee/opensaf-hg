@@ -134,6 +134,18 @@ configuration (these nodes are also called cluster nodes or configured nodes),
 and it is core to any clustered system. A cluster consists of this set of 
 configured nodes, each with a unique node name.
 
+%package clm-server
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: %{name}-log-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-plm-libs = %{version}-%{release}
+
+%description clm-server
+
+
 
 %if %is_ais_evt
 
@@ -736,7 +748,19 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 
 %files clm-libs
 %defattr(-,root,root)
-%{_libdir}/libSaClm.so.*
+%{_libdir}/libSaClma.so.*
+%{_pkglibdir}/libclmsv_common.so.*
+
+%files clm-server
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/clm.conf
+%config(noreplace) %{_pkgsysconfdir}/node_name
+%{_pkglibdir}/opensaf_clms
+%{_pkglibdir}/opensaf_clmd
+%{_pkglibdir}/opensaf_clmna
+%{_pkgimmxml_svcdir}/clmsv_classes.xml
+%{_pkgimmxml_svcdir}/clmsv_objects.xml
+%{_pkgimmxml_svcdir}/clmsv_sc_template.xml
 
 
 %if %is_ais_evt
@@ -1028,6 +1052,7 @@ echo "payload" > %{_pkgsysconfdir}/node_type
 %{_bindir}/immoitest
 %{_bindir}/logtest
 %{_bindir}/ntftest
+%{_bindir}/clmtest
 
 %endif
 

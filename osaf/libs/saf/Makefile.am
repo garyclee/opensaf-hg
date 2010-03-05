@@ -24,7 +24,8 @@ SUBDIRS = \
 	libSaClm \
 	libSaImm \
 	libSaLog \
-	libSaNtf
+	libSaNtf \
+ 	libSaClma
 
 if ENABLE_AIS_CKPT
 
