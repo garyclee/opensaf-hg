@@ -1103,6 +1103,7 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_includedir}/saMsg.h
 %{_includedir}/saNtf.h
 %{_includedir}/saSmf.h
+%{_includedir}/saPlm.h
 %{_includedir}/%{name}/*
 
 
