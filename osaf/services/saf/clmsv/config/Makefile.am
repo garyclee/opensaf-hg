@@ -24,7 +24,8 @@ dist_pkgsysconf_DATA = \
 dist_pkgimmxml_svc_DATA = \
 	clmsv_classes.xml \
 	clmsv_objects.xml \
-	clmsv_sc_template.xml
+	clmsv_sc_template.xml \
+	clmsv_pl_template.xml
 
 install-data-hook:
 	hostname > $(DESTDIR)$(pkgsysconfdir)/node_name
