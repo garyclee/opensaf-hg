@@ -26,7 +26,7 @@ void saClmOi_01(void)
     	int rc;
     	char command[256];
 	
-	sprintf(command, "immcfg -a saClmNodeLockCallbackTimeout1=4000000000 %s",node_name.value);
+	sprintf(command, "immcfg -a saClmNodeLockCallbackTimeout=4000000000 %s",node_name.value);
 
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 0);
@@ -38,7 +38,7 @@ void saClmOi_02(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a saClmNodeDisableReboot1=1 %s",node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeDisableReboot=1 %s",node_name.value);
     	assert((rc = system(command)) != -1);
  	test_validate(WEXITSTATUS(rc), 0);
 }
@@ -49,7 +49,7 @@ void saClmOi_03(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a saClmNodeAddressFamily1=2 %s", node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeAddressFamily=2 %s", node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -60,7 +60,7 @@ void saClmOi_04(void)
     	int rc;
     	char command[256];
 
-    	sprintf(command, "immcfg -a  saClmNodeAddress1=10.130.100.186 %s",node_name.value);
+    	sprintf(command, "immcfg -a  saClmNodeAddress=10.130.100.186 %s",node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -72,7 +72,7 @@ void saClmOi_05(void)
     	char command[256];
 	char new_eename[]="NewEEName";
 
-    	sprintf(command, "immcfg -a saClmNodeEE1=%s %s",new_eename,node_name.value);
+    	sprintf(command, "immcfg -a saClmNodeEE=%s %s",new_eename,node_name.value);
     	assert((rc = system(command)) != -1);
     	test_validate(WEXITSTATUS(rc), 1);
 }
@@ -94,10 +94,10 @@ void saClmOi_07(void)
 
     	char command[256];
 	char command1[256];
-	char new_obj_name[]="safNode1=node,safCluster=myClmCluster";
+	char new_obj_name[]="safNode=node,safCluster=myClmCluster";
 	/*Lets first create the object- for this member will be false*/
   	
-        sprintf(command, "immcfg -c SaClmNode1 safNode1=%s",new_obj_name);
+        sprintf(command, "immcfg -c SaClmNode safNode=%s",new_obj_name);
 	sprintf(command1, "immcfg -d %s",new_obj_name);
 	assert((rc = system(command)) != -1);
 	assert((rc = system(command1)) != -1);
@@ -110,9 +110,9 @@ void saClmOi_08(void)
 	int rc;
 
         char command[256];
-	char new_obj_name[]="safNode1=new_node,safCluster=myClmCluster";
+	char new_obj_name[]="safNode=new_node,safCluster=myClmCluster";
         
-        sprintf(command, "immcfg -c SaClmNode1 safNode1=%s",new_obj_name);
+        sprintf(command, "immcfg -c SaClmNode safNode=%s",new_obj_name);
         assert((rc = system(command)) != -1);
         test_validate(WEXITSTATUS(rc), 0);
 }
@@ -121,11 +121,11 @@ void saClmOi_08(void)
 __attribute__ ((constructor)) static void saClmOiOperations_constructor(void)
 {
 	test_suite_add(4, "CLM OI tests");
-	test_case_add(4, saClmOi_01, "CCB Object Modify saClmNodeLockCallbackTimeout1");
-	test_case_add(4, saClmOi_02, "CCB Object Modify saClmNodeDisableReboot1");
-	test_case_add(4, saClmOi_03, "CCB Object Modify saClmNodeAddressFamily1");
-	test_case_add(4, saClmOi_04, "CCB Object Modify saClmNodeAddress1");
-	test_case_add(4, saClmOi_05, "CCB Object Modify saClmNodeEE1");
+	test_case_add(4, saClmOi_01, "CCB Object Modify saClmNodeLockCallbackTimeout");
+	test_case_add(4, saClmOi_02, "CCB Object Modify saClmNodeDisableReboot");
+	test_case_add(4, saClmOi_03, "CCB Object Modify saClmNodeAddressFamily");
+	test_case_add(4, saClmOi_04, "CCB Object Modify saClmNodeAddress");
+	test_case_add(4, saClmOi_05, "CCB Object Modify saClmNodeEE");
 	test_case_add(4, saClmOi_06, "CCB Object Delete the member node");
 	/*test_case_add(4, saClmOi_07, "CCB Object Delete the non-member node but unlocked");
 	test_case_add(4, saClmOi_08, "CCB Object Create Object");*/
