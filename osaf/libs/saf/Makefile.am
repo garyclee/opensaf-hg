@@ -26,6 +26,12 @@ SUBDIRS = \
 	libSaLog \
 	libSaNtf 
 
+if ENABLE_AIS_PLM
+
+SUBDIRS += libSaPlm 
+
+endif
+
 if ENABLE_AIS_CKPT
 
 SUBDIRS += libSaCkpt

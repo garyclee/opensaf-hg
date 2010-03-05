@@ -29,6 +29,7 @@ include_HEADERS = \
 	saImmOm.h \
 	saLck.h \
 	saLog.h \
+	saPlm.h \
 	saMsg.h \
 	saNtf.h \
 	saSmf.h
