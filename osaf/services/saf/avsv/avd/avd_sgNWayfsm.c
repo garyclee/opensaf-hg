@@ -1264,8 +1264,6 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				avd_sg_su_oper_list_add(cb, curr_su, FALSE);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
 
-				avd_si_inc_curr_stdby_ass(curr_si);
-
 				/* verify if si needs more assigments */
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))
 					break;
@@ -1302,8 +1300,6 @@ uns32 avd_sg_nway_si_assign(AVD_CL_CB *cb, AVD_SG *sg)
 				/* add su to the su-oper list & change the fsm state to sg-realign */
 				avd_sg_su_oper_list_add(cb, curr_su, FALSE);
 				m_AVD_SET_SG_FSM(cb, sg, AVD_SG_FSM_SG_REALIGN);
-
-				avd_si_inc_curr_stdby_ass(curr_si);
 
 				/* verify if si needs more assigments */
 				if (m_AVD_SI_STDBY_CURR_SU(curr_si) == m_AVD_SI_STDBY_MAX_SU(curr_si))

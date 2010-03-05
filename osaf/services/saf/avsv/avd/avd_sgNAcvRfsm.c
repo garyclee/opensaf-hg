@@ -143,8 +143,6 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 				/* Add the SU to the operation list */
 				avd_sg_su_oper_list_add(cb, i_su, FALSE);
 
-				avd_si_inc_curr_act_ass(i_si);
-
 				/* Check if the SI can take more assignments. If not exit the SU loop.                         
 				 */
 				if (m_AVD_SI_ACTV_MAX_SU(i_si) <= m_AVD_SI_ACTV_CURR_SU(i_si)) {
@@ -198,8 +196,6 @@ static AVD_SU *avd_sg_nacvred_su_chose_asgn(AVD_CL_CB *cb, AVD_SG *sg)
 			if (avd_new_assgn_susi(cb, i_su, i_si, SA_AMF_HA_ACTIVE, FALSE, &tmp_rel) == NCSCC_RC_SUCCESS) {
 				/* Add the SU to the operation list */
 				avd_sg_su_oper_list_add(cb, i_su, FALSE);
-
-				avd_si_inc_curr_act_ass(i_si);
 
 				/* Check if the SI can take more assignments. If not exit the SU loop.
 				 */
