@@ -30,6 +30,7 @@ noinst_HEADERS = \
    avd_ckpt_updt.h \
    avd_cluster.h \
    avd_comp.h \
+   avd_clm.h \
    avd_csi.h \
    avd_dblog.h \
    avd_def.h \

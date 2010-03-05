@@ -213,7 +213,6 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
-	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
 
 	/*Set the first heat beat variable to False */
 	cb->avd_hrt_beat_rcvd = FALSE;
@@ -225,10 +224,13 @@ void avd_tmr_rcv_hb_d_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		return;
 	}
 
+	avd_fm_inform_hb_evt(cb, cb->node_id_avd_other, fmHeartbeatLost);
 	/* check if the node was undergoing shutdown, if so send shutdown response */
-	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN)
-		avd_avm_send_reset_req(cb, &avnd->node_info.nodeName);
+	/*TODO*/
 
+	// opensaf_reboot(avnd->node_info.nodeID, 
+	//	avnd->node_info.executionEnvironment.value, 
+	//	"Heart beat missed");
 	TRACE_LEAVE();
 }
 

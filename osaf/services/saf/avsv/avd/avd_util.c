@@ -72,158 +72,6 @@ const char *avd_readiness_state_name[] = {
 };
 
 /*****************************************************************************
- * Function: avd_snd_node_update_msg
- *
- * Purpose:  This function prepares the node update message for the
- * given node and broadcasts the message to all the node directors. 
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the AVND structure of the node whose information
- *               needs to be update with all the other nodes.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_snd_node_update_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
-{
-	AVD_DND_MSG *d2n_msg;
-	FILE *fp = NULL;
-	time_t local_time;
-	unsigned char asc_lt[40];	/* Ascii Localtime */
-
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_update_msg");
-
-	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == NULL) {
-		/* This is a invalid situation as the node record
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that node record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the node update message. */
-	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the node update notification message */
-	d2n_msg->msg_type = AVSV_D2N_CLM_NODE_UPDATE_MSG;
-	d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_id = avnd->node_info.nodeId;
-	d2n_msg->msg_info.d2n_clm_node_update.clm_info.view_number = cb->cluster_view_number;
-	d2n_msg->msg_info.d2n_clm_node_update.clm_info.member = avnd->node_info.member;
-
-	fp = fopen(NODE_HA_STATE, "a");
-
-	/* Get the ascii local time stamp */
-	asc_lt[0] = '\0';
-	m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
-
-	if (avnd->node_info.member == SA_TRUE) {
-		d2n_msg->msg_info.d2n_clm_node_update.clm_info.boot_timestamp = avnd->node_info.bootTimestamp;
-		d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_address = avnd->node_info.nodeAddress;
-		d2n_msg->msg_info.d2n_clm_node_update.clm_info.node_name = avnd->node_info.nodeName;
-		d2n_msg->msg_info.d2n_clm_node_update.clm_info.view_number = avnd->node_info.initialViewNumber;
-
-		if (fp) {
-			fprintf(fp, "%s | Node %s Joined the cluster.\n", asc_lt, avnd->node_info.nodeName.value);
-		}
-		syslog(LOG_INFO, "Node %s Joined the cluster.", avnd->node_info.nodeName.value);
-		avd_clm_node_join_ntf(cb, avnd);
-	} else {
-		if (fp) {
-			fprintf(fp, "%s | Node %s Left the cluster.\n", asc_lt, avnd->node_info.nodeName.value);
-		}
-		syslog(LOG_INFO, "Node %s Left the cluster.", avnd->node_info.nodeName.value);
-		avd_clm_node_exit_ntf(cb, avnd);
-	}
-	if (fp) {
-		fflush(fp);
-		fclose(fp);
-	}
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_CLM_NODE_UPDATE_MSG, 0);
-
-	if (avd_d2n_msg_bcast(cb, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to broad cast */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-		free(d2n_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_DEBUG, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-	free(d2n_msg);
-
-	/* done sending the message return success */
-	return NCSCC_RC_SUCCESS;
-
-}
-
- /*****************************************************************************
- * Function: avd_prep_node_info
- *
- * Purpose:  This function prepares the node
- * information for the given node record and adds it to the message. 
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the avnd structure of the node related to which the
- *               message needs to be sent.
- *        nodeup_msg - Pointer to the node up message being prepared.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-static uns32 avd_prep_node_info(AVD_CL_CB *cb, AVD_AVND *avnd, AVD_DND_MSG *nodeup_msg, NCS_BOOL verify)
-{
-	AVSV_CLM_INFO_MSG *node_info;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_prep_node_info");
-
-	node_info = calloc(1, sizeof(AVSV_CLM_INFO_MSG));
-
-	if (node_info == NULL) {
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_INFO_ALLOC_FAILED);
-		return NCSCC_RC_FAILURE;
-	}
-
-	node_info->clm_info.boot_timestamp = avnd->node_info.bootTimestamp;
-	node_info->clm_info.member = SA_TRUE;
-	node_info->clm_info.node_address = avnd->node_info.nodeAddress;
-	node_info->clm_info.node_id = avnd->node_info.nodeId;
-	node_info->clm_info.node_name = avnd->node_info.nodeName;
-	node_info->clm_info.view_number = avnd->node_info.initialViewNumber;
-
-	if (verify) {
-		node_info->next = nodeup_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
-		nodeup_msg->msg_info.d2n_clm_node_fover.list_of_nodes = node_info;
-
-		nodeup_msg->msg_info.d2n_clm_node_fover.num_of_nodes++;
-	} else {
-		node_info->next = nodeup_msg->msg_info.d2n_clm_node_up.list_of_nodes;
-		nodeup_msg->msg_info.d2n_clm_node_up.list_of_nodes = node_info;
-
-		nodeup_msg->msg_info.d2n_clm_node_up.num_of_nodes++;
-	}
-
-	return NCSCC_RC_SUCCESS;
-
-}
-
-/*****************************************************************************
  * Function: avd_snd_node_ack_msg
  *
  * Purpose:  This function prepares the Message ID ACK message and sends it
@@ -334,7 +182,6 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	d2n_msg->msg_info.d2n_data_verify.node_id = avnd->node_info.nodeId;
 	d2n_msg->msg_info.d2n_data_verify.rcv_id_cnt = avnd->rcv_msg_id;
 	d2n_msg->msg_info.d2n_data_verify.snd_id_cnt = avnd->snd_msg_id;
-	d2n_msg->msg_info.d2n_data_verify.view_number = cb->cluster_view_number;
 	d2n_msg->msg_info.d2n_data_verify.snd_hb_intvl = cb->snd_hb_intvl;
 	d2n_msg->msg_info.d2n_data_verify.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
 	d2n_msg->msg_info.d2n_data_verify.su_failover_max = avnd->saAmfNodeSuFailoverMax;
@@ -356,86 +203,6 @@ uns32 avd_snd_node_data_verify_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
 	return NCSCC_RC_SUCCESS;
 }
 
-/*****************************************************************************
- * Function: avd_snd_node_info_on_fover_msg
- *
- * Purpose:  This function prepares the information of all the nodes and send
- *           to particular AVND.. 
- *
- * Input: cb - Pointer to the AVD control block
- *        avnd - Pointer to the AVND structure of the node whom information
- *               needs to be update with all the other nodes.
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- *
- * NOTES: none.
- *
- * 
- **************************************************************************/
-
-uns32 avd_snd_node_info_on_fover_msg(AVD_CL_CB *cb, AVD_AVND *avnd)
-{
-	AVD_DND_MSG *d2n_msg;
-	AVD_AVND *i_avnd = NULL;
-	SaClmNodeIdT i_nodeid = 0;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_snd_node_info_on_fover_msg");
-
-	/* Verify if the AvND structure pointer is valid. */
-	if (avnd == NULL) {
-		/* This is a invalid situation as the node record
-		 * needs to be mentioned.
-		 */
-
-		/* Log a fatal error that node record can't be null */
-		m_AVD_LOG_INVALID_VAL_FATAL(0);
-		return NCSCC_RC_FAILURE;
-	}
-
-	d2n_msg = calloc(1, sizeof(AVSV_DND_MSG));
-	if (d2n_msg == AVD_DND_MSG_NULL) {
-		/* log error that the director is in degraded situation */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_DND_MSG_ALLOC_FAILED);
-		m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* prepare the message */
-	d2n_msg->msg_type = AVSV_D2N_NODE_ON_FOVER;
-	d2n_msg->msg_info.d2n_clm_node_fover.dest_node_id = avnd->node_info.nodeId;
-	d2n_msg->msg_info.d2n_clm_node_fover.view_number = cb->cluster_view_number;
-
-	/* put all the other nodes in the clusters information into the message.
-	 */
-	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != NULL) {
-		i_nodeid = i_avnd->node_info.nodeId;
-
-		if (i_avnd->node_info.member != SA_TRUE)
-			continue;
-
-		if (avd_prep_node_info(cb, i_avnd, d2n_msg, TRUE) == NCSCC_RC_FAILURE) {
-			avsv_dnd_msg_free(d2n_msg);
-			m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-			return NCSCC_RC_FAILURE;
-		}
-	}
-
-	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_NODE_ON_FOVER, avnd->node_info.nodeId);
-
-	/* Now send the message to the node director */
-	if (avd_d2n_msg_snd(cb, avnd, d2n_msg) != NCSCC_RC_SUCCESS) {
-		/* log error that the director is not able to send the message */
-		m_AVD_LOG_INVALID_VAL_ERROR(avnd->node_info.nodeId);
-		m_AVD_LOG_MSG_DND_DUMP(NCSFL_SEV_ERROR, d2n_msg, sizeof(AVD_DND_MSG), d2n_msg);
-
-		/* free the node up message */
-
-		avsv_dnd_msg_free(d2n_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
 
 /*****************************************************************************
  * Function: avd_snd_node_up_msg
@@ -490,21 +257,6 @@ uns32 avd_snd_node_up_msg(AVD_CL_CB *cb, AVD_AVND *avnd, uns32 msg_id_ack)
 	d2n_msg->msg_info.d2n_clm_node_up.snd_hb_intvl = cb->snd_hb_intvl;
 	d2n_msg->msg_info.d2n_clm_node_up.su_failover_max = avnd->saAmfNodeSuFailoverMax;
 	d2n_msg->msg_info.d2n_clm_node_up.su_failover_prob = avnd->saAmfNodeSuFailOverProb;
-
-	/* put all the other nodes in the clusters information into the message.
-	 */
-	while ((i_avnd = avd_node_getnext_nodeid(i_nodeid)) != NULL) {
-		i_nodeid = i_avnd->node_info.nodeId;
-
-		if (i_avnd->node_info.member != SA_TRUE)
-			continue;
-
-		if (avd_prep_node_info(cb, i_avnd, d2n_msg, FALSE) == NCSCC_RC_FAILURE) {
-			avsv_dnd_msg_free(d2n_msg);
-			m_AVD_LOG_INVALID_VAL_FATAL(avnd->node_info.nodeId);
-			return NCSCC_RC_FAILURE;
-		}
-	}
 
 	m_AVD_LOG_MSG_DND_SND_INFO(AVSV_D2N_CLM_NODE_UP_MSG, avnd->node_info.nodeId);
 

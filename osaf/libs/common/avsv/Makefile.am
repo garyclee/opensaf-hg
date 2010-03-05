@@ -32,9 +32,7 @@ libavsv_common_la_SOURCES = \
 	avsv_nd2ndedu.c \
 	avsv_d2nmsg.c \
 	avsv_n2avamsg.c \
-	avsv_n2clamsg.c \
 	avsv_n2avaedu.c \
-	avsv_n2claedu.c \
 	avsv_util.c \
 	avsv_eduutil.c \
 	avm_avd_mem.c

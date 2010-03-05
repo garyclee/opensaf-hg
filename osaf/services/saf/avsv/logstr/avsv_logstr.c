@@ -42,7 +42,6 @@
 #include "avd_logstr.h"
 #include "avnd_logstr.h"
 #include "ava_logstr.h"
-#include "cla_logstr.h"
 #include "avsv_logstr.h"
 
 /******************************************************************************
@@ -188,14 +187,12 @@ uns32 avsv_log_str_lib_req(NCS_LIB_REQ_INFO *req_info)
 
 	switch (req_info->i_op) {
 	case NCS_LIB_REQ_CREATE:
-		res = cla_str_reg();
 		res = ava_str_reg();
 		res = avnd_str_reg();
 		res = avd_reg_strings();
 		break;
 
 	case NCS_LIB_REQ_DESTROY:
-		res = cla_str_unreg();
 		res = ava_str_unreg();
 		res = avnd_str_unreg();
 		res = avd_unreg_strings();

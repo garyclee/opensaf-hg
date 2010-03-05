@@ -67,13 +67,6 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 {
 	TRACE_ENTER();
 
-	/* check whether we are in the context of shutdown, if yes
-	   we have to respond back to avm for the shutdown request
-	 */
-	if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN) {
-		avd_avm_send_shutdown_resp(cb, &avnd->node_info.nodeName, NCSCC_RC_SUCCESS);
-	}
-
 	/* first set the oper_state to disable */
 	avd_node_oper_state_set(avnd, SA_AMF_OPERATIONAL_DISABLED);
 
@@ -91,9 +84,7 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 	 * cluster.
 	 */
 
-	cb->cluster_num_nodes--;
 	avnd->node_info.initialViewNumber = 0;
-	++(cb->cluster_view_number);
 	avnd->node_info.member = SA_FALSE;
 
 	/* Increment node failfast counter */
@@ -102,15 +93,51 @@ void avd_avm_mark_nd_absent(AVD_CL_CB *cb, AVD_AVND *avnd)
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVD_NODE_CONFIG);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, cb, AVSV_CKPT_AVD_CB_CONFIG);
 
-	/* Broadcast the node update to all the node directors only
-	 * those that are up will use the update.
-	 */
-
-	avd_snd_node_update_msg(cb, avnd);
-
 	/* failover all the SuSIs */
 	avd_node_susi_fail_func(cb, avnd);
 	TRACE_LEAVE();
+}
+
+/****************************************************************************
+*  Name          : avd_avm_send_reset_req
+* 
+*  Description   : This is a routine that is invoked to send a request
+*                  message to AvM to get the fault domain information.
+*                  Depending on the fault domain the AvD need to act on the
+*                  error and apply it to more than one AMF Object.
+* 
+*  Arguments     : cb    - AvD control block Handle.
+* 
+*  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+* 
+*  Notes         : 
+******************************************************************************/
+uns32 avd_avm_send_reset_req(AVD_CL_CB *cb, SaNameT *node)
+{
+	AVD_AVND *avnd = NULL;
+
+	/* Temporary hack till the plm and clm comes into picture */	
+	/* first get the avnd structure from the node name */
+	avnd = avd_node_get(node);
+
+	if (avnd == NULL) {
+		return NCSCC_RC_FAILURE;
+	}
+
+	if (avnd->node_info.nodeId == cb->node_id_avd) {
+		ncs_reboot("A reset has been trigerred for this node");
+	} else if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
+
+		/* clean up the heartbeat timer for this node. */
+		m_AVD_CB_AVND_TBL_LOCK(cb, NCS_LOCK_WRITE);
+		avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
+		m_AVD_CB_AVND_TBL_UNLOCK(cb, NCS_LOCK_WRITE);
+
+		avd_avm_mark_nd_absent(cb, avnd);
+	}
+
+	return NCSCC_RC_SUCCESS;
+
 }
 
 /****************************************************************************
@@ -304,7 +331,6 @@ void avd_avm_nd_shutdown_func(AVD_CL_CB *cb, AVD_EVT *evt)
 			   no need to shutdown the child entity  */
 
 			tmpNode = tmpNode->next;
-			avd_avm_send_shutdown_resp(cb, &avnd->node_info.nodeName, NCSCC_RC_FAILURE);
 			if (1 == count) {
 				avm_avd_free_msg(&msg);
 				return;
@@ -458,7 +484,6 @@ void avd_handle_nd_failover_shutdown(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT for_
 		avd_chk_failover_shutdown_cxt(cb, avnd, for_ncs);
 	}
 }
-
 /****************************************************************************
  *  Name          : avd_chk_failover_shutdown_cxt
  * 
@@ -506,10 +531,7 @@ void avd_chk_failover_shutdown_cxt(AVD_CL_CB *cb, AVD_AVND *avnd, SaBoolT is_ncs
 		 ** else call a function to send terminate message to AvND and
 		 ** process NCS_SUs
 		 */
-		if (avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN) {
-			avd_avm_send_failover_resp(cb, &avnd->node_info.nodeName, NCSCC_RC_SUCCESS);
-			return;
-		} else {
+		if (avnd->node_state == AVD_AVND_STATE_SHUTTING_DOWN) {
 			avd_snd_shutdown_app_su_msg(cb, avnd);
 			return;
 		}

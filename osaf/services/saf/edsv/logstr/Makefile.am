@@ -21,6 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 pkglib_LTLIBRARIES = libedsv_logstr.la
 
 libedsv_logstr_la_CPPFLAGS = \
+        -DSA_CLM_B01=1 \
 	-DNCS_EDSV_LOG=1 -DNCS_DTS=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/edsv/include \

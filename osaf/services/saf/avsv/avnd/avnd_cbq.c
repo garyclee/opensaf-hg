@@ -671,7 +671,7 @@ uns32 avnd_comp_cbq_rec_send(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *rec, N
 
 	/* Check wether we need to send this to local AvA or another AvND. 
 	   Since proxy can be at another AvND, so we need to send to that AvND */
-	if (((cb->clmdb.node_info.nodeId != m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest)) ||
+	if (((cb->node_info.nodeId != m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest)) ||
 	     (m_AVND_COMP_TYPE_IS_EXT_CLUSTER(comp))) && (TRUE == timer_start)) {
 		/* Since the node id of the message to be sent differs, so send it to 
 		   another      AvND. Or this may be a case of cluster component at controller
@@ -752,14 +752,14 @@ void avnd_comp_cbq_del(AVND_CB *cb, AVND_COMP *comp, NCS_BOOL send_del_cbk)
 		if (TRUE == send_del_cbk) {
 			/* Check that the callback was sent to another AvND. */
 			dest_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest);
-			if (cb->clmdb.node_info.nodeId != dest_node_id) {
+			if (cb->node_info.nodeId != dest_node_id) {
 				/* This means that the callback was given to another AvND.
 				   So, this means that we need to send a del message to the
 				   same AvND as this may remain stale in case we don't sent
 				   and there is no response from AvA. */
 				avnd_avnd_cbk_del_send(cb, &comp->name, &rec->opq_hdl, &dest_node_id);
 
-			}	/* if(cb->clmdb.node_info.nodeId != dest_node_id) */
+			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}
 
 		/* if(TRUE == send_del_cbk) */
@@ -802,14 +802,14 @@ void avnd_comp_cbq_rec_pop_and_del(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CBK *
 		if (TRUE == send_del_cbk) {
 			/* Check that the callback was sent to another AvND. */
 			dest_node_id = m_NCS_NODE_ID_FROM_MDS_DEST(rec->dest);
-			if (cb->clmdb.node_info.nodeId != dest_node_id) {
+			if (cb->node_info.nodeId != dest_node_id) {
 				/* This means that the callback was given to another AvND.
 				   So, this means that we need to send a del message to the
 				   same AvND as this may remain stale in case we don't sent 
 				   and there is no response from AvA. */
 				rc = avnd_avnd_cbk_del_send(cb, &comp->name, &rec->opq_hdl, &dest_node_id);
 
-			}	/* if(cb->clmdb.node_info.nodeId != dest_node_id) */
+			}	/* if(cb->node_info.nodeId != dest_node_id) */
 		}		/* if(TRUE == send_del_cbk) */
 		m_AVND_SEND_CKPT_UPDT_ASYNC_RMV(cb, rec, AVND_CKPT_COMP_CBK_REC);
 		avnd_comp_cbq_rec_del(cb, comp, rec);

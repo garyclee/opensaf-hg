@@ -332,21 +332,14 @@ void avd_node_down_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 
 	/* clean up the heartbeat timer for this node. */
 	avd_stop_tmr(cb, &(avnd->heartbeat_rcv_avnd));
+	/*TODO*/
+//	opensaf_reboot(avnd->node_info.nodeId,
+//		avnd->node_info.executionEnvironment.value,
+//		"Making the node down");
 
-	/* call HPI restart */
-	if (avd_avm_send_reset_req(cb, &avnd->node_info.nodeName) == NCSCC_RC_SUCCESS) {
-
-		/* the node is going down the operation state should be made disabled.
-		 * make the node status as going down
-		 */
-
-		/* if we are in shutting down state, dont change the state;we have to
-		 * send shutdown responce to avm
-		 */
-		if (avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN) {
-			avd_node_state_set(avnd, AVD_AVND_STATE_GO_DOWN);
-			m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
-		}
+	if (avnd->node_state != AVD_AVND_STATE_SHUTTING_DOWN) {
+		avd_node_state_set(avnd, AVD_AVND_STATE_GO_DOWN);
+		m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE);
 	}
 }
 
@@ -564,6 +557,27 @@ static void node_admin_op_report_to_imm(AVD_SU *su, SaAmfPresenceStateT pres)
 	TRACE_LEAVE2("(%llu)(%u)", su->su_on_node->admin_node_pend_cbk.invocation, su->su_on_node->su_cnt_admin_oper);
 }
 
+static void clm_pend_response(AVD_SU *su, SaAmfPresenceStateT pres)
+{
+	TRACE_ENTER();
+	if (pres == SA_AMF_PRESENCE_UNINSTANTIATED) {
+		su->su_on_node->su_cnt_admin_oper--;
+		if (su->su_on_node->su_cnt_admin_oper == 0) {
+			/* if this is the last SU then send out the pending callback */
+			saClmResponse_4(avd_cb->immOiHandle, su->su_on_node->clm_pend_inv,
+							   SA_CLM_CALLBACK_RESPONSE_OK);
+			su->su_on_node->clm_pend_inv = 0;
+		}
+	} else if (pres == SA_AMF_PRESENCE_TERMINATION_FAILED) {
+		saClmResponse_4(avd_cb->immOiHandle, su->su_on_node->clm_pend_inv,
+							   SA_CLM_CALLBACK_RESPONSE_ERROR);
+		su->su_on_node->clm_pend_inv = 0;
+		su->su_on_node->su_cnt_admin_oper = 0;
+	}		/* else do nothing ::SA_AMF_PRESENCE_TERMINATING update is valid */
+
+	TRACE_LEAVE();
+}
+
 /*****************************************************************************
  * Function: avd_data_update_req_func
  *
@@ -748,6 +762,9 @@ void avd_data_update_req_func(AVD_CL_CB *cb, AVD_EVT *evt)
 					} else if (su->pend_cbk.invocation != 0) {
 						su_admin_op_report_to_imm(su, l_val);
 					}
+					/* send response to pending clm callback */
+					if (su->su_on_node->clm_pend_inv != 0)
+						clm_pend_response(su, l_val);
 				} else {
 					/* log error that a the  value len is invalid */
 					m_AVD_LOG_INVALID_VAL_ERROR(n2d_msg->msg_info.n2d_data_req.param_info.

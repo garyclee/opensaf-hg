@@ -45,10 +45,8 @@
 
 /* AvSv Common Files */
 #include "avsv_amfparam.h"
-#include "avsv_clmparam.h"
 #include "avsv_d2nmsg.h"
 #include "avsv_n2avamsg.h"
-#include "avsv_n2clamsg.h"
 #include "avsv_nd2ndmsg.h"
 
 /* AvND Files */

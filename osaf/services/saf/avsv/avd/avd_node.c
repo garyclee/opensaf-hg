@@ -108,20 +108,20 @@ AVD_AVND *avd_node_get(const SaNameT *dn)
 	AVD_AVND *node;
 	SaNameT tmp = { 0 };
 
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
+        tmp.length = dn->length;
+        memcpy(tmp.value, dn->value, tmp.length);
 
-	node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
+        node = (AVD_AVND *)ncs_patricia_tree_get(&node_name_db, (uns8 *)&tmp);
 
-	if (node != NULL) {
-		/* Adjust the pointer
-		 */
-		node = (AVD_AVND *)(((char *)node)
-				    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
-				       - ((char *)AVD_AVND_NULL)));
-	}
+        if (node != NULL) {
+                /* Adjust the pointer
+                 */
+                node = (AVD_AVND *)(((char *)node)
+                                    - (((char *)&(AVD_AVND_NULL->tree_node_name_node))
+                                       - ((char *)AVD_AVND_NULL)));
+        }
 
-	return node;
+        return node;
 }
 
 AVD_AVND *avd_node_find_nodeid(SaClmNodeIdT node_id)
@@ -134,10 +134,13 @@ AVD_AVND *avd_node_getnext(const SaNameT *dn)
 	AVD_AVND *node;
 	SaNameT tmp = { 0 };
 
-	tmp.length = dn->length;
-	memcpy(tmp.value, dn->value, tmp.length);
+        if (dn != NULL) {
+                tmp.length = dn->length;
+                memcpy(tmp.value, dn->value, tmp.length);
+                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
+        } else 
+                node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)0);
 
-	node = (AVD_AVND *)ncs_patricia_tree_getnext(&node_name_db, (uns8 *)&tmp);
 
 	if (node != NULL) {
 		/* Adjust the pointer */
@@ -226,27 +229,7 @@ static AVD_AVND *node_create(SaNameT *dn, const SaImmAttrValuesT_2 **attributes)
 			goto done;
 	}
 
-	/*  TODO this is a workaround! */
-	if (immutil_getAttr("saAmfNodeClmNode", attributes, 0, &node->saAmfNodeClmNode) == SA_AIS_OK) {
-		SaImmAccessorHandleT accessorHandle;
-		SaImmAttrValuesT_2 **clm_node_attrs;
-
-		(void)immutil_saImmOmAccessorInitialize(avd_cb->immOmHandle, &accessorHandle);
-
-		if (immutil_saImmOmAccessorGet_2(accessorHandle, &node->saAmfNodeClmNode,
-						 NULL, &clm_node_attrs) != SA_AIS_OK) {
-			LOG_ER("Get saImmOmAccessorGet_2 FAILED for '%s'", node->saAmfNodeClmNode.value);
-			goto done;
-		}
-
-		if (immutil_getAttr("saClmNodeID", (const SaImmAttrValuesT_2 **)clm_node_attrs,
-				    0, &node->node_info.nodeId) != SA_AIS_OK) {
-			LOG_ER("Get saClmNodeID FAILED for '%s'", node->saAmfNodeClmNode.value);
-			goto done;
-		}
-
-		(void)immutil_saImmOmAccessorFinalize(accessorHandle);
-	} else {
+	if (immutil_getAttr("saAmfNodeClmNode", attributes, 0, &node->saAmfNodeClmNode) != SA_AIS_OK) { 
 		LOG_ER("saAmfNodeClmNode not configured for '%s'", node->saAmfNodeClmNode.value);
 		goto done;
 	}
@@ -359,8 +342,8 @@ void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 {
 	assert(node != NULL);
 	assert(node_state <= AVD_AVND_STATE_NCS_INIT);
-	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		node->node_info.nodeName.value, node_state_name[node->node_state], node_state_name[node_state]);
+	avd_log(NCSFL_SEV_NOTICE, "'%s'::'%x' %s => %s",
+		node->node_info.nodeName.value,node->node_info.nodeId, node_state_name[node->node_state], node_state_name[node_state]);
 	node->node_state = node_state;
 	/*  TODO why isn't this followed by: */
 /*     m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE); */
@@ -675,7 +658,7 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
  *
  * @param node
  */
-static uns32 node_admin_lock_instantiation(AVD_AVND *node)
+uns32 node_admin_lock_instantiation(AVD_AVND *node)
 {
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -710,7 +693,7 @@ static uns32 node_admin_lock_instantiation(AVD_AVND *node)
  *
  * @param node
  */
-static uns32 node_admin_unlock_instantiation(AVD_AVND *node)
+uns32 node_admin_unlock_instantiation(AVD_AVND *node)
 {
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -751,8 +734,8 @@ static uns32 node_admin_unlock_instantiation(AVD_AVND *node)
  * @param invocation
  * @param operationId
  */
-static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
-					    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
+void node_admin_lock_unlock_shutdown(AVD_AVND *node,
+				    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
 	AVD_SU *su, *su_sg;
@@ -776,7 +759,8 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	 * incase of shutdown to lock and return success as this will only cause
 	 * state filed change and no semantics need to be followed.
 	 */
-	if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED) {
+	if (node->saAmfNodeOperState == SA_AMF_OPERATIONAL_DISABLED && 
+	    invocation != 0) {
 		if (new_admin_state == SA_AMF_ADMIN_SHUTTING_DOWN) {
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 		} else {
@@ -806,7 +790,9 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				 * there related to this node.
 				 */
 				LOG_WA("invalid sg state %u for unlock", su->sg_of_su->sg_fsm_state);
-				immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN);
+				
+				if (invocation != 0)
+					immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_ERR_TRY_AGAIN);
 				goto end;
 			}
 
@@ -863,9 +849,9 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 			/* get the next SU on the node */
 			su = su->avnd_list_su_next;
 		}
-		if (node->su_cnt_admin_oper == 0)
+		if (node->su_cnt_admin_oper == 0 && invocation != 0)
 			immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
-		else {
+		else if (invocation != 0) {
 			node->admin_node_pend_cbk.invocation = invocation;
 			node->admin_node_pend_cbk.admin_oper = operationId;
 		}
@@ -889,9 +875,12 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 					    (su_node_ptr == su_sg_node_ptr) &&
 					    (su_sg->list_of_susi != AVD_SU_SI_REL_NULL)) {
 						LOG_WA("two SUs on same node");
-						immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,
-										    SA_AIS_ERR_NOT_SUPPORTED);
-
+						if (invocation != 0)
+							immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,SA_AIS_ERR_NOT_SUPPORTED);
+						else {
+							saClmResponse_4(cb->clmHandle, node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
+							node->clm_pend_inv = 0;
+						} 
 						goto end;
 					}
 
@@ -908,8 +897,12 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 					    (new_admin_state != SA_AMF_ADMIN_LOCKED)) {
 						LOG_WA("invalid sg state %u for lock/shutdown",
 						       su->sg_of_su->sg_fsm_state);
-						immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,
-										    SA_AIS_ERR_TRY_AGAIN);
+						if (invocation != 0)
+							immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation,SA_AIS_ERR_TRY_AGAIN);
+						else {
+							saClmResponse_4(cb->clmHandle, node->clm_pend_inv, SA_CLM_CALLBACK_RESPONSE_ERROR);
+							node->clm_pend_inv = 0;
+						} 
 
 						goto end;
 					}
@@ -981,9 +974,9 @@ static void node_admin_lock_unlock_shutdown(AVD_AVND *node,
 			node_admin_state_set(node, SA_AMF_ADMIN_LOCKED);
 		}
 
-		if (node->su_cnt_admin_oper == 0)
+		if (node->su_cnt_admin_oper == 0 && invocation != 0)
 			immutil_saImmOiAdminOperationResult(cb->immOiHandle, invocation, SA_AIS_OK);
-		else {
+		else if (invocation != 0){
 			node->admin_node_pend_cbk.invocation = invocation;
 			node->admin_node_pend_cbk.admin_oper = operationId;
 		}

@@ -78,7 +78,7 @@ typedef struct avd_avnd_tag {
 						 * in network order.
 						 */
 
-	SaClmClusterNodeT node_info;	/* the node information of the node on
+	SaClmClusterNodeT_4 node_info;	/* the node information of the node on
 					 * which this AvND exists. The length
 					 * field of nodeName structure is in
 					 * network order. The nodename is
@@ -144,6 +144,7 @@ typedef struct avd_avnd_tag {
 	struct avd_avnd_tag *cluster_list_node_next;
 	struct avd_cluster_tag *node_on_cluster;
 	struct avd_node_sw_bundle_tag *list_of_avd_sw_bdl;
+	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
 
 } AVD_AVND;
 
@@ -215,7 +216,10 @@ extern void avd_node_add_su(struct avd_su_tag *su);
 extern void avd_node_remove_su(struct avd_su_tag *su);
 extern void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
 extern void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
-
+extern uns32 node_admin_lock_instantiation(AVD_AVND *node);
+extern uns32 node_admin_unlock_instantiation(AVD_AVND *node);
+extern void node_admin_lock_unlock_shutdown(AVD_AVND *node,
+			    SaInvocationT invocation, SaAmfAdminOperationIdT operationId);
 /* AMF Node group */
 extern SaAisErrorT avd_ng_config_get(void);
 extern AVD_AMF_NG *avd_ng_get(const SaNameT *dn);

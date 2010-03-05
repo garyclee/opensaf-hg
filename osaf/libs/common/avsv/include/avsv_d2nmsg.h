@@ -69,13 +69,11 @@ typedef enum {
 	AVSV_N2D_DATA_REQUEST_MSG,
 	AVSV_N2D_SHUTDOWN_APP_SU_MSG,
 	AVSV_N2D_VERIFY_ACK_NACK_MSG,
-	AVSV_D2N_CLM_NODE_UPDATE_MSG,
 	AVSV_D2N_CLM_NODE_UP_MSG,
 	AVSV_D2N_REG_HLT_MSG,	/* This message needs ack if addressed to only one node */
 	AVSV_D2N_REG_SU_MSG,
 	AVSV_D2N_REG_COMP_MSG,
 	AVSV_D2N_INFO_SU_SI_ASSIGN_MSG,
-	AVSV_D2N_NODE_ON_FOVER,
 	AVSV_D2N_PG_TRACK_ACT_RSP_MSG,
 	AVSV_D2N_PG_UPD_MSG,
 	AVSV_D2N_OPERATION_REQUEST_MSG,
@@ -351,8 +349,6 @@ typedef enum {
 typedef struct avsv_n2d_clm_node_up_msg_info_tag {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
-	SaTimeT boot_timestamp;
-	SaClmNodeAddressT node_address;
 	MDS_DEST adest_address;
 } AVSV_N2D_CLM_NODE_UP_MSG_INFO;
 
@@ -446,13 +442,7 @@ typedef struct avsv_n2d_verify_ack_nack_msg_info {
 	uns32 msg_id;
 	SaClmNodeIdT node_id;
 	NCS_BOOL ack;
-	NCS_BOOL v_num_ack;	/* View number ACK/NACK */
 } AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO;
-
-typedef struct avsv_d2n_clm_node_update_msg_info_tag {
-	SaClmNodeIdT dest_node_id;
-	AVSV_CLM_INFO clm_info;
-} AVSV_D2N_CLM_NODE_UPDATE_MSG_INFO;
 
 typedef struct avsv_d2n_clm_node_up_msg_info_tag {
 	SaClmNodeIdT node_id;
@@ -460,8 +450,6 @@ typedef struct avsv_d2n_clm_node_up_msg_info_tag {
 	SaTimeT snd_hb_intvl;
 	SaTimeT su_failover_prob;
 	uns32 su_failover_max;
-	uns32 num_of_nodes;
-	AVSV_CLM_INFO_MSG *list_of_nodes;
 } AVSV_D2N_CLM_NODE_UP_MSG_INFO;
 
 typedef struct avsv_d2n_reg_hlt_msg_info_tag {
@@ -514,13 +502,6 @@ typedef struct avsv_d2n_info_su_si_assign_msg_info_tag {
 	AVSV_SUSI_ASGN *list;
 } AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO;
 
-typedef struct avsv_d2n_clm_node_on_fover {
-	SaClmNodeIdT dest_node_id;
-	uns32 num_of_nodes;
-	SaUint64T view_number;
-	AVSV_CLM_INFO_MSG *list_of_nodes;
-} AVSV_D2N_CLM_NODE_ON_FOVER;
-
 typedef struct avsv_d2n_pg_track_act_rsp_msg_info_tag {
 	uns32 msg_id_ack;
 	SaClmNodeIdT node_id;
@@ -561,8 +542,6 @@ typedef struct avsv_d2n_data_verify_msg_info {
 	uns32 snd_id_cnt;
 	uns32 rcv_id_cnt;
 	SaClmNodeIdT node_id;
-	SaUint64T view_number;	/* view number when the node 
-				   joined/left the cluster */
 	SaTimeT snd_hb_intvl;
 	SaTimeT su_failover_prob;
 	uns32 su_failover_max;
@@ -623,13 +602,11 @@ typedef struct avsv_dnd_msg {
 		AVSV_N2D_DATA_REQUEST_MSG_INFO n2d_data_req;
 		AVSV_N2D_VERIFY_ACK_NACK_MSG_INFO n2d_ack_nack_info;
 		AVSV_N2D_SHUTDOWN_APP_SU_MSG_INFO n2d_shutdown_app_su;
-		AVSV_D2N_CLM_NODE_UPDATE_MSG_INFO d2n_clm_node_update;
 		AVSV_D2N_CLM_NODE_UP_MSG_INFO d2n_clm_node_up;
 		AVSV_D2N_REG_HLT_MSG_INFO d2n_reg_hlt;
 		AVSV_D2N_REG_SU_MSG_INFO d2n_reg_su;
 		AVSV_D2N_REG_COMP_MSG_INFO d2n_reg_comp;
 		AVSV_D2N_INFO_SU_SI_ASSIGN_MSG_INFO d2n_su_si_assign;
-		AVSV_D2N_CLM_NODE_ON_FOVER d2n_clm_node_fover;
 		AVSV_D2N_PG_TRACK_ACT_RSP_MSG_INFO d2n_pg_track_act_rsp;
 		AVSV_D2N_PG_UPD_MSG_INFO d2n_pg_upd;
 		AVSV_D2N_OPERATION_REQUEST_MSG_INFO d2n_op_req;

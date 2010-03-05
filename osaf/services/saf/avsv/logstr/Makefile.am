@@ -26,14 +26,12 @@ libavsv_logstr_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include \
-	-I$(top_srcdir)/osaf/libs/agents/saf/cla/include
+	-I$(top_srcdir)/osaf/libs/agents/saf/ava/include 
 
 libavsv_logstr_la_SOURCES = \
 	ava_logstr.c \
 	avd_logstr.c \
 	avnd_logstr.c \
-	avsv_logstr.c \
-	cla_logstr.c
+	avsv_logstr.c 
 
 libavsv_logstr_la_LDFLAGS = -version-number 3

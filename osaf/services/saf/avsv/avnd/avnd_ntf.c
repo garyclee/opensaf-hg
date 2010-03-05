@@ -279,7 +279,7 @@ uns32 avnd_gen_comp_fail_on_node_ntf(AVND_CB *avnd_cb, AVND_ERR_SRC errSrc, AVND
 	SaNameT comp_name;
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-	avnd_log_comp_failed_ntfs(avnd_cb->clmdb.node_info.nodeId, &(comp->name), errSrc-1, NCSFL_SEV_NOTICE);
+	avnd_log_comp_failed_ntfs(avnd_cb->node_info.nodeId, &(comp->name), errSrc-1, NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
 	comp_name.length = comp->name.length;

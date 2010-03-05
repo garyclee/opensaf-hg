@@ -46,7 +46,6 @@
 typedef enum avnd_msg_type {
 	AVND_MSG_AVD = 1,
 	AVND_MSG_AVA,
-	AVND_MSG_CLA,
 	AVND_MSG_AVND,
 	AVND_MSG_MAX
 } AVND_MSG_TYPE;
@@ -57,7 +56,6 @@ typedef struct avnd_msg {
 		AVSV_DND_MSG *avd;	/* AvD message */
 		AVSV_ND2ND_AVND_MSG *avnd;	/* AvND message */
 		AVSV_NDA_AVA_MSG *ava;	/* AvA message */
-		AVSV_NDA_CLA_MSG *cla;	/* CLA message */
 	} info;
 } AVND_MSG;
 

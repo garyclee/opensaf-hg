@@ -35,13 +35,11 @@ typedef enum avnd_evt_type {
 	AVND_EVT_INVALID = 0,
 
 	/* AvD message event types */
-	AVND_EVT_AVD_NODE_UPDATE_MSG,
 	AVND_EVT_AVD_NODE_UP_MSG,
 	AVND_EVT_AVD_REG_HLT_MSG,
 	AVND_EVT_AVD_REG_SU_MSG,
 	AVND_EVT_AVD_REG_COMP_MSG,
 	AVND_EVT_AVD_INFO_SU_SI_ASSIGN_MSG,
-	AVND_EVT_AVD_NODE_ON_FOVER,
 	AVND_EVT_AVD_PG_TRACK_ACT_RSP_MSG,
 	AVND_EVT_AVD_PG_UPD_MSG,
 	AVND_EVT_AVD_OPERATION_REQUEST_MSG,
@@ -74,16 +72,8 @@ typedef enum avnd_evt_type {
 	AVND_EVT_AVA_RESP,
 	AVND_EVT_AVA_MAX,
 
-	/* CLA event types */
-	AVND_EVT_CLA_FINALIZE = AVND_EVT_AVA_MAX,
-	AVND_EVT_CLA_TRACK_START,
-	AVND_EVT_CLA_TRACK_STOP,
-	AVND_EVT_CLA_NODE_GET,
-	AVND_EVT_CLA_NODE_ASYNC_GET,
-	AVND_EVT_CLA_MAX,
-
 	/* timer event types */
-	AVND_EVT_TMR_HC = AVND_EVT_CLA_MAX,
+	AVND_EVT_TMR_HC = AVND_EVT_AVA_MAX,
 	AVND_EVT_TMR_CBK_RESP,
 	AVND_EVT_TMR_SND_HB,
 	AVND_EVT_TMR_RCV_MSG_RSP,
@@ -98,7 +88,6 @@ typedef enum avnd_evt_type {
 	AVND_EVT_MDS_AVD_UP = AVND_EVT_TMR_MAX,
 	AVND_EVT_MDS_AVD_DN,
 	AVND_EVT_MDS_AVA_DN,
-	AVND_EVT_MDS_CLA_DN,
 	AVND_EVT_MDS_AVND_DN,
 	AVND_EVT_MDS_AVND_UP,
 	AVND_EVT_MDS_MAX,
@@ -128,12 +117,6 @@ typedef struct avnd_ava_evt {
 	MDS_DEST mds_dest;
 	AVSV_NDA_AVA_MSG *msg;
 } AVND_AVA_EVT;
-
-/* CLA event definition */
-typedef struct avnd_cla_evt {
-	MDS_DEST mds_dest;
-	AVSV_NDA_CLA_MSG *msg;
-} AVND_CLA_EVT;
 
 /* timer event definition */
 typedef struct avnd_tmr_evt {
@@ -181,7 +164,6 @@ typedef struct avnd_evt_tag {
 		AVSV_DND_MSG *avd;
 		AVSV_ND2ND_AVND_MSG *avnd;
 		AVND_AVA_EVT ava;
-		AVND_CLA_EVT cla;
 		AVND_TMR_EVT tmr;
 		AVND_MDS_EVT mds;
 		AVND_HA_STATE_CHANGE_EVT ha_state_change;

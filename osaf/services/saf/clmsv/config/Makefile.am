@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2010 The OpenSAF Foundation
+# (C) Copyright 2009 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,10 +19,12 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/clmsv/config/clm.conf \
-	$(top_srcdir)/osaf/services/saf/clmsv/config/node_name
+	$(top_srcdir)/osaf/services/saf/clmsv/config/clm.conf
 
 dist_pkgimmxml_svc_DATA = \
-        clmsv_sc_template.xml \
-        clmsv_classes.xml \
-        clmsv_objects.xml
+	clmsv_classes.xml \
+	clmsv_objects.xml \
+	clmsv_sc_template.xml
+
+install-data-hook:
+	hostname > $(DESTDIR)$(pkgsysconfdir)/node_name

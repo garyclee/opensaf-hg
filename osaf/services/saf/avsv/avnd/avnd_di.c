@@ -202,7 +202,7 @@ uns32 avnd_evt_avd_reg_hlt_msg(AVND_CB *cb, AVND_EVT *evt)
 	}
 
    /*** send the response to AvD (if it's sent to me) ***/
-	if (info->nodeid == cb->clmdb.node_info.nodeId) {
+	if (info->nodeid == cb->node_info.nodeId) {
 		memset(&msg, 0, sizeof(AVND_MSG));
 		msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
 		if (!msg.info.avd) {
@@ -213,7 +213,7 @@ uns32 avnd_evt_avd_reg_hlt_msg(AVND_CB *cb, AVND_EVT *evt)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_REG_HLT_MSG;
 		msg.info.avd->msg_info.n2d_reg_hlt.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_reg_hlt.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_reg_hlt.node_id = cb->node_info.nodeId;
 		if (info->hlt_list)
 			msg.info.avd->msg_info.n2d_reg_hlt.hltchk_name = info->hlt_list->name;
 		msg.info.avd->msg_info.n2d_reg_hlt.error =
@@ -375,7 +375,7 @@ uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 	/* 
 	 * Send the response to avd.
 	 */
-	if (info->node_id == cb->clmdb.node_info.nodeId) {
+	if (info->node_id == cb->node_info.nodeId) {
 		memset(&msg, 0, sizeof(AVND_MSG));
 		msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG));
 		if (!msg.info.avd) {
@@ -387,7 +387,7 @@ uns32 avnd_evt_avd_operation_request_msg(AVND_CB *cb, AVND_EVT *evt)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_OPERATION_REQUEST_MSG;
 		msg.info.avd->msg_info.n2d_op_req.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_op_req.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_op_req.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_op_req.param_info = *param;
 		msg.info.avd->msg_info.n2d_op_req.error = rc;
 
@@ -541,9 +541,18 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-/* Avd is already UP, reboot the node */
-	if (m_AVND_CB_IS_AVD_UP(cb))
-		ncs_reboot("AVD is already up");
+	/* Avd is already UP, reboot the node */
+	if (!m_AVND_CB_IS_AVD_UP(cb)) {
+		avnd_log(NCSFL_SEV_NOTICE, "AVD is not up");
+		goto done;
+	}
+
+	/* check whether this node is a cluster member 
+	   if not a member then do nothing */
+	if (cb->node_info.member != SA_TRUE) {
+		avnd_log(NCSFL_SEV_NOTICE, "This node is not a Cluster member");
+		goto done;
+	}
 
 	/* send node up message to AvD */
 	memset(&msg, 0, sizeof(AVND_MSG));
@@ -552,8 +561,7 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
 		msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->clmdb.node_info.nodeId;
-		msg.info.avd->msg_info.n2d_clm_node_up.boot_timestamp = cb->clmdb.node_info.bootTimestamp;
+		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
 
 		rc = avnd_di_msg_send(cb, &msg);
@@ -565,6 +573,7 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 	/* free the contents of avnd message */
 	avnd_msg_content_free(cb, &msg);
 
+done:
 	return rc;
 }
 
@@ -615,7 +624,7 @@ uns32 avnd_di_hb_send(AVND_CB *cb)
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_HEARTBEAT_MSG;
-		msg.info.avd->msg_info.n2d_hrt_bt.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_hrt_bt.node_id = cb->node_info.nodeId;
 
 		/* send the heartbeat to AvD */
 		rc = avnd_di_msg_send(cb, &msg);
@@ -660,7 +669,7 @@ uns32 avnd_di_oper_send(AVND_CB *cb, AVND_SU *su, uns32 rcvr)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_OPERATION_STATE_MSG;
 		msg.info.avd->msg_info.n2d_opr_state.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_opr_state.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_opr_state.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_opr_state.node_oper_state = cb->oper_state;
 
 		if (su) {
@@ -719,7 +728,7 @@ uns32 avnd_di_susi_resp_send(AVND_CB *cb, AVND_SU *su, AVND_SU_SI_REC *si)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_INFO_SU_SI_ASSIGN_MSG;
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_su_si_assign.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_su_si_assign.msg_act =
 		    (m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNED(curr_si) ||
 		     m_AVND_SU_SI_CURR_ASSIGN_STATE_IS_ASSIGNING(curr_si)) ?
@@ -775,7 +784,7 @@ uns32 avnd_di_object_upd_send(AVND_CB *cb, AVSV_PARAM_INFO *param)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_DATA_REQUEST_MSG;
 		msg.info.avd->msg_info.n2d_data_req.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_data_req.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_data_req.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_data_req.param_info = *param;
 
 		/* send the msg to AvD */
@@ -816,7 +825,7 @@ uns32 avnd_di_pg_act_send(AVND_CB *cb, SaNameT *csi_name, AVSV_PG_TRACK_ACT actn
 	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_PG_TRACK_ACT_MSG;
-		msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_pg_trk_act.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_pg_trk_act.csi_name = *csi_name;
 		msg.info.avd->msg_info.n2d_pg_trk_act.actn = actn;
 		msg.info.avd->msg_info.n2d_pg_trk_act.msg_on_fover = fover;
@@ -909,7 +918,7 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_VERIFY_ACK_NACK_MSG;
 		msg.info.avd->msg_info.n2d_ack_nack_info.msg_id = (cb->snd_msg_id + 1);
-		msg.info.avd->msg_info.n2d_ack_nack_info.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_ack_nack_info.node_id = cb->node_info.nodeId;
 
 		if (rcv_id != cb->rcv_msg_id)
 			msg.info.avd->msg_info.n2d_ack_nack_info.ack = FALSE;
@@ -918,14 +927,6 @@ uns32 avnd_di_ack_nack_msg_send(AVND_CB *cb, uns32 rcv_id, uns32 view_num)
 
 		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE,
 				      AVND_LOG_FOVR_MSG_ID_ACK_NACK, msg.info.avd->msg_info.n2d_ack_nack_info.ack);
-
-		if (view_num != cb->clmdb.curr_view_num)
-			msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = FALSE;
-		else
-			msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack = TRUE;
-
-		m_AVND_LOG_FOVER_EVTS(NCSFL_SEV_NOTICE,
-				      AVND_LOG_FOVR_VNUM_ACK_NACK, msg.info.avd->msg_info.n2d_ack_nack_info.v_num_ack);
 
 		rc = avnd_di_msg_send(cb, &msg);
 		if (NCSCC_RC_SUCCESS == rc)
@@ -961,7 +962,7 @@ uns32 avnd_di_reg_su_rsp_snd(AVND_CB *cb, SaNameT *su_name, uns32 ret_code)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_REG_SU_MSG;
 		msg.info.avd->msg_info.n2d_reg_su.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_reg_su.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_reg_su.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_reg_su.su_name = *su_name;
 		msg.info.avd->msg_info.n2d_reg_su.error =
 		    (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;
@@ -1000,7 +1001,7 @@ uns32 avnd_di_reg_comp_rsp_snd(AVND_CB *cb, SaNameT *comp_name, uns32 ret_code)
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd->msg_type = AVSV_N2D_REG_COMP_MSG;
 		msg.info.avd->msg_info.n2d_reg_comp.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_reg_comp.node_id = cb->clmdb.node_info.nodeId;
+		msg.info.avd->msg_info.n2d_reg_comp.node_id = cb->node_info.nodeId;
 		msg.info.avd->msg_info.n2d_reg_comp.comp_name = *comp_name;
 		msg.info.avd->msg_info.n2d_reg_comp.error =
 		    (NCSCC_RC_SUCCESS == ret_code) ? NCSCC_RC_SUCCESS : NCSCC_RC_FAILURE;

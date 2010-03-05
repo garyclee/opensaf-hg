@@ -53,7 +53,7 @@
 #                       processes.                                          #
 #############################################################################
 
-xxLIBDIRxx/opensaf_nodeagent:CLMNA:S:xxLIBDIRxx/opensaf_nodeagent:4000::2:1:start:stop
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
+xxLIBDIRxx/opensaf_nodeagent:CLMNA:S:xxLIBDIRxx/opensaf_nodeagent:4000::2:1:start:stop
 xxLIBDIRxx/immnd_script:IMMND:S:xxLIBDIRxx/immnd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/amfnd_script:AMFND:S:xxLIBDIRxx/amfnd_script:99000::0:1:start:stop

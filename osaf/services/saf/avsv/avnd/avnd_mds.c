@@ -34,14 +34,12 @@
 #include "avnd.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
-#include "avsv_n2claedu.h"
 
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avd_msg_fmt_map_table[AVND_AVD_SUBPART_VER_MAX] =
     { AVSV_AVD_AVND_MSG_FMT_VER_1, AVSV_AVD_AVND_MSG_FMT_VER_2 };
 const MDS_CLIENT_MSG_FORMAT_VER avnd_avnd_msg_fmt_map_table[AVND_AVND_SUBPART_VER_MAX] =
     { AVSV_AVND_AVND_MSG_FMT_VER_1 };
 const MDS_CLIENT_MSG_FORMAT_VER avnd_ava_msg_fmt_map_table[AVND_AVA_SUBPART_VER_MAX] = { AVSV_AVND_AVA_MSG_FMT_VER_1 };
-const MDS_CLIENT_MSG_FORMAT_VER avnd_cla_msg_fmt_map_table[AVND_CLA_SUBPART_VER_MAX] = { AVSV_AVND_CLA_MSG_FMT_VER_1 };
 
 /* static function declarations */
 
@@ -56,12 +54,10 @@ static uns32 avnd_mds_svc_evt(AVND_CB *, MDS_CALLBACK_SVC_EVENT_INFO *);
 static uns32 avnd_mds_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
 static uns32 avnd_mds_flat_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
 static uns32 avnd_mds_flat_ava_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
-static uns32 avnd_mds_flat_cla_enc(AVND_CB *, MDS_CALLBACK_ENC_INFO *);
 
 static uns32 avnd_mds_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_flat_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_flat_ava_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
-static uns32 avnd_mds_flat_cla_dec(AVND_CB *, MDS_CALLBACK_DEC_INFO *);
 static uns32 avnd_mds_quiesced_process(AVND_CB *cb);
 
 /****************************************************************************
@@ -128,11 +124,10 @@ uns32 avnd_mds_reg(AVND_CB *cb)
 	}
 	m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
 
-	/* subscribe to events from ava & cla */
+	/* subscribe to events from ava */
 	mds_info.info.svc_subscribe.i_scope = NCSMDS_SCOPE_INTRANODE;
-	mds_info.info.svc_subscribe.i_num_svcs = 2;
+	mds_info.info.svc_subscribe.i_num_svcs = 1;
 	svc_ids[0] = NCSMDS_SVC_ID_AVA;
-	svc_ids[1] = NCSMDS_SVC_ID_CLA;
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc) {
 		m_AVND_LOG_MDS(AVSV_LOG_MDS_SUBSCRIBE, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
@@ -401,7 +396,7 @@ done:
   Name          : avnd_mds_rcv
  
   Description   : This routine is invoked when AvND message is received from 
-                  AvD, AvA or CLA. It creates AvND event & enqueues it to the
+                  AvD, AvA. It creates AvND event & enqueues it to the
                   AvND mailbox.
  
   Arguments     : cb       - ptr to the AvND control block
@@ -428,7 +423,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* populate the msg structure (ptr assignments) */
 	switch (rcv_info->i_fr_svc_id) {
 	case NCSMDS_SVC_ID_AVD:
-
+					      
 		/*
 		 * Set the Active Anchor value, if the message is Verify message or Node up
 		 * message, to the Anchor of the received message.
@@ -443,15 +438,14 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 		 * the message with Anchor of Active. Don't accept message 
 		 * from any other anchor than Active. 
 		 */
-		if (rcv_info->i_fr_dest != cb->active_avd_adest) {
-			/* Log error */
+		if (rcv_info->i_fr_dest != cb->active_avd_adest) 
+		{
 			m_AVND_AVND_DEBUG_LOG("avnd_mds_rcv():rcv_info->i_fr_dest and cb->active_avd_adest mismatch",
-					      NULL, rcv_info->i_fr_dest, cb->active_avd_adest, 0, 0);
+					      NULL, rcv_info->i_fr_dest, cb->active_avd_adest,((AVSV_DND_MSG *)(rcv_info->i_msg))->msg_type, 0);
 			avsv_dnd_msg_free(((AVSV_DND_MSG *)rcv_info->i_msg));
 			rcv_info->i_msg = 0;
 			return NCSCC_RC_SUCCESS;
 		}
-
 		msg.type = AVND_MSG_AVD;
 		msg.info.avd = (AVSV_DND_MSG *)rcv_info->i_msg;
 		break;
@@ -460,12 +454,6 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 
 		msg.type = AVND_MSG_AVA;
 		msg.info.ava = (AVSV_NDA_AVA_MSG *)rcv_info->i_msg;
-		break;
-
-	case NCSMDS_SVC_ID_CLA:
-
-		msg.type = AVND_MSG_CLA;
-		msg.info.cla = (AVSV_NDA_CLA_MSG *)rcv_info->i_msg;
 		break;
 
 	case NCSMDS_SVC_ID_AVND:
@@ -485,18 +473,13 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* determine the event type */
 	switch (msg.type) {
 	case AVND_MSG_AVD:
-		type = (msg.info.avd->msg_type - AVSV_D2N_CLM_NODE_UPDATE_MSG) + AVND_EVT_AVD_NODE_UPDATE_MSG;
+		type = (msg.info.avd->msg_type - AVSV_D2N_CLM_NODE_UP_MSG) + AVND_EVT_AVD_NODE_UP_MSG;
 
 		break;
 
 	case AVND_MSG_AVA:
 		assert(AVSV_AVA_API_MSG == msg.info.ava->type);
 		type = (msg.info.ava->info.api_info.type - AVSV_AMF_FINALIZE) + AVND_EVT_AVA_FINALIZE;
-		break;
-
-	case AVND_MSG_CLA:
-		assert(AVSV_CLA_API_MSG == msg.info.cla->type);
-		type = (msg.info.cla->info.api_info.type - AVSV_CLM_FINALIZE) + AVND_EVT_CLA_FINALIZE;
 		break;
 
 	case AVND_MSG_AVND:
@@ -511,8 +494,7 @@ uns32 avnd_mds_rcv(AVND_CB *cb, MDS_CALLBACK_RECEIVE_INFO *rcv_info)
 	/* create the event */
 	evt = avnd_evt_create(cb, type, &rcv_info->i_msg_ctxt, &rcv_info->i_fr_dest,
 			      (msg.info.avd) ? (void *)msg.info.avd :
-			      ((msg.info.ava) ? (void *)msg.info.ava : ((msg.info.avnd) ? (void *)msg.info.avnd :
-									(void *)msg.info.cla)), 0, 0);
+			      ((msg.info.ava) ? (void *)msg.info.ava : (msg.info.avnd)), 0, 0);
 	if (!evt) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -553,7 +535,7 @@ uns32 avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 	AVND_MSG *msg = (AVND_MSG *)cpy_info->i_msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	/* the message may be destined to avd, ava or cla */
+	/* the message may be destined to avd, ava */
 	switch (cpy_info->i_to_svc_id) {
 	case NCSMDS_SVC_ID_AVD:
 		cpy_info->o_msg_fmt_ver = avnd_avd_msg_fmt_map_table[cpy_info->i_rem_svc_pvt_ver - 1];
@@ -572,11 +554,6 @@ uns32 avnd_mds_cpy(AVND_CB *cb, MDS_CALLBACK_COPY_INFO *cpy_info)
 	case NCSMDS_SVC_ID_AVA:
 		cpy_info->o_cpy = (NCSCONTEXT)msg->info.ava;
 		msg->info.ava = 0;
-		break;
-
-	case NCSMDS_SVC_ID_CLA:
-		cpy_info->o_cpy = (NCSCONTEXT)msg->info.cla;
-		msg->info.cla = 0;
 		break;
 
 	default:
@@ -615,9 +592,14 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 				if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
 					return rc;
 
+				avnd_log(NCSFL_SEV_NOTICE, "AVND_EVT_MDS_AVD_UP event recvd");
+				/* Avd is already UP, reboot the node */
+				if (m_AVND_CB_IS_AVD_UP(cb))
+					return rc;
+					
+				m_AVND_CB_AVD_UP_SET(cb);
 				/* store the avd mds-dest */
 				cb->avd_dest = evt_info->i_dest;
-
 				/* create the mds event */
 				evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
 			}
@@ -625,10 +607,6 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 
 		case NCSMDS_SVC_ID_AVA:
 			/*  New AvA has come up. Dont do anything now */
-			break;
-
-		case NCSMDS_SVC_ID_CLA:
-			/*  New CLA has come up. Dont do anything now */
 			break;
 
 		case NCSMDS_SVC_ID_AVND:
@@ -689,13 +667,6 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 			{
 				/* create the mds event */
 				evt = avnd_evt_create(cb, AVND_EVT_MDS_AVA_DN, 0, &evt_info->i_dest, 0, 0, 0);
-			}
-			break;
-
-		case NCSMDS_SVC_ID_CLA:
-			{
-				/* create the mds event */
-				evt = avnd_evt_create(cb, AVND_EVT_MDS_CLA_DN, 0, &evt_info->i_dest, 0, 0, 0);
 			}
 			break;
 
@@ -784,21 +755,6 @@ uns32 avnd_mds_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 					EDP_OP_TYPE_ENC, msg->info.avnd, &ederror, enc_info->o_msg_fmt_ver);
 		break;
 
-	case AVND_MSG_CLA:
-		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-								AVND_CLA_SUBPART_VER_MIN,
-								AVND_CLA_SUBPART_VER_MAX, avnd_cla_msg_fmt_map_table);
-
-		if (enc_info->o_msg_fmt_ver < AVSV_AVND_CLA_MSG_FMT_VER_1) {
-			return NCSCC_RC_FAILURE;
-		}
-
-		rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_nd_cla_msg, enc_info->io_uba,
-					EDP_OP_TYPE_ENC, msg->info.cla, &ederror, enc_info->o_msg_fmt_ver);
-		break;
-
-		break;
-
 	case AVND_MSG_AVA:
 		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
 								AVND_AVA_SUBPART_VER_MIN,
@@ -860,18 +816,6 @@ uns32 avnd_mds_flat_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 		}
 
 		rc = avnd_mds_flat_ava_enc(cb, enc_info);
-		break;
-
-	case AVND_MSG_CLA:
-		enc_info->o_msg_fmt_ver = m_NCS_ENC_MSG_FMT_GET(enc_info->i_rem_svc_pvt_ver,
-								AVND_CLA_SUBPART_VER_MIN,
-								AVND_CLA_SUBPART_VER_MAX, avnd_cla_msg_fmt_map_table);
-
-		if (enc_info->o_msg_fmt_ver < AVSV_AVND_CLA_MSG_FMT_VER_1) {
-			return NCSCC_RC_FAILURE;
-		}
-
-		rc = avnd_mds_flat_cla_enc(cb, enc_info);
 		break;
 
 	case AVND_MSG_AVD:
@@ -1004,70 +948,6 @@ uns32 avnd_mds_flat_ava_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
 }
 
 /****************************************************************************
-  Name          : avnd_mds_flat_cla_enc
- 
-  Description   : This routine is invoked to (flat) encode CLA message.
- 
-  Arguments     : cb       - ptr to the AvND control block
-                  enc_info - ptr to the MDS encode info
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_mds_flat_cla_enc(AVND_CB *cb, MDS_CALLBACK_ENC_INFO *enc_info)
-{
-	AVSV_NDA_CLA_MSG *cla;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	cla = ((AVND_MSG *)enc_info->i_msg)->info.cla;
-	assert(cla);
-
-	/* encode top-level cla message structure into userbuf */
-	rc = ncs_encode_n_octets_in_uba(enc_info->io_uba, (uns8 *)cla, sizeof(AVSV_NDA_CLA_MSG));
-	if (NCSCC_RC_SUCCESS != rc)
-		goto done;
-
-	/* encode the individual cla messages */
-	switch (cla->type) {
-	case AVSV_AVND_CLM_CBK_MSG:
-		{
-			AVSV_CLM_CBK_INFO *cbk_info = &cla->info.cbk_info;
-
-			/* The notification buffer for track param need to be encoded */
-			if ((cbk_info) &&
-			    (AVSV_CLM_CBK_TRACK == cbk_info->type) && (cbk_info->param.track.notify.numberOfItems)) {
-				rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
-								(uns8 *)cbk_info->param.track.notify.notification,
-								sizeof(SaClmClusterNotificationT) *
-								cbk_info->param.track.notify.numberOfItems);
-			}
-		}
-		break;
-
-	case AVSV_AVND_CLM_API_RESP_MSG:
-		{
-			/* The notification buffer for track param need to be encoded */
-			if ((cla->info.api_resp_info.type == AVSV_CLM_TRACK_START) &&
-			    (cla->info.api_resp_info.param.track.num)) {
-				rc = ncs_encode_n_octets_in_uba(enc_info->io_uba,
-								(uns8 *)cla->info.api_resp_info.param.track.notify,
-								sizeof(SaClmClusterNotificationT) *
-								cla->info.api_resp_info.param.track.num);
-			}
-		}
-		break;
-
-	case AVSV_CLA_API_MSG:
-	default:
-		assert(0);
-	}			/* switch */
-
- done:
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_mds_dec
  
   Description   : This routine is invoked to decode AvD message.
@@ -1123,25 +1003,6 @@ uns32 avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		}
 		break;
 
-	case NCSMDS_SVC_ID_CLA:
-		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
-					       AVND_CLA_SUBPART_VER_MIN,
-					       AVND_CLA_SUBPART_VER_MAX, avnd_cla_msg_fmt_map_table)) {
-			return NCSCC_RC_FAILURE;
-		}
-
-		rc = m_NCS_EDU_VER_EXEC(&cb->edu_hdl, avsv_edp_nd_cla_msg, dec_info->io_uba,
-					EDP_OP_TYPE_DEC, (AVSV_NDA_CLA_MSG **)&dec_info->o_msg, &ederror,
-					dec_info->i_msg_fmt_ver);
-		if (rc != NCSCC_RC_SUCCESS) {
-			if (dec_info->o_msg != NULL) {
-				avsv_nda_cla_msg_free(dec_info->o_msg);
-				dec_info->o_msg = NULL;
-			}
-			return rc;
-		}
-		break;
-
 	case NCSMDS_SVC_ID_AVA:
 		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
 					       AVND_AVA_SUBPART_VER_MIN,
@@ -1172,7 +1033,7 @@ uns32 avnd_mds_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 /****************************************************************************
   Name          : avnd_mds_flat_dec
  
-  Description   : This routine is invoked to decode AvA & CLA messages.
+  Description   : This routine is invoked to decode AvA messages.
  
   Arguments     : cb       - ptr to the AvND control block
                   dec_info - ptr to the MDS decode info
@@ -1195,16 +1056,6 @@ uns32 avnd_mds_flat_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 		}
 
 		rc = avnd_mds_flat_ava_dec(cb, dec_info);
-		break;
-
-	case NCSMDS_SVC_ID_CLA:
-		if (!m_NCS_MSG_FORMAT_IS_VALID(dec_info->i_msg_fmt_ver,
-					       AVND_CLA_SUBPART_VER_MIN,
-					       AVND_CLA_SUBPART_VER_MAX, avnd_cla_msg_fmt_map_table)) {
-			return NCSCC_RC_FAILURE;
-		}
-
-		rc = avnd_mds_flat_cla_dec(cb, dec_info);
 		break;
 
 	case NCSMDS_SVC_ID_AVD:
@@ -1296,48 +1147,6 @@ uns32 avnd_mds_flat_ava_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
 }
 
 /****************************************************************************
-  Name          : avnd_mds_flat_cla_dec
- 
-  Description   : This routine is invoked to (flat) decode CLA message.
- 
-  Arguments     : cb       - ptr to the AvND control block
-                  dec_info - ptr to the MDS decode info
- 
-  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
- 
-  Notes         : None.
-******************************************************************************/
-uns32 avnd_mds_flat_cla_dec(AVND_CB *cb, MDS_CALLBACK_DEC_INFO *dec_info)
-{
-	AVSV_NDA_CLA_MSG *cla_msg = 0;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	/* alloc memory for cla-msg */
-	cla_msg = calloc(1, sizeof(AVSV_NDA_CLA_MSG));
-	if (!cla_msg) {
-		rc = NCSCC_RC_FAILURE;
-		goto err;
-	}
-
-	/* decode the msg */
-	rc = ncs_decode_n_octets_from_uba(dec_info->io_uba, (uns8 *)cla_msg, sizeof(AVSV_NDA_CLA_MSG));
-	if (NCSCC_RC_SUCCESS != rc)
-		goto err;
-
-	/* decode over successfully */
-	dec_info->o_msg = (NCSCONTEXT)cla_msg;
-
-	return rc;
-
- err:
-	/* free cla-msg */
-	if (cla_msg)
-		avsv_nda_cla_msg_free(cla_msg);
-	dec_info->o_msg = 0;
-	return rc;
-}
-
-/****************************************************************************
   Name          : avnd_mds_send
  
   Description   : This routine sends the mds message to AvA or AvD or AvND.
@@ -1374,10 +1183,6 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 
 	case AVND_MSG_AVA:
 		send_info->i_to_svc = NCSMDS_SVC_ID_AVA;
-		break;
-
-	case AVND_MSG_CLA:
-		send_info->i_to_svc = NCSMDS_SVC_ID_CLA;
 		break;
 
 	default:
@@ -1498,7 +1303,7 @@ uns32 avnd_mds_param_get(AVND_CB *cb)
 	cb->avnd_dest = ada_info.info.adest_get_hdls.o_adest;
 
 	/* get the node-id from mds */
-	cb->clmdb.node_info.nodeId = m_NCS_NODE_ID_FROM_MDS_DEST(cb->avnd_dest);
+	cb->node_info.nodeId = m_NCS_NODE_ID_FROM_MDS_DEST(cb->avnd_dest);
 
  done:
 	return rc;

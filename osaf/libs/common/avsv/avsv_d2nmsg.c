@@ -68,17 +68,7 @@
 
 void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg)
 {
-	AVSV_CLM_INFO_MSG *node;
-
-	/* free the nodes information */
-	while (node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes != NULL) {
-		node = node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes;
-		node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes = node->next;
-		free(node);
-	}
-
 	return;
-
 }
 
 /*****************************************************************************
@@ -97,14 +87,6 @@ void avsv_free_d2n_node_up_msg_info(AVSV_DND_MSG *node_up_msg)
 
 void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg)
 {
-	AVSV_CLM_INFO_MSG *node;
-
-	/* free the nodes information */
-	while (node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes != NULL) {
-		node = node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
-		node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes = node->next;
-		free(node);
-	}
 
 	return;
 
@@ -127,34 +109,6 @@ void avsv_free_d2n_clm_node_fover_info(AVSV_DND_MSG *node_up_msg)
 
 uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
 {
-	AVSV_CLM_INFO_MSG *s_node_info, *d_node_info, **prev_node_info;
-
-	memset(d_node_up_msg, '\0', sizeof(AVSV_DND_MSG));
-
-	memcpy(d_node_up_msg, s_node_up_msg, sizeof(AVSV_DND_MSG));
-	d_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes = NULL;
-
-	prev_node_info = &d_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
-
-	s_node_info = s_node_up_msg->msg_info.d2n_clm_node_fover.list_of_nodes;
-
-	/* the copied list needs to maintain the order */
-
-	while (s_node_info != NULL) {
-		d_node_info = malloc(sizeof(AVSV_CLM_INFO_MSG));
-		if (d_node_info == NULL) {
-			avsv_free_d2n_clm_node_fover_info(d_node_up_msg);
-			return NCSCC_RC_FAILURE;
-		}
-
-		memcpy(d_node_info, s_node_info, sizeof(AVSV_CLM_INFO_MSG));
-		d_node_info->next = NULL;
-		*prev_node_info = d_node_info;
-		prev_node_info = &d_node_info->next;
-
-		/* now go to the next node info in source */
-		s_node_info = s_node_info->next;
-	}
 
 	return NCSCC_RC_SUCCESS;
 
@@ -177,35 +131,11 @@ uns32 avsv_cpy_d2n_clm_node_fover_info(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG
 
 uns32 avsv_cpy_d2n_node_up_msg(AVSV_DND_MSG *d_node_up_msg, AVSV_DND_MSG *s_node_up_msg)
 {
-	AVSV_CLM_INFO_MSG *s_node_info, *d_node_info, **prev_node_info;
+        AVSV_CLM_INFO_MSG *s_node_info, *d_node_info, **prev_node_info;
 
-	memset(d_node_up_msg, '\0', sizeof(AVSV_DND_MSG));
+        memset(d_node_up_msg, '\0', sizeof(AVSV_DND_MSG));
 
-	memcpy(d_node_up_msg, s_node_up_msg, sizeof(AVSV_DND_MSG));
-	d_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes = NULL;
-
-	prev_node_info = &d_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes;
-
-	s_node_info = s_node_up_msg->msg_info.d2n_clm_node_up.list_of_nodes;
-
-	/* the copied list needs to maintain the order */
-
-	while (s_node_info != NULL) {
-		d_node_info = malloc(sizeof(AVSV_CLM_INFO_MSG));
-		if (d_node_info == NULL) {
-			avsv_free_d2n_node_up_msg_info(d_node_up_msg);
-			return NCSCC_RC_FAILURE;
-		}
-
-		memcpy(d_node_info, s_node_info, sizeof(AVSV_CLM_INFO_MSG));
-		d_node_info->next = NULL;
-		*prev_node_info = d_node_info;
-		prev_node_info = &d_node_info->next;
-
-		/* now go to the next node info in source */
-		s_node_info = s_node_info->next;
-	}
-
+        memcpy(d_node_up_msg, s_node_up_msg, sizeof(AVSV_DND_MSG));
 	return NCSCC_RC_SUCCESS;
 
 }
@@ -618,9 +548,6 @@ void avsv_dnd_msg_free(AVSV_DND_MSG *msg)
 		/* AVSV_D2N_INFO_SU_SI_ASSIGN_MSG */
 		avsv_free_d2n_susi_msg_info,
 
-		/*AVSV_D2N_NODE_ON_FOVER */
-		avsv_free_d2n_clm_node_fover_info,
-
 		/* AVSV_D2N_PG_TRACK_ACT_RSP_MSG */
 		avsv_free_d2n_pg_msg_info
 	};
@@ -672,9 +599,6 @@ uns32 avsv_dnd_msg_copy(AVSV_DND_MSG *dmsg, AVSV_DND_MSG *smsg)
 		avsv_cpy_d2n_comp_msg,
 		/* AVSV_D2N_INFO_SU_SI_ASSIGN_MSG */
 		avsv_cpy_d2n_susi_msg,
-
-		/* AVSV_D2N_CLM_NODE_UP_MSG */
-		avsv_cpy_d2n_clm_node_fover_info,
 
 		/* AVSV_D2N_PG_TRACK_ACT_RSP_MSG */
 		avsv_cpy_d2n_pg_msg

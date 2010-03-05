@@ -93,10 +93,6 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 	    (cb->role_set == FALSE) && ((msg->role == SA_AMF_HA_ACTIVE) || (msg->role == SA_AMF_HA_STANDBY))) {
 		/* Set Initial role of AVD */
 		status = avd_init_role_set(cb, msg->role);
-
-		if (NCSCC_RC_SUCCESS == status)
-			avd_avm_role_rsp(cb, status, msg->role);
-
 		goto done;
 	}
 
@@ -146,9 +142,6 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Fail-over Quiesced to Active */
 		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_QTOA, NCSFL_SEV_NOTICE, 0);
 		status = avd_role_failover_qsd_actv(cb, msg->role);
-
-		if (NCSCC_RC_SUCCESS == status)
-			avd_avm_role_rsp(cb, status, msg->role);
 		goto done;
 
 	}
@@ -159,9 +152,6 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
 		/* Fail-over Standby to Active */
 		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_STOA, NCSFL_SEV_NOTICE, 0);
 		status = avd_role_failover(cb, msg->role);
-
-		if (NCSCC_RC_SUCCESS == status)
-			avd_avm_role_rsp(cb, status, msg->role);
 
 	} else {
 		/* AVM is screwing up something. Log error */
@@ -176,8 +166,6 @@ void avd_role_change(AVD_CL_CB *cb, AVD_EVT *evt)
  done:
 	if (NCSCC_RC_SUCCESS != status) {
 		cb->role_switch = SA_FALSE;
-		if (msg)
-			avd_avm_role_rsp(cb, status, msg->role);
 		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_FAILURE, NCSFL_SEV_NOTICE, 0);
 	}
 
@@ -243,6 +231,15 @@ uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	cb->avail_state_avd = role;
 	cb->role_set = TRUE;
+
+	if (role == SA_AMF_HA_ACTIVE) {
+		/* start the cluster track now */
+		if(avd_clm_track_start() != SA_AIS_OK) {
+			LOG_ER("avd_clm_track_start FAILED");
+			goto done;
+		} else
+			LOG_NO("avd_clm_track_start success");
+	}
 
 	if ((role == SA_AMF_HA_ACTIVE) &&
 	    ((status = avd_imm_config_get()) == NCSCC_RC_SUCCESS) &&
@@ -397,6 +394,10 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/*  Mark AVD as Quiesced. */
 	cb->avail_state_avd = SA_AMF_HA_QUIESCED;
 
+	if (avd_clm_track_stop() != SA_AIS_OK) {
+		LOG_ER("ClmTrack stop failed");
+	}
+
 	/* if no NCS Su's are present, go ahead and set mds role */
 	if (avnd->list_of_ncs_su == NULL) {
 		uns32 rc = NCSCC_RC_SUCCESS;
@@ -537,8 +538,7 @@ static uns32 avd_role_failover(AVD_CL_CB *cb, SaAmfHAStateT role)
 	}
 
 	/* We are successfully changed role to Active. Now reset 
-	 * the old Active. */
-	avd_avm_node_reset_rsp(cb, cb->node_id_avd_other);
+	 * the old Active. TODO */
 
 	cb->node_id_avd_other = 0;
 
@@ -716,8 +716,7 @@ static uns32 avd_role_failover_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role)
 	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
 
 	/* We are successfully changed role to Active. Gen a reset 
-	 * responce for the other card. */
-	avd_avm_node_reset_rsp(cb, cb->node_id_avd_other);
+	 * responce for the other card. TODO */
 
 	cb->node_id_avd_other = 0;
 
@@ -987,7 +986,6 @@ static uns32 avd_role_switch_qsd_stdby(AVD_CL_CB *cb, SaAmfHAStateT role)
 	/* Send responce to AvM */
 	cb->avail_state_avd = role;
 	cb->role_switch = SA_FALSE;
-	avd_avm_role_rsp(cb, NCSCC_RC_SUCCESS, SA_AMF_HA_STANDBY);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -1030,13 +1028,6 @@ void avd_mds_qsd_role_func(AVD_CL_CB *cb, AVD_EVT *evt)
 		m_AVD_LOG_INVALID_VAL_FATAL(cb->node_id_avd_other);
 		m_AVD_LOG_CKPT_EVT(AVD_MBCSV_MSG_DISPATCH_FAILURE, NCSFL_SEV_NOTICE, rc);
 		return;
-	}
-
-	if (NCSCC_RC_SUCCESS != (rc = avd_avm_role_rsp(cb, status, SA_AMF_HA_QUIESCED))) {
-		/* Log error */
-		m_AVD_LOG_CKPT_EVT(AVD_ROLE_CHANGE_FAILURE, NCSFL_SEV_NOTICE, rc);
-		m_AVD_LOG_INVALID_VAL_FATAL(rc);
-		m_AVD_LOG_INVALID_VAL_FATAL(status);
 	}
 
 	/* reset the role switch flag */

@@ -46,4 +46,4 @@ clmtest_SOURCES = \
 	
 	
 clmtest_LDADD = \
-	$(top_builddir)/osaf/libs/saf/libSaClma/libSaClma.la
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la

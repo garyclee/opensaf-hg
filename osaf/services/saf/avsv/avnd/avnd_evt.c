@@ -77,7 +77,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	/* fill the event specific fields */
 	switch (type) {
 		/* AvD event types */
-	case AVND_EVT_AVD_NODE_UPDATE_MSG:
 	case AVND_EVT_AVD_NODE_UP_MSG:
 	case AVND_EVT_AVD_REG_HLT_MSG:
 	case AVND_EVT_AVD_REG_SU_MSG:
@@ -90,7 +89,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 	case AVND_EVT_AVD_SU_PRES_MSG:
 	case AVND_EVT_AVD_VERIFY_MSG:
 	case AVND_EVT_AVD_ACK_MSG:
-	case AVND_EVT_AVD_NODE_ON_FOVER:
 	case AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG:
 	case AVND_EVT_AVD_SET_LEDS_MSG:
 	case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
@@ -119,16 +117,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		evt->info.ava.msg = (AVSV_NDA_AVA_MSG *)info;
 		break;
 
-		/* CLA event types */
-	case AVND_EVT_CLA_FINALIZE:
-	case AVND_EVT_CLA_TRACK_START:
-	case AVND_EVT_CLA_TRACK_STOP:
-	case AVND_EVT_CLA_NODE_GET:
-	case AVND_EVT_CLA_NODE_ASYNC_GET:
-		evt->info.cla.mds_dest = *mds_dest;
-		evt->info.cla.msg = (AVSV_NDA_CLA_MSG *)info;
-		break;
-
 		/* timer event types */
 	case AVND_EVT_TMR_HC:
 	case AVND_EVT_TMR_CBK_RESP:
@@ -146,7 +134,6 @@ AVND_EVT *avnd_evt_create(AVND_CB *cb,
 		/* mds event types */
 	case AVND_EVT_MDS_AVD_UP:
 	case AVND_EVT_MDS_AVD_DN:
-	case AVND_EVT_MDS_CLA_DN:
 	case AVND_EVT_MDS_AVND_DN:
 	case AVND_EVT_MDS_AVND_UP:
 		evt->priority = NCS_IPC_PRIORITY_HIGH;	/* bump up the priority */
@@ -221,7 +208,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 
 	switch (type) {
 		/* AvD event types */
-	case AVND_EVT_AVD_NODE_UPDATE_MSG:
 	case AVND_EVT_AVD_NODE_UP_MSG:
 	case AVND_EVT_AVD_REG_HLT_MSG:
 	case AVND_EVT_AVD_REG_SU_MSG:
@@ -234,7 +220,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_AVD_SU_PRES_MSG:
 	case AVND_EVT_AVD_VERIFY_MSG:
 	case AVND_EVT_AVD_ACK_MSG:
-	case AVND_EVT_AVD_NODE_ON_FOVER:
 	case AVND_EVT_AVD_SHUTDOWN_APP_SU_MSG:
 	case AVND_EVT_AVD_SET_LEDS_MSG:
 	case AVND_EVT_AVD_COMP_VALIDATION_RESP_MSG:
@@ -268,16 +253,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 			avsv_nda_ava_msg_free(evt->info.ava.msg);
 		break;
 
-		/* CLA event types */
-	case AVND_EVT_CLA_FINALIZE:
-	case AVND_EVT_CLA_TRACK_START:
-	case AVND_EVT_CLA_TRACK_STOP:
-	case AVND_EVT_CLA_NODE_GET:
-	case AVND_EVT_CLA_NODE_ASYNC_GET:
-		if (evt->info.cla.msg)
-			avsv_nda_cla_msg_free(evt->info.cla.msg);
-		break;
-
 		/* timer event types */
 	case AVND_EVT_TMR_HC:
 	case AVND_EVT_TMR_CBK_RESP:
@@ -294,7 +269,6 @@ void avnd_evt_destroy(AVND_EVT *evt)
 	case AVND_EVT_MDS_AVD_UP:
 	case AVND_EVT_MDS_AVD_DN:
 	case AVND_EVT_MDS_AVA_DN:
-	case AVND_EVT_MDS_CLA_DN:
 	case AVND_EVT_MDS_AVND_DN:
 	case AVND_EVT_MDS_AVND_UP:
 		break;

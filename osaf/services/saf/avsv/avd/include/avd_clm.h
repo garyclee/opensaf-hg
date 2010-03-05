@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2010 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -15,11 +15,22 @@
  *
  */
 
-#ifndef CLA_DL_API_H
-#define CLA_DL_API_H
 
-EXTERN_C uns32 cla_lib_req(NCS_LIB_REQ_INFO *);
-EXTERN_C unsigned int ncs_cla_startup(void);
-EXTERN_C unsigned int ncs_cla_shutdown(void);
+#include <saClm.h>
 
-#endif   /* !CLA_DL_API_H */
+#ifndef _AVD_CLM_H
+#define _AVD_CLM_H
+
+extern SaAisErrorT avd_clm_init(void);
+extern SaAisErrorT avd_clm_track_start(void);
+extern SaAisErrorT avd_clm_track_stop(void);
+extern SaAisErrorT avd_clm_finalize(void);
+extern void clm_node_exit_start(AVD_AVND *node, SaClmClusterChangesT change);
+extern void clm_node_exit_validate(AVD_AVND *node);
+extern void clm_node_exit_complete(AVD_AVND *node);
+extern void clm_node_terminate(AVD_AVND *node);
+extern void clm_node_in_service(AVD_AVND *node);
+
+#endif
+
+

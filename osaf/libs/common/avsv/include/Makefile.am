@@ -20,7 +20,6 @@ MAINTAINERCLEANFILES = Makefile.in
 
 noinst_HEADERS = \
    avsv_amfparam.h \
-   avsv_clmparam.h \
    avsv_d2nedu.h \
    avsv_d2nmsg.h \
    avsv_defs.h \
@@ -31,7 +30,5 @@ noinst_HEADERS = \
    avsv_logstr.h \
    avsv_n2avaedu.h \
    avsv_n2avamsg.h \
-   avsv_n2claedu.h \
-   avsv_n2clamsg.h \
    avsv_util.h \
    avsv_nd2ndmsg.h 

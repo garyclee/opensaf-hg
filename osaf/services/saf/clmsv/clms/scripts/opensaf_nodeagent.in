@@ -18,9 +18,12 @@
 
 echo "`date`: $0 $*"
 
+source "@sysconfdir@/@PACKAGE_NAME@/script.conf"
+
 CMD=$1
 
 NAME=clmna
+LOGFILE=${NCS_STDOUTS_PATH}/opensaf_${NAME}.log
 
 # Start generic part
 BIN=${LIBPATH}/opensaf_${NAME}
@@ -33,7 +36,7 @@ start()
         exit 1
     fi
 
-    $BIN &
+    $BIN >> $LOGFILE 2>&1 &
    
     if [ $? -ne 0 ]; then
         logger -s -t $0 "ERROR: Cannot start $BIN."

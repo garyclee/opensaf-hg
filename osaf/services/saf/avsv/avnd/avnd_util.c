@@ -73,13 +73,6 @@ void avnd_msg_content_free(AVND_CB *cb, AVND_MSG *msg)
 		}
 		break;
 
-	case AVND_MSG_CLA:
-		if (msg->info.cla) {
-			avsv_nda_cla_msg_free(msg->info.cla);
-			msg->info.cla = 0;
-		}
-		break;
-
 	default:
 		break;
 	}
@@ -135,14 +128,6 @@ uns32 avnd_msg_copy(AVND_CB *cb, AVND_MSG *dmsg, AVND_MSG *smsg)
 			goto done;
 		}
 		rc = avsv_nda_ava_msg_copy(dmsg->info.ava, smsg->info.ava);
-		break;
-
-	case AVND_MSG_CLA:
-		if (0 == (dmsg->info.cla = calloc(1, sizeof(AVSV_NDA_CLA_MSG)))) {
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-		rc = avsv_nda_cla_msg_copy(dmsg->info.cla, smsg->info.cla);
 		break;
 
 	default:

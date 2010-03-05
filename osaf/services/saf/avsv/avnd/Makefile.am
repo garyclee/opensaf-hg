@@ -23,6 +23,7 @@ SUBDIRS = include scripts
 pkglib_PROGRAMS = opensaf_amfnd
 
 opensaf_amfnd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
@@ -40,7 +41,6 @@ opensaf_amfnd_SOURCES = \
 	avnd_ckpt_updt.c \
 	avnd_clc.c \
 	avnd_clm.c \
-	avnd_clmdb.c \
 	avnd_comp.c \
 	avnd_compdb.c \
 	avnd_cpm.c \
@@ -78,5 +78,6 @@ opensaf_amfnd_LDADD = \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
 

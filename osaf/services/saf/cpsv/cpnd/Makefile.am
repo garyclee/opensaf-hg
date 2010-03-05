@@ -23,6 +23,7 @@ SUBDIRS = scripts
 pkglib_PROGRAMS = ncs_cpnd
 
 ncs_cpnd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_CPND=1 -DNCS_CPSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include

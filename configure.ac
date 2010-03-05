@@ -341,6 +341,18 @@ AC_MSG_RESULT([$enable_ais_smf])
 AM_CONDITIONAL([ENABLE_AIS_SMF], [test "$enable_ais_smf" = yes])
 AC_SUBST([AIS_SMF_ENABLED], ["$enable_ais_smf"])
 
+AC_MSG_CHECKING([whether to build the SAI-AIS-PLM service])
+AC_ARG_ENABLE([ais-plm],
+	[AS_HELP_STRING([--disable-ais-plm],
+		[disable building the SAI-AIS-PLM service [default=yes]])],
+	[],
+	[enable_ais_plm=no])
+AC_MSG_RESULT([$enable_ais_plm])
+
+AM_CONDITIONAL([ENABLE_AIS_PLM], [test "$enable_ais_plm" = yes])
+AC_SUBST([AIS_PLM_ENABLED], ["$enable_ais_plm"])
+
+
 #
 # unless explicitly set, drop previx from sysconfdir
 # and localstatedir
@@ -662,8 +674,6 @@ AC_CONFIG_FILES([
         osaf/libs/agents/saf/imma/Makefile
         osaf/libs/agents/saf/lga/Makefile
         osaf/libs/agents/saf/ntfa/Makefile
-        osaf/libs/agents/saf/cla/Makefile
-        osaf/libs/agents/saf/cla/include/Makefile
 	osaf/libs/agents/saf/clma/Makefile
         osaf/libs/agents/saf/cpa/Makefile
         osaf/libs/agents/saf/eda/Makefile
@@ -718,9 +728,6 @@ AC_CONFIG_FILES([
         osaf/libs/saf/libSaClm/Makefile
         osaf/libs/saf/libSaClm/pkgconfig/Makefile
         osaf/libs/saf/libSaClm/pkgconfig/opensaf-clm.pc
-        osaf/libs/saf/libSaClma/Makefile
-        osaf/libs/saf/libSaClma/pkgconfig/Makefile
-        osaf/libs/saf/libSaClma/pkgconfig/opensaf-clma.pc
         osaf/libs/saf/libSaCkpt/Makefile
         osaf/libs/saf/libSaCkpt/pkgconfig/Makefile
         osaf/libs/saf/libSaCkpt/pkgconfig/opensaf-ckpt.pc
@@ -804,6 +811,7 @@ AC_CONFIG_FILES([
 	osaf/services/saf/clmsv/clms/Makefile
 	osaf/services/saf/clmsv/clms/scripts/Makefile
 	osaf/services/saf/clmsv/clms/scripts/opensaf_clms
+	osaf/services/saf/clmsv/clms/scripts/opensaf_nodeagent
         osaf/services/saf/cpsv/Makefile
         osaf/services/saf/cpsv/config/Makefile
         osaf/services/saf/cpsv/logstr/Makefile

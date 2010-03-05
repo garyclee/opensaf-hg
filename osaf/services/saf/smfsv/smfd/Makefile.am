@@ -49,6 +49,7 @@ noinst_HEADERS = \
 opensaf_smfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
 opensaf_smfd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/core/leap/include \

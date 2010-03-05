@@ -28,6 +28,7 @@ noinst_HEADERS = \
 	smfnd_evt.h
 
 opensaf_smfnd_CPPFLAGS = \
+	-DSA_CLM_B01=1 \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \

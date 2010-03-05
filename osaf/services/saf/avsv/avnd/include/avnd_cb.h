@@ -60,7 +60,6 @@ typedef struct avnd_cb_tag {
 	EDU_HDL edu_hdl;	/* edu handle */
 	EDU_HDL edu_hdl_avnd;	/* edu handle for avnd-avnd interface */
 	EDU_HDL edu_hdl_ava;	/* edu handle for ava interface */
-	EDU_HDL edu_hdl_cla;	/* edu handle for cla interface */
 
 	/* node states */
 	SaAmfAdminStateT admin_state;	/* node admin state */
@@ -81,15 +80,17 @@ typedef struct avnd_cb_tag {
 	uns32 su_failover_max;	/* max SU failovers (config) */
 	uns32 su_failover_cnt;	/* su failover cnt within a probation period */
 	AVND_TMR node_err_esc_tmr;	/* node err esc tmr */
+        AVSV_AVND_CARD type;    /* node type (scxb or payload) */
+	SaNameT amf_nodeName;
+        SaClmClusterNodeT_4 node_info;    /* this node's info */
 
 	/* database declarations */
-	AVND_CLM_DB clmdb;	/* clm db */
 	NCS_PATRICIA_TREE sudb;	/* su db */
 	NCS_PATRICIA_TREE compdb;	/* comp db */
 	NCS_PATRICIA_TREE hcdb;	/* healthcheck db */
 	NCS_PATRICIA_TREE pgdb;	/* pg db */
 	NCS_PATRICIA_TREE nodeid_mdsdest_db;	/* pg db */
-	NCS_PATRICIA_TREE internode_avail_comp_db;	/* Internode components, whose node is UP */
+	NCS_PATRICIA_TREE internode_avail_comp_db; /* Internode components, whose node is UP */
 	MDS_DEST cntlr_avnd_vdest;	/* Controller AvND Vdest addr */
 
 	/* srmsv resource request mapping list (res mon hdl is the key) */
@@ -129,6 +130,10 @@ typedef struct avnd_cb_tag {
 	NCS_DB_LINK_LIST pid_mon_list;	/* PID list to monitor */
 
 	SaImmHandleT immOmHandle;
+        SaClmHandleT clmHandle;
+        SaSelectionObjectT clm_sel_obj;
+	SaBoolT first_time_up;
+
 } AVND_CB;
 
 #define AVND_CB_NULL ((AVND_CB *)0)
@@ -145,7 +150,7 @@ typedef struct avnd_cb_tag {
  * macro to determine if AvND should heartbeat with AvD. 
  * Note that on scxb, avd & avnd reside in the same process.
  */
-#define m_AVND_IS_AVD_HB_ON(cb)  (cb->clmdb.type != AVSV_AVND_CARD_SYS_CON)
+#define m_AVND_IS_AVD_HB_ON(cb)  (cb->type != AVSV_AVND_CARD_SYS_CON)
 
 /* 
  * Macros for managing the error escalation levels 

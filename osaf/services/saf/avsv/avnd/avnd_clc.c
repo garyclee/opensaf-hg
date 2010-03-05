@@ -2207,7 +2207,7 @@ uns32 avnd_comp_clc_cmd_execute(AVND_CB *cb, AVND_COMP *comp, AVND_COMP_CLC_CMD_
 	/* node id env */
 	env_set[1].overwrite = 1;
 	env_set[1].name = env_var_nodeid;
-	sprintf(env_val_nodeid, "%u", (uns32)(cb->clmdb.node_info.nodeId));
+	sprintf(env_val_nodeid, "%u", (uns32)(cb->node_info.nodeId));
 	env_set[1].value = (char *)env_val_nodeid;
 	arg.num_args++;
 
