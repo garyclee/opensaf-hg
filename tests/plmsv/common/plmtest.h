@@ -25,9 +25,9 @@
 #include <utest.h>
 #include <util.h>
 #include <string.h>
+#include <saNtf.h>
 #include <saPlm.h>
 #include <saAis.h>
-#include <saNtf.h>
 
 /* Common globals */
 extern SaVersionT PlmVersion;
