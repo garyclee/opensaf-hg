@@ -53,6 +53,7 @@
 #                       processes.                                          #
 #############################################################################
 
+xxLIBDIRxx/opensaf_nodeagent:CLMNA:S:xxLIBDIRxx/opensaf_nodeagent:4000::2:1:start:stop
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
 xxLIBDIRxx/rde_script:RDE:S:xxLIBDIRxx/rde_script:12000:-6:2:1:start:stop
 xxLIBDIRxx/ncs_dts_start:DTSV:S:xxLIBDIRxx/ncs_dts_clean:4000:4:2:1:start:
@@ -62,6 +63,7 @@ xxLIBDIRxx/immd_script:IMMD:S:xxLIBDIRxx/immd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/immnd_script:IMMND:S:xxLIBDIRxx/immnd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_lgs:LOGD:S:xxLIBDIRxx/opensaf_lgs:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_ntfs:NTFD:S:xxLIBDIRxx/opensaf_ntfs:4000:4:2:1:start:stop
+xxLIBDIRxx/opensaf_clms:CLMD:S:xxLIBDIRxx/opensaf_clms:4000:4:2:1:start:stop
 xxLIBDIRxx/ncs_eds_start:EDSV:S:xxLIBDIRxx/ncs_eds_clean:5000:4:2:1:start:
 xxLIBDIRxx/amfd_script:AMFD:S:xxLIBDIRxx/amfd_script:192000:-6:0:1:start:stop
 xxLIBDIRxx/amfnd_script:AMFND:S:xxLIBDIRxx/amfnd_script:192000:-6:0:1:start:stop

@@ -32,6 +32,9 @@ USE_SUBSLOT_ID=${TIPC_USE_SUBSLOT_ID:-"YES"}
 SHIFT4=4
 NID_SVC_NAME=TIPC
 
+NAME=clmna
+BIN=${LIBPATH}/opensaf_${NAME}
+
 # IMPORTANT : This script receives command in the form :
 #xxBINDIRxx/ncs_tipc start intf_name[eth0] core_id[1234] TIPC
 

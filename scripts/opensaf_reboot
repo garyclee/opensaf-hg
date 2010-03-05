@@ -13,19 +13,25 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Ericsson AB
+# Author(s): Emerson Network Power
 #
 
-# Uncomment/edit the next line if you want some time to debug before system
-# is rebooted. This is a good spot to collect some extra information that will
-# be lost after the system has restarted. For example, generate a core dump of 
-# a process: pkill -ABRT scap
+#This script will be customized/replaced accordingly when there's no CLM node to EE mapping in the imm.xml 
+#In such cases rebooting would be done through proprietary mechanisms, i.e. not through PLM.
+#Node_id is (the only entity) at the disposal of any proprietary mechanism.
 
-#sleep 100
 
-test -x /sbin/shutdown && \
-    /sbin/shutdown -r now "OpenSAF requested system reboot"
+node_id=$1
+ee_name=$2
 
-/sbin/reboot
 
-exit 0
+if [ ":$ee_name" == ":" ]; then
+
+
+logger -tOpenSAF "No EE specified: Attempt to reboot failed "; else immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name fi
+
+
+#Note: Operation Id SA_PLM_ADMIN_RESTART=7 
+#In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
+
+

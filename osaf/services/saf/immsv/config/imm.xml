@@ -1416,6 +1416,37 @@
 			<category>SA_CONFIG</category>
 			<flag>SA_INITIALIZED</flag>
 		</attr>
+                <attr>
+                        <name>saClmNodeEE</name>
+                        <type>SA_NAME_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeDisableReboot</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
 		<attr>
 			<name>saClmNodeIsMember</name>
 			<type>SA_UINT32_T</type>
@@ -1455,6 +1486,90 @@
 			<default-value>1</default-value>
 		</attr>
 	</class>
+	<class name="SaClmNode1">
+                <category>SA_CONFIG</category>
+                <rdn>
+                        <name>safNode1</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_INITIALIZED</flag>
+                </rdn>
+                <attr>
+                        <name>saClmNodeID1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE1</name>
+                        <type>SA_NAME_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeDisableReboot1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress1</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout1</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_CONFIG</category>
+                        <flag>SA_WRITABLE</flag>
+                </attr>
+		<attr>
+                        <name>saClmNodeIsMember1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeBootTimeStamp1</name>
+                        <type>SA_TIME_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeInitialViewNumber1</name>
+                        <type>SA_UINT64_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeCurrAddressFamily1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeCurrAddress1</name>
+                        <type>SA_STRING_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_CACHED</flag>
+                </attr>
+                <attr>
+                        <name>saClmNodeAdminState1</name>
+                        <type>SA_UINT32_T</type>
+                        <category>SA_RUNTIME</category>
+                        <flag>SA_PERSISTENT</flag>
+                        <flag>SA_CACHED</flag>
+                        <default-value>1</default-value>
+                </attr>
+        </class>
 	<class name="OpenSAFDtsvGlobalLogPolicy">
 		<category>SA_CONFIG</category>
 		<rdn>
@@ -3991,13 +4106,61 @@
 	<object class="SaAmfCSType">
 		<dn>safVersion=4.0.0,safCSType=MQND-OpenSAF</dn>
 	</object>
+
 	<object class="SaClmNode">
 		<dn>safNode=SC_2_1,safCluster=myClmCluster</dn>
 		<attr>
 			<name>saClmNodeID</name>
 			<value>0x0002010f</value>
 		</attr>
+		<attr>
+                        <name>saClmNodeDisableReboot</name>
+                        <value>0</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE</name>
+                        <value></value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress</name>
+                        <value>10.130.100.186</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout</name>
+                        <value>1000000000</value>
+                </attr>
+
 	</object>
+
+	<object class="SaClmNode1">
+                <dn>safNode1=SC_2_1,safCluster=myClmCluster</dn>
+                <attr>
+                        <name>saClmNodeDisableReboot1</name>
+                        <value>0</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE1</name>
+                        <value></value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily1</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress1</name>
+                        <value>10.130.100.186</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout1</name>
+                        <value>5000000000</value>
+                </attr>
+
+        </object>
+
 	<object class="SaAmfNode">
 		<dn>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
 		<attr>
@@ -4017,7 +4180,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>/usr/local/lib/opensaf</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -4250,7 +4413,52 @@
 			<name>saClmNodeID</name>
 			<value>0x0002020f</value>
 		</attr>
+		<attr>
+                        <name>saClmNodeDisableReboot</name>
+                        <value>0</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE</name>
+                        <value></value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress</name>
+                        <value>10.130.100.74</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout</name>
+                        <value>1000000000</value>
+                </attr>
+
 	</object>
+	<object class="SaClmNode1">
+                <dn>safNode1=SC_2_2,safCluster=myClmCluster</dn>
+                <attr>
+                        <name>saClmNodeDisableReboot1</name>
+                        <value>0</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE1</name>
+                        <value></value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily1</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress1</name>
+                        <value>10.130.100.74</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout1</name>
+                        <value>1000000000</value>
+                </attr>
+
+        </object>
 	<object class="SaAmfNode">
 		<dn>safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
 		<attr>
@@ -4270,7 +4478,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>/usr/local/lib/opensaf</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -4512,7 +4720,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>/usr/local/lib/opensaf</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -4650,7 +4858,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>/usr/local/lib/opensaf</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -4788,7 +4996,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>xxLIBDIRxx</value>
+			<value>/usr/local/lib/opensaf</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -5267,4 +5475,144 @@
 	<object class="SaAmfCompCsType">
 		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=SMFND-OpenSAF,safComp=SMFND,safSu=PL_2_5,safSg=NoRed,safApp=OpenSAF</dn>
 	</object>
+
+	<object class="SaAmfCompBaseType">
+		<dn>safCompType=OpenSafCompTypeCLMS</dn>
+	</object>
+	<object class="SaAmfCompType">
+		<dn>safVersion=4.0.0,safCompType=OpenSafCompTypeCLMS</dn>
+		<attr>
+				<name>saAmfCtSwBundle</name>
+				<value>safBundle=OpenSAF</value>
+		</attr>
+		<attr>
+			<name>saAmfCtCompCategory</name>
+			<value>1</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefClcCliTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCallbackTimeout</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathInstantiateCmd</name>
+			<value>opensaf_clms</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiateCmdArgv</name>
+			<value>instantiate</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefInstantiationLevel</name>
+			<value>2</value>
+		</attr>
+		<attr>
+			<name>saAmfCtRelPathCleanupCmd</name>
+			<value>opensaf_clms</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefCleanupCmdArgv</name>
+			<value>cleanup</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefRecoveryOnError</name>
+			<value>5</value>
+		</attr>
+		<attr>
+			<name>saAmfCtDefDisableRestart</name>
+			<value>1</value>
+		</attr>
+	</object>
+
+	<object class="SaAmfSutCompType">
+		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeCLMS,safVersion=4.0.0,safSuType=OpenSafSuTypeServer</dn>
+	</object>
+	<object class="SaAmfCSBaseType">
+		<dn>safCSType=CLMS-OpenSAF</dn>
+	</object>
+	<object class="SaAmfHealthcheckType">
+		<dn>safHealthcheckKey=Default,safVersion=4.0.0,safCompType=OpenSafCompTypeCLMS</dn>
+		<attr>
+			<name>saAmfHctDefPeriod</name>
+			<value>240000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHctDefMaxDuration</name>
+			<value>180000000000</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSType">
+		<dn>safVersion=4.0.0,safCSType=CLMS-OpenSAF</dn>
+	</object>
+	<object class="SaAmfSvcTypeCSTypes">
+		<dn>safMemberCSType=safVersion=4.0.0\,safCSType=CLMS-OpenSAF,safVersion=4.0.0,safSvcType=SC-2N-OpenSAF</dn>
+	</object>
+	<object class="SaAmfCtCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLMS-OpenSAF,safVersion=4.0.0,safCompType=OpenSafCompTypeCLMS</dn>
+		<attr>
+			<name>saAmfCtCompCapability</name>
+			<value>1</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=CLMS,safSi=SC-2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=CLMS-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=CLMS,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeCLMS</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLMS-OpenSAF,safComp=CLMS,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=CLMS,safSu=SC_2_2,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeCLMS</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLMS-OpenSAF,safComp=CLMS,safSu=SC_2_2,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+
+
+	<object class="SaClmNode">
+                <dn>safNode=SYSCON_2_1,safCluster=myClmCluster</dn>
+                <attr>
+                        <name>saClmNodeID</name>
+                        <value>0x00020af</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeDisableReboot</name>
+                        <value>0</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeEE</name>
+                        <value></value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddressFamily</name>
+                        <value>1</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeAddress</name>
+                        <value>10.130.100.186</value>
+                </attr>
+                <attr>
+                        <name>saClmNodeLockCallbackTimeout</name>
+                        <value>1000000000</value>
+                </attr>
+        </object>
+	
+
 </imm:IMM-contents>
