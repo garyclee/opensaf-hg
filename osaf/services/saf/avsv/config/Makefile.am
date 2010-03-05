@@ -23,6 +23,4 @@ dist_pkgimmxml_svc_DATA = \
 	common_pl_template.xml \
 	common_sc_template.xml \
 	avsv_classes.xml \
-	avsv_objects.xml \
-	clmsv_classes.xml \
-	clmsv_objects.xml
+	avsv_objects.xml
