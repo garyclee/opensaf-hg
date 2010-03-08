@@ -1064,6 +1064,9 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkgimmxml_svcdir}/avsv_objects.xml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
+%{_pkgimmxml_svcdir}/amfmon_pl_template.xml
+%{_pkgimmxml_svcdir}/amfmon_sc_template.xml
+%{_pkgimmxml_svcdir}/amfmon_objects.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
 %{_pkgimmxml_svcdir}/dtsv_objects.xml
 %{_pkgimmxml_svcdir}/dtsv_sc_template.xml
