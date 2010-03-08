@@ -522,24 +522,17 @@ static void su_add_to_model(AVD_SU *su)
 done:
 	assert(rc == NCSCC_RC_SUCCESS);
 
-	/* Set runtime cached attributes. */
-	if (avd_cb->impl_set == TRUE) {
-		avd_saImmOiRtObjectUpdate(&su->name,
-				"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
-				&su->saAmfSUPreInstantiable);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPreInstantiable",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPreInstantiable);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-				"saAmfSUHostedByNode", SA_IMM_ATTR_SANAMET,
-				&su->saAmfSUHostedByNode);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUHostedByNode",
+		SA_IMM_ATTR_SANAMET, &su->saAmfSUHostedByNode);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-				"saAmfSUPresenceState", SA_IMM_ATTR_SAUINT32T,
-				&su->saAmfSUPresenceState);
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSUPresenceState);
 
-		avd_saImmOiRtObjectUpdate(&su->name,
-				"saAmfSUReadinessState", SA_IMM_ATTR_SAUINT32T,
-				&su->saAmfSuReadinessState);
-	}
+	avd_saImmOiRtObjectUpdate(&su->name, "saAmfSUReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &su->saAmfSuReadinessState);
 }
 
 SaAisErrorT avd_su_config_get(const SaNameT *sg_name, AVD_SG *sg)

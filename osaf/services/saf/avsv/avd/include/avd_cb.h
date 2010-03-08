@@ -256,7 +256,7 @@ typedef struct cl_cb_tag {
 	SaImmOiHandleT immOiHandle;
 	SaImmOiHandleT immOmHandle;
 	SaSelectionObjectT imm_sel_obj;
-	NCS_BOOL impl_set;
+	int is_implementer;
 
 	fmHandleT fm_hdl;
 	SaSelectionObjectT fm_sel_obj;
