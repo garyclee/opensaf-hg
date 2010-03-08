@@ -220,10 +220,15 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 	CLMS_CLUSTER_NODE * node = NULL,*node_tmp = NULL;
 	SaUint32T nodeid;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	SaNameT node_name = {0};
 
 	TRACE_ENTER2("Node up mesg for nodename length %d %s",nodeup_info->node_name.length,nodeup_info->node_name.value);
 
-	node = clms_node_get_by_name(&nodeup_info->node_name);
+	/* Generate a CLM node DN with the help of cluster DN */
+	node_name.length = snprintf((char*)node_name.value, sizeof(node_name.value),
+		"safNode=%s,%s", nodeup_info->node_name.value, osaf_cluster->name.value);
+
+	node = clms_node_get_by_name(&node_name);
 	if(node == NULL){
 		LOG_ER("CLM NodeName %s doesn't match entry in imm.xml. Specify a correct DN name in node_name file ",nodeup_info->node_name.value);
 		rc = NCSCC_RC_FAILURE;

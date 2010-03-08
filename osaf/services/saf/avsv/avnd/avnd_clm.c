@@ -268,17 +268,17 @@ SaAisErrorT avnd_clm_init()
 	avnd_cb->first_time_up = SA_TRUE;
 	error = saClmInitialize_4(&avnd_cb->clmHandle, &callbacks, &Version);
         if (SA_AIS_OK != error) {
-                LOG_ER("Failed to Initialize with CLM");
+                LOG_ER("Failed to Initialize with CLM: %u", error);
                 goto done;
         }
 	error = saClmSelectionObjectGet(avnd_cb->clmHandle, &avnd_cb->clm_sel_obj);
         if (SA_AIS_OK != error) {
-                LOG_ER("Failed to get CLM selecitonObject");
+                LOG_ER("Failed to get CLM selectionObject: %u", error);
                 goto done;
         }
 	error = saClmClusterTrack_4(avnd_cb->clmHandle, trackFlags, NULL);
         if (SA_AIS_OK != error) {
-                LOG_ER("Failed to start cluster tracking");
+                LOG_ER("Failed to start cluster tracking: %u", error);
                 goto done;
         }
 	LOG_NO("Started cluster tracking");

@@ -92,49 +92,48 @@ static void sigusr1_handler(int sig)
 /**
 * Get the Self node info
 */
-static void clms_self_node_info(void)
+static uns32 clms_self_node_info(void)
 {
+	uns32 rc = NCSCC_RC_FAILURE;
         FILE *fp;
-        SaNameT node_name;
+        SaNameT node_name_dn = {0};
         CLMS_CLUSTER_NODE * node=NULL;
-        clms_cb->node_id = m_NCS_GET_NODE_ID;
+	char node_name[256];
+	const char *node_name_file = PKGSYSCONFDIR "node_name";
+
+	clms_cb->node_id = m_NCS_GET_NODE_ID;
 
         TRACE_ENTER();
 
 	if(clms_cb->ha_state == SA_AMF_HA_STANDBY)
-		goto done;
+		return NCSCC_RC_SUCCESS;
 
-        fp = fopen(NODE_NAME_FILE, "r");
+	fp = fopen(node_name_file, "r");
         if (fp == NULL){
-               TRACE("Error: can't open file");
-                assert(0);
+		LOG_ER("Could not open file %s - %s", node_name_file, strerror(errno));
+		goto done;
         }
-	TRACE("Reading file success");
 	
-	memset(&node_name,0,sizeof(SaNameT));
-	
-        fscanf(fp,"%s",node_name.value);
-        node_name.length = (SaUint16T)strlen((char *)node_name.value);
-
-	if (node_name.length > SA_MAX_NAME_LENGTH){
-		LOG_ER("node name's length more exceeds the limit");
-		assert(0);
-	}
-
-        TRACE("%s\n",node_name.value);
+        fscanf(fp, "%s", node_name);
         fclose(fp);
 
-        node = clms_node_get_by_name(&node_name);
+	/* Generate a CLM node DN with the help of cluster DN */
+	node_name_dn.length = snprintf((char*)node_name_dn.value, sizeof(node_name_dn.value),
+		"safNode=%s,%s", node_name, osaf_cluster->name.value);
+
+        TRACE("%s", node_name_dn.value);
+
+        node = clms_node_get_by_name(&node_name_dn);
 
 	if (node == NULL){
-		LOG_ER("Self Node name not found in the database.Please verify the /etc/node_name configuration");
+		LOG_ER("%s not found in the database. Please verify %s", node_name_dn.value, node_name_file);
 		goto done;
 	}
-	
+
         node->node_id = clms_cb->node_id;
 	node->nodeup = SA_TRUE;
 	if (clms_node_add(node,0) != NCSCC_RC_SUCCESS)
-		assert(0);
+		goto done;
 
 	if(node->admin_state == SA_CLM_ADMIN_UNLOCKED){
 		node->member = SA_TRUE;
@@ -151,10 +150,11 @@ static void clms_self_node_info(void)
 
 	clms_node_update_rattr(node);
 	clms_cluster_update_rattr(osaf_cluster);
+	rc = NCSCC_RC_SUCCESS;
 
 done:	
-
         TRACE_LEAVE();
+	return rc;
 }
 
 /**
@@ -328,7 +328,8 @@ static uns32 clms_init(const char *progname)
 	#endif
 
 	/*Self Node update*/	
-	clms_self_node_info();
+	if ((rc = clms_self_node_info()) != NCSCC_RC_SUCCESS)
+		goto done;
 
 	/* Create a selection object */
 	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
@@ -486,7 +487,7 @@ void clms_cb_dump(void)
 		TRACE("Dump Runtime data of the node: %s",node->node_name.value);
 		TRACE("Membership status %d",node->member);
 		TRACE("Node Id %u",node->node_id);
-		TRACE("Init_view %d",node->init_view);
+		TRACE("Init_view %llu",node->init_view);
 		TRACE("Admin_state %d",node->admin_state);
 		TRACE("Change %d",node->change);
 		TRACE("nodeup %d",node->nodeup);
