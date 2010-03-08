@@ -426,21 +426,18 @@ static void comp_add_to_model(AVD_COMP *comp)
 		comp->su->si_max_standby = comp->max_num_csi_stdby;
 	}
 
-        /* Set runtime cached attributes. */
-        if (avd_cb->impl_set == TRUE) {
-		avd_saImmOiRtObjectUpdate(&comp->su->name,
-				"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
-				&comp->su->saAmfSUPreInstantiable);
+	/* Set runtime cached attributes. */
+	avd_saImmOiRtObjectUpdate(&comp->su->name, "saAmfSUPreInstantiable",
+		SA_IMM_ATTR_SAUINT32T, &comp->su->saAmfSUPreInstantiable);
 
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				"saAmfCompReadinessState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompReadinessState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompReadinessState);
 
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				"saAmfCompOperState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
-
-		avd_saImmOiRtObjectUpdate(&comp->comp_info.name,
-				"saAmfCompPresenceState", SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
-	}
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompOperState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompOperState);
+	
+	avd_saImmOiRtObjectUpdate(&comp->comp_info.name, "saAmfCompPresenceState",
+		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
 }
@@ -1479,13 +1476,8 @@ static void comp_ccb_apply_delete_hdlr(struct CcbUtilOperationData *opdata)
 		comp->su->saAmfSUPreInstantiable = TRUE;
 	}
 
-	/* Set runtime cached attributes. */
-	if (avd_cb->impl_set == TRUE) {
-
-		avd_saImmOiRtObjectUpdate(&comp->su->name,
-				"saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
-				&comp->su->saAmfSUPreInstantiable);
-	}
+	avd_saImmOiRtObjectUpdate(&comp->su->name, "saAmfSUPreInstantiable", SA_IMM_ATTR_SAUINT32T,
+							  &comp->su->saAmfSUPreInstantiable);
 
 	/* send a message to the AVND deleting the
 	 * component.

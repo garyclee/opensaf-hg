@@ -425,7 +425,7 @@ static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role)
 
 	/* Give up our IMM OI implementer role */
 	(void)immutil_saImmOiImplementerClear(cb->immOiHandle);
-	cb->impl_set = FALSE;
+	cb->is_implementer = FALSE;
 
 
 	/* Walk through all the nodes and stop AvND rcv HeartBeat. */

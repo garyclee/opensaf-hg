@@ -632,7 +632,7 @@ SaAisErrorT avd_imm_impl_set(void)
 		}
 	}
 
-        avd_cb->impl_set = TRUE;
+	avd_cb->is_implementer = SA_TRUE;
 
 	TRACE_LEAVE2("%u", rc);
 	return rc;
@@ -790,7 +790,7 @@ SaAisErrorT avd_saImmOiRtObjectUpdate(const SaNameT *dn, SaImmAttrNameT attribut
 	SaImmAttrValueT attrValues[] = { value };
 	SaAisErrorT rc = SA_AIS_OK;
 
-	if (avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE && avd_cb->immOiHandle) {
+	if ((avd_cb->avail_state_avd == SA_AMF_HA_ACTIVE) && avd_cb->is_implementer) {
 		attrMod.modType = SA_IMM_ATTR_VALUES_REPLACE;
 		attrMod.modAttr.attrName = attributeName;
 		attrMod.modAttr.attrValuesNumber = 1;
