@@ -884,6 +884,11 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/plms_script
 %{_pkglibdir}/plmc_boot_script
 %{_pkglibdir}/plmc_main
+%{_pkgimmxml_svcdir}/plmsv_classes.xml
+%{_pkgimmxml_svcdir}/sample_plm_imm.xml.pc
+%{_pkgimmxml_svcdir}/sample_plm_imm.xml.atca
+%{_pkgimmxml_svcdir}/sample_plm_imm.xml.hp
+%{_pkgimmxml_svcdir}/plmsv_sc_template.xml
 
 %files plm-coordinator
 %defattr(-,root,root)
