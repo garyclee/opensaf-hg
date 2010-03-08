@@ -18,11 +18,18 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkgimmxml_svc_DATA = \
-	common_pl_template.xml \
-	common_sc_template.xml \
-	avsv_classes.xml \
-	avsv_objects.xml \
-	amfmon_sc_template.xml \
-	amfmon_pl_template.xml \
-	amfmon_objects.xml
+SUBDIRS = scripts
+
+pkglib_PROGRAMS = opensaf_amfmon
+
+opensaf_amfmon_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-I$(top_srcdir)/osaf/libs/saf/include
+
+opensaf_amfmon_SOURCES = \
+	amf_mon.c
+
+opensaf_amfmon_LDADD = \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

@@ -1033,6 +1033,8 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/amfd_script
 %{_pkglibdir}/opensaf_amfnd
 %{_pkglibdir}/amfnd_script
+%{_pkglibdir}/opensaf_amfmon
+%{_pkglibdir}/amfmon_script
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -1072,6 +1074,8 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_bindir}/collect_logs_payload
 %{_pkglibdir}/opensaf_amfnd
 %{_pkglibdir}/amfnd_script
+%{_pkglibdir}/opensaf_amfmon
+%{_pkglibdir}/amfmon_script
 
 
 %files libs

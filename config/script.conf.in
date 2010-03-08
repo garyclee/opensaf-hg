@@ -57,6 +57,11 @@ export OLD_STDOUTSPATH="$PKGLOCALSTATEDIR/old_stdouts"
 #export AMFD_TRACE_CATEGORIES=0xffffffff
 #export AMFND_TRACE_CATEGORIES=0xffffffff
 
+# By default AMF is supervised by the AMF monitor. 
+# Uncomment to change the default (60 000 ms) timeout. 
+# Set to Zero to completely disable supervision.
+#export AMFMON_HC_TIMEOUT_MS=0
+
 #########################################
 # FILES
 #########################################
@@ -98,6 +103,7 @@ export NTFSV_ENV_HEALTHCHECK_KEY="Default"
 export LGSV_ENV_HEALTHCHECK_KEY="Default"
 export CLMSV_ENV_HEALTHCHECK_KEY="Default"
 export PLMS_ENV_HEALTHCHECK_KEY="Default"
+export AMFMON_ENV_HEALTHCHECK_KEY="Default"
 
 export NID_MAGIC=AAB49DAA
 
