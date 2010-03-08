@@ -13,10 +13,6 @@
 	<object class="SaClmNode">
                 <dn>safNode=SC_2_1,safCluster=myClmCluster</dn>
                 <attr>
-                        <name>saClmNodeDisableReboot</name>
-                        <value>0</value>
-                </attr>
-                <attr>
                         <name>saClmNodeAddressFamily</name>
                         <value>1</value>
                 </attr>

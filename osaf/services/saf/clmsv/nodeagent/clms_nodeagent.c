@@ -296,7 +296,7 @@ static int get_node_info(NODE_INFO *node)
 	node->node_name.length = strlen((char *)node->node_name.value);
 	TRACE("%s", node->node_name.value);
 
-	fp = fopen(PKGSYSCONFDIR "node_id", "r");
+	fp = fopen(PKGLOCALSTATEDIR "node_id", "r");
 	if (fp == NULL) {
 		LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "node_id", strerror(errno));
 		return -1;
@@ -364,6 +364,9 @@ int main(int argc, char **argv)
 	if (clmna_mds_init() != NCSCC_RC_SUCCESS)
 		goto done;
 
+	(void) nid_notify("CLMNA", rc, NULL);
+	LOG_NO("node name:%s, node ID:%x, exiting", node_info.node_name.value, node_info.node_id);
+
 	/* Poll every second until we have the MDS adress of the server */
 	while (1) {
 		ret = poll(fds, 0, 1000);
@@ -388,8 +391,6 @@ int main(int argc, char **argv)
 	}
 
 done:
-	(void) nid_notify("CLMNA", rc, NULL);
-	LOG_NO("node name:%s, node ID:%x, exiting", node_info.node_name.value, node_info.node_id);
 	return 0;
 }
 
