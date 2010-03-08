@@ -18,11 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkgimmxml_svc_DATA = \
-	common_pl_template.xml \
-	common_sc_template.xml \
-	avsv_classes.xml \
-	avsv_objects.xml \
-	amfmon_sc_template.xml \
-	amfmon_pl_template.xml \
-	amfmon_objects.xml
+nodist_pkglib_SCRIPTS = \
+	$(top_builddir)/osaf/services/saf/avsv/amfmon/scripts/amfmon_script
