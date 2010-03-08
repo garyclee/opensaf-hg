@@ -163,15 +163,15 @@ SaAisErrorT avd_clm_init()
 	TRACE_ENTER();
 	error = saClmInitialize_4(&avd_cb->clmHandle, &clm_callbacks, &clmVersion);
 	if (SA_AIS_OK != error) {
-		LOG_ER("Failed to intialize with CLM");
+		LOG_ER("Failed to initialize with CLM %u", error);
 		goto done;
 	}
 	error = saClmSelectionObjectGet(avd_cb->clmHandle, &avd_cb->clm_sel_obj);
 	if (SA_AIS_OK != error) { 
-		LOG_ER("Failed to get selection object from CLM");
+		LOG_ER("Failed to get selection object from CLM %u", error);
 		goto done;
 	}
-	LOG_NO("Sucessfully initializes with CLM");
+	LOG_NO("Successfully initialized CLM");
 
 done:
 	TRACE_LEAVE();

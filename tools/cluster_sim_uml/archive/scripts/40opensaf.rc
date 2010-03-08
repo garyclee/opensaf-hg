@@ -53,11 +53,6 @@ if [ $hostnumber -lt 3 ]; then
 
     mkdir -p /repl_opensaf/saflog
 
-    touch /var/lib/opensaf/pssv_spcn.list
-    chmod 755 /var/lib/opensaf/pssv_spcn.list
-    echo "AVD XML" > /var/lib/opensaf/pssv_spcn.list
-    echo "AVM XML" >> /var/lib/opensaf/pssv_spcn.list
-
     ln -sf /etc/opensaf/nodeinit.conf.controller /etc/opensaf/nodeinit.conf
     echo controller > /etc/opensaf/node_type
 else
@@ -68,6 +63,11 @@ fi
 rm -f /etc/opensaf/slot_id
 rm -f /etc/opensaf/node_id
 echo $hostnumber > /etc/opensaf/slot_id 
+
+# Generate node unique node_name & node_id files
+rm -f /etc/opensaf/node_name /etc/opensaf/node_id
+hostname > /etc/opensaf/node_name
+printf "2%02x0f" $hostnumber > /etc/opensaf/node_id 
 
 # Enable core dumps for opensaf and AMF started programs
 # Somehow the UML kernel cannot write to hostfs

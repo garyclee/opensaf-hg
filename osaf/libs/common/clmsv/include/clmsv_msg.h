@@ -1,9 +1,6 @@
 #ifndef CLMSV_EVT_H
 #define CLMSV_EVT_H
 
-#define NODE_ID_FILE  "/var/lib/opensaf/node_id"
-#define NODE_NAME_FILE "/etc/opensaf/node_name"
-
 /* CLMS->CLMA && CLMA->CLMS message types */
 typedef enum clms_msg_type {
 	CLMSV_CLMA_TO_CLMS_API_MSG = 0,
