@@ -116,6 +116,21 @@
 		<value>2</value> 
 		</attr>
 	</object>
+	<object class="SaHpiConfig">
+		<dn>safHpiCfg=hpi_cfg_1</dn> 
+		<attr>
+		<name>isHpiSupported</name> 
+		<value>0</value> 
+		</attr>
+		<attr>
+		<name>extrPendingTimeout</name> 
+		<value>1000</value> 
+		</attr>
+		<attr>
+		<name>insPendingTimeout</name> 
+		<value>1000</value> 
+		</attr>
+	</object>
 	<object class="SaPlmEEBaseType">
 		<dn>safEEType=Linux_os</dn> 
 		<attr>

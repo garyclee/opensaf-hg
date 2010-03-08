@@ -119,7 +119,7 @@
 		<dn>safHpiCfg=hpi_cfg_1</dn> 
 		<attr>
 		<name>isHpiSupported</name> 
-		<value>0</value> 
+		<value>1</value> 
 		</attr>
 		<attr>
 		<name>extrPendingTimeout</name> 

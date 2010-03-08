@@ -22,3 +22,10 @@ MAINTAINERCLEANFILES = Makefile.in
 dist_pkgsysconf_DATA = \
 	$(top_srcdir)/osaf/services/saf/plmsv/config/plm.conf \
 	$(top_srcdir)/osaf/services/saf/plmsv/config/plmc.conf
+
+dist_pkgimmxml_svc_DATA = \
+	plmsv_classes.xml \
+	sample_plm_imm.xml.pc \
+	sample_plm_imm.xml.atca \
+	sample_plm_imm.xml.hp \
+	plmsv_sc_template.xml 
