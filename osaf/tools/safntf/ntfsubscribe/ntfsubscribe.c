@@ -36,9 +36,11 @@
 #include <poll.h>
 
 #include <saAis.h>
+#include <saAmf.h>
 #include <saNtf.h>
 #include <ntfclient.h>
 
+static int verbose;
 static SaNtfHandleT ntfHandle;
 static SaSelectionObjectT selObj;
 
@@ -211,8 +213,64 @@ static const char *sa_miscellaneous_event_type_list[] = {
 static const char *sa_source_indicator_list[] = {
 	"SA_NTF_OBJECT_OPERATION", /* previous error in saNtf.h */
 	"SA_NTF_OBJECT_OPERATION",
-	"SA_NTF_UNKNOWN_OPERATION",
 	"SA_NTF_MANAGEMENT_OPERATION",
+	"SA_NTF_UNKNOWN_OPERATION",
+};
+
+static const char *sa_services_list[] = {
+	"",
+	"SA_SVC_HPI",
+	"SA_SVC_AMF",
+	"SA_SVC_CLM",
+	"SA_SVC_CKPT",
+	"SA_SVC_EVT",
+	"SA_SVC_MSG",
+	"SA_SVC_LCK",
+	"SA_SVC_IMM", 
+	"SA_SCV_LOG",
+	"SA_SVC_NTF",
+	"SA_SVC_NAM",
+	"SA_SVC_TMR",
+	"SA_SVC_SMF",
+	"SA_SVC_SEC",
+	"SA_SVC_PLM"
+};
+
+static const char *sa_amf_state_list[] = {
+	"",
+	"SA_AMF_READINESS_STATE",
+	"SA_AMF_HA_STATE",
+	"SA_AMF_PRESENCE_STATE",
+	"SA_AMF_OP_STATE",
+	"SA_AMF_ADMIN_STATE",
+	"SA_AMF_ASSIGNMENT_STATE",
+	"SA_AMF_PROXY_STATUS",
+	"SA_AMF_HA_READINESS_STATE"
+};
+
+static const char *sa_amf_pres_state_list[] = {
+	"",
+    "SA_AMF_PRESENCE_UNINSTANTIATED",
+    "SA_AMF_PRESENCE_INSTANTIATING",
+    "SA_AMF_PRESENCE_INSTANTIATED",
+    "SA_AMF_PRESENCE_TERMINATING",
+    "SA_AMF_PRESENCE_RESTARTING",
+    "SA_AMF_PRESENCE_INSTANTIATION_FAILED",
+    "SA_AMF_PRESENCE_TERMINATION_FAILED"
+};
+
+static const char *sa_amf_op_state_list[] = {
+	"",
+    "SA_AMF_OPERATIONAL_ENABLED",
+    "SA_AMF_OPERATIONAL_DISABLED"
+};
+
+static const char *sa_amf_ha_state_list[] = {
+	"",
+    "SA_AMF_HA_ACTIVE",
+    "SA_AMF_HA_STANDBY",
+    "SA_AMF_HA_QUIESCED",
+    "SA_AMF_HA_QUIESCING"
 };
 
 static char *error_output(SaAisErrorT result)
@@ -228,6 +286,7 @@ static void print_severity(SaNtfSeverityT input)
 	EXIT_IF_FALSE(input >= SA_NTF_SEVERITY_CLEARED);
 	EXIT_IF_FALSE(input <= SA_NTF_SEVERITY_CRITICAL);
 
+	printf("perceivedSeverity = ");
 	printf("%s\n", (char *)sa_severity_list[input]);
 }
 
@@ -236,6 +295,7 @@ static void print_probable_cause(SaNtfProbableCauseT input)
 	EXIT_IF_FALSE(input >= SA_NTF_ADAPTER_ERROR);
 	EXIT_IF_FALSE(input <= SA_NTF_UNSPECIFIED_REASON);
 
+	printf("probableCause = ");
 	printf("%s\n", (char *)sa_probable_cause_list[input]);
 }
 
@@ -313,17 +373,45 @@ static void print_event_type(SaNtfEventTypeT input, SaNtfNotificationTypeT notif
 	}
 }
 
-static void print_change_states(SaNtfStateChangeT *input)
+static void print_change_states(SaNtfClassIdT *notificationClassId, SaNtfStateChangeT *input)
 {
-	printf("- State ID: %d -\n", input->stateId);
+	if ((notificationClassId->vendorId == SA_NTF_VENDOR_ID_SAF) &&
+		(notificationClassId->majorId == SA_SVC_AMF)) {
+		assert(SA_AMF_READINESS_STATE <= input->stateId && input->stateId <= SA_AMF_HA_READINESS_STATE);
+		printf("State = %s\n", sa_amf_state_list[input->stateId]);
 
-	if (input->oldStatePresent == SA_TRUE) {
-		printf("Old State Present: Yes\n");
-		printf("Old State: %d\n", input->oldState);
+		switch (input->stateId) {
+		case SA_AMF_HA_STATE:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_amf_ha_state_list[input->oldState]);
+			printf("New State: %s\n", sa_amf_ha_state_list[input->newState]);
+			break;
+		case SA_AMF_PRESENCE_STATE:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_amf_pres_state_list[input->oldState]);
+			printf("New State: %s\n", sa_amf_pres_state_list[input->newState]);
+			break;
+		case SA_AMF_OP_STATE:
+			if (input->oldStatePresent)
+				printf("Old State: %s\n", sa_amf_op_state_list[input->oldState]);
+			printf("New State: %s\n", sa_amf_op_state_list[input->newState]);
+			break;
+		default:
+			break;
+		}
+
 	} else {
-		printf("Old State Present: No\n");
+		printf("- State ID: %u -\n", input->stateId);
+
+		if (input->oldStatePresent == SA_TRUE) {
+			if (verbose)
+				printf("Old State Present: Yes\n");
+			printf("	Old State: %u\n", input->oldState);
+		} else if (verbose)
+			printf("Old	State Present: No\n");
+	
+		printf("New State: %u\n", input->newState);
 	}
-	printf("New State: %d\n", input->newState);
 }
 
 static void print_object_attributes(SaNtfAttributeT *input)
@@ -364,148 +452,176 @@ static void print_source_indicator(SaNtfSourceIndicatorT input)
 	EXIT_IF_FALSE(input >= SA_NTF_OBJECT_OPERATION);
 	EXIT_IF_FALSE(input <= SA_NTF_UNKNOWN_OPERATION);
 
+	printf("sourceIndicator = ");
 	printf("%s\n", (char *)sa_source_indicator_list[input]);
 }
 
 /* end help functions for printouts */
 
-static void print_header(SaNtfNotificationHeaderT *notificationHeader,
+static void print_header(const SaNtfNotificationHeaderT *notificationHeader,
 			 SaNtfSubscriptionIdT subscriptionId, SaNtfNotificationTypeT notificationType)
 {
-	SaTimeT totalTime;
-	SaTimeT ntfTime = (SaTimeT)0;
-	char time_str[24];
 	char tmpObj[SA_MAX_NAME_LENGTH + 1];
 
-	/* Notification ID */
-	printf("notificationID = %d\n", (int)*(notificationHeader->notificationId));
 
-	printf("subscriptionId = %u\n", (unsigned int)subscriptionId);
+	if (verbose) {
+		printf("notificationID = %d\n", (int)*(notificationHeader->notificationId));
+		printf("subscriptionId = %u\n", (unsigned int)subscriptionId);
 
-	/* Event type */
-	printf("eventType = ");
-	print_event_type(*notificationHeader->eventType, notificationType);
+		/* Event type */
+		printf("eventType = ");
+		print_event_type(*notificationHeader->eventType, notificationType);
+	}
 
-	/* Notification Object */
-	printf("notificationObject.length = %u\n", notificationHeader->notificationObject->length);
+	if (verbose)
+		printf("notificationObject.length = %u\n", notificationHeader->notificationObject->length);
+
 	strncpy(tmpObj,
 		(char *)notificationHeader->notificationObject->value, notificationHeader->notificationObject->length);
 	tmpObj[notificationHeader->notificationObject->length] = '\0';
-	printf("notificationObject value: \"%s\"\n", tmpObj);
+	printf("notificationObject = \"%s\"\n", tmpObj);
 
-	/* Notifying Object */
 	strncpy(tmpObj,
 		(char *)notificationHeader->notifyingObject->value, notificationHeader->notifyingObject->length);
 	tmpObj[notificationHeader->notifyingObject->length] = '\0';
-	printf("notifyingObject.length = %u\n", notificationHeader->notifyingObject->length);
 
-	printf("notifyingObject value: \"%s\"\n", tmpObj);
+	if (verbose)
+		printf("notifyingObject.length = %u\n", notificationHeader->notifyingObject->length);
 
-	/* Notification Class ID */
-	printf("VendorID = %d\nmajorID = %d\nminorID = %d\n",
-	       notificationHeader->notificationClassId->vendorId,
-	       notificationHeader->notificationClassId->majorId, notificationHeader->notificationClassId->minorId);
+	printf("notifyingObject = \"%s\"\n", tmpObj);
 
-	/* Event Time */
-	ntfTime = *notificationHeader->eventTime;
+	/* Notification Class ID in compact dot notation */
+	if (notificationHeader->notificationClassId->vendorId == SA_NTF_VENDOR_ID_SAF) {
+		printf("notificationClassId = SA_NTF_VENDOR_ID_SAF.%s.%u (0x%x)\n",
+			   sa_services_list[notificationHeader->notificationClassId->majorId],
+			   notificationHeader->notificationClassId->minorId,
+			   notificationHeader->notificationClassId->minorId);
+	}
+	else {
+		printf("notificationClassId = %u.%u.%u (0x%x)\n",
+			   notificationHeader->notificationClassId->vendorId,
+			   notificationHeader->notificationClassId->majorId,
+			   notificationHeader->notificationClassId->minorId,
+			   notificationHeader->notificationClassId->minorId);
+	}
 
-	totalTime = (ntfTime / (SaTimeT)SA_TIME_ONE_SECOND);
-	(void)strftime(time_str, sizeof(time_str), "%d-%m-%Y %T", localtime((const time_t *)&totalTime));
+	if (verbose)
+		printf("eventTime = %lld\n", *notificationHeader->eventTime);
 
-	printf("eventTime = %lld = %s\n", (SaTimeT)ntfTime, time_str);
+	if (notificationHeader->lengthAdditionalText > 0)
+		printf("additionalText = \"%s\"\n", notificationHeader->additionalText);
+}
 
-	/* Additional text */
-	printf("additionalText = \"%s\"\n", notificationHeader->additionalText);
+static void print_additional_info(SaNtfNotificationHandleT notificationHandle,
+								  const SaNtfNotificationHeaderT *notificationHeader)
+{
+	if (notificationHeader->additionalInfo != NULL) {
+		switch (notificationHeader->additionalInfo[0].infoType) {
+		case SA_NTF_VALUE_LDAP_NAME: {
+			SaNameT *dataPtr;
+			SaUint16T dataSize;
+			SaAisErrorT rc;
 
+			rc = saNtfPtrValGet(notificationHandle,
+						   &notificationHeader->additionalInfo[0].infoValue,
+						   (void **)&dataPtr, &dataSize);
+			if (rc == SA_AIS_OK) {
+				printf("additionalInfo = \"%s\"\n", dataPtr->value);
+			} else
+				fprintf(stderr, "saNtfPtrValGet Error %d\n", rc);
+			break;
+		}
+		default:
+			printf("Unimplemented additionalInfo type\n");
+			break;
+		}
+	}
+}
+
+static char *event_time(SaTimeT eventTime)
+{
+	time_t time_in_secs;
+	static char time_str[32];
+
+	time_in_secs = (eventTime / (SaTimeT)SA_TIME_ONE_SECOND);
+	(void)strftime(time_str, sizeof(time_str), "%b %e %k:%M:%S", localtime(&time_in_secs));
+
+	return time_str;
 }
 
 static void saNtfNotificationCallback(SaNtfSubscriptionIdT subscriptionId, const SaNtfNotificationsT *notification)
 {
 	SaInt32T i;
 	SaNtfNotificationHandleT notificationHandle;
+	const SaNtfNotificationHeaderT *notificationHeader;
+
 	switch (notification->notificationType) {
 	case SA_NTF_TYPE_ALARM:
-		printf("===  notificationType: alarm notification ===\n");
 		notificationHandle = notification->notification.alarmNotification.notificationHandle;
-
-		print_header((SaNtfNotificationHeaderT *)&notification->notification.alarmNotification.
-			     notificationHeader, subscriptionId, notification->notificationType);
-
-		/* Probable Cause */
-		printf("probableCause = ");
+		notificationHeader = &notification->notification.alarmNotification.notificationHeader;
+		printf("===  %s - Alarm  ===\n", event_time(*notificationHeader->eventTime));
+		print_header(notificationHeader, subscriptionId, notification->notificationType);
+		print_additional_info(notificationHandle, notificationHeader);
 		print_probable_cause(*(notification->notification.alarmNotification.probableCause));
-
-		printf("perceivedSeverity = ");
 		print_severity(*(notification->notification.alarmNotification.perceivedSeverity));
 
 		break;
 
 	case SA_NTF_TYPE_STATE_CHANGE:
-		printf("===  notificationType:  state change notification ===\n");
 		notificationHandle = notification->notification.stateChangeNotification.notificationHandle;
-
-		print_header((SaNtfNotificationHeaderT *)&notification->notification.stateChangeNotification.
-			     notificationHeader, subscriptionId, notification->notificationType);
-
-		printf("sourceIndicator = ");
+		notificationHeader = &notification->notification.stateChangeNotification.notificationHeader;
+		printf("===  %s - State Change  ===\n", event_time(*notificationHeader->eventTime));
+		print_header(notificationHeader, subscriptionId, notification->notificationType);
+		print_additional_info(notificationHandle, notificationHeader);
 		print_source_indicator(*(notification->notification.stateChangeNotification.sourceIndicator));
 
-		printf("Num of StateChanges: %d\n", notification->notification.stateChangeNotification.numStateChanges);
+		if (verbose)
+			printf("Num of StateChanges: %d\n", notification->notification.stateChangeNotification.numStateChanges);
 
 		/* Changed states */
 		for (i = 0; i < notification->notification.stateChangeNotification.numStateChanges; i++) {
-
-			print_change_states(&notification->notification.stateChangeNotification.changedStates[i]);
+			print_change_states(notificationHeader->notificationClassId,
+				&notification->notification.stateChangeNotification.changedStates[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_OBJECT_CREATE_DELETE:
-		printf("===  notificationType: object create/delete notification ===\n");
 		notificationHandle = notification->notification.objectCreateDeleteNotification.notificationHandle;
-
-		print_header((SaNtfNotificationHeaderT *)&notification->notification.objectCreateDeleteNotification.
-			     notificationHeader, subscriptionId, notification->notificationType);
-
-		printf("sourceIndicator = ");
+		notificationHeader = &notification->notification.objectCreateDeleteNotification.notificationHeader;
+		printf("===  %s - Object Create/Delete  ===\n", event_time(*notificationHeader->eventTime));
+		print_header(notificationHeader, subscriptionId, notification->notificationType);
 		print_source_indicator(*(notification->notification.objectCreateDeleteNotification.sourceIndicator));
 		printf("numAttributes: %d\n", notification->notification.objectCreateDeleteNotification.numAttributes);
+
 		/* Object Attributes */
 		for (i = 0; i < notification->notification.objectCreateDeleteNotification.numAttributes; i++) {
-
 			print_object_attributes(&notification->notification.
 						objectCreateDeleteNotification.objectAttributes[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_ATTRIBUTE_CHANGE:
-		printf("===  notificationType: attribute change notification ===\n");
 		notificationHandle = notification->notification.attributeChangeNotification.notificationHandle;
-		print_header((SaNtfNotificationHeaderT *)&notification->notification.attributeChangeNotification.
-			     notificationHeader, subscriptionId, notification->notificationType);
-
-		printf("sourceIndicator = ");
+		notificationHeader = &notification->notification.attributeChangeNotification.notificationHeader;
+		printf("===  %s - Attribute Change  ===\n", event_time(*notificationHeader->eventTime));
+		print_header(notificationHeader, subscriptionId, notification->notificationType);
 		print_source_indicator(*(notification->notification.attributeChangeNotification.sourceIndicator));
 		printf("numAttributes: %d\n", notification->notification.attributeChangeNotification.numAttributes);
+
 		/* Changed Attributes */
 		for (i = 0; i < notification->notification.attributeChangeNotification.numAttributes; i++) {
-
 			print_changed_attributes(&notification->notification.
 						 attributeChangeNotification.changedAttributes[i]);
 		}
 		break;
 
 	case SA_NTF_TYPE_SECURITY_ALARM:
-		printf("===  notificationType:  security alarm notification ===\n");
 		notificationHandle = notification->notification.securityAlarmNotification.notificationHandle;
-		print_header((SaNtfNotificationHeaderT *)&notification->notification.securityAlarmNotification.
-			     notificationHeader, subscriptionId, notification->notificationType);
-
-		printf("probableCause = ");
+		notificationHeader = &notification->notification.securityAlarmNotification.notificationHeader;
+		printf("===  %s - Security Alarm  ===\n", event_time(*notificationHeader->eventTime));
+		print_header(notificationHeader, subscriptionId, notification->notificationType);
 		print_probable_cause(*(notification->notification.securityAlarmNotification.probableCause));
-
-		printf("Severity = ");
 		print_severity(*(notification->notification.securityAlarmNotification.severity));
-
 		print_security_alarm_types((SaNtfSecurityAlarmNotificationT *)&notification->notification.
 					   securityAlarmNotification);
 
@@ -616,6 +732,7 @@ static void usage(void)
 	printf("  -s or --stateChange                       subscribe for only stateChange notifications\n");
 	printf("  -y or --securityAlarm                     subscribe for only securityAlarm notifications\n");
 	printf("  -h or --help                              this help\n");
+	printf("  -v or --verbose                           print even more\n");
 	exit((int)SA_AIS_ERR_INVALID_PARAM);
 }
 
@@ -760,6 +877,7 @@ int main(int argc, char *argv[])
 		{"securityAlarm", no_argument, 0, 'y'},
 		{"help", no_argument, 0, 'h'},
 		{"timeout", required_argument, 0, 't'},
+		{"verbose", no_argument, 0, 'v'},
 		{0, 0, 0, 0}
 	};
 
@@ -767,7 +885,7 @@ int main(int argc, char *argv[])
 
 	/* Check options */
 	while (1) {
-		c = getopt_long(argc, argv, "acosyht:", long_options, NULL);
+		c = getopt_long(argc, argv, "acosyht:v", long_options, NULL);
 		if (c == -1)
 			break;
 
@@ -794,6 +912,9 @@ int main(int argc, char *argv[])
 			break;
 		case 't':
 			timeout = atoi(optarg) * 1000;
+			break;
+		case 'v':
+			verbose = 1;
 			break;
 		case 'h':
 		case '?':
@@ -841,3 +962,4 @@ int main(int argc, char *argv[])
 
 	exit(EXIT_SUCCESS);
 }
+
