@@ -137,22 +137,17 @@ make is enabled by default. If plmsv builds have to be disabled please use
 configure option --disable-ais-plm. 
 
 PLMSv does management of hardware entities and for this plmsv interfaces with 
-HPI. The path to implementation specific HPI libraries need to be exported for 
-plmsv to access hpi header files and link properly with the libraries. 
-For this purpose please export the environment variables HPI_LIBS & HPI_CFLAGS
+HPI. Normally, the path to OpenHPI headers and libraries will be found
+automatically by the configure script, using the pkg-config tool. If you need
+to build and link against custom HPI headers and libraries that pkg-config
+does not know about, you may use the HPI_LIBS and HPI_CFLAGS variables, either
+exported in your environment or passed as options to the configure script. For
+example, 
 
-In example shown below, SaHpi.h is placed in home and HPI libs are located in 
-/home/opt/openhpi/lib directory
- 
-export HPI_LIBS="-L/home/opt/openhpi/lib -lopenhpimarshal -lopenhpiutils 
--lopenhpi"
-export HPI_CFLAGS="-I/home/"
-
-sh bootstrap.sh 
-./configure --enable-hpi --with-openhpi --with-hpi-interface=B03 
-CFLAGS="-g -I/home" CXXFLAGS="-g -I/home" 
---with-default-mibdirs=/usr/share/snmp/mibs/
-
+ sh bootstrap.sh # (only if building from a repository checkout)
+ ./configure --enable-hpi --with-openhpi --with-hpi-interface=B03 \
+   HPI_CFLAGS="-I/path/to/openhpi/headers" \
+   HPI_LIBS="-L/path/to/openhpi/lib -lopenhpimarshal -lopenhpiutils -lopenhpi"
 
 RUNNING OPENSAF WITH PLMSv
 --------------------------
