@@ -412,6 +412,7 @@ private:
                                      size_t rootStart);
 
     bool            nameCheck(const std::string& name, bool strict=true) const;
+    bool            schemaNameCheck(const std::string& name) const;
     bool            nameToInternal(std::string& name);
     void            nameToExternal(std::string& name);
     

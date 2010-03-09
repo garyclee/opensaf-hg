@@ -1508,7 +1508,7 @@ ImmModel::classCreate(const ImmsvOmClassDescr* req)
         return SA_AIS_ERR_TRY_AGAIN;
     }
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -1716,7 +1716,7 @@ ImmModel::classDelete(const ImmsvOmClassDescr* req)
     
     if(immNotPbeWritable()) {
         err = SA_AIS_ERR_TRY_AGAIN;
-    } else if(!nameCheck(className)) {
+    } else if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -1761,7 +1761,7 @@ ImmModel::attrCreate(ClassInfo* classInfo, const ImmsvAttrDefinition* attr)
     std::string attrName((const char*)attr->attrName.buf, sz);
     
     
-    if(!nameCheck(attrName)) {
+    if(!schemaNameCheck(attrName)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper attribute name: %s", 
             attrName.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
@@ -1837,7 +1837,7 @@ ImmModel::classDescriptionGet(const IMMSV_OCTET_STRING* clName,
     
     SaAisErrorT err = SA_AIS_OK;
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -2935,7 +2935,7 @@ SaAisErrorT ImmModel::ccbObjectCreate(const ImmsvOmCcbObjectCreate* req,
         }
     }
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto ccbObjectCreateExit;
@@ -3738,6 +3738,13 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                 //Remove existing values and then fall through to the add case.
                 attrValue->discardValues();
                 if(p->attrValue.attrValuesNumber == 0) {
+			if(attr->mFlags & SA_IMM_ATTR_INITIALIZED) {
+				LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
+					" cannot modify to zero values",
+					attrName.c_str());
+				err = SA_AIS_ERR_INVALID_PARAM;
+				break; //out of switch
+			}
                     continue; //Ok to replace with nothing.
                 }
                 //else intentional fall-through
@@ -3820,7 +3827,16 @@ ImmModel::ccbObjectModify(const ImmsvOmCcbObjectModify* req,
                             al = al->next;
                         }
                     }
+
+		    if(attrValue->empty() && (attr->mFlags & SA_IMM_ATTR_INITIALIZED)) {
+			    LOG_NO("ERR_INVALID_PARAM: attr '%s' has flag SA_IMM_ATTR_INITIALIZED "
+				    " cannot modify to zero values",
+				    attrName.c_str());
+			    err = SA_AIS_ERR_INVALID_PARAM;
+			    break; //out of switch
+		    }
                 }
+
                 break; //out of switch
                 
             default:
@@ -5347,6 +5363,35 @@ ImmModel::checkSubLevel(const std::string& objectName,
 }
 
 bool
+ImmModel::schemaNameCheck(const std::string& name) const
+{
+    /* Dont allow some chars in class & attribute names that cause
+       problems in sqlite. Each imm-class is mapped to several tables,
+       but one table is named usingthe classname. 
+    */
+    size_t pos;
+    size_t len = name.length();
+
+    if(!nameCheck(name)) {
+        return false;
+    }
+
+    for(pos=0; pos < len; ++pos) {
+        unsigned char chr = name.at(pos);
+        if(isalnum(chr)||(chr == 95)) {
+            continue;      /* _ */
+        } else {
+            LOG_IN("Bad class/attribute name: '%s' (%c): pos=%zu", 
+                name.c_str(), chr, pos);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+bool
 ImmModel::nameCheck(const std::string& name, bool strict) const
 {
     size_t pos;
@@ -5978,7 +6023,7 @@ ImmModel::classImplementerSet(const struct ImmsvOiImplSetReq* req,
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string className((const char *)req->impl_name.buf, sz);
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -6094,7 +6139,7 @@ ImmModel::classImplementerRelease(const struct ImmsvOiImplSetReq* req,
     size_t sz = strnlen((const char *)req->impl_name.buf, req->impl_name.size);
     std::string className((const char *)req->impl_name.buf, sz);
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name");
         err = SA_AIS_ERR_INVALID_PARAM;
     } else {
@@ -6634,7 +6679,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
         }
     }
     
-    if(!nameCheck(className)) {
+    if(!schemaNameCheck(className)) {
         LOG_NO("ERR_INVALID_PARAM: Not a proper class name:%s", className.c_str());
         err = SA_AIS_ERR_INVALID_PARAM;
         goto rtObjectCreateExit;
