@@ -216,9 +216,9 @@ extern void avd_node_add_su(struct avd_su_tag *su);
 extern void avd_node_remove_su(struct avd_su_tag *su);
 extern void avd_node_add_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
 extern void avd_node_remove_swbdl(AVD_NODE_SW_BUNDLE * sw_bdl);
-extern uns32 node_admin_lock_instantiation(AVD_AVND *node);
+extern uns32 avd_node_admin_lock_instantiation(AVD_AVND *node);
 extern uns32 node_admin_unlock_instantiation(AVD_AVND *node);
-extern void node_admin_lock_unlock_shutdown(AVD_AVND *node,
+extern void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 			    SaInvocationT invocation, SaAmfAdminOperationIdT operationId);
 /* AMF Node group */
 extern SaAisErrorT avd_ng_config_get(void);

@@ -41,6 +41,7 @@
 #include <avd_imm.h>
 #include <avd_app.h>
 #include <avd_cluster.h>
+#include <avd_clm.h>
 
 static uns32 avd_role_switch_actv_qsd(AVD_CL_CB *cb, SaAmfHAStateT role);
 static uns32 avd_role_switch_qsd_actv(AVD_CL_CB *cb, SaAmfHAStateT role);

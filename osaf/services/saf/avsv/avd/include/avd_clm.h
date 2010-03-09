@@ -24,12 +24,7 @@
 extern SaAisErrorT avd_clm_init(void);
 extern SaAisErrorT avd_clm_track_start(void);
 extern SaAisErrorT avd_clm_track_stop(void);
-extern SaAisErrorT avd_clm_finalize(void);
-extern void clm_node_exit_start(AVD_AVND *node, SaClmClusterChangesT change);
-extern void clm_node_exit_validate(AVD_AVND *node);
-extern void clm_node_exit_complete(AVD_AVND *node);
 extern void clm_node_terminate(AVD_AVND *node);
-extern void clm_node_in_service(AVD_AVND *node);
 
 #endif
 
