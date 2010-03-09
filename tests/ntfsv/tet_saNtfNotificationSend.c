@@ -287,14 +287,11 @@ void saNtfNotificationSend_03(void) {
 
 }
 
-void saNtfNotificationSend_04(void) {
+SaAisErrorT send_st_ch(saNotificationAllocationParamsT *myNotificationAllocationParams,
+	saNotificationFilterAllocationParamsT *myNotificationFilterAllocationParams,
+	saNotificationParamsT *myNotificationParams)
+{
 	SaNtfStateChangeNotificationT  myNotification;
-	saNotificationAllocationParamsT myNotificationAllocationParams;
-	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
-	saNotificationParamsT myNotificationParams;
-
-	fillInDefaultValues(&myNotificationAllocationParams,
-			&myNotificationFilterAllocationParams, &myNotificationParams);
 
 	safassert(saNtfInitialize(&ntfHandle, &ntfSendCallbacks, &ntfVersion), SA_AIS_OK);
 
@@ -302,15 +299,15 @@ void saNtfNotificationSend_04(void) {
 					ntfHandle, /* handle to Notification Service instance */
 					&myNotification,
 					/* number of correlated notifications */
-					myNotificationAllocationParams.numCorrelatedNotifications,
+					myNotificationAllocationParams->numCorrelatedNotifications,
 					/* length of additional text */
-					myNotificationAllocationParams.lengthAdditionalText,
+					myNotificationAllocationParams->lengthAdditionalText,
 					/* number of additional info items*/
-					myNotificationAllocationParams.numAdditionalInfo,
+					myNotificationAllocationParams->numAdditionalInfo,
 					/* number of state changes */
-					myNotificationAllocationParams.numAttributes,
+					2,
 					/* use default allocation size */
-					myNotificationAllocationParams.variableDataSize), SA_AIS_OK);
+					myNotificationAllocationParams->variableDataSize), SA_AIS_OK);
 
 	/* Event type */
 	*(myNotification.notificationHeader.eventType) = SA_NTF_OBJECT_STATE_CHANGE;
@@ -318,52 +315,94 @@ void saNtfNotificationSend_04(void) {
 	/* event time to be set automatically to current
 	 time by saNtfNotificationSend */
 	*(myNotification.notificationHeader.eventTime)
-			= myNotificationParams.eventTime;
+			= myNotificationParams->eventTime;
 
 	/* set Notification Class Identifier */
 	/* vendor id 33333 is not an existing SNMP enterprise number.
 	 Just an example */
 	myNotification.notificationHeader.notificationClassId->vendorId
-			= myNotificationParams.notificationClassId.vendorId;
+			= myNotificationParams->notificationClassId.vendorId;
 
 	/* sub id of this notification class within "name space" of vendor ID */
 	myNotification.notificationHeader.notificationClassId->majorId
-			= myNotificationParams.notificationClassId.majorId;
+			= myNotificationParams->notificationClassId.majorId;
 	myNotification.notificationHeader.notificationClassId->minorId
-			= myNotificationParams.notificationClassId.minorId;
+			= myNotificationParams->notificationClassId.minorId;
 
 	/* set additional text and additional info */
 	(void) strncpy(myNotification.notificationHeader.additionalText,
-			myNotificationParams.additionalText,
-			myNotificationAllocationParams.lengthAdditionalText);
+			myNotificationParams->additionalText,
+			myNotificationAllocationParams->lengthAdditionalText);
 
 	/* Set source indicator */
 	*myNotification.sourceIndicator
-			= myNotificationParams.stateChangeSourceIndicator;
+			= myNotificationParams->stateChangeSourceIndicator;
 
 	/* Set objectAttributes */
 	myNotification.changedStates[0].stateId
-			= myNotificationParams.changedStates[0].stateId;
+			= myNotificationParams->changedStates[0].stateId;
 	myNotification.changedStates[0].oldStatePresent
-				= myNotificationParams.changedStates[0].oldStatePresent;
+				= myNotificationParams->changedStates[0].oldStatePresent;
 	myNotification.changedStates[0].oldState
-				= myNotificationParams.changedStates[0].oldState;
+				= myNotificationParams->changedStates[0].oldState;
 	myNotification.changedStates[0].newState
-				= myNotificationParams.changedStates[0].newState;
+				= myNotificationParams->changedStates[0].newState;
+
+	myNotification.changedStates[1].stateId
+			= myNotificationParams->changedStates[1].stateId;
+	myNotification.changedStates[1].oldStatePresent
+				= myNotificationParams->changedStates[1].oldStatePresent;
+	myNotification.changedStates[1].oldState
+				= myNotificationParams->changedStates[1].oldState;
+	myNotification.changedStates[1].newState
+				= myNotificationParams->changedStates[1].newState;
 
 
-	myNotificationParams.eventType
-			= myNotificationParams.stateChangeEventType;
+	myNotificationParams->eventType
+			= myNotificationParams->stateChangeEventType;
 	fill_header_part(&myNotification.notificationHeader,
-			(saNotificationParamsT *) &myNotificationParams,
-			myNotificationAllocationParams.lengthAdditionalText);
+			(saNotificationParamsT *) myNotificationParams,
+			myNotificationAllocationParams->lengthAdditionalText);
 
 	/*  the magic */
 	rc = saNtfNotificationSend(myNotification.notificationHandle);
 	safassert(saNtfNotificationFree(myNotification.notificationHandle), SA_AIS_OK);
 	safassert(saNtfFinalize(ntfHandle), SA_AIS_OK);
-	test_validate(rc, SA_AIS_OK);
+	return rc;
+}
 
+void saNtfNotificationSend_04(void) {
+	SaAisErrorT rc;
+
+	saNotificationAllocationParamsT myNotificationAllocationParams;
+	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationParamsT myNotificationParams;
+	
+	fillInDefaultValues(&myNotificationAllocationParams,
+							  &myNotificationFilterAllocationParams, &myNotificationParams);
+
+	rc = send_st_ch(&myNotificationAllocationParams,
+		             &myNotificationFilterAllocationParams,
+						 &myNotificationParams);
+	test_validate(rc, SA_AIS_OK);
+}
+
+void saNtfNotificationSend_09(void) {
+	SaAisErrorT rc;
+
+	saNotificationAllocationParamsT myNotificationAllocationParams;
+	saNotificationFilterAllocationParamsT myNotificationFilterAllocationParams;
+	saNotificationParamsT myNotificationParams;
+	
+	fillInDefaultValues(&myNotificationAllocationParams,
+							  &myNotificationFilterAllocationParams, &myNotificationParams);
+	myNotificationParams.changedStates[0].oldStatePresent = 0xff00;
+	myNotificationParams.changedStates[0].oldState = 0xff;
+	
+	rc = send_st_ch(&myNotificationAllocationParams,
+		             &myNotificationFilterAllocationParams,
+						 &myNotificationParams);
+	test_validate(rc, SA_AIS_ERR_INVALID_PARAM);
 }
 
 void saNtfNotificationSend_05(void) {
@@ -608,6 +647,8 @@ __attribute__ ((constructor)) static void saNtfNotificationSend_constructor(
 			"saNtfNotificationSend AttributeChangeNotification");
 	test_case_add(8, saNtfNotificationSend_04,
 			"saNtfNotificationSend StateChangeNotification");
+	test_case_add(8, saNtfNotificationSend_09,
+			"saNtfNotificationSend StateChangeNotification invalid oldStatePresent");
 	test_case_add(8, saNtfNotificationSend_05,
 			"saNtfNotificationSend SecurityAlarm");
 	test_case_add(8, saNtfNotificationSend_06,
