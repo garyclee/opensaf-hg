@@ -15,6 +15,8 @@
  *
  */
 
+#include <limits.h>
+
 #include "plms.h"
 #include "plms_mbcsv.h"
 #include "plms_utils.h"
