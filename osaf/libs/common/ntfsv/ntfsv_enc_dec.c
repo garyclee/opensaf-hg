@@ -182,16 +182,16 @@ static uns32 encodeSaNtfValueT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNt
 
 static uns32 encodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns8 *p8, uns32 total_bytes, SaNtfAttributeChangeT *ntfAttr)
 {
-	p8 = ncs_enc_reserve_space(uba, 5);
+	p8 = ncs_enc_reserve_space(uba, 8);
 	if (!p8) {
 		TRACE("p8 NULL!!!");
 		return 0;
 	}
 	ncs_encode_16bit(&p8, ntfAttr->attributeId);
 	ncs_encode_16bit(&p8, (uns16)ntfAttr->attributeType);
-	ncs_encode_8bit(&p8, (uns16)ntfAttr->oldAttributePresent);
-	ncs_enc_claim_space(uba, 5);
-	total_bytes += 5;
+	ncs_encode_32bit(&p8, ntfAttr->oldAttributePresent);
+	ncs_enc_claim_space(uba, 8);
+	total_bytes += 8;
 	if (ntfAttr->oldAttributePresent) {
 		total_bytes += encodeSaNtfValueT(uba,
 						 p8, total_bytes, ntfAttr->attributeType, &ntfAttr->oldAttributeValue);
@@ -313,13 +313,13 @@ static uns32 decodeNtfValueT(NCS_UBAID *uba, uns32 total_bytes, SaNtfValueTypeT 
 static uns32 decodeSaNtfAttributeChangeT(NCS_UBAID *uba, uns32 total_bytes, SaNtfAttributeChangeT *ntfAttr)
 {
 	uns8 *p8;
-	uns8 local_data[5];
-	p8 = ncs_dec_flatten_space(uba, local_data, 5);
+	uns8 local_data[8];
+	p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	ntfAttr->attributeId = ncs_decode_16bit(&p8);
 	ntfAttr->attributeType = ncs_decode_16bit(&p8);
-	ntfAttr->oldAttributePresent = ncs_decode_8bit(&p8);
-	ncs_dec_skip_space(uba, 5);
-	total_bytes += 5;
+	ntfAttr->oldAttributePresent = ncs_decode_32bit(&p8);
+	ncs_dec_skip_space(uba, 8);
+	total_bytes += 8;
 	if (ntfAttr->oldAttributePresent) {
 		total_bytes = decodeNtfValueT(uba, total_bytes, ntfAttr->attributeType, &ntfAttr->oldAttributeValue);
 	}
@@ -659,15 +659,15 @@ uns32 ntfsv_enc_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		ncs_enc_claim_space(uba, 4);
 		total_bytes += 4;
 		for (i = 0; i < param->notification.stateChange.numStateChanges; i++) {
-			p8 = ncs_enc_reserve_space(uba, 3);
+			p8 = ncs_enc_reserve_space(uba, 6);
 			if (!p8) {
 				TRACE("p8 NULL!!!");
 				return 0;
 			}
 			ncs_encode_16bit(&p8, param->notification.stateChange.changedStates[i].stateId);
-			ncs_encode_8bit(&p8, param->notification.stateChange.changedStates[i].oldStatePresent);
-			ncs_enc_claim_space(uba, 3);
-			total_bytes += 3;
+			ncs_encode_32bit(&p8, param->notification.stateChange.changedStates[i].oldStatePresent);
+			ncs_enc_claim_space(uba, 6);
+			total_bytes += 6;
 			if (param->notification.stateChange.changedStates[i].oldStatePresent) {
 				p8 = ncs_enc_reserve_space(uba, 2);
 				if (!p8) {
@@ -1009,11 +1009,11 @@ uns32 ntfsv_dec_not_msg(NCS_UBAID *uba, ntfsv_send_not_req_t *param)
 		total_bytes += 4;
 		TRACE("dec numStCh: %d", (int)param->notification.stateChange.numStateChanges);
 		for (i = 0; i < param->notification.stateChange.numStateChanges; i++) {
-			p8 = ncs_dec_flatten_space(uba, local_data, 3);
+			p8 = ncs_dec_flatten_space(uba, local_data, 6);
 			param->notification.stateChange.changedStates[i].stateId = ncs_decode_16bit(&p8);
-			param->notification.stateChange.changedStates[i].oldStatePresent = ncs_decode_8bit(&p8);
-			ncs_dec_skip_space(uba, 3);
-			total_bytes += 3;
+			param->notification.stateChange.changedStates[i].oldStatePresent = ncs_decode_32bit(&p8);
+			ncs_dec_skip_space(uba, 6);
+			total_bytes += 6;
 			if (param->notification.stateChange.changedStates[i].oldStatePresent) {
 				p8 = ncs_dec_flatten_space(uba, local_data, 2);
 				param->notification.stateChange.changedStates[i].oldState = ncs_decode_16bit(&p8);

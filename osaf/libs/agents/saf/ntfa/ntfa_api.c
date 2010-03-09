@@ -84,7 +84,7 @@ static SaAisErrorT checkSecurityAlarmParameters(SaNtfSecurityAlarmNotificationT 
 
 static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *notification)
 {
-
+	int i;
 	if (*notification->notificationHeader.eventType < SA_NTF_STATE_CHANGE_NOTIFICATIONS_START ||
 		 (*notification->notificationHeader.eventType > SA_NTF_OBJECT_STATE_CHANGE &&
 		  *notification->notificationHeader.eventType < SA_NTF_MISCELLANEOUS_NOTIFICATIONS_START) ||
@@ -92,16 +92,26 @@ static SaAisErrorT checkStateChangeParameters(SaNtfStateChangeNotificationT *not
 		 TRACE_1("Invalid eventType value");
 		 return SA_AIS_ERR_INVALID_PARAM;
 	}
+	for (i = 0; i < notification->numStateChanges; i++) {
+		SaBoolT sp = notification->changedStates[i].oldStatePresent;
+		if (sp != SA_FALSE && sp != SA_TRUE)
+			return SA_AIS_ERR_INVALID_PARAM;			
+	}
 	return checkHeader(&notification->notificationHeader);
 }
 
 static SaAisErrorT checkAttributeChangeParameters(SaNtfAttributeChangeNotificationT *notification)
 {
-
+	int i;
 	if (*notification->notificationHeader.eventType < SA_NTF_ATTRIBUTE_NOTIFICATIONS_START ||
 	    *notification->notificationHeader.eventType > SA_NTF_ATTRIBUTE_RESET) {
 		TRACE_1("Invalid eventType value");
 		return SA_AIS_ERR_INVALID_PARAM;
+	}
+	for (i = 0; i < notification->numAttributes; i++) {
+		SaBoolT sp = notification->changedAttributes[i].oldAttributePresent;
+		if (sp != SA_FALSE && sp != SA_TRUE)
+			return SA_AIS_ERR_INVALID_PARAM;			
 	}
 	return checkHeader(&notification->notificationHeader);
 }

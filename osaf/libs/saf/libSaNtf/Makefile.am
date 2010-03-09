@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = libSaNtf.version
 
-LIB_VERSION=0:1:0
+LIB_VERSION=0:1:1
 
 SUBDIRS = pkgconfig
 
