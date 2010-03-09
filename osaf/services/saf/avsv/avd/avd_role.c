@@ -238,8 +238,7 @@ uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 		if(avd_clm_track_start() != SA_AIS_OK) {
 			LOG_ER("avd_clm_track_start FAILED");
 			goto done;
-		} else
-			LOG_NO("avd_clm_track_start success");
+		}
 	}
 
 	if ((role == SA_AMF_HA_ACTIVE) &&

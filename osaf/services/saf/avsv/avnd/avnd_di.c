@@ -34,6 +34,7 @@
 ******************************************************************************
 */
 
+#include <logtrace.h>
 #include "avnd.h"
 
 static uns32 avnd_evt_avd_hlt_updt_on_fover(AVND_CB *cb, AVND_EVT *evt);
@@ -541,6 +542,13 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 	AVND_MSG msg;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
+	TRACE_ENTER();
+
+	if (evt != NULL) {
+		TRACE("ugly hack to make it work");
+		goto done;
+	}
+
 	/* Avd is already UP, reboot the node */
 	if (!m_AVND_CB_IS_AVD_UP(cb)) {
 		avnd_log(NCSFL_SEV_NOTICE, "AVD is not up");
@@ -574,6 +582,7 @@ uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 	avnd_msg_content_free(cb, &msg);
 
 done:
+	TRACE_LEAVE();
 	return rc;
 }
 
