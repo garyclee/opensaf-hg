@@ -4530,7 +4530,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>/usr/local/lib/opensaf</value>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -4838,7 +4838,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>/usr/local/lib/opensaf</value>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -5090,7 +5090,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_3,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>/usr/local/lib/opensaf</value>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -5228,7 +5228,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_4,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>/usr/local/lib/opensaf</value>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -5366,7 +5366,7 @@
 		<dn>safInstalledSwBundle=safBundle=OpenSAF,safAmfNode=PL_2_5,safAmfCluster=myAmfCluster</dn>
 		<attr>
 			<name>saAmfNodeSwBundlePathPrefix</name>
-			<value>/usr/local/lib/opensaf</value>
+			<value>xxLIBDIRxx</value>
 		</attr>
 	</object>
 	<object class="SaAmfSU">
@@ -5556,23 +5556,23 @@
 		<dn>smfConfig=1,safApp=safSmfService</dn>
 		<attr>
 			<name>smfBackupCreateCmd</name>
-			<value>/usr/local/lib/opensaf/smf-backup-create</value>
+			<value>xxLIBDIRxx/smf-backup-create</value>
 		</attr>
 		<attr>
 			<name>smfBundleCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-bundle-check</value>
+			<value>xxLIBDIRxx/smf-bundle-check</value>
 		</attr>
 		<attr>
 			<name>smfNodeCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-node-check</value>
+			<value>xxLIBDIRxx/smf-node-check</value>
 		</attr>
 		<attr>
 			<name>smfRepositoryCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-repository-check</value>
+			<value>xxLIBDIRxx/smf-repository-check</value>
 		</attr>
 		<attr>
 			<name>smfClusterRebootCmd</name>
-			<value>/usr/local/lib/opensaf/smf-cluster-reboot</value>
+			<value>xxLIBDIRxx/smf-cluster-reboot</value>
 		</attr>
 		<attr>
 			<name>smfAdminOpTimeout</name>
