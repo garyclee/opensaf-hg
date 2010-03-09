@@ -1443,6 +1443,7 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
         nodeop->member = SA_FALSE;
         nodeop->stat_change = SA_TRUE;
         nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
+	nodeop->init_view =++(clms_cb->cluster_view_num);
         --(osaf_cluster->num_nodes);
 
         clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);
@@ -1671,6 +1672,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
                 	nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
                         nodeop->stat_change = SA_TRUE;
                         nodeop->change = SA_CLM_NODE_SHUTDOWN;
+                        nodeop->init_view =++(clms_cb->cluster_view_num);
                         --(osaf_cluster->num_nodes);
 
                         clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);

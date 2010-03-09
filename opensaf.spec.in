@@ -142,10 +142,18 @@ Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
+%if %is_ais_plm
+Requires: %{name}-plm-libs = %{version}-%{release}
+%endif
 
 %description clm-server
 
+%package clm-nodeagent
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-CLM Service
+Requires: %{name}-clm-libs = %{version}-%{release}
 
+%description clm-nodeagent
 
 %if %is_ais_evt
 
@@ -422,6 +430,7 @@ Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-clm-server = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-imm-director = %{version}-%{release}
 Requires: %{name}-imm-nodedirector = %{version}-%{release}
@@ -470,6 +479,7 @@ Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
+Requires: %{name}-clm-nodeagent = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-imm-nodedirector = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
@@ -815,6 +825,11 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkgimmxml_svcdir}/clmsv_sc_template.xml
 %{_pkgimmxml_svcdir}/clmsv_pl_template.xml
 
+%files clm-nodeagent
+%defattr(-,root,root)
+%{_pkglibdir}/opensaf_nodeagent
+%{_pkglibdir}/opensaf_clmna
+
 
 %if %is_ais_evt
 
@@ -1084,6 +1099,8 @@ hostname > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/amfnd_script
 %{_pkglibdir}/opensaf_amfmon
 %{_pkglibdir}/amfmon_script
+%{_pkglibdir}/opensaf_nodeagent
+%{_pkglibdir}/opensaf_clmna
 
 
 %files libs
