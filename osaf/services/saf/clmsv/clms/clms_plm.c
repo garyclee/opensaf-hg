@@ -100,7 +100,6 @@ static void clms_plm_readiness_track_callback (
 					node->admin_state = SA_CLM_ADMIN_LOCKED;
 					
 					--(osaf_cluster->num_nodes);
-					node->init_view = (--(clms_cb->cluster_view_num));
 					node->member = SA_FALSE;
 					node->ee_red_state = SA_PLM_READINESS_OUT_OF_SERVICE;
 					rc = clms_node_exit_ntf(clms_cb,node);

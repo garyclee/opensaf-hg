@@ -623,6 +623,13 @@ void  clms_send_track(CLMS_CB *cb,CLMS_CLUSTER_NODE *node,SaClmChangeStepT step)
 
 	TRACE_ENTER2("step: %d",step);
 
+	if (node->change == SA_CLM_NODE_LEFT)
+		LOG_NO("%s LEFT, view number=%llu", node->node_name.value, node->init_view);
+	else if (node->change == SA_CLM_NODE_JOINED)
+		LOG_NO("%s JOINED, view number=%llu", node->node_name.value, node->init_view);
+	else if (node->change == SA_CLM_NODE_SHUTDOWN)
+		LOG_NO("%s SHUTDOWN, view number=%llu", node->node_name.value, node->init_view);
+
 	/* Check for previous stale tracklist on this node and delete it.
            PLM doesnt allows multiple admin operations, hence this means
            PLM is enforcing its clients to forcibly-move to the next step
@@ -656,9 +663,6 @@ void  clms_send_track(CLMS_CB *cb,CLMS_CLUSTER_NODE *node,SaClmChangeStepT step)
 				}
 
 				clms_create_track_resp_list(node,rec);
-
-				TRACE("patricia tree add succeeded for start step");
-					
 				
 			}
        		} else if (step == SA_CLM_CHANGE_VALIDATE){
@@ -1439,7 +1443,6 @@ static uns32 clms_lock_send_no_start_cbk(CLMS_CLUSTER_NODE * nodeop)
         nodeop->member = SA_FALSE;
         nodeop->stat_change = SA_TRUE;
         nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
-        nodeop->init_view =--(clms_cb->cluster_view_num);
         --(osaf_cluster->num_nodes);
 
         clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);
@@ -1566,7 +1569,7 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
         			nodeop->stat_change = SA_TRUE;
         			nodeop->change = SA_CLM_NODE_JOINED;
 				++(osaf_cluster->num_nodes);
-
+				
 				/*Send Callback to its clienst*/
 				clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);
 
@@ -1589,7 +1592,7 @@ uns32 clms_imm_node_unlock(CLMS_CLUSTER_NODE * nodeop)
                                 nodeop->stat_change = SA_TRUE;
                                 nodeop->change = SA_CLM_NODE_JOINED;
                                 ++(osaf_cluster->num_nodes);
-				
+
 				/*Send Callback to its clients*/
                                 clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);
 
@@ -1666,10 +1669,10 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
                 	clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_START);
                 }else {
                 	nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
-                        nodeop->init_view =--(clms_cb->cluster_view_num);
                         nodeop->stat_change = SA_TRUE;
                         nodeop->change = SA_CLM_NODE_SHUTDOWN;
                         --(osaf_cluster->num_nodes);
+
                         clms_send_track(clms_cb,nodeop,SA_CLM_CHANGE_COMPLETED);
 
 			/*Clear Admin_op and stat_change*/
