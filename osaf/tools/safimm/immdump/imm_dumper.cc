@@ -118,6 +118,10 @@ int main(int argc, char* argv[])
     ClassMap classIdMap;
     unsigned int objCount=0;
 
+    unsigned int           retryInterval = 1000000; /* 1 sec */
+    unsigned int           maxTries = 15;          /* 15 times == max 15 secs */
+    unsigned int           tryCount=0;
+
     if ((argc < 2) || (argc > 4))
     {
         printf("Usage: %s <xmldumpfile>\n", argv[0]);
@@ -228,8 +232,16 @@ int main(int argc, char* argv[])
            to detect loss of immnd. If immnd goes down we also exit.
            A new immnd coord will be elected which should start a new pbe process.
          */
-        errorCode = saImmOmAdminOwnerInitialize(immHandle, 
-            (char *) OPENSAF_IMM_SERVICE_NAME, SA_TRUE, &ownerHandle); 
+        do {
+            if(tryCount) {
+                usleep(retryInterval);
+            }
+            ++tryCount;
+            errorCode = saImmOmAdminOwnerInitialize(immHandle, 
+                (char *) OPENSAF_IMM_SERVICE_NAME, SA_TRUE, &ownerHandle); 
+        } while ((errorCode == SA_AIS_ERR_TRY_AGAIN) &&
+                  (tryCount < maxTries)); 
+
         if(SA_AIS_OK != errorCode)
         {
             if(pbeDaemonCase) {
