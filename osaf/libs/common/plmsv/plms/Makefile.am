@@ -29,6 +29,7 @@ libplms_common_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
+libplms_common_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 libplms_common_la_SOURCES = \
         plms_edu.c \

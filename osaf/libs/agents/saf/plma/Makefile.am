@@ -30,6 +30,8 @@ libplma_la_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
+libplma_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+
 libplma_la_LDFLAGS = -static
 
 libplma_la_SOURCES = \
