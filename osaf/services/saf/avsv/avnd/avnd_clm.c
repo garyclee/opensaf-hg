@@ -52,13 +52,14 @@ static void clm_node_left(SaClmNodeIdT node_id)
 	   terminate all the non_ncs components; ncs components :-TBD */
 	   
 		LOG_NO("This node has exited the cluster");
+		avnd_stop_tmr(avnd_cb, &(avnd_cb->hb_tmr));
 		avnd_cb->node_info.member = SA_FALSE;
 		comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb, (uns8 *)0);
 		while( comp != NULL ) {
 			if(comp->su->is_ncs != TRUE ) {
 				avnd_comp_clc_fsm_run(avnd_cb, comp, AVND_COMP_CLC_PRES_FSM_EV_TERM);
-				comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb,(uns8 *)&comp->name);
 			}
+			comp = (AVND_COMP *)ncs_patricia_tree_getnext(&avnd_cb->compdb,(uns8 *)&comp->name);
 		}
 		goto done;
 	}
@@ -131,7 +132,7 @@ static void clm_to_amf_node()
 	while (immutil_saImmOmSearchNext_2(searchHandle, &amfdn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if ((immutil_getAttr("saAmfNodeClmNode", attributes, 0, &clmdn) == SA_AIS_OK) && 
 		   (strncmp(avnd_cb->node_info.nodeName.value, clmdn.value, clmdn.length) == 0)) {
-			memcpy((void *)&(avnd_cb->amf_nodeName),(void *)&(amfdn), sizeof(SaNameT));
+			memcpy(&(avnd_cb->amf_nodeName), &(amfdn), sizeof(SaNameT));
 			break;
 		} 
 	}
@@ -176,13 +177,6 @@ uns32 avnd_evt_avd_node_up_msg(AVND_CB *cb, AVND_EVT *evt)
 	return rc;
 }
 
-static void clm_node_get_cb(SaInvocationT invocation,
-        const SaClmClusterNodeT_4 *clusterNode,
-        SaAisErrorT error)
-{
-	TRACE_LEAVE();
-}
-
 static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBuffer,
         SaUint32T numberOfMembers, SaInvocationT invocation,
         const SaNameT *rootCauseEntity, const SaNtfCorrelationIdsT *correlationIds,
@@ -214,13 +208,13 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 		}
 		else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
 			/* update the local node info */
-			memcpy((void *)(&(avnd_cb->node_info)),
-			       (void *)(&(notifItem->clusterNode)),
+			memcpy(&(avnd_cb->node_info),
+			       &(notifItem->clusterNode),
 			        sizeof(SaClmClusterNodeT_4));
 		}
 		else if(notifItem->clusterChange == SA_CLM_NODE_JOINED  ||
 		        notifItem->clusterChange == SA_CLM_NODE_NO_CHANGE) {
-			LOG_NO("Node has joined the Cluster '%s'",
+			TRACE("Node has joined the Cluster '%s'",
 					 notifItem->clusterNode.nodeName.value);
 			/* This may be also due to track flags set to 
 			 SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
@@ -228,12 +222,12 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			if (notifItem->clusterNode.nodeId == m_NCS_NODE_ID_FROM_MDS_DEST(avnd_cb->avnd_dest)) {
 				if(m_AVND_CB_IS_AVD_UP(avnd_cb) && avnd_cb->first_time_up) { 
 					/* store the local node info */
-					memcpy((void *)(&(avnd_cb->node_info)),
-					       (void *)(&(notifItem->clusterNode)),
+					memcpy(&(avnd_cb->node_info),
+					       &(notifItem->clusterNode),
 						sizeof(SaClmClusterNodeT_4));
 					/*get the amf node from clm node name */
 					clm_to_amf_node();
-					LOG_NO("Sending node up to AVD");
+					TRACE("Sending node up to AVD");
 					avnd_evt_mds_avd_up(avnd_cb, NULL);
 					avnd_cb->first_time_up = SA_FALSE;
 				}
@@ -256,7 +250,6 @@ done:
 static SaVersionT Version = { 'B', 4, 1 };
 
 static const SaClmCallbacksT_4 callbacks = {
-        .saClmClusterNodeGetCallback = clm_node_get_cb,
         .saClmClusterTrackCallback = clm_track_cb
 };
 
@@ -293,12 +286,12 @@ SaAisErrorT avnd_clm_stop()
 	TRACE_ENTER();
 	error = saClmClusterTrackStop(avnd_cb->clmHandle);
         if (SA_AIS_OK != error) {
-                LOG_ER("Failed to stop cluster tracking");
+                LOG_ER("Failed to stop cluster tracking %u", error);
                 goto done;
         }
 	error = saClmFinalize(avnd_cb->clmHandle);
         if (SA_AIS_OK != error) {
-                LOG_ER("Failed to finalize with CLM");
+                LOG_ER("Failed to finalize with CLM %u", error);
                 goto done;
         }
 done:

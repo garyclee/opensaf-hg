@@ -658,7 +658,7 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
  *
  * @param node
  */
-uns32 node_admin_lock_instantiation(AVD_AVND *node)
+uns32 avd_node_admin_lock_instantiation(AVD_AVND *node)
 {
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
@@ -680,8 +680,8 @@ uns32 node_admin_lock_instantiation(AVD_AVND *node)
 				rc = NCSCC_RC_FAILURE;
 				LOG_WA("Failed Termination '%s'", su->name.value);
 			}
-			su = su->avnd_list_su_next;
 		}
+		su = su->avnd_list_su_next;
 	}
 
 	TRACE_LEAVE2("%u, %u", rc, node->su_cnt_admin_oper);
@@ -719,8 +719,8 @@ uns32 node_admin_unlock_instantiation(AVD_AVND *node)
 				avd_su_oper_state_set(su, SA_AMF_OPERATIONAL_ENABLED);
 				avd_su_readiness_state_set(su, SA_AMF_READINESS_IN_SERVICE);
 			}
-			su = su->avnd_list_su_next;
 		}
+		su = su->avnd_list_su_next;
 	}
 
 	TRACE_LEAVE2("%u, %u", rc, node->su_cnt_admin_oper);
@@ -734,7 +734,7 @@ uns32 node_admin_unlock_instantiation(AVD_AVND *node)
  * @param invocation
  * @param operationId
  */
-void node_admin_lock_unlock_shutdown(AVD_AVND *node,
+void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 				    SaInvocationT invocation, SaAmfAdminOperationIdT operationId)
 {
 	AVD_CL_CB *cb = (AVD_CL_CB *)avd_cb;
@@ -1055,7 +1055,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_admin_lock_unlock_shutdown(node, invocation, operationId);
+		avd_node_admin_lock_unlock_shutdown(node, invocation, operationId);
 		break;
 
 	case SA_AMF_ADMIN_UNLOCK:
@@ -1071,7 +1071,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_admin_lock_unlock_shutdown(node, invocation, operationId);
+		avd_node_admin_lock_unlock_shutdown(node, invocation, operationId);
 		break;
 
 	case SA_AMF_ADMIN_LOCK:
@@ -1087,7 +1087,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 			goto done;
 		}
 
-		node_admin_lock_unlock_shutdown(node, invocation, operationId);
+		avd_node_admin_lock_unlock_shutdown(node, invocation, operationId);
 		break;
 
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
@@ -1111,7 +1111,7 @@ static void node_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocatio
 		}
 
 		/* now do the lock_instantiation of the node */
-		if (NCSCC_RC_SUCCESS == node_admin_lock_instantiation(node)) {
+		if (NCSCC_RC_SUCCESS == avd_node_admin_lock_instantiation(node)) {
 			node->admin_node_pend_cbk.admin_oper = operationId;
 			node->admin_node_pend_cbk.invocation = invocation;
 		} else {
