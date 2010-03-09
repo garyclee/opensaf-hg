@@ -181,7 +181,7 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 	SaClmClusterNotificationT_4 *notifItem;
 	AVD_AVND *node;
 
-	LOG_NO("'%llu' '%u' '%u'", invocation, step, error);
+	TRACE_ENTER2("'%llu' '%u' '%u'", invocation, step, error);
 
 	if (error != SA_AIS_OK) {
 		LOG_ER("ClmTrackCallback received in error");
