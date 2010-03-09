@@ -579,7 +579,6 @@ void clms_clmresp_error_timeout(CLMS_CB *cb, CLMS_CLUSTER_NODE * node)
 	node->admin_state = SA_CLM_ADMIN_LOCKED;
 	node->member = SA_FALSE;
 	node->change = SA_CLM_NODE_LEFT;
-	node->init_view = --(cb->cluster_view_num);
 	--(osaf_cluster->num_nodes);
 	clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 
@@ -786,7 +785,6 @@ uns32 clms_clmresp_ok(CLMS_CB *cb,CLMS_CLUSTER_NODE * op_node,CLMS_TRACK_INFO *t
 			else if(op_node->admin_op == IMM_SHUTDOWN)
                         	op_node->change = SA_CLM_NODE_SHUTDOWN;
 
-			op_node->init_view =--(cb->cluster_view_num);
 			--(osaf_cluster->num_nodes);
                         op_node->admin_state = SA_CLM_ADMIN_LOCKED;
                         op_node->member = SA_FALSE;

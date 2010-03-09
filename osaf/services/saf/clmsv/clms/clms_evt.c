@@ -356,7 +356,6 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 		node->member = SA_FALSE;
 		--(osaf_cluster->num_nodes);
 		node->stat_change = SA_TRUE;
-		node->init_view = --(clms_cb->cluster_view_num);
 		node->change = SA_CLM_NODE_LEFT;
 		clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 		/* Clear node->stat_change after sending the callback to its clients*/
