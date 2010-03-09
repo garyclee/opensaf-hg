@@ -12,7 +12,6 @@ uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name)
         if (name->length > SA_MAX_NAME_LENGTH) {
                 LOG_ER("SaNameT length too long: %hd", name->length);
                 /* this should not happen */
-                assert(0);
         }
         ncs_dec_skip_space(uba, 2);
         total_bytes += 2;
@@ -35,7 +34,6 @@ uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress)
         if ( nodeAddress->family < SA_CLM_AF_INET || nodeAddress->family > SA_CLM_AF_INET6) {
                 LOG_ER("nodeAddress->family is wrong: %hd", nodeAddress->family);
                 /* this should not happen */
-                assert(0);
         }
         ncs_dec_skip_space(uba, 4);
         total_bytes += 4;
@@ -45,7 +43,6 @@ uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress)
         if (nodeAddress->length > SA_MAX_NAME_LENGTH) {
                 LOG_ER("nodeAddress->length length too long: %hd", nodeAddress->length);
                 /* this should not happen */
-                assert(0);
         }
         ncs_dec_skip_space(uba, 2);
         total_bytes += 2;
@@ -68,7 +65,6 @@ uns32 encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
         }
         if (name->length > SA_MAX_NAME_LENGTH) {
                 LOG_ER("SaNameT length too long %hd", name->length);
-                assert(0);
         }
         ncs_encode_16bit(&p8, name->length);
         ncs_enc_claim_space(uba, 2);

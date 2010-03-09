@@ -7,10 +7,6 @@
                         <value>1</value>
                 </attr>
                 <attr>
-                        <name>saClmNodeAddress</name>
-                        <value>10.130.100.180</value>
-                </attr>
-                <attr>
                         <name>saClmNodeLockCallbackTimeout</name>
                         <value>50000000000</value>
                 </attr>

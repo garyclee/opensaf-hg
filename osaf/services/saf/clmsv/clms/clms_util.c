@@ -580,6 +580,7 @@ void clms_clmresp_error_timeout(CLMS_CB *cb, CLMS_CLUSTER_NODE * node)
 	node->member = SA_FALSE;
 	node->change = SA_CLM_NODE_LEFT;
 	--(osaf_cluster->num_nodes);
+	node->init_view = ++(cb->cluster_view_num);
 	clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 
 	/*Update IMMSV before returning with ERR_PENDING*/
@@ -786,6 +787,7 @@ uns32 clms_clmresp_ok(CLMS_CB *cb,CLMS_CLUSTER_NODE * op_node,CLMS_TRACK_INFO *t
                         	op_node->change = SA_CLM_NODE_SHUTDOWN;
 
 			--(osaf_cluster->num_nodes);
+			op_node->init_view =++(cb->cluster_view_num);
                         op_node->admin_state = SA_CLM_ADMIN_LOCKED;
                         op_node->member = SA_FALSE;
 	
