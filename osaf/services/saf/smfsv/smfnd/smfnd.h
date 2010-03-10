@@ -68,8 +68,9 @@ extern "C" {
 	extern void smfnd_process_mbx(SYSF_MBX *);
 
 /* smfnd_main.c */
+#if 0
 	extern uns32 smfnd_amf_disconnected(smfnd_cb_t * cb);
-
+#endif
 	extern void smfnd_msg_destroy(SMFSV_EVT * evt);
 
 #ifdef __cplusplus

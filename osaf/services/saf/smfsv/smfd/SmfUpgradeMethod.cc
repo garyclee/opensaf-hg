@@ -203,7 +203,8 @@ SmfUpgradeScope::~SmfUpgradeScope()
 // Purpose:
 // Comments:
 //================================================================================
-SmfByTemplate::SmfByTemplate()
+SmfByTemplate::SmfByTemplate():
+	m_targetNodeTemplate(0)
 {
 }
 

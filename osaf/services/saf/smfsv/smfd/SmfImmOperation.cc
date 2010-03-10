@@ -119,7 +119,9 @@ SmfImmAttribute::getValues()
 // Comments:
 //================================================================================
 
-SmfImmOperation::SmfImmOperation()
+SmfImmOperation::SmfImmOperation():
+	m_ccbHandle(0),
+	m_immOwnerHandle(0)
 {
 }
 

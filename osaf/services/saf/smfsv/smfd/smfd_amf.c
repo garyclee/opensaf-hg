@@ -1,4 +1,4 @@
-/*      -*- OpenSAF  -*-
+/*      OpenSAF
  *
  * (C) Copyright 2008 The OpenSAF Foundation
  *
@@ -228,16 +228,19 @@ static void amf_csi_set_callback(SaInvocationT invocation,
 		goto done;
 
 	if (new_haState == SA_AMF_HA_QUIESCED)
+ 	        /* AMF response will be done later when MDS quiesced ack has been received */
 		goto done;
 
 	/* Update control block */
 	smfd_cb->ha_state = new_haState;
 
-	/* Handle active to active role change. */
-	if (prev_haState == new_haState) {
-		TRACE("No role change!");	/* bug? */
-		role_change = FALSE;
-	}
+        /* Handle active to active role change. */
+        if ((prev_haState == SA_AMF_HA_ACTIVE) && (new_haState == SA_AMF_HA_ACTIVE))
+                role_change = FALSE;
+
+        /* Handle Stby to Stby role change. */
+        if ((prev_haState == SA_AMF_HA_STANDBY) && (new_haState == SA_AMF_HA_STANDBY))
+                role_change = FALSE;
 
 	if (role_change == TRUE) {
 		if ((rc = smfd_mds_change_role(smfd_cb)) != NCSCC_RC_SUCCESS) {

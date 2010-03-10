@@ -62,8 +62,12 @@ SmfProcedureThread::main(NCSCONTEXT info)
  * Constructor
  */
 SmfProcedureThread::SmfProcedureThread(SmfUpgradeProcedure * procedure):
-   m_running(true), 
-   m_procedure(procedure)
+	m_task_hdl(0),
+	m_mbx(0),
+	m_running(true), 
+	m_procedure(procedure),
+	m_procOiHandle(0),
+	m_procSelectionObject(0)
 {
 	sem_init(&m_semaphore, 0, 0);
 }

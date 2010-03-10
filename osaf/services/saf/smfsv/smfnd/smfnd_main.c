@@ -140,7 +140,7 @@ static uns32 initialize_smfnd(const char *progname)
 	}
 
 	/* Create pidfile */
-	sprintf(path, PKGPIDDIR "%s.pid", basename(progname));
+	snprintf(path, NAME_MAX + 32, PKGPIDDIR "%s.pid", basename(progname));
 	if ((fp = fopen(path, "w")) == NULL) {
 		LOG_ER("Could not open %s", path);
 		rc = NCSCC_RC_FAILURE;
@@ -205,12 +205,14 @@ struct pollfd fds[SMFND_MAX_FD];
 /**
  * Restore USR1 signal handling.
  */
+#if 0
 uns32 smfnd_amf_disconnected(smfnd_cb_t * cb)
 {
 	fds[SMFND_AMF_FD].fd = cb->usr1_sel_obj.rmv_obj;
 	cb->amf_hdl = 0;
 	return NCSCC_RC_SUCCESS;
 }
+#endif
 
 /**
  * Forever wait on events and process them.
@@ -302,8 +304,7 @@ int main(int argc, char *argv[])
 		}
 
 		if ((value = getenv("SMFND_TRACE_CATEGORIES")) != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
+			trace_category_set(value);
 		}
 	}
 

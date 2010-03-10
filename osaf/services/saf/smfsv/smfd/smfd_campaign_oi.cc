@@ -565,7 +565,7 @@ uns32 campaign_oi_init(smfd_cb_t * cb)
 		return NCSCC_RC_FAILURE;
 	}
 
-	LOG_NO("Repository check cmd = %s", repositoryCheckCmd);
+	LOG_NO("SMF repository check cmd = %s", repositoryCheckCmd);
 
 	const char *clusterRebootCmd = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes,
 							     SMF_CLUSTER_REBOOT_ATTR, 0);

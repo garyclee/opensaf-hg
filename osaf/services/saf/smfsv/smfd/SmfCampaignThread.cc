@@ -102,7 +102,11 @@ void SmfCampaignThread::main(NCSCONTEXT info)
  * Constructor
  */
  SmfCampaignThread::SmfCampaignThread(SmfCampaign * campaign):
-m_running(true), m_campaign(campaign)
+	 m_task_hdl(0),
+	 m_mbx(0),
+	 m_running(true), 
+	 m_campaign(campaign),
+	 m_ntfHandle(0)
 {
 	sem_init(&m_semaphore, 0, 0);
 }
@@ -137,7 +141,7 @@ int
 
 	/* Create the task */
 	if ((rc =
-	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, m_CAMPAIGN_TASKNAME,
+	     m_NCS_TASK_CREATE((NCS_OS_CB) SmfCampaignThread::main, (NCSCONTEXT) this, (char*)m_CAMPAIGN_TASKNAME,
 			       m_CAMPAIGN_TASK_PRI, m_CAMPAIGN_STACKSIZE, &m_task_hdl)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("TASK_CREATE_FAILED");
 		return -1;
@@ -271,11 +275,16 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 class
 	}
 
 	/* Notifying object */
-	ntfStateNot.notificationHeader.notifyingObject->length = sizeof(SMF_NOTIFYING_OBJECT) - 1;
-	strcpy((char *)ntfStateNot.notificationHeader.notifyingObject->value, SMF_NOTIFYING_OBJECT);
+	SaUint16T length = sizeof(SMF_NOTIFYING_OBJECT);
+	if (length > SA_MAX_NAME_LENGTH) {
+		TRACE("notifyingObject length was %d, truncated to 256", length);
+		length = 256;
+	}
+	ntfStateNot.notificationHeader.notifyingObject->length = length - 1;
+	strncpy((char *)ntfStateNot.notificationHeader.notifyingObject->value, SMF_NOTIFYING_OBJECT, length);
 
 	/* Notification object */
-	SaUint16T length = dn.length();
+	length = dn.length();
 	if (length > SA_MAX_NAME_LENGTH) {
 		TRACE("notificationHeader length was %d, truncated to 256", length);
 		length = 256;
@@ -301,6 +310,7 @@ int SmfCampaignThread::sendStateNotification(const std::string & dn, uns32 class
 	/* Set state changed */
 	ntfStateNot.changedStates[0].stateId = stateId;
 	ntfStateNot.changedStates[0].newState = newState;
+	ntfStateNot.changedStates[0].oldStatePresent = SA_FALSE;
 
 	/* Send the notification */
 	rc = saNtfNotificationSend(ntfStateNot.notificationHandle);

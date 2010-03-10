@@ -255,7 +255,8 @@ SmfTargetNodeTemplate::getSwInstallList(void) const
 //================================================================================
 // Class SmfTargetEntityTemplate
 //================================================================================
-SmfTargetEntityTemplate::SmfTargetEntityTemplate()
+SmfTargetEntityTemplate::SmfTargetEntityTemplate():
+	m_entityTemplate(0)
 {
 }
 
