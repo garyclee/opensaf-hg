@@ -153,13 +153,13 @@ unsigned int clma_shutdown(void)
  * 
  * @return unsigned int
  */
-static void clma_destroy(void)  /* need to do*/
+static void clma_destroy(void) 
 {
         /* delete the hdl db */
         clma_hdl_list_del(&clma_cb.client_list);
 
         /* unregister with MDS */
-/*        clma_mds_finalize(&clma_cb);*/ /*need to do*/
+        clma_mds_finalize(&clma_cb);
 }
 
 
@@ -667,7 +667,15 @@ void clma_msg_destroy(CLMSV_MSG * msg) {
 
 void clma_hdl_list_del(clma_client_hdl_rec_t ** list)
 {
- /* TBD */
+	clma_client_hdl_rec_t *client_hdl;
+
+        while ((client_hdl = *list) != NULL) {
+                *list = client_hdl->next;
+                ncshm_destroy_hdl(NCS_SERVICE_ID_CLMA, client_hdl->local_hdl);
+
+                free(client_hdl);
+                client_hdl = 0;
+        }
 }
 
 /*

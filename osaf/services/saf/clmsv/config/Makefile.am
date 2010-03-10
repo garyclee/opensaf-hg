@@ -23,9 +23,18 @@ dist_pkgsysconf_DATA = \
 
 dist_pkgimmxml_svc_DATA = \
 	clmsv_classes.xml \
-	clmsv_objects.xml \
+	clmsv_objects.xml 
+
+
+if ENABLE_AIS_PLM
+dist_pkgimmxml_svc_DATA += \
+	clmsv_plm_sc_template.xml \
+	clmsv_plm_pl_template.xml
+else
+dist_pkgimmxml_svc_DATA += \
 	clmsv_sc_template.xml \
-	clmsv_pl_template.xml
+        clmsv_pl_template.xml
+endif
 
 install-data-hook:
 	hostname > $(DESTDIR)$(pkgsysconfdir)/node_name

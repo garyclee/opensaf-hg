@@ -1131,7 +1131,38 @@ uns32 clma_mds_init(clma_cb_t *cb)
         TRACE_LEAVE();
         return rc;
 }
+/****************************************************************************
+  Name          : clma_mds_finalize
+ 
+  Description   : This routine unregisters the CLMA Service from MDS.
+ 
+  Arguments     : cb - ptr to the CLMA control block
+ 
+  Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
+ 
+  Notes         : None.
+******************************************************************************/
+void clma_mds_finalize(clma_cb_t *cb)
+{
+        NCSMDS_INFO mds_info;
+        uns32 rc = NCSCC_RC_SUCCESS;
 
+        TRACE_ENTER();
+        /* Un-install your service into MDS. 
+           No need to cancel the services that are subscribed */
+        memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
+
+        mds_info.i_mds_hdl = cb->mds_hdl;
+        mds_info.i_svc_id = NCSMDS_SVC_ID_CLMA;
+        mds_info.i_op = MDS_UNINSTALL;
+
+        if ((rc = ncsmds_api(&mds_info)) != NCSCC_RC_SUCCESS) {
+                TRACE("MDS API Call Failed");
+        }
+
+        TRACE_LEAVE();
+        return;
+}
 /****************************************************************************
   Name          : clma_mds_msg_sync_send
  
