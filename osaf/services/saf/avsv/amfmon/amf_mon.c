@@ -43,6 +43,8 @@
 #include <ncssysf_def.h>
 #include <configmake.h>
 
+extern void ava_install_amf_down_cb(void (*cb)(void));
+
 /* AMF Handle */
 static SaAmfHandleT amf_hdl;
 
@@ -130,10 +132,13 @@ static void create_pid_file(char *progname)
 	(void)fclose(fp);
 }
 
-extern void ava_install_amf_down_cb(void (*cb)(void));
-static void amf_down(void)
+static void amf_down_cb(void)
 {
-        ncs_reboot("AMF down");
+	int status;
+
+	syslog(LOG_ERR, "ordering system reboot, AMF unexpectedly crasched"); 
+	if ((status = system("shutdown -r now")) == -1)
+		syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
 }
 
 int main(int argc, char **argv)
@@ -151,7 +156,7 @@ int main(int argc, char **argv)
 
 	create_pid_file(argv[0]);
 
-	ava_install_amf_down_cb(amf_down);
+	ava_install_amf_down_cb(amf_down_cb);
 
 	amf_callbacks.saAmfCSISetCallback = amf_csi_set_callback;
 	amf_callbacks.saAmfCSIRemoveCallback = amf_csi_remove_callback;
@@ -187,7 +192,7 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-    /** start the AMF health check **/
+	/** start the AMF health check **/
 	memset(&hc_key, 0, sizeof(hc_key));
 	if ((hc_key_env = getenv("AMFMON_ENV_HEALTHCHECK_KEY")) == NULL)
 		strcpy((char *)hc_key.key, "Default");
@@ -230,11 +235,14 @@ int main(int argc, char **argv)
 			** stop sending health check request without it beeing an internal
 			** error. We want to catch that asap and fix it.
 			*/
-			syslog(LOG_ERR, "poll TIMEOUT, generating core for amfnd");
-			syslog(LOG_ERR, "%s", latest_healthcheck_trace); 
+			syslog(LOG_ERR, "TIMEOUT receiving AMF health check request, generating core for amfnd");
 			if ((status = system("killall -ABRT opensaf_amfnd")) == -1)
-				syslog(LOG_ERR, "system FAILED %x", status);
-			ncs_reboot("timeout receiving AMF HC requests");
+				syslog(LOG_ERR, "system(killall) FAILED %x", status);
+
+			syslog(LOG_ERR, "%s", latest_healthcheck_trace); 
+			syslog(LOG_ERR, "ordering system reboot"); 
+			if ((status = system("shutdown -r now")) == -1)
+				syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
 		}
 
 		if (fds[0].revents & POLLIN) {
