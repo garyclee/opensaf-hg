@@ -37,4 +37,4 @@ dist_pkgimmxml_svc_DATA += \
 endif
 
 install-data-hook:
-	hostname > $(DESTDIR)$(pkgsysconfdir)/node_name
+	hostname -s > $(DESTDIR)$(pkgsysconfdir)/node_name
