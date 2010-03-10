@@ -728,7 +728,7 @@ fi
 %post controller
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
 echo "controller" > %{_pkgsysconfdir}/node_type
-hostname > %{_pkgsysconfdir}/node_name
+hostname -s > %{_pkgsysconfdir}/node_name
 /sbin/ldconfig
 echo "For information on how to configure the initial imm.xml file check the readme file: %{_pkgimmxmldir}/README"
 
@@ -742,7 +742,7 @@ echo "For information on how to configure the initial imm.xml file check the rea
 %post payload
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.payload %{_pkgsysconfdir}/nodeinit.conf
 echo "payload" > %{_pkgsysconfdir}/node_type
-hostname > %{_pkgsysconfdir}/node_name
+hostname -s > %{_pkgsysconfdir}/node_name
 /sbin/ldconfig
 
 %preun payload
