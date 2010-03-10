@@ -76,28 +76,33 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 	TRACE_ENTER2("from %x", n2d_msg->msg_info.n2d_clm_node_up.node_id);
 
-	if ((avnd = avd_msg_sanity_chk(cb, evt, n2d_msg->msg_info.n2d_clm_node_up.node_id, AVSV_N2D_CLM_NODE_UP_MSG))
-	    == NULL) {
-		/* sanity failed return */
+	/* Cannot use avd_msg_sanity_chk here since this is a special case */
+	if ((avnd = avd_node_find_nodeid(n2d_msg->msg_info.n2d_clm_node_up.node_id)) == NULL) {
+		TRACE("invalid node ID (%x)", n2d_msg->msg_info.n2d_clm_node_up.node_id);
 		goto done;
 	}
 
-	avd_log(NCSFL_SEV_NOTICE, "NODE UP RCVD for AVD STATE(%u), node %x, node state %u",
-			cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id, avnd->node_state);
+
+	if (cb->init_state < AVD_CFG_DONE) {
+		/* Don't initialise the AvND when the AVD is not
+		 * completely initialised with the saved information
+		 */
+		TRACE("invalid init state (%u)", cb->init_state);
+		goto done;
+	}
 
 	/* Check the AvD FSM state process node up only if AvD is in init done or
 	 * APP init state for all nodes except the primary system controller
 	 * whose node up is accepted in config done state.
 	 */
-
 	if ((n2d_msg->msg_info.n2d_clm_node_up.node_id != cb->node_id_avd) && (cb->init_state < AVD_INIT_DONE)) {
-		avd_log(NCSFL_SEV_WARNING, "invalid init state (%u), node %x",
+		TRACE("invalid init state (%u), node %x",
 			cb->init_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
 		goto done;
 	}
 
 	if (avnd->node_state != AVD_AVND_STATE_ABSENT) {
-		avd_log(NCSFL_SEV_WARNING, "invalid node state %u for node %x",
+		LOG_WA("invalid node state %u for node %x",
 			avnd->node_state, n2d_msg->msg_info.n2d_clm_node_up.node_id);
 		goto done;
 	}
@@ -107,7 +112,7 @@ void avd_node_up_func(AVD_CL_CB *cb, AVD_EVT *evt)
 	avnd->rcv_msg_id = n2d_msg->msg_info.n2d_clm_node_up.msg_id;
 
 	if (avnd->node_info.member != SA_TRUE) {
-		avd_log(NCSFL_SEV_NOTICE, "Not a Cluster Member dropping the msg");
+		LOG_WA("Not a Cluster Member dropping the msg");
 		goto done;
 	}
 

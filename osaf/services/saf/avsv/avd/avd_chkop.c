@@ -388,10 +388,10 @@ static uns32 avsv_mbcsv_process_dec_cb(AVD_CL_CB *cb, NCS_MBCSV_CB_ARG *arg)
 			 * Decode Cold Sync request message 
 			 * Nothing is there to decode.
 			 */
-			m_AVD_LOG_CKPT_EVT(AVD_COLD_SYNC_REQ_RCVD, NCSFL_SEV_INFO, 1);
+			TRACE("COLD_SYNC_REQ");
 
 			if (cb->init_state < AVD_INIT_DONE) {
-				LOG_WA("invalid init state (%u) for cold sync req", cb->init_state);
+				TRACE("invalid init state (%u) for cold sync req", cb->init_state);
 				status = NCSCC_RC_FAILURE;
 			}
 		}

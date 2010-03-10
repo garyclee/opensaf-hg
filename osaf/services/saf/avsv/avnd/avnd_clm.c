@@ -220,18 +220,16 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 			 SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
 			 in saClmClusterTrack call so update the local database */
 			if (notifItem->clusterNode.nodeId == m_NCS_NODE_ID_FROM_MDS_DEST(avnd_cb->avnd_dest)) {
-				if(m_AVND_CB_IS_AVD_UP(avnd_cb) && avnd_cb->first_time_up) { 
+				if (avnd_cb->first_time_up == SA_TRUE) { 
 					/* store the local node info */
 					memcpy(&(avnd_cb->node_info),
 					       &(notifItem->clusterNode),
 						sizeof(SaClmClusterNodeT_4));
 					/*get the amf node from clm node name */
 					clm_to_amf_node();
-					TRACE("Sending node up to AVD");
-					avnd_evt_mds_avd_up(avnd_cb, NULL);
+					avnd_send_node_up_msg();
 					avnd_cb->first_time_up = SA_FALSE;
-				}
-				else {
+				} else {
 					/* start hb send again */
 					avnd_di_hb_send(avnd_cb);
 					LOG_NO("The node is already up");
@@ -257,6 +255,7 @@ SaAisErrorT avnd_clm_init()
 {
         SaAisErrorT error = SA_AIS_OK;
         SaUint8T trackFlags = SA_TRACK_CURRENT|SA_TRACK_CHANGES_ONLY;
+
 	TRACE_ENTER();
 	avnd_cb->first_time_up = SA_TRUE;
 	error = saClmInitialize_4(&avnd_cb->clmHandle, &callbacks, &Version);
@@ -274,7 +273,7 @@ SaAisErrorT avnd_clm_init()
                 LOG_ER("Failed to start cluster tracking: %u", error);
                 goto done;
         }
-	LOG_NO("Started cluster tracking");
+
 done:
 	TRACE_LEAVE();
         return error;

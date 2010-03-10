@@ -524,6 +524,45 @@ uns32 avnd_evt_tmr_rcv_msg_rsp(AVND_CB *cb, AVND_EVT *evt)
 	return rc;
 }
 
+void avnd_send_node_up_msg(void)
+{
+	AVND_CB *cb = avnd_cb;
+	AVND_MSG msg = {0};
+	uns32 rc;
+
+	TRACE_ENTER();
+
+	if (cb->node_info.member != SA_TRUE) {
+		TRACE("not member");
+		goto done;
+	}
+
+	if (!m_AVND_CB_IS_AVD_UP(avnd_cb)) {
+		TRACE("AVD not up");
+		goto done;
+	}
+
+	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
+		msg.type = AVND_MSG_AVD;
+		msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
+		msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
+		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->node_info.nodeId;
+		msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
+
+		rc = avnd_di_msg_send(cb, &msg);
+		if (NCSCC_RC_SUCCESS == rc)
+			msg.info.avd = 0;
+	} else {
+		LOG_ER("calloc FAILED");
+		assert(0);
+	}
+
+	avnd_msg_content_free(cb, &msg);
+
+done:
+	TRACE_LEAVE();
+}
+
 /****************************************************************************
   Name          : avnd_evt_mds_avd_up
  
@@ -539,51 +578,24 @@ uns32 avnd_evt_tmr_rcv_msg_rsp(AVND_CB *cb, AVND_EVT *evt)
 ******************************************************************************/
 uns32 avnd_evt_mds_avd_up(AVND_CB *cb, AVND_EVT *evt)
 {
-	AVND_MSG msg;
-	uns32 rc = NCSCC_RC_SUCCESS;
-
-	TRACE_ENTER();
-
-	if (evt != NULL) {
-		TRACE("ugly hack to make it work");
-		goto done;
-	}
+	TRACE_ENTER2("%llx", evt->info.mds.mds_dest);
 
 	/* Avd is already UP, reboot the node */
-	if (!m_AVND_CB_IS_AVD_UP(cb)) {
-		avnd_log(NCSFL_SEV_NOTICE, "AVD is not up");
+	if (m_AVND_CB_IS_AVD_UP(cb)) {
+		ncs_reboot("AVD already up");
 		goto done;
 	}
 
-	/* check whether this node is a cluster member 
-	   if not a member then do nothing */
-	if (cb->node_info.member != SA_TRUE) {
-		avnd_log(NCSFL_SEV_NOTICE, "This node is not a Cluster member");
-		goto done;
-	}
+	m_AVND_CB_AVD_UP_SET(cb);
 
-	/* send node up message to AvD */
-	memset(&msg, 0, sizeof(AVND_MSG));
+	/* store the AVD MDS address */
+	cb->avd_dest = evt->info.mds.mds_dest;
 
-	if (0 != (msg.info.avd = calloc(1, sizeof(AVSV_DND_MSG)))) {
-		msg.type = AVND_MSG_AVD;
-		msg.info.avd->msg_type = AVSV_N2D_CLM_NODE_UP_MSG;
-		msg.info.avd->msg_info.n2d_clm_node_up.msg_id = ++(cb->snd_msg_id);
-		msg.info.avd->msg_info.n2d_clm_node_up.node_id = cb->node_info.nodeId;
-		msg.info.avd->msg_info.n2d_clm_node_up.adest_address = cb->avnd_dest;
-
-		rc = avnd_di_msg_send(cb, &msg);
-		if (NCSCC_RC_SUCCESS == rc)
-			msg.info.avd = 0;
-	} else
-		rc = NCSCC_RC_FAILURE;
-
-	/* free the contents of avnd message */
-	avnd_msg_content_free(cb, &msg);
+	avnd_send_node_up_msg();
 
 done:
 	TRACE_LEAVE();
-	return rc;
+	return NCSCC_RC_SUCCESS;
 }
 
 /****************************************************************************

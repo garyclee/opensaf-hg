@@ -91,6 +91,7 @@ EXTERN_C uns32 avnd_evt_tmr_node_err_esc(struct avnd_cb_tag *, struct avnd_evt_t
 EXTERN_C uns32 avnd_evt_tmr_clc_pxied_comp_inst(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_tmr_clc_pxied_comp_reg(struct avnd_cb_tag *, struct avnd_evt_tag *);
 
+extern void avnd_send_node_up_msg(void);
 EXTERN_C uns32 avnd_evt_mds_avd_up(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_mds_avd_dn(struct avnd_cb_tag *, struct avnd_evt_tag *);
 EXTERN_C uns32 avnd_evt_mds_ava_dn(struct avnd_cb_tag *, struct avnd_evt_tag *);
