@@ -31,6 +31,7 @@
 ******************************************************************************
 */
 
+#include <logtrace.h>
 #include "avnd.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
@@ -586,24 +587,15 @@ uns32 avnd_mds_svc_evt(AVND_CB *cb, MDS_CALLBACK_SVC_EVENT_INFO *evt_info)
 	switch (evt_info->i_change) {
 	case NCSMDS_UP:
 		switch (evt_info->i_svc_id) {
-		case NCSMDS_SVC_ID_AVD:
-			{
-				/* Validate whether this is a ADEST or VDEST */
-				if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
-					return rc;
+		case NCSMDS_SVC_ID_AVD:	{
+			/* Validate whether this is a ADEST or VDEST */
+			if (m_MDS_DEST_IS_AN_ADEST(evt_info->i_dest))
+				return rc;
 
-				avnd_log(NCSFL_SEV_NOTICE, "AVND_EVT_MDS_AVD_UP event recvd");
-				/* Avd is already UP, reboot the node */
-				if (m_AVND_CB_IS_AVD_UP(cb))
-					return rc;
-					
-				m_AVND_CB_AVD_UP_SET(cb);
-				/* store the avd mds-dest */
-				cb->avd_dest = evt_info->i_dest;
-				/* create the mds event */
-				evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
-			}
+			/* create the mds event */
+			evt = avnd_evt_create(cb, AVND_EVT_MDS_AVD_UP, 0, &evt_info->i_dest, 0, 0, 0);
 			break;
+		}
 
 		case NCSMDS_SVC_ID_AVA:
 			/*  New AvA has come up. Dont do anything now */
@@ -1208,9 +1200,7 @@ uns32 avnd_mds_send(AVND_CB *cb, AVND_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTX
 	/* send the message */
 	rc = ncsmds_api(&mds_info);
 	if (NCSCC_RC_SUCCESS != rc)
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SEND, AVSV_LOG_MDS_FAILURE, NCSFL_SEV_CRITICAL);
-	else
-		m_AVND_LOG_MDS(AVSV_LOG_MDS_SEND, AVSV_LOG_MDS_SUCCESS, NCSFL_SEV_INFO);
+		LOG_ER("ncsmds_api for %u FAILED, dest=%llx", send_info->i_sendtype, *dest);
 
 	return rc;
 }

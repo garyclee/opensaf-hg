@@ -77,12 +77,10 @@ AVD_AVND *avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt, SaClmNodeIdT node_id, 
 {
 	AVD_AVND *avnd = NULL;
 
-	m_AVD_LOG_FUNC_ENTRY("avd_msg_sanity_chk");
-
-	m_AVD_LOG_MSG_DND_RCV_INFO(AVD_LOG_PROC_MSG, evt->info.avnd_msg, node_id);
+	TRACE_ENTER2("%u", msg_typ);
 
 	if (avd_cluster->saAmfClusterAdminState != SA_AMF_ADMIN_UNLOCKED) {
-		avd_log(NCSFL_SEV_ERROR, "cluster admin state down");
+		LOG_ER("cluster admin state down");
 		return avnd;
 	}
 
@@ -90,17 +88,17 @@ AVD_AVND *avd_msg_sanity_chk(AVD_CL_CB *cb, AVD_EVT *evt, SaClmNodeIdT node_id, 
 		/* Don't initialise the AvND when the AVD is not
 		 * completely initialised with the saved information
 		 */
-		avd_log(NCSFL_SEV_WARNING, "invalid init state (%u)", cb->init_state);
+		LOG_ER("invalid init state (%u)", cb->init_state);
 		return avnd;
 	}
 
 	if (evt->info.avnd_msg->msg_type != msg_typ) {
-		avd_log(NCSFL_SEV_ERROR, "wrong message type (%u)", evt->info.avnd_msg->msg_type);
+		LOG_ER("wrong message type (%u)", evt->info.avnd_msg->msg_type);
 		return avnd;
 	}
 
 	if ((avnd = avd_node_find_nodeid(node_id)) == NULL) {
-		avd_log(NCSFL_SEV_ERROR, "invalid node ID (%x)", node_id);
+		LOG_ER("invalid node ID (%x)", node_id);
 		return avnd;
 	}
 
