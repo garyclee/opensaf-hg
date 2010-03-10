@@ -134,6 +134,7 @@ cmd_create_rootfs()
 
     install -m 755 $archive/scripts/*.rc etc/init.d
     cp $scripts/profile etc
+    cp $scripts/shutdown sbin
     mkdir -p root/www/cgi-bin
     cp $scripts/rshd root/www/cgi-bin
     cp $scripts/rsh $scripts/rcp usr/bin
