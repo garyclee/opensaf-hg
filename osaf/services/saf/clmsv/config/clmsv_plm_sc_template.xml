@@ -11,7 +11,7 @@
 		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=CLM-OpenSAF,safComp=CLM,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
 	</object>
 	<object class="SaClmNode">
-                <dn>safNode=SC_2_1,safCluster=myClmCluster</dn>
+                <dn>safNode=CLM_TOKEN,safCluster=myClmCluster</dn>
                 <attr>
                         <name>saClmNodeAddressFamily</name>
                         <value>1</value>
