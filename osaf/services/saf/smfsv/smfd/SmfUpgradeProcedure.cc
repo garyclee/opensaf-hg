@@ -73,7 +73,7 @@
     m_time(0),
     m_execLevel(0), 
     m_dn(""),
-//   m_upgradeMethod(0),
+    m_upgradeMethod(0),
     m_procInitAction(0), 
     m_procWrapupAction(0)
 {

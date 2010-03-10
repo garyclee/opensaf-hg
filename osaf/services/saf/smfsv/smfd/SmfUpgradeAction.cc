@@ -212,7 +212,9 @@ SmfCliCommandAction::rollback()
 //================================================================================
 
 SmfAdminOperationAction::SmfAdminOperationAction(int i_id):
-   SmfUpgradeAction(i_id)
+	SmfUpgradeAction(i_id),
+	m_doOpId(-1),
+	m_undoOpId(-1)
 {
 
 }

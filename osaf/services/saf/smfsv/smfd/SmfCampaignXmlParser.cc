@@ -2475,21 +2475,18 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
 
                         //Fetch the parameters
 			xmlNode *cur2 = cur->xmlChildrenNode;
-                        char *name = NULL;
-                        char *type = NULL;
-                        char *value = NULL;
+                        char *name    = NULL;
+                        char *type    = NULL;
+                        char *value   = NULL;
+
                         while (cur2 != NULL) {
 				if ((!strcmp((char *)cur2->name, "param")) && (cur2->ns == ns)) {
 					TRACE("xmlTag param found");
-					if ((s = (char *)xmlGetProp(cur2, (const xmlChar *)"name"))) {
-						TRACE("name = %s", s);
-                                                name = s;
-                                                xmlFree(s);
+					if ((name = (char *)xmlGetProp(cur2, (const xmlChar *)"name"))) {
+						TRACE("name = %s", name);
                                         }
-					if ((s = (char *)xmlGetProp(cur2, (const xmlChar *)"type"))) {
-						TRACE("type = %s", s);
-                                                type = s;
-                                                xmlFree(s);
+					if ((type = (char *)xmlGetProp(cur2, (const xmlChar *)"type"))) {
+						TRACE("type = %s", type);
                                         }
 
                                         //Fetch the parameter value
@@ -2497,10 +2494,8 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                         while (cur3 != NULL) {
                                                 if ((!strcmp((char *)cur3->name, "value")) && (cur3->ns == ns)) {
                                                         TRACE("xmlTag value found");
-                                                        if ((s = (char *)xmlNodeListGetString(m_doc, cur3->xmlChildrenNode, 1))) {
-                                                                TRACE("value = %s", s);
-                                                                value = s;
-                                                                xmlFree(s);
+                                                        if ((value = (char *)xmlNodeListGetString(m_doc, cur3->xmlChildrenNode, 1))) {
+                                                                TRACE("value = %s", value);
                                                         }
                                                 }
 
@@ -2508,7 +2503,13 @@ SmfCampaignXmlParser::parseAdminOpAction(SmfAdminOperationAction * i_admOpAction
                                         }
 
                                         i_admOpAction->addUndoParameter(name, type, value);
-                               }
+					if(name != 0)
+						xmlFree(name);
+					if(type != 0)
+						xmlFree(type);
+					if(value != 0)
+						xmlFree(value);
+				}
 
                                 cur2 = cur2->next;
                         }

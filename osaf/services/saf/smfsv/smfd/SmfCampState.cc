@@ -240,12 +240,12 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 		iter++;
 	}
 #endif
-	LOG_NO("CAMP: Check repository %s", i_camp->getCampaignName().c_str());
+	LOG_NO("CAMP: Check SMF repository %s", i_camp->getCampaignName().c_str());
 	if (smfd_cb->repositoryCheckCmd != NULL) {
-		TRACE("Executing repository check cmd %s", smfd_cb->repositoryCheckCmd);
+		TRACE("Executing SMF repository check cmd %s", smfd_cb->repositoryCheckCmd);
 		int rc = system(smfd_cb->repositoryCheckCmd);
 		if (rc != 0) {
-			error = "CAMP: Repository check command ";
+			error = "CAMP: SMF repository check command ";
 			error += smfd_cb->repositoryCheckCmd;
 			error += " failed ";
 			out << rc;
@@ -254,7 +254,7 @@ SmfCampStateInitial::execute(SmfUpgradeCampaign * i_camp)
 			goto exit_error;
 		}
 	} else {
-		error = "CAMP: No Repository check command found";
+		error = "CAMP: No SMF repository check command found";
 		goto exit_error;
 	}
 

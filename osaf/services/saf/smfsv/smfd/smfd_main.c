@@ -147,7 +147,7 @@ static uns32 initialize_smfd(const char *progname)
 	}
 
 	/* Create pidfile */
-	sprintf(path, PKGPIDDIR "%s.pid", basename(progname));
+	snprintf(path, NAME_MAX + 32, PKGPIDDIR "%s.pid", basename(progname));
 	if ((fp = fopen(path, "w")) == NULL) {
 		LOG_ER("Could not open %s", path);
 		rc = NCSCC_RC_FAILURE;
@@ -334,8 +334,7 @@ int main(int argc, char *argv[])
 		}
 
 		if ((value = getenv("SMFD_TRACE_CATEGORIES")) != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
+			trace_category_set(value);
 		}
 	}
 

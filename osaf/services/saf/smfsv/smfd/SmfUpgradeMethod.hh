@@ -464,7 +464,12 @@ class SmfForModify : public SmfUpgradeScope {
 ///
 class SmfCallback {
 public:
-	SmfCallback(): m_stepCount(onEveryStep){};
+	SmfCallback(): 
+		m_stepCount(onEveryStep),
+		m_atAction(beforeLock),
+		m_time(0)
+		{};
+
 	~SmfCallback(){};
 
 	// (the stepCount is only relevant for rolling-upgrade)
