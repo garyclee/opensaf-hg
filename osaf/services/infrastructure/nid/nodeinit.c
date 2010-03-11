@@ -1414,7 +1414,6 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 {
 	uns32 count = 0;
 	NID_RECOVERY_OPT opt = NID_RESPAWN;
-	FILE *fp = NULL;
 
 	while (opt != NID_RESET) {
 		count = service->recovery_matrix[opt].retry_count;
@@ -1422,25 +1421,19 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 			logme(NID_LOG2FILE, "%s %s for: %d time...\n", nid_recerr[opt][0],
 			      service->s_name, (count - service->recovery_matrix[opt].retry_count) + 1);
 
-	  /**************************************************************
-           *    Just clean the stuff we created during prev retry        *
-           **************************************************************/
+           		/* Just clean the stuff we created during prev retry */
 			if (service->pid != 0)
 				cleanup(service);
 
-	  /**************************************************************
-           *    Done with cleanup so goahead with recovery               *
-           **************************************************************/
+           		/* Done with cleanup so goahead with recovery */
 			if ((service->recovery_matrix[opt].action) (service, strbuff) != NCSCC_RC_SUCCESS) {
 				service->recovery_matrix[opt].retry_count--;
 				logme(NID_LOG2FILE, "%s %s\n", nid_recerr[opt][1], service->serv_name);
 				logme(NID_LOG2FILE_CONS, "%s\n", strbuff);
 				continue;
 			} else {
-	    /************************************************************
-             *  Ahhhhhhh  lot of juggling, we wonn!!!!                  *
-             *    lets go back home                                     *
-             ************************************************************/
+             			/* Ahhhhhhh  lot of juggling, we wonn!!!!
+             			   lets go back home */
 				logme(NID_LOG2CONS, "Done.\n");
 				return NCSCC_RC_SUCCESS;
 			}
@@ -1456,20 +1449,6 @@ uns32 recovery_action(NID_SPAWN_INFO *service, char *strbuff)
 
 	}
 
-	fp = fopen(NODE_HA_STATE, "w");
-	logme(NID_LOG2FILE_CONS, "%s Initialization failed\n", service->serv_name);
-	logme(NID_LOG2FILE_CONS, "Tried all recoveries, couldn't recover! NID exiting!!!!!\n");
-	if (fp)
-		fprintf(fp, "%s", "OpenSAF Initialization Failed");
-	if (!service->recovery_matrix[NID_RESET].retry_count) {
-		if (fp)
-			fprintf(fp, "%s", "Dropping to shell for Trouble-shooting");
-		logme(NID_LOG2CONS, "Dropping to shell for Trouble-shooting!!!\n");
-	}
-	if (fp) {
-		fflush(fp);
-		fclose(fp);
-	}
 	return NCSCC_RC_FAILURE;
 
 }
@@ -1898,14 +1877,6 @@ int main(int argc, char **argv)
 
 	logme(NID_LOG2FILE_CONS, "Node Initialization Successful. \n");
 	logme(NID_LOG2CONS, "SUCCESSFULLY SPAWNED ALL SERVICES!!!\n");
-
-	FILE *fp = NULL;
-	fp = fopen(NODE_HA_STATE, "a");
-	if (fp) {
-		fprintf(fp, "%s", "Node Initialization Successful.\n");
-		fflush(fp);
-		fclose(fp);
-	}
 
 	notify_bis("SUCCESS\n");
 

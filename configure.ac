@@ -787,7 +787,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/rde/include/Makefile
         osaf/services/infrastructure/rde/scripts/Makefile
         osaf/services/infrastructure/rde/config/Makefile
-        osaf/services/infrastructure/rde/scripts/rde_script
+        osaf/services/infrastructure/rde/scripts/osaf-rded
         osaf/services/saf/Makefile
         osaf/services/saf/avsv/Makefile
         osaf/services/saf/avsv/config/Makefile

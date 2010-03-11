@@ -23,6 +23,7 @@
 #include <ncs_main_papi.h>
 #include <mds_papi.h>
 #include <nid_api.h>
+#include <daemon.h>
 
 #include "rde_cb.h"
 
@@ -49,37 +50,10 @@ const char *rde_msg_name[] = {
 
 /* note: default value mentioned in script.conf, change in both places */
 static int discover_peer_timeout = 2000;
-
 static RDE_CONTROL_BLOCK _rde_cb;
 static RDE_CONTROL_BLOCK *rde_cb = &_rde_cb;
 static NCS_SEL_OBJ usr1_sel_obj;
-static unsigned int category_mask = -1;
 
-static uns32 update_status_file(PCS_RDA_ROLE role)
-{
-        int index;
-        index = 0;
-        time_t local_time;
-        unsigned char asc_lt[40];       /* Ascii Localtime */
-
-        LOG_NO("This System Controller is assigned : %s",
-               ((role == PCS_RDA_ACTIVE) ? "HA ACTIVE STATE" : "HA STANDBY STATE"));
-
-	/* Update the HA state to the PKGLOCALSTATEDIR/node_ha_state file */
-        FILE *fp = NULL;
-        fp = fopen(NODE_HA_STATE, "a");
-        if (fp) {
-                /* Get the ascii local time stamp */
-                asc_lt[0] = '\0';
-                m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
-                fprintf(fp, "%s | This System Controller is assigned : %s\n", asc_lt,
-                        ((role == PCS_RDA_ACTIVE) ? "HA ACTIVE STATE" : "HA STANDBY STATE"));
-                fflush(fp);
-                fclose(fp);
-        }
-
-        return NCSCC_RC_SUCCESS;
-}
 
 RDE_CONTROL_BLOCK *rde_get_control_block(void)
 {
@@ -98,39 +72,6 @@ static void sigusr1_handler(int sig)
 	(void)sig;
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(usr1_sel_obj);
-}
-
-/**
- * Enable trace in runtime
- * @param sig
- */
-static void sigusr2_handler(int sig)
-{
-	if (category_mask == 0) {
-		category_mask = CATEGORY_ALL;
-	} else {
-		category_mask = 0;
-	}
-
-	if (trace_category_set(category_mask) == -1)
-		printf("trace_category_set failed");
-}
-
-static int create_pidfile(const char *name)
-{
-	char path[256];
-	FILE *fp;
-	
-	snprintf(path, sizeof(path), PKGPIDDIR "/%s.pid", name);
-	fp = fopen(path, "w");
-	if (fp == NULL) {
-		syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-		return -1;
-	}
-	fprintf(fp, "%d\n", getpid());
-	fclose(fp);
-
-	return 0;
 }
 
 uns32 rde_set_role(PCS_RDA_ROLE role)
@@ -268,7 +209,6 @@ static uns32 determine_role(int mbx_fd)
 	if (peer_node_id == 0) {
 		LOG_NO("Peer not available => Active role");
 		rde_cb->ha_role = PCS_RDA_ACTIVE;
-		update_status_file(rde_cb->ha_role);
 		goto done;
 	}
 
@@ -300,7 +240,6 @@ static uns32 determine_role(int mbx_fd)
 			TRACE("Received %s", rde_msg_name[msg->type]);
 			LOG_NO("rde@%x down waiting for response => Active role", peer_node_id);
 			rde_cb->ha_role = PCS_RDA_ACTIVE;
-			update_status_file(rde_cb->ha_role);
 			peer_node_id = 0;
 			goto done;
 		case RDE_MSG_PEER_INFO_REQ: {
@@ -319,18 +258,15 @@ static uns32 determine_role(int mbx_fd)
 				if (rde_my_node_id < msg->fr_node_id) {
 					rde_cb->ha_role = PCS_RDA_ACTIVE;
 					LOG_NO("rde@%x has no state, my nodeid is less => Active role", msg->fr_node_id);
-					update_status_file(rde_cb->ha_role);
 				} else if (rde_my_node_id > msg->fr_node_id) {
 					rde_cb->ha_role = PCS_RDA_STANDBY;
 					LOG_NO("rde@%x has no state, my nodeid is greater => Standby role", msg->fr_node_id);
-					update_status_file(rde_cb->ha_role);
 				} else
 					assert(0);
 				goto done;
 			case PCS_RDA_ACTIVE:
 				rde_cb->ha_role = PCS_RDA_STANDBY;
 				LOG_NO("rde@%x has active state => Standby role", msg->fr_node_id);
-				update_status_file(rde_cb->ha_role);
 				goto done;
 			case PCS_RDA_STANDBY:
 				LOG_NO("rde@%x has standby state => possible fail over, waiting...", msg->fr_node_id);
@@ -360,43 +296,31 @@ done:
 
 /**
  * Initialize the RDE server.
- * @param argv
  * 
  * @return int, 0=OK
  */
-static int initialize_rde(char **argv)
+static int initialize_rde(void)
 {
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 	int rc = NCSCC_RC_FAILURE;
-	char *path = getenv("NCS_STDOUTS_PATH");
-	char pathname[256];
-	char *name = strdup(basename(argv[0]));
 	char *val;
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
-	if ((rc = ncs_core_agents_startup()) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncs_core_agents_startup FAILED");
-		goto init_failed;
+	if ((trace_mask_env = getenv("RDE_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
 	}
-
-	sprintf(pathname, "%s/%s.log", path, name);
-
-	if (logtrace_init(name, pathname) != 0) {
-		syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-		goto init_failed;
-	}
-
-	if ((val = getenv("RDE_TRACE_CATEGORIES")) != NULL)
-		category_mask = strtoul(val, NULL, 0);
-
-	trace_category_set(category_mask);
 
 	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != NULL)
 		discover_peer_timeout = strtoul(val, NULL, 0);
 
 	TRACE("discover_peer_timeout=%d", discover_peer_timeout);
 
-	if (create_pidfile(name) != 0)
+	if ((rc = ncs_core_agents_startup()) != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_core_agents_startup FAILED");
 		goto init_failed;
+	}
 
 	if ((rc = ncs_sel_obj_create(&usr1_sel_obj)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_sel_obj_create FAILED");
@@ -423,21 +347,16 @@ static int initialize_rde(char **argv)
 		goto init_failed;
 	}
 
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		LOG_ER("signal USR2 FAILED: %s", strerror(errno));
-		goto init_failed;
-	}
-
 	if (rde_mds_register(rde_cb) != NCSCC_RC_SUCCESS)
 		goto init_failed;
 
 	rc = NCSCC_RC_SUCCESS;
 
-init_failed:
+ init_failed:
 	return rc;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	uns32 rc;
 	nfds_t nfds = 3;
@@ -446,7 +365,9 @@ int main(int argc, char **argv)
 	NCS_SEL_OBJ mbx_sel_obj;
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 
-	if (initialize_rde(argv) != NCSCC_RC_SUCCESS)
+	daemonize(argc, argv);
+
+	if (initialize_rde() != NCSCC_RC_SUCCESS)
 		goto init_failed;
 
 	mbx_sel_obj = ncs_ipc_get_sel_obj(&rde_cb->mbx);
@@ -548,9 +469,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-init_failed:
+ init_failed:
 	(void)nid_notify("RDE", NCSCC_RC_FAILURE, NULL);
-done:
+
+ done:
 	syslog(LOG_ERR, "Exiting...");
 	exit(1);
 }
