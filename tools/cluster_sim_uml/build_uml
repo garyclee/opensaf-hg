@@ -177,6 +177,12 @@ cmd_create_rootfs()
         echo "Creating [$root/root.cpio] ..."
         cmd_mkcpio
     fi
+
+    # Remove line for starting plms 
+    sed '/PLMS/d' < $root/etc/opensaf/nodeinit.conf.controller > \
+        $root/etc/opensaf/nodeinit.conf.controller.tmp
+    mv $root/etc/opensaf/nodeinit.conf.controller.tmp \
+        $root/etc/opensaf/nodeinit.conf.controller
 }
 
 ##   installibs
