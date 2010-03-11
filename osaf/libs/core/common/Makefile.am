@@ -34,4 +34,5 @@ libopensaf_common_la_SOURCES = \
 	ncs_sprr.c \
 	logtrace.c \
 	nid_start_util.c \
-	saf_edu.c
+	saf_edu.c \
+	daemon.c
