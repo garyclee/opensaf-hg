@@ -21,6 +21,7 @@
 #include <poll.h>
 #include <unistd.h>
 #include <configmake.h>
+#include <daemon.h>
 
 #include <nid_api.h>
 #include <ncs_main_papi.h>
@@ -32,6 +33,8 @@
 #include <ncs_util.h>
 #include <logtrace.h>
 #include <saClm.h>
+#include <configmake.h>
+#include <nid_api.h>
 #include "clmsv_msg.h"
 #include "clmsv_enc_dec.h"
 
@@ -137,7 +140,6 @@ static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
 	}
 
 	info->info.enc.o_msg_fmt_ver = msg_fmt_version;
-
 
 	msg = (CLMSV_MSG *)info->info.enc.i_msg;
 	uba = info->info.enc.io_uba;
@@ -285,7 +287,7 @@ static int get_node_info(NODE_INFO *node)
 {
 	FILE *fp;
 
-	fp = fopen(PKGSYSCONFDIR "node_name", "r");
+	fp = fopen(PKGSYSCONFDIR "/node_name", "r");
 	if (fp == NULL) {
 		LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "node_name", strerror(errno));
 		return -1;
@@ -296,7 +298,7 @@ static int get_node_info(NODE_INFO *node)
 	node->node_name.length = strlen((char *)node->node_name.value);
 	TRACE("%s", node->node_name.value);
 
-	fp = fopen(PKGLOCALSTATEDIR "node_id", "r");
+	fp = fopen(PKGLOCALSTATEDIR "/node_id", "r");
 	if (fp == NULL) {
 		LOG_ER("Could not open file %s - %s", PKGLOCALSTATEDIR "node_id", strerror(errno));
 		return -1;
@@ -335,7 +337,7 @@ static uns32 clmna_mds_msg_sync_send(CLMSV_MSG *i_msg, uns32 timeout)
 	return rc;
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 	CLMSV_MSG msg;
@@ -351,12 +353,14 @@ int main(int argc, char **argv)
 		trace_category_set(CATEGORY_ALL);
 	}
 
+	daemonize(argc, argv);
+
 	if (get_node_info(&node_info) != 0) {
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
 
-	if ((rc = ncs_agents_startup(argc, argv)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
 	}

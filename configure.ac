@@ -828,8 +828,9 @@ AC_CONFIG_FILES([
 	osaf/services/saf/clmsv/nodeagent/Makefile
 	osaf/services/saf/clmsv/clms/Makefile
 	osaf/services/saf/clmsv/clms/scripts/Makefile
-	osaf/services/saf/clmsv/clms/scripts/opensaf_clms
-	osaf/services/saf/clmsv/clms/scripts/opensaf_nodeagent
+	osaf/services/saf/clmsv/clms/scripts/osaf-clmd
+	osaf/services/saf/clmsv/nodeagent/scripts/Makefile
+	osaf/services/saf/clmsv/nodeagent/scripts/osaf-noded
         osaf/services/saf/cpsv/Makefile
         osaf/services/saf/cpsv/config/Makefile
         osaf/services/saf/cpsv/logstr/Makefile
@@ -890,12 +891,12 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/ntfsubscribe/Makefile
         pkgconfig/Makefile
         pkgconfig/opensaf.pc
-        tests/avsv/amfoitest/Makefile
-        tests/immsv/implementer/Makefile
-        tests/immsv/management/Makefile
-        tests/logsv/Makefile
- 	tests/clmsv/Makefile
-        tests/ntfsv/Makefile
+	tests/avsv/amfoitest/Makefile
+	tests/immsv/implementer/Makefile
+	tests/immsv/management/Makefile
+	tests/logsv/Makefile
+	tests/clmsv/Makefile
+	tests/ntfsv/Makefile
 	tests/plmsv/plms/Makefile
 	tests/plmsv/Makefile])
 

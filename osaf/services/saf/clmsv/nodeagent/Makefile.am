@@ -18,18 +18,18 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-pkglib_PROGRAMS = opensaf_clmna
+SUBDIRS = scripts
 
-opensaf_clmna_CPPFLAGS = \
-	-DNCS_MAIN_EXTERNAL \
+pkglib_PROGRAMS = osafnoded
+
+osafnoded_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/clmsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/masv/include
 
-opensaf_clmna_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+osafnoded_SOURCES = \
 	$(top_srcdir)/osaf/libs/common/clmsv/clmsv_enc_dec.c \
 	clms_nodeagent.c
 
-opensaf_clmna_LDADD = \
+osafnoded_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la 

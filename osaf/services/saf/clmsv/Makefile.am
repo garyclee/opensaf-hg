@@ -18,6 +18,4 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-#EXTRA_DIST = README
-
 SUBDIRS = config clms nodeagent

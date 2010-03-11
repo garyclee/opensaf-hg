@@ -54,6 +54,6 @@
 #############################################################################
 
 xxLIBDIRxx/nid_tipc:TIPC:S:xxLIBDIRxx/nid_tipc:4000::2:1:start eth0 1234:stop
-xxLIBDIRxx/opensaf_nodeagent:CLMNA:S:xxLIBDIRxx/opensaf_nodeagent:4000::2:1:start:stop
+xxLIBDIRxx/osaf-noded:CLMNA:S:xxLIBDIRxx/osaf-noded:4000::2:1:start:stop
 xxLIBDIRxx/osaf-immnd:IMMND:S:xxLIBDIRxx/osaf-immnd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-amfnd:AMFND:S:xxLIBDIRxx/osaf-amfnd:99000::0:1:start:stop

@@ -23,6 +23,8 @@
  * @author	Emerson Network Power
 *****************************************************************************/
 
+#include "ncssysf_def.h"
+
 #include <plma.h>
 
 static PLMA_CB _plma_cb;
