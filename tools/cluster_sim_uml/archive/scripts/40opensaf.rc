@@ -24,7 +24,7 @@
 
 REPL_DIR=repl-opensaf
 HOSTNAME=`hostname`
-eval `echo $HOSTNAME | sed 's/\(.*\)_\(.*\)_\(.*\)/hosttype=\1 hostnumber=\3/'`
+eval `echo $HOSTNAME | sed 's/\(.*\)-\(.*\)/hosttype=\1 hostnumber=\2/'`
 
 if test `uname -m` = "x86_64"; then
    export LD_LIBRARY_PATH="/lib64:/usr/lib64:/usr/local/lib64:/usr/local/lib64/opensaf"

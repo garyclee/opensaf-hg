@@ -70,14 +70,14 @@ cluster_start() {
     fi
 
     # Start the processors
-    node_name_prefix=SC_2_
+    node_name_prefix=SC-
     rootdir=rootfs
     for ((p=1; p <= $numnodes; p++)); do
         # First two nodes are system controllers, the rest are payloads
         if ((p == 3)); then
             x=660
             y=5
-            node_name_prefix=PL_2_
+            node_name_prefix=PL-
         fi
         hostname=$node_name_prefix$p
         xterm -hold -geometry 140x20+$x+$y -T $hostname -e \
