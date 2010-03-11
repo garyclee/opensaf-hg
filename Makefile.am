@@ -163,8 +163,7 @@ dist_pkglocalstate_DATA = \
 	$(top_srcdir)/config/.drbd_sync_state_1 \
 	$(top_srcdir)/config/.drbd_sync_state_2 \
 	$(top_srcdir)/config/.drbd_sync_state_3 \
-	$(top_srcdir)/config/.drbd_sync_state_4 \
-	$(top_srcdir)/config/node_ha_state
+	$(top_srcdir)/config/.drbd_sync_state_4
 
 dist_pkgimmxml_DATA = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/README
@@ -221,6 +220,7 @@ update-ldconfig:
 install-data-local: update-ldconfig
 	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
+	$(mkinstalldirs) $(DESTDIR)$(pkglocalstatedir)
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \

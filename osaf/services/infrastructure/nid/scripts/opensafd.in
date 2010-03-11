@@ -266,12 +266,6 @@ case "$1" in
         echo "."
         ;;
   status)
-        if [ ! -f "$NIDPIDFILE" ]; then
-            echo "OpenSAF is stopped."
-        else 
-           cat "$NODE_HA_STATE"
-        echo ""
-        fi
         ;;
   *)
         echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}" >&2

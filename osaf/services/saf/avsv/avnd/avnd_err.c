@@ -285,9 +285,6 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 {
 	AVSV_ERR_RCVR esc_rcvr = err_info->rcvr;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	FILE *fp = NULL;
-	time_t local_time;
-	unsigned char asc_lt[40];	/* ASCII Localtime */
 
 	/* when undergoing admin oper do not process any component errors */
 	if (comp->admin_oper == SA_TRUE)
@@ -312,7 +309,7 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		     m_AVND_COMP_PRES_STATE_IS_TERMINATIONFAILED(comp)))
 		goto done;
 
-   /*** update the err params ***/
+   	/* update the err params */
 	comp->err_info.src = err_info->src;
 
 	/* if time's not specified, use current time TBD */
@@ -336,19 +333,8 @@ uns32 avnd_err_process(AVND_CB *cb, AVND_COMP *comp, AVND_ERR_INFO *err_info)
 		syslog(LOG_ERR, "NCS_AvSv: Card going for reboot -%s Faulted due to:%s Recovery is:%s",
 		       comp->name.value, g_comp_err[comp->err_info.src], g_comp_rcvr[esc_rcvr - 1]);
 	}
-	fp = fopen(NODE_HA_STATE, "a");
-	if (fp) {
-		/* Get the ascii local time stamp */
-		asc_lt[0] = '\0';
-		m_NCS_OS_GET_ASCII_DATE_TIME_STAMP(local_time, asc_lt);
-		fprintf(fp, "%s | The component %s failed due to : %s\n", asc_lt, comp->name.value,
-			g_comp_err[err_info->src]);
-		fflush(fp);
-		fclose(fp);
-	}
 
-	syslog(LOG_INFO,
-	       "Component '%s' faulted due to '%s' - rcvr=%u",
+	syslog(LOG_INFO, "Component '%s' faulted due to '%s' - rcvr=%u",
 	       comp->name.value, g_comp_err[err_info->src], esc_rcvr);
 
 	avnd_gen_comp_fail_on_node_ntf(cb, err_info->src, comp);

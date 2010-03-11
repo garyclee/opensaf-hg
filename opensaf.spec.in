@@ -1076,6 +1076,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files controller
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/fms.conf
+%config(noreplace) %{_pkgsysconfdir}/rde.conf
 %config(noreplace) %{_pkgsysconfdir}/pdrbd_proxied.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
@@ -1083,12 +1084,11 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_2
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_3
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_4
-%{_localstatedir}/lib/%{name}/node_ha_state
 %{_pkglibdir}/ncs_dts
 %{_pkglibdir}/ncs_dts_clean
 %{_pkglibdir}/ncs_dts_start
-%{_pkglibdir}/opensaf_rde
-%{_pkglibdir}/rde_script
+%{_pkglibdir}/osafrded
+%{_pkglibdir}/osaf-rded
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
 %{_pkglibdir}/ncs_pdrbd

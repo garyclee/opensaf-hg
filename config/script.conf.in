@@ -11,16 +11,6 @@ BINPATH="xxBINDIRxx"
 LIBPATH="xxLIBDIRxx"
 
 #########################################
-# RDE configuration
-#########################################
-# Uncomment the next line to enable traces from rde directly at start
-#export RDE_TRACE_CATEGORIES=0xffffffff
-
-# Uncomment (and change) the next line to change how long the RDE server is
-# waiting to discover a peer. Default is 2s.
-#export RDE_DISCOVER_PEER_TIMEOUT=5000
-
-#########################################
 # DTSv configuration
 #########################################
 # Number of archives with dtsv files from old lives that should be stored
@@ -49,7 +39,6 @@ export OLD_STDOUTSPATH="$PKGLOCALSTATEDIR/old_stdouts"
 #########################################
 # FILES
 #########################################
-NODE_HA_STATE="$PKGLOCALSTATEDIR/node_ha_state"
 DBGFILE="$NCS_STDOUTS_PATH/monc_debug_log"
 NIDFIFO="$TMPDIR/nodeinit.fifo"
 SPCAPFIFO="$NIDFIFO"
@@ -58,7 +47,6 @@ SLOT_ID_FILE="$PKGSYSCONFDIR/slot_id"
 SUBSLOT_ID_FILE="$PKGSYSCONFDIR/subslot_id"
 NODE_TYPE_FILE="$PKGSYSCONFDIR/node_type"
 NISPIPE="$TMPDIR/nisfifo"
-RDE_HA_COMP_NAMED_PIPE="$TMPDIR/rde_ha_comp_named_pipe"
 FMS_HA_COMP_NAMED_PIPE="$TMPDIR/fms_ha_comp_named_pipe"
 
 # Check for environment variable for slot number.

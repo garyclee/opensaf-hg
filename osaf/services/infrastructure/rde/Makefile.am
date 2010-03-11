@@ -20,19 +20,19 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts include config
 
-pkglib_PROGRAMS = opensaf_rde
+pkglib_PROGRAMS = osafrded
 
-opensaf_rde_CPPFLAGS = \
+osafrded_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/rde/include
 
-opensaf_rde_SOURCES = \
+osafrded_SOURCES = \
 	rde_amf.c \
 	rde_main.c \
 	rde_mds.c \
 	rde_rda.c
 
-opensaf_rde_LDADD = \
+osafrded_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

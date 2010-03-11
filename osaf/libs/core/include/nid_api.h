@@ -48,8 +48,6 @@
 
 #define NID_MAXSNAME                30
 
-#define NODE_HA_STATE  PKGLOCALSTATEDIR "/node_ha_state"
-
 /****************************************************************
  *       Message format used by nodeinitd and spawned services  *
  *       for communicating initialization status.               *
