@@ -32,30 +32,29 @@ void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
 
 	if (active) {
 		LOG_ER("Active IMMD has to restart the IMMSv. " "All IMMNDs will restart");
+		/* Make standby aware of IMMND reset order. */
+		memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+		mbcp_msg.type = IMMD_A2S_MSG_RESET;
+
+		/*Checkpoint the dissapointing reset message to standby
+		  director. Syncronous call=>waits for ack. We do not check
+		  the result because we can not do anything about an error in
+		  notifying IMMD standby here. The immd_mbcsv_sync_update 
+		  will also log the error. 
+		*/
+		immd_mbcsv_sync_update(cb, &mbcp_msg);
+
+		/*Restart any IMMNDs that are not in epoch 0. */
+		memset(&send_evt, 0, sizeof(IMMSV_EVT));
+		send_evt.type = IMMSV_EVT_TYPE_IMMND;
+		send_evt.info.immnd.type = IMMND_EVT_D2ND_RESET;
+		proc_rc = immd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_IMMND);
+		if (proc_rc != NCSCC_RC_SUCCESS) {
+			LOG_ER("Failed to broadcast RESET message to IMMNDs.");
+			exit(1);
+		}
 	} else {
 		LOG_ER("Standby IMMD recieved reset message. " "All IMMNDs will restart.");
-	}
-
-	/* Make standby aware of IMMND reset order. */
-	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
-	mbcp_msg.type = IMMD_A2S_MSG_RESET;
-
-	/*Checkpoint the dissapointing reset message to standby
-	  director. Syncronous call=>waits for ack. We do not check
-	  the result because we can not do anything about an error in
-	  notifying IMMD standby here. The immd_mbcsv_sync_update 
-	  will also log the error. 
-	*/
-	immd_mbcsv_sync_update(cb, &mbcp_msg);
-
-	/*Restart any IMMNDs that are not in epoch 0. */
-	memset(&send_evt, 0, sizeof(IMMSV_EVT));
-	send_evt.type = IMMSV_EVT_TYPE_IMMND;
-	send_evt.info.immnd.type = IMMND_EVT_D2ND_RESET;
-	proc_rc = immd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_IMMND);
-	if (proc_rc != NCSCC_RC_SUCCESS) {
-		LOG_ER("Failed to broadcast RESET message to IMMNDs.");
-		exit(1);
 	}
 
 	/* Reset relevant parts of of IMMD CB so we get a cluster wide restart
