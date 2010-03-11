@@ -18,12 +18,14 @@
 #ifndef FM_AMF_H
 #define FM_AMF_H
 
+#include <configmake.h>
+
 /*
  * Macro used to get the AMF version used
  */
 #define m_FM_GET_AMF_VER(amf_ver) amf_ver.releaseCode='B'; amf_ver.majorVersion=0x01; amf_ver.minorVersion=0x00;
 
-#define FM_HA_COMP_NAMED_PIPE "/tmp/fms_ha_comp_named_pipe"
+#define FM_HA_COMP_NAMED_PIPE PKGLOCALSTATEDIR "/fmd_comp_name"
 
 /*
  * FM AMF control information

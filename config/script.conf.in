@@ -37,7 +37,6 @@ SLOT_ID_FILE="$PKGSYSCONFDIR/slot_id"
 SUBSLOT_ID_FILE="$PKGSYSCONFDIR/subslot_id"
 NODE_TYPE_FILE="$PKGSYSCONFDIR/node_type"
 NISPIPE="$TMPDIR/nisfifo"
-FMS_HA_COMP_NAMED_PIPE="$TMPDIR/fms_ha_comp_named_pipe"
 
 # Check for environment variable for slot number.
 if [ "$SLOT_NUMBER" = "" ] ; then

@@ -1089,8 +1089,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/osaf-dtd
 %{_pkglibdir}/osafrded
 %{_pkglibdir}/osaf-rded
-%{_pkglibdir}/opensaf_fmsd
-%{_pkglibdir}/opensaf_fms
+%{_pkglibdir}/osaffmd
+%{_pkglibdir}/osaf-fmd
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
