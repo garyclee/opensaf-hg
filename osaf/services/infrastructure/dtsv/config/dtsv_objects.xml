@@ -34,12 +34,20 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>ncs_dts_start</value>
+			<value>osaf-dtd</value>
 		</attr>
+                <attr>
+                        <name>saAmfCtDefInstantiateCmdArgv</name>
+                        <value>instantiate</value>
+                </attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>ncs_dts_clean</value>
+			<value>osaf-dtd</value>
 		</attr>
+                <attr>
+                        <name>saAmfCtDefCleanupCmdArgv</name>
+                        <value>stop</value>
+                </attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>
 			<value>5</value>

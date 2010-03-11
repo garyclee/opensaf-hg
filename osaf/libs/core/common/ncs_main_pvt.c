@@ -164,9 +164,6 @@ uns32 ncspvt_svcs_startup(void)
 static uns32 ncs_d_nd_svr_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
-#if (NCS_DTS == 1)
-	char *p_field;
-#endif
 
 	/* Init LIB_CREATE request for Directors, NodeDirectors, and Server */
 	memset(&lib_create, 0, sizeof(lib_create));
@@ -180,26 +177,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 		printf("MBCA start-up has been failed\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-
-#if (NCS_DTS == 1)
-	/* Init DTS */
-	/* DTSV default service severity level */
-	p_field = getenv("DTS_LOG_ALL");
-	if (p_field != NULL) {
-		if (atoi(p_field)) {
-			m_NCS_DBG_PRINTF("\nINFO:DTS default service severity = ALL\n");
-			gl_severity_filter = GLOBAL_SEVERITY_FILTER_ALL;
-		}
-	}
-
-	m_NCS_DBG_PRINTF("\nDTSV:DTS:ON");
-	if (dts_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("DTS lib request failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-
-#endif   /* If NCS_DTS == 1 */
 
 #if (NCS_PDRBD == 1)
 	/* Initialize Pseudo DRBD service */

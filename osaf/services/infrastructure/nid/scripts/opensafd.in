@@ -17,6 +17,7 @@
 
 # Source the configuration file if it is present
 [ -r "/etc/opensaf/script.conf" ] && . "/etc/opensaf/script.conf"
+[ -r "/etc/opensaf/osafdir.conf" ] && . "/etc/opensaf/osafdir.conf"
 
 # Log to syslog with tag and log to console with date
 # Cannot use -s to 'logger' since it will not give us date & time
@@ -136,8 +137,8 @@ start()
         if [ ":$3" == ":" ]; then
             ### No explicit NCS_LOG_PATH argument.
             ### Create it using NODE_NAME
-            export NCS_LOG_PATH="$PKGLOCALSTATEDIR/log$NODE_NAME"
-            NCS_OLD_LOG_PATH="$PKGLOCALSTATEDIR/old_log$NODE_NAME"
+            export NCS_LOG_PATH="$pkglogdir/dtlog$NODE_NAME"
+            NCS_OLD_LOG_PATH="$pkglogdir/old_dtlog$NODE_NAME"
         else
             export NCS_LOG_PATH=$3
         fi

@@ -61,7 +61,7 @@
 
 static nfds_t nfds = 3;
 
-#define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "/ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "/dts_comp_name"
 
 static struct pollfd fds[4];
 static uns32 dts_stby_initialize(DTS_CB *cb);
@@ -1467,8 +1467,10 @@ uns32 dts_new_log_file_create(char *file, SVC_KEY *svc, uns8 file_type)
 		count += (CARRIAGE_RETURN +
 			  fprintf(fh, "************************************************************************\n"));
 		fclose(fh);
-	} else
+	} else {
+		syslog(LOG_ERR, "dts_new_log_file_create: Failed to open log file");
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_new_log_file_create: Failed to open log file");
+	}
 
 	if (file_type == GLOBAL_FILE) {
 		m_LOG_DTS_LFILE(file, 0, 0);
@@ -2375,8 +2377,7 @@ uns32 dts_free_msg_content(NCSFL_NORMAL *msg)
   DESCRIPTION:    Prints the DTS Service registration info to file.
 
   RETURNS:        NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE
-  NOTES:          Configuration data is printed to PKGLOCALSTATEDIR/log/DTS_<date>.config
-                  file.   
+  NOTES:          Configuration data is printed to $DTSV_ROOT_DIRECTORY
 *****************************************************************************/
 uns32 dts_print_current_config(DTS_CB *cb)
 {

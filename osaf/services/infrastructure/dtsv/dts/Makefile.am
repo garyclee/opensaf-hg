@@ -20,15 +20,15 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_dts
+pkglib_PROGRAMS = osafdtd
 
-ncs_dts_CPPFLAGS = \
+osafdtd_CPPFLAGS = \
 	-DNCS_DTS=1 -DDTS_LOG=1 -DNCS_DTA=1 -DDTS_FLOW=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-ncs_dts_SOURCES = \
+osafdtd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	dts_amf.c \
@@ -41,18 +41,19 @@ ncs_dts_SOURCES = \
 	dts_ckpt_updt.c \
 	dts_def.c \
 	dts_dl_api.c \
+	dts_imm.c \
 	dts_log.c \
+	dts_main.c \
 	dts_mds.c \
 	dts_logpolc.c \
 	dts_pvt.c \
 	dts_seq.c \
-	dts_tgt.c \
-	dts_imm.c \
-	dts_sysf_log.c
+	dts_sysf_log.c \
+	dts_tgt.c
 
-ncs_dts_LDFLAGS = -Wl,--export-dynamic
+osafdtd_LDFLAGS = -Wl,--export-dynamic
 
-ncs_dts_LDADD = \
+osafdtd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

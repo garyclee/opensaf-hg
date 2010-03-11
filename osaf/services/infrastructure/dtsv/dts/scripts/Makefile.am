@@ -19,5 +19,4 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_clean \
-	$(top_builddir)/osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_start
+	$(top_builddir)/osaf/services/infrastructure/dtsv/dts/scripts/osaf-dtd
