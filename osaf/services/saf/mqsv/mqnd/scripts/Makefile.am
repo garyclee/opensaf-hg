@@ -18,8 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkglib_SCRIPTS = \
-	ncs_mqnd_clean
-
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/mqsv/mqnd/scripts/ncs_mqnd_start
+	$(top_builddir)/osaf/services/saf/mqsv/mqnd/scripts/osaf-msgnd

@@ -212,16 +212,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 		m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
 #endif
 
-#if (NCS_MQND == 1)
-	/* Init MQND */
-	m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");
-	if (mqnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("MQND lib request failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-#endif
-
 #if (NCS_PDRBD == 1)
 	/* Initialize Pseudo DRBD service */
 	m_NCS_DBG_PRINTF("\nPSEUDO_DRBD:ON\n");

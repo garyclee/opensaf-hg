@@ -1013,9 +1013,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files msg-nodedirector
 %defattr(-,root,root)
-%{_pkglibdir}/ncs_mqnd
-%{_pkglibdir}/ncs_mqnd_clean
-%{_pkglibdir}/ncs_mqnd_start
+%{_pkglibdir}/osafmsgnd
+%{_pkglibdir}/osaf-msgnd
 
 %endif
 
