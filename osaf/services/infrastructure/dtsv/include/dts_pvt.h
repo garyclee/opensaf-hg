@@ -34,12 +34,6 @@
 #include "saImmOi.h"
 #include "ncssysf_tmr.h"
 
-#ifdef __NCSINC_LINUX__
-#define LOG_PATH PKGLOCALSTATEDIR "/log"
-#else
-#define LOG_PATH   ""
-#endif
-
 /* File Types */
 #define   GLOBAL_FILE        0x00
 #define   PER_NODE_FILE      0x01

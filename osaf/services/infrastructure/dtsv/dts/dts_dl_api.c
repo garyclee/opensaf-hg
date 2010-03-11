@@ -41,9 +41,7 @@
 static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 
 #define DTS_ASCII_SPEC_CONFIG_FILE	PKGSYSCONFDIR "/dts_ascii_spec_config"
-#define DTS_PID_FILE			PKGPIDDIR "/ncs_dts.pid"
 #define m_DTS_SLOT_ID_FILE		PKGSYSCONFDIR "/slot_id"
-#define DTS_PID_FILE_NAME_LEN		FILENAME_MAX
 
 /****************************************************************************
  * Name          : dts_lib_req
@@ -95,8 +93,6 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	NCSCONTEXT task_handle;
 	DTS_CB *inst = &dts_cb;
-	FILE *fp = NULL;
-	char pidfilename[DTS_PID_FILE_NAME_LEN] = { 0 };
 	PCS_RDA_REQ pcs_rda_req;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
@@ -159,23 +155,6 @@ uns32 dts_lib_init(NCS_LIB_REQ_INFO *req_info)
 	}
 
 	inst->in_sync = TRUE;
-
-	/* Generate the pidfilename. Also assert for string buffer overflow */
-	assert(sprintf(pidfilename, "%s", DTS_PID_FILE)
-	       < sizeof(pidfilename));
-
-	/*Open pidfile for writing the process id */
-	fp = fopen(pidfilename, "w");
-	if (fp == NULL) {
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE,
-				      "dts_lib_init: Failed to open " PKGPIDDIR "/dts_stb_pid for write");
-	}
-
-	if (fprintf(fp, "%d", getpid()) < 1) {
-		fclose(fp);
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_lib_init: Failed to write to file");
-	}
-	fclose(fp);
 
 	/* Attempt to open console device for logging */
 	inst->cons_fd = -1;

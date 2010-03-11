@@ -761,8 +761,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/dtsv/logstr/Makefile
         osaf/services/infrastructure/dtsv/dts/Makefile
         osaf/services/infrastructure/dtsv/dts/scripts/Makefile
-        osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_clean
-        osaf/services/infrastructure/dtsv/dts/scripts/ncs_dts_start
+        osaf/services/infrastructure/dtsv/dts/scripts/osaf-dtd
         osaf/services/infrastructure/fm/Makefile
         osaf/services/infrastructure/fm/include/Makefile
         osaf/services/infrastructure/fm/fms/Makefile

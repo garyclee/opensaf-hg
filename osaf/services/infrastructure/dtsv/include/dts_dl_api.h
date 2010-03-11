@@ -60,9 +60,6 @@ EXTERN_C int32 dts_app_signal_install(int i_sig_num, SIG_HANDLR i_sig_handler);
 #define DTS_MAX_FUNCNAME  255
 #define DTS_MAX_LIB_DBG   300
 
-/* Define for cmd for cleaning PKGLOCALSTATEDIR/log directory */
-#define DTS_RM_LOG_FILES  "rm -f " PKGLOCALSTATEDIR "/log/*"
-
 #if (DTS_FLOW == 1)
 
 /* Define threshold value for DTS mailbox */

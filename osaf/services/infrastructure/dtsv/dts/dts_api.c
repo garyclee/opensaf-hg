@@ -35,10 +35,6 @@
 */
 #include "dts.h"
 
-/*static void
-dtsv_clear_registration_table(DTS_CB *inst);*/
-static uns32 dts_create_log_dir_path(char *path);
-
 /*****************************************************************************
 
                      DTS LAYER MANAGEMENT IMPLEMENTAION
@@ -204,94 +200,16 @@ uns32 dts_svc_create(DTS_CREATE *create)
 
 		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: MBCSv registration failed");
 	}
-#ifdef __NCSINC_LINUX__
-	{
-		char *env_var;
-		env_var = getenv("NCS_LOG_PATH");
 
-		if (env_var) {
-			strcpy(inst->log_path, env_var);
-		} else {
-			strcpy(inst->log_path, LOG_PATH);
-		}
+	strcpy(inst->log_path, getenv("DTSV_ROOT_DIRECTORY"));
+	printf("\nMy log directory path = %s\n", inst->log_path);
 
-		if (dts_create_log_dir_path(inst->log_path) != NCSCC_RC_SUCCESS) {
-			m_NCS_SEL_OBJ_DESTROY(inst->sighdlr_sel_obj);
-			dtsv_mbcsv_deregister(inst);
-			dts_mds_unreg(inst, TRUE);
-			inst->created = FALSE;
-			ncs_patricia_tree_destroy(&inst->svc_tbl);
-			ncs_patricia_tree_destroy(&inst->dta_list);
-			ncs_patricia_tree_destroy(&inst->libname_asciispec_tree);
-			ncs_patricia_tree_destroy(&inst->svcid_asciispec_tree);
-
-			m_DTS_UNLK(&inst->lock);
-			m_DTS_LK_DLT(&inst->lock);
-
-			return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_svc_create: Log directory path creation failed");
-		}
-	}
-#else
-	strcpy(inst->log_path, LOG_PATH);
-#endif
 	inst->imm_init_done = FALSE;
 	m_DTS_UNLK(&inst->lock);
 
 	return NCSCC_RC_SUCCESS;
 }
 
-#ifdef __NCSINC_LINUX__
-/*****************************************************************************
-
-  PROCEDURE NAME:    dts_create_log_dir_path
-
-  DESCRIPTION:       Function used for creating the log directory.
-
-  RETURNS:           SUCCESS - all went well.
-                     FAILURE - something went wrong. Turn on m_DTS_DBG_SINK()
-                               for details.
-
-*****************************************************************************/
-static uns32 dts_create_log_dir_path(char *path)
-{
-	uns32 retval = NCSCC_RC_SUCCESS;
-	uns32 i = 0, len = 0;
-	char *tmp, tchar[200];
-
-	if (*path != '/') {
-		return m_DTS_DBG_SINK(NCSCC_RC_FAILURE, "dts_create_log_dir_path: NCS_LOG_PATH does not start with /");
-	}
-
-	len = strlen(path);
-
-	if (path[len - 1] != '/') {
-		path[len] = '/';
-		path[len + 1] = '\0';
-	}
-
-	tmp = path;
-
-	while (*tmp != '\0') {
-		tchar[i] = *tmp;
-		tmp++;
-		i++;
-
-		if ((*tmp == '/') || (*tmp == '\0')) {
-			tchar[i] = '\0';
-			if (MKDIR(tchar, 0x3ED) == -1) {
-				if (errno != EEXIST) {
-					perror("Fail to create directory");
-					retval = NCSCC_RC_FAILURE;
-					break;
-				}
-			}
-			tchar[i] = '/';
-		}
-	}
-	printf("\n My log directory path = %s \n", path);
-	return retval;
-}
-#endif
 /*****************************************************************************
 
   PROCEDURE NAME:    dts_svc_destroy
