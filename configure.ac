@@ -881,7 +881,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/smfsv/smfd/scripts/Makefile
         osaf/services/saf/smfsv/smfd/scripts/osaf-smfd
         osaf/services/saf/smfsv/smfnd/scripts/Makefile
-        osaf/services/saf/smfsv/smfnd/scripts/smfnd_script
+        osaf/services/saf/smfsv/smfnd/scripts/osaf-smfnd
         osaf/tools/Makefile
         osaf/tools/safimm/Makefile
         osaf/tools/safimm/immadm/Makefile
