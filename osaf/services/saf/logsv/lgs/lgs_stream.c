@@ -531,13 +531,6 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 		if (rotate_if_needed(stream) == -1)
 			goto done;
 
-		sprintf(command, "mkdir -p %s/%s", lgs_cb->logsv_root_dir, stream->pathName);
-		if (system(command) != 0) {
-			TRACE("mkdir '%s' failed", stream->pathName);
-			rc = SA_AIS_ERR_INVALID_PARAM;
-			goto done;
-		}
-
 		if (lgs_create_config_file(stream) != 0)
 			goto done;
 

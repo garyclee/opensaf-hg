@@ -30,28 +30,27 @@ noinst_HEADERS = \
 	lgs.h \
 	lgs_stream.h
 
-pkglib_PROGRAMS = opensaf_saflogd
+pkglib_PROGRAMS = osaflogd
 
-opensaf_saflogd_CPPFLAGS = \
-	-DNCS_MAIN_EXTERNAL \
+osaflogd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/logsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_saflogd_SOURCES = \
+osaflogd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	lgs_amf.c \
 	lgs_evt.c \
-	lgs_mbcsv.c \
 	lgs_fmt.c \
 	lgs_imm.c \
 	lgs_main.c \
+	lgs_mbcsv.c \
 	lgs_mds.c \
-	lgs_util.c \
-	lgs_stream.c
+	lgs_stream.c \
+	lgs_util.c
 
-opensaf_saflogd_LDADD = \
+osaflogd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \

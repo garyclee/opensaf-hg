@@ -27,10 +27,11 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
-#include <configmake.h>
 
+#include <configmake.h>
 #include <ncs_main_pvt.h>
 #include <rda_papi.h>
+#include <daemon.h>
 
 #include "lgs.h"
 #include "lgs_util.h"
@@ -58,9 +59,6 @@
 
 static lgs_cb_t _lgs_cb;
 lgs_cb_t *lgs_cb = &_lgs_cb;
-
-static int category_mask;
-
 static struct pollfd fds[4];
 static nfds_t nfds = 4;
 static NCS_SEL_OBJ usr1_sel_obj;
@@ -116,24 +114,6 @@ static void sigusr1_handler(int sig)
 }
 
 /**
- * USR2 signal handler to enable/disable trace (toggle)
- * @param sig
- */
-static void sigusr2_handler(int sig)
-{
-	if (category_mask == 0) {
-		category_mask = CATEGORY_ALL;
-		printf("Enabling traces");
-	} else {
-		category_mask = 0;
-		printf("Disabling traces");
-	}
-
-	if (trace_category_set(category_mask) == -1)
-		printf("trace_category_set failed");
-}
-
-/**
  * Ssignal handler to dump information from all data structures
  * @param sig
  */
@@ -141,7 +121,7 @@ static void dump_sig_handler(int sig)
 {
 	log_stream_t *stream;
 	log_client_t *client;
-	int old_category_mask = category_mask;
+	int old_category_mask = trace_category_get();
 
 	if (trace_category_set(CATEGORY_ALL) == -1)
 		printf("trace_category_set failed");
@@ -188,43 +168,21 @@ static void dump_sig_handler(int sig)
  * 
  * @return uns32
  */
-static uns32 log_initialize(const char *progname)
+static uns32 log_initialize(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	const char *trace_file;
-
-	/* Create PID file */
-	{
-		char path[256];
-		FILE *fp;
-
-		snprintf(path, sizeof(path), PKGPIDDIR "/%s.pid", basename(progname));
-		fp = fopen(path, "w");
-		if (fp == NULL) {
-			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		fprintf(fp, "%d\n", getpid());
-		fclose(fp);
-	}
-
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((trace_file = getenv("LOGSV_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(progname), trace_file) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			goto done;
-		}
-
-		if (getenv("LOGSV_TRACE_CATEGORIES") != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
-		}
-	}
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
 
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if ((trace_mask_env = getenv("LOGD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
+
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
 	}
 
@@ -246,11 +204,11 @@ static uns32 log_initialize(const char *progname)
 	}
 
 	/*
-	 ** Get LOGSV root directory path. All created log files will be stored
-	 ** relative to this directory as described in spec.
+	 * Get LOGSV root directory path. All created log files will be stored
+	 * relative to this directory as described in spec.
 	 */
 	if ((lgs_cb->logsv_root_dir = getenv("LOGSV_ROOT_DIRECTORY")) == NULL) {
-		syslog(LOG_ERR, "LOGSV_ROOT_DIRECTORY not found, exiting...");
+		LOG_ER("LOGSV_ROOT_DIRECTORY not found, exiting...");
 		goto done;
 	}
 
@@ -293,17 +251,11 @@ static uns32 log_initialize(const char *progname)
 	}
 
 	/*
-	 ** Initialize a signal handler that will use the selection object.
-	 ** The signal is sent from our script when AMF does instantiate.
+	 * Initialize a signal handler that will use the selection object.
+	 * The signal is sent from our script when AMF does instantiate.
 	 */
 	if (signal(SIGUSR1, sigusr1_handler) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		LOG_ER("signal USR2 failed: %s", strerror(errno));
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
@@ -319,7 +271,7 @@ static uns32 log_initialize(const char *progname)
 	else
 		LOG_NO("I am STANDBY");
 
- done:
+done:
 	if (nid_notify("LOGD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
@@ -365,11 +317,12 @@ static void *imm_reinit_thread(void *_cb)
 	if(m_NCS_IPC_SEND(&cb->mbx, lgsv_evt, NCS_IPC_PRIORITY_HIGH) !=
 		NCSCC_RC_SUCCESS) {
 		LOG_WA("imm_reinit_thread failed to send IPC message to main thread");
-		/* Se no reason why thos would happen. But if it does at least there
-			is something in the syslog. The main thread should still pick up
-			the new imm FD when there is a healthcheck, but it could take
-			minutes.
-		*/
+		/*
+		 * Se no reason why thos would happen. But if it does at least there
+		 * is something in the syslog. The main thread should still pick up
+		 * the new imm FD when there is a healthcheck, but it could take
+		 *minutes.
+		 */
 		free(lgsv_evt);
 	}
 
@@ -410,7 +363,9 @@ int main(int argc, char *argv[])
 	SaAisErrorT error = SA_AIS_OK;
 	uns32 rc;
 
-	if (log_initialize(argv[0]) != NCSCC_RC_SUCCESS) {
+	daemonize(argc, argv);
+
+	if (log_initialize() != NCSCC_RC_SUCCESS) {
 		LOG_ER("log_initialize failed");
 		goto done;
 	}
@@ -471,34 +426,34 @@ int main(int argc, char *argv[])
 			error = saImmOiDispatch(lgs_cb->immOiHandle, SA_DISPATCH_ALL);
 
 			/*
-			 ** BAD_HANDLE is interpreted as an IMM service restart. Try 
-			 ** reinitialize the IMM OI API in a background thread and let 
-			 ** this thread do business as usual especially handling write 
-			 ** requests.
-			 **
-			 ** All other errors are treated as non-recoverable (fatal) and will
-			 ** cause an exit of the process.
+			 * BAD_HANDLE is interpreted as an IMM service restart. Try 
+			 * reinitialize the IMM OI API in a background thread and let 
+			 * this thread do business as usual especially handling write 
+			 * requests.
+			 *
+			 * All other errors are treated as non-recoverable (fatal) and will
+			 * cause an exit of the process.
 			 */
 			if (error == SA_AIS_ERR_BAD_HANDLE) {
 				TRACE("saImmOiDispatch returned BAD_HANDLE");
 
 				/* 
-				 ** Invalidate the IMM OI handle, this info is used in other
-				 ** locations. E.g. giving TRY_AGAIN responses to a create and
-				 ** close app stream requests. That is needed since the IMM OI
-				 ** is used in context of these functions.
-				 ** 
-				 ** Also closing the handle. Finalize is ok with a bad handle
-				 ** that is bad because it is stale and this actually clears
-				 ** the handle from internal agent structures.  In any case
-				 ** we ignore the return value from Finalize here.
+				 * Invalidate the IMM OI handle, this info is used in other
+				 * locations. E.g. giving TRY_AGAIN responses to a create and
+				 * close app stream requests. That is needed since the IMM OI
+				 * is used in context of these functions.
+				 * 
+				 * Also closing the handle. Finalize is ok with a bad handle
+				 * that is bad because it is stale and this actually clears
+				 * the handle from internal agent structures.  In any case
+				 * we ignore the return value from Finalize here.
 				 */
 				saImmOiFinalize(lgs_cb->immOiHandle);
 				lgs_cb->immOiHandle = 0;
 
 				/* 
-				 ** Skip the IMM file descriptor in next poll(), IMM fd must
-				 ** be the last in the fd array.
+				 * Skip the IMM file descriptor in next poll(), IMM fd must
+				 * be the last in the fd array.
 				 */
 				nfds = FD_MBX + 1;
 
@@ -511,7 +466,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
- done:
+done:
 	LOG_ER("Failed, exiting...");
 	TRACE_LEAVE();
 	exit(1);
