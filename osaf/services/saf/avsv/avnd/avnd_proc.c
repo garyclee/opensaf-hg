@@ -291,7 +291,7 @@ void avnd_main_process(void)
 					* Kill amfd otherwise it will reboot the system.
 					*/
 					LOG_IN("Killing amfd...");
-					system("killall opensaf_amfd");
+					system("killall osafamfd");
 				}
 				break;
 			}

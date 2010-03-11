@@ -80,6 +80,24 @@ The Availability Management Framework also provides APIs for components to
 track the assignment of work or so-called component service instances among the 
 set of components protecting the same component service instance.
 
+%package amf-director
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+
+%description amf-director
+
+%package amf-nodedirector
+Group: System Environment/Daemons
+Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
+Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+
+%description amf-nodedirector
+
 
 %if %is_ais_ckpt
 
@@ -429,6 +447,8 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-amf-director = %{version}-%{release}
+Requires: %{name}-amf-nodedirector = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-clm-server = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
@@ -478,6 +498,7 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
+Requires: %{name}-amf-nodedirector = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
 Requires: %{name}-clm-nodeagent = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
@@ -569,14 +590,6 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 %description java
 
 %endif
-
-
-%package tools
-Group: Applications/System
-Summary: Optional tools for OpenSAF
-Requires: %{name}-devel = %{version}-%{release}
-
-%description tools
 
 
 %if %is_tests
@@ -779,6 +792,26 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %defattr(-,root,root)
 %{_libdir}/libSaAmf.so.*
 %{_pkglibdir}/libavsv_common.so.*
+
+%files amf-director
+%defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/amfd.conf
+%{_bindir}/amf-adm
+%{_bindir}/amf-find
+%{_bindir}/amf-state
+%{_pkglibdir}/libavsv_logstr.so.*
+%{_pkglibdir}/osafamfd
+%{_pkglibdir}/osaf-amfd
+%{_pkgimmxml_svcdir}/avsv_classes.xml
+%{_pkgimmxml_svcdir}/avsv_objects.xml
+%{_pkgimmxml_svcdir}/amfmon_pl_template.xml
+%{_pkgimmxml_svcdir}/amfmon_sc_template.xml
+%{_pkgimmxml_svcdir}/amfmon_objects.xml
+
+%files amf-nodedirector
+%defattr(-,root,root)
+%{_pkglibdir}/opensaf_amfnd
+%{_pkglibdir}/amfnd_script
 
 
 %if %is_ais_ckpt
@@ -1052,12 +1085,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
-%{_pkglibdir}/opensaf_amfd
-%{_pkglibdir}/amfd_script
 %{_pkglibdir}/opensaf_amfnd
 %{_pkglibdir}/amfnd_script
-%{_pkglibdir}/opensaf_amfmon
-%{_pkglibdir}/amfmon_script
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -1065,7 +1094,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
-%{_pkglibdir}/libavsv_logstr.so.*
 %{_pkglibdir}/libdts_logstr.so.*
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
@@ -1078,13 +1106,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkgimmxmldir}/immxml-nodegen
 %{_pkgimmxmldir}/immxml-validate
 %{_pkgimmxmldir}/verify.sh
-%{_pkgimmxml_svcdir}/avsv_classes.xml
-%{_pkgimmxml_svcdir}/avsv_objects.xml
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
-%{_pkgimmxml_svcdir}/amfmon_pl_template.xml
-%{_pkgimmxml_svcdir}/amfmon_sc_template.xml
-%{_pkgimmxml_svcdir}/amfmon_objects.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
 %{_pkgimmxml_svcdir}/dtsv_objects.xml
 %{_pkgimmxml_svcdir}/dtsv_sc_template.xml
@@ -1145,14 +1168,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %doc 00-README.samples
 %dir %{_datadir}/%{name}/samples
 %{_datadir}/%{name}/samples/*
-
-
-#TODO: Clean when PLM introduced
-%files tools
-%defattr(-,root,root)
-%{_bindir}/amf-adm
-%{_bindir}/amf-find
-%{_bindir}/amf-state
 
 
 %if %is_tests

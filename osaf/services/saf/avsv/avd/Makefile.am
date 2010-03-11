@@ -20,20 +20,22 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include scripts
 
-pkglib_PROGRAMS = opensaf_amfd
+pkglib_PROGRAMS = osafamfd
 
-opensaf_amfd_CPPFLAGS = \
+osafamfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avd/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/fm/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_amfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+osafamfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
-opensaf_amfd_SOURCES = \
+osafamfd_SOURCES = \
+	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	amfd_main.c \
 	avd_app.c \
 	avd_apptype.c \
 	avd_avm.c \
@@ -87,12 +89,9 @@ opensaf_amfd_SOURCES = \
 	avd_svctypecstypes.c \
 	avd_tmr.c \
 	avd_ntf.c \
-	avd_util.c \
-	amfd_main.c \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c
+	avd_util.c
 
-opensaf_amfd_LDADD = \
+osafamfd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
@@ -103,4 +102,3 @@ opensaf_amfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/fma/libfma.la
-
