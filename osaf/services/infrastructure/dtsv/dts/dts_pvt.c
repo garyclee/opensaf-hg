@@ -61,7 +61,7 @@
 
 static nfds_t nfds = 3;
 
-#define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "ncs_dts_comp_name"
+#define m_DTS_COMP_NAME_FILE PKGLOCALSTATEDIR "/ncs_dts_comp_name"
 
 static struct pollfd fds[4];
 static uns32 dts_stby_initialize(DTS_CB *cb);

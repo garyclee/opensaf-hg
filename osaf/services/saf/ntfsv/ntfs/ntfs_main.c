@@ -172,7 +172,7 @@ static uns32 initialize(const char *progname)
 	TRACE_ENTER();
 
 	/* Create pidfile */
-	sprintf(path, PKGPIDDIR "%s.pid", basename(progname));
+	sprintf(path, PKGPIDDIR "/%s.pid", basename(progname));
 	if ((fp = fopen(path, "w")) == NULL) {
 		LOG_ER("Could not open %s", path);
 		rc = NCSCC_RC_FAILURE;

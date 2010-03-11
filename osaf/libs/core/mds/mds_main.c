@@ -242,7 +242,7 @@ uns32 mds_lib_req(NCS_LIB_REQ_INFO *req)
 		/* Initialize logging */
 		{
 			char buff[50], pref[50];
-			snprintf(buff, sizeof(buff), PKGLOCALSTATEDIR "stdouts/ncs_mds.log");
+			snprintf(buff, sizeof(buff), PKGLOCALSTATEDIR "/stdouts/ncs_mds.log");
 			snprintf(pref, sizeof(pref), "<%u>", mds_tipc_ref);
 			mds_log_init(buff, pref);
 		}

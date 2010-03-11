@@ -613,7 +613,7 @@ uns32 parse_nodeinitconf(char *strbuf)
 		logme(NID_LOG2FILE, "NID_CONFIG_PATH not set. Default:%s", NID_PLAT_CONF_PATH);
 		nid_plat_conf_path = NID_PLAT_CONF_PATH;
 	}
-	sprintf(nid_plat_conf_file, "%s/" NID_PLAT_CONF, nid_plat_conf_path);
+	sprintf(nid_plat_conf_file, "/%s/" NID_PLAT_CONF, nid_plat_conf_path);
 	plat_conf.info.open.i_file_name = (uns8 *)nid_plat_conf_file;
 	plat_conf.info.open.i_read_write_mask = NCS_OS_FILE_PERM_READ;
 	if (m_NCS_OS_FILE(&plat_conf, NCS_OS_FILE_OPEN) != NCSCC_RC_SUCCESS) {
@@ -1721,7 +1721,7 @@ uns32 spawn_services(char *strbuf)
 			if (service->app_type == NID_DAEMN) {
 				int32 lfd;
 				char filename[30], str[15];
-				sprintf(filename, PKGPIDDIR "%s.pid", "ncsspcap");
+				sprintf(filename, PKGPIDDIR "/%s.pid", "ncsspcap");
 				unlink(filename);
 				lfd = open(filename, O_CREAT | O_WRONLY, S_IRWXU);
 				sprintf(str, "%d\n", service->pid);
