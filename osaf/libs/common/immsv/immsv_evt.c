@@ -2381,6 +2381,10 @@ static uns32 immsv_evt_enc_toplevel(IMMSV_EVT *i_evt, NCS_UBAID *o_ub)
 			p8 = ncs_enc_reserve_space(o_ub, 1);
 			ncs_encode_8bit(&p8, immdevt->info.ctrl_msg.refresh);
 			ncs_enc_claim_space(o_ub, 1);
+
+			p8 = ncs_enc_reserve_space(o_ub, 1);
+			ncs_encode_8bit(&p8, immdevt->info.ctrl_msg.pbeEnabled);
+			ncs_enc_claim_space(o_ub, 1);
 			break;
 
 		case IMMD_EVT_ND2D_ADMINIT_REQ:	/* AdminOwnerInitialize */
@@ -3531,6 +3535,10 @@ static uns32 immsv_evt_dec_toplevel(NCS_UBAID *i_ub, IMMSV_EVT *o_evt)
 
 			p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
 			immdevt->info.ctrl_msg.refresh = ncs_decode_8bit(&p8);
+			ncs_dec_skip_space(i_ub, 1);
+
+			p8 = ncs_dec_flatten_space(i_ub, local_data, 1);
+			immdevt->info.ctrl_msg.pbeEnabled = ncs_decode_8bit(&p8);
 			ncs_dec_skip_space(i_ub, 1);
 			break;
 

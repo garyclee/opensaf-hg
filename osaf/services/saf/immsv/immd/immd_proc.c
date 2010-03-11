@@ -25,21 +25,63 @@
 
 void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
 {
+	IMMSV_EVT send_evt;
+	IMMD_MBCSV_MSG mbcp_msg;
+	uns32 proc_rc;
 	TRACE_ENTER();
-	/* Reset relevant parts of of IMMD CB so we get a cluster wide restart
-	   of IMMNDs. 
-	 */
 
 	if (active) {
 		LOG_ER("Active IMMD has to restart the IMMSv. " "All IMMNDs will restart");
 	} else {
 		LOG_ER("Standby IMMD recieved reset message. " "All IMMNDs will restart.");
 	}
+
+	/* Make standby aware of IMMND reset order. */
+	memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
+	mbcp_msg.type = IMMD_A2S_MSG_RESET;
+
+	/*Checkpoint the dissapointing reset message to standby
+	  director. Syncronous call=>waits for ack. We do not check
+	  the result because we can not do anything about an error in
+	  notifying IMMD standby here. The immd_mbcsv_sync_update 
+	  will also log the error. 
+	*/
+	immd_mbcsv_sync_update(cb, &mbcp_msg);
+
+	/*Restart any IMMNDs that are not in epoch 0. */
+	memset(&send_evt, 0, sizeof(IMMSV_EVT));
+	send_evt.type = IMMSV_EVT_TYPE_IMMND;
+	send_evt.info.immnd.type = IMMND_EVT_D2ND_RESET;
+	proc_rc = immd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_IMMND);
+	if (proc_rc != NCSCC_RC_SUCCESS) {
+		LOG_ER("Failed to broadcast RESET message to IMMNDs.");
+		exit(1);
+	}
+
+	/* Reset relevant parts of of IMMD CB so we get a cluster wide restart
+	   of IMMNDs. 
+	 */
+
 	cb->mRulingEpoch = 0;
 	cb->immnd_coord = 0;
+	cb->fevsSendCount = 0LL;
+	
 	/*immd_immnd_info_tree_cleanup(cb); */
 	/*Let the immnd tree keep track of what is hapening. IMMNDs that have
 	   just restarted may not need to restart and re-attach again. */
+
+	if(cb->mRim != SA_IMM_KEEP_REPOSITORY /* && changed since last dump */) {
+		//if(active) {
+		//	sleep(3);
+		//}
+		LOG_ER("IMM RELOAD with NO persistent back end => ensure cluster restart by IMMD exit at both SCs.");
+		exit(1);
+	} else {
+		LOG_WA("IMM RELOAD with persistent back end => No need to restart cluster");
+	}
+
+	cb->mRim = SA_IMM_INIT_FROM_FILE; /* Reset to default since we are reloading. */
+
 	TRACE_LEAVE();
 }
 
@@ -117,8 +159,6 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 				LOG_ER("Epoch(%u) for current coord is less than "
 				       "the epoch of some other node (%u)", immnd_info_node->epoch, maxEpoch);
 				immd_proc_immd_reset(cb, TRUE);
-				TRACE_LEAVE();
-				return -1;	//avoid assert?
 			}
 
 			if (new_active) {
@@ -163,34 +203,10 @@ int immd_proc_elect_coord(IMMD_CB *cb, NCS_BOOL new_active)
 		}
 
 		if (!immnd_info_node) {
-			IMMSV_EVT send_evt;
-			uns32 proc_rc;
 			LOG_ER("Failed to find candidate for new IMMND coordinator");
-			immd_proc_immd_reset(cb, TRUE);
-
-			/* Make standby aware of IMMND reset order. */
-			memset(&mbcp_msg, 0, sizeof(IMMD_MBCSV_MSG));
-			mbcp_msg.type = IMMD_A2S_MSG_RESET;
-
-			/*Checkpoint the dissapointing reset message to standby
-			   director. Syncronous call=>waits for ack. We do not check
-			   the result because we can not do anything about an error in
-			   notifying IMMD standby here. The immd_mbcsv_sync_update 
-			   will also log the error. 
-			 */
-			immd_mbcsv_sync_update(cb, &mbcp_msg);
-
-			/*Restart any IMMNDs that are not in epoch 0. */
-			memset(&send_evt, 0, sizeof(IMMSV_EVT));
-			send_evt.type = IMMSV_EVT_TYPE_IMMND;
-			send_evt.info.immnd.type = IMMND_EVT_D2ND_RESET;
-			proc_rc = immd_mds_bcast_send(cb, &send_evt, NCSMDS_SVC_ID_IMMND);
-			if (proc_rc != NCSCC_RC_SUCCESS) {
-				LOG_ER("Failed to broadcast RESET message to IMMNDs.");
-				exit(1);
-			}
 
 			TRACE_LEAVE();
+			immd_proc_immd_reset(cb, TRUE);
 			return (-1);
 		}
 
@@ -300,7 +316,7 @@ uns32 immd_process_immnd_down(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *immnd_info, NCS
 	if (active || possible_fo) {
 		/* 
 		 ** HAFE - Let IMMND subscribe for IMMND up/down events instead?
-		 ** ABT - Not for now. IMMND up/down are only subscribed ny IMMD.
+		 ** ABT - Not for now. IMMND up/down are only subscribed by IMMD.
 		 ** This is the cleanest solution with respect to FEVS and works fine
 		 ** for all cases except IMMND down at the active controller. 
 		 ** That case has to be handled in a special way. Currently we do it
@@ -395,7 +411,8 @@ void immd_cb_dump(void)
 	TRACE_5("  IMMD State:  %d IMMND-coord-Id: %x", cb->ha_state, cb->immnd_coord);
 	TRACE_5("  Sync update count %u", cb->immd_sync_cnt);
 	TRACE_5("  Fevs send count %llu", cb->fevsSendCount);
-	TRACE_5("  RULING EPOCH: %u", cb->mRulingEpoch);
+	TRACE_5("  RULING EPOCH: %u RIM:%s", cb->mRulingEpoch, 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY)?"KEEP_REP":"FILE");
 
 	if (cb->is_immnd_tree_up) {
 		TRACE_5("+++++++++++++IMMND Tree is UP++++++++++++++++++++");

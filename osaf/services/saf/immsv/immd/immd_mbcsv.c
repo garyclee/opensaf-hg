@@ -522,8 +522,6 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 	case IMMD_A2S_MSG_SYNC_START:
 	case IMMD_A2S_MSG_SYNC_ABORT:
 	case IMMD_A2S_MSG_DUMP_OK:
-		TRACE_5("ENCODE NODE CONTROL MESSAGE");
-
 		immd_msg = (IMMD_MBCSV_MSG *)
 		    NCS_INT64_TO_PTR_CAST(arg->info.encode.io_reo_hdl);
 
@@ -561,6 +559,12 @@ static uns32 mbcsv_enc_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		assert(uns32_ptr);
 		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns32));
 		ncs_encode_32bit(&uns32_ptr, immd_msg->info.ctrl.nodeEpoch);
+
+		uns8_ptr = ncs_enc_reserve_space(&arg->info.encode.io_uba, sizeof(uns8));
+		assert(uns8_ptr);
+		ncs_enc_claim_space(&arg->info.encode.io_uba, sizeof(uns8));
+		ncs_encode_8bit(&uns8_ptr, immd_msg->info.ctrl.pbeEnabled);
+
 		break;
 
 	case IMMD_A2S_MSG_RESET:
@@ -934,6 +938,10 @@ static uns32 mbcsv_dec_async_update(IMMD_CB *cb, NCS_MBCSV_CB_ARG *arg)
 		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns32));
 		immd_msg->info.ctrl.nodeEpoch = ncs_decode_32bit(&ptr);
 		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns32));
+
+		ptr = ncs_dec_flatten_space(&arg->info.decode.i_uba, data, sizeof(uns8));
+		immd_msg->info.ctrl.pbeEnabled = ncs_decode_8bit(&ptr);
+		ncs_dec_skip_space(&arg->info.decode.i_uba, sizeof(uns8));
 
 		rc = immd_process_node_accept(cb, &immd_msg->info.ctrl);
 		if (rc != NCSCC_RC_SUCCESS) {
