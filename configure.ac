@@ -889,7 +889,6 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/ntfsubscribe/Makefile
         pkgconfig/Makefile
         pkgconfig/opensaf.pc
-	tests/avsv/amfoitest/Makefile
 	tests/immsv/implementer/Makefile
 	tests/immsv/management/Makefile
 	tests/logsv/Makefile
