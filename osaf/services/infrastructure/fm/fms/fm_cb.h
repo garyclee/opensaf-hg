@@ -18,8 +18,6 @@
 #ifndef FM_CB_H
 #define FM_CB_H
 
-#define FM_PID_FILE PKGPIDDIR "/fms.pid"
-
 EXTERN_C uns32 gl_fm_hdl;
 
 typedef enum {

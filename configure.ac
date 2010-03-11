@@ -767,7 +767,7 @@ AC_CONFIG_FILES([
         osaf/services/infrastructure/fm/fms/Makefile
         osaf/services/infrastructure/fm/config/Makefile
         osaf/services/infrastructure/fm/fms/scripts/Makefile
-        osaf/services/infrastructure/fm/fms/scripts/opensaf_fms
+        osaf/services/infrastructure/fm/fms/scripts/osaf-fmd
         osaf/services/infrastructure/nid/Makefile
         osaf/services/infrastructure/nid/config/Makefile
         osaf/services/infrastructure/nid/scripts/Makefile

@@ -20,7 +20,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = opensaf_fmsd
+pkglib_PROGRAMS = osaffmd
 
 noinst_HEADERS = \
 	fm_amf.h \
@@ -30,20 +30,20 @@ noinst_HEADERS = \
 	fm_mds.h \
 	fm_mem.h
 
-opensaf_fmsd_CPPFLAGS= \
+osaffmd_CPPFLAGS= \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/services/infrastructure/fm/include
 
-opensaf_fmsd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+osaffmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
-opensaf_fmsd_SOURCES = \
+osaffmd_SOURCES = \
 	$(top_srcdir)/osaf/services/infrastructure/fm/fma_fm_intf.c \
 	fm_main.c \
 	fm_mds.c \
 	fm_rda.c \
 	fm_amf.c
 
-opensaf_fmsd_LDADD = \
+osaffmd_LDADD = \
      	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

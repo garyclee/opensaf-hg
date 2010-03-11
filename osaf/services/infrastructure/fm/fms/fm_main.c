@@ -22,6 +22,8 @@
 
 ******************************************************************************/
 
+#include <daemon.h>
+
 #include "fm.h"
 char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 	"ASSERTING", "YIELDING", "UNDEFINED"
@@ -42,7 +44,6 @@ static uns32 fm_can_smh_sw_process(FM_CB *, FM_EVT *);
 static uns32 fm_conv_shelf_slot_to_entity_path(uns8 *, uns8, uns8, uns8);
 static uns32 fms_fma_node_reset_intimate(FM_CB *, uns32, uns32);
 static uns32 fms_reset_peer(FM_CB *);
-static uns32 fm_create_pidfile(void);
 static uns32 fm_nid_notify(uns32);
 static uns32 fm_tmr_start(FM_TMR *, SaTimeT);
 static void fm_mbx_msg_handler(FM_CB *, FM_EVT *);
@@ -72,14 +73,17 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_sel_obj, pipe_sel_obj, amf_sel_obj, highest_sel_obj;
 	NCS_SEL_OBJ_SET sel_obj_set;
 	FM_EVT *fm_mbx_evt = NULL;
+	char *trace_mask_env;
+	unsigned int trace_mask;
+
+	daemonize(argc, argv);
+
+	if ((trace_mask_env = getenv("FMD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
 
 	ava_install_amf_down_cb(amf_down);
-
-	if (fm_create_pidfile() != NCSCC_RC_SUCCESS) {
-		printf("\nfm pid file create failed.");
-		fm_nid_notify((uns32)NCSCC_RC_FAILURE);
-		goto fm_agents_startup_failed;
-	}
 
 	if (fm_agents_startup() != NCSCC_RC_SUCCESS) {
 		/* notify the NID */
@@ -913,30 +917,4 @@ static uns32 fm_nid_notify(uns32 nid_err)
 
 	nid_stat_code = nid_err;
 	return nid_notify("HLFM", nid_stat_code, &error);
-}
-
-/****************************************************************************
- * Name          : fm_create_pidfile
- *
- * Description   :  Creates a PID file.
- *
- * Arguments     :  None
- *
- * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- * 
- * Notes         : None. 
- *****************************************************************************/
-static uns32 fm_create_pidfile(void)
-{
-	FILE *pidfd;
-
-	if ((pidfd = fopen(FM_PID_FILE, "w")) != NULL) {
-		fprintf(pidfd, "%d\n", (int)getpid());
-		fclose(pidfd);
-	} else {
-		syslog(LOG_ERR, "FM PID file open failed \n");
-		return NCSCC_RC_FAILURE;
-	}
-
-	return NCSCC_RC_SUCCESS;
 }
