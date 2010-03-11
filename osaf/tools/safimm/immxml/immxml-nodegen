@@ -67,17 +67,19 @@ s/$PATTERN/$ID/g"  > $RESULT_DIR/imm_$ID.xml
    #cat $TEMPLATE | sed "s/NoRed_$PATTERN/NoRed$INDEX/" | sed "s/$PATTERN/$ID/" > $RESULT_DIR/imm_$ID.xml
 }
 
-dyn_file_header()
+imm_file_header()
 {
-   cat <<EOF >>$DYN_FILE
+   local FILE=$1
+   cat <<EOF >>$FILE
 <?xml version="1.0" encoding="utf-8"?>
 <imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
 EOF
 }
 
-dyn_file_trailer()
+imm_file_trailer()
 {
-   cat <<EOF >>$DYN_FILE
+   local FILE=$1
+   cat <<EOF >>$FILE
 </imm:IMM-contents>
 EOF
 }
@@ -88,8 +90,9 @@ clm_node_store()
    HOST_NUMBER=$2
    NodeIdValue=$(( 16#2000f + $HOST_NUMBER * 256))
    NodeId=`printf "0x%04x" $NodeIdValue`
+   local FILE=$3
 
-   cat <<EOF >>$DYN_FILE
+   cat <<EOF >>$FILE
         <object class="SaClmNode">
                 <dn>safNode=$CLMID,safCluster=myClmCluster</dn>
                 <attr>
@@ -140,20 +143,23 @@ EOF
 
 nodegroup_sc_store()
 {
+   local FILE=$1
    trace "NODEGROUP_SC:\n$NODEGROUP_SC"
-   echo -e "$NODEGROUP_SC" >> $DYN_FILE
+   echo -e "$NODEGROUP_SC" >> $FILE
 }
 
 nodegroup_pl_store()
 {
+   local FILE=$1
    trace "NODEGROUP_PL:\n$NODEGROUP_PL"
-   echo -e "$NODEGROUP_PL" >>$DYN_FILE
+   echo -e "$NODEGROUP_PL" >>$FILE
 }
 
 nodegroup_all_store()
 {
+   local FILE=$1
    trace "NODEGROUP_ALL:\n$NODEGROUP_ALL"
-   echo -e "$NODEGROUP_ALL" >> $DYN_FILE
+   echo -e "$NODEGROUP_ALL" >> $FILE
 }
 
 
@@ -196,6 +202,18 @@ validate_options()
          script_error "One or two SC's must be specified!. Exiting!"
          exit 1
       fi
+
+      if [ ! -z "$NODELIST" ] ; then
+         script_error "--nodelist should not be used in combination of --sc-count. Exiting!"
+         exit 1
+      fi
+   fi
+
+   if [ $PL_COUNT -ne $UNDEF_COUNT ] ; then
+      if [ ! -z "$NODELIST" ] ; then
+         script_error "--nodelist should not be used in combination of --pl-count. Exiting!"
+         exit 1
+      fi
    fi
 
    if [ ! -f $SC_TEMPLATE_FILE ] ; then
@@ -229,6 +247,47 @@ verify_result()
    #fi
 }
 
+is_in_nodelist()
+{
+   local NODE="$1" element
+   shift
+   
+   for element
+   do
+     [[ $element = $NODE ]] && return 0
+   done
+   
+   return 1
+}
+
+should_include_scnode()
+{
+   trace SC_COUNT:$SC_COUNT CUR_SC_COUNT:$CUR_SC_COUNT
+   ID=$1
+   if [ -z "$NODELIST" ] ; then
+      if [ $CUR_SC_COUNT -lt $SC_COUNT ] ; then
+        return 0
+      else
+        return 1
+      fi
+   fi
+   return `is_in_nodelist $ID $NODELIST`
+}
+
+should_include_plnode()
+{
+   trace PL_COUNT:$PL_COUNT CUR_PL_COUNT:$CUR_PL_COUNT
+   ID=$1
+   if [ -z "$NODELIST" ] ; then
+      if [ $CUR_PL_COUNT -lt $PL_COUNT ] ; then
+        return 0
+      else
+        return 1
+      fi
+   fi
+   return `is_in_nodelist $ID $NODELIST`
+}
+
 USAGE="Usage: immxml-nodegen\n\
 \t  [-c|--node-config node_config_file]\n\
 \t  [-d|--nodegen-dir directory]\n\
@@ -236,12 +295,16 @@ USAGE="Usage: immxml-nodegen\n\
 \t  [-x|--pl-count count]\n\
 \t  [-s|--sc-template sc_template_file]\n\
 \t  [-p|--pl-template pl_template_file]\n\
+\t  [   --nodelist list_of_nodes]\n\
 \t  [-h|--help]\n\
 \n\
-Note. With no options given to script it will generate nodes for all\n 
-entries thats exists in node config file (default: input/nodes.cfg).\n"
+Note. With no options given to script it will generate nodes for all\n\
+entries thats exists in node config file (default: input/nodes.cfg).\n\
 
-TEMP=`getopt -o d:s:p:c:ht --long sc-template:,pl-template:,node-config:,nodegen-dir:,help,trace,pl-count:,sc-count: \
+Possible to restrict to specified list of nodes with --nodelist (out of entries in nodes.cfg)\
+"
+
+TEMP=`getopt -o d:s:p:c:ht --long nodelist:,sc-template:,pl-template:,node-config:,nodegen-dir:,help,trace,pl-count:,sc-count: \
      -- "$@"`
 if [ $? != 0 ] ; then 
    script_error "Failed to process command options. Terminating..."
@@ -256,6 +319,7 @@ while true ; do
 		-s|--sc-template) SC_TEMPLATE_FILE=$2; trace "Option --sc-template, argument \`$SC_TEMPLATE_FILE'" ; shift 2 ;;
 		-p|--pl-template) PL_TEMPLATE_FILE=$2; trace "Option --pl-template, argument \`$PL_TEMPLATE_FILE'" ; shift 2 ;;
 		-x|--pl-count) PL_COUNT=$2; trace "Option --pl-count, argument \`$PL_COUNT'" ; shift 2 ;;
+		--nodelist) NODELIST=$2; trace "Option --nodelist, argument \`$NODELIST'" ; shift 2 ;;
 		-y|--sc-count) SC_COUNT=$2; trace "Option --sc-count, argument \`$SC_COUNT'" ; shift 2 ;;
 		-h|--help) echo -e $USAGE ; exit 1 ;;
 		-t|--trace) TRACE_ENABLED=on ; shift 1 ;;
@@ -266,14 +330,15 @@ done
 #echo "Remaining arguments:"
 #for arg do echo '--> '"\`$arg'" ; done
 
+for val in $NODELIST ; do
+   trace "node:$val"
+done
 
 rm -rf $RESULT_DIR
 mkdir $RESULT_DIR
-DYN_FILE=$RESULT_DIR/imm_nodes_dyn_part.xml
 
 validate_options
 
-dyn_file_header
 nodegroups_begin
 
 
@@ -282,50 +347,57 @@ while read TYPE ID CLMID ; do
    trace "N:$N" 
    if [ $TYPE == 'SC' ] ; then
       trace "Using template: $SC_TEMPLATE_FILE with ID:$ID CLMID:$CLMID"
-            
-      trace SC_COUNT:$SC_COUNT CUR_SC_COUNT:$CUR_SC_COUNT
-      if [ $CUR_SC_COUNT -lt $SC_COUNT ] ; then
+      if should_include_scnode $ID ; then
           trace "Creating SC with ID:$ID"
           create_node $SC_PATTERN $SC_TEMPLATE_FILE $N $ID $CLMID
-          nodegroup_sc_addnode $ID
-          nodegroup_all_addnode $ID
-          #clm_node_store $CLMID $N
+          if [ -z "$NODELIST" ] ; then
+              nodegroup_sc_addnode $ID
+              nodegroup_all_addnode $ID
+          fi
 	  CUR_SC_COUNT=$((CUR_SC_COUNT+1))
       else
-          info "Have reached number of SCs. Skip node with ID:$ID"
+          info "Skip node with ID:$ID"
       fi 
    elif [ $TYPE == 'PL' ] ; then
       trace "Using template: $PL_TEMPLATE_FILE with ID:$ID CLMID:$CLMID"
-
-      trace PL_COUNT:$PL_COUNT CUR_PL_COUNT:$CUR_PL_COUNT
-      if [ $CUR_PL_COUNT -lt $PL_COUNT ] ; then
+      if should_include_plnode $ID ; then
           trace "Creating PL with ID:$ID"
           create_node $PL_PATTERN $PL_TEMPLATE_FILE $N $ID $CLMID
-          nodegroup_pl_addnode $ID
-          nodegroup_all_addnode $ID
-          #clm_node_store $CLMID $N
+          if [ -z "$NODELIST" ] ; then
+              nodegroup_pl_addnode $ID
+              nodegroup_all_addnode $ID
+          fi
 	  CUR_PL_COUNT=$((CUR_PL_COUNT+1))
       else
-          info "Have reached number of PLs. Skip node with ID:$ID"
+          info "Skip node with ID:$ID"
       fi 
    fi
 done < $NODE_CFG_FILE
 
 verify_result
-nodegroups_end
 
-if [ $CUR_SC_COUNT -gt 0 ] ; then
-   trace "Create nodegroup 'SCs'"
-   nodegroup_sc_store
+
+# generate nodegroups unless immxml is generated only for selected nodes
+if [ -z "$NODELIST" ] ; then
+    nodegroups_end
+ 
+    NODEGROUP_FILE=$RESULT_DIR/imm_nodegroups.xml
+    imm_file_header $NODEGROUP_FILE
+
+    if [ $CUR_SC_COUNT -gt 0 ] ; then
+       trace "Create nodegroup 'SCs'"
+       nodegroup_sc_store $NODEGROUP_FILE
+    fi
+
+    if [ $CUR_PL_COUNT -gt 0 ] ; then
+       trace "Create nodegroup 'PLs'"
+       nodegroup_pl_store $NODEGROUP_FILE
+    fi
+
+    nodegroup_all_store $NODEGROUP_FILE
+    imm_file_trailer $NODEGROUP_FILE
 fi
 
-if [ $CUR_PL_COUNT -gt 0 ] ; then
-   trace "Create nodegroup 'PLs'"
-   nodegroup_pl_store
-fi
-
-nodegroup_all_store
-dyn_file_trailer
 
 info "Successful: result files is placed in directory: $RESULT_DIR"
 exit 0
