@@ -212,15 +212,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 		m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
 #endif
 
-#if (NCS_CPD == 1)
-	/* Init CPD */
-	m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
-	if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("CPD lib request failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-#endif
 #if (NCS_CPND == 1)
 	/* Init CPND */
 	m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");

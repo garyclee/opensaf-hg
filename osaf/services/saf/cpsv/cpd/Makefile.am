@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -20,32 +20,33 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_cpd
+pkglib_PROGRAMS = osafckptd
 
-ncs_cpd_CPPFLAGS = \
+osafckptd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_CPD=1 -DNCS_CPSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-ncs_cpd_SOURCES = \
+osafckptd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	cpd_amf.c \
 	cpd_db.c \
 	cpd_evt.c \
+	cpd_imm.c \
 	cpd_init.c \
 	cpd_log.c \
+	cpd_main.c \
 	cpd_mbcsv.c \
 	cpd_mds.c \
 	cpd_proc.c \
 	cpd_red.c \
 	cpd_sbevt.c \
-	cpd_tmr.c \
-	cpd_imm.c
+	cpd_tmr.c
 
-ncs_cpd_LDADD = \
+osafckptd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \

@@ -828,9 +828,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files ckpt-director
 %defattr(-,root,root)
 %{_pkglibdir}/libcpsv_logstr.so.*
-%{_pkglibdir}/ncs_cpd
-%{_pkglibdir}/ncs_cpd_clean
-%{_pkglibdir}/ncs_cpd_start
+%{_pkglibdir}/osafckptd
+%{_pkglibdir}/osaf-ckptd
 %{_pkgimmxml_svcdir}/cpsv_classes.xml
 %{_pkgimmxml_svcdir}/cpsv_objects.xml
 %{_pkgimmxml_svcdir}/cpsv_pl_template.xml
