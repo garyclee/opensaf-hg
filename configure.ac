@@ -901,9 +901,6 @@ AC_CONFIG_FILES([
         osaf/tools/safntf/ntfsubscribe/Makefile
         pkgconfig/Makefile
         pkgconfig/opensaf.pc
-        scripts/collect_logs_controller
-        scripts/collect_logs_payload
-        scripts/get_ha_state
         tests/avsv/amfoitest/Makefile
         tests/immsv/implementer/Makefile
         tests/immsv/management/Makefile
