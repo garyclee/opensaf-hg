@@ -1,0 +1,188 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+GENERAL
+
+This directory (logsv) contains an implementation of the SAF LOG service
+version A.02.01.
+
+The LOG service is implemented as a server process executing on the controllers
+using a 2N redundancy model. Message based check pointing is
+used to synchronize the two server instances.
+
+The Log file property "High Availability flag" is not supported by LOG itself
+but by using a replicated file system. The LOG implementation is unaware of 
+such a file system and must be configured to use it, see below.
+
+
+DEPENDENCIES
+
+logsv depends of the following other OpenSAF services:
+- MBCSV
+- MDS
+- LEAP
+- logtrace
+
+
+DIRECTORY STRUCTURE
+
+services/logsv/inc	Common header files used by both lga and lgs
+services/logsv/lga	LOG library implementation
+services/logsv/lgs	LOG server
+services/logsv/utils	saflogger command
+lib/lib_SaLog		LOG library staging
+tests/logsv/src		Test suite
+
+
+FILE STRUCTURE
+
+Not yet ...
+
+
+DATA STRUCTURES
+
+lgs uses the following data structures:
+
+- Control block. Statically allocated, one instance. Access through a global
+pointer variable.
+
+- Stream descriptors. Dynamically created, many instances. Accessed using
+stream name or ID. Stored in patricia tree and array.
+
+- Client descriptors. Dynamically created, many instances. Accessed using a
+client ID. Stored in patricia tree. Contains the MDS address of the client.
+Also contains a list of Client-Stream association objects, see below.
+
+- Client-Stream association object. Dynamically created, many instances. One
+instance per open stream. Contains a stream ID. Access through client
+descriptor.
+
+lga uses the following data structures:
+
+- Control block. Statically allocated, one instance per library. Access
+through a global variable. The control block contains the head of a linked
+list with client descriptors.
+
+- Client descriptor. Dynamically allocated. One instance per call to
+saLogInitialize(). Contains callback pointers, handles and the head of a
+linked list with streams descriptors for this client.
+
+- Stream descriptor. Dynamically allocated. One instance per call to
+saLogStreamOpen_2() or saLogStreamOpenAsync_2(). Contains internals IDs
+and handles.
+
+
+CONFIGURATION
+
+The LOG specification describes the configuration object class 
+SaLogStreamConfig which requires the three streams alarm, notification and 
+system to exist. In OpenSAF 3.0 LOG was integrated with IMM meaning 
+this configuration is done using IMM. Please see IMM documentation. The two
+LOG classes and the three default streams are included in the OpenSAF IMM
+configuration. Please use that configuration if creating your own.
+
+Some implementation defined configuration is done in a configuration file.
+The LOG server start script sources the configuration file before it starts the
+LOG server.
+
+The offline (in the OpenSAF distribution) location of the configuration file:
+	osaf/services/saf/logsv/config/logd.conf
+
+If the default values in this file does not fit your system, edit this file and
+rebuild the controller rpm in order to setup your system properly.
+
+The following environment variable is required:
+
+LOGSV_ROOT_DIRECTORY
+
+The 'LOGSV_ROOT_DIRECTORY' variable is needed to configure the
+"implementation defined root directory" as mentioned in the spec. All log files
+will be stored directly in this directory or in a subdirectory. Make sure to to 
+configure this directory to a replicated (shared & persistent) partition.
+
+
+COMMAND LINE INTERFACE
+
+The 'saflogger' command can be used to enter log records to any stream. Please
+see the on line help for more information.
+
+
+DEBUG
+
+Log server traces are by default disabled. To enable/disable log server traces 
+in a running system, send signal USR1 to the osaflogd process. Every time the 
+trace state is toggled. Example:
+
+	$ pkill -USR1 osaflogd
+
+Traces are written to the file:
+
+	$PKGLOGDIR/osaflogd.log
+
+To enable traces from the very start of the log server, uncomment the line:
+
+        #export LOGD_TRACE_CATEGORIES=ALL
+
+in logd.conf (see CONFIGURATION above) and restart the cluster.
+
+For fatal errors syslog is used.
+
+To dump the internal log server data base, send signal USR2 to the osaflogd
+process, example:
+
+	$ pkill -USR2 osaflogd
+
+The dump is done to the trace file no matter if trace is enabled or not.
+
+
+TEST
+
+Currently a simple unit test can be found in 'tests/logsv/src'. The test suite
+is built by the main make system and is either install by 'make install' or by
+installing the tools rpm.
+
+
+TODO
+
+- Implement missing API functions:
+	- saLogStreamOpenAsync_2
+	- saLogWriteLog
+	- saLogLimitGet
+	- saLogFilterSetCallback
+	- saLogStreamOpenCallback
+- NID start of the log server process.
+- Implement CLM interaction as described in 3.2
+- Implement Log filtering (IMM needed for configuration)
+- Implement log file full actions other than rotate
+- Write optimization, no sync for log write
+- Cleanup/act on "FIX" and "TODO" comments
+- Revisit trace statements, cleanup
+- Cleanup remains of edsv (search for 'channel')
+- Implement "6 Alarms and Notifications" (NTF needed)
+- On standby, query local MDS-layer for status of an agent before updating data
+  structures during sync.
+- Distributed testing
+- Document manual test cases
+
+
+CONTRIBUTORS/MAINTAINERS
+
+Arne Eriksson <Arne.R.Eriksson@ericsson.com>
+Hans Feldt <Hans.Feldt@ericsson.com>
+Niklas Nilsson
+
+The LOG service was originally cloned from the edsv service.

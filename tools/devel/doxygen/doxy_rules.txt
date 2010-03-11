@@ -1,0 +1,342 @@
+For the complete online Doxygen manual, please refer to:
+
+http://www.stack.nl/~dimitri/doxygen/manual.html
+
+
+I. Doxygen comment block style to use for documenting OpenSAF
+=============================================================
+
+The JavaDoc style, which consist of a C-style comment block starting with two 
+*'s, like this:
+
+	/**
+	 * ... text ...
+	 */
+
+
+With JAVADOC_AUTOBRIEF set to YES in the configuration file, using JavaDoc 
+style comment blocks will automatically start a brief description which ends at 
+the first dot followed by a space or new line.
+
+	/**
+	 * Brief description which ends at this dot. Details follow
+	 * here.
+	 */
+
+If you enable this option (JAVADOC_AUTOBRIEF) and want to put a dot in the 
+middle of a sentence without ending it, you should put a backslash and a space 
+after it.
+
+	/** Brief description (e.g.\ using only a few words). Details follow. */
+
+The brief descriptions are included in the member overview of a class, 
+namespace or file and are printed using a small italic font (this description 
+can be hidden by setting BRIEF_MEMBER_DESC to NO in the config file). By 
+default the brief descriptions become the first sentence of the detailed 
+descriptions (but this can be changed by setting the REPEAT_BRIEF tag to NO).
+
+
+The commands start with an at-sign (@) for the JavaDoc style.
+
+	/**
+	 * Copies bytes from a source memory area to a destination memory area,
+	 * where both areas may not overlap.
+	 * @param[out] dest The memory area to copy to.
+	 * @param[in]  src  The memory area to copy from.
+	 * @param[in]  n    The number of bytes to copy
+	 */
+	void memcpy(void *dest, const void *src, size_t n);
+
+
+If you want to document the members of a file, struct, union, class, or enum, 
+and you want to put the documentation for these members inside the compound, it 
+is sometimes desired to place the documentation block after the member instead 
+of before. For this purpose you have to put an additional < marker in the 
+comment block. Note that this also works for the parameters of a function.
+
+	int var; /**< Detailed description after the member */
+
+
+II. How to document various C blocks
+====================================
+
+Depending of their scopes, the various code blocks must be documented in 
+different locations.
+
+For example, if a function is local-to-file only, the doxygen documentation
+occurs in that file (at the prototype declaration). If the function/class/struct
+is public, the documentation should occur in the header file, not with the 
+implementation.
+
+Easy rules:
+
+	file-scope   -> document in the implementation file
+	public-scope -> document in the header file
+
+1 Functions
+===========
+
+	/**
+	 * Copies bytes from a source memory area to a destination memory area,
+	 * where both areas may not overlap.
+	 * @param[out] dest The memory area to copy to.
+	 * @param[in]  src  The memory area to copy from.
+	 * @param[in]  n    The number of bytes to copy
+	 * @return          Returns nothing
+	 */
+	void memcpy(void *dest, const void *src, size_t n);
+
+@param starts a parameter description for a function parameter with name 
+<parameter-name>, followed by a description of the parameter. The existence of 
+the parameter is checked and a warning is given if the documentation of this 
+(or any other) parameter is missing or not present in the function declaration 
+or definition.
+
+The @param command has an optional attribute specifying the direction of the 
+attribute. Possible values are "in" and "out". If a parameter is both input and 
+output, use [in,out] as an attribute.
+
+The parameter description is a paragraph with no special internal structure. 
+All visual enhancement commands may be used inside the paragraph.
+
+@return starts a return value description for a function. The text of the 
+paragraph has no special internal structure. All visual enhancement commands 
+may be used inside the paragraph.
+
+	/**
+	 * Check if the character is alphanumeric.
+	 * @param[in] c The character to test
+	 * @retval    0 FALSE
+	 * @retval    1 TRUE
+	 */
+	int isalpha(char c);
+
+@retval starts a return value description for a function with name <return 
+value>. Followed by a description of the return value. The text of the 
+paragraph that forms the description has no special internal structure. All 
+visual enhancement commands may be used inside the paragraph.
+
+@see starts a paragraph where one or more cross-references to classes, 
+functions, methods, variables, files or URL may be specified.
+
+
+2. Structs / Unions / Enums
+===========================
+
+	/**
+	 * An enum.
+	 * More detailed enum description.
+	 */
+	enum value_group {
+		val1, /**< enum value val1. */
+		val2, /**< enum value val2. */
+		val3  /**< enum value val3. */
+	}
+
+
+3. Global variables / Defines / Typedefs
+========================================
+
+	struct foo *my_struct; /**< struct pointer. Details. */
+	#define TRUE 1         /**< define TRUE. */
+
+
+4. Files
+========
+
+	/**
+	 * @file file.h
+	 * @Author Me (me@example.com)
+	 * @date   2009-11-18
+	 *
+	 * A brief file description.
+	 * A more elaborated file description.
+	 */
+
+@file indicates that a comment block contains documentation for a source or 
+header file with name <name>. The file name may include (part of) the path if 
+the file-name alone is not unique. If the file name is omitted (i.e. the line 
+after @file is left blank) then the documentation block that contains the @file 
+command will belong to the file it is located in.
+
+
+III. How to document various C++ blocks
+=======================================
+
+Documenting C++ specific code such as classes is no different that documenting
+several individual C blocks.
+
+1. Classes
+==========
+
+	/**
+	 *  A test class. A more elaborate class description.
+	 */
+	class Test
+	{
+		public:
+
+		/** 
+		 * An enum.
+		 * More detailed enum description.
+		 */
+		enum TEnum { 
+			TVal1, /**< enum value TVal1. */  
+			TVal2, /**< enum value TVal2. */  
+			TVal3  /**< enum value TVal3. */  
+		} 
+		*enumPtr, /**< enum pointer. Details. */
+		enumVar;  /**< enum variable. Details. */
+
+		/**
+		 * A constructor.
+		 * A more elaborate description of the constructor.
+		 */
+		Test();
+	
+		/**
+		 * A destructor.
+		 * A more elaborate description of the destructor.
+		 */
+		~Test();
+    
+		/**
+		 * a normal member taking two arguments and returning an integer value.
+		 * @param a an integer argument.
+		 * @param s a constant character pointer.
+		 * @see Test()
+		 * @see ~Test()
+		 * @see testMeToo()
+		 * @see publicVar()
+		 * @return The test results
+		 */
+		int testMe(int a, const char *s);
+	       
+		/**
+		 * A pure virtual member.
+		 * @see testMe()
+		 * @param c1 the first argument.
+		 * @param c2 the second argument.
+		 */
+		virtual void testMeToo(char c1, char c2) = 0;
+	   
+		/** 
+		 * a public variable.
+		 * Details.
+		 */
+		int publicVar;
+       
+		/**
+		 * a function variable.
+		 * Details.
+		 */
+		int (*handler)(int a,int b);
+	};
+
+
+IV. How to document various Java blocks
+=======================================
+
+Doxygen understands the original Javadoc from the JDK syntax. Just stick with 
+the  original syntax, and the Java AIS mapping documentation will also be
+included with the other documentation components.
+
+
+V. Grouping / Modules
+=====================
+
+TODO
+
+
+VI. Misc. sections
+==================
+
+It's possible to maintain items in misc. sections such as:
+
+	@bug { bug description }
+	@warning { warning message }
+
+	/**
+	 *  Windows Nice Try.
+	 *  @bug It crashes a lot and requires huge amounts of memory.
+	 *  @bug The class introduces the more bugs, the longer it is used.
+	 *  @warning This class may explode in your face.
+	 *  @warning If you inherit anything from this class, you're doomed.
+	 */
+	class WindowsNT {};
+
+
+Starts a paragraph where a TODO item is described. The description will also add 
+an item to a separate TODO list. The two instances of the description will be 
+cross-referenced. Each item in the TODO list will be preceded by a header that 
+indicates the origin of the item.
+
+	@todo { paragraph describing what is to be done }
+
+
+Starts a paragraph where a test case can be described. The description will also 
+add the test case to a separate test list. The two instances of the description 
+will be cross-referenced. Each test case in the test list will be preceded by a 
+header that indicates the origin of the test case.
+
+	@test { paragraph describing a test case }
+
+
+VII. Cleaning up all content-free comment headers/sections
+==========================================================
+
+Sections like:
+
+/****************************************************************************
+ ****************************************************************************
+ ****************************************************************************
+ **                                                                        **
+ **                       General Definitions                              **
+ **                                                                        **
+ ****************************************************************************
+ ****************************************************************************
+ ****************************************************************************
+
+/*@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+/*****************************************************************************
+..............................................................................
+
+  MODULE NAME:  os_defs.c
+
+..............................................................................
+
+  DESCRIPTION:
+
+  This module contains template operating system primitives.
+
+  CONTENTS:
+
+    ncs_os_timer          (timer, request )
+    ncs_os_task           (task,  request )
+    ncs_os_ipc            (ipc,   request )
+    ncs_os_sem            (sem,   request )
+    ncs_os_lock           (lock,  request, type)
+    ncs_os_mq             (req)
+    ncs_os_start_task_lock(void)
+    ncs_os_end_task_lock  (void)
+
+******************************************************************************/
+
+
+/*****************************************************************************
+..............................................................................
+
+    @@@@@  @               @@@@@@  @@@@@@@ @@@@@@@  @@@@@          @     @
+   @     @ @               @     @ @       @       @     @         @     @
+   @       @               @     @ @       @       @               @     @
+   @  @@@@ @               @     @ @@@@@   @@@@@    @@@@@          @@@@@@@
+   @     @ @               @     @ @       @             @   @@@   @     @
+   @     @ @               @     @ @       @       @     @   @@@   @     @
+    @@@@@  @@@@@@@ @@@@@@@ @@@@@@  @@@@@@@ @        @@@@@    @@@   @     @
+ 
+..............................................................................
+
+Should be removed in every files to use the proper Doxygen functions and files 
+documentation comments. Avoid content-free ASCII arts and stick to plain 
+Doxygen comments not to bloat the source files.

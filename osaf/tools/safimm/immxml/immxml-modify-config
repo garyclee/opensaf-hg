@@ -1,0 +1,213 @@
+#!/bin/bash
+#
+# (C) Copyright 2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+die() {
+    echo "ERROR: $*" >&2
+    exit 1
+}
+
+trace () {
+  if [ ! -z "$TRACE_ENABLED" ]; then
+     echo -e "trace: $1" >&2
+     #         ^^^ to stderr
+  fi
+}
+
+script_error () {
+   echo "error: $1" >&2
+   #         ^^^ to stderr
+}
+
+verifyExitCode()
+{
+    if [ $1 -ne 0 ]
+    then
+       script_error "$2 failed. Aborting script! exitCode: $1"
+       exit $?
+    fi
+}
+
+is_in_nodelist()
+{
+   local NODE="$1" element
+   shift
+
+   for element
+   do
+     #trace "is_in_list: $NODE element: $element "
+     [[ $element = $NODE ]] && return 0
+   done
+
+   return 1
+}
+
+test -f "$PWD/$0" || die 'Must execute $0 from directory where it is located'
+
+
+USAGE="Usage: $0\n\
+\t  [-c|--node-config node_config_file]\n\
+\t  [-d|--workdir directory]\n\
+\t  [--dryrun]\n\
+\t  [--nodes-to-remove listOfNodes]\n\
+\t  [-h|--help]\n\
+\n\
+Note. With no options given to script it will create and load imm objects for the \n
+not yet existing nodes thats exists in node config file (default: ./nodes.cfg).\n
+With --dryrun option it is possible to generate a file with additional node realted objects as an imm.xml delta file and a command file."
+
+TEMP=`getopt -o d:s:p:c:ht --long dryrun,nodes-to-remove:,node-config:,workdir:,help,trace \
+     -- "$@"`
+if [ $? != 0 ] ; then
+   script_error "Failed to process command options. Terminating..."
+   exit 1 ;
+fi
+
+eval set -- "$TEMP"
+
+while true ; do
+        case "$1" in
+                -c|--node-config) NODE_CFG_FILE=$2; trace "Option --node-config , argument \`$NODE_CFG_FILE'" ; shift 2 ;;
+                -d|--workdir) WORK_ROOTDIR=$2; trace "Option $1 , argument \`$WORK_ROOTDIR'" ; shift 2 ;;
+                --nodes-to-remove) NODELIST=$2; trace "Option --nodelist, argument \`$NODELIST'" ; shift 2 ;;
+                -h|--help) echo -e $USAGE ; exit 1 ;;
+                   --dryrun) DRYRUN=on ; shift 1 ;;
+                -t|--trace) TRACE_ENABLED=on ; shift 1 ;;
+                --) shift ; break ;;
+                *) script_error "Internal error!" ; exit 1 ;;
+        esac
+done
+
+if [[ -n "$DRYRUN" ]] && [[ -z $WORK_ROOTDIR ]] ; then
+   echo "Error: with --dryrun option it is also required to specify workdir (-d|--workdir)"
+fi
+
+if [ -z $WORK_ROOTDIR ] ; then
+   WORK_ROOTDIR=`mktemp -d /tmp/immxml_configure.XXXXXX`
+   WORKDIR_SPECIFIED=true
+else
+   rm -rf $WORK_ROOTDIR
+   mkdir -p $WORK_ROOTDIR
+fi
+trace "WORK_ROOTDIR: $WORK_ROOTDIR"
+
+SERVICESDIR=./services
+TEMPLATE_TMPDIR=$WORK_ROOTDIR/templatedir
+TMPDIR=$WORK_ROOTDIR/intermediatefiles
+NODE_TMPDIR=$WORK_ROOTDIR/nodes
+LOGFILE=$WORK_ROOTDIR/$0.log
+RESULTFILE=$WORK_ROOTDIR/imm_increase_clustersize.xml
+MANUAL_CMDFILE=$WORK_ROOTDIR/manual_cmds.sh
+
+mkdir -p $TMPDIR
+mkdir -p $TEMPLATE_TMPDIR
+mkdir -p $NODE_TMPDIR
+
+SC_TEMPLATE=$TEMPLATE_TMPDIR/imm_sc_template.xml
+trace "merge SC templates to: $SC_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $SC_TEMPLATE `find $SERVICESDIR -name \*_sc_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge SC templates"
+
+PL_TEMPLATE=$TEMPLATE_TMPDIR/imm_pl_template.xml
+trace "merge PL templates to: $PL_TEMPLATE"
+./immxml-merge --ignore-missing-class -o $PL_TEMPLATE `find $SERVICESDIR -name \*_pl_template.xml|xargs` >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-merge PL templates"
+
+CURRENT_NODES=`immlist -a saAmfNGNodeList safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster | sed "
+s/saAmfNGNodeList=//g
+s/safAmfNode=//g
+s/,safAmfCluster=myAmfCluster//g
+s/:/ /g
+"`
+trace "CURRENT_NODES: $CURRENT_NODES"
+
+NODE_CFG_FILE=./nodes.cfg
+NEW_NODECONFIG=`cat $NODE_CFG_FILE | awk '{ print $2 }'|xargs`
+trace "NEW_NODECONFIG: $NEW_NODECONFIG"
+NODES_TO_ADD=""
+NODES_TO_REMOVE=""
+
+# Look for nodes to be added
+while read TYPE ID CLMID ; do
+   N=$((N+1))
+   trace "N:$N ID:$ID"
+
+   if ! is_in_nodelist $ID $CURRENT_NODES ; then
+       trace "New node to be added: $ID"
+       NODES_TO_ADD="$NODES_TO_ADD $ID"
+   fi
+done < $NODE_CFG_FILE
+trace "NODES_TO_ADD:$NODES_TO_ADD"
+
+# Look for nodes to be removed
+#for node in $CURRENT_NODES ; do
+#   trace "node:$node"
+#   if ! is_in_nodelist $node $NEW_NODECONFIG ; then
+#       trace "Node to be removed: $node"
+#       NODES_TO_REMOVE="$NODES_TO_REMOVE $node"
+#   fi
+#done
+#trace "NODES_TO_REMOVE:$NODES_TO_REMOVE"
+
+trace "Generate node specific immxml files into dir:$NODE_TMPDIR"
+./immxml-nodegen --nodegen-dir $NODE_TMPDIR --sc-template $SC_TEMPLATE --pl-template $PL_TEMPLATE --node-config $NODE_CFG_FILE --nodelist $NODES_TO_ADD >>$LOGFILE 2>&1
+verifyExitCode $? "immxml-nodegen"
+
+# merge all intermediate files to the node expansion file
+FILES_TO_MERGE="$NODE_TMPDIR/*.xml"
+
+trace "Create node expansion imm.xml by merging intermediate files :$FILES_TO_MERGE"
+./immxml-merge --sort --ignore-missing-class -o $RESULTFILE $FILES_TO_MERGE  >>$LOGFILE 2>&1
+verifyExitCode $? "final immxml-merge"
+
+# validate is not possible
+#./immxml-validate $RESULTFILE  >>$LOGFILE 2>&1
+
+trace "Successfully generated the imm file: $RESULTFILE"
+
+immcmd="immcfg -v -f $RESULTFILE"
+if [ -z "$DRYRUN" ]; then
+   eval $immcmd
+   verifyExitCode $? "load with immcfg -f"
+   trace "Successfully loaded the imm file: $RESULTFILE"
+else
+   echo $immcmd >> $MANUAL_CMDFILE
+fi
+
+
+trace "add '$NODES_TO_ADD' to nodegroups"
+for node in $NODES_TO_ADD ; do
+   trace "node:$node"
+   ng_cmd1="immcfg -a saAmfNGNodeList+=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=AllNodes,safAmfCluster=myAmfCluster"
+   NODETYPE=${node:1:2}
+   ng_cmd2="immcfg -a saAmfNGNodeList+=safAmfNode=$node,safAmfCluster=myAmfCluster safAmfNodeGroup=$NODETYPEs,safAmfCluster=myAmfCluster"
+
+   if [ -z "$DRYRUN" ]; then
+      trace $ng_cmd1
+      eval $ng_cmd1
+      
+      trace $ng_cmd2
+      eval $ng_cmd2
+   else
+      echo $ng_cmd1 >> $MANUAL_CMDFILE
+      echo $ng_cmd2 >> $MANUAL_CMDFILE
+   fi
+done
+
+if [ -z "$WORKDIR_SPECIFIED" ] ; then
+   # clean up only if workdir was not specified
+   rm -rf $WORK_ROOT_DIR
+fi
+

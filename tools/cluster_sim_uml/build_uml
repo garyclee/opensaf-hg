@@ -1,0 +1,317 @@
+#! /bin/bash
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008-2010 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+
+##
+## build_uml [subcommand] [params...]
+##
+##   Build script for the Open SAF cluster simulation with User Mode
+##   Linux (UML).  When invoked without a sub-command the rootfs is
+##   built (for backward compatibility).
+##
+## Subcommands;
+##
+
+prg=`basename $0`
+dir=`dirname $0`; dir=`cd $dir; pwd`
+tmp=/tmp/${prg}$$
+
+die() {
+    echo "ERROR: $*" >&2
+    rm -rf $tmp
+    exit 1
+}
+
+##   help
+##     Help printout.
+##
+cmd_help() {
+    grep '^##' $dir/$prg | cut -c3-
+}
+
+if test "$(uname -m)" = "x86_64"; then
+    lib_dir=lib64
+else
+    lib_dir=lib
+fi
+
+opensaf_home=$(cd ../..; pwd)
+top=`pwd`
+bin=$top/bin
+archive=$top/archive
+scripts=$archive/scripts
+root=$top/rootfs
+
+appconfig=${APPCONFIG:-"AppConfig-2N.xml"}
+
+##   getlibs prog [prog...]
+##     Return required (and found) dynamic libs for programs.
+##
+cmd_getlibs() {
+    for n in $@; do
+	test -x $n || continue
+	file -L $n | grep -q "dynamically linked\|shared object" || continue
+	ldd $n | grep -o '/[^ ]*' | sed -e 's,/tls,,'
+    done
+}
+
+
+##   install_testprog
+##     Build and install the AMF demo program.
+##     Use environment variable APPCONFIG to name the imm.xml to be used.
+##     Default is "AppConfig-2N.xml"
+##     For example: 
+##        env APPCONFIG=AppConfig-nwayactive.xml ./build_uml install_testprog
+##
+cmd_install_testprog() {
+    src=$opensaf_home/samples/avsv
+    libd=$top/rootfs/usr/local/$lib_dir
+    installd=$top/rootfs/opt/amf_demo
+    immxml=$top/rootfs/etc/opensaf/imm.xml
+
+    mkdir -p $installd
+    cp $src/amf_demo_script $installd
+    gcc -g -O2 -Wall -fPIC -I$opensaf_home/osaf/libs/saf/include \
+	-o $installd/amf_demo $src/amf_comp_template.c \
+	-L$libd -lSaAmf -L$libd/opensaf -lavsv_common -lopensaf_core
+
+    test -r $immxml.orig || cp $immxml $immxml.orig
+    $opensaf_home/osaf/tools/safimm/immxml/immxml-merge \
+	$immxml.orig $src/$appconfig > $immxml
+    $opensaf_home/osaf/tools/safimm/immxml/immxml-validate $immxml
+    echo "Creating [$root/root.cpio] ..."
+    cmd_mkcpio
+}
+
+##   create_rootfs
+##     Create a (shadow) rootfs with OpenSAF and other required programs.
+##
+cmd_create_rootfs()
+{
+    echo "(Re-)Creating new root file system..."
+    rm -rf $root
+    mkdir $root
+
+    cd $root
+    echo "Setup dirs and links..."
+    if test "$(uname -m)" = "x86_64"; then
+	mkdir -p sbin bin lib64 usr/lib64 usr/sbin usr/bin
+	mkdir -p etc/default etc/init.d
+	ln -s lib64 usr/lib
+	ln -s lib64 lib
+    else
+	mkdir -p sbin bin lib usr/lib usr/sbin usr/bin
+	mkdir -p etc/default etc/init.d
+    fi
+
+    echo "Installing OpenSAF (takes some time)..."
+    if ! make -C $opensaf_home DESTDIR=$root -j3 install>$tmp/install.log 2>&1
+    then
+	cat $tmp/install.log
+	die "Failed to install OpenSAF"
+    fi
+    rm -rf $root/usr/local/share/opensaf/samples \
+	$root/usr/local/include \
+	$root/usr/local/share/doc \
+	$root/usr/local/lib/pkgconfig \
+	$root/usr/local/lib/opensaf/*.a \
+	$root/usr/local/lib/opensaf/*.la \
+	$root/usr/local/lib/*.a $root/usr/local/lib/*.la 
+
+    install -m 755 $archive/scripts/*.rc etc/init.d
+    cp $scripts/profile etc
+    cp $scripts/shutdown sbin
+    mkdir -p root/www/cgi-bin
+    cp $scripts/rshd root/www/cgi-bin
+    cp $scripts/rsh $scripts/rcp usr/bin
+    chmod +x usr/bin/rsh usr/bin/rcp root/www/cgi-bin/rshd
+
+    echo "Copy some needed extra programs (bash, ...)"
+    install /bin/bash bin
+    install /usr/bin/pgrep usr/bin
+    install /usr/bin/pkill usr/bin
+    install /usr/bin/killall usr/bin
+
+    # Some distros use startproc/killproc, others start-stop-daemon
+    test -e /sbin/startproc && install /sbin/startproc sbin
+    test -e /sbin/killproc && install /sbin/killproc sbin
+    test -e /sbin/start-stop-daemon && install /sbin/start-stop-daemon
+
+    mkdir -p lib/lsb
+    install /lib/lsb/init-functions lib/lsb
+    install /etc/rc.status etc
+
+    # Needed by dtsv archive rotation
+    install /bin/tar bin
+    install $(which nice) usr/bin
+    
+    # Change LOG configuration to use "replicated" disk
+    sed -i 's/=${PKGLOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
+	etc/opensaf/logd.conf
+
+    # The var directory structure is setup from within each UML
+    rm -rf var/*
+
+    # Copy local timezone settings
+    test -f /etc/localtime && install /etc/localtime etc
+
+    # Create a dummy /etc/hosts file, will be populated at start
+    touch $root/etc/hosts
+
+    echo "Installing required dynamic libs..."
+    cmd_installibs
+
+    echo "Generating imm.xml for a default sized cluster" 
+    cmd_generate_immxml
+    echo -e "\n Command to generate the imm.xml for other size of cluster:\n \"build_uml generate_immxml [clustersize]\"\n"
+
+    cd $top
+    if test -n "$INSTALL_TESTPROG"; then
+	echo "Building and installing test program"
+	cmd_install_testprog
+    else
+        echo "Creating [$root/root.cpio] ..."
+        cmd_mkcpio
+    fi
+
+    # Remove line for starting plms 
+    sed '/PLMD/d' < $root/etc/opensaf/nodeinit.conf.controller > \
+        $root/etc/opensaf/nodeinit.conf.controller.tmp
+    mv $root/etc/opensaf/nodeinit.conf.controller.tmp \
+        $root/etc/opensaf/nodeinit.conf.controller
+}
+
+##   installibs
+##     Install required dynamic libraries.
+##     opensaf dependencies are excluded.
+##
+cmd_installibs() {
+    local deplib=$tmp/deplib
+    cd $root
+    cmd_getlibs \
+	$(find . -name immload) ./bin/* ./usr/bin/* ./usr/sbin/* |\
+	grep -v -e 'libSa\|libimmsv\|libncs\|libsaf' \
+	-e "^/$lib_dir/ld-\|^/$lib_dir/libc.so" > $deplib
+
+    for n in $(cat $deplib | sort | uniq); do
+	dst=usr/$lib_dir
+	echo $n | grep -q '^/lib' && dst=$lib_dir
+	echo "  $n -> rootfs/$dst/$(basename $n)"
+	cp -L $n $dst || die "Failed [cp -R $n $dst]"
+    done
+}
+
+
+##   mklndircpio <fromdir> <archive> [prefix]
+##     Creates cpio archive with a link-tree with absolute links.
+##
+cmd_mklndircpio() {
+    test -n "$1" -a -n "$2" || die "Missing param"
+    test -d "$1" || die "Not a directory [$1]"
+    archive=$2
+    prefix=${3:-/hostfs/rootfs}
+    tmpd=$tmp/mklndircpio$$
+    echo $archive | grep -q "^/" || $archive=$top/$archive
+    rm -f $archive
+    cd $1
+    items=`find ./ | sed -e 's,./,,'`
+    for n in $items; do
+	if test -d $n; then
+	    mkdir -p $tmpd/$n || die "Can't create dir [$tmpd/$n]"
+	else
+	    ln -s $prefix/$n $tmpd/$n || die "Can't create link [$tmpd/$n]"
+	fi
+    done
+    cd $tmpd
+    echo $items | tr ' ' '\n' | cpio -o -H newc > $archive
+}
+
+##   mkcpio
+##     Re-build the "rootfs/root.cpio" file using the "mklndircpio"
+##     sub-command.
+##
+cmd_mkcpio() {
+    cmd_mklndircpio $root $root/root.cpio /hostfs/rootfs >& /dev/null ||\
+	die Failed
+}
+
+##   default
+##     Backward compatible default command.
+##
+cmd_default() {
+    if find rootfs -name ncs_nid >& /dev/null; then
+	echo "OpenSAF seems to be installed already, cowardly refusing..."
+	echo "   Remove directory 'rootfs' if a fresh install is needed"
+	exit 0
+    fi
+
+    # Build the Linux UML binary
+    ./uml/build_uml all || die "build of UML Linux kernel failed"
+    cmd_create_rootfs
+}
+
+##   gen_immxml
+##   Generates the imm.xml file with a given cluster size.
+##   Default size with no argument given is 2 SC's and 3 PL's
+##   For example (generates imm.xml for 2 SC's and 8 PL's): 
+##        ./build_uml generate_immxml 10
+##
+cmd_generate_immxml() {
+    numnodes=${1:-5}
+    cd $top
+    
+    if test ! -d rootfs ; then
+	echo "   This command requires an existing 'rootfs' directory"
+	exit 0
+    fi
+
+    # generate imm.xml file
+    cd rootfs/usr/local/share/opensaf/immxml
+    if test $numnodes -lt 2 ; then
+        sc_count=1
+        pl_count=0
+    else
+        sc_count=2
+        pl_count=$[$numnodes-2]
+    fi
+
+    echo "Generating the imm.xml file with $sc_count SC's and $pl_count PL's"
+    ./immxml-clustersize --sc-count $sc_count --pl-count $pl_count >$tmp/install.log 2>&1
+    rm -f imm_generated.xml
+    if ! ./immxml-configure imm_generated.xml
+    then
+	die "Failed to generate immxml"
+    fi
+    cp -f imm_generated.xml $top/rootfs/etc/opensaf/imm.xml
+    cd $top
+    echo "generate_immxml complete."
+}
+
+# Get the command
+if test -n "$1"; then
+    cmd=$1
+    shift
+else
+    cmd=default
+fi
+grep -q "^cmd_$cmd()" $0 || die "Invalid command [$cmd]"
+trap "die Interrupted" INT TERM
+mkdir -p $tmp
+cmd_$cmd "$@"
+status=$?
+rm -rf $tmp
+exit $status

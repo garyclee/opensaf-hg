@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+pkglibdir=@libdir@/@PACKAGE_NAME@
+includedir=@includedir@
+
+Name: OpenSAF AMF
+Description: Implementation of SA Forum AIS Availability Management Framework
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lSaAmf -L${pkglibdir}
+Cflags: -I${includedir}

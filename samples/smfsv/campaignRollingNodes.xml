@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Created with Liquid XML Studio - FREE Community Edition 7.1.6.1440 (http://www.liquid-technologies.com) -->
+<upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="file:///C:/Users/eingber/SA-forum/SMF/SMF%20schema/SAI-AIS-SMF-UCS-A.01.02_modified.xsd" safSmfCampaign="safSmfCampaign=OpenSAFSampleCamp">
+	<campaignInfo>
+		<campaignPeriod saSmfCmpgExpectedTime="123456789" />
+		<configurationBase saSmfCmpgConfigBase="9876543" />
+	</campaignInfo>
+	<campaignInitialization>
+		<addToImm>
+			<softwareBundle name="safBundle=bundleA">
+			<!--softwareBundle name="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService"-->
+				<removal>
+					<offline command="/hostfs/offline_remove.sh" args="bundleA" saSmfBundleRemoveOfflineScope="1"></offline>
+					<online command="/hostfs/online_remove.sh" args="bundleA"></online>
+				</removal>
+				<installation>
+					<offline command="/hostfs/offline_install.sh" args="bundleA" saSmfBundleInstallOfflineScope="2"></offline>
+					<online command="/hostfs/online_install.sh" args="bundleA"></online>
+				</installation>
+				<defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000" />
+			</softwareBundle>
+			<amfEntityTypes>
+				<CompBaseType safCompType="safCompType=AmfDemoCompType">
+					<CompType safVersion="safVersion=5.5.5">
+						<providesCSType safSupportedCsType="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType" saAmfCtCompCapability="1" saAmfCtDefNumMaxActiveCsi="1" saAmfCtDefNumMaxStandbyCsi="1" />
+						<compTypeDefaults saAmfCtCompCategory="1" saAmfCtDefRecoveryOnError="5" saAmfCtDefClcCliTimeout="10000000000" saAmfCtDefCallbackTimeout="10000000000" saAmfCtDefDisableRestart="1">
+						</compTypeDefaults>
+						<instantiateCmd saAmfCtRelPathInstantiateCmd="amf_demo_script">
+							<cmdArgv>instantiate</cmdArgv>
+						</instantiateCmd>
+						<cleanupCmd saAmfCtRelPathCleanupCmd="amf_demo_script">
+							<cmdArgv>cleanup</cmdArgv>
+						</cleanupCmd>
+						<swBundle saAmfCtSwBundle="safBundle=bundleA" />
+					</CompType>
+				</CompBaseType>
+			</amfEntityTypes>
+		</addToImm>
+		<campInitAction>
+			<immCCB ccbFlags="0">
+				<create objectClassName="SaAmfHealthcheckType" parentObjectDN="safVersion=5.5.5,safCompType=AmfDemoCompType">
+					<attribute name="safHealthcheckKey" type="SA_IMM_ATTR_SASTRINGT">
+						<value>safHealthcheckKey=AmfDemo</value>
+					</attribute>
+					<attribute name="saAmfHctDefPeriod" type="SA_IMM_ATTR_SATIMET">
+						<value>10000000000</value>
+					</attribute>
+					<attribute name="saAmfHctDefMaxDuration" type="SA_IMM_ATTR_SATIMET">
+						<value>6000000000</value>
+					</attribute>
+				</create>
+			</immCCB>
+		</campInitAction>
+	</campaignInitialization>
+	<upgradeProcedure safSmfProcedure="safSmfProc=amfClusterProc" saSmfExecLevel="2">
+		<outageInfo>
+			<acceptableServiceOutage>
+				<all />
+			</acceptableServiceOutage>
+			<procedurePeriod saSmfProcPeriod="12345678" />
+		</outageInfo>
+		<upgradeMethod>
+			<rollingUpgrade>
+				<upgradeScope>
+					<byTemplate>
+						<targetNodeTemplate objectDN="safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster">
+							<!--activationUnitTemplate> 								
+								<type objectDN="safVersion=4.0.0,safSuType=AmfDemoSuType"></type>
+							</activationUnitTemplate-->
+							<swRemove bundleDN="safBundle=AmfDemo"/>
+							<!--swAdd bundleDN="safBundle=bundleA,safRepository=smfRepository,safApp=safSmfService" pathnamePrefix="/opt/amf_demo" /-->
+							<swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo" />
+						</targetNodeTemplate>
+						<targetEntityTemplate>
+							<type objectDN="safVersion=4.0.0,safSuType=AmfDemoSuType"></type>
+							<modifyOperation objectRDN="safComp=AmfDemo" operation="SA_IMM_ATTR_VALUES_REPLACE">
+								<attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
+									<value>safVersion=5.5.5,safCompType=AmfDemoCompType</value>
+								</attribute>
+							</modifyOperation>
+						</targetEntityTemplate>
+					</byTemplate>
+				</upgradeScope>
+				<upgradeStep saSmfStepRestartOption="1" saSmfStepMaxRetry="8"/>
+			</rollingUpgrade>
+		</upgradeMethod>
+	</upgradeProcedure>
+	<campaignWrapup>
+		<waitToCommit time="123456" />
+		<waitToAllowNewCampaign time="10000"></waitToAllowNewCampaign>
+		<removeFromImm>
+        </removeFromImm>
+	</campaignWrapup>
+</upgradeCampaign>

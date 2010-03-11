@@ -1,0 +1,80 @@
+#! /bin/sh
+#
+# (C) Copyright 2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson
+#
+
+usage()
+{
+	echo "usage: `basename $0` <lock|unlock|lock-in|unlock-in|shutdown|restart|si-swap|sg-adjust|repaired|eam-start|eam-stop> <DN>"
+}
+
+if [ $# -ne 2 ]; then
+	usage
+	exit 1
+fi
+
+ADMIN_UNLOCK=1
+ADMIN_LOCK=2
+ADMIN_LOCK_INSTANTIATION=3
+ADMIN_UNLOCK_INSTANTIATION=4
+ADMIN_SHUTDOWN=5
+ADMIN_RESTART=6
+ADMIN_SI_SWAP=7
+ADMIN_SG_ADJUST=8
+ADMIN_REPAIRED=9
+EAM_START=10
+EAM_STOP=11
+
+case $1 in
+	"unlock")
+		immadm -o $ADMIN_UNLOCK $2
+		;;
+	"lock")
+		immadm -o $ADMIN_LOCK $2
+		;;
+	"lock-in")
+		immadm -o $ADMIN_LOCK_INSTANTIATION $2
+		;;
+	"unlock-in")
+		immadm -o $ADMIN_UNLOCK_INSTANTIATION $2
+		;;
+	"shutdown")
+		immadm -o $ADMIN_SHUTDOWN $2
+		;;
+	"restart")
+		immadm -o $ADMIN_RESTART $2
+		;;
+	"si-swap")
+		immadm -o $ADMIN_SI_SWAP $2
+		;;
+	"sg-adjust")
+		immadm -o ADMIN_SG_ADJUST $2
+		;;
+	"repaired")
+		immadm -o ADMIN_REPAIRED $2
+		;;
+	"eam-start")
+		immadm -o EAM_START $2
+		;;
+	"eam-stop")
+		immadm -o EAM_STOP $2
+		;;
+	*)
+		echo "illegal admin operation: $1"
+		usage
+		exit 1
+esac
+
+exit $?
+

