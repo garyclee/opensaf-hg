@@ -28,15 +28,14 @@ noinst_HEADERS = \
 	immd_red.h \
 	immd_sbedu.h
 
-pkglib_PROGRAMS = opensaf_immd
+pkglib_PROGRAMS = osafimmd
 
-opensaf_immd_CPPFLAGS = \
+osafimmd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_immd_SOURCES = \
+osafimmd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	immd_amf.c \
 	immd_db.c \
@@ -47,7 +46,7 @@ opensaf_immd_SOURCES = \
 	immd_proc.c \
 	immd_sbevt.c
 
-opensaf_immd_LDADD = \
+osafimmd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

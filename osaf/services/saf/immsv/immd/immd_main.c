@@ -27,17 +27,16 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
-#include <configmake.h>
 
+#include <configmake.h>
 #include <ncs_main_pvt.h>
 #include <rda_papi.h>
+#include <daemon.h>
 
 #include "immd.h"
 
 static IMMD_CB _immd_cb;
 IMMD_CB *immd_cb = &_immd_cb;
-
-static int category_mask;
 
 #define FD_USR1 0
 #define FD_AMF 0
@@ -81,23 +80,6 @@ done:
 }
 
 /**
- * USR2 signal handler to dump information from all data structures
- * @param sig
- */
-static void usr2_sig_handler(int sig)
-{
-	int old_category_mask = category_mask;
-
-	if (trace_category_set(CATEGORY_ALL) == -1)
-		printf("IMMD: trace_category_set failed");
-
-	TRACE("IMMD Control block information");
-
-	if (trace_category_set(old_category_mask) == -1)
-		printf("trace_category_set failed");
-}
-
-/**
  * USR1 signal is used when AMF wants instantiate us as a
  * component. Wake up the main thread so it can register with
  * AMF.
@@ -117,43 +99,21 @@ static void sigusr1_handler(int sig)
  * 
  * @return uns32
  */
-static uns32 immd_initialize(const char *progname)
+static uns32 immd_initialize(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	const char *trace_file;
-
-	/* Create PID file */
-	{
-		char path[256];
-		FILE *fp;
-
-		snprintf(path, sizeof(path), PKGPIDDIR "/%s.pid", basename(progname));
-		fp = fopen(path, "w");
-		if (fp == NULL) {
-			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		fprintf(fp, "%d\n", getpid());
-		fclose(fp);
-	}
-
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((trace_file = getenv("IMMD_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(progname), trace_file) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			exit(EXIT_FAILURE);
-		}
-
-		if (getenv("IMMD_TRACE_CATEGORIES") != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
-		}
-	}
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
 
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if ((trace_mask_env = getenv("IMMD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
+
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
 	}
 
@@ -210,8 +170,8 @@ static uns32 immd_initialize(const char *progname)
 	}
 
 	/*
-	 ** Initialize a signal handler that will use the selection object.
-	 ** The signal is sent from our script when AMF does instantiate.
+	 * Initialize a signal handler that will use the selection object.
+	 * The signal is sent from our script when AMF does instantiate.
 	 */
 	if ((signal(SIGUSR1, sigusr1_handler)) == SIG_ERR) {
 		LOG_ER("signal USR1 failed: %s", strerror(errno));
@@ -219,16 +179,10 @@ static uns32 immd_initialize(const char *progname)
 		goto done;
 	}
 
-	if (signal(SIGUSR2, usr2_sig_handler) == SIG_ERR) {
-		LOG_ER("signal USR2 failed: %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	syslog(LOG_INFO, "Initialization Success, role %s",
 	       (immd_cb->ha_state == SA_AMF_HA_ACTIVE) ? "ACTIVE" : "STANDBY");
 
- done:
+done:
 	if (nid_notify("IMMD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
@@ -251,7 +205,9 @@ int main(int argc, char *argv[])
 	NCS_SEL_OBJ mbx_fd;
 	struct pollfd fds[3];
 
-	if (immd_initialize(argv[0]) != NCSCC_RC_SUCCESS) {
+	daemonize(argc, argv);
+
+	if (immd_initialize() != NCSCC_RC_SUCCESS) {
 		TRACE("initialize_immd failed");
 		goto done;
 	}
@@ -309,7 +265,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
- done:
+done:
 	LOG_ER("Failed, exiting...");
 	TRACE_LEAVE();
 	exit(1);
