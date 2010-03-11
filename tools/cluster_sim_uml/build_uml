@@ -151,7 +151,7 @@ cmd_create_rootfs()
     
     # Change LOG configuration to use "replicated" disk
     sed -i 's/=${PKGLOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
-	etc/opensaf/saflog.conf
+	etc/opensaf/logd.conf
 
     # The var directory structure is setup from within each UML
     rm -rf var/*

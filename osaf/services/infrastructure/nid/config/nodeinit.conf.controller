@@ -60,7 +60,7 @@ xxLIBDIRxx/opensaf_fms:HLFM:S:xxLIBDIRxx/opensaf_fms:12000:-6:2:1:start:stop
 #xxLIBDIRxx/drbdctrl:DRBD:S:xxLIBDIRxx/drbdctrl:800::2::start all:stop all
 xxLIBDIRxx/immd_script:IMMD:S:xxLIBDIRxx/immd_script:4000:4:2:1:start:stop
 xxLIBDIRxx/immnd_script:IMMND:S:xxLIBDIRxx/immnd_script:4000:4:2:1:start:stop
-xxLIBDIRxx/opensaf_lgs:LOGD:S:xxLIBDIRxx/opensaf_lgs:4000:4:2:1:start:stop
+xxLIBDIRxx/osaf-logd:LOGD:S:xxLIBDIRxx/osaf-logd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-ntfd:NTFD:S:xxLIBDIRxx/osaf-ntfd:4000:4:2:1:start:stop
 xxLIBDIRxx/plms_script:PLMS:S:xxLIBDIRxx/plms_script:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_clms:CLMD:S:xxLIBDIRxx/opensaf_clms:4000:4:2:1:start:stop

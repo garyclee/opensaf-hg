@@ -827,7 +827,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/logsv/config/Makefile
         osaf/services/saf/logsv/lgs/Makefile
         osaf/services/saf/logsv/lgs/scripts/Makefile
-        osaf/services/saf/logsv/lgs/scripts/opensaf_lgs
+        osaf/services/saf/logsv/lgs/scripts/osaf-logd
         osaf/services/saf/ntfsv/Makefile
         osaf/services/saf/ntfsv/config/Makefile
         osaf/services/saf/ntfsv/ntfs/Makefile

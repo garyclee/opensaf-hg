@@ -100,7 +100,7 @@ The LOG server start script sources the configuration file before it starts the
 LOG server.
 
 The offline (in the OpenSAF distribution) location of the configuration file:
-opensaf/config/saflog.conf
+	osaf/services/saf/logsv/config/logd.conf
 
 If the default values in this file does not fit your system, edit this file and
 rebuild the controller rpm in order to setup your system properly.
@@ -124,38 +124,29 @@ see the on line help for more information.
 DEBUG
 
 Log server traces are by default disabled. To enable/disable log server traces 
-in a running system, send signal USR1 to the saflogd process. Every time the 
+in a running system, send signal USR1 to the osaflogd process. Every time the 
 trace state is toggled. Example:
 
-$ pkill -USR1 saflogd
+	$ pkill -USR1 osaflogd
 
 Traces are written to the file:
 
-PKGLOCALSTATEDIR/stdouts/opensaf_saflogd
+	$PKGLOGDIR/osaflogd.log
 
 To enable traces from the very start of the log server, uncomment the line:
 
-        #export LOGSV_TRACE_CATEGORIES=ALL
+        #export LOGD_TRACE_CATEGORIES=ALL
 
-in saflog.conf (see CONFIGURATION above) and restart the cluster.
+in logd.conf (see CONFIGURATION above) and restart the cluster.
 
 For fatal errors syslog is used.
 
-To dump the internal log server data base, send signal USR2 to the saflogd
+To dump the internal log server data base, send signal USR2 to the osaflogd
 process, example:
 
-$ pkill -USR2 saflogd
+	$ pkill -USR2 osaflogd
 
 The dump is done to the trace file no matter if trace is enabled or not.
-
-To enable traces in the LOG library, export the variable LOGSV_TRACE_PATHNAME
-with a valid pathname before starting the application using the LOG library.
-
-For example:
-
-$ export LOGSV_TRACE_PATHNAME=/tmp/log.trace
-$ saflogger hello
-$ cat /tmp/log.trace
 
 
 TEST

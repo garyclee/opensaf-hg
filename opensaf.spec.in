@@ -981,14 +981,14 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files log-libs
 %defattr(-,root,root)
+%{_bindir}/saflogger
 %{_libdir}/libSaLog.so.*
 
 %files log-server
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/saflog.conf
-%{_bindir}/saflogger
-%{_pkglibdir}/opensaf_saflogd
-%{_pkglibdir}/opensaf_lgs
+%config(noreplace) %{_pkgsysconfdir}/logd.conf
+%{_pkglibdir}/osaflogd
+%{_pkglibdir}/osaf-logd
 %{_pkgimmxml_svcdir}/logsv_classes.xml
 %{_pkgimmxml_svcdir}/logsv_objects.xml
 %{_pkgimmxml_svcdir}/logsv_sc_template.xml
