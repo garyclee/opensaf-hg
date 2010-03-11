@@ -78,10 +78,6 @@
 #include "eds_dl_api.h"
 #endif
 
-#if (NCS_PDRBD == 1)
-#include "pdrbd_dl_api.h"
-#endif
-
 #if (NCS_DTS == 1)
 #include "dts.h"
 #include "dts_dl_api.h"
@@ -177,16 +173,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 		printf("MBCA start-up has been failed\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
-
-#if (NCS_PDRBD == 1)
-	/* Initialize Pseudo DRBD service */
-	m_NCS_DBG_PRINTF("\nPSEUDO_DRBD:ON\n");
-	if (pseudoLibReq(&lib_create) != NCSCC_RC_SUCCESS) {
-		printf("\n PSEUDO DRBD Lib Creation Failed");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-	/* End of Pseudo DRBD Initialization */
-#endif
 
 	return (NCSCC_RC_SUCCESS);
 }

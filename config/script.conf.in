@@ -48,7 +48,6 @@ export NODE_TYPE=$(< "$NODE_TYPE_FILE")
 #########################################
 # KEYS
 #########################################
-export PSEUDO_DRBD_ENV_HEALTH_CHECK_KEY="Default"
 export CPSV_ENV_HEALTHCHECK_KEY="Default"
 export DTS_AMF_HEALTHCHECK_KEY="Default"
 export EDSV_ENV_HEALTHCHECK_KEY="Default"
@@ -67,22 +66,6 @@ export PLMS_ENV_HEALTHCHECK_KEY="Default"
 export AMFMON_ENV_HEALTHCHECK_KEY="Default"
 
 export NID_MAGIC=AAB49DAA
-
-#########################################
-# DRBD Configuration
-#########################################
-DRBD="/etc/init.d/drbd"
-DRBDADM="/sbin/drbdadm"
-PSEUDO_DRBD_PIPE="$TMPDIR/pseudo_drbd.fifo"
-DRBD_ADM="/sbin/drbdadm"
-DRBD_SETUP="/sbin/drbdsetup"
-DRBD_SYNC_FILE="/var/lib/opensaf/.drbd_sync_state_"
-MOT_DRBD_DEV="/dev/drbd0"
-MOT_MNT_PNT="/repl_opensaf"
-MOT_REPL_PRTN="/dev/sda5"
-MOT_META_PRTN="/dev/sda6"
-DRBD_CONF_PATH="/etc"
-MY_DRBD_CONF_PATH="$SYSCONFDIR/"
 
 
 #########################################
