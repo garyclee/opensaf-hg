@@ -18,8 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkglib_SCRIPTS = \
-	ncs_cpd_clean
-
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/cpsv/cpd/scripts/ncs_cpd_start
+	$(top_builddir)/osaf/services/saf/cpsv/cpd/scripts/osaf-ckptd
