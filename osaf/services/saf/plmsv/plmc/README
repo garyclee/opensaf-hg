@@ -6,7 +6,7 @@ bin
   This is where the binary executables are placed.
 
 config
-  This is where the plmc.conf file is placed.
+  This is where the plmcd.conf file is placed.
 
 inc
   All include files are found here, including the public include
@@ -31,7 +31,7 @@ Makefile
     cd /etc/init.d
     chkconfig --add ./plmc_boot
     chkconfig --add ./plmc_main 
-    cp config/plmc.conf /etc/opensaf  # Customize plmc.conf file for your cluster.
+    cp config/plmcd.conf /etc/opensaf  # Customize plmcd.conf file for your cluster.
                                       # Make sure the ee_id is unique for the node.
 
 plmc_d

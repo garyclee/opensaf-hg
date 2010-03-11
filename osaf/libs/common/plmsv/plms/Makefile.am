@@ -18,8 +18,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-SUBDIRS =
-
 pkglib_LTLIBRARIES = libplms_common.la
 
 libplms_common_la_CPPFLAGS = \

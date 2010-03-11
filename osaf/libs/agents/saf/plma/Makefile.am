@@ -18,10 +18,6 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-#noinst_HEADERS = \
-#        plma.h
-
-
 noinst_LTLIBRARIES = libplma.la
 
 libplma_la_CPPFLAGS = \

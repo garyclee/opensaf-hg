@@ -27,7 +27,6 @@ dist_pkgimmxml_svc_DATA = \
 	clmsv_classes.xml \
 	clmsv_objects.xml 
 
-
 if ENABLE_AIS_PLM
 dist_pkgimmxml_svc_DATA += \
 	clmsv_plm_sc_template.xml \

@@ -19,7 +19,7 @@
  * plmc_read_config() utility function.
  *
  * plmc_read_config() is an internal utility function used by
- * plmc_boot, plmc_d, and the plmc_lib to read a plmc.conf
+ * plmc_boot, plmc_d, and the plmc_lib to read a plmcd.conf
  * configuration file.  Users of PLMc should not attempt to use
  * this function as the library APIs provide all of the necessary
  * means to access the capabilities of PLMc.
@@ -36,7 +36,7 @@
 /*
  * plmc_read_config()
  *
- * A function to read the plmc.conf confguration file.
+ * A function to read the plmcd.conf confguration file.
  *
  * Inputs:
  *   plmc_config_file : A file pathname.
@@ -52,7 +52,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
   int i, n, comment_line, tag = 0;
   int num_start_services = 0, num_stop_services = 0;
 
-  /* Open plmc.conf config file. */
+  /* Open plmcd.conf config file. */
   plmc_conf_file = fopen(plmc_config_file, "r");
   if (plmc_conf_file == NULL) {
     /* Problem with conf file - return errno value */
@@ -203,7 +203,7 @@ int plmc_read_config(char *plmc_config_file, PLMC_config_data *config) {
 /*
  * plmc_print_config()
  *
- * A function to print the plmc.conf confguration file.
+ * A function to print the plmcd.conf confguration file.
  *
  * Inputs:
  *   config : Pointer to location where file data is stored.

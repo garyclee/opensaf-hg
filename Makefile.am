@@ -149,7 +149,9 @@ SUBDIRS += \
 	tests/logsv \
 	tests/ntfsv \
 	tests/immsv/implementer \
-	tests/immsv/management
+	tests/immsv/management \
+	tests/clmsv \
+	tests/plmsv
 endif
 
 nodist_pkgsysconf_DATA = \

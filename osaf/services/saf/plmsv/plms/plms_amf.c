@@ -523,7 +523,7 @@ SaUint32T plms_amf_init()
 
 	TRACE_ENTER();
 
-        if (amf_comp_name_get_set_from_file("PLMS_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
+        if (amf_comp_name_get_set_from_file("PLMD_COMP_NAME_FILE", &cb->comp_name) != NCSCC_RC_SUCCESS)
                 goto done;
 
 	/* Initialize amf callbacks */

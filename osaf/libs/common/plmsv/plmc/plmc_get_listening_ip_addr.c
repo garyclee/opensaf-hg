@@ -20,7 +20,7 @@
  *
  * plmc_get_listening_ip_addr() reads the network interfaces that are
  * available and compares their IP addresses to the controller IP
- * addresses found in the plmc.conf file.  If a match is found, then
+ * addresses found in the plmcd.conf file.  If a match is found, then
  * the matching IP address is returned as a character string,
  * otherwise a NULL string is returned.
  *
@@ -77,7 +77,7 @@ int plmc_get_iface_list(struct ifconf *ifconf)
  * plmc_get_listening_ip_addr()
  *
  * A function to match available IP addresses to one that is found
- * in the plmc.conf file.
+ * in the plmcd.conf file.
  *
  * Inputs:
  *   plmc_config_file : A file pathname.

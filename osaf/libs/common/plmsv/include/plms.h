@@ -33,7 +33,7 @@
 #include "ncs_edu_pub.h"
 #include "ncs_main_papi.h"
 #include "ncs_mda_pvt.h"
-
+#include "ncssysf_lck.h"
 
 #include <SaHpi.h>
 #include <saAis.h>

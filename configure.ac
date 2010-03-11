@@ -282,7 +282,6 @@ AC_SUBST([IMM_PBE_ENABLED], ["$enable_imm_pbe"])
 #
 # Enable/disable building some of the OpenSAF AIS Services
 #
-
 AC_MSG_CHECKING([whether to build the SAI-AIS-CKPT service])
 AC_ARG_ENABLE([ais-ckpt],
 	[AS_HELP_STRING([--disable-ais-ckpt],
@@ -349,6 +348,10 @@ AC_ARG_ENABLE([ais-plm],
 	[],
 	[enable_ais_plm=yes])
 AC_MSG_RESULT([$enable_ais_plm])
+
+if test "$enable_ais_plm" = yes; then
+	AC_DEFINE([ENABLE_AIS_PLM], 1, [Define if PLM is enabled])
+fi
 
 AM_CONDITIONAL([ENABLE_AIS_PLM], [test "$enable_ais_plm" = yes])
 AC_SUBST([AIS_PLM_ENABLED], ["$enable_ais_plm"])
@@ -553,11 +556,6 @@ fi
 
 if test "$enable_imm_pbe" = yes; then
 	PKG_CHECK_MODULES([SQLITE3], [sqlite3])
-fi
-
-
-if test "$enable_ais_plm" = yes; then
-	AC_DEFINE([ENABLE_AIS_PLM], 1, [Define to 1 if PLM is enabled])
 fi
 
 #############################################
@@ -807,12 +805,12 @@ AC_CONFIG_FILES([
         osaf/services/saf/plmsv/plmc/plmc_lib/Makefile
         osaf/services/saf/plmsv/plmc/plmcd/Makefile
         osaf/services/saf/plmsv/plmc/plmc_boot/Makefile
-        osaf/services/saf/plmsv/plms/Makefile
-        osaf/services/saf/plmsv/plms/scripts/Makefile
-	osaf/services/saf/plmsv/plms/scripts/plms_script
         osaf/services/saf/plmsv/plmc/scripts/Makefile
 	osaf/services/saf/plmsv/plmc/scripts/plmc_boot_script
 	osaf/services/saf/plmsv/plmc/scripts/plmc_main
+        osaf/services/saf/plmsv/plms/Makefile
+        osaf/services/saf/plmsv/plms/scripts/Makefile
+	osaf/services/saf/plmsv/plms/scripts/osaf-plmd
         osaf/services/saf/logsv/Makefile
         osaf/services/saf/logsv/config/Makefile
         osaf/services/saf/logsv/lgs/Makefile

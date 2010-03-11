@@ -18,19 +18,15 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
-SUBDIRS =
-
-noinst_HEADERS = 
-
 pkglib_PROGRAMS = plmc_d 
 
 plmc_d_CPPFLAGS = \
 	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
-	$(HPI_CFLAGS) \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include
+
+plmc_d_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 plmc_d_SOURCES = \
 	plmc_d.c

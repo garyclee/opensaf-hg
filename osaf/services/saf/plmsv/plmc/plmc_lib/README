@@ -26,9 +26,9 @@ Running test executable
 
   # export LD_LIBRARY_PATH=LD_LIBRARY_PATH:$PWD
 
-  The test_lib program needs a plmc.conf file.  You can put that where ever
+  The test_lib program needs a plmcd.conf file.  You can put that where ever
   you want.  You will need to set the environment variable
   PLMC_CONF_PATH to reflect where it is located.  If PLMC_CONF_PATH is not set,
-  the library will assume /etc/opensaf/plmc.conf.  If it can't find a 
+  the library will assume /etc/opensaf/plmcd.conf.  If it can't find a 
   conf file there either, the library will return an error during
   initialization.

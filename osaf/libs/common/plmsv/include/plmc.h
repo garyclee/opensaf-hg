@@ -49,8 +49,8 @@
 #define PLMC_ACK_FAILURE	"PLMC_ACK_FAILURE"
 #define PLMC_ACK_TIMEOUT	"PLMC_ACK_TIMEOUT"
 
-/* Default location of the plmc.conf configuration file. */
-#define PLMC_CONFIG_FILE_LOC	"/etc/opensaf/plmc.conf"
+/* Default location of the plmcd.conf configuration file. */
+#define PLMC_CONFIG_FILE_LOC	"/etc/opensaf/plmcd.conf"
 
 /* Default location of the plmc daemon pid file. */
 #define PLMC_D_PID_FILE_LOC	"/var/run/plmc_d.pid"
@@ -69,7 +69,7 @@ typedef enum
     PLMC_RESTART = 2
 } PLMC_action;
 
-/* These are the numerical values of the tags found in the plmc.conf */
+/* These are the numerical values of the tags found in the plmcd.conf */
 /* configuration file.                                               */
 typedef enum
 {
@@ -89,7 +89,7 @@ typedef enum
     PLMC_OS_SHUTDOWN_CMD = 14
 } PLMC_config_tags;
 
-/* This struct holds the contents of the plmc.conf configuration file. */
+/* This struct holds the contents of the plmcd.conf configuration file. */
 typedef struct {
     char ee_id[PLMC_MAX_TAG_LEN];
     char msg_protocol_version[PLMC_MAX_TAG_LEN];

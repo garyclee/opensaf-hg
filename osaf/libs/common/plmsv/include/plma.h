@@ -30,6 +30,7 @@
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
+#include "ncssysf_lck.h"
 
 #include <SaHpi.h>
 #include <saAis.h>

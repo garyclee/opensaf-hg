@@ -393,14 +393,14 @@ SaUint32T saPlmInitialize  (SaPlmHandleT *plmHandle,
 		goto end;
 	}
 
-	/** Initialize the environment */
-	if (ncs_agents_startup(0,0) != NCSCC_RC_SUCCESS) {
+	/* Initialize the environment */
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA : AGENTS STARTUP FAILED");
 		rc = SA_AIS_ERR_LIBRARY;
 		goto end;
 	}
 					
-	/** Create and Initialize PLMA CB */
+	/* Create and Initialize PLMA CB */
 	if (ncs_plma_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("PLMA : PLMA LIB INIT FAILED");
 		rc =  SA_AIS_ERR_LIBRARY;
@@ -409,7 +409,7 @@ SaUint32T saPlmInitialize  (SaPlmHandleT *plmHandle,
 	plma_cb = plma_ctrlblk;
 							       
 	TRACE_5(" Version received: %c %d %d", version->releaseCode, version->majorVersion, version->minorVersion);
-	/** validate the version */
+	/* validate the version */
 	if (!m_PLM_VER_IS_VALID(version)){
 
 		LOG_ER("PLMA : INVALID VERSION");
@@ -553,7 +553,7 @@ SaUint32T saPlmInitialize  (SaPlmHandleT *plmHandle,
 				free(client_info);
 	plma_start_fail:
 		ncs_plma_shutdown();
-		ncs_agents_shutdown(0,0);
+		ncs_agents_shutdown();
 	end:
 		if(plm_init_resp){
 			plms_free_evt(plm_init_resp); 
@@ -863,7 +863,7 @@ SaAisErrorT saPlmFinalize(SaPlmHandleT plmHandle)
 
 	
 	ncs_plma_shutdown();
-	ncs_agents_shutdown(0,0);
+	ncs_agents_shutdown();
 end:
 	if(plm_fin_resp){
 		plms_free_evt(plm_fin_resp);
