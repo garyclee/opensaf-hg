@@ -198,8 +198,8 @@ smfd/smfnd process. Every time the trace state is toggled.
 
 Traces are written to the file:
 
-PKGLOCALSTATEDIR/stdouts/opensaf_smfd and
-PKGLOCALSTATEDIR/stdouts/opensaf_smfnd
+$PKGLOGDIR/osafsmfd.log
+$PKGLOGIR/osafsmfnd.log
 
 To enable traces from the very start of the smf server, uncomment the line:
 

@@ -1057,8 +1057,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/smf-cluster-reboot
 %{_pkglibdir}/smf-node-check
 %{_pkglibdir}/smf-repository-check
-%{_pkglibdir}/smfd_script
-%{_pkglibdir}/opensaf_smfd
+%{_pkglibdir}/osafsmfd
+%{_pkglibdir}/osaf-smfd
 %{_pkgimmxml_svcdir}/smfsv_classes.xml
 %{_pkgimmxml_svcdir}/smfsv_objects.xml
 %{_pkgimmxml_svcdir}/smfsv_pl_template.xml
