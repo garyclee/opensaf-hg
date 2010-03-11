@@ -572,7 +572,7 @@ void tet_run_glsv_dist_cases()
 void tet_glsv_startup(void) 
 {
 /* Using the default mode for startup */
-    ncs_agents_startup(0,NULL); 
+    ncs_agents_startup(); 
 
 #if (TET_D == 1)
    tet_run_gld();

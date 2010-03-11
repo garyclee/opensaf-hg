@@ -120,7 +120,6 @@ static void sigusr1_handler(int sig)
 static uns32 immd_initialize(const char *progname)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char *immd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 	const char *trace_file;
 
 	/* Create PID file */
@@ -153,7 +152,7 @@ static uns32 immd_initialize(const char *progname)
 
 	TRACE_ENTER();
 
-	if (ncspvt_svcs_startup(2, immd_argv) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

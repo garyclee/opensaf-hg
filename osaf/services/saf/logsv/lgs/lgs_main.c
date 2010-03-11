@@ -191,7 +191,6 @@ static void dump_sig_handler(int sig)
 static uns32 log_initialize(const char *progname)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char *logd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 	const char *trace_file;
 
 	/* Create PID file */
@@ -224,7 +223,7 @@ static uns32 log_initialize(const char *progname)
 
 	TRACE_ENTER();
 
-	if (ncspvt_svcs_startup(2, logd_argv) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

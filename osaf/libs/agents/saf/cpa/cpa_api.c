@@ -63,7 +63,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	NCS_BOOL locked = TRUE;
 	SaVersionT client_version;
 
-	proc_rc = ncs_agents_startup(0, 0);
+	proc_rc = ncs_agents_startup();
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "CkptInit:agents_startup", __FILE__,
 			       __LINE__, proc_rc);
@@ -74,7 +74,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
 	if (NCSCC_RC_SUCCESS != proc_rc) {
 		m_LOG_CPA_CCLL(CPA_API_FAILED, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_ERROR, "CkptInit:agents_startup", __FILE__,
 			       __LINE__, proc_rc);
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -281,7 +281,7 @@ SaAisErrorT saCkptInitialize(SaCkptHandleT *ckptHandle, const SaCkptCallbacksT *
  end:
 	if (rc != SA_AIS_OK) {
 		ncs_cpa_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 	}
 	return rc;
 }
@@ -587,7 +587,7 @@ SaAisErrorT saCkptFinalize(SaCkptHandleT ckptHandle)
 		m_LOG_CPA_CCLLF(CPA_API_SUCCESS, NCSFL_LC_CKPT_MGMT, NCSFL_SEV_INFO,
 				"CkptFinalize", __FILE__, __LINE__, rc, ckptHandle);
 		ncs_cpa_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 	}
 
 	return rc;

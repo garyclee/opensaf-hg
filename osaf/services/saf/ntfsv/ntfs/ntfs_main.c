@@ -168,7 +168,6 @@ static uns32 initialize(const char *progname)
 	FILE *fp = NULL;
 	char path[NAME_MAX + 32];
 	char *value;
-	char *ntfd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 
 	TRACE_ENTER();
 
@@ -202,7 +201,7 @@ static uns32 initialize(const char *progname)
 		}
 	}
 
-	if (ncspvt_svcs_startup(2, ntfd_argv) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

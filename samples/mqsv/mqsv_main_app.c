@@ -50,10 +50,6 @@ int main(int argc, char **argv)
    printf("\nSTARTING THE MQSv DEMO\n");
    printf("======================\n");
 
-
-
-/*   ncs_agents_startup(0,0);*/
-
     /* start the application */ 
    if (temp_var == 1)
    {

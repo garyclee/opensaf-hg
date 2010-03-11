@@ -639,7 +639,7 @@ void tet_run_cpsv_app()
 void tet_cpsv_startup() 
 {
 /* Using the default mode for startup */
-    ncs_agents_startup(0,NULL); 
+    ncs_agents_startup(); 
 
 #if (TET_D == 1)
    tet_run_cpd();

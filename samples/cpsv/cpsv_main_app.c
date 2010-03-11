@@ -38,10 +38,6 @@ int main(int argc, char *argv[])
 
    temp_var = atoi(argv[1]);  
    
-   /* initiliase the Environment */
-/*   ncs_agents_startup(0, 0); */
-
-
   /* start the application */ 
   cpsv_test_sync_app_process((void *)(long)temp_var);
   return 0;    

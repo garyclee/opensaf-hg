@@ -56,13 +56,13 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	GLSV_GLA_EVT *out_evt = NULL;
 	GLA_CLIENT_INFO *client_info = NULL;
 
-	rc = ncs_agents_startup(0, 0);
+	rc = ncs_agents_startup();
 	if (rc != SA_AIS_OK)
 		return SA_AIS_ERR_LIBRARY;
 
 	rc = ncs_gla_startup();
 	if (rc != SA_AIS_OK) {
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -178,7 +178,7 @@ SaAisErrorT saLckInitialize(SaLckHandleT *lckHandle, const SaLckCallbacksT *lckC
 	m_GLSV_DEBUG_CONS_PRINTF("\n saLckInitialize Failed \n");
 
 	ncs_gla_shutdown();
-	ncs_agents_shutdown(0, 0);
+	ncs_agents_shutdown();
 
 	return rc;
 }
@@ -499,7 +499,7 @@ SaAisErrorT saLckFinalize(SaLckHandleT hdl)
 
 	if (rc == SA_AIS_OK) {
 		ncs_gla_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 	}
 
 	return rc;

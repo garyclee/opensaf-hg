@@ -1197,14 +1197,14 @@ void tet_mds_tds_startup(void)
         {
           if(i!=1)
             {
-              if(ncs_agents_shutdown(0,0)!=NCSCC_RC_SUCCESS)
+              if(ncs_agents_shutdown()!=NCSCC_RC_SUCCESS)
                 {
                   perror("\n\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n\n");
                   tet_printf("\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n");
                   break;
                 }
               sleep(5);
-              if(ncs_agents_startup(0,0)!=NCSCC_RC_SUCCESS)
+              if(ncs_agents_startup()!=NCSCC_RC_SUCCESS)
                 {
                   perror("\n\n ----- NCS AGENTS START UP FAILED ------- \n\n");
                   tet_printf("\n ----- NCS AGENTS START UP FAILED ------- \n");
@@ -1242,7 +1242,7 @@ void tet_mds_tds_cleanup(void)
 void tet_mds_startup(void) 
 {
 /* Using the default mode for startup */
-    ncs_agents_startup(0,NULL); 
+    ncs_agents_startup(); 
 
     tet_mds_tds_startup();
 }

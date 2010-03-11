@@ -35,7 +35,7 @@ int main (int argc, char *argv[])
 {
 
    /** initialize the leap and agent stuffs **/
-   ncs_agents_startup(argc, argv);
+   ncs_agents_startup();
 
    /* Start your application below this */
 

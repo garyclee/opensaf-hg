@@ -104,13 +104,13 @@ unsigned int clma_startup(void)
                 clma_use_count++;
                 goto done;
         } else {
-                if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+                if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
                         TRACE("ncs_agents_startup FAILED");
                         goto done;
                 }
 
                 if ((rc = clma_create()) != NCSCC_RC_SUCCESS) {
-                        ncs_agents_shutdown(0, 0);
+                        ncs_agents_shutdown();
                         goto done;
                 } else
                         clma_use_count = 1;
@@ -139,7 +139,7 @@ unsigned int clma_shutdown(void)
                 clma_use_count--;
         } else if (clma_use_count == 1) {
                 clma_destroy(); /*need to do*/
-                rc = ncs_agents_shutdown(0, 0);
+                rc = ncs_agents_shutdown();
                 clma_use_count = 0;
         }
 

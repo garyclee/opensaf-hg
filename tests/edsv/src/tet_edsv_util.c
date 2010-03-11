@@ -1685,7 +1685,7 @@ void tet_run_edsv_app()
 void tet_edsv_startup()
 {
 /* Using the default mode for startup */
-     ncs_agents_startup(0,NULL);    
+     ncs_agents_startup();    
 
 #ifdef TET_SMOKE_TEST
   edsv_smoke_test();

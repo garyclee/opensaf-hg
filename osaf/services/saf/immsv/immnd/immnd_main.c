@@ -121,7 +121,6 @@ static uns32 immnd_cb_db_init(IMMND_CB *cb)
 static uns32 immnd_initialize(char *progname)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
-	char *immnd_argv[] = { "", "DTSV_SYNC_UP=0" };
 	char *envVar = NULL;
 	const char *trace_file;
 
@@ -163,7 +162,7 @@ static uns32 immnd_initialize(char *progname)
 	 * The "DTSV_SYNC_UP=0" is needed to disable waiting for DTSv which
 	 * is not started at this point.
 	 */
-	if (ncspvt_svcs_startup(2, immnd_argv) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncspvt_svcs_startup failed");
 		goto done;
 	}

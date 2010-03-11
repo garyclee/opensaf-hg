@@ -61,7 +61,7 @@ int main(int argc, char **argv)
 			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
 	}
 
-	if (ncspvt_svcs_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "ncspvt_svcs_startup failed");
 		goto done;
 	}

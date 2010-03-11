@@ -191,7 +191,7 @@ static int pcs_rda_reg_callback(uns32 cb_handle, PCS_RDA_CB_PTR rda_cb_ptr, void
 		/*
 		 ** Init leap
 		 */
-		if (ncs_leap_startup(0, 0) != NCSCC_RC_SUCCESS) {
+		if (ncs_leap_startup() != NCSCC_RC_SUCCESS) {
 
 			rc = PCSRDA_RC_LEAP_INIT_FAILED;
 			break;

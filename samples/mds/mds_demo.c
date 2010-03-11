@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
       to ncs_agents_startup(). It will only parse arguments that it finds
       relevant.
    */
-   ncs_agents_startup(argc, argv);
+   ncs_agents_startup();
 
    /* Start the sample process*/
    mds_sample(process_no);

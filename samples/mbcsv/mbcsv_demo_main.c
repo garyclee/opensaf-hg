@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
    }
       
   /* initiliase the Environment */
-  ncs_agents_startup(argc, argv);
+  ncs_agents_startup();
 
   /* start the application */
   arg.role = atoi(argv[1]);

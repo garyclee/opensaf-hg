@@ -45,7 +45,7 @@
 int main(int argc, char **argv)
 {
    /* Initialize the environment */
-   ncs_agents_startup(argc, argv);
+   ncs_agents_startup();
    
    printf("\n\n ############################################## \n");
    printf(" #   Proxy for Internode and External Component!!! #\n");
