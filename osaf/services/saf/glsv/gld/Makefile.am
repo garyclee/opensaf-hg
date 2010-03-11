@@ -20,9 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_gld
+pkglib_PROGRAMS = osaflckd
 
-ncs_gld_CPPFLAGS = \
+osaflckd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_GLD=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
@@ -30,22 +30,23 @@ ncs_gld_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/cpsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-ncs_gld_SOURCES = \
+osaflckd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	gld_amf.c \
 	gld_api.c \
 	gld_evt.c \
 	gld_log.c \
+	gld_imm.c \
+	gld_main.c \
 	gld_mbcsv.c \
 	gld_mds.c \
 	gld_red.c \
 	gld_rsc.c \
 	gld_standby.c \
-	gld_tmr.c \
-	gld_imm.c
+	gld_tmr.c
 
-ncs_gld_LDADD =  \
+osaflckd_LDADD =  \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \

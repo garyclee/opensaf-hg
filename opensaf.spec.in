@@ -964,9 +964,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files lck-director
 %defattr(-,root,root)
 %{_pkglibdir}/libglsv_logstr.so.*
-%{_pkglibdir}/ncs_gld
-%{_pkglibdir}/ncs_gld_clean
-%{_pkglibdir}/ncs_gld_start
+%{_pkglibdir}/osaflckd
+%{_pkglibdir}/osaf-lckd
 %{_pkgimmxml_svcdir}/glsv_classes.xml
 %{_pkgimmxml_svcdir}/glsv_objects.xml
 %{_pkgimmxml_svcdir}/glsv_pl_template.xml
