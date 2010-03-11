@@ -16,7 +16,7 @@
  */
 
 #define ADDITION_TEXT_LENGTH 256
-#define CLMS_NTF_SENDER "CLMS"
+#define CLMS_NTF_SENDER "safApp=safClmService"
 
 #include "clms.h"
 
@@ -124,18 +124,20 @@ static uns32 sendStateChangeNotificationClms(CLMS_CB *clms_cb,
 uns32 clms_node_join_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 {
         uns32 status = NCSCC_RC_FAILURE;
-        SaNameT comp_name;
+        SaNameT dn;
         SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-        comp_name.length = node->node_name.length;
-        (void)memcpy(comp_name.value, node->node_name.value, comp_name.length);
+        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+        dn.length = node->node_name.length;
+        (void)memcpy(dn.value, node->node_name.value,dn.length);
+
+	TRACE("Notification for CLM node %s Join", dn.value);
 
         memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Joined", comp_name.value);
+        sprintf((SaInt8T*)add_text, "CLM node %s Joined", dn.value);
 
         status = sendStateChangeNotificationClms(clms_cb,
-                                                 comp_name,
+                                                 dn,
                                                  add_text,
                                                  SA_SVC_CLM,
                                                  SA_CLM_NTFID_NODE_JOIN,
@@ -162,18 +164,20 @@ uns32 clms_node_join_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 uns32 clms_node_exit_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 {
         uns32 status = NCSCC_RC_FAILURE;
-        SaNameT comp_name;
+        SaNameT dn;
         SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-        comp_name.length = node->node_name.length;
-        (void)memcpy(comp_name.value, node->node_name.value, comp_name.length);
+        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+        dn.length = node->node_name.length;
+        (void)memcpy(dn.value, node->node_name.value, dn.length);
+
+	TRACE("Notification for CLM node %s exit", dn.value);
 
         memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Exit", comp_name.value);
+        sprintf((SaInt8T*)add_text, "CLM node %s Exit", dn.value);
 
         status = sendStateChangeNotificationClms(clms_cb,
-                                                 comp_name,
+                                                 dn,
                                                  add_text,
                                                  SA_SVC_CLM,
                                                  SA_CLM_NTFID_NODE_LEAVE,
@@ -199,18 +203,18 @@ uns32 clms_node_exit_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 uns32 clms_node_reconfigured_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 {
         uns32 status = NCSCC_RC_FAILURE;
-        SaNameT comp_name;
+        SaNameT dn;
         SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
-        memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-        comp_name.length = node->node_name.length;
-        (void)memcpy(comp_name.value, node->node_name.value, comp_name.length);
+        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+        dn.length = node->node_name.length;
+        (void)memcpy(dn.value, node->node_name.value, dn.length);
 
         memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Reconfigured", comp_name.value);
+        sprintf((SaInt8T*)add_text, "CLM node %s Reconfigured", dn.value);
 
         status = sendStateChangeNotificationClms(clms_cb,
-                                                 comp_name,
+                                                 dn,
                                                  add_text,
                                                  SA_SVC_CLM,
                                                  SA_CLM_NTFID_NODE_RECONFIG,
@@ -236,19 +240,19 @@ uns32 clms_node_reconfigured_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node)
 uns32 clms_node_admin_state_change_ntf(CLMS_CB *clms_cb, CLMS_CLUSTER_NODE *node, SaUint32T newState)
 {
         uns32 status = NCSCC_RC_FAILURE;
-        SaNameT comp_name;
+        SaNameT dn;
         SaUint8T add_text[SA_MAX_NAME_LENGTH];
 	TRACE_ENTER2("admin state change for node name %s",node->node_name.value);
 	
-        memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-        comp_name.length = node->node_name.length;
-        (void)memcpy(comp_name.value, node->node_name.value, comp_name.length);
+        memset(dn.value, '\0', SA_MAX_NAME_LENGTH);
+        dn.length = node->node_name.length;
+        (void)memcpy(dn.value, node->node_name.value, dn.length);
 
         memset(&add_text, '\0', sizeof(add_text));
-        sprintf((SaInt8T*)add_text, "CLM node %s Admin State Change", comp_name.value);
+        sprintf((SaInt8T*)add_text, "CLM node %s Admin State Change",dn.value);
 
         status = sendStateChangeNotificationClms(clms_cb,
-                                                 comp_name,
+                                                 dn,
                                                  add_text,
                                                  SA_SVC_CLM,
                                                  SA_CLM_NTFID_NODE_ADMIN_STATE,

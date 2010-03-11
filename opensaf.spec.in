@@ -822,8 +822,13 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/opensaf_clmna
 %{_pkgimmxml_svcdir}/clmsv_classes.xml
 %{_pkgimmxml_svcdir}/clmsv_objects.xml
+%if %is_ais_plm
+%{_pkgimmxml_svcdir}/clmsv_plm_sc_template.xml
+%{_pkgimmxml_svcdir}/clmsv_plm_pl_template.xml
+%else
 %{_pkgimmxml_svcdir}/clmsv_sc_template.xml
 %{_pkgimmxml_svcdir}/clmsv_pl_template.xml
+%endif
 
 %files clm-nodeagent
 %defattr(-,root,root)
