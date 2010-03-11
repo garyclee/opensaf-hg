@@ -326,6 +326,8 @@ static void immd_start_sync_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_IN
 	sync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
 	sync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	sync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	sync_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	mbcp_msg.type = IMMD_A2S_MSG_SYNC_START;
 	mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
@@ -369,6 +371,8 @@ static void immd_abort_sync_ok(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	sync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
 	sync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	sync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	sync_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	mbcp_msg.type = IMMD_A2S_MSG_SYNC_ABORT;
 	mbcp_msg.info.ctrl = sync_evt.info.immnd.info.ctrl;
@@ -410,6 +414,8 @@ static int immd_dump_ok(IMMD_CB *cb, SaUint32T rulingEpoch, IMMD_IMMND_INFO_NODE
 	dump_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
 	dump_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	dump_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	dump_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	mbcp_msg.type = IMMD_A2S_MSG_DUMP_OK;
 	mbcp_msg.info.ctrl = dump_evt.info.immnd.info.ctrl;
@@ -481,6 +487,8 @@ static void immd_req_sync(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info)
 	rqsync_evt.info.immnd.info.ctrl.isCoord = node_info->isCoord;
 	rqsync_evt.info.immnd.info.ctrl.syncStarted = node_info->syncStarted;
 	rqsync_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	rqsync_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (!(cb->immnd_coord)) {
 		LOG_WA("No IMMND coord exists - ignore sync");
@@ -554,6 +562,8 @@ static void immd_accept_node(IMMD_CB *cb, IMMD_IMMND_INFO_NODE *node_info, NCS_B
 	accept_evt.info.immnd.info.ctrl.ndExecPid = node_info->immnd_execPid;
 	accept_evt.info.immnd.info.ctrl.fevsMsgStart = cb->fevsSendCount;
 	accept_evt.info.immnd.info.ctrl.nodeEpoch = node_info->epoch;
+	accept_evt.info.immnd.info.ctrl.pbeEnabled = 
+		(cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (isOnController && (cb->immnd_coord == 0)) {
 		LOG_IN("First IMMND on controller found at %x this IMMD at %x."
@@ -651,7 +661,16 @@ static uns32 immd_evt_proc_immnd_announce_dump(IMMD_CB *cb, IMMD_EVT *evt, IMMSV
 
 		if (node_info->immnd_key != cb->immnd_coord) {
 			LOG_IN("Dump at non coord controller %x != %x", node_info->immnd_key, cb->immnd_coord);
+		} else {
+			/* From coord. */
+			SaImmRepositoryInitModeT oldRim = cb->mRim;
+			cb->mRim = (evt->info.ctrl_msg.pbeEnabled)?SA_IMM_KEEP_REPOSITORY:SA_IMM_INIT_FROM_FILE;
+			if(oldRim != cb->mRim) {
+				LOG_NO("SaImmRepositoryInitModeT changed to %s", 
+					(cb->mRim == SA_IMM_KEEP_REPOSITORY)?"SA_IMM_KEEP_REPOSITORY":"SA_IMM_INIT_FROM_FILE");
+			}
 		}
+
 
 		if (node_info->epoch != cb->mRulingEpoch) {
 			LOG_ER("Wrong Epoch %u != %u", node_info->epoch, cb->mRulingEpoch);

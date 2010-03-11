@@ -114,6 +114,7 @@ typedef struct immd_cb_tag {
 
 	IMMD_SAVED_FEVS_MSG *saved_msgs;
 
+	SaImmRepositoryInitModeT mRim; /* Should be the rim obtained from coord. */
 } IMMD_CB;
 
 EXTERN_C uns32 immd_immnd_info_tree_init(IMMD_CB *cb);

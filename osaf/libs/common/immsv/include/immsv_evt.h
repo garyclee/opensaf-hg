@@ -346,6 +346,7 @@ typedef struct immsv_d2nd_control {
 	uns8 isCoord;
 	uns8 syncStarted;
 	SaUint32T nodeEpoch;
+	uns8 pbeEnabled;
 } IMMSV_D2ND_CONTROL;
 
 /****************************************************************************
@@ -356,8 +357,7 @@ typedef struct immsv_nd2d_control {
 	SaUint32T ndExecPid;
 	SaUint32T epoch;
 	uns8 refresh;		//TRUE=> This is a refresh of epoch.
-	/* uns8 expectedNodes; */
-	/* uns8 waitSecs; //?? */
+	uns8 pbeEnabled;
 } IMMSV_ND2D_CONTROL;
 
 typedef struct immsv_nd2d_adminit_req {

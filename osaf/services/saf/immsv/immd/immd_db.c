@@ -253,6 +253,8 @@ uns32 immd_cb_db_init(IMMD_CB *cb)
 		return rc;
 	}
 
+	cb->mRim = SA_IMM_INIT_FROM_FILE;
+
 	return (NCSCC_RC_SUCCESS);
 }
 

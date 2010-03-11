@@ -2418,9 +2418,9 @@ ImmModel::commitModify(const std::string& dn, ObjectInfo* afterImage)
         immInitMode = getRepositoryInitMode();
         if(oldMode != immInitMode) {
             if(immInitMode == SA_IMM_KEEP_REPOSITORY) {
-                LOG_IN("RepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
+                LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_KEEP_REPOSITORY");
             } else {
-                LOG_IN("RepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
+                LOG_IN("SaImmRepositoryInitModeT changed to: SA_IMM_INIT_FROM_FILE");
 	    }
 	    TRACE_LEAVE();
 	    return true;
@@ -7205,8 +7205,10 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                         break;
                     }
 
-                    LOG_IN("Update of PERSISTENT runtime object %s",
-                        objectName.c_str());
+                    if(doIt && !wasLocal) {
+                        LOG_IN("Update of PERSISTENT runtime object %s attr %s",
+                            objectName.c_str(), attrName.c_str());
+                    }
                 }
 
                 *isPureLocal = false;

@@ -27,6 +27,9 @@
 #include <libgen.h>
 #include "immnd.h"
 #include "immsv_api.h"
+#include <signal.h>
+#include <sys/types.h>
+#define SIG_TERM 15 
 
 static const char *loaderBase = "immload";
 static const char *pbeBase = "/usr/local/bin/immdump";
@@ -365,6 +368,8 @@ uns32 immnd_introduceMe(IMMND_CB *cb)
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
 	send_evt.info.immd.info.ctrl_msg.refresh = cb->mIntroduced;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (!immnd_is_immd_up(cb)) {
 		return NCSCC_RC_FAILURE;
@@ -444,6 +449,8 @@ static uns32 immnd_announceLoading(IMMND_CB *cb, int32 newEpoch)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_ANNOUNCE_LOADING;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = newEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -472,6 +479,8 @@ static uns32 immnd_requestSync(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_REQ_SYNC;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	} else {
@@ -490,6 +499,8 @@ void immnd_announceDump(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_ANNOUNCE_DUMP;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	}
@@ -520,6 +531,9 @@ static uns32 immnd_announceSync(IMMND_CB *cb, SaUint32T newEpoch)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_START;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = newEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
+
 	if (immnd_is_immd_up(cb)) {
 		rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
 	} else {
@@ -633,6 +647,8 @@ static void immnd_abortSync(IMMND_CB *cb)
 	send_evt.info.immd.type = IMMD_EVT_ND2D_SYNC_ABORT;
 	send_evt.info.immd.info.ctrl_msg.ndExecPid = cb->mMyPid;
 	send_evt.info.immd.info.ctrl_msg.epoch = cb->mMyEpoch;
+	send_evt.info.immd.info.ctrl_msg.pbeEnabled = 
+		cb->mPbeFile && (cb->mRim == SA_IMM_KEEP_REPOSITORY);
 
 	LOG_NO("Coord broadcasting ABORT_SYNC, epoch:%u", cb->mRulingEpoch);
 	rc = immnd_mds_msg_send(cb, NCSMDS_SVC_ID_IMMD, cb->immd_mdest_id, &send_evt);
@@ -1358,7 +1374,7 @@ uns32 immnd_proc_server(uns32 *timeout)
 					assert(cb->pbePid > 0); /* Pbe is running. */
 					if (cb->mRim == SA_IMM_INIT_FROM_FILE) {/* Pbe should NOT run.*/
 						LOG_NO("STOPPING persistent back end process.");
-						/* TODO######## stop PBE. */
+						kill(cb->pbePid, SIG_TERM);
 					}
 				}
 			}
