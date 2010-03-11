@@ -854,8 +854,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/edsv/logstr/Makefile
         osaf/services/saf/edsv/eds/Makefile
         osaf/services/saf/edsv/eds/scripts/Makefile
-        osaf/services/saf/edsv/eds/scripts/ncs_eds_clean
-        osaf/services/saf/edsv/eds/scripts/ncs_eds_start
+        osaf/services/saf/edsv/eds/scripts/osaf-evtd
         osaf/services/saf/glsv/Makefile
         osaf/services/saf/glsv/config/Makefile
         osaf/services/saf/glsv/logstr/Makefile

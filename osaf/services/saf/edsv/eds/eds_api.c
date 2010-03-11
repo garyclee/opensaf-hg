@@ -46,8 +46,6 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 {
 	EDS_CB *eds_cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	FILE *fp = NULL;
-	char pidfilename[EDS_PID_FILE_NAME_LEN] = { 0 };
 
 	/* Register with the Logging subsystem */
 	eds_flx_log_reg();
@@ -101,46 +99,12 @@ static uns32 eds_se_lib_init(NCS_LIB_REQ_INFO *req_info)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* Generate the pidfilename. Also assert for string buffer overflow */
-	snprintf(pidfilename, EDS_PID_FILE_NAME_LEN - 1, "%s", EDS_PID_FILE);
-
-	/*Open pidfile for writing the process id */
-	fp = fopen(pidfilename, "w");
-	if (fp == NULL) {
-		m_LOG_EDSV_S(EDS_PID_FILE_OPEN_FOR_WRITE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, 1, __FILE__,
-			     __LINE__, 0);
-		printf("eds_se_lib_init : " PKGPIDDIR "/eds.pid OPEN FOR WRITE FAILED......\n");
-		/* Destroy the hdl for this CB */
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		/* clean up the CB */
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (fprintf(fp, "%d", getpid()) < 1) {
-		m_LOG_EDSV_S(EDS_PID_FILE_WRITE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, (long)fp, __FILE__,
-			     __LINE__, 0);
-		printf("eds_se_lib_init : " PKGPIDDIR "/eds.pid FILE WRITE FAILED......\n");
-		/* Destroy the hdl for this CB */
-		ncshm_destroy_hdl(NCS_SERVICE_ID_EDS, gl_eds_hdl);
-		gl_eds_hdl = 0;
-		/* clean up the CB */
-		m_MMGR_FREE_EDS_CB(eds_cb);
-		fclose(fp);
-		return NCSCC_RC_FAILURE;
-	}
-	fclose(fp);
-
-	m_LOG_EDSV_S(EDS_PID_FILE_WRITE_SUCCESS, NCSFL_LC_EDSV_INIT, NCSFL_SEV_INFO, 1, __FILE__, __LINE__, 1);
-	printf("eds_se_lib_init : " PKGPIDDIR "/eds.pid EDS PID FILE WRITE SUCCESS......\n");
-
 	m_NCS_EDU_HDL_INIT(&eds_cb->edu_hdl);
 
 	/* Create the mbx to communicate with the EDS thread */
 	if (NCSCC_RC_SUCCESS != (rc = m_NCS_IPC_CREATE(&eds_cb->mbx))) {
 		m_LOG_EDSV_S(EDS_IPC_CREATE_FAILED, NCSFL_LC_EDSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		printf("eds_se_lib_init : " PKGPIDDIR "/eds.pid FILE WRITE FAILED......\n");
++		printf("eds_se_lib_init : mailbox create FAILED......\n");
 		/* Release EDU handle */
 		m_NCS_EDU_HDL_FLUSH(&eds_cb->edu_hdl);
 		/* Destroy the hdl for this CB */

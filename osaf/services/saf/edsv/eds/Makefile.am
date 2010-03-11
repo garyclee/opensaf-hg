@@ -20,9 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_eds
+pkglib_PROGRAMS = osafevtd
 
-ncs_eds_CPPFLAGS = \
+osafevtd_CPPFLAGS = \
         -DSA_CLM_B01=1 \
 	-DNCS_EDS=1 -DNCS_EDSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
@@ -30,7 +30,7 @@ ncs_eds_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
-ncs_eds_SOURCES = \
+osafevtd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	eds_amf.c \
@@ -39,14 +39,15 @@ ncs_eds_SOURCES = \
 	eds_ckpt.c \
 	eds_debug.c \
 	eds_evt.c \
+	eds_imm.c \
 	eds_ll.c \
 	eds_log.c \
+	eds_main.c \
 	eds_mds.c \
 	eds_tmr.c \
-	eds_util.c \
-	eds_imm.c
+	eds_util.c
 
-ncs_eds_LDADD = \
+osafevtd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
