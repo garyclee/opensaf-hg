@@ -31,7 +31,6 @@ osafevtd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include
 
 osafevtd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	eds_amf.c \
 	eds_api.c \

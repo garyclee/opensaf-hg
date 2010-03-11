@@ -36,7 +36,6 @@ osafimmnd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafimmnd_SOURCES =	\
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	immnd_amf.c \
 	immnd_db.c \
 	immnd_evt.c \

@@ -25,14 +25,18 @@
 ******************************************************************************/
 
 #include <libgen.h>
-#include "immnd.h"
-#include "immsv_api.h"
 #include <signal.h>
 #include <sys/types.h>
+
+#include <configmake.h>
+
+#include "immnd.h"
+#include "immsv_api.h"
+
 #define SIG_TERM 15 
 
 static const char *loaderBase = "immload";
-static const char *pbeBase = "/usr/local/bin/immdump";
+static const char *pbeBase = BINDIR "/immdump";
 
 void immnd_ackToNid(uns32 rc)
 {

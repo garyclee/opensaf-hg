@@ -11,7 +11,8 @@
  * See the Copying file included with the OpenSAF distribution for full
  * licensing terms.
  *
- * Author(s): Ericsson
+ * Author(s): Ericsson AB
+ *            Wind River Systems
  *
  */
 
@@ -20,10 +21,10 @@
 #include <libgen.h>
 
 #include <logtrace.h>
-#include <ncs_main_papi.h>
 #include <mds_papi.h>
 #include <nid_api.h>
 #include <daemon.h>
+#include <nid_api.h>
 
 #include "rde_cb.h"
 

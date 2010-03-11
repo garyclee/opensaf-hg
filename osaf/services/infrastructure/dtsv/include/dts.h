@@ -70,7 +70,6 @@
 #include <unistd.h>
 
 #include "mbcsv_papi.h"
-#include "ncs_main_pvt.h"
 #include "dts_opt.h"
 #include "dtsv_msg.h"
 #include "dts_papi.h"

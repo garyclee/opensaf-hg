@@ -33,6 +33,9 @@
 #ifndef MQD_DL_API_H
 #define MQD_DL_API_H
 
+#include "ncsgl_defs.h"
+#include "ncs_lib.h"
+
 typedef struct mqdlib_info {
 	NCSCONTEXT task_hdl;	/* MQD Task Handle */
 	uns32 inst_hdl;		/* MQD Instance Handle */

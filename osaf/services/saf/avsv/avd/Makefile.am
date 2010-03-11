@@ -33,7 +33,6 @@ osafamfd_CPPFLAGS = \
 osafamfd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
 osafamfd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	amfd_main.c \
 	avd_app.c \

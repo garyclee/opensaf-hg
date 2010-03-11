@@ -33,10 +33,11 @@
 #ifndef DTA_DL_API_H
 #define DTA_DL_API_H
 
+#include "ncsgl_defs.h"
+#include "ncs_lib.h"
+
 EXTERN_C uns32 dta_lib_req(NCS_LIB_REQ_INFO *req_info);
-
 EXTERN_C uns32 dta_lib_init(NCS_LIB_REQ_INFO *req_info);
-
 EXTERN_C uns32 dta_lib_destroy(void);
 
 #endif   /* DTA_DL_API_H */

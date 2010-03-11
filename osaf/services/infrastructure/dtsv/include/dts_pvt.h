@@ -33,6 +33,7 @@
 #include "mds_papi.h"
 #include "saImmOi.h"
 #include "ncssysf_tmr.h"
+#include "ncs_queue.h"
 
 /* File Types */
 #define   GLOBAL_FILE        0x00

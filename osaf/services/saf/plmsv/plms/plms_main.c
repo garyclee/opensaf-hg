@@ -29,7 +29,6 @@
 #include <poll.h>
 #include <configmake.h>
 
-#include <ncs_main_pvt.h>
 #include <rda_papi.h>
 
 #include "plms.h"

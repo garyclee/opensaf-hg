@@ -29,7 +29,6 @@ osaflcknd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
 osaflcknd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	glnd_agent.c \
 	glnd_amf.c \
 	glnd_api.c \

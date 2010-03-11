@@ -29,6 +29,10 @@
 
 #ifndef GLD_DL_API_H
 #define GLD_DL_API_H
+
+#include "ncsgl_defs.h"
+#include "ncs_lib.h"
+
 EXTERN_C uns32 gl_gld_hdl;
 EXTERN_C uns32 gld_lib_req(NCS_LIB_REQ_INFO *req_info);
 

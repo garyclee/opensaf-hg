@@ -40,9 +40,8 @@
 #include "ncssysf_def.h"
 #include "ncsdlib.h"
 #include "ncs_lib.h"
-
+#include "ncssysfpool.h"
 #include "mds_papi.h"
-#include "ncs_main_pvt.h"
 #include "ncspatricia.h"
 #include "saAis.h"
 #include "saEvt.h"

@@ -15,8 +15,8 @@
  *
  */
 
-#include <ncs_main_pvt.h>
 #include <ncssysf_tsk.h>
+#include <nid_api.h>
 
 #include <logtrace.h>
 #include <daemon.h>

@@ -1,6 +1,6 @@
 /*      OpenSAF
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2010 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -12,6 +12,7 @@
  * licensing terms.
  *
  * Author(s): Ericsson AB
+ *            Wind River Systems
  *
  */
 
@@ -30,8 +31,9 @@
 #include <signal.h>
 #include <poll.h>
 
-#include <ncs_main_pvt.h>
 #include <daemon.h>
+#include <nid_api.h>
+#include <ncs_main_papi.h>
 
 #include "smfd.h"
 #include "smfsv_defs.h"

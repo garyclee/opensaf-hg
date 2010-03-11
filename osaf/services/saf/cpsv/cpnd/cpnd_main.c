@@ -15,7 +15,6 @@
  *
  */
 
-#include <ncs_main_pvt.h>
 #include <ncssysf_tsk.h>
 
 #include <logtrace.h>

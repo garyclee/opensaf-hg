@@ -35,7 +35,6 @@ osafsmfnd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/core/include
 
 osafsmfnd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	smfnd_amf.c \
 	smfnd_evt.c \
 	smfnd_main.c \

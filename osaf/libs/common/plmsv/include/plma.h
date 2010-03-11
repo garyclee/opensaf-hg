@@ -31,11 +31,9 @@
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
 
-#include "ncs_main_pvt.h"
-
-#include "SaHpi.h"
-#include "saAis.h"
-#include "saPlm.h"
+#include <SaHpi.h>
+#include <saAis.h>
+#include <saPlm.h>
 
 #include "logtrace.h"
 

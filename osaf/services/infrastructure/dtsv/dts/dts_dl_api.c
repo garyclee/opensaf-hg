@@ -34,9 +34,12 @@
 */
 
 #include <configmake.h>
-#include "dts.h"
+
 #include "rda_papi.h"
 #include "ncs_tasks.h"
+#include "ncs_main_pub.h"
+
+#include "dts.h"
 
 static NCS_BOOL dts_clear_mbx(NCSCONTEXT arg, NCSCONTEXT mbx_msg);
 

@@ -31,20 +31,19 @@
 #include "ncs_util.h"
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
-#include "ncs_main_pvt.h"
 #include "ncs_main_papi.h"
 #include "ncs_mda_pvt.h"
 
 
-#include "SaHpi.h"
-#include "saAis.h"
-#include "saImmOm.h"
-#include "saImmOi.h"
-#include "mbcsv_papi.h"
-#include "saImm.h"
-#include "saNtf.h"
-#include "saPlm.h"
+#include <SaHpi.h>
+#include <saAis.h>
+#include <saImmOm.h>
+#include <saImmOi.h>
+#include <saImm.h>
+#include <saNtf.h>
+#include <saPlm.h>
 #include "logtrace.h"
+#include "mbcsv_papi.h"
 #include "plms_hpi.h"
 #include "plms_evt.h"
 #include "plmc.h"
