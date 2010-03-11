@@ -29,10 +29,11 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
-#include <configmake.h>
 
+#include <configmake.h>
 #include <ncs_main_pvt.h>
 #include <rda_papi.h>
+#include <daemon.h>
 
 #include "immnd.h"
 
@@ -41,8 +42,6 @@
 
 static IMMND_CB _immnd_cb;
 IMMND_CB *immnd_cb = &_immnd_cb;
-
-static int category_mask;
 
 /* Static Function Declerations */
 
@@ -59,24 +58,6 @@ static void sigusr1_handler(int sig)
 	signal(SIGUSR1, SIG_IGN);
 	ncs_sel_obj_ind(immnd_cb->usr1_sel_obj);
 	TRACE("Got USR1 signal");
-}
-
-/**
- * USR2 signal handler to enable/disable trace (toggle)
- * @param sig
- */
-static void sigusr2_handler(int sig)
-{
-	if (category_mask == 0) {
-		category_mask = CATEGORY_ALL;
-		printf("Enabling traces");
-	} else {
-		category_mask = 0;
-		printf("Disabling traces");
-	}
-
-	if (trace_category_set(category_mask) == -1)
-		printf("trace_category_set failed");
 }
 
 /****************************************************************************
@@ -122,48 +103,22 @@ static uns32 immnd_initialize(char *progname)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 	char *envVar = NULL;
-	const char *trace_file;
-
-	/* Create PID file */
-	{
-		char path[256];
-		FILE *fp;
-
-		snprintf(path, sizeof(path), PKGPIDDIR "/%s.pid", basename(progname));
-		fp = fopen(path, "w");
-		if (fp == NULL) {
-			syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-			exit(EXIT_FAILURE);
-		}
-		fprintf(fp, "%d\n", getpid());
-		fclose(fp);
-	}
-
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((trace_file = getenv("IMMND_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(progname), trace_file) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			exit(EXIT_FAILURE);
-		}
-
-		if (getenv("IMMND_TRACE_CATEGORIES") != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
-		}
-	}
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
+
+	if ((trace_mask_env = getenv("IMMND_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)
 		immnd_cb->nid_started = 1;
 
-	/*
-	 * The "DTSV_SYNC_UP=0" is needed to disable waiting for DTSv which
-	 * is not started at this point.
-	 */
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup FAILED");
 		goto done;
 	}
 
@@ -239,12 +194,6 @@ static uns32 immnd_initialize(char *progname)
 		goto done;
 	}
 
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		LOG_ER("signal USR2 failed: %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	/* If AMF started register immidiately */
 	if (!immnd_cb->nid_started) {
 		if ((rc = immnd_amf_init(immnd_cb)) != NCSCC_RC_SUCCESS)
@@ -275,14 +224,15 @@ int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	SaAisErrorT error;
-	uns32 timeout = 100;	/*ABT For server maintenance.
+	uns32 timeout = 100;	/* ABT For server maintenance.
 				   Using a period of 0.1s during startup. */
-	int eventCount = 0;	/*Used to regulate progress of background 
+	int eventCount = 0;	/* Used to regulate progress of background 
 				   server task when we are very bussy. */
 	int maxEvt = 100;
 	int64 start_time = 0LL;
-
 	struct pollfd fds[2];
+
+	daemonize(argc, argv);
 
 	if (immnd_initialize(argv[0]) != NCSCC_RC_SUCCESS) {
 		LOG_ER("initialize_immd failed");

@@ -2061,7 +2061,7 @@ int immsync(void)
  */
 int main(int argc, char* argv[])
 {
-    const char* defaultLog = PKGLOCALSTATEDIR "/stdouts/opensaf_immnd.log";
+    const char* defaultLog = PKGLOGDIR "/osafimmnd.log";
     const char* logPath;
     void* pbeHandle=NULL;
     const char* pbe_file;
@@ -2086,7 +2086,7 @@ int main(int argc, char* argv[])
         if (syncMarker == std::string(argv[3]))
         {
 
-            if (logtrace_init("imm-sync", logPath) == -1)
+            if (logtrace_init("immsync", logPath) == -1)
             {
                 syslog(LOG_ERR, "logtrace_init FAILED");
                 /* We allow the sync to execute anyway. */
@@ -2116,7 +2116,7 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (logtrace_init("imm-load", logPath) == -1)
+    if (logtrace_init("immload", logPath) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
