@@ -19,4 +19,4 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/ntfsv/ntfs/scripts/opensaf_ntfs
+	$(top_builddir)/osaf/services/saf/ntfsv/ntfs/scripts/osaf-ntfd

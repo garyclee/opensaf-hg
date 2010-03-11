@@ -1021,16 +1021,16 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ntf-libs
 %defattr(-,root,root)
+%{_bindir}/ntfsend
+%{_bindir}/ntfsubscribe
 %{_libdir}/libSaNtf.so.*
 %{_pkglibdir}/libntfsv_common.so.*
 
 %files ntf-server
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/ntf.conf
-%{_bindir}/ntfsend
-%{_bindir}/ntfsubscribe
-%{_pkglibdir}/opensaf_ntfd
-%{_pkglibdir}/opensaf_ntfs
+%config(noreplace) %{_pkgsysconfdir}/ntfd.conf
+%{_pkglibdir}/osafntfd
+%{_pkglibdir}/osaf-ntfd
 %{_pkgimmxml_svcdir}/ntfsv_objects.xml
 %{_pkgimmxml_svcdir}/ntfsv_sc_template.xml
 

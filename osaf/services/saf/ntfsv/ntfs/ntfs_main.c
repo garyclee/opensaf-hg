@@ -27,9 +27,11 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
+
 #include <configmake.h>
 #include <ncs_main_pvt.h>
 #include <rda_papi.h>
+#include <daemon.h>
 
 #include "ntfs.h"
 
@@ -55,9 +57,8 @@
  */
 static ntfs_cb_t _ntfs_cb;
 ntfs_cb_t *ntfs_cb = &_ntfs_cb;
-
-static int category_mask;
 static NCS_SEL_OBJ usr1_sel_obj;
+
 /* ========================================================================
  *   FUNCTION PROTOTYPES
  * ========================================================================
@@ -111,24 +112,6 @@ static void sigusr1_handler(int sig)
 	TRACE("Got USR1 signal");
 }
 
-/**
- * USR1 signal handler to enable/disable trace (toggle)
- * @param sig
- */
-static void sigusr2_handler(int sig)
-{
-	if (category_mask == 0) {
-		category_mask = CATEGORY_ALL;
-		printf("Enabling traces");
-	} else {
-		category_mask = 0;
-		printf("Disabling traces");
-	}
-
-	if (trace_category_set(category_mask) == -1)
-		printf("trace_category_set failed");
-}
-
 #if 0
 /**
  *  dump information from all data structures
@@ -162,47 +145,22 @@ static void dump_sig_handler(int sig)
  * 
  * @return uns32
  */
-static uns32 initialize(const char *progname)
+static uns32 initialize()
 {
 	uns32 rc = NCSCC_RC_SUCCESS;;
-	FILE *fp = NULL;
-	char path[NAME_MAX + 32];
 	char *value;
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
 
-	/* Create pidfile */
-	sprintf(path, PKGPIDDIR "/%s.pid", basename(progname));
-	if ((fp = fopen(path, "w")) == NULL) {
-		LOG_ER("Could not open %s", path);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
+	if ((trace_mask_env = getenv("NTFD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
 	}
 
-	/* Write PID to it */
-	if (fprintf(fp, "%d", getpid()) < 1) {
-		fclose(fp);
-		LOG_ER("Could not write to: %s", path);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-	fclose(fp);
-
-	if ((value = getenv("NTFSV_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(progname), value) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			goto done;
-		}
-
-		if ((value = getenv("NTFSV_TRACE_CATEGORIES")) != NULL) {
-			/* Do not care about categories now, get all */
-			category_mask = CATEGORY_ALL;
-			trace_category_set(category_mask);
-		}
-	}
-
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		TRACE("ncs_core_agents_startup FAILED");
 		goto done;
 	}
 
@@ -259,12 +217,6 @@ static uns32 initialize(const char *progname)
 		goto done;
 	}
 
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		LOG_ER("signal USR2 failed: %s", strerror(errno));
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
 	initAdmin();
 
 	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
@@ -272,7 +224,7 @@ static uns32 initialize(const char *progname)
 	if (ntfs_cb->ha_state == SA_AMF_HA_STANDBY)
 		LOG_NO("I am STANDBY");
 
- done:
+done:
 	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
 		rc = NCSCC_RC_FAILURE;
@@ -294,7 +246,9 @@ int main(int argc, char *argv[])
 
 	TRACE_ENTER();
 
-	if (initialize(argv[0]) != NCSCC_RC_SUCCESS) {
+	daemonize(argc, argv);
+
+	if (initialize() != NCSCC_RC_SUCCESS) {
 		syslog(LOG_ERR, "initialize in ntfs  FAILED, exiting...");
 		goto done;
 	}
@@ -311,7 +265,7 @@ int main(int argc, char *argv[])
 	fds[FD_LOG].fd = ntfs_cb->logSelectionObject;
 	fds[FD_LOG].events = POLLIN;
 
-    /** NTFS main processing loop. */
+	/* NTFS main processing loop. */
 	while (1) {
 		int ret = poll(fds, 4, -1);
 
@@ -325,7 +279,6 @@ int main(int argc, char *argv[])
 
 		if (fds[FD_AMF].revents & POLLIN) {
 			/* dispatch all the AMF pending function */
-
 			if (ntfs_cb->amf_hdl != 0) {
 				if ((error = saAmfDispatch(ntfs_cb->amf_hdl, SA_DISPATCH_ALL)) != SA_AIS_OK) {
 					LOG_ER("saAmfDispatch failed: %u", error);
@@ -361,7 +314,7 @@ int main(int argc, char *argv[])
 			logEvent();
 	}
 
- done:
+done:
 	LOG_ER("Failed, exiting...");
 	TRACE_LEAVE();
 	exit(1);
