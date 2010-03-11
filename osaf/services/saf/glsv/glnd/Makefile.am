@@ -20,15 +20,15 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_glnd
+pkglib_PROGRAMS = osaflcknd
 
-ncs_glnd_CPPFLAGS = \
+osaflcknd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
 	-DNCS_GLND=1 -DNCS_GLSV_LOG=1 \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/glsv/include
 
-ncs_glnd_SOURCES = \
+osaflcknd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	glnd_agent.c \
 	glnd_amf.c \
@@ -38,6 +38,7 @@ ncs_glnd_SOURCES = \
 	glnd_client.c \
 	glnd_evt.c \
 	glnd_log.c \
+	glnd_main.c \
 	glnd_mds.c \
 	glnd_queue.c \
 	glnd_res.c \
@@ -46,7 +47,7 @@ ncs_glnd_SOURCES = \
 	glnd_shm.c \
 	glnd_tmr.c
 
-ncs_glnd_LDADD = \
+osaflcknd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \

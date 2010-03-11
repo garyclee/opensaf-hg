@@ -18,8 +18,5 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-dist_pkglib_SCRIPTS = \
-	ncs_glnd_clean
-
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/glsv/glnd/scripts/ncs_glnd_start
+	$(top_builddir)/osaf/services/saf/glsv/glnd/scripts/osaf-lcknd
