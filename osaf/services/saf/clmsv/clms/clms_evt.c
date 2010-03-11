@@ -275,6 +275,12 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 				clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 				/* Clear node->stat_change after sending the callback to its clients*/
 				node->stat_change = SA_FALSE;
+
+				/* Send Node join notification*/
+				rc = clms_node_join_ntf(clms_cb,node);
+                                if(rc != NCSCC_RC_SUCCESS) {
+                                	TRACE("clms_node_join_ntf failed %u", rc);
+				}
 			}	
 			clms_node_update_rattr(node);
 			clms_cluster_update_rattr(osaf_cluster);
@@ -361,11 +367,22 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 		clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 		/* Clear node->stat_change after sending the callback to its clients*/
 		node->stat_change = SA_FALSE;
+		
+		
+		rc = clms_node_exit_ntf(clms_cb,node);
+		if(rc != NCSCC_RC_SUCCESS) {
+			TRACE("clms_node_exit_ntf failed %u", rc);
+		}
 
 		clms_node_update_rattr(node);
 		clms_cluster_update_rattr(osaf_cluster);
         }
 	/*For the NODE DOWN, boottimestamp will not be updated*/
+
+	/*Delete the node from the node database*/
+	if (clms_node_delete(node,0) != NCSCC_RC_SUCCESS){
+		TRACE("CLMS node delete failed");
+	}
 
 done:
 	TRACE_LEAVE();

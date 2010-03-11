@@ -136,7 +136,7 @@ static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
         if (client == NULL) {
                 /* Client does not exist, create new one */
         	if (clms_client_new(param->mds_dest, param->client_id) == NULL) {
-			TRACE("new client addtion failed on standby");
+			LOG_ER("new client addtion failed on standby");
 			assert(0);
         	}
         } else {
@@ -179,14 +179,14 @@ static uns32 ckpt_proc_finalize_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
         }
           /* Free all resources allocated by this client. */
         if ((rc = clms_client_delete(param->client_id)) != 0) {
-                TRACE("clms_client_delete FAILED: %u", rc);
+                LOG_ER("clms_client_delete FAILED: %u", rc);
                 return SA_AIS_ERR_BAD_HANDLE;
         }
 
         /* Delete this client data from the clmresp tracking list*/
         rc = clms_client_del_trackresp(param->client_id);
         if(rc != NCSCC_RC_SUCCESS){
-                TRACE("clms_client_delete_trackresp FAILED: %u", rc);
+                LOG_ER("clms_client_delete_trackresp FAILED: %u", rc);
                 return SA_AIS_ERR_BAD_HANDLE;
         }
 
@@ -252,14 +252,6 @@ static uns32 ckpt_proc_node_csync_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 {
         CLMSV_CKPT_NODE *param = &data->param.node_csync_rec;
 	CLMS_CLUSTER_NODE *node = NULL,*tmp_node = NULL;
-	
-	#if 0
-	node = malloc(sizeof(CLMS_CLUSTER_NODE));
-        if (node == NULL) {
-                TRACE_LEAVE();
-                return NCSCC_RC_FAILURE;
-        }
-	#endif
 	
 	node = clms_node_get_by_name(&param->node_name);
 	if(node != NULL){
@@ -495,7 +487,7 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
         arg.info.initialize.i_service = NCS_SERVICE_ID_CLMS;
 
         if ((rc = ncs_mbcsv_svc(&arg)) != NCSCC_RC_SUCCESS) {
-                TRACE("NCS_MBCSV_OP_INITIALIZE FAILED");
+                LOG_ER("NCS_MBCSV_OP_INITIALIZE FAILED");
                 goto done;
         }
 
@@ -508,7 +500,7 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
         arg.info.open.i_client_hdl = 0;
 
         if ((rc = ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS)) {
-                TRACE("NCS_MBCSV_OP_OPEN FAILED");
+                LOG_ER("NCS_MBCSV_OP_OPEN FAILED");
                 goto done;
         }
         cb->mbcsv_ckpt_hdl = arg.info.open.o_ckpt_hdl;
@@ -518,7 +510,7 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
         arg.i_mbcsv_hdl = cb->mbcsv_hdl;
         arg.info.sel_obj_get.o_select_obj = 0;
         if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&arg))) {
-                TRACE("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
+                LOG_ER("NCS_MBCSV_OP_SEL_OBJ_GET FAILED");
                 goto done;
         }
 
@@ -533,7 +525,7 @@ uns32 clms_mbcsv_init(CLMS_CB *cb)
         arg.info.obj_set.i_obj = NCS_MBCSV_OBJ_WARM_SYNC_ON_OFF;
         arg.info.obj_set.i_val = FALSE;
         if (ncs_mbcsv_svc(&arg) != NCSCC_RC_SUCCESS) {
-                TRACE("NCS_MBCSV_OP_OBJ_SET FAILED");
+                LOG_ER("NCS_MBCSV_OP_OBJ_SET FAILED");
                 goto done;
         }
 
@@ -572,7 +564,7 @@ uns32 clms_mbcsv_change_HA_state(CLMS_CB *cb)
         mbcsv_arg.info.chg_role.i_ha_state = cb->ha_state;
 
         if (SA_AIS_OK != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-                TRACE("ncs_mbcsv_svc FAILED");
+                LOG_ER("ncs_mbcsv_svc FAILED");
                 rc = NCSCC_RC_FAILURE;
         }
 
@@ -635,25 +627,25 @@ static uns32 mbcsv_callback(NCS_MBCSV_CB_ARG *arg)
                 /* Decode Request from MBCSv */
                 rc = ckpt_decode_cbk_handler(arg);
                 if (rc != NCSCC_RC_SUCCESS)
-                        TRACE("ckpt_decode_cbk_handler FAILED");
+                        LOG_ER("ckpt_decode_cbk_handler FAILED");
                 break;
         case NCS_MBCSV_CBOP_PEER:
                 /* CLMS Peer info from MBCSv */
                 rc = ckpt_peer_info_cbk_handler(arg);
                 if (rc != NCSCC_RC_SUCCESS)
-                        TRACE("ckpt_peer_info_cbk_handler FAILED");
+                        LOG_ER("ckpt_peer_info_cbk_handler FAILED");
                 break;
         case NCS_MBCSV_CBOP_NOTIFY:
                 /* NOTIFY info from CLMS peer */
                 rc = ckpt_notify_cbk_handler(arg);
                 if (rc != NCSCC_RC_SUCCESS)
-                        TRACE("ckpt_notify_cbk_handler FAILED");
+                        LOG_ER("ckpt_notify_cbk_handler FAILED");
                 break;
         case NCS_MBCSV_CBOP_ERR_IND:
                 /* Peer error indication info */
                 rc = ckpt_err_ind_cbk_handler(arg);
                 if (rc != NCSCC_RC_SUCCESS)
-                        TRACE("ckpt_err_ind_cbk_handler FAILED");
+                        LOG_ER("ckpt_err_ind_cbk_handler FAILED");
                 break;
         default:
                 rc = NCSCC_RC_FAILURE;
@@ -709,7 +701,7 @@ uns32 clms_send_async_update(CLMS_CB *cb, CLMS_CKPT_REC *ckpt_rec, uns32 action)
 
         /* Send async update */ 
         if (NCSCC_RC_SUCCESS != (rc = ncs_mbcsv_svc(&mbcsv_arg))) {
-                TRACE(" MBCSV send data operation !! rc=%u.", rc);
+                LOG_ER(" MBCSV send data operation !! rc=%u.", rc);
                 TRACE_LEAVE();
                 return NCSCC_RC_FAILURE;
         }
@@ -750,7 +742,7 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
         case NCS_MBCSV_MSG_ASYNC_UPDATE:
                 /* Encode async update */
                 if ((rc = ckpt_encode_async_update(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
-                        TRACE("  ckpt_encode_async_update FAILED");
+                        LOG_ER("  ckpt_encode_async_update FAILED");
                 break;
 
         case NCS_MBCSV_MSG_COLD_SYNC_REQ:
@@ -778,7 +770,7 @@ static uns32 ckpt_encode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
         case NCS_MBCSV_MSG_DATA_RESP:
         case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
                 if ((rc = ckpt_enc_cold_sync_data(clms_cb, cbk_arg, TRUE)) != NCSCC_RC_SUCCESS)
-                        TRACE("  ckpt_enc_cold_sync_data FAILED");
+                        LOG_ER("  ckpt_enc_cold_sync_data FAILED");
                 break;
         default:
                 rc = NCSCC_RC_FAILURE;
@@ -834,7 +826,7 @@ static uns32 ckpt_enc_cold_sync_data(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_arg
            this will be 0 initially */
         async_upd_cnt = ncs_enc_reserve_space(&cbk_arg->info.encode.io_uba, sizeof(uns32));
         if (async_upd_cnt == NULL) {
-                TRACE("ncs_enc_reserve_space FAILED");
+                LOG_ER("ncs_enc_reserve_space FAILED");
                 return NCSCC_RC_FAILURE;
         }
         ncs_encode_32bit(&async_upd_cnt, clms_cb->async_upd_cnt);
@@ -1016,7 +1008,6 @@ void prepare_cluster_node(CLMS_CLUSTER_NODE *node, CLMSV_CKPT_NODE *cluster_node
         (void)memcpy(node->ee_name.value, cluster_node->ee_name.value,
                      cluster_node->ee_name.length);
         node->member = cluster_node->member;
-	TRACE("node->member %d",node->member);
         node->boot_time = cluster_node->boot_time;
         node->init_view = cluster_node->init_view;
         node->disable_reboot = cluster_node->disable_reboot;
@@ -1847,7 +1838,7 @@ static uns32 ckpt_decode_cbk_handler(NCS_MBCSV_CB_ARG *cbk_arg)
         case NCS_MBCSV_MSG_DATA_RESP_COMPLETE:
                 TRACE_2("DATA RESP COMPLETE DECODE called");
                 if ((rc = ckpt_decode_cold_sync(clms_cb, cbk_arg)) != NCSCC_RC_SUCCESS)
-                        TRACE("   FAILED");
+                        LOG_ER("ckpt_decode_cold_sync  FAILED");
                 break;
 
         default:
@@ -1974,15 +1965,6 @@ static uns32 ckpt_decode_cold_sync(CLMS_CB *cb, NCS_MBCSV_CB_ARG *cbk_arg)
                  if (rc != NCSCC_RC_SUCCESS) {
                         goto done;
                 }
-
-		#if 0
-		data->header.type = CLMS_CKPT_TRACK_CHANGES_REC;  /*dude wannna change me???*/
-                /* Update our database */
-                rc = process_ckpt_data(cb, data);
-                 if (rc != NCSCC_RC_SUCCESS) {
-                        goto done;
-                }
-		#endif
 
                 memset(&data->param, 0, sizeof(data->param));
                 --num_rec;
