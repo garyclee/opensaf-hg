@@ -87,14 +87,14 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	EDSV_EDA_INITIALIZE_RSP *init_rsp = NULL;
 	SaVersionT client_version;
 
-	if ((rc = ncs_agents_startup(0, 0)) != SA_AIS_OK) {
+	if ((rc = ncs_agents_startup()) != SA_AIS_OK) {
 		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	if ((rc = ncs_eda_startup()) != SA_AIS_OK) {
 		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0);
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -110,7 +110,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, SA_AIS_ERR_INVALID_PARAM,
 			     __FILE__, __LINE__, 0);
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return SA_AIS_ERR_INVALID_PARAM;
 	}
 
@@ -132,7 +132,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 		m_EDA_FILL_VERSION(io_version);
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		rc = SA_AIS_ERR_VERSION;
 		return rc;
 	}
@@ -140,7 +140,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	if (!eda_cb->eds_intf.eds_up) {
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		m_LOG_EDSV_A(EDA_INITIALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_INFO, rc, __FILE__, __LINE__,
 			     eda_cb->eds_intf.eds_up);
@@ -156,7 +156,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 		rc = SA_AIS_ERR_TRY_AGAIN;
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return rc;
 	}
 
@@ -198,7 +198,7 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT *o_evtHandle, const SaEvtCallbacksT *ca
 	ncshm_give_hdl(gl_eda_hdl);
 	if (rc != SA_AIS_OK) {
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 	} else
 		m_LOG_EDSV_AF(EDA_INITIALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, rc, __FILE__, __LINE__,
 			      reg_id, *o_evtHandle);
@@ -434,10 +434,11 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 		return rc;
 	}
 
-   /** delete the hdl rec 
-    ** including all its channel hdls and events
-    ** if MDS send is succesful. 
-    **/
+	/*
+	 * delete the hdl rec 
+	 * including all its channel hdls and events
+	 * if MDS send is succesful. 
+	 */
 	if (NCSCC_RC_SUCCESS != (rc = eda_hdl_rec_del(&eda_cb->eda_init_rec_list, hdl_rec))) {
 		m_LOG_EDSV_AF(EDA_FINALIZE_FAILURE, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__, 0,
 			      evtHandle);
@@ -455,7 +456,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
 		m_LOG_EDSV_AF(EDA_FINALIZE_SUCCESS, NCSFL_LC_EDSV_CONTROL, NCSFL_SEV_NOTICE, 1, __FILE__, __LINE__,
 			      reg_id, evtHandle);
 	ncs_eda_shutdown();
-	ncs_agents_shutdown(0, 0);
+	ncs_agents_shutdown();
 
 	return rc;
 }
@@ -2852,12 +2853,11 @@ SaAisErrorT saEvtLimitGet(SaEvtHandleT evtHandle, SaEvtLimitIdT limitId, SaLimit
 		ncshm_give_hdl(evtHandle);
 		ncshm_give_hdl(gl_eda_hdl);
 		ncs_eda_shutdown();
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		return rc;
 	}
 
-   /** Make sure the EDS return status was SA_AIS_OK 
-    **/
+	/* Make sure the EDS return status was SA_AIS_OK */
 	if (SA_AIS_OK != o_msg->info.api_resp_info.rc) {
 		rc = o_msg->info.api_resp_info.rc;
 		ncshm_give_hdl(evtHandle);

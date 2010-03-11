@@ -242,15 +242,15 @@ unsigned int imma_startup(NCSMDS_SVC_ID sv_id)
 		goto done;
 	}
 
-	if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 		TRACE_3("Agents_startup failed");
 		goto done;
 	}
 
-    /*** Init IMMA ***/
+	/* Init IMMA */
 	if ((rc = imma_create(sv_id)) != NCSCC_RC_SUCCESS) {
 		TRACE_3("Failure in startup of client agent");
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		goto done;
 	} else {
 		imma_use_count = 1;
@@ -301,7 +301,7 @@ unsigned int imma_shutdown(NCSMDS_SVC_ID sv_id)
 		imma_use_count--;
 	} else if (imma_use_count == 1) {
 		rc = imma_destroy(sv_id);
-		ncs_agents_shutdown(0, 0);
+		ncs_agents_shutdown();
 		imma_use_count = 0;
 	}
 

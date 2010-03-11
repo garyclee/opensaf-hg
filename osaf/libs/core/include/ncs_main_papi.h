@@ -53,22 +53,22 @@ extern "C" {
                     (etc.)
 
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_agents_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_agents_startup(void);
 
 /***********************************************************************\
    ncs_agents_shutdown: This function shutdown agents. 
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_agents_shutdown(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_agents_shutdown(void);
 
 /***********************************************************************\
    Individual agents startup and shutdown functions  
 \***********************************************************************/
-	EXTERN_C unsigned int ncs_core_agents_startup(int argc, char *argv[]);
-	EXTERN_C unsigned int ncs_mbca_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_core_agents_startup(void);
+	EXTERN_C unsigned int ncs_mbca_startup(void);
 
-	EXTERN_C unsigned int ncs_leap_startup(int argc, char *argv[]);
-	EXTERN_C unsigned int ncs_mds_startup(int argc, char *argv[]);
-	EXTERN_C unsigned int ncs_dta_startup(int argc, char *argv[]);
+	EXTERN_C unsigned int ncs_leap_startup(void);
+	EXTERN_C unsigned int ncs_mds_startup(void);
+	EXTERN_C unsigned int ncs_dta_startup(void);
 
 	EXTERN_C unsigned int ncs_mbca_shutdown(void);
 	EXTERN_C unsigned int ncs_core_agents_shutdown(void);

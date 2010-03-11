@@ -205,7 +205,7 @@ void tware_ncs_startup()
 /*    tet_mainget_svc_enable_info(t_argv,&arg_count,fp) ; */
 
 /* Using the default mode for startup */
-    ncs_agents_startup(0,NULL); 
+    ncs_agents_startup(); 
 
     tet_svcs_startup(); 
 

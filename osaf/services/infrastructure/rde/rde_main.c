@@ -370,11 +370,10 @@ static int initialize_rde(char **argv)
 	int rc = NCSCC_RC_FAILURE;
 	char *path = getenv("NCS_STDOUTS_PATH");
 	char pathname[256];
-	char *rde_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=0" };
 	char *name = strdup(basename(argv[0]));
 	char *val;
 
-	if ((rc = ncs_core_agents_startup(2, rde_argv)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_core_agents_startup()) != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_core_agents_startup FAILED");
 		goto init_failed;
 	}

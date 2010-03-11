@@ -281,7 +281,7 @@ static uns32 fm_agents_startup(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Start agents */
-	rc = ncs_agents_startup(0, NULL);
+	rc = ncs_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS) {
 		printf("ncs core agent startup failed\n ");
 		return rc;
@@ -306,7 +306,7 @@ static uns32 fm_agents_shutdown(void)
 	uns32 rc = NCSCC_RC_SUCCESS;
 
 	/* Start agents */
-	rc = ncs_agents_shutdown(0, NULL);
+	rc = ncs_agents_shutdown();
 	if (rc != NCSCC_RC_SUCCESS) {
 		printf("ncs core agent shutdown failed\n ");
 		return rc;

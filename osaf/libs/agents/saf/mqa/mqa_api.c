@@ -140,14 +140,14 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 #endif
 
 	/* Initialize the environment */
-	if ((rc = ncs_agents_startup(argc, argv)) != NCSCC_RC_SUCCESS) {
+	if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_A(MQA_NCS_AGENTS_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
 		return SA_AIS_ERR_LIBRARY;
 	}
 
 	if ((rc = ncs_mqa_startup()) != NCSCC_RC_SUCCESS) {
 		m_LOG_MQSV_A(MQA_NCS_AGENTS_START_FAILED, NCSFL_LC_MQSV_INIT, NCSFL_SEV_ERROR, rc, __FILE__, __LINE__);
-		ncs_agents_shutdown(argc, argv);
+		ncs_agents_shutdown();
 		return SA_AIS_ERR_LIBRARY;
 	}
 
@@ -288,7 +288,7 @@ SaAisErrorT saMsgInitialize(SaMsgHandleT *msgHandle, const SaMsgCallbacksT *msgC
 				     __LINE__);
 
 		ncs_mqa_shutdown();
-		ncs_agents_shutdown(argc, argv);
+		ncs_agents_shutdown();
 	} else {
 		m_LOG_MQSV_A(MQA_API_MSG_INITIALIZE_SUCCESS, NCSFL_LC_MQSV_INIT, NCSFL_SEV_NOTICE, rc, __FILE__,
 			     __LINE__);
@@ -658,7 +658,7 @@ SaAisErrorT saMsgFinalize(SaMsgHandleT msgHandle)
 				     __LINE__);
 	} else {
 		ncs_mqa_shutdown();
-		ncs_agents_shutdown(argc, argv);
+		ncs_agents_shutdown();
 	}
 
 #if (NCS_MQA_DEBUG==1)

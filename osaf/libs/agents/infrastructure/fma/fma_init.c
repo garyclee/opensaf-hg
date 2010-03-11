@@ -409,7 +409,7 @@ static uns32 fma_create(NCS_LIB_CREATE *create_info)
 	}
 
 	/* Start NCS agents */
-	if (ncs_agents_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		rc = NCSCC_RC_FAILURE;
 		goto fma_ncs_agents_startup_fail;
 	}
@@ -596,7 +596,7 @@ static uns32 fma_destroy(NCS_LIB_DESTROY *destroy_info)
 	fma_log_dereg();
 
 	/* Shutdown NCS agents */
-	ncs_agents_shutdown(argc, argv);
+	ncs_agents_shutdown();
 
 	if (rc == NCSCC_RC_SUCCESS)
 		lib_use_count--;

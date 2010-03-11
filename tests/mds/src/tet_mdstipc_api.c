@@ -27,7 +27,7 @@ void ncs_agents_shut_start(int choice)
   int FAIL=0;
 
     tet_printf("\n\n ncs_agents_shut_start\n");
-    if(ncs_agents_shutdown(0,0)!=NCSCC_RC_SUCCESS)
+    if(ncs_agents_shutdown()!=NCSCC_RC_SUCCESS)
     {
       perror("\n\n ----- NCS AGENTS SHUTDOWN FAILED ----- \n\n");
       tet_printf("ncs_agents_shutdown(): FAIL");
@@ -37,7 +37,7 @@ void ncs_agents_shut_start(int choice)
     tet_printf("ncs_agents_shutdown(): SUCCESS");
    
   sleep(5);
-    if(ncs_agents_startup(0,0)!=NCSCC_RC_SUCCESS)
+    if(ncs_agents_startup()!=NCSCC_RC_SUCCESS)
     {
       perror("\n\n ----- NCS AGENTS START UP FAILED ------- \n\n");
       tet_printf("ncs_agents_startup(): FAIL");

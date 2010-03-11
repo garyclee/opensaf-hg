@@ -140,16 +140,14 @@ typedef struct ncs_main_pub_cb {
 	uns32 dta_use_count;
 
 	NCS_AGENT_DATA mbca;
-	NCS_AGENT_DATA ncs_hpl;
-
 } NCS_MAIN_PUB_CB;
 
 static uns32 mainget_node_id(uns32 *node_id);
 static uns32 ncs_set_config_root(void);
 static uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params);
-static uns32 ncs_non_core_agents_startup(int argc, char *argv[]);
-static void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_params);
-static uns32 ncs_update_sys_param_args(int argc, char *argv[]);
+static uns32 ncs_non_core_agents_startup(void);
+static void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params);
+static uns32 ncs_update_sys_param_args(void);
 
 static char ncs_config_root[MAX_NCS_CONFIG_FILEPATH_LEN + 1];
 
@@ -193,16 +191,15 @@ uns32 gl_pargc = 0;
   PROCEDURE    :    ncs_agents_startup
 
 \***************************************************************************/
-unsigned int ncs_agents_startup(int argc, char *argv[])
+unsigned int ncs_agents_startup(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	rc = ncs_core_agents_startup(argc, argv);
+	rc = ncs_core_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
 
-	/* From now on, use gl_pargc & gl_pargv */
-	rc = ncs_non_core_agents_startup(gl_pargc, gl_pargv);
+	rc = ncs_non_core_agents_startup();
 	if (rc != NCSCC_RC_SUCCESS)
 		return rc;
 
@@ -214,10 +211,9 @@ unsigned int ncs_agents_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_agents_shutdown
 
 \***************************************************************************/
-unsigned int ncs_agents_shutdown(int argc, char *argv[])
+unsigned int ncs_agents_shutdown(void)
 {
 	ncs_mbca_shutdown();
-
 	ncs_core_agents_shutdown();
 
 	return NCSCC_RC_SUCCESS;
@@ -228,7 +224,7 @@ unsigned int ncs_agents_shutdown(int argc, char *argv[])
   PROCEDURE    :    ncs_leap_startup
 
 \***************************************************************************/
-unsigned int ncs_leap_startup(int argc, char *argv[])
+unsigned int ncs_leap_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
 
@@ -246,8 +242,8 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
 
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
+	lib_create.info.create.argc = 0;
+	lib_create.info.create.argv = NULL;
 
    	/* Initalize basic services */
 	if (leap_env_init() != NCSCC_RC_SUCCESS) {
@@ -277,9 +273,11 @@ unsigned int ncs_leap_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_mds_startup
 
 \***************************************************************************/
-unsigned int ncs_mds_startup(int argc, char *argv[])
+unsigned int ncs_mds_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
+	int argc;
+	char argv[256];
 
 	m_NCS_AGENT_LOCK;
 
@@ -296,7 +294,7 @@ unsigned int ncs_mds_startup(int argc, char *argv[])
 	}
 
 	/* Get & Update system specific arguments */
-	if (ncs_update_sys_param_args(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_update_sys_param_args() != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("ERROR: Update System Param args \n");
 		m_NCS_AGENT_UNLOCK;
 		return NCSCC_RC_FAILURE;
@@ -333,7 +331,7 @@ unsigned int ncs_mds_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_dta_startup
 
 \***************************************************************************/
-unsigned int ncs_dta_startup(int argc, char *argv[])
+unsigned int ncs_dta_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
 
@@ -359,8 +357,8 @@ unsigned int ncs_dta_startup(int argc, char *argv[])
 
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
+	lib_create.info.create.argc = 0;
+	lib_create.info.create.argv = NULL;
 
 	/* STEP : Initialize the DTA layer */
 	if (dta_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
@@ -382,11 +380,11 @@ unsigned int ncs_dta_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_non_core_agents_startup
 
 \***************************************************************************/
-uns32 ncs_non_core_agents_startup(int argc, char *argv[])
+uns32 ncs_non_core_agents_startup(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	rc = ncs_mbca_startup(argc, argv);
+	rc = ncs_mbca_startup();
 
 	return rc;
 }
@@ -396,24 +394,24 @@ uns32 ncs_non_core_agents_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_core_agents_startup
 
 \***************************************************************************/
-unsigned int ncs_core_agents_startup(int argc, char *argv[])
+unsigned int ncs_core_agents_startup(void)
 {
 	if (gl_ncs_main_pub_cb.core_use_count) {
 		gl_ncs_main_pub_cb.core_use_count++;
 		return NCSCC_RC_SUCCESS;
 	}
 
-	if (ncs_leap_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_leap_startup() != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("ERROR: LEAP svcs startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	if (ncs_mds_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_mds_startup() != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("ERROR: MDS startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
 
-	if (ncs_dta_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_dta_startup() != NCSCC_RC_SUCCESS) {
 		NCSMAINPUB_TRACE1_ARG1("ERROR: DTA startup failed \n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
@@ -429,7 +427,7 @@ unsigned int ncs_core_agents_startup(int argc, char *argv[])
   PROCEDURE    :    ncs_mbca_startup
 
 \***************************************************************************/
-unsigned int ncs_mbca_startup(int argc, char *argv[])
+unsigned int ncs_mbca_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
 
@@ -440,8 +438,8 @@ unsigned int ncs_mbca_startup(int argc, char *argv[])
 
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
+	lib_create.info.create.argc = 0;
+	lib_create.info.create.argv = NULL;
 
 	if (gl_ncs_main_pub_cb.lib_hdl == NULL)
 		return NCSCC_RC_SUCCESS;	/* No agents to load */
@@ -451,7 +449,7 @@ unsigned int ncs_mbca_startup(int argc, char *argv[])
 	if (gl_ncs_main_pub_cb.mbca.use_count > 0) {
 		/* Already created, so just increment the use_count */
 		gl_ncs_main_pub_cb.mbca.use_count++;
-	} else /*** Init MBCA ***/ if ('n' != ncs_util_get_char_option(argc, argv, "MBCSV=")) {
+	} else {
 		gl_ncs_main_pub_cb.mbca.lib_req =
 		    (LIB_REQ)m_NCS_OS_DLIB_SYMBOL(gl_ncs_main_pub_cb.lib_hdl, "mbcsv_lib_req");
 		if (gl_ncs_main_pub_cb.mbca.lib_req == NULL) {
@@ -631,8 +629,7 @@ unsigned int ncs_core_agents_shutdown()
 		return NCSCC_RC_SUCCESS;
 	}
 
-   /*** Shutdown basic services ***/
-	/*usleep(1000); */
+   	/* Shutdown basic services */
 	ncs_dta_shutdown();
 	ncs_mds_shutdown();
 	ncs_leap_shutdown();
@@ -885,7 +882,7 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 	return NCSCC_RC_SUCCESS;
 }
 
-void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_params)
+void ncs_get_sys_params_arg(NCS_SYS_PARAMS *sys_params)
 {
 	char *p_field;
 	uns32 tmp_ctr;
@@ -893,6 +890,8 @@ void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_para
 	NCS_SUB_SLOT_ID sub_slot_id = 0;
 	NCS_SYS_PARAMS params;
 	char *ptr;
+	int argc = 0;
+	char argv[256];
 
 	orig_argc = gl_pargc;
 	for (tmp_ctr = 0; tmp_ctr < NCS_MAX_INPUT_ARG_DEF; tmp_ctr++) {
@@ -902,15 +901,15 @@ void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_para
 	gl_pargc += tmp_ctr;
 
 	/* Check   argv[argc-1] through argv[1] */
-	for (; i_argc > 1; i_argc--) {
-		p_field = strstr(i_argv[i_argc - 1], "NODE_ID=");
+	for (; argc > 1; argc--) {
+		p_field = strstr(argv[argc - 1], "NODE_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("NODE_ID="), "%d", &params.node_id) == 1)
 				sys_params->node_id = params.node_id;
 
 			continue;
 		} else
-			p_field = strstr(i_argv[i_argc - 1], "PCON_ID=");
+			p_field = strstr(argv[argc - 1], "PCON_ID=");
 		if (p_field != NULL) {
 			if (sscanf(p_field + strlen("PCON_ID="), "%d", &params.pcon_id) == 1)
 				sys_params->pcon_id = params.pcon_id;
@@ -920,7 +919,7 @@ void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_para
 			/* else store whatever comes */
 			gl_pargv[gl_pargc] = (char *)malloc(NCS_MAX_STR_INPUT);
 			memset(gl_pargv[gl_pargc], 0, NCS_MAX_STR_INPUT);
-			strcpy(gl_pargv[gl_pargc], i_argv[i_argc - 1]);
+			strcpy(gl_pargv[gl_pargc], argv[argc - 1]);
 			gl_pargc = (gl_pargc) + 1;
 		}
 	}
@@ -949,7 +948,7 @@ void ncs_get_sys_params_arg(int i_argc, char *i_argv[], NCS_SYS_PARAMS *sys_para
 	return;
 }
 
-uns32 ncs_update_sys_param_args(int argc, char *argv[])
+uns32 ncs_update_sys_param_args(void)
 {
 	NCS_SYS_PARAMS sys_params;
 
@@ -957,7 +956,7 @@ uns32 ncs_update_sys_param_args(int argc, char *argv[])
 	ncs_util_get_sys_params(&sys_params);
 
 	/* Frame input arguments */
-	ncs_get_sys_params_arg(argc, argv, &sys_params);
+	ncs_get_sys_params_arg(&sys_params);
 
 	return NCSCC_RC_SUCCESS;
 }

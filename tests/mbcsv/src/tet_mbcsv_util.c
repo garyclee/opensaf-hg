@@ -288,7 +288,7 @@ uns32 mbcstm_startup()
 void tet_mbcsv_startup()
 {
 /* Using the default mode for startup */
-    ncs_agents_startup(0,NULL); 
+    ncs_agents_startup(); 
   
     mbcstm_startup();
     /*change*/

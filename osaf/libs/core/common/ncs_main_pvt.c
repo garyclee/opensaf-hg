@@ -26,10 +26,6 @@
 #include "mda_dl_api.h"
 #include "nid_api.h"
 
-#if (NCS_VDS == 1)
-#include "vds_dl_api.h"
-#endif
-
 #if (NCS_AVA == 1)
 #include "ava_dl_api.h"
 #endif
@@ -123,7 +119,7 @@
 /* NID specific NCS service global variable */
 char gl_nid_svc_name[NID_MAXSNAME];
 
-static uns32 ncs_d_nd_svr_startup(int argc, char *argv[]);
+static uns32 ncs_d_nd_svr_startup(void);
 static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name);
 
 
@@ -151,23 +147,23 @@ uns32 ncs_nid_notify(uns16 status)
 }
 
 
-uns32 ncspvt_svcs_startup(int argc, char *argv[])
+uns32 ncspvt_svcs_startup(void)
 {
 	/* Init NCS core agents (Leap, NCS-Common, MDS, ADA/VDA, DTA, OAA */
-	if (ncs_core_agents_startup(argc, argv) != NCSCC_RC_SUCCESS)
+	if (ncs_core_agents_startup() != NCSCC_RC_SUCCESS)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
 	syslog(LOG_INFO, "NODE_ID=0x%08X PID %u \n", ncs_get_node_id(), getpid());
 
 	/* start all the required directors/node director/servers */
-	if (ncs_d_nd_svr_startup(gl_pargc, gl_pargv) != NCSCC_RC_SUCCESS)
+	if (ncs_d_nd_svr_startup() != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
 
 	return (NCSCC_RC_SUCCESS);
 }
 
 
-static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
+static uns32 ncs_d_nd_svr_startup(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
 #if (NCS_DTS == 1)
@@ -177,11 +173,11 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 	/* Init LIB_CREATE request for Directors, NodeDirectors, and Server */
 	memset(&lib_create, 0, sizeof(lib_create));
 	lib_create.i_op = NCS_LIB_REQ_CREATE;
-	lib_create.info.create.argc = argc;
-	lib_create.info.create.argv = argv;
+	lib_create.info.create.argc = 0;
+	lib_create.info.create.argv = NULL;
 
 	/* Init MBCA */
-	if (ncs_mbca_startup(argc, argv) != NCSCC_RC_SUCCESS) {
+	if (ncs_mbca_startup() != NCSCC_RC_SUCCESS) {
 		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
 		printf("MBCA start-up has been failed\n");
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
@@ -198,92 +194,83 @@ static uns32 ncs_d_nd_svr_startup(int argc, char *argv[])
 		}
 	}
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "DTSV=")) {
-		m_NCS_DBG_PRINTF("\nDTSV:DTS:ON");
-		if (dts_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("DTS lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
+	m_NCS_DBG_PRINTF("\nDTSV:DTS:ON");
+	if (dts_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("DTS lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
+
 #endif   /* If NCS_DTS == 1 */
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "EDSV=")) {
 #if (NCS_EDS == 1)
-		/* Init EDS */
-		m_NCS_DBG_PRINTF("\nEDSV:EDS:ON");
-		if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("EDS lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		} else
-			m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
+	/* Init EDS */
+	m_NCS_DBG_PRINTF("\nEDSV:EDS:ON");
+	if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("EDS lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	} else
+		m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
 #endif
-	}
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "CPSV=")) {
 #if (NCS_CPD == 1)
-		/* Init CPD */
-		m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
-		if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("CPD lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
+	/* Init CPD */
+	m_NCS_DBG_PRINTF("\nCPSV:CPD:ON");
+	if (cpd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("CPD lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 #endif
 #if (NCS_CPND == 1)
-		/* Init CPND */
-		m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
-		if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("CPND lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
+	/* Init CPND */
+	m_NCS_DBG_PRINTF("\nCPSV:CPND:ON");
+	if (cpnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("CPND lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
+#endif
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "MQSV=")) {
 #if (NCS_MQD == 1)
-		/* Init MQD */
-		m_NCS_DBG_PRINTF("\nMQSV:MQD:ON");
-		if (mqd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("MQD lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
+	/* Init MQD */
+	m_NCS_DBG_PRINTF("\nMQSV:MQD:ON");
+	if (mqd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("MQD lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 #endif
 
 #if (NCS_MQND == 1)
-		/* Init MQND */
-		m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");
-		if (mqnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("MQND lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
+	/* Init MQND */
+	m_NCS_DBG_PRINTF("\nMQSV:MQND:ON");
+	if (mqnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("MQND lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
+#endif
 
-	if ('n' != ncs_util_get_char_option(argc, argv, "GLSV=")) {
 #if (NCS_GLD == 1)
-		/* Init GLD */
-		m_NCS_DBG_PRINTF("\nGLSV:GLD:ON");
-		if (gld_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("GLD lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
+	/* Init GLD */
+	m_NCS_DBG_PRINTF("\nGLSV:GLD:ON");
+	if (gld_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("GLD lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+	}
 #endif
 #if (NCS_GLND == 1)
-		/* Init GLND */
-		m_NCS_DBG_PRINTF("\nGLSV:GLND:ON");
-		if (glnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-			m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-			printf("GLND lib request failed\n");
-			return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-		}
-#endif
+	/* Init GLND */
+	m_NCS_DBG_PRINTF("\nGLSV:GLND:ON");
+	if (glnd_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
+		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
+		printf("GLND lib request failed\n");
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 	}
+#endif
 
 #if (NCS_PDRBD == 1)
 	/* Initialize Pseudo DRBD service */
@@ -337,36 +324,15 @@ static void ncs_get_nid_svc_name(int argc, char *argv[], char *o_nid_svc_name)
 
 int ncspvt_load_config_n_startup(int argc, char *argv[])
 {
-	FILE *fp = NULL;
-	char *p_field = NULL;
-
 	/*
 	 * If the service is spawned by NID, then get the respective
 	 * NID specific service ID
 	 */
 	ncs_get_nid_svc_name(argc, argv, gl_nid_svc_name);
 
-	if (argc == 2) {
-		p_field = ncs_util_search_argv_list(argc, argv, "CONFFILE=");
-		if (p_field != NULL) {
-			/* validate the file */
-			fp = fopen(p_field + strlen("CONFFILE="), "r");
-			if (fp == NULL) {
-				m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-				printf("Wrong service file name svc_nmae:%s \n", gl_nid_svc_name);
-			}
-		}
-	}
-
 	/* start up the node */
-	if (ncspvt_svcs_startup(argc, argv) != NCSCC_RC_SUCCESS) {
-		if (fp)
-			fclose(fp);
+	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS)
 		return (NCSCC_RC_FAILURE);
-	}
-
-	if (fp)
-		fclose(fp);
 
 	m_NCS_NID_NOTIFY(NCSCC_RC_SUCCESS);
 

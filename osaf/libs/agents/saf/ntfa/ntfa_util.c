@@ -469,13 +469,13 @@ unsigned int ntfa_startup(void)
 		ntfa_use_count++;
 		goto done;
 	} else {
-		if ((rc = ncs_agents_startup(0, 0)) != NCSCC_RC_SUCCESS) {
+		if ((rc = ncs_agents_startup()) != NCSCC_RC_SUCCESS) {
 			TRACE("ncs_agents_startup FAILED");
 			goto done;
 		}
 
 		if ((rc = ntfa_create()) != NCSCC_RC_SUCCESS) {
-			ncs_agents_shutdown(0, 0);
+			ncs_agents_shutdown();
 			goto done;
 		} else
 			ntfa_use_count = 1;
@@ -504,7 +504,7 @@ unsigned int ntfa_shutdown(void)
 		ntfa_use_count--;
 	} else if (ntfa_use_count == 1) {
 		ntfa_destroy();
-		rc = ncs_agents_shutdown(0, 0);
+		rc = ncs_agents_shutdown();
 		ntfa_use_count = 0;
 	}
 

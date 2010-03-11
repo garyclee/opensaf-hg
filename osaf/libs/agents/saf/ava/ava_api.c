@@ -136,7 +136,7 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    }
 
    /* Initialize the environment */
-   if (ncs_agents_startup(argc, argv) != NCSCC_RC_SUCCESS)
+   if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
    {
       return SA_AIS_ERR_LIBRARY;
    }
@@ -144,7 +144,7 @@ SaAisErrorT saAmfInitialize (SaAmfHandleT *o_hdl,
    /* Create AVA/CLA  CB */ 
    if (ncs_ava_startup() != NCSCC_RC_SUCCESS)
    {
-      ncs_agents_shutdown(argc, argv);
+      ncs_agents_shutdown();
       return SA_AIS_ERR_LIBRARY;
    }
 
@@ -216,7 +216,7 @@ done:
    if (SA_AIS_OK != rc)
    {
       ncs_ava_shutdown();
-      ncs_agents_shutdown(argc, argv);
+      ncs_agents_shutdown();
    }
 
    return rc;
@@ -331,7 +331,7 @@ done:
       {
          /* call agent shutdown,for each finalize done before */
          ncs_ava_shutdown();
-         ncs_agents_shutdown(argc, argv);
+         ncs_agents_shutdown();
          pend_fin--;
       }
 
@@ -413,7 +413,7 @@ done:
    if(agent_flag == TRUE) 
    {
       ncs_ava_shutdown();
-      ncs_agents_shutdown(argc, argv);
+      ncs_agents_shutdown();
    }
 
    return rc;
