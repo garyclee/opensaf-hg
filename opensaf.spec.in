@@ -973,9 +973,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files lck-nodedirector
 %defattr(-,root,root)
-%{_pkglibdir}/ncs_glnd
-%{_pkglibdir}/ncs_glnd_clean
-%{_pkglibdir}/ncs_glnd_start
+%{_pkglibdir}/osaflcknd
+%{_pkglibdir}/osaf-lcknd
 
 %endif
 
