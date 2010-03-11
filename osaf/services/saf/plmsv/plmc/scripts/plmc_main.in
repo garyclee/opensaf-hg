@@ -30,7 +30,7 @@
 ### END INIT INFO
 # chkconfig: 2345 99 01
 # description: plmc_main starts/stops the plmc_d daemon to enable PLMc operations on an OpenSAF node.
-# config: normally found at /etc/opensaf/plmc.conf.
+# config: normally found at $pkgsysconfdir/plmcd.conf.
 # processname: plmc_d
 # pidfile: /var/run/plmc_d.pid
 #
@@ -61,8 +61,8 @@ fi
 
 if [ "$PLMC_CONF_PATH" = "" ]
 then
-  echo "plmc_main: warning: PLMC_CONF_PATH is not configured. Using default path: /etc/opensaf/plmc.conf"
-  PLMC_CONF_PATH=/etc/opensaf/plmc.conf
+  echo "plmc_main: warning: PLMC_CONF_PATH is not configured. Using default path: /etc/opensaf/plmcd.conf"
+  PLMC_CONF_PATH=/etc/opensaf/plmcd.conf
 fi
 if [ "$PLMC_DAEMON_BIN_PATH" = "" ]
 then

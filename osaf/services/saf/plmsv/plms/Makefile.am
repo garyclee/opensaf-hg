@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009-2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,31 +11,26 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson 
-
+# Author(s): Emerson Network Power
+#
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-
 SUBDIRS = scripts
 
-noinst_HEADERS = 
+pkglib_PROGRAMS = osafplmd
 
-pkglib_PROGRAMS = opensaf_plms
-
-opensaf_plms_CPPFLAGS = \
-	-DNCS_MAIN_EXTERNAL \
+osafplmd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	$(HPI_CFLAGS) \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-        -I$(top_srcdir)/osaf/services/infrastructure/masv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_plms_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+osafplmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+
+osafplmd_SOURCES = \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	plms_main.c \
 	plms_amf.c \
@@ -55,7 +50,7 @@ opensaf_plms_SOURCES = \
 	plms_stdby.c \
 	plms_dbg_utils.c
 
-opensaf_plms_LDADD = \
+osafplmd_LDADD = \
         @HPI_LIBS@ \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la \
@@ -64,4 +59,3 @@ opensaf_plms_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
         $(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
         $(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
-

@@ -48,7 +48,7 @@
                 </attr>
                 <attr>
                         <name>saAmfCtRelPathInstantiateCmd</name>
-                        <value>plms_script</value>
+                        <value>osaf-plmd</value>
                 </attr>
                 <attr>
                         <name>saAmfCtDefInstantiateCmdArgv</name>
@@ -56,11 +56,11 @@
                 </attr>
                 <attr>
                         <name>saAmfCtRelPathCleanupCmd</name>
-                        <value>plms_script</value>
+                        <value>osaf-plmd</value>
                 </attr>
                 <attr>
                         <name>saAmfCtDefCleanupCmdArgv</name>
-                        <value>cleanup</value>
+                        <value>stop</value>
                 </attr>
                 <attr>
                         <name>saAmfCtDefRecoveryOnError</name>
@@ -108,7 +108,6 @@
                         <value>1</value>
                 </attr>
         </object>
-
 	<object class="SaPlmDomain">
 		<dn>safDomain=domain_1</dn> 
 		<attr>
@@ -120,7 +119,7 @@
 		<dn>safHpiCfg=hpi_cfg_1</dn> 
 		<attr>
 		<name>isHpiSupported</name> 
-		<value>0</value> 
+		<value>1</value> 
 		</attr>
 		<attr>
 		<name>extrPendingTimeout</name> 
@@ -129,6 +128,64 @@
 		<attr>
 		<name>insPendingTimeout</name> 
 		<value>1000</value> 
+		</attr>
+	</object>
+	<object class="SaPlmHEBaseType">
+		<dn>safHEType=hp_system_blade</dn> 
+		<attr>
+		<name>saPlmHetHpiEntityType</name> 
+		<value>SAHPI_ENT_SYSTEM_BLADE</value> 
+		</attr>
+	</object>
+	<object class="SaPlmHEType">
+		<dn>safVersion=ver1,safHEType=hp_system_blade</dn>
+		<attr>
+		<name>saPlmHetIdr</name>
+		<value>PRODUCT/MANUFACTURER=HP,PRODUCT/SERIAL_NUMBER=2130125A3KWJ,BOARD/PRODUCT_NAME=HP-SYSTEM_BLADE</value>
+		</attr>
+	</object>
+	<object class="SaPlmHE">
+		<dn>safHE=blade_1,safDomain=domain_1</dn> 
+		<attr>
+			<name>saPlmHEEntityPaths</name> 
+			<value>{{SAHPI_ENT_SYSTEM_BLADE,1},{SAHPI_ENT_SYSTEM_CHASSIS,2},{SAHPI_ENT_ROOT,0}}</value> 
+		</attr>
+		<attr>
+			<name>saPlmHEBaseHEType</name> 
+			<value>safHEType=hp_system_blade</value> 
+		</attr>
+	</object>
+	<object class="SaPlmHE">
+		<dn>safHE=blade_2,safDomain=domain_1</dn> 
+		<attr>
+			<name>saPlmHEEntityPaths</name> 
+			<value>{{SAHPI_ENT_SYSTEM_BLADE,2},{SAHPI_ENT_SYSTEM_CHASSIS,2},{SAHPI_ENT_ROOT,0}}</value> 
+		</attr>
+		<attr>
+			<name>saPlmHEBaseHEType</name> 
+			<value>safHEType=hp_system_blade</value> 
+		</attr>
+	</object>
+	<object class="SaPlmHE">
+		<dn>safHE=blade_3,safDomain=domain_1</dn> 
+		<attr>
+			<name>saPlmHEEntityPaths</name> 
+			<value>{{SAHPI_ENT_SYSTEM_BLADE,3},{SAHPI_ENT_SYSTEM_CHASSIS,2},{SAHPI_ENT_ROOT,0}}</value> 
+		</attr>
+		<attr>
+			<name>saPlmHEBaseHEType</name> 
+			<value>safHEType=hp_system_blade</value> 
+		</attr>
+	</object>
+	<object class="SaPlmHE">
+		<dn>safHE=blade_4,safDomain=domain_1</dn> 
+		<attr>
+			<name>saPlmHEEntityPaths</name> 
+			<value>{{SAHPI_ENT_SYSTEM_BLADE,4},{SAHPI_ENT_SYSTEM_CHASSIS,2},{SAHPI_ENT_ROOT,0}}</value> 
+		</attr>
+		<attr>
+			<name>saPlmHEBaseHEType</name> 
+			<value>safHEType=hp_system_blade</value> 
 		</attr>
 	</object>
 	<object class="SaPlmEEBaseType">
@@ -143,7 +200,7 @@
 		</attr>
 		<attr>
 			<name>saPlmEetRelease</name> 
-			<value>2.6</value> 
+			<value>2.6.18-8.el5</value> 
 		</attr>
 	</object>
 	<object class="SaPlmEEType">
@@ -158,7 +215,7 @@
 		</attr>
 	</object>
 	<object class="SaPlmEE">
-		<dn>safEE=clm_node_controller_1,safDomain=domain_1</dn> 
+		<dn>safEE=EE_Linux_os,safHE=blade_1,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmEEType</name> 
 			<value>safVersion=1,safEEType=Linux_os</value> 
@@ -173,7 +230,7 @@
 		</attr>
 	</object>
 	<object class="SaPlmEE">
-		<dn>safEE=clm_node_controller_2,safDomain=domain_1</dn> 
+		<dn>safEE=EE_Linux_os,safHE=blade_2,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmEEType</name> 
 			<value>safVersion=1,safEEType=Linux_os</value> 
@@ -188,7 +245,7 @@
 		</attr>
 	</object>
 	<object class="SaPlmEE">
-		<dn>safEE=clm_node_payload_1,safDomain=domain_1</dn> 
+		<dn>safEE=EE_Linux_os,safHE=blade_3,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmEEType</name> 
 			<value>safVersion=1,safEEType=Linux_os</value> 
@@ -203,22 +260,7 @@
 		</attr>
 	</object>
 	<object class="SaPlmEE">
-		<dn>safEE=clm_node_payload_2,safDomain=domain_1</dn> 
-		<attr>
-			<name>saPlmEEType</name> 
-			<value>safVersion=1,safEEType=Linux_os</value> 
-		</attr>
-		<attr>
-			<name>saPlmEEInstantiateTimeout</name> 
-			<value>180000000000</value> 
-		</attr>
-		<attr>
-			<name>saPlmEETerminateTimeout</name> 
-			<value>180000000000</value> 
-		</attr>
-	</object>
-	<object class="SaPlmEE">
-		<dn>safEE=clm_node_payload_3,safDomain=domain_1</dn> 
+		<dn>safEE=EE_Linux_os,safHE=blade_4,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmEEType</name> 
 			<value>safVersion=1,safEEType=Linux_os</value> 
@@ -233,11 +275,11 @@
 		</attr>
 	</object>
 	<object class="SaPlmDependency">
-		<dn>safDependency=dep_1,safEE=clm_node_payload_1,safDomain=domain_1</dn> 
+		<dn>safDependency=dep_1,safEE=EE_Linux_os,safHE=blade_3,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmDepNames</name> 
-			<value>safEE=clm_node_controller_1,safDomain=domain_1</value> 
-			<value>safEE=clm_node_controller_2,safDomain=domain_1</value> 
+			<value>safEE=EE_Linux_os,safHE=blade_1,safDomain=domain_1</value> 
+			<value>safEE=EE_Linux_os,safHE=blade_2,safDomain=domain_1</value> 
 		</attr>
 		<attr>
 			<name>saPlmDepMinNumber</name> 
@@ -245,11 +287,11 @@
 		</attr>
 	</object>
 	<object class="SaPlmDependency">
-		<dn>safDependency=dep_1,safEE=clm_node_payload_2,safDomain=domain_1</dn> 
+		<dn>safDependency=dep_1,safEE=EE_Linux_os,safHE=blade_4,safDomain=domain_1</dn> 
 		<attr>
 			<name>saPlmDepNames</name> 
-			<value>safEE=clm_node_controller_1,safDomain=domain_1</value> 
-			<value>safEE=clm_node_controller_2,safDomain=domain_1</value> 
+			<value>safEE=EE_Linux_os,safHE=blade_1,safDomain=domain_1</value> 
+			<value>safEE=EE_Linux_os,safHE=blade_2,safDomain=domain_1</value> 
 		</attr>
 		<attr>
 			<name>saPlmDepMinNumber</name> 

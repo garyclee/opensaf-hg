@@ -743,7 +743,7 @@ void *plmc_client_mgr(void *arguments)
 	command[0] ='\0';
 	
 	/* Adding 10 seconds to the plmc_cmd_timeout_secs in the 
-	*  plmc.conf file
+	*  plmcd.conf file
 	*/
 	tv.tv_sec = config.plmc_cmd_timeout_secs + 10;
 	tv.tv_usec = 0;
@@ -974,7 +974,7 @@ void *plmc_udp_listener(void *arguments)
 	if (strlen(match_ip) == 0) {
 		syslog(LOG_ERR, "plmc_udp_listener cannot match available "
 				"network insterfaces with IPs of controllers "
-				"specified in the plmc.conf file");
+				"specified in the plmcd.conf file");
 		pthread_exit((void *)NULL);
 	}
 	inet_aton(match_ip, &inp);
@@ -1105,7 +1105,7 @@ void *plmc_tcp_listener(void *arguments)
 	if (strlen(match_ip) == 0) {
 		syslog(LOG_ERR, "plmc_tcp_listener cannot match available "
 				"network insterfaces with IPs of controllers "
-				"specified in the plmc.conf file");
+				"specified in the plmcd.conf file");
 		pthread_exit((void *)NULL);
 	}
 	inet_aton(match_ip, &inp);

@@ -61,7 +61,7 @@ xxLIBDIRxx/osaf-immd:IMMD:S:xxLIBDIRxx/osaf-immd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-immnd:IMMND:S:xxLIBDIRxx/osaf-immnd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-logd:LOGD:S:xxLIBDIRxx/osaf-logd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-ntfd:NTFD:S:xxLIBDIRxx/osaf-ntfd:4000:4:2:1:start:stop
-xxLIBDIRxx/plms_script:PLMS:S:xxLIBDIRxx/plms_script:4000:4:2:1:start:stop
+xxLIBDIRxx/osaf-plmd:PLMD:S:xxLIBDIRxx/osaf-plmd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-clmd:CLMD:S:xxLIBDIRxx/osaf-clmd:4000:4:2:1:start:stop
 xxLIBDIRxx/osaf-noded:CLMNA:S:xxLIBDIRxx/osaf-noded:4000::2:1:start:stop
 xxLIBDIRxx/osaf-evtd:EDSV:S:xxLIBDIRxx/osaf-evtd:5000:4:2:1:start:stop

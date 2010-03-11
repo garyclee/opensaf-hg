@@ -18,14 +18,17 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = \
+	plmsv_objects.xml.atca \
+	plmsv_objects.xml.hp \
+	plmsv_objects.xml.pc
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/plmsv/config/plm.conf \
-	$(top_srcdir)/osaf/services/saf/plmsv/config/plmc.conf
+	$(top_srcdir)/osaf/services/saf/plmsv/config/plmd.conf \
+	$(top_srcdir)/osaf/services/saf/plmsv/config/plmcd.conf
 
 dist_pkgimmxml_svc_DATA = \
 	plmsv_classes.xml \
-	sample_plm_imm.xml.pc \
-	sample_plm_imm.xml.atca \
-	sample_plm_imm.xml.hp \
-	plmsv_sc_template.xml 
+	plmsv_objects.xml \
+	plmsv_sc_template.xml \
+	plmsv_pl_template.xml

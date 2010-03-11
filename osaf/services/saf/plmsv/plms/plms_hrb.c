@@ -30,7 +30,10 @@
 /*****************************************************************************
  *   INCLUDE FILES
 *****************************************************************************/
-#include "pthread.h"
+#include <pthread.h>
+
+#include "ncssysf_def.h"
+
 #include "plms.h"
 #include "plms_hrb.h"
 #include "plms_hsm.h"

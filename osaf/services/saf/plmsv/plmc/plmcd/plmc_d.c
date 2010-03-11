@@ -569,7 +569,7 @@ int main(int argc, char**argv) {
   if (plmc_config_file == NULL)
     plmc_config_file = PLMC_CONFIG_FILE_LOC;
 
-  /* Read the plmc.conf config file. */
+  /* Read the plmcd.conf config file. */
   retval = plmc_read_config(plmc_config_file, &config);
   if (retval != 0) {
     printf("error: plmc_d encountered error reading %s.  errno = %d\n", plmc_config_file, retval);
@@ -875,7 +875,7 @@ int main(int argc, char**argv) {
 
           /* Restart plmc_d. */
           plmc_config_file = getenv("PLMC_CONF_PATH");
-          /* See if the plmc.conf file location is specified. */
+          /* See if the plmcd.conf file location is specified. */
           if (plmc_config_file == NULL) {
 #ifdef PLMC_DEBUG
             sprintf(system_cmd, "%s restart", argv[0]);

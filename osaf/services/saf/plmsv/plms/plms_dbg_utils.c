@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "ncssysf_def.h"
+
 #include "plms.h"
 
 

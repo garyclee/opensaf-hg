@@ -1,6 +1,6 @@
 /*      -*- OpenSAF  -*-
  *
- * (C) Copyright 2008 The OpenSAF Foundation
+ * (C) Copyright 2009-2010 The OpenSAF Foundation
  *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -17,8 +17,8 @@
 
 /* ========================================================================
  *   INCLUDE FILES
-  * ========================================================================
-   */
+ * ========================================================================
+ */
 
 #define _GNU_SOURCE
 #include <string.h>
@@ -30,12 +30,13 @@
 #include <configmake.h>
 
 #include <rda_papi.h>
+#include <daemon.h>
+#include <saPlm.h>
 
 #include "plms.h"
 #include "plms_hsm.h"
 #include "plms_hrb.h"
 #include "plms_mbcsv.h"
-#include "saPlm.h"
 
 #define FD_USR1 0
 #define FD_AMF 0
@@ -100,10 +101,8 @@ static void usr2_sig_handler(int sig)
  *
  * Notes         : None.
  *****************************************************************************/
-
 uns32 plms_db_init()
 {
-
 	NCS_PATRICIA_PARAMS  params;
 	PLMS_CB * cb = plms_cb; 
 
@@ -111,9 +110,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->base_he_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->base_he_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("base_he_info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -122,9 +119,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->base_ee_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->base_ee_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("base_ee_info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -133,9 +128,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaNameT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->entity_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->entity_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("entity info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -144,9 +137,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaHpiEntityPathT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->epath_to_entity_map_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->epath_to_entity_map_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("epath_to_entity_map_info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -155,9 +146,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaPlmHandleT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->client_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->client_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("client info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -166,9 +155,7 @@ uns32 plms_db_init()
 	memset(&params,0,sizeof(NCS_PATRICIA_PARAMS));
 	params.key_size = sizeof(SaPlmEntityGroupHandleT);
 	params.info_size = 0;
-	if ((ncs_patricia_tree_init(&cb->entity_group_info, &params))
-	 != NCSCC_RC_SUCCESS)
-	{
+	if ((ncs_patricia_tree_init(&cb->entity_group_info, &params)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("entity group info tree init failed");
 		return NCSCC_RC_FAILURE;
 	}
@@ -186,58 +173,30 @@ uns32 plms_db_init()
  *                 to be registered with AMF with respect to the component Type
  *                 (PLMS).
  *
- * Arguments     : create_info: 
- *
  * Return Values : NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
  *
  * Notes         : None.
  *****************************************************************************/
-
-static uns32 plms_init(const char * progname)
+static uns32 plms_init()
 {
 	PLMS_CB *cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
-	const char * trace_file;
-	char *plms_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
 	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
         SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
-	/* Create PID file */
-        {
-                char path[256];
-                FILE *fp;
-
-                snprintf(path, sizeof(path), PKGPIDDIR "%s.pid", basename(progname));
-                fp = fopen(path, "w");
-                if (fp == NULL) {
-                        syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-                        exit(EXIT_FAILURE);
-                }
-                fprintf(fp, "%d\n", getpid());
-                fclose(fp);
-        }
-
-
-	/* Initialize trace system first of all so we can see what is going on. */
-        if ((trace_file = getenv("PLMS_TRACE_PATHNAME")) != NULL) {
-                if (logtrace_init(basename(progname), trace_file) != 0) {
-                        syslog(LOG_ERR, "PLMS:logtrace_init FAILED, exiting...");
-                        exit(EXIT_FAILURE);
-                }
-
-                if (getenv("PLMS_TRACE_CATEGORIES") != NULL) {
-                        /* Do not care about categories now, get all */
-                        trace_category_set(CATEGORY_ALL);
-                }
-        }
+	if ((trace_mask_env = getenv("PLMD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
 
 	TRACE_ENTER();
 	
 	/* Get CB first */
 	cb = plms_cb;
 
-	if (!cb)
-	{
+	if (!cb) {
 		/* Throw error */
 		LOG_ER("NULL CB Pointer");
 		return NCSCC_RC_FAILURE;
@@ -246,15 +205,13 @@ static uns32 plms_init(const char * progname)
 
 	/* Initialize the PLMS LOCK */
 	m_NCS_LOCK_INIT(&cb->cb_lock);
-
 	m_NCS_LOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 
-        /* FIXME: start the required services */
-        if (ncspvt_svcs_startup(2, plms_argv) != NCSCC_RC_SUCCESS) {
-                LOG_ER("ncspvt_svcs_startup failed");
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		TRACE("ncs_agents_startup FAILED");
                 rc = NCSCC_RC_FAILURE;
 		goto done;
-        }
+	}
 
 	 /* Init the EDU Handle */
 	m_NCS_EDU_HDL_INIT(&cb->edu_hdl);
@@ -266,8 +223,7 @@ static uns32 plms_init(const char * progname)
 	}
 
 	/* Initialize the database present in CB */
-	if ( (rc == plms_db_init()) != NCSCC_RC_SUCCESS)
-	{
+	if ( (rc == plms_db_init()) != NCSCC_RC_SUCCESS) {
 		LOG_ER("plms_db initialization FAILED");
 		rc = NCSCC_RC_FAILURE;
 		goto done;
@@ -304,18 +260,17 @@ static uns32 plms_init(const char * progname)
 		rc = NCSCC_RC_FAILURE;
                 goto done;
         }
+
 	/* FIXME :Initialize the IMM stuff */
 	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
-		if ((plms_imm_intf_initialize()) != NCSCC_RC_SUCCESS)
-		{
+		if ((plms_imm_intf_initialize()) != NCSCC_RC_SUCCESS) {
 			LOG_ER("imm_intf initialization failed");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 	}
 
-	if(cb->ha_state == SA_AMF_HA_ACTIVE && cb->hpi_cfg.hpi_support){
-
+	if(cb->ha_state == SA_AMF_HA_ACTIVE && cb->hpi_cfg.hpi_support) {
 		/* Create and initialize hsm thread */
 		if ((plms_hsm_initialize(&cb->hpi_cfg)) != NCSCC_RC_SUCCESS)
 		{
@@ -339,10 +294,10 @@ static uns32 plms_init(const char * progname)
 	plms_ee_adm_fsm_init(plm_EE_adm_state_op);
 
 	/* PLMC initialize */
-	if (cb->ha_state == SA_AMF_HA_ACTIVE){
+	if (cb->ha_state == SA_AMF_HA_ACTIVE) {
 		rc = plmc_initialize(plms_plmc_connect_cbk,plms_plmc_udp_cbk,
 		plms_plmc_error_cbk);
-		if (rc){
+		if (rc) {
 			LOG_ER("PLMC initialize failed.");
 			rc = NCSCC_RC_FAILURE;
 			goto done;
@@ -386,7 +341,7 @@ static uns32 plms_init(const char * progname)
 
 done:
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
-         if (nid_notify("PLMS", rc, NULL) != NCSCC_RC_SUCCESS) {
+         if (nid_notify("PLMD", rc, NULL) != NCSCC_RC_SUCCESS) {
                  LOG_ER("nid_notify failed");
                  rc = NCSCC_RC_FAILURE;
          }
@@ -409,16 +364,16 @@ done:
  *
  * Notes         : None.
  *****************************************************************************/
-
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
 	NCS_SEL_OBJ mbx_fd;
 	struct pollfd fds[4];
 	SaAisErrorT error;
 	SaInt8T num_fds;
 
-	if ((plms_init(argv[0])) != NCSCC_RC_SUCCESS)
-	{
+	daemonize(argc, argv);
+
+	if ((plms_init()) != NCSCC_RC_SUCCESS) {
 		TRACE("PLMS initialization failed");
 		goto done;
 	}
@@ -439,8 +394,7 @@ int main(int argc, char * argv[])
 			fds[FD_IMM].fd = plms_cb->imm_sel_obj;
 			fds[FD_IMM].events = POLLIN;
 			num_fds = 4;
-		}
-		else {
+		} else {
 			num_fds = 3;
 		}
                 int ret = poll(fds, num_fds, -1);
@@ -499,4 +453,3 @@ done:
         TRACE_LEAVE();
         exit(1);
 }
-

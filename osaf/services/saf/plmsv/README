@@ -187,7 +187,7 @@ plmc_boot and plmc_d are two binaries that coordinates plmsv service on EE.
 plmc_boot and plmc_main are the RC init scripts for starting the plmc_boot and 
 PLMc daemon.
 
-The above executables when started reads the plmc.conf file and below is the 
+The above executables when started reads the plmcd.conf file and below is the 
 sample configuration for an EE.
 
 If the EE configuration in imm.xml is as below
@@ -281,7 +281,7 @@ Then the corresponding configuration of plmc is as below
 	[os_shutdown_cmd]
 	/sbin/shutdown -h 0
 
-Please note that os_type in plmc.conf directly corresponds to what is specified
+Please note that os_type in plmcd.conf directly corresponds to what is specified
 for object class="SaPlmEEBaseType" in imm.xml. 
 
 In the above example the os_type is filled as 1;os;SUSE;2.6 
@@ -312,10 +312,9 @@ DEBUG
 -----
 
 To enable/disable tracing or to adjust the levels of tracing for plmsv edit 
-/etc/opensaf/plm.conf file. Below are the config variables in that file
+PKGSYSCONFDIR/plmd.conf file. Below are the config variables in that file
 
-PLMS_TRACE_CATEGORIES=ALL
-PLMS_TRACE_PATHNAME="${LOCALSTATEDIR}/stdouts/opensaf_plms.log"
+PLMD_TRACE_CATEGORIES=ALL
 
 
 

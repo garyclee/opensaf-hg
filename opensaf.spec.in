@@ -316,7 +316,12 @@ Requires: %{name}-libs = %{version}-%{release}
 Obsoletes: %{name}-plm-libs < %{version}-%{release}
 
 %description plm-libs
-Platform Management Service is an Application Interface Specification (AIS) of the Service AvailabilityTM Forum (SA Forum). It is intended for use by implementers of the Application Interface Specification and by application developers who would use the Application Interface Specification to develop applications that must be highly available. To use the PLM Service API, a process must be bound with the libSaPlm.so library.
+Platform Management Service is an Application Interface Specification (AIS) of
+the Service AvailabilityTM Forum (SA Forum). It is intended for use by
+implementers of the Application Interface Specification and by application
+developers who would use the Application Interface Specification to develop
+applications that must be highly available. To use the PLM Service API, a
+process must be bound with the libSaPlm.so library.
 
 %package plm-server
 Group: System Environment/Libraries
@@ -324,10 +329,12 @@ Summary: The OpenSAF implementation of the SAF-AIS-PLM Service
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name}-libs = %{version}-%{release}
-Obsoletes: %{name}-plm-libs < %{version}-%{release}
+Requires: %{name}-plm-libs = %{version}-%{release}
+Requires: %{name}-ntf-libs = %{version}-%{release}
+Requires: %{name}-imm-libs = %{version}-%{release}
+Requires: %{name}-amf-libs = %{version}-%{release}
 
 %description plm-server
-Platform Management Service is an Application Interface Specification (AIS) of the Service AvailabilityTM Forum (SA Forum). It is intended for use by implementers of the Application Interface Specification and by application developers who would use the Application Interface Specification to develop applications that must be highly available. To use the PLM Service API, a process must be bound with the libSaPlm.so library.
 
 %package plm-coordinator
 Group: System Environment/Libraries
@@ -336,7 +343,7 @@ Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 
 %description plm-coordinator
-Platform Management Service is an Application Interface Specification (AIS) of the Service AvailabilityTM Forum (SA Forum). It is intended for use by implementers of the Application Interface Specification and by application developers who would use the Application Interface Specification to develop applications that must be highly available. To use the PLM Service API, a process must be bound with the libSaPlm.so library.
+
 %endif
 
 %if %is_ais_msg
@@ -477,6 +484,7 @@ Requires: %{name}-ntf-server = %{version}-%{release}
 %if %is_ais_plm
 Requires: %{name}-plm-libs = %{version}-%{release}
 Requires: %{name}-plm-server = %{version}-%{release}
+Requires: %{name}-plm-coordinator = %{version}-%{release}
 %endif
 %if %is_ais_ckpt
 Requires: %{name}-ckpt-libs = %{version}-%{release}
@@ -522,6 +530,7 @@ Requires: %{name}-imm-nodedirector = %{version}-%{release}
 Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
 %if %is_ais_plm
+Requires: %{name}-plm-libs = %{version}-%{release}
 Requires: %{name}-plm-coordinator = %{version}-%{release}
 %endif
 %if %is_ais_ckpt
@@ -902,23 +911,17 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files plm-server
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/plm.conf
-%config(noreplace) %{_pkgsysconfdir}/plmc.conf
-%{_pkglibdir}/opensaf_plms
-%{_pkglibdir}/plmc_boot
-%{_pkglibdir}/plmc_d
-%{_pkglibdir}/plms_script
-%{_pkglibdir}/plmc_boot_script
-%{_pkglibdir}/plmc_main
+%config(noreplace) %{_pkgsysconfdir}/plmd.conf
+%{_pkglibdir}/osafplmd
+%{_pkglibdir}/osaf-plmd
 %{_pkgimmxml_svcdir}/plmsv_classes.xml
-%{_pkgimmxml_svcdir}/sample_plm_imm.xml.pc
-%{_pkgimmxml_svcdir}/sample_plm_imm.xml.atca
-%{_pkgimmxml_svcdir}/sample_plm_imm.xml.hp
+%{_pkgimmxml_svcdir}/plmsv_objects.xml
 %{_pkgimmxml_svcdir}/plmsv_sc_template.xml
+%{_pkgimmxml_svcdir}/plmsv_pl_template.xml
 
 %files plm-coordinator
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/plmc.conf
+%config(noreplace) %{_pkgsysconfdir}/plmcd.conf
 %{_pkglibdir}/plmc_boot
 %{_pkglibdir}/plmc_d
 %{_pkglibdir}/plmc_boot_script
