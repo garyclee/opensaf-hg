@@ -20,18 +20,29 @@
 #In such cases rebooting would be done through proprietary mechanisms, i.e. not through PLM.
 #Node_id is (the only entity) at the disposal of any proprietary mechanism.
 
-
 node_id=$1
 ee_name=$2
 
+#If no plm in the system,old reboot mechanism is maintained.
+opensaf_reboot_no_plm()
+{
+test -x /sbin/shutdown && \
+    /sbin/shutdown -r now "OpenSAF requested system reboot"
+
+/sbin/reboot
+exit 0
+}
+
+#if plm exists in the system,then the reboot is performed using the eename.
+opensaf_reboot_with_plm()
+{
+immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name
+
+#Note: Operation Id SA_PLM_ADMIN_RESTART=7 #In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
+}
 
 if [ ":$ee_name" == ":" ]; then
-
-
-logger -tOpenSAF "No EE specified: Attempt to reboot failed "; else immadm -o 7 -p SA_PLM_ADMIN_RESTART_OPTION:SA_STRING_T:restartOption $ee_name fi
-
-
-#Note: Operation Id SA_PLM_ADMIN_RESTART=7 
-#In the example the $ee_name would expand to (for eg:-) safEE=my_linux_os,safHE=64bitmulticore,safDomain=my_domain
-
-
+        opensaf_reboot_no_plm
+else
+        opensaf_reboot_with_plm
+fi
