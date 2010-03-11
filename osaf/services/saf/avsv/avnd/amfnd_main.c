@@ -15,59 +15,35 @@
  *
  */
 
-#include <syslog.h>
-#include <libgen.h>
-
-#include <ncs_main_pvt.h>
-
 #include <logtrace.h>
-#include <avnd.h>
+#include <daemon.h>
 
-static unsigned int trace_mask;
-static const char *trace_file;
+#include "avnd.h"
 
-/**
- * USR2 signal handler to enable/disable trace (toggle)
- * @param sig
- */
-static void sigusr2_handler(int sig)
+static int __init_avnd(void)
 {
-	if (trace_mask == 0) {
-		trace_mask = CATEGORY_ALL;
-		syslog(LOG_NOTICE, "trace enabled to file %s, mask %x", trace_file, trace_mask);
-	}
-	else {
-		LOG_NO("disabling trace...");
-		trace_mask = 0;
+	char *trace_mask_env;
+	unsigned int trace_mask;
+
+	if ((trace_mask_env = getenv("AMFND_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
 	}
 
-	(void) trace_category_set(trace_mask);
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
+		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
+
+	return (NCSCC_RC_SUCCESS);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	uns32 error;
 
-	if ((trace_file = getenv("TRACEFILE")) != NULL) {
-		if (logtrace_init(basename(argv[0]), trace_file) == 0) {
-			char *p;
+	daemonize(argc, argv);
 
-			if ((p = getenv("AMFND_TRACE_CATEGORIES")) != NULL) {
-				trace_mask = strtoul(p, NULL, 0);
-				trace_category_set(trace_mask);
-				LOG_NO("trace enabled to file %s, mask %x", trace_file, trace_mask);
-			}
-		} else
-			syslog(LOG_ERR, "logtrace_init FAILED for %s, tracing disabled", trace_file);
-	}
-
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "ncspvt_svcs_startup failed");
-		goto done;
-	}
-
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		syslog(LOG_ERR, "signal USR2 failed: %s", strerror(errno));
+	if (__init_avnd() != NCSCC_RC_SUCCESS) {
+		syslog(LOG_ERR, "__init_avd() failed");
 		goto done;
 	}
 

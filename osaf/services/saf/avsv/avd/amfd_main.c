@@ -16,10 +16,6 @@
  *
  */
 
-#include <syslog.h>
-#include <libgen.h>
-
-//#include <ncs_main_pvt.h>
 #include <logtrace.h>
 #include <daemon.h>
 

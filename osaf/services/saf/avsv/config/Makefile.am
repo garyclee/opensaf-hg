@@ -19,7 +19,9 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/avsv/config/amfd.conf
+	$(top_srcdir)/osaf/services/saf/avsv/config/amfd.conf \
+	$(top_srcdir)/osaf/services/saf/avsv/config/amfnd.conf \
+	$(top_srcdir)/osaf/services/saf/avsv/config/amfmon.conf
 
 dist_pkgimmxml_svc_DATA = \
 	common_pl_template.xml \

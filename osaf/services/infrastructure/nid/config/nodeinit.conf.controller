@@ -67,4 +67,4 @@ xxLIBDIRxx/opensaf_clms:CLMD:S:xxLIBDIRxx/opensaf_clms:4000:4:2:1:start:stop
 xxLIBDIRxx/opensaf_nodeagent:CLMNA:S:xxLIBDIRxx/opensaf_nodeagent:4000::2:1:start:stop
 xxLIBDIRxx/ncs_eds_start:EDSV:S:xxLIBDIRxx/ncs_eds_clean:5000:4:2:1:start:
 xxLIBDIRxx/osaf-amfd:AMFD:S:xxLIBDIRxx/osaf-amfd:192000:-6:0:1:start:stop
-xxLIBDIRxx/amfnd_script:AMFND:S:xxLIBDIRxx/amfnd_script:192000:-6:0:1:start:stop
+xxLIBDIRxx/osaf-amfnd:AMFND:S:xxLIBDIRxx/osaf-amfnd:192000:-6:0:1:start:stop

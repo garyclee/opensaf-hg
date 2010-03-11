@@ -20,16 +20,16 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = opensaf_amfmon
+pkglib_PROGRAMS = osafmond
 
-opensaf_amfmon_CPPFLAGS = \
+osafmond_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/saf/include
 
-opensaf_amfmon_SOURCES = \
+osafmond_SOURCES = \
 	amf_mon.c
 
-opensaf_amfmon_LDADD = \
+osafmond_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la

@@ -23,19 +23,19 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>amfmon_script</value>
+			<value>osaf-mond</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefInstantiateCmdArgv</name>
-			<value>instantiate</value>
+			<value>start</value>
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>amfmon_script</value>
+			<value>osaf-mond</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefCleanupCmdArgv</name>
-			<value>cleanup</value>
+			<value>stop</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

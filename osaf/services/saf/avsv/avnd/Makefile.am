@@ -20,17 +20,19 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = include scripts
 
-pkglib_PROGRAMS = opensaf_amfnd
+pkglib_PROGRAMS = osafamfnd
 
-opensaf_amfnd_CPPFLAGS = \
+osafamfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/avsv/include \
 	-I$(top_srcdir)/osaf/services/saf/avsv/avnd/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_amfnd_SOURCES = \
+osafamfnd_SOURCES = \
+	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
+	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
+	amfnd_main.c \
 	avnd.c \
 	avnd_cam.c \
 	avnd_cbq.c \
@@ -66,12 +68,9 @@ opensaf_amfnd_SOURCES = \
 	avnd_verify.c \
 	avnd_avnd.c \
 	avnd_proxy.c \
-	avnd_proxydb.c \
-	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	amfnd_main.c \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c
+	avnd_proxydb.c
 
-opensaf_amfnd_LDADD = \
+osafamfnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
@@ -80,4 +79,3 @@ opensaf_amfnd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la
-

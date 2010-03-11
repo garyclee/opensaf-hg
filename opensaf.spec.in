@@ -810,8 +810,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files amf-nodedirector
 %defattr(-,root,root)
-%{_pkglibdir}/opensaf_amfnd
-%{_pkglibdir}/amfnd_script
+%config(noreplace) %{_pkgsysconfdir}/amfnd.conf
+%config(noreplace) %{_pkgsysconfdir}/amfmon.conf
+%{_pkglibdir}/osafamfnd
+%{_pkglibdir}/osaf-amfnd
+%{_pkglibdir}/osafmond
+%{_pkglibdir}/osaf-mond
 
 
 %if %is_ais_ckpt
@@ -1085,8 +1089,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/rde_script
 %{_pkglibdir}/opensaf_fmsd
 %{_pkglibdir}/opensaf_fms
-%{_pkglibdir}/opensaf_amfnd
-%{_pkglibdir}/amfnd_script
 %{_pkglibdir}/ncs_pdrbd
 %{_pkglibdir}/pdrbdctrl
 %{_pkglibdir}/pdrbdsts
@@ -1120,10 +1122,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files payload
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
-%{_pkglibdir}/opensaf_amfnd
-%{_pkglibdir}/amfnd_script
-%{_pkglibdir}/opensaf_amfmon
-%{_pkglibdir}/amfmon_script
 %{_pkglibdir}/opensaf_nodeagent
 %{_pkglibdir}/opensaf_clmna
 

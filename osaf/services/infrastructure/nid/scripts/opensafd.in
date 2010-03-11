@@ -31,7 +31,7 @@ export LEAP_TMR_THREAD_RT=1
 export LEAP_THREADS_NON_RT=1
 export MDS_QUIESCED_TMR_VAL_IN_10MS=40
 
-AMF=opensaf_amfnd
+AMF=osafamfnd
 DAEMON=ncs_nid
 DESC="Node Initialization Daemon"
 NIDPIDFILE="$PKGPIDDIR/nodeinit.pid"
