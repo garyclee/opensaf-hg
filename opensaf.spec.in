@@ -884,6 +884,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkgimmxmldir}/README
 %{_pkgimmxmldir}/immxml-clustersize
 %{_pkgimmxmldir}/immxml-configure
+%{_pkgimmxmldir}/immxml-modify-config
 %{_pkgimmxmldir}/immxml-merge
 %{_pkgimmxmldir}/immxml-nodegen
 %{_pkgimmxmldir}/immxml-validate

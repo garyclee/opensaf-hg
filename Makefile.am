@@ -170,6 +170,7 @@ dist_bin_SCRIPTS = \
 dist_pkgimmxml_SCRIPTS = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/baseimm.py \
 	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-configure \
+	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-modify-config \
 	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-merge \
 	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-nodegen \
 	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-validate \
