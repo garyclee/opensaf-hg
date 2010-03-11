@@ -27,7 +27,9 @@
 #include <time.h>
 #include <signal.h>
 #include <poll.h>
+
 #include <configmake.h>
+#include <daemon.h>
 
 #include "clms.h"
 
@@ -97,7 +99,7 @@ static uns32 clms_self_node_info(void)
         SaNameT node_name_dn = {0};
         CLMS_CLUSTER_NODE * node=NULL;
 	char node_name[256];
-	const char *node_name_file = PKGSYSCONFDIR "node_name";
+	const char *node_name_file = PKGSYSCONFDIR "/node_name";
 
 	clms_cb->node_id = m_NCS_GET_NODE_ID;
 
@@ -140,9 +142,9 @@ static uns32 clms_self_node_info(void)
                 node->stat_change = SA_TRUE;
                 node->init_view = ++(clms_cb->cluster_view_num);
                 node->change = SA_CLM_NODE_JOINED;
-		#ifdef ENABLE_AIS_PLM
+#ifdef ENABLE_AIS_PLM
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE; /*TBD : changed when plm scripts are added to rc scripts*/
-		#endif
+#endif
 		osaf_cluster->init_time = node->boot_time;
 	}
 
@@ -221,48 +223,24 @@ uns32 clms_cb_init(CLMS_CB *clms_cb)
  * 
  * @return uns32
  */
-static uns32 clms_init(const char *progname)
+static uns32 clms_init(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char *clmd_argv[] = { "", "MDS_SUBSCRIPTION_TMR_VAL=1" };
-	const char *trace_file;
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
-	/* Create PID file */
-	{
-		char path[256];
-		FILE *fp;
-		
-		snprintf(path, sizeof(path), PKGPIDDIR "%s.pid", basename(progname));
-                fp = fopen(path, "w");
-                if (fp == NULL) {
-                        syslog(LOG_ERR, "fopen '%s' failed: %s", path, strerror(errno));
-                        exit(EXIT_FAILURE);
-                }
-                fprintf(fp, "%d\n", getpid());
-                fclose(fp);
-	}
-
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((trace_file = getenv("CLMSV_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init(basename(progname), trace_file) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			rc = NCSCC_RC_FAILURE;
-			goto done;
-		}
-
-		if (getenv("CLMSV_TRACE_CATEGORIES") != NULL) {
-			/* Do not care about categories now, get all */
-			trace_category_set(CATEGORY_ALL);
-		}
+	if ((trace_mask_env = getenv("CLMD_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
 	}
 
 	TRACE_ENTER();
 
-	if ((rc = ncspvt_svcs_startup(2, clmd_argv)) != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		TRACE("ncs_core_agents_startup FAILED");
 		goto done;
 	}
-	
+
 	/* Initialize clms control block */
 	if ((rc = clms_cb_init(clms_cb)) != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_cb_init FAILED");
@@ -305,9 +283,9 @@ static uns32 clms_init(const char *progname)
 		LOG_ER("clms_imm_init FAILED");
 		goto done;
 	}
-	#ifdef ENABLE_AIS_PLM
+#ifdef ENABLE_AIS_PLM
 	clms_cb->reg_with_plm = SA_TRUE;
-	#endif
+#endif
 
 	/* Declare as implementer && Read configuration data from IMM */
 	if (clms_imm_activate(clms_cb) != SA_AIS_OK) {
@@ -321,12 +299,12 @@ static uns32 clms_init(const char *progname)
 		goto done;
 	}
 	
-	#ifdef ENABLE_AIS_PLM
+#ifdef ENABLE_AIS_PLM
         if ((rc = clms_plm_init(clms_cb)) != SA_AIS_OK){
         	LOG_ER("clms_plm_init FAILED");
                 goto done;
         }
-	#endif
+#endif
 
 	/*Self Node update*/	
 	if ((rc = clms_self_node_info()) != NCSCC_RC_SUCCESS)
@@ -374,7 +352,9 @@ int main(int argc, char *argv[])
 	uns32 rc;
 	osaf_cluster = NULL;	
 
-	if (clms_init(argv[0]) != NCSCC_RC_SUCCESS) {
+	daemonize(argc, argv);
+
+	if (clms_init() != NCSCC_RC_SUCCESS) {
 		LOG_ER("clms_init failed");
 		goto done;
 	}
@@ -390,10 +370,11 @@ int main(int argc, char *argv[])
 	fds[FD_MBX].events = POLLIN;
 	fds[FD_IMM].fd = clms_cb->imm_sel_obj;
 	fds[FD_IMM].events = POLLIN;
-	#ifdef ENABLE_AIS_PLM
+
+#ifdef ENABLE_AIS_PLM
 	fds[FD_PLM].fd = clms_cb->plm_sel_obj;
 	fds[FD_PLM].events = POLLIN;
-	#endif
+#endif
 
 	while (1) {
 		int ret = poll(fds, nfds, -1);
@@ -438,15 +419,15 @@ int main(int argc, char *argv[])
 			clms_process_mbx(&clms_cb->mbx);
 		}
 
+#ifdef ENABLE_AIS_PLM
 		/*Incase the Immnd restart is not supported fully,have to reint imm - TO Be Done*/
-		#ifdef ENABLE_AIS_PLM
 		if(fds[FD_PLM].revents & POLLIN) {
 			if ((error = saPlmDispatch(clms_cb->plm_hdl,SA_DISPATCH_ALL)) != SA_AIS_OK){
 				LOG_ER("saPlmDispatch FAILED: %u",error);
 				break;
 			}
 		}
-		#endif
+#endif
 			
 		if (clms_cb->immOiHandle && fds[FD_IMM].revents & POLLIN) {
 			if ((error = saImmOiDispatch(clms_cb->immOiHandle, SA_DISPATCH_ALL))!= SA_AIS_OK) {

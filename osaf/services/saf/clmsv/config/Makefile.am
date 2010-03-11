@@ -18,8 +18,10 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+CLEANFILES = node_name-t
+
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/clmsv/config/clm.conf
+	$(top_srcdir)/osaf/services/saf/clmsv/config/clmd.conf
 
 dist_pkgimmxml_svc_DATA = \
 	clmsv_classes.xml \
@@ -37,4 +39,8 @@ dist_pkgimmxml_svc_DATA += \
 endif
 
 install-data-hook:
-	hostname -s > $(DESTDIR)$(pkgsysconfdir)/node_name
+	hostname -s > $(top_builddir)/osaf/services/saf/clmsv/config/node_name-t
+	$(INSTALL_DATA) $(top_builddir)/osaf/services/saf/clmsv/config/node_name-t $(DESTDIR)$(pkgsysconfdir)/node_name
+
+uninstall-hook:
+	-rm -f $(DESTDIR)$(pkgsysconfdir)/node_name

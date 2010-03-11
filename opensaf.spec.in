@@ -665,6 +665,7 @@ fi
 %postun plm-libs -p/sbin/ldconfig
 %endif
 
+
 %if %is_ais_ckpt
 %post ckpt-libs -p /sbin/ldconfig
 %postun ckpt-libs -p /sbin/ldconfig
@@ -743,7 +744,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/slot_id
 %config(noreplace) %{_pkgsysconfdir}/subslot_id
 %config(noreplace) %{_pkgsysconfdir}/node_type
-%config(noreplace) %{_pkgsysconfdir}/node_name
+%config %{_pkgsysconfdir}/node_name
 %config %{_pkgsysconfdir}/script.conf
 %config %{_pkgsysconfdir}/osafdir.conf
 %config %{_initddir}/opensafd
@@ -815,11 +816,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files clm-server
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/clm.conf
-%{_pkglibdir}/opensaf_clms
-%{_pkglibdir}/opensaf_nodeagent
-%{_pkglibdir}/opensaf_clmd
-%{_pkglibdir}/opensaf_clmna
+%config(noreplace) %{_pkgsysconfdir}/clmd.conf
+%{_pkglibdir}/osafclmd
+%{_pkglibdir}/osaf-clmd
 %{_pkgimmxml_svcdir}/clmsv_classes.xml
 %{_pkgimmxml_svcdir}/clmsv_objects.xml
 %if %is_ais_plm
@@ -832,8 +831,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files clm-nodeagent
 %defattr(-,root,root)
-%{_pkglibdir}/opensaf_nodeagent
-%{_pkglibdir}/opensaf_clmna
+%{_pkglibdir}/osafnoded
+%{_pkglibdir}/osaf-noded
 
 
 %if %is_ais_evt
@@ -891,7 +890,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/immnd.conf
 %{_pkglibdir}/osafimmnd
 %{_pkglibdir}/osaf-immnd
-
  
  
 %if %is_ais_plm
@@ -925,7 +923,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/plmc_d
 %{_pkglibdir}/plmc_boot_script
 %{_pkglibdir}/plmc_main
+
 %endif
+
 
 %if %is_ais_lck
 
@@ -1064,8 +1064,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files payload
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
-%{_pkglibdir}/opensaf_nodeagent
-%{_pkglibdir}/opensaf_clmna
 
 
 %files libs

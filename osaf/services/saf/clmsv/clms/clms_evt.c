@@ -15,6 +15,8 @@
  *
  */
 
+#include <configmake.h>
+
 #include "clms.h"
 
 static uns32 process_api_evt(CLMSV_CLMS_EVT *evt);
@@ -247,7 +249,7 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 		TRACE("node->node_id %u node->nodeup %d",node->node_id,node->nodeup);
 	
 		if(clms_node_add(node,0) != NCSCC_RC_SUCCESS){
-			LOG_ER("Patricia tree add failed:crosscheck /etc/opensaf/node_name configuration");
+			LOG_ER("Patricia tree add failed:crosscheck " PKGSYSCONFDIR "/node_name configuration");
 		}
 	}
 	
