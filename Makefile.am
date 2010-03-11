@@ -145,8 +145,7 @@ dist_pkgimmxml_DATA = \
 dist_bin_SCRIPTS = \
 	$(top_srcdir)/scripts/amf-adm \
 	$(top_srcdir)/scripts/amf-find \
-	$(top_srcdir)/scripts/amf-state \
-	$(top_srcdir)/scripts/opensaf_mem_dump
+	$(top_srcdir)/scripts/amf-state
 
 dist_pkgimmxml_SCRIPTS = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/baseimm.py \
@@ -157,14 +156,7 @@ dist_pkgimmxml_SCRIPTS = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/immxml-clustersize \
 	$(top_srcdir)/osaf/tools/safimm/immxml/verify.sh
 
-nodist_bin_SCRIPTS = \
-	$(top_builddir)/scripts/collect_logs_controller \
-	$(top_builddir)/scripts/collect_logs_payload \
-	$(top_builddir)/scripts/get_ha_state 
-
-
 dist_pkglib_SCRIPTS = \
-	$(top_srcdir)/scripts/find_pid \
 	$(top_srcdir)/scripts/opensaf_reboot 
 
 if ENABLE_RPM_TARGET

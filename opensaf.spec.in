@@ -770,7 +770,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkgsysconfdir}/nodeinit.conf
 %{_initddir}/opensafd
 %{_pkglibdir}/ncs_nid
-%{_pkglibdir}/find_pid
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc
 
@@ -1039,8 +1038,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/fms.conf
 %config(noreplace) %{_pkgsysconfdir}/pdrbd_proxied.conf
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.controller
-%{_bindir}/get_ha_state
-%{_bindir}/collect_logs_controller
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_0
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_1
 %{_localstatedir}/lib/%{name}/.drbd_sync_state_2
@@ -1099,7 +1096,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files payload
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/nodeinit.conf.payload
-%{_bindir}/collect_logs_payload
 %{_pkglibdir}/opensaf_amfnd
 %{_pkglibdir}/amfnd_script
 %{_pkglibdir}/opensaf_amfmon
@@ -1153,7 +1149,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 #TODO: Clean when PLM introduced
 %files tools
 %defattr(-,root,root)
-%{_bindir}/opensaf_mem_dump
 %{_bindir}/amf-adm
 %{_bindir}/amf-find
 %{_bindir}/amf-state
