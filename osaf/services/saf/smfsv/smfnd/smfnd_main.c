@@ -31,6 +31,7 @@
 #include <poll.h>
 
 #include <ncs_main_pvt.h>
+#include <daemon.h>
 
 #include "smfnd.h"
 #include "smfsv_defs.h"
@@ -49,11 +50,8 @@
  *   DATA DECLARATIONS
  * ========================================================================
  */
-
 static smfnd_cb_t _smfnd_cb;
 smfnd_cb_t *smfnd_cb = &_smfnd_cb;
-
-static int category_mask;
 
 /* ========================================================================
  *   FUNCTION PROTOTYPES
@@ -69,24 +67,6 @@ static void usr1_sig_handler(int sig)
 	/*signal(SIGUSR1, SIG_IGN); */
 	if (smfnd_cb->amf_hdl == 0)
 		ncs_sel_obj_ind(smfnd_cb->usr1_sel_obj);
-}
-
-/**
- * USR2 signal handler to enable/disable trace (toggle)
- * @param sig
- */
-static void usr2_sig_handler(int sig)
-{
-	if (category_mask == 0) {
-		category_mask = CATEGORY_ALL;
-		printf("Enabling traces");
-	} else {
-		category_mask = 0;
-		printf("Disabling traces");
-	}
-
-	if (trace_category_set(category_mask) == -1)
-		printf("trace_category_set failed");
 }
 
 /****************************************************************************
@@ -124,13 +104,24 @@ uns32 smfnd_cb_init(smfnd_cb_t * smfnd_cb)
  * 
  * @return uns32
  */
-static uns32 initialize_smfnd(const char *progname)
+static uns32 initialize_smfnd(void)
 {
 	uns32 rc;
-	FILE *fp = NULL;
-	char path[NAME_MAX + 32];
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
+
+	if ((trace_mask_env = getenv("SMFND_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
+
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup FAILED");
+		rc = NCSCC_RC_FAILURE;
+		goto done;
+	}
 
 	/* Initialize smfnd control block */
 	if (smfnd_cb_init(smfnd_cb) != NCSCC_RC_SUCCESS) {
@@ -138,23 +129,6 @@ static uns32 initialize_smfnd(const char *progname)
 		rc = NCSCC_RC_FAILURE;
 		goto done;
 	}
-
-	/* Create pidfile */
-	snprintf(path, NAME_MAX + 32, PKGPIDDIR "/%s.pid", basename(progname));
-	if ((fp = fopen(path, "w")) == NULL) {
-		LOG_ER("Could not open %s", path);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-
-	/* Write PID to it */
-	if (fprintf(fp, "%d", getpid()) < 1) {
-		fclose(fp);
-		LOG_ER("Could not write to: %s", path);
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-	}
-	fclose(fp);
 
 	/* Create the mailbox used for communication with SMFD/SMFA */
 	if ((rc = m_NCS_IPC_CREATE(&smfnd_cb->mbx)) != NCSCC_RC_SUCCESS) {
@@ -296,24 +270,14 @@ int main(int argc, char *argv[])
 		smfnd_cb->nid_started = 1;
 	}
 
-	/* Initialize trace system first of all so we can see what is going on. */
-	if ((value = getenv("SMFND_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init("opensaf-smfnd", value) != 0) {
-			syslog(LOG_ERR, "logtrace_init FAILED, exiting...");
-			goto done;
-		}
+	daemonize(argc, argv);
 
-		if ((value = getenv("SMFND_TRACE_CATEGORIES")) != NULL) {
-			trace_category_set(value);
-		}
-	}
-
-	if (ncspvt_svcs_startup() != NCSCC_RC_SUCCESS) {
-		LOG_ER("ncspvt_svcs_startup failed");
+	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
+		LOG_ER("ncs_agents_startup failed");
 		goto done;
 	}
 
-	if (initialize_smfnd(argv[0]) != NCSCC_RC_SUCCESS) {
+	if (initialize_smfnd() != NCSCC_RC_SUCCESS) {
 		LOG_ER("initialize_smfnd failed");
 		goto done;
 	}
@@ -323,18 +287,14 @@ int main(int argc, char *argv[])
 		goto done;
 	}
 
-	if (signal(SIGUSR2, usr2_sig_handler) == SIG_ERR) {
-		LOG_ER("signal SIGUSR2 failed");
-		goto done;
-	}
-
 	if (smfnd_cb->nid_started == 1) {
 		if (nid_notify("SMFND", NCSCC_RC_SUCCESS, NULL) != NCSCC_RC_SUCCESS)
 			LOG_ER("nid_notify failed");
 	}
 
 	main_process();
-	exit(0);
+
+	exit(EXIT_SUCCESS);
 
  done:
 	if (smfnd_cb->nid_started == 1) {
@@ -343,5 +303,5 @@ int main(int argc, char *argv[])
 	}
 
 	LOG_ER("SMFND initialization failed, exiting...");
-	exit(1);
+	exit(EXIT_FAILURE);
 }

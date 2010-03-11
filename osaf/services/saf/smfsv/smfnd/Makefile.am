@@ -1,6 +1,6 @@
 #      OpenSAF 
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2009-2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -21,28 +21,27 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = opensaf_smfnd
+pkglib_PROGRAMS = osafsmfnd
 
 noinst_HEADERS = \
 	smfnd.h \
 	smfnd_evt.h
 
-opensaf_smfnd_CPPFLAGS = \
+osafsmfnd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
 	-I$(top_srcdir)/osaf/libs/core/common/include \
 	-I$(top_srcdir)/osaf/libs/core/include
 
-opensaf_smfnd_SOURCES = \
+osafsmfnd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
-	smfnd_main.c \
 	smfnd_amf.c \
 	smfnd_evt.c \
+	smfnd_main.c \
 	smfnd_mds.c
 
-opensaf_smfnd_LDADD = \
+osafsmfnd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \

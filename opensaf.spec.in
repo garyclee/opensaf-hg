@@ -1067,8 +1067,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files smf-nodedirector
 %defattr(-,root,root)
 %config(noreplace) %{_pkgsysconfdir}/smfnd.conf
-%{_pkglibdir}/smfnd_script
-%{_pkglibdir}/opensaf_smfnd
+%{_pkglibdir}/osafsmfnd
+%{_pkglibdir}/osaf-smfnd
 
 %endif
 

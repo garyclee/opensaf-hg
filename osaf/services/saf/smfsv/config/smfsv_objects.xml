@@ -121,19 +121,19 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>smfnd_script</value>
+			<value>osaf-smfnd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefInstantiateCmdArgv</name>
-			<value>instantiate</value>
+			<value>start</value>
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>smfnd_script</value>
+			<value>osaf-smfnd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefCleanupCmdArgv</name>
-			<value>cleanup</value>
+			<value>stop</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

@@ -1,6 +1,6 @@
 #       OpenSAF 
 #
-# (C) Copyright 2009 The OpenSAF Foundation
+# (C) Copyright 2009-2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -19,4 +19,4 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_pkglib_SCRIPTS = \
-	$(top_builddir)/osaf/services/saf/smfsv/smfnd/scripts/smfnd_script
+	$(top_builddir)/osaf/services/saf/smfsv/smfnd/scripts/osaf-smfnd
