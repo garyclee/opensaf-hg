@@ -396,7 +396,7 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>smfd_script</value>
+			<value>osaf-smfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefInstantiateCmdArgv</name>
@@ -404,11 +404,11 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>smfd_script</value>
+			<value>osaf-smfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefCleanupCmdArgv</name>
-			<value>cleanup</value>
+			<value>stop</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

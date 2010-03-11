@@ -21,23 +21,23 @@
 		<dn>smfConfig=1,safApp=safSmfService</dn>
 		<attr>
 			<name>smfBackupCreateCmd</name>
-			<value>/usr/local/lib/opensaf/smf-backup-create</value>
+			<value>xxLIBDIRxx/smf-backup-create</value>
 		</attr>
 		<attr>
 			<name>smfBundleCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-bundle-check</value>
+			<value>xxLIBDIRxx/smf-bundle-check</value>
 		</attr>
 		<attr>
 			<name>smfNodeCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-node-check</value>
+			<value>xxLIBDIRxx/smf-node-check</value>
 		</attr>
 		<attr>
 			<name>smfRepositoryCheckCmd</name>
-			<value>/usr/local/lib/opensaf/smf-repository-check</value>
+			<value>xxLIBDIRxx/smf-repository-check</value>
 		</attr>
 		<attr>
 			<name>smfClusterRebootCmd</name>
-			<value>/usr/local/lib/opensaf/smf-cluster-reboot</value>
+			<value>xxLIBDIRxx/smf-cluster-reboot</value>
 		</attr>
 		<attr>
 			<name>smfAdminOpTimeout</name>
@@ -79,19 +79,19 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>smfd_script</value>
+			<value>osaf-smfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefInstantiateCmdArgv</name>
-			<value>instantiate</value>
+			<value>start</value>
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>smfd_script</value>
+			<value>osaf-smfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefCleanupCmdArgv</name>
-			<value>cleanup</value>
+			<value>stop</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

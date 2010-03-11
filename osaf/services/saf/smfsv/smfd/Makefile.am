@@ -21,7 +21,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = opensaf_smfd
+pkglib_PROGRAMS = osafsmfd
 
 noinst_HEADERS = \
 	smfd_cb.h \
@@ -46,11 +46,10 @@ noinst_HEADERS = \
 	SmfCampaignWrapup.hh \
 	SmfCampaignInit.hh
 
-opensaf_smfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
+osafsmfd_CXXFLAGS = $(AM_CXXFLAGS) @XML2_CFLAGS@
 
-opensaf_smfd_CPPFLAGS = \
+osafsmfd_CPPFLAGS = \
 	-DSA_CLM_B01=1 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/core/leap/include \
 	-I$(top_srcdir)/osaf/libs/core/mds/include \
@@ -58,7 +57,7 @@ opensaf_smfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/smfsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_smfd_SOURCES = \
+osafsmfd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	smfd_amf.c \
@@ -85,9 +84,9 @@ opensaf_smfd_SOURCES = \
 	SmfCampaignInit.cc \
 	SmfCampaignWrapup.cc
 
-opensaf_smfd_LDFLAGS = @XML2_LIBS@
+osafsmfd_LDFLAGS = @XML2_LIBS@
 
-opensaf_smfd_LDADD = \
+osafsmfd_LDADD = \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
 	$(top_builddir)/osaf/libs/saf/libSaClm/libSaClm.la \
 	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la \
