@@ -20,9 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_mqd
+pkglib_PROGRAMS = osafmsgd
 
-ncs_mqd_CPPFLAGS = \
+osafmsgd_CPPFLAGS = \
         -DSA_CLM_B01=1 \
 	-DNCS_MQD=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
@@ -30,7 +30,7 @@ ncs_mqd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-ncs_mqd_SOURCES = \
+osafmsgd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mqd_sbevt.c \
@@ -42,13 +42,14 @@ ncs_mqd_SOURCES = \
 	mqd_clm.c \
 	mqd_evt.c \
 	mqd_log.c \
+	mqd_imm.c \
+	mqd_main.c \
 	mqd_mds.c \
 	mqd_red.c \
 	mqd_saf.c \
-	mqd_tmr.c \
-	mqd_imm.c
+	mqd_tmr.c
 
-ncs_mqd_LDADD = \
+osafmsgd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
