@@ -39,7 +39,7 @@
 #define MAX_HA_STATE 4
 
 /*Component file name path */
-#define m_EDS_COMP_NAME_FILE PKGLOCALSTATEDIR "evtd_comp_name"
+#define m_EDS_COMP_NAME_FILE PKGLOCALSTATEDIR "/evtd_comp_name"
 #define EDS_COMP_FILE_NAME_LEN 26 + 10 + 1
 
 typedef uns32 (*eds_HAStateHandler) (EDS_CB *cb, SaInvocationT invocation);

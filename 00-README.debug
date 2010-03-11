@@ -38,7 +38,6 @@ System Controller Checklist
     a. The libxml2 libraries are available and libxml2 include files are 
        available. In cases of rpm installation, make sure the devel package 
        is installed.
-    b. DRBD is installed and configured as described in 00-README.drbd.
 
 5.  Have you checked the chassis_id? The chassis_id should be the same as 
     ACTIVE system controller.

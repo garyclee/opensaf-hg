@@ -128,8 +128,7 @@ dist_doc_DATA = \
 	$(top_srcdir)/00-README.uml \
 	$(top_srcdir)/00-README.conf \
 	$(top_srcdir)/00-README.samples \
-	$(top_srcdir)/00-README.debug \
-	$(top_srcdir)/00-README.drbd
+	$(top_srcdir)/00-README.debug
 
 dist_pkgdata_DATA = 
 
@@ -156,14 +155,6 @@ endif
 nodist_pkgsysconf_DATA = \
 	$(top_builddir)/config/script.conf \
 	$(top_builddir)/osafdir.conf
-
-
-dist_pkglocalstate_DATA = \
-	$(top_srcdir)/config/.drbd_sync_state_0 \
-	$(top_srcdir)/config/.drbd_sync_state_1 \
-	$(top_srcdir)/config/.drbd_sync_state_2 \
-	$(top_srcdir)/config/.drbd_sync_state_3 \
-	$(top_srcdir)/config/.drbd_sync_state_4
 
 dist_pkgimmxml_DATA = \
 	$(top_srcdir)/osaf/tools/safimm/immxml/README
