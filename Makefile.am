@@ -231,7 +231,7 @@ install-data-hook:
 		sed -i 's|xxLIBDIRxx|$(pkglibdir)|g' "$$i"; \
 	done
 
-uninstall-local:
+uninstall-hook:
 	-rm -rf $(DESTDIR)$(pkgsysconfdir)
 	-rm -rf $(DESTDIR)$(pkgincludedir)
 	-rm -rf $(DESTDIR)$(pkglibdir)

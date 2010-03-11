@@ -41,8 +41,9 @@ URL: http://www.opensaf.org
 Source: http://download.opensaf.org/releases/%{name}-%{version}.tar.gz
 Packager: @OPENSAF_BUGREPORT@
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
-Requires(post): /sbin/chkconfig /sbin/service
-Requires(preun): /sbin/chkconfig /sbin/service
+Requires(post): /usr/lib/lsb/install_initd /sbin/service
+Requires(preun): /usr/lib/lsb/remove_initd /sbin/service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-libs = %{version}-%{release}
 
 
@@ -83,6 +84,7 @@ set of components protecting the same component service instance.
 %package amf-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
@@ -92,6 +94,7 @@ Requires: %{name}-ntf-libs = %{version}-%{release}
 %package amf-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-AMF Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-ntf-libs = %{version}-%{release}
@@ -119,6 +122,7 @@ recorded before the failure.
 %package ckpt-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-ckpt-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -129,6 +133,7 @@ Requires: %{name}-clm-libs = %{version}-%{release}
 %package ckpt-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-CKPT Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-ckpt-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
@@ -192,6 +197,7 @@ a cluster-wide entity named event channel.
 %package evt-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-EVT Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-evt-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -221,6 +227,7 @@ Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
 #BuildRequires: libxml2-devel
 #Requires: libxml2
+Requires: /lib/lsb/init-functions
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
@@ -229,6 +236,7 @@ Requires: %{name}-amf-libs = %{version}-%{release}
 %package imm-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-IMM Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
@@ -253,6 +261,7 @@ access to a shared resource.
 %package lck-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-lck-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -262,6 +271,7 @@ Requires: %{name}-amf-libs = %{version}-%{release}
 %package lck-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LCK Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-lck-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
@@ -288,6 +298,7 @@ disconnects and unavailable resources.
 %package log-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-LOG Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-log-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -349,6 +360,7 @@ have not yet been consumed when the message queue is closed.
 %package msg-director
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-msg-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -358,6 +370,7 @@ Requires: %{name}-amf-libs = %{version}-%{release}
 %package msg-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-MSG Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-msg-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -389,6 +402,7 @@ managers are used in the definition of the current notification standard.
 %package ntf-server
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-NTF Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-ntf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -420,6 +434,7 @@ Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
 #BuildRequires: libxml2-devel
 #Requires: libxml2
+Requires: /lib/lsb/init-functions
 Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-imm-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
@@ -431,6 +446,7 @@ Requires: %{name}-ntf-libs = %{version}-%{release}
 %package smf-nodedirector
 Group: System Environment/Daemons
 Summary: The OpenSAF implementation of the SAF-AIS-SMF Service
+Requires: /lib/lsb/init-functions
 Requires: %{name}-smf-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 
@@ -629,127 +645,77 @@ Requires: %{name}-controller = %{version}-%{release}
 %post
 # If we're being upgraded
 if [ "$1" = "2" ]; then
-   /sbin/service opensafd condrestart >/dev/null 2>&1 || :
+   /sbin/service opensafd try-restart >/dev/null 2>&1 || :
 else # If we're being installed
-   /sbin/chkconfig --add opensafd
-   /sbin/chkconfig opensafd off
+   /usr/lib/lsb/install_initd opensafd
 fi
 
 %preun
 # Execute this only if we are NOT doing an upgrade
 if [ "$1" = "0" ]; then
     /sbin/service opensafd stop >/dev/null 2>&1 || :
-    /sbin/chkconfig --del opensafd
+    /usr/lib/lsb/remove_initd opensafd
 fi
 
-
-%post amf-libs
-/sbin/ldconfig
-
-%postun amf-libs
-/sbin/ldconfig
-
+%post amf-libs -p /sbin/ldconfig
+%postun amf-libs -p /sbin/ldconfig
 
 %if %is_ais_plm
-%post plm-libs
-/sbin/ldconfig
-
-%postun plm-libs
-/sbin/ldconfig
+%post plm-libs -p /sbin/ldconfig
+%postun plm-libs -p/sbin/ldconfig
 %endif
 
 %if %is_ais_ckpt
-%post ckpt-libs
-/sbin/ldconfig
-
-%postun ckpt-libs
-/sbin/ldconfig
+%post ckpt-libs -p /sbin/ldconfig
+%postun ckpt-libs -p /sbin/ldconfig
 %endif
 
-
-%post clm-libs
-/sbin/ldconfig
-
-%postun clm-libs
-/sbin/ldconfig
-
+%post clm-libs -p /sbin/ldconfig
+%postun clm-libs -p /sbin/ldconfig
 
 %if %is_ais_evt
-%post evt-libs
-/sbin/ldconfig
-
-%postun evt-libs
-/sbin/ldconfig
+%post evt-libs -p /sbin/ldconfig
+%postun evt-libs -p /sbin/ldconfig
 %endif
 
-
-%post imm-libs
-/sbin/ldconfig
-
-%postun imm-libs
-/sbin/ldconfig
-
+%post imm-libs -p /sbin/ldconfig
+%postun imm-libs -p /sbin/ldconfig
 
 %if %is_ais_lck
-%post lck-libs
-/sbin/ldconfig
-
-%postun lck-libs
-/sbin/ldconfig
+%post lck-libs -p /sbin/ldconfig
+%postun lck-libs -p /sbin/ldconfig
 %endif
 
-
-%post log-libs
-/sbin/ldconfig
-
-%postun log-libs
-/sbin/ldconfig
-
+%post log-libs -p /sbin/ldconfig
+%postun log-libs -p /sbin/ldconfig
 
 %if %is_ais_msg
-%post msg-libs
-/sbin/ldconfig
-
-%postun msg-libs
-/sbin/ldconfig
+%post msg-libs -p /sbin/ldconfig
+%postun msg-libs -p /sbin/ldconfig
 %endif
 
-
-%post ntf-libs
-/sbin/ldconfig
-
-%postun ntf-libs
-/sbin/ldconfig
-
+%post ntf-libs -p /sbin/ldconfig
+%postun ntf-libs -p /sbin/ldconfig
 
 %if %is_ais_smf
-%post smf-libs
-/sbin/ldconfig
-
-%postun smf-libs
-/sbin/ldconfig
+%post smf-libs -p /sbin/ldconfig
+%postun smf-libs -p /sbin/ldconfig
 %endif
 
-
-%post libs
-/sbin/ldconfig
-
-%postun libs
-/sbin/ldconfig
-
+%post libs -p /sbin/ldconfig
+%postun libs -p /sbin/ldconfig
 
 %post controller
 %{__ln_s} -f %{_pkgsysconfdir}/nodeinit.conf.controller %{_pkgsysconfdir}/nodeinit.conf
 echo "controller" > %{_pkgsysconfdir}/node_type
 hostname -s > %{_pkgsysconfdir}/node_name
-/sbin/ldconfig
 echo "For information on how to configure the initial imm.xml file check the readme file: %{_pkgimmxmldir}/README"
+/sbin/ldconfig
 
 %preun controller
 %{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
 
-%postun controller
-/sbin/ldconfig
+%postun controller -p /sbin/ldconfig
 
 
 %post payload
@@ -761,8 +727,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %preun payload
 %{__rm} -f %{_pkgsysconfdir}/nodeinit.conf
 
-%postun payload
-/sbin/ldconfig
+%postun payload -p /sbin/ldconfig
 
 
 %files
@@ -780,9 +745,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %config(noreplace) %{_pkgsysconfdir}/node_type
 %config(noreplace) %{_pkgsysconfdir}/node_name
 %config %{_pkgsysconfdir}/script.conf
-%{_pkgsysconfdir}/osafdir.conf
+%config %{_pkgsysconfdir}/osafdir.conf
+%config %{_initddir}/opensafd
 %{_pkgsysconfdir}/nodeinit.conf
-%{_initddir}/opensafd
 %{_pkglibdir}/ncs_nid
 %{_pkglibdir}/opensaf_reboot
 %{_pkglibdir}/nid_tipc
@@ -1098,10 +1063,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/drbdctrl
 %{_pkglibdir}/drbd_start
 %{_pkglibdir}/ncs_drbd_r0_clean
-%{_pkglibdir}/libdts_logstr.so.*
-%{_pkglibdir}/libmbcsv_logstr.so.*
-%{_pkglibdir}/libpdrbd_logstr.so.*
-%{_pkglibdir}/libfma_logstr.so.*
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
@@ -1126,6 +1087,10 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/libopensaf_core.so.*
 %{_pkglibdir}/librda.so.*
 %{_pkglibdir}/libfma.so.*
+%{_pkglibdir}/libdts_logstr.so.*
+%{_pkglibdir}/libmbcsv_logstr.so.*
+%{_pkglibdir}/libpdrbd_logstr.so.*
+%{_pkglibdir}/libfma_logstr.so.*
 
 
 %files devel
