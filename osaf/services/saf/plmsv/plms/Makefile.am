@@ -53,9 +53,13 @@ osafplmd_SOURCES = \
 osafplmd_LDADD = \
         @HPI_LIBS@ \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
+	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la \
 	$(top_builddir)/osaf/services/saf/plmsv/plmc/plmc_lib/libplmc.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
-        $(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
-        $(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la
+	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \
+	$(top_builddir)/osaf/libs/saf/libSaNtf/libSaNtf.la

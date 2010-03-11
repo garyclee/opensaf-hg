@@ -59,6 +59,10 @@ if ENABLE_AIS_PLM
 osafclmd_SOURCES += clms_plm.c
 
 osafclmd_LDADD += \
+        $(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
+        $(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
+        $(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
 	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
 	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la \
