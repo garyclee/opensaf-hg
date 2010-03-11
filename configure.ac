@@ -873,7 +873,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/mqsv/mqd/scripts/Makefile
         osaf/services/saf/mqsv/mqd/scripts/osaf-msgd
         osaf/services/saf/mqsv/mqnd/scripts/Makefile
-        osaf/services/saf/mqsv/mqnd/scripts/ncs_mqnd_start
+        osaf/services/saf/mqsv/mqnd/scripts/osaf-msgnd
 	osaf/services/saf/smfsv/Makefile
         osaf/services/saf/smfsv/config/Makefile
         osaf/services/saf/smfsv/scripts/Makefile

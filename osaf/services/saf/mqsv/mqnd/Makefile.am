@@ -20,9 +20,9 @@ MAINTAINERCLEANFILES = Makefile.in
 
 SUBDIRS = scripts
 
-pkglib_PROGRAMS = ncs_mqnd
+pkglib_PROGRAMS = osafmsgnd
 
-ncs_mqnd_CPPFLAGS = \
+osafmsgnd_CPPFLAGS = \
         -DSA_CLM_B01=1 \
 	-DNCS_MQND=1 -DASAPi_DEBUG=1 -DNCS_MQSV_LOG=1 -DNCS_DTA=1 \
 	$(AM_CPPFLAGS) \
@@ -30,25 +30,26 @@ ncs_mqnd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/services/infrastructure/dtsv/include \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-ncs_mqnd_SOURCES = \
+osafmsgnd_SOURCES = \
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
-	mqnd_proc.c \
-	mqnd_util.c \
+	mqnd_amf.c \
 	mqnd_db.c \
+	mqnd_evt.c \
+	mqnd_imm.c \
+	mqnd_init.c \
+	mqnd_log.c \
+	mqnd_main.c \
+	mqnd_mds.c \
 	mqnd_mq.c \
 	mqnd_namedb.c \
-	mqnd_amf.c \
-	mqnd_evt.c \
-	mqnd_log.c \
-	mqnd_mds.c \
+	mqnd_proc.c \
+	mqnd_restart.c \
 	mqnd_shm.c \
 	mqnd_tmr.c \
-	mqnd_restart.c \
-	mqnd_imm.c \
-	mqnd_init.c
+	mqnd_util.c
 
-ncs_mqnd_LDADD = \
+osafmsgnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \

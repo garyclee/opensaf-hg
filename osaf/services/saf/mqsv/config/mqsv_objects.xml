@@ -72,12 +72,20 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>ncs_mqnd_start</value>
+			<value>osaf-msgnd</value>
 		</attr>
+                <attr>
+                        <name>saAmfCtDefInstantiateCmdArgv</name>
+                        <value>start</value>
+                </attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>ncs_mqnd_clean</value>
+			<value>osaf-msgnd</value>
 		</attr>
+                <attr>
+                        <name>saAmfCtDefCleanupCmdArgv</name>
+                        <value>stop</value>
+                </attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>
 			<value>2</value>
