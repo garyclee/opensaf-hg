@@ -881,9 +881,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files evt-server
 %defattr(-,root,root)
 %{_pkglibdir}/libedsv_logstr.so.*
-%{_pkglibdir}/ncs_eds
-%{_pkglibdir}/ncs_eds_clean
-%{_pkglibdir}/ncs_eds_start
+%{_pkglibdir}/osafevtd
+%{_pkglibdir}/osaf-evtd
 %{_pkgimmxml_svcdir}/edsv_classes.xml
 %{_pkgimmxml_svcdir}/edsv_objects.xml
 %{_pkgimmxml_svcdir}/edsv_sc_template.xml

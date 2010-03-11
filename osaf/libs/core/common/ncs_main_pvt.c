@@ -201,17 +201,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 
 #endif   /* If NCS_DTS == 1 */
 
-#if (NCS_EDS == 1)
-	/* Init EDS */
-	m_NCS_DBG_PRINTF("\nEDSV:EDS:ON");
-	if (ncs_edsv_eds_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("EDS lib request failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	} else
-		m_NCS_DBG_PRINTF("\nEDSV:EDS libcreate success");
-#endif
-
 #if (NCS_PDRBD == 1)
 	/* Initialize Pseudo DRBD service */
 	m_NCS_DBG_PRINTF("\nPSEUDO_DRBD:ON\n");
