@@ -70,6 +70,8 @@ if [ $? != 0 ] ; then
 fi
 eval set -- "$TEMP"
 
+PL_COUNT=0  # default value
+
 while true ; do
 	case "$1" in
 		-p|--pl-count) PL_COUNT=$2; trace "Option --pl-count, argument \`$PL_COUNT'" ; shift 2 ;;
@@ -89,13 +91,13 @@ validate_options
 
 for (( i=1; i <= $SC_COUNT; i++ ))
 do
-	echo "SC SC_2_$i SC_2_$i" >>$NODE_CFG_FILE
+	echo "SC SC-$i SC-$i" >>$NODE_CFG_FILE
 done
 
 PL_MAX=$(($PL_COUNT+$i))
 for (( i=$i; i < $PL_MAX; i++ ))
 do
-	echo "PL PL_2_$i PL_2_$i" >>$NODE_CFG_FILE
+	echo "PL PL-$i PL-$i" >>$NODE_CFG_FILE
 done
 
 info "Successful, result stored in the file $NODE_CFG_FILE"
