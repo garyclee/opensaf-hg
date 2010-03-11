@@ -90,6 +90,13 @@ extern "C" {
  */
 	extern int trace_category_set(unsigned int category_mask);
 
+/**
+ * trace_category_get - Get the current mask used for trace filtering.
+ * 
+ * @return int - The filtering mask value
+ */
+	extern int trace_category_get(void);
+
 /* internal functions, do not use directly */
 	extern void _logtrace_log(const char *file, unsigned int line, int priority,
 				  const char *format, ...) __attribute__ ((format(printf, 4, 5)));

@@ -29,16 +29,37 @@
 #include <string.h>
 #include <sys/syscall.h>
 #include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <limits.h>
 
 #include "logtrace.h"
 
 static int trace_fd = -1;
 static int category_mask;
+static char trace_file[NAME_MAX];
 static char *prefix_name[] = { "EM", "AL", "CR", "ER", "WA", "NO", "IN", "DB",
 	"TR", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", ">>", "<<"
 };
 
 static const char *my_name;
+
+
+/**
+ * USR2 signal handler to enable/disable trace (toggle)
+ * @param sig
+ */
+static void sigusr2_handler(int sig)
+{
+	unsigned int trace_mask;
+
+	if (category_mask == 0)
+		trace_mask = CATEGORY_ALL;
+	else
+		trace_mask = 0;
+
+	trace_category_set(trace_mask);
+}
 
 static void output(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap)
 {
@@ -102,18 +123,28 @@ void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
 
 int logtrace_init(const char *ident, const char *pathname)
 {
-	if (ident == NULL || pathname == NULL)
+	if (ident == NULL || pathname == NULL) {
+		syslog(LOG_ERR, "invalid trace init parameters");
 		return -1;
+	}
 
 	my_name = ident;
-	openlog(ident, 0, LOG_LOCAL0);
+	openlog(ident, LOG_PID, LOG_LOCAL0);
 
 	trace_fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-	if (trace_fd == -1)
+	if (trace_fd < 0) {
+		syslog(LOG_ERR, "open failed, file=%s (%s)", pathname, strerror(errno));
 		return -1;
-	else
-		return 0;
+	}
+
+	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+		syslog(LOG_ERR, "registering trace toggle SIGUSR2 failed, (%s)", strerror(errno));
+		return -1;
+	}
+
+	LOG_NO("trace initialized, file=%s", pathname);
+
+	return 0;
 }
 
 int trace_category_set(unsigned int category)
@@ -124,5 +155,15 @@ int trace_category_set(unsigned int category)
 
 	category_mask = category;
 
+	if (category_mask == 0)
+		LOG_NO("disabling tracing, mask=0x%x");
+	else
+		LOG_NO("setting tracing category, mask=0x%x", category);
+
 	return 0;
+}
+
+int trace_category_get(void)
+{
+	return category_mask;
 }
