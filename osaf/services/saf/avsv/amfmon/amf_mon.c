@@ -42,6 +42,7 @@
 #include <saAmf.h>
 #include <ncssysf_def.h>
 #include <configmake.h>
+#include <daemon.h>
 
 extern void ava_install_amf_down_cb(void (*cb)(void));
 
@@ -111,27 +112,6 @@ static void amf_comp_terminate_callback(SaInvocationT inv, const SaNameT *comp_n
 	exit(0);
 }
 
-/**
- * Create the pid file on /var/run/opensaf directory.
- *
- * @param progname
- *
- */
-static void create_pid_file(char *progname)
-{
-	char path[256];
-	FILE *fp;
-
-	snprintf(path, sizeof(path), PKGPIDDIR "%s.pid", basename(progname));
-	fp = fopen(path, "w");
-	if (fp == NULL)	{
-		syslog(LOG_ERR, "fopen failed: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-	(void)fprintf(fp, "%d\n", getpid());
-	(void)fclose(fp);
-}
-
 static void amf_down_cb(void)
 {
 	int status;
@@ -141,7 +121,7 @@ static void amf_down_cb(void)
 		syslog(LOG_ERR, "system(shutdown) FAILED %x", status);
 }
 
-int main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
 	SaAmfCallbacksT    amf_callbacks = {0};
 	SaVersionT         ver = {.releaseCode = 'B', ver.majorVersion = 0x01, ver.minorVersion = 0x01};
@@ -153,8 +133,15 @@ int main(int argc, char **argv)
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
-	create_pid_file(argv[0]);
+	daemonize(argc, argv);
+
+	if ((trace_mask_env = getenv("AMFMON_TRACE_CATEGORIES")) != NULL) {
+		trace_mask = strtoul(trace_mask_env, NULL, 0);
+		trace_category_set(trace_mask);
+	}
 
 	ava_install_amf_down_cb(amf_down_cb);
 
@@ -192,7 +179,7 @@ int main(int argc, char **argv)
 		goto done;
 	}
 
-	/** start the AMF health check **/
+	/* start the AMF health check */
 	memset(&hc_key, 0, sizeof(hc_key));
 	if ((hc_key_env = getenv("AMFMON_ENV_HEALTHCHECK_KEY")) == NULL)
 		strcpy((char *)hc_key.key, "Default");
@@ -257,4 +244,3 @@ int main(int argc, char **argv)
 done:
 	return -1;
 }
-

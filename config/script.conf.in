@@ -47,20 +47,6 @@ fi
 export OLD_STDOUTSPATH="$PKGLOCALSTATEDIR/old_stdouts"
 
 #########################################
-# AMF Configuration
-#########################################
-# Uncomment to run valgrind on the amfd/amfnd binary
-#AMFNDTOOL=valgrind
-
-# Uncomment to enable traces from the very start of amfnd
-#export AMFND_TRACE_CATEGORIES=0xffffffff
-
-# By default AMF is supervised by the AMF monitor. 
-# Uncomment to change the default (60 000 ms) timeout. 
-# Set to Zero to completely disable supervision.
-#export AMFMON_HC_TIMEOUT_MS=0
-
-#########################################
 # FILES
 #########################################
 NODE_HA_STATE="$PKGLOCALSTATEDIR/node_ha_state"
@@ -104,12 +90,6 @@ export PLMS_ENV_HEALTHCHECK_KEY="Default"
 export AMFMON_ENV_HEALTHCHECK_KEY="Default"
 
 export NID_MAGIC=AAB49DAA
-
-#####################################################
-# Rate at which Passive Monitoring monitors the PIDs.
-# Default is 1 sec (1000 ms)
-#####################################################
-export AVND_PM_MONITORING_RATE=1000
 
 #########################################
 # DRBD Configuration

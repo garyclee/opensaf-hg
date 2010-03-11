@@ -221,7 +221,7 @@ void avnd_main_process(void)
 	TRACE_ENTER();
 
 	if (avnd_create() != NCSCC_RC_SUCCESS) {
-		syslog(LOG_ERR, "ncspvt_svcs_startup failed\n");
+		syslog(LOG_ERR, "avnd_create\n");
 		goto done;
 	}
 

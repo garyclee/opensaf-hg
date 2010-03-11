@@ -280,7 +280,7 @@ uns32 avnd_evt_avd_set_leds_msg(AVND_CB *cb, AVND_EVT *evt)
 	cb->led_state = AVND_LED_STATE_GREEN;
 
 	/* Notify the NIS script/deamon that we have fully come up */
-	m_NCS_NID_NOTIFY(NCSCC_RC_SUCCESS);
+	nid_notify("AMFND", NCSCC_RC_SUCCESS, NULL);
 
  done:
 	return rc;
