@@ -153,8 +153,6 @@ uns32 ncspvt_svcs_startup(void)
 	if (ncs_core_agents_startup() != NCSCC_RC_SUCCESS)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 
-	syslog(LOG_INFO, "NODE_ID=0x%08X PID %u \n", ncs_get_node_id(), getpid());
-
 	/* start all the required directors/node director/servers */
 	if (ncs_d_nd_svr_startup() != NCSCC_RC_SUCCESS)
 		return NCSCC_RC_FAILURE;
