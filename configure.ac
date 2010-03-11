@@ -832,7 +832,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/ntfsv/config/Makefile
         osaf/services/saf/ntfsv/ntfs/Makefile
         osaf/services/saf/ntfsv/ntfs/scripts/Makefile
-        osaf/services/saf/ntfsv/ntfs/scripts/opensaf_ntfs
+        osaf/services/saf/ntfsv/ntfs/scripts/osaf-ntfd
 	osaf/services/saf/clmsv/Makefile
 	osaf/services/saf/clmsv/config/Makefile
 	osaf/services/saf/clmsv/nodeagent/Makefile

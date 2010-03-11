@@ -23,7 +23,7 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathInstantiateCmd</name>
-			<value>opensaf_ntfs</value>
+			<value>osaf-ntfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefInstantiateCmdArgv</name>
@@ -35,11 +35,11 @@
 		</attr>
 		<attr>
 			<name>saAmfCtRelPathCleanupCmd</name>
-			<value>opensaf_ntfs</value>
+			<value>osaf-ntfd</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefCleanupCmdArgv</name>
-			<value>cleanup</value>
+			<value>stop</value>
 		</attr>
 		<attr>
 			<name>saAmfCtDefRecoveryOnError</name>

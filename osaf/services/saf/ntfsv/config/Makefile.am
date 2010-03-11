@@ -19,7 +19,7 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/ntfsv/config/ntf.conf
+	$(top_srcdir)/osaf/services/saf/ntfsv/config/ntfd.conf
 
 dist_pkgimmxml_svc_DATA = \
 	ntfsv_sc_template.xml \

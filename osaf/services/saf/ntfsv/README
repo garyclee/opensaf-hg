@@ -143,9 +143,9 @@ PKGLOCALSTATEDIR/stdouts/opensaf_ntfd.log
 
 To enable traces from the very start of the ntf server, uncomment the line:
 
-        #export NTFSV_TRACE_CATEGORIES=ALL
+        #export NTFD_TRACE_CATEGORIES=ALL
 
-in ntf.conf (see CONFIGURATION above) and restart the cluster.
+in ntfd.conf (see CONFIGURATION above) and restart the cluster.
 
 For fatal errors syslog is used.
 
