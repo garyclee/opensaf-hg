@@ -898,14 +898,23 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files imm-director
 %defattr(-,root,root)
+%config(noreplace) %{_pkgsysconfdir}/immd.conf
 %{_bindir}/immadm
 %{_bindir}/immcfg
 %{_bindir}/immdump
 %{_bindir}/immfind
 %{_bindir}/immlist
-%{_pkglibdir}/immd_script
-%{_pkglibdir}/opensaf_immd
+%{_pkglibdir}/osafimmd
+%{_pkglibdir}/osaf-immd
 %{_pkglibdir}/immload
+%{_pkgimmxmldir}/baseimm.py*
+%{_pkgimmxmldir}/README
+%{_pkgimmxmldir}/immxml-clustersize
+%{_pkgimmxmldir}/immxml-configure
+%{_pkgimmxmldir}/immxml-merge
+%{_pkgimmxmldir}/immxml-nodegen
+%{_pkgimmxmldir}/immxml-validate
+%{_pkgimmxmldir}/verify.sh
 %{_pkgimmxml_svcdir}/immsv_classes.xml
 %{_pkgimmxml_svcdir}/immsv_objects.xml
 %{_pkgimmxml_svcdir}/immsv_pl_template.xml
@@ -1093,14 +1102,6 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_pkglibdir}/libmbcsv_logstr.so.*
 %{_pkglibdir}/libpdrbd_logstr.so.*
 %{_pkglibdir}/libfma_logstr.so.*
-%{_pkgimmxmldir}/README
-%{_pkgimmxmldir}/baseimm.py*
-%{_pkgimmxmldir}/immxml-clustersize
-%{_pkgimmxmldir}/immxml-configure
-%{_pkgimmxmldir}/immxml-merge
-%{_pkgimmxmldir}/immxml-nodegen
-%{_pkgimmxmldir}/immxml-validate
-%{_pkgimmxmldir}/verify.sh
 %{_pkgimmxml_svcdir}/common_pl_template.xml
 %{_pkgimmxml_svcdir}/common_sc_template.xml
 %{_pkgimmxml_svcdir}/dtsv_classes.xml
