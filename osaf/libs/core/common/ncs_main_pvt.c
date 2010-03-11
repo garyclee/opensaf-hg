@@ -232,15 +232,6 @@ static uns32 ncs_d_nd_svr_startup(void)
 	}
 #endif
 
-#if (NCS_GLD == 1)
-	/* Init GLD */
-	m_NCS_DBG_PRINTF("\nGLSV:GLD:ON");
-	if (gld_lib_req(&lib_create) != NCSCC_RC_SUCCESS) {
-		m_NCS_NID_NOTIFY(NCSCC_RC_FAILURE);
-		printf("GLD lib request failed\n");
-		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
-	}
-#endif
 #if (NCS_GLND == 1)
 	/* Init GLND */
 	m_NCS_DBG_PRINTF("\nGLSV:GLND:ON");

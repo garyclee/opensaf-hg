@@ -862,7 +862,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/glsv/gld/Makefile
         osaf/services/saf/glsv/glnd/Makefile
         osaf/services/saf/glsv/gld/scripts/Makefile
-        osaf/services/saf/glsv/gld/scripts/ncs_gld_start
+        osaf/services/saf/glsv/gld/scripts/osaf-lckd
         osaf/services/saf/glsv/glnd/scripts/Makefile
         osaf/services/saf/glsv/glnd/scripts/ncs_glnd_start
         osaf/services/saf/mqsv/Makefile
