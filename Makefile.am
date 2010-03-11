@@ -14,11 +14,29 @@
 # Author(s): Wind River Systems
 #
 
-MAINTAINERCLEANFILES = aclocal.m4 compile config.guess config.h.in config.sub \
-                       configure depcomp install-sh ltmain.sh missing \
-                       Makefile.in m4/libtool.m4 m4/ltoptions.m4 m4/ltsugar.m4 \
-		       m4/ltversion.m4 m4/lt~obsolete.m4
+MAINTAINERCLEANFILES = \
+	aclocal.m4 \
+	compile \
+	config.guess \
+	config.h.in \
+	config.sub \
+	configure \
+	depcomp \
+	install-sh \
+	ltmain.sh \
+	missing \
+	Makefile.in \
+	m4/libtool.m4 \
+	m4/ltoptions.m4 \
+	m4/ltsugar.m4 \
+	m4/ltversion.m4 \
+	m4/lt~obsolete.m4
 
+CLEANFILES = \
+	configmake.h \
+	configmake.h-t \
+	osafdir.conf \
+	osafdir.conf-t
 
 include $(top_srcdir)/Makefile.common
 include $(top_srcdir)/samples/samples.mk
@@ -43,7 +61,7 @@ ACLOCAL_AMFLAGS = -I m4
 # The Automake-defined pkg* macros are appended, in the order
 # listed in the Automake 1.10a+ documentation.
 configmake.h: Makefile
-	rm -f $@-t $@
+	@rm -f $@-t $@
 	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
 	echo '#define PREFIX "$(prefix)"'; \
 	echo '#define EXEC_PREFIX "$(exec_prefix)"'; \
@@ -68,24 +86,35 @@ configmake.h: Makefile
 	echo '#define LOCALEDIR "$(localedir)"'; \
 	echo '#define MANDIR "$(mandir)"'; \
 	echo '#define MANEXT "$(manext)"'; \
-	echo '#define PKGSYSCONFDIR "$(sysconfdir)/$(PACKAGE_NAME)/"'; \
-	echo '#define PKGLOCALSTATEDIR "$(localstatedir)/lib/$(PACKAGE_NAME)/"'; \
 	echo '#define PKGDATADIR "$(pkgdatadir)"'; \
 	echo '#define PKGINCLUDEDIR "$(pkgincludedir)"'; \
 	echo '#define PKGLIBDIR "$(pkglibdir)"'; \
 	echo '#define PKGLIBEXECDIR "$(pkglibexecdir)"'; \
-	echo '#define PKGPIDDIR "$(localstatedir)/run/$(PACKAGE_NAME)/"'; \
-	echo '#define PKGLOGDIR "$(localstatedir)/log/$(PACKAGE_NAME)/"'; \
+	echo '#define PKGSYSCONFDIR "$(pkgsysconfdir)"'; \
+	echo '#define PKGLOCALSTATEDIR "$(pkglocalstatedir)"'; \
+	echo '#define PKGPIDDIR "$(pkgpiddir)"'; \
+	echo '#define PKGLOGDIR "$(pkglogdir)"'; \
+	echo '#define PKGCONFDIR "$(pkgconfigdir)"'; \
+	echo '#define PKGIMMXMLDIR "$(pkgimmxmldir)"'; \
+	echo '#define PKGIMMXMLSVCDIR "$(pkgimmxml_svcdir)"'; \
+	echo '#define JAVADIR "$(javadir)"'; \
+	echo '#define JAVADOCDIR "$(javadocdir)"'; \
+	echo '#define LSBINITDIR "$(lsbinitdir)"'; \
 	} | sed '/""/d' > $@-t
 	mv $@-t $@
 
-BUILT_SOURCES = configmake.h
 
-CLEANFILES = configmake.h configmake.h-t
+osafdir.conf: configmake.h
+	@rm -f $@-t $@
+	@cp configmake.h $@-t
+	@sed -i 's|\#define ||g' $@-t
+	@sed -i 's| \"|=\"|g' $@-t
+	@sed -i -e 's|\/\* |\# |g' -e 's| \*\/||g' $@-t
+	@sed -i 1i"#!/bin/sh" $@-t
+	sed -e 's/\(.*\)/\L\1/' $@-t > $@
 
-EXTRA_DIST = \
-	$(top_srcdir)/tests
 
+BUILT_SOURCES = configmake.h osafdir.conf
 
 dist_doc_DATA = \
 	$(top_srcdir)/AUTHORS \
@@ -101,7 +130,6 @@ dist_doc_DATA = \
 	$(top_srcdir)/00-README.samples \
 	$(top_srcdir)/00-README.debug \
 	$(top_srcdir)/00-README.drbd
-
 
 dist_pkgdata_DATA = 
 
@@ -125,9 +153,9 @@ SUBDIRS += \
 	tests/immsv/management
 endif
 
-
 nodist_pkgsysconf_DATA = \
-	$(top_builddir)/config/script.conf
+	$(top_builddir)/config/script.conf \
+	$(top_builddir)/osafdir.conf
 
 
 dist_pkglocalstate_DATA = \
@@ -191,8 +219,8 @@ update-ldconfig:
 	$(INSTALL_DATA) $(top_builddir)/config/$(PACKAGE_NAME)-$(host_cpu).conf $(DESTDIR)$(sysconfdir)/ld.so.conf.d
 
 install-data-local: update-ldconfig
-	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
-	$(mkinstalldirs) $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
+	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
+	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
 
 install-data-hook:
 	@for i in $$(grep -lr -e 'xxLIBDIRxx' $(DESTDIR)$(pkgimmxml_svcdir)/*.xml) ; do \
@@ -210,8 +238,8 @@ uninstall-local:
 	-rm -rf $(DESTDIR)$(docdir)
 	-rm -rf $(DESTDIR)$(pkgdatadir)
 	-rm -rf $(DESTDIR)$(pkglocalstatedir)
-	-rm -rf $(DESTDIR)$(localstatedir)/log/$(PACKAGE_NAME)
-	-rm -rf $(DESTDIR)$(localstatedir)/run/$(PACKAGE_NAME)
+	-rm -rf $(DESTDIR)$(pkglogdir)
+	-rm -rf $(DESTDIR)$(pkgpiddir)
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 
 docs:

@@ -68,10 +68,10 @@ static int get_node_type(void)
         size_t bytes;
         int type;
         char buf[32];
-        FILE *f = fopen(PKGSYSCONFDIR "node_type", "r");
+        FILE *f = fopen(PKGSYSCONFDIR "/node_type", "r");
 
         if (!f) {
-                LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "node_type", strerror(errno));
+                LOG_ER("Could not open file %s - %s", PKGSYSCONFDIR "/node_type", strerror(errno));
                 return AVSV_AVND_CARD_PAYLOAD;
         }
 
@@ -89,7 +89,7 @@ static int get_node_type(void)
                         type = AVSV_AVND_CARD_PAYLOAD;
                 }
         } else {
-		LOG_ER("fscanf FAILED for %s - %s", PKGSYSCONFDIR "node_type", strerror(errno));
+		LOG_ER("fscanf FAILED for %s - %s", PKGSYSCONFDIR "/node_type", strerror(errno));
                 type = AVSV_AVND_CARD_PAYLOAD;
         }
 

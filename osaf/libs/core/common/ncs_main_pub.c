@@ -110,7 +110,7 @@
 #endif
 #endif   /* NCS_DTS */
 
-#define NODE_ID_FILE PKGLOCALSTATEDIR "node_id"
+#define NODE_ID_FILE PKGLOCALSTATEDIR "/node_id"
 
 /**************************************************************************\
 
@@ -849,7 +849,7 @@ static uns32 ncs_set_config_root(void)
 
 		m_NCS_DBG_PRINTF("\nNCS: Using %s as config directory root\n", ncs_config_root);
 	} else {
-		sprintf(ncs_config_root, "%s", NCS_DEF_CONFIG_FILEPATH);
+		sprintf(ncs_config_root, "/%s", NCS_DEF_CONFIG_FILEPATH);
 	}
 
 	return NCSCC_RC_SUCCESS;
