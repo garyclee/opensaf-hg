@@ -50,11 +50,9 @@ export OLD_STDOUTSPATH="$PKGLOCALSTATEDIR/old_stdouts"
 # AMF Configuration
 #########################################
 # Uncomment to run valgrind on the amfd/amfnd binary
-#AMFDTOOL=valgrind
 #AMFNDTOOL=valgrind
 
-# Uncomment to enable traces from the very start of amfd/amfnd
-#export AMFD_TRACE_CATEGORIES=0xffffffff
+# Uncomment to enable traces from the very start of amfnd
 #export AMFND_TRACE_CATEGORIES=0xffffffff
 
 # By default AMF is supervised by the AMF monitor. 
