@@ -810,7 +810,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/immsv/immd/scripts/Makefile
         osaf/services/saf/immsv/immd/scripts/osaf-immd
         osaf/services/saf/immsv/immnd/scripts/Makefile
-        osaf/services/saf/immsv/immnd/scripts/immnd_script
+        osaf/services/saf/immsv/immnd/scripts/osaf-immnd
         osaf/services/saf/plmsv/Makefile
         osaf/services/saf/plmsv/config/Makefile
         osaf/services/saf/plmsv/plmc/Makefile

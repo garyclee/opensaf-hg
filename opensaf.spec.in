@@ -923,9 +923,9 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files imm-nodedirector
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/imm.conf
-%{_pkglibdir}/opensaf_immnd
-%{_pkglibdir}/immnd_script
+%config(noreplace) %{_pkgsysconfdir}/immnd.conf
+%{_pkglibdir}/osafimmnd
+%{_pkglibdir}/osaf-immnd
 
  
  

@@ -28,15 +28,14 @@ noinst_HEADERS = \
 	ImmModel.hh \
 	ImmSearchOp.hh
 
-pkglib_PROGRAMS = opensaf_immnd
+pkglib_PROGRAMS = osafimmnd
 
-opensaf_immnd_CPPFLAGS = \
+osafimmnd_CPPFLAGS = \
 	-DSA_CLM_B01 \
-	-DNCS_MAIN_EXTERNAL \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
-opensaf_immnd_SOURCES =	\
+osafimmnd_SOURCES =	\
 	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	immnd_amf.c \
 	immnd_db.c \
@@ -48,7 +47,7 @@ opensaf_immnd_SOURCES =	\
 	ImmSearchOp.cc \
 	ImmModel.cc
 
-opensaf_immnd_LDADD = \
+osafimmnd_LDADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaAmf/libSaAmf.la \
