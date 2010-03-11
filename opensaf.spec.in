@@ -1004,9 +1004,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files msg-director
 %defattr(-,root,root)
 %{_pkglibdir}/libmqsv_logstr.so.*
-%{_pkglibdir}/ncs_mqd
-%{_pkglibdir}/ncs_mqd_clean
-%{_pkglibdir}/ncs_mqd_start
+%{_pkglibdir}/osafmsgd
+%{_pkglibdir}/osaf-msgd
 %{_pkgimmxml_svcdir}/mqsv_classes.xml
 %{_pkgimmxml_svcdir}/mqsv_objects.xml
 %{_pkgimmxml_svcdir}/mqsv_pl_template.xml
