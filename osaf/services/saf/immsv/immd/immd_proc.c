@@ -76,7 +76,18 @@ void immd_proc_immd_reset(IMMD_CB *cb, NCS_BOOL active)
 		LOG_ER("IMM RELOAD with NO persistent back end => ensure cluster restart by IMMD exit at both SCs.");
 		exit(1);
 	} else {
-		LOG_WA("IMM RELOAD with persistent back end => No need to restart cluster");
+		/*LOG_WA("IMM RELOAD with persistent back end => No need to restart cluster");*/
+		LOG_ER("IMM RELOAD  => ensure cluster restart by IMMD exit at both SCs.");
+		/* In theory we should be able to reload from PBE without cluster restart.
+		   But implementer info is lost and non persistent runtime objects/attributes
+		   are lost, so we can not hope to achieve transparent resurrect. 
+		   Thus we must reject resurrect attempts from IMMA clients after a reload, 
+		   even if the reload was from PBE.
+		   Until such resurrect rejection is implemented, we also escalate reload from
+		   PBE to cluster restart. The PBE still fullfills its major function, that
+		   of not loosing any PERSISTENT state in the face of a cluster restart. 
+		*/
+		exit(1);
 	}
 
 	cb->mRim = SA_IMM_INIT_FROM_FILE; /* Reset to default since we are reloading. */
