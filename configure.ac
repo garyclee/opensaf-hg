@@ -848,7 +848,7 @@ AC_CONFIG_FILES([
         osaf/services/saf/cpsv/cpd/scripts/Makefile
         osaf/services/saf/cpsv/cpd/scripts/osaf-ckptd
         osaf/services/saf/cpsv/cpnd/scripts/Makefile
-        osaf/services/saf/cpsv/cpnd/scripts/ncs_cpnd_start
+        osaf/services/saf/cpsv/cpnd/scripts/osaf-ckptnd
         osaf/services/saf/edsv/Makefile
         osaf/services/saf/edsv/config/Makefile
         osaf/services/saf/edsv/logstr/Makefile

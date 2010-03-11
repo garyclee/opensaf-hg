@@ -837,9 +837,8 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files ckpt-nodedirector
 %defattr(-,root,root)
-%{_pkglibdir}/ncs_cpnd
-%{_pkglibdir}/ncs_cpnd_clean
-%{_pkglibdir}/ncs_cpnd_start
+%{_pkglibdir}/osafckptnd
+%{_pkglibdir}/osaf-ckptnd
 
 %endif
 
