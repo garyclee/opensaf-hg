@@ -31,11 +31,11 @@
 #include "ncssysf_def.h"
 #include "ncs_lib.h"
 #include "ncssysf_tmr.h"
-#include "ncs_main_pvt.h"
 #include "mds_dl_api.h"
 #include "mds_core.h"
 #include "patricia.h"
 #include "mds_log.h"
+#include "ncs_main_pub.h"
 
 /* MDS Control Block */
 MDS_MCM_CB *gl_mds_mcm_cb = NULL;

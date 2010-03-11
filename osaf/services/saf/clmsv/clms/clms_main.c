@@ -29,8 +29,6 @@
 #include <poll.h>
 #include <configmake.h>
 
-#include <ncs_main_pvt.h>
-
 #include "clms.h"
 
 /* ========================================================================

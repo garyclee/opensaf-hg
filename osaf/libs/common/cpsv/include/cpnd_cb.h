@@ -20,6 +20,8 @@
 
 #include <saClm.h>
 
+#include "ncs_queue.h"
+
 /* global variables */
 EXTERN_C uns32 gl_cpnd_cb_hdl;
 

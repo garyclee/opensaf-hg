@@ -23,8 +23,11 @@
 ******************************************************************************/
 
 #include <daemon.h>
+#include <logtrace.h>
 
+#include <nid_api.h>
 #include "fm.h"
+
 char *role_string[] = { "Undefined", "ACTIVE", "STANDBY", "QUIESCED",
 	"ASSERTING", "YIELDING", "UNDEFINED"
 };

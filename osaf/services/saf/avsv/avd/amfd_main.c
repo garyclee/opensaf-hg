@@ -19,6 +19,7 @@
 #include <logtrace.h>
 #include <daemon.h>
 
+#include <nid_api.h>
 #include "avd.h"
 
 static int __init_avd(void)

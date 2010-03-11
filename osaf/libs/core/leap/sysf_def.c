@@ -44,6 +44,7 @@
 #include "sysf_def.h"
 #include "ncssysf_lck.h"
 #include "ncssysfpool.h"
+#include "sysf_exc_scr.h"
 #include "usrbuf.h"
 
 time_t ncs_time_stamp()

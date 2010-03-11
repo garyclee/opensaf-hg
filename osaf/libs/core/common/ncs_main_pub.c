@@ -26,15 +26,18 @@
 */
 
 #include <configmake.h>
-#include <ncsgl_defs.h>
+
+#include "ncsgl_defs.h"
 #include "mds_papi.h"
 #include "ncs_main_papi.h"
 #include "ncs_mda_papi.h"
-#include "ncs_main_pvt.h"
 #include "ncs_lib.h"
+#include "ncssysf_lck.h"
 #include "mds_dl_api.h"
 #include "sprr_dl_api.h"
 #include "mda_dl_api.h"
+#include "ncssysf_def.h"
+#include "ncs_main_pub.h"
 
 #if (NCS_AVA == 1)
 #include "ava_dl_api.h"
@@ -110,8 +113,6 @@
 #endif
 #endif   /* NCS_DTS */
 
-#define NODE_ID_FILE PKGLOCALSTATEDIR "/node_id"
-
 /**************************************************************************\
 
        L O C A L      D A T A    S T R U C T U R E S
@@ -141,6 +142,14 @@ typedef struct ncs_main_pub_cb {
 
 	NCS_AGENT_DATA mbca;
 } NCS_MAIN_PUB_CB;
+
+typedef struct ncs_sys_params {
+	NCS_PHY_SLOT_ID slot_id;
+	NCS_CHASSIS_ID shelf_id;
+	NCS_NODE_ID node_id;
+	uns32 cluster_id;
+	uns32 pcon_id;
+} NCS_SYS_PARAMS;
 
 static uns32 mainget_node_id(uns32 *node_id);
 static uns32 ncs_set_config_root(void);
@@ -841,7 +850,6 @@ static uns32 ncs_set_config_root(void)
 	tmp = getenv("NCS_SIMULATION_CONFIG_ROOTDIR");
 	if (tmp != NULL) {
 		if (strlen(tmp) >= MAX_NCS_CONFIG_ROOTDIR_LEN) {
-			/* m_NCS_NID_NOTIFY(NID_NCS_CFG_DIR_ROOTNAME_LEN_EXCEED); */
 			printf("Config directory root name too long\n");
 			return NCSCC_RC_FAILURE;
 		}
@@ -868,7 +876,6 @@ uns32 ncs_util_get_sys_params(NCS_SYS_PARAMS *sys_params)
 	}
 
 	if (mainget_node_id(&sys_params->node_id) != NCSCC_RC_SUCCESS) {
-		/* m_NCS_NID_NOTIFY(NID_NCS_GET_NODE_ID_FAILED); */
 		printf("Not able to get the NODE ID\n");
 		return (NCSCC_RC_FAILURE);
 	}

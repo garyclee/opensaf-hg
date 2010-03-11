@@ -42,6 +42,7 @@
 
 #include <logtrace.h>
 
+#include <nid_api.h>
 #include <avd.h>
 #include <avd_imm.h>
 #include <avd_cluster.h>

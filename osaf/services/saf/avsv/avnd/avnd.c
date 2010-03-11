@@ -32,11 +32,12 @@
 ******************************************************************************
 */
 
+#include <configmake.h>
+
 #include <immutil.h>
 #include <logtrace.h>
 
 #include "avnd.h"
-#include "ncs_main_pvt.h"
 #include "avsv_d2nedu.h"
 #include "avsv_n2avaedu.h"
 #include "avsv_nd2ndmsg.h"

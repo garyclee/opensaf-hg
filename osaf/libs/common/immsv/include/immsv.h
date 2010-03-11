@@ -30,9 +30,10 @@
 #include "ncs_lib.h"
 #include "mds_papi.h"
 #include "ncs_edu_pub.h"
-#include "ncs_main_pvt.h"
+#include "ncssysf_lck.h"
+#include "ncssysf_mem.h"
 
-#include "logtrace.h"
+#include <logtrace.h>
 
 /*Should not have to include this one since we are not using DTSV, but
 it seems to be needed at least for library init, at least for agent. */

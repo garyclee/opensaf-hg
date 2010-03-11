@@ -26,7 +26,6 @@
 #include "mds_papi.h"
 #include "ncs_mda_pvt.h"
 #include "ncs_edu_pub.h"
-#include "ncs_main_pvt.h"
 
 #include "ncs_log.h"
 #include "dta_papi.h"

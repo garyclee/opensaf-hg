@@ -31,7 +31,6 @@ osafmsgd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafmsgd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	mqd_sbevt.c \
 	mqd_mbcsv.c \

@@ -58,7 +58,6 @@ osafsmfd_CPPFLAGS = \
 	-I$(top_srcdir)/osaf/libs/common/immsv/include
 
 osafsmfd_SOURCES = \
-	$(top_srcdir)/osaf/libs/core/common/ncs_main_pvt.c \
 	$(top_srcdir)/osaf/tools/safimm/src/immutil.c \
 	smfd_amf.c \
 	smfd_evt.c \

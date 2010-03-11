@@ -189,8 +189,7 @@ start()
 clean_the_rest()
 {
   	pkill -9 nid >& /dev/null
-	pkill -9 opensaf_ >& /dev/null
-	pkill -9 ncs >& /dev/null
+	pkill -9 osaf >& /dev/null
 	if [ "$TIPC_MANAGE" == "YES" ] && grep tipc /proc/modules >& /dev/null;
 	then
 	  sleep 2 # Give time for tipc to release.
