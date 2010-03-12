@@ -135,10 +135,11 @@ static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
         client = clms_client_get_by_id(param->client_id);
         if (client == NULL) {
                 /* Client does not exist, create new one */
-        	if (clms_client_new(param->mds_dest, param->client_id) == NULL) {
+        	if ((client = clms_client_new(param->mds_dest, param->client_id)) == NULL) {
 			LOG_ER("new client addtion failed on standby");
 			assert(0);
         	}
+		client->track_flags = param->track_flags;
         } else {
                 /* Client with ID already exist, check other attributes */
                 if (client->mds_dest != param->mds_dest) {
@@ -1386,6 +1387,12 @@ uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
         uns8 *p8;
         uns32 total_bytes = 0;
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
+
+	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
+        mds_dest2 = (param->mds_dest >> 32);
+	
 
         TRACE_ENTER();
 
@@ -1396,7 +1403,9 @@ uns32 enc_mbcsv_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
                 return 0;
         }
         ncs_encode_32bit(&p8, param->client_id);
-        ncs_encode_64bit(&p8, param->mds_dest);
+        ncs_encode_32bit(&p8, mds_dest1);
+        ncs_encode_32bit(&p8, mds_dest2);
+        /*ncs_encode_64bit(&p8, param->mds_dest);*/
 	ncs_encode_8bit(&p8, param->track_flags);
         ncs_enc_claim_space(uba, 13);
         total_bytes += 13;
@@ -1409,8 +1418,13 @@ uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param)
 {
 	uns8 *p8;
         uns32 total_bytes = 0;
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
 
         TRACE_ENTER();
+
+	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
+        mds_dest2 = (param->mds_dest >> 32);
 
 	/** encode the contents **/
         p8 = ncs_enc_reserve_space(uba, 8);
@@ -1418,7 +1432,9 @@ uns32 enc_mbcsv_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *param)
                 TRACE("NULL pointer");
                 return 0;
         }
-        ncs_encode_64bit(&p8, param->mds_dest);
+        ncs_encode_32bit(&p8, mds_dest1);
+        ncs_encode_32bit(&p8, mds_dest2);
+        /*ncs_encode_64bit(&p8, param->mds_dest);*/
         ncs_enc_claim_space(uba, 8);
         total_bytes += 8;
 
@@ -1432,8 +1448,13 @@ uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
 {
         uns8 *p8;
         uns32 total_bytes = 0;
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
 
         TRACE_ENTER();
+
+	mds_dest1 = (param->mds_dest & 0x00000000ffffffff);
+        mds_dest2 = (param->mds_dest >> 32);
 
     /** encode the contents **/
         p8 = ncs_enc_reserve_space(uba, 12);
@@ -1442,7 +1463,9 @@ uns32 enc_mbcsv_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
                 return 0;
         }
         ncs_encode_32bit(&p8, param->client_id);
-        ncs_encode_64bit(&p8, param->mds_dest);
+        ncs_encode_32bit(&p8, mds_dest1);
+        ncs_encode_32bit(&p8, mds_dest2);
+        /*ncs_encode_64bit(&p8, param->mds_dest);*/
         ncs_enc_claim_space(uba, 12);
         total_bytes += 12;
 
@@ -1574,6 +1597,11 @@ uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *para
 {
         uns8 *p8;
         uns32 total_bytes = 0;
+	SaUint32T lck_timeout1 = 0;
+	SaUint32T lck_timeout2 = 0;
+
+	lck_timeout1 = (param->lck_cbk_timeout & 0x00000000ffffffff);
+        lck_timeout2 = (param->lck_cbk_timeout >> 32);
 
         TRACE_ENTER();
 
@@ -1596,7 +1624,9 @@ uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *para
                 TRACE("NULL pointer");
                 return 0;
         }
-        ncs_encode_64bit(&p8, param->lck_cbk_timeout);
+        ncs_encode_32bit(&p8, lck_timeout1);
+        ncs_encode_32bit(&p8, lck_timeout2);
+        /*ncs_encode_64bit(&p8, param->lck_cbk_timeout);*/
         ncs_enc_claim_space(uba, 8);
         total_bytes += 8;
 
@@ -1617,6 +1647,11 @@ uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
 {
         uns8 *p8;
         uns32 total_bytes = 0;
+	SaUint32T lck_timeout1 = 0;
+	SaUint32T lck_timeout2 = 0;
+
+	lck_timeout1 = (param->lck_cbk_timeout & 0x00000000ffffffff);
+        lck_timeout2 = (param->lck_cbk_timeout >> 32);
 
         TRACE_ENTER();
 
@@ -1675,7 +1710,9 @@ uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
                 TRACE("NULL pointer");
                 return 0;
         }
-        ncs_encode_64bit(&p8, param->lck_cbk_timeout);
+        ncs_encode_32bit(&p8, lck_timeout1);
+        ncs_encode_32bit(&p8, lck_timeout2);
+        /*ncs_encode_64bit(&p8, param->lck_cbk_timeout);*/
         ncs_enc_claim_space(uba, 8);
         total_bytes += 8;
 
@@ -2153,10 +2190,15 @@ uns32 decode_client_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
         uns8 *p8;
         uns32 total_bytes = 0;
         uns8 local_data[13];
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
 
         p8 = ncs_dec_flatten_space(uba, local_data, 13);
         param->client_id = ncs_decode_32bit(&p8);
-        param->mds_dest = ncs_decode_64bit(&p8);
+        mds_dest1 = ncs_decode_32bit(&p8);
+        mds_dest2 = ncs_decode_32bit(&p8);
+	param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
+        /*param->mds_dest = ncs_decode_64bit(&p8);*/
 	param->track_flags = ncs_decode_8bit(&p8);
         ncs_dec_skip_space(uba, 13);
         total_bytes += 13;
@@ -2169,13 +2211,20 @@ static uns32 decode_agent_down_msg(NCS_UBAID *uba, CLMSV_CKPT_AGENT_DOWN_REC *pa
 	uns8 *p8;
         uns32 total_bytes = 0;
         uns8 local_data[8];
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
+
         TRACE_ENTER();
 
         p8 = ncs_dec_flatten_space(uba, local_data, 8);
 	if(p8 == NULL)
 		TRACE("p8 null");
-	else
-        	param->mds_dest = ncs_decode_64bit(&p8);
+	else {
+        	mds_dest1 = ncs_decode_32bit(&p8);
+        	mds_dest2 = ncs_decode_32bit(&p8);
+		param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
+        	/*param->mds_dest = ncs_decode_64bit(&p8);*/
+	}
         ncs_dec_skip_space(uba, 8);
         total_bytes += 8;
         TRACE("decode_agent_down");
@@ -2190,11 +2239,16 @@ static uns32 decode_client_msg(NCS_UBAID *uba, CLMSV_CKPT_CLIENT_INFO *param)
         uns8 *p8;
         uns32 total_bytes = 0;
         uns8 local_data[12];
+	SaUint32T mds_dest1 = 0;
+	SaUint32T mds_dest2 = 0;
 	TRACE_ENTER();
 
         p8 = ncs_dec_flatten_space(uba, local_data, 12);
         param->client_id = ncs_decode_32bit(&p8);
-        param->mds_dest = ncs_decode_64bit(&p8);
+        mds_dest1 = ncs_decode_32bit(&p8);
+        mds_dest2 = ncs_decode_32bit(&p8);
+	param->mds_dest = ((SaUint64T)mds_dest2 << 32) |mds_dest1;
+        /*param->mds_dest = ncs_decode_64bit(&p8);*/
         ncs_dec_skip_space(uba, 12);
         total_bytes += 12;
         TRACE("decode_client_msg");
@@ -2284,6 +2338,8 @@ uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param)
         uns8 *p8;
         uns32 total_bytes = 0;
         uns8 local_data[8];
+	SaUint32T lck_timeout1 = 0;
+	SaUint32T lck_timeout2 = 0;
 
 	total_bytes += decodeSaNameT(uba,&param->node_name);
 	total_bytes += decodeSaNameT(uba,&param->ee_name);
@@ -2296,7 +2352,10 @@ uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param)
         total_bytes += 4;
 
         p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->lck_cbk_timeout = ncs_decode_64bit(&p8);
+        lck_timeout1 = ncs_decode_32bit(&p8);
+        lck_timeout2 = ncs_decode_32bit(&p8);
+	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) |lck_timeout1;
+        /*param->lck_cbk_timeout = ncs_decode_64bit(&p8);*/
         ncs_dec_skip_space(uba, 8);
         total_bytes += 8;
 
@@ -2324,6 +2383,8 @@ uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
         uns8 *p8;
         uns32 total_bytes = 0;
         uns8 local_data[12];
+	SaUint32T lck_timeout1 = 0;
+	SaUint32T lck_timeout2 = 0;
 	TRACE_ENTER();
 
         p8 = ncs_dec_flatten_space(uba, local_data, 4);
@@ -2356,7 +2417,10 @@ uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
         total_bytes += 4;
 
         p8 = ncs_dec_flatten_space(uba, local_data, 8);
-        param->lck_cbk_timeout = ncs_decode_64bit(&p8);
+        lck_timeout1 = ncs_decode_32bit(&p8);
+        lck_timeout2 = ncs_decode_32bit(&p8);
+	param->lck_cbk_timeout = ((SaUint64T)lck_timeout2 << 32) |lck_timeout1;
+        /*param->lck_cbk_timeout = ncs_decode_64bit(&p8);*/
         ncs_dec_skip_space(uba, 8);
         total_bytes += 8;
 
