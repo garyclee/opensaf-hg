@@ -539,7 +539,7 @@ static uns32 avsv_decode_ckpt_avd_si_config(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *dec
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_avd_si_config");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2016,9 +2016,9 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
-	AVD_SI *si_struct;
+	AVD_SI *si;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_su_curr_active");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2030,11 +2030,12 @@ static uns32 avsv_decode_ckpt_si_su_curr_active(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC 
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
+	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	si_struct->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
+	si->saAmfSINumCurrActiveAssignments = si_ptr_dec->saAmfSINumCurrActiveAssignments;
+	TRACE("%s (%u)", si->name.value, si->saAmfSINumCurrActiveAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 
@@ -2061,9 +2062,9 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 	AVD_SI *si_ptr_dec;
 	AVD_SI dec_si;
 	EDU_ERR ederror = 0;
-	AVD_SI *si_struct;
+	AVD_SI *si;
 
-	m_AVD_LOG_FUNC_ENTRY("avsv_decode_ckpt_si_su_curr_stby");
+	TRACE_ENTER();
 
 	si_ptr_dec = &dec_si;
 
@@ -2075,11 +2076,12 @@ static uns32 avsv_decode_ckpt_si_su_curr_stby(AVD_CL_CB *cb, NCS_MBCSV_CB_DEC *d
 
 	assert(status == NCSCC_RC_SUCCESS);
 
-	if (NULL == (si_struct = avd_si_get(&si_ptr_dec->name)))
+	if (NULL == (si = avd_si_get(&si_ptr_dec->name)))
 		assert(0);
 
 	/* Update the fields received in this checkpoint message */
-	si_struct->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
+	si->saAmfSINumCurrStandbyAssignments = si_ptr_dec->saAmfSINumCurrStandbyAssignments;
+	TRACE("%s (%u)", si->name.value, si->saAmfSINumCurrStandbyAssignments);
 
 	cb->async_updt_cnt.si_updt++;
 

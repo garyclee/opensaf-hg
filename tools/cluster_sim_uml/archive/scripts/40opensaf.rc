@@ -40,9 +40,6 @@ rm /etc/opensaf/node_type
 
 if [ $hostnumber -lt 3 ]; then
     # Simulate a replicated partition (DRBD)
-    rm -f /var/lib/opensaf/pssv_store
-    ln -s /hostfs/$REPL_DIR/pssv_store /var/lib/opensaf/
-
     rm -f /var/lib/opensaf/immsv_store
     ln -s /hostfs/$REPL_DIR/immsv_store /var/lib/opensaf/
 

@@ -2,7 +2,7 @@
 #
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008-2009 The OpenSAF Foundation
+# (C) Copyright 2008-2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -145,6 +145,16 @@ cmd_create_rootfs()
     install /usr/bin/pgrep usr/bin
     install /usr/bin/pkill usr/bin
     install /usr/bin/killall usr/bin
+
+    # Some distros use startproc/killproc, others start-stop-daemon
+    test -e /sbin/startproc && install /sbin/startproc sbin
+    test -e /sbin/killproc && install /sbin/killproc sbin
+    test -e /sbin/start-stop-daemon && install /sbin/start-stop-daemon
+
+    mkdir -p lib/lsb
+    install /lib/lsb/init-functions lib/lsb
+    install /etc/rc.status etc
+
     # Needed by dtsv archive rotation
     install /bin/tar bin
     install $(which nice) usr/bin
@@ -179,7 +189,7 @@ cmd_create_rootfs()
     fi
 
     # Remove line for starting plms 
-    sed '/PLMS/d' < $root/etc/opensaf/nodeinit.conf.controller > \
+    sed '/PLMD/d' < $root/etc/opensaf/nodeinit.conf.controller > \
         $root/etc/opensaf/nodeinit.conf.controller.tmp
     mv $root/etc/opensaf/nodeinit.conf.controller.tmp \
         $root/etc/opensaf/nodeinit.conf.controller
