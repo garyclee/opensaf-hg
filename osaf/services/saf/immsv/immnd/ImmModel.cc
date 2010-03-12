@@ -7017,7 +7017,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
             LOG_IN("Create PERSISTENT runtime object '%s' by Impl id: %u",
                 objectName.c_str(), info->mId);
         } else {
-            LOG_IN("Create runtime object '%s' by Impl id: %u",
+            TRACE_7("Create runtime object '%s' by Impl id: %u",
                 objectName.c_str(), info->mId);
         }
         
@@ -7034,7 +7034,7 @@ ImmModel::rtObjectCreate(const struct ImmsvOmCcbObjectCreate* req,
 }
 
 /** 
- * Update a runtime object
+ * Update a runtime attributes in an object (runtime or config)
  */
 SaAisErrorT
 ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
@@ -7085,13 +7085,13 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
     if(!info) {
-        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
+        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u", req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectUpdateExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        LOG_IN("ERR_BAD_OPERATION: The provided implementer handle %u does "
+        LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
             "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
@@ -7107,7 +7107,7 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     if(!object->mImplementer ||
         (object->mImplementer->mConn != conn) || 
         (object->mImplementer->mNodeId != nodeId)) {
-        LOG_IN("ERR_BAD_OPERATION: Not a correct implementer handle or object "
+        LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle or object "
             "not handled by the implementer conn:%u nodeId:%x "
             "object->mImplementer:%p", conn, nodeId, object->mImplementer);
         err = SA_AIS_ERR_BAD_OPERATION;	
@@ -7133,17 +7133,17 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
     //If multivalue implied check that it is multivalued.
     //Assign the attribute as intended.
     
-    TRACE_5("Update runtime object '%s'", objectName.c_str());
+    TRACE_5("Update runtime attributes in object '%s'", objectName.c_str());
     
     for(int doIt=0; (doIt < 2) && (err == SA_AIS_OK); ++doIt) {
         immsv_attr_mods_list* p = req->attrMods;
-        TRACE_5("update rt object doit: %u", doIt);
+        TRACE_5("update rt attributes doit: %u", doIt);
         while(p && (err == SA_AIS_OK)) {
             sz = strnlen((char *) p->attrValue.attrName.buf,
                 (size_t) p->attrValue.attrName.size);
             std::string attrName((const char *) p->attrValue.attrName.buf, sz);
             
-            TRACE_5("update rt object attribute '%s'", attrName.c_str());
+            TRACE_5("update rt attribute '%s'", attrName.c_str());
             
             ImmAttrValueMap::iterator i5 = 
                 object->mAttrValueMap.find(attrName);
@@ -7206,8 +7206,8 @@ ImmModel::rtObjectUpdate(const ImmsvOmCcbObjectModify* req,
                     }
 
                     if(doIt && !wasLocal) {
-                        LOG_IN("Update of PERSISTENT runtime object %s attr %s",
-                            objectName.c_str(), attrName.c_str());
+                        LOG_IN("Update of PERSISTENT runtime attr %s in object %s",
+                            attrName.c_str(), objectName.c_str());
                     }
                 }
 
@@ -7423,14 +7423,14 @@ ImmModel::rtObjectDelete(const ImmsvOmCcbObjectDelete* req,
     /*Should rename member adminOwnerId. Used to store implid here.*/
     info = findImplementer(req->adminOwnerId);
     if(!info) {
-        LOG_IN("ERR_BAD_HANDLE: Not a correct implementer handle %u",
+        LOG_NO("ERR_BAD_HANDLE: Not a correct implementer handle %u",
             req->adminOwnerId);
         err = SA_AIS_ERR_BAD_HANDLE;
         goto rtObjectDeleteExit;
     } 
     
     if((info->mConn != conn) || (info->mNodeId != nodeId)) {
-        LOG_IN("ERR_BAD_OPERATION: The provided implementer handle %u does "
+        LOG_NO("ERR_BAD_OPERATION: The provided implementer handle %u does "
             "not correspond to the actual connection <%u, %x> != <%u, %x>",
             req->adminOwnerId, info->mConn, info->mNodeId, conn, nodeId);
         err = SA_AIS_ERR_BAD_OPERATION;	
@@ -7483,10 +7483,11 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     assert(object);
     ClassInfo* classInfo = object->mClassInfo;
     assert(classInfo);
+    bool isPersistent = false;
     
     if(!object->mImplementer ||
         object->mImplementer != info) {
-        LOG_IN("ERR_BAD_OPERATION: Not a correct implementer handle "
+        LOG_NO("ERR_BAD_OPERATION: Not a correct implementer handle "
             "or object %s is not handled by the provided implementer " 
             "named %s (!=%p <name:'%s' conn:%u, node:%x>)", 
             oi->first.c_str(), info->mImplementerName.c_str(),
@@ -7499,13 +7500,12 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
     }
     
     if(classInfo->mCategory != SA_IMM_CLASS_RUNTIME) {
-        LOG_IN("ERR_BAD_OPERATION: object '%s' is not a runtime object",
+        LOG_NO("ERR_BAD_OPERATION: object '%s' is not a runtime object",
             oi->first.c_str());
         return SA_AIS_ERR_BAD_OPERATION;
     }
 
     if(doIt) {
-        
         AttrMap::iterator i4;
         ImmAttrValueMap::iterator oavi;
         for(oavi = object->mAttrValueMap.begin();
@@ -7520,10 +7520,20 @@ ImmModel::deleteRtObject(ObjectMap::iterator& oi, bool doIt,
         object->mClassInfo=0;
         object->mImplementer = 0;
         object->mObjFlags = 0;
+
+	i4 = std::find_if(classInfo->mAttrMap.begin(), classInfo->mAttrMap.end(),
+            AttrFlagIncludes(SA_IMM_ATTR_PERSISTENT));
+
+	isPersistent = i4 != classInfo->mAttrMap.end();
         
-        LOG_IN("DELETE runtime object '%s' by Impl-id: %u", 
-            oi->first.c_str(), info->mId);
-        
+	if(isPersistent) {
+            LOG_IN("Delete PERSISTENT runtime object '%s' by Impl-id: %u", 
+                oi->first.c_str(), info->mId);
+        } else {
+            TRACE_7("Delete runtime object '%s' by Impl-id: %u", 
+                oi->first.c_str(), info->mId);
+        }
+
         AdminOwnerVector::iterator i2;
         
         //Delete rt-object from touched objects in admin-owners
