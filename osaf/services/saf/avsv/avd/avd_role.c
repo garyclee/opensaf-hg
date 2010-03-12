@@ -305,10 +305,10 @@ uns32 avd_init_role_set(AVD_CL_CB *cb, SaAmfHAStateT role)
 			/* Set Node Class runtime cached attributes. */
 			avd_avnd = avd_node_getnext(&node_name);
 			while (avd_avnd != NULL) {
-				avd_saImmOiRtObjectUpdate(&avd_avnd->node_info.nodeName, "saAmfNodeOperState",
+				avd_saImmOiRtObjectUpdate(&avd_avnd->name, "saAmfNodeOperState",
 						SA_IMM_ATTR_SAUINT32T, &avd_avnd->saAmfNodeOperState);
 
-				avd_avnd = avd_node_getnext(&avd_avnd->node_info.nodeName);
+				avd_avnd = avd_node_getnext(&avd_avnd->name);
 			}
 		}
 

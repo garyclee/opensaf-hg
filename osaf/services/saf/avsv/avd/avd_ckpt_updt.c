@@ -46,18 +46,18 @@ uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE actio
 	uns32 rc = NCSCC_RC_SUCCESS;
 	AVD_AVND *node;
 
-	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->node_info.nodeName.value);
+	TRACE_ENTER2("%s - '%s'", action_name[action], ckpt_node->name.value);
 
 	switch (action) {
 	case NCS_MBCSV_ACT_ADD:
-		if (NULL == (node = avd_node_new(&ckpt_node->node_info.nodeName))) {
+		if (NULL == (node = avd_node_new(&ckpt_node->name))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
 		avd_node_db_add(node);
 		/* fall through */
 	case NCS_MBCSV_ACT_UPDATE:
-		if (NULL == (node = avd_node_get(&ckpt_node->node_info.nodeName))) {
+		if (NULL == (node = avd_node_get(&ckpt_node->name))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
@@ -78,7 +78,7 @@ uns32 avd_ckpt_node(AVD_CL_CB *cb, AVD_AVND *ckpt_node, NCS_MBCSV_ACT_TYPE actio
 			avd_node_add_nodeid(node);
 		break;
 	case NCS_MBCSV_ACT_RMV:
-		if (NULL == (node = avd_node_get(&ckpt_node->node_info.nodeName))) {
+		if (NULL == (node = avd_node_get(&ckpt_node->name))) {
 			rc = NCSCC_RC_FAILURE;
 			goto done;
 		}
