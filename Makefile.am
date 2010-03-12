@@ -149,7 +149,11 @@ SUBDIRS += \
 	tests/ntfsv \
 	tests/immsv/implementer \
 	tests/immsv/management \
-	tests/clmsv \
+	tests/clmsv 
+endif
+
+if ENABLE_AIS_PLM
+SUBDIRS += \
 	tests/plmsv
 endif
 
