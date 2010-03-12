@@ -471,7 +471,7 @@ static void su_add_to_model(AVD_SU *su)
 		su->su_on_node = map_su_to_node(su);
 
 		/* Update the saAmfSUHostedByNode runtime attribute. IMM is updated in avd_init_role_set(). */
-	        memcpy(&su->saAmfSUHostedByNode, &su->su_on_node->node_info.nodeName, sizeof(SaNameT));
+	        memcpy(&su->saAmfSUHostedByNode, &su->su_on_node->name, sizeof(SaNameT));
 		TRACE("'%s' hosted by '%s'", su->name.value, su->saAmfSUHostedByNode.value);
 
 		avd_node_add_su(su);

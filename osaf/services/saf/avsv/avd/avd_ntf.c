@@ -125,11 +125,11 @@ uns32 avd_gen_node_admin_state_changed_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_gen_node_admin_state_changed_ntf");
-	avd_log_admin_state_ntfs(node->saAmfNodeAdminState, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
+	avd_log_admin_state_ntfs(node->saAmfNodeAdminState, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Admin state of node %s changed", comp_name.value);
@@ -490,11 +490,11 @@ uns32 avd_clm_node_join_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_join_ntf");
-	avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_JOINED, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
+	avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_JOINED, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "CLM node %s Joined", comp_name.value);
@@ -530,11 +530,11 @@ uns32 avd_clm_node_exit_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_exit_ntf");
-        avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_EXITED, &(node->node_info.nodeName), NCSFL_SEV_NOTICE);
+        avd_log_clm_node_ntfs(AVD_NTFS_CLUSTER, AVD_NTFS_EXITED, &(node->name), NCSFL_SEV_NOTICE);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Clm node %s Exited", comp_name.value);
@@ -572,8 +572,8 @@ uns32 avd_clm_node_reconfiured_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
 	m_AVD_LOG_FUNC_ENTRY("avd_clm_node_reconfiured_ntf");
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Member Node %s Reconfigured", comp_name.value);
@@ -614,8 +614,8 @@ uns32 avd_gen_ncs_init_success_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node)
            	   node->node_info.nodeId);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Opensaf Initialization is successful on a node %s ", comp_name.value);
@@ -656,11 +656,11 @@ uns32 avd_node_shutdown_failure_ntf(AVD_CL_CB *avd_cb, AVD_AVND *node, uns32 err
 	SaUint8T add_text[SA_MAX_NAME_LENGTH];
 
 	m_AVD_LOG_FUNC_ENTRY("avd_node_shutdown_failure_ntf");
-	avd_log_shutdown_failure(&(node->node_info.nodeName), NCSFL_SEV_NOTICE, errcode);
+	avd_log_shutdown_failure(&(node->name), NCSFL_SEV_NOTICE, errcode);
 
 	memset(comp_name.value, '\0', SA_MAX_NAME_LENGTH);
-	comp_name.length = node->node_info.nodeName.length;
-	(void)memcpy(comp_name.value, node->node_info.nodeName.value, comp_name.length);
+	comp_name.length = node->name.length;
+	(void)memcpy(comp_name.value, node->name.value, comp_name.length);
 
 	memset(&add_text, '\0', sizeof(add_text));
 	sprintf((SaInt8T*)add_text, "Node shutdown failure of %s node", comp_name.value);

@@ -148,7 +148,7 @@ SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
 	searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	searchParam.searchOneAttr.attrValue = &className;
 
-	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, &node->node_info.nodeName, SA_IMM_SUBTREE,
+	error = immutil_saImmOmSearchInitialize_2(avd_cb->immOmHandle, &node->name, SA_IMM_SUBTREE,
 		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
 		NULL, &searchHandle);
 

@@ -55,7 +55,7 @@ void avd_node_db_add(AVD_AVND *node)
 {
 	unsigned int rc;
 
-	if (avd_node_get(&node->node_info.nodeName) == NULL) {
+	if (avd_node_get(&node->name) == NULL) {
 		rc = ncs_patricia_tree_add(&node_name_db, &node->tree_node_name_node);
 		assert(rc == NCSCC_RC_SUCCESS);
 	}
@@ -70,9 +70,9 @@ AVD_AVND *avd_node_new(const SaNameT *dn)
 		return NULL;
 	}
 
-	memcpy(node->node_info.nodeName.value, dn->value, dn->length);
-	node->node_info.nodeName.length = dn->length;
-	node->tree_node_name_node.key_info = (uns8 *)&(node->node_info.nodeName);
+	memcpy(node->name.value, dn->value, dn->length);
+	node->name.length = dn->length;
+	node->tree_node_name_node.key_info = (uns8 *)&(node->name);
 	node->pg_csi_list.order = NCS_DBLIST_ANY_ORDER;
 	node->pg_csi_list.cmp_cookie = avsv_dblist_uns32_cmp;
 	node->saAmfNodeAdminState = SA_AMF_ADMIN_UNLOCKED;
@@ -343,7 +343,7 @@ void avd_node_state_set(AVD_AVND *node, AVD_AVND_STATE node_state)
 	assert(node != NULL);
 	assert(node_state <= AVD_AVND_STATE_NCS_INIT);
 	avd_log(NCSFL_SEV_NOTICE, "'%s'::'%x' %s => %s",
-		node->node_info.nodeName.value,node->node_info.nodeId, node_state_name[node->node_state], node_state_name[node_state]);
+		node->name.value,node->node_info.nodeId, node_state_name[node->node_state], node_state_name[node_state]);
 	node->node_state = node_state;
 	/*  TODO why isn't this followed by: */
 /*     m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(cb, avnd, AVSV_CKPT_AVND_NODE_STATE); */
@@ -365,9 +365,9 @@ void avd_node_oper_state_set(AVD_AVND *node, SaAmfOperationalStateT oper_state)
 	assert(node != NULL);
 	assert(oper_state <= SA_AMF_OPERATIONAL_DISABLED);
 	avd_log(NCSFL_SEV_NOTICE, "'%s' %s => %s",
-		node->node_info.nodeName.value, oper_state_name[node->saAmfNodeOperState], oper_state_name[oper_state]);
+		node->name.value, oper_state_name[node->saAmfNodeOperState], oper_state_name[oper_state]);
 	node->saAmfNodeOperState = oper_state;
-	avd_saImmOiRtObjectUpdate(&node->node_info.nodeName, "saAmfNodeOperState",
+	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeOperState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeOperState);
 	/*  TODO is this always correct or do we need a new param? */
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_OPER_STATE);
@@ -503,7 +503,7 @@ static void node_ccb_apply_delete_hdlr(CcbUtilOperationData_t *opdata)
 {
 	AVD_AVND *node = avd_node_get(&opdata->objectName);
 
-	TRACE_ENTER2("'%s'", node->node_info.nodeName.value);
+	TRACE_ENTER2("'%s'", node->name.value);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_RMV(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
 
@@ -547,7 +547,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverProb_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
-			param.name = node->node_info.nodeName;
+			param.name = node->name;
 
 			if (node->node_state != AVD_AVND_STATE_ABSENT) {
 				backup_time = node->saAmfNodeSuFailOverProb;
@@ -574,7 +574,7 @@ static void node_ccb_apply_modify_hdlr(CcbUtilOperationData_t *opdata)
 			param.class_id = AVSV_SA_AMF_NODE;
 			param.attr_id = saAmfNodeSuFailoverMax_ID;
 			param.act = AVSV_OBJ_OPR_MOD;
-			param.name = node->node_info.nodeName;
+			param.name = node->name;
 
 			if (node->node_state != AVD_AVND_STATE_ABSENT) {
 				back_val = node->saAmfNodeSuFailoverMax;
@@ -642,11 +642,11 @@ void node_admin_state_set(AVD_AVND *node, SaAmfAdminStateT admin_state)
 	assert(node != NULL);
 	assert(admin_state <= SA_AMF_ADMIN_SHUTTING_DOWN);
 	TRACE_ENTER2("'%s' %s => %s",
-		     node->node_info.nodeName.value, admin_state_name[node->saAmfNodeAdminState],
+		     node->name.value, admin_state_name[node->saAmfNodeAdminState],
 		     admin_state_name[admin_state]);
 
 	node->saAmfNodeAdminState = admin_state;
-	avd_saImmOiRtObjectUpdate(&node->node_info.nodeName, "saAmfNodeAdminState",
+	avd_saImmOiRtObjectUpdate(&node->name, "saAmfNodeAdminState",
 				  SA_IMM_ATTR_SAUINT32T, &node->saAmfNodeAdminState);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_UPDT(avd_cb, node, AVSV_CKPT_AVND_ADMIN_STATE);
 	avd_gen_node_admin_state_changed_ntf(avd_cb, node);
@@ -663,7 +663,7 @@ uns32 avd_node_admin_lock_instantiation(AVD_AVND *node)
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", node->node_info.nodeName.value);
+	TRACE_ENTER2("%s", node->name.value);
 
 	/* terminate all the SUs on this Node */
 	su = node->list_of_su;
@@ -698,7 +698,7 @@ uns32 node_admin_unlock_instantiation(AVD_AVND *node)
 	AVD_SU *su;
 	uns32 rc = NCSCC_RC_SUCCESS;
 
-	TRACE_ENTER2("%s", node->node_info.nodeName.value);
+	TRACE_ENTER2("%s", node->name.value);
 
 	/* instantiate the SUs on this Node */
 	su = node->list_of_su;
@@ -745,7 +745,7 @@ void avd_node_admin_lock_unlock_shutdown(AVD_AVND *node,
 	AVD_AVND *su_sg_node_ptr = NULL;
 	SaAmfAdminStateT new_admin_state;
 
-	TRACE_ENTER2("%s", node->node_info.nodeName.value);
+	TRACE_ENTER2("%s", node->name.value);
 
         /* determine the new_admin_state from operation ID */
 	if (operationId == SA_AMF_ADMIN_SHUTDOWN)

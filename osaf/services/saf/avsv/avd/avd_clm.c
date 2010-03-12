@@ -24,20 +24,6 @@
 
 static SaVersionT clmVersion = { 'B', 4, 1 };
 
-static void clm_node_add(AVD_AVND *node, const SaClmClusterNodeT_4 *clmNode)
-{
-	node->node_info.nodeId = clmNode->nodeId;
-	node->node_info.member = clmNode->member;
-	node->node_info.bootTimestamp = clmNode->bootTimestamp;
-	node->node_info.initialViewNumber = clmNode->initialViewNumber;
-	memcpy(&(node->node_info.nodeAddress),
-	       &(clmNode->nodeAddress), sizeof(SaClmNodeAddressT));
-	memcpy(&(node->node_info.executionEnvironment),
-	       &(clmNode->executionEnvironment), sizeof(SaNameT));
-	/* node_info.nodeName still contains SaAmfNode name */
-	avd_node_add_nodeid(node);
-}
-
 static void clm_node_join_complete(AVD_AVND *node)
 {
 	AVD_SU *su;
@@ -248,26 +234,32 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					goto done;
 				}
 				avd_node_delete_nodeid(node);
-				clm_node_add(node, &(notifItem->clusterNode));
+				memcpy(&(node->node_info), &(notifItem->clusterNode),
+						sizeof(SaClmClusterNodeT_4));
+				avd_node_add_nodeid(node);
 			}
 			else if(notifItem->clusterChange == SA_CLM_NODE_JOINED || 
 			        notifItem->clusterChange == SA_CLM_NODE_NO_CHANGE) {
 				/* This may be due to track flags set to 
-				 SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
-				 in saClmClusterTrack call so update the local database */
+				   SA_TRACK_CURRENT|CHANGES_ONLY and supply no buffer
+				   in saClmClusterTrack call so update the local database */
 				/* get the first node */
 				SaClmClusterNodeT_4 *clmNode = &(notifItem->clusterNode);
 				node = avd_node_getnext(NULL);
 				while (node != NULL && 
 					0 != strncmp(node->saAmfNodeClmNode.value,
-						 notifItem->clusterNode.nodeName.value,
-						 notifItem->clusterNode.nodeName.length))
+						notifItem->clusterNode.nodeName.value,
+						notifItem->clusterNode.nodeName.length))
 				{
-					node = avd_node_getnext(&node->node_info.nodeName);
+					node = avd_node_getnext(&node->name);
 				}
 				if ( node != NULL ) {
-					clm_node_add(node, clmNode);
-					TRACE("Node Joined '%s' '%x'", node->node_info.nodeName.value, clmNode->nodeId);
+					memcpy(&(node->node_info), &(notifItem->clusterNode),
+							sizeof(SaClmClusterNodeT_4));
+					avd_node_add_nodeid(node);
+					TRACE("Node Joined '%s' '%x'", 
+						notifItem->clusterNode.nodeName.value,
+						notifItem->clusterNode.nodeName.length);
 				}
 				if (node->node_state == AVD_AVND_STATE_PRESENT) {
 					TRACE("Node already up and configured");

@@ -226,7 +226,7 @@ uns32 avsv_edp_ckpt_msg_node(EDU_HDL *hdl, EDU_TKN *edu_tkn,
 		/* Fill here AVD AVND config data structure encoding rules */
 		{EDU_EXEC, m_NCS_EDP_SACLMNODEIDT, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.nodeId, 0, NULL},
 		{EDU_EXEC, ncs_edp_saclmnodeaddresst, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.nodeAddress, 0, NULL},
-		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.nodeName, 0, NULL},
+		{EDU_EXEC, ncs_edp_sanamet, 0, 0, 0, (long)&((AVD_AVND *)0)->name, 0, NULL},
 		{EDU_EXEC, ncs_edp_int, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.member, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SATIMET, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.bootTimestamp, 0, NULL},
 		{EDU_EXEC, m_NCS_EDP_SAUINT64T, 0, 0, 0, (long)&((AVD_AVND *)0)->node_info.initialViewNumber, 0, NULL},

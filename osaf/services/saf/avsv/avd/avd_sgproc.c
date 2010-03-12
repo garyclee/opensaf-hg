@@ -1472,7 +1472,7 @@ void avd_sg_app_node_su_inst_func(AVD_CL_CB *cb, AVD_AVND *avnd)
 	AVD_SU *i_su;
 	AVD_AVND *su_node_ptr = NULL;
 
-	TRACE_ENTER2("'%s'", avnd->node_info.nodeName.value);
+	TRACE_ENTER2("'%s'", avnd->name.value);
 
 	if (cb->init_state == AVD_INIT_DONE) {
 		i_su = avnd->list_of_su;

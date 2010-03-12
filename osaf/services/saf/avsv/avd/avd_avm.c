@@ -1051,7 +1051,7 @@ static void fma_node_reset_cb(SaInvocationT inv, SaHpiEntityPathT ent_path)
 	evt->info.avm_msg = malloc(sizeof(AVM_AVD_MSG_T));
 	assert(evt->info.avm_msg);
 	evt->info.avm_msg->msg_type = AVM_AVD_NODE_RESET_RESP_MSG;
-	evt->info.avm_msg->avm_avd_msg.reset_resp.node_name = node->node_info.nodeName;
+	evt->info.avm_msg->avm_avd_msg.reset_resp.node_name = node->name;
 	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
 	assert(rc == NCSCC_RC_SUCCESS);
 

@@ -1894,7 +1894,7 @@ void avd_file_dump(const char *path)
 	AVD_AVND *node;
 	SaClmNodeIdT node_id = 0;
 	while (NULL != (node = avd_node_getnext_nodeid(node_id))) {
-		fprintf(f, "%s\n", node->node_info.nodeName.value);
+		fprintf(f, "%s\n", node->name.value);
 		fprintf(f, "\tsaAmfNodeAdminState=%u\n", node->saAmfNodeAdminState);
 		fprintf(f, "\tsaAmfNodeOperState=%u\n", node->saAmfNodeOperState);
 		fprintf(f, "\tnode_state=%u\n", node->node_state);
