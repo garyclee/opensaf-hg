@@ -264,7 +264,7 @@ uns32 avd_ckpt_su(AVD_CL_CB *cb, AVD_SU *ckpt_su, NCS_MBCSV_ACT_TYPE action)
 		memcpy(&su->saAmfSUHostedByNode, &ckpt_su->saAmfSUHostedByNode, sizeof(SaNameT));
 		su->term_state = ckpt_su->term_state;
 		su->su_switch = ckpt_su->su_switch;
-		su->su_act_state = su->su_act_state;
+		su->su_act_state = ckpt_su->su_act_state;
 		break;
 	}
 	case NCS_MBCSV_ACT_RMV: {
@@ -319,11 +319,11 @@ uns32 avd_ckpt_si(AVD_CL_CB *cb, AVD_SI *ckpt_si, NCS_MBCSV_ACT_TYPE action)
 			goto done;
 		}
 		/* Update all runtime attributes */	
-		si->saAmfSINumCurrActiveAssignments = si->saAmfSINumCurrActiveAssignments;
-		si->saAmfSINumCurrStandbyAssignments = si->saAmfSINumCurrStandbyAssignments;
-		si->max_num_csi = si->max_num_csi;
-		si->si_switch = si->si_switch;
-		si->saAmfSIAdminState = si->saAmfSIAdminState;
+		si->saAmfSINumCurrActiveAssignments = ckpt_si->saAmfSINumCurrActiveAssignments;
+		si->saAmfSINumCurrStandbyAssignments = ckpt_si->saAmfSINumCurrStandbyAssignments;
+		si->max_num_csi = ckpt_si->max_num_csi;
+		si->si_switch = ckpt_si->si_switch;
+		si->saAmfSIAdminState = ckpt_si->saAmfSIAdminState;
 		break;
 	case NCS_MBCSV_ACT_RMV: {
 		if (NULL == (si = avd_si_get(&ckpt_si->name))) {
