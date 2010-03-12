@@ -150,11 +150,12 @@ SUBDIRS += \
 	tests/immsv/implementer \
 	tests/immsv/management \
 	tests/clmsv 
-endif
 
 if ENABLE_AIS_PLM
 SUBDIRS += \
 	tests/plmsv
+endif
+
 endif
 
 nodist_pkgsysconf_DATA = \
