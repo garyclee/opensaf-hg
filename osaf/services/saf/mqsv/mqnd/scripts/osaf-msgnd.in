@@ -28,7 +28,7 @@ fi
 
 binary=$pkglibdir/$prog
 pidfile=$pkgpiddir/$prog.pid
-lockfile=/var/lock/subsys/$prog
+lockfile=$pkglockdir/$prog
 
 # Uncomment to enable tracing, or pas new command line options
 #args="-T $prog.log"
