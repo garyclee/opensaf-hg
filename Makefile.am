@@ -94,6 +94,7 @@ configmake.h: Makefile
 	echo '#define PKGLOCALSTATEDIR "$(pkglocalstatedir)"'; \
 	echo '#define PKGPIDDIR "$(pkgpiddir)"'; \
 	echo '#define PKGLOGDIR "$(pkglogdir)"'; \
+	echo '#define PKGLOCKDIR "$(pkglockdir)"'; \
 	echo '#define PKGCONFDIR "$(pkgconfigdir)"'; \
 	echo '#define PKGIMMXMLDIR "$(pkgimmxmldir)"'; \
 	echo '#define PKGIMMXMLSVCDIR "$(pkgimmxml_svcdir)"'; \
@@ -218,6 +219,7 @@ update-ldconfig:
 install-data-local: update-ldconfig
 	$(mkinstalldirs) $(DESTDIR)$(pkglogdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkgpiddir)
+	$(mkinstalldirs) $(DESTDIR)$(pkglockdir)
 	$(mkinstalldirs) $(DESTDIR)$(pkglocalstatedir)
 
 install-data-hook:
@@ -238,6 +240,7 @@ uninstall-hook:
 	-rm -rf $(DESTDIR)$(pkglocalstatedir)
 	-rm -rf $(DESTDIR)$(pkglogdir)
 	-rm -rf $(DESTDIR)$(pkgpiddir)
+	-rm -rf $(DESTDIR)$(pkglockdir)
 	-rm -f $(DESTDIR)$(sysconfdir)/ld.so.conf.d/$(PACKAGE_NAME)-$(host_cpu).conf
 
 docs:
