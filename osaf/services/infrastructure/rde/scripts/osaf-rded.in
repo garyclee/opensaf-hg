@@ -30,7 +30,7 @@ fi
 binary=$pkglibdir/$prog
 pidfile=$pkgpiddir/$prog.pid
 tracefile=$pkglogdir/$prog.log
-lockfile=/var/lock/subsys/$prog
+lockfile=$pkglockdir/$prog
 sockfile=$pkglocalstatedir/rde_rda.sock
 
 # Uncomment to enable tracing, or pas new command line options
