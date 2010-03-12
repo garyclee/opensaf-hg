@@ -24,9 +24,9 @@ plmtest_SOURCES = \
 	test_saPlmReadinessTrack.c
 
 plmtest_LDADD = \
-	/usr/local/lib/libSaPlm.so \
-	/usr/local/lib/opensaf/libopensaf_core.la \
-	/usr/local/lib/opensaf/libplms_common.so  
+	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
+	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
+	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la  
 
 
 
