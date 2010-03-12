@@ -182,7 +182,7 @@ SmfImmUtils::initialize(void)
 	}
 
 	if (m_ownerHandle == 0) {
-		(void)immutil_saImmOmAdminOwnerInitialize(m_omHandle, "SMFSERVICE", SA_TRUE, &m_ownerHandle);
+		(void)immutil_saImmOmAdminOwnerInitialize(m_omHandle, (char*)"SMFSERVICE", SA_TRUE, &m_ownerHandle);
 	}
 
 	if (m_accessorHandle == 0) {
@@ -302,10 +302,14 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 {
 	SaImmSearchHandleT immSearchHandle;
 	SaImmSearchParametersT_2 objectSearch;
+	SaAisErrorT result;
+	bool rc = true;
 	SaNameT objectName;
 	SaNameT *objectNamePtr = NULL;
 	const SaStringT className = (const SaStringT)i_className;
 	SaImmAttrValuesT_2 **attributes;
+
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
 
 	TRACE_ENTER();
 
@@ -316,21 +320,43 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 		objectNamePtr = &objectName;
 	}
 
+	immutilWrapperProfile.errorsAreFatal = 0;
+
 	if (i_className != NULL) {
 		/* Search for all objects of class i_className */
-		objectSearch.searchOneAttr.attrName = SA_IMM_ATTR_CLASS_NAME;
+		objectSearch.searchOneAttr.attrName = (char*)SA_IMM_ATTR_CLASS_NAME;
 		objectSearch.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 		objectSearch.searchOneAttr.attrValue = (void *)&className;
 
-		(void)immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
+		result = immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
 							i_scope, SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_NO_ATTR, &objectSearch, NULL,	/* Get no attributes */
 							&immSearchHandle);
+		if(result != SA_AIS_OK) {
+			if (result == SA_AIS_ERR_NOT_EXIST) {
+				TRACE("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s, parent = %s", (int)result, i_className, i_dn.c_str());
+				goto done;
+			} else {
+				LOG_ER("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s, parent = %s", (int)result, i_className, i_dn.c_str());
+				rc = false;
+				goto done;
+			}
+		}
 	} else {
 		/* Search for all objects */
-		(void)immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
+		result = immutil_saImmOmSearchInitialize_2(m_omHandle, objectNamePtr,	/* Search below i_dn object */
 							i_scope, SA_IMM_SEARCH_GET_NO_ATTR, NULL,	/* No search criteria */
 							NULL,	/* Get no attributes */
 							&immSearchHandle);
+		if(result != SA_AIS_OK) {
+			if (result == SA_AIS_ERR_NOT_EXIST) {
+				TRACE("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s", (int)result, i_className);
+				goto done;
+			} else {
+				LOG_ER("immutil_saImmOmSearchInitialize_2 return rc=%d (class name = %s", (int)result, i_className);
+				rc = false;
+				goto done;
+			}
+		}
 	}
 
 	while (immutil_saImmOmSearchNext_2(immSearchHandle, &objectName, &attributes) == SA_AIS_OK) {
@@ -341,8 +367,10 @@ SmfImmUtils::getChildren(const std::string & i_dn, std::list < std::string > &o_
 		o_childList.push_back(childDn);
 	}
 
+done:
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
 	TRACE_LEAVE();
-	return true;
+	return rc;
 }
 
 // ------------------------------------------------------------------------------

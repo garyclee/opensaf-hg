@@ -899,7 +899,11 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                         std::list < std::string > foundObjs; //All found objects of type SaAmfSUType in the system
 
                         /* type DN is of class SaAmfSUType, find all SU's of this version type */
-                        (void)immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU");
+                        if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU")){
+				LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfSU type=%s children to parent=%s",
+				       i_parentType->getTypeDn().c_str(), i_parentType->getParentDn().c_str());
+				return false;
+			}
                                                
                         std::list < std::string >::const_iterator objit;
                         //For each found object check the versioned type
@@ -946,7 +950,11 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                         std::list < std::string > foundObjs; //All found objects of type SaAmfCompType in the system
 
                         /* type DN is of class SaAmfCompType, find all components's of this version type */
-                        (void)immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfComp");
+                        if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfComp")){
+				LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfComp type=%s children to parent=%s",
+				       i_parentType->getTypeDn().c_str(), i_parentType->getParentDn().c_str());
+				return false;
+			}
 
                         std::list < std::string >::const_iterator objit;
                         for (objit = foundObjs.begin(); objit != foundObjs.end(); ++objit) {
@@ -954,7 +962,7 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
                                 if (immUtil.getObject((*objit), &attributes) == true) {
                                         const SaNameT *typeRef =
                                                 immutil_getNameAttr((const SaImmAttrValuesT_2 **)attributes,
-                                                                    "saAmfCompType", 0);
+                                                                    "saAmfCompType", 0); 
 
                                         if ((typeRef != NULL)
                                             && (strcmp(i_parentType->getTypeDn().c_str(), (char *)typeRef->value) == 0)) {
@@ -993,14 +1001,17 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
         }
         if (i_parentType->getTypeDn().size() == 0) {
                 /* Only parent is set */
-                TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:Find SUs for parent SG %s for modifications", i_parentType->getTypeDn().c_str());
+                TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:Find SUs for parent SG %s for modifications", i_parentType->getParentDn().c_str());
                 std::list < std::string > foundObjs; //All found SUs which are children to the parent SG
 
                 /* type DN is of class SaAmfSUType, find all SU's of this version type */
-                (void)immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU");
-                                               
+                if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU")){
+			LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfSU children to parent=%s", i_parentType->getParentDn().c_str());
+			return false;
+		}
+                       
                 std::list < std::string >::const_iterator objit;
-                //For each found object check the versioned type
+                //For all found SUs
                 for (objit = foundObjs.begin(); objit != foundObjs.end(); ++objit) {
                         TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:Check SU %s for modifications", (*objit).c_str());
                         if (immUtil.getObject((*objit), &attributes) == true) {
@@ -1014,8 +1025,8 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 				}
                                 if (o_nodeList == NULL) {
                                         std::list < std::string >::const_iterator it;
-                                        for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {
-                                                if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
+                                        for (it = i_nodeList.begin(); it != i_nodeList.end(); ++it) {                                                
+						if (strcmp((*it).c_str(), (char *)hostedByNode->value) == 0) {
                                                         /* The SU is hosted by the node */
                                                         TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:SU %s hosted by %s, add to list", (*objit).c_str(), (char *)hostedByNode->value);
                                                         o_actDeactUnits.push_back(*objit);
