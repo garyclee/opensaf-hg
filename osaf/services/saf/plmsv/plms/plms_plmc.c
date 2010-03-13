@@ -36,24 +36,14 @@ static SaUint32T plms_os_info_parse(SaInt8T *, PLMS_PLMC_EE_OS_INFO *);
 static SaUint32T plms_plmc_unlck_insvc(PLMS_ENTITY *, PLMS_TRACK_INFO *);
 void plms_os_info_free(PLMS_PLMC_EE_OS_INFO *);
 
-static SaUint32T plms_ee_insting_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_ee_instantiated_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_ee_terminated_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_ee_terminating_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *);
-
-static SaUint32T plms_os_info_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_restart_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_term_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_lck_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_unlck_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_inst_and_mngt_lost_clear(PLMS_ENTITY *);
-
+static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_restart_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_lck_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *);
-
+static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *);
 /******************************************************************************
 Name            :
 Description     : Process instantiating event from PLMC.
@@ -106,10 +96,6 @@ SaUint32T plms_plmc_instantiating_process(PLMS_ENTITY *ent,
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	}
-
-	/* Take care of clearing the management lost flag if required.*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
-		plms_ee_insting_mngt_flag_clear(ent);
 	
 	/* Start istantiation-failed timer if it is not in progress.*/
 	if (!(ent->tmr.timer_id)){
@@ -197,10 +183,6 @@ SaUint32T plms_plmc_instantiated_process(PLMS_ENTITY *ent,
 				SA_PLM_EE_PRESENCE_INSTANTIATED,
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-	
-	/* Take care of clearing the management lost flag if required.*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
-		plms_ee_instantiated_mngt_flag_clear(ent);
 
 	/*Although this is the instantiated message, but we are not
 	depending upon it. We are stopping the instantiation-failed timer
@@ -245,10 +227,6 @@ SaUint32T plms_plmc_terminating_process(PLMS_ENTITY *ent)
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	}
 	
-	/* Take care of clearing management lost flag if required.*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
-		plms_ee_terminating_mngt_flag_clear(ent);
-
 	/* Start the termination-failed timer if not started.*/
 	if (!(ent->tmr.timer_id)){
 		ent->tmr.tmr_type = PLMS_TMR_EE_TERMINATING;
@@ -339,12 +317,18 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		plms_timer_stop(ent);
 	}
 	
-	/* If the admin state of the ent is lckinst, then ignore the 
-	state as we cannot terminate the entity at this point of time.*/
-	if (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == 
-		ent->entity.ee_entity.saPlmEEAdminState){
+	/* Clear management lost flag.*/
+	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){ 
+		if( NCSCC_RC_SUCCESS != plms_tcp_connect_mngt_flag_clear(ent))
+			return NCSCC_RC_FAILURE;
+	}
+	
+	/* If the admin state of the ent is lckinst, terminate the EE. 
+	OH, if my parent is in OOS, then also terminate the EE.*/ 
+	if ( (SA_PLM_EE_ADMIN_LOCKED_INSTANTIATION == ent->entity.ee_entity.saPlmEEAdminState) || 
+	((NULL != ent->parent) && (plms_is_rdness_state_set(ent->parent,SA_PLM_READINESS_OUT_OF_SERVICE)))){
 		
-		LOG_ER("Term the entity, as the admin state is lckinst.%s",
+		LOG_ER("Term the entity, as the admin state is lckinst or parent is in OOS. Ent: %s",
 		ent->dn_name_str);
 		ret_err = plmc_sa_plm_admin_lock_instantiation(ent->dn_name_str,
 		plms_plmc_tcp_cbk);
@@ -352,37 +336,26 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		if(ret_err){
 			if (!plms_rdness_flag_is_set(ent,
 				SA_PLM_RF_MANAGEMENT_LOST)){
+				
 				/* Set management lost flag.*/
 				plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_MANAGEMENT_LOST,1/*mark*/,
-					NULL,SA_NTF_MANAGEMENT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				SA_PLM_RF_MANAGEMENT_LOST,1/*mark*/,
+				NULL,SA_NTF_MANAGEMENT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 				/* Call managemnet lost callback.*/
 				plms_mngt_lost_clear_cbk_call(ent,1/*mark*/);
 			}
-		
 			ent->mngt_lost_tri = PLMS_MNGT_EE_TERM;
-		
 		}
-		
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE; 	
-	}
-
-	/* If isolate pending flag is set then isolate the entity and return
-	from here.*/
-	if(plms_rdness_flag_is_set(ent, (SA_PLM_RF_MANAGEMENT_LOST | 
-					SA_PLM_RF_ISOLATE_PENDING))) {
-		if( NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent))
-			return NCSCC_RC_FAILURE;
 	}
 
 	if (plms_is_rdness_state_set(ent,SA_PLM_READINESS_IN_SERVICE)){
 		TRACE("Ent %s is already in insvc.",ent->dn_name_str);
 		return NCSCC_RC_SUCCESS;
 	}
-	
 	/*If previous state is not instantiating/intantiated, then get os info
 	and verify. If verification failed, then return.*/
 	if ((SA_PLM_EE_PRESENCE_INSTANTIATED != 
@@ -412,56 +385,17 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 			ent->mngt_lost_tri = PLMS_MNGT_EE_GET_OS_INFO;
-
 			plms_mngt_lost_clear_cbk_call(ent,1/*mark*/);
 
 			TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 			return NCSCC_RC_FAILURE;
 
-		}else{
-			/* Clear management lost flag is set for GET_OS_INFO.*/
-			if (plms_rdness_flag_is_set(ent,
-				SA_PLM_RF_MANAGEMENT_LOST) && 
-				(PLMS_MNGT_EE_GET_OS_INFO == 
-							ent->mngt_lost_tri)){
-				TRACE("Clear management lost flag set for \
-				EE_GET_OS_INFO.");
-			
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-				NULL, SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-				
-				/* Clear admin_pending as well as 
-				isolate_pending flag if set.*/
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-				NULL, SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-				ent->mngt_lost_tri = PLMS_MNGT_NONE;
-			
-				plms_mngt_lost_clear_cbk_call(ent,
-				0/*unmark*/);
-
-				ret_err = NCSCC_RC_SUCCESS;
-			} 
 		}
 		/* On getting the OS info, verify the EE. If the verification
 		is successful, start the services if the EE is in unlocked
 		state and make an attempt to take the entity to insvc.*/
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
-	}
-	
-	{/* Clear management lost flag.*/
-		
-		/* If the management lost flag is set for EE_TERM, 
-		clear the management lost flag.*/
-		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST) && 
-			( PLMS_MNGT_EE_TERM == ent->mngt_lost_tri)){
-			plms_term_and_mngt_lost_clear(ent);
-		} 
 	}
 	
 	/* I missed INSTANTIATED.*/
@@ -475,28 +409,6 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	}
-	/* Clear management lost flag if set for EE_INST.*/
-	{
-		if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST) 
-		&& (PLMS_MNGT_EE_INST == ent->mngt_lost_tri)){
-			TRACE("Clear management-lost flag, for EE_RESTART.");
-
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			/* Clear admin_pending as well as isolate_pending 
-			flag if set.*/
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,
-			SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			ent->mngt_lost_tri = PLMS_MNGT_NONE;
-			
-			plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		}
-	}
 
 	/* Handle the admin operation for which this ent is restarted.*/
 	if (NULL != ent->trk_info /* && ent->am_i_aff_ent*/){
@@ -507,8 +419,9 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		trk_info->track_count--;
 		
 		TRACE("Perform the in progress admin op for entity: %s,\
-				adm-op: %d",ent->dn_name_str, \
-				trk_info->root_entity->adm_op_in_progress);
+		adm-op: %d",ent->dn_name_str,
+		trk_info->root_entity->adm_op_in_progress);
+		
 		if (!(trk_info->track_count)){
 			/* Clean up the trk_info.*/
 			trk_info->root_entity->adm_op_in_progress = FALSE;
@@ -534,56 +447,7 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		}
 	}
 		
-	{/* Clearing the management lost flag.*/
-	
-		/* If the management lost flag is set and the trigger is lock,
-		then clear the management lost flag and return from here.*/
-		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST) && 
-			( PLMS_MNGT_EE_LOCK == ent->mngt_lost_tri)){
-			TRACE("Clear management lost flag, set for EE_LOCK.");
-			
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			/* Clear admin_pending as well as isolate_pending 
-			flag if set.*/
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,
-			SA_PLM_NTFID_STATE_CHANGE_ROOT);
-			
-			ent->mngt_lost_tri = PLMS_MNGT_NONE;
-			
-			plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-
-			TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
-			return NCSCC_RC_SUCCESS;
-
-		}else if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST) 
-		&& (PLMS_MNGT_EE_RESTART == ent->mngt_lost_tri)){
-			TRACE("Clear management-lost flag, for EE_RESTART.");
-
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			ent->mngt_lost_tri = PLMS_MNGT_NONE;
-
-			/* Clear admin_pending as well as isolate_pending 
-			flag if set.*/
-			plms_readiness_flag_mark_unmark(ent,
-			SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,NULL,
-			SA_NTF_OBJECT_OPERATION,
-			SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			ent->mngt_lost_tri = PLMS_MNGT_NONE;
-			
-			plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		}
-	}
-	
-	if (SA_PLM_HE_ADMIN_UNLOCKED != 
+	if (SA_PLM_EE_ADMIN_UNLOCKED != 
 		ent->entity.ee_entity.saPlmEEAdminState){
 	
 		TRACE("Admin state of the entity %s is not unlocked, not \
@@ -597,7 +461,7 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return NCSCC_RC_SUCCESS;
 	}else{
-		ret_err = plms_ee_unlock(ent,FALSE,1/*mngt_cbk*/);
+		ret_err = plms_ee_unlock(ent,FALSE,TRUE/*mngt_cbk*/);
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("Request to unlock the entity %s FAILED",
 							ent->dn_name_str);
@@ -607,39 +471,10 @@ SaUint32T plms_plmc_tcp_connect_process(PLMS_ENTITY *ent)
 		TRACE("Request to unlock the EE: %s SUCCESSFUL",
 							ent->dn_name_str);
 
-		{/* Clear the management lost flag if the trigger is unlock.*/
-			if (plms_rdness_flag_is_set(ent,
-				SA_PLM_RF_MANAGEMENT_LOST)&& 
-				(PLMS_MNGT_EE_UNLOCK == ent->mngt_lost_tri)){
-				
-				TRACE("Clear management lost flag, set for \
-				EE_UNLOCK.");
-			
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-				/* Clear admin_pending as well as 
-				isolate_pending flag if set.*/
-				plms_readiness_flag_mark_unmark(ent,
-				SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-				NULL, SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-				
-				ent->mngt_lost_tri = PLMS_MNGT_NONE;
-			
-				plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-
-			}
-		}
-
 		/* Make an attempt to make the readiness state
 		to insvc.*/
 		ret_err = plms_plmc_unlck_insvc(ent,trk_info);
-	
 	}
-	
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
 }
@@ -655,7 +490,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
-	PLMS_GROUP_ENTITY *log_head,*head;
+	PLMS_GROUP_ENTITY *head;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 
@@ -680,12 +515,8 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 	}
 	
 	/* Clear the management lost flag.*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
-		if ( NCSCC_RC_SUCCESS != plms_tcp_discon_mngt_flag_clear(ent)){
-			return NCSCC_RC_FAILURE;
-		}
-	}
-	
+	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
+		plms_tcp_discon_mngt_flag_clear(ent);
 	
 	/* If the EE is already in OOS, then nothing to do.*/
 	if (SA_PLM_READINESS_OUT_OF_SERVICE == 
@@ -694,89 +525,8 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 	
 	}else{ /* If the entity is in insvc, then got to make the entity 
 		to move to OOS.*/
-#if 0		
-		/* This entity is terminated because of the graceful
-		reboot. So no need to terminate the aff entities.
-		Only mark the flag and readiness state.*/
-		if ((NULL != ent->trk_info) && (SA_PLM_CAUSE_EE_RESTART
-		== ent->trk_info->track_cause)){
-			
-			plms_affected_ent_list_get(ent,&aff_ent_list,0);
-			TRACE("Affected entities for ent %s: ",ent->dn_name_str);
-			log_head = aff_ent_list;
-			while(log_head){
-				TRACE("%s,",log_head->plm_entity->dn_name_str);
-				log_head = log_head->next;
-			}
-			plms_readiness_state_set(ent,SA_PLM_READINESS_OUT_OF_SERVICE,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			/* Mark the readiness state and expected readiness state  
-			of all the affected entities to OOS and set the dependency 
-			flag.*/
-			head = aff_ent_list;
-			while (head){
-				plms_readiness_state_set(head->plm_entity,
-					SA_PLM_READINESS_OUT_OF_SERVICE,
-					ent,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_DEP);
-				plms_readiness_flag_mark_unmark(head->plm_entity,
-					SA_PLM_RF_DEPENDENCY,TRUE,
-					ent,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_DEP);
-
-				head = head->next;
-			}
-			
-			plms_aff_ent_exp_rdness_state_ow(aff_ent_list);
-			plms_ent_exp_rdness_state_ow(ent);
-			
-			trk_info.aff_ent_list = aff_ent_list;
-			trk_info.group_info_list = NULL;
-			/* Add the groups, root entity(ent) belong to.*/
-			plms_ent_grp_list_add(ent, &(trk_info.group_info_list));
-		
-			/* Find out all the groups, all affected entities 
-			 * belong to and add the groups to trk_info->group_info_list.*/ 
-			plms_ent_list_grp_list_add(trk_info.aff_ent_list,
-						&(trk_info.group_info_list));	
-
-			TRACE("Affected groups for ent %s: ",ent->dn_name_str);
-			log_head_grp = trk_info.group_info_list;
-			while(log_head_grp){
-				TRACE("%llu,",log_head_grp->ent_grp_inf->entity_grp_hdl);
-				log_head_grp = log_head_grp->next;
-			}
-
-			trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
-			trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
-			trk_info.root_entity = ent->trk_info->root_entity;
-			trk_info.track_cause = ent->trk_info->track_cause;
-			trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
-			
-			plms_cbk_call(&trk_info,1);
-		
-			plms_ent_exp_rdness_status_clear(ent);
-			plms_aff_ent_exp_rdness_status_clear(aff_ent_list);
-			
-			plms_ent_list_free(trk_info.aff_ent_list);
-			trk_info.aff_ent_list = NULL;
-			plms_ent_grp_list_free(trk_info.group_info_list);
-			trk_info.group_info_list = NULL;
-			
-			TRACE_LEAVE2("Return Val: %d",ret_err);
-			return ret_err;
-		}
-#endif		
 		/* Get all the affected entities.*/ 
 		plms_affected_ent_list_get(ent,&aff_ent_list,0);
-		TRACE("Affected entities for ent %s: ",ent->dn_name_str);
-		log_head = aff_ent_list;
-		while(log_head){
-			TRACE("%s,",log_head->plm_entity->dn_name_str);
-			log_head = log_head->next;
-		}
 		
 		plms_readiness_state_set(ent,SA_PLM_READINESS_OUT_OF_SERVICE,
 					NULL,SA_NTF_OBJECT_OPERATION,
@@ -817,7 +567,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 			if (NCSCC_RC_SUCCESS != 
 					plms_is_chld(ent,head->plm_entity)){
 				ret_err = plms_ee_term(head->plm_entity,
-							FALSE,0/*mngt_cbk*/);
+							FALSE,TRUE/*mngt_cbk*/);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					LOG_ER("Request for EE %s termination \
 					FAILED",head->plm_entity->dn_name_str);
@@ -826,6 +576,7 @@ SaUint32T plms_plmc_tcp_disconnect_process(PLMS_ENTITY *ent)
 			head = head->next;
 		}
 		
+		memset(&trk_info,0,sizeof(PLMS_TRACK_INFO));
 		trk_info.aff_ent_list = aff_ent_list;
 		trk_info.group_info_list = NULL;
 		/* Add the groups, root entity(ent) belong to.*/
@@ -959,7 +710,7 @@ SaUint32T plms_plmc_lock_response(PLMS_ENTITY *ent,SaUint32T lock_rc)
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
 
-			LOG_ER("Unlock FAILED for ent %s",ent->dn_name_str);
+			LOG_ER("Lock FAILED for ent %s",ent->dn_name_str);
 			/* Call callback.*/
 			plms_mngt_lost_clear_cbk_call(ent,1/*lost*/);
 		}
@@ -1096,42 +847,22 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 
 	if (NULL != os_info){
-		
-		/* Clear the management lost flag only if set for restart.*/
-		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST) && 
-		(PLMS_MNGT_EE_GET_OS_INFO == ent->mngt_lost_tri)){
-			plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_ADMIN_OPERATION_PENDING,
-					FALSE,NULL,
-					SA_NTF_MANAGEMENT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-			ent->mngt_lost_tri = PLMS_MNGT_NONE;
-
-			if (!plms_rdness_flag_is_set(ent,
-						SA_PLM_RF_ISOLATE_PENDING)){
-				
-				plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_MANAGEMENT_LOST,
-					FALSE,NULL,
-					SA_NTF_MANAGEMENT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-				
+	
+		/* Clear management lost flag.*/
+		if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){ 
+			if(NCSCC_RC_SUCCESS != plms_os_info_resp_mngt_flag_clear(ent)){
+				return NCSCC_RC_FAILURE;
 			}
 		}
-
 		ret_err = plms_ee_verify(ent,os_info);
 		plms_os_info_free(os_info);
 		if (NCSCC_RC_SUCCESS != ret_err){
-			/* Verification failed. Ignore and return 
-			from here.*/
-			LOG_ER("OS verification FAILED for EE: %s",
-						ent->dn_name_str);
-
+			/* Verification failed. Ignore and return from here.*/
+			LOG_ER("OS verification FAILED for EE: %s",ent->dn_name_str);
 			TRACE_LEAVE2("Return Val: %d",ret_err);
 			return ret_err;
 		}else{
-			LOG_ER("OS verification SUCCESSFUL for EE: %s",
+			TRACE("OS verification SUCCESSFUL for EE: %s",
 						ent->dn_name_str);
 			
 			plms_presence_state_set(ent,
@@ -1197,8 +928,7 @@ SaUint32T plms_plmc_get_os_info_response(PLMS_ENTITY *ent,
 				return NCSCC_RC_SUCCESS;
 			}else{
 				
-				ret_err = plms_ee_unlock(ent,FALSE,
-								1/*mngt_cbk*/);
+				ret_err = plms_ee_unlock(ent,FALSE,TRUE);
 				if (NCSCC_RC_SUCCESS != ret_err){
 					TRACE("Sending unlock request for ent: \
 						%s FAILED", ent->dn_name_str);
@@ -1897,40 +1627,6 @@ static SaUint32T plms_ee_verify(PLMS_ENTITY *ent, PLMS_PLMC_EE_OS_INFO *os_info)
 			return NCSCC_RC_FAILURE;
 		}
 	}
-#if 0
-	/* Match the Os Version.*/
-	ee_type_list = ee_base_type_node->ee_type_info_list;
-	len = strlen(ee_type_list->ee_type.safVersion);
-	os_version = (SaStringT)calloc(1,sizeof(SaStringT)*(len+1));
-	if (NULL == os_version){
-		free(dn_ee_type);
-		LOG_CR("ee_verify, calloc FAILED");
-		TRACE_LEAVE2();
-		assert(0);
-	}
-
-	while (ee_type_list){
-		
-		memcpy(os_version,ee_type_list->ee_type.safVersion,len+1);
-		/* Get the version.*/
-		tmp_os_ver = strtok(os_version,"=");
-		tmp_os_ver = strtok(NULL,"=");
-		if ( 0 == strcmp(tmp_os_ver,os_info->version)){
-			is_matched = 1;
-			break;
-		}
-		ee_type_list = ee_type_list->next;
-	}
-	if (is_matched){
-		ret_err = NCSCC_RC_SUCCESS;
-		TRACE("OS Verification successful for ent: %s",
-						ent->dn_name_str);
-	} else{ 
-		LOG_ER("Version info did not match,PLMC-provided: %s",
-						os_info->version);
-		ret_err =  NCSCC_RC_FAILURE;
-	}
-#endif
 	/* Free.*/
 	free(dn_ee_type);
 	free(dn_ee_type_ver);
@@ -2507,7 +2203,6 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 		/* TODO: HE is not present.*/
 		LOG_ER("Parent HE of this EE %s is not present.",
 						ent->dn_name_str);
-		ent->mngt_lost_tri = PLMS_MNGT_EE_INST;
 		ret_err = NCSCC_RC_FAILURE; 
 	}else{
 		/* Reset the parent_he.*/
@@ -2515,13 +2210,11 @@ SaUint32T plms_ee_instantiate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mng
 						parent_he->dn_name_str);
 		ret_err = plms_he_reset(parent_he,1/*adm_op*/,1/*mngt_cbk*/,
 							SAHPI_COLD_RESET);
-		if(NCSCC_RC_SUCCESS != ret_err){
-			parent_he->mngt_lost_tri = PLMS_MNGT_HE_COLD_RESET; 
-		}
 	}
 
 	/* EE instantiation operation failed.*/
 	if(NCSCC_RC_SUCCESS != ret_err){
+		ent->mngt_lost_tri = PLMS_MNGT_EE_INST;
 		if(is_adm_op){
 			if (!plms_rdness_flag_is_set(ent,
 			SA_PLM_RF_ADMIN_OPERATION_PENDING)){
@@ -2734,47 +2427,56 @@ SaUint32T plms_ee_term_failed_tmr_exp(PLMS_ENTITY *ent)
 		
 		return NCSCC_RC_FAILURE;
 	}
-	
 	if (can_isolate){
-		if (NULL == ent->parent){
-			can_isolate = 0;
-			LOG_ER("EE %s Isolation FAILED. Parent is Domain.",
-			ent->dn_name_str);
-		}else{
-				
-			/* assert reset state on parent HE,
-			(parent is HE as no virtualization). */
-			ret_err = plms_he_reset(ent->parent,0/*adm_op*/,
-			1/*mngt_cbk*/, SAHPI_RESET_ASSERT);
-			if( NCSCC_RC_SUCCESS != ret_err){
-				/* Deactivate the HE.*/
-				ret_err = plms_he_deactivate(ent->parent,
-				FALSE/*adm_op*/,1/*mngt_cbk*/);
-				if(NCSCC_RC_SUCCESS != ret_err){
-					/* Isolation failed.*/
-					can_isolate = 0;
-					LOG_ER("EE %s Isolation FAILED.",
-					ent->dn_name_str);
-				}else{
-					ent->iso_method = 
-					PLMS_ISO_HE_DEACTIVATED;
-					
-					TRACE("Isolated the ent %s, Deactivate\
-					parent HE successfull.",
-					ent->dn_name_str);
-				}
+		/* assert reset state on parent HE,
+		(parent is HE as no virtualization). */
+		ret_err = plms_he_reset(ent->parent,0/*adm_op*/,
+		0/*mngt_cbk*/, SAHPI_RESET_ASSERT);
+		if( NCSCC_RC_SUCCESS != ret_err){
+			/* Deactivate the HE.*/
+			ret_err = plms_he_deactivate(ent->parent,
+			FALSE/*adm_op*/,TRUE/*mngt_cbk*/);
+			if(NCSCC_RC_SUCCESS != ret_err){
+				/* Isolation failed.*/
+				can_isolate = 0;
+				LOG_ER("EE %s Isolation FAILED.",
+				ent->dn_name_str);
 			}else{
-				TRACE("Isolate the enti %s, Reset assert\
-				parent HE successfull.",ent->dn_name_str);
-				ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+				ent->iso_method = 
+				PLMS_ISO_HE_DEACTIVATED;
+				
+				TRACE("Isolated the ent %s, Deactivate\
+				parent HE successfull.",
+				ent->dn_name_str);
+						
+				/* Clear admin pending for HE.*/	
+				plms_readiness_flag_mark_unmark(
+					ent->parent,
+					SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+					NULL, SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+				/* Clear management lost for HE.*/
+				plms_readiness_flag_mark_unmark(
+					ent->parent,
+					SA_PLM_RF_MANAGEMENT_LOST,0,
+					NULL, SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			}
+		}else{
+			TRACE("Isolate the ent %s, Reset assert\
+			parent HE successfull.",ent->dn_name_str);
+			ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
 		}
 	}
 	if(!can_isolate){
 		/* Set isolate pending flag. Set management lost flag.*/
 		plms_readiness_flag_mark_unmark(ent,
-					(SA_PLM_RF_MANAGEMENT_LOST | 
-					SA_PLM_RF_ISOLATE_PENDING),1,
+					SA_PLM_RF_ISOLATE_PENDING,1,
+					NULL,SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_MANAGEMENT_LOST,1, 
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		
@@ -2829,221 +2531,37 @@ Description     :
 		
 Arguments       : 
 Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_ee_insting_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_ISOLATE_PENDING)){
-		/* Skip.*/
-	}
-	
-	switch(ent->mngt_lost_tri){
-	case PLMS_MNGT_EE_RESTART:
-
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for EE_RESTART.");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	default:
-		LOG_ER("Invalid management lost trigger for EE instantiating.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_ee_instantiated_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_ISOLATE_PENDING)){
-		/* Skip.*/
-	}
-
-	switch(ent->mngt_lost_tri){
-		/* Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for EE_RESTART.");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-		
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	default:
-		LOG_ER("Invalid management lost trigger for EE instantiated.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-		
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_ee_terminating_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_ISOLATE_PENDING)){
-		/* Skip.*/
-	}
-	
-	switch(ent->mngt_lost_tri){
-	
-	case PLMS_MNGT_EE_LOCK:
-		/* Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for EE_LOCK");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	default:
-		LOG_ER("Invalid management lost trigger for EE terminating.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-
-	}
-
-	return NCSCC_RC_SUCCESS;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
 Notes           : Isolation pending flag takes precedence over admin operation
 		pending flag.
 ******************************************************************************/
 static SaUint32T plms_ee_terminated_mngt_flag_clear(PLMS_ENTITY *ent)
 {
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
+	TRACE("Clear mngtment lost flag/isolate pending flag/\
+	admin pending flag. Reason: %d, Ent: %s",
+	ent->mngt_lost_tri, ent->dn_name_str);
+
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
+	NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	/* Clear admin pending flag.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	
-	/* If isolate pending flag is set then clear the flag and return. 
-	*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_ISOLATE_PENDING)){
-		TRACE("Clear management lost flag,clear isolate pending flag.");
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear isolate pending flag.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ISOLATE_PENDING,0,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin pending as well as isolate pending flag.*/
-		plms_readiness_flag_mark_unmark(ent,
-		( SA_PLM_RF_ADMIN_OPERATION_PENDING | 
-		SA_PLM_RF_ISOLATE_PENDING),0,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		return ret_err;
-	}
-		
-	switch(ent->mngt_lost_tri){
-	
-	case PLMS_MNGT_EE_LOCK:
-		/* clear the  admin operation pending flag.*/	
-		
-		TRACE("Clear management lost flag, set for EE_LOCK");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	case PLMS_MNGT_EE_TERM:
-		/* Clear the  admin operation pending flag.*/	
-		
-		TRACE("Clear management lost flag, set for EE_TERM");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	default:
-		LOG_ER("Invalid management lost trigger for EE terminated.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-
-	}
-
-	return ret_err;
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	/* ent->iso_method = PLMS_ISO_EE_TERMINATED; */
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	return NCSCC_RC_SUCCESS;
 }
-
 /******************************************************************************
 Name            : 
 Description     : 
@@ -3055,77 +2573,70 @@ Notes           : Isolation pending flag takes precedence over admin operation
 ******************************************************************************/
 static SaUint32T plms_tcp_discon_mngt_flag_clear(PLMS_ENTITY *ent)
 {
+	TRACE("Clear mngtment lost flag/isolate pending flag/\
+	admin pending flag. Reason: %d, Ent: %s",ent->mngt_lost_tri,
+	ent->dn_name_str);
+
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
+	NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	/* Clear admin pending flag.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	
+	/* Clear isolate pending flag.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ISOLATE_PENDING,0,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	/* ent->iso_method = PLMS_ISO_EE_TERMINATED; */
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	return NCSCC_RC_SUCCESS;
+}
+/******************************************************************************
+Name            : 
+Description     : 
+		
+Arguments       : 
+Return Values   : 
+Notes           : 
+******************************************************************************/
+static SaUint32T plms_tcp_connect_mngt_flag_clear(PLMS_ENTITY *ent)
+{
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-	/* If isolate pending flag is set then clear the flag and return. 
-	*/
-	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_ISOLATE_PENDING)){
-		TRACE("Clear management lost flag,clear isolate pending flag.");
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin pending as well as isolate pending flag.*/
-		plms_readiness_flag_mark_unmark(ent,
-		( SA_PLM_RF_ADMIN_OPERATION_PENDING | 
-		SA_PLM_RF_ISOLATE_PENDING),0,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		return ret_err;
+	/* If isolate pending flag is set then isolate the entity and return
+	from here.*/
+	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
+		
+		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
+			return NCSCC_RC_FAILURE;
+		else
+			return NCSCC_RC_SUCCESS;
 	}
-		
-	switch(ent->mngt_lost_tri){
 	
-	case PLMS_MNGT_EE_LOCK:
-		/* clear the  admin operation pending flag.*/	
-		
-		TRACE("Clear management lost flag, set for EE_LOCK");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	TRACE("Clear management lost flag. Reason:%d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-	case PLMS_MNGT_EE_TERM:
-		/* Clear the  admin operation pending flag.*/	
-		
-		TRACE("Clear management lost flag, set for EE_TERM");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	default:
-		LOG_ER("Invalid management lost trigger for EE terminated.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-
-	}
-
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }
 
@@ -3144,60 +2655,28 @@ static SaUint32T plms_unlck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	/* If isolate pending flag is set then isolate the entity and return
 	from here.*/
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)){
-		if ( NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent))
+		
+		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
 			return NCSCC_RC_FAILURE;
 		else
 			return NCSCC_RC_SUCCESS;
 	}
-
-	switch(ent->mngt_lost_tri){
+	TRACE("Clear management lost flag. Reason:%d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 	
-	case PLMS_MNGT_EE_LOCK:
-		ret_err = plms_lck_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_UNLOCK:
-		TRACE("Clear management lost flag,set for EE_UNLOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		
-		break;
-		
-	case PLMS_MNGT_EE_TERM:
-		ret_err = plms_term_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_RESTART:
-		ret_err = plms_restart_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_INST:
-		ret_err = plms_inst_and_mngt_lost_clear(ent);
-		break;
-
-	case PLMS_MNGT_EE_GET_OS_INFO:
-		ret_err = plms_os_info_and_mngt_lost_clear(ent);
-		break;
-		
-	default:
-		LOG_ER("Invalid management lost trigger for unlock resp.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-
-	}
-	
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }
 /******************************************************************************
@@ -3215,60 +2694,29 @@ static SaUint32T plms_lck_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	/* If isolate pending flag is set then isolate the entity and return
 	from here.*/
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
-		if ( NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent))
+		
+		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
 			return NCSCC_RC_FAILURE;
 		else
 			return NCSCC_RC_SUCCESS;
 	}
-
-	switch(ent->mngt_lost_tri){
 	
-	case PLMS_MNGT_EE_LOCK:
-		TRACE("Clear management lost flag,set for EE_LOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	TRACE("Clear management lost flag. Reason:%d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-		
-	case PLMS_MNGT_EE_UNLOCK:
-		ret_err = plms_unlck_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_TERM:
-		ret_err = plms_term_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_RESTART:
-		ret_err = plms_restart_and_mngt_lost_clear(ent);
-		break;
-		
-	case PLMS_MNGT_EE_INST:
-		ret_err = plms_inst_and_mngt_lost_clear(ent);
-		break;
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-	case PLMS_MNGT_EE_GET_OS_INFO:
-		LOG_ER(" Lock Response, MNGT lost flag is set for GET_OS_INFO.\
-		Sth wrong !!!!!");
-		/* ret_err = plms_os_info_and_mngt_lost_clear(ent);*/
-		break;
-		
-	default:	
-		LOG_ER("Invalid management lost trigger for lock resp.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }
 /******************************************************************************
@@ -3281,73 +2729,29 @@ Notes           :
 ******************************************************************************/
 static SaUint32T plms_lckinst_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 {
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 
-	/* If isolate pending flag is set then clear all the flags and return
-	from here.*/
-	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
-		TRACE("Clear management lost flag,set for EE_ISOLATE.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending as well as 
-		isolate_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		(SA_PLM_RF_ISOLATE_PENDING |
-		SA_PLM_RF_ADMIN_OPERATION_PENDING),0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		return ret_err;
-	}
-
-	switch(ent->mngt_lost_tri){
+	TRACE("Clear mngtment lost flag/isolate pending flag/\
+	admin pending flag. Reason: %d, Ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 	
-	case PLMS_MNGT_EE_LOCK:
-	case PLMS_MNGT_EE_TERM:
-		TRACE("Clear management lost flag,set for EE_LOCK/TERM.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ISOLATE_PENDING,0,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-		
-	case PLMS_MNGT_EE_UNLOCK:
-	case PLMS_MNGT_EE_RESTART:
-		break;
-		
-	case PLMS_MNGT_EE_INST:
-		plms_inst_and_mngt_lost_clear(ent);
-		break;
-
-	case PLMS_MNGT_EE_GET_OS_INFO:
-		LOG_ER(" Lock-Inst Response, \
-		MNGT lost flag is set for GET_OS_INFO.  Sth wrong !!!!!");
-		/* plms_os_info_and_mngt_lost_clear(ent);*/
-		break;
-		
-	default:	
-		LOG_ER("Invalid management lost trigger for lckinst resp.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
-	return ret_err;
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	return NCSCC_RC_SUCCESS; 
 }
 /******************************************************************************
 Name            : 
@@ -3362,60 +2766,63 @@ static SaUint32T plms_restart_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
-		/* Skip.*/
+		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
+			return NCSCC_RC_FAILURE;
+		else
+			return NCSCC_RC_SUCCESS;
 	}
+	TRACE("Clear management lost flag. Reason:%d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 
-	switch(ent->mngt_lost_tri){
-	
-	case PLMS_MNGT_EE_LOCK:
-		TRACE("Clear management lost flag,set for EE_LOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	return ret_err;
+}
+/******************************************************************************
+Name            : 
+Description     : 
 		
-	case PLMS_MNGT_EE_RESTART:
-		TRACE("Clear management lost flag,set for EE_RESTART.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+Arguments       : 
+Return Values   : 
+Notes           : 
+******************************************************************************/
+static SaUint32T plms_os_info_resp_mngt_flag_clear(PLMS_ENTITY *ent)
+{
+	SaUint32T ret_err = NCSCC_RC_SUCCESS;
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-		
-	case PLMS_MNGT_EE_TERM:
-	case PLMS_MNGT_EE_UNLOCK:
-	case PLMS_MNGT_EE_INST:
-	case PLMS_MNGT_EE_GET_OS_INFO:
-		break;
-		
-	default:
-		LOG_ER("Invalid management lost trigger for restart resp.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	
+	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
+		if (NCSCC_RC_SUCCESS == plms_isolate_and_mngt_lost_clear(ent)) 
+			return NCSCC_RC_FAILURE;
+		else
+			return NCSCC_RC_SUCCESS;
 	}
+	TRACE("Clear management lost flag. Reason:%d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	return ret_err;
 }
 /******************************************************************************
@@ -3430,10 +2837,27 @@ Notes           : Isolation pending flag takes precedence over admin operation
 SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *ent)
 {
 	SaUint32T ret_err;
+	SaUint32T is_iso = 0;
 
-	ret_err = plms_ent_isolate(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for ent isolation.");
+	/* If the operational state is disbled, then isolate the
+	entity. Otherwise clear the management lost flag.*/
+	if ( ((PLMS_HE_ENTITY == ent->entity_type) &&
+	(SA_PLM_OPERATIONAL_DISABLED ==
+	ent->entity.he_entity.saPlmHEOperationalState)) ||
+	((PLMS_EE_ENTITY == ent->entity_type) &&
+	(SA_PLM_OPERATIONAL_DISABLED ==
+	ent->entity.ee_entity.saPlmEEOperationalState))) {
+		
+		ret_err = plms_ent_isolate(ent,FALSE,FALSE);
+		if (NCSCC_RC_SUCCESS == ret_err)
+			is_iso = 1;
+	}else{
+		is_iso = 1;
+		ret_err = NCSCC_RC_FAILURE;
+	}
+	if (is_iso){
+		TRACE("Clear management lost flag,set for ent isolation.\
+		Ent: %s",ent->dn_name_str);
 		
 		plms_readiness_flag_mark_unmark(ent,
 		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
@@ -3443,41 +2867,10 @@ SaUint32T plms_isolate_and_mngt_lost_clear(PLMS_ENTITY *ent)
 		/* Clear admin_pending as well as 
 		isolate_pending flag if set.*/
 		plms_readiness_flag_mark_unmark(ent,
-		(SA_PLM_RF_ISOLATE_PENDING |
-		SA_PLM_RF_ADMIN_OPERATION_PENDING),0/*unmark*/,
+		SA_PLM_RF_ISOLATE_PENDING,0/*unmark*/,
 		NULL, SA_NTF_OBJECT_OPERATION,
 		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ent_iso) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
 		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_lck_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_ee_lock(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_LOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
 		plms_readiness_flag_mark_unmark(ent,
 		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
 		NULL, SA_NTF_OBJECT_OPERATION,
@@ -3486,183 +2879,8 @@ static SaUint32T plms_lck_and_mngt_lost_clear(PLMS_ENTITY *ent)
 		ent->mngt_lost_tri = PLMS_MNGT_NONE;
 		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 	}else{
-		LOG_ER("Management-lost flag clear(ee_lock) FAILED.");
+		LOG_ER("Management-lost flag clear(ent_iso) FAILED. Ent: %s",
+		ent->dn_name_str);
 	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_unlck_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_ee_unlock(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_UNLOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ee_unlock) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_term_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_ee_term(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_LOCK.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ee_term) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_restart_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_ee_reboot(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_RESTART.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ee_restart) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_inst_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_ee_instantiate(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_INST.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ee_inst) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_os_info_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plmc_get_os_info(ent->dn_name_str,plms_plmc_tcp_cbk);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_OS_INFO.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(ee_os_info) FAILED.");
-	}
-
 	return ret_err;
 }
