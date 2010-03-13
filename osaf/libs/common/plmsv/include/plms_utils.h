@@ -90,5 +90,10 @@ void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *, PLMS_ENTITY *,
 					SaUint32T , PLMS_GROUP_ENTITY **);
 void plms_aff_dep_list_imnt_failure_get(PLMS_ENTITY *,PLMS_GROUP_ENTITY *,
 					SaUint32T ,PLMS_GROUP_ENTITY **);
+
+SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *,SaInt8T *,SaStringT,
+SaImmAttrModificationTypeT);
+SaUint32T plms_attr_saname_imm_update(PLMS_ENTITY *,SaInt8T *,SaNameT,
+SaImmAttrModificationTypeT);
 #endif
 

@@ -35,6 +35,7 @@ static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *);
 static SaUint32T plms_HE_inact_np_to_act(PLMS_EVT *);
 static SaUint32T plms_HE_inact_to_extpending_op(PLMS_EVT *);
 static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *);
+static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *);
 
 static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *);
 static SaUint32T plms_HE_actving_to_extpending_op(PLMS_EVT *);
@@ -45,6 +46,7 @@ static SaUint32T plms_HE_act_to_extpending_op(PLMS_EVT *);
 static SaUint32T plms_HE_act_to_inact_op(PLMS_EVT *);
 static SaUint32T plms_HE_act_to_np_op(PLMS_EVT *);
 static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *);
+static SaUint32T plms_HE_act_to_act_op(PLMS_EVT *);
 
 static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *);
 static SaUint32T plms_HE_deacting_to_inspending_op(PLMS_EVT *);
@@ -62,14 +64,10 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *,PLMS_HPI_CMD ,SaUint32T );
 
 static SaUint32T plms_extpending_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_inspending_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_reset_and_mngt_lost_clear(PLMS_ENTITY *,SaUint32T);
-static SaUint32T plms_deact_and_mngt_lost_clear(PLMS_ENTITY *);
-static SaUint32T plms_cold_warm_reset_resp_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_reset_assert_resp_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_reset_deassert_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *);
 static SaUint32T plms_act_resp_mngt_flag_clear(PLMS_ENTITY *);
-static SaUint32T plms_act_and_mngt_lost_clear(PLMS_ENTITY *);
+
+
 /******************************************************************************
 Name            : plms_he_pres_fsm_init
 Description     : Initializes the HE presence state FSM function pointers.
@@ -103,7 +101,7 @@ void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_INACTIVE]
 		[SAHPI_HS_STATE_NOT_PRESENT] = plms_HE_inact_to_np_op;
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_INACTIVE]
-		[SAHPI_HS_STATE_INACTIVE] = plms_HE_pres_state_invalid;
+		[SAHPI_HS_STATE_INACTIVE] = plms_HE_inact_to_inact_op;
 
 
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_ACTIVATING]
@@ -127,7 +125,7 @@ void plms_he_pres_fsm_init(PLMS_PRES_FUNC_PTR plms_HE_pres_state_op[]
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_ACTIVE]
 	[SAHPI_HS_STATE_INSERTION_PENDING] = plms_HE_act_to_inspending_op;
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_ACTIVE]
-		[SAHPI_HS_STATE_ACTIVE] = plms_HE_pres_state_invalid;
+		[SAHPI_HS_STATE_ACTIVE] = plms_HE_act_to_act_op;
 
 
 	plms_HE_pres_state_op[SA_PLM_HE_PRESENCE_DEACTIVATING]
@@ -183,7 +181,6 @@ static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *evt)
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
 	}
-#if 1
 	/* Mark the presence state of the HE to activating.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVATING,NULL,
 					SA_NTF_OBJECT_OPERATION,
@@ -192,19 +189,14 @@ static SaUint32T plms_HE_inact_np_to_inspending(PLMS_EVT *evt)
 	state.*/
 	if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE  == 
 		ent->entity.he_entity.saPlmHEAdminState){
+		
 		ret_err = plms_he_deactivate(ent,0,1);
-		/* Mark the presence state of the HE to inact */
-		plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_INACTIVE,NULL,
-					SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		LOG_ER("Entity presence state set to inact as the\
+		LOG_ER("Entity is deactivated as the\
 		admin state is lckinact. Ent: %s",ent->dn_name_str);
-
+		
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
 	}
-#endif	
 	/* Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 
@@ -268,12 +260,23 @@ static SaUint32T plms_HE_inact_np_to_act( PLMS_EVT *evt)
 	}
 
 	ent->act_in_pro = FALSE;
-#if 0	
 	/* Mark the presence state of the HE to active.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
-				NULL,SA_NTF_OBJECT_OPERATION
+				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#endif	
+	/* If the entity is in lock-inactive state, then deactivate
+	the entity.*/
+	if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
+			ent->entity.he_entity.saPlmHEAdminState){
+
+		ret_err = plms_he_deactivate(ent,0,1);
+		LOG_ER("Entity is deactivated as the admin state is lckinact. \
+		Ent: %s",ent->dn_name_str);
+
+		TRACE_LEAVE2("Return Val: %d",ret_err);
+		return ret_err;
+	}
+	
 	/* Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 
@@ -389,6 +392,54 @@ static SaUint32T plms_HE_inact_to_np_op(PLMS_EVT *evt)
 }
 /******************************************************************************
 Name            :
+Description     :
+		 
+Arguments       : 
+                  
+Return Values   : 
+Notes           : 
+******************************************************************************/
+static SaUint32T plms_HE_inact_to_inact_op(PLMS_EVT *evt)
+{
+	PLMS_CB *cb = plms_cb;
+	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
+	PLMS_ENTITY *ent;
+
+	TRACE_ENTER2("Entity: %s",evt->req_evt.hpi_evt.entity_path);
+	
+	epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)ncs_patricia_tree_get
+				(&(cb->epath_to_entity_map_info),
+				(SaUint8T *)&(evt->req_evt.hpi_evt.epath_key));
+	if (NULL == epath_to_ent ) {
+		LOG_ER("Entity corresponding to ent_path %s not found. Possibly\
+			the HE is yet to be verified.",
+			evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+	
+	ent = epath_to_ent->plms_entity;
+
+	if (NULL == ent){
+		LOG_ER("Entity path %s found but epath_to_ent->plms_entity is \
+				NULL", evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+	ent->deact_in_pro = FALSE;
+
+	/* Handle clearing management lost flag.*/
+	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
+		if ( NCSCC_RC_SUCCESS != plms_deact_resp_mngt_flag_clear(ent))
+			TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+			return NCSCC_RC_FAILURE;
+	}
+	
+	TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
+}
+/******************************************************************************
+Name            :
 Description     : M2/M3->M4 valid for 5 state and 5 partial state model. 
 Arguments       : 
                   
@@ -425,12 +476,10 @@ static SaUint32T plms_HE_actving_to_act_op(PLMS_EVT *evt)
 	}
 
 	ent->act_in_pro = FALSE;
-#if 0	
 	/* Mark the presence state of the HE to active.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
-				NULL,SA_NTF_OBJECT_OPERATION
+				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#endif	
 	/* Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 
@@ -629,7 +678,7 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO *trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
-	PLMS_GROUP_ENTITY *head = NULL,*log_head;
+	PLMS_GROUP_ENTITY *head = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 
 	TRACE_ENTER2("Entity: %s",evt->req_evt.hpi_evt.entity_path);
@@ -653,11 +702,9 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-#if 0	
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_DEACTIVATING,
 						NULL,SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#endif	
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 		if ( NCSCC_RC_SUCCESS != plms_extpending_mngt_flag_clear(ent))
 			return NCSCC_RC_FAILURE;
@@ -668,22 +715,14 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 	call the completed callback.
 	*/
 	if ( PLMS_HPI_PARTIAL_FIVE_HOTSWAP_MODEL == ent->state_model){
-		plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_DEACTIVATING,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		TRACE("Partial 5-state model, return.");
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
 		return NCSCC_RC_SUCCESS;
 	}
 	/* If I am moving to M5 because any of my parent, then just 
 	change the presence state.
-	TODO: Check this carefully. If my parent is being moved to M1
-	gracefully/surprise, would I ever get M5 for the children??
 	*/
 	if (plms_is_anc_in_deact_cnxt(ent)){
-		plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_DEACTIVATING,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		/* TODO: Do we need to deactivate the HE.*/
 		TRACE("I am moving to inactive because of my parent.");
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
@@ -691,20 +730,11 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 	}
 
 	plms_affected_ent_list_get(ent,&aff_ent_list,0);
-	TRACE("Affected entities for ent %s: ",ent->dn_name_str);
-		log_head = aff_ent_list;
-		while(log_head){
-			TRACE("%s,",log_head->plm_entity->dn_name_str);
-			log_head = log_head->next;
-		}
 
 	/* If this entity is in any other operation context then,
 	we have option of rejecting the deactivation process.
 	*/
 	if (plms_anc_chld_dep_adm_flag_is_set(ent,aff_ent_list)){
-		plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_DEACTIVATING,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 		TRACE("Reject the deactivation as the ent %s is in other admin\
 						context",ent->dn_name_str);
 		/* Make the He to move to M4 state.*/
@@ -724,11 +754,6 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 	
 	case SA_PLM_DP_REJECT_NOT_OOS:
 		TRACE("The deactivation policy is REJECT_NOT_OOS");
-		/* TODO: */
-		plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_DEACTIVATING,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 		if ( SA_PLM_READINESS_OUT_OF_SERVICE != 
 			ent->entity.he_entity.saPlmHEReadinessState){
 			
@@ -772,10 +797,6 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		
 	case SA_PLM_DP_VALIDATE:
 		TRACE("The deactivation policy is DP_VALIDATE");
-		plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_DEACTIVATING,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-		
 		/* If I am already in OOS, then do nothing. */
 		if ((SA_PLM_READINESS_OUT_OF_SERVICE == 
 			ent->entity.he_entity.saPlmHEReadinessState) || 
@@ -880,11 +901,6 @@ static SaUint32T plms_HE_act_to_extpending_op( PLMS_EVT *evt)
 		
 	case SA_PLM_DP_UNCONDITIONAL:
 		TRACE("The deactivation policy is DP_UNCONDITIONAL");
-		plms_presence_state_set(ent,
-				SA_PLM_HE_PRESENCE_DEACTIVATING,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-		
 		/* If I am already in OOS, then do nothing. */
 		if ((SA_PLM_READINESS_OUT_OF_SERVICE == 
 			ent->entity.he_entity.saPlmHEReadinessState) || 
@@ -1012,7 +1028,7 @@ static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
-	PLMS_GROUP_ENTITY *head = NULL,*log_head;
+	PLMS_GROUP_ENTITY *head = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 
 	TRACE_ENTER2("Entity: %s",evt->req_evt.hpi_evt.entity_path);
@@ -1085,15 +1101,6 @@ static SaUint32T plms_HE_act_to_inact_op( PLMS_EVT *evt)
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	plms_affected_ent_list_get(ent,&aff_ent_list,0);
-	if (NCSCC_RC_SUCCESS != ret_err){
-	}
-		
-	TRACE("Affected entities for ent %s: ",ent->dn_name_str);
-	log_head = aff_ent_list;
-	while(log_head){
-		TRACE("%s,",log_head->plm_entity->dn_name_str);
-		log_head = log_head->next;
-	}
 
 	head = aff_ent_list;
 	while (head){
@@ -1198,7 +1205,6 @@ static SaUint32T plms_HE_act_to_np_op(PLMS_EVT *evt)
 	}
 	
 	/* If I am moving to M0 because of my parent.
-	TODO: Check this carefully.
 	*/
 	if (plms_is_anc_in_deact_cnxt(ent)){
 		TRACE("I am moving to Not-Present because of my parent.");
@@ -1271,12 +1277,10 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
 		return NCSCC_RC_FAILURE;
 	}
-#if 0	
 	/* Mark the presence state of the HE to activating.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVATING,NULL,
 					SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#endif	
 	/* TODO: Is it the right place to call mngt clear func?
 	Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
@@ -1293,28 +1297,16 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 	if (SA_PLM_READINESS_OUT_OF_SERVICE == 
 		ent->entity.he_entity.saPlmHEReadinessState){
 		TRACE("HE is already in OOS.");
-		plms_presence_state_set(ent,
-		       		SA_PLM_HE_PRESENCE_ACTIVATING,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-#if 1		
 		if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE  ==
 		                ent->entity.he_entity.saPlmHEAdminState){
 			
 			ret_err = plms_he_deactivate(ent,FALSE,TRUE);
-			
-			plms_presence_state_set(ent,
-		       		SA_PLM_HE_PRESENCE_INACTIVE,NULL,
-				SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			LOG_ER("Deactivate the entity, as the admin state is\
 			lck inactive. Ent: %s",ent->dn_name_str);
 
 			TRACE_LEAVE2("Return Val: %d",ret_err);
 			return ret_err;
 		}
-#endif
 		/* Activate the board only if the the board supports full
 		5 state model.*/
 		if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
@@ -1338,6 +1330,55 @@ static SaUint32T plms_HE_act_to_inspending_op(PLMS_EVT *evt)
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
 }
+
+/******************************************************************************
+Name            :
+Description     :
+		 
+Arguments       : 
+                  
+Return Values   : 
+Notes           : 
+******************************************************************************/
+static SaUint32T plms_HE_act_to_act_op(PLMS_EVT *evt)
+{
+	PLMS_CB *cb = plms_cb;
+	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
+	PLMS_ENTITY *ent;
+
+	TRACE_ENTER2("Entity: %s",evt->req_evt.hpi_evt.entity_path);
+	
+	epath_to_ent = (PLMS_EPATH_TO_ENTITY_MAP_INFO *)ncs_patricia_tree_get
+				(&(cb->epath_to_entity_map_info),
+				(SaUint8T *)&(evt->req_evt.hpi_evt.epath_key));
+	if (NULL == epath_to_ent ) {
+		LOG_ER("Entity corresponding to ent_path %s not found. Possibly\
+			the HE is yet to be verified.",
+			evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+	
+	ent = epath_to_ent->plms_entity;
+
+	if (NULL == ent){
+		LOG_ER("Entity path %s found but epath_to_ent->plms_entity is \
+				NULL", evt->req_evt.hpi_evt.entity_path);
+		TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+		return NCSCC_RC_FAILURE;
+	}
+	ent->act_in_pro = FALSE;
+
+	/* Handle clearing management lost flag.*/
+	if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
+		if ( NCSCC_RC_SUCCESS != plms_act_resp_mngt_flag_clear(ent))
+			TRACE_LEAVE2("Return Val: %d",NCSCC_RC_FAILURE);
+			return NCSCC_RC_FAILURE;
+	}
+	
+	TRACE_LEAVE2("Return Val: %d",NCSCC_RC_SUCCESS);
+	return NCSCC_RC_SUCCESS;
+}
 /******************************************************************************
 Name            :
 Description     : M5->M1 : For 5 state and 5 partial state model. 
@@ -1354,7 +1395,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 	PLMS_EPATH_TO_ENTITY_MAP_INFO *epath_to_ent;
 	PLMS_ENTITY *ent;
 	PLMS_TRACK_INFO *trk_info;
-	PLMS_GROUP_ENTITY *head = NULL,*log_head;
+	PLMS_GROUP_ENTITY *head = NULL;
 	PLMS_GROUP_ENTITY *act_aff_ent_list=NULL,*aff_ent_list=NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 
@@ -1430,13 +1471,7 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 			 plms_affected_ent_list_get(ent,&aff_ent_list,0);
-			 TRACE("Affected entities for ent %s: ",
-			 				ent->dn_name_str);
-			 log_head = aff_ent_list;
-			 while(log_head){
-			 	TRACE("%s,",log_head->plm_entity->dn_name_str);
-			 	log_head = log_head->next;
-			 }
+			 
 			 head = aff_ent_list;
 			 while (head){
 				if(!plms_is_chld(ent,head->plm_entity) &&
@@ -1531,6 +1566,11 @@ static SaUint32T plms_HE_deacting_to_inact_op(PLMS_EVT *evt)
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			
+			/* TODO: I have come this far means, trk_info is valid.
+			Are you seeing any crash.. ohh... handle is here.*/
+			if ( NULL == ent->trk_info){
+			}
+
 			trk_info = ent->trk_info;
 			/* TODO: Should I clear the inv_info from the group,
 			as there is a possibility of getting M1 for the ent
@@ -1674,54 +1714,38 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 	}
 
 	ent->deact_in_pro = FALSE;
-#if 0	
 	/* Mark the presence state of the HE to activating.*/
 	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVATING,NULL,
 					SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#endif
 	
 	/* TODO: Is it the right place to call mngt clear func?
 	Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
-
 		if ( NCSCC_RC_SUCCESS != plms_inspending_mngt_flag_clear(ent))
 			return ret_err;
 	}
 	
 	/* If I am moving to M2 because any of my parent, then just 
 	change the presence state.
-	TODO: Check this carefully. If my parent is being moved to M1
-	gracefully/surprise, would I ever get M5 for the children??
 	*/
 	if (plms_is_anc_in_deact_cnxt(ent)){
 		TRACE("The HE %s is moving to activating because of his Parent."
 							,ent->dn_name_str);
-		plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVATING,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 		plms_readiness_state_set(ent,SA_PLM_READINESS_OUT_OF_SERVICE,
 					NULL,SA_NTF_OBJECT_OPERATION,
 					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#if 1  
 
 		if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 			ret_err = plms_he_deactivate(ent,0,1);
-			
-			plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_INACTIVE,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 			LOG_ER("Entity is deactivated as the admin state is \
 			lckinact. Ent: %s",ent->dn_name_str);
 
 			TRACE_LEAVE2("Return Val: %d",ret_err);
 			return ret_err;
 		}
-#endif
 		/* Set M4 state.*/
 		if (PLMS_HPI_FULL_FIVE_HOTSWAP_MODEL == ent->state_model){
 			ret_err = plms_he_activate(ent,FALSE,TRUE);
@@ -1752,21 +1776,11 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 			ent->entity.he_entity.saPlmHEReadinessState){
 			TRACE("The HE %s is already in OOS.",
 						ent->dn_name_str);
-			plms_presence_state_set(ent,
-					SA_PLM_HE_PRESENCE_ACTIVATING,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#if 1				
+
 			if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 				ret_err = plms_he_deactivate(ent,0,1);
-		
-				plms_presence_state_set(
-				ent,SA_PLM_HE_PRESENCE_INACTIVE,
-				NULL,SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 				LOG_ER("Entity is deactivated as the \
 				admin state is lckinact. Ent: %s",
 				ent->dn_name_str);
@@ -1775,18 +1789,6 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 				return ret_err;
 			}
 			
-#endif
-#if 0			
-			/* Make the ent to move to M4.*/
-			ret_err=plms_he_activate(ent,FALSE,TRUE);
-			if (NCSCC_RC_SUCCESS != ret_err){
-				LOG_ER("HE %s activation FAILED.", 
-						ent->dn_name_str);
-			}else{
-				TRACE("HE %s activation SUCCESSFUL.",
-						ent->dn_name_str);
-			}
-#endif			
 			TRACE_LEAVE2("Return Val: %d",ret_err);
 			return ret_err;
 		}else{
@@ -1801,21 +1803,10 @@ static SaUint32T plms_HE_deacting_to_inspending_op( PLMS_EVT *evt)
 		if (SA_PLM_READINESS_OUT_OF_SERVICE == 
 		ent->entity.he_entity.saPlmHEReadinessState){
 			TRACE("The HE %s is already in OOS.", ent->dn_name_str);
-			plms_presence_state_set(ent,
-						SA_PLM_HE_PRESENCE_ACTIVATING,
-						NULL,SA_NTF_OBJECT_OPERATION,
-						SA_PLM_NTFID_STATE_CHANGE_ROOT);
-			
 			if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 				ret_err = plms_he_deactivate(ent,0,1);
-			
-				plms_presence_state_set(ent,
-					SA_PLM_HE_PRESENCE_INACTIVE,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 				LOG_ER("Entity is deactivated as the admin \
 				state is lckinact. Ent: %s",ent->dn_name_str);
 
@@ -1937,23 +1928,16 @@ static SaUint32T plms_HE_deacting_to_act_op( PLMS_EVT *evt)
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 	
-#if 1			
 	if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 		ret_err = plms_he_deactivate(ent,0,1);
-			
-		plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_INACTIVE,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 		LOG_ER("Entity is deactivated as the admin state is lckinact. \
 		Ent: %s",ent->dn_name_str);
-
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
 	}	
-#endif	
+	
 	/* Managemnet lost flag handling.*/
 	if(plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
 
@@ -2167,28 +2151,17 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 	SaUint8T is_flag_aff = 0;
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
-
-	/* Mark the presence state of the HE to active.*/
-	plms_presence_state_set(ent,SA_PLM_HE_PRESENCE_ACTIVE,
-				NULL,SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#if 1			
+	
 	if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 		ret_err = plms_he_deactivate(ent,0,1);
-			
-		plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_INACTIVE,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 		LOG_ER("Entity is deactivated as the admin state is lckinact. \
 		Ent: %s",ent->dn_name_str);
-
+		
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
 	}	
-#endif	
 
 	/* Move the HE to InSvc is other conditions are matched.*/
 	if (NCSCC_RC_SUCCESS == plms_move_ent_to_insvc(ent,&is_flag_aff)){
@@ -2222,8 +2195,7 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 					&(trk_info.group_info_list));
 		
 		/* Find out all the groups, all affected entities belong to 
-		and add the groups to trk_info->group_info_list. 
-		TODO: We have to free trk_info->group_info_list. */
+		and add the groups to trk_info->group_info_list.*/ 
 		plms_ent_list_grp_list_add(act_aff_ent_list,
 					&(trk_info.group_info_list));	
 		
@@ -2237,7 +2209,6 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 		trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
 		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
-		/* TODO: What to fill? */
 		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED; 
 		trk_info.root_entity = ent;
 	
@@ -2269,7 +2240,6 @@ static SaUint32T plms_he_active_process(PLMS_ENTITY *ent)
 		trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 		trk_info.track_cause = SA_PLM_CAUSE_HE_ACTIVATED;
 		trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE;
-		/* TODO: What to fill? */
 		trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED; 
 		trk_info.root_entity = ent;
 	
@@ -2430,27 +2400,6 @@ SaUint32T plms_he_oos_to_np_process(PLMS_ENTITY *ent)
 	plms_aff_ent_exp_rdness_status_clear(act_aff_ent_list);
 
 	plms_he_np_clean_up(ent,&dummy);
-#if 0
-	/* As the HE is not-present, clean up PLMS database.
-	1. Remove the entry from e-path to ent map tree.
-	2. Wipe out saPlmHECurrHEType and saPlmHECurrEntityPath.*/
-	TRACE("Remove the HE %s from the epath-to-ent tree.",ent->dn_name_str);	
-	ncs_patricia_tree_del(&(cb->epath_to_entity_map_info),
-	(NCS_PATRICIA_NODE *)&(epath_to_ent->pat_node));
-	epath_to_ent->plms_entity = NULL;
-	free(epath_to_ent->entity_path);
-	free(epath_to_ent);
-	epath_to_ent = NULL;
-	
-	TRACE("Wipe out the current HE Type.");
-	ent->entity.he_entity.saPlmHECurrHEType.length = 0;
-	memset(ent->entity.he_entity.saPlmHECurrHEType.value,0,
-	SA_MAX_NAME_LENGTH);
-	
-	TRACE("Wipe out the current entity path.");
-	free(ent->entity.he_entity.saPlmHECurrEntityPath);
-	ent->entity.he_entity.saPlmHECurrEntityPath = NULL;
-#endif	
 
 	plms_ent_list_free(act_aff_ent_list);
 	plms_ent_grp_list_free(trk_info.group_info_list);
@@ -2662,27 +2611,16 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 	SaUint32T ret_err;
 	PLMS_TRACK_INFO trk_info;
 	PLMS_GROUP_ENTITY *aff_ent_list = NULL;
-	PLMS_GROUP_ENTITY *head = NULL,*log_head;
+	PLMS_GROUP_ENTITY *head = NULL;
 	PLMS_ENTITY_GROUP_INFO_LIST *log_head_grp;
 	
 	TRACE_ENTER2("Entity: %s",ent->dn_name_str);
 	
-	plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_ACTIVATING,
-				NULL,SA_NTF_OBJECT_OPERATION,
-				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 	plms_readiness_state_set(ent,SA_PLM_READINESS_OUT_OF_SERVICE,
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
 	plms_affected_ent_list_get(ent, &aff_ent_list,0);
-
-	TRACE("Affected entities for ent %s: ", ent->dn_name_str);
-	log_head = aff_ent_list;
-	while(log_head){
-		TRACE("%s,",log_head->plm_entity->dn_name_str);
-		log_head = log_head->next;
-	}
 
 	head = aff_ent_list;
 	while (head){
@@ -2745,23 +2683,18 @@ static SaUint32T plms_he_insvc_to_acting_process(PLMS_ENTITY *ent)
 	trk_info.aff_ent_list = NULL;
 	plms_ent_grp_list_free(trk_info.group_info_list);
 	trk_info.group_info_list = NULL;
-#if 1			
+	
 	if (SA_PLM_HE_ADMIN_LOCKED_INACTIVE == 
 			ent->entity.he_entity.saPlmHEAdminState){
 
 		ret_err = plms_he_deactivate(ent,0,1);
-			
-		plms_presence_state_set(ent, SA_PLM_HE_PRESENCE_INACTIVE,
-					NULL,SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
 		LOG_ER("Entity is deactivated as the admin state is lckinact. \
 		Ent: %s",ent->dn_name_str);
 
 		TRACE_LEAVE2("Return Val: %d",ret_err);
 		return ret_err;
 	}	
-#endif	
+	
 	/*Done with the clean up job for missed events. Now allow the entity to
 	activate only if the board supports full 5 state model.
 	*/
@@ -3115,6 +3048,11 @@ SaUint32T plms_hpi_hs_evt_process(PLMS_EVT *evt)
 			memcpy(ent->entity.he_entity.saPlmHECurrHEType.value,
 			cur_he_type_dn.value,cur_he_type_dn.length);
 
+			/* Update IMM.*/
+			plms_attr_saname_imm_update(ent,"saPlmHECurrHEType",
+			ent->entity.he_entity.saPlmHECurrHEType,
+			SA_IMM_ATTR_VALUES_REPLACE);
+
 			/* For logging.*/
 			memcpy(cur_he_type_dn_str,cur_he_type_dn.value,
 						cur_he_type_dn.length);
@@ -3129,6 +3067,12 @@ SaUint32T plms_hpi_hs_evt_process(PLMS_EVT *evt)
 			memcpy(ent->entity.he_entity.saPlmHECurrEntityPath,
 					hpi_evt->entity_path,
 					strlen(hpi_evt->entity_path)+1);
+			
+			/* Update IMM.*/
+			plms_attr_sastring_imm_update(ent,
+			"saPlmHECurrEntityPath",
+			ent->entity.he_entity.saPlmHECurrEntityPath,
+			SA_IMM_ATTR_VALUES_REPLACE);
 
 			/* Populate the entity state model.*/
 			ent->state_model = hpi_evt->state_model;
@@ -3238,10 +3182,6 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 	PLMS_HE_TYPE_INFO *he_type_list;
 	SaUint8T *cur_epath = NULL;
 	PLMS_CB *cb = plms_cb;
-#if 0
-	SaUint32T len_c,len_p;
-	SaUint8T * *temp_p_epath = NULL, *temp_c_epath = NULL;
-#endif
 	TRACE_ENTER2("Entity: %s",hpi_evt->entity_path);
 	
 	ent = (PLMS_ENTITY *)ncs_patricia_tree_getnext(&cb->entity_info,NULL);
@@ -3267,63 +3207,15 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 		epath_matched = 0;
 		for ( max = 0; SAHPI_MAX_ENTITY_PATH > max; max++){
 			if ((ent->entity.he_entity.saPlmHEEntityPaths[max])){
-		#if 0		
-				if(ent->parent){ 
-					if (!ent->parent->entity.
-					he_entity.saPlmHECurrEntityPath){
-						/* Parent is not yet verified.*/
-						break;
-					}else{
-						/*Append the parent epath to 
-						the configured epaths.*/
-						len_p = strlen(
-						ent->parent->entity.he_entity.
-						saPlmHECurrEntityPath);
-						
-						len_c = strlen(
-						ent->entity.he_entity.
-						saPlmHEEntityPaths[max]);
-				
-						cur_epath = (SaUint8T *)calloc(1,
-						len_p+len_c-1);
-						
-						/* Dont copy the last char '}'*/
-						memcpy(cur_epath,
-						ent->parent->entity.he_entity.
-						saPlmHECurrEntityPath,len_p-1);
-				
-						temp_p_epath = cur_epath + (
-						len_p -1);
-						
-						/*Do not copy the 1st char '{'*/
-						temp_c_epath =&((
-						ent->entity.he_entity.
-						saPlmHEEntityPaths[max])[1]);
-						
-						memcpy(temp_p_epath,
-						temp_c_epath,len_c);
-				
-						if ( 0 == memcmp(cur_epath,
-							hpi_evt->entity_path,
-							len_c+len_p -1)){
-							
-							epath_matched = 1;
-							break;
-						}
-					}
-		#endif			
-		//		}else{/* Parent is domain.*/
-					if ( 0 == memcmp(ent->entity.he_entity.
-						saPlmHEEntityPaths[max], 
-						hpi_evt->entity_path, 
-						strlen(ent->entity.he_entity.
-						saPlmHEEntityPaths[max]))){
-						
-						epath_matched = 1;
-						break;
-					}
-		//		}
-				
+				if ( 0 == memcmp(ent->entity.he_entity.
+					saPlmHEEntityPaths[max], 
+					hpi_evt->entity_path, 
+					strlen(ent->entity.he_entity.
+					saPlmHEEntityPaths[max]))){
+					
+					epath_matched = 1;
+					break;
+				}
 			}else{
 				break;
 			}
@@ -3353,10 +3245,8 @@ static SaUint32T plms_he_verify(PLMS_HPI_EVT *hpi_evt,
 		/* Scan through the HEType list and match the INV date.*/
 		he_type_list = base_he_type->he_type_info_list;
 		while(he_type_list){
-#if 1
 			ret_err = plms_inv_data_compare(
 				he_type_list->inv_data,hpi_evt->inv_data);
-#endif			
 			if (NCSCC_RC_SUCCESS != ret_err){
 				/* Did not match. Go for next HEType.*/
 				he_type_list = he_type_list->next;
@@ -3816,9 +3706,10 @@ SaUint32T plms_he_deactivate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt
 		ret_err = NCSCC_RC_FAILURE;
 	}else {/* Deactivation is successful.*/
 		ent->iso_method = PLMS_ISO_DEFAULT;
-
+#if 0
 		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
 			plms_deact_resp_mngt_flag_clear(ent);
+#endif			
 	}
 
 	TRACE_LEAVE2("Return Val: %d",ret_err);
@@ -3937,9 +3828,10 @@ SaUint32T plms_he_activate(PLMS_ENTITY *ent,SaUint32T is_adm_op,SaUint32T mngt_c
 		ent->mngt_lost_tri = PLMS_MNGT_HE_ACTIVATE;
 		ret_err = NCSCC_RC_FAILURE;
 	}else{
-		
+#if 0		
 		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST))
 			plms_act_resp_mngt_flag_clear(ent);
+#endif			
 	}
 
 	TRACE_LEAVE2("Return Val: %d",ret_err);
@@ -4014,23 +3906,6 @@ SaUint32T plms_he_reset(PLMS_ENTITY *ent,SaUint32T is_adm_op,
 
 		ret_err = NCSCC_RC_FAILURE;
 	}else{
-		if (plms_rdness_flag_is_set(ent,SA_PLM_RF_MANAGEMENT_LOST)){
-			switch(reset_type){
-			case SAHPI_WARM_RESET:
-			case SAHPI_COLD_RESET:
-				plms_cold_warm_reset_resp_mngt_flag_clear(ent);
-				break;
-			case SAHPI_RESET_DEASSERT:
-				plms_reset_assert_resp_mngt_flag_clear(ent);
-				break;
-			case SAHPI_RESET_ASSERT:
-				plms_reset_deassert_resp_mngt_flag_clear(ent);
-				break;
-			default:
-				break;
-			}
-		}
-
 	}
 	TRACE_LEAVE2("Return Val: %d",ret_err);
 	return ret_err;
@@ -4068,10 +3943,6 @@ static SaUint32T plms_hrb_req(PLMS_ENTITY *ent,PLMS_HPI_CMD cmd,SaUint32T arg)
 			ent->entity.he_entity.saPlmHECurrEntityPath);
 	req.cmd = cmd;
 	req.arg = arg;
-#if 0	
-	/* TODO: context is not used in mds sync send.*/
-	req.mds_context = ;
-#endif
 	
 	ret_err = plms_hrb_mds_msg_sync_send(cb->mds_hdl,
 						NCSMDS_SVC_ID_PLMS,
@@ -4111,7 +3982,8 @@ static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 	/* If isolate pending flag is set then clear the flags return
 	from here.*/
 	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
-		TRACE("Clear management lost flag,set for EE_ISOLATE.");
+		TRACE("Clear management lost flag,set for EE_ISOLATE. Ent: %s",
+		ent->dn_name_str);
 		
 		plms_readiness_flag_mark_unmark(ent,
 		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
@@ -4121,8 +3993,12 @@ static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 		/* Clear admin_pending as well as 
 		isolate_pending flag if set.*/
 		plms_readiness_flag_mark_unmark(ent,
-		(SA_PLM_RF_ISOLATE_PENDING |
-		SA_PLM_RF_ADMIN_OPERATION_PENDING),0/*unmark*/,
+		SA_PLM_RF_ISOLATE_PENDING,0,
+		NULL, SA_NTF_OBJECT_OPERATION,
+		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+		
+		plms_readiness_flag_mark_unmark(ent,
+		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
 		NULL, SA_NTF_OBJECT_OPERATION,
 		SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
@@ -4130,43 +4006,24 @@ static SaUint32T plms_deact_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 		return NCSCC_RC_SUCCESS;
 	}
-	switch(ent->mngt_lost_tri){
-
-	case PLMS_MNGT_HE_DEACTIVATE:
-	case PLMS_MNGT_HE_RESET_ASSERT:
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for \
-		HE_RESET_ASSERT/HE_DEACTIVATE.");
 	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	TRACE("Clear management lost flag. Reason %d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
+	NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,
+	0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		break;
-
-	case PLMS_MNGT_HE_ACTIVATE:
-		plms_act_and_mngt_lost_clear(ent);
-		break;
-
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-		break;
-	default:
-		LOG_ER("Invalid management lost trigger for HE DEACTIVATION\
-		Resp. mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	
 	return NCSCC_RC_SUCCESS;
 }
 /******************************************************************************
@@ -4187,325 +4044,26 @@ static SaUint32T plms_act_resp_mngt_flag_clear(PLMS_ENTITY *ent)
 			return NCSCC_RC_SUCCESS;
 	}
 	
-	switch(ent->mngt_lost_tri){
-
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-	case PLMS_MNGT_HE_ACTIVATE:
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for \
-		%d",ent->mngt_lost_tri);
+	TRACE("Clear management lost flag. Reason %d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
 	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear management lost flag.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
+	NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,
+	0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-
-		break;
-
-	case PLMS_MNGT_HE_DEACTIVATE:
-		plms_deact_and_mngt_lost_clear(ent);
-		break;
-	case PLMS_MNGT_HE_RESET_ASSERT:	
-		plms_reset_and_mngt_lost_clear(ent,SAHPI_RESET_ASSERT);
-		break;
-	default:
-		LOG_ER("Invalid management lost trigger for HE ACTIVATION Resp.\
-		mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	
 	return NCSCC_RC_SUCCESS;
 }
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_cold_warm_reset_resp_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
-	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)) {
-		ret_err = plms_isolate_and_mngt_lost_clear(ent);
-		if (NCSCC_RC_SUCCESS == ret_err)
-			return NCSCC_RC_FAILURE;
-		else
-			return NCSCC_RC_SUCCESS;
-	}
-	
-	switch(ent->mngt_lost_tri){
-
-	case PLMS_MNGT_HE_ACTIVATE:
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for \
-		HE_RESET_DEASSERT/HE_ACTIVATE/COLD_RESET/WARM_RESET.");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	case PLMS_MNGT_HE_DEACTIVATE:
-		ret_err = plms_deact_and_mngt_lost_clear(ent);
-		break;
-	case PLMS_MNGT_HE_RESET_ASSERT:
-		ret_err =plms_reset_and_mngt_lost_clear(ent,SAHPI_RESET_ASSERT);
-		break;
-	default:
-		LOG_ER("Invalid management lost trigger for HE Reset\
-		(Warm/Cold) Resp.  mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_reset_deassert_resp_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
-	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)){
-		ret_err = plms_isolate_and_mngt_lost_clear(ent);
-		if (NCSCC_RC_SUCCESS == ret_err)
-			return NCSCC_RC_FAILURE;
-		else
-			return NCSCC_RC_SUCCESS;
-			
-	}
-	
-	switch(ent->mngt_lost_tri){
-
-	case PLMS_MNGT_HE_ACTIVATE:
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for \
-		HE_RESET_DEASSERT/HE_ACTIVATE/COLD_RESET/WARM_RESET.");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	case PLMS_MNGT_HE_DEACTIVATE:
-		plms_deact_and_mngt_lost_clear(ent);
-		break;
-	case PLMS_MNGT_HE_RESET_ASSERT:
-		plms_reset_and_mngt_lost_clear(ent,SAHPI_RESET_ASSERT);
-		break;
-	default:
-		LOG_ER("Invalid management lost trigger for HE Reset \
-		Deassert Resp. mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_reset_assert_resp_mngt_flag_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
-	if(plms_rdness_flag_is_set(ent, SA_PLM_RF_ISOLATE_PENDING)){
-		/* Skip.*/
-	}
-	
-	switch(ent->mngt_lost_tri){
-
-	case PLMS_MNGT_HE_RESET_ASSERT:
-		/*Clear the  admin operation pending flag.*/	
-		TRACE("Clear management lost flag, set for \
-		HE_RESET_DEASSERT/HE_ACTIVATE/COLD_RESET/WARM_RESET.");
-	
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,
-		NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,
-		0/*unmark*/,NULL,SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-	
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-		ret_err = plms_reset_and_mngt_lost_clear(ent,
-		SAHPI_RESET_DEASSERT);
-		break;
-	default:
-		LOG_ER("Invalid management lost trigger for HE Reset \
-		Assert Resp. mngt_lost_tri: %d",ent->mngt_lost_tri);
-		break;
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_act_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_he_activate(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for he_act.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(he_act) FAILED.");
-	}
-
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_deact_and_mngt_lost_clear(PLMS_ENTITY *ent)
-{
-	SaUint32T ret_err = NCSCC_RC_SUCCESS;
-
-	ret_err = plms_he_deactivate(ent,FALSE,FALSE);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for he_deact.");
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(he_deact) FAILED.");
-	}
-	return ret_err;
-}
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-static SaUint32T plms_reset_and_mngt_lost_clear(PLMS_ENTITY *ent,SaUint32T reset_type)
-{
-	SaUint32T ret_err;
-	
-	ret_err = plms_he_reset(ent,FALSE,FALSE,reset_type);
-	if (NCSCC_RC_SUCCESS == ret_err){
-		TRACE("Clear management lost flag,set for EE_RESET, type: %d.",
-		reset_type);
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
-
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-	}else{
-		LOG_ER("Management-lost flag clear(he_deact) FAILED.");
-	}
-
-	return ret_err;
-}
-
 /******************************************************************************
 Name            : 
 Description     : 
@@ -4523,36 +4081,23 @@ static SaUint32T plms_inspending_mngt_flag_clear(PLMS_ENTITY *ent)
 		else
 			return NCSCC_RC_SUCCESS;
 	}
-
-	switch(ent->mngt_lost_tri){
-	case PLMS_MNGT_HE_ACTIVATE:
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-	case PLMS_MNGT_HE_RESET_DEASSERT:
 	
-		TRACE("Clear management lost flag,set for %d",
-		ent->mngt_lost_tri);
-		
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
-		SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	TRACE("Clear management lost flag. Reason %d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		/* Clear admin_pending flag if set.*/
-		plms_readiness_flag_mark_unmark(ent,
-		SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
-		NULL, SA_NTF_OBJECT_OPERATION,
-		SA_PLM_NTFID_STATE_CHANGE_ROOT);
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-		ent->mngt_lost_tri = PLMS_MNGT_NONE;
-		plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
-		break;
-	case PLMS_MNGT_HE_DEACTIVATE:	
-		plms_deact_and_mngt_lost_clear(ent);	
-		break;
-	default:
-		break;
-	}
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
 
 	return NCSCC_RC_SUCCESS;
 }
@@ -4575,24 +4120,22 @@ static SaUint32T plms_extpending_mngt_flag_clear(PLMS_ENTITY *ent)
 			return NCSCC_RC_SUCCESS;
 	}
 
-	switch(ent->mngt_lost_tri){
+	TRACE("Clear management lost flag. Reason %d, ent: %s",
+	ent->mngt_lost_tri,ent->dn_name_str);
+	
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_MANAGEMENT_LOST,0/*unmark*/,NULL,
+	SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-	case PLMS_MNGT_HE_ACTIVATE:
-		plms_act_and_mngt_lost_clear(ent); 
-		break;
-	case PLMS_MNGT_HE_DEACTIVATE:
-		plms_deact_and_mngt_lost_clear(ent); 
-		break;
+	/* Clear admin_pending flag if set.*/
+	plms_readiness_flag_mark_unmark(ent,
+	SA_PLM_RF_ADMIN_OPERATION_PENDING,0/*unmark*/,
+	NULL, SA_NTF_OBJECT_OPERATION,
+	SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-	case PLMS_MNGT_HE_RESET_DEASSERT:
-	case PLMS_MNGT_HE_COLD_RESET:
-	case PLMS_MNGT_HE_WARM_RESET:
-		break;
-		
-	default:
-		break;
-	}
-
+	ent->mngt_lost_tri = PLMS_MNGT_NONE;
+	plms_mngt_lost_clear_cbk_call(ent,0/*unmark*/);
+	
 	return NCSCC_RC_SUCCESS;
 }
-

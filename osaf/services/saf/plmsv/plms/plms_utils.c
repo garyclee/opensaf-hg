@@ -29,7 +29,7 @@
 #include "plms_mbcsv.h"
 #include "plms_utils.h"
 
-static SaUint32T plms_attr_imm_update(PLMS_ENTITY *,SaInt8T *,SaImmValueTypeT ,SaUint32T);
+static SaUint32T plms_attr_imm_update(PLMS_ENTITY *,SaInt8T *,SaImmValueTypeT ,SaUint64T);
 
 /******************************************************************************
 Name            : 
@@ -129,7 +129,7 @@ void plms_affected_ent_list_get( PLMS_ENTITY *root_ent,
 {
 	PLMS_GROUP_ENTITY *chld_aff_fg_list = NULL,*chld_aff_list = NULL;
 	PLMS_GROUP_ENTITY *dep_aff_fg_list = NULL,*dep_aff_list = NULL;
-	PLMS_GROUP_ENTITY *tail;
+	PLMS_GROUP_ENTITY *tail,*log_head;
 
 	plms_aff_chld_ent_list_get(root_ent,root_ent->leftmost_child,
 				&chld_aff_list,&chld_aff_fg_list,is_insvc);
@@ -181,6 +181,13 @@ void plms_affected_ent_list_get( PLMS_ENTITY *root_ent,
 		plms_ent_list_free(dep_aff_fg_list);
 	}
 
+	TRACE("Affected entities for ent %s: ", root_ent->dn_name_str);
+	log_head = *ent_list;
+	while(log_head){
+		TRACE(" %s",log_head->plm_entity->dn_name_str);
+		log_head = log_head->next;
+	}
+	
 	return;	
 }
 /******************************************************************************
@@ -620,11 +627,6 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 					ent_fg_list);
 				}
 			}
-#if 0
-			if (!plms_min_dep_is_ok(ent)){
-				return;
-			}
-#endif
 			if ((SA_PLM_OPERATIONAL_DISABLED == 
 			ent->entity.he_entity.saPlmHEOperationalState) || 
 			((SA_PLM_HE_PRESENCE_ACTIVE != 
@@ -690,11 +692,6 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 					ent_fg_list);
 				}
 			}
-#if 0				
-			if (!plms_min_dep_is_ok(ent)){
-				return;
-			}
-#endif
 			if ((SA_PLM_OPERATIONAL_DISABLED == 
 			ent->entity.ee_entity.saPlmEEOperationalState) ||
 			((SA_PLM_EE_PRESENCE_INSTANTIATED != 
@@ -740,20 +737,6 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 					ent,ent_fg_list);
 				}
 				
-#if 0				
-				/* If I am OOS because of my states,
-				then return.*/
-				if ((SA_PLM_OPERATIONAL_DISABLED == 
-				ent->entity.he_entity.saPlmHEOperationalState) || 
-				((SA_PLM_HE_PRESENCE_ACTIVE != 
-				ent->entity.he_entity.saPlmHEPresenceState) &&
-				(SA_PLM_HE_PRESENCE_DEACTIVATING != 
-				ent->entity.he_entity.saPlmHEPresenceState)) ||
-				(SA_PLM_HE_ADMIN_UNLOCKED != 
-				ent->entity.he_entity.saPlmHEAdminState)){
-					return;	
-				}
-#endif				
 				/* As I am alerady in OOS, then no point in
 				 * traversing my children and rev dependency
 				 * list*/
@@ -775,20 +758,6 @@ void plms_aff_chld_ent_list_get(PLMS_ENTITY *root_ent,
 					ent,ent_fg_list);
 				}
 				
-#if 0				
-				/* I am out of service for my states,
-				hence return.*/
-				if ((SA_PLM_OPERATIONAL_DISABLED == 
-				ent->entity.ee_entity.saPlmEEOperationalState)
-				/*|| ((SA_PLM_EE_PRESENCE_INSTANTIATED != 
-				ent->entity.ee_entity.saPlmEEPresenceState) &&
-				(SA_PLM_EE_PRESENCE_TERMINATING != 
-				ent->entity.ee_entity.saPlmEEPresenceState))*/
-				|| (SA_PLM_EE_ADMIN_UNLOCKED != 
-				ent->entity.ee_entity.saPlmEEAdminState)){
-					return;
-				}
-#endif				
 				/* As I am alerady in OOS, then no point in
 				 * traversing my children and rev dependency
 				 * list*/
@@ -987,36 +956,6 @@ void plms_aff_chld_list_imnt_failure_get(PLMS_ENTITY *root_ent,
 			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)){
 			return;
 		}
-#if 0
-		/* If the min dep criteria is met, then have to clear the
-		dep-imminet-failure flag.*/
-		head = ent->dependency_list;
-		while (head){
-			if (((!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_DEPENDENCY_IMMINENT_FAILURE)) && 
-			(!plms_rdness_flag_is_set(head->plm_entity,
-			SA_PLM_RF_IMMINENT_FAILURE))) && 
-			(!plms_is_ent_in_ent_list(*aff_ent_list,
-			head->plm_entity)) && (0!=strcmp(root_ent->dn_name_str,
-			head->plm_entity->dn_name_str)) &&
-			
-			(((PLMS_HE_ENTITY == head->plm_entity->entity_type) &&
-			(SA_PLM_OPERATIONAL_ENABLED ==
-			head->plm_entity->entity.he_entity.
-			saPlmHEOperationalState)) ||((PLMS_EE_ENTITY == 
-			head->plm_entity->entity_type) && 
-			(SA_PLM_OPERATIONAL_ENABLED == head->plm_entity->entity.
-			ee_entity.saPlmEEOperationalState))) ){
-				
-				count++;
-			}
-			
-			head = head->next;
-		}
-		if (count < ent->min_no_dep)
-			/* Add the ent to aff ent ist.*/
-			plms_ent_to_ent_list_add(ent,aff_ent_list);
-#endif		
 		/* If the imminent failure is set for the entity then,
 		no need to traverse the dep and chld as their dep-imminent-
 		failure flag would be set. But we have to mark the dep-imminet
@@ -1747,72 +1686,6 @@ void plms_ent_grp_list_free(PLMS_ENTITY_GROUP_INFO_LIST *grp_list)
 	return;
 }
 
-#if 0
-/******************************************************************************
-Name            : 
-Description     : Mark the readiness state of the affected entities.
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-void plms_aff_ent_rdness_state_mark(PLMS_GROUP_ENTITY *aff_ent_list,
-				SaPlmHEReadinessStateT state)
-{
-	PLMS_GROUP_ENTITY *head;
-
-	head = aff_ent_list;
-	while (head){
-		plms_readiness_state_set(head->plm_entity,state);
-		head = head->next;
-	}
-	return;
-}
-/******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : See if this is needed. 
-******************************************************************************/
-void plms_aff_ent_grp_rdness_flags_mark_unmark(
-				PLMS_ENTITY_GROUP_INFO_LIST *grp_list, 
-				SaPlmReadinessFlagsT flag,
-				SaBoolT mark_unmark)
-{
-	PLMS_ENTITY_GROUP_INFO_LIST *tail;
-	PLMS_GROUP_ENTITY *head;
-
-	tail = grp_list;
-	while (tail){
-		plms_aff_ent_rdness_flags_mark_unmark(
-			tail->ent_grp_inf->plm_entity_list,flag,mark_unmark);
-		tail = tail->next;
-	}
-	return;
-}
-/******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-void plms_aff_ent_rdness_flags_mark_unmark(PLMS_GROUP_ENTITY *aff_ent_list,
-						SaPlmReadinessFlagsT flag,
-						SaBoolT mark_unmark)
-{
-	PLMS_GROUP_ENTITY *head;
-
-	head = aff_ent_list;
-	while(head)
-	{
-		plms_readiness_flag_mark_unmark(head->plm_entity,
-						flag,mark_unmark);
-		head = head->next;
-	}
-	return;
-}
-#endif
 /******************************************************************************
 Name            : 
 Description     : 
@@ -2237,38 +2110,6 @@ SaUint32T plms_is_rdness_state_set(PLMS_ENTITY *ent,SaPlmReadinessStateT state)
 	return ret_err;
 }
 
-#if 0
-/******************************************************************************
-Name            : 
-Description     :
-Arguments       : 
-Return Values   : 
-Notes           : See if this is needed. 
-******************************************************************************/
-void plms_aff_ent_grp_exp_rdness_state_mark(
-				PLMS_ENTITY_GROUP_INFO_LIST *grp_list, 
-				SaPlmHEAdminStateT rdyness_state,
-				SaPlmReadinessFlagsT flag)
-{
-	PLMS_ENTITY_GROUP_INFO_LIST *tail;
-	PLMS_GROUP_ENTITY *head;
-	
-	tail = grp_list;
-	while(tail){
-		head = tail->ent_grp_inf->plm_entity_list;
-		while (head){
-			head->plm_entity->exp_readiness_status.readinessState 
-								= rdyness_state;
-			head->plm_entity->exp_readiness_status.readinessFlags =
-			(head->plm_entity->exp_readiness_status.readinessFlags 
-								| flag );
-			head = head->next;
-		}
-		tail = tail->next;
-	}
-	return;
-}
-#endif
 /******************************************************************************
 Name            : 
 Description     :
@@ -2669,12 +2510,12 @@ Return Values   :
 Notes           : 
 ******************************************************************************/
 static SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
-				SaImmValueTypeT val_type,SaUint32T val)
+				SaImmValueTypeT val_type,SaUint64T val)
 {
 	SaAisErrorT err;
 	SaImmAttrModificationT_2 temp;
 	const SaImmAttrModificationT_2 *imm_attr[2];
-	SaUint32T *value;
+	SaUint64T *value;
 	PLMS_CB *cb = plms_cb;
 
 	temp.modType = SA_IMM_ATTR_VALUES_REPLACE;
@@ -2693,7 +2534,85 @@ static SaUint32T plms_attr_imm_update(PLMS_ENTITY *ent,SaInt8T *attr_name,
 		return NCSCC_RC_FAILURE;
 	}
 	
-	TRACE("IMM atribute updated. Ent: %s, attr_name: %s, val: %d",
+	TRACE("IMM atribute updated. Ent: %s, attr_name: %s, val: %llu",
+	ent->dn_name_str,attr_name,val);
+	
+	return NCSCC_RC_SUCCESS;
+}
+/******************************************************************************
+Name            : 
+Description     :
+Arguments       : 
+Return Values   : 
+Notes           : 
+******************************************************************************/
+SaUint32T plms_attr_saname_imm_update(PLMS_ENTITY *ent,
+SaInt8T *attr_name,SaNameT val,SaImmAttrModificationTypeT mod_type)
+{
+	SaAisErrorT err;
+	SaImmAttrModificationT_2 temp;
+	const SaImmAttrModificationT_2 *imm_attr[2];
+	SaNameT *value;
+	SaInt8T he_type[SA_MAX_NAME_LENGTH +1];
+	PLMS_CB *cb = plms_cb;
+	
+	plms_get_str_from_dn_name(&val,he_type);
+
+	temp.modType = mod_type;
+	temp.modAttr.attrName = attr_name;
+	temp.modAttr.attrValueType = SA_IMM_ATTR_SANAMET;
+	temp.modAttr.attrValuesNumber = 1;
+	value = &val;
+	temp.modAttr.attrValues = (void **)&value;
+
+	imm_attr[0] = &temp;
+	imm_attr[1] = NULL;
+
+	err = saImmOiRtObjectUpdate_2(cb->oi_hdl,&(ent->dn_name),imm_attr);
+	if (SA_AIS_OK != err){
+		LOG_ER("IMM attr update failed.Ent: %s, attr_name: %s, val: %s\
+		,ret_val: %d",ent->dn_name_str,attr_name,he_type,err);
+		return NCSCC_RC_FAILURE;
+	}
+	
+	TRACE("IMM atribute updated. Ent: %s, attr_name: %s, val: %s",
+	ent->dn_name_str,attr_name,he_type);
+	
+	return NCSCC_RC_SUCCESS;
+}
+/******************************************************************************
+Name            : 
+Description     :
+Arguments       : 
+Return Values   : 
+Notes           : 
+******************************************************************************/
+SaUint32T plms_attr_sastring_imm_update(PLMS_ENTITY *ent,
+	SaInt8T *attr_name,SaStringT val,SaImmAttrModificationTypeT mod_type)
+{
+	SaAisErrorT err;
+	SaImmAttrModificationT_2 temp;
+	const SaImmAttrModificationT_2 *imm_attr[2];
+	SaStringT *value;
+	PLMS_CB *cb = plms_cb;
+
+	temp.modType = mod_type;
+	temp.modAttr.attrName = attr_name;
+	temp.modAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
+	temp.modAttr.attrValuesNumber = 1;
+	value = &val;
+	temp.modAttr.attrValues = (void **)&value;
+
+	imm_attr[0] = &temp;
+	imm_attr[1] = NULL;
+
+	err = saImmOiRtObjectUpdate_2(cb->oi_hdl,&(ent->dn_name),imm_attr);
+	if (SA_AIS_OK != err){
+		LOG_ER("IMM Updation FAILED. Ret_val: %d",err);
+		return NCSCC_RC_FAILURE;
+	}
+	
+	TRACE("IMM atribute updated. Ent: %s, attr_name: %s, val: %s",
 	ent->dn_name_str,attr_name,val);
 	
 	return NCSCC_RC_SUCCESS;
@@ -3386,7 +3305,7 @@ SaUint32T plms_rdness_imminent_failure_process(PLMS_ENTITY *ent,
 		return NCSCC_RC_FAILURE;
 	}
 	
-	plms_readiness_flag_mark_unmark(ent,
+	ntf_id = plms_readiness_flag_mark_unmark(ent,
 				SA_PLM_RF_IMMINENT_FAILURE,1/*mark*/,
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
@@ -3432,7 +3351,7 @@ SaUint32T plms_rdness_imminent_failure_process(PLMS_ENTITY *ent,
 	
 	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 	trk_info.track_cause = SA_PLM_CAUSE_IMMINENT_FAILURE;
-	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	trk_info.root_correlation_id = ntf_id;
 	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
 	trk_info.root_entity = ent;
 
@@ -3531,7 +3450,7 @@ SaUint32T plms_rdness_imminent_failure_cleared_process(PLMS_ENTITY *ent,
 		return NCSCC_RC_FAILURE;
 	}
 
-	plms_readiness_flag_mark_unmark(ent,
+	ntf_id = plms_readiness_flag_mark_unmark(ent,
 				SA_PLM_RF_IMMINENT_FAILURE,0/*unmark*/,
 				NULL,SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
@@ -3578,7 +3497,7 @@ SaUint32T plms_rdness_imminent_failure_cleared_process(PLMS_ENTITY *ent,
 	
 	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 	trk_info.track_cause = SA_PLM_CAUSE_IMMINENT_FAILURE_CLEARED;
-	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	trk_info.root_correlation_id = ntf_id;
 	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
 	trk_info.root_entity = ent;
 
@@ -3745,21 +3664,35 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 		}
 		/* Mark the operational state of the faulty entity to 
 		disabled. */  
-		plms_op_state_set(ent,SA_PLM_OPERATIONAL_DISABLED,NULL,
+		ntf_id = plms_op_state_set(ent,SA_PLM_OPERATIONAL_DISABLED,NULL,
 		SA_NTF_OBJECT_OPERATION, SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+		/* Isolate the entity.*/
+		ret_err = plms_ent_isolate(ent,FALSE,TRUE);
+
+		/* Resp to PLMA.*/
+		evt.req_res = PLMS_RES;
+		evt.res_evt.res_type = PLMS_AGENT_TRACK_READINESS_IMPACT_RES;
+		evt.res_evt.ntf_id = ntf_id;
+		if ( NCSCC_RC_SUCCESS == ret_err )
+			evt.res_evt.error = SA_AIS_OK;
+		else
+			evt.res_evt.error = SA_AIS_ERR_TRY_AGAIN;
+
+		ret_err = plm_send_mds_rsp(cb->mds_hdl,NCSMDS_SVC_ID_PLMS,
+		snd_info,&evt);
+		if(NCSCC_RC_SUCCESS != ret_err){
+			LOG_ER("Sync resp to PLMA for readiness impact fault\
+			clear FAILED. ret_val = %d",ret_err);
+		}
+		
+		TRACE_LEAVE2("Return Val: %d",ret_err);
+		return ret_err;
 
 	}else{
 		/* Find out the affected entities.*/
 		plms_affected_ent_list_get(ent,&aff_ent_list_state,0/*OOS */);
 
-		TRACE("Affected entities(OOS) for ent %s:", ent->dn_name_str);
-		
-		head = aff_ent_list_state;
-		while(head){
-			TRACE("%s,",head->plm_entity->dn_name_str);
-			head = head->next;
-		}
-		
 		if (plms_anc_chld_dep_adm_flag_is_set(ent,aff_ent_list_state)){
 			TRACE("Imminent failure request can not be set as the \
 			ent %s is in some other operational context.",
@@ -3871,7 +3804,7 @@ SaUint32T plms_rdness_failure_process(PLMS_ENTITY *ent,
 	
 	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 	trk_info.track_cause = SA_PLM_CAUSE_FAILURE;
-	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	trk_info.root_correlation_id = ntf_id;
 	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
 	trk_info.root_entity = ent;
 
@@ -4005,10 +3938,14 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	 * state of the ent to active/instantiated state only if the admin
 	 * state is not lock-inactive/lock-instantiation.*/
 	
-	plms_op_state_set(ent,SA_PLM_OPERATIONAL_ENABLED,
+	ntf_id = plms_op_state_set(ent,SA_PLM_OPERATIONAL_ENABLED,
 			NULL,SA_NTF_OBJECT_OPERATION,
 			SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
+	/* TODO: If the entity is already in active/instantiated state,
+	then we need to move the ent to insvc, but then if the opetaional
+	state is disable ==> the ent must be in inactive/uninstantiated
+	state. FIX this only if needed.*/
 	ret_err = plms_ent_enable(ent,FALSE,TRUE);
 	if(NCSCC_RC_SUCCESS != ret_err){
 		LOG_ER("Fault cleared but inst/act the entity %s FAILED.",
@@ -4038,7 +3975,7 @@ SaUint32T plms_rdness_failure_cleared_process(PLMS_ENTITY *ent,
 	
 	trk_info.change_step = SA_PLM_CHANGE_COMPLETED;
 	trk_info.track_cause = SA_PLM_CAUSE_FAILURE_CLEARED;
-	trk_info.root_correlation_id = SA_NTF_IDENTIFIER_UNUSED;
+	trk_info.root_correlation_id = ntf_id;
 	trk_info.grp_op = SA_PLM_GROUP_MEMBER_READINESS_CHANGE; 
 	trk_info.root_entity = ent;
 
@@ -4082,6 +4019,7 @@ SaUint32T plms_readiness_impact_process(PLMS_EVT *evt)
 	PLMS_SEND_INFO *snd_info;
 	SaNtfIdentifierT ntf_id = SA_NTF_IDENTIFIER_UNUSED;
 	PLMS_EVT evt_resp;
+	SaNameT name_key;
 	
 	snd_info = &(evt->sinfo);
 	rd_impact = &(evt->req_evt.agent_track.readiness_impact); 
@@ -4098,8 +4036,13 @@ SaUint32T plms_readiness_impact_process(PLMS_EVT *evt)
 	/* TODO: Should I reject if this entity or any of the dependent/
 	 * children as undergoing any other operation.*/
 	
+	memset(&name_key,0,sizeof(SaNameT));
+	name_key.length = rd_impact->impacted_entity->length;
+	memcpy(name_key.value,rd_impact->impacted_entity->value,
+	name_key.length);
+
 	ent = (PLMS_ENTITY *)ncs_patricia_tree_get(&(cb->entity_info),
-				   (SaUint8T *)(rd_impact->impacted_entity));
+				   (SaUint8T *)(&name_key));
 	if (NULL == ent){
 		
 		LOG_ER("Entity not found in patricia tree. Ent: %s",imp_ent); 
@@ -4280,13 +4223,13 @@ Notes           :
 ******************************************************************************/
 SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 {
-	SaUint32T ret_err,can_isolate;
-	PLMS_GROUP_ENTITY *chld_list,*head;
+	SaUint32T ret_err,can_isolate = 1;
+	PLMS_GROUP_ENTITY *chld_list = NULL,*head;
 
 	/* Isolate the faulty entity. HE->Inactive, EE->terminate.*/
 	if (PLMS_EE_ENTITY == ent->entity_type){
 		/* Terminate the EE.*/
-		ret_err = plms_ee_term(ent,adm_op,mngt_cbk);
+		ret_err = plms_ee_term(ent,adm_op,0);
 		/* If termination fails, then reset assert the parent HE.*/
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("EE Isolation(term) FAILED. Try reset assert of\
@@ -4298,9 +4241,11 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 								&chld_list);
 				head = chld_list;
 				while(head){
-					if (plms_is_rdness_state_set(
-					head->plm_entity,
-					SA_PLM_READINESS_IN_SERVICE)){
+					if ( 0 == strcmp(head->plm_entity->dn_name_str,ent->dn_name_str)){
+						head = head->next;
+						continue;
+					}
+					if (plms_is_rdness_state_set(head->plm_entity,SA_PLM_READINESS_IN_SERVICE)){
 						can_isolate = 0;
 						break;
 					}
@@ -4345,11 +4290,17 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 						ent->dn_name_str);
 
 						plms_readiness_flag_mark_unmark(
-						ent,(SA_PLM_RF_ISOLATE_PENDING |
-						SA_PLM_RF_MANAGEMENT_LOST),1,
+						ent,SA_PLM_RF_MANAGEMENT_LOST,1,
 						NULL,SA_NTF_OBJECT_OPERATION,
 						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
+						plms_readiness_flag_mark_unmark(
+						ent,SA_PLM_RF_ISOLATE_PENDING,1,
+						NULL,SA_NTF_OBJECT_OPERATION,
+						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+						
+						if (mngt_cbk)
+							plms_mngt_lost_clear_cbk_call(ent, 1);
 						/* ent->mngt_lost_tri = 
 							PLMS_MNGT_EE_ISOLATE; */
 								
@@ -4360,32 +4311,65 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 
 						ent->iso_method = 
 						PLMS_ISO_HE_DEACTIVATED;
+
+						/* Clear admin pending  for 
+						the EE.*/	
+						plms_readiness_flag_mark_unmark(
+						ent,SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+						NULL, SA_NTF_OBJECT_OPERATION,
+						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+						/* Clear management lost for 
+						the EE.*/
+						plms_readiness_flag_mark_unmark(
+						ent,SA_PLM_RF_MANAGEMENT_LOST,0,
+						NULL, SA_NTF_OBJECT_OPERATION,
+						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+
+						/* Clear admin pending for 
+						HE.*/	
+						plms_readiness_flag_mark_unmark(
+						ent->parent,
+						SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+						NULL, SA_NTF_OBJECT_OPERATION,
+						SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+						/* Clear management lost for 
+						HE.*/
+						plms_readiness_flag_mark_unmark(
+						ent->parent,
+						SA_PLM_RF_MANAGEMENT_LOST,0,
+						NULL, SA_NTF_OBJECT_OPERATION,
+						SA_PLM_NTFID_STATE_CHANGE_ROOT);
 					}
 				}else{
 					TRACE("EE isolation(reset assert of \
 					parent) SUCCESSFUL. Ent: %s",\
 					ent->dn_name_str);
 					ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+					/* Clear admin pending */	
+					plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_ADMIN_OPERATION_PENDING,0,
+					NULL, SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
+					
+					/* Clear management lost.*/
+					plms_readiness_flag_mark_unmark(ent,
+					SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+					SA_NTF_OBJECT_OPERATION,
+					SA_PLM_NTFID_STATE_CHANGE_ROOT);
 				}
 			}else{
 				LOG_ER("EE isolation FAILED. Ent: %s",
 				ent->dn_name_str);
-
+					
 				plms_readiness_flag_mark_unmark(ent,
 				SA_PLM_RF_ISOLATE_PENDING,1,NULL,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 
-				if (!plms_rdness_flag_is_set(ent,
-						SA_PLM_RF_MANAGEMENT_LOST)){
-					plms_readiness_flag_mark_unmark(ent,
-					SA_PLM_RF_MANAGEMENT_LOST,1,NULL,
-					SA_NTF_OBJECT_OPERATION,
-					SA_PLM_NTFID_STATE_CHANGE_ROOT);
-					if (mngt_cbk)
-						plms_mngt_lost_clear_cbk_call(
-						ent, 1/*mark*/);
-				}
+				if (mngt_cbk)
+					plms_mngt_lost_clear_cbk_call(ent, 1);
 				
 				/*ent->mngt_lost_tri = PLMS_MNGT_EE_ISOLATE; */
 			}
@@ -4396,13 +4380,12 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 			ent->iso_method = PLMS_ISO_EE_TERMINATED;
 		}
 	}else{
-		ret_err = plms_he_deactivate(ent,adm_op,mngt_cbk);
+		ret_err = plms_he_deactivate(ent,adm_op,1);
 		
 		if (NCSCC_RC_SUCCESS != ret_err){
 			LOG_ER("HE isolation(deact) FAILED. Try reset\
 			assert. Ent: %s",ent->dn_name_str);
-			/* TODO: Reset assert.*/
-			ret_err = plms_he_reset(ent,adm_op,mngt_cbk,
+			ret_err = plms_he_reset(ent,adm_op,1,
 			SAHPI_RESET_ASSERT);
 			
 			if (NCSCC_RC_SUCCESS != ret_err){
@@ -4415,14 +4398,26 @@ SaUint32T plms_ent_isolate(PLMS_ENTITY *ent,SaUint32T adm_op,SaUint32T mngt_cbk)
 				SA_PLM_RF_ISOLATE_PENDING,1,NULL,
 				SA_NTF_OBJECT_OPERATION,
 				SA_PLM_NTFID_STATE_CHANGE_ROOT);
-#if 0				
-				ent->mngt_lost_tri = PLMS_MNGT_HE_ISOLATE;
-#endif				
+				
+				if (mngt_cbk)
+					plms_mngt_lost_clear_cbk_call(ent, 1);
+				
+				/*ent->mngt_lost_tri = PLMS_MNGT_HE_ISOLATE;*/
 				
 			}else{
 				TRACE("HE isolation (reset assert)\
 				SUCCESSFUL.");
 				ent->iso_method = PLMS_ISO_HE_RESET_ASSERT;
+				/* Clear admin pending */	
+				plms_readiness_flag_mark_unmark(ent,
+				SA_PLM_RF_ADMIN_OPERATION_PENDING,0,NULL,
+				SA_NTF_OBJECT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
+				/* Clear management lost.*/
+				plms_readiness_flag_mark_unmark(ent,
+				SA_PLM_RF_MANAGEMENT_LOST,0,NULL,
+				SA_NTF_OBJECT_OPERATION,
+				SA_PLM_NTFID_STATE_CHANGE_ROOT);
 			}
 		}else{
 			TRACE("HE isolation (deact) SUCCESSFUL.");
@@ -4508,22 +4503,6 @@ void plms_ent_from_ent_list_rem(PLMS_ENTITY *plm_ent,
 	}
 	TRACE_LEAVE();
 }
-#if 0
-/******************************************************************************
-Name            : 
-Description     : 
-		
-Arguments       : 
-Return Values   : 
-Notes           : 
-******************************************************************************/
-void plms_get_str_from_dn_name(SaNameT *obj_name, SaStringT str)
-{
-	strncpy(str, obj_name->value, obj_name->length);
-	str[obj_name->length] = '\0';
-	return;
-}
-#endif
 /******************************************************************************
 Name            : 
 Description     : 
@@ -4584,7 +4563,7 @@ SaUint32T plms_timer_start(timer_t *timer_id,void *cnxt,SaUint64T nsec)
 		LOG_ER("Timer Create failed.");
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE("\nTimer Created, Timer id: %ld \n",(long int)(*timer_id));
+	TRACE("Timer Created, Timer id: %lu \n",(long unsigned)(*timer_id));
 	
 	/* Start the timer.*/
 	timer.it_value.tv_sec = nsec/1000000000;
@@ -4596,10 +4575,10 @@ SaUint32T plms_timer_start(timer_t *timer_id,void *cnxt,SaUint64T nsec)
 		LOG_ER("\nStarting the timer failed, Timer_id: %ld\n",
 		(long int)*timer_id);
 		timer_delete(timer_id);
-		TRACE("\nTimer deleted, Timer_id: %ld\n",(long int)*timer_id);
+		TRACE("Timer deleted,Timer_id: %lu\n",(long unsigned)*timer_id);
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE("\nTimer started, Timer id: %ld\n",(long int)*timer_id);
+	TRACE("Timer started, Timer id: %lu\n",(long unsigned)*timer_id);
 	
 	return NCSCC_RC_SUCCESS;
 }
@@ -4622,11 +4601,11 @@ SaUint32T plms_timer_stop(PLMS_ENTITY *ent)
 	timer.it_interval.tv_nsec = 0;
 	
 	if((timer_settime(ent->tmr.timer_id,0,&timer,NULL)) != 0){
-		TRACE("\nStopping the timer failed, Timer_id: %ld.\n",
-						(long int)ent->tmr.timer_id);
+		TRACE("Stopping the timer failed, Timer_id: %lu.\n",
+					(long unsigned)ent->tmr.timer_id);
 	}else{
-		TRACE("\nTimer stopped,Timer id: %ld.\n",
-		(long int)ent->tmr.timer_id);
+		TRACE("Timer stopped,Timer id: %lu.\n",
+		(long unsigned)ent->tmr.timer_id);
 	}
 	
 	/* Delete the timer.*/
@@ -4636,7 +4615,6 @@ SaUint32T plms_timer_stop(PLMS_ENTITY *ent)
 	ent->tmr.tmr_type = PLMS_TMR_NONE;
 	ent->tmr.context_info = NULL;
 	 
-	TRACE("\nTimer deleted, Timer_id: %ld\n",(long int)ent->tmr.timer_id);
 	return NCSCC_RC_SUCCESS;
 }
 
@@ -4712,17 +4690,27 @@ void plms_he_np_clean_up(PLMS_ENTITY *ent, PLMS_EPATH_TO_ENTITY_MAP_INFO
 	free(epath_to_ent);
 	epath_to_ent = NULL;
 		
+	/* Update IMM.*/
+	plms_attr_saname_imm_update(ent,"saPlmHECurrHEType",
+	ent->entity.he_entity.saPlmHECurrHEType,SA_IMM_ATTR_VALUES_DELETE);
 		
 	TRACE("Wipe out current HE type. Ent: %s",ent->dn_name_str);
 	ent->entity.he_entity.saPlmHECurrHEType.length = 0;
 	memset(ent->entity.he_entity.saPlmHECurrHEType.value,0,
 	SA_MAX_NAME_LENGTH);
+	
+	/* Update IMM*/
+	plms_attr_sastring_imm_update(ent,
+	"saPlmHECurrEntityPath",
+	ent->entity.he_entity.saPlmHECurrEntityPath,
+	SA_IMM_ATTR_VALUES_DELETE);
 		
 	TRACE("Wipe out current entity path. Ent: %s",ent->dn_name_str);
 	if ( ent->entity.he_entity.saPlmHECurrEntityPath ){
 		free(ent->entity.he_entity.saPlmHECurrEntityPath);
 		ent->entity.he_entity.saPlmHECurrEntityPath = NULL;
 	}
+	
 
 	ent->deact_in_pro = FALSE;
 	ent->act_in_pro = FALSE;
