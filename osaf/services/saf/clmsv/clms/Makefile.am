@@ -65,6 +65,5 @@ osafclmd_LDADD += \
         $(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
 	$(top_builddir)/osaf/libs/saf/libSaPlm/libSaPlm.la \
 	$(top_builddir)/osaf/libs/common/clmsv/libclmsv_common.la \
-	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la \
-	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc_common.la
+	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la
 endif

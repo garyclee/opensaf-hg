@@ -26,7 +26,9 @@ osafplmd_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
 	-I$(top_srcdir)/osaf/libs/saf/include \
 	-I$(top_srcdir)/osaf/libs/common/plmsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include
+	-I$(top_srcdir)/osaf/libs/common/immsv/include \
+	-I$(top_srcdir)/contrib/plmc/include \
+	-I$(top_srcdir)/contrib/plmc/lib/plmc/include
 
 osafplmd_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
 
@@ -57,8 +59,8 @@ osafplmd_LDADD = \
 	$(top_builddir)/osaf/libs/common/avsv/libavsv_common.la \
 	$(top_builddir)/osaf/libs/common/immsv/libimmsv_common.la \
 	$(top_builddir)/osaf/libs/common/ntfsv/libntfsv_common.la \
-	$(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la \
-	$(top_builddir)/osaf/services/saf/plmsv/plmc/plmc_lib/libplmc.la \
+	$(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la \
+	$(top_builddir)/contrib/plmc/lib/plmc/libplmc.la \
 	$(top_builddir)/osaf/libs/agents/infrastructure/rda/librda.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOi.la \
 	$(top_builddir)/osaf/libs/saf/libSaImm/libSaImmOm.la \

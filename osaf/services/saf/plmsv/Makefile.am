@@ -20,4 +20,4 @@ MAINTAINERCLEANFILES = Makefile.in
 
 EXTRA_DIST = README
 
-SUBDIRS = config plmc plms
+SUBDIRS = config plms

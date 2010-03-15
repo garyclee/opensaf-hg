@@ -16,6 +16,7 @@
 
 AC_PREREQ([2.59])
 AC_INIT([opensaf], [4.0.M4], [devel@list.opensaf.org])
+AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([OpenSAFCopyRights])
 AC_CONFIG_HEADER([config.h])
@@ -706,8 +707,6 @@ AC_CONFIG_FILES([
         osaf/libs/common/immsv/Makefile
         osaf/libs/common/immsv/include/Makefile
         osaf/libs/common/plmsv/Makefile
-        osaf/libs/common/plmsv/plms/Makefile
-        osaf/libs/common/plmsv/plmc/Makefile
         osaf/libs/common/plmsv/include/Makefile
         osaf/libs/common/logsv/Makefile
         osaf/libs/common/logsv/include/Makefile
@@ -801,13 +800,6 @@ AC_CONFIG_FILES([
         osaf/services/saf/immsv/immnd/scripts/osaf-immnd
         osaf/services/saf/plmsv/Makefile
         osaf/services/saf/plmsv/config/Makefile
-        osaf/services/saf/plmsv/plmc/Makefile
-        osaf/services/saf/plmsv/plmc/plmc_lib/Makefile
-        osaf/services/saf/plmsv/plmc/plmcd/Makefile
-        osaf/services/saf/plmsv/plmc/plmc_boot/Makefile
-        osaf/services/saf/plmsv/plmc/scripts/Makefile
-	osaf/services/saf/plmsv/plmc/scripts/plmc_boot_script
-	osaf/services/saf/plmsv/plmc/scripts/plmc_main
         osaf/services/saf/plmsv/plms/Makefile
         osaf/services/saf/plmsv/plms/scripts/Makefile
 	osaf/services/saf/plmsv/plms/scripts/osaf-plmd
@@ -896,6 +888,8 @@ AC_CONFIG_FILES([
 	tests/ntfsv/Makefile
 	tests/plmsv/plms/Makefile
 	tests/plmsv/Makefile])
+
+AC_CONFIG_SUBDIRS([contrib/plmc])
 
 AC_OUTPUT
 

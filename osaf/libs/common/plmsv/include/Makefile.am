@@ -23,13 +23,9 @@ noinst_HEADERS = \
 	plma.h \
 	plms.h \
 	plms_evt.h \
-	plmc.h \
 	plms_utils.h \
 	plms_notifications.h \
 	plms_hsm.h \
 	plms_hrb.h \
 	plms_hpi.h \
-	plmc_cmds.h \
-	plmc_lib.h \
-	plmc_lib_internal.h \
 	plms_mbcsv.h
