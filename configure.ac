@@ -15,7 +15,7 @@
 #
 
 AC_PREREQ([2.59])
-AC_INIT([opensaf], [4.0.M4], [devel@list.opensaf.org])
+AC_INIT([opensaf], [4.0.B5], [devel@list.opensaf.org])
 AC_CONFIG_AUX_DIR([.])
 AC_CANONICAL_SYSTEM
 AC_CONFIG_SRCDIR([OpenSAFCopyRights])
