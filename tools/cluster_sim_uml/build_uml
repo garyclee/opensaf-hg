@@ -149,18 +149,18 @@ cmd_create_rootfs()
     # Some distros use startproc/killproc, others start-stop-daemon
     test -e /sbin/startproc && install /sbin/startproc sbin
     test -e /sbin/killproc && install /sbin/killproc sbin
-    test -e /sbin/start-stop-daemon && install /sbin/start-stop-daemon
+    test -e /sbin/start-stop-daemon && install /sbin/start-stop-daemon sbin
 
     mkdir -p lib/lsb
     install /lib/lsb/init-functions lib/lsb
-    install /etc/rc.status etc
+    test -e /etc/rc.status && install /etc/rc.status etc
 
     # Needed by dtsv archive rotation
     install /bin/tar bin
     install $(which nice) usr/bin
     
     # Change LOG configuration to use "replicated" disk
-    sed -i 's/=${PKGLOCALSTATEDIR}\/saflog/=repl_opensaf\/saflog/g' \
+    sed -i 's/=$pkglogdir\/saflog/=repl_opensaf\/saflog/g' \
 	etc/opensaf/logd.conf
 
     # The var directory structure is setup from within each UML
