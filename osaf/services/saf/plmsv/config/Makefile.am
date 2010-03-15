@@ -24,8 +24,7 @@ EXTRA_DIST = \
 	plmsv_objects.xml.pc
 
 dist_pkgsysconf_DATA = \
-	$(top_srcdir)/osaf/services/saf/plmsv/config/plmd.conf \
-	$(top_srcdir)/osaf/services/saf/plmsv/config/plmcd.conf
+	$(top_srcdir)/osaf/services/saf/plmsv/config/plmd.conf
 
 dist_pkgimmxml_svc_DATA = \
 	plmsv_classes.xml \

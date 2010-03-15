@@ -135,7 +135,15 @@ dist_pkgdata_DATA =
 
 nobase_dist_pkgdata_DATA = $(samples_sources)
 
+if ENABLE_AIS_PLM
+
+SUBDIRS = contrib/plmc osaf pkgconfig
+
+else
+
 SUBDIRS = osaf pkgconfig
+
+endif
 
 if ENABLE_JAVA
 

@@ -34,4 +34,4 @@ libSaPlm_la_LDFLAGS = -version-info $(LIB_VERSION)
 libSaPlm_la_LIBADD = \
         $(top_builddir)/osaf/libs/core/libopensaf_core.la \
         $(top_builddir)/osaf/libs/agents/saf/plma/libplma.la \
-        $(top_builddir)/osaf/libs/common/plmsv/plms/libplms_common.la
+        $(top_builddir)/osaf/libs/common/plmsv/libplmsv_common.la

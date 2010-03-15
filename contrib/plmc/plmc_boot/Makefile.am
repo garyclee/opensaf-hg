@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2008 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,27 +11,23 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson 
-
+# Author(s): Wind River Systems
+#
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
-pkglib_LTLIBRARIES = libplmc.la
+sbin_PROGRAMS = plmc_boot
 
-libplmc_la_CPPFLAGS = \
-	-DNCS_PLMSV_LOG=1 \
+plmc_boot_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/plmsv/include
-	
-libplmc_la_LDFLAGS = -static
+	-I$(top_srcdir)/include
 
-libplmc_la_SOURCES = \
-	plmc_lib.c \
-	plmc_lib_internal.c \
-	test_lib.c
+plmc_boot_CFLAGS = $(AM_CFLAGS)
 
-libplmc_la_LIBADD = \
-	$(top_builddir)/osaf/libs/common/plmsv/plmc/libplmc_common.la
+plmc_boot_SOURCES = \
+	plmc_boot.c
 
+plmc_boot_LDADD = \
+	$(top_builddir)/lib/utils/libplmc_utils.la

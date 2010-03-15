@@ -1,6 +1,6 @@
 #      -*- OpenSAF  -*-
 #
-# (C) Copyright 2009-2010 The OpenSAF Foundation
+# (C) Copyright 2010 The OpenSAF Foundation
 #
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
@@ -11,30 +11,29 @@
 # See the Copying file included with the OpenSAF distribution for full
 # licensing terms.
 #
-# Author(s): Emerson 
-#
+# Author(s): Wind River Systems 
 
 include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = test_lib.c
+
 SUBDIRS = include
 
-pkglib_LTLIBRARIES = libplmsv_common.la
+noinst_LTLIBRARIES = libplmc.la
 
-libplmsv_common_la_CPPFLAGS = \
+libplmc_la_CPPFLAGS = \
 	-DNCS_PLMSV_LOG=1 \
 	$(AM_CPPFLAGS) \
-	-I$(top_srcdir)/osaf/libs/common/plmsv/include \
-	-I$(top_srcdir)/osaf/libs/common/immsv/include \
-	-I$(top_srcdir)/contrib/plmc/include \
-	-I$(top_srcdir)/contrib/plmc/lib/plmc/include
+	-I$(top_srcdir)/include \
+	-I$(top_srcdir)/lib/plmc/include
+	
+libplmc_la_LDFLAGS = -static
 
-libplmsv_common_la_CFLAGS = $(AM_CFLAGS) @HPI_CFLAGS@
+libplmc_la_SOURCES = \
+	plmc_lib.c \
+	plmc_lib_internal.c
 
-libplmsv_common_la_SOURCES = \
-        plms_edu.c \
-	plms_common_mds.c \
-	plms_common_utils.c
-
-libplmsv_common_la_LDFLAGS = -version-info @OPENSAF_LIB_VERSION@
+libplmc_la_LIBADD = \
+	$(top_builddir)/lib/utils/libplmc_utils.la

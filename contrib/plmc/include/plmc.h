@@ -50,7 +50,7 @@
 #define PLMC_ACK_TIMEOUT	"PLMC_ACK_TIMEOUT"
 
 /* Default location of the plmcd.conf configuration file. */
-#define PLMC_CONFIG_FILE_LOC	"/etc/opensaf/plmcd.conf"
+#define PLMC_CONFIG_FILE_LOC	"/etc/plmcd.conf"
 
 /* Default location of the plmc daemon pid file. */
 #define PLMC_D_PID_FILE_LOC	"/var/run/plmc_d.pid"

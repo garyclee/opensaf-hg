@@ -908,8 +908,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %files plm-libs
 %defattr(-,root,root)
 %{_libdir}/libSaPlm.so.*
-%{_pkglibdir}/libplms_common.so.*
-%{_pkglibdir}/libplmc_common.so.*
+%{_pkglibdir}/libplmsv_common.so.*
 
 %files plm-server
 %defattr(-,root,root)
@@ -923,11 +922,12 @@ hostname -s > %{_pkgsysconfdir}/node_name
 
 %files plm-coordinator
 %defattr(-,root,root)
-%config(noreplace) %{_pkgsysconfdir}/plmcd.conf
-%{_pkglibdir}/plmc_boot
-%{_pkglibdir}/plmc_d
-%{_pkglibdir}/plmc_boot_script
-%{_pkglibdir}/plmc_main
+%config(noreplace) %{_sysconfdir}/plmcd.conf
+%{_sbindir}/plmc_boot
+%{_sbindir}/plmc_d
+%{_libdir}/libplmc_utils.so.*
+%{_initddir}/plmc_boot_script
+%{_initddir}/plmc_main
 
 %endif
 
