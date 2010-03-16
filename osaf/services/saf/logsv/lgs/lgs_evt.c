@@ -350,7 +350,7 @@ static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 	log_stream_t *stream;
 	uns32 rc;
 
-	TRACE_ENTER();
+	TRACE_ENTER2("%u", evt->info.rda_info.io_role);
 
 	if (evt->info.rda_info.io_role == PCS_RDA_ACTIVE) {
 		LOG_NO("ACTIVE request");
@@ -364,6 +364,9 @@ static uns32 proc_rda_cb_msg(lgsv_lgs_evt_t *evt)
 
 		if (NCSCC_RC_SUCCESS != lgs_mbcsv_change_HA_state(lgs_cb))
 			goto done;
+
+		/* fail over, become implementer */
+		lgs_imm_impl_set(lgs_cb);
 
 		/* Open all streams */
 		stream = log_stream_getnext_by_name(NULL);

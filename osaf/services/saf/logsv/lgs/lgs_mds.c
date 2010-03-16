@@ -364,7 +364,8 @@ static uns32 dec_write_log_async_msg(NCS_UBAID *uba, lgsv_msg_t *msg)
 		logSvcUsrName->length = ncs_decode_16bit(&p8);
 
 		if (SA_MAX_NAME_LENGTH <= logSvcUsrName->length) {
-			TRACE("logSvcUsrName to big");
+			LOG_ER("logSvcUsrName too big");
+			free(logSvcUsrName);
 			return (0);
 		}
 		ncs_dec_skip_space(uba, 10);
@@ -871,14 +872,15 @@ static uns32 mds_quiesced_ack(struct ncsmds_callback_info *mds_info)
 {
 	lgsv_lgs_evt_t *lgsv_evt;
 
-    /** allocate an LGSV_LGS_EVENT now **/
+	TRACE_ENTER();
+
 	if (NULL == (lgsv_evt = calloc(1, sizeof(lgsv_lgs_evt_t)))) {
 		LOG_WA("calloc FAILED");
 		goto err;
 	}
 
 	if (lgs_cb->is_quiesced_set == TRUE) {
-	/** Initialize the Event here **/
+		/** Initialize the Event here **/
 		lgsv_evt->evt_type = LGSV_EVT_QUIESCED_ACK;
 		lgsv_evt->cb_hdl = (uns32)mds_info->i_yr_svc_hdl;
 

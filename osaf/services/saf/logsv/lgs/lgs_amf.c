@@ -140,6 +140,9 @@ static SaAisErrorT amf_quiescing_state_handler(lgs_cb_t *cb, SaInvocationT invoc
  *****************************************************************************/
 static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invocation)
 {
+	V_DEST_RL mds_role;
+	SaAisErrorT rc = SA_AIS_OK;
+
 	TRACE_ENTER2("HA AMF QUIESCED STATE request");
 	close_all_files();
 
@@ -152,11 +155,19 @@ static SaAisErrorT amf_quiesced_state_handler(lgs_cb_t *cb, SaInvocationT invoca
 	 ** cb->ha_state now.
 	 */
 
+	mds_role = cb->mds_role;
 	cb->mds_role = V_DEST_RL_QUIESCED;
-	lgs_mds_change_role(cb);
+	if ((rc = lgs_mds_change_role(cb)) != NCSCC_RC_SUCCESS) {
+		LOG_ER("lgs_mds_change_role FAILED");
+		rc = SA_AIS_ERR_FAILED_OPERATION;
+		cb->mds_role = mds_role;
+		goto done;
+	}
+
 	cb->amf_invocation_id = invocation;
 	cb->is_quiesced_set = TRUE;
-	return SA_AIS_OK;
+done:
+	return rc;
 }
 
 /****************************************************************************
