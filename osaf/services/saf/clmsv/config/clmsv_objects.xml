@@ -84,6 +84,10 @@
 			<name>saAmfCSType</name>
 			<value>safVersion=4.0.0,safCSType=CLM-OpenSAF</value>
 		</attr>
+		<attr>
+			<name>saAmfCSIDependencies</name>
+			<value>safCsi=IMMD,safSi=SC-2N,safApp=OpenSAF</value>
+		</attr>
 	</object>
 	<object class="SaAmfSutCompType">
 		<dn>safMemberCompType=safVersion=4.0.0\,safCompType=OpenSafCompTypeCLM,safVersion=4.0.0,safSuType=OpenSafSuTypeServer</dn>

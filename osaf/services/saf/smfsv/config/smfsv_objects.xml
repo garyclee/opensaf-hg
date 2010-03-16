@@ -206,5 +206,9 @@
 			<name>saAmfCSType</name>
 			<value>safVersion=4.0.0,safCSType=SMF-OpenSAF</value>
 		</attr>
+		<attr>
+			<name>saAmfCSIDependencies</name>
+			<value>safCsi=IMMD,safSi=SC-2N,safApp=OpenSAF</value>
+		</attr>
 	</object>
 </imm:IMM-contents>
