@@ -196,7 +196,7 @@ void daemonize(int argc, char *argv[])
 	}
 
 	/* Cancel certain signals */
-	signal(SIGCHLD, SIG_IGN);	/* A child process dies */
+	signal(SIGCHLD, SIG_DFL);	/* A child process dies */
 	signal(SIGTSTP, SIG_IGN);	/* Various TTY signals */
 	signal(SIGTTOU, SIG_IGN);
 	signal(SIGTTIN, SIG_IGN);
