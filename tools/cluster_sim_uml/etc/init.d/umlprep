@@ -43,7 +43,7 @@ if test -e "$r/var"; then
     # Remove all PID files etc.
     rm -rf /var/run/*
 fi
-
+mkdir /var/log/opensaf
 ln -s /sbin/startproc /sbin/start_daemon
 rm /bin/sh
 ln -s /bin/bash /bin/sh
