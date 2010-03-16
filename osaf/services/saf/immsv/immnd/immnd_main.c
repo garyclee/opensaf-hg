@@ -235,11 +235,6 @@ int main(int argc, char *argv[])
 
 	daemonize(argc, argv);
 
-	/* Revert to default for SIGCHLD so that immnd coord catches
-	   crashed loader/sync/pbe. 
-	 */
-	signal(SIGCHLD, SIG_DFL);
-
 	if (immnd_initialize(argv[0]) != NCSCC_RC_SUCCESS) {
 		LOG_ER("initialize_immd failed");
 		goto done;
