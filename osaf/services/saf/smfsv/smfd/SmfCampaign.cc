@@ -335,8 +335,7 @@ SmfCampaign::adminOperation(const SaImmAdminOperationIdT opId, const SaImmAdminO
 	case SA_SMF_ADMIN_ROLLBACK:
 		{
 			/* TODO remove lines below when rollback is implemented */
-			LOG_ER("Rollback is not implemented yet %s",
-			       SmfCampaignThread::instance()->campaign()->getDn().c_str());
+			LOG_ER("Rollback is not yet implemented");
 			return SA_AIS_ERR_BAD_OPERATION;
 
 			switch (m_cmpgState) {
