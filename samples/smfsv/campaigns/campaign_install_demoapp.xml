@@ -41,7 +41,7 @@
     ps
         # /opt/amf_demo/amf_demo should be executing
     # In the UML-dir;
-    grep SMF: rootfs/var/SC_2_*/log/messages
+    grep SMF: rootfs/var/SC-*/log/messages
         # Online/offline scripts should have been executed.
 
   -->
@@ -125,7 +125,7 @@
     </outageInfo>
     <procInitAction>
       <immCCB ccbFlags="0">
-        <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC_2_1,safAmfCluster=myAmfCluster">
+        <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC-1,safAmfCluster=myAmfCluster">
           <attribute name="safInstalledSwBundle" type="SA_IMM_ATTR_SANAMET">
             <value>safInstalledSwBundle=safBundle=AmfDemo</value>
           </attribute>
@@ -133,7 +133,7 @@
             <value>/opt/amf_demo</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC_2_2,safAmfCluster=myAmfCluster">
+        <create objectClassName="SaAmfNodeSwBundle" parentObjectDN="safAmfNode=SC-2,safAmfCluster=myAmfCluster">
           <attribute name="safInstalledSwBundle" type="SA_IMM_ATTR_SANAMET">
             <value>safInstalledSwBundle=safBundle=AmfDemo</value>
           </attribute>
@@ -220,7 +220,7 @@
             <value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
           </attribute>
           <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
-            <value>safAmfNode=SC_2_1,safAmfCluster=myAmfCluster</value>
+            <value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
           </attribute>
           <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
             <value>3</value>
@@ -234,7 +234,7 @@
             <value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
           </attribute>
           <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
-            <value>safAmfNode=SC_2_2,safAmfCluster=myAmfCluster</value>
+            <value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
           </attribute>
           <attribute name="saAmfSUAdminState" type="SA_IMM_ATTR_SAUINT32T">
             <value>3</value>
@@ -249,7 +249,7 @@
           </attribute>
           <attribute name="saAmfCompInstantiateCmdArgv" type="SA_IMM_ATTR_SASTRINGT">
             <value>comparg1</value>
-            <value>SC_2_1</value>
+            <value>SC-1</value>
           </attribute>
           <attribute name="saAmfCompDisableRestart" type="SA_IMM_ATTR_SAUINT32T">
             <value>0</value>
@@ -269,7 +269,7 @@
           </attribute>
           <attribute name="saAmfCompInstantiateCmdArgv" type="SA_IMM_ATTR_SASTRINGT">
             <value>comparg2</value>
-            <value>SC_2_2</value>
+            <value>SC-2</value>
           </attribute>
           <attribute name="saAmfCompDisableRestart" type="SA_IMM_ATTR_SAUINT32T">
             <value>0</value>
@@ -301,8 +301,8 @@
                 <byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo"/>
               </actedOn>
               <swAdd bundleDN="safBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
-                <plmExecEnv amfNode="safAmfNode=SC_2_1,safAmfCluster=myAmfCluster"/>
-                <plmExecEnv amfNode="safAmfNode=SC_2_2,safAmfCluster=myAmfCluster"/>
+                <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
               </swAdd>
             </activationUnit>
           </forAddRemove>
