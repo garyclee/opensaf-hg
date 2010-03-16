@@ -42,7 +42,8 @@ EXTRA_DIST = \
 	NEWS \
 	OpenSAFCopyRights \
 	THANKS \
-	README
+	README \
+	m4
 
 ACLOCAL_AMFLAGS = -I m4
 
