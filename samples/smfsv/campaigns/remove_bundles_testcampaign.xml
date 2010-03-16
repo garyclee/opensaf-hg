@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <upgradeCampaign xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xsi:noNamespaceSchemaLocation="file:///home/uablrek/SMF/SAI-AIS-SMF-UCS-A.01.01.04_modified.xsd"
-  safSmfCampaign="safSmfCampaign=OpenSAFSampleCamp">
+  safSmfCampaign="safSmfCampaign=remove_bundles">
   <!--
     # Prerequisites;
         The install_bundles_testcampaign.xml must have been executed and
@@ -20,8 +20,8 @@
     immfind -c SaSmfSwBundle
         # TestBundle's should NOT exist
 
-    grep TestBundle rootfs/var/SC_2_?/log/messages
-    grep TestBundle rootfs/var/PL_2_?/log/messages
+    grep TestBundle rootfs/var/SC-?/log/messages
+    grep TestBundle rootfs/var/PL-?/log/messages
         # First the "removal offline" then the "removal online"
         # scripts should have been called for all TestBundle's on all nodes.
 
@@ -48,25 +48,25 @@
                     <forAddRemove>
                         <deactivationUnit>
                           <swRemove bundleDN="safBundle=TestBundle1">
-                            <plmExecEnv amfNode="safAmfNode=PL_2_3,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_5,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_1,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_2,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swRemove>
                           <swRemove bundleDN="safBundle=TestBundle2">
-                            <plmExecEnv amfNode="safAmfNode=PL_2_3,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_5,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_1,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_2,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swRemove>
                           <swRemove bundleDN="safBundle=TestBundle3">
-                            <plmExecEnv amfNode="safAmfNode=PL_2_3,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_4,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=PL_2_5,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_1,safAmfCluster=myAmfCluster"/>
-                            <plmExecEnv amfNode="safAmfNode=SC_2_2,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-3,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-4,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=PL-5,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
+                            <plmExecEnv amfNode="safAmfNode=SC-2,safAmfCluster=myAmfCluster"/>
                           </swRemove>
                         </deactivationUnit>
                         <activationUnit/>
