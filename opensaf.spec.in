@@ -469,6 +469,7 @@ Conflicts: %{name}-payload
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-amf-director = %{version}-%{release}
 Requires: %{name}-amf-nodedirector = %{version}-%{release}
@@ -521,6 +522,7 @@ Conflicts: %{name}-controller
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
 Requires: %{name} = %{version}-%{release}
+Requires: %{name}-libs = %{version}-%{release}
 Requires: %{name}-amf-libs = %{version}-%{release}
 Requires: %{name}-amf-nodedirector = %{version}-%{release}
 Requires: %{name}-clm-libs = %{version}-%{release}
