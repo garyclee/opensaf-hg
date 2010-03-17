@@ -23,8 +23,8 @@
 #ifndef PLMS_HRB_H
 #define PLMS_HRB_H
 
-#include "SaHpi.h"
-#include "saAis.h"
+#include <SaHpi.h>
+#include <saAis.h>
 
 #if 0
 /* macro definitions */

@@ -19,6 +19,9 @@
 /* This file contains the prototypes for sending plms notifications */
 
 
+#ifndef PLMS_NOTIFICATIONS_H 
+#define PLMS_NOTIFICATIONS_H 
+
 typedef struct SaPlmNtfStateChange {
 	                SaNtfStateChangeT   state;
 			struct SaPlmNtfStateChange *next;
@@ -61,3 +64,5 @@ EXTERN_C SaAisErrorT plms_alarm_ntf_send(SaNtfHandleT  plm_ntf_hdl,
 				     SaNtfIdentifierT *corr_ids,
                                      SaNtfIdentifierT *ntf_id
                                      );
+
+#endif   /* PLMS_NOTIFICATIONS_H */
