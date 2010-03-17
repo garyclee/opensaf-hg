@@ -37,7 +37,7 @@
 #include "plms_evt.h"
 #include "plms_hsm.h"
 #include "plms_hrb.h"
-#include "SaHpi.h"
+#include <SaHpi.h>
 
 static PLMS_HSM_CB _hsm_cb;
 PLMS_HSM_CB     *hsm_cb = &_hsm_cb;
@@ -222,6 +222,7 @@ static void *plms_hsm(void)
 	SaHpiHsStateT  	  state;
 	SaUint32T	  retriev_idr_info = 0;
 	SaInt32T	  rc;
+	SaInt32T	  got_new_active = FALSE;
 
 	TRACE_ENTER();
 
@@ -256,20 +257,36 @@ static void *plms_hsm(void)
 
 	TRACE("HSM:Blocking to receive events on HPI session");
 	while(TRUE){
+		rc = pthread_mutex_lock(&hsm_ha_state.mutex);
+		if(rc){
+			LOG_CR("HSM: Failed to take hsm_ha_state lock, exiting \
+			the thread, ret value:%d err:%s", rc, strerror(errno));
+			assert(0);
+		}
 		if(hsm_ha_state.state != SA_AMF_HA_ACTIVE){
 			/* Wait on condition variable for the HA role from PLMS 			main thread */
 			TRACE("HSM:Received Standby state, thread going to \
 					block till Active state is set");
-			pthread_mutex_lock(&hsm_ha_state.mutex);
 			pthread_cond_wait(&hsm_ha_state.cond,
 					&hsm_ha_state.mutex);
-			pthread_mutex_unlock(&hsm_ha_state.mutex);
+
+			got_new_active = TRUE;
 			
+		}
+		rc = pthread_mutex_unlock(&hsm_ha_state.mutex);
+		if(rc){
+			LOG_CR("HSM:Failed to unlock hsm_ha_state lock,exiting \
+			the thread, ret value:%d err:%s", rc, strerror(errno));
+			assert(0);
+		}
+		if(got_new_active){
 			/* Open the session on New active*/
 			hsm_session_reopen();
 
 			/* Rediscover the resources */
 			hsm_discover_and_dispatch();
+
+			got_new_active = FALSE;
 		}
 
 		rc = saHpiEventGet(cb->session_id, SAHPI_TIMEOUT_BLOCK, 
@@ -511,6 +528,8 @@ static SaUint32T hsm_discover_and_dispatch()
 			if(prev_domain_info.DatUpdateCount !=
 				latest_domain_info.DatUpdateCount){
 				next = SAHPI_FIRST_ENTRY;
+				prev_domain_info.DatUpdateCount =
+				latest_domain_info.DatUpdateCount;
 				continue;
 			}
 		}

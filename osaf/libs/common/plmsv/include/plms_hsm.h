@@ -24,6 +24,7 @@
 #ifndef PLMS_HSM_H
 #define PLMS_HSM_H
 
+#include <SaHpi.h>
 
 #define PLMS_MAX_HPI_SESSION_OPEN_RETRIES 30
 
