@@ -139,6 +139,8 @@ extern uns32 avd_compcsi_delete(AVD_CL_CB *cb, struct avd_su_si_rel_tag *susi, N
 extern SaAisErrorT avd_cstype_config_get(void);
 extern SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si);
 
+extern void avd_csi_add_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *csiattr);
+extern void avd_csi_remove_csiattr(AVD_CSI *csi, AVD_CSI_ATTR *attr);
 extern void avd_csi_constructor(void);
 
 extern avd_cstype_t *avd_cstype_get(const SaNameT *dn);
@@ -146,6 +148,7 @@ extern void avd_cstype_add_csi(AVD_CSI *csi);
 extern void avd_cstype_remove_csi(AVD_CSI *csi);
 extern void avd_cstype_constructor(void);
 
+extern SaAisErrorT avd_csiattr_config_get(const SaNameT *csi_name, AVD_CSI *csi);
 extern void avd_csiattr_constructor(void);
 
 #endif
