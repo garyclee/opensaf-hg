@@ -576,7 +576,7 @@ void clms_clmresp_error_timeout(CLMS_CB *cb, CLMS_CLUSTER_NODE * node)
 	node->member = SA_FALSE;
 	node->change = SA_CLM_NODE_LEFT;
 	--(osaf_cluster->num_nodes);
-	node->init_view = ++(cb->cluster_view_num);
+	++(cb->cluster_view_num);
 	clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 
 	/*Update IMMSV before returning with ERR_PENDING*/
@@ -876,6 +876,7 @@ void ckpt_cluster_rec(void)
                 ckpt.header.data_len = 1;
                 ckpt.param.cluster_rec.num_nodes = osaf_cluster->num_nodes;
                 ckpt.param.cluster_rec.init_time = osaf_cluster->init_time;
+		ckpt.param.cluster_rec.cluster_view_num = clms_cb->cluster_view_num;
 
                 async_rc = clms_send_async_update(clms_cb, &ckpt, NCS_MBCSV_ACT_ADD);
                 if (async_rc != NCSCC_RC_SUCCESS)

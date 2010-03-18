@@ -522,8 +522,6 @@ SaAisErrorT log_stream_open(log_stream_t *stream)
 
 	/* first time open? */
 	if (stream->numOpeners == 0) {
-		char command[PATH_MAX + 16];
-
 		/* Delete to get counting right. It might not exist. */
 		(void)delete_config_file(stream);
 

@@ -286,6 +286,8 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 			}	
 			clms_node_update_rattr(node);
 			clms_cluster_update_rattr(osaf_cluster);
+			ckpt_node_rec(node);
+			ckpt_cluster_rec();
 		}
 
 	}
@@ -365,7 +367,7 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 		--(osaf_cluster->num_nodes);
 		node->stat_change = SA_TRUE;
 		node->change = SA_CLM_NODE_LEFT;
-		node->init_view = ++(clms_cb->cluster_view_num);
+		++(clms_cb->cluster_view_num);
 		clms_send_track(clms_cb,node,SA_CLM_CHANGE_COMPLETED);
 		/* Clear node->stat_change after sending the callback to its clients*/
 		node->stat_change = SA_FALSE;
@@ -378,6 +380,8 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
 
 		clms_node_update_rattr(node);
 		clms_cluster_update_rattr(osaf_cluster);
+		ckpt_node_rec(node);
+		ckpt_cluster_rec();
         }
 	/*For the NODE DOWN, boottimestamp will not be updated*/
 
