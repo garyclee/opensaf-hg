@@ -294,6 +294,7 @@ static uns32 ckpt_proc_node_del_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 	clms_node_delete(node,0);
 	clms_node_delete(node,1);
 	clms_node_delete(node,2);
+	free(node);
 
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;

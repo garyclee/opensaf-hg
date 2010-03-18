@@ -239,13 +239,9 @@ uns32 clms_node_delete(CLMS_CLUSTER_NODE *nd,int i)
 		}
 		break;
 	default:
-		TRACE("Invalid patricia tree");
-		rc = NCSCC_RC_FAILURE;
-		goto done;
-
+		assert(0);
 	}
 
-	free(nd);
 done:	
 	TRACE_LEAVE();
 	return rc;
