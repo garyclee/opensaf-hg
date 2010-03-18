@@ -153,6 +153,8 @@ endif
 
 if ENABLE_TESTS
 
+EXTRA_DIST = tests
+
 SUBDIRS += \
 	tests/logsv \
 	tests/ntfsv \

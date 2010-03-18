@@ -1127,6 +1127,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_bindir}/logtest
 %{_bindir}/ntftest
 %{_bindir}/clmtest
+%{_bindir}/plmtest
 
 %endif
 

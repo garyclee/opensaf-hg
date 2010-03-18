@@ -103,7 +103,7 @@ PLMSv depends on the below OpenSAF services
 
 The following are the libraries that PLM Agent library depends on
 libopensaf_core.so
-libplms_common.so
+libplmsv_common.so
 
 
 DIRECTORY STRUCTURE
@@ -111,20 +111,19 @@ DIRECTORY STRUCTURE
 
 Agent code can be found in 
 osaf/libs/agents/saf/plma
-osaf/libs/common/plmsv/plms ( common to agent and server )
+osaf/libs/common/plmsv ( common to agent and server )
  
 Include files are located under
 osaf/libs/saf/include
 osaf/libs/common/plmsv/include
  
 PLMC code 
-osaf/libs/common/plmsv/plmc
-osaf/services/saf/plmsv/plmc
+contrib/plmc
  
 PLMS code
 osaf/libs/common/plmsv/plms
 osaf/services/saf/plmsv/plms
-osaf/libs/common/plmsv/plms 
+osaf/libs/common/plmsv 
  
 config files under
 osaf/services/saf/plmsv/config
