@@ -479,7 +479,7 @@ uns32 avd_ckpt_siass(AVD_CL_CB *cb, AVSV_SU_SI_REL_CKPT_MSG *su_si_ckpt, NCS_MBC
 				}
 			} else {
 				m_AVD_LOG_INVALID_VAL_FATAL(action);
-				return NCSCC_RC_FAILURE;
+				break;
 			}
 		}
 		/* 
@@ -868,9 +868,9 @@ uns32 avd_data_clean_up(AVD_CL_CB *cb)
 	}
 #endif
 
+#endif
 	/* Reset the cold sync done counter */
 	cb->synced_reo_type = 0;
-#endif
 	return NCSCC_RC_SUCCESS;
 }
 
