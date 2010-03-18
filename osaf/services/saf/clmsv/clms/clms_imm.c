@@ -63,6 +63,7 @@ static void *imm_impl_set(void *_cb)
 	}
 
 	TRACE_LEAVE();
+	return NULL;
 }
 /**
 * Lookup the client db to find if any subscribers exist for the START step
@@ -266,9 +267,9 @@ SaAisErrorT clms_cluster_config_get(void)
 	 searchParam.searchOneAttr.attrValueType = SA_IMM_ATTR_SASTRINGT;
 	 searchParam.searchOneAttr.attrValue = &className;
 	
-	rc = immutil_saImmOmSearchInitialize_2(imm_om_hdl, NULL, SA_IMM_SUBTREE,
-		SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR, &searchParam,
-		NULL, &search_hdl);
+	rc = immutil_saImmOmSearchInitialize_2(imm_om_hdl, &osaf_cluster->name,
+		SA_IMM_SUBTREE,	SA_IMM_SEARCH_ONE_ATTR | SA_IMM_SEARCH_GET_ALL_ATTR,
+		&searchParam, NULL, &search_hdl);
 
 	if(rc != SA_AIS_OK)
 	{
@@ -624,11 +625,14 @@ void  clms_send_track(CLMS_CB *cb,CLMS_CLUSTER_NODE *node,SaClmChangeStepT step)
 	TRACE_ENTER2("step: %d",step);
 
 	if (node->change == SA_CLM_NODE_LEFT)
-		LOG_NO("%s LEFT, view number=%llu", node->node_name.value, node->init_view);
+		LOG_NO("%s LEFT, initial view=%llu, cluster view=%llu",
+			node->node_name.value, node->init_view, cb->cluster_view_num);
 	else if (node->change == SA_CLM_NODE_JOINED)
-		LOG_NO("%s JOINED, view number=%llu", node->node_name.value, node->init_view);
+		LOG_NO("%s JOINED, initial view=%llu, cluster view=%llu",
+			node->node_name.value, node->init_view, cb->cluster_view_num);
 	else if (node->change == SA_CLM_NODE_SHUTDOWN)
-		LOG_NO("%s SHUTDOWN, view number=%llu", node->node_name.value, node->init_view);
+		LOG_NO("%s SHUTDOWN, initial view=%llu, cluster view=%llu",
+			node->node_name.value, node->init_view, cb->cluster_view_num);
 
 	/* Check for previous stale tracklist on this node and delete it.
            PLM doesnt allows multiple admin operations, hence this means
@@ -1224,6 +1228,8 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
 		clms_node_delete(node,0);
 		clms_node_delete(node,1);
 		clms_node_delete(node,2);
+		free(node);
+		node = NULL;
 		clms_cluster_update_rattr(osaf_cluster);
 		entityNamesNumber = (SaUint32T)ncs_patricia_tree_size(&clms_cb->nodes_db);
 	
@@ -1277,26 +1283,25 @@ SaAisErrorT clms_node_ccb_apply_cb(CcbUtilOperationData_t *opdata)
         return rc;
 }
 
-static SaAisErrorT clms_imm_ccb_apply_callback (
+static void clms_imm_ccb_apply_callback (
                         SaImmOiHandleT immOiHandle,
                         SaImmOiCcbIdT ccbId
                         )
 {
         CcbUtilOperationData_t *opdata = NULL;
-        SaAisErrorT rc = SA_AIS_OK;
+        SaAisErrorT rc;
 
         TRACE_ENTER2("CCB ID %llu", ccbId);
 
         while ((opdata = ccbutil_getNextCcbOp(ccbId, opdata)) != NULL) {
-                        rc = clms_node_ccb_apply_cb(opdata);
-                 if (rc != SA_AIS_OK)
-                        break;
-
+		rc = clms_node_ccb_apply_cb(opdata);
+		if (rc != SA_AIS_OK) {
+			LOG_EM("clms_node_ccb_apply_cb failed");
+			assert(0);
+		}
         }
 
 	TRACE_LEAVE();
-        return rc;
-
 }
 
 /**

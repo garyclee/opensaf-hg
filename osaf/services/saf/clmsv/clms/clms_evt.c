@@ -381,9 +381,9 @@ static uns32 proc_mds_node_evt(CLMSV_CLMS_EVT *evt)
         }
 	/*For the NODE DOWN, boottimestamp will not be updated*/
 
-	/*Delete the node from the node database*/
+	/* Delete the node reference from the nodeid database */
 	if (clms_node_delete(node,0) != NCSCC_RC_SUCCESS){
-		TRACE("CLMS node delete failed");
+		LOG_ER("CLMS node delete by nodeid failed");
 	}
 
 done:
