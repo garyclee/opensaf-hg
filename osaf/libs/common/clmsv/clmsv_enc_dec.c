@@ -1,3 +1,4 @@
+#include <ncsencdec_pub.h>
 #include "clmsv_enc_dec.h"
 #include "clmsv_msg.h"
 

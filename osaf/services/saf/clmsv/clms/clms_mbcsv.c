@@ -14,11 +14,11 @@
  * Author(s): Emerson Network Power
  *
  */
+
+#include <ncsencdec_pub.h>
 #include "clms.h"
 #include "clms_mbcsv.h"
 #include "clms_evt.h"
-
-
 
 static uns32 ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
 static uns32 ckpt_proc_reg_rec(CLMS_CB *cb, CLMS_CKPT_REC *data);
@@ -105,6 +105,7 @@ static uns32 ckpt_proc_cluster_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 
         osaf_cluster->num_nodes = param->num_nodes;
         osaf_cluster->init_time = param->init_time;
+	cb->cluster_view_num    = param->cluster_view_num;
 	
         TRACE_LEAVE();
         return NCSCC_RC_SUCCESS;
@@ -411,7 +412,7 @@ static uns32 ckpt_proc_node_rec(CLMS_CB *cb, CLMS_CKPT_REC *data)
 	node->admin_op = param->admin_op;
 	node->change = param->change;
 
-	/*dude, what abt cluster_view_num increment*/
+
 	#ifdef ENABLE_AIS_PLM
 	if(node->member)
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE;
@@ -1123,6 +1124,7 @@ uns32 cluster_rec_(NCS_UBAID *uba)
 	CLMSV_CKPT_CLUSTER_INFO cluster_rec;
 	cluster_rec.num_nodes = osaf_cluster->num_nodes;
 	cluster_rec.init_time = osaf_cluster->init_time;
+	cluster_rec.cluster_view_num = clms_cb->cluster_view_num;
 	if(enc_mbcsv_cluster_rec_msg(uba,&cluster_rec) == 0)
 		return 0;
 	return 1;
@@ -1325,6 +1327,7 @@ static uns32 ckpt_encode_async_update(CLMS_CB *clms_cb, NCS_MBCSV_CB_ARG *cbk_ar
 		
 		ckpt_cluster_rec.num_nodes = data->param.cluster_rec.num_nodes;
 		ckpt_cluster_rec.init_time = data->param.cluster_rec.init_time;
+		ckpt_cluster_rec.cluster_view_num = data->param.cluster_rec.cluster_view_num;
 	
 		num_bytes = enc_mbcsv_cluster_rec_msg(uba,&ckpt_cluster_rec);
 		if (num_bytes == 0) {
@@ -1369,16 +1372,17 @@ uns32 enc_mbcsv_cluster_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param)
 
         TRACE_ENTER();
 
-    /** encode the contents **/
-        p8 = ncs_enc_reserve_space(uba, 12);
+	/** encode the contents **/
+        p8 = ncs_enc_reserve_space(uba, 20);
         if (!p8) {
                 TRACE("NULL pointer");
                 return 0;
         }
         ncs_encode_32bit(&p8, param->num_nodes);
         ncs_encode_64bit(&p8, param->init_time);
-        ncs_enc_claim_space(uba, 12);
-        total_bytes += 12;
+        ncs_encode_64bit(&p8, param->cluster_view_num);
+        ncs_enc_claim_space(uba, 20);
+        total_bytes += 20;
 
         TRACE_LEAVE();
         return total_bytes;
@@ -2177,11 +2181,12 @@ uns32 decode_cluster_msg(NCS_UBAID *uba, CLMSV_CKPT_CLUSTER_INFO *param)
         uns32 total_bytes = 0;
         uns8 local_data[12];
 
-        p8 = ncs_dec_flatten_space(uba, local_data, 12);
+        p8 = ncs_dec_flatten_space(uba, local_data, 20);
         param->num_nodes = ncs_decode_32bit(&p8);
         param->init_time = ncs_decode_64bit(&p8);
-        ncs_dec_skip_space(uba, 12);
-        total_bytes += 12;
+	param->cluster_view_num = ncs_decode_64bit(&p8);
+        ncs_dec_skip_space(uba, 20);
+        total_bytes += 20;
         TRACE_8("decode_cluster_rec_msg");
         return total_bytes;
 }

@@ -15,6 +15,7 @@
  *
  */
 
+#include <ncsencdec_pub.h>
 #include "clms.h"
 
 #define CLMS_SVC_PVT_SUBPART_VERSION 1

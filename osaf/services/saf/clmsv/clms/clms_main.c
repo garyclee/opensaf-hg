@@ -31,6 +31,7 @@
 #include <configmake.h>
 #include <daemon.h>
 
+#include <nid_api.h>
 #include "clms.h"
 
 /* ========================================================================
@@ -142,6 +143,8 @@ static uns32 clms_self_node_info(void)
                 node->stat_change = SA_TRUE;
                 node->init_view = ++(clms_cb->cluster_view_num);
                 node->change = SA_CLM_NODE_JOINED;
+		LOG_NO("%s JOINED, initial view=%llu, cluster view=%llu",
+			node->node_name.value, node->init_view, clms_cb->cluster_view_num);
 #ifdef ENABLE_AIS_PLM
 		node->ee_red_state = SA_PLM_READINESS_IN_SERVICE; /*TBD : changed when plm scripts are added to rc scripts*/
 #endif
