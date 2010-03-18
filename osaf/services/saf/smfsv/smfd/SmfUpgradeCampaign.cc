@@ -66,7 +66,8 @@ class SmfUpgradeProcedure;
     m_configurationBase(""), 
     m_campInit(),
     m_waitToCommit(0),
-    m_waitToAllowNewCampaign(0)
+    m_waitToAllowNewCampaign(0),
+    m_noOfExecutingProc(0)
 {
 
 }

@@ -900,9 +900,9 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 
                         /* type DN is of class SaAmfSUType, find all SU's of this version type */
                         if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU")){
-				LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfSU type=%s children to parent=%s",
+				TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No SaAmfSU type=%s children found to parent=%s",
 				       i_parentType->getTypeDn().c_str(), i_parentType->getParentDn().c_str());
-				return false;
+				return true;
 			}
                                                
                         std::list < std::string >::const_iterator objit;
@@ -951,9 +951,9 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 
                         /* type DN is of class SaAmfCompType, find all components's of this version type */
                         if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfComp")){
-				LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfComp type=%s children to parent=%s",
+				TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No SaAmfComp type=%s children found to parent=%s",
 				       i_parentType->getTypeDn().c_str(), i_parentType->getParentDn().c_str());
-				return false;
+				return true;
 			}
 
                         std::list < std::string >::const_iterator objit;
@@ -1006,8 +1006,8 @@ SmfUpgradeProcedure::calcActivationUnitsFromTemplate(SmfParentType * i_parentTyp
 
                 /* type DN is of class SaAmfSUType, find all SU's of this version type */
                 if(!immUtil.getChildren(i_parentType->getParentDn(), foundObjs, SA_IMM_SUBTREE, "SaAmfSU")){
-			LOG_ER("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:fails to get SaAmfSU children to parent=%s", i_parentType->getParentDn().c_str());
-			return false;
+			TRACE("SmfUpgradeProcedure::calcActivationUnitsFromTemplate:No SaAmfSU children found to parent=%s", i_parentType->getParentDn().c_str());
+			return true;
 		}
                        
                 std::list < std::string >::const_iterator objit;

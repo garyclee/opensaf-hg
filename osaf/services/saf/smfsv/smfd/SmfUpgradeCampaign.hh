@@ -314,5 +314,6 @@ class SmfUpgradeCampaign {
         std::vector < SmfUpgradeProcedure * >m_procedure;
         SaTimeT m_waitToCommit;
         SaTimeT m_waitToAllowNewCampaign;
+	int m_noOfExecutingProc;
 };
 #endif				// __SMFUPGRADECAMPAIGN_H
