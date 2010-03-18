@@ -1,0 +1,119 @@
+#!/bin/sh
+#
+### BEGIN INIT INFO
+# Provides: plmcboot
+# Required-Start: $local_fs $network $syslog
+# Required-Stop: $local_fs $network $syslog
+# Should-Start: 
+# Should-Stop: 
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: starts/stops the plmcboot UDP message program
+# Description: starts/stops the plmcboot UDP message program
+### END INIT INFO
+
+prog="plmc_boot"
+configfile=/etc/plmcd.conf
+
+# Source LSB functions library
+. /lib/lsb/init-functions
+
+if [ ! -r $configfile ]; then
+	logger -t $prog "can't read /etc/plmcd.conf, exiting."
+	exit 6
+fi	
+
+binary=/usr/sbin/$prog
+lockfile=/var/lock/subsys/$prog
+
+RETVAL=0
+
+start() {
+        [ -x $binary ] || exit 5
+        echo -n "Starting $prog: "
+        start_daemon $binary -c $configfile start
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		touch $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+stop() {
+        echo -n "Stopping $prog: "
+        start_daemon $binary -c $configfile stop
+        RETVAL=$?
+        if [ $RETVAL -eq 0 ]; then
+		rm -f $lockfile
+		log_success_msg
+	else
+		log_failure_msg
+	fi
+        return $RETVAL
+}
+
+restart() {
+	stop
+	start
+}
+
+tryrestart() {
+	[ -e $lockfile ] && restart
+	return 0
+}
+
+reload() {
+        echo -n "Reloading $prog: "
+	log_warning_msg
+	logger -t $prog "reloading configuration is currently an unimplemented LSB feature"
+	return 3
+}
+
+forcereload() {
+	reload
+	restart
+	return 0
+}
+
+status() {
+	return 3
+}
+
+case "$1" in
+  start)
+	start
+	RETVAL=$?
+	;;
+  stop)
+	stop
+	RETVAL=$?
+	;;
+  restart)
+	restart
+	RETVAL=$?
+        ;;
+  try-restart|condrestart)
+	tryrestart
+	RETVAL=$?
+	;;
+  reload)
+	reload
+	RETVAL=$?
+        ;;
+  force-reload)
+	forcereload
+	RETVAL=$?
+        ;;
+  status)
+        status
+	RETVAL=$?
+        ;;
+  *)
+	echo "Usage: $0 {start|stop|restart|try-restart|reload|force-reload|status}"
+	RETVAL=2
+esac
+
+exit $RETVAL

@@ -19,5 +19,5 @@ include $(top_srcdir)/Makefile.common
 MAINTAINERCLEANFILES = Makefile.in
 
 nodist_lsbinit_SCRIPTS = \
-	$(top_builddir)/scripts/plmc_boot_script \
+	$(top_builddir)/scripts/plmcboot \
 	$(top_builddir)/scripts/plmc_main
