@@ -107,6 +107,9 @@ static void clms_plm_readiness_track_callback (
 						TRACE("clms_node_exit_ntf failed %u", rc);
 						/*goto done;*/
 					}
+
+					/*Update the admin_state change to IMMSv*/
+					clms_admin_state_update_rattr(node);
                                 } else {
 					node->change = SA_CLM_NODE_NO_CHANGE;
 				} 
@@ -128,6 +131,8 @@ static void clms_plm_readiness_track_callback (
                                                 TRACE("clms_node_join_ntf failed %u", rc);
                                                 /*goto done;*/
                                         }
+					/*Update the admin_state change to IMMSv*/
+					clms_admin_state_update_rattr(node);
 				} else {
 					node->change = SA_CLM_NODE_NO_CHANGE;
 				}
