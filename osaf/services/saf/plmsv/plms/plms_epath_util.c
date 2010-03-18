@@ -1,0 +1,521 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2008 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s): Emerson Network Power
+ *
+ */
+
+/*****************************************************************************
+*                                                                            *
+*  MODULE NAME:  plms_epath_util.c                                           *
+*                                                                            *
+*                                                                            *
+*  DESCRIPTION: This module contains the utility routines to convert         *
+*               entity_path to string format and vice_versa 		     *
+*                                                                            *
+*****************************************************************************/
+
+/***********************************************************************
+ *   INCLUDE FILES
+***********************************************************************/
+
+#include "plms.h"
+#include "plms_evt.h"
+
+
+/* macro definitions */
+#define EPATH_BEGIN_CHAR          '{'
+#define EPATH_END_CHAR            '}'
+#define EPATH_SEPARATOR_CHAR      ','
+
+#define SAHPI_ENT_RACK_INDEX 59 
+#define SAHPI_ENT_AMC_INDEX 84
+
+/* list of entity path types */
+typedef struct
+{
+   SaInt8T	      *etype_str;
+   SaHpiEntityTypeT   etype_val;
+}PLMS_ENTITY_TYPE_LIST;
+
+
+/***********************************************************************
+*   FUNCTION PROTOTYPES
+***********************************************************************/
+SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path,
+					SaInt8T **ent_path_str);
+SaUint32T convert_string_to_epath(SaInt8T *epath_str,
+                                           SaHpiEntityPathT *epath_ptr);
+static void remove_spaces(SaInt8T **tok);
+
+static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path, 
+				SaInt8T *ent_path_str,
+				SaUint32T  index_array[SAHPI_MAX_ENTITY_PATH]);
+
+/* HPI entity type list */
+static PLMS_ENTITY_TYPE_LIST  hpi_ent_type_list[] = {
+	/* Entity type string */                /* Entity type value */
+	{"SAHPI_ENT_UNSPECIFIED",                SAHPI_ENT_UNSPECIFIED},
+	{"SAHPI_ENT_OTHER",                      SAHPI_ENT_OTHER},
+	{"SAHPI_ENT_UNKNOWN",                    SAHPI_ENT_UNKNOWN},
+	{"SAHPI_ENT_PROCESSOR",                  SAHPI_ENT_PROCESSOR},
+	{"SAHPI_ENT_DISK_BAY",                   SAHPI_ENT_DISK_BAY},
+	{"SAHPI_ENT_PERIPHERAL_BAY",             SAHPI_ENT_PERIPHERAL_BAY},
+	{"SAHPI_ENT_SYS_MGMNT_MODULE",           SAHPI_ENT_SYS_MGMNT_MODULE},
+	{"SAHPI_ENT_SYSTEM_BOARD",               SAHPI_ENT_SYSTEM_BOARD},
+	{"SAHPI_ENT_MEMORY_MODULE",              SAHPI_ENT_MEMORY_MODULE},
+	{"SAHPI_ENT_PROCESSOR_MODULE",           SAHPI_ENT_PROCESSOR_MODULE},
+
+	{"SAHPI_ENT_POWER_SUPPLY",               SAHPI_ENT_POWER_SUPPLY},
+	{"SAHPI_ENT_ADD_IN_CARD",                SAHPI_ENT_ADD_IN_CARD},
+	{"SAHPI_ENT_FRONT_PANEL_BOARD",          SAHPI_ENT_FRONT_PANEL_BOARD},
+	{"SAHPI_ENT_BACK_PANEL_BOARD",           SAHPI_ENT_BACK_PANEL_BOARD},
+	{"SAHPI_ENT_POWER_SYSTEM_BOARD",         SAHPI_ENT_POWER_SYSTEM_BOARD},
+	{"SAHPI_ENT_DRIVE_BACKPLANE",            SAHPI_ENT_DRIVE_BACKPLANE},
+	{"SAHPI_ENT_SYS_EXPANSION_BOARD",        SAHPI_ENT_SYS_EXPANSION_BOARD},
+	{"SAHPI_ENT_OTHER_SYSTEM_BOARD",         SAHPI_ENT_OTHER_SYSTEM_BOARD},
+	{"SAHPI_ENT_PROCESSOR_BOARD",            SAHPI_ENT_PROCESSOR_BOARD},
+	{"SAHPI_ENT_POWER_UNIT",                 SAHPI_ENT_POWER_UNIT},
+
+	{"SAHPI_ENT_POWER_MODULE",               SAHPI_ENT_POWER_MODULE},
+	{"SAHPI_ENT_POWER_MGMNT",                SAHPI_ENT_POWER_MGMNT},
+	{"SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD",   SAHPI_ENT_CHASSIS_BACK_PANEL_BOARD},
+	{"SAHPI_ENT_SYSTEM_CHASSIS",             SAHPI_ENT_SYSTEM_CHASSIS},
+	{"SAHPI_ENT_SUB_CHASSIS",                SAHPI_ENT_SUB_CHASSIS},
+	{"SAHPI_ENT_OTHER_CHASSIS_BOARD",        SAHPI_ENT_OTHER_CHASSIS_BOARD},
+	{"SAHPI_ENT_DISK_DRIVE_BAY",             SAHPI_ENT_DISK_DRIVE_BAY},
+	{"SAHPI_ENT_PERIPHERAL_BAY_2",           SAHPI_ENT_PERIPHERAL_BAY_2},
+	{"SAHPI_ENT_DEVICE_BAY",                 SAHPI_ENT_DEVICE_BAY},
+	{"SAHPI_ENT_COOLING_DEVICE",             SAHPI_ENT_COOLING_DEVICE},
+
+	{"SAHPI_ENT_COOLING_UNIT",               SAHPI_ENT_COOLING_UNIT},
+	{"SAHPI_ENT_INTERCONNECT",               SAHPI_ENT_INTERCONNECT},
+	{"SAHPI_ENT_MEMORY_DEVICE",              SAHPI_ENT_MEMORY_DEVICE},
+	{"SAHPI_ENT_SYS_MGMNT_SOFTWARE",         SAHPI_ENT_SYS_MGMNT_SOFTWARE},
+	{"SAHPI_ENT_BIOS",                       SAHPI_ENT_BIOS},
+	{"SAHPI_ENT_OPERATING_SYSTEM",           SAHPI_ENT_OPERATING_SYSTEM},
+	{"SAHPI_ENT_SYSTEM_BUS",                 SAHPI_ENT_SYSTEM_BUS},
+	{"SAHPI_ENT_GROUP",                      SAHPI_ENT_GROUP},
+	{"SAHPI_ENT_REMOTE",                     SAHPI_ENT_REMOTE},
+	{"SAHPI_ENT_EXTERNAL_ENVIRONMENT",       SAHPI_ENT_EXTERNAL_ENVIRONMENT},
+	{"SAHPI_ENT_BATTERY",                    SAHPI_ENT_BATTERY},
+
+	{"SAHPI_ENT_RESERVED_1",                 SAHPI_ENT_RESERVED_1},
+	{"SAHPI_ENT_RESERVED_2",                 SAHPI_ENT_RESERVED_2},
+	{"SAHPI_ENT_RESERVED_3",                 SAHPI_ENT_RESERVED_3},
+	{"SAHPI_ENT_RESERVED_4",                 SAHPI_ENT_RESERVED_4},
+	{"SAHPI_ENT_RESERVED_5",                 SAHPI_ENT_RESERVED_5},
+	{"SAHPI_ENT_MC_FIRMWARE",                SAHPI_ENT_MC_FIRMWARE},
+	{"SAHPI_ENT_IPMI_CHANNEL",               SAHPI_ENT_IPMI_CHANNEL},
+	{"SAHPI_ENT_PCI_BUS",                    SAHPI_ENT_PCI_BUS},
+	{"SAHPI_ENT_PCI_EXPRESS_BUS",            SAHPI_ENT_PCI_EXPRESS_BUS},
+
+	{"SAHPI_ENT_SCSI_BUS",                   SAHPI_ENT_SCSI_BUS},
+	{"SAHPI_ENT_SATA_BUS",                   SAHPI_ENT_SATA_BUS},
+	{"SAHPI_ENT_PROC_FSB",                   SAHPI_ENT_PROC_FSB},
+	{"SAHPI_ENT_CLOCK",                      SAHPI_ENT_CLOCK},
+	{"SAHPI_ENT_SYSTEM_FIRMWARE",            SAHPI_ENT_SYSTEM_FIRMWARE},
+
+
+	{"SAHPI_ENT_CHASSIS_SPECIFIC",           SAHPI_ENT_CHASSIS_SPECIFIC},
+	{"SAHPI_ENT_BOARD_SET_SPECIFIC",         SAHPI_ENT_BOARD_SET_SPECIFIC},
+	{"SAHPI_ENT_OEM_SYSINT_SPECIFIC",        SAHPI_ENT_OEM_SYSINT_SPECIFIC},
+	{"SAHPI_ENT_ROOT",                       SAHPI_ENT_ROOT},
+	{"SAHPI_ENT_RACK",                       SAHPI_ENT_RACK},
+
+	{"SAHPI_ENT_SUBRACK",                    SAHPI_ENT_SUBRACK},
+	{"SAHPI_ENT_COMPACTPCI_CHASSIS",         SAHPI_ENT_COMPACTPCI_CHASSIS},
+	{"SAHPI_ENT_ADVANCEDTCA_CHASSIS",        SAHPI_ENT_ADVANCEDTCA_CHASSIS},
+	{"SAHPI_ENT_RACK_MOUNTED_SERVER",        SAHPI_ENT_RACK_MOUNTED_SERVER},
+	{"SAHPI_ENT_SYSTEM_BLADE",               SAHPI_ENT_SYSTEM_BLADE},
+	{"SAHPI_ENT_SWITCH",                     SAHPI_ENT_SWITCH},
+	{"SAHPI_ENT_SWITCH_BLADE",               SAHPI_ENT_SWITCH_BLADE},
+	{"SAHPI_ENT_SBC_BLADE",                  SAHPI_ENT_SBC_BLADE},
+	{"SAHPI_ENT_IO_BLADE",                   SAHPI_ENT_IO_BLADE},
+	{"SAHPI_ENT_DISK_BLADE",                 SAHPI_ENT_DISK_BLADE},
+
+	{"SAHPI_ENT_DISK_DRIVE",                 SAHPI_ENT_DISK_DRIVE},
+	{"SAHPI_ENT_FAN",                        SAHPI_ENT_FAN},
+	{"SAHPI_ENT_POWER_DISTRIBUTION_UNIT",    SAHPI_ENT_POWER_DISTRIBUTION_UNIT},
+	{"SAHPI_ENT_SPEC_PROC_BLADE",            SAHPI_ENT_SPEC_PROC_BLADE},
+	{"SAHPI_ENT_IO_SUBBOARD",                SAHPI_ENT_IO_SUBBOARD},
+	{"SAHPI_ENT_SBC_SUBBOARD",               SAHPI_ENT_SBC_SUBBOARD},
+	{"SAHPI_ENT_ALARM_MANAGER",              SAHPI_ENT_ALARM_MANAGER},
+	{"SAHPI_ENT_SHELF_MANAGER",              SAHPI_ENT_SHELF_MANAGER},
+	{"SAHPI_ENT_DISPLAY_PANEL",              SAHPI_ENT_DISPLAY_PANEL},
+	{"SAHPI_ENT_SUBBOARD_CARRIER_BLADE",     SAHPI_ENT_SUBBOARD_CARRIER_BLADE},
+
+	{"SAHPI_ENT_PHYSICAL_SLOT",              SAHPI_ENT_PHYSICAL_SLOT},
+
+	{"SAHPI_ENT_PICMG_FRONT_BLADE",          SAHPI_ENT_PICMG_FRONT_BLADE},
+	{"SAHPI_ENT_SYSTEM_INVENTORY_DEVICE",    SAHPI_ENT_SYSTEM_INVENTORY_DEVICE},
+	{"SAHPI_ENT_FILTRATION_UNIT",            SAHPI_ENT_FILTRATION_UNIT},
+	{"SAHPI_ENT_AMC",                        SAHPI_ENT_AMC},
+	{"SAHPI_ENT_BMC",                        SAHPI_ENT_BMC},
+	{"SAHPI_ENT_IPMC",                       SAHPI_ENT_IPMC},
+	{"SAHPI_ENT_MMC",                        SAHPI_ENT_MMC},
+	{"SAHPI_ENT_SHMC",                       SAHPI_ENT_SHMC},
+	{"SAHPI_ENT_CPLD",                       SAHPI_ENT_CPLD},
+
+	{"SAHPI_ENT_EPLD",                       SAHPI_ENT_EPLD},
+	{"SAHPI_ENT_FPGA",                       SAHPI_ENT_FPGA},
+	{"SAHPI_ENT_DASD",                       SAHPI_ENT_DASD},
+	{"SAHPI_ENT_NIC",                        SAHPI_ENT_NIC},
+	{"SAHPI_ENT_DSP",                        SAHPI_ENT_DSP},
+	{"SAHPI_ENT_UCODE",                      SAHPI_ENT_UCODE},
+	{"SAHPI_ENT_NPU",                        SAHPI_ENT_NPU},
+	{"SAHPI_ENT_OEM",                        SAHPI_ENT_OEM}
+};
+
+
+/***********************************************************************
+ * Name          : convert_entitypath_to_string
+ *
+ *
+ * Description   : This function converts entitypath to string format
+ *
+ * Arguments     : SaHpiEntityPathT*    - Pointer to entity path
+ *                 uns8*  - Pointer to destination string
+ *
+ * Return Values : NCSCC_RC_SUCCESS
+ *                 NCSCC_RC_FAILURE.
+ *
+ * Notes         : None.
+ ************************************************************************/
+SaUint32T convert_entitypath_to_string(SaHpiEntityPathT *entity_path, 
+			SaInt8T **ent_path_str)
+{
+        SaUint32T  i     = 0;
+        SaUint32T  len = 0;
+        SaUint32T  rc = NCSCC_RC_SUCCESS;
+	SaUint32T  temp_index = 0;
+	SaUint32T  temp_value = 0;
+	SaUint32T  num_entity_types; 
+	SaUint32T  index_array[SAHPI_MAX_ENTITY_PATH]={};
+	SaUint32T  found = FALSE;
+
+	if(NULL == entity_path){
+		LOG_ER("Invalid entity_path arg argument");
+		return NCSCC_RC_FAILURE;
+	}
+	
+	num_entity_types = sizeof(hpi_ent_type_list)/
+			sizeof(PLMS_ENTITY_TYPE_LIST);
+
+	/* Allocate memory for entity_path_str */
+	for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++){
+
+
+		if(entity_path->Entry[i].EntityType <SAHPI_ENT_SYSTEM_FIRMWARE){
+			temp_index = entity_path->Entry[i].EntityType;
+			found = TRUE;
+		}
+#if 0
+		if(entity_path->Entry[i].EntityType > SAHPI_ENT_SYSTEM_FIRMWARE
+			&& entity_path->Entry[i].EntityType <= SAHPI_ENT_RACK){
+			temp_value = entity_path->Entry[i].EntityType
+				- SAHPI_ENT_SYSTEM_FIRMWARE;
+				
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE + temp_value; 
+			found = TRUE;
+		}
+#endif
+		if(SAHPI_ENT_CHASSIS_SPECIFIC ==
+			entity_path->Entry[i].EntityType){
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +1;
+			found = TRUE;
+		}
+		if(SAHPI_ENT_BOARD_SET_SPECIFIC ==	
+			entity_path->Entry[i].EntityType){
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +2;
+			found = TRUE;
+		}
+		if(SAHPI_ENT_OEM_SYSINT_SPECIFIC ==
+			entity_path->Entry[i].EntityType){
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +3;
+			found = TRUE;
+		}
+		if(SAHPI_ENT_ROOT ==
+			entity_path->Entry[i].EntityType){
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +4;
+			found = TRUE;
+		}
+		if(SAHPI_ENT_RACK ==
+			entity_path->Entry[i].EntityType){
+			temp_index = SAHPI_ENT_SYSTEM_FIRMWARE +5;
+			found = TRUE;
+		}
+
+		
+		if(entity_path->Entry[i].EntityType > SAHPI_ENT_RACK &&
+			entity_path->Entry[i].EntityType <= SAHPI_ENT_AMC ){
+			temp_value = entity_path->Entry[i].EntityType
+				- SAHPI_ENT_RACK;
+				
+			temp_index = SAHPI_ENT_RACK_INDEX + temp_value;
+			found = TRUE;
+		}
+
+		if(entity_path->Entry[i].EntityType > SAHPI_ENT_AMC ){
+			temp_value = entity_path->Entry[i].EntityType -
+				SAHPI_ENT_AMC;
+			temp_index = SAHPI_ENT_AMC_INDEX + temp_value;
+			found = TRUE;
+		}
+		if(found == FALSE || temp_index > num_entity_types){
+			LOG_ER("Invalid entity_path arg argument");
+			return NCSCC_RC_FAILURE;
+		}
+
+		index_array[i] = temp_index;
+			
+		len += strlen(hpi_ent_type_list[temp_index].etype_str);
+         	len += 7;
+		if(entity_path->Entry[i].EntityType == SAHPI_ENT_ROOT)
+			break;
+
+		temp_index = 0;
+	}
+	if(len != 0){
+		*ent_path_str = (SaInt8T *)malloc(len);
+		if(NULL == *ent_path_str)
+		{
+			LOG_CR("Failed to allocate memory error: %s",
+						strerror(errno));
+			assert(0);
+		}
+	}else{
+		LOG_ER("Invalia entity_path arg");
+		return NCSCC_RC_FAILURE;
+	}
+	convert_entity_types(entity_path, *ent_path_str, index_array);
+
+	*((*ent_path_str) + len - 1) = '\0';
+
+        return rc;
+}
+/****************************************************************************
+* Name          : convert_entity_types 
+*
+* Description   : 
+*
+* Arguments     : 
+*
+* Return Values :NSCC_RC_SUCCESS
+*                NCSCC_RC_FAILURE
+*
+* Notes         : None.
+*****************************************************************************/
+static SaUint32T convert_entity_types(SaHpiEntityPathT *entity_path, 
+				SaInt8T *ent_path_str,
+				SaUint32T  index_array[SAHPI_MAX_ENTITY_PATH])
+{
+	SaUint32T i     = 0;
+	SaUint32T index = 0;
+	SaUint32T count;
+	SaUint32T rc = NCSCC_RC_SUCCESS;
+
+	if(NULL == ent_path_str || NULL == entity_path){
+		LOG_ER("Invalia args to convert_entity_types");
+		return NCSCC_RC_FAILURE;
+	}
+
+        *(ent_path_str++) = '{';
+        for(i = 0; i < SAHPI_MAX_ENTITY_PATH; i++)
+        {
+		*(ent_path_str++) = '{';
+		
+		index = entity_path->Entry[i].EntityLocation;
+
+		memcpy(ent_path_str,hpi_ent_type_list[index_array[i]].etype_str,
+			strlen(hpi_ent_type_list[index_array[i]].etype_str));
+
+		ent_path_str +=
+		strlen(hpi_ent_type_list[index_array[i]].etype_str);
+
+		*(ent_path_str++) = ',';
+
+		count = sprintf(ent_path_str, "%d", 
+		entity_path->Entry[i].EntityLocation);
+		ent_path_str += count;
+
+		*(ent_path_str++)= '}';
+		*(ent_path_str++)= ',';
+
+		if(entity_path->Entry[i].EntityType == SAHPI_ENT_ROOT)
+			break;
+        }
+
+        *(ent_path_str - 1)= '}';
+
+        /* Must null-terminate this string */
+        *ent_path_str = '\0';
+	return rc;
+}
+
+
+/****************************************************************************
+* Name          : convert_string_to_epath
+*
+* Description   : This function is a utility function used to convert the
+*                 canonical string of entity path to the SAF HPI defined
+*                 entity path structure 'SaHpiEntityPathT'.
+*
+* Arguments     : epath_str (Input)canonical entity path string.
+*                 epath_len (Input)
+*                 epath_ptr (Output) Pointer to HPI's entity path structure
+*
+* Return Values :iNSCC_RC_SUCCESS
+*                NCSCC_RC_FAILURE
+*
+* Notes         : None.
+*****************************************************************************/
+SaUint32T convert_string_to_epath(SaInt8T *epath_str,
+                                           SaHpiEntityPathT *epath_ptr)
+{
+        SaInt8T 	*tok, *ptr, *end_char;
+        SaInt8T 	*epath;
+        SaUint32T 	rc = NCSCC_RC_SUCCESS;
+	SaUint32T 	entity_index = 0;
+	SaUint32T 	entity_type, entity_type_index;
+	SaUint32T 	num_entity_types; 
+        SaUint32T 	epath_len;
+
+        /* verify the arguments */
+        if ( NULL == epath_str )
+        {
+                LOG_ER("Invalid arguments to string2entitypath");
+                return NCSCC_RC_FAILURE;
+        }
+        memset(epath_ptr, 0, sizeof(SaHpiEntityPathT));
+
+	epath_len = strlen(epath_str);
+        /* allocate memory to make a duplicate of epath_str */
+        if (NULL == (epath = (SaInt8T *)malloc(epath_len)))
+        {
+		LOG_CR("Failed to allocate memory error: %s",
+						strerror(errno));
+                return NCSCC_RC_FAILURE;
+        }
+
+        /* copy epath_str to epath */
+        memcpy(epath, epath_str, epath_len);
+        /* set the pointers */
+        tok = epath;
+        end_char = epath + epath_len;
+
+        /* look for and skip the first '{' char in entity path */
+        if (NULL == (ptr = strchr((char *)tok, EPATH_BEGIN_CHAR)))
+        {
+                LOG_ER("Invalid arguments to string2entitypath");
+                free(epath);
+                return NCSCC_RC_FAILURE;
+        }
+        *ptr = '\0';
+        if ((tok = ptr+1) >= end_char)
+        {
+                LOG_ER("Invalid arguments to string2entitypath");
+                free(epath);
+                return NCSCC_RC_FAILURE;
+        }
+	
+	 /* get the tokens from epath and fill the epath_ptr structure */
+        while (tok != NULL)
+        {
+                /* go to next tuple in entity path string */
+                if (NULL == (ptr = strchr(tok, EPATH_BEGIN_CHAR)))
+                        break;
+                if ((tok = ptr+1) >= end_char)
+                        break;
+                /* gets the entity type */
+                if (NULL == (ptr = strchr(tok, EPATH_SEPARATOR_CHAR)))
+                        break;
+                *ptr = '\0';
+                remove_spaces(&tok);
+
+		 /** compare the token with available entity type and return the
+		 ** corresponding value for a matching entity type.
+    		 **/
+		num_entity_types = 
+			sizeof(hpi_ent_type_list)/sizeof(PLMS_ENTITY_TYPE_LIST);
+		for (entity_type_index = 0; entity_type_index < num_entity_types; entity_type_index++){
+			if (0 == strcmp(tok, hpi_ent_type_list[entity_type_index].etype_str))
+			break;
+		}
+
+		entity_type = hpi_ent_type_list[entity_type_index].etype_val;
+
+		if(SAHPI_ENT_UNSPECIFIED == entity_type){
+                        rc = NCSCC_RC_FAILURE;
+                        break;
+		}
+
+                /* fill corresponding value of entity type in the structure */
+                epath_ptr->Entry[entity_index].EntityType =entity_type; 
+                if ((tok = ptr+1) >= end_char)
+                        break;
+                /* get the entity instance value */
+                if (NULL == (ptr = strchr(tok, EPATH_END_CHAR)))
+                        break;
+                *ptr = '\0';
+
+                remove_spaces(&tok);
+
+                /* put the entity instance value in the epath_ptr structure */
+                sscanf(tok, "%d", &epath_ptr->Entry[entity_index].EntityLocation);
+                if ((tok = ptr+1) >= end_char)
+                        break;
+                if (++entity_index >= SAHPI_MAX_ENTITY_PATH)
+                        break;
+        }
+
+        /* free the duplicate string allocated for entity path */
+        free(epath);
+	epath = NULL;
+        return rc;
+}
+/****************************************************************************
+ * Name          : remove_spaces
+ *
+ * Description   : This function used to remove the white spaces around
+ *                 the token string read from entity path string.
+ *
+ * Arguments     : tok - pointer to token string.
+ *
+ * Return Values : string free of white spaces.
+ *
+ * Notes         : None.
+ *****************************************************************************/
+static void remove_spaces(SaInt8T **tok)
+{
+	SaInt8T *str = *tok;
+	if (str == NULL)
+	return;
+
+	/* remove spaces before token */
+	while ((*str != '\0') && (*str == ' '))
+	str++;
+
+	/* mark the first non-space character as beginning of token */
+	*tok = str;
+
+	/* move to end of token */
+	while ((*str!= '\0') && (*str!= ' '))
+	str++;
+
+	/* terminate at the end of token, ignore rest of spaces if any */
+	if (*str== ' ')
+	*str= '\0';
+
+	return;
+}

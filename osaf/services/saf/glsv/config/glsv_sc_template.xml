@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<imm:IMM-contents xmlns:imm="http://www.saforum.org/IMMSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="SAI-AIS-IMM-XSD-A.01.01.xsd">
+	<object class="SaAmfComp">
+		<dn>safComp=GLD,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeGLD</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=GLD-OpenSAF,safComp=GLD,safSu=SC_2_1,safSg=2N,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfComp">
+		<dn>safComp=GLND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCompType</name>
+			<value>safVersion=4.0.0,safCompType=OpenSafCompTypeGLND</value>
+		</attr>
+	</object>
+	<object class="SaAmfCSI">
+		<dn>safCsi=GLND,safSi=NoRed_TOKEN,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfCSType</name>
+			<value>safVersion=4.0.0,safCSType=GLND-OpenSAF</value>
+		</attr>
+	</object>
+	<object class="SaAmfCompCsType">
+		<dn>safSupportedCsType=safVersion=4.0.0\,safCSType=GLND-OpenSAF,safComp=GLND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+	</object>
+	<object class="SaAmfHealthcheck">
+		<dn>safHealthcheckKey=GLND,safComp=GLND,safSu=SC_2_1,safSg=NoRed,safApp=OpenSAF</dn>
+		<attr>
+			<name>saAmfHealthcheckPeriod</name>
+			<value>10000000000</value>
+		</attr>
+		<attr>
+			<name>saAmfHealthcheckMaxDuration</name>
+			<value>5000000000</value>
+		</attr>
+	</object>
+</imm:IMM-contents>

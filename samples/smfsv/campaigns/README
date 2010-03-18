@@ -1,0 +1,13 @@
+
+
+  This directory contains campaigns that can be used as examples or
+  for testing.
+
+  The campaigns should contain a comment near the top-of-file that
+  describes prerequisites, howto execute the campaign and the expected
+  outcome.
+
+  For now the campaigns must be executed manually on a 5-node UML
+  cluster but it is possible to automatize the tests.
+
+

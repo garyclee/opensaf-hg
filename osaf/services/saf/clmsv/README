@@ -1,0 +1,79 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s):  Emerson Network Power
+#
+
+GENERAL
+CLMSv is an implementation of the SAF-AIS-CLM-B.04.01 specifications.
+
+This document provides an overview of the design and internals of the CLMSv.
+The CLMSv service is implemented as the following modules:
+	* CLMS - The Cluster Membership Server
+	* CLMNA - The Cluster Membership Node Agent
+	* CLMA - The Cluster Membership Agent
+
+The CLMS server is implemented as a server process running on the OpenSAF
+controller nodes in a 2N redundancy model.
+
+The CLMNA is an CLM node agent process that gets started on every node during
+OpenSAF node startup. The CLMNA fetches the saClmNode(node name)of the local node,
+the saClmNodeID(/etc/opensaf/node_id a "run time" attribute) 
+(and in future, the saClmNodeCurrAddressFamily  and saClmNodeCurrAddress "run time"attributes
+of the saClmNode class) and updates the CLMS.
+
+The CLMA is the clm agent library that user applications shall link with.
+
+DEPENDENCIES
+
+CLMSv depends on the following services:
+- MDS
+- MBCSv
+- IMMSv
+- NTFSv
+- AVSv
+- logtrace
+
+
+DIRECTORY STRUCTURE
+
+osaf/libs/common/clmsv/include - common header files used by CLMS, CLMNA, CLMA
+osaf/libs/agents/saf/clma - Implementation of the CLM agent library
+osaf/services/saf/clmsv/clms - Implementation of the CLM server
+osaf/services/saf/clmsv/nodeagent - Implementation of the CLM Node Agent.
+osaf/services/saf/clmsv/config - Configuration files for the CLMS and CLMNA
+
+tests/clmsv - CLMSv test suites
+
+CONFIGURATION FILES
+
+/etc/opensaf/clm.conf
+/etc/opensaf/node_name
+
+
+CONTRIBUTORS/MAINTAINERS
+Meena Sangeeta <sangeeta.meena@emerson.com>
+Manoj Lalavat <manoj.lalavat@emerson.com>
+
+TODOS
+====
+
+1. Unit Testing is still in Progress.
+2. Basic functionality tests, API tests, failover tests are completed.
+3. Memory leak tests,PLM integration testing TBD next week.
+4. General Code cleanup, warnings, TBDs, Doxygen Commenting,locks,traces tuning, TBD.
+5. make rpm changes to reflect latest build system.
+6. Some hacks on imm.xml "attribute names" to be removed
+once AMF-CLM cleanup patch is in place next week.
+

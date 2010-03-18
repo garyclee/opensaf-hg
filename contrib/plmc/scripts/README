@@ -1,0 +1,15 @@
+This is the README file for the PLMc scripts directory.
+
+This directory consists of the following files:
+
+plmc_boot_script
+  This is the RC init script for the plmc_boot program.
+  To install, copy this script to: /etc/init.d
+  Then run: cd /etc/init.d; chkconfig --add plmc_boot
+  to set up the run levels.
+
+plmc_main
+  This is the RC init script for the plmc_d program.
+  To install, copy this script to: /etc/init.d
+  Then run: cd /etc/init.d; chkconfig --add plmc_main
+  to set up the run levels.

@@ -1,0 +1,182 @@
+#
+#      -*- OpenSAF  -*-
+#
+# (C) Copyright 2008-2009 The OpenSAF Foundation
+#
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+# under the GNU Lesser General Public License Version 2.1, February 1999.
+# The complete license can be accessed from the following location:
+# http://opensource.org/licenses/lgpl-license.php
+# See the Copying file included with the OpenSAF distribution for full
+# licensing terms.
+#
+# Author(s): Ericsson AB
+#
+#
+
+WHAT IS THIS?
+
+This directory (and subdirectories) contains a User Mode Linux - UML simulated
+cluster environment for opensaf. Default a five node cluster will be started, 
+two controller nodes and three payload nodes.
+
+The cluster environment is built using:
+- Linux kernel
+- Busybox
+- opensaf rpms
+- a few host libraries
+
+All packages are downloaded from the net. Make sure to have proxy settings
+(http_proxy variable) correct if needed. Downloaded packages are stored in
+the 'archive' subdirectories. Downloading the Linux kernel can take some
+time, select a HTTP server closer to you if that is an issue.
+
+For minimising the memory requirements for each UML instance, the major part
+of its root file system consists of links to files on the host file
+system. This concept is called a shadow root, see below.
+
+See the README file in the uml subdirectory for more information about UML.
+
+
+DIRECTORY STRUCTURE
+
+archive	  This directory contains a number of configuration files for the
+	  cluster. The 'scripts' subdirectory contains the init scripts that 
+	  are executed during UML startup. The scripts are copied from this 
+	  directory to the shadow root by the build system. Do not edit.
+
+bin	  This directory contains shell scripts used during the installation
+	  and to start the cluster.
+	  Users: Do not edit.
+	  Maintainers: The install.sh script is sensitive to changes in the
+	  opensaf rpm spec files. This script is written this way so that a
+	  non root user can build. Otherwise 'rpm -i --root=..' could have been
+	  used.
+
+etc	  This directory contains a script that this executed very early in
+	  the UML startup. It is required by the fairly generic UML scripts to
+	  be located here. Do not edit.
+
+uml	  This directory contains the UML kernel build, the busybox build and
+	  UML utilities.
+
+
+HOW TO BUILD
+
+When the UML root file system is generated it will use 'make install' with
+DESTDIR set to the UML root file system. Make sure you have a default 
+configured Opensaf like this:
+
+$ ./configure --disable-hpi
+
+- Execute './build_uml'.
+
+Building means downloading, configuring & building packages from the
+internet, creating shadow a root file system for OpenSAF nodes.
+When 'build_uml' is executed a second time, only the shadow root file systems
+are recreated.
+
+Files created and generated are removed by 'clean_uml'. Files downloaded from
+the internet are not deleted. They have to be manually deleted from uml/archive
+to start from scratch.
+
+Building adds the following direcories:
+
+rootfs	   This directory contains a shadow root direcory for
+		   controller and payload nodes. Do not edit.
+
+
+HOW TO RUN
+
+To start the cluster, either from XML or persistent store
+
+   ./opensaf start [number of nodes]
+
+To stop the cluster:
+
+   ./opensaf stop
+
+To clean persistent store:
+
+   ./opensaf clean
+
+When the persistent store is cleaned, the next start will be from XML.
+
+
+Running the cluster adds the following direcories:
+
+repl-opensaf	This directory contains a simulated shared replicated disk
+	partition. It is used to store opensaf configurations and log files.
+
+	Soft links are created from directories in the shadow root file system
+	into this directory.
+
+rootfs/var/<node name>	This directory is the node unique '/var'
+			  directory. It contains e.g. the system log from each
+			  node, stdouts for the components, core dumps and so on.
+
+
+STARTUP SEQUENCE
+
+1. A number of uml/bin/linux instances are started, each in its own
+   xterm. Each UML instance is given a unique command line e.g. hostname which
+   is the same as the node name in the XML configuration.
+
+2. /sbin/init is executed and reads /etc/inittab, executes the 'sysinit' entry
+   (/etc/init.d/rcS)
+
+3. /etc/init.d/rcS executes /hostfs/etc/init.d/umlprep (etc/init.d/umlprep)
+
+4. /etc/init.d/rcS unpacks the shadow root cpio archive
+
+5. /etc/init.d/rcS executes /etc/init.d/*.rc (archive/scripts/*)
+   in numerical order.
+
+6. controller	
+   /etc/init.d/40opensaf.rc does the following:
+   - setups the environment for opensaf 
+   - executes '/etc/init.d/opensafd start'
+
+6. payload
+   /etc/init.d/40opensaf.rc does the following:
+   - setups the environment for opensaf 
+   - executes '/etc/init.d/opensafd start'
+
+
+NETWORKING
+
+The cluster environment uses the UML utility 'uml_switch' to create an
+isolated network for the UML instances. 'uml_switch' is a process that
+implements a virtual switch using a UNIX domain socket.
+
+It is not possible to communicate between the host and an UML instance with
+this network setup. If host network access is required, please read UML
+documentation.
+
+
+COMMAND LINE INTERFACE (CLI)
+
+To access the opensaf CLI, first switch to the super user using the 'su' command.
+Then start the CLI with: 'ncs_cli_maa'. Online help is provided and to exit the
+CLI use the command 'clishut'.
+
+
+SOFTWARE REQUIREMENTS
+
+UML should run on any 2.6 host kernel. If the host kernel is patched for SKAS3
+mode, you will get better guest (UML) kernel performance.
+
+32 and 64 bit are verified.
+
+GNU C Library version 2.4 or later
+
+The following packages are known to work:
+
+- bash-3.1-24.4 (needed by opensaf scripts)
+- readline-5.1-24.4 (needed by bash)
+- ncurses-5.5-18.2 (needed by bash)
+- libgcc-4.1.0-28.4 (needed by scap)
+- libstdc++-4.1.0-28.4 (needed by scap)
+
