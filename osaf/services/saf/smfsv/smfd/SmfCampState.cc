@@ -380,6 +380,7 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 	//and step calculation was performed before the move of control.
 	bool execProcFound = false;
 	iter = i_camp->m_procedure.begin();
+	i_camp->m_noOfExecutingProc = 0; //The no of answers which must be wait for, could be more than 1 if parallel procedures
 	while (iter != i_camp->m_procedure.end()) {
 		if ((*iter)->getState() == SA_SMF_PROC_EXECUTING) {
 			TRACE("SmfCampStateExecuting::execute, restarted procedure found, send PROCEDURE_EVT_EXECUTE_STEP event to thread");
@@ -388,6 +389,7 @@ SmfCampStateExecuting::execute(SmfUpgradeCampaign * i_camp)
 			evt->type = PROCEDURE_EVT_EXECUTE_STEP;
 			procThread->send(evt);
 			execProcFound = true;
+			i_camp->m_noOfExecutingProc++; 
 		}
 
 		iter++;
@@ -438,24 +440,48 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 	TRACE_ENTER();
 	TRACE("SmfCampStateExecuting::executeProc, Starting procedure threads");
 
-	//Find out if some procedure is still executing
+	if (i_camp->m_noOfExecutingProc > 1) {
+		i_camp->m_noOfExecutingProc--;
+		TRACE("Still noProc=%d procedures executing, continue waiting for result.", i_camp->m_noOfExecutingProc);
+		TRACE_LEAVE();
+		return;
+	} else if (i_camp->m_noOfExecutingProc == 1) {
+		//Decrement counter for the last procedure on the current exec level 
+		i_camp->m_noOfExecutingProc--;
+	}
+
+	TRACE("All procedures started on the same execlevel have answered.");
+	//Check that the counter is 0, otherwise fail
+	if ( i_camp->m_noOfExecutingProc != 0)
+	{
+		LOG_ER("Procedure counter is supposed to be 0, was %d", i_camp->m_noOfExecutingProc);
+		std::string error = "Wrong procedure counter " + i_camp->m_noOfExecutingProc;
+		SmfCampaignThread::instance()->campaign()->setError(error);
+		changeState(i_camp, SmfCampStateExecFailed::instance());
+		TRACE_LEAVE();
+		return;
+	}
+	
+	//All procedures started on the execution level has send results
+	//Find out if some procedure is still executing, should never happend here
+	//Find out if any of the procedures failed
+
 	std::vector < SmfUpgradeProcedure * >::iterator iter;
 
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
 		switch ((*iter)->getState()) {
-			/* TODO This does not work in case we have parallel execution of procedures */
-		case SA_SMF_PROC_EXECUTING:
+		case SA_SMF_PROC_EXECUTING: //Shold never happends since all procedures are assumed to have answered
 			{
-				TRACE("SmfCampStateExecuting::Procedure %s still executing",
-				      (*iter)->getProcName().c_str());
+				LOG_ER("No procdedures are supposed to execute but procedure %s still in SA_SMF_PROC_EXECUTING state", (*iter)->getProcName().c_str());
+				std::string error = "Procedure in wrong state (SA_SMF_PROC_EXECUTING)";
+				SmfCampaignThread::instance()->campaign()->setError(error);
+				changeState(i_camp, SmfCampStateExecFailed::instance());
 				TRACE_LEAVE();
 				return;
 			}
 		case SA_SMF_PROC_FAILED:
 			{
-				TRACE("SmfCampStateExecuting::Procedure %s failed", (*iter)->getProcName().c_str());
-
 				std::string error = "Procedure " + (*iter)->getProcName() + " failed";
 				LOG_ER(error.c_str());
 				SmfCampaignThread::instance()->campaign()->setError(error);
@@ -469,8 +495,7 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 		iter++;
 	}
 
-	TRACE
-	    ("SmfCampStateExecuting::No procedures in executing state was found, proceed with next execution level procedures");
+	TRACE("No procedures in executing state was found, proceed with next execution level procedures");
 
 	//The procedure vector is sorted in execution level order (low -> high)
 	//Lowest number shall be executed first.
@@ -478,26 +503,27 @@ SmfCampStateExecuting::executeProc(SmfUpgradeCampaign * i_camp)
 	int execLevel = -1;
 	iter = i_camp->m_procedure.begin();
 	while (iter != i_camp->m_procedure.end()) {
-		//If the state is initial and the execution level is new or the same as 
-		//the procedure just started.
-		TRACE("SmfCampStateExecuting::executeProc, procedure %s, state=%u, execLevel=%d",
+
+		TRACE("Start procedures, try procedure %s, state=%u, execLevel=%d",
 		      (*iter)->getProcName().c_str(), (*iter)->getState(), (*iter)->getExecLevel());
 
-		if (execLevel != -1) {
-			TRACE("SmfCampStateExecuting::executeProc, a procedure already run at execLevel=%d, start parallel procedure", 
-			      execLevel);
-		}
-
+		//If the state is initial and the execution level is new or the same as 
+		//the procedure just started.
 		if (((*iter)->getState() == SA_SMF_PROC_INITIAL)
-		    && ((execLevel == -1)
-			|| (execLevel == (*iter)->getExecLevel()))) {
+		    && ((execLevel == -1) || (execLevel == (*iter)->getExecLevel()))) {
+			if (execLevel == (*iter)->getExecLevel()) {
+				TRACE("A procedure already run at execLevel=%d, start parallel procedure", execLevel);
+			} else if (execLevel == -1) {
+				TRACE("Start first  procedure on  execLevel=%d", (*iter)->getExecLevel());
+			}
+
 			SmfProcedureThread *procThread = (*iter)->getProcThread();
 			PROCEDURE_EVT *evt = new PROCEDURE_EVT();
 			evt->type = PROCEDURE_EVT_EXECUTE;
 			procThread->send(evt);
 			execLevel = (*iter)->getExecLevel();
+			i_camp->m_noOfExecutingProc++;
 		}
-
 		iter++;
 	}
 
