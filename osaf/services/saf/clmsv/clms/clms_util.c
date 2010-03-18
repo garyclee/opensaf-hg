@@ -581,6 +581,7 @@ void clms_clmresp_error_timeout(CLMS_CB *cb, CLMS_CLUSTER_NODE * node)
 
 	/*Update IMMSV before returning with ERR_PENDING*/
 	clms_node_update_rattr(node);
+	clms_admin_state_update_rattr(node);
 	clms_cluster_update_rattr(osaf_cluster);
 	
 	node->stat_change = SA_FALSE;
@@ -809,7 +810,9 @@ uns32 clms_clmresp_ok(CLMS_CB *cb,CLMS_CLUSTER_NODE * op_node,CLMS_TRACK_INFO *t
                         (void)immutil_saImmOiAdminOperationResult(cb->immOiHandle,op_node->curr_admin_inv, SA_AIS_OK);
 		}
 	}
+	/*Update the runtime change to IMMSv*/
 	clms_node_update_rattr(op_node);
+	clms_admin_state_update_rattr(op_node);
 	clms_cluster_update_rattr(osaf_cluster);
 
 	/*Checkpoint node data*/
@@ -945,6 +948,11 @@ uns32  clms_send_cbk_start_sub(CLMS_CB *cb,CLMS_CLUSTER_NODE *node)
 	SaClmChangeStepT step = SA_CLM_CHANGE_COMPLETED;
 
         TRACE_ENTER();
+
+	if (node->change == SA_CLM_NODE_LEFT)
+		LOG_NO("%s LEFT, view number=%llu", node->node_name.value, node->init_view);
+	else if (node->change == SA_CLM_NODE_SHUTDOWN)
+		LOG_NO("%s SHUTDOWN, view number=%llu", node->node_name.value, node->init_view);
 
         notify_changes_only = clms_notbuffer_changes_only(step);
         notify_changes = clms_notbuffer_changes(step);

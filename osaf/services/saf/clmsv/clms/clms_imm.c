@@ -352,8 +352,43 @@ SaAisErrorT clms_imm_activate(CLMS_CB *cb)
 
 	TRACE_LEAVE();
 	return rc;
-
 }
+
+/** 
+* Update IMMSv the admin state(runtime info) of the node
+* @param[in] nd pointer to cluster node
+*/
+void clms_admin_state_update_rattr(CLMS_CLUSTER_NODE * nd)
+{
+	SaImmAttrModificationT_2 attr_Mod[1];
+	SaAisErrorT rc;
+	
+	TRACE_ENTER2("Admin state %d update for node %s",nd->admin_state,nd->node_name.value);
+	
+	SaImmAttrValueT attrUpdateValue[] = { &nd->admin_state};
+        const SaImmAttrModificationT_2 *attrMods[] = {
+				&attr_Mod[0],
+				NULL};
+                
+        attr_Mod[0].modType = SA_IMM_ATTR_VALUES_REPLACE;
+        attr_Mod[0].modAttr.attrName = "saClmNodeAdminState";
+        attr_Mod[0].modAttr.attrValuesNumber = 1;
+        attr_Mod[0].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
+        attr_Mod[0].modAttr.attrValues = attrUpdateValue;
+
+	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
+	immutilWrapperProfile.errorsAreFatal = 0;
+        rc = immutil_saImmOiRtObjectUpdate_2(clms_cb->immOiHandle, &nd->node_name, attrMods);
+	immutilWrapperProfile.errorsAreFatal = errorsAreFatal;
+                                 
+        if (rc != SA_AIS_OK){
+                LOG_ER("saImmOiRtObjectUpdate FAILED %u, '%s'",
+                        rc, nd->node_name.value);
+	}
+	
+	TRACE_LEAVE();
+}
+
 
 
 /** 
@@ -362,20 +397,18 @@ SaAisErrorT clms_imm_activate(CLMS_CB *cb)
 */
 void clms_node_update_rattr(CLMS_CLUSTER_NODE * nd)
 {
-        SaImmAttrModificationT_2 attr_Mod[5];
+        SaImmAttrModificationT_2 attr_Mod[4];
         SaAisErrorT rc;
         SaImmAttrValueT attrUpdateValue[] =  { &nd->member};
         SaImmAttrValueT attrUpdateValue1[] = { &nd->node_id};
         SaImmAttrValueT attrUpdateValue2[] = { &nd->boot_time};
         SaImmAttrValueT attrUpdateValue3[] = { &nd->init_view};
-        SaImmAttrValueT attrUpdateValue4[] = { &nd->admin_state};
 
         const SaImmAttrModificationT_2 *attrMods[] = {
 				&attr_Mod[0],
 				&attr_Mod[1],
 				&attr_Mod[2],
 				&attr_Mod[3],
-				&attr_Mod[4],
 				NULL};
 
 	
@@ -405,12 +438,6 @@ void clms_node_update_rattr(CLMS_CLUSTER_NODE * nd)
         attr_Mod[3].modAttr.attrValueType = SA_IMM_ATTR_SAUINT64T;
         attr_Mod[3].modAttr.attrValues = attrUpdateValue3;
                 
-        attr_Mod[4].modType = SA_IMM_ATTR_VALUES_REPLACE;
-        attr_Mod[4].modAttr.attrName = "saClmNodeAdminState";
-        attr_Mod[4].modAttr.attrValuesNumber = 1;
-        attr_Mod[4].modAttr.attrValueType = SA_IMM_ATTR_SAUINT32T;
-        attr_Mod[4].modAttr.attrValues = attrUpdateValue4;
-
 	int errorsAreFatal = immutilWrapperProfile.errorsAreFatal;
 	immutilWrapperProfile.errorsAreFatal = 0;
         rc = immutil_saImmOiRtObjectUpdate_2(clms_cb->immOiHandle, &nd->node_name, attrMods);
@@ -549,7 +576,7 @@ static void clms_imm_admin_op_callback (SaImmOiHandleT immOiHandle,
                         LOG_ER("clms_imm_node_unlock failed");
                         goto done;
                 }
-
+		clms_admin_state_update_rattr(nodeop);
 		break;
 	case SA_CLM_ADMIN_SHUTDOWN:
 		nodeop->admin_op = IMM_SHUTDOWN;
@@ -1524,6 +1551,7 @@ uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
 				TRACE("clms_lock_send_no_start_cbk failed");
 				goto done;
 			}
+			clms_admin_state_update_rattr(nodeop);
                 }
         } else {
 		TRACE("Node is not a member node");
@@ -1538,6 +1566,7 @@ uns32 clms_imm_node_lock(CLMS_CLUSTER_NODE * nodeop)
                         TRACE("clms_node_admin_state_change_ntf failed %u", rc);
                         goto done;
                 }
+		clms_admin_state_update_rattr(nodeop);
 
         }
 done:
@@ -1664,6 +1693,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
         	nodeop->admin_state = SA_CLM_ADMIN_LOCKED;
 		nodeop->admin_op = 0;
                 (void)immutil_saImmOiAdminOperationResult(clms_cb->immOiHandle, nodeop->curr_admin_inv, SA_AIS_OK);
+		clms_admin_state_update_rattr(nodeop);
 
 	}else {
 
@@ -1692,6 +1722,7 @@ uns32 clms_imm_node_shutdown(CLMS_CLUSTER_NODE * nodeop)
                         if(rc != NCSCC_RC_SUCCESS) {
                         	TRACE("clms_node_admin_state_change_ntf failed %u", rc);
                         }
+			clms_admin_state_update_rattr(nodeop);
 		}
 	}
 done:
