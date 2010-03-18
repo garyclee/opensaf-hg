@@ -220,10 +220,12 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					goto done;
 				}
 				TRACE("Node has exited cluster '%x'", node->node_info.nodeId);
+				LOG_NO("%s:%d: FIX ME WHEN AVM LOGIC IS GONE", __FILE__, __LINE__);
 				/* make the node OO cluster */
 				clm_node_exit_complete(node);
+				node->node_info.member = SA_FALSE;
 				/* Remove the node from the node_id tree. */
-				avd_node_delete_nodeid(node);
+				//avd_node_delete_nodeid(node);
 			}
 			else if(notifItem->clusterChange == SA_CLM_NODE_RECONFIGURED) {
 				/* delete, reconfigure, re-add to the node-id db
@@ -266,6 +268,8 @@ static void clm_track_cb(const SaClmClusterNotificationBufferT_4 *notificationBu
 					/* now try to instantiate all the SUs that need to be */
 					clm_node_join_complete(node);
 				}
+
+				node->node_info.member = SA_TRUE;
 			}
 			else
 				LOG_NO("clmTrackCallback in COMPLETED::UNLOCK");
