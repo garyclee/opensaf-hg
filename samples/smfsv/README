@@ -39,7 +39,7 @@ Prerequisites:
      - online_remove.sh
    to the directory $OPENSAFD/tools/cluster_sim_uml;
 
-   cp $OPENSAFD/samples/smfsv/*.sh $OPENSAFD/samples/smfsv/campaignRolling*.xml \
+   cp $OPENSAFD/samples/smfsv/*.sh $OPENSAFD/samples/smfsv/campaigns/*.xml \
          $OPENSAFD/tools/cluster_sim_uml
    chmod +x $OPENSAFD/tools/cluster_sim_uml/o*.sh
 
@@ -56,15 +56,20 @@ Prerequisites:
 
 5) Start the campaign:
 
-   The SaSmfCampaign object defined in the sample configuration (imm.xml) points to a campaign.xml file
-   with the full name /rootfs/campaign.xml.
-   Rename one of the two delivered sample campaigns to campaign.xml.
+   Alt 1:
+   In the samples/smfsv/campaigns directory sample campaigns are available. To run the campaigns
+   see the instruction in the beginning of each campaign.
+
+   Alt 2:
+   The SaSmfCampaign object defined in the sample configuration points to a campaign.xml file
+   with the full name /hostfs/campaign.xml.
+   Copy the selected upgrade campaign to rootfs/campaign.xml.
    cd $OPENSAFD/tools/cluster_sim_uml
-   cp campaignRollingNodes.xml campaign.xml
+   cp xxx.xml campaign.xml
 
    Optional: change the saSmfCmpgFileUri attribute in the safSmfCampaign object.
       In the shell window for UML processor SC_2_1 enter command:
-      # immcfg -m safSmfCampaign=Campaign_1,safApp=safSmfService -a saSmfCmpgFileUri=/hostfs/campaignRollingNodes.xml
+      # immcfg -m safSmfCampaign=Campaign_1,safApp=safSmfService -a saSmfCmpgFileUri=/hostfs/xxx.xml
 
    In the shell window for UML processor SC_2_1 enter command:
    # immadm -o 1 "safSmfCampaign=Campaign_1,safApp=safSmfService"
@@ -81,9 +86,8 @@ Prerequisites:
 
 Logging:
 -------
-
-   $OPENSAFD/tools/cluster_sim_uml/rootfs/var/SC_2_x/lib/opensaf/stdouts/opensaf_smfd.log
-   $OPENSAFD/tools/cluster_sim_uml/rootfs/var/SC_2_x/lib/opensaf/stdouts/opensaf_smfnd.log
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-x/log/opensaf/osafsmfd.log
+   $OPENSAFD/tools/cluster_sim_uml/rootfs/rootfs/var/SC-x/log/opensaf/osafsmfnd.log
 
    Printouts from the delivered demo installation/removal scrips are
    redirected to file;
