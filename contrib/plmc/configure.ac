@@ -133,7 +133,7 @@ AC_CONFIG_FILES([ \
         plmc_boot/Makefile \
         plmcd/Makefile \
         scripts/Makefile \
-        scripts/plmc_boot_script \
+        scripts/plmcboot \
         scripts/plmc_main])
 
 AC_OUTPUT

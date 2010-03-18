@@ -674,6 +674,20 @@ fi
 %if %is_ais_plm
 %post plm-libs -p /sbin/ldconfig
 %postun plm-libs -p/sbin/ldconfig
+
+%post plm-coordinator
+# If we're being upgraded
+if [ "$1" = "2" ]; then
+   echo "" >/dev/null 2>&1 || :
+else # If we're being installed
+   /usr/lib/lsb/install_initd plmcboot
+fi
+
+%preun plm-coordinator
+# Execute this only if we are NOT doing an upgrade
+if [ "$1" = "0" ]; then
+    /usr/lib/lsb/remove_initd plmcboot
+fi
 %endif
 
 
@@ -928,7 +942,7 @@ hostname -s > %{_pkgsysconfdir}/node_name
 %{_sbindir}/plmc_boot
 %{_sbindir}/plmc_d
 %{_libdir}/libplmc_utils.so.*
-%{_initddir}/plmc_boot_script
+%{_initddir}/plmcboot
 %{_initddir}/plmc_main
 
 %endif
