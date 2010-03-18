@@ -109,6 +109,7 @@ typedef struct clms_ckpt_tracklist {
 typedef struct clms_ckpt_cluster {
 	SaUint32T  num_nodes;
 	SaTimeT  init_time;
+	SaUint64T cluster_view_num;
 } CLMSV_CKPT_CLUSTER_INFO;
 
 /* Checkpoint structure for agent_down async updates */
