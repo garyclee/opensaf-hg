@@ -775,7 +775,9 @@ SmfCampaignXmlParser::parseParentTypeElements(SmfTargetNodeTemplate * io_templ, 
 		cur = cur->next;
 	}
 
-        io_templ->addActivationUnitTemplate(pt);
+	if(pt != 0) {
+		io_templ->addActivationUnitTemplate(pt);
+	}
 
         TRACE_LEAVE();
 }
