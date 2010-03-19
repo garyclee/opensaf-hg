@@ -37,7 +37,7 @@ plms_cb_dump_routine ()
 	PLMS_CLIENT_INFO *client_info;
 	PLMS_ENTITY_GROUP_INFO *group_info;
 	PLMS_INVOCATION_TO_TRACK_INFO *track_info;
-	SaUint8T tmp[SA_MAX_NAME_LENGTH +1]="",count;
+	SaInt8T tmp[SA_MAX_NAME_LENGTH +1]="",count;
 	PLMS_CB *cb = plms_cb;
 
 	ee_base_info = (PLMS_EE_BASE_INFO *)ncs_patricia_tree_getnext(&cb->base_ee_info,NULL);

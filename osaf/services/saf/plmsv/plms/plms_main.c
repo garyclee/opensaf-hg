@@ -33,6 +33,7 @@
 #include <daemon.h>
 #include <saPlm.h>
 
+#include "nid_api.h"
 #include "plms.h"
 #include "plms_hsm.h"
 #include "plms_hrb.h"
@@ -47,7 +48,6 @@
 static PLMS_CB  _plms_cb;
 PLMS_CB *plms_cb = &_plms_cb;
 
-static SaUint64T inv_id;
 
 HSM_HA_STATE hsm_ha_state = {PTHREAD_MUTEX_INITIALIZER, 
 			     PTHREAD_COND_INITIALIZER,

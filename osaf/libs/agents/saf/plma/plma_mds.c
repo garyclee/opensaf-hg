@@ -56,7 +56,7 @@ uns32 plma_mds_get_handle()
 	plma_cb->mds_hdl = arg.info.adest_get_hdls.o_mds_pwe1_hdl;
 	plma_cb->mdest_id = arg.info.adest_get_hdls.o_adest;
 	TRACE_5("PLM agent handle got : %d", plma_cb->mds_hdl);
-	TRACE_5("PLM agent mdest ID got : %d", plma_cb->mdest_id);
+	TRACE_5("PLM agent mdest ID got : %llu", plma_cb->mdest_id);
 
 	
 	TRACE_LEAVE();
@@ -265,6 +265,8 @@ static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
         {
 		case NCSMDS_RED_UP:
 			break;
+		case NCSMDS_NEW_ACTIVE:
+			TRACE_5("Received NCSMDS_NEW_ACTIVE for PLMS");
 		case NCSMDS_UP:
 			TRACE_5("Received MDSUP EVT for PLMS");
 			plma_cb->plms_mdest_id = svc_evt->i_dest;
@@ -273,6 +275,8 @@ static uns32 plma_mds_svc_evt(MDS_CALLBACK_SVC_EVENT_INFO *svc_evt)
 				m_NCS_SEL_OBJ_IND(plma_cb->sel_obj);
 			}
 			break;
+		case NCSMDS_NO_ACTIVE:
+			TRACE_5("Received NCSMDS_NO_ACTIVE for PLMS");
 		case NCSMDS_DOWN:
 			TRACE_5("Received MDSDOWN EVT for PLMS");
 			plma_cb->plms_mdest_id = 0;
@@ -337,7 +341,7 @@ void plma_sync_with_plms()
 	m_NCS_LOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 
 	if (cb->plms_svc_up) {
-		LOG_ER("PLMA: PLMS SERVICE IS NOT UP YET");
+		TRACE("Plms is up");
 		m_NCS_UNLOCK(&cb->cb_lock, NCS_LOCK_WRITE);
 		return;
 	}

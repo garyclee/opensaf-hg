@@ -60,17 +60,17 @@ uns32 plms_edp_agent_lib_req(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,NCSCONTEXT ptr, 
 
 	if(op == EDP_OP_TYPE_ENC)
         {
-                struct_ptr = (PLMS_MBCSV_HEADER *)ptr;
+                struct_ptr = (PLMS_AGENT_LIB_REQ *)ptr;
         }
         else if(op == EDP_OP_TYPE_DEC)
         {
-                d_ptr = (PLMS_MBCSV_HEADER **)ptr;
+                d_ptr = (PLMS_AGENT_LIB_REQ **)ptr;
                 if(*d_ptr == NULL)
                 {
                         *o_err = EDU_ERR_MEM_FAIL;
                         return NCSCC_RC_FAILURE;
                 }
-                memset(*d_ptr, '\0', sizeof(PLMS_MBCSV_HEADER));
+                memset(*d_ptr, '\0', sizeof(PLMS_AGENT_LIB_REQ));
                 struct_ptr = *d_ptr;
 	}
 	else
@@ -764,7 +764,7 @@ uns32 plms_edp_agent_track_op(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_AGENT_TRACK_OP *)0)->evt_type, 0, NULL},
 	{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((PLMS_AGENT_TRACK_OP *)0)->agent_handle, 0, NULL},
 	{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns32)&((PLMS_AGENT_TRACK_OP *)0)->grp_handle, 0, NULL},
-	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_AGENT_TRACK_OP *)0)->evt_type, 0, plms_test_track_op_type},
+	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_AGENT_TRACK_OP *)0)->evt_type, 0, (EDU_EXEC_RTINE)plms_test_track_op_type},
 
 
 	/* For plms agent track start */
@@ -820,7 +820,7 @@ uns32 plms_edp_req_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET    plms_edp_req_info_rules[ ] = {
 		{EDU_START, plms_edp_req_info, 0, 0, 0, sizeof(PLMS_EVT_REQ), 0, NULL},
 		{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_REQ *)0)->req_type, 0, NULL},
-		{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_REQ *)0)->req_type, 0, plms_evt_test_req_type},
+		{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_REQ *)0)->req_type, 0, (EDU_EXEC_RTINE)plms_evt_test_req_type},
 
 
 		/* For PLMS_AGENT_LIB_REQ */
@@ -876,7 +876,7 @@ uns32 plms_edp_res_info(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_RES *)0)->res_type, 0, NULL},
 	{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_RES *)0)->error, 0, NULL},
 	{EDU_EXEC, ncs_edp_uns64, 0, 0, 0, (uns64)&((PLMS_EVT_RES *)0)->ntf_id, 0, NULL},
-	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_RES *)0)->res_type, 0, plms_evt_test_res_type},
+	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT_RES *)0)->res_type, 0, (EDU_EXEC_RTINE)plms_evt_test_res_type},
 
 
 	/* For plms responses other than readiness tracked entities */
@@ -933,7 +933,7 @@ uns32 plms_edp_plms_evt(EDU_HDL *edu_hdl, EDU_TKN *edu_tkn,
 	EDU_INST_SET    test_plms_evt_rules[ ] = {
 	{EDU_START, plms_edp_plms_evt, 0, 0, 0, sizeof(PLMS_EVT), 0, NULL},
 	{EDU_EXEC, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT*)0)->req_res, 0, NULL},
-	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT*)0)->req_res, 0, plms_evt_test_type_func},
+	{EDU_TEST, ncs_edp_uns32, 0, 0, 0, (uns32)&((PLMS_EVT*)0)->req_res, 0, (EDU_EXEC_RTINE)plms_evt_test_type_func},
 
 	/* For PLM request type */
 	{EDU_EXEC, plms_edp_req_info, 0, 0, EDU_EXIT,(uns32)&((PLMS_EVT*)0)->req_evt, 0, NULL},

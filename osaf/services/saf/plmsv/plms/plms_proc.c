@@ -292,6 +292,8 @@ SaUint32T plms_proc_quiesced_ack_evt()
 		TRACE_LEAVE();
 		return NCSCC_RC_SUCCESS;
 	}
+	TRACE_LEAVE();
+	return NCSCC_RC_SUCCESS;
 }
 
 

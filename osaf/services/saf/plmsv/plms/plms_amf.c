@@ -29,6 +29,7 @@ stuff.
 #include "plms.h"
 #include "plms_hsm.h"
 #include "plms_mbcsv.h"
+#include "plms_hrb.h"
 #include "nid_start_util.h"
 /* HA AMF statemachine & State handler definitions */
 
@@ -88,7 +89,6 @@ SaUint32T plms_quiesced_state_handler(SaInvocationT invocation)
 
 	PLMS_CB * cb = plms_cb;
 	V_DEST_RL mds_role;
-	SaAisErrorT error = SA_AIS_OK;
 
 	/* Unregister with IMM as OI */
 	plms_proc_active_quiesced_role_change();
@@ -105,10 +105,6 @@ SaUint32T plms_quiesced_state_handler(SaInvocationT invocation)
 	cb->is_quisced_set = TRUE;
 	printf("I AM IN HA AMF QUIESCED STATE\n");
 
-	/* Give up our implementer role */
-/*	error = immutil_saImmOiImplementerClear(cb->immOiHandle);
-	if (error != SA_AIS_OK)
-		printf("saImmOiImplementerClear failed: err = %d", error); */
 	m_NCS_UNLOCK(&cb->cb_lock,NCS_LOCK_WRITE);
 
 	TRACE_LEAVE();
@@ -616,4 +612,3 @@ SaUint32T plms_amf_register()
 
 	return NCSCC_RC_SUCCESS;
 }
-

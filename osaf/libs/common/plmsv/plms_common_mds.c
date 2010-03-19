@@ -56,8 +56,6 @@ SaUint32T plms_mds_enc(MDS_CALLBACK_ENC_INFO *enc_info, EDU_HDL * edu_hdl)
 {
 	PLMS_EVT *evt;
 	NCS_UBAID *uba;
-	uns8 *p8;
-	uns32 total_bytes = 0;
 	EDU_ERR        ederror = 0;
 	SaUint32T rc = NCSCC_RC_SUCCESS;
 

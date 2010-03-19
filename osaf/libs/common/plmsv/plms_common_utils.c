@@ -126,6 +126,9 @@ SaUint32T  plms_free_evt(PLMS_EVT *evt)
 						free(evt->req_evt.plms_plmc_evt.ee_ver);
 					}
 					break;	
+					
+				default:
+					break;
 
 				}
 
@@ -157,7 +160,6 @@ SaUint32T  plms_free_evt(PLMS_EVT *evt)
 				free(evt);
 				break;
 			default:
-				LOG_ER("Unknown Event to be freed %x",evt);
 				free(evt);
 				break;
 		}
