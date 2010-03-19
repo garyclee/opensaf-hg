@@ -85,7 +85,6 @@ SaAisErrorT  plm_add_entity_addr_to_list(PLMA_RDNS_TRK_MEM_LIST** listHead,
 			       "error val:%s",strerror(errno));
 		return NCSCC_RC_FAILURE;
 	}
-	TRACE_5("The entities pointer to be freed using the saPlmReadinessNotificationFree API is %u", entities);
 	new->entities = entities;
 	new->next = NULL;
 	
@@ -1198,7 +1197,7 @@ SaAisErrorT saPlmEntityGroupAdd(SaPlmEntityGroupHandleT entityGroupHandle,
 	plm_in_evt.req_evt.agent_grp_op.plm_handle = group_info->client_info->plm_handle;
 	plm_in_evt.req_evt.agent_grp_op.grp_handle = entityGroupHandle;
 	plm_in_evt.req_evt.agent_grp_op.entity_names_number = entityNamesNumber;
-	plm_in_evt.req_evt.agent_grp_op.entity_names = entityNames;
+	plm_in_evt.req_evt.agent_grp_op.entity_names = (SaNameT *)entityNames;
 	
 	plm_in_evt.req_evt.agent_grp_op.grp_add_option = options;
 	
@@ -1351,7 +1350,7 @@ SaAisErrorT saPlmEntityGroupRemove(SaPlmEntityGroupHandleT entityGroupHandle,
 	plm_in_evt.req_evt.agent_grp_op.grp_handle = entityGroupHandle;
 	plm_in_evt.req_evt.agent_grp_op.entity_names_number = entityNamesNumber;
 	
-	plm_in_evt.req_evt.agent_grp_op.entity_names = entityNames;
+	plm_in_evt.req_evt.agent_grp_op.entity_names = (SaNameT *)entityNames;
 
 
 	/* Send a mds sync msg to PLMS to obtain group handle for this */
@@ -2227,7 +2226,7 @@ SaAisErrorT saPlmEntityReadinessImpact(SaPlmHandleT plmHandle,
 		}
 /*	memset((impactedEntity->value)+(impactedEntity->length), 0,
                         SA_MAX_NAME_LENGTH-(impactedEntity->length));*/
-	plm_in_evt.req_evt.agent_track.readiness_impact.impacted_entity = impactedEntity;
+	plm_in_evt.req_evt.agent_track.readiness_impact.impacted_entity = (SaNameT *)impactedEntity;
 
 	/* Send a mds sync msg to PLMS to obtain group handle for this */
 	proc_rc = plm_mds_msg_sync_send(plma_cb->mds_hdl,NCSMDS_SVC_ID_PLMA,

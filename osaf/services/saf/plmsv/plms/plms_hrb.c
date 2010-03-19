@@ -228,8 +228,7 @@ static void *plms_hrb(void)
 
 				if(hpi_req->entity_path)
 					free(hpi_req->entity_path);
-				/*hpi_evt has to be freed*/
-				//free(hpi_req);
+				free(hpi_req);
 			}
 					  
 
@@ -254,6 +253,7 @@ static void *plms_hrb(void)
 		}
 	}
 	TRACE_LEAVE();
+	return NULL;
 }
 
 /**********************************************************************

@@ -20,7 +20,7 @@
 #include "plms_mbcsv.h"
 #include "ncs_edu_pub.h"
 #include "ncs_saf_edu.h"
-
+#include "ncsencdec_pub.h"
 
 /***********************Function Prototypes ***********************************/
 SaUint32T plms_mbcsv_init();
@@ -1050,7 +1050,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 			cb->prev_ent_grp_hdl = 0;
 			return NCSCC_RC_SUCCESS;
 		}
-               	cb->prev_trk_step_rec = 0xFFFF;
+/*               	cb->prev_trk_step_rec = 0xFFFF; */
 		return NCSCC_RC_SUCCESS;
         }
 
@@ -1106,7 +1106,7 @@ SaUint32T plms_edu_enc_trk_step_info_data(NCS_MBCSV_CB_ARG *arg)
 		cb->prev_trk_step_rec = ptr;
 
 	if (num_rec < MAX_NO_OF_TRK_STEP_INFO_RECS)
-		cb->prev_trk_step_rec = 0xFFFF;  /* This is to indicate that we are done with encoding track step info records. This will be made to zero after we are done with encoding entity group info also */
+/*		cb->prev_trk_step_rec = 0xFFFF; */ /* This is to indicate that we are done with encoding track step info records. This will be made to zero after we are done with encoding entity group info also */
 
 	msg_hdr.msg_type = PLMS_A2S_MSG_TRK_STP_INFO;
 	msg_hdr.num_records = num_rec;
@@ -2039,8 +2039,8 @@ SaUint32T plms_mbcsv_rmv_entity_grp_info_rec(PLMS_MBCSV_MSG *msg)
 				grp_ptr = ptr->entity_list;
 				while ( grp_ptr)
 				{
-					if (strncmp(grp_ptr->entity_name.value,
-						    msg_ptr->entity_name.value,
+					if (strncmp((SaInt8T *)grp_ptr->entity_name.value,
+						    (SaInt8T *)msg_ptr->entity_name.value,
 					      msg_ptr->entity_name.length)== 0)
 					 {
 						strncpy(str,

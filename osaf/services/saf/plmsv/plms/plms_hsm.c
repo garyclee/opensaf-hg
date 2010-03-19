@@ -1151,7 +1151,7 @@ SaUint32T hsm_get_idr_info(SaHpiRptEntryT  *rpt_entry,
 	PLMS_HSM_CB     *cb = hsm_cb;
 	SaHpiEntryIdT   current_entry, next_entry;
 	SaHpiRdrT       rdr;
-	SaHpiIdrInfoT   idr_info;
+/*	SaHpiIdrInfoT   idr_info; */
 	SaHpiIdrIdT 	idr_id;
 	SaUint32T       err;
 
