@@ -1290,3 +1290,12 @@ SmfUpgradeStep::setProcedure(SmfUpgradeProcedure * i_procedure)
 {
 	m_procedure = i_procedure;
 }
+
+//------------------------------------------------------------------------------
+// getProcedure()
+//------------------------------------------------------------------------------
+SmfUpgradeProcedure * 
+SmfUpgradeStep::getProcedure()
+{
+	return m_procedure;
+}

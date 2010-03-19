@@ -20,6 +20,9 @@
  * ========================================================================
  */
 #include "logtrace.h"
+#include "SmfUpgradeMethod.hh"
+#include "SmfUpgradeProcedure.hh"
+#include "saSmf.h"
 #include "SmfUpgradeStep.hh"
 #include "SmfStepState.hh"
 #include "SmfUtils.hh"
@@ -130,138 +133,151 @@ SmfStepStateInitial::execute(SmfUpgradeStep * i_step)
 
 	TRACE("Start executing upgrade step %s", i_step->getDn().c_str());
 
-        /* Find out what type of step this is */
-        const std::list <std::string> &auList = i_step->getActivationUnitList();
+	/* Check if any bundle requires node reboot, in such case only AU = node is accepted */
+	TRACE("SmfStepStateInitial::execute:Check if any software bundle requires reboot");
 
-        if (auList.empty()) {
-                /* No AU in the step (only install/remove bundles) */
-		if (i_step->getDeactivationUnitList().empty()) {
-			i_step->setStepType(SMF_STEP_SW_INSTALL);
-		} else {
-			/* We have deactivation units. This must be a
-			 * single-step removal package. */
-			i_step->setStepType(SMF_STEP_AU_LOCK);
-		}
-        } else {
-		bool rebootNeeded = false;
-                SmfImmUtils immutil;
-                const std::string& firstAU = auList.front();
-                SaImmAttrValuesT_2 ** attributes;
+	SmfImmUtils immutil;
+	bool rebootNeeded = false;
+	SaImmAttrValuesT_2 ** attributes;
 
-		/* Check if any bundle requires node reboot, in such case only AU = node is accepted */
-		TRACE("SmfStepStateInitial::execute:Check if any software bundle requires reboot");
-		const std::list < SmfBundleRef > &removeList = i_step->getSwRemoveList();
-		std::list< SmfBundleRef >::const_iterator bundleIter;
-		bundleIter = removeList.begin();
-		while (bundleIter != removeList.end()) {
-			/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
-			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
-				changeState(i_step, SmfStepStateFailed::instance());
-				TRACE_LEAVE();
-				return false;
-			}
-			const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-								       "saSmfBundleRemoveOfflineScope",
-								       0);
-
-			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to remove", 
-				      (*bundleIter).getBundleDn().c_str());
-
-				rebootNeeded = true;
-				break;
-			}
-			bundleIter++;
-		}
-
-		const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
-		bundleIter = addList.begin();
-		while (bundleIter != addList.end()) {
-			/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
-			if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
-				LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
-				changeState(i_step, SmfStepStateFailed::instance());
-				TRACE_LEAVE();
-				return false;
-			}
-			const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
-								       "saSmfBundleInstallOfflineScope",
-								       0);
-
-			if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
-				TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
-				      (*bundleIter).getBundleDn().c_str());
-
-				rebootNeeded = true;
-				break;
-			}
-
-			bundleIter++;
-		}
-
-                /* Check type of AU object. We assume all AU has to be of same type so only check first */ 
-                if (immutil.getObject(firstAU, &attributes) == false) {
-                        LOG_ER("Could not find AU %s", firstAU.c_str());
-                        changeState(i_step, SmfStepStateFailed::instance());
+	const std::list < SmfBundleRef > &removeList = i_step->getSwRemoveList();
+	std::list< SmfBundleRef >::const_iterator bundleIter;
+	bundleIter = removeList.begin();
+	while (bundleIter != removeList.end()) {
+		/* Read the saSmfBundleRemoveOfflineScope to detect if the bundle requires reboot */
+		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+			LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
 			TRACE_LEAVE();
 			return false;
-                }
+		}
+		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+							       "saSmfBundleRemoveOfflineScope",
+							       0);
 
-                const char * className = immutil_getStringAttr((const SaImmAttrValuesT_2 **)attributes, SA_IMM_ATTR_CLASS_NAME, 0);
-                if (className == NULL) {
-                        LOG_ER("class name not found for AU %s", firstAU.c_str());
-                        changeState(i_step, SmfStepStateFailed::instance());
+		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+			TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to remove", 
+			      (*bundleIter).getBundleDn().c_str());
+
+			rebootNeeded = true;
+			break;
+		}
+		bundleIter++;
+	}
+
+	const std::list < SmfBundleRef > &addList = i_step->getSwAddList();
+	bundleIter = addList.begin();
+	while (bundleIter != addList.end()) {
+		/* Read the saSmfBundleInstallOfflineScope to detect if the bundle requires reboot */
+		if (immutil.getObject((*bundleIter).getBundleDn(), &attributes) == false) {
+			LOG_ER("Could not find software bundle  %s", (*bundleIter).getBundleDn().c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
 			TRACE_LEAVE();
-                        return false;
-                }
+			return false;
+		}
+		const SaUint32T* scope = immutil_getUint32Attr((const SaImmAttrValuesT_2 **)attributes, 
+							       "saSmfBundleInstallOfflineScope",
+							       0);
 
-                if (strcmp(className, "SaAmfNode") == 0) {
-                        /* AU is AMF node */
+		if ((scope != NULL) && (*scope == SA_SMF_CMD_SCOPE_PLM_EE)) {
+			TRACE("SmfStepStateInitial::execute:The SW bundle %s requires reboot to install", 
+			      (*bundleIter).getBundleDn().c_str());
 
-			if (rebootNeeded) {
-				/* Check if the step will lock/reboot our own node and if so
-				   move our campaign execution to the other controller using e.g. 
-				   admin operation SWAP on the SI we belong to. Then the other
-				   controller will continue with this step and do the lock/reboot */
+			rebootNeeded = true;
+			break;
+		}
 
-				if (i_step->isCurrentNode(firstAU) == true) {
-					i_step->setSwitchOver(true);
-					return true; 
-				}
+		bundleIter++;
+	}
 
-				i_step->setStepType(SMF_STEP_NODE_REBOOT);
-			} else {
-				i_step->setStepType(SMF_STEP_AU_LOCK);
-			}
+	//Find out type of step
+	//If single step upgrade, determin the type from first AU or first DU in the step
+	//If rolling upgrade check the first AU of the step
+	std::string className;
+	std::string firstAuDu;
+	if (i_step->getProcedure()->getUpgradeMethod()->getUpgradeMethod() == SA_SMF_SINGLE_STEP) {
+		//Single step
+		//Try the activation unit list, if empy try the deactivation unit list
+		if (!i_step->getActivationUnitList().empty()) {
+			firstAuDu = i_step->getActivationUnitList().front();
+		} else if (!i_step->getDeactivationUnitList().empty()) {
+			firstAuDu = i_step->getDeactivationUnitList().front();
+		} else {
+			//No activation/deactivation, just SW installation
+			className = "SaAmfNode";
+		}
 
-                } else if (strcmp(className, "SaAmfSU") == 0) {
-                        /* AU is SU */
-			if (rebootNeeded) {
-				LOG_ER("A software bundle requires reboot but the AU is a SU (%s)", firstAU.c_str());
-				changeState(i_step, SmfStepStateFailed::instance());
-				TRACE_LEAVE();
-				return false;
-			}
+	} else { 
+		//Rolling
+		if (!i_step->getActivationUnitList().empty()) {
+			firstAuDu = i_step->getActivationUnitList().front();
+		} else {
+			//No activation/deactivation, just SW installation
+			className = "SaAmfNode";
+		}
+	}
 
-                        i_step->setStepType(SMF_STEP_AU_LOCK);
-                } else if (strcmp(className, "SaAmfComp") == 0) {
-                        /* AU is Component */
-			if (rebootNeeded) {
-				LOG_ER("A software bundle requires reboot but the AU is a Component (%s)", firstAU.c_str());
-				changeState(i_step, SmfStepStateFailed::instance());
-				TRACE_LEAVE();
-				return false;
-			}
-
-                        i_step->setStepType(SMF_STEP_AU_RESTART);
-                } else {
-                        LOG_ER("class name %s for %s unknown as AU", className, firstAU.c_str());
-                        changeState(i_step, SmfStepStateFailed::instance());
+	//If a AU/DU was found, check the DN for key words to figure out the class name
+	if (!firstAuDu.empty()) {
+		if (firstAuDu.find("safComp") == 0) {
+			className = "SaAmfComp";
+		} else if (firstAuDu.find("safSu") == 0) {
+			className = "SaAmfSU";
+		} else if (firstAuDu.find("safAmfNode") == 0) {
+			className = "SaAmfNode";
+		} else {
+			LOG_ER("Could not find class for AU/DU DN %s", firstAuDu.c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
 			TRACE_LEAVE();
-                        return false;
-                }
-        }
+			return false;
+		}
+	}
+
+	if (className == "SaAmfNode") {
+		/* AU is AMF node */
+
+		if (rebootNeeded) {
+			/* Check if the step will lock/reboot our own node and if so
+			   move our campaign execution to the other controller using e.g. 
+			   admin operation SWAP on the SI we belong to. Then the other
+			   controller will continue with this step and do the lock/reboot */
+
+			if (i_step->isCurrentNode(firstAuDu) == true) {
+				i_step->setSwitchOver(true);
+				return true; 
+			}
+
+			i_step->setStepType(SMF_STEP_NODE_REBOOT);
+		} else {
+			i_step->setStepType(SMF_STEP_AU_LOCK);
+		}
+
+	} else if (className == "SaAmfSU") {
+		/* AU is SU */
+		if (rebootNeeded) {
+			LOG_ER("A software bundle requires reboot but the AU is a SU (%s)", firstAuDu.c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			TRACE_LEAVE();
+			return false;
+		}
+
+		i_step->setStepType(SMF_STEP_AU_LOCK);
+	} else if (className == "SaAmfComp") {
+		/* AU is Component */
+		if (rebootNeeded) {
+			LOG_ER("A software bundle requires reboot but the AU is a Component (%s)", firstAuDu.c_str());
+			changeState(i_step, SmfStepStateFailed::instance());
+			TRACE_LEAVE();
+			return false;
+		}
+
+		i_step->setStepType(SMF_STEP_AU_RESTART);
+	} else {
+		LOG_ER("class name %s for %s unknown as AU", className.c_str(), firstAuDu.c_str());
+		changeState(i_step, SmfStepStateFailed::instance());
+		TRACE_LEAVE();
+		return false;
+	}
 
 	changeState(i_step, SmfStepStateExecuting::instance());
 	if (i_step->execute() == false) {
