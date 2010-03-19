@@ -209,6 +209,13 @@ class SmfUpgradeStep {
 	void setProcedure(SmfUpgradeProcedure * i_procedure);
 
 ///
+/// Purpose:  Get the procedure
+/// @param    None
+/// @return   A pointer to a SmfUpgradeProcedure
+///
+	SmfUpgradeProcedure *getProcedure();
+
+///
 /// Purpose:  Add an activation unit DN
 /// @param    A DN to an activation unit 
 /// @return   None
