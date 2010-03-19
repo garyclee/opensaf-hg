@@ -1959,13 +1959,13 @@ SmfUpgradeProcedure::getImmSteps()
 
 			if (actUnitTemplates.size() == 0) {
 				if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_AMF_NODE)){
-					LOG_ER("SmfUpgradeProcedure::calculateRollingSteps:addStepModifications failed");
+					LOG_ER("SmfUpgradeProcedure::getImmSteps:addStepModifications failed");
 					rc = SA_AIS_ERR_CAMPAIGN_PROC_FAILED;
 					goto done;
 				}
 			} else {
 				if ( !addStepModifications(newStep, byTemplate->getTargetEntityTemplate(), SMF_AU_SU_COMP)){
-					LOG_ER("SmfUpgradeProcedure::calculateRollingSteps:addStepModifications failed");
+					LOG_ER("SmfUpgradeProcedure::getImmSteps:addStepModifications failed");
 					rc = SA_AIS_ERR_CAMPAIGN_PROC_FAILED;
 					goto done;
 				}
