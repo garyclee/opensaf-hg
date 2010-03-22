@@ -59,10 +59,10 @@
  * ========================================================================
  */
 extern ntfs_cb_t *ntfs_cb;
-extern uns32 ntfs_amf_init(ntfs_cb_t *);
+extern SaAisErrorT ntfs_amf_init();
 extern uns32 ntfs_mds_init(ntfs_cb_t *cb);
 extern uns32 ntfs_mds_finalize(ntfs_cb_t *cb);
-extern uns32 ntfs_mds_change_role(ntfs_cb_t *cb);
+extern uns32 ntfs_mds_change_role();
 extern uns32 ntfs_mds_msg_send(ntfs_cb_t *cb,
 			       ntfsv_msg_t *msg,
 			       MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio);

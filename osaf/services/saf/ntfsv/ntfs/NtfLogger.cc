@@ -79,8 +79,10 @@ static SaLogStreamHandleT alarmStreamHandle;
 
 NtfLogger::NtfLogger():readCounter(0), first(true)
 {
-    initLog();
-
+    if (SA_AIS_OK != initLog()){
+        LOG_ER("initialize saflog failed exiting...");
+        exit(EXIT_FAILURE);
+    }
 }
 
 /* Callbacks */
@@ -268,6 +270,7 @@ SaAisErrorT NtfLogger::initLog()
 {
     SaAisErrorT result;
     SaNameT alarmStreamName        = {sizeof(SA_LOG_STREAM_ALARM), SA_LOG_STREAM_ALARM};
+    int first_try = 1;
 
     TRACE_ENTER();
 
@@ -277,7 +280,7 @@ SaAisErrorT NtfLogger::initLog()
         result = saLogInitialize (&logHandle, &logCallbacks, &logVersion);
         if (SA_AIS_ERR_TRY_AGAIN == result)
         {
-            TRACE_1("Try again: saLogInitialize");
+            if (first_try){ LOG_WA("saLogInitialize returns try again, retries..."); first_try = 0; }
             usleep(AIS_TIMEOUT);
         }
     } while (SA_AIS_ERR_TRY_AGAIN == result);
@@ -287,6 +290,7 @@ SaAisErrorT NtfLogger::initLog()
         LOG_ER("Log initialize result is %d", result);
         goto exit_point;
     }
+    if (!first_try){ LOG_IN("saLogInitialize ok"); first_try = 1; } 
 
     /* Get file descriptor to use in select */
     do
@@ -294,7 +298,7 @@ SaAisErrorT NtfLogger::initLog()
         result = saLogSelectionObjectGet(logHandle, &ntfs_cb->logSelectionObject);
         if (SA_AIS_ERR_TRY_AGAIN == result)
         {
-            TRACE_1("Try again: saLogSelectionObjectGet");
+            if (first_try){ LOG_WA("saLogSelectionObjectGet returns try again, retries..."); first_try = 0; }
             usleep(AIS_TIMEOUT);
         }
     } while (SA_AIS_ERR_TRY_AGAIN == result);
@@ -310,6 +314,7 @@ SaAisErrorT NtfLogger::initLog()
         LOG_ER("Failed to open the notification log stream (%d)", result);
         goto exit_point;
     }
+    if (!first_try){ LOG_IN("saLogSelectionObjectGet ok"); first_try = 1; } 
 
     /* Open the alarm stream */
     do
@@ -322,6 +327,7 @@ SaAisErrorT NtfLogger::initLog()
                                    &alarmStreamHandle);
         if (SA_AIS_ERR_TRY_AGAIN == result)
         {
+            if (first_try){ LOG_WA("saLogStreamOpen_2 returns try again, retries..."); first_try = 0; } 
             usleep(AIS_TIMEOUT);
         }
     } while (SA_AIS_ERR_TRY_AGAIN == result);
@@ -332,6 +338,7 @@ SaAisErrorT NtfLogger::initLog()
                result);
         goto exit_point;
     }
+    if (!first_try){ LOG_IN("saLogStreamOpen_2 ok"); first_try = 1; } 
 
     exit_point:
     TRACE_LEAVE();
