@@ -150,7 +150,8 @@ static void dump_sig_handler(int sig)
 static uns32 initialize()
 {
 	uns32 rc = NCSCC_RC_SUCCESS;;
-	char *value;
+	char *trace_mask_env;
+	unsigned int trace_mask;
 
 	TRACE_ENTER();
 
@@ -213,12 +214,12 @@ static uns32 initialize()
 	}
 
 	initAdmin();
-
+	
 	if (ntfs_cb->ha_state == SA_AMF_HA_ACTIVE)
 		LOG_NO("I am ACTIVE");
 	if (ntfs_cb->ha_state == SA_AMF_HA_STANDBY)
 		LOG_NO("I am STANDBY");
-
+	
 done:
 	if (nid_notify("NTFD", rc, NULL) != NCSCC_RC_SUCCESS) {
 		LOG_ER("nid_notify failed");
@@ -285,7 +286,7 @@ int main(int argc, char *argv[])
 				ncs_sel_obj_rmv_ind(usr1_sel_obj, TRUE, TRUE);
 				ncs_sel_obj_destroy(usr1_sel_obj);
 
-				if (ntfs_amf_init(ntfs_cb) != NCSCC_RC_SUCCESS)
+				if (ntfs_amf_init(ntfs_cb) != SA_AIS_OK)
 					break;
 
 				TRACE("AMF Initialization SUCCESS......");

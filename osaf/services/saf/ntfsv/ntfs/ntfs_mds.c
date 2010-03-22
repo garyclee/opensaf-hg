@@ -1098,8 +1098,8 @@ uns32 ntfs_mds_change_role(ntfs_cb_t *cb)
 	memset(&arg, 0, sizeof(NCSVDA_INFO));
 
 	arg.req = NCSVDA_VDEST_CHG_ROLE;
-	arg.info.vdest_chg_role.i_vdest = cb->vaddr;
-	arg.info.vdest_chg_role.i_new_role = cb->mds_role;
+	arg.info.vdest_chg_role.i_vdest = ntfs_cb->vaddr;
+	arg.info.vdest_chg_role.i_new_role = ntfs_cb->mds_role;
 
 	return ncsvda_api(&arg);
 }
