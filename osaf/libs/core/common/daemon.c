@@ -37,22 +37,21 @@
 
 
 #define DEFAULT_RUNAS_USERNAME	"opensaf"
-#define DEFAULT_TRACEFILE	"/dev/null"
 
 static char __pidfile[NAME_MAX];
 static char __tracefile[NAME_MAX];
 static char __runas_username[UT_NAMESIZE];
-
+static unsigned int tracemask;
 
 static void __print_usage(const char* progname, FILE* stream, int exit_code)
 {
 	fprintf(stream, "Usage:  %s [OPTIONS]...\n", progname);
 	fprintf(stream,
 		"  -h, --help                  Display this usage information.\n"
+		"  -m, --tracemask[=mask]      Set daemon TRACE mask.\n"
 		"  -p, --pidfile[=filename]    Set the daemon PID as [filename].\n"
 		"                              Will be stored under " PKGPIDDIR "\n"
 		"  -T, --tracefile[=filename]  Set the daemon TRACE as [filename].\n"
-		"                              Will be stored under " PKGLOGDIR "\n"
 		"  -U, --run-as[=username]     Execute the daemon as [username].\n"
 		"  -v, --version               Print daemon version.\n");
 	exit(exit_code);
@@ -83,7 +82,7 @@ static void __set_default_options(const char *progname)
 {
 	/* Set the default option values */
 	snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s.pid", progname);
-	snprintf(__tracefile, sizeof(__tracefile), DEFAULT_TRACEFILE);
+	snprintf(__tracefile, sizeof(__tracefile), PKGLOGDIR "/%s", progname);
 	snprintf(__runas_username, sizeof(__runas_username), DEFAULT_RUNAS_USERNAME);
 }
 
@@ -96,11 +95,12 @@ static void __parse_options(int argc, char *argv[])
 	__set_default_options(progname);
 
 	/* A string listing valid short options letters */
-	const char* const short_options = "hp:T:U:v";
+	const char* const short_options = "hm:p:T:U:v";
 	
 	/* An array describing valid long options */
 	const struct option long_options[] = {
 		{ "help",      0, NULL, 'h' },
+		{ "tracemask", 1, NULL, 'm' },
 		{ "pidfile",   1, NULL, 'p' },
 		{ "tracefile", 1, NULL, 'T' },
 		{ "run-as",    1, NULL, 'U' },
@@ -114,11 +114,14 @@ static void __parse_options(int argc, char *argv[])
 		switch(next_option) {
 		case 'h':	/* -h or --help */
 			__print_usage(progname, stdout, EXIT_SUCCESS);
+		case 'm':	/* -m or --tracemask */
+			tracemask = strtoul(optarg, NULL, 0);
+			break;
 		case 'p':	/* -p or --pidfile */
 			snprintf(__pidfile, sizeof(__pidfile), PKGPIDDIR "/%s", optarg);
 			break;
 		case 'T':	/* -T or --tracefile */
-			snprintf(__tracefile, sizeof(__tracefile), PKGLOGDIR "/%s", optarg);
+			snprintf(__tracefile, sizeof(__tracefile), "%s", optarg);
 			break;
 		case 'U':	/* -U or --run-as */
 			snprintf(__runas_username, sizeof(__runas_username), "%s", optarg);
@@ -169,9 +172,12 @@ void daemonize(int argc, char *argv[])
 	}
 
 	/* Redirect standard files to /dev/null */
-	freopen("/dev/null", "r", stdin);
-	freopen(__tracefile, "w", stdout);
-	freopen(__tracefile, "w", stderr);
+	if (freopen("/dev/null", "r", stdin) == NULL)
+		syslog(LOG_ERR, "freopen stdin failed - %s", strerror(errno));
+	if (freopen("/dev/null", "w", stdout) == NULL)
+		syslog(LOG_ERR, "freopen stdout failed - %s", strerror(errno));
+	if (freopen("/dev/null", "w", stderr) == NULL)
+		syslog(LOG_ERR, "freopen stderr failed - %s", strerror(errno));
 
 	/* Change the file mode mask to 0644 */
 	umask(022);
@@ -189,11 +195,9 @@ void daemonize(int argc, char *argv[])
 	if (__create_pidfile(__pidfile) != 0)
 		exit(EXIT_FAILURE);
 
-	/* Initialize the logging interface if not /dev/null */
-	if (strcmp(__tracefile, DEFAULT_TRACEFILE) != 0) {
-		if (logtrace_init(basename(argv[0]), __tracefile) != 0)
-			exit(EXIT_FAILURE);
-	}
+	/* Initialize the log/trace interface */
+	if (logtrace_init(basename(argv[0]), __tracefile, tracemask) != 0)
+		exit(EXIT_FAILURE);
 
 	/* Cancel certain signals */
 	signal(SIGCHLD, SIG_DFL);	/* A child process dies */

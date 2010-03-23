@@ -684,17 +684,14 @@ void clma_hdl_list_del(clma_client_hdl_rec_t ** list)
 __attribute__ ((constructor))
 static void logtrace_init_constructor(void)
 {
-        char *value;
+	char *value;
 
-        /* Initialize trace system first of all so we can see what is going. */
-        if ((value = getenv("CLMSV_TRACE_PATHNAME")) != NULL) {
-                if (logtrace_init("clma", value) != 0) {
-                        syslog(LOG_WARNING, "LOG lib: logtrace_init FAILED, tracing disabled...");
-                        return;
-                }
-
-                /* Do not care about categories now, get all */
-                trace_category_set(CATEGORY_ALL); 
-        }
+	/* Initialize trace system first of all so we can see what is going. */
+	if ((value = getenv("CLMSV_TRACE_PATHNAME")) != NULL) {
+		if (logtrace_init("clma", value, CATEGORY_ALL) != 0) {
+			/* error, we cannot do anything */
+			return;
+		}
+	}
 }
 

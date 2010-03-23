@@ -705,12 +705,9 @@ static void logtrace_init_constructor(void)
 
 	/* Initialize trace system first of all so we can see what is going. */
 	if ((value = getenv("LOGSV_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init("lga", value) != 0) {
-			syslog(LOG_WARNING, "LOG lib: logtrace_init FAILED, tracing disabled...");
+		if (logtrace_init("lga", value, CATEGORY_ALL) != 0) {
+			/* error, we cannot do anything */
 			return;
 		}
-
-		/* Do not care about categories now, get all */
-		trace_category_set(CATEGORY_ALL);
 	}
 }

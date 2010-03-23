@@ -229,13 +229,6 @@ uns32 clms_cb_init(CLMS_CB *clms_cb)
 static uns32 clms_init(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("CLMD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	TRACE_ENTER();
 

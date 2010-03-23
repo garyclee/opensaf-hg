@@ -33,18 +33,18 @@
 #include <signal.h>
 #include <errno.h>
 #include <limits.h>
+#include <configmake.h>
 
 #include "logtrace.h"
 
 static int trace_fd = -1;
 static int category_mask;
-static char trace_file[NAME_MAX];
 static char *prefix_name[] = { "EM", "AL", "CR", "ER", "WA", "NO", "IN", "DB",
 	"TR", "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", ">>", "<<"
 };
 
-static const char *my_name;
-
+static const char *ident;
+static const char *pathname;
 
 /**
  * USR2 signal handler to enable/disable trace (toggle)
@@ -64,7 +64,7 @@ static void sigusr2_handler(int sig)
 
 static void output(const char *file, unsigned int line, int priority, int category, const char *format, va_list ap)
 {
-	int i, preamble_len;
+	int i;
 	struct timeval tv;
 	char preamble[512];
 	char log_string[1024];
@@ -74,11 +74,11 @@ static void output(const char *file, unsigned int line, int priority, int catego
 	/* Create a nice syslog looking date string */
 	gettimeofday(&tv, NULL);
 	strftime(log_string, sizeof(log_string), "%b %e %k:%M:%S", localtime(&tv.tv_sec));
-	preamble_len = sprintf(preamble, "%s.%06ld %s ", log_string, tv.tv_usec, my_name);
+	i = snprintf(preamble, sizeof(preamble), "%s.%06ld %s ", log_string, tv.tv_usec, ident);
 
-	sprintf(&preamble[preamble_len], "[%ld:%s:%04u] %s %s",
+	snprintf(&preamble[i], sizeof(preamble) - i, "[%ld:%s:%04u] %s %s",
 		syscall(SYS_gettid), file, line, prefix_name[priority + category], format);
-	i = vsprintf(log_string, preamble, ap);
+	i = vsnprintf(log_string, sizeof(log_string), preamble, ap);
 
 	/* Add line feed if not there already */
 	if (log_string[i - 1] != '\n') {
@@ -87,26 +87,44 @@ static void output(const char *file, unsigned int line, int priority, int catego
 		i++;
 	}
 
-	if (trace_fd != -1)
-		write(trace_fd, log_string, i);
+	/* If we got here without a file descriptor, trace was enabled in runtime, open the file */
+	if (trace_fd == -1) {
+		trace_fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (trace_fd < 0) {
+			syslog(LOG_ERR, "logtrace: open failed, file=%s (%s)", pathname, strerror(errno));
+			return;
+		}
+	}
+
+write_retry:
+	i = write(trace_fd, log_string, i);
+	if (i == -1) {
+		if (errno == EAGAIN)
+			goto write_retry;
+		else
+			syslog(LOG_ERR, "logtrace: write failed, %s", strerror(errno));
+	}
 }
 
 void _logtrace_log(const char *file, unsigned int line, int priority, const char *format, ...)
 {
 	va_list ap;
 	va_list ap2;
-	va_start(ap, format);
-	va_copy(ap2, ap);
 
 	/* Uncondionally send to syslog */
+	va_start(ap, format);
 	vsyslog(priority, format, ap);
 
 	/* Only output to file if configured to */
-	if (!(category_mask & (1 << CAT_LOG)))
+	if (!(category_mask & (1 << CAT_LOG))) {
+		va_end(ap);
 		return;
+	}
 
+	va_copy(ap2, ap);
 	output(file, line, priority, CAT_LOG, format, ap2);
 	va_end(ap);
+	va_end(ap2);
 }
 
 void _logtrace_trace(const char *file, unsigned int line, unsigned int category, const char *format, ...)
@@ -122,49 +140,51 @@ void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
 	va_end(ap);
 }
 
-int logtrace_init(const char *ident, const char *pathname)
+int logtrace_init(const char *_ident, const char *_pathname, unsigned int mask)
 {
-	if (ident == NULL || pathname == NULL) {
-		syslog(LOG_ERR, "invalid trace init parameters");
-		return -1;
+	ident = _ident;
+	pathname = strdup(_pathname);
+	category_mask = mask;
+
+	if (mask != 0) {
+		trace_fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if (trace_fd < 0) {
+			syslog(LOG_ERR, "logtrace: open failed, file=%s (%s)", pathname, strerror(errno));
+			return -1;
+		}
+
+		syslog(LOG_INFO, "logtrace: trace enabled to file %s, mask=0x%x", pathname, category_mask);
 	}
 
-	my_name = ident;
-	openlog(ident, LOG_PID, LOG_LOCAL0);
-
-	trace_fd = open(pathname, O_WRONLY | O_APPEND | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-	if (trace_fd < 0) {
-		syslog(LOG_ERR, "open failed, file=%s (%s)", pathname, strerror(errno));
-		return -1;
+	/* Only install signal for opensaf daemons */
+	if (strncmp(PKGLOGDIR, _pathname, strlen(PKGLOGDIR)) == 0) {
+		if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
+			syslog(LOG_ERR, "logtrace: registering trace toggle SIGUSR2 failed, (%s)", strerror(errno));
+			return -1;
+		}
 	}
-
-	if (signal(SIGUSR2, sigusr2_handler) == SIG_ERR) {
-		syslog(LOG_ERR, "registering trace toggle SIGUSR2 failed, (%s)", strerror(errno));
-		return -1;
-	}
-
-	LOG_NO("trace initialized, file=%s", pathname);
 
 	return 0;
 }
 
-int trace_category_set(unsigned int category)
+int trace_category_set(unsigned int mask)
 {
-	/* Do not enable tracing without an output device */
-	if (trace_fd == -1)
-		return -1;
+	category_mask = mask;
 
-	category_mask = category;
-
-	if (category_mask == 0)
-		LOG_NO("disabling tracing, mask=0x%x");
+	if (category_mask == 0) {
+		if (trace_fd != -1) {
+			(void) close(trace_fd);
+			trace_fd = -1;
+		}
+		syslog(LOG_INFO, "logtrace: trace disabled");
+	}
 	else
-		LOG_NO("setting tracing category, mask=0x%x", category);
+		syslog(LOG_INFO, "logtrace: trace enabled to file %s, mask=0x%x", pathname, category_mask);
 
 	return 0;
 }
 
-int trace_category_get(void)
+unsigned int trace_category_get(void)
 {
 	return category_mask;
 }

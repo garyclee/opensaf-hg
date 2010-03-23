@@ -104,15 +104,8 @@ static uns32 immnd_initialize(char *progname)
 {
 	uns32 rc = NCSCC_RC_FAILURE;
 	char *envVar = NULL;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
-
-	if ((trace_mask_env = getenv("IMMND_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	/* Determine how this process was started, by NID or AMF */
 	if (getenv("SA_AMF_COMPONENT_NAME") == NULL)

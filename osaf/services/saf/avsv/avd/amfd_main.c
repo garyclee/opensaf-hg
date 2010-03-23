@@ -24,14 +24,6 @@
 
 static int __init_avd(void)
 {
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("AMFD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
-
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS)
 		return m_LEAP_DBG_SINK(NCSCC_RC_FAILURE);
 

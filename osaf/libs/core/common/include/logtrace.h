@@ -62,15 +62,16 @@ extern "C" {
  * 
  * @param ident An identity string to be prepended to every message. Typically
  * set to the program name.
- * 
  * @param pathname The pathname parameter should contain a valid
  * path name for a file if tracing is to be enabled. The user must have write
  * access to that file. If the file already exist, it is appended. If the file
  * name is not valid, no tracing is performed.
+ * @param mask The initial trace mask. Should be set set to zero by
+ *             default (trace disabled)
  * 
  * @return int - 0 if OK, -1 otherwise
  */
-	extern int logtrace_init(const char *ident, const char *pathname);
+extern int logtrace_init(const char *ident, const char *pathname, unsigned int mask);
 
 /**
  * trace_category_set - Set the mask used for trace filtering.
@@ -88,20 +89,20 @@ extern "C" {
  * 
  * @return int - 0 if OK, -1 otherwise
  */
-	extern int trace_category_set(unsigned int category_mask);
+extern int trace_category_set(unsigned int category_mask);
 
 /**
  * trace_category_get - Get the current mask used for trace filtering.
  * 
  * @return int - The filtering mask value
  */
-	extern int trace_category_get(void);
+extern unsigned int trace_category_get(void);
 
 /* internal functions, do not use directly */
-	extern void _logtrace_log(const char *file, unsigned int line, int priority,
-				  const char *format, ...) __attribute__ ((format(printf, 4, 5)));
-	extern void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
-				    const char *format, ...) __attribute__ ((format(printf, 4, 5)));
+extern void _logtrace_log(const char *file, unsigned int line, int priority,
+		  const char *format, ...) __attribute__ ((format(printf, 4, 5)));
+extern void _logtrace_trace(const char *file, unsigned int line, unsigned int category,
+		    const char *format, ...) __attribute__ ((format(printf, 4, 5)));
 
 /* LOG API. Use same levels as syslog */
 #define LOG_EM(format, args...) _logtrace_log(__FILE__, __LINE__, LOG_EMERG, (format), ##args)

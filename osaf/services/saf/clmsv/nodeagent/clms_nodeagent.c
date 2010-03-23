@@ -343,15 +343,7 @@ int main(int argc, char *argv[])
 	CLMSV_MSG msg;
 	struct pollfd fds[1];
 	int ret;
-	char *value;
 	NODE_INFO node_info;
-
-	if ((value = getenv("CLMNA_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init("clmna", value) != 0)
-			syslog(LOG_WARNING, "LOG lib: logtrace_init FAILED, tracing disabled...");
-
-		trace_category_set(CATEGORY_ALL);
-	}
 
 	daemonize(argc, argv);
 

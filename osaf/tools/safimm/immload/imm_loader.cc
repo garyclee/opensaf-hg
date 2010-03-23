@@ -2086,20 +2086,10 @@ int main(int argc, char* argv[])
         if (syncMarker == std::string(argv[3]))
         {
 
-            if (logtrace_init("immsync", logPath) == -1)
+            if (logtrace_init("immsync", logPath, 0) == -1)
             {
                 syslog(LOG_ERR, "logtrace_init FAILED");
                 /* We allow the sync to execute anyway. */
-            }
-
-            if (getenv("IMMSV_TRACE_CATEGORIES") != NULL)
-            {
-                /* Do not care about categories now, get all */
-                if (trace_category_set(CATEGORY_ALL) == -1)
-                {
-                    printf("Failed to initialize tracing!\n");
-                    LOG_WA("Failed to initialize tracing!");
-                }
             }
 
             LOG_NO("Sync starting");
@@ -2116,19 +2106,10 @@ int main(int argc, char* argv[])
         }
     }
 
-    if (logtrace_init("immload", logPath) == -1)
+    if (logtrace_init("immload", logPath, 0) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
-    }
-
-    if (getenv("IMMSV_TRACE_CATEGORIES") != NULL)
-    {
-        /* Do not care about categories now, get all */
-        if (trace_category_set(CATEGORY_ALL) == -1)
-        {
-            LOG_WA("Failed to initialize tracing!");
-        }
     }
 
     LOG_NO("Load starting");

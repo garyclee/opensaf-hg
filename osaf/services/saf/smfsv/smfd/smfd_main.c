@@ -118,15 +118,8 @@ uns32 smfd_cb_init(smfd_cb_t * smfd_cb)
 static uns32 initialize_smfd(void)
 {
 	uns32 rc;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
-
-	if ((trace_mask_env = getenv("SMFD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");

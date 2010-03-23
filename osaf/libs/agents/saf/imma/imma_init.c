@@ -572,11 +572,8 @@ static void imma_logtrace_init(void)
 
 	/* Initialize trace system first of all so we can see what is going. */
 	if ((value = getenv("IMMA_TRACE_PATHNAME")) != NULL) {
-		if (logtrace_init("imma", value) != 0)
+		if (logtrace_init("imma", value, CATEGORY_ALL) != 0)
 			/* error, we cannot do anything */
 			return;
-
-		/* Do not care about categories now, get all */
-		trace_category_set(CATEGORY_ALL);
 	}
 }

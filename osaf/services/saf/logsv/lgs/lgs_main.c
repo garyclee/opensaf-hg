@@ -173,15 +173,8 @@ static void dump_sig_handler(int sig)
 static uns32 log_initialize(void)
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
-
-	if ((trace_mask_env = getenv("LOGD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		LOG_ER("ncs_agents_startup FAILED");
