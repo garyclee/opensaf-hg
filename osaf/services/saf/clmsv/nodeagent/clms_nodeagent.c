@@ -75,13 +75,81 @@ static uns32 clmna_mds_cpy(struct ncsmds_callback_info *info)
 
 static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
 {
-	return NCSCC_RC_SUCCESS;
+        uns8 *p8;
+        CLMSV_MSG *msg;
+        NCS_UBAID *uba = info->info.dec.io_uba;
+        uns8 local_data[20];
+        uns32 total_bytes = 0, ret_bytes = 0;
+        TRACE_ENTER();
+
+        if (0 == m_NCS_MSG_FORMAT_IS_VALID(info->info.dec.i_msg_fmt_ver,
+                                           CLMNA_WRT_CLMS_SUBPART_VER_AT_MIN_MSG_FMT,
+                                           CLMNA_WRT_CLMS_SUBPART_VER_AT_MAX_MSG_FMT, CLMNA_WRT_CLMS_MSG_FMT_ARRAY)) {
+                TRACE("Invalid message format!!!\n");
+                TRACE_LEAVE();
+                return NCSCC_RC_FAILURE;
+        }
+
+    	/** Allocate a new msg in both sync/async cases 
+     	**/
+        if (NULL == (msg = calloc(1, sizeof(CLMSV_MSG)))) {
+                TRACE("calloc failed\n");
+                return NCSCC_RC_FAILURE;
+        }
+
+        info->info.dec.o_msg = (uns8 *)msg;
+
+        p8 = ncs_dec_flatten_space(uba, local_data, 4);
+        msg->evt_type = ncs_decode_32bit(&p8);
+        ncs_dec_skip_space(uba, 4);
+        total_bytes += 4;
+
+        switch (msg->evt_type) {
+        case CLMSV_CLMS_TO_CLMA_API_RESP_MSG:
+                {
+                        p8 = ncs_dec_flatten_space(uba, local_data, 8);
+                        msg->info.api_resp_info.type = ncs_decode_32bit(&p8);
+                        msg->info.api_resp_info.rc = ncs_decode_32bit(&p8);
+                        ncs_dec_skip_space(uba, 8);
+                        total_bytes += 8;
+                        TRACE_2("CLMSV_CLMA_API_RESP_MSG for Node_Up rc = %d", (int)msg->info.api_resp_info.rc);
+
+                        switch (msg->info.api_resp_info.type) {
+                        case CLMSV_CLUSTER_JOIN_RESP:
+				total_bytes += decodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
+                                break;
+			default:
+				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
+				free(msg);
+				return NCSCC_RC_FAILURE;
+			}
+		}
+		break;
+        default:
+                TRACE("Unknown MSG type %d", msg->evt_type);
+                free(msg);
+                return NCSCC_RC_FAILURE;
+        }
+
+        TRACE_LEAVE();
+        return NCSCC_RC_SUCCESS;
 }
 
 static uns32 clmna_mds_dec_flat(struct ncsmds_callback_info *info)
 {
-	return NCSCC_RC_SUCCESS;
+        uns32 rc = NCSCC_RC_SUCCESS;
+        /* Retrieve info from the dec_flat */
+        MDS_CALLBACK_DEC_INFO dec = info->info.dec_flat;
+        /* Modify the MDS_INFO to populate dec */
+        info->info.dec = dec;
+        /* Invoke the regular mds_dec routine */
+        rc = clmna_mds_dec(info);
+        if (rc != NCSCC_RC_SUCCESS) {
+                TRACE("mds_dec FAILED ");
+        }
+        return rc;
 }
+
 static uns32 clmna_mds_rcv(struct ncsmds_callback_info *mds_cb_info)
 {
 	return NCSCC_RC_SUCCESS;
@@ -177,7 +245,7 @@ static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
 
 		TRACE_2("api_info.type: %d", msg->info.api_info.type);
 
-		if (msg->info.api_info.type == CLMSV_NODE_UP_MSG) {
+		if (msg->info.api_info.type == CLMSV_CLUSTER_JOIN_REQ) {
 			p8 = ncs_enc_reserve_space(uba, 4);
 			if (!p8) {
 				LOG_ER("NULL pointer");
@@ -311,10 +379,11 @@ static int get_node_info(NODE_INFO *node)
 	return 0;
 }
 
-static uns32 clmna_mds_msg_sync_send(CLMSV_MSG *i_msg, uns32 timeout)
+static uns32 clmna_mds_msg_sync_send(CLMSV_MSG *i_msg, CLMSV_MSG **o_msg, uns32 timeout)
 {
 	NCSMDS_INFO mds_info;
 	uns32 rc = NCSCC_RC_SUCCESS;
+	TRACE_ENTER();
 
 	memset(&mds_info, '\0', sizeof(NCSMDS_INFO));
 	mds_info.i_mds_hdl = mds_hdl;
@@ -324,23 +393,28 @@ static uns32 clmna_mds_msg_sync_send(CLMSV_MSG *i_msg, uns32 timeout)
 	/* Fill the send structure */
 	mds_info.info.svc_send.i_msg = (NCSCONTEXT)i_msg;
 	mds_info.info.svc_send.i_to_svc = NCSMDS_SVC_ID_CLMS;
-	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SND;
-	mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_MEDIUM;	  /* fixme? */
+	mds_info.info.svc_send.i_sendtype = MDS_SENDTYPE_SNDRSP;
+	mds_info.info.svc_send.i_priority = MDS_SEND_PRIORITY_HIGH;
 	/* fill the sub send rsp strcuture */
 	mds_info.info.svc_send.info.sndrsp.i_time_to_wait = timeout;	/* timeto wait in 10ms FIX!!! */
 	mds_info.info.svc_send.info.sndrsp.i_to_dest = clms_mds_dest;
 
-	/* send the message */
-	if (NCSCC_RC_SUCCESS != (rc = ncsmds_api(&mds_info)))
-		LOG_ER("mds send failed");
+        /* send the message */
+        if (NCSCC_RC_SUCCESS == (rc = ncsmds_api(&mds_info))) {
+                /* Retrieve the response and take ownership of the memory  */
+                *o_msg = (CLMSV_MSG *)mds_info.info.svc_send.info.sndrsp.o_rsp;
+                mds_info.info.svc_send.info.sndrsp.o_rsp = NULL;
+        } else
+                TRACE("clma_mds_msg_sync_send FAILED");
 
+        TRACE_LEAVE();
 	return rc;
 }
 
 int main(int argc, char *argv[])
 {
 	uns32 rc = NCSCC_RC_SUCCESS;
-	CLMSV_MSG msg;
+	CLMSV_MSG msg, *o_msg = NULL;;
 	struct pollfd fds[1];
 	int ret;
 	NODE_INFO node_info;
@@ -363,7 +437,7 @@ int main(int argc, char *argv[])
 
 	/* Poll every second until we have the MDS adress of the server */
 	while (1) {
-		ret = poll(fds, 0, 1000);
+		ret = poll(fds, 0, 100);
 
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -375,12 +449,36 @@ int main(int argc, char *argv[])
 
 		if (clms_mds_dest != 0) {
 			msg.evt_type =  CLMSV_CLMA_TO_CLMS_API_MSG;
-			msg.info.api_info.type = CLMSV_NODE_UP_MSG;
+			msg.info.api_info.type = CLMSV_CLUSTER_JOIN_REQ;
 			msg.info.api_info.param.nodeup_info.node_id = node_info.node_id;
 			msg.info.api_info.param.nodeup_info.node_name = node_info.node_name;
-			rc = clmna_mds_msg_sync_send(&msg,CLMS_NODEUP_WAIT_TIME);
-			if (rc == NCSCC_RC_SUCCESS)
+			rc = clmna_mds_msg_sync_send(&msg, &o_msg, CLMS_NODEUP_WAIT_TIME);
+			switch (rc) {
+			case NCSCC_RC_SUCCESS:
 				break;
+			case NCSCC_RC_REQ_TIMOUT:
+				LOG_ER("clmna_mds_msg_sync_send Timed Out");
+				goto done;
+			default:
+				LOG_ER("clmna_mds_msg_sync_send FAILED: %u", rc);
+				goto done;
+			}
+
+			if (o_msg != NULL) {
+				rc = o_msg->info.api_resp_info.rc;
+				free(o_msg);
+			} else
+				rc = SA_AIS_ERR_NO_RESOURCES;
+
+			if(rc == SA_AIS_ERR_NOT_EXIST) {
+				LOG_ER("Node : %s is Not a member of cluster", o_msg->info.api_resp_info.param.node_name.value);
+				goto done;
+			}
+
+			if(rc == SA_AIS_OK)
+				LOG_ER("Node : %s has Joined the cluster", o_msg->info.api_resp_info.param.node_name.value);
+
+			break; /*get out of while loop*/
 		}
 	}
 

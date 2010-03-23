@@ -1,3 +1,19 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2010 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s):  Emerson Network Power
+ */
+
 #ifndef CLMSV_EVT_H
 #define CLMSV_EVT_H
 
@@ -18,7 +34,7 @@ typedef enum clmsv_api_type {
 	CLMSV_NODE_GET_REQ,
 	CLMSV_NODE_GET_ASYNC_REQ,
 	CLMSV_RESPONSE_REQ,
-	CLMSV_NODE_UP_MSG,
+	CLMSV_CLUSTER_JOIN_REQ,
 	CLMSV_API_MAX
 } CLMSV_API_MSG_TYPE;
 
@@ -29,6 +45,7 @@ typedef enum clmsv_api_resp_type {
 	CLMSV_TRACK_STOP_RESP,
 	CLMSV_NODE_GET_RESP,
 	CLMSV_NODE_GET_ASYNC_RESP,
+	CLMSV_CLUSTER_JOIN_RESP,
 	CLMSV_API_RESP_MAX
 } CLMSV_API_RESP_MSG_TYPE;
 
@@ -146,6 +163,7 @@ typedef struct clmsv_api_resp_info_t {
 		SaClmClusterNodeT_4 node_get;
 		SaInvocationT  inv;
 		CLMSV_TRACK_INFO  track;
+		SaNameT node_name;
 	} param;
 } CLMSV_API_RESP_INFO;
 
