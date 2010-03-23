@@ -696,6 +696,9 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 			if(msg->info.api_resp_info.rc == SA_AIS_OK)	
 	                        total_bytes += clms_enc_node_get_rsp_msg(uba, msg);
                         break;
+		case CLMSV_CLUSTER_JOIN_RESP:
+				total_bytes += encodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
+			break; 
                 default:
                         TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
 			goto err;
@@ -838,7 +841,7 @@ uns32 clms_mds_dec(struct ncsmds_callback_info *info)
                 case CLMSV_RESPONSE_REQ:
                         total_bytes += clms_dec_response_msg(uba, &evt->info.msg);
                         break;
-		case CLMSV_NODE_UP_MSG:
+		case CLMSV_CLUSTER_JOIN_REQ:
 			 /* Decode the nodeup mesg*/
 	                TRACE("Node up message getting decoded");
 			total_bytes += clms_dec_nodeup_msg(uba, &evt->info.msg);
@@ -1397,7 +1400,11 @@ uns32 clms_mds_finalize(CLMS_CB *cb)
 ******************************************************************************/
 
 uns32 clms_mds_msg_send(CLMS_CB *cb,
-		       CLMSV_MSG *msg, MDS_DEST *dest, MDS_SYNC_SND_CTXT *mds_ctxt, MDS_SEND_PRIORITY_TYPE prio)
+			CLMSV_MSG *msg,
+			MDS_DEST *dest,
+			MDS_SYNC_SND_CTXT *mds_ctxt,
+			MDS_SEND_PRIORITY_TYPE prio,
+			NCSMDS_SVC_ID svc_id)
 {
 	NCSMDS_INFO mds_info;
 	MDS_SEND_INFO *send_info = &mds_info.info.svc_send;
@@ -1412,7 +1419,7 @@ uns32 clms_mds_msg_send(CLMS_CB *cb,
 	mds_info.i_op = MDS_SEND;
 
 	send_info->i_msg = msg;
-	send_info->i_to_svc = NCSMDS_SVC_ID_CLMA;
+	send_info->i_to_svc = svc_id; /* NCSMDS_SVC_ID_CLMNA or NCSMDS_SVC_ID_CLMA */
 	send_info->i_priority = prio;	/* Discuss the priority assignments TBD */
 
 	if (NULL == mds_ctxt || 0 == mds_ctxt->length) {

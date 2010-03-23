@@ -1,3 +1,19 @@
+/*      -*- OpenSAF  -*-
+ *
+ * (C) Copyright 2010 The OpenSAF Foundation
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. This file and program are licensed
+ * under the GNU Lesser General Public License Version 2.1, February 1999.
+ * The complete license can be accessed from the following location:
+ * http://opensource.org/licenses/lgpl-license.php
+ * See the Copying file included with the OpenSAF distribution for full
+ * licensing terms.
+ *
+ * Author(s):  Emerson Network Power
+ */
+
 #include <saImmOm.h>
 #include <saImmOi.h>
 
@@ -830,7 +846,7 @@ uns32 clms_prep_and_send_track(CLMS_CB *cb,CLMS_CLUSTER_NODE * node,CLMS_CLIENT_
 				(msg->info.cbk_info.param.track.buf_info.numberOfItems *sizeof(SaClmClusterNotificationT_4)));
 	}
 
-	rc = clms_mds_msg_send(cb,msg,&client->mds_dest, NULL,MDS_SEND_PRIORITY_MEDIUM);
+	rc = clms_mds_msg_send(cb, msg, &client->mds_dest, NULL, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
 
 	if (rc != NCSCC_RC_SUCCESS){
 		TRACE("callback msg send to clma  failed");

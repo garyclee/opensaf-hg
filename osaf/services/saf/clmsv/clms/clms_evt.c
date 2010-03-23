@@ -223,6 +223,7 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 	SaUint32T nodeid;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaNameT node_name = {0};
+	CLMSV_MSG clm_msg;
 
 	TRACE_ENTER2("Node up mesg for nodename length %d %s",nodeup_info->node_name.length,nodeup_info->node_name.value);
 
@@ -233,10 +234,27 @@ uns32 proc_node_up_msg(CLMS_CB*cb,CLMSV_CLMS_EVT *evt)
 	node = clms_node_get_by_name(&node_name);
 	if(node == NULL){
 		LOG_ER("CLM NodeName %s doesn't match entry in imm.xml. Specify a correct DN name in node_name file ",nodeup_info->node_name.value);
-		rc = NCSCC_RC_FAILURE;
+		clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+		clm_msg.info.api_resp_info.type = CLMSV_CLUSTER_JOIN_RESP;
+		clm_msg.info.api_resp_info.rc  = SA_AIS_ERR_NOT_EXIST;
+		clm_msg.info.api_resp_info.param.node_name = node_name;
+		rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMNA);
+		/*as this is failure case of node == NULL, making rc = success to avoid irrelevant error from process_api_evt() */
+		rc = NCSCC_RC_SUCCESS;
 		goto done;
 	}
-	
+
+	/*we got node, lets send node_agent responce*/
+	clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
+	clm_msg.info.api_resp_info.type = CLMSV_CLUSTER_JOIN_RESP;
+	clm_msg.info.api_resp_info.rc  = SA_AIS_OK;
+	clm_msg.info.api_resp_info.param.node_name = node_name;
+	/*rc will be updated down in the positive flow*/
+	rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMNA);
+	/*if mds send failed, we need to report failure*/
+	if(rc != NCSCC_RC_SUCCESS)
+		goto done;
+
 	nodeid = evt->info.msg.info.api_info.param.nodeup_info.node_id;	
 
 	/* This has to be updated always*/
@@ -695,7 +713,7 @@ snd_rsp:
 	clm_msg.evt_type = CLMSV_CLMS_TO_CLMA_API_RESP_MSG;
 	clm_msg.info.api_resp_info.type = CLMSV_TRACK_STOP_RESP;
 	clm_msg.info.api_resp_info.rc  = ais_rc;
-	rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest,&evt->mds_ctxt,MDS_SEND_PRIORITY_HIGH);
+	rc = clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc != NCSCC_RC_SUCCESS){
 		LOG_ER("clms_mds_msg_send failed rc %u",(unsigned int)rc );
 		goto done;
@@ -772,7 +790,7 @@ static uns32 proc_node_get_msg(CLMS_CB *cb, CLMSV_CLMS_EVT *evt)
 
 	TRACE_LEAVE();
 	/*Send the valid node info to clma*/
-	 return  clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest,&evt->mds_ctxt,MDS_SEND_PRIORITY_HIGH);
+	 return  clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 }
 
 /**
@@ -836,7 +854,7 @@ static uns32 proc_node_get_async_msg(CLMS_CB *cb, CLMSV_CLMS_EVT *evt)
 	TRACE_LEAVE();
 
 	/*Send the valid node info to clma*/
-	 return  clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest,0,MDS_SEND_PRIORITY_MEDIUM);
+	 return  clms_mds_msg_send(cb, &clm_msg, &evt->fr_dest, 0, MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
 }
 
 /**
@@ -881,7 +899,7 @@ static uns32 proc_initialize_msg(CLMS_CB *cb, CLMSV_CLMS_EVT *evt)
         msg.info.api_resp_info.rc = ais_rc;
         msg.info.api_resp_info.param.client_id = client->client_id;
 
-        rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+        rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if(rc != NCSCC_RC_SUCCESS){
 		TRACE_LEAVE2("clms_mds_msg_send FAILED rc = %u", (unsigned int)rc);
 		clms_client_delete(client->client_id);
@@ -942,7 +960,7 @@ static uns32 proc_finalize_msg(CLMS_CB *cb, CLMSV_CLMS_EVT *evt)
         msg.info.api_resp_info.type = CLMSV_FINALIZE_RESP;
         msg.info.api_resp_info.rc = ais_rc;
         msg.info.api_resp_info.param.client_id = param->client_id;
-        rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH);
+        rc = clms_mds_msg_send(cb, &msg, &evt->fr_dest, &evt->mds_ctxt, MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if ( rc != NCSCC_RC_SUCCESS){
 		TRACE_LEAVE2("clms_mds_msg_send failed rc = %u",(unsigned int)rc);
 		return NCSCC_RC_SUCCESS;
@@ -1096,7 +1114,7 @@ static void clms_track_current_apiresp(SaAisErrorT ais_rc,uns32 num_mem,SaClmClu
 
 	TRACE("Sending msg to mds");
 
-	rc = clms_mds_msg_send(clms_cb, &msg, dest, ctxt,MDS_SEND_PRIORITY_HIGH);
+	rc = clms_mds_msg_send(clms_cb, &msg, dest, ctxt,MDS_SEND_PRIORITY_HIGH, NCSMDS_SVC_ID_CLMA);
 	if (rc !=  NCSCC_RC_SUCCESS){
 		TRACE("clms_mds_msg_send failed");
 	}
@@ -1141,7 +1159,7 @@ static void clms_send_track_current_cbkresp(SaAisErrorT ais_rc,uns32 num_mem,SaC
 		msg.info.cbk_info.param.track.buf_info.notification = notify;
 	}
 
-	rc = clms_mds_msg_send(clms_cb, &msg, dest, NULL,MDS_SEND_PRIORITY_MEDIUM);
+	rc = clms_mds_msg_send(clms_cb, &msg, dest, NULL,MDS_SEND_PRIORITY_MEDIUM, NCSMDS_SVC_ID_CLMA);
         if(rc != NCSCC_RC_SUCCESS){
                 TRACE("clms_mds_msg_send failed rc = %d",rc);
 	}
@@ -1320,7 +1338,7 @@ uns32 clms_remove_clma_down_rec(CLMS_CB *cb , MDS_DEST mds_dest)
 void clms_evt_destroy(CLMSV_CLMS_EVT *evt)
 {
         assert(evt != NULL);
-        if (evt->info.msg.info.api_info.type == CLMSV_NODE_UP_MSG){
+        if (evt->info.msg.info.api_info.type == CLMSV_CLUSTER_JOIN_REQ){
                 TRACE("not calloced in server code,don't free it here");
         } else
                 free(evt);
