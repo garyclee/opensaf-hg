@@ -305,13 +305,6 @@ static int initialize_rde(void)
 	RDE_RDA_CB *rde_rda_cb = &rde_cb->rde_rda_cb;
 	int rc = NCSCC_RC_FAILURE;
 	char *val;
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("RDE_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	if ((val = getenv("RDE_DISCOVER_PEER_TIMEOUT")) != NULL)
 		discover_peer_timeout = strtoul(val, NULL, 0);

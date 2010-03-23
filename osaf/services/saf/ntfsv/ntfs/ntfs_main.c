@@ -151,15 +151,8 @@ static uns32 initialize()
 {
 	uns32 rc = NCSCC_RC_SUCCESS;;
 	char *value;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	TRACE_ENTER();
-
-	if ((trace_mask_env = getenv("NTFD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	if (ncs_agents_startup() != NCSCC_RC_SUCCESS) {
 		TRACE("ncs_core_agents_startup FAILED");

@@ -162,22 +162,12 @@ int main(int argc, char* argv[])
         logPath = defaultLog;
     }
 
-    if (logtrace_init(trace_label, logPath) == -1)
+    if (logtrace_init(trace_label, logPath, 0) == -1)
     {
         printf("logtrace_init FAILED\n");
         syslog(LOG_ERR, "logtrace_init FAILED");
         /* We allow the dump to execute anyway. */
     }
-
-    if (getenv("IMMSV_TRACE_CATEGORIES") != NULL)
-    {
-        /* Do not care about categories now, get all */
-        if (trace_category_set(CATEGORY_ALL) == -1)
-        {
-            LOG_ER("Failed to initialize tracing!");
-        }
-    }
-
 
     version.releaseCode = RELEASE_CODE;
     version.majorVersion = MAJOR_VERSION;

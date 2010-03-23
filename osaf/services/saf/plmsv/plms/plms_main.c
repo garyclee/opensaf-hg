@@ -182,14 +182,7 @@ static uns32 plms_init()
 	PLMS_CB *cb;
 	uns32 rc = NCSCC_RC_SUCCESS;
 	SaVersionT ntf_version = { 'A', 0x01, 0x01 };
-        SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("PLMD_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
+	SaNtfCallbacksT ntf_callbacks = { NULL, NULL };
 
 	TRACE_ENTER();
 	

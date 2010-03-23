@@ -133,15 +133,8 @@ int main(int argc, char *argv[])
 	SaNameT comp_name;
 	SaAmfHealthcheckKeyT hc_key;
 	char *hc_key_env;
-	char *trace_mask_env;
-	unsigned int trace_mask;
 
 	daemonize(argc, argv);
-
-	if ((trace_mask_env = getenv("AMFMON_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	ava_install_amf_down_cb(amf_down_cb);
 
