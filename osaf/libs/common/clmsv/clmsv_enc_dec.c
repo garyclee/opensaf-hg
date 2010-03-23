@@ -18,7 +18,7 @@
 #include "clmsv_enc_dec.h"
 #include "clmsv_msg.h"
 
-uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name)
+uns32 clmsv_decodeSaNameT(NCS_UBAID *uba,SaNameT *name)
 {
         uns8 local_data[2];
 	uns8 *p8 = NULL;
@@ -40,7 +40,7 @@ uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name)
 
 
 
-uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress)
+uns32 clmsv_decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress)
 {
         uns8 local_data[5];
 	uns8 *p8 = NULL;
@@ -70,7 +70,7 @@ uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress)
 }
 
 
-uns32 encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
+uns32 clmsv_encodeSaNameT(NCS_UBAID *uba, SaNameT *name)
 {
 	TRACE_ENTER();
 	uns8 *p8 = NULL;

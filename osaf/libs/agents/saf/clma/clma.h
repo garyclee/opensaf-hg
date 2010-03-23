@@ -87,7 +87,7 @@ typedef struct {
 
 /* clma_api.c */
 extern clma_cb_t clma_cb;
-extern uns32 Validate_Version(SaVersionT *version);
+extern uns32 clma_validate_version(SaVersionT *version);
 
 extern uns32 clma_mds_init(clma_cb_t *cb);
 extern uns32 clma_mds_msg_sync_send(clma_cb_t *cb, CLMSV_MSG *i_msg, CLMSV_MSG **o_msg, uns32 timeout);
@@ -111,22 +111,22 @@ extern uns32 clma_hdl_rec_del(clma_client_hdl_rec_t **list_head, clma_client_hdl
 extern SaAisErrorT clma_hdl_cbk_dispatch(clma_cb_t *cb, clma_client_hdl_rec_t *hdl_rec, SaDispatchFlagsT flags);
 
 
-SaAisErrorT saclminitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
+static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
                             const SaClmCallbacksT_4 *reg_cbks_4, SaVersionT *version);
-SaAisErrorT saclmclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
+static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
                               SaClmClusterNotificationBufferT *buf,
                               SaClmClusterNotificationBufferT_4 *buf_4);
-SaAisErrorT saclmclusternodeget(SaClmHandleT clmHandle,
+static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
                                 SaClmNodeIdT node_id,
                                 SaTimeT timeout,
                                 SaClmClusterNodeT *cluster_node,
                                 SaClmClusterNodeT_4 *cluster_node_4);
-uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress);
-uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name);
+/*uns32 decodeNodeAddressT(NCS_UBAID *uba,SaClmNodeAddressT * nodeAddress);
+uns32 decodeSaNameT(NCS_UBAID *uba,SaNameT *name);*/
 extern uns32 clma_clms_msg_proc(clma_cb_t *cb, CLMSV_MSG *clmsv_msg, MDS_SEND_PRIORITY_TYPE prio);
-extern void add_to_async_cbk_msg_list(CLMSV_MSG **head, CLMSV_MSG *new_node);
-extern void fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,
+extern void clma_add_to_async_cbk_msg_list(CLMSV_MSG **head, CLMSV_MSG *new_node);
+extern void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,
                                 SaClmClusterNotificationBufferT_4 *buf_4);
-extern void fill_node_from_node4(SaClmClusterNodeT * clusterNode,
+extern void clma_fill_node_from_node4(SaClmClusterNodeT * clusterNode,
                           SaClmClusterNodeT_4 clusterNode_4);
 #endif   /* !CLMA_H */

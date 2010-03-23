@@ -1538,7 +1538,7 @@ uns32 enc_mbcsv_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *param
         ncs_enc_claim_space(uba, 4);
         total_bytes += 4;
 
-	total_bytes += encodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
 
         p8 = ncs_enc_reserve_space(uba, 4);
         if (!p8) {
@@ -1611,8 +1611,8 @@ uns32 enc_mbcsv_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *para
         TRACE_ENTER();
 
     /** encode the contents **/
-	total_bytes += encodeSaNameT(uba,&param->node_name);
-	total_bytes += encodeSaNameT(uba,&param->ee_name);
+	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba,&param->ee_name);
 	total_bytes += encodeNodeAddressT(uba,&param->node_addr);
 
         p8 = ncs_enc_reserve_space(uba, 4);
@@ -1671,8 +1671,8 @@ uns32 enc_mbcsv_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
         total_bytes += 4;
 
 	total_bytes += encodeNodeAddressT(uba,&param->node_addr);
-        total_bytes += encodeSaNameT(uba,&param->node_name);
-        total_bytes += encodeSaNameT(uba,&param->ee_name);
+        total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
+        total_bytes += clmsv_encodeSaNameT(uba,&param->ee_name);
 
         p8 = ncs_enc_reserve_space(uba, 4);
         if (!p8) {
@@ -1806,7 +1806,7 @@ uns32 enc_mbcsv_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
         TRACE_ENTER();
 
     /** encode the contents **/
-	total_bytes += encodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_encodeSaNameT(uba,&param->node_name);
 
         TRACE_LEAVE();
         return total_bytes;
@@ -2303,7 +2303,7 @@ static uns32 decode_node_rec_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_RUNTIME_INFO *p
         ncs_dec_skip_space(uba, 4);
         total_bytes += 4;
 
-	total_bytes += decodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
 
         p8 = ncs_dec_flatten_space(uba, local_data, 4);
         param->member = ncs_decode_32bit(&p8);
@@ -2347,10 +2347,10 @@ uns32 decode_node_config_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_CONFIG_REC *param)
 	SaUint32T lck_timeout1 = 0;
 	SaUint32T lck_timeout2 = 0;
 
-	total_bytes += decodeSaNameT(uba,&param->node_name);
-	total_bytes += decodeSaNameT(uba,&param->ee_name);
+	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba,&param->ee_name);
 
-	total_bytes += decodeNodeAddressT(uba,&param->node_addr);
+	total_bytes += clmsv_decodeNodeAddressT(uba,&param->node_addr);
 
         p8 = ncs_dec_flatten_space(uba, local_data, 4);
         param->disable_reboot = ncs_decode_32bit(&p8);
@@ -2378,7 +2378,7 @@ uns32 decode_node_del_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE_DEL_REC *param)
 {
         uns32 total_bytes = 0;
 
-	total_bytes += decodeSaNameT(uba,&param->node_name);
+	total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
 
         TRACE_8("decode_node_delete_msg");
         return total_bytes;
@@ -2398,9 +2398,9 @@ uns32 decode_node_msg(NCS_UBAID *uba, CLMSV_CKPT_NODE *param)
         ncs_dec_skip_space(uba, 4);
         total_bytes += 4;
 	
-	total_bytes += decodeNodeAddressT(uba,&param->node_addr);
-        total_bytes += decodeSaNameT(uba,&param->node_name);
-        total_bytes += decodeSaNameT(uba,&param->ee_name);
+	total_bytes += clmsv_decodeNodeAddressT(uba,&param->node_addr);
+        total_bytes += clmsv_decodeSaNameT(uba,&param->node_name);
+        total_bytes += clmsv_decodeSaNameT(uba,&param->ee_name);
 
         p8 = ncs_dec_flatten_space(uba, local_data, 4);
         param->member = ncs_decode_32bit(&p8);

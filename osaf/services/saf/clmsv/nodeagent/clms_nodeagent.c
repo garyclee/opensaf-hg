@@ -116,7 +116,7 @@ static uns32 clmna_mds_dec(struct ncsmds_callback_info *info)
 
                         switch (msg->info.api_resp_info.type) {
                         case CLMSV_CLUSTER_JOIN_RESP:
-				total_bytes += decodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
+				total_bytes += clmsv_decodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
                                 break;
 			default:
 				TRACE_2("Unknown API RSP type %d", msg->info.api_resp_info.type);
@@ -256,7 +256,7 @@ static uns32 clmna_mds_enc(struct ncsmds_callback_info *info)
 			ncs_encode_32bit(&p8, msg->info.api_info.param.nodeup_info.node_id);
 			ncs_enc_claim_space(uba, 4);
 			total_bytes += 4;
-			total_bytes += encodeSaNameT(uba,&(msg->info.api_info.param.nodeup_info.node_name));
+			total_bytes += clmsv_encodeSaNameT(uba,&(msg->info.api_info.param.nodeup_info.node_name));
 		}
 	}
 

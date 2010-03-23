@@ -18,6 +18,8 @@ include $(top_srcdir)/Makefile.common
 
 MAINTAINERCLEANFILES = Makefile.in
 
+EXTRA_DIST = libSaClm.version
+
 LIB_VERSION = 0:0:0
 
 SUBDIRS = pkgconfig
@@ -27,10 +29,12 @@ lib_LTLIBRARIES = libSaClm.la
 libSaClm_la_SOURCES =
 
 libSaClm_la_CPPFLAGS = \
-	$(AM_CPPFLAGS) \
-	-DNCS_CLA=1 -DNCS_AVSV_LOG=1
+	$(AM_CPPFLAGS)
+#	-DNCS_CLA=1 -DNCS_AVSV_LOG=1
 
-libSaClm_la_LDFLAGS = -version-info $(LIB_VERSION)
+libSaClm_la_LDFLAGS = \
+		-Wl,-version-script=$(top_srcdir)/osaf/libs/saf/libSaClm/libSaClm.version \
+		-version-number $(LIB_VERSION)
 
 libSaClm_la_LIBADD = \
 	$(top_builddir)/osaf/libs/core/libopensaf_core.la \
