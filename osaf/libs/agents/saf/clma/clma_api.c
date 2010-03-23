@@ -53,26 +53,26 @@ clma_cb_t clma_cb = {
       (o_rc) = SA_AIS_ERR_BAD_HANDLE;\
 };
 
-SaAisErrorT validate_flags_buf(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
-                               SaClmClusterNotificationBufferT *buf);
-SaAisErrorT validate_flags_buf_4(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
-                                 SaClmClusterNotificationBufferT_4 *buf);
-void fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
-                                    CLMSV_MSG *msg_rsp);
-void fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 *buf_4,
-                                            CLMSV_MSG *msg_rsp);
-SaAisErrorT send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t *hdl_rec,
-                                                    SaUint8T flags,
-                                                    CLMSV_MSG i_msg,
-                                                    SaClmClusterNotificationBufferT *buf);
-SaAisErrorT send_mds_msg_get_clusternotificationbuf_4(clma_client_hdl_rec_t *hdl_rec,
-                                                      SaUint8T flags,
-                                                      CLMSV_MSG i_msg,
-                                                      SaClmClusterNotificationBufferT_4 *buf_4);
+static SaAisErrorT clma_validate_flags_buf(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
+					SaClmClusterNotificationBufferT *buf);
+static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
+					SaClmClusterNotificationBufferT_4 *buf);
+static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
+					CLMSV_MSG *msg_rsp);
+static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 *buf_4,
+					CLMSV_MSG *msg_rsp);
+static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t *hdl_rec,
+							SaUint8T flags,
+							CLMSV_MSG i_msg,
+							SaClmClusterNotificationBufferT *buf);
+static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hdl_rec_t *hdl_rec,
+							SaUint8T flags,
+							CLMSV_MSG i_msg,
+							SaClmClusterNotificationBufferT_4 *buf_4);
 
 
-void fill_node_from_node4(SaClmClusterNodeT * clusterNode,
-			  SaClmClusterNodeT_4 clusterNode_4)
+void clma_fill_node_from_node4(SaClmClusterNodeT * clusterNode,
+				SaClmClusterNodeT_4 clusterNode_4)
 {
         clusterNode->nodeId = clusterNode_4.nodeId;
         clusterNode->nodeAddress.family = clusterNode_4.nodeAddress.family;
@@ -89,8 +89,8 @@ void fill_node_from_node4(SaClmClusterNodeT * clusterNode,
         clusterNode->initialViewNumber = clusterNode_4.initialViewNumber;
 }
 
-SaAisErrorT validate_flags_buf(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
-			       SaClmClusterNotificationBufferT *buf)
+static SaAisErrorT clma_validate_flags_buf(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
+				SaClmClusterNotificationBufferT *buf)
 {
 	SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER();
@@ -123,8 +123,8 @@ SaAisErrorT validate_flags_buf(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
 	return rc;
 }
 
-SaAisErrorT validate_flags_buf_4(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
-                                 SaClmClusterNotificationBufferT_4 *buf)
+static SaAisErrorT clma_validate_flags_buf_4(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
+					SaClmClusterNotificationBufferT_4 *buf)
 {               
         SaAisErrorT rc = SA_AIS_OK;
 	TRACE_ENTER2("flags=0x%x",flags);
@@ -170,8 +170,8 @@ SaAisErrorT validate_flags_buf_4(clma_client_hdl_rec_t *hdl_rec, SaUint8T flags,
 * Check the number of items and num fields.
 */
 
-void fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
-                                    CLMSV_MSG *msg_rsp)
+static void clma_fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
+					CLMSV_MSG *msg_rsp)
 {
         if (msg_rsp->info.api_resp_info.param.track.notify_info == NULL)
           return;
@@ -184,7 +184,7 @@ void fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
 
                 memset(buf->notification, 0,
                        sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
-                fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
+                clma_fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
         } else {
                 /* we need to ignore the numberOfItems and allocate the space
                 ** This memory will be freed by the application */
@@ -195,7 +195,7 @@ void fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
                                                              buf->numberOfItems);
                 memset(buf->notification, 0,
                        sizeof(SaClmClusterNotificationT) * buf->numberOfItems);
-                fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
+                clma_fill_clusterbuf_from_buf_4(buf, msg_rsp->info.api_resp_info.param.track.notify_info);
         }
 }
 
@@ -207,8 +207,8 @@ void fill_cluster_ntf_buf_from_omsg(SaClmClusterNotificationBufferT *buf,
 * Check the number of items and num fields.
 */
 
-void fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 *buf_4,
-                                            CLMSV_MSG *msg_rsp)
+static void clma_fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 *buf_4,
+					CLMSV_MSG *msg_rsp)
 {
         if (msg_rsp->info.api_resp_info.param.track.notify_info == NULL)
           return;
@@ -239,10 +239,10 @@ void fill_cluster_ntf_buf4_from_omsg(SaClmClusterNotificationBufferT_4 *buf_4,
         }
 }
 
-SaAisErrorT send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t *hdl_rec,
-						    SaUint8T flags,
-						    CLMSV_MSG i_msg,
-                                                    SaClmClusterNotificationBufferT *buf)
+static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t *hdl_rec,
+							SaUint8T flags,
+							CLMSV_MSG i_msg,
+							SaClmClusterNotificationBufferT *buf)
 {
         SaAisErrorT rc = SA_AIS_OK;
         CLMSV_MSG *o_msg = NULL;
@@ -306,7 +306,7 @@ SaAisErrorT send_mds_msg_get_clusternotificationbuf(clma_client_hdl_rec_t *hdl_r
 		}
 
                 if(rc == SA_AIS_OK) {
-                        fill_cluster_ntf_buf_from_omsg(buf, o_msg);
+                        clma_fill_cluster_ntf_buf_from_omsg(buf, o_msg);
                         /* destroy o_msg */
 			clma_msg_destroy(o_msg);
                         goto done;
@@ -345,10 +345,10 @@ done:
 }
 
 
-SaAisErrorT send_mds_msg_get_clusternotificationbuf_4(clma_client_hdl_rec_t *hdl_rec,
-						      SaUint8T flags,
-						      CLMSV_MSG i_msg,
-						      SaClmClusterNotificationBufferT_4 *buf_4)
+static SaAisErrorT clma_send_mds_msg_get_clusternotificationbuf_4(clma_client_hdl_rec_t *hdl_rec,
+							SaUint8T flags,
+							CLMSV_MSG i_msg,
+							SaClmClusterNotificationBufferT_4 *buf_4)
 {
 	SaAisErrorT rc = SA_AIS_OK;
         CLMSV_MSG *o_msg = NULL;
@@ -407,7 +407,7 @@ SaAisErrorT send_mds_msg_get_clusternotificationbuf_4(clma_client_hdl_rec_t *hdl
 		}
 
 		if(rc == SA_AIS_OK) {
-			fill_cluster_ntf_buf4_from_omsg(buf_4, o_msg);
+			clma_fill_cluster_ntf_buf4_from_omsg(buf_4, o_msg);
 			/* destroy o_msg */
 			clma_msg_destroy(o_msg);
 			goto done;
@@ -443,8 +443,8 @@ done:
 	return rc;
 }
 
-void fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,
-				SaClmClusterNotificationBufferT_4 *buf_4)
+void clma_fill_clusterbuf_from_buf_4(SaClmClusterNotificationBufferT *buf,
+					SaClmClusterNotificationBufferT_4 *buf_4)
 {
 	SaUint32T i=0;
 	for(i=0 ; i < buf->numberOfItems ; i++) {
@@ -509,7 +509,7 @@ SaAisErrorT saClmInitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_
                 goto done;
         }
 
-        rc = saclminitialize(clmHandle, reg_cbks, NULL, version);
+        rc = clmainitialize(clmHandle, reg_cbks, NULL, version);
  done:
         TRACE_LEAVE();
         return rc;
@@ -559,7 +559,7 @@ SaAisErrorT saClmInitialize_4(SaClmHandleT *clmHandle, const SaClmCallbacksT_4 *
                 goto done;
         }
 
-        rc = saclminitialize(clmHandle, NULL, reg_cbks, version);
+        rc = clmainitialize(clmHandle, NULL, reg_cbks, version);
  done:
         TRACE_LEAVE();
         return rc;
@@ -567,8 +567,8 @@ SaAisErrorT saClmInitialize_4(SaClmHandleT *clmHandle, const SaClmCallbacksT_4 *
 }
 
 
-SaAisErrorT saclminitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
-			    const SaClmCallbacksT_4 *reg_cbks_4, SaVersionT *version)
+static SaAisErrorT clmainitialize(SaClmHandleT *clmHandle, const SaClmCallbacksT *reg_cbks_1,
+					const SaClmCallbacksT_4 *reg_cbks_4, SaVersionT *version)
 {
 	clma_client_hdl_rec_t *clma_hdl_rec;
         CLMSV_MSG i_msg, *o_msg;
@@ -861,7 +861,7 @@ SaAisErrorT saClmClusterTrack(SaClmHandleT clmHandle, SaUint8T flags, SaClmClust
         SaAisErrorT rc;
         TRACE_ENTER();
 	
-	rc = saclmclustertrack(clmHandle, flags, buf, NULL);
+	rc = clmaclustertrack(clmHandle, flags, buf, NULL);
         
 	TRACE_LEAVE();
         return rc;
@@ -888,7 +888,7 @@ SaAisErrorT saClmClusterTrack_4(SaClmHandleT clmHandle, SaUint8T flags, SaClmClu
         SaAisErrorT rc;
         TRACE_ENTER();
 
-	rc = saclmclustertrack(clmHandle, flags, NULL, buf);
+	rc = clmaclustertrack(clmHandle, flags, NULL, buf);
         
 	TRACE_LEAVE();
         return rc;
@@ -896,7 +896,7 @@ SaAisErrorT saClmClusterTrack_4(SaClmHandleT clmHandle, SaUint8T flags, SaClmClu
 }
 
 /****************************************************************************
-  Name          : saclmclustertrack
+  Name          : clmaclustertrack
  
   Description   : This fuction requests CLM to start tracking the changes
                   in the cluster membership.
@@ -913,9 +913,9 @@ SaAisErrorT saClmClusterTrack_4(SaClmHandleT clmHandle, SaUint8T flags, SaClmClu
  
   Notes         : None.
 ******************************************************************************/
-SaAisErrorT saclmclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
-			      SaClmClusterNotificationBufferT *buf,
-			      SaClmClusterNotificationBufferT_4 *buf_4)
+static SaAisErrorT clmaclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
+					SaClmClusterNotificationBufferT *buf,
+					SaClmClusterNotificationBufferT_4 *buf_4)
 {
 	clma_client_hdl_rec_t *hdl_rec;
         CLMSV_MSG i_msg;
@@ -945,13 +945,13 @@ SaAisErrorT saclmclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
         }
 
         if(buf_4 == NULL && buf != NULL) {
-                if(!Validate_Version(hdl_rec->version)) {
+                if(!clma_validate_version(hdl_rec->version)) {
                         TRACE("Version error from saClmClusterTrack");
                         rc = SA_AIS_ERR_VERSION;
                         goto done_give_hdl;
                 }
         } else if(buf == NULL && buf_4 != NULL){
-                if(Validate_Version(hdl_rec->version)) {
+                if(clma_validate_version(hdl_rec->version)) {
                         TRACE("Version error from saClmClusterTrack_4");
                         rc = SA_AIS_ERR_VERSION;
                         goto done_give_hdl;
@@ -959,12 +959,12 @@ SaAisErrorT saclmclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
         }
 
 
-	if(Validate_Version(hdl_rec->version)) {
-		if((rc = validate_flags_buf(hdl_rec, flags, buf)) != SA_AIS_OK)
+	if(clma_validate_version(hdl_rec->version)) {
+		if((rc = clma_validate_flags_buf(hdl_rec, flags, buf)) != SA_AIS_OK)
 			goto done_give_hdl;
 	} else {
 		TRACE("B.4.1 version");
-                if((rc = validate_flags_buf_4(hdl_rec, flags, buf_4)) != SA_AIS_OK)
+                if((rc = clma_validate_flags_buf_4(hdl_rec, flags, buf_4)) != SA_AIS_OK)
                         goto done_give_hdl;
 	}
 
@@ -976,10 +976,10 @@ SaAisErrorT saclmclustertrack(SaClmHandleT clmHandle, SaUint8T flags,
         i_msg.info.api_info.param.track_start.flags = flags;
 	i_msg.info.api_info.param.track_start.client_id = hdl_rec->clms_client_id; 
 
-        if(Validate_Version(hdl_rec->version)) {
-                rc = send_mds_msg_get_clusternotificationbuf(hdl_rec, flags, i_msg, buf);
+        if(clma_validate_version(hdl_rec->version)) {
+                rc = clma_send_mds_msg_get_clusternotificationbuf(hdl_rec, flags, i_msg, buf);
         } else {
-                rc = send_mds_msg_get_clusternotificationbuf_4(hdl_rec, flags, i_msg, buf_4);
+                rc = clma_send_mds_msg_get_clusternotificationbuf_4(hdl_rec, flags, i_msg, buf_4);
         }
 
  done_give_hdl:
@@ -1068,7 +1068,7 @@ SaAisErrorT saClmClusterTrackStop(SaClmHandleT clmHandle)
 				TRACE_2("Dropping Track Callback %d",cbk_msg->info.cbk_info.type);
 				clma_msg_destroy(cbk_msg);
 			}  else if(cbk_msg->info.cbk_info.type == CLMSV_NODE_ASYNC_GET_CBK) {
-				add_to_async_cbk_msg_list(&async_cbk_msg, cbk_msg);
+				clma_add_to_async_cbk_msg_list(&async_cbk_msg, cbk_msg);
 	                } else {
 	                        TRACE("Dropping unsupported callback type %d", cbk_msg->info.cbk_info.type);
 				clma_msg_destroy(cbk_msg);
@@ -1130,7 +1130,7 @@ SaAisErrorT saClmClusterNodeGet(SaClmHandleT clmHandle,
                 goto done;
         }
 
-	rc = saclmclusternodeget(clmHandle,
+	rc = clmaclusternodeget(clmHandle,
 				 node_id,
 				 timeout,
 				 cluster_node,
@@ -1172,7 +1172,7 @@ SaAisErrorT saClmClusterNodeGet_4(SaClmHandleT clmHandle,
                 goto done;
         }
 
-        rc = saclmclusternodeget(clmHandle,
+        rc = clmaclusternodeget(clmHandle,
                                  node_id,
                                  timeout,
                                  NULL,
@@ -1183,7 +1183,7 @@ SaAisErrorT saClmClusterNodeGet_4(SaClmHandleT clmHandle,
 }
 
 /****************************************************************************
-  Name          : saclmclusternodeget
+  Name          : clmaclusternodeget
  
   Description   : This fuction synchronously gets the information about a 
                   cluster member (identified by node-id).
@@ -1201,11 +1201,11 @@ SaAisErrorT saClmClusterNodeGet_4(SaClmHandleT clmHandle,
   Notes         : None.
 ******************************************************************************/
 
-SaAisErrorT saclmclusternodeget(SaClmHandleT clmHandle,
-				SaClmNodeIdT node_id,
-				SaTimeT timeout,
-				SaClmClusterNodeT *cluster_node,
-				SaClmClusterNodeT_4 *cluster_node_4)
+static SaAisErrorT clmaclusternodeget(SaClmHandleT clmHandle,
+					SaClmNodeIdT node_id,
+					SaTimeT timeout,
+					SaClmClusterNodeT *cluster_node,
+					SaClmClusterNodeT_4 *cluster_node_4)
 {
         clma_client_hdl_rec_t *hdl_rec;
         CLMSV_MSG msg, *o_msg = NULL;
@@ -1241,13 +1241,13 @@ SaAisErrorT saclmclusternodeget(SaClmHandleT clmHandle,
         }
 
 	if(cluster_node_4 == NULL ) {
-		if(!Validate_Version(hdl_rec->version)) {
+		if(!clma_validate_version(hdl_rec->version)) {
 			TRACE("Version error from saClmClusterNodeGet");
 			rc = SA_AIS_ERR_VERSION;
 			goto done_give_hdl;
 		}
 	} else {
-                if(Validate_Version(hdl_rec->version)) {
+                if(clma_validate_version(hdl_rec->version)) {
                         TRACE("Version error from saClmClusterNodeGet_4");
                         rc = SA_AIS_ERR_VERSION;
                         goto done_give_hdl;
@@ -1285,8 +1285,8 @@ SaAisErrorT saclmclusternodeget(SaClmHandleT clmHandle,
                 rc = SA_AIS_ERR_NO_RESOURCES;
 
         if (rc == SA_AIS_OK) {
-		if(Validate_Version(hdl_rec->version)) {
-			fill_node_from_node4(cluster_node,
+		if(clma_validate_version(hdl_rec->version)) {
+			clma_fill_node_from_node4(cluster_node,
 					     o_msg->info.api_resp_info.param.node_get);
 		} else {
 		memset(cluster_node_4, 0, sizeof(SaClmClusterNodeT_4));
@@ -1349,7 +1349,7 @@ SaAisErrorT saClmClusterNodeGetAsync(SaClmHandleT clmHandle, SaInvocationT inv, 
                 goto done;
         }
 
-	if(Validate_Version(hdl_rec->version)) {
+	if(clma_validate_version(hdl_rec->version)) {
 		if(!hdl_rec->cbk_param.reg_cbk.saClmClusterNodeGetCallback){  
         	        rc = SA_AIS_ERR_INIT;
                 	goto done_give_hdl;
@@ -1429,7 +1429,7 @@ SaAisErrorT saClmClusterNotificationFree_4(SaClmHandleT clmHandle,
                 goto done;
         }
 
-	if(Validate_Version(hdl_rec->version)) {
+	if(clma_validate_version(hdl_rec->version)) {
 		TRACE("not supported in the version specified");
 		rc = SA_AIS_ERR_VERSION;
 		goto done_give_hdl;

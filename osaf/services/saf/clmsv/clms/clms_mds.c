@@ -331,8 +331,8 @@ static uns32 clms_enc_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 *msg)
         total_bytes += 4;
 
         total_bytes += encodeNodeAddressT(uba,&param->nodeAddress);
-        total_bytes += encodeSaNameT(uba,&param->nodeName);
-        total_bytes += encodeSaNameT(uba,&param->executionEnvironment);
+        total_bytes += clmsv_encodeSaNameT(uba,&param->nodeName);
+        total_bytes += clmsv_encodeSaNameT(uba,&param->executionEnvironment);
 
         p8 = ncs_enc_reserve_space(uba,4);
         if (!p8) {
@@ -551,7 +551,7 @@ static uns32 clms_enc_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
         ncs_enc_claim_space(uba, 8);
         total_bytes += 8;
 
-        total_bytes += encodeSaNameT(uba,track->root_cause_ent);
+        total_bytes += clmsv_encodeSaNameT(uba,track->root_cause_ent);
 
         p8 = ncs_enc_reserve_space(uba,24);
         if (!p8) {
@@ -697,7 +697,7 @@ uns32 clms_mds_enc(struct ncsmds_callback_info *info)
 	                        total_bytes += clms_enc_node_get_rsp_msg(uba, msg);
                         break;
 		case CLMSV_CLUSTER_JOIN_RESP:
-				total_bytes += encodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
+				total_bytes += clmsv_encodeSaNameT(uba,&(msg->info.api_resp_info.param.node_name));
 			break; 
                 default:
                         TRACE("Unknown API RSP type = %d", msg->info.api_resp_info.type);
@@ -760,7 +760,7 @@ static uns32 clms_dec_nodeup_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
 	msg->info.api_info.param.nodeup_info.node_id = ncs_decode_32bit(&p8);
 	ncs_dec_skip_space(uba, 4);
 	total_bytes += 4;
-	total_bytes += decodeSaNameT(uba,&(msg->info.api_info.param.nodeup_info.node_name));
+	total_bytes += clmsv_decodeSaNameT(uba,&(msg->info.api_info.param.nodeup_info.node_name));
 	TRACE("nodename %s length %d",msg->info.api_info.param.nodeup_info.node_name.value,msg->info.api_info.param.nodeup_info.node_name.length);
 
 	TRACE("CLMSV_NODE_UP_MSG");

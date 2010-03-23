@@ -452,9 +452,9 @@ static uns32 clma_dec_node_get_msg(NCS_UBAID *uba, SaClmClusterNodeT_4 *msg)
         ncs_dec_skip_space(uba, 4);
         total_bytes += 4;
 
-        total_bytes += decodeNodeAddressT(uba,&param->nodeAddress);
-        total_bytes += decodeSaNameT(uba,&param->nodeName);
-        total_bytes += decodeSaNameT(uba,&param->executionEnvironment);
+        total_bytes += clmsv_decodeNodeAddressT(uba,&param->nodeAddress);
+        total_bytes += clmsv_decodeSaNameT(uba,&param->nodeName);
+        total_bytes += clmsv_decodeSaNameT(uba,&param->executionEnvironment);
 
         p8 = ncs_dec_flatten_space(uba, local_data, 4);
         param->member = ncs_decode_32bit(&p8);
@@ -610,7 +610,7 @@ static uns32 clma_dec_track_cbk_msg(NCS_UBAID *uba, CLMSV_MSG *msg)
                 TRACE_LEAVE();
                 return 0;
         }
-	total_bytes += decodeSaNameT(uba,track->root_cause_ent);
+	total_bytes += clmsv_decodeSaNameT(uba,track->root_cause_ent);
 	track->cor_ids = (SaNtfCorrelationIdsT*)malloc(sizeof(SaNtfCorrelationIdsT));
         if(track->cor_ids == NULL) {
                 TRACE("Can not allocate memory notification!!!\n");

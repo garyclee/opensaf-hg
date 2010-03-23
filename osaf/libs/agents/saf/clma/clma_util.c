@@ -19,7 +19,7 @@
 #include <syslog.h>
 #include "clma.h"
 
-void clma_hdl_list_del(clma_client_hdl_rec_t ** list);
+static void clma_hdl_list_del(clma_client_hdl_rec_t ** list);
 void clma_msg_destroy(CLMSV_MSG * msg);
 /* Variables used during startup/shutdown only */
 static pthread_mutex_t clma_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -30,7 +30,7 @@ static unsigned int clma_use_count;
  * 
  * @return unsigned int
  */
-uns32 Validate_Version(SaVersionT *version)
+uns32 clma_validate_version(SaVersionT *version)
 {
 	TRACE_ENTER();
 	if(version->releaseCode == 'B' && version->majorVersion == 1 && 
@@ -245,7 +245,7 @@ clma_client_hdl_rec_t *clma_hdl_rec_add(clma_cb_t *cb, const SaClmCallbacksT *re
         }
 
         /* store the registered callbacks */
-	if(Validate_Version(version)) {
+	if(clma_validate_version(version)) {
 		if(reg_cbks_1)
 			memcpy((void *)&rec->cbk_param.reg_cbk, (void *)reg_cbks_1, sizeof(SaClmCallbacksT));
 	}
@@ -391,7 +391,7 @@ static SaAisErrorT clma_hdl_cbk_rec_prc(clma_cb_t *cb, CLMSV_MSG *msg, clma_clie
         CLMSV_CBK_INFO *cbk_info = &msg->info.cbk_info;
         SaAisErrorT rc = SA_AIS_ERR_BAD_OPERATION;
 
-        if(Validate_Version(hdl_rec->version))
+        if(clma_validate_version(hdl_rec->version))
                 reg_cbk = &hdl_rec->cbk_param.reg_cbk;
         else
                 reg_cbk_4 = &hdl_rec->cbk_param.reg_cbk_4;
@@ -401,7 +401,7 @@ static SaAisErrorT clma_hdl_cbk_rec_prc(clma_cb_t *cb, CLMSV_MSG *msg, clma_clie
         switch (cbk_info->type) {
         case CLMSV_TRACK_CBK:
         {
-                if(Validate_Version(hdl_rec->version)) {
+                if(clma_validate_version(hdl_rec->version)) {
                         if( reg_cbk->saClmClusterTrackCallback) {
                                 SaClmClusterNotificationBufferT * buf = (SaClmClusterNotificationBufferT *)
                                                                 malloc(sizeof(SaClmClusterNotificationBufferT));
@@ -410,7 +410,7 @@ static SaAisErrorT clma_hdl_cbk_rec_prc(clma_cb_t *cb, CLMSV_MSG *msg, clma_clie
                                 buf->notification =
                                         (SaClmClusterNotificationT *)malloc(sizeof(SaClmClusterNotificationT) *
                                                                                 buf->numberOfItems);
-                                fill_clusterbuf_from_buf_4(buf, &cbk_info->param.track.buf_info);
+                                clma_fill_clusterbuf_from_buf_4(buf, &cbk_info->param.track.buf_info);
                                 reg_cbk->saClmClusterTrackCallback(buf,
                                                                    cbk_info->param.track.mem_num,
                                                                    cbk_info->param.track.err);
@@ -432,10 +432,10 @@ static SaAisErrorT clma_hdl_cbk_rec_prc(clma_cb_t *cb, CLMSV_MSG *msg, clma_clie
         	break;
         case CLMSV_NODE_ASYNC_GET_CBK:
         {
-                if(Validate_Version(hdl_rec->version)) {
+                if(clma_validate_version(hdl_rec->version)) {
                         if( reg_cbk->saClmClusterNodeGetCallback) {
                                 SaClmClusterNodeT * node = (SaClmClusterNodeT*)malloc(sizeof(SaClmClusterNodeT));
-                                fill_node_from_node4(node,cbk_info->param.node_get.info);
+                                clma_fill_node_from_node4(node,cbk_info->param.node_get.info);
                                 reg_cbk->saClmClusterNodeGetCallback(cbk_info->param.node_get.inv,
                                                                      node,
                                                                      cbk_info->param.node_get.err);
@@ -615,7 +615,7 @@ SaAisErrorT clma_hdl_cbk_dispatch(clma_cb_t *cb, clma_client_hdl_rec_t *hdl_rec,
         return rc;
 }
 
-void add_to_async_cbk_msg_list(CLMSV_MSG **head, CLMSV_MSG *new_node) {
+void clma_add_to_async_cbk_msg_list(CLMSV_MSG **head, CLMSV_MSG *new_node) {
 	
 	TRACE_ENTER();
 
@@ -665,7 +665,7 @@ void clma_msg_destroy(CLMSV_MSG * msg) {
 }
 
 
-void clma_hdl_list_del(clma_client_hdl_rec_t ** list)
+static void clma_hdl_list_del(clma_client_hdl_rec_t ** list)
 {
 	clma_client_hdl_rec_t *client_hdl;
 
