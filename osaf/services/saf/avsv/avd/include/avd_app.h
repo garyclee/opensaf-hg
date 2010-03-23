@@ -53,6 +53,8 @@ typedef struct avd_app_tag {
 	struct avd_si_tag *list_of_si;
 	struct avd_app_tag *app_type_list_app_next;
 	struct avd_app_type_tag *app_on_app_type;
+        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
 } AVD_APP;
 
 extern void avd_app_db_add(AVD_APP *app);

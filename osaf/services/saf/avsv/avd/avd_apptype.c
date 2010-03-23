@@ -223,10 +223,12 @@ SaAisErrorT avd_apptype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((app_type = apptype_create(&dn, attributes)) == NULL)
-			goto done2;
+		if ((app_type = avd_apptype_find(&dn)) == NULL ) {
+			if ((app_type = apptype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		apptype_add_to_model(app_type);
+			apptype_add_to_model(app_type);
+		}
 	}
 
 	rc = SA_AIS_OK;

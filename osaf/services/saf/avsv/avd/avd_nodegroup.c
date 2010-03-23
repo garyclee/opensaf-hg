@@ -179,11 +179,12 @@ SaAisErrorT avd_ng_config_get(void)
 			goto done2;
 		}
 
-		if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
-			goto done2;
+		if((ng = avd_ng_get(&dn)) == NULL) {
+			if ((ng = ng_create(&dn, (const SaImmAttrValuesT_2 **)attributes)) == NULL)
+				goto done2;
 
-
-		ng_db_add(ng);
+			ng_db_add(ng);
+		}
 	}
 
 	rc = SA_AIS_OK;

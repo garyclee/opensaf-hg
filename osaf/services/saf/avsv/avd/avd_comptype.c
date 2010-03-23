@@ -288,11 +288,12 @@ SaAisErrorT avd_comptype_config_get(void)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
+		if ((comp_type = avd_comptype_get(&dn)) == NULL) {
+			if ((comp_type = comptype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		if ((comp_type = comptype_create(&dn, attributes)) == NULL)
-			goto done2;
-
-		comptype_db_add(comp_type);
+			comptype_db_add(comp_type);
+		}
 
 		if (avd_ctcstype_config_get(&dn, comp_type) != SA_AIS_OK)
 			goto done2;

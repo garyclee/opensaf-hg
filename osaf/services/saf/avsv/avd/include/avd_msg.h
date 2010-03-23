@@ -38,8 +38,16 @@
 
 typedef enum {
 	AVD_D2D_HEARTBEAT_MSG = AVSV_DND_MSG_MAX,
+	AVD_D2D_CHANGE_ROLE_REQ,
+	AVD_D2D_CHANGE_ROLE_RSP,
 	AVD_D2D_MSG_MAX,
 } AVD_D2D_MSG_TYPE;
+
+typedef enum avd_rol_chg_cause_type {
+        AVD_INIT_ROLE,
+        AVD_SWITCH_OVER,
+        AVD_FAIL_OVER
+} AVD_ROLE_CHG_CAUSE_T;
 
 typedef AVSV_DND_MSG AVD_DND_MSG;
 #define AVD_DND_MSG_NULL ((AVD_DND_MSG *)0)
@@ -55,6 +63,14 @@ typedef struct avd_d2d_msg {
 			SaClmNodeIdT node_id;
 			SaAmfHAStateT avail_state;
 		} d2d_hrt_bt;
+		struct {
+			AVD_ROLE_CHG_CAUSE_T cause;
+			SaAmfHAStateT role;
+		} d2d_chg_role_req;
+		struct {
+			SaAmfHAStateT role;
+			uns32 status ; 
+		} d2d_chg_role_rsp;
 	} msg_info;
 } AVD_D2D_MSG;
 

@@ -289,10 +289,13 @@ SaAisErrorT avd_csi_config_get(const SaNameT *si_name, AVD_SI *si)
 		if (!is_config_valid(&csi_name, attributes, NULL))
 			goto done2;
 
-		if ((csi = csi_create(&csi_name, attributes, si_name)) == NULL)
-			goto done2;
+		if ((csi = avd_csi_get (&csi_name)) == NULL)
+		{
+			if ((csi = csi_create(&csi_name, attributes, si_name)) == NULL)
+				goto done2;
 
-		csi_add_to_model(csi);
+			csi_add_to_model(csi);
+		}
 
 		csiass_config_get(&csi_name, csi);
 

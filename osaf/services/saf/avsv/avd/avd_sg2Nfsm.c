@@ -375,9 +375,9 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
 }
 
 /*****************************************************************************
- * Function: avd_sg_2n_suswitch_func
+ * Function: avd_sg_2n_siswitch_func
  *
- * Purpose:  This function is called when a operator does a SU switch on
+ * Purpose:  This function is called when a operator does a SI switch on
  * a SU that belongs to 2N redundancy model SG. 
  * This will trigger a role change action as described in the SG FSM design.
  *
@@ -392,20 +392,19 @@ uns32 avd_sg_2n_si_func(AVD_CL_CB *cb, AVD_SI *si)
  * 
  **************************************************************************/
 
-uns32 avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
+uns32 avd_sg_2n_siswitch_func(AVD_CL_CB *cb, AVD_SU *su)
 {
 
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_suswitch_func");
+	TRACE_ENTER();
 	m_AVD_LOG_RCVD_VAL(((long)su));
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
-	/* Switch operation is not allowed on NCS SGs, when the AvD is not in
+	/* Switch operation is not allowed when the AvD is not in
 	 * application state, if su has no SI assignments and If the SG FSM state is
 	 * not stable.
 	 */
 	if ((cb->init_state != AVD_APP_STATE) ||
-	    (su->sg_of_su->sg_ncs_spec == SA_TRUE) ||
 	    (su->sg_of_su->sg_fsm_state != AVD_SG_FSM_STABLE) || (su->list_of_susi == AVD_SU_SI_REL_NULL)) {
 		return NCSCC_RC_FAILURE;
 	}
@@ -431,71 +430,7 @@ uns32 avd_sg_2n_suswitch_func(AVD_CL_CB *cb, AVD_SU *su)
 
 	m_AVD_LOG_RCVD_VAL(su->sg_of_su->sg_fsm_state);
 
-	return NCSCC_RC_SUCCESS;
-}
-
-/*****************************************************************************
- * Function: avd_sg_2n_siswitch_func
- *
- * Purpose:  This function is called when a operator does a SI switch on
- * a SI that belongs to 2N redundancy model SG. 
- * This will trigger a role change action as described in the SG FSM design.
- *
- * Input: cb - the AVD control block
- *        si - The pointer to the SI that needs to be switched.
- *        
- *
- * Returns: NCSCC_RC_SUCCESS/NCSCC_RC_FAILURE.
- *
- * NOTES: This is a 2N redundancy model specific function.
- *
- * 
- **************************************************************************/
-
-uns32 avd_sg_2n_siswitch_func(AVD_CL_CB *cb, AVD_SI *si)
-{
-	AVD_SU *a_su;
-
-	m_AVD_LOG_FUNC_ENTRY("avd_sg_2n_siswitch_func");
-	m_AVD_LOG_RCVD_VAL(((long)si));
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
-
-	/* Switch operation is not allowed on NCS SGs, when the AvD is not in
-	 * application state, if si has no SU assignments and If the SG FSM state is
-	 * not stable.
-	 */
-	if ((cb->init_state != AVD_APP_STATE) ||
-	    (si->sg_of_si->sg_ncs_spec == SA_TRUE) ||
-	    (si->sg_of_si->sg_fsm_state != AVD_SG_FSM_STABLE) || (si->list_of_sisu == AVD_SU_SI_REL_NULL)) {
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* switch operation is not valid on SIs that have only one assignment.
-	 */
-	if (si->list_of_sisu->si_next == AVD_SU_SI_REL_NULL) {
-		return NCSCC_RC_FAILURE;
-	}
-
-	if (si->list_of_sisu->state == SA_AMF_HA_ACTIVE) {
-		a_su = si->list_of_sisu->su;
-	} else {
-		a_su = si->list_of_sisu->si_next->su;
-	}
-
-	/* change the state for all assignments to quiesced. */
-	if (avd_sg_su_si_mod_snd(cb, a_su, SA_AMF_HA_QUIESCED) == NCSCC_RC_FAILURE) {
-		m_AVD_LOG_INVALID_VAL_ERROR(((long)a_su));
-		m_AVD_LOG_INVALID_NAME_VAL_ERROR(a_su->name.value, a_su->name.length);
-		return NCSCC_RC_FAILURE;
-	}
-
-	/* Add the SI to the SG admin pointer and change the SG state to SI_operation. */
-	m_AVD_SET_SG_ADMIN_SI(cb, si);
-	m_AVD_SET_SG_FSM(cb, (si->sg_of_si), AVD_SG_FSM_SI_OPER);
-
-	m_AVD_LOG_RCVD_VAL(si->sg_of_si->sg_fsm_state);
-
+	TRACE_LEAVE();
 	return NCSCC_RC_SUCCESS;
 }
 

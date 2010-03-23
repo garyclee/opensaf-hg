@@ -118,6 +118,9 @@ typedef struct avd_comp_tag {
 						 * in this SU */
 	struct avd_comp_cs_type_tag *compcstype_list;
 	AVD_ADMIN_OPER_CBK admin_pend_cbk;  /* holds callback invocation for admin operation */
+        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
+
 
 } AVD_COMP;
 
@@ -162,6 +165,8 @@ typedef struct avd_comp_cs_type_tag {
 	SaNameT **saAmfCompAssignedCsi;
 	AVD_COMP *comp;
 	struct avd_comp_cs_type_tag *comp_list_compcstype_next;
+        bool   added_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
 } AVD_COMPCS_TYPE;
 
 /* AMF Class SaAmfCtCsType */

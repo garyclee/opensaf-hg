@@ -153,7 +153,6 @@ typedef struct cl_cb_tag {
 
 	NCS_BOOL role_set;	/* TRUE - Initial role is set.
 				 * FALSE - Initial role is not set */
-	NCS_BOOL role_switch;	/* TRUE - In middle of role switch. */
 
 	SaAmfHAStateT avail_state_avd;	/* the redundancy state for 
 					 * Availability director
@@ -263,6 +262,8 @@ typedef struct cl_cb_tag {
 	/* Clm stuff */
 	SaClmHandleT clmHandle;
 	SaSelectionObjectT clm_sel_obj;
+
+	SaBoolT swap_switch; /* TRUE - In middle of role switch. */
 
 } AVD_CL_CB;
 

@@ -171,7 +171,6 @@ static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE e
 {
 	uns32 rc;
 	AVD_EVT *evt;
-	AVM_AVD_SYS_CON_ROLE_T *msg;
 
 	(void) notused;
 
@@ -180,11 +179,10 @@ static void rda_cb(uns32 notused, PCS_RDA_CB_INFO *cb_info, PCSRDA_RETURN_CODE e
 	evt = malloc(sizeof(AVD_EVT));
 	assert(evt);
 	evt->rcv_evt = AVD_EVT_ROLE_CHANGE;
-	evt->info.avm_msg = malloc(sizeof(*evt->info.avm_msg));
-	evt->info.avm_msg->msg_type = AVM_AVD_SYS_CON_ROLE_MSG;
-	msg = &evt->info.avm_msg->avm_avd_msg.role;
-	msg->cause = AVM_FAIL_OVER;
-	msg->role = cb_info->info.io_role;
+	evt->info.avd_msg = malloc(sizeof(AVD_D2D_MSG));
+	evt->info.avd_msg->msg_type = AVD_D2D_CHANGE_ROLE_REQ;
+	evt->info.avd_msg->msg_info.d2d_chg_role_req.cause = AVD_FAIL_OVER;
+	evt->info.avd_msg->msg_info.d2d_chg_role_req.role = cb_info->info.io_role;
 
 	rc = ncs_ipc_send(&avd_cb->avd_mbx, (NCS_IPC_MSG *)evt, MDS_SEND_PRIORITY_HIGH);
 	assert(rc == NCSCC_RC_SUCCESS);
@@ -230,7 +228,7 @@ static uns32 avd_init_proc(void)
 	cb->init_state = AVD_INIT_BGN;
 	cb->rcv_hb_intvl = AVSV_RCV_HB_INTVL;
 	cb->snd_hb_intvl = AVSV_SND_HB_INTVL;
-	cb->role_switch = SA_FALSE;
+	cb->swap_switch = SA_FALSE;
 	cb->stby_sync_state = AVD_STBY_IN_SYNC;
 	cb->sync_required = TRUE;
 	cb->avd_hrt_beat_rcvd = FALSE;

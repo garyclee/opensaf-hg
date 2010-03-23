@@ -70,11 +70,16 @@ void avd_compcstype_delete(AVD_COMPCS_TYPE **cst)
 
 static void compcstype_add_to_model(AVD_COMPCS_TYPE *cst)
 {
+        if (((avd_compcstype_get(&cst->name)) != NULL)  && (TRUE == cst->added_to_model)) {
+                /* Means the it has been added into db and links with other objects alraedy created. */
+                return;
+        }
 	avd_compcstype_db_add(cst);
 
 	/* add to list in comp */
 	cst->comp_list_compcstype_next = cst->comp->compcstype_list;
 	cst->comp->compcstype_list = cst;
+        cst->added_to_model = TRUE;
 }
 
 /*****************************************************************************
@@ -310,7 +315,6 @@ SaAisErrorT avd_compcstype_config_get(SaNameT *comp_name, AVD_COMP *comp)
 			error = SA_AIS_ERR_FAILED_OPERATION;
 			goto done2;
 		}
-
 		compcstype_add_to_model(compcstype);
 	}
 

@@ -334,8 +334,6 @@ static void avd_sirankedsu_del_si_list(AVD_CL_CB *cb, AVD_SUS_PER_SI_RANK *sus_p
 static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attributes, CcbUtilOperationData_t *opdata)
 {
         AVD_SI *avd_si = NULL;
-        AVD_SUS_PER_SI_RANK *avd_sus_per_si_rank = NULL;
-        AVD_SUS_PER_SI_RANK_INDX indx;
 	SaNameT su_name;
 	SaNameT si_name;
         uns32 rank = 0;
@@ -364,17 +362,6 @@ static int is_config_valid(const SaNameT *dn, const SaImmAttrValuesT_2 **attribu
 		LOG_ER("saAmfRank not found for %s", dn->value);
 		return 0;  
 	}
-
-        /* Find the avd_sus_per_si_rank name. */
-        memset(&indx, '\0', sizeof(AVD_SUS_PER_SI_RANK_INDX));
-        indx.si_name = si_name;
-        indx.su_rank = rank;
-
-        avd_sus_per_si_rank = avd_sirankedsu_find(avd_cb, indx);
-
-        if (avd_sus_per_si_rank != NULL) {
-                return  0;
-        }
 
         return SA_AIS_OK;
 }
@@ -580,9 +567,12 @@ SaAisErrorT avd_sirankedsu_config_get(SaNameT *si_name, AVD_SI *si)
                 if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((avd_sirankedsu = avd_sirankedsu_ccb_apply_create_hdlr(&dn, attributes)) == NULL)
-			goto done2;
-		avd_sirankedsu_db_add(avd_sirankedsu);
+		if((avd_sirankedsu = avd_sirankedsu_find(avd_cb, indx) == NULL)) {
+			if ((avd_sirankedsu = avd_sirankedsu_ccb_apply_create_hdlr(&dn, attributes)) == NULL)
+				goto done2;
+
+			avd_sirankedsu_db_add(avd_sirankedsu);
+		}
 	}
 
 	error = SA_AIS_OK;

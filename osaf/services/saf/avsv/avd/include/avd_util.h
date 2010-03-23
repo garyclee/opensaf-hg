@@ -35,11 +35,20 @@
 #define AVD_MSG_H
 
 #include <avsv_d2nmsg.h>
+#include <avd_cb.h>
 
 typedef enum {
 	AVD_D2D_HEARTBEAT_MSG = AVSV_DND_MSG_MAX,
+	AVD_D2D_CHANGE_ROLE_REQ,
+	AVD_D2D_CHANGE_ROLE_RSP,
 	AVD_D2D_MSG_MAX,
 } AVD_D2D_MSG_TYPE;
+
+typedef enum avd_rol_chg_cause_type {
+        AVD_INIT_ROLE,
+        AVD_SWITCH_OVER,
+        AVD_FAIL_OVER
+} AVD_ROLE_CHG_CAUSE_T;
 
 typedef AVSV_DND_MSG AVD_DND_MSG;
 #define AVD_DND_MSG_NULL ((AVD_DND_MSG *)0)
@@ -55,6 +64,14 @@ typedef struct avd_d2d_msg {
 			SaClmNodeIdT node_id;
 			SaAmfHAStateT avail_state;
 		} d2d_hrt_bt;
+		struct {
+			AVD_ROLE_CHG_CAUSE_T cause;
+			SaAmfHAStateT role;
+		} d2d_chg_role_req;
+		struct {
+			SaAmfHAStateT role;
+			uns32 status ; 
+		} d2d_chg_role_rsp;
 	} msg_info;
 } AVD_D2D_MSG;
 
@@ -133,5 +150,14 @@ extern void avsv_sanamet_init_from_association_dn(const SaNameT *haystack,
 
 extern int comp_admin_op_snd_msg(struct avd_comp_tag *comp, SaAmfAdminOperationIdT opId);
 extern const char* avd_getparent(const char* dn);
+extern void amfd_switch(AVD_CL_CB *cb);
+extern uns32 avd_post_amfd_switch_role_change_evt(AVD_CL_CB *cb, SaAmfHAStateT role);
+extern uns32 avd_d2d_chg_role_rsp(AVD_CL_CB *cb, uns32 status, SaAmfHAStateT role);
+extern uns32 avd_d2d_chg_role_req(AVD_CL_CB *cb, AVD_ROLE_CHG_CAUSE_T cause, SaAmfHAStateT role);
+
+extern uns32 amfd_switch_qsd_stdby(AVD_CL_CB *cb);
+extern uns32 amfd_switch_stdby_actv(AVD_CL_CB *cb);
+extern uns32 amfd_switch_qsd_actv(AVD_CL_CB *cb);
+extern uns32 amfd_switch_actv_qsd(AVD_CL_CB *cb);
 
 #endif

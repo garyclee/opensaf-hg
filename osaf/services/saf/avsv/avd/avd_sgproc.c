@@ -752,7 +752,6 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 			/*  We failed to switch, Send Active to all NCS Su's having 2N redun model &
 			   present in this node */
 			cb->avail_state_avd = SA_AMF_HA_ACTIVE;
-			cb->role_switch = SA_FALSE;
 
 			for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 				if ((i_su->list_of_susi != 0) &&
@@ -771,7 +770,6 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 	if ((cb->avail_state_avd == SA_AMF_HA_QUIESCED) &&
 	    (assign->ha_state == SA_AMF_HA_QUIESCED) && (assign->error == NCSCC_RC_FAILURE)) {
 		cb->avail_state_avd = SA_AMF_HA_ACTIVE;
-		cb->role_switch = SA_FALSE;
 
 		for (i_su = avnd->list_of_ncs_su; i_su != NULL; i_su = i_su->avnd_list_su_next) {
 			if ((i_su->list_of_susi != 0) &&
@@ -801,7 +799,6 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 
 		if (ncs_done == SA_TRUE) {
 			assert(avd_clm_track_start() == SA_AIS_OK);
-			cb->role_switch = SA_FALSE;	/* almost done with switch */
 
 			/* get the avnd on other SCXB from node_id of other AvD */
 			if (NULL == (avnd_other = avd_node_find_nodeid(cb->node_id_avd_other))) {
@@ -830,7 +827,7 @@ void avd_ncs_su_mod_rsp(AVD_CL_CB *cb, AVD_AVND *avnd, AVSV_N2D_INFO_SU_SI_ASSIG
 				    (i_su->list_of_susi != 0) && (i_su->list_of_susi->state == SA_AMF_HA_ACTIVE)) {
 					m_AVD_SET_SU_SWITCH(cb, i_su, AVSV_SI_TOGGLE_SWITCH);
 
-					if (avd_sg_2n_suswitch_func(cb, i_su) != NCSCC_RC_SUCCESS) {
+					if (avd_sg_2n_siswitch_func(cb, i_su) != NCSCC_RC_SUCCESS) {
 						m_AVD_SET_SU_SWITCH(cb, i_su, AVSV_SI_TOGGLE_STABLE);
 					}
 				}
@@ -990,25 +987,60 @@ void avd_su_si_assign_func(AVD_CL_CB *cb, AVD_EVT *evt)
 
 		m_AVD_GET_SU_NODE_PTR(cb, su, su_node_ptr);
 
-		/* Are we in the middle of controller switch/failover */
-		if ((su->sg_of_su->sg_ncs_spec == SA_TRUE) &&
-		    (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
-		    (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
-		    ((su_node_ptr->type == AVSV_AVND_CARD_SYS_CON) ||
-		     (cb->node_id_avd == su_node_ptr->node_info.nodeId))) {
-			if (AVSV_AVND_CARD_SYS_CON != su_node_ptr->type)
-				m_AVD_LOG_INVALID_VAL_ERROR(((uns32)su_node_ptr->type));
+		if((su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_QUIESCED) &&
+				(su_node_ptr->type == AVSV_AVND_CARD_SYS_CON) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) &&
+				((cb->node_id_avd == su_node_ptr->node_info.nodeId) &&
+				 (su->list_of_susi->si->si_swap_in_progress == TRUE))) {
+			/* We need to return failure to Imm Admin response as SI couldn't move to Quisced.*/
+			(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->list_of_susi->si->invocation, 
+								  SA_AIS_ERR_FAILED_OPERATION);
+			su->list_of_susi->si->si_swap_in_progress= SA_FALSE;
+			su->list_of_susi->si->invocation= 0;
+		}
+  
+		if((su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_ACTIVE) &&
+				(su_node_ptr->type == AVSV_AVND_CARD_SYS_CON)) {
+			if ((n2d_msg->msg_info.n2d_su_si_assign.error != NCSCC_RC_SUCCESS) &&
+					((cb->node_id_avd != su_node_ptr->node_info.nodeId) &&
+					 (su->list_of_susi->si->si_swap_in_progress == TRUE))) {
+				/* We need to return failure to Imm Admin response as Stdby on another controller couldn't go 
+				   to Act.*/
+				(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->list_of_susi->si->invocation, 
+									  SA_AIS_ERR_FAILED_OPERATION);
+				su->list_of_susi->si->si_swap_in_progress= SA_FALSE;
+				su->list_of_susi->si->invocation= 0;
+			} else {
+				if ((n2d_msg->msg_info.n2d_su_si_assign.error == NCSCC_RC_SUCCESS) &&
+						(cb->node_id_avd == su_node_ptr->node_info.nodeId)) {
+					/* This is as a result of failover , start clm tracking*/
+					if(avd_clm_track_start() != SA_AIS_OK) {
+						LOG_ER("Unable to start the clm tracking");
+					}
+				}
+			}
+		}
+  
+		if((su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
+				(n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_STANDBY) &&
+				(su_node_ptr->type == AVSV_AVND_CARD_SYS_CON) &&
+				((cb->node_id_avd == su_node_ptr->node_info.nodeId) &&
+				 (su->list_of_susi->si->si_swap_in_progress == TRUE))) {
+			/* We need to return Success to Imm Admin response as even if Quieced did/didn't go to Stdby.*/
+			(void)immutil_saImmOiAdminOperationResult(cb->immOiHandle, su->list_of_susi->si->invocation, 
+								  SA_AIS_OK);
+			su->list_of_susi->si->si_swap_in_progress= SA_FALSE;
+			su->list_of_susi->si->invocation= 0;
+			/* We need to figure out whether we need to Switch the role or not.*/
+			amfd_switch(avd_cb);
+		}
 
-			avd_ncs_su_mod_rsp(cb, avnd, &n2d_msg->msg_info.n2d_su_si_assign);
-
-		} else if ((cb->avail_state_avd == SA_AMF_HA_QUIESCED) &&
-			   (su->sg_of_su->sg_ncs_spec == SA_TRUE) &&
-			   (su->sg_of_su->sg_redundancy_model == SA_AMF_2N_REDUNDANCY_MODEL) &&
-			   (n2d_msg->msg_info.n2d_su_si_assign.msg_act == AVSV_SUSI_ACT_MOD) &&
-			   (n2d_msg->msg_info.n2d_su_si_assign.ha_state == SA_AMF_HA_QUIESCED) &&
-			   (su_node_ptr->type == AVSV_AVND_CARD_SYS_CON)) {
-			/*ignore this case expecting the other guy to shoot us down. */
-		} else {
+		{
 
 			/* Call the redundancy model specific procesing function. Dont call
 			 * in case of acknowledgment for quiescing.

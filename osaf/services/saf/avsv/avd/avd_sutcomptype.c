@@ -110,13 +110,14 @@ SaAisErrorT avd_sutcomptype_config_get(SaNameT *sutype_name, struct avd_sutype *
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
+		if ((sutcomptype = avd_sutcomptype_get(&dn)) == NULL) {
+			if ((sutcomptype = sutcomptype_create(&dn, attributes)) == NULL) {
+				error = SA_AIS_ERR_FAILED_OPERATION;
+				goto done2;
+			}
 
-		if ((sutcomptype = sutcomptype_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
+			sutcomptype_db_add(sutcomptype);
 		}
-
-		sutcomptype_db_add(sutcomptype);
 	}
 
 	error = SA_AIS_OK;

@@ -348,6 +348,10 @@ static void comp_add_to_model(AVD_COMP *comp)
 	AVD_AVND *su_node_ptr = NULL;
 	NCS_BOOL isPre;
 
+        if ((avd_comp_get(&comp->comp_info.name) != NULL)  && (TRUE == comp->add_to_model)) {
+                /* Means the it has been added into db and links with other objects alraedy created. */
+                return;
+        }
 	avd_comp_db_add(comp);
 	avd_su_add_comp(comp);
 	avd_comptype_add_comp(comp);
@@ -440,6 +444,7 @@ static void comp_add_to_model(AVD_COMP *comp)
 		SA_IMM_ATTR_SAUINT32T, &comp->saAmfCompPresenceState);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, comp, AVSV_CKPT_AVD_COMP_CONFIG);
+        comp->add_to_model = TRUE;
 }
 
 /**
