@@ -389,23 +389,36 @@ int parse_udp (udp_msg *parsed, char *incoming)
 	fflush(plmc_lib_debug);
 	#endif
 	tmpstring = incoming;
-	tmpstring = strstr(tmpstring, " ") + 1;
+	tmpstring = strstr(tmpstring, " ");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 1;
 	i = 0;
 	while (tmpstring[i] != ':') {
-			i++;
+		i++;
+		if (i >= strlen(tmpstring))
+			return 1;
 	}
 	strncpy(parsed->ee_id, tmpstring, i - 1);
 	parsed->ee_id[i - 1] = '\0';
 
-	tmpstring = strstr(tmpstring, ":") + 2;
+	tmpstring = strstr(tmpstring, ":");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 2;
 	i = 0;
 	while (tmpstring[i] != ':') {
 			i++;
+		if (i >= strlen(tmpstring))
+			return 1;
 	}
 	strncpy(parsed->msg, tmpstring, i - 1);
 	parsed->msg[i - 1] = '\0';
 	
-	tmpstring = strstr(tmpstring, ":") + 2;
+	tmpstring = strstr(tmpstring, ":");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 2;
 	strcpy(parsed->os_info, tmpstring);
 	if (strcmp(parsed->msg, "EE_INSTANTIATING") == 0)
 		parsed->msg_idx = EE_INSTANTIATING;
@@ -525,22 +538,38 @@ int parse_tcp(tcp_msg *parsed, char *incoming)
 								incoming);
 	fflush(plmc_lib_debug);
 	#endif
-	tmpstring = strstr(tmpstring, " ") + 1; /* Beginning of command name */
+	tmpstring = strstr(tmpstring, " ");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 1; /* Move to beginning of command name */
 	i = 0;
 	while (tmpstring[i] != ' ') {
-			i++;
+		i++;
+		if (i >= strlen(tmpstring))
+			return 1;
 	}
 	strncpy(parsed->cmd, tmpstring, i);
 	parsed->cmd[i] = '\0';
-	tmpstring = strstr(tmpstring, " ") + 1;
-	tmpstring = strstr(tmpstring, " ") + 1; /* Beginning of ee_id */
+	tmpstring = strstr(tmpstring, " ");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 1;
+	tmpstring = strstr(tmpstring, " ");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 1; /* Beginning of ee_id */
 	i = 0;
 	while (tmpstring[i] != ':') {
-			i++;
+		i++;
+		if (i >= strlen(tmpstring))
+			return 1;
 	}
 	strncpy(parsed->ee_id, tmpstring, i - 1);
 	parsed->ee_id[i - 1] = '\0';
-	tmpstring = strstr(tmpstring, ":") + 2;
+	tmpstring = strstr(tmpstring, ":");
+	if (tmpstring == NULL)
+		return 1;
+	tmpstring = tmpstring + 2;
 	strcpy(parsed->result, tmpstring);
 
 	parsed->cmd_enum = plmc_cmd_string_to_enum(parsed->cmd);
