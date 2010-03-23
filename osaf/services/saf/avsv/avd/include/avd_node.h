@@ -34,6 +34,7 @@
 #ifndef AVD_AVND_H
 #define AVD_AVND_H
 
+#include <stdbool.h>
 #include <saAmf.h>
 #include <saImm.h>
 #include <ncspatricia.h>
@@ -146,6 +147,8 @@ typedef struct avd_avnd_tag {
 	struct avd_cluster_tag *node_on_cluster;
 	struct avd_node_sw_bundle_tag *list_of_avd_sw_bdl;
 	SaInvocationT clm_pend_inv; /* pending response for any clm track cb */
+	bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
 
 } AVD_AVND;
 

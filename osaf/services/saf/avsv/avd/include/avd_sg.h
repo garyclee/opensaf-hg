@@ -185,6 +185,8 @@ typedef struct avd_sg_tag {
 	struct avd_amf_sg_type_tag *sg_on_sg_type;
 	struct avd_sg_tag *sg_list_app_next;
 	struct avd_app_tag *sg_on_app;
+        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
 
 } AVD_SG;
 

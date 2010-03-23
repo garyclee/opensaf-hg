@@ -207,10 +207,12 @@ SaAisErrorT avd_svctype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((svc_type = svctype_create(&dn, attributes)) == NULL)
-			goto done2;
+		if ((svc_type = avd_svctype_get(&dn))==NULL) {
+			if ((svc_type = svctype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		svctype_db_add(svc_type);
+			svctype_db_add(svc_type);
+		}
 
 		if (avd_svctypecstypes_config_get(&dn) != SA_AIS_OK)
 			goto done2;

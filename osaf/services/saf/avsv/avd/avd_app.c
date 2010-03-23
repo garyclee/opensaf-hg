@@ -84,6 +84,10 @@ AVD_APP *avd_app_getnext(const SaNameT *dn)
 
 static void app_add_to_model(AVD_APP *app)
 {
+	if ((avd_app_get(&app->name) != NULL) && (TRUE == app->add_to_model)){
+		/* Means the app has been added into db and links with other objects alraedy created. */
+		return;
+	}
 	avd_app_db_add(app);
 	/* Find application type and make a link with app type */
 	app->app_on_app_type = avd_apptype_find(&app->saAmfAppType);
@@ -91,6 +95,7 @@ static void app_add_to_model(AVD_APP *app)
 	avd_apptype_add_app(app);
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, app, AVSV_CKPT_AVD_APP_CONFIG);
+	app->add_to_model = TRUE;
 }
 
 void avd_app_add_si(AVD_APP *app, AVD_SI *si)

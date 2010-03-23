@@ -296,11 +296,12 @@ SaAisErrorT avd_sgtype_config_get(void)
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
+		if (( sgt = avd_sgtype_get(&dn)) == NULL) {
+			if ((sgt = sgtype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		if ((sgt = sgtype_create(&dn, attributes)) == NULL)
-			goto done2;
-
-		sgtype_add_to_model(sgt);
+			sgtype_add_to_model(sgt);
+		}
 	}
 
 	error = SA_AIS_OK;

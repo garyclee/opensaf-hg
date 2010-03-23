@@ -98,9 +98,14 @@ void avd_node_delete(AVD_AVND **node)
 
 static void node_add_to_model(AVD_AVND *node)
 {
+	if ((avd_node_get(&node->node_info.nodeName) != NULL)  && (TRUE == node->add_to_model)){
+		/* Means the node has been added into db and links with other objects alraedy created. */
+		return;
+	}
 	avd_node_db_add(node);
 	avd_node_add_nodeid(node);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, node, AVSV_CKPT_AVD_NODE_CONFIG);
+        node->add_to_model = TRUE;
 }
 
 AVD_AVND *avd_node_get(const SaNameT *dn)

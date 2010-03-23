@@ -657,7 +657,7 @@ void avd_fail_over_event(AVD_CL_CB *cb)
 		 * If AVND state machine is in Absent state then just return.
 		 */
 		if ((AVD_AVND_STATE_ABSENT == avnd->node_state) ||
-		    ((node_id == cb->node_id_avd_other) && cb->role_switch == FALSE)) {
+		    ((node_id == cb->node_id_avd_other) && (cb->swap_switch == FALSE))) {
 			continue;
 		}
 

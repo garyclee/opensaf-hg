@@ -163,10 +163,12 @@ SaAisErrorT avd_nodeswbdl_config_get(AVD_AVND *node)
 			goto done2;
 		}
 
-		if ((sw_bdl = nodeswbdl_create(&dn, attributes)) == NULL)
-			goto done2;
+		if((sw_bdl = avd_nodeswbdl_get(&dn)) == NULL) {
+			if ((sw_bdl = nodeswbdl_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		nodeswbdl_add_to_model(sw_bdl);
+			nodeswbdl_add_to_model(sw_bdl);
+		}
 	}
 
 	rc = SA_AIS_OK;

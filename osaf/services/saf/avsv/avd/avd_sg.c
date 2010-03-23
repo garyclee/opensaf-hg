@@ -64,6 +64,11 @@ static void sg_add_to_model(AVD_SG *sg)
 	app = avd_app_get(&app_name);
 	sg->sg_on_app = app;
 
+
+        if ((avd_sg_get(&sg->name) != NULL) && (TRUE == sg->add_to_model)) {
+                /* Means the it has been added into db and links with other objects alraedy created. */
+                return;
+        }
 	avd_sg_db_add(sg);
 	avd_sgtype_add_sg(sg);
 	avd_app_add_sg(sg->sg_on_app, sg);
@@ -73,6 +78,7 @@ static void sg_add_to_model(AVD_SG *sg)
 		sg->sg_ncs_spec = TRUE;
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, sg, AVSV_CKPT_AVD_SG_CONFIG);
+        sg->add_to_model = TRUE;
 }
 
 /**

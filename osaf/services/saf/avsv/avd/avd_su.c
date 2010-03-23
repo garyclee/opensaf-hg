@@ -462,6 +462,10 @@ static void su_add_to_model(AVD_SU *su)
 
 	if (avd_su_get(&su->name) == NULL)
 		new_su = 1;
+	else if ((avd_su_get(&su->name) != NULL)  && (TRUE == su->add_to_model)){
+		/* Means the it has been added into db and links with other objects alraedy created. */
+		return;
+	}
 
 	avd_su_db_add(su);
 	avd_sutype_add_su(su);
@@ -502,6 +506,7 @@ static void su_add_to_model(AVD_SU *su)
 	}
 
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, su, AVSV_CKPT_AVD_SU_CONFIG);
+	su->add_to_model = TRUE;
 
 	if (new_su && ((node->node_state == AVD_AVND_STATE_PRESENT) ||
 		       (node->node_state == AVD_AVND_STATE_NO_CONFIG) ||

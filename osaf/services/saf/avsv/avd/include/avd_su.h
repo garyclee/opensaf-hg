@@ -129,6 +129,8 @@ typedef struct avd_su_tag {
 	struct avd_sg_tag *su_on_sg;
 	struct avd_sutype *su_on_su_type;
 	struct avd_su_tag *su_list_su_type_next;
+        bool   add_to_model; /* A flag to indicate that it has been added to data base and added links with other 
+                                dependent objects. */
 
 } AVD_SU;
 

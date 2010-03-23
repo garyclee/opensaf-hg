@@ -146,10 +146,12 @@ SaAisErrorT avd_ctcstype_config_get(const SaNameT *comp_type_dn, AVD_COMP_TYPE *
 		if (!is_config_valid(&dn, attributes, NULL))
 			goto done2;
 
-		if ((ctcstype = ctcstype_create(&dn, attributes)) == NULL)
-			goto done2;
+		if ((ctcstype = avd_ctcstype_get(&dn)) == NULL ) {
+			if ((ctcstype = ctcstype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		ctcstype_db_add(ctcstype);
+			ctcstype_db_add(ctcstype);
+		}
 	}
 
 	error = SA_AIS_OK;

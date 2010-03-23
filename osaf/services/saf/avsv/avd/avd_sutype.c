@@ -212,12 +212,15 @@ SaAisErrorT avd_sutype_config_get(void)
 		if (!is_config_valid(&dn, attributes, NULL))
 		    goto done2;
 
-		if ((sut = sutype_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
+		if (( sut = avd_sutype_get(&dn)) == NULL) {
 
-		sutype_db_add(sut);
+			if ((sut = sutype_create(&dn, attributes)) == NULL) {
+				error = SA_AIS_ERR_FAILED_OPERATION;
+				goto done2;
+			}
+
+			sutype_db_add(sut);
+		}
 
 		if (avd_sutcomptype_config_get(&dn, sut) != SA_AIS_OK) {
 			error = SA_AIS_ERR_FAILED_OPERATION;

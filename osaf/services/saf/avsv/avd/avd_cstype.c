@@ -180,10 +180,12 @@ SaAisErrorT avd_cstype_config_get(void)
 		if (!is_config_valid(&dn))
 			goto done2;
 
-		if ((cst = cstype_create(&dn, attributes)) == NULL)
-			goto done2;
+		if ((cst = avd_cstype_get(&dn)) == NULL){
+			if ((cst = cstype_create(&dn, attributes)) == NULL)
+				goto done2;
 
-		cstype_add_to_model(cst);
+			cstype_add_to_model(cst);
+		}
 	}
 
 	error = SA_AIS_OK;

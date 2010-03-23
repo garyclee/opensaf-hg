@@ -216,6 +216,10 @@ static void si_add_to_model(AVD_SI *si)
 	SaNameT app_name = {0};
 	char *p;
 
+        if ((avd_si_get(&si->name) != NULL)  && (TRUE == si->added_to_model)) {
+                /* Means the it has been added into db and links with other objects alraedy created. */
+                return;
+        }
 	avd_si_db_add(si);
 
 	p = strstr((char*)si->name.value, "safApp");
@@ -236,6 +240,7 @@ static void si_add_to_model(AVD_SI *si)
 	avd_app_add_si(si->si_on_app, si);
 	avd_sg_add_si(si->sg_of_si, si);
 	m_AVSV_SEND_CKPT_UPDT_ASYNC_ADD(avd_cb, si, AVSV_CKPT_AVD_SI_CONFIG);
+	si->added_to_model = TRUE;
 	avd_saImmOiRtObjectUpdate(&si->name, "saAmfSIAssignmentState",
 		SA_IMM_ATTR_SAUINT32T, &si->saAmfSIAssignmentState);
 }
@@ -477,11 +482,12 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 
 	avd_si = avd_si_get(objectName);
 
-	if (avd_si->sg_of_si->sg_ncs_spec == SA_TRUE) {
-		LOG_ER("Admin operations of OpenSAF MW is not supported");
-		rc = SA_AIS_ERR_BAD_OPERATION;
+	if (NULL == avd_si) {
+		LOG_ER("Si not Found");
+		rc = SA_AIS_ERR_NOT_SUPPORTED;
 		goto done;
 	}
+	
 
 	switch (operationId) {
 	case SA_AMF_ADMIN_UNLOCK:
@@ -667,6 +673,68 @@ static void si_admin_op_cb(SaImmOiHandleT immOiHandle, SaInvocationT invocation,
 			break;
 		}
 		break;
+
+	case SA_AMF_ADMIN_SI_SWAP:
+		{
+			AVD_SU *local_su,*i_su;
+
+			/* Check if the si swap is already in progress */
+			if (avd_si->si_swap_in_progress == SA_TRUE) {
+				LOG_ER("SI SWAP Already in Progress");
+				rc = SA_AIS_ERR_TRY_AGAIN;
+				goto done;
+			}
+
+			i_su= avd_si->sg_of_si->list_of_su;
+
+			while (NULL != i_su) {
+				if (i_su->su_on_node->node_info.nodeId == avd_cb->node_id_avd) {
+					local_su = i_su;
+					if (i_su->list_of_susi->state == SA_AMF_HA_STANDBY) {
+						rc = SA_AIS_OK;
+						goto done;
+					}
+				}
+				i_su = i_su->sg_list_su_next;
+			}
+
+			switch (avd_si->sg_of_si->sg_redundancy_model) {
+
+				case SA_AMF_2N_REDUNDANCY_MODEL:
+					{
+						avd_si->si_swap_in_progress = SA_TRUE;
+						avd_si->invocation = invocation;
+						m_AVD_SET_SU_SWITCH(avd_cb,local_su,AVSV_SI_TOGGLE_SWITCH);
+						if (avd_sg_2n_siswitch_func(avd_cb, local_su) != NCSCC_RC_SUCCESS) {
+							LOG_ER("avd_sg_2n_suswitch_func failed in SI SWAP");
+							rc = SA_AIS_ERR_BAD_OPERATION;
+							avd_si->si_swap_in_progress = SA_FALSE;		
+							goto done;
+						} else {
+							/* Response will be sent when the response comes for the si switch */
+							return;
+						}
+					}
+					break;
+
+				case SA_AMF_N_WAY_REDUNDANCY_MODEL:
+				case SA_AMF_NPM_REDUNDANCY_MODEL:
+					/* TODO , Will be done when the SI SWAP is implemented */
+					rc = SA_AIS_ERR_NOT_SUPPORTED;
+					goto done;
+					break;
+
+				case SA_AMF_NO_REDUNDANCY_MODEL:
+				case SA_AMF_N_WAY_ACTIVE_REDUNDANCY_MODEL:
+				default:
+					LOG_ER("Si SWAP not Supported on redundancy model=%d",avd_si->sg_of_si->sg_redundancy_model);
+					rc = SA_AIS_ERR_NOT_SUPPORTED;
+					goto done;
+					break;
+			}
+		}
+		break;
+
 	case SA_AMF_ADMIN_LOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_UNLOCK_INSTANTIATION:
 	case SA_AMF_ADMIN_RESTART:

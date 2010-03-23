@@ -102,12 +102,14 @@ SaAisErrorT avd_svctypecstypes_config_get(SaNameT *svctype_name)
 	}
 
 	while (immutil_saImmOmSearchNext_2(searchHandle, &dn, (SaImmAttrValuesT_2 ***)&attributes) == SA_AIS_OK) {
-		if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == NULL) {
-			error = SA_AIS_ERR_FAILED_OPERATION;
-			goto done2;
-		}
 
-		svctypecstype_db_add(svctypecstype);
+		if ((svctypecstype = avd_svctypecstypes_get(&dn))== NULL) {
+			if ((svctypecstype = svctypecstypes_create(&dn, attributes)) == NULL) {
+				error = SA_AIS_ERR_FAILED_OPERATION;
+				goto done2;
+			}
+			svctypecstype_db_add(svctypecstype);
+		}
 	}
 
 	error = SA_AIS_OK;

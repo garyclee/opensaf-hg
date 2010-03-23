@@ -38,6 +38,7 @@
  */
 
 #include "avd.h"
+#include "logtrace.h"
 
 /*****************************************************************************
  * Function: avd_mds_d_enc
@@ -67,8 +68,16 @@ void avd_mds_d_enc(MDS_CALLBACK_ENC_INFO *enc_info)
 
 	data = ncs_enc_reserve_space(uba, 3 * sizeof(uns32));
 	ncs_encode_32bit(&data, msg->msg_type);
-	ncs_encode_32bit(&data, msg->msg_info.d2d_hrt_bt.node_id);
-	ncs_encode_32bit(&data, msg->msg_info.d2d_hrt_bt.avail_state);
+	if (AVD_D2D_HEARTBEAT_MSG == msg->msg_type ) {
+		ncs_encode_32bit(&data, msg->msg_info.d2d_hrt_bt.node_id);
+		ncs_encode_32bit(&data, msg->msg_info.d2d_hrt_bt.avail_state);
+	} else if (AVD_D2D_CHANGE_ROLE_REQ == msg->msg_type) {
+		ncs_encode_32bit(&data, msg->msg_info.d2d_chg_role_req.cause);
+		ncs_encode_32bit(&data, msg->msg_info.d2d_chg_role_req.role);
+	} else {
+		ncs_encode_32bit(&data, msg->msg_info.d2d_chg_role_rsp.role);
+		ncs_encode_32bit(&data, msg->msg_info.d2d_chg_role_rsp.status);
+	}
 	ncs_enc_claim_space(uba, 3 * sizeof(uns32));
 
 	m_AVD_LOG_MDS_SUCC(AVSV_LOG_MDS_ENC_CBK);
@@ -109,10 +118,19 @@ void avd_mds_d_dec(MDS_CALLBACK_DEC_INFO *dec_info)
 
 	data = ncs_dec_flatten_space(uba, data_buff, 3 * sizeof(uns32));
 	d2d_msg->msg_type = ncs_decode_32bit(&data);
-	d2d_msg->msg_info.d2d_hrt_bt.node_id = ncs_decode_32bit(&data);
-	d2d_msg->msg_info.d2d_hrt_bt.avail_state = ncs_decode_32bit(&data);
-	ncs_dec_skip_space(uba, 3 * sizeof(uns32));
 
+	if (AVD_D2D_HEARTBEAT_MSG == d2d_msg->msg_type) {
+		d2d_msg->msg_info.d2d_hrt_bt.node_id = ncs_decode_32bit(&data);
+		d2d_msg->msg_info.d2d_hrt_bt.avail_state = ncs_decode_32bit(&data);
+	} else if (AVD_D2D_CHANGE_ROLE_REQ == d2d_msg->msg_type) {
+		d2d_msg->msg_info.d2d_chg_role_req.cause = ncs_decode_32bit(&data);
+		d2d_msg->msg_info.d2d_chg_role_req.role = ncs_decode_32bit(&data);
+	} else {
+		d2d_msg->msg_info.d2d_chg_role_rsp.role = ncs_decode_32bit(&data);
+		d2d_msg->msg_info.d2d_chg_role_rsp.status = ncs_decode_32bit(&data);
+	}       
+
+	ncs_dec_skip_space(uba, 3 * sizeof(uns32));
 	dec_info->o_msg = (NCSCONTEXT)d2d_msg;
 
 }
@@ -189,33 +207,60 @@ uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 		return NCSCC_RC_FAILURE;
 	}
 
-	/* create the message event */
-	evt = calloc(1, sizeof(AVD_EVT));
-	if (evt == AVD_EVT_NULL) {
-		/* log error */
-		m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
-		/* free the message and return */
+	if (AVD_D2D_HEARTBEAT_MSG == rcv_msg->msg_type) {
+		/* create the message event */
+		evt = calloc(1, sizeof(AVD_EVT));
+		if (evt == AVD_EVT_NULL) {
+			/* log error */
+			m_AVD_LOG_MEM_FAIL_LOC(AVD_EVT_ALLOC_FAILED);
+			/* free the message and return */
+			avsv_d2d_msg_free(rcv_msg);
+			return NCSCC_RC_FAILURE;
+		}
+
+		m_AVD_LOG_RCVD_VAL(((long)evt));
+
+		evt->info.avd_msg = rcv_msg;
+		evt->rcv_evt = AVD_EVT_D_HB;
+		if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
+	    			!= NCSCC_RC_SUCCESS) {
+			m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
+			/* log error */
+			/* free the message */
+			avsv_d2d_msg_free(rcv_msg);
+			evt->info.avd_msg = NULL;
+			/* free the event and return */
+			free(evt);
+			return NCSCC_RC_FAILURE;
+		}		
+	} else {
+		if (AVD_D2D_CHANGE_ROLE_REQ == rcv_msg->msg_type) {
+			if (SA_AMF_HA_ACTIVE == rcv_msg->msg_info.d2d_chg_role_req.role) {
+				cb->swap_switch = SA_TRUE;
+				LOG_NO("amfd role change req stdby -> actv, posting to mail box");
+				avd_post_amfd_switch_role_change_evt(cb, SA_AMF_HA_ACTIVE);
+			} else {
+				/* We will never come here, request only comes for active change role */
+				assert(0);
+			}
+		} else {
+			/* Response for the request */
+			if (SA_AMF_HA_ACTIVE == rcv_msg->msg_info.d2d_chg_role_rsp.role) {
+				if (NCSCC_RC_SUCCESS == rcv_msg->msg_info.d2d_chg_role_rsp.status) {
+					/* Peer AMFD went to Active state successfully, make local AVD standby */
+					LOG_NO("amfd role change rsp stdby -> actv succ, posting to mail box for qsd -> stdby");
+					avd_post_amfd_switch_role_change_evt(cb, SA_AMF_HA_STANDBY);
+				} else {
+					/* Other AMFD rejected the active request, move the local amfd back to Active from qsd */ 
+					LOG_ER("amfd role change rsp stdby -> actv fail, posting to mail box for qsd -> actv");
+					avd_post_amfd_switch_role_change_evt(cb, SA_AMF_HA_ACTIVE);
+				}
+			} else {
+				/* We should never fell into this else case */
+				assert(0);
+			}
+		}
 		avsv_d2d_msg_free(rcv_msg);
-		return NCSCC_RC_FAILURE;
-	}
-
-	m_AVD_LOG_RCVD_VAL(((long)evt));
-
-	evt->rcv_evt = AVD_EVT_D_HB;
-
-	evt->info.avd_msg = rcv_msg;
-
-	if (m_NCS_IPC_SEND(&cb->avd_hb_mbx, evt, NCS_IPC_PRIORITY_VERY_HIGH)
-	    != NCSCC_RC_SUCCESS) {
-		m_AVD_LOG_MBX_ERROR(AVSV_LOG_MBX_SEND);
-		/* log error */
-		/* free the message */
-		avsv_d2d_msg_free(rcv_msg);
-		evt->info.avd_msg = NULL;
-		/* free the event and return */
-		free(evt);
-
-		return NCSCC_RC_FAILURE;
 	}
 
 	m_AVD_LOG_MBX_SUCC(AVSV_LOG_MBX_SEND);
@@ -240,4 +285,5 @@ uns32 avd_d2d_msg_rcv(AVD_D2D_MSG *rcv_msg)
 void avsv_d2d_msg_free(AVD_D2D_MSG *d2d_msg)
 {
 	free(d2d_msg);
+	d2d_msg = NULL;
 }
