@@ -64,14 +64,14 @@
         <defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000"/>
       </softwareBundle>
       <amfEntityTypes>
-        <AppBaseType safAppType="safAppType=AmfDemoAppType">
+        <AppBaseType safAppType="safAppType=AmfDemo1">
           <AppType safVersion="safVersion=4.0.0">
-            <serviceGroupType saAmfApptSGTypes="safVersion=4.0.0,safSgType=AmfDemoSgType"/>
+            <serviceGroupType saAmfApptSGTypes="safVersion=4.0.0,safSgType=AmfDemo1"/>
           </AppType>
         </AppBaseType>
-        <SGBaseType safSgType="safSgType=AmfDemoSgType">
+        <SGBaseType safSgType="safSgType=AmfDemo1">
           <SGType safVersion="safVersion=4.0.0">
-            <suType saAmfSgtValidSuTypes="safVersion=4.0.0,safSuType=AmfDemoSuType"/>
+            <suType saAmfSgtValidSuTypes="safVersion=4.0.0,safSuType=AmfDemo1"/>
             <redundancy saAmfSgtRedundancyModel="1"/>
             <compRestart saAmfSgtDefCompRestartProb="4000000" saAmfSgtDefCompRestartMax="10"/>
             <suRestart saAmfSgtDefSuRestartProb="4000000" saAmfSgtDefSuRestartMax="10"/>
@@ -79,17 +79,17 @@
               saAmfSgtDefAutoAdjustProb="10000000"/>
           </SGType>
         </SGBaseType>
-        <SUBaseType safSuType="safSuType=AmfDemoSuType">
+        <SUBaseType safSuType="safSuType=AmfDemo1">
           <SUType safVersion="safVersion=4.0.0">
             <mandatoryAttrs saAmfSutIsExternal="0" saAmfSutDefSUFailover="1"/>
             <componentType saAmfSutMinNumComponents="1" 
-              safMemberCompType="safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemoCompType"/>
-            <supportedSvcType saAmfSutProvidesSvcType="safVersion=4.0.0,safSvcType=AmfDemoSvcType"/>
+              safMemberCompType="safMemberCompType=safVersion=4.0.0\,safCompType=AmfDemo1"/>
+            <supportedSvcType saAmfSutProvidesSvcType="safVersion=4.0.0,safSvcType=AmfDemo1"/>
           </SUType>
         </SUBaseType>
-        <CompBaseType safCompType="safCompType=AmfDemoCompType">
+        <CompBaseType safCompType="safCompType=AmfDemo1">
           <CompType safVersion="safVersion=4.0.0">
-            <providesCSType safSupportedCsType="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType" saAmfCtCompCapability="1"/>
+            <providesCSType safSupportedCsType="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1" saAmfCtCompCapability="1"/>
             <compTypeDefaults saAmfCtCompCategory="1" 
               saAmfCtDefDisableRestart="0" 
               saAmfCtDefClcCliTimeout="10000000000" 
@@ -105,12 +105,12 @@
             <swBundle saAmfCtSwBundle="safBundle=AmfDemo"/>
           </CompType>
         </CompBaseType>
-        <CSBaseType safCSType="safCSType=AmfDemoCsType">
+        <CSBaseType safCSType="safCSType=AmfDemo1">
           <CSType safVersion="safVersion=4.0.0"/>
         </CSBaseType>
-        <ServiceBaseType safSvcType="safSvcType=AmfDemoSvcType">
+        <ServiceBaseType safSvcType="safSvcType=AmfDemo1">
           <ServiceType safVersion="safVersion=4.0.0">
-            <csType safMemberCSType="safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemoCsType"/>
+            <csType safMemberCSType="safMemberCSType=safVersion=4.0.0\,safCSType=AmfDemo1"/>
           </ServiceType>
         </ServiceBaseType>
       </amfEntityTypes>
@@ -147,22 +147,22 @@
       <immCCB ccbFlags="0">
         <create objectClassName="SaAmfApplication" parentObjectDN="=">
           <attribute name="safApp" type="SA_IMM_ATTR_SASTRINGT">
-            <value>safApp=AmfDemo</value>
+            <value>safApp=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfAppType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safAppType=AmfDemoAppType</value>
+            <value>safVersion=4.0.0,safAppType=AmfDemo1</value>
           </attribute>
         </create>
       </immCCB>
     </procInitAction>
     <procInitAction>
       <immCCB ccbFlags="0">
-        <create objectClassName="SaAmfSG" parentObjectDN="safApp=AmfDemo">
+        <create objectClassName="SaAmfSG" parentObjectDN="safApp=AmfDemo1">
           <attribute name="safSg" type="SA_IMM_ATTR_SASTRINGT">
             <value>safSg=AmfDemo</value>
           </attribute>
           <attribute name="saAmfSGType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safSgType=AmfDemoSgType</value>
+            <value>safVersion=4.0.0,safSgType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfSGSuHostNodeGroup" type="SA_IMM_ATTR_SANAMET">
             <value>safAmfNodeGroup=SCs,safAmfCluster=myAmfCluster</value>
@@ -192,18 +192,18 @@
             <value>0</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemo">
+        <create objectClassName="SaAmfSI" parentObjectDN="safApp=AmfDemo1">
           <attribute name="safSi" type="SA_IMM_ATTR_SASTRINGT">
             <value>safSi=AmfDemo</value>
           </attribute>
           <attribute name="saAmfSvcType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safSvcType=AmfDemoSvcType</value>
+            <value>safVersion=4.0.0,safSvcType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfSIRank" type="SA_IMM_ATTR_SAUINT32T">
             <value>0</value>
           </attribute>
           <attribute name="saAmfSIProtectedbySG" type="SA_IMM_ATTR_SANAMET">
-            <value>safSg=AmfDemo,safApp=AmfDemo</value>
+            <value>safSg=AmfDemo,safApp=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfSIPrefStandbyAssignments" type="SA_IMM_ATTR_SAUINT32T">
             <value>1</value>
@@ -212,12 +212,12 @@
             <value>1</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfSU" parentObjectDN="safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfSU" parentObjectDN="safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
             <value>safSu=SU1</value>
           </attribute>
           <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+            <value>safVersion=4.0.0,safSuType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
             <value>safAmfNode=SC-1,safAmfCluster=myAmfCluster</value>
@@ -226,12 +226,12 @@
             <value>3</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfSU" parentObjectDN="safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfSU" parentObjectDN="safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safSu" type="SA_IMM_ATTR_SASTRINGT">
             <value>safSu=SU2</value>
           </attribute>
           <attribute name="saAmfSUType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safSuType=AmfDemoSuType</value>
+            <value>safVersion=4.0.0,safSuType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfSUHostNodeOrNodeGroup" type="SA_IMM_ATTR_SANAMET">
             <value>safAmfNode=SC-2,safAmfCluster=myAmfCluster</value>
@@ -240,12 +240,12 @@
             <value>3</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfComp" parentObjectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfComp" parentObjectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
             <value>safComp=AmfDemo</value>
           </attribute>
           <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+            <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfCompInstantiateCmdArgv" type="SA_IMM_ATTR_SASTRINGT">
             <value>comparg1</value>
@@ -255,17 +255,17 @@
             <value>0</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemo,safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
-            <value>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType</value>
+            <value>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfComp" parentObjectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfComp" parentObjectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safComp" type="SA_IMM_ATTR_SASTRINGT">
             <value>safComp=AmfDemo</value>
           </attribute>
           <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safCompType=AmfDemoCompType</value>
+            <value>safVersion=4.0.0,safCompType=AmfDemo1</value>
           </attribute>
           <attribute name="saAmfCompInstantiateCmdArgv" type="SA_IMM_ATTR_SASTRINGT">
             <value>comparg2</value>
@@ -275,17 +275,17 @@
             <value>0</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfCompCsType" parentObjectDN="safComp=AmfDemo,safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1">
           <attribute name="safSupportedCsType" type="SA_IMM_ATTR_SANAMET">
-            <value>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType</value>
+            <value>safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemo1</value>
           </attribute>
         </create>
-        <create objectClassName="SaAmfCSI" parentObjectDN="safSi=AmfDemo,safApp=AmfDemo">
+        <create objectClassName="SaAmfCSI" parentObjectDN="safSi=AmfDemo,safApp=AmfDemo1">
           <attribute name="safCsi" type="SA_IMM_ATTR_SASTRINGT">
             <value>safCsi=AmfDemo</value>
           </attribute>
           <attribute name="saAmfCSType" type="SA_IMM_ATTR_SANAMET">
-            <value>safVersion=4.0.0,safCSType=AmfDemoCsType</value>
+            <value>safVersion=4.0.0,safCSType=AmfDemo1</value>
           </attribute>
         </create>
       </immCCB>
@@ -297,8 +297,8 @@
             <deactivationUnit/>
             <activationUnit>
               <actedOn>
-                <byName objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo"/>
-                <byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo"/>
+                <byName objectDN="safSu=SU1,safSg=AmfDemo,safApp=AmfDemo1"/>
+                <byName objectDN="safSu=SU2,safSg=AmfDemo,safApp=AmfDemo1"/>
               </actedOn>
               <swAdd bundleDN="safBundle=AmfDemo" pathnamePrefix="/opt/amf_demo">
                 <plmExecEnv amfNode="safAmfNode=SC-1,safAmfCluster=myAmfCluster"/>
