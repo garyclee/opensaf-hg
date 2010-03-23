@@ -60,7 +60,7 @@
         <defaultCliTimeout saSmfBundleDefaultCmdTimeout="60000000000"/>
       </softwareBundle>
       <amfEntityTypes>
-        <CompBaseType safCompType="safCompType=AmfDemoCompType">
+        <CompBaseType safCompType="safCompType=AmfDemo1">
           <CompType safVersion="safVersion=5.5.5">
             <providesCSType 
               safSupportedCsType="safSupportedCsType=safVersion=4.0.0\,safCSType=AmfDemoCsType" 
@@ -101,17 +101,17 @@
             <activationUnit>
               <actedOn>
                 <byTemplate>
-                  <type objectDN="safVersion=4.0.0,safCompType=AmfDemoCompType"/>
+                  <type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"/>
                 </byTemplate>
               </actedOn>
               <!-- swRemove bundleDN="safBundle=AmfDemo" pathnamePrefix="/opt/amf_demo"/ -->
               <swAdd bundleDN="safBundle=bundleA" pathnamePrefix="/opt/amf_demo"/>
             </activationUnit>
             <targetEntityTemplate>
-              <type objectDN="safVersion=4.0.0,safCompType=AmfDemoCompType"/>
+              <type objectDN="safVersion=4.0.0,safCompType=AmfDemo1"/>
               <modifyOperation operation="SA_IMM_ATTR_VALUES_REPLACE">
                 <attribute name="saAmfCompType" type="SA_IMM_ATTR_SANAMET">
-                  <value>safVersion=5.5.5,safCompType=AmfDemoCompType</value>
+                  <value>safVersion=5.5.5,safCompType=AmfDemo1</value>
                 </attribute>
               </modifyOperation>
             </targetEntityTemplate>
