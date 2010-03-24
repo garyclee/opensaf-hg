@@ -504,12 +504,11 @@ To enable/disable immd/immnd trace in a running system, send signal USR1 to the
 immd/immnd process. Each signal send toggles the trace.
 Trace default is disabled.
 
-Traces are written to the file configured in config/imm.conf
+Traces are written to the file configured in immd.conf and immnd.conf
 
-To enable traces from the very start, uncomment lines:
+To enable traces from the very start, uncomment:
 
-        #export IMMD_TRACE_CATEGORIES=ALL
-        #export IMMND_TRACE_CATEGORIES=ALL
+        #args="--tracemask=0xffffffff"
 
 in imm.conf and restart the cluster.
 

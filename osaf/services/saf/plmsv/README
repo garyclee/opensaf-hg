@@ -307,16 +307,6 @@ for example:
 Please read README in plmc directory for further details. 
 
 
-DEBUG
------
-
-To enable/disable tracing or to adjust the levels of tracing for plmsv edit 
-PKGSYSCONFDIR/plmd.conf file. Below are the config variables in that file
-
-PLMD_TRACE_CATEGORIES=ALL
-
-
-
 IMPLEMENTATION NOTES
 ---------------------
 

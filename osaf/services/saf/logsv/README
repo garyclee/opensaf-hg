@@ -131,11 +131,11 @@ trace state is toggled. Example:
 
 Traces are written to the file:
 
-	$PKGLOGDIR/osaflogd.log
+	$pkglogdir/osaflogd.log
 
 To enable traces from the very start of the log server, uncomment the line:
 
-        #export LOGD_TRACE_CATEGORIES=ALL
+        #args="--tracemask=0xffffffff"
 
 in logd.conf (see CONFIGURATION above) and restart the cluster.
 

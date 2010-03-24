@@ -25,13 +25,6 @@
 static int __init_mqnd(void)
 {
 	NCS_LIB_REQ_INFO lib_create;
-	char *trace_mask_env;
-	unsigned int trace_mask;
-
-	if ((trace_mask_env = getenv("MSGND_TRACE_CATEGORIES")) != NULL) {
-		trace_mask = strtoul(trace_mask_env, NULL, 0);
-		trace_category_set(trace_mask);
-	}
 
 	/* Init LIB_CREATE request for Server */
 	memset(&lib_create, 0, sizeof(lib_create));
